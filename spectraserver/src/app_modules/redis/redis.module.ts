@@ -21,5 +21,6 @@ import Redis from 'ioredis';
         RedisService,
         PubSubService
     ],
+    exports: [RedisService]
 })
 export class RedisModule { }
