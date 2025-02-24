@@ -22,7 +22,7 @@ export class RevokedTokenService {
      * @param token Token JWT da verificare
      * @returns True se il token è revocato
      */
-    async isTokenRevoked(token: string): Promise<boolean> {
-        return !!(await this.redisService.get(`revoked:${token}`));
+    async isTokenRevoked(jti: UUID): Promise<boolean> {
+        return !!(await this.redisService.get(`revoked:${jti.toString()}`));
     }
 }
