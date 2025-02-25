@@ -5,6 +5,7 @@ import { configurations } from './config/config';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { MailerModule, MailerOptions } from '@nestjs-modules/mailer';
 import { RedisModule } from './app_modules/redis/redis.module';
+import { UserModule } from './app_modules/user/user.module';
 
 
 @Module({
@@ -24,7 +25,8 @@ import { RedisModule } from './app_modules/redis/redis.module';
     useFactory: async (configService: ConfigService) => configService.get<MailerOptions>("Email") ?? {},
     inject: [ConfigService]
   }),
-  RedisModule
+  RedisModule,
+  UserModule
 ]
 })
 export class AppModule {}
