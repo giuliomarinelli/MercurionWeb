@@ -4,6 +4,7 @@ import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify
 import { Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { MicroserviceOptions, Transport } from '@nestjs/microservices'
+import { HttpExceptionFilter } from './exception-handling/http-exception-filter'
 
 
 (async () => {
@@ -17,6 +18,7 @@ import { MicroserviceOptions, Transport } from '@nestjs/microservices'
       servers: [`nats://localhost:${natsPort}`],  
     },
   })
+  app.useGlobalFilters(new HttpExceptionFilter())
   const port = configService.get<number>('App.port')
   await app.listen(port ?? 8099)
   await app.startAllMicroservices()
