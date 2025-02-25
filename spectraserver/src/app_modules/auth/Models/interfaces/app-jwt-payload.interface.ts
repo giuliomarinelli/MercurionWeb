@@ -8,12 +8,11 @@ export interface AppJwtPayload {
     iss: string
     sub: UUID
     jti: UUID
+    sid: UUID
     typ: TokenType
-    fgp?: string
-    res: boolean
     iat: number
     exp: number
-    scope: string
+    scp: string
 
     
 }

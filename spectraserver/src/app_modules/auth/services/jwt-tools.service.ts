@@ -4,6 +4,10 @@ import { RevokedTokenService } from './revoked-token.service';
 import { JwtConfiguration } from 'src/config/@types-config';
 import { ConfigService } from '@nestjs/config';
 import { TokenType } from '../Models/enums/token-type.enum';
+import { randomUUID, UUID } from 'crypto';
+import { UserService } from 'src/app_modules/user/services/user.service';
+import { GeneralUtils } from 'src/general-utils/general-utils';
+import { Scope } from 'src/app_modules/user/Models/enums/scope.enum';
 
 @Injectable()
 export class JwtToolsService {
@@ -23,7 +27,8 @@ export class JwtToolsService {
     constructor(
         private readonly jwtService: JwtService,
         private readonly revokedTokenService: RevokedTokenService,
-        private readonly configService: ConfigService
+        private readonly configService: ConfigService,
+        private readonly userService: UserService
     ) {
         this.accessTokenConfig = this.configService.get<JwtConfiguration>("Jwt.accessToken") ?? { ...this.defaultJwtConfig }
         this.refreshTokenConfig = this.configService.get<JwtConfiguration>("Jwt.refreshToken") ?? { ...this.defaultJwtConfig }
@@ -58,6 +63,33 @@ export class JwtToolsService {
         }
 
         return jwtConfig
+
+    }
+
+    public async generateToken(userId: UUID, sessionId: UUID, type: TokenType): Promise<string> {
+
+        const jwtConfig = this.getJwtConfigurationFromTokenType(type)
+
+        const scopes: string[] = await this.userService.getUserScopesById(userId) ?? []
+
+        const scp: string = scopes.map(s => GeneralUtils.getEnumKeyByValue(Scope, s as any)).join(' ')
+
+        return await this.jwtService.signAsync(
+            {
+                iss: this.jwtIssuer,
+                sub: userId,
+                jti: randomUUID(),
+                sid: sessionId,
+                typ: type,
+                iat: Date.now(),
+                exp: Date.now() + jwtConfig.expiresInMs,
+                scp
+            },
+            {
+                algorithm: "HS512",
+                secret: jwtConfig.secret
+            }
+        )
 
     }
 
