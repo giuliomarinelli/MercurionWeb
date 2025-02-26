@@ -23,7 +23,7 @@ export interface DataConfiguration {
 
 export interface JwtConfiguration {
 
-    secret: string
+    secret?: string
     expiresInMs: number
 
 }

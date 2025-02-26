@@ -16,13 +16,15 @@ export class HttpExceptionFilter implements ExceptionFilter {
             message: "Unknown error"
         }
 
-        res.status(internalErrorRes.statusCode)
-            .send({
+        res.status(internalErrorRes.statusCode).send(
+            {
                 ...internalErrorRes,
                 timestamp: new Date().toISOString(),
                 path: req.url,
                 requestId: req.id
-            } as HttpErrorRes)
+            } as HttpErrorRes
+        )
+
     }
 
 }
