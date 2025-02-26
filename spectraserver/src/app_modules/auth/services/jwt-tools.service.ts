@@ -26,7 +26,7 @@ export class JwtToolsService {
     private readonly defaultJwtConfig: JwtConfiguration = {
         secret: '',
         expiresInMs: 0
-    };
+    }
 
     private readonly privateKey: string
     private readonly publicKey: string
@@ -38,13 +38,16 @@ export class JwtToolsService {
         private readonly userService: UserService
     ) {
         this.accessTokenConfig.expiresInMs = this.configService.get<number>("Jwt.accessToken.expiresInMs") ?? 0
-        this.preAuthorizationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.preAuthorizationToken") ?? { ...this.defaultJwtConfig }
-        this.activationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.activationToken") ?? { ...this.defaultJwtConfig }
-        this.phoneNumberVerificationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.phoneNumberVerificationToken") ?? { ...this.defaultJwtConfig }
-        this.emailVerificationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.emailVerificationToken") ?? { ...this.defaultJwtConfig }
+        this.preAuthorizationTokenConfig = this.configService
+            .get<JwtConfiguration>("Jwt.preAuthorizationToken") ?? { ...this.defaultJwtConfig }
+        this.activationTokenConfig = this.configService
+            .get<JwtConfiguration>("Jwt.activationToken") ?? { ...this.defaultJwtConfig }
+        this.phoneNumberVerificationTokenConfig = this.configService
+            .get<JwtConfiguration>("Jwt.phoneNumberVerificationToken") ?? { ...this.defaultJwtConfig }
+        this.emailVerificationTokenConfig = this.configService
+            .get<JwtConfiguration>("Jwt.emailVerificationToken") ?? { ...this.defaultJwtConfig }
         this.jwtIssuer = this.configService.get<string>("Jwt.issuer") ?? ''
 
-        // 🔹 Carica le chiavi RSA per l'AccessToken
         this.privateKey = join(__dirname, readFileSync('src/config/keys/private.pem', 'utf8'))
         this.publicKey = join(__dirname, readFileSync('src/config/keys/public.pem', 'utf8'))
 
@@ -61,9 +64,10 @@ export class JwtToolsService {
     }
 
     public async generateToken(userId: UUID, sessionId: UUID, type: TokenType): Promise<string> {
+
         const jwtConfig = this.getJwtConfigurationFromTokenType(type);
         const scopes: string[] = await this.userService.getUserScopesById(userId) ?? [];
-        const scp: string = scopes.map(s => GeneralUtils.getEnumKeyByValue(Scope, s as any)).join(' ')
+        const scp: string = scopes.map(s => GeneralUtils.getEnumKeyByValue(Scope, s)).join(' ')
 
         // 🔹 Usa RS256 per gli AccessToken, HS512 per gli altri
         const signOptions: JwtSignOptions = type === TokenType.AccessToken
@@ -82,7 +86,7 @@ export class JwtToolsService {
                 scp
             },
             signOptions
-        );
+        )
     }
 
     public async verifyTokenAndGetPayload(token: string, type: TokenType, ignoreExpiration: boolean = false): Promise<AppJwtPayload> {
