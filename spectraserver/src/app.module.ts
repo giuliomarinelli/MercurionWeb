@@ -6,6 +6,8 @@ import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { MailerModule, MailerOptions } from '@nestjs-modules/mailer';
 import { RedisModule } from './app_modules/redis/redis.module';
 import { UserModule } from './app_modules/user/user.module';
+import { CopyToDistService } from './copy-to-dist/copy-to-dist.service';
+import { AuthModule } from './app_modules/auth/auth.module';
 
 
 @Module({
@@ -26,7 +28,9 @@ import { UserModule } from './app_modules/user/user.module';
     inject: [ConfigService]
   }),
   RedisModule,
-  UserModule
-]
+  UserModule,
+  AuthModule
+],
+  providers: [CopyToDistService]
 })
 export class AppModule {}

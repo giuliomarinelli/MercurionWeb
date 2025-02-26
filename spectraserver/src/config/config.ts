@@ -69,7 +69,6 @@ const DataConfig = registerAs(
 const JwtConfig = registerAs(
     ConfigKey.Jwt, (): JwtConfigurations => ({
         accessToken: {
-            secret: process.env.JWT_SECRETS_ACCESS_TOKEN ?? '',
             expiresInMs: Number(process.env.JWT_EXPIRATION_ACCESS_TOKEN)
         },
         refreshToken: {
