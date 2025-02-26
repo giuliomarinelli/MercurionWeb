@@ -10,13 +10,13 @@ export class User {
     @Column({ type: 'nvarchar', unique: true })
     email: string
 
-    @Column({ type: 'nvarchar', length: 100 })
+    @Column({ type: 'varchar', length: 100 })
     passwordHash: string
 
-    @Column({ type: 'nvarchar', nullable: true })
+    @Column({ type: 'varchar', nullable: true })
     firstName: string
 
-    @Column({ type: 'nvarchar', nullable: true })
+    @Column({ type: 'varchar', nullable: true })
     lastName: string
 
     @Column({ type: 'boolean', default: false })
@@ -25,7 +25,7 @@ export class User {
     @Column({ type: 'text' })
     scopes: string // JSON.stringify degli scope UUID
 
-    @Column({ type: 'boolean', default: false })
+    @Column({ type: 'tinyint', default: false })
     isAdmin: boolean
 
     @Column({ type: 'bigint', default: Date.now() })
