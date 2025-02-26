@@ -5,7 +5,6 @@ import { FastifyRequest, FastifyReply } from 'fastify'
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
 
-
     catch(e: any, host: ArgumentsHost) {
 
         const req = host.switchToHttp().getRequest<FastifyRequest>()
@@ -24,8 +23,6 @@ export class HttpExceptionFilter implements ExceptionFilter {
                 path: req.url,
                 requestId: req.id
             } as HttpErrorRes)
-
-
     }
 
 }
