@@ -6,10 +6,11 @@ import { RedisModule } from '../redis/redis.module';
 import { JwtService } from '@nestjs/jwt';
 import { UserModule } from '../user/user.module';
 import { RedisService } from '../redis/services/redis.service';
+import { SessionService } from './services/session.service';
 
 
 @Module({
   imports: [RedisModule, UserModule],
-  providers: [RevokedTokenService, JwtToolsService, PasswordEncoderService, JwtService, RedisService]
+  providers: [RevokedTokenService, JwtToolsService, PasswordEncoderService, JwtService, RedisService, SessionService]
 })
 export class AuthModule {}

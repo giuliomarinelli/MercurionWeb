@@ -66,18 +66,19 @@ export class JwtToolsService {
     }
 
     public async generateToken(userId: UUID, sessionId: UUID, type: TokenType): Promise<string> {
-
         const jwtConfig = this.getJwtConfigurationFromTokenType(type)
         const scopes: string[] = await this.userService.getUserScopesById(userId) ?? []
         const scp: string = scopes.map(s => GeneralUtils.getEnumKeyByValue(Scope, s)).join(' ')
-
-        // 🔹 Usa RS256 per gli AccessToken, HS512 per gli altri
+    
+        // 🔹 Usa RS256 per AccessToken, HS512 per gli altri
         const signOptions: JwtSignOptions = type === TokenType.AccessToken
             ? { algorithm: "RS256", privateKey: this.privateKey }
             : { algorithm: "HS512", secret: jwtConfig.secret }
-
-        const jti: UUID = randomUUID()
-
+    
+        const jti: UUID = randomUUID(); // Genera JTI univoco per il token
+        const expiresAt = Math.floor(Date.now() / 1000) + (jwtConfig.expiresInMs / 1000)
+    
+        // 🔹 Generazione del Token
         const token: string = await this.jwtService.signAsync(
             {
                 iss: this.jwtIssuer,
@@ -86,15 +87,21 @@ export class JwtToolsService {
                 sid: sessionId,
                 typ: type,
                 iat: Math.floor(Date.now() / 1000),
-                exp: Math.floor(Date.now() / 1000) + (jwtConfig.expiresInMs / 1000),
+                exp: expiresAt,
                 scp
             },
             signOptions
-        )
+        );
+    
+        // 🔹 Se è un AccessToken, memorizziamo il JTI tra i token emessi
         if (type === TokenType.AccessToken) {
-            await this.redisservice.set(`issued:${sessionId.toString()}:${jti}`)
+            const issuedKey = `issued:${sessionId.toString()}:${jti}`
+            await this.redisservice.set(issuedKey, '1', jwtConfig.expiresInMs / 1000) // TTL uguale alla durata del token
         }
+    
+        return token
     }
+    
 
     public async verifyTokenAndGetPayload(token: string, type: TokenType, ignoreExpiration: boolean = false): Promise<AppJwtPayload> {
 
