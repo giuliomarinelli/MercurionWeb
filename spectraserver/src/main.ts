@@ -5,6 +5,7 @@ import { Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { MicroserviceOptions, Transport } from '@nestjs/microservices'
 import { HttpExceptionFilter } from './exception-handling/http-exception-filter'
+import { IoAdapter } from '@nestjs/platform-socket.io'
 
 
 (async () => {
@@ -12,6 +13,7 @@ import { HttpExceptionFilter } from './exception-handling/http-exception-filter'
   const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter())
   const configService = app.get<ConfigService>(ConfigService)
   const natsPort = configService.get<number>('App.natsPort') ?? 4223
+  app.useWebSocketAdapter(new IoAdapter())
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.NATS,
     options: {
