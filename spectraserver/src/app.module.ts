@@ -14,6 +14,7 @@ import { GlobalGuard } from './app_modules/auth/guards/global.guard';
 import { JwtToolsService } from './app_modules/auth/services/jwt-tools.service';
 import { SessionService } from './app_modules/auth/services/session.service';
 import { JwtService } from '@nestjs/jwt';
+import { SocketIoModule } from './app_modules/socket.io/socket.io.module';
 
 
 @Module({
@@ -35,7 +36,8 @@ import { JwtService } from '@nestjs/jwt';
     }),
     RedisModule,
     UserModule,
-    AuthModule
+    AuthModule,
+    SocketIoModule
   ],
   providers: [
     CopyToDistService,

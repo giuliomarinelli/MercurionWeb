@@ -1,15 +1,14 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { JwtToolsService } from '../services/jwt-tools.service';
 import { SessionService } from '../services/session.service';
-import { FastifyRequest } from 'fastify';
-import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from 'src/metadata/metadata';
 import { TokenType } from '../Models/enums/token-type.enum';
-
+import { FastifyRequest } from 'fastify';
+import { Socket } from 'socket.io';
+import { Reflector } from '@nestjs/core';
 
 @Injectable()
 export class GlobalGuard implements CanActivate {
-
   constructor(
     private readonly jwtToolsService: JwtToolsService,
     private readonly sessionService: SessionService,
@@ -17,39 +16,72 @@ export class GlobalGuard implements CanActivate {
   ) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    // 🔹 Controlla se la route ha il decorator `@Public()`
+    // 🔹 Controlla se la route o l'evento WS ha il decoratore `@Public()`
     const isPublic = this.reflector.get<boolean>(IS_PUBLIC_KEY, context.getHandler())
     if (isPublic) {
-      return true // Permetti l'accesso senza autenticazione
+      return true // ✅ Permetti l'accesso senza autenticazione
     }
 
+    if (context.getType() === 'http') {
+      return this.validateHttpRequest(context)
+    }
+
+    if (context.getType() === 'ws') {
+      return this.validateWebSocketEvent(context)
+    }
+
+    return false
+  }
+
+  // 🔹 Validazione per richieste HTTP
+  private async validateHttpRequest(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest<FastifyRequest>()
 
     try {
-      // 🔹 Estrarre il token JWT dalla richiesta
       const token = this.jwtToolsService.extractAccessTokenFromReq(req)
+      const payload = await this.jwtToolsService.verifyTokenAndGetPayload(token, TokenType.AccessToken)
+      const deviceId = req.headers['x-device-id'] as string
 
-      // 🔹 Verifica il token e ottieni il payload
+      if (!deviceId) {
+        return false
+      }
+
+      if (!await this.sessionService.validateSession(payload.sid, deviceId)) {
+        return false
+      }
+
+      // 🔹 Inietta lo userId negli headers per il backend HTTP
+      req.headers['x-user-id'] = payload.sub
+      return true;
+    } catch {
+      return false
+    }
+  }
+
+  // 🔹 Validazione per EVENTI WebSocket
+  private async validateWebSocketEvent(context: ExecutionContext): Promise<boolean> {
+    const client: Socket = context.switchToWs().getClient()
+    const token = client.handshake.query.token as string
+    const deviceId = client.handshake.query.deviceId as string
+
+    if (!token || !deviceId) {
+      return false
+    }
+
+    try {
+
       const payload = await this.jwtToolsService.verifyTokenAndGetPayload(token, TokenType.AccessToken)
 
-      // 🔹 Estrai il `deviceId` dalla richiesta (iniettato dal `DeviceIdInterceptor`)
-      const deviceId = req.headers['x-device-id'] as string
-      if (!deviceId) {
-        throw new UnauthorizedException('Device ID missing')
+      if (!await this.sessionService.validateSession(payload.sid, deviceId)) {
+        return false
       }
 
-      // 🔹 Validare la sessione associata al token
-      const isSessionValid = await this.sessionService.validateSession(payload.sid, deviceId)
-      if (!isSessionValid) {
-        throw new UnauthorizedException('Invalid or expired session')
-      }
-
-      // 🔹 Inietta solo lo userId negli header della richiesta
-      req.headers['x-user-id'] = payload.sub
-
-      return true;
-    } catch (error) {
-      throw new UnauthorizedException(error.message || 'Unauthorized')
+      // 🔹 Inietta lo userId nei dati della socket
+      client.data.userId = payload.sub
+      return true
+    } catch {
+      client.emit('pub_event_emitter', { message: 'error' })
+      return false
     }
   }
 }
