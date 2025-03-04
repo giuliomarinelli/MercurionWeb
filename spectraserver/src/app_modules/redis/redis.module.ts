@@ -17,6 +17,6 @@ import Redis from 'ioredis';
         RedisService,
         PubSubService
     ],
-    exports: [RedisService]
+    exports: [RedisService, Redis]
 })
 export class RedisModule { }

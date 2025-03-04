@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService, JwtSignOptions, JwtVerifyOptions } from '@nestjs/jwt';
-import { RevokedTokenService } from './revoked-token.service';
 import { JwtConfiguration } from 'src/config/@types-config';
 import { ConfigService } from '@nestjs/config';
 import { TokenType } from '../Models/enums/token-type.enum';
@@ -14,6 +13,7 @@ import { AppJwtPayload } from '../Models/interfaces/app-jwt-payload.interface';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
+import { SessionService } from './session.service';
 
 @Injectable()
 export class JwtToolsService {
@@ -34,10 +34,10 @@ export class JwtToolsService {
 
     constructor(
         private readonly jwtService: JwtService,
-        private readonly revokedTokenService: RevokedTokenService,
         private readonly configService: ConfigService,
         private readonly userService: UserService,
-        private readonly redisservice: RedisService
+        private readonly redisservice: RedisService,
+        private readonly sessionService: SessionService
     ) {
         this.accessTokenConfig.expiresInMs = this.configService.get<number>("Jwt.accessToken.expiresInMs") ?? 0
         this.preAuthorizationTokenConfig = this.configService
@@ -115,7 +115,7 @@ export class JwtToolsService {
             await this.jwtService.verifyAsync(token, verifyOptions)
             const payload: AppJwtPayload = this.jwtService.decode<AppJwtPayload>(token)
 
-            if (await this.revokedTokenService.isTokenRevoked(payload.jti)) {
+            if (await this.sessionService.isTokenRevoked(payload.jti)) {
                 throw new RpcException(`Revoked${type}`)
             }
             return payload
