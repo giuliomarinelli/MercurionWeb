@@ -18,6 +18,7 @@ import { SecureCookieService } from './services/secure-cookie.service';
     RedisService,
     SessionService,
     SecureCookieService
-  ]
+  ],
+  exports: [SecureCookieService]
 })
 export class AuthModule { }
