@@ -6,10 +6,18 @@ import { JwtService } from '@nestjs/jwt';
 import { UserModule } from '../user/user.module';
 import { RedisService } from '../redis/services/redis.service';
 import { SessionService } from './services/session.service';
+import { SecureCookieService } from './services/secure-cookie.service';
 
 
 @Module({
   imports: [RedisModule, UserModule],
-  providers: [JwtToolsService, PasswordEncoderService, JwtService, RedisService, SessionService]
+  providers: [
+    JwtToolsService,
+    PasswordEncoderService,
+    JwtService,
+    RedisService,
+    SessionService,
+    SecureCookieService
+  ]
 })
-export class AuthModule {}
+export class AuthModule { }
