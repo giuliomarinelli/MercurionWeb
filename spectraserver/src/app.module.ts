@@ -8,29 +8,50 @@ import { RedisModule } from './app_modules/redis/redis.module';
 import { UserModule } from './app_modules/user/user.module';
 import { CopyToDistService } from './copy-to-dist/copy-to-dist.service';
 import { AuthModule } from './app_modules/auth/auth.module';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { GlobalInterceptor } from './app_modules/auth/interceptors/global.interceptor';
+import { GlobalGuard } from './app_modules/auth/guards/global.guard';
+import { JwtToolsService } from './app_modules/auth/services/jwt-tools.service';
+import { SessionService } from './app_modules/auth/services/session.service';
+import { JwtService } from '@nestjs/jwt';
+import { SocketIoModule } from './app_modules/socket.io/socket.io.module';
 
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-    isGlobal: true,
-    envFilePath: join(__dirname, '../env/development.env'),
-    load: [...configurations]
-  }),
-  TypeOrmModule.forRootAsync({
-    imports: [ConfigModule],
-    useFactory: (configService: ConfigService) => configService.get<TypeOrmModuleOptions>("Data.sqlDB") ?? {},
-    inject: [ConfigService]
-  }),
-  MailerModule.forRootAsync({
-    imports: [ConfigModule],
-    useFactory: async (configService: ConfigService) => configService.get<MailerOptions>("Email") ?? {},
-    inject: [ConfigService]
-  }),
-  RedisModule,
-  UserModule,
-  AuthModule
-],
-  providers: [CopyToDistService]
+      isGlobal: true,
+      envFilePath: join(__dirname, '../env/development.env'),
+      load: [...configurations]
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => configService.get<TypeOrmModuleOptions>("Data.sqlDB") ?? {},
+      inject: [ConfigService]
+    }),
+    MailerModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => configService.get<MailerOptions>("Email") ?? {},
+      inject: [ConfigService]
+    }),
+    RedisModule,
+    UserModule,
+    AuthModule,
+    SocketIoModule
+  ],
+  providers: [
+    CopyToDistService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: GlobalInterceptor
+    },
+    {
+      provide: APP_GUARD,
+      useClass: GlobalGuard
+    },
+    JwtToolsService,
+    SessionService,
+    JwtService
+  ]
 })
-export class AppModule {}
+export class AppModule { }

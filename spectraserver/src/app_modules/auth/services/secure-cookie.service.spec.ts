@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { RevokedTokenService } from './revoked-token.service';
+import { SecureCookieService } from './secure-cookie.service';
 
-describe('RevokedTokenService', () => {
-  let service: RevokedTokenService;
+describe('SecureCookieService', () => {
+  let service: SecureCookieService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [RevokedTokenService],
+      providers: [SecureCookieService],
     }).compile();
 
-    service = module.get<RevokedTokenService>(RevokedTokenService);
+    service = module.get<SecureCookieService>(SecureCookieService);
   });
 
   it('should be defined', () => {
