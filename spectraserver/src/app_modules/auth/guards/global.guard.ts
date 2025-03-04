@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtToolsService } from '../services/jwt-tools.service';
 import { SessionService } from '../services/session.service';
 import { IS_PUBLIC_KEY } from 'src/metadata/metadata';
@@ -53,8 +53,8 @@ export class GlobalGuard implements CanActivate {
       // 🔹 Inietta lo userId negli headers per il backend HTTP
       req.headers['x-user-id'] = payload.sub
       return true;
-    } catch {
-      return false
+    } catch (e) {
+      throw new UnauthorizedException(e.message || undefined)
     }
   }
 
@@ -80,7 +80,7 @@ export class GlobalGuard implements CanActivate {
       client.data.userId = payload.sub
       return true
     } catch {
-      client.emit('pub_event_emitter', { message: 'error' })
+      client.emit('s_pub_err_event_emitter', { message: 'Unauthorized' })
       return false
     }
   }

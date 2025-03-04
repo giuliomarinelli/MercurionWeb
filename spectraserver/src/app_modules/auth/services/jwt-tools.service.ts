@@ -103,7 +103,7 @@ export class JwtToolsService {
     }
     
 
-    public async verifyTokenAndGetPayload(token: string, type: TokenType, ignoreExpiration: boolean = false): Promise<AppJwtPayload> {
+    public async verifyTokenAndGetPayload(token: string, type: TokenType, ignoreExpiration: boolean = false): Promise<AppJwtPayload> | never {
 
         const jwtConfig = this.getJwtConfigurationFromTokenType(type)
 
