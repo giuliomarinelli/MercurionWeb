@@ -13,6 +13,7 @@ import { RpcException } from '@nestjs/microservices';
 import { AppJwtPayload } from '../Models/interfaces/app-jwt-payload.interface';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { RedisService } from 'src/app_modules/redis/services/redis.service';
 
 @Injectable()
 export class JwtToolsService {
@@ -35,7 +36,8 @@ export class JwtToolsService {
         private readonly jwtService: JwtService,
         private readonly revokedTokenService: RevokedTokenService,
         private readonly configService: ConfigService,
-        private readonly userService: UserService
+        private readonly userService: UserService,
+        private readonly redisservice: RedisService
     ) {
         this.accessTokenConfig.expiresInMs = this.configService.get<number>("Jwt.accessToken.expiresInMs") ?? 0
         this.preAuthorizationTokenConfig = this.configService
@@ -65,8 +67,8 @@ export class JwtToolsService {
 
     public async generateToken(userId: UUID, sessionId: UUID, type: TokenType): Promise<string> {
 
-        const jwtConfig = this.getJwtConfigurationFromTokenType(type);
-        const scopes: string[] = await this.userService.getUserScopesById(userId) ?? [];
+        const jwtConfig = this.getJwtConfigurationFromTokenType(type)
+        const scopes: string[] = await this.userService.getUserScopesById(userId) ?? []
         const scp: string = scopes.map(s => GeneralUtils.getEnumKeyByValue(Scope, s)).join(' ')
 
         // 🔹 Usa RS256 per gli AccessToken, HS512 per gli altri
@@ -74,11 +76,13 @@ export class JwtToolsService {
             ? { algorithm: "RS256", privateKey: this.privateKey }
             : { algorithm: "HS512", secret: jwtConfig.secret }
 
-        return await this.jwtService.signAsync(
+        const jti: UUID = randomUUID()
+
+        const token: string = await this.jwtService.signAsync(
             {
                 iss: this.jwtIssuer,
                 sub: userId,
-                jti: randomUUID(),
+                jti,
                 sid: sessionId,
                 typ: type,
                 iat: Math.floor(Date.now() / 1000),
@@ -87,6 +91,9 @@ export class JwtToolsService {
             },
             signOptions
         )
+        if (type === TokenType.AccessToken) {
+            await this.redisservice.set(`issued:${sessionId.toString()}:${jti}`)
+        }
     }
 
     public async verifyTokenAndGetPayload(token: string, type: TokenType, ignoreExpiration: boolean = false): Promise<AppJwtPayload> {
