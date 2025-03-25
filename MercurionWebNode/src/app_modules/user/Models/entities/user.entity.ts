@@ -7,10 +7,10 @@ export class User {
     @PrimaryGeneratedColumn('uuid')
     id: UUID
 
-    @Column({ type: 'nvarchar', unique: true, default: null })
+    @Column({ type: 'varchar', unique: true, default: null })
     email: string | null // nullo fino ad attivazione account con conferma email con link
 
-    @Column({ type: 'nvarchar', nullable: true })
+    @Column({ type: 'varchar', nullable: true })
     unconfirmedEmail: string | null // nullo con email confermata, valorizzata con nuova email da confermare via OTP
 
     @Column({ type: 'varchar', nullable: true, default: null })
@@ -22,25 +22,25 @@ export class User {
     @Column({ type: 'varchar', length: 100 })
     passwordHash: string // hash argon2
 
-    @Column({ type: 'varchar' })
+    @Column({ type: 'varchar', default: '' })
     firstName: string
 
-    @Column({ type: 'varchar' })
+    @Column({ type: 'varchar', default: '' })
     lastName: string
 
     @Column({ type: 'boolean', default: false })
     isVerified: boolean // portato a true dopo attivazione account con link email
 
-    @Column({ type: 'text' })
+    @Column({ type: 'text', default: '[]' })
     scopes: string // JSON.stringify degli scope UUID - permessi dell'utente (senza ruoli inutili e pesanti)
 
     @Column({ type: 'bigint', default: Date.now() })
     createdAt: number
 
-    @Column({ type: 'bigint' })
+    @Column({ type: 'bigint', default: Date.now() })
     updatedAt: number
 
-    @Column({ type: 'varchar' })
+    @Column({ type: 'varchar', default: '' })
     totpSecret: string
 
     @Column({ type: 'varchar', nullable: true, default: null })
