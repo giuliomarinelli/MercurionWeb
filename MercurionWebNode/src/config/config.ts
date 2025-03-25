@@ -35,7 +35,6 @@ export enum ConfigKey {
 const AppConfig = registerAs(
 
     ConfigKey.App, (): AppConfiguration => ({
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         env: GeneralUtils.getEnumValue(Environment, process.env.NODE_ENV ?? Environment.Development) as Environment,
         port: Number(process.env.APP_PORT) || 8099,
         natsPort: Number(process.env.APP_NATS_PORT) || 4223,

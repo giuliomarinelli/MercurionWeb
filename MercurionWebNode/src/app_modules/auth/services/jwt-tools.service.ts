@@ -65,7 +65,7 @@ export class JwtToolsService {
         }
     }
 
-    public async generateToken(userId: UUID, sessionId: UUID, type: TokenType): Promise<string> {
+    public async generateToken(userId: UUID, type: TokenType, sessionId?: UUID): Promise<string> {
         const jwtConfig = this.getJwtConfigurationFromTokenType(type)
         const scopes: string[] = await this.userService.getUserScopesById(userId) ?? []
         const scp: string = scopes.map(s => GeneralUtils.getEnumKeyByValue(Scope, s)).join(' ')
@@ -95,6 +95,7 @@ export class JwtToolsService {
     
         // 🔹 Se è un AccessToken, memorizziamo il JTI tra i token emessi
         if (type === TokenType.AccessToken) {
+            if (sessionId == undefined) throw new RpcException('NoSuchSessionInAccessTokenSignature')
             const issuedKey = `issued:${sessionId.toString()}:${jti}`
             await this.redisservice.set(issuedKey, '1', jwtConfig.expiresInMs / 1000) // TTL uguale alla durata del token
         }

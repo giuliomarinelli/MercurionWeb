@@ -15,6 +15,9 @@ import { JwtToolsService } from './app_modules/auth/services/jwt-tools.service';
 import { SessionService } from './app_modules/auth/services/session.service';
 import { JwtService } from '@nestjs/jwt';
 import { SocketIoModule } from './app_modules/socket.io/socket.io.module';
+import { MercurionModule } from './app_modules/mercurion/mercurion.module';
+import { ResponseService } from './services/response.service';
+import { NotificationModule } from './app_modules/notification/notification.module';
 
 
 @Module({
@@ -37,7 +40,9 @@ import { SocketIoModule } from './app_modules/socket.io/socket.io.module';
     RedisModule,
     UserModule,
     AuthModule,
-    SocketIoModule
+    SocketIoModule,
+    MercurionModule,
+    NotificationModule
   ],
   providers: [
     CopyToDistService,
@@ -51,7 +56,8 @@ import { SocketIoModule } from './app_modules/socket.io/socket.io.module';
     },
     JwtToolsService,
     SessionService,
-    JwtService
+    JwtService,
+    ResponseService
   ]
 })
 export class AppModule { }

@@ -4,31 +4,45 @@ import * as path from 'path';
 
 @Injectable()
 export class CopyToDistService implements OnModuleInit {
+  private readonly logger = new Logger(CopyToDistService.name);
 
-    private readonly logger = new Logger(CopyToDistService.name)
+  private readonly isDev = process.env.NODE_ENV !== 'production';
 
-    private readonly sourcePath = path.join(__dirname, '../config/keys')
-    private readonly distPath = path.join(__dirname, '../../dist/config/keys')
+  private readonly keysSourcePath = path.join(process.cwd(), 'src/config/keys');
+  private readonly keysDistPath = path.join(process.cwd(), 'dist/config/keys');
 
-    async onModuleInit() {
-        try {
-            // Crea la cartella se non esiste
-            if (!fs.existsSync(this.distPath)) {
-                fs.mkdirSync(this.distPath, { recursive: true })
-            }
+  private readonly templatesSourcePath = path.join(process.cwd(), 'src/app_modules/notification/email-templates');
+  private readonly templatesDistPath = path.join(process.cwd(), 'dist/app_modules/notification/email-templates');
 
-            // Copia tutti i file della cartella `config/keys/`
-            const files = fs.readdirSync(this.sourcePath)
-            for (const file of files) {
-                fs.copyFileSync(
-                    path.join(this.sourcePath, file),
-                    path.join(this.distPath, file)
-                );
-            }
-
-            this.logger.log('✅ Chiavi RSA copiate con successo in dist/')
-        } catch (error) {
-            this.logger.error('❌ Errore durante la copia delle chiavi RSA:', error)
-        }
+  async onModuleInit() {
+    if (!this.isDev) {
+      this.logger.debug('🟡 CopyToDistService disabilitato in ambiente di produzione.');
+      return;
     }
+
+    try {
+      this.copyDir(this.keysSourcePath, this.keysDistPath);
+      this.copyDir(this.templatesSourcePath, this.templatesDistPath);
+
+      this.logger.log('✅ Chiavi RSA e template email copiati con successo in dist/');
+    } catch (error) {
+      this.logger.error('❌ Errore durante la copia dei file in dist:', error);
+    }
+  }
+
+  private copyDir(src: string, dest: string) {
+    if (!fs.existsSync(src)) {
+      this.logger.warn(`⚠️ La sorgente ${src} non esiste. Niente da copiare.`);
+      return;
+    }
+
+    if (!fs.existsSync(dest)) {
+      fs.mkdirSync(dest, { recursive: true });
+    }
+
+    const files = fs.readdirSync(src);
+    for (const file of files) {
+      fs.copyFileSync(path.join(src, file), path.join(dest, file));
+    }
+  }
 }
