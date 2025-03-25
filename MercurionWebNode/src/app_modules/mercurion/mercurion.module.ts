@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { MercurionService } from './services/mercurion.service';
+import { MercurionController } from './controllers/mercurion.controller';
 
 @Module({
     imports: [
@@ -20,6 +21,7 @@ import { MercurionService } from './services/mercurion.service';
             },
         ]),
     ],
-    providers: [MercurionService]
+    providers: [MercurionService],
+    controllers: [MercurionController]
 })
 export class MercurionModule { }
