@@ -1,14 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../Models/entities/user.entity';
-import { Repository } from 'typeorm';
+import { DataSource, FindOptionsWhere, Repository } from 'typeorm';
 import { RpcException } from '@nestjs/microservices';
 import { UUID } from 'crypto';
+import { nullish } from 'src/Models/nullish.type';
 
 @Injectable()
 export class UserService {
 
-    constructor(@InjectRepository(User) private userRepository: Repository<User>) { }
+    constructor(
+        @InjectRepository(User) private userRepository: Repository<User>,
+        private readonly dataSource: DataSource
+    ) { }
 
     public generateScopeArray(rawScopes: string, mode: 'JSON' | 'JWT'): string[] | never {
 
@@ -45,5 +49,52 @@ export class UserService {
         return JSON.parse(user.scopes) as string[] ?? []
 
     }
+
+    public async createUser(userProps: Partial<User>): Promise<User> {
+
+        const queryRunner = this.dataSource.createQueryRunner()
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            const user = queryRunner.manager.create(User, { ...userProps })
+            const u$er =  await queryRunner.manager.save(user)
+            await queryRunner.commitTransaction()
+            return u$er
+        } catch (err) {
+            await queryRunner.rollbackTransaction()
+            throw err
+        } finally {
+            await queryRunner.release()
+        }
+    }
+
+    public async getUserById(id: UUID, isVerified?: boolean): Promise<User | nullish> {
+        const where: FindOptionsWhere<User> = { id }
+        if (isVerified != undefined) {
+            where.isVerified = isVerified
+        }
+        return await this.userRepository.findOne({ where })
+    }
+
+    public async updateUser(id: UUID, userProps: Partial<User>): Promise<User | nullish> {
+        
+        const queryRunner = this.dataSource.createQueryRunner()
+        await queryRunner.connect()
+        await queryRunner.startTransaction()
+        try {
+            await queryRunner.manager.update<User>(User, { id }, { ...userProps })
+            const user = await this.getUserById(id)
+            await queryRunner.commitTransaction()
+            return user
+        } catch {
+            queryRunner.rollbackTransaction()
+            return null
+        } finally {
+            queryRunner.release()
+        }
+    }
+
+    // public async deleteUser(id: UUID): Promise<void> {}
 
 }
