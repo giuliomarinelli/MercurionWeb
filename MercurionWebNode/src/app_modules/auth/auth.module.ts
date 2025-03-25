@@ -10,11 +10,13 @@ import { SecureCookieService } from './services/secure-cookie.service';
 import { SercurityService } from './services/sercurity.service';
 import { AccountService } from './services/account.service';
 import { ResponseService } from 'src/services/response.service';
+import { NotificationModule } from '../notification/notification.module';
+import { AccountController } from './controllers/account.controller';
 
 
 
 @Module({
-  imports: [RedisModule, UserModule],
+  imports: [RedisModule, UserModule, NotificationModule],
   providers: [
     JwtToolsService,
     PasswordEncoderService,
@@ -27,5 +29,6 @@ import { ResponseService } from 'src/services/response.service';
     ResponseService
   ],
   exports: [SecureCookieService, JwtToolsService, JwtService, SessionService],
+  controllers: [AccountController],
 })
 export class AuthModule { }

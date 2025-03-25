@@ -4,9 +4,9 @@ import { ConfirmDTO } from 'src/Models/confirm-responses.dto';
 @Injectable()
 export class ResponseService {
 
-    public ok(message: string): ConfirmDTO {
+    public ok(message: string, statusCode: HttpStatus = HttpStatus.OK): ConfirmDTO {
         return {
-            statusCode: HttpStatus.OK,
+            statusCode,
             timestamp: new Date().toISOString(),
             message
         }

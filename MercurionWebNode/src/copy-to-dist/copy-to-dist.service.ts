@@ -4,43 +4,45 @@ import * as path from 'path';
 
 @Injectable()
 export class CopyToDistService implements OnModuleInit {
+  private readonly logger = new Logger(CopyToDistService.name);
 
-    private readonly logger = new Logger(CopyToDistService.name)
+  private readonly isDev = process.env.NODE_ENV !== 'production';
 
-    private readonly keysSourcePath = path.join(__dirname, '../config/keys')
-    private readonly keysDistPath = path.join(__dirname, '../../dist/config/keys')
-    private readonly templatesSourcePath = path.join(__dirname, '../app_modules/notification/email-templates')
-    private readonly templatesDistPath = path.join(__dirname, '../../dist/app_modules/notification/email-templates')
+  private readonly keysSourcePath = path.join(process.cwd(), 'src/config/keys');
+  private readonly keysDistPath = path.join(process.cwd(), 'dist/config/keys');
 
-    async onModuleInit() {
-        try {
-            // Crea la cartella se non esiste
-            if (!fs.existsSync(this.keysDistPath)) {
-                fs.mkdirSync(this.keysDistPath, { recursive: true })
-            }
-            if (!fs.existsSync(this.templatesDistPath)) {
-                fs.mkdirSync(this.templatesDistPath, { recursive: true })
-            }
+  private readonly templatesSourcePath = path.join(process.cwd(), 'src/app_modules/notification/email-templates');
+  private readonly templatesDistPath = path.join(process.cwd(), 'dist/app_modules/notification/email-templates');
 
-            // Copia tutti i file della cartella `config/keys/`
-            const files = fs.readdirSync(this.keysSourcePath)
-            for (const file of files) {
-                fs.copyFileSync(
-                    path.join(this.keysSourcePath, file),
-                    path.join(this.keysDistPath, file)
-                );
-            }
-            const files2 = fs.readdirSync(this.templatesSourcePath)
-            for (const file of files2) {
-                fs.copyFileSync(
-                    path.join(this.templatesSourcePath, file),
-                    path.join(this.templatesDistPath, file)
-                );
-            }
-
-            this.logger.log('✅ Chiavi RSA e template email copiati con successo in dist/')
-        } catch (error) {
-            this.logger.error('❌ Errore durante la copia delle chiavi RSA e dei template:', error)
-        }
+  async onModuleInit() {
+    if (!this.isDev) {
+      this.logger.debug('🟡 CopyToDistService disabilitato in ambiente di produzione.');
+      return;
     }
+
+    try {
+      this.copyDir(this.keysSourcePath, this.keysDistPath);
+      this.copyDir(this.templatesSourcePath, this.templatesDistPath);
+
+      this.logger.log('✅ Chiavi RSA e template email copiati con successo in dist/');
+    } catch (error) {
+      this.logger.error('❌ Errore durante la copia dei file in dist:', error);
+    }
+  }
+
+  private copyDir(src: string, dest: string) {
+    if (!fs.existsSync(src)) {
+      this.logger.warn(`⚠️ La sorgente ${src} non esiste. Niente da copiare.`);
+      return;
+    }
+
+    if (!fs.existsSync(dest)) {
+      fs.mkdirSync(dest, { recursive: true });
+    }
+
+    const files = fs.readdirSync(src);
+    for (const file of files) {
+      fs.copyFileSync(path.join(src, file), path.join(dest, file));
+    }
+  }
 }
