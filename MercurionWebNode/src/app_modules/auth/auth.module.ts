@@ -7,6 +7,7 @@ import { UserModule } from '../user/user.module';
 import { RedisService } from '../redis/services/redis.service';
 import { SessionService } from './services/session.service';
 import { SecureCookieService } from './services/secure-cookie.service';
+import { SercurityService } from './services/sercurity.service';
 
 
 @Module({
@@ -17,7 +18,8 @@ import { SecureCookieService } from './services/secure-cookie.service';
     JwtService,
     RedisService,
     SessionService,
-    SecureCookieService
+    SecureCookieService,
+    SercurityService
   ],
   exports: [SecureCookieService, JwtToolsService, JwtService, SessionService],
 })

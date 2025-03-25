@@ -37,6 +37,13 @@ export class User {
     @Column({ type: 'bigint', default: Date.now() })
     createdAt: number
 
-    @Column({ type: 'bigint', default: null, nullable: true })
+    @Column({ type: 'bigint' })
     updatedAt: number
+
+    @Column({ type: 'varchar' })
+    totpSecret: string
+
+    @Column({ type: 'varchar', nullable: true, default: null })
+    mfaHashedRecoveryHash: string | null
+
 }
