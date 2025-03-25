@@ -57,7 +57,6 @@ export class SecureCookieService {
         options: CookieSerializeOptions = this.defaultCookieOptions) {
         const signedValue = this.signCookie(value)
         res.setCookie(name, signedValue, options)
-        console.log(options)
     }
 
     /**
