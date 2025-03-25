@@ -1,26 +1,29 @@
 export enum Scope {
-    
-    // Spettri
-    ReadSpectrum = "cc5230d8-99c8-486d-b237-8690249e57fe", // Leggere gli spettri
-    WriteSpectrum = "f60acf34-eb6b-49f3-b488-4d71b5f39341", // Caricare e modificare spettri
-    DeleteSpectrum = "fbe32141-3280-44f6-83e2-ccbd54aa03c2", // Eliminare spettri
+    // 🔬 Inferenza e AI
+    UseInference = "33f19261-8b01-4a47-9f5d-9f0e16d92f6a",
+    ViewInferenceHistory = "2f4c8163-e2c3-4e2c-8c6a-7a7d63c1e160",
+    ViewModelPerformance = "c84501f4-1a5f-4d2b-8e38-6a6f6ac0fd8a",
+    TrainNewModel = "7c28f145-f2aa-4a3b-a5d2-4f2a6f77f733",
 
-    // Esperimenti
-    ReadExperiment = "e0f812ee-8b0e-46f7-a18c-8ba7f8b6888b",
-    WriteExperiment = "6653755d-9bb1-4a72-9001-b7dbb729201a",
-    DeleteExperiment = "20e50c37-ed7e-453d-83dc-1ffdc16f204f",
+    // 🧪 Molecole e Compounds
+    UploadMolecule = "2a45e649-d4db-4adf-9177-c9fd50b6c6c2",
+    ViewMolecule = "ef846b29-f26b-452a-879c-7e9cb0d0e80f",
+    EditMolecule = "71f4f198-f8f3-41f4-928b-1b1297a09bd6",
+    DeleteMolecule = "0d49d7a1-e30b-4ac1-8802-5cb0105b6e53",
 
-    // Modelli AI
-    ReadModel = "b04fbd8f-05b8-4412-8782-2d5d311e72a4",
-    TrainModel = "91337c44-aedd-4a46-8fc5-199bd337b986",
-    DeleteModel = "d4fd4f05-92c4-4386-af9f-a59886a1f201",
+    // 🧑‍🔬 Esperimenti
+    CreateExperiment = "dc2aa78e-6e37-45b1-a2b3-e1b7992d6e94",
+    ViewExperiment = "197c4d93-e79e-4e89-9345-3df7a6f88120",
+    DeleteExperiment = "bedbb2dc-b2ef-4c38-bfa9-9c899190ba68",
 
-    // Account
-    ReadProfile = "cd29ee0d-c3cc-43d7-8bae-0fc91aef3c7c",
-    EditProfile = "27453237-c78b-4dbd-a593-0025a46c9f23",
-    DeleteAccount = "e736ffe5-d072-43d7-a295-de67cb644b38",
+    // 👤 Account
+    EditOwnProfile = "4dff5f06-4cf0-4a30-91cd-172b0f69c4cb",
+    DeleteOwnAccount = "d1ad44c6-03cb-4227-bc91-55825a9331e6",
+    ManageMFA = "c43ad667-3fd7-4464-8919-c327c3e6b3bb",
 
-    // Accessi
-    ManageAccess = "b7019c66-e78f-4bb3-bfe4-d773d19da4ec",
-    AdminAll = "2c7dd541-54c7-4afc-acfa-a69c44954881",
+    // 🛡️ Admin
+    ViewUsers = "49a29c59-1ec9-4a30-a832-cc95e4e36496",
+    AssignScopes = "9ea4a41c-39a5-4bd4-95f7-88568decccf8",
+    DeleteUsers = "b71d1e53-3187-44ab-9331-e2e52b4304f1",
+    SystemSettings = "8bcb6f7f-ccbb-4de2-bb3a-2e1a6d7c19f8"
 }

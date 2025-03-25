@@ -8,6 +8,8 @@ import { RedisService } from '../redis/services/redis.service';
 import { SessionService } from './services/session.service';
 import { SecureCookieService } from './services/secure-cookie.service';
 import { SercurityService } from './services/sercurity.service';
+import { AccountService } from './services/account.service';
+
 
 
 @Module({
@@ -19,7 +21,8 @@ import { SercurityService } from './services/sercurity.service';
     RedisService,
     SessionService,
     SecureCookieService,
-    SercurityService
+    SercurityService,
+    AccountService
   ],
   exports: [SecureCookieService, JwtToolsService, JwtService, SessionService],
 })

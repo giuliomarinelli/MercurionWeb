@@ -16,6 +16,7 @@ import { SessionService } from './app_modules/auth/services/session.service';
 import { JwtService } from '@nestjs/jwt';
 import { SocketIoModule } from './app_modules/socket.io/socket.io.module';
 import { MercurionModule } from './app_modules/mercurion/mercurion.module';
+import { ResponseService } from './services/response.service';
 
 
 @Module({
@@ -53,7 +54,8 @@ import { MercurionModule } from './app_modules/mercurion/mercurion.module';
     },
     JwtToolsService,
     SessionService,
-    JwtService
+    JwtService,
+    ResponseService
   ]
 })
 export class AppModule { }
