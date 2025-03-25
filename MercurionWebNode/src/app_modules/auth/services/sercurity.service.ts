@@ -69,5 +69,24 @@ export class SercurityService {
         })
     }
 
+    public maskEmail(email: string): string {
+        const [localPart, domain] = email.split('@')
+        if (!domain) return '*'.repeat(localPart.length) + '@'
+
+        const domainParts = domain.split('.')
+        const extension = domainParts.pop() || ''
+        const domainWithoutExt = domainParts.join('.')
+        const visibleDomain = domainWithoutExt.slice(-2)
+        const maskedLocal = '*'.repeat(localPart.length)
+        const maskedDomain = '*'.repeat(domainWithoutExt.length - 2)
+
+        return `${maskedLocal}@${maskedDomain}${visibleDomain}.${extension}`
+    }
+
+    public maskPhone(phone: string): string {
+        const visible = phone.slice(-2);
+        const masked = '*'.repeat(Math.max(0, phone.length - 2));
+        return masked + visible;
+    }
 
 }

@@ -17,6 +17,7 @@ import { JwtService } from '@nestjs/jwt';
 import { SocketIoModule } from './app_modules/socket.io/socket.io.module';
 import { MercurionModule } from './app_modules/mercurion/mercurion.module';
 import { ResponseService } from './services/response.service';
+import { NotificationModule } from './app_modules/notification/notification.module';
 
 
 @Module({
@@ -40,7 +41,8 @@ import { ResponseService } from './services/response.service';
     UserModule,
     AuthModule,
     SocketIoModule,
-    MercurionModule
+    MercurionModule,
+    NotificationModule
   ],
   providers: [
     CopyToDistService,

@@ -9,6 +9,7 @@ import { SessionService } from './services/session.service';
 import { SecureCookieService } from './services/secure-cookie.service';
 import { SercurityService } from './services/sercurity.service';
 import { AccountService } from './services/account.service';
+import { ResponseService } from 'src/services/response.service';
 
 
 
@@ -22,7 +23,8 @@ import { AccountService } from './services/account.service';
     SessionService,
     SecureCookieService,
     SercurityService,
-    AccountService
+    AccountService,
+    ResponseService
   ],
   exports: [SecureCookieService, JwtToolsService, JwtService, SessionService],
 })
