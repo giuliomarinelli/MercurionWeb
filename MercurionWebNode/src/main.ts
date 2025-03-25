@@ -6,6 +6,7 @@ import { ConfigService } from '@nestjs/config'
 import { MicroserviceOptions, Transport } from '@nestjs/microservices'
 import { HttpExceptionFilter } from './exception-handling/http-exception-filter'
 import { IoAdapter } from '@nestjs/platform-socket.io'
+import fastifyCookie from '@fastify/cookie'
 
 
 (async () => {
@@ -22,6 +23,7 @@ import { IoAdapter } from '@nestjs/platform-socket.io'
   })
   app.useGlobalFilters(new HttpExceptionFilter())
   const port = configService.get<number>('App.port')
+  await app.register(fastifyCookie)
   await app.listen(port ?? 8099)
   await app.startAllMicroservices()
   logger.log(`Fastify listening on port ${port}`)
