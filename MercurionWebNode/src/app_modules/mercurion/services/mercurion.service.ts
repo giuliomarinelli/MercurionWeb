@@ -4,7 +4,6 @@ import { MercurionInferReqDTO } from '../Models/DTO/mercurion-infer-req.dto';
 import { MercurionInferDataDTO, MercurionInferResDTO } from '../Models/DTO/mercurion-infer-res.dto';
 import { catchError, firstValueFrom, throwError, timeout, TimeoutError } from 'rxjs';
 
-
 @Injectable()
 export class MercurionService {
 
