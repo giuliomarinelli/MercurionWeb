@@ -19,6 +19,6 @@ import { SecureCookieService } from './services/secure-cookie.service';
     SessionService,
     SecureCookieService
   ],
-  exports: [SecureCookieService, JwtToolsService]
+  exports: [SecureCookieService, JwtToolsService, JwtService, SessionService],
 })
 export class AuthModule { }
