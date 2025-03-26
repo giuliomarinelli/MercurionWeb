@@ -11,6 +11,8 @@ import { TokenType } from '../Models/enums/token-type.enum';
 import { join } from 'path';
 import { MailSenderService } from 'src/app_modules/notification/services/mail-sender/mail-sender.service';
 import { UserActivationContext } from 'src/app_modules/notification/Models/contexts/user-activation.context';
+import { RedisService } from 'src/app_modules/redis/services/redis.service';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class AccountService {
@@ -22,12 +24,20 @@ export class AccountService {
         private readonly jwtTools: JwtToolsService,
         private readonly configService: ConfigService,
         private readonly mailService: MailSenderService,
+        private readonly redisService: RedisService,
         private readonly _r: ResponseService
     ) { }
 
     public async register(registerDTO: UserRegisterDTO): Promise<ConfirmWithObsContDTO> {
 
         const { password, email, firstName, lastName } = registerDTO
+        const emailKey = `email_registration_lock:${email.toLowerCase()}`
+        const ttlSeconds = 2 * 60 * 60; // 2 ore
+        const alreadyExists = await this.redisService.exists(emailKey)
+        if (alreadyExists) {
+            throw new RpcException('UserRegistrationConflict::Email already exists')
+        }
+        await this.redisService.set(emailKey, 'locked', ttlSeconds);
         const passwordHash = await this.passwordEncoder.encode(password)
         const totpSecret = this.securityService.generateTotpSecret()
         const { id: userId } = await this.userService.createUser({ passwordHash, totpSecret, unconfirmedEmail: email, lastName })
