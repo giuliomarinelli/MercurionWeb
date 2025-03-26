@@ -54,11 +54,11 @@ export class UserService {
 
         const queryRunner = this.dataSource.createQueryRunner()
         await queryRunner.connect();
-        await queryRunner.startTransaction();
+        await queryRunner.startTransaction()
 
         try {
             const user = queryRunner.manager.create(User, { ...userProps })
-            const u$er =  await queryRunner.manager.save(user)
+            const u$er = await queryRunner.manager.save(user)
             await queryRunner.commitTransaction()
             return u$er
         } catch (err) {
@@ -67,6 +67,10 @@ export class UserService {
         } finally {
             await queryRunner.release()
         }
+    }
+
+    public async existsUserById(id: UUID): Promise<boolean> {
+        return this.userRepository.exists({ where: { id } })
     }
 
     public async getUserById(id: UUID, isVerified?: boolean): Promise<User | nullish> {
@@ -78,7 +82,7 @@ export class UserService {
     }
 
     public async updateUser(id: UUID, userProps: Partial<User>): Promise<User | nullish> {
-        
+
         const queryRunner = this.dataSource.createQueryRunner()
         await queryRunner.connect()
         await queryRunner.startTransaction()

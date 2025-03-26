@@ -2,7 +2,7 @@ import { ConfigService } from '@nestjs/config';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { UserRegisterDTO } from 'src/app_modules/user/Models/DTO/user-register.cls.dto';
 import { UserService } from 'src/app_modules/user/services/user.service';
-import { ConfirmWithObsContDTO } from 'src/Models/confirm-responses.dto';
+import { ConfirmDTO, ConfirmWithObsContDTO } from 'src/Models/confirm-responses.dto';
 import { PasswordEncoderService } from './password-encoder.service';
 import { SercurityService } from './sercurity.service';
 import { ResponseService } from 'src/services/response.service';
@@ -13,6 +13,7 @@ import { MailSenderService } from 'src/app_modules/notification/services/mail-se
 import { UserActivationContext } from 'src/app_modules/notification/Models/contexts/user-activation.context';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { RpcException } from '@nestjs/microservices';
+import { User } from 'src/app_modules/user/Models/entities/user.entity';
 
 @Injectable()
 export class AccountService {
@@ -53,6 +54,24 @@ export class AccountService {
             ...this._r.ok('Registration performed successfully', HttpStatus.CREATED),
             obscuredEmail: this.securityService.maskEmail(email)
         }
+
+    }
+
+    public async activate(activationToken: string): Promise<ConfirmDTO> | never {
+
+        const { sub: userId } = await this.jwtTools.verifyTokenAndGetPayload(activationToken, TokenType.ActivationToken)
+        const user = await this.userService.getUserById(userId)
+        if (user == null) {
+            throw new RpcException('AccountActivation::User not found')
+        }
+        let { isVerified, email, unconfirmedEmail, updatedAt } = user
+        email = unconfirmedEmail as string
+        unconfirmedEmail = null
+        isVerified = true
+        updatedAt = Date.now()
+        await this.userService.updateUser(userId, { email, unconfirmedEmail, isVerified, updatedAt }) as User
+        await this.redisService.del(`email_registration_lock:${email.toLowerCase()}`)
+        return this._r.ok('Account activated successfully')
     }
 
 }
