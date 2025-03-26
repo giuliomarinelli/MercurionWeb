@@ -41,7 +41,10 @@ export class User {
     updatedAt: number
 
     @Column({ type: 'varchar', default: '' })
-    totpSecret: string
+    otpSecret: string
+    
+    @Column({ type: 'varchar', default: null, nullable: true })
+    apptotpSecret: string
 
     @Column({ type: 'varchar', nullable: true, default: null })
     mfaHashedRecoveryHash: string | null

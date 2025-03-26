@@ -4,6 +4,7 @@ import { TotpConfiguration } from 'src/config/@types-config';
 import { randomBytes } from 'crypto';
 import * as speakeasy from 'speakeasy'
 import { TotpWrapper } from '../Models/interfaces/totp-wrapper.interface';
+import { AppTotpWrapper } from '../Models/interfaces/app-totp-wrapper.interface';
 
 @Injectable()
 export class SercurityService {
@@ -30,8 +31,20 @@ export class SercurityService {
         }
     }
 
-    public generateTotpSecret(): string {
+    public generateOtpSecret(): string {
         return this.generateSecret(this.totpConf.bytes, 'base32')
+    }
+
+    public generateAppTotpSecret(): AppTotpWrapper {
+        const secret = speakeasy.generateSecret({
+            name: this.configService.get<string>('App.globalName'),
+            length: this.totpConf.bytes,
+            issuer: this.configService.get<string>('App.globalName')
+        })
+        return {
+            totpSecret: secret.base32,
+            otpauth_url: secret.otpauth_url as string
+        }
     }
 
     public generateTotp(base32Secret: string): TotpWrapper {

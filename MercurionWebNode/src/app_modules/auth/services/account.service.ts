@@ -40,8 +40,8 @@ export class AccountService {
         }
         await this.redisService.set(emailKey, 'locked', ttlSeconds);
         const passwordHash = await this.passwordEncoder.encode(password)
-        const totpSecret = this.securityService.generateTotpSecret()
-        const { id: userId } = await this.userService.createUser({ passwordHash, totpSecret, unconfirmedEmail: email, lastName })
+        const otpSecret = this.securityService.generateOtpSecret()
+        const { id: userId } = await this.userService.createUser({ passwordHash, otpSecret, unconfirmedEmail: email, lastName })
         const activationToken: string = await this.jwtTools.generateToken(userId, TokenType.ActivationToken)
         const url: string = `${this.configService.get<string>("App.activationOrigin")}/account/activate?t=${activationToken}`
         await this.mailService.sendEmail<UserActivationContext>(
