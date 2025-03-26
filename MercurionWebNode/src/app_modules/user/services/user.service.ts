@@ -5,6 +5,8 @@ import { DataSource, FindOptionsWhere, Repository } from 'typeorm';
 import { RpcException } from '@nestjs/microservices';
 import { UUID } from 'crypto';
 import { nullish } from 'src/Models/nullish.type';
+import { MfaStrategy } from '../Models/enums/mfa-strategy.enum';
+import { GeneralUtils } from 'src/general-utils/general-utils';
 
 @Injectable()
 export class UserService {
@@ -97,6 +99,23 @@ export class UserService {
         } finally {
             queryRunner.release()
         }
+    }
+
+    public async getUserEnabledMfaStrategies(id: UUID): Promise<MfaStrategy[]> {
+
+        if (!await this.existsUserById(id)) {
+            throw new RpcException('MfaSettings::User not found')
+        }
+
+        const { mfaStrategies: rawMfaStrategies } = await this.userRepository.createQueryBuilder('u')
+            .select('u.mfaStrategies')
+            .where('u.id = :id', { id })
+            .getOne() as User
+
+        return (JSON.parse(rawMfaStrategies) as string[])
+            .map(uuid => GeneralUtils.getEnumValue(MfaStrategy, uuid))
+            .filter(val => val != undefined)
+
     }
 
     // public async deleteUser(id: UUID): Promise<void> {}

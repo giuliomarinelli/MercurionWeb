@@ -73,5 +73,6 @@ export class AccountService {
         await this.redisService.del(`email_registration_lock:${email.toLowerCase()}`)
         return this._r.ok('Account activated successfully')
     }
+    
 
 }

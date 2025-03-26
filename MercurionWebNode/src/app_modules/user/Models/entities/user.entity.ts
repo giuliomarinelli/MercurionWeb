@@ -33,6 +33,9 @@ export class User {
 
     @Column({ type: 'text', default: '[]' })
     scopes: string // JSON.stringify degli scope UUID - permessi dell'utente (senza ruoli inutili e pesanti)
+    
+    @Column({ type: 'text', default: '[]' })
+    mfaStrategies: string // JSON.stringify delle strategy UUID - permessi dell'utente (senza ruoli inutili e pesanti)
 
     @Column({ type: 'bigint', default: Date.now() })
     createdAt: number
