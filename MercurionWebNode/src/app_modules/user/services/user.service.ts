@@ -5,6 +5,8 @@ import { DataSource, FindOptionsWhere, Repository } from 'typeorm';
 import { RpcException } from '@nestjs/microservices';
 import { UUID } from 'crypto';
 import { nullish } from 'src/Models/nullish.type';
+import { MfaStrategy } from '../Models/enums/mfa-strategy.enum';
+import { GeneralUtils } from 'src/general-utils/general-utils';
 
 @Injectable()
 export class UserService {
@@ -54,11 +56,11 @@ export class UserService {
 
         const queryRunner = this.dataSource.createQueryRunner()
         await queryRunner.connect();
-        await queryRunner.startTransaction();
+        await queryRunner.startTransaction()
 
         try {
             const user = queryRunner.manager.create(User, { ...userProps })
-            const u$er =  await queryRunner.manager.save(user)
+            const u$er = await queryRunner.manager.save(user)
             await queryRunner.commitTransaction()
             return u$er
         } catch (err) {
@@ -67,6 +69,10 @@ export class UserService {
         } finally {
             await queryRunner.release()
         }
+    }
+
+    public async existsUserById(id: UUID): Promise<boolean> {
+        return this.userRepository.exists({ where: { id } })
     }
 
     public async getUserById(id: UUID, isVerified?: boolean): Promise<User | nullish> {
@@ -78,7 +84,7 @@ export class UserService {
     }
 
     public async updateUser(id: UUID, userProps: Partial<User>): Promise<User | nullish> {
-        
+
         const queryRunner = this.dataSource.createQueryRunner()
         await queryRunner.connect()
         await queryRunner.startTransaction()
@@ -93,6 +99,23 @@ export class UserService {
         } finally {
             queryRunner.release()
         }
+    }
+
+    public async getUserEnabledMfaStrategies(id: UUID): Promise<MfaStrategy[]> {
+
+        if (!await this.existsUserById(id)) {
+            throw new RpcException('MfaSettings::User not found')
+        }
+
+        const { mfaStrategies: rawMfaStrategies } = await this.userRepository.createQueryBuilder('u')
+            .select('u.mfaStrategies')
+            .where('u.id = :id', { id })
+            .getOne() as User
+
+        return (JSON.parse(rawMfaStrategies) as string[])
+            .map(uuid => GeneralUtils.getEnumValue(MfaStrategy, uuid))
+            .filter(val => val != undefined)
+
     }
 
     // public async deleteUser(id: UUID): Promise<void> {}
