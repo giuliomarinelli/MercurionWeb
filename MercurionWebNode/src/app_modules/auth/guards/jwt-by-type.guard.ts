@@ -23,7 +23,7 @@ export class JwtByTypeGuard implements CanActivate {
     const token = this.jwtTools.extractAccessTokenFromReq(req)
     const payload = await this.jwtTools.verifyTokenAndGetPayload(token, tokenType)
 
-    // Inietta lo userId in un header custom accessibile nel controller
+    // Inietta lo userId e il sessionId in un header custom accessibile nel controller
     req.headers['x-user-id'] = payload.sub
     req.headers['x-session-id'] = payload.sid
     return true
