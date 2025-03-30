@@ -18,18 +18,18 @@ export class JwtByTypeGuard implements CanActivate {
 
     if (!tokenType || tokenType === TokenType.AccessToken) return false
 
-    const request: FastifyRequest = context.switchToHttp().getRequest()
+    const req: FastifyRequest = context.switchToHttp().getRequest()
 
-    const token = this.jwtTools.extractAccessTokenFromReq(request)
+    const token = this.jwtTools.extractAccessTokenFromReq(req)
     const payload = await this.jwtTools.verifyTokenAndGetPayload(token, tokenType)
 
     // Inietta lo userId in un header custom accessibile nel controller
-    request.headers['x-user-id'] = payload.sub
-
+    req.headers['x-user-id'] = payload.sub
+    req.headers['x-session-id'] = payload.sid
     return true
     
   }
 
-  
+
 
 }
