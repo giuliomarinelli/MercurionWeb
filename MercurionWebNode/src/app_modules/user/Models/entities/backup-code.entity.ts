@@ -2,8 +2,8 @@ import { UUID } from "crypto";
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { User } from "./user.entity";
 
-@Entity({name: 'backup_codes'})
-export class BackupCode {
+@Entity({ name: 'backup_codes' })
+export class MfaBackupCode {
 
     @PrimaryGeneratedColumn('uuid')
     id: UUID

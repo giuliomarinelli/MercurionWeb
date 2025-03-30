@@ -1,6 +1,6 @@
 import { UUID } from "crypto"
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm"
-import { BackupCode } from "./backup-code.entity"
+import { MfaBackupCode } from "./backup-code.entity"
 
 @Entity({ name: 'users' })
 export class User {
@@ -50,7 +50,7 @@ export class User {
     @Column({ type: 'varchar', default: null, nullable: true })
     appTotpSecret: string
 
-    @OneToMany(() => BackupCode, (backupCode) => backupCode.user)
-    backupCodes: BackupCode[]
+    @OneToMany(() => MfaBackupCode, (backupCode) => backupCode.user)
+    backupCodes: MfaBackupCode[]
 
 }

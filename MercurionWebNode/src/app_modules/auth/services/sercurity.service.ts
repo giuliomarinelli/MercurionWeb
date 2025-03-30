@@ -90,6 +90,12 @@ export class SercurityService {
         })
     }
 
+    public generateReadableCode(): string {
+        const raw = randomBytes(6).toString('hex'); // 12 caratteri esadecimali (6 byte)
+        const chunks = raw.match(/.{1,4}/g);         // Spezza in blocchi da 4 caratteri
+        return chunks?.join('-') ?? raw;             // Formatta tipo: "8f4a-d20b-c7e9"
+      }
+
     public maskEmail(email: string): string {
         const [localPart, domain] = email.split('@')
         if (!domain) return '*'.repeat(localPart.length) + '@'
