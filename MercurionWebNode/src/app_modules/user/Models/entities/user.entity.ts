@@ -1,5 +1,6 @@
 import { UUID } from "crypto"
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm"
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm"
+import { MfaBackupCode } from "./backup-code.entity"
 
 @Entity({ name: 'users' })
 export class User {
@@ -33,7 +34,7 @@ export class User {
 
     @Column({ type: 'text', default: '[]' })
     scopes: string // JSON.stringify degli scope UUID - permessi dell'utente (senza ruoli inutili e pesanti)
-    
+
     @Column({ type: 'text', default: '[]' })
     mfaStrategies: string // JSON.stringify delle strategy UUID - permessi dell'utente (senza ruoli inutili e pesanti)
 
@@ -45,11 +46,11 @@ export class User {
 
     @Column({ type: 'varchar', default: '' })
     otpSecret: string
-    
-    @Column({ type: 'varchar', default: null, nullable: true })
-    apptotpSecret: string
 
-    @Column({ type: 'varchar', nullable: true, default: null })
-    mfaHashedRecoveryHash: string | null
+    @Column({ type: 'varchar', default: null, nullable: true })
+    appTotpSecret: string
+
+    @OneToMany(() => MfaBackupCode, (backupCode) => backupCode.user)
+    backupCodes: MfaBackupCode[]
 
 }

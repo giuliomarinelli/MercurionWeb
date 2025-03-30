@@ -5,6 +5,7 @@ import { randomBytes } from 'crypto';
 import * as speakeasy from 'speakeasy'
 import { TotpWrapper } from '../Models/interfaces/totp-wrapper.interface';
 import { AppTotpWrapper } from '../Models/interfaces/app-totp-wrapper.interface';
+import * as qrcode from 'qrcode';
 
 @Injectable()
 export class SercurityService {
@@ -30,6 +31,13 @@ export class SercurityService {
                 return hexPrefix + buffer.toString(encode)
         }
     }
+
+
+
+    public async generateQrCodeDataUrl(otpauth_url: string): Promise<string> {
+        return await qrcode.toDataURL(otpauth_url)
+    }
+
 
     public generateOtpSecret(): string {
         return this.generateSecret(this.totpConf.bytes, 'base32')
@@ -81,6 +89,12 @@ export class SercurityService {
             window: 1
         })
     }
+
+    public generateReadableCode(): string {
+        const raw = randomBytes(6).toString('hex'); // 12 caratteri esadecimali (6 byte)
+        const chunks = raw.match(/.{1,4}/g);         // Spezza in blocchi da 4 caratteri
+        return chunks?.join('-') ?? raw;             // Formatta tipo: "8f4a-d20b-c7e9"
+      }
 
     public maskEmail(email: string): string {
         const [localPart, domain] = email.split('@')

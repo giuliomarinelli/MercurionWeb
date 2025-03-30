@@ -50,8 +50,9 @@ export class GlobalGuard implements CanActivate {
         return false
       }
 
-      // 🔹 Inietta lo userId negli headers per il backend HTTP
+      // 🔹 Inietta lo userId e la sessionId negli headers per il backend HTTP
       req.headers['x-user-id'] = payload.sub
+      req.headers['x-session-id'] = payload.sid
       return true;
     } catch (e) {
       throw new UnauthorizedException(e.message || undefined)
