@@ -55,7 +55,7 @@ export class UserService {
     public async createUser(userProps: Partial<User>): Promise<User> {
 
         const queryRunner = this.dataSource.createQueryRunner()
-        await queryRunner.connect();
+        await queryRunner.connect()
         await queryRunner.startTransaction()
 
         try {

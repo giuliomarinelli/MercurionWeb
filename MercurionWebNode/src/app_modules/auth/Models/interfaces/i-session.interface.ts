@@ -9,6 +9,7 @@ export interface ISession {
     IP: string
     valid: boolean
     sessionDeviceInfo: ISessionDeviceInfo
+    doNotAskMfaPhoneNumberVerification: boolean
 }
 
 export interface ISessionDeviceInfo {

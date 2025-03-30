@@ -36,10 +36,10 @@ export class MfaService {
             used: false,
             createdAt: Date.now(),
             user: { id: userId } as Pick<User, 'id'>
-        })));
+        })))
 
-        await this.backupCodeRepository.save(entities);
-        return codes;
+        await this.backupCodeRepository.save(entities)
+        return codes
     }
 
     public async verifyBackupCode(userId: UUID, plainCode: string): Promise<boolean> {
@@ -77,6 +77,8 @@ export class MfaService {
             remaining: codes.length - used
         }
     }
+
+    
 
 
 

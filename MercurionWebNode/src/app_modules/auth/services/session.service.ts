@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { randomUUID, UUID } from 'crypto';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
-import { ISession } from '../Models/interfaces/i-session.interface';
+import { ISession, ISessionDeviceInfo } from '../Models/interfaces/i-session.interface';
 import { nullish } from 'src/Models/nullish.type';
 import { RpcException } from '@nestjs/microservices';
 
@@ -10,12 +10,12 @@ export class SessionService {
     constructor(private readonly redisService: RedisService) { }
 
     private getSessionKey(sessionId: string): string {
-        return `session:${sessionId}`;
+        return `session:${sessionId}`
     }
 
     // 🔹 Creazione di una nuova sessione (semplificata con Omit<>)
     async createSession(
-        sessionData: Omit<ISession, 'sessionId' | 'expiresAt' | 'lastAccessedAt' | 'valid'>,
+        sessionData: Omit<ISession, 'sessionId' | 'expiresAt' | 'lastAccessedAt' | 'valid' | 'doNotAskMfaPhoneNumberVerification'>,
         ttlSeconds: number
     ): Promise<ISession> {
         const sessionId = randomUUID();
@@ -26,7 +26,8 @@ export class SessionService {
             ...sessionData,
             expiresAt,
             lastAccessedAt: Date.now(),
-            valid: false
+            valid: false,
+            doNotAskMfaPhoneNumberVerification: false
         }
 
         const { IP, deviceId, sessionDeviceInfo, userId } = sessionData
@@ -41,6 +42,7 @@ export class SessionService {
         await this.redisService.hset(sessionKey, 'IP', IP)
         await this.redisService.hset(sessionKey, 'valid', 'false')
         await this.redisService.hset(sessionKey, 'sessionDeviceInfo', JSON.stringify(sessionDeviceInfo))
+        await this.redisService.hset(sessionKey, 'doNotAskMfaPhoneNumberVerification', 'false')
 
         // Imposta il TTL della sessione in Redis
         await this.redisService.setTTL(sessionKey, ttlSeconds)
@@ -71,9 +73,9 @@ export class SessionService {
             expiresAt: parseInt(sessionData.expiresAt, 10),
             lastAccessedAt: parseInt(sessionData.lastAccessedAt, 10),
             IP: sessionData.IP,
-            valid: sessionData.valid === 'true',
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            sessionDeviceInfo: JSON.parse(sessionData.sessionDeviceInfo)
+            valid: JSON.parse(sessionData.valid) as boolean,
+            sessionDeviceInfo: JSON.parse(sessionData.sessionDeviceInfo) as ISessionDeviceInfo,
+            doNotAskMfaPhoneNumberVerification: JSON.parse(sessionData.doNotAskMfaPhoneNumberVerification) as boolean
         }
 
         return session
@@ -98,6 +100,11 @@ export class SessionService {
     // 🔹 Aggiornare lastAccessedAt ad ogni accesso
     async updateLastAccessed(sessionId: string): Promise<void> {
         await this.redisService.hset(this.getSessionKey(sessionId), 'lastAccessedAt', Date.now().toString());
+    }
+    
+    // 🔹 Aggiornare doNotAskMfaPhoneNumberVerification ad ogni accesso
+    async updateDoNotAskMfaPhoneNumberVerification(sessionId: string, value: boolean): Promise<void> {
+        await this.redisService.hset(this.getSessionKey(sessionId), 'doNotAskMfaPhoneNumberVerification', value.toString())
     }
 
     // 🔹 Revocare una sessione (es. logout o invalidazione)
