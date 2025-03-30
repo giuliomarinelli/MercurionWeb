@@ -5,6 +5,7 @@ import { randomBytes } from 'crypto';
 import * as speakeasy from 'speakeasy'
 import { TotpWrapper } from '../Models/interfaces/totp-wrapper.interface';
 import { AppTotpWrapper } from '../Models/interfaces/app-totp-wrapper.interface';
+import * as qrcode from 'qrcode';
 
 @Injectable()
 export class SercurityService {
@@ -30,6 +31,13 @@ export class SercurityService {
                 return hexPrefix + buffer.toString(encode)
         }
     }
+
+
+
+    public async generateQrCodeDataUrl(otpauth_url: string): Promise<string> {
+        return await qrcode.toDataURL(otpauth_url)
+    }
+
 
     public generateOtpSecret(): string {
         return this.generateSecret(this.totpConf.bytes, 'base32')
