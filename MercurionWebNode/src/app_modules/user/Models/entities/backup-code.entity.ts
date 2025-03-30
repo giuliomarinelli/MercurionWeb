@@ -16,6 +16,9 @@ export class MfaBackupCode {
 
     @Column({ type: 'bigint' })
     createdAt: number
+    
+    @Column({ type: 'bigint', nullable: true, default: null })
+    usedAt: number | null
 
     @ManyToOne(() => User, user => user.backupCodes)
     user: User
