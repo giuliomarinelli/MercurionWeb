@@ -120,7 +120,7 @@ export class SessionService {
         await this.redisService.hset(this.getSessionKey(sessionId), 'doNotAskMfaPhoneNumberVerification', value.toString())
     }
 
-    async getDoNotAskMfaPhoneNumberVerification(sessionId: UUID): Promise<boolean> {
+    async isDoNotAskMfaPhoneNumberVerification(sessionId: UUID): Promise<boolean> {
         const prop = await this.redisService.hget(this.getSessionKey(sessionId), 'doNotAskMfaPhoneNumberVerification')
         if (prop == undefined) return false
         return JSON.parse(prop) as boolean
