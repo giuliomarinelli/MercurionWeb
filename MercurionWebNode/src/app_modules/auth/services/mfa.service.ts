@@ -20,6 +20,7 @@ import { EmailTotpContext } from 'src/app_modules/notification/Models/contexts/e
 import { TotpConfiguration } from 'src/config/@types-config';
 import { join } from 'path';
 import { SessionService } from './session.service';
+import { nullish } from 'src/Models/nullish.type';
 
 @Injectable()
 export class MfaService {
@@ -162,12 +163,25 @@ E' valido per ${this.totpConfig.period} secondi.`
         return metadata
     }
 
-    public async verifyUserOtp(totp: string, preAuthorizationToken: string): Promise<boolean> {
-        const { sub: userId } = await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken)
+    public async verifyUserOtpOrAppTotp(totp: string, preAuthorizationToken: string, strategy: MfaStrategy): Promise<boolean> {
+        const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken)
+        await this.sessionService.revokeToken(jti)
         if (!await this.userService.existsUserById(userId)) {
             throw new RpcException('NoSuchUser')
         }
-        const otpSecret = await this.userService.getOptSecretByUserId(userId)
+        let otpSecret: string | nullish
+        switch (strategy) {
+            case MfaStrategy.EMAIL_OTP:
+            case MfaStrategy.SMS_OTP:
+                otpSecret = await this.userService.getOptSecretByUserId(userId)
+                break
+            case MfaStrategy.APP_TOTP:
+                otpSecret = await this.userService.getAppTotpSecretByUserId(userId)
+                break
+            default:
+                throw new RpcException(`UnsupportedMfaStrategy::${strategy as MfaStrategy}`)
+
+        }
         if (!otpSecret) throw new RpcException('OtpSecretNotFound')
         return this.securityService.verifyTotp(totp, otpSecret)
     }

@@ -149,4 +149,14 @@ export class UserService {
         if (!user) return user
         return user.otpSecret
     }
+
+    public async getAppTotpSecretByUserId(id: UUID): Promise<string | nullish> {
+        const user = await this.userRepository.createQueryBuilder('u')
+            .select('u.appTotpSecret')
+            .where('u.id = :id', { id })
+            .getOne()
+        if (!user) return user
+        return user.appTotpSecret
+    }
+
 }
