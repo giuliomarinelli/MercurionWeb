@@ -119,7 +119,20 @@ export class UserService {
     }
 
     public async deleteUser(id: UUID): Promise<void> {
-        
+        await this.userRepository.delete(id)
     }
 
+    public async getVerifiedUserByEmail(email: string): Promise<User | nullish> {
+        return await this.userRepository.findOne({ where: { email, isVerified: true } })
+    }
+
+    public async getVerifiedUserIdByEmail(email: string): Promise<UUID | nullish> {
+        const user = await this.userRepository.createQueryBuilder('u')
+            .select('u.id')
+            .where('u.isVerified = true')
+            .andWhere('u.email = :email', { email })
+            .getOne() 
+        if (!user) return null
+        return user.id
+    }
 }
