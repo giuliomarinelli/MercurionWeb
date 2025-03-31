@@ -118,6 +118,8 @@ export class UserService {
 
     }
 
-    // public async deleteUser(id: UUID): Promise<void> {}
+    public async deleteUser(id: UUID): Promise<void> {
+        
+    }
 
 }
