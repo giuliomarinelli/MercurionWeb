@@ -1,4 +1,6 @@
+import { UUID } from "crypto"
+
 export interface Authentication {
-    userId: string
-    sessionId: string
+    userId: UUID
+    sessionId: UUID
 }

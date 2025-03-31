@@ -94,7 +94,7 @@ export class JwtToolsService {
         );
     
         // 🔹 Se è un AccessToken, memorizziamo il JTI tra i token emessi
-        if (type === TokenType.AccessToken) {
+        if (type === TokenType.AccessToken || type === TokenType.PreAuthorizationToken) {
             if (sessionId == undefined) throw new RpcException('NoSuchSessionInAccessTokenSignature')
             const issuedKey = `issued:${sessionId.toString()}:${jti}`
             await this.redisservice.set(issuedKey, '1', jwtConfig.expiresInMs / 1000) // TTL uguale alla durata del token

@@ -8,3 +8,7 @@ export type ConfirmWithObsContDTO = ConfirmDTO & {
     obscuredEmail?: string
     obscuredPhoneNumber?: string
 }
+
+export type ConfirmWithAccessTokenDTO = ConfirmDTO & {
+    accessToken: string
+}

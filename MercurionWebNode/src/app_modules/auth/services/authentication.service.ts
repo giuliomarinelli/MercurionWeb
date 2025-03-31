@@ -6,6 +6,10 @@ import { RpcException } from '@nestjs/microservices';
 import { SessionService } from './session.service';
 import { ISessionDeviceInfo } from '../Models/interfaces/i-session.interface';
 import { MfaService } from './mfa.service';
+import { JwtToolsService } from './jwt-tools.service';
+import { ConfirmWithAccessTokenDTO } from 'src/Models/confirm-responses.dto';
+import { TokenType } from '../Models/enums/token-type.enum';
+import { ResponseService } from 'src/services/response.service';
 
 @Injectable()
 export class AuthenticationService {
@@ -14,7 +18,9 @@ export class AuthenticationService {
         private readonly passwordEncoder: PasswordEncoderService,
         private readonly userService: UserService,
         private readonly sessionService: SessionService,
-        private readonly mfaService: MfaService
+        private readonly mfaService: MfaService,
+        private readonly jwtTools: JwtToolsService,
+        private readonly _r: ResponseService
     ) { }
 
     public async emailAndPasswordAuthentication(email: string, password: string, remember: boolean, IP: string, deviceId: string, sessionDeviceInfo: ISessionDeviceInfo): Promise<Authentication> {
@@ -35,6 +41,18 @@ export class AuthenticationService {
             sessionId
         }
 
+    }
+
+    public async performAuthentication(auth: Authentication): Promise<ConfirmWithAccessTokenDTO> {
+        const { userId, sessionId } = auth
+        const accessToken = await this.jwtTools.generateToken(userId, TokenType.AccessToken, sessionId)
+        if (await this.mfaService.isMfaEnabled(userId)) {
+            await this.sessionService.activateSession(sessionId)
+        }
+        return {
+            ...this._r.ok('Authenticated successfully'),
+            accessToken
+        }
     }
 
 }
