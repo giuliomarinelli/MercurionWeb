@@ -188,7 +188,7 @@ E' valido per ${this.totpConfig.period} secondi.`
         return this.securityService.verifyTotp(totp, otpSecret)
     }
 
-    
+    // public async askForUserOtpMfaStrategyActivation(secureToken: string, strategy: MfaStrategy)
 
 
 }
