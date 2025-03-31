@@ -5,6 +5,7 @@ import { PasswordEncoderService } from './password-encoder.service';
 import { RpcException } from '@nestjs/microservices';
 import { SessionService } from './session.service';
 import { ISessionDeviceInfo } from '../Models/interfaces/i-session.interface';
+import { MfaService } from './mfa.service';
 
 @Injectable()
 export class AuthenticationService {
@@ -12,7 +13,8 @@ export class AuthenticationService {
     constructor(
         private readonly passwordEncoder: PasswordEncoderService,
         private readonly userService: UserService,
-        private readonly sessionService: SessionService
+        private readonly sessionService: SessionService,
+        private readonly mfaService: MfaService
     ) { }
 
     public async emailAndPasswordAuthentication(email: string, password: string, remember: boolean, IP: string, deviceId: string, sessionDeviceInfo: ISessionDeviceInfo): Promise<Authentication> {
@@ -25,6 +27,9 @@ export class AuthenticationService {
             throw new RpcException('AuthenticationInvalidCredentials')
         }
         const { sessionId } = await this.sessionService.createSession({ deviceId, userId: auth.userId, IP, sessionDeviceInfo }, remember)
+        if (!await this.mfaService.isMfaEnabled(auth.userId)) {
+            await this.sessionService.activateSession(sessionId)
+        }
         return {
             userId: auth.userId,
             sessionId
