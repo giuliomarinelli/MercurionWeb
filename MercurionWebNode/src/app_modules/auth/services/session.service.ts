@@ -120,6 +120,12 @@ export class SessionService {
         await this.redisService.hset(this.getSessionKey(sessionId), 'doNotAskMfaPhoneNumberVerification', value.toString())
     }
 
+    async getDoNotAskMfaPhoneNumberVerification(sessionId: UUID): Promise<boolean> {
+        const prop = await this.redisService.hget(this.getSessionKey(sessionId), 'doNotAskMfaPhoneNumberVerification')
+        if (prop == undefined) return false
+        return JSON.parse(prop) as boolean
+    }
+
     // 🔹 Revocare una sessione (es. logout o invalidazione)
     async revokeSession(sessionId: string): Promise<void> {
         await this.redisService.hset(this.getSessionKey(sessionId), 'valid', 'false');

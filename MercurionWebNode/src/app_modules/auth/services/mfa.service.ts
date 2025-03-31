@@ -9,16 +9,36 @@ import { Repository } from 'typeorm';
 import { PasswordEncoderService } from './password-encoder.service';
 import { User } from 'src/app_modules/user/Models/entities/user.entity';
 import { BackupCodeStatusDTO } from 'src/app_modules/user/Models/DTO/backup-code-status.dto';
+import { TotpMetadata } from '../Models/interfaces/totp-wrapper.interface';
+import { SmsSenderService } from 'src/app_modules/notification/services/sms-sender/sms-sender.service';
+import { MailSenderService } from 'src/app_modules/notification/services/mail-sender/mail-sender.service';
+import { ConfigService } from '@nestjs/config';
+import { TokenType } from '../Models/enums/token-type.enum';
+import { RpcException } from '@nestjs/microservices';
+import { JwtToolsService } from './jwt-tools.service';
+import { EmailTotpContext } from 'src/app_modules/notification/Models/contexts/email-totp.context';
+import { TotpConfiguration } from 'src/config/@types-config';
+import { join } from 'path';
+import { SessionService } from './session.service';
 
 @Injectable()
 export class MfaService {
+
+    private readonly totpConfig: TotpConfiguration
 
     constructor(
         private readonly securityService: SercurityService,
         private readonly userService: UserService,
         private readonly passwordEncoderService: PasswordEncoderService,
-        @InjectRepository(MfaBackupCode) private readonly backupCodeRepository: Repository<MfaBackupCode>
-    ) { }
+        @InjectRepository(MfaBackupCode) private readonly backupCodeRepository: Repository<MfaBackupCode>,
+        private readonly smsService: SmsSenderService,
+        private readonly mailService: MailSenderService,
+        private readonly configService: ConfigService,
+        private readonly jwtTools: JwtToolsService,
+        private readonly sessionService: SessionService
+    ) {
+        this.totpConfig = this.configService.get<TotpConfiguration>('Totp') as TotpConfiguration
+    }
 
     public async isMfaEnabled(userId: UUID): Promise<boolean> {
         return !!(await this.userService.getUserEnabledMfaStrategies(userId)).length
@@ -78,7 +98,65 @@ export class MfaService {
         }
     }
 
-    
+    public async sendOtpToUser(preAuthorizationToken: string, strategy: MfaStrategy, sessionId: UUID, phoneNumberToVerify?: string): Promise<TotpMetadata> {
+
+        let userId: UUID
+
+        const appName: string = this.configService.get<string>("App.globalName") as string
+
+        try {
+            userId = (await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken)).sub
+        } catch {
+            throw new RpcException('InvalidJwtValidation')
+        }
+
+        const user = await this.userService.getUserById(userId)
+        if (!user) {
+            throw new RpcException('NoSuchUser')
+        }
+
+        if (!user.mfaStrategies.includes(strategy))
+            throw new RpcException(`InvalidMfaStrategy::${strategy} strategy for MFA not enabled for this user`)
+
+        const { TOTP, ...metadata } = this.securityService.generateTotp(user.otpSecret)
+
+        switch (strategy) {
+
+            case MfaStrategy.EMAIL_OTP:
+
+                await this.mailService.sendEmail<EmailTotpContext>(
+                    user.email as string,
+                    `Il tuo codice per accedere a ${appName}`,
+                    {
+                        firstName: user.firstName,
+                        totp: TOTP,
+                        period: this.totpConfig.period
+                    },
+                    join(__dirname, "../../notification/email-templates/send-totp-for-2fa.hbs")
+
+                )
+                break
+
+            case MfaStrategy.SMS_OTP:
+
+                if (await this.sessionService.)
+
+                if (contact !== user.completePhoneNumber) {
+                    await this.jwtUtils.revokeToken(preAuthorizationToken, TokenType.PreAuthorizationToken)
+                    throw new NoSuchPhoneNumberException()
+                }
+                await this.smsService.sendSms(
+                    user.completePhoneNumber,
+                    `Ciao ${user.firstName}. Ecco il tuo codice per accedere a ${appName}: ${TOTP}                 
+E' vallido per ${this.totpConfig.period} secondi.`
+                )
+
+        }
+
+        return metadata
+    }
+
+
 
 
 
