@@ -132,12 +132,21 @@ export class UserService {
             .select(['u.id', 'u.passwordHash'])
             .where('u.isVerified = true')
             .andWhere('u.email = :email', { email })
-            .getOne() 
+            .getOne()
         if (!user) return user
-        const {id: userId, passwordHash} = user
+        const { id: userId, passwordHash } = user
         return {
             userId,
             passwordHash
         }
+    }
+
+    public async getOptSecretByUserId(id: UUID): Promise<string | nullish> {
+        const user = await this.userRepository.createQueryBuilder('u')
+            .select('u.otpSecret')
+            .where('u.id = :id', { id })
+            .getOne()
+        if (!user) return user
+        return user.otpSecret
     }
 }

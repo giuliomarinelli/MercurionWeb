@@ -116,6 +116,8 @@ export class MfaService {
             throw new RpcException('NoSuchUser')
         }
 
+        if (!user.otpSecret) throw new RpcException('OtpSecretNotFound')
+
         if (!user.mfaStrategies.includes(strategy))
             throw new RpcException(`InvalidMfaStrategy::${strategy} strategy for MFA not enabled for this user`)
 
@@ -145,16 +147,29 @@ export class MfaService {
                     throw new RpcException('NoSuchPhoneNumber')
                 }
 
-            
+
                 await this.smsService.sendSms(
                     user.completePhoneNumber as string,
                     `Ciao ${user.firstName}. Ecco il tuo codice per accedere a ${appName}: ${TOTP}                 
 E' valido per ${this.totpConfig.period} secondi.`
                 )
+                break
+            default:
+                throw new RpcException(`UnsupportedMfaStrategy::${strategy}`)
 
         }
 
         return metadata
+    }
+
+    public async verifyUserOtp(totp: string, preAuthorizationToken: string): Promise<boolean> {
+        const { sub: userId } = await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken)
+        if (!await this.userService.existsUserById(userId)) {
+            throw new RpcException('NoSuchUser')
+        }
+        const otpSecret = await this.userService.getOptSecretByUserId(userId)
+        if (!otpSecret) throw new RpcException('OtpSecretNotFound')
+        return this.securityService.verifyTotp(totp, otpSecret)
     }
 
 
