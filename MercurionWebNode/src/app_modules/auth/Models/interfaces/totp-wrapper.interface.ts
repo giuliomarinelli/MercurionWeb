@@ -5,3 +5,5 @@ export interface TotpWrapper {
     expiresAt: number
 
 }
+
+export type TotpMetadata = Omit<TotpWrapper, 'TOTP'>

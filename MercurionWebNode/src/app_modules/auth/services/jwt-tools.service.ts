@@ -39,16 +39,18 @@ export class JwtToolsService {
         private readonly redisservice: RedisService,
         private readonly sessionService: SessionService
     ) {
-        this.accessTokenConfig.expiresInMs = this.configService.get<number>("Jwt.accessToken.expiresInMs") ?? 0
-        this.preAuthorizationTokenConfig = this.configService
-            .get<JwtConfiguration>("Jwt.preAuthorizationToken") ?? { ...this.defaultJwtConfig }
-        this.activationTokenConfig = this.configService
-            .get<JwtConfiguration>("Jwt.activationToken") ?? { ...this.defaultJwtConfig }
-        this.phoneNumberVerificationTokenConfig = this.configService
-            .get<JwtConfiguration>("Jwt.phoneNumberVerificationToken") ?? { ...this.defaultJwtConfig }
-        this.emailVerificationTokenConfig = this.configService
-            .get<JwtConfiguration>("Jwt.emailVerificationToken") ?? { ...this.defaultJwtConfig }
-        this.jwtIssuer = this.configService.get<string>("Jwt.issuer") ?? ''
+        this.accessTokenConfig.expiresInMs = this.configService.get<number>("Jwt.accessToken.expiresInMs") as number
+        this.preAuthorizationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.preAuthorizationToken") as JwtConfiguration
+        this.activationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.activationToken") as JwtConfiguration
+        this.phoneNumberVerificationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.phoneNumberVerificationToken") as JwtConfiguration
+        this.emailVerificationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.emailVerificationToken") as JwtConfiguration
+        this.emailVerificationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.emailOtpMfaActivationToken") as JwtConfiguration
+        this.emailVerificationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.smsOtpMfaActivationToken") as JwtConfiguration
+        this.emailVerificationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.appTotpMfaActivationToken") as JwtConfiguration
+        this.emailVerificationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.emailOtpMfaInactivationToken") as JwtConfiguration
+        this.emailVerificationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.smsOtpMfaInactivationToken") as JwtConfiguration
+        this.emailVerificationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.appTotpMfaInactivationToken") as JwtConfiguration
+        this.jwtIssuer = this.configService.get<string>("Jwt.issuer") as string
 
         this.privateKey = join(__dirname, readFileSync('src/config/keys/private.pem', 'utf8'))
         this.publicKey = join(__dirname, readFileSync('src/config/keys/public.pem', 'utf8'))
@@ -62,6 +64,12 @@ export class JwtToolsService {
             case TokenType.ActivationToken: return this.activationTokenConfig
             case TokenType.PhoneNumberVerificationToken: return this.phoneNumberVerificationTokenConfig
             case TokenType.EmailVerificationToken: return this.emailVerificationTokenConfig
+            case TokenType.AppTotpMfaActivationToken: return this.emailVerificationTokenConfig
+            case TokenType.AppTotpMfaInactivationToken: return this.emailVerificationTokenConfig
+            case TokenType.EmailOtpMfaActivationToken: return this.emailVerificationTokenConfig
+            case TokenType.EmailOtpMfaInactivationToken: return this.emailVerificationTokenConfig
+            case TokenType.SmsOtpMfaActivationToken: return this.emailVerificationTokenConfig
+            case TokenType.SmsOtpMfaInactivationToken: return this.emailVerificationTokenConfig
         }
     }
 
@@ -69,15 +77,15 @@ export class JwtToolsService {
         const jwtConfig = this.getJwtConfigurationFromTokenType(type)
         const scopes: string[] = await this.userService.getUserScopesById(userId) ?? []
         const scp: string = scopes.map(s => GeneralUtils.getEnumKeyByValue(Scope, s)).join(' ')
-    
+
         // 🔹 Usa RS256 per AccessToken, HS512 per gli altri
         const signOptions: JwtSignOptions = type === TokenType.AccessToken
             ? { algorithm: "RS256", privateKey: this.privateKey }
             : { algorithm: "HS512", secret: jwtConfig.secret }
-    
+
         const jti: UUID = randomUUID(); // Genera JTI univoco per il token
         const expiresAt = Math.floor(Date.now() / 1000) + (jwtConfig.expiresInMs / 1000)
-    
+
         // 🔹 Generazione del Token
         const token: string = await this.jwtService.signAsync(
             {
@@ -92,17 +100,17 @@ export class JwtToolsService {
             },
             signOptions
         );
-    
+
         // 🔹 Se è un AccessToken, memorizziamo il JTI tra i token emessi
-        if (type === TokenType.AccessToken) {
+        if (type === TokenType.AccessToken || type === TokenType.PreAuthorizationToken) {
             if (sessionId == undefined) throw new RpcException('NoSuchSessionInAccessTokenSignature')
             const issuedKey = `issued:${sessionId.toString()}:${jti}`
             await this.redisservice.set(issuedKey, '1', jwtConfig.expiresInMs / 1000) // TTL uguale alla durata del token
         }
-    
+
         return token
     }
-    
+
 
     public async verifyTokenAndGetPayload(token: string, type: TokenType, ignoreExpiration: boolean = false): Promise<AppJwtPayload> | never {
 

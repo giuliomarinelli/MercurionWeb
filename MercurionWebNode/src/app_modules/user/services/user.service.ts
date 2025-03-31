@@ -7,6 +7,7 @@ import { UUID } from 'crypto';
 import { nullish } from 'src/Models/nullish.type';
 import { MfaStrategy } from '../Models/enums/mfa-strategy.enum';
 import { GeneralUtils } from 'src/general-utils/general-utils';
+import { IAuth } from 'src/app_modules/auth/Models/interfaces/i-auth.interface';
 
 @Injectable()
 export class UserService {
@@ -118,6 +119,44 @@ export class UserService {
 
     }
 
-    // public async deleteUser(id: UUID): Promise<void> {}
+    public async deleteUser(id: UUID): Promise<void> {
+        await this.userRepository.delete(id)
+    }
+
+    public async getVerifiedUserByEmail(email: string): Promise<User | nullish> {
+        return await this.userRepository.findOne({ where: { email, isVerified: true } })
+    }
+
+    public async getVerifiedUserAuthByEmail(email: string): Promise<IAuth | nullish> {
+        const user = await this.userRepository.createQueryBuilder('u')
+            .select(['u.id', 'u.passwordHash'])
+            .where('u.isVerified = true')
+            .andWhere('u.email = :email', { email })
+            .getOne()
+        if (!user) return user
+        const { id: userId, passwordHash } = user
+        return {
+            userId,
+            passwordHash
+        }
+    }
+
+    public async getOptSecretByUserId(id: UUID): Promise<string | nullish> {
+        const user = await this.userRepository.createQueryBuilder('u')
+            .select('u.otpSecret')
+            .where('u.id = :id', { id })
+            .getOne()
+        if (!user) return user
+        return user.otpSecret
+    }
+
+    public async getAppTotpSecretByUserId(id: UUID): Promise<string | nullish> {
+        const user = await this.userRepository.createQueryBuilder('u')
+            .select('u.appTotpSecret')
+            .where('u.id = :id', { id })
+            .getOne()
+        if (!user) return user
+        return user.appTotpSecret
+    }
 
 }

@@ -50,7 +50,7 @@ export class User {
     @Column({ type: 'varchar', default: null, nullable: true })
     appTotpSecret: string
 
-    @OneToMany(() => MfaBackupCode, (backupCode) => backupCode.user)
+    @OneToMany(() => MfaBackupCode, (backupCode) => backupCode.user, { cascade: true })
     backupCodes: MfaBackupCode[]
 
 }

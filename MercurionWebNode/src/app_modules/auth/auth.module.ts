@@ -13,6 +13,7 @@ import { ResponseService } from 'src/services/response.service';
 import { NotificationModule } from '../notification/notification.module';
 import { AccountController } from './controllers/account.controller';
 import { MfaService } from './services/mfa.service';
+import { AuthenticationService } from './services/authentication.service';
 
 
 
@@ -28,7 +29,8 @@ import { MfaService } from './services/mfa.service';
     SercurityService,
     AccountService,
     ResponseService,
-    MfaService
+    MfaService,
+    AuthenticationService
   ],
   exports: [SecureCookieService, JwtToolsService, JwtService, SessionService],
   controllers: [AccountController],
