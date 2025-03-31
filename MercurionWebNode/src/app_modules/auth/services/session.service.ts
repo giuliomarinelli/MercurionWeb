@@ -16,10 +16,11 @@ export class SessionService {
     // 🔹 Creazione di una nuova sessione (semplificata con Omit<>)
     async createSession(
         sessionData: Omit<ISession, 'sessionId' | 'expiresAt' | 'lastAccessedAt' | 'valid' | 'doNotAskMfaPhoneNumberVerification'>,
-        ttlSeconds: number
+        rememberMe: boolean
     ): Promise<ISession> {
         const sessionId = randomUUID();
-        const expiresAt = Date.now() + ttlSeconds * 1000;
+        const ttlSeconds = rememberMe ? 30 * 24 * 60 * 60 : 60 * 60 // 30 giorni o 60 min
+        const expiresAt = Date.now() + ttlSeconds * 1000
 
         const session: ISession = {
             sessionId,
@@ -28,27 +29,26 @@ export class SessionService {
             lastAccessedAt: Date.now(),
             valid: false,
             doNotAskMfaPhoneNumberVerification: false
-        }
+        };
 
-        const { IP, deviceId, sessionDeviceInfo, userId } = sessionData
-
-        // Salvare la sessione in Redis
         const sessionKey = this.getSessionKey(sessionId);
+
         await this.redisService.hset(sessionKey, 'sessionId', sessionId)
-        await this.redisService.hset(sessionKey, 'userId', userId)
-        await this.redisService.hset(sessionKey, 'deviceId', deviceId)
+        await this.redisService.hset(sessionKey, 'userId', sessionData.userId)
+        await this.redisService.hset(sessionKey, 'deviceId', sessionData.deviceId)
         await this.redisService.hset(sessionKey, 'expiresAt', expiresAt.toString())
         await this.redisService.hset(sessionKey, 'lastAccessedAt', session.lastAccessedAt.toString())
-        await this.redisService.hset(sessionKey, 'IP', IP)
+        await this.redisService.hset(sessionKey, 'IP', sessionData.IP)
         await this.redisService.hset(sessionKey, 'valid', 'false')
-        await this.redisService.hset(sessionKey, 'sessionDeviceInfo', JSON.stringify(sessionDeviceInfo))
-        await this.redisService.hset(sessionKey, 'doNotAskMfaPhoneNumberVerification', 'false')
+        await this.redisService.hset(sessionKey, 'longTerm', rememberMe.toString())
+        await this.redisService.hset(sessionKey, 'sessionDeviceInfo', JSON.stringify(sessionData.sessionDeviceInfo))
+        await this.redisService.hset(sessionKey, 'doNotAskMfaPhoneNumberVerification', JSON.stringify(session.doNotAskMfaPhoneNumberVerification))
 
-        // Imposta il TTL della sessione in Redis
         await this.redisService.setTTL(sessionKey, ttlSeconds)
 
-        return session
+        return session;
     }
+
 
     async activateSession(sessionId: string): Promise<void> | never {
         const session = await this.getSession(sessionId)
@@ -99,9 +99,22 @@ export class SessionService {
 
     // 🔹 Aggiornare lastAccessedAt ad ogni accesso
     async updateLastAccessed(sessionId: string): Promise<void> {
-        await this.redisService.hset(this.getSessionKey(sessionId), 'lastAccessedAt', Date.now().toString());
+        const sessionKey = this.getSessionKey(sessionId)
+        const now = Date.now()
+
+        const longTermRaw = await this.redisService.hget(sessionKey, 'longTerm')
+        const isLongTerm = longTermRaw === 'true'
+
+        if (!isLongTerm) {
+            const newTTL = 60 * 60; // Rinnovo TTL solo se sessione breve
+            await this.redisService.setTTL(sessionKey, newTTL)
+        }
+
+        await this.redisService.hset(sessionKey, 'lastAccessedAt', now.toString())
     }
-    
+
+
+
     // 🔹 Aggiornare doNotAskMfaPhoneNumberVerification ad ogni accesso
     async updateDoNotAskMfaPhoneNumberVerification(sessionId: string, value: boolean): Promise<void> {
         await this.redisService.hset(this.getSessionKey(sessionId), 'doNotAskMfaPhoneNumberVerification', value.toString())

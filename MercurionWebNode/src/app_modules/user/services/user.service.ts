@@ -7,6 +7,7 @@ import { UUID } from 'crypto';
 import { nullish } from 'src/Models/nullish.type';
 import { MfaStrategy } from '../Models/enums/mfa-strategy.enum';
 import { GeneralUtils } from 'src/general-utils/general-utils';
+import { IAuth } from 'src/app_modules/auth/Models/interfaces/i-auth.interface';
 
 @Injectable()
 export class UserService {
@@ -126,13 +127,17 @@ export class UserService {
         return await this.userRepository.findOne({ where: { email, isVerified: true } })
     }
 
-    public async getVerifiedUserIdByEmail(email: string): Promise<UUID | nullish> {
+    public async getVerifiedUserAuthByEmail(email: string): Promise<IAuth | nullish> {
         const user = await this.userRepository.createQueryBuilder('u')
-            .select('u.id')
+            .select(['u.id', 'u.passwordHash'])
             .where('u.isVerified = true')
             .andWhere('u.email = :email', { email })
             .getOne() 
-        if (!user) return null
-        return user.id
+        if (!user) return user
+        const {id: userId, passwordHash} = user
+        return {
+            userId,
+            passwordHash
+        }
     }
 }
