@@ -3,7 +3,7 @@ import { UUID } from "crypto"
 import { Environment } from "./config"
 
 export interface AppConfiguration {
-    
+
     env: Environment
     port: number
     natsPort: number
@@ -18,7 +18,7 @@ export interface AppConfiguration {
 export interface DataConfiguration {
 
     sqlDB: TypeOrmModuleOptions
-    
+
 }
 
 export interface JwtConfiguration {
@@ -36,8 +36,12 @@ export interface JwtConfigurations {
     activationToken: JwtConfiguration
     phoneNumberVerificationToken: JwtConfiguration
     emailVerificationToken: JwtConfiguration
-    e_v_t: JwtConfiguration
-    p_v_t: JwtConfiguration
+    emailOtpMfaActivationToken: JwtConfiguration
+    smsOtpMfaActivationToken: JwtConfiguration
+    appTotpMfaActivationToken: JwtConfiguration
+    emailOtpMfaInactivationToken: JwtConfiguration
+    smsOtpMfaInactivationToken: JwtConfiguration
+    appTotpMfaInactivationToken: JwtConfiguration
     issuer: string
 
 }
@@ -80,7 +84,7 @@ export interface SessionConfiguration {
 }
 
 export interface DropboxConfiguration {
-    
+
     apiUrl: string
     appKey: string
     appSecret: string

@@ -60,7 +60,7 @@ const DataConfig = registerAs(
             logger: process.env.SQL_DATABASE_LOGGER as 'debug' | 'file' | 'simple-console' | 'advanced-console',
             autoLoadEntities: true,
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-            namingStrategy: new SnakeNamingStrategy(),        
+            namingStrategy: new SnakeNamingStrategy(),
         }
     })
 )
@@ -71,32 +71,48 @@ const JwtConfig = registerAs(
             expiresInMs: Number(process.env.JWT_EXPIRATION_ACCESS_TOKEN)
         },
         refreshToken: {
-            secret: process.env.JWT_SECRETS_REFRESH_TOKEN ?? '',
+            secret: process.env.JWT_SECRETS_REFRESH_TOKEN,
             expiresInMs: Number(process.env.JWT_EXPIRATION_REFRESH_TOKEN)
         },
         preAuthorizationToken: {
-            secret: process.env.JWT_SECRETS_PRE_AUTHORIZATION_TOKEN ?? '',
+            secret: process.env.JWT_SECRETS_PRE_AUTHORIZATION_TOKEN,
             expiresInMs: Number(process.env.JWT_EXPIRATION_PRE_AUTHORIZATION_TOKEN)
         },
         activationToken: {
-            secret: process.env.JWT_SECRETS_ACTIVATION_TOKEN ?? '',
+            secret: process.env.JWT_SECRETS_ACTIVATION_TOKEN,
             expiresInMs: Number(process.env.JWT_EXPIRATION_ACTIVATION_TOKEN)
         },
         phoneNumberVerificationToken: {
-            secret: process.env.JWT_SECRETS_PHONE_NUMBER_VERIFICATION_TOKEN ?? '',
+            secret: process.env.JWT_SECRETS_PHONE_NUMBER_VERIFICATION_TOKEN,
             expiresInMs: Number(process.env.JWT_EXPIRATION_PHONE_NUMBER_VERIFICATION_TOKEN)
         },
         emailVerificationToken: {
-            secret: process.env.JWT_SECRETS_EMAIL_VERIFICATION_TOKEN ?? '',
+            secret: process.env.JWT_SECRETS_EMAIL_VERIFICATION_TOKEN,
             expiresInMs: Number(process.env.JWT_EXPIRATION_EMAIL_VERIFICATION_TOKEN)
         },
-        e_v_t: {
-            secret: process.env.JWT_SECRETS_EVT ?? '',
-            expiresInMs: Number(process.env.JWT_EXPIRATION_EMAIL_VERIFICATION_TOKEN)
+        emailOtpMfaActivationToken: {
+            secret: process.env.JWT_SECRETS_EMAIL_MFA_ACTIVATION,
+            expiresInMs: Number(process.env.MFA_CHANGE_TIME)
         },
-        p_v_t: {
-            secret: process.env.JWT_SECRETS_PVT ?? '',
-            expiresInMs: Number(process.env.JWT_EXPIRATION_EMAIL_VERIFICATION_TOKEN)
+        smsOtpMfaActivationToken: {
+            secret: process.env.JWT_SECRETS_SMS_MFA_ACTIVATION,
+            expiresInMs: Number(process.env.MFA_CHANGE_TIME)
+        },
+        appTotpMfaActivationToken: {
+            secret: process.env.JWT_SECRETS_APP_MFA_ACTIVATION,
+            expiresInMs: Number(process.env.MFA_CHANGE_TIME)
+        },
+        emailOtpMfaInactivationToken: {
+            secret: process.env.JWT_SECRETS_EMAIL_MFA_INACTIVATION,
+            expiresInMs: Number(process.env.MFA_CHANGE_TIME)
+        },
+        smsOtpMfaInactivationToken: {
+            secret: process.env.JWT_SECRETS_SMS_MFA_INACTIVATION,
+            expiresInMs: Number(process.env.MFA_CHANGE_TIME)
+        },
+        appTotpMfaInactivationToken: {
+            secret: process.env.JWT_SECRETS_APP_MFA_INACTIVATION,
+            expiresInMs: Number(process.env.MFA_CHANGE_TIME)
         },
         issuer: process.env.APP_PROJECT_NAME + `_${process.env.APP_PROJECT_ID as UUID ?? ''}`
     })

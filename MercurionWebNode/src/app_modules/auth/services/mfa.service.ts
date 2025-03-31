@@ -21,6 +21,7 @@ import { TotpConfiguration } from 'src/config/@types-config';
 import { join } from 'path';
 import { SessionService } from './session.service';
 import { nullish } from 'src/Models/nullish.type';
+import { GeneralUtils } from 'src/general-utils/general-utils';
 
 @Injectable()
 export class MfaService {
@@ -31,7 +32,8 @@ export class MfaService {
         private readonly securityService: SercurityService,
         private readonly userService: UserService,
         private readonly passwordEncoderService: PasswordEncoderService,
-        @InjectRepository(MfaBackupCode) private readonly backupCodeRepository: Repository<MfaBackupCode>,
+        @InjectRepository(MfaBackupCode) 
+        private readonly backupCodeRepository: Repository<MfaBackupCode>,
         private readonly smsService: SmsSenderService,
         private readonly mailService: MailSenderService,
         private readonly configService: ConfigService,
@@ -179,18 +181,14 @@ E' valido per ${this.totpConfig.period} secondi.`
                 otpSecret = await this.userService.getAppTotpSecretByUserId(userId)
                 break
             default:
-                throw new RpcException(`UnsupportedMfaStrategy::${strategy as MfaStrategy}`)
+                throw new RpcException(`UnsupportedMfaStrategy::${GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy)}`)
 
         }
         if (!otpSecret) throw new RpcException('OtpSecretNotFound')
         return this.securityService.verifyTotp(totp, otpSecret)
     }
 
-
-
-
-
-
+    
 
 
 }
