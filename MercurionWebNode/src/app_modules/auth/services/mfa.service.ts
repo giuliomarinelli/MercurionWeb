@@ -9,7 +9,7 @@ import { Repository } from 'typeorm';
 import { PasswordEncoderService } from './password-encoder.service';
 import { User } from 'src/app_modules/user/Models/entities/user.entity';
 import { BackupCodeStatusDTO } from 'src/app_modules/user/Models/DTO/backup-code-status.dto';
-import { MfaAuthMetadata, TotpAuthMetadata, TotpMetadata } from '../Models/interfaces/totp-wrapper.interface';
+import { MfaAuthMetadata, TotpMetadata } from '../Models/interfaces/totp-wrapper.interface';
 import { SmsSenderService } from 'src/app_modules/notification/services/sms-sender/sms-sender.service';
 import { MailSenderService } from 'src/app_modules/notification/services/mail-sender/mail-sender.service';
 import { ConfigService } from '@nestjs/config';
@@ -152,8 +152,7 @@ export class MfaService {
                 }
                 await this.smsService.sendSms(
                     user.completePhoneNumber as string,
-                    `Ciao ${user.firstName}. Ecco il tuo codice per accedere a ${this.appName}: ${TOTP}                 
-E' valido per ${this.totpConfig.period} secondi.`
+                    `Ciao ${user.firstName}. Ecco il tuo codice per accedere a ${this.appName}: ${TOTP}\nE' valido per ${this.totpConfig.period} secondi.`
                 )
                 break
             default:
@@ -270,7 +269,7 @@ E' valido per ${this.totpConfig.period} secondi.`
 
     }
 
-    public async enableMfa_secondStep_verifyTotp(
+    public async enableMfa_secondStep_verifyTotpAndAppendStrategy(
         totp: string,
         secureToken: string,
         strategy: MfaStrategy
@@ -402,6 +401,52 @@ E' valido per ${this.totpConfig.period} secondi.`
         }
     }
 
+    public async disableMfa_secondStep_verifyTotpAndRemoveStrategy(
+        totp: string,
+        secureToken: string,
+        strategy: MfaStrategy
+    ): Promise<boolean> {
+
+        let tokenType: TokenType
+
+        switch (strategy) {
+            case MfaStrategy.EMAIL_OTP:
+                tokenType = TokenType.EmailOtpMfaInactivationToken
+                break;
+            case MfaStrategy.SMS_OTP:
+                tokenType = TokenType.SmsOtpMfaInactivationToken
+                break;
+            case MfaStrategy.APP_TOTP:
+                tokenType = TokenType.AppTotpMfaInactivationToken
+                break;
+            default:
+                throw new RpcException(`UnsupportedMfaStrategy::${GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy)}`)
+        }
+
+        const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(secureToken, tokenType);
+        await this.sessionService.revokeToken(jti.toString())
+
+        if (!await this.userService.existsUserById(userId)) {
+            throw new RpcException('NoSuchUser')
+        }
+
+        let otpSecret: string | nullish
+        if (strategy === MfaStrategy.APP_TOTP) {
+            otpSecret = await this.userService.getAppTotpSecretByUserId(userId)
+        } else {
+            otpSecret = await this.userService.getOptSecretByUserId(userId)
+        }
+
+        if (!otpSecret) {
+            throw new RpcException('OtpSecretNotFound')
+        }
+
+        const isValid = this.securityService.verifyTotp(totp, otpSecret)
+        if (!isValid) return false
+
+        await this.userService.removeMfaStrategy(userId, strategy)
+        return true
+    }
 
 
 
