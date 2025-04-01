@@ -23,11 +23,15 @@ export class JwtToolsService {
     private readonly activationTokenConfig: JwtConfiguration
     private readonly phoneNumberVerificationTokenConfig: JwtConfiguration
     private readonly emailVerificationTokenConfig: JwtConfiguration
+    private readonly emailOtpMfaActivationTokenConfig: JwtConfiguration
+    private readonly smsOtpMfaActivationTokenConfig: JwtConfiguration
+    private readonly appTotpMfaActivationTokenConfig: JwtConfiguration
+    private readonly emailOtpMfaInactivationTokenConfig: JwtConfiguration
+    private readonly smsOtpMfaInactivationTokenConfig: JwtConfiguration
+    private readonly appTotpMfaInactivationTokenConfig: JwtConfiguration
+
     private readonly jwtIssuer: string
-    private readonly defaultJwtConfig: JwtConfiguration = {
-        secret: '',
-        expiresInMs: 0
-    }
+
 
     private readonly privateKey: string
     private readonly publicKey: string
@@ -44,12 +48,13 @@ export class JwtToolsService {
         this.activationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.activationToken") as JwtConfiguration
         this.phoneNumberVerificationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.phoneNumberVerificationToken") as JwtConfiguration
         this.emailVerificationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.emailVerificationToken") as JwtConfiguration
-        this.emailVerificationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.emailOtpMfaActivationToken") as JwtConfiguration
-        this.emailVerificationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.smsOtpMfaActivationToken") as JwtConfiguration
-        this.emailVerificationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.appTotpMfaActivationToken") as JwtConfiguration
-        this.emailVerificationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.emailOtpMfaInactivationToken") as JwtConfiguration
-        this.emailVerificationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.smsOtpMfaInactivationToken") as JwtConfiguration
-        this.emailVerificationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.appTotpMfaInactivationToken") as JwtConfiguration
+        this.emailOtpMfaActivationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.emailOtpMfaActivationToken") as JwtConfiguration
+        this.smsOtpMfaActivationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.smsOtpMfaActivationToken") as JwtConfiguration
+        this.appTotpMfaActivationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.appTotpMfaActivationToken") as JwtConfiguration
+        this.emailOtpMfaInactivationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.emailOtpMfaInactivationToken") as JwtConfiguration
+        this.smsOtpMfaInactivationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.smsOtpMfaInactivationToken") as JwtConfiguration
+        this.appTotpMfaInactivationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.appTotpMfaInactivationToken") as JwtConfiguration
+
         this.jwtIssuer = this.configService.get<string>("Jwt.issuer") as string
 
         this.privateKey = join(__dirname, readFileSync('src/config/keys/private.pem', 'utf8'))
@@ -64,12 +69,12 @@ export class JwtToolsService {
             case TokenType.ActivationToken: return this.activationTokenConfig
             case TokenType.PhoneNumberVerificationToken: return this.phoneNumberVerificationTokenConfig
             case TokenType.EmailVerificationToken: return this.emailVerificationTokenConfig
-            case TokenType.AppTotpMfaActivationToken: return this.emailVerificationTokenConfig
-            case TokenType.AppTotpMfaInactivationToken: return this.emailVerificationTokenConfig
-            case TokenType.EmailOtpMfaActivationToken: return this.emailVerificationTokenConfig
-            case TokenType.EmailOtpMfaInactivationToken: return this.emailVerificationTokenConfig
-            case TokenType.SmsOtpMfaActivationToken: return this.emailVerificationTokenConfig
-            case TokenType.SmsOtpMfaInactivationToken: return this.emailVerificationTokenConfig
+            case TokenType.AppTotpMfaActivationToken: return this.appTotpMfaActivationTokenConfig
+            case TokenType.AppTotpMfaInactivationToken: return this.appTotpMfaInactivationTokenConfig
+            case TokenType.EmailOtpMfaActivationToken: return this.emailOtpMfaActivationTokenConfig
+            case TokenType.EmailOtpMfaInactivationToken: return this.emailOtpMfaInactivationTokenConfig
+            case TokenType.SmsOtpMfaActivationToken: return this.smsOtpMfaActivationTokenConfig
+            case TokenType.SmsOtpMfaInactivationToken: return this.smsOtpMfaInactivationTokenConfig
         }
     }
 
