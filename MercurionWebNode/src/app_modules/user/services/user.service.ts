@@ -167,7 +167,7 @@ export class UserService {
         if (!user) return user
         return user.firstName
     }
-    
+
     public async getUserEmailById(id: UUID): Promise<string | nullish> {
         const user = await this.userRepository.createQueryBuilder('u')
             .select('u.email')
@@ -176,7 +176,7 @@ export class UserService {
         if (!user) return user
         return user.email
     }
-    
+
     public async getPhoneNumberById(id: UUID): Promise<string | nullish> {
         const user = await this.userRepository.createQueryBuilder('u')
             .select('u.completePhoneNumber')
@@ -185,5 +185,14 @@ export class UserService {
         if (!user) return user
         return user.completePhoneNumber
     }
+
+    public async appendMfaStrategy(id: UUID, strategy: MfaStrategy): Promise<void> {
+        const currentStrategies: MfaStrategy[] = await this.getUserEnabledMfaStrategies(id)
+        const updatedStrategies = Array.from(new Set([...currentStrategies, strategy]))
+        const mfaStrategies = JSON.stringify(updatedStrategies)
+        await this.updateUser(id, { mfaStrategies })
+    }
+
+    
 
 }

@@ -237,10 +237,12 @@ E' valido per ${this.totpConfig.period} secondi.`
                 }
                 ({ TOTP, ...metadata } = this.securityService.generateTotp(totpSecret))
                 await this.smsService.sendSms(completePhoneNumber,
-                    `Ciao ${firstName}. Ecco il tuo codice per accedere a ${this.appName}: ${TOTP}                 
+                    `Ciao ${firstName}. Ecco il tuo codice per attivare l'MFA in ${this.appName}: ${TOTP}                 
 E' valido per ${this.totpConfig.period} secondi.`)
                 break
+
             case MfaStrategy.APP_TOTP:
+
                 ({ totpSecret, otpauth_url } = this.securityService.generateAppTotpSecret())
                 metadata = {
                     generatedAt: Date.now(),
@@ -254,16 +256,67 @@ E' valido per ${this.totpConfig.period} secondi.`)
                     ...metadata,
                     secret: totpSecret,
                     otpauthUrl: otpauth_url
-                } 
+                }
 
         }
 
         return metadata
 
-
-
-
     }
+
+    public async enableMfa_secondStep_verifyTotp(
+        totp: string,
+        secureToken: string,
+        strategy: MfaStrategy
+    ): Promise<boolean> {
+
+        let tokenType: TokenType
+
+        switch (strategy) {
+            case MfaStrategy.EMAIL_OTP:
+                tokenType = TokenType.EmailOtpMfaActivationToken
+                break
+            case MfaStrategy.SMS_OTP:
+                tokenType = TokenType.SmsOtpMfaActivationToken
+                break
+            case MfaStrategy.APP_TOTP:
+                tokenType = TokenType.AppTotpMfaActivationToken
+                break
+            default:
+                throw new RpcException(`UnsupportedMfaStrategy::${GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy)}`)
+        }
+
+        const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(secureToken, tokenType)
+        await this.sessionService.revokeToken(jti.toString())
+
+        if (!await this.userService.existsUserById(userId)) {
+            throw new RpcException('NoSuchUser')
+        }
+
+        let otpSecret: string | nullish
+
+        if (strategy === MfaStrategy.APP_TOTP) {
+            otpSecret = await this.redisService.get(`mfa:temp:app-secret:${userId}`)
+            if (!otpSecret) throw new RpcException('TemporaryAppTotpSecretNotFound')
+
+            const isValid = this.securityService.verifyTotp(totp, otpSecret)
+            if (!isValid) return false
+
+            await this.userService.updateUser(userId, { appTotpSecret: otpSecret })
+            await this.redisService.del(`mfa:temp:app-secret:${userId}`)
+        } else {
+            otpSecret = await this.userService.getOptSecretByUserId(userId)
+            if (!otpSecret) throw new RpcException('OtpSecretNotFound')
+
+            const isValid = this.securityService.verifyTotp(totp, otpSecret)
+            if (!isValid) return false
+        }
+
+        await this.userService.appendMfaStrategy(userId, strategy)
+
+        return true
+    }
+
 
 
 }
