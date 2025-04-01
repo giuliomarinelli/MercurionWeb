@@ -27,12 +27,14 @@ import { GeneralUtils } from 'src/general-utils/general-utils';
 export class MfaService {
 
     private readonly totpConfig: TotpConfiguration
+    private readonly sessionZeroId: UUID
+    private readonly appName: string
 
     constructor(
         private readonly securityService: SercurityService,
         private readonly userService: UserService,
         private readonly passwordEncoderService: PasswordEncoderService,
-        @InjectRepository(MfaBackupCode) 
+        @InjectRepository(MfaBackupCode)
         private readonly backupCodeRepository: Repository<MfaBackupCode>,
         private readonly smsService: SmsSenderService,
         private readonly mailService: MailSenderService,
@@ -41,6 +43,8 @@ export class MfaService {
         private readonly sessionService: SessionService
     ) {
         this.totpConfig = this.configService.get<TotpConfiguration>('Totp') as TotpConfiguration
+        this.sessionZeroId = this.configService.get<UUID>('Session.sessionZeroId') as UUID
+        this.appName = this.configService.get<string>("App.globalName") as string
     }
 
     public async isMfaEnabled(userId: UUID): Promise<boolean> {
@@ -105,7 +109,6 @@ export class MfaService {
 
         let userId: UUID
         let jti: UUID
-        const appName: string = this.configService.get<string>("App.globalName") as string
         let sessionId: UUID
 
         try {
@@ -113,17 +116,13 @@ export class MfaService {
         } catch {
             throw new RpcException('InvalidJwtValidation')
         }
-
         const user = await this.userService.getUserById(userId)
         if (!user) {
             throw new RpcException('NoSuchUser')
         }
-
         if (!user.otpSecret) throw new RpcException('OtpSecretNotFound')
-
         if (!user.mfaStrategies.includes(strategy))
             throw new RpcException(`InvalidMfaStrategy::${strategy} strategy for MFA not enabled for this user`)
-
         const { TOTP, ...metadata } = this.securityService.generateTotp(user.otpSecret)
 
         switch (strategy) {
@@ -132,7 +131,7 @@ export class MfaService {
 
                 await this.mailService.sendEmail<EmailTotpContext>(
                     user.email as string,
-                    `Il tuo codice per accedere a ${appName}`,
+                    `Il tuo codice per accedere a ${this.appName}`,
                     {
                         firstName: user.firstName,
                         totp: TOTP,
@@ -153,7 +152,7 @@ export class MfaService {
 
                 await this.smsService.sendSms(
                     user.completePhoneNumber as string,
-                    `Ciao ${user.firstName}. Ecco il tuo codice per accedere a ${appName}: ${TOTP}                 
+                    `Ciao ${user.firstName}. Ecco il tuo codice per accedere a ${this.appName}: ${TOTP}                 
 E' valido per ${this.totpConfig.period} secondi.`
                 )
                 break
@@ -188,7 +187,49 @@ E' valido per ${this.totpConfig.period} secondi.`
         return this.securityService.verifyTotp(totp, otpSecret)
     }
 
-    // public async askForUserOtpMfaStrategyActivation(secureToken: string, strategy: MfaStrategy)
+    public async enableMfa_firstStep(secureToken: string, strategy: MfaStrategy): Promise<TotpMetadata> {
+
+        let totpSecret: string
+        const sessionId: UUID = this.sessionZeroId
+        let tokenType: TokenType
+        let userId: UUID
+        let jti: UUID
+
+        switch (strategy) {
+            case MfaStrategy.EMAIL_OTP:
+                tokenType = TokenType.EmailOtpMfaActivationToken
+                break
+            case MfaStrategy.SMS_OTP:
+                tokenType = TokenType.SmsOtpMfaActivationToken
+                break
+            case MfaStrategy.APP_TOTP:
+                tokenType = TokenType.AppTotpMfaActivationToken
+        }
+
+        try {
+            ({ sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(secureToken, tokenType))
+        } catch {
+            throw new RpcException('InvalidJwtValidation')
+        }
+        const user = await this.userService.getUserById(userId)
+        if (!user) {
+            throw new RpcException('NoSuchUser')
+        }
+        if (!user.otpSecret) throw new RpcException('OtpSecretNotFound')
+        if (user.mfaStrategies.includes(strategy))
+            throw new RpcException(`InvalidMfaStrategy::${strategy} strategy for MFA already enabled for this user`)
+        
+        switch (strategy) {
+            case MfaStrategy.EMAIL_OTP:
+                
+        }
+        
+        
+        const { TOTP, ...metadata } = this.securityService.generateTotp(user.otpSecret)
+
+
+
+    }
 
 
 }
