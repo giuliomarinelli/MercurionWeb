@@ -9,7 +9,7 @@ import { Repository } from 'typeorm';
 import { PasswordEncoderService } from './password-encoder.service';
 import { User } from 'src/app_modules/user/Models/entities/user.entity';
 import { BackupCodeStatusDTO } from 'src/app_modules/user/Models/DTO/backup-code-status.dto';
-import { TotpMetadata, TotpWrapper } from '../Models/interfaces/totp-wrapper.interface';
+import { TotpAuthMetadata, TotpMetadata } from '../Models/interfaces/totp-wrapper.interface';
 import { SmsSenderService } from 'src/app_modules/notification/services/sms-sender/sms-sender.service';
 import { MailSenderService } from 'src/app_modules/notification/services/mail-sender/mail-sender.service';
 import { ConfigService } from '@nestjs/config';
@@ -22,6 +22,7 @@ import { join } from 'path';
 import { SessionService } from './session.service';
 import { nullish } from 'src/Models/nullish.type';
 import { GeneralUtils } from 'src/general-utils/general-utils';
+import { RedisService } from 'src/app_modules/redis/services/redis.service';
 
 @Injectable()
 export class MfaService {
@@ -40,7 +41,8 @@ export class MfaService {
         private readonly mailService: MailSenderService,
         private readonly configService: ConfigService,
         private readonly jwtTools: JwtToolsService,
-        private readonly sessionService: SessionService
+        private readonly sessionService: SessionService,
+        private readonly redisService: RedisService
     ) {
         this.totpConfig = this.configService.get<TotpConfiguration>('Totp') as TotpConfiguration
         this.sessionZeroId = this.configService.get<UUID>('Session.sessionZeroId') as UUID
@@ -185,7 +187,7 @@ E' valido per ${this.totpConfig.period} secondi.`
         return this.securityService.verifyTotp(totp, otpSecret)
     }
 
-    public async enableMfa_firstStep(userId: UUID, strategy: MfaStrategy): Promise<TotpMetadata> {
+    public async enableMfa_firstStep(userId: UUID, strategy: MfaStrategy): Promise<TotpAuthMetadata> {
 
         let totpSecret: string | nullish
         let TOTP: string
@@ -195,6 +197,7 @@ E' valido per ${this.totpConfig.period} secondi.`
         }
         let email: string
         let completePhoneNumber: string
+        let otpauth_url: string
 
         if (!await this.userService.existsUserById(userId)) {
             throw new RpcException('NoSuchUser')
@@ -237,10 +240,26 @@ E' valido per ${this.totpConfig.period} secondi.`
                     `Ciao ${firstName}. Ecco il tuo codice per accedere a ${this.appName}: ${TOTP}                 
 E' valido per ${this.totpConfig.period} secondi.`)
                 break
+            case MfaStrategy.APP_TOTP:
+                ({ totpSecret, otpauth_url } = this.securityService.generateAppTotpSecret())
+                metadata = {
+                    generatedAt: Date.now(),
+                    expiresAt: Date.now() + this.totpConfig.period * 1000
+                }
+
+                // salvataggio temporaneo del secret in redis (con TTL), associato allo user
+                await this.redisService.set(`mfa:temp:app-secret:${userId}`, totpSecret, 300) // 5 minuti
+
+                return {
+                    ...metadata,
+                    secret: totpSecret,
+                    otpauthUrl: otpauth_url
+                } 
+
         }
 
         return metadata
-        
+
 
 
 

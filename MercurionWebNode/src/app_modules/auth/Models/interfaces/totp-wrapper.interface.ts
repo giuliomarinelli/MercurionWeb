@@ -7,3 +7,8 @@ export interface TotpWrapper {
 }
 
 export type TotpMetadata = Omit<TotpWrapper, 'TOTP'>
+
+export type TotpAuthMetadata = TotpMetadata & {
+    secret?: string
+    otpauthUrl?: string
+}
