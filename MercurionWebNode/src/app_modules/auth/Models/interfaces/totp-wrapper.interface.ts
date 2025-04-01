@@ -12,3 +12,5 @@ export type TotpAuthMetadata = TotpMetadata & {
     secret?: string
     otpauthUrl?: string
 }
+
+export type MfaAuthMetadata = TotpAuthMetadata & { secureToken: string }

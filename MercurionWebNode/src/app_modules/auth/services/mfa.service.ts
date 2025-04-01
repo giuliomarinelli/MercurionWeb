@@ -9,7 +9,7 @@ import { Repository } from 'typeorm';
 import { PasswordEncoderService } from './password-encoder.service';
 import { User } from 'src/app_modules/user/Models/entities/user.entity';
 import { BackupCodeStatusDTO } from 'src/app_modules/user/Models/DTO/backup-code-status.dto';
-import { TotpAuthMetadata, TotpMetadata } from '../Models/interfaces/totp-wrapper.interface';
+import { MfaAuthMetadata, TotpAuthMetadata, TotpMetadata } from '../Models/interfaces/totp-wrapper.interface';
 import { SmsSenderService } from 'src/app_modules/notification/services/sms-sender/sms-sender.service';
 import { MailSenderService } from 'src/app_modules/notification/services/mail-sender/mail-sender.service';
 import { ConfigService } from '@nestjs/config';
@@ -187,7 +187,7 @@ E' valido per ${this.totpConfig.period} secondi.`
         return this.securityService.verifyTotp(totp, otpSecret)
     }
 
-    public async enableMfa_firstStep(userId: UUID, strategy: MfaStrategy): Promise<TotpAuthMetadata> {
+    public async enableMfa_firstStep(userId: UUID, strategy: MfaStrategy): Promise<MfaAuthMetadata> {
 
         let totpSecret: string | nullish
         let TOTP: string
@@ -198,6 +198,7 @@ E' valido per ${this.totpConfig.period} secondi.`
         let email: string
         let completePhoneNumber: string
         let otpauth_url: string
+        let secureToken: string
 
         if (!await this.userService.existsUserById(userId)) {
             throw new RpcException('NoSuchUser')
@@ -226,6 +227,7 @@ E' valido per ${this.totpConfig.period} secondi.`
                     join(__dirname, "../../notification/email-templates/send-totp-to-enable-mfa.hbs")
 
                 )
+                secureToken = await this.jwtTools.generateToken(userId, TokenType.EmailOtpMfaActivationToken)
                 break
 
             case MfaStrategy.SMS_OTP:
@@ -237,8 +239,8 @@ E' valido per ${this.totpConfig.period} secondi.`
                 }
                 ({ TOTP, ...metadata } = this.securityService.generateTotp(totpSecret))
                 await this.smsService.sendSms(completePhoneNumber,
-                    `Ciao ${firstName}. Ecco il tuo codice per attivare l'MFA in ${this.appName}: ${TOTP}                 
-E' valido per ${this.totpConfig.period} secondi.`)
+                    `Ciao ${firstName}. Ecco il tuo codice per attivare l'MFA in ${this.appName}: ${TOTP}\nE' valido per ${this.totpConfig.period} secondi.`)
+                secureToken = await this.jwtTools.generateToken(userId, TokenType.SmsOtpMfaActivationToken)
                 break
 
             case MfaStrategy.APP_TOTP:
@@ -251,16 +253,20 @@ E' valido per ${this.totpConfig.period} secondi.`)
 
                 // salvataggio temporaneo del secret in redis (con TTL), associato allo user
                 await this.redisService.set(`mfa:temp:app-secret:${userId}`, totpSecret, 300) // 5 minuti
-
+                secureToken = await this.jwtTools.generateToken(userId, TokenType.AppTotpMfaActivationToken)
                 return {
                     ...metadata,
                     secret: totpSecret,
-                    otpauthUrl: otpauth_url
+                    otpauthUrl: otpauth_url,
+                    secureToken
                 }
 
         }
 
-        return metadata
+        return {
+            ...metadata,
+            secureToken
+        }
 
     }
 
@@ -318,68 +324,75 @@ E' valido per ${this.totpConfig.period} secondi.`)
     }
 
     public async disableMfa_firstStep(userId: UUID, strategy: MfaStrategy): Promise<TotpMetadata> {
-        
-        let totpSecret: string | nullish;
-        let TOTP: string;
-        let metadata: TotpMetadata = { generatedAt: 0, expiresAt: 0 };
-        let email: string;
-        let completePhoneNumber: string;
-    
+
+        let totpSecret: string | nullish
+        let TOTP: string
+        let metadata: TotpMetadata = {
+            generatedAt: 0,
+            expiresAt: 0
+        }
+        let email: string
+        let completePhoneNumber: string
+
         if (!await this.userService.existsUserById(userId)) {
-            throw new RpcException('NoSuchUser');
+            throw new RpcException('NoSuchUser')
         }
-    
-        const strategies = await this.userService.getUserEnabledMfaStrategies(userId);
+
+        const strategies = await this.userService.getUserEnabledMfaStrategies(userId)
         if (!strategies.includes(strategy)) {
-            throw new RpcException(`InvalidMfaStrategy::${strategy} strategy not currently active`);
+            throw new RpcException(`InvalidMfaStrategy::${strategy} strategy not currently active`)
         }
-    
-        const firstName = await this.userService.getUserFirstNameById(userId) as string;
-    
+
+        const firstName = await this.userService.getUserFirstNameById(userId) as string
+
         switch (strategy) {
             case MfaStrategy.EMAIL_OTP:
-                email = await this.userService.getUserEmailById(userId) as string;
-                totpSecret = await this.userService.getOptSecretByUserId(userId);
-                if (!totpSecret) throw new RpcException('TotpSecretNotFound');
-                ({ TOTP, ...metadata } = this.securityService.generateTotp(totpSecret));
-    
+                email = await this.userService.getUserEmailById(userId) as string
+                totpSecret = await this.userService.getOptSecretByUserId(userId)
+                if (!totpSecret) {
+                    throw new RpcException('TotpSecretNotFound')
+                }
+                ({ TOTP, ...metadata } = this.securityService.generateTotp(totpSecret))
+
                 await this.mailService.sendEmail<EmailTotpContext>(
                     email,
-                    `Codice per disattivare MFA via email in ${this.appName}`,
+                    `Codice per disattivare l'MFA via email in ${this.appName}`,
                     { firstName, totp: TOTP, period: this.totpConfig.period },
                     join(__dirname, "../../notification/email-templates/send-totp-to-disable-mfa.hbs")
-                );
-                break;
-    
+                )
+                break
+
             case MfaStrategy.SMS_OTP:
-                completePhoneNumber = await this.userService.getPhoneNumberById(userId) as string;
-                totpSecret = await this.userService.getOptSecretByUserId(userId);
-                if (!totpSecret) throw new RpcException('TotpSecretNotFound');
-                ({ TOTP, ...metadata } = this.securityService.generateTotp(totpSecret));
-    
+                completePhoneNumber = await this.userService.getPhoneNumberById(userId) as string
+                totpSecret = await this.userService.getOptSecretByUserId(userId)
+                if (!totpSecret) {
+                    throw new RpcException('TotpSecretNotFound')
+                }
+                ({ TOTP, ...metadata } = this.securityService.generateTotp(totpSecret))
+
                 await this.smsService.sendSms(
                     completePhoneNumber,
                     `Ciao ${firstName}. Il tuo codice per disattivare l'MFA via SMS è: ${TOTP}\nÈ valido per ${this.totpConfig.period} secondi.`
                 );
                 break;
-    
+
             case MfaStrategy.APP_TOTP:
                 // Nessun codice inviato. Basta generare il token di disattivazione.
-                totpSecret = await this.userService.getAppTotpSecretByUserId(userId);
-                if (!totpSecret) throw new RpcException('TotpSecretNotFound');
+                totpSecret = await this.userService.getAppTotpSecretByUserId(userId)
+                if (!totpSecret) throw new RpcException('TotpSecretNotFound')
                 metadata = {
                     generatedAt: Date.now(),
                     expiresAt: Date.now() + this.totpConfig.period * 1000
                 };
                 break;
-    
+
             default:
-                throw new RpcException(`UnsupportedMfaStrategy::${strategy}`);
+                throw new RpcException(`UnsupportedMfaStrategy::${GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy)}`)
         }
-    
-        return metadata;
+
+        return metadata
     }
-    
+
 
 
 
