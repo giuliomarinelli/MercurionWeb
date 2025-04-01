@@ -59,7 +59,6 @@ const DataConfig = registerAs(
             logging: JSON.parse(process.env.SQL_DATABASE_LOGGING ?? 'false') as boolean,
             logger: process.env.SQL_DATABASE_LOGGER as 'debug' | 'file' | 'simple-console' | 'advanced-console',
             autoLoadEntities: true,
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
             namingStrategy: new SnakeNamingStrategy(),
         }
     })
@@ -145,7 +144,6 @@ const EmailConfig = registerAs(
         },
         template: {
             dir: join(__dirname, './email/templates'),
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
             adapter: new HandlebarsAdapter(),
             options: {
                 strict: true,
@@ -178,7 +176,8 @@ const SessionConfig = registerAs(
 
     ConfigKey.Session, (): SessionConfiguration => ({
         shortSessionLasting: Number(process.env.SHORT_SESSION_LASTING),
-        persistentSessionLasting: Number(process.env.PERSISTENT_SESSION_LASTING)
+        persistentSessionLasting: Number(process.env.PERSISTENT_SESSION_LASTING),
+        sessionZeroId: process.env.SESSION_ZERO_ID as UUID
     })
 
 )

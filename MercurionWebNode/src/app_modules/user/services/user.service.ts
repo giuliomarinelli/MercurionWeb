@@ -159,4 +159,53 @@ export class UserService {
         return user.appTotpSecret
     }
 
+    public async getUserFirstNameById(id: UUID): Promise<string | nullish> {
+        const user = await this.userRepository.createQueryBuilder('u')
+            .select('u.firstName')
+            .where('u.id = :id', { id })
+            .getOne()
+        if (!user) return user
+        return user.firstName
+    }
+
+    public async getUserEmailById(id: UUID): Promise<string | nullish> {
+        const user = await this.userRepository.createQueryBuilder('u')
+            .select('u.email')
+            .where('u.id = :id', { id })
+            .getOne()
+        if (!user) return user
+        return user.email
+    }
+
+    public async getPhoneNumberById(id: UUID): Promise<string | nullish> {
+        const user = await this.userRepository.createQueryBuilder('u')
+            .select('u.completePhoneNumber')
+            .where('u.id = :id', { id })
+            .getOne()
+        if (!user) return user
+        return user.completePhoneNumber
+    }
+
+    public async appendMfaStrategy(id: UUID, strategy: MfaStrategy): Promise<void> {
+        const currentStrategies: MfaStrategy[] = await this.getUserEnabledMfaStrategies(id)
+        const updatedStrategies = Array.from(new Set([...currentStrategies, strategy]))
+        const mfaStrategies = JSON.stringify(updatedStrategies)
+        await this.updateUser(id, { mfaStrategies })
+    }
+
+    public async removeMfaStrategy(id: UUID, strategy: MfaStrategy): Promise<void> {
+        const currentStrategies: MfaStrategy[] = await this.getUserEnabledMfaStrategies(id)
+        const updated = currentStrategies.filter(s => s !== strategy)
+        const userProps: Partial<User> = {
+            mfaStrategies: JSON.stringify(updated)
+        }
+        if (strategy === MfaStrategy.APP_TOTP) {
+            userProps.appTotpSecret = null
+        }
+        await this.updateUser(id, userProps)
+    }
+
+    
+    
+
 }

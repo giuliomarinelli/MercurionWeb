@@ -80,6 +80,7 @@ export interface SessionConfiguration {
 
     shortSessionLasting: number
     persistentSessionLasting: number
+    sessionZeroId: UUID
 
 }
 
