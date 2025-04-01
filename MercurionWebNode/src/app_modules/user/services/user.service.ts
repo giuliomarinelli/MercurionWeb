@@ -193,6 +193,19 @@ export class UserService {
         await this.updateUser(id, { mfaStrategies })
     }
 
+    public async removeMfaStrategy(id: UUID, strategy: MfaStrategy): Promise<void> {
+        const currentStrategies: MfaStrategy[] = await this.getUserEnabledMfaStrategies(id)
+        const updated = currentStrategies.filter(s => s !== strategy)
+        const userProps: Partial<User> = {
+            mfaStrategies: JSON.stringify(updated)
+        }
+        if (strategy === MfaStrategy.APP_TOTP) {
+            userProps.appTotpSecret = null
+        }
+        await this.updateUser(id, userProps)
+    }
+
+    
     
 
 }

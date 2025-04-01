@@ -317,6 +317,70 @@ E' valido per ${this.totpConfig.period} secondi.`)
         return true
     }
 
+    public async disableMfa_firstStep(userId: UUID, strategy: MfaStrategy): Promise<TotpMetadata> {
+        
+        let totpSecret: string | nullish;
+        let TOTP: string;
+        let metadata: TotpMetadata = { generatedAt: 0, expiresAt: 0 };
+        let email: string;
+        let completePhoneNumber: string;
+    
+        if (!await this.userService.existsUserById(userId)) {
+            throw new RpcException('NoSuchUser');
+        }
+    
+        const strategies = await this.userService.getUserEnabledMfaStrategies(userId);
+        if (!strategies.includes(strategy)) {
+            throw new RpcException(`InvalidMfaStrategy::${strategy} strategy not currently active`);
+        }
+    
+        const firstName = await this.userService.getUserFirstNameById(userId) as string;
+    
+        switch (strategy) {
+            case MfaStrategy.EMAIL_OTP:
+                email = await this.userService.getUserEmailById(userId) as string;
+                totpSecret = await this.userService.getOptSecretByUserId(userId);
+                if (!totpSecret) throw new RpcException('TotpSecretNotFound');
+                ({ TOTP, ...metadata } = this.securityService.generateTotp(totpSecret));
+    
+                await this.mailService.sendEmail<EmailTotpContext>(
+                    email,
+                    `Codice per disattivare MFA via email in ${this.appName}`,
+                    { firstName, totp: TOTP, period: this.totpConfig.period },
+                    join(__dirname, "../../notification/email-templates/send-totp-to-disable-mfa.hbs")
+                );
+                break;
+    
+            case MfaStrategy.SMS_OTP:
+                completePhoneNumber = await this.userService.getPhoneNumberById(userId) as string;
+                totpSecret = await this.userService.getOptSecretByUserId(userId);
+                if (!totpSecret) throw new RpcException('TotpSecretNotFound');
+                ({ TOTP, ...metadata } = this.securityService.generateTotp(totpSecret));
+    
+                await this.smsService.sendSms(
+                    completePhoneNumber,
+                    `Ciao ${firstName}. Il tuo codice per disattivare l'MFA via SMS è: ${TOTP}\nÈ valido per ${this.totpConfig.period} secondi.`
+                );
+                break;
+    
+            case MfaStrategy.APP_TOTP:
+                // Nessun codice inviato. Basta generare il token di disattivazione.
+                totpSecret = await this.userService.getAppTotpSecretByUserId(userId);
+                if (!totpSecret) throw new RpcException('TotpSecretNotFound');
+                metadata = {
+                    generatedAt: Date.now(),
+                    expiresAt: Date.now() + this.totpConfig.period * 1000
+                };
+                break;
+    
+            default:
+                throw new RpcException(`UnsupportedMfaStrategy::${strategy}`);
+        }
+    
+        return metadata;
+    }
+    
+
 
 
 }

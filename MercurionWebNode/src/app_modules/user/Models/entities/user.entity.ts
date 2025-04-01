@@ -48,7 +48,7 @@ export class User {
     otpSecret: string
 
     @Column({ type: 'varchar', default: null, nullable: true })
-    appTotpSecret: string
+    appTotpSecret: string | null
 
     @OneToMany(() => MfaBackupCode, (backupCode) => backupCode.user, { cascade: true })
     backupCodes: MfaBackupCode[]
