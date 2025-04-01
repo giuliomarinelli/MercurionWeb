@@ -323,7 +323,7 @@ E' valido per ${this.totpConfig.period} secondi.`
         return true
     }
 
-    public async disableMfa_firstStep(userId: UUID, strategy: MfaStrategy): Promise<TotpMetadata> {
+    public async disableMfa_firstStep(userId: UUID, strategy: MfaStrategy): Promise<MfaAuthMetadata> {
 
         let totpSecret: string | nullish
         let TOTP: string
@@ -333,6 +333,9 @@ E' valido per ${this.totpConfig.period} secondi.`
         }
         let email: string
         let completePhoneNumber: string
+        let secureToken: string
+        const now = new Date()
+        now.setMilliseconds(0)
 
         if (!await this.userService.existsUserById(userId)) {
             throw new RpcException('NoSuchUser')
@@ -360,6 +363,7 @@ E' valido per ${this.totpConfig.period} secondi.`
                     { firstName, totp: TOTP, period: this.totpConfig.period },
                     join(__dirname, "../../notification/email-templates/send-totp-to-disable-mfa.hbs")
                 )
+                secureToken = await this.jwtTools.generateToken(userId, TokenType.EmailOtpMfaInactivationToken)
                 break
 
             case MfaStrategy.SMS_OTP:
@@ -373,24 +377,29 @@ E' valido per ${this.totpConfig.period} secondi.`
                 await this.smsService.sendSms(
                     completePhoneNumber,
                     `Ciao ${firstName}. Il tuo codice per disattivare l'MFA via SMS è: ${TOTP}\nÈ valido per ${this.totpConfig.period} secondi.`
-                );
-                break;
+                )
+                secureToken = await this.jwtTools.generateToken(userId, TokenType.SmsOtpMfaInactivationToken)
+                break
 
             case MfaStrategy.APP_TOTP:
                 // Nessun codice inviato. Basta generare il token di disattivazione.
                 totpSecret = await this.userService.getAppTotpSecretByUserId(userId)
                 if (!totpSecret) throw new RpcException('TotpSecretNotFound')
                 metadata = {
-                    generatedAt: Date.now(),
-                    expiresAt: Date.now() + this.totpConfig.period * 1000
-                };
-                break;
+                    generatedAt: now.getTime(),
+                    expiresAt: now.getTime() + this.totpConfig.period * 1000
+                }
+                secureToken = await this.jwtTools.generateToken(userId, TokenType.AppTotpMfaInactivationToken)
+                break
 
             default:
                 throw new RpcException(`UnsupportedMfaStrategy::${GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy)}`)
         }
 
-        return metadata
+        return {
+            ...metadata,
+            secureToken
+        }
     }
 
 
