@@ -224,7 +224,6 @@ export class MfaService {
                         period: this.totpConfig.period
                     },
                     join(__dirname, "../../notification/email-templates/send-totp-to-enable-mfa.hbs")
-
                 )
                 secureToken = await this.jwtTools.generateToken(userId, TokenType.EmailOtpMfaActivationToken)
                 break
@@ -257,6 +256,7 @@ export class MfaService {
                     ...metadata,
                     secret: totpSecret,
                     otpauthUrl: otpauth_url,
+                    qrCode: await this.securityService.generateQrCodeDataUrl(otpauth_url),
                     secureToken
                 }
 

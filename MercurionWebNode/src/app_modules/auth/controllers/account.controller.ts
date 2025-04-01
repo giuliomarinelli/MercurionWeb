@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Patch, Post, Query, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Param, Patch, Post, Query, ValidationPipe } from '@nestjs/common';
 import { UserRegisterDTO } from 'src/app_modules/user/Models/DTO/user-register.cls.dto';
 import { Public } from 'src/metadata/metadata';
 import { ConfirmDTO, ConfirmWithObsContDTO } from 'src/Models/confirm-responses.dto';
@@ -22,6 +22,11 @@ export class AccountController {
             throw new BadRequestException('Invalid t param pattern')
         }
         return await this.accountService.activate(activationToken)
+    }
+
+    @Patch('/mfa/:strategy/enable')
+    public async enableMfa_firstStep(@Param('strategy') strategy: string | undefined): Promise<void> {
+        
     }
 
 }
