@@ -106,8 +106,11 @@ export class JwtToolsService {
             if (sessionId == undefined) throw new RpcException('NoSuchSessionInAccessTokenSignature')
             const issuedKey = `issued:${sessionId.toString()}:${jti}`
             await this.redisservice.set(issuedKey, '1', jwtConfig.expiresInMs / 1000) // TTL uguale alla durata del token
+        } else {
+            const issuedKey = `issued:96488d68-3138-4eca-a6c8-4e11a53d72db:${jti}`
+            await this.redisservice.set(issuedKey, '1', jwtConfig.expiresInMs / 1000) // TTL uguale alla durata del token
         }
-
+        // session 0 = sessione fittizia
         return token
     }
 
