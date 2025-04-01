@@ -1,13 +1,33 @@
+import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum';
 import { BadRequestException, Body, Controller, Param, Patch, Post, Query, ValidationPipe } from '@nestjs/common';
 import { UserRegisterDTO } from 'src/app_modules/user/Models/DTO/user-register.cls.dto';
-import { Public } from 'src/metadata/metadata';
-import { ConfirmDTO, ConfirmWithObsContDTO } from 'src/Models/confirm-responses.dto';
+import { AuthenticatedUserId, Public } from 'src/metadata/metadata';
+import { ConfirmDTO, ConfirmMfaChange, ConfirmWithObsContDTO } from 'src/Models/confirm-responses.dto';
 import { AccountService } from '../services/account.service';
+import { GeneralUtils } from 'src/general-utils/general-utils';
+import { ResponseService } from 'src/services/response.service';
+import { MfaService } from '../services/mfa.service';
+import { UUID } from 'crypto';
 
 @Controller('account')
 export class AccountController {
 
-    constructor(private readonly accountService: AccountService) { }
+    constructor(
+        private readonly accountService: AccountService,
+        private readonly _r: ResponseService,
+        private readonly mfaService: MfaService
+    ) { }
+
+    private validateMfaStrategy(strategyKey: string | undefined): MfaStrategy | never {
+        if (!strategyKey) {
+            throw new BadRequestException('strategy is required')
+        }
+        const strategy = GeneralUtils.getEnumValueFromStringKey(MfaStrategy, strategyKey)
+        if (!strategy) {
+            throw new BadRequestException('Invalid strategy')
+        }
+        return strategy
+    }
 
     @Public()
     @Post('/register')
@@ -24,9 +44,17 @@ export class AccountController {
         return await this.accountService.activate(activationToken)
     }
 
-    @Patch('/mfa/:strategy/enable')
-    public async enableMfa_firstStep(@Param('strategy') strategy: string | undefined): Promise<void> {
-        
+    @Patch('/mfa/enable/1/:strategy')
+    public async enableMfa_firstStep(
+        @Param('strategy') strategyKey: string | undefined,
+        @AuthenticatedUserId() userId: UUID
+    ): Promise<ConfirmMfaChange> {
+        const strategy = this.validateMfaStrategy(strategyKey)
+        return {
+            ...this._r.ok(`MFA with strategy ${strategyKey} successfully enabled`),
+            ...await this.mfaService.enableMfa_firstStep(userId, strategy)
+        }
     }
+
 
 }
