@@ -9,7 +9,7 @@ import { Repository } from 'typeorm';
 import { PasswordEncoderService } from './password-encoder.service';
 import { User } from 'src/app_modules/user/Models/entities/user.entity';
 import { BackupCodeStatusDTO } from 'src/app_modules/user/Models/DTO/backup-code-status.dto';
-import { TotpMetadata } from '../Models/interfaces/totp-wrapper.interface';
+import { TotpMetadata, TotpWrapper } from '../Models/interfaces/totp-wrapper.interface';
 import { SmsSenderService } from 'src/app_modules/notification/services/sms-sender/sms-sender.service';
 import { MailSenderService } from 'src/app_modules/notification/services/mail-sender/mail-sender.service';
 import { ConfigService } from '@nestjs/config';
@@ -148,8 +148,6 @@ export class MfaService {
                     await this.sessionService.revokeToken(jti)
                     throw new RpcException('NoSuchPhoneNumber')
                 }
-
-
                 await this.smsService.sendSms(
                     user.completePhoneNumber as string,
                     `Ciao ${user.firstName}. Ecco il tuo codice per accedere a ${this.appName}: ${TOTP}                 
@@ -187,45 +185,62 @@ E' valido per ${this.totpConfig.period} secondi.`
         return this.securityService.verifyTotp(totp, otpSecret)
     }
 
-    public async enableMfa_firstStep(secureToken: string, strategy: MfaStrategy): Promise<TotpMetadata> {
+    public async enableMfa_firstStep(userId: UUID, strategy: MfaStrategy): Promise<TotpMetadata> {
 
-        let totpSecret: string
-        const sessionId: UUID = this.sessionZeroId
-        let tokenType: TokenType
-        let userId: UUID
-        let jti: UUID
-
-        switch (strategy) {
-            case MfaStrategy.EMAIL_OTP:
-                tokenType = TokenType.EmailOtpMfaActivationToken
-                break
-            case MfaStrategy.SMS_OTP:
-                tokenType = TokenType.SmsOtpMfaActivationToken
-                break
-            case MfaStrategy.APP_TOTP:
-                tokenType = TokenType.AppTotpMfaActivationToken
+        let totpSecret: string | nullish
+        let TOTP: string
+        let metadata: TotpMetadata = {
+            generatedAt: 0,
+            expiresAt: 0
         }
+        let email: string
+        let completePhoneNumber: string
 
-        try {
-            ({ sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(secureToken, tokenType))
-        } catch {
-            throw new RpcException('InvalidJwtValidation')
-        }
-        const user = await this.userService.getUserById(userId)
-        if (!user) {
+        if (!await this.userService.existsUserById(userId)) {
             throw new RpcException('NoSuchUser')
         }
-        if (!user.otpSecret) throw new RpcException('OtpSecretNotFound')
-        if (user.mfaStrategies.includes(strategy))
-            throw new RpcException(`InvalidMfaStrategy::${strategy} strategy for MFA already enabled for this user`)
-        
+        const firstName = await this.userService.getUserFirstNameById(userId) as string
+        if ((await this.userService.getUserEnabledMfaStrategies(userId)).includes(strategy))
+            throw new RpcException(`InvalidMfaStrategy::${GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy)} strategy for MFA already enabled for this user`)
+
         switch (strategy) {
             case MfaStrategy.EMAIL_OTP:
-                
+
+                email = await this.userService.getUserEmailById(userId) as string
+                totpSecret = await this.userService.getOptSecretByUserId(userId)
+                if (!totpSecret) {
+                    throw new RpcException('TotpSecretNotFound')
+                }
+                ({ TOTP, ...metadata } = this.securityService.generateTotp(totpSecret))
+                await this.mailService.sendEmail<EmailTotpContext>(
+                    email,
+                    `Il tuo codice per attivare l'MFA in ${this.appName}`,
+                    {
+                        firstName,
+                        totp: TOTP,
+                        period: this.totpConfig.period
+                    },
+                    join(__dirname, "../../notification/email-templates/send-totp-to-enable-mfa.hbs")
+
+                )
+                break
+
+            case MfaStrategy.SMS_OTP:
+
+                completePhoneNumber = await this.userService.getPhoneNumberById(userId) as string
+                totpSecret = await this.userService.getOptSecretByUserId(userId)
+                if (!totpSecret) {
+                    throw new RpcException('TotpSecretNotFound')
+                }
+                ({ TOTP, ...metadata } = this.securityService.generateTotp(totpSecret))
+                await this.smsService.sendSms(completePhoneNumber,
+                    `Ciao ${firstName}. Ecco il tuo codice per accedere a ${this.appName}: ${TOTP}                 
+E' valido per ${this.totpConfig.period} secondi.`)
+                break
         }
+
+        return metadata
         
-        
-        const { TOTP, ...metadata } = this.securityService.generateTotp(user.otpSecret)
 
 
 

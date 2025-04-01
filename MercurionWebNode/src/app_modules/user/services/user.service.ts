@@ -159,4 +159,31 @@ export class UserService {
         return user.appTotpSecret
     }
 
+    public async getUserFirstNameById(id: UUID): Promise<string | nullish> {
+        const user = await this.userRepository.createQueryBuilder('u')
+            .select('u.firstName')
+            .where('u.id = :id', { id })
+            .getOne()
+        if (!user) return user
+        return user.firstName
+    }
+    
+    public async getUserEmailById(id: UUID): Promise<string | nullish> {
+        const user = await this.userRepository.createQueryBuilder('u')
+            .select('u.email')
+            .where('u.id = :id', { id })
+            .getOne()
+        if (!user) return user
+        return user.email
+    }
+    
+    public async getPhoneNumberById(id: UUID): Promise<string | nullish> {
+        const user = await this.userRepository.createQueryBuilder('u')
+            .select('u.completePhoneNumber')
+            .where('u.id = :id', { id })
+            .getOne()
+        if (!user) return user
+        return user.completePhoneNumber
+    }
+
 }
