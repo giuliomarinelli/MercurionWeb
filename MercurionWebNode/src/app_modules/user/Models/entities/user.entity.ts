@@ -20,6 +20,12 @@ export class User {
     @Column({ type: 'int', default: 0 })
     phoneNumberPrefixLength: number // lunghezza del prefisso internazionale se si vuole parsare solo il numero
 
+    @Column({ type: 'varchar', nullable: true, default: null })
+    unconfirmedPhoneNumber: string | null
+
+    @Column({ type: 'int', nullable: true, default: null })
+    unconfirmedPhoneNumberPrefixLength: number | null
+
     @Column({ type: 'varchar', length: 100 })
     passwordHash: string // hash argon2
 
