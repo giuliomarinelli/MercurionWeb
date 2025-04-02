@@ -74,5 +74,5 @@ export class AccountService {
         return this._r.ok('Account activated successfully')
     }
     
-
+    
 }
