@@ -71,4 +71,31 @@ export class AccountController {
         return this._r.ok(`MFA successfully enabled for strategy ${strategyKey}`)
     }
 
+    @Patch('/mfa/disable/:strategy/1')
+    public async disableMfa_firstStep(
+        @Param('strategy') strategyKey: string | undefined,
+        @AuthenticatedUserId() userId: UUID
+    ): Promise<ConfirmMfaChange> {
+        const strategy = this.validateMfaStrategy(strategyKey)
+        return {
+            ...this._r.ok(`OTP sent or QR check enabled for MFA strategy ${strategyKey}`),
+            ...await this.mfaService.disableMfa_firstStep(userId, strategy)
+        }
+    }
+
+    @Patch('/mfa/disable/:strategy/2')
+    public async disableMfa_secondStep(
+        @Param('strategy') strategyKey: string | undefined,
+        @Body(new ValidationPipe({ transform: true })) totpDTO: TotpDTO
+    ): Promise<ConfirmDTO> {
+        const strategy = this.validateMfaStrategy(strategyKey)
+        const { totp, secureToken } = totpDTO
+        const isValid: boolean = await this.mfaService.disableMfa_secondStep_verifyTotpAndRemoveStrategy(totp, secureToken, strategy)
+        if (!isValid) {
+            throw new UnauthorizedException('Invalid MFA Code')
+        }
+        return this._r.ok(`MFA successfully disabled for strategy ${strategyKey}`)
+    }
+
+
 }
