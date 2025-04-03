@@ -2,7 +2,7 @@ import { ConfigService } from '@nestjs/config';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { UserRegisterDTO } from 'src/app_modules/user/Models/DTO/user-register.cls.dto';
 import { UserService } from 'src/app_modules/user/services/user.service';
-import { ConfirmDTO, ConfirmWithObsContDTO } from 'src/Models/confirm-responses.dto';
+import { ConfirmChangeDTO, ConfirmDTO, ConfirmWithObsContDTO } from 'src/Models/confirm-responses.dto';
 import { PasswordEncoderService } from './password-encoder.service';
 import { SercurityService } from './sercurity.service';
 import { ResponseService } from 'src/services/response.service';
@@ -15,6 +15,7 @@ import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { RpcException } from '@nestjs/microservices';
 import { User } from 'src/app_modules/user/Models/entities/user.entity';
 import { UUID } from 'crypto';
+import { EmailTotpContext } from 'src/app_modules/notification/Models/contexts/email-totp.context';
 
 @Injectable()
 export class AccountService {
@@ -75,7 +76,8 @@ export class AccountService {
         return this._r.ok('Account activated successfully')
     }
 
-    public async changeEmail_firstStep(userId: UUID, newEmail: string): Promise<ConfirmDTO> {
+    public async changeEmail_firstStep(userId: UUID, newEmail: string): Promise<ConfirmChangeDTO> {
+
         const user = await this.userService.getUserById(userId)
         if (!user) throw new RpcException('ChangeEmail::UserNotFound')
 
@@ -88,28 +90,35 @@ export class AccountService {
         const exists = await this.redisService.exists(lockKey)
         if (exists) throw new RpcException('ChangeEmail::EmailAlreadyInUseOrPending')
 
-        await this.redisService.set(lockKey, 'locked', 3600); // 1h TTL
+        await this.redisService.set(lockKey, 'locked', 3600) // 1h TTL
 
-        // Salva email temporanea
         await this.userService.updateUser(userId, {
             unconfirmedEmail: newEmail,
             updatedAt: Date.now()
         })
 
-        const token = await this.jwtTools.generateToken(userId, TokenType.EmailVerificationToken)
-        const url = `${this.configService.get<string>("App.activationOrigin")}/account/email/confirm?t=${token}`
+        const emailVerificationToken = await this.jwtTools.generateToken(userId, TokenType.EmailVerificationToken)
+        const { TOTP: totp, ...metadata } = this.securityService.generateTotp(user.otpSecret)
 
-        await this.mailService.sendEmail(
+        await this.mailService.sendEmail<EmailTotpContext>(
             newEmail,
             `Conferma il tuo nuovo indirizzo email`,
             {
                 firstName: user.firstName,
-                url
+                period: this.configService.get<number>('Totp.period') as number,
+                totp
             },
-            join(__dirname, "../../../app_modules/notification/email-templates/email-change-confirmation.hbs")
+            join(__dirname, "../../../app_modules/notification/email-templates/email-verification.hbs")
         )
 
-        return this._r.ok(`Email change requested. Check ${this.securityService.maskEmail(newEmail)} for confirmation link`)
+        const obscuredEmail = this.securityService.maskEmail(newEmail)
+
+        return {
+            ...this._r.ok(`Email change requested. Check ${obscuredEmail} for verification code`),
+            obscuredEmail,
+            emailVerificationToken,
+            ...metadata
+        }
     }
 
 
