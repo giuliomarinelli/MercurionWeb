@@ -17,6 +17,8 @@ import { User } from 'src/app_modules/user/Models/entities/user.entity';
 import { UUID } from 'crypto';
 import { EmailTotpContext } from 'src/app_modules/notification/Models/contexts/email-totp.context';
 import { SessionService } from './session.service';
+import { SmsSenderService } from 'src/app_modules/notification/services/sms-sender/sms-sender.service';
+import { ChangePhoneDTO } from '../Models/DTO/change-phone.cls.dto';
 
 @Injectable()
 export class AccountService {
@@ -28,6 +30,7 @@ export class AccountService {
         private readonly jwtTools: JwtToolsService,
         private readonly configService: ConfigService,
         private readonly mailService: MailSenderService,
+        private readonly smsService: SmsSenderService,
         private readonly redisService: RedisService,
         private readonly sessionService: SessionService,
         private readonly _r: ResponseService
@@ -146,6 +149,49 @@ export class AccountService {
 
         return this._r.ok('Email successfully changed and verified')
     }
+
+    public async changePhoneNumber_firstStep_requestTotp(userId: UUID, dto: ChangePhoneDTO): Promise<ConfirmChangeDTO> {
+        
+        const { internationalPrefix, phoneNumber } = dto
+        const user = await this.userService.getUserById(userId)
+        if (!user) throw new RpcException('ChangePhone::UserNotFound')
+
+        const fullNumber = `${internationalPrefix}${phoneNumber}`
+        const currentNumber = user.completePhoneNumber
+
+        if (fullNumber === currentNumber) {
+            throw new RpcException('ChangePhone::NumberAlreadySet')
+        }
+
+        const lockKey = `phone_change_lock:${fullNumber}`
+        const existsLock = await this.redisService.exists(lockKey)
+        if (existsLock) throw new RpcException('ChangePhone::NumberAlreadyUsedOrPending')
+
+        await this.redisService.set(lockKey, 'locked', 3600) // 1h TTL
+
+        await this.userService.updateUser(userId, {
+            unconfirmedPhoneNumber: fullNumber,
+            unconfirmedPhoneNumberPrefixLength: internationalPrefix.length,
+            updatedAt: Date.now()
+        })
+
+        const phoneNumberVerificationToken = await this.jwtTools.generateToken(userId, TokenType.PhoneNumberVerificationToken)
+        const { TOTP: totp, ...metadata } = this.securityService.generateTotp(user.otpSecret)
+
+        await this.smsService.sendSms(
+            fullNumber,
+            `Ciao ${user.firstName}, questo è il tuo codice per confermare il nuovo numero su Mercurion: ${totp}\nValido per ${this.configService.get<number>('Totp.period')} secondi.`
+        )
+
+        return {
+            ...this._r.ok(`Phone number change requested. Check ${fullNumber} for verification code.`),
+            obscuredPhoneNumber: this.securityService.maskPhone(fullNumber),
+            phoneNumberVerificationToken,
+            ...metadata
+        }
+        
+    }
+
 
 
 
