@@ -10,6 +10,9 @@ import { JwtToolsService } from './jwt-tools.service';
 import { ConfirmWithAccessTokenDTO } from 'src/Models/confirm-responses.dto';
 import { TokenType } from '../Models/enums/token-type.enum';
 import { ResponseService } from 'src/services/response.service';
+import { SercurityService } from './sercurity.service';
+import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum';
+import { nullish } from 'src/Models/nullish.type';
 
 @Injectable()
 export class AuthenticationService {
@@ -18,6 +21,7 @@ export class AuthenticationService {
         private readonly passwordEncoder: PasswordEncoderService,
         private readonly userService: UserService,
         private readonly sessionService: SessionService,
+        private readonly securityService: SercurityService,
         private readonly mfaService: MfaService,
         private readonly jwtTools: JwtToolsService,
         private readonly _r: ResponseService
@@ -37,9 +41,15 @@ export class AuthenticationService {
         if (!await this.mfaService.isMfaEnabled(auth.userId)) {
             await this.sessionService.activateSession(sessionId)
         }
+        const enabledMfaStrategies: MfaStrategy[] = await this.mfaService.getEnabledMfaStrategies(auth.userId)
+        const phone: string | nullish = await this.userService.getPhoneNumberById(auth.userId)
+        const obscuredEmail = enabledMfaStrategies.includes(MfaStrategy.EMAIL_OTP) ? this.securityService.maskEmail(email) : undefined
+        const obscuredPhoneNumber = phone && enabledMfaStrategies.includes(MfaStrategy.SMS_OTP) ? this.securityService.maskEmail(phone) : undefined
         return {
             userId: auth.userId,
-            sessionId
+            sessionId,
+            needsMfa: await this.mfaService.isMfaEnabled(auth.userId),
+            enabledMfaStrategies
         }
 
     }

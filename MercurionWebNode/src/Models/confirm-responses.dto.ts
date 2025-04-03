@@ -21,3 +21,7 @@ export type ConfirmChangeDTO = ConfirmWithObsContDTO & TotpMetadata & {
     emailVerificationToken?: string
     phoneNumberVerificationToken?: string
 }
+
+export type ConfirmLogin_FirstStepDTO = ConfirmDTO & {
+    
+}

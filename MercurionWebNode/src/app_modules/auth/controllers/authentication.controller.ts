@@ -5,6 +5,7 @@ import { AuthenticationService } from '../services/authentication.service';
 import { FastifyRequest } from 'fastify/types/request';
 import { DeviceId } from 'src/metadata/metadata';
 import { UUID } from 'crypto';
+import { Authentication } from '../Models/interfaces/authentication.interface';
 
 @Controller('authentication')
 export class AuthenticationController {
@@ -34,18 +35,20 @@ export class AuthenticationController {
             }
         }
 
-
-        const auth = await this.authService.emailAndPasswordAuthentication(email, password, remember, ip, deviceId, sessionDeviceInfo)
+        const auth: Authentication = await this.authService.emailAndPasswordAuthentication(email, password, remember, ip, deviceId, sessionDeviceInfo)
 
         if (await this.mfaService.isMfaEnabled(auth.userId)) {
             const token = await this.authService.performPreAuthenticationForMfa(auth)
-            return { requiresMfa: true, secureToken: token }
             return {
-                requiresMfa: false,
-                ...(await this.authService.performAuthentication(auth))
+                requiresMfa: true,
+                secureToken: token
             }
         }
 
+        return {
+            requiresMfa: false,
+            ...(await this.authService.performAuthentication(auth))
+        }
 
     }
 
