@@ -13,6 +13,8 @@ import { ResponseService } from 'src/services/response.service';
 import { SercurityService } from './sercurity.service';
 import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum';
 import { nullish } from 'src/Models/nullish.type';
+import { IAuth } from '../Models/interfaces/i-auth.interface';
+import { GeneralUtils } from 'src/general-utils/general-utils';
 
 @Injectable()
 export class AuthenticationService {
@@ -30,7 +32,7 @@ export class AuthenticationService {
     // Restituisce un oggetto Authentication necessario per generare un token JWT
     public async emailAndPasswordAuthentication(email: string, password: string, remember: boolean, IP: string, deviceId: string, sessionDeviceInfo: ISessionDeviceInfo): Promise<Authentication> {
 
-        const auth = await this.userService.getVerifiedUserAuthByEmail(email)
+        const auth: IAuth | nullish = await this.userService.getVerifiedUserAuthByEmail(email)
         if (!auth || !auth.userId || !auth.passwordHash) {
             throw new RpcException('AuthenticationInvalidCredentials')
         }
@@ -38,18 +40,22 @@ export class AuthenticationService {
             throw new RpcException('AuthenticationInvalidCredentials')
         }
         const { sessionId } = await this.sessionService.createSession({ deviceId, userId: auth.userId, IP, sessionDeviceInfo }, remember)
-        if (!await this.mfaService.isMfaEnabled(auth.userId)) {
+        const needsMfa: boolean = !await this.mfaService.isMfaEnabled(auth.userId)
+        if (!needsMfa) {
             await this.sessionService.activateSession(sessionId)
         }
-        const enabledMfaStrategies: MfaStrategy[] = await this.mfaService.getEnabledMfaStrategies(auth.userId)
+        const _enabledMfaStrategies: MfaStrategy[] = await this.mfaService.getEnabledMfaStrategies(auth.userId)
         const phone: string | nullish = await this.userService.getPhoneNumberById(auth.userId)
-        const obscuredEmail = enabledMfaStrategies.includes(MfaStrategy.EMAIL_OTP) ? this.securityService.maskEmail(email) : undefined
-        const obscuredPhoneNumber = phone && enabledMfaStrategies.includes(MfaStrategy.SMS_OTP) ? this.securityService.maskEmail(phone) : undefined
+        const obscuredEmail = _enabledMfaStrategies.includes(MfaStrategy.EMAIL_OTP) ? this.securityService.maskEmail(email) : undefined
+        const obscuredPhoneNumber = phone && _enabledMfaStrategies.includes(MfaStrategy.SMS_OTP) ? this.securityService.maskEmail(phone) : undefined
+        const enabledMfaStrategies: string[] = _enabledMfaStrategies.map(val => GeneralUtils.getEnumKeyByValue(MfaStrategy, val)).filter(val => val !== undefined)
         return {
             userId: auth.userId,
             sessionId,
-            needsMfa: await this.mfaService.isMfaEnabled(auth.userId),
-            enabledMfaStrategies
+            needsMfa,
+            enabledMfaStrategies,
+            obscuredEmail,
+            obscuredPhoneNumber
         }
 
     }
