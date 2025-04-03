@@ -76,7 +76,7 @@ export class AccountService {
         return this._r.ok('Account activated successfully')
     }
 
-    public async changeEmail_firstStep(userId: UUID, newEmail: string): Promise<ConfirmChangeDTO> {
+    public async changeEmail_firstStep_requestTotp(userId: UUID, newEmail: string): Promise<ConfirmChangeDTO> {
 
         const user = await this.userService.getUserById(userId)
         if (!user) throw new RpcException('ChangeEmail::UserNotFound')
