@@ -1,3 +1,5 @@
+
+import { Authentication } from "src/app_modules/auth/Models/interfaces/authentication.interface"
 import { MfaAuthMetadata, TotpMetadata } from "src/app_modules/auth/Models/interfaces/totp-wrapper.interface"
 
 export type ConfirmDTO = {
@@ -22,6 +24,7 @@ export type ConfirmChangeDTO = ConfirmWithObsContDTO & TotpMetadata & {
     phoneNumberVerificationToken?: string
 }
 
-export type ConfirmLogin_FirstStepDTO = ConfirmDTO & {
-    
+export type Confirm_Login_FirstStepDTO = ConfirmDTO & Omit<Authentication, 'userId' | 'sessionId'> & {
+    preAuthorizationToken?: string
+    accessToken?: string
 }

@@ -7,7 +7,6 @@ import { SessionService } from './session.service';
 import { ISessionDeviceInfo } from '../Models/interfaces/i-session.interface';
 import { MfaService } from './mfa.service';
 import { JwtToolsService } from './jwt-tools.service';
-import { ConfirmWithAccessTokenDTO } from 'src/Models/confirm-responses.dto';
 import { TokenType } from '../Models/enums/token-type.enum';
 import { ResponseService } from 'src/services/response.service';
 import { SercurityService } from './sercurity.service';
@@ -69,16 +68,14 @@ export class AuthenticationService {
     }
 
     // Restituisce un DTO di risposta con l'Access Token e se l'utente ha MFA attiva, attiva anche la sessione
-    public async performAuthentication(auth: Authentication): Promise<ConfirmWithAccessTokenDTO> {
+    public async performAuthentication(auth: Authentication): Promise<string> {
         const { userId, sessionId } = auth
         const accessToken = await this.jwtTools.generateToken(userId, TokenType.AccessToken, sessionId)
         if (await this.mfaService.isMfaEnabled(userId)) {
             await this.sessionService.activateSession(sessionId)
         }
-        return {
-            ...this._r.ok('Authenticated successfully'),
-            accessToken
-        }
+        return accessToken
+
     }
 
 }
