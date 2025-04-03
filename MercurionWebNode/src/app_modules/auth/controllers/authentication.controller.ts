@@ -1,12 +1,15 @@
-import { Body, Controller, HttpCode, HttpStatus, Ip, Post } from '@nestjs/common';
+import { BadRequestException, Body, Controller, HttpCode, HttpStatus, Ip, Param, Post, ValidationPipe } from '@nestjs/common';
 import { Login_FirstStepDTO } from '../Models/DTO/login-first-step.cls.dto';
 import { MfaService } from '../services/mfa.service';
 import { AuthenticationService } from '../services/authentication.service';
-import { DeviceId } from 'src/metadata/metadata';
+import { Authorization, DeviceId } from 'src/metadata/metadata';
 import { UUID } from 'crypto';
 import { Authentication } from '../Models/interfaces/authentication.interface';
 import { ResponseService } from 'src/services/response.service';
-import { Confirm_Login_FirstStepDTO } from 'src/Models/confirm-responses.dto';
+import { Confirm_Login_FirstStepDTO, ConfirmWithTotpMetaDTO } from 'src/Models/confirm-responses.dto';
+import { TestPhoneDTO } from '../Models/DTO/test-phone.cls.dto';
+import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum';
+import { GeneralUtils } from 'src/general-utils/general-utils';
 
 @Controller('authentication')
 export class AuthenticationController {
@@ -56,6 +59,25 @@ export class AuthenticationController {
             accessToken: await this.authService.performAuthentication(auth)
         }
 
+    }
+
+    @Post('/login/:strategy/2')
+    @HttpCode(HttpStatus.OK)
+    public async login_secondStep(
+        @Authorization() preAuthorizationToken: string,
+        @Param('strategy') strategyKey: string,
+        @Body(new ValidationPipe({ transform: true })) dto: TestPhoneDTO = { completePhoneNumber: '' }
+    ): Promise<ConfirmWithTotpMetaDTO> {
+        const strategy: MfaStrategy | undefined = GeneralUtils.getEnumValue(MfaStrategy, strategyKey)
+        if (!strategy) {
+            throw new BadRequestException('Invalid MFA strategy')
+        }
+        const { generatedAt, expiresAt } = await this.mfaService.sendOtpToUser(preAuthorizationToken, strategy, dto.completePhoneNumber)
+        return {
+            ...this._r.ok(`OTP successfully sent to user with strategy ${strategyKey}`),
+            generatedAt,
+            expiresAt
+        }
     }
 
 }

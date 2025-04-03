@@ -28,3 +28,5 @@ export type Confirm_Login_FirstStepDTO = ConfirmDTO & Omit<Authentication, 'user
     preAuthorizationToken?: string
     accessToken?: string
 }
+
+export type ConfirmWithTotpMetaDTO = ConfirmDTO & TotpMetadata

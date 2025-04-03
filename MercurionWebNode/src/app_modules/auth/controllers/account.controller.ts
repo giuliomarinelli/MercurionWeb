@@ -21,17 +21,6 @@ export class AccountController {
         private readonly mfaService: MfaService
     ) { }
 
-    private validateMfaStrategy(strategyKey: string | undefined): MfaStrategy | never {
-        if (!strategyKey) {
-            throw new BadRequestException('strategy is required')
-        }
-        const strategy = GeneralUtils.getEnumValueFromStringKey(MfaStrategy, strategyKey)
-        if (!strategy) {
-            throw new BadRequestException('Invalid strategy')
-        }
-        return strategy
-    }
-
     @Public()
     @Post('/register')
     public async registerUser(@Body(new ValidationPipe({ transform: true })) userRegisterDTO: UserRegisterDTO): Promise<ConfirmWithObsContDTO> {
@@ -52,7 +41,7 @@ export class AccountController {
         @Param('strategy') strategyKey: string | undefined,
         @AuthenticatedUserId() userId: UUID
     ): Promise<ConfirmMfaChange> {
-        const strategy: MfaStrategy = this.validateMfaStrategy(strategyKey)
+        const strategy: MfaStrategy = GeneralUtils.validateMfaStrategy(strategyKey)
         return {
             ...this._r.ok(`OTP sent or QR generated for MFA strategy ${strategyKey}`),
             ...await this.mfaService.enableMfa_firstStep(userId, strategy)
@@ -64,7 +53,7 @@ export class AccountController {
         @Param('strategy') strategyKey: string | undefined,
         @Body(new ValidationPipe({ transform: true })) totpDTO: TotpDTO
     ): Promise<ConfirmDTO> {
-        const strategy: MfaStrategy = this.validateMfaStrategy(strategyKey)
+        const strategy: MfaStrategy = GeneralUtils.validateMfaStrategy(strategyKey)
         const { totp, secureToken } = totpDTO
         const isValid: boolean = await this.mfaService.enableMfa_secondStep_verifyTotpAndAppendStrategy(totp, secureToken, strategy)
         if (!isValid) {
@@ -78,7 +67,7 @@ export class AccountController {
         @Param('strategy') strategyKey: string | undefined,
         @AuthenticatedUserId() userId: UUID
     ): Promise<ConfirmMfaChange> {
-        const strategy: MfaStrategy = this.validateMfaStrategy(strategyKey)
+        const strategy: MfaStrategy = GeneralUtils.validateMfaStrategy(strategyKey)
         return {
             ...this._r.ok(`OTP sent or QR check enabled for MFA strategy ${strategyKey}`),
             ...await this.mfaService.disableMfa_firstStep(userId, strategy)
@@ -90,7 +79,7 @@ export class AccountController {
         @Param('strategy') strategyKey: string | undefined,
         @Body(new ValidationPipe({ transform: true })) totpDTO: TotpDTO
     ): Promise<ConfirmDTO> {
-        const strategy: MfaStrategy = this.validateMfaStrategy(strategyKey)
+        const strategy: MfaStrategy = GeneralUtils.validateMfaStrategy(strategyKey)
         const { totp, secureToken } = totpDTO
         const isValid: boolean = await this.mfaService.disableMfa_secondStep_verifyTotpAndRemoveStrategy(totp, secureToken, strategy)
         if (!isValid) {

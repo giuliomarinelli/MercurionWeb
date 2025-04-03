@@ -1,3 +1,6 @@
+import { BadRequestException } from "@nestjs/common";
+import { MfaStrategy } from "src/app_modules/user/Models/enums/mfa-strategy.enum";
+
 export class GeneralUtils {
 
 
@@ -23,7 +26,16 @@ export class GeneralUtils {
         return undefined; // Ritorna undefined se non trova il valore
       }
 
-
+      public static validateMfaStrategy(strategyKey: string | undefined): MfaStrategy | never {
+              if (!strategyKey) {
+                  throw new BadRequestException('strategy is required')
+              }
+              const strategy = this.getEnumValueFromStringKey(MfaStrategy, strategyKey)
+              if (!strategy) {
+                  throw new BadRequestException('Invalid strategy')
+              }
+              return strategy
+          }
     
 
 }
