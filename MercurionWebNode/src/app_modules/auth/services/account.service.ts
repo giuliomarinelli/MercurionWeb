@@ -126,7 +126,7 @@ export class AccountService {
         }
     }
 
-    public async changeEmail_secondStep_confirmTotp(totp: string, emailVerificationToken: string): Promise<ConfirmDTO> {
+    public async changeEmail_secondStep_verifyTotp(totp: string, emailVerificationToken: string): Promise<ConfirmDTO> {
 
         const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(emailVerificationToken, TokenType.EmailVerificationToken)
         await this.sessionService.revokeToken(jti)
@@ -193,6 +193,7 @@ export class AccountService {
     }
 
     public async changePhoneNumber_secondStep_verifyTotp(totp: string, token: string): Promise<ConfirmDTO> {
+        
         const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(token, TokenType.PhoneNumberVerificationToken)
 
         await this.sessionService.revokeToken(jti)
