@@ -28,7 +28,6 @@ import { RedisService } from 'src/app_modules/redis/services/redis.service';
 export class MfaService {
 
     private readonly totpConfig: TotpConfiguration
-    private readonly sessionZeroId: UUID
     private readonly appName: string
 
     constructor(
@@ -45,7 +44,6 @@ export class MfaService {
         private readonly redisService: RedisService
     ) {
         this.totpConfig = this.configService.get<TotpConfiguration>('Totp') as TotpConfiguration
-        this.sessionZeroId = this.configService.get<UUID>('Session.sessionZeroId') as UUID
         this.appName = this.configService.get<string>("App.globalName") as string
     }
 

@@ -1,4 +1,6 @@
-import { MfaAuthMetadata } from "src/app_modules/auth/Models/interfaces/totp-wrapper.interface"
+
+import { Authentication } from "src/app_modules/auth/Models/interfaces/authentication.interface"
+import { MfaAuthMetadata, TotpMetadata } from "src/app_modules/auth/Models/interfaces/totp-wrapper.interface"
 
 export type ConfirmDTO = {
     statusCode: number
@@ -16,3 +18,15 @@ export type ConfirmWithAccessTokenDTO = ConfirmDTO & {
 }
 
 export type ConfirmMfaChange = ConfirmDTO & MfaAuthMetadata
+
+export type ConfirmChangeDTO = ConfirmWithObsContDTO & TotpMetadata & {
+    emailVerificationToken?: string
+    phoneNumberVerificationToken?: string
+}
+
+export type Confirm_Login_FirstStepDTO = ConfirmDTO & Omit<Authentication, 'userId' | 'sessionId'> & {
+    preAuthorizationToken?: string
+    accessToken?: string
+}
+
+export type ConfirmWithTotpMetaDTO = ConfirmDTO & TotpMetadata

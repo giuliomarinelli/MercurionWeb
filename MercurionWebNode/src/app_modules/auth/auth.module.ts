@@ -14,6 +14,7 @@ import { NotificationModule } from '../notification/notification.module';
 import { AccountController } from './controllers/account.controller';
 import { MfaService } from './services/mfa.service';
 import { AuthenticationService } from './services/authentication.service';
+import { AuthenticationController } from './controllers/authentication.controller';
 
 
 
@@ -33,6 +34,6 @@ import { AuthenticationService } from './services/authentication.service';
     AuthenticationService
   ],
   exports: [SecureCookieService, JwtToolsService, JwtService, SessionService],
-  controllers: [AccountController],
+  controllers: [AccountController, AuthenticationController],
 })
 export class AuthModule { }
