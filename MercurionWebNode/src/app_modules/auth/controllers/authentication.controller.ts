@@ -1,15 +1,16 @@
-import { BadRequestException, Body, Controller, HttpCode, HttpStatus, Ip, Param, Post, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Body, Controller, HttpCode, HttpStatus, Ip, Param, Post, UnauthorizedException, ValidationPipe } from '@nestjs/common';
 import { Login_FirstStepDTO } from '../Models/DTO/login-first-step.cls.dto';
 import { MfaService } from '../services/mfa.service';
 import { AuthenticationService } from '../services/authentication.service';
-import { Authorization, DeviceId } from 'src/metadata/metadata';
+import { AuthenticatedSessionId, AuthenticatedUserId, Authorization, DeviceId } from 'src/metadata/metadata';
 import { UUID } from 'crypto';
 import { Authentication } from '../Models/interfaces/authentication.interface';
 import { ResponseService } from 'src/services/response.service';
-import { Confirm_Login_FirstStepDTO, ConfirmWithTotpMetaDTO } from 'src/Models/confirm-responses.dto';
+import { Confirm_Login_FirstStepDTO, ConfirmWithAccessTokenDTO, ConfirmWithTotpMetaDTO } from 'src/Models/confirm-responses.dto';
 import { TestPhoneDTO } from '../Models/DTO/test-phone.cls.dto';
 import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum';
 import { GeneralUtils } from 'src/general-utils/general-utils';
+import { TotpDTO } from '../Models/DTO/totp.cls.dto';
 
 @Controller('authentication')
 export class AuthenticationController {
@@ -69,7 +70,7 @@ export class AuthenticationController {
         @Body(new ValidationPipe({ transform: true })) dto: TestPhoneDTO = { completePhoneNumber: '' }
     ): Promise<ConfirmWithTotpMetaDTO> {
         const strategy: MfaStrategy | undefined = GeneralUtils.getEnumValue(MfaStrategy, strategyKey)
-        if (!strategy) {
+        if (!strategy || strategy === MfaStrategy.APP_TOTP) {
             throw new BadRequestException('Invalid MFA strategy')
         }
         const { generatedAt, expiresAt } = await this.mfaService.sendOtpToUser(preAuthorizationToken, strategy, dto.completePhoneNumber)
@@ -78,6 +79,33 @@ export class AuthenticationController {
             generatedAt,
             expiresAt
         }
+    }
+
+    @Post('/login/:strategy/3')
+    @HttpCode(HttpStatus.OK)
+    public async login_thirdStep(
+        @Authorization() preAuthorizationToken: string,
+        @Param('strategy') strategyKey: string,
+        @Body(new ValidationPipe({ transform: true })) dto: TotpDTO,
+        @AuthenticatedUserId() userId: UUID,
+        @AuthenticatedSessionId() sessionId: UUID
+    ): Promise<ConfirmWithAccessTokenDTO> {
+
+        const { totp } = dto
+        const strategy: MfaStrategy | undefined = GeneralUtils.getEnumValue(MfaStrategy, strategyKey)
+        if (!strategy || strategy === MfaStrategy.APP_TOTP) {
+            throw new BadRequestException('Invalid MFA strategy')
+        }
+        const isTotpValid: boolean = await this.mfaService.verifyUserOtpOrAppTotp(totp, preAuthorizationToken, strategy)
+        if (!isTotpValid) {
+            throw new UnauthorizedException('Invalid MFA OTP')
+        }
+        const accessToken: string = await this.authService.performAuthentication({ userId, sessionId })
+        return {
+            ...this._r.ok('Authenticated successfully'),
+            accessToken
+        }
+
     }
 
 }

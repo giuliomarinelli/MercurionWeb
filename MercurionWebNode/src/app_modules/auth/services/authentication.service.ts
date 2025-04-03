@@ -68,7 +68,7 @@ export class AuthenticationService {
     }
 
     // Restituisce un DTO di risposta con l'Access Token e se l'utente ha MFA attiva, attiva anche la sessione
-    public async performAuthentication(auth: Authentication): Promise<string> {
+    public async performAuthentication(auth: Authentication | Omit<Authentication, 'needsMfa' | 'enabledMfaStrategies'>): Promise<string> {
         const { userId, sessionId } = auth
         const accessToken = await this.jwtTools.generateToken(userId, TokenType.AccessToken, sessionId)
         if (await this.mfaService.isMfaEnabled(userId)) {
