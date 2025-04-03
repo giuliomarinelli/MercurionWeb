@@ -110,10 +110,9 @@ export class SercurityService {
         return `${maskedLocal}@${maskedDomain}${visibleDomain}.${extension}`
     }
 
-    public maskPhone(phone: string): string {
-        const visible = phone.slice(-2);
-        const masked = '*'.repeat(Math.max(0, phone.length - 2));
-        return masked + visible;
+    maskPhone(phone: string): string {
+        return phone.slice(0, 3) + '******' + phone.slice(-2)
     }
+    
 
 }

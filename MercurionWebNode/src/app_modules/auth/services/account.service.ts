@@ -126,9 +126,9 @@ export class AccountService {
         }
     }
 
-    public async changeEmail_secondStep_confirmTotp(totp: string, secureToken: string): Promise<ConfirmDTO> {
+    public async changeEmail_secondStep_confirmTotp(totp: string, emailVerificationToken: string): Promise<ConfirmDTO> {
 
-        const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(secureToken, TokenType.EmailVerificationToken)
+        const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(emailVerificationToken, TokenType.EmailVerificationToken)
         await this.sessionService.revokeToken(jti)
 
         const user = await this.userService.getUserById(userId)
@@ -151,7 +151,7 @@ export class AccountService {
     }
 
     public async changePhoneNumber_firstStep_requestTotp(userId: UUID, dto: ChangePhoneDTO): Promise<ConfirmChangeDTO> {
-        
+
         const { internationalPrefix, phoneNumber } = dto
         const user = await this.userService.getUserById(userId)
         if (!user) throw new RpcException('ChangePhone::UserNotFound')
@@ -189,9 +189,39 @@ export class AccountService {
             phoneNumberVerificationToken,
             ...metadata
         }
-        
+
     }
 
+    public async changePhoneNumber_secondStep_verifyTotp(totp: string, token: string): Promise<ConfirmDTO> {
+        const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(token, TokenType.PhoneNumberVerificationToken)
+
+        await this.sessionService.revokeToken(jti)
+
+        const user = await this.userService.getUserById(userId)
+        if (!user) throw new RpcException('ChangePhone::UserNotFound')
+
+        if (!user.unconfirmedPhoneNumber || !user.unconfirmedPhoneNumberPrefixLength)
+            throw new RpcException('ChangePhone::NoPendingChange')
+
+        const isTotpValid = this.securityService.verifyTotp(totp, user.otpSecret)
+        if (!isTotpValid) throw new RpcException('ChangePhone::InvalidTOTP')
+
+        const completePhoneNumber = user.unconfirmedPhoneNumber
+        const phoneNumberPrefixLength = user.unconfirmedPhoneNumberPrefixLength
+
+        await this.userService.updateUser(userId, {
+            completePhoneNumber,
+            phoneNumberPrefixLength,
+            unconfirmedPhoneNumber: null,
+            unconfirmedPhoneNumberPrefixLength: 0,
+            updatedAt: Date.now()
+        })
+
+        await this.redisService.del(`phone_change_lock:${completePhoneNumber}`)
+
+        return this._r.ok('Phone number successfully updated')
+
+    }
 
 
 
