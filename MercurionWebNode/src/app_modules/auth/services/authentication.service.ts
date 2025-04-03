@@ -23,6 +23,7 @@ export class AuthenticationService {
         private readonly _r: ResponseService
     ) { }
 
+    // Restituisce un oggetto Authentication necessario per generare un token JWT
     public async emailAndPasswordAuthentication(email: string, password: string, remember: boolean, IP: string, deviceId: string, sessionDeviceInfo: ISessionDeviceInfo): Promise<Authentication> {
 
         const auth = await this.userService.getVerifiedUserAuthByEmail(email)
@@ -43,10 +44,19 @@ export class AuthenticationService {
 
     }
 
-    public async performAuthentication(auth: Authentication): Promise<ConfirmWithAccessTokenDTO> {
+    // Restituisce un PreAuthorizationToken da un oggetto Authentication dopo che il primo fattore di autenticazione è andato a buon fine
+    public async performPreAuthenticationForMfa(auth: Authentication): Promise<string> {
+
+        const { userId, sessionId } = auth
+        return await this.jwtTools.generateToken(userId, TokenType.PreAuthorizationToken, sessionId)
+
+    }
+
+    // Restituisce un DTO di risposta con l'Access Token se l'utente ha MFA disabilitata o se force = true
+    public async performAuthentication(auth: Authentication, force: boolean = false): Promise<ConfirmWithAccessTokenDTO> {
         const { userId, sessionId } = auth
         const accessToken = await this.jwtTools.generateToken(userId, TokenType.AccessToken, sessionId)
-        if (await this.mfaService.isMfaEnabled(userId)) {
+        if (!await this.mfaService.isMfaEnabled(userId) || force) {
             await this.sessionService.activateSession(sessionId)
         }
         return {
