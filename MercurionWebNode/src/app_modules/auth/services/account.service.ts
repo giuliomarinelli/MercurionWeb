@@ -14,6 +14,7 @@ import { UserActivationContext } from 'src/app_modules/notification/Models/conte
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { RpcException } from '@nestjs/microservices';
 import { User } from 'src/app_modules/user/Models/entities/user.entity';
+import { UUID } from 'crypto';
 
 @Injectable()
 export class AccountService {
@@ -73,6 +74,43 @@ export class AccountService {
         await this.redisService.del(`email_registration_lock:${email.toLowerCase()}`)
         return this._r.ok('Account activated successfully')
     }
-    
-    
+
+    public async changeEmail_firstStep(userId: UUID, newEmail: string): Promise<ConfirmDTO> {
+        const user = await this.userService.getUserById(userId)
+        if (!user) throw new RpcException('ChangeEmail::UserNotFound')
+
+        if (!newEmail || newEmail.trim() === '') throw new RpcException('ChangeEmail::EmptyEmail')
+        if (newEmail.toLowerCase() === user.email?.toLowerCase())
+            throw new RpcException('ChangeEmail::NewEmailIsCurrentEmail')
+
+        // Lock per evitare abusi
+        const lockKey = `email_change_lock:${newEmail.toLowerCase()}`
+        const exists = await this.redisService.exists(lockKey)
+        if (exists) throw new RpcException('ChangeEmail::EmailAlreadyInUseOrPending')
+
+        await this.redisService.set(lockKey, 'locked', 3600); // 1h TTL
+
+        // Salva email temporanea
+        await this.userService.updateUser(userId, {
+            unconfirmedEmail: newEmail,
+            updatedAt: Date.now()
+        })
+
+        const token = await this.jwtTools.generateToken(userId, TokenType.EmailVerificationToken)
+        const url = `${this.configService.get<string>("App.activationOrigin")}/account/email/confirm?t=${token}`
+
+        await this.mailService.sendEmail(
+            newEmail,
+            `Conferma il tuo nuovo indirizzo email`,
+            {
+                firstName: user.firstName,
+                url
+            },
+            join(__dirname, "../../../app_modules/notification/email-templates/email-change-confirmation.hbs")
+        )
+
+        return this._r.ok(`Email change requested. Check ${this.securityService.maskEmail(newEmail)} for confirmation link`)
+    }
+
+
 }
