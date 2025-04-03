@@ -16,6 +16,7 @@ import { RpcException } from '@nestjs/microservices';
 import { User } from 'src/app_modules/user/Models/entities/user.entity';
 import { UUID } from 'crypto';
 import { EmailTotpContext } from 'src/app_modules/notification/Models/contexts/email-totp.context';
+import { SessionService } from './session.service';
 
 @Injectable()
 export class AccountService {
@@ -28,6 +29,7 @@ export class AccountService {
         private readonly configService: ConfigService,
         private readonly mailService: MailSenderService,
         private readonly redisService: RedisService,
+        private readonly sessionService: SessionService,
         private readonly _r: ResponseService
     ) { }
 
@@ -120,6 +122,31 @@ export class AccountService {
             ...metadata
         }
     }
+
+    public async changeEmail_secondStep_confirmTotp(totp: string, secureToken: string): Promise<ConfirmDTO> {
+
+        const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(secureToken, TokenType.EmailVerificationToken)
+        await this.sessionService.revokeToken(jti)
+
+        const user = await this.userService.getUserById(userId)
+        if (!user) throw new RpcException('ChangeEmailConfirm::UserNotFound')
+        if (!user.unconfirmedEmail) throw new RpcException('ChangeEmailConfirm::NoUnconfirmedEmail')
+
+        const isTotpValid = this.securityService.verifyTotp(totp, user.otpSecret)
+        if (!isTotpValid) throw new RpcException('ChangeEmailConfirm::InvalidTotp')
+
+        const emailToConfirm = user.unconfirmedEmail
+        await this.userService.updateUser(userId, {
+            email: emailToConfirm,
+            unconfirmedEmail: null,
+            updatedAt: Date.now()
+        })
+
+        await this.redisService.del(`email_change_lock:${emailToConfirm.toLowerCase()}`)
+
+        return this._r.ok('Email successfully changed and verified')
+    }
+
 
 
 }
