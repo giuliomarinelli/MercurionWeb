@@ -2,7 +2,7 @@ import { BadRequestException, Body, Controller, HttpCode, HttpStatus, Ip, Param,
 import { Login_FirstStepDTO } from '../Models/DTO/login-first-step.cls.dto';
 import { MfaService } from '../services/mfa.service';
 import { AuthenticationService } from '../services/authentication.service';
-import { AuthenticatedSessionId, AuthenticatedUserId, Authorization, DeviceId } from 'src/metadata/metadata';
+import { Authorization, DeviceId, Public } from 'src/metadata/metadata';
 import { UUID } from 'crypto';
 import { Authentication } from '../Models/interfaces/authentication.interface';
 import { ResponseService } from 'src/services/response.service';
@@ -11,6 +11,8 @@ import { TestPhoneDTO } from '../Models/DTO/test-phone.cls.dto';
 import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum';
 import { GeneralUtils } from 'src/general-utils/general-utils';
 import { TotpDTO } from '../Models/DTO/totp.cls.dto';
+import { JwtToolsService } from '../services/jwt-tools.service';
+import { TokenType } from '../Models/enums/token-type.enum';
 
 @Controller('authentication')
 export class AuthenticationController {
@@ -18,9 +20,11 @@ export class AuthenticationController {
     constructor(
         private readonly authService: AuthenticationService,
         private readonly mfaService: MfaService,
+        private readonly jwtTools: JwtToolsService,
         private readonly _r: ResponseService
     ) { }
 
+    @Public()
     @Post('login/1')
     @HttpCode(HttpStatus.OK)
     public async login_firstStep(
@@ -62,6 +66,7 @@ export class AuthenticationController {
 
     }
 
+    @Public()
     @Post('/login/:strategy/2')
     @HttpCode(HttpStatus.OK)
     public async login_secondStep(
@@ -69,6 +74,11 @@ export class AuthenticationController {
         @Param('strategy') strategyKey: string,
         @Body(new ValidationPipe({ transform: true })) dto: TestPhoneDTO = { completePhoneNumber: '' }
     ): Promise<ConfirmWithTotpMetaDTO> {
+        try {
+            await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken)
+        } catch {
+            throw new UnauthorizedException()
+        }
         const strategy: MfaStrategy | undefined = GeneralUtils.getEnumValue(MfaStrategy, strategyKey)
         if (!strategy || strategy === MfaStrategy.APP_TOTP) {
             throw new BadRequestException('Invalid MFA strategy')
@@ -81,16 +91,22 @@ export class AuthenticationController {
         }
     }
 
+    @Public()
     @Post('/login/:strategy/3')
     @HttpCode(HttpStatus.OK)
     public async login_thirdStep(
         @Authorization() preAuthorizationToken: string,
         @Param('strategy') strategyKey: string,
-        @Body(new ValidationPipe({ transform: true })) dto: TotpDTO,
-        @AuthenticatedUserId() userId: UUID,
-        @AuthenticatedSessionId() sessionId: UUID
+        @Body(new ValidationPipe({ transform: true })) dto: TotpDTO
     ): Promise<ConfirmWithAccessTokenDTO> {
 
+        let userId: UUID
+        let sessionId: UUID
+        try {
+            ({ sub: userId, sid: sessionId } = await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken))
+        } catch {
+            throw new UnauthorizedException()
+        }
         const { totp } = dto
         const strategy: MfaStrategy | undefined = GeneralUtils.getEnumValue(MfaStrategy, strategyKey)
         if (!strategy || strategy === MfaStrategy.APP_TOTP) {
