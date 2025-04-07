@@ -2,16 +2,19 @@ import * as fs from 'fs'
 import * as path from 'path'
 
 export function copyBootstrapFiles() {
-  const keysSourcePath = path.join(process.cwd(), 'src/config/keys')
-  const keysDistPath = path.join(process.cwd(), 'dist/config/keys')
 
-  const templatesSourcePath = path.join(process.cwd(), 'src/app_modules/notification/email-templates')
-  const templatesDistPath = path.join(process.cwd(), 'dist/app_modules/notification/email-templates')
+  if (process.env.NODE_ENV === 'development') {
+    const keysSourcePath = path.join(process.cwd(), 'src/config/keys')
+    const keysDistPath = path.join(process.cwd(), 'dist/config/keys')
 
-  copyDir(keysSourcePath, keysDistPath)
-  copyDir(templatesSourcePath, templatesDistPath)
+    const templatesSourcePath = path.join(process.cwd(), 'src/app_modules/notification/email-templates')
+    const templatesDistPath = path.join(process.cwd(), 'dist/app_modules/notification/email-templates')
 
-  console.log('✅ File bootstrap copiati con successo!')
+    copyDir(keysSourcePath, keysDistPath)
+    copyDir(templatesSourcePath, templatesDistPath)
+
+    console.log('✅ File bootstrap copiati con successo!')
+  }
 }
 
 function copyDir(src: string, dest: string) {
