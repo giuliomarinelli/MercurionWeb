@@ -38,8 +38,9 @@ export class AuthenticationService {
         if (!await this.passwordEncoder.compare(password, auth.passwordHash)) {
             throw new RpcException('AuthenticationInvalidCredentials')
         }
-        const { sessionId } = await this.sessionService.createSession({ deviceId, userId: auth.userId, IP, sessionDeviceInfo }, remember)
-        const needsMfa: boolean = !await this.mfaService.isMfaEnabled(auth.userId)
+        const session = await this.sessionService.createSession({ deviceId, userId: auth.userId, IP, sessionDeviceInfo }, remember)
+        const sessionId = session.sessionId
+        const needsMfa: boolean = await this.mfaService.isMfaEnabled(auth.userId)
         if (!needsMfa) {
             await this.sessionService.activateSession(sessionId)
         }

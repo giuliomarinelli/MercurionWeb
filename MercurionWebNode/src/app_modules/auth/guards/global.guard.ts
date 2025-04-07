@@ -18,6 +18,28 @@ export class GlobalGuard implements CanActivate {
   ) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    
+    const handleDeviceId = (): void => {
+
+      const req = context.switchToHttp().getRequest<FastifyRequest>()
+      const res = context.switchToHttp().getResponse<FastifyReply>()
+      
+      let deviceId: string | null = null
+
+      try {
+        deviceId = this.secureCookieService.getSignedCookie(req, '__device_id')
+      } catch {
+        deviceId = crypto.randomUUID();
+        this.secureCookieService.setSignedCookie(res, '__device_id', deviceId)
+      }
+  
+      // 🔥 Inietta deviceId nella richiesta PRIMA della guard
+      req.headers['x-device-id'] = deviceId
+
+    }
+
+    handleDeviceId()
+
     // 🔹 Controlla se la route o l'evento WS ha il decoratore `@Public()`
     const isPublic = this.reflector.get<boolean>(IS_PUBLIC_KEY, context.getHandler())
     if (isPublic) {
@@ -37,29 +59,8 @@ export class GlobalGuard implements CanActivate {
 
   // 🔹 Validazione per richieste HTTP
   private async validateHttpRequest(context: ExecutionContext): Promise<boolean> {
-    
-    const handleDeviceId = (): FastifyRequest => {
 
-      const req = context.switchToHttp().getRequest<FastifyRequest>()
-      const res = context.switchToHttp().getResponse<FastifyReply>()
-      
-      let deviceId: string | null = null
-
-      try {
-        deviceId = this.secureCookieService.getSignedCookie(req, '__device_id')
-      } catch {
-        deviceId = crypto.randomUUID();
-        this.secureCookieService.setSignedCookie(res, '__device_id', deviceId)
-      }
-  
-      // 🔥 Inietta deviceId nella richiesta PRIMA della guard
-      req.headers['x-device-id'] = deviceId
-
-      return req
-
-    }
-
-    const req: FastifyRequest = handleDeviceId()
+    const req = context.switchToHttp().getRequest<FastifyRequest>()
     
     try {
       const token = this.jwtToolsService.extractAccessTokenFromReq(req)
