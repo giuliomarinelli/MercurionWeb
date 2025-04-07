@@ -14,7 +14,7 @@ import { Scope } from '../Models/enums/scope.enum';
 export class UserService {
 
     public get STD_SCOPES(): string {
-        return JSON.stringify(this.standardScopes.map(scpVal => GeneralUtils.getEnumKeyByValue(Scope, scpVal) as string))
+        return JSON.stringify(this.standardScopes)
     }
 
     constructor(
@@ -89,6 +89,10 @@ export class UserService {
 
     public async existsUserById(id: UUID): Promise<boolean> {
         return this.userRepository.exists({ where: { id } })
+    }
+
+    public async existsUserByEmail(email: string): Promise<boolean> {
+        return this.userRepository.exists({ where: { email } })
     }
 
     public async getUserById(id: UUID, isVerified?: boolean): Promise<User | nullish> {

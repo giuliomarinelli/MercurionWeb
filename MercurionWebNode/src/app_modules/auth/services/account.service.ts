@@ -41,7 +41,7 @@ export class AccountService {
         const { password, email, firstName, lastName } = registerDTO
         const emailKey = `email_registration_lock:${email.toLowerCase()}`
         const ttlSeconds = 2 * 60 * 60; // 2 ore
-        const alreadyExists = await this.redisService.exists(emailKey)
+        const alreadyExists = await this.redisService.exists(emailKey) || await this.userService.existsUserByEmail(email)
         if (alreadyExists) {
             throw new RpcException('UserRegistrationConflict::Email already exists')
         }
