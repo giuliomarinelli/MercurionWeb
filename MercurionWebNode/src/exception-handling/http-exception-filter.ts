@@ -23,15 +23,46 @@ export class HttpExceptionFilter implements ExceptionFilter {
         if (!(e instanceof HttpException) && e instanceof RpcException) {
             switch (e.message) {
                 case 'UserRegistrationConflict::Email already exists':
+                case 'ChangeEmail::NewEmailIsCurrentEmail':
+                case 'ChangePhone::NumberAlreadySet':
                     status = HttpStatus.CONFLICT
                     nonHttpInternalErrorRes = new InternalErrorRes(
-                        status, 
-                        HttpStatusMap.getDescriptionFromHttpStatusCode(status), 
+                        status,
+                        HttpStatusMap.getDescriptionFromHttpStatusCode(status),
                         e.message || undefined
                     )
-                break
+                    break
                 case 'AccountActivation::User not found':
+                case 'ChangeEmail::UserNotFound':
+                case 'ChangeEmailConfirm::UserNotFound':
+                case 'ChangePhone::UserNotFound':
                     status = HttpStatus.NOT_FOUND
+                    nonHttpInternalErrorRes = new InternalErrorRes(
+                        status,
+                        HttpStatusMap.getDescriptionFromHttpStatusCode(status),
+                        e.message || undefined
+                    )
+                    break
+                case 'ChangeEmail::EmailAlreadyInUseOrPending':
+                case 'ChangePhone::NumberAlreadyUsedOrPending':
+                    status = HttpStatus.FORBIDDEN
+                    nonHttpInternalErrorRes = new InternalErrorRes(
+                        status,
+                        HttpStatusMap.getDescriptionFromHttpStatusCode(status),
+                        e.message || undefined
+                    )
+                    break
+                case 'ChangeEmailConfirm::NoUnconfirmedEmail':
+                    status = HttpStatus.BAD_REQUEST
+                    nonHttpInternalErrorRes = new InternalErrorRes(
+                        status,
+                        HttpStatusMap.getDescriptionFromHttpStatusCode(status),
+                        e.message || undefined
+                    )
+                    break
+                case 'ChangeEmailConfirm::InvalidTotp':
+                case 'ChangePhone::InvalidTOTP':
+                    status = HttpStatus.UNAUTHORIZED
                     nonHttpInternalErrorRes = new InternalErrorRes(
                         status,
                         HttpStatusMap.getDescriptionFromHttpStatusCode(status),
