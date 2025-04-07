@@ -10,7 +10,7 @@ import { Confirm_Login_FirstStepDTO, ConfirmWithAccessTokenDTO, ConfirmWithTotpM
 import { TestPhoneDTO } from '../Models/DTO/test-phone.cls.dto';
 import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum';
 import { GeneralUtils } from 'src/general-utils/general-utils';
-import { TotpDTO } from '../Models/DTO/totp.cls.dto';
+import { TotpBodyDTO } from '../Models/DTO/totp.cls.dto';
 import { JwtToolsService } from '../services/jwt-tools.service';
 import { TokenType } from '../Models/enums/token-type.enum';
 
@@ -97,7 +97,7 @@ export class AuthenticationController {
     public async login_thirdStep(
         @Authorization() preAuthorizationToken: string,
         @Param('strategy') strategyKey: string,
-        @Body(new ValidationPipe({ transform: true })) dto: TotpDTO
+        @Body(new ValidationPipe({ transform: true })) dto: TotpBodyDTO
     ): Promise<ConfirmWithAccessTokenDTO> {
 
         let userId: UUID
