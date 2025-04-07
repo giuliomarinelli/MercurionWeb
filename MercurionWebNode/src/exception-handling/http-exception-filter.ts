@@ -42,7 +42,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
         const internalErrorRes: InternalErrorRes = e instanceof HttpException ? e.getResponse() as InternalErrorRes : nonHttpInternalErrorRes
 
-        res.status(internalErrorRes.statusCode).send(
+        res.code(internalErrorRes.statusCode).send(
             {
                 ...internalErrorRes,
                 timestamp: new Date().toISOString(),

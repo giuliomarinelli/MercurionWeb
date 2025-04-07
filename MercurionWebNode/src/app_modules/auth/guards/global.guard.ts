@@ -3,15 +3,17 @@ import { JwtToolsService } from '../services/jwt-tools.service';
 import { SessionService } from '../services/session.service';
 import { IS_PUBLIC_KEY } from 'src/metadata/metadata';
 import { TokenType } from '../Models/enums/token-type.enum';
-import { FastifyRequest } from 'fastify';
+import { FastifyReply, FastifyRequest } from 'fastify';
 import { Socket } from 'socket.io';
 import { Reflector } from '@nestjs/core';
+import { SecureCookieService } from '../services/secure-cookie.service';
 
 @Injectable()
 export class GlobalGuard implements CanActivate {
   constructor(
     private readonly jwtToolsService: JwtToolsService,
     private readonly sessionService: SessionService,
+    private readonly secureCookieService: SecureCookieService,
     private readonly reflector: Reflector
   ) { }
 
@@ -35,8 +37,30 @@ export class GlobalGuard implements CanActivate {
 
   // 🔹 Validazione per richieste HTTP
   private async validateHttpRequest(context: ExecutionContext): Promise<boolean> {
-    const req = context.switchToHttp().getRequest<FastifyRequest>()
+    
+    const handleDeviceId = (): FastifyRequest => {
 
+      const req = context.switchToHttp().getRequest<FastifyRequest>()
+      const res = context.switchToHttp().getResponse<FastifyReply>()
+      
+      let deviceId: string | null = null
+
+      try {
+        deviceId = this.secureCookieService.getSignedCookie(req, '__device_id')
+      } catch {
+        deviceId = crypto.randomUUID();
+        this.secureCookieService.setSignedCookie(res, '__device_id', deviceId)
+      }
+  
+      // 🔥 Inietta deviceId nella richiesta PRIMA della guard
+      req.headers['x-device-id'] = deviceId
+
+      return req
+
+    }
+
+    const req: FastifyRequest = handleDeviceId()
+    
     try {
       const token = this.jwtToolsService.extractAccessTokenFromReq(req)
       const payload = await this.jwtToolsService.verifyTokenAndGetPayload(token, TokenType.AccessToken)

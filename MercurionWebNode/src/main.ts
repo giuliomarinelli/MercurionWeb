@@ -6,13 +6,13 @@ import { ConfigService } from '@nestjs/config'
 import { MicroserviceOptions, Transport } from '@nestjs/microservices'
 import { HttpExceptionFilter } from './exception-handling/http-exception-filter'
 import { IoAdapter } from '@nestjs/platform-socket.io'
-import fastifyCookie from '@fastify/cookie'
 import { copyBootstrapFiles } from './copy-bootstrap-files'
+import fastifyCookie from '@fastify/cookie'
 
 
 (async () => {
-  const logger = new Logger('Bootstrap')
   copyBootstrapFiles()
+  const logger = new Logger('Bootstrap')
   const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter())
   const configService = app.get<ConfigService>(ConfigService)
   const natsPort = configService.get<number>('App.natsPort') ?? 4223
