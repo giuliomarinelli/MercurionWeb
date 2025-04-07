@@ -48,7 +48,14 @@ export class AccountService {
         await this.redisService.set(emailKey, 'locked', ttlSeconds);
         const passwordHash = await this.passwordEncoder.encode(password)
         const otpSecret = this.securityService.generateOtpSecret()
-        const { id: userId } = await this.userService.createUser({ passwordHash, otpSecret, unconfirmedEmail: email, firstName, lastName })
+        const { id: userId } = await this.userService.createUser({
+            passwordHash,
+            otpSecret,
+            unconfirmedEmail: email,
+            firstName,
+            lastName,
+            scopes: this.userService.STD_SCOPES
+        })
         const activationToken: string = await this.jwtTools.generateToken(userId, TokenType.ActivationToken)
         const url: string = `${this.configService.get<string>("App.activationOrigin")}/account/activate?t=${activationToken}`
         await this.mailService.sendEmail<UserActivationContext>(
@@ -193,7 +200,7 @@ export class AccountService {
     }
 
     public async changePhoneNumber_secondStep_verifyTotp(totp: string, token: string): Promise<ConfirmDTO> {
-        
+
         const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(token, TokenType.PhoneNumberVerificationToken)
 
         await this.sessionService.revokeToken(jti)

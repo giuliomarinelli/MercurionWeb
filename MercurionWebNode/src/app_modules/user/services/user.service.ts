@@ -13,7 +13,7 @@ import { Scope } from '../Models/enums/scope.enum';
 @Injectable()
 export class UserService {
 
-    public get STD_SCOPE(): string {
+    public get STD_SCOPES(): string {
         return JSON.stringify(this.standardScopes.map(scpVal => GeneralUtils.getEnumKeyByValue(Scope, scpVal) as string))
     }
 
