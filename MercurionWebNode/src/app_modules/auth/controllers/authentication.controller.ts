@@ -79,7 +79,7 @@ export class AuthenticationController {
         } catch {
             throw new UnauthorizedException()
         }
-        const strategy: MfaStrategy | undefined = GeneralUtils.getEnumValue(MfaStrategy, strategyKey)
+        const strategy: MfaStrategy | undefined = GeneralUtils.getEnumValueFromStringKey(MfaStrategy, strategyKey)
         if (!strategy || strategy === MfaStrategy.APP_TOTP) {
             throw new BadRequestException('Invalid MFA strategy')
         }
@@ -108,7 +108,7 @@ export class AuthenticationController {
             throw new UnauthorizedException()
         }
         const { totp } = dto
-        const strategy: MfaStrategy | undefined = GeneralUtils.getEnumValue(MfaStrategy, strategyKey)
+        const strategy: MfaStrategy | undefined = GeneralUtils.getEnumValueFromStringKey(MfaStrategy, strategyKey)
         if (!strategy) {
             throw new BadRequestException('Invalid MFA strategy')
         }
