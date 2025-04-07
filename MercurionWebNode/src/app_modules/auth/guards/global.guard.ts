@@ -30,7 +30,7 @@ export class GlobalGuard implements CanActivate {
       return this.validateWebSocketEvent(context)
     }
 
-    return false
+    throw new UnauthorizedException()
   }
 
   // 🔹 Validazione per richieste HTTP
@@ -43,11 +43,11 @@ export class GlobalGuard implements CanActivate {
       const deviceId = req.headers['x-device-id'] as string
 
       if (!deviceId) {
-        return false
+        throw new UnauthorizedException()
       }
 
       if (!await this.sessionService.validateSession(payload.sid, deviceId)) {
-        return false
+        throw new UnauthorizedException()
       }
 
       // 🔹 Inietta lo userId e la sessionId negli headers per il backend HTTP
@@ -66,7 +66,7 @@ export class GlobalGuard implements CanActivate {
     const deviceId = client.handshake.query.deviceId as string
 
     if (!token || !deviceId) {
-      return false
+      throw new UnauthorizedException()
     }
 
     try {
@@ -74,7 +74,7 @@ export class GlobalGuard implements CanActivate {
       const payload = await this.jwtToolsService.verifyTokenAndGetPayload(token, TokenType.AccessToken)
 
       if (!await this.sessionService.validateSession(payload.sid, deviceId)) {
-        return false
+        throw new UnauthorizedException()
       }
 
       // 🔹 Inietta lo userId nei dati della socket
@@ -82,7 +82,7 @@ export class GlobalGuard implements CanActivate {
       return true
     } catch {
       client.emit('s_pub_err_event_emitter', { message: 'Unauthorized' })
-      return false
+      throw new UnauthorizedException()
     }
   }
 }

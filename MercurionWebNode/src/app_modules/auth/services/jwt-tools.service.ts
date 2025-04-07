@@ -90,8 +90,7 @@ export class JwtToolsService {
 
         const jti: UUID = randomUUID(); // Genera JTI univoco per il token
         const expiresAt = Math.floor(Date.now() / 1000) + (jwtConfig.expiresInMs / 1000)
-        const privateKey = this.privateKey
-        console.log(privateKey)
+        
         // 🔹 Generazione del Token
         const token: string = await this.jwtService.signAsync(
             {

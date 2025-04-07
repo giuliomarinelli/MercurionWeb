@@ -6,10 +6,8 @@ import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { MailerModule, MailerOptions } from '@nestjs-modules/mailer';
 import { RedisModule } from './app_modules/redis/redis.module';
 import { UserModule } from './app_modules/user/user.module';
-import { CopyToDistService } from './copy-to-dist/copy-to-dist.service';
 import { AuthModule } from './app_modules/auth/auth.module';
-import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
-import { GlobalInterceptor } from './app_modules/auth/interceptors/global.interceptor';
+import { APP_GUARD } from '@nestjs/core';
 import { GlobalGuard } from './app_modules/auth/guards/global.guard';
 import { JwtToolsService } from './app_modules/auth/services/jwt-tools.service';
 import { SessionService } from './app_modules/auth/services/session.service';
@@ -45,11 +43,6 @@ import { NotificationModule } from './app_modules/notification/notification.modu
     NotificationModule
   ],
   providers: [
-    CopyToDistService,
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: GlobalInterceptor
-    },
     {
       provide: APP_GUARD,
       useClass: GlobalGuard
