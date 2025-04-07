@@ -92,7 +92,7 @@ export class GlobalGuard implements CanActivate {
     const deviceId = client.handshake.query.deviceId as string
 
     if (!token || !deviceId) {
-      throw new UnauthorizedException()
+      return false
     }
 
     try {
@@ -100,7 +100,7 @@ export class GlobalGuard implements CanActivate {
       const payload = await this.jwtToolsService.verifyTokenAndGetPayload(token, TokenType.AccessToken)
 
       if (!await this.sessionService.validateSession(payload.sid, deviceId)) {
-        throw new UnauthorizedException()
+        return false
       }
 
       // 🔹 Inietta lo userId nei dati della socket
@@ -108,7 +108,7 @@ export class GlobalGuard implements CanActivate {
       return true
     } catch {
       client.emit('s_pub_err_event_emitter', { message: 'Unauthorized' })
-      throw new UnauthorizedException()
+      return false
     }
   }
 }
