@@ -8,14 +8,29 @@ import { nullish } from 'src/Models/nullish.type';
 import { MfaStrategy } from '../Models/enums/mfa-strategy.enum';
 import { GeneralUtils } from 'src/general-utils/general-utils';
 import { IAuth } from 'src/app_modules/auth/Models/interfaces/i-auth.interface';
+import { Scope } from '../Models/enums/scope.enum';
 
 @Injectable()
 export class UserService {
 
+    public get STD_SCOPE(): string {
+        return JSON.stringify(this.standardScopes.map(scpVal => GeneralUtils.getEnumKeyByValue(Scope, scpVal) as string))
+    }
+
     constructor(
         @InjectRepository(User) private userRepository: Repository<User>,
-        private readonly dataSource: DataSource
+        private readonly dataSource: DataSource,
     ) { }
+
+    private standardScopes = [
+        Scope.UseInference,
+        Scope.ViewInferenceHistory,
+        Scope.UploadMolecule,
+        Scope.ViewMolecule,
+        Scope.EditOwnProfile,
+        Scope.DeleteOwnAccount,
+        Scope.ManageMFA
+    ]
 
     public generateScopeArray(rawScopes: string, mode: 'JSON' | 'JWT'): string[] | never {
 
@@ -205,7 +220,7 @@ export class UserService {
         await this.updateUser(id, userProps)
     }
 
-    
-    
+
+
 
 }

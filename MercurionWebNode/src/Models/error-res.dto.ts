@@ -1,6 +1,10 @@
 export class InternalErrorRes {
-    
-    constructor(public statusCode: number, public error: string, public message?: string) { }
+
+    constructor(
+        public statusCode: number,
+        public error: string,
+        public message?: string
+    ) { }
 
 }
 

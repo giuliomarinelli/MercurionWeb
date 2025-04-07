@@ -12,8 +12,6 @@ export class HttpExceptionFilter implements ExceptionFilter {
         const req = host.switchToHttp().getRequest<FastifyRequest>()
         const res = host.switchToHttp().getResponse<FastifyReply>()
 
-        const rpcExceptionMap = 0
-
         let nonHttpInternalErrorRes: InternalErrorRes = {
             statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
             error: "Internal Server Error",
@@ -32,6 +30,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
                         e.message || undefined
                     )
                 break
+                case 'AccountActivation::User not found':
+                    status = HttpStatus.NOT_FOUND
+                    nonHttpInternalErrorRes = new InternalErrorRes(
+                        status,
+                        HttpStatusMap.getDescriptionFromHttpStatusCode(status),
+                        e.message || undefined
+                    )
             }
         }
 

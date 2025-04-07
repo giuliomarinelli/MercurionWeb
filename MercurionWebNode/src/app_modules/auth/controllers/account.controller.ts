@@ -25,7 +25,7 @@ export class AccountController {
     @Post('/register')
     public async registerUser(@Body(new ValidationPipe({ transform: true })) userRegisterDTO: UserRegisterDTO): Promise<ConfirmWithObsContDTO> {
         return await this.accountService.register(userRegisterDTO)
-    }
+    } 
 
     @Public()
     @Patch('/activate')
