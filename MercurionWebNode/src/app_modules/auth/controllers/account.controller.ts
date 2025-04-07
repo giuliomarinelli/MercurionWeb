@@ -36,6 +36,42 @@ export class AccountController {
         return await this.accountService.activate(activationToken)
     }
 
+    @Patch('/email/1')
+    public async changeEmail_firstStep(
+        @AuthenticatedUserId() userId: UUID,
+        @Body(new ValidationPipe({ transform: true })) dto: ChangeEmailDTO
+    ): Promise<ConfirmChangeDTO> {
+        return await this.accountService.changeEmail_firstStep_requestTotp(userId, dto.email)
+    }
+
+    @Patch('/email/2')
+    public async changeEmail_secondStep(
+        @Body(new ValidationPipe({ transform: true })) dto: TotpDTO
+    ): Promise<ConfirmDTO> {
+        const { totp, secureToken } = dto
+        const isValid = await this.accountService.changeEmail_secondStep_verifyTotp(totp, secureToken);
+        if (!isValid) throw new UnauthorizedException('Invalid TOTP code')
+        return this._r.ok('Email changed successfully')
+    }
+
+    @Patch('/phone/1')
+    public async changePhoneNumber_firstStep(
+        @AuthenticatedUserId() userId: UUID,
+        @Body(new ValidationPipe({ transform: true })) dto: ChangePhoneDTO
+    ): Promise<ConfirmChangeDTO> {
+        return await this.accountService.changePhoneNumber_firstStep_requestTotp(userId, dto)
+    }
+
+    @Patch('/phone/2')
+    public async changePhoneNumber_secondStep(
+        @Body(new ValidationPipe({ transform: true })) dto: TotpDTO
+    ): Promise<ConfirmDTO> {
+        const { totp, secureToken } = dto
+        const isValid = await this.accountService.changePhoneNumber_secondStep_verifyTotp(totp, secureToken)
+        if (!isValid) throw new UnauthorizedException('Invalid TOTP code')
+        return this._r.ok('Phone number changed successfully')
+    }
+
     @Patch('/mfa/enable/:strategy/1')
     public async enableMfa_firstStep(
         @Param('strategy') strategyKey: string | undefined,
@@ -87,42 +123,5 @@ export class AccountController {
         }
         return this._r.ok(`MFA successfully disabled for strategy ${strategyKey}`)
     }
-
-    @Patch('/email/1')
-    public async changeEmail_firstStep(
-        @AuthenticatedUserId() userId: UUID,
-        @Body(new ValidationPipe({ transform: true })) dto: ChangeEmailDTO
-    ): Promise<ConfirmChangeDTO> {
-        return await this.accountService.changeEmail_firstStep_requestTotp(userId, dto.email)
-    }
-
-    @Patch('/email/2')
-    public async changeEmail_secondStep(
-        @Body(new ValidationPipe({ transform: true })) dto: TotpDTO
-    ): Promise<ConfirmDTO> {
-        const { totp, secureToken } = dto
-        const isValid = await this.accountService.changeEmail_secondStep_verifyTotp(totp, secureToken);
-        if (!isValid) throw new UnauthorizedException('Invalid TOTP code')
-        return this._r.ok('Email changed successfully')
-    }
-
-    @Patch('/phone/1')
-    public async changePhoneNumber_firstStep(
-        @AuthenticatedUserId() userId: UUID,
-        @Body(new ValidationPipe({ transform: true })) dto: ChangePhoneDTO
-    ): Promise<ConfirmChangeDTO> {
-        return await this.accountService.changePhoneNumber_firstStep_requestTotp(userId, dto)
-    }
-
-    @Patch('/phone/2')
-    public async changePhoneNumber_secondStep(
-        @Body(new ValidationPipe({ transform: true })) dto: TotpDTO
-    ): Promise<ConfirmDTO> {
-        const { totp, secureToken } = dto
-        const isValid = await this.accountService.changePhoneNumber_secondStep_verifyTotp(totp, secureToken)
-        if (!isValid) throw new UnauthorizedException('Invalid TOTP code')
-        return this._r.ok('Phone number changed successfully')
-    }
-
 
 }

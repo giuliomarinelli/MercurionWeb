@@ -11,7 +11,7 @@ import { FastifyRequest } from 'fastify';
 import { RpcException } from '@nestjs/microservices';
 import { AppJwtPayload } from '../Models/interfaces/app-jwt-payload.interface';
 import { readFileSync } from 'fs';
-import { join } from 'path';
+import { resolve } from 'path';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { SessionService } from './session.service';
 
@@ -57,8 +57,8 @@ export class JwtToolsService {
 
         this.jwtIssuer = this.configService.get<string>("Jwt.issuer") as string
 
-        this.privateKey = join(__dirname, readFileSync('src/config/keys/private.pem', 'utf8'))
-        this.publicKey = join(__dirname, readFileSync('src/config/keys/public.pem', 'utf8'))
+        this.privateKey = readFileSync(resolve(__dirname, '../../../config/keys/private.pem'), 'utf8')
+        this.publicKey = readFileSync(resolve(__dirname, '../../../config/keys/public.pem'), 'utf8')
 
     }
 
@@ -90,7 +90,8 @@ export class JwtToolsService {
 
         const jti: UUID = randomUUID(); // Genera JTI univoco per il token
         const expiresAt = Math.floor(Date.now() / 1000) + (jwtConfig.expiresInMs / 1000)
-
+        const privateKey = this.privateKey
+        console.log(privateKey)
         // 🔹 Generazione del Token
         const token: string = await this.jwtService.signAsync(
             {
