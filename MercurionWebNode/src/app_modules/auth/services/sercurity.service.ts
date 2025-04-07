@@ -49,9 +49,13 @@ export class SercurityService {
             length: this.totpConf.bytes,
             issuer: this.configService.get<string>('App.globalName')
         })
+    
+        const algorithm = 'SHA256'
+        const otpauth_url = `${secret.otpauth_url}&algorithm=${algorithm}&digits=${this.totpConf.digits}&period=${this.totpConf.period}`
+    
         return {
             totpSecret: secret.base32,
-            otpauth_url: secret.otpauth_url as string
+            otpauth_url
         }
     }
 
