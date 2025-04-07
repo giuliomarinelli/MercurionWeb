@@ -7,6 +7,7 @@ import { FastifyReply, FastifyRequest } from 'fastify';
 import { Socket } from 'socket.io';
 import { Reflector } from '@nestjs/core';
 import { SecureCookieService } from '../services/secure-cookie.service';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class GlobalGuard implements CanActivate {
@@ -18,21 +19,21 @@ export class GlobalGuard implements CanActivate {
   ) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    
+
     const handleDeviceId = (): void => {
 
       const req = context.switchToHttp().getRequest<FastifyRequest>()
       const res = context.switchToHttp().getResponse<FastifyReply>()
-      
+
       let deviceId: string | null = null
 
       try {
         deviceId = this.secureCookieService.getSignedCookie(req, '__device_id')
       } catch {
-        deviceId = crypto.randomUUID();
+        deviceId = randomUUID()
         this.secureCookieService.setSignedCookie(res, '__device_id', deviceId)
       }
-  
+
       // 🔥 Inietta deviceId nella richiesta PRIMA della guard
       req.headers['x-device-id'] = deviceId
 
@@ -61,7 +62,7 @@ export class GlobalGuard implements CanActivate {
   private async validateHttpRequest(context: ExecutionContext): Promise<boolean> {
 
     const req = context.switchToHttp().getRequest<FastifyRequest>()
-    
+
     try {
       const token = this.jwtToolsService.extractAccessTokenFromReq(req)
       const payload = await this.jwtToolsService.verifyTokenAndGetPayload(token, TokenType.AccessToken)
