@@ -36,6 +36,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
                 case 'ChangeEmail::UserNotFound':
                 case 'ChangeEmailConfirm::UserNotFound':
                 case 'ChangePhone::UserNotFound':
+                case 'NoSuchUser':
                     status = HttpStatus.NOT_FOUND
                     nonHttpInternalErrorRes = new InternalErrorRes(
                         status,
@@ -62,11 +63,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
                     break
                 case 'ChangeEmailConfirm::InvalidTotp':
                 case 'ChangePhone::InvalidTOTP':
+                case 'InvalidJwtValidation':
                     status = HttpStatus.UNAUTHORIZED
                     nonHttpInternalErrorRes = new InternalErrorRes(
                         status,
                         HttpStatusMap.getDescriptionFromHttpStatusCode(status),
-                        e.message || undefined
+                        undefined
                     )
             }
         }
