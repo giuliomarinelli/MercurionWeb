@@ -31,7 +31,7 @@ export class GlobalGuard implements CanActivate {
         deviceId = this.secureCookieService.getSignedCookie(req, '__device_id')
       } catch {
         deviceId = randomUUID()
-        this.secureCookieService.setSignedCookie(res, '__device_id', deviceId)
+        this.secureCookieService.setSignedCookie(res, '__device_id', deviceId, { maxAge: 31556952000 })
       }
 
       // 🔥 Inietta deviceId nella richiesta PRIMA della guard
