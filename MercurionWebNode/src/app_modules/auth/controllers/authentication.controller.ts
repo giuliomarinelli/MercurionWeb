@@ -109,7 +109,7 @@ export class AuthenticationController {
         }
         const { totp } = dto
         const strategy: MfaStrategy | undefined = GeneralUtils.getEnumValue(MfaStrategy, strategyKey)
-        if (!strategy || strategy === MfaStrategy.APP_TOTP) {
+        if (!strategy) {
             throw new BadRequestException('Invalid MFA strategy')
         }
         const isTotpValid: boolean = await this.mfaService.verifyUserOtpOrAppTotp(totp, preAuthorizationToken, strategy)
