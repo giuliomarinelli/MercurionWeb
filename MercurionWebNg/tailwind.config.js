@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: 'selector',
   content: [
     "./src/**/*.{html,ts,scss}",
   ],
@@ -18,15 +19,15 @@ module.exports = {
           'border': '#E5E7EB',
         },
         dark: {
-          'surface-main': '#111827',
-          'surface-secondary': '#1F2937',
+          'surface-main': '#1F2937',
+          'surface-secondary': '#374151',
           'on-surface-main': '#F3F4F6',
-          'on-surface-secondary': '#9CA3AF',
+          'on-surface-secondary': '#D1D5DB',
           'accent-primary': '#60A5FA',
           'accent-secondary': '#34D399',
           'warning': '#FBBF24',
           'error': '#FB7185',
-          'border': '#374151',
+          'border': '#4B5563',
         }
       }
     },
