@@ -1,0 +1,45 @@
+<div class="p-8 space-y-8 transition-all duration-300"
+     [class.bg-mercurion-light-surface-main]="!isDarkMode"
+     [class.text-mercurion-light-on-surface-main]="!isDarkMode"
+     [class.bg-mercurion-dark-surface-main]="isDarkMode"
+     [class.text-mercurion-dark-on-surface-main]="isDarkMode">
+
+  <button (click)="toggleDarkMode()"
+          class="px-4 py-2 rounded font-medium border border-current">
+    Toggle {{ isDarkMode ? 'Light' : 'Dark' }} Mode
+  </button>
+
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="p-4 rounded shadow text-center bg-mercurion-light-surface-secondary dark:bg-mercurion-dark-surface-secondary border-mercurion-light-border dark:border-mercurion-dark-border border">
+      Surface Secondary
+    </div>
+
+    <div class="p-4 rounded shadow text-center bg-mercurion-light-accent-primary dark:bg-mercurion-dark-accent-primary text-white">
+      Accent Primary
+    </div>
+
+    <div class="p-4 rounded shadow text-center bg-mercurion-light-accent-secondary dark:bg-mercurion-dark-accent-secondary text-white">
+      Accent Secondary
+    </div>
+
+    <div class="p-4 rounded shadow text-center bg-mercurion-light-warning dark:bg-mercurion-dark-warning text-white">
+      Warning
+    </div>
+
+    <div class="p-4 rounded shadow text-center bg-mercurion-light-error dark:bg-mercurion-dark-error text-white">
+      Error
+    </div>
+
+    <div class="p-4 rounded shadow text-center border-2 border-mercurion-light-border dark:border-mercurion-dark-border">
+      Border Example
+    </div>
+
+    <div class="p-4 rounded shadow text-center text-mercurion-light-on-surface-secondary dark:text-mercurion-dark-on-surface-secondary">
+      Text Secondary
+    </div>
+
+    <div class="p-4 rounded shadow text-center text-mercurion-light-on-surface-main dark:text-mercurion-dark-on-surface-main">
+      Text Primary
+    </div>
+  </div>
+</div>
