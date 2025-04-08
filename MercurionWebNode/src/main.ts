@@ -24,6 +24,12 @@ import fastifyCookie from '@fastify/cookie'
     },
   })
   app.useGlobalFilters(new HttpExceptionFilter())
+  app.enableCors({
+    credentials: true,
+    allowedHeaders: '*',
+    origin: configService.get<string[]>('App.corsOrigins'),
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTION']
+  })
   const port = configService.get<number>('App.port')
   await app.register(fastifyCookie)
   await app.listen(port ?? 8099)
