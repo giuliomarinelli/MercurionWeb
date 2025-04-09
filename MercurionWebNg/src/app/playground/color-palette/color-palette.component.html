@@ -4,6 +4,10 @@
      [class.bg-dark-surface-main]="isDarkMode"
      [class.text-dark-on-surface-main]="isDarkMode">
 
+  <div class="m-5 text-light-accent-primary">
+    <img src="/title.svg" alt="Mercurion">
+  </div>
+
   <button (click)="toggleDarkMode()"
           class="px-4 py-2 rounded font-medium border border-current">
     Toggle {{ isDarkMode ? 'Light' : 'Dark' }} Mode
