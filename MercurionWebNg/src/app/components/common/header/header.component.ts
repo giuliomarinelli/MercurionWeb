@@ -16,7 +16,7 @@ export class HeaderComponent {
   );
 
   readonly titleSrc = computed(() =>
-    this.themeManager.theme() === 'light' ? '/logo/complete-light-logo.svg' : '/logo/complete-light-logo.svg'
+    this.themeManager.theme() === 'light' ? '/logo/complete-light-logo.svg' : '/logo/complete-dark-logo-2.svg'
   );
 
   constructor(
