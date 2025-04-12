@@ -1,5 +1,5 @@
 import { NgClass, NgOptimizedImage } from '@angular/common';
-import { Component, computed, effect, HostListener, OnDestroy, OnInit, Signal, signal, WritableSignal } from '@angular/core';
+import { Component, computed, effect, OnDestroy, OnInit, Signal, signal, WritableSignal } from '@angular/core';
 import { ThemeManagerService } from '../../../services/stores/theme-manager.service';
 import { ThemeChose } from '../../../Models/types/theme-types';
 
