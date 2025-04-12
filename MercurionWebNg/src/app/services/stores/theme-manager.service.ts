@@ -4,22 +4,22 @@ import { Theme, ThemeChose, ThemeOwner } from '../../Models/types/theme-types';
 @Injectable({ providedIn: 'root' })
 export class ThemeManagerService {
   private readonly _theme = signal<Theme>(this.getOsDefaultTheme)
-  private readonly _themeOwner = signal<ThemeOwner>('OS');
-  private readonly _chosenTheme = signal<ThemeChose>('OS');
+  private readonly _themeOwner = signal<ThemeOwner>('OS')
+  private readonly _chosenTheme = signal<ThemeChose>('OS')
 
   // Pubblici readonly Signals!
-  readonly theme = this._theme.asReadonly();
-  readonly themeOwner = this._themeOwner.asReadonly();
-  readonly chosenTheme = this._chosenTheme.asReadonly();
+  readonly theme = this._theme.asReadonly()
+  readonly themeOwner = this._themeOwner.asReadonly()
+  readonly chosenTheme = this._chosenTheme.asReadonly()
 
   // Computed signals utili per il template
-  readonly isLightUserTheme = computed(() => this._theme() === 'light' && this._themeOwner() === 'User');
-  readonly isDarkUserTheme = computed(() => this._theme() === 'dark' && this._themeOwner() === 'User');
-  readonly isOsLightTheme = computed(() => this._theme() === 'light' && this._themeOwner() === 'OS');
-  readonly isOsDarkTheme = computed(() => this._theme() === 'dark' && this._themeOwner() === 'OS');
+  readonly isLightUserTheme = computed(() => this._theme() === 'light' && this._themeOwner() === 'User')
+  readonly isDarkUserTheme = computed(() => this._theme() === 'dark' && this._themeOwner() === 'User')
+  readonly isOsLightTheme = computed(() => this._theme() === 'light' && this._themeOwner() === 'OS')
+  readonly isOsDarkTheme = computed(() => this._theme() === 'dark' && this._themeOwner() === 'OS')
 
   constructor() {
-    this.initTheme();
+    this.initTheme()
 
     // Reactive effect: applica il tema ogni volta che cambia
     effect(() => this.applyTheme(this._theme()))
@@ -36,7 +36,7 @@ export class ThemeManagerService {
   }
 
   // Cambio tema manuale
-  set chooseTheme(chosen: ThemeChose) {
+  chooseTheme(chosen: ThemeChose) {
     this._chosenTheme.set(chosen)
     this._themeOwner.set(chosen === 'OS' ? 'OS' : 'User')
 

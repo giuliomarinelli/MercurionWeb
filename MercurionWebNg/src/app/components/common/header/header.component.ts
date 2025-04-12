@@ -1,6 +1,7 @@
 import { NgOptimizedImage } from '@angular/common';
 import { Component, computed, effect, WritableSignal } from '@angular/core';
 import { ThemeManagerService } from '../../../services/stores/theme-manager.service';
+import { ThemeChose } from '../../../Models/types/theme-types';
 
 @Component({
   selector: 'app-header',
@@ -13,11 +14,11 @@ export class HeaderComponent {
   // Signals derivati per logoSrc e titleSrc
   readonly logoSrc = computed(() =>
     this.themeManager.theme() === 'light' ? 'logo-png/flame-for-light-theme.png' : 'logo-png/flame-red-for-dark-theme.png'
-  );
+  )
 
   readonly titleSrc = computed(() =>
     this.themeManager.theme() === 'light' ? '/logo/complete-light-logo.svg' : '/logo/complete-dark-logo-2.svg'
-  );
+  )
 
   constructor(
     protected readonly themeManager: ThemeManagerService
@@ -28,5 +29,14 @@ export class HeaderComponent {
       // console.log(this.titleSrc())
     })
   }
+
+  protected onThemeChange(theme: ThemeChose): void {
+    queueMicrotask(() => {
+      this.themeManager.chooseTheme(theme)
+      console.log(this.themeManager.theme())
+    })
+  }
+
+
 
 }
