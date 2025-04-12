@@ -8,5 +8,9 @@ import { provideSocketIo } from 'ngx-socket-io';
 const config: SocketIoConfig = { url: 'http://localhost:8988', options: {} }
 
 export const appConfig: ApplicationConfig = {
-  providers: [provideZoneChangeDetection({ eventCoalescing: true }), provideRouter(routes), provideSocketIo(config)]
+  providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
+    provideRouter(routes),
+    provideSocketIo(config)
+  ]
 };
