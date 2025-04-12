@@ -1,4 +1,4 @@
-import { Injectable, signal, computed, effect, WritableSignal } from '@angular/core';
+import { Injectable, signal, computed, effect } from '@angular/core';
 import { Theme, ThemeChose, ThemeOwner } from '../../Models/types/theme-types';
 
 @Injectable({ providedIn: 'root' })
@@ -15,8 +15,15 @@ export class ThemeManagerService {
   // Computed signals utili per il template
   readonly isLightUserTheme = computed(() => this._theme() === 'light' && this._themeOwner() === 'User')
   readonly isDarkUserTheme = computed(() => this._theme() === 'dark' && this._themeOwner() === 'User')
-  readonly isOsLightTheme = computed(() => this.getOsDefaultTheme === 'light')
-  readonly isOsDarkTheme = computed(() => this.getOsDefaultTheme === 'dark')
+
+  get isSystemLight(): boolean {
+    return this.getOsDefaultTheme === 'light'
+  }
+
+  get isSystemDark(): boolean {
+    return this.getOsDefaultTheme === 'dark'
+  }
+
 
 
   constructor() {
