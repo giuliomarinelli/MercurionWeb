@@ -1,15 +1,18 @@
-import { NgOptimizedImage } from '@angular/common';
-import { Component, computed, effect, WritableSignal } from '@angular/core';
+import { NgClass, NgOptimizedImage } from '@angular/common';
+import { Component, computed, effect, HostListener, OnDestroy, OnInit, Signal, signal, WritableSignal } from '@angular/core';
 import { ThemeManagerService } from '../../../services/stores/theme-manager.service';
 import { ThemeChose } from '../../../Models/types/theme-types';
 
 @Component({
   selector: 'app-header',
-  imports: [NgOptimizedImage],
+  imports: [
+    NgOptimizedImage,
+    NgClass
+  ],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })
-export class HeaderComponent {
+export class HeaderComponent implements OnInit, OnDestroy {
 
   // Signals derivati per logoSrc e titleSrc
   readonly logoSrc = computed(() =>
@@ -37,6 +40,49 @@ export class HeaderComponent {
     })
   }
 
+  protected menuOpen: WritableSignal<boolean> = signal(false)
+
+  readonly menuOpenClass: Signal<boolean> = computed(() => this.menuOpen())
+
+  protected toggleMenu(): void {
+    console.log('Toggle menu triggered 🚀')
+    this.menuOpen.update(open => {
+      console.log('Current menu state:', open)
+      return !open
+    })
+  }
+
+  protected closeMenu(): void {
+    this.menuOpen.set(false)
+  }
+
+  protected handleDocumentClick = (event: MouseEvent): void => {
+    const target = event.target as HTMLElement
+
+    const isInsideMenu = target.closest('.theme-menu-container')
+    const isToggleBtn = target.closest('.theme-toggle-button') // aggiungi questa classe al bottone toggle
+
+    if (!isInsideMenu && !isToggleBtn) {
+      this.menuOpen.set(false)
+    }
+  }
+
+  protected handleEscape = (event: KeyboardEvent): void => {
+    if (event.key === 'Escape') {
+      this.menuOpen.set(false)
+    }
+  }
+
+
+  ngOnInit(): void {
+    document.addEventListener('click', this.handleDocumentClick, true)
+    document.addEventListener('keydown', this.handleEscape, true)
+  }
+
+  ngOnDestroy(): void {
+    document.removeEventListener('click', this.handleDocumentClick, true)
+    document.removeEventListener('keydown', this.handleEscape, true)
+  }
 
 
 }
