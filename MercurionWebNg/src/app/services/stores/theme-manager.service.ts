@@ -15,8 +15,9 @@ export class ThemeManagerService {
   // Computed signals utili per il template
   readonly isLightUserTheme = computed(() => this._theme() === 'light' && this._themeOwner() === 'User')
   readonly isDarkUserTheme = computed(() => this._theme() === 'dark' && this._themeOwner() === 'User')
-  readonly isOsLightTheme = computed(() => this._theme() === 'light' && this._themeOwner() === 'OS')
-  readonly isOsDarkTheme = computed(() => this._theme() === 'dark' && this._themeOwner() === 'OS')
+  readonly isOsLightTheme = computed(() => this.getOsDarkModeMediaQuery().matches === false)
+  readonly isOsDarkTheme = computed(() => this.getOsDarkModeMediaQuery().matches === true)
+
 
   constructor() {
     this.initTheme()
