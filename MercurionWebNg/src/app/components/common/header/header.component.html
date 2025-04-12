@@ -1,5 +1,5 @@
 <header
-  class="px-5 py-4 bg-light-surface-secondary dark:bg-transparent dark:border-b-[0.5px] dark:border-slate-300 flex justify-between items-center">
+  class="px-5 py-4 bg-light-surface-secondary dark:bg-transparent dark:border-b-[0.5px] dark:border-slate-300 flex justify-between items-center transition-colors duration-300 ease-out">
   <button>
     <svg xmlns="http://www.w3.org/2000/svg"
       class="h-6 w-6 fill-current text-light-on-surface-secondary dark:text-slate-100"
@@ -9,10 +9,10 @@
     </svg>
   </button>
   <img [ngSrc]="titleSrc()" alt="Mercurion" width="927" height="234" priority="true" class="w-[145px] h-auto">
-  <div class=".theme-menu-container">
+  <div class="theme-menu-container">
     <button class="flex items-center theme-toggle-button" (click)="toggleMenu()">
       @if (themeManager.theme() === 'dark') {
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 fill-current text-slate-100"
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 fill-current text-slate-100"
         viewBox="0 0 384 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
         <path
           d="M223.5 32C100 32 0 132.3 0 256S100 480 223.5 480c60.6 0 115.5-24.2 155.8-63.4c5-4.9 6.3-12.5 3.1-18.7s-10.1-9.7-17-8.5c-9.8 1.7-19.8 2.6-30.1 2.6c-96.9 0-175.5-78.8-175.5-176c0-65.8 36-123.1 89.3-153.3c6.1-3.5 9.2-10.5 7.7-17.3s-7.3-11.9-14.3-12.5c-6.3-.5-12.6-.8-19-.8z" />
@@ -34,9 +34,10 @@
     'opacity-100 translate-x-0 translate-y-0': menuOpen(),
     'opacity-0 pointer-events-none translate-x-2 -translate-y-2': !menuOpen()
   }">
-  <div class="py-1">
-    <button (click)="onThemeChange('light'); closeMenu()" class="group flex items-center w-full px-4 py-4 gap-4" [ngClass]="{'bg-slate-200 dark:bg-slate-500': themeManager.chosenTheme() === 'light'}">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
+  <div class="py-2">
+    <button (click)="onThemeChange('light'); closeMenu()" class="group flex items-center w-full px-4 py-4 gap-4"
+      [ngClass]="{'bg-slate-200 dark:bg-slate-500': themeManager.chosenTheme() === 'light'}">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7"
         viewBox="0 0 512 512"><!--!Font Awesome Pro 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
         <path class="fill-current text-light-accent-secondary dark:text-dark-accent-secondary"
           d="M208 256a48 48 0 1 0 96 0 48 48 0 1 0 -96 0z" />
@@ -45,7 +46,7 @@
       </svg>
       <span>Modalità chiara</span>
       @if(themeManager.chosenTheme() === 'light') {
-      <svg xmlns="http://www.w3.org/2000/svg" class="h4 w-4 relative left-2"
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 relative left-2"
         viewBox="0 0 512 512"><!--!Font Awesome Pro 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
         <path class="fill-current text-light-accent-secondary dark:text-dark-accent-secondary"
           d="M0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zm126.1 0L160 222.1c.3 .3 .6 .6 1 1c5.3 5.3 10.7 10.7 16 16c15.7 15.7 31.4 31.4 47 47c37-37 74-74 111-111c5.3-5.3 10.7-10.7 16-16c.3-.3 .6-.6 1-1L385.9 192c-.3 .3-.6 .6-1 1l-16 16L241 337l-17 17-17-17-64-64c-5.3-5.3-10.7-10.7-16-16l-1-1z" />
@@ -54,15 +55,16 @@
       </svg>
       }
     </button>
-    <button (click)="onThemeChange('dark'); closeMenu()" class="group flex items-center w-full px-4 py-4 gap-4" [ngClass]="{'bg-slate-200 dark:bg-slate-500': themeManager.chosenTheme() === 'dark'}">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 fill-current text-slate-400 dark:text-slate-100"
+    <button (click)="onThemeChange('dark'); closeMenu()" class="group flex items-center w-full px-4 py-4 gap-4"
+      [ngClass]="{'bg-slate-200 dark:bg-slate-500': themeManager.chosenTheme() === 'dark'}">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 fill-current text-slate-400 dark:text-slate-100"
         viewBox="0 0 384 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
         <path
           d="M223.5 32C100 32 0 132.3 0 256S100 480 223.5 480c60.6 0 115.5-24.2 155.8-63.4c5-4.9 6.3-12.5 3.1-18.7s-10.1-9.7-17-8.5c-9.8 1.7-19.8 2.6-30.1 2.6c-96.9 0-175.5-78.8-175.5-176c0-65.8 36-123.1 89.3-153.3c6.1-3.5 9.2-10.5 7.7-17.3s-7.3-11.9-14.3-12.5c-6.3-.5-12.6-.8-19-.8z" />
       </svg>
       <span>Modalità scura</span>
       @if(themeManager.chosenTheme() === 'dark') {
-      <svg xmlns="http://www.w3.org/2000/svg" class="h4 w-4 relative left-2"
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 relative left-2"
         viewBox="0 0 512 512"><!--!Font Awesome Pro 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
         <path class="fill-current text-light-accent-secondary dark:text-dark-accent-secondary"
           d="M0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zm126.1 0L160 222.1c.3 .3 .6 .6 1 1c5.3 5.3 10.7 10.7 16 16c15.7 15.7 31.4 31.4 47 47c37-37 74-74 111-111c5.3-5.3 10.7-10.7 16-16c.3-.3 .6-.6 1-1L385.9 192c-.3 .3-.6 .6-1 1l-16 16L241 337l-17 17-17-17-64-64c-5.3-5.3-10.7-10.7-16-16l-1-1z" />
@@ -71,15 +73,16 @@
       </svg>
       }
     </button>
-    <button (click)="onThemeChange('OS'); closeMenu()" class="group flex items-center w-full px-4 py-4 gap-4" [ngClass]="{'bg-slate-200 dark:bg-slate-500': themeManager.chosenTheme() === 'OS'}">
+    <button (click)="onThemeChange('OS'); closeMenu()" class="group flex items-center w-full px-4 py-4 gap-4"
+      [ngClass]="{'bg-slate-200 dark:bg-slate-500': themeManager.chosenTheme() === 'OS'}">
       @if (themeManager.isSystemDark) {
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 fill-current text-slate-400 dark:text-slate-100"
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 fill-current text-slate-400 dark:text-slate-100"
         viewBox="0 0 384 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
         <path
           d="M223.5 32C100 32 0 132.3 0 256S100 480 223.5 480c60.6 0 115.5-24.2 155.8-63.4c5-4.9 6.3-12.5 3.1-18.7s-10.1-9.7-17-8.5c-9.8 1.7-19.8 2.6-30.1 2.6c-96.9 0-175.5-78.8-175.5-176c0-65.8 36-123.1 89.3-153.3c6.1-3.5 9.2-10.5 7.7-17.3s-7.3-11.9-14.3-12.5c-6.3-.5-12.6-.8-19-.8z" />
       </svg>
       } @else if (themeManager.isSystemLight) {
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7"
         viewBox="0 0 512 512"><!--!Font Awesome Pro 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
         <path class="fill-current text-light-accent-secondary dark:text-dark-accent-secondary"
           d="M208 256a48 48 0 1 0 96 0 48 48 0 1 0 -96 0z" />
