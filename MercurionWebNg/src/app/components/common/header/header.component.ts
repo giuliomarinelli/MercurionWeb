@@ -24,8 +24,8 @@ export class HeaderComponent {
   ) {
     effect(() => {
       // Reactive logging/debugging se vuoi
-      console.log('Tema attuale:', this.themeManager.theme())
-      console.log(this.titleSrc)
+      // console.log('Tema attuale:', this.themeManager.theme())
+      // console.log(this.titleSrc())
     })
   }
 
