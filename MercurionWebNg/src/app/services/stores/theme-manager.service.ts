@@ -37,8 +37,8 @@ export class ThemeManagerService {
 
   // Cambio tema manuale
   set chooseTheme(chosen: ThemeChose) {
-    this._chosenTheme.set(chosen);
-    this._themeOwner.set(chosen === 'OS' ? 'OS' : 'User');
+    this._chosenTheme.set(chosen)
+    this._themeOwner.set(chosen === 'OS' ? 'OS' : 'User')
 
     if (chosen === 'OS') {
       this.clearThemeConfig();
