@@ -1,5 +1,56 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import './css/buttons.css';
 
+/* Custom base styles se vuoi */
+html,
+body {
+  @apply text-light-on-surface-main dark:text-dark-on-surface-main;
+}
+
+/* Components layer */
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center rounded-lg font-medium transition-colors duration-300 ease-in-out px-4 py-2 text-sm;
+  }
+
+  /* Varianti button */
+  .btn-light-accent-primary {
+    @apply bg-light-accent-primary text-white hover:bg-light-accent-primary/80;
+  }
+
+  .btn-outline-light-accent-primary {
+    @apply border border-light-accent-primary text-light-accent-primary hover:bg-light-accent-primary hover:text-white;
+  }
+
+  .btn-dark {
+    @apply bg-gray-800 text-white hover:bg-gray-700;
+  }
+
+  .btn-outline-dark {
+    @apply border border-gray-800 text-gray-800 hover:bg-gray-800 hover:text-white;
+  }
+
+  .btn-disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+
+  /* Dimensioni */
+  .btn-sm {
+    @apply px-3 py-1 text-xs;
+  }
+
+  .btn-lg {
+    @apply px-6 py-3 text-base;
+  }
+
+  /* Forma ovale */
+  .btn-pill {
+    @apply rounded-full;
+  }
+
+  /* Bottone outline slate-200 trasparente */
+  .btn-outline-slate-200 {
+    @apply border border-slate-200 text-slate-200 hover:bg-slate-200 hover:text-white;
+  }
+}

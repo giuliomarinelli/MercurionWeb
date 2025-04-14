@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, computed, signal } from '@angular/core';
 
 @Component({
   selector: 'app-color-palette',
@@ -7,15 +7,6 @@ import { Component } from '@angular/core';
   styleUrls: ['./color-palette.component.css']
 })
 export class ColorPaletteComponent {
-  isDarkMode = false;
 
-  toggleDarkMode() {
-    this.isDarkMode = !this.isDarkMode;
-    const htmlElement = document.querySelector('html');
-    if (this.isDarkMode) {
-      htmlElement?.classList.add('dark');
-    } else {
-      htmlElement?.classList.remove('dark');
-    }
-  }
+
 }

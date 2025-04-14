@@ -1,20 +1,8 @@
-<div class="p-8 space-y-8 transition-all duration-300 absolute top-0 left-0 right-0 bottom-0"
-     [class.bg-light-surface-main]="!isDarkMode"
-     [class.text-light-on-surface-main]="!isDarkMode"
-     [class.bg-dark-surface-main]="isDarkMode"
-     [class.text-dark-on-surface-main]="isDarkMode">
-
-  <div class="m-5 text-light-accent-primary">
-    <img src="/title.svg" alt="Mercurion">
-  </div>
-
-  <button (click)="toggleDarkMode()"
-          class="px-4 py-2 rounded font-medium border border-current">
-    Toggle {{ isDarkMode ? 'Light' : 'Dark' }} Mode
-  </button>
+<div class="p-8 space-y-8 transition-all duration-300">
 
   <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-    <div class="p-4 rounded shadow text-center bg-light-surface-secondary dark:bg-dark-surface-secondary border-light-border dark:border-dark-border border">
+    <div
+      class="p-4 rounded shadow text-center bg-light-surface-secondary dark:bg-dark-surface-secondary border-light-border dark:border-dark-border border">
       Surface Secondary
     </div>
 
@@ -45,5 +33,37 @@
     <div class="p-4 rounded shadow text-center text-light-on-surface-main dark:text-dark-on-surface-main">
       Text Primary
     </div>
+  </div>
+  <!-- Griglia di Bottoni di esempio -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <!-- Button Primary -->
+    <button class="btn btn-light-accent-primary">Primary</button>
+
+    <!-- Button Outline Primary -->
+    <button class="btn btn-outline-light-accent-primary">Outline Primary</button>
+
+    <!-- Button Dark -->
+    <button class="btn btn-dark">Dark</button>
+
+    <!-- Button Outline Dark -->
+    <button class="btn btn-outline-dark">Outline Dark</button>
+
+    <!-- Disabled Button -->
+    <button class="btn btn-light-accent-primary btn-disabled" disabled>Disabled</button>
+
+    <!-- Small Button -->
+    <button class="btn btn-light-accent-primary btn-sm">Small</button>
+
+    <!-- Large Button -->
+    <button class="btn btn-light-accent-primary btn-lg">Large</button>
+
+    <!-- Outline Slate-200 -->
+    <button class="btn btn-outline-slate-200">Slate Outline</button>
+
+    <!-- Pill Shape Button -->
+    <button class="btn btn-light-accent-primary btn-pill">Pill Button</button>
+
+    <!-- Combo: Pill + Outline -->
+    <button class="btn btn-outline-light-accent-primary btn-pill">Outline Pill</button>
   </div>
 </div>
