@@ -10,7 +10,7 @@ import { ThemeChose } from '../../../Models/types/theme-types';
     NgClass
   ],
   templateUrl: './header.component.html',
-  styleUrl: './header.component.scss'
+  styleUrl: './header.component.css'
 })
 export class HeaderComponent implements OnInit, OnDestroy {
 

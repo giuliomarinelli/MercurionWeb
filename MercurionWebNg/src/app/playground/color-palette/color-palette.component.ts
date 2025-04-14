@@ -4,7 +4,7 @@ import { Component } from '@angular/core';
   selector: 'app-color-palette',
   standalone: true,
   templateUrl: './color-palette.component.html',
-  styleUrls: ['./color-palette.component.scss']
+  styleUrls: ['./color-palette.component.css']
 })
 export class ColorPaletteComponent {
   isDarkMode = false;
