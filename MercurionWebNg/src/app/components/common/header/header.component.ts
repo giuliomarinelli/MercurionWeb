@@ -66,11 +66,15 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
     const isInsideThemeMenu = target.closest('.theme-menu-container')
     const isToggleThemeBtn = target.closest('.theme-toggle-button')
-    const isToggleOffCanvasMenu = target.closest('.off-canvas-menu-container')
+    const isInsideOffCanvasMenu = target.closest('.off-canvas-menu-container')
     const isToggleOffCanvasBtn = target.closest('.off-canvas-menu-button')
 
     if (!isInsideThemeMenu && !isToggleThemeBtn) {
       this.themeMenuOpen.set(false)
+    }
+
+    if (!isInsideOffCanvasMenu && !isToggleOffCanvasBtn) {
+      this.offCanvasMenuOpen.set(false)
     }
   }
 
