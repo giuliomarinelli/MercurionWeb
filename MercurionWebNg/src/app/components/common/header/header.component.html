@@ -1,5 +1,5 @@
 <header
-  class="px-5 py-4 bg-light-surface-secondary dark:bg-neutral-900  dark:border-b-[0.5px] dark:border-slate-300 flex justify-between items-center transition-colors duration-300 ease-out shadow-md dark:shadow-none">
+  class="px-5 py-4 bg-light-surface-secondary dark:bg-neutral-900 dark:border-b-[0.5px] dark:border-slate-300 flex justify-between items-center transition-colors duration-300 ease-out shadow-md dark:shadow-none">
   <button (click)="toggleOffCanvasMenu()">
     <svg xmlns="http://www.w3.org/2000/svg"
       class="h-6 w-6 fill-current text-light-on-surface-secondary dark:text-slate-100 off-canvas-menu-button"
@@ -8,7 +8,9 @@
         d="M0 88C0 74.7 10.7 64 24 64l400 0c13.3 0 24 10.7 24 24s-10.7 24-24 24L24 112C10.7 112 0 101.3 0 88zM0 248c0-13.3 10.7-24 24-24l272 0c13.3 0 24 10.7 24 24s-10.7 24-24 24L24 272c-13.3 0-24-10.7-24-24zM192 408c0 13.3-10.7 24-24 24L24 432c-13.3 0-24-10.7-24-24s10.7-24 24-24l144 0c13.3 0 24 10.7 24 24z" />
     </svg>
   </button>
+  @if (designService.minBk("xl")()) {
   <img [ngSrc]="titleSrc()" alt="Mercurion" width="927" height="234" priority="true" class="w-[145px] h-auto">
+  }
   <div class="theme-menu-container">
     <button class="flex items-center theme-toggle-button" (click)="toggleThemeMenu()">
       @if (themeManager.theme() === 'dark') {
@@ -104,8 +106,7 @@
   </div>
 </div>
 <!-- Offcanvas Navigation Sidebar -->
-<div
-  class="offcanvas-menu-container fixed top-0 left-0 h-full z-[60] bg-white dark:bg-neutral-800 shadow-lg transform transition-transform duration-300 ease-in-out
+<div class="offcanvas-menu-container fixed top-0 left-0 h-full z-[60] bg-white dark:bg-neutral-800 shadow-lg transform transition-transform duration-300 ease-in-out
          w-full xs:w-[85%] sm:w-[70%] md:w-[55%] lg:w-[40%] xl:w-[30%]
          -translate-x-full"
   [ngClass]="{ 'translate-x-0': offCanvasMenuOpen(), '-translate-x-full': !offCanvasMenuOpen() }">
@@ -114,19 +115,34 @@
   <div class="flex justify-between items-center px-5 py-4 border-b border-light-border dark:border-dark-border">
     <h2 class="text-lg font-semibold text-light-on-surface-main dark:text-slate-100">Navigazione</h2>
     <button (click)="closeOffCanvasMenu()">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-current text-light-on-surface-secondary dark:text-slate-200"
-           viewBox="0 0 384 512">
-        <path d="M310.6 361.4L233.3 284.1 310.6 206.7c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L188 238.7 110.6 161.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L142.7 284.1 65.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L188 329.3l77.3 77.3c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3z"/>
+      <svg xmlns="http://www.w3.org/2000/svg"
+        class="h-5 w-5 fill-current text-light-on-surface-secondary dark:text-slate-200" viewBox="0 0 384 512">
+        <path
+          d="M310.6 361.4L233.3 284.1 310.6 206.7c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L188 238.7 110.6 161.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L142.7 284.1 65.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L188 329.3l77.3 77.3c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3z" />
       </svg>
     </button>
   </div>
 
   <!-- Menu items -->
   <nav class="flex flex-col gap-2 px-5 py-4 text-light-on-surface-secondary dark:text-slate-200">
-    <a routerLink="/dashboard" (click)="closeOffCanvasMenu()" class="hover:text-light-accent-primary dark:hover:text-dark-accent-primary">Dashboard</a>
-    <a routerLink="/predict" (click)="closeOffCanvasMenu()" class="hover:text-light-accent-primary dark:hover:text-dark-accent-primary">Predizione</a>
-    <a routerLink="/molecules" (click)="closeOffCanvasMenu()" class="hover:text-light-accent-primary dark:hover:text-dark-accent-primary">Molecole Salvate</a>
-    <a routerLink="/about" (click)="closeOffCanvasMenu()" class="hover:text-light-accent-primary dark:hover:text-dark-accent-primary">Dataset & Modello</a>
-    <a routerLink="/contact" (click)="closeOffCanvasMenu()" class="hover:text-light-accent-primary dark:hover:text-dark-accent-primary">Contatti</a>
+    <ul>
+      <li class="offcanvas-menu-item">
+        <a routerLink="/dashboard" (click)="closeOffCanvasMenu()" class="offcanvas-menu-link">Dashboard</a>
+      </li>
+      <li class="offcanvas-menu-item">
+        <a routerLink="/predict" (click)="closeOffCanvasMenu()" class="offcanvas-menu-link">Predizione</a>
+      </li>
+      <li class="offcanvas-menu-item">
+        <a routerLink="/molecules" (click)="closeOffCanvasMenu()" class="offcanvas-menu-link">Molecole
+          Salvate</a>
+      </li>
+      <li class="offcanvas-menu-item">
+        <a routerLink="/about" (click)="closeOffCanvasMenu()" class="offcanvas-menu-link">Dataset &
+          Modello</a>
+      </li>
+      <li class="offcanvas-menu-item">
+        <a routerLink="/contact" (click)="closeOffCanvasMenu()" class="offcanvas-menu-link">Contatti</a>
+      </li>
+    </ul>
   </nav>
 </div>

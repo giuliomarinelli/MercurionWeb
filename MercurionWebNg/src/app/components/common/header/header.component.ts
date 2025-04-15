@@ -2,6 +2,7 @@ import { NgClass, NgOptimizedImage } from '@angular/common';
 import { Component, computed, effect, OnDestroy, OnInit, Signal, signal, WritableSignal } from '@angular/core';
 import { ThemeManagerService } from '../../../services/stores/theme-manager.service';
 import { ThemeChose } from '../../../Models/types/theme-types';
+import { DesignService } from '../../../services/design.service';
 
 @Component({
   selector: 'app-header',
@@ -24,7 +25,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
   )
 
   constructor(
-    protected readonly themeManager: ThemeManagerService
+    protected readonly themeManager: ThemeManagerService,
+    protected readonly designService: DesignService
   ) {
     effect(() => {
       // Reactive logging/debugging se vuoi
