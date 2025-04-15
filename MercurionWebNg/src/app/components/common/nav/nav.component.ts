@@ -1,4 +1,5 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { DesignService } from '../../../services/design.service';
 
 @Component({
   selector: 'app-nav',
@@ -9,6 +10,9 @@ import { Component, EventEmitter, Output } from '@angular/core';
 export class NavComponent {
 
   @Output() onCloseOffCanvasMenu = new EventEmitter<boolean>()
+  @Input() header: boolean = false
+
+  constructor(protected readonly designService: DesignService) { }
 
   closeOffCanvasMenu(): void {
     this.onCloseOffCanvasMenu.emit(false)
