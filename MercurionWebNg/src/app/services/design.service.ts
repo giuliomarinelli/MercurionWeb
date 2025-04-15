@@ -90,6 +90,28 @@ export class DesignService {
     })
   }
 
+  // ✅ Verifica se il breakpoint corrente è <= di quello passato (in pixel)
+public maxBk(breakpoint: Breakpoint): Signal<boolean> {
+  const ordered: Breakpoints[] = [
+    Breakpoints._3XS,
+    Breakpoints._2XS,
+    Breakpoints.XS,
+    Breakpoints.SM,
+    Breakpoints.MD,
+    Breakpoints.LG,
+    Breakpoints.XL,
+    Breakpoints._2XL
+  ]
+
+  return computed(() => {
+    const current = this.__currentBk()
+    const currentIdx = ordered.indexOf(current)
+    const targetIdx = ordered.indexOf(breakpoint as Breakpoints)
+    return currentIdx <= targetIdx
+  })
+}
+
+
   // ✅ Utility: è mobile?
   public isMobile(): boolean {
     const currentWidth = this.viewportRuler.getViewportSize().width
