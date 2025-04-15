@@ -25,7 +25,7 @@
     class="w-[128px] min-[350px]:w-[145px] h-auto">
   }
 
-  <div class="theme-menu-container flex gap-4">
+  <div class="theme-menu-container flex gap-3">
     @if (designService.minBk('lg')()) {
     <ul class="flex gap-4 items-center">
       <li class="offcanvas-menu-item">
@@ -54,6 +54,11 @@
           <path class="fill-current text-light-accent-primary/70 dark:text-slate-300"
             d="M48 150.8l208 143 108.2-74.4c-21.3 24-36.1 53.9-41.7 86.9L256 352 48 209l0 191 284 0c6.9 17.5 16.4 33.7 28.2 48L48 448 0 448l0-48L0 176l0-64L0 64l48 0 416 0 48 0 0 48 0 48.7c-5.3-.5-10.6-.7-16-.7c-21.6 0-42.4 3.9-61.5 11.1L464 150.8l0-38.8L48 112l0 38.8zM352 336a144 144 0 1 1 288 0 144 144 0 1 1 -288 0zm222.6-32L552 281.4l-11.3 11.3L480 353.4l-28.7-28.7L440 313.4 417.4 336l11.3 11.3 40 40L480 398.6l11.3-11.3 72-72L574.6 304z" />
         </svg>
+      </li>
+      <li class="offcanvas-menu-item">
+        <div class="rounded-full bg-light-accent-secondary text-slate-100 dark:bg-dark-accent-primary text-base p-2 ml-6">
+          GM
+        </div>
       </li>
     </ul>
     }
@@ -84,7 +89,7 @@
     'opacity-0 pointer-events-none translate-x-2 -translate-y-2': !themeMenuOpen()
   }">
   <div class="py-2">
-    <button (click)="onThemeChange('light'); closeThemeMenu()" class="group flex items-center w-full px-4 py-4 gap-4"
+    <button (click)="onThemeChange('light'); closeThemeMenu()" class="group flex items-center w-full px-4 gap-4"
       [ngClass]="{'bg-slate-200 dark:bg-slate-500': themeManager.chosenTheme() === 'light'}">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
         viewBox="0 0 512 512"><!--!Font Awesome Pro 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
@@ -104,7 +109,7 @@
       </svg>
       }
     </button>
-    <button (click)="onThemeChange('dark'); closeThemeMenu()" class="group flex items-center w-full px-4 py-4 gap-4"
+    <button (click)="onThemeChange('dark'); closeThemeMenu()" class="group flex items-center w-full px-4 gap-4"
       [ngClass]="{'bg-slate-200 dark:bg-slate-500': themeManager.chosenTheme() === 'dark'}">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-current text-slate-400 dark:text-slate-100"
         viewBox="0 0 384 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
@@ -122,7 +127,7 @@
       </svg>
       }
     </button>
-    <button (click)="onThemeChange('OS'); closeThemeMenu()" class="group flex items-center w-full px-4 py-4 gap-4"
+    <button (click)="onThemeChange('OS'); closeThemeMenu()" class="group flex items-center w-full px-4 gap-4"
       [ngClass]="{'bg-slate-200 dark:bg-slate-500': themeManager.chosenTheme() === 'OS'}">
       @if (themeManager.isSystemDark) {
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-current text-slate-400 dark:text-slate-100"
@@ -161,7 +166,7 @@
 
   <!-- Header of the offcanvas -->
   <div
-    class="flex justify-between items-center px-5 py-4 border-b border-light-border dark:border-dark-border shadow-sm dark:shadow-none">
+    class="flex justify-between items-center px-5 border-b border-light-border dark:border-dark-border shadow-sm dark:shadow-none">
     <h2 class="font-semibold text-light-accent-primary dark:text-dark-accent-primary text-2xl">Navigazione</h2>
     <button (click)="closeOffCanvasMenu()">
       <svg xmlns="http://www.w3.org/2000/svg"
