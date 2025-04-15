@@ -40,36 +40,44 @@ export class HeaderComponent implements OnInit, OnDestroy {
     })
   }
 
-  protected menuOpen: WritableSignal<boolean> = signal(false)
+  protected themeMenuOpen: WritableSignal<boolean> = signal(false)
+  protected offCanvasMenuOpen: WritableSignal<boolean> = signal(false)
 
-  readonly menuOpenClass: Signal<boolean> = computed(() => this.menuOpen())
+  readonly menuOpenClass: Signal<boolean> = computed(() => this.themeMenuOpen())
 
-  protected toggleMenu(): void {
-    console.log('Toggle menu triggered 🚀')
-    this.menuOpen.update(open => {
-      console.log('Current menu state:', open)
-      return !open
-    })
+  protected toggleThemeMenu(): void {
+    this.themeMenuOpen.update(open => !open)
   }
 
-  protected closeMenu(): void {
-    this.menuOpen.set(false)
+  protected toggleOffCanvasMenu(): void {
+    this.offCanvasMenuOpen.update(open => !open)
+  }
+
+  protected closeOffCanvasMenu(): void {
+    this.offCanvasMenuOpen.set(false)
+  }
+
+  protected closeThemeMenu(): void {
+    this.themeMenuOpen.set(false)
   }
 
   protected handleDocumentClick = (event: MouseEvent): void => {
     const target = event.target as HTMLElement
 
-    const isInsideMenu = target.closest('.theme-menu-container')
-    const isToggleBtn = target.closest('.theme-toggle-button') // aggiungi questa classe al bottone toggle
+    const isInsideThemeMenu = target.closest('.theme-menu-container')
+    const isToggleThemeBtn = target.closest('.theme-toggle-button')
+    const isToggleOffCanvasMenu = target.closest('.off-canvas-menu-container')
+    const isToggleOffCanvasBtn = target.closest('.off-canvas-menu-button')
 
-    if (!isInsideMenu && !isToggleBtn) {
-      this.menuOpen.set(false)
+    if (!isInsideThemeMenu && !isToggleThemeBtn) {
+      this.themeMenuOpen.set(false)
     }
   }
 
   protected handleEscape = (event: KeyboardEvent): void => {
     if (event.key === 'Escape') {
-      this.menuOpen.set(false)
+      this.themeMenuOpen.set(false)
+      this.offCanvasMenuOpen.set(false)
     }
   }
 
