@@ -2,12 +2,15 @@ import { NgClass, NgOptimizedImage } from '@angular/common';
 import { Component, computed, effect, OnDestroy, OnInit, Signal, signal, WritableSignal } from '@angular/core';
 import { ThemeManagerService } from '../../../services/stores/theme-manager.service';
 import { ThemeChose } from '../../../Models/types/theme-types';
+import { DesignService } from '../../../services/design.service';
+import { NavComponent } from '../nav/nav.component';
 
 @Component({
   selector: 'app-header',
   imports: [
     NgOptimizedImage,
-    NgClass
+    NgClass,
+    NavComponent
   ],
   templateUrl: './header.component.html',
   styleUrl: './header.component.css'
@@ -24,7 +27,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
   )
 
   constructor(
-    protected readonly themeManager: ThemeManagerService
+    protected readonly themeManager: ThemeManagerService,
+    protected readonly designService: DesignService
   ) {
     effect(() => {
       // Reactive logging/debugging se vuoi
@@ -40,36 +44,48 @@ export class HeaderComponent implements OnInit, OnDestroy {
     })
   }
 
-  protected menuOpen: WritableSignal<boolean> = signal(false)
+  protected themeMenuOpen: WritableSignal<boolean> = signal(false)
+  protected offCanvasMenuOpen: WritableSignal<boolean> = signal(false)
 
-  readonly menuOpenClass: Signal<boolean> = computed(() => this.menuOpen())
+  readonly menuOpenClass: Signal<boolean> = computed(() => this.themeMenuOpen())
 
-  protected toggleMenu(): void {
-    console.log('Toggle menu triggered 🚀')
-    this.menuOpen.update(open => {
-      console.log('Current menu state:', open)
-      return !open
-    })
+  protected toggleThemeMenu(): void {
+    this.themeMenuOpen.update(open => !open)
   }
 
-  protected closeMenu(): void {
-    this.menuOpen.set(false)
+  protected toggleOffCanvasMenu(): void {
+    this.offCanvasMenuOpen.update(open => !open)
+  }
+
+  protected closeOffCanvasMenu(): void {
+    this.offCanvasMenuOpen.set(false)
+  }
+
+  protected closeThemeMenu(): void {
+    this.themeMenuOpen.set(false)
   }
 
   protected handleDocumentClick = (event: MouseEvent): void => {
     const target = event.target as HTMLElement
 
-    const isInsideMenu = target.closest('.theme-menu-container')
-    const isToggleBtn = target.closest('.theme-toggle-button') // aggiungi questa classe al bottone toggle
+    const isInsideThemeMenu = target.closest('.theme-menu-container')
+    const isToggleThemeBtn = target.closest('.theme-toggle-button')
+    const isInsideOffCanvasMenu = target.closest('.off-canvas-menu-container')
+    const isToggleOffCanvasBtn = target.closest('.off-canvas-menu-button')
 
-    if (!isInsideMenu && !isToggleBtn) {
-      this.menuOpen.set(false)
+    if (!isInsideThemeMenu && !isToggleThemeBtn) {
+      this.themeMenuOpen.set(false)
+    }
+
+    if (!isInsideOffCanvasMenu && !isToggleOffCanvasBtn) {
+      this.offCanvasMenuOpen.set(false)
     }
   }
 
   protected handleEscape = (event: KeyboardEvent): void => {
     if (event.key === 'Escape') {
-      this.menuOpen.set(false)
+      this.themeMenuOpen.set(false)
+      this.offCanvasMenuOpen.set(false)
     }
   }
 

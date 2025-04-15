@@ -1,8 +1,9 @@
-import { Injectable, signal, WritableSignal } from '@angular/core'
+import { computed, Injectable, Signal, signal, WritableSignal } from '@angular/core'
 import { ViewportRuler } from '@angular/cdk/scrolling'
 
 // ✅ Enum con valori stringa
 export enum Breakpoints {
+  ZERO = '0',
   _3XS = '3xs',
   _2XS = '2xs',
   XS = 'xs',
@@ -23,6 +24,7 @@ export type BreakpointVerboseMap = Record<Breakpoint, string>
 export class DesignService {
 
   private readonly bkMap = new Map<Breakpoints, number>([
+    [Breakpoints.ZERO, 0],
     [Breakpoints._3XS, 321],
     [Breakpoints._2XS, 376],
     [Breakpoints.XS, 426],
@@ -34,6 +36,7 @@ export class DesignService {
   ])
 
   private readonly bkVerboseMap: BreakpointVerboseMap = {
+    '0': 'zero pixel',
     '3xs': 'small vertical phone display',
     '2xs': 'medium vertical phone display',
     'xs': 'large vertical phone display',
@@ -65,6 +68,49 @@ export class DesignService {
   public get currentBreakpointVerbose(): string {
     return this.bkVerboseMap[this.currentBreakpoint] ?? 'Unknown'
   }
+
+  // ✅ Verifica se il breakpoint corrente è >= di quello passato (in pixel)
+  public minBk(breakpoint: Breakpoint): Signal<boolean> {
+    const ordered: Breakpoints[] = [
+      Breakpoints._3XS,
+      Breakpoints._2XS,
+      Breakpoints.XS,
+      Breakpoints.SM,
+      Breakpoints.MD,
+      Breakpoints.LG,
+      Breakpoints.XL,
+      Breakpoints._2XL
+    ]
+
+    return computed(() => {
+      const current = this.__currentBk() // 💡 trigger reattività
+      const currentIdx = ordered.indexOf(current)
+      const targetIdx = ordered.indexOf(breakpoint as Breakpoints)
+      return currentIdx >= targetIdx
+    })
+  }
+
+  // ✅ Verifica se il breakpoint corrente è <= di quello passato (in pixel)
+public maxBk(breakpoint: Breakpoint): Signal<boolean> {
+  const ordered: Breakpoints[] = [
+    Breakpoints._3XS,
+    Breakpoints._2XS,
+    Breakpoints.XS,
+    Breakpoints.SM,
+    Breakpoints.MD,
+    Breakpoints.LG,
+    Breakpoints.XL,
+    Breakpoints._2XL
+  ]
+
+  return computed(() => {
+    const current = this.__currentBk()
+    const currentIdx = ordered.indexOf(current)
+    const targetIdx = ordered.indexOf(breakpoint as Breakpoints)
+    return currentIdx <= targetIdx
+  })
+}
+
 
   // ✅ Utility: è mobile?
   public isMobile(): boolean {

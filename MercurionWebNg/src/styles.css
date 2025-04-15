@@ -8,50 +8,104 @@ body {
   @apply text-light-on-surface-main dark:text-dark-on-surface-main;
 }
 
-/* Components layer */
 @layer components {
+
+  /* Classe base del bottone */
   .btn {
     @apply inline-flex items-center justify-center rounded-lg font-medium transition-colors duration-300 ease-in-out px-4 py-2 text-sm;
   }
 
-  /* Varianti button */
+  /* ===================================================
+     Varianti di colore (SENZA :hover)
+     =================================================== */
+
+  /* Prima: .btn-accent-primary */
   .btn-accent-primary {
-    @apply bg-light-accent-primary dark:bg-dark-accent-primary text-white hover:bg-light-accent-primary/80;
+    @apply bg-light-accent-primary dark:bg-dark-accent-primary text-white;
   }
 
+  /* Hover spostato in: .btn-accent-primary-hover */
+  .btn-accent-primary-hover {
+    @apply hover:bg-light-accent-primary/80;
+  }
+
+  /* Prima: .btn-outline-accent-primary */
   .btn-outline-accent-primary {
-    @apply border border-light-accent-primary dark:bg-dark-accent-primary text-light-accent-primary dark:text-dark-accent-primary hover:bg-light-accent-primary hover:text-white;
+    @apply border border-light-accent-primary dark:bg-dark-accent-primary text-light-accent-primary dark:text-dark-accent-primary;
+  }
+
+  /* Hover spostato in: .btn-outline-accent-primary-hover */
+  .btn-outline-accent-primary-hover {
+    @apply hover:bg-light-accent-primary hover:text-white;
   }
 
   .btn-accent-secondary {
-    @apply bg-light-accent-secondary dark:bg-dark-accent-secondary text-white hover:bg-light-accent-secondary/80;
+    @apply bg-light-accent-secondary dark:bg-dark-accent-secondary text-white;
+  }
+
+  .btn-accent-secondary-hover {
+    @apply hover:bg-light-accent-secondary/80;
   }
 
   .btn-outline-accent-secondary {
-    @apply border border-light-accent-secondary dark:bg-dark-accent-secondary text-light-accent-primary dark:text-dark-accent-primary hover:bg-light-accent-primary hover:text-white;
+    @apply border border-light-accent-secondary dark:bg-dark-accent-secondary text-light-accent-primary dark:text-dark-accent-primary;
+  }
+
+  .btn-outline-accent-secondary-hover {
+    @apply hover:bg-light-accent-primary hover:text-white;
   }
 
   .btn-dark {
-    @apply bg-gray-800 text-white hover:bg-gray-700;
+    @apply bg-gray-800 text-white;
+  }
+
+  .btn-dark-hover {
+    @apply hover:bg-gray-700;
   }
 
   .btn-outline-dark {
-    @apply border border-gray-800 text-gray-800 hover:bg-gray-800 hover:text-white;
+    @apply border border-gray-800 text-gray-800;
+  }
+
+  .btn-outline-dark-hover {
+    @apply hover:bg-gray-800 hover:text-white;
   }
 
   .btn-light {
-    @apply bg-slate-100 text-dark-surface-main hover:bg-slate-200;
+    @apply bg-slate-100 text-dark-surface-main;
+  }
+
+  .btn-light-hover {
+    @apply hover:bg-slate-200;
   }
 
   .btn-outline-light {
-    @apply border border-slate-100 text-slate-100 hover:bg-slate-100 hover:text-white;
+    @apply border border-slate-100 text-slate-100;
   }
 
+  .btn-outline-light-hover {
+    @apply hover:bg-slate-100 hover:text-white;
+  }
+
+  /* Bottone outline slate-200 trasparente */
+  .btn-outline-slate-200 {
+    @apply border border-slate-200 text-slate-200;
+  }
+
+  .btn-outline-slate-200-hover {
+    @apply hover:bg-slate-200 hover:text-white;
+  }
+
+  /* ===================================================
+     Stato disabilitato
+     =================================================== */
   .btn-disabled {
     @apply opacity-50 cursor-not-allowed;
   }
 
-  /* Dimensioni */
+  /* ===================================================
+     Dimensioni
+     =================================================== */
   .btn-sm {
     @apply px-3 py-1 text-xs;
   }
@@ -65,8 +119,20 @@ body {
     @apply rounded-full;
   }
 
-  /* Bottone outline slate-200 trasparente */
-  .btn-outline-slate-200 {
-    @apply border border-slate-200 text-slate-200 hover:bg-slate-200 hover:text-white;
+  /* ===================================================
+     Menu Offcanvas
+     =================================================== */
+
+  .offcanvas-menu-link {
+    @apply text-sky-500 hover:text-sky-500/80 dark:text-slate-100 dark:hover:text-dark-accent-primary cursor-pointer transition-colors duration-300;
   }
+
+  .offcanvas-menu-item {
+    @apply my-3 text-[1.3rem] flex gap-3 items-center md:text-base md:m-0;
+  }
+
+  .offcanvas-menu-icon {
+    @apply w-7 h-7;
+  }
+
 }
