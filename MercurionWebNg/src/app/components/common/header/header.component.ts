@@ -3,12 +3,14 @@ import { Component, computed, effect, OnDestroy, OnInit, Signal, signal, Writabl
 import { ThemeManagerService } from '../../../services/stores/theme-manager.service';
 import { ThemeChose } from '../../../Models/types/theme-types';
 import { DesignService } from '../../../services/design.service';
+import { NavComponent } from '../nav/nav.component';
 
 @Component({
   selector: 'app-header',
   imports: [
     NgOptimizedImage,
-    NgClass
+    NgClass,
+    NavComponent
   ],
   templateUrl: './header.component.html',
   styleUrl: './header.component.css'
