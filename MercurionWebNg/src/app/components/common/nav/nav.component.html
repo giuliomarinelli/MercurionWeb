@@ -1,5 +1,5 @@
-<nav class="flex flex-col md:flex-row gap-2 px-5 py-4 text-light-on-surface-secondary dark:text-slate-200">
-  <ul>
+<nav class="flex md:flex-row md:justify-between" [ngClass]="{'flex-col': header}">
+  <ul class="flex flex-col md:flex-row gap-2 md:gap-6 px-5 py-4 text-light-on-surface-secondary dark:text-slate-200">
     <li class="offcanvas-menu-item">
       <svg xmlns="http://www.w3.org/2000/svg" class="offcanvas-menu-icon"
         viewBox="0 0 512 512"><!--!Font Awesome Pro 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
@@ -20,6 +20,7 @@
       </svg>
       <a routerLink="/predict" (click)="closeOffCanvasMenu()" class="offcanvas-menu-link">Predizione</a>
     </li>
+    @if (designService.maxBk('md')() || (designService.minBk('xl')() && header)) {
     <li class="offcanvas-menu-item">
       <svg xmlns="http://www.w3.org/2000/svg" class="offcanvas-menu-icon"
         viewBox="0 0 448 512"><!--!Font Awesome Pro 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
@@ -28,10 +29,8 @@
         <path class="fill-current text-light-accent-primary/70 dark:text-dark-accent-secondary/80"
           d="M48 206l0 50 0 21.4L141.8 336l164.5 0L400 277.4l0-21.4 0-50-80 50-192 0L48 206zM0 176l0-48L0 80 128 0 320 0 448 80l0 48 0 48 0 80 0 48 0 128L320 512l-192 0L0 432 0 304l0-48 0-80zm400-48l0-21.4L306.2 48 141.8 48 48 106.6 48 128l0 21.4L141.8 208l164.5 0L400 149.4l0-21.4zM48 405.4L141.8 464l164.5 0L400 405.4l0-71.4-80 50-192 0L48 334l0 71.4z" />
       </svg>
-      @if (designService.minBk('lg')() && header) {
       <a routerLink="/molecules" (click)="closeOffCanvasMenu()" class="offcanvas-menu-link">Molecole
         Salvate</a>
-      }
     </li>
     <li class="offcanvas-menu-item">
       <svg xmlns="http://www.w3.org/2000/svg" class="offcanvas-menu-icon"
@@ -41,10 +40,7 @@
         <path class="fill-current text-light-accent-primary/70 dark:text-dark-accent-secondary/80"
           d="M256 6.3l8.5 3.2 232 88 15.5 5.9 0 16.6 0 264 0 16-14.8 6.1-232 96L256 506l-9.2-3.8-232-96L0 400l0-16L0 120l0-16.6 15.5-5.9 232-88L256 6.3zM48 368l184 76.1 0-203.7L48 168.1 48 368zm232 76.1L464 368l0-199.9L280 240.4l0 203.7zM256 57.7l-182 69 182 71.5 182-71.5-182-69z" />
       </svg>
-      @if (designService.minBk('lg')() && header) {
-      <a routerLink="/about" (click)="closeOffCanvasMenu()" class="offcanvas-menu-link">Dataset &
-        Modello</a>
-      }
+      <a routerLink="/about" (click)="closeOffCanvasMenu()" class="offcanvas-menu-link">Modello</a>
     </li>
     <li class="offcanvas-menu-item">
       <svg xmlns="http://www.w3.org/2000/svg" class="offcanvas-menu-icon"
@@ -54,9 +50,8 @@
         <path class="fill-current text-light-accent-primary/70 dark:text-dark-accent-secondary/80"
           d="M48 150.8l208 143 108.2-74.4c-21.3 24-36.1 53.9-41.7 86.9L256 352 48 209l0 191 284 0c6.9 17.5 16.4 33.7 28.2 48L48 448 0 448l0-48L0 176l0-64L0 64l48 0 416 0 48 0 0 48 0 48.7c-5.3-.5-10.6-.7-16-.7c-21.6 0-42.4 3.9-61.5 11.1L464 150.8l0-38.8L48 112l0 38.8zM352 336a144 144 0 1 1 288 0 144 144 0 1 1 -288 0zm222.6-32L552 281.4l-11.3 11.3L480 353.4l-28.7-28.7L440 313.4 417.4 336l11.3 11.3 40 40L480 398.6l11.3-11.3 72-72L574.6 304z" />
       </svg>
-      @if (designService.minBk('lg')() && header) {
       <a routerLink="/contact" (click)="closeOffCanvasMenu()" class="offcanvas-menu-link">Contatti</a>
-      }
     </li>
+    }
   </ul>
 </nav>

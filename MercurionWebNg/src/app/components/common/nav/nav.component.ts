@@ -1,9 +1,10 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { DesignService } from '../../../services/design.service';
+import { NgClass } from '@angular/common';
 
 @Component({
   selector: 'app-nav',
-  imports: [],
+  imports: [NgClass],
   templateUrl: './nav.component.html',
   styleUrl: './nav.component.css'
 })
