@@ -137,7 +137,7 @@ public maxBk(breakpoint: Breakpoint): Signal<boolean> {
 
   // ✅ Listener resize con debounce (CDK scrolling)
   private listenToViewportChanges(): void {
-    this.viewportRuler.change(100).subscribe(() => this.updateCurrentBreakpoint())
+    this.viewportRuler.change(10).subscribe(() => this.updateCurrentBreakpoint())
   }
 
 }
