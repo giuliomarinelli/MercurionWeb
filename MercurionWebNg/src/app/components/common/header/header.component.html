@@ -1,85 +1,87 @@
 <header
-  class="px-5 py-4 bg-light-surface-secondary dark:bg-neutral-900 dark:border-b-[0.5px] dark:border-slate-300 flex justify-between items-center transition-colors duration-300 ease-out shadow-md dark:shadow-none">
-  <div class="flex items-center gap-6">
-    @if (designService.maxBk("md")()) {
-    <button (click)="toggleOffCanvasMenu()">
-      <svg xmlns="http://www.w3.org/2000/svg"
-        class="h-[22px] w-[22px] min-[350px]:h-6 min-[350px]:w-6 fill-current text-light-on-surface-secondary dark:text-slate-100 off-canvas-menu-button"
-        viewBox="0 0 448 512"><!--!Font Awesome Pro 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-        <path
-          d="M0 88C0 74.7 10.7 64 24 64l400 0c13.3 0 24 10.7 24 24s-10.7 24-24 24L24 112C10.7 112 0 101.3 0 88zM0 248c0-13.3 10.7-24 24-24l272 0c13.3 0 24 10.7 24 24s-10.7 24-24 24L24 272c-13.3 0-24-10.7-24-24zM192 408c0 13.3-10.7 24-24 24L24 432c-13.3 0-24-10.7-24-24s10.7-24 24-24l144 0c13.3 0 24 10.7 24 24z" />
-      </svg>
-    </button>
-    }
-    @if (designService.minBk("sm")()) {
-    <img [ngSrc]="titleSrc()" alt="Mercurion" width="927" height="234" priority="true" class="w-[145px] h-auto">
-    }
+  class="px-5 py-4 bg-light-surface-secondary dark:bg-neutral-900 dark:border-b-[0.5px] dark:border-slate-300 shadow-md dark:shadow-none">
+  <div class="container flex justify-between items-center transition-colors duration-300 ease-out">
+    <div class="flex items-center gap-6">
+      @if (designService.maxBk("md")()) {
+      <button (click)="toggleOffCanvasMenu()">
+        <svg xmlns="http://www.w3.org/2000/svg"
+          class="h-[22px] w-[22px] min-[350px]:h-6 min-[350px]:w-6 fill-current text-light-on-surface-secondary dark:text-slate-100 off-canvas-menu-button"
+          viewBox="0 0 448 512"><!--!Font Awesome Pro 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+          <path
+            d="M0 88C0 74.7 10.7 64 24 64l400 0c13.3 0 24 10.7 24 24s-10.7 24-24 24L24 112C10.7 112 0 101.3 0 88zM0 248c0-13.3 10.7-24 24-24l272 0c13.3 0 24 10.7 24 24s-10.7 24-24 24L24 272c-13.3 0-24-10.7-24-24zM192 408c0 13.3-10.7 24-24 24L24 432c-13.3 0-24-10.7-24-24s10.7-24 24-24l144 0c13.3 0 24 10.7 24 24z" />
+        </svg>
+      </button>
+      }
+      @if (designService.minBk("sm")()) {
+      <img [ngSrc]="titleSrc()" alt="Mercurion" width="927" height="234" priority="true" class="w-[145px] h-auto">
+      }
       @if (designService.minBk("lg")()) {
       <app-nav [header]="true"></app-nav>
       }
-  </div>
-  @if (designService.maxBk("xs")()) {
-  <img [ngSrc]="titleSrc()" alt="Mercurion" width="927" height="234" priority="true"
-    class="w-[128px] min-[350px]:w-[145px] h-auto">
-  }
-
-  <div class="theme-menu-container flex gap-3">
-    @if (designService.minBk('lg')()) {
-    <ul class="flex gap-4 items-center">
-      @if (designService.maxBk('lg')()) {
-      <li class="offcanvas-menu-item">
-        <svg xmlns="http://www.w3.org/2000/svg" class="offcanvas-menu-icon"
-          viewBox="0 0 448 512"><!--!Font Awesome Pro 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-          <path class="fill-current text-light-accent-secondary/40 dark:text-slate-300"
-            d="M48 106.6L48 128l0 21.4L141.8 208l164.5 0L400 149.4l0-21.4 0-21.4L306.2 48 141.8 48 48 106.6zM48 206l0 50 0 21.4L141.8 336l164.5 0L400 277.4l0-21.4 0-50-80 50-192 0L48 206zm0 128l0 71.4L141.8 464l164.5 0L400 405.4l0-71.4-80 50-192 0L48 334z" />
-          <path class="fill-current text-light-accent-primary/70 dark:text-dark-accent-primary"
-            d="M48 206l0 50 0 21.4L141.8 336l164.5 0L400 277.4l0-21.4 0-50-80 50-192 0L48 206zM0 176l0-48L0 80 128 0 320 0 448 80l0 48 0 48 0 80 0 48 0 128L320 512l-192 0L0 432 0 304l0-48 0-80zm400-48l0-21.4L306.2 48 141.8 48 48 106.6 48 128l0 21.4L141.8 208l164.5 0L400 149.4l0-21.4zM48 405.4L141.8 464l164.5 0L400 405.4l0-71.4-80 50-192 0L48 334l0 71.4z" />
-        </svg>
-      </li>
-      <li class="offcanvas-menu-item">
-        <svg xmlns="http://www.w3.org/2000/svg" class="offcanvas-menu-icon"
-          viewBox="0 0 512 512"><!--!Font Awesome Pro 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-          <path class="fill-current text-light-accent-secondary/40 dark:text-slate-300"
-            d="M48 168.1L48 368l184 76.1 0-203.7L48 168.1zm232 72.3l0 203.7L464 368l0-199.9L280 240.4z" />
-          <path class="fill-current text-light-accent-primary/70 dark:text-dark-accent-primary"
-            d="M256 6.3l8.5 3.2 232 88 15.5 5.9 0 16.6 0 264 0 16-14.8 6.1-232 96L256 506l-9.2-3.8-232-96L0 400l0-16L0 120l0-16.6 15.5-5.9 232-88L256 6.3zM48 368l184 76.1 0-203.7L48 168.1 48 368zm232 76.1L464 368l0-199.9L280 240.4l0 203.7zM256 57.7l-182 69 182 71.5 182-71.5-182-69z" />
-        </svg>
-      </li>
-      <li class="offcanvas-menu-item">
-        <svg xmlns="http://www.w3.org/2000/svg" class="offcanvas-menu-icon"
-          viewBox="0 0 640 512"><!--!Font Awesome Pro 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-          <path class="fill-current text-light-accent-secondary/40 dark:text-dark-accent-primary"
-            d="M48 112l416 0 0 38.8-29.5 20.3c-27.3 10.2-51.3 26.9-70.3 48.3L256 293.8 48 150.8 48 112zm0 97L256 352l66.5-45.7c-1.6 9.7-2.5 19.6-2.5 29.7c0 22.6 4.3 44.2 12 64L48 400l0-191z" />
-          <path class="fill-current text-light-accent-primary/70 dark:text-slate-300"
-            d="M48 150.8l208 143 108.2-74.4c-21.3 24-36.1 53.9-41.7 86.9L256 352 48 209l0 191 284 0c6.9 17.5 16.4 33.7 28.2 48L48 448 0 448l0-48L0 176l0-64L0 64l48 0 416 0 48 0 0 48 0 48.7c-5.3-.5-10.6-.7-16-.7c-21.6 0-42.4 3.9-61.5 11.1L464 150.8l0-38.8L48 112l0 38.8zM352 336a144 144 0 1 1 288 0 144 144 0 1 1 -288 0zm222.6-32L552 281.4l-11.3 11.3L480 353.4l-28.7-28.7L440 313.4 417.4 336l11.3 11.3 40 40L480 398.6l11.3-11.3 72-72L574.6 304z" />
-        </svg>
-      </li>
-      }
-      <li class="offcanvas-menu-item">
-        <div
-          class="rounded-full bg-light-accent-secondary text-slate-100 dark:bg-dark-accent-primary text-base p-2 ml-6">
-          GM
-        </div>
-      </li>
-    </ul>
+    </div>
+    @if (designService.maxBk("xs")()) {
+    <img [ngSrc]="titleSrc()" alt="Mercurion" width="927" height="234" priority="true"
+      class="w-[128px] min-[350px]:w-[145px] h-auto">
     }
-    <button class="flex items-center theme-toggle-button" (click)="toggleThemeMenu()">
-      @if (themeManager.theme() === 'dark') {
-      <svg xmlns="http://www.w3.org/2000/svg"
-        class="h-[22px] w-[22px] min-[350px]:h-6 min-[350px]:w-6 fill-current text-slate-100"
-        viewBox="0 0 384 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
-        <path
-          d="M223.5 32C100 32 0 132.3 0 256S100 480 223.5 480c60.6 0 115.5-24.2 155.8-63.4c5-4.9 6.3-12.5 3.1-18.7s-10.1-9.7-17-8.5c-9.8 1.7-19.8 2.6-30.1 2.6c-96.9 0-175.5-78.8-175.5-176c0-65.8 36-123.1 89.3-153.3c6.1-3.5 9.2-10.5 7.7-17.3s-7.3-11.9-14.3-12.5c-6.3-.5-12.6-.8-19-.8z" />
-      </svg>
-      } @else {
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6"
-        viewBox="0 0 512 512"><!--!Font Awesome Pro 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-        <path class="fill-current text-light-accent-secondary" d="M208 256a48 48 0 1 0 96 0 48 48 0 1 0 -96 0z" />
-        <path class="fill-current text-light-on-surface-secondary"
-          d="M232 88l0 24 48 0 0-24 0-64 0-24L232 0l0 24 0 64zm24 120a48 48 0 1 1 0 96 48 48 0 1 1 0-96zm0 144a96 96 0 1 0 0-192 96 96 0 1 0 0 192zM0 232l0 48 24 0 64 0 24 0 0-48-24 0-64 0L0 232zm424 0l-24 0 0 48 24 0 64 0 24 0 0-48-24 0-64 0zM232 512l48 0 0-24 0-64 0-24-48 0 0 24 0 64 0 24zM92 58L58 92l17 17 45.3 45.3 17 17 33.9-33.9-17-17L108.9 75 92 58zM391.8 357.8l-17-17-33.9 33.9 17 17L403.1 437l17 17L454 420l-17-17-45.3-45.3zM58 420L92 454l17-17 45.3-45.3 17-17-33.9-33.9-17 17L75 403.1 58 420zM357.8 120.2l-17 17 33.9 33.9 17-17L437 108.9l17-17L420 58l-17 17-45.3 45.3z" />
-      </svg>
+
+    <div class="theme-menu-container flex gap-3">
+      @if (designService.minBk('lg')()) {
+      <ul class="flex gap-4 items-center">
+        @if (designService.maxBk('lg')()) {
+        <li class="offcanvas-menu-item">
+          <svg xmlns="http://www.w3.org/2000/svg" class="offcanvas-menu-icon"
+            viewBox="0 0 448 512"><!--!Font Awesome Pro 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+            <path class="fill-current text-light-accent-secondary/40 dark:text-slate-300"
+              d="M48 106.6L48 128l0 21.4L141.8 208l164.5 0L400 149.4l0-21.4 0-21.4L306.2 48 141.8 48 48 106.6zM48 206l0 50 0 21.4L141.8 336l164.5 0L400 277.4l0-21.4 0-50-80 50-192 0L48 206zm0 128l0 71.4L141.8 464l164.5 0L400 405.4l0-71.4-80 50-192 0L48 334z" />
+            <path class="fill-current text-light-accent-primary/70 dark:text-dark-accent-primary"
+              d="M48 206l0 50 0 21.4L141.8 336l164.5 0L400 277.4l0-21.4 0-50-80 50-192 0L48 206zM0 176l0-48L0 80 128 0 320 0 448 80l0 48 0 48 0 80 0 48 0 128L320 512l-192 0L0 432 0 304l0-48 0-80zm400-48l0-21.4L306.2 48 141.8 48 48 106.6 48 128l0 21.4L141.8 208l164.5 0L400 149.4l0-21.4zM48 405.4L141.8 464l164.5 0L400 405.4l0-71.4-80 50-192 0L48 334l0 71.4z" />
+          </svg>
+        </li>
+        <li class="offcanvas-menu-item">
+          <svg xmlns="http://www.w3.org/2000/svg" class="offcanvas-menu-icon"
+            viewBox="0 0 512 512"><!--!Font Awesome Pro 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+            <path class="fill-current text-light-accent-secondary/40 dark:text-slate-300"
+              d="M48 168.1L48 368l184 76.1 0-203.7L48 168.1zm232 72.3l0 203.7L464 368l0-199.9L280 240.4z" />
+            <path class="fill-current text-light-accent-primary/70 dark:text-dark-accent-primary"
+              d="M256 6.3l8.5 3.2 232 88 15.5 5.9 0 16.6 0 264 0 16-14.8 6.1-232 96L256 506l-9.2-3.8-232-96L0 400l0-16L0 120l0-16.6 15.5-5.9 232-88L256 6.3zM48 368l184 76.1 0-203.7L48 168.1 48 368zm232 76.1L464 368l0-199.9L280 240.4l0 203.7zM256 57.7l-182 69 182 71.5 182-71.5-182-69z" />
+          </svg>
+        </li>
+        <li class="offcanvas-menu-item">
+          <svg xmlns="http://www.w3.org/2000/svg" class="offcanvas-menu-icon"
+            viewBox="0 0 640 512"><!--!Font Awesome Pro 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+            <path class="fill-current text-light-accent-secondary/40 dark:text-dark-accent-primary"
+              d="M48 112l416 0 0 38.8-29.5 20.3c-27.3 10.2-51.3 26.9-70.3 48.3L256 293.8 48 150.8 48 112zm0 97L256 352l66.5-45.7c-1.6 9.7-2.5 19.6-2.5 29.7c0 22.6 4.3 44.2 12 64L48 400l0-191z" />
+            <path class="fill-current text-light-accent-primary/70 dark:text-slate-300"
+              d="M48 150.8l208 143 108.2-74.4c-21.3 24-36.1 53.9-41.7 86.9L256 352 48 209l0 191 284 0c6.9 17.5 16.4 33.7 28.2 48L48 448 0 448l0-48L0 176l0-64L0 64l48 0 416 0 48 0 0 48 0 48.7c-5.3-.5-10.6-.7-16-.7c-21.6 0-42.4 3.9-61.5 11.1L464 150.8l0-38.8L48 112l0 38.8zM352 336a144 144 0 1 1 288 0 144 144 0 1 1 -288 0zm222.6-32L552 281.4l-11.3 11.3L480 353.4l-28.7-28.7L440 313.4 417.4 336l11.3 11.3 40 40L480 398.6l11.3-11.3 72-72L574.6 304z" />
+          </svg>
+        </li>
+        }
+        <li class="offcanvas-menu-item">
+          <div
+            class="rounded-full bg-light-accent-secondary text-slate-100 dark:bg-dark-accent-primary text-base p-2 ml-6">
+            GM
+          </div>
+        </li>
+      </ul>
       }
-    </button>
+      <button class="flex items-center theme-toggle-button" (click)="toggleThemeMenu()">
+        @if (themeManager.theme() === 'dark') {
+        <svg xmlns="http://www.w3.org/2000/svg"
+          class="h-[22px] w-[22px] min-[350px]:h-6 min-[350px]:w-6 fill-current text-slate-100"
+          viewBox="0 0 384 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+          <path
+            d="M223.5 32C100 32 0 132.3 0 256S100 480 223.5 480c60.6 0 115.5-24.2 155.8-63.4c5-4.9 6.3-12.5 3.1-18.7s-10.1-9.7-17-8.5c-9.8 1.7-19.8 2.6-30.1 2.6c-96.9 0-175.5-78.8-175.5-176c0-65.8 36-123.1 89.3-153.3c6.1-3.5 9.2-10.5 7.7-17.3s-7.3-11.9-14.3-12.5c-6.3-.5-12.6-.8-19-.8z" />
+        </svg>
+        } @else {
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6"
+          viewBox="0 0 512 512"><!--!Font Awesome Pro 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+          <path class="fill-current text-light-accent-secondary" d="M208 256a48 48 0 1 0 96 0 48 48 0 1 0 -96 0z" />
+          <path class="fill-current text-light-on-surface-secondary"
+            d="M232 88l0 24 48 0 0-24 0-64 0-24L232 0l0 24 0 64zm24 120a48 48 0 1 1 0 96 48 48 0 1 1 0-96zm0 144a96 96 0 1 0 0-192 96 96 0 1 0 0 192zM0 232l0 48 24 0 64 0 24 0 0-48-24 0-64 0L0 232zm424 0l-24 0 0 48 24 0 64 0 24 0 0-48-24 0-64 0zM232 512l48 0 0-24 0-64 0-24-48 0 0 24 0 64 0 24zM92 58L58 92l17 17 45.3 45.3 17 17 33.9-33.9-17-17L108.9 75 92 58zM391.8 357.8l-17-17-33.9 33.9 17 17L403.1 437l17 17L454 420l-17-17-45.3-45.3zM58 420L92 454l17-17 45.3-45.3 17-17-33.9-33.9-17 17L75 403.1 58 420zM357.8 120.2l-17 17 33.9 33.9 17-17L437 108.9l17-17L420 58l-17 17-45.3 45.3z" />
+        </svg>
+        }
+      </button>
+    </div>
   </div>
 </header>
 <!-- Menu cambio tema -->
