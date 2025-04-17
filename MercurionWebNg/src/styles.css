@@ -124,7 +124,7 @@ body {
      =================================================== */
 
   .offcanvas-menu-link {
-    @apply text-sky-500 hover:text-sky-500/80 dark:text-slate-100 dark:hover:text-dark-accent-primary cursor-pointer transition-colors duration-300;
+    @apply text-sky-700 hover:text-sky-700/80 font-medium dark:text-slate-100 dark:hover:text-dark-accent-primary cursor-pointer transition-colors duration-300;
   }
 
   .offcanvas-menu-item {
