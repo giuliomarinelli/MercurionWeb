@@ -61,7 +61,7 @@
 </header>
 <!-- Menu cambio tema -->
 <div
-  class="theme-menu-container absolute right-4 mt-2 z-50 w-72 text-md rounded-md shadow-lg bg-white text-light-on-surface-main dark:text-slate-100 dark:bg-neutral-800 transform transition-all duration-300 ease-out"
+  class="theme-menu-container absolute right-4 min-[350px]:right-8 sm:right-20 md:right-28 mt-2 z-50 w-72 text-md rounded-md shadow-lg bg-white text-light-on-surface-main dark:text-slate-100 dark:bg-neutral-800 transform transition-all duration-300 ease-out"
   [ngClass]="{
     'opacity-100 translate-x-0 translate-y-0': themeMenuOpen(),
     'opacity-0 pointer-events-none translate-x-2 -translate-y-2': !themeMenuOpen()
@@ -153,7 +153,8 @@
         viewBox="0 0 512 512"><!--!Font Awesome Pro 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
         <path class="fill-current text-light-accent-secondary/50 dark:text-slate-100/75"
           d="M0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM128 384l64-192 192-64L320 320 128 384z" />
-        <path class="fill-current text-light-accent-primary dark:text-dark-accent-primary" d="M192 192L128 384l192-64 64-192L192 192zm64 32a32 32 0 1 1 0 64 32 32 0 1 1 0-64z" />
+        <path class="fill-current text-light-accent-primary dark:text-dark-accent-primary"
+          d="M192 192L128 384l192-64 64-192L192 192zm64 32a32 32 0 1 1 0 64 32 32 0 1 1 0-64z" />
       </svg>
       <h2 class="font-semibold text-light-accent-primary dark:text-dark-accent-primary text-2xl py-4">Navigazione</h2>
     </div>
@@ -168,4 +169,5 @@
 
   <!-- Menu items -->
   <app-nav (onCloseOffCanvasMenu)="themeMenuOpen.set($event)"></app-nav>
-</div>}
+</div>
+}
