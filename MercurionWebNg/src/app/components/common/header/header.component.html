@@ -42,7 +42,8 @@
         }
       </button>
       @if (designService.minBk('md')()) {
-      <div class="rounded-full bg-light-accent-secondary text-slate-100 dark:bg-dark-accent-primary p-2 text-sm font-semibold">
+      <div
+        class="rounded-full bg-light-accent-secondary text-slate-100 dark:bg-dark-accent-primary p-2 text-sm font-semibold">
         GM
       </div>
       }
@@ -147,7 +148,15 @@
   <!-- Header of the offcanvas -->
   <div
     class="flex justify-between items-center px-5 border-b border-light-border dark:border-dark-border shadow-sm dark:shadow-none">
-    <h2 class="font-semibold text-light-accent-primary dark:text-dark-accent-primary text-2xl py-4">Navigazione</h2>
+    <div class="flex gap-4 items-center">
+      <svg xmlns="http://www.w3.org/2000/svg" class="offcanvas-menu-icon"
+        viewBox="0 0 512 512"><!--!Font Awesome Pro 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+        <path class="fill-current text-light-accent-secondary/50 dark:text-slate-100/75"
+          d="M0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM128 384l64-192 192-64L320 320 128 384z" />
+        <path class="fill-current text-light-accent-primary dark:text-dark-accent-primary" d="M192 192L128 384l192-64 64-192L192 192zm64 32a32 32 0 1 1 0 64 32 32 0 1 1 0-64z" />
+      </svg>
+      <h2 class="font-semibold text-light-accent-primary dark:text-dark-accent-primary text-2xl py-4">Navigazione</h2>
+    </div>
     <button (click)="closeOffCanvasMenu()">
       <svg xmlns="http://www.w3.org/2000/svg"
         class="h-5 w-5 fill-current text-light-on-surface-secondary dark:text-slate-200" viewBox="0 0 384 512">
