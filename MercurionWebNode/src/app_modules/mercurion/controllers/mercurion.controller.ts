@@ -17,7 +17,6 @@ export class MercurionController {
     @Post('/tox-21/infer')
     public async inferSmiles(
         @Body(new ValidationPipe({ transform: true })) smilesDTO: SmilesDTO,
-        @Req() req: FastifyRequest,
         @Authorization() accessToken: string
     ): Promise<MercurionInferDataDTO> {
         const { smiles } = smilesDTO
