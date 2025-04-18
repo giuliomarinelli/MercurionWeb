@@ -128,7 +128,7 @@ body {
   }
 
   .offcanvas-menu-item {
-    @apply my-3 text-[1.3rem] flex gap-4 lg:gap-3 items-center md:text-base md:m-0;
+    @apply my-4 text-[1.3rem] flex gap-4 lg:gap-3 items-center md:text-base md:m-0;
   }
 
   .offcanvas-menu-icon {
