@@ -1,12 +1,13 @@
 import { UUID } from "crypto";
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 import { User } from "./user.entity";
+import { uuidv7 } from "@kripod/uuidv7";
 
 @Entity({ name: 'backup_codes' })
 export class MfaBackupCode {
 
-    @PrimaryGeneratedColumn('uuid')
-    id: UUID
+    @PrimaryColumn()
+    id: UUID = uuidv7() as UUID
 
     @Column()
     hash: string

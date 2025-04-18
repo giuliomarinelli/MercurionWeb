@@ -1,12 +1,13 @@
+import { uuidv7 } from '@kripod/uuidv7';
 import { UUID } from "crypto"
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm"
+import { Column, Entity, OneToMany, PrimaryColumn } from "typeorm"
 import { MfaBackupCode } from "./backup-code.entity"
 
 @Entity({ name: 'users' })
 export class User {
 
-    @PrimaryGeneratedColumn('uuid')
-    id: UUID
+    @PrimaryColumn()
+    id: UUID = uuidv7() as UUID 
 
     @Column({ type: 'varchar', unique: true, default: null })
     email: string | null // nullo fino ad attivazione account con conferma email con link
