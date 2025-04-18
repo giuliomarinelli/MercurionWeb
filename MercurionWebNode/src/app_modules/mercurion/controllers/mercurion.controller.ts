@@ -10,7 +10,6 @@ import { Authorization } from 'src/metadata/metadata';
 export class MercurionController {
 
     constructor(
-        private readonly jwtTools: JwtToolsService,
         private readonly mercurionService: MercurionService
     ) { }
 
