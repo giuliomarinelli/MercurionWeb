@@ -29,6 +29,11 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "RDKit_minimal.wasm",
+                "input": "node_modules/@rdkit/rdkit/dist/",
+                "output": "/"
               }
             ],
             "styles": [
@@ -91,12 +96,19 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "RDKit_minimal.wasm",
+                "input": "node_modules/@rdkit/rdkit/dist/",
+                "output": "/"
               }
             ],
             "styles": [
               "src/styles.css"
             ],
-            "scripts": []
+            "scripts": [
+              "node_modules/@rdkit/rdkit/dist/RDKit_minimal.js"
+            ]
           }
         }
       }
