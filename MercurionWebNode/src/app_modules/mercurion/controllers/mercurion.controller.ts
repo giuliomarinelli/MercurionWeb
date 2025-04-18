@@ -1,6 +1,4 @@
-import { FastifyRequest } from 'fastify';
-import { Body, Controller, Post, Req, ValidationPipe } from '@nestjs/common';
-import { JwtToolsService } from 'src/app_modules/auth/services/jwt-tools.service';
+import { Body, Controller, Post, ValidationPipe } from '@nestjs/common';
 import { MercurionService } from '../services/mercurion.service';
 import { SmilesDTO } from '../Models/DTO/smiles.cls.dto';
 import { MercurionInferDataDTO } from '../Models/DTO/mercurion-infer-res.dto';
