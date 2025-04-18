@@ -28,7 +28,7 @@ import fastifyCookie from '@fastify/cookie'
     credentials: true,
     allowedHeaders: '*',
     origin: configService.get<string[]>('App.corsOrigins'),
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTION']
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS']
   })
   const port = configService.get<number>('App.port')
   await app.register(fastifyCookie)
