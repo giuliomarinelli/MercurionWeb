@@ -12,18 +12,18 @@ export class MercurionService {
     public async getInferenceFromMercurion(dto: MercurionInferReqDTO): Promise<MercurionInferDataDTO> | never {
         
         const res: MercurionInferResDTO = await firstValueFrom(
-            this.client.send<MercurionInferResDTO>('inference.smiles', dto).pipe(
+            this.client.send<MercurionInferResDTO>('inference.tox21.smiles', dto).pipe(
                 timeout(3000), // ⏱️ Timeout dopo 3 secondi
                 catchError((err) => {
                     if (err instanceof TimeoutError) {
-                        return throwError(() => new RpcException('MercurionClientConnectionTimeoutNoResponse'))
+                        return throwError(() => new RpcException('MercurionTox21ClientConnectionTimeoutNoResponse'))
                     }
-                    return throwError(() => new RpcException('MercurionClientConnectionUnknownError'))
+                    return throwError(() => new RpcException('MercurionTox21ClientConnectionUnknownError'))
                 })
             )
         )
         if (res.error != undefined && res.error.trim()) {
-            throw new RpcException(`MercurionClientConnection::${res.error}`)
+            throw new RpcException(`MercurionTox21ClientConnection::${res.error}`)
         }
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const {error, ...data} = res
