@@ -1,25 +1,24 @@
-// rdkit-loader.service.ts
 import { Injectable } from '@angular/core';
-import { defer, Observable } from 'rxjs';
+import { defer, from, of } from 'rxjs';
 import { shareReplay } from 'rxjs/operators';
 import type { RDKitModule } from '@rdkit/rdkit';
 
+declare global { interface Window { RDKit?: RDKitModule } }
+
 @Injectable({ providedIn: 'root' })
 export class RDKitLoaderService {
-  private readonly rdkit$: Observable<RDKitModule> = defer(async () => {
-    // se l’istanza esiste già la ri‑usa
-    if (window.RDKit) return Promise.resolve(window.RDKit);
 
-    // altrimenti lancia il bootstrap
-    const m = await window
-      .initRDKitModule({
-        locateFile: () => '/RDKit_minimal.wasm', // stesso path impostato in angular.json
-      });
-    return (window.RDKit = m); // memorizza per le prossime chiamate
+  readonly instance$ = defer(() => {
+    if (window.RDKit) return of(window.RDKit);
+
+    // ⬇️ 1) ESM dynamic import
+    // ⬇️ 2) .default perché il modulo CommonJS assegna lì l'export
+    return from(
+      import('@rdkit/rdkit').then(m =>
+        (m as any).default({
+          locateFile: () => '/RDKit_minimal.wasm'
+        }).then((rdk: RDKitModule | undefined) => (window.RDKit = rdk))
+      )
+    );
   }).pipe(shareReplay({ bufferSize: 1, refCount: false }));
-
-  /** Observable singleton */
-  get instance$(): Observable<RDKitModule> {
-    return this.rdkit$;
-  }
 }

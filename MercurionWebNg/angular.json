@@ -106,9 +106,7 @@
             "styles": [
               "src/styles.css"
             ],
-            "scripts": [
-              "node_modules/@rdkit/rdkit/dist/RDKit_minimal.js"
-            ]
+            "scripts": []
           }
         }
       }
