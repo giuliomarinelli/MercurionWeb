@@ -21,8 +21,4 @@ export class AppComponent {
 
   constructor(private readonly themeManagerService: ThemeManagerService) { }
 
-  ngDoCheck() {
-    console.log(this.isDarkTheme())
-  }
-
 }

@@ -1,3 +1,5 @@
 <app-header></app-header>
-<molecule-viewer [structure]="smilesString" [darkMode]="isDarkTheme()"></molecule-viewer>
+<div class="flex-1 flex items-center justify-center">
+  <molecule-viewer [structure]="smilesString" [darkMode]="isDarkTheme()" class="block"></molecule-viewer>
+</div>
 <router-outlet></router-outlet>
