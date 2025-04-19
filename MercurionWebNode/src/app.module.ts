@@ -30,6 +30,11 @@ import { NotificationModule } from './app_modules/notification/notification.modu
       useFactory: (configService: ConfigService) => configService.get<TypeOrmModuleOptions>("Data.sqlDB") ?? {},
       inject: [ConfigService]
     }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => configService.get<TypeOrmModuleOptions>("Data.chemblDB") ?? {},
+      inject: [ConfigService]
+    }),
     MailerModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => configService.get<MailerOptions>("Email") ?? {},

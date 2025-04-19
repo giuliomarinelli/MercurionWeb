@@ -60,6 +60,19 @@ const DataConfig = registerAs(
             logger: process.env.SQL_DATABASE_LOGGER as 'debug' | 'file' | 'simple-console' | 'advanced-console',
             autoLoadEntities: true,
             namingStrategy: new SnakeNamingStrategy(),
+        },
+        chemblDB: {
+            type: process.env.CHEMBL_DATABASE_TYPE as 'mariadb' | 'postgres',
+            host: process.env.CHEMBL_DATABASE_HOST,
+            port: Number(process.env.CHEMBL_DATABASE_PORT),
+            username: process.env.CHEMBL_DATABASE_USERNAME,
+            password: process.env.CHEMBL_DATABASE_PASSWORD,
+            database: process.env.CHEMBL_DATABASE,
+            synchronize: JSON.parse(process.env.CHEMBL_DATABASE_SYNCHRONIZE ?? 'false') as boolean,
+            logging: JSON.parse(process.env.CHEMBL_DATABASE_LOGGING ?? 'false') as boolean,
+            logger: process.env.CHEMBL_DATABASE_LOGGER as 'debug' | 'file' | 'simple-console' | 'advanced-console',
+            autoLoadEntities: true,
+            namingStrategy: new SnakeNamingStrategy()
         }
     })
 )

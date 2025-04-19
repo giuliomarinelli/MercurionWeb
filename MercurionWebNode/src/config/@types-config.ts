@@ -17,7 +17,8 @@ export interface AppConfiguration {
 
 export interface DataConfiguration {
 
-    sqlDB: TypeOrmModuleOptions
+    sqlDB: TypeOrmModuleOptions,
+    chemblDB: TypeOrmModuleOptions
 
 }
 
