@@ -16,7 +16,7 @@ import fastifyCookie from '@fastify/cookie'
   const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter())
   const configService = app.get<ConfigService>(ConfigService)
   const natsPort = configService.get<number>('App.natsPort') ?? 4223
-  app.useWebSocketAdapter(new IoAdapter())
+  app.useWebSocketAdapter(new IoAdapter(app))
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.NATS,
     options: {

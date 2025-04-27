@@ -7,7 +7,11 @@ import { MoleculeSyncService } from '../meilisearch/services/molecule-sync.servi
 import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-@WebSocketGateway({ cors: { origin: '*' }, transports: ['websocket'] })
+@WebSocketGateway({
+  cors: {
+    origin: '*'
+  }
+})
 export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
 
   private readonly logger = new Logger(SocketGateway.name)
