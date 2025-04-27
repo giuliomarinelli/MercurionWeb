@@ -1,21 +1,37 @@
-import { WebSocketGateway, SubscribeMessage, MessageBody, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
+import { WebSocketGateway, SubscribeMessage, MessageBody, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { UUID } from 'crypto';
 import { nullish } from 'src/Models/nullish.type';
 import { Public } from 'src/metadata/metadata';
 import { MoleculeSyncService } from '../meilisearch/services/molecule-sync.service';
+import { Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
-@WebSocketGateway({ cors: { origin: '*' } })
-export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
+@WebSocketGateway({ cors: { origin: '*' }, transports: ['websocket'] })
+export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
+
+  private readonly logger = new Logger(SocketGateway.name)
 
   @WebSocketServer()
-  server: Server
+  private server: Server
 
   private connectedClients = new Map<string, string>(); // userId -> socketId
 
   constructor(
-    private readonly moleculeSyncService: MoleculeSyncService
+    private readonly moleculeSyncService: MoleculeSyncService,
+    private readonly configService: ConfigService
   ) { }
+
+  afterInit(server: Server) {
+    const port = this.configService.get<number>('App.port') ?? 8099
+    const addressInfo = server?.httpServer?.address();
+    if (addressInfo && typeof addressInfo === 'object') {
+      const internalport = addressInfo.port;
+      this.logger.log(`SocketGateway started on port ${port + ':' + internalport}`)
+    } else {
+      this.logger.log(`SocketGateway started on port ${port}`)
+    }
+  }
 
   // 🔹 Connessione WebSocket (l'utente è già validato dalla `GlobalGuard`)
   async handleConnection(client: Socket) {

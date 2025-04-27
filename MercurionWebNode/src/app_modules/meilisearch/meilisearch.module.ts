@@ -19,6 +19,7 @@ import { Meilisearch } from 'meilisearch';
             }),
             inject: [ConfigService]
         }
-    ]
+    ],
+    exports: [MoleculeSyncService]
 })
 export class MeilisearchModule { }

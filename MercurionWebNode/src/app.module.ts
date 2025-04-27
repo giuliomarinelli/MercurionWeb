@@ -49,7 +49,8 @@ import { MeilisearchModule } from './app_modules/meilisearch/meilisearch.module'
     MercurionModule,
     NotificationModule,
     ChemblModule,
-    MeilisearchModule
+    MeilisearchModule,
+    SocketIoModule
   ],
   providers: [
     {
