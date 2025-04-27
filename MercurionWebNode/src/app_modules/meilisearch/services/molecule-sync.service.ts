@@ -11,7 +11,7 @@ export class MoleculeSyncService {
     private index: Index<RecordAny>
 
     constructor(
-        @InjectRepository(MoleculePreviewDBView)
+        @InjectRepository(MoleculePreviewDBView, 'ChemblDB')
         private readonly moleculeRepo: Repository<MoleculePreviewDBView>,
 
         @Inject('MEILISEARCH_CLIENT')
@@ -22,27 +22,33 @@ export class MoleculeSyncService {
 
     async syncAllMoleculesWithProgress(onProgress: (progress: { synced: number; total: number }) => void, batchSize = 5000) {
         const total = await this.moleculeRepo.count()
+        console.log(`🔵 Total molecules to sync: ${total}`)
+    
         let offset = 0
         let synced = 0
-
+    
         while (synced < total) {
             const batch = await this.moleculeRepo.find({
                 skip: offset,
                 take: batchSize,
             });
-
-            if (batch.length === 0) break;
-
-            await this.index.addDocuments(batch);
-
+    
+            console.log(`🟢 Loaded batch of size: ${batch.length} (offset: ${offset})`)
+    
+            if (batch.length === 0) {
+                console.log('🛑 No more molecules to sync, exiting loop.')
+                break;
+            }
+    
+            await this.index.addDocuments(batch)
+    
             synced += batch.length
             offset += batchSize
-
-            // Notifica il progresso
+    
             onProgress({ synced, total })
         }
     }
-
+    
 
     async createIndexIfNotExists() {
         const indexes = await this.meiliClient.getIndexes();

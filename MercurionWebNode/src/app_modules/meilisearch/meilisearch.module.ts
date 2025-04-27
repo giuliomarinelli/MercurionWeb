@@ -1,14 +1,11 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { MoleculePreviewDBView } from '../chembl/Models/entities/molecule-preview-db-view.entity';
 import { MoleculeSyncService } from './services/molecule-sync.service';
 import { ConfigService } from '@nestjs/config';
 import { Meilisearch } from 'meilisearch';
+import { ChemblModule } from '../chembl/chembl.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([
-        MoleculePreviewDBView
-    ])],
+    imports: [ChemblModule],
     providers: [
         MoleculeSyncService,
         {
@@ -21,5 +18,6 @@ import { Meilisearch } from 'meilisearch';
         }
     ],
     exports: [MoleculeSyncService]
+
 })
 export class MeilisearchModule { }

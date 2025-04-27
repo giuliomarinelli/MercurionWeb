@@ -33,6 +33,7 @@ import { MeilisearchModule } from './app_modules/meilisearch/meilisearch.module'
       inject: [ConfigService]
     }),
     TypeOrmModule.forRootAsync({
+      name: 'ChemblDB',
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => configService.get<TypeOrmModuleOptions>("Data.chemblDB") ?? {},
       inject: [ConfigService]

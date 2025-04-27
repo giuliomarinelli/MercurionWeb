@@ -5,8 +5,9 @@ import { MoleculePreviewDBView } from './Models/entities/molecule-preview-db-vie
 @Module({
     imports: [
         TypeOrmModule.forFeature([
-            MoleculePreviewDBView
-        ])
-    ]
+            MoleculePreviewDBView,
+        ], 'ChemblDB')
+    ],
+    exports: [TypeOrmModule]
 })
 export class ChemblModule { }

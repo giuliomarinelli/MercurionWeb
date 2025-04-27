@@ -1,6 +1,6 @@
 import { WebSocketGateway, SubscribeMessage, MessageBody, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { UUID } from 'crypto';
+import { randomUUID, UUID } from 'crypto';
 import { nullish } from 'src/Models/nullish.type';
 import { Public } from 'src/metadata/metadata';
 import { MoleculeSyncService } from '../meilisearch/services/molecule-sync.service';
@@ -41,13 +41,14 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
   async handleConnection(client: Socket) {
     const userId = client.data.userId as UUID | nullish;
     if (!userId) {
-      client.disconnect()
-      return;
+      this.connectedClients.set(`UNLOGGED-${randomUUID()}`, client.id)
+      this.logger.log(`🔗 Client connected: UNLOGGED (socketId: ${client.id})`);
+      return
     }
 
     this.connectedClients.set(userId, client.id);
     client.join(userId); // 🔹 Unisce il client a una stanza con il suo userId
-    console.log(`🔗 Client connected: ${userId} (socketId: ${client.id})`);
+    this.logger.log(`🔗 Client connected: ${userId} (socketId: ${client.id})`);
   }
 
   // 🔹 Disconnessione WebSocket
@@ -56,7 +57,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
 
     if (userId) {
       this.connectedClients.delete(userId);
-      console.log(`🔌 Client disconnected: ${userId} (socketId: ${client.id})`);
+      this.logger.log(`🔌 Client disconnected: ${userId} (socketId: ${client.id})`);
     }
   }
 
@@ -64,7 +65,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
   @Public()
   @SubscribeMessage('publicEvent')
   handlePublicEvent(@MessageBody() data: any) {
-    console.log('Evento pubblico ricevuto:', data);
+    this.logger.log('Evento pubblico ricevuto:', data);
   }
 
   // 🔒 Evento protetto con autenticazione (gestito automaticamente dalla `GlobalGuard`)
@@ -75,7 +76,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
       return;
     }
 
-    console.log(`📩 Messaggio ricevuto: ${JSON.stringify(message)}`);
+    this.logger.log(`📩 Messaggio ricevuto: ${JSON.stringify(message)}`);
     this.server.to(message.to).emit('message', message);
   }
 
@@ -91,7 +92,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
   private async syncInBackground() {
     await this.moleculeSyncService.syncAllMoleculesWithProgress((progress) => {
       this.server.emit('molecule_sync_sync_progress', progress)
-    });
+    })
 
     this.server.emit('molecule_sync_sync_done', { message: 'Sync completed!' })
   }
