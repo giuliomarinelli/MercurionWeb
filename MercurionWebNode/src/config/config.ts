@@ -1,7 +1,7 @@
 
 
 import { registerAs } from "@nestjs/config";
-import { AppConfiguration, DataConfiguration, DropboxConfiguration, JwtConfigurations, SecureCookieConfiguration, SessionConfiguration, SmsConfiguration, TotpConfiguration } from "./@types-config";
+import { AppConfiguration, DataConfiguration, DropboxConfiguration, JwtConfigurations, MeilisearchConfiguration, SecureCookieConfiguration, SessionConfiguration, SmsConfiguration, TotpConfiguration } from "./@types-config";
 import { UUID } from "crypto";
 import { GeneralUtils } from "src/general-utils/general-utils";
 import { SnakeNamingStrategy } from "typeorm-naming-strategies";
@@ -28,7 +28,8 @@ export enum ConfigKey {
     Sms = "Sms",
     Totp = "Totp",
     Session = "Session",
-    Dropbox = "Dropbox"
+    Dropbox = "Dropbox",
+    Meilisearch = 'Meilisearch'
 
 }
 
@@ -207,6 +208,13 @@ const DropboxConfig = registerAs(
 
 )
 
+const MeilisearchConfig = registerAs(
+    ConfigKey.Meilisearch, (): MeilisearchConfiguration => ({
+        host: process.env.MEILISEARCH_HOST as string,
+        masterKey: process.env.MEILISEARCH_MASTER_KEY as string
+    })
+)
+
 
 export const configurations = [
     AppConfig,
@@ -217,5 +225,6 @@ export const configurations = [
     SmsConfig,
     TotpConfig,
     SessionConfig,
-    DropboxConfig
+    DropboxConfig,
+    MeilisearchConfig
 ]

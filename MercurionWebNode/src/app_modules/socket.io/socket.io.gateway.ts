@@ -3,14 +3,19 @@ import { Server, Socket } from 'socket.io';
 import { UUID } from 'crypto';
 import { nullish } from 'src/Models/nullish.type';
 import { Public } from 'src/metadata/metadata';
+import { MoleculeSyncService } from '../meilisearch/services/molecule-sync.service';
 
-@WebSocketGateway({ cors: { origin: '*' } }) 
+@WebSocketGateway({ cors: { origin: '*' } })
 export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @WebSocketServer()
   server: Server
 
   private connectedClients = new Map<string, string>(); // userId -> socketId
+
+  constructor(
+    private readonly moleculeSyncService: MoleculeSyncService
+  ) { }
 
   // 🔹 Connessione WebSocket (l'utente è già validato dalla `GlobalGuard`)
   async handleConnection(client: Socket) {
@@ -53,4 +58,23 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log(`📩 Messaggio ricevuto: ${JSON.stringify(message)}`);
     this.server.to(message.to).emit('message', message);
   }
+
+
+  // Molecule Melisearch Sync TODO: gestione scopes
+  @Public()
+  @SubscribeMessage('molecule_sync_start_mol_prev_sync')
+  async handleSync() {
+    // Inizia sync senza bloccare
+    this.syncInBackground()
+  }
+
+  private async syncInBackground() {
+    await this.moleculeSyncService.syncAllMoleculesWithProgress((progress) => {
+      this.server.emit('molecule_sync_sync_progress', progress)
+    });
+
+    this.server.emit('molecule_sync_sync_done', { message: 'Sync completed!' })
+  }
 }
+
+

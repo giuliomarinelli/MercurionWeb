@@ -94,3 +94,8 @@ export interface DropboxConfiguration {
     tokenUrl: string
 
 }
+
+export interface MeilisearchConfiguration {
+    host: string
+    masterKey: string
+}

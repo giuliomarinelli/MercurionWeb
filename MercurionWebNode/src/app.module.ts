@@ -17,6 +17,7 @@ import { MercurionModule } from './app_modules/mercurion/mercurion.module';
 import { ResponseService } from './services/response.service';
 import { NotificationModule } from './app_modules/notification/notification.module';
 import { ChemblModule } from './app_modules/chembl/chembl.module';
+import { MeilisearchModule } from './app_modules/meilisearch/meilisearch.module';
 
 
 @Module({
@@ -47,7 +48,8 @@ import { ChemblModule } from './app_modules/chembl/chembl.module';
     SocketIoModule,
     MercurionModule,
     NotificationModule,
-    ChemblModule
+    ChemblModule,
+    MeilisearchModule
   ],
   providers: [
     {
