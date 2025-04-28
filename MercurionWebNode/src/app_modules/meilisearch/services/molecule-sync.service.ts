@@ -40,7 +40,7 @@ export class MoleculeSyncService {
                 break;
             }
     
-            await this.index.addDocuments(batch)
+            await this.index.addDocuments(batch, { primaryKey: 'id' })
     
             synced += batch.length
             offset += batchSize
