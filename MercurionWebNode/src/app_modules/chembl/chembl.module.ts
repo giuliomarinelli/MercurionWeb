@@ -7,13 +7,15 @@ import { ToxicityViewEntity } from './Models/entities/toxicity-view.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([
-            MoleculePreviewDBView,
-            MoleculeDetailDBView,
-            ActivityViewEntity,
-            ToxicityViewEntity
-        ],
-            'ChemblDB')
+        TypeOrmModule.forFeature(
+            [
+                MoleculePreviewDBView,
+                MoleculeDetailDBView,
+                ActivityViewEntity,
+                ToxicityViewEntity
+            ], 
+            'ChemblDB'
+        )
     ],
     exports: [TypeOrmModule]
 })
