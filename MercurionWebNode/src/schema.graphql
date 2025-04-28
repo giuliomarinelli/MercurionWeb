@@ -13,5 +13,14 @@ type MoleculeSearchResult {
 }
 
 type Query {
-  moleculeSearch(query: String!): [MoleculeSearchResult!]!
+  moleculeSearch(input: MoleculeSearchInput!): [MoleculeSearchResult!]!
+}
+
+input MoleculeSearchInput {
+  query: String
+  maxPhase: Int
+  moleculeType: String
+  minMw: Float
+  maxMw: Float
+  limit: Int
 }

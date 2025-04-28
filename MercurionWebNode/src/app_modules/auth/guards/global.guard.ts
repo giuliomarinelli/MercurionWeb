@@ -8,6 +8,8 @@ import { Socket } from 'socket.io';
 import { Reflector } from '@nestjs/core';
 import { SecureCookieService } from '../services/secure-cookie.service';
 import { randomUUID } from 'crypto';
+import { GqlContextType, GqlExecutionContext } from '@nestjs/graphql';
+
 
 @Injectable()
 export class GlobalGuard implements CanActivate {
@@ -20,26 +22,35 @@ export class GlobalGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
 
-    const handleDeviceId = (): void => {
+    const handleDeviceId = (context: ExecutionContext): void => {
 
-      const req = context.switchToHttp().getRequest<FastifyRequest>()
-      const res = context.switchToHttp().getResponse<FastifyReply>()
+      let req = context.switchToHttp().getRequest<FastifyRequest>()
+      let res = context.switchToHttp().getResponse<FastifyReply>()
 
-      let deviceId: string | null = null
-
-      try {
-        deviceId = this.secureCookieService.getSignedCookie(req, '__device_id')
-      } catch {
-        deviceId = randomUUID()
-        this.secureCookieService.setSignedCookie(res, '__device_id', deviceId, { maxAge: 31556952000 })
+      if (context.getType() === 'http') {
+        req = context.switchToHttp().getRequest<FastifyRequest>();
+        res = context.switchToHttp().getResponse<FastifyReply>();
+      } else if (context.getType<GqlContextType>() === 'graphql') {
+        const graphqlContext = GqlExecutionContext.create(context);
+        req = graphqlContext.getContext().req as FastifyRequest
+        res = graphqlContext.getContext().res as FastifyReply
       }
 
-      // 🔥 Inietta deviceId nella richiesta PRIMA della guard
-      req.headers['x-device-id'] = deviceId
+      let deviceId: string | null = null;
 
+      try {
+        deviceId = this.secureCookieService.getSignedCookie(req, '__device_id');
+      } catch {
+        deviceId = randomUUID();
+        this.secureCookieService.setSignedCookie(res, '__device_id', deviceId, { maxAge: 31556952000 });
+      }
+
+      req.headers['x-device-id'] = deviceId;
     }
 
-    handleDeviceId()
+
+
+    handleDeviceId(context)
 
     // 🔹 Controlla se la route o l'evento WS ha il decoratore `@Public()`
     const isPublic = this.reflector.get<boolean>(IS_PUBLIC_KEY, context.getHandler())
@@ -47,7 +58,7 @@ export class GlobalGuard implements CanActivate {
       return true // ✅ Permetti l'accesso senza autenticazione
     }
 
-    if (context.getType() === 'http') {
+    if (context.getType() === 'http' || context.getType<GqlContextType>() === 'graphql') {
       return this.validateHttpRequest(context)
     }
 
@@ -61,7 +72,9 @@ export class GlobalGuard implements CanActivate {
   // 🔹 Validazione per richieste HTTP
   private async validateHttpRequest(context: ExecutionContext): Promise<boolean> {
 
-    const req = context.switchToHttp().getRequest<FastifyRequest>()
+    const req = context.getType() === 'http' ?
+      context.switchToHttp().getRequest<FastifyRequest>()
+      : GqlExecutionContext.create(context).getContext().req as FastifyRequest
 
     try {
       const token = this.jwtToolsService.extractAccessTokenFromReq(req)
