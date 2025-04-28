@@ -4,6 +4,8 @@ import { ConfigService } from '@nestjs/config';
 import { Meilisearch } from 'meilisearch';
 import { ChemblModule } from '../chembl/chembl.module';
 import { MoleculeDetailSyncService } from './services/molecule-detail-sync.service';
+import { MoleculeSearchService } from './services/molecule-search.service';
+import { MoleculeSearchResolver } from './resolvers/molecule-search-resolver';
 
 @Module({
     imports: [ChemblModule],
@@ -17,7 +19,9 @@ import { MoleculeDetailSyncService } from './services/molecule-detail-sync.servi
             }),
             inject: [ConfigService]
         },
-        MoleculeDetailSyncService
+        MoleculeDetailSyncService,
+        MoleculeSearchService,
+        MoleculeSearchResolver
     ],
     exports: [MoleculeSyncService, MoleculeDetailSyncService]
 

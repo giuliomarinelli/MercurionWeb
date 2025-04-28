@@ -20,7 +20,7 @@ import { ChemblModule } from './app_modules/chembl/chembl.module';
 import { MeilisearchModule } from './app_modules/meilisearch/meilisearch.module';
 import { GraphQLModule } from '@nestjs/graphql'
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
-import { MoleculeSearchResolver } from './app_modules/meilisearch/resolvers/molecule-search-resolver';
+
 
 @Module({
   imports: [
@@ -69,8 +69,7 @@ import { MoleculeSearchResolver } from './app_modules/meilisearch/resolvers/mole
     JwtToolsService,
     SessionService,
     JwtService,
-    ResponseService,
-    MoleculeSearchResolver
+    ResponseService
   ]
 })
   export class AppModule { }

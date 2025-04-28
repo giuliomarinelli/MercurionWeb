@@ -29,7 +29,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
   ) { }
 
   onModuleInit() {
-    this.handleDetailSync()
+    // this.handleDetailSync()
   }
 
   afterInit(server: Server) {
