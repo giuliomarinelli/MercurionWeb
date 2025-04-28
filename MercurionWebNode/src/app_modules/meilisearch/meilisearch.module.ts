@@ -3,6 +3,7 @@ import { MoleculeSyncService } from './services/molecule-sync.service';
 import { ConfigService } from '@nestjs/config';
 import { Meilisearch } from 'meilisearch';
 import { ChemblModule } from '../chembl/chembl.module';
+import { MoleculeDetailSyncService } from './services/molecule-detail-sync.service';
 
 @Module({
     imports: [ChemblModule],
@@ -15,7 +16,8 @@ import { ChemblModule } from '../chembl/chembl.module';
                 apiKey: configService.get<string>('Meilisearch.masterKey')
             }),
             inject: [ConfigService]
-        }
+        },
+        MoleculeDetailSyncService
     ],
     exports: [MoleculeSyncService]
 

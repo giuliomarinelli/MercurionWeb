@@ -26,15 +26,15 @@ export interface MoleculeDetailModel {
     blackBoxWarning: boolean
     synonyms: string[] // split dal GROUP_CONCAT
     activities: {
-        activityType: string
+        actionType: string
         value: number | null
         unit: string;
         assayDescription: string
         targetName: string
         targetOrganism: string
-    }[];
+    }[]
     toxicityData: {
         warningType: string
         warningDescription: string
-    }[];
+    }[]
 }
