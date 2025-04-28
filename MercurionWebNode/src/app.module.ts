@@ -18,7 +18,9 @@ import { ResponseService } from './services/response.service';
 import { NotificationModule } from './app_modules/notification/notification.module';
 import { ChemblModule } from './app_modules/chembl/chembl.module';
 import { MeilisearchModule } from './app_modules/meilisearch/meilisearch.module';
-
+import { GraphQLModule } from '@nestjs/graphql'
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { MoleculeSearchResolver } from './app_modules/meilisearch/resolvers/molecule-search-resolver';
 
 @Module({
   imports: [
@@ -43,6 +45,12 @@ import { MeilisearchModule } from './app_modules/meilisearch/meilisearch.module'
       useFactory: async (configService: ConfigService) => configService.get<MailerOptions>("Email") ?? {},
       inject: [ConfigService]
     }),
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      autoSchemaFile: join(process.cwd(), 'src', 'schema.graphql'),
+      playground: true,
+      installSubscriptionHandlers: false
+    }),
     RedisModule,
     UserModule,
     AuthModule,
@@ -61,7 +69,8 @@ import { MeilisearchModule } from './app_modules/meilisearch/meilisearch.module'
     JwtToolsService,
     SessionService,
     JwtService,
-    ResponseService
+    ResponseService,
+    MoleculeSearchResolver
   ]
 })
-export class AppModule { }
+  export class AppModule { }
