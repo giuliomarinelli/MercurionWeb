@@ -4,7 +4,7 @@ import { randomUUID, UUID } from 'crypto';
 import { nullish } from 'src/Models/nullish.type';
 import { Public } from 'src/metadata/metadata';
 import { MoleculeSyncService } from '../meilisearch/services/molecule-sync.service';
-import { Logger } from '@nestjs/common';
+import { Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { MoleculeDetailSyncService } from '../meilisearch/services/molecule-detail-sync.service';
 
@@ -13,7 +13,7 @@ import { MoleculeDetailSyncService } from '../meilisearch/services/molecule-deta
     origin: '*'
   }
 })
-export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
+export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, OnModuleInit {
 
   private readonly logger = new Logger(SocketGateway.name)
 
@@ -27,6 +27,10 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
     private readonly moleculeDetailSyncService: MoleculeDetailSyncService,
     private readonly configService: ConfigService
   ) { }
+
+  onModuleInit() {
+    this.handleDetailSync()
+  }
 
   afterInit(server: Server) {
     const port = this.configService.get<number>('App.port') ?? 8099
@@ -101,6 +105,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
 
   @SubscribeMessage('molecule_sync_start_mol_detail_sync')
   async handleDetailSync() {
+    this.logger.log('Handling detail sync...')
     this.syncDetailInBackground()
   }
 

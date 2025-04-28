@@ -62,7 +62,7 @@ export class MoleculeDetailSyncService {
                 where: { id: MoreThan(lastProcessedId) },
                 order: { id: 'ASC' },
                 take: batchSize,
-            });
+            })
 
             this.logger.log(`🟢 Loaded detailed batch of size: ${batch.length} (lastProcessedId: ${lastProcessedId})`)
 
