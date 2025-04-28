@@ -45,7 +45,7 @@ export class MoleculeDetailSyncService {
             const batch = await this.moleculeRepo.find({
                 skip: offset,
                 take: batchSize,
-            });
+            })
 
             this.logger.log(`🟢 Loaded detailed batch of size: ${batch.length} (offset: ${offset})`);
 
@@ -55,7 +55,7 @@ export class MoleculeDetailSyncService {
             }
 
             const batchWithEmbeddedData: MoleculeDetailModel[] = await Promise.all(
-                batch.map(async (molecule) => {
+                batch.map(async (molecule: MoleculeDetailDBView) => {
                     const activities = await this.activityRepo.find({
                         where: { id: molecule.id },
                     })

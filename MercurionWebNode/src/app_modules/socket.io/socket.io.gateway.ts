@@ -6,6 +6,7 @@ import { Public } from 'src/metadata/metadata';
 import { MoleculeSyncService } from '../meilisearch/services/molecule-sync.service';
 import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { MoleculeDetailSyncService } from '../meilisearch/services/molecule-detail-sync.service';
 
 @WebSocketGateway({
   cors: {
@@ -23,6 +24,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
 
   constructor(
     private readonly moleculeSyncService: MoleculeSyncService,
+    private readonly moleculeDetailSyncService: MoleculeDetailSyncService,
     private readonly configService: ConfigService
   ) { }
 
@@ -96,6 +98,20 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
 
     this.server.emit('molecule_sync_sync_done', { message: 'Sync completed!' })
   }
+
+  @SubscribeMessage('molecule_sync_start_mol_detail_sync')
+  async handleDetailSync() {
+    this.syncDetailInBackground()
+  }
+
+  private async syncDetailInBackground() {
+    await this.moleculeDetailSyncService.syncAllMoleculesWithProgress((progress) => {
+      this.server.emit('molecule_detail_sync_progress', progress);
+    })
+
+    this.server.emit('molecule_detail_sync_done', { message: 'Detail sync completed!' })
+  }
+
 }
 
 

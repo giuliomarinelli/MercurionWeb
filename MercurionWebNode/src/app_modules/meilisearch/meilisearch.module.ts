@@ -19,7 +19,7 @@ import { MoleculeDetailSyncService } from './services/molecule-detail-sync.servi
         },
         MoleculeDetailSyncService
     ],
-    exports: [MoleculeSyncService]
+    exports: [MoleculeSyncService, MoleculeDetailSyncService]
 
 })
 export class MeilisearchModule { }
