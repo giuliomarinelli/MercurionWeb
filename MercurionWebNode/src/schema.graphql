@@ -2,6 +2,16 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type MoleculeSearchResult {
+  id: Int!
+  preferredName: String!
+  canonicalSmiles: String!
+  synonyms: [String!]!
+  mwFreebase: Float
+  alogp: Float
+  maxPhase: Int
+}
+
 type Query {
-  hello: String!
+  moleculeSearch(query: String!): [MoleculeSearchResult!]!
 }
