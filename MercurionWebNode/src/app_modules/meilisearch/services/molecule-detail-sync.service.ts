@@ -55,6 +55,7 @@ export class MoleculeDetailSyncService {
             }
 
             const batchWithEmbeddedData: MoleculeDetailModel[] = await Promise.all(
+                
                 batch.map(async (molecule: MoleculeDetailDBView) => {
                     const activities = await this.activityRepo.find({
                         where: { id: molecule.id },
@@ -109,8 +110,8 @@ export class MoleculeDetailSyncService {
 
             await this.index.addDocuments(batchWithEmbeddedData, { primaryKey: 'id' })
 
-            synced += batch.length;
-            offset += batchSize;
+            synced += batch.length
+            offset += batchSize
 
             onProgress({ synced, total })
         }
