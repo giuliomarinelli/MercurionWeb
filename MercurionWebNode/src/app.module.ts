@@ -49,7 +49,8 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'src', 'schema.graphql'),
       playground: true,
-      installSubscriptionHandlers: false
+      installSubscriptionHandlers: false,
+      context: ({ request, reply }) => ({ req: request, res: reply })
     }),
     RedisModule,
     UserModule,

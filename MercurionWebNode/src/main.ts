@@ -30,8 +30,9 @@ import fastifyCookie from '@fastify/cookie'
     origin: configService.get<string[]>('App.corsOrigins'),
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS']
   })
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+  await app.register(fastifyCookie as any)
   const port = configService.get<number>('App.port')
-  await app.register(fastifyCookie)
   await app.listen(port ?? 8099)
   await app.startAllMicroservices()
   logger.log(`Fastify listening on port ${port}`)
