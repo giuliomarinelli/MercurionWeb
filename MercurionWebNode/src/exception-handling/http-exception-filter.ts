@@ -3,11 +3,14 @@ import { InternalErrorRes } from "src/Models/error-res.dto";
 import { FastifyRequest, FastifyReply } from 'fastify'
 import { RpcException } from "@nestjs/microservices";
 import { HttpStatusMap } from "./http-status-map";
+import { GqlContextType } from "@nestjs/graphql";
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
 
     catch(e: any, host: ArgumentsHost) {
+
+        if (host.getType<GqlContextType>() === 'graphql' || host.getType() === 'ws') return
 
         const req = host.switchToHttp().getRequest<FastifyRequest>()
         const res = host.switchToHttp().getResponse<FastifyReply>()
