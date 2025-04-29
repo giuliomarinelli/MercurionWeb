@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { DesignService } from '../../../services/design.service';
 import { NgClass } from '@angular/common';
+import { SearchContextService } from '../../../services/stores/search-context.service';
 
 @Component({
   selector: 'app-nav',
@@ -13,12 +14,17 @@ export class NavComponent {
   @Output() onCloseOffCanvasMenu = new EventEmitter<boolean>()
   @Input() header: boolean = false
 
-  constructor(protected readonly designService: DesignService) { }
+  constructor(
+    protected readonly designService: DesignService,
+    protected readonly searchContextService: SearchContextService
+  ) { }
 
   closeOffCanvasMenu(): void {
     this.onCloseOffCanvasMenu.emit(false)
   }
 
-  openSearchOverlay(): void {}
+  openSearchOverlay(): void {
+    this.searchContextService.isOpenedSearchOverlay.set(true)
+  }
 
 }

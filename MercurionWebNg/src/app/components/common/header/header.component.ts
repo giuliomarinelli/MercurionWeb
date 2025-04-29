@@ -4,6 +4,7 @@ import { ThemeManagerService } from '../../../services/stores/theme-manager.serv
 import { ThemeChose } from '../../../Models/types/theme-types';
 import { DesignService } from '../../../services/design.service';
 import { NavComponent } from '../nav/nav.component';
+import { SearchContextService } from '../../../services/stores/search-context.service';
 
 @Component({
   selector: 'app-header',
@@ -28,7 +29,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   constructor(
     protected readonly themeManager: ThemeManagerService,
-    protected readonly designService: DesignService
+    protected readonly designService: DesignService,
+    protected readonly searchContextService: SearchContextService
   ) {
     effect(() => {
       // Reactive logging/debugging se vuoi
@@ -89,7 +91,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
     }
   }
 
-  protected openSearchOverlay(): void {}
+  openSearchOverlay(): void {
+    this.searchContextService.isOpenedSearchOverlay.set(true)
+  }
 
 
   ngOnInit(): void {

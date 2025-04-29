@@ -3,11 +3,12 @@ import { RouterOutlet } from '@angular/router';
 import { HeaderComponent } from './components/common/header/header.component';
 import { MoleculeViewerComponent } from './components/chem/molecule-viewer/molecule-viewer.component';
 import { ThemeManagerService } from './services/stores/theme-manager.service';
+import { SearchOverlayComponent } from './components/search-overlay/search-overlay/search-overlay.component';
 
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, HeaderComponent, MoleculeViewerComponent],
+  imports: [RouterOutlet, HeaderComponent, MoleculeViewerComponent, SearchOverlayComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
