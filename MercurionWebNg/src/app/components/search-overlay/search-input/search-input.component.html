@@ -1,7 +1,9 @@
 <div class="flex gap-2 items-center">
-  <input [(ngModel)]="query" (keydown.enter)="onEnter()" type="text" placeholder="Cerca molecola..."
-    class="flex-1 px-4 py-2 rounded-lg bg-white/90 text-black placeholder:text-gray-500 shadow focus:outline-none focus:ring-2 focus:ring-indigo-500 transition w-full" />
-  <button (click)="submit()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
-    Cerca
-  </button>
+  <input
+    type="text"
+    placeholder="Cerca molecola..."
+    class="flex-1 px-4 py-2 rounded-lg bg-white/90 text-black placeholder:text-gray-500 shadow focus:outline-none focus:ring-2 focus:ring-indigo-500 transition w-full"
+    [ngModel]="query()"
+    (ngModelChange)="query.set($event)"
+  />
 </div>

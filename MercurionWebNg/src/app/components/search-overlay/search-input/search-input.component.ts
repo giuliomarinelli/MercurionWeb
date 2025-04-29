@@ -1,6 +1,9 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, effect, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { toObservable } from '@angular/core/rxjs-interop';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { SearchService } from '../../../services/search.service';
 
 @Component({
   selector: 'app-search-input',
@@ -10,18 +13,20 @@ import { FormsModule } from '@angular/forms';
 })
 export class SearchInputComponent {
 
-  query: string = ''
+  query = signal('')
 
-  @Output() search = new EventEmitter<string>()
+  constructor(private readonly searchService: SearchService) {
 
-  submit() {
-    const trimmed = this.query.trim()
-    if (trimmed) {
-      this.search.emit(trimmed)
-    }
-  }
+    const query$ = toObservable(this.query)
 
-  onEnter() {
-    this.submit()
+    query$
+      .pipe(debounceTime(300), distinctUntilChanged())
+      .subscribe(term => {
+        const trimmed = term.trim();
+        if (trimmed.length > 1) {
+          this.searchService.searchMolecule(trimmed)
+        }
+      })
+
   }
 }
