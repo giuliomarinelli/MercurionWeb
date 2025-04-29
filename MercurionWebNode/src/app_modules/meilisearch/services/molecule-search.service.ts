@@ -14,6 +14,7 @@ export class MoleculeSearchService {
 
 
     async searchMolecules(input: MoleculeSearchInput): Promise<any[]> {
+        
         const index = this.meiliClient.index('molecules')
 
         const searchParams: SearchParams = {
