@@ -1,19 +1,22 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { SearchContextService } from '../../../services/stores/search-context.service';
+import { SearchInputComponent } from '../search-input/search-input.component';
 
 @Component({
   selector: 'app-search-overlay',
-  imports: [],
+  imports: [SearchInputComponent],
   templateUrl: './search-overlay.component.html',
   styleUrl: './search-overlay.component.css'
 })
-export class SearchOverlayComponent {
+export class SearchOverlayComponent implements OnInit {
 
   constructor(protected readonly searchContextService: SearchContextService) { }
 
   close(): void {
     this.searchContextService.isOpenedSearchOverlay.set(false)
   }
+
+  onSearch(query: string): void {}
 
   @HostListener('document:keydown.escape', ['$event'])
   onEscape() {
@@ -22,7 +25,7 @@ export class SearchOverlayComponent {
     }
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
     console.log(this.searchContextService.isOpenedSearchOverlay())
   }
 
