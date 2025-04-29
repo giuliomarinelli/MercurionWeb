@@ -3,4 +3,6 @@
   <molecule-viewer [structure]="smilesString" [darkMode]="isDarkTheme()" class="block"></molecule-viewer>
 </div>
 <router-outlet></router-outlet>
+@if (searchContextService.isOpenedSearchOverlay()) {
 <app-search-overlay></app-search-overlay>
+}

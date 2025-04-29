@@ -4,6 +4,7 @@ import { HeaderComponent } from './components/common/header/header.component';
 import { MoleculeViewerComponent } from './components/chem/molecule-viewer/molecule-viewer.component';
 import { ThemeManagerService } from './services/stores/theme-manager.service';
 import { SearchOverlayComponent } from './components/search-overlay/search-overlay/search-overlay.component';
+import { SearchContextService } from './services/stores/search-context.service';
 
 
 @Component({
@@ -21,6 +22,9 @@ export class AppComponent {
 
   isDarkTheme: Signal<boolean> = computed(() => this.themeManagerService.theme() === 'dark')
 
-  constructor(private readonly themeManagerService: ThemeManagerService) { }
+  constructor(
+    private readonly themeManagerService: ThemeManagerService,
+    protected readonly searchContextService: SearchContextService
+  ) { }
 
 }

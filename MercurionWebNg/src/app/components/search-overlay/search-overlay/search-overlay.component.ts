@@ -22,4 +22,8 @@ export class SearchOverlayComponent {
     }
   }
 
+  ngOnInit() {
+    console.log(this.searchContextService.isOpenedSearchOverlay())
+  }
+
 }
