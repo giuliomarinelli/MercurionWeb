@@ -89,6 +89,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
     }
   }
 
+  protected openSearchOverlay(): void {}
+
 
   ngOnInit(): void {
     document.addEventListener('click', this.handleDocumentClick, true)
