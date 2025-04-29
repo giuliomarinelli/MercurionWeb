@@ -14,7 +14,7 @@ export class MoleculeSearchService {
 
 
     async searchMolecules(input: MoleculeSearchInput): Promise<any[]> {
-        const index = this.meiliClient.index('molecules_detail')
+        const index = this.meiliClient.index('molecules')
 
         const searchParams: SearchParams = {
             q: input.query || '',
@@ -23,7 +23,7 @@ export class MoleculeSearchService {
         };
 
         if (input.maxPhase !== undefined) {
-            searchParams.filter?.push(`maxPhase = ${input.maxPhase}`)
+            searchParams.filter.push(`maxPhase = ${input.maxPhase}`)
         }
         if (input.moleculeType) {
             searchParams.filter.push(`moleculeType = "${input.moleculeType}"`)
