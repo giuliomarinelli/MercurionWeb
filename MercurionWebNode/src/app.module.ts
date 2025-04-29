@@ -50,7 +50,8 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
       autoSchemaFile: join(process.cwd(), 'src', 'schema.graphql'),
       playground: true,
       installSubscriptionHandlers: false,
-      context: ({ request, reply }) => ({ req: request, res: reply })
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      context: ({ request, reply }) => ({ req: request, reply })
     }),
     RedisModule,
     UserModule,

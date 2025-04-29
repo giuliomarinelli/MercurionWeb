@@ -3,12 +3,13 @@ import { JwtToolsService } from '../services/jwt-tools.service';
 import { SessionService } from '../services/session.service';
 import { IS_PUBLIC_KEY } from 'src/metadata/metadata';
 import { TokenType } from '../Models/enums/token-type.enum';
-import { FastifyReply, FastifyRequest } from 'fastify';
+import { FastifyRequest } from 'fastify';
 import { Socket } from 'socket.io';
 import { Reflector } from '@nestjs/core';
 import { SecureCookieService } from '../services/secure-cookie.service';
-import { randomUUID } from 'crypto';
 import { GqlContextType, GqlExecutionContext } from '@nestjs/graphql';
+
+
 
 
 @Injectable()
@@ -21,36 +22,6 @@ export class GlobalGuard implements CanActivate {
   ) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-
-    const handleDeviceId = (context: ExecutionContext): void => {
-
-      let req = context.switchToHttp().getRequest<FastifyRequest>()
-      let res = context.switchToHttp().getResponse<FastifyReply>()
-
-      if (context.getType() === 'http') {
-        req = context.switchToHttp().getRequest<FastifyRequest>();
-        res = context.switchToHttp().getResponse<FastifyReply>();
-      } else if (context.getType<GqlContextType>() === 'graphql') {
-        const graphqlContext = GqlExecutionContext.create(context);
-        req = graphqlContext.getContext().req as FastifyRequest
-        res = graphqlContext.getContext().res as FastifyReply
-      }
-
-      let deviceId: string | null = null;
-
-      try {
-        deviceId = this.secureCookieService.getSignedCookie(req, '__device_id');
-      } catch {
-        deviceId = randomUUID();
-        this.secureCookieService.setSignedCookie(res, '__device_id', deviceId, { maxAge: 31556952000 });
-      }
-
-      req.headers['x-device-id'] = deviceId;
-    }
-
-
-
-    handleDeviceId(context)
 
     // 🔹 Controlla se la route o l'evento WS ha il decoratore `@Public()`
     const isPublic = this.reflector.get<boolean>(IS_PUBLIC_KEY, context.getHandler())
@@ -72,9 +43,7 @@ export class GlobalGuard implements CanActivate {
   // 🔹 Validazione per richieste HTTP
   private async validateHttpRequest(context: ExecutionContext): Promise<boolean> {
 
-    const req = context.getType() === 'http' ?
-      context.switchToHttp().getRequest<FastifyRequest>()
-      : GqlExecutionContext.create(context).getContext().req as FastifyRequest
+    const req = context.switchToHttp().getRequest<FastifyRequest>() ?? (GqlExecutionContext.create(context).getContext().req as FastifyRequest)
 
     try {
       const token = this.jwtToolsService.extractAccessTokenFromReq(req)
