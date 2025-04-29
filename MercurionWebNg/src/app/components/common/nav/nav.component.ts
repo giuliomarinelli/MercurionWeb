@@ -19,4 +19,6 @@ export class NavComponent {
     this.onCloseOffCanvasMenu.emit(false)
   }
 
+  openSearchOverlay(): void {}
+
 }
