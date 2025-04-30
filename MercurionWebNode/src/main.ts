@@ -27,6 +27,7 @@ import { SecureCookieService } from './app_modules/auth/services/secure-cookie.s
     },
   })
   app.useGlobalFilters(new HttpExceptionFilter())
+  app.setGlobalPrefix('api')
   app.enableCors({
     credentials: true,
     allowedHeaders: '*',
@@ -52,6 +53,7 @@ import { SecureCookieService } from './app_modules/auth/services/secure-cookie.s
     req.headers['x-device-id'] = deviceId
     done()
   })
+
   const port = configService.get<number>('App.port')
   await app.listen(port ?? 8099)
   await app.startAllMicroservices()
