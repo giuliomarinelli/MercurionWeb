@@ -52,6 +52,17 @@ services:
     networks:
       - spectralume_network
 
+  nginx_sl:
+    image: nginx:latest
+    container_name: nginx_sl
+    ports:
+    - "8888:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+    - spectralume_network
+    restart: unless-stopped
+
 volumes:
   redis_data:
     driver: local

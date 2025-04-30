@@ -67,7 +67,8 @@
         },
         "serve": {
           "options": {
-            "port": 3498
+            "port": 3498,
+            "host": "0.0.0.0"
           },
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
