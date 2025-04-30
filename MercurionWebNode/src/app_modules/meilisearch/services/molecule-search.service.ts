@@ -41,6 +41,7 @@ export class MoleculeSearchService {
             filter: searchParams.filter.length > 0 ? searchParams.filter : undefined,
         });
 
-        return results.hits
+        return results.hits.filter(hit => hit.preferredName != null)
+
     }
 }

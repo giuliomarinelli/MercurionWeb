@@ -9,11 +9,11 @@ export class MoleculeSearchResult {
     @Field()
     preferredName: string
 
-    @Field()
-    canonicalSmiles: string
+    @Field(() => String, { nullable: true })
+    smiles: string
 
-    @Field(() => [String])
-    synonyms: string[]
+    @Field(() => String, { nullable: true })
+    synonyms: string
 
     @Field(() => Float, { nullable: true })
     mwFreebase?: number

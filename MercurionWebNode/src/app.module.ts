@@ -51,6 +51,7 @@ import { TestController } from './test.controller';
       autoSchemaFile: join(process.cwd(), 'src', 'schema.graphql'),
       playground: true,
       installSubscriptionHandlers: false,
+      path: '/api/graphql',
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       context: ({ request, reply }) => ({ req: request, reply })
     }),
