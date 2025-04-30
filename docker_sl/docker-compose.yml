@@ -1,0 +1,68 @@
+services:
+  redis_sl:
+    image: redis:latest
+    container_name: redis_sl
+    ports:
+      - "6378:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    command: ["redis-server", "--notify-keyspace-events", "Ex"]
+    networks:
+      - spectralume_network
+
+  nats_sl:
+    image: nats:latest
+    container_name: nats_sl
+    ports:
+      - "4223:4222"
+      - "6223:6222"
+      - "8223:8222"
+    restart: unless-stopped
+    networks:
+      - spectralume_network
+
+  mariadb_sl:
+    image: mariadb:latest
+    container_name: mariadb_sl
+    environment:
+      MYSQL_DATABASE: spectralume
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3307:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ./chembl_data:/data
+    restart: unless-stopped
+    networks:
+      - spectralume_network
+    
+  meilisearch_sl:
+    image: getmeili/meilisearch:latest
+    container_name: meilisearch_sl
+    ports:
+      - "7700:7700"
+    environment:
+      MEILI_MASTER_KEY: ***REMOVED***
+    volumes:
+      - meili_data:/meili_data
+    restart: unless-stopped
+    networks:
+      - spectralume_network
+
+volumes:
+  redis_data:
+    driver: local
+  mariadb_data:
+    driver: local
+  mongodb_isf_data:
+    driver: local
+  meili_data:
+    driver: local
+
+networks:
+  spectralume_network:
+    driver: bridge
+    name: spectralume_network
