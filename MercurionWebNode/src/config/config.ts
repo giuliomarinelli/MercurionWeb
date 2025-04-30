@@ -43,7 +43,8 @@ const AppConfig = registerAs(
         projectId: process.env.APP_PROJECT_ID as UUID ?? '',
         corsOrigins: JSON.parse(process.env.APP_CORS_ORIGINS ?? `[]`) as string[],
         activationOrigin: process.env.APP_USER_ACTIVATION_ORIGIN ?? '',
-        globalName: process.env.APP_GLOBAL_NAME ?? ''
+        globalName: process.env.APP_GLOBAL_NAME ?? '',
+        host: process.env.APP_HOST ?? 'localhost'
     })
 )
 

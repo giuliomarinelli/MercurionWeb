@@ -55,7 +55,7 @@ import { SecureCookieService } from './app_modules/auth/services/secure-cookie.s
   })
 
   const port = configService.get<number>('App.port')
-  await app.listen(port ?? 8099)
+  await app.listen(port ?? 8099, '0.0.0.0')
   await app.startAllMicroservices()
   logger.log(`Fastify listening on port ${port}`)
   logger.log(`NATS client connected to NATS server on port ${natsPort}`)

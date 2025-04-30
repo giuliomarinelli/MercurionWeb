@@ -12,6 +12,7 @@ export interface AppConfiguration {
     corsOrigins: string[]
     activationOrigin: string
     globalName: string
+    host: string
 
 }
 

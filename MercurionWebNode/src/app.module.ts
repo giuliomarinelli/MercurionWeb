@@ -20,6 +20,7 @@ import { ChemblModule } from './app_modules/chembl/chembl.module';
 import { MeilisearchModule } from './app_modules/meilisearch/meilisearch.module';
 import { GraphQLModule } from '@nestjs/graphql'
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { TestController } from './test.controller';
 
 
 @Module({
@@ -72,6 +73,7 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
     SessionService,
     JwtService,
     ResponseService
-  ]
+  ],
+  controllers: [TestController]
 })
   export class AppModule { }
