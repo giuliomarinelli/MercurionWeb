@@ -30,12 +30,6 @@ import { SecureCookieService } from './app_modules/auth/services/secure-cookie.s
   })
   app.useGlobalFilters(new HttpExceptionFilter())
   app.setGlobalPrefix('api')
-  app.enableCors({
-    credentials: true,
-    allowedHeaders: '*',
-    origin: configService.get<string[]>('App.corsOrigins'),
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS']
-  })
   // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   await app.register(fastifyCookie)
   const fastify = app.getHttpAdapter().getInstance()   // istanza Fastify reale
