@@ -62,16 +62,16 @@ import { SecureCookieService } from './app_modules/auth/services/secure-cookie.s
   await app.listen(port ?? 8099, host.replace('http://', ''))
   await app.startAllMicroservices()
 
-  const lastColonIndex = appUrl.lastIndexOf(':');
+  const lastColonIndex = appUrl.lastIndexOf(':')
   const coloredUrl =
     appUrl.slice(0, lastColonIndex) +
     '\x1b[34m:\x1b[35m' + // blu + magenta
     appUrl.slice(lastColonIndex + 1) +
     '\x1b[0m';
 
-  logger.log(`Fastify listening on ${coloredUrl}`);
+  logger.log(`Fastify listening on ${coloredUrl}`)
 
-  const lastColonIndexNats = natsUrl.lastIndexOf(':');
+  const lastColonIndexNats = natsUrl.lastIndexOf(':')
   const coloredNatsUrl =
     natsUrl.slice(0, lastColonIndexNats) +
     '\x1b[34m:\x1b[35m' +
