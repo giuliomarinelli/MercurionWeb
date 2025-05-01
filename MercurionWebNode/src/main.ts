@@ -64,7 +64,7 @@ import { SecureCookieService } from './app_modules/auth/services/secure-cookie.s
 
   const lastColonIndex = appUrl.lastIndexOf(':')
   const coloredUrl =
-    appUrl.slice(0, lastColonIndex) +
+    '\x1b[36m' + appUrl.slice(0, lastColonIndex) +
     '\x1b[34m:\x1b[35m' + // blu + magenta
     appUrl.slice(lastColonIndex + 1) +
     '\x1b[0m';
@@ -73,7 +73,7 @@ import { SecureCookieService } from './app_modules/auth/services/secure-cookie.s
 
   const lastColonIndexNats = natsUrl.lastIndexOf(':')
   const coloredNatsUrl =
-    natsUrl.slice(0, lastColonIndexNats) +
+    '\x1b[36m' + natsUrl.slice(0, lastColonIndexNats) +
     '\x1b[34m:\x1b[35m' +
     natsUrl.slice(lastColonIndexNats + 1) +
     '\x1b[0m';
