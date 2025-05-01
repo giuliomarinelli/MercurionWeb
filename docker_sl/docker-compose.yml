@@ -41,6 +41,39 @@ services:
     restart: unless-stopped
     networks:
       - spectralume_network
+    command:
+      - --server-id=1
+      - --log-bin=mysql-bin
+      - --binlog-format=MIXED
+      - --binlog-do-db=chembl_35
+
+  mariadb_replica:
+    image: mariadb:latest
+    container_name: mariadb_replica
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3308:3306"
+    volumes:
+      - mariadb_replica_data:/var/lib/mysql
+    depends_on:
+      - mariadb_sl
+    networks:
+      - spectralume_network
+    restart: unless-stopped
+    command:
+      - --server-id=2
+      - --relay-log=relay-bin
+
+
+  mysql_client:
+    image: mysql:latest
+    container_name: mysql_client
+    command: tail -f /dev/null
+    networks:
+        - spectralume_network
+    restart: unless-stopped
+
     
   meilisearch_sl:
     image: getmeili/meilisearch:latest
@@ -71,9 +104,9 @@ volumes:
     driver: local
   mariadb_data:
     driver: local
-  mongodb_isf_data:
-    driver: local
   meili_data:
+    driver: local
+  mariadb_replica_data:
     driver: local
 
 networks:
