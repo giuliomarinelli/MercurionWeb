@@ -5,13 +5,15 @@ import { ThemeChose } from '../../../Models/types/theme-types';
 import { DesignService } from '../../../services/design.service';
 import { NavComponent } from '../nav/nav.component';
 import { SearchContextService } from '../../../services/stores/search-context.service';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-header',
   imports: [
     NgOptimizedImage,
     NgClass,
-    NavComponent
+    NavComponent,
+    RouterLink
   ],
   templateUrl: './header.component.html',
   styleUrl: './header.component.css'
