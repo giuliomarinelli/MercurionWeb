@@ -76,7 +76,7 @@ import { SecureCookieService } from './app_modules/auth/services/secure-cookie.s
     '\x1b[36m' + natsUrl.slice(0, lastColonIndexNats) +
     '\x1b[34m:\x1b[35m' +
     natsUrl.slice(lastColonIndexNats + 1) +
-    '\x1b[0m';
+    '\x1b[0m'
 
   logger.log(`NATS client connected to NATS server on ${coloredNatsUrl}`);
 
