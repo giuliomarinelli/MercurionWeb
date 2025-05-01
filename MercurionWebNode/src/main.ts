@@ -30,7 +30,7 @@ import { SecureCookieService } from './app_modules/auth/services/secure-cookie.s
   })
   app.useGlobalFilters(new HttpExceptionFilter())
   app.setGlobalPrefix('api')
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+
   await app.register(fastifyCookie)
   const fastify = app.getHttpAdapter().getInstance()   // istanza Fastify reale
 

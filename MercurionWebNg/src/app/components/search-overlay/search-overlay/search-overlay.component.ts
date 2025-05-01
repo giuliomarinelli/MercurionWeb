@@ -26,7 +26,7 @@ export class SearchOverlayComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    console.log(this.searchContextService.isOpenedSearchOverlay())
+
   }
 
 }
