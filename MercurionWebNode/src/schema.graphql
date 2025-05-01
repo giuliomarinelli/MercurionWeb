@@ -6,7 +6,7 @@ type MoleculeSearchResult {
   id: Int!
   preferredName: String!
   smiles: String
-  synonyms: String
+  synonyms: [String!]
   mwFreebase: Float
   alogp: Float
   maxPhase: Int

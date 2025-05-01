@@ -12,8 +12,8 @@ export class MoleculeSearchResult {
     @Field(() => String, { nullable: true })
     smiles: string
 
-    @Field(() => String, { nullable: true })
-    synonyms: string
+    @Field(() => [String], { nullable: true })
+    synonyms: string[]
 
     @Field(() => Float, { nullable: true })
     mwFreebase?: number

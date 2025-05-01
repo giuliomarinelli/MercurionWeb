@@ -2,6 +2,7 @@ import { Injectable, Inject } from '@nestjs/common';
 import { MeiliSearch } from 'meilisearch'; // o dove hai il client
 import { MoleculeSearchInput } from '../Models/DTO/molecule-search-input.cls';
 import { SearchParams } from '../Models/interfaces/search-params.interface';
+import { MoleculeSearchResult } from '../Models/DTO/molecule-search-result.cls';
 
 
 @Injectable()
@@ -13,7 +14,7 @@ export class MoleculeSearchService {
     ) { }
 
 
-    async searchMolecules(input: MoleculeSearchInput): Promise<any[]> {
+    async searchMolecules(input: MoleculeSearchInput): Promise<MoleculeSearchResult[]> {
         
         const index = this.meiliClient.index('molecules')
 
@@ -41,7 +42,11 @@ export class MoleculeSearchService {
             filter: searchParams.filter.length > 0 ? searchParams.filter : undefined,
         });
 
-        return results.hits.filter(hit => hit.preferredName != null)
+        return results.hits.filter(hit => hit.preferredName != null).map(hit => {
+            hit.synonyms = hit.synonyms?.split(';') as string[]
+            hit.synonyms = hit.synonyms?.map((syn: string) => syn.trim()) as string[]
+            return hit
+        }) as MoleculeSearchResult[]
 
     }
 }
