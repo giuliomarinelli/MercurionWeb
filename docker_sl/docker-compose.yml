@@ -1,3 +1,6 @@
+
+# Configurazione Docker Compose per ambiente di sviluppo
+
 services:
   redis_sl:
     image: redis:latest
@@ -45,7 +48,7 @@ services:
     ports:
       - "7700:7700"
     environment:
-      MEILI_MASTER_KEY: ***REMOVED***
+      MEILI_MASTER_KEY: root 
     volumes:
       - meili_data:/meili_data
     restart: unless-stopped

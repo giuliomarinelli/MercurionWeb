@@ -1,4 +1,4 @@
-import { Component, effect, signal } from '@angular/core';
+import { AfterViewInit, Component, effect, ElementRef, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { toObservable } from '@angular/core/rxjs-interop';
@@ -11,7 +11,9 @@ import { SearchService } from '../../../services/search.service';
   imports: [CommonModule, FormsModule],
   templateUrl: './search-input.component.html',
 })
-export class SearchInputComponent {
+export class SearchInputComponent implements AfterViewInit {
+
+  @ViewChild('searchInput') searchInputRef!: ElementRef<HTMLInputElement>
 
   query = signal('')
 
@@ -28,5 +30,8 @@ export class SearchInputComponent {
         }
       })
 
+  }
+  ngAfterViewInit(): void {
+    queueMicrotask(() => this.searchInputRef.nativeElement.focus())
   }
 }
