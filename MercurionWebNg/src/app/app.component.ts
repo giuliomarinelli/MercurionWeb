@@ -5,11 +5,18 @@ import { MoleculeViewerComponent } from './components/chem/molecule-viewer/molec
 import { ThemeManagerService } from './services/stores/theme-manager.service';
 import { SearchOverlayComponent } from './components/search-overlay/search-overlay/search-overlay.component';
 import { SearchContextService } from './services/stores/search-context.service';
+import { FooterComponent } from './components/common/footer/footer.component';
 
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, HeaderComponent, MoleculeViewerComponent, SearchOverlayComponent],
+  imports: [
+    RouterOutlet,
+    HeaderComponent,
+    MoleculeViewerComponent,
+    SearchOverlayComponent,
+    FooterComponent
+  ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })

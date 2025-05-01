@@ -1,8 +1,11 @@
-<app-header></app-header>
-<div class="flex-1 flex items-center justify-center">
-  <molecule-viewer [structure]="smilesString" [darkMode]="isDarkTheme()" class="block" />
+<app-header />
+<div class="flex-1">
+  <div class="flex-1 flex items-center justify-center">
+    <molecule-viewer [structure]="smilesString" [darkMode]="isDarkTheme()" class="block" />
+  </div>
+  <router-outlet />
 </div>
-<router-outlet></router-outlet>
 @if (searchContextService.isMounted()) {
-<app-search-overlay></app-search-overlay>
+<app-search-overlay />
 }
+<app-footer class="block" />
