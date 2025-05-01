@@ -7,6 +7,7 @@ export interface AppConfiguration {
     env: Environment
     port: number
     natsPort: number
+    natsHost: string
     projectName: string
     projectId: UUID
     corsOrigins: string[]

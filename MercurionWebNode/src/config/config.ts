@@ -39,12 +39,13 @@ const AppConfig = registerAs(
         env: GeneralUtils.getEnumValue(Environment, process.env.NODE_ENV ?? Environment.Development) as Environment,
         port: Number(process.env.APP_PORT) || 8099,
         natsPort: Number(process.env.APP_NATS_PORT) || 4223,
+        natsHost: process.env.APP_NATS_HOST ?? 'nats://localhost',
         projectName: process.env.APP_PROJECT_NAME ?? '',
         projectId: process.env.APP_PROJECT_ID as UUID ?? '',
         corsOrigins: JSON.parse(process.env.APP_CORS_ORIGINS ?? `[]`) as string[],
         activationOrigin: process.env.APP_USER_ACTIVATION_ORIGIN ?? '',
         globalName: process.env.APP_GLOBAL_NAME ?? '',
-        host: process.env.APP_HOST ?? 'localhost'
+        host: process.env.APP_HOST ?? 'http://localhost'
     })
 )
 

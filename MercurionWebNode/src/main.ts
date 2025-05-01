@@ -19,11 +19,13 @@ import { SecureCookieService } from './app_modules/auth/services/secure-cookie.s
   const configService = app.get<ConfigService>(ConfigService)
   const secureCookieService = app.get<SecureCookieService>(SecureCookieService)
   const natsPort = configService.get<number>('App.natsPort') ?? 4223
+  const natsHost = configService.get<string>('App.natsHost')
+  const natsUrl: string = `${natsHost}:${natsPort}`
   app.useWebSocketAdapter(new IoAdapter(app))
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.NATS,
     options: {
-      servers: [`nats://localhost:${natsPort}`],
+      servers: [natsUrl],
     },
   })
   app.useGlobalFilters(new HttpExceptionFilter())
@@ -55,9 +57,28 @@ import { SecureCookieService } from './app_modules/auth/services/secure-cookie.s
   })
 
   const port = configService.get<number>('App.port')
-  await app.listen(port ?? 8099, '0.0.0.0')
+  const host = configService.get<string>('App.host') as string
+  const appUrl = `${host}:${port ?? 8099}`
+  await app.listen(port ?? 8099, host.replace('http://', ''))
   await app.startAllMicroservices()
-  logger.log(`Fastify listening on port ${port}`)
-  logger.log(`NATS client connected to NATS server on port ${natsPort}`)
+
+  const lastColonIndex = appUrl.lastIndexOf(':');
+  const coloredUrl =
+    appUrl.slice(0, lastColonIndex) +
+    '\x1b[34m:\x1b[35m' + // blu + magenta
+    appUrl.slice(lastColonIndex + 1) +
+    '\x1b[0m';
+
+  logger.log(`Fastify listening on ${coloredUrl}`);
+
+  const lastColonIndexNats = natsUrl.lastIndexOf(':');
+  const coloredNatsUrl =
+    natsUrl.slice(0, lastColonIndexNats) +
+    '\x1b[34m:\x1b[35m' +
+    natsUrl.slice(lastColonIndexNats + 1) +
+    '\x1b[0m';
+
+  logger.log(`NATS client connected to NATS server on ${coloredNatsUrl}`);
+
 })()
 
