@@ -7,6 +7,7 @@ import { provideApollo, APOLLO_OPTIONS } from 'apollo-angular';
 import { InMemoryCache } from '@apollo/client/core';
 import { HttpLink } from 'apollo-angular/http';
 import { provideHttpClient } from '@angular/common/http';
+import { APP_BASE_HREF } from '@angular/common';
 
 
 const config: SocketIoConfig = { url: 'http://localhost:8888', options: {} }
@@ -24,5 +25,6 @@ export const appConfig: ApplicationConfig = {
         cache: new InMemoryCache(),
       };
     }),
+    { provide: APP_BASE_HREF, useValue: '/app' }
   ]
 };
