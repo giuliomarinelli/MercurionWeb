@@ -1,0 +1,27 @@
+{
+    "numberOfDocuments": 260500,
+    "rawDocumentDbSize": 1822253056,
+    "avgDocumentSize": 6987,
+    "isIndexing": false,
+    "numberOfEmbeddings": 0,
+    "numberOfEmbeddedDocuments": 0,
+    "fieldDistribution": {
+        "activities": 260500,
+        "administrationRoutes": 260500,
+        "blackBoxWarning": 260500,
+        "canonicalSmiles": 260500,
+        "cmbId": 260500,
+        "id": 260500,
+        "maxPhase": 260500,
+        "molFormula": 260500,
+        "moleculeType": 260500,
+        "naturalProduct": 260500,
+        "preferredName": 260500,
+        "prodrug": 260500,
+        "properties": 260500,
+        "standardInchi": 260500,
+        "standardInchiKey": 260500,
+        "synonyms": 260500,
+        "toxicityData": 260500
+    }
+}

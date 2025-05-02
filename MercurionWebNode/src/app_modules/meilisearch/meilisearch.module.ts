@@ -6,6 +6,7 @@ import { ChemblModule } from '../chembl/chembl.module';
 import { MoleculeDetailSyncService } from './services/molecule-detail-sync.service';
 import { MoleculeSearchService } from './services/molecule-search.service';
 import { MoleculeSearchResolver } from './resolvers/molecule-search-resolver';
+import { MeiliLoggerService } from './services/meili-logger.service';
 
 @Module({
     imports: [ChemblModule],
@@ -21,7 +22,8 @@ import { MoleculeSearchResolver } from './resolvers/molecule-search-resolver';
         },
         MoleculeDetailSyncService,
         MoleculeSearchService,
-        MoleculeSearchResolver
+        MoleculeSearchResolver,
+        MeiliLoggerService
     ],
     exports: [MoleculeSyncService, MoleculeDetailSyncService]
 
