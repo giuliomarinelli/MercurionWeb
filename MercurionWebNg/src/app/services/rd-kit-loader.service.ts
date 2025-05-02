@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { BASE_PATH } from './../pipes/base-path.token';
+import { Injectable, inject } from '@angular/core';
 import { defer, from, of } from 'rxjs';
 import { shareReplay } from 'rxjs/operators';
 import type { RDKitModule } from '@rdkit/rdkit';
@@ -8,6 +9,8 @@ declare global { interface Window { RDKit?: RDKitModule } }
 @Injectable({ providedIn: 'root' })
 export class RDKitLoaderService {
 
+  private basePath = inject(BASE_PATH)
+
   readonly instance$ = defer(() => {
     if (window.RDKit) return of(window.RDKit);
 
@@ -16,7 +19,7 @@ export class RDKitLoaderService {
     return from(
       import('@rdkit/rdkit').then(m =>
         (m as any).default({
-          locateFile: () => '/RDKit_minimal.wasm'
+          locateFile: () => this.basePath === '/app/' ? '/app/RDKit_minimal.wasm' : '/RDKit_minimal.wasm'
         }).then((rdk: RDKitModule | undefined) => (window.RDKit = rdk))
       )
     );
