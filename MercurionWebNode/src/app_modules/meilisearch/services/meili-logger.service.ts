@@ -63,17 +63,17 @@ export class MeiliLoggerService extends Logger implements LoggerService, OnModul
     }
 
     warn(message: string | object, context?: string): void {
-        super.warn(message, context);
+        super.warn(message, context)
         this.sendToMeili(this.createLogEntry('warn', message, context))
     }
 
     debug(message: string | object, context?: string): void {
-        super.debug(message, context);
+        super.debug(message, context)
         this.sendToMeili(this.createLogEntry('debug', message, context))
     }
 
     verbose(message: string | object, context?: string): void {
-        super.verbose(message, context);
+        super.verbose(message, context)
         this.sendToMeili(this.createLogEntry('verbose', message, context))
     }
 
