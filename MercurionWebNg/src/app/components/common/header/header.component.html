@@ -14,7 +14,7 @@
       }
       @if (designService.minBk("sm")()) {
       <a routerLink="/">
-        <img [ngSrc]="logoSrc()" alt="Mercurion" width="927" height="234" priority="true" class="w-[145px] h-auto">
+        <img [ngSrc]="logoSrc() | public" alt="Mercurion" width="927" height="234" priority="true" class="w-[145px] h-auto">
       </a>
       }
       @if (designService.minBk("lg")()) {
@@ -24,7 +24,7 @@
     </div>
     @if (designService.maxBk("xs")()) {
     <a routerLink="/">
-      <img [ngSrc]="logoSrc()" alt="Mercurion" width="927" height="234" priority="true"
+      <img [ngSrc]="logoSrc() | public" alt="Mercurion" width="927" height="234" priority="true"
         class="w-[128px] min-[350px]:w-[145px] h-auto">
     </a>
     }

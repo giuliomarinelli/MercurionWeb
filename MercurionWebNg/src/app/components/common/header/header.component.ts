@@ -6,6 +6,7 @@ import { DesignService } from '../../../services/design.service';
 import { NavComponent } from '../nav/nav.component';
 import { SearchContextService } from '../../../services/stores/search-context.service';
 import { RouterLink } from '@angular/router';
+import { PublicPipe } from '../../../pipes/public.pipe';
 
 @Component({
   selector: 'app-header',
@@ -13,7 +14,8 @@ import { RouterLink } from '@angular/router';
     NgOptimizedImage,
     NgClass,
     NavComponent,
-    RouterLink
+    RouterLink,
+    PublicPipe
   ],
   templateUrl: './header.component.html',
   styleUrl: './header.component.css'
@@ -21,9 +23,8 @@ import { RouterLink } from '@angular/router';
 export class HeaderComponent implements OnInit, OnDestroy {
 
   // Signal derivato per logoSrc
-
   readonly logoSrc = computed(() =>
-    this.themeManager.theme() === 'light' ? '/app/logo/complete-light-logo.svg' : '/app/logo/complete-dark-logo-2.svg'
+    this.themeManager.theme() === 'light' ? 'logo/complete-light-logo.svg' : 'logo/complete-dark-logo-2.svg'
   )
 
   constructor(
