@@ -50,6 +50,8 @@ export class MeiliLoggerService extends Logger implements LoggerService, OnModul
         }
     }
 
+    // sendToMeili => FIRE AND FORGET
+
     log(message: string | object, context?: string) {
         super.log(message, context)
         this.sendToMeili(this.createLogEntry('log', message, context))
