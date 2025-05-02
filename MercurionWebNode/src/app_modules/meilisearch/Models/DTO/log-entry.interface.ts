@@ -7,4 +7,4 @@ export interface LogEntry {
     message: string
     context?: string
     stack?: string
-  }
+}

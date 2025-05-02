@@ -80,8 +80,7 @@ export class MeiliLoggerService extends Logger implements LoggerService, OnModul
     
     fatal(message: string | object, context?: string): void {
         super.fatal(message, context)
-        this.sendToMeili(this.createLogEntry('verbose', message, context))
+        this.sendToMeili(this.createLogEntry('fatal', message, context))
     }
-
 
 }
