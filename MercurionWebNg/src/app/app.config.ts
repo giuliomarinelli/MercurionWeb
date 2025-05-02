@@ -25,6 +25,9 @@ export const appConfig: ApplicationConfig = {
         cache: new InMemoryCache(),
       };
     }),
-    { provide: APP_BASE_HREF, useValue: '/app' }
+    {
+      provide: APP_BASE_HREF,
+      useValue: '/app'
+    }
   ]
 };
