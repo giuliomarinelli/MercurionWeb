@@ -3,9 +3,10 @@ import { randomUUID } from 'crypto';
 import { MeiliSearch } from 'meilisearch';
 import { LogEntry } from '../Models/DTO/log-entry.interface';
 
+
 @Injectable()
 export class MeiliLoggerService extends Logger implements LoggerService, OnModuleInit {
-
+    
     private lastMeiliFailure = 0
 
     constructor(
@@ -50,7 +51,7 @@ export class MeiliLoggerService extends Logger implements LoggerService, OnModul
         }
     }
 
-    // OVERRIDES **** sendToMeili => FIRE AND FORGET
+    // **** OVERRIDES **** sendToMeili => FIRE AND FORGET
 
     log(message: string | object, context?: string): void {
         super.log(message, context)
@@ -74,6 +75,11 @@ export class MeiliLoggerService extends Logger implements LoggerService, OnModul
 
     verbose(message: string | object, context?: string): void {
         super.verbose(message, context)
+        this.sendToMeili(this.createLogEntry('verbose', message, context))
+    }
+    
+    fatal(message: string | object, context?: string): void {
+        super.fatal(message, context)
         this.sendToMeili(this.createLogEntry('verbose', message, context))
     }
 
