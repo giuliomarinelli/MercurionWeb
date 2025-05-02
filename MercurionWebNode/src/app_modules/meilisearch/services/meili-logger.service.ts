@@ -52,7 +52,7 @@ export class MeiliLoggerService extends Logger implements LoggerService, OnModul
 
     // sendToMeili => FIRE AND FORGET
 
-    log(message: string | object, context?: string) {
+    log(message: string | object, context?: string): void {
         super.log(message, context)
         this.sendToMeili(this.createLogEntry('log', message, context))
     }
@@ -62,17 +62,17 @@ export class MeiliLoggerService extends Logger implements LoggerService, OnModul
         this.sendToMeili(this.createLogEntry('error', message, context, stack))
     }
 
-    warn(message: string | object, context?: string) {
+    warn(message: string | object, context?: string): void {
         super.warn(message, context);
         this.sendToMeili(this.createLogEntry('warn', message, context))
     }
 
-    debug(message: string | object, context?: string) {
+    debug(message: string | object, context?: string): void {
         super.debug(message, context);
         this.sendToMeili(this.createLogEntry('debug', message, context))
     }
 
-    verbose(message: string | object, context?: string) {
+    verbose(message: string | object, context?: string): void {
         super.verbose(message, context);
         this.sendToMeili(this.createLogEntry('verbose', message, context))
     }
