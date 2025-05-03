@@ -7,22 +7,22 @@
 
 /* ========= tema scuro (classe .dark sul <html>) ========= */
 html.dark ngx-spinner[name="globalSpinner"] .la-ball-atom {
-  color: var(--dark-electron);
-  filter: contrast(1.25);
+  color: var(--dark-electron) !important;
+  filter: contrast(1.25) !important;
 }
 
 html.dark ngx-spinner[name="globalSpinner"] .la-ball-atom>div:first-child {
-  background: var(--dark-nucleus);
-  filter: contrast(1.125);
+  background: var(--dark-nucleus) !important;
+  filter: contrast(1.125) !important;
 }
 
 /* ========= tema chiaro (qualunque stato SENZA .dark) ========= */
 html:not(.dark) ngx-spinner[name="globalSpinner"] .la-ball-atom {
-  color: var(--light-electron);
-  filter: contrast(1.8);
+  color: var(--light-electron) !important;
+  filter: contrast(1.8) !important;
 }
 
 html:not(.dark) ngx-spinner[name="globalSpinner"] .la-ball-atom>div:first-child {
-  background: var(--light-nucleus);
-  filter: contrast(1.125);
+  background: var(--light-nucleus) !important;
+  filter: contrast(1.125) !important;
 }
