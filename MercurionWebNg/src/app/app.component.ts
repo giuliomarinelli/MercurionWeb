@@ -7,6 +7,7 @@ import { SearchOverlayComponent } from './components/search-overlay/search-overl
 import { SearchContextService } from './services/stores/search-context.service';
 import { FooterComponent } from './components/common/footer/footer.component';
 import { ChemSpinnerComponent } from './components/common/spinner/chem-spinner.component';
+import { NgxxSpinnerComponent } from './components/common/ngxx-spinner/ngxx-spinner.component';
 
 
 
@@ -19,7 +20,7 @@ import { ChemSpinnerComponent } from './components/common/spinner/chem-spinner.c
     MoleculeViewerComponent,
     SearchOverlayComponent,
     FooterComponent,
-    ChemSpinnerComponent
+    NgxxSpinnerComponent
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'

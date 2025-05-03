@@ -32,5 +32,6 @@ export const appConfig: ApplicationConfig = {
     },
     provideAnimations(),
     importProvidersFrom(NgxSpinnerModule)
+
   ]
 };
