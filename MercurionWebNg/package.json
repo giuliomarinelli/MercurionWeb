@@ -10,6 +10,7 @@
   },
   "private": true,
   "dependencies": {
+    "@angular/animations": "^19.2.5",
     "@angular/cdk": "^19.2.9",
     "@angular/common": "^19.2.0",
     "@angular/compiler": "^19.2.0",
@@ -23,6 +24,7 @@
     "apollo-angular": "^10.0.3",
     "graphql": "^16.11.0",
     "ngx-socket-io": "^4.8.5",
+    "ngx-spinner": "^19.0.0",
     "rxjs": "~7.8.0",
     "smiles-drawer": "^2.1.7",
     "tslib": "^2.3.0",

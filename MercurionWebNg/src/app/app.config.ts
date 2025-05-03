@@ -8,7 +8,8 @@ import { InMemoryCache } from '@apollo/client/core';
 import { HttpLink } from 'apollo-angular/http';
 import { provideHttpClient } from '@angular/common/http';
 import { APP_BASE_HREF } from '@angular/common';
-
+import { provideAnimations } from '@angular/platform-browser/animations'
+import { NgxSpinnerModule } from 'ngx-spinner';
 
 const config: SocketIoConfig = { url: 'http://localhost:8888', options: {} }
 
@@ -28,6 +29,8 @@ export const appConfig: ApplicationConfig = {
     {
       provide: APP_BASE_HREF,
       useValue: '/app'
-    }
+    },
+    provideAnimations(),
+    importProvidersFrom(NgxSpinnerModule)
   ]
 };

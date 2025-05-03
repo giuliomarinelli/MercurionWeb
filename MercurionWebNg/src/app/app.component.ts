@@ -1,4 +1,4 @@
-import { Component, computed, OnInit, Signal } from '@angular/core';
+import { Component, computed, Signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { HeaderComponent } from './components/common/header/header.component';
 import { MoleculeViewerComponent } from './components/chem/molecule-viewer/molecule-viewer.component';
@@ -6,6 +6,8 @@ import { ThemeManagerService } from './services/stores/theme-manager.service';
 import { SearchOverlayComponent } from './components/search-overlay/search-overlay/search-overlay.component';
 import { SearchContextService } from './services/stores/search-context.service';
 import { FooterComponent } from './components/common/footer/footer.component';
+import { ChemSpinnerComponent } from './components/common/spinner/chem-spinner.component';
+
 
 
 @Component({
@@ -15,7 +17,8 @@ import { FooterComponent } from './components/common/footer/footer.component';
     HeaderComponent,
     MoleculeViewerComponent,
     SearchOverlayComponent,
-    FooterComponent
+    FooterComponent,
+    ChemSpinnerComponent
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
