@@ -13,7 +13,7 @@ export abstract class MoleculeCollectionItemEntity {
     @Column()
     userId: UUID
 
-    @Column({ nullable: true })
+    @Column({ nullable: true, type: 'varchar' })
     label: string | null
 
     @Column({ nullable: true, type: 'text' })
