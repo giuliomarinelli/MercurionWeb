@@ -1,5 +1,5 @@
 import { UUID } from "crypto";
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
+import { BeforeInsert, Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 import { User } from "./user.entity";
 import { uuidv7 } from "@kripod/uuidv7";
 
@@ -7,7 +7,7 @@ import { uuidv7 } from "@kripod/uuidv7";
 export class MfaBackupCode {
 
     @PrimaryColumn()
-    id: UUID = uuidv7() as UUID
+    id: UUID
 
     @Column()
     hash: string
@@ -24,5 +24,10 @@ export class MfaBackupCode {
     @ManyToOne(() => User, user => user.backupCodes, { onDelete: 'CASCADE', nullable: false })
     @JoinColumn()
     user: User
+
+    @BeforeInsert()
+    private generateId() {
+        this.id = uuidv7() as UUID
+    }
 
 }

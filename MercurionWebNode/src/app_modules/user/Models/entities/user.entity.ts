@@ -1,6 +1,6 @@
 import { uuidv7 } from '@kripod/uuidv7';
 import { UUID } from "crypto"
-import { Column, Entity, OneToMany, PrimaryColumn } from "typeorm"
+import { BeforeInsert, Column, Entity, OneToMany, PrimaryColumn } from "typeorm"
 import { MfaBackupCode } from "./backup-code.entity"
 import { MoleculeCollection } from './molecule-collection.entity';
 
@@ -8,7 +8,7 @@ import { MoleculeCollection } from './molecule-collection.entity';
 export class User {
 
     @PrimaryColumn()
-    id: UUID = uuidv7() as UUID
+    id: UUID
 
     @Column({ type: 'varchar', unique: true, default: null })
     email: string | null // nullo fino ad attivazione account con conferma email con link
@@ -63,5 +63,10 @@ export class User {
 
     @OneToMany(() => MoleculeCollection, collection => collection.user)
     collections: MoleculeCollection[]
+
+    @BeforeInsert()
+    private generateId() {
+        this.id = uuidv7() as UUID
+    }
 
 }
