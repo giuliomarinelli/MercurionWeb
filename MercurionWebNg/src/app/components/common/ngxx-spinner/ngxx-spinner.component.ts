@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { ThemeManagerService } from '../../../services/stores/theme-manager.service';
 import { NgxSpinner, NgxSpinnerModule, NgxSpinnerService } from 'ngx-spinner';
 
@@ -15,15 +15,21 @@ export class NgxxSpinnerComponent implements OnInit {
     private readonly spinner: NgxSpinnerService
   ) { }
 
+  private darkThemeColor: string = '#60A5FA'
+  private lightThemeColor: string = '#2563EB'
+
+  @Input() isLoading: boolean = true
+
   ngOnInit(): void {
     queueMicrotask(() =>
       this.spinner.show('globalSpinner', {
         type: 'ball-atom',
-        size: 'large',
+        size: 'medium',
         bdColor: 'rgba(0, 0, 0, 0.6)',
-        color: '#ffffff'
+        color: this.themeManager.theme() === 'light' ? this.lightThemeColor : this.darkThemeColor,
       })
     )
+    // setTimeout(() => this.isLoading = false, 5000)
   }
 
 }
