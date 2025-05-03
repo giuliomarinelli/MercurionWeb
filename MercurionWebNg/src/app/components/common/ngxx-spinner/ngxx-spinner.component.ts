@@ -9,9 +9,10 @@ import { LoadingContextService } from '../../../services/stores/loading-context.
   templateUrl: './ngxx-spinner.component.html',
   styleUrl: './ngxx-spinner.component.css'
 })
-export class NgxxSpinnerComponent implements OnInit {
+export class NgxxSpinnerComponent {
 
-  private bdColor!: string
+  private lightThemeColor: string = '#2563EB'
+  private darkThemeColor: string = '#60A5FA'
 
   constructor(
     private readonly themeManager: ThemeManagerService,
@@ -19,24 +20,14 @@ export class NgxxSpinnerComponent implements OnInit {
     protected readonly loadingContext: LoadingContextService
   ) {
     effect(() => {
-      this.bdColor = `rgba(0, 0, 0, ${this.themeManager.theme() === 'light' ? '0.25' : '0.625'})`
-      console.log(this.bdColor)
-    })
-   }
-
-  private darkThemeColor: string = '#60A5FA'
-  private lightThemeColor: string = '#2563EB'
-
-  ngOnInit(): void {
-    queueMicrotask(() => {
+      const bdColor = `rgba(0, 0, 0, ${this.themeManager.theme() === 'light' ? '0.25' : '0.625'})`
       this.spinner.show('globalSpinner', {
         type: 'ball-atom',
         size: 'medium',
-        bdColor: this.bdColor,
+        bdColor,
         color: this.themeManager.theme() === 'light' ? this.lightThemeColor : this.darkThemeColor,
       })
     })
-    // setTimeout(() => this.isLoading = false, 5000)
   }
 
 }
