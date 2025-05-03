@@ -1,4 +1,5 @@
 import { Component, computed, signal } from '@angular/core';
+import { LoadingContextService } from '../../services/stores/loading-context.service';
 
 @Component({
   selector: 'app-color-palette',
@@ -8,5 +9,11 @@ import { Component, computed, signal } from '@angular/core';
 })
 export class ColorPaletteComponent {
 
+  constructor(private loadingContext: LoadingContextService) {}
+
+  load(): void {
+    this.loadingContext.start()
+    setTimeout(() => this.loadingContext.stop(), 5000)
+  }
 
 }

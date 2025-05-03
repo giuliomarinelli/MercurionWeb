@@ -1,6 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { ThemeManagerService } from '../../../services/stores/theme-manager.service';
-import { NgxSpinner, NgxSpinnerModule, NgxSpinnerService } from 'ngx-spinner';
+import { NgxSpinnerModule, NgxSpinnerService } from 'ngx-spinner';
+import { LoadingContextService } from '../../../services/stores/loading-context.service';
 
 @Component({
   selector: 'app-ngxx-spinner',
@@ -12,7 +13,8 @@ export class NgxxSpinnerComponent implements OnInit {
 
   constructor(
     private readonly themeManager: ThemeManagerService,
-    private readonly spinner: NgxSpinnerService
+    private readonly spinner: NgxSpinnerService,
+    protected readonly loadingContext: LoadingContextService
   ) { }
 
   private darkThemeColor: string = '#60A5FA'
