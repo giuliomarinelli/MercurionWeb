@@ -19,6 +19,7 @@ export class NgxxSpinnerComponent implements OnInit {
   private lightThemeColor: string = '#2563EB'
 
   @Input() isLoading: boolean = true
+  @Input() isGlobal: boolean = true
 
   ngOnInit(): void {
     queueMicrotask(() =>

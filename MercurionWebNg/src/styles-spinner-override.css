@@ -1,0 +1,24 @@
+:root {
+  --light-electron: #2563EB;
+  --light-nucleus: #10b981ea;
+  --dark-electron: #60A5FA;
+  --dark-nucleus: #cad5e2;
+}
+
+/* ========= tema scuro (classe .dark sul <html>) ========= */
+html.dark ngx-spinner[name="globalSpinner"] .la-ball-atom {
+  color: var(--dark-electron) !important;
+}
+
+html.dark ngx-spinner[name="globalSpinner"] .la-ball-atom>div:first-child {
+  background: var(--dark-nucleus) !important;
+}
+
+/* ========= tema chiaro (qualunque stato SENZA .dark) ========= */
+html:not(.dark) ngx-spinner[name="globalSpinner"] .la-ball-atom {
+  color: var(--light-electron) !important;
+}
+
+html:not(.dark) ngx-spinner[name="globalSpinner"] .la-ball-atom>div:first-child {
+  background: var(--light-nucleus) !important;
+}
