@@ -8,5 +8,17 @@
 @if (searchContextService.isMounted()) {
 <app-search-overlay />
 }
-<chem-spinner />
+<!-- 1) Dimensione via prop -->
+<chem-spinner [size]="80" class="text-cyan-500" />
+
+<!-- 2) Dimensione via Tailwind utility, colori separati -->
+<chem-spinner class="w-24 h-24"
+              bondClass="stroke-emerald-500"
+              atomClass="fill-amber-400" />
+
+<!-- 3) Con overlay personalizzato -->
+<chem-spinner [overlay]="true"
+              overlayClass="bg-black/40 backdrop-blur-sm"
+              class="w-16 h-16 text-indigo-600" />
+
 <app-footer class="block" />

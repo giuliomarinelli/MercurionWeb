@@ -1,4 +1,4 @@
-import { Component, computed, Signal } from '@angular/core';
+import { Component, computed, CUSTOM_ELEMENTS_SCHEMA, Signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { HeaderComponent } from './components/common/header/header.component';
 import { MoleculeViewerComponent } from './components/chem/molecule-viewer/molecule-viewer.component';
@@ -12,6 +12,7 @@ import { ChemSpinnerComponent } from './components/common/spinner/chem-spinner.c
 
 @Component({
   selector: 'app-root',
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   imports: [
     RouterOutlet,
     HeaderComponent,
