@@ -4,8 +4,8 @@ import { MoleculeCollectionItemEntity } from './molecule-collection-item.entity'
 @ChildEntity('custom')
 export class CustomMoleculeItemEntity extends MoleculeCollectionItemEntity {
 
-    @Column()
-    canonicalSmiles: string;
+    @Column({ type: 'text' })
+    canonicalSmiles: string
 
     @Column({ type: 'text', nullable: true })
     molFormula: string | null

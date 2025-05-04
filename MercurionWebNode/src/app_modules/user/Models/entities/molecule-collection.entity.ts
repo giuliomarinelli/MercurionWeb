@@ -7,7 +7,7 @@ import { MoleculeCollectionItemJoin } from "./molecule-collection-item-join.enti
 @Entity('molecule_collections')
 export class MoleculeCollection {
 
-    @PrimaryColumn()
+    @PrimaryColumn({ type: 'uuid' })
     id: UUID
 
     @Column()

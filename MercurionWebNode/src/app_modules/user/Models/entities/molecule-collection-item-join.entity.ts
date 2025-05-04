@@ -6,8 +6,8 @@ import { uuidv7 } from "@kripod/uuidv7";
 
 @Entity('molecule_collection_items_join')
 export class MoleculeCollectionItemJoin {
-    
-    @PrimaryColumn()
+
+    @PrimaryColumn({ type: 'uuid' })
     id: UUID
 
     @ManyToOne(() => MoleculeCollection, collection => collection.items)

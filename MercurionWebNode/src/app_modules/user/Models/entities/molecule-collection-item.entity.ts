@@ -7,10 +7,10 @@ import { MoleculeCollectionItemJoin } from './molecule-collection-item-join.enti
 @TableInheritance({ column: { type: 'varchar', name: 'type' } })
 export abstract class MoleculeCollectionItemEntity {
 
-    @PrimaryColumn()
+    @PrimaryColumn({ type: 'uuid' })
     id: UUID
 
-    @Column()
+    @Column({ type: 'uuid', unique: true })
     userId: UUID
 
     @Column({ nullable: true, type: 'varchar' })

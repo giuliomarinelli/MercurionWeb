@@ -7,7 +7,7 @@ import { MoleculeCollection } from './molecule-collection.entity';
 @Entity({ name: 'users' })
 export class User {
 
-    @PrimaryColumn()
+    @PrimaryColumn({ type: 'uuid' })
     id: UUID
 
     @Column({ type: 'varchar', unique: true, default: null })

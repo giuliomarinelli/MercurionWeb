@@ -6,7 +6,7 @@ import { uuidv7 } from "@kripod/uuidv7";
 @Entity({ name: 'backup_codes' })
 export class MfaBackupCode {
 
-    @PrimaryColumn()
+    @PrimaryColumn({ type: 'uuid' })
     id: UUID
 
     @Column()
