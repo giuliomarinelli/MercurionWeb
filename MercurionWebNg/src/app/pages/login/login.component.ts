@@ -54,24 +54,50 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   goToPasswordStep(): void {
-    this.firstStepSubscription = this.authService.login_stepZero({ email: this.loginForm.value['email'] }).subscribe({
-      next: res => {
-        this.step.set(2)
-      },
-      error: err => {
-        this.serverErrorStep.set(1)
-        console.error(err.error)
-        const body = err.error as HttpErrorRes
-        if (body.statusCode === 400) {
-          // handle bad request
-        } else if (body.statusCode === 401) {
+    if (this.loginForm.controls['email'].valid) {
+      this.firstStepSubscription = this.authService.login_stepZero({ email: this.loginForm.value['email'] }).subscribe({
+        next: () => {
+          this.step.set(2)
+        },
+        error: err => {
           this.serverErrorStep.set(1)
+          console.error(err.error)
+          const body = err.error as HttpErrorRes
+          if (body.statusCode === 400) {
+            // handle bad request
+          } else if (body.statusCode === 401) {
+            this.serverErrorStep.set(1)
+          } else {
+            sessionStorage?.setItem('lastHttpErr', btoa(JSON.stringify(body)))
+            this.router.navigate(['/'])
+          }
         }
-      }
-    })
+      })
+    }
   }
 
-  onSubmit(): void { }
+  onSubmit(): void {
+    if (this.loginForm.valid) {
+      this.firstStepSubscription = this.authService.login_stepZero({ email: this.loginForm.value['email'] }).subscribe({
+        next: () => {
+          this.step.set(2)
+        },
+        error: err => {
+          this.serverErrorStep.set(1)
+          console.error(err.error)
+          const body = err.error as HttpErrorRes
+          if (body.statusCode === 400) {
+            // handle bad request
+          } else if (body.statusCode === 401) {
+            this.serverErrorStep.set(1)
+          } else {
+            sessionStorage?.setItem('lastHttpErr', btoa(JSON.stringify(body)))
+            this.router.navigate(['/'])
+          }
+        }
+      })
+    }
+  }
 
   ngOnDestroy(): void {
     this.firstStepSubscription?.unsubscribe()

@@ -15,4 +15,8 @@ export class AuthService {
     return this.http.post<ConfirmDTO>('/api/authentication/login/0', emailDTO, { withCredentials: true })
   }
 
+  public login_firstStep(emailDTO: EmailDTO): Observable<ConfirmDTO> {
+    return this.http.post<ConfirmDTO>('/api/authentication/login/0', emailDTO, { withCredentials: true })
+  }
+
 }

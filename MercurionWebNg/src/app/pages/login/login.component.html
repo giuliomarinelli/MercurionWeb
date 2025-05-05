@@ -19,6 +19,7 @@
         class="peer w-full px-3 pt-5 pb-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         placeholder=" "
         required
+        (input)="serverErrorStep.set(0)"
       />
       <label
         for="email"
@@ -32,7 +33,7 @@
             Formato e-mail non corretto
           }
         } @else if (serverErrorStep() === 1) {
-            L'e-mail inserita non è valida
+            L'e-mail inserita non è corretta
         }
       </div>
     </div>
@@ -49,14 +50,21 @@
         class="peer w-full px-3 pt-5 pb-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         placeholder=" "
         required
+        (input)="serverErrorStep.set(0)"
       />
       <label
         for="password"
         class="absolute left-3 top-2 text-sm text-gray-500 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 transition-all"
       >Password</label>
       <div class="text-sm text-red-600 mt-1">
-        @if (loginForm.controls['password'].invalid && loginForm.controls['password'].touched) {
-          Password obbligatoria.
+        @if (loginForm.controls['password'].invalid && loginForm.controls['password'].touched && serverErrorStep() === 0) {
+          @if (emptyPassword()) {
+            Password obbligatoria.
+          } @else if (malformedEmail()) {
+            Formato e-mail non corretto.
+          }
+        } @else if (serverErrorStep() === 2) {
+            La password inserita non è corretta.
         }
       </div>
     </div>
