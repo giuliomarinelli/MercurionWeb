@@ -1,6 +1,6 @@
 import { IsEmail, IsString, Matches } from "class-validator";
 
-export class ChangeEmailDTO {
+export class EmailDTO {
 
     @IsString()
     @IsEmail()

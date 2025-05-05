@@ -10,7 +10,7 @@ import { MfaService } from '../services/mfa.service';
 import { UUID } from 'crypto';
 import { TotpDTO } from '../Models/DTO/totp.cls.dto';
 import { ChangePhoneDTO } from '../Models/DTO/change-phone.cls.dto';
-import { ChangeEmailDTO } from '../Models/DTO/change-email.cls.dto';
+import { EmailDTO } from '../Models/DTO/change-email.cls.dto';
 
 @Controller('account')
 export class AccountController {
@@ -39,7 +39,7 @@ export class AccountController {
     @Patch('/email/1')
     public async changeEmail_firstStep(
         @AuthenticatedUserId() userId: UUID,
-        @Body(new ValidationPipe({ transform: true })) dto: ChangeEmailDTO
+        @Body(new ValidationPipe({ transform: true })) dto: EmailDTO
     ): Promise<ConfirmChangeDTO> {
         return await this.accountService.changeEmail_firstStep_requestTotp(userId, dto.email)
     }

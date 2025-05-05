@@ -6,13 +6,14 @@ import { Authorization, DeviceId, Public } from 'src/metadata/metadata';
 import { UUID } from 'crypto';
 import { Authentication } from '../Models/interfaces/authentication.interface';
 import { ResponseService } from 'src/services/response.service';
-import { Confirm_Login_FirstStepDTO, ConfirmWithAccessTokenDTO, ConfirmWithTotpMetaDTO } from 'src/Models/confirm-responses.dto';
+import { Confirm_Login_FirstStepDTO, ConfirmDTO, ConfirmWithAccessTokenDTO, ConfirmWithTotpMetaDTO } from 'src/Models/confirm-responses.dto';
 import { TestPhoneDTO } from '../Models/DTO/test-phone.cls.dto';
 import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum';
 import { GeneralUtils } from 'src/general-utils/general-utils';
 import { TotpBodyDTO } from '../Models/DTO/totp.cls.dto';
 import { JwtToolsService } from '../services/jwt-tools.service';
 import { TokenType } from '../Models/enums/token-type.enum';
+import { EmailDTO } from '../Models/DTO/change-email.cls.dto';
 
 @Controller('authentication')
 export class AuthenticationController {
@@ -23,6 +24,16 @@ export class AuthenticationController {
         private readonly jwtTools: JwtToolsService,
         private readonly _r: ResponseService
     ) { }
+
+    @Public()
+    @Post('login/0')
+    @HttpCode(HttpStatus.OK)
+    public async login_zeroStep(@Body(new ValidationPipe({ transform: true })) { email }: EmailDTO): Promise<ConfirmDTO> {
+        if (!await this.authService.verifyEmail(email)) {
+            throw new UnauthorizedException()
+        }
+        return this._r.ok('Email successfully verified')
+    }
 
     @Public()
     @Post('login/1')

@@ -79,4 +79,8 @@ export class AuthenticationService {
 
     }
 
+    public async verifyEmail(email: string): Promise<boolean> {
+        return this.userService.existsUserByEmail(email)
+    }
+
 }
