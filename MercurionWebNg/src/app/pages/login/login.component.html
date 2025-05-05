@@ -1,0 +1,87 @@
+<!-- login-placeholder-mercurion.component.html -->
+<div class="min-h-screen flex flex-col items-center justify-center px-4 py-8 bg-gray-50">
+  <!-- Logo -->
+  <img src="/assets/logo.svg" alt="Mercurion Logo" class="w-12 h-12 mb-4" />
+
+  <!-- Welcome Message -->
+  <h1 class="text-2xl font-semibold text-gray-900 mb-6 text-center">Ci fa piacere rivederti</h1>
+
+  <!-- Step-based Form -->
+  <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="w-full max-w-sm space-y-6">
+    <!-- Step 1: Email -->
+    <div *ngIf="step === 1">
+      <div class="relative">
+        <input
+          type="email"
+          formControlName="email"
+          id="email"
+          class="peer w-full px-3 pt-5 pb-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder=" "
+          required
+        />
+        <label
+          for="email"
+          class="absolute left-3 top-2 text-sm text-gray-500 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 transition-all"
+        >Indirizzo e-mail</label>
+        <div *ngIf="email.invalid && email.touched" class="text-sm text-red-600 mt-1">
+          E-mail obbligatoria.
+        </div>
+      </div>
+      <button type="button" (click)="goToPasswordStep()" [disabled]="email.invalid" class="w-full mt-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700">Continua</button>
+    </div>
+
+    <!-- Step 2: Password -->
+    <div *ngIf="step === 2">
+      <div class="relative">
+        <input
+          type="password"
+          formControlName="password"
+          id="password"
+          class="peer w-full px-3 pt-5 pb-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder=" "
+          required
+        />
+        <label
+          for="password"
+          class="absolute left-3 top-2 text-sm text-gray-500 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 transition-all"
+        >Password</label>
+        <div *ngIf="password.invalid && password.touched" class="text-sm text-red-600 mt-1">
+          Password obbligatoria.
+        </div>
+      </div>
+      <button type="submit" [disabled]="password.invalid" class="w-full mt-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700">Accedi</button>
+    </div>
+
+    <!-- Register & Social Login Placeholder -->
+    <div class="text-sm text-center text-gray-600">
+      Non hai un account?
+      <a href="/register" class="text-emerald-600 hover:underline">Registrati</a>
+    </div>
+
+    <div class="relative py-2">
+      <div class="absolute inset-0 flex items-center">
+        <div class="w-full border-t"></div>
+      </div>
+      <div class="relative flex justify-center text-sm">
+        <span class="bg-gray-50 px-2 text-gray-500">OPPURE</span>
+      </div>
+    </div>
+
+    <!-- Social buttons placeholder -->
+    <div class="space-y-2">
+      <button type="button" class="w-full flex items-center justify-center border rounded-md py-2 text-sm hover:bg-gray-100">
+        <img src="/assets/google.svg" alt="Google" class="w-5 h-5 mr-2" /> Continua con Google
+      </button>
+      <button type="button" class="w-full flex items-center justify-center border rounded-md py-2 text-sm hover:bg-gray-100">
+        <img src="/assets/microsoft.svg" alt="Microsoft" class="w-5 h-5 mr-2" /> Continua con Microsoft
+      </button>
+      <button type="button" class="w-full flex items-center justify-center border rounded-md py-2 text-sm hover:bg-gray-100">
+        <img src="/assets/apple.svg" alt="Apple" class="w-5 h-5 mr-2" /> Continua con Apple
+      </button>
+    </div>
+
+    <div class="text-xs text-center text-gray-400 mt-4">
+      <a href="#" class="hover:underline">Condizioni d'uso</a> · <a href="#" class="hover:underline">Informativa sulla privacy</a>
+    </div>
+  </form>
+</div>
