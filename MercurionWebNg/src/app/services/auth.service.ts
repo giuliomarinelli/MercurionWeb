@@ -1,5 +1,6 @@
+import { Confirm_Login_FirstStepDTO } from './../Models/types/interfaces/confirm.responses';
 import { Injectable } from '@angular/core';
-import { EmailDTO } from '../Models/types/auth/DTO/login.dtos';
+import { EmailDTO, Login_FirstStepDTO } from '../Models/types/auth/DTO/login.dtos';
 import { ConfirmDTO } from '../Models/types/interfaces/confirm.responses';
 import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
@@ -15,8 +16,8 @@ export class AuthService {
     return this.http.post<ConfirmDTO>('/api/authentication/login/0', emailDTO, { withCredentials: true })
   }
 
-  public login_firstStep(emailDTO: EmailDTO): Observable<ConfirmDTO> {
-    return this.http.post<ConfirmDTO>('/api/authentication/login/0', emailDTO, { withCredentials: true })
+  public login_firstStep(loginDTO: Login_FirstStepDTO): Observable<Confirm_Login_FirstStepDTO> {
+    return this.http.post<Confirm_Login_FirstStepDTO>('/api/authentication/login/1', loginDTO, { withCredentials: true })
   }
 
 }

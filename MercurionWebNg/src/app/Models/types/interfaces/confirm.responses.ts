@@ -14,6 +14,13 @@ export type ConfirmWithAccessTokenDTO = ConfirmDTO & {
     accessToken: string
 }
 
+export interface AuthenticationData {
+  obscuredEmail?: string
+  obscuredPhoneNumber?: string
+  needsMfa: boolean
+  enabledMfaStrategies: string[]
+}
+
 // export type ConfirmMfaChange = ConfirmDTO & MfaAuthMetadata
 
 // export type ConfirmChangeDTO = ConfirmWithObsContDTO & TotpMetadata & {
@@ -21,9 +28,9 @@ export type ConfirmWithAccessTokenDTO = ConfirmDTO & {
 //     phoneNumberVerificationToken?: string
 // }
 
-// export type Confirm_Login_FirstStepDTO = ConfirmDTO & Omit<Authentication, 'userId' | 'sessionId'> & {
-//     preAuthorizationToken?: string
-//     accessToken?: string
-// }
+export type Confirm_Login_FirstStepDTO = ConfirmDTO & AuthenticationData & {
+    preAuthorizationToken?: string
+    accessToken?: string
+}
 
 // export type ConfirmWithTotpMetaDTO = ConfirmDTO & TotpMetadata

@@ -5,7 +5,7 @@ import { PublicPipe } from '../../pipes/public.pipe';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { Subscription } from 'rxjs';
-import { HttpErrorRes } from '../../Models/error-res.dto';
+import { HttpErrorRes } from '../../Models/types/interfaces/error-res.dto';
 
 
 @Component({
