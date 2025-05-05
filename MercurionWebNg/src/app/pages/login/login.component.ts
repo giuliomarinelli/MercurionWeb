@@ -5,6 +5,7 @@ import { PublicPipe } from '../../pipes/public.pipe';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { Subscription } from 'rxjs';
+import { HttpErrorRes } from '../../Models/error-res.dto';
 
 
 @Component({
@@ -21,9 +22,13 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   protected step = signal<1 | 2>(1)
   protected serverErrorStep = signal<0 | 1 | 2>(0)
+  protected emptyEmail = signal<boolean>(false)
+  protected emptyPassword = signal<boolean>(false)
+  protected malformedEmail = signal<boolean>(false)
 
   private firstStepSubscription: Subscription | undefined
   private secondStepSubscription: Subscription | undefined
+  private emailStatusChangeSubscription: Subscription | undefined
 
   constructor(
     private readonly fb: FormBuilder,
@@ -32,21 +37,36 @@ export class LoginComponent implements OnInit, OnDestroy {
     private readonly authService: AuthService
   ) { }
 
+  ngDoCheck() {
+    console.log(this.emptyEmail(), this.malformedEmail())
+  }
 
   ngOnInit(): void {
     this.loginForm = this.fb.group({
       email: this.fb.control(null, [Validators.required, Validators.email]),
       password: this.fb.control(null, [Validators.required])
     })
+    this.emailStatusChangeSubscription = this.loginForm.controls['email'].statusChanges.subscribe(() => {
+      const control = this.loginForm.controls['email']
+      this.emptyEmail.set(control.errors?.['required'] ?? false)
+      this.malformedEmail.set(control.errors?.['email'] ?? false)
+    })
   }
 
   goToPasswordStep(): void {
-    this.authService.login_stepZero(this.loginForm.value['email']).subscribe({
+    this.firstStepSubscription = this.authService.login_stepZero({ email: this.loginForm.value['email'] }).subscribe({
       next: res => {
         this.step.set(2)
       },
       error: err => {
         this.serverErrorStep.set(1)
+        console.error(err.error)
+        const body = err.error as HttpErrorRes
+        if (body.statusCode === 400) {
+          // handle bad request
+        } else if (body.statusCode === 401) {
+          this.serverErrorStep.set(1)
+        }
       }
     })
   }
@@ -56,6 +76,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.firstStepSubscription?.unsubscribe()
     this.secondStepSubscription?.unsubscribe()
+    this.emailStatusChangeSubscription?.unsubscribe()
   }
 
 

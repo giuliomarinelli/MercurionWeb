@@ -25,8 +25,14 @@
         class="absolute left-3 top-2 text-sm text-gray-500 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 transition-all"
       >Indirizzo e-mail</label>
       <div class="text-sm text-red-600 mt-1 min-h-5">
-        @if (loginForm.controls['email'].invalid && loginForm.controls['email'].touched) {
-          E-mail obbligatoria.
+        @if (loginForm.controls['email'].invalid && loginForm.controls['email'].touched && serverErrorStep() === 0) {
+          @if (emptyEmail()) {
+            E-mail obbligatoria.
+          } @else if (malformedEmail()) {
+            Formato e-mail non corretto
+          }
+        } @else if (serverErrorStep() === 1) {
+            L'e-mail inserita non è valida
         }
       </div>
     </div>
