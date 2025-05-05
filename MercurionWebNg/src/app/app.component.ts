@@ -1,5 +1,5 @@
-import { Component, computed, CUSTOM_ELEMENTS_SCHEMA, Signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, computed, CUSTOM_ELEMENTS_SCHEMA, OnDestroy, OnInit, Signal } from '@angular/core';
+import { GuardsCheckEnd, GuardsCheckStart, NavigationCancel, NavigationEnd, NavigationError, NavigationStart, ResolveEnd, ResolveStart, Router, RouterOutlet, RoutesRecognized } from '@angular/router';
 import { HeaderComponent } from './components/common/header/header.component';
 import { MoleculeViewerComponent } from './components/chem/molecule-viewer/molecule-viewer.component';
 import { ThemeManagerService } from './services/stores/theme-manager.service';
@@ -8,6 +8,7 @@ import { SearchContextService } from './services/stores/search-context.service';
 import { FooterComponent } from './components/common/footer/footer.component';
 import { ChemSpinnerComponent } from './components/common/spinner/chem-spinner.component';
 import { NgxxSpinnerComponent } from './components/common/ngxx-spinner/ngxx-spinner.component';
+import { filter, Subscription } from 'rxjs';
 
 
 
@@ -25,7 +26,7 @@ import { NgxxSpinnerComponent } from './components/common/ngxx-spinner/ngxx-spin
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
-export class AppComponent {
+export class AppComponent implements OnInit, OnDestroy {
 
   title = 'MercurionWebNg'
 
@@ -34,9 +35,53 @@ export class AppComponent {
 
   isDarkTheme: Signal<boolean> = computed(() => this.themeManagerService.theme() === 'dark')
 
+  private subs: Subscription | undefined
+
   constructor(
     private readonly themeManagerService: ThemeManagerService,
-    protected readonly searchContextService: SearchContextService
+    protected readonly searchContextService: SearchContextService,
+    private readonly router: Router
   ) { }
+
+  ngOnInit(): void {
+    this.subs = this.router.events.subscribe(event => {
+      switch (event.constructor) {
+        case NavigationStart:
+          console.log('🔵 NavigationStart:', event);
+          break;
+        case RoutesRecognized:
+          console.log('🟡 RoutesRecognized:', event);
+          break;
+        case GuardsCheckStart:
+          console.log('🟠 GuardsCheckStart:', event);
+          break;
+        case GuardsCheckEnd:
+          console.log('🟠 GuardsCheckEnd:', event);
+          break;
+        case ResolveStart:
+          console.log('🟣 ResolveStart:', event);
+          break;
+        case ResolveEnd:
+          console.log('🟣 ResolveEnd:', event);
+          break;
+        case NavigationCancel:
+          console.warn('⛔ NavigationCancel:', event);
+          break;
+        case NavigationError:
+          console.error('❌ NavigationError:', event);
+          break;
+        case NavigationEnd:
+          console.log('✅ NavigationEnd:', event);
+          break;
+      }
+    })
+  }
+
+  ngOnDestroy(): void {
+    this.subs?.unsubscribe()
+  }
+
+
+
 
 }

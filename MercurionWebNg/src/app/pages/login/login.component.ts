@@ -6,6 +6,8 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { Subscription } from 'rxjs';
 import { HttpErrorRes } from '../../Models/types/interfaces/error-res.dto';
+import { Login_FirstStepDTO } from '../../Models/types/auth/DTO/login.dtos';
+import { Confirm_Login_FirstStepDTO } from '../../Models/types/interfaces/confirm.responses';
 
 
 @Component({
@@ -78,21 +80,37 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   onSubmit(): void {
     if (this.loginForm.valid) {
-      this.firstStepSubscription = this.authService.login_stepZero({ email: this.loginForm.value['email'] }).subscribe({
-        next: () => {
-          this.step.set(2)
+      const dto: Login_FirstStepDTO = {
+        email: this.loginForm.value['email'],
+        password: this.loginForm.value['password'],
+        remember: false
+      }
+      this.secondStepSubscription = this.authService.login_firstStep(dto).subscribe({
+        next: (res: Confirm_Login_FirstStepDTO) => {
+          if (res.needsMfa) {
+            sessionStorage?.setItem('preAuthorizationToken', btoa(res.preAuthorizationToken as string))
+            if (res.enabledMfaStrategies.length === 1) {
+              this.router.navigate([`/login/mfa/${res.enabledMfaStrategies[0]}`])
+            } else {
+              this.router.navigate(['/login/mfa/choose-method'])
+            }
+          } else {
+            sessionStorage?.setItem('accessToken', btoa(res.accessToken as string))
+            const loginPath: string = atob(sessionStorage.getItem('loginLastPath') || '') || '/profile'
+            console.log('ok')
+            this.router.navigate([loginPath])
+          }
         },
         error: err => {
-          this.serverErrorStep.set(1)
-          console.error(err.error)
           const body = err.error as HttpErrorRes
+          console.error(body)
           if (body.statusCode === 400) {
             // handle bad request
           } else if (body.statusCode === 401) {
-            this.serverErrorStep.set(1)
+            this.serverErrorStep.set(2)
           } else {
             sessionStorage?.setItem('lastHttpErr', btoa(JSON.stringify(body)))
-            this.router.navigate(['/'])
+            // this.router.navigate(['/'])
           }
         }
       })

@@ -56,7 +56,7 @@
         for="password"
         class="absolute left-3 top-2 text-sm text-gray-500 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 transition-all"
       >Password</label>
-      <div class="text-sm text-red-600 mt-1">
+      <div class="text-sm text-red-600 mt-1 min-h-5">
         @if (loginForm.controls['password'].invalid && loginForm.controls['password'].touched && serverErrorStep() === 0) {
           @if (emptyPassword()) {
             Password obbligatoria.
