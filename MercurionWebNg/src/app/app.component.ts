@@ -1,4 +1,4 @@
-import { Component, computed, CUSTOM_ELEMENTS_SCHEMA, OnDestroy, OnInit, Signal } from '@angular/core';
+import { Component, computed, CUSTOM_ELEMENTS_SCHEMA, ElementRef, OnDestroy, OnInit, Signal, ViewChild } from '@angular/core';
 import { GuardsCheckEnd, GuardsCheckStart, NavigationCancel, NavigationEnd, NavigationError, NavigationStart, ResolveEnd, ResolveStart, Router, RouterOutlet, RoutesRecognized } from '@angular/router';
 import { HeaderComponent } from './components/common/header/header.component';
 import { MoleculeViewerComponent } from './components/chem/molecule-viewer/molecule-viewer.component';
@@ -6,9 +6,8 @@ import { ThemeManagerService } from './services/stores/theme-manager.service';
 import { SearchOverlayComponent } from './components/search-overlay/search-overlay/search-overlay.component';
 import { SearchContextService } from './services/stores/search-context.service';
 import { FooterComponent } from './components/common/footer/footer.component';
-import { ChemSpinnerComponent } from './components/common/spinner/chem-spinner.component';
 import { NgxxSpinnerComponent } from './components/common/ngxx-spinner/ngxx-spinner.component';
-import { filter, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 
 
 
