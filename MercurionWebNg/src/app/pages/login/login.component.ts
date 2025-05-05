@@ -1,22 +1,26 @@
-import { NgIf } from '@angular/common';
-import { Component, OnInit, signal } from '@angular/core';
-import { AbstractControl, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, computed, effect, OnInit, signal } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ThemeManagerService } from '../../services/stores/theme-manager.service';
+import { PublicPipe } from '../../pipes/public.pipe';
 
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, PublicPipe],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })
 export class LoginComponent implements OnInit {
 
   protected loginForm!: FormGroup<any>
+  protected logoSrc = computed(() =>
+    this.themeManager.theme() === 'light' ? 'logo/pictogram-light-logo.svg' : 'logo/pictogram-dark-logo-2.svg')
 
   protected step = signal<1 | 2>(1)
 
   constructor(
-    private readonly fb: FormBuilder
+    private readonly fb: FormBuilder,
+    private readonly themeManager: ThemeManagerService
   ) { }
 
   ngOnInit(): void {
@@ -26,9 +30,9 @@ export class LoginComponent implements OnInit {
     })
   }
 
-  goToPasswordStep(): void {}
+  goToPasswordStep(): void { }
 
-  onSubmit(): void {}
+  onSubmit(): void { }
 
 
 

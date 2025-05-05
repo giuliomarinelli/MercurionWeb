@@ -1,7 +1,7 @@
 <!-- login-placeholder-mercurion.component.html -->
-<div class="min-h-screen flex flex-col items-center justify-center px-4 py-8 bg-gray-50">
+<div class="min-h-screen flex flex-col items-center justify-center px-4 py-8">
   <!-- Logo -->
-  <img src="/assets/logo.svg" alt="Mercurion Logo" class="w-12 h-12 mb-4" />
+  <img [src]="logoSrc() | public" alt="Mercurion Logo" class="w-16 h-auto mb-4" />
 
   <!-- Welcome Message -->
   <h1 class="text-2xl font-semibold text-gray-900 mb-6 text-center">Ci fa piacere rivederti</h1>
@@ -24,7 +24,7 @@
         for="email"
         class="absolute left-3 top-2 text-sm text-gray-500 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 transition-all"
       >Indirizzo e-mail</label>
-      <div class="text-sm text-red-600 mt-1">
+      <div class="text-sm text-red-600 mt-1 min-h-5">
         @if (loginForm.controls['email'].invalid && loginForm.controls['email'].touched) {
           E-mail obbligatoria.
         }
@@ -55,7 +55,7 @@
       </div>
     </div>
     <button type="submit" [disabled]="loginForm.controls['password'].invalid" class="w-full mt-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700">Accedi</button>
-       }
+    }
     <!-- Register & Social Login Placeholder -->
     <div class="text-sm text-center text-gray-600">
       Non hai un account?
