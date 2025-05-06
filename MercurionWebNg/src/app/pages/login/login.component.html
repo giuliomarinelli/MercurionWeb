@@ -34,7 +34,8 @@
       </div>
     </div>
     <button type="button" (click)="goToPasswordStep()" [disabled]="loginForm.controls['email'].invalid"
-      class="disabled:dark:bg-emerald-600/60 disabled:bg-emerald-600/70 w-full mt-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700">Continua</button>
+      ngClass="{'curs-not-all': loginForm.controls['email'].invalid}"
+      class="disabled:dark:bg-emerald-600/60 disabled:bg-emerald-600/70 w-full mt-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700/90 transition-colors duration-150">Continua</button>
     } @else if (step() === 2) {
 
     <!-- Step 2: Password -->
@@ -62,7 +63,8 @@
       </div>
     </div>
     <button type="submit" [disabled]="loginForm.controls['password'].invalid"
-      class="disabled:dark:bg-emerald-600/60 disabled:bg-emerald-600/70 w-full mt-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700">Accedi</button>
+      ngClass="{'curs-not-all': loginForm.controls['password'].invalid}"
+      class="disabled:dark:bg-emerald-700/60 disabled:cursor-not-allowed w-full mt-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700/90 transition-colors duration-150">Accedi</button>
     }
     <!-- Register & Social Login Placeholder -->
     <div class="text-sm text-center text-gray-600 dark:text-gray-300">
@@ -82,7 +84,7 @@
     <!-- Social buttons placeholder -->
     <div class="space-y-3 dark:text-slate-100">
       <button type="button"
-        class="w-full flex items-center justify-center border rounded-md py-2.5 text-sm hover:bg-gray-100 gap-3 bg-slate-200 dark:bg-transparent">
+        class="w-full flex items-center justify-center border rounded-md py-2.5 text-sm dark:hover:bg-slate-100 gap-3 dark:hover:text-neutral-900 hover:bg-slate-200/80 bg-slate-200 dark:bg-transparent transition-colors duration-150">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-auto"
           viewBox="0 0 488 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
           <path class="fill-current"
@@ -91,7 +93,7 @@
         <span>Continua con Google</span>
       </button>
       <button type="button"
-        class="w-full flex items-center justify-center border rounded-md py-2.5 text-sm hover:bg-gray-100 gap-3 bg-slate-200 dark:bg-transparent">
+        class="w-full flex items-center justify-center border rounded-md py-2.5 text-sm dark:hover:bg-slate-100 gap-3 dark:hover:text-neutral-900 hover:bg-slate-200/80 bg-slate-200 dark:bg-transparent transition-colors duration-150">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-auto fill-current"
           viewBox="0 0 448 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
           <path
@@ -100,7 +102,7 @@
         <span>Continua con Microsoft</span>
       </button>
       <button type="button"
-        class="w-full flex items-center justify-center border rounded-md py-2.5 text-sm hover:bg-gray-100 gap-3 bg-slate-200 dark:bg-transparent">
+        class="w-full flex items-center justify-center border rounded-md py-2.5 text-sm dark:hover:bg-slate-100 gap-3 dark:hover:text-neutral-900 hover:bg-slate-200/80 bg-slate-200 dark:bg-transparent transition-colors duration-150">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-auto fill-current"
           viewBox="0 0 384 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
           <path
