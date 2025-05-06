@@ -47,6 +47,11 @@ import { SecureCookieService } from './app_modules/auth/services/secure-cookie.s
 
     // 🔥 Inietta deviceId nella richiesta PRIMA della guard
     req.headers['x-device-id'] = deviceId
+
+    const forwarded = req.headers['x-forwarded-for']?.toString().split(',')[0]
+    req.headers['x-client-ip'] = forwarded ?? req.ip
+
+
     done()
   })
 
