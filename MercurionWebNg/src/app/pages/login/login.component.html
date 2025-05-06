@@ -1,30 +1,21 @@
 <!-- login-placeholder-mercurion.component.html -->
 <div class="min-h-screen flex flex-col items-center justify-center px-4 py-8">
   <!-- Logo -->
-  <img [src]="logoSrc() | public" alt="Mercurion Logo" class="w-16 h-auto mb-4" />
+  <img [src]="logoSrc() | public" alt="Mercurion Logo" class="w-16 h-auto mb-6" />
 
   <!-- Welcome Message -->
-  <h1 class="text-2xl font-semibold text-gray-900 mb-6 dark:text-slate-100 text-center">Ci fa piacere rivederti</h1>
+  <h1 class="text-2xl font-semibold text-gray-900 mb-8 dark:text-slate-100 text-center">Piacere di averti qui</h1>
 
   <!-- Step-based Form -->
   <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="w-full max-w-sm space-y-6">
     <!-- Step 1: Email -->
 
-  @if (step() === 1) {
+    @if (step() === 1) {
     <div class="relative">
-      <input #email
-        type="email"
-        formControlName="email"
-        id="email"
+      <input #email type="email" formControlName="email" id="email"
         class="block py-4 px-4 w-full text-sm text-dark dark:text-light bg-transparent border-slate-300 border dark:border-slate-200 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-light-accent-primary dark:focus:ring-emerald-600 focus:border-light-accent-primary dark:focus:border-emerald-600 peer"
-        placeholder=" "
-        required
-        (input)="serverErrorStep.set(0); onEmailInput()"
-        (blur)="onBlur('email')"
-      />
-      <label
-        for="email"
-        [ngClass]="{
+        placeholder=" " required (input)="serverErrorStep.set(0); onEmailInput()" (blur)="onBlur('email')" />
+      <label for="email" [ngClass]="{
           'text-emerald-600 dark:text-dark-accent-primary scale-110 -translate-y-6': isFocus('email') || !emptyEmail(),
           'text-slate-400 text-lg scale-100 translate-y-0': !isFocus('email') && emptyEmail()
         }"
@@ -32,48 +23,48 @@
         Indirizzo e-mail</label>
       <div class="text-sm text-red-600 mt-1 min-h-5">
         @if (loginForm.controls['email'].invalid && loginForm.controls['email'].touched && serverErrorStep() === 0) {
-          @if (emptyEmail()) {
-            E-mail obbligatoria.
-          } @else if (malformedEmail()) {
-            Formato e-mail non corretto
-          }
+        @if (emptyEmail()) {
+        E-mail obbligatoria.
+        } @else if (malformedEmail()) {
+        Formato e-mail non corretto
+        }
         } @else if (serverErrorStep() === 1) {
-            L'e-mail inserita non è corretta
+        L'e-mail inserita non è corretta
         }
       </div>
     </div>
-    <button type="button" (click)="goToPasswordStep()" [disabled]="loginForm.controls['email'].invalid" class="disabled:dark:bg-emerald-600/60 disabled:bg-emerald-600/70 w-full mt-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700">Continua</button>
-  } @else if (step() === 2) {
+    <button type="button" (click)="goToPasswordStep()" [disabled]="loginForm.controls['email'].invalid"
+      class="disabled:dark:bg-emerald-600/60 disabled:bg-emerald-600/70 w-full mt-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700">Continua</button>
+    } @else if (step() === 2) {
 
     <!-- Step 2: Password -->
 
     <div class="relative">
-      <input
-        type="password"
-        formControlName="password"
-        id="password"
-        class="peer w-full px-3 pt-5 pb-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        placeholder=" "
-        required
-        (input)="serverErrorStep.set(0)"
-      />
-      <label
-        for="password"
-        class="absolute left-3 top-2 text-sm text-gray-500 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 transition-all"
-      >Password</label>
+      <input #password type="password" formControlName="password" id="password"
+        class="block py-4 px-4 w-full text-sm text-dark dark:text-light bg-transparent border-slate-300 border dark:border-slate-200 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-light-accent-primary dark:focus:ring-emerald-600 focus:border-light-accent-primary dark:focus:border-emerald-600 peer"
+        placeholder=" " required (input)="serverErrorStep.set(0); onPasswordInput()" (blur)="onBlur('password')" />
+      <label for="password" [ngClass]="{
+          'text-emerald-600 dark:text-dark-accent-primary scale-110 -translate-y-6': isFocus('password') || !emptyPassword(),
+          'text-slate-400 text-lg scale-100 translate-y-0': !isFocus('password') && emptyPassword()
+        }"
+        class="z-30 peer-focus:font-medium absolute text-sm transition-all duration-300 bg-light-surface-main dark:bg-neutral-900 px-1 top-3 left-4 origin-[0]">
+        Password
+      </label>
       <div class="text-sm text-red-600 mt-1 min-h-5">
-        @if (loginForm.controls['password'].invalid && loginForm.controls['password'].touched && serverErrorStep() === 0) {
-          @if (emptyPassword()) {
-            Password obbligatoria.
-          } @else if (malformedEmail()) {
-            Formato e-mail non corretto.
-          }
+        @if (loginForm.controls['password'].invalid && loginForm.controls['password'].touched && serverErrorStep() ===
+        0) {
+        @if (emptyPassword()) {
+        Password obbligatoria.
+        } @else if (malformedEmail()) {
+        Formato e-mail non corretto.
+        }
         } @else if (serverErrorStep() === 2) {
-            La password inserita non è corretta.
+        La password inserita non è corretta.
         }
       </div>
     </div>
-    <button type="submit" [disabled]="loginForm.controls['password'].invalid" class="w-full mt-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700">Accedi</button>
+    <button type="submit" [disabled]="loginForm.controls['password'].invalid"
+      class="disabled:dark:bg-emerald-600/60 disabled:bg-emerald-600/70 w-full mt-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700">Accedi</button>
     }
     <!-- Register & Social Login Placeholder -->
     <div class="text-sm text-center text-gray-600 dark:text-gray-300">
@@ -86,25 +77,44 @@
         <div class="w-full border-t"></div>
       </div>
       <div class="relative flex justify-center text-sm">
-        <span class="bg-gray-50 px-2 text-gray-500">OPPURE</span>
+        <span class="bg-light-surface-main dark:bg-neutral-900 px-2 text-gray-500 dark:text-slate-300">OPPURE</span>
       </div>
     </div>
 
     <!-- Social buttons placeholder -->
-    <div class="space-y-2">
-      <button type="button" class="w-full flex items-center justify-center border rounded-md py-2 text-sm hover:bg-gray-100">
-        <img src="/assets/google.svg" alt="Google" class="w-5 h-5 mr-2" /> Continua con Google
+    <div class="space-y-3 dark:text-slate-100">
+      <button type="button"
+        class="w-full flex items-center justify-center border rounded-md py-2.5 text-sm hover:bg-gray-100 gap-3 bg-slate-200 dark:bg-transparent">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-auto"
+          viewBox="0 0 488 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+          <path class="fill-current"
+            d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z" />
+        </svg>
+        <span>Continua con Google</span>
       </button>
-      <button type="button" class="w-full flex items-center justify-center border rounded-md py-2 text-sm hover:bg-gray-100">
-        <img src="/assets/microsoft.svg" alt="Microsoft" class="w-5 h-5 mr-2" /> Continua con Microsoft
+      <button type="button"
+        class="w-full flex items-center justify-center border rounded-md py-2.5 text-sm hover:bg-gray-100 gap-3 bg-slate-200 dark:bg-transparent">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-auto fill-current"
+          viewBox="0 0 448 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+          <path
+            d="M0 32h214.6v214.6H0V32zm233.4 0H448v214.6H233.4V32zM0 265.4h214.6V480H0V265.4zm233.4 0H448V480H233.4V265.4z" />
+        </svg>
+        <span>Continua con Microsoft</span>
       </button>
-      <button type="button" class="w-full flex items-center justify-center border rounded-md py-2 text-sm hover:bg-gray-100">
-        <img src="/assets/apple.svg" alt="Apple" class="w-5 h-5 mr-2" /> Continua con Apple
+      <button type="button"
+        class="w-full flex items-center justify-center border rounded-md py-2.5 text-sm hover:bg-gray-100 gap-3 bg-slate-200 dark:bg-transparent">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-auto fill-current"
+          viewBox="0 0 384 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+          <path
+            d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z" />
+        </svg>
+        <span>Continua con Apple</span>
       </button>
     </div>
 
     <div class="text-xs text-center text-gray-400 mt-4">
-      <a href="#" class="hover:underline">Condizioni d'uso</a> · <a href="#" class="hover:underline">Informativa sulla privacy</a>
+      <a href="#" class="hover:underline">Condizioni d'uso</a> · <a href="#" class="hover:underline">Informativa sulla
+        privacy</a>
     </div>
   </form>
 </div>

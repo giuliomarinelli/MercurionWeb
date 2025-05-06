@@ -30,11 +30,11 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   protected step = signal<1 | 2>(1)
   protected serverErrorStep = signal<0 | 1 | 2>(0)
-  protected emptyPassword = signal<boolean>(false)
+  protected emptyPassword = signal<boolean>(true)
   protected malformedEmail = signal<boolean>(false)
   protected isEmailFocused = signal<boolean>(false)
 
-  protected emptyEmail = signal(true)
+  protected emptyEmail = signal<boolean>(true)
 
   onEmailInput(): void {
     const value = this.emailRef?.nativeElement?.value ?? '';
@@ -43,7 +43,7 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   onPasswordInput(): void {
     const value = this.passwordRef?.nativeElement?.value ?? '';
-    this.emptyEmail.set(value.trim() === '');
+    this.emptyPassword.set(value.trim() === '');
   }
 
   onBlur(field: 'email' | 'password'): void {
@@ -79,6 +79,8 @@ export class LoginComponent implements OnInit, OnDestroy {
   protected isFocus(field: 'email' | 'password'): boolean {
     if (field === 'email') {
       return this.emailRef?.nativeElement.matches(':focus')
+    } else if (field === 'password') {
+      return this.passwordRef?.nativeElement.matches(':focus')
     }
     return false
   }
