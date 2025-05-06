@@ -1,3 +1,5 @@
+import { Fingerprint } from './../../../metadata/metadata';
+import { FingerprintData } from './../Models/DTO/fingerprints.dtos';
 import { Authentication } from './../Models/interfaces/authentication.interface';
 import { UserService } from 'src/app_modules/user/services/user.service';
 import { Injectable } from '@nestjs/common';
@@ -14,6 +16,7 @@ import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum
 import { nullish } from 'src/Models/nullish.type';
 import { IAuth } from '../Models/interfaces/i-auth.interface';
 import { GeneralUtils } from 'src/general-utils/general-utils';
+import { createHash } from 'crypto';
 
 @Injectable()
 export class AuthenticationService {
@@ -28,8 +31,12 @@ export class AuthenticationService {
         private readonly _r: ResponseService
     ) { }
 
+    private generateFingerprint(fingerprintData: FingerprintData): string {
+        return createHash('sha256').update(JSON.stringify(fingerprintData)).digest('hex')
+    }
+
     // Restituisce un oggetto Authentication necessario per generare un token JWT
-    public async emailAndPasswordAuthentication(email: string, password: string, remember: boolean, IP: string, deviceId: string, sessionDeviceInfo: ISessionDeviceInfo): Promise<Authentication> {
+    public async emailAndPasswordAuthentication(email: string, password: string, remember: boolean, IP: string, deviceId: string, sessionDeviceInfo: ISessionDeviceInfo, fingerprintData: FingerprintData): Promise<Authentication> {
 
         const auth: IAuth | nullish = await this.userService.getVerifiedUserAuthByEmail(email)
         if (!auth || !auth.userId || !auth.passwordHash) {
@@ -38,7 +45,8 @@ export class AuthenticationService {
         if (!await this.passwordEncoder.compare(password, auth.passwordHash)) {
             throw new RpcException('AuthenticationInvalidCredentials')
         }
-        const session = await this.sessionService.createSession({ deviceId, userId: auth.userId, IP, sessionDeviceInfo }, remember)
+        const fingerprint = this.generateFingerprint(fingerprintData)
+        const session = await this.sessionService.createSession({ deviceId, userId: auth.userId, IP, sessionDeviceInfo, fingerprint }, remember)
         const sessionId = session.sessionId
         const needsMfa: boolean = await this.mfaService.isMfaEnabled(auth.userId)
         if (!needsMfa) {

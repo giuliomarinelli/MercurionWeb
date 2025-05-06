@@ -43,10 +43,11 @@ export class SessionService {
         await this.redisService.hset(sessionKey, 'longTerm', rememberMe.toString())
         await this.redisService.hset(sessionKey, 'sessionDeviceInfo', JSON.stringify(sessionData.sessionDeviceInfo))
         await this.redisService.hset(sessionKey, 'doNotAskMfaPhoneNumberVerification', JSON.stringify(session.doNotAskMfaPhoneNumberVerification))
+        await this.redisService.hset(sessionKey, 'fingerprint', sessionData.fingerprint)
 
         await this.redisService.setTTL(sessionKey, ttlSeconds)
 
-        return session;
+        return session
     }
 
 
@@ -75,7 +76,8 @@ export class SessionService {
             IP: sessionData.IP,
             valid: JSON.parse(sessionData.valid) as boolean,
             sessionDeviceInfo: JSON.parse(sessionData.sessionDeviceInfo) as ISessionDeviceInfo,
-            doNotAskMfaPhoneNumberVerification: JSON.parse(sessionData.doNotAskMfaPhoneNumberVerification) as boolean
+            doNotAskMfaPhoneNumberVerification: JSON.parse(sessionData.doNotAskMfaPhoneNumberVerification) as boolean,
+            fingerprint: sessionData.fingerprint
         }
 
         return session

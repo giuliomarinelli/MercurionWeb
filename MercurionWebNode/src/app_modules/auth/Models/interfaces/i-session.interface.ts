@@ -10,6 +10,7 @@ export interface ISession {
     valid: boolean
     sessionDeviceInfo: ISessionDeviceInfo
     doNotAskMfaPhoneNumberVerification: boolean
+    fingerprint: string
 }
 
 export interface ISessionDeviceInfo {

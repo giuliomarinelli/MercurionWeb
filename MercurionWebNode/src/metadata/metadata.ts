@@ -58,7 +58,7 @@ export const Fingerprint = createParamDecorator(
     }
 )
 
-export const DeviceInfoHeader = createParamDecorator(
+export const DeviceInfo = createParamDecorator(
     (data: unknown, ctx: ExecutionContext): InputDeviceInfo => {
         const req = ctx.switchToHttp().getRequest<FastifyRequest>();
         const deviceInfo = req.headers['x-device-info']

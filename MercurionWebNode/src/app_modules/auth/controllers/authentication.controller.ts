@@ -2,7 +2,7 @@ import { BadRequestException, Body, Controller, HttpCode, HttpStatus, Ip, Param,
 import { Login_FirstStepDTO } from '../Models/DTO/login-first-step.cls.dto';
 import { MfaService } from '../services/mfa.service';
 import { AuthenticationService } from '../services/authentication.service';
-import { Authorization, DeviceId, Public } from 'src/metadata/metadata';
+import { Authorization, ClientIp, DeviceId, DeviceInfo, Fingerprint, Public } from 'src/metadata/metadata';
 import { UUID } from 'crypto';
 import { Authentication } from '../Models/interfaces/authentication.interface';
 import { ResponseService } from 'src/services/response.service';
@@ -14,6 +14,8 @@ import { TotpBodyDTO } from '../Models/DTO/totp.cls.dto';
 import { JwtToolsService } from '../services/jwt-tools.service';
 import { TokenType } from '../Models/enums/token-type.enum';
 import { EmailDTO } from '../Models/DTO/change-email.cls.dto';
+import { ISessionDeviceInfo } from '../Models/interfaces/i-session.interface';
+import { FingerprintData } from '../Models/DTO/fingerprints.dtos';
 
 @Controller('authentication')
 export class AuthenticationController {
@@ -40,23 +42,15 @@ export class AuthenticationController {
     @HttpCode(HttpStatus.OK)
     public async login_firstStep(
         @Body() dto: Login_FirstStepDTO,
-        @Ip() ip: string,
-        @DeviceId() deviceId: UUID
+        @ClientIp() ip: string,
+        @DeviceId() deviceId: UUID,
+        @DeviceInfo() sessionDeviceInfo: ISessionDeviceInfo,
+        @Fingerprint() fingerprintData: FingerprintData
     ): Promise<Confirm_Login_FirstStepDTO> {
 
         const { email, password, remember } = dto
 
-        // TODO: placeholder, da implementare passaggio dei dati via richiesta
-        const sessionDeviceInfo = {
-            osPlatform: 'Win32',
-            useragent: '---',
-            browser: {
-                name: 'Netscape',
-                version: '3'
-            }
-        }
-
-        const auth: Authentication = await this.authService.emailAndPasswordAuthentication(email, password, remember, ip, deviceId, sessionDeviceInfo)
+        const auth: Authentication = await this.authService.emailAndPasswordAuthentication(email, password, remember, ip, deviceId, sessionDeviceInfo, fingerprintData)
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { userId, sessionId, ...authRes } = auth
 
