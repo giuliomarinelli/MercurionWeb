@@ -66,7 +66,7 @@ export class AuthenticationController {
         return {
             ...this._r.ok('Authenticated successfully'),
             ...authRes,
-            accessToken: await this.authService.performAuthentication(auth)
+            accessToken: await this.authService.performAuthentication(auth, fingerprintData)
         }
 
     }
@@ -102,7 +102,8 @@ export class AuthenticationController {
     public async login_thirdStep(
         @Authorization() preAuthorizationToken: string,
         @Param('strategy') strategyKey: string,
-        @Body(new ValidationPipe({ transform: true })) dto: TotpBodyDTO
+        @Body(new ValidationPipe({ transform: true })) dto: TotpBodyDTO,
+        @Fingerprint() fingerprintData: FingerprintData
     ): Promise<ConfirmWithAccessTokenDTO> {
 
         let userId: UUID
@@ -121,7 +122,7 @@ export class AuthenticationController {
         if (!isTotpValid) {
             throw new UnauthorizedException('Invalid MFA OTP')
         }
-        const accessToken: string = await this.authService.performAuthentication({ userId, sessionId })
+        const accessToken: string = await this.authService.performAuthentication({ userId, sessionId }, fingerprintData)
         return {
             ...this._r.ok('Authenticated successfully'),
             accessToken

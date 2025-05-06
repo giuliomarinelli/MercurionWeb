@@ -1,4 +1,4 @@
-import { FingerprintData } from './../Models/DTO/fingerprints.dtos';
+import { FingerprintData } from 'src/app_modules/auth/Models/DTO/fingerprints.dtos';
 import { Authentication } from './../Models/interfaces/authentication.interface';
 import { UserService } from 'src/app_modules/user/services/user.service';
 import { Injectable } from '@nestjs/common';
@@ -51,7 +51,6 @@ export class AuthenticationService {
         const inWhiteList: boolean = await this.sessionService.isFingerprintInWhiteList(auth.userId, fingerprint)
         if (!inWhiteList) {
             needsMfa = true
-            await this.sessionService.addFingerprintToWhiteList(auth.userId, fingerprint)
         }
         if (!needsMfa) {
             await this.sessionService.activateSession(sessionId)
@@ -88,12 +87,14 @@ export class AuthenticationService {
     }
 
     // Restituisce un DTO di risposta con l'Access Token e se l'utente ha MFA attiva, attiva anche la sessione
-    public async performAuthentication(auth: Authentication | Omit<Authentication, 'needsMfa' | 'enabledMfaStrategies' | 'suspiciousAttempt'>): Promise<string> {
+    public async performAuthentication(auth: Authentication | Omit<Authentication, 'needsMfa' | 'enabledMfaStrategies' | 'suspiciousAttempt'>, fingerprintData: FingerprintData): Promise<string> {
         const { userId, sessionId } = auth
         const accessToken = await this.jwtTools.generateToken(userId, TokenType.AccessToken, sessionId)
         if (await this.mfaService.isMfaEnabled(userId)) {
             await this.sessionService.activateSession(sessionId)
         }
+        const fingerprint: string = this.generateFingerprint(fingerprintData)
+        await this.sessionService.addFingerprintToWhiteList(userId, fingerprint)
         return accessToken
 
     }
