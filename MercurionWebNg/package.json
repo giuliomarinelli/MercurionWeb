@@ -21,6 +21,7 @@
     "@angular/router": "^19.2.0",
     "@apollo/client": "^3.13.8",
     "@rdkit/rdkit": "^2024.3.5-1.0.0",
+    "@thumbmarkjs/thumbmarkjs": "^0.20.2",
     "apollo-angular": "^10.0.3",
     "graphql": "^16.11.0",
     "ngx-socket-io": "^4.8.5",
