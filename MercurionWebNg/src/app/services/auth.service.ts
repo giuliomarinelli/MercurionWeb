@@ -1,6 +1,6 @@
 import { Confirm_Login_FirstStepDTO } from './../Models/types/interfaces/confirm.responses';
 import { Injectable } from '@angular/core';
-import { EmailDTO, Login_FirstStepDTO } from '../Models/types/auth/DTO/login.dtos';
+import { EmailDTO, Login_FirstStepDTO, Login_FirstStepWrapper } from '../Models/types/auth/DTO/login.dtos';
 import { ConfirmDTO } from '../Models/types/interfaces/confirm.responses';
 import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
@@ -16,8 +16,17 @@ export class AuthService {
     return this.http.post<ConfirmDTO>('/api/authentication/login/0', emailDTO, { withCredentials: true })
   }
 
-  public login_firstStep(loginDTO: Login_FirstStepDTO): Observable<Confirm_Login_FirstStepDTO> {
-    return this.http.post<Confirm_Login_FirstStepDTO>('/api/authentication/login/1', loginDTO, { withCredentials: true })
+  public login_firstStep(loginWrapper: Login_FirstStepWrapper): Observable<Confirm_Login_FirstStepDTO> {
+    const { fingerprintBase64, sessionDeviceInfo, ...loginDTO } = loginWrapper
+    return this.http.post<Confirm_Login_FirstStepDTO>('/api/authentication/login/1', loginDTO,
+      {
+        withCredentials: true,
+        headers: {
+          'X-Fingerprint': fingerprintBase64,
+          'X-Device-Info': btoa(JSON.stringify(sessionDeviceInfo))
+        }
+
+      })
   }
 
 }

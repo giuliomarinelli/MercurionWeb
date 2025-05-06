@@ -8,5 +8,9 @@ export interface Login_FirstStepDTO {
   email: string
   password: string
   remember: boolean
-  sessionDeviceInfo?: ISessionDeviceInfo
+}
+
+export type Login_FirstStepWrapper = Login_FirstStepDTO & {
+  fingerprintBase64: string
+  sessionDeviceInfo: ISessionDeviceInfo
 }

@@ -15,6 +15,7 @@ import { AccountController } from './controllers/account.controller';
 import { MfaService } from './services/mfa.service';
 import { AuthenticationService } from './services/authentication.service';
 import { AuthenticationController } from './controllers/authentication.controller';
+import { IpService } from './services/ip.service';
 
 
 
@@ -31,7 +32,8 @@ import { AuthenticationController } from './controllers/authentication.controlle
     AccountService,
     ResponseService,
     MfaService,
-    AuthenticationService
+    AuthenticationService,
+    IpService
   ],
   exports: [SecureCookieService, JwtToolsService, JwtService, SessionService],
   controllers: [AccountController, AuthenticationController],

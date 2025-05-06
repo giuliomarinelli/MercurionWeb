@@ -6,9 +6,11 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { Subscription } from 'rxjs';
 import { HttpErrorRes } from '../../Models/types/interfaces/error-res.dto';
-import { Login_FirstStepDTO } from '../../Models/types/auth/DTO/login.dtos';
+import { Login_FirstStepDTO, Login_FirstStepWrapper } from '../../Models/types/auth/DTO/login.dtos';
 import { Confirm_Login_FirstStepDTO } from '../../Models/types/interfaces/confirm.responses';
 import { NgClass } from '@angular/common';
+import { FingerprintService } from '../../services/fingerprint.service';
+import { ISessionDeviceInfo } from '../../Models/types/auth/DTO/fingerprint.dtos';
 
 
 @Component({
@@ -34,7 +36,28 @@ export class LoginComponent implements OnInit, OnDestroy {
   protected malformedEmail = signal<boolean>(false)
   protected isEmailFocused = signal<boolean>(false)
 
+  private firstStepSubscription: Subscription | undefined
+  private secondStepSubscription: Subscription | undefined
+  private emailStatusChangeSubscription: Subscription | undefined
   protected emptyEmail = signal<boolean>(true)
+
+  private fingerprintDataEnc: string = ''
+  private sessionDeviceInfo: ISessionDeviceInfo = {
+    osPlatform: '',
+    useragent: '',
+    browser: {
+      name: '',
+      version: ''
+    }
+  }
+
+  constructor(
+    private readonly fb: FormBuilder,
+    private readonly themeManager: ThemeManagerService,
+    private readonly router: Router,
+    private readonly authService: AuthService,
+    private readonly fingerprintService: FingerprintService
+  ) { }
 
   onEmailInput(): void {
     const value = this.emailRef?.nativeElement?.value ?? '';
@@ -53,18 +76,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     }
   }
 
-  private firstStepSubscription: Subscription | undefined
-  private secondStepSubscription: Subscription | undefined
-  private emailStatusChangeSubscription: Subscription | undefined
-
-  constructor(
-    private readonly fb: FormBuilder,
-    private readonly themeManager: ThemeManagerService,
-    private readonly router: Router,
-    private readonly authService: AuthService
-  ) { }
-
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this.loginForm = this.fb.group({
       email: this.fb.control(null, [Validators.required, Validators.email]),
       password: this.fb.control(null, [Validators.required])
@@ -74,6 +86,10 @@ export class LoginComponent implements OnInit, OnDestroy {
       // this.emptyEmail.set(control.errors?.['required'] ?? false)
       this.malformedEmail.set(control.errors?.['email'] ?? false)
     })
+    const { fingerprintDataEnc, sessionDeviceInfo } = await this.fingerprintService.getSanitizedFingerprint()
+    this.fingerprintDataEnc = fingerprintDataEnc
+    this.sessionDeviceInfo = sessionDeviceInfo
+
   }
 
   protected isFocus(field: 'email' | 'password'): boolean {
@@ -110,10 +126,12 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   onSubmit(): void {
     if (this.loginForm.valid) {
-      const dto: Login_FirstStepDTO = {
+      const dto: Login_FirstStepWrapper = {
         email: this.loginForm.value['email'],
         password: this.loginForm.value['password'],
-        remember: false
+        remember: false,
+        fingerprintBase64: this.fingerprintDataEnc,
+        sessionDeviceInfo: this.sessionDeviceInfo
       }
       this.secondStepSubscription = this.authService.login_firstStep(dto).subscribe({
         next: (res: Confirm_Login_FirstStepDTO) => {

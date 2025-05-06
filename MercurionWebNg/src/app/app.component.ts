@@ -40,13 +40,10 @@ export class AppComponent implements OnInit, OnDestroy {
   constructor(
     private readonly themeManagerService: ThemeManagerService,
     protected readonly searchContextService: SearchContextService,
-    private readonly router: Router,
-    private readonly fingerprintService: FingerprintService
+    private readonly router: Router
   ) { }
 
   async ngOnInit(): Promise<void> {
-
-    console.log(await this.fingerprintService.getSanitizedFingerprint())
 
     this.subs = this.router.events.subscribe(event => {
       switch (event.constructor) {

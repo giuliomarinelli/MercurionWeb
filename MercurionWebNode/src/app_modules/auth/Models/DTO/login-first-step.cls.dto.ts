@@ -1,5 +1,4 @@
-import { IsEmail, IsNotEmpty, IsBoolean, IsString, Matches, IsOptional, IsObject } from 'class-validator'
-import { ISessionDeviceInfo } from '../interfaces/i-session.interface'
+import { IsEmail, IsNotEmpty, IsBoolean, IsString, Matches } from 'class-validator'
 
 export class Login_FirstStepDTO {
 
@@ -14,9 +13,5 @@ export class Login_FirstStepDTO {
 
     @IsBoolean()
     remember: boolean
-
-    @IsOptional()
-    @IsObject()
-    sessionDeviceInfo?: ISessionDeviceInfo
 
 }
