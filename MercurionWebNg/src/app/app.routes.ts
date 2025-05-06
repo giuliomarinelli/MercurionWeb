@@ -17,5 +17,13 @@ export const routes: Routes = [
   {
     path: 'profile',
     loadComponent: () => import('./pages/profile/profile.component').then(m => m.ProfileComponent)
+  },
+  {
+    path: 'login/mfa',
+    loadComponent: () => import('./pages/login/mfa/mfa.component').then(m => m.MfaComponent)
+  },
+  {
+    path: 'login/mfa/:view',
+    loadComponent: () => import('./pages/login/mfa/mfa.component').then(m => m.MfaComponent)
   }
 ]
