@@ -13,6 +13,10 @@ export class SessionService {
         return `session:${sessionId}`
     }
 
+    private getUserFingerprintsWhiteListKey(userId: string): string {
+        return `fingerprintsWhiteList:${userId}`
+    }
+
     // 🔹 Creazione di una nuova sessione (semplificata con Omit<>)
     async createSession(
         sessionData: Omit<ISession, 'sessionId' | 'expiresAt' | 'lastAccessedAt' | 'valid' | 'doNotAskMfaPhoneNumberVerification'>,
@@ -142,4 +146,30 @@ export class SessionService {
     async isTokenRevoked(jti: string): Promise<boolean> {
         return await this.redisService.sismember(`revoked:${jti}`, jti);
     }
+
+    public async getFingerprintWhiteList(userId: UUID): Promise<string[]> {
+        const key: string = this.getUserFingerprintsWhiteListKey(userId as string)
+        const val: string | null = await this.redisService.get(key)
+        let whiteList: string[]
+        try {
+            whiteList = val != null ? (JSON.parse(val)) as string[] : []
+        } catch {
+            whiteList = []
+        }
+        return whiteList
+    }
+
+    public async addFingerprintToWhiteList(userId: UUID, fingerprint: string): Promise<void> {
+        const key = `fingerprint:${userId}:${fingerprint}`
+        await this.redisService.set(key, 'true', 30 * 24 * 60 * 60) // 30 giorni in secondi
+    }
+
+    public async isFingerprintInWhiteList(userId: UUID, fingerprint: string): Promise<boolean> {
+        const key = `fingerprint:${userId}:${fingerprint}`
+        const exists = await this.redisService.get(key)
+        return exists === 'true'
+    }
+
+
+
 }

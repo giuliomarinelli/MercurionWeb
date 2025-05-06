@@ -47,6 +47,7 @@ export class AuthenticationService {
         const fingerprint = this.generateFingerprint(fingerprintData)
         const session = await this.sessionService.createSession({ deviceId, userId: auth.userId, IP, sessionDeviceInfo, fingerprint }, remember)
         const sessionId = session.sessionId
+        await this.sessionService.addFingerprintToWhiteList(auth.userId, fingerprint)
         const needsMfa: boolean = await this.mfaService.isMfaEnabled(auth.userId)
         if (!needsMfa) {
             await this.sessionService.activateSession(sessionId)
