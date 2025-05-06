@@ -135,6 +135,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       }
       this.secondStepSubscription = this.authService.login_firstStep(dto).subscribe({
         next: (res: Confirm_Login_FirstStepDTO) => {
+          console.log(res)
           if (res.needsMfa) {
             sessionStorage?.setItem('preAuthorizationToken', btoa(res.preAuthorizationToken as string))
             if (res.enabledMfaStrategies.length === 1) {

@@ -7,4 +7,5 @@ export interface Authentication {
     obscuredPhoneNumber?: string
     needsMfa: boolean
     enabledMfaStrategies: string[]
+    suspiciousAttempt: boolean
 }

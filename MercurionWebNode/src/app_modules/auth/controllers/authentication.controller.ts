@@ -54,7 +54,7 @@ export class AuthenticationController {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { userId, sessionId, ...authRes } = auth
 
-        if (await this.mfaService.isMfaEnabled(auth.userId)) {
+        if (await this.mfaService.isMfaEnabled(auth.userId) || auth.suspiciousAttempt) {
             const preAuthorizationToken = await this.authService.performPreAuthenticationForMfa(auth)
             return {
                 ...this._r.ok('MFA first step went on successfully'),

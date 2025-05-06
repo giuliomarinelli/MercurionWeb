@@ -47,23 +47,34 @@ export class AuthenticationService {
         const fingerprint = this.generateFingerprint(fingerprintData)
         const session = await this.sessionService.createSession({ deviceId, userId: auth.userId, IP, sessionDeviceInfo, fingerprint }, remember)
         const sessionId = session.sessionId
-        await this.sessionService.addFingerprintToWhiteList(auth.userId, fingerprint)
-        const needsMfa: boolean = await this.mfaService.isMfaEnabled(auth.userId)
+        let needsMfa: boolean = await this.mfaService.isMfaEnabled(auth.userId)
+        const inWhiteList: boolean = await this.sessionService.isFingerprintInWhiteList(auth.userId, fingerprint)
+        if (!inWhiteList) {
+            needsMfa = true
+            await this.sessionService.addFingerprintToWhiteList(auth.userId, fingerprint)
+        }
         if (!needsMfa) {
             await this.sessionService.activateSession(sessionId)
         }
         const _enabledMfaStrategies: MfaStrategy[] = await this.mfaService.getEnabledMfaStrategies(auth.userId)
         const phone: string | nullish = await this.userService.getPhoneNumberById(auth.userId)
-        const obscuredEmail = _enabledMfaStrategies.includes(MfaStrategy.EMAIL_OTP) ? this.securityService.maskEmail(email) : undefined
+        let obscuredEmail = _enabledMfaStrategies.includes(MfaStrategy.EMAIL_OTP) ? this.securityService.maskEmail(email) : undefined
         const obscuredPhoneNumber = phone && _enabledMfaStrategies.includes(MfaStrategy.SMS_OTP) ? this.securityService.maskEmail(phone) : undefined
-        const enabledMfaStrategies: string[] = _enabledMfaStrategies.map(val => GeneralUtils.getEnumKeyByValue(MfaStrategy, val)).filter(val => val !== undefined)
+        let enabledMfaStrategies: string[] = _enabledMfaStrategies.map(val => GeneralUtils.getEnumKeyByValue(MfaStrategy, val)).filter(val => val !== undefined)
+        let suspiciousAttempt: boolean = false
+        if (!inWhiteList) {
+            enabledMfaStrategies = ['EMAIL_OTP']
+            suspiciousAttempt = true
+            obscuredEmail = this.securityService.maskEmail(email)
+        }
         return {
             userId: auth.userId,
             sessionId,
             needsMfa,
             enabledMfaStrategies,
             obscuredEmail,
-            obscuredPhoneNumber
+            obscuredPhoneNumber,
+            suspiciousAttempt
         }
 
     }
@@ -77,7 +88,7 @@ export class AuthenticationService {
     }
 
     // Restituisce un DTO di risposta con l'Access Token e se l'utente ha MFA attiva, attiva anche la sessione
-    public async performAuthentication(auth: Authentication | Omit<Authentication, 'needsMfa' | 'enabledMfaStrategies'>): Promise<string> {
+    public async performAuthentication(auth: Authentication | Omit<Authentication, 'needsMfa' | 'enabledMfaStrategies' | 'suspiciousAttempt'>): Promise<string> {
         const { userId, sessionId } = auth
         const accessToken = await this.jwtTools.generateToken(userId, TokenType.AccessToken, sessionId)
         if (await this.mfaService.isMfaEnabled(userId)) {
