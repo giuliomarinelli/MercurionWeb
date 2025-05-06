@@ -16,10 +16,10 @@
         class="block py-4 px-4 w-full text-sm text-dark dark:text-light bg-transparent border-slate-300 border dark:border-slate-200 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-light-accent-primary dark:focus:ring-emerald-600 focus:border-light-accent-primary dark:focus:border-emerald-600 peer"
         placeholder=" " required (input)="serverErrorStep.set(0); onEmailInput()" (blur)="onBlur('email')" />
       <label for="email" [ngClass]="{
-          'text-emerald-600 dark:text-dark-accent-primary scale-110 -translate-y-6': isFocus('email') || !emptyEmail(),
+          'text-emerald-600 dark:text-dark-accent-primary scale-110 -translate-y-6 text-sm': isFocus('email') || !emptyEmail(),
           'text-slate-400 text-lg scale-100 translate-y-0': !isFocus('email') && emptyEmail()
         }"
-        class="z-30 peer-focus:font-medium absolute text-sm transition-all duration-300 bg-light-surface-main dark:bg-neutral-900 px-1 top-3 left-4 origin-[0]">
+        class="z-30 peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-main dark:bg-neutral-900 px-1 top-3 left-4 origin-[0]">
         Indirizzo e-mail</label>
       <div class="text-sm text-red-600 mt-1 min-h-5">
         @if (loginForm.controls['email'].invalid && loginForm.controls['email'].touched && serverErrorStep() === 0) {
@@ -45,10 +45,10 @@
         class="block py-4 px-4 w-full text-sm text-dark dark:text-light bg-transparent border-slate-300 border dark:border-slate-200 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-light-accent-primary dark:focus:ring-emerald-600 focus:border-light-accent-primary dark:focus:border-emerald-600 peer"
         placeholder=" " required (input)="serverErrorStep.set(0); onPasswordInput()" (blur)="onBlur('password')" />
       <label for="password" [ngClass]="{
-          'text-emerald-600 dark:text-dark-accent-primary scale-110 -translate-y-6': isFocus('password') || !emptyPassword(),
+          'text-emerald-600 dark:text-dark-accent-primary scale-110 -translate-y-6 text-sm': isFocus('password') || !emptyPassword(),
           'text-slate-400 text-lg scale-100 translate-y-0': !isFocus('password') && emptyPassword()
         }"
-        class="z-30 peer-focus:font-medium absolute text-sm transition-all duration-300 bg-light-surface-main dark:bg-neutral-900 px-1 top-3 left-4 origin-[0]">
+        class="z-30 peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-main dark:bg-neutral-900 px-1 top-3 left-4 origin-[0]">
           Password
       </label>
       <div class="text-sm text-red-600 mt-1 min-h-5">
