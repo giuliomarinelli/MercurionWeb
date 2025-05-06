@@ -124,8 +124,45 @@ export class MoleculeDetailSyncService {
                     }
                 })
             )
+            const addDocs = async () => await this.index.addDocuments(batchWithEmbeddedData, { primaryKey: 'id' })
 
-            await this.index.addDocuments(batchWithEmbeddedData, { primaryKey: 'id' })
+            let _try: number = 0
+
+            // sleep.ts
+            function sleep(ms: number): Promise<void> {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+
+            // eslint-disable-next-line no-constant-condition
+            while (true) {
+                try {
+                    await addDocs()
+                    break
+                } catch {
+                    this.logger.warn('Failed http connection to Meili, retrying...')
+                    sleep(5000)
+                    _try++
+                    if (_try === 5) {
+                        break
+                    }
+                }
+            }
+
+            try {
+                await addDocs()
+            } catch {
+                try {
+                    addDocs()
+
+                } catch {
+                    try {
+                        addDocs()
+                    } catch {
+                        addDocs()
+                    }
+                }
+            }
 
             // 🔥 Update checkpoint
             lastProcessedId = batch[batch.length - 1].id
