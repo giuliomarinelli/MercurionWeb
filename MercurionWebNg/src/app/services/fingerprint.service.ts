@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { FingerprintData, FingerprintDataWrapper } from '../Models/types/auth/DTO/fingerprint.dtos';
+import { FingerprintData, FingerprintDataWrapper, ISessionDeviceInfo } from '../Models/types/auth/DTO/fingerprint.dtos';
 import { getFingerprintData } from '@thumbmarkjs/thumbmarkjs'
+import { RawFingerprintData } from '../Models/types/auth/DTO/fingerprint-raw.dtos';
 
 @Injectable({
   providedIn: 'root'
@@ -10,7 +11,8 @@ export class FingerprintService {
   constructor() { }
 
   async getSanitizedFingerprint(): Promise<FingerprintDataWrapper> {
-    const raw = await getFingerprintData();
+
+    const raw = await getFingerprintData() as unknown as RawFingerprintData
 
     const fingerprintData: FingerprintData = {
       audio: {
@@ -50,23 +52,23 @@ export class FingerprintService {
         pi: raw.math?.pi,
         sqrt: raw.math?.sqrt
       }
-    };
+    }
 
-    const sessionInfo: ISessionDeviceInfo = {
+    const sessionDeviceInfo: ISessionDeviceInfo = {
       osPlatform: raw.system?.platform,
       useragent: raw.system?.useragent,
       browser: {
         name: raw.system?.browser?.name,
         version: raw.system?.browser?.version
       }
-    };
+    }
 
-    const fingerprint = btoa(JSON.stringify(fingerprintData));
+    const fingerprintDataEnc = btoa(JSON.stringify(fingerprintData));
 
     return {
-      fingerprint,
-      sessionInfo
-    };
+      fingerprintDataEnc,
+      sessionDeviceInfo
+    }
   }
 
 }

@@ -66,7 +66,7 @@ export interface ISessionDeviceInfo {
 }
 
 export interface FingerprintDataWrapper {
-  fingerprintData: FingerprintData
+  fingerprintDataEnc: string
   sessionDeviceInfo: ISessionDeviceInfo
 }
 

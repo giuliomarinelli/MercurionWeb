@@ -8,6 +8,7 @@ import { SearchContextService } from './services/stores/search-context.service';
 import { FooterComponent } from './components/common/footer/footer.component';
 import { NgxxSpinnerComponent } from './components/common/ngxx-spinner/ngxx-spinner.component';
 import { Subscription } from 'rxjs';
+import { FingerprintService } from './services/fingerprint.service';
 
 
 
@@ -39,10 +40,14 @@ export class AppComponent implements OnInit, OnDestroy {
   constructor(
     private readonly themeManagerService: ThemeManagerService,
     protected readonly searchContextService: SearchContextService,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly fingerprintService: FingerprintService
   ) { }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
+
+    console.log(await this.fingerprintService.getSanitizedFingerprint())
+
     this.subs = this.router.events.subscribe(event => {
       switch (event.constructor) {
         case NavigationStart:
