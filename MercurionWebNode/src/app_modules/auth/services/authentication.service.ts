@@ -1,4 +1,3 @@
-import { Fingerprint } from './../../../metadata/metadata';
 import { FingerprintData } from './../Models/DTO/fingerprints.dtos';
 import { Authentication } from './../Models/interfaces/authentication.interface';
 import { UserService } from 'src/app_modules/user/services/user.service';
