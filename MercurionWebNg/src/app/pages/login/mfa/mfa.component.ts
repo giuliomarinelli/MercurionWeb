@@ -12,7 +12,7 @@ export type MfaView = 'EMAIL_OTP' | 'SMS_OTP' | 'PH_V' | 'APP_TOTP' | ''
 })
 export class MfaComponent implements OnInit, OnDestroy {
 
-  private paramsSubs: Subscription | undefined
+  private paramsSub: Subscription | undefined
   private view: MfaView = ''
   private viewList: string[] = ['EMAIL_OTP', 'SMS_OTP', 'PH_V', 'APP_TOTP', '']
 
@@ -34,7 +34,7 @@ export class MfaComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.paramsSubs?.unsubscribe()
+    this.paramsSub?.unsubscribe()
   }
 
 
