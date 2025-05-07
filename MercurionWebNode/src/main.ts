@@ -49,7 +49,7 @@ import { Environment } from './config/config'
     // 🔥 Inietta deviceId nella richiesta PRIMA della guard
     req.headers['x-device-id'] = deviceId
 
-    const isDev = configService.get<Environment>('App.env')
+    const isDev = configService.get<Environment>('App.env') === Environment.Development
 
     const mockIp = req.headers['x-mock-ip']?.toString().trim()
     const forwarded = req.headers['x-forwarded-for']?.toString().split(',')[0]
