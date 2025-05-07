@@ -5,42 +5,81 @@ import { Injectable, Logger } from '@nestjs/common';
 import * as geoip from 'geoip-lite';
 
 export interface GeoLocationInfo {
-  ip: string;
-  country: string | null
-  region: string | null
-  city: string | null
-  latitude: number | null
-  longitude: number | null
+    ip: string;
+    country: string | null
+    region: string | null
+    city: string | null
+    latitude: number | null
+    longitude: number | null
+}
+
+export interface GeoLocation {
+    lat: number
+    lon: number
 }
 
 @Injectable()
 export class GeoIpService {
-  
-  private readonly logger = new Logger(GeoIpService.name);
 
-  getLocation(ip: string): GeoLocationInfo {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const lookup = geoip.lookup(ip)
+    private readonly logger = new Logger(GeoIpService.name);
 
-    if (!lookup) {
-      this.logger.warn(`IP geolocation failed for: ${ip}`);
-      return {
-        ip,
-        country: null,
-        region: null,
-        city: null,
-        latitude: null,
-        longitude: null
-      };
+    getLocation(ip: string): GeoLocationInfo {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const lookup = geoip.lookup(ip)
+
+        if (!lookup) {
+            this.logger.warn(`IP geolocation failed for: ${ip}`);
+            return {
+                ip,
+                country: null,
+                region: null,
+                city: null,
+                latitude: null,
+                longitude: null
+            };
+        }
+
+        return {
+            ip,
+            country: lookup.country ?? null,
+            region: lookup.region ?? null,
+            city: lookup.city ?? null,
+            latitude: lookup.ll?.[0] ?? null,
+            longitude: lookup.ll?.[1] ?? null
+        }
     }
 
-    return {
-      ip,
-      country: lookup.country ?? null,
-      region: lookup.region ?? null,
-      city: lookup.city ?? null,
-      latitude: lookup.ll?.[0] ?? null,
-      longitude: lookup.ll?.[1] ?? null
-    };
-  }
+    haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+        const R = 6371; // Raggio terrestre in km
+        const toRad = (deg: number) => deg * (Math.PI / 180)
+
+        const dLat = toRad(lat2 - lat1)
+        const dLon = toRad(lon2 - lon1)
+        const a = Math.sin(dLat / 2) ** 2 +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+            Math.sin(dLon / 2) ** 2;
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+
+        return R * c // distanza in km
+    }
+
+    isLocationClose(
+        current: GeoLocation,
+        saved: GeoLocation,
+        thresholdKm = 20
+    ): boolean {
+        const distance = this.haversineDistance(current.lat, current.lon, saved.lat, saved.lon)
+        return distance <= thresholdKm
+    }
+
+    isTrustedLocation(
+        current: GeoLocation,
+        saved: GeoLocation[],
+        thresholdKm = 20
+    ): boolean {
+        const trust: boolean[] = []
+        saved.forEach(loc => trust.push(this.isLocationClose(current, loc, thresholdKm)))
+        return trust.some(close => close === true)
+    }
+
 }
