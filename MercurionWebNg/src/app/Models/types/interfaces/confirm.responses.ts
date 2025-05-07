@@ -19,6 +19,7 @@ export interface AuthenticationData {
   obscuredPhoneNumber?: string
   needsMfa: boolean
   enabledMfaStrategies: string[]
+  suspiciousAttempt: boolean
 }
 
 // export type ConfirmMfaChange = ConfirmDTO & MfaAuthMetadata
@@ -32,5 +33,7 @@ export type Confirm_Login_FirstStepDTO = ConfirmDTO & AuthenticationData & {
     preAuthorizationToken?: string
     accessToken?: string
 }
+
+
 
 // export type ConfirmWithTotpMetaDTO = ConfirmDTO & TotpMetadata

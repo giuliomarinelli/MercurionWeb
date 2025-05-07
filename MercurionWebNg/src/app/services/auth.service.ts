@@ -1,10 +1,12 @@
-import { Confirm_Login_FirstStepDTO } from './../Models/types/interfaces/confirm.responses';
+import { FingerprintData, ISessionDeviceInfo } from './../Models/types/auth/DTO/fingerprint.dtos';
+import { Confirm_Login_FirstStepDTO, ConfirmWithAccessTokenDTO } from './../Models/types/interfaces/confirm.responses';
 import { Injectable } from '@angular/core';
 import { EmailDTO, Login_FirstStepWrapper } from '../Models/types/auth/DTO/login.dtos';
 import { ConfirmDTO } from '../Models/types/interfaces/confirm.responses';
 import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { ConfirmWithTotpMetaDTO } from '../Models/confirm.dtos';
+import { TotpBodyDTO } from '../Models/types/auth/DTO/totp-body.dto';
 
 @Injectable({
   providedIn: 'root'
@@ -34,8 +36,8 @@ export class AuthService {
     )
   }
 
-  public login_secondStep(strategy: 'EMAIL_OTP' | 'SMS_OTP', preAuthorizationToken: string): Observable<ConfirmWithTotpMetaDTO> {
-    return this.http.post<ConfirmWithTotpMetaDTO>(`/api/authentication/login/${strategy}/2`, {},
+  public login_secondStep(strategy: 'EMAIL_OTP' | 'SMS_OTP', preAuthorizationToken: string, trustVerify: boolean = false): Observable<ConfirmWithTotpMetaDTO> {
+    return this.http.post<ConfirmWithTotpMetaDTO>(`/api/authentication/login/${strategy}/2?trust_verify=${trustVerify}`, {},
       {
         withCredentials: true,
         headers: {
@@ -43,6 +45,22 @@ export class AuthService {
         }
       }
     )
+  }
+
+  public login_thirdStep(strategy: 'EMAIL_OTP' | 'SMS_OTP' | 'APP_TOTP', totpDTO: TotpBodyDTO, fingerprintData: {
+    fingerprintBase64: string;
+    sessionDeviceInfo: ISessionDeviceInfo;
+  },
+    preauthorizationToken: string): Observable<ConfirmWithAccessTokenDTO> {
+    const { fingerprintBase64, sessionDeviceInfo } = fingerprintData
+    return this.http.post<ConfirmWithAccessTokenDTO>(`/api/authentication/login/${strategy}/3`, totpDTO, {
+      withCredentials: true,
+      headers: {
+        'X-Fingerprint': fingerprintBase64,
+        'X-Device-Info': btoa(JSON.stringify(sessionDeviceInfo)),
+        'Authorization': `Bearer ${preauthorizationToken}`
+      }
+    })
   }
 
 }

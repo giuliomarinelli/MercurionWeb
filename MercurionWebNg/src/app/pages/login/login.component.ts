@@ -141,7 +141,11 @@ export class LoginComponent implements OnInit, OnDestroy {
           if (res.needsMfa) {
             const { statusCode, timestamp, message, ...loginFirstStepData } = res
             sessionStorage?.setItem('preAuthorizationData', btoa(JSON.stringify(loginFirstStepData)))
-            if (res.enabledMfaStrategies.length === 1) {
+            if (res.suspiciousAttempt) {
+              this.router.navigate([`/login/mfa/EMAIL_OTP`], {queryParams: {
+                'trust_verify': true
+              }})
+            } else if (res.enabledMfaStrategies.length === 1) {
               this.router.navigate([`/login/mfa/${res.enabledMfaStrategies[0]}`])
             } else {
               this.router.navigate(['/login/mfa/choose-method'])
