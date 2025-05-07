@@ -25,7 +25,7 @@ export class PubSubService implements OnModuleInit {
 
     this.subscriber.on('message', (channel, key) => {
       if (channel === '__keyevent@0__:expired' || channel === '__keyevent@0__:del') {
-        this.logger.log(`Key \x1b[36m${key}\x1b[0m expired or deleted`)
+        this.logger.log(`Key \x1b[36m${key}\x1b[0m\x1b[32m expired or deleted\x1b[0m`)
         // Aggiungi la logica per notificare altri servizi, come il gestore di connessioni WebSocket
       }
     });
