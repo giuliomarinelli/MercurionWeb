@@ -11,6 +11,7 @@ import { Confirm_Login_FirstStepDTO } from '../../Models/types/interfaces/confir
 import { NgClass } from '@angular/common';
 import { FingerprintService } from '../../services/fingerprint.service';
 import { ISessionDeviceInfo } from '../../Models/types/auth/DTO/fingerprint.dtos';
+import { LoadingContextService } from '../../services/stores/loading-context.service';
 
 
 @Component({
@@ -58,7 +59,8 @@ export class LoginComponent implements OnInit, OnDestroy {
     private readonly themeManager: ThemeManagerService,
     private readonly router: Router,
     private readonly authService: AuthService,
-    private readonly fingerprintService: FingerprintService
+    private readonly fingerprintService: FingerprintService,
+    private readonly loadingContext: LoadingContextService
   ) { }
 
   onEmailInput(): void {
@@ -128,6 +130,7 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   onSubmit(): void {
     if (this.loginForm.valid) {
+      this.loadingContext.start()
       const dto: Login_FirstStepWrapper = {
         email: this.loginForm.value['email'],
         password: this.loginForm.value['password'],

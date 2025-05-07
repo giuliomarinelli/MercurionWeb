@@ -52,7 +52,7 @@
       <div class="text-sm text-red-600 mt-1 min-h-5">
         @if (otpControl.invalid && otpControl.touched && !serverError()) {
         @if (isOtpEmpty()) {
-        E-mail obbligatoria.
+        Il campo codice è vuoto.
         }
         } @else if (serverError()) {
         L'e-mail inserita non è corretta.

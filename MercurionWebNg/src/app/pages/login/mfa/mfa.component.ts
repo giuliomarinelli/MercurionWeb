@@ -1,3 +1,4 @@
+import { LoadingContextService } from './../../../services/stores/loading-context.service';
 import { AuthenticationData } from './../../../Models/types/interfaces/confirm.responses';
 import { NgClass } from '@angular/common';
 import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
@@ -53,7 +54,8 @@ export class MfaComponent implements OnInit, OnDestroy {
     private readonly router: Router,
     private readonly fb: FormBuilder,
     private readonly authService: AuthService,
-    private readonly fingerprintService: FingerprintService
+    private readonly fingerprintService: FingerprintService,
+    private readonly loadingContext: LoadingContextService
   ) { }
 
   async ngOnInit(): Promise<void> {
@@ -98,8 +100,11 @@ export class MfaComponent implements OnInit, OnDestroy {
       if (!view) {
         this.view.set('')
         this.unTrusted.set(false)
+        this.loadingContext.stop()
         return
       }
+
+      this.loadingContext.stop()
 
       if (this.viewList.includes(view)) {
         this.view.set(view)
@@ -112,9 +117,11 @@ export class MfaComponent implements OnInit, OnDestroy {
             this.unTrusted()).subscribe({
               next: res => {
                 console.log(res)
+                this.loadingContext.stop()
               },
               error: (err) => {
                 console.error(err.error)
+                this.loadingContext.stop()
               }
             })
         }
