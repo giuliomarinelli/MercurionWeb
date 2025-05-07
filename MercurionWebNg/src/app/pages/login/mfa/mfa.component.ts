@@ -2,7 +2,7 @@ import { NgClass } from '@angular/common';
 import { Component, ElementRef, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { combineLatest, map, Subscription } from 'rxjs';
+import { combineLatest, debounceTime, distinctUntilChanged, filter, map, Subscription } from 'rxjs';
 
 export type MfaView = 'EMAIL_OTP' | 'SMS_OTP' | 'PH_V' | 'APP_TOTP' | ''
 
@@ -18,6 +18,7 @@ export class MfaComponent implements OnInit, OnDestroy {
   private otpRef!: ElementRef<HTMLInputElement>
 
   private paramsSub: Subscription | undefined
+  private otpStateSub: Subscription | undefined
   protected view = signal<MfaView>('')
   protected serverError = signal<boolean>(false)
   private unTrusted = signal<boolean>(false)
@@ -37,6 +38,18 @@ export class MfaComponent implements OnInit, OnDestroy {
 
     this.otpControl = this.fb.control(null, [Validators.required, Validators.pattern(/\d{6}/)])
     this.phoneControl = this.fb.control(null, [Validators.required])
+
+    this.otpStateSub = this.otpControl.valueChanges
+      .pipe(
+        filter(val => !!val),
+        debounceTime(300),
+        distinctUntilChanged(),
+      )
+      .subscribe(code => {
+        if (code.length === 6) {
+          this.otpRef.nativeElement.click()
+        }
+      })
 
     this.paramsSub = combineLatest([
       this.route.paramMap,
@@ -82,6 +95,7 @@ export class MfaComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.paramsSub?.unsubscribe()
+    this.otpStateSub?.unsubscribe()
   }
 
 

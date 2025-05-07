@@ -29,7 +29,7 @@
           'text-slate-400 text-lg scale-100 translate-y-0': !isOtpFocused() && isOtpEmpty()
         }"
         class="z-30 peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-main dark:bg-neutral-900 px-1 top-3 left-4 origin-[0]">
-        Indirizzo e-mail</label>
+        Codice monouso</label>
       <div class="text-sm text-red-600 mt-1 min-h-5">
         @if (otpControl.invalid && otpControl.touched && !serverError()) {
         @if (isOtpEmpty()) {
