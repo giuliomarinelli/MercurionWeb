@@ -27,6 +27,7 @@ export class MfaComponent implements OnInit, OnDestroy {
   protected phoneControl!: FormControl
   protected isOtpFocused = signal<boolean>(false)
   protected isOtpEmpty = signal<boolean>(true)
+  protected loading = signal<boolean>(false)
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -47,7 +48,8 @@ export class MfaComponent implements OnInit, OnDestroy {
       )
       .subscribe(code => {
         if (code.length === 6) {
-          this.otpRef.nativeElement.click()
+          this.loading.set(true)
+          this.verifyOtp()
         }
       })
 
@@ -78,8 +80,12 @@ export class MfaComponent implements OnInit, OnDestroy {
       })
   }
 
-  goTo(target: MfaView): void {
-
+  goTo(target: MfaView | 'VERIFY_OTP_ACTION'): void {
+    switch (target) {
+      case 'VERIFY_OTP_ACTION':
+        this.verifyOtp()
+      break
+    }
   }
 
   onOtpInput(): void {
@@ -91,6 +97,10 @@ export class MfaComponent implements OnInit, OnDestroy {
     const value = this.otpRef?.nativeElement?.value ?? '';
     this.isOtpEmpty.set(value.trim() === '');
     this.isOtpFocused.set(false)
+  }
+
+  verifyOtp(): void {
+    console.log(this.otpControl.value)
   }
 
   ngOnDestroy(): void {
