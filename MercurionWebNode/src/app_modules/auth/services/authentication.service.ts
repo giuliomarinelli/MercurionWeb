@@ -16,6 +16,7 @@ import { nullish } from 'src/Models/nullish.type';
 import { IAuth } from '../Models/interfaces/i-auth.interface';
 import { GeneralUtils } from 'src/general-utils/general-utils';
 import { createHash } from 'crypto';
+import { GeoIpService, GeoLocation } from './geo-ip.service';
 
 @Injectable()
 export class AuthenticationService {
@@ -27,7 +28,8 @@ export class AuthenticationService {
         private readonly securityService: SercurityService,
         private readonly mfaService: MfaService,
         private readonly jwtTools: JwtToolsService,
-        private readonly _r: ResponseService
+        private readonly _r: ResponseService,
+        private readonly geoIpService: GeoIpService
     ) { }
 
     private generateFingerprint(fingerprintData: FingerprintData): string {
@@ -45,13 +47,17 @@ export class AuthenticationService {
             throw new RpcException('AuthenticationInvalidCredentials')
         }
         const fingerprint = this.generateFingerprint(fingerprintData)
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { city, country, ip, region, ...geoLocation } = this.geoIpService.getLocation(IP)
+        const alreadyTrustedLocations: GeoLocation[] = await this.sessionService.getTrustedLocations(auth.userId)
+        const isTrustedCurrentLocation: boolean = this.geoIpService.isTrustedLocation(geoLocation as unknown as GeoLocation, alreadyTrustedLocations)
         const session = await this.sessionService.createSession({ deviceId, userId: auth.userId, IP, sessionDeviceInfo, fingerprint }, remember)
         const sessionId = session.sessionId
         const inWhiteList: boolean = await this.sessionService.isFingerprintInWhiteList(auth.userId, fingerprint)
         const _enabledMfaStrategies: MfaStrategy[] = await this.mfaService.getEnabledMfaStrategies(auth.userId)
         let needsMfa: boolean = !!_enabledMfaStrategies.length
         const isMfaEnabledBySettings: boolean = needsMfa
-        if (!inWhiteList && !needsMfa) {
+        if ((!inWhiteList || !isTrustedCurrentLocation) && !needsMfa) {
             needsMfa = true
         }
         if (!needsMfa) {
@@ -62,7 +68,7 @@ export class AuthenticationService {
         const obscuredPhoneNumber = phone && _enabledMfaStrategies.includes(MfaStrategy.SMS_OTP) ? this.securityService.maskEmail(phone) : undefined
         let enabledMfaStrategies: string[] = _enabledMfaStrategies.map(val => GeneralUtils.getEnumKeyByValue(MfaStrategy, val)).filter(val => val !== undefined)
         let suspiciousAttempt: boolean = false
-        if (!inWhiteList && !isMfaEnabledBySettings) {
+        if ((!inWhiteList || !isTrustedCurrentLocation) && !isMfaEnabledBySettings) {
             enabledMfaStrategies = ['EMAIL_OTP']
             suspiciousAttempt = true
             obscuredEmail = this.securityService.maskEmail(email)
@@ -88,7 +94,7 @@ export class AuthenticationService {
     }
 
     // Restituisce un DTO di risposta con l'Access Token e se l'utente ha MFA attiva, attiva anche la sessione
-    public async performAuthentication(auth: Authentication | Omit<Authentication, 'needsMfa' | 'enabledMfaStrategies' | 'suspiciousAttempt'>, fingerprintData: FingerprintData): Promise<string> {
+    public async performAuthentication(auth: Authentication | Omit<Authentication, 'needsMfa' | 'enabledMfaStrategies' | 'suspiciousAttempt'>, fingerprintData: FingerprintData, ip: string): Promise<string> {
         const { userId, sessionId } = auth
         const accessToken = await this.jwtTools.generateToken(userId, TokenType.AccessToken, sessionId)
         if (await this.mfaService.isMfaEnabled(userId)) {
@@ -96,6 +102,9 @@ export class AuthenticationService {
         }
         const fingerprint: string = this.generateFingerprint(fingerprintData)
         await this.sessionService.addFingerprintToWhiteList(userId, fingerprint)
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { city, country, ip: _ip, region, ...geoLocation } = this.geoIpService.getLocation(ip)
+        await this.sessionService.addTrustedLocation(userId, geoLocation as unknown as GeoLocation)
         return accessToken
 
     }

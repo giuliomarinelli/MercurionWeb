@@ -4,6 +4,7 @@ import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { ISession, ISessionDeviceInfo } from '../Models/interfaces/i-session.interface';
 import { nullish } from 'src/Models/nullish.type';
 import { RpcException } from '@nestjs/microservices';
+import { GeoLocation } from './geo-ip.service';
 
 @Injectable()
 export class SessionService {
@@ -15,6 +16,10 @@ export class SessionService {
 
     private getUserFingerprintsWhiteListKey(userId: string): string {
         return `fingerprintsWhiteList:${userId}`
+    }
+
+    private getTrustedLocationKey(userId: string): string {
+        return `trustedLocation:${userId}`
     }
 
     // 🔹 Creazione di una nuova sessione (semplificata con Omit<>)
@@ -170,6 +175,51 @@ export class SessionService {
         return exists === 'true'
     }
 
+
+
+    public async addTrustedLocation(userId: UUID, location: GeoLocation): Promise<void> {
+        
+        if (location.latitude == null || location.longitude == null) {
+            return
+        }
+
+        const key = this.getTrustedLocationKey(userId)
+
+        const currentRaw = await this.redisService.get(key)
+        let locations: GeoLocation[] = []
+
+        try {
+            if (currentRaw) {
+                locations = JSON.parse(currentRaw) as GeoLocation[]
+            }
+        } catch {
+            locations = []
+        }
+
+        // Evita duplicati: salva solo se non è già presente una location simile
+        const alreadyPresent = locations.some(loc =>
+            Math.abs(loc.latitude - location.latitude) < 0.001 &&
+            Math.abs(loc.longitude - location.longitude) < 0.001
+        );
+
+        if (!alreadyPresent) {
+            locations.push(location);
+            await this.redisService.set(key, JSON.stringify(locations), 30 * 24 * 60 * 60)
+        }
+    }
+
+    public async getTrustedLocations(userId: UUID): Promise<GeoLocation[]> {
+        const key = this.getTrustedLocationKey(userId);
+        const raw = await this.redisService.get(key);
+
+        if (!raw) return []
+
+        try {
+            return JSON.parse(raw) as GeoLocation[]
+        } catch {
+            return []
+        }
+    }
 
 
 }

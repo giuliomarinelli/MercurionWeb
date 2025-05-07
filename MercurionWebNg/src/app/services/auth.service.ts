@@ -59,7 +59,8 @@ export class AuthService {
       headers: {
         'X-Fingerprint': fingerprintBase64,
         'X-Device-Info': btoa(JSON.stringify(sessionDeviceInfo)),
-        'Authorization': `Bearer ${preauthorizationToken}`
+        'Authorization': `Bearer ${preauthorizationToken}`,
+        'X-Mock-IP': '91.122.12.8'
       }
     })
   }

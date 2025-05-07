@@ -14,8 +14,8 @@ export interface GeoLocationInfo {
 }
 
 export interface GeoLocation {
-    lat: number
-    lon: number
+    latitude: number
+    longitude: number
 }
 
 @Injectable()
@@ -68,7 +68,7 @@ export class GeoIpService {
         saved: GeoLocation,
         thresholdKm = 20
     ): boolean {
-        const distance = this.haversineDistance(current.lat, current.lon, saved.lat, saved.lon)
+        const distance = this.haversineDistance(current.latitude, current.longitude, saved.latitude, saved.longitude)
         return distance <= thresholdKm
     }
 
