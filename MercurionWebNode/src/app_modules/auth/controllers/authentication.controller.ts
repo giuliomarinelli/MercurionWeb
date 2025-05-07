@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, HttpCode, HttpStatus, Param, Post, UnauthorizedException, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Body, Controller, HttpCode, HttpStatus, Param, Post, Query, UnauthorizedException, ValidationPipe } from '@nestjs/common';
 import { Login_FirstStepDTO } from '../Models/DTO/login-first-step.cls.dto';
 import { MfaService } from '../services/mfa.service';
 import { AuthenticationService } from '../services/authentication.service';
@@ -75,6 +75,7 @@ export class AuthenticationController {
     @Post('/login/:strategy/2')
     @HttpCode(HttpStatus.OK)
     public async login_secondStep(
+        @Query('trust_verify') trustVerify: boolean = false,
         @Authorization() preAuthorizationToken: string,
         @Param('strategy') strategyKey: string,
         @Body(new ValidationPipe({ transform: true })) dto: TestPhoneDTO = { completePhoneNumber: '' }
@@ -88,7 +89,7 @@ export class AuthenticationController {
         if (!strategy || strategy === MfaStrategy.APP_TOTP) {
             throw new BadRequestException('Invalid MFA strategy')
         }
-        const { generatedAt, expiresAt } = await this.mfaService.sendOtpToUser(preAuthorizationToken, strategy, dto.completePhoneNumber)
+        const { generatedAt, expiresAt } = await this.mfaService.sendOtpToUser(preAuthorizationToken, strategy, trustVerify, dto.completePhoneNumber)
         return {
             ...this._r.ok(`OTP successfully sent to user with strategy ${strategyKey}`),
             generatedAt,

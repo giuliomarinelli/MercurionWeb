@@ -105,7 +105,7 @@ export class MfaService {
         }
     }
 
-    public async sendOtpToUser(preAuthorizationToken: string, strategy: MfaStrategy, phoneNumberToVerify?: string): Promise<TotpMetadata> {
+    public async sendOtpToUser(preAuthorizationToken: string, strategy: MfaStrategy, trustVerify: boolean, phoneNumberToVerify?: string): Promise<TotpMetadata> {
 
         let userId: UUID
         let jti: UUID
@@ -121,8 +121,15 @@ export class MfaService {
             throw new RpcException('NoSuchUser')
         }
         if (!user.otpSecret) throw new RpcException('OtpSecretNotFound')
-        if (!user.mfaStrategies.includes(strategy))
-            throw new RpcException(`InvalidMfaStrategy::${strategy} strategy for MFA not enabled for this user`)
+        let strategyError: boolean = true
+        if ((await this.userService.getUserEnabledMfaStrategies(userId)).includes(strategy)) {
+            strategyError = false
+        } else if (strategy === MfaStrategy.EMAIL_OTP && trustVerify) {
+            strategyError = false
+        }
+        if (strategyError) {
+            throw new RpcException(`InvalidMfaStrategy::${GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy)} strategy for MFA not enabled for this user`)
+        }
         const { TOTP, ...metadata } = this.securityService.generateTotp(user.otpSecret)
 
         switch (strategy) {
