@@ -1,9 +1,10 @@
 import { Confirm_Login_FirstStepDTO } from './../Models/types/interfaces/confirm.responses';
 import { Injectable } from '@angular/core';
-import { EmailDTO, Login_FirstStepDTO, Login_FirstStepWrapper } from '../Models/types/auth/DTO/login.dtos';
+import { EmailDTO, Login_FirstStepWrapper } from '../Models/types/auth/DTO/login.dtos';
 import { ConfirmDTO } from '../Models/types/interfaces/confirm.responses';
 import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
+import { ConfirmWithTotpMetaDTO } from '../Models/confirm.dtos';
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +14,11 @@ export class AuthService {
   constructor(private readonly http: HttpClient) { }
 
   public login_stepZero(emailDTO: EmailDTO): Observable<ConfirmDTO> {
-    return this.http.post<ConfirmDTO>('/api/authentication/login/0', emailDTO, { withCredentials: true })
+    return this.http.post<ConfirmDTO>('/api/authentication/login/0', emailDTO,
+      {
+        withCredentials: true
+      }
+    )
   }
 
   public login_firstStep(loginWrapper: Login_FirstStepWrapper): Observable<Confirm_Login_FirstStepDTO> {
@@ -25,8 +30,19 @@ export class AuthService {
           'X-Fingerprint': fingerprintBase64,
           'X-Device-Info': btoa(JSON.stringify(sessionDeviceInfo))
         }
+      }
+    )
+  }
 
-      })
+  public login_secondStep(strategy: 'EMAIL_OTP' | 'SMS_OTP', preAuthorizationToken: string): Observable<ConfirmWithTotpMetaDTO> {
+    return this.http.post<ConfirmWithTotpMetaDTO>(`/api/authentication/login/${strategy}/2`, {},
+      {
+        withCredentials: true,
+        headers: {
+          'Authorization': `Bearer ${preAuthorizationToken}`
+        }
+      }
+    )
   }
 
 }

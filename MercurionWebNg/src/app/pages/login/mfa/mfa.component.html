@@ -17,7 +17,7 @@
   <form class="w-full max-w-sm space-y-6">
     <!-- Step 1: Email -->
     @switch (true) {
-    @case (['EMAIL_OTP', 'SMS_OTP'].includes(view())) {
+    @case (['EMAIL_OTP', 'SMS_OTP', 'APP_TOTP'].includes(view())) {
     <p class="text-sm text-center relative bottom-2">@if (unTrusted() && view() === 'EMAIL_OTP') {
       <span class="tracking-wider text-light-warning dark:text-dark-warning font-semibold">
         Abbiamo rilevato un accesso insolito.

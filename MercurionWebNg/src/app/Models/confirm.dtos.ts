@@ -15,3 +15,10 @@ export interface Login_FirstStep_Data {
 }
 
 export type Confirm_Login_FirstStepDTO = Login_FirstStep_Data & ConfirmDTO
+
+export interface TotpMeta {
+  generatedAt: number
+  expiresAt: number
+}
+
+export type ConfirmWithTotpMetaDTO = ConfirmDTO & TotpMeta
