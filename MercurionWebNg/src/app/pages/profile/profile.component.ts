@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { AfterViewInit, Component } from '@angular/core';
+import { LoadingContextService } from '../../services/stores/loading-context.service';
 
 @Component({
   selector: 'app-profile',
@@ -6,6 +7,12 @@ import { Component } from '@angular/core';
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.css'
 })
-export class ProfileComponent {
+export class ProfileComponent implements AfterViewInit {
+
+  constructor(private readonly loadingContext: LoadingContextService) {}
+
+  ngAfterViewInit(): void {
+    this.loadingContext.stop()
+  }
 
 }
