@@ -1,6 +1,6 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { combineLatest, map, Subscription } from 'rxjs';
 
 export type MfaView = 'EMAIL_OTP' | 'SMS_OTP' | 'PH_V' | 'APP_TOTP' | ''
 
@@ -13,7 +13,8 @@ export type MfaView = 'EMAIL_OTP' | 'SMS_OTP' | 'PH_V' | 'APP_TOTP' | ''
 export class MfaComponent implements OnInit, OnDestroy {
 
   private paramsSub: Subscription | undefined
-  private view: MfaView = ''
+  private view = signal<MfaView>('')
+  private unTrusted = signal<boolean>(false)
   private viewList: string[] = ['EMAIL_OTP', 'SMS_OTP', 'PH_V', 'APP_TOTP', '']
 
   constructor(
@@ -22,14 +23,30 @@ export class MfaComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    this.route.params.subscribe(params => {
-      const view: string | null | undefined = params['view']
+    this.paramsSub = combineLatest([
+      this.route.paramMap,
+      this.route.queryParamMap
+    ])
+    .pipe(
+      map(([params, query]) => {
+        const view = params.get('view') as MfaView | null;
+        const trustVerify = (query.get('trust_verify') ?? 'false') === 'true';
+        return { view, trustVerify }
+      })
+    )
+    .subscribe(({ view, trustVerify }) => {
+
       if (!view) {
-        this.view = ''
-      } else if (this.viewList.includes(view) && view !== '') {
-        this.view = view as MfaView
+        this.view.set('');
+        this.unTrusted.set(false);
+        return;
       }
-      console.log(this.view)
+
+      if (this.viewList.includes(view)) {
+        this.view.set(view)
+        const mustVerify = (view === 'EMAIL_OTP' || view === 'SMS_OTP') && trustVerify
+        this.unTrusted.set(mustVerify)
+      }
     })
   }
 

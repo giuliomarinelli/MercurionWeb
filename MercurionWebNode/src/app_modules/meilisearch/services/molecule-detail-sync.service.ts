@@ -140,8 +140,8 @@ export class MoleculeDetailSyncService {
                     await addDocs()
                     break
                 } catch {
-                    this.logger.warn('Failed http connection to Meili, retrying...')
-                    sleep(5000)
+                    this.logger.warn(`Failed http connection to Meili, retrying in ${5 ** _try} seconds...`)
+                    sleep(5000 ** _try)
                     _try++
                     if (_try === 5) {
                         break
