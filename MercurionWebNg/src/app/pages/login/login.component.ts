@@ -36,6 +36,8 @@ export class LoginComponent implements OnInit, OnDestroy {
   protected malformedEmail = signal<boolean>(false)
   protected isEmailFocused = signal<boolean>(false)
 
+
+
   private firstStepSubscription: Subscription | undefined
   private secondStepSubscription: Subscription | undefined
   private emailStatusChangeSubscription: Subscription | undefined
