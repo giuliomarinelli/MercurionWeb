@@ -3,6 +3,7 @@ import { Component, ElementRef, OnDestroy, OnInit, signal, ViewChild } from '@an
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { combineLatest, debounceTime, distinctUntilChanged, filter, map, Subscription } from 'rxjs';
+import { Login_FirstStep_Data } from '../../../Models/confirm.dtos';
 
 export type MfaView = 'EMAIL_OTP' | 'SMS_OTP' | 'PH_V' | 'APP_TOTP' | ''
 
@@ -21,13 +22,14 @@ export class MfaComponent implements OnInit, OnDestroy {
   private otpStateSub: Subscription | undefined
   protected view = signal<MfaView>('')
   protected serverError = signal<boolean>(false)
-  private unTrusted = signal<boolean>(false)
+  protected unTrusted = signal<boolean>(false)
   private viewList: string[] = ['EMAIL_OTP', 'SMS_OTP', 'PH_V', 'APP_TOTP', '']
   protected otpControl!: FormControl
   protected phoneControl!: FormControl
   protected isOtpFocused = signal<boolean>(false)
   protected isOtpEmpty = signal<boolean>(true)
   protected loading = signal<boolean>(false)
+  protected loginFirstStepData: Login_FirstStep_Data | null | undefined
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -39,7 +41,10 @@ export class MfaComponent implements OnInit, OnDestroy {
 
     this.otpControl = this.fb.control(null, [Validators.required, Validators.pattern(/\d{6}/)])
     this.phoneControl = this.fb.control(null, [Validators.required])
-
+    this.loginFirstStepData = JSON.parse(sessionStorage?.getItem('preAuthorizationData') ?? '{}') as Login_FirstStep_Data ?? null
+    if (!this.loginFirstStepData) {
+      this.router.navigate(['/login'])
+    }
     this.otpStateSub = this.otpControl.valueChanges
       .pipe(
         filter(val => !!val),
@@ -56,35 +61,35 @@ export class MfaComponent implements OnInit, OnDestroy {
     this.paramsSub = combineLatest([
       this.route.paramMap,
       this.route.queryParamMap
-    ])
-      .pipe(
-        map(([params, query]) => {
-          const view = params.get('view') as MfaView | null;
-          const trustVerify = (query.get('trust_verify') ?? 'false') === 'true';
-          return { view, trustVerify }
-        })
-      )
-      .subscribe(({ view, trustVerify }) => {
+    ]).pipe(
+      map(([params, query]) => {
 
-        if (!view) {
-          this.view.set('');
-          this.unTrusted.set(false);
-          return;
-        }
+        const view = params.get('view') as MfaView | null
+        const trustVerify = (query.get('trust_verify') ?? 'false') === 'true'
+        return { view, trustVerify }
 
-        if (this.viewList.includes(view)) {
-          this.view.set(view)
-          const mustVerify = (view === 'EMAIL_OTP' || view === 'SMS_OTP') && trustVerify
-          this.unTrusted.set(mustVerify)
-        }
       })
+    ).subscribe(({ view, trustVerify }) => {
+
+      if (!view) {
+        this.view.set('')
+        this.unTrusted.set(false)
+        return
+      }
+
+      if (this.viewList.includes(view)) {
+        this.view.set(view)
+        const mustVerify = (view === 'EMAIL_OTP' || view === 'SMS_OTP') && trustVerify
+        this.unTrusted.set(mustVerify)
+      }
+    })
   }
 
   goTo(target: MfaView | 'VERIFY_OTP_ACTION'): void {
     switch (target) {
       case 'VERIFY_OTP_ACTION':
         this.verifyOtp()
-      break
+        break
     }
   }
 

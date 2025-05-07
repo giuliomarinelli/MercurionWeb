@@ -6,7 +6,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { Subscription } from 'rxjs';
 import { HttpErrorRes } from '../../Models/types/interfaces/error-res.dto';
-import { Login_FirstStepDTO, Login_FirstStepWrapper } from '../../Models/types/auth/DTO/login.dtos';
+import { Login_FirstStepWrapper } from '../../Models/types/auth/DTO/login.dtos';
 import { Confirm_Login_FirstStepDTO } from '../../Models/types/interfaces/confirm.responses';
 import { NgClass } from '@angular/common';
 import { FingerprintService } from '../../services/fingerprint.service';
@@ -139,7 +139,8 @@ export class LoginComponent implements OnInit, OnDestroy {
         next: (res: Confirm_Login_FirstStepDTO) => {
           console.log(res)
           if (res.needsMfa) {
-            sessionStorage?.setItem('preAuthorizationToken', btoa(res.preAuthorizationToken as string))
+            const { statusCode, timestamp, message, ...loginFirstStepData } = res
+            sessionStorage?.setItem('preAuthorizationData', btoa(JSON.stringify(loginFirstStepData)))
             if (res.enabledMfaStrategies.length === 1) {
               this.router.navigate([`/login/mfa/${res.enabledMfaStrategies[0]}`])
             } else {

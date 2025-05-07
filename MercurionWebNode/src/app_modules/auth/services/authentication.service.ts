@@ -47,21 +47,22 @@ export class AuthenticationService {
         const fingerprint = this.generateFingerprint(fingerprintData)
         const session = await this.sessionService.createSession({ deviceId, userId: auth.userId, IP, sessionDeviceInfo, fingerprint }, remember)
         const sessionId = session.sessionId
-        let needsMfa: boolean = await this.mfaService.isMfaEnabled(auth.userId)
         const inWhiteList: boolean = await this.sessionService.isFingerprintInWhiteList(auth.userId, fingerprint)
-        if (!inWhiteList) {
+        const _enabledMfaStrategies: MfaStrategy[] = await this.mfaService.getEnabledMfaStrategies(auth.userId)
+        let needsMfa: boolean = !!_enabledMfaStrategies.length
+        const isMfaEnabledBySettings: boolean = needsMfa
+        if (!inWhiteList && !needsMfa) {
             needsMfa = true
         }
         if (!needsMfa) {
             await this.sessionService.activateSession(sessionId)
         }
-        const _enabledMfaStrategies: MfaStrategy[] = await this.mfaService.getEnabledMfaStrategies(auth.userId)
         const phone: string | nullish = await this.userService.getPhoneNumberById(auth.userId)
         let obscuredEmail = _enabledMfaStrategies.includes(MfaStrategy.EMAIL_OTP) ? this.securityService.maskEmail(email) : undefined
         const obscuredPhoneNumber = phone && _enabledMfaStrategies.includes(MfaStrategy.SMS_OTP) ? this.securityService.maskEmail(phone) : undefined
         let enabledMfaStrategies: string[] = _enabledMfaStrategies.map(val => GeneralUtils.getEnumKeyByValue(MfaStrategy, val)).filter(val => val !== undefined)
         let suspiciousAttempt: boolean = false
-        if (!inWhiteList) {
+        if (!inWhiteList && !isMfaEnabledBySettings) {
             enabledMfaStrategies = ['EMAIL_OTP']
             suspiciousAttempt = true
             obscuredEmail = this.securityService.maskEmail(email)

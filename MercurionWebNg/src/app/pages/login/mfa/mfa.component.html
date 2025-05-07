@@ -18,9 +18,26 @@
     <!-- Step 1: Email -->
     @switch (true) {
     @case (['EMAIL_OTP', 'SMS_OTP'].includes(view())) {
-    <p class="text-sm text-center relative bottom-2">Abbiamo inviato una mail a <span
-        class="text-emerald-600 font-semibold">*****</span> con un codice di
-      accesso</p>
+    <p class="text-sm text-center relative bottom-2">@if (unTrusted() && view() === 'EMAIL_OTP') {
+      <span class="tracking-wider text-light-warning dark:text-dark-warning font-semibold">
+        Abbiamo rilevato un accesso insolito.
+      </span>
+        Perciò abbiamo
+      } @else {
+        Abbiamo
+      }&nbsp;
+      @switch (view()) {
+        @case ('EMAIL_OTP') {
+          <span>inviato una mail a&nbsp;</span>
+          <span class="text-emerald-600 font-semibold">{{loginFirstStepData?.obscuredEmail ?? '*'}}</span>
+        }
+        @case ('SMS_OTP') {
+          <span>inviato un SMS a&nbsp;</span>
+          <span class="text-emerald-600 font-semibold">{{loginFirstStepData?.obscuredPhoneNumber ?? '*'}}</span>
+        }
+      }
+
+      <span>&nbsp;con un codice di accesso</span></p>
     <div class="relative">
       <input #otp type="text" [formControl]="otpControl" id="otp"
         class="block py-4 px-4 w-full text-sm text-dark dark:text-light bg-transparent border-slate-300 border dark:border-slate-200 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-light-accent-primary dark:focus:ring-emerald-600 focus:border-light-accent-primary dark:focus:border-emerald-600 peer"
