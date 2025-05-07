@@ -10,9 +10,17 @@ services:
     volumes:
       - redis_data:/data
     restart: unless-stopped
-    command: ["redis-server", "--notify-keyspace-events", "Ex"]
+    command: >
+      redis-server
+      --notify-keyspace-events Ex
+      --save "900 1"
+      --save "300 10"
+      --save "60 10000"
+      --dbfilename dump.rdb
+      --dir /data
     networks:
       - spectralume_network
+
 
   nats_sl:
     image: nats:latest
