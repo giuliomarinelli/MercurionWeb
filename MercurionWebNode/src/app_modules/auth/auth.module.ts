@@ -16,6 +16,7 @@ import { MfaService } from './services/mfa.service';
 import { AuthenticationService } from './services/authentication.service';
 import { AuthenticationController } from './controllers/authentication.controller';
 import { IpService } from './services/ip.service';
+import { GeoIpService } from './services/geo-ip.service';
 
 
 
@@ -33,7 +34,8 @@ import { IpService } from './services/ip.service';
     ResponseService,
     MfaService,
     AuthenticationService,
-    IpService
+    IpService,
+    GeoIpService
   ],
   exports: [SecureCookieService, JwtToolsService, JwtService, SessionService],
   controllers: [AccountController, AuthenticationController],

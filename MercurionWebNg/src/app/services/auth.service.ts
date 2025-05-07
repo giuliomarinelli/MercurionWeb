@@ -30,7 +30,8 @@ export class AuthService {
         withCredentials: true,
         headers: {
           'X-Fingerprint': fingerprintBase64,
-          'X-Device-Info': btoa(JSON.stringify(sessionDeviceInfo))
+          'X-Device-Info': btoa(JSON.stringify(sessionDeviceInfo)),
+          'X-Mock-IP': '91.122.12.8'
         }
       }
     )

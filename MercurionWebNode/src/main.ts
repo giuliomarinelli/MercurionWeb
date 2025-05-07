@@ -10,6 +10,7 @@ import { copyBootstrapFiles } from './copy-bootstrap-files'
 import fastifyCookie from '@fastify/cookie'
 import { randomUUID } from 'crypto'
 import { SecureCookieService } from './app_modules/auth/services/secure-cookie.service'
+import { Environment } from './config/config'
 
 
 (async () => {
@@ -48,7 +49,7 @@ import { SecureCookieService } from './app_modules/auth/services/secure-cookie.s
     // 🔥 Inietta deviceId nella richiesta PRIMA della guard
     req.headers['x-device-id'] = deviceId
 
-    const isDev = process.env.NODE_ENV === 'development';
+    const isDev = configService.get<Environment>('App.env')
 
     const mockIp = req.headers['x-mock-ip']?.toString().trim()
     const forwarded = req.headers['x-forwarded-for']?.toString().split(',')[0]
