@@ -16,7 +16,7 @@ import { TokenType } from '../Models/enums/token-type.enum';
 import { EmailDTO } from '../Models/DTO/change-email.cls.dto';
 import { ISessionDeviceInfo } from '../Models/interfaces/i-session.interface';
 import { FingerprintData } from '../Models/DTO/fingerprints.dtos';
-import { GeoIpService } from '../services/geo-ip.service';
+
 
 @Controller('authentication')
 export class AuthenticationController {
@@ -25,8 +25,7 @@ export class AuthenticationController {
         private readonly authService: AuthenticationService,
         private readonly mfaService: MfaService,
         private readonly jwtTools: JwtToolsService,
-        private readonly _r: ResponseService,
-        private readonly geoIpService: GeoIpService
+        private readonly _r: ResponseService
     ) { }
 
     @Public()
@@ -49,8 +48,6 @@ export class AuthenticationController {
         @DeviceInfo() sessionDeviceInfo: ISessionDeviceInfo,
         @Fingerprint() fingerprintData: FingerprintData
     ): Promise<Confirm_Login_FirstStepDTO> {
-
-        console.log(this.geoIpService.getLocation(ip))
 
         const { email, password, remember } = dto
 

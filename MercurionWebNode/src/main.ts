@@ -11,6 +11,7 @@ import fastifyCookie from '@fastify/cookie'
 import { randomUUID } from 'crypto'
 import { SecureCookieService } from './app_modules/auth/services/secure-cookie.service'
 import { Environment } from './config/config'
+import { SecureCookieConfiguration } from './config/@types-config'
 
 
 (async () => {
@@ -34,7 +35,8 @@ import { Environment } from './config/config'
 
   await app.register(fastifyCookie)
   const fastify = app.getHttpAdapter().getInstance()   // istanza Fastify reale
-
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { secret, ...cookieConf } = configService.get<SecureCookieConfiguration>('SecureCookie') as SecureCookieConfiguration
   fastify.addHook('onRequest', (req, reply, done) => {
 
     let deviceId: string | null = null
@@ -43,7 +45,10 @@ import { Environment } from './config/config'
       deviceId = secureCookieService.getSignedCookie(req, '__device_id')
     } catch {
       deviceId = randomUUID()
-      secureCookieService.setSignedCookie(reply, '__device_id', deviceId, { maxAge: 31556952000 })
+      secureCookieService.setSignedCookie(reply, '__device_id', deviceId, {
+        maxAge: 31556952000,
+        ...cookieConf
+      })
     }
 
     // 🔥 Inietta deviceId nella richiesta PRIMA della guard
