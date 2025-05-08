@@ -41,6 +41,6 @@ export class PubSubService implements OnModuleInit {
     this.subscriber.subscribe(channel)
     this.subscriber.on('message', (chan, message) => {
       if (chan === channel) callback(message)
-    });
+    })
   }
 }
