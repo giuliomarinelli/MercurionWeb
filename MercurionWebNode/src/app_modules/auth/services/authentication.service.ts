@@ -56,7 +56,7 @@ export class AuthenticationService {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { city, country, ip, region, ...geoLocation } = this.geoIpService.getLocation(IP)
         const alreadyTrustedLocations: GeoLocation[] = await this.sessionService.getTrustedLocations(auth.userId)
-        const isTrustedCurrentLocation: boolean = this.geoIpService.isTrustedLocation(geoLocation as unknown as GeoLocation, alreadyTrustedLocations)
+        const isTrustedCurrentLocation: boolean = this.geoIpService.isTrustedLocation(geoLocation as GeoLocation, alreadyTrustedLocations)
         const session = await this.sessionService.createSession({ deviceId, userId: auth.userId, IP, sessionDeviceInfo, fingerprint }, remember)
         const sessionId = session.sessionId
         const inWhiteList: boolean = await this.sessionService.isFingerprintInWhiteList(auth.userId, fingerprint)
@@ -110,7 +110,7 @@ export class AuthenticationService {
         await this.sessionService.addFingerprintToWhiteList(userId, fingerprint)
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { city, country, ip: _ip, region, ...geoLocation } = this.geoIpService.getLocation(ip)
-        await this.sessionService.addTrustedLocation(userId, geoLocation as unknown as GeoLocation)
+        await this.sessionService.addTrustedLocation(userId, geoLocation as GeoLocation)
         return accessToken
 
     }

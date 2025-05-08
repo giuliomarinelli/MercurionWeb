@@ -156,9 +156,10 @@ export class MfaComponent implements OnInit, OnDestroy {
       }
       this.otpVerifySub = this.authService.login_thirdStep(this.view() as 'EMAIL_OTP' | 'SMS_OTP' | 'APP_TOTP', totpDTO, {
         fingerprintBase64: this.fingerprintDataEnc,
-        sessionDeviceInfo: this.sessionDeviceInfo
+        sessionDeviceInfo: this.sessionDeviceInfo,
       },
-        this.loginFirstStepData?.preAuthorizationToken ?? '').subscribe({
+        this.loginFirstStepData?.preAuthorizationToken ?? '',
+        this.unTrusted()).subscribe({
           next: res => {
             sessionStorage?.setItem('accessToken', btoa(res.accessToken as string))
             if (sessionStorage.getItem('preAuthorizationData')) {

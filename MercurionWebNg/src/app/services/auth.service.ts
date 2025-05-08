@@ -52,9 +52,10 @@ export class AuthService {
     fingerprintBase64: string;
     sessionDeviceInfo: ISessionDeviceInfo;
   },
-    preauthorizationToken: string): Observable<ConfirmWithAccessTokenDTO> {
+    preauthorizationToken: string,
+    trustVerify: boolean = false): Observable<ConfirmWithAccessTokenDTO> {
     const { fingerprintBase64, sessionDeviceInfo } = fingerprintData
-    return this.http.post<ConfirmWithAccessTokenDTO>(`/api/authentication/login/${strategy}/3`, totpDTO, {
+    return this.http.post<ConfirmWithAccessTokenDTO>(`/api/authentication/login/${strategy}/3?trust_verify=${trustVerify}`, totpDTO, {
       withCredentials: true,
       headers: {
         'X-Fingerprint': fingerprintBase64,
