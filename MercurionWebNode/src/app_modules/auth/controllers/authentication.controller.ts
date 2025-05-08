@@ -102,6 +102,7 @@ export class AuthenticationController {
     @Post('/login/:strategy/3')
     @HttpCode(HttpStatus.OK)
     public async login_thirdStep(
+        @Query('trust_verify') trustVerify: boolean = false,
         @Authorization() preAuthorizationToken: string,
         @Param('strategy') strategyKey: string,
         @Body(new ValidationPipe({ transform: true })) dto: TotpBodyDTO,
@@ -125,7 +126,7 @@ export class AuthenticationController {
         if (!isTotpValid) {
             throw new UnauthorizedException('Invalid MFA OTP')
         }
-        const accessToken: string = await this.authService.performAuthentication({ userId, sessionId }, fingerprintData, ip)
+        const accessToken: string = await this.authService.performAuthentication({ userId, sessionId }, fingerprintData, ip, trustVerify)
         return {
             ...this._r.ok('Authenticated successfully'),
             accessToken

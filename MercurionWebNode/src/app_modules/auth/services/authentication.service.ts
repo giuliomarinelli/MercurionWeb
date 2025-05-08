@@ -37,7 +37,13 @@ export class AuthenticationService {
     }
 
     // Restituisce un oggetto Authentication necessario per generare un token JWT
-    public async emailAndPasswordAuthentication(email: string, password: string, remember: boolean, IP: string, deviceId: string, sessionDeviceInfo: ISessionDeviceInfo, fingerprintData: FingerprintData): Promise<Authentication> {
+    public async emailAndPasswordAuthentication(email: string,
+        password: string,
+        remember: boolean,
+        IP: string,
+        deviceId: string,
+        sessionDeviceInfo: ISessionDeviceInfo,
+        fingerprintData: FingerprintData): Promise<Authentication> {
 
         const auth: IAuth | nullish = await this.userService.getVerifiedUserAuthByEmail(email)
         if (!auth || !auth.userId || !auth.passwordHash) {
@@ -94,10 +100,10 @@ export class AuthenticationService {
     }
 
     // Restituisce un DTO di risposta con l'Access Token e se l'utente ha MFA attiva, attiva anche la sessione
-    public async performAuthentication(auth: Authentication | Omit<Authentication, 'needsMfa' | 'enabledMfaStrategies' | 'suspiciousAttempt'>, fingerprintData: FingerprintData, ip: string): Promise<string> {
+    public async performAuthentication(auth: Authentication | Omit<Authentication, 'needsMfa' | 'enabledMfaStrategies' | 'suspiciousAttempt'>, fingerprintData: FingerprintData, ip: string, trustVerify: boolean = false): Promise<string> {
         const { userId, sessionId } = auth
         const accessToken = await this.jwtTools.generateToken(userId, TokenType.AccessToken, sessionId)
-        if (await this.mfaService.isMfaEnabled(userId)) {
+        if (await this.mfaService.isMfaEnabled(userId) || trustVerify) { 
             await this.sessionService.activateSession(sessionId)
         }
         const fingerprint: string = this.generateFingerprint(fingerprintData)
