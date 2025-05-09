@@ -44,7 +44,7 @@ export class AuthenticationService {
         deviceId: string,
         sessionDeviceInfo: ISessionDeviceInfo,
         fingerprintData: FingerprintData): Promise<Authentication> {
-        
+
         const auth: IAuth | nullish = await this.userService.getVerifiedUserAuthByEmail(email)
         if (!auth || !auth.userId || !auth.passwordHash) {
             throw new RpcException('AuthenticationInvalidCredentials')
@@ -105,7 +105,7 @@ export class AuthenticationService {
     public async performAuthentication(auth: Authentication | Omit<Authentication, 'needsMfa' | 'enabledMfaStrategies' | 'suspiciousAttempt'>, fingerprintData: FingerprintData, ip: string, trustVerify: boolean = false): Promise<string> {
         const { userId, sessionId } = auth
         const accessToken = await this.jwtTools.generateToken(userId, TokenType.AccessToken, sessionId)
-        if (await this.mfaService.isMfaEnabled(userId) || trustVerify) { 
+        if (await this.mfaService.isMfaEnabled(userId) || trustVerify) {
             await this.sessionService.activateSession(sessionId)
         }
         const fingerprint: string = this.generateFingerprint(fingerprintData)
@@ -122,8 +122,9 @@ export class AuthenticationService {
     }
 
     public async performLogout(sessionId: UUID, deviceId: UUID): Promise<void> {
-        
+        const jtiList: string[] = await this.sessionService.getJtiListBySessionId(sessionId as string)
         await this.sessionService.destroySession(sessionId, deviceId)
+        await Promise.all(jtiList.map(jti => this.sessionService.revokeToken(jti)))
     }
 
 }

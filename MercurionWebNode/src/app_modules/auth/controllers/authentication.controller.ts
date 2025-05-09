@@ -147,12 +147,13 @@ export class AuthenticationController {
     }
 
     @Public()
-    @Delete()
+    @HttpCode(HttpStatus.NO_CONTENT)
+    @Delete('/logout')
     public async logout(
         @SessionId() sessionId: UUID,
         @DeviceId() deviceId: UUID
-    ): Promise<ConfirmDTO> {
-        
+    ): Promise<void> {
+        await this.authService.performLogout(sessionId, deviceId)
     }
 
 }

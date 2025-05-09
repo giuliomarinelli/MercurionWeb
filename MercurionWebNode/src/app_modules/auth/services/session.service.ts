@@ -151,6 +151,13 @@ export class SessionService {
         return await this.redisService.sismember(`revoked:${jti}`, jti);
     }
 
+    public async getJtiListBySessionId(sessionId: string): Promise<string[]> {
+        const pattern = `issued:${sessionId}:*`
+        const keys = await this.redisService.scanKeysByPattern(pattern)
+        return keys.map(key => key.split(':')[2])
+    }
+
+
     public async getFingerprintWhiteList(userId: UUID): Promise<string[]> {
         const key: string = this.getUserFingerprintsWhiteListKey(userId as string)
         const val: string | null = await this.redisService.get(key)
