@@ -226,7 +226,7 @@ export class UserService {
 
     public async getUserInitialsByUserId(id: UUID): Promise<string | nullish> {
         const result = await this.userRepository.createQueryBuilder('u')
-            .select(['initials'])
+            .select(['u.initials'])
             .where('id = :id', { id })
             .getOne()
         if (!result) {

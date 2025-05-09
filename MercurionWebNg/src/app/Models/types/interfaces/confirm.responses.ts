@@ -10,8 +10,9 @@ export type ConfirmWithObsContDTO = ConfirmDTO & {
     obscuredPhoneNumber?: string
 }
 
-export type ConfirmWithAccessTokenDTO = ConfirmDTO & {
+export type ConfirmWithAccessTokenAndInitialsDTO = ConfirmDTO & {
     accessToken: string
+    initials: string
 }
 
 export interface AuthenticationData {
@@ -32,6 +33,7 @@ export interface AuthenticationData {
 export type Confirm_Login_FirstStepDTO = ConfirmDTO & AuthenticationData & {
     preAuthorizationToken?: string
     accessToken?: string
+    initials: string
 }
 
 

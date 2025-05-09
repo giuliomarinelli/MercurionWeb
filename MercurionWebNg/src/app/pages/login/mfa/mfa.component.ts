@@ -169,7 +169,8 @@ export class MfaComponent implements OnInit, OnDestroy {
             if (sessionStorage.getItem('preAuthorizationData')) {
               sessionStorage?.removeItem('preAuthorizationData')
             }
-            const loginPath: string = atob(sessionStorage.getItem('loginLastPath') || '') || '/profile'
+            sessionStorage?.setItem('login', res.initials ?? 'U')
+            const loginPath: string = atob(sessionStorage?.getItem('loginLastPath') || '') || '/profile'
             this.router.navigate([loginPath])
           },
           error: err => {

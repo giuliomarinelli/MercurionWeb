@@ -5,8 +5,10 @@ import { ThemeChose } from '../../../Models/types/theme-types';
 import { DesignService } from '../../../services/design.service';
 import { NavComponent } from '../nav/nav.component';
 import { SearchContextService } from '../../../services/stores/search-context.service';
-import { RouterLink } from '@angular/router';
+import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { PublicPipe } from '../../../pipes/public.pipe';
+import { UserContextService } from '../../../services/stores/user-context.service';
+import { filter, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-header',
@@ -27,10 +29,15 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.themeManager.theme() === 'light' ? 'logo/complete-light-logo.svg' : 'logo/complete-dark-logo-2.svg'
   )
 
+  isAllowedRoute: boolean = false
+  private routeSub: Subscription | undefined
+
   constructor(
     protected readonly themeManager: ThemeManagerService,
     protected readonly designService: DesignService,
-    protected readonly searchContextService: SearchContextService
+    protected readonly searchContextService: SearchContextService,
+    protected readonly userContext: UserContextService,
+    private readonly router: Router
   ) {
     effect(() => {
       // Reactive logging/debugging se vuoi
@@ -96,14 +103,26 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
 
+
+
   ngOnInit(): void {
     document.addEventListener('click', this.handleDocumentClick, true)
     document.addEventListener('keydown', this.handleEscape, true)
+    this.routeSub = this.router.events
+      .pipe(
+        filter(e => e instanceof NavigationEnd)
+      )
+      .subscribe((e: NavigationEnd) => {
+        const currentPath = e.urlAfterRedirects
+        const notAllowedPaths: string[] = ['/login', '/', '/test/spinner']
+        this.isAllowedRoute = !notAllowedPaths.includes(currentPath)
+      })
   }
 
   ngOnDestroy(): void {
     document.removeEventListener('click', this.handleDocumentClick, true)
     document.removeEventListener('keydown', this.handleEscape, true)
+    this.routeSub?.unsubscribe()
   }
 
 

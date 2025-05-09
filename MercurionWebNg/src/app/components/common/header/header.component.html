@@ -70,10 +70,11 @@
         </svg>
         }
       </button>
-      @if (designService.minBk('md')()) {
+      @if (designService.minBk('md')() && userContext.initials() !== '' && isAllowedRoute) {
       <div
+        [innerHTML]="userContext.initials()"
         class="rounded-full bg-light-accent-secondary text-slate-100 dark:bg-dark-accent-primary p-2 text-sm font-semibold">
-        GM
+
       </div>
       }
       @if (designService.minBk('lg')()) {

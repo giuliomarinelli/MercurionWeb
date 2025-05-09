@@ -1,5 +1,5 @@
 import { FingerprintData, ISessionDeviceInfo } from './../Models/types/auth/DTO/fingerprint.dtos';
-import { Confirm_Login_FirstStepDTO, ConfirmWithAccessTokenDTO } from './../Models/types/interfaces/confirm.responses';
+import { Confirm_Login_FirstStepDTO, ConfirmWithAccessTokenAndInitialsDTO } from './../Models/types/interfaces/confirm.responses';
 import { Injectable } from '@angular/core';
 import { EmailDTO, Login_FirstStepWrapper } from '../Models/types/auth/DTO/login.dtos';
 import { ConfirmDTO } from '../Models/types/interfaces/confirm.responses';
@@ -53,9 +53,9 @@ export class AuthService {
     sessionDeviceInfo: ISessionDeviceInfo;
   },
     preauthorizationToken: string,
-    trustVerify: boolean = false): Observable<ConfirmWithAccessTokenDTO> {
+    trustVerify: boolean = false): Observable<ConfirmWithAccessTokenAndInitialsDTO> {
     const { fingerprintBase64, sessionDeviceInfo } = fingerprintData
-    return this.http.post<ConfirmWithAccessTokenDTO>(`/api/authentication/login/${strategy}/3?trust_verify=${trustVerify}`, totpDTO, {
+    return this.http.post<ConfirmWithAccessTokenAndInitialsDTO>(`/api/authentication/login/${strategy}/3?trust_verify=${trustVerify}`, totpDTO, {
       withCredentials: true,
       headers: {
         'X-Fingerprint': fingerprintBase64,

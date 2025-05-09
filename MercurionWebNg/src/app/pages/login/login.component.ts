@@ -172,6 +172,7 @@ export class LoginComponent implements OnInit, OnDestroy {
             }
           } else {
             sessionStorage?.setItem('accessToken', btoa(res.accessToken as string))
+            sessionStorage?.setItem('login', res.initials ?? 'U')
             const loginPath: string = atob(sessionStorage.getItem('loginLastPath') || '') || '/profile'
             this.router.navigate([loginPath])
           }
@@ -186,7 +187,7 @@ export class LoginComponent implements OnInit, OnDestroy {
             this.loadingContext.stop()
           } else {
             sessionStorage?.setItem('lastHttpErr', btoa(JSON.stringify(body)))
-            // this.router.navigate(['/'])
+            this.router.navigate(['/'])
           }
         }
       })
