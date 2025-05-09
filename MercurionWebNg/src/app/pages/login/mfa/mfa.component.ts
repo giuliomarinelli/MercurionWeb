@@ -184,6 +184,8 @@ export class MfaComponent implements OnInit, OnDestroy {
               default:
                 console.error('Error in server response')
             }
+            sessionStorage?.setItem('mfaError', 'InvalidOtp')
+            this.router.navigate(['/login'])
           }
         })
     }

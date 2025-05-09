@@ -9,6 +9,7 @@ import { FooterComponent } from './components/common/footer/footer.component';
 import { NgxxSpinnerComponent } from './components/common/ngxx-spinner/ngxx-spinner.component';
 import { Subscription } from 'rxjs';
 import { FingerprintService } from './services/fingerprint.service';
+import { ToastComponent } from './components/common/toast/toast.component';
 
 
 
@@ -21,7 +22,8 @@ import { FingerprintService } from './services/fingerprint.service';
     MoleculeViewerComponent,
     SearchOverlayComponent,
     FooterComponent,
-    NgxxSpinnerComponent
+    NgxxSpinnerComponent,
+    ToastComponent
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'

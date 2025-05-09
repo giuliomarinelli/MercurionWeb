@@ -84,7 +84,10 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit(): Promise<void> {
-    sessionStorage?.getItem('mfa_error') === 'InvalidOtp' && this.toast.
+    if (sessionStorage?.getItem('mfaError') === 'InvalidOtp') {
+      this.toast.trigger('Codice monouso errato. Ritenta.')
+      sessionStorage?.removeItem('mfaError')
+    }
     this.loginForm = this.fb.group({
       email: this.fb.control(null, [Validators.required, Validators.email]),
       password: this.fb.control(null, [Validators.required])
@@ -144,7 +147,6 @@ export class LoginComponent implements OnInit, OnDestroy {
       }
       this.secondStepSubscription = this.authService.login_firstStep(dto).subscribe({
         next: (res: Confirm_Login_FirstStepDTO) => {
-          console.log(res)
           if (res.needsMfa) {
             const { statusCode, timestamp, message, ...loginFirstStepData } = res
             sessionStorage?.setItem('preAuthorizationData', btoa(JSON.stringify(loginFirstStepData)))
@@ -162,7 +164,6 @@ export class LoginComponent implements OnInit, OnDestroy {
           } else {
             sessionStorage?.setItem('accessToken', btoa(res.accessToken as string))
             const loginPath: string = atob(sessionStorage.getItem('loginLastPath') || '') || '/profile'
-            console.log('ok')
             this.router.navigate([loginPath])
           }
         },
@@ -173,6 +174,7 @@ export class LoginComponent implements OnInit, OnDestroy {
             // handle bad request
           } else if (body.statusCode === 401) {
             this.serverErrorStep.set(2)
+            this.loadingContext.stop()
           } else {
             sessionStorage?.setItem('lastHttpErr', btoa(JSON.stringify(body)))
             // this.router.navigate(['/'])
