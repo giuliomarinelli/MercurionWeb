@@ -30,10 +30,12 @@ export class ProfileComponent implements AfterViewInit, OnDestroy {
     this.logoutSub = this.authService.logout().subscribe({
       next: () => {
         this.loggingOut.set(false)
+        sessionStorage?.setItem('logout', 'success')
         this.router.navigate(['/login'])
       },
       error: (err) => {
         this.loggingOut.set(false)
+        sessionStorage?.setItem('logout', '403')
         console.error(err.error)
       }
     })

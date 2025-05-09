@@ -1,17 +1,19 @@
 // toast.component.ts
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { CommonModule, NgClass } from '@angular/common';
 import { ToastService } from '../../../services/toast.service';
 
+export type ToastContext = 'error' | 'warn' | 'success'
 
 @Component({
   selector: 'app-toast',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, NgClass],
   template: `
     @if (toast.show()) {
       <div
-        class="fixed top-8 right-4 z-50 max-w-sm w-full px-4 py-6 text-lg rounded-md bg-red-600 text-white shadow-lg transition-all duration-700 transform"
+        class="fixed top-8 right-4 z-50 max-w-sm w-full px-4 py-6 text-lg rounded-md text-white shadow-lg transition-all duration-700 transform"
+        [ngClass]="className"
         [class.translate-x-full]="!toast.slideIn()"
         [class.translate-x-0]="toast.slideIn()"
         role="alert"
@@ -24,6 +26,28 @@ import { ToastService } from '../../../services/toast.service';
     }
   `
 })
-export class ToastComponent {
+export class ToastComponent implements OnChanges {
+
+  @Input()
+  public context: ToastContext = 'error'
+  protected className: string = ''
+
   constructor(protected readonly toast: ToastService) { }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['context']) {
+      switch (this.context) {
+        case 'error':
+          this.className = 'bg-red-600'
+          break
+        case 'success':
+          this.className = 'bg-emerald-600'
+          break
+        case 'warn':
+          this.className = 'bg-amber-200'
+          break
+      }
+    }
+  }
+
 }

@@ -123,7 +123,7 @@ export class AuthenticationService {
 
     public async performLogout(sessionId: UUID, deviceId: UUID): Promise<void> {
         const jtiList: string[] = await this.sessionService.getJtiListBySessionId(sessionId as string)
-        await this.sessionService.destroySession(sessionId, deviceId)
+        await this.sessionService.destroySession(sessionId as string, deviceId as string)
         await Promise.all(jtiList.map(jti => this.sessionService.revokeToken(jti)))
     }
 

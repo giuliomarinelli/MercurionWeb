@@ -10,6 +10,7 @@ import { NgxxSpinnerComponent } from './components/common/ngxx-spinner/ngxx-spin
 import { Subscription } from 'rxjs';
 import { FingerprintService } from './services/fingerprint.service';
 import { ToastComponent } from './components/common/toast/toast.component';
+import { ToastService } from './services/toast.service';
 
 
 
@@ -42,7 +43,8 @@ export class AppComponent implements OnInit, OnDestroy {
   constructor(
     private readonly themeManagerService: ThemeManagerService,
     protected readonly searchContextService: SearchContextService,
-    private readonly router: Router
+    private readonly router: Router,
+    protected readonly toastService: ToastService
   ) { }
 
   async ngOnInit(): Promise<void> {

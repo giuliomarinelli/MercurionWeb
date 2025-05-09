@@ -13,6 +13,7 @@ import { FingerprintService } from '../../services/fingerprint.service';
 import { ISessionDeviceInfo } from '../../Models/types/auth/DTO/fingerprint.dtos';
 import { LoadingContextService } from '../../services/stores/loading-context.service';
 import { ToastService } from '../../services/toast.service';
+import { ToastContext } from '../../components/common/toast/toast.component';
 
 
 @Component({
@@ -39,6 +40,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   protected malformedEmail = signal<boolean>(false)
   protected isEmailFocused = signal<boolean>(false)
   protected emptyEmail = signal<boolean>(true)
+  protected toastLevel = signal<ToastContext>('error')
 
 
 
@@ -87,6 +89,13 @@ export class LoginComponent implements OnInit, OnDestroy {
     if (sessionStorage?.getItem('mfaError') === 'InvalidOtp') {
       this.toast.trigger('Codice monouso errato. Ritenta.')
       sessionStorage?.removeItem('mfaError')
+    }
+    if (sessionStorage?.getItem('logout') === 'success') {
+      this.toast.trigger('Logout avvenuto con successo!', 'success')
+      sessionStorage?.removeItem('logout')
+    } else if (sessionStorage?.getItem('logout') === '403') {
+      this.toast.trigger('Dispositivo non riconosciuto. Accesso negato!')
+      sessionStorage?.removeItem('logout')
     }
     this.loginForm = this.fb.group({
       email: this.fb.control(null, [Validators.required, Validators.email]),
