@@ -15,7 +15,7 @@ import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum
 import { nullish } from 'src/Models/nullish.type';
 import { IAuth } from '../Models/interfaces/i-auth.interface';
 import { GeneralUtils } from 'src/general-utils/general-utils';
-import { createHash } from 'crypto';
+import { createHash, UUID } from 'crypto';
 import { GeoIpService, GeoLocation } from './geo-ip.service';
 
 @Injectable()
@@ -118,5 +118,7 @@ export class AuthenticationService {
     public async verifyEmail(email: string): Promise<boolean> {
         return this.userService.existsUserByEmail(email)
     }
+
+    
 
 }

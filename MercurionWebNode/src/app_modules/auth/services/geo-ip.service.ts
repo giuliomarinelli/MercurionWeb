@@ -36,7 +36,7 @@ export class GeoIpService {
                 city: null,
                 latitude: null,
                 longitude: null
-            };
+            }
         }
 
         return {
