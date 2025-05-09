@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { randomUUID, UUID } from 'crypto';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { ISession, ISessionDeviceInfo } from '../Models/interfaces/i-session.interface';
@@ -24,7 +24,7 @@ export class SessionService {
 
     // 🔹 Creazione di una nuova sessione (semplificata con Omit<>)
     async createSession(
-        sessionData: Omit<ISession, 'sessionId' | 'expiresAt' | 'lastAccessedAt' | 'valid' | 'doNotAskMfaPhoneNumberVerification'>,
+        sessionData: Omit<ISession, | 'sessionId' | 'expiresAt' | 'lastAccessedAt' | 'valid' | 'doNotAskMfaPhoneNumberVerification'>,
         rememberMe: boolean
     ): Promise<ISession> {
         const sessionId = randomUUID();
@@ -36,8 +36,7 @@ export class SessionService {
             ...sessionData,
             expiresAt,
             lastAccessedAt: Date.now(),
-            valid: false,
-            doNotAskMfaPhoneNumberVerification: false
+            valid: false
         };
 
         const sessionKey = this.getSessionKey(sessionId);
@@ -51,8 +50,8 @@ export class SessionService {
         await this.redisService.hset(sessionKey, 'valid', 'false')
         await this.redisService.hset(sessionKey, 'longTerm', rememberMe.toString())
         await this.redisService.hset(sessionKey, 'sessionDeviceInfo', JSON.stringify(sessionData.sessionDeviceInfo))
-        await this.redisService.hset(sessionKey, 'doNotAskMfaPhoneNumberVerification', JSON.stringify(session.doNotAskMfaPhoneNumberVerification))
         await this.redisService.hset(sessionKey, 'fingerprint', sessionData.fingerprint)
+        await this.redisService.hset(sessionKey, 'location', sessionData.location)
 
         await this.redisService.setTTL(sessionKey, ttlSeconds)
 
@@ -85,8 +84,8 @@ export class SessionService {
             IP: sessionData.IP,
             valid: JSON.parse(sessionData.valid) as boolean,
             sessionDeviceInfo: JSON.parse(sessionData.sessionDeviceInfo) as ISessionDeviceInfo,
-            doNotAskMfaPhoneNumberVerification: JSON.parse(sessionData.doNotAskMfaPhoneNumberVerification) as boolean,
-            fingerprint: sessionData.fingerprint
+            fingerprint: sessionData.fingerprint,
+            location: sessionData.location
         }
 
         return session
@@ -170,12 +169,14 @@ export class SessionService {
         return value !== null && value !== undefined
     }
 
-    public async destroySession(sessionId: string): Promise<void> {
+    public async destroySession(sessionId: string, deviceId: string): Promise<void> | never {
         const sessionKey = this.getSessionKey(sessionId)
         const exists = await this.existsSession(sessionId)
-        if (exists) {
+        const deviceIdMatches = await this.redisService.hget(sessionKey, 'deviceId') === deviceId
+        if (exists && deviceIdMatches) {
             await this.redisService.del(sessionKey)
         }
+        throw new ForbiddenException('NotAllowedAction')
     }
 
 

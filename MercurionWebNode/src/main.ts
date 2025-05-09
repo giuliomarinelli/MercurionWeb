@@ -53,7 +53,12 @@ import { SecureCookieConfiguration } from './config/@types-config'
 
     // 🔥 Inietta deviceId nella richiesta PRIMA della guard
     req.headers['x-device-id'] = deviceId
-
+    try {
+      req.headers['x-session-id'] = secureCookieService.getSignedCookie(req, '__node_session_id')
+    } catch {
+      req.headers['x-session-id'] = undefined
+    }
+    
     const isDev = configService.get<Environment>('App.env') === Environment.Development
 
     const mockIp = req.headers['x-mock-ip']?.toString().trim()

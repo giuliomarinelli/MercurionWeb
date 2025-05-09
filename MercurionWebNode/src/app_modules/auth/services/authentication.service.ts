@@ -44,7 +44,7 @@ export class AuthenticationService {
         deviceId: string,
         sessionDeviceInfo: ISessionDeviceInfo,
         fingerprintData: FingerprintData): Promise<Authentication> {
-
+        
         const auth: IAuth | nullish = await this.userService.getVerifiedUserAuthByEmail(email)
         if (!auth || !auth.userId || !auth.passwordHash) {
             throw new RpcException('AuthenticationInvalidCredentials')
@@ -55,9 +55,11 @@ export class AuthenticationService {
         const fingerprint = this.generateFingerprint(fingerprintData)
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { city, country, ip, region, ...geoLocation } = this.geoIpService.getLocation(IP)
+        const locations: (string | null)[] = [city, region, country]
+        const location = locations.filter(loc => loc != null).join(', ')
         const alreadyTrustedLocations: GeoLocation[] = await this.sessionService.getTrustedLocations(auth.userId)
         const isTrustedCurrentLocation: boolean = this.geoIpService.isTrustedLocation(geoLocation as GeoLocation, alreadyTrustedLocations)
-        const session = await this.sessionService.createSession({ deviceId, userId: auth.userId, IP, sessionDeviceInfo, fingerprint }, remember)
+        const session = await this.sessionService.createSession({ deviceId, userId: auth.userId, IP, sessionDeviceInfo, fingerprint, location }, remember)
         const sessionId = session.sessionId
         const inWhiteList: boolean = await this.sessionService.isFingerprintInWhiteList(auth.userId, fingerprint)
         const _enabledMfaStrategies: MfaStrategy[] = await this.mfaService.getEnabledMfaStrategies(auth.userId)
@@ -119,8 +121,9 @@ export class AuthenticationService {
         return this.userService.existsUserByEmail(email)
     }
 
-    // public async performLogout(userId: UUID): Promise<void> {
-    //     await this.sessionService.revokeSession
-    // }
+    public async performLogout(sessionId: UUID, deviceId: UUID): Promise<void> {
+        
+        await this.sessionService.destroySession(sessionId, deviceId)
+    }
 
 }

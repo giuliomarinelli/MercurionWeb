@@ -1,9 +1,11 @@
-import { BadRequestException, Body, Controller, HttpCode, HttpStatus, Param, Patch, Post, Query, UnauthorizedException, ValidationPipe } from '@nestjs/common';
+import { SecureCookieService } from './../services/secure-cookie.service';
+import { FastifyReply } from 'fastify';
+import { BadRequestException, Body, Controller, Delete, HttpCode, HttpStatus, Param, Post, Query, Res, UnauthorizedException, ValidationPipe } from '@nestjs/common';
 import { Login_FirstStepDTO } from '../Models/DTO/login-first-step.cls.dto';
 import { MfaService } from '../services/mfa.service';
 import { AuthenticationService } from '../services/authentication.service';
-import { Authorization, ClientIp, DeviceId, DeviceInfo, Fingerprint, Public } from 'src/metadata/metadata';
-import { UUID } from 'crypto';
+import { SessionId, Authorization, ClientIp, DeviceId, DeviceInfo, Fingerprint, Public } from 'src/metadata/metadata';
+import { randomUUID, UUID } from 'crypto';
 import { Authentication } from '../Models/interfaces/authentication.interface';
 import { ResponseService } from 'src/services/response.service';
 import { Confirm_Login_FirstStepDTO, ConfirmDTO, ConfirmWithAccessTokenDTO, ConfirmWithTotpMetaDTO } from 'src/Models/confirm-responses.dto';
@@ -18,6 +20,7 @@ import { ISessionDeviceInfo } from '../Models/interfaces/i-session.interface';
 import { FingerprintData } from '../Models/DTO/fingerprints.dtos';
 
 
+
 @Controller('authentication')
 export class AuthenticationController {
 
@@ -25,7 +28,8 @@ export class AuthenticationController {
         private readonly authService: AuthenticationService,
         private readonly mfaService: MfaService,
         private readonly jwtTools: JwtToolsService,
-        private readonly _r: ResponseService
+        private readonly _r: ResponseService,
+        private readonly secureCookieService: SecureCookieService
     ) { }
 
     @Public()
@@ -46,14 +50,22 @@ export class AuthenticationController {
         @ClientIp() ip: string,
         @DeviceId() deviceId: UUID,
         @DeviceInfo() sessionDeviceInfo: ISessionDeviceInfo,
-        @Fingerprint() fingerprintData: FingerprintData
+        @Fingerprint() fingerprintData: FingerprintData,
+        @Res({ passthrough: true }) reply: FastifyReply
     ): Promise<Confirm_Login_FirstStepDTO> {
 
-        const { email, password, remember } = dto
+        // eslint-disable-next-line prefer-const
+        let { email, password, remember } = dto
+
+        if (remember) {
+            remember = false
+        }
 
         const auth: Authentication = await this.authService.emailAndPasswordAuthentication(email, password, remember, ip, deviceId, sessionDeviceInfo, fingerprintData)
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { userId, sessionId, ...authRes } = auth
+
+        this.secureCookieService.setSignedCookie(reply, '__node_session_id', randomUUID())
 
         if (await this.mfaService.isMfaEnabled(auth.userId) || auth.suspiciousAttempt) {
             const preAuthorizationToken = await this.authService.performPreAuthenticationForMfa(auth)
@@ -134,8 +146,12 @@ export class AuthenticationController {
 
     }
 
-    @Patch()
-    public async logout(): Promise<ConfirmDTO> {
+    @Public()
+    @Delete()
+    public async logout(
+        @SessionId() sessionId: UUID,
+        @DeviceId() deviceId: UUID
+    ): Promise<ConfirmDTO> {
         
     }
 

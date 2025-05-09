@@ -54,13 +54,16 @@ export class GlobalGuard implements CanActivate {
         throw new UnauthorizedException()
       }
 
+      if (req.headers['x-session-id'] !== payload.sid) {
+        throw new UnauthorizedException()
+      }
+
       if (!await this.sessionService.validateSession(payload.sid, deviceId)) {
         throw new UnauthorizedException()
       }
 
       // 🔹 Inietta lo userId e la sessionId negli headers per il backend HTTP
       req.headers['x-user-id'] = payload.sub
-      req.headers['x-session-id'] = payload.sid
       return true;
     } catch (e) {
       throw new UnauthorizedException(e.message || undefined)

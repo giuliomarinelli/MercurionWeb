@@ -16,7 +16,7 @@ export class RedisService {
   public async setTTL(key: string, ttlSeconds: number): Promise<void> {
     await this.redisClient.expire(key, ttlSeconds)
   }
-  
+
   // String operations (Key-Value store)
   public async set(key: string, value: string, expireSeconds?: number): Promise<'OK'> {
     if (expireSeconds) {
@@ -70,5 +70,19 @@ export class RedisService {
     return this.redisClient.srem(setKey, value);
   }
 
-  
+  async scanKeysByPattern(pattern: string): Promise<string[]> {
+    const keys: string[] = []
+    let cursor = '0'
+
+    do {
+      const [nextCursor, results] = await this.redisClient.scan(cursor, 'MATCH', pattern, 'COUNT', '100')
+      cursor = nextCursor
+      keys.push(...results)
+    } while (cursor !== '0')
+
+    return keys;
+  }
+
+
+
 }
