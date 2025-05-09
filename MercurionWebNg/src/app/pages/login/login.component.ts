@@ -12,6 +12,7 @@ import { NgClass } from '@angular/common';
 import { FingerprintService } from '../../services/fingerprint.service';
 import { ISessionDeviceInfo } from '../../Models/types/auth/DTO/fingerprint.dtos';
 import { LoadingContextService } from '../../services/stores/loading-context.service';
+import { ToastService } from '../../services/toast.service';
 
 
 @Component({
@@ -61,7 +62,8 @@ export class LoginComponent implements OnInit, OnDestroy {
     private readonly router: Router,
     private readonly authService: AuthService,
     private readonly fingerprintService: FingerprintService,
-    private readonly loadingContext: LoadingContextService
+    private readonly loadingContext: LoadingContextService,
+    private readonly toast: ToastService
   ) { }
 
   onEmailInput(): void {
@@ -82,6 +84,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit(): Promise<void> {
+    sessionStorage?.getItem('mfa_error') === 'InvalidOtp' && this.toast.
     this.loginForm = this.fb.group({
       email: this.fb.control(null, [Validators.required, Validators.email]),
       password: this.fb.control(null, [Validators.required])
