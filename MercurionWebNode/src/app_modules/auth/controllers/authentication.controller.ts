@@ -153,9 +153,11 @@ export class AuthenticationController {
     @Delete('/logout')
     public async logout(
         @SessionId() sessionId: UUID,
-        @DeviceId() deviceId: UUID
+        @DeviceId() deviceId: UUID,
+        @Res({ passthrough: true }) reply: FastifyReply
     ): Promise<void> {
         await this.authService.performLogout(sessionId, deviceId)
+        this.secureCookieService.clearCookie(reply, '__node_session_id')
         this.logger.log('Logged out. Response with status 204 - No Content')
     }
 

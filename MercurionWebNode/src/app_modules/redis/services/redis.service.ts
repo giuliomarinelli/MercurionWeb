@@ -76,7 +76,7 @@ export class RedisService {
   async scanKeysByPattern(pattern: string): Promise<string[]> {
     const keys: string[] = [];
     let cursor = '0';
-    console.log('🔍 Scanning pattern:', pattern);
+    this.logger.debug('🔍 Scanning pattern:', pattern);
 
     do {
       const [nextCursor, results] = await this.redisClient.scan(cursor, 'MATCH', pattern, 'COUNT', '100');
@@ -85,7 +85,7 @@ export class RedisService {
       keys.push(...results);
     } while (cursor !== '0');
 
-    console.log('✅ Total keys found:', keys.length);
+    this.logger.debug('✅ Total keys found:', keys.length);
     return keys;
   }
 

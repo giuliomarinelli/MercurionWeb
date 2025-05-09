@@ -153,7 +153,7 @@ export class SessionService {
 
     public async getJtiListBySessionId(sessionId: string): Promise<string[]> {
         const pattern = `issued:${sessionId}:*`
-        const keys = await this.redisService.keys(pattern)
+        const keys = await this.redisService.scanKeysByPattern(pattern)
         return keys.map(k => k.split(':')[2])
     }
 
