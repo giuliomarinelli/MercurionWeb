@@ -119,6 +119,8 @@ export class AuthenticationService {
         return this.userService.existsUserByEmail(email)
     }
 
-    
+    // public async performLogout(userId: UUID): Promise<void> {
+    //     await this.sessionService.revokeSession
+    // }
 
 }

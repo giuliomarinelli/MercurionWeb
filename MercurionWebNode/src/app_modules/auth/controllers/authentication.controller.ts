@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, HttpCode, HttpStatus, Param, Post, Query, UnauthorizedException, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Body, Controller, HttpCode, HttpStatus, Param, Patch, Post, Query, UnauthorizedException, ValidationPipe } from '@nestjs/common';
 import { Login_FirstStepDTO } from '../Models/DTO/login-first-step.cls.dto';
 import { MfaService } from '../services/mfa.service';
 import { AuthenticationService } from '../services/authentication.service';
@@ -132,6 +132,11 @@ export class AuthenticationController {
             accessToken
         }
 
+    }
+
+    @Patch()
+    public async logout(): Promise<ConfirmDTO> {
+        
     }
 
 }

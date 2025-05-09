@@ -164,6 +164,21 @@ export class SessionService {
         return whiteList
     }
 
+    public async existsSession(sessionId: string): Promise<boolean> {
+        const sessionKey = this.getSessionKey(sessionId)
+        const value = await this.redisService.hget(sessionKey, 'sessionId')
+        return value !== null && value !== undefined
+    }
+
+    public async destroySession(sessionId: string): Promise<void> {
+        const sessionKey = this.getSessionKey(sessionId)
+        const exists = await this.existsSession(sessionId)
+        if (exists) {
+            await this.redisService.del(sessionKey)
+        }
+    }
+
+
     public async addFingerprintToWhiteList(userId: UUID, fingerprint: string): Promise<void> {
         const key = `fingerprint:${userId}:${fingerprint}`
         await this.redisService.set(key, 'true', 30 * 24 * 60 * 60) // 30 giorni in secondi
@@ -178,7 +193,7 @@ export class SessionService {
 
 
     public async addTrustedLocation(userId: UUID, location: GeoLocation): Promise<void> {
-        
+
         if (location.latitude == null || location.longitude == null) {
             return
         }
