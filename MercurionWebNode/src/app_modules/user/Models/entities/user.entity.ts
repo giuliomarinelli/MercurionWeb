@@ -37,6 +37,9 @@ export class User {
     @Column({ type: 'varchar', default: '' })
     lastName: string
 
+    @Column({ type: 'varchar', length: 2, default: '' })
+    initials: string
+
     @Column({ type: 'boolean', default: false })
     isVerified: boolean // portato a true dopo attivazione account con link email
 

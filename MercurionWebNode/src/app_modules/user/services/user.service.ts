@@ -224,7 +224,16 @@ export class UserService {
         await this.updateUser(id, userProps)
     }
 
-
+    public async getUserInitialsByUserId(id: UUID): Promise<string | nullish> {
+        const result = await this.userRepository.createQueryBuilder('u')
+            .select(['initials'])
+            .where('id = :id', { id })
+            .getOne()
+        if (!result) {
+            return result
+        }
+        return result.initials
+    }
 
 
 }

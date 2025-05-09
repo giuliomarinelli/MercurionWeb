@@ -8,7 +8,7 @@ import { SessionId, Authorization, ClientIp, DeviceId, DeviceInfo, Fingerprint, 
 import { UUID } from 'crypto';
 import { Authentication } from '../Models/interfaces/authentication.interface';
 import { ResponseService } from 'src/services/response.service';
-import { Confirm_Login_FirstStepDTO, ConfirmDTO, ConfirmWithAccessTokenDTO, ConfirmWithTotpMetaDTO } from 'src/Models/confirm-responses.dto';
+import { Confirm_Login_FirstStepDTO, ConfirmDTO, ConfirmWithAccessTokenAndInitialsDTO, ConfirmWithTotpMetaDTO } from 'src/Models/confirm-responses.dto';
 import { TestPhoneDTO } from '../Models/DTO/test-phone.cls.dto';
 import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum';
 import { GeneralUtils } from 'src/general-utils/general-utils';
@@ -18,6 +18,7 @@ import { TokenType } from '../Models/enums/token-type.enum';
 import { EmailDTO } from '../Models/DTO/change-email.cls.dto';
 import { ISessionDeviceInfo } from '../Models/interfaces/i-session.interface';
 import { FingerprintData } from '../Models/DTO/fingerprints.dtos';
+import { UserService } from 'src/app_modules/user/services/user.service';
 
 
 
@@ -31,7 +32,8 @@ export class AuthenticationController {
         private readonly mfaService: MfaService,
         private readonly jwtTools: JwtToolsService,
         private readonly _r: ResponseService,
-        private readonly secureCookieService: SecureCookieService
+        private readonly secureCookieService: SecureCookieService,
+        private readonly userService: UserService
     ) { }
 
     @Public()
@@ -69,19 +71,23 @@ export class AuthenticationController {
 
         this.secureCookieService.setSignedCookie(reply, '__node_session_id', sessionId)
 
+        const initials = await this.userService.getUserInitialsByUserId(userId)
+
         if (await this.mfaService.isMfaEnabled(auth.userId) || auth.suspiciousAttempt) {
             const preAuthorizationToken = await this.authService.performPreAuthenticationForMfa(auth)
             return {
                 ...this._r.ok('MFA first step went on successfully'),
                 ...authRes,
-                preAuthorizationToken
+                preAuthorizationToken,
+                initials: initials ?? ''
             }
         }
 
         return {
             ...this._r.ok('Authenticated successfully'),
             ...authRes,
-            accessToken: await this.authService.performAuthentication(auth, fingerprintData, ip)
+            accessToken: await this.authService.performAuthentication(auth, fingerprintData, ip),
+            initials: initials ?? ''
         }
 
     }
@@ -122,7 +128,7 @@ export class AuthenticationController {
         @Body(new ValidationPipe({ transform: true })) dto: TotpBodyDTO,
         @Fingerprint() fingerprintData: FingerprintData,
         @ClientIp() ip: string
-    ): Promise<ConfirmWithAccessTokenDTO> {
+    ): Promise<ConfirmWithAccessTokenAndInitialsDTO> {
 
         let userId: UUID
         let sessionId: UUID
@@ -143,7 +149,8 @@ export class AuthenticationController {
         const accessToken: string = await this.authService.performAuthentication({ userId, sessionId }, fingerprintData, ip, trustVerify)
         return {
             ...this._r.ok('Authenticated successfully'),
-            accessToken
+            accessToken,
+            initials:await this.userService.getUserInitialsByUserId(userId) ?? ''
         }
 
     }
