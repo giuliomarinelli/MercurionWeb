@@ -1,11 +1,11 @@
 import { SecureCookieService } from './../services/secure-cookie.service';
 import { FastifyReply } from 'fastify';
-import { BadRequestException, Body, Controller, Delete, HttpCode, HttpStatus, Param, Post, Query, Res, UnauthorizedException, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, HttpCode, HttpStatus, Logger, Param, Post, Query, Res, UnauthorizedException, ValidationPipe } from '@nestjs/common';
 import { Login_FirstStepDTO } from '../Models/DTO/login-first-step.cls.dto';
 import { MfaService } from '../services/mfa.service';
 import { AuthenticationService } from '../services/authentication.service';
 import { SessionId, Authorization, ClientIp, DeviceId, DeviceInfo, Fingerprint, Public } from 'src/metadata/metadata';
-import { randomUUID, UUID } from 'crypto';
+import { UUID } from 'crypto';
 import { Authentication } from '../Models/interfaces/authentication.interface';
 import { ResponseService } from 'src/services/response.service';
 import { Confirm_Login_FirstStepDTO, ConfirmDTO, ConfirmWithAccessTokenDTO, ConfirmWithTotpMetaDTO } from 'src/Models/confirm-responses.dto';
@@ -23,6 +23,8 @@ import { FingerprintData } from '../Models/DTO/fingerprints.dtos';
 
 @Controller('authentication')
 export class AuthenticationController {
+
+    private readonly logger = new Logger(AuthenticationController.name)
 
     constructor(
         private readonly authService: AuthenticationService,
@@ -65,7 +67,7 @@ export class AuthenticationController {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { userId, sessionId, ...authRes } = auth
 
-        this.secureCookieService.setSignedCookie(reply, '__node_session_id', randomUUID())
+        this.secureCookieService.setSignedCookie(reply, '__node_session_id', sessionId)
 
         if (await this.mfaService.isMfaEnabled(auth.userId) || auth.suspiciousAttempt) {
             const preAuthorizationToken = await this.authService.performPreAuthenticationForMfa(auth)
@@ -154,6 +156,7 @@ export class AuthenticationController {
         @DeviceId() deviceId: UUID
     ): Promise<void> {
         await this.authService.performLogout(sessionId, deviceId)
+        this.logger.log('Logged out. Response with status 204 - No Content')
     }
 
 }

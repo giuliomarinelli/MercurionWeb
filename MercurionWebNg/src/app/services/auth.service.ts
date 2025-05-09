@@ -66,4 +66,10 @@ export class AuthService {
     })
   }
 
+  public logout(): Observable<void> {
+    return this.http.delete<void>('/api/authentication/logout', {
+      withCredentials: true
+    })
+  }
+
 }

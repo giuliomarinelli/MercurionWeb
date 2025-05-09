@@ -153,9 +153,10 @@ export class SessionService {
 
     public async getJtiListBySessionId(sessionId: string): Promise<string[]> {
         const pattern = `issued:${sessionId}:*`
-        const keys = await this.redisService.scanKeysByPattern(pattern)
-        return keys.map(key => key.split(':')[2])
+        const keys = await this.redisService.keys(pattern)
+        return keys.map(k => k.split(':')[2])
     }
+
 
 
     public async getFingerprintWhiteList(userId: UUID): Promise<string[]> {
@@ -179,9 +180,11 @@ export class SessionService {
     public async destroySession(sessionId: string, deviceId: string): Promise<void> | never {
         const sessionKey = this.getSessionKey(sessionId)
         const exists = await this.existsSession(sessionId)
-        const deviceIdMatches = await this.redisService.hget(sessionKey, 'deviceId') === deviceId
+        const expectedDeviceId = await this.redisService.hget(sessionKey, 'deviceId')
+        const deviceIdMatches = expectedDeviceId === deviceId
         if (exists && deviceIdMatches) {
             await this.redisService.del(sessionKey)
+            return
         }
         throw new ForbiddenException('NotAllowedAction')
     }

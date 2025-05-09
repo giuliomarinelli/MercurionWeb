@@ -1,12 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Redis } from 'ioredis';
 
 @Injectable()
 export class RedisService {
 
+  private readonly logger = new Logger(RedisService.name)
+
   constructor(
     private readonly redisClient: Redis
   ) { }
+
 
   public getClient(): Redis {
     return this.redisClient
@@ -71,17 +74,25 @@ export class RedisService {
   }
 
   async scanKeysByPattern(pattern: string): Promise<string[]> {
-    const keys: string[] = []
-    let cursor = '0'
+    const keys: string[] = [];
+    let cursor = '0';
+    console.log('🔍 Scanning pattern:', pattern);
 
     do {
-      const [nextCursor, results] = await this.redisClient.scan(cursor, 'MATCH', pattern, 'COUNT', '100')
-      cursor = nextCursor
-      keys.push(...results)
-    } while (cursor !== '0')
+      const [nextCursor, results] = await this.redisClient.scan(cursor, 'MATCH', pattern, 'COUNT', '100');
+      this.logger.debug('→ SCAN returned cursor:', nextCursor, '| results:', results);
+      cursor = nextCursor;
+      keys.push(...results);
+    } while (cursor !== '0');
 
+    console.log('✅ Total keys found:', keys.length);
     return keys;
   }
+
+  async keys(pattern: string): Promise<string[]> {
+    return await this.redisClient.keys(pattern)
+  }
+
 
 
 

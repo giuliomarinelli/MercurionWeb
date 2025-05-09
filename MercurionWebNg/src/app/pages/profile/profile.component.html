@@ -1,1 +1,9 @@
-<p>profile works!</p>
+<div class="pt-8 w-[200px] max-w-[300px] mx-auto">
+  <button
+    type="button"
+    [disabled]="loggingOut()"
+    (click)="logout()"
+    class="disabled:dark:bg-emerald-700/60 disabled:cursor-not-allowed w-full mt-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700/90 transition-colors duration-150">
+    Esci
+  </button>
+</div>
