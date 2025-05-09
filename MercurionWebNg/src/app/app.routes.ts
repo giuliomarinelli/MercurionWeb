@@ -1,14 +1,17 @@
 import { Routes } from '@angular/router'
 import { ColorPaletteComponent } from './playground/color-palette/color-palette.component'
+import { AuthGuardGuard as AuthGuard } from './guards/auth-guard.guard'
 
 export const routes: Routes = [
   {
     path: 'palette',
-    component: ColorPaletteComponent
+    component: ColorPaletteComponent,
+    canActivate: [AuthGuard]
   },
   {
     path: 'test/spinner',
-    loadComponent: () => import('./pages/test-spinner/test-spinner.component').then(m => m.TestSpinnerComponent)
+    loadComponent: () => import('./pages/test-spinner/test-spinner.component').then(m => m.TestSpinnerComponent),
+    canActivate: [AuthGuard]
   },
   {
     path: 'login',
@@ -16,7 +19,8 @@ export const routes: Routes = [
   },
   {
     path: 'profile',
-    loadComponent: () => import('./pages/profile/profile.component').then(m => m.ProfileComponent)
+    loadComponent: () => import('./pages/profile/profile.component').then(m => m.ProfileComponent),
+    canActivate: [AuthGuard]
   },
   {
     path: 'login/mfa',
