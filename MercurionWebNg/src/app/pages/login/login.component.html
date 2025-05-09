@@ -1,5 +1,5 @@
 <!-- login-placeholder-mercurion.component.html -->
-<div class="min-h-screen flex flex-col items-center justify-center px-4 py-8">
+<div class="min-h-screen flex flex-col items-center px-4 pt-9">
   <!-- Logo -->
   <img [src]="logoSrc() | public" alt="Mercurion Logo" class="w-16 h-auto mb-6" />
 
@@ -14,56 +14,62 @@
     <div class="relative">
       <input #email type="email" formControlName="email" id="email"
         class="block py-4 px-4 w-full text-sm text-dark dark:text-light bg-transparent border-slate-300 border dark:border-slate-200 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-light-accent-primary dark:focus:ring-emerald-600 focus:border-light-accent-primary dark:focus:border-emerald-600 peer"
-        placeholder=" " required (input)="serverErrorStep.set(0); onEmailInput()" (blur)="onBlur('email')" />
+        placeholder=" " required
+        (input)="serverErrorStep.set(0); onEmailInput()"
+        (blur)="onBlur('email')"
+        (keyup.enter)="goToPasswordStep()"  />
       <label for="email" [ngClass]="{
           'text-emerald-600 dark:text-dark-accent-primary scale-110 -translate-y-6 text-sm': isFocus('email') || !emptyEmail(),
-          'text-slate-400 text-lg scale-100 translate-y-0': !isFocus('email') && emptyEmail()
+          'text-slate-400 text-lg scale-100 translate-y-0 cursor-text': !isFocus('email') && emptyEmail()
         }"
         class="z-30 peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-main dark:bg-neutral-900 px-1 top-3 left-4 origin-[0]">
         Indirizzo e-mail</label>
       <div class="text-sm text-red-600 mt-1 min-h-5">
         @if (loginForm.controls['email'].invalid && loginForm.controls['email'].touched && serverErrorStep() === 0) {
-        @if (emptyEmail()) {
-          E-mail obbligatoria.
-        } @else if (malformedEmail()) {
-          Formato e-mail non corretto
-        }
+          @if (emptyEmail()) {
+            E-mail obbligatoria.
+          } @else if (malformedEmail()) {
+            Formato e-mail non corretto
+          }
         } @else if (serverErrorStep() === 1) {
           L'e-mail inserita non è corretta
         }
       </div>
     </div>
     <button type="button" (click)="goToPasswordStep()" [disabled]="loginForm.controls['email'].invalid"
-      ngClass="{'curs-not-all': loginForm.controls['email'].invalid}"
-      class="disabled:dark:bg-emerald-600/60 disabled:bg-emerald-600/70 w-full mt-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700/90 transition-colors duration-150">Continua</button>
+      class="disabled:dark:bg-emerald-600/60 disabled:bg-emerald-600/70 disabled:cursor-not-allowed w-full mt-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700/90 transition-colors duration-150">Continua</button>
     } @else if (step() === 2) {
 
     <!-- Step 2: Password -->
 
     <div class="relative">
-      <input #password type="password" formControlName="password" id="password"
+      <input #password
+        type="password"
+        formControlName="password"
+        id="password"
         class="block py-4 px-4 w-full text-sm text-dark dark:text-light bg-transparent border-slate-300 border dark:border-slate-200 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-light-accent-primary dark:focus:ring-emerald-600 focus:border-light-accent-primary dark:focus:border-emerald-600 peer"
-        placeholder=" " required (input)="serverErrorStep.set(0); onPasswordInput()" (blur)="onBlur('password')" />
+        placeholder=" "
+        required
+        (input)="serverErrorStep.set(0); onPasswordInput()"
+        (blur)="onBlur('password')" />
       <label for="password" [ngClass]="{
           'text-emerald-600 dark:text-dark-accent-primary scale-110 -translate-y-6 text-sm': isFocus('password') || !emptyPassword(),
-          'text-slate-400 text-lg scale-100 translate-y-0': !isFocus('password') && emptyPassword()
+          'text-slate-400 text-lg scale-100 translate-y-0 cursor-text': !isFocus('password') && emptyPassword()
         }"
         class="z-30 peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-main dark:bg-neutral-900 px-1 top-3 left-4 origin-[0]">
-          Password
+        Password
       </label>
       <div class="text-sm text-red-600 mt-1 min-h-5">
-        @if (loginForm.controls['password'].invalid && loginForm.controls['password'].touched && serverErrorStep() ===
-        0) {
-        @if (emptyPassword()) {
-          Password obbligatoria.
-        }
+        @if (loginForm.controls['password'].invalid && loginForm.controls['password'].touched && serverErrorStep() === 0) {
+          @if (emptyPassword()) {
+            Password obbligatoria.
+          }
         } @else if (serverErrorStep() === 2) {
           La password inserita non è corretta.
         }
       </div>
     </div>
     <button type="submit" [disabled]="loginForm.controls['password'].invalid"
-      ngClass="{'curs-not-all': loginForm.controls['password'].invalid}"
       class="disabled:dark:bg-emerald-700/60 disabled:cursor-not-allowed w-full mt-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700/90 transition-colors duration-150">Accedi</button>
     }
     <!-- Register & Social Login Placeholder -->
@@ -109,6 +115,15 @@
             d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z" />
         </svg>
         <span>Continua con Apple</span>
+      </button>
+      <button type="button"
+        class="w-full flex items-center justify-center border rounded-md py-2.5 text-sm dark:hover:bg-slate-100 gap-3 dark:hover:text-neutral-900 hover:bg-slate-200/80 bg-slate-200 dark:bg-transparent transition-colors duration-150">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-auto fill-current"
+          viewBox="0 0 512 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+          <path
+            d="M512 256C512 114.6 397.4 0 256 0S0 114.6 0 256C0 376 82.7 476.8 194.2 504.5V334.2H141.4V256h52.8V222.3c0-87.1 39.4-127.5 125-127.5c16.2 0 44.2 3.2 55.7 6.4V172c-6-.6-16.5-1-29.6-1c-42 0-58.2 15.9-58.2 57.2V256h83.6l-14.4 78.2H287V510.1C413.8 494.8 512 386.9 512 256h0z" />
+        </svg>
+        <span>Continua con Facebook</span>
       </button>
     </div>
 

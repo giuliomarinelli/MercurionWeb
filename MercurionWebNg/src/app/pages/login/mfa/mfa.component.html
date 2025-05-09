@@ -45,26 +45,26 @@
         (blur)="onOtpBlur()" />
       <label for="email" [ngClass]="{
           'text-emerald-600 dark:text-dark-accent-primary scale-110 -translate-y-6 text-sm': isOtpFocused() || !isOtpEmpty(),
-          'text-slate-400 text-lg scale-100 translate-y-0': !isOtpFocused() && isOtpEmpty()
+          'text-slate-400 text-lg scale-100 translate-y-0 cursor-text': !isOtpFocused() && isOtpEmpty()
         }"
-        class="z-30 peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-main dark:bg-neutral-900 px-1 top-3 left-4 origin-[0]">
+        class="z-30 peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-main dark:bg-neutral-900 px-1 top-3 left-4 origin-[0]"
+        (click)="!isOtpFocused() && isOtpFocused.set(true); forceFocusOnOtp()">
         Codice monouso</label>
       <div class="text-sm text-red-600 mt-1 min-h-5">
         @if (otpControl.invalid && otpControl.touched && !serverError()) {
-        @if (isOtpEmpty()) {
-        Il campo codice è vuoto.
-        }
+          @if (isOtpEmpty()) {
+            Il campo codice è vuoto.
+          }
         } @else if (serverError()) {
-        L'e-mail inserita non è corretta.
+          L'e-mail inserita non è corretta.
         }
       </div>
     </div>
     <button type="button" (click)="goTo('VERIFY_OTP_ACTION')" [disabled]="otpControl.invalid || loading()"
-      ngClass="{'curs-not-all': loginForm.controls['email'].invalid}"
-      class="disabled:dark:bg-emerald-600/60 disabled:bg-emerald-600/70 w-full mt-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700/90 transition-colors duration-150">
+      class="disabled:dark:bg-emerald-600/60 disabled:bg-emerald-600/70 disabled:cursor-not-allowed w-full mt-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700/90 transition-colors duration-150">
       Continua
     </button>
-    }
+      }
     }
 
     <div class="relative py-2">

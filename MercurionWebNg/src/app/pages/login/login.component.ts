@@ -29,20 +29,21 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   protected loginForm!: FormGroup<any>
   protected logoSrc = computed(() =>
-    this.themeManager.theme() === 'light' ? 'logo/pictogram-light-logo.svg' : 'logo/pictogram-dark-logo-2.svg')
+    this.themeManager.theme() === 'light' ? 'logo/pictogram-light-logo.svg' : 'logo/pictogram-dark-logo-2.svg'
+  )
 
   protected step = signal<1 | 2>(1)
   protected serverErrorStep = signal<0 | 1 | 2>(0)
   protected emptyPassword = signal<boolean>(true)
   protected malformedEmail = signal<boolean>(false)
   protected isEmailFocused = signal<boolean>(false)
+  protected emptyEmail = signal<boolean>(true)
 
 
 
   private firstStepSubscription: Subscription | undefined
   private secondStepSubscription: Subscription | undefined
   private emailStatusChangeSubscription: Subscription | undefined
-  protected emptyEmail = signal<boolean>(true)
 
   private fingerprintDataEnc: string = ''
   private sessionDeviceInfo: ISessionDeviceInfo = {
@@ -145,9 +146,11 @@ export class LoginComponent implements OnInit, OnDestroy {
             const { statusCode, timestamp, message, ...loginFirstStepData } = res
             sessionStorage?.setItem('preAuthorizationData', btoa(JSON.stringify(loginFirstStepData)))
             if (res.suspiciousAttempt) {
-              this.router.navigate([`/login/mfa/EMAIL_OTP`], {queryParams: {
-                'trust_verify': true
-              }})
+              this.router.navigate([`/login/mfa/EMAIL_OTP`], {
+                queryParams: {
+                  'trust_verify': true
+                }
+              })
             } else if (res.enabledMfaStrategies.length === 1) {
               this.router.navigate([`/login/mfa/${res.enabledMfaStrategies[0]}`])
             } else {

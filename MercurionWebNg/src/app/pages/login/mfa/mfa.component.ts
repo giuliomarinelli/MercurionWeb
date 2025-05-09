@@ -129,6 +129,10 @@ export class MfaComponent implements OnInit, OnDestroy {
     })
   }
 
+  forceFocusOnOtp(): void {
+    this.otpRef.nativeElement.focus()
+  }
+
 
   goTo(target: MfaView | 'VERIFY_OTP_ACTION'): void {
     switch (target) {
