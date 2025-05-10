@@ -34,7 +34,7 @@ import { SidenavContextService } from './services/stores/sidenav-context.service
 
   <!-- Sidebar FIXED (solo per utenti loggati) -->
   @if (userContext.initials() && sidenavContext.isMounted()) {
-    <app-sidebar class="fixed block left-0 top-[69.13px] h-full w-64 bg-slate-100 dark:bg-gray-800/40 shadow-sm text-white transition-transform duration-300 ease-in-out" />
+    <app-sidebar class="fixed block left-0 bottom-0 top-[69.13px] h-full w-64 bg-slate-100 dark:bg-gray-800/40 shadow-sm text-white transition-transform duration-300 ease-in-out" />
   }
 
   <!-- Wrapper contenuto + footer -->
