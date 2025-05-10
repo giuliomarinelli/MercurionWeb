@@ -52,14 +52,22 @@ export class AppComponent implements OnInit, OnDestroy {
     private readonly pathService: PathService
   ) {
     effect(() => {
-      const path = this.pathService.path();
       const initials = this.userContext.initials();
       const isValid = initials && (initials.length === 1 || initials.length === 2);
 
-      if (!isValid && path !== '/login') {
+      // Leggi direttamente dalla Router URL, non da pathService
+      const currentUrl = this.router.url;
+
+      // Non fare nulla finché Angular non ha completato la navigazione
+      if (currentUrl === '' || currentUrl === '/') return;
+
+      // Se non sei loggato, e non sei già su /login, forza redirect
+      if (!isValid && !currentUrl.startsWith('/login')) {
+        this.toastService.trigger('Accesso negato');
         this.router.navigateByUrl('/login');
       }
-    })
+    });
+
   }
 
   async ngOnInit(): Promise<void> {
@@ -70,6 +78,7 @@ export class AppComponent implements OnInit, OnDestroy {
       )
       .subscribe((e: NavigationEnd) => {
         this.currentPath = e.urlAfterRedirects
+        this.pathService.setPath(this.currentPath)
       })
   }
 

@@ -18,4 +18,9 @@ export class PathService {
         this._path.set(event.urlAfterRedirects)
       })
   }
+
+  setPath(path: string): void {
+    this._path.set(path)
+  }
+
 }

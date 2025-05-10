@@ -101,6 +101,10 @@ export class LoginComponent implements OnInit, OnDestroy {
       this.toast.trigger('Accesso negato!')
       sessionStorage?.removeItem('MfaError')
     }
+    if (sessionStorage?.getItem('RouteError') === 'AccessDenied') {
+      this.toast.trigger('Accesso negato!')
+      sessionStorage?.removeItem('RouteError')
+    }
     const login = sessionStorage?.getItem('login')
     if (login != null && (login.length === 1 || login.length === 2)) {
       this.router.navigate([sessionStorage?.getItem('loginLastPath') || '/profile'])
