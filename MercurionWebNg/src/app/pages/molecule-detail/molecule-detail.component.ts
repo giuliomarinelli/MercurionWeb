@@ -3,13 +3,70 @@ import { ActivatedRoute } from '@angular/router';
 import { MoleculeService } from '../../services/molecule.service';
 import { switchMap, Observable } from 'rxjs';
 import { MoleculeDetail } from '../../Models/graphql/molecule.detail';
+import { AsyncPipe } from '@angular/common';
+import { MoleculeHeaderComponent } from '../../components/molecule-detail/molecule-header/molecule-header.component';
+import { MoleculeViewerComponent } from '../../components/chem/molecule-viewer/molecule-viewer.component';
+import { MoleculePropertiesComponent } from '../../components/molecule-detail/molecule-properties/molecule-properties.component';
+import { MoleculeRoutesComponent } from '../../components/molecule-detail/molecule-routes/molecule-routes.component';
+import { MoleculeSynonymsComponent } from '../../components/molecule-detail/molecule-synonyms/molecule-synonyms.component';
+import { MoleculeCtaChemblComponent } from '../../components/molecule-detail/molecule-cta-chembl/molecule-cta-chembl.component';
 
 @Component({
   selector: 'app-molecule-detail',
   standalone: true,
-  imports: [],
-  templateUrl: './molecule-detail.component.html',
-  styleUrls: ['./molecule-detail.component.css']
+  imports: [
+    AsyncPipe,
+    MoleculeHeaderComponent,
+    MoleculeViewerComponent,
+    MoleculePropertiesComponent,
+    MoleculeRoutesComponent,
+    MoleculeSynonymsComponent,
+    MoleculeCtaChemblComponent
+  ],
+  template: `
+
+    @if (molecule$ | async; as molecule) {
+  <section class="max-w-4xl mx-auto p-6 space-y-6">
+
+    <!-- 🧬 Header: nome + ChEMBL ID -->
+    <molecule-header
+      [nameInput]="molecule.preferredName"
+      [chemblIdInput]="molecule.cmbId"
+    />
+
+    <!-- 🧪 Viewer struttura SMILES -->
+    <molecule-viewer
+      [structure]="molecule.canonicalSmiles"
+    />
+
+    <!-- ⚗️ Proprietà chimico-fisiche -->
+    <molecule-properties
+      [properties]="molecule.properties"
+    />
+
+    <!-- 💉 Vie di somministrazione -->
+    <molecule-routes
+      [adminRoutesInput]="molecule.administrationRoutes"
+    />
+
+    <!-- 🗂 Sinonimi -->
+    <molecule-synonyms
+      [synonymsInput]="molecule.synonyms"
+    />
+
+    <!-- 🔗 Link esterno a ChEMBL -->
+    <molecule-cta-chembl
+      [chemblId]="molecule.cmbId"
+    />
+
+  </section>
+} @else {
+  <section class="max-w-4xl mx-auto p-6">
+    <p class="text-gray-600 dark:text-gray-300 text-sm">Caricamento molecola...</p>
+  </section>
+}
+
+  `
 })
 export class MoleculeDetailComponent implements OnInit {
 

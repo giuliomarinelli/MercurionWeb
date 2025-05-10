@@ -26,6 +26,7 @@
     "graphql": "^16.11.0",
     "ngx-socket-io": "^4.8.5",
     "ngx-spinner": "^19.0.0",
+    "prettier": "^3.5.3",
     "rxjs": "~7.8.0",
     "smiles-drawer": "^2.1.7",
     "tslib": "^2.3.0",
