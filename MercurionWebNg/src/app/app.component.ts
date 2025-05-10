@@ -1,4 +1,4 @@
-import { Component, computed, CUSTOM_ELEMENTS_SCHEMA, effect, ElementRef, OnDestroy, OnInit, Signal, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, computed, CUSTOM_ELEMENTS_SCHEMA, effect, ElementRef, OnDestroy, OnInit, signal, Signal, ViewChild } from '@angular/core';
 import { GuardsCheckEnd, GuardsCheckStart, NavigationCancel, NavigationEnd, NavigationError, NavigationStart, ResolveEnd, ResolveStart, Router, RouterOutlet, RoutesRecognized } from '@angular/router';
 import { HeaderComponent } from './components/common/header/header.component';
 import { MoleculeViewerComponent } from './components/chem/molecule-viewer/molecule-viewer.component';
@@ -22,39 +22,40 @@ import { PathService } from './services/path.service';
   imports: [
     RouterOutlet,
     HeaderComponent,
-    MoleculeViewerComponent,
     SearchOverlayComponent,
     FooterComponent,
     NgxxSpinnerComponent,
     ToastComponent
   ],
   template: `
-  <app-header class="block sticky top-0" />
-    <div class="flex-1">
-      @if (false) {
-      <div class="flex-1 flex items-center justify-center">
-      <molecule-viewer
-        [structure]="smilesString"
-        [darkMode]="isDarkTheme()"
-        class="block"
-      />
-    </div>
+
+  <app-header class="block sticky top-0 z-30" />
+
+  <!-- Sidebar FIXED (solo per utenti loggati) -->
+  @if (userContext.initials()) {
+    <app-sidebar class="fixed left-0 top-[69.13px] h-full w-64 z-40" />
   }
-  <router-outlet />
+
+  <!-- Wrapper contenuto + footer -->
+  <div class="min-h-screen flex flex-col transition-all" [class.ml-64]="userContext.initials()">
+
+    <main class="flex-1">
+      <router-outlet />
+    </main>
+
+    <app-footer class="block transition-all" [class.ml-64]="userContext.initials()" />
   </div>
-  @if (searchContextService.isMounted()) {
-    <app-search-overlay />
-  }
 
-  <app-toast [context]="toastService.context()" />
+@if (searchContextService.isMounted()) {
+  <app-search-overlay />
+}
 
-  <app-ngxx-spinner />
-
-  <app-footer class="block" />
+<app-toast [context]="toastService.context()" />
+<app-ngxx-spinner />
 
 `
 })
-export class AppComponent implements OnInit, OnDestroy {
+export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
   title = 'MercurionWebNg'
 
@@ -71,7 +72,7 @@ export class AppComponent implements OnInit, OnDestroy {
     protected readonly searchContextService: SearchContextService,
     private readonly router: Router,
     protected readonly toastService: ToastService,
-    private readonly userContext: UserContextService,
+    protected readonly userContext: UserContextService,
     private readonly pathService: PathService
   ) {
     effect(() => {
@@ -86,12 +87,17 @@ export class AppComponent implements OnInit, OnDestroy {
 
       // Se non sei loggato, e non sei già su /login, forza redirect
       if (!isValid && !currentUrl.startsWith('/login')) {
-        this.toastService.trigger('Accesso negato');
-        this.router.navigateByUrl('/login');
+        this.toastService.trigger('Accesso negato')
+        this.router.navigateByUrl('/login')
       }
-    });
+    })
 
   }
+
+  @ViewChild(HeaderComponent, { read: ElementRef })
+  headerRef!: ElementRef<HTMLElement>;
+
+  headerHeight = signal(64)
 
   async ngOnInit(): Promise<void> {
 
@@ -103,6 +109,10 @@ export class AppComponent implements OnInit, OnDestroy {
         this.currentPath = e.urlAfterRedirects
         this.pathService.setPath(this.currentPath)
       })
+  }
+
+  ngAfterViewInit(): void {
+
   }
 
   ngOnDestroy(): void {
