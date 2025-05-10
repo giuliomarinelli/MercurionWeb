@@ -13,6 +13,7 @@ import { ToastComponent } from './components/common/toast/toast.component';
 import { ToastService } from './services/toast.service';
 import { UserContextService } from './services/stores/user-context.service';
 import { PathService } from './services/path.service';
+import { SidenavContextService } from './services/stores/sidenav-context.service';
 
 
 
@@ -32,26 +33,26 @@ import { PathService } from './services/path.service';
   <app-header class="block sticky top-0 z-30" />
 
   <!-- Sidebar FIXED (solo per utenti loggati) -->
-  @if (userContext.initials()) {
-    <app-sidebar class="fixed left-0 top-[69.13px] h-full w-64 z-40" />
+  @if (userContext.initials() && sidenavContext.isMounted()) {
+    <app-sidebar class="fixed block left-0 top-[69.13px] h-full w-64 bg-slate-100 dark:bg-gray-800/40 shadow-sm text-white transition-transform duration-300 ease-in-out" />
   }
 
   <!-- Wrapper contenuto + footer -->
-  <div class="min-h-screen flex flex-col transition-all" [class.ml-64]="userContext.initials()">
+  <div class="min-h-screen flex flex-col transition-all" [class.ml-64]="userContext.initials() && sidenavContext.isMounted()">
 
     <main class="flex-1">
       <router-outlet />
     </main>
 
-    <app-footer class="block transition-all" [class.ml-64]="userContext.initials()" />
+    <app-footer class="block transition-all" />
   </div>
 
-@if (searchContextService.isMounted()) {
-  <app-search-overlay />
-}
+  @if (searchContextService.isMounted()) {
+    <app-search-overlay />
+  }
 
-<app-toast [context]="toastService.context()" />
-<app-ngxx-spinner />
+  <app-toast [context]="toastService.context()" />
+  <app-ngxx-spinner />
 
 `
 })
@@ -73,7 +74,8 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly router: Router,
     protected readonly toastService: ToastService,
     protected readonly userContext: UserContextService,
-    private readonly pathService: PathService
+    private readonly pathService: PathService,
+    protected readonly sidenavContext: SidenavContextService
   ) {
     effect(() => {
       const initials = this.userContext.initials();

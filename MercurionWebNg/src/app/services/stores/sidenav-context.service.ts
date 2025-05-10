@@ -6,11 +6,11 @@ import { Injectable, signal, effect } from '@angular/core';
 export class SidenavContextService {
 
   // Stato logico
-  private _isOpen = signal(false)
+  private _isOpen = signal(true)
 
   // Stati visivi
-  isMounted = signal(false)
-  isVisible = signal(false)
+  isMounted = signal(true)
+  isVisible = signal(true)
 
   constructor() {
     effect(() => {

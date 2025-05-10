@@ -7,17 +7,11 @@ import { ViewportRuler } from '@angular/cdk/scrolling'
   selector: 'app-sidenav',
   standalone: true,
   template: `
-   @if (sidenavContext.isMounted()) {
-    <aside
-      class="fixed left-0 z-40 w-64 bg-gray-900 text-white transition-transform duration-300 ease-in-out"
-      [style.top.px]="headerHeight()"
-      [style.height.px]="contentHeight()"
-      [class.-translate-x-full]="!sidenavContext.isVisible()"
-      [class.translate-x-0]="sidenavContext.isVisible()"
-    >
+
+    <aside>
       <!-- Contenuto -->
     </aside>
-   }
+
   `
 })
 export class SidenavComponent implements AfterViewInit {
@@ -42,7 +36,7 @@ export class SidenavComponent implements AfterViewInit {
     protected readonly sidenavContext: SidenavContextService,
     protected readonly layoutContext: LayoutContextService,
     private readonly viewportRuler: ViewportRuler
-  ) {}
+  ) { }
 
   ngAfterViewInit() {
     // assicura una prima misura corretta quando l’header è già renderizzato
