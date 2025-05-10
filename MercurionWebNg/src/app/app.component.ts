@@ -28,8 +28,31 @@ import { PathService } from './services/path.service';
     NgxxSpinnerComponent,
     ToastComponent
   ],
-  templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+  template: `
+  <app-header class="block sticky top-0" />
+    <div class="flex-1">
+      @if (false) {
+      <div class="flex-1 flex items-center justify-center">
+      <molecule-viewer
+        [structure]="smilesString"
+        [darkMode]="isDarkTheme()"
+        class="block"
+      />
+    </div>
+  }
+  <router-outlet />
+  </div>
+  @if (searchContextService.isMounted()) {
+    <app-search-overlay />
+  }
+
+  <app-toast [context]="toastService.context()" />
+
+  <app-ngxx-spinner />
+
+  <app-footer class="block" />
+
+`
 })
 export class AppComponent implements OnInit, OnDestroy {
 
