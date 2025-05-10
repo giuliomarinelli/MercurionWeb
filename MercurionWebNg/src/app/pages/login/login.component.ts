@@ -185,12 +185,12 @@ export class LoginComponent implements OnInit, OnDestroy {
               this.router.navigate(['/login/mfa/choose-method'])
             }
           } else {
+            this.userContext.login(res.initials)
             sessionStorage?.setItem('accessToken', btoa(res.accessToken as string))
             sessionStorage?.setItem('login', res.initials ?? 'U')
             const loginPath: string = atob(sessionStorage.getItem('loginLastPath') || '') || '/profile'
             this.router.navigate([loginPath])
           }
-          this.userContext.login(res.initials)
         },
         error: err => {
           const body = err.error as HttpErrorRes

@@ -4,7 +4,10 @@ import { Router } from '@angular/router';
 @Injectable({ providedIn: 'root' })
 export class AuthRedirectService {
 
-  constructor(private readonly router: Router) { }
+  constructor(
+    private readonly router: Router
+
+  ) { }
 
   /**
    * Forza il redirect verso `/login`, anche se sei già su una sotto-route
