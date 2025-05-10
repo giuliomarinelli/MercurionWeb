@@ -5,8 +5,10 @@ import { Meilisearch } from 'meilisearch';
 import { ChemblModule } from '../chembl/chembl.module';
 import { MoleculeDetailSyncService } from './services/molecule-detail-sync.service';
 import { MoleculeSearchService } from './services/molecule-search.service';
-import { MoleculeSearchResolver } from './resolvers/molecule-search-resolver';
+import { MoleculeSearchResolver } from './resolvers/molecule-search.resolver';
 import { MeiliLoggerService } from './services/meili-logger.service';
+import { MoleculeService } from './services/molecule.service';
+import { MoleculeResolver } from './resolvers/molecule.resolver';
 
 @Module({
     imports: [ChemblModule],
@@ -23,7 +25,9 @@ import { MeiliLoggerService } from './services/meili-logger.service';
         MoleculeDetailSyncService,
         MoleculeSearchService,
         MoleculeSearchResolver,
-        MeiliLoggerService
+        MeiliLoggerService,
+        MoleculeService,
+        MoleculeResolver
     ],
     exports: [MoleculeSyncService, MoleculeDetailSyncService]
 

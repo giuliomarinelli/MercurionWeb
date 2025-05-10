@@ -12,8 +12,39 @@ type MoleculeSearchResult {
   maxPhase: Int
 }
 
+type MoleculeProperties {
+  mwFreebase: Float
+  alogp: Float
+  hba: Int
+  hbd: Int
+  psa: Float
+  rtb: Int
+}
+
+type AdministrationRoutes {
+  oral: Boolean!
+  parenteral: Boolean!
+  topical: Boolean!
+}
+
+type MoleculeDetail {
+  id: Int!
+  cmbId: String!
+  preferredName: String!
+  canonicalSmiles: String!
+  properties: MoleculeProperties!
+  maxPhase: Float
+  moleculeType: String!
+  administrationRoutes: AdministrationRoutes!
+  naturalProduct: Boolean!
+  prodrug: Boolean!
+  blackBoxWarning: Boolean!
+  synonyms: [String!]!
+}
+
 type Query {
   moleculeSearch(input: MoleculeSearchInput!): [MoleculeSearchResult!]!
+  moleculeByMolregno(molregno: String!): MoleculeDetail!
 }
 
 input MoleculeSearchInput {
