@@ -3,7 +3,7 @@ import { ApplicationConfig, importProvidersFrom, inject, provideZoneChangeDetect
 import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 import { provideSocketIo } from 'ngx-socket-io';
-import { provideApollo, APOLLO_OPTIONS } from 'apollo-angular';
+import { provideApollo } from 'apollo-angular';
 import { InMemoryCache } from '@apollo/client/core';
 import { HttpLink } from 'apollo-angular/http';
 import { HTTP_INTERCEPTORS, provideHttpClient } from '@angular/common/http';
@@ -23,8 +23,9 @@ export const appConfig: ApplicationConfig = {
     provideApollo(() => {
       const httpLink = inject(HttpLink);
       return {
-        link: httpLink.create({ uri: '/graphql' }),
+        link: httpLink.create({ uri: '/api/graphql' }),
         cache: new InMemoryCache(),
+        uri: '/api/graphql'
       };
     }),
     {

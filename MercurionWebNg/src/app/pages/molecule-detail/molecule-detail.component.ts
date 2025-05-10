@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MoleculeService } from '../../services/molecule.service';
-import { switchMap, Observable } from 'rxjs';
+import { switchMap, Observable, catchError, of } from 'rxjs';
 import { MoleculeDetail } from '../../Models/graphql/molecule.detail';
 import { AsyncPipe } from '@angular/common';
 import { MoleculeHeaderComponent } from '../../components/molecule-detail/molecule-header/molecule-header.component';
@@ -70,7 +70,7 @@ import { MoleculeCtaChemblComponent } from '../../components/molecule-detail/mol
 })
 export class MoleculeDetailComponent implements OnInit {
 
-  molecule$!: Observable<MoleculeDetail>
+  molecule$!: Observable<MoleculeDetail | null>
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -78,12 +78,33 @@ export class MoleculeDetailComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.molecule$ = this.route.paramMap.pipe(
-      switchMap(params => {
-        const molregno = params.get('molregno')
-        if (!molregno) throw new Error('UndefinedMolregno')
-        return this.moleculeService.getMoleculeByMolregno(molregno)
-      })
-    )
+  this.molecule$ = this.route.paramMap.pipe(
+    switchMap(params => {
+      const molregno = params.get('molregno')
+      if (!molregno) throw new Error('UndefinedMolregno')
+      return this.moleculeService.getMoleculeByMolregno(molregno)
+    }),
+    catchError((err: any) => {
+  console.error('Errore durante il fetch della molecola:', err)
+
+  const netErr = err?.networkError
+
+  if (netErr && 'status' in netErr) {
+    console.error('HTTP status:', netErr.status)
+
+    if ('bodyText' in netErr) {
+      console.error('Body della risposta:', netErr.bodyText)
+    }
+
+    // per Axios o fetch:
+    if ('response' in netErr) {
+      console.error('Raw response:', netErr.response)
+    }
   }
+
+  return of(null)
+})
+
+  )
+}
 }
