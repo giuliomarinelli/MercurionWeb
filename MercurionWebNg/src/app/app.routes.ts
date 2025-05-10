@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router'
 import { ColorPaletteComponent } from './playground/color-palette/color-palette.component'
-import { AuthGuardGuard as AuthGuard } from './guards/auth-guard.guard'
+import { AuthGuard } from './guards/auth-guard.guard'
 
 export const routes: Routes = [
   {

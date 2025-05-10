@@ -97,6 +97,10 @@ export class LoginComponent implements OnInit, OnDestroy {
       this.toast.trigger('Dispositivo non riconosciuto. Accesso negato!')
       sessionStorage?.removeItem('logout')
     }
+    const login = sessionStorage?.getItem('login')
+    if (login != null && (login.length === 1 || login.length === 2)) {
+      this.router.navigate([sessionStorage?.getItem('loginLastPath') || '/profile'])
+    }
     this.loginForm = this.fb.group({
       email: this.fb.control(null, [Validators.required, Validators.email]),
       password: this.fb.control(null, [Validators.required])

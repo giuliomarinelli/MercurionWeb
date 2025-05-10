@@ -1,4 +1,4 @@
-import { Component, computed, CUSTOM_ELEMENTS_SCHEMA, ElementRef, OnDestroy, OnInit, Signal, ViewChild } from '@angular/core';
+import { Component, computed, CUSTOM_ELEMENTS_SCHEMA, effect, ElementRef, OnDestroy, OnInit, Signal, ViewChild } from '@angular/core';
 import { GuardsCheckEnd, GuardsCheckStart, NavigationCancel, NavigationEnd, NavigationError, NavigationStart, ResolveEnd, ResolveStart, Router, RouterOutlet, RoutesRecognized } from '@angular/router';
 import { HeaderComponent } from './components/common/header/header.component';
 import { MoleculeViewerComponent } from './components/chem/molecule-viewer/molecule-viewer.component';
@@ -7,10 +7,12 @@ import { SearchOverlayComponent } from './components/search-overlay/search-overl
 import { SearchContextService } from './services/stores/search-context.service';
 import { FooterComponent } from './components/common/footer/footer.component';
 import { NgxxSpinnerComponent } from './components/common/ngxx-spinner/ngxx-spinner.component';
-import { Subscription } from 'rxjs';
+import { filter, Subscription } from 'rxjs';
 import { FingerprintService } from './services/fingerprint.service';
 import { ToastComponent } from './components/common/toast/toast.component';
 import { ToastService } from './services/toast.service';
+import { UserContextService } from './services/stores/user-context.service';
+import { PathService } from './services/path.service';
 
 
 
@@ -38,52 +40,41 @@ export class AppComponent implements OnInit, OnDestroy {
 
   isDarkTheme: Signal<boolean> = computed(() => this.themeManagerService.theme() === 'dark')
 
-  private subs: Subscription | undefined
+  private routeSub: Subscription | undefined
+  private currentPath: string = ''
 
   constructor(
     private readonly themeManagerService: ThemeManagerService,
     protected readonly searchContextService: SearchContextService,
     private readonly router: Router,
-    protected readonly toastService: ToastService
-  ) { }
+    protected readonly toastService: ToastService,
+    private readonly userContext: UserContextService,
+    private readonly pathService: PathService
+  ) {
+    effect(() => {
+      const path = this.pathService.path();
+      const initials = this.userContext.initials();
+      const isValid = initials && (initials.length === 1 || initials.length === 2);
 
-  async ngOnInit(): Promise<void> {
-
-    this.subs = this.router.events.subscribe(event => {
-      switch (event.constructor) {
-        case NavigationStart:
-          console.log('🔵 NavigationStart:', event);
-          break;
-        case RoutesRecognized:
-          console.log('🟡 RoutesRecognized:', event);
-          break;
-        case GuardsCheckStart:
-          console.log('🟠 GuardsCheckStart:', event);
-          break;
-        case GuardsCheckEnd:
-          console.log('🟠 GuardsCheckEnd:', event);
-          break;
-        case ResolveStart:
-          console.log('🟣 ResolveStart:', event);
-          break;
-        case ResolveEnd:
-          console.log('🟣 ResolveEnd:', event);
-          break;
-        case NavigationCancel:
-          console.warn('⛔ NavigationCancel:', event);
-          break;
-        case NavigationError:
-          console.error('❌ NavigationError:', event);
-          break;
-        case NavigationEnd:
-          console.log('✅ NavigationEnd:', event);
-          break;
+      if (!isValid && path !== '/login') {
+        this.router.navigateByUrl('/login');
       }
     })
   }
 
+  async ngOnInit(): Promise<void> {
+
+    this.routeSub = this.router.events
+      .pipe(
+        filter(e => e instanceof NavigationEnd)
+      )
+      .subscribe((e: NavigationEnd) => {
+        this.currentPath = e.urlAfterRedirects
+      })
+  }
+
   ngOnDestroy(): void {
-    this.subs?.unsubscribe()
+    this.routeSub?.unsubscribe()
   }
 
 

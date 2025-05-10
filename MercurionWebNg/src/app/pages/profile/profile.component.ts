@@ -32,11 +32,13 @@ export class ProfileComponent implements AfterViewInit, OnDestroy {
         this.loggingOut.set(false)
         sessionStorage?.setItem('logout', 'success')
         this.router.navigate(['/login'])
+        sessionStorage?.removeItem('login')
       },
       error: (err) => {
         this.loggingOut.set(false)
         sessionStorage?.setItem('logout', '403')
         this.router.navigate(['/login'])
+        !!sessionStorage?.getItem('login') && sessionStorage?.removeItem('login')
       }
     })
   }

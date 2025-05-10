@@ -4,9 +4,9 @@ import { ActivatedRouteSnapshot, CanActivate, CanActivateChild, GuardResult, May
 @Injectable({
   providedIn: 'root'
 })
-export class AuthGuardGuard implements CanActivate {
+export class AuthGuard implements CanActivate {
 
-  constructor(private router: Router) {}
+  constructor(private readonly router: Router) {}
 
   canActivate(): boolean | UrlTree {
     const login = sessionStorage.getItem('login');

@@ -20,7 +20,7 @@ export class AuthInterceptor implements HttpInterceptor {
       catchError((error: HttpErrorResponse) => {
 
         if (error.status === 401) {
-          sessionStorage.removeItem('login')
+          sessionStorage?.removeItem('login')
         }
 
         // Propaga comunque l'errore, senza bloccare le sottoscrizioni

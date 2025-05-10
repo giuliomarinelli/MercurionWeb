@@ -6,10 +6,11 @@ import { provideSocketIo } from 'ngx-socket-io';
 import { provideApollo, APOLLO_OPTIONS } from 'apollo-angular';
 import { InMemoryCache } from '@apollo/client/core';
 import { HttpLink } from 'apollo-angular/http';
-import { provideHttpClient } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, provideHttpClient } from '@angular/common/http';
 import { APP_BASE_HREF } from '@angular/common';
 import { provideAnimations } from '@angular/platform-browser/animations'
 import { NgxSpinnerModule } from 'ngx-spinner';
+import { AuthInterceptor } from './interceptors/auth-interceptor.interceptor';
 
 const config: SocketIoConfig = { url: 'http://localhost:8888', options: {} }
 
@@ -31,7 +32,12 @@ export const appConfig: ApplicationConfig = {
       useValue: '/app'
     },
     provideAnimations(),
-    importProvidersFrom(NgxSpinnerModule)
+    importProvidersFrom(NgxSpinnerModule),
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthInterceptor,
+      multi: true
+    }
 
   ]
 };
