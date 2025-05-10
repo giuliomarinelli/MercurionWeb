@@ -29,5 +29,9 @@ export const routes: Routes = [
   {
     path: 'login/mfa/:view',
     loadComponent: () => import('./pages/login/mfa/mfa.component').then(m => m.MfaComponent)
+  },
+  {
+    path: 'molecules/detail/:molregno',
+    loadComponent: () => import('./pages/molecule-detail/molecule-detail.component').then(m => m.MoleculeDetailComponent)
   }
 ]
