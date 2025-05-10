@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, NgZone, signal } from '@angular/core';
 
 @Injectable({
   providedIn: 'root'
@@ -7,7 +7,9 @@ export class UserContextService {
   private _initials = signal<string>('');
   public readonly initials = this._initials.asReadonly();
 
-  constructor() {
+  constructor(
+    private readonly zone: NgZone
+  ) {
     // 1. Carica le iniziali al primo avvio
     const savedInitials = sessionStorage.getItem('login')
     if (savedInitials) {
@@ -20,6 +22,15 @@ export class UserContextService {
         this._initials.set(event.newValue ?? '')
       }
     });
+  }
+
+  login(userInitials: string) {
+    /* SDK auth callback → spesso è fuori zona */
+    this.zone.run(() => this._initials.set(userInitials));
+  }
+
+  logout() {
+    this.zone.run(() => this._initials.set(''));
   }
 
   // 3. Metodo comodo per aggiornare il contesto e sincronizzare anche sessionStorage

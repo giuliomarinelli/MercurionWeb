@@ -13,6 +13,7 @@ import { TotpBodyDTO } from '../../../Models/types/auth/DTO/totp-body.dto';
 import { HttpErrorRes } from '../../../Models/types/interfaces/error-res.dto';
 import { AuthRedirectService } from '../../../services/auth-redirect.service';
 import { ToastService } from '../../../services/toast.service';
+import { UserContextService } from '../../../services/stores/user-context.service';
 
 export type MfaView = 'EMAIL_OTP' | 'SMS_OTP' | 'PH_V' | 'APP_TOTP' | ''
 
@@ -59,7 +60,7 @@ export class MfaComponent implements OnInit, OnDestroy {
     private readonly fingerprintService: FingerprintService,
     private readonly loadingContext: LoadingContextService,
     private readonly redirect: AuthRedirectService,
-    private readonly toast: ToastService
+    private readonly userContext: UserContextService
   ) { }
 
   async ngOnInit(): Promise<void> {
@@ -187,6 +188,7 @@ export class MfaComponent implements OnInit, OnDestroy {
               sessionStorage?.removeItem('preAuthorizationData')
             }
             sessionStorage?.setItem('login', res.initials ?? 'U')
+            this.userContext.login(res.initials)
             const loginPath: string = atob(sessionStorage?.getItem('loginLastPath') || '') || '/profile'
             this.router.navigate([loginPath])
           },

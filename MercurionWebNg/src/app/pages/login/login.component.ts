@@ -14,6 +14,7 @@ import { ISessionDeviceInfo } from '../../Models/types/auth/DTO/fingerprint.dtos
 import { LoadingContextService } from '../../services/stores/loading-context.service';
 import { ToastService } from '../../services/toast.service';
 import { ToastContext } from '../../components/common/toast/toast.component';
+import { UserContextService } from '../../services/stores/user-context.service';
 
 
 @Component({
@@ -65,7 +66,8 @@ export class LoginComponent implements OnInit, OnDestroy {
     private readonly authService: AuthService,
     private readonly fingerprintService: FingerprintService,
     private readonly loadingContext: LoadingContextService,
-    private readonly toast: ToastService
+    private readonly toast: ToastService,
+    private readonly userContext: UserContextService
   ) { }
 
   onEmailInput(): void {
@@ -188,6 +190,7 @@ export class LoginComponent implements OnInit, OnDestroy {
             const loginPath: string = atob(sessionStorage.getItem('loginLastPath') || '') || '/profile'
             this.router.navigate([loginPath])
           }
+          this.userContext.login(res.initials)
         },
         error: err => {
           const body = err.error as HttpErrorRes

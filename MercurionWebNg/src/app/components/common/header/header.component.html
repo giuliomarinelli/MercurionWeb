@@ -14,10 +14,11 @@
       }
       @if (designService.minBk("sm")()) {
       <a routerLink="/">
-        <img [ngSrc]="logoSrc() | public" alt="Mercurion" width="927" height="234" priority="true" class="w-[145px] h-auto">
+        <img [ngSrc]="logoSrc() | public" alt="Mercurion" width="927" height="234" priority="true"
+          class="w-[145px] h-auto">
       </a>
       }
-      @if (designService.minBk("lg")()) {
+      @if (designService.minBk("lg")() && (userContext.initials() != '')) {
       <app-nav [header]="true"></app-nav>
       }
 
@@ -71,8 +72,7 @@
         }
       </button>
       @if (designService.minBk('md')() && userContext.initials() !== '' && isAllowedRoute) {
-      <div
-        [innerHTML]="userContext.initials()"
+      <div [innerHTML]="userContext.initials()"
         class="rounded-full bg-light-accent-secondary text-slate-100 dark:bg-dark-accent-primary p-2 text-sm font-semibold">
 
       </div>
@@ -198,8 +198,9 @@
   </div>
 
   <!-- Menu items -->
+  @if (userContext.initials() != '') {
   <app-nav (onCloseOffCanvasMenu)="themeMenuOpen.set($event)"></app-nav>
-
+  }
 
 
 </div>

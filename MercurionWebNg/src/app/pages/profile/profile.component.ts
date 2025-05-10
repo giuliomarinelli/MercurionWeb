@@ -3,6 +3,7 @@ import { LoadingContextService } from '../../services/stores/loading-context.ser
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
+import { UserContextService } from '../../services/stores/user-context.service';
 
 @Component({
   selector: 'app-profile',
@@ -18,7 +19,8 @@ export class ProfileComponent implements AfterViewInit, OnDestroy {
   constructor(
     private readonly loadingContext: LoadingContextService,
     private readonly authService: AuthService,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly userContext: UserContextService
   ) {}
 
   ngAfterViewInit(): void {
@@ -33,6 +35,7 @@ export class ProfileComponent implements AfterViewInit, OnDestroy {
         sessionStorage?.setItem('logout', 'success')
         this.router.navigate(['/login'])
         sessionStorage?.removeItem('login')
+        this.userContext.logout()
       },
       error: (err) => {
         this.loggingOut.set(false)

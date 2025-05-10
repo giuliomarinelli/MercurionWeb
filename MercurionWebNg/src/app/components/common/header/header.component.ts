@@ -1,5 +1,5 @@
 import { NgClass, NgOptimizedImage } from '@angular/common';
-import { Component, computed, effect, OnDestroy, OnInit, Signal, signal, WritableSignal } from '@angular/core';
+import { ApplicationRef, ChangeDetectorRef, Component, computed, effect, OnChanges, OnDestroy, OnInit, Signal, signal, SimpleChanges, WritableSignal } from '@angular/core';
 import { ThemeManagerService } from '../../../services/stores/theme-manager.service';
 import { ThemeChose } from '../../../Models/types/theme-types';
 import { DesignService } from '../../../services/design.service';
@@ -28,7 +28,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
   readonly logoSrc = computed(() =>
     this.themeManager.theme() === 'light' ? 'logo/complete-light-logo.svg' : 'logo/complete-dark-logo-2.svg'
   )
-
+  readonly isLoggedIn = computed(() => {
+    const initials = this.userContext.initials()
+    return initials.length === 1 || initials.length === 2
+  })
   isAllowedRoute: boolean = false
   private routeSub: Subscription | undefined
 
@@ -37,13 +40,16 @@ export class HeaderComponent implements OnInit, OnDestroy {
     protected readonly designService: DesignService,
     protected readonly searchContextService: SearchContextService,
     protected readonly userContext: UserContextService,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly appRef: ApplicationRef,
+    private readonly cdRef: ChangeDetectorRef
   ) {
     effect(() => {
-      // Reactive logging/debugging se vuoi
-      // console.log('Tema attuale:', this.themeManager.theme())
-      // console.log(this.titleSrc())
+      const initials = this.userContext.initials()
+      this.cdRef.detectChanges()  // Forza Angular a rinfrescare la vista
     })
+    effect(() => console.log('[header] initials =', this.userContext.initials()));
+    effect(() => console.log('[header] isLoggedIn =', this.isLoggedIn()));
   }
 
   protected onThemeChange(theme: ThemeChose): void {
@@ -116,8 +122,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
         const currentPath = e.urlAfterRedirects
         const notAllowedPaths: string[] = ['/login', '/', '/test/spinner']
         this.isAllowedRoute = !notAllowedPaths.includes(currentPath)
+        this.appRef.tick()
       })
   }
+
+
 
   ngOnDestroy(): void {
     document.removeEventListener('click', this.handleDocumentClick, true)
