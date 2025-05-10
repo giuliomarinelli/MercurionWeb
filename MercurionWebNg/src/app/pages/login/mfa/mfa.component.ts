@@ -11,6 +11,8 @@ import { ISessionDeviceInfo } from '../../../Models/types/auth/DTO/fingerprint.d
 import { FingerprintService } from '../../../services/fingerprint.service';
 import { TotpBodyDTO } from '../../../Models/types/auth/DTO/totp-body.dto';
 import { HttpErrorRes } from '../../../Models/types/interfaces/error-res.dto';
+import { AuthRedirectService } from '../../../services/auth-redirect.service';
+import { ToastService } from '../../../services/toast.service';
 
 export type MfaView = 'EMAIL_OTP' | 'SMS_OTP' | 'PH_V' | 'APP_TOTP' | ''
 
@@ -55,21 +57,38 @@ export class MfaComponent implements OnInit, OnDestroy {
     private readonly fb: FormBuilder,
     private readonly authService: AuthService,
     private readonly fingerprintService: FingerprintService,
-    private readonly loadingContext: LoadingContextService
+    private readonly loadingContext: LoadingContextService,
+    private readonly redirect: AuthRedirectService,
+    private readonly toast: ToastService
   ) { }
 
   async ngOnInit(): Promise<void> {
+    // 1. Fingerprint prima di tutto
+    const { fingerprintDataEnc, sessionDeviceInfo } = await this.fingerprintService.getSanitizedFingerprint();
+    this.fingerprintDataEnc = fingerprintDataEnc;
+    this.sessionDeviceInfo = sessionDeviceInfo;
 
-    const { fingerprintDataEnc, sessionDeviceInfo } = await this.fingerprintService.getSanitizedFingerprint()
-    this.fingerprintDataEnc = fingerprintDataEnc
-    this.sessionDeviceInfo = sessionDeviceInfo
+    // 2. Inizializzazione form controls
+    this.otpControl = this.fb.control(null, [Validators.required, Validators.pattern(/\d{6}/)]);
+    this.phoneControl = this.fb.control(null, [Validators.required]);
 
-    this.otpControl = this.fb.control(null, [Validators.required, Validators.pattern(/\d{6}/)])
-    this.phoneControl = this.fb.control(null, [Validators.required])
-    this.loginFirstStepData = (JSON.parse(atob(sessionStorage?.getItem('preAuthorizationData') || '')) ?? '{}') as Login_FirstStep_Data ?? null
-    if (!this.loginFirstStepData) {
-      this.router.navigate(['/login'])
+    // 3. Validazione preAuthorizationData
+    const raw = sessionStorage.getItem('preAuthorizationData');
+
+    if (!raw) {
+      await this.redirect.redirectToLogin('NotAllowed');
+      return;
     }
+
+    try {
+      this.loginFirstStepData = JSON.parse(atob(raw)) as Login_FirstStep_Data;
+    } catch (e) {
+      console.error('❌ Malformed preAuthorizationData', e);
+      await this.redirect.redirectToLogin('NotAllowed');
+      return;
+    }
+
+    // 4. Watch OTP input
     this.otpStateSub = this.otpControl.valueChanges
       .pipe(
         filter(val => !!val),
@@ -78,56 +97,54 @@ export class MfaComponent implements OnInit, OnDestroy {
       )
       .subscribe(code => {
         if (code.length === 6) {
-          this.loading.set(true)
-          this.verifyOtp()
+          this.loading.set(true);
+          this.verifyOtp();
         }
-      })
+      });
 
+    // 5. Gestione dei parametri della rotta (view e query)
     this.paramsSub = combineLatest([
       this.route.paramMap,
       this.route.queryParamMap
-    ]).pipe(
-      map(([params, query]) => {
+    ])
+      .pipe(
+        map(([params, query]) => {
+          const view = params.get('view') as MfaView | null
+          const trustVerify = (query.get('trust_verify') ?? 'false') === 'true'
+          return { view, trustVerify }
+        })
+      )
+      .subscribe(async ({ view, trustVerify }) => {
+        if (!view || !this.viewList.includes(view)) {
+          await this.redirect.redirectToLogin('InvalidMfaView')
+          return
+        }
 
-        const view = params.get('view') as MfaView | null
-        const trustVerify = (query.get('trust_verify') ?? 'false') === 'true'
-        console.log(view, trustVerify)
-        return { view, trustVerify }
-
-      })
-    ).subscribe(({ view, trustVerify }) => {
-
-      if (!view) {
-        this.view.set('')
-        this.unTrusted.set(false)
         this.loadingContext.stop()
-        return
-      }
-
-      this.loadingContext.stop()
-
-      if (this.viewList.includes(view)) {
         this.view.set(view)
+
         const mustVerify = view === 'EMAIL_OTP' && trustVerify
         this.unTrusted.set(mustVerify)
+
         if (['EMAIL_OTP', 'SMS_OTP'].includes(view)) {
           this.otpCallSub = this.authService.login_secondStep(
             this.view() as 'EMAIL_OTP' | 'SMS_OTP',
             this.loginFirstStepData?.preAuthorizationToken ?? '',
-            this.unTrusted()).subscribe({
-              next: res => {
-                console.log(res)
-                this.loadingContext.stop()
-              },
-              error: (err) => {
-                console.error(err.error)
-                this.loadingContext.stop()
-              }
-            })
+            this.unTrusted()
+          ).subscribe({
+            next: res => {
+              console.log(res);
+              this.loadingContext.stop()
+            },
+            error: err => {
+              console.error(err.error)
+              this.loadingContext.stop()
+            }
+          })
         }
-      }
-    })
+      })
   }
+
 
   forceFocusOnOtp(): void {
     this.otpRef.nativeElement.focus()
