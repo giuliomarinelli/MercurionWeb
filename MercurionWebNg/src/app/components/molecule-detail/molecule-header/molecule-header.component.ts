@@ -5,10 +5,10 @@ import { Component, Input, signal } from '@angular/core';
   standalone: true,
   template: `
     <header>
-      <h1 class="text-light-accent-primary text-center xs:text-left dark:text-dark-accent-primary text-2xl lg:text-3xl font-semibold mb-6">
+      <h1 class="text-light-accent-primary text-center xs:text-left dark:text-dark-accent-primary text-2xl md:text-3xl font-semibold mb-12 tracking-wider">
         {{ name() }}
       </h1>
-      <p class="text-xs text-center xs:text-left tracking-wider text-light-accent-secondary dark:text-dark-accent-secondary font-semibold">
+      <p class="text-xs text-center xs:text-left tracking-wider text-light-accent-secondary dark:text-dark-accent-secondary font-semibold mb-3">
         ChEMBL ID:
         <span class="font-light text-light-on-surface-main dark:text-slate-100">
         {{ chemblId() }}

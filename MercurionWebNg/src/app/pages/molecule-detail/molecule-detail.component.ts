@@ -31,10 +31,14 @@ import { ThemeManagerService } from '../../services/stores/theme-manager.service
 
     <!-- 🧬 Header: nome + ChEMBL ID -->
 
-    <molecule-header
+    <molecule-header class="block mb-6"
       [nameInput]="molecule.preferredName"
       [chemblIdInput]="molecule.cmbId"
     />
+
+      <h4 class="font-semibold text-light-accent-secondary dark:text-dark-accent-secondary text-center xs:text-left text-lg">
+        Struttura
+      </h4>
 
     <!-- 🧪 Viewer struttura SMILES -->
     <molecule-viewer class="flex justify-center xs:justify-start mb-4"
@@ -42,7 +46,7 @@ import { ThemeManagerService } from '../../services/stores/theme-manager.service
     />
 
     <!-- ⚗️ Proprietà chimico-fisiche -->
-    <molecule-properties
+    <molecule-properties class="block mb-12"
       [properties]="molecule.properties"
     />
 
