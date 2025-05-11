@@ -4,10 +4,10 @@ import { Component, Input, signal } from '@angular/core';
   selector: 'molecule-synonyms',
   standalone: true,
   template: `
-    <section class="mt-4">
-      <h2 class="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200">Sinonimi</h2>
+    <section class="mt-4 mb-8">
+      <h2 class="text-lg font-semibold pb-6 text-emerald-600 dark:text-dark-accent-secondary text-center xs:text-left">Sinonimi</h2>
       @if (synonyms().length > 0) {
-        <ul class="flex flex-wrap gap-2">
+        <ul class="flex flex-wrap gap-2 justify-center xs:justify-start">
           @for (syn of synonyms(); track syn) {
             <li class="px-3 py-1 rounded-full bg-gray-200 dark:bg-gray-700 text-sm text-gray-800 dark:text-gray-100">
               {{ syn }}

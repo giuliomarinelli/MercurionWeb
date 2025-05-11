@@ -18,7 +18,7 @@ body {
 
 
   .drawer {
-    @apply bg-slate-200/50 dark:dark:bg-gray-800/50 transition-colors text-white;
+    @apply bg-slate-200/50 dark:dark:bg-gray-800/50 transition-colors;
   }
 
   /* stile tuo */

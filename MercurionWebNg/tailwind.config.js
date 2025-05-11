@@ -33,6 +33,7 @@ module.exports = {
           'warning': '#FBBF24',
           'error': '#FB7185',
           'border': '#4B5563',
+          "custbg-offcanvas": '#1b2333'
         }
       }
     },

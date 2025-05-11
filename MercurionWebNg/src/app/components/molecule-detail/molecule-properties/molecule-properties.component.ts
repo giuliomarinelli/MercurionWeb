@@ -6,8 +6,8 @@ import { MoleculeProperties } from '../../../Models/graphql/molecule.detail';
   selector: 'molecule-properties',
   standalone: true,
   template: `
-    <section class="mt-4">
-      <h2 class="text-lg font-semibold mb-6 text-light-accent-secondary dark:text-dark-accent-secondary">
+    <section class="mt-4 text-center xs:text-left">
+      <h2 class="text-lg font-semibold mb-6 text-emerald-600 dark:text-dark-accent-secondary">
         Proprietà chimico-fisiche
       </h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-2 text-sm">
