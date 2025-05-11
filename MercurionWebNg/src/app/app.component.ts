@@ -38,18 +38,21 @@ import { SidenavContextService } from './services/stores/sidenav-context.service
       <app-header class="sticky top-0 z-30"></app-header>
 
       <!-- 2️⃣  Drawer‑container  (relativo, overflow‑hidden) -->
+
       <div class="drawer-container relative flex flex-1 overflow-hidden">
-        <div class="absolute top-2 left-2 z-30">
-          <button class="cursor-pointer" (click)="sidenavContext.toggle()">
-            @if (sidenavContext.isVisible()) {
-              <svg xmlns="http://www.w3.org/2000/svg" class="fill-current w-7 h-auto text-light-on-surface-main dark:text-dark-on-surface-main" viewBox="0 0 512 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M512 256A256 256 0 1 0 0 256a256 256 0 1 0 512 0zM271 135c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-87 87 87 87c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0L167 273c-9.4-9.4-9.4-24.6 0-33.9L271 135z"/></svg>
-            } @else {
-              <svg xmlns="http://www.w3.org/2000/svg" class="fill-current w-7 h-auto text-light-on-surface-main dark:text-dark-on-surface-main" viewBox="0 0 512 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM241 377c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l87-87-87-87c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L345 239c9.4 9.4 9.4 24.6 0 33.9L241 377z"/></svg>
-            }
-          </button>
-        </div>
+        @if (userContext.initials()) {
+          <div class="absolute top-2 left-2 z-30">
+            <button class="cursor-pointer" (click)="sidenavContext.toggle()">
+              @if (sidenavContext.isVisible()) {
+                <svg xmlns="http://www.w3.org/2000/svg" class="fill-current w-7 h-auto text-light-on-surface-main dark:text-dark-on-surface-main" viewBox="0 0 512 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M512 256A256 256 0 1 0 0 256a256 256 0 1 0 512 0zM271 135c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-87 87 87 87c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0L167 273c-9.4-9.4-9.4-24.6 0-33.9L271 135z"/></svg>
+              } @else {
+                <svg xmlns="http://www.w3.org/2000/svg" class="fill-current w-7 h-auto text-light-on-surface-main dark:text-dark-on-surface-main" viewBox="0 0 512 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM241 377c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l87-87-87-87c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L345 239c9.4 9.4 9.4 24.6 0 33.9L241 377z"/></svg>
+              }
+            </button>
+          </div>
+        }
         <!-- 2a) Drawer (RELATIVE, non fixed) -->
-        @if (sidenavContext.isMounted()) {
+        @if (sidenavContext.isMounted() && userContext.initials()) {
           <aside
                   class="drawer absolute inset-y-0 left-0 w-64
                          transition-transform duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]
@@ -63,7 +66,7 @@ import { SidenavContextService } from './services/stores/sidenav-context.service
         <!-- 2b) Contenuto scorrevole -->
         <section class="content flex flex-col flex-1 overflow-y-auto
                         transition-[margin] duration-500"
-                 [class.ml-64]="sidenavContext.isOpen()">
+                 [class.ml-64]="sidenavContext.isOpen() && userContext.initials()">
           <main class="flex-1 p-4 block">
             <router-outlet />
           </main>
