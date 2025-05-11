@@ -4,7 +4,7 @@ import { Component } from '@angular/core'
   selector: 'app-sidenav',
   standalone: true,
   template: `
-    <div class="p-4 text-light-on-surface-main dark:text-slate-100">
+    <div class="p-4 text-light-on-surface-main dark:text-slate-100 z-50">
       <h4 class="text-center font-semibold relative bottom-1.5">Collezioni</h4>
     </div>
 

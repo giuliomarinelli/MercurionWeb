@@ -7,14 +7,16 @@ import { MoleculeProperties } from '../../../Models/graphql/molecule.detail';
   standalone: true,
   template: `
     <section class="mt-4">
-      <h2 class="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200">Proprietà chimico-fisiche</h2>
-      <div class="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-        <div><span class="font-medium text-gray-700 dark:text-gray-300">Peso molecolare:</span> {{ props().mwFreebase ?? 'ND' }}</div>
-        <div><span class="font-medium text-gray-700 dark:text-gray-300">logP:</span> {{ props().alogp ?? 'ND' }}</div>
-        <div><span class="font-medium text-gray-700 dark:text-gray-300">H-bond donor:</span> {{ props().hbd ?? 'ND' }}</div>
-        <div><span class="font-medium text-gray-700 dark:text-gray-300">H-bond acceptor:</span> {{ props().hba ?? 'ND' }}</div>
-        <div><span class="font-medium text-gray-700 dark:text-gray-300">PSA:</span> {{ props().psa ?? 'ND' }}</div>
-        <div><span class="font-medium text-gray-700 dark:text-gray-300">Rotatable bonds:</span> {{ props().rtb ?? 'ND' }}</div>
+      <h2 class="text-lg font-semibold mb-6 text-light-accent-secondary dark:text-dark-accent-secondary">
+        Proprietà chimico-fisiche
+      </h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+        <div><span class="font-semibold text-light-on-surface-main dark:text-slate-100">Peso molecolare:</span> {{ props().mwFreebase ?? 'ND' }}</div>
+        <div><span class="font-semibold text-light-on-surface-main dark:text-slate-100">logP:</span> {{ props().alogp ?? 'ND' }}</div>
+        <div><span class="font-semibold text-light-on-surface-main dark:text-slate-100">H-bond donor:</span> {{ props().hbd ?? 'ND' }}</div>
+        <div><span class="font-semibold text-light-on-surface-main dark:text-slate-100">H-bond acceptor:</span> {{ props().hba ?? 'ND' }}</div>
+        <div><span class="font-semibold text-light-on-surface-main dark:text-slate-100">PSA:</span> {{ props().psa ?? 'ND' }}</div>
+        <div><span class="font-semibold text-light-on-surface-main dark:text-slate-100">Rotatable bonds:</span> {{ props().rtb ?? 'ND' }}</div>
       </div>
     </section>
   `,

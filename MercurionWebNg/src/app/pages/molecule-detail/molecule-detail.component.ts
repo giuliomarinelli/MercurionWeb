@@ -10,6 +10,7 @@ import { MoleculePropertiesComponent } from '../../components/molecule-detail/mo
 import { MoleculeRoutesComponent } from '../../components/molecule-detail/molecule-routes/molecule-routes.component';
 import { MoleculeSynonymsComponent } from '../../components/molecule-detail/molecule-synonyms/molecule-synonyms.component';
 import { MoleculeCtaChemblComponent } from '../../components/molecule-detail/molecule-cta-chembl/molecule-cta-chembl.component';
+import { ThemeManagerService } from '../../services/stores/theme-manager.service';
 
 @Component({
   selector: 'app-molecule-detail',
@@ -29,14 +30,15 @@ import { MoleculeCtaChemblComponent } from '../../components/molecule-detail/mol
   <section class="max-w-4xl mx-auto p-6 space-y-6">
 
     <!-- 🧬 Header: nome + ChEMBL ID -->
+
     <molecule-header
       [nameInput]="molecule.preferredName"
       [chemblIdInput]="molecule.cmbId"
     />
 
     <!-- 🧪 Viewer struttura SMILES -->
-    <molecule-viewer
-      [structure]="molecule.canonicalSmiles"
+    <molecule-viewer class="flex justify-center xs:justify-start mb-4"
+      [structure]="molecule.canonicalSmiles" [darkMode]="themeManager.theme() === 'dark'"
     />
 
     <!-- ⚗️ Proprietà chimico-fisiche -->
@@ -74,7 +76,8 @@ export class MoleculeDetailComponent implements OnInit {
 
   constructor(
     private readonly route: ActivatedRoute,
-    private readonly moleculeService: MoleculeService
+    private readonly moleculeService: MoleculeService,
+    protected readonly themeManager: ThemeManagerService
   ) {}
 
   ngOnInit(): void {
