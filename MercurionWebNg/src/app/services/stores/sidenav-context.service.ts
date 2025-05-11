@@ -13,10 +13,10 @@ export class SidenavContextService {
     effect(() => {
       if (this._open()) {
         this.isMounted.set(true);
-        queueMicrotask(() => this.isVisible.set(true));   //  ~1 frame
+        setTimeout(() => this.isVisible.set(true))
       } else {
         this.isVisible.set(false);
-        setTimeout(() => this.isMounted.set(false), 200); // = durata anim
+        setTimeout(() => this.isMounted.set(false), 200)
       }
     });
   }
@@ -31,5 +31,8 @@ export class SidenavContextService {
     this._open.set(false)
 
   }
-  toggle() { this._open.update((v: boolean) => !v) }
+  toggle() {
+    this._open.update((v: boolean) => !v)
+    console.log(this._open)
+  }
 }
