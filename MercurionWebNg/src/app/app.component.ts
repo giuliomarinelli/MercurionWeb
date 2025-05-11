@@ -14,6 +14,8 @@ import { ToastService } from './services/toast.service';
 import { UserContextService } from './services/stores/user-context.service';
 import { PathService } from './services/path.service';
 import { SidenavContextService } from './services/stores/sidenav-context.service';
+import { DesignService } from './services/design.service';
+import { SidenavComponent } from './components/common/sidenav/sidenav.component';
 
 
 
@@ -26,7 +28,8 @@ import { SidenavContextService } from './services/stores/sidenav-context.service
     SearchOverlayComponent,
     FooterComponent,
     NgxxSpinnerComponent,
-    ToastComponent
+    ToastComponent,
+    SidenavComponent
   ],
 
   template: `
@@ -40,7 +43,7 @@ import { SidenavContextService } from './services/stores/sidenav-context.service
       <!-- 2️⃣  Drawer‑container  (relativo, overflow‑hidden) -->
 
       <div class="drawer-container relative flex flex-1 overflow-hidden">
-        @if (userContext.initials()) {
+        @if (userContext.initials() && design.minBk('lg')()) {
           <div class="absolute top-2 left-2 z-30">
             <button class="cursor-pointer" (click)="sidenavContext.toggle()">
               @if (sidenavContext.isVisible()) {
@@ -52,21 +55,21 @@ import { SidenavContextService } from './services/stores/sidenav-context.service
           </div>
         }
         <!-- 2a) Drawer (RELATIVE, non fixed) -->
-        @if (sidenavContext.isMounted() && userContext.initials()) {
+        @if (sidenavContext.isMounted() && userContext.initials() && design.minBk('lg')()) {
           <aside
                   class="drawer absolute inset-y-0 left-0 w-64
                          transition-transform duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]
                          -translate-x-full"
                   [class.translate-x-0]="sidenavContext.isVisible()"
                   [class.-translate-x-full]="!sidenavContext.isVisible()">
-            <app-sidebar class="w-full h-full bg-gray-900 text-white" />
+            <app-sidenav />
           </aside>
         }
 
         <!-- 2b) Contenuto scorrevole -->
         <section class="content flex flex-col flex-1 overflow-y-auto
                         transition-[margin] duration-500"
-                 [class.ml-64]="sidenavContext.isOpen() && userContext.initials()">
+                 [class.ml-64]="sidenavContext.isOpen() && userContext.initials() && design.minBk('lg')()">
           <main class="flex-1 p-4 block">
             <router-outlet />
           </main>
@@ -114,7 +117,8 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     protected readonly toastService: ToastService,
     protected readonly userContext: UserContextService,
     private readonly pathService: PathService,
-    protected readonly sidenavContext: SidenavContextService
+    protected readonly sidenavContext: SidenavContextService,
+    protected readonly design: DesignService
   ) {
     effect(() => {
       const initials = this.userContext.initials();

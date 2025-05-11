@@ -199,7 +199,8 @@
 
   <!-- Menu items -->
   @if (userContext.initials() != '') {
-  <app-nav (onCloseOffCanvasMenu)="themeMenuOpen.set($event)"></app-nav>
+  <app-nav (onCloseOffCanvasMenu)="themeMenuOpen.set($event)" />
+  <app-sidenav />
   }
 
 

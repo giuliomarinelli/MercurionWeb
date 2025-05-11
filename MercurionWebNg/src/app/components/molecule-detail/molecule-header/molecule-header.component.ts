@@ -5,7 +5,7 @@ import { Component, Input, signal } from '@angular/core';
   standalone: true,
   template: `
     <header>
-      <h1>{{ name() }}</h1>
+      <h1 class="text-light-accent-primary dark:text-dark-accent-primary">{{ name() }}</h1>
       <p>ChEMBL ID: {{ chemblId() }}</p>
     </header>
   `,

@@ -9,6 +9,7 @@ import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { PublicPipe } from '../../../pipes/public.pipe';
 import { UserContextService } from '../../../services/stores/user-context.service';
 import { filter, Subscription } from 'rxjs';
+import { SidenavComponent } from '../sidenav/sidenav.component';
 
 @Component({
   selector: 'app-header',
@@ -17,7 +18,8 @@ import { filter, Subscription } from 'rxjs';
     NgClass,
     NavComponent,
     RouterLink,
-    PublicPipe
+    PublicPipe,
+    SidenavComponent
   ],
   templateUrl: './header.component.html',
   styleUrl: './header.component.css'
