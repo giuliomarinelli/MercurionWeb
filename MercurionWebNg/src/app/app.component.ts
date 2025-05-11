@@ -28,35 +28,62 @@ import { SidenavContextService } from './services/stores/sidenav-context.service
     NgxxSpinnerComponent,
     ToastComponent
   ],
+
   template: `
 
-  <app-header class="block sticky top-0 z-30" />
+    <!-- 0️⃣  root: colonna piena viewport -->
+    <div class="flex flex-col h-screen">
 
-  <!-- Sidebar FIXED (solo per utenti loggati) -->
-  @if (userContext.initials() && sidenavContext.isMounted()) {
-    <app-sidebar class="fixed block left-0 bottom-0 top-[69.13px] h-full w-64 bg-slate-100 dark:bg-gray-800/40 shadow-sm text-white transition-transform duration-300 ease-in-out" />
-  }
+      <!-- 1️⃣  Header (sticky) -->
+      <app-header class="sticky top-0 z-30"></app-header>
 
-  <!-- Wrapper contenuto + footer -->
-  <div class="min-h-screen flex flex-col transition-all" [class.ml-64]="userContext.initials() && sidenavContext.isMounted()">
+      <!-- 2️⃣  Drawer‑container  (relativo, overflow‑hidden) -->
+      <div class="drawer-container relative flex flex-1 overflow-hidden">
 
-    <main class="flex-1">
-      <router-outlet />
-    </main>
+        <!-- 2a) Drawer (RELATIVE, non fixed) -->
+        @if (sidenavContext.isMounted()) {
+          <aside
+                  class="drawer absolute inset-y-0 left-0 w-64
+                         transition-transform duration-200 ease-[cubic-bezier(0.4,0,0.2,1)]
+                         -translate-x-full"
+                  [class.translate-x-0]="sidenavContext.isVisible()">
+            <app-sidebar class="w-full h-full bg-gray-900 text-white" />
+          </aside>
+        }
 
-    <app-footer class="block transition-all" />
-  </div>
+        <!-- 2b) Contenuto scorrevole -->
+        <section class="content flex flex-col flex-1 overflow-y-auto
+                        transition-[margin] duration-200"
+                 [class.ml-64]="sidenavContext.isOpen()">
+          <main>
+            <router-outlet class="flex-1 p-4 block" />
+          </main>
+          <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+          <app-footer class="shrink-0" />
+        </section>
 
-  @if (searchContextService.isMounted()) {
-    <app-search-overlay />
-  }
+      </div>
+    </div>
 
-  <app-toast [context]="toastService.context()" />
-  <app-ngxx-spinner />
+
+
+
+    <!-- Overlay e utilità -->
+    @if (searchContextService.isMounted()) {
+      <app-search-overlay />
+    }
+
+    <app-toast [context]="toastService.context()" />
+    <app-ngxx-spinner />
 
 `
+
+
+
 })
 export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
+
+
 
   title = 'MercurionWebNg'
 

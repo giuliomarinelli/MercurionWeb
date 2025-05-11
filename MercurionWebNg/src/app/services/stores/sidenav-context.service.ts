@@ -1,40 +1,35 @@
-import { Injectable, signal, effect } from '@angular/core';
+import { effect, Injectable, signal } from "@angular/core";
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class SidenavContextService {
+  /** stato logico */
+  private readonly _open = signal(true);
 
-  // Stato logico
-  private _isOpen = signal(true)
-
-  // Stati visivi
-  isMounted = signal(true)
-  isVisible = signal(true)
+  /** derivati per la view */
+  readonly isMounted = signal(true);
+  readonly isVisible = signal(true);
 
   constructor() {
     effect(() => {
-      if (this._isOpen()) {
-        this.isMounted.set(true)
-        setTimeout(() => this.isVisible.set(true), 10)
+      if (this._open()) {
+        this.isMounted.set(true);
+        queueMicrotask(() => this.isVisible.set(true));   //  ~1 frame
       } else {
-        this.isVisible.set(false)
-        setTimeout(() => this.isMounted.set(false), 300)
+        this.isVisible.set(false);
+        setTimeout(() => this.isMounted.set(false), 200); // = durata anim
       }
-    })
+    });
   }
 
+  /** API pubblico */
+  readonly isOpen = this._open.asReadonly()
   open() {
-    this._isOpen.set(true)
-  }
+    this._open.set(true)
 
+  }
   close() {
-    this._isOpen.set(false)
-  }
+    this._open.set(false)
 
-  toggle() {
-    this._isOpen.update(v => !v)
   }
-
-  isOpen = this._isOpen.asReadonly()
+  toggle() { this._open.update((v: boolean) => !v) }
 }

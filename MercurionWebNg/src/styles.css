@@ -1,3 +1,9 @@
+html,
+body {
+  overflow: initial !important;
+}
+
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -9,6 +15,26 @@ body {
 }
 
 @layer components {
+
+
+  .drawer {
+    @apply bg-slate-200/50 dark:dark:bg-gray-800/50 transition-colors text-white;
+  }
+
+  /* stile tuo */
+  .drawer {
+    @apply transition-transform duration-200 ease-in-out;
+  }
+
+  .content {
+    @apply flex flex-col flex-1 overflow-y-auto;
+  }
+
+  .drawer-container {
+    @apply relative flex flex-1 overflow-hidden;
+  }
+
+
 
   /* Classe base del bottone */
   .btn {
@@ -137,4 +163,3 @@ body {
 
 
 }
-
