@@ -1,5 +1,6 @@
 import {
-  Injectable
+  Injectable,
+  NgZone
 } from '@angular/core';
 import {
   HttpEvent,
@@ -10,22 +11,27 @@ import {
 } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { UserContextService } from '../services/stores/user-context.service';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
 
-  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+  constructor(
+    private readonly userContext: UserContextService,
+    private zone: NgZone
+  ) { }
 
-    return next.handle(req).pipe(
-      catchError((error: HttpErrorResponse) => {
+ intercept(req: HttpRequest<any>, next: HttpHandler) {
+  return next.handle(req).pipe(
+    catchError(err => {
+      if (err.status === 401) {
+        this.zone.run(() => this.userContext.clearInitials());
+      }
+      return throwError(() => err);
+    })
+  );
+}
 
-        if (error.status === 401) {
-          sessionStorage?.removeItem('login')
-        }
 
-        // Propaga comunque l'errore, senza bloccare le sottoscrizioni
-        return throwError(() => error)
-      })
-    );
-  }
+
 }

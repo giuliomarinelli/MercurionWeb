@@ -6,7 +6,7 @@ import { provideSocketIo } from 'ngx-socket-io';
 import { provideApollo } from 'apollo-angular';
 import { InMemoryCache } from '@apollo/client/core';
 import { HttpLink } from 'apollo-angular/http';
-import { HTTP_INTERCEPTORS, provideHttpClient } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { APP_BASE_HREF } from '@angular/common';
 import { provideAnimations } from '@angular/platform-browser/animations'
 import { NgxSpinnerModule } from 'ngx-spinner';
@@ -19,7 +19,7 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
     provideSocketIo(config),
-    provideHttpClient(),
+    provideHttpClient(withInterceptorsFromDi()),
     provideApollo(() => {
       const httpLink = inject(HttpLink);
       return {

@@ -4,6 +4,7 @@ import { Injectable, NgZone, signal } from '@angular/core';
   providedIn: 'root'
 })
 export class UserContextService {
+
   private _initials = signal<string>('');
   public readonly initials = this._initials.asReadonly();
 
@@ -41,7 +42,9 @@ export class UserContextService {
 
   // 4. Metodo per rimuovere login
   public clearInitials(): void {
-    this._initials.set('');
-    sessionStorage.removeItem('login');
+    this.zone.run(() => {              // 👈 rientra nello zone
+      sessionStorage.removeItem('login')
+      this._initials.set('')
+    })
   }
 }

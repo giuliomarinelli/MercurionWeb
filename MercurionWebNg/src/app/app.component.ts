@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, computed, CUSTOM_ELEMENTS_SCHEMA, effect, ElementRef, OnDestroy, OnInit, signal, Signal, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, computed, CUSTOM_ELEMENTS_SCHEMA, effect, ElementRef, NgZone, OnDestroy, OnInit, signal, Signal, ViewChild } from '@angular/core';
 import { GuardsCheckEnd, GuardsCheckStart, NavigationCancel, NavigationEnd, NavigationError, NavigationStart, ResolveEnd, ResolveStart, Router, RouterOutlet, RoutesRecognized } from '@angular/router';
 import { HeaderComponent } from './components/common/header/header.component';
 import { MoleculeViewerComponent } from './components/chem/molecule-viewer/molecule-viewer.component';
@@ -136,6 +136,17 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         this.router.navigateByUrl('/login')
       }
     })
+    effect(() => {
+      const initials = this.userContext.initials();
+      console.log('[effect] initials =', initials, 'zone?', NgZone.isInAngularZone());
+      console.log('[effect] router url =', this.router.url);
+
+      if (!initials && !this.router.url.startsWith('/login')) {
+        console.log('[effect] → navigate /login');
+        this.router.navigate(['/login']);
+      }
+    });
+
 
   }
 

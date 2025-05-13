@@ -1,4 +1,4 @@
-import { FingerprintData, ISessionDeviceInfo } from './../Models/types/auth/DTO/fingerprint.dtos';
+import { ISessionDeviceInfo } from './../Models/types/auth/DTO/fingerprint.dtos';
 import { Confirm_Login_FirstStepDTO, ConfirmWithAccessTokenAndInitialsDTO } from './../Models/types/interfaces/confirm.responses';
 import { Injectable } from '@angular/core';
 import { EmailDTO, Login_FirstStepWrapper } from '../Models/types/auth/DTO/login.dtos';
@@ -87,6 +87,7 @@ export class AuthService {
   }
 
   public logout(): Observable<void> {
+    sessionStorage?.getItem('login') && sessionStorage?.removeItem('login')
     return this.http.delete<void>('/api/authentication/logout', {
       withCredentials: true
     })
