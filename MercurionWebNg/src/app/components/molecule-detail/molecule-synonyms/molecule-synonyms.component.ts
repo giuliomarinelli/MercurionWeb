@@ -5,7 +5,7 @@ import { Component, Input, signal } from '@angular/core';
   standalone: true,
   template: `
     <section class="mt-4 mb-8">
-      <h2 class="text-lg font-semibold pb-6 text-emerald-600 dark:text-dark-accent-secondary text-center xs:text-left">Sinonimi</h2>
+      <h2 class="text-lg font-semibold pb-6 text-light-accent-primary dark:text-dark-accent-primary text-center xs:text-left">Sinonimi</h2>
       @if (synonyms().length > 0) {
         <ul class="flex flex-wrap gap-2 justify-center xs:justify-start">
           @for (syn of synonyms(); track syn) {

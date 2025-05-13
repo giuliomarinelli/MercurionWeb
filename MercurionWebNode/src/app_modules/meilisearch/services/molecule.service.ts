@@ -39,7 +39,7 @@ export class MoleculeService {
             naturalProduct: !!raw.naturalProduct,
             prodrug: !!raw.prodrug,
             blackBoxWarning: !!raw.blackBoxWarning,
-            synonyms: raw.synonyms
+            synonyms: raw.synonyms ?? []
         }
     }
 

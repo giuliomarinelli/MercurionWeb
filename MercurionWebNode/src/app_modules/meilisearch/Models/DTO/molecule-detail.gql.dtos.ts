@@ -21,11 +21,11 @@ export class AdministrationRoutes {
 export class MoleculeDetail {
     @Field(() => Int) id: number
     @Field() cmbId: string
-    @Field() preferredName: string
-    @Field() canonicalSmiles: string
+    @Field({ nullable: true }) preferredName: string
+    @Field({ nullable: true }) canonicalSmiles: string
     @Field(() => MoleculeProperties) properties: MoleculeProperties
     @Field(() => Float, { nullable: true }) maxPhase: number | null
-    @Field() moleculeType: string
+    @Field({ nullable: true }) moleculeType: string
     @Field(() => AdministrationRoutes) administrationRoutes: AdministrationRoutes
     @Field() naturalProduct: boolean
     @Field() prodrug: boolean

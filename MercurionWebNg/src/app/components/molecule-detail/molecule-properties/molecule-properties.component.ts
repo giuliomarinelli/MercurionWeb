@@ -7,7 +7,7 @@ import { MoleculeProperties } from '../../../Models/graphql/molecule.detail';
   standalone: true,
   template: `
     <section class="mt-4 text-center xs:text-left">
-      <h2 class="text-lg font-semibold mb-6 text-emerald-600 dark:text-dark-accent-secondary">
+      <h2 class="text-lg font-semibold mb-6 text-light-accent-primary dark:text-dark-accent-primary">
         Proprietà chimico-fisiche
       </h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-2 text-sm">

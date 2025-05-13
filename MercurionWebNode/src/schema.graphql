@@ -30,11 +30,11 @@ type AdministrationRoutes {
 type MoleculeDetail {
   id: Int!
   cmbId: String!
-  preferredName: String!
-  canonicalSmiles: String!
+  preferredName: String
+  canonicalSmiles: String
   properties: MoleculeProperties!
   maxPhase: Float
-  moleculeType: String!
+  moleculeType: String
   administrationRoutes: AdministrationRoutes!
   naturalProduct: Boolean!
   prodrug: Boolean!

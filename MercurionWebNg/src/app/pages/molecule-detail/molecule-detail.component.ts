@@ -36,7 +36,7 @@ import { ThemeManagerService } from '../../services/stores/theme-manager.service
       [chemblIdInput]="molecule.cmbId"
     />
 
-      <h4 class="font-semibold text-emerald-600 dark:text-dark-accent-secondary text-center xs:text-left text-lg">
+      <h4 class="font-semibold text-light-accent-primary dark:text-dark-accent-primary text-center xs:text-left text-lg">
         Struttura
       </h4>
 
