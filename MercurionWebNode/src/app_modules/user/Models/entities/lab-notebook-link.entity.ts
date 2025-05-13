@@ -9,12 +9,12 @@ export class LabNotebookLink {
 
     @PrimaryColumn({ type: 'uuid' }) id: UUID
 
-    @ManyToOne(() => LabNotebookEntry, note => note.links)
-    @JoinColumn({ name: 'note_id' }) 
+    @ManyToOne(() => LabNotebookEntry, note => note.links, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'note_id' })
     note: LabNotebookEntry;
 
-    @ManyToOne(() => MoleculeCollectionItemEntity)
-    @JoinColumn({ name: 'item_id' }) 
+    @ManyToOne(() => MoleculeCollectionItemEntity, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'item_id' })
     item: MoleculeCollectionItemEntity
 
     @BeforeInsert() generateId() {

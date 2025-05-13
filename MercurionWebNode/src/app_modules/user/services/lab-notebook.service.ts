@@ -1,34 +1,48 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LabNotebookEntry } from '../Models/entities/lab-notbook-entry.entity';
 import { Repository } from 'typeorm';
-import { CreateNoteDto } from '../Models/DTO/create-note.cls.dto';
 import { UUID } from 'crypto';
+import { LabNotebookEntry } from '../Models/entities/lab-notbook-entry.entity';
+import { CreateNoteDto } from '../Models/DTO/create-note.cls.dto';
 import { UpdateNoteDto } from '../Models/DTO/update-note.cls.dto';
 
 @Injectable()
 export class LabNotebookService {
-
     constructor(
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         @InjectRepository(LabNotebookEntry)
         private readonly notebookRepo: Repository<LabNotebookEntry>
     ) { }
 
-    async createNote(dto: CreateNoteDto) {
-        const note = this.notebookRepo.create(dto)
+    async createNote(dto: CreateNoteDto): Promise<LabNotebookEntry> {
+        const note = this.notebookRepo.create({ ...dto })
         return this.notebookRepo.save(note)
     }
 
-    async getUserNotes(userId: UUID) {
-        return this.notebookRepo.find({ where: { userId }, relations: { links: true } })
+    async getUserNotes(userId: UUID): Promise<LabNotebookEntry[]> {
+        return this.notebookRepo.find({
+            where: { userId },
+            relations: ['links'],
+            order: { createdAt: 'DESC' }
+        });
     }
 
-    async updateNote(noteId: UUID, dto: UpdateNoteDto) {
-        await this.notebookRepo.update(noteId, { ...dto })
-        return this.notebookRepo.findOneByOrFail({ id: noteId })
+    async getNoteById(noteId: UUID): Promise<LabNotebookEntry> {
+        return this.notebookRepo.findOneOrFail({
+            where: { id: noteId },
+            relations: ['links']
+        });
     }
 
+    async updateNote(noteId: UUID, dto: UpdateNoteDto): Promise<LabNotebookEntry> {
+        await this.notebookRepo.update(noteId, {
+            ...dto,
+            updatedAt: Date.now()
+        })
+        return this.getNoteById(noteId)
+    }
 
-
-
+    async deleteNote(noteId: UUID): Promise<void> {
+        await this.notebookRepo.delete(noteId)
+    }
 }
