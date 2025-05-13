@@ -32,7 +32,7 @@ module.exports = {
           'accent-secondary': '#28B883',
           'accent-secondary-surface': '219C6F',
           'warning': '#FBBF24',
-          'error': 'FF8F91',
+          'error': '#FF7A7D',
           'border': '#4B5563',
           "custbg-offcanvas": '#1b2333'
         }

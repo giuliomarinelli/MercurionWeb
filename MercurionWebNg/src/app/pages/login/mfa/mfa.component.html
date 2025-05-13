@@ -29,28 +29,28 @@
       @switch (view()) {
         @case ('EMAIL_OTP') {
           <span>inviato una mail a&nbsp;</span>
-          <span class="text-emerald-600 font-semibold">{{loginFirstStepData?.obscuredEmail ?? '*'}}</span>
+          <span class="text-light-accent-primary dark:text-dark-accent-primary font-semibold">{{loginFirstStepData?.obscuredEmail ?? '*'}}</span>
         }
         @case ('SMS_OTP') {
           <span>inviato un SMS a&nbsp;</span>
-          <span class="text-emerald-600 font-semibold">{{loginFirstStepData?.obscuredPhoneNumber ?? '*'}}</span>
+          <span class="text-light-accent-primary dark:text-dark-accent-primary font-semibold">{{loginFirstStepData?.obscuredPhoneNumber ?? '*'}}</span>
         }
       }
 
       <span>&nbsp;con un codice di accesso</span></p>
     <div class="relative">
       <input #otp type="text" [formControl]="otpControl" id="otp"
-        class="block py-4 px-4 w-full text-sm text-dark dark:text-light bg-transparent border-slate-300 border dark:border-slate-200 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-light-accent-primary dark:focus:ring-emerald-600 focus:border-light-accent-primary dark:focus:border-emerald-600 peer"
+        class="block py-4 px-4 w-full text-sm text-dark dark:text-light bg-transparent border-slate-300 border dark:border-slate-200 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-light-accent-primary dark:focus:ring-dark-accent-primary focus:border-light-accent-primary dark:focus:border-dark-accent-primary peer"
         placeholder=" " required (focus)="isOtpFocused.set(true)" (input)="serverError.set(false); onOtpInput()"
         (blur)="onOtpBlur()" />
       <label for="email" [ngClass]="{
-          'text-emerald-600 dark:text-dark-accent-primary scale-110 -translate-y-6 text-sm': isOtpFocused() || !isOtpEmpty(),
+          'text-light-accent-secondary dark:text-dark-accent-secondary/90 scale-110 -translate-y-6 text-sm': isOtpFocused() || !isOtpEmpty(),
           'text-slate-400 text-lg scale-100 translate-y-0 cursor-text': !isOtpFocused() && isOtpEmpty()
         }"
-        class="z-30 peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-main dark:bg-neutral-900 px-1 top-3 left-4 origin-[0]"
+        class="z-30 peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-main dark:bg-neutral-950 px-1 top-3 left-4 origin-[0]"
         (click)="!isOtpFocused() && isOtpFocused.set(true); forceFocusOnOtp()">
         Codice monouso</label>
-      <div class="text-sm text-red-600 mt-1 min-h-5">
+      <div class="text-sm text-light-error dark:text-dark-error mt-1 min-h-5">
         @if (otpControl.invalid && otpControl.touched && !serverError()) {
           @if (isOtpEmpty()) {
             Il campo codice è vuoto.
@@ -61,7 +61,11 @@
       </div>
     </div>
     <button type="button" (click)="goTo('VERIFY_OTP_ACTION')" [disabled]="otpControl.invalid || loading()"
-      class="disabled:dark:bg-emerald-600/60 disabled:bg-emerald-600/70 disabled:cursor-not-allowed w-full mt-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700/90 transition-colors duration-150">
+      class="w-full mt-4 py-2 text-white rounded-md transition-colors duration-150
+    bg-light-accent-primary dark:bg-dark-accent-primary
+    hover:bg-dark-accent-primary/80 dark:hover:bg-dark-accent-primary/80
+    disabled:bg-dark-accent-primary/80 disabled:dark:bg-dark-accent-primary/80
+    disabled:cursor-not-allowed disabled:hover:bg-dark-accent-primary/80 disabled:hover:dark:bg-dark-accent-primary/80">
       Continua
     </button>
       }
