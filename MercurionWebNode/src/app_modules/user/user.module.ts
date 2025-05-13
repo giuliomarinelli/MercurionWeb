@@ -11,6 +11,8 @@ import { MoleculeCollectionItemEntity } from './Models/entities/molecule-collect
 import { LabNotebookEntry } from './Models/entities/lab-notbook-entry.entity';
 import { LabNotebookLink } from './Models/entities/lab-notebook-link.entity';
 import { LabNotebookService } from './services/lab-notebook.service';
+import { LabNotebookController } from './controllers/lab-notebook.controller';
+
 
 @Module({
   imports: [TypeOrmModule.forFeature([
@@ -24,7 +26,11 @@ import { LabNotebookService } from './services/lab-notebook.service';
     LabNotebookEntry,
     LabNotebookLink
   ])],
-  providers: [UserService, LabNotebookService],
-  exports: [UserService, TypeOrmModule]
+  providers: [
+    UserService, 
+    LabNotebookService
+  ],
+  exports: [UserService, TypeOrmModule],
+  controllers: [LabNotebookController]
 })
 export class UserModule { }
