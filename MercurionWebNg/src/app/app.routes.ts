@@ -33,5 +33,9 @@ export const routes: Routes = [
   {
     path: 'molecules/detail/:molregno',
     loadComponent: () => import('./pages/molecule-detail/molecule-detail.component').then(m => m.MoleculeDetailComponent)
+  },
+  {
+    path: 'notebook/list',
+    loadComponent: () => import('./pages/notebook/notebook-list/notebook-list.component').then(m => m.NotebookListComponent)
   }
 ]
