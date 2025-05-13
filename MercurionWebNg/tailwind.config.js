@@ -15,12 +15,12 @@ module.exports = {
         light: {
           'surface-main': '#F9FAFB',
           'surface-secondary': '#F3F4F6',
-          'on-surface-main': '#111827',
+          'on-surface-main': '#11141D',
           'on-surface-secondary': '#4B5563',
           'accent-primary': '#2563EB',
           'accent-secondary': '#08755C',
           'warning': '#F59E0B',
-          'error': '#F43F5E',
+          'error': '#A80006',
           'border': '#E5E7EB',
         },
         dark: {
@@ -29,9 +29,10 @@ module.exports = {
           'on-surface-main': '#F3F4F6',
           'on-surface-secondary': '#D1D5DB',
           'accent-primary': '#60A5FA',
-          'accent-secondary': '#34D399',
+          'accent-secondary': '#28B883',
+          'accent-secondary-surface': '219C6F',
           'warning': '#FBBF24',
-          'error': '#FB7185',
+          'error': 'FF8F91',
           'border': '#4B5563',
           "custbg-offcanvas": '#1b2333'
         }
