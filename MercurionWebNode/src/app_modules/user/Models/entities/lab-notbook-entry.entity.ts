@@ -16,8 +16,8 @@ export class LabNotebookEntry {
     title: string
 
     @Column({ type: 'text' })
-    content: string
-    // contenuto tiptap JSON stringificato
+    content: string  // contenuto tiptap JSON stringificato
+    
     @Column({ nullable: true, type: 'bigint' })
     createdAt: number
 
@@ -37,4 +37,5 @@ export class LabNotebookEntry {
     updateDate() {
         this.updatedAt = Date.now()
     }
+
 }

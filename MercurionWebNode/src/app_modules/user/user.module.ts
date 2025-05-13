@@ -8,6 +8,9 @@ import { CustomMoleculeItemEntity } from './Models/entities/custom-molecule-item
 import { MoleculeCollection } from './Models/entities/molecule-collection.entity';
 import { MoleculeCollectionItemJoin } from './Models/entities/molecule-collection-item-join.entity';
 import { MoleculeCollectionItemEntity } from './Models/entities/molecule-collection-item.entity';
+import { LabNotebookEntry } from './Models/entities/lab-notbook-entry.entity';
+import { LabNotebookLink } from './Models/entities/lab-notebook-link.entity';
+import { LabNotebookService } from './services/lab-notebook.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([
@@ -17,9 +20,11 @@ import { MoleculeCollectionItemEntity } from './Models/entities/molecule-collect
     CustomMoleculeItemEntity,
     MoleculeCollection,
     MoleculeCollectionItemJoin,
-    MoleculeCollectionItemEntity
+    MoleculeCollectionItemEntity,
+    LabNotebookEntry,
+    LabNotebookLink
   ])],
-  providers: [UserService],
+  providers: [UserService, LabNotebookService],
   exports: [UserService, TypeOrmModule]
 })
 export class UserModule { }
