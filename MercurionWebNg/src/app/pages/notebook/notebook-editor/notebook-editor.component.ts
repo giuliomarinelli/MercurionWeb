@@ -1,9 +1,12 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { BASE_PATH } from './../../../pipes/base-path.token';
+import { Component, Inject, OnInit, inject } from '@angular/core';
+import { APP_BASE_HREF, CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { NotebookService } from '../../../services/notebook.service';
 import { LabNotebookEntry } from '../../../Models/notebook/lab-notebook-entry-model.interface';
+import { PublicPipe } from '../../../pipes/public.pipe';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 
 @Component({
@@ -18,7 +21,7 @@ import { LabNotebookEntry } from '../../../Models/notebook/lab-notebook-entry-mo
 
       <!-- iframe tiptap app -->
       <iframe
-        src="/tiptap-editor.html"
+        [src]="editorSrc"
         class="w-full h-[500px] border mb-4 rounded"
         #editorIframe
       ></iframe>
@@ -29,20 +32,30 @@ import { LabNotebookEntry } from '../../../Models/notebook/lab-notebook-entry-mo
 })
 export class NotebookEditorComponent implements OnInit {
 
+  protected editorSrc: SafeResourceUrl = ''
+
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
-    private readonly notebookService: NotebookService
+    private readonly notebookService: NotebookService,
+    private readonly sanitizer: DomSanitizer,
+    @Inject(APP_BASE_HREF)
+    private readonly base: string
   ) { }
 
   note: Partial<LabNotebookEntry> = { title: '', content: '', userId: '' };
-  isNew = true;
+  isNew = true
 
   ngOnInit() {
+    const cleanBase = this.base.replace(/\/$/, '');
+    const cleanPath = 'tiptap-editor.html'.replace(/^\//, '');
+    const fullPath = `${cleanBase}/${cleanPath}`;
     const id = this.route.snapshot.paramMap.get('id');
     this.note.userId = localStorage.getItem('userId') ?? '';
+    this.editorSrc = this.sanitizer.bypassSecurityTrustResourceUrl(fullPath)
+    console.log(this.editorSrc)
     if (id) {
-      this.isNew = false;
+      this.isNew = false
       this.notebookService.getNote(id).subscribe((note: LabNotebookEntry) => this.note = note)
     }
   }
