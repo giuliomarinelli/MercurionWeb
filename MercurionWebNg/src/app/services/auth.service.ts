@@ -15,6 +15,14 @@ export class AuthService {
 
   constructor(private readonly http: HttpClient) { }
 
+  public getAccessToken(): string | null {
+    const accessTokenEnc: string | null = localStorage?.getItem('accessToken') || null
+    if (accessTokenEnc == null) {
+      return null
+    }
+    return atob(accessTokenEnc) || null
+  }
+
   public login_stepZero(emailDTO: EmailDTO): Observable<ConfirmDTO> {
     return this.http.post<ConfirmDTO>('/api/authentication/login/0', emailDTO,
       {
