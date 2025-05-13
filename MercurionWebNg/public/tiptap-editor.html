@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Mercurion – Tiptap Editor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: sans-serif;
+    }
+
+    #editor {
+      padding: 1rem;
+      border: none;
+      outline: none;
+      min-height: 400px;
+    }
+
+    .menu {
+      display: flex;
+      gap: 0.5rem;
+      padding: 0.5rem;
+      border-bottom: 1px solid #ddd;
+      background: #f8f8f8;
+    }
+
+    button {
+      font-size: 14px;
+      padding: 0.3rem 0.6rem;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    button.active {
+      background-color: #444;
+      color: white;
+    }
+  </style>
+  <script type="module">
+    import { Editor } from 'https://esm.sh/@tiptap/core'
+    import StarterKit from 'https://esm.sh/@tiptap/starter-kit'
+    import Link from 'https://esm.sh/@tiptap/extension-link'
+    import Placeholder from 'https://esm.sh/@tiptap/extension-placeholder'
+
+    let editor
+
+    function updateMenu() {
+      document.querySelectorAll('button[data-command]').forEach(btn => {
+        const cmd = btn.dataset.command;
+        btn.classList.toggle('active', editor?.isActive(cmd))
+      });
+    }
+
+    window.getEditorContent = () => editor?.getJSON?.()
+    window.setEditorContent = (json) => editor?.commands.setContent(json ?? { type: 'doc', content: [] });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      editor = new Editor({
+        element: document.querySelector('#editor'),
+        extensions: [
+          StarterKit,
+          Link,
+          Placeholder.configure({ placeholder: 'Scrivi qui la tua nota di laboratorio...' }),
+        ],
+        content: {
+          type: 'doc',
+          content: [],
+        },
+        onUpdate: updateMenu,
+        onCreate: updateMenu,
+      });
+
+      // menu buttons
+      document.querySelectorAll('button[data-command]').forEach(btn => {
+        const cmd = btn.dataset.command;
+        btn.addEventListener('click', () => {
+          if (cmd === 'bold') editor.chain().focus().toggleBold().run();
+          if (cmd === 'italic') editor.chain().focus().toggleItalic().run();
+          if (cmd === 'heading') editor.chain().focus().toggleHeading({ level: 2 }).run()
+          if (cmd === 'bullet') editor.chain().focus().toggleBulletList().run()
+          if (cmd === 'code') editor.chain().focus().toggleCodeBlock().run()
+          if (cmd === 'link') {
+            const url = prompt('Inserisci URL');
+            if (url) editor.chain().focus().setLink({ href: url }).run()
+          }
+          updateMenu()
+        })
+      })
+    })
+  </script>
+</head>
+
+<body>
+  <div class="menu">
+    <button data-command="bold">Bold</button>
+    <button data-command="italic">Italic</button>
+    <button data-command="heading">H2</button>
+    <button data-command="bullet">• List</button>
+    <button data-command="code">{ }</button>
+    <button data-command="link">🔗 Link</button>
+  </div>
+  <div id="editor" contenteditable="true"></div>
+</body>
+
+</html>
