@@ -41,7 +41,7 @@ export class ToastComponent implements OnChanges {
           this.className = 'bg-red-600'
           break
         case 'success':
-          this.className = 'bg-emerald-600'
+          this.className = 'bg-light-accent-primary dark:bg-light-accent-primary'
           break
         case 'warn':
           this.className = 'bg-amber-200'

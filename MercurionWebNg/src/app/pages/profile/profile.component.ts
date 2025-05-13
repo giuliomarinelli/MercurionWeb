@@ -31,17 +31,17 @@ export class ProfileComponent implements AfterViewInit, OnDestroy {
     this.loggingOut.set(true)
     this.logoutSub = this.authService.logout().subscribe({
       next: () => {
-        this.loggingOut.set(false)
         sessionStorage?.setItem('logout', 'success')
         sessionStorage?.removeItem('login')
         this.userContext.logout()
+        this.loggingOut.set(false)
         this.router.navigate(['/login'])
       },
       error: (err) => {
-        this.loggingOut.set(false)
         sessionStorage?.setItem('logout', 'success')
         this.userContext.logout()
         !!sessionStorage?.getItem('login') && sessionStorage?.removeItem('login')
+        this.loggingOut.set(false)
         this.router.navigate(['/login'])
       }
     })
