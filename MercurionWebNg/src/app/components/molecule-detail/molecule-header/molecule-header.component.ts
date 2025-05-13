@@ -4,32 +4,32 @@ import { Component, Input, signal } from '@angular/core';
   selector: 'molecule-header',
   standalone: true,
   template: `
-    <header>
-      <h1 class="text-light-accent-primary text-center xs:text-left dark:text-dark-accent-primary text-2xl md:text-3xl font-semibold mb-12 tracking-wider">
+    <header class="space-y-2">
+      <h1 class="text-2xl md:text-3xl font-semibold tracking-wider text-center xs:text-left text-light-accent-primary dark:text-dark-accent-primary">
         {{ name() }}
       </h1>
-      <p class="text-xs text-center xs:text-left tracking-wider text-light-accent-primary dark:text-dark-accent-primary font-semibold mb-3">
+      <p class="text-xs font-semibold tracking-wider text-center xs:text-left text-light-accent-primary dark:text-dark-accent-primary">
         ChEMBL ID:
         <span class="font-light text-light-on-surface-main dark:text-slate-100">
-        {{ chemblId() }}
-      </span>
-    </p>
+          {{ chemblId() }}
+        </span>
+      </p>
     </header>
-  `,
+  `
 })
 export class MoleculeHeaderComponent {
-  private readonly _nameSignal = signal<string>('')
-  private readonly _chemblIdSignal = signal<string>('')
+  private readonly _nameSignal = signal<string>('');
+  private readonly _chemblIdSignal = signal<string>('');
 
   @Input()
   set nameInput(value: string) {
     this._nameSignal.set(value);
   }
-  readonly name = this._nameSignal.asReadonly()
+  readonly name = this._nameSignal.asReadonly();
 
   @Input()
   set chemblIdInput(value: string) {
-    this._chemblIdSignal.set(value)
+    this._chemblIdSignal.set(value);
   }
-  readonly chemblId = this._chemblIdSignal.asReadonly()
+  readonly chemblId = this._chemblIdSignal.asReadonly();
 }

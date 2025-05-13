@@ -73,7 +73,7 @@
       </button>
       @if (designService.minBk('md')() && userContext.initials() !== '' && isAllowedRoute) {
       <div [innerHTML]="userContext.initials()"
-        class="rounded-full bg-light-accent-secondary text-slate-100 dark:bg-dark-accent-primary p-2 text-sm font-semibold">
+        class="rounded-full bg-emerald-500 text-slate-100 dark:bg-dark-accent-primary p-2 text-sm font-semibold">
 
       </div>
       }
@@ -156,7 +156,7 @@
       </svg>
       }
       <span>Rilevamento automatico</span>
-      @if(themeManager.chosenTheme() === 'OS') {
+      @if (themeManager.chosenTheme() === 'OS') {
       <svg xmlns="http://www.w3.org/2000/svg" class="h4 w-4 relative left-2"
         viewBox="0 0 512 512"><!--!Font Awesome Pro 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
         <path class="fill-current text-light-accent-secondary dark:text-dark-accent-secondary"
