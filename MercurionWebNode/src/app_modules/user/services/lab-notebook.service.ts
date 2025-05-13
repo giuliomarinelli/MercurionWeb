@@ -22,22 +22,25 @@ export class LabNotebookService {
     async getUserNotes(userId: UUID): Promise<LabNotebookEntry[]> {
         return this.notebookRepo.find({
             where: { userId },
-            relations: ['links'],
+            relations: {
+                links: true
+            },
             order: { createdAt: 'DESC' }
-        });
+        })
     }
 
     async getNoteById(noteId: UUID): Promise<LabNotebookEntry> {
         return this.notebookRepo.findOneOrFail({
             where: { id: noteId },
-            relations: ['links']
-        });
+            relations: {
+                links: true
+            }
+        })
     }
 
     async updateNote(noteId: UUID, dto: UpdateNoteDto): Promise<LabNotebookEntry> {
         await this.notebookRepo.update(noteId, {
-            ...dto,
-            updatedAt: Date.now()
+            ...dto
         })
         return this.getNoteById(noteId)
     }
@@ -45,4 +48,5 @@ export class LabNotebookService {
     async deleteNote(noteId: UUID): Promise<void> {
         await this.notebookRepo.delete(noteId)
     }
+
 }
