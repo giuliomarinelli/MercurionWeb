@@ -20,7 +20,7 @@ export class AuthService {
   ) { }
 
   public getAccessToken(): string | null {
-    const accessTokenEnc: string | null = localStorage?.getItem('accessToken') || null
+    const accessTokenEnc: string | null = sessionStorage?.getItem('accessToken') || null
     if (accessTokenEnc == null) {
       return null
     }
