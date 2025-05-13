@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { LabNotebookEntry } from '../../../Models/notebook/lab-notebook-entry-model.interface';
 import { NotebookService } from '../../../services/notebook.service';
 import { Subscription } from 'rxjs';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-notebook-list',
@@ -31,12 +32,16 @@ export class NotebookListComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly notebookService: NotebookService,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly authService: AuthService
   ) { }
 
   ngOnInit(): void {
-    const userId = localStorage.getItem('userId') ?? ''; // tramite AuthService
-    this.notebookService.getNotes(userId).subscribe(n => this.notes = n)
+    const userId = this.authService.getLoggedUserId()
+    this.notebookService.getNotes(userId ?? '').subscribe({
+      next: n => this.notes = n,
+      error: err => console.error(err.error)
+    })
   }
 
   ngOnDestroy(): void {

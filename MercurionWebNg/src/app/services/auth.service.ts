@@ -7,13 +7,17 @@ import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { ConfirmWithTotpMetaDTO } from '../Models/confirm.dtos';
 import { TotpBodyDTO } from '../Models/types/auth/DTO/totp-body.dto';
+import { JwtHelperService } from './jwt-helper.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
 
-  constructor(private readonly http: HttpClient) { }
+  constructor(
+    private readonly http: HttpClient,
+    private readonly jwtHelper: JwtHelperService
+  ) { }
 
   public getAccessToken(): string | null {
     const accessTokenEnc: string | null = localStorage?.getItem('accessToken') || null
@@ -21,6 +25,14 @@ export class AuthService {
       return null
     }
     return atob(accessTokenEnc) || null
+  }
+
+  public getLoggedUserId(): string | null {
+    const accessToken = this.getAccessToken()
+    if (accessToken == null) {
+      return null
+    }
+    return this.jwtHelper.getClaim(accessToken, 'sub')
   }
 
   public login_stepZero(emailDTO: EmailDTO): Observable<ConfirmDTO> {
