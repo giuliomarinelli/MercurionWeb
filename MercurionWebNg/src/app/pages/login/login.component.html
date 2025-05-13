@@ -13,69 +13,63 @@
     @if (step() === 1) {
     <div class="relative">
       <input #email type="email" formControlName="email" id="email"
-        class="block py-4 px-4 w-full text-sm text-dark dark:text-light bg-transparent border-slate-300 border dark:border-slate-200 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-light-accent-primary dark:focus:ring-emerald-600 focus:border-light-accent-primary dark:focus:border-emerald-600 peer"
-        placeholder=" " required
-        (input)="serverErrorStep.set(0); onEmailInput()"
-        (blur)="onBlur('email')"
-        (keyup.enter)="goToPasswordStep()"  />
+        class="block py-4 px-4 w-full text-sm text-dark dark:text-light bg-transparent border-slate-300 border dark:border-slate-200 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-light-accent-primary dark:focus:ring-light-accent-secondary  focus:border-light-accent-primary dark:focus:border-dark-accent-secondary peer"
+        placeholder=" " required (input)="serverErrorStep.set(0); onEmailInput()" (blur)="onBlur('email')"
+        (keyup.enter)="goToPasswordStep()" />
       <label for="email" [ngClass]="{
-          'text-emerald-600 dark:text-dark-accent-primary scale-110 -translate-y-6 text-sm': isFocus('email') || !emptyEmail(),
+          'text-light-accent-secondary dark:text-dark-accent-primary scale-110 -translate-y-6 text-sm': isFocus('email') || !emptyEmail(),
           'text-slate-400 text-lg scale-100 translate-y-0 cursor-text': !isFocus('email') && emptyEmail()
         }"
         class="z-30 peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-main dark:bg-neutral-900 px-1 top-3 left-4 origin-[0]">
         Indirizzo e-mail</label>
       <div class="text-sm text-red-600 mt-1 min-h-5">
         @if (loginForm.controls['email'].invalid && loginForm.controls['email'].touched && serverErrorStep() === 0) {
-          @if (emptyEmail()) {
-            E-mail obbligatoria.
-          } @else if (malformedEmail()) {
-            Formato e-mail non corretto
-          }
+        @if (emptyEmail()) {
+        E-mail obbligatoria.
+        } @else if (malformedEmail()) {
+        Formato e-mail non corretto
+        }
         } @else if (serverErrorStep() === 1) {
-          L'e-mail inserita non è corretta
+        L'e-mail inserita non è corretta
         }
       </div>
     </div>
     <button type="button" (click)="goToPasswordStep()" [disabled]="loginForm.controls['email'].invalid"
-      class="disabled:dark:bg-emerald-600/60 disabled:bg-emerald-600/70 disabled:cursor-not-allowed w-full mt-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700/90 transition-colors duration-150">Continua</button>
+      class="disabled:dark:bg-dark-accent-secondary/70 disabled:bg-dark-accent-secondary/70 disabled:cursor-not-allowed w-full mt-4 py-2 bg-light-accent-secondary dark:bg-dark-accent-secondary text-white rounded-md hover:bg-light-accent-secondary-800/80 dark:hover:bg-dark-accent-secondary/80 transition-colors duration-150">Continua</button>
     } @else if (step() === 2) {
 
     <!-- Step 2: Password -->
 
     <div class="relative">
-      <input #password
-        type="password"
-        formControlName="password"
-        id="password"
-        class="block py-4 px-4 w-full text-sm text-dark dark:text-light bg-transparent border-slate-300 border dark:border-slate-200 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-light-accent-primary dark:focus:ring-emerald-600 focus:border-light-accent-primary dark:focus:border-emerald-600 peer"
-        placeholder=" "
-        required
-        (input)="serverErrorStep.set(0); onPasswordInput()"
-        (blur)="onBlur('password')" />
+      <input #password type="password" formControlName="password" id="password"
+        class="block py-4 px-4 w-full text-sm text-dark dark:text-light bg-transparent border-slate-300 border dark:border-slate-200 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-light-accent-primary dark:focus:ring-dark-accent-secondary focus:border-light-accent-primary dark:focus:border-dark-accent-secondary peer"
+        placeholder=" " required (input)="serverErrorStep.set(0); onPasswordInput()" (blur)="onBlur('password')" />
       <label for="password" [ngClass]="{
-          'text-emerald-600 dark:text-dark-accent-primary scale-110 -translate-y-6 text-sm': isFocus('password') || !emptyPassword(),
+          'text-light-accent-secondary dark:text-dark-accent-primary scale-110 -translate-y-6 text-sm': isFocus('password') || !emptyPassword(),
           'text-slate-400 text-lg scale-100 translate-y-0 cursor-text': !isFocus('password') && emptyPassword()
         }"
         class="z-30 peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-main dark:bg-neutral-900 px-1 top-3 left-4 origin-[0]">
         Password
       </label>
       <div class="text-sm text-red-600 mt-1 min-h-5">
-        @if (loginForm.controls['password'].invalid && loginForm.controls['password'].touched && serverErrorStep() === 0) {
-          @if (emptyPassword()) {
-            Password obbligatoria.
-          }
+        @if (loginForm.controls['password'].invalid && loginForm.controls['password'].touched && serverErrorStep() ===
+        0) {
+        @if (emptyPassword()) {
+        Password obbligatoria.
+        }
         } @else if (serverErrorStep() === 2) {
-          La password inserita non è corretta.
+        La password inserita non è corretta.
         }
       </div>
     </div>
     <button type="submit" [disabled]="loginForm.controls['password'].invalid"
-      class="disabled:dark:bg-emerald-700/60 disabled:cursor-not-allowed w-full mt-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700/90 transition-colors duration-150">Accedi</button>
+      class="z-30 peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-main dark:bg-neutral-900 px-1 top-3 left-4 origin-[0]">Accedi</button>
     }
     <!-- Register & Social Login Placeholder -->
     <div class="text-sm text-center text-gray-600 dark:text-gray-300">
       Non hai un account?
-      <a href="/register" class="text-emerald-600 dark:text-emerald-500 hover:underline">Registrati</a>
+      <a href="/register"
+        class="text-light-accent-secondary dark:text-dark-accent-secondary hover:underline">Registrati</a>
     </div>
 
     <div class="relative py-2">

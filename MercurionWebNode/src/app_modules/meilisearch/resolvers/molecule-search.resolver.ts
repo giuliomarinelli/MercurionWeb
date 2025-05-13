@@ -15,6 +15,6 @@ export class MoleculeSearchResolver {
   async moleculeSearch(
     @Args('input') input: MoleculeSearchInput,
   ): Promise<MoleculeSearchResult[]> {
-    return this.moleculeSearchService.searchMolecules(input);
+    return this.moleculeSearchService.searchMolecules(input)
   }
 }

@@ -18,7 +18,7 @@ module.exports = {
           'on-surface-main': '#111827',
           'on-surface-secondary': '#4B5563',
           'accent-primary': '#2563EB',
-          'accent-secondary': '#10B981',
+          'accent-secondary': '#08755C',
           'warning': '#F59E0B',
           'error': '#F43F5E',
           'border': '#E5E7EB',
