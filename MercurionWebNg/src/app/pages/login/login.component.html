@@ -22,7 +22,7 @@
         }"
         class="z-30 peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-main dark:bg-neutral-950 px-1 top-3 left-4 origin-[0]">
         Indirizzo e-mail</label>
-      <div class="text-sm text-red-600 mt-1 min-h-5">
+      <div class="text-sm text-light-error dark:text-dark-error mt-1 min-h-5">
         @if (loginForm.controls['email'].invalid && loginForm.controls['email'].touched && serverErrorStep() === 0) {
         @if (emptyEmail()) {
         E-mail obbligatoria.
@@ -55,7 +55,7 @@
         class="z-30 peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-main dark:bg-neutral-950 px-1 top-3 left-4 origin-[0]">
         Password
       </label>
-      <div class="text-sm text-red-600 mt-1 min-h-5">
+      <div class="text-sm text-light-error dark:text-dark-error mt-1 min-h-5">
         @if (loginForm.controls['password'].invalid && loginForm.controls['password'].touched && serverErrorStep() ===
         0) {
         @if (emptyPassword()) {

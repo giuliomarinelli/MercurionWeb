@@ -1,5 +1,4 @@
-import { Component, Input, signal } from '@angular/core';
-import { MoleculeProperties } from '../../../Models/graphql/molecule.detail';
+import { Component, Input, computed, signal } from '@angular/core';
 
 @Component({
   selector: 'molecule-properties',
@@ -12,38 +11,19 @@ import { MoleculeProperties } from '../../../Models/graphql/molecule.detail';
 
       <div class="rounded-xl border border-border bg-background/50 p-4 shadow-sm">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 text-sm">
-          <div>
-            <span class="text-muted-foreground">Peso molecolare: </span>
-            <span class="font-medium">{{ props().mwFreebase ?? 'ND' }}</span>
-          </div>
-          <div>
-            <span class="text-muted-foreground">logP: </span>
-            <span class="font-medium">{{ props().alogp ?? 'ND' }}</span>
-          </div>
-          <div>
-            <span class="text-muted-foreground">H-bond donor: </span>
-            <span class="font-medium">{{ props().hbd ?? 'ND' }}</span>
-          </div>
-          <div>
-            <span class="text-muted-foreground">H-bond acceptor: </span>
-            <span class="font-medium">{{ props().hba ?? 'ND' }}</span>
-          </div>
-          <div>
-            <span class="text-muted-foreground">PSA: </span>
-            <span class="font-medium">{{ props().psa ?? 'ND' }}</span>
-          </div>
-          <div>
-            <span class="text-muted-foreground">Rotatable bonds:  </span>
-            <span class="font-medium">{{ props().rtb ?? 'ND' }}</span>
-          </div>
+          @for (item of propertiesList(); track item.label) {
+            <div>
+              <span class="text-muted-foreground">{{ item.label }}:</span>
+              <span class="font-medium">{{ item.value }}</span>
+            </div>
+          }
         </div>
       </div>
     </section>
   `,
 })
 export class MoleculePropertiesComponent {
-
-  private readonly propsSignal = signal<MoleculeProperties>({
+  private readonly propsSignal = signal({
     mwFreebase: null,
     alogp: null,
     hba: null,
@@ -53,9 +33,21 @@ export class MoleculePropertiesComponent {
   });
 
   @Input()
-  set properties(value: MoleculeProperties) {
+  set properties(value: any) {
     this.propsSignal.set(value);
   }
 
-  readonly props = this.propsSignal.asReadonly()
+  readonly props = this.propsSignal.asReadonly();
+
+  readonly propertiesList = computed(() => {
+    const props = this.props();
+    return [
+      { label: 'Peso molecolare', value: props.mwFreebase ?? 'ND' },
+      { label: 'logP', value: props.alogp ?? 'ND' },
+      { label: 'H-bond donor', value: props.hbd ?? 'ND' },
+      { label: 'H-bond acceptor', value: props.hba ?? 'ND' },
+      { label: 'PSA', value: props.psa ?? 'ND' },
+      { label: 'Rotatable bonds', value: props.rtb ?? 'ND' },
+    ]
+  })
 }

@@ -4,17 +4,19 @@ import { Component, Input, signal } from '@angular/core';
   selector: 'molecule-header',
   standalone: true,
   template: `
-    <header class="space-y-2">
-      <h1 class="text-2xl md:text-3xl font-semibold tracking-wider text-center xs:text-left text-light-accent-primary dark:text-dark-accent-primary">
+    <header class="space-y-2" aria-labelledby="molecule-name">
+      <h1 id="molecule-name"
+          class="text-2xl md:text-3xl font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary">
         {{ name() }}
       </h1>
-      <p class="text-xs font-semibold tracking-wider text-center xs:text-left text-light-accent-primary dark:text-dark-accent-primary">
+      <p class="text-xs font-semibold tracking-wide text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary">
         ChEMBL ID:
-        <span class="font-light text-light-on-surface-main dark:text-slate-100">
+        <span class="text-muted-foreground font-normal text-light-on-surface-main dark:text-slate-100">
           {{ chemblId() }}
         </span>
       </p>
     </header>
+
   `
 })
 export class MoleculeHeaderComponent {
