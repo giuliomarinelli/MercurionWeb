@@ -1,11 +1,62 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ActivatedRoute, RouterModule, Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { NotebookService } from '../../../services/notebook.service';
+import { LabNotebookEntry } from '../../../Models/notebook/lab-notebook-entry-model.interface';
+
 
 @Component({
   selector: 'app-notebook-editor',
-  imports: [],
-  templateUrl: './notebook-editor.component.html',
-  styleUrl: './notebook-editor.component.css'
+  standalone: true,
+  imports: [CommonModule, FormsModule, RouterModule],
+  template: `
+    <div class="p-4">
+      <h2 class="text-xl font-bold mb-4">{{ isNew ? 'Nuova Nota' : 'Modifica Nota' }}</h2>
+
+      <input [(ngModel)]="note.title" placeholder="Titolo" class="p-2 border w-full mb-4 rounded" />
+
+      <!-- iframe tiptap app -->
+      <iframe
+        src="/tiptap-editor.html"
+        class="w-full h-[500px] border mb-4 rounded"
+        #editorIframe
+      ></iframe>
+
+      <button (click)="save()" class="bg-green-600 text-white px-4 py-2 rounded">💾 Salva</button>
+    </div>
+  `
 })
-export class NotebookEditorComponent {
+export class NotebookEditorComponent implements OnInit {
+
+  constructor(
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly notebookService: NotebookService
+  ) { }
+
+  note: Partial<LabNotebookEntry> = { title: '', content: '', userId: '' };
+  isNew = true;
+
+  ngOnInit() {
+    const id = this.route.snapshot.paramMap.get('id');
+    this.note.userId = localStorage.getItem('userId') ?? '';
+    if (id) {
+      this.isNew = false;
+      this.notebookService.getNote(id).subscribe((note: LabNotebookEntry) => this.note = note)
+    }
+  }
+
+  save() {
+    const iframe = document.querySelector('iframe')!
+    const content = (iframe.contentWindow as any)?.getEditorContent?.()
+    this.note.content = JSON.stringify(content)
+
+    if (this.isNew) {
+      this.notebookService.createNote(this.note).subscribe(() => this.router.navigate(['/notebook']))
+    } else {
+      this.notebookService.updateNote(this.note!.id!, this.note).subscribe(() => this.router.navigate(['/notebook']))
+    }
+  }
 
 }
