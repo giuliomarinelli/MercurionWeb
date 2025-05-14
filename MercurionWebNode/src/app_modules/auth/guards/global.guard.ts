@@ -6,7 +6,6 @@ import { TokenType } from '../Models/enums/token-type.enum';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { Socket } from 'socket.io';
 import { Reflector } from '@nestjs/core';
-import { SecureCookieService } from '../services/secure-cookie.service';
 import { GqlContextType, GqlExecutionContext } from '@nestjs/graphql';
 import { AppJwtPayload } from '../Models/interfaces/app-jwt-payload.interface';
 import { RpcException } from '@nestjs/microservices';
@@ -19,7 +18,6 @@ export class GlobalGuard implements CanActivate {
    constructor(
       private readonly jwtToolsService: JwtToolsService,
       private readonly sessionService: SessionService,
-      private readonly secureCookieService: SecureCookieService,
       private readonly reflector: Reflector
    ) { }
 
@@ -79,7 +77,6 @@ export class GlobalGuard implements CanActivate {
 
                const newToken = await this.jwtToolsService.generateToken(payload.sub, TokenType.AccessToken, payload.sid)
 
-               reply.header('Access-Control-Expose-Headers', 'X-New-Access-Token')
                reply.header('X-New-Access-Token', newToken)
 
                await this.sessionService.updateLastAccessed(payload.sid)
