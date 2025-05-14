@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException, Logger } from '@nestjs/common';
 import { JwtToolsService } from '../services/jwt-tools.service';
 import { SessionService } from '../services/session.service';
 import { IS_PUBLIC_KEY } from 'src/metadata/metadata';
@@ -15,6 +15,9 @@ import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class GlobalGuard implements CanActivate {
+
+   private readonly logger = new Logger(GlobalGuard.name)
+
    constructor(
       private readonly jwtToolsService: JwtToolsService,
       private readonly sessionService: SessionService,
@@ -54,23 +57,29 @@ export class GlobalGuard implements CanActivate {
 
          try {
             payload = await this.jwtToolsService.verifyTokenAndGetPayload(accessToken, TokenType.AccessToken)
+            this.logger.debug('Valid access token')
          } catch (e) {
 
             if (e instanceof RpcException && e.message === 'InvalidOrExpiredAccessToken') {
-
+               
+               this.logger.debug('Expired access token, starting refresh procedure')
+               
                payload = await this.jwtToolsService.verifyTokenAndGetPayload(accessToken, TokenType.AccessToken, true)
 
                const deviceId = req.headers['x-device-id'] as string
 
                if (!deviceId) {
+                  this.logger.warn('[Refreshing] No provided deviceId')
                   throw new UnauthorizedException()
                }
 
                if (req.headers['x-session-id'] !== payload.sid) {
+                  this.logger.warn('[Refreshing] Cookie sessionId and old token claim sid mismatch')
                   throw new UnauthorizedException()
                }
 
                if (!await this.sessionService.validateSession(payload.sid, deviceId)) {
+                  this.logger.warn('[Refreshing] Invalid session')
                   throw new UnauthorizedException('Session expired')
                }
 
@@ -91,24 +100,28 @@ export class GlobalGuard implements CanActivate {
          const deviceId = req.headers['x-device-id'] as string | undefined
 
          if (!deviceId) {
+            this.logger.warn('[Normal flow] No provided deviceId')
             throw new UnauthorizedException()
          }
-
+         
          if (req.headers['x-session-id'] !== payload.sid) {
+            this.logger.warn('[Normal flow] Cookie sessionId and accessToken claim sid mismatch')
             throw new UnauthorizedException()
          }
-
+         
          if (!await this.sessionService.validateSession(payload.sid, deviceId)) {
+            this.logger.warn('[Normal flow] Invalid session')
             throw new UnauthorizedException()
          }
-
+         
          await this.sessionService.updateLastAccessed(payload.sid)
-
+         
          req.headers['x-user-id'] = payload.sub
-
+         
          return true
-
+         
       } catch {
+         this.logger.warn('Thrown generic UnauthorizedException')
          throw new UnauthorizedException()
       }
    }

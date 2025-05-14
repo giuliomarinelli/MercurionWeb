@@ -1,5 +1,5 @@
 import { AuthService } from './auth.service';
-import { inject, Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { LabNotebookEntry } from '../Models/notebook/lab-notebook-entry-model.interface';
@@ -16,17 +16,13 @@ export class NotebookService {
 
   getNotes(userId: string): Observable<LabNotebookEntry[]> {
     return this.http.get<LabNotebookEntry[]>(`${this.baseUrl}/user/${userId}`, {
-      headers: {
-        'Authorization': `Bearer ${this.authService.getAccessToken() ?? ''}`
-      }
+      withCredentials: true
     })
   }
 
   getNote(id: string): Observable<LabNotebookEntry> {
     return this.http.get<LabNotebookEntry>(`${this.baseUrl}/${id}`, {
-      headers: {
-        'Authorization': `Bearer ${this.authService.getAccessToken() ?? ''}`
-      }
+      withCredentials: true
     })
   }
 

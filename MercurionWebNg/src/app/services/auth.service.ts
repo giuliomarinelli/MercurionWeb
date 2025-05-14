@@ -15,36 +15,29 @@ import { JwtHelperService } from './jwt-helper.service';
 })
 export class AuthService {
 
-  private _accessToken = signal<string | null>(null)
-
   constructor(
-    private readonly http: HttpClient,
-    private readonly jwtHelper: JwtHelperService
-  ) {
-    window?.addEventListener('storage', (e) => {
-      e.key === 'accessToken' && this._accessToken.set(atob(e.newValue || '') || null)
-    })
+    private readonly jwtHelper: JwtHelperService,
+    private readonly http: HttpClient
+  ) { }
+
+  getAccessToken(): string | null {
+    return localStorage.getItem('accessToken');
   }
 
-  public setAccessToken(token: string | null): void {
-    if (token) {
-      localStorage.setItem('accessToken', btoa(token))
-      this._accessToken.set(token)
-    } else {
-      localStorage.removeItem('accessToken')
-      this._accessToken.set(null)
-    }
+  setAccessToken(token: string | null) {
+  if (token) {
+    localStorage.setItem('accessToken', token);
+  } else {
+    localStorage.removeItem('accessToken');
   }
+}
 
-  public getAccessToken(): string | null {
-    return this._accessToken() ?? (atob(localStorage.getItem('accessToken') || '') || null)
-  }
 
   public getLoggedUserId(): string | null {
-    if (this._accessToken() == null) {
+    if (this.getAccessToken() == null) {
       return null
     }
-    return this.jwtHelper.getClaim(this._accessToken() ?? '', 'sub')
+    return this.jwtHelper.getClaim(this.getAccessToken() ?? '', 'sub')
   }
 
   public login_stepZero(emailDTO: EmailDTO): Observable<ConfirmDTO> {
@@ -100,7 +93,7 @@ export class AuthService {
 
   public logout(): Observable<void> {
     localStorage?.getItem('login') && localStorage?.removeItem('login')
-    localStorage?.getItem('accessToken') && localStorage?.removeItem('accessToken')
+    this.setAccessToken(null)
     return this.http.delete<void>('/api/authentication/logout', {
       withCredentials: true
     })
