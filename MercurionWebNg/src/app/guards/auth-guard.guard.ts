@@ -12,7 +12,7 @@ export class AuthGuard implements CanActivate {
   ) {}
 
   canActivate(): boolean | UrlTree {
-    const login = sessionStorage.getItem('login')
+    const login = localStorage.getItem('login')
 
     const isValid = login && (login.length === 1 || login.length === 2)
 

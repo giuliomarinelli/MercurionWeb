@@ -17,7 +17,7 @@ export class NotebookService {
   getNotes(userId: string): Observable<LabNotebookEntry[]> {
     return this.http.get<LabNotebookEntry[]>(`${this.baseUrl}/user/${userId}`, {
       headers: {
-        'Authorization': `Bearer ${this.authService.getAccessToken() ?? ''}`
+        'Authorization': `Bearer ${this.authService.accessToken ?? ''}`
       }
     })
   }
@@ -25,7 +25,7 @@ export class NotebookService {
   getNote(id: string): Observable<LabNotebookEntry> {
     return this.http.get<LabNotebookEntry>(`${this.baseUrl}/${id}`, {
       headers: {
-        'Authorization': `Bearer ${this.authService.getAccessToken() ?? ''}`
+        'Authorization': `Bearer ${this.authService.accessToken ?? ''}`
       }
     })
   }
@@ -33,7 +33,7 @@ export class NotebookService {
   createNote(payload: Partial<LabNotebookEntry>): Observable<LabNotebookEntry> {
     return this.http.post<LabNotebookEntry>(this.baseUrl, payload, {
       headers: {
-        'Authorization': `Bearer ${this.authService.getAccessToken() ?? ''}`
+        'Authorization': `Bearer ${this.authService.accessToken ?? ''}`
       }
     })
   }
@@ -41,7 +41,7 @@ export class NotebookService {
   updateNote(id: string, payload: Partial<LabNotebookEntry>): Observable<LabNotebookEntry> {
     return this.http.patch<LabNotebookEntry>(`${this.baseUrl}/${id}`, payload, {
       headers: {
-        'Authorization': `Bearer ${this.authService.getAccessToken() ?? ''}`
+        'Authorization': `Bearer ${this.authService.accessToken ?? ''}`
       }
     })
   }
@@ -49,7 +49,7 @@ export class NotebookService {
   deleteNote(id: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`, {
       headers: {
-        'Authorization': `Bearer ${this.authService.getAccessToken() ?? ''}`
+        'Authorization': `Bearer ${this.authService.accessToken ?? ''}`
       }
     })
   }

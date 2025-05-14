@@ -16,14 +16,14 @@ export class AuthRedirectService {
   async redirectToLogin(reason?: string): Promise<void> {
 
     if (reason) {
-      sessionStorage.setItem('mfaError', reason);
+      sessionStorage?.setItem('mfaError', reason);
 
       // Attendi per sicurezza
       await new Promise(resolve => setTimeout(resolve, 0));
     }
 
 
-    sessionStorage.removeItem('preAuthorizationData')
+    sessionStorage?.removeItem('preAuthorizationData')
 
 
     // Forza navigazione fuori da /login/...

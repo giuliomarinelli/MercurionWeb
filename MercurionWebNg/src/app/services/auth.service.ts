@@ -1,6 +1,6 @@
 import { ISessionDeviceInfo } from './../Models/types/auth/DTO/fingerprint.dtos';
 import { Confirm_Login_FirstStepDTO, ConfirmWithAccessTokenAndInitialsDTO } from './../Models/types/interfaces/confirm.responses';
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { EmailDTO, Login_FirstStepWrapper } from '../Models/types/auth/DTO/login.dtos';
 import { ConfirmDTO } from '../Models/types/interfaces/confirm.responses';
 import { Observable } from 'rxjs';
@@ -9,30 +9,40 @@ import { ConfirmWithTotpMetaDTO } from '../Models/confirm.dtos';
 import { TotpBodyDTO } from '../Models/types/auth/DTO/totp-body.dto';
 import { JwtHelperService } from './jwt-helper.service';
 
+
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
 
+  private _accessToken = signal<string | null>(null)
+
+  readonly accessToken = this._accessToken.asReadonly()
+
   constructor(
     private readonly http: HttpClient,
     private readonly jwtHelper: JwtHelperService
-  ) { }
+  ) {
+    window?.addEventListener('storage', (e) => {
+      e.key === 'accessToken' && this._accessToken.set(atob(e.newValue || '') || null)
+    })
+  }
 
-  public getAccessToken(): string | null {
-    const accessTokenEnc: string | null = sessionStorage?.getItem('accessToken') || null
-    if (accessTokenEnc == null) {
-      return null
+  public setToken(token: string | null): void {
+    if (token) {
+      localStorage.setItem('accessToken', token)
+      this._accessToken.set(token)
+    } else {
+      localStorage.removeItem('accessToken')
+      this._accessToken.set(null)
     }
-    return atob(accessTokenEnc) || null
   }
 
   public getLoggedUserId(): string | null {
-    const accessToken = this.getAccessToken()
-    if (accessToken == null) {
+    if (this._accessToken() == null) {
       return null
     }
-    return this.jwtHelper.getClaim(accessToken, 'sub')
+    return this.jwtHelper.getClaim(this._accessToken() ?? '', 'sub')
   }
 
   public login_stepZero(emailDTO: EmailDTO): Observable<ConfirmDTO> {
@@ -87,7 +97,7 @@ export class AuthService {
   }
 
   public logout(): Observable<void> {
-    sessionStorage?.getItem('login') && sessionStorage?.removeItem('login')
+    localStorage?.getItem('login') && localStorage?.removeItem('login')
     return this.http.delete<void>('/api/authentication/logout', {
       withCredentials: true
     })

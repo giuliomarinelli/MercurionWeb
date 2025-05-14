@@ -74,18 +74,18 @@ export class MfaComponent implements OnInit, OnDestroy {
     this.phoneControl = this.fb.control(null, [Validators.required]);
 
     // 3. Validazione preAuthorizationData
-    const raw = sessionStorage.getItem('preAuthorizationData');
+    const raw = sessionStorage.getItem('preAuthorizationData')
 
     if (!raw) {
-      await this.redirect.redirectToLogin('NotAllowed');
-      return;
+      await this.redirect.redirectToLogin('NotAllowed')
+      return
     }
 
     try {
       this.loginFirstStepData = JSON.parse(atob(raw)) as Login_FirstStep_Data;
     } catch (e) {
-      console.error('❌ Malformed preAuthorizationData', e);
-      await this.redirect.redirectToLogin('NotAllowed');
+      console.error('❌ Malformed preAuthorizationData', e)
+      await this.redirect.redirectToLogin('NotAllowed')
       return;
     }
 
@@ -183,13 +183,13 @@ export class MfaComponent implements OnInit, OnDestroy {
         this.loginFirstStepData?.preAuthorizationToken ?? '',
         this.unTrusted()).subscribe({
           next: res => {
-            sessionStorage?.setItem('accessToken', btoa(res.accessToken as string))
+            localStorage?.setItem('accessToken', btoa(res.accessToken as string))
             if (sessionStorage.getItem('preAuthorizationData')) {
               sessionStorage?.removeItem('preAuthorizationData')
             }
-            sessionStorage?.setItem('login', res.initials ?? 'U')
+            localStorage?.setItem('login', res.initials ?? 'U')
             this.userContext.login(res.initials)
-            const loginPath: string = atob(sessionStorage?.getItem('loginLastPath') || '') || '/profile'
+            const loginPath: string = atob(localStorage?.getItem('loginLastPath') || '') || '/profile'
             this.router.navigate([loginPath])
           },
           error: err => {

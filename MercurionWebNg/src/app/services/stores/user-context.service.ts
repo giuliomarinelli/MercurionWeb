@@ -12,7 +12,7 @@ export class UserContextService {
     private readonly zone: NgZone
   ) {
     // 1. Carica le iniziali al primo avvio
-    const savedInitials = sessionStorage.getItem('login')
+    const savedInitials = localStorage?.getItem('login')
     if (savedInitials) {
       this._initials.set(savedInitials)
     }
@@ -37,13 +37,13 @@ export class UserContextService {
   // 3. Metodo comodo per aggiornare il contesto e sincronizzare anche sessionStorage
   public setInitials(initials: string): void {
     this._initials.set(initials);
-    sessionStorage?.setItem('login', initials)
+    localStorage?.setItem('login', initials)
   }
 
   // 4. Metodo per rimuovere login
   public clearInitials(): void {
     this.zone.run(() => {              // 👈 rientra nello zone
-      sessionStorage.removeItem('login')
+      localStorage?.removeItem('login')
       this._initials.set('')
     })
   }

@@ -150,7 +150,7 @@ export class LoginComponent implements OnInit, OnDestroy {
           } else if (body.statusCode === 401) {
             this.serverErrorStep.set(1)
           } else {
-            sessionStorage?.setItem('lastHttpErr', btoa(JSON.stringify(body)))
+            localStorage?.setItem('lastHttpErr', btoa(JSON.stringify(body)))
             this.router.navigate(['/'])
           }
         }
@@ -186,8 +186,8 @@ export class LoginComponent implements OnInit, OnDestroy {
             }
           } else {
             this.userContext.login(res.initials)
-            sessionStorage?.setItem('accessToken', btoa(res.accessToken as string))
-            sessionStorage?.setItem('login', res.initials ?? 'U')
+            localStorage?.setItem('accessToken', btoa(res.accessToken as string))
+            localStorage?.setItem('login', res.initials ?? 'U')
             const loginPath: string = atob(sessionStorage.getItem('loginLastPath') || '') || '/profile'
             this.router.navigate([loginPath])
           }

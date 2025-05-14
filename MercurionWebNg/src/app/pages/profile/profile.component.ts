@@ -32,7 +32,7 @@ export class ProfileComponent implements AfterViewInit, OnDestroy {
     this.logoutSub = this.authService.logout().subscribe({
       next: () => {
         sessionStorage?.setItem('logout', 'success')
-        sessionStorage?.removeItem('login')
+        localStorage?.removeItem('login')
         this.userContext.logout()
         this.loggingOut.set(false)
         this.router.navigate(['/login'])
@@ -40,7 +40,6 @@ export class ProfileComponent implements AfterViewInit, OnDestroy {
       error: (err) => {
         sessionStorage?.setItem('logout', 'success')
         this.userContext.logout()
-        !!sessionStorage?.getItem('login') && sessionStorage?.removeItem('login')
         this.loggingOut.set(false)
         this.router.navigate(['/login'])
       }
