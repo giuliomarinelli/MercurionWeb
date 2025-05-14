@@ -183,7 +183,7 @@ export class MfaComponent implements OnInit, OnDestroy {
         this.loginFirstStepData?.preAuthorizationToken ?? '',
         this.unTrusted()).subscribe({
           next: res => {
-            localStorage?.setItem('accessToken', btoa(res.accessToken as string))
+            this.authService.setAccessToken(res.accessToken)
             if (sessionStorage.getItem('preAuthorizationData')) {
               sessionStorage?.removeItem('preAuthorizationData')
             }
