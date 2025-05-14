@@ -15,11 +15,12 @@ import { LoadingContextService } from '../../services/stores/loading-context.ser
 import { ToastService } from '../../services/toast.service';
 import { ToastContext } from '../../components/common/toast/toast.component';
 import { UserContextService } from '../../services/stores/user-context.service';
+import { TurnstileComponent } from '../../components/common/turnstile/turnstile.component';
 
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, PublicPipe, NgClass],
+  imports: [ReactiveFormsModule, PublicPipe, NgClass, TurnstileComponent],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })
@@ -34,6 +35,8 @@ export class LoginComponent implements OnInit, OnDestroy {
   protected logoSrc = computed(() =>
     this.themeManager.theme() === 'light' ? 'logo/pictogram-light-logo.svg' : 'logo/pictogram-dark-logo-2.svg'
   )
+  turnstileToken: string | null = null;
+
 
   protected step = signal<1 | 2>(1)
   protected serverErrorStep = signal<0 | 1 | 2>(0)
@@ -69,6 +72,10 @@ export class LoginComponent implements OnInit, OnDestroy {
     private readonly toast: ToastService,
     private readonly userContext: UserContextService
   ) { }
+
+  onTurnstileToken(token: string) {
+    this.turnstileToken = token;
+  }
 
   onEmailInput(): void {
     const value = this.emailRef?.nativeElement?.value ?? '';

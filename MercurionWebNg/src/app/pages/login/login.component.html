@@ -66,6 +66,7 @@
         }
       </div>
     </div>
+    <app-turnstile (token)="onTurnstileToken($event)" />
     <button type="submit" [disabled]="loginForm.controls['password'].invalid"
       class="w-full mt-4 py-2 text-white rounded-md transition-colors duration-150
     bg-light-accent-primary dark:bg-dark-accent-primary
