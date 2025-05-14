@@ -17,8 +17,6 @@ export class AuthService {
 
   private _accessToken = signal<string | null>(null)
 
-  readonly accessToken = this._accessToken.asReadonly()
-
   constructor(
     private readonly http: HttpClient,
     private readonly jwtHelper: JwtHelperService
@@ -28,14 +26,18 @@ export class AuthService {
     })
   }
 
-  public setToken(token: string | null): void {
+  public setAccessToken(token: string | null): void {
     if (token) {
-      localStorage.setItem('accessToken', token)
+      localStorage.setItem('accessToken', btoa(token))
       this._accessToken.set(token)
     } else {
       localStorage.removeItem('accessToken')
       this._accessToken.set(null)
     }
+  }
+
+  public getAccessToken(): string | null {
+    return this._accessToken() ?? (atob(localStorage.getItem('accessToken') || '') || null)
   }
 
   public getLoggedUserId(): string | null {
@@ -98,6 +100,7 @@ export class AuthService {
 
   public logout(): Observable<void> {
     localStorage?.getItem('login') && localStorage?.removeItem('login')
+    localStorage?.getItem('accessToken') && localStorage?.removeItem('accessToken')
     return this.http.delete<void>('/api/authentication/logout', {
       withCredentials: true
     })
