@@ -1,6 +1,6 @@
 import { ISessionDeviceInfo } from './../Models/types/auth/DTO/fingerprint.dtos';
 import { Confirm_Login_FirstStepDTO, ConfirmWithAccessTokenAndInitialsDTO } from './../Models/types/interfaces/confirm.responses';
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { EmailDTO, Login_FirstStepWrapper } from '../Models/types/auth/DTO/login.dtos';
 import { ConfirmDTO } from '../Models/types/interfaces/confirm.responses';
 import { Observable } from 'rxjs';
@@ -9,30 +9,35 @@ import { ConfirmWithTotpMetaDTO } from '../Models/confirm.dtos';
 import { TotpBodyDTO } from '../Models/types/auth/DTO/totp-body.dto';
 import { JwtHelperService } from './jwt-helper.service';
 
+
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
 
   constructor(
-    private readonly http: HttpClient,
-    private readonly jwtHelper: JwtHelperService
+    private readonly jwtHelper: JwtHelperService,
+    private readonly http: HttpClient
   ) { }
 
-  public getAccessToken(): string | null {
-    const accessTokenEnc: string | null = sessionStorage?.getItem('accessToken') || null
-    if (accessTokenEnc == null) {
-      return null
-    }
-    return atob(accessTokenEnc) || null
+  getAccessToken(): string | null {
+    return localStorage.getItem('accessToken');
   }
 
+  setAccessToken(token: string | null) {
+  if (token) {
+    localStorage.setItem('accessToken', token);
+  } else {
+    localStorage.removeItem('accessToken');
+  }
+}
+
+
   public getLoggedUserId(): string | null {
-    const accessToken = this.getAccessToken()
-    if (accessToken == null) {
+    if (this.getAccessToken() == null) {
       return null
     }
-    return this.jwtHelper.getClaim(accessToken, 'sub')
+    return this.jwtHelper.getClaim(this.getAccessToken() ?? '', 'sub')
   }
 
   public login_stepZero(emailDTO: EmailDTO): Observable<ConfirmDTO> {
@@ -87,7 +92,8 @@ export class AuthService {
   }
 
   public logout(): Observable<void> {
-    sessionStorage?.getItem('login') && sessionStorage?.removeItem('login')
+    localStorage?.getItem('login') && localStorage?.removeItem('login')
+    this.setAccessToken(null)
     return this.http.delete<void>('/api/authentication/logout', {
       withCredentials: true
     })

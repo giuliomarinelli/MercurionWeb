@@ -104,7 +104,7 @@ export class JwtToolsService {
                 scp
             },
             signOptions
-        );
+        )
 
         // 🔹 Se è un AccessToken, memorizziamo il JTI tra i token emessi
         if (type === TokenType.AccessToken || type === TokenType.PreAuthorizationToken) {

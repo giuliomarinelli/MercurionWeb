@@ -121,7 +121,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     protected readonly design: DesignService
   ) {
     effect(() => {
-      const initials = this.userContext.initials();
+      const initials = this.userContext.initials()
       const isValid = initials && (initials.length === 1 || initials.length === 2);
 
       // Leggi direttamente dalla Router URL, non da pathService

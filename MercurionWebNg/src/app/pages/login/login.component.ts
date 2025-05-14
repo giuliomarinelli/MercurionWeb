@@ -150,7 +150,7 @@ export class LoginComponent implements OnInit, OnDestroy {
           } else if (body.statusCode === 401) {
             this.serverErrorStep.set(1)
           } else {
-            sessionStorage?.setItem('lastHttpErr', btoa(JSON.stringify(body)))
+            localStorage?.setItem('lastHttpErr', btoa(JSON.stringify(body)))
             this.router.navigate(['/'])
           }
         }
@@ -160,6 +160,7 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   onSubmit(): void {
     if (this.loginForm.valid) {
+      console.log('onSubmit')
       this.loadingContext.start()
       const dto: Login_FirstStepWrapper = {
         email: this.loginForm.value['email'],
@@ -186,8 +187,9 @@ export class LoginComponent implements OnInit, OnDestroy {
             }
           } else {
             this.userContext.login(res.initials)
-            sessionStorage?.setItem('accessToken', btoa(res.accessToken as string))
-            sessionStorage?.setItem('login', res.initials ?? 'U')
+            this.authService.setAccessToken(res.accessToken as string)
+            localStorage?.setItem('login', res.initials ?? 'U')
+            this.userContext.setInitials(res.initials ?? 'U')
             const loginPath: string = atob(sessionStorage.getItem('loginLastPath') || '') || '/profile'
             this.router.navigate([loginPath])
           }

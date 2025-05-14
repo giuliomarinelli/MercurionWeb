@@ -1,99 +1,156 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException, Logger } from '@nestjs/common';
 import { JwtToolsService } from '../services/jwt-tools.service';
 import { SessionService } from '../services/session.service';
 import { IS_PUBLIC_KEY } from 'src/metadata/metadata';
 import { TokenType } from '../Models/enums/token-type.enum';
-import { FastifyRequest } from 'fastify';
+import { FastifyReply, FastifyRequest } from 'fastify';
 import { Socket } from 'socket.io';
 import { Reflector } from '@nestjs/core';
-import { SecureCookieService } from '../services/secure-cookie.service';
 import { GqlContextType, GqlExecutionContext } from '@nestjs/graphql';
+import { AppJwtPayload } from '../Models/interfaces/app-jwt-payload.interface';
+import { RpcException } from '@nestjs/microservices';
 
 
 
 
 @Injectable()
 export class GlobalGuard implements CanActivate {
-  constructor(
-    private readonly jwtToolsService: JwtToolsService,
-    private readonly sessionService: SessionService,
-    private readonly secureCookieService: SecureCookieService,
-    private readonly reflector: Reflector
-  ) { }
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
+   private readonly logger = new Logger(GlobalGuard.name)
 
-    // 🔹 Controlla se la route o l'evento WS ha il decoratore `@Public()`
-    const isPublic = this.reflector.get<boolean>(IS_PUBLIC_KEY, context.getHandler())
-    if (isPublic) {
-      return true // ✅ Permetti l'accesso senza autenticazione
-    }
+   constructor(
+      private readonly jwtToolsService: JwtToolsService,
+      private readonly sessionService: SessionService,
+      private readonly reflector: Reflector
+   ) { }
 
-    if (context.getType() === 'http' || context.getType<GqlContextType>() === 'graphql') {
-      return this.validateHttpRequest(context)
-    }
+   async canActivate(context: ExecutionContext): Promise<boolean> {
 
-    if (context.getType() === 'ws') {
-      return this.validateWebSocketEvent(context)
-    }
-
-    throw new UnauthorizedException()
-  }
-
-  // 🔹 Validazione per richieste HTTP
-  private async validateHttpRequest(context: ExecutionContext): Promise<boolean> {
-
-    const req = context.switchToHttp().getRequest<FastifyRequest>() ?? (GqlExecutionContext.create(context).getContext().req as FastifyRequest)
-
-    try {
-      const token = this.jwtToolsService.extractAccessTokenFromReq(req)
-      const payload = await this.jwtToolsService.verifyTokenAndGetPayload(token, TokenType.AccessToken)
-      const deviceId = req.headers['x-device-id'] as string
-
-      if (!deviceId) {
-        throw new UnauthorizedException()
+      // 🔹 Controlla se la route o l'evento WS ha il decoratore `@Public()`
+      const isPublic = this.reflector.get<boolean>(IS_PUBLIC_KEY, context.getHandler())
+      if (isPublic) {
+         return true // ✅ Permette l'accesso senza autenticazione
       }
 
-      if (req.headers['x-session-id'] !== payload.sid) {
-        throw new UnauthorizedException()
+      if (context.getType() === 'http' || context.getType<GqlContextType>() === 'graphql') {
+         return this.validateHttpRequest(context)
       }
 
-      if (!await this.sessionService.validateSession(payload.sid, deviceId)) {
-        throw new UnauthorizedException()
+      if (context.getType() === 'ws') {
+         return this.validateWebSocketEvent(context)
       }
 
-      // 🔹 Inietta lo userId e la sessionId negli headers per il backend HTTP
-      req.headers['x-user-id'] = payload.sub
-      return true;
-    } catch (e) {
-      throw new UnauthorizedException(e.message || undefined)
-    }
-  }
+      throw new UnauthorizedException()
+   }
 
-  // 🔹 Validazione per EVENTI WebSocket
-  private async validateWebSocketEvent(context: ExecutionContext): Promise<boolean> {
-    const client: Socket = context.switchToWs().getClient()
-    const token = client.handshake.query.token as string
-    const deviceId = client.handshake.query.deviceId as string
+   // 🔹 Validazione per richieste HTTP
+   private async validateHttpRequest(context: ExecutionContext): Promise<boolean> {
 
-    if (!token || !deviceId) {
-      return false
-    }
+      const req = context.switchToHttp().getRequest<FastifyRequest>() ?? (GqlExecutionContext.create(context).getContext().req as FastifyRequest)
+      const reply = context.switchToHttp().getResponse<FastifyReply>() ?? (GqlExecutionContext.create(context).getContext().reply as FastifyReply)
 
-    try {
+      try {
 
-      const payload = await this.jwtToolsService.verifyTokenAndGetPayload(token, TokenType.AccessToken)
+         const accessToken: string = this.jwtToolsService.extractAccessTokenFromReq(req)
 
-      if (!await this.sessionService.validateSession(payload.sid, deviceId)) {
-        return false
+         let payload: AppJwtPayload
+
+         try {
+            payload = await this.jwtToolsService.verifyTokenAndGetPayload(accessToken, TokenType.AccessToken)
+            this.logger.debug('Valid access token')
+         } catch (e) {
+
+            if (e instanceof RpcException && e.message === 'InvalidOrExpiredAccessToken') {
+               
+               this.logger.debug('Expired access token, starting refresh procedure')
+               
+               payload = await this.jwtToolsService.verifyTokenAndGetPayload(accessToken, TokenType.AccessToken, true)
+
+               const deviceId = req.headers['x-device-id'] as string
+
+               if (!deviceId) {
+                  this.logger.warn('[Refreshing] No provided deviceId')
+                  throw new UnauthorizedException()
+               }
+
+               if (req.headers['x-session-id'] !== payload.sid) {
+                  this.logger.warn('[Refreshing] Cookie sessionId and old token claim sid mismatch')
+                  throw new UnauthorizedException()
+               }
+
+               if (!await this.sessionService.validateSession(payload.sid, deviceId)) {
+                  this.logger.warn('[Refreshing] Invalid session')
+                  throw new UnauthorizedException('Session expired')
+               }
+
+
+               const newToken = await this.jwtToolsService.generateToken(payload.sub, TokenType.AccessToken, payload.sid)
+
+               reply.header('X-New-Access-Token', newToken)
+
+               await this.sessionService.updateLastAccessed(payload.sid)
+
+               req.headers['x-user-id'] = payload.sub
+               return true
+            } else {
+               throw e
+            }
+         }
+
+         const deviceId = req.headers['x-device-id'] as string | undefined
+
+         if (!deviceId) {
+            this.logger.warn('[Normal flow] No provided deviceId')
+            throw new UnauthorizedException()
+         }
+         
+         if (req.headers['x-session-id'] !== payload.sid) {
+            this.logger.warn('[Normal flow] Cookie sessionId and accessToken claim sid mismatch')
+            throw new UnauthorizedException()
+         }
+         
+         if (!await this.sessionService.validateSession(payload.sid, deviceId)) {
+            this.logger.warn('[Normal flow] Invalid session')
+            throw new UnauthorizedException()
+         }
+         
+         await this.sessionService.updateLastAccessed(payload.sid)
+         
+         req.headers['x-user-id'] = payload.sub
+         
+         return true
+         
+      } catch {
+         this.logger.warn('Thrown generic UnauthorizedException')
+         throw new UnauthorizedException()
+      }
+   }
+
+
+   // 🔹 Validazione per EVENTI WebSocket
+   private async validateWebSocketEvent(context: ExecutionContext): Promise<boolean> {
+      const client: Socket = context.switchToWs().getClient()
+      const token = client.handshake.query.token as string
+      const deviceId = client.handshake.query.deviceId as string
+
+      if (!token || !deviceId) {
+         return false
       }
 
-      // 🔹 Inietta lo userId nei dati della socket
-      client.data.userId = payload.sub
-      return true
-    } catch {
-      client.emit('s_pub_err_event_emitter', { message: 'Unauthorized' })
-      return false
-    }
-  }
+      try {
+
+         const payload = await this.jwtToolsService.verifyTokenAndGetPayload(token, TokenType.AccessToken)
+
+         if (!await this.sessionService.validateSession(payload.sid, deviceId)) {
+            return false
+         }
+
+         // 🔹 Inietta lo userId nei dati della socket
+         client.data.userId = payload.sub
+         return true
+      } catch {
+         client.emit('s_pub_err_event_emitter', { message: 'Unauthorized' })
+         return false
+      }
+   }
 }
