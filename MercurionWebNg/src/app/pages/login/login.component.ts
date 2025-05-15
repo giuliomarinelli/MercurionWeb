@@ -166,7 +166,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   onSubmit(): void {
-    if (this.loginForm.valid) {
+    if (this.loginForm.valid && this.turnstileToken) {
       console.log('onSubmit')
       this.loadingContext.start()
       const dto: Login_FirstStepWrapper = {

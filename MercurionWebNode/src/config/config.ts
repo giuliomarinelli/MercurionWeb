@@ -1,7 +1,7 @@
 
 
 import { registerAs } from "@nestjs/config";
-import { AppConfiguration, DataConfiguration, DropboxConfiguration, JwtConfigurations, MeilisearchConfiguration, SecureCookieConfiguration, SessionConfiguration, SmsConfiguration, TotpConfiguration } from "./@types-config";
+import { AppConfiguration, CloudFlareConfiguration, DataConfiguration, DropboxConfiguration, JwtConfigurations, MeilisearchConfiguration, SecureCookieConfiguration, SessionConfiguration, SmsConfiguration, TotpConfiguration } from "./@types-config";
 import { UUID } from "crypto";
 import { GeneralUtils } from "src/general-utils/general-utils";
 import { SnakeNamingStrategy } from "typeorm-naming-strategies";
@@ -29,7 +29,8 @@ export enum ConfigKey {
     Totp = "Totp",
     Session = "Session",
     Dropbox = "Dropbox",
-    Meilisearch = 'Meilisearch'
+    Meilisearch = 'Meilisearch',
+    CloudeFlare = 'CloudeFlare'
 
 }
 
@@ -217,6 +218,12 @@ const MeilisearchConfig = registerAs(
     })
 )
 
+const CloudeFlareConfig =  registerAs(
+    ConfigKey.CloudeFlare, (): CloudFlareConfiguration => ({
+        secretKey: process.env.CLOUDEFLARE_SECRET_KEY as string
+    })
+)
+
 
 export const configurations = [
     AppConfig,
@@ -228,5 +235,6 @@ export const configurations = [
     TotpConfig,
     SessionConfig,
     DropboxConfig,
-    MeilisearchConfig
+    MeilisearchConfig,
+    CloudeFlareConfig
 ]

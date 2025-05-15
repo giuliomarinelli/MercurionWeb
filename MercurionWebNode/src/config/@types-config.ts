@@ -101,3 +101,7 @@ export interface MeilisearchConfiguration {
     host: string
     masterKey: string
 }
+
+export interface CloudFlareConfiguration {
+    secretKey: string
+}

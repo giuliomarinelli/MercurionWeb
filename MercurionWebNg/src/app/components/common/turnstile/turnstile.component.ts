@@ -40,13 +40,13 @@ export class TurnstileComponent implements OnInit, OnDestroy {
     // Carica lo script solo se non già caricato
     return new Promise<void>((resolve) => {
       if ((window as any).turnstile) {
-        resolve();
-        return;
+        resolve()
+        return
       }
       const scriptId = 'cf-turnstile-script'
       if (document.getElementById(scriptId)) {
         document.getElementById(scriptId)!.addEventListener('load', () => resolve())
-        return;
+        return
       }
       const script = document.createElement('script')
       script.id = scriptId
