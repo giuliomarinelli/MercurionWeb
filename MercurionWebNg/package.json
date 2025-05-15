@@ -25,6 +25,7 @@
     "apollo-angular": "^10.0.3",
     "graphql": "^16.11.0",
     "jwt-decode": "^4.0.0",
+    "ngx-skeleton-loader": "^11.0.0",
     "ngx-socket-io": "^4.8.5",
     "ngx-spinner": "^19.0.0",
     "prettier": "^3.5.3",
