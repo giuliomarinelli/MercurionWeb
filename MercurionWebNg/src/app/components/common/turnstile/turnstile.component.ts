@@ -33,6 +33,7 @@ export class TurnstileComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.widgetId && (window as any).turnstile) {
       (window as any).turnstile.remove(this.widgetId)
+      delete (window as any).onTurnstileSuccess
     }
   }
 
