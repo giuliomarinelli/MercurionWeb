@@ -1,6 +1,6 @@
 import { SecureCookieService } from './../services/secure-cookie.service';
 import { FastifyReply } from 'fastify';
-import { BadRequestException, Body, Controller, Delete, HttpCode, HttpStatus, Logger, Param, Post, Query, Res, UnauthorizedException, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, HttpCode, HttpStatus, Logger, Param, Post, Query, Res, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
 import { Login_FirstStepDTO } from '../Models/DTO/login-first-step.cls.dto';
 import { MfaService } from '../services/mfa.service';
 import { AuthenticationService } from '../services/authentication.service';
@@ -19,6 +19,7 @@ import { EmailDTO } from '../Models/DTO/change-email.cls.dto';
 import { ISessionDeviceInfo } from '../Models/interfaces/i-session.interface';
 import { FingerprintData } from '../Models/DTO/fingerprints.dtos';
 import { UserService } from 'src/app_modules/user/services/user.service';
+import { TurnstileGuard } from '../guards/turnstile.guard';
 
 
 
@@ -49,6 +50,7 @@ export class AuthenticationController {
     @Public()
     @Post('login/1')
     @HttpCode(HttpStatus.OK)
+    @UseGuards(TurnstileGuard)
     public async login_firstStep(
         @Body() dto: Login_FirstStepDTO,
         @ClientIp() ip: string,
