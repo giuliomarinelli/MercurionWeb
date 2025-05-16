@@ -17,11 +17,18 @@ import { AuthenticationService } from './services/authentication.service';
 import { AuthenticationController } from './controllers/authentication.controller';
 import { IpService } from './services/ip.service';
 import { GeoIpService } from './services/geo-ip.service';
+import { TurnstileService } from './services/turnstile.service';
+import { HttpModule } from '@nestjs/axios';
 
 
 
 @Module({
-  imports: [RedisModule, UserModule, NotificationModule],
+  imports: [
+    RedisModule,
+    UserModule,
+    NotificationModule,
+    HttpModule
+  ],
   providers: [
     JwtToolsService,
     PasswordEncoderService,
@@ -35,7 +42,8 @@ import { GeoIpService } from './services/geo-ip.service';
     MfaService,
     AuthenticationService,
     IpService,
-    GeoIpService
+    GeoIpService,
+    TurnstileService
   ],
   exports: [SecureCookieService, JwtToolsService, JwtService, SessionService],
   controllers: [AccountController, AuthenticationController],
