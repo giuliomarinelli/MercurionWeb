@@ -1,9 +1,17 @@
-<div class="pt-8 w-[200px] max-w-[300px] mx-auto">
-  <button
-    type="button"
-    [disabled]="loggingOut()"
-    (click)="logout()"
-    class="disabled:dark:bg-emerald-700/60 disabled:cursor-not-allowed w-full mt-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700/90 transition-colors duration-150">
-    Esci
-  </button>
+<div class="flex flex-col items-center leading-5">
+  <h1 class="text-5xl text-center mb-12 mt-4 tracking-wide">Welcome.</h1>
+  <p class="text-lg mb-6">Work in progress. Vanno aggiustati i contrasti di colore e alcune altre cose di cui mi
+    occuperò in seguito.
+    <br /><span class="inline-block mt-1">Intanto mi focalizzo sulla logica core dell'applicazione in modo da andare in produzione entro agosto.</span>
+  </p>
+  <div class="pt-4 w-[200px] max-w-[300px] mx-auto">
+    <button type="button" [disabled]="loggingOut()" (click)="logout()"
+      class="w-full mt-4 py-2 text-white rounded-md transition-colors duration-150
+    bg-light-accent-primary dark:bg-dark-accent-primary/90
+    hover:bg-dark-accent-primary/80 dark:hover:bg-dark-accent-primary/80
+    disabled:bg-dark-accent-primary/80 disabled:dark:bg-dark-accent-primary/80
+    disabled:cursor-not-allowed disabled:hover:bg-dark-accent-primary/80 disabled:hover:dark:bg-dark-accent-primary/80">
+      Esci
+    </button>
+  </div>
 </div>

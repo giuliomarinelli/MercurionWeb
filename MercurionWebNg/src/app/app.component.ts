@@ -73,7 +73,6 @@ import { SidenavComponent } from './components/common/sidenav/sidenav.component'
           <main class="flex-1 p-4 block">
             <router-outlet />
           </main>
-          <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
           <app-footer class="shrink-0" />
         </section>
 
