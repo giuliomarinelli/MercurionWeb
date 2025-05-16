@@ -49,14 +49,15 @@ export class AuthService {
   }
 
   public login_firstStep(loginWrapper: Login_FirstStepWrapper): Observable<Confirm_Login_FirstStepDTO> {
-    const { fingerprintBase64, sessionDeviceInfo, ...loginDTO } = loginWrapper
+    const { fingerprintBase64, sessionDeviceInfo, turnstileToken, ...loginDTO } = loginWrapper
     return this.http.post<Confirm_Login_FirstStepDTO>('/api/authentication/login/1', loginDTO,
       {
         withCredentials: true,
         headers: {
           'X-Fingerprint': fingerprintBase64,
           'X-Device-Info': btoa(JSON.stringify(sessionDeviceInfo)),
-          'X-Mock-IP': '91.122.12.8'
+          'X-Mock-IP': '91.122.12.8',
+          'X-Challenge-Token': turnstileToken
         }
       }
     )

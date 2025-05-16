@@ -13,5 +13,6 @@ export interface Login_FirstStepDTO {
 export type Login_FirstStepWrapper = Login_FirstStepDTO & {
   fingerprintBase64: string
   sessionDeviceInfo: ISessionDeviceInfo
+  turnstileToken: string
 }
 

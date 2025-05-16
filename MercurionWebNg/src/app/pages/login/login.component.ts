@@ -174,7 +174,8 @@ export class LoginComponent implements OnInit, OnDestroy {
         password: this.loginForm.value['password'],
         remember: false,
         fingerprintBase64: this.fingerprintDataEnc,
-        sessionDeviceInfo: this.sessionDeviceInfo
+        sessionDeviceInfo: this.sessionDeviceInfo,
+        turnstileToken: this.turnstileToken
       }
       this.secondStepSubscription = this.authService.login_firstStep(dto).subscribe({
         next: (res: Confirm_Login_FirstStepDTO) => {
