@@ -73,8 +73,18 @@
     disabled:bg-dark-accent-primary/80 disabled:dark:bg-dark-accent-primary/80
     disabled:cursor-not-allowed disabled:hover:bg-dark-accent-primary/80 disabled:hover:dark:bg-dark-accent-primary/80">Accedi</button>
     <div class="flex justify-center">
-      <app-turnstile (token)="onTurnstileToken($event)" class="block h-[71px]" />
+      @if (loadingTurnstile()) {
+      <div class="w-[300px] h-[71px] overflow-hidden transition-all
+             bg-neutral-200 dark:bg-neutral-800
+              border border-neutral-300 dark:border-neutral-700 animate-pulse
+              skeleton-pulse">
+        <!-- opzionale: logo, shimmer, ecc. -->
+        <span class="sr-only">Loading CAPTCHA…</span>
+      </div>
+      }
+      <app-turnstile (token)="onTurnstileToken($event)" (widgetReady)="onTurnstileRender()" class="block h-[71px]" />
     </div>
+
     }
     <!-- Register & Social Login Placeholder -->
     <div class="text-sm text-center text-gray-600 dark:text-gray-300">

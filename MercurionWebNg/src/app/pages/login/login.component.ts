@@ -1,3 +1,4 @@
+import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
 import { Component, computed, effect, ElementRef, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ThemeManagerService } from '../../services/stores/theme-manager.service';
@@ -20,7 +21,7 @@ import { TurnstileComponent } from '../../components/common/turnstile/turnstile.
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, PublicPipe, NgClass, TurnstileComponent],
+  imports: [ReactiveFormsModule, PublicPipe, NgClass, TurnstileComponent, NgxSkeletonLoaderModule],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })
@@ -45,7 +46,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   protected isEmailFocused = signal<boolean>(false)
   protected emptyEmail = signal<boolean>(true)
   protected toastLevel = signal<ToastContext>('error')
-
+  protected loadingTurnstile = signal<boolean>(true)
 
 
   private firstStepSubscription: Subscription | undefined
@@ -73,8 +74,13 @@ export class LoginComponent implements OnInit, OnDestroy {
     private readonly userContext: UserContextService
   ) { }
 
-  onTurnstileToken(token: string) {
+  onTurnstileToken(token: string): void {
     this.turnstileToken = token;
+  }
+
+  onTurnstileRender(): void {
+    console.log('render')
+    this.loadingTurnstile.set(false)
   }
 
   onEmailInput(): void {
