@@ -1,5 +1,5 @@
 import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
-import { ChangeDetectorRef, Component, computed, effect, ElementRef, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, computed, effect, ElementRef, OnDestroy, OnInit, Signal, signal, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ThemeManagerService } from '../../services/stores/theme-manager.service';
 import { PublicPipe } from '../../pipes/public.pipe';
@@ -18,6 +18,7 @@ import { ToastContext } from '../../components/common/toast/toast.component';
 import { UserContextService } from '../../services/stores/user-context.service';
 import { TurnstileComponent } from '../../components/common/turnstile/turnstile.component';
 import { PreviousRouteService } from '../../services/previous-route.service';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 
 @Component({
@@ -75,14 +76,29 @@ export class LoginComponent implements OnInit, OnDestroy {
     private readonly loadingContext: LoadingContextService,
     private readonly toast: ToastService,
     private readonly userContext: UserContextService,
-    private readonly previousRouteService: PreviousRouteService,
-    private readonly cdr: ChangeDetectorRef
-  ) { }
+    private readonly previousRouteService: PreviousRouteService
+  ) {
+    this.loginForm = this.fb.group({
+      email: this.fb.control(null, [Validators.required, Validators.email]),
+      password: this.fb.control(null, [Validators.required])
+    })
+    this.passwordStatusSignal = toSignal(
+      this.loginForm.controls['password'].statusChanges,
+      { initialValue: this.loginForm.controls['password'].status }
+    );
+    this.passwordValueSignal = toSignal(
+      this.loginForm.controls['password'].valueChanges,
+      { initialValue: this.loginForm.controls['password'].value }
+    )
+  }
 
-  protected canLogin = computed(() =>
-    !!this.turnstileToken() && this.loginForm?.controls['password']?.valid
-  );
+  passwordStatusSignal: Signal<string> = signal<'INVALID' | 'VALID' | 'PENDING' | 'DISABLED'>('INVALID')
+  passwordValueSignal!: Signal<any>
 
+  canLogin = computed(() =>
+    !!this.turnstileToken() &&
+    this.passwordStatusSignal() === 'VALID'
+  )
 
   onTurnstileToken(token: string): void {
     this.serverErrorStep.set(0)
@@ -146,10 +162,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     if (login != null && (login.length === 1 || login.length === 2)) {
       this.router.navigate([sessionStorage?.getItem('loginLastPath') || '/profile'])
     }
-    this.loginForm = this.fb.group({
-      email: this.fb.control(null, [Validators.required, Validators.email]),
-      password: this.fb.control(null, [Validators.required])
-    })
+
     this.emailStatusChangeSubscription = this.loginForm.controls['email'].statusChanges.subscribe(() => {
       const control = this.loginForm.controls['email']
       // this.emptyEmail.set(control.errors?.['required'] ?? false)

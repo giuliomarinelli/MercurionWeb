@@ -96,7 +96,7 @@
     'opacity-100 translate-x-0 translate-y-0': themeMenuOpen(),
     'opacity-0 pointer-events-none translate-x-2 -translate-y-2': !themeMenuOpen()
   }">
-  <div class="py-2">
+  <div class="py-2 z-[999]">
     <button (click)="onThemeChange('light'); closeThemeMenu()"
       class="group flex items-center w-full px-4 py-4 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-200/40 transition-colors duration-300"
       [ngClass]="{'bg-slate-200 dark:bg-slate-500': themeManager.chosenTheme() === 'light'}">
