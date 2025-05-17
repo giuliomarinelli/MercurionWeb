@@ -45,7 +45,6 @@ export class NotebookEditorComponent implements OnInit {
     private readonly themeManager: ThemeManagerService
   ) {
     effect(() => {
-      effect(() => {
         const iframe = document?.querySelector('iframe')
         if (!iframe) return
 
@@ -67,8 +66,6 @@ export class NotebookEditorComponent implements OnInit {
           html.classList.remove('dark');
         }
       })
-
-    })
   }
 
   note: Partial<LabNotebookEntry> = { title: '', content: '', userId: '' };
