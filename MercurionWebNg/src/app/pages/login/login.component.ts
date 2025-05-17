@@ -17,6 +17,7 @@ import { ToastService } from '../../services/toast.service';
 import { ToastContext } from '../../components/common/toast/toast.component';
 import { UserContextService } from '../../services/stores/user-context.service';
 import { TurnstileComponent } from '../../components/common/turnstile/turnstile.component';
+import { PreviousRouteService } from '../../services/previous-route.service';
 
 
 @Component({
@@ -74,7 +75,8 @@ export class LoginComponent implements OnInit, OnDestroy {
     private readonly fingerprintService: FingerprintService,
     private readonly loadingContext: LoadingContextService,
     private readonly toast: ToastService,
-    private readonly userContext: UserContextService
+    private readonly userContext: UserContextService,
+    private readonly previousRouteService: PreviousRouteService
   ) { }
 
   onTurnstileToken(token: string): void {
@@ -104,6 +106,13 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit(): Promise<void> {
+    this.router.navigateByUrl(
+      this.previousRouteService.getPreviousUrl() !== '/login'
+        && this.previousRouteService.getPreviousUrl()
+        ? this.previousRouteService.getPreviousUrl() as string
+        : '/profile'
+    );
+
     if (sessionStorage?.getItem('mfaError') === 'InvalidOtp') {
       this.toast.trigger('Codice monouso errato. Ritenta.')
       sessionStorage?.removeItem('mfaError')
