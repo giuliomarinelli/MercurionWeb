@@ -80,6 +80,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   ) { }
 
   onTurnstileToken(token: string): void {
+    this.serverErrorStep.set(0)
     this.turnstileToken = token;
   }
 
@@ -107,7 +108,7 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   async ngOnInit(): Promise<void> {
     this.router.navigateByUrl(
-      this.previousRouteService.getPreviousUrl() !== '/login'
+      !this.previousRouteService.getPreviousUrl()?.startsWith('/login')
         && this.previousRouteService.getPreviousUrl()
         ? this.previousRouteService.getPreviousUrl() as string
         : '/profile'
