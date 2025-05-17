@@ -1,5 +1,5 @@
 import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
-import { Component, computed, effect, ElementRef, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, computed, effect, ElementRef, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ThemeManagerService } from '../../services/stores/theme-manager.service';
 import { PublicPipe } from '../../pipes/public.pipe';
@@ -39,8 +39,6 @@ export class LoginComponent implements OnInit, OnDestroy {
   protected logoSrc = computed(() =>
     this.themeManager.theme() === 'light' ? 'logo/pictogram-light-logo.svg' : 'logo/pictogram-dark-logo-2.svg'
   )
-  turnstileToken: string | null = null;
-
 
   protected step = signal<1 | 2>(1)
   protected serverErrorStep = signal<0 | 1 | 2>(0)
@@ -51,6 +49,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   protected toastLevel = signal<ToastContext>('error')
   protected loadingTurnstile = signal<boolean>(true)
   protected resetTurnstile = signal<boolean>(false)
+  protected turnstileToken = signal<string | null>(null)
 
 
   private firstStepSubscription: Subscription | undefined
@@ -76,12 +75,21 @@ export class LoginComponent implements OnInit, OnDestroy {
     private readonly loadingContext: LoadingContextService,
     private readonly toast: ToastService,
     private readonly userContext: UserContextService,
-    private readonly previousRouteService: PreviousRouteService
+    private readonly previousRouteService: PreviousRouteService,
+    private readonly cdr: ChangeDetectorRef
   ) { }
+
+  protected canLogin = computed(() =>
+    !!this.turnstileToken() && this.loginForm?.controls['password']?.valid
+  );
+
 
   onTurnstileToken(token: string): void {
     this.serverErrorStep.set(0)
-    this.turnstileToken = token;
+    this.turnstileToken.set(token)
+    console.log('TOKEN CAMBIATO:', token);
+    console.log('Password valid:', this.loginForm.controls['password'].valid);
+    console.log('Form valid:', this.loginForm.valid);
   }
 
   onTurnstileRender(): void {
@@ -97,6 +105,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   onPasswordInput(): void {
     const value = this.passwordRef?.nativeElement?.value ?? '';
     this.emptyPassword.set(value.trim() === '');
+    console.log('Password input:', value, 'Valid:', this.loginForm.controls['password'].valid, 'Token:', this.turnstileToken);
   }
 
   onBlur(field: 'email' | 'password'): void {
@@ -194,7 +203,7 @@ export class LoginComponent implements OnInit, OnDestroy {
         remember: false,
         fingerprintBase64: this.fingerprintDataEnc,
         sessionDeviceInfo: this.sessionDeviceInfo,
-        turnstileToken: this.turnstileToken
+        turnstileToken: this.turnstileToken() as string
       }
       this.secondStepSubscription = this.authService.login_firstStep(dto).subscribe({
         next: (res: Confirm_Login_FirstStepDTO) => {
@@ -229,7 +238,7 @@ export class LoginComponent implements OnInit, OnDestroy {
           } else if (body.statusCode === 401) {
             this.serverErrorStep.set(2)
             this.turnstileComponent.reset();
-            this.turnstileToken = null
+            this.turnstileToken.set(null)
             this.loadingContext.stop()
           } else {
             sessionStorage?.setItem('lastHttpErr', btoa(JSON.stringify(body)))
