@@ -5,11 +5,14 @@
   <meta charset="UTF-8" />
   <title>Mercurion – Tiptap Editor</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <style>
     body {
       margin: 0;
       padding: 0;
       font-family: sans-serif;
+      background: var(--bg, #fff);
+      color: var(--fg, #111);
     }
 
     #editor {
@@ -17,6 +20,8 @@
       border: none;
       outline: none;
       min-height: 400px;
+      background: inherit;
+      color: inherit;
     }
 
     .menu {
@@ -24,7 +29,7 @@
       gap: 0.5rem;
       padding: 0.5rem;
       border-bottom: 1px solid #ddd;
-      background: #f8f8f8;
+      background: var(--menu-bg, #f8f8f8);
     }
 
     button {
@@ -39,6 +44,31 @@
     button.active {
       background-color: #444;
       color: white;
+    }
+
+    /* DARK MODE for html.dark */
+    html.dark body {
+      --bg: #191b1f;
+      --fg: #ececec;
+      --menu-bg: #22242a;
+      background: var(--bg);
+      color: var(--fg, black);
+    }
+
+    html.dark #editor {
+      background: var(--bg);
+      color: var(--fg, black);
+    }
+
+    html.dark .menu {
+      border-bottom: 1px solid #333;
+      background: var(--menu-bg, black);
+    }
+
+    html.dark button {
+      background: #2b2c30;
+      border: 1px solid #444;
+      color: #ececec;
     }
   </style>
   <script type="module">

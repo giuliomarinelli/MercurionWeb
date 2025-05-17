@@ -75,7 +75,7 @@ export class ThemeManagerService {
   }
 
   private applyTheme(theme: Theme): void {
-    const root = document.documentElement;
+    const root = document.documentElement
     if (theme === 'dark') {
       root.classList.add('dark')
       root.setAttribute('data-theme', 'dark')
