@@ -66,6 +66,12 @@ export class TurnstileComponent implements OnInit, OnDestroy {
     });
   }
 
+  public reset() {
+    if ((window as any).turnstile && this.widgetId) {
+      (window as any).turnstile.reset(this.widgetId);
+    }
+  }
+
   private waitForWidgetVisible(maxWait = 2000, interval = 50) {
     const start = Date.now();
     const poll = () => {

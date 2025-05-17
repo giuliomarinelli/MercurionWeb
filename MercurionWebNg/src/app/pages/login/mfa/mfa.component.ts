@@ -101,9 +101,12 @@ export class MfaComponent implements OnInit, OnDestroy {
           this.loading.set(true);
           this.verifyOtp();
         }
-      });
+      })
 
-    // 5. Gestione dei parametri della rotta (view e query)
+    // 5. Eliminazione eventuale accessToken rimasto in cache
+    localStorage?.getItem('accessToken') && localStorage?.removeItem('accessToken')
+
+    // 6. Gestione dei parametri della rotta (view e query)
     this.paramsSub = combineLatest([
       this.route.paramMap,
       this.route.queryParamMap

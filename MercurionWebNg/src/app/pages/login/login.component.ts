@@ -31,6 +31,8 @@ export class LoginComponent implements OnInit, OnDestroy {
   private emailRef!: ElementRef<HTMLInputElement>
   @ViewChild('password')
   private passwordRef!: ElementRef<HTMLInputElement>
+  @ViewChild(TurnstileComponent)
+  turnstileComponent!: TurnstileComponent
 
   protected loginForm!: FormGroup<any>
   protected logoSrc = computed(() =>
@@ -47,6 +49,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   protected emptyEmail = signal<boolean>(true)
   protected toastLevel = signal<ToastContext>('error')
   protected loadingTurnstile = signal<boolean>(true)
+  protected resetTurnstile = signal<boolean>(false)
 
 
   private firstStepSubscription: Subscription | undefined
@@ -215,6 +218,8 @@ export class LoginComponent implements OnInit, OnDestroy {
             // handle bad request
           } else if (body.statusCode === 401) {
             this.serverErrorStep.set(2)
+            this.turnstileComponent.reset();
+            this.turnstileToken = null
             this.loadingContext.stop()
           } else {
             sessionStorage?.setItem('lastHttpErr', btoa(JSON.stringify(body)))
