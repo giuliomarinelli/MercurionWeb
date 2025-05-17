@@ -45,16 +45,28 @@ export class NotebookEditorComponent implements OnInit {
     private readonly themeManager: ThemeManagerService
   ) {
     effect(() => {
-      // Dove gestisci il cambio tema:
-      const iframe = document.querySelector('iframe');
-      if (iframe && iframe.contentWindow) {
-        const html = iframe.contentWindow.document.documentElement;
+      effect(() => {
+        const iframe = document?.querySelector('iframe')
+        if (!iframe) return
+
+        iframe.addEventListener('load', () => {
+          const html = iframe.contentWindow?.document.documentElement
+          if (!html) return;
+          if (this.themeManager.theme() === 'dark') {
+            html.classList.add('dark');
+          } else {
+            html.classList.remove('dark');
+          }
+        })
+
+        const html = iframe.contentWindow?.document.documentElement
+        if (!html) return;
         if (this.themeManager.theme() === 'dark') {
-          html.classList.add('dark')
+          html.classList.add('dark');
         } else {
-          html.classList.remove('dark')
+          html.classList.remove('dark');
         }
-      }
+      })
 
     })
   }
