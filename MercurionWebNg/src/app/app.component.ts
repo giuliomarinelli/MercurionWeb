@@ -42,7 +42,7 @@ import { SidenavComponent } from './components/common/sidenav/sidenav.component'
 
       <!-- 2️⃣  Drawer‑container  (relativo, overflow‑hidden) -->
 
-      <div class="drawer-container relative flex flex-1 overflow-hidden z-30">
+      <div class="drawer-container relative flex flex-1 overflow-hidden">
         @if (userContext.initials() && design.minBk('lg')()) {
           <div class="absolute top-2 left-2 z-30">
             <button class="cursor-pointer" (click)="sidenavContext.toggle()">
