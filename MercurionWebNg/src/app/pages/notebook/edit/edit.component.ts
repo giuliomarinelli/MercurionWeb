@@ -1,5 +1,7 @@
-import { Component, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { LabNotebookEditorComponent } from '../../../components/notebook/lab-notebook-editor/lab-notebook-editor.component';
+import { ActivatedRoute } from '@angular/router';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'lab-notebook-edit-component',
@@ -28,9 +30,39 @@ import { LabNotebookEditorComponent } from '../../../components/notebook/lab-not
 
   `
 })
-export class NotebookEditComponent {
+export class NotebookEditComponent implements OnInit, OnDestroy {
 
+  private paramSub: Subscription | undefined
+  private querySub: Subscription | undefined
   trigger = signal<boolean>(false)
+
+  notebookId = signal<string>('')
+  chapterId = signal<string>('')
+  sectionId = signal<string>('')
+  pageId = signal<string>('')
+
+  constructor(
+    private readonly route: ActivatedRoute
+  ) { }
+
+  ngOnInit(): void {
+      this.route.params.subscribe(params => {
+        // todo: valutare validazione pattern UUID
+        this.notebookId.set(params['notebookId'])
+        console.log(this.notebookId())
+        this.querySub = this.route.queryParams.subscribe(query => {
+          this.chapterId.set(query['c_id'] ?? '')
+          this.sectionId.set(query['s_id'] ?? '')
+          this.pageId.set(query['p_id'] ?? '')
+          console.log('chapterId:', this.chapterId(), '\n\nsectionId:', this.sectionId(), '\n\npageId:', this.pageId())
+        })
+      })
+  }
+
+  ngOnDestroy(): void {
+      this.paramSub?.unsubscribe()
+      this.querySub?.unsubscribe()
+  }
 
   triggerContentEmission(): void {
     this.trigger.set(true)

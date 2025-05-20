@@ -8,7 +8,7 @@ import { UUID } from 'crypto';
 
 @Injectable()
 export class NotebookChapterService {
-    
+
     constructor(
         @InjectRepository(NotebookChapter)
         private readonly chapterRepo: Repository<NotebookChapter>,
@@ -19,7 +19,7 @@ export class NotebookChapterService {
             .createQueryBuilder('chapter')
             .where('chapter.notebook_id = :notebookId', { notebookId })
             .select('MAX(chapter.order)', 'max')
-            .getRawOne() as { max: string | number | null };
+            .getRawOne() as { max: string | number | null }
 
         const chapter = this.chapterRepo.create({
             ...data,
