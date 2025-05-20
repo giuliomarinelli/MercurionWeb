@@ -10,7 +10,7 @@ import { QuillModule } from 'ngx-quill';
     <div [class.dark]="darkMode">
       <quill-editor
         [modules]="modules"
-        [theme]="darkMode ? 'bubble' : 'snow'"
+        [theme]="'snow'"
         [style]="{height: '400px'}"
         [placeholder]="placeholder"
         [ngModel]="content()"
@@ -39,7 +39,7 @@ import { QuillModule } from 'ngx-quill';
 })
 export class LabNotebookEditorComponent {
   content = signal<string>(''); // Stato editor (puoi inizializzare con HTML o Delta!)
-  darkMode = false; // Collega al tuo ThemeManager o rileva preferenze
+  darkMode = false
 
   placeholder = 'Scrivi qui la tua nota di laboratorio...';
 
