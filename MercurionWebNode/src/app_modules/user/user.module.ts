@@ -12,6 +12,11 @@ import { LabNotebookEntry } from './Models/entities/lab-notbook-entry.entity';
 import { LabNotebookLink } from './Models/entities/lab-notebook-link.entity';
 import { LabNotebookService } from './services/lab-notebook.service';
 import { LabNotebookController } from './controllers/lab-notebook.controller';
+import { NotebookPageService } from './services/lab-notebook/notebook-page.service';
+import { NotebookChapter } from './Models/entities/lab-notebook/lab-notebook-chapter.entity';
+import { NotebookPage } from './Models/entities/lab-notebook/lab-notebook-page.entity';
+import { NotebookSection } from './Models/entities/lab-notebook/lab-notebook-section.entity';
+import { LabNotebook } from './Models/entities/lab-notebook/lab-notebook.entity';
 
 
 @Module({
@@ -24,11 +29,16 @@ import { LabNotebookController } from './controllers/lab-notebook.controller';
     MoleculeCollectionItemJoin,
     MoleculeCollectionItemEntity,
     LabNotebookEntry,
-    LabNotebookLink
+    LabNotebookLink,
+    NotebookChapter,
+    NotebookPage,
+    NotebookSection,
+    LabNotebook
   ])],
   providers: [
     UserService, 
-    LabNotebookService
+    LabNotebookService, 
+    NotebookPageService
   ],
   exports: [UserService, TypeOrmModule],
   controllers: [LabNotebookController]
