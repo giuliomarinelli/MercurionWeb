@@ -1,4 +1,4 @@
-import { Component, signal, effect } from '@angular/core';
+import { Component, signal, effect, Input, Output, EventEmitter } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { QuillModule } from 'ngx-quill';
 
@@ -7,39 +7,41 @@ import { QuillModule } from 'ngx-quill';
   standalone: true,
   imports: [QuillModule, FormsModule],
   template: `
-    <div [class.dark]="darkMode">
-      <quill-editor
-        [modules]="modules"
-        [theme]="'snow'"
-        [style]="{height: '400px'}"
-        [placeholder]="placeholder"
-        [ngModel]="content()"
-        (ngModelChange)="content.set($event)">
-      </quill-editor>
-      <button class="btn" (click)="save()">💾 Salva</button>
-    </div>
+    <quill-editor
+      [modules]="modules"
+      [theme]="'snow'"
+      [style]="{height: '400px'}"
+      [placeholder]="placeholder"
+      [ngModel]="_content()"
+      (ngModelChange)="_content.set($event)">
+    </quill-editor>
   `,
   styles: [`
     .dark quill-editor,
     .dark .ql-container {
-      background: #18181c !important;
-      color: #ececec !important;
-    }
-    .btn {
-      margin-top: 12px;
-      background: #ffd600;
-      color: #222;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-weight: bold;
-      cursor: pointer;
+      background: oklch(20.5% 0 0) !important;
+      color: yellow !important;
     }
   `]
 })
 export class LabNotebookEditorComponent {
-  content = signal<string>(''); // Stato editor (puoi inizializzare con HTML o Delta!)
-  darkMode = false
+
+  @Input()
+  set triggerContentEmission(trigger: boolean) {
+    trigger && this._triggerContentEmission.set(true)
+  }
+
+  @Input()
+  set content(content: string) {
+    this._content.set(content)
+  }
+
+  @Output()
+  emitContent = new EventEmitter<string>()
+
+  private _triggerContentEmission = signal<boolean>(false)
+  protected _content = signal<string>('')
+
 
   placeholder = 'Scrivi qui la tua nota di laboratorio...';
 
@@ -60,11 +62,15 @@ export class LabNotebookEditorComponent {
       ['link', 'image', 'video'],
       ['clean']
     ]
-  };
-
-  save() {
-    // Qui salva content() (HTML o Delta, decidi tu)
-    console.log('Contenuto:', this.content());
-    // ...chiamata a notebookService, emit event, ecc
   }
+
+  constructor() {
+    effect(() => {
+      if (this._triggerContentEmission()) {
+        this.emitContent.emit(this._content())
+        this._triggerContentEmission.set(false)
+      }
+    })
+  }
+
 }
