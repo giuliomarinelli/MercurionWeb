@@ -6,7 +6,7 @@ import { NotebookPage } from "./lab-notebook-page.entity";
 
 @Entity('lab_notebook_sections')
 export class NotebookSection {
-    
+
     @PrimaryColumn({ type: 'uuid' }) id: UUID
     @Column({ type: 'varchar' }) title: string
 
@@ -16,6 +16,9 @@ export class NotebookSection {
 
     @OneToMany(() => NotebookPage, page => page.section, { cascade: true })
     pages: NotebookPage[]
+
+    @Column({ type: 'int', default: 0 })
+    order: number
 
     @BeforeInsert() generateId() {
         this.id = uuidv7() as UUID

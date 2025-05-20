@@ -20,13 +20,19 @@ export class NotebookPage {
     @OneToMany(() => LabNotebookLink, link => link.note)
     links: LabNotebookLink[]
 
-    @Column({ nullable: true, type: 'bigint' }) createdAt: number;
-    @Column({ nullable: true, type: 'bigint' }) updatedAt: number;
+    @Column({ nullable: true, type: 'bigint' }) 
+    createdAt: number
+    
+    @Column({ nullable: true, type: 'bigint' }) 
+    updatedAt: number
 
     @BeforeInsert() generateId() {
         this.id = uuidv7() as UUID
         this.createdAt = Date.now()
     }
+
+    @Column({ type: 'int', default: 0 })
+    order: number
     
     @BeforeUpdate() updateDate() {
         this.updatedAt = Date.now()
