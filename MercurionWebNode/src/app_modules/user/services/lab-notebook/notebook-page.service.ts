@@ -8,6 +8,7 @@ import { NotebookSection } from '../../Models/entities/lab-notebook/lab-notebook
 
 @Injectable()
 export class NotebookPageService {
+    
     constructor(
         @InjectRepository(NotebookPage)
         private readonly pageRepo: Repository<NotebookPage>

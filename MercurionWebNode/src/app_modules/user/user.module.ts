@@ -17,6 +17,8 @@ import { NotebookChapter } from './Models/entities/lab-notebook/lab-notebook-cha
 import { NotebookPage } from './Models/entities/lab-notebook/lab-notebook-page.entity';
 import { NotebookSection } from './Models/entities/lab-notebook/lab-notebook-section.entity';
 import { LabNotebook } from './Models/entities/lab-notebook/lab-notebook.entity';
+import { NotebookChapterService } from './services/lab-notebook/notebook-chapter.service';
+import { NotebookSectionService } from './services/lab-notebook/notebook-section.service';
 
 
 @Module({
@@ -38,7 +40,7 @@ import { LabNotebook } from './Models/entities/lab-notebook/lab-notebook.entity'
   providers: [
     UserService, 
     LabNotebookService, 
-    NotebookPageService
+    NotebookPageService, NotebookChapterService, NotebookSectionService
   ],
   exports: [UserService, TypeOrmModule],
   controllers: [LabNotebookController]
