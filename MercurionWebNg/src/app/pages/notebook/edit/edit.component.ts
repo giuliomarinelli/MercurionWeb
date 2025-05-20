@@ -1,11 +1,15 @@
 import { Component } from '@angular/core';
+import { LabNotebookEditorComponent } from '../../../components/notebook/lab-notebook-editor/lab-notebook-editor.component';
 
 @Component({
-  selector: 'app-edit',
-  imports: [],
-  templateUrl: './edit.component.html',
-  styleUrl: './edit.component.css'
+  selector: 'lab-notebook-edit-component',
+  imports: [LabNotebookEditorComponent],
+  template: `
+
+    <lab-notebook-editor />
+
+  `
 })
-export class EditComponent {
+export class NotebookEditComponent {
 
 }

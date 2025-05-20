@@ -11,7 +11,7 @@ import { APP_BASE_HREF } from '@angular/common';
 import { provideAnimations } from '@angular/platform-browser/animations'
 import { NgxSpinnerModule } from 'ngx-spinner';
 import { AuthInterceptor } from './interceptors/auth-interceptor.interceptor';
-import { QuillModule } from 'ngx-quill'
+
 
 const config: SocketIoConfig = { url: 'http://localhost:8888', options: {} }
 
@@ -39,7 +39,6 @@ export const appConfig: ApplicationConfig = {
       provide: HTTP_INTERCEPTORS,
       useClass: AuthInterceptor,
       multi: true
-    },
-    importProvidersFrom(QuillModule.forRoot())
+    }
   ]
 };

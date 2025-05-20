@@ -41,7 +41,7 @@ export const routes: Routes = [
   },
   {
     path: 'notebook/edit',
-    loadComponent: () => import('./pages/notebook/edit/edit.component').then(m => m.EditComponent),
+    loadComponent: () => import('./pages/notebook/edit/edit.component').then(m => m.NotebookEditComponent),
     canActivate: [AuthGuard]
   }
 ]
