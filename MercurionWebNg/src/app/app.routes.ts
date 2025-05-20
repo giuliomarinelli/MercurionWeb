@@ -1,4 +1,3 @@
-import { NotebookEditorComponent } from './pages/notebook/notebook-editor/notebook-editor.component';
 import { Routes } from '@angular/router'
 import { ColorPaletteComponent } from './playground/color-palette/color-palette.component'
 import { AuthGuard } from './guards/auth-guard.guard'
@@ -39,10 +38,5 @@ export const routes: Routes = [
     path: 'notebook/list',
     loadComponent: () => import('./pages/notebook/notebook-list/notebook-list.component').then(m => m.NotebookListComponent),
     canActivate: [AuthGuard]
-  },
-  {
-    path: 'notebook/editor',
-    loadComponent: () => import('./pages/notebook/notebook-editor/notebook-editor.component').then(m => m.NotebookEditorComponent)
   }
-
 ]
