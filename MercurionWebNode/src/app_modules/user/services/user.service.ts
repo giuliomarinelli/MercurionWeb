@@ -160,7 +160,7 @@ export class UserService {
         }
     }
 
-    public async getOptSecretByUserId(id: UUID): Promise<string | nullish> {
+    public async getOtpSecretByUserId(id: UUID): Promise<string | nullish> {
         const user = await this.userRepository.createQueryBuilder('u')
             .select('u.otpSecret')
             .where('u.id = :id', { id })
