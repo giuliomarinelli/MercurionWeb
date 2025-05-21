@@ -178,7 +178,7 @@ export class MfaService {
         switch (strategy) {
             case MfaStrategy.EMAIL_OTP:
             case MfaStrategy.SMS_OTP:
-                otpSecret = await this.userService.getOptSecretByUserId(userId)
+                otpSecret = await this.userService.getOtpSecretByUserId(userId)
                 break
             case MfaStrategy.APP_TOTP:
                 otpSecret = await this.userService.getAppTotpSecretByUserId(userId)
@@ -215,7 +215,7 @@ export class MfaService {
             case MfaStrategy.EMAIL_OTP:
 
                 email = await this.userService.getUserEmailById(userId) as string
-                totpSecret = await this.userService.getOptSecretByUserId(userId)
+                totpSecret = await this.userService.getOtpSecretByUserId(userId)
                 if (!totpSecret) {
                     throw new RpcException('TotpSecretNotFound')
                 }
@@ -236,7 +236,7 @@ export class MfaService {
             case MfaStrategy.SMS_OTP:
 
                 completePhoneNumber = await this.userService.getPhoneNumberById(userId) as string
-                totpSecret = await this.userService.getOptSecretByUserId(userId)
+                totpSecret = await this.userService.getOtpSecretByUserId(userId)
                 if (!totpSecret) {
                     throw new RpcException('TotpSecretNotFound')
                 }
@@ -315,7 +315,7 @@ export class MfaService {
             await this.userService.updateUser(userId, { appTotpSecret: otpSecret })
             await this.redisService.del(`mfa:temp:app-secret:${userId}`)
         } else {
-            otpSecret = await this.userService.getOptSecretByUserId(userId)
+            otpSecret = await this.userService.getOtpSecretByUserId(userId)
             if (!otpSecret) throw new RpcException('OtpSecretNotFound')
 
             const isValid = this.securityService.verifyTotp(totp, otpSecret)
@@ -355,7 +355,7 @@ export class MfaService {
         switch (strategy) {
             case MfaStrategy.EMAIL_OTP:
                 email = await this.userService.getUserEmailById(userId) as string
-                totpSecret = await this.userService.getOptSecretByUserId(userId)
+                totpSecret = await this.userService.getOtpSecretByUserId(userId)
                 if (!totpSecret) {
                     throw new RpcException('TotpSecretNotFound')
                 }
@@ -372,7 +372,7 @@ export class MfaService {
 
             case MfaStrategy.SMS_OTP:
                 completePhoneNumber = await this.userService.getPhoneNumberById(userId) as string
-                totpSecret = await this.userService.getOptSecretByUserId(userId)
+                totpSecret = await this.userService.getOtpSecretByUserId(userId)
                 if (!totpSecret) {
                     throw new RpcException('TotpSecretNotFound')
                 }
@@ -439,7 +439,7 @@ export class MfaService {
         if (strategy === MfaStrategy.APP_TOTP) {
             otpSecret = await this.userService.getAppTotpSecretByUserId(userId)
         } else {
-            otpSecret = await this.userService.getOptSecretByUserId(userId)
+            otpSecret = await this.userService.getOtpSecretByUserId(userId)
         }
 
         if (!otpSecret) {
