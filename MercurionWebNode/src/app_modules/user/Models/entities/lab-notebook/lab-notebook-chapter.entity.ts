@@ -11,6 +11,8 @@ export class NotebookChapter {
 
     @Column({ type: 'varchar' }) title: string
 
+    @Column({ type: 'uuid' }) userId: UUID
+
     @ManyToOne(() => LabNotebook, notebook => notebook.chapters, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'notebook_id' })
     notebook: LabNotebook
