@@ -3,10 +3,10 @@ import { NotebookChapterType } from '../../Models/DTO/lab-notebook/notebook-chap
 import { NotebookChapterService } from '../../services/lab-notebook/notebook-chapter.service';
 import { UUID } from 'crypto';
 import { CreateChapterInput } from '../../Models/DTO/lab-notebook/create-notebook-chapter-input';
-import { AuthenticatedUserId } from 'src/metadata/metadata';
+import { AuthenticatedUserId, Public } from 'src/metadata/metadata';
 import { UpdateChapterInput } from '../../Models/DTO/lab-notebook/update-chapter-input';
 
-
+@Public()
 @Resolver(() => NotebookChapterType)
 export class NotebookChapterResolver {
 

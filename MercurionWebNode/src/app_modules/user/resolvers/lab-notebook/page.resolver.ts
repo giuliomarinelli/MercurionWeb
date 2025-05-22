@@ -5,8 +5,9 @@ import { UUID } from 'crypto';
 import { NotebookPage } from '../../Models/entities/lab-notebook/lab-notebook-page.entity';
 import { CreatePageInput } from '../../Models/DTO/lab-notebook/create-page-input';
 import { UpdatePageInput } from '../../Models/DTO/lab-notebook/update-page-input';
-import { AuthenticatedUserId } from 'src/metadata/metadata';
+import { AuthenticatedUserId, Public } from 'src/metadata/metadata';
 
+@Public()
 @Resolver(() => Page)
 export class PageResolver {
 
