@@ -15,22 +15,23 @@ export class NotebookPageService {
     ) { }
 
     async createPage(sectionId: UUID, userId: UUID, data: Partial<NotebookPage>): Promise<NotebookPage> {
+        return this.pageRepo.manager.transaction(async manager => {
+            const { max } = await manager
+                .createQueryBuilder(NotebookPage, 'page')
+                .where('page.section_id = :sectionId', { sectionId })
+                .select('MAX(page.order)', 'max')
+                .getRawOne() as { max: string | number | null }
 
-        const { max } = await this.pageRepo
-            .createQueryBuilder('page')
-            .where('page.section_id = :sectionId', { sectionId })
-            .select('MAX(page.order)', 'max')
-            .getRawOne() as { max: string | number | null }
+            const maxOrder = max != null ? Number(max) : 0
 
-        const maxOrder = max != null ? Number(max) : 0
+            const newPage = manager.create(NotebookPage, {
+                ...data,
+                section: { id: sectionId } as NotebookSection,
+                order: (Number(maxOrder) || 0) + 1
+            })
 
-        const newPage = this.pageRepo.create({
-            ...data,
-            section: { id: sectionId } as NotebookSection,
-            order: (Number(maxOrder) || 0) + 1
+            return manager.save(newPage)
         })
-
-        return await this.pageRepo.save(newPage)
     }
 
     async getPage(id: UUID, userId: UUID): Promise<NotebookPage | null> {
@@ -49,43 +50,56 @@ export class NotebookPageService {
         return this.getPage(id, userId)
     }
 
-    async deletePage(id: UUID, userId: UUID): Promise<boolean> {
-        try {
-            await this.pageRepo.delete({ id, userId })
-        } catch {
-            return false
+    async deletePage(id: UUID, userId: UUID): Promise<void> {
+        const result = await this.pageRepo.delete({ id, userId })
+        if (result.affected === 0) {
+            throw new Error('Page not found or not owned')
         }
-        return true
-
     }
 
     async movePage(pageId: UUID, direction: 'up' | 'down'): Promise<void> {
-        const page = await this.pageRepo.findOne({ where: { id: pageId }, relations: ['section'] });
-        if (!page) throw new Error('Page not found');
+        await this.pageRepo.manager.transaction(async manager => {
+            const page = await manager.findOne(NotebookPage, {
+                where: { id: pageId },
+                relations: ['section'],
+            })
+            if (!page) throw new Error('Page not found')
 
-        const sectionId = page.section.id;
+            const sectionId = page.section.id
 
-        // Trova la pagina "vicina" da swappare
-        const neighbor = await this.pageRepo.createQueryBuilder('p')
-            .where('p.section_id = :sectionId', { sectionId })
-            .andWhere(direction === 'up' ? 'p.order < :order' : 'p.order > :order', { order: page.order })
-            .orderBy('p.order', direction === 'up' ? 'DESC' : 'ASC')
-            .getOne()
+            const neighbor = await manager
+                .createQueryBuilder(NotebookPage, 'p')
+                .where('p.section_id = :sectionId', { sectionId })
+                .andWhere(direction === 'up' ? 'p.order < :order' : 'p.order > :order', { order: page.order })
+                .orderBy('p.order', direction === 'up' ? 'DESC' : 'ASC')
+                .getOne()
 
-        if (!neighbor) return; // già in cima/fondo
+            if (!neighbor) return
 
-        // Swap degli order
-        const tmp = page.order;
-        page.order = neighbor.order;
-        neighbor.order = tmp;
+            const tmp = page.order
+            page.order = neighbor.order
+            neighbor.order = tmp
 
-        await this.pageRepo.save([page, neighbor]);
+            await manager.save([page, neighbor])
+        })
     }
 
     async reorderPages(sectionId: UUID, orderedIds: UUID[]): Promise<void> {
-        for (let i = 0; i < orderedIds.length; i++) {
-            await this.pageRepo.update({ id: orderedIds[i], section: { id: sectionId } }, { order: i })
-        }
+        if (orderedIds.length === 0) return
+
+        const cases = orderedIds
+            .map((id, idx) => `WHEN id = '${id}' THEN ${idx}`)
+            .join(' ')
+
+        await this.pageRepo.manager.transaction(async manager => {
+            await manager
+                .createQueryBuilder()
+                .update(NotebookPage)
+                .set({ order: () => `CASE ${cases} ELSE "order" END` })
+                .where('section_id = :sectionId', { sectionId })
+                .andWhere('id IN (:...ids)', { ids: orderedIds })
+                .execute()
+        })
     }
 
     async findBySection(sectionId: UUID, userId: UUID): Promise<NotebookPage[]> {
