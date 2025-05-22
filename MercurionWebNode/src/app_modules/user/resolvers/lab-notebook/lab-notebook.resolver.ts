@@ -7,7 +7,7 @@ import { AuthenticatedUserId, Public } from 'src/metadata/metadata';
 import { LabNotebookType } from '../../Models/DTO/lab-notebook/lab-notebook-type';
 
 
-@Public()
+
 @Resolver(() => LabNotebookType)
 export class LabNotebookResolver {
 
@@ -26,6 +26,7 @@ export class LabNotebookResolver {
         return this.notebookService.findOne(id as UUID, userId)
     }
 
+    @Public()
     @Mutation(() => LabNotebookType)
     async createLabNotebook(
         @AuthenticatedUserId() userId: UUID,
