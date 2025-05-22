@@ -7,6 +7,7 @@ import { MoleculeSyncService } from '../meilisearch/services/molecule-sync.servi
 import { Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { MoleculeDetailSyncService } from '../meilisearch/services/molecule-detail-sync.service';
+import { Scope } from '../user/Models/enums/scope.enum';
 
 @WebSocketGateway({
   cors: {
@@ -90,8 +91,12 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
   // Molecule Melisearch Sync TODO: gestione scopes
   @Public()
   @SubscribeMessage('molecule_sync_start_mol_prev_sync')
-  async handleSync() {
-    // Inizia sync senza bloccare
+  async handleSync(@MessageBody() _data: any, client: Socket) {
+    const scopes: string[] = client.data.scopes ?? []
+    if (!scopes.includes(Scope.SystemSettings)) {
+      client.emit('error', { message: 'Forbidden' })
+      return
+    }
     this.syncInBackground()
   }
 
@@ -104,7 +109,12 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
   }
 
   @SubscribeMessage('molecule_sync_start_mol_detail_sync')
-  async handleDetailSync() {
+  async handleDetailSync(@MessageBody() _data: any, client: Socket) {
+    const scopes: string[] = client.data.scopes ?? []
+    if (!scopes.includes(Scope.SystemSettings)) {
+      client.emit('error', { message: 'Forbidden' })
+      return
+    }
     this.logger.log('Handling detail sync...')
     this.syncDetailInBackground()
   }

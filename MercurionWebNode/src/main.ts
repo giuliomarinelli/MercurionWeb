@@ -14,7 +14,7 @@ import { Environment } from './config/config'
 import { SecureCookieConfiguration } from './config/@types-config'
 
 
-(async () => {
+export async function bootstrap() {
   copyBootstrapFiles()
   const logger = new Logger('Bootstrap')
   const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter())
@@ -95,6 +95,7 @@ import { SecureCookieConfiguration } from './config/@types-config'
     '\x1b[0m'
 
   logger.log(`NATS client connected to NATS server on ${coloredNatsUrl}`)
+}
 
-})()
+bootstrap()
 
