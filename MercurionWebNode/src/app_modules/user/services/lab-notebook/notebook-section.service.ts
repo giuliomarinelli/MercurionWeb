@@ -7,13 +7,19 @@ import { UUID } from 'crypto';
 
 @Injectable()
 export class NotebookSectionService {
-    
+
     constructor(
         @InjectRepository(NotebookSection)
         private readonly sectionRepo: Repository<NotebookSection>,
     ) { }
 
-    async create(chapterId: string, data: Partial<NotebookSection>): Promise<NotebookSection> {
+    /**
+     * Crea una nuova sezione all'interno di un capitolo, assegnando userId per ownership.
+     * @param userId - proprietario della sezione (raccolto da auth context o passato dal resolver)
+     * @param chapterId - capitolo di riferimento
+     * @param data - dati della sezione
+     */
+    async create(userId: UUID, chapterId: UUID, data: Partial<NotebookSection>): Promise<NotebookSection> {
         const { max } = await this.sectionRepo
             .createQueryBuilder('section')
             .where('section.chapter_id = :chapterId', { chapterId })
@@ -22,6 +28,7 @@ export class NotebookSectionService {
 
         const section = this.sectionRepo.create({
             ...data,
+            userId, // assegna sempre ownership
             chapter: { id: chapterId } as NotebookChapter,
             order: max !== null && max !== undefined ? Number(max) + 1 : 0,
         });
@@ -29,24 +36,31 @@ export class NotebookSectionService {
         return this.sectionRepo.save(section);
     }
 
-    async list(chapterId: UUID): Promise<NotebookSection[]> {
+    /**
+     * Lista tutte le sezioni di un capitolo, solo quelle dell'utente loggato.
+     */
+    async list(userId: UUID, chapterId: UUID): Promise<NotebookSection[]> {
         return this.sectionRepo.find({
-            where: { chapter: { id: chapterId } },
+            where: { chapter: { id: chapterId }, userId },
             order: { order: 'ASC' },
         });
     }
 
-    async move(sectionId: UUID, direction: 'up' | 'down'): Promise<void> {
+    /**
+     * Sposta una sezione su/giù, **solo se di proprietà dell'utente**
+     */
+    async move(userId: UUID, sectionId: UUID, direction: 'up' | 'down'): Promise<void> {
         const section = await this.sectionRepo.findOne({
-            where: { id: sectionId },
+            where: { id: sectionId, userId },
             relations: ['chapter'],
         });
-        if (!section) throw new Error('Section not found');
+        if (!section) throw new Error('Section not found or not owned');
 
         const chapterId = (section.chapter as unknown as NotebookChapter).id;
 
         const neighbor = await this.sectionRepo.createQueryBuilder('s')
             .where('s.chapter_id = :chapterId', { chapterId })
+            .andWhere('s.user_id = :userId', { userId })
             .andWhere(direction === 'up' ? 's.order < :order' : 's.order > :order', { order: section.order })
             .orderBy('s.order', direction === 'up' ? 'DESC' : 'ASC')
             .getOne();
@@ -60,9 +74,15 @@ export class NotebookSectionService {
         await this.sectionRepo.save([section, neighbor]);
     }
 
-    async reorder(chapterId: UUID, orderedIds: UUID[]): Promise<void> {
+    /**
+     * Riordina tutte le sezioni di un capitolo per un utente specifico.
+     */
+    async reorder(userId: UUID, chapterId: UUID, orderedIds: UUID[]): Promise<void> {
         for (let i = 0; i < orderedIds.length; i++) {
-            await this.sectionRepo.update({ id: orderedIds[i], chapter: { id: chapterId } }, { order: i });
+            await this.sectionRepo.update(
+                { id: orderedIds[i], chapter: { id: chapterId }, userId },
+                { order: i }
+            );
         }
     }
 }
