@@ -13,8 +13,11 @@ export class NotebookChapterResolver {
     constructor(private readonly chapterService: NotebookChapterService) { }
 
     @Query(() => [NotebookChapterType])
-    async chaptersByNotebook(@Args('notebookId', { type: () => ID }) notebookId: string): Promise<NotebookChapterType[]> {
-        return this.chapterService.listChaptersToDTO(notebookId as UUID)
+    async chaptersByNotebook(
+        @Args('notebookId', { type: () => ID }) notebookId: string,
+        @AuthenticatedUserId() userId: UUID
+    ): Promise<NotebookChapterType[]> {
+        return this.chapterService.listChaptersToDTO(notebookId as UUID, userId)
     }
 
     @Mutation(() => NotebookChapterType)
@@ -30,13 +33,19 @@ export class NotebookChapterResolver {
     }
 
     @Mutation(() => NotebookChapterType)
-    async updateChapter(@Args('input') { id, ...input }: UpdateChapterInput): Promise<NotebookChapterType | null> {
-        return this.chapterService.updateChapter(id as UUID, input)
+    async updateChapter(
+        @Args('input') { id, ...input }: UpdateChapterInput,
+        @AuthenticatedUserId() userId: UUID    
+    ): Promise<NotebookChapterType | null> {
+        return this.chapterService.updateChapter(id as UUID, userId, input)
     }
 
     @Mutation(() => Boolean)
-    async deleteChapter(@Args('id', { type: () => ID }) id: string) {
-        await this.chapterService.deleteChapter(id as UUID)
+    async deleteChapter(
+        @Args('id', { type: () => ID }) id: string,
+        @AuthenticatedUserId() userId: UUID
+    ) {
+        await this.chapterService.deleteChapter(id as UUID, userId)
         return true
     }
 }
