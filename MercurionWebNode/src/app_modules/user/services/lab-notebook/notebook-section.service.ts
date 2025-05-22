@@ -116,14 +116,14 @@ export class NotebookSectionService {
     }
 
     // In NotebookSectionService
-    async update(userId: UUID, id: UUID, input: Omit<UpdateSectionInput, 'id'>): Promise<NotebookSection> {
+    async update(userId: UUID, id: UUID, input: Omit<UpdateSectionInput, 'id'>): Promise<NotebookSection | null> {
         await this.sectionRepo.update({ id, userId }, input)
         return this.sectionRepo.findOneOrFail({ where: { id, userId } })
     }
 
-    async updateToDTO(userId: UUID, id: UUID, input: Omit<UpdateSectionInput, 'id'>): Promise<NotebookSectionDTO> {
-        const entity: NotebookSection = await this.update(userId, id, input)
-        return {
+    async updateToDTO(userId: UUID, id: UUID, input: Omit<UpdateSectionInput, 'id'>): Promise<NotebookSectionDTO | null> {
+        const entity: NotebookSection | null = await this.update(userId, id, input)
+        return entity != null ? {
             id: entity.id,
             title: entity.title,
             order: entity.order,
@@ -131,6 +131,7 @@ export class NotebookSectionService {
             userId: entity.userId,
             description: entity.description ?? undefined
         }
+            : null
     }
 
     async delete(userId: UUID, id: UUID): Promise<void> {

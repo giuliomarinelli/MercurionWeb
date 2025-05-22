@@ -52,8 +52,14 @@ export class NotebookPageService {
         return this.getPage(id)
     }
 
-    async deletePage(id: UUID): Promise<void> {
-        await this.pageRepo.delete({ id })
+    async deletePage(id: UUID): Promise<boolean> {
+        try {
+            await this.pageRepo.delete({ id })
+        } catch {
+            return false
+        }
+        return true
+
     }
 
     async movePage(pageId: UUID, direction: 'up' | 'down'): Promise<void> {

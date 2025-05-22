@@ -33,8 +33,8 @@ export class NotebookSectionResolver {
     async updateSection(
         @Args('input') { id, ...input }: UpdateSectionInput,
         @AuthenticatedUserId() userId: string
-    ): Promise<NotebookSectionDTO> {
-        return this.sectionService.updateToDTO(userId as UUID, id as UUID, input);
+    ): Promise<NotebookSectionDTO | null> {
+        return this.sectionService.updateToDTO(userId as UUID, id as UUID, input)
     }
 
     @Mutation(() => Boolean)

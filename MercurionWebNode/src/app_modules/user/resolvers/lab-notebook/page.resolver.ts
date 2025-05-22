@@ -17,7 +17,7 @@ export class PageResolver {
     }
 
     @Query(() => [Page])
-    pagesBySection(@Args('sectionId', { type: () => String }) sectionId: string) {
+    pagesBySection(@Args('sectionId', { type: () => String }) sectionId: string): Promise<NotebookPage[]> {
         return this.pageService.findBySection(sectionId as UUID)
     }
 
@@ -26,13 +26,12 @@ export class PageResolver {
         return this.pageService.createPage(sectionId as UUID, input)
     }
 
-    @Mutation(() => Page)
-    updatePage(@Args('input') { id, ...input }: UpdatePageInput) {
-        return this.pageService.updatePage(id as UUID, input)
-    }
+    @Mutation(() => Page, { nullable: true })
+    async updatePage(@Args('input') { id, ...input }: UpdatePageInput): Promise<NotebookPage | null> {
+        return this.pageService.updatePage(id as UUID, input)    }
 
     @Mutation(() => Boolean)
-    deletePage(@Args('id', { type: () => String }) id: string) {
+    deletePage(@Args('id', { type: () => String }) id: string): Promise<boolean> {
         return this.pageService.deletePage(id as UUID)
     }
 }

@@ -1,9 +1,11 @@
+import { NotebookChapterType } from './../../Models/DTO/lab-notebook/notebook-chapter';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { NotebookChapter } from '../../Models/entities/lab-notebook/lab-notebook-chapter.entity';
 import { LabNotebookEntry } from '../../Models/entities/lab-notbook-entry.entity';
 import { UUID } from 'crypto';
+
 
 
 @Injectable()
@@ -30,9 +32,20 @@ export class NotebookChapterService {
             userId,
             notebook: { id: notebookId } as LabNotebookEntry,
             order: (Number(maxOrder) || 0) + 1,
-        });
+        })
 
         return await this.chapterRepo.save(newChapter);
+    }
+
+    async createChapterToDTO(notebookId: UUID, userId: UUID, data: Partial<NotebookChapter>): Promise<NotebookChapterType> {
+        const { id, order, title, userId: _userId }: NotebookChapter = await this.createChapter(notebookId, userId, data)
+        return {
+            id,
+            order,
+            sectionIds: undefined,
+            title,
+            userId: _userId
+        }
     }
 
     async list(notebookId: UUID): Promise<NotebookChapter[]> {
@@ -79,6 +92,18 @@ export class NotebookChapterService {
         })
     }
 
+    async listChaptersToDTO(notebookId: UUID): Promise<NotebookChapterType[]> {
+        return (await this.listChapters(notebookId)).map(c => {
+            const cDTO: NotebookChapterType = {
+                id: c.id,
+                userId: c.userId,
+                title: c.title,
+                order: c.order
+            }
+            return cDTO
+        }) 
+    }
+
     async getChapter(id: UUID): Promise<NotebookChapter | null> {
         return this.chapterRepo.findOne({ where: { id } })
     }
@@ -87,6 +112,22 @@ export class NotebookChapterService {
         await this.chapterRepo.update({ id }, data)
         return this.getChapter(id)
     }
+    
+    async updateChapterToDTO(id: UUID, data: Partial<NotebookChapter>): Promise<NotebookChapterType | null> {
+        const entity: NotebookChapter | null = await this.updateChapter(id, data)
+        return entity != null ? {
+            id: entity.id,
+            order: entity.order,
+            title: entity.title,
+            userId: entity.userId,
+            createdAt: undefined,
+            sectionIds: undefined,
+            updatedAt: undefined
+        }
+        : null
+    }
+
+
 
     async deleteChapter(id: UUID): Promise<void> {
         await this.chapterRepo.delete({ id })
