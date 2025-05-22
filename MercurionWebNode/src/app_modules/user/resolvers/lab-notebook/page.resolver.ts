@@ -28,7 +28,8 @@ export class PageResolver {
 
     @Mutation(() => Page, { nullable: true })
     async updatePage(@Args('input') { id, ...input }: UpdatePageInput): Promise<NotebookPage | null> {
-        return this.pageService.updatePage(id as UUID, input)    }
+        return this.pageService.updatePage(id as UUID, input)
+    }
 
     @Mutation(() => Boolean)
     deletePage(@Args('id', { type: () => String }) id: string): Promise<boolean> {

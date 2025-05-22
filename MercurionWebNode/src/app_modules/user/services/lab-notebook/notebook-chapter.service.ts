@@ -18,14 +18,13 @@ export class NotebookChapterService {
 
     async createChapter(notebookId: UUID, userId: UUID, data: Partial<NotebookChapter>): Promise<NotebookChapter> {
 
-        const raw = await this.chapterRepo
+        const { max } = await this.chapterRepo
             .createQueryBuilder('chapter')
             .where('chapter.notebook_id = :notebookId', { notebookId })
             .select('MAX(chapter.order)', 'max')
-            .getRawOne()
-            .then(res => res.max ?? 0) as { max: string | number | null };
+            .getRawOne() as { max: string | number | null };
 
-        const maxOrder = raw?.max != null ? Number(raw.max) : 0;
+        const maxOrder = max != null ? Number(max) : 0;
 
         const newChapter = this.chapterRepo.create({
             ...data,
