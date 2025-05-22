@@ -7,8 +7,14 @@ import { NotebookPage } from "./lab-notebook-page.entity";
 @Entity('lab_notebook_sections')
 export class NotebookSection {
 
-    @PrimaryColumn({ type: 'uuid' }) id: UUID
-    @Column({ type: 'varchar' }) title: string
+    @PrimaryColumn({ type: 'uuid' })
+    id: UUID
+
+    @Column({ type: 'varchar' })
+    title: string
+
+    @Column({ type: 'uuid' })
+    userId: UUID
 
     @ManyToOne(() => NotebookChapter, chapter => chapter.sections, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'chapter_id' })

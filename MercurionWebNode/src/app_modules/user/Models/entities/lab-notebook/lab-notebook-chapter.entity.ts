@@ -7,11 +7,14 @@ import { NotebookSection } from "./lab-notebook-section.entity";
 @Entity('lab_notebook_chapters')
 export class NotebookChapter {
 
-    @PrimaryColumn({ type: 'uuid' }) id: UUID
+    @PrimaryColumn({ type: 'uuid' })
+    id: UUID
 
-    @Column({ type: 'varchar' }) title: string
-
-    @Column({ type: 'uuid' }) userId: UUID
+    @Column({ type: 'uuid' })
+    userId: UUID
+    
+    @Column({ type: 'varchar' })
+    title: string
 
     @ManyToOne(() => LabNotebook, notebook => notebook.chapters, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'notebook_id' })
