@@ -20,6 +20,7 @@ import { LabNotebook } from './Models/entities/lab-notebook/lab-notebook.entity'
 import { NotebookChapterService } from './services/lab-notebook/notebook-chapter.service';
 import { NotebookSectionService } from './services/lab-notebook/notebook-section.service';
 import { PageResolver } from './resolvers/lab-notebook/page.resolver';
+import { NotebookChapterResolver } from './resolvers/lab-notebook/notebook-chapter.resolver';
 
 
 @Module({
@@ -44,7 +45,8 @@ import { PageResolver } from './resolvers/lab-notebook/page.resolver';
     NotebookPageService,
     NotebookChapterService,
     NotebookSectionService,
-    PageResolver
+    PageResolver,
+    NotebookChapterResolver
   ],
   exports: [UserService, TypeOrmModule],
   controllers: [LabNotebookController]

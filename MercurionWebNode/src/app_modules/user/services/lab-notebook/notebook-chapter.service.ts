@@ -14,20 +14,25 @@ export class NotebookChapterService {
         private readonly chapterRepo: Repository<NotebookChapter>,
     ) { }
 
-    async create(notebookId: UUID, data: Partial<NotebookChapter>): Promise<NotebookChapter> {
-        const { max } = await this.chapterRepo
+    async createChapter(notebookId: UUID, userId: UUID, data: Partial<NotebookChapter>): Promise<NotebookChapter> {
+
+        const raw = await this.chapterRepo
             .createQueryBuilder('chapter')
             .where('chapter.notebook_id = :notebookId', { notebookId })
             .select('MAX(chapter.order)', 'max')
-            .getRawOne() as { max: string | number | null }
+            .getRawOne()
+            .then(res => res.max ?? 0) as { max: string | number | null };
 
-        const chapter = this.chapterRepo.create({
+        const maxOrder = raw?.max != null ? Number(raw.max) : 0;
+
+        const newChapter = this.chapterRepo.create({
             ...data,
+            userId,
             notebook: { id: notebookId } as LabNotebookEntry,
-            order: max !== null && max !== undefined ? Number(max) + 1 : 0,
-        })
+            order: (Number(maxOrder) || 0) + 1,
+        });
 
-        return this.chapterRepo.save(chapter);
+        return await this.chapterRepo.save(newChapter);
     }
 
     async list(notebookId: UUID): Promise<NotebookChapter[]> {
@@ -66,4 +71,27 @@ export class NotebookChapterService {
             await this.chapterRepo.update({ id: orderedIds[i], notebook: { id: notebookId } }, { order: i });
         }
     }
+
+    async listChapters(notebookId: UUID): Promise<NotebookChapter[]> {
+        return this.chapterRepo.find({
+            where: { notebook: { id: notebookId } },
+            order: { order: 'ASC' },
+        })
+    }
+
+    async getChapter(id: UUID): Promise<NotebookChapter | null> {
+        return this.chapterRepo.findOne({ where: { id } })
+    }
+
+    async updateChapter(id: UUID, data: Partial<NotebookChapter>): Promise<NotebookChapter | null> {
+        await this.chapterRepo.update({ id }, data)
+        return this.getChapter(id)
+    }
+
+    async deleteChapter(id: UUID): Promise<void> {
+        await this.chapterRepo.delete({ id })
+    }
+
+
+
 }
