@@ -3,7 +3,6 @@ import { MoleculeDetail } from "../Models/DTO/molecule-detail.gql.dtos"
 import { MoleculeDetailModel } from "src/app_modules/chembl/Models/DTO/molecule-detail-model.interface"
 import { MeiliSearch } from "meilisearch"
 import { RpcException } from "@nestjs/microservices"
-import axios from 'axios'
 
 @Injectable()
 export class MoleculeService {
