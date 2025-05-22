@@ -22,33 +22,39 @@ export class NotebookSectionService {
      * @param data - dati della sezione
      */
     async create(userId: UUID, chapterId: UUID, data: Partial<NotebookSection>): Promise<NotebookSection> {
+        return this.sectionRepo.manager.transaction(async manager => {
+            const { max } = await manager
+                .createQueryBuilder(NotebookSection, 'section')
+                .where('section.chapter_id = :chapterId', { chapterId })
+                .select('MAX(section.order)', 'max')
+                .getRawOne() as { max: string | number | null }
 
-        const { max } = await this.sectionRepo
-            .createQueryBuilder('section')
-            .where('section.chapter_id = :chapterId', { chapterId })
-            .select('MAX(section.order)', 'max')
-            .getRawOne() as { max: string | number | null };
+            const section = manager.create(NotebookSection, {
+                ...data,
+                userId,
+                chapter: { id: chapterId } as NotebookChapter,
+                order: max !== null && max !== undefined ? Number(max) + 1 : 0,
+            })
 
-        const section = this.sectionRepo.create({
-            ...data,
-            userId, // assegna sempre ownership
-            chapter: { id: chapterId } as NotebookChapter,
-            order: max !== null && max !== undefined ? Number(max) + 1 : 0,
-        });
+            return manager.save(section)
+        })
+    }
 
-        return this.sectionRepo.save(section)
+    private toDTO(entity: NotebookSection): NotebookSectionDTO {
+        return {
+            id: entity.id,
+            chapterId: (entity.chapter as unknown as NotebookChapter).id,
+            order: entity.order,
+            title: entity.title,
+            userId: entity.userId,
+            description: entity.description ?? undefined,
+        }
     }
 
     async createToDTO(userId: UUID, chapterId: UUID, data: Partial<NotebookSection>): Promise<NotebookSectionDTO> {
         const entity: NotebookSection = await this.create(userId, chapterId, data)
-        return {
-            id: entity.id,
-            chapterId,
-            order: entity.order,
-            title: entity.title,
-            userId: entity.userId,
-            description: entity.description ?? undefined
-        }
+        entity.chapter = { id: chapterId } as NotebookChapter
+        return this.toDTO(entity)
     }
 
     /**
@@ -63,56 +69,60 @@ export class NotebookSectionService {
     }
 
     async listOfDTOs(userId: UUID, chapterId: UUID): Promise<NotebookSectionDTO[]> {
-        return (await this.list(userId, chapterId)).map(s => {
-            const sDTO: NotebookSectionDTO = {
-                id: s.id,
-                title: s.title,
-                order: s.order,
-                chapterId: s.chapter.id,
-                userId: s.userId
-            }
-            return sDTO
-        })
+        return (await this.list(userId, chapterId)).map(s => this.toDTO(s))
     }
 
     /**
      * Sposta una sezione su/giù, **solo se di proprietà dell'utente**
      */
     async move(userId: UUID, sectionId: UUID, direction: 'up' | 'down'): Promise<void> {
-        const section = await this.sectionRepo.findOne({
-            where: { id: sectionId, userId },
-            relations: ['chapter'],
-        });
-        if (!section) throw new Error('Section not found or not owned');
+        await this.sectionRepo.manager.transaction(async manager => {
+            const section = await manager.findOne(NotebookSection, {
+                where: { id: sectionId, userId },
+                relations: ['chapter'],
+            })
+            if (!section) throw new Error('Section not found or not owned')
 
-        const chapterId = (section.chapter as unknown as NotebookChapter).id;
+            const chapterId = (section.chapter as unknown as NotebookChapter).id
 
-        const neighbor = await this.sectionRepo.createQueryBuilder('s')
-            .where('s.chapter_id = :chapterId', { chapterId })
-            .andWhere('s.user_id = :userId', { userId })
-            .andWhere(direction === 'up' ? 's.order < :order' : 's.order > :order', { order: section.order })
-            .orderBy('s.order', direction === 'up' ? 'DESC' : 'ASC')
-            .getOne();
+            const neighbor = await manager
+                .createQueryBuilder(NotebookSection, 's')
+                .where('s.chapter_id = :chapterId', { chapterId })
+                .andWhere('s.user_id = :userId', { userId })
+                .andWhere(direction === 'up' ? 's.order < :order' : 's.order > :order', { order: section.order })
+                .orderBy('s.order', direction === 'up' ? 'DESC' : 'ASC')
+                .getOne()
 
-        if (!neighbor) return;
+            if (!neighbor) return
 
-        const tmp = section.order;
-        section.order = neighbor.order;
-        neighbor.order = tmp;
+            const tmp = section.order
+            section.order = neighbor.order
+            neighbor.order = tmp
 
-        await this.sectionRepo.save([section, neighbor]);
+            await manager.save([section, neighbor])
+        })
     }
 
     /**
      * Riordina tutte le sezioni di un capitolo per un utente specifico.
      */
     async reorder(userId: UUID, chapterId: UUID, orderedIds: UUID[]): Promise<void> {
-        for (let i = 0; i < orderedIds.length; i++) {
-            await this.sectionRepo.update(
-                { id: orderedIds[i], chapter: { id: chapterId }, userId },
-                { order: i }
-            );
-        }
+        if (orderedIds.length === 0) return
+
+        const cases = orderedIds
+            .map((id, idx) => `WHEN id = '${id}' THEN ${idx}`)
+            .join(' ')
+
+        await this.sectionRepo.manager.transaction(async manager => {
+            await manager
+                .createQueryBuilder()
+                .update(NotebookSection)
+                .set({ order: () => `CASE ${cases} ELSE "order" END` })
+                .where('chapter_id = :chapterId', { chapterId })
+                .andWhere('user_id = :userId', { userId })
+                .andWhere('id IN (:...ids)', { ids: orderedIds })
+                .execute()
+        })
     }
 
     // In NotebookSectionService
@@ -123,15 +133,7 @@ export class NotebookSectionService {
 
     async updateToDTO(userId: UUID, id: UUID, input: Omit<UpdateSectionInput, 'id'>): Promise<NotebookSectionDTO | null> {
         const entity: NotebookSection | null = await this.update(userId, id, input)
-        return entity != null ? {
-            id: entity.id,
-            title: entity.title,
-            order: entity.order,
-            chapterId: entity.chapter.id,
-            userId: entity.userId,
-            description: entity.description ?? undefined
-        }
-            : null
+        return entity != null ? this.toDTO(entity) : null
     }
 
     async delete(userId: UUID, id: UUID): Promise<void> {
