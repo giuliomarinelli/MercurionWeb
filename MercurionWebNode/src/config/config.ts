@@ -30,7 +30,7 @@ export enum ConfigKey {
     Session = "Session",
     Dropbox = "Dropbox",
     Meilisearch = 'Meilisearch',
-    CloudeFlare = 'CloudeFlare'
+    Cloudflare = 'Cloudflare'
 
 }
 
@@ -218,9 +218,9 @@ const MeilisearchConfig = registerAs(
     })
 )
 
-const CloudeFlareConfig =  registerAs(
-    ConfigKey.CloudeFlare, (): CloudFlareConfiguration => ({
-        secretKey: process.env.CLOUDEFLARE_SECRET_KEY as string
+const CloudflareConfig =  registerAs(
+    ConfigKey.Cloudflare, (): CloudFlareConfiguration => ({
+        secretKey: process.env.CLOUDFLARE_SECRET_KEY as string
     })
 )
 
@@ -236,5 +236,5 @@ export const configurations = [
     SessionConfig,
     DropboxConfig,
     MeilisearchConfig,
-    CloudeFlareConfig
+    CloudflareConfig
 ]

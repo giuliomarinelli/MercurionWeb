@@ -145,8 +145,9 @@ export class GlobalGuard implements CanActivate {
             return false
          }
 
-         // 🔹 Inietta lo userId nei dati della socket
+         // 🔹 Inietta lo userId e gli scope nei dati della socket
          client.data.userId = payload.sub
+         client.data.scopes = payload.scp?.split(' ') ?? []
          return true
       } catch {
          client.emit('s_pub_err_event_emitter', { message: 'Unauthorized' })

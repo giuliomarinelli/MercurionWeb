@@ -16,7 +16,7 @@ export class TurnstileService {
     private readonly http: HttpService,
     private readonly configService: ConfigService
   ) {
-    this.secret = this.configService.get<string>('CloudeFlare.secretKey') as string
+    this.secret = this.configService.get<string>('Cloudflare.secretKey') as string
   }
 
   async verifyToken(token: string, remoteIp?: string): Promise<boolean> {
