@@ -3,7 +3,7 @@ import { UUID } from "crypto";
 import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, PrimaryColumn } from "typeorm";
 import { LabNotebookLink } from "./lab-notebook-link.entity";
 
-@Entity('lab_notebooks')
+@Entity('lab_notebooks_old')
 export class LabNotebookEntry {
 
     @PrimaryColumn({ type: 'uuid' })

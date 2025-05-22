@@ -20,7 +20,7 @@ export class NotebookChapter {
     @JoinColumn({ name: 'notebook_id' })
     notebook: LabNotebook
 
-    @OneToMany(() => NotebookSection, section => section.chapter, { cascade: true })
+    @OneToMany(() => NotebookSection, section => section.chapter)
     sections: NotebookSection[]
 
     @Column({ type: 'int', default: 0 })

@@ -16,10 +16,10 @@ export class NotebookPage {
     @Column({ type: 'varchar' })
     title: string
 
-    @Column({ type: 'text' })
+    @Column({ type: 'text', default: '' })
     content: string          // HTML o Delta
 
-    @Column({ type: 'text' })
+    @Column({ type: 'text', default: '' })
     sanitizedText: string    // per Meilisearch
 
     @ManyToOne(() => NotebookSection, section => section.pages, { onDelete: 'CASCADE' })

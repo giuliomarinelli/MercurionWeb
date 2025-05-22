@@ -16,7 +16,7 @@ export class LabNotebook {
     @Column({ type: 'varchar' }) 
     title: string
 
-    @OneToMany(() => NotebookChapter, chapter => chapter.notebook, { cascade: true })
+    @OneToMany(() => NotebookChapter, chapter => chapter.notebook)
     chapters: NotebookChapter[]
 
     @Column({ nullable: true, type: 'bigint' }) 
