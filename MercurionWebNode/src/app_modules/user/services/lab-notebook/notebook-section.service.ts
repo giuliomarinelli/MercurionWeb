@@ -1,9 +1,11 @@
+import { NotebookSectionDTO } from './../../Models/DTO/lab-notebook/notebook-section.dto';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { NotebookSection } from '../../Models/entities/lab-notebook/lab-notebook-section.entity';
 import { NotebookChapter } from '../../Models/entities/lab-notebook/lab-notebook-chapter.entity';
 import { UUID } from 'crypto';
+import { UpdateSectionInput } from '../../Models/DTO/lab-notebook/update-section-input';
 
 @Injectable()
 export class NotebookSectionService {
@@ -20,6 +22,7 @@ export class NotebookSectionService {
      * @param data - dati della sezione
      */
     async create(userId: UUID, chapterId: UUID, data: Partial<NotebookSection>): Promise<NotebookSection> {
+
         const { max } = await this.sectionRepo
             .createQueryBuilder('section')
             .where('section.chapter_id = :chapterId', { chapterId })
@@ -33,7 +36,19 @@ export class NotebookSectionService {
             order: max !== null && max !== undefined ? Number(max) + 1 : 0,
         });
 
-        return this.sectionRepo.save(section);
+        return this.sectionRepo.save(section)
+    }
+
+    async createToDTO(userId: UUID, chapterId: UUID, data: Partial<NotebookSection>): Promise<NotebookSectionDTO> {
+        const entity: NotebookSection = await this.create(userId, chapterId, data)
+        return {
+            id: entity.id,
+            chapterId,
+            order: entity.order,
+            title: entity.title,
+            userId: entity.userId,
+            description: entity.description ?? undefined
+        }
     }
 
     /**
@@ -43,7 +58,21 @@ export class NotebookSectionService {
         return this.sectionRepo.find({
             where: { chapter: { id: chapterId }, userId },
             order: { order: 'ASC' },
-        });
+            relations: { chapter: true }
+        })
+    }
+
+    async listOfDTOs(userId: UUID, chapterId: UUID): Promise<NotebookSectionDTO[]> {
+        return (await this.list(userId, chapterId)).map(s => {
+            const sDTO: NotebookSectionDTO = {
+                id: s.id,
+                title: s.title,
+                order: s.order,
+                chapterId: s.chapter.id,
+                userId: s.userId
+            }
+            return sDTO
+        })
     }
 
     /**
@@ -85,4 +114,28 @@ export class NotebookSectionService {
             );
         }
     }
+
+    // In NotebookSectionService
+    async update(userId: UUID, id: UUID, input: Omit<UpdateSectionInput, 'id'>): Promise<NotebookSection> {
+        await this.sectionRepo.update({ id, userId }, input)
+        return this.sectionRepo.findOneOrFail({ where: { id, userId } })
+    }
+
+    async updateToDTO(userId: UUID, id: UUID, input: Omit<UpdateSectionInput, 'id'>): Promise<NotebookSectionDTO> {
+        const entity: NotebookSection = await this.update(userId, id, input)
+        return {
+            id: entity.id,
+            title: entity.title,
+            order: entity.order,
+            chapterId: entity.chapter.id,
+            userId: entity.userId,
+            description: entity.description ?? undefined
+        }
+    }
+
+    async delete(userId: UUID, id: UUID): Promise<void> {
+        await this.sectionRepo.delete({ id, userId });
+    }
+
+
 }

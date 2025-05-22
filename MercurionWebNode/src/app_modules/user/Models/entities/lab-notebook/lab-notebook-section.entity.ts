@@ -26,6 +26,9 @@ export class NotebookSection {
     @Column({ type: 'int', default: 0 })
     order: number
 
+    @Column({ type: 'text', default: null })
+    description: string | null
+
     @BeforeInsert() generateId() {
         this.id = uuidv7() as UUID
     }

@@ -21,6 +21,7 @@ import { NotebookChapterService } from './services/lab-notebook/notebook-chapter
 import { NotebookSectionService } from './services/lab-notebook/notebook-section.service';
 import { PageResolver } from './resolvers/lab-notebook/page.resolver';
 import { NotebookChapterResolver } from './resolvers/lab-notebook/notebook-chapter.resolver';
+import { NotebookSectionResolver } from './resolvers/lab-notebook/notebook-section.resolver';
 
 
 @Module({
@@ -46,7 +47,8 @@ import { NotebookChapterResolver } from './resolvers/lab-notebook/notebook-chapt
     NotebookChapterService,
     NotebookSectionService,
     PageResolver,
-    NotebookChapterResolver
+    NotebookChapterResolver,
+    NotebookSectionResolver
   ],
   exports: [UserService, TypeOrmModule],
   controllers: [LabNotebookController]

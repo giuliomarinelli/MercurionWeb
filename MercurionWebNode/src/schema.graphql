@@ -22,6 +22,15 @@ type NotebookChapterType {
   updatedAt: String
 }
 
+type NotebookSectionDTO {
+  id: ID!
+  title: String!
+  description: String
+  order: Int!
+  chapterId: ID!
+  userId: ID!
+}
+
 type MoleculeSearchResult {
   id: Int!
   preferredName: String!
@@ -66,6 +75,7 @@ type Query {
   page(id: String!): Page
   pagesBySection(sectionId: String!): [Page!]!
   chaptersByNotebook(notebookId: ID!): [NotebookChapterType!]!
+  sections(chapterId: ID!): [NotebookSectionDTO!]!
   moleculeSearch(input: MoleculeSearchInput!): [MoleculeSearchResult!]!
   moleculeByMolregno(molregno: String!): MoleculeDetail!
 }
@@ -86,6 +96,9 @@ type Mutation {
   createChapter(input: CreateChapterInput!): NotebookChapterType!
   updateChapter(input: UpdateChapterInput!): NotebookChapterType!
   deleteChapter(id: ID!): Boolean!
+  createSection(input: CreateSectionInput!): NotebookSectionDTO!
+  updateSection(input: UpdateSectionInput!): NotebookSectionDTO!
+  deleteSection(id: ID!): Boolean!
 }
 
 input CreatePageInput {
@@ -110,4 +123,16 @@ input UpdateChapterInput {
   id: ID!
   title: String
   order: Int
+}
+
+input CreateSectionInput {
+  chapterId: ID!
+  title: String!
+  description: String
+}
+
+input UpdateSectionInput {
+  id: ID!
+  title: String
+  description: String
 }
