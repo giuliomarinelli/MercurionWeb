@@ -3,6 +3,7 @@ import { UUID } from "crypto";
 import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, PrimaryColumn } from "typeorm";
 import { NotebookChapter } from "./lab-notebook-chapter.entity";
 
+
 @Entity('lab_notebooks')
 export class LabNotebook {
     

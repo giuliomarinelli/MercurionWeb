@@ -2,51 +2,39 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UUID } from 'crypto';
-import { LabNotebookEntry } from '../Models/entities/lab-notbook-entry.entity';
-import { CreateNoteDto } from '../Models/DTO/create-note.cls.dto';
-import { UpdateNoteDto } from '../Models/DTO/update-note.cls.dto';
+import { LabNotebook } from '../Models/entities/lab-notebook/lab-notebook.entity';
 
 @Injectable()
 export class LabNotebookService {
     constructor(
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        @InjectRepository(LabNotebookEntry)
-        private readonly notebookRepo: Repository<LabNotebookEntry>
+        @InjectRepository(LabNotebook)
+        private readonly notebookRepo: Repository<LabNotebook>,
     ) { }
 
-    async createNote(dto: CreateNoteDto): Promise<LabNotebookEntry> {
-        const note = this.notebookRepo.create({ ...dto })
-        return this.notebookRepo.save(note)
+    async create(userId: UUID, title: string): Promise<LabNotebook> {
+        const notebook = this.notebookRepo.create({ userId, title, createdAt: Date.now() })
+        return await this.notebookRepo.save(notebook)
     }
 
-    async getUserNotes(userId: UUID): Promise<LabNotebookEntry[]> {
-        return this.notebookRepo.find({
-            where: { userId },
-            relations: {
-                links: true
-            },
-            order: { createdAt: 'DESC' }
-        })
+    async findOne(id: UUID, userId: UUID): Promise<LabNotebook | null> {
+        return this.notebookRepo.findOne({ where: { id, userId }, relations: ['chapters'] })
     }
 
-    async getNoteById(noteId: UUID): Promise<LabNotebookEntry> {
-        return this.notebookRepo.findOneOrFail({
-            where: { id: noteId },
-            relations: {
-                links: true
-            }
-        })
+    async findAllByUser(userId: UUID): Promise<LabNotebook[]> {
+        return this.notebookRepo.find({ where: { userId }, order: { createdAt: 'DESC' } })
     }
 
-    async updateNote(noteId: UUID, dto: UpdateNoteDto): Promise<LabNotebookEntry> {
-        await this.notebookRepo.update(noteId, {
-            ...dto
-        })
-        return this.getNoteById(noteId)
+    async update(id: UUID, userId: UUID, data: Partial<LabNotebook>): Promise<LabNotebook | null> {
+        await this.notebookRepo.update({ id }, data)
+        return this.findOne(id, userId)
     }
 
-    async deleteNote(noteId: UUID): Promise<void> {
-        await this.notebookRepo.delete(noteId)
+    async delete(id: UUID, userId: UUID): Promise<boolean> {
+        try {
+            await this.notebookRepo.delete({ id, userId })
+            return true
+        } catch {
+            return false
+        }
     }
-
 }

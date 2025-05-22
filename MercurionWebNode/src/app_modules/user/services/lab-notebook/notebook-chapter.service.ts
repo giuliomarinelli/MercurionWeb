@@ -1,4 +1,4 @@
-import { NotebookChapterType } from './../../Models/DTO/lab-notebook/notebook-chapter';
+import { NotebookChapterType } from '../../Models/DTO/lab-notebook/notebook-chapter-type';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';

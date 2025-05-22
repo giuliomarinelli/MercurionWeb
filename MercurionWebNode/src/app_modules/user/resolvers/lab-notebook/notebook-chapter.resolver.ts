@@ -1,5 +1,5 @@
 import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
-import { NotebookChapterType } from '../../Models/DTO/lab-notebook/notebook-chapter';
+import { NotebookChapterType } from '../../Models/DTO/lab-notebook/notebook-chapter-type';
 import { NotebookChapterService } from '../../services/lab-notebook/notebook-chapter.service';
 import { UUID } from 'crypto';
 import { CreateChapterInput } from '../../Models/DTO/lab-notebook/create-notebook-chapter-input';

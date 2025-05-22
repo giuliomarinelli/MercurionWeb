@@ -10,8 +10,6 @@ import { MoleculeCollectionItemJoin } from './Models/entities/molecule-collectio
 import { MoleculeCollectionItemEntity } from './Models/entities/molecule-collection-item.entity';
 import { LabNotebookEntry } from './Models/entities/lab-notbook-entry.entity';
 import { LabNotebookLink } from './Models/entities/lab-notebook-link.entity';
-import { LabNotebookService } from './services/lab-notebook.service';
-import { LabNotebookController } from './controllers/lab-notebook.controller';
 import { NotebookPageService } from './services/lab-notebook/notebook-page.service';
 import { NotebookChapter } from './Models/entities/lab-notebook/lab-notebook-chapter.entity';
 import { NotebookPage } from './Models/entities/lab-notebook/lab-notebook-page.entity';
@@ -22,6 +20,8 @@ import { NotebookSectionService } from './services/lab-notebook/notebook-section
 import { PageResolver } from './resolvers/lab-notebook/page.resolver';
 import { NotebookChapterResolver } from './resolvers/lab-notebook/notebook-chapter.resolver';
 import { NotebookSectionResolver } from './resolvers/lab-notebook/notebook-section.resolver';
+import { LabNotebookService } from './services/lab-notebook.service';
+import { LabNotebookResolver } from './resolvers/lab-notebook/lab-notebook.resolver';
 
 
 @Module({
@@ -48,9 +48,10 @@ import { NotebookSectionResolver } from './resolvers/lab-notebook/notebook-secti
     NotebookSectionService,
     PageResolver,
     NotebookChapterResolver,
-    NotebookSectionResolver
+    NotebookSectionResolver,
+    LabNotebookResolver
   ],
   exports: [UserService, TypeOrmModule],
-  controllers: [LabNotebookController]
+  controllers: []
 })
 export class UserModule { }
