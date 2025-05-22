@@ -1,7 +1,7 @@
 import { Field, ID, InputType } from "@nestjs/graphql";
 
 @InputType()
-export class CreatePageInput {ù
+export class CreatePageInput {
 
   @Field(() => ID)
   sectionId: string

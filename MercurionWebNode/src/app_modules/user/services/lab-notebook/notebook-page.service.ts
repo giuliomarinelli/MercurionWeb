@@ -16,16 +16,13 @@ export class NotebookPageService {
 
     async createPage(sectionId: UUID, data: Partial<NotebookPage>): Promise<NotebookPage> {
 
-        const raw = await this.pageRepo
+        const { max } = await this.pageRepo
             .createQueryBuilder('page')
             .where('page.section_id = :sectionId', { sectionId })
             .select('MAX(page.order)', 'max')
-            .getRawOne()
-            .then(res => res.max ?? 0) as { max: string | number | null }
+            .getRawOne() as { max: string | number | null }
 
-        const maxOrder = raw?.max != null
-            ? Number(raw.max)
-            : 0
+        const maxOrder = max != null ? Number(max) : 0
 
         const newPage = this.pageRepo.create({
             ...data,
@@ -103,3 +100,4 @@ export class NotebookPageService {
 
 
 }
+

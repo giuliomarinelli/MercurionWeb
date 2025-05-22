@@ -118,7 +118,7 @@ export class NotebookSectionService {
     // In NotebookSectionService
     async update(userId: UUID, id: UUID, input: Omit<UpdateSectionInput, 'id'>): Promise<NotebookSection | null> {
         await this.sectionRepo.update({ id, userId }, input)
-        return this.sectionRepo.findOneOrFail({ where: { id, userId } })
+        return this.sectionRepo.findOne({ where: { id, userId }, relations: { chapter: true } })
     }
 
     async updateToDTO(userId: UUID, id: UUID, input: Omit<UpdateSectionInput, 'id'>): Promise<NotebookSectionDTO | null> {
@@ -140,3 +140,4 @@ export class NotebookSectionService {
 
 
 }
+
