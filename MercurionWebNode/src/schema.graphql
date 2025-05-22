@@ -2,6 +2,16 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type Page {
+  id: ID!
+  sectionId: ID!
+  title: String
+  content: String
+  order: Int
+  createdAt: String
+  updatedAt: String
+}
+
 type MoleculeSearchResult {
   id: Int!
   preferredName: String!
@@ -43,6 +53,8 @@ type MoleculeDetail {
 }
 
 type Query {
+  page(id: String!): Page
+  pagesBySection(sectionId: String!): [Page!]!
   moleculeSearch(input: MoleculeSearchInput!): [MoleculeSearchResult!]!
   moleculeByMolregno(molregno: String!): MoleculeDetail!
 }
@@ -54,4 +66,23 @@ input MoleculeSearchInput {
   minMw: Float
   maxMw: Float
   limit: Int
+}
+
+type Mutation {
+  createPage(sectionId: String!, input: CreatePageInput!): Page!
+  updatePage(input: UpdatePageInput!): Page!
+  deletePage(id: String!): Boolean!
+}
+
+input CreatePageInput {
+  sectionId: ID!
+  title: String
+  content: String
+}
+
+input UpdatePageInput {
+  id: ID!
+  title: String
+  content: String
+  order: Int
 }

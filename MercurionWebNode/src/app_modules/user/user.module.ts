@@ -19,11 +19,12 @@ import { NotebookSection } from './Models/entities/lab-notebook/lab-notebook-sec
 import { LabNotebook } from './Models/entities/lab-notebook/lab-notebook.entity';
 import { NotebookChapterService } from './services/lab-notebook/notebook-chapter.service';
 import { NotebookSectionService } from './services/lab-notebook/notebook-section.service';
+import { PageResolver } from './resolvers/lab-notebook/page.resolver';
 
 
 @Module({
   imports: [TypeOrmModule.forFeature([
-    User, 
+    User,
     MfaBackupCode,
     ChEMBLMoleculeItemEntity,
     CustomMoleculeItemEntity,
@@ -38,9 +39,12 @@ import { NotebookSectionService } from './services/lab-notebook/notebook-section
     LabNotebook
   ])],
   providers: [
-    UserService, 
-    LabNotebookService, 
-    NotebookPageService, NotebookChapterService, NotebookSectionService
+    UserService,
+    LabNotebookService,
+    NotebookPageService,
+    NotebookChapterService,
+    NotebookSectionService,
+    PageResolver
   ],
   exports: [UserService, TypeOrmModule],
   controllers: [LabNotebookController]
