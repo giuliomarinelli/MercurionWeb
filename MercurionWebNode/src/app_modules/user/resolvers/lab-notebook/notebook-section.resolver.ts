@@ -1,14 +1,13 @@
 import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
 import { NotebookSectionDTO } from '../../Models/DTO/lab-notebook/notebook-section.dto';
 import { NotebookSectionService } from '../../services/lab-notebook/notebook-section.service';
-import { AuthenticatedUserId, Public } from 'src/metadata/metadata';
+import { AuthenticatedUserId } from 'src/metadata/metadata';
 import { UUID } from 'crypto';
 import { CreateSectionInput } from '../../Models/DTO/lab-notebook/create-section-input';
 import { UpdateSectionInput } from '../../Models/DTO/lab-notebook/update-section-input';
 
 
 
-@Public()
 @Resolver(() => NotebookSectionDTO)
 export class NotebookSectionResolver {
     constructor(private readonly sectionService: NotebookSectionService) { }

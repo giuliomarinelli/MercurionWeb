@@ -3,7 +3,7 @@ import { LabNotebook } from '../../Models/entities/lab-notebook/lab-notebook.ent
 import { LabNotebookService } from '../../services/lab-notebook.service';
 import { UpdateLabNotebookInput } from '../../Models/DTO/lab-notebook/update-lab-notebook-input';
 import { UUID } from 'crypto';
-import { AuthenticatedUserId, Public } from 'src/metadata/metadata';
+import { AuthenticatedUserId } from 'src/metadata/metadata';
 import { LabNotebookType } from '../../Models/DTO/lab-notebook/lab-notebook-type';
 
 
@@ -26,7 +26,7 @@ export class LabNotebookResolver {
         return this.notebookService.findOne(id as UUID, userId)
     }
 
-    @Public()
+    // @Public()
     @Mutation(() => LabNotebookType)
     async createLabNotebook(
         @AuthenticatedUserId() userId: UUID,
