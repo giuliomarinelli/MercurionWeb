@@ -46,42 +46,13 @@ export class MoleculeService {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     private async fetchFromChembl(molregno: string) {
-        try {
-            const { data } = await axios.get(`https://www.ebi.ac.uk/chembl/api/data/molecule/${molregno}.json`)
-            return {
-                id: data.molecule_chembl_id,
-                cmbId: data.chembl_id,
-                preferredName: data.pref_name,
-                canonicalSmiles: data.molecule_structures?.canonical_smiles ?? '',
-                properties: {
-                    mwFreebase: Number(data.molecule_properties?.mw_freebase) || null,
-                    alogp: Number(data.molecule_properties?.alogp) || null,
-                    hba: Number(data.molecule_properties?.hba) || null,
-                    hbd: Number(data.molecule_properties?.hbd) || null,
-                    psa: Number(data.molecule_properties?.psa) || null,
-                    rtb: Number(data.molecule_properties?.rtb) || null
-                },
-                maxPhase: data.max_phase,
-                moleculeType: data.molecule_type,
-                administrationRoutes: {
-                    oral: false,
-                    parenteral: false,
-                    topical: false
-                },
-                naturalProduct: !!data.natural_product,
-                prodrug: !!data.prodrug,
-                blackBoxWarning: !!data.black_box_warning,
-                synonyms: []
-            } as MoleculeDetailModel
-        } catch {
-            const index = this.meiliClient.index('molecules_detail')
+    const index = this.meiliClient.index('molecules_detail')
 
-            const result = await index.getDocument(molregno).catch(() => {
-                throw new RpcException(`MoleculeDetailNotFound::Molecule with molregno = ${molregno} not found`)
-            })
+        const result = await index.getDocument(molregno).catch(() => {
+            throw new RpcException(`MoleculeDetailNotFound::Molecule with molregno = ${molregno} not found`)
+        })
 
-            return this.mapMeiliToDTO(result as MoleculeDetailModel)
-        }
+        return this.mapMeiliToDTO(result as MoleculeDetailModel)
     }
 
     private mapMeiliToDTO(doc: MoleculeDetailModel): MoleculeDetail {
