@@ -14,7 +14,7 @@ export class NotebookPageService {
         private readonly pageRepo: Repository<NotebookPage>
     ) { }
 
-    async createPage(sectionId: UUID, data: Partial<NotebookPage>): Promise<NotebookPage> {
+    async createPage(sectionId: UUID, userId: UUID, data: Partial<NotebookPage>): Promise<NotebookPage> {
 
         const { max } = await this.pageRepo
             .createQueryBuilder('page')
@@ -33,8 +33,8 @@ export class NotebookPageService {
         return await this.pageRepo.save(newPage)
     }
 
-    async getPage(id: UUID): Promise<NotebookPage | null> {
-        return this.pageRepo.findOne({ where: { id } })
+    async getPage(id: UUID, userId: UUID): Promise<NotebookPage | null> {
+        return this.pageRepo.findOne({ where: { id, userId } })
     }
 
     async listPages(sectionId: UUID): Promise<NotebookPage[]> {
@@ -44,14 +44,14 @@ export class NotebookPageService {
         })
     }
 
-    async updatePage(id: UUID, data: Partial<NotebookPage>): Promise<NotebookPage | null> {
-        await this.pageRepo.update({ id }, data)
-        return this.getPage(id)
+    async updatePage(id: UUID, userId: UUID, data: Partial<NotebookPage>): Promise<NotebookPage | null> {
+        await this.pageRepo.update({ id, userId }, data)
+        return this.getPage(id, userId)
     }
 
-    async deletePage(id: UUID): Promise<boolean> {
+    async deletePage(id: UUID, userId: UUID): Promise<boolean> {
         try {
-            await this.pageRepo.delete({ id })
+            await this.pageRepo.delete({ id, userId })
         } catch {
             return false
         }
@@ -88,9 +88,9 @@ export class NotebookPageService {
         }
     }
 
-    async findBySection(sectionId: UUID): Promise<NotebookPage[]> {
+    async findBySection(sectionId: UUID, userId: UUID): Promise<NotebookPage[]> {
         return this.pageRepo.find({
-            where: { section: { id: sectionId } },
+            where: { section: { id: sectionId, userId } },
             relations: { section: true },
             order: { order: 'ASC' }
         })

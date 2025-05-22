@@ -135,7 +135,7 @@ export class NotebookSectionService {
     }
 
     async delete(userId: UUID, id: UUID): Promise<void> {
-        await this.sectionRepo.delete({ id, userId });
+        await this.sectionRepo.delete({ id, userId })
     }
 
 
