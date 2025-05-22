@@ -8,7 +8,7 @@ import { NotebookSection } from '../../Models/entities/lab-notebook/lab-notebook
 
 @Injectable()
 export class NotebookPageService {
-    
+
     constructor(
         @InjectRepository(NotebookPage)
         private readonly pageRepo: Repository<NotebookPage>
@@ -84,6 +84,16 @@ export class NotebookPageService {
             await this.pageRepo.update({ id: orderedIds[i], section: { id: sectionId } }, { order: i })
         }
     }
+
+    async findBySection(sectionId: UUID): Promise<NotebookPage[]> {
+        return this.pageRepo.find({
+            where: { section: { id: sectionId } },
+            relations: { section: true },
+            order: { order: 'ASC' }
+        })
+    }
+
+
 
 
 }

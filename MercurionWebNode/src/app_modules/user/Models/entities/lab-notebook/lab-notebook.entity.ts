@@ -28,6 +28,7 @@ export class LabNotebook {
         this.id = uuidv7() as UUID;
         this.createdAt = Date.now()
     }
+    
     @BeforeUpdate() updateDate() {
         this.updatedAt = Date.now()
     }
