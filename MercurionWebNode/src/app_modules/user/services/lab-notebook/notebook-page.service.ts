@@ -50,10 +50,12 @@ export class NotebookPageService {
         return this.getPage(id, userId)
     }
 
-    async deletePage(id: UUID, userId: UUID): Promise<void> {
-        const result = await this.pageRepo.delete({ id, userId })
-        if (result.affected === 0) {
-            throw new Error('Page not found or not owned')
+    async deletePage(id: UUID, userId: UUID): Promise<boolean> {
+        try {
+            await this.pageRepo.delete({ id, userId })
+            return true
+        } catch {
+            return false
         }
     }
 
