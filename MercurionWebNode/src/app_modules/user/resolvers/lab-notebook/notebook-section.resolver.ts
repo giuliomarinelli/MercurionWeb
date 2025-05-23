@@ -1,5 +1,4 @@
 import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
-import { NotebookSectionDTO } from '../../Models/DTO/lab-notebook/notebook-section.dto';
 import { NotebookSectionService } from '../../services/lab-notebook/notebook-section.service';
 import { AuthenticatedUserId, Public } from 'src/metadata/metadata';
 import { UUID } from 'crypto';
@@ -10,13 +9,13 @@ import { NotebookSection } from '../../Models/entities/lab-notebook/lab-notebook
 
 
 
-@Resolver(() => NotebookSectionDTO)
+@Resolver(() => NotebookSection)
 export class NotebookSectionResolver {
     
     constructor(private readonly sectionService: NotebookSectionService) { }
 
     @Public()
-    @Query(() => [NotebookSectionDTO])
+    @Query(() => NotebookSection)
     async sectionByChapterId(
         @Args('chapterId', { type: () => ID }) chapterId: string,
         @AuthenticatedUserId() userId: string
@@ -29,21 +28,21 @@ export class NotebookSectionResolver {
     }
 
     @Public()
-    @Mutation(() => NotebookSectionDTO)
+    @Mutation(() => NotebookSection)
     async createSection(
         @Args('input') input: CreateSectionInput,
         @AuthenticatedUserId() userId: string
-    ): Promise<NotebookSectionDTO> {
-        return this.sectionService.createToDTO(userId as UUID, input.chapterId as UUID, input)
+    ): Promise<NotebookSection> {
+        return this.sectionService.create(userId as UUID, input.chapterId as UUID, input)
     }
 
     @Public()
-    @Mutation(() => NotebookSectionDTO)
+    @Mutation(() => NotebookSection)
     async updateSection(
         @Args('input') { id, ...input }: UpdateSectionInput,
         @AuthenticatedUserId() userId: string
-    ): Promise<NotebookSectionDTO | null> {
-        return this.sectionService.updateToDTO(userId as UUID, id as UUID, input)
+    ): Promise<NotebookSection | null> {
+        return this.sectionService.update(userId as UUID, id as UUID, input)
     }
 
     @Public()

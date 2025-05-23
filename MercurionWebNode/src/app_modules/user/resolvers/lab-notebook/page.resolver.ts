@@ -1,5 +1,4 @@
 import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
-import { Page } from '../../Models/DTO/lab-notebook/page';
 import { NotebookPageService } from '../../services/lab-notebook/notebook-page.service';
 import { UUID } from 'crypto';
 import { NotebookPage } from '../../Models/entities/lab-notebook/lab-notebook-page.entity';
@@ -8,13 +7,13 @@ import { UpdatePageInput } from '../../Models/DTO/lab-notebook/update-page-input
 import { AuthenticatedUserId, Public } from 'src/metadata/metadata';
 
 
-@Resolver(() => Page)
+@Resolver(() => NotebookPage)
 export class PageResolver {
 
     constructor(private readonly pageService: NotebookPageService) { }
 
     @Public()
-    @Query(() => Page, { nullable: true })
+    @Query(() => NotebookPage, { nullable: true })
     page(
         @Args(
             'id', { type: () => String }) id: string,
@@ -24,7 +23,7 @@ export class PageResolver {
     }
 
     @Public()
-    @Query(() => [Page])
+    @Query(() => [NotebookPage])
     pagesBySection(
         @Args('sectionId', { type: () => String }) sectionId: string,
         @AuthenticatedUserId() userId: UUID
@@ -33,7 +32,7 @@ export class PageResolver {
     }
 
     @Public()
-    @Mutation(() => Page)
+    @Mutation(() => NotebookPage)
     createPage(
         @Args('sectionId', { type: () => String }) sectionId: string, 
         @Args('input') input: CreatePageInput,
@@ -43,7 +42,7 @@ export class PageResolver {
     }
 
     @Public()
-    @Mutation(() => Page, { nullable: true })
+    @Mutation(() => NotebookPage, { nullable: true })
     async updatePage(
         @Args('input') { id, ...input }: UpdatePageInput,
         @AuthenticatedUserId() userId: UUID

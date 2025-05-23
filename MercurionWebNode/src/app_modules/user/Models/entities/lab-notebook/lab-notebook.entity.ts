@@ -2,27 +2,35 @@ import { uuidv7 } from "@kripod/uuidv7";
 import { UUID } from "crypto";
 import { BeforeInsert, Column, Entity, OneToMany, PrimaryColumn } from "typeorm";
 import { NotebookChapter } from "./lab-notebook-chapter.entity";
+import { ObjectType, Field, ID } from '@nestjs/graphql';
 
 
+@ObjectType()
 @Entity('lab_notebooks')
 export class LabNotebook {
     
-    @PrimaryColumn({ type: 'uuid' }) 
+    @Field(() => ID)
+    @PrimaryColumn({ type: 'uuid' })
     id: UUID
     
-    @Column({ type: 'uuid' }) 
+    @Field(() => ID)
+    @Column({ type: 'uuid' })
     userId: UUID
     
-    @Column({ type: 'varchar' }) 
+    @Field()
+    @Column({ type: 'varchar' })
     title: string
 
+    @Field(() => [NotebookChapter])
     @OneToMany(() => NotebookChapter, chapter => chapter.notebook)
     chapters: NotebookChapter[]
 
-    @Column({ nullable: true, type: 'bigint' }) 
+    @Field({ nullable: true })
+    @Column({ nullable: true, type: 'bigint' })
     createdAt: number | null
     
-    @Column({ nullable: true, type: 'bigint' }) 
+    @Field({ nullable: true })
+    @Column({ nullable: true, type: 'bigint' })
     updatedAt: number | null
 
     @BeforeInsert() 

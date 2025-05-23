@@ -1,4 +1,3 @@
-import { NotebookSectionDTO } from './../../Models/DTO/lab-notebook/notebook-section.dto';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -40,37 +39,24 @@ export class NotebookSectionService {
         })
     }
 
-    private toDTO(entity: NotebookSection): NotebookSectionDTO {
-        return {
-            id: entity.id,
-            chapterId: (entity.chapter as unknown as NotebookChapter).id,
-            order: entity.order,
-            title: entity.title,
-            userId: entity.userId,
-            description: entity.description ?? undefined,
-        }
-    }
-
-    async createToDTO(userId: UUID, chapterId: UUID, data: Partial<NotebookSection>): Promise<NotebookSectionDTO> {
-        const entity: NotebookSection = await this.create(userId, chapterId, data)
-        entity.chapter = { id: chapterId } as NotebookChapter
-        return this.toDTO(entity)
-    }
 
     /**
      * Lista tutte le sezioni di un capitolo, solo quelle dell'utente loggato.
      */
     async list(userId: UUID, chapterId: UUID): Promise<NotebookSection[]> {
-        return this.sectionRepo.find({
+        const sections = await this.sectionRepo.find({
             where: { chapter: { id: chapterId }, userId },
             order: { order: 'ASC' },
-            relations: { chapter: true }
+            relations: { chapter: true, pages: true }
         })
+        for (const s of sections) {
+            if (s.pages === undefined) {
+                s.pages = []
+            }
+        }
+        return sections
     }
 
-    async listOfDTOs(userId: UUID, chapterId: UUID): Promise<NotebookSectionDTO[]> {
-        return (await this.list(userId, chapterId)).map(s => this.toDTO(s))
-    }
 
     /**
      * Sposta una sezione su/giù, **solo se di proprietà dell'utente**
@@ -127,13 +113,13 @@ export class NotebookSectionService {
 
     async update(userId: UUID, id: UUID, input: Omit<UpdateSectionInput, 'id'>): Promise<NotebookSection | null> {
         await this.sectionRepo.update({ id, userId }, { updatedAt: Date.now(), ...input })
-        return this.sectionRepo.findOne({ where: { id, userId }, relations: { pages: true } })
+        const result = await this.sectionRepo.findOne({ where: { id, userId }, relations: { pages: true } })
+        if (result && result.pages === undefined) {
+            result.pages = []
+        }
+        return result
     }
 
-    async updateToDTO(userId: UUID, id: UUID, input: Omit<UpdateSectionInput, 'id'>): Promise<NotebookSectionDTO | null> {
-        const entity: NotebookSection | null = await this.update(userId, id, input)
-        return entity != null ? this.toDTO(entity) : null
-    }
 
     async delete(userId: UUID, id: UUID): Promise<void> {
         await this.sectionRepo.delete({ id, userId })
