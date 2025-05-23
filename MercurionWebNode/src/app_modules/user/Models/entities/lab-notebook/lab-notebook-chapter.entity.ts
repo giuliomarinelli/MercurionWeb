@@ -16,7 +16,7 @@ export class NotebookChapter {
     @Field(() => ID)
     @Column({ type: 'uuid' })
     userId: UUID
-    
+
     @Field()
     @Column({ type: 'varchar' })
     title: string
@@ -34,11 +34,11 @@ export class NotebookChapter {
     @Column({ type: 'int', default: 0 })
     order: number
 
-    @Field({ nullable: true })
+    @Field(() => String, { nullable: true })
     @Column({ nullable: true, type: 'bigint' })
     createdAt: number
-    
-    @Field({ nullable: true })
+
+    @Field(() => String, { nullable: true })
     @Column({ nullable: true, type: 'bigint' })
     updatedAt: number | null
 

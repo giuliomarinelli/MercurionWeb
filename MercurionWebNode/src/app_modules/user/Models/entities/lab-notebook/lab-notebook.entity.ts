@@ -25,11 +25,11 @@ export class LabNotebook {
     @OneToMany(() => NotebookChapter, chapter => chapter.notebook)
     chapters: NotebookChapter[]
 
-    @Field({ nullable: true })
+    @Field(() => String, { nullable: true })
     @Column({ nullable: true, type: 'bigint' })
     createdAt: number | null
     
-    @Field({ nullable: true })
+    @Field(() => String, { nullable: true })
     @Column({ nullable: true, type: 'bigint' })
     updatedAt: number | null
 

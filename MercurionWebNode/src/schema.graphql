@@ -2,42 +2,55 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type Page {
-  id: ID!
-  sectionId: ID!
-  title: String
-  content: String
-  order: Int
-  createdAt: String
-  updatedAt: String
-}
-
-type NotebookChapterType {
-  id: ID!
-  userId: String!
-  title: String!
-  order: Int!
-  sectionIds: [String!]
-  createdAt: String
-  updatedAt: String
-}
-
-type NotebookSectionDTO {
-  id: ID!
-  title: String!
-  description: String
-  order: Int!
-  chapterId: ID!
-  userId: ID!
-}
-
 type LabNotebook {
   id: ID!
   userId: ID!
   title: String!
-  chapters: [String]
+  chapters: [NotebookChapter!]!
+  createdAt: String
+  updatedAt: String
+}
+
+type NotebookChapter {
+  id: ID!
+  userId: ID!
+  title: String!
+  notebook: LabNotebook!
+  sections: [NotebookSection!]!
+  order: Int!
+  createdAt: String
+  updatedAt: String
+}
+
+type NotebookSection {
+  id: ID!
+  title: String!
+  userId: ID!
+  chapter: NotebookChapter!
+  pages: [NotebookPage!]!
+  order: Int!
+  description: String
+  createdAt: String
+  updatedAt: String
+}
+
+type LabNotebookLinkType {
+  id: ID!
+  noteId: ID!
+  itemId: ID!
+}
+
+type NotebookPage {
+  id: ID!
+  userId: ID!
+  title: String
+  content: String
+  sanitizedText: String
+  section: NotebookSection!
+  links: [LabNotebookLinkType!]!
   createdAt: Float
   updatedAt: Float
+  order: Int!
 }
 
 type MoleculeSearchResult {
@@ -81,11 +94,11 @@ type MoleculeDetail {
 }
 
 type Query {
-  page(id: String!): Page
-  pagesBySection(sectionId: String!): [Page!]!
-  sections(chapterId: ID!): [NotebookChapterType!]!
-  chaptersByNotebook(notebookId: ID!): [NotebookChapterType!]!
-  sectionByChapterId(chapterId: ID!): [NotebookSectionDTO!]!
+  page(id: String!): NotebookPage
+  pagesBySection(sectionId: String!): [NotebookPage!]!
+  sections(chapterId: ID!): [NotebookChapter!]!
+  chaptersByNotebook(notebookId: ID!): [NotebookChapter!]!
+  sectionByChapterId(chapterId: ID!): NotebookSection!
   labNotebooksByUser: [LabNotebook!]!
   labNotebook(id: String!): LabNotebook
   moleculeSearch(input: MoleculeSearchInput!): [MoleculeSearchResult!]!
@@ -102,14 +115,14 @@ input MoleculeSearchInput {
 }
 
 type Mutation {
-  createPage(sectionId: String!, input: CreatePageInput!): Page!
-  updatePage(input: UpdatePageInput!): Page
+  createPage(sectionId: String!, input: CreatePageInput!): NotebookPage!
+  updatePage(input: UpdatePageInput!): NotebookPage
   deletePage(id: String!): Boolean!
-  createChapter(input: CreateChapterInput!): NotebookChapterType!
-  updateChapter(input: UpdateChapterInput!): NotebookChapterType!
+  createChapter(input: CreateChapterInput!): NotebookChapter!
+  updateChapter(input: UpdateChapterInput!): NotebookChapter!
   deleteChapter(id: ID!): Boolean!
-  createSection(input: CreateSectionInput!): NotebookSectionDTO!
-  updateSection(input: UpdateSectionInput!): NotebookSectionDTO!
+  createSection(input: CreateSectionInput!): NotebookSection!
+  updateSection(input: UpdateSectionInput!): NotebookSection!
   deleteSection(id: ID!): Boolean!
   createLabNotebook(title: String!): LabNotebook!
   updateLabNotebook(input: UpdateLabNotebookInput!): LabNotebook!

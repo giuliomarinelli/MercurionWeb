@@ -39,11 +39,11 @@ export class NotebookPage {
     @OneToMany(() => LabNotebookLink, link => link.note)
     links: LabNotebookLink[]
 
-    @Field({ nullable: true })
+    @Field(() => String, { nullable: true })
     @Column({ nullable: true, type: 'bigint' })
     createdAt: number
 
-    @Field({ nullable: true })
+    @Field(() => String, { nullable: true })
     @Column({ nullable: true, type: 'bigint' })
     updatedAt: number
 

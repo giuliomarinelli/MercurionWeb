@@ -34,16 +34,16 @@ export class NotebookSection {
     @Column({ type: 'int', default: 0 })
     order: number
 
-    @Field({ nullable: true })
+    @Field(() => String, { nullable: true })
     @Column({ type: 'text', default: null })
     description: string | null
 
-    @Field({ nullable: true })
-    @Column({type: 'bigint', default: null})
+    @Field(() => String, { nullable: true })
+    @Column({ type: 'bigint', default: null })
     createdAt: number
-   
-    @Field({ nullable: true })
-    @Column({type: 'bigint', default: null})
+
+    @Field(() => String, { nullable: true })
+    @Column({ type: 'bigint', default: null })
     updatedAt: number
 
     @BeforeInsert() generateId() {
