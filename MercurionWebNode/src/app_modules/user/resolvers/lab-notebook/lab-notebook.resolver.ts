@@ -13,11 +13,13 @@ export class LabNotebookResolver {
 
     constructor(private readonly notebookService: LabNotebookService) { }
 
+    @Public()
     @Query(() => [LabNotebookType])
     async labNotebooksByUser(@AuthenticatedUserId() userId: string): Promise<LabNotebook[]> {
         return this.notebookService.findAllByUser(userId as UUID)
     }
 
+    @Public()
     @Query(() => LabNotebookType, { nullable: true })
     async labNotebook(
         @Args('id') id: string,
@@ -43,6 +45,7 @@ export class LabNotebookResolver {
         return this.notebookService.update(id as UUID, userId, input)
     }
 
+    @Public()
     @Mutation(() => Boolean)
     async deleteLabNotebook(@Args('id') id: string,
         @AuthenticatedUserId() userId: UUID

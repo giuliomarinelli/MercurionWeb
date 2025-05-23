@@ -18,7 +18,14 @@ export class LabNotebookService {
     }
 
     async findOne(id: UUID, userId: UUID): Promise<LabNotebook | null> {
-        return this.notebookRepo.findOne({ where: { id, userId }, relations: { chapters: true } })
+        const result: LabNotebook | null = await this.notebookRepo.findOne({ where: { id, userId }, relations: { chapters: true } })
+        if (result == null) {
+            return result
+        }
+        if (result.chapters == undefined) {
+            result.chapters = []
+        }
+        return result
     }
 
     async findAllByUser(userId: UUID): Promise<LabNotebook[]> {
