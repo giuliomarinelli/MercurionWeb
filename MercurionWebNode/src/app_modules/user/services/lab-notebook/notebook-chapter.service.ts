@@ -116,14 +116,14 @@ export class NotebookChapterService {
     }
 
     async getChapter(id: UUID): Promise<NotebookChapter | null> {
-        return this.chapterRepo.findOne({ where: { id } })
+        return this.chapterRepo.findOne({ where: { id, updatedAt: Date.now() } })
     }
 
     async updateChapter(id: UUID, userId: UUID, data: Partial<NotebookChapter>): Promise<NotebookChapter | null> {
-        await this.chapterRepo.update({ id }, data)
+        await this.chapterRepo.update({ id, userId }, { updatedAt: Date.now(), ...data })
         return this.getChapter(id)
     }
-    
+
     async updateChapterToDTO(id: UUID, userId: UUID, data: Partial<NotebookChapter>): Promise<NotebookChapterType | null> {
         const entity: NotebookChapter | null = await this.updateChapter(id, userId, data)
         return entity != null ? this.toDTO(entity) : null

@@ -20,8 +20,8 @@ import { NotebookSectionService } from './services/lab-notebook/notebook-section
 import { PageResolver } from './resolvers/lab-notebook/page.resolver';
 import { NotebookChapterResolver } from './resolvers/lab-notebook/notebook-chapter.resolver';
 import { NotebookSectionResolver } from './resolvers/lab-notebook/notebook-section.resolver';
-import { LabNotebookService } from './services/lab-notebook.service';
 import { LabNotebookResolver } from './resolvers/lab-notebook/lab-notebook.resolver';
+import { LabNotebookService } from './services/lab-notebook/lab-notebook.service';
 
 
 @Module({

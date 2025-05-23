@@ -19,9 +19,9 @@ export class NotebookChapterType {
     sectionIds?: string[]
    
     @Field(() => String, { nullable: true }) 
-    createdAt?: string
+    createdAt?: number
    
     @Field(() => String, { nullable: true }) 
-    updatedAt?: string
+    updatedAt?: number | null
     
 }

@@ -1,10 +1,10 @@
 import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { LabNotebook } from '../../Models/entities/lab-notebook/lab-notebook.entity';
-import { LabNotebookService } from '../../services/lab-notebook.service';
 import { UpdateLabNotebookInput } from '../../Models/DTO/lab-notebook/update-lab-notebook-input';
 import { UUID } from 'crypto';
-import { AuthenticatedUserId } from 'src/metadata/metadata';
+import { AuthenticatedUserId, Public } from 'src/metadata/metadata';
 import { LabNotebookType } from '../../Models/DTO/lab-notebook/lab-notebook-type';
+import { LabNotebookService } from '../../services/lab-notebook/lab-notebook.service';
 
 
 
@@ -26,7 +26,7 @@ export class LabNotebookResolver {
         return this.notebookService.findOne(id as UUID, userId)
     }
 
-    // @Public()
+    @Public()
     @Mutation(() => LabNotebookType)
     async createLabNotebook(
         @AuthenticatedUserId() userId: UUID,
@@ -35,6 +35,7 @@ export class LabNotebookResolver {
         return this.notebookService.create(userId, title)
     }
 
+    @Public()
     @Mutation(() => LabNotebookType)
     async updateLabNotebook(@Args('input') { id, ...input }: UpdateLabNotebookInput,
         @AuthenticatedUserId() userId: UUID

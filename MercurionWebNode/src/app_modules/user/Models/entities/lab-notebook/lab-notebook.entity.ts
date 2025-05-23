@@ -1,6 +1,6 @@
 import { uuidv7 } from "@kripod/uuidv7";
 import { UUID } from "crypto";
-import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, PrimaryColumn } from "typeorm";
+import { BeforeInsert, Column, Entity, OneToMany, PrimaryColumn } from "typeorm";
 import { NotebookChapter } from "./lab-notebook-chapter.entity";
 
 
@@ -20,18 +20,15 @@ export class LabNotebook {
     chapters: NotebookChapter[]
 
     @Column({ nullable: true, type: 'bigint' }) 
-    createdAt: number
+    createdAt: number | null
     
     @Column({ nullable: true, type: 'bigint' }) 
-    updatedAt: number
+    updatedAt: number | null
 
-    @BeforeInsert() generateId() {
+    @BeforeInsert() 
+    generateId() {
         this.id = uuidv7() as UUID;
         this.createdAt = Date.now()
-    }
-    
-    @BeforeUpdate() updateDate() {
-        this.updatedAt = Date.now()
     }
     
 }

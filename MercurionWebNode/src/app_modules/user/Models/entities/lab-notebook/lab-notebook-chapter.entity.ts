@@ -26,7 +26,14 @@ export class NotebookChapter {
     @Column({ type: 'int', default: 0 })
     order: number
 
+    @Column({ nullable: true, type: 'bigint' }) 
+    createdAt: number
+    
+    @Column({ nullable: true, type: 'bigint' }) 
+    updatedAt: number | null
+
     @BeforeInsert() generateId() {
         this.id = uuidv7() as UUID
+        this.createdAt = Date.now()
     }
 }
