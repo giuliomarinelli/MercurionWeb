@@ -35,14 +35,25 @@ export class NotebookPageService {
     }
 
     async getPage(id: UUID, userId: UUID): Promise<NotebookPage | null> {
-       return await this.pageRepo.findOne({ where: { id, userId } })
+       const result = await this.pageRepo.findOne({ where: { id, userId }, relations: { links: true, section: true } })
+       if (result && result.links === undefined) {
+           result.links = []
+       }
+       return result
     }
 
     async listPages(sectionId: UUID): Promise<NotebookPage[]> {
-        return this.pageRepo.find({
+        const pages = await this.pageRepo.find({
             where: { section: { id: sectionId } },
-            order: { order: 'ASC' }
+            order: { order: 'ASC' },
+            relations: { links: true, section: true }
         })
+        for (const p of pages) {
+            if (p.links === undefined) {
+                p.links = []
+            }
+        }
+        return pages
     }
 
     async updatePage(id: UUID, userId: UUID, data: Partial<NotebookPage>): Promise<NotebookPage | null> {
@@ -105,11 +116,17 @@ export class NotebookPageService {
     }
 
     async findBySection(sectionId: UUID, userId: UUID): Promise<NotebookPage[]> {
-        return this.pageRepo.find({
+        const pages = await this.pageRepo.find({
             where: { section: { id: sectionId, userId } },
-            relations: { section: true },
+            relations: { section: true, links: true },
             order: { order: 'ASC' }
         })
+        for (const p of pages) {
+            if (p.links === undefined) {
+                p.links = []
+            }
+        }
+        return pages
     }
 
 

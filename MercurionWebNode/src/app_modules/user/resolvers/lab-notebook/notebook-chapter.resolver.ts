@@ -1,5 +1,4 @@
 import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
-import { NotebookChapterType } from '../../Models/DTO/lab-notebook/notebook-chapter-type';
 import { NotebookChapterService } from '../../services/lab-notebook/notebook-chapter.service';
 import { UUID } from 'crypto';
 import { CreateChapterInput } from '../../Models/DTO/lab-notebook/create-notebook-chapter-input';
@@ -8,13 +7,13 @@ import { UpdateChapterInput } from '../../Models/DTO/lab-notebook/update-chapter
 import { NotebookChapter } from '../../Models/entities/lab-notebook/lab-notebook-chapter.entity';
 
 
-@Resolver(() => NotebookChapterType)
+@Resolver(() => NotebookChapter)
 export class NotebookChapterResolver {
 
     constructor(private readonly chapterService: NotebookChapterService) { }
 
     @Public()
-    @Query(() => [NotebookChapterType])
+    @Query(() => [NotebookChapter])
     async sections(
         @Args('chapterId', { type: () => ID }) chapterId: string,
         @AuthenticatedUserId() userId: string
@@ -23,20 +22,20 @@ export class NotebookChapterResolver {
     }
 
     @Public()
-    @Query(() => [NotebookChapterType])
+    @Query(() => [NotebookChapter])
     async chaptersByNotebook(
         @Args('notebookId', { type: () => ID }) notebookId: string,
         @AuthenticatedUserId() userId: UUID
-    ): Promise<NotebookChapterType[]> {
-        return this.chapterService.listChaptersToDTO(notebookId as UUID, userId)
+    ): Promise<NotebookChapter[]> {
+        return this.chapterService.listChapters(notebookId as UUID, userId)
     }
 
     @Public()
-    @Mutation(() => NotebookChapterType)
+    @Mutation(() => NotebookChapter)
     async createChapter(
         @Args('input') { notebookId, title }: CreateChapterInput,
         @AuthenticatedUserId() userId: UUID
-    ): Promise<NotebookChapterType> {
+    ): Promise<NotebookChapter> {
         return this.chapterService.createChapter(
             notebookId as UUID,
             userId,
@@ -45,11 +44,11 @@ export class NotebookChapterResolver {
     }
 
     @Public()
-    @Mutation(() => NotebookChapterType)
+    @Mutation(() => NotebookChapter)
     async updateChapter(
         @Args('input') { id, ...input }: UpdateChapterInput,
         @AuthenticatedUserId() userId: UUID
-    ): Promise<NotebookChapterType | null> {
+    ): Promise<NotebookChapter | null> {
         return this.chapterService.updateChapter(id as UUID, userId, input)
     }
 

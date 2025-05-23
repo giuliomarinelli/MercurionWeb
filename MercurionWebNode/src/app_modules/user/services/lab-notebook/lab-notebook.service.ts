@@ -29,7 +29,13 @@ export class LabNotebookService {
     }
 
     async findAllByUser(userId: UUID): Promise<LabNotebook[]> {
-        return this.notebookRepo.find({ where: { userId }, order: { createdAt: 'DESC' } })
+        const notebooks = await this.notebookRepo.find({ where: { userId }, order: { createdAt: 'DESC' }, relations: { chapters: true } })
+        for (const n of notebooks) {
+            if (n.chapters === undefined) {
+                n.chapters = []
+            }
+        }
+        return notebooks
     }
 
     async update(id: UUID, userId: UUID, data: Partial<LabNotebook>): Promise<LabNotebook | null> {

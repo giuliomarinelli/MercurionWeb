@@ -3,24 +3,23 @@ import { LabNotebook } from '../../Models/entities/lab-notebook/lab-notebook.ent
 import { UpdateLabNotebookInput } from '../../Models/DTO/lab-notebook/update-lab-notebook-input';
 import { UUID } from 'crypto';
 import { AuthenticatedUserId, Public } from 'src/metadata/metadata';
-import { LabNotebookType } from '../../Models/DTO/lab-notebook/lab-notebook-type';
 import { LabNotebookService } from '../../services/lab-notebook/lab-notebook.service';
 
 
 
-@Resolver(() => LabNotebookType)
+@Resolver(() => LabNotebook)
 export class LabNotebookResolver {
 
     constructor(private readonly notebookService: LabNotebookService) { }
 
     @Public()
-    @Query(() => [LabNotebookType])
+    @Query(() => [LabNotebook])
     async labNotebooksByUser(@AuthenticatedUserId() userId: string): Promise<LabNotebook[]> {
         return this.notebookService.findAllByUser(userId as UUID)
     }
 
     @Public()
-    @Query(() => LabNotebookType, { nullable: true })
+    @Query(() => LabNotebook, { nullable: true })
     async labNotebook(
         @Args('id') id: string,
         @AuthenticatedUserId() userId: UUID
@@ -29,7 +28,7 @@ export class LabNotebookResolver {
     }
 
     @Public()
-    @Mutation(() => LabNotebookType)
+    @Mutation(() => LabNotebook)
     async createLabNotebook(
         @AuthenticatedUserId() userId: UUID,
         @Args('title') title: string
@@ -38,7 +37,7 @@ export class LabNotebookResolver {
     }
 
     @Public()
-    @Mutation(() => LabNotebookType)
+    @Mutation(() => LabNotebook)
     async updateLabNotebook(@Args('input') { id, ...input }: UpdateLabNotebookInput,
         @AuthenticatedUserId() userId: UUID
     ): Promise<LabNotebook | null> {

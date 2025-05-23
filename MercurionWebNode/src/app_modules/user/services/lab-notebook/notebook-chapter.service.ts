@@ -1,4 +1,3 @@
-import { NotebookChapterType } from '../../Models/DTO/lab-notebook/notebook-chapter-type';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -37,20 +36,6 @@ export class NotebookChapterService {
         })
     }
 
-    private toDTO(chapter: NotebookChapter): NotebookChapterType {
-        return {
-            id: chapter.id,
-            order: chapter.order,
-            title: chapter.title,
-            userId: chapter.userId,
-            sectionIds: undefined,
-        }
-    }
-
-    async createChapterToDTO(notebookId: UUID, userId: UUID, data: Partial<NotebookChapter>): Promise<NotebookChapterType> {
-        const entity = await this.createChapter(notebookId, userId, data)
-        return this.toDTO(entity)
-    }
 
     async list(notebookId: UUID, userId: UUID): Promise<NotebookChapter[]> {
         return this.chapterRepo.find({
@@ -113,9 +98,6 @@ export class NotebookChapterService {
         })
     }
 
-    async listChaptersToDTO(notebookId: UUID, userId: UUID): Promise<NotebookChapterType[]> {
-        return (await this.listChapters(notebookId, userId)).map(c => this.toDTO(c))
-    }
 
     async getChapter(id: UUID): Promise<NotebookChapter | null> {
         const result: NotebookChapter | null = await this.chapterRepo.findOne({ where: { id }, relations: { sections: true } })
@@ -133,10 +115,6 @@ export class NotebookChapterService {
         return this.getChapter(id)
     }
 
-    async updateChapterToDTO(id: UUID, userId: UUID, data: Partial<NotebookChapter>): Promise<NotebookChapterType | null> {
-        const entity: NotebookChapter | null = await this.updateChapter(id, userId, data)
-        return entity != null ? this.toDTO(entity) : null
-    }
 
 
 
