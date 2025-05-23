@@ -48,8 +48,8 @@ type NotebookPage {
   sanitizedText: String
   section: NotebookSection!
   links: [LabNotebookLinkType!]!
-  createdAt: Float
-  updatedAt: Float
+  createdAt: String
+  updatedAt: String
   order: Int!
 }
 
