@@ -82,7 +82,11 @@
         <span class="sr-only">Loading CAPTCHA…</span>
       </div>
       }
-      <app-turnstile (token)="onTurnstileToken($event)" (widgetReady)="onTurnstileRender()" class="block h-[71px]" />
+      <app-turnstile
+      (token)="onTurnstileToken($event)"
+      (widgetReady)="onTurnstileRender()"
+      (refresh)="onTurnstileRender()"
+      class="block h-[71px]" />
     </div>
 
     }

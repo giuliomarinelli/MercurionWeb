@@ -1,5 +1,7 @@
-import { Component, EventEmitter, OnInit, Output, OnDestroy, ElementRef } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, OnDestroy, ElementRef, Input, signal, effect, EffectRef } from '@angular/core';
 import { environment } from '../../../../environments/environment.development';
+import { Theme } from '../../../Models/types/theme-types';
+import { ThemeManagerService } from '../../../services/stores/theme-manager.service';
 
 @Component({
   selector: 'app-turnstile',
@@ -10,27 +12,39 @@ import { environment } from '../../../../environments/environment.development';
 })
 export class TurnstileComponent implements OnInit, OnDestroy {
 
-  @Output() token = new EventEmitter<string>();
-  @Output() widgetReady = new EventEmitter<void>();
+  @Output()
+  token = new EventEmitter<string>();
+
+  @Output()
+  widgetReady = new EventEmitter<void>()
+
+  @Output()
+  refresh = new EventEmitter<void>()
+
+  private themeEffectCleanup?: EffectRef
+  constructor(private readonly themeManager: ThemeManagerService) {
+    this.themeEffectCleanup = effect(() => {
+      const currentTheme = this.themeManager.theme(); // <-- qui LEGGI IL SIGNAL
+      if (!this.widgetId) return;
+      this.refreshTurnstile(currentTheme); // Passa il tema!
+    })
+  }
 
   private SITE_KEY = environment.CLOUDFLARE_SITE_KEY;
   containerId = 'turnstile-container-' + Math.random().toString(36).substring(2);
   private widgetId: any = null;
   private destroyed = false;
 
-  constructor(private elRef: ElementRef) {}
-
   ngOnInit(): void {
     this.loadTurnstileScript().then(() => {
       (window as any).onTurnstileSuccess = (token: string) => {
         this.token.emit(token);
       };
-
       this.widgetId = (window as any).turnstile.render(`#${this.containerId}`, {
         sitekey: this.SITE_KEY,
         callback: (token: string) => (window as any).onTurnstileSuccess(token),
+        theme: this.themeManager.theme()
       });
-
       // Dopo il render, attendi la reale visibilità del widget
       this.waitForWidgetVisible();
     });
@@ -42,10 +56,34 @@ export class TurnstileComponent implements OnInit, OnDestroy {
       (window as any).turnstile.remove(this.widgetId);
       delete (window as any).onTurnstileSuccess;
     }
+    if (this.themeEffectCleanup) this.themeEffectCleanup.destroy()
+
   }
+
+  private refreshTurnstile(theme: Theme) {
+
+    this.loadTurnstileScript().then(() => {
+      (window as any).onTurnstileSuccess = (token: string) => {
+        this.token.emit(token);
+      };
+      this.widgetId = (window as any).turnstile.render(`#${this.containerId}`, {
+        sitekey: this.SITE_KEY,
+        callback: (token: string) => (window as any).onTurnstileSuccess(token),
+        theme: this.themeManager.theme()
+      });
+      // Dopo il render, attendi la reale visibilità del widget
+      this.waitForWidgetVisible();
+    });
+  }
+
+
 
   private loadTurnstileScript(): Promise<void> {
     return new Promise<void>((resolve) => {
+      if ((window as any).turnstile && this.widgetId) {
+        (window as any).turnstile.remove(this.widgetId);
+        this.widgetId = null;
+      }
       if ((window as any).turnstile) {
         resolve();
         return;
