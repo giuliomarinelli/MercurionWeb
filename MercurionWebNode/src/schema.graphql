@@ -83,8 +83,9 @@ type MoleculeDetail {
 type Query {
   page(id: String!): Page
   pagesBySection(sectionId: String!): [Page!]!
+  sections(chapterId: ID!): [NotebookChapterType!]!
   chaptersByNotebook(notebookId: ID!): [NotebookChapterType!]!
-  sections(chapterId: ID!): [NotebookSectionDTO!]!
+  sectionByChapterId(chapterId: ID!): [NotebookSectionDTO!]!
   labNotebooksByUser: [LabNotebook!]!
   labNotebook(id: String!): LabNotebook
   moleculeSearch(input: MoleculeSearchInput!): [MoleculeSearchResult!]!

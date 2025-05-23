@@ -79,7 +79,7 @@ export class NotebookSectionService {
         await this.sectionRepo.manager.transaction(async manager => {
             const section = await manager.findOne(NotebookSection, {
                 where: { id: sectionId, userId },
-                relations: ['chapter'],
+                relations: { pages: true },
             })
             if (!section) throw new Error('Section not found or not owned')
 
@@ -125,10 +125,9 @@ export class NotebookSectionService {
         })
     }
 
-    // In NotebookSectionService
     async update(userId: UUID, id: UUID, input: Omit<UpdateSectionInput, 'id'>): Promise<NotebookSection | null> {
-        await this.sectionRepo.update({ id, userId }, input)
-        return this.sectionRepo.findOne({ where: { id, userId }, relations: { chapter: true } })
+        await this.sectionRepo.update({ id, userId }, { updatedAt: Date.now(), ...input })
+        return this.sectionRepo.findOne({ where: { id, userId }, relations: { pages: true } })
     }
 
     async updateToDTO(userId: UUID, id: UUID, input: Omit<UpdateSectionInput, 'id'>): Promise<NotebookSectionDTO | null> {
@@ -138,6 +137,17 @@ export class NotebookSectionService {
 
     async delete(userId: UUID, id: UUID): Promise<void> {
         await this.sectionRepo.delete({ id, userId })
+    }
+
+    async getSection(id: UUID, userId: UUID): Promise<NotebookSection | null> {
+        const result: NotebookSection | null = await this.sectionRepo.findOne({ where: { id, userId }, relations: { pages: true } })
+        if (result == null) {
+            return result
+        }
+        if (result.pages == undefined) {
+            result.pages = []
+        }
+        return result
     }
 
 

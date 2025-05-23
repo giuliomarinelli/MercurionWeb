@@ -5,7 +5,7 @@ import { UUID } from 'crypto';
 import { NotebookPage } from '../../Models/entities/lab-notebook/lab-notebook-page.entity';
 import { CreatePageInput } from '../../Models/DTO/lab-notebook/create-page-input';
 import { UpdatePageInput } from '../../Models/DTO/lab-notebook/update-page-input';
-import { AuthenticatedUserId } from 'src/metadata/metadata';
+import { AuthenticatedUserId, Public } from 'src/metadata/metadata';
 
 
 @Resolver(() => Page)
@@ -13,6 +13,7 @@ export class PageResolver {
 
     constructor(private readonly pageService: NotebookPageService) { }
 
+    @Public()
     @Query(() => Page, { nullable: true })
     page(
         @Args(
@@ -22,6 +23,7 @@ export class PageResolver {
         return this.pageService.getPage(id as UUID, userId)
     }
 
+    @Public()
     @Query(() => [Page])
     pagesBySection(
         @Args('sectionId', { type: () => String }) sectionId: string,
@@ -30,6 +32,7 @@ export class PageResolver {
         return this.pageService.findBySection(sectionId as UUID, userId)
     }
 
+    @Public()
     @Mutation(() => Page)
     createPage(
         @Args('sectionId', { type: () => String }) sectionId: string, 
@@ -39,6 +42,7 @@ export class PageResolver {
         return this.pageService.createPage(sectionId as UUID, userId, input)
     }
 
+    @Public()
     @Mutation(() => Page, { nullable: true })
     async updatePage(
         @Args('input') { id, ...input }: UpdatePageInput,
@@ -47,6 +51,7 @@ export class PageResolver {
         return this.pageService.updatePage(id as UUID, userId, input)
     }
 
+    @Public()
     @Mutation(() => Boolean)
     deletePage(
         @Args('id', { type: () => String }) id: string,

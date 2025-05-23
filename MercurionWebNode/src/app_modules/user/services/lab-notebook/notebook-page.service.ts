@@ -35,7 +35,7 @@ export class NotebookPageService {
     }
 
     async getPage(id: UUID, userId: UUID): Promise<NotebookPage | null> {
-        return this.pageRepo.findOne({ where: { id, userId } })
+       return await this.pageRepo.findOne({ where: { id, userId } })
     }
 
     async listPages(sectionId: UUID): Promise<NotebookPage[]> {
@@ -46,7 +46,7 @@ export class NotebookPageService {
     }
 
     async updatePage(id: UUID, userId: UUID, data: Partial<NotebookPage>): Promise<NotebookPage | null> {
-        await this.pageRepo.update({ id, userId }, data)
+        await this.pageRepo.update({ id, userId }, { updatedAt: Date.now(), ...data })
         return this.getPage(id, userId)
     }
 

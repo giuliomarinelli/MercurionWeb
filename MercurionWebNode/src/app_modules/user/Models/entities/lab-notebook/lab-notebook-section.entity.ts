@@ -29,7 +29,14 @@ export class NotebookSection {
     @Column({ type: 'text', default: null })
     description: string | null
 
+    @Column({type: 'bigint', default: null})
+    createdAt: number
+   
+    @Column({type: 'bigint', default: null})
+    updatedAt: number    
+
     @BeforeInsert() generateId() {
         this.id = uuidv7() as UUID
+        this.createdAt = Date.now()
     }
 }

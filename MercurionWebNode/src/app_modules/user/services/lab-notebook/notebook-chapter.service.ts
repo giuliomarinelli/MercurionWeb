@@ -63,7 +63,9 @@ export class NotebookChapterService {
         await this.chapterRepo.manager.transaction(async manager => {
             const chapter = await manager.findOne(NotebookChapter, {
                 where: { id: chapterId },
-                relations: ['notebook'],
+                relations: {
+                    notebook: true
+                },
             })
             if (!chapter) throw new Error('Chapter not found')
 
@@ -116,7 +118,14 @@ export class NotebookChapterService {
     }
 
     async getChapter(id: UUID): Promise<NotebookChapter | null> {
-        return this.chapterRepo.findOne({ where: { id, updatedAt: Date.now() } })
+        const result: NotebookChapter | null = await this.chapterRepo.findOne({ where: { id }, relations: { sections: true } })
+        if (result == null) {
+            return result
+        }
+        if (result.sections == undefined) {
+            result.sections = []
+        }
+        return result
     }
 
     async updateChapter(id: UUID, userId: UUID, data: Partial<NotebookChapter>): Promise<NotebookChapter | null> {
