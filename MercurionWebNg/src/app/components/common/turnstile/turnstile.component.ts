@@ -62,16 +62,19 @@ export class TurnstileComponent implements OnInit, OnDestroy {
 
   private refreshTurnstile(theme: Theme) {
 
+    this.refresh.emit();
+
+    if ((window as any).turnstile && this.widgetId) {
+      (window as any).turnstile.remove(this.widgetId);
+      this.widgetId = null;
+    }
     this.loadTurnstileScript().then(() => {
-      (window as any).onTurnstileSuccess = (token: string) => {
-        this.token.emit(token);
-      };
+      (window as any).onTurnstileSuccess = (token: string) => this.token.emit(token);
       this.widgetId = (window as any).turnstile.render(`#${this.containerId}`, {
         sitekey: this.SITE_KEY,
         callback: (token: string) => (window as any).onTurnstileSuccess(token),
-        theme: this.themeManager.theme()
+        theme
       });
-      // Dopo il render, attendi la reale visibilità del widget
       this.waitForWidgetVisible();
     });
   }

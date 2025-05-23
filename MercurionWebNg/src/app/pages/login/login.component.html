@@ -85,7 +85,7 @@
       <app-turnstile
       (token)="onTurnstileToken($event)"
       (widgetReady)="onTurnstileRender()"
-      (refresh)="onTurnstileRender()"
+      (refresh)="loadingTurnstile.set(true)"
       class="block h-[71px]" />
     </div>
 
