@@ -20,18 +20,34 @@ export class LabNotebookService {
     }
 
     async findOne(id: UUID, userId: UUID): Promise<LabNotebook | null> {
-        const result: LabNotebook | null = await this.notebookRepo.findOne({ where: { id, userId }, relations: { chapters: true } })
-        if (result == null) {
-            return result
+        const result: LabNotebook | null = await this.notebookRepo.findOne({
+            where: { id, userId },
+            relations: [
+                'chapters',
+                'chapters.sections',
+                'chapters.sections.pages'
+            ]
+        });
+        if (!result) {
+            return null;
         }
-        if (result.chapters == undefined) {
-            result.chapters = []
-        }
-        return result
+        // Per evitare errori GraphQL su array undefined
+        result.chapters ??= [];
+        result.chapters.forEach(chapter => {
+            chapter.sections ??= [];
+            chapter.sections.forEach(section => {
+                section.pages ??= [];
+            });
+        });
+        return result;
     }
-
     async findAllByUser(userId: UUID): Promise<LabNotebook[]> {
-        const notebooks = await this.notebookRepo.find({ where: { userId }, order: { createdAt: 'DESC' }, relations: { chapters: true } })
+        const notebooks = await this.notebookRepo.find({ where: { userId }, order: { createdAt: 'DESC' }, 
+            relations: [
+                'chapters',
+                'chapters.sections',
+                'chapters.sections.pages'
+            ]})
         for (const n of notebooks) {
             if (n.chapters == undefined) {
                 n.chapters = []

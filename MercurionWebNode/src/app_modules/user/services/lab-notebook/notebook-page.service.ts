@@ -36,11 +36,15 @@ export class NotebookPageService {
     }
 
     async getPage(id: UUID, userId: UUID): Promise<NotebookPage | null> {
-       const result = await this.pageRepo.findOne({ where: { id, userId }, relations: { links: true, section: true } })
-       if (result && result.links === undefined) {
-           result.links = []
-       }
-       return result
+        const result = await this.pageRepo.findOne({
+            where: { id, userId }, relations: [
+                'pages'
+            ]
+        })
+        if (result && result.links === undefined) {
+            result.links = []
+        }
+        return result
     }
 
     async listPages(sectionId: UUID): Promise<NotebookPage[]> {

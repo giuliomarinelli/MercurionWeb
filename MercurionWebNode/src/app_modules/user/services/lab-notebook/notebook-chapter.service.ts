@@ -103,7 +103,13 @@ export class NotebookChapterService {
 
 
     async getChapter(id: UUID): Promise<NotebookChapter | null> {
-        const result: NotebookChapter | null = await this.chapterRepo.findOne({ where: { id }, relations: { sections: true } })
+        const result: NotebookChapter | null = await this.chapterRepo.findOne({
+            where: { id },
+            relations: [
+                'sections',
+                'sections.pages'
+            ]
+        })
         if (result == null) {
             return result
         }
