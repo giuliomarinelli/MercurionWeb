@@ -26,6 +26,7 @@ export class NotebookPageService {
 
             const newPage = manager.create(NotebookPage, {
                 ...data,
+                userId,
                 section: { id: sectionId } as NotebookSection,
                 order: (Number(maxOrder) || 0) + 1
             })
