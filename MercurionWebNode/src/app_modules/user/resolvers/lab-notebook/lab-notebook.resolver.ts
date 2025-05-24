@@ -2,7 +2,7 @@ import { Resolver, Query, Mutation, Args, ResolveField, Parent } from '@nestjs/g
 import { LabNotebook } from '../../Models/entities/lab-notebook/lab-notebook.entity';
 import { UpdateLabNotebookInput } from '../../Models/DTO/lab-notebook/update-lab-notebook-input';
 import { UUID } from 'crypto';
-import { AuthenticatedUserId, Public } from 'src/metadata/metadata';
+import { AuthenticatedUserId } from 'src/metadata/metadata';
 import { LabNotebookService } from '../../services/lab-notebook/lab-notebook.service';
 import { NotebookChapter } from '../../Models/entities/lab-notebook/lab-notebook-chapter.entity';
 
@@ -13,13 +13,11 @@ export class LabNotebookResolver {
 
     constructor(private readonly notebookService: LabNotebookService) { }
 
-    @Public()
     @Query(() => [LabNotebook])
     async labNotebooksByUser(@AuthenticatedUserId() userId: string): Promise<LabNotebook[]> {
         return this.notebookService.findAllByUser(userId as UUID)
     }
 
-    @Public()
     @Query(() => LabNotebook, { nullable: true })
     async labNotebook(
         @Args('id') id: string,
@@ -28,7 +26,6 @@ export class LabNotebookResolver {
         return this.notebookService.findOne(id as UUID, userId)
     }
 
-    @Public()
     @Mutation(() => LabNotebook)
     async createLabNotebook(
         @AuthenticatedUserId() userId: UUID,
@@ -37,7 +34,6 @@ export class LabNotebookResolver {
         return this.notebookService.create(userId, title)
     }
 
-    @Public()
     @Mutation(() => LabNotebook)
     async updateLabNotebook(@Args('input') { id, ...input }: UpdateLabNotebookInput,
         @AuthenticatedUserId() userId: UUID
@@ -45,7 +41,6 @@ export class LabNotebookResolver {
         return this.notebookService.update(id as UUID, userId, input)
     }
 
-    @Public()
     @Mutation(() => Boolean)
     async deleteLabNotebook(@Args('id') id: string,
         @AuthenticatedUserId() userId: UUID

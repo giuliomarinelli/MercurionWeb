@@ -1,6 +1,6 @@
 import { Resolver, Query, Mutation, Args, ID, ResolveField, Parent } from '@nestjs/graphql';
 import { NotebookSectionService } from '../../services/lab-notebook/notebook-section.service';
-import { AuthenticatedUserId, Public } from 'src/metadata/metadata';
+import { AuthenticatedUserId } from 'src/metadata/metadata';
 import { UUID } from 'crypto';
 import { CreateSectionInput } from '../../Models/DTO/lab-notebook/create-section-input';
 import { UpdateSectionInput } from '../../Models/DTO/lab-notebook/update-section-input';
@@ -15,7 +15,6 @@ export class NotebookSectionResolver {
     
     constructor(private readonly sectionService: NotebookSectionService) { }
 
-    @Public()
     @Query(() => NotebookSection)
     async sectionByChapterId(
         @Args('chapterId', { type: () => ID }) chapterId: string,
@@ -28,7 +27,6 @@ export class NotebookSectionResolver {
         return result
     }
 
-    @Public()
     @Mutation(() => NotebookSection)
     async createSection(
         @Args('input') input: CreateSectionInput,
@@ -37,7 +35,6 @@ export class NotebookSectionResolver {
         return this.sectionService.create(userId as UUID, input.chapterId as UUID, input)
     }
 
-    @Public()
     @Mutation(() => NotebookSection)
     async updateSection(
         @Args('input') { id, ...input }: UpdateSectionInput,
@@ -46,7 +43,6 @@ export class NotebookSectionResolver {
         return this.sectionService.update(userId as UUID, id as UUID, input)
     }
 
-    @Public()
     @Mutation(() => Boolean)
     async deleteSection(
         @Args('id', { type: () => ID }) id: string,
