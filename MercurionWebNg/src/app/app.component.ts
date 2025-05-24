@@ -38,13 +38,13 @@ import { SidenavComponent } from './components/common/sidenav/sidenav.component'
     <div class="flex flex-col h-screen">
 
       <!-- 1️⃣  Header (sticky) -->
-      <app-header class="sticky top-0 z-30"></app-header>
+      <app-header class="sticky top-0 z-30" />
 
       <!-- 2️⃣  Drawer‑container  (relativo, overflow‑hidden) -->
 
       <div class="drawer-container relative flex flex-1 overflow-hidden">
         @if (userContext.initials() && design.minBk('lg')()) {
-          <div class="absolute top-2 left-2 z-30">
+          <div class="absolute top-4 left-[10px] z-30">
             <button class="cursor-pointer" (click)="sidenavContext.toggle()">
               @if (sidenavContext.isVisible()) {
                 <svg xmlns="http://www.w3.org/2000/svg" class="fill-current w-7 h-auto text-light-on-surface-main dark:text-dark-on-surface-main" viewBox="0 0 512 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M512 256A256 256 0 1 0 0 256a256 256 0 1 0 512 0zM271 135c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-87 87 87 87c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0L167 273c-9.4-9.4-9.4-24.6 0-33.9L271 135z"/></svg>

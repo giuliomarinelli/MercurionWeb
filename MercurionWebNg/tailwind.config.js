@@ -22,6 +22,7 @@ module.exports = {
           'warning': '#F59E0B',
           'error': '#A80006',
           'border': '#E5E7EB',
+          'slate-detail': '#3E4160'
         },
         dark: {
           'surface-main': '#1F2937',
@@ -34,7 +35,8 @@ module.exports = {
           'warning': '#FBBF24',
           'error': '#FF7A7D',
           'border': '#4B5563',
-          "custbg-offcanvas": '#1b2333'
+          "custbg-offcanvas": '#1b2333',
+          'slate-detail': '#BDC9D6'
         }
       }
     },
