@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ID, ResolveField, Parent } from '@nestjs/graphql';
 import { NotebookSectionService } from '../../services/lab-notebook/notebook-section.service';
 import { AuthenticatedUserId, Public } from 'src/metadata/metadata';
 import { UUID } from 'crypto';
@@ -6,6 +6,7 @@ import { CreateSectionInput } from '../../Models/DTO/lab-notebook/create-section
 import { UpdateSectionInput } from '../../Models/DTO/lab-notebook/update-section-input';
 import { NotFoundException } from '@nestjs/common';
 import { NotebookSection } from '../../Models/entities/lab-notebook/lab-notebook-section.entity';
+import { NotebookPage } from '../../Models/entities/lab-notebook/lab-notebook-page.entity';
 
 
 
@@ -55,4 +56,9 @@ export class NotebookSectionResolver {
         return true
     }
     
+    @ResolveField(() => [NotebookPage])
+    pages(@Parent() section: NotebookSection): NotebookPage[] {
+        return section.pages ?? []
+    }
+
 }

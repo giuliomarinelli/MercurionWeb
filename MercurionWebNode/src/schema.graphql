@@ -16,10 +16,11 @@ type NotebookChapter {
   userId: ID!
   title: String!
   notebook: LabNotebook!
-  sections: [NotebookSection!]!
+  sections: [NotebookSection!]
   order: Int!
   createdAt: String
   updatedAt: String
+  resolveSections: [NotebookSection!]!
 }
 
 type NotebookSection {
@@ -27,7 +28,7 @@ type NotebookSection {
   title: String!
   userId: ID!
   chapter: NotebookChapter!
-  pages: [NotebookPage!]!
+  pages: [NotebookPage!]
   order: Int!
   description: String
   createdAt: String

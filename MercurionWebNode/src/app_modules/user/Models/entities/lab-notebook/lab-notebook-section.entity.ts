@@ -26,7 +26,7 @@ export class NotebookSection {
     @JoinColumn({ name: 'chapter_id' })
     chapter: NotebookChapter
 
-    @Field(() => [NotebookPage])
+    @Field(() => [NotebookPage], { nullable: true })
     @OneToMany(() => NotebookPage, page => page.section)
     pages: NotebookPage[]
 

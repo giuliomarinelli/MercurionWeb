@@ -6,7 +6,6 @@ import { CreatePageInput } from '../../Models/DTO/lab-notebook/create-page-input
 import { UpdatePageInput } from '../../Models/DTO/lab-notebook/update-page-input';
 import { AuthenticatedUserId, Public } from 'src/metadata/metadata';
 
-
 @Resolver(() => NotebookPage)
 export class PageResolver {
 
@@ -17,7 +16,7 @@ export class PageResolver {
     page(
         @Args(
             'id', { type: () => String }) id: string,
-            @AuthenticatedUserId() userId: UUID
+        @AuthenticatedUserId() userId: UUID
     ): Promise<NotebookPage | null> {
         return this.pageService.getPage(id as UUID, userId)
     }
@@ -34,7 +33,7 @@ export class PageResolver {
     @Public()
     @Mutation(() => NotebookPage)
     createPage(
-        @Args('sectionId', { type: () => String }) sectionId: string, 
+        @Args('sectionId', { type: () => String }) sectionId: string,
         @Args('input') input: CreatePageInput,
         @AuthenticatedUserId() userId: UUID
     ): Promise<NotebookPage> {
@@ -58,6 +57,7 @@ export class PageResolver {
     ): Promise<boolean> {
         return this.pageService.deletePage(id as UUID, userId)
     }
+
 }
 
 

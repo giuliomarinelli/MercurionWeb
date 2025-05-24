@@ -1,9 +1,10 @@
-import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ResolveField, Parent } from '@nestjs/graphql';
 import { LabNotebook } from '../../Models/entities/lab-notebook/lab-notebook.entity';
 import { UpdateLabNotebookInput } from '../../Models/DTO/lab-notebook/update-lab-notebook-input';
 import { UUID } from 'crypto';
 import { AuthenticatedUserId, Public } from 'src/metadata/metadata';
 import { LabNotebookService } from '../../services/lab-notebook/lab-notebook.service';
+import { NotebookChapter } from '../../Models/entities/lab-notebook/lab-notebook-chapter.entity';
 
 
 
@@ -51,4 +52,10 @@ export class LabNotebookResolver {
     ): Promise<boolean> {
         return this.notebookService.delete(id as UUID, userId)
     }
+
+    @ResolveField(() => [NotebookChapter])
+    chapters(@Parent() notebook: LabNotebook): NotebookChapter[] {
+        return notebook.chapters ?? []
+    }
+    
 }
