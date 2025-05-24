@@ -106,7 +106,7 @@ interface HistoryItem {
       width: 1.2em; display: inline-block;
     }
     .detail {
-      @apply text-xs font-semibold text-light-slate-detail dark:text-dark-slate-detail mt-4 mb-1 px-2;
+      @apply text-xs font-semibold text-light-slate-detail dark:text-dark-slate-detail mt-4 mb-2 px-2;
     }
   `]
 })
