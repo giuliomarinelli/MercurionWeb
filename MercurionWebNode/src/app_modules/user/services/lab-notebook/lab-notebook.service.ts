@@ -14,7 +14,9 @@ export class LabNotebookService {
 
     async create(userId: UUID, title: string): Promise<LabNotebook> {
         const notebook = this.notebookRepo.create({ userId, title })
-        return await this.notebookRepo.save(notebook)
+        const saved = await this.notebookRepo.save(notebook)
+        saved.chapters = []
+        return saved
     }
 
     async findOne(id: UUID, userId: UUID): Promise<LabNotebook | null> {
@@ -31,7 +33,7 @@ export class LabNotebookService {
     async findAllByUser(userId: UUID): Promise<LabNotebook[]> {
         const notebooks = await this.notebookRepo.find({ where: { userId }, order: { createdAt: 'DESC' }, relations: { chapters: true } })
         for (const n of notebooks) {
-            if (n.chapters === undefined) {
+            if (n.chapters == undefined) {
                 n.chapters = []
             }
         }

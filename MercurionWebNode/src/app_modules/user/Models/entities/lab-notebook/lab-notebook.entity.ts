@@ -8,15 +8,15 @@ import { ObjectType, Field, ID } from '@nestjs/graphql';
 @ObjectType()
 @Entity('lab_notebooks')
 export class LabNotebook {
-    
+
     @Field(() => ID)
     @PrimaryColumn({ type: 'uuid' })
     id: UUID
-    
+
     @Field(() => ID)
     @Column({ type: 'uuid' })
     userId: UUID
-    
+
     @Field()
     @Column({ type: 'varchar' })
     title: string
@@ -28,15 +28,15 @@ export class LabNotebook {
     @Field(() => String, { nullable: true })
     @Column({ nullable: true, type: 'bigint' })
     createdAt: number | null
-    
+
     @Field(() => String, { nullable: true })
     @Column({ nullable: true, type: 'bigint' })
     updatedAt: number | null
 
-    @BeforeInsert() 
+    @BeforeInsert()
     generateId() {
         this.id = uuidv7() as UUID;
         this.createdAt = Date.now()
     }
-    
+
 }

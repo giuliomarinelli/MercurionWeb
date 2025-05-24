@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { NotebookChapter } from '../../Models/entities/lab-notebook/lab-notebook-chapter.entity';
 import { LabNotebookEntry } from '../../Models/entities/lab-notbook-entry.entity';
 import { UUID } from 'crypto';
+import { RpcException } from '@nestjs/microservices';
 
 
 
@@ -32,7 +33,9 @@ export class NotebookChapterService {
                 order: (Number(maxOrder) || 0) + 1,
             })
 
-            return manager.save(newChapter)
+            const saved = await manager.save(newChapter)
+            saved.sections = []
+            return saved
         })
     }
 
@@ -52,7 +55,7 @@ export class NotebookChapterService {
                     notebook: true
                 },
             })
-            if (!chapter) throw new Error('Chapter not found')
+            if (!chapter) throw new RpcException('LabNotebook::Chapter not found')
 
             const notebookId = (chapter.notebook as unknown as LabNotebookEntry).id
 

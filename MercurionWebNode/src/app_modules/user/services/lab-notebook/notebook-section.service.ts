@@ -35,7 +35,9 @@ export class NotebookSectionService {
                 order: max !== null && max !== undefined ? Number(max) + 1 : 0,
             })
 
-            return manager.save(section)
+            const saved = await manager.save(section)
+            saved.pages = []
+            return saved
         })
     }
 
@@ -50,7 +52,7 @@ export class NotebookSectionService {
             relations: { chapter: true, pages: true }
         })
         for (const s of sections) {
-            if (s.pages === undefined) {
+            if (s.pages == undefined) {
                 s.pages = []
             }
         }
@@ -114,7 +116,7 @@ export class NotebookSectionService {
     async update(userId: UUID, id: UUID, input: Omit<UpdateSectionInput, 'id'>): Promise<NotebookSection | null> {
         await this.sectionRepo.update({ id, userId }, { updatedAt: Date.now(), ...input })
         const result = await this.sectionRepo.findOne({ where: { id, userId }, relations: { pages: true } })
-        if (result && result.pages === undefined) {
+        if (result && result.pages == undefined) {
             result.pages = []
         }
         return result
