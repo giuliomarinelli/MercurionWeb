@@ -4,15 +4,15 @@ import { Component, Input, Signal, computed, signal } from '@angular/core';
   selector: 'molecule-cta-chembl',
   standalone: true,
   template: `
-    <section class="mt-6 flex justify-center xs:justify-start">
+    <section class="mt-6 flex justify-center sm:justify-start">
       <a
         [href]="url()"
         target="_blank"
         rel="noopener noreferrer"
         class="flex justify-center w-[250px] gap-3 items-center px-4 mt-4 py-2 text-white rounded-md transition-colors duration-150
-    bg-light-accent-primary dark:bg-dark-accent-primary
-    hover:bg-dark-accent-primary/80 dark:hover:bg-dark-accent-primary/80
-    disabled:bg-dark-accent-primary/80 disabled:dark:bg-dark-accent-primary/80
+    bg-light-accent-primary dark:bg-dark-accent-primary/80
+    hover:bg-dark-accent-primary/70 dark:hover:bg-dark-accent-primary/70
+    disabled:bg-dark-accent-primary/65 disabled:dark:bg-dark-accent-primary/65
     disabled:cursor-not-allowed disabled:hover:bg-dark-accent-primary/80 disabled:hover:dark:bg-dark-accent-primary/80"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="h-5 w-auto">

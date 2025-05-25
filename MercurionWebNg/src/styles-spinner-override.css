@@ -28,6 +28,6 @@ html:not(.dark) ngx-spinner[name="globalSpinner"] .la-ball-atom>div:first-child 
 }
 
 html:not(.dark) .header-shadow {
-  box-shadow: 0px 0px 5px 0px oklch(44.2% 0.017 285.786);
+  box-shadow: 1px 0px 1px 0px oklch(44.2% 0.017 285.786);
 }
 

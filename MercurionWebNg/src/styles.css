@@ -5,14 +5,15 @@ body {
 
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: #45556c #f3f4f6;         /* thumb, track - LIGHT */
+  scrollbar-color: #45556c #f3f4f6;
+  scrollbar-width: 3px;       /* thumb, track - LIGHT */
 }
 .custom-scrollbar::-webkit-scrollbar {
-  width: 8px;
+  width: 3px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: #f59e42;                     /* thumb - LIGHT */
-  border-radius: 8px;
+  border-radius: 3px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
   background: #f3f4f6;                     /* track - LIGHT */
@@ -45,7 +46,7 @@ body {
 
 
   .drawer {
-    @apply bg-slate-200/50 dark:dark:bg-gray-800/50 transition-colors;
+    @apply bg-slate-200/50 dark:dark:bg-neutral-900/75 transition-colors;
   }
 
   /* stile tuo */

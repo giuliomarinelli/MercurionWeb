@@ -7,8 +7,8 @@ import { AdministrationRoutes } from '../../../Models/graphql/molecule.detail';
   standalone: true,
   template: `
     <section class="mt-12 mb-8">
-      <h2 class="font-semibold text-light-accent-primary dark:text-dark-accent-primary text-center xs:text-left text-lg mb-6">Vie di somministrazione</h2>
-      <div class="flex flex-wrap gap-2 text-sm justify-center xs:justify-start">
+      <h2 class="font-semibold text-light-accent-primary dark:text-dark-accent-primary mb-6 text-center sm:text-left text-xl">Vie di somministrazione</h2>
+      <div class="flex flex-wrap gap-2 text-sm justify-center sm:justify-start">
         @if (adminRoutes().oral) {
           <div class="flex items-center rounded bg-slate-200 dark:bg-gray-800 text-blue-900 dark:text-blue-100 px-2 py-1 gap-3">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" class="w-auto h-5">

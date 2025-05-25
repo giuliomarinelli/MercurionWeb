@@ -6,7 +6,7 @@ import { Component, Input, signal } from '@angular/core';
   template: `
     <header class="space-y-2" aria-labelledby="molecule-name">
       <h1 id="molecule-name"
-          class="text-2xl md:text-3xl font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary">
+          class="text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary">
         {{ name() }}
       </h1>
       <p class="text-xs font-semibold tracking-wide text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary">

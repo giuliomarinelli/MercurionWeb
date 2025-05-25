@@ -27,20 +27,20 @@ import { MoleculeCtaChemblComponent } from '../../components/molecule-detail/mol
   ],
   template: `
     @if (molecule$ | async; as molecule) {
-      <section class="max-w-4xl mx-auto p-6 space-y-12">
+      <section class="max-w-5xl mx-auto p-6 space-y-12">
         <molecule-header
           [nameInput]="molecule.preferredName"
           [chemblIdInput]="molecule.cmbId"
         />
 
         <section>
-          <h2 class="text-lg font-semibold text-light-accent-primary dark:text-dark-accent-primary mb-4">
+          <h2 class="font-semibold text-light-accent-primary dark:text-dark-accent-primary mb-4 text-center sm:text-left text-xl">
             Struttura
           </h2>
           <molecule-viewer
             [structure]="molecule.canonicalSmiles"
             [darkMode]="themeManager.theme() === 'dark'"
-            class="flex justify-center xs:justify-start"
+            class="flex justify-center sm:justify-start"
           />
         </section>
 
