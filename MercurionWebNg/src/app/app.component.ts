@@ -1,14 +1,12 @@
 import { AfterViewInit, Component, computed, CUSTOM_ELEMENTS_SCHEMA, effect, ElementRef, NgZone, OnDestroy, OnInit, signal, Signal, ViewChild } from '@angular/core';
-import { GuardsCheckEnd, GuardsCheckStart, NavigationCancel, NavigationEnd, NavigationError, NavigationStart, ResolveEnd, ResolveStart, Router, RouterOutlet, RoutesRecognized } from '@angular/router';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { HeaderComponent } from './components/common/header/header.component';
-import { MoleculeViewerComponent } from './components/chem/molecule-viewer/molecule-viewer.component';
 import { ThemeManagerService } from './services/stores/theme-manager.service';
 import { SearchOverlayComponent } from './components/search-overlay/search-overlay/search-overlay.component';
 import { SearchContextService } from './services/stores/search-context.service';
 import { FooterComponent } from './components/common/footer/footer.component';
 import { NgxxSpinnerComponent } from './components/common/ngxx-spinner/ngxx-spinner.component';
 import { filter, Subscription } from 'rxjs';
-import { FingerprintService } from './services/fingerprint.service';
 import { ToastComponent } from './components/common/toast/toast.component';
 import { ToastService } from './services/toast.service';
 import { UserContextService } from './services/stores/user-context.service';
@@ -42,7 +40,7 @@ import { SidenavComponent } from './components/common/sidenav/sidenav.component'
 
       <!-- 2️⃣  Drawer‑container  (relativo, overflow‑hidden) -->
 
-      <div class="drawer-container relative flex flex-1 overflow-hidden">
+      <div class="drawer-container relative flex flex-1 overflow-hidden custom-scrollbar">
         @if (userContext.initials() && design.minBk('lg')()) {
           <div class="absolute top-4 left-[10px] z-30">
             <button class="cursor-pointer" (click)="sidenavContext.toggle()">
