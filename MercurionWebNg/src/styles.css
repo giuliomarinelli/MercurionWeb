@@ -3,6 +3,33 @@ body {
   overflow: initial !important;
 }
 
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #45556c #f3f4f6;         /* thumb, track - LIGHT */
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #f59e42;                     /* thumb - LIGHT */
+  border-radius: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f3f4f6;                     /* track - LIGHT */
+}
+
+/* VERSIONE DARK: attiva se <html class="dark"> */
+.dark .custom-scrollbar {
+  scrollbar-color: #cad5e2 #262626;         /* thumb, track - DARK */
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #fbbf24;                     /* thumb - DARK */
+}
+.dark .custom-scrollbar::-webkit-scrollbar-track {
+  background: #262626;                     /* track - DARK */
+}
+
+
 
 @tailwind base;
 @tailwind components;
