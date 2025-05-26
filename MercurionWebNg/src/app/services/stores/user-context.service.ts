@@ -5,8 +5,8 @@ import { Injectable, NgZone, signal } from '@angular/core';
 })
 export class UserContextService {
 
-  private _initials = signal<string>('');
-  public readonly initials = this._initials.asReadonly();
+  private _initials = signal<string>('')
+  public readonly initials = this._initials.asReadonly()
 
   constructor(
     private readonly zone: NgZone
@@ -27,11 +27,11 @@ export class UserContextService {
 
   login(userInitials: string) {
     /* SDK auth callback → spesso è fuori zona */
-    this.zone.run(() => this._initials.set(userInitials));
+    this.zone.run(() => this._initials.set(userInitials))
   }
 
   logout() {
-    this.zone.run(() => this._initials.set(''));
+    this.zone.run(() => this._initials.set(''))
   }
 
   // 3. Metodo comodo per aggiornare il contesto e sincronizzare anche sessionStorage
