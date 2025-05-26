@@ -20,7 +20,7 @@
         </button>
       }
       @if (designService.minBk("sm")()) {
-        <div class="flex gap-7 items-baseline">
+        <div class="flex gap-7 items-center">
           <a routerLink="/">
             <img
               [ngSrc]="logoSrc() | public"
@@ -33,7 +33,7 @@
           </a>
           @if (designService.minBk('lg')()) {
           <h3
-            class="font-semibold font-spacegrotesk tracking-widest text-sm relative bottom-[8.5px] text-slate-600 dark:text-slate-300 cursor-default"
+            class="font-semibold font-spacegrotesk tracking-widest text-sm relative top-[4px] text-slate-600 dark:text-slate-300 cursor-default"
           >
             Next Gen Chemistry.
           </h3>
