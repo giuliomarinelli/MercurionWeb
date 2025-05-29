@@ -83,7 +83,7 @@ export class GlobalGuard implements CanActivate {
                   throw new UnauthorizedException('Session expired')
                }
 
-
+               
                const newToken = await this.jwtToolsService.generateToken(payload.sub, TokenType.AccessToken, payload.sid)
 
                reply.header('X-New-Access-Token', newToken)

@@ -1,4 +1,5 @@
 import { createParamDecorator, ExecutionContext, SetMetadata, UnauthorizedException } from '@nestjs/common'
+import { GqlExecutionContext } from '@nestjs/graphql';
 import { UUID } from 'crypto';
 import { FastifyRequest } from 'fastify';
 import { FingerprintData } from 'src/app_modules/auth/Models/DTO/fingerprints.dtos';
@@ -12,14 +13,19 @@ export const RequiresTokenType = (type: TokenType) => SetMetadata('tokenType', t
 export const AuthenticatedUserId = createParamDecorator(
     (data: unknown, ctx: ExecutionContext): string => {
         const req = ctx.switchToHttp().getRequest<FastifyRequest>()
-        return req.headers['x-user-id'] as UUID 
+            ??
+            (GqlExecutionContext.create(ctx).getContext().req as FastifyRequest)
+        return req.headers['x-user-id'] as UUID
         // sostituire '01969a4e-8c9e-7000-b8fa-bc1b69f59f7c' temporaneamente per test e2e manuale da Postman
     }
 )
 
+
 export const SessionId = createParamDecorator(
     (data: unknown, ctx: ExecutionContext): string => {
         const req = ctx.switchToHttp().getRequest<FastifyRequest>()
+            ??
+            (GqlExecutionContext.create(ctx).getContext().req as FastifyRequest)
         return req.headers['x-session-id'] as UUID
     }
 )
@@ -27,6 +33,8 @@ export const SessionId = createParamDecorator(
 export const DeviceId = createParamDecorator(
     (data: unknown, ctx: ExecutionContext): string => {
         const req = ctx.switchToHttp().getRequest<FastifyRequest>()
+            ??
+            (GqlExecutionContext.create(ctx).getContext().req as FastifyRequest)
         return req.headers['x-device-id'] as UUID
     }
 )
@@ -34,6 +42,8 @@ export const DeviceId = createParamDecorator(
 export const Authorization = createParamDecorator(
     (data: unknown, ctx: ExecutionContext): string => {
         const req = ctx.switchToHttp().getRequest<FastifyRequest>()
+            ??
+            (GqlExecutionContext.create(ctx).getContext().req as FastifyRequest)
         const authorizationHeader = req.headers['authorization'] as string
         if (
             !authorizationHeader ||
@@ -49,6 +59,8 @@ export const Authorization = createParamDecorator(
 export const Fingerprint = createParamDecorator(
     (data: unknown, ctx: ExecutionContext): FingerprintData => {
         const req = ctx.switchToHttp().getRequest<FastifyRequest>()
+            ??
+            (GqlExecutionContext.create(ctx).getContext().req as FastifyRequest)
         const fingerprint = req.headers['x-fingerprint']
 
         if (!fingerprint || typeof fingerprint !== 'string') {
@@ -61,7 +73,9 @@ export const Fingerprint = createParamDecorator(
 
 export const DeviceInfo = createParamDecorator(
     (data: unknown, ctx: ExecutionContext): InputDeviceInfo => {
-        const req = ctx.switchToHttp().getRequest<FastifyRequest>();
+        const req = ctx.switchToHttp().getRequest<FastifyRequest>()
+            ??
+            (GqlExecutionContext.create(ctx).getContext().req as FastifyRequest)
         const deviceInfo = req.headers['x-device-info']
 
         if (!deviceInfo || typeof deviceInfo !== 'string') {
@@ -74,7 +88,9 @@ export const DeviceInfo = createParamDecorator(
 
 export const ClientIp = createParamDecorator(
     (data: unknown, ctx: ExecutionContext): string => {
-        const req = ctx.switchToHttp().getRequest<FastifyRequest>();
+        const req = ctx.switchToHttp().getRequest<FastifyRequest>()
+            ??
+            (GqlExecutionContext.create(ctx).getContext().req as FastifyRequest)
         const ip = req.headers['x-client-ip']
 
         if (!ip || typeof ip !== 'string') {
