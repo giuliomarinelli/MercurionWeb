@@ -1,12 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SecureCookieService } from './secure-cookie.service';
+import { ConfigService } from '@nestjs/config';
 
 describe('SecureCookieService', () => {
   let service: SecureCookieService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [SecureCookieService],
+      providers: [
+        SecureCookieService,
+        { provide: ConfigService, useValue: { get: jest.fn().mockReturnValue('') } },
+      ],
     }).compile();
 
     service = module.get<SecureCookieService>(SecureCookieService);
