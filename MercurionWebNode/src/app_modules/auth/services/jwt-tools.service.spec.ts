@@ -1,15 +1,16 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { JwtToolsService } from './jwt-tools.service';
 
 describe('JwtToolsService', () => {
   let service: JwtToolsService;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [JwtToolsService],
-    }).compile();
-
-    service = module.get<JwtToolsService>(JwtToolsService);
+  beforeEach(() => {
+    service = new JwtToolsService(
+      {} as any,
+      { get: () => undefined } as any,
+      {} as any,
+      {} as any,
+      {} as any,
+    );
   });
 
   it('should be defined', () => {
