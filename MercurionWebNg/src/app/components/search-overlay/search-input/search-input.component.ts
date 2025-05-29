@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, effect, ElementRef, signal, ViewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
@@ -8,7 +8,7 @@ import { SearchService } from '../../../services/search.service';
 @Component({
   selector: 'app-search-input',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   templateUrl: './search-input.component.html',
 })
 export class SearchInputComponent implements AfterViewInit {

@@ -4,7 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { MoleculeService } from '../../services/molecule.service';
 import { switchMap, Observable, catchError, of } from 'rxjs';
 import { MoleculeDetail } from '../../Models/graphql/molecule.detail';
-import { AsyncPipe, NgIf } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { ThemeManagerService } from '../../services/stores/theme-manager.service';
 import { MoleculeHeaderComponent } from '../../components/molecule-detail/molecule-header/molecule-header.component';
 import { MoleculeViewerComponent } from '../../components/chem/molecule-viewer/molecule-viewer.component';

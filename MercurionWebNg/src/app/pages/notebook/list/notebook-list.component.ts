@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { RouterModule } from '@angular/router';
 import { Router } from '@angular/router';
 import { LabNotebookEntry } from '../../../Models/notebook/lab-notebook-entry-model.interface';
@@ -10,7 +10,7 @@ import { AuthService } from '../../../services/auth.service';
 @Component({
   selector: 'app-notebook-list',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [RouterModule],
   template: `
     <div class="p-4">
       <h2 class="text-xl font-semibold mb-4">Le tue note</h2>

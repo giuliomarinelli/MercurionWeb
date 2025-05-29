@@ -1,5 +1,5 @@
-import { inject, InjectionToken } from '@angular/core'
-import { DOCUMENT } from '@angular/common'
+import { inject, InjectionToken, DOCUMENT } from '@angular/core'
+
 
 export const BASE_PATH = new InjectionToken<string>('BASE_PATH', {
   providedIn: 'root',
