@@ -21,6 +21,7 @@ import { MeilisearchModule } from './app_modules/meilisearch/meilisearch.module'
 import { GraphQLModule } from '@nestjs/graphql'
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { TestController } from './test.controller';
+import { TokenHeaderPlugin } from './graphql/token-header.plugin';
 
 
 @Module({
@@ -53,7 +54,8 @@ import { TestController } from './test.controller';
       installSubscriptionHandlers: false,
       path: '/api/graphql',
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      context: ({ request, reply }) => ({ req: request, reply })
+      context: ({ request }) => ({ req: request }),
+      plugins: [TokenHeaderPlugin],
     }),
     RedisModule,
     UserModule,
@@ -77,4 +79,4 @@ import { TestController } from './test.controller';
   ],
   controllers: [TestController]
 })
-  export class AppModule { }
+export class AppModule { }

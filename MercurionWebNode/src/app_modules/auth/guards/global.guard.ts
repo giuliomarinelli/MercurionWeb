@@ -46,9 +46,8 @@ export class GlobalGuard implements CanActivate {
    // 🔹 Validazione per richieste HTTP
    private async validateHttpRequest(context: ExecutionContext): Promise<boolean> {
 
-      const req = context.switchToHttp().getRequest<FastifyRequest>() ?? (GqlExecutionContext.create(context).getContext().req as FastifyRequest)
-      const reply = context.switchToHttp().getResponse<FastifyReply>() ?? (GqlExecutionContext.create(context).getContext().reply as FastifyReply)
-
+      const req = context.switchToHttp().getRequest<FastifyRequest & { __newAccessToken: string }>() ?? (GqlExecutionContext.create(context).getContext().req as FastifyRequest & { __newAccessToken: string })
+      const res = context.switchToHttp().getResponse<FastifyReply>()
       try {
 
          const accessToken: string = this.jwtToolsService.extractAccessTokenFromReq(req)
@@ -61,9 +60,9 @@ export class GlobalGuard implements CanActivate {
          } catch (e) {
 
             if (e instanceof RpcException && e.message === 'InvalidOrExpiredAccessToken') {
-               
+
                this.logger.debug('Expired access token, starting refresh procedure')
-               
+
                payload = await this.jwtToolsService.verifyTokenAndGetPayload(accessToken, TokenType.AccessToken, true)
 
                const deviceId = req.headers['x-device-id'] as string
@@ -83,13 +82,17 @@ export class GlobalGuard implements CanActivate {
                   throw new UnauthorizedException('Session expired')
                }
 
-               
+
                const newToken = await this.jwtToolsService.generateToken(payload.sub, TokenType.AccessToken, payload.sid)
 
-               reply.header('X-New-Access-Token', newToken)
 
                await this.sessionService.updateLastAccessed(payload.sid)
-
+               if (context.getType<GqlContextType>() !== 'graphql') {
+                  res.header('X-New-Access-Token', newToken); 
+               } else {
+                  req.__newAccessToken = newToken
+               }
+               await this.sessionService.revokeToken(payload.jti)
                req.headers['x-user-id'] = payload.sub
                return true
             } else {
@@ -103,23 +106,23 @@ export class GlobalGuard implements CanActivate {
             this.logger.warn('[Normal flow] No provided deviceId')
             throw new UnauthorizedException()
          }
-         
+
          if (req.headers['x-session-id'] !== payload.sid) {
             this.logger.warn('[Normal flow] Cookie sessionId and accessToken claim sid mismatch')
             throw new UnauthorizedException()
          }
-         
+
          if (!await this.sessionService.validateSession(payload.sid, deviceId)) {
             this.logger.warn('[Normal flow] Invalid session')
             throw new UnauthorizedException()
          }
-         
+
          await this.sessionService.updateLastAccessed(payload.sid)
-         
+
          req.headers['x-user-id'] = payload.sub
-         
+
          return true
-         
+
       } catch {
          this.logger.warn('Thrown generic UnauthorizedException')
          throw new UnauthorizedException()

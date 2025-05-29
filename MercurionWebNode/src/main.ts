@@ -58,7 +58,7 @@ export async function bootstrap() {
     } catch {
       req.headers['x-session-id'] = undefined
     }
-    
+
     const isDev = configService.get<Environment>('App.env') === Environment.Development
 
     const mockIp = req.headers['x-mock-ip']?.toString().trim()
@@ -71,6 +71,8 @@ export async function bootstrap() {
 
     done()
   })
+
+  
 
   const port = configService.get<number>('App.port')
   const host = configService.get<string>('App.host') as string
