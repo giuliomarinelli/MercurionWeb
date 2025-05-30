@@ -37,9 +37,9 @@
     <button type="button" (click)="goToPasswordStep()" [disabled]="loginForm.controls['email'].invalid"
       class="relative bottom-[10px] w-full mt-1 py-2 text-white rounded-md transition-colors duration-150
     bg-light-accent-primary dark:bg-dark-accent-primary/90
-    hover:bg-dark-accent-primary/80 dark:hover:bg-dark-accent-primary/80
-    disabled:bg-dark-accent-primary/80 disabled:dark:bg-dark-accent-primary/80
-    disabled:cursor-not-allowed disabled:hover:bg-dark-accent-primary/80 disabled:hover:dark:bg-dark-accent-primary/80">Continua</button>
+    hover:bg-light-accent-primary/80 dark:hover:bg-dark-accent-primary/80
+    disabled:bg-light-accent-primary/60 disabled:dark:bg-dark-accent-primary/80
+    disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary/60 disabled:hover:dark:bg-dark-accent-primary/80">Continua</button>
     } @else if (step() === 2) {
 
     <!-- Step 2: Password -->
@@ -69,9 +69,9 @@
     <button type="submit" [disabled]="!canLogin()"
       class="relative bottom-[10px] w-full mt-4 py-2 text-white rounded-md transition-colors duration-150
     bg-light-accent-primary dark:bg-dark-accent-primary/90
-    hover:bg-dark-accent-primary/80 dark:hover:bg-dark-accent-primary/80
-    disabled:bg-dark-accent-primary/80 disabled:dark:bg-dark-accent-primary/80
-    disabled:cursor-not-allowed disabled:hover:bg-dark-accent-primary/80 disabled:hover:dark:bg-dark-accent-primary/80">Accedi</button>
+    hover:bg-light-accent-primary/80 dark:hover:bg-dark-accent-primary/80
+    disabled:bg-light-accent-primary/60 disabled:dark:bg-dark-accent-primary/80
+    disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary/60 disabled:hover:dark:bg-dark-accent-primary/80">Accedi</button>
     <div class="flex justify-center">
       @if (loadingTurnstile()) {
       <div class="w-[300px] h-[71px] overflow-hidden transition-all
