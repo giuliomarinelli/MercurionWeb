@@ -113,6 +113,13 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.loadingTurnstile.set(false)
   }
 
+  onEmailEditStep2(): void {
+    this.serverErrorStep.set(0)
+    this.step.set(1)
+    this.loadingTurnstile.set(true)
+  }
+
+
   onEmailInput(): void {
     const value = this.emailRef?.nativeElement?.value ?? '';
     this.emptyEmail.set(value.trim() === '');
