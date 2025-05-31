@@ -1,12 +1,14 @@
 import { Component, signal, effect, Input, Output, EventEmitter } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { QuillModule } from 'ngx-quill';
+import { NotebookTocComponent } from '../notebook-tree-index/notebook-roc.component';
 
 @Component({
   selector: 'lab-notebook-editor',
   standalone: true,
   imports: [QuillModule, FormsModule],
   template: `
+
     <quill-editor
       [modules]="modules"
       [theme]="'snow'"

@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args, ResolveField, Parent } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ResolveField, Parent, ID } from '@nestjs/graphql';
 import { LabNotebook } from '../../Models/entities/lab-notebook/lab-notebook.entity';
 import { UpdateLabNotebookInput } from '../../Models/DTO/lab-notebook/update-lab-notebook-input';
 import { UUID } from 'crypto';
@@ -20,7 +20,7 @@ export class LabNotebookResolver {
 
     @Query(() => LabNotebook, { nullable: true })
     async labNotebook(
-        @Args('id') id: string,
+        @Args('id', { type: () => ID }) id: string,
         @AuthenticatedUserId() userId: UUID
     ): Promise<LabNotebook | null> {
         return this.notebookService.findOne(id as UUID, userId)
@@ -42,7 +42,7 @@ export class LabNotebookResolver {
     }
 
     @Mutation(() => Boolean)
-    async deleteLabNotebook(@Args('id') id: string,
+    async deleteLabNotebook(@Args('id', { type: () => ID }) id: string,
         @AuthenticatedUserId() userId: UUID
     ): Promise<boolean> {
         return this.notebookService.delete(id as UUID, userId)

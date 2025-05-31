@@ -101,7 +101,7 @@ type Query {
   chaptersByNotebook(notebookId: ID!): [NotebookChapter!]!
   sectionByChapterId(chapterId: ID!): NotebookSection!
   labNotebooksByUser: [LabNotebook!]!
-  labNotebook(id: String!): LabNotebook
+  labNotebook(id: ID!): LabNotebook
   moleculeSearch(input: MoleculeSearchInput!): [MoleculeSearchResult!]!
   moleculeByMolregno(molregno: String!): MoleculeDetail!
 }
@@ -127,7 +127,7 @@ type Mutation {
   deleteSection(id: ID!): Boolean!
   createLabNotebook(title: String!): LabNotebook!
   updateLabNotebook(input: UpdateLabNotebookInput!): LabNotebook!
-  deleteLabNotebook(id: String!): Boolean!
+  deleteLabNotebook(id: ID!): Boolean!
 }
 
 input CreatePageInput {

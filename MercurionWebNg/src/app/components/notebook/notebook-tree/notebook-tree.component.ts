@@ -1,11 +1,21 @@
 import { Component, Input, signal } from '@angular/core';
 import { NotebookTree, SectionTree, PageTree } from '../../../Models/graphql/notebook/notebook.models';
 import { NotebookService } from '../../../services/graphql/notebook.service';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-notebook-tree',
+  styles: `
+    .selectable {
+      cursor: pointer; border-radius: 4px; padding: 2px 4px;
+    }
+    .selected {
+      background: oklch(0.92 0 70); font-weight: bold;
+    }
+
+  `,
   template: `
-<ul>
+  <ul>
   @for (nb of _notebooks(); track nb) {
     <li>
       <div class="font-bold flex items-center gap-2">
@@ -51,7 +61,12 @@ import { NotebookService } from '../../../services/graphql/notebook.service';
                         <ul>
                           @for (page of section.pages; track page) {
                             <li class="flex items-center gap-2 ml-7">
-                              <span>{{ page.title }}</span>
+                              <span class="selectable"
+                                [class.selected]="isSelected('page', page.id)"
+                                (click)="select('page', chapter.id, section.id, page.id)">
+                                  {{ page.title }}
+                              </span>
+
                               <button (click)="renamePage(page, section)">✏️</button>
                               <button (click)="deletePage(page.id, section)">🗑️</button>
                             </li>
@@ -68,7 +83,7 @@ import { NotebookService } from '../../../services/graphql/notebook.service';
       </ul>
     </li>
   }
-</ul>
+  </ul>
   `
 })
 export class NotebookTreeComponent {
@@ -82,7 +97,11 @@ export class NotebookTreeComponent {
   expandedChapters = signal<{ [id: string]: boolean }>({});
   expandedSections = signal<{ [id: string]: boolean }>({});
 
-  constructor(private notebookService: NotebookService) { }
+  constructor(
+    private readonly notebookService: NotebookService,
+    private readonly router: Router,
+    private readonly route: ActivatedRoute
+  ) { }
 
   toggleChapter(id: string) {
     this.expandedChapters.update(state => ({ ...state, [id]: !state[id] }));
@@ -143,4 +162,30 @@ export class NotebookTreeComponent {
       this.notebookService.deletePage(pageId).subscribe()
     }
   }
+
+  // ==================== Selection and Routing =====================
+
+  select(level: 'chapter' | 'section' | 'page', chapterId: string, sectionId?: string, pageId?: string) {
+    // Imposta i query param in base al livello selezionato
+    const queryParams: any = {};
+    if (level === 'chapter') queryParams.c_id = chapterId;
+    if (level === 'section') { queryParams.c_id = chapterId; queryParams.s_id = sectionId; }
+    if (level === 'page') { queryParams.c_id = chapterId; queryParams.s_id = sectionId; queryParams.p_id = pageId; }
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams,
+      queryParamsHandling: 'merge'
+    });
+  }
+
+  isSelected(type: 'chapter' | 'section' | 'page', id: string): boolean {
+    // Qui prendi i parametri dall’URL con ActivatedRoute.snapshot.queryParams
+    // e li confronti, esempio:
+    const params = this.route.snapshot.queryParams;
+    if (type === 'chapter') return params['c_id'] === id && !params['s_id'];
+    if (type === 'section') return params['s_id'] === id && !params['p_id'];
+    if (type === 'page') return params['p_id'] === id;
+    return false;
+  }
+
 }
