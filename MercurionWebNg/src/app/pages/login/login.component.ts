@@ -142,7 +142,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       this.onEmailInput()
     } else if (field === 'password') {
       this.loginForm.controls['password'].markAsDirty()
-      this.loginForm.controls['password'].markAsUntouched()
+      this.loginForm.controls['password'].markAsTouched()
     }
   }
 
