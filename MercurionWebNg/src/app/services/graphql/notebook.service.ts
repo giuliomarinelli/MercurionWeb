@@ -2,15 +2,17 @@ import { map, Observable, tap } from "rxjs";
 import { ChapterTree, NotebookTree, PageTree, SectionTree } from "../../Models/graphql/notebook/notebook.models";
 import { Apollo, gql } from "apollo-angular";
 import { computed, Injectable, signal } from "@angular/core";
+import { GqlRes } from "../../Models/graphql/res.gql";
 
-function extractGqlData<T>(res: { data?: T; errors?: any[] }, field: keyof T): any {
-  if (res.errors && res.errors.length) {
-    throw new Error(res.errors.map(e => e.message).join(', '));
+function extractGqlData<T>(res: unknown, field: keyof T): any {
+  const _res = res as GqlRes<T>
+  if (_res.errors && _res.errors.length) {
+    throw new Error(`GqlError::${_res.errors.map(e => e.message).join(', ')}`)
   }
-  if (!res.data || !res.data[field]) {
-    throw new Error('Dati non disponibili');
+  if (!_res.data || !_res.data[field]) {
+    throw new Error('GqlError::NoData')
   }
-  return res.data[field];
+  return _res.data[field]
 }
 
 // -- SERVICE
