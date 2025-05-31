@@ -42,6 +42,10 @@ export class NotebookService {
                 sections {
                   id
                   title
+                  pages {
+                    id,
+                    title
+                  }
                 }
               }
             }
