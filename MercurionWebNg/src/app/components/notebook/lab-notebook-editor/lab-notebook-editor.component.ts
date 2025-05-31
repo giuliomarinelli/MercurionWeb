@@ -1,7 +1,7 @@
 import { Component, signal, effect, Input, Output, EventEmitter } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { QuillModule } from 'ngx-quill';
-import { NotebookTocComponent } from '../notebook-tree-index/notebook-roc.component';
+import { NotebookTocComponent } from '../notebook-tree-index/notebook-toc.component';
 
 @Component({
   selector: 'lab-notebook-editor',

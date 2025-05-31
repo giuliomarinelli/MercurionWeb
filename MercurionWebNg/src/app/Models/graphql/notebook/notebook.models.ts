@@ -24,4 +24,5 @@ export interface SectionTree {
 export interface PageTree {
   id: string
   title: string
+  content: string
 }

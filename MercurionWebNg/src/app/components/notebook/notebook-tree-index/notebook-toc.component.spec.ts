@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { NotebookTocComponent } from './notebook-roc.component';
+import { NotebookTocComponent } from './notebook-toc.component';
 
 describe('NotebookTreeIndexComponent', () => {
   let component: NotebookTocComponent;

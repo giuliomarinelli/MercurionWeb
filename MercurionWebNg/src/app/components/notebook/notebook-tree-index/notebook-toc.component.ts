@@ -1,4 +1,4 @@
-import { Component, Input, signal, computed } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { NotebookTree, ChapterTree, SectionTree, PageTree } from '../../../Models/graphql/notebook/notebook.models';
 import { RouterModule } from '@angular/router';
 
@@ -12,7 +12,7 @@ type TocMode = 'edit' | 'read';
     <ul class="flex flex-wrap gap-3 text-xs px-2 py-2 bg-slate-50 border-b">
       @if (notebook) {
         <li>
-          <a [routerLink]="['/notebook', mode, notebook.id]"
+          <a [routerLink]="['/notebook', notebook.id, mode]"
              class="font-bold underline underline-offset-2"
              [class.text-sky-800]="isSelected('notebook', notebook.id)">
             {{ truncate(notebook.title) }}
@@ -21,7 +21,7 @@ type TocMode = 'edit' | 'read';
             <ul class="ml-3">
               @for (chapter of notebook.chapters; track chapter.id) {
                 <li>
-                  <a [routerLink]="['/notebook', mode, notebook.id]"
+                  <a [routerLink]="['/notebook', notebook.id, mode]"
                      [queryParams]="{ c_id: chapter.id }"
                      class="font-semibold"
                      [class.text-sky-700]="isSelected('chapter', chapter.id)">
@@ -31,7 +31,7 @@ type TocMode = 'edit' | 'read';
                     <ul class="ml-3">
                       @for (section of chapter.sections; track section.id) {
                         <li>
-                          <a [routerLink]="['/notebook', mode, notebook.id]"
+                          <a [routerLink]="['/notebook', notebook.id,mode]"
                              [queryParams]="{ c_id: chapter.id, s_id: section.id }"
                              [class.text-sky-600]="isSelected('section', section.id)">
                             {{ truncate(section.title) }}
@@ -40,7 +40,7 @@ type TocMode = 'edit' | 'read';
                             <ul class="ml-3">
                               @for (page of section.pages; track page.id) {
                                 <li>
-                                  <a [routerLink]="['/notebook', mode, notebook.id]"
+                                  <a [routerLink]="['/notebook', notebook.id, mode]"
                                      [queryParams]="{ c_id: chapter.id, s_id: section.id, p_id: page.id }"
                                      [class.text-sky-500]="isSelected('page', page.id)">
                                     {{ truncate(page.title) }}
