@@ -15,10 +15,8 @@ function extractGqlData<T>(res: unknown, field: keyof T): any {
   return _res.data[field]
 }
 
-// -- SERVICE
 @Injectable({ providedIn: 'root' })
 export class NotebookService {
-  // Cache locale e stato
   private _notebooks = signal<NotebookTree[]>([]);
   private _loading = signal<boolean>(false);
 
@@ -27,7 +25,7 @@ export class NotebookService {
 
   constructor(private apollo: Apollo) { }
 
-  // -- NOTEBOOK CRUD
+  // NOTEBOOK CRUD
 
   getAllNotebooks(): Observable<NotebookTree[]> {
     this._loading.set(true);
@@ -52,11 +50,7 @@ export class NotebookService {
         fetchPolicy: 'network-only',
       })
       .valueChanges.pipe(
-
-        map(res => {
-          console.log(res)
-          return extractGqlData(res, 'labNotebooksByUser')
-        }),
+        map(res => extractGqlData(res, 'labNotebooksByUser')),
         tap(nbs => {
           this._notebooks.set(nbs)
           this._loading.set(false)
@@ -116,7 +110,7 @@ export class NotebookService {
       .mutate<{ updateLabNotebook: NotebookTree }>({
         mutation: gql`
           mutation UpdateLabNotebook($input: UpdateLabNotebookInput!) {
-            updateLabNotebook(input: { id: $id, title: $title }) {
+            updateLabNotebook(input: $input) {
               id
               title
               chapters { id title sections { id title } }
@@ -141,14 +135,14 @@ export class NotebookService {
       .pipe(map(res => extractGqlData(res, 'deleteLabNotebook')));
   }
 
-  // -- CAPITOLO CRUD
+  // CAPITOLO CRUD
 
   createChapter(notebookId: string, title: string): Observable<ChapterTree> {
     return this.apollo
       .mutate<{ createChapter: ChapterTree }>({
         mutation: gql`
           mutation CreateChapter($input: CreateChapterInput!) {
-            createChapter(input: { notebookId: $notebookId, title: $title }) {
+            createChapter(input: $input) {
               id
               title
               sections { id title }
@@ -165,7 +159,7 @@ export class NotebookService {
       .mutate<{ updateChapter: ChapterTree }>({
         mutation: gql`
           mutation UpdateChapter($input: UpdateChapterInput!) {
-            updateChapter(input: { id: $id, title: $title }) {
+            updateChapter(input: $input) {
               id
               title
               sections { id title }
@@ -190,14 +184,14 @@ export class NotebookService {
       .pipe(map(res => extractGqlData(res, 'deleteChapter')));
   }
 
-  // -- SEZIONE CRUD
+  // SEZIONE CRUD
 
   createSection(chapterId: string, title: string): Observable<SectionTree> {
     return this.apollo
       .mutate<{ createSection: SectionTree }>({
         mutation: gql`
           mutation CreateSection($input: CreateSectionInput!) {
-            createSection(input: { chapterId: $chapterId, title: $title }) {
+            createSection(input: $input) {
               id
               title
               pages { id title }
@@ -214,7 +208,7 @@ export class NotebookService {
       .mutate<{ updateSection: SectionTree }>({
         mutation: gql`
           mutation UpdateSection($input: UpdateSectionInput!) {
-            updateSection(input: { id: $id, title: $title }) {
+            updateSection(input: $input) {
               id
               title
               pages { id title }
@@ -239,14 +233,16 @@ export class NotebookService {
       .pipe(map(res => extractGqlData(res, 'deleteSection')));
   }
 
-  // -- PAGINA CRUD
+  // PAGINA CRUD
 
+  // Qui lascio sectionId + input perché sembra richiesto così dal backend.
+  // Ma se puoi: meglio $input: { sectionId, title, content }
   createPage(sectionId: string, title: string, content: string): Observable<PageTree> {
     return this.apollo
       .mutate<{ createPage: PageTree }>({
         mutation: gql`
           mutation CreatePage($sectionId: String!, $input: CreatePageInput!) {
-            createPage(sectionId: $sectionId, input: { title: $title, content: $content }) {
+            createPage(sectionId: $sectionId, input: $input) {
               id
               title
               content
@@ -263,7 +259,7 @@ export class NotebookService {
       .mutate<{ updatePage: PageTree }>({
         mutation: gql`
           mutation UpdatePage($input: UpdatePageInput!) {
-            updatePage(input: { id: $id, title: $title, content: $content }) {
+            updatePage(input: $input) {
               id
               title
               content
@@ -288,7 +284,6 @@ export class NotebookService {
       .pipe(map(res => extractGqlData(res, 'deletePage')));
   }
 
-  // -- Utility: refresh notebooks list
   refreshNotebooks() {
     return this.getAllNotebooks().subscribe()
   }
