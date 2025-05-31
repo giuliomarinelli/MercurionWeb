@@ -119,7 +119,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.loadingTurnstile.set(true)
     this.loginForm.controls['password'].setValue(null)
     this.emptyPassword.set(true)
-    this.onBlur('password')
+    this.loginForm.controls['password'].markAsUntouched()
     this.isEmailFocused.set(true)
     setTimeout(() => this.emailRef.nativeElement.focus())
   }
@@ -140,9 +140,6 @@ export class LoginComponent implements OnInit, OnDestroy {
     if (field === 'email') {
       this.isEmailFocused.set(false)
       this.onEmailInput()
-    } else if (field === 'password') {
-      this.loginForm.controls['password'].markAsDirty()
-      this.loginForm.controls['password'].markAsTouched()
     }
   }
 
