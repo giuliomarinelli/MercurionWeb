@@ -120,6 +120,8 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.loginForm.controls['password'].setValue(null)
     this.emptyPassword.set(true)
     this.onBlur('password')
+    this.isEmailFocused.set(true)
+    setTimeout(() => this.emailRef.nativeElement.focus())
   }
 
 
