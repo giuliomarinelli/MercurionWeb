@@ -37,9 +37,7 @@ export class NotebookPageService {
 
     async getPage(id: UUID, userId: UUID): Promise<NotebookPage | null> {
         const result = await this.pageRepo.findOne({
-            where: { id, userId }, relations: [
-                'pages'
-            ]
+            where: { id, userId }
         })
         if (result && result.links === undefined) {
             result.links = []

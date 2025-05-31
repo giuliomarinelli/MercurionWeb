@@ -1,10 +1,11 @@
 import { Component, Input, signal } from '@angular/core';
 import { NotebookTree, SectionTree, PageTree } from '../../../Models/graphql/notebook/notebook.models';
 import { NotebookService } from '../../../services/graphql/notebook.service';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-notebook-tree',
+  imports: [RouterLink],
   styles: `
     .selectable {
       cursor: pointer; border-radius: 4px; padding: 2px 4px;
@@ -69,6 +70,9 @@ import { ActivatedRoute, Router } from '@angular/router';
 
                               <button (click)="renamePage(page, section)">✏️</button>
                               <button (click)="deletePage(page.id, section)">🗑️</button>
+                              <a [routerLink]="generateUrlToNotebook('edit', nb.id)" [queryParams]="{c_id: chapter.id, s_id: section.id, p_id: page.id}">
+                                Modifica
+                              </a>
                             </li>
                           }
                         </ul>
@@ -186,6 +190,10 @@ export class NotebookTreeComponent {
     if (type === 'section') return params['s_id'] === id && !params['p_id'];
     if (type === 'page') return params['p_id'] === id;
     return false;
+  }
+
+  protected generateUrlToNotebook(mode: 'edit' | 'read', notebookId: string): string {
+    return `${notebookId}/${mode}`
   }
 
 }

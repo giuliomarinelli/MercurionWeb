@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
 import { NotebookPageService } from '../../services/lab-notebook/notebook-page.service';
 import { UUID } from 'crypto';
 import { NotebookPage } from '../../Models/entities/lab-notebook/lab-notebook-page.entity';
@@ -26,6 +26,14 @@ export class PageResolver {
         @AuthenticatedUserId() userId: UUID
     ): Promise<NotebookPage[]> {
         return this.pageService.findBySection(sectionId as UUID, userId)
+    }
+
+    @Query(() => NotebookPage)
+    pageById(
+        @Args('id', {type: () => ID}) id: string,
+        @AuthenticatedUserId() userId: UUID
+    ): Promise<NotebookPage | null> {
+        return this.pageService.getPage(id as UUID, userId)
     }
 
     @Mutation(() => NotebookPage)

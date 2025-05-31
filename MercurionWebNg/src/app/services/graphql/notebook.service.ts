@@ -92,6 +92,59 @@ export class NotebookService {
       .valueChanges.pipe(map(res => extractGqlData(res, 'labNotebook')));
   }
 
+  getChapterById(id: string): Observable<ChapterTree | null> {
+    return this.apollo
+      .watchQuery<{ chapterById: ChapterTree | null }>({
+        query: gql`
+          query GetChapterById($id: ID!) {
+            chapterById(id: $id) {
+              id
+              title
+            }
+          }
+        `,
+        variables: { id },
+        fetchPolicy: 'network-only',
+      })
+      .valueChanges.pipe(map(res => extractGqlData(res, 'chapterById')));
+  }
+
+  getSectionById(id: string): Observable<SectionTree | null> {
+    return this.apollo
+      .watchQuery<{ chapterById: SectionTree | null }>({
+        query: gql`
+          query GetChapterById($id: ID!) {
+            sectionById(id: $id) {
+              id
+              title
+            }
+          }
+        `,
+        variables: { id },
+        fetchPolicy: 'network-only',
+      })
+      .valueChanges.pipe(map(res => extractGqlData(res, 'sectionById')));
+  }
+
+  getPageByIdHeader(id: string): Observable<PageTree | null> {
+    return this.apollo
+      .watchQuery<{ chapterById: PageTree | null }>({
+        query: gql`
+          query GetChapterById($id: ID!) {
+            pageById(id: $id) {
+              id
+              title
+            }
+          }
+        `,
+        variables: { id },
+        fetchPolicy: 'network-only',
+      })
+      .valueChanges.pipe(map(res => extractGqlData(res, 'pageById')));
+  }
+
+
+
   createNotebook(title: string): Observable<NotebookTree> {
     return this.apollo
       .mutate<{ createLabNotebook: NotebookTree }>({

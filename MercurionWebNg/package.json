@@ -1,6 +1,6 @@
 {
   "name": "mercurion_web_ng",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "scripts": {
     "ng": "ng",
     "start:dev": "ng serve --serve-path /app/",

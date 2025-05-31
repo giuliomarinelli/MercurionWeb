@@ -27,6 +27,14 @@ export class NotebookSectionResolver {
         return result
     }
 
+    @Query(() => NotebookSection)
+    sectionById(
+        @Args('id', {type: () => ID}) id: string,
+        @AuthenticatedUserId() userId: UUID
+    ): Promise<NotebookSection | null> {
+        return this.sectionService.getSection(id as UUID, userId)
+    }
+
     @Mutation(() => NotebookSection)
     async createSection(
         @Args('input') input: CreateSectionInput,

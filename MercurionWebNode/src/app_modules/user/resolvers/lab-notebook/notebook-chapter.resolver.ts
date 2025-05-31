@@ -29,6 +29,14 @@ export class NotebookChapterResolver {
         return this.chapterService.listChapters(notebookId as UUID, userId)
     }
 
+    @Query(() => NotebookChapter)
+    chapterById(
+        @Args('id', { type: () => ID }) id: string,
+        @AuthenticatedUserId() userId: UUID
+    ): Promise<NotebookChapter | null> {
+        return this.chapterService.getChapter(id as UUID, userId)
+    }
+
     @Mutation(() => NotebookChapter)
     async createChapter(
         @Args('input') { notebookId, title }: CreateChapterInput,
