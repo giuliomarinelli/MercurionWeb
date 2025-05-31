@@ -1,0 +1,289 @@
+import { map, Observable, tap } from "rxjs";
+import { ChapterTree, NotebookTree, PageTree, SectionTree } from "../../Models/graphql/notebook/notebook.models";
+import { Apollo, gql } from "apollo-angular";
+import { computed, Injectable, signal } from "@angular/core";
+
+function extractGqlData<T>(res: { data?: T; errors?: any[] }, field: keyof T): any {
+  if (res.errors && res.errors.length) {
+    throw new Error(res.errors.map(e => e.message).join(', '));
+  }
+  if (!res.data || !res.data[field]) {
+    throw new Error('Dati non disponibili');
+  }
+  return res.data[field];
+}
+
+// -- SERVICE
+@Injectable({ providedIn: 'root' })
+export class NotebookService {
+  // Cache locale e stato
+  private _notebooks = signal<NotebookTree[]>([]);
+  private _loading = signal<boolean>(false);
+
+  readonly notebooks = computed(() => this._notebooks());
+  readonly loading = computed(() => this._loading());
+
+  constructor(private apollo: Apollo) { }
+
+  // -- NOTEBOOK CRUD
+
+  getAllNotebooks(): Observable<NotebookTree[]> {
+    this._loading.set(true);
+    return this.apollo
+      .watchQuery<{ labNotebooksByUser: NotebookTree[] }>({
+        query: gql`
+          query GetAllNotebooks {
+            labNotebooksByUser {
+              id
+              title
+              chapters {
+                id
+                title
+                sections {
+                  id
+                  title
+                }
+              }
+            }
+          }
+        `,
+        fetchPolicy: 'network-only',
+      })
+      .valueChanges.pipe(
+        map(res => extractGqlData(res, 'labNotebooksByUser')),
+        tap(nbs => {
+          this._notebooks.set(nbs);
+          this._loading.set(false);
+        })
+      );
+  }
+
+  getNotebookById(id: string): Observable<NotebookTree> {
+    return this.apollo
+      .watchQuery<{ labNotebook: NotebookTree }>({
+        query: gql`
+          query GetNotebookDetail($id: ID!) {
+            labNotebook(id: $id) {
+              id
+              title
+              chapters {
+                id
+                title
+                sections {
+                  id
+                  title
+                  pages {
+                    id
+                    title
+                    content
+                  }
+                }
+              }
+            }
+          }
+        `,
+        variables: { id },
+        fetchPolicy: 'network-only',
+      })
+      .valueChanges.pipe(map(res => extractGqlData(res, 'labNotebook')));
+  }
+
+  createNotebook(title: string): Observable<NotebookTree> {
+    return this.apollo
+      .mutate<{ createLabNotebook: NotebookTree }>({
+        mutation: gql`
+          mutation CreateLabNotebook($title: String!) {
+            createLabNotebook(title: $title) {
+              id
+              title
+              chapters { id title sections { id title } }
+            }
+          }
+        `,
+        variables: { title },
+      })
+      .pipe(map(res => extractGqlData(res, 'createLabNotebook')));
+  }
+
+  updateNotebook(id: string, title: string): Observable<NotebookTree> {
+    return this.apollo
+      .mutate<{ updateLabNotebook: NotebookTree }>({
+        mutation: gql`
+          mutation UpdateLabNotebook($input: UpdateLabNotebookInput!) {
+            updateLabNotebook(input: { id: $id, title: $title }) {
+              id
+              title
+              chapters { id title sections { id title } }
+            }
+          }
+        `,
+        variables: { input: { id, title } },
+      })
+      .pipe(map(res => extractGqlData(res, 'updateLabNotebook')));
+  }
+
+  deleteNotebook(id: string): Observable<boolean> {
+    return this.apollo
+      .mutate<{ deleteLabNotebook: boolean }>({
+        mutation: gql`
+          mutation DeleteLabNotebook($id: String!) {
+            deleteLabNotebook(id: $id)
+          }
+        `,
+        variables: { id },
+      })
+      .pipe(map(res => extractGqlData(res, 'deleteLabNotebook')));
+  }
+
+  // -- CAPITOLO CRUD
+
+  createChapter(notebookId: string, title: string): Observable<ChapterTree> {
+    return this.apollo
+      .mutate<{ createChapter: ChapterTree }>({
+        mutation: gql`
+          mutation CreateChapter($input: CreateChapterInput!) {
+            createChapter(input: { notebookId: $notebookId, title: $title }) {
+              id
+              title
+              sections { id title }
+            }
+          }
+        `,
+        variables: { input: { notebookId, title } },
+      })
+      .pipe(map(res => extractGqlData(res, 'createChapter')));
+  }
+
+  updateChapter(id: string, title: string): Observable<ChapterTree> {
+    return this.apollo
+      .mutate<{ updateChapter: ChapterTree }>({
+        mutation: gql`
+          mutation UpdateChapter($input: UpdateChapterInput!) {
+            updateChapter(input: { id: $id, title: $title }) {
+              id
+              title
+              sections { id title }
+            }
+          }
+        `,
+        variables: { input: { id, title } },
+      })
+      .pipe(map(res => extractGqlData(res, 'updateChapter')));
+  }
+
+  deleteChapter(id: string): Observable<boolean> {
+    return this.apollo
+      .mutate<{ deleteChapter: boolean }>({
+        mutation: gql`
+          mutation DeleteChapter($id: String!) {
+            deleteChapter(id: $id)
+          }
+        `,
+        variables: { id },
+      })
+      .pipe(map(res => extractGqlData(res, 'deleteChapter')));
+  }
+
+  // -- SEZIONE CRUD
+
+  createSection(chapterId: string, title: string): Observable<SectionTree> {
+    return this.apollo
+      .mutate<{ createSection: SectionTree }>({
+        mutation: gql`
+          mutation CreateSection($input: CreateSectionInput!) {
+            createSection(input: { chapterId: $chapterId, title: $title }) {
+              id
+              title
+              pages { id title }
+            }
+          }
+        `,
+        variables: { input: { chapterId, title } },
+      })
+      .pipe(map(res => extractGqlData(res, 'createSection')));
+  }
+
+  updateSection(id: string, title: string): Observable<SectionTree> {
+    return this.apollo
+      .mutate<{ updateSection: SectionTree }>({
+        mutation: gql`
+          mutation UpdateSection($input: UpdateSectionInput!) {
+            updateSection(input: { id: $id, title: $title }) {
+              id
+              title
+              pages { id title }
+            }
+          }
+        `,
+        variables: { input: { id, title } },
+      })
+      .pipe(map(res => extractGqlData(res, 'updateSection')));
+  }
+
+  deleteSection(id: string): Observable<boolean> {
+    return this.apollo
+      .mutate<{ deleteSection: boolean }>({
+        mutation: gql`
+          mutation DeleteSection($id: String!) {
+            deleteSection(id: $id)
+          }
+        `,
+        variables: { id },
+      })
+      .pipe(map(res => extractGqlData(res, 'deleteSection')));
+  }
+
+  // -- PAGINA CRUD
+
+  createPage(sectionId: string, title: string, content: string): Observable<PageTree> {
+    return this.apollo
+      .mutate<{ createPage: PageTree }>({
+        mutation: gql`
+          mutation CreatePage($sectionId: String!, $input: CreatePageInput!) {
+            createPage(sectionId: $sectionId, input: { title: $title, content: $content }) {
+              id
+              title
+              content
+            }
+          }
+        `,
+        variables: { sectionId, input: { title, content } },
+      })
+      .pipe(map(res => extractGqlData(res, 'createPage')));
+  }
+
+  updatePage(id: string, title: string, content: string): Observable<PageTree> {
+    return this.apollo
+      .mutate<{ updatePage: PageTree }>({
+        mutation: gql`
+          mutation UpdatePage($input: UpdatePageInput!) {
+            updatePage(input: { id: $id, title: $title, content: $content }) {
+              id
+              title
+              content
+            }
+          }
+        `,
+        variables: { input: { id, title, content } },
+      })
+      .pipe(map(res => extractGqlData(res, 'updatePage')));
+  }
+
+  deletePage(id: string): Observable<boolean> {
+    return this.apollo
+      .mutate<{ deletePage: boolean }>({
+        mutation: gql`
+          mutation DeletePage($id: String!) {
+            deletePage(id: $id)
+          }
+        `,
+        variables: { id },
+      })
+      .pipe(map(res => extractGqlData(res, 'deletePage')));
+  }
+
+  // -- Utility: refresh notebooks list
+  refreshNotebooks() {
+    return this.getAllNotebooks().subscribe();
+  }
+}
