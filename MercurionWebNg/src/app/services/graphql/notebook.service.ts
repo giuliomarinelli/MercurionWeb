@@ -52,10 +52,14 @@ export class NotebookService {
         fetchPolicy: 'network-only',
       })
       .valueChanges.pipe(
-        map(res => extractGqlData(res, 'labNotebooksByUser')),
+
+        map(res => {
+          console.log(res)
+          return extractGqlData(res, 'labNotebooksByUser')
+        }),
         tap(nbs => {
-          this._notebooks.set(nbs);
-          this._loading.set(false);
+          this._notebooks.set(nbs)
+          this._loading.set(false)
         })
       );
   }
@@ -286,6 +290,6 @@ export class NotebookService {
 
   // -- Utility: refresh notebooks list
   refreshNotebooks() {
-    return this.getAllNotebooks().subscribe();
+    return this.getAllNotebooks().subscribe()
   }
 }
