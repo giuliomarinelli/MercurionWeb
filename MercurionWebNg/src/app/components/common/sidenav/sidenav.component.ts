@@ -39,7 +39,7 @@ interface HistoryItem {
           </svg>
           <span class="sidebar-item-text">Collezioni molecolari</span>
         </a>
-        <a class="sidebar-link" routerLink="/notebooks">
+        <a class="sidebar-link" routerLink="/notebook">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="fill-current w-5 h-5">
             <!--!Font Awesome Pro 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
             <path class="text-light-accent-secondary/50 dark:text-dark-accent-secondary/50" d="M64 416c0-17.7 14.3-32 32-32l160 0 96 0 64 0 0 64-64 0-96 0L96 448c-17.7 0-32-14.3-32-32z"/>
