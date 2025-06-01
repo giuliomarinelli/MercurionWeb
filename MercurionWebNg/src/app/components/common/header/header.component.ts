@@ -105,6 +105,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   protected toggleAvatarMenu(): void {
     !this.avatarMenuOpen() && this.getEmail()
+    this.themeMenuOpen() && this.toggleThemeMenu()
     this.avatarMenuOpen.update(open => !open)
   }
 
