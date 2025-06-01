@@ -33,6 +33,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
   protected themeMenuVisible = signal<boolean>(false)
   protected offCanvasMenuOpen = signal<boolean>(false)
   protected avatarMenuOpen = signal<boolean>(false)
+  protected avatarMenuMounted = signal<boolean>(false)
+  protected avatarMenuVisible = signal<boolean>(false)
 
   readonly menuOpenClass: Signal<boolean> = computed(() => this.themeMenuOpen())
   readonly logoSrc = computed(() =>
@@ -63,10 +65,19 @@ export class HeaderComponent implements OnInit, OnDestroy {
         this.themeMenuMounted.set(true)
         setTimeout(() => this.themeMenuVisible.set(true))
       } else {
-        this.themeMenuVisible.set(false);
+        this.themeMenuVisible.set(false)
         setTimeout(() => this.themeMenuMounted.set(false), 200)
       }
-    });
+    })
+    effect(() => {
+      if (this.avatarMenuOpen()) {
+        this.avatarMenuMounted.set(true)
+        setTimeout(() => this.avatarMenuVisible.set(true))
+      } else {
+        this.avatarMenuVisible.set(false)
+        setTimeout(() => this.avatarMenuMounted.set(false), 200)
+      }
+    })
   }
 
   protected onThemeChange(theme: ThemeChose): void {

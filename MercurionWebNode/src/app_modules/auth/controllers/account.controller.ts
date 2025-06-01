@@ -1,5 +1,5 @@
 import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum';
-import { BadRequestException, Body, Controller, Param, Patch, Post, Query, UnauthorizedException, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, NotFoundException, Param, Patch, Post, Query, UnauthorizedException, ValidationPipe } from '@nestjs/common';
 import { UserRegisterDTO } from 'src/app_modules/user/Models/DTO/user-register.cls.dto';
 import { AuthenticatedUserId, Public } from 'src/metadata/metadata';
 import { ConfirmChangeDTO, ConfirmDTO, ConfirmMfaChange, ConfirmWithObsContDTO } from 'src/Models/confirm-responses.dto';
@@ -11,6 +11,7 @@ import { UUID } from 'crypto';
 import { TotpDTO } from '../Models/DTO/totp.cls.dto';
 import { ChangePhoneDTO } from '../Models/DTO/change-phone.cls.dto';
 import { EmailDTO } from '../Models/DTO/change-email.cls.dto';
+import { UserService } from 'src/app_modules/user/services/user.service';
 
 @Controller('account')
 export class AccountController {
@@ -18,7 +19,8 @@ export class AccountController {
     constructor(
         private readonly accountService: AccountService,
         private readonly _r: ResponseService,
-        private readonly mfaService: MfaService
+        private readonly mfaService: MfaService,
+        private readonly userService: UserService
     ) { }
 
     @Public()
@@ -122,6 +124,15 @@ export class AccountController {
             throw new UnauthorizedException('Invalid MFA Code')
         }
         return this._r.ok(`MFA successfully disabled for strategy ${strategyKey}`)
+    }
+
+    @Get('/email')
+    public async getEmail(@AuthenticatedUserId() userId: UUID): Promise<string> {
+        const email = await this.userService.getUserEmailById(userId)
+        if (email == null) {
+            throw new NotFoundException('EmailNotFound')
+        }
+        return email
     }
 
 }
