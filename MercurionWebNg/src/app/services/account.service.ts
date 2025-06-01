@@ -39,8 +39,9 @@ export class AccountService {
     if (storedEmail) {
       return of(storedEmail)
     } else {
-      return this.http.get<string>('/api/account/email', {
-        withCredentials: true
+      return this.http.get('/api/account/email', {
+        withCredentials: true,
+        responseType: 'text'
       }).pipe(
         tap(email => this.setStoredEmail(email))
       )

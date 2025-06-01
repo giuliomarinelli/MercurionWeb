@@ -10,6 +10,8 @@ import { PublicPipe } from '../../../pipes/public.pipe';
 import { UserContextService } from '../../../services/stores/user-context.service';
 import { filter, Subscription } from 'rxjs';
 import { SidenavComponent } from '../sidenav/sidenav.component';
+import { AccountService } from '../../../services/account.service';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-header',
@@ -28,6 +30,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   isAllowedRoute: boolean = false
   private routeSub: Subscription | undefined
+  private emailSub: Subscription | undefined
+  private logoutSub: Subscription | undefined
   protected themeMenuOpen = signal<boolean>(false)
   protected themeMenuMounted = signal<boolean>(false)
   protected themeMenuVisible = signal<boolean>(false)
@@ -35,6 +39,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   protected avatarMenuOpen = signal<boolean>(false)
   protected avatarMenuMounted = signal<boolean>(false)
   protected avatarMenuVisible = signal<boolean>(false)
+  protected email = signal<string>('')
 
   readonly menuOpenClass: Signal<boolean> = computed(() => this.themeMenuOpen())
   readonly logoSrc = computed(() =>
@@ -52,7 +57,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
     protected readonly userContext: UserContextService,
     private readonly router: Router,
     private readonly appRef: ApplicationRef,
-    private readonly cdRef: ChangeDetectorRef
+    private readonly cdRef: ChangeDetectorRef,
+    private accountService: AccountService,
+    private readonly authService: AuthService
   ) {
     effect(() => {
       const initials = this.userContext.initials()
@@ -97,6 +104,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   protected toggleAvatarMenu(): void {
+    !this.avatarMenuOpen() && this.getEmail()
     this.avatarMenuOpen.update(open => !open)
   }
 
@@ -147,8 +155,31 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.searchContextService.isOpenedSearchOverlay.set(true)
   }
 
+  getEmail(): void {
+    this.emailSub = this.accountService
+      .getEmail()
+      .subscribe(email => {
+        this.email.set(email)
+      })
+  }
 
-
+  logout(): void {
+    this.logoutSub = this.authService.logout().subscribe({
+      next: () => {
+        sessionStorage?.removeItem('RouteError')
+        sessionStorage?.setItem('logout', 'success')
+        localStorage?.removeItem('login')
+        this.userContext.logout()
+        this.router.navigate(['/login'])
+      },
+      error: () => {
+        sessionStorage?.removeItem('RouteError')
+        sessionStorage?.setItem('logout', 'success')
+        this.userContext.logout()
+        this.router.navigate(['/login'])
+      }
+    })
+  }
 
   ngOnInit(): void {
     document.addEventListener('click', this.handleDocumentClick, true)
@@ -171,6 +202,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
     document.removeEventListener('click', this.handleDocumentClick, true)
     document.removeEventListener('keydown', this.handleEscape, true)
     this.routeSub?.unsubscribe()
+    this.emailSub?.unsubscribe()
+    this.logoutSub?.unsubscribe()
   }
 
 
