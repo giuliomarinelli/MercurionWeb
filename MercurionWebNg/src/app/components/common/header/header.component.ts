@@ -26,7 +26,15 @@ import { SidenavComponent } from '../sidenav/sidenav.component';
 })
 export class HeaderComponent implements OnInit, OnDestroy {
 
-  // Signal derivato per logoSrc
+  isAllowedRoute: boolean = false
+  private routeSub: Subscription | undefined
+  protected themeMenuOpen = signal<boolean>(false)
+  protected themeMenuMounted = signal<boolean>(false)
+  protected themeMenuVisible = signal<boolean>(false)
+  protected offCanvasMenuOpen = signal<boolean>(false)
+  protected avatarMenuOpen = signal<boolean>(false)
+
+  readonly menuOpenClass: Signal<boolean> = computed(() => this.themeMenuOpen())
   readonly logoSrc = computed(() =>
     this.themeManager.theme() === 'light' ? 'logo/complete-light-logo.svg' : 'logo/complete-dark-logo-2.svg'
   )
@@ -34,8 +42,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
     const initials = this.userContext.initials()
     return initials.length === 1 || initials.length === 2
   })
-  isAllowedRoute: boolean = false
-  private routeSub: Subscription | undefined
 
   constructor(
     protected readonly themeManager: ThemeManagerService,
@@ -50,8 +56,17 @@ export class HeaderComponent implements OnInit, OnDestroy {
       const initials = this.userContext.initials()
       this.cdRef.detectChanges()  // Forza Angular a rinfrescare la vista
     })
-    effect(() => console.log('[header] initials =', this.userContext.initials()));
-    effect(() => console.log('[header] isLoggedIn =', this.isLoggedIn()));
+    effect(() => console.log('[header] initials =', this.userContext.initials()))
+    effect(() => console.log('[header] isLoggedIn =', this.isLoggedIn()))
+    effect(() => {
+      if (this.themeMenuOpen()) {
+        this.themeMenuMounted.set(true)
+        setTimeout(() => this.themeMenuVisible.set(true))
+      } else {
+        this.themeMenuVisible.set(false);
+        setTimeout(() => this.themeMenuMounted.set(false), 200)
+      }
+    });
   }
 
   protected onThemeChange(theme: ThemeChose): void {
@@ -61,10 +76,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
     })
   }
 
-  protected themeMenuOpen: WritableSignal<boolean> = signal(false)
-  protected offCanvasMenuOpen: WritableSignal<boolean> = signal(false)
-
-  readonly menuOpenClass: Signal<boolean> = computed(() => this.themeMenuOpen())
 
   protected toggleThemeMenu(): void {
     this.themeMenuOpen.update(open => !open)
@@ -72,6 +83,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   protected toggleOffCanvasMenu(): void {
     this.offCanvasMenuOpen.update(open => !open)
+  }
+
+  protected toggleAvatarMenu(): void {
+    this.avatarMenuOpen.update(open => !open)
   }
 
   protected closeOffCanvasMenu(): void {
@@ -82,10 +97,16 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.themeMenuOpen.set(false)
   }
 
+  protected closeAvatarMenu(): void {
+    this.avatarMenuOpen.set(false)
+  }
+
   protected handleDocumentClick = (event: MouseEvent): void => {
     const target = event.target as HTMLElement
 
     const isInsideThemeMenu = target.closest('.theme-menu-container')
+    const isInsideAvatarMenu = target.closest('.avatar-menu-container')
+    const isInsideAvatarBtn = target.closest('.avatar-toggle-button')
     const isToggleThemeBtn = target.closest('.theme-toggle-button')
     const isInsideOffCanvasMenu = target.closest('.off-canvas-menu-container')
     const isToggleOffCanvasBtn = target.closest('.off-canvas-menu-button')
@@ -97,6 +118,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
     if (!isInsideOffCanvasMenu && !isToggleOffCanvasBtn) {
       this.offCanvasMenuOpen.set(false)
     }
+
+    if (!isInsideAvatarMenu && !isInsideAvatarBtn) {
+      this.avatarMenuOpen.set(false)
+    }
+
   }
 
   protected handleEscape = (event: KeyboardEvent): void => {
