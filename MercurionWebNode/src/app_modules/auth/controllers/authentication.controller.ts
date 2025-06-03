@@ -152,7 +152,7 @@ export class AuthenticationController {
         return {
             ...this._r.ok('Authenticated successfully'),
             accessToken,
-            initials:await this.userService.getUserInitialsByUserId(userId) ?? ''
+            initials: await this.userService.getUserInitialsByUserId(userId) ?? ''
         }
 
     }
@@ -165,9 +165,13 @@ export class AuthenticationController {
         @DeviceId() deviceId: UUID,
         @Res({ passthrough: true }) reply: FastifyReply
     ): Promise<void> {
-        await this.authService.performLogout(sessionId, deviceId)
+        try {
+            await this.authService.performLogout(sessionId, deviceId)
+        } catch {
+            // do nothing
+        }
         this.secureCookieService.clearCookie(reply, '__node_session_id')
-        this.logger.log('Logged out. Response with status 204 - No Content')
+        this.logger.debug('Logged out. Response with status 204 - No Content')
     }
 
 }
