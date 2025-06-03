@@ -149,7 +149,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     if (event.key === 'Escape') {
       this.themeMenuOpen.set(false)
       this.offCanvasMenuOpen.set(false)
-      this.avatarMenuMounted.set(false)
+      this.avatarMenuOpen.set(false)
     }
   }
 
