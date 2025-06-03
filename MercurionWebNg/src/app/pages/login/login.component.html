@@ -1,114 +1,177 @@
 <!-- login-placeholder-mercurion.component.html -->
 <div class="min-h-screen flex flex-col items-center px-4 pt-9">
   <!-- Logo -->
-  <img [src]="logoSrc() | public" alt="Mercurion Logo" class="w-16 h-auto mb-6" />
+  <img
+    [src]="logoSrc() | public"
+    alt="Mercurion Logo"
+    class="w-16 h-auto mb-6"
+  />
 
   <!-- Welcome Message -->
-  <h1 class="text-2xl font-semibold text-gray-900 mb-8 tracking-wider dark:text-slate-100 text-center">Piacere di averti qui.</h1>
+  <h1
+    class="text-2xl font-semibold text-gray-900 mb-8 tracking-wider dark:text-slate-100 text-center"
+  >
+    Piacere di averti qui.
+  </h1>
 
   <!-- Step-based Form -->
-  <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="w-full max-w-sm space-y-6">
+  <form
+    [formGroup]="loginForm"
+    (ngSubmit)="onSubmit()"
+    class="w-full max-w-sm space-y-6"
+  >
     <!-- Step 1: Email -->
 
     @if (step() === 1) {
-  <!-- STEP 1: EMAIL -->
-  <div class="relative">
-    <input #email type="email" formControlName="email" id="email"
-      class="block py-4 px-4 w-full text-sm text-dark dark:text-light bg-transparent border-slate-300 border dark:border-slate-200 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-light-accent-primary dark:focus:ring-light-accent-primary focus:border-light-accent-primary dark:focus:border-dark-accent-primary peer"
-      placeholder=" " required (input)="serverErrorStep.set(0); onEmailInput()" (blur)="onBlur('email')"
-      (keyup.enter)="goToPasswordStep()" />
-    <label for="email" [ngClass]="{
-        'text-light-accent-secondary dark:text-dark-accent-secondary/90 scale-110 -translate-y-6 text-sm': isFocus('email') || !emptyEmail(),
-        'text-slate-400 text-lg scale-100 translate-y-0 cursor-text': !isFocus('email') && emptyEmail()
-      }"
-      class="z-30 peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-main dark:bg-neutral-950 px-1 top-3 left-4 origin-[0]">
-      Indirizzo e-mail</label>
-    <div class="text-sm text-light-error dark:text-dark-error mt-1 min-h-5">
-      @if (loginForm.controls['email'].invalid && loginForm.controls['email'].touched && serverErrorStep() === 0) {
-      @if (emptyEmail()) {
-      E-mail obbligatoria.
-      } @else if (malformedEmail()) {
-      Formato e-mail non corretto
-      }
-      } @else if (serverErrorStep() === 1) {
-      L'e-mail inserita non è corretta
-      }
-    </div>
-  </div>
-  <button type="button" (click)="goToPasswordStep()" [disabled]="loginForm.controls['email'].invalid"
-    class="relative bottom-[10px] w-full mt-1 py-2 text-white rounded-md transition-colors duration-150
-  bg-light-accent-primary dark:bg-dark-accent-primary/90
-  hover:bg-light-accent-primary/80 dark:hover:bg-dark-accent-primary/80
-  disabled:bg-light-accent-primary/60 disabled:dark:bg-dark-accent-primary/80
-  disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary/60 disabled:hover:dark:bg-dark-accent-primary/80">Continua</button>
-} @else if (step() === 2) {
+      <!-- STEP 1: EMAIL -->
+      <div class="relative">
+        <input
+          #email
+          type="email"
+          formControlName="email"
+          id="email"
+          class="block py-4 px-4 w-full text-sm text-dark dark:text-light bg-transparent border-slate-300 border dark:border-slate-200 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-light-accent-primary dark:focus:ring-light-accent-primary focus:border-light-accent-primary dark:focus:border-dark-accent-primary peer"
+          placeholder=" "
+          required
+          (input)="serverErrorStep.set(0); onEmailInput()"
+          (blur)="onBlur('email')"
+          (keyup.enter)="goToPasswordStep()"
+        />
+        <label
+          for="email"
+          [ngClass]="{
+            'text-light-accent-secondary dark:text-dark-accent-secondary/90 scale-110 -translate-y-6 text-sm':
+              isFocus('email') || !emptyEmail(),
+            'text-slate-400 text-lg scale-100 translate-y-0 cursor-text':
+              !isFocus('email') && emptyEmail(),
+          }"
+          class="z-30 peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-main dark:bg-neutral-950 px-1 top-3 left-4 origin-[0]"
+        >
+          Indirizzo e-mail</label
+        >
+        <div class="text-sm text-light-error dark:text-dark-error mt-1 min-h-5">
+          @if (
+            loginForm.controls["email"].invalid &&
+            loginForm.controls["email"].touched &&
+            serverErrorStep() === 0
+          ) {
+            @if (emptyEmail()) {
+              E-mail obbligatoria.
+            } @else if (malformedEmail()) {
+              Formato e-mail non corretto
+            }
+          } @else if (serverErrorStep() === 1) {
+            L'e-mail inserita non è corretta
+          }
+        </div>
+      </div>
+      <button
+        type="button"
+        (click)="goToPasswordStep()"
+        [disabled]="loginForm.controls['email'].invalid"
+        class="relative bottom-[10px] w-full mt-1 py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary dark:bg-dark-accent-primary/90 hover:bg-light-accent-primary/80 dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary/60 disabled:hover:dark:bg-dark-accent-primary/80"
+      >
+        Continua
+      </button>
+    } @else if (step() === 2) {
+      <!-- STEP 2: EMAIL + PASSWORD (email ancora editabile) -->
+      <div class="relative mb-2">
+        <input
+          #email
+          type="email"
+          formControlName="email"
+          id="email"
+          class="block py-4 px-4 w-full text-sm text-dark dark:text-light bg-transparent border-slate-300 border dark:border-slate-200 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-light-accent-primary dark:focus:ring-light-accent-primary focus:border-light-accent-primary dark:focus:border-dark-accent-primary peer"
+          placeholder=" "
+          required
+          (input)="onEmailEditStep2()"
+          (blur)="onBlur('email')"
+          autocomplete="email"
+        />
+        <label
+          for="email"
+          [ngClass]="{
+            'text-light-accent-secondary dark:text-dark-accent-secondary/90 scale-110 -translate-y-6 text-sm':
+              isFocus('email') || !emptyEmail(),
+            'text-slate-400 text-lg scale-100 translate-y-0 cursor-text':
+              !isFocus('email') && emptyEmail(),
+          }"
+          class="z-30 peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-main dark:bg-neutral-950 px-1 top-3 left-4 origin-[0]"
+        >
+          Indirizzo e-mail</label
+        >
+      </div>
 
-  <!-- STEP 2: EMAIL + PASSWORD (email ancora editabile) -->
-  <div class="relative mb-2">
-    <input #email type="email" formControlName="email" id="email"
-      class="block py-4 px-4 w-full text-sm text-dark dark:text-light bg-transparent border-slate-300 border dark:border-slate-200 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-light-accent-primary dark:focus:ring-light-accent-primary focus:border-light-accent-primary dark:focus:border-dark-accent-primary peer"
-      placeholder=" "
-      required
-      (input)="onEmailEditStep2()"
-      (blur)="onBlur('email')"
-      autocomplete="email"
-    />
-    <label for="email" [ngClass]="{
-        'text-light-accent-secondary dark:text-dark-accent-secondary/90 scale-110 -translate-y-6 text-sm': isFocus('email') || !emptyEmail(),
-        'text-slate-400 text-lg scale-100 translate-y-0 cursor-text': !isFocus('email') && emptyEmail()
-      }"
-      class="z-30 peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-main dark:bg-neutral-950 px-1 top-3 left-4 origin-[0]">
-      Indirizzo e-mail</label>
-  </div>
-
-  <div class="relative">
-    <input #password type="password" formControlName="password" id="password"
-      class="block py-4 px-4 w-full text-sm text-dark dark:text-light bg-transparent border-slate-300 border dark:border-slate-200 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-light-accent-primary dark:focus:ring-dark-accent-primary focus:border-light-accent-primary dark:focus:border-dark-accent-primary peer"
-      placeholder=" " required (input)="serverErrorStep.set(0); onPasswordInput()" (blur)="onBlur('password')" />
-    <label for="password" [ngClass]="{
-        'text-light-accent-secondary dark:text-dark-accent-secondary scale-110 -translate-y-6 text-sm': isFocus('password') || !emptyPassword(),
-        'text-slate-400 text-lg scale-100 translate-y-0 cursor-text': !isFocus('password') && emptyPassword()
-      }"
-      class="z-30 peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-main dark:bg-neutral-950 px-1 top-3 left-4 origin-[0]">
-      Password
-    </label>
-    <div class="text-sm text-light-error dark:text-dark-error mt-1 min-h-5">
-      @if (loginForm.controls['password'].invalid && loginForm.controls['password'].touched && serverErrorStep() === 0) {
-      @if (emptyPassword()) {
-      Password obbligatoria.
-      }
-      } @else if (serverErrorStep() === 2) {
-      La password inserita non è corretta.
-      }
-    </div>
-  </div>
-  <button type="submit" [disabled]="!canLogin()"
-    class="relative bottom-[10px] w-full mt-4 py-2 text-white rounded-md transition-colors duration-150
-  bg-light-accent-primary dark:bg-dark-accent-primary/90
-  hover:bg-light-accent-primary/80 dark:hover:bg-dark-accent-primary/80
-  disabled:bg-light-accent-primary/60 disabled:dark:bg-dark-accent-primary/80
-  disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary/60 disabled:hover:dark:bg-dark-accent-primary/80">Accedi</button>
-  <div class="flex justify-center">
-    @if (loadingTurnstile()) {
-      <div class="w-[300px] h-[71px] overflow-hidden transition-all
-            bg-neutral-200 dark:bg-neutral-800
-            border border-neutral-300 dark:border-neutral-700 animate-pulse
-            skeleton-pulse">
-        <span class="sr-only">Loading CAPTCHA…</span>
+      <div class="relative">
+        <input
+          #password
+          type="password"
+          formControlName="password"
+          id="password"
+          class="block py-4 px-4 w-full text-sm text-dark dark:text-light bg-transparent border-slate-300 border dark:border-slate-200 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-light-accent-primary dark:focus:ring-dark-accent-primary focus:border-light-accent-primary dark:focus:border-dark-accent-primary peer"
+          placeholder=" "
+          required
+          (input)="serverErrorStep.set(0); onPasswordInput()"
+          (blur)="onBlur('password')"
+        />
+        <label
+          for="password"
+          [ngClass]="{
+            'text-light-accent-secondary dark:text-dark-accent-secondary scale-110 -translate-y-6 text-sm':
+              isFocus('password') || !emptyPassword(),
+            'text-slate-400 text-lg scale-100 translate-y-0 cursor-text':
+              !isFocus('password') && emptyPassword(),
+          }"
+          class="z-30 peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-main dark:bg-neutral-950 px-1 top-3 left-4 origin-[0]"
+        >
+          Password
+        </label>
+        <div class="text-sm text-light-error dark:text-dark-error mt-1 min-h-5">
+          @if (
+            loginForm.controls["password"].invalid &&
+            loginForm.controls["password"].touched &&
+            serverErrorStep() === 0
+          ) {
+            @if (emptyPassword()) {
+              Password obbligatoria.
+            }
+          } @else if (serverErrorStep() === 2) {
+            La password inserita non è corretta.
+          }
+        </div>
+      </div>
+      <button
+        type="submit"
+        [disabled]="!canLogin()"
+        class="relative bottom-[10px] w-full mt-4 py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary dark:bg-dark-accent-primary/90 hover:bg-light-accent-primary/80 dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary/60 disabled:hover:dark:bg-dark-accent-primary/80"
+      >
+        Accedi
+      </button>
+      <div class="flex justify-center">
+        @if (loadingTurnstile()) {
+          <div
+            class="w-[300px] h-[71px] overflow-hidden transition-all bg-neutral-200 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 animate-pulse skeleton-pulse"
+          >
+            <span class="sr-only">Loading CAPTCHA…</span>
+          </div>
+        }
+        <app-turnstile
+          (token)="onTurnstileToken($event)"
+          (widgetReady)="onTurnstileRender()"
+          (refresh)="loadingTurnstile.set(true)"
+          class="block h-[71px]"
+        />
       </div>
     }
-    <app-turnstile
-      (token)="onTurnstileToken($event)"
-      (widgetReady)="onTurnstileRender()"
-      (refresh)="loadingTurnstile.set(true)"
-      class="block h-[71px]" />
-  </div>
-}
 
     <!-- Register & Social Login Placeholder -->
     <div class="text-sm text-center text-gray-600 dark:text-gray-300">
       Non hai un account?
-      <a href="/register" class="text-light-accent-primary dark:text-dark-accent-primary hover:underline">Registrati</a>
+      <a
+        href="/register"
+        class="text-light-accent-primary dark:text-dark-accent-primary hover:underline"
+        >Registrati</a
+      >
     </div>
 
     <div class="relative py-2">
@@ -116,53 +179,85 @@
         <div class="w-full border-t"></div>
       </div>
       <div class="relative flex justify-center text-sm">
-        <span class="bg-light-surface-main dark:bg-neutral-950 px-2 text-gray-500 dark:text-slate-300">OPPURE</span>
+        <span
+          class="bg-light-surface-main dark:bg-neutral-950 px-2 text-gray-500 dark:text-slate-300"
+          >OPPURE</span
+        >
       </div>
     </div>
 
     <!-- Social buttons placeholder -->
     <div class="space-y-3 dark:text-slate-100">
-      <button type="button"
-        class="w-full flex items-center justify-center border rounded-md py-2.5 text-sm dark:hover:bg-slate-100 gap-3 dark:hover:text-neutral-900 hover:bg-slate-200/80 bg-slate-200 dark:bg-transparent transition-colors duration-150">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-auto"
-          viewBox="0 0 488 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
-          <path class="fill-current"
-            d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z" />
+      <button
+        type="button"
+        class="w-full flex items-center justify-center border rounded-md py-2.5 text-sm dark:hover:bg-slate-100 gap-3 dark:hover:text-neutral-900 hover:bg-slate-200/80 bg-slate-200 dark:bg-transparent transition-colors duration-150"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-auto"
+          viewBox="0 0 488 512"
+        >
+          <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+          <path
+            class="fill-current"
+            d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"
+          />
         </svg>
         <span>Continua con Google</span>
       </button>
-      <button type="button"
-        class="w-full flex items-center justify-center border rounded-md py-2.5 text-sm dark:hover:bg-slate-100 gap-3 dark:hover:text-neutral-900 hover:bg-slate-200/80 bg-slate-200 dark:bg-transparent transition-colors duration-150">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-auto fill-current"
-          viewBox="0 0 448 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+      <button
+        type="button"
+        class="w-full flex items-center justify-center border rounded-md py-2.5 text-sm dark:hover:bg-slate-100 gap-3 dark:hover:text-neutral-900 hover:bg-slate-200/80 bg-slate-200 dark:bg-transparent transition-colors duration-150"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-auto fill-current"
+          viewBox="0 0 448 512"
+        >
+          <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
           <path
-            d="M0 32h214.6v214.6H0V32zm233.4 0H448v214.6H233.4V32zM0 265.4h214.6V480H0V265.4zm233.4 0H448V480H233.4V265.4z" />
+            d="M0 32h214.6v214.6H0V32zm233.4 0H448v214.6H233.4V32zM0 265.4h214.6V480H0V265.4zm233.4 0H448V480H233.4V265.4z"
+          />
         </svg>
         <span>Continua con Microsoft</span>
       </button>
-      <button type="button"
-        class="w-full flex items-center justify-center border rounded-md py-2.5 text-sm dark:hover:bg-slate-100 gap-3 dark:hover:text-neutral-900 hover:bg-slate-200/80 bg-slate-200 dark:bg-transparent transition-colors duration-150">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-auto fill-current"
-          viewBox="0 0 384 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+      <button
+        type="button"
+        class="w-full flex items-center justify-center border rounded-md py-2.5 text-sm dark:hover:bg-slate-100 gap-3 dark:hover:text-neutral-900 hover:bg-slate-200/80 bg-slate-200 dark:bg-transparent transition-colors duration-150"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-auto fill-current"
+          viewBox="0 0 384 512"
+        >
+          <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
           <path
-            d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z" />
+            d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"
+          />
         </svg>
         <span>Continua con Apple</span>
       </button>
-      <button type="button"
-        class="w-full flex items-center justify-center border rounded-md py-2.5 text-sm dark:hover:bg-slate-100 gap-3 dark:hover:text-neutral-900 hover:bg-slate-200/80 bg-slate-200 dark:bg-transparent transition-colors duration-150">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-auto fill-current"
-          viewBox="0 0 512 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+      <button
+        type="button"
+        class="w-full flex items-center justify-center border rounded-md py-2.5 text-sm dark:hover:bg-slate-100 gap-3 dark:hover:text-neutral-900 hover:bg-slate-200/80 bg-slate-200 dark:bg-transparent transition-colors duration-150"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-auto fill-current"
+          viewBox="0 0 512 512"
+        >
+          <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
           <path
-            d="M512 256C512 114.6 397.4 0 256 0S0 114.6 0 256C0 376 82.7 476.8 194.2 504.5V334.2H141.4V256h52.8V222.3c0-87.1 39.4-127.5 125-127.5c16.2 0 44.2 3.2 55.7 6.4V172c-6-.6-16.5-1-29.6-1c-42 0-58.2 15.9-58.2 57.2V256h83.6l-14.4 78.2H287V510.1C413.8 494.8 512 386.9 512 256h0z" />
+            d="M512 256C512 114.6 397.4 0 256 0S0 114.6 0 256C0 376 82.7 476.8 194.2 504.5V334.2H141.4V256h52.8V222.3c0-87.1 39.4-127.5 125-127.5c16.2 0 44.2 3.2 55.7 6.4V172c-6-.6-16.5-1-29.6-1c-42 0-58.2 15.9-58.2 57.2V256h83.6l-14.4 78.2H287V510.1C413.8 494.8 512 386.9 512 256h0z"
+          />
         </svg>
         <span>Continua con Facebook</span>
       </button>
     </div>
 
     <div class="text-xs text-center text-gray-400 mt-4">
-      <a href="#" class="hover:underline">Condizioni d'uso</a> · <a href="#" class="hover:underline">Informativa sulla
-        privacy</a>
+      <a href="#" class="hover:underline">Condizioni d'uso</a> ·
+      <a href="#" class="hover:underline">Informativa sulla privacy</a>
     </div>
   </form>
 </div>
