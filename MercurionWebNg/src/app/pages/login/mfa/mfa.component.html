@@ -43,11 +43,11 @@
         class="block py-4 px-4 w-full text-sm text-dark dark:text-light bg-transparent border-slate-300 border dark:border-slate-200 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-light-accent-primary dark:focus:ring-dark-accent-primary focus:border-light-accent-primary dark:focus:border-dark-accent-primary peer"
         placeholder=" " required (focus)="isOtpFocused.set(true)" (input)="serverError.set(false); onOtpInput()"
         (blur)="onOtpBlur()" />
-      <label for="email" [ngClass]="{
+      <label for="otp" [ngClass]="{
           'text-light-accent-secondary dark:text-dark-accent-secondary/90 scale-110 -translate-y-6 text-sm': isOtpFocused() || !isOtpEmpty(),
           'text-slate-400 text-lg scale-100 translate-y-0 cursor-text': !isOtpFocused() && isOtpEmpty()
         }"
-        class="z-30 peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-main dark:bg-neutral-950 px-1 top-3 left-4 origin-[0]"
+        class="z-30 peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-main dark:bg-neutral-950 px-1 top-[13px] left-4 origin-[0]"
         (click)="!isOtpFocused() && isOtpFocused.set(true); forceFocusOnOtp()">
         Codice monouso</label>
       <div class="text-sm text-light-error dark:text-dark-error mt-1 min-h-5">
