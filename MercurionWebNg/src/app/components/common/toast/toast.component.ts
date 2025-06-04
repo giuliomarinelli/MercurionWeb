@@ -1,5 +1,5 @@
 // toast.component.ts
-import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { Component, effect, Input, OnChanges, OnInit, signal, SimpleChanges } from '@angular/core';
 import { CommonModule, NgClass } from '@angular/common';
 import { ToastService } from '../../../services/toast.service';
 
@@ -26,17 +26,19 @@ export type ToastContext = 'error' | 'warn' | 'success'
     }
   `
 })
-export class ToastComponent implements OnChanges {
+export class ToastComponent {
+
+  private _context = signal<ToastContext>('error')
 
   @Input()
-  public context: ToastContext = 'error'
+  public set context(context: ToastContext) {
+    this._context.set(context)
+  }
   protected className: string = ''
 
-  constructor(protected readonly toast: ToastService) { }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['context']) {
-      switch (this.context) {
+  constructor(protected readonly toast: ToastService) {
+    effect(() => {
+      switch (this._context()) {
         case 'error':
           this.className = 'bg-red-600'
           break
@@ -47,7 +49,7 @@ export class ToastComponent implements OnChanges {
           this.className = 'bg-amber-200'
           break
       }
-    }
+    })
   }
 
 }
