@@ -141,6 +141,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       this.isEmailFocused.set(false)
       this.onEmailInput()
     }
+    this.loginForm.controls[field].markAsDirty()
   }
 
   async ngOnInit(): Promise<void> {
