@@ -42,8 +42,8 @@ import { SidenavComponent } from './components/common/sidenav/sidenav.component'
 
       <div class="drawer-container relative flex flex-1 overflow-hidden custom-scrollbar">
         @if (userContext.initials() && design.minBk('lg')()) {
-          <div class="absolute top-4 left-[10px] z-30">
-            <button class="cursor-pointer" (click)="sidenavContext.toggle()">
+          <div class="absolute top-4 left-[10px] z-30 group">
+            <button class="cursor-pointer" (click)="sidenavContext.toggle()" aria-label="Sidebar">
               @if (sidenavContext.isVisible()) {
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-auto text-light-on-surface-main hover:text-light-on-surface-secondary dark:text-dark-on-surface-main hover:dark:text-dark-on-surface-secondary transition-colors duration-150">
                   <rect width="18" height="18" x="3" y="3" rx="2" />
@@ -54,10 +54,20 @@ import { SidenavComponent } from './components/common/sidenav/sidenav.component'
                   <rect width="18" height="18" x="3" y="3" rx="2" />
                   <rect x="3" y="3" width="6" height="18" rx="2" fill="currentColor" stroke="none"/>
                 </svg>
-
-
               }
             </button>
+            <span
+              class="absolute left-20 top-full mt-2 -translate-x-1/2 whitespace-nowrap rounded
+                     bg-neutral-900/90 dark:bg-neutral-100/90 px-2 py-1 text-xs text-neutral-50
+                     dark:text-neutral-900 opacity-0 group-hover:opacity-100
+                     transition-opacity duration-150 pointer-events-none z-40 shadow-lg"
+              role="tooltip">
+              @if (sidenavContext.isVisible()) {
+                Nascondi barra laterale
+              } @else {
+                Mostra barra laterale
+              }
+            </span>
           </div>
         }
         <!-- 2a) Drawer (RELATIVE, non fixed) -->
