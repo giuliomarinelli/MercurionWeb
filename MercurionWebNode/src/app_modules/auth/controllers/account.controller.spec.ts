@@ -3,6 +3,7 @@ import { AccountController } from './account.controller';
 import { AccountService } from '../services/account.service';
 import { ResponseService } from 'src/services/response.service';
 import { MfaService } from '../services/mfa.service';
+import { UserService } from 'src/app_modules/user/services/user.service'; // <--- importa il servizio mancante
 
 describe('AccountController', () => {
   let controller: AccountController;
@@ -14,6 +15,7 @@ describe('AccountController', () => {
         { provide: AccountService, useValue: {} },
         { provide: ResponseService, useValue: {} },
         { provide: MfaService, useValue: {} },
+        { provide: UserService, useValue: {} }, // <--- aggiungi questo
       ],
     }).compile();
 

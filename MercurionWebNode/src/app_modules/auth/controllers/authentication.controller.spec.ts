@@ -6,6 +6,8 @@ import { JwtToolsService } from '../services/jwt-tools.service';
 import { ResponseService } from 'src/services/response.service';
 import { SecureCookieService } from '../services/secure-cookie.service';
 import { UserService } from 'src/app_modules/user/services/user.service';
+import { TurnstileService } from '../services/turnstile.service'; // <-- aggiungi l'import
+import { TurnstileGuard } from '../guards/turnstile.guard'; // <-- se serve
 
 describe('AuthenticationController', () => {
   let controller: AuthenticationController;
@@ -20,6 +22,8 @@ describe('AuthenticationController', () => {
         { provide: ResponseService, useValue: {} },
         { provide: SecureCookieService, useValue: {} },
         { provide: UserService, useValue: {} },
+        { provide: TurnstileService, useValue: {} }, // <-- AGGIUNGI QUESTO!
+        { provide: TurnstileGuard, useValue: { canActivate: () => true } }, // <-- opzionale, se richiesto dai decorator
       ],
     }).compile();
 
