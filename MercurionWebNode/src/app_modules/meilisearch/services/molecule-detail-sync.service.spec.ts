@@ -15,7 +15,7 @@ describe('MoleculeDetailSyncService', () => {
         { provide: getRepositoryToken(MoleculeDetailDBView, 'ChemblDB'), useValue: {} },
         { provide: getRepositoryToken(ActivityViewEntity, 'ChemblDB'), useValue: {} },
         { provide: getRepositoryToken(ToxicityViewEntity, 'ChemblDB'), useValue: {} },
-        { provide: 'MEILISEARCH_CLIENT', useValue: {} },
+        { provide: 'MEILISEARCH_CLIENT', useValue: { index: jest.fn().mockReturnValue({}) } },
       ],
     }).compile();
 
