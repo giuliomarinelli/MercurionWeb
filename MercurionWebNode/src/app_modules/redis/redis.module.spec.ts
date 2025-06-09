@@ -9,7 +9,7 @@ describe('RedisModule', () => {
       imports: [RedisModule],
     })
       .overrideProvider(Redis)
-      .useValue({})
+      .useValue({ duplicate: jest.fn(() => ({})) })
       .compile();
     expect(moduleRef).toBeDefined();
   });
