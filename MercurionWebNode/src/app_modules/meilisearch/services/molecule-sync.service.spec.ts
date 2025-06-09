@@ -10,7 +10,7 @@ describe('MoleculeSyncService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         MoleculeSyncService,
-        { provide: getRepositoryToken(MoleculePreviewDBView), useValue: {} },
+        { provide: getRepositoryToken(MoleculePreviewDBView, 'ChemblDB'), useValue: {} },
         { provide: 'MEILISEARCH_CLIENT', useValue: {} },
       ],
     }).compile();
