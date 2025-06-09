@@ -14,6 +14,7 @@ describe('MfaService', () => {
       {} as any,
       {} as any,
       {} as any,
+      {} as any,
     );
   });
 

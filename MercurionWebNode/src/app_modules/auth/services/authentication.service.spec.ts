@@ -13,7 +13,6 @@ describe('AuthenticationService', () => {
       {} as any,
       {} as any,
       {} as any,
-      {} as any,
     );
   });
 
