@@ -16,7 +16,6 @@ export const AuthenticatedUserId = createParamDecorator(
             :
             (GqlExecutionContext.create(ctx).getContext().request as FastifyRequest)
         return req.headers['x-user-id'] as UUID
-        // sostituire '01969a4e-8c9e-7000-b8fa-bc1b69f59f7c' temporaneamente per test e2e manuale da Postman
     }
 )
 
