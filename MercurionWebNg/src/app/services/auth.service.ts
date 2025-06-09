@@ -25,12 +25,12 @@ export class AuthService {
   }
 
   setAccessToken(token: string | null) {
-  if (token) {
-    localStorage.setItem('accessToken', token);
-  } else {
-    localStorage.removeItem('accessToken');
+    if (token) {
+      localStorage.setItem('accessToken', token);
+    } else {
+      localStorage.removeItem('accessToken');
+    }
   }
-}
 
 
   public getLoggedUserId(): string | null {
@@ -96,6 +96,12 @@ export class AuthService {
     localStorage?.getItem('login') && localStorage?.removeItem('login')
     this.setAccessToken(null)
     return this.http.delete<void>('/api/authentication/logout', {
+      withCredentials: true
+    })
+  }
+
+  public backendTest(): Observable<ConfirmDTO> {
+    return this.http.get<ConfirmDTO>('/api/test', {
       withCredentials: true
     })
   }

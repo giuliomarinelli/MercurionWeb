@@ -19,9 +19,9 @@ import { NotificationModule } from './app_modules/notification/notification.modu
 import { ChemblModule } from './app_modules/chembl/chembl.module';
 import { MeilisearchModule } from './app_modules/meilisearch/meilisearch.module';
 import { GraphQLModule } from '@nestjs/graphql'
-import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { TestController } from './test.controller';
-import { TokenHeaderPlugin } from './graphql/token-header.plugin';
+import { MercuriusDriver, MercuriusDriverConfig } from '@nestjs/mercurius';
+import { FastifyReply, FastifyRequest } from 'fastify';
 
 
 @Module({
@@ -47,15 +47,15 @@ import { TokenHeaderPlugin } from './graphql/token-header.plugin';
       useFactory: async (configService: ConfigService) => configService.get<MailerOptions>("Email") ?? {},
       inject: [ConfigService]
     }),
-    GraphQLModule.forRoot<ApolloDriverConfig>({
-      driver: ApolloDriver,
+    GraphQLModule.forRoot<MercuriusDriverConfig>({
+      driver: MercuriusDriver,
       autoSchemaFile: join(process.cwd(), 'src', 'schema.graphql'),
-      playground: true,
-      installSubscriptionHandlers: false,
       path: '/api/graphql',
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      context: ({ request }) => ({ req: request }),
-      plugins: [TokenHeaderPlugin],
+      graphiql: true,
+      context: (request: FastifyRequest, reply: FastifyReply) => ({
+        request,
+        reply
+      })
     }),
     RedisModule,
     UserModule,

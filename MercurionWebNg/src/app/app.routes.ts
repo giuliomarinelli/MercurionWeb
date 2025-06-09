@@ -48,5 +48,10 @@ export const routes: Routes = [
     path: 'notebook',
     loadComponent: () => import('./pages/notebook/notebook-landing/notebook-landing.component').then(m => m.NotebookLandingComponent),
     canActivate: [AuthGuard]
+  },
+  {
+    path: 'btest',
+    loadComponent: () => import('./pages/btest/btest.component').then(m => m.BtestComponent),
+    canActivate: [AuthGuard]
   }
 ]

@@ -46,8 +46,14 @@ export class GlobalGuard implements CanActivate {
    // 🔹 Validazione per richieste HTTP
    private async validateHttpRequest(context: ExecutionContext): Promise<boolean> {
 
-      const req = context.switchToHttp().getRequest<FastifyRequest & { __newAccessToken: string }>() ?? (GqlExecutionContext.create(context).getContext().req as FastifyRequest & { __newAccessToken: string })
-      const res = context.switchToHttp().getResponse<FastifyReply>()
+      let req = context.switchToHttp().getRequest<FastifyRequest>()
+      let reply = context.switchToHttp().getResponse<FastifyReply>()
+
+      if (context.getType<GqlContextType>() === 'graphql') {
+         req = (GqlExecutionContext.create(context).getContext().request as FastifyRequest)
+         reply = (GqlExecutionContext.create(context).getContext().reply as FastifyReply)
+      }
+
       try {
 
          const accessToken: string = this.jwtToolsService.extractAccessTokenFromReq(req)
@@ -87,11 +93,8 @@ export class GlobalGuard implements CanActivate {
 
 
                await this.sessionService.updateLastAccessed(payload.sid)
-               if (context.getType<GqlContextType>() !== 'graphql') {
-                  res.header('X-New-Access-Token', newToken); 
-               } else {
-                  req.__newAccessToken = newToken
-               }
+
+               reply.header('X-New-Access-Token', newToken)
                await this.sessionService.revokeToken(payload.jti)
                req.headers['x-user-id'] = payload.sub
                return true
