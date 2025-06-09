@@ -1,10 +1,11 @@
-import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ID, Info } from '@nestjs/graphql';
 import { NotebookPageService } from '../../services/lab-notebook/notebook-page.service';
 import { UUID } from 'crypto';
 import { NotebookPage } from '../../Models/entities/lab-notebook/lab-notebook-page.entity';
 import { CreatePageInput } from '../../Models/DTO/lab-notebook/create-page-input';
 import { UpdatePageInput } from '../../Models/DTO/lab-notebook/update-page-input';
 import { AuthenticatedUserId } from 'src/metadata/metadata';
+import { GraphQLResolveInfo } from 'graphql';
 
 @Resolver(() => NotebookPage)
 export class PageResolver {
@@ -13,8 +14,8 @@ export class PageResolver {
 
     @Query(() => NotebookPage, { nullable: true })
     page(
-        @Args(
-            'id', { type: () => String }) id: string,
+        @Args('id', { type: () => String }) id: string,
+        @Info() info: GraphQLResolveInfo,
         @AuthenticatedUserId() userId: UUID
     ): Promise<NotebookPage | null> {
         return this.pageService.getPage(id as UUID, userId)
@@ -23,6 +24,7 @@ export class PageResolver {
     @Query(() => [NotebookPage])
     pagesBySection(
         @Args('sectionId', { type: () => String }) sectionId: string,
+        @Info() info: GraphQLResolveInfo,  
         @AuthenticatedUserId() userId: UUID
     ): Promise<NotebookPage[]> {
         return this.pageService.findBySection(sectionId as UUID, userId)
@@ -30,7 +32,8 @@ export class PageResolver {
 
     @Query(() => NotebookPage)
     pageById(
-        @Args('id', {type: () => ID}) id: string,
+        @Args('id', { type: () => ID }) id: string,
+        @Info() info: GraphQLResolveInfo,  
         @AuthenticatedUserId() userId: UUID
     ): Promise<NotebookPage | null> {
         return this.pageService.getPage(id as UUID, userId)
@@ -40,6 +43,7 @@ export class PageResolver {
     createPage(
         @Args('sectionId', { type: () => String }) sectionId: string,
         @Args('input') input: CreatePageInput,
+        @Info() info: GraphQLResolveInfo,  
         @AuthenticatedUserId() userId: UUID
     ): Promise<NotebookPage> {
         return this.pageService.createPage(sectionId as UUID, userId, input)
@@ -48,6 +52,7 @@ export class PageResolver {
     @Mutation(() => NotebookPage, { nullable: true })
     async updatePage(
         @Args('input') { id, ...input }: UpdatePageInput,
+        @Info() info: GraphQLResolveInfo,  
         @AuthenticatedUserId() userId: UUID
     ): Promise<NotebookPage | null> {
         return this.pageService.updatePage(id as UUID, userId, input)

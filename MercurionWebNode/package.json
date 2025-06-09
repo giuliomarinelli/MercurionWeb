@@ -1,6 +1,6 @@
 {
   "name": "mercurion_web_node",
-  "version": "0.3.0",
+  "version": "0.3.2",
   "description": "",
   "author": "",
   "private": true,
@@ -47,6 +47,7 @@
     "fastify": "^5.3.3",
     "geoip-lite": "^1.4.10",
     "graphql": "^16.11.0",
+    "graphql-fields": "^2.0.3",
     "ioredis": "^5.5.0",
     "meilisearch": "^0.50.0",
     "mercurius": "^16.1.0",
