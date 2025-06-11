@@ -1,5 +1,5 @@
 import { BeforeInsert, Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn } from "typeorm";
-import { User } from "./user.entity";
+import { User } from "../user.entity";
 import { UUID } from "crypto";
 import { uuidv7 } from "@kripod/uuidv7";
 import { MoleculeCollectionItemJoin } from "./molecule-collection-item-join.entity";

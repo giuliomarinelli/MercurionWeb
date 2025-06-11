@@ -12,7 +12,7 @@ export class MoleculeCollectionItemJoin {
 
     @ManyToOne(() => MoleculeCollection, collection => collection.items)
     @JoinColumn({ name: 'collection_id' })
-    collection: MoleculeCollection;
+    collection: MoleculeCollection
 
     @ManyToOne(() => MoleculeCollectionItemEntity, item => item.joins)
     @JoinColumn({ name: 'item_id' })

@@ -1,7 +1,7 @@
 import { BeforeInsert, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 import { LabNotebookEntry } from "./lab-notbook-entry.entity";
 import { UUID } from "crypto";
-import { MoleculeCollectionItemEntity } from "./molecule-collection-item.entity";
+import { MoleculeCollectionItemEntity } from "./molecule-collection/molecule-collection-item.entity";
 import { uuidv7 } from "@kripod/uuidv7";
 
 @Entity('lab_notebook_links')
