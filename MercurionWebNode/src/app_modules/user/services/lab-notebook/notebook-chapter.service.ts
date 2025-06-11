@@ -6,6 +6,7 @@ import { LabNotebookEntry } from '../../Models/entities/lab-notbook-entry.entity
 import { UUID } from 'crypto';
 import { RpcException } from '@nestjs/microservices';
 import { GraphqlUtils } from 'src/graphql-utils/graphql-utils';
+import { GraphQLFieldsMap, TypeOrmUtils } from 'src/type-orm-utils/type-orm-utils';
 
 
 
@@ -28,6 +29,8 @@ export class NotebookChapterService {
                 .getRawOne() as { max: string | number | null }
 
             const maxOrder = max != null ? Number(max) : 0
+
+            this.chapterRepo.createQueryBuilder()
 
             const newChapter = manager.create(NotebookChapter, {
                 ...data,
@@ -100,10 +103,10 @@ export class NotebookChapterService {
     async listChapters(
         notebookId: UUID,
         userId: UUID,
-        scalarFields: string[] = [],
-        relationalFields: string[] = []
+        fieldsMap: GraphQLFieldsMap
     ): Promise<NotebookChapter[]> {
-        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.NOTEBOOK_CHAPTER_REQUIRED_FIELDS)
+        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap);
+        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.NOTEBOOK_CHAPTER_REQUIRED_FIELDS);
 
         let qb = this.chapterRepo.createQueryBuilder('chapter')
             .select(columns.map(col => `chapter.${col}`))
@@ -111,13 +114,14 @@ export class NotebookChapterService {
             .andWhere('chapter.userId = :userId', { userId })
             .orderBy('chapter.order', 'ASC');
 
-        if (relationalFields.includes('sections')) {
-            qb = qb.leftJoinAndSelect('chapter.sections', 'sections');
-        }
+        qb = TypeOrmUtils.addJoins(qb, 'chapter', fieldsMap);
 
         const chapters = await qb.getMany()
         for (const c of chapters) {
             c.sections ??= []
+            for (const section of c.sections) {
+                section.pages ??= []
+            }
         }
         return chapters
     }
@@ -125,33 +129,39 @@ export class NotebookChapterService {
     async getChapter(
         id: UUID,
         userId: UUID,
-        scalarFields: string[] = [],
-        relationalFields: string[] = []
+        fieldsMap: GraphQLFieldsMap
     ): Promise<NotebookChapter | null> {
 
+        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
         const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.NOTEBOOK_CHAPTER_REQUIRED_FIELDS)
 
         let qb = this.chapterRepo.createQueryBuilder('chapter')
             .select(columns.map(col => `chapter.${col}`))
             .where('chapter.id = :id', { id })
-            .andWhere('chapter.userId = :userId', { userId });
+            .andWhere('chapter.userId = :userId', { userId })
 
-        if (relationalFields.includes('sections')) {
-            qb = qb.leftJoinAndSelect('chapter.sections', 'sections');
-        }
+        qb = TypeOrmUtils.addJoins(qb, 'chapter', fieldsMap)
 
-        const result = await qb.getOne()
+        const result = await qb.getOne();
         if (result && result.sections == undefined) {
             result.sections = []
+            for (const section of result.sections) {
+                section.pages ??= []
+            }
         }
         return result;
     }
 
-
-    async updateChapter(id: UUID, userId: UUID, data: Partial<NotebookChapter>): Promise<NotebookChapter | null> {
-        await this.chapterRepo.update({ id, userId }, { updatedAt: Date.now(), ...data })
-        return this.getChapter(id, userId)
+    async updateChapter(
+        id: UUID,
+        userId: UUID,
+        data: Partial<NotebookChapter>,
+        fieldsMap: GraphQLFieldsMap
+    ): Promise<NotebookChapter | null> {
+        await this.chapterRepo.update({ id, userId }, { updatedAt: Date.now(), ...data });
+        return this.getChapter(id, userId, fieldsMap); // <--- passalo qui
     }
+
 
 
 

@@ -7,6 +7,7 @@ import { LabNotebookService } from '../../services/lab-notebook/lab-notebook.ser
 import { NotebookChapter } from '../../Models/entities/lab-notebook/lab-notebook-chapter.entity';
 import { GraphQLResolveInfo } from 'graphql';
 import { GraphqlUtils } from 'src/graphql-utils/graphql-utils';
+import { GraphQLFieldsMap } from 'src/type-orm-utils/type-orm-utils';
 
 
 @Resolver(() => LabNotebook)
@@ -19,10 +20,8 @@ export class LabNotebookResolver {
         @AuthenticatedUserId() userId: string,
         @Info() info: GraphQLResolveInfo
     ): Promise<LabNotebook[]> {
-        const fieldsMap = GraphqlUtils.getFieldsMap(info)
-        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
-        const relationalFields = GraphqlUtils.getRelationalFields(fieldsMap)
-        return this.notebookService.findAllByUser(userId as UUID, scalarFields, relationalFields)
+        const fieldsMap = GraphqlUtils.getFieldsMap(info) as GraphQLFieldsMap
+        return this.notebookService.findAllByUser(userId as UUID, fieldsMap)
     }
 
     @Query(() => LabNotebook, { nullable: true })
@@ -31,10 +30,8 @@ export class LabNotebookResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ): Promise<LabNotebook | null> {
-        const fieldsMap = GraphqlUtils.getFieldsMap(info);
-        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap);
-        const relationalFields = GraphqlUtils.getRelationalFields(fieldsMap);
-        return this.notebookService.findOne(id as UUID, userId, scalarFields, relationalFields);
+        const fieldsMap = GraphqlUtils.getFieldsMap(info) as GraphQLFieldsMap
+        return this.notebookService.findOne(id as UUID, userId, fieldsMap)
     }
 
     @Mutation(() => LabNotebook)
@@ -47,9 +44,11 @@ export class LabNotebookResolver {
 
     @Mutation(() => LabNotebook)
     async updateLabNotebook(@Args('input') { id, ...input }: UpdateLabNotebookInput,
-        @AuthenticatedUserId() userId: UUID
+        @AuthenticatedUserId() userId: UUID,
+        @Info() info: GraphQLResolveInfo
     ): Promise<LabNotebook | null> {
-        return this.notebookService.update(id as UUID, userId, input)
+        const fieldsMap = GraphqlUtils.getFieldsMap(info) as GraphQLFieldsMap
+        return this.notebookService.update(id as UUID, userId, input, fieldsMap)
     }
 
     @Mutation(() => Boolean)

@@ -9,6 +9,7 @@ import { NotebookSection } from '../../Models/entities/lab-notebook/lab-notebook
 import { NotebookPage } from '../../Models/entities/lab-notebook/lab-notebook-page.entity';
 import { GraphQLResolveInfo } from 'graphql';
 import { GraphqlUtils } from 'src/graphql-utils/graphql-utils';
+import { GraphQLFieldsMap } from 'src/type-orm-utils/type-orm-utils';
 
 
 @Resolver(() => NotebookSection)
@@ -22,18 +23,14 @@ export class NotebookSectionResolver {
         @AuthenticatedUserId() userId: string,
         @Info() info: GraphQLResolveInfo
     ): Promise<NotebookSection> {
-        const fieldsMap = GraphqlUtils.getFieldsMap(info)
-        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
-        const relationalFields = GraphqlUtils.getRelationalFields(fieldsMap)
-
+        const fieldsMap = GraphqlUtils.getFieldsMap(info) as GraphQLFieldsMap;
         const result: NotebookSection | null = await this.sectionService.getSectionByChapterId(
             userId as UUID,
             chapterId as UUID,
-            scalarFields,
-            relationalFields
-        )
+            fieldsMap
+        );
         if (result == null) throw new NotFoundException()
-        return result
+        return result;
     }
 
     @Query(() => NotebookSection)
@@ -42,15 +39,11 @@ export class NotebookSectionResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ): Promise<NotebookSection | null> {
-        const fieldsMap = GraphqlUtils.getFieldsMap(info)
-        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
-        const relationalFields = GraphqlUtils.getRelationalFields(fieldsMap)
-
+        const fieldsMap = GraphqlUtils.getFieldsMap(info) as GraphQLFieldsMap
         return this.sectionService.getSection(
             id as UUID,
             userId,
-            scalarFields,
-            relationalFields
+            fieldsMap
         );
     }
 
@@ -65,9 +58,11 @@ export class NotebookSectionResolver {
     @Mutation(() => NotebookSection)
     async updateSection(
         @Args('input') { id, ...input }: UpdateSectionInput,
-        @AuthenticatedUserId() userId: string
+        @AuthenticatedUserId() userId: string,
+        @Info() info: GraphQLResolveInfo
     ): Promise<NotebookSection | null> {
-        return this.sectionService.update(userId as UUID, id as UUID, input)
+        const fieldsMap = GraphqlUtils.getFieldsMap(info)
+        return this.sectionService.update(userId as UUID, id as UUID, input, fieldsMap)
     }
 
     @Mutation(() => Boolean)

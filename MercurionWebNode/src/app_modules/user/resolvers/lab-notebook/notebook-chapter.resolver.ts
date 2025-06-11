@@ -8,6 +8,7 @@ import { NotebookSection } from '../../Models/entities/lab-notebook/lab-notebook
 import { GraphQLResolveInfo } from 'graphql';
 import { NotebookChapter } from '../../Models/entities/lab-notebook/lab-notebook-chapter.entity';
 import { GraphqlUtils } from 'src/graphql-utils/graphql-utils';
+import { GraphQLFieldsMap } from 'src/type-orm-utils/type-orm-utils';
 
 @Resolver(() => NotebookChapter)
 export class NotebookChapterResolver {
@@ -20,15 +21,11 @@ export class NotebookChapterResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ): Promise<NotebookChapter[]> {
-        const fieldsMap = GraphqlUtils.getFieldsMap(info)
-        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
-        const relationalFields = GraphqlUtils.getRelationalFields(fieldsMap)
-
+        const fieldsMap = GraphqlUtils.getFieldsMap(info) as GraphQLFieldsMap
         return this.chapterService.listChapters(
             notebookId as UUID,
             userId,
-            scalarFields,
-            relationalFields
+            fieldsMap
         )
     }
 
@@ -38,17 +35,14 @@ export class NotebookChapterResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ): Promise<NotebookChapter | null> {
-        const fieldsMap = GraphqlUtils.getFieldsMap(info)
-        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
-        const relationalFields = GraphqlUtils.getRelationalFields(fieldsMap)
-
+        const fieldsMap = GraphqlUtils.getFieldsMap(info) as GraphQLFieldsMap
         return this.chapterService.getChapter(
             id as UUID,
             userId,
-            scalarFields,
-            relationalFields
+            fieldsMap
         )
     }
+
 
     @Mutation(() => NotebookChapter)
     async createChapter(
@@ -65,9 +59,11 @@ export class NotebookChapterResolver {
     @Mutation(() => NotebookChapter)
     async updateChapter(
         @Args('input') { id, ...input }: UpdateChapterInput,
-        @AuthenticatedUserId() userId: UUID
+        @AuthenticatedUserId() userId: UUID,
+        @Info() info: GraphQLResolveInfo
     ): Promise<NotebookChapter | null> {
-        return this.chapterService.updateChapter(id as UUID, userId, input)
+        const fieldsMap = GraphqlUtils.getFieldsMap(info) as GraphQLFieldsMap
+        return this.chapterService.updateChapter(id as UUID, userId, input, fieldsMap)
     }
 
     @Mutation(() => Boolean)

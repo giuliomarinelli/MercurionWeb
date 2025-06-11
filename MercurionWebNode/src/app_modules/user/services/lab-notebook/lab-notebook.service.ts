@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { UUID } from 'crypto';
 import { LabNotebook } from '../../Models/entities/lab-notebook/lab-notebook.entity';
 import { GraphqlUtils } from 'src/graphql-utils/graphql-utils';
+import { GraphQLFieldsMap, TypeOrmUtils } from 'src/type-orm-utils/type-orm-utils';
 
 
 @Injectable()
@@ -23,64 +24,66 @@ export class LabNotebookService {
         return saved
     }
 
-    async findOne(
+  async findOne(
         id: UUID,
         userId: UUID,
-        scalarFields: string[] = [],
-        relationalFields: string[] = []
+        fieldsMap: GraphQLFieldsMap
     ): Promise<LabNotebook | null> {
-        
-        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.LAB_NOTEBOOK_REQUIRED_FIELDS);
+        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
+        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.LAB_NOTEBOOK_REQUIRED_FIELDS)
 
         let qb = this.notebookRepo.createQueryBuilder('labNotebook')
             .select(columns.map(col => `labNotebook.${col}`))
             .where('labNotebook.id = :id', { id })
-            .andWhere('labNotebook.userId = :userId', { userId })
+            .andWhere('labNotebook.userId = :userId', { userId });
 
-        if (relationalFields.includes('chapters')) {
-            qb = qb.leftJoinAndSelect('labNotebook.chapters', 'chapters')
-        }
+        qb = TypeOrmUtils.addJoins(qb, 'labNotebook', fieldsMap)
 
         const result = await qb.getOne();
 
         if (result) {
             result.chapters ??= [];
-            result.chapters.forEach(chapter => {
+            for (const chapter of result.chapters) {
                 chapter.sections ??= [];
-                chapter.sections.forEach(section => {
-                    section.pages ??= []
-                });
-            });
+                for (const section of chapter.sections) {
+                    section.pages ??= [];
+                }
+            }
         }
-        return result ?? null
+        return result ?? null;
     }
 
     async findAllByUser(
         userId: UUID,
-        scalarFields: string[] = [],
-        relationalFields: string[] = []
+        fieldsMap: GraphQLFieldsMap
     ): Promise<LabNotebook[]> {
-        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.LAB_NOTEBOOK_REQUIRED_FIELDS)
+        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap);
+        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.LAB_NOTEBOOK_REQUIRED_FIELDS);
 
         let qb = this.notebookRepo.createQueryBuilder('labNotebook')
             .select(columns.map(col => `labNotebook.${col}`))
             .where('labNotebook.userId = :userId', { userId })
             .orderBy('labNotebook.createdAt', 'DESC');
 
-        if (relationalFields.includes('chapters')) {
-            qb = qb.leftJoinAndSelect('labNotebook.chapters', 'chapters');
-        }
+        qb = TypeOrmUtils.addJoins(qb, 'labNotebook', fieldsMap);
 
         const notebooks = await qb.getMany();
         for (const n of notebooks) {
             n.chapters ??= [];
+            for (const chapter of n.chapters) {
+                chapter.sections ??= [];
+                for (const section of chapter.sections) {
+                    section.pages ??= [];
+                }
+            }
         }
-        return notebooks;
+        return notebooks
     }
 
-    async update(id: UUID, userId: UUID, data: Partial<LabNotebook>): Promise<LabNotebook | null> {
+
+    async update(id: UUID, userId: UUID, data: Partial<LabNotebook>, fieldsMap: GraphQLFieldsMap): Promise<LabNotebook | null> {
         await this.notebookRepo.update({ id }, { updatedAt: Date.now(), ...data })
-        return this.findOne(id, userId)
+        return this.findOne(id, userId, fieldsMap)
     }
 
     async delete(id: UUID, userId: UUID): Promise<boolean> {
