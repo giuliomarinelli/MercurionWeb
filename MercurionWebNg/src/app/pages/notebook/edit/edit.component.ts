@@ -1,7 +1,7 @@
 import { AfterViewChecked, AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, computed, effect, signal } from '@angular/core';
 import { LabNotebookEditorComponent } from '../../../components/notebook/lab-notebook-editor/lab-notebook-editor.component';
 import { ActivatedRoute } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged, Subject, Subscription } from 'rxjs';
 import { NotebookService } from '../../../services/graphql/notebook.service';
 import { NotebookTree } from '../../../Models/graphql/notebook/notebook.models';
 import { NotebookTocComponent } from '../../../components/notebook/notebook-tree-index/notebook-toc.component';
@@ -27,18 +27,7 @@ import { NotebookTocComponent } from '../../../components/notebook/notebook-tree
               [content]="currentPage()?.content || ''"
               [triggerContentEmission]="trigger()"
               (emitContent)="saveContent($event)" />
-              <button type="button"
-                (click)="triggerContentEmission()"
-                class="flex items-center justify-center gap-3 w-fit mt-4 py-2 px-5 text-slate-50 rounded-md transition-colors duration-150
-                bg-light-accent-primary dark:bg-dark-accent-primary/90
-                hover:bg-dark-accent-primary/80 dark:hover:bg-dark-accent-primary/80
-                disabled:bg-dark-accent-primary/80 disabled:dark:bg-dark-accent-primary/80
-                disabled:cursor-not-allowed disabled:hover:bg-dark-accent-primary/80 disabled:hover:dark-accent-primary/80">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="w-auto h-6 fill-current">
-                  <path d="M32 32L0 32 0 64 0 448l0 32 32 0 384 0 32 0 0-32 0-288 0-13.3-9.4-9.4-96-96L333.3 32 320 32 32 32zM64 96l256 0 0 128L64 224 64 96zM224 288a64 64 0 1 1 0 128 64 64 0 1 1 0-128z"/>
-                </svg>
-                <span>Salva</span>
-              </button>
+
             </div>
             <app-notebook-toc class="basis-64"
                 [style.paddingTop.px]="offsetHeight()"
@@ -83,6 +72,8 @@ export class NotebookEditComponent implements OnInit, OnDestroy, AfterViewChecke
 
   @ViewChild('h1')
   h1Ref!: ElementRef<HTMLElement>
+
+  private autosave$ = new Subject<string>()
 
   protected offsetHeight = signal<number>(0)
   private notebookSub?: Subscription
@@ -136,7 +127,17 @@ export class NotebookEditComponent implements OnInit, OnDestroy, AfterViewChecke
             break
           case 'page':
             this.chapterSub = this.notebookService.getPageByIdHeader(this.pageId())
-              .subscribe(res => this.title.set(res?.title ?? ''))
+              .subscribe(res => {
+                this.title.set(res?.title ?? '')
+                this.autosave$
+                  .pipe(
+                    debounceTime(800),
+                    distinctUntilChanged()
+                  )
+                  .subscribe(content => {
+                    this.doAutosave(content)
+                  })
+              })
         }
       })
     })
@@ -161,6 +162,7 @@ export class NotebookEditComponent implements OnInit, OnDestroy, AfterViewChecke
     this.chapterSub?.unsubscribe()
     this.sectionSub?.unsubscribe()
     this.pageSub?.unsubscribe()
+    this.autosave$.unsubscribe()
   }
 
   triggerContentEmission(): void {
@@ -184,16 +186,20 @@ export class NotebookEditComponent implements OnInit, OnDestroy, AfterViewChecke
   }
 
   saveContent(content: string): void {
-    this.trigger.set(false);
+    this.autosave$.next(content)
+  }
+
+  private doAutosave(content: string): void {
     const page = this.currentPage()
     if (!page) return
     this.notebookService.updatePage(page.id, page.title, content).subscribe({
       next: (res) => {
-        console.log(res)
-        // aggiorna anche localmente? (reload notebook dopo salvataggio, per ora semplifica)
+        // Aggiorna anche localmente (reload notebook dopo salvataggio, per ora)
         this.notebookSub = this.notebookService.getNotebookById(this.notebookId()).subscribe(nb => this.notebook.set(nb))
+        // Mostra feedback, es. toast o status “salvato!”
       },
-      error: err => alert('Errore nel salvataggio: ' + err.message)
-    });
+      error: err => console.error('Errore nel salvataggio: ' + err.message)
+    })
   }
+
 }

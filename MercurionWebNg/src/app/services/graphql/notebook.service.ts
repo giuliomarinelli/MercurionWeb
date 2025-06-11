@@ -317,7 +317,6 @@ export class NotebookService {
             updatePage(input: $input) {
               id
               title
-              content
             }
           }
         `,

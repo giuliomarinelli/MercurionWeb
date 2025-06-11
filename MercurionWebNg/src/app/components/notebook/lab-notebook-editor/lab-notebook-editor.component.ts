@@ -1,7 +1,7 @@
 import { Component, signal, effect, Input, Output, EventEmitter } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { QuillModule } from 'ngx-quill';
-import { NotebookTocComponent } from '../notebook-tree-index/notebook-toc.component';
+
 
 @Component({
   selector: 'lab-notebook-editor',
@@ -15,7 +15,7 @@ import { NotebookTocComponent } from '../notebook-tree-index/notebook-toc.compon
       [style]="{height: '400px'}"
       [placeholder]="placeholder"
       [ngModel]="_content()"
-      (ngModelChange)="_content.set($event)">
+      (ngModelChange)="onModelChange($event)">
     </quill-editor>
   `,
   styles: [`
@@ -73,6 +73,11 @@ export class LabNotebookEditorComponent {
         this._triggerContentEmission.set(false)
       }
     })
+  }
+
+  onModelChange(value: string) {
+    this._content.set(value)
+    this.emitContent.emit(value)
   }
 
 }
