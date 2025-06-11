@@ -3,13 +3,17 @@ import { User } from "../user.entity";
 import { UUID } from "crypto";
 import { uuidv7 } from "@kripod/uuidv7";
 import { MoleculeCollectionItemJoin } from "./molecule-collection-item-join.entity";
+import { Field, ID, ObjectType } from "@nestjs/graphql";
 
+@ObjectType()
 @Entity('molecule_collections')
 export class MoleculeCollection {
 
+    @Field(() => ID)
     @PrimaryColumn({ type: 'uuid' })
     id: UUID
 
+    @Field()
     @Column()
     name: string
 
@@ -18,6 +22,7 @@ export class MoleculeCollection {
     @JoinColumn({ name: 'user_id' })
     user: User
 
+    @Field(() => [MoleculeCollectionItemJoin], { nullable: true })
     @OneToMany(() => MoleculeCollectionItemJoin, join => join.collection)
     items: MoleculeCollectionItemJoin[]
 

@@ -2,6 +2,50 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+interface MoleculeCollectionItemEntity {
+  id: ID!
+  userId: String!
+  label: String
+  notes: String
+  type: String!
+  joins: [MoleculeCollectionItemJoin!]
+}
+
+type MoleculeCollectionItemJoin {
+  id: ID!
+  collection: MoleculeCollection
+  item: MoleculeCollectionItemEntity
+}
+
+type MoleculeCollection {
+  id: ID!
+  name: String!
+  items: [MoleculeCollectionItemJoin!]
+}
+
+type ChEMBLMoleculeItemEntity implements MoleculeCollectionItemEntity {
+  id: ID!
+  userId: String!
+  label: String
+  notes: String
+  type: String!
+  joins: [MoleculeCollectionItemJoin!]
+  chemblMolregno: Float!
+}
+
+type CustomMoleculeItemEntity implements MoleculeCollectionItemEntity {
+  id: ID!
+  userId: String!
+  label: String
+  notes: String
+  type: String!
+  joins: [MoleculeCollectionItemJoin!]
+  canonicalSmiles: String!
+  molFormula: String
+  name: String
+  propertiesJson: String
+}
+
 type LabNotebook {
   id: ID!
   userId: ID!
