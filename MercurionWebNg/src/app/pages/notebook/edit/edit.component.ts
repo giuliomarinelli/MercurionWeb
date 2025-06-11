@@ -1,7 +1,7 @@
 import { AfterViewChecked, AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, computed, effect, signal } from '@angular/core';
 import { LabNotebookEditorComponent } from '../../../components/notebook/lab-notebook-editor/lab-notebook-editor.component';
 import { ActivatedRoute } from '@angular/router';
-import { debounceTime, distinctUntilChanged, Subject, Subscription } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, of, Subject, Subscription, switchMap } from 'rxjs';
 import { NotebookService } from '../../../services/graphql/notebook.service';
 import { NotebookTree } from '../../../Models/graphql/notebook/notebook.models';
 import { NotebookTocComponent } from '../../../components/notebook/notebook-tree-index/notebook-toc.component';
@@ -132,10 +132,25 @@ export class NotebookEditComponent implements OnInit, OnDestroy, AfterViewChecke
                 this.autosave$
                   .pipe(
                     debounceTime(800),
-                    distinctUntilChanged()
+                    distinctUntilChanged(),
+                    switchMap(content => {
+                      const page = this.currentPage()
+                      if (!page) return of(null)
+                      // salvataggio in corso"
+                      return this.notebookService.updatePage(page.id, page.title, content).pipe(
+                        catchError(err => {
+                          console.error('Errore nel salvataggio: ' + err.message)
+                          return of(null)
+                        })
+                      )
+                    })
                   )
-                  .subscribe(content => {
-                    this.doAutosave(content)
+                  .subscribe(res => {
+                    if (res) {
+                      // Aggiorna stato localmente o mostra "Salvato"
+                      this.notebookSub = this.notebookService.getNotebookById(this.notebookId()).subscribe(nb => this.notebook.set(nb));
+                    }
+                    // "status: salvato!"
                   })
               })
         }
