@@ -4,10 +4,13 @@ import { Repository } from 'typeorm';
 import { NotebookPage } from '../../Models/entities/lab-notebook/lab-notebook-page.entity';
 import { UUID } from 'crypto';
 import { NotebookSection } from '../../Models/entities/lab-notebook/lab-notebook-section.entity';
+import { GraphqlUtils } from 'src/graphql-utils/graphql-utils';
 
 
 @Injectable()
 export class NotebookPageService {
+
+    private readonly NOTEBOOK_PAGE_REQUIRED_FIELDS = ['id', 'userId', 'title', 'order', 'section']
 
     constructor(
         @InjectRepository(NotebookPage)
@@ -35,22 +38,53 @@ export class NotebookPageService {
         })
     }
 
-    async getPage(id: UUID, userId: UUID): Promise<NotebookPage | null> {
-        const result = await this.pageRepo.findOne({
-            where: { id, userId }
-        })
-        if (result && result.links === undefined) {
-            result.links = []
+    async getPage(
+        id: UUID,
+        userId: UUID,
+        scalarFields: string[] = [],
+        relationalFields: string[] = []
+    ): Promise<NotebookPage | null> {
+        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.NOTEBOOK_PAGE_REQUIRED_FIELDS)
+
+        let qb = this.pageRepo.createQueryBuilder('page')
+            .select(columns.map(col => `page.${col}`))
+            .where('page.id = :id', { id })
+            .andWhere('page.userId = :userId', { userId })
+
+        if (relationalFields.includes('links')) {
+            qb = qb.leftJoinAndSelect('page.links', 'links')
         }
-        return result
+        if (relationalFields.includes('section')) {
+            qb = qb.leftJoinAndSelect('page.section', 'section')
+        }
+
+        const result = await qb.getOne();
+        if (result && result.links === undefined) result.links = []
+        return result;
     }
 
-    async listPages(sectionId: UUID): Promise<NotebookPage[]> {
-        const pages = await this.pageRepo.find({
-            where: { section: { id: sectionId } },
-            order: { order: 'ASC' },
-            relations: { links: true, section: true }
-        })
+    async findBySection(
+        sectionId: UUID,
+        userId: UUID,
+        scalarFields: string[] = [],
+        relationalFields: string[] = []
+    ): Promise<NotebookPage[]> {
+        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.NOTEBOOK_PAGE_REQUIRED_FIELDS)
+
+        let qb = this.pageRepo.createQueryBuilder('page')
+            .select(columns.map(col => `page.${col}`))
+            .where('page.section_id = :sectionId', { sectionId })
+            .andWhere('page.userId = :userId', { userId })
+            .orderBy('page.order', 'ASC');
+
+        if (relationalFields.includes('links')) {
+            qb = qb.leftJoinAndSelect('page.links', 'links');
+        }
+        if (relationalFields.includes('section')) {
+            qb = qb.leftJoinAndSelect('page.section', 'section');
+        }
+
+        const pages = await qb.getMany();
         for (const p of pages) {
             if (p.links === undefined) {
                 p.links = []
@@ -58,6 +92,35 @@ export class NotebookPageService {
         }
         return pages
     }
+    async listPages(
+        sectionId: UUID,
+        scalarFields: string[] = [],
+        relationalFields: string[] = []
+    ): Promise<NotebookPage[]> {
+        
+        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.NOTEBOOK_PAGE_REQUIRED_FIELDS)
+
+        let qb = this.pageRepo.createQueryBuilder('page')
+            .select(columns.map(col => `page.${col}`))
+            .where('page.section_id = :sectionId', { sectionId })
+            .orderBy('page.order', 'ASC')
+
+        if (relationalFields.includes('links')) {
+            qb = qb.leftJoinAndSelect('page.links', 'links')
+        }
+        if (relationalFields.includes('section')) {
+            qb = qb.leftJoinAndSelect('page.section', 'section')
+        }
+
+        const pages = await qb.getMany();
+        for (const p of pages) {
+            if (p.links === undefined) {
+                p.links = []
+            }
+        }
+        return pages
+    }
+
 
     async updatePage(id: UUID, userId: UUID, data: Partial<NotebookPage>): Promise<NotebookPage | null> {
         await this.pageRepo.update({ id, userId }, { updatedAt: Date.now(), ...data })
@@ -118,19 +181,6 @@ export class NotebookPageService {
         })
     }
 
-    async findBySection(sectionId: UUID, userId: UUID): Promise<NotebookPage[]> {
-        const pages = await this.pageRepo.find({
-            where: { section: { id: sectionId, userId } },
-            relations: { section: true, links: true },
-            order: { order: 'ASC' }
-        })
-        for (const p of pages) {
-            if (p.links === undefined) {
-                p.links = []
-            }
-        }
-        return pages
-    }
 
 
 

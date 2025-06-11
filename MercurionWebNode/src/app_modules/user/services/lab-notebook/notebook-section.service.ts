@@ -5,9 +5,12 @@ import { NotebookSection } from '../../Models/entities/lab-notebook/lab-notebook
 import { NotebookChapter } from '../../Models/entities/lab-notebook/lab-notebook-chapter.entity';
 import { UUID } from 'crypto';
 import { UpdateSectionInput } from '../../Models/DTO/lab-notebook/update-section-input';
+import { GraphqlUtils } from 'src/graphql-utils/graphql-utils';
 
 @Injectable()
 export class NotebookSectionService {
+
+    private readonly NOTEBOOK_SECTION_REQUIRED_FIELDS = ['id', 'title', 'userId', 'order', 'chapter']
 
     constructor(
         @InjectRepository(NotebookSection)
@@ -127,15 +130,48 @@ export class NotebookSectionService {
         await this.sectionRepo.delete({ id, userId })
     }
 
-    async getSection(id: UUID, userId: UUID): Promise<NotebookSection | null> {
-        const result: NotebookSection | null = await this.sectionRepo.findOne({ where: { id, userId }, relations: { pages: true } })
-        if (result == null) {
-            return result
+    async getSectionByChapterId(
+        userId: UUID,
+        chapterId: UUID,
+        scalarFields: string[] = [],
+        relationalFields: string[] = []
+    ): Promise<NotebookSection | null> {
+        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.NOTEBOOK_SECTION_REQUIRED_FIELDS)
+
+        let qb = this.sectionRepo.createQueryBuilder('section')
+            .select(columns.map(col => `section.${col}`))
+            .where('section.chapter_id = :chapterId', { chapterId })
+            .andWhere('section.userId = :userId', { userId })
+
+        if (relationalFields.includes('pages')) {
+            qb = qb.leftJoinAndSelect('section.pages', 'pages')
         }
-        if (result.pages == undefined) {
-            result.pages = []
+        // Solo il primo matching (puoi adattare la logica)
+        const result = await qb.getOne();
+        if (result && !result.pages) result.pages = [];
+        return result ?? null;
+    }
+
+    async getSection(
+        id: UUID,
+        userId: UUID,
+        scalarFields: string[] = [],
+        relationalFields: string[] = []
+    ): Promise<NotebookSection | null> {
+        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.NOTEBOOK_SECTION_REQUIRED_FIELDS)
+
+        let qb = this.sectionRepo.createQueryBuilder('section')
+            .select(columns.map(col => `section.${col}`))
+            .where('section.id = :id', { id })
+            .andWhere('section.userId = :userId', { userId })
+
+        if (relationalFields.includes('pages')) {
+            qb = qb.leftJoinAndSelect('section.pages', 'pages')
         }
-        return result
+
+        const result = await qb.getOne()
+        if (result && !result.pages) result.pages = []
+        return result ?? null
     }
 
 

@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args, ID, ResolveField, Parent } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ID, ResolveField, Parent, Info } from '@nestjs/graphql';
 import { NotebookSectionService } from '../../services/lab-notebook/notebook-section.service';
 import { AuthenticatedUserId } from 'src/metadata/metadata';
 import { UUID } from 'crypto';
@@ -7,32 +7,51 @@ import { UpdateSectionInput } from '../../Models/DTO/lab-notebook/update-section
 import { NotFoundException } from '@nestjs/common';
 import { NotebookSection } from '../../Models/entities/lab-notebook/lab-notebook-section.entity';
 import { NotebookPage } from '../../Models/entities/lab-notebook/lab-notebook-page.entity';
-
+import { GraphQLResolveInfo } from 'graphql';
+import { GraphqlUtils } from 'src/graphql-utils/graphql-utils';
 
 
 @Resolver(() => NotebookSection)
 export class NotebookSectionResolver {
-    
+
     constructor(private readonly sectionService: NotebookSectionService) { }
 
     @Query(() => NotebookSection)
     async sectionByChapterId(
         @Args('chapterId', { type: () => ID }) chapterId: string,
-        @AuthenticatedUserId() userId: string
+        @AuthenticatedUserId() userId: string,
+        @Info() info: GraphQLResolveInfo
     ): Promise<NotebookSection> {
-        const result: NotebookSection | null = await this.sectionService.getSection(userId as UUID, chapterId as UUID)
-        if (result == null) {
-            throw new NotFoundException()
-        }
+        const fieldsMap = GraphqlUtils.getFieldsMap(info)
+        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
+        const relationalFields = GraphqlUtils.getRelationalFields(fieldsMap)
+
+        const result: NotebookSection | null = await this.sectionService.getSectionByChapterId(
+            userId as UUID,
+            chapterId as UUID,
+            scalarFields,
+            relationalFields
+        )
+        if (result == null) throw new NotFoundException()
         return result
     }
 
     @Query(() => NotebookSection)
-    sectionById(
-        @Args('id', {type: () => ID}) id: string,
-        @AuthenticatedUserId() userId: UUID
+    async sectionById(
+        @Args('id', { type: () => ID }) id: string,
+        @AuthenticatedUserId() userId: UUID,
+        @Info() info: GraphQLResolveInfo
     ): Promise<NotebookSection | null> {
-        return this.sectionService.getSection(id as UUID, userId)
+        const fieldsMap = GraphqlUtils.getFieldsMap(info)
+        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
+        const relationalFields = GraphqlUtils.getRelationalFields(fieldsMap)
+
+        return this.sectionService.getSection(
+            id as UUID,
+            userId,
+            scalarFields,
+            relationalFields
+        );
     }
 
     @Mutation(() => NotebookSection)
@@ -59,10 +78,9 @@ export class NotebookSectionResolver {
         await this.sectionService.delete(userId as UUID, id as UUID)
         return true
     }
-    
+
     @ResolveField(() => [NotebookPage])
     pages(@Parent() section: NotebookSection): NotebookPage[] {
         return section.pages ?? []
     }
-
 }

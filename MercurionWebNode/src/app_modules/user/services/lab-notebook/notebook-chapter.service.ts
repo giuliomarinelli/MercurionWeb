@@ -5,11 +5,14 @@ import { NotebookChapter } from '../../Models/entities/lab-notebook/lab-notebook
 import { LabNotebookEntry } from '../../Models/entities/lab-notbook-entry.entity';
 import { UUID } from 'crypto';
 import { RpcException } from '@nestjs/microservices';
+import { GraphqlUtils } from 'src/graphql-utils/graphql-utils';
 
 
 
 @Injectable()
 export class NotebookChapterService {
+
+    private readonly NOTEBOOK_CHAPTER_REQUIRED_FIELDS = ['id', 'userId', 'title', 'order', 'notebook']
 
     constructor(
         @InjectRepository(NotebookChapter)
@@ -94,30 +97,56 @@ export class NotebookChapterService {
         })
     }
 
-    async listChapters(notebookId: UUID, userId: UUID): Promise<NotebookChapter[]> {
-        return this.chapterRepo.find({
-            where: { notebook: { id: notebookId, userId } },
-            order: { order: 'ASC' },
-        })
+    async listChapters(
+        notebookId: UUID,
+        userId: UUID,
+        scalarFields: string[] = [],
+        relationalFields: string[] = []
+    ): Promise<NotebookChapter[]> {
+        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.NOTEBOOK_CHAPTER_REQUIRED_FIELDS)
+
+        let qb = this.chapterRepo.createQueryBuilder('chapter')
+            .select(columns.map(col => `chapter.${col}`))
+            .where('chapter.notebook_id = :notebookId', { notebookId })
+            .andWhere('chapter.userId = :userId', { userId })
+            .orderBy('chapter.order', 'ASC');
+
+        if (relationalFields.includes('sections')) {
+            qb = qb.leftJoinAndSelect('chapter.sections', 'sections');
+        }
+
+        const chapters = await qb.getMany()
+        for (const c of chapters) {
+            c.sections ??= []
+        }
+        return chapters
     }
 
+    async getChapter(
+        id: UUID,
+        userId: UUID,
+        scalarFields: string[] = [],
+        relationalFields: string[] = []
+    ): Promise<NotebookChapter | null> {
 
-    async getChapter(id: UUID, userId: UUID): Promise<NotebookChapter | null> {
-        const result: NotebookChapter | null = await this.chapterRepo.findOne({
-            where: { id, userId },
-            relations: [
-                'sections',
-                'sections.pages'
-            ]
-        })
-        if (result == null) {
-            return result
+        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.NOTEBOOK_CHAPTER_REQUIRED_FIELDS)
+
+        let qb = this.chapterRepo.createQueryBuilder('chapter')
+            .select(columns.map(col => `chapter.${col}`))
+            .where('chapter.id = :id', { id })
+            .andWhere('chapter.userId = :userId', { userId });
+
+        if (relationalFields.includes('sections')) {
+            qb = qb.leftJoinAndSelect('chapter.sections', 'sections');
         }
-        if (result.sections == undefined) {
+
+        const result = await qb.getOne()
+        if (result && result.sections == undefined) {
             result.sections = []
         }
-        return result
+        return result;
     }
+
 
     async updateChapter(id: UUID, userId: UUID, data: Partial<NotebookChapter>): Promise<NotebookChapter | null> {
         await this.chapterRepo.update({ id, userId }, { updatedAt: Date.now(), ...data })

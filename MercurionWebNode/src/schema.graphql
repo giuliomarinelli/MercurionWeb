@@ -98,7 +98,6 @@ type Query {
   page(id: String!): NotebookPage
   pagesBySection(sectionId: String!): [NotebookPage!]!
   pageById(id: ID!): NotebookPage!
-  sections(chapterId: ID!): [NotebookChapter!]!
   chaptersByNotebook(notebookId: ID!): [NotebookChapter!]!
   chapterById(id: ID!): NotebookChapter!
   sectionByChapterId(chapterId: ID!): NotebookSection!

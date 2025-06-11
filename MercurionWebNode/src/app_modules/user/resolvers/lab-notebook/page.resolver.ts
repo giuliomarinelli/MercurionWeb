@@ -1,11 +1,13 @@
 import { Resolver, Query, Mutation, Args, ID, Info } from '@nestjs/graphql';
 import { NotebookPageService } from '../../services/lab-notebook/notebook-page.service';
 import { UUID } from 'crypto';
-import { NotebookPage } from '../../Models/entities/lab-notebook/lab-notebook-page.entity';
 import { CreatePageInput } from '../../Models/DTO/lab-notebook/create-page-input';
 import { UpdatePageInput } from '../../Models/DTO/lab-notebook/update-page-input';
 import { AuthenticatedUserId } from 'src/metadata/metadata';
 import { GraphQLResolveInfo } from 'graphql';
+import { NotebookPage } from '../../Models/entities/lab-notebook/lab-notebook-page.entity';
+import { GraphqlUtils } from 'src/graphql-utils/graphql-utils';
+
 
 @Resolver(() => NotebookPage)
 export class PageResolver {
@@ -18,7 +20,10 @@ export class PageResolver {
         @Info() info: GraphQLResolveInfo,
         @AuthenticatedUserId() userId: UUID
     ): Promise<NotebookPage | null> {
-        return this.pageService.getPage(id as UUID, userId)
+        const fieldsMap = GraphqlUtils.getFieldsMap(info)
+        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
+        const relationalFields = GraphqlUtils.getRelationalFields(fieldsMap)
+        return this.pageService.getPage(id as UUID, userId, scalarFields, relationalFields)
     }
 
     @Query(() => [NotebookPage])
@@ -27,7 +32,10 @@ export class PageResolver {
         @Info() info: GraphQLResolveInfo,  
         @AuthenticatedUserId() userId: UUID
     ): Promise<NotebookPage[]> {
-        return this.pageService.findBySection(sectionId as UUID, userId)
+        const fieldsMap = GraphqlUtils.getFieldsMap(info)
+        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
+        const relationalFields = GraphqlUtils.getRelationalFields(fieldsMap)
+        return this.pageService.findBySection(sectionId as UUID, userId, scalarFields, relationalFields)
     }
 
     @Query(() => NotebookPage)
@@ -36,7 +44,10 @@ export class PageResolver {
         @Info() info: GraphQLResolveInfo,  
         @AuthenticatedUserId() userId: UUID
     ): Promise<NotebookPage | null> {
-        return this.pageService.getPage(id as UUID, userId)
+        const fieldsMap = GraphqlUtils.getFieldsMap(info)
+        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
+        const relationalFields = GraphqlUtils.getRelationalFields(fieldsMap)
+        return this.pageService.getPage(id as UUID, userId, scalarFields, relationalFields)
     }
 
     @Mutation(() => NotebookPage)
@@ -67,5 +78,3 @@ export class PageResolver {
     }
 
 }
-
-
