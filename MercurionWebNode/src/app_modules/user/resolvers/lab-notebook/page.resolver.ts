@@ -52,12 +52,11 @@ export class PageResolver {
 
     @Mutation(() => NotebookPage)
     createPage(
-        @Args('sectionId', { type: () => String }) sectionId: string,
         @Args('input') input: CreatePageInput,
         @Info() info: GraphQLResolveInfo,  
         @AuthenticatedUserId() userId: UUID
     ): Promise<NotebookPage> {
-        return this.pageService.createPage(sectionId as UUID, userId, input)
+        return this.pageService.createPage(input.sectionId as UUID, userId, input)
     }
 
     @Mutation(() => NotebookPage, { nullable: true })

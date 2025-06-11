@@ -292,21 +292,19 @@ export class NotebookService {
 
   // PAGINA CRUD
 
-  // Qui lascio sectionId + input perché sembra richiesto così dal backend.
-  // Ma se puoi: meglio $input: { sectionId, title, content }
   createPage(sectionId: string, title: string, content: string): Observable<PageTree> {
     return this.apollo
       .mutate<{ createPage: PageTree }>({
         mutation: gql`
-          mutation CreatePage($sectionId: String!, $input: CreatePageInput!) {
-            createPage(sectionId: $sectionId, input: $input) {
-              id
-              title
-              content
-            }
+        mutation CreatePage($input: CreatePageInput!) {
+          createPage(input: $input) {
+            id
+            title
+            content
           }
-        `,
-        variables: { sectionId, input: { title, content } },
+        }
+      `,
+        variables: { input: { sectionId, title, content } },
       })
       .pipe(map(res => extractGqlData(res, 'createPage')));
   }

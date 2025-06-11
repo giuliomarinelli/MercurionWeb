@@ -118,7 +118,7 @@ input MoleculeSearchInput {
 }
 
 type Mutation {
-  createPage(sectionId: String!, input: CreatePageInput!): NotebookPage!
+  createPage(input: CreatePageInput!): NotebookPage!
   updatePage(input: UpdatePageInput!): NotebookPage
   deletePage(id: String!): Boolean!
   createChapter(input: CreateChapterInput!): NotebookChapter!
