@@ -176,6 +176,10 @@ type Query {
   sectionById(id: ID!): NotebookSection!
   labNotebooksByUser: [LabNotebook!]!
   labNotebook(id: ID!): LabNotebook
+  myMoleculeCollections: [MoleculeCollection!]!
+  moleculeCollection(id: ID!): MoleculeCollection
+  myMoleculeItems: [MoleculeCollectionItemEntity!]!
+  moleculeItem(id: ID!): MoleculeCollectionItemEntity
   moleculeSearch(input: MoleculeSearchInput!): [MoleculeSearchResult!]!
   moleculeByMolregno(molregno: String!): MoleculeDetail!
 }
@@ -202,6 +206,12 @@ type Mutation {
   createLabNotebook(title: String!): LabNotebook!
   updateLabNotebook(input: UpdateLabNotebookInput!): LabNotebook!
   deleteLabNotebook(id: ID!): Boolean!
+  createMoleculeCollection(input: CreateMoleculeCollectionInput!): MoleculeCollection!
+  updateMoleculeCollection(id: ID!, name: String!): MoleculeCollection!
+  deleteMoleculeCollection(id: ID!): Boolean!
+  createMoleculeItem(input: CreateMoleculeItemInput!): MoleculeCollectionItemEntity!
+  updateMoleculeItem(id: ID!, input: CreateMoleculeItemInput!): MoleculeCollectionItemEntity!
+  deleteMoleculeItem(id: ID!): Boolean!
 }
 
 input CreatePageInput {
@@ -243,4 +253,19 @@ input UpdateSectionInput {
 input UpdateLabNotebookInput {
   title: String
   id: String!
+}
+
+input CreateMoleculeCollectionInput {
+  name: String!
+}
+
+input CreateMoleculeItemInput {
+  type: String!
+  canonicalSmiles: String
+  molFormula: String
+  name: String
+  propertiesJson: String
+  chemblMolregno: Float
+  label: String
+  notes: String
 }

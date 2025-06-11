@@ -1,4 +1,4 @@
-import { BeforeInsert, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
+import { BeforeInsert, Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 import { MoleculeCollection } from "./molecule-collection.entity";
 import { MoleculeCollectionItemEntity } from "./molecule-collection-item.entity";
 import { UUID } from "crypto";
@@ -22,6 +22,12 @@ export class MoleculeCollectionItemJoin {
     @ManyToOne(() => MoleculeCollectionItemEntity, item => item.joins)
     @JoinColumn({ name: 'item_id' })
     item: MoleculeCollectionItemEntity
+
+    @Column('uuid')
+    collectionId: UUID
+
+    @Column('uuid')
+    itemId: UUID
 
     // 🔧 Estensioni future: tag, commenti, ordine, metadati?
 

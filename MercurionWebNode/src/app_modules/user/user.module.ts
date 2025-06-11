@@ -26,6 +26,10 @@ import { SyntheticRouteEntity } from './Models/entities/synth/synthetic-route.en
 import { SyntheticStepMoleculeRef } from './Models/entities/synth/synthetic-step-molecule-ref.entity';
 import { SyntheticStepEntity } from './Models/entities/synth/synthetic-step.entity';
 import { MoleculeCollectionService } from './services/molecule-collection/molecule-collection.service';
+import { MoleculeCollectionItemService } from './services/molecule-collection/molecule-collection-item.service';
+import { MoleculeCollectionResolver } from './resolvers/molecule-collection/molecule-collection.resolver';
+import { MoleculeCollectionItemResolver } from './resolvers/molecule-collection/molecule-collection-item.resolver';
+import { MoleculeCollectionItemJoinService } from './services/molecule-collection/molecule-collection-item-join.service';
 
 
 @Module({
@@ -57,7 +61,11 @@ import { MoleculeCollectionService } from './services/molecule-collection/molecu
     NotebookChapterResolver,
     NotebookSectionResolver,
     LabNotebookResolver,
-    MoleculeCollectionService
+    MoleculeCollectionService,
+    MoleculeCollectionItemService,
+    MoleculeCollectionResolver,
+    MoleculeCollectionItemResolver,
+    MoleculeCollectionItemJoinService
   ],
   exports: [UserService, TypeOrmModule],
   controllers: []
