@@ -48,7 +48,7 @@ import { NotebookTocComponent } from '../../../components/notebook/notebook-tree
                   {{title()}}.
                 </h1>
           }
-          <div class="mt-12 text-xl text-center text-slate-400 italic">
+          <div class="mt-12 text-xl text-center text-slate-400 dark:text-slate-200 italic">
             Seleziona un <b>paragrafo</b> per modificare il contenuto.<br>
             (Ogni paragrafo è una “pagina” del quaderno/esperimento.)
           </div>
