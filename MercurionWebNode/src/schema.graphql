@@ -98,6 +98,34 @@ type NotebookPage {
   order: Int!
 }
 
+type SyntheticStepMoleculeRef {
+  id: ID!
+  step: SyntheticStepEntity
+  molecule: MoleculeCollectionItemEntity
+  role: String!
+  alias: String
+}
+
+type SyntheticStepEntity {
+  id: ID!
+  route: SyntheticRouteEntity
+  order: Float!
+  description: String
+  reactionType: String
+  conditions: String
+  moleculeRefs: [SyntheticStepMoleculeRef!]
+  rawEditorData: String
+  structureImage: String
+}
+
+type SyntheticRouteEntity {
+  id: ID!
+  userId: String!
+  title: String!
+  notes: String
+  steps: [SyntheticRouteEntity!]
+}
+
 type MoleculeSearchResult {
   id: Int!
   preferredName: String!
