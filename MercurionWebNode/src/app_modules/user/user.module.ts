@@ -22,6 +22,9 @@ import { NotebookChapterResolver } from './resolvers/lab-notebook/notebook-chapt
 import { NotebookSectionResolver } from './resolvers/lab-notebook/notebook-section.resolver';
 import { LabNotebookResolver } from './resolvers/lab-notebook/lab-notebook.resolver';
 import { LabNotebookService } from './services/lab-notebook/lab-notebook.service';
+import { SyntheticRouteEntity } from './Models/entities/synth/synthetic-route.entity';
+import { SyntheticStepMoleculeRef } from './Models/entities/synth/synthetic-step-molecule-ref.entity';
+import { SyntheticStepEntity } from './Models/entities/synth/synthetic-step.entity';
 
 
 @Module({
@@ -38,7 +41,10 @@ import { LabNotebookService } from './services/lab-notebook/lab-notebook.service
     NotebookChapter,
     NotebookPage,
     NotebookSection,
-    LabNotebook
+    LabNotebook,
+    SyntheticRouteEntity,
+    SyntheticStepMoleculeRef,
+    SyntheticStepEntity
   ])],
   providers: [
     UserService,

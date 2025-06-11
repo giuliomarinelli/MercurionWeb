@@ -1,4 +1,4 @@
-import { BeforeInsert, Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn } from "typeorm";
+import { BeforeInsert, Column, Entity, Index, JoinColumn, ManyToOne, OneToMany, PrimaryColumn } from "typeorm";
 import { User } from "../user.entity";
 import { UUID } from "crypto";
 import { uuidv7 } from "@kripod/uuidv7";
@@ -13,6 +13,7 @@ export class MoleculeCollection {
     @Column()
     name: string
 
+    @Index()
     @ManyToOne(() => User, user => user.collections)
     @JoinColumn({ name: 'user_id' })
     user: User

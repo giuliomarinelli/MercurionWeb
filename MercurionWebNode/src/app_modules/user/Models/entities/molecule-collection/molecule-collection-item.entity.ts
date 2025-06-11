@@ -1,6 +1,6 @@
 import { uuidv7 } from '@kripod/uuidv7';
 import { UUID } from 'crypto';
-import { BeforeInsert, Column, Entity, OneToMany, PrimaryColumn, TableInheritance } from 'typeorm';
+import { BeforeInsert, Column, Entity, Index, OneToMany, PrimaryColumn, TableInheritance } from 'typeorm';
 import { MoleculeCollectionItemJoin } from './molecule-collection-item-join.entity';
 
 @Entity('molecule_collection_items')
@@ -10,6 +10,7 @@ export abstract class MoleculeCollectionItemEntity {
     @PrimaryColumn({ type: 'uuid' })
     id: UUID
 
+    @Index()
     @Column({ type: 'uuid', unique: true })
     userId: UUID
 
