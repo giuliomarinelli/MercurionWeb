@@ -25,6 +25,7 @@ import { LabNotebookService } from './services/lab-notebook/lab-notebook.service
 import { SyntheticRouteEntity } from './Models/entities/synth/synthetic-route.entity';
 import { SyntheticStepMoleculeRef } from './Models/entities/synth/synthetic-step-molecule-ref.entity';
 import { SyntheticStepEntity } from './Models/entities/synth/synthetic-step.entity';
+import { MoleculeCollectionService } from './services/molecule-collection/molecule-collection.service';
 
 
 @Module({
@@ -55,7 +56,8 @@ import { SyntheticStepEntity } from './Models/entities/synth/synthetic-step.enti
     PageResolver,
     NotebookChapterResolver,
     NotebookSectionResolver,
-    LabNotebookResolver
+    LabNotebookResolver,
+    MoleculeCollectionService
   ],
   exports: [UserService, TypeOrmModule],
   controllers: []

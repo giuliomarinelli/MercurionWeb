@@ -2,7 +2,6 @@ import { uuidv7 } from '@kripod/uuidv7';
 import { UUID } from "crypto"
 import { BeforeInsert, Column, Entity, OneToMany, PrimaryColumn } from "typeorm"
 import { MfaBackupCode } from "./backup-code.entity"
-import { MoleculeCollection } from './molecule-collection/molecule-collection.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -63,9 +62,6 @@ export class User {
 
     @OneToMany(() => MfaBackupCode, (backupCode) => backupCode.user, { cascade: true })
     backupCodes: MfaBackupCode[]
-
-    @OneToMany(() => MoleculeCollection, collection => collection.user)
-    collections: MoleculeCollection[]
 
     @BeforeInsert()
     private generateId() {

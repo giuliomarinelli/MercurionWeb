@@ -11,16 +11,16 @@ interface MoleculeCollectionItemEntity {
   joins: [MoleculeCollectionItemJoin!]
 }
 
-type MoleculeCollectionItemJoin {
-  id: ID!
-  collection: MoleculeCollection
-  item: MoleculeCollectionItemEntity
-}
-
 type MoleculeCollection {
   id: ID!
   name: String!
   items: [MoleculeCollectionItemJoin!]
+}
+
+type MoleculeCollectionItemJoin {
+  id: ID!
+  collection: MoleculeCollection
+  item: MoleculeCollectionItemEntity
 }
 
 type ChEMBLMoleculeItemEntity implements MoleculeCollectionItemEntity {
