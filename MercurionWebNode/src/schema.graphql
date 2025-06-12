@@ -212,6 +212,8 @@ type Mutation {
   createMoleculeItem(input: CreateMoleculeItemInput!): MoleculeCollectionItemEntity!
   updateMoleculeItem(id: ID!, input: CreateMoleculeItemInput!): MoleculeCollectionItemEntity!
   deleteMoleculeItem(id: ID!): Boolean!
+  addItemToCollection(input: AddItemToCollectionInput!): Boolean!
+  removeItemFromCollection(input: AddItemToCollectionInput!): Boolean!
 }
 
 input CreatePageInput {
@@ -268,4 +270,9 @@ input CreateMoleculeItemInput {
   chemblMolregno: Float
   label: String
   notes: String
+}
+
+input AddItemToCollectionInput {
+  collectionId: ID!
+  itemId: ID!
 }

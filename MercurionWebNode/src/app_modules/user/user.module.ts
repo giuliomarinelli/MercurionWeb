@@ -30,6 +30,7 @@ import { MoleculeCollectionItemService } from './services/molecule-collection/mo
 import { MoleculeCollectionResolver } from './resolvers/molecule-collection/molecule-collection.resolver';
 import { MoleculeCollectionItemResolver } from './resolvers/molecule-collection/molecule-collection-item.resolver';
 import { MoleculeCollectionItemJoinService } from './services/molecule-collection/molecule-collection-item-join.service';
+import { MoleculeCollectionItemJoinResolver } from './resolvers/molecule-collection/molecule-collection-item-join.resolver';
 
 
 @Module({
@@ -65,7 +66,8 @@ import { MoleculeCollectionItemJoinService } from './services/molecule-collectio
     MoleculeCollectionItemService,
     MoleculeCollectionResolver,
     MoleculeCollectionItemResolver,
-    MoleculeCollectionItemJoinService
+    MoleculeCollectionItemJoinService,
+    MoleculeCollectionItemJoinResolver
   ],
   exports: [UserService, TypeOrmModule],
   controllers: []
