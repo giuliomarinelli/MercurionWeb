@@ -35,6 +35,8 @@ import { CustomMoleculeItemService } from './services/molecule-collection/custom
 import { ChEMBLMoleculeItemResolver } from './resolvers/molecule-collection/chembl-molecule-collection-item.resolver';
 import { CustomMoleculeItemResolver } from './resolvers/molecule-collection/cutom-molecule-item.resolver';
 import { ChEMBLMoleculeItemService } from './services/molecule-collection/chembl-molecule-item.service';
+import { SyntheticRouteService } from './services/synth/synthetic-route.service';
+import { SyntheticRouteResolver } from './resolvers/synth/synthetic-route.resolver';
 
 
 @Module({
@@ -76,7 +78,9 @@ import { ChEMBLMoleculeItemService } from './services/molecule-collection/chembl
     CustomMoleculeItemService,
     ChEMBLMoleculeItemResolver,
     CustomMoleculeItemResolver,
-    ChEMBLMoleculeItemService
+    ChEMBLMoleculeItemService,
+    SyntheticRouteService,
+    SyntheticRouteResolver
   ],
   exports: [UserService, TypeOrmModule],
   controllers: []
