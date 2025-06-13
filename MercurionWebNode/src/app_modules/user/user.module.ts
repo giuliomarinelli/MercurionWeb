@@ -67,7 +67,8 @@ import { MoleculeCollectionItemJoinResolver } from './resolvers/molecule-collect
     MoleculeCollectionResolver,
     MoleculeCollectionItemResolver,
     MoleculeCollectionItemJoinService,
-    MoleculeCollectionItemJoinResolver
+    MoleculeCollectionItemJoinResolver,
+    ChEMBLMoleculeItemEntity
   ],
   exports: [UserService, TypeOrmModule],
   controllers: []
