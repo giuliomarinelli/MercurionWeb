@@ -5,6 +5,7 @@ import { UUID } from "crypto";
 import { SyntheticStepMoleculeRef } from "../../Models/entities/synth/synthetic-step-molecule-ref.entity";
 import { SyntheticStepMoleculeRefInput } from "../../Models/DTO/synth/synthetic-step-molecule-ref.input";
 import { MoleculeCollectionItemEntity } from "../../Models/entities/molecule-collection/molecule-collection-item.entity";
+import { SyntheticStepEntity } from "../../Models/entities/synth/synthetic-step.entity";
 
 @Injectable()
 export class SyntheticStepMoleculeRefService {
@@ -16,7 +17,7 @@ export class SyntheticStepMoleculeRefService {
 
     async create(input: SyntheticStepMoleculeRefInput): Promise<SyntheticStepMoleculeRef> {
         const ref = this.refRepo.create({
-            step: { id: input.stepId } as SyntheticStepMoleculeRef,
+            step: { id: input.stepId } as SyntheticStepEntity,
             molecule: { id: input.moleculeId } as MoleculeCollectionItemEntity,
             role: input.role,
             alias: input.alias ?? null
