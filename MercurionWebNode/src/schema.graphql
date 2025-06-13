@@ -186,6 +186,8 @@ type Query {
   findOneCustomMoleculeById(itemId: ID!): CustomMoleculeItemEntity
   mySyntheticRoutes: [SyntheticRouteEntity!]!
   syntheticRoute(id: ID!): SyntheticRouteEntity
+  syntheticStepsByRoute(routeId: ID!): [SyntheticStepEntity!]!
+  syntheticStepById(id: ID!): SyntheticStepEntity
   moleculeSearch(input: MoleculeSearchInput!): [MoleculeSearchResult!]!
   moleculeByMolregno(molregno: String!): MoleculeDetail!
 }
@@ -228,6 +230,9 @@ type Mutation {
   createSyntheticRoute(input: SyntheticRouteInput!): SyntheticRouteEntity!
   updateSyntheticRoute(id: ID!, input: SyntheticRouteInput!): SyntheticRouteEntity!
   deleteSyntheticRoute(id: ID!): Boolean!
+  createSyntheticStep(input: SyntheticStepInput!): SyntheticStepEntity!
+  updateSyntheticStep(id: ID!, input: SyntheticStepInput!): SyntheticStepEntity!
+  deleteSyntheticStep(id: ID!): Boolean!
 }
 
 input CreatePageInput {
@@ -303,4 +308,14 @@ input CustomMoleculeItemInput {
 input SyntheticRouteInput {
   title: String!
   notes: String
+}
+
+input SyntheticStepInput {
+  routeId: ID!
+  order: Float!
+  description: String
+  reactionType: String
+  conditions: String
+  rawEditorData: String
+  structureImage: String
 }

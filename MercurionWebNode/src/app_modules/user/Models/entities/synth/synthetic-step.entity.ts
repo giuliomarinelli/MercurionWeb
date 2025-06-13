@@ -1,6 +1,6 @@
 import { UUID } from 'crypto';
 import { uuidv7 } from '@kripod/uuidv7';
-import { BeforeInsert, Column, Entity, ManyToOne, PrimaryColumn, OneToMany, JoinColumn } from 'typeorm';
+import { BeforeInsert, Column, Entity, ManyToOne, PrimaryColumn, OneToMany, JoinColumn, Index } from 'typeorm';
 import { SyntheticRouteEntity } from './synthetic-route.entity';
 import { SyntheticStepMoleculeRef } from './synthetic-step-molecule-ref.entity';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
@@ -12,6 +12,10 @@ export class SyntheticStepEntity {
     @Field(() => ID)
     @PrimaryColumn({ type: 'uuid' })
     id: UUID
+
+    @Index()
+    @Column({type: 'uuid'})
+    userId: UUID
 
     @Field(() => SyntheticRouteEntity, { nullable: true })
     @ManyToOne(() => SyntheticRouteEntity, route => route.steps)
@@ -40,7 +44,7 @@ export class SyntheticStepEntity {
 
     @Field(() => String, { nullable: true })
     @Column({ type: 'json', nullable: true })
-    rawEditorData: any // File/JSON del chemical editor (per future editabilità)
+    rawEditorData: string | null // File/JSON del chemical editor (per future editabilità)
     
     @Field(() => String, { nullable: true })
     @Column({ type: 'text', nullable: true })

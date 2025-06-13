@@ -1,0 +1,53 @@
+import { Injectable } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { UUID } from "crypto";
+import { GraphQLFieldsMap } from "src/type-orm-utils/type-orm-utils";
+import { GraphqlUtils } from "src/graphql-utils/graphql-utils";
+import { SyntheticStepEntity } from "../../Models/entities/synth/synthetic-step.entity";
+import { SyntheticStepInput } from "../../Models/DTO/synth/synthetic-step.input";
+
+@Injectable()
+export class SyntheticStepService {
+
+    constructor(
+        @InjectRepository(SyntheticStepEntity)
+        private readonly stepRepo: Repository<SyntheticStepEntity>
+    ) { }
+
+    async create(userId: UUID, input: SyntheticStepInput): Promise<SyntheticStepEntity> {
+        const step = this.stepRepo.create({ ...input, userId })
+        return this.stepRepo.save(step)
+    }
+
+    async update(userId: UUID, id: UUID, input: SyntheticStepInput, fieldsMap: GraphQLFieldsMap): Promise<SyntheticStepEntity | null> {
+        await this.stepRepo.update({ id, userId }, { ...input })
+        return this.findOneById(userId, id, fieldsMap)
+    }
+
+    async delete(userId: UUID, id: UUID): Promise<boolean> {
+        await this.stepRepo.delete({ id, userId })
+        return true
+    }
+
+    async findOneById(userId: UUID, id: UUID, fieldsMap: GraphQLFieldsMap): Promise<SyntheticStepEntity | null> {
+        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
+        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, ['id', 'order', 'userId'])
+        const qb = this.stepRepo.createQueryBuilder('step')
+            .select(columns.map(col => `step.${col}`))
+            .where('step.id = :id', { id })
+            .andWhere('step.userId = :userId', { userId })
+        return qb.getOne()
+    }
+
+    async findByRoute(userId: UUID, routeId: UUID, fieldsMap: GraphQLFieldsMap): Promise<SyntheticStepEntity[]> {
+        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap);
+        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, ['id', 'order', 'userId']);
+        const qb = this.stepRepo.createQueryBuilder('step')
+            .select(columns.map(col => `step.${col}`))
+            .where('step.route = :routeId', { routeId })
+            .andWhere('step.userId = :userId', { userId })
+            .orderBy('step.order', 'ASC')
+        return qb.getMany()
+    }
+}

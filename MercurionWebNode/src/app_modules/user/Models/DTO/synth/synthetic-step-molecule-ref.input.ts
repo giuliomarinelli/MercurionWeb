@@ -5,5 +5,5 @@ export class SyntheticStepMoleculeRefInput {
   @Field(() => ID) stepId: string
   @Field(() => ID) moleculeId: string
   @Field() role: string
-  @Field({ nullable: true }) alias?: string
+  @Field(() => String, { nullable: true }) alias?: string | null
 }

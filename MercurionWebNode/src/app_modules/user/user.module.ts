@@ -37,6 +37,8 @@ import { CustomMoleculeItemResolver } from './resolvers/molecule-collection/cuto
 import { ChEMBLMoleculeItemService } from './services/molecule-collection/chembl-molecule-item.service';
 import { SyntheticRouteService } from './services/synth/synthetic-route.service';
 import { SyntheticRouteResolver } from './resolvers/synth/synthetic-route.resolver';
+import { SyntheticStepService } from './services/synth/synthetic-step.service';
+import { SyntheticStepResolver } from './resolvers/synth/synthectic-step.resolver';
 
 
 @Module({
@@ -80,7 +82,9 @@ import { SyntheticRouteResolver } from './resolvers/synth/synthetic-route.resolv
     CustomMoleculeItemResolver,
     ChEMBLMoleculeItemService,
     SyntheticRouteService,
-    SyntheticRouteResolver
+    SyntheticRouteResolver,
+    SyntheticStepService,
+    SyntheticStepResolver
   ],
   exports: [UserService, TypeOrmModule],
   controllers: []

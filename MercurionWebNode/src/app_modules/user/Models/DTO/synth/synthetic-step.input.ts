@@ -4,9 +4,9 @@ import { Field, ID, InputType } from "@nestjs/graphql"
 export class SyntheticStepInput {
     @Field(() => ID) routeId: string
     @Field() order: number
-    @Field({ nullable: true }) description?: string
-    @Field({ nullable: true }) reactionType?: string
-    @Field({ nullable: true }) conditions?: string
-    @Field({ nullable: true }) rawEditorData?: string
-    @Field({ nullable: true }) structureImage?: string
+    @Field(() => String, { nullable: true }) description?: string | null
+    @Field(() => String, { nullable: true }) reactionType?: string | null
+    @Field(() => String, { nullable: true }) conditions?: string | null
+    @Field(() => String, { nullable: true }) rawEditorData?: string | null
+    @Field(() => String, { nullable: true }) structureImage?: string | null
 }
