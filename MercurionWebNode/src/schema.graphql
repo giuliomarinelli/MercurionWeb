@@ -102,8 +102,15 @@ type SyntheticStepMoleculeRef {
   id: ID!
   step: SyntheticStepEntity
   molecule: MoleculeCollectionItemEntity
-  role: String!
+  role: MoleculeRole!
   alias: String
+}
+
+"""Ruolo della molecola in una reazione chimica"""
+enum MoleculeRole {
+  REACTANT
+  PRODUCT
+  REAGENT
 }
 
 type SyntheticStepEntity {
@@ -188,6 +195,7 @@ type Query {
   syntheticRoute(id: ID!): SyntheticRouteEntity
   syntheticStepsByRoute(routeId: ID!): [SyntheticStepEntity!]!
   syntheticStepById(id: ID!): SyntheticStepEntity
+  stepMoleculeRefs(stepId: ID!): [SyntheticStepMoleculeRef!]!
   moleculeSearch(input: MoleculeSearchInput!): [MoleculeSearchResult!]!
   moleculeByMolregno(molregno: String!): MoleculeDetail!
 }
@@ -233,6 +241,9 @@ type Mutation {
   createSyntheticStep(input: SyntheticStepInput!): SyntheticStepEntity!
   updateSyntheticStep(id: ID!, input: SyntheticStepInput!): SyntheticStepEntity!
   deleteSyntheticStep(id: ID!): Boolean!
+  addStepMoleculeRef(input: SyntheticStepMoleculeRefInput!): SyntheticStepMoleculeRef!
+  updateStepMoleculeRef(id: ID!, input: SyntheticStepMoleculeRefInput!): SyntheticStepMoleculeRef!
+  removeStepMoleculeRef(id: ID!): Boolean!
 }
 
 input CreatePageInput {
@@ -318,4 +329,11 @@ input SyntheticStepInput {
   conditions: String
   rawEditorData: String
   structureImage: String
+}
+
+input SyntheticStepMoleculeRefInput {
+  stepId: ID!
+  moleculeId: ID!
+  role: MoleculeRole!
+  alias: String
 }

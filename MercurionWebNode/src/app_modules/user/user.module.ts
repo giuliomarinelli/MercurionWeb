@@ -39,6 +39,8 @@ import { SyntheticRouteService } from './services/synth/synthetic-route.service'
 import { SyntheticRouteResolver } from './resolvers/synth/synthetic-route.resolver';
 import { SyntheticStepService } from './services/synth/synthetic-step.service';
 import { SyntheticStepResolver } from './resolvers/synth/synthectic-step.resolver';
+import { SyntheticStepMoleculeRefService } from './services/synth/synthetic-step-molecule-ref.service';
+import { SyntheticStepMoleculeRefResolver } from './resolvers/synth/synthetic-step-molecule-ref.resolver';
 
 
 @Module({
@@ -84,7 +86,9 @@ import { SyntheticStepResolver } from './resolvers/synth/synthectic-step.resolve
     SyntheticRouteService,
     SyntheticRouteResolver,
     SyntheticStepService,
-    SyntheticStepResolver
+    SyntheticStepResolver,
+    SyntheticStepMoleculeRefService,
+    SyntheticStepMoleculeRefResolver
   ],
   exports: [UserService, TypeOrmModule],
   controllers: []

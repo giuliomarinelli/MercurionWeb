@@ -4,6 +4,7 @@ import { BeforeInsert, Column, Entity, ManyToOne, PrimaryColumn, JoinColumn } fr
 import { SyntheticStepEntity } from './synthetic-step.entity';
 import { MoleculeCollectionItemEntity } from '../molecule-collection/molecule-collection-item.entity';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { MoleculeRole } from '../../enums/molecule-role.enum';
 
 @ObjectType()
 @Entity('synthetic_step_molecule_refs')
@@ -23,9 +24,9 @@ export class SyntheticStepMoleculeRef {
     @JoinColumn({ name: 'molecule_id' })
     molecule: MoleculeCollectionItemEntity
 
-    @Field(() => String)
+    @Field(() => MoleculeRole)
     @Column({ type: 'varchar' })
-    role: 'reactant' | 'product' | 'reagent' // Differenzia tipo partecipante nella reazione
+    role: MoleculeRole // Differenzia tipo partecipante nella reazione
 
     @Field(() => String, { nullable: true })
     @Column({ type: 'varchar', nullable: true })
