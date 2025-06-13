@@ -3,6 +3,7 @@ import { UUID } from "crypto";
 import { SyntheticStepMoleculeRef } from "../../Models/entities/synth/synthetic-step-molecule-ref.entity";
 import { SyntheticStepMoleculeRefService } from "../../services/synth/synthetic-step-molecule-ref.service";
 import { SyntheticStepMoleculeRefInput } from "../../Models/DTO/synth/synthetic-step-molecule-ref.input";
+import { AuthenticatedUserId } from "src/metadata/metadata";
 
 @Resolver(() => SyntheticStepMoleculeRef)
 export class SyntheticStepMoleculeRefResolver {
@@ -11,9 +12,10 @@ export class SyntheticStepMoleculeRefResolver {
 
     @Query(() => [SyntheticStepMoleculeRef])
     async stepMoleculeRefs(
-        @Args('stepId', { type: () => ID }) stepId: UUID
+        @Args('stepId', { type: () => ID }) stepId: UUID,
+        @AuthenticatedUserId() userId: UUID
     ) {
-        return this.service.findByStep(stepId)
+        return this.service.findByStep(stepId, userId)
     }
 
     @Mutation(() => SyntheticStepMoleculeRef)

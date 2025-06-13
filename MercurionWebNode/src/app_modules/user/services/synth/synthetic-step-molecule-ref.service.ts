@@ -24,9 +24,9 @@ export class SyntheticStepMoleculeRefService {
         return this.refRepo.save(ref);
     }
 
-    async findByStep(stepId: UUID): Promise<SyntheticStepMoleculeRef[]> {
+    async findByStep(stepId: UUID, userId: UUID): Promise<SyntheticStepMoleculeRef[]> {
         return this.refRepo.find({
-            where: { step: { id: stepId } },
+            where: { step: { id: stepId, userId }, molecule: {userId} },
             relations: ["step", "molecule"]
         })
     }
