@@ -31,6 +31,10 @@ import { MoleculeCollectionResolver } from './resolvers/molecule-collection/mole
 import { MoleculeCollectionItemResolver } from './resolvers/molecule-collection/molecule-collection-item.resolver';
 import { MoleculeCollectionItemJoinService } from './services/molecule-collection/molecule-collection-item-join.service';
 import { MoleculeCollectionItemJoinResolver } from './resolvers/molecule-collection/molecule-collection-item-join.resolver';
+import { CustomMoleculeItemService } from './services/molecule-collection/custom-molecule-item.service';
+import { ChEMBLMoleculeItemResolver } from './resolvers/molecule-collection/chembl-molecule-collection-item.resolver';
+import { CustomMoleculeItemResolver } from './resolvers/molecule-collection/cutom-molecule-item.resolver';
+import { ChEMBLMoleculeItemService } from './services/molecule-collection/chembl-molecule-item.service';
 
 
 @Module({
@@ -68,7 +72,11 @@ import { MoleculeCollectionItemJoinResolver } from './resolvers/molecule-collect
     MoleculeCollectionItemResolver,
     MoleculeCollectionItemJoinService,
     MoleculeCollectionItemJoinResolver,
-    ChEMBLMoleculeItemEntity
+    ChEMBLMoleculeItemEntity,
+    CustomMoleculeItemService,
+    ChEMBLMoleculeItemResolver,
+    CustomMoleculeItemResolver,
+    ChEMBLMoleculeItemService
   ],
   exports: [UserService, TypeOrmModule],
   controllers: []

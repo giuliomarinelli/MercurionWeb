@@ -13,6 +13,7 @@ import { GraphqlUtils } from "src/graphql-utils/graphql-utils";
 export class ChEMBLMoleculeItemResolver {
     
     constructor(private readonly service: ChEMBLMoleculeItemService) { }
+    
     @Query(() => [ChEMBLMoleculeItemEntity])
     async chemblMoleculesByCollection(
         @Args('collectionId', { type: () => ID }) collectionId: UUID,
