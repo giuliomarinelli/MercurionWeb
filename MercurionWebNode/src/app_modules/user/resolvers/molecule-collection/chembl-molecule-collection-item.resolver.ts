@@ -11,8 +11,17 @@ import { GraphqlUtils } from "src/graphql-utils/graphql-utils";
 
 @Resolver(() => ChEMBLMoleculeItemEntity)
 export class ChEMBLMoleculeItemResolver {
-
+    
     constructor(private readonly service: ChEMBLMoleculeItemService) { }
+    @Query(() => [ChEMBLMoleculeItemEntity])
+    async chemblMoleculesByCollection(
+        @Args('collectionId', { type: () => ID }) collectionId: UUID,
+        @AuthenticatedUserId() userId: UUID,
+        @Info() info: GraphQLResolveInfo
+    ) {
+        const fieldsMap = GraphqlUtils.getFieldsMap(info)
+        return this.service.findByCollection(collectionId, userId, fieldsMap)
+    }
 
     @Query(() => ChEMBLMoleculeItemEntity, { nullable: true })
     findOneChemblMoleculeById(
@@ -22,16 +31,6 @@ export class ChEMBLMoleculeItemResolver {
     ): Promise<ChEMBLMoleculeItemEntity | null> {
         const fieldsMap = GraphqlUtils.getFieldsMap(info)
         return this.service.findOneById(itemId, userId, fieldsMap)
-    }
-
-    @Query(() => [ChEMBLMoleculeItemEntity])
-    async chemblMoleculesByCollection(
-        @Args('collectionId', { type: () => ID }) collectionId: UUID,
-        @AuthenticatedUserId() userId: UUID,
-        @Info() info: GraphQLResolveInfo
-    ) {
-        const fieldsMap = GraphqlUtils.getFieldsMap(info)
-        return this.service.findByCollection(collectionId, userId, fieldsMap)
     }
 
     @Mutation(() => ChEMBLMoleculeItemEntity)
