@@ -12,7 +12,6 @@ export class SyntheticRouteEntity {
     @PrimaryColumn({ type: 'uuid' })
     id: UUID
 
-    @Field(() => String)
     @Index()
     @Column({ type: 'uuid' })
     userId: UUID
@@ -25,7 +24,7 @@ export class SyntheticRouteEntity {
     @Column({ type: 'text', nullable: true })
     notes: string | null
 
-    @Field(() => [SyntheticRouteEntity], { nullable: true })
+    @Field(() => [SyntheticStepEntity], { nullable: true })
     @OneToMany(() => SyntheticStepEntity, step => step.route, { cascade: true })
     steps: SyntheticStepEntity[]
 

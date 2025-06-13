@@ -127,10 +127,9 @@ type SyntheticStepEntity {
 
 type SyntheticRouteEntity {
   id: ID!
-  userId: String!
   title: String!
   notes: String
-  steps: [SyntheticRouteEntity!]
+  steps: [SyntheticStepEntity!]
 }
 
 type MoleculeSearchResult {
