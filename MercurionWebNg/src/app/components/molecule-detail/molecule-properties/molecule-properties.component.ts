@@ -9,7 +9,7 @@ import { Component, Input, computed, signal } from '@angular/core';
         Proprietà chimico-fisiche
       </h2>
 
-      <div class="rounded-xl border border-border bg-background/50 p-4 shadow-sm">
+      <div class="rounded-xl border border-border bg-gray-200/40 dark:bg-gray-700/40 p-4 shadow-sm">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 text-sm">
           @for (item of propertiesList(); track item.label) {
             <div>

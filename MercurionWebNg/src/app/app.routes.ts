@@ -4,6 +4,11 @@ import { AuthGuard } from './guards/auth-guard.guard'
 
 export const routes: Routes = [
   {
+    path: '',
+    pathMatch: 'full',
+    redirectTo: 'login'
+  },
+  {
     path: 'palette',
     component: ColorPaletteComponent,
     canActivate: [AuthGuard]

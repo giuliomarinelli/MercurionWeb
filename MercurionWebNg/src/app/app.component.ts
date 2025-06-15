@@ -135,31 +135,32 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     protected readonly sidenavContext: SidenavContextService,
     protected readonly design: DesignService
   ) {
+    // TODO: Fixd these effects in a robuste manner
     effect(() => {
-      const initials = this.userContext.initials()
-      const isValid = initials && (initials.length === 1 || initials.length === 2);
+      // const initials = this.userContext.initials()
+      // const isValid = initials && (initials.length === 1 || initials.length === 2);
 
-      // Leggi direttamente dalla Router URL, non da pathService
-      const currentUrl = this.router.url;
+      // // Leggi direttamente dalla Router URL, non da pathService
+      // const currentUrl = this.router.url;
 
-      // Non fare nulla finché Angular non ha completato la navigazione
-      if (currentUrl === '' || currentUrl === '/') return;
+      // // Non fare nulla finché Angular non ha completato la navigazione
+      // if (currentUrl === '' || currentUrl === '/') return;
 
-      // Se non sei loggato, e non sei già su /login, forza redirect
-      if (!isValid && !currentUrl.startsWith('/login')) {
-        this.toastService.trigger('Accesso negato')
-        this.router.navigateByUrl('/login')
-      }
+      // // Se non sei loggato, e non sei già su /login, forza redirect
+      // if (!isValid && !currentUrl.startsWith('/login')) {
+      //   this.toastService.trigger('Accesso negato')
+      //   this.router.navigateByUrl('/login')
+      // }
     })
     effect(() => {
-      const initials = this.userContext.initials();
-      console.log('[effect] initials =', initials, 'zone?', NgZone.isInAngularZone());
-      console.log('[effect] router url =', this.router.url);
+      // const initials = this.userContext.initials();
+      // console.log('[effect] initials =', initials, 'zone?', NgZone.isInAngularZone());
+      // console.log('[effect] router url =', this.router.url);
 
-      if (!initials && !this.router.url.startsWith('/login')) {
-        console.log('[effect] → navigate /login');
-        this.router.navigate(['/login']);
-      }
+      // if (!initials && !this.router.url.startsWith('/login')) {
+      //   console.log('[effect] → navigate /login');
+      //   this.router.navigate(['/login']);
+      // }
     });
 
 
