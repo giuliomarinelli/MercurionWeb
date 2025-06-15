@@ -78,7 +78,6 @@ import { SyntheticStepMoleculeRefResolver } from './resolvers/synth/synthetic-st
     MoleculeCollectionItemResolver,
     MoleculeCollectionItemJoinService,
     MoleculeCollectionItemJoinResolver,
-    ChEMBLMoleculeItemEntity,
     CustomMoleculeItemService,
     ChEMBLMoleculeItemResolver,
     CustomMoleculeItemResolver,
