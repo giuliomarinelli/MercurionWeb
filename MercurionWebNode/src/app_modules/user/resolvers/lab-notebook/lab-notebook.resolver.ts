@@ -1,10 +1,9 @@
-import { Resolver, Query, Mutation, Args, ResolveField, Parent, ID, Info } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ID, Info } from '@nestjs/graphql';
 import { LabNotebook } from '../../Models/entities/lab-notebook/lab-notebook.entity';
 import { UpdateLabNotebookInput } from '../../Models/DTO/lab-notebook/update-lab-notebook-input';
 import { UUID } from 'crypto';
 import { AuthenticatedUserId } from 'src/metadata/metadata';
 import { LabNotebookService } from '../../services/lab-notebook/lab-notebook.service';
-import { NotebookChapter } from '../../Models/entities/lab-notebook/lab-notebook-chapter.entity';
 import { GraphQLResolveInfo } from 'graphql';
 import { GraphqlUtils } from 'src/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap } from 'src/type-orm-utils/type-orm-utils';
@@ -58,8 +57,4 @@ export class LabNotebookResolver {
         return this.notebookService.delete(id as UUID, userId)
     }
 
-    @ResolveField(() => [NotebookChapter])
-    chapters(@Parent() notebook: LabNotebook): NotebookChapter[] {
-        return notebook.chapters ?? []
-    }
 }

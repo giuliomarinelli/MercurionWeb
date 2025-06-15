@@ -8,7 +8,6 @@ import { CustomMoleculeItemEntity } from './Models/entities/molecule-collection/
 import { MoleculeCollection } from './Models/entities/molecule-collection/molecule-collection.entity';
 import { MoleculeCollectionItemJoin } from './Models/entities/molecule-collection/molecule-collection-item-join.entity';
 import { MoleculeCollectionItemEntity } from './Models/entities/molecule-collection/molecule-collection-item.entity';
-import { LabNotebookEntry } from './Models/entities/lab-notbook-entry.entity';
 import { LabNotebookLink } from './Models/entities/lab-notebook-link.entity';
 import { NotebookPageService } from './services/lab-notebook/notebook-page.service';
 import { NotebookChapter } from './Models/entities/lab-notebook/lab-notebook-chapter.entity';
@@ -52,7 +51,6 @@ import { SyntheticStepMoleculeRefResolver } from './resolvers/synth/synthetic-st
     MoleculeCollection,
     MoleculeCollectionItemJoin,
     MoleculeCollectionItemEntity,
-    LabNotebookEntry,
     LabNotebookLink,
     NotebookChapter,
     NotebookPage,

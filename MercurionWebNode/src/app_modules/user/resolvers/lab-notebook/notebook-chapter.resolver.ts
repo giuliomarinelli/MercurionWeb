@@ -1,10 +1,9 @@
-import { Resolver, Query, Mutation, Args, ID, ResolveField, Parent, Info } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ID, Info } from '@nestjs/graphql';
 import { NotebookChapterService } from '../../services/lab-notebook/notebook-chapter.service';
 import { UUID } from 'crypto';
 import { CreateChapterInput } from '../../Models/DTO/lab-notebook/create-notebook-chapter-input';
 import { AuthenticatedUserId } from 'src/metadata/metadata';
 import { UpdateChapterInput } from '../../Models/DTO/lab-notebook/update-chapter-input';
-import { NotebookSection } from '../../Models/entities/lab-notebook/lab-notebook-section.entity';
 import { GraphQLResolveInfo } from 'graphql';
 import { NotebookChapter } from '../../Models/entities/lab-notebook/lab-notebook-chapter.entity';
 import { GraphqlUtils } from 'src/graphql-utils/graphql-utils';
@@ -75,8 +74,4 @@ export class NotebookChapterResolver {
         return true
     }
 
-    @ResolveField(() => [NotebookSection])
-    resolveSections(@Parent() chapter: NotebookChapter): NotebookSection[] {
-        return chapter.sections ?? []
-    }
 }

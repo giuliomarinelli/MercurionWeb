@@ -2,11 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { NotebookChapter } from '../../Models/entities/lab-notebook/lab-notebook-chapter.entity';
-import { LabNotebookEntry } from '../../Models/entities/lab-notbook-entry.entity';
 import { UUID } from 'crypto';
 import { RpcException } from '@nestjs/microservices';
 import { GraphqlUtils } from 'src/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap, TypeOrmUtils } from 'src/type-orm-utils/type-orm-utils';
+import { LabNotebook } from '../../Models/entities/lab-notebook/lab-notebook.entity';
 
 
 
@@ -35,7 +35,7 @@ export class NotebookChapterService {
             const newChapter = manager.create(NotebookChapter, {
                 ...data,
                 userId,
-                notebook: { id: notebookId } as LabNotebookEntry,
+                notebook: { id: notebookId } as LabNotebook,
                 order: (Number(maxOrder) || 0) + 1,
             })
 
@@ -63,7 +63,7 @@ export class NotebookChapterService {
             })
             if (!chapter) throw new RpcException('LabNotebook::Chapter not found')
 
-            const notebookId = (chapter.notebook as unknown as LabNotebookEntry).id
+            const notebookId = (chapter.notebook as unknown as LabNotebook).id
 
             const neighbor = await manager
                 .createQueryBuilder(NotebookChapter, 'c')

@@ -64,7 +64,6 @@ type NotebookChapter {
   order: Int!
   createdAt: String
   updatedAt: String
-  resolveSections: [NotebookSection!]!
 }
 
 type NotebookSection {
