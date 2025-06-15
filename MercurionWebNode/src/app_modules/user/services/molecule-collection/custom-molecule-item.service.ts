@@ -1,8 +1,8 @@
+import { MoleculeCollectionItemJoinService } from './molecule-collection-item-join.service';
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { CustomMoleculeItemEntity } from "../../Models/entities/molecule-collection/custom-molecule-item.entity";
 import { Repository } from "typeorm";
-import { MoleculeCollectionItemJoin } from "../../Models/entities/molecule-collection/molecule-collection-item-join.entity";
 import { UUID } from "crypto";
 import { GraphQLFieldsMap } from "src/type-orm-utils/type-orm-utils";
 import { GraphqlUtils } from "src/graphql-utils/graphql-utils";
@@ -11,30 +11,25 @@ import { CustomMoleculeItemInput } from "../../Models/DTO/molecule-collection/cu
 @Injectable()
 export class CustomMoleculeItemService {
 
+    private readonly REQUIRED_FIELD = ['id', 'canonicalSmiles', 'userId']
+
     constructor(
         @InjectRepository(CustomMoleculeItemEntity)
         private readonly customRepo: Repository<CustomMoleculeItemEntity>,
-        @InjectRepository(MoleculeCollectionItemJoin)
-        private readonly joinRepo: Repository<MoleculeCollectionItemJoin>
+        private readonly joinService: MoleculeCollectionItemJoinService
     ) { }
 
     async addToCollection(userId: UUID, collectionId: UUID, input: CustomMoleculeItemInput): Promise<CustomMoleculeItemEntity> {
-        // TODO: controllare che non sia possibile creare join duplicate
         let item = await this.customRepo.findOne({ where: { canonicalSmiles: input.canonicalSmiles, userId } })
         if (!item) {
             item = this.customRepo.create({ ...input, userId })
             item = await this.customRepo.save(item)
         }
-        // Join
-        let join = await this.joinRepo.findOne({
-            where: { collection: { id: collectionId }, item: { id: item.id } }
-        })
-        if (!join) {
-            join = this.joinRepo.create({ collection: { id: collectionId }, item })
-            await this.joinRepo.save(join)
-        }
+        // Chiamata DRY alla join centralizzata!
+        await this.joinService.add(userId, collectionId, item.id)
         return item
     }
+
 
     async update(userId: UUID, id: UUID, input: CustomMoleculeItemInput, fieldsMap: GraphQLFieldsMap): Promise<CustomMoleculeItemEntity | null> {
         await this.customRepo.update({ id, userId }, { ...input })
@@ -42,18 +37,15 @@ export class CustomMoleculeItemService {
     }
 
     async removeFromCollection(userId: UUID, collectionId: UUID, itemId: UUID): Promise<boolean> {
-        await this.joinRepo.delete({
-            collection: { id: collectionId, userId },
-            item: { id: itemId, userId }
-        });
-        return true
+        return this.joinService.remove(userId, collectionId, itemId)
     }
+
 
     async findByCollection(
         collectionId: UUID, userId: UUID, fieldsMap: GraphQLFieldsMap
     ): Promise<CustomMoleculeItemEntity[]> {
         const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
-        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, ['id', 'canonicalSmiles', 'userId'])
+        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.REQUIRED_FIELD)
         const qb = this.customRepo.createQueryBuilder('item')
             .select(columns.map(col => `item.${col}`))
             .innerJoin('item.joins', 'join')
@@ -66,7 +58,7 @@ export class CustomMoleculeItemService {
         itemId: UUID, userId: UUID, fieldsMap: GraphQLFieldsMap
     ): Promise<CustomMoleculeItemEntity | null> {
         const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
-        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, ['id', 'canonicalSmiles', 'userId'])
+        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.REQUIRED_FIELD)
         const qb = this.customRepo.createQueryBuilder('item')
             .select(columns.map(col => `item.${col}`))
             .where('item.id = :itemId', { itemId })

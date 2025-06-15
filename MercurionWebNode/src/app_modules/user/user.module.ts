@@ -29,7 +29,6 @@ import { MoleculeCollectionItemService } from './services/molecule-collection/mo
 import { MoleculeCollectionResolver } from './resolvers/molecule-collection/molecule-collection.resolver';
 import { MoleculeCollectionItemResolver } from './resolvers/molecule-collection/molecule-collection-item.resolver';
 import { MoleculeCollectionItemJoinService } from './services/molecule-collection/molecule-collection-item-join.service';
-import { MoleculeCollectionItemJoinResolver } from './resolvers/molecule-collection/molecule-collection-item-join.resolver';
 import { CustomMoleculeItemService } from './services/molecule-collection/custom-molecule-item.service';
 import { ChEMBLMoleculeItemResolver } from './resolvers/molecule-collection/chembl-molecule-item.resolver';
 import { CustomMoleculeItemResolver } from './resolvers/molecule-collection/custom-molecule-item.resolver';
@@ -75,7 +74,6 @@ import { SyntheticStepMoleculeRefResolver } from './resolvers/synth/synthetic-st
     MoleculeCollectionResolver,
     MoleculeCollectionItemResolver,
     MoleculeCollectionItemJoinService,
-    MoleculeCollectionItemJoinResolver,
     CustomMoleculeItemService,
     ChEMBLMoleculeItemResolver,
     CustomMoleculeItemResolver,

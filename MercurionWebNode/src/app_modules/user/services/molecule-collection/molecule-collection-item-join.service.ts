@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UUID } from 'crypto';
 import { MoleculeCollectionItemJoin } from '../../Models/entities/molecule-collection/molecule-collection-item-join.entity';
-import { RpcException } from '@nestjs/microservices';
+
 
 @Injectable()
 export class MoleculeCollectionItemJoinService {
@@ -13,30 +13,32 @@ export class MoleculeCollectionItemJoinService {
         private readonly joinRepo: Repository<MoleculeCollectionItemJoin>,
     ) { }
 
-    async add(userId: UUID, collectionId: UUID, itemId: UUID): Promise<boolean> {
+    async add(userId: UUID, collectionId: UUID, itemId: UUID): Promise<MoleculeCollectionItemJoin> {
+        return await this.joinRepo.manager.transaction(async manager => {
+            let join = await manager.findOne(MoleculeCollectionItemJoin, {
+                where: { collection: { id: collectionId, userId }, item: { id: itemId, userId }, userId }
+            })
 
-        await this.joinRepo.manager.transaction(async manager => {
-            const join = this.joinRepo.create({
+            if (join) return join
+
+            // Creazione solo se NON esiste già
+            join = this.joinRepo.create({
                 collection: { id: collectionId, userId },
                 item: { id: itemId, userId },
                 userId
             })
-            const { id } = await manager.save(join)
-            const joined = await manager.createQueryBuilder(MoleculeCollectionItemJoin, 'join')
-                .leftJoinAndSelect('join.collection', 'collection')
-                .leftJoinAndSelect('join.item', 'item')
-                .where('join.id = :id', { id })
-                .getOne()
-            if (!(joined != null && joined.userId === userId && joined.collection.userId === userId && joined.item.userId === userId)) {
-                throw new RpcException('MoleculeCollectionJoinError::incoherent userIds')
-            }
+            return await manager.save(join)
         })
-
-        return true
     }
+
 
     async remove(userId: UUID, collectionId: UUID, itemId: UUID): Promise<boolean> {
-        await this.joinRepo.delete({ collectionId, itemId, userId })
-        return true
+        try {
+            await this.joinRepo.delete({ collectionId, itemId, userId })
+            return true
+        } catch {
+            return false
+        }
     }
+
 }

@@ -227,8 +227,6 @@ type Mutation {
   createMoleculeItem(input: CreateMoleculeItemInput!): MoleculeCollectionItemEntity!
   updateMoleculeItem(id: ID!, input: CreateMoleculeItemInput!): MoleculeCollectionItemEntity!
   deleteMoleculeItem(id: ID!): Boolean!
-  addItemToCollection(input: AddItemToCollectionInput!): Boolean!
-  removeItemFromCollection(input: AddItemToCollectionInput!): Boolean!
   addChemblMoleculeToCollection(collectionId: ID!, chemblMolregno: Float!, label: String, notes: String): ChEMBLMoleculeItemEntity!
   removeChemblMoleculeFromCollection(collectionId: ID!, itemId: ID!): Boolean!
   addCustomMoleculeToCollection(collectionId: ID!, input: CustomMoleculeItemInput!): CustomMoleculeItemEntity!
@@ -299,11 +297,6 @@ input CreateMoleculeItemInput {
   chemblMolregno: Float
   label: String
   notes: String
-}
-
-input AddItemToCollectionInput {
-  collectionId: ID!
-  itemId: ID!
 }
 
 input CustomMoleculeItemInput {
