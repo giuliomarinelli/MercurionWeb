@@ -174,7 +174,7 @@ export class NotebookPageService {
                 .createQueryBuilder()
                 .update(NotebookPage)
                 .set({ order: () => `CASE ${cases} ELSE "order" END` })
-                .where('section_id = :sectionId', { sectionId }) // snake_case
+                .where('section_id = :sectionId', { sectionId })
                 .andWhere('user_id = :userId', { userId })
                 .andWhere('id IN (:...ids)', { ids: orderedIds })
                 .execute()
