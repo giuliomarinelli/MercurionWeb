@@ -12,13 +12,13 @@ export class MoleculeCollectionItemJoinService {
     ) { }
 
     async add(userId: UUID, collectionId: UUID, itemId: UUID): Promise<boolean> {
-        // (Potresti aggiungere qui check che l'utente possieda sia collection che item)
+        // Possibile TODO: aggiungere qui check che l'utente possieda sia collection che item
         const join = this.joinRepo.create({
             collection: { id: collectionId },
             item: { id: itemId }
-        });
-        await this.joinRepo.save(join);
-        return true;
+        })
+        await this.joinRepo.save(join)
+        return true
     }
 
     async remove(userId: UUID, collectionId: UUID, itemId: UUID): Promise<boolean> {

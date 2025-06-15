@@ -35,7 +35,7 @@ export class LabNotebookService {
         let qb = this.notebookRepo.createQueryBuilder('labNotebook')
             .select(columns.map(col => `labNotebook.${col}`))
             .where('labNotebook.id = :id', { id })
-            .andWhere('labNotebook.userId = :userId', { userId });
+            .andWhere('labNotebook.userId = :userId', { userId })
 
         qb = TypeOrmUtils.addJoins(qb, 'labNotebook', fieldsMap)
 
@@ -82,7 +82,7 @@ export class LabNotebookService {
 
 
     async update(id: UUID, userId: UUID, data: Partial<LabNotebook>, fieldsMap: GraphQLFieldsMap): Promise<LabNotebook | null> {
-        await this.notebookRepo.update({ id }, { updatedAt: Date.now(), ...data })
+        await this.notebookRepo.update({ id, userId }, { updatedAt: Date.now(), ...data })
         return this.findOne(id, userId, fieldsMap)
     }
 

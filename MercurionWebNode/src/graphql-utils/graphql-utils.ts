@@ -36,10 +36,10 @@ export class GraphqlUtils {
      * @returns Array di stringhe con i nomi delle relazioni richieste.
      */
     static getRelationalFields(fields: Record<string, any>): string[] {
-    return Object.keys(fields).filter(
-        key => typeof fields[key] === 'object' && Object.keys(fields[key] as Record<string, any>).length > 0
-    )
-}
+        return Object.keys(fields).filter(
+            key => typeof fields[key] === 'object' && Object.keys(fields[key] as Record<string, any>).length > 0
+        )
+    }
 
     /**
      * Utility ricorsiva: estrae la struttura dei campi richiesti, anche nidificati.
@@ -47,18 +47,18 @@ export class GraphqlUtils {
      * @param fields La mappa da graphql-fields.
      * @returns Oggetto ricorsivo dei campi richiesti.
      */
-    static getNestedFields(fields: Record<string, any>): Record < string, any > {
-    const result = {}
-        for(const key in fields) {
-        if (
-            typeof fields[key] === 'object' &&
-            Object.keys(fields[key] as Record<string, any>).length > 0
-        ) {
-            result[key] = this.getNestedFields(fields[key] as Record<string, any>)
+    static getNestedFields(fields: Record<string, any>): Record<string, any> {
+        const result = {}
+        for (const key in fields) {
+            if (
+                typeof fields[key] === 'object' &&
+                Object.keys(fields[key] as Record<string, any>).length > 0
+            ) {
+                result[key] = this.getNestedFields(fields[key] as Record<string, any>)
+            }
         }
-    }
         return result
-}
+    }
 
     /**
      * Esempio di conversione di campi GraphQL in nomi colonne (se non coincidono).
@@ -67,13 +67,13 @@ export class GraphqlUtils {
      * @returns Lista di nomi colonne SQL/ORM.
      */
     static mapGraphqlToDbFields(fields: string[]): string[] {
-    // Adatta qui se hai differenze di naming tra GQL e DB
-    // Esempio: 'createdAt' -> 'created_at'
-    return fields.map(f => f) // default 1:1
-}
+        // Adatta qui se hai differenze di naming tra GQL e DB
+        // Esempio: 'createdAt' -> 'created_at'
+        return fields.map(f => f) // default 1:1
+    }
 
     static ensureRequiredFields(fields: string[], required: string[]): string[] {
-    return Array.from(new Set([...fields, ...required]))
-}
+        return Array.from(new Set([...fields, ...required]))
+    }
 
 }

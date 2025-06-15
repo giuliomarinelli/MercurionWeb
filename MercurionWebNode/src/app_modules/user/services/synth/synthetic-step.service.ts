@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { UUID } from "crypto";
-import { GraphQLFieldsMap } from "src/type-orm-utils/type-orm-utils";
+import { GraphQLFieldsMap, TypeOrmUtils } from "src/type-orm-utils/type-orm-utils";
 import { GraphqlUtils } from "src/graphql-utils/graphql-utils";
 import { SyntheticStepEntity } from "../../Models/entities/synth/synthetic-step.entity";
 import { SyntheticStepInput } from "../../Models/DTO/synth/synthetic-step.input";
@@ -26,28 +26,42 @@ export class SyntheticStepService {
     }
 
     async delete(userId: UUID, id: UUID): Promise<boolean> {
-        await this.stepRepo.delete({ id, userId })
-        return true
+        try {
+            await this.stepRepo.delete({ id, userId })
+            return true
+        } catch {
+            return false
+        }
     }
 
     async findOneById(userId: UUID, id: UUID, fieldsMap: GraphQLFieldsMap): Promise<SyntheticStepEntity | null> {
         const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
         const columns = GraphqlUtils.ensureRequiredFields(scalarFields, ['id', 'order', 'userId'])
-        const qb = this.stepRepo.createQueryBuilder('step')
+        let qb = this.stepRepo.createQueryBuilder('step')
             .select(columns.map(col => `step.${col}`))
             .where('step.id = :id', { id })
             .andWhere('step.userId = :userId', { userId })
+        if (scalarFields.includes('route')) {
+            qb = TypeOrmUtils.addJoins(qb, 'route', fieldsMap)
+        }
+        if (scalarFields.includes('moleculeRefs')) {
+            qb = TypeOrmUtils.addJoins(qb, 'moleculeRefs', fieldsMap)
+        }
         return qb.getOne()
     }
 
     async findByRoute(userId: UUID, routeId: UUID, fieldsMap: GraphQLFieldsMap): Promise<SyntheticStepEntity[]> {
         const scalarFields = GraphqlUtils.getScalarFields(fieldsMap);
-        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, ['id', 'order', 'userId']);
-        const qb = this.stepRepo.createQueryBuilder('step')
+        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, ['id', 'order', 'userId', 'routeId'])
+        let qb = this.stepRepo.createQueryBuilder('step')
             .select(columns.map(col => `step.${col}`))
-            .where('step.route = :routeId', { routeId })
+            .where('step.route.id = :routeId', { routeId })
             .andWhere('step.userId = :userId', { userId })
             .orderBy('step.order', 'ASC')
+        qb = TypeOrmUtils.addJoins(qb, 'route', fieldsMap)
+        if (scalarFields.includes('moleculeRefs')) {
+            qb = TypeOrmUtils.addJoins(qb, 'moleculeRefs', fieldsMap)
+        }
         return qb.getMany()
     }
 }
