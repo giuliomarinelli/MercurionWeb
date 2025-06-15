@@ -4,7 +4,6 @@
 
 interface MoleculeCollectionItemEntity {
   id: ID!
-  userId: String!
   label: String
   notes: String
   type: String!
@@ -25,7 +24,6 @@ type MoleculeCollectionItemJoin {
 
 type ChEMBLMoleculeItemEntity implements MoleculeCollectionItemEntity {
   id: ID!
-  userId: String!
   label: String
   notes: String
   type: String!
@@ -35,7 +33,6 @@ type ChEMBLMoleculeItemEntity implements MoleculeCollectionItemEntity {
 
 type CustomMoleculeItemEntity implements MoleculeCollectionItemEntity {
   id: ID!
-  userId: String!
   label: String
   notes: String
   type: String!
@@ -48,7 +45,6 @@ type CustomMoleculeItemEntity implements MoleculeCollectionItemEntity {
 
 type LabNotebook {
   id: ID!
-  userId: ID!
   title: String!
   chapters: [NotebookChapter!]!
   createdAt: String
@@ -57,7 +53,6 @@ type LabNotebook {
 
 type NotebookChapter {
   id: ID!
-  userId: ID!
   title: String!
   notebook: LabNotebook!
   sections: [NotebookSection!]
@@ -69,7 +64,6 @@ type NotebookChapter {
 type NotebookSection {
   id: ID!
   title: String!
-  userId: ID!
   chapter: NotebookChapter!
   pages: [NotebookPage!]
   order: Int!
@@ -86,7 +80,6 @@ type LabNotebookLinkType {
 
 type NotebookPage {
   id: ID!
-  userId: ID!
   title: String
   content: String
   sanitizedText: String

@@ -8,7 +8,7 @@ import { CustomMoleculeItemEntity } from './Models/entities/molecule-collection/
 import { MoleculeCollection } from './Models/entities/molecule-collection/molecule-collection.entity';
 import { MoleculeCollectionItemJoin } from './Models/entities/molecule-collection/molecule-collection-item-join.entity';
 import { MoleculeCollectionItemEntity } from './Models/entities/molecule-collection/molecule-collection-item.entity';
-import { LabNotebookLink } from './Models/entities/lab-notebook-link.entity';
+import { LabNotebookLink } from './Models/DTO/lab-notebook/lab-notebook-link.entity';
 import { NotebookPageService } from './services/lab-notebook/notebook-page.service';
 import { NotebookChapter } from './Models/entities/lab-notebook/lab-notebook-chapter.entity';
 import { NotebookPage } from './Models/entities/lab-notebook/lab-notebook-page.entity';

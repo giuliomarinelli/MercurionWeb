@@ -13,7 +13,6 @@ export abstract class MoleculeCollectionItemEntity {
     @PrimaryColumn({ type: 'uuid' })
     id: UUID
 
-    @Field(() => String)
     @Index()
     @Column({ type: 'uuid' })
     userId: UUID

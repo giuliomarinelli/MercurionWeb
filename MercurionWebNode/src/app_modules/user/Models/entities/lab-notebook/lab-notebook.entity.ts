@@ -1,6 +1,6 @@
 import { uuidv7 } from "@kripod/uuidv7";
 import { UUID } from "crypto";
-import { BeforeInsert, Column, Entity, OneToMany, PrimaryColumn } from "typeorm";
+import { BeforeInsert, Column, Entity, Index, OneToMany, PrimaryColumn } from "typeorm";
 import { NotebookChapter } from "./lab-notebook-chapter.entity";
 import { ObjectType, Field, ID } from '@nestjs/graphql';
 
@@ -13,7 +13,7 @@ export class LabNotebook {
     @PrimaryColumn({ type: 'uuid' })
     id: UUID
 
-    @Field(() => ID)
+    @Index()
     @Column({ type: 'uuid' })
     userId: UUID
 
@@ -35,7 +35,7 @@ export class LabNotebook {
 
     @BeforeInsert()
     generateId() {
-        this.id = uuidv7() as UUID;
+        this.id = uuidv7() as UUID
         this.createdAt = Date.now()
     }
 

@@ -1,4 +1,3 @@
-// src/resolvers/molecule-collection/molecule-collection-item.resolver.ts
 import { Resolver, Query, Mutation, Args, ID, Info } from '@nestjs/graphql';
 import { AuthenticatedUserId } from 'src/metadata/metadata';
 import { UUID } from 'crypto';

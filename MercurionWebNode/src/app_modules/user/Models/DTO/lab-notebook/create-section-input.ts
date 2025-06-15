@@ -12,5 +12,5 @@ export class CreateSectionInput {
 
   @Field({ nullable: true })
   description?: string
-  
+
 }

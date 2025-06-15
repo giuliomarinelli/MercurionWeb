@@ -1,7 +1,7 @@
 import { UUID } from "crypto";
-import { BeforeInsert, BeforeUpdate, Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn } from "typeorm";
+import { BeforeInsert, Column, Entity, Index, JoinColumn, ManyToOne, OneToMany, PrimaryColumn } from "typeorm";
 import { NotebookSection } from "./lab-notebook-section.entity";
-import { LabNotebookLink } from "../lab-notebook-link.entity";
+import { LabNotebookLink } from "../../DTO/lab-notebook/lab-notebook-link.entity";
 import { LabNotebookLinkType } from '../../DTO/lab-notebook/lab-notebook-link.type';
 import { uuidv7 } from "@kripod/uuidv7";
 import { ObjectType, Field, ID, Int } from '@nestjs/graphql';
@@ -14,7 +14,7 @@ export class NotebookPage {
     @PrimaryColumn({ type: 'uuid' })
     id: UUID
 
-    @Field(() => ID)
+    @Index()
     @Column({ type: 'uuid' })
     userId: UUID
 
@@ -47,16 +47,14 @@ export class NotebookPage {
     @Column({ nullable: true, type: 'bigint' })
     updatedAt: number
 
+    
+    @Field(() => Int)
+    @Column({ type: 'int', default: 0 })
+    order: number
+    
     @BeforeInsert() generateId() {
         this.id = uuidv7() as UUID
         this.createdAt = Date.now()
     }
 
-    @Field(() => Int)
-    @Column({ type: 'int', default: 0 })
-    order: number
-
-    @BeforeUpdate() updateDate() {
-        this.updatedAt = Date.now()
-    }
 }

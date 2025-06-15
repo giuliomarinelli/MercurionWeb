@@ -17,7 +17,7 @@ export class NotebookSection {
     @Column({ type: 'varchar' })
     title: string
 
-    @Field(() => ID)
+    @Index()
     @Column({ type: 'uuid' })
     userId: UUID
 
@@ -48,7 +48,7 @@ export class NotebookSection {
 
     @Field(() => String, { nullable: true })
     @Column({ type: 'bigint', default: null })
-    updatedAt: number
+    updatedAt: number | null
 
     @BeforeInsert() generateId() {
         this.id = uuidv7() as UUID

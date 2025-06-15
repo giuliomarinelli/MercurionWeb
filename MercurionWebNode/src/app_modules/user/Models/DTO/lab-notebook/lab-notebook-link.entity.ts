@@ -1,8 +1,8 @@
 import { BeforeInsert, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 import { UUID } from "crypto";
-import { MoleculeCollectionItemEntity } from "./molecule-collection/molecule-collection-item.entity";
+import { MoleculeCollectionItemEntity } from "../../entities/molecule-collection/molecule-collection-item.entity";
 import { uuidv7 } from "@kripod/uuidv7";
-import { NotebookPage } from "./lab-notebook/lab-notebook-page.entity";
+import { NotebookPage } from "../../entities/lab-notebook/lab-notebook-page.entity";
 
 @Entity('lab_notebook_links')
 export class LabNotebookLink {
@@ -11,7 +11,7 @@ export class LabNotebookLink {
 
     @ManyToOne(() => NotebookPage, note => note.links, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'note_id' })
-    note: NotebookPage;
+    note: NotebookPage
 
     @ManyToOne(() => MoleculeCollectionItemEntity, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'item_id' })

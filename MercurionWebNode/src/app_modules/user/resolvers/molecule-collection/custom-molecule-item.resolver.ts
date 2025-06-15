@@ -49,7 +49,7 @@ export class CustomMoleculeItemResolver {
         @Info() info: GraphQLResolveInfo
     ) {
         const fieldsMap = GraphqlUtils.getFieldsMap(info)
-        return this.service.update(userId, id, input, fieldsMap);
+        return this.service.update(userId, id, input, fieldsMap)
     }
 
     @Mutation(() => Boolean)

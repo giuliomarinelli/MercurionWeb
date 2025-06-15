@@ -13,7 +13,7 @@ export class NotebookChapter {
     @PrimaryColumn({ type: 'uuid' })
     id: UUID
 
-    @Field(() => ID)
+    @Index()
     @Column({ type: 'uuid' })
     userId: UUID
 
