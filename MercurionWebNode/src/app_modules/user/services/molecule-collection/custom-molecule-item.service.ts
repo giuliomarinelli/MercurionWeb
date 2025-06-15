@@ -7,6 +7,8 @@ import { UUID } from "crypto";
 import { GraphQLFieldsMap } from "src/type-orm-utils/type-orm-utils";
 import { GraphqlUtils } from "src/graphql-utils/graphql-utils";
 import { CustomMoleculeItemInput } from "../../Models/DTO/molecule-collection/custom-molecule-item.input";
+import { MoleculeCollection } from '../../Models/entities/molecule-collection/molecule-collection.entity';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class CustomMoleculeItemService {
@@ -16,6 +18,8 @@ export class CustomMoleculeItemService {
     constructor(
         @InjectRepository(CustomMoleculeItemEntity)
         private readonly customRepo: Repository<CustomMoleculeItemEntity>,
+        @InjectRepository(MoleculeCollection)
+        private readonly collectionRepo: Repository<MoleculeCollection>,
         private readonly joinService: MoleculeCollectionItemJoinService
     ) { }
 
@@ -25,10 +29,15 @@ export class CustomMoleculeItemService {
             item = this.customRepo.create({ ...input, userId })
             item = await this.customRepo.save(item)
         }
-        // Chiamata DRY alla join centralizzata!
+
+        // Ownership check della collection!
+        const collection = await this.collectionRepo.findOne({ where: { id: collectionId, userId } })
+        if (!collection) throw new RpcException("CustomItemAddError::Forbidden")
+
         await this.joinService.add(userId, collectionId, item.id)
         return item
     }
+
 
 
     async update(userId: UUID, id: UUID, input: CustomMoleculeItemInput, fieldsMap: GraphQLFieldsMap): Promise<CustomMoleculeItemEntity | null> {

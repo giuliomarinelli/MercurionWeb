@@ -6,6 +6,8 @@ import { UUID } from "crypto";
 import { GraphQLFieldsMap } from "src/type-orm-utils/type-orm-utils";
 import { GraphqlUtils } from "src/graphql-utils/graphql-utils";
 import { MoleculeCollectionItemJoinService } from "./molecule-collection-item-join.service";
+import { RpcException } from "@nestjs/microservices";
+import { MoleculeCollection } from "../../Models/entities/molecule-collection/molecule-collection.entity";
 
 
 @Injectable()
@@ -14,19 +16,34 @@ export class ChEMBLMoleculeItemService {
     constructor(
         @InjectRepository(ChEMBLMoleculeItemEntity)
         private readonly chemblRepo: Repository<ChEMBLMoleculeItemEntity>,
+        @InjectRepository(MoleculeCollection)
+        private readonly collectionRepo: Repository<MoleculeCollection>,
         private readonly joinService: MoleculeCollectionItemJoinService
     ) { }
 
-    async addToCollection(userId: UUID, collectionId: UUID, chemblMolregno: number, label?: string, notes?: string): Promise<ChEMBLMoleculeItemEntity> {
+    async addToCollection(
+        userId: UUID,
+        collectionId: UUID,
+        chemblMolregno: number,
+        label?: string,
+        notes?: string
+    ): Promise<ChEMBLMoleculeItemEntity> {
+
+        // Trova o crea l'item ChEMBL
         let item = await this.chemblRepo.findOne({ where: { chemblMolregno, userId } })
         if (!item) {
-            item = this.chemblRepo.create({ chemblMolregno, userId, label, notes });
+            item = this.chemblRepo.create({ chemblMolregno, userId, label, notes })
             item = await this.chemblRepo.save(item)
         }
-        // Chiamata DRY alla join centralizzata!
+
+        // TROVA LA COLLEZIONE e verifica ownership!
+        const collection = await this.collectionRepo.findOne({ where: { id: collectionId, userId } })
+        if (!collection) throw new RpcException("ChEMBLItemAddError::Forbidden")
+
         await this.joinService.add(userId, collectionId, item.id)
-        return item;
+        return item
     }
+
 
     async removeFromCollection(userId: UUID, collectionId: UUID, itemId: UUID): Promise<boolean> {
         return this.joinService.remove(userId, collectionId, itemId)

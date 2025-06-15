@@ -10,7 +10,7 @@ import { GraphqlUtils } from 'src/graphql-utils/graphql-utils';
 
 
 @Resolver(() => NotebookPage)
-export class PageResolver {
+export class NotebookPagePageResolver {
 
     constructor(private readonly pageService: NotebookPageService) { }
 

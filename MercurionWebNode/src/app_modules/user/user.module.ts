@@ -16,7 +16,7 @@ import { NotebookSection } from './Models/entities/lab-notebook/lab-notebook-sec
 import { LabNotebook } from './Models/entities/lab-notebook/lab-notebook.entity';
 import { NotebookChapterService } from './services/lab-notebook/notebook-chapter.service';
 import { NotebookSectionService } from './services/lab-notebook/notebook-section.service';
-import { PageResolver } from './resolvers/lab-notebook/page.resolver';
+import { NotebookPagePageResolver } from './resolvers/lab-notebook/page.resolver';
 import { NotebookChapterResolver } from './resolvers/lab-notebook/notebook-chapter.resolver';
 import { NotebookSectionResolver } from './resolvers/lab-notebook/notebook-section.resolver';
 import { LabNotebookResolver } from './resolvers/lab-notebook/lab-notebook.resolver';
@@ -65,7 +65,7 @@ import { SyntheticStepMoleculeRefResolver } from './resolvers/synth/synthetic-st
     NotebookPageService,
     NotebookChapterService,
     NotebookSectionService,
-    PageResolver,
+    NotebookPagePageResolver,
     NotebookChapterResolver,
     NotebookSectionResolver,
     LabNotebookResolver,

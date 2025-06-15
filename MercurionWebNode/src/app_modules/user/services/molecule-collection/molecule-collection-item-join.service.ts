@@ -16,26 +16,30 @@ export class MoleculeCollectionItemJoinService {
     async add(userId: UUID, collectionId: UUID, itemId: UUID): Promise<MoleculeCollectionItemJoin> {
         return await this.joinRepo.manager.transaction(async manager => {
             let join = await manager.findOne(MoleculeCollectionItemJoin, {
-                where: { collection: { id: collectionId, userId }, item: { id: itemId, userId }, userId }
+                where: { collectionId, itemId, userId }
             })
-
             if (join) return join
 
-            // Creazione solo se NON esiste già
-            join = this.joinRepo.create({
-                collection: { id: collectionId, userId },
-                item: { id: itemId, userId },
-                userId
-            })
+            // Se non esiste, la crei
+            join = this.joinRepo.create({ collectionId, itemId, userId })
             return await manager.save(join)
         })
     }
 
 
+
     async remove(userId: UUID, collectionId: UUID, itemId: UUID): Promise<boolean> {
         try {
-            await this.joinRepo.delete({ collectionId, itemId, userId })
+
+            const join = await this.joinRepo.findOne({
+                where: { collectionId, itemId, userId }
+            })
+            
+            if (!join) return false 
+
+            await this.joinRepo.delete({ id: join.id })
             return true
+
         } catch {
             return false
         }
