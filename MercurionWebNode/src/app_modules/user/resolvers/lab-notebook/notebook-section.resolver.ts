@@ -73,4 +73,26 @@ export class NotebookSectionResolver {
         return true
     }
 
+    @Mutation(() => Boolean)
+    async moveSection(
+        @Args('sectionId', { type: () => ID }) sectionId: string,
+        @Args('direction') direction: 'up' | 'down',
+        @AuthenticatedUserId() userId: UUID
+    ): Promise<boolean> {
+        await this.sectionService.move(userId, sectionId as UUID, direction)
+        return true
+    }
+
+    @Mutation(() => Boolean)
+    async reorderSections(
+        @Args('chapterId', { type: () => ID }) chapterId: string,
+        @Args('orderedIds', { type: () => [ID] }) orderedIds: string[],
+        @AuthenticatedUserId() userId: UUID
+    ): Promise<boolean> {
+        await this.sectionService.reorder(userId, chapterId as UUID, orderedIds as UUID[])
+        return true
+    }
+
+
+
 }

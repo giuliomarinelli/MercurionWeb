@@ -135,10 +135,10 @@ export class NotebookPageService {
         }
     }
 
-    async movePage(pageId: UUID, direction: 'up' | 'down'): Promise<void> {
+    async movePage(pageId: UUID, userId: UUID, direction: 'up' | 'down'): Promise<void> {
         await this.pageRepo.manager.transaction(async manager => {
             const page = await manager.findOne(NotebookPage, {
-                where: { id: pageId },
+                where: { id: pageId, userId },
                 relations: ['section'],
             })
             if (!page) throw new Error('Page not found')
@@ -162,7 +162,7 @@ export class NotebookPageService {
         })
     }
 
-    async reorderPages(sectionId: UUID, orderedIds: UUID[]): Promise<void> {
+    async reorderPages(sectionId: UUID, userId: UUID, orderedIds: UUID[]): Promise<void> {
         if (orderedIds.length === 0) return
 
         const cases = orderedIds
@@ -175,6 +175,7 @@ export class NotebookPageService {
                 .update(NotebookPage)
                 .set({ order: () => `CASE ${cases} ELSE "order" END` })
                 .where('section_id = :sectionId', { sectionId }) // snake_case
+                .andWhere('user_id = :userId', { userId })
                 .andWhere('id IN (:...ids)', { ids: orderedIds })
                 .execute()
         })

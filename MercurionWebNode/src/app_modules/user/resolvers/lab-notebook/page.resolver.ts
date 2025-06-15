@@ -29,7 +29,7 @@ export class NotebookPagePageResolver {
     @Query(() => [NotebookPage])
     pagesBySection(
         @Args('sectionId', { type: () => String }) sectionId: string,
-        @Info() info: GraphQLResolveInfo,  
+        @Info() info: GraphQLResolveInfo,
         @AuthenticatedUserId() userId: UUID
     ): Promise<NotebookPage[]> {
         const fieldsMap = GraphqlUtils.getFieldsMap(info)
@@ -41,7 +41,7 @@ export class NotebookPagePageResolver {
     @Query(() => NotebookPage)
     pageById(
         @Args('id', { type: () => ID }) id: string,
-        @Info() info: GraphQLResolveInfo,  
+        @Info() info: GraphQLResolveInfo,
         @AuthenticatedUserId() userId: UUID
     ): Promise<NotebookPage | null> {
         const fieldsMap = GraphqlUtils.getFieldsMap(info)
@@ -53,7 +53,7 @@ export class NotebookPagePageResolver {
     @Mutation(() => NotebookPage)
     createPage(
         @Args('input') input: CreatePageInput,
-        @Info() info: GraphQLResolveInfo,  
+        @Info() info: GraphQLResolveInfo,
         @AuthenticatedUserId() userId: UUID
     ): Promise<NotebookPage> {
         return this.pageService.createPage(input.sectionId as UUID, userId, input)
@@ -62,7 +62,7 @@ export class NotebookPagePageResolver {
     @Mutation(() => NotebookPage, { nullable: true })
     async updatePage(
         @Args('input') { id, ...input }: UpdatePageInput,
-        @Info() info: GraphQLResolveInfo,  
+        @Info() info: GraphQLResolveInfo,
         @AuthenticatedUserId() userId: UUID
     ): Promise<NotebookPage | null> {
         return this.pageService.updatePage(id as UUID, userId, input)
@@ -75,5 +75,26 @@ export class NotebookPagePageResolver {
     ): Promise<boolean> {
         return this.pageService.deletePage(id as UUID, userId)
     }
+
+    @Mutation(() => Boolean)
+    async movePage(
+        @Args('pageId', { type: () => ID }) pageId: string,
+        @Args('direction') direction: 'up' | 'down',
+        @AuthenticatedUserId() userId: UUID
+    ): Promise<boolean> {
+        await this.pageService.movePage(pageId as UUID, userId, direction)
+        return true
+    }
+
+    @Mutation(() => Boolean)
+    async reorderPages(
+        @Args('sectionId', { type: () => ID }) sectionId: string,
+        @Args('orderedIds', { type: () => [ID] }) orderedIds: string[],
+        @AuthenticatedUserId() userId: UUID
+    ): Promise<boolean> {
+        await this.pageService.reorderPages(sectionId as UUID, userId, orderedIds as UUID[])
+        return true
+    }
+
 
 }

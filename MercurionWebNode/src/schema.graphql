@@ -212,6 +212,8 @@ type Mutation {
   createPage(input: CreatePageInput!): NotebookPage!
   updatePage(input: UpdatePageInput!): NotebookPage
   deletePage(id: String!): Boolean!
+  movePage(pageId: ID!, direction: String!): Boolean!
+  reorderPages(sectionId: ID!, orderedIds: [ID!]!): Boolean!
   createChapter(input: CreateChapterInput!): NotebookChapter!
   updateChapter(input: UpdateChapterInput!): NotebookChapter!
   deleteChapter(id: ID!): Boolean!
@@ -220,6 +222,8 @@ type Mutation {
   createSection(input: CreateSectionInput!): NotebookSection!
   updateSection(input: UpdateSectionInput!): NotebookSection!
   deleteSection(id: ID!): Boolean!
+  moveSection(sectionId: ID!, direction: String!): Boolean!
+  reorderSections(chapterId: ID!, orderedIds: [ID!]!): Boolean!
   createLabNotebook(title: String!): LabNotebook!
   updateLabNotebook(input: UpdateLabNotebookInput!): LabNotebook!
   deleteLabNotebook(id: ID!): Boolean!
