@@ -1,6 +1,6 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { OAuth2ProviderConfiguration } from 'src/config/@types-config';
 import { IOAuth2ClientService } from '../Models/interfaces/i-oauth2-client-service.interface';
@@ -57,7 +57,7 @@ export class OAuth2ClientService implements IOAuth2ClientService {
         const config = this.getProviderConfig(provider)
 
         // Token Exchange
-        let tokenRes
+        let tokenRes: AxiosResponse<any, any>
         try {
             tokenRes = await axios.post(
                 config.tokenUrl,
