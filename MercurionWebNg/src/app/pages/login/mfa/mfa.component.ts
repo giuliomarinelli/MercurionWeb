@@ -11,7 +11,6 @@ import { FingerprintService } from '../../../services/fingerprint.service';
 import { TotpBodyDTO } from '../../../Models/types/auth/DTO/totp-body.dto';
 import { HttpErrorRes } from '../../../Models/types/interfaces/error-res.dto';
 import { AuthRedirectService } from '../../../services/auth-redirect.service';
-import { ToastService } from '../../../services/toast.service';
 import { UserContextService } from '../../../services/stores/user-context.service';
 
 export type MfaView = 'EMAIL_OTP' | 'SMS_OTP' | 'PH_V' | 'APP_TOTP' | ''
