@@ -208,7 +208,7 @@ const DropboxConfig = registerAs(
         appSecret: process.env.DROPBOX_APP_SECRET ?? '',
         redirectUri: process.env.DROPBOX_REDIRECT_URI ?? '',
         tokenUrl: process.env.DROPBOX_TOKEN_URL ?? '',
-        authUrl: ""
+        authUrl: process.env.DROPBOX_AUTH_URL!
     })
 
 )

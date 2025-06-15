@@ -1,6 +1,6 @@
 import { uuidv7 } from '@kripod/uuidv7';
 import { UUID } from 'crypto';
-import { Entity, Column, Index, PrimaryColumn } from 'typeorm';
+import { Entity, Column, Index, PrimaryColumn, BeforeInsert } from 'typeorm';
 
 @Entity('oauth2_tokens')
 @Index(['provider', 'userId'], { unique: true })
@@ -27,6 +27,7 @@ export class OAuth2TokenEntity {
     @Column({ type: 'bigint', default: null })
     updatedAt: number | null
 
+    @BeforeInsert()
     private onInsert() {
         this.id = uuidv7() as UUID
         this.createdAt = Date.now()

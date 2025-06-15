@@ -8,11 +8,9 @@ import { OAuth2PersistenceService } from './o-auth2-persistence.service';
 import { UUID } from 'crypto';
 import { OAuth2TokenData } from '../Models/interfaces/oauth2-token-data.interface';
 
-
 @Injectable()
 export class OAuth2ClientService implements IOAuth2ClientService {
-
-    private readonly logger = new Logger(OAuth2ClientService.name)
+    private readonly logger = new Logger(OAuth2ClientService.name);
 
     constructor(
         private readonly configService: ConfigService,
@@ -21,58 +19,70 @@ export class OAuth2ClientService implements IOAuth2ClientService {
     ) { }
 
     refreshAccessToken(provider: string, userId?: string): Promise<string> {
-        throw new Error('Method not implemented.')
+        throw new Error('Method not implemented.');
     }
 
     private getProviderConfig(provider: string): OAuth2ProviderConfiguration {
-        return this.configService.get<OAuth2ProviderConfiguration>(provider) as OAuth2ProviderConfiguration
+        return this.configService.get<OAuth2ProviderConfiguration>(provider) as OAuth2ProviderConfiguration;
     }
 
     /**
      * Genera la URL di autorizzazione per il provider richiesto
+     * (Dropbox: SEMPRE token_access_type=offline)
      */
     getAuthorizationUrl(provider: string, userId?: string): string {
-        const config = this.getProviderConfig(provider);
+        const config = this.getProviderConfig(provider)
 
-        const params = new URLSearchParams({
+        // Parametri base
+        const params: Record<string, string> = {
             client_id: config.appKey,
             redirect_uri: config.redirectUri,
             response_type: 'code',
             ...(config.scopes ? { scope: config.scopes.join(' ') } : {}),
-            state: userId || '', // opzionale, per CSRF/multiutente
-            // ...altri parametri custom per provider diversi
-        })
+            state: userId || '',
+        };
 
-        return `${config.authUrl}?${params.toString()}`;
+        // PATCH: Dropbox richiede token_access_type=offline per refresh_token
+        if (provider.toLowerCase() === 'dropbox') {
+            params['token_access_type'] = 'offline'
+        }
+
+        return `${config.authUrl}?${new URLSearchParams(params).toString()}`
     }
 
     /**
      * Gestisce il callback OAuth2, scambia code per access/refresh token e salva tutto
      */
     async handleCallback(provider: string, code: string, userId?: UUID): Promise<void> {
-        const config = this.getProviderConfig(provider);
+        const config = this.getProviderConfig(provider)
 
-        // POST token exchange
-        const tokenRes = await axios.post(
-            config.tokenUrl,
-            new URLSearchParams({
-                code,
-                grant_type: 'authorization_code',
-                client_id: config.appKey,
-                client_secret: config.appSecret,
-                redirect_uri: config.redirectUri,
-            }),
-            { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
-        );
+        // Token Exchange
+        let tokenRes
+        try {
+            tokenRes = await axios.post(
+                config.tokenUrl,
+                new URLSearchParams({
+                    code,
+                    grant_type: 'authorization_code',
+                    client_id: config.appKey,
+                    client_secret: config.appSecret,
+                    redirect_uri: config.redirectUri,
+                }),
+                { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+            );
+        } catch (err) {
+            this.logger.error(`Token exchange error: ${err?.response?.data || err.message}`)
+            throw new UnauthorizedException('Failed to exchange code for tokens')
+        }
 
         const { access_token, refresh_token, expires_in } = tokenRes.data as OAuth2TokenData
-        if (!refresh_token) throw new UnauthorizedException('No refresh_token received from provider.');
+        if (!refresh_token) {
+            this.logger.error('No refresh_token received. Verifica token_access_type=offline e revoca i permessi su Dropbox.')
+            throw new UnauthorizedException('No refresh_token received from provider.')
+        }
 
-        // Salva refresh token su MariaDB
-        // Salva refresh token su MariaDB
+        // Persistenza
         await this.persistenceService.saveRefreshToken(provider, refresh_token, userId)
-
-        // Salva access token su Redis con TTL
         await this.redisService.set(`access_token:${provider}${userId ? `:${userId}` : ''}`, access_token ?? '', expires_in)
     }
 
@@ -84,37 +94,38 @@ export class OAuth2ClientService implements IOAuth2ClientService {
         let accessToken = await this.redisService.get(redisKey)
 
         if (!accessToken) {
-            // Recupera refresh token da MariaDB
             const refreshToken = await this.persistenceService.getRefreshToken(provider, userId as UUID)
             if (!refreshToken) throw new UnauthorizedException('Refresh token not found, user must re-authenticate.')
 
-            // Chiama il provider per il refresh
             const config = this.getProviderConfig(provider)
-
-            const tokenRes = await axios.post(
-                config.tokenUrl,
-                new URLSearchParams({
-                    grant_type: 'refresh_token',
-                    refresh_token: refreshToken,
-                    client_id: config.appKey,
-                    client_secret: config.appSecret,
-                }),
-                { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
-            )
+            let tokenRes;
+            try {
+                tokenRes = await axios.post(
+                    config.tokenUrl,
+                    new URLSearchParams({
+                        grant_type: 'refresh_token',
+                        refresh_token: refreshToken,
+                        client_id: config.appKey,
+                        client_secret: config.appSecret,
+                    }),
+                    { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+                );
+            } catch (err) {
+                this.logger.error(`Token refresh error: ${err?.response?.data || err.message}`)
+                throw new UnauthorizedException('Failed to refresh access token')
+            }
 
             const { access_token, expires_in, new_refresh_token } = tokenRes.data as OAuth2TokenData
             if (!access_token) throw new UnauthorizedException('No access_token received during refresh.')
 
-            // Salva nuovo access token su Redis
             await this.redisService.set(redisKey, access_token, expires_in)
 
-            // Se viene restituito un nuovo refresh token, aggiorna MariaDB
             if (new_refresh_token) {
                 await this.persistenceService.saveRefreshToken(provider, new_refresh_token, userId)
             }
 
-            accessToken = access_token;
+            accessToken = access_token
         }
-        return accessToken;
+        return accessToken
     }
 }
