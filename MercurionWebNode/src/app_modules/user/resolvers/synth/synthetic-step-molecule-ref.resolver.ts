@@ -20,23 +20,26 @@ export class SyntheticStepMoleculeRefResolver {
 
     @Mutation(() => SyntheticStepMoleculeRef)
     async addStepMoleculeRef(
-        @Args('input') input: SyntheticStepMoleculeRefInput
+        @Args('input') input: SyntheticStepMoleculeRefInput,
+        @AuthenticatedUserId() userId: UUID
     ) {
-        return this.service.create(input)
+        return this.service.create(userId, input)
     }
 
     @Mutation(() => SyntheticStepMoleculeRef)
     async updateStepMoleculeRef(
         @Args('id', { type: () => ID }) id: UUID,
-        @Args('input') input: SyntheticStepMoleculeRefInput
+        @Args('input') input: SyntheticStepMoleculeRefInput,
+        @AuthenticatedUserId() userId: UUID
     ) {
-        return this.service.update(id, input)
+        return this.service.update(id, userId, input)
     }
 
     @Mutation(() => Boolean)
     async removeStepMoleculeRef(
-        @Args('id', { type: () => ID }) id: UUID
+        @Args('id', { type: () => ID }) id: UUID,
+        @AuthenticatedUserId() userId: UUID
     ) {
-        return this.service.delete(id)
+        return this.service.delete(id, userId)
     }
 }

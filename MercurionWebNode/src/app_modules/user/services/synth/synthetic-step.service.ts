@@ -38,34 +38,39 @@ export class SyntheticStepService {
 
     async findOneById(userId: UUID, id: UUID, fieldsMap: GraphQLFieldsMap): Promise<SyntheticStepEntity | null> {
         const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
+        const relationalFields = GraphqlUtils.getRelationalFields(fieldsMap)
         const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.REQUIRED_FIELDS)
         let qb = this.stepRepo.createQueryBuilder('step')
             .select(columns.map(col => `step.${col}`))
             .where('step.id = :id', { id })
             .andWhere('step.userId = :userId', { userId })
-        if (scalarFields.includes('route')) {
+        if (relationalFields.includes('route')) {
             qb = TypeOrmUtils.addJoins(qb, 'route', fieldsMap)
         }
-        if (scalarFields.includes('moleculeRefs')) {
+        if (relationalFields.includes('moleculeRefs')) {
             qb = TypeOrmUtils.addJoins(qb, 'moleculeRefs', fieldsMap)
         }
         return qb.getOne()
     }
 
+
     async findByRoute(userId: UUID, routeId: UUID, fieldsMap: GraphQLFieldsMap): Promise<SyntheticStepEntity[]> {
-    const scalarFields = GraphqlUtils.getScalarFields(fieldsMap);
-    const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.REQUIRED_FIELDS)
-    let qb = this.stepRepo.createQueryBuilder('step')
-        .select(columns.map(col => `step.${col}`))
-        .where('step.routeId = :routeId', { routeId }) 
-        .andWhere('step.userId = :userId', { userId })
-        .orderBy('step.order', 'ASC')
-    qb = TypeOrmUtils.addJoins(qb, 'route', fieldsMap)
-    if (scalarFields.includes('moleculeRefs')) {
-        qb = TypeOrmUtils.addJoins(qb, 'moleculeRefs', fieldsMap)
+        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
+        const relationalFields = GraphqlUtils.getRelationalFields(fieldsMap)
+        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.REQUIRED_FIELDS)
+        let qb = this.stepRepo.createQueryBuilder('step')
+            .select(columns.map(col => `step.${col}`))
+            .where('step.routeId = :routeId', { routeId })
+            .andWhere('step.userId = :userId', { userId })
+            .orderBy('step.order', 'ASC')
+        if (relationalFields.includes('route')) {
+            qb = TypeOrmUtils.addJoins(qb, 'route', fieldsMap)
+        }
+        if (relationalFields.includes('moleculeRefs')) {
+            qb = TypeOrmUtils.addJoins(qb, 'moleculeRefs', fieldsMap)
+        }
+        return qb.getMany()
     }
-    return qb.getMany()
-}
 
 
 }
