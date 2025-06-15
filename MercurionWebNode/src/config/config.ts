@@ -1,7 +1,7 @@
 
 
 import { registerAs } from "@nestjs/config";
-import { AppConfiguration, CloudFlareConfiguration, DataConfiguration, DropboxConfiguration, JwtConfigurations, MeilisearchConfiguration, SecureCookieConfiguration, SessionConfiguration, SmsConfiguration, TotpConfiguration } from "./@types-config";
+import { AppConfiguration, CloudFlareConfiguration, DataConfiguration, OAuth2ProviderConfiguration, JwtConfigurations, MeilisearchConfiguration, SecureCookieConfiguration, SessionConfiguration, SmsConfiguration, TotpConfiguration } from "./@types-config";
 import { UUID } from "crypto";
 import { GeneralUtils } from "src/general-utils/general-utils";
 import { SnakeNamingStrategy } from "typeorm-naming-strategies";
@@ -201,12 +201,14 @@ const SessionConfig = registerAs(
 
 const DropboxConfig = registerAs(
 
-    ConfigKey.Dropbox, (): DropboxConfiguration => ({
+    ConfigKey.Dropbox, (): OAuth2ProviderConfiguration => ({
+        name: "Dropbox",
         apiUrl: process.env.DROPBOX_API_URL ?? '',
         appKey: process.env.DROPBOX_APP_KEY ?? '',
         appSecret: process.env.DROPBOX_APP_SECRET ?? '',
         redirectUri: process.env.DROPBOX_REDIRECT_URI ?? '',
-        tokenUrl: process.env.DROPBOX_TOKEN_URL ?? ''
+        tokenUrl: process.env.DROPBOX_TOKEN_URL ?? '',
+        authUrl: ""
     })
 
 )

@@ -87,14 +87,15 @@ export interface SessionConfiguration {
 
 }
 
-export interface DropboxConfiguration {
-
+export interface OAuth2ProviderConfiguration {
+    name: string
     apiUrl: string
     appKey: string
     appSecret: string
     redirectUri: string
     tokenUrl: string
-
+    authUrl: string
+    scopes?: string[]
 }
 
 export interface MeilisearchConfiguration {

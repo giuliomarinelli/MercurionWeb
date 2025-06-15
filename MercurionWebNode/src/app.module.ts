@@ -22,6 +22,9 @@ import { GraphQLModule } from '@nestjs/graphql'
 import { TestController } from './test.controller';
 import { MercuriusDriver, MercuriusDriverConfig } from '@nestjs/mercurius';
 import { FastifyReply, FastifyRequest } from 'fastify';
+import { DropboxObjectStoreModule } from './app_modules/dropbox-object-store/dropbox-object-store.module';
+import { OAuth2ClientModule } from './app_modules/oauth2-client/oauth2-client.module';
+
 
 
 @Module({
@@ -65,7 +68,9 @@ import { FastifyReply, FastifyRequest } from 'fastify';
     NotificationModule,
     ChemblModule,
     MeilisearchModule,
-    SocketIoModule
+    SocketIoModule,
+    DropboxObjectStoreModule,
+    OAuth2ClientModule
   ],
   providers: [
     {
