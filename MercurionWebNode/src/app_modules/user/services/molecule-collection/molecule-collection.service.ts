@@ -28,7 +28,7 @@ export class MoleculeCollectionService {
         let qb = this.collectionRepo.createQueryBuilder('collection')
             .select(columns.map(col => `collection.${col}`))
             .where('collection.id = :id', { id })
-            .andWhere('collection.userId = :userId', { userId })
+            .andWhere('collection.user_id = :userId', { userId })
 
         qb = TypeOrmUtils.addJoins(qb, 'collection', fieldsMap)
 
@@ -41,7 +41,7 @@ export class MoleculeCollectionService {
 
         let qb = this.collectionRepo.createQueryBuilder('collection')
             .select(columns.map(col => `collection.${col}`))
-            .where('collection.userId = :userId', { userId })
+            .where('collection.user_id = :userId', { userId })
             .orderBy('collection.name', 'ASC')
 
         qb = TypeOrmUtils.addJoins(qb, 'collection', fieldsMap)

@@ -74,4 +74,24 @@ export class NotebookChapterResolver {
         return true
     }
 
+    @Mutation(() => Boolean)
+    async moveChapter(
+        @Args('chapterId', { type: () => ID }) chapterId: string,
+        @Args('direction') direction: 'up' | 'down',
+        @AuthenticatedUserId() userId: UUID
+    ): Promise<boolean> {
+        await this.chapterService.move(chapterId as UUID, userId, direction)
+        return true
+    }
+
+    @Mutation(() => Boolean)
+    async reorderChapters(
+        @Args('notebookId', { type: () => ID }) notebookId: string,
+        @Args('orderedIds', { type: () => [ID] }) orderedIds: string[],
+        @AuthenticatedUserId() userId: UUID
+    ): Promise<boolean> {
+        await this.chapterService.reorder(notebookId as UUID, userId, orderedIds as UUID[])
+        return true
+    }
+
 }

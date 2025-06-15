@@ -1,5 +1,5 @@
 import { UUID } from "crypto";
-import { BeforeInsert, Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn } from "typeorm";
+import { BeforeInsert, Column, Entity, Index, JoinColumn, ManyToOne, OneToMany, PrimaryColumn } from "typeorm";
 import { NotebookChapter } from "./lab-notebook-chapter.entity";
 import { uuidv7 } from "@kripod/uuidv7";
 import { NotebookPage } from "./lab-notebook-page.entity";
@@ -25,6 +25,10 @@ export class NotebookSection {
     @ManyToOne(() => NotebookChapter, chapter => chapter.sections, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'chapter_id' })
     chapter: NotebookChapter
+
+    @Index()
+    @Column('uuid')
+    chapterId: UUID
 
     @Field(() => [NotebookPage], { nullable: true })
     @OneToMany(() => NotebookPage, page => page.section)

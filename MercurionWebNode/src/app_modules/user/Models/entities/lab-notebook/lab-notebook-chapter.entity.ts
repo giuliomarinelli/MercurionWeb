@@ -1,6 +1,6 @@
 import { uuidv7 } from "@kripod/uuidv7";
 import { UUID } from "crypto";
-import { BeforeInsert, Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn } from "typeorm";
+import { BeforeInsert, Column, Entity, Index, JoinColumn, ManyToOne, OneToMany, PrimaryColumn } from "typeorm";
 import { LabNotebook } from "./lab-notebook.entity";
 import { NotebookSection } from "./lab-notebook-section.entity";
 import { ObjectType, Field, ID, Int } from '@nestjs/graphql';
@@ -25,6 +25,10 @@ export class NotebookChapter {
     @ManyToOne(() => LabNotebook, notebook => notebook.chapters, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'notebook_id' })
     notebook: LabNotebook
+
+    @Index()
+    @Column('uuid')
+    notebookId: UUID
 
     @Field(() => [NotebookSection], { nullable: true })
     @OneToMany(() => NotebookSection, section => section.chapter)

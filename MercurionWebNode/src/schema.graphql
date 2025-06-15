@@ -215,6 +215,8 @@ type Mutation {
   createChapter(input: CreateChapterInput!): NotebookChapter!
   updateChapter(input: UpdateChapterInput!): NotebookChapter!
   deleteChapter(id: ID!): Boolean!
+  moveChapter(chapterId: ID!, direction: String!): Boolean!
+  reorderChapters(notebookId: ID!, orderedIds: [ID!]!): Boolean!
   createSection(input: CreateSectionInput!): NotebookSection!
   updateSection(input: UpdateSectionInput!): NotebookSection!
   deleteSection(id: ID!): Boolean!

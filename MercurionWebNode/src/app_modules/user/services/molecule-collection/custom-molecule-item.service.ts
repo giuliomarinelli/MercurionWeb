@@ -59,7 +59,7 @@ export class CustomMoleculeItemService {
             .select(columns.map(col => `item.${col}`))
             .innerJoin('item.joins', 'join')
             .where('join.collection = :collectionId', { collectionId })
-            .andWhere('item.userId = :userId', { userId })
+            .andWhere('item.user_id = :userId', { userId })
         return qb.getMany()
     }
 
@@ -71,7 +71,7 @@ export class CustomMoleculeItemService {
         const qb = this.customRepo.createQueryBuilder('item')
             .select(columns.map(col => `item.${col}`))
             .where('item.id = :itemId', { itemId })
-            .andWhere('item.userId = :userId', { userId })
+            .andWhere('item.user_id = :userId', { userId })
         return qb.getOne()
     }
 }

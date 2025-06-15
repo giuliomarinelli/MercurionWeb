@@ -27,7 +27,7 @@ export class MoleculeCollectionItemService {
         let qb = this.itemRepo.createQueryBuilder('item')
             .select(columns.map(col => `item.${col}`))
             .where('item.id = :id', { id })
-            .andWhere('item.userId = :userId', { userId })
+            .andWhere('item.user_id = :userId', { userId })
         qb = TypeOrmUtils.addJoins(qb, 'item', fieldsMap)
         return qb.getOne()
     }
@@ -37,7 +37,7 @@ export class MoleculeCollectionItemService {
         const columns = GraphqlUtils.ensureRequiredFields(scalarFields, ['id', 'type'])
         let qb = this.itemRepo.createQueryBuilder('item')
             .select(columns.map(col => `item.${col}`))
-            .where('item.userId = :userId', { userId })
+            .where('item.user_id = :userId', { userId })
         qb = TypeOrmUtils.addJoins(qb, 'item', fieldsMap)
         return qb.getMany()
     }

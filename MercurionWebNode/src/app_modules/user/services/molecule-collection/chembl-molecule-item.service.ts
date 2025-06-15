@@ -61,8 +61,8 @@ export class ChEMBLMoleculeItemService {
         const qb = this.chemblRepo.createQueryBuilder('item')
             .select(columns.map(col => `item.${col}`))
             .innerJoin('item.joins', 'join')
-            .where('join.collection = :collectionId', { collectionId })
-            .andWhere('item.userId = :userId', { userId })
+            .where('join.collection = :collection_id', { collectionId })
+            .andWhere('item.userId = :user_id', { userId })
 
         return qb.getMany()
     }
@@ -78,8 +78,8 @@ export class ChEMBLMoleculeItemService {
 
         const qb = this.chemblRepo.createQueryBuilder('item')
             .select(columns.map(col => `item.${col}`))
-            .where('item.id = :itemId', { itemId })
-            .andWhere('item.userId = :userId', { userId })
+            .where('item.id = :item_id', { itemId })
+            .andWhere('item.userId = :user_id', { userId })
 
         return qb.getOne()
     }

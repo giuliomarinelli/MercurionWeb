@@ -51,7 +51,7 @@ export class NotebookSectionResolver {
         @Args('input') input: CreateSectionInput,
         @AuthenticatedUserId() userId: string
     ): Promise<NotebookSection> {
-        return this.sectionService.create(userId as UUID, input.chapterId as UUID, input)
+        return this.sectionService.create(userId as UUID, input.chapterId, input)
     }
 
     @Mutation(() => NotebookSection)

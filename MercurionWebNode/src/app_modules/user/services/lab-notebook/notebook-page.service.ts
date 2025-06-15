@@ -6,7 +6,6 @@ import { UUID } from 'crypto';
 import { NotebookSection } from '../../Models/entities/lab-notebook/lab-notebook-section.entity';
 import { GraphqlUtils } from 'src/graphql-utils/graphql-utils';
 
-
 @Injectable()
 export class NotebookPageService {
 
@@ -21,7 +20,7 @@ export class NotebookPageService {
         return this.pageRepo.manager.transaction(async manager => {
             const { max } = await manager
                 .createQueryBuilder(NotebookPage, 'page')
-                .where('page.section_id = :sectionId', { sectionId })
+                .where('page.section_id = :sectionId', { sectionId })  // snake_case
                 .select('MAX(page.order)', 'max')
                 .getRawOne() as { max: string | number | null }
 
@@ -49,7 +48,7 @@ export class NotebookPageService {
         let qb = this.pageRepo.createQueryBuilder('page')
             .select(columns.map(col => `page.${col}`))
             .where('page.id = :id', { id })
-            .andWhere('page.userId = :userId', { userId })
+            .andWhere('page.user_id = :userId', { userId })  // snake_case
 
         if (relationalFields.includes('links')) {
             qb = qb.leftJoinAndSelect('page.links', 'links')
@@ -73,8 +72,8 @@ export class NotebookPageService {
 
         let qb = this.pageRepo.createQueryBuilder('page')
             .select(columns.map(col => `page.${col}`))
-            .where('page.section_id = :sectionId', { sectionId })
-            .andWhere('page.userId = :userId', { userId })
+            .where('page.section_id = :sectionId', { sectionId })   // snake_case
+            .andWhere('page.user_id = :userId', { userId })         // snake_case
             .orderBy('page.order', 'ASC');
 
         if (relationalFields.includes('links')) {
@@ -92,17 +91,18 @@ export class NotebookPageService {
         }
         return pages
     }
+
     async listPages(
         sectionId: UUID,
         scalarFields: string[] = [],
         relationalFields: string[] = []
     ): Promise<NotebookPage[]> {
-        
+
         const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.NOTEBOOK_PAGE_REQUIRED_FIELDS)
 
         let qb = this.pageRepo.createQueryBuilder('page')
             .select(columns.map(col => `page.${col}`))
-            .where('page.section_id = :sectionId', { sectionId })
+            .where('page.section_id = :sectionId', { sectionId }) // snake_case
             .orderBy('page.order', 'ASC')
 
         if (relationalFields.includes('links')) {
@@ -120,7 +120,6 @@ export class NotebookPageService {
         }
         return pages
     }
-
 
     async updatePage(id: UUID, userId: UUID, data: Partial<NotebookPage>): Promise<NotebookPage | null> {
         await this.pageRepo.update({ id, userId }, { updatedAt: Date.now(), ...data })
@@ -148,7 +147,7 @@ export class NotebookPageService {
 
             const neighbor = await manager
                 .createQueryBuilder(NotebookPage, 'p')
-                .where('p.section_id = :sectionId', { sectionId })
+                .where('p.section_id = :sectionId', { sectionId }) // snake_case
                 .andWhere(direction === 'up' ? 'p.order < :order' : 'p.order > :order', { order: page.order })
                 .orderBy('p.order', direction === 'up' ? 'DESC' : 'ASC')
                 .getOne()
@@ -175,15 +174,9 @@ export class NotebookPageService {
                 .createQueryBuilder()
                 .update(NotebookPage)
                 .set({ order: () => `CASE ${cases} ELSE "order" END` })
-                .where('section_id = :sectionId', { sectionId })
+                .where('section_id = :sectionId', { sectionId }) // snake_case
                 .andWhere('id IN (:...ids)', { ids: orderedIds })
                 .execute()
         })
     }
-
-
-
-
-
 }
-

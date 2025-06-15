@@ -28,7 +28,7 @@ export class NotebookSectionService {
         return this.sectionRepo.manager.transaction(async manager => {
             const { max } = await manager
                 .createQueryBuilder(NotebookSection, 'section')
-                .where('section.chapter_id = :chapterId', { chapterId })
+                .where('section.chapter_id = :chapterId', { chapterId }) // fix
                 .select('MAX(section.order)', 'max')
                 .getRawOne() as { max: string | number | null }
 
@@ -45,11 +45,11 @@ export class NotebookSectionService {
         })
     }
 
-
     /**
      * Lista tutte le sezioni di un capitolo, solo quelle dell'utente loggato.
      */
     async list(userId: UUID, chapterId: UUID): Promise<NotebookSection[]> {
+        // Qui va bene camelCase: JS property-space (TypeORM traduce)
         const sections = await this.sectionRepo.find({
             where: { chapter: { id: chapterId }, userId },
             order: { order: 'ASC' },
@@ -62,7 +62,6 @@ export class NotebookSectionService {
         }
         return sections
     }
-
 
     /**
      * Sposta una sezione su/giù, **solo se di proprietà dell'utente**
@@ -79,8 +78,8 @@ export class NotebookSectionService {
 
             const neighbor = await manager
                 .createQueryBuilder(NotebookSection, 's')
-                .where('s.chapter_id = :chapterId', { chapterId })
-                .andWhere('s.user_id = :userId', { userId })
+                .where('s.chapter_id = :chapterId', { chapterId }) // fix
+                .andWhere('s.user_id = :userId', { userId })       // fix
                 .andWhere(direction === 'up' ? 's.order < :order' : 's.order > :order', { order: section.order })
                 .orderBy('s.order', direction === 'up' ? 'DESC' : 'ASC')
                 .getOne()
@@ -110,19 +109,18 @@ export class NotebookSectionService {
                 .createQueryBuilder()
                 .update(NotebookSection)
                 .set({ order: () => `CASE ${cases} ELSE "order" END` })
-                .where('chapter_id = :chapterId', { chapterId })
-                .andWhere('user_id = :userId', { userId })
+                .where('chapter_id = :chapterId', { chapterId }) // fix
+                .andWhere('user_id = :userId', { userId })       // fix
                 .andWhere('id IN (:...ids)', { ids: orderedIds })
                 .execute()
         })
     }
 
-
     async delete(userId: UUID, id: UUID): Promise<void> {
         await this.sectionRepo.delete({ id, userId })
     }
 
-   async getSectionByChapterId(
+    async getSectionByChapterId(
         userId: UUID,
         chapterId: UUID,
         fieldsMap: GraphQLFieldsMap
@@ -132,8 +130,8 @@ export class NotebookSectionService {
 
         let qb = this.sectionRepo.createQueryBuilder('section')
             .select(columns.map(col => `section.${col}`))
-            .where('section.chapter_id = :chapterId', { chapterId })
-            .andWhere('section.userId = :userId', { userId })
+            .where('section.chapter_id = :chapterId', { chapterId }) // fix
+            .andWhere('section.user_id = :userId', { userId })       // fix
 
         qb = TypeOrmUtils.addJoins(qb, 'section', fieldsMap)
 
@@ -154,7 +152,7 @@ export class NotebookSectionService {
         let qb = this.sectionRepo.createQueryBuilder('section')
             .select(columns.map(col => `section.${col}`))
             .where('section.id = :id', { id })
-            .andWhere('section.userId = :userId', { userId })
+            .andWhere('section.user_id = :userId', { userId }) // fix
 
         qb = TypeOrmUtils.addJoins(qb, 'section', fieldsMap)
 
@@ -174,4 +172,3 @@ export class NotebookSectionService {
     }
 
 }
-

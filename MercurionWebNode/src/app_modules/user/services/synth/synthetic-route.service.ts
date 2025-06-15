@@ -39,7 +39,7 @@ export class SyntheticRouteService {
         const columns = GraphqlUtils.ensureRequiredFields(scalarFields, ['id', 'title'])
         let qb = this.routeRepo.createQueryBuilder('route')
             .select(columns.map(col => `route.${col}`))
-            .where('route.userId = :userId', { userId })
+            .where('route.user_id = :userId', { userId })
             .orderBy('route.title', 'ASC');
         qb = TypeOrmUtils.addJoins(qb, 'route', fieldsMap)
         return qb.getMany()
@@ -51,7 +51,7 @@ export class SyntheticRouteService {
         let qb = this.routeRepo.createQueryBuilder('route')
             .select(columns.map(col => `route.${col}`))
             .where('route.id = :id', { id })
-            .andWhere('route.userId = :userId', { userId })
+            .andWhere('route.user_id = :userId', { userId })
         qb = TypeOrmUtils.addJoins(qb, 'route', fieldsMap)
         return qb.getOne()
     }

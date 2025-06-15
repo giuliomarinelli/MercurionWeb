@@ -1,10 +1,11 @@
 import { InputType, Field, ID, } from '@nestjs/graphql';
+import { UUID } from 'crypto';
 
 @InputType()
 export class CreateSectionInput {
 
   @Field(() => ID)
-  chapterId: string
+  chapterId: UUID
 
   @Field()
   title: string

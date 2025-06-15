@@ -43,7 +43,7 @@ export class SyntheticStepService {
         let qb = this.stepRepo.createQueryBuilder('step')
             .select(columns.map(col => `step.${col}`))
             .where('step.id = :id', { id })
-            .andWhere('step.userId = :userId', { userId })
+            .andWhere('step.user_id = :userId', { userId })
         if (relationalFields.includes('route')) {
             qb = TypeOrmUtils.addJoins(qb, 'route', fieldsMap)
         }
@@ -60,8 +60,8 @@ export class SyntheticStepService {
         const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.REQUIRED_FIELDS)
         let qb = this.stepRepo.createQueryBuilder('step')
             .select(columns.map(col => `step.${col}`))
-            .where('step.routeId = :routeId', { routeId })
-            .andWhere('step.userId = :userId', { userId })
+            .where('step.route_id = :routeId', { routeId })
+            .andWhere('step.user_id = :userId', { userId })
             .orderBy('step.order', 'ASC')
         if (relationalFields.includes('route')) {
             qb = TypeOrmUtils.addJoins(qb, 'route', fieldsMap)

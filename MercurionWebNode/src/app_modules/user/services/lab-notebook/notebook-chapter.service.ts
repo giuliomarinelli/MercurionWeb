@@ -8,8 +8,6 @@ import { GraphqlUtils } from 'src/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap, TypeOrmUtils } from 'src/type-orm-utils/type-orm-utils';
 import { LabNotebook } from '../../Models/entities/lab-notebook/lab-notebook.entity';
 
-
-
 @Injectable()
 export class NotebookChapterService {
 
@@ -24,7 +22,7 @@ export class NotebookChapterService {
         return this.chapterRepo.manager.transaction(async manager => {
             const { max } = await manager
                 .createQueryBuilder(NotebookChapter, 'chapter')
-                .where('chapter.notebook_id = :notebookId', { notebookId })
+                .where('chapter.notebook_id = :notebookId', { notebookId })  // SNAKE CASE
                 .select('MAX(chapter.order)', 'max')
                 .getRawOne() as { max: string | number | null }
 
@@ -45,7 +43,6 @@ export class NotebookChapterService {
         })
     }
 
-
     async list(notebookId: UUID, userId: UUID): Promise<NotebookChapter[]> {
         return this.chapterRepo.find({
             where: { notebook: { id: notebookId, userId } },
@@ -53,10 +50,10 @@ export class NotebookChapterService {
         });
     }
 
-    async move(chapterId: UUID, direction: 'up' | 'down'): Promise<void> {
+    async move(chapterId: UUID, userId: UUID, direction: 'up' | 'down'): Promise<void> {
         await this.chapterRepo.manager.transaction(async manager => {
             const chapter = await manager.findOne(NotebookChapter, {
-                where: { id: chapterId },
+                where: { id: chapterId, userId },
                 relations: {
                     notebook: true
                 },
@@ -67,7 +64,7 @@ export class NotebookChapterService {
 
             const neighbor = await manager
                 .createQueryBuilder(NotebookChapter, 'c')
-                .where('c.notebook_id = :notebookId', { notebookId })
+                .where('c.notebook_id = :notebookId', { notebookId }) // SNAKE CASE
                 .andWhere(direction === 'up' ? 'c.order < :order' : 'c.order > :order', { order: chapter.order })
                 .orderBy('c.order', direction === 'up' ? 'DESC' : 'ASC')
                 .getOne()
@@ -82,7 +79,7 @@ export class NotebookChapterService {
         })
     }
 
-    async reorder(notebookId: UUID, orderedIds: UUID[]): Promise<void> {
+    async reorder(notebookId: UUID, userId: UUID, orderedIds: UUID[]): Promise<void> {
         if (orderedIds.length === 0) return
 
         const cases = orderedIds
@@ -94,7 +91,8 @@ export class NotebookChapterService {
                 .createQueryBuilder()
                 .update(NotebookChapter)
                 .set({ order: () => `CASE ${cases} ELSE "order" END` })
-                .where('notebook_id = :notebookId', { notebookId })
+                .where('notebook_id = :notebookId', { notebookId })  // SNAKE CASE
+                .andWhere('user_id = :userId', { userId })           // SNAKE CASE
                 .andWhere('id IN (:...ids)', { ids: orderedIds })
                 .execute()
         })
@@ -110,8 +108,8 @@ export class NotebookChapterService {
 
         let qb = this.chapterRepo.createQueryBuilder('chapter')
             .select(columns.map(col => `chapter.${col}`))
-            .where('chapter.notebook_id = :notebookId', { notebookId })
-            .andWhere('chapter.userId = :userId', { userId })
+            .where('chapter.notebook_id = :notebookId', { notebookId }) // SNAKE CASE
+            .andWhere('chapter.user_id = :userId', { userId })          // SNAKE CASE
             .orderBy('chapter.order', 'ASC');
 
         qb = TypeOrmUtils.addJoins(qb, 'chapter', fieldsMap);
@@ -138,7 +136,7 @@ export class NotebookChapterService {
         let qb = this.chapterRepo.createQueryBuilder('chapter')
             .select(columns.map(col => `chapter.${col}`))
             .where('chapter.id = :id', { id })
-            .andWhere('chapter.userId = :userId', { userId })
+            .andWhere('chapter.user_id = :userId', { userId })  // SNAKE CASE
 
         qb = TypeOrmUtils.addJoins(qb, 'chapter', fieldsMap)
 
@@ -162,14 +160,8 @@ export class NotebookChapterService {
         return this.getChapter(id, userId, fieldsMap); // <--- passalo qui
     }
 
-
-
-
-
     async deleteChapter(id: UUID, userId: UUID): Promise<void> {
         await this.chapterRepo.delete({ id, userId })
     }
-
-
 
 }

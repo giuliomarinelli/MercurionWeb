@@ -6,7 +6,6 @@ import { LabNotebook } from '../../Models/entities/lab-notebook/lab-notebook.ent
 import { GraphqlUtils } from 'src/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap, TypeOrmUtils } from 'src/type-orm-utils/type-orm-utils';
 
-
 @Injectable()
 export class LabNotebookService {
 
@@ -24,7 +23,7 @@ export class LabNotebookService {
         return saved
     }
 
-  async findOne(
+    async findOne(
         id: UUID,
         userId: UUID,
         fieldsMap: GraphQLFieldsMap
@@ -32,12 +31,12 @@ export class LabNotebookService {
         const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
         const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.LAB_NOTEBOOK_REQUIRED_FIELDS)
 
-        let qb = this.notebookRepo.createQueryBuilder('labNotebook')
-            .select(columns.map(col => `labNotebook.${col}`))
-            .where('labNotebook.id = :id', { id })
-            .andWhere('labNotebook.userId = :userId', { userId })
+        let qb = this.notebookRepo.createQueryBuilder('lab_notebook')
+            .select(columns.map(col => `lab_notebook.${col}`))
+            .where('lab_notebook.id = :id', { id })
+            .andWhere('lab_notebook.user_id = :userId', { userId }) // SNAKE CASE
 
-        qb = TypeOrmUtils.addJoins(qb, 'labNotebook', fieldsMap)
+        qb = TypeOrmUtils.addJoins(qb, 'lab_notebook', fieldsMap)
 
         const result = await qb.getOne();
 
@@ -60,12 +59,12 @@ export class LabNotebookService {
         const scalarFields = GraphqlUtils.getScalarFields(fieldsMap);
         const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.LAB_NOTEBOOK_REQUIRED_FIELDS);
 
-        let qb = this.notebookRepo.createQueryBuilder('labNotebook')
-            .select(columns.map(col => `labNotebook.${col}`))
-            .where('labNotebook.userId = :userId', { userId })
-            .orderBy('labNotebook.createdAt', 'DESC');
+        let qb = this.notebookRepo.createQueryBuilder('lab_notebook')
+            .select(columns.map(col => `lab_notebook.${col}`))
+            .where('lab_notebook.user_id = :userId', { userId }) // SNAKE CASE
+            .orderBy('lab_notebook.created_at', 'DESC'); // SNAKE CASE
 
-        qb = TypeOrmUtils.addJoins(qb, 'labNotebook', fieldsMap);
+        qb = TypeOrmUtils.addJoins(qb, 'lab_notebook', fieldsMap);
 
         const notebooks = await qb.getMany();
         for (const n of notebooks) {
@@ -79,7 +78,6 @@ export class LabNotebookService {
         }
         return notebooks
     }
-
 
     async update(id: UUID, userId: UUID, data: Partial<LabNotebook>, fieldsMap: GraphQLFieldsMap): Promise<LabNotebook | null> {
         await this.notebookRepo.update({ id, userId }, { updatedAt: Date.now(), ...data })
