@@ -21,6 +21,7 @@ export class ChEMBLMoleculeItemService {
 
     async addToCollection(userId: UUID, collectionId: UUID, chemblMolregno: number, label?: string, notes?: string): Promise<ChEMBLMoleculeItemEntity> {
         let item = await this.chemblRepo.findOne({ where: { chemblMolregno, userId } })
+        // TODO: transaction per verificare che userId di molecule e collection siano uguali
         if (!item) {
             item = this.chemblRepo.create({ chemblMolregno, userId, label, notes });
             item = await this.chemblRepo.save(item)
@@ -35,6 +36,7 @@ export class ChEMBLMoleculeItemService {
     }
 
     async removeFromCollection(userId: UUID, collectionId: UUID, itemId: UUID): Promise<boolean> {
+        // TODO: implementare richiamo della relazione per evitare che ci sia undefined nei campi innestati
         await this.joinRepo.delete({
             collection: { id: collectionId, userId },
             item: { id: itemId, userId },

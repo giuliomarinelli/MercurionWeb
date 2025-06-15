@@ -20,7 +20,7 @@ export class SyntheticStepService {
         return this.stepRepo.save(step)
     }
 
-    async update(userId: UUID, id: UUID, input: SyntheticStepInput, fieldsMap: GraphQLFieldsMap): Promise<SyntheticStepEntity | null> {
+    async update(userId: UUID, id: UUID, input: Partial<SyntheticStepInput>, fieldsMap: GraphQLFieldsMap): Promise<SyntheticStepEntity | null> {
         await this.stepRepo.update({ id, userId }, { ...input })
         return this.findOneById(userId, id, fieldsMap)
     }

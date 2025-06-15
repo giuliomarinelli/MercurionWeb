@@ -20,16 +20,16 @@ export class MoleculeCollectionService {
 
     async findOne(id: UUID, userId: UUID, fieldsMap: GraphQLFieldsMap): Promise<MoleculeCollection | null> {
         const scalarFields = GraphqlUtils.getScalarFields(fieldsMap);
-        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, ['id', 'name']);
+        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, ['id', 'name'])
 
         let qb = this.collectionRepo.createQueryBuilder('collection')
             .select(columns.map(col => `collection.${col}`))
             .where('collection.id = :id', { id })
-            .andWhere('collection.user = :userId', { userId });
+            .andWhere('collection.userId = :userId', { userId })
 
-        qb = TypeOrmUtils.addJoins(qb, 'collection', fieldsMap);
+        qb = TypeOrmUtils.addJoins(qb, 'collection', fieldsMap)
 
-        return qb.getOne();
+        return qb.getOne()
     }
 
     async findAllByUser(userId: UUID, fieldsMap: GraphQLFieldsMap): Promise<MoleculeCollection[]> {
