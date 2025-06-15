@@ -115,6 +115,7 @@ enum MoleculeRole {
 type SyntheticStepEntity {
   id: ID!
   route: SyntheticRouteEntity
+  routeId: String
   order: Float!
   description: String
   reactionType: String

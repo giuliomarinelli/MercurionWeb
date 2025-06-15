@@ -14,13 +14,17 @@ export class SyntheticStepEntity {
     id: UUID
 
     @Index()
-    @Column({type: 'uuid'})
+    @Column({ type: 'uuid' })
     userId: UUID
 
     @Field(() => SyntheticRouteEntity, { nullable: true })
     @ManyToOne(() => SyntheticRouteEntity, route => route.steps)
     @JoinColumn({ name: 'route_id' })
     route: SyntheticRouteEntity
+
+    @Field(() => String, { nullable: true })
+    @Column({ name: 'route_id', type: 'uuid' })
+    routeId: string | null
 
     @Field()
     @Column({ type: 'int' })
@@ -45,7 +49,7 @@ export class SyntheticStepEntity {
     @Field(() => String, { nullable: true })
     @Column({ type: 'json', nullable: true })
     rawEditorData: string | null // File/JSON del chemical editor (per future editabilità)
-    
+
     @Field(() => String, { nullable: true })
     @Column({ type: 'text', nullable: true })
     structureImage: string | null // base64/svg/URL della preview
