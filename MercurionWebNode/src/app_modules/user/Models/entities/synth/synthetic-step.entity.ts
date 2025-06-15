@@ -18,7 +18,7 @@ export class SyntheticStepEntity {
     userId: UUID
 
     @Field(() => SyntheticRouteEntity, { nullable: true })
-    @ManyToOne(() => SyntheticRouteEntity, route => route.steps)
+    @ManyToOne(() => SyntheticRouteEntity, route => route.steps, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'route_id' })
     route: SyntheticRouteEntity
 

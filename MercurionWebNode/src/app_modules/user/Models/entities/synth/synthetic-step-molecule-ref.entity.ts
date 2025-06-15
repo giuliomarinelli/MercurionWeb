@@ -15,12 +15,12 @@ export class SyntheticStepMoleculeRef {
     id: UUID
 
     @Field(() => SyntheticStepEntity, { nullable: true })
-    @ManyToOne(() => SyntheticStepEntity, step => step.moleculeRefs)
+    @ManyToOne(() => SyntheticStepEntity, step => step.moleculeRefs, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'step_id' })
     step: SyntheticStepEntity
 
     @Field(() => MoleculeCollectionItemEntity, { nullable: true })
-    @ManyToOne(() => MoleculeCollectionItemEntity)
+    @ManyToOne(() => MoleculeCollectionItemEntity, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'molecule_id' })
     molecule: MoleculeCollectionItemEntity
 

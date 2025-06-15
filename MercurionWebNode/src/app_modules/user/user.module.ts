@@ -31,7 +31,7 @@ import { MoleculeCollectionItemResolver } from './resolvers/molecule-collection/
 import { MoleculeCollectionItemJoinService } from './services/molecule-collection/molecule-collection-item-join.service';
 import { MoleculeCollectionItemJoinResolver } from './resolvers/molecule-collection/molecule-collection-item-join.resolver';
 import { CustomMoleculeItemService } from './services/molecule-collection/custom-molecule-item.service';
-import { ChEMBLMoleculeItemResolver } from './resolvers/molecule-collection/chembl-molecule-collection-item.resolver';
+import { ChEMBLMoleculeItemResolver } from './resolvers/molecule-collection/chembl-molecule-item.resolver';
 import { CustomMoleculeItemResolver } from './resolvers/molecule-collection/custom-molecule-item.resolver';
 import { ChEMBLMoleculeItemService } from './services/molecule-collection/chembl-molecule-item.service';
 import { SyntheticRouteService } from './services/synth/synthetic-route.service';

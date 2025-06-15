@@ -18,12 +18,12 @@ export class MoleculeCollectionItemJoin {
     userId: UUID
 
     @Field(() => MoleculeCollection, { nullable: true })
-    @ManyToOne(() => MoleculeCollection, collection => collection.items)
+    @ManyToOne(() => MoleculeCollection, collection => collection.items, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'collection_id' })
     collection: MoleculeCollection
 
     @Field(() => MoleculeCollectionItemEntity, { nullable: true })
-    @ManyToOne(() => MoleculeCollectionItemEntity, item => item.joins)
+    @ManyToOne(() => MoleculeCollectionItemEntity, item => item.joins, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'item_id' })
     item: MoleculeCollectionItemEntity
 

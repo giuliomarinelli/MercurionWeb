@@ -35,7 +35,7 @@ export class SyntheticStepMoleculeRefService {
             molecule,
             role: input.role,
             alias: input.alias ?? null
-        });
+        })
         return this.refRepo.save(ref)
     }
 
@@ -43,7 +43,7 @@ export class SyntheticStepMoleculeRefService {
         return this.refRepo.find({
             where: { step: { id: stepId, userId }, molecule: { userId } },
             relations: ["step", "molecule"]
-        });
+        })
     }
 
     async update(id: UUID, userId: UUID, input: SyntheticStepMoleculeRefInput): Promise<SyntheticStepMoleculeRef | null> {
