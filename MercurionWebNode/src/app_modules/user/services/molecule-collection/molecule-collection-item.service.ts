@@ -7,7 +7,9 @@ import { MoleculeCollectionItemEntity } from '../../Models/entities/molecule-col
 import { CreateMoleculeItemInput } from '../../Models/DTO/molecule-collection/create-molecule-item.input';
 import { GraphqlUtils } from 'src/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap, TypeOrmUtils } from 'src/type-orm-utils/type-orm-utils';
+import { uuidv7 } from '@kripod/uuidv7';
 
+// TODO: valutare un refactoring per dryificare la duplicazione di logica tra questo service e i service delle entità figlie concrete
 @Injectable()
 export class MoleculeCollectionItemService {
 
@@ -17,7 +19,7 @@ export class MoleculeCollectionItemService {
     ) { }
 
     async create(userId: UUID, input: CreateMoleculeItemInput): Promise<MoleculeCollectionItemEntity> {
-        const entity = this.itemRepo.create({ ...input, userId })
+        const entity = this.itemRepo.create({ id: uuidv7() as UUID, ...input, userId })
         return this.itemRepo.save(entity)
     }
 

@@ -45,7 +45,7 @@ export class MoleculeService {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     private async fetchFromChembl(molregno: string) {
-    const index = this.meiliClient.index('molecules_detail')
+        const index = this.meiliClient.index('molecules_detail')
 
         const result = await index.getDocument(molregno).catch(() => {
             throw new RpcException(`MoleculeDetailNotFound::Molecule with molregno = ${molregno} not found`)
@@ -81,5 +81,18 @@ export class MoleculeService {
             synonyms: doc.synonyms
         }
     }
+
+    async getDetailsByMolregnos(molregnos: string[]): Promise<MoleculeDetail[]> {
+        const index = this.meiliClient.index('molecules_detail')
+        const results = await Promise.all(
+            molregnos.map(molregno =>
+                index.getDocument(molregno)
+                    .then(doc => this.mapMeiliToDTO(doc as MoleculeDetailModel))
+                    .catch(() => null)
+            )
+        );
+        return results.filter(x => !!x)
+    }
+
 
 }

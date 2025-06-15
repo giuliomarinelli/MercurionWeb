@@ -10,6 +10,15 @@ export class MoleculeResolver {
     constructor(private readonly moleculeService: MoleculeService) { }
 
     @Public()
+    @Query(() => [MoleculeDetail])
+    async moleculesByMolregnos(
+        @Args({ name: 'molregnos', type: () => [String] }) molregnos: string[]
+    ): Promise<MoleculeDetail[]> {
+        return this.moleculeService.getDetailsByMolregnos(molregnos)
+    }
+
+
+    @Public()
     @Query(() => MoleculeDetail)
     async moleculeByMolregno(
         @Args('molregno') molregno: string

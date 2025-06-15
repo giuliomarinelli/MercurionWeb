@@ -189,6 +189,7 @@ type Query {
   syntheticStepById(id: ID!): SyntheticStepEntity
   stepMoleculeRefs(stepId: ID!): [SyntheticStepMoleculeRef!]!
   moleculeSearch(input: MoleculeSearchInput!): [MoleculeSearchResult!]!
+  moleculesByMolregnos(molregnos: [String!]!): [MoleculeDetail!]!
   moleculeByMolregno(molregno: String!): MoleculeDetail!
 }
 

@@ -1,10 +1,15 @@
-import { uuidv7 } from '@kripod/uuidv7';
 import { UUID } from 'crypto';
-import { BeforeInsert, Column, Entity, Index, OneToMany, PrimaryColumn, TableInheritance } from 'typeorm';
+import { Column, Entity, Index, OneToMany, PrimaryColumn, TableInheritance } from 'typeorm';
 import { MoleculeCollectionItemJoin } from './molecule-collection-item-join.entity';
 import { Field, ID, InterfaceType } from '@nestjs/graphql';
 
-@InterfaceType()
+@InterfaceType({
+  resolveType: value => {
+    if (value.type === 'custom') return 'CustomMoleculeItemEntity'
+    if (value.type === 'chembl') return 'ChEMBLMoleculeItemEntity'
+    return null
+  }
+})
 @Entity('molecule_collection_items')
 @TableInheritance({ column: { type: 'varchar', name: 'type' } })
 export abstract class MoleculeCollectionItemEntity {
@@ -32,10 +37,5 @@ export abstract class MoleculeCollectionItemEntity {
     @Field(() => [MoleculeCollectionItemJoin], { nullable: true })
     @OneToMany(() => MoleculeCollectionItemJoin, join => join.item)
     joins: MoleculeCollectionItemJoin[]
-
-    @BeforeInsert()
-    private generateId() {
-        this.id = uuidv7() as UUID
-    }
 
 }

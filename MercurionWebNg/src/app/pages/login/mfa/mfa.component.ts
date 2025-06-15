@@ -1,7 +1,6 @@
 import { LoadingContextService } from './../../../services/stores/loading-context.service';
-import { AuthenticationData } from './../../../Models/types/interfaces/confirm.responses';
 import { NgClass } from '@angular/common';
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { combineLatest, debounceTime, distinctUntilChanged, filter, map, Subscription } from 'rxjs';
@@ -86,7 +85,7 @@ export class MfaComponent implements OnInit, OnDestroy {
     } catch (e) {
       console.error('❌ Malformed preAuthorizationData', e)
       await this.redirect.redirectToLogin('NotAllowed')
-      return;
+      return
     }
 
     // 4. Watch OTP input

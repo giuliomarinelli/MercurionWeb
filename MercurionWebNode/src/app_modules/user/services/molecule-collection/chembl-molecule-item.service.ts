@@ -8,7 +8,7 @@ import { GraphqlUtils } from "src/graphql-utils/graphql-utils";
 import { MoleculeCollectionItemJoinService } from "./molecule-collection-item-join.service";
 import { RpcException } from "@nestjs/microservices";
 import { MoleculeCollection } from "../../Models/entities/molecule-collection/molecule-collection.entity";
-
+import { uuidv7 } from '@kripod/uuidv7';
 
 @Injectable()
 export class ChEMBLMoleculeItemService {
@@ -32,7 +32,8 @@ export class ChEMBLMoleculeItemService {
         // Trova o crea l'item ChEMBL
         let item = await this.chemblRepo.findOne({ where: { chemblMolregno, userId } })
         if (!item) {
-            item = this.chemblRepo.create({ chemblMolregno, userId, label, notes })
+            item = this.chemblRepo.create({ id: uuidv7() as UUID, chemblMolregno, userId, label, notes })
+            item.type = 'chembl'
             item = await this.chemblRepo.save(item)
         }
 

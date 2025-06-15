@@ -9,6 +9,7 @@ import { GraphqlUtils } from "src/graphql-utils/graphql-utils";
 import { CustomMoleculeItemInput } from "../../Models/DTO/molecule-collection/custom-molecule-item.input";
 import { MoleculeCollection } from '../../Models/entities/molecule-collection/molecule-collection.entity';
 import { RpcException } from '@nestjs/microservices';
+import { uuidv7 } from '@kripod/uuidv7';
 
 @Injectable()
 export class CustomMoleculeItemService {
@@ -26,7 +27,8 @@ export class CustomMoleculeItemService {
     async addToCollection(userId: UUID, collectionId: UUID, input: CustomMoleculeItemInput): Promise<CustomMoleculeItemEntity> {
         let item = await this.customRepo.findOne({ where: { canonicalSmiles: input.canonicalSmiles, userId } })
         if (!item) {
-            item = this.customRepo.create({ ...input, userId })
+            item = this.customRepo.create({ id: uuidv7() as UUID, ...input, userId })
+            item.type = 'custom'
             item = await this.customRepo.save(item)
         }
 
