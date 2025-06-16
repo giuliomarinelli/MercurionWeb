@@ -11,6 +11,6 @@ import { AccessTokenRefreshService } from './services/access-token-refresh.servi
     imports: [TypeOrmModule.forFeature([OAuth2TokenEntity]), forwardRef(() => RedisModule)],
     providers: [OAuth2PersistenceService, OAuth2ClientService, AccessTokenRefreshService],
     controllers: [OAuth2ClientController],
-    exports: [AccessTokenRefreshService]
+    exports: [AccessTokenRefreshService, OAuth2ClientService]
 })
 export class OAuth2ClientModule { }
