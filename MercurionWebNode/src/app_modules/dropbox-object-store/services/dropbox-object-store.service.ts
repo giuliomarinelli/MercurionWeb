@@ -30,6 +30,10 @@ export class DropboxObjectStoreService {
         return token
     }
 
+    async getDocumentById(documentId: UUID): Promise<DocumentEntity | null> {
+        return this.documentRepo.findOneBy({ id: documentId })
+    }
+
     /**
      * Upload file: carica su Dropbox, poi crea record DocumentEntity
      */
