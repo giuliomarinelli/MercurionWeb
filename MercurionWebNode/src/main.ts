@@ -12,6 +12,7 @@ import { randomUUID } from 'crypto'
 import { SecureCookieService } from './app_modules/auth/services/secure-cookie.service'
 import { Environment } from './config/config'
 import { SecureCookieConfiguration } from './config/@types-config'
+import FastifyFormidable from 'fastify-formidable'
 
 
 export async function bootstrap() {
@@ -71,11 +72,9 @@ export async function bootstrap() {
 
     done()
   })
-
   fastify.addContentTypeParser('multipart/form-data', (req, payload, done) => {
     done(null, req);
   });
-
   const port = configService.get<number>('App.port')
   const host = configService.get<string>('App.host') as string
   const appUrl = `${host}:${port ?? 8099}`
