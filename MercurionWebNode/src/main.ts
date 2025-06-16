@@ -72,7 +72,9 @@ export async function bootstrap() {
     done()
   })
 
-  
+  fastify.addContentTypeParser('multipart/form-data', (req, payload, done) => {
+    done(null, req);
+  });
 
   const port = configService.get<number>('App.port')
   const host = configService.get<string>('App.host') as string
