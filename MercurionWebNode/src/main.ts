@@ -14,6 +14,7 @@ import { Environment } from './config/config'
 import { SecureCookieConfiguration } from './config/@types-config'
 
 
+
 export async function bootstrap() {
   copyBootstrapFiles()
   const logger = new Logger('Bootstrap')
@@ -71,11 +72,9 @@ export async function bootstrap() {
 
     done()
   })
-
   fastify.addContentTypeParser('multipart/form-data', (req, payload, done) => {
     done(null, req);
   });
-
   const port = configService.get<number>('App.port')
   const host = configService.get<string>('App.host') as string
   const appUrl = `${host}:${port ?? 8099}`
