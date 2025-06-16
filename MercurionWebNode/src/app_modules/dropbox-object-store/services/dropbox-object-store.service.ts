@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DocumentEntity } from '../Models/entities/document.entity';
@@ -127,17 +127,29 @@ export class DropboxObjectStoreService {
 
         const accessToken = await this.getDropboxAccessToken()
 
-        const res = await axios.post(
-            'https://content.dropboxapi.com/2/files/download',
-            null,
-            {
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Dropbox-API-Arg': JSON.stringify({ path: document.storagePath }),
-                },
-                responseType: 'arraybuffer'
+        let res: AxiosResponse<any, any>
+
+        try {
+            res = await axios.post(
+                'https://content.dropboxapi.com/2/files/download',
+                null,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Dropbox-API-Arg': JSON.stringify({ path: document.storagePath }),
+                        'Content-Type': 'application/octet-stream'
+                    },
+                    responseType: 'arraybuffer'
+                }
+            );
+        } catch (err) {
+            if (axios.isAxiosError(err) && err.response) {
+                this.logger.error(
+                    `Dropbox download error ${err.response.status}: ${JSON.stringify(err.response.data)}`,
+                );
             }
-        );
+            throw new RpcException('DownloadFailed::Dropbox error');
+        }
         return Buffer.from(res.data)
     }
 

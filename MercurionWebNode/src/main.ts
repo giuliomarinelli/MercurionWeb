@@ -12,7 +12,7 @@ import { randomUUID } from 'crypto'
 import { SecureCookieService } from './app_modules/auth/services/secure-cookie.service'
 import { Environment } from './config/config'
 import { SecureCookieConfiguration } from './config/@types-config'
-import FastifyFormidable from 'fastify-formidable'
+
 
 
 export async function bootstrap() {
