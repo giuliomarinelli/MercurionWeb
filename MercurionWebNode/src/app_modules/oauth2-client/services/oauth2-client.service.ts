@@ -18,10 +18,6 @@ export class OAuth2ClientService implements IOAuth2ClientService {
         private readonly persistenceService: OAuth2PersistenceService,
     ) { }
 
-    refreshAccessToken(provider: string, userId?: string): Promise<string> {
-        throw new Error('Method not implemented.');
-    }
-
     private getProviderConfig(provider: string): OAuth2ProviderConfiguration {
         return this.configService.get<OAuth2ProviderConfiguration>(provider) as OAuth2ProviderConfiguration;
     }
