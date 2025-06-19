@@ -55,7 +55,7 @@ export class SearchInputComponent implements AfterViewInit {
         const trimmed = term.trim()
         if (trimmed.length > 1) {
           this.onLoading.emit(true)
-          this.searchService.searchMolecule(trimmed).subscribe({
+          this.searchService.searchMolecule(trimmed, 100).subscribe({
             next: res => {
               this.onResult.emit(res)
               this.onLoading.emit(false)
