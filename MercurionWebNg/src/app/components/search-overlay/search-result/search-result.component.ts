@@ -61,7 +61,7 @@ export class SearchResultComponent {
     if (!text || !query) return text || '';
     const escQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const regex = new RegExp(`(${escQuery})`, 'gi');
-    return text.replace(regex, '<mark class="bg-sky-300/75 dark:bg-sky-500/75 rounded px-1">$1</mark>');
+    return text.replace(regex, '<mark class="bg-blue-300/75 dark:bg-blue-300/80 rounded px-1">$1</mark>');
   }
 
 

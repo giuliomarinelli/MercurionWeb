@@ -13,7 +13,7 @@ import { Component, Input, computed, signal } from '@angular/core';
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 text-sm">
           @for (item of propertiesList(); track item.label) {
             <div>
-              <span class="text-muted-foreground">{{ item.label }}:</span>
+              <span class="text-muted-foreground">{{ item.label }}:&nbsp;</span>
               <span class="font-medium">{{ item.value }}</span>
             </div>
           }
