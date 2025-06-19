@@ -2,10 +2,11 @@ import { MoleculeSearchResult } from './../../../Models/graphql/molecule-search/
 import { Component, HostListener, OnInit, signal } from '@angular/core';
 import { SearchContextService } from '../../../services/stores/search-context.service';
 import { SearchInputComponent } from '../search-input/search-input.component';
+import { SearchResultComponent } from '../search-result/search-result.component';
 
 @Component({
   selector: 'app-search-overlay',
-  imports: [SearchInputComponent],
+  imports: [SearchInputComponent, SearchResultComponent],
   template: `
     <div
       class="fixed inset-0 z-[999] bg-black/70 backdrop-blur-sm text-light-on-surface-main dark:text-slate-50 transition-all duration-300"
@@ -35,8 +36,37 @@ import { SearchInputComponent } from '../search-input/search-input.component';
           />
 
           <div
-            class="bg-light-surface-secondary dark:bg-slate-50/10 p-6 rounded-xl text-light-on-surface-main dark:text-sm dark:text-slate-50/90">
+            class="bg-light-surface-secondary dark:bg-slate-50/10 p-6 rounded-xl text-light-on-surface-main dark:text-sm dark:text-slate-50/90 max-h-[40vh] overflow-y-auto">
             <p>[🔬] Area input, filtri e risultati</p>
+            <!-- Skeleton loader -->
+            @if (loading()) {
+              <div class="space-y-3">
+                @for (i of [0, 1, 2, 3, 4]; track i) {
+                  <div class="flex items-center gap-3 p-3 rounded-lg animate-pulse bg-slate-200 my-1">
+                    <div class="w-12 h-12 bg-slate-300 rounded-lg"></div>
+                    <div class="flex-1 min-w-0">
+                      <div class="h-4 bg-slate-300 rounded w-2/3 mb-2"></div>
+                      <div class="h-3 bg-slate-200 rounded w-1/2"></div>
+                    </div>
+                  </div>
+                  }
+              </div>
+              } @else if (results().length) {
+                <!-- Lista risultati -->
+                @for (molecule of results(); track molecule) {
+                  <app-search-result [molecule]="molecule"></app-search-result>
+                }
+              } @else if (!results().length && !error()) {
+                <div class="text-sm text-gray-400 text-center py-8">
+                  Nessun risultato trovato.
+                </div>
+              } @else {
+                <div class="text-sm text-red-500 bg-red-50 dark:bg-red-950 rounded px-4 py-2 text-center">
+                  Errore nella ricerca. Riprova.
+                </div>
+              }
+
+
           </div>
         </div>
       </div>
@@ -48,6 +78,8 @@ import { SearchInputComponent } from '../search-input/search-input.component';
 export class SearchOverlayComponent implements OnInit {
 
   loading = signal<boolean>(false)
+  results = signal<MoleculeSearchResult[]>([])
+  error = signal<unknown | null>(null)
 
   constructor(protected readonly searchContextService: SearchContextService) { }
 
@@ -55,7 +87,7 @@ export class SearchOverlayComponent implements OnInit {
     this.searchContextService.isOpenedSearchOverlay.set(false)
   }
 
-  onSearch(query: string): void {}
+  onSearch(query: string): void { }
 
   @HostListener('document:keydown.escape', ['$event'])
   onEscape() {
@@ -69,11 +101,13 @@ export class SearchOverlayComponent implements OnInit {
   }
 
   handleResults(results: MoleculeSearchResult[]): void {
-
+    this.results.set(results)
+    this.error.set(null)
   }
 
   handleError(err: unknown): void {
-
+    this.error.set(err)
+    this.results.set([])
   }
 
 }
