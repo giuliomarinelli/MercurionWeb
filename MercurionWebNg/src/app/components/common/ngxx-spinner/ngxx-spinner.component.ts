@@ -1,7 +1,7 @@
 import { Component, effect, Input, OnInit } from '@angular/core';
-import { ThemeManagerService } from '../../../services/stores/theme-manager.service';
+import { ThemeManagerService } from '../../../services/context/theme-manager.service';
 import { NgxSpinnerModule, NgxSpinnerService } from 'ngx-spinner';
-import { LoadingContextService } from '../../../services/stores/loading-context.service';
+import { LoadingContextService } from '../../../services/context/loading-context.service';
 
 @Component({
   selector: 'app-ngxx-spinner',

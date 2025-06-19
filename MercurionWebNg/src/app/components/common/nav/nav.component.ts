@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { DesignService } from '../../../services/design.service';
 import { NgClass } from '@angular/common';
-import { SearchContextService } from '../../../services/stores/search-context.service';
+import { SearchContextService } from '../../../services/context/search-context.service';
 import { SidenavComponent } from '../sidenav/sidenav.component';
 
 @Component({

@@ -1,6 +1,6 @@
 import { NgOptimizedImage } from '@angular/common';
 import { Component, effect, signal } from '@angular/core';
-import { ThemeManagerService } from '../../../services/stores/theme-manager.service';
+import { ThemeManagerService } from '../../../services/context/theme-manager.service';
 import { PublicPipe } from '../../../pipes/public.pipe';
 
 @Component({

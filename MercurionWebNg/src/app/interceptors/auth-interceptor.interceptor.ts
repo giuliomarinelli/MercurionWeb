@@ -11,7 +11,7 @@ import {
 } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
-import { UserContextService } from '../services/stores/user-context.service';
+import { UserContextService } from '../services/context/user-context.service';
 import { AuthService } from '../services/auth.service'; // Assumendo che sia il service dove gestisci il token
 
 @Injectable()

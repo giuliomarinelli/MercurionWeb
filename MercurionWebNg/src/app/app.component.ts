@@ -1,17 +1,17 @@
 import { AfterViewInit, Component, computed, CUSTOM_ELEMENTS_SCHEMA, effect, ElementRef, NgZone, OnDestroy, OnInit, signal, Signal, ViewChild } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { HeaderComponent } from './components/common/header/header.component';
-import { ThemeManagerService } from './services/stores/theme-manager.service';
+import { ThemeManagerService } from './services/context/theme-manager.service';
 import { SearchOverlayComponent } from './components/search-overlay/search-overlay/search-overlay.component';
-import { SearchContextService } from './services/stores/search-context.service';
+import { SearchContextService } from './services/context/search-context.service';
 import { FooterComponent } from './components/common/footer/footer.component';
 import { NgxxSpinnerComponent } from './components/common/ngxx-spinner/ngxx-spinner.component';
 import { filter, Subscription } from 'rxjs';
 import { ToastComponent } from './components/common/toast/toast.component';
 import { ToastService } from './services/toast.service';
-import { UserContextService } from './services/stores/user-context.service';
+import { UserContextService } from './services/context/user-context.service';
 import { PathService } from './services/path.service';
-import { SidenavContextService } from './services/stores/sidenav-context.service';
+import { SidenavContextService } from './services/context/sidenav-context.service';
 import { DesignService } from './services/design.service';
 import { SidenavComponent } from './components/common/sidenav/sidenav.component';
 

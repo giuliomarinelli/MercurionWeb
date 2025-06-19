@@ -1,7 +1,7 @@
 import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
 import { ChangeDetectorRef, Component, computed, effect, ElementRef, OnDestroy, OnInit, Signal, signal, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ThemeManagerService } from '../../services/stores/theme-manager.service';
+import { ThemeManagerService } from '../../services/context/theme-manager.service';
 import { PublicPipe } from '../../pipes/public.pipe';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -12,10 +12,10 @@ import { Confirm_Login_FirstStepDTO } from '../../Models/types/interfaces/confir
 import { NgClass } from '@angular/common';
 import { FingerprintService } from '../../services/fingerprint.service';
 import { ISessionDeviceInfo } from '../../Models/types/auth/DTO/fingerprint.dtos';
-import { LoadingContextService } from '../../services/stores/loading-context.service';
+import { LoadingContextService } from '../../services/context/loading-context.service';
 import { ToastService } from '../../services/toast.service';
 import { ToastContext } from '../../components/common/toast/toast.component';
-import { UserContextService } from '../../services/stores/user-context.service';
+import { UserContextService } from '../../services/context/user-context.service';
 import { TurnstileComponent } from '../../components/common/turnstile/turnstile.component';
 import { PreviousRouteService } from '../../services/previous-route.service';
 import { toSignal } from '@angular/core/rxjs-interop';

@@ -1,9 +1,9 @@
 import { AfterViewInit, Component, OnDestroy, signal } from '@angular/core';
-import { LoadingContextService } from '../../services/stores/loading-context.service';
+import { LoadingContextService } from '../../services/context/loading-context.service';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
-import { UserContextService } from '../../services/stores/user-context.service';
+import { UserContextService } from '../../services/context/user-context.service';
 
 @Component({
   selector: 'app-profile',

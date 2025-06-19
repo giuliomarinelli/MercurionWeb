@@ -1,6 +1,6 @@
 import { MoleculeSearchResult } from './../../../Models/graphql/molecule-search/molecule-search-result.interface';
 import { Component, HostListener, OnInit, signal } from '@angular/core';
-import { SearchContextService } from '../../../services/stores/search-context.service';
+import { SearchContextService } from '../../../services/context/search-context.service';
 import { SearchInputComponent } from '../search-input/search-input.component';
 import { SearchResultComponent } from '../search-result/search-result.component';
 

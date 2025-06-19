@@ -5,7 +5,7 @@ import { MoleculeService } from '../../services/molecule.service';
 import { switchMap, Observable, catchError, of } from 'rxjs';
 import { MoleculeDetail } from '../../Models/graphql/molecule.detail';
 import { AsyncPipe } from '@angular/common';
-import { ThemeManagerService } from '../../services/stores/theme-manager.service';
+import { ThemeManagerService } from '../../services/context/theme-manager.service';
 import { MoleculeHeaderComponent } from '../../components/molecule-detail/molecule-header/molecule-header.component';
 import { MoleculeViewerComponent } from '../../components/chem/molecule-viewer/molecule-viewer.component';
 import { MoleculePropertiesComponent } from '../../components/molecule-detail/molecule-properties/molecule-properties.component';

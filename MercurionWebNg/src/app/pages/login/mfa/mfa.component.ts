@@ -1,4 +1,4 @@
-import { LoadingContextService } from './../../../services/stores/loading-context.service';
+import { LoadingContextService } from '../../../services/context/loading-context.service';
 import { NgClass } from '@angular/common';
 import { Component, ElementRef, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -11,7 +11,7 @@ import { FingerprintService } from '../../../services/fingerprint.service';
 import { TotpBodyDTO } from '../../../Models/types/auth/DTO/totp-body.dto';
 import { HttpErrorRes } from '../../../Models/types/interfaces/error-res.dto';
 import { AuthRedirectService } from '../../../services/auth-redirect.service';
-import { UserContextService } from '../../../services/stores/user-context.service';
+import { UserContextService } from '../../../services/context/user-context.service';
 
 export type MfaView = 'EMAIL_OTP' | 'SMS_OTP' | 'PH_V' | 'APP_TOTP' | ''
 

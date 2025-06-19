@@ -1,13 +1,13 @@
 import { NgClass, NgOptimizedImage } from '@angular/common';
 import { ApplicationRef, ChangeDetectorRef, Component, computed, effect, OnChanges, OnDestroy, OnInit, Signal, signal, SimpleChanges, WritableSignal } from '@angular/core';
-import { ThemeManagerService } from '../../../services/stores/theme-manager.service';
+import { ThemeManagerService } from '../../../services/context/theme-manager.service';
 import { ThemeChose } from '../../../Models/types/theme-types';
 import { DesignService } from '../../../services/design.service';
 import { NavComponent } from '../nav/nav.component';
-import { SearchContextService } from '../../../services/stores/search-context.service';
+import { SearchContextService } from '../../../services/context/search-context.service';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { PublicPipe } from '../../../pipes/public.pipe';
-import { UserContextService } from '../../../services/stores/user-context.service';
+import { UserContextService } from '../../../services/context/user-context.service';
 import { filter, Subscription } from 'rxjs';
 import { SidenavComponent } from '../sidenav/sidenav.component';
 import { AccountService } from '../../../services/account.service';
