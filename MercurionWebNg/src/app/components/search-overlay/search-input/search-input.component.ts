@@ -39,6 +39,9 @@ export class SearchInputComponent implements AfterViewInit {
   @Output()
   onError = new EventEmitter<unknown>()
 
+  @Output()
+  onQuery = new EventEmitter<string>()
+
   query = signal('')
 
   constructor(private readonly searchService: MoleculeSearchService) {
@@ -48,6 +51,7 @@ export class SearchInputComponent implements AfterViewInit {
     query$
       .pipe(debounceTime(300), distinctUntilChanged())
       .subscribe(term => {
+        this.onQuery.emit(this.query())
         const trimmed = term.trim()
         if (trimmed.length > 1) {
           this.onLoading.emit(true)

@@ -33,6 +33,7 @@ import { SearchResultComponent } from '../search-result/search-result.component'
             (onLoading)="loading.set($event)"
             (onResult)="handleResults($event)"
             (onError)="handleError($event)"
+            (onQuery)="query.set($event)"
           />
 
           <div
@@ -54,7 +55,7 @@ import { SearchResultComponent } from '../search-result/search-result.component'
               } @else if (results().length) {
                 <!-- Lista risultati -->
                 @for (molecule of results(); track molecule) {
-                  <app-search-result [molecule]="molecule"></app-search-result>
+                  <app-search-result [molecule]="molecule" [query]="query()"></app-search-result>
                 }
               } @else if (!results().length && !error()) {
                 <div class="text-sm text-gray-400 text-center py-8">
@@ -77,6 +78,7 @@ import { SearchResultComponent } from '../search-result/search-result.component'
 })
 export class SearchOverlayComponent implements OnInit {
 
+  query = signal<string>('')
   loading = signal<boolean>(false)
   results = signal<MoleculeSearchResult[]>([])
   error = signal<unknown | null>(null)
