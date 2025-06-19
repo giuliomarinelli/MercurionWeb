@@ -40,11 +40,6 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/molecule-detail/molecule-detail.component').then(m => m.MoleculeDetailComponent)
   },
   {
-    path: 'notebook/list',
-    loadComponent: () => import('./pages/notebook/list/notebook-list.component').then(m => m.NotebookListComponent),
-    canActivate: [AuthGuard]
-  },
-  {
     path: 'notebook/:notebookId/edit',
     loadComponent: () => import('./pages/notebook/edit/edit.component').then(m => m.NotebookEditComponent),
     canActivate: [AuthGuard]
