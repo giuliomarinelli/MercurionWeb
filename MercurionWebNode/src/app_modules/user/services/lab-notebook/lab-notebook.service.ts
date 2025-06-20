@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UUID } from 'crypto';
 import { LabNotebook } from '../../Models/entities/lab-notebook/lab-notebook.entity';
-import { GraphqlUtils } from 'src/graphql-utils/graphql-utils';
+import { GraphqlUtils as GraphQLUtils } from 'src/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap, TypeOrmUtils } from 'src/type-orm-utils/type-orm-utils';
 
 @Injectable()
@@ -28,8 +28,8 @@ export class LabNotebookService {
         userId: UUID,
         fieldsMap: GraphQLFieldsMap
     ): Promise<LabNotebook | null> {
-        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
-        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.LAB_NOTEBOOK_REQUIRED_FIELDS)
+        const scalarFields = GraphQLUtils.getScalarFields(fieldsMap)
+        const columns = GraphQLUtils.ensureRequiredFields(scalarFields, this.LAB_NOTEBOOK_REQUIRED_FIELDS)
 
         let qb = this.notebookRepo.createQueryBuilder('lab_notebook')
             .select(columns.map(col => `lab_notebook.${col}`))
@@ -56,8 +56,8 @@ export class LabNotebookService {
         userId: UUID,
         fieldsMap: GraphQLFieldsMap
     ): Promise<LabNotebook[]> {
-        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap);
-        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.LAB_NOTEBOOK_REQUIRED_FIELDS);
+        const scalarFields = GraphQLUtils.getScalarFields(fieldsMap);
+        const columns = GraphQLUtils.ensureRequiredFields(scalarFields, this.LAB_NOTEBOOK_REQUIRED_FIELDS);
 
         let qb = this.notebookRepo.createQueryBuilder('lab_notebook')
             .select(columns.map(col => `lab_notebook.${col}`))
