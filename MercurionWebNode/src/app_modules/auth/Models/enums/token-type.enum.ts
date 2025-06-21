@@ -1,7 +1,7 @@
 export enum TokenType {
 
     AccessToken = "AccessToken",
-    ws_AccessToken = "WS_AccessToken",
+    ws_AccessToken = "ws_AccessToken",
     PreAuthorizationToken = "PreAuthorizationToken",
     ActivationToken = "ActivationToken",
     EmailVerificationToken = "EmailVerificationToken",
