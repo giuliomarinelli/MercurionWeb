@@ -1,5 +1,5 @@
 import { MoleculeSearchResult } from './../../../Models/graphql/molecule-search/molecule-search-result.interface';
-import { Component, computed, HostListener, OnInit, signal } from '@angular/core';
+import { Component, HostListener, OnInit, signal } from '@angular/core';
 import { SearchContextService } from '../../../services/context/search-context.service';
 import { SearchInputComponent } from '../search-input/search-input.component';
 import { SearchResultComponent } from '../search-result/search-result.component';
@@ -34,11 +34,13 @@ import { SearchResultComponent } from '../search-result/search-result.component'
             (onResult)="handleResults($event)"
             (onError)="handleError($event)"
             (onQuery)="query.set($event)"
+            (onEmpty)="empty.set(true)"
           />
 
           <div
             class="bg-light-surface-secondary dark:bg-slate-50/10 p-6 h-full rounded-xl text-light-on-surface-main dark:text-sm dark:text-slate-50/90 max-h-[40vh] overflow-y-auto">
             <p>[🔬] Area input, filtri e risultati</p>
+            <hr class="border-px border-slate-300/50 mt-5" />
             <!-- Skeleton loader -->
             @if (loading()) {
               <div class="space-y-3">
