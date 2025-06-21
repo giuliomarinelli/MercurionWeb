@@ -37,26 +37,25 @@ import { MoleculeCtaChemblComponent } from '../../components/molecule-detail/mol
           <h2 class="font-semibold text-light-accent-primary dark:text-dark-accent-primary mb-4 text-center sm:text-left text-xl">
             Struttura
           </h2>
-          <!-- <molecule-viewer
-            [structure]="molecule.canonicalSmiles"
-            [darkMode]="themeManager.theme() === 'dark'"
-            class="flex justify-center sm:justify-start"
-          /> -->
+
             <div class="h-400px flex-shrink-0
               w-auto
               h-[300px]
+              overflow-hidden
+              overflow-x-auto
+              relative">
 
-            overflow-hidden overflow-x-auto relative">
-            <!-- @if (!viewerReady()) {
-              <div class="absolute inset-0 z-10 animate-pulse
+              @if (!viewerReady()) {
+                <div class="absolute inset-0 z-10 animate-pulse
                       bg-slate-200 dark:bg-slate-700"></div>
-            } -->
+              }
 
             <molecule-viewer
               [mode]="'detail'"
               class="w-full h-full"
               [structure]="molecule.canonicalSmiles"
               [darkMode]="themeManager.theme() === 'dark'"
+              (rendered)="viewerReady.set(true)"
             />
 
           </div>
@@ -84,7 +83,7 @@ import { MoleculeCtaChemblComponent } from '../../components/molecule-detail/mol
 export class MoleculeDetailComponent implements OnInit {
 
   molecule$!: Observable<MoleculeDetail | null>;
-
+  viewerReady = signal<boolean>(false)
   fetchError = signal<boolean>(false)
 
   constructor(

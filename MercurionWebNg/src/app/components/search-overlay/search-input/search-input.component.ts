@@ -73,7 +73,7 @@ export class SearchInputComponent implements AfterViewInit {
     const query$ = toObservable(this.query)
 
     query$
-      .pipe(debounceTime(90), distinctUntilChanged())
+      .pipe(debounceTime(150), distinctUntilChanged())
       .subscribe(term => {
         this.onQuery.emit(this.query())
         const trimmed = term.trim()

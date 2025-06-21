@@ -1,5 +1,5 @@
 import { MoleculeSearchResult } from './../../../Models/graphql/molecule-search/molecule-search-result.interface';
-import { Component, HostListener, OnInit, signal } from '@angular/core';
+import { Component, effect, HostListener, OnInit, signal } from '@angular/core';
 import { SearchContextService } from '../../../services/context/search-context.service';
 import { SearchInputComponent } from '../search-input/search-input.component';
 import { SearchResultComponent } from '../search-result/search-result.component';
@@ -57,7 +57,7 @@ import { SearchResultComponent } from '../search-result/search-result.component'
               } @else if (results().length) {
                 <!-- Lista risultati -->
                 @for (molecule of results(); track molecule) {
-                  <app-search-result [molecule]="molecule" [query]="query()"></app-search-result>
+                  <app-search-result [molecule]="molecule" [query]="query()" />
                 }
               } @else if (!results().length && !error() && !empty()) {
                 <div class="text-sm text-gray-400 text-center py-8">
@@ -86,7 +86,9 @@ export class SearchOverlayComponent implements OnInit {
   results = signal<MoleculeSearchResult[]>([])
   error = signal<unknown | null>(null)
 
-  constructor(protected readonly searchContextService: SearchContextService) { }
+  constructor(protected readonly searchContextService: SearchContextService) {
+    effect(() => this.empty() && this.results.set([]))
+  }
 
   close(): void {
     this.searchContextService.isOpenedSearchOverlay.set(false)
@@ -105,6 +107,7 @@ export class SearchOverlayComponent implements OnInit {
 
   onEmpty(): void {
     this.empty.set(true)
+    this.query.set('')
   }
 
   handleResults(results: MoleculeSearchResult[]): void {
