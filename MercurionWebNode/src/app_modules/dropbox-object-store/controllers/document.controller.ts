@@ -36,7 +36,7 @@ export class DocumentController {
             maxFileSize: 50 * 1024 * 1024,  // 50 MB
             allowEmptyFiles: false,
             multiples: false,
-        });
+        });     
 
         /* ② parse()  → wrapper Promise per tipi corretti */
         const [fields, files]: [Fields, Files] = await new Promise((resolve, reject) => {

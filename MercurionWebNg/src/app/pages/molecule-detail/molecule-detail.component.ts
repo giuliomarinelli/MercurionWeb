@@ -43,18 +43,17 @@ import { MoleculeCtaChemblComponent } from '../../components/molecule-detail/mol
             class="flex justify-center sm:justify-start"
           /> -->
             <div class="h-400px flex-shrink-0
-              w-full
-              max-w-[680px]
-              aspect-[5/2]
-              sm:aspect-[8/3]
+              w-auto
+              h-[300px]
 
-            overflow-hidden relative">
+            overflow-hidden overflow-x-auto relative">
             <!-- @if (!viewerReady()) {
               <div class="absolute inset-0 z-10 animate-pulse
                       bg-slate-200 dark:bg-slate-700"></div>
             } -->
 
             <molecule-viewer
+              [mode]="'detail'"
               class="w-full h-full"
               [structure]="molecule.canonicalSmiles"
               [darkMode]="themeManager.theme() === 'dark'"
