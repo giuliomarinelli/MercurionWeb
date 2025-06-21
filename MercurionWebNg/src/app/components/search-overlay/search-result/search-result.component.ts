@@ -58,17 +58,16 @@ export class SearchResultComponent implements OnDestroy {
 
   /* segnali originali */
   _molecule = signal<MoleculeSearchResult | undefined>(undefined);
-  _pathToMolecule = signal<string>('');
-  _query = signal<string>('');
-  isDarkMode = signal<boolean>(false);
-  viewerReady = signal(false)
+  _pathToMolecule = signal<string>('')
+  _query = signal<string>('')
+  isDarkMode = signal<boolean>(false)
+  viewerReady = signal<boolean>(false)
 
   /** viewer OFF finché true */
-  disablePreview = signal<boolean>(true);
-  /** skeleton ON finché true */
-  showSkeleton = signal<boolean>(true);
+  disablePreview = signal<boolean>(true)
 
-  private io: IntersectionObserver;
+
+  private io: IntersectionObserver
 
   constructor(
     protected readonly searchContext: SearchContextService,
@@ -87,8 +86,8 @@ export class SearchResultComponent implements OnDestroy {
 
     /* Se card già visibile (in cima), sblocca subito */
     queueMicrotask(() => {
-      if (this.disablePreview()) this.disablePreview.set(false);
-    });
+      if (this.disablePreview()) this.disablePreview.set(false)
+    })
   }
 
   /* inputs ---------------------------------- */

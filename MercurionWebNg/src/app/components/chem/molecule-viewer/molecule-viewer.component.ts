@@ -99,57 +99,100 @@ export class MoleculeViewerComponent implements OnInit, OnChanges {
     return map;
   }
 
- private renderSvg() {
-  if (!this.structure) return;
+  private renderSvg() {
+    if (!this.structure) return;
 
-  /* build mol ------------------------------------------------------------ */
-  const mol = this.RDK.get_mol(this.structure.split('$$$$')[0]);
-  if (!mol?.is_valid()) { mol?.delete?.(); return; }
+    /* ─── 1. genera lo SVG grezzo da RDKit ──────────────────────────────── */
+    const mol = this.RDK.get_mol(this.structure.split('$$$$')[0]);
+    if (!mol?.is_valid()) { mol?.delete?.(); return; }
 
-  const pal = MoleculeViewerComponent.WCAG[this.darkMode ? 'dark' : 'light'];
+    const pal = MoleculeViewerComponent.WCAG[this.darkMode ? 'dark' : 'light'];
 
-  const opts = {
-    bondLineWidth   : 1.6,
-    fixedBondLength : this.structure.length < 40 ? 50 : 30,
-    clearBackground : false,
-    backgroundColour: this.rgb(pal.bg),
-    bondLineColour  : this.rgb(pal.bond),
-    atomColourPalette: this.buildAtomPalette(),
-  };
+    const opts = {
+      bondLineWidth: 1.6,
+      fixedBondLength: this.structure.length < 40 ? 50 : 30,
+      padding: 0.02,             // 2 % su tutti i lati
+      clearBackground: false,
+      backgroundColour: this.rgb(pal.bg),
+      bondLineColour: this.rgb(pal.bond),
+      atomColourPalette: this.buildAtomPalette(),
+    };
 
-  let raw = mol.get_svg_with_highlights(JSON.stringify(opts));
-  mol.delete();
+    let raw = mol.get_svg_with_highlights(JSON.stringify(opts));
+    mol.delete();
 
-  /* force svg to fill the 48 × 48 box ----------------------------------- */
-  raw = raw.replace(/<svg\b([^>]*)>/i, (_full, attrs) => {
-  // rimuove tutti i width / height presenti
-  let clean = attrs
-    .replace(/\swidth\s*=\s*"[^"]*"/gi, '')
-    .replace(/\sheight\s*=\s*"[^"]*"/gi, '')
-    .trim();
+    /* ─── 2. CROPPING: riduce il viewBox al bounding-box effettivo ──────── */
+    /* 2. Normalizza direttamente l’elemento root -------------------------------- */
+    try {
+      const doc = new DOMParser().parseFromString(raw, 'image/svg+xml');
+      const root = doc.documentElement as unknown as SVGSVGElement;
 
-  // estrae dimensioni anche se c'è il suffisso px
-  const size = raw.match(/width\s*=\s*"([\d.]+)(?:px)?".*height\s*=\s*"([\d.]+)(?:px)?"/i);
+      // 2a. Rimuovi TUTTI gli attribute width/height eventualmente presenti
+      root.removeAttribute('width');
+      root.removeAttribute('height');
 
-  if (size && !/viewBox=/i.test(clean)) {
-    clean += ` viewBox="0 0 ${size[1]} ${size[2]}"`;
+      // 2b. Se manca il viewBox lo ricaviamo da RDKit (width/height dell’SVG grezzo)
+      if (!root.hasAttribute('viewBox')) {
+        const mW = raw.match(/width\s*=\s*"([\d.]+)(?:px)?"/i);
+        const mH = raw.match(/height\s*=\s*"([\d.]+)(?:px)?"/i);
+        if (mW && mH) root.setAttribute('viewBox', `0 0 ${mW[1]} ${mH[1]}`);
+      }
+
+      // 2c. Imposta i nuovi attributi che vogliamo SEMPRE
+      root.setAttribute('width', '100%');
+      root.setAttribute('height', '100%');
+      root.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+
+      // 3. Serializza di nuovo
+      raw = new XMLSerializer().serializeToString(root);
+    } catch {
+      /* se succede qualcosa usiamo comunque lo SVG originale  */
+    }
+
+
+    /* ─── 3. forza width/height al 100 % e aggiunge preserveAspectRatio ─── */
+    /* 3. sostituisci il tag <svg …> con le nostre regole + “slice” --------- */
+    raw = raw.replace(
+      /<svg\b([^>]*)>/i,
+      (_full, attrs) => {
+        let clean = attrs
+          // via qualunque width/height duplicati
+          .replace(/\swidth\s*=\s*"[^"]*"/gi, '')
+          .replace(/\sheight\s*=\s*"[^"]*"/gi, '')
+          .trim();
+
+        // se il parser DOM non è riuscito a mettere il viewBox lo recuperiamo qui
+        const w = raw.match(/viewBox="0 0 (\d+(?:\.\d+)?) (\d+(?:\.\d+)?)/i)?.[1];
+        const h = raw.match(/viewBox="0 0 \d+(?:\.\d+)? (\d+(?:\.\d+)?)/i)?.[1];
+        if (!/viewBox=/i.test(clean) && w && h) {
+          clean += ` viewBox="0 0 ${w} ${h}"`;
+        }
+
+        /*  **slice** riempie il box tagliando il margine in eccesso  */
+        if (!/preserveAspectRatio=/i.test(clean)) {
+          clean += ' preserveAspectRatio="xMidYMid slice"';
+        } else {
+          clean = clean.replace(/preserveAspectRatio="[^"]*"/i,
+            'preserveAspectRatio="xMidYMid slice"');
+        }
+
+        return `<svg ${clean} width="100%" height="100%" style="display:block">`;
+      }
+    );
+
+
+    /* ─── 4. fallback colori nero/bianco + grigio RDKit ─────────────────── */
+    raw = raw
+      .replace(/stroke:#(?:000000|ffffff)/gi, `stroke:${pal.default}`)
+      .replace(/fill:#(?:000000|ffffff)/gi, `fill:${pal.default}`)
+      .replace(/stroke:#E5E7EB/gi, `stroke:${pal.default}`);
+
+    /* ─── 5. espone lo SVG e avverte il chiamante ───────────────────────── */
+    this.svg = this.sanitizer.bypassSecurityTrustHtml(raw);
+    this.rendered.emit();
   }
-  if (!/preserveAspectRatio=/i.test(clean)) {
-    clean += ' preserveAspectRatio="xMidYMid meet"';
-  }
 
-  return `<svg ${clean} width="100%" height="100%" style="width:100%;height:100%;display:block">`;
-});
 
-  /* fallback nero/bianco + grigio RDKit --------------------------------- */
-  raw = raw
-          .replace(/stroke:#(?:000000|ffffff)/gi, `stroke:${pal.default}`)
-          .replace(/fill:#(?:000000|ffffff)/gi,   `fill:${pal.default}`)
-          .replace(/stroke:#E5E7EB/gi,            `stroke:${pal.default}`);
-
-  this.svg = this.sanitizer.bypassSecurityTrustHtml(raw);
-  this.rendered.emit();            // 🔔 skeleton OFF nel chiamante
-}
 
 
 }
