@@ -1,101 +1,155 @@
-import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import {
+  Component, Input, Output, EventEmitter,
+  OnInit, OnChanges, SimpleChanges
+} from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import type { RDKitModule } from '@rdkit/rdkit';
 import { RDKitLoaderService } from '../../../services/rd-kit-loader.service';
+import type { RDKitModule } from '@rdkit/rdkit';
 
 @Component({
   selector: 'molecule-viewer',
   standalone: true,
-  template: `
-    <div class="molecule-svg max-w-full overflow-x-auto">
-      <div [innerHTML]="svgContent"></div>
-    </div>
-  `,
-  styles: [
-    `
-      .molecule-svg svg {
-        width: 100%;
-        height: auto;
-      }
-    `
-  ]
+  template: `<div class="wrap" [innerHTML]="svg"></div>`,
+  styles: [`
+    :host { display:block; width:100%; height:100%; }
+    .wrap  { width:100%; height:100%; }
+    .wrap svg { width:100%; height:100%; }
+  `]
 })
 export class MoleculeViewerComponent implements OnInit, OnChanges {
-  @Input() structure!: string;
-  @Input() darkMode = false;
 
-  svgContent: SafeHtml | null = null;
-  private RDKit!: RDKitModule;
-  private currentMol: any;
+  /* -------- API -------- */
+  @Input({ required: true }) structure = '';
+  @Input() darkMode = false;
+  @Input() disablePreview = false;
+  @Output() rendered = new EventEmitter<void>();
+
+  svg: SafeHtml | null = null;
+  private ready = false;
+  private RDK!: RDKitModule;
+
+  /* -------- palette WCAG AAA -------- */
+  private static readonly WCAG = {
+    light: {
+      bg: '#F9FAFB', bond: '#0F172A', default: '#0F172A',
+      C: '#1F2937', H: '#374151',
+      N: '#1E40AF', O: '#991B1B', S: '#6B2C00', P: '#581C87',
+      F: '#14532D', Cl: '#065F46', Br: '#7C2D12', I: '#5B21B6'
+    },
+    dark: {
+      bg: '#0A0A0A', bond: '#E5E7EB', default: '#E5E7EB',
+      C: '#F3F4F6', H: '#D1D5DB',
+      N: '#BFDBFE', O: '#FCA5A5', S: '#FCD34D', P: '#E9D5FF',
+      F: '#A7F3D0', Cl: '#6EE7B7', Br: '#FCD34D', I: '#DDD6FE'
+    }
+  } as const;
 
   constructor(
-    private readonly rdkitService: RDKitLoaderService,
+    private readonly rdkit: RDKitLoaderService,
     private readonly sanitizer: DomSanitizer
-  ) {}
+  ) { }
 
-  ngOnInit(): void {
-    this.rdkitService.instance$.subscribe(rdkit => {
-      this.RDKit = rdkit;
-      if (this.structure) this.renderMolecule();
+  /* ---------- lifecycle ---------- */
+  ngOnInit() { if (!this.disablePreview) this.initRdkit(); }
+
+  ngOnChanges(ch: SimpleChanges) {
+    if ('disablePreview' in ch && !this.disablePreview && !this.ready) {
+      this.initRdkit();
+    } else if (
+      ('disablePreview' in ch && !this.disablePreview && this.ready) ||
+      ((ch['structure'] || ch['darkMode']) && !this.disablePreview && this.ready)
+    ) {
+      this.scheduleRender();
+    }
+  }
+
+  /* ---------- internals ---------- */
+  private initRdkit() {
+    this.rdkit.instance$.subscribe(rdk => {
+      this.RDK = rdk;
+      this.ready = true;
+      if (!this.disablePreview) this.scheduleRender();
     });
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if ((changes['structure'] || changes['darkMode']) && this.RDKit) {
-      this.renderMolecule();
-    }
+  /** sposta RDKit fuori dal paint-frame */
+  private scheduleRender() {
+    const job = () => this.renderSvg();
+    (window as any).requestIdleCallback
+      ? (window as any).requestIdleCallback(job, { timeout: 120 })
+      : setTimeout(job, 0);
   }
 
-  private renderMolecule(): void {
-    if (this.currentMol) {
-      this.currentMol.delete();
-      this.currentMol = null;
-    }
-
-    if (!this.structure) {
-      this.svgContent = null;
-      return;
-    }
-
-    let molStr = this.structure.includes('$$$$')
-      ? this.structure.split('$$$$')[0]
-      : this.structure;
-
-    const mol = this.RDKit.get_mol(molStr);
-    if (!mol || !mol.is_valid()) {
-      console.error('Struttura non valida per RDKit');
-      this.svgContent = null;
-      mol?.delete();
-      return;
-    }
-
-    this.currentMol = mol;
-
-    const lengthFactor = molStr.length;
-    const options: any = {
-      bondLineWidth: 1.5,
-      fixedBondLength: lengthFactor < 40 ? 50 : 30,
-      clearBackground: false
-    };
-
-    if (this.darkMode) {
-      options.backgroundColour = [0, 0, 0];
-      options.symbolColour = [1, 1, 1];
-      options.legendColour = [1, 1, 1];
-    }
-
-    let svgOut = mol.get_svg_with_highlights(JSON.stringify(options));
-
-    svgOut = svgOut
-      .replace(/<svg([^>]+)>/, '<svg$1 preserveAspectRatio="xMidYMid meet" width="100%" height="100%">')
-      .replace(/width="[^\"]+"/, '')
-      .replace(/height="[^\"]+"/, '');
-
-    if (this.darkMode) {
-      svgOut = svgOut.replace(/stroke:#000000/g, 'stroke:#FFFFFF')
-                     .replace(/fill:#000000/g, 'fill:#FFFFFF');
-    }
-
-    this.svgContent = this.sanitizer.bypassSecurityTrustHtml(svgOut);
+  private rgb(hex: string): [number, number, number] {
+    const n = parseInt(hex.slice(1), 16);
+    return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
   }
+
+  private buildAtomPalette(): Record<number, [number, number, number]> {
+    const mode = this.darkMode ? 'dark' : 'light';
+    const p = MoleculeViewerComponent.WCAG[mode];
+    const Z: Record<string, number> = { H: 1, C: 6, N: 7, O: 8, F: 9, S: 16, P: 15, Cl: 17, Br: 35, I: 53 };
+    const def = this.rgb(p.default);
+    const map: Record<number, [number, number, number]> = {} as any;
+    for (let i = 1; i <= 118; i++) map[i] = def;
+    for (const [sym, hex] of Object.entries(p)) {
+      if (['bg', 'bond', 'default'].includes(sym)) continue;
+      map[Z[sym]] = this.rgb(hex);
+    }
+    return map;
+  }
+
+ private renderSvg() {
+  if (!this.structure) return;
+
+  /* build mol ------------------------------------------------------------ */
+  const mol = this.RDK.get_mol(this.structure.split('$$$$')[0]);
+  if (!mol?.is_valid()) { mol?.delete?.(); return; }
+
+  const pal = MoleculeViewerComponent.WCAG[this.darkMode ? 'dark' : 'light'];
+
+  const opts = {
+    bondLineWidth   : 1.6,
+    fixedBondLength : this.structure.length < 40 ? 50 : 30,
+    clearBackground : false,
+    backgroundColour: this.rgb(pal.bg),
+    bondLineColour  : this.rgb(pal.bond),
+    atomColourPalette: this.buildAtomPalette(),
+  };
+
+  let raw = mol.get_svg_with_highlights(JSON.stringify(opts));
+  mol.delete();
+
+  /* force svg to fill the 48 × 48 box ----------------------------------- */
+  raw = raw.replace(/<svg\b([^>]*)>/i, (_full, attrs) => {
+  // rimuove tutti i width / height presenti
+  let clean = attrs
+    .replace(/\swidth\s*=\s*"[^"]*"/gi, '')
+    .replace(/\sheight\s*=\s*"[^"]*"/gi, '')
+    .trim();
+
+  // estrae dimensioni anche se c'è il suffisso px
+  const size = raw.match(/width\s*=\s*"([\d.]+)(?:px)?".*height\s*=\s*"([\d.]+)(?:px)?"/i);
+
+  if (size && !/viewBox=/i.test(clean)) {
+    clean += ` viewBox="0 0 ${size[1]} ${size[2]}"`;
+  }
+  if (!/preserveAspectRatio=/i.test(clean)) {
+    clean += ' preserveAspectRatio="xMidYMid meet"';
+  }
+
+  return `<svg ${clean} width="100%" height="100%" style="width:100%;height:100%;display:block">`;
+});
+
+  /* fallback nero/bianco + grigio RDKit --------------------------------- */
+  raw = raw
+          .replace(/stroke:#(?:000000|ffffff)/gi, `stroke:${pal.default}`)
+          .replace(/fill:#(?:000000|ffffff)/gi,   `fill:${pal.default}`)
+          .replace(/stroke:#E5E7EB/gi,            `stroke:${pal.default}`);
+
+  this.svg = this.sanitizer.bypassSecurityTrustHtml(raw);
+  this.rendered.emit();            // 🔔 skeleton OFF nel chiamante
+}
+
+
 }

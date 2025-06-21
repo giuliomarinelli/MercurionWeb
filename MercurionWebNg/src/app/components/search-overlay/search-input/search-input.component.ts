@@ -64,6 +64,12 @@ export class SearchInputComponent implements AfterViewInit {
 
   constructor(private readonly searchService: MoleculeSearchService) {
 
+    effect(() => {
+      if (!this.query().trim()) {
+        this.onEmpty.emit()
+      }
+    })
+
     const query$ = toObservable(this.query)
 
     query$
