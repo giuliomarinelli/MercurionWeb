@@ -1,5 +1,5 @@
 import { MoleculeSearchResult } from './../../../Models/graphql/molecule-search/molecule-search-result.interface';
-import { Component, HostListener, OnInit, signal } from '@angular/core';
+import { Component, computed, HostListener, OnInit, signal } from '@angular/core';
 import { SearchContextService } from '../../../services/context/search-context.service';
 import { SearchInputComponent } from '../search-input/search-input.component';
 import { SearchResultComponent } from '../search-result/search-result.component';
@@ -12,9 +12,9 @@ import { SearchResultComponent } from '../search-result/search-result.component'
       class="fixed inset-0 z-[999] bg-black/70 backdrop-blur-sm text-light-on-surface-main dark:text-slate-50 transition-all duration-300"
       [class.opacity-0]="!searchContextService.isVisible()"
       [class.opacity-100]="searchContextService.isVisible()">
-      <div class="flex justify-center items-start pt-32 sm:pt-40 px-4">
+      <div class="flex justify-center items-center pt-32 sm:pt-40 px-4">
         <div
-          class="w-full max-w-3xl space-y-6 bg-light-surface-main/85 dark:bg-dark-surface-main/85 p-3 2xs:p-4 md:p-6 lg:p-12 rounded-lg">
+          class="w-full h-[60vh] max-w-3xl space-y-6 bg-light-surface-main/85 dark:bg-dark-surface-main/85 p-3 2xs:p-4 md:p-6 lg:p-12 rounded-lg">
           <!-- HEADER -->
           <div class="flex justify-between items-center mb-3 relative md:-top-2 lg:-top-4">
             <h2 class="text-2xl font-semibold tracking-wide">Ricerca molecolare</h2>
@@ -37,7 +37,7 @@ import { SearchResultComponent } from '../search-result/search-result.component'
           />
 
           <div
-            class="bg-light-surface-secondary dark:bg-slate-50/10 p-6 rounded-xl text-light-on-surface-main dark:text-sm dark:text-slate-50/90 max-h-[40vh] overflow-y-auto">
+            class="bg-light-surface-secondary dark:bg-slate-50/10 p-6 h-full rounded-xl text-light-on-surface-main dark:text-sm dark:text-slate-50/90 max-h-[40vh] overflow-y-auto">
             <p>[🔬] Area input, filtri e risultati</p>
             <!-- Skeleton loader -->
             @if (loading()) {
@@ -57,11 +57,11 @@ import { SearchResultComponent } from '../search-result/search-result.component'
                 @for (molecule of results(); track molecule) {
                   <app-search-result [molecule]="molecule" [query]="query()"></app-search-result>
                 }
-              } @else if (!results().length && !error()) {
+              } @else if (!results().length && !error() && !empty()) {
                 <div class="text-sm text-gray-400 text-center py-8">
                   Nessun risultato trovato.
                 </div>
-              } @else {
+              } @else if (error()) {
                 <div class="text-sm text-red-500 bg-red-50 dark:bg-red-950 rounded px-4 py-2 text-center">
                   Errore nella ricerca. Riprova.
                 </div>
@@ -78,6 +78,7 @@ import { SearchResultComponent } from '../search-result/search-result.component'
 })
 export class SearchOverlayComponent implements OnInit {
 
+  empty = signal<boolean>(true)
   query = signal<string>('')
   loading = signal<boolean>(false)
   results = signal<MoleculeSearchResult[]>([])
@@ -88,8 +89,6 @@ export class SearchOverlayComponent implements OnInit {
   close(): void {
     this.searchContextService.isOpenedSearchOverlay.set(false)
   }
-
-  onSearch(query: string): void { }
 
   @HostListener('document:keydown.escape', ['$event'])
   onEscape() {
@@ -102,12 +101,18 @@ export class SearchOverlayComponent implements OnInit {
 
   }
 
+  onEmpty(): void {
+    this.empty.set(true)
+  }
+
   handleResults(results: MoleculeSearchResult[]): void {
+    this.empty.set(false)
     this.results.set(results)
     this.error.set(null)
   }
 
   handleError(err: unknown): void {
+    this.empty.set(false)
     this.error.set(err)
     this.results.set([])
   }
