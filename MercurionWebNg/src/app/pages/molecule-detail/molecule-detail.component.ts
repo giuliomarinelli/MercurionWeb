@@ -38,9 +38,11 @@ import { MoleculeCtaChemblComponent } from '../../components/molecule-detail/mol
             Struttura
           </h2>
 
-            <div class="h-400px flex-shrink-0
+            <div class="h-400px
+              flex-shrink-0
               w-auto
-              h-[300px]
+              h-[180px]
+              md:h-[300px]
               overflow-hidden
               overflow-x-auto
               relative">
