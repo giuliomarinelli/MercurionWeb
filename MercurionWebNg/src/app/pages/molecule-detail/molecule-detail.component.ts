@@ -97,6 +97,7 @@ export class MoleculeDetailComponent implements OnInit {
   ngOnInit(): void {
     this.molecule$ = this.route.paramMap.pipe(
       switchMap((params) => {
+        this.viewerReady.set(false)
         const molregno = params.get('molregno');
         if (!molregno) throw new Error('UndefinedMolregno');
         return this.moleculeService.getMoleculeByMolregno(molregno);
