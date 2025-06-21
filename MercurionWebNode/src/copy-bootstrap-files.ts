@@ -4,6 +4,7 @@ import * as path from 'path'
 export function copyBootstrapFiles() {
 
   if (process.env.NODE_ENV === 'development') {
+    
     const keysSourcePath = path.join(process.cwd(), 'src/config/keys')
     const keysDistPath = path.join(process.cwd(), 'dist/config/keys')
 

@@ -34,7 +34,7 @@ export interface JwtConfiguration {
 export interface JwtConfigurations {
 
     accessToken: JwtConfiguration
-    refreshToken: JwtConfiguration
+    ws_accessToken: JwtConfiguration
     preAuthorizationToken: JwtConfiguration
     activationToken: JwtConfiguration
     phoneNumberVerificationToken: JwtConfiguration

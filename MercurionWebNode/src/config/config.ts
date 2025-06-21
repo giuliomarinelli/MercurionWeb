@@ -86,9 +86,8 @@ const JwtConfig = registerAs(
         accessToken: {
             expiresInMs: Number(process.env.JWT_EXPIRATION_ACCESS_TOKEN)
         },
-        refreshToken: {
-            secret: process.env.JWT_SECRETS_REFRESH_TOKEN,
-            expiresInMs: Number(process.env.JWT_EXPIRATION_REFRESH_TOKEN)
+        ws_accessToken: {
+            expiresInMs: Number(process.env.JWT_EXPIRATION_WS_ACCESS_TOKEN)
         },
         preAuthorizationToken: {
             secret: process.env.JWT_SECRETS_PRE_AUTHORIZATION_TOKEN,

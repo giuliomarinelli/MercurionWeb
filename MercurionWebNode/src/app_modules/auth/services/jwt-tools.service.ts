@@ -19,6 +19,7 @@ import { SessionService } from './session.service';
 export class JwtToolsService {
 
     private readonly accessTokenConfig: JwtConfiguration = { expiresInMs: 0 }
+    private readonly ws_accessTokenConfig: JwtConfiguration = { expiresInMs: 0 }
     private readonly preAuthorizationTokenConfig: JwtConfiguration
     private readonly activationTokenConfig: JwtConfiguration
     private readonly phoneNumberVerificationTokenConfig: JwtConfiguration
@@ -32,9 +33,10 @@ export class JwtToolsService {
 
     private readonly jwtIssuer: string
 
-
     private readonly privateKey: string
     private readonly publicKey: string
+    private readonly ws_privateKey: string
+    private readonly ws_publicKey: string
 
     constructor(
         private readonly jwtService: JwtService,
@@ -44,6 +46,7 @@ export class JwtToolsService {
         private readonly sessionService: SessionService
     ) {
         this.accessTokenConfig.expiresInMs = this.configService.get<number>("Jwt.accessToken.expiresInMs") as number
+        this.ws_accessTokenConfig.expiresInMs = this.configService.get<number>("Jwt.ws_accessToken.expiresInMs") as number
         this.preAuthorizationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.preAuthorizationToken") as JwtConfiguration
         this.activationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.activationToken") as JwtConfiguration
         this.phoneNumberVerificationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.phoneNumberVerificationToken") as JwtConfiguration
@@ -59,12 +62,15 @@ export class JwtToolsService {
 
         this.privateKey = readFileSync(resolve(__dirname, '../../../config/keys/private.pem'), 'utf8')
         this.publicKey = readFileSync(resolve(__dirname, '../../../config/keys/public.pem'), 'utf8')
+        this.ws_privateKey = readFileSync(resolve(__dirname, '../../../config/keys/ws_private.pem'), 'utf8')
+        this.ws_publicKey = readFileSync(resolve(__dirname, '../../../config/keys/ws_public.pem'), 'utf8')
 
     }
 
     private getJwtConfigurationFromTokenType(type: TokenType): JwtConfiguration {
         switch (type) {
             case TokenType.AccessToken: return this.accessTokenConfig
+            case TokenType.ws_AccessToken: return this.ws_accessTokenConfig
             case TokenType.PreAuthorizationToken: return this.preAuthorizationTokenConfig
             case TokenType.ActivationToken: return this.activationTokenConfig
             case TokenType.PhoneNumberVerificationToken: return this.phoneNumberVerificationTokenConfig
@@ -83,14 +89,19 @@ export class JwtToolsService {
         const scopes: string[] = await this.userService.getUserScopesById(userId) ?? []
         const scp: string = scopes.map(s => GeneralUtils.getEnumKeyByValue(Scope, s)).join(' ')
 
-        // 🔹 Usa RS256 per AccessToken, HS512 per gli altri
-        const signOptions: JwtSignOptions = type === TokenType.AccessToken
-            ? { algorithm: "RS256", privateKey: this.privateKey }
-            : { algorithm: "HS512", secret: jwtConfig.secret }
+        // 🔹 Usa RS256 per gli AccessToken, HS512 per gli altri
+        let signOptions: JwtSignOptions
+        if (type === TokenType.AccessToken) {
+            signOptions = { algorithm: "RS256", privateKey: this.privateKey }
+        } else if (type === TokenType.ws_AccessToken) {
+            signOptions = { algorithm: "RS256", privateKey: this.ws_privateKey }
+        } else {
+            signOptions = { algorithm: "HS512", secret: jwtConfig.secret }
+        }
 
-        const jti: UUID = randomUUID(); // Genera JTI univoco per il token
+        const jti: UUID = randomUUID() // Genera JTI univoco per il token
         const expiresAt = Math.floor(Date.now() / 1000) + (jwtConfig.expiresInMs / 1000)
-        
+
         // 🔹 Generazione del Token
         const token: string = await this.jwtService.signAsync(
             {
@@ -107,7 +118,7 @@ export class JwtToolsService {
         )
 
         // 🔹 Se è un AccessToken, memorizziamo il JTI tra i token emessi
-        if (type === TokenType.AccessToken || type === TokenType.PreAuthorizationToken) {
+        if (type === TokenType.AccessToken || type === TokenType.ws_AccessToken || type === TokenType.PreAuthorizationToken) {
             if (sessionId == undefined) throw new RpcException('NoSuchSessionInAccessTokenSignature')
             const issuedKey = `issued:${sessionId.toString()}:${jti}`
             await this.redisservice.set(issuedKey, '1', jwtConfig.expiresInMs / 1000) // TTL uguale alla durata del token
@@ -125,9 +136,16 @@ export class JwtToolsService {
         const jwtConfig = this.getJwtConfigurationFromTokenType(type)
 
         try {
-            const verifyOptions: JwtVerifyOptions = type === TokenType.AccessToken
-                ? { algorithms: ["RS256"], publicKey: this.publicKey, ignoreExpiration }
-                : { algorithms: ["HS512"], secret: jwtConfig.secret, ignoreExpiration }
+
+            let verifyOptions: JwtVerifyOptions
+
+            if (type === TokenType.AccessToken) {
+                verifyOptions = { algorithms: ["RS256"], publicKey: this.publicKey, ignoreExpiration }
+            } else if (type === TokenType.ws_AccessToken) {
+                verifyOptions = { algorithms: ["RS256"], publicKey: this.ws_publicKey, ignoreExpiration }
+            } else {
+                verifyOptions = { algorithms: ["HS512"], secret: jwtConfig.secret, ignoreExpiration }
+            }
 
             await this.jwtService.verifyAsync(token, verifyOptions)
             const payload: AppJwtPayload = this.jwtService.decode<AppJwtPayload>(token)
@@ -142,6 +160,7 @@ export class JwtToolsService {
     }
 
     public extractAccessTokenFromReq(req: FastifyRequest): string | never {
+        
         const authorizationHeader: string = req.headers['authorization'] ?? ''
 
         if (
