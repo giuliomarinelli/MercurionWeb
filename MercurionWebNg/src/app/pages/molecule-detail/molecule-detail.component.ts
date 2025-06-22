@@ -1,7 +1,7 @@
 // Refactor #1: MoleculeDetailComponent
 import { Component, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { MoleculeService } from '../../services/molecule.service';
+import { MoleculeService } from '../../services/graphql/molecule.service';
 import { switchMap, Observable, catchError, of } from 'rxjs';
 import { MoleculeDetail } from '../../Models/graphql/molecule.detail';
 import { AsyncPipe } from '@angular/common';

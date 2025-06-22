@@ -2,7 +2,7 @@ import { Injectable, computed, signal } from '@angular/core';
 import { Apollo, gql } from 'apollo-angular';
 import { map, tap } from 'rxjs/operators';
 import { Observable } from 'rxjs';
-import { MoleculeSearchResult } from '../Models/graphql/molecule-search/molecule-search-result.interface';
+import { MoleculeSearchResult } from '../../Models/graphql/molecule-search/molecule-search-result.interface';
 
 
 

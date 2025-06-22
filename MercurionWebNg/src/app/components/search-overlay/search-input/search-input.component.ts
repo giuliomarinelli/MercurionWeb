@@ -3,7 +3,7 @@ import { AfterViewInit, Component, effect, ElementRef, EventEmitter, Output, sig
 import { FormsModule } from '@angular/forms';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { MoleculeSearchService } from '../../../services/molecule-search.service';
+import { MoleculeSearchService } from '../../../services/graphql/molecule-search.service';
 import { MoleculeSearchResult } from '../../../Models/graphql/molecule-search/molecule-search-result.interface';
 
 
