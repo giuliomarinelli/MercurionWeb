@@ -96,7 +96,7 @@ describe('LabNotebookService', () => {
       jest.spyOn(service, 'findOne').mockResolvedValue('note' as any);
       const res = await service.update('1' as any, 'user' as any, { title: 't' }, EMPTY_FIELDS_MAP);
       expect(repo.update).toHaveBeenCalledWith(
-        { id: '1' },
+        { id: '1', userId: 'user' },
         expect.objectContaining({ title: 't', updatedAt: expect.any(Number) })
       );
       expect(res).toBe('note');
