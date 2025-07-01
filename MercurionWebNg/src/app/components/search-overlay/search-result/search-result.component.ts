@@ -1,6 +1,7 @@
 import {
   Component, Input, signal, effect,
-  ElementRef, OnDestroy
+  ElementRef, OnDestroy,
+  NgZone
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
@@ -66,44 +67,55 @@ export class SearchResultComponent implements OnDestroy {
   /** viewer OFF finché true */
   disablePreview = signal<boolean>(true)
 
-
-  private io: IntersectionObserver
+  private seen: boolean = false
+  private io!: IntersectionObserver
 
   constructor(
     protected readonly searchContext: SearchContextService,
     private readonly themeManager: ThemeManagerService,
-    host: ElementRef<HTMLElement>
+    private readonly zone: NgZone,
+    private host: ElementRef<HTMLElement>
   ) {
     /* aggiorna dark mode */
     effect(() => this.isDarkMode.set(this.themeManager.theme() === 'dark'));
 
     /* Avvia viewer quando card entra nel viewport */
-    this.io = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) this.disablePreview.set(false); },
-      { rootMargin: '150px' }
-    );
-    this.io.observe(host.nativeElement);
+    this.zone.runOutsideAngular(() => {
+      this.io = new IntersectionObserver(
+        ([entry], observer) => {
+          if (entry.isIntersecting && !this.seen) {
+            this.seen = true;                    // blocca ulteriori reset
+            observer.unobserve(entry.target);    // stacca l’elemento
+            this.zone.run(() => this.disablePreview.set(false));
+          }
+        },
+        { rootMargin: '150px', threshold: 0.01 }
+      );
+      const isInViewport = (el: HTMLElement) =>
+        el.getBoundingClientRect().top < window.innerHeight + 150; // stesso rootMargin
 
-    /* Se card già visibile (in cima), sblocca subito */
-    queueMicrotask(() => {
-      if (this.disablePreview()) this.disablePreview.set(false)
-    })
+      queueMicrotask(() => {
+        if (this.disablePreview() && isInViewport(host.nativeElement)) {
+          this.zone.run(() => this.disablePreview.set(false));
+        }
+      });
+      this.io.observe(host.nativeElement);
+    });
   }
+
 
   /* inputs ---------------------------------- */
   @Input({ required: true })
   set molecule(m: MoleculeSearchResult) {
-    /* reset ciclo ogni volta che cambia la molecola */
-    this.viewerReady.set(false);      // skeleton ON
-    this.disablePreview.set(true);    // blocca il viewer
+    this.seen = false;                // <— nuova molecola = nuovo lazy load
+    this.viewerReady.set(false);
+    this.disablePreview.set(true);
 
     this._molecule.set(m);
     this._pathToMolecule.set(`molecules/detail/${m.id}`);
 
-    /* se la card è già visibile, sblocca al micro-task successivo */
-    queueMicrotask(() => {
-      if (this.disablePreview()) this.disablePreview.set(false);
-    });
+    // nel caso l’IO fosse stato detachato:
+    this.zone.runOutsideAngular(() => this.io.observe(this.host.nativeElement));
   }
 
 

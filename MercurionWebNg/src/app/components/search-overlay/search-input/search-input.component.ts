@@ -104,6 +104,7 @@ export class SearchInputComponent implements AfterViewInit {
   clear(): void {
     this.query.set('')
     this.onEmpty.emit()
+    queueMicrotask(() => this.searchInputRef.nativeElement.focus())
   }
 
   ngAfterViewInit(): void {
