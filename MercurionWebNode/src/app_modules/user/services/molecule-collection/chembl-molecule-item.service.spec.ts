@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ChemblMoleculeItemService } from './chembl-molecule-item.service';
+import { ChEMBLMoleculeItemService } from './chembl-molecule-item.service';
 
 describe('ChemblMoleculeItemService', () => {
-  let service: ChemblMoleculeItemService;
+  let service: ChEMBLMoleculeItemService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [ChemblMoleculeItemService],
+      providers: [ChEMBLMoleculeItemService],
     }).compile();
 
-    service = module.get<ChemblMoleculeItemService>(ChemblMoleculeItemService);
+    service = module.get<ChEMBLMoleculeItemService>(ChEMBLMoleculeItemService);
   });
 
   it('should be defined', () => {
