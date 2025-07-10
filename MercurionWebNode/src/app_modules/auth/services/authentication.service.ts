@@ -17,6 +17,7 @@ import { IAuth } from '../Models/interfaces/i-auth.interface';
 import { GeneralUtils } from 'src/general-utils/general-utils';
 import { createHash, UUID } from 'crypto';
 import { GeoIpService, GeoLocation } from './geo-ip.service';
+import { TokenPair } from '../Models/interfaces/token-pair.interface';
 
 @Injectable()
 export class AuthenticationService {
@@ -102,9 +103,8 @@ export class AuthenticationService {
     }
 
     // Restituisce un DTO di risposta con l'Access Token e se l'utente ha MFA attiva, attiva anche la sessione
-    public async performAuthentication(auth: Authentication | Omit<Authentication, 'needsMfa' | 'enabledMfaStrategies' | 'suspiciousAttempt'>, fingerprintData: FingerprintData, ip: string, trustVerify: boolean = false): Promise<string> {
+    public async performAuthentication(auth: Authentication | Omit<Authentication, 'needsMfa' | 'enabledMfaStrategies' | 'suspiciousAttempt'>, fingerprintData: FingerprintData, ip: string, trustVerify: boolean = false): Promise<TokenPair> {
         const { userId, sessionId } = auth
-        const accessToken = await this.jwtTools.generateToken(userId, TokenType.AccessToken, sessionId)
         if (await this.mfaService.isMfaEnabled(userId) || trustVerify) {
             await this.sessionService.activateSession(sessionId)
         }
@@ -113,7 +113,12 @@ export class AuthenticationService {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { city, country, ip: _ip, region, ...geoLocation } = this.geoIpService.getLocation(ip)
         await this.sessionService.addTrustedLocation(userId, geoLocation as GeoLocation)
-        return accessToken
+        const accessToken = await this.jwtTools.generateToken(userId, TokenType.AccessToken, sessionId)
+        const ws_accessToken = await this.jwtTools.generateToken(userId, TokenType.ws_AccessToken, sessionId)
+        return {
+            accessToken,
+            ws_accessToken
+        }
 
     }
 

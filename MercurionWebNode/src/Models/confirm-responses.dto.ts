@@ -13,8 +13,9 @@ export type ConfirmWithObsContDTO = ConfirmDTO & {
     obscuredPhoneNumber?: string
 }
 
-export type ConfirmWithAccessTokenAndInitialsDTO = ConfirmDTO & {
+export type ConfirmWithTokenPairAndInitialsDTO = ConfirmDTO & {
     accessToken: string
+    ws_accessToken: string
     initials: string
 }
 
@@ -29,6 +30,7 @@ export type ConfirmChangeDTO = ConfirmWithObsContDTO & TotpMetadata & {
 export type Confirm_Login_FirstStepDTO = ConfirmDTO & Omit<Authentication, 'userId' | 'sessionId'> & {
     preAuthorizationToken?: string
     accessToken?: string
+    ws_accessToken?: string
     initials: string
 }
 

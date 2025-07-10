@@ -12,6 +12,7 @@ export interface Login_FirstStep_Data {
   suspiciousAttempt: boolean
   preAuthorizationToken?: string
   accessToken?: string
+  ws_accessToken?: string
 }
 
 export type Confirm_Login_FirstStepDTO = Login_FirstStep_Data & ConfirmDTO

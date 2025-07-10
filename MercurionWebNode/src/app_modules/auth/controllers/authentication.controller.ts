@@ -8,7 +8,7 @@ import { SessionId, Authorization, ClientIp, DeviceId, DeviceInfo, Fingerprint, 
 import { UUID } from 'crypto';
 import { Authentication } from '../Models/interfaces/authentication.interface';
 import { ResponseService } from 'src/services/response.service';
-import { Confirm_Login_FirstStepDTO, ConfirmDTO, ConfirmWithAccessTokenAndInitialsDTO, ConfirmWithTotpMetaDTO } from 'src/Models/confirm-responses.dto';
+import { Confirm_Login_FirstStepDTO, ConfirmDTO, ConfirmWithTokenPairAndInitialsDTO, ConfirmWithTotpMetaDTO } from 'src/Models/confirm-responses.dto';
 import { TestPhoneDTO } from '../Models/DTO/test-phone.cls.dto';
 import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum';
 import { GeneralUtils } from 'src/general-utils/general-utils';
@@ -76,11 +76,10 @@ export class AuthenticationController {
         const initials = await this.userService.getUserInitialsByUserId(userId)
 
         if (await this.mfaService.isMfaEnabled(auth.userId) || auth.suspiciousAttempt) {
-            const preAuthorizationToken = await this.authService.performPreAuthenticationForMfa(auth)
             return {
                 ...this._r.ok('MFA first step went on successfully'),
                 ...authRes,
-                preAuthorizationToken,
+                preAuthorizationToken: await this.authService.performPreAuthenticationForMfa(auth),
                 initials: initials ?? ''
             }
         }
@@ -88,7 +87,7 @@ export class AuthenticationController {
         return {
             ...this._r.ok('Authenticated successfully'),
             ...authRes,
-            accessToken: await this.authService.performAuthentication(auth, fingerprintData, ip),
+            ...await this.authService.performAuthentication(auth, fingerprintData, ip),
             initials: initials ?? ''
         }
 
@@ -130,7 +129,7 @@ export class AuthenticationController {
         @Body(new ValidationPipe({ transform: true })) dto: TotpBodyDTO,
         @Fingerprint() fingerprintData: FingerprintData,
         @ClientIp() ip: string
-    ): Promise<ConfirmWithAccessTokenAndInitialsDTO> {
+    ): Promise<ConfirmWithTokenPairAndInitialsDTO> {
 
         let userId: UUID
         let sessionId: UUID
@@ -148,10 +147,11 @@ export class AuthenticationController {
         if (!isTotpValid) {
             throw new UnauthorizedException('Invalid MFA OTP')
         }
-        const accessToken: string = await this.authService.performAuthentication({ userId, sessionId }, fingerprintData, ip, trustVerify)
+        const {accessToken, ws_accessToken} = await this.authService.performAuthentication({ userId, sessionId }, fingerprintData, ip, trustVerify)
         return {
             ...this._r.ok('Authenticated successfully'),
             accessToken,
+            ws_accessToken,
             initials: await this.userService.getUserInitialsByUserId(userId) ?? ''
         }
 

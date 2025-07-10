@@ -3,19 +3,19 @@ import { RedisService } from './redis.service'; // Importa RedisService
 import { Redis } from 'ioredis';
 import { AccessTokenRefreshService } from 'src/app_modules/oauth2-client/services/access-token-refresh.service';
 import { UUID } from 'crypto';
+import { Server } from 'socket.io';
 
 @Injectable()
 export class PubSubService implements OnModuleInit {
 
   private readonly subscriber: Redis
   private readonly logger = new Logger(PubSubService.name)
+  private socketServer: Server | undefined
 
   constructor(
     private readonly redisService: RedisService,
     private readonly accessTokenRefreshService: AccessTokenRefreshService
   ) {
-    // Crea un duplicato del client Redis per il Pub/Sub
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     this.subscriber = this.redisService.getClient().duplicate()
   }
 
@@ -24,16 +24,21 @@ export class PubSubService implements OnModuleInit {
     this.subscribeToKeyspaceEvents()
   }
 
+  public setSocketServer(server: Server): void {
+    this.socketServer = server
+  }
+
   private subscribeToKeyspaceEvents(): void {
     this.subscriber.subscribe('__keyevent@0__:expired')
     this.subscriber.subscribe('__keyevent@0__:del')
 
     this.subscriber.on('message', (channel, key) => {
-      if (
-        (channel === '__keyevent@0__:expired' || channel === '__keyevent@0__:del') &&
-        key.startsWith('access_token:')
-      ) {
-        this.handleAccessTokenExpired(channel, key); // <-- NO await, NO return
+      if (channel === '__keyevent@0__:expired' || channel === '__keyevent@0__:del') {
+        if (key.startsWith('access_token:')) {
+          this.handleAccessTokenExpired(channel, key); // <-- NO await, NO return
+        } else if (key.startsWith('session:')) {
+          this.handleSessionExpired(channel, key)
+        }
       }
     })
   }
@@ -56,6 +61,22 @@ export class PubSubService implements OnModuleInit {
       );
     }
   }
+
+  private async handleSessionExpired(channel: string, key: string): Promise<void> {
+    if (!this.socketServer) return;
+
+    const sessionId = key.split(':')[1];
+
+    const userId = await this.redisService.getClient().get(`session_user:${sessionId}`);
+    if (userId) {
+      await this.redisService.getClient().srem(`user_sessions:${userId}`, sessionId);
+    }
+
+    this.socketServer.to(`ws_session:${sessionId}`).emit('sv.pub.session_expired', { detail: 'session expired', reason: channel })
+    this.socketServer.in(`ws_session:${sessionId}`).socketsLeave(`ws_session:${sessionId}`)
+    this.logger.log(`🛑 Emesso evento session_expired e pulita la room ws_session:${sessionId} (${channel})`)
+  }
+
 
   // Metodo per la pubblicazione, se necessario
   public async publish(channel: string, message: string): Promise<void> {

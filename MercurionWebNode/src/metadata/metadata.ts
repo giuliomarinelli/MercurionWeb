@@ -1,9 +1,7 @@
-import { applyDecorators, createParamDecorator, ExecutionContext, SetMetadata, UnauthorizedException, UseGuards } from '@nestjs/common'
+import { createParamDecorator, ExecutionContext, SetMetadata, UnauthorizedException } from '@nestjs/common'
 import { GqlExecutionContext } from '@nestjs/graphql';
-import { SubscribeMessage } from '@nestjs/websockets';
 import { UUID } from 'crypto';
 import { FastifyRequest } from 'fastify';
-import { GlobalGuard } from 'src/app_modules/auth/guards/global.guard';
 import { FingerprintData } from 'src/app_modules/auth/Models/DTO/fingerprints.dtos';
 import { TokenType } from 'src/app_modules/auth/Models/enums/token-type.enum';
 
@@ -101,11 +99,4 @@ export const ClientIp = createParamDecorator(
         return ip;
     }
 )
-
-export function ProtectedSocketEvent(event: string) {
-    return applyDecorators(
-        UseGuards(GlobalGuard),
-        SubscribeMessage(event)
-    )
-}
 
