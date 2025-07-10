@@ -19,6 +19,6 @@ import { OAuth2ClientModule } from '../oauth2-client/oauth2-client.module';
         RedisService,
         PubSubService
     ],
-    exports: [RedisService, Redis]
+    exports: [RedisService, Redis, PubSubService]
 })
 export class RedisModule { }

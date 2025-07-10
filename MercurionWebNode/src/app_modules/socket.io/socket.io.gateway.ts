@@ -1,17 +1,19 @@
 import { WebSocketGateway, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { randomUUID, UUID } from 'crypto';
-import { nullish } from 'src/Models/nullish.type';
+// import { randomUUID, UUID } from 'crypto';
+// import { nullish } from 'src/Models/nullish.type';
 // import { MoleculeSyncService } from '../meilisearch/services/molecule-sync.service';
 import { Logger, OnModuleInit, UseGuards } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+// import { ConfigService } from '@nestjs/config';
 // import { MoleculeDetailSyncService } from '../meilisearch/services/molecule-detail-sync.service';
 import Redis from 'ioredis';
 import { createAdapter } from '@socket.io/redis-adapter';
+import { WsGuard } from './guards/ws.guard';
+import { PubSubService } from '../redis/services/pub-sub.service';
 
 
 @WebSocketGateway()
-@UseGuards()
+@UseGuards(WsGuard)
 export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, OnModuleInit {
 
   private readonly logger = new Logger(SocketIOGateway.name)
@@ -24,7 +26,8 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
   constructor(
     // private readonly moleculeSyncService: MoleculeSyncService,
     // private readonly moleculeDetailSyncService: MoleculeDetailSyncService,
-    private readonly configService: ConfigService
+    // private readonly configService: ConfigService,
+    private readonly pubSubService: PubSubService
   ) { }
 
   onModuleInit() {
@@ -35,25 +38,24 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
     const pubClient = new Redis({ host: 'localhost', port: 6378 })
     const subClient = pubClient.duplicate()
     server.adapter(createAdapter(pubClient, subClient))
+    this.pubSubService.setSocketServer(server); // ← PASSAGGIO CHIAVE!
+    this.logger.log('Socket.IO Redis Adapter e PubSubService pronti! 🚀');
   }
 
 
   async handleConnection(client: Socket) {
-    const userId = client.data.userId as UUID | nullish;
-    if (!userId) {
-      this.connectedClients.set(`UNLOGGED-${randomUUID()}`, client.id)
-      this.logger.log(`🔗 Client connected: UNLOGGED (socketId: ${client.id})`);
-      return
+    const sessionId: string | undefined = client.data?.sid as (string | undefined)
+    if (sessionId) {
+      client.join(`session:${sessionId}`);
+      this.logger.log(`🔗 Client joined room session:${sessionId} (socketId: ${client.id})`);
+    } else {
+      this.logger.warn(`Nessun sessionId trovato per il client ${client.id}`);
     }
-
-    this.connectedClients.set(userId, client.id);
-    client.join(userId); // 🔹 Unisce il client a una stanza con il suo userId
-    this.logger.log(`🔗 Client connected: ${userId} (socketId: ${client.id})`);
   }
 
 
   handleDisconnect(client: Socket) {
-
+    this.logger.log(`🔗 Disconnected ${client.id}`)
   }
 
 
