@@ -1,6 +1,5 @@
 import { CanActivate, ExecutionContext, Injectable, Logger } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Observable } from 'rxjs';
 import { Socket } from 'socket.io';
 import { TokenType } from 'src/app_modules/auth/Models/enums/token-type.enum';
 import { JwtToolsService } from 'src/app_modules/auth/services/jwt-tools.service';
@@ -18,9 +17,9 @@ export class WsGuard implements CanActivate {
     private readonly reflector: Reflector
   ) { }
 
-  canActivate(
+  async canActivate(
     context: ExecutionContext,
-  ): boolean | Promise<boolean> | Observable<boolean> {
+  ): Promise<boolean> {
 
     const isPublic = this.reflector.get<boolean>(IS_PUBLIC_KEY, context.getHandler())
     if (isPublic) {
@@ -57,7 +56,7 @@ export class WsGuard implements CanActivate {
       client.data.scopes = payload.scp?.split(' ') ?? []
       return true
     } catch {
-      client.emit('s_pub_err_event_emitter', { detail: 'Unauthorized' })
+      client.emit('s.pub.err', { detail: 'Unauthorized' })
       return false
     }
   }
