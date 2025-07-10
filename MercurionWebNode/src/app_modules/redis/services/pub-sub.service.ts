@@ -69,7 +69,7 @@ export class PubSubService implements OnModuleInit {
     if (!this.socketServer) return
 
     const sessionId = key.split(':')[1]
-    this.socketServer.to(`session:${sessionId}`).emit('session_expired', { reason: channel })
+    this.socketServer.to(`ws_session:${sessionId}`).emit('sv.pub.session_expired', { reason: channel })
     this.logger.log(`🛑 Emesso evento session_expired per session:${sessionId} (${channel})`)
   }
 

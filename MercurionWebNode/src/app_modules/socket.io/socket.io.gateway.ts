@@ -11,6 +11,8 @@ import { createAdapter } from '@socket.io/redis-adapter';
 import { WsGuard } from './guards/ws.guard';
 import { PubSubService } from '../redis/services/pub-sub.service';
 import { Public } from 'src/metadata/metadata';
+import { UUID } from 'crypto';
+
 
 
 @WebSocketGateway()
@@ -45,29 +47,53 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
 
 
   async handleConnection(client: Socket) {
-    const sessionId: string | undefined = client.data?.sid as (string | undefined)
-    if (sessionId) {
-      client.join(`session:${sessionId}`);
-      this.logger.log(`🔗 Client joined room session:${sessionId} (socketId: ${client.id})`);
+    this.logger.log(`🔗 Connected socket ${client.id}`)
+  }
+
+
+  handleDisconnect(client: Socket): void {
+    this.logger.log(`🔗 Disconnected socket ${client.id}`)
+  }
+
+  private getSessionId(client: Socket): string | undefined {
+    return client.data?.sessionId as (string | undefined)
+  }
+
+  private getUserId(client: Socket): UUID | undefined {
+    return client.data?.userId as (UUID | undefined)
+  }
+
+  private joinUserRooms(client: Socket): void {
+
+    const sessionId = client.data?.sessionId as string | undefined
+    const userId = client.data?.userId?.toString() as string | undefined
+
+    if (sessionId && userId) {
+      if (!client.rooms.has(`ws_session:${sessionId}`)) {
+        client.join(`ws_session:${sessionId}`)
+        this.logger.log(`Socket ${client.id} joinato a ws_session:${sessionId}`)
+      }
+      if (!client.rooms.has(`ws_user:${userId}`)) {
+        client.join(`ws_user:${userId}`);
+        this.logger.log(`Socket ${client.id} joinato a ws_user:${userId}`)
+      }
+
     } else {
-      this.logger.warn(`Nessun sessionId trovato per il client ${client.id}`);
+      this.logger.warn(`Nessun sessionId o userId trovato per il client ${client.id} (socketId: ${client.id})`)
     }
   }
 
-
-  handleDisconnect(client: Socket) {
-    this.logger.log(`🔗 Disconnected ${client.id}`)
-  }
 
   @Public()
   @SubscribeMessage('so.pub.public_test')
   handlePublicTest(@MessageBody() data: string, @ConnectedSocket() client: Socket): void {
     client.emit('sv.pub.public_test', (data ?? '') + ' RESP')
   }
-  
+
   @SubscribeMessage('so.pub.private_test')
   handlePrivateTest(@MessageBody() data: string, @ConnectedSocket() client: Socket): void {
-    client.emit('sv.pub.private_test', (data ?? '') + ' RESP')
+    this.joinUserRooms(client)
+    this.server.to(`ws_user:${this.getUserId(client)!}`).emit('sv.pub.private_test', (data ?? '') + ' PRIVATE RESP')
   }
 
 
