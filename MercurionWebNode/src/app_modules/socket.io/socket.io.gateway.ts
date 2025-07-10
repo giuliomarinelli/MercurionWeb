@@ -1,31 +1,29 @@
-import { WebSocketGateway, SubscribeMessage, MessageBody, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit } from '@nestjs/websockets';
+import { WebSocketGateway, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { randomUUID, UUID } from 'crypto';
 import { nullish } from 'src/Models/nullish.type';
-import { Public } from 'src/metadata/metadata';
-import { MoleculeSyncService } from '../meilisearch/services/molecule-sync.service';
-import { Logger, OnModuleInit } from '@nestjs/common';
+// import { MoleculeSyncService } from '../meilisearch/services/molecule-sync.service';
+import { Logger, OnModuleInit, UseGuards } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { MoleculeDetailSyncService } from '../meilisearch/services/molecule-detail-sync.service';
-import { Scope } from '../user/Models/enums/scope.enum';
+// import { MoleculeDetailSyncService } from '../meilisearch/services/molecule-detail-sync.service';
+import Redis from 'ioredis';
+import { createAdapter } from '@socket.io/redis-adapter';
 
-@WebSocketGateway({
-  cors: {
-    origin: '*'
-  }
-})
-export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, OnModuleInit {
 
-  private readonly logger = new Logger(SocketGateway.name)
+@WebSocketGateway()
+@UseGuards()
+export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, OnModuleInit {
+
+  private readonly logger = new Logger(SocketIOGateway.name)
 
   @WebSocketServer()
-  private server: Server
+  private readonly server: Server
 
   private connectedClients = new Map<string, string>(); // userId -> socketId
 
   constructor(
-    private readonly moleculeSyncService: MoleculeSyncService,
-    private readonly moleculeDetailSyncService: MoleculeDetailSyncService,
+    // private readonly moleculeSyncService: MoleculeSyncService,
+    // private readonly moleculeDetailSyncService: MoleculeDetailSyncService,
     private readonly configService: ConfigService
   ) { }
 
@@ -34,17 +32,12 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
   }
 
   afterInit(server: Server) {
-    const port = this.configService.get<number>('App.port') ?? 8099
-    const addressInfo = server?.httpServer?.address();
-    if (addressInfo && typeof addressInfo === 'object') {
-      const internalport = addressInfo.port;
-      this.logger.log(`SocketGateway started on port ${port + ':' + internalport}`)
-    } else {
-      this.logger.log(`SocketGateway started on port ${port}`)
-    }
+    const pubClient = new Redis({ host: 'localhost', port: 6378 })
+    const subClient = pubClient.duplicate()
+    server.adapter(createAdapter(pubClient, subClient))
   }
 
-  // 🔹 Connessione WebSocket (l'utente è già validato dalla `GlobalGuard`)
+
   async handleConnection(client: Socket) {
     const userId = client.data.userId as UUID | nullish;
     if (!userId) {
@@ -58,74 +51,71 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
     this.logger.log(`🔗 Client connected: ${userId} (socketId: ${client.id})`);
   }
 
-  // 🔹 Disconnessione WebSocket
+
   handleDisconnect(client: Socket) {
-    const userId = [...this.connectedClients.entries()].find(([, socketId]) => socketId === client.id)?.[0];
 
-    if (userId) {
-      this.connectedClients.delete(userId);
-      this.logger.log(`🔌 Client disconnected: ${userId} (socketId: ${client.id})`);
-    }
-  }
-
-  // 🔹 Evento pubblico senza autenticazione
-  @Public()
-  @SubscribeMessage('publicEvent')
-  handlePublicEvent(@MessageBody() data: any) {
-    this.logger.log('Evento pubblico ricevuto:', data);
-  }
-
-  // 🔒 Evento protetto con autenticazione (gestito automaticamente dalla `GlobalGuard`)
-  @SubscribeMessage('protectedEvent')
-  async handleProtectedEvent(@MessageBody() message: { to: string; content: string }, client: Socket) {
-    if (!client.data.userId) {
-      client.emit('error', { message: 'Unauthorized' });
-      return;
-    }
-
-    this.logger.log(`📩 Messaggio ricevuto: ${JSON.stringify(message)}`);
-    this.server.to(message.to).emit('message', message);
   }
 
 
-  // Molecule Melisearch Sync TODO: gestione scopes
-  @Public()
-  @SubscribeMessage('molecule_sync_start_mol_prev_sync')
-  async handleSync(@MessageBody() _data: any, client: Socket) {
-    const scopes: string[] = client.data.scopes ?? []
-    if (!scopes.includes(Scope.SystemSettings)) {
-      client.emit('error', { message: 'Forbidden' })
-      return
-    }
-    this.syncInBackground()
-  }
+  // TODO: Da spostare in nuova applicazione che in locale gestisce la sincronizzazione ChEMBL SQL => Meilisearch 
+  // // 🔹 Evento pubblico senza autenticazione
+  // @Public()
+  // @SubscribeMessage('publicEvent')
+  // handlePublicEvent(@MessageBody() data: any) {
+  //   this.logger.log('Evento pubblico ricevuto:', data);
+  // }
 
-  private async syncInBackground() {
-    await this.moleculeSyncService.syncAllMoleculesWithProgress((progress) => {
-      this.server.emit('molecule_sync_sync_progress', progress)
-    })
+  // // 🔒 Evento protetto con autenticazione (gestito automaticamente dalla `GlobalGuard`)
+  // @SubscribeMessage('protectedEvent')
+  // async handleProtectedEvent(@MessageBody() message: { to: string; content: string }, client: Socket) {
+  //   if (!client.data.userId) {
+  //     client.emit('error', { message: 'Unauthorized' });
+  //     return;
+  //   }
 
-    this.server.emit('molecule_sync_sync_done', { message: 'Sync completed!' })
-  }
+  //   this.logger.log(`📩 Messaggio ricevuto: ${JSON.stringify(message)}`);
+  //   this.server.to(message.to).emit('message', message);
+  // }
 
-  @SubscribeMessage('molecule_sync_start_mol_detail_sync')
-  async handleDetailSync(@MessageBody() _data: any, client: Socket) {
-    const scopes: string[] = client.data.scopes ?? []
-    if (!scopes.includes(Scope.SystemSettings)) {
-      client.emit('error', { message: 'Forbidden' })
-      return
-    }
-    this.logger.log('Handling detail sync...')
-    this.syncDetailInBackground()
-  }
 
-  private async syncDetailInBackground() {
-    await this.moleculeDetailSyncService.syncAllMoleculesWithProgress((progress) => {
-      this.server.emit('molecule_detail_sync_progress', progress);
-    })
+  // // Molecule Melisearch Sync TODO: gestione scopes
+  // @Public()
+  // @SubscribeMessage('molecule_sync_start_mol_prev_sync')
+  // async handleSync(@MessageBody() _data: any, client: Socket) {
+  //   const scopes: string[] = client.data.scopes ?? []
+  //   if (!scopes.includes(Scope.SystemSettings)) {
+  //     client.emit('error', { message: 'Forbidden' })
+  //     return
+  //   }
+  //   this.syncInBackground()
+  // }
 
-    this.server.emit('molecule_detail_sync_done', { message: 'Detail sync completed!' })
-  }
+  // private async syncInBackground() {
+  //   await this.moleculeSyncService.syncAllMoleculesWithProgress((progress) => {
+  //     this.server.emit('molecule_sync_sync_progress', progress)
+  //   })
+
+  //   this.server.emit('molecule_sync_sync_done', { message: 'Sync completed!' })
+  // }
+
+  // @SubscribeMessage('molecule_sync_start_mol_detail_sync')
+  // async handleDetailSync(@MessageBody() _data: any, client: Socket) {
+  //   const scopes: string[] = client.data.scopes ?? []
+  //   if (!scopes.includes(Scope.SystemSettings)) {
+  //     client.emit('error', { message: 'Forbidden' })
+  //     return
+  //   }
+  //   this.logger.log('Handling detail sync...')
+  //   this.syncDetailInBackground()
+  // }
+
+  // private async syncDetailInBackground() {
+  //   await this.moleculeDetailSyncService.syncAllMoleculesWithProgress((progress) => {
+  //     this.server.emit('molecule_detail_sync_progress', progress);
+  //   })
+
+  //   this.server.emit('molecule_detail_sync_done', { message: 'Detail sync completed!' })
+  // }
 
 }
 

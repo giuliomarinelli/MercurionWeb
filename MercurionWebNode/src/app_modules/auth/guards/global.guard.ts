@@ -4,7 +4,6 @@ import { SessionService } from '../services/session.service';
 import { IS_PUBLIC_KEY } from 'src/metadata/metadata';
 import { TokenType } from '../Models/enums/token-type.enum';
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { Socket } from 'socket.io';
 import { Reflector } from '@nestjs/core';
 import { GqlContextType, GqlExecutionContext } from '@nestjs/graphql';
 import { AppJwtPayload } from '../Models/interfaces/app-jwt-payload.interface';
@@ -34,10 +33,6 @@ export class GlobalGuard implements CanActivate {
 
       if (context.getType() === 'http' || context.getType<GqlContextType>() === 'graphql') {
          return this.validateHttpRequest(context)
-      }
-
-      if (context.getType() === 'ws') {
-         return this.validateWebSocketEvent(context)
       }
 
       throw new UnauthorizedException()
@@ -133,31 +128,5 @@ export class GlobalGuard implements CanActivate {
    }
 
 
-   // 🔹 Validazione per EVENTI WebSocket
-   private async validateWebSocketEvent(context: ExecutionContext): Promise<boolean> {
-      const client: Socket = context.switchToWs().getClient()
-      const token = client.handshake.query.token as string
-      const deviceId = client.handshake.query.deviceId as string
-
-      if (!token || !deviceId) {
-         return false
-      }
-
-      try {
-
-         const payload = await this.jwtToolsService.verifyTokenAndGetPayload(token, TokenType.AccessToken)
-
-         if (!await this.sessionService.validateSession(payload.sid, deviceId)) {
-            return false
-         }
-
-         // 🔹 Inietta lo userId e gli scope nei dati della socket
-         client.data.userId = payload.sub
-         client.data.scopes = payload.scp?.split(' ') ?? []
-         return true
-      } catch {
-         client.emit('s_pub_err_event_emitter', { message: 'Unauthorized' })
-         return false
-      }
-   }
+   
 }
