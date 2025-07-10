@@ -16,8 +16,6 @@ export class PubSubService implements OnModuleInit {
     private readonly redisService: RedisService,
     private readonly accessTokenRefreshService: AccessTokenRefreshService
   ) {
-    // Crea un duplicato del client Redis per il Pub/Sub
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     this.subscriber = this.redisService.getClient().duplicate()
   }
 
@@ -64,14 +62,21 @@ export class PubSubService implements OnModuleInit {
     }
   }
 
-  private handleSessionExpired(channel: string, key: string): void {
-    
-    if (!this.socketServer) return
+  private async handleSessionExpired(channel: string, key: string): Promise<void> {
+    if (!this.socketServer) return;
 
-    const sessionId = key.split(':')[1]
-    this.socketServer.to(`ws_session:${sessionId}`).emit('sv.pub.session_expired', { reason: channel })
-    this.logger.log(`🛑 Emesso evento session_expired per session:${sessionId} (${channel})`)
+    const sessionId = key.split(':')[1];
+
+    const userId = await this.redisService.getClient().get(`session_user:${sessionId}`);
+    if (userId) {
+      await this.redisService.getClient().srem(`user_sessions:${userId}`, sessionId);
+    }
+
+    this.socketServer.to(`ws_session:${sessionId}`).emit('sv.pub.session_expired', { detail: 'session expired', reason: channel })
+    this.socketServer.in(`ws_session:${sessionId}`).socketsLeave(`ws_session:${sessionId}`)
+    this.logger.log(`🛑 Emesso evento session_expired e pulita la room ws_session:${sessionId} (${channel})`)
   }
+
 
   // Metodo per la pubblicazione, se necessario
   public async publish(channel: string, message: string): Promise<void> {

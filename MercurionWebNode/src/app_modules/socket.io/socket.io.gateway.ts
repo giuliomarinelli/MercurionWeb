@@ -1,4 +1,4 @@
-import { WebSocketGateway, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, MessageBody, ConnectedSocket } from '@nestjs/websockets';
+import { WebSocketGateway, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, MessageBody, ConnectedSocket, WsResponse } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 // import { randomUUID, UUID } from 'crypto';
 // import { nullish } from 'src/Models/nullish.type';
@@ -95,6 +95,14 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
     this.joinUserRooms(client)
     this.server.to(`ws_user:${this.getUserId(client)!}`).emit('sv.pub.private_test', (data ?? '') + ' PRIVATE RESP')
   }
+
+  @SubscribeMessage('so.pub.session_init')
+  handleSessionInit(@ConnectedSocket() client: Socket): { detail: string } {
+    this.joinUserRooms(client)
+    return { detail: 'websocket session init successful' }
+  }
+
+
 
 
   // TODO: Da spostare in nuova applicazione che in locale gestisce la sincronizzazione ChEMBL SQL => Meilisearch 

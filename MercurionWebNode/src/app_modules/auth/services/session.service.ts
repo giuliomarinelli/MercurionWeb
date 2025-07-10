@@ -22,6 +22,10 @@ export class SessionService {
         return `trustedLocation:${userId}`
     }
 
+    public async getActiveSessionsForUser(userId: UUID): Promise<string[]> {
+        return await this.redisService.getClient().smembers(`user_sessions:${userId}`)
+    }
+
     // 🔹 Creazione di una nuova sessione (semplificata con Omit<>)
     async createSession(
         sessionData: Omit<ISession, | 'sessionId' | 'expiresAt' | 'lastAccessedAt' | 'valid' | 'doNotAskMfaPhoneNumberVerification'>,
@@ -54,6 +58,12 @@ export class SessionService {
         await this.redisService.hset(sessionKey, 'location', sessionData.location)
 
         await this.redisService.setTTL(sessionKey, ttlSeconds)
+        await this.redisService.sadd(`user_sessions:${sessionData.userId}`, sessionId)
+        await this.redisService.set(
+            `session_user:${sessionId}`,
+            sessionData.userId,
+            ttlSeconds
+        )
 
         return session
     }
@@ -177,12 +187,15 @@ export class SessionService {
         return value !== null && value !== undefined
     }
 
-    public async destroySession(sessionId: string, deviceId: string): Promise<void> | never {
+    public async destroySession(sessionId: string, deviceId: string, userId?: UUID): Promise<void> | never {
         const sessionKey = this.getSessionKey(sessionId)
         const exists = await this.existsSession(sessionId)
         const expectedDeviceId = await this.redisService.hget(sessionKey, 'deviceId')
         const deviceIdMatches = expectedDeviceId === deviceId
         if (exists && deviceIdMatches) {
+            if (userId) {
+                await this.redisService.srem(`user_sessions:${userId}`, sessionId)
+            }
             await this.redisService.del(sessionKey)
             return
         }
