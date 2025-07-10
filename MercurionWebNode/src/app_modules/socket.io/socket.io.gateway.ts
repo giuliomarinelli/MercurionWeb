@@ -1,4 +1,4 @@
-import { WebSocketGateway, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit } from '@nestjs/websockets';
+import { WebSocketGateway, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, MessageBody, ConnectedSocket } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 // import { randomUUID, UUID } from 'crypto';
 // import { nullish } from 'src/Models/nullish.type';
@@ -10,6 +10,7 @@ import Redis from 'ioredis';
 import { createAdapter } from '@socket.io/redis-adapter';
 import { WsGuard } from './guards/ws.guard';
 import { PubSubService } from '../redis/services/pub-sub.service';
+import { Public } from 'src/metadata/metadata';
 
 
 @WebSocketGateway()
@@ -56,6 +57,17 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
 
   handleDisconnect(client: Socket) {
     this.logger.log(`🔗 Disconnected ${client.id}`)
+  }
+
+  @Public()
+  @SubscribeMessage('so.pub.public_test')
+  handlePublicTest(@MessageBody() data: string, @ConnectedSocket() client: Socket): void {
+    client.emit('sv.pub.public_test', (data ?? '') + ' RESP')
+  }
+  
+  @SubscribeMessage('so.pub.private_test')
+  handlePrivateTest(@MessageBody() data: string, @ConnectedSocket() client: Socket): void {
+    client.emit('sv.pub.private_test', (data ?? '') + ' RESP')
   }
 
 

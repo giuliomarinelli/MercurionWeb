@@ -40,6 +40,7 @@ export class WsGuard implements CanActivate {
     const deviceId = client.handshake.query.deviceId as string
 
     if (!token || !deviceId) {
+      this.unauthorized(client)
       return false
     }
 
@@ -48,6 +49,7 @@ export class WsGuard implements CanActivate {
       const payload = await this.jwtTools.verifyTokenAndGetPayload(token, TokenType.ws_AccessToken)
 
       if (!await this.sessionService.validateSession(payload.sid, deviceId)) {
+        this.unauthorized(client)
         return false
       }
 
@@ -56,9 +58,13 @@ export class WsGuard implements CanActivate {
       client.data.scopes = payload.scp?.split(' ') ?? []
       return true
     } catch {
-      client.emit('s.pub.err', { detail: 'Unauthorized' })
+      this.unauthorized(client)
       return false
     }
+  }
+
+  private unauthorized(client: Socket): void {
+    client.emit('sv.pub.err', { detail: 'Unauthorized' })
   }
 
 }
