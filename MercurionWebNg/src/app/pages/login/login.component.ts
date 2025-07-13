@@ -256,7 +256,7 @@ export class LoginComponent implements OnInit, OnDestroy {
               this.realtimeSocketService.disconnect()
             }
             this.realtimeSocketService.connect()
-            console.log(this.realtimeSocketService.emit('so.pub.session_init'))
+            this.realtimeSocketService.emit('so.pub.session_init').then(ack => console.log(ack))
             this.userContext.setInitials(res.initials ?? 'U')
             const loginPath: string = atob(sessionStorage.getItem('loginLastPath') || '') || '/profile'
             this.router.navigate([loginPath])

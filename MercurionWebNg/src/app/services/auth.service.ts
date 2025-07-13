@@ -107,6 +107,7 @@ export class AuthService {
   public logout(): Observable<void> {
     localStorage?.getItem('login') && localStorage?.removeItem('login')
     this.setAccessToken(null)
+    this.setWs_accessToken(null)
     return this.http.delete<void>('/api/authentication/logout', {
       withCredentials: true
     })

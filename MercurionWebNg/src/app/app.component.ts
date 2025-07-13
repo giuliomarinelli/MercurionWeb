@@ -138,6 +138,8 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     private realtimeSocketService: RealtimeSocketService
   ) {
     this.realtimeSocketService.onConnect().subscribe(r => console.log('socket connected'))
+    this.realtimeSocketService.connect()
+    this.realtimeSocketService.emit('so.pub.session_init').then(ack => console.log(ack))
     // TODO: Fixd these effects in a robuste manner
     effect(() => {
       // const initials = this.userContext.initials()
