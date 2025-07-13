@@ -18,7 +18,7 @@ export class RealtimeSocketService {
       query: {
         token: this.authService.getAccessToken() ?? undefined
       }
-    } as any)
+    })
   }
 
   public emit<T>(event: string, payload?: T): void {
