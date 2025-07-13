@@ -41,8 +41,8 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
     const pubClient = new Redis({ host: 'localhost', port: 6378 })
     const subClient = pubClient.duplicate()
     server.adapter(createAdapter(pubClient, subClient))
-    this.pubSubService.setSocketServer(server); // ← PASSAGGIO CHIAVE!
-    this.logger.log('Socket.IO Redis Adapter e PubSubService pronti! 🚀');
+    this.pubSubService.setSocketServer(server)
+    this.logger.log('Socket.IO Redis Adapter e PubSubService pronti! 🚀')
   }
 
 

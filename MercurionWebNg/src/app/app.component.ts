@@ -14,6 +14,7 @@ import { PathService } from './services/path.service';
 import { SidenavContextService } from './services/context/sidenav-context.service';
 import { DesignService } from './services/design.service';
 import { SidenavComponent } from './components/common/sidenav/sidenav.component';
+import { RealtimeSocketService } from './services/socket.IO/realtime-socket.service';
 
 
 
@@ -133,8 +134,10 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     protected readonly userContext: UserContextService,
     private readonly pathService: PathService,
     protected readonly sidenavContext: SidenavContextService,
-    protected readonly design: DesignService
+    protected readonly design: DesignService,
+    private realtimeSocketService: RealtimeSocketService
   ) {
+    this.realtimeSocketService.onConnect().subscribe(r => console.log('socket connected'))
     // TODO: Fixd these effects in a robuste manner
     effect(() => {
       // const initials = this.userContext.initials()
