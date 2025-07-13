@@ -35,7 +35,7 @@ export class RealtimeSocketService {
       const timer = setTimeout(() => {
         if (!settled) {
           settled = true
-          reject('Timeout ack Socket.io')
+          resolve(undefined as R)
         }
       }, timeout)
       this.socket!.emit(event, payload, (ack: R) => {

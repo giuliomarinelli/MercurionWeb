@@ -1,22 +1,20 @@
-import { AfterViewInit, Component, computed, CUSTOM_ELEMENTS_SCHEMA, effect, ElementRef, NgZone, OnDestroy, OnInit, signal, Signal, ViewChild } from '@angular/core';
-import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
-import { HeaderComponent } from './components/common/header/header.component';
-import { ThemeManagerService } from './services/context/theme-manager.service';
-import { SearchOverlayComponent } from './components/search-overlay/search-overlay/search-overlay.component';
-import { SearchContextService } from './services/context/search-context.service';
-import { FooterComponent } from './components/common/footer/footer.component';
-import { NgxxSpinnerComponent } from './components/common/ngxx-spinner/ngxx-spinner.component';
-import { filter, Subscription } from 'rxjs';
-import { ToastComponent } from './components/common/toast/toast.component';
-import { ToastService } from './services/toast.service';
-import { UserContextService } from './services/context/user-context.service';
-import { PathService } from './services/path.service';
-import { SidenavContextService } from './services/context/sidenav-context.service';
-import { DesignService } from './services/design.service';
-import { SidenavComponent } from './components/common/sidenav/sidenav.component';
-import { RealtimeSocketService } from './services/socket.IO/realtime-socket.service';
-
-
+import { AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, OnDestroy, OnInit, ViewChild, computed, signal, Signal, effect } from '@angular/core'
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router'
+import { HeaderComponent } from './components/common/header/header.component'
+import { ThemeManagerService } from './services/context/theme-manager.service'
+import { SearchOverlayComponent } from './components/search-overlay/search-overlay/search-overlay.component'
+import { SearchContextService } from './services/context/search-context.service'
+import { FooterComponent } from './components/common/footer/footer.component'
+import { NgxxSpinnerComponent } from './components/common/ngxx-spinner/ngxx-spinner.component'
+import { filter, Subscription } from 'rxjs'
+import { ToastComponent } from './components/common/toast/toast.component'
+import { ToastService } from './services/toast.service'
+import { UserContextService } from './services/context/user-context.service'
+import { PathService } from './services/path.service'
+import { SidenavContextService } from './services/context/sidenav-context.service'
+import { DesignService } from './services/design.service'
+import { SidenavComponent } from './components/common/sidenav/sidenav.component'
+import { RealtimeSocketService } from './services/socket.IO/realtime-socket.service'
 
 @Component({
   selector: 'app-root',
@@ -30,17 +28,10 @@ import { RealtimeSocketService } from './services/socket.IO/realtime-socket.serv
     ToastComponent,
     SidenavComponent
   ],
-
   template: `
-
-    <!-- 0️⃣  root: colonna piena viewport -->
+    <!-- ... (stesso template che hai già sopra, nessuna modifica necessaria) ... -->
     <div class="flex flex-col h-screen">
-
-      <!-- 1️⃣  Header (sticky) -->
       <app-header class="sticky top-0 z-30" />
-
-      <!-- 2️⃣  Drawer‑container  (relativo, overflow‑hidden) -->
-
       <div class="drawer-container relative flex flex-1 overflow-hidden custom-scrollbar">
         @if (userContext.initials() && design.minBk('lg')()) {
           <div class="absolute top-4 left-[10px] z-30 group">
@@ -71,7 +62,6 @@ import { RealtimeSocketService } from './services/socket.IO/realtime-socket.serv
             </span>
           </div>
         }
-        <!-- 2a) Drawer (RELATIVE, non fixed) -->
         @if (sidenavContext.isMounted() && userContext.initials() && design.minBk('lg')()) {
           <aside
                   class="drawer absolute inset-y-0 left-0 w-64
@@ -82,8 +72,6 @@ import { RealtimeSocketService } from './services/socket.IO/realtime-socket.serv
             <app-sidenav />
           </aside>
         }
-
-        <!-- 2b) Contenuto scorrevole -->
         <section class="content flex flex-col flex-1 overflow-y-auto
                         transition-[margin] duration-500"
                  [class.ml-64]="sidenavContext.isOpen() && userContext.initials() && design.minBk('lg')()">
@@ -92,39 +80,25 @@ import { RealtimeSocketService } from './services/socket.IO/realtime-socket.serv
           </main>
           <app-footer class="shrink-0" />
         </section>
-
       </div>
     </div>
-
-
-
-
-    <!-- Overlay e utilità -->
     @if (searchContextService.isMounted()) {
       <app-search-overlay />
     }
-
     <app-toast [context]="toastService.context()" />
     <app-ngxx-spinner />
-
-`
-
-
-
+  `
 })
 export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
-
-
-
   title = 'MercurionWebNg'
-
-  smilesString = 'CC(=O)OC1=CC=CC=C1C(=O)O'
-  smilesString1 = 'CC[C@@H]([C@H](C)O)N1C(=O)N(C=N1)C2=CC=C(C=C2)N3CCN(CC3)C4=CC=C(C=C4)OC[C@H]5C[C@](OC5)(CN6C=NC=N6)C7=C(C=C(C=C7)F)F'
-
   isDarkTheme: Signal<boolean> = computed(() => this.themeManagerService.theme() === 'dark')
+  isLoggedIn = signal<boolean>(false)
+  private routeSub?: Subscription
+  private currentPath = ''
 
-  private routeSub: Subscription | undefined
-  private currentPath: string = ''
+  @ViewChild(HeaderComponent, { read: ElementRef })
+  headerRef!: ElementRef<HTMLElement>
+  headerHeight = signal(64)
 
   constructor(
     private readonly themeManagerService: ThemeManagerService,
@@ -135,68 +109,53 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly pathService: PathService,
     protected readonly sidenavContext: SidenavContextService,
     protected readonly design: DesignService,
-    private realtimeSocketService: RealtimeSocketService
+    private readonly realtimeSocketService: RealtimeSocketService
   ) {
-    this.realtimeSocketService.onConnect().subscribe(r => console.log('socket connected'))
+    // Connetti la socket solo una volta, non in loop.
     this.realtimeSocketService.connect()
-    this.realtimeSocketService.emit('so.pub.session_init').then(ack => console.log(ack))
-    // TODO: Fixd these effects in a robuste manner
-    effect(() => {
-      // const initials = this.userContext.initials()
-      // const isValid = initials && (initials.length === 1 || initials.length === 2);
-
-      // // Leggi direttamente dalla Router URL, non da pathService
-      // const currentUrl = this.router.url;
-
-      // // Non fare nulla finché Angular non ha completato la navigazione
-      // if (currentUrl === '' || currentUrl === '/') return;
-
-      // // Se non sei loggato, e non sei già su /login, forza redirect
-      // if (!isValid && !currentUrl.startsWith('/login')) {
-      //   this.toastService.trigger('Accesso negato')
-      //   this.router.navigateByUrl('/login')
-      // }
-    })
-    effect(() => {
-      // const initials = this.userContext.initials();
-      // console.log('[effect] initials =', initials, 'zone?', NgZone.isInAngularZone());
-      // console.log('[effect] router url =', this.router.url);
-
-      // if (!initials && !this.router.url.startsWith('/login')) {
-      //   console.log('[effect] → navigate /login');
-      //   this.router.navigate(['/login']);
-      // }
-    });
-
-
   }
 
-  @ViewChild(HeaderComponent, { read: ElementRef })
-  headerRef!: ElementRef<HTMLElement>;
-
-  headerHeight = signal(64)
-
-  async ngOnInit(): Promise<void> {
-
+  async ngOnInit() {
+    // NAVIGATION TRACKING
     this.routeSub = this.router.events
-      .pipe(
-        filter(e => e instanceof NavigationEnd)
-      )
+      .pipe(filter(e => e instanceof NavigationEnd))
       .subscribe((e: NavigationEnd) => {
         this.currentPath = e.urlAfterRedirects
         this.pathService.setPath(this.currentPath)
       })
+
+    // SOLO QUI: gestisci la sessione websocket quando **sei connesso**
+    this.realtimeSocketService.onConnect().subscribe(async () => {
+      try {
+        const ack = await this.realtimeSocketService.emit('so.pub.session_init')
+        console.log(ack)
+        if (ack?.detail === 'websocket session init successful') {
+          if (!this.userContext.isLoggedIn()) {
+            this.userContext.setInitials(localStorage.getItem('login') ?? 'U')
+          }
+          this.isLoggedIn.set(true)
+        } else {
+          this.userContext.clearInitials()
+          this.isLoggedIn.set(false)
+        }
+      } catch {
+        this.userContext.clearInitials()
+        this.isLoggedIn.set(false)
+      }
+    })
+
+    // SESSION EXPIRED EVENT
+    this.realtimeSocketService.on('sv.pub.session_expired').subscribe((res: any) => {
+      if (res?.detail === 'session expired') {
+        this.userContext.clearInitials()
+        this.isLoggedIn.set(false)
+      }
+    })
   }
 
-  ngAfterViewInit(): void {
+  ngAfterViewInit() {}
 
-  }
-
-  ngOnDestroy(): void {
+  ngOnDestroy() {
     this.routeSub?.unsubscribe()
   }
-
-
-
-
 }

@@ -1,4 +1,4 @@
-import { Injectable, NgZone, signal } from '@angular/core';
+import { Injectable, NgZone, signal, computed } from '@angular/core';
 
 @Injectable({
   providedIn: 'root'
@@ -47,4 +47,6 @@ export class UserContextService {
       this._initials.set('')
     })
   }
+
+  public isLoggedIn = computed(() => this._initials != undefined && (this.initials().length === 1 || this.initials.length === 2))
 }
