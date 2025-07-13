@@ -148,6 +148,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     this.realtimeSocketService.on('sv.pub.session_expired').subscribe((res: any) => {
       if (res?.detail === 'session expired') {
         this.userContext.clearInitials()
+        console.log(res)
         this.isLoggedIn.set(false)
       }
     })
