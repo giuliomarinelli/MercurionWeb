@@ -19,6 +19,7 @@ import { UserContextService } from '../../services/context/user-context.service'
 import { TurnstileComponent } from '../../components/common/turnstile/turnstile.component';
 import { PreviousRouteService } from '../../services/previous-route.service';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { RealtimeSocketService } from '../../services/socket.IO/realtime-socket.service';
 
 
 @Component({
@@ -76,7 +77,8 @@ export class LoginComponent implements OnInit, OnDestroy {
     private readonly loadingContext: LoadingContextService,
     private readonly toast: ToastService,
     private readonly userContext: UserContextService,
-    private readonly previousRouteService: PreviousRouteService
+    private readonly previousRouteService: PreviousRouteService,
+    private readonly realtimeSocketService: RealtimeSocketService
   ) {
     this.loginForm = this.fb.group({
       email: this.fb.control(null, [Validators.required, Validators.email]),
@@ -248,9 +250,13 @@ export class LoginComponent implements OnInit, OnDestroy {
               this.router.navigate(['/login/mfa/choose-method'])
             }
           } else {
-            this.userContext.login(res.initials)
             this.authService.setAccessToken(res.accessToken as string)
-            localStorage?.setItem('login', res.initials ?? 'U')
+            this.authService.setWs_accessToken(res.ws_accessToken as string)
+            if (this.realtimeSocketService.isConnected) {
+              this.realtimeSocketService.disconnect()
+            }
+            this.realtimeSocketService.connect()
+            console.log(this.realtimeSocketService.emit('so.pub.session_init'))
             this.userContext.setInitials(res.initials ?? 'U')
             const loginPath: string = atob(sessionStorage.getItem('loginLastPath') || '') || '/profile'
             this.router.navigate([loginPath])

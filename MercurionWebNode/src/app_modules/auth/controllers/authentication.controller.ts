@@ -147,7 +147,7 @@ export class AuthenticationController {
         if (!isTotpValid) {
             throw new UnauthorizedException('Invalid MFA OTP')
         }
-        const {accessToken, ws_accessToken} = await this.authService.performAuthentication({ userId, sessionId }, fingerprintData, ip, trustVerify)
+        const { accessToken, ws_accessToken } = await this.authService.performAuthentication({ userId, sessionId }, fingerprintData, ip, trustVerify)
         return {
             ...this._r.ok('Authenticated successfully'),
             accessToken,

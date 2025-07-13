@@ -33,6 +33,7 @@ export interface AuthenticationData {
 export type Confirm_Login_FirstStepDTO = ConfirmDTO & AuthenticationData & {
     preAuthorizationToken?: string
     accessToken?: string
+    ws_accessToken?: string
     initials: string
 }
 

@@ -16,13 +16,18 @@ export class RealtimeSocketService {
       transports: ['websocket'],
       withCredentials: true,
       query: {
-        token: this.authService.getAccessToken() ?? undefined
+        token: this.authService.getWs_accessToken() ?? undefined
       }
     })
   }
 
-  public emit<T>(event: string, payload?: T): void {
-    this.socket.emit(event, payload)
+  public emit<T>(event: string, payload?: T): any | undefined {
+    let result = undefined
+    this.socket.emit(
+      event,
+      payload,
+      (ack: any) => result = ack)
+    return result
   }
 
   public on<T>(event: string): Observable<T> {
@@ -46,6 +51,10 @@ export class RealtimeSocketService {
 
   public disconnect(): void {
     this.socket.disconnect()
+  }
+
+  public get isConnected(): boolean {
+    return this.socket.connected
   }
 
 }

@@ -21,14 +21,26 @@ export class AuthService {
   ) { }
 
   getAccessToken(): string | null {
-    return localStorage.getItem('accessToken');
+    return localStorage.getItem('accessToken')
+  }
+
+  getWs_accessToken(): string | null {
+    return localStorage.getItem('ws_accessToken')
   }
 
   setAccessToken(token: string | null) {
     if (token) {
-      localStorage.setItem('accessToken', token);
+      localStorage.setItem('accessToken', token)
     } else {
-      localStorage.removeItem('accessToken');
+      localStorage.removeItem('accessToken')
+    }
+  }
+
+  setWs_accessToken(token: string | null) {
+    if (token) {
+      localStorage.setItem('ws_accessToken', token)
+    } else {
+      localStorage.removeItem('ws_accessToken')
     }
   }
 
