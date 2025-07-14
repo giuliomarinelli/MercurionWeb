@@ -14,7 +14,6 @@ import { PathService } from './services/path.service'
 import { SidenavContextService } from './services/context/sidenav-context.service'
 import { DesignService } from './services/design.service'
 import { SidenavComponent } from './components/common/sidenav/sidenav.component'
-import { RealtimeSocketService } from './services/socket.IO/realtime-socket.service'
 import { SessionSyncService } from './services/session-sync.service'
 
 @Component({
@@ -110,27 +109,10 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly pathService: PathService,
     protected readonly sidenavContext: SidenavContextService,
     protected readonly design: DesignService,
-    private readonly realtimeSocketService: RealtimeSocketService,
     private readonly sessionSync: SessionSyncService
   ) {
 
     this.sessionSync.syncSession()
-
-    // Su ogni nuova connessione websocket, esegui handshake e aggiorna il context
-    this.realtimeSocketService.onConnect().subscribe(async () => {
-      try {
-        const ack = await this.realtimeSocketService.emit('so.pub.session_init')
-        if (ack?.detail === 'websocket session init successful') {
-          this.userContext.setInitials(localStorage.getItem('login') ?? 'U')
-        } else {
-          this.userContext.clearInitials()
-        }
-      } catch {
-        this.userContext.clearInitials()
-      }
-    })
-
-
 
     effect(() => {
       const initials = this.userContext.initials()

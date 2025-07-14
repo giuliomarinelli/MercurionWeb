@@ -14,12 +14,12 @@ export type SessionSyncStatus =
 
 @Injectable({ providedIn: 'root' })
 export class SessionSyncService {
-  private _status = signal<SessionSyncStatus>('pending');
-  public readonly status = this._status.asReadonly();
+  private _status = signal<SessionSyncStatus>('pending')
+  public readonly status = this._status.asReadonly()
 
-  private handshakePending = false;
-  private retries = 0;
-  private maxRetries = 5;
+  private handshakePending = false
+  private retries = 0
+  private maxRetries = 5
 
   constructor(
     private readonly realtimeSocket: RealtimeSocketService,
@@ -28,36 +28,37 @@ export class SessionSyncService {
     private readonly router: Router,
     private readonly zone: NgZone
   ) {
-    // Handlers WS attaccati una volta sola, sempre (singleton)
+    // 1. Attacca eventi WS (una volta sola!)
     this.setupWsEvents();
-    /** NEW: se la chiave 'login' esiste già al bootstrap, avvia subito la sync */
+
+    // 2. All'avvio, se login già presente, sincronizza subito
     if (localStorage.getItem('login')) {
       this.syncSession();
     }
 
-    /** storage listener: reagisci anche al LOGIN, non solo al logout */
+    // 3. Storage event: reagisci solo qui a login/logout da altre tab
     window.addEventListener('storage', (event: StorageEvent) => {
       if (event.key === 'login') {
         if (event.newValue) {
-          // login avvenuto in un’altra tab
-          this.resumeSession(event.newValue);
+          // Login avvenuto in un’altra tab
+          this.resumeSession(event.newValue)
         } else {
-          // logout
-          this.logout({ silent: false, fromStorage: true });
+          // Logout da altra tab
+          this.logout({ silent: false, fromStorage: true })
         }
       }
     });
-
   }
+
 
   private setupWsEvents() {
     // WS CONNECT: handshake automatico solo quando serve
     this.realtimeSocket.onConnect().subscribe(() =>
       this.zone.run(() => {
-        this._status.set('handshake');
+        this._status.set('handshake')
         // Se c'è una sessione valida faccio handshake, sennò nulla
         if (localStorage.getItem('login')) {
-          this.syncSession();
+          this.syncSession()
         }
       })
     );
@@ -65,15 +66,15 @@ export class SessionSyncService {
     // WS DISCONNECT
     this.realtimeSocket.onDisconnect().subscribe(() =>
       this.zone.run(() => {
-        this._status.set('disconnected');
-        this.toast.trigger('Connessione persa. Riconnessione in corso...', 'warn');
+        this._status.set('disconnected')
+        this.toast.trigger('Connessione persa. Riconnessione in corso...', 'warn')
       })
     );
 
     // EVENTO SESSION EXPIRED
     this.realtimeSocket.on('sv.pub.session_expired').subscribe(() =>
       this.zone.run(() => {
-        this.handleSessionExpired();
+        this.handleSessionExpired()
       })
     );
   }
