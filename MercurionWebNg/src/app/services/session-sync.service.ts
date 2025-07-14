@@ -1,3 +1,4 @@
+// src/app/services/session-sync.service.ts
 import { Injectable, NgZone, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { ToastService } from './toast.service';
@@ -14,137 +15,133 @@ export type SessionSyncStatus =
 
 @Injectable({ providedIn: 'root' })
 export class SessionSyncService {
-  private _status = signal<SessionSyncStatus>('pending')
-  public readonly status = this._status.asReadonly()
 
-  private handshakePending = false
-  private retries = 0
-  private maxRetries = 5
+  /* ───────────────────────────────────  state  ─────────────────────────────────── */
+  private _status = signal<SessionSyncStatus>('pending');
+  public  readonly status = this._status.asReadonly();
 
+  private handshakePending = false;
+  private retries          = 0;
+  private readonly maxRetries = 5;
+
+  /* ─────────────────────────────────── ctor  ─────────────────────────────────── */
   constructor(
     private readonly realtimeSocket: RealtimeSocketService,
-    private readonly userContext: UserContextService,
-    private readonly toast: ToastService,
-    private readonly router: Router,
-    private readonly zone: NgZone
+    private readonly userContext   : UserContextService,
+    private readonly toast         : ToastService,
+    private readonly router        : Router,
+    private readonly zone          : NgZone,
   ) {
-    // 1. Attacca eventi WS (una volta sola!)
-    this.setupWsEvents();
+    /* 1️⃣ – registriamo i listener PRIMA di aprire la socket */
+    this.realtimeSocket.on('sv.pub.session_expired')
+      .subscribe(() => this.zone.run(() => this.handleSessionExpired()));
 
-    // 2. All'avvio, se login già presente, sincronizza subito
+    this.realtimeSocket.onConnect()
+      .subscribe(() => {
+        if (localStorage.getItem('login')) this.zone.run(() => this.syncSession());
+      });
+
+    this.realtimeSocket.onDisconnect()
+      .subscribe(reason => {
+        if (reason === 'io client disconnect') return;   // chiusura volontaria
+        this.zone.run(() => {
+          this._status.set('disconnected');
+          this.toast.trigger('Connessione persa. Riconnessione in corso…', 'warn');
+        });
+      });
+
+    /* 2️⃣ – apriamo la prima connessione anonima */
+    this.realtimeSocket.connect();
+
+    /* 3️⃣ – se la pagina parte già loggata (F5) facciamo handshake */
     if (localStorage.getItem('login')) {
       this.syncSession();
     }
 
-    // 3. Storage event: reagisci solo qui a login/logout da altre tab
-    window.addEventListener('storage', (event: StorageEvent) => {
-      if (event.key === 'login') {
-        if (event.newValue) {
-          // Login avvenuto in un’altra tab
-          this.resumeSession(event.newValue)
-        } else {
-          // Logout da altra tab
-          this.logout({ silent: false, fromStorage: true })
-        }
-      }
+    /* 4️⃣ – login/logout cross-tab via localStorage */
+    window.addEventListener('storage', (e: StorageEvent) => {
+      if (e.key !== 'login') return;
+      e.newValue ? this.resumeSession(e.newValue) : this.logout({ fromStorage: true });
     });
   }
 
-
-  private setupWsEvents() {
-    // WS CONNECT: handshake automatico solo quando serve
-    this.realtimeSocket.onConnect().subscribe(() =>
-      this.zone.run(() => {
-        this._status.set('handshake')
-        // Se c'è una sessione valida faccio handshake, sennò nulla
-        if (localStorage.getItem('login')) {
-          this.syncSession()
-        }
-      })
-    );
-
-    // WS DISCONNECT
-    this.realtimeSocket.onDisconnect().subscribe(() =>
-      this.zone.run(() => {
-        this._status.set('disconnected')
-        this.toast.trigger('Connessione persa. Riconnessione in corso...', 'warn')
-      })
-    );
-
-    // EVENTO SESSION EXPIRED
-    this.realtimeSocket.on('sv.pub.session_expired').subscribe(() =>
-      this.zone.run(() => {
-        this.handleSessionExpired()
-      })
-    );
-  }
-
-  /** Handshake & sync sessione via WS */
-  public async syncSession({
-    onSuccess,
-    onFail,
-  }: { onSuccess?: () => void; onFail?: (err?: any) => void } = {}) {
+  /* ─────────────────────────────────── handshake  ─────────────────────────────────── */
+  public async syncSession(): Promise<void> {
     if (this.handshakePending) return;
+
     this.handshakePending = true;
     this._status.set('handshake');
+
     try {
-      // La connect è idempotente: la puoi chiamare sempre, riusa la connessione o la crea
+      // ricrea o ri-usa la socket con il token attuale (se presente)
       await this.realtimeSocket.connect();
+
       const ack = await this.realtimeSocket.emit('so.pub.session_init');
+
       if (ack?.detail === 'websocket session init successful') {
         const initials = localStorage.getItem('login') ?? 'U';
         this.userContext.setInitials(initials);
         this._status.set('loggedIn');
-        this.toast.trigger('Bentornato!', 'success');
-        onSuccess?.();
+        this.retries = 0;
       } else {
-        this.handleSessionExpired();
-        onFail?.();
+        /* handshake fallito ⇒ non siamo autenticati */
+        this.logout({ silent: true });
       }
-    } catch (err) {
+    } catch {
       this._status.set('error');
-      this.toast.trigger('Errore durante handshake!', 'error');
-      onFail?.(err);
       if (this.retries < this.maxRetries) {
-        setTimeout(() => this.syncSession({ onSuccess, onFail }), 800 * (this.retries + 1));
-        this.retries++;
+        setTimeout(() => this.syncSession(), 800 * (++this.retries));
+      } else {
+        this.logout({ silent: true });
       }
     } finally {
       this.handshakePending = false;
     }
   }
 
-  private handleSessionExpired() {
-    this._status.set('sessionExpired');
-    this.userContext.clearInitials();
-    this.toast.trigger('Sessione scaduta. Effettua nuovamente il login.', 'error');
-    this.router.navigate(['/login']);
-    // (Se serve, puoi forzare anche la disconnessione socket qui)
-    this.realtimeSocket.disconnect();
-  }
+  /* ─────────────────────────────── session expired  ─────────────────────────────── */
+  private handleSessionExpired(): void {
+    const wasLoggedIn = this._status() === 'loggedIn';
 
-  public logout({ silent = false, fromStorage = false } = {}) {
-    this.userContext.clearInitials();
     this._status.set('sessionExpired');
-    if (!silent) {
-      this.toast.trigger(fromStorage ? 'Logout da un\'altra scheda' : 'Logout eseguito.', 'success');
+    this.userContext.clearInitials();
+    localStorage.removeItem('login');
+
+    if (wasLoggedIn) {
+      this.toast.trigger('Sessione scaduta. Effettua nuovamente il login.', 'error');
+      sessionStorage.setItem('logout', 'success');
+      this.router.navigate(['/login']);
     }
+
+    /* chiudo la socket privata e apro subito quella anonima */
     this.realtimeSocket.disconnect();
+    this.realtimeSocket.connect();
+  }
+
+  /* ─────────────────────────────────── logout  ─────────────────────────────────── */
+  public logout({ silent = false, fromStorage = false } = {}): void {
+    this._status.set('sessionExpired');
+    this.userContext.clearInitials();
+    localStorage.removeItem('login');
+
+    if (!silent) {
+      const msg = fromStorage ? 'Logout da un’altra scheda' : 'Logout eseguito.';
+      this.toast.trigger(msg, 'success');
+    }
+
+    this.realtimeSocket.disconnect();   // chiudo la privata
+    this.realtimeSocket.connect();      // socket anonima
     this.router.navigate(['/login']);
   }
 
-  /** Dopo login/MFA chiama resumeSession con le iniziali */
-  public async resumeSession(initials: string) {
+  /* ────────────────────────────── login da un’altra tab  ───────────────────────────── */
+  public async resumeSession(initials: string): Promise<void> {
     this.userContext.setInitials(initials);
     this._status.set('loggedIn');
-    await this.syncSession();
+    await this.syncSession();           // handshake vero
   }
 
-  public forceSessionCheck() {
-    this.syncSession();
-  }
-
-  public get currentStatus(): SessionSyncStatus {
-    return this._status();
-  }
+  /* utilità */
+  public forceSessionCheck(): void { this.syncSession(); }
+  public get currentStatus(): SessionSyncStatus { return this._status(); }
 }
