@@ -39,7 +39,7 @@ export class WsGuard implements CanActivate {
   // 🔹 Validazione per EVENTI WebSocket
   private async validateWebSocketEvent(context: ExecutionContext): Promise<boolean> {
     const client: Socket = context.switchToWs().getClient()
-    const token = client.handshake.query.token as string
+    const token = client.handshake.auth.token as string
     const rawDeviceId: string | undefined = WebSocketUtils.parseCookie(client.handshake.headers.cookie)['__device_id'] || undefined
     let deviceId: string | undefined  
     if (rawDeviceId) {

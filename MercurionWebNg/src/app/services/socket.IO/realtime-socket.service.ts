@@ -5,6 +5,7 @@ import { AuthService } from '../auth.service'
 
 @Injectable({ providedIn: 'root' })
 export class RealtimeSocketService {
+
   private socket: Socket | undefined
 
   constructor(private readonly authService: AuthService) { }

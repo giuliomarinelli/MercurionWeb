@@ -30,13 +30,24 @@ export class SessionSyncService {
   ) {
     // Handlers WS attaccati una volta sola, sempre (singleton)
     this.setupWsEvents();
+    /** NEW: se la chiave 'login' esiste già al bootstrap, avvia subito la sync */
+    if (localStorage.getItem('login')) {
+      this.syncSession();
+    }
 
-    // Logout cross-tab: se login viene rimosso da un'altra tab
+    /** storage listener: reagisci anche al LOGIN, non solo al logout */
     window.addEventListener('storage', (event: StorageEvent) => {
-      if (event.key === 'login' && !event.newValue) {
-        this.logout({ silent: false, fromStorage: true });
+      if (event.key === 'login') {
+        if (event.newValue) {
+          // login avvenuto in un’altra tab
+          this.resumeSession(event.newValue);
+        } else {
+          // logout
+          this.logout({ silent: false, fromStorage: true });
+        }
       }
     });
+
   }
 
   private setupWsEvents() {
