@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, OnDestroy, OnInit, ViewChild, computed, signal, Signal, effect } from '@angular/core'
+import { AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, OnDestroy, OnInit, ViewChild, computed, effect, signal, Signal } from '@angular/core'
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router'
 import { HeaderComponent } from './components/common/header/header.component'
 import { ThemeManagerService } from './services/context/theme-manager.service'
@@ -29,7 +29,6 @@ import { RealtimeSocketService } from './services/socket.IO/realtime-socket.serv
     SidenavComponent
   ],
   template: `
-    <!-- ... (stesso template che hai già sopra, nessuna modifica necessaria) ... -->
     <div class="flex flex-col h-screen">
       <app-header class="sticky top-0 z-30" />
       <div class="drawer-container relative flex flex-1 overflow-hidden custom-scrollbar">
@@ -37,11 +36,13 @@ import { RealtimeSocketService } from './services/socket.IO/realtime-socket.serv
           <div class="absolute top-4 left-[10px] z-30 group">
             <button class="cursor-pointer" (click)="sidenavContext.toggle()" aria-label="Sidebar">
               @if (sidenavContext.isVisible()) {
+                <!-- icona open -->
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-auto text-light-on-surface-main hover:text-light-on-surface-secondary dark:text-dark-on-surface-main hover:dark:text-dark-on-surface-secondary transition-colors duration-150">
                   <rect width="18" height="18" x="3" y="3" rx="2" />
                   <path d="M9 3v18" />
                 </svg>
               } @else {
+                <!-- icona closed -->
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-auto text-light-on-surface-main hover:text-light-on-surface-secondary dark:text-dark-on-surface-main hover:dark:text-dark-on-surface-secondary transition-colors duration-150">
                   <rect width="18" height="18" x="3" y="3" rx="2" />
                   <rect x="3" y="3" width="6" height="18" rx="2" fill="currentColor" stroke="none"/>
@@ -64,17 +65,17 @@ import { RealtimeSocketService } from './services/socket.IO/realtime-socket.serv
         }
         @if (sidenavContext.isMounted() && userContext.initials() && design.minBk('lg')()) {
           <aside
-                  class="drawer absolute inset-y-0 left-0 w-64
-                         transition-transform duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]
-                         -translate-x-full"
-                  [class.translate-x-0]="sidenavContext.isVisible()"
-                  [class.-translate-x-full]="!sidenavContext.isVisible()">
+            class="drawer absolute inset-y-0 left-0 w-64
+              transition-transform duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]
+              -translate-x-full"
+            [class.translate-x-0]="sidenavContext.isVisible()"
+            [class.-translate-x-full]="!sidenavContext.isVisible()">
             <app-sidenav />
           </aside>
         }
         <section class="content flex flex-col flex-1 overflow-y-auto
-                        transition-[margin] duration-500"
-                 [class.ml-64]="sidenavContext.isOpen() && userContext.initials() && design.minBk('lg')()">
+          transition-[margin] duration-500"
+          [class.ml-64]="sidenavContext.isOpen() && userContext.initials() && design.minBk('lg')()">
           <main class="flex-1 p-4 block">
             <router-outlet />
           </main>
@@ -92,13 +93,12 @@ import { RealtimeSocketService } from './services/socket.IO/realtime-socket.serv
 export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   title = 'MercurionWebNg'
   isDarkTheme: Signal<boolean> = computed(() => this.themeManagerService.theme() === 'dark')
-  isLoggedIn = signal<boolean>(false)
+  headerHeight = signal(64)
   private routeSub?: Subscription
   private currentPath = ''
 
   @ViewChild(HeaderComponent, { read: ElementRef })
   headerRef!: ElementRef<HTMLElement>
-  headerHeight = signal(64)
 
   constructor(
     private readonly themeManagerService: ThemeManagerService,
@@ -111,50 +111,55 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     protected readonly design: DesignService,
     private readonly realtimeSocketService: RealtimeSocketService
   ) {
-    // Connetti la socket solo una volta, non in loop.
+    // Connetti la socket una sola volta
     this.realtimeSocketService.connect()
+
+    // Su ogni nuova connessione websocket, esegui handshake e aggiorna il context
+    this.realtimeSocketService.onConnect().subscribe(async () => {
+      try {
+        const ack = await this.realtimeSocketService.emit('so.pub.session_init')
+        if (ack?.detail === 'websocket session init successful') {
+          this.userContext.setInitials(localStorage.getItem('login') ?? 'U')
+        } else {
+          this.userContext.clearInitials()
+        }
+      } catch {
+        this.userContext.clearInitials()
+      }
+    })
+
+    // Se il server notifica che la sessione è scaduta
+    this.realtimeSocketService.on('sv.pub.session_expired').subscribe((res: any) => {
+      if (res?.detail === 'session expired') {
+        this.userContext.clearInitials()
+      }
+    })
+
+    effect(() => {
+      const initials = this.userContext.initials()
+      const isLoggedIn = initials !== ''
+      const publicRoutes = ['/login', '/register', '/forgot', '/privacy', '/']
+      const currentUrl = this.router.url;
+
+      if (!isLoggedIn && !publicRoutes.includes(currentUrl)) {
+        this.router.navigate(['/login'])
+      }
+      if (isLoggedIn && publicRoutes.includes(currentUrl)) {
+        this.router.navigate(['/profile'])
+      }
+    })
   }
 
   async ngOnInit() {
-    // NAVIGATION TRACKING
     this.routeSub = this.router.events
       .pipe(filter(e => e instanceof NavigationEnd))
       .subscribe((e: NavigationEnd) => {
         this.currentPath = e.urlAfterRedirects
         this.pathService.setPath(this.currentPath)
       })
-
-    // SOLO QUI: gestisci la sessione websocket quando **sei connesso**
-    this.realtimeSocketService.onConnect().subscribe(async () => {
-      try {
-        const ack = await this.realtimeSocketService.emit('so.pub.session_init')
-        console.log(ack)
-        if (ack?.detail === 'websocket session init successful') {
-          if (!this.userContext.isLoggedIn()) {
-            this.userContext.setInitials(localStorage.getItem('login') ?? 'U')
-          }
-          this.isLoggedIn.set(true)
-        } else {
-          this.userContext.clearInitials()
-          this.isLoggedIn.set(false)
-        }
-      } catch {
-        this.userContext.clearInitials()
-        this.isLoggedIn.set(false)
-      }
-    })
-
-    // SESSION EXPIRED EVENT
-    this.realtimeSocketService.on('sv.pub.session_expired').subscribe((res: any) => {
-      if (res?.detail === 'session expired') {
-        this.userContext.clearInitials()
-        console.log(res)
-        this.isLoggedIn.set(false)
-      }
-    })
   }
 
-  ngAfterViewInit() {}
+  ngAfterViewInit() { }
 
   ngOnDestroy() {
     this.routeSub?.unsubscribe()

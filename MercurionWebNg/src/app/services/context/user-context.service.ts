@@ -1,52 +1,56 @@
-import { Injectable, NgZone, signal, computed } from '@angular/core';
+import { Injectable, NgZone, signal, computed, effect } from '@angular/core';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class UserContextService {
 
-  private _initials = signal<string>('')
-  public readonly initials = this._initials.asReadonly()
+  private _initials = signal<string>('');
+  public readonly initials = this._initials.asReadonly();
 
-  constructor(
-    private readonly zone: NgZone
-  ) {
-    // 1. Carica le iniziali al primo avvio
+  // Evento custom "login state changed"
+  public readonly isLoggedIn = computed(() => !!this._initials() && (this._initials().length === 1 || this._initials().length === 2));
+  public readonly onLoginStateChange = this.isLoggedIn
+
+  constructor(private readonly zone: NgZone) {
+    // Carica le iniziali al primo avvio
     const savedInitials = localStorage?.getItem('login')
     if (savedInitials) {
       this._initials.set(savedInitials)
     }
 
-    // 2. Rimani in ascolto di modifiche da altre tab o finestre
-    window?.addEventListener('storage', (event: StorageEvent) => {
+    // Rimani in ascolto di modifiche da altre tab o finestre
+    window.addEventListener('storage', (event: StorageEvent) => {
       if (event.key === 'login') {
-        this._initials.set(event.newValue ?? '')
+        this.zone.run(() => this._initials.set(event.newValue ?? ''))
       }
-    });
+    })
+
   }
 
   login(userInitials: string) {
-    /* SDK auth callback → spesso è fuori zona */
-    this.zone.run(() => this._initials.set(userInitials))
+    this.zone.run(() => {
+      this._initials.set(userInitials)
+      localStorage?.setItem('login', userInitials)
+    });
   }
 
   logout() {
-    this.zone.run(() => this._initials.set(''))
-  }
-
-  // 3. Metodo comodo per aggiornare il contesto e sincronizzare anche sessionStorage
-  public setInitials(initials: string): void {
-    this._initials.set(initials);
-    localStorage?.setItem('login', initials)
-  }
-
-  // 4. Metodo per rimuovere login
-  public clearInitials(): void {
-    this.zone.run(() => {              // 👈 rientra nello zone
+    this.zone.run(() => {
       localStorage?.removeItem('login')
       this._initials.set('')
-    })
+    });
   }
 
-  public isLoggedIn = computed(() => this._initials != undefined && (this.initials().length === 1 || this.initials.length === 2))
+  public setInitials(initials: string): void {
+    this.zone.run(() => {
+      this._initials.set(initials)
+      localStorage?.setItem('login', initials)
+    });
+  }
+
+  public clearInitials(): void {
+    this.zone.run(() => {
+      localStorage?.removeItem('login')
+      this._initials.set('')
+    });
+  }
 }

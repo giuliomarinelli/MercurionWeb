@@ -45,10 +45,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   readonly logoSrc = computed(() =>
     this.themeManager.theme() === 'light' ? 'logo/complete-light-logo.svg' : 'logo/complete-dark-logo-2.svg'
   )
-  readonly isLoggedIn = computed(() => {
-    const initials = this.userContext.initials()
-    return initials.length === 1 || initials.length === 2
-  })
+  readonly isLoggedIn = computed(() => this.userContext.initials() !== '')
 
   constructor(
     protected readonly themeManager: ThemeManagerService,
@@ -56,15 +53,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
     protected readonly searchContextService: SearchContextService,
     protected readonly userContext: UserContextService,
     private readonly router: Router,
-    private readonly appRef: ApplicationRef,
-    private readonly cdRef: ChangeDetectorRef,
     private accountService: AccountService,
     private readonly authService: AuthService
   ) {
-    effect(() => {
-      const initials = this.userContext.initials()
-      this.cdRef.detectChanges()  // Forza Angular a rinfrescare la vista
-    })
     effect(() => console.log('[header] initials =', this.userContext.initials()))
     effect(() => console.log('[header] isLoggedIn =', this.isLoggedIn()))
     effect(() => {
@@ -194,7 +185,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
         const currentPath = e.urlAfterRedirects
         const notAllowedPaths: string[] = ['/login', '/', '/test/spinner']
         this.isAllowedRoute = !notAllowedPaths.includes(currentPath)
-        this.appRef.tick()
       })
   }
 
