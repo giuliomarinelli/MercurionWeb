@@ -32,7 +32,7 @@ export class SessionService {
         rememberMe: boolean
     ): Promise<ISession> {
         const sessionId = randomUUID();
-        const ttlSeconds = rememberMe ? 30 * 24 * 60 * 60 : 180 //60 * 60 // 30 giorni o 60 min
+        const ttlSeconds = rememberMe ? 30 * 24 * 60 * 60 : 4 //180 //60 * 60 // 30 giorni o 60 min
         const expiresAt = Date.now() + ttlSeconds * 1000
 
         const session: ISession = {
@@ -126,7 +126,7 @@ export class SessionService {
         const isLongTerm = longTermRaw === 'true'
 
         if (!isLongTerm) {
-            const newTTL = 180//60 * 60; // Rinnovo TTL solo se sessione breve
+            const newTTL = 4 //180//60 * 60; // Rinnovo TTL solo se sessione breve
             await this.redisService.setTTL(sessionKey, newTTL)
         }
 
