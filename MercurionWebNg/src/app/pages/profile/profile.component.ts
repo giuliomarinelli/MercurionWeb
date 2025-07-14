@@ -4,6 +4,7 @@ import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
 import { UserContextService } from '../../services/context/user-context.service';
+import { SessionSyncService } from '../../services/session-sync.service';
 
 @Component({
   selector: 'app-profile',
@@ -20,7 +21,8 @@ export class ProfileComponent implements AfterViewInit, OnDestroy {
     private readonly loadingContext: LoadingContextService,
     private readonly authService: AuthService,
     private readonly router: Router,
-    private readonly userContext: UserContextService
+    private readonly userContext: UserContextService,
+    private readonly sessionSync: SessionSyncService
   ) {}
 
   ngAfterViewInit(): void {
@@ -31,9 +33,6 @@ export class ProfileComponent implements AfterViewInit, OnDestroy {
     this.loggingOut.set(true)
     this.logoutSub = this.authService.logout().subscribe({
       next: () => {
-        sessionStorage?.removeItem('RouteError')
-        sessionStorage?.setItem('logout', 'success')
-        localStorage?.removeItem('login')
         this.userContext.logout()
         this.loggingOut.set(false)
         this.router.navigate(['/login'])
@@ -41,7 +40,7 @@ export class ProfileComponent implements AfterViewInit, OnDestroy {
       error: (err) => {
         sessionStorage?.removeItem('RouteError')
         sessionStorage?.setItem('logout', 'success')
-        this.userContext.logout()
+        this.sessionSync.logout()
         this.loggingOut.set(false)
         this.router.navigate(['/login'])
       }

@@ -12,6 +12,7 @@ export type ConfirmWithObsContDTO = ConfirmDTO & {
 
 export type ConfirmWithAccessTokenAndInitialsDTO = ConfirmDTO & {
     accessToken: string
+    ws_accessToken: string
     initials: string
 }
 

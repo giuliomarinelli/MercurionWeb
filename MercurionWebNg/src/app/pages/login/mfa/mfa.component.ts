@@ -12,6 +12,7 @@ import { TotpBodyDTO } from '../../../Models/types/auth/DTO/totp-body.dto';
 import { HttpErrorRes } from '../../../Models/types/interfaces/error-res.dto';
 import { AuthRedirectService } from '../../../services/auth-redirect.service';
 import { UserContextService } from '../../../services/context/user-context.service';
+import { SessionSyncService } from '../../../services/session-sync.service';
 
 export type MfaView = 'EMAIL_OTP' | 'SMS_OTP' | 'PH_V' | 'APP_TOTP' | ''
 
@@ -58,7 +59,7 @@ export class MfaComponent implements OnInit, OnDestroy {
     private readonly fingerprintService: FingerprintService,
     private readonly loadingContext: LoadingContextService,
     private readonly redirect: AuthRedirectService,
-    private readonly userContext: UserContextService
+    private readonly sessionSyncService: SessionSyncService
   ) { }
 
   async ngOnInit(): Promise<void> {
@@ -185,11 +186,11 @@ export class MfaComponent implements OnInit, OnDestroy {
         this.unTrusted()).subscribe({
           next: res => {
             this.authService.setAccessToken(res.accessToken)
+            this.authService.setWs_accessToken(res.ws_accessToken)
             if (sessionStorage.getItem('preAuthorizationData')) {
               sessionStorage?.removeItem('preAuthorizationData')
             }
-            localStorage?.setItem('login', res.initials ?? 'U')
-            this.userContext.login(res.initials)
+            this.sessionSyncService.resumeSession(res.initials ?? 'U')
             const loginPath: string = atob(localStorage?.getItem('loginLastPath') || '') || '/profile'
             this.router.navigate([loginPath])
           },
