@@ -15,6 +15,7 @@ import { SidenavContextService } from './services/context/sidenav-context.servic
 import { DesignService } from './services/design.service'
 import { SidenavComponent } from './components/common/sidenav/sidenav.component'
 import { RealtimeSocketService } from './services/socket.IO/realtime-socket.service'
+import { SessionSyncService } from './services/session-sync.service'
 
 @Component({
   selector: 'app-root',
@@ -109,10 +110,11 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly pathService: PathService,
     protected readonly sidenavContext: SidenavContextService,
     protected readonly design: DesignService,
-    private readonly realtimeSocketService: RealtimeSocketService
+    private readonly realtimeSocketService: RealtimeSocketService,
+    private readonly sessionSync: SessionSyncService
   ) {
-    // Connetti la socket una sola volta
-    this.realtimeSocketService.connect()
+
+    this.sessionSync.syncSession()
 
     // Su ogni nuova connessione websocket, esegui handshake e aggiorna il context
     this.realtimeSocketService.onConnect().subscribe(async () => {
@@ -128,12 +130,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     })
 
-    // Se il server notifica che la sessione è scaduta
-    this.realtimeSocketService.on('sv.pub.session_expired').subscribe((res: any) => {
-      if (res?.detail === 'session expired') {
-        this.userContext.clearInitials()
-      }
-    })
+
 
     effect(() => {
       const initials = this.userContext.initials()

@@ -12,6 +12,7 @@ import { filter, Subscription } from 'rxjs';
 import { SidenavComponent } from '../sidenav/sidenav.component';
 import { AccountService } from '../../../services/account.service';
 import { AuthService } from '../../../services/auth.service';
+import { SessionSyncService } from '../../../services/session-sync.service';
 
 @Component({
   selector: 'app-header',
@@ -45,19 +46,18 @@ export class HeaderComponent implements OnInit, OnDestroy {
   readonly logoSrc = computed(() =>
     this.themeManager.theme() === 'light' ? 'logo/complete-light-logo.svg' : 'logo/complete-dark-logo-2.svg'
   )
-  readonly isLoggedIn = computed(() => this.userContext.initials() !== '')
+
 
   constructor(
     protected readonly themeManager: ThemeManagerService,
     protected readonly designService: DesignService,
     protected readonly searchContextService: SearchContextService,
-    protected readonly userContext: UserContextService,
+    protected readonly sessionSync: SessionSyncService,
     private readonly router: Router,
     private accountService: AccountService,
-    private readonly authService: AuthService
+    private readonly authService: AuthService,
+    protected readonly userContext: UserContextService
   ) {
-    effect(() => console.log('[header] initials =', this.userContext.initials()))
-    effect(() => console.log('[header] isLoggedIn =', this.isLoggedIn()))
     effect(() => {
       if (this.themeMenuOpen()) {
         this.themeMenuMounted.set(true)
@@ -162,13 +162,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
         sessionStorage?.removeItem('RouteError')
         sessionStorage?.setItem('logout', 'success')
         localStorage?.removeItem('login')
-        this.userContext.logout()
+        this.sessionSync.logout()
         this.router.navigate(['/login'])
       },
       error: () => {
         sessionStorage?.removeItem('RouteError')
         sessionStorage?.setItem('logout', 'success')
-        this.userContext.logout()
+        this.sessionSync.logout()
         this.router.navigate(['/login'])
       }
     })

@@ -1,56 +1,39 @@
-import { Injectable, NgZone, signal, computed, effect } from '@angular/core';
+import { Injectable, NgZone, signal, computed } from '@angular/core';
 
 @Injectable({ providedIn: 'root' })
 export class UserContextService {
-
-  private _initials = signal<string>('');
+  private _initials = signal<string>(localStorage.getItem('login') ?? '');
   public readonly initials = this._initials.asReadonly();
 
-  // Evento custom "login state changed"
   public readonly isLoggedIn = computed(() => !!this._initials() && (this._initials().length === 1 || this._initials().length === 2));
-  public readonly onLoginStateChange = this.isLoggedIn
 
   constructor(private readonly zone: NgZone) {
-    // Carica le iniziali al primo avvio
-    const savedInitials = localStorage?.getItem('login')
-    if (savedInitials) {
-      this._initials.set(savedInitials)
-    }
-
-    // Rimani in ascolto di modifiche da altre tab o finestre
+    // Aggiorna lo stato se cambia su altre tab
     window.addEventListener('storage', (event: StorageEvent) => {
       if (event.key === 'login') {
-        this.zone.run(() => this._initials.set(event.newValue ?? ''))
+        this.zone.run(() => this._initials.set(event.newValue ?? ''));
       }
-    })
-
-  }
-
-  login(userInitials: string) {
-    this.zone.run(() => {
-      this._initials.set(userInitials)
-      localStorage?.setItem('login', userInitials)
     });
   }
 
-  logout() {
+  /** Setta iniziali e login localmente e in storage */
+  setInitials(initials: string) {
     this.zone.run(() => {
-      localStorage?.removeItem('login')
-      this._initials.set('')
+      this._initials.set(initials);
+      localStorage.setItem('login', initials);
     });
   }
 
-  public setInitials(initials: string): void {
+  /** Pulisce login (local & storage) */
+  clearInitials() {
     this.zone.run(() => {
-      this._initials.set(initials)
-      localStorage?.setItem('login', initials)
+      this._initials.set('');
+      localStorage.removeItem('login');
     });
   }
 
-  public clearInitials(): void {
-    this.zone.run(() => {
-      localStorage?.removeItem('login')
-      this._initials.set('')
-    });
-  }
+  /** Alias: login */
+  login(initials: string) { this.setInitials(initials); }
+  /** Alias: logout */
+  logout() { this.clearInitials(); }
 }
