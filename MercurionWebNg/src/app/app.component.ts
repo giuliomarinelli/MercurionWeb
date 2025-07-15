@@ -118,13 +118,14 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       const initials = this.userContext.initials()
       const isLoggedIn = initials !== ''
       const publicRoutes = ['/login', '/register', '/forgot', '/privacy', '/']
+      const publicPrefixes = ['/molecules/detail']
       const currentUrl = this.router.url;
 
-      if (!isLoggedIn && !publicRoutes.includes(currentUrl)) {
+      if (!isLoggedIn && !publicRoutes.includes(currentUrl) || publicPrefixes.some(p => currentUrl.startsWith(p))) {
         this.router.navigate(['/login'])
       }
-      if (isLoggedIn && publicRoutes.includes(currentUrl)) {
-        this.router.navigate(['/profile'])
+      if (isLoggedIn && publicRoutes.includes(currentUrl) || !publicPrefixes.some(p => currentUrl.startsWith(p))) {
+        window.addEventListener('storage', (e) => e.key === 'login' && this.router.navigate(['/profile']))
       }
     })
   }
