@@ -121,10 +121,10 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       const publicPrefixes = ['/molecules/detail']
       const currentUrl = this.router.url;
 
-      if (!isLoggedIn && !publicRoutes.includes(currentUrl) || publicPrefixes.some(p => currentUrl.startsWith(p))) {
+      if (!isLoggedIn && (!publicRoutes.includes(currentUrl) || !publicPrefixes.some(p => currentUrl.startsWith(p)))) {
         this.router.navigate(['/login'])
       }
-      if (isLoggedIn && publicRoutes.includes(currentUrl) || !publicPrefixes.some(p => currentUrl.startsWith(p))) {
+      if (isLoggedIn && (publicRoutes.includes(currentUrl) || publicPrefixes.some(p => currentUrl.startsWith(p)))) {
         window.addEventListener('storage', (e) => e.key === 'login' && this.router.navigate(['/profile']))
       }
     })
