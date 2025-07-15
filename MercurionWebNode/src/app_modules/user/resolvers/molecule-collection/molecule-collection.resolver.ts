@@ -5,7 +5,7 @@ import { GraphQLResolveInfo } from 'graphql';
 import { MoleculeCollection } from '../../Models/entities/molecule-collection/molecule-collection.entity';
 import { MoleculeCollectionService } from '../../services/molecule-collection/molecule-collection.service';
 import { GraphqlUtils } from 'src/graphql-utils/graphql-utils';
-import { CreateMoleculeCollectionInput } from '../../Models/DTO/molecule-collection/create-molecule-collection.input'
+
 
 @Resolver(() => MoleculeCollection)
 export class MoleculeCollectionResolver {
@@ -37,10 +37,10 @@ export class MoleculeCollectionResolver {
     // Mutation: Crea collezione
     @Mutation(() => MoleculeCollection)
     async createMoleculeCollection(
-        @Args('input') input: CreateMoleculeCollectionInput,
+        @Args('name') name: string,
         @AuthenticatedUserId() userId: UUID
     ): Promise<MoleculeCollection> {
-        return this.collectionService.create(userId, input)
+        return this.collectionService.create(userId, name)
     }
 
     // Mutation: Aggiorna collezione

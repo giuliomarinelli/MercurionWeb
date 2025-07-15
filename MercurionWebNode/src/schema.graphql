@@ -221,7 +221,7 @@ type Mutation {
   createLabNotebook(title: String!): LabNotebook!
   updateLabNotebook(input: UpdateLabNotebookInput!): LabNotebook!
   deleteLabNotebook(id: ID!): Boolean!
-  createMoleculeCollection(input: CreateMoleculeCollectionInput!): MoleculeCollection!
+  createMoleculeCollection(name: String!): MoleculeCollection!
   updateMoleculeCollection(id: ID!, name: String!): MoleculeCollection!
   deleteMoleculeCollection(id: ID!): Boolean!
   createMoleculeItem(input: CreateMoleculeItemInput!): MoleculeCollectionItemEntity!
@@ -282,10 +282,6 @@ input UpdateSectionInput {
 input UpdateLabNotebookInput {
   title: String
   id: String!
-}
-
-input CreateMoleculeCollectionInput {
-  name: String!
 }
 
 input CreateMoleculeItemInput {

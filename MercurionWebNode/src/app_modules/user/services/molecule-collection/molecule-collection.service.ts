@@ -16,8 +16,8 @@ export class MoleculeCollectionService {
         private readonly collectionRepo: Repository<MoleculeCollection>,
     ) { }
 
-    async create(userId: UUID, input: { name: string }): Promise<MoleculeCollection> {
-        const collection = this.collectionRepo.create({ ...input, userId })
+    async create(userId: UUID, name: string ): Promise<MoleculeCollection> {
+        const collection = this.collectionRepo.create({ name, userId })
         return this.collectionRepo.save(collection);
     }
 
