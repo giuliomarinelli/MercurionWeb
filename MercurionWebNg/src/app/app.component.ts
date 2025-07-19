@@ -95,7 +95,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   isDarkTheme: Signal<boolean> = computed(() => this.themeManagerService.theme() === 'dark')
   headerHeight = signal(64)
   private routeSub?: Subscription
-  private currentPath = signal<string>('/')
+  private currentPath = signal<string>('')
 
   @ViewChild(HeaderComponent, { read: ElementRef })
   headerRef!: ElementRef<HTMLElement>
