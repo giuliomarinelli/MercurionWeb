@@ -4,6 +4,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { ChEMBLMoleculeItemEntity } from '../../Models/entities/molecule-collection/chembl-molecule-item.entity';
 import { MoleculeCollection } from '../../Models/entities/molecule-collection/molecule-collection.entity';
 import { MoleculeCollectionItemJoinService } from './molecule-collection-item-join.service';
+import { DataSource } from 'typeorm';
 
 describe('ChemblMoleculeItemService', () => {
   let service: ChEMBLMoleculeItemService;
@@ -28,6 +29,10 @@ describe('ChemblMoleculeItemService', () => {
         {
           provide: getRepositoryToken(MoleculeCollection),
           useValue: { findOne: jest.fn() },
+        },
+        {
+          provide: DataSource,
+          useValue: { transaction: jest.fn() },
         },
       ],
     }).compile();
