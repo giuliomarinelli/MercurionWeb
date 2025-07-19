@@ -1,9 +1,15 @@
 export interface MercurionInferResDTO {
-    "SR-ATAD5"?: number
-    "NR-AhR"?: number
-    "SR-MMP"?: number
-    "SR-p53"?: number
+    "SR-ATAD5"?: InferenceDTO
+    "NR-AhR"?: InferenceDTO
+    "SR-MMP"?: InferenceDTO
+    "SR-p53"?: InferenceDTO
     error?: string
 }
 
 export type MercurionInferDataDTO = Omit<MercurionInferResDTO, 'error'>
+
+export interface InferenceDTO {
+    probability: number
+    is_positive: boolean
+    threshold: 0.31
+}
