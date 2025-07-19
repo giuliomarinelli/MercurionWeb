@@ -38,4 +38,10 @@ export abstract class MoleculeCollectionItemEntity {
     @OneToMany(() => MoleculeCollectionItemJoin, join => join.item)
     joins: MoleculeCollectionItemJoin[]
 
+    @Column({type: 'bigint'})
+    createdAt: number
+    
+    @Column({type: 'bigint'})
+    updatedAt: number
+
 }

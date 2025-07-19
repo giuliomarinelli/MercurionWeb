@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { ChEMBLMoleculeItemEntity } from "../../Models/entities/molecule-collection/chembl-molecule-item.entity";
-import { Repository } from "typeorm";
+import { DataSource, Repository } from "typeorm";
 import { UUID } from "crypto";
 import { GraphQLFieldsMap } from "src/type-orm-utils/type-orm-utils";
 import { GraphqlUtils } from "src/graphql-utils/graphql-utils";
@@ -18,7 +18,8 @@ export class ChEMBLMoleculeItemService {
         private readonly chemblRepo: Repository<ChEMBLMoleculeItemEntity>,
         @InjectRepository(MoleculeCollection)
         private readonly collectionRepo: Repository<MoleculeCollection>,
-        private readonly joinService: MoleculeCollectionItemJoinService
+        private readonly joinService: MoleculeCollectionItemJoinService,
+        private readonly dataSource: DataSource
     ) { }
 
     async addToCollection(
@@ -28,21 +29,35 @@ export class ChEMBLMoleculeItemService {
         label?: string,
         notes?: string
     ): Promise<ChEMBLMoleculeItemEntity> {
+        return await this.dataSource.transaction(async (manager) => {
+           
+            let item = await manager.findOne(ChEMBLMoleculeItemEntity, { where: { chemblMolregno, userId } })
+            if (!item) {
+                item = manager.create(ChEMBLMoleculeItemEntity, {
+                    id: uuidv7() as UUID,
+                    chemblMolregno,
+                    userId,
+                    label,
+                    notes,
+                    createdAt: Date.now(),
+                    updatedAt: Date.now(),
+                    type: 'chembl'
+                })
+                item = await manager.save(ChEMBLMoleculeItemEntity, item)
+            }
 
-        // Trova o crea l'item ChEMBL
-        let item = await this.chemblRepo.findOne({ where: { chemblMolregno, userId } })
-        if (!item) {
-            item = this.chemblRepo.create({ id: uuidv7() as UUID, chemblMolregno, userId, label, notes })
-            item.type = 'chembl'
-            item = await this.chemblRepo.save(item)
-        }
+            // 2. Trova la collection (usa il manager)
+            const collection = await manager.findOne(MoleculeCollection, { where: { id: collectionId, userId } });
+            if (!collection) throw new RpcException("ChEMBLItemAddError::Forbidden");
 
-        // TROVA LA COLLEZIONE e verifica ownership!
-        const collection = await this.collectionRepo.findOne({ where: { id: collectionId, userId } })
-        if (!collection) throw new RpcException("ChEMBLItemAddError::Forbidden")
+            // 3. Crea la join (se il joinService usa repository, passagli manager.queryRunner.manager oppure implementa la logica qui)
+            await this.joinService.addWithManager(userId, collectionId, item.id, manager);
 
-        await this.joinService.add(userId, collectionId, item.id)
-        return item
+            // 4. Aggiorna updatedAt della collection
+            await manager.update(MoleculeCollection, { id: collectionId, userId }, { updatedAt: Date.now() });
+
+            return item;
+        });
     }
 
 

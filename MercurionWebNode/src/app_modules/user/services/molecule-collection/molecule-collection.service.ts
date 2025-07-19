@@ -50,7 +50,7 @@ export class MoleculeCollectionService {
     }
 
     async update(id: UUID, userId: UUID, input: Partial<MoleculeCollection>, fieldsMap: GraphQLFieldsMap): Promise<MoleculeCollection | null> {
-        await this.collectionRepo.update({ id }, { ...input })
+        await this.collectionRepo.update({ id }, { ...input, updatedAt: Date.now() })
         return this.findOne(id, userId, fieldsMap)
     }
 

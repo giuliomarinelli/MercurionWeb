@@ -24,9 +24,17 @@ export class MoleculeCollection {
     @OneToMany(() => MoleculeCollectionItemJoin, join => join.collection)
     items: MoleculeCollectionItemJoin[]
 
+    @Column({ type: 'bigint' })
+    createdAt: number
+
+    @Column({ type: 'bigint' })
+    updatedAt: number
+
     @BeforeInsert()
-    private generateId() {
+    private init() {
         this.id = uuidv7() as UUID
+        this.createdAt = Date.now()
+        this.updatedAt = Date.now()
     }
 
 }

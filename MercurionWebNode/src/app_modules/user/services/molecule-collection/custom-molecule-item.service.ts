@@ -27,7 +27,7 @@ export class CustomMoleculeItemService {
     async addToCollection(userId: UUID, collectionId: UUID, input: CustomMoleculeItemInput): Promise<CustomMoleculeItemEntity> {
         let item = await this.customRepo.findOne({ where: { canonicalSmiles: input.canonicalSmiles, userId } })
         if (!item) {
-            item = this.customRepo.create({ id: uuidv7() as UUID, ...input, userId })
+            item = this.customRepo.create({ id: uuidv7() as UUID, ...input, userId, createdAt: Date.now(), updatedAt: Date.now() })
             item.type = 'custom'
             item = await this.customRepo.save(item)
         }
