@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { MercurionService } from './services/mercurion.service';
-import { MercurionController } from './controllers/mercurion.controller';
+import { MercurionAIService } from './services/mercurion.service';
+import { MercurionAIController } from './controllers/mercurion.controller';
 import { JwtToolsService } from '../auth/services/jwt-tools.service';
 import { AuthModule } from '../auth/auth.module';
 import { UserModule } from '../user/user.module';
@@ -14,7 +14,7 @@ import { RedisModule } from '../redis/redis.module';
         ConfigModule,
         ClientsModule.registerAsync([
             {
-                name: 'MERCURION_CLIENT',
+                name: 'MERCURION_TOX_21_CLIENT',
                 imports: [ConfigModule],
                 inject: [ConfigService],
                 useFactory: async (config: ConfigService) => ({
@@ -29,7 +29,7 @@ import { RedisModule } from '../redis/redis.module';
         UserModule,
         RedisModule
     ],
-    providers: [MercurionService, JwtToolsService],
-    controllers: [MercurionController]
+    providers: [MercurionAIService, JwtToolsService],
+    controllers: [MercurionAIController]
 })
 export class MercurionModule { }

@@ -177,6 +177,7 @@ type Query {
   labNotebook(id: ID!): LabNotebook
   myMoleculeCollections: [MoleculeCollection!]!
   moleculeCollection(id: ID!): MoleculeCollection
+  searchMyCollections(query: String, limit: Float): [MoleculeCollection!]!
   myMoleculeItems: [MoleculeCollectionItemEntity!]!
   moleculeItem(id: ID!): MoleculeCollectionItemEntity
   chemblMoleculesByCollection(collectionId: ID!): [ChEMBLMoleculeItemEntity!]!

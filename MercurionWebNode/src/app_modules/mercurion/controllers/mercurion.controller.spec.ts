@@ -1,17 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { MercurionController } from './mercurion.controller';
-import { MercurionService } from '../services/mercurion.service';
+import { MercurionAIController } from './mercurion.controller';
+import { MercurionAIService } from '../services/mercurion.service';
 
 describe('MercurionController', () => {
-  let controller: MercurionController;
+  let controller: MercurionAIController;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [MercurionController],
-      providers: [{ provide: MercurionService, useValue: {} }],
+      controllers: [MercurionAIController],
+      providers: [{ provide: MercurionAIService, useValue: {} }],
     }).compile();
 
-    controller = module.get<MercurionController>(MercurionController);
+    controller = module.get<MercurionAIController>(MercurionAIController);
   });
 
   it('should be defined', () => {

@@ -34,6 +34,17 @@ export class MoleculeCollectionResolver {
         return this.collectionService.findOne(id, userId, fieldsMap)
     }
 
+    @Query(() => [MoleculeCollection])
+    async searchMyCollections(
+        @AuthenticatedUserId() userId: UUID,
+        @Info() info: GraphQLResolveInfo,
+        @Args('query', { nullable: true }) query?: string,
+        @Args('limit', { nullable: true }) limit?: number
+    ): Promise<MoleculeCollection[]> {
+        const fieldsMap = GraphqlUtils.getFieldsMap(info)
+        return this.collectionService.searchByName(userId, query, limit, fieldsMap)
+    }
+
     // Mutation: Crea collezione
     @Mutation(() => MoleculeCollection)
     async createMoleculeCollection(
@@ -63,4 +74,7 @@ export class MoleculeCollectionResolver {
     ): Promise<boolean> {
         return this.collectionService.delete(id, userId)
     }
+
+
+
 }

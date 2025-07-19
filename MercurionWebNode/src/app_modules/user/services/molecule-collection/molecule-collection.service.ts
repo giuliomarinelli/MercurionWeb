@@ -16,7 +16,7 @@ export class MoleculeCollectionService {
         private readonly collectionRepo: Repository<MoleculeCollection>,
     ) { }
 
-    async create(userId: UUID, name: string ): Promise<MoleculeCollection> {
+    async create(userId: UUID, name: string): Promise<MoleculeCollection> {
         const collection = this.collectionRepo.create({ name, userId })
         return this.collectionRepo.save(collection);
     }
@@ -62,4 +62,25 @@ export class MoleculeCollectionService {
             return false
         }
     }
+
+    async searchByName(userId: UUID, query: string | undefined, limit: number = 10, fieldsMap: GraphQLFieldsMap): Promise<MoleculeCollection[]> {
+        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
+        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.REQUIRED_FIELDS)
+
+        let qb = this.collectionRepo.createQueryBuilder('collection')
+            .select(columns.map(col => `collection.${col}`))
+            .where('collection.user_id = :userId', { userId });
+
+        if (query) {
+            qb = qb.andWhere('collection.name LIKE :query', { query: `%${query}%` })
+        }
+
+        qb = qb.orderBy('collection.updatedAt', 'DESC')
+            .limit(limit)
+
+        qb = TypeOrmUtils.addJoins(qb, 'collection', fieldsMap)
+        return qb.getMany()
+    }
+
+
 }

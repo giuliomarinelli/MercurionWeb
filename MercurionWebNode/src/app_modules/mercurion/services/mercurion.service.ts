@@ -5,11 +5,11 @@ import { MercurionInferDataDTO, MercurionInferResDTO } from '../Models/DTO/mercu
 import { catchError, firstValueFrom, throwError, timeout, TimeoutError } from 'rxjs';
 
 @Injectable()
-export class MercurionService {
+export class MercurionAIService {
 
-    constructor(@Inject('MERCURION_CLIENT') private readonly client: ClientProxy) { }
+    constructor(@Inject('MERCURION_TOX_21_CLIENT') private readonly client: ClientProxy) { }
 
-    public async getInferenceFromMercurion(dto: MercurionInferReqDTO): Promise<MercurionInferDataDTO> | never {
+    public async getInferenceFromTop4MercurionTox21(dto: MercurionInferReqDTO): Promise<MercurionInferDataDTO> | never {
         
         const res: MercurionInferResDTO = await firstValueFrom(
             this.client.send<MercurionInferResDTO>('inference.tox21.smiles', dto).pipe(
