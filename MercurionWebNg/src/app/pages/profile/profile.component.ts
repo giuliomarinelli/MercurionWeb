@@ -23,25 +23,25 @@ export class ProfileComponent implements AfterViewInit, OnDestroy {
     private readonly router: Router,
     private readonly userContext: UserContextService,
     private readonly sessionSync: SessionSyncService
-  ) {}
+  ) { }
 
   ngAfterViewInit(): void {
     this.loadingContext.stop()
   }
 
   logout(): void {
-    this.loggingOut.set(true)
     this.logoutSub = this.authService.logout().subscribe({
       next: () => {
-        this.userContext.logout()
-        this.loggingOut.set(false)
+        sessionStorage?.removeItem('RouteError')
+        sessionStorage?.setItem('logout', 'success')
+        localStorage?.removeItem('login')
+        this.sessionSync.logout()
         this.router.navigate(['/login'])
       },
-      error: (err) => {
+      error: () => {
         sessionStorage?.removeItem('RouteError')
         sessionStorage?.setItem('logout', 'success')
         this.sessionSync.logout()
-        this.loggingOut.set(false)
         this.router.navigate(['/login'])
       }
     })

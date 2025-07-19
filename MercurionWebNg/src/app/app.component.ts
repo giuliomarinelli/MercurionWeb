@@ -95,7 +95,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   isDarkTheme: Signal<boolean> = computed(() => this.themeManagerService.theme() === 'dark')
   headerHeight = signal(64)
   private routeSub?: Subscription
-  private currentPath = ''
+  private currentPath = signal<string>('/')
 
   @ViewChild(HeaderComponent, { read: ElementRef })
   headerRef!: ElementRef<HTMLElement>
@@ -114,29 +114,48 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.sessionSync.syncSession()
 
-    effect(() => {
-      const initials = this.userContext.initials()
-      const isLoggedIn = initials !== ''
-      const publicRoutes = ['/login', '/register', '/forgot', '/privacy', '/']
-      const publicPrefixes = ['/molecules/detail']
-      const currentUrl = this.router.url;
-
-      if (!isLoggedIn && (!publicRoutes.includes(currentUrl) || !publicPrefixes.some(p => currentUrl.startsWith(p)))) {
-        this.router.navigate(['/login'])
-      }
-      if (isLoggedIn && (publicRoutes.includes(currentUrl) || publicPrefixes.some(p => currentUrl.startsWith(p)))) {
-        window.addEventListener('storage', (e) => e.key === 'login' && this.router.navigate(['/profile']))
-      }
-    })
-  }
-
-  async ngOnInit() {
     this.routeSub = this.router.events
       .pipe(filter(e => e instanceof NavigationEnd))
       .subscribe((e: NavigationEnd) => {
-        this.currentPath = e.urlAfterRedirects
-        this.pathService.setPath(this.currentPath)
+        this.currentPath.set(e.urlAfterRedirects)
+        this.pathService.setPath(this.currentPath())
       })
+
+    effect(() => {
+      const initials = this.userContext.initials(); // signal -> traccia login status
+      const isLoggedIn = !!initials;
+      const url = this.currentPath();          // signal -> traccia path
+
+      // Categorie MINIME
+      const loggedOutOnly = ['/login', '/register', '/forgot', '/'];  // vietate ai loggati
+      const alwaysPublicExact = ['/privacy'];                        // accessibili a tutti
+      const alwaysPublicPrefixes = ['/molecules/detail'];            // accessibili a tutti (prefissi)
+
+      const isLoggedOutOnly = loggedOutOnly.includes(url);
+      const isAlwaysPublic = alwaysPublicExact.includes(url) ||
+        alwaysPublicPrefixes.some(p => url.startsWith(p));
+
+      // --- NON LOGGATO ---
+      // se non loggato e non è né una pagina per non-loggati né una davvero pubblica → login
+      if (!isLoggedIn) {
+        if (!isLoggedOutOnly && !isAlwaysPublic && url !== '/login') {
+          this.router.navigate(['/login'], { queryParams: { redirect: url } });
+        }
+        return; // fatto, non eseguire la parte "loggato"
+      }
+
+      // --- LOGGATO ---
+      // Se è una pagina riservata ai non-loggati → manda a /profile
+      if (isLoggedIn && isLoggedOutOnly && url !== '/profile') {
+        this.router.navigate(['/profile']);
+      }
+
+      // Se è pubblica (exact o prefix) rimani lì senza redirect.
+    });
+  }
+
+  async ngOnInit() {
+
   }
 
   ngAfterViewInit() { }
