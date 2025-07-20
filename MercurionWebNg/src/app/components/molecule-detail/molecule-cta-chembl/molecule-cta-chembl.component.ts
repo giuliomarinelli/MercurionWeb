@@ -10,10 +10,10 @@ import { Component, Input, Signal, computed, signal } from '@angular/core';
         target="_blank"
         rel="noopener noreferrer"
         class="flex justify-center w-[250px] gap-3 items-center px-4 mt-4 py-2 text-white rounded-md transition-colors duration-150
-    bg-light-accent-primary dark:bg-dark-accent-primary/80
-    hover:bg-dark-accent-primary/70 dark:hover:bg-dark-accent-primary/70
-    disabled:bg-dark-accent-primary/65 disabled:dark:bg-dark-accent-primary/65
-    disabled:cursor-not-allowed disabled:hover:bg-dark-accent-primary/80 disabled:hover:dark:bg-dark-accent-primary/80"
+         bg-light-accent-primary dark:bg-dark-accent-primary
+         hover:bg-dark-accent-primary/90 dark:hover:bg-dark-accent-primary/90
+         disabled:bg-dark-accent-primary/65 disabled:dark:bg-dark-accent-primary/65
+         disabled:cursor-not-allowed disabled:hover:bg-dark-accent-primary/80 disabled:hover:dark:bg-dark-accent-primary/80"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="h-5 w-auto">
           <!--!Font Awesome Pro 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
@@ -26,6 +26,7 @@ import { Component, Input, Signal, computed, signal } from '@angular/core';
   `
 })
 export class MoleculeCtaChemblComponent {
+
   private readonly idSignal = signal<string>('')
 
   @Input()
