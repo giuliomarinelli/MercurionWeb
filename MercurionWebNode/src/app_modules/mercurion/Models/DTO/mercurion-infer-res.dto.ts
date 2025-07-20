@@ -11,5 +11,5 @@ export type MercurionInferDataDTO = Omit<MercurionInferResDTO, 'error'>
 export interface InferenceDTO {
     probability: number
     is_positive: boolean
-    threshold: 0.31
+    threshold: number
 }
