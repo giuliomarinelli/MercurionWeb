@@ -13,6 +13,7 @@ import { SidenavComponent } from '../sidenav/sidenav.component';
 import { AccountService } from '../../../services/account.service';
 import { AuthService } from '../../../services/auth.service';
 import { SessionSyncService } from '../../../services/session-sync.service';
+import { PathService } from '../../../services/path.service';
 
 @Component({
   selector: 'app-header',
@@ -29,10 +30,11 @@ import { SessionSyncService } from '../../../services/session-sync.service';
 })
 export class HeaderComponent implements OnInit, OnDestroy {
 
-  isAllowedRoute: boolean = false
   private routeSub: Subscription | undefined
   private emailSub: Subscription | undefined
   private logoutSub: Subscription | undefined
+  protected isLoginPath = signal<boolean>(true)
+  protected isAllowedPath = signal<boolean>(false)
   protected themeMenuOpen = signal<boolean>(false)
   protected themeMenuMounted = signal<boolean>(false)
   protected themeMenuVisible = signal<boolean>(false)
@@ -56,7 +58,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
     private readonly router: Router,
     private accountService: AccountService,
     private readonly authService: AuthService,
-    protected readonly userContext: UserContextService
+    protected readonly userContext: UserContextService,
+    protected readonly pathService: PathService
   ) {
     effect(() => {
       if (this.themeMenuOpen()) {
@@ -184,8 +187,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
       .subscribe((e: NavigationEnd) => {
         const currentPath = e.urlAfterRedirects
         const notAllowedPaths: string[] = ['/login', '/', '/test/spinner']
-        this.isAllowedRoute = !notAllowedPaths.includes(currentPath)
+        this.isAllowedPath.set(!notAllowedPaths.includes(currentPath))
+        this.isLoginPath.set(currentPath === '/login')
       })
+
   }
 
 

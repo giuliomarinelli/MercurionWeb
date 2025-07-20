@@ -111,48 +111,85 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     protected readonly design: DesignService,
     private readonly sessionSync: SessionSyncService
   ) {
+    this.sessionSync.syncSession();   // ok se ti serve qui
 
-    this.sessionSync.syncSession()
+    // --- Utils ---
+    const normalize = (raw: string): string => {
+      if (!raw) return '';
+      // togli query/hash
+      const qIdx = raw.indexOf('?');
+      if (qIdx >= 0) raw = raw.slice(0, qIdx);
+      const hIdx = raw.indexOf('#');
+      if (hIdx >= 0) raw = raw.slice(0, hIdx);
+      // togli base /app se presente
+      if (raw.startsWith('/app/')) raw = raw.slice(4);
+      else if (raw === '/app') raw = '/';
+      // togli trailing slash eccetto root
+      if (raw.length > 1 && raw.endsWith('/')) raw = raw.slice(0, -1);
+      return raw;
+    };
 
+    // --- Signal path iniziale PRIMA dell’effetto ---
+    this.currentPath.set(normalize(this.router.url));
+    this.pathService.setPath(this.currentPath());
+
+    // --- Aggiornamento path a ogni NavigationEnd ---
     this.routeSub = this.router.events
       .pipe(filter(e => e instanceof NavigationEnd))
       .subscribe((e: NavigationEnd) => {
-        this.currentPath.set(e.urlAfterRedirects)
-        this.pathService.setPath(this.currentPath())
-      })
+        const url = normalize(e.urlAfterRedirects);
+        this.currentPath.set(url);
+        this.pathService.setPath(url);
+      });
 
+    // --- Effetto unico ---
     effect(() => {
-      const initials = this.userContext.initials(); // signal -> traccia login status
-      const isLoggedIn = !!initials;
-      const url = this.currentPath();          // signal -> traccia path
+      const urlRaw = this.currentPath();             // signal
+      const url = urlRaw;                        // già normalizzato
+      const initials = this.userContext.initials();    // signal
+      const logged = !!initials || !!localStorage.getItem('login'); // fallback
+      const sessionSt = this.sessionSync.status?.();    // se hai esposto la signal dello status
 
-      // Categorie MINIME
-      const loggedOutOnly = ['/login', '/register', '/forgot', '/'];  // vietate ai loggati
-      const alwaysPublicExact = ['/privacy'];                        // accessibili a tutti
-      const alwaysPublicPrefixes = ['/molecules/detail'];            // accessibili a tutti (prefissi)
+      // DEBUG (lascia finché confermi)
+      console.log('[ROUTE EFFECT]', {
+        urlRaw, url, initials, logged,
+        sessionStatus: sessionSt
+      });
 
-      const isLoggedOutOnly = loggedOutOnly.includes(url);
-      const isAlwaysPublic = alwaysPublicExact.includes(url) ||
-        alwaysPublicPrefixes.some(p => url.startsWith(p));
+      // 1) Blocca se non pronto: niente url o handshake in corso
+      if (!url) return;
+      if (sessionSt === 'handshake') return;   // evita redirect durante handshake
+      // (se non hai la signal dello status, puoi introdurre un piccolo delay iniziale:
+      // if (firstTick && !logged) { firstTick=false; return; })
 
-      // --- NON LOGGATO ---
-      // se non loggato e non è né una pagina per non-loggati né una davvero pubblica → login
-      if (!isLoggedIn) {
-        if (!isLoggedOutOnly && !isAlwaysPublic && url !== '/login') {
-          this.router.navigate(['/login'], { queryParams: { redirect: url } });
+      // 2) Classificazioni
+      const guestOnly = ['/login', '/register', '/forgot', '/'];
+      const publicExact = ['/privacy'];
+      const publicPrefixes = ['/molecules/detail'];
+
+      const isGuestOnly = guestOnly.includes(url);
+      const isPublic = publicExact.includes(url) ||
+        publicPrefixes.some(p => url.startsWith(p));
+
+      // 3) Redirection logic
+      if (!logged) {
+        // Non loggato su rotta privata → /login
+        if (!isGuestOnly && !isPublic && url !== '/login') {
+          if (this.router.url !== '/login')
+            this.router.navigate(['/login'], { queryParams: { redirect: url } });
         }
-        return; // fatto, non eseguire la parte "loggato"
+        return; // stop qui
       }
 
-      // --- LOGGATO ---
-      // Se è una pagina riservata ai non-loggati → manda a /profile
-      if (isLoggedIn && isLoggedOutOnly && url !== '/profile') {
-        this.router.navigate(['/profile']);
+      // Loggato su rotta solo-per-non-loggati → /profile
+      if (logged && isGuestOnly && url !== '/profile') {
+        if (this.router.url !== '/profile')
+          this.router.navigate(['/profile']);
       }
-
-      // Se è pubblica (exact o prefix) rimani lì senza redirect.
+      // Se è public o private valida → resta
     });
   }
+
 
   async ngOnInit() {
 

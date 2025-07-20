@@ -57,8 +57,20 @@
       </a>
     }
     <div class="theme-menu-container flex gap-2">
+      @if (userContext.initials() === '' && !isLoginPath()) {
+        <div class="flex items-center gap-3 text-sm font-semibold text-light-accent-primary dark:text-slate-100 tracking-wider mr-4">
+          <a routerLink="/login">Accedi</a>
+          <span>&middot;</span>
+          <a routerLink="/register">Registrati</a>
+        </div>
+        }
       <!-- Ricerca fittizia o icona -->
-      <div class="hidden lg:block">
+      <div
+        [ngClass]="{
+          'hidden lg:block': userContext.initials() !== '',
+           hidden: userContext.initials() === '',
+        }"
+      >
         <div
           (click)="openSearchOverlay()"
           class="flex items-center px-4 py-2 bg-slate-100 border border-slate-500/40 dark:border-none hover:bg-slate-200/30 dark:hover:bg-neutral-700 dark:bg-neutral-800 rounded-full cursor-pointer transition w-[240px] mr-2"
@@ -76,10 +88,16 @@
         </div>
       </div>
 
-      <div class="hidden xs:block lg:hidden">
+      <div
+        class=""
+        [ngClass]="{
+          'hidden xs:block lg:hidden': userContext.initials() !== '',
+          'hidden xs:block': userContext.initials() === '' && !isLoginPath()
+        }"
+      >
         <button
           (click)="openSearchOverlay()"
-          class="p-2 hover:bg-white/10 rounded-full"
+          class="p-2 hover:bg-white/10 rounded-full mr-1"
         >
           <svg
             class="w-5 h-5 fill-current text-slate-600 dark:text-gray-200"
@@ -94,7 +112,10 @@
       </div>
 
       <button
-        class="flex items-center theme-toggle-button xl:ml-5 mr-0 xs:mr-1 lg:mr-2 transition-all duration-500"
+        class="flex items-center theme-toggle-button mr-0 xs:mr-1 lg:mr-2 transition-all duration-500"
+        [ngClass]="{
+          'xl:ml-5': userContext.initials() !== '',
+        }"
         (click)="toggleThemeMenu()"
       >
         @if (themeManager.theme() === "dark") {
@@ -129,7 +150,7 @@
       @if (
         designService.minBk("sm")() &&
         userContext.initials() !== "" &&
-        isAllowedRoute
+        isAllowedPath()
       ) {
         <button
           (click)="toggleAvatarMenu()"

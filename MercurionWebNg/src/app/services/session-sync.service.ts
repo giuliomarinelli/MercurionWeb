@@ -6,6 +6,7 @@ import { RealtimeSocketService } from './socket.IO/realtime-socket.service';
 import { UserContextService } from './context/user-context.service';
 
 export type SessionSyncStatus =
+  | 'anonymous'        // ★ nuovo stato
   | 'pending'
   | 'handshake'
   | 'loggedIn'
@@ -16,15 +17,15 @@ export type SessionSyncStatus =
 @Injectable({ providedIn: 'root' })
 export class SessionSyncService {
 
-  /* ───────────────────────────────────  state  ─────────────────────────────────── */
-  private _status = signal<SessionSyncStatus>('pending');
-  public  readonly status = this._status.asReadonly();
+  private _status = signal<SessionSyncStatus>(
+    localStorage.getItem('login') ? 'pending' : 'anonymous'
+  );
+  public readonly status = this._status.asReadonly();
 
   private handshakePending = false;
-  private retries          = 0;
+  private retries = 0;
   private readonly maxRetries = 5;
 
-  /* ─────────────────────────────────── ctor  ─────────────────────────────────── */
   constructor(
     private readonly realtimeSocket: RealtimeSocketService,
     private readonly userContext   : UserContextService,
@@ -32,40 +33,49 @@ export class SessionSyncService {
     private readonly router        : Router,
     private readonly zone          : NgZone,
   ) {
-    /* 1️⃣ – registriamo i listener PRIMA di aprire la socket */
+    /* Listeners prima di aprire la connessione */
     this.realtimeSocket.on('sv.pub.session_expired')
       .subscribe(() => this.zone.run(() => this.handleSessionExpired()));
 
     this.realtimeSocket.onConnect()
-      .subscribe(() => {
-        if (localStorage.getItem('login')) this.zone.run(() => this.syncSession());
-      });
+      .subscribe(() => this.zone.run(() => {
+        // Handshake sempre: è lo “spec” richiesto
+        this.syncSession();
+      }));
 
     this.realtimeSocket.onDisconnect()
       .subscribe(reason => {
-        if (reason === 'io client disconnect') return;   // chiusura volontaria
+        if (reason === 'io client disconnect') return;
         this.zone.run(() => {
-          this._status.set('disconnected');
-          this.toast.trigger('Connessione persa. Riconnessione in corso…', 'warn');
+          if (this._status() !== 'sessionExpired') {
+            this._status.set('disconnected');
+            this.toast.trigger('Connessione persa. Riconnessione…', 'warn');
+          }
         });
       });
 
-    /* 2️⃣ – apriamo la prima connessione anonima */
+    // Prima connessione (anonima o privata in base al token presente)
     this.realtimeSocket.connect();
 
-    /* 3️⃣ – se la pagina parte già loggata (F5) facciamo handshake */
+    // Se la pagina parte già loggata (F5) -> handshake
     if (localStorage.getItem('login')) {
       this.syncSession();
     }
 
-    /* 4️⃣ – login/logout cross-tab via localStorage */
+    // Cross-tab
     window.addEventListener('storage', (e: StorageEvent) => {
       if (e.key !== 'login') return;
-      e.newValue ? this.resumeSession(e.newValue) : this.logout({ fromStorage: true });
+      if (e.newValue) {
+        // login in un’altra tab => tenta handshake per diventare loggedIn qui
+        this.resumeSession(e.newValue);
+      } else {
+        // logout in un’altra tab
+        this.becomeAnonymous({ navigateIfProtected: true, showToast: true, fromStorage: true });
+      }
     });
   }
 
-  /* ─────────────────────────────────── handshake  ─────────────────────────────────── */
+  /* ───────────────────────────── Handshake ───────────────────────────── */
   public async syncSession(): Promise<void> {
     if (this.handshakePending) return;
 
@@ -73,33 +83,46 @@ export class SessionSyncService {
     this._status.set('handshake');
 
     try {
-      // ricrea o ri-usa la socket con il token attuale (se presente)
-      await this.realtimeSocket.connect();
+      // Evita loop: se già connesso non ricreare la socket
+      if (!this.realtimeSocket.isConnected) {
+        this.realtimeSocket.connect(); // usa token se disponibile
+      }
 
       const ack = await this.realtimeSocket.emit('so.pub.session_init');
 
       if (ack?.detail === 'websocket session init successful') {
+        // SUCCESSO
         const initials = localStorage.getItem('login') ?? 'U';
         this.userContext.setInitials(initials);
+        localStorage.setItem('login', initials); // se non c’era (nuova tab)
         this._status.set('loggedIn');
         this.retries = 0;
       } else {
-        /* handshake fallito ⇒ non siamo autenticati */
-        this.logout({ silent: true });
+        // FALLIMENTO HANDSHAKE ⇒ “sei anonimo”, NON “sessionExpired”
+        this.becomeAnonymous({
+          // se eri loggedIn prima e stai su rotta privata => redirect
+          degradeFromLoggedIn: this._status() === 'loggedIn',
+          navigateIfProtected: true,
+          showToast: false
+        });
       }
     } catch {
       this._status.set('error');
       if (this.retries < this.maxRetries) {
         setTimeout(() => this.syncSession(), 800 * (++this.retries));
       } else {
-        this.logout({ silent: true });
+        this.becomeAnonymous({
+          degradeFromLoggedIn: this._status() === 'loggedIn',
+          navigateIfProtected: true,
+          showToast: false
+        });
       }
     } finally {
       this.handshakePending = false;
     }
   }
 
-  /* ─────────────────────────────── session expired  ─────────────────────────────── */
+  /* ─────────────────── Sessione scaduta (evento server) ─────────────────── */
   private handleSessionExpired(): void {
     const wasLoggedIn = this._status() === 'loggedIn';
 
@@ -107,41 +130,95 @@ export class SessionSyncService {
     this.userContext.clearInitials();
     localStorage.removeItem('login');
 
-    if (wasLoggedIn) {
-      this.toast.trigger('Sessione scaduta. Effettua nuovamente il login.', 'error');
-      sessionStorage.setItem('logout', 'success');
-      this.router.navigate(['/login']);
-    }
-
-    /* chiudo la socket privata e apro subito quella anonima */
+    // socket privata -> torna pubblica
     this.realtimeSocket.disconnect();
     this.realtimeSocket.connect();
+
+    if (wasLoggedIn) {
+      this.toast.trigger('Sessione scaduta. Effettua nuovamente il login.', 'error');
+      this.router.navigate(['/login']);
+    } else {
+      // Se per qualche motivo arriva l’evento mentre sei anonimo, trattalo come anonimizzazione silenziosa
+      this._status.set('anonymous');
+    }
   }
 
-  /* ─────────────────────────────────── logout  ─────────────────────────────────── */
+  /* ───────────────────────────── Logout esplicito ───────────────────────────── */
   public logout({ silent = false, fromStorage = false } = {}): void {
-    this._status.set('sessionExpired');
     this.userContext.clearInitials();
     localStorage.removeItem('login');
+    this._status.set('sessionExpired');
+
+    this.realtimeSocket.disconnect();
+    this.realtimeSocket.connect(); // pubblica
 
     if (!silent) {
-      const msg = fromStorage ? 'Logout da un’altra scheda' : 'Logout eseguito.';
+      const msg = fromStorage ? 'Logout da un’altra scheda' : 'Logout eseguito.' ;
       this.toast.trigger(msg, 'success');
     }
-
-    this.realtimeSocket.disconnect();   // chiudo la privata
-    this.realtimeSocket.connect();      // socket anonima
     this.router.navigate(['/login']);
   }
 
-  /* ────────────────────────────── login da un’altra tab  ───────────────────────────── */
+  /* ───────────────────────────── Login / resume ───────────────────────────── */
   public async resumeSession(initials: string): Promise<void> {
     this.userContext.setInitials(initials);
-    this._status.set('loggedIn');
-    await this.syncSession();           // handshake vero
+    localStorage.setItem('login', initials);
+    this._status.set('pending');     // passerà a loggedIn dopo handshake
+    await this.syncSession();
   }
 
-  /* utilità */
+  /* ───────────────────────────── Helper anonimizzazione ───────────────────────────── */
+  private becomeAnonymous(opts: {
+    degradeFromLoggedIn?: boolean;
+    navigateIfProtected?: boolean;
+    showToast?: boolean;
+    fromStorage?: boolean;
+  } = {}) {
+    const {
+      degradeFromLoggedIn = false,
+      navigateIfProtected = false,
+      showToast = false,
+      fromStorage = false
+    } = opts;
+
+    this.userContext.clearInitials();
+    localStorage.removeItem('login');
+
+    // Se stavi passando da loggedIn -> anonymous (per token scaduto / handshake fail)
+    if (degradeFromLoggedIn && showToast) {
+      this.toast.trigger('Accesso non più valido.', 'warn');
+    }
+
+    // Torna in modalità anonima
+    this._status.set('anonymous');
+
+    // Mantieni socket pubblica
+    this.realtimeSocket.disconnect();
+    this.realtimeSocket.connect();
+
+    if (navigateIfProtected) {
+      // Se la rotta corrente NON è pubblica, portalo a /login
+      if (!this.isPublicRoute(this.router.url)) {
+        this.router.navigate(['/login']);
+      }
+    }
+  }
+
+  /* Mappa delle route pubbliche (exact + prefix) */
+  private readonly publicExact = ['/login', '/register', '/forgot', '/privacy', '/'];
+  private readonly publicPrefixes = ['/molecules/detail'];
+
+  private isPublicRoute(url: string): boolean {
+    // togli query/hash
+    const q = url.indexOf('?'); if (q >= 0) url = url.slice(0, q);
+    const h = url.indexOf('#'); if (h >= 0) url = url.slice(0, h);
+    return (
+      this.publicExact.includes(url) ||
+      this.publicPrefixes.some(p => url.startsWith(p))
+    );
+  }
+
+  /* API extra */
   public forceSessionCheck(): void { this.syncSession(); }
   public get currentStatus(): SessionSyncStatus { return this._status(); }
 }
