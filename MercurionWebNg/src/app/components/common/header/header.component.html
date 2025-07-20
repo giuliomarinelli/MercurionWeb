@@ -27,6 +27,7 @@
               alt="Mercurion"
               width="927"
               height="234"
+              title="Mercurion"
               priority="true"
               class="w-[145px] h-auto contrast-115"
             />
@@ -89,14 +90,8 @@
           </div>
         </div>
       }
-
       <div
-        class=""
-        [ngClass]="{
-          'hidden xs:block lg:hidden': userContext.initials() !== '',
-          'hidden xs:block': userContext.initials() === '' && !isLoginPath(),
-          'block lg:hidden': isLoginPath(),
-        }"
+        class="hidden xs:block lg:hidden"
       >
         <button
           (click)="openSearchOverlay()"
@@ -113,6 +108,7 @@
           </svg>
         </button>
       </div>
+
 
       <button
         class="flex items-center theme-toggle-button mr-0 xs:mr-1 lg:mr-2 transition-all duration-500"

@@ -191,8 +191,9 @@ export class MfaComponent implements OnInit, OnDestroy {
               sessionStorage?.removeItem('preAuthorizationData')
             }
             this.sessionSyncService.resumeSession(res.initials ?? 'U')
-            const loginPath: string = atob(localStorage?.getItem('loginLastPath') || '') || '/profile'
-            this.router.navigate([loginPath])
+            const redirect = sessionStorage.getItem('redirectAfterLogin') || '/profile';
+            sessionStorage.removeItem('redirectAfterLogin');
+            this.router.navigateByUrl(redirect)
           },
           error: err => {
             const errBody: HttpErrorRes = err.error

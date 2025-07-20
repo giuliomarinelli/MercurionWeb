@@ -171,7 +171,7 @@ export class SessionSyncService {
       const msg = fromStorage ? 'Logout da un’altra scheda' : 'Logout eseguito.';
       this.toast.trigger(msg, 'success');
     }
-    this.router.navigate(['/login']);
+
   }
 
   /* ───────────────────────────── Login / resume ───────────────────────────── */

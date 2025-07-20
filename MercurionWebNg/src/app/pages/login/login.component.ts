@@ -1,5 +1,5 @@
 import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
-import { ChangeDetectorRef, Component, computed, effect, ElementRef, OnDestroy, OnInit, Signal, signal, ViewChild } from '@angular/core';
+import { Component, computed, effect, ElementRef, OnDestroy, OnInit, Signal, signal, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ThemeManagerService } from '../../services/context/theme-manager.service';
 import { PublicPipe } from '../../pipes/public.pipe';
@@ -77,10 +77,8 @@ export class LoginComponent implements OnInit, OnDestroy {
     private readonly fingerprintService: FingerprintService,
     private readonly loadingContext: LoadingContextService,
     private readonly toast: ToastService,
-    private readonly userContext: UserContextService,
     private readonly previousRouteService: PreviousRouteService,
     private readonly sessionSync: SessionSyncService,
-    private readonly realtimeSocketService: RealtimeSocketService
   ) {
     this.loginForm = this.fb.group({
       email: this.fb.control(null, [Validators.required, Validators.email]),
@@ -107,9 +105,9 @@ export class LoginComponent implements OnInit, OnDestroy {
   onTurnstileToken(token: string): void {
     this.serverErrorStep.set(0)
     this.turnstileToken.set(token)
-    console.log('TOKEN CAMBIATO:', token);
-    console.log('Password valid:', this.loginForm.controls['password'].valid);
-    console.log('Form valid:', this.loginForm.valid);
+    console.log('TOKEN CAMBIATO:', token)
+    console.log('Password valid:', this.loginForm.controls['password'].valid)
+    console.log('Form valid:', this.loginForm.valid)
   }
 
   onTurnstileRender(): void {
@@ -149,12 +147,10 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit(): Promise<void> {
-    this.router.navigateByUrl(
-      !this.previousRouteService.getPreviousUrl()?.startsWith('/login')
-        && this.previousRouteService.getPreviousUrl()
-        ? this.previousRouteService.getPreviousUrl() as string
-        : '/profile'
-    );
+    const from = this.previousRouteService.getPreviousUrl()
+    if (from && !from.startsWith('/login')) {
+      sessionStorage.setItem('redirectAfterLogin', from)
+    }
 
     if (sessionStorage?.getItem('mfaError') === 'InvalidOtp') {
       this.toast.trigger('Codice monouso errato. Ritenta.')
@@ -255,8 +251,10 @@ export class LoginComponent implements OnInit, OnDestroy {
             this.authService.setAccessToken(res.accessToken as string)
             this.authService.setWs_accessToken(res.ws_accessToken as string)
             this.sessionSync.resumeSession(res.initials ?? 'U')
-            const loginPath: string = atob(sessionStorage.getItem('loginLastPath') || '') || '/profile'
-            this.router.navigate([loginPath])
+            const redirect = sessionStorage.getItem('redirectAfterLogin') || '/profile'
+            sessionStorage.removeItem('redirectAfterLogin')
+            this.router.navigateByUrl(redirect)
+            this.loadingContext.stop()
           }
         },
         error: err => {

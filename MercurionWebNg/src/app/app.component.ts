@@ -143,51 +143,48 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       });
 
     // --- Effetto unico ---
+    const publicExact = new Set(['/login', '/register', '/forgot', '/privacy', '/']);
+    const publicPrefixes = ['/molecules/detail'];
+
+    let lastProgrammaticNav: string | undefined;
+
     effect(() => {
-      const urlRaw = this.currentPath();             // signal
-      const url = urlRaw;                        // già normalizzato
-      const initials = this.userContext.initials();    // signal
-      const logged = !!initials || !!localStorage.getItem('login'); // fallback
-      const sessionSt = this.sessionSync.status?.();    // se hai esposto la signal dello status
+      const initials = this.userContext.initials();     // '' se anonimo
+      const logged = !!initials;
+      const status = this.sessionSync.status();       // 'anonymous' / 'handshake' / 'loggedIn' / ...
+      const rawUrl = this.currentPath();              // signal già aggiornato da NavigationEnd
+      const url = rawUrl.toLowerCase();
 
-      // DEBUG (lascia finché confermi)
-      console.log('[ROUTE EFFECT]', {
-        urlRaw, url, initials, logged,
-        sessionStatus: sessionSt
-      });
+      console.log('[ROUTE EFFECT]', { rawUrl, url, initials, logged, status });
 
-      // 1) Blocca se non pronto: niente url o handshake in corso
-      if (!url) return;
-      if (sessionSt === 'handshake') return;   // evita redirect durante handshake
-      // (se non hai la signal dello status, puoi introdurre un piccolo delay iniziale:
-      // if (firstTick && !logged) { firstTick=false; return; })
+      // Evita di reagire mentre stai negoziando la sessione
+      if (status === 'handshake') return;
 
-      // 2) Classificazioni
-      const guestOnly = ['/login', '/register', '/forgot', '/'];
-      const publicExact = ['/privacy'];
-      const publicPrefixes = ['/molecules/detail'];
+      const isPublic = publicExact.has(url) || publicPrefixes.some(p => url.startsWith(p));
+      const isLoggedOutOnly = publicExact.has(url); // pagine che *se* loggato voglio evitare
 
-      const isGuestOnly = guestOnly.includes(url);
-      const isPublic = publicExact.includes(url) ||
-        publicPrefixes.some(p => url.startsWith(p));
+      const safeNavigate = (target: string) => {
+        if (target === url) return;
+        if (lastProgrammaticNav === target) return;
+        lastProgrammaticNav = target;
+        queueMicrotask(() => {
+          // solo se siamo ancora sulla stessa url prima del redirect
+          if (this.router.url.toLowerCase() === url) {
+            this.router.navigateByUrl(target);
+          }
+        });
+      }
 
-      // 3) Redirection logic
       if (!logged) {
-        // Non loggato su rotta privata → /login
-        if (!isGuestOnly && !isPublic && url !== '/login') {
-          if (this.router.url !== '/login')
-            this.router.navigate(['/login'], { queryParams: { redirect: url } });
-        }
-        return; // stop qui
+        // Non loggato: permette tutte le public + publicPrefix
+        if (!isPublic) safeNavigate('/login');
+        return;
       }
 
-      // Loggato su rotta solo-per-non-loggati → /profile
-      if (logged && isGuestOnly && url !== '/profile') {
-        if (this.router.url !== '/profile')
-          this.router.navigate(['/profile']);
-      }
-      // Se è public o private valida → resta
+      // Loggato: se stai su una pagina per "logged out only" ti porto al profilo
+      if (isLoggedOutOnly) safeNavigate('/profile');
     });
+
   }
 
 

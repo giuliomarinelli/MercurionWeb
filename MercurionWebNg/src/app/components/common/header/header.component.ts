@@ -166,7 +166,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
         sessionStorage?.setItem('logout', 'success')
         localStorage?.removeItem('login')
         this.sessionSync.logout()
-        this.router.navigate(['/login'])
       },
       error: () => {
         sessionStorage?.removeItem('RouteError')
