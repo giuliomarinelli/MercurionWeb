@@ -3,155 +3,116 @@ import { io, Socket } from 'socket.io-client';
 import { Observable } from 'rxjs';
 import { AuthService } from '../auth.service';
 
-export type Mode = 'public' | 'private';
+export type Listener<T = any> = { event: string; handler: (payload: T) => void };
+export type SocketMode = 'public' | 'private';
+export interface ConnectOpts {
+  /** default: this.mode  */
+  mode?: SocketMode;
+  /** forza la ri-creazione anche se già connessi nello stesso mode */
+  force?: boolean;
+}
 
 @Injectable({ providedIn: 'root' })
 export class RealtimeSocketService {
 
-  private socket: Socket | undefined;
-  private listeners = new Map<string, Set<(...a: any) => void>>();
-  private currentMode: Mode | null = null;
-  private currentToken: string | undefined;
-  private connecting = false;          // lock
-  private queuedConnect = false;       // ripeti se richiesto durante lock
+  private socket?: Socket;
+  private readonly listeners: Listener[] = [];
+
+  /** flag usato solo per sapere se c’è un handshake in corso */
+  private isConnecting = false;
+
+  private mode: SocketMode = 'public';
 
   constructor(private readonly auth: AuthService) { }
 
-  /* ---------- Public helpers ---------- */
-  public ensurePublic() { this.connect({ mode: 'public' }); }
-  public ensurePrivate() { this.connect({ mode: 'private' }); }
+  /** wrapper 1-1: chiama sempre `connect({mode:'private',force:true})` */
+  ensurePrivate() { this.connect({ mode: 'private', force: true }); }
 
-  /* ---------- Core connect (idempotente) ---------- */
-  public connect(opts?: { force?: boolean; mode?: Mode }) {
-    const requestedMode: Mode =
-      opts?.mode ?? (this.auth.getWs_accessToken() ? 'private' : 'public');
-    const token = requestedMode === 'private'
-      ? (this.auth.getWs_accessToken() ?? undefined)
+  /** wrapper 1-1: chiama sempre `connect({mode:'public',force:true})`  */
+  ensurePublic() { this.connect({ mode: 'public', force: true }); }
+
+  /* ======================================================================= */
+
+  /** un’unica entry-point: opzionale `mode` + `force`                       */
+ connect(opts: ConnectOpts = {}): void {
+    const wanted = opts.mode ?? this.mode;
+    if (!opts.force && this.socket?.connected && wanted === this.mode) return;
+
+    /* 1️⃣ chiudi la precedente */
+    this.socket?.off();
+    this.socket?.disconnect();
+
+    /* 2️⃣ crea la nuova */
+    this.mode  = wanted;
+    const token = this.mode === 'private'
+      ? this.auth.getWs_accessToken?.() ?? undefined
       : undefined;
-    const force = !!opts?.force;
-
-    if (this.connecting) {
-      // c'è già un connect in corso: accoda una sola ripetizione se davvero force/mode diverso
-      if (force || requestedMode !== this.currentMode) this.queuedConnect = true;
-      return;
-    }
-
-    // Idempotenza: se già ok e non forzi → esci
-    if (!force &&
-      this.socket?.connected &&
-      this.currentMode === requestedMode &&
-      this.currentToken === token) {
-      return;
-    }
-
-    this.connecting = true;
-
-    // Chiudi solo se serve
-    if (this.socket) {
-      this.socket.off();
-      this.socket.disconnect();
-    }
 
     this.socket = io('http://localhost:8888', {
       path: '/socket.io',
       transports: ['websocket'],
       withCredentials: true,
-      auth: token ? { token } : undefined,
-      reconnection: true,
-      reconnectionDelay: 500,
-      reconnectionDelayMax: 4000,
-      randomizationFactor: 0.5
+      auth: { token },
     });
 
-    this.currentMode = requestedMode;
-    this.currentToken = token;
-
-    // Ri-bind listener (senza duplicarli)
-    for (const [event, set] of this.listeners.entries()) {
-      for (const handler of set) {
-        this.socket.on(event, handler);
-      }
+    /* 3️⃣ ***RI-AGGANCIA*** tutti gli handler già registrati */
+    for (const { event, handler } of this.listeners) {
+      this.socket.on(event, handler);
     }
-
-    this.socket.on('connect', () => {
-      this.connecting = false;
-      if (this.queuedConnect) {
-        this.queuedConnect = false;
-        // revalida mode/token (può essere cambiato nel frattempo)
-        this.connect({ mode: this.currentMode ?? requestedMode, force: false });
-      }
-    });
-
-    this.socket.on('connect_error', err => {
-      // Sblocca il lock per poter riprovare; socket.io penserà al backoff
-      this.connecting = false;
-    });
-
-    this.socket.on('disconnect', () => {
-      // NON azzerare listeners; li teniamo e verranno ri-agganciati alla prossima connect
-    });
-
   }
 
-  public disconnect() {
-    this.connecting = false;
-    this.queuedConnect = false;
+  disconnect(): void {
     this.socket?.off();
     this.socket?.disconnect();
     this.socket = undefined;
-    this.currentMode = null;
-    this.currentToken = undefined;
   }
 
-  private addListener(event: string, handler: (...a: any) => void) {
-    if (!this.listeners.has(event)) this.listeners.set(event, new Set());
-    this.listeners.get(event)!.add(handler);
-  }
-
-  /* ---------- Emit / On ---------- */
-  public emit<T, R = any>(event: string, payload?: T, timeout = 5000): Promise<R> {
-    if (!this.socket) return Promise.reject('Socket non connesso');
-    return new Promise<R>(resolve => {
+  /* ------------------------------------------------------------------ */
+  /* Emit con ACK (Promise): */
+  public emit<T, R = any>(event: string, payload?: T, timeout = 5000): Promise<R | undefined> {
+    if (!this.socket) return Promise.reject('Socket non connessa');
+    return new Promise(resolve => {
       let settled = false;
-      const timer = setTimeout(() => {
-        if (!settled) { settled = true; resolve(undefined as R); }
-      }, timeout);
+      const timer = setTimeout(() => { if (!settled) { settled = true; resolve(undefined); } }, timeout);
       this.socket!.emit(event, payload, (ack: R) => {
-        if (!settled) {
-          clearTimeout(timer);
-          settled = true;
-          resolve(ack);
-        }
+        if (!settled) { settled = true; clearTimeout(timer); resolve(ack); }
       });
     });
   }
 
-  public on<T>(event: string): Observable<T> {
+  /* ------------------------------------------------------------------ */
+  /* Helpers di subscription: */
+  /* -------------------- SUBSCRIPTION HELPER -------------------- */
+  on<T>(event: string): Observable<T> {
     return new Observable<T>(observer => {
+      if (!this.socket) this.connect();          // crea se serve
       const handler = (data: T) => observer.next(data);
-      this.addListener(event, handler);
-      if (this.socket) this.socket.on(event, handler);
+      this.socket!.on(event, handler);
+
+      /* salva per i reconnect futuri */
+      this.listeners.push({ event, handler });
+
       return () => {
-        this.listeners.get(event)?.delete(handler);
         this.socket?.off(event, handler);
+        const i = this.listeners.findIndex(l => l.event === event && l.handler === handler);
+        if (i >= 0) this.listeners.splice(i, 1);
       };
     });
   }
 
-  public onConnect(): Observable<void> { return this.on<void>('connect'); }
-  public onDisconnect(): Observable<string> {
-    return new Observable<string>(observer => {
-      const h = (reason: string) => observer.next(reason);
-      this.addListener('disconnect', h);
-      if (this.socket) this.socket.on('disconnect', h);
-      return () => {
-        this.listeners.get('disconnect')?.delete(h);
-        this.socket?.off('disconnect', h);
-      };
-    });
+  public onConnect() { return this.on<void>('connect'); }
+  public onDisconnect() { return this.on<string>('disconnect'); }
+
+  /* ------------------------------------------------------------------ */
+  get isConnected(): boolean { return !!this.socket?.connected; }
+
+  private _connect(mode: 'public' | 'private') {
+    /* …close & create come già definito… */
+
+    // ➌ dopo aver creato la nuova socket, ri-aggancia tutti i listener registrati
+    for (const { event, handler } of this.listeners) {
+      this.socket?.on(event, handler);
+    }
   }
 
-  public get isConnected(): boolean {
-    return !!this.socket?.connected;
-  }
 }

@@ -5,97 +5,98 @@ import { ToastService } from './toast.service';
 import { RealtimeSocketService } from './socket.IO/realtime-socket.service';
 import { UserContextService } from './context/user-context.service';
 
+/* ───────────────────────────── tipi ───────────────────────────── */
 export type SessionSyncStatus =
-  | 'anonymous'        // ★ nuovo stato
-  | 'pending'
-  | 'handshake'
+  | 'anonymous'
+  | 'pending'          // login presente ma non ancora verificato
+  | 'handshake'        // handshake in corso
   | 'loggedIn'
-  | 'sessionExpired'
-  | 'disconnected'
+  | 'sessionExpired'   // espulso dal server
+  | 'disconnected'     // perdita rete
   | 'error';
 
+/* ───────────────────────── service ───────────────────────── */
 @Injectable({ providedIn: 'root' })
 export class SessionSyncService {
 
+  /* stato reattivo esposto agli altri componenti */
   private _status = signal<SessionSyncStatus>(
     localStorage.getItem('login') ? 'pending' : 'anonymous'
   );
   public readonly status = this._status.asReadonly();
 
+  /* bookkeeping interni */
   private handshakePending = false;
-  private retries = 0;
-  private readonly maxRetries = 5;
-  private lastAnonHandshake = 0;
-  private anonHandshakeCooldownMs = 5000;
-  private anonCooldown = 5000;
+  private lastAnonHandshake = 0;              // anti-flood
+  private readonly anonCooldownMs = 5_000;    // 5 s
+
+  /* route pubbliche (exact e prefix) */
+  private readonly publicExact   = new Set(['/login', '/register', '/forgot', '/privacy', '/']);
+  private readonly publicPrefix  = ['/molecules/detail'];
 
   constructor(
-    private readonly realtimeSocket: RealtimeSocketService,
-    private readonly userContext: UserContextService,
-    private readonly toast: ToastService,
-    private readonly router: Router,
-    private readonly zone: NgZone,
+    private readonly socket   : RealtimeSocketService,
+    private readonly userCtx  : UserContextService,
+    private readonly toast    : ToastService,
+    private readonly router   : Router,
+    private readonly zone     : NgZone,
   ) {
-    this.realtimeSocket.onConnect()
-      .subscribe(() => {
-        // handshake SOLO se:
-        // - non c'è handshake in corso
-        // - vogliamo fare resync perché reconnect reale (status 'disconnected' o 'loggedIn' / 'anonymous' dopo perdita)
-        if (!this.handshakePending && (this._status() === 'pending' || this._status() === 'disconnected')) {
-          this.zone.run(() => this.syncSession());
+
+    /* ───────── socket events ───────── */
+
+    /** 1 – connessione stabilita */
+    this.socket.onConnect().subscribe(() => {
+      /* se veniamo da disconnected / pending facciamo handshake */
+      if (!this.handshakePending &&
+          (this._status() === 'pending' || this._status() === 'disconnected'))
+      {
+        this.zone.run(() => this.syncSession());
+      }
+    });
+
+    /** 2 – disconnessione involontaria */
+    this.socket.onDisconnect().subscribe(reason => {
+      if (reason === 'io client disconnect') return;       // chiusura volontaria
+      this.zone.run(() => {
+        if (this._status() !== 'sessionExpired') {
+          this._status.set('disconnected');
+          this.toast.trigger('Connessione persa. Riconnessione…', 'warn');
         }
       });
+    });
 
-    /* Listeners prima di aprire la connessione */
-    this.realtimeSocket.on('sv.pub.session_expired')
+    /** 3 – evento di scadenza token dal server */
+    this.socket.on('sv.pub.session_expired')
       .subscribe(() => this.zone.run(() => this.handleSessionExpired()));
 
-    this.realtimeSocket.onConnect()
-      .subscribe(() => this.zone.run(() => {
-        // Handshake sempre: è lo “spec” richiesto
-        this.syncSession();
-      }));
+    /* ───────── prima connessione ───────── */
+    this.socket.connect();              // parte in public
+    if (localStorage.getItem('login')) this.syncSession();
 
-    this.realtimeSocket.onDisconnect()
-      .subscribe(reason => {
-        if (reason === 'io client disconnect') return;
-        this.zone.run(() => {
-          if (this._status() !== 'sessionExpired') {
-            this._status.set('disconnected');
-            this.toast.trigger('Connessione persa. Riconnessione…', 'warn');
-          }
-        });
-      });
-
-    // Prima connessione (anonima o privata in base al token presente)
-    this.realtimeSocket.connect();
-
-    // Se la pagina parte già loggata (F5) -> handshake
-    if (localStorage.getItem('login')) {
-      this.syncSession();
-    }
-
-    // Cross-tab
-    window.addEventListener('storage', (e: StorageEvent) => {
+    /* ───────── sincronizzazione tab ───────── */
+    window.addEventListener('storage', e => {
       if (e.key !== 'login') return;
+
+      /* login creato da un’altra scheda */
       if (e.newValue) {
-        // login in un’altra tab => tenta handshake per diventare loggedIn qui
         this.resumeSession(e.newValue);
-      } else {
-        // logout in un’altra tab
+      }
+      /* login rimosso da un’altra scheda */
+      else {
         this.becomeAnonymous({ navigateIfProtected: true, showToast: true, fromStorage: true });
       }
     });
   }
 
-  /* ───────────────────────────── Handshake ───────────────────────────── */
+  /* ══════════════ HANDSHAKE ══════════════ */
   public async syncSession(): Promise<void> {
     if (this.handshakePending) return;
 
-    const loginPresent = !!localStorage.getItem('login');
-    const now = Date.now();
+    const tokenPresent = !!localStorage.getItem('login');
+    const now          = Date.now();
 
-    if (!loginPresent && now - this.lastAnonHandshake < this.anonCooldown) {
+    /* anti-flood per anonimi */
+    if (!tokenPresent && now - this.lastAnonHandshake < this.anonCooldownMs) {
       if (this._status() !== 'anonymous') this._status.set('anonymous');
       return;
     }
@@ -104,162 +105,130 @@ export class SessionSyncService {
     this._status.set('handshake');
 
     try {
-      // connect idempotente
-      if (loginPresent) this.realtimeSocket.ensurePrivate();
-      else this.realtimeSocket.ensurePublic();
+      /* switch socket -> private/public in modo idempotente */
+      tokenPresent ? this.socket.ensurePrivate() : this.socket.ensurePublic();
 
-      if (!this.realtimeSocket.isConnected) {
-        await new Promise(res => {
-          const sub = this.realtimeSocket.onConnect().subscribe(() => { sub.unsubscribe(); res(null); });
-          setTimeout(() => { sub.unsubscribe(); res(null); }, 4000);
+      /* aspetta che la websocket sia davvero up (max 4 s) */
+      if (!this.socket.isConnected) {
+        await new Promise(r => {
+          const sub = this.socket.onConnect().subscribe(() => { sub.unsubscribe(); r(null); });
+          setTimeout(() => { sub.unsubscribe(); r(null); }, 4_000);
         });
       }
 
-      const ack = await this.realtimeSocket.emit('so.pub.session_init');
+      /* handshake lato server */
+      const ack = await this.socket.emit('so.pub.session_init');
+
       if (ack?.detail === 'websocket session init successful') {
+        /* ok ⇒ logged-in */
         const initials = localStorage.getItem('login') ?? 'U';
-        this.userContext.setInitials(initials);
-        localStorage.setItem('login', initials);
+        this.userCtx.setInitials(initials);
+        localStorage.setItem('login', initials);      // garantisce coerenza
         this._status.set('loggedIn');
-        this.retries = 0;
       } else {
-        if (this._status() === 'loggedIn') {
-          this.userContext.clearInitials();
-          localStorage.removeItem('login');
-        }
-        this._status.set('anonymous');
+        /* auth non valida ⇒ degrada a anonymous */
+        this.becomeAnonymous({ degradeFromLoggedIn: true, navigateIfProtected: true });
         this.lastAnonHandshake = now;
       }
-    } catch (e) {
+
+    } catch {
       this._status.set('error');
     } finally {
       this.handshakePending = false;
     }
   }
 
-  /* ─────────────────── Sessione scaduta (evento server) ─────────────────── */
+  /* ══════════════ SESSIONE SCADUTA ══════════════ */
   private handleSessionExpired(): void {
-    const wasLoggedIn = this._status() === 'loggedIn';
+    const eraLoggato = this._status() === 'loggedIn';
 
-    this._status.set('sessionExpired');
-    this.userContext.clearInitials();
+    /* pulizia stato */
+    this.userCtx.clearInitials();
     localStorage.removeItem('login');
+    this._status.set('sessionExpired');
 
-    // socket privata -> torna pubblica
-    this.realtimeSocket.disconnect();
-    this.realtimeSocket.connect();
+    /* socket: chiudi privata → apri pubblica */
+    this.socket.disconnect();
+    this.socket.ensurePublic();
 
-    if (wasLoggedIn) {
-      this.toast.trigger('Sessione scaduta. Effettua nuovamente il login.', 'error');
+    /* move UI */
+    if (eraLoggato) {
+      this.toast.trigger('Sessione scaduta. Effettua di nuovo il login.', 'error');
       this.router.navigate(['/login']);
     } else {
-      // Se per qualche motivo arriva l’evento mentre sei anonimo, trattalo come anonimizzazione silenziosa
       this._status.set('anonymous');
     }
   }
 
-  /* ───────────────────────────── Logout esplicito ───────────────────────────── */
-  public logout({ silent = false, fromStorage = false } = {}): void {
-    this.userContext.clearInitials();
-    localStorage.removeItem('login');
-    this._status.set('sessionExpired');
-
-    this.realtimeSocket.disconnect();
-    this.realtimeSocket.connect(); // pubblica
-
-    if (!silent) {
-      const msg = fromStorage ? 'Logout da un’altra scheda' : 'Logout eseguito.';
-      this.toast.trigger(msg, 'success');
-    }
-
-  }
-
-  /* ───────────────────────────── Login / resume ───────────────────────────── */
-  public async resumeSession(initials: string): Promise<void> {
-    this.userContext.setInitials(initials);
-    localStorage.setItem('login', initials);
-    this._status.set('pending');     // passerà a loggedIn dopo handshake
-    await this.syncSession();
-  }
-
-  /* ───────────────────────────── Helper anonimizzazione ───────────────────────────── */
-  private becomeAnonymous(opts: {
-    degradeFromLoggedIn?: boolean;
-    navigateIfProtected?: boolean;
-    showToast?: boolean;
-    fromStorage?: boolean;
-  } = {}) {
-    const {
-      degradeFromLoggedIn = false,
-      navigateIfProtected = false,
-      showToast = false,
-      fromStorage = false
-    } = opts;
-
-    this.userContext.clearInitials();
-    localStorage.removeItem('login');
-
-    // Se stavi passando da loggedIn -> anonymous (per token scaduto / handshake fail)
-    if (degradeFromLoggedIn && showToast) {
-      this.toast.trigger('Accesso non più valido.', 'warn');
-    }
-
-    // Torna in modalità anonima
-    this._status.set('anonymous');
-
-    // Mantieni socket pubblica
-    // Mantieni la socket esistente se il server non ti ha buttato fuori.
-    // Se proprio vuoi garantire public, puoi solo fare “upgrade/downgrade”:
-    if (this.realtimeSocket.isConnected) {
-      // se la connessione era privata non serve per forza chiuderla, puoi lasciarla,
-      // ma se il server rifiuterà eventi, li ignori. Se preferisci pulire:
-      this.realtimeSocket.connect({ force: true, mode: 'public' });
-    } else {
-      this.realtimeSocket.connect({ mode: 'public' });
-    }
-
-
-    if (navigateIfProtected) {
-      // Se la rotta corrente NON è pubblica, portalo a /login
-      if (!this.isPublicRoute(this.router.url)) {
-        this.router.navigate(['/login']);
-      }
-    }
-  }
-
-  /* Mappa delle route pubbliche (exact + prefix) */
-  private readonly publicExact = ['/login', '/register', '/forgot', '/privacy', '/'];
-  private readonly publicPrefixes = ['/molecules/detail'];
-
-  private isPublicRoute(url: string): boolean {
-    // togli query/hash
-    const q = url.indexOf('?'); if (q >= 0) url = url.slice(0, q);
-    const h = url.indexOf('#'); if (h >= 0) url = url.slice(0, h);
-    return (
-      this.publicExact.includes(url) ||
-      this.publicPrefixes.some(p => url.startsWith(p))
-    );
-  }
-
-  private waitForConnect(): Promise<void> {
-    if (this.realtimeSocket.isConnected) return Promise.resolve();
-    return new Promise(res => {
-      const sub = this.realtimeSocket.onConnect().subscribe(() => {
-        sub.unsubscribe();
-        res();
-      });
-      // timeout di fallback se vuoi
-      setTimeout(() => {
-        if (!this.realtimeSocket.isConnected) res();
-      }, 4000);
+  /* ══════════════ LOGOUT ESPLICITO ══════════════ */
+  public logout(opts: { silent?: boolean } = {}): void {
+    this.becomeAnonymous({
+      degradeFromLoggedIn: true,
+      navigateIfProtected: true,
+      showToast          : !opts.silent,
     });
   }
 
+  /* ══════════════ LOGIN DA ALTRA TAB ══════════════ */
+  public async resumeSession(initials: string): Promise<void> {
+    this.userCtx.setInitials(initials);
+    localStorage.setItem('login', initials);
+    this._status.set('pending');
+    await this.syncSession();
+  }
 
-  /* API extra */
+  /* ══════════════ DIVENTA ANONIMO ══════════════ */
+  private becomeAnonymous(opts: {
+    degradeFromLoggedIn?: boolean;
+    navigateIfProtected?: boolean;
+    showToast?          : boolean;
+    fromStorage?        : boolean;
+  } = {}): void {
+
+    const {
+      degradeFromLoggedIn = false,
+      navigateIfProtected = false,
+      showToast           = false,
+      fromStorage         = false,
+    } = opts;
+
+    /* pulizia stato */
+    this.userCtx.clearInitials();
+    localStorage.removeItem('login');
+    this._status.set('anonymous');
+
+    /* socket → public */
+    this.socket.ensurePublic();
+
+    /* toast */
+    if (showToast) {
+      const msg = fromStorage
+        ? 'Logout eseguito da un’altra scheda'
+        : (degradeFromLoggedIn ? 'Accesso non più valido.' : 'Logout eseguito.');
+      this.toast.trigger(msg, degradeFromLoggedIn ? 'warn' : 'success');
+    }
+
+    /* redirect se necessario */
+    if (navigateIfProtected && !this.isPublicRoute(this.router.url)) {
+      this.router.navigate(['/login']);
+    }
+  }
+
+  /* ══════════════ UTILITIES ══════════════ */
+
+  /** true se la rotta è pubblica */
+  private isPublicRoute(url: string): boolean {
+    /* strip query / hash */
+    const clean = url.split(/[?#]/)[0];
+    return (
+      this.publicExact.has(clean) ||
+      this.publicPrefix.some(p => clean.startsWith(p))
+    );
+  }
+
+  /** forza una nuova verifica lato server */
   public forceSessionCheck(): void { this.syncSession(); }
+
+  /** snapshot sincrono */
   public get currentStatus(): SessionSyncStatus { return this._status(); }
-
-
-
 }

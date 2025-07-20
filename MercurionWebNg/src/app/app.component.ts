@@ -156,9 +156,11 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       const url = rawUrl.toLowerCase();
 
       console.log('[ROUTE EFFECT]', { rawUrl, url, initials, logged, status });
+      if (status === 'handshake' || status === 'error') {
+        return;          // non reagire finché non sappiamo l’esito
+      }
 
-      // Evita di reagire mentre stai negoziando la sessione
-      if (status === 'handshake') return;
+
 
       const isPublic = publicExact.has(url) || publicPrefixes.some(p => url.startsWith(p));
       const isLoggedOutOnly = publicExact.has(url); // pagine che *se* loggato voglio evitare
