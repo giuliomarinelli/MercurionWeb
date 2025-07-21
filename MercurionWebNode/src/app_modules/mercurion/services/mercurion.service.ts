@@ -7,7 +7,7 @@ import { catchError, firstValueFrom, throwError, timeout, TimeoutError } from 'r
 @Injectable()
 export class MercurionAIService {
 
-    constructor(@Inject('MERCURION_TOX_21_CLIENT') private readonly tox21Client: ClientProxy) { }
+    constructor(@Inject('MERCURION_AI_CLIENT') private readonly tox21Client: ClientProxy) { }
 
     public async getInferenceFromTop4MercurionTox21(dto: MercurionInferReqDTO): Promise<MercurionInferDataDTO> | never {
 

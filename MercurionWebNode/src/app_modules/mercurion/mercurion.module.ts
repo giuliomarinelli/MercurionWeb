@@ -14,7 +14,7 @@ import { RedisModule } from '../redis/redis.module';
         ConfigModule,
         ClientsModule.registerAsync([
             {
-                name: 'MERCURION_TOX_21_CLIENT',
+                name: 'MERCURION_AI_CLIENT',
                 imports: [ConfigModule],
                 inject: [ConfigService],
                 useFactory: async (config: ConfigService) => ({
