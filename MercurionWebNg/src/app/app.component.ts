@@ -162,6 +162,8 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
 
+
+
       const isPublic = publicExact.has(url) || publicPrefixes.some(p => url.startsWith(p));
       const isLoggedOutOnly = publicExact.has(url); // pagine che *se* loggato voglio evitare
 
@@ -176,7 +178,9 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
           }
         });
       }
-
+      if (url === '/') {
+        safeNavigate('/login')
+      }
       if (!logged) {
         // Non loggato: permette tutte le public + publicPrefix
         if (!isPublic) safeNavigate('/login');

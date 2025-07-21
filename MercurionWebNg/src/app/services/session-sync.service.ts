@@ -31,15 +31,15 @@ export class SessionSyncService {
   private readonly anonCooldownMs = 5_000;    // 5 s
 
   /* route pubbliche (exact e prefix) */
-  private readonly publicExact   = new Set(['/login', '/register', '/forgot', '/privacy', '/']);
-  private readonly publicPrefix  = ['/molecules/detail'];
+  private readonly publicExact = new Set(['/login', '/register', '/forgot', '/privacy', '/']);
+  private readonly publicPrefix = ['/molecules/detail'];
 
   constructor(
-    private readonly socket   : RealtimeSocketService,
-    private readonly userCtx  : UserContextService,
-    private readonly toast    : ToastService,
-    private readonly router   : Router,
-    private readonly zone     : NgZone,
+    private readonly socket: RealtimeSocketService,
+    private readonly userCtx: UserContextService,
+    private readonly toast: ToastService,
+    private readonly router: Router,
+    private readonly zone: NgZone,
   ) {
 
     /* ───────── socket events ───────── */
@@ -48,8 +48,7 @@ export class SessionSyncService {
     this.socket.onConnect().subscribe(() => {
       /* se veniamo da disconnected / pending facciamo handshake */
       if (!this.handshakePending &&
-          (this._status() === 'pending' || this._status() === 'disconnected'))
-      {
+        (this._status() === 'pending' || this._status() === 'disconnected')) {
         this.zone.run(() => this.syncSession());
       }
     });
@@ -93,7 +92,7 @@ export class SessionSyncService {
     if (this.handshakePending) return;
 
     const tokenPresent = !!localStorage.getItem('login');
-    const now          = Date.now();
+    const now = Date.now();
 
     /* anti-flood per anonimi */
     if (!tokenPresent && now - this.lastAnonHandshake < this.anonCooldownMs) {
@@ -165,7 +164,7 @@ export class SessionSyncService {
     this.becomeAnonymous({
       degradeFromLoggedIn: true,
       navigateIfProtected: true,
-      showToast          : !opts.silent,
+      showToast: !opts.silent,
     });
   }
 
@@ -181,15 +180,15 @@ export class SessionSyncService {
   private becomeAnonymous(opts: {
     degradeFromLoggedIn?: boolean;
     navigateIfProtected?: boolean;
-    showToast?          : boolean;
-    fromStorage?        : boolean;
+    showToast?: boolean;
+    fromStorage?: boolean;
   } = {}): void {
 
     const {
       degradeFromLoggedIn = false,
       navigateIfProtected = false,
-      showToast           = false,
-      fromStorage         = false,
+      showToast = false,
+      fromStorage = false,
     } = opts;
 
     /* pulizia stato */
@@ -204,8 +203,8 @@ export class SessionSyncService {
     if (showToast) {
       const msg = fromStorage
         ? 'Logout eseguito da un’altra scheda'
-        : (degradeFromLoggedIn ? 'Accesso non più valido.' : 'Logout eseguito.');
-      this.toast.trigger(msg, degradeFromLoggedIn ? 'warn' : 'success');
+        : 'Logout eseguito.'//: (degradeFromLoggedIn ? 'Accesso non più valido.' : 'Logout eseguito.');
+      this.toast.trigger(msg, /*degradeFromLoggedIn ? 'warn' : */'success');
     }
 
     /* redirect se necessario */
