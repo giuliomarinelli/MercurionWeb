@@ -7,12 +7,12 @@ import { catchError, firstValueFrom, throwError, timeout, TimeoutError } from 'r
 @Injectable()
 export class MercurionAIService {
 
-    constructor(@Inject('MERCURION_AI_CLIENT') private readonly tox21Client: ClientProxy) { }
+    constructor(@Inject('MERCURION_AI_CLIENT') private readonly mercurionAIClient: ClientProxy) { }
 
     public async getInferenceFromTop4MercurionTox21(dto: MercurionInferReqDTO): Promise<MercurionInferDataDTO> | never {
 
         const res: MercurionInferResDTO = await firstValueFrom(
-            this.tox21Client.send<MercurionInferResDTO>('inference.tox21.smiles', dto).pipe(
+            this.mercurionAIClient.send<MercurionInferResDTO>('inference.tox21.smiles', dto).pipe(
                 timeout(3000), // ⏱️ Timeout dopo 3 secondi
                 catchError((err) => {
                     if (err instanceof TimeoutError) {
