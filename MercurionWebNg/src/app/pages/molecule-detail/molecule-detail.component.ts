@@ -42,29 +42,34 @@ import { MercurionAiService as MercurionAIService } from '../../services/mercuri
           <h2 class="font-semibold text-light-accent-primary dark:text-dark-accent-primary mb-4 text-center sm:text-left text-xl">
             Struttura
           </h2>
-
-            <div class="h-400px
+          <div class="overflow-x-auto flex justify-center sm:justify-start">
+            <div class="
               flex-shrink-0
               w-auto
-              h-[180px]
-              md:h-[300px]
+              h-[110px]
+              2xs:h-[140px]
+              xs:h-[160px]
+              sm:h-[180px]
+              md:h-[225px]
+              lg:h-[300px]
               overflow-hidden
-              overflow-x-auto
-              relative">
+              relative
+
+              ">
 
               @if (!viewerReady()) {
                 <div class="absolute inset-0 z-10 animate-pulse
                       bg-slate-200 dark:bg-slate-700"></div>
               }
 
-            <molecule-viewer
-              [mode]="'detail'"
-              class="w-full h-full"
-              [structure]="molecule.canonicalSmiles"
-              [darkMode]="themeManager.theme() === 'dark'"
-              (rendered)="viewerReady.set(true)"
-            />
-
+              <molecule-viewer
+                [mode]="'detail'"
+                class="w-full h-full"
+                [structure]="molecule.canonicalSmiles"
+                [darkMode]="themeManager.theme() === 'dark'"
+                (rendered)="viewerReady.set(true)"
+              />
+            </div>
           </div>
         </section>
 
@@ -115,29 +120,29 @@ export class MoleculeDetailComponent implements OnInit {
       }),
       switchMap((molecule) => {
         if (!molecule) return of(null)
-        return this.mercurionAIService.t1Inference({ smiles: molecule.canonicalSmiles })
-          .pipe(
-            catchError((err) => {
-              if (err?.status === 401 || err?.networkError?.status === 401) {
-                return of(undefined)
-              }
-              // Per altri errori
+        if (this.userContext.initials() === '') return of(molecule)
+        return this.mercurionAIService.t1Inference({ smiles: molecule.canonicalSmiles }).pipe(
+          catchError((err) => {
+            if (err?.status === 401 || err?.networkError?.status === 401) {
               return of(undefined)
-            }),
-            map(t1Inference => ({
-              ...molecule,
-              t1Inference
-            }))
-          )
+            }
+            // Per altri errori
+            return of(undefined)
+          }),
+          map(t1Inference => ({
+            ...molecule,
+            t1Inference
+          }))
+        )
       }),
       catchError((err: any) => {
         const netErr = err?.networkError;
         if (netErr && 'status' in netErr) {
           this.fetchError.set(true)
         }
-        return of(null);
+        return of(null)
       })
-    );
+    )
   }
 
 }
