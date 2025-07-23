@@ -42,6 +42,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
   protected avatarMenuOpen = signal<boolean>(false)
   protected avatarMenuMounted = signal<boolean>(false)
   protected avatarMenuVisible = signal<boolean>(false)
+  protected avatarMobileMenuOpen = signal<boolean>(false)
+  protected avatarMobileMenuMounted = signal<boolean>(false)
+  protected avatarMobileMenuVisible = signal<boolean>(false)
   protected email = signal<string>('')
 
   readonly menuOpenClass: Signal<boolean> = computed(() => this.themeMenuOpen())
@@ -79,6 +82,15 @@ export class HeaderComponent implements OnInit, OnDestroy {
         setTimeout(() => this.avatarMenuMounted.set(false), 200)
       }
     })
+    effect(() => {
+      if (this.avatarMobileMenuOpen()) {
+        this.avatarMobileMenuMounted.set(true)
+        setTimeout(() => this.avatarMobileMenuVisible.set(true))
+      } else {
+        this.avatarMobileMenuVisible.set(false)
+        setTimeout(() => this.avatarMobileMenuMounted.set(false), 200)
+      }
+    })
   }
 
   protected onThemeChange(theme: ThemeChose): void {
@@ -104,6 +116,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.avatarMenuOpen.update(open => !open)
   }
 
+  protected toggleAvatarMobileMenu(): void {
+    !this.avatarMobileMenuOpen() && this.getEmail()
+    this.themeMenuOpen() && this.toggleThemeMenu()
+    this.avatarMobileMenuOpen.update(open => !open)
+  }
+
   protected closeOffCanvasMenu(): void {
     this.offCanvasMenuOpen.set(false)
   }
@@ -114,6 +132,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   protected closeAvatarMenu(): void {
     this.avatarMenuOpen.set(false)
+  }
+
+  protected closeAvatarMobileMenu(): void {
+    this.avatarMobileMenuOpen.set(false)
   }
 
   protected handleDocumentClick = (event: MouseEvent): void => {
@@ -145,6 +167,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
       this.themeMenuOpen.set(false)
       this.offCanvasMenuOpen.set(false)
       this.avatarMenuOpen.set(false)
+      this.avatarMobileMenuVisible.set(false)
     }
   }
 
