@@ -62,9 +62,17 @@
         <div
           class="hidden lg:flex items-center gap-3 text-sm xl:text-[0.925rem] font-medium text-light-on-surface-main dark:text-slate-100 tracking-wider mr-3 relative top-[1px]"
         >
-          <a routerLink="/login" class="hover:text-light-accent-primary hover:dark:text-dark-accent-primary transition-colors duration-300">Accedi</a>
+          <a
+            routerLink="/login"
+            class="hover:text-light-accent-primary hover:dark:text-dark-accent-primary transition-colors duration-300"
+            >Accedi</a
+          >
           <span class="cursor-default">&middot;</span>
-          <a routerLink="/register" class="hover:text-light-accent-primary hover:dark:text-dark-accent-primary transition-colors duration-300">Registrati</a>
+          <a
+            routerLink="/register"
+            class="hover:text-light-accent-primary hover:dark:text-dark-accent-primary transition-colors duration-300"
+            >Registrati</a
+          >
         </div>
       }
       <!-- Ricerca fittizia o icona -->
@@ -92,7 +100,9 @@
       }
       <div
         class="hidden xs:block"
-        [ngClass]="{'lg:hidden': userContext.initials() !== '' || isLoginPath()}"
+        [ngClass]="{
+          'lg:hidden': userContext.initials() !== '' || isLoginPath(),
+        }"
       >
         <button
           (click)="openSearchOverlay()"
@@ -109,7 +119,6 @@
           </svg>
         </button>
       </div>
-
 
       <button
         class="flex items-center theme-toggle-button mr-0 xs:mr-1 lg:mr-2 transition-all duration-500"
@@ -439,6 +448,15 @@
     </div>
   </div>
 }
+<!-- Offcanvas backdrop -->
+@if (offCanvasMenuOpen()) {
+  <div
+    class="fixed inset-0 z-[9998] bg-black/30 transition-opacity duration-300"
+    (click)="closeOffCanvasMenu()"
+  ></div>
+}
+
+
 <!-- Offcanvas Navigation Sidebar -->
 @if (designService.maxBk("md")()) {
   <div
@@ -450,34 +468,34 @@
   >
     <!-- Header of the offcanvas -->
     <div
-      class="flex justify-between items-center px-5 border-b border-light-border dark:border-dark-border shadow-sm dark:shadow-none"
+      class="flex justify-between items-center px-5 border-b py-5 border-slate-600 dark:border-dark-border"
     >
-      <div class="flex gap-4 items-center">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="offcanvas-menu-icon"
-          viewBox="0 0 512 512"
+      <div class="flex items-center gap-3">
+        <button
+          (click)="openSearchOverlay(); offCanvasMenuOpen.set(true)"
+          class="xs:hidden flex items-center cursor-pointer transition"
         >
-          <!--!Font Awesome Pro 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-          <path
-            class="fill-current text-light-accent-secondary/50 dark:text-slate-100/75"
-            d="M0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM128 384l64-192 192-64L320 320 128 384z"
-          />
-          <path
-            class="fill-current text-light-accent-primary dark:text-dark-accent-primary"
-            d="M192 192L128 384l192-64 64-192L192 192zm64 32a32 32 0 1 1 0 64 32 32 0 1 1 0-64z"
-          />
-        </svg>
-        <h2
-          class="font-semibold text-light-accent-primary dark:text-dark-accent-primary text-2xl py-4"
-        >
-          Navigazione
-        </h2>
+          <svg
+            class="w-5 h-5 fill-current text-slate-400"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 512 512"
+          >
+            <path
+              d="M505 442.7L405.3 343c28.4-34.9 45.5-79 45.5-127.3C450.8 103.5 347.3 0 225.4 0S0 103.5 0 215.6s103.5 215.6 225.4 215.6c48.3 0 92.4-17.1 127.3-45.5l99.7 99.7c4.6 4.6 10.6 7 16.7 7s12.1-2.3 16.7-7c9.3-9.2 9.3-24.4 0-33.7zM225.4 367c-83.5 0-151.4-67.9-151.4-151.4s67.9-151.4 151.4-151.4 151.4 67.9 151.4 151.4-67.9 151.4-151.4 151.4z"
+            />
+          </svg>
+        </button>
+        <button type="button" class="cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="w-[26px] h-[26px] fill-current text-slate-400 relative bottom-[0.5px]">
+            <!--!Font Awesome Pro v7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+            <path d="M320 112C434.9 112 528 205.1 528 320C528 434.9 434.9 528 320 528C205.1 528 112 434.9 112 320C112 205.1 205.1 112 320 112zM320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM280 400C266.7 400 256 410.7 256 424C256 437.3 266.7 448 280 448L360 448C373.3 448 384 437.3 384 424C384 410.7 373.3 400 360 400L352 400L352 312C352 298.7 341.3 288 328 288L280 288C266.7 288 256 298.7 256 312C256 325.3 266.7 336 280 336L304 336L304 400L280 400zM320 256C337.7 256 352 241.7 352 224C352 206.3 337.7 192 320 192C302.3 192 288 206.3 288 224C288 241.7 302.3 256 320 256z"/>
+          </svg>
+        </button>
       </div>
       <button (click)="closeOffCanvasMenu()">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          class="h-5 w-5 fill-current text-light-on-surface-secondary dark:text-slate-200"
+          class="w-7 h-7 fill-current text-slate-400"
           viewBox="0 0 384 512"
         >
           <path
@@ -488,9 +506,9 @@
     </div>
 
     <!-- Menu items -->
-    @if (userContext.initials() != "") {
+
       <app-nav (onCloseOffCanvasMenu)="themeMenuOpen.set($event)" />
       <app-sidenav />
-    }
+
   </div>
 }
