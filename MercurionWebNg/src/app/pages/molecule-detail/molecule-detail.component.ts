@@ -1,8 +1,8 @@
 // Refactor #1: MoleculeDetailComponent
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MoleculeService } from '../../services/graphql/molecule.service';
-import { switchMap, Observable, catchError, of } from 'rxjs';
+import { switchMap, Observable, catchError, of, Subscription, forkJoin, map, retry } from 'rxjs';
 import { MoleculeDetail } from '../../Models/graphql/molecule.detail';
 import { AsyncPipe } from '@angular/common';
 import { ThemeManagerService } from '../../services/context/theme-manager.service';
@@ -12,6 +12,10 @@ import { MoleculePropertiesComponent } from '../../components/molecule-detail/mo
 import { MoleculeRoutesComponent } from '../../components/molecule-detail/molecule-routes/molecule-routes.component';
 import { MoleculeSynonymsComponent } from '../../components/molecule-detail/molecule-synonyms/molecule-synonyms.component';
 import { MoleculeCtaChemblComponent } from '../../components/molecule-detail/molecule-cta-chembl/molecule-cta-chembl.component';
+import { T1PredictionCardComponent } from '../../components/molecule-detail/t1-prediction-card/t1-prediction-card.component';
+import { UserContextService } from '../../services/context/user-context.service';
+import { T1PredictionDTO } from '../../Models/notebook/t1-prediction-model';
+import { MercurionAiService as MercurionAIService } from '../../services/mercurion-ai.service';
 
 @Component({
   selector: 'app-molecule-detail',
@@ -24,6 +28,7 @@ import { MoleculeCtaChemblComponent } from '../../components/molecule-detail/mol
     MoleculeRoutesComponent,
     MoleculeSynonymsComponent,
     MoleculeCtaChemblComponent,
+    T1PredictionCardComponent
   ],
   template: `
     @if (molecule$ | async; as molecule) {
@@ -63,6 +68,10 @@ import { MoleculeCtaChemblComponent } from '../../components/molecule-detail/mol
           </div>
         </section>
 
+        @if (userContext.initials() !== '') {
+          <app-t1-prediction-card [inference]="molecule.t1Inference" />
+        }
+
         <molecule-properties [properties]="molecule.properties" />
 
         <molecule-routes [adminRoutesInput]="molecule.administrationRoutes" />
@@ -84,23 +93,42 @@ import { MoleculeCtaChemblComponent } from '../../components/molecule-detail/mol
 })
 export class MoleculeDetailComponent implements OnInit {
 
-  molecule$!: Observable<MoleculeDetail | null>;
+  molecule$!: Observable<MoleculeDetail | null>
   viewerReady = signal<boolean>(false)
   fetchError = signal<boolean>(false)
 
   constructor(
     private readonly route: ActivatedRoute,
     private readonly moleculeService: MoleculeService,
-    protected readonly themeManager: ThemeManagerService
+    protected readonly themeManager: ThemeManagerService,
+    protected readonly userContext: UserContextService,
+    private readonly mercurionAIService: MercurionAIService
   ) { }
 
   ngOnInit(): void {
     this.molecule$ = this.route.paramMap.pipe(
       switchMap((params) => {
         this.viewerReady.set(false)
-        const molregno = params.get('molregno');
-        if (!molregno) throw new Error('UndefinedMolregno');
-        return this.moleculeService.getMoleculeByMolregno(molregno);
+        const molregno = params.get('molregno')
+        if (!molregno) throw new Error('UndefinedMolregno')
+        return this.moleculeService.getMoleculeByMolregno(molregno)
+      }),
+      switchMap((molecule) => {
+        if (!molecule) return of(null)
+        return this.mercurionAIService.t1Inference({ smiles: molecule.canonicalSmiles })
+          .pipe(
+            catchError((err) => {
+              if (err?.status === 401 || err?.networkError?.status === 401) {
+                return of(undefined)
+              }
+              // Per altri errori
+              return of(undefined)
+            }),
+            map(t1Inference => ({
+              ...molecule,
+              t1Inference
+            }))
+          )
       }),
       catchError((err: any) => {
         const netErr = err?.networkError;
@@ -111,4 +139,5 @@ export class MoleculeDetailComponent implements OnInit {
       })
     );
   }
+
 }

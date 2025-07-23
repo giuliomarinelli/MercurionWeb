@@ -1,3 +1,5 @@
+import { T1PredictionDTO } from "../notebook/t1-prediction-model"
+
 export interface MoleculeProperties {
     mwFreebase: number | null
     alogp: number | null
@@ -27,4 +29,5 @@ export interface MoleculeDetail {
     prodrug: boolean
     blackBoxWarning: boolean
     synonyms: string[]
+    t1Inference?: T1PredictionDTO
 }

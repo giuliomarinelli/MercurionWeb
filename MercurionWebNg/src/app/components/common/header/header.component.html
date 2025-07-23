@@ -91,7 +91,8 @@
         </div>
       }
       <div
-        class="hidden xs:block lg:hidden"
+        class="hidden xs:block"
+        [ngClass]="{'lg:hidden': userContext.initials() !== '' || isLoginPath()}"
       >
         <button
           (click)="openSearchOverlay()"
