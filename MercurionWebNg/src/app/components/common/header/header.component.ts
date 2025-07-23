@@ -139,6 +139,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   protected handleDocumentClick = (event: MouseEvent): void => {
+
+    if (this.avatarMobileMenuMounted()) {
+      return
+    }
+
     const target = event.target as HTMLElement
 
     const isInsideThemeMenu = target.closest('.theme-menu-container')

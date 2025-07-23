@@ -529,10 +529,12 @@
           [innerHTML]="userContext.initials()"
           class="avatar-toggle-button rounded-full cursor-pointer bg-emerald-500 text-slate-100 dark:bg-dark-accent-primary p-2 text-sm font-semibold"
         ></button>
-        <span
+        <button
+          (click)="toggleOffCanvasMenu(); toggleAvatarMobileMenu()"
           class="text-sm text-green-800 dark:text-dark-accent-primary font-medium"
-          >{{ email() }}</span
         >
+          {{ email() }}
+        </button>
       </div>
     }
     <!-- Modal avatar mobile (solo xs/sm) -->
@@ -543,7 +545,7 @@
           'opacity-100 pointer-events-auto': avatarMobileMenuVisible(),
           'opacity-0 pointer-events-none': !avatarMobileMenuVisible(),
         }"
-        (click)="offCanvasMenuOpen.set(true); closeAvatarMobileMenu()"
+        (click)="closeAvatarMobileMenu()"
       >
         <div
           class="w-full h-[100dvh] max-h-[100dvh] bg-slate-100 dark:bg-neutral-900 rounded-t-2xl shadow-2xl p-6 pb-10 relative overflow-y-auto transition-transform duration-300"
