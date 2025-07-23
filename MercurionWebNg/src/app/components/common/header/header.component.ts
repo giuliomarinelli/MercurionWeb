@@ -94,6 +94,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   protected toggleOffCanvasMenu(): void {
+    this.getEmail()
     this.offCanvasMenuOpen.update(open => !open)
   }
 
