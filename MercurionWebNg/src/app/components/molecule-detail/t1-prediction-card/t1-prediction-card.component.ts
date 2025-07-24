@@ -39,7 +39,7 @@ import { RouterLink } from '@angular/router';
               <span class="text-green-800 dark:text-green-300 font-medium">NON Tossico</span>
             </div>
           </div>
-          @for (predWrapper of predictions(); track predWrapper; let i = $index) {
+          @for (predWrapper of predictions(); track predWrapper) {
             <div class="flex flex-col md:flex-row md:justify-between lg:items-center gap-3">
               <div class="flex gap-3">
               @if (predWrapper.prediction.is_positive) {

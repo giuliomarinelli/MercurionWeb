@@ -96,6 +96,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   headerHeight = signal(64)
   private routeSub?: Subscription
   private currentPath = signal<string>('')
+  private firstNavigationDone = signal<boolean>(false)
 
   @ViewChild(HeaderComponent, { read: ElementRef })
   headerRef!: ElementRef<HTMLElement>
@@ -140,6 +141,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         const url = normalize(e.urlAfterRedirects);
         this.currentPath.set(url);
         this.pathService.setPath(url);
+        if (!this.firstNavigationDone()) this.firstNavigationDone.set(true);
       });
 
     // --- Effetto unico ---
@@ -148,48 +150,56 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
     let lastProgrammaticNav: string | undefined;
 
+    /* AppComponent – dentro il costruttore */
+    let firstStableReached = false;
+
     effect(() => {
-      const initials = this.userContext.initials();     // '' se anonimo
+      if (!this.firstNavigationDone()) return
+      /* dati correnti ---------------------------------------------------- */
+      const initials = this.userContext.initials();   // '' se anonimo
       const logged = !!initials;
-      const status = this.sessionSync.status();       // 'anonymous' / 'handshake' / 'loggedIn' / ...
-      const rawUrl = this.currentPath();              // signal già aggiornato da NavigationEnd
+      const status = this.sessionSync.status();     // unknown | checking | …
+      const rawUrl = this.currentPath();
       const url = rawUrl.toLowerCase();
 
-      console.log('[ROUTE EFFECT]', { rawUrl, url, initials, logged, status });
-      if (status === 'handshake' || status === 'error') {
-        return;          // non reagire finché non sappiamo l’esito
+      // 1️⃣ aspetta lo stato “stabile” la prima volta
+      if (!firstStableReached) {
+        if (status === 'loggedIn' || status === 'anonymous') {
+          firstStableReached = true;        // d’ora in poi si può valutare
+        } else {
+          return;                           // fermo finché l’hand-shake finisce
+        }
       }
 
-
-
-
-
-      const isPublic = publicExact.has(url) || publicPrefixes.some(p => url.startsWith(p));
-      const isLoggedOutOnly = publicExact.has(url); // pagine che *se* loggato voglio evitare
+      /* ------------------------------------------------------------------ */
+      const isPublic = publicExact.has(url) ||
+        publicPrefixes.some(p => url.startsWith(p));
+      const isLoggedOutOnly = publicExact.has(url);
 
       const safeNavigate = (target: string) => {
         if (target === url) return;
         if (lastProgrammaticNav === target) return;
         lastProgrammaticNav = target;
         queueMicrotask(() => {
-          // solo se siamo ancora sulla stessa url prima del redirect
           if (this.router.url.toLowerCase() === url) {
             this.router.navigateByUrl(target);
           }
         });
-      }
-      if (url === '/') {
-        safeNavigate('/login')
-      }
+      };
+
+      /* home nuda → /login */
+      if (url === '/') safeNavigate('/login');
+
+      /* NON loggato */
       if (!logged) {
-        // Non loggato: permette tutte le public + publicPrefix
         if (!isPublic) safeNavigate('/login');
         return;
       }
 
-      // Loggato: se stai su una pagina per "logged out only" ti porto al profilo
+      /* loggato su pagine “solo-logout” → /profile */
       if (isLoggedOutOnly) safeNavigate('/profile');
     });
+
 
   }
 
