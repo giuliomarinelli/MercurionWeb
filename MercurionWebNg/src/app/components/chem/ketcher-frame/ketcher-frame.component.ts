@@ -11,12 +11,21 @@ export type KetcherFrameMode = 'create' | 'edit' | 'duplicate';
   selector: 'app-ketcher-frame',
   standalone: true,
   template: `
-    <iframe
-      #ketcherIframe
-      [src]="ketcherUrl"
-      style="width:100%;height:500px;border:none"
-    ></iframe>
-    <ng-content></ng-content>
+    <div class="relative w-full">
+      <!-- L'iframe c'è SEMPRE -->
+      <iframe
+        #ketcherIframe
+        [src]="ketcherUrl"
+        class="w-full h-[500px] border-none"
+      ></iframe>
+
+      <!-- Loader sovrapposto: sparisce quando loading() diventa false -->
+      @if (loading()) {
+        <div class="absolute inset-0 h-[500px] bg-gray-300 dark:bg-neutral-700 animate-pulse pointer-events-none"></div>
+      }
+
+      <ng-content></ng-content>
+    </div>
   `
 })
 export class KetcherFrameComponent implements OnInit, OnDestroy {
@@ -44,6 +53,8 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
 
   _smiles = signal<string>('');
   ketcherReady = signal<boolean>(false);
+  loading = signal<boolean>(true)
+  loaded = signal<boolean>(false)
 
   @ViewChild('ketcherIframe') iframeRef!: ElementRef<HTMLIFrameElement>;
 
@@ -76,6 +87,8 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
       // Se c'è già uno smiles da inviare, mandalo ora
       if (this._smiles()) {
         this.updateKetcherMolfile(this._smiles());
+        this.loading.set(false)
+        setTimeout(() => this.loaded.set(true), 50)
       }
     }
 
