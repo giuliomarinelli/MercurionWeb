@@ -26,6 +26,17 @@ const MOLECULE_ITEM_FRAGMENT = `
   ... on CustomMoleculeItemEntity { canonicalSmiles molFormula name propertiesJson }
 `;
 
+const CUSTOM_MOLECULE_SMILES = gql`
+  query CustomMoleculeSmiles($id: ID!) {
+    customMoleculeItem(id: $id) {
+      id
+      canonicalSmiles
+      name
+      molFormula
+    }
+  }
+`;
+
 const MY_MOLECULE_ITEMS = gql`
   query MyMoleculeItems {
     myMoleculeItems {
@@ -72,7 +83,7 @@ export class MoleculeCollectionItemService {
   readonly items = computed(() => this._items());
   readonly loading = computed(() => this._loading());
 
-  constructor(private apollo: Apollo) {}
+  constructor(private apollo: Apollo) { }
 
   // LISTA TUTTE LE MOLECOLE
   getAllItems(): Observable<MoleculeCollectionItem[]> {
@@ -131,4 +142,29 @@ export class MoleculeCollectionItemService {
       })
       .pipe(map(res => extractGqlData(res, 'deleteMoleculeItem')));
   }
+
+  getCustomSmilesById(id: string) {
+    return this.apollo
+      .watchQuery<{ moleculeItem: MoleculeCollectionItem }>({
+        query: MOLECULE_ITEM,
+        variables: { id },
+        fetchPolicy: 'network-only',
+      })
+      .valueChanges
+      .pipe(
+        map(res => {
+          const item = extractGqlData(res, 'moleculeItem');
+          if (!item) throw new Error('Item not found');
+          if (item.type !== 'custom') throw new Error('Not a custom molecule');
+          return {
+            id: item.id,
+            canonicalSmiles: item.canonicalSmiles,
+            name: item.name,
+            molFormula: item.molFormula,
+          };
+        })
+      );
+  }
+
+
 }
