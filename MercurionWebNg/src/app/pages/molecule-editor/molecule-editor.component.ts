@@ -15,11 +15,11 @@ import { MoleculeCollectionItemService } from '../../services/graphql/molecule-c
          [mode]="mode()"
          (exportSmiles)="onSmilesExported($event)"
       >
-     <div class="flex flex-col 2xs:flex-row gap-3 mt-5 justify-end max-w-2xl mx-auto">
+     <div class="sm:flex flex-col 2xs:flex-row gap-3 mt-5 justify-end max-w-2xl mx-auto hidden">
       <button class="relative bottom-[2px] w-full mt-4 py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary dark:bg-dark-accent-primary/90 hover:bg-light-accent-primary/80 dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary/60 disabled:hover:dark:bg-dark-accent-primary/80"
         (click)="onReset()">Resetta
       </button>
-      @if (mode() !== 'create') {
+      @if (mode() === 'edit') {
         <button
           class="relative bottom-[2px] w-full mt-4 py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary dark:bg-dark-accent-primary/90 hover:bg-light-accent-primary/80 dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary/60 disabled:hover:dark:bg-dark-accent-primary/80"
           (click)="onSave()">Salva
@@ -27,7 +27,7 @@ import { MoleculeCollectionItemService } from '../../services/graphql/molecule-c
       } @else {
         <button
           class="relative bottom-[2px] w-full mt-4 py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary dark:bg-dark-accent-primary/90 hover:bg-light-accent-primary/80 dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary/60 disabled:hover:dark:bg-dark-accent-primary/80"
-          (click)="onSaveAsNew()">Salva come nuova
+          (click)="onSaveAsNew()">Salva nuova
         </button>
       }
     </div>
@@ -65,6 +65,7 @@ export class MoleculeEditorComponent implements OnInit, OnDestroy {
       // va fatta validazione, non va mostrato l'editor e mostrato messaggio di errore
       const mId = qp['m_id']
       if (mode === 'edit' && mId) {
+        this.mode.set('edit')
         this.smilesByIdSub = this.moleculeCollectionItemService.getCustomSmilesById(mId).subscribe({
           next: res => {
             if (!res) {
@@ -77,8 +78,10 @@ export class MoleculeEditorComponent implements OnInit, OnDestroy {
         })
       } else if (mode === 'duplicate' && qp['smiles']) {
         this.smiles.set(qp['smiles'])
+        this.mode.set('duplicate')
       } else if (mode === 'create') {
         this.smiles.set('')
+        this.mode.set('create')
       } else {
         this.error.set(true)
       }
