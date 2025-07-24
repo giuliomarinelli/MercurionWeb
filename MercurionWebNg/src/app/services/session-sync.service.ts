@@ -98,7 +98,7 @@ export class SessionSyncService {
         });
       }
 
-      const ack = await this.socket.emit('so.pub.session_init');
+      const ack: any = await this.socket.emit('so.pub.session_init');
       if (ack?.detail === 'websocket session init successful') {
         const initials = localStorage.getItem('login') ?? 'U';
         this.userCtx.setInitials(initials);

@@ -1,118 +1,160 @@
+/* ──────────────────────────────────────────────────────────────
+ *  RealtimeSocketService  – gestione singola connessione socket.io
+ * ────────────────────────────────────────────────────────────── */
+
 import { Injectable } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
 import { Observable } from 'rxjs';
 import { AuthService } from '../auth.service';
 
-export type Listener<T = any> = { event: string; handler: (payload: T) => void };
 export type SocketMode = 'public' | 'private';
-export interface ConnectOpts {
-  /** default: this.mode  */
-  mode?: SocketMode;
-  /** forza la ri-creazione anche se già connessi nello stesso mode */
-  force?: boolean;
+
+/* listener registrati in runtime da altri service/component */
+interface Listener<T = any> {
+  event   : string;
+  handler : (payload: T) => void;
 }
 
 @Injectable({ providedIn: 'root' })
 export class RealtimeSocketService {
 
+  /* ───── stato interno ───── */
   private socket?: Socket;
-  private readonly listeners: Listener[] = [];
-
-  /** flag usato solo per sapere se c’è un handshake in corso */
-  private isConnecting = false;
-
   private mode: SocketMode = 'public';
+
+  private readonly listeners: Listener<any>[] = [];   // registry unico
 
   constructor(private readonly auth: AuthService) { }
 
-  /** wrapper 1-1: chiama sempre `connect({mode:'private',force:true})` */
-  ensurePrivate() { this.connect({ mode: 'private', force: true }); }
+  /* ============================================================
+   *  API  – gestite “mode” e reconnessione unica
+   * ============================================================
+   */
 
-  /** wrapper 1-1: chiama sempre `connect({mode:'public',force:true})`  */
-  ensurePublic() { this.connect({ mode: 'public', force: true }); }
-
-  /* ======================================================================= */
-
-  /** un’unica entry-point: opzionale `mode` + `force`                       */
- connect(opts: ConnectOpts = {}): void {
-    const wanted = opts.mode ?? this.mode;
-    if (!opts.force && this.socket?.connected && wanted === this.mode) return;
-
-    /* 1️⃣ chiudi la precedente */
-    this.socket?.off();
-    this.socket?.disconnect();
-
-    /* 2️⃣ crea la nuova */
-    this.mode  = wanted;
-    const token = this.mode === 'private'
-      ? this.auth.getWs_accessToken?.() ?? undefined
-      : undefined;
-
-    this.socket = io('http://localhost:8888', {
-      path: '/socket.io',
-      transports: ['websocket'],
-      withCredentials: true,
-      auth: { token },
-    });
-
-    /* 3️⃣ ***RI-AGGANCIA*** tutti gli handler già registrati */
-    for (const { event, handler } of this.listeners) {
-      this.socket.on(event, handler);
-    }
+  /** assicura la modalità *privata* (con token) */
+  ensurePrivate(token = this.auth.getWs_accessToken?.() ?? ''): void {
+    this.setMode('private', token);
   }
 
+  /** assicura la modalità *pubblica* */
+  ensurePublic(): void {
+    this.setMode('public');
+  }
+
+  /** accesso legacy (es. da on<T>): ridirige a setMode */
+  connect(mode: SocketMode = this.mode): void {
+    this.setMode(mode);
+  }
+
+  /** chiude esplicitamente la connessione */
   disconnect(): void {
     this.socket?.off();
     this.socket?.disconnect();
     this.socket = undefined;
   }
 
-  /* ------------------------------------------------------------------ */
-  /* Emit con ACK (Promise): */
-  public emit<T, R = any>(event: string, payload?: T, timeout = 5000): Promise<R | undefined> {
+  /** stato attuale */
+  get isConnected(): boolean {
+    return !!this.socket?.connected;
+  }
+
+  /* ============================================================
+   *  Emit con ACK  (promessa che si risolve anche su timeout)
+   * ============================================================
+   */
+  emit<T, R = unknown>(event: string, payload?: T, timeout = 5000): Promise<R | undefined> {
     if (!this.socket) return Promise.reject('Socket non connessa');
     return new Promise(resolve => {
       let settled = false;
       const timer = setTimeout(() => { if (!settled) { settled = true; resolve(undefined); } }, timeout);
+
       this.socket!.emit(event, payload, (ack: R) => {
         if (!settled) { settled = true; clearTimeout(timer); resolve(ack); }
       });
     });
   }
 
-  /* ------------------------------------------------------------------ */
-  /* Helpers di subscription: */
-  /* -------------------- SUBSCRIPTION HELPER -------------------- */
+  /* ============================================================
+   *  Helpers di subscription – Observable<T>
+   * ============================================================
+   */
   on<T>(event: string): Observable<T> {
     return new Observable<T>(observer => {
-      if (!this.socket) this.connect();          // crea se serve
+
+      /* se la socket non esiste la creo in modalità corrente */
+      if (!this.socket) this.setMode(this.mode);
+
       const handler = (data: T) => observer.next(data);
       this.socket!.on(event, handler);
 
-      /* salva per i reconnect futuri */
+      /* registra per i futuri reconnect */
       this.listeners.push({ event, handler });
 
+      /* teardown */
       return () => {
         this.socket?.off(event, handler);
-        const i = this.listeners.findIndex(l => l.event === event && l.handler === handler);
-        if (i >= 0) this.listeners.splice(i, 1);
+        const idx = this.listeners.findIndex(l => l.event === event && l.handler === handler);
+        if (idx >= 0) this.listeners.splice(idx, 1);
       };
     });
   }
 
-  public onConnect() { return this.on<void>('connect'); }
-  public onDisconnect() { return this.on<string>('disconnect'); }
+  /* shortcut tipizzati */
+  onConnect()    { return this.on<void>('connect'); }
+  onDisconnect() { return this.on<string>('disconnect'); }
 
-  /* ------------------------------------------------------------------ */
-  get isConnected(): boolean { return !!this.socket?.connected; }
+  /* ============================================================
+   *              —— IMPLEMENTAZIONE INTERNA ——
+   * ============================================================
+   */
 
-  private _connect(mode: 'public' | 'private') {
-    /* …close & create come già definito… */
+  /** decide se ri‑connettere o solo aggiornare il token */
+  private setMode(mode: SocketMode, token?: string): void {
 
-    // ➌ dopo aver creato la nuova socket, ri-aggancia tutti i listener registrati
-    for (const { event, handler } of this.listeners) {
-      this.socket?.on(event, handler);
+    /* caso ➊: già connessi nello stesso mode ------------------ */
+    if (this.socket?.connected && mode === this.mode) {
+
+      /* se privato + token nuovo → refresh senza reconnect */
+      if (mode === 'private' && token) {
+        this.socket.auth = { token };
+        this.socket.emit('auth_refresh');
+      }
+      return;           // nient’altro da fare
     }
+
+    /* caso ➋: serve effettivamente una nuova connessione ------- */
+    this.mode = mode;
+    this.recreateSocket(token);
   }
 
+  /** crea la socket e ri‑aggancia TUTTI i listener registrati */
+  private recreateSocket(token?: string): void {
+
+    /* chiude la precedente (se esiste) */
+    this.socket?.off();
+    this.socket?.disconnect();
+
+    /* stessa istanza server per tutto il front‑end */
+    const url = 'http://localhost:8888';
+
+    this.socket = io(url, {
+      path: '/socket.io',
+      transports: ['websocket'],
+      withCredentials: true,
+
+      /* reconnection nativo (back‑off esponenziale) */
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 2000,
+      reconnectionDelayMax: 8000,
+
+      /* auth solo in modalità privata */
+      auth: this.mode === 'private' ? { token: token ?? this.auth.getWs_accessToken?.() } : undefined
+    });
+
+    /* ri‑hook di tutti i listener dinamici -------------------- */
+    for (const { event, handler } of this.listeners) {
+      this.socket.on(event, handler);
+    }
+  }
 }
