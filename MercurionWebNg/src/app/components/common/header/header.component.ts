@@ -192,15 +192,14 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.logoutSub = this.authService.logout().subscribe({
       next: () => {
         sessionStorage?.removeItem('RouteError')
-        sessionStorage?.setItem('logout', 'success')
         localStorage?.removeItem('login')
         this.sessionSync.logout()
+        this.offCanvasMenuOpen.set(false)
       },
       error: () => {
         sessionStorage?.removeItem('RouteError')
-        sessionStorage?.setItem('logout', 'success')
         this.sessionSync.logout()
-        this.router.navigate(['/login'])
+        this.offCanvasMenuOpen.set(false)
       }
     })
   }

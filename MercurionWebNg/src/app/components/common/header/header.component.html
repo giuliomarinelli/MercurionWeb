@@ -106,7 +106,7 @@
       >
         <button
           (click)="openSearchOverlay()"
-          class="p-2 hover:bg-white/10 rounded-full mr-1"
+          class="p-2 hover:bg-white/10 rounded-full relative left-0.5"
         >
           <svg
             class="w-5 h-5 fill-current text-slate-600 dark:text-gray-200"
@@ -333,9 +333,9 @@
   </div>
 }
 <!-- Menu avatar -->
-@if (avatarMenuMounted()) {
+@if (avatarMenuMounted() && designService.minBk('sm')()) {
   <div
-    class="avatar-menu-container absolute sm:right-9 md:right-20 mt-2 z-50 w-72 text-md rounded-md shadow-lg bg-white text-light-on-surface-main dark:text-slate-100 dark:bg-neutral-800 transform transition-all duration-300 ease-out"
+    class="avatar-menu-container absolute xs:right-9 md:right-20 mt-2 z-50 w-72 text-md rounded-md shadow-lg bg-white text-light-on-surface-main dark:text-slate-100 dark:bg-neutral-800 transform transition-all duration-300 ease-out"
     [ngClass]="{
       'opacity-100 translate-x-0 translate-y-0': avatarMenuVisible(),
       'opacity-0 pointer-events-none translate-x-2 -translate-y-2':

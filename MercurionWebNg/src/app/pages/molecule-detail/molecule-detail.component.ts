@@ -32,7 +32,7 @@ import { MercurionAiService as MercurionAIService } from '../../services/mercuri
   ],
   template: `
     @if (molecule$ | async; as molecule) {
-      <section class="max-w-5xl mx-auto p-6 space-y-12">
+      <section class="max-w-5xl mx-auto p-0 xs:p-4 sm:p-6 md:p-8 space-y-12">
         <molecule-header
           [nameInput]="molecule.preferredName"
           [chemblIdInput]="molecule.cmbId"
@@ -46,11 +46,11 @@ import { MercurionAiService as MercurionAIService } from '../../services/mercuri
             <div class="
               flex-shrink-0
               w-auto
-              h-[110px]
-              2xs:h-[140px]
-              xs:h-[160px]
-              sm:h-[180px]
-              md:h-[225px]
+              h-[140px]
+              2xs:h-[165px]
+              xs:h-[185px]
+              sm:h-[215px]
+              md:h-[235px]
               lg:h-[300px]
               overflow-hidden
               relative
