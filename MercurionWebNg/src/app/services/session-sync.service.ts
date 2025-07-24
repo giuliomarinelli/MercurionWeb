@@ -146,7 +146,7 @@ export class SessionSyncService {
     this.userCtx.clearInitials();
     this._status.set('anonymous');
     this.socket.ensurePublic();
-    if (toast) this.toast.trigger(toast, 'warn');
+    // if (toast) this.toast.trigger(toast, 'warn');
     if (navigateIfProtected && !this.isPublicRoute(this.router.url)) {
       this.router.navigate(['/login']);
     }

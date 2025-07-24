@@ -1,6 +1,7 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { Apollo, gql } from 'apollo-angular';
 import { Observable, map, tap } from 'rxjs';
+import { MoleculeCollection } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 
 function extractGqlData<T>(res: any, field: keyof T): any {
   if (res.errors && res.errors.length) throw new Error(`GqlError::${res.errors.map((e: any) => e.message).join(', ')}`);
@@ -8,16 +9,6 @@ function extractGqlData<T>(res: any, field: keyof T): any {
   return res.data[field];
 }
 
-// --- TYPES ---
-export interface MoleculeCollectionItemJoinShort {
-  id: string;
-  item: { id: string; label?: string | null; type: string; };
-}
-export interface MoleculeCollection {
-  id: string;
-  name: string;
-  items?: MoleculeCollectionItemJoinShort[];
-}
 
 // --- OPTION OBJECT ---
 export interface CollectionFieldsOptions {

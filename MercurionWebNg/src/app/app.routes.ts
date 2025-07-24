@@ -53,5 +53,9 @@ export const routes: Routes = [
     path: 'btest',
     loadComponent: () => import('./pages/btest/btest.component').then(m => m.BtestComponent),
     canActivate: [AuthGuard]
+  },
+  {
+    path: 'molecules/editor',
+    loadComponent: () => import('./pages/molecule-editor/molecule-editor.component').then(m => m.MoleculeEditorComponent)
   }
 ]

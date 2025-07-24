@@ -1,13 +1,5 @@
 import { T1PredictionDTO } from "../notebook/t1-prediction-model"
-
-export interface MoleculeProperties {
-    mwFreebase: number | null
-    alogp: number | null
-    hba: number | null
-    hbd: number | null
-    psa: number | null
-    rtb: number | null
-}
+import { MoleculeProperties } from "./molecule-properties.interface"
 
 
 export interface AdministrationRoutes {

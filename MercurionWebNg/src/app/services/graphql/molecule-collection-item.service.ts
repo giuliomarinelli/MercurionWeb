@@ -1,6 +1,7 @@
 import { Injectable, computed, signal } from '@angular/core';
 import { Apollo, gql } from 'apollo-angular';
 import { map, Observable, tap } from 'rxjs';
+import { CreateMoleculeItemInput, MoleculeCollectionItem } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 
 function extractGqlData<T>(res: any, field: keyof T): any {
   if (res.errors && res.errors.length) {
@@ -12,41 +13,7 @@ function extractGqlData<T>(res: any, field: keyof T): any {
   return res.data[field];
 }
 
-// --- TYPE DEFINITIONS (semplificate) ---
-export interface MoleculeCollectionJoin {
-  id: string;
-  collection: { id: string; name: string; };
-}
-export interface BaseMoleculeItem {
-  id: string;
-  label?: string | null;
-  notes?: string | null;
-  type: 'chembl' | 'custom';
-  joins: MoleculeCollectionJoin[];
-}
-export interface ChEMBLMoleculeItemEntity extends BaseMoleculeItem {
-  type: 'chembl';
-  chemblMolregno: number;
-}
-export interface CustomMoleculeItemEntity extends BaseMoleculeItem {
-  type: 'custom';
-  canonicalSmiles: string;
-  molFormula?: string | null;
-  name?: string | null;
-  propertiesJson?: string | null;
-}
-export type MoleculeCollectionItem = ChEMBLMoleculeItemEntity | CustomMoleculeItemEntity;
 
-export interface CreateMoleculeItemInput {
-  type: 'chembl' | 'custom';
-  canonicalSmiles?: string;
-  molFormula?: string;
-  name?: string;
-  propertiesJson?: string;
-  chemblMolregno?: number;
-  label?: string;
-  notes?: string;
-}
 
 // --- GQL DEFINITIONS ---
 const MOLECULE_ITEM_FRAGMENT = `

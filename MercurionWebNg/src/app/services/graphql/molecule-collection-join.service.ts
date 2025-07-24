@@ -1,16 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Apollo, gql } from 'apollo-angular';
 import { map, Observable } from 'rxjs';
+import { AddChemblMoleculeToCollectionInput, AddCustomMoleculeToCollectionInput, CustomMoleculeItemEntity, MoleculeProperties } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 
-// --- TYPES ---
-export interface MoleculeProperties {
-  mwFreebase: number | string;
-  alogp: number | string;
-  hba: number;
-  hbd: number;
-  psa: number | string;
-  rtb: number;
-}
+
 
 // Helper: parsing string JSON -> MoleculeProperties
 export function parseMoleculeProperties(json?: string | null): MoleculeProperties | null {
@@ -22,40 +15,7 @@ export function parseMoleculeProperties(json?: string | null): MoleculePropertie
   }
 }
 
-export interface CustomMoleculeItemInput {
-  canonicalSmiles: string;
-  label?: string;
-  notes?: string;
-  molFormula?: string;
-  name?: string;
-  propertiesJson?: string; // da serializzare via JSON.stringify(properties)
-}
 
-export interface CustomMoleculeItemEntity {
-  id: string;
-  type: 'custom';
-  label?: string | null;
-  notes?: string | null;
-  canonicalSmiles: string;
-  molFormula?: string | null;
-  name?: string | null;
-  propertiesJson?: string | null;
-  joins: { id: string; collection: { id: string; name: string } }[];
-  // Getter derivato (non in DB, aggiunto in UI):
-  properties?: MoleculeProperties | null;
-}
-
-export interface AddCustomMoleculeToCollectionInput {
-  collectionId: string;
-  input: CustomMoleculeItemInput;
-}
-
-export interface AddChemblMoleculeToCollectionInput {
-  collectionId: string;
-  chemblMolregno: number;
-  label?: string;
-  notes?: string;
-}
 
 // --- GQL OPERATIONS ---
 const ADD_CHEMBL_TO_COLLECTION = gql`
