@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { RealtimeSocketService } from './socket.IO/realtime-socket.service';
 import { UserContextService } from './context/user-context.service';
 import { ToastService } from './toast.service';
+import { ToastContext } from '../components/common/toast/toast.component';
 
 /* ── tipi ── */
 export type SessionSyncStatus =
@@ -66,7 +67,7 @@ export class SessionSyncService {
   /** logout esplicito */
   logout() {
     localStorage.removeItem('login');
-    this.becomeAnonymous({ toast: 'Logout eseguito.', navigateIfProtected: true });
+    this.becomeAnonymous({ toast: 'Logout eseguito.', level: 'success', navigateIfProtected: true });
   }
 
   /** getter comodo */
@@ -120,7 +121,8 @@ export class SessionSyncService {
     localStorage.removeItem('login');
     this.becomeAnonymous({
       toast: 'Sessione scaduta. Effettua di nuovo il login.',
-      navigateIfProtected: true
+      navigateIfProtected: true,
+      level: 'error'
     });
     this._status.set('sessionExpired');
   }
@@ -136,17 +138,19 @@ export class SessionSyncService {
   private onExternalLogout() {
     this.becomeAnonymous({
       toast: 'Logout da un’altra scheda.',
-      navigateIfProtected: true
+      navigateIfProtected: true,
+      level: 'success'
     });
   }
 
   /* ============ helper ============ */
-  private becomeAnonymous(opts: { toast?: string; navigateIfProtected?: boolean } = {}) {
-    const { toast, navigateIfProtected } = opts;
+  private becomeAnonymous(opts: { toast?: string; level?: ToastContext; navigateIfProtected?: boolean } = {}) {
+    let { toast, navigateIfProtected, level } = opts;
+    if (!level) level = 'success'
     this.userCtx.clearInitials();
     this._status.set('anonymous');
     this.socket.ensurePublic();
-    if (toast) this.toast.trigger(toast, 'error');
+    if (toast) this.toast.trigger(toast, level);
     if (navigateIfProtected && !this.isPublicRoute(this.router.url)) {
       this.router.navigate(['/login']);
     }
