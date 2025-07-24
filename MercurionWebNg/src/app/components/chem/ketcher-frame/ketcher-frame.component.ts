@@ -85,9 +85,9 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
       this.ketcherReady.set(true);
 
       // Se c'è già uno smiles da inviare, mandalo ora
+      this.loading.set(false)
       if (this._smiles()) {
         this.updateKetcherMolfile(this._smiles());
-        this.loading.set(false)
         setTimeout(() => this.loaded.set(true), 50)
       }
     }
