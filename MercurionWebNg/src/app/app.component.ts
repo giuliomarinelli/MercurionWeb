@@ -32,7 +32,7 @@ import { SessionSyncService } from './services/session-sync.service'
     <div class="flex flex-col h-screen">
       <app-header class="sticky top-0 z-30" />
       <div class="drawer-container relative flex flex-1 overflow-hidden custom-scrollbar">
-        @if (userContext.initials() && design.minBk('lg')()) {
+        @if (userContext.initials() && design.minBk('xl')()) {
           <div class="absolute top-4 left-[10px] z-30 group">
             <button class="cursor-pointer" (click)="sidenavContext.toggle()" aria-label="Sidebar">
               @if (sidenavContext.isVisible()) {
@@ -63,7 +63,7 @@ import { SessionSyncService } from './services/session-sync.service'
             </span>
           </div>
         }
-        @if (sidenavContext.isMounted() && userContext.initials() && design.minBk('lg')()) {
+        @if (sidenavContext.isMounted() && userContext.initials() && design.minBk('xl')()) {
           <aside
             class="drawer absolute inset-y-0 left-0 w-64
               transition-transform duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]
@@ -75,7 +75,7 @@ import { SessionSyncService } from './services/session-sync.service'
         }
         <section class="content flex flex-col flex-1 overflow-y-auto
           transition-[margin] duration-500"
-          [class.ml-64]="sidenavContext.isOpen() && userContext.initials() && design.minBk('lg')()">
+          [class.ml-64]="sidenavContext.isOpen() && userContext.initials() && design.minBk('xl')()">
           <main class="flex-1 p-4 block">
             <router-outlet />
           </main>

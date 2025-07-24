@@ -5,7 +5,7 @@
     class="mx-auto flex justify-between items-center transition-colors duration-300 ease-out"
   >
     <div class="flex items-center gap-6">
-      @if (designService.maxBk("md")()) {
+      @if (designService.maxBk("lg")()) {
         <button (click)="toggleOffCanvasMenu()">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -167,21 +167,7 @@
           class="avatar-toggle-button rounded-full cursor-pointer bg-emerald-500 text-slate-100 dark:bg-dark-accent-primary p-2 text-sm font-semibold"
         ></button>
       }
-      @if (designService.minBk("lg")()) {
-        <button class="flex gap-4 items-center">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="w-6 h-6"
-            viewBox="0 0 128 512"
-          >
-            <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
-            <path
-              class="fill-current text-light-on-surface-main/85 dark:text-slate-100"
-              d="M64 360a56 56 0 1 0 0 112 56 56 0 1 0 0-112zm0-160a56 56 0 1 0 0 112 56 56 0 1 0 0-112zM120 96A56 56 0 1 0 8 96a56 56 0 1 0 112 0z"
-            />
-          </svg>
-        </button>
-      }
+
     </div>
   </div>
 </header>
