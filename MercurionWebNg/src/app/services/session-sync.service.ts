@@ -104,7 +104,7 @@ export class SessionSyncService {
         this.userCtx.setInitials(initials);
         this._status.set('loggedIn');
       } else {
-        this.becomeAnonymous({ toast: 'Accesso non più valido.' });
+        this.becomeAnonymous();
         this.lastAnonHS = now;
       }
 
@@ -146,7 +146,7 @@ export class SessionSyncService {
     this.userCtx.clearInitials();
     this._status.set('anonymous');
     this.socket.ensurePublic();
-    // if (toast) this.toast.trigger(toast, 'warn');
+    if (toast) this.toast.trigger(toast, 'error');
     if (navigateIfProtected && !this.isPublicRoute(this.router.url)) {
       this.router.navigate(['/login']);
     }
