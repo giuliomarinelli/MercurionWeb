@@ -35,18 +35,37 @@
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
     <script>
-      window.addEventListener("message", function (event) {
+      function waitForKetcher() {
+        if (window.ketcher) {
+          window.parent.postMessage({ type: "ketcherReady" }, "*");
+        } else {
+          setTimeout(waitForKetcher, 100); // Poll ogni 100ms
+        }
+      }
+      waitForKetcher();
+      window.addEventListener("message", async function (event) {
         if (!event.data) return;
-        // Ricevi SMILES dall'app Angular e imposta la struttura in Ketcher
-        if (event.data.type === "loadSmiles") {
-          if (
-            window.ketcher &&
-            typeof window.ketcher.setMolecule === "function"
-          ) {
-            window.ketcher.setMolecule(event.data.data);
+        const { type, payload } = event.data;
+        if (!window.ketcher) {
+          console.warn("Ketcher non ancora pronto per ricevere messaggi");
+          return;
+        }
+        if (type === "setMolecule") {
+          try {
+            await window.ketcher.setMolecule(payload);
+            window.parent.postMessage({ type: "moleculeSet" }, "*");
+          } catch (err) {
+            console.error("Errore caricando la molecola:", err);
           }
         }
-        // Puoi aggiungere qui altri tipi di messaggio per esportare, ecc.
+        if (type === "getSmiles") {
+          try {
+            const smiles = await window.ketcher.getSmiles();
+            window.parent.postMessage({ type: "smiles", payload: smiles }, "*");
+          } catch (err) {
+            console.error("Errore ottenendo SMILES:", err);
+          }
+        }
       });
     </script>
   </body>

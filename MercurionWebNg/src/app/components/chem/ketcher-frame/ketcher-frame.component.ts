@@ -1,6 +1,8 @@
 import { Component, Input, Output, EventEmitter, ViewChild, ElementRef, signal, OnInit, OnDestroy, effect } from '@angular/core';
 import { PublicPipe } from '../../../pipes/public.pipe';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { RDKitLoaderService } from '../../../services/rd-kit-loader.service';
+import { firstValueFrom } from 'rxjs';
 
 // Per messaging iframe <-> Angular
 export type KetcherFrameMode = 'create' | 'edit' | 'duplicate';
@@ -13,9 +15,8 @@ export type KetcherFrameMode = 'create' | 'edit' | 'duplicate';
       #ketcherIframe
       [src]="ketcherUrl"
       style="width:100%;height:500px;border:none"
-      (load)="loaded.set(true)"
     ></iframe>
-    <ng-content></ng-content> <!-- Così puoi aggiungere pulsanti o altro fuori dal frame -->
+    <ng-content></ng-content>
   `
 })
 export class KetcherFrameComponent implements OnInit, OnDestroy {
@@ -23,46 +24,36 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
   ketcherUrl!: SafeResourceUrl;
 
   @Input()
-  molfile?: string;
-
-  @Input()
   set smiles(smiles: string | undefined) {
-    if (!smiles) smiles = ''
-    this._smiles.set(smiles)
+    if (!smiles) smiles = '';
+    this._smiles.set(smiles);
+
+    // Quando ricevi uno SMILES e Ketcher è pronto, invia il molfile
+    if (this.ketcherReady()) {
+      this.updateKetcherMolfile(smiles);
+    }
   }
 
   @Input()
   mode: KetcherFrameMode = 'create';
 
   @Output()
-  molChange = new EventEmitter<string>(); // Manteniamo la compatibilità!
-
+  molChange = new EventEmitter<string>();
   @Output()
-  exportSmiles = new EventEmitter<string>(); // Emit esplicito su richiesta di export
+  exportSmiles = new EventEmitter<string>();
 
-  _smiles = signal<string>('')
-  loaded = signal<boolean>(false)
+  _smiles = signal<string>('');
+  ketcherReady = signal<boolean>(false);
 
   @ViewChild('ketcherIframe') iframeRef!: ElementRef<HTMLIFrameElement>;
-  private iframeLoaded = signal<boolean>(false);
 
   constructor(
     private readonly publicPipe: PublicPipe,
-    private readonly sanitizer: DomSanitizer
+    private readonly sanitizer: DomSanitizer,
+    private readonly rdkitLoader: RDKitLoaderService
   ) {
     const ketcherUrl = this.publicPipe.transform('ketcher/index.html');
-    this.ketcherUrl = this.sanitizer.bypassSecurityTrustResourceUrl(ketcherUrl)
-    effect(() => {
-      this.iframeLoaded.set(true);
-      // Se edit/duplicate, importa la molecola (molfile o smiles)
-      console.log(this._smiles(), this.loaded())
-      if (this._smiles() && this.loaded()) {
-        this.postToKetcher({ type: 'loadSmiles', data: this._smiles() })
-      } else if (this.molfile) {
-        this.postToKetcher({ type: 'loadMolfile', data: this.molfile })
-      }
-
-    })
+    this.ketcherUrl = this.sanitizer.bypassSecurityTrustResourceUrl(ketcherUrl);
   }
 
   ngOnInit() {
@@ -73,11 +64,39 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
     window.removeEventListener('message', this.onKetcherMessage);
   }
 
+  /** Gestione eventi provenienti da Ketcher */
+  private onKetcherMessage = (event: MessageEvent) => {
+    if (!event.data) return;
+    const { type, payload } = event.data;
 
+    // Ketcher segnala che è pronto a ricevere messaggi
+    if (type === 'ketcherReady') {
+      this.ketcherReady.set(true);
+
+      // Se c'è già uno smiles da inviare, mandalo ora
+      if (this._smiles()) {
+        this.updateKetcherMolfile(this._smiles());
+      }
+    }
+
+    // Quando ricevi SMILES da Ketcher (in export)
+    if (type === 'smiles') {
+      this.exportSmiles.emit(payload);
+      this.molChange.emit(payload); // compatibilità
+    }
+  };
 
   /** Permette al genitore di chiedere l'export quando vuole */
   requestExportSmiles() {
-    this.postToKetcher({ type: 'requestExportSmiles' });
+    this.postToKetcher({ type: 'getSmiles' });
+  }
+
+  /** Invia il molfile generato da uno SMILES a Ketcher */
+  private async updateKetcherMolfile(smiles: string) {
+    const molfile = await this.smilesToMolfile(smiles);
+    if (molfile) {
+      this.postToKetcher({ type: 'setMolecule', payload: molfile });
+    }
   }
 
   /** Metodo privato di invio */
@@ -85,15 +104,14 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
     this.iframeRef?.nativeElement?.contentWindow?.postMessage(message, '*');
   }
 
-  /** Gestione eventi provenienti da Ketcher */
-  private onKetcherMessage = (event: MessageEvent) => {
-    if (!event.data) return;
-    // 1. Export SMILES (esplicito)
-    if (event.data.type === 'exportSmiles') {
-      this.exportSmiles.emit(event.data.data);
-      this.molChange.emit(event.data.data); // retro-compatibile!
-    }
-    // 2. Altri eventi customizzati
-    // if (event.data.type === 'exportMolfile') { ... }
+  /** Conversione SMILES → Molfile */
+  private async smilesToMolfile(smiles: string): Promise<string | undefined> {
+    const RDKit = await firstValueFrom(this.rdkitLoader.instance$);
+    if (!RDKit) throw new Error('RDKit non inizializzato');
+    const mol = RDKit.get_mol(smiles);
+    if (!mol) return undefined;
+    const molfile = mol.get_molblock();
+    mol.delete();
+    return molfile;
   }
 }
