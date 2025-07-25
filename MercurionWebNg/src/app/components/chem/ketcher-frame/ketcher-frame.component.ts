@@ -37,11 +37,13 @@ export type KetcherFrameMode = 'create' | 'edit' | 'duplicate';
 export class KetcherFrameComponent implements OnInit, OnDestroy {
 
   ketcherUrl!: SafeResourceUrl;
+  private initialSmiles: string = ''
 
   @Input()
   set smiles(smiles: string | undefined) {
     if (!smiles) smiles = '';
     this._smiles.set(smiles);
+    this.initialSmiles = smiles
 
     // Quando ricevi uno SMILES e Ketcher è pronto, invia il molfile
     if (this.ketcherReady()) {
@@ -52,12 +54,22 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
   @Input()
   mode: KetcherFrameMode = 'create';
 
+  @Input()
+  set triggerReset(triggerReset: boolean) {
+    this._triggerReset.set(triggerReset)
+  }
+
   @Output()
   molChange = new EventEmitter<string>();
+
   @Output()
   exportSmiles = new EventEmitter<string>();
 
+  @Output()
+  onReset = new EventEmitter<void>()
+
   _smiles = signal<string>('');
+  _triggerReset = signal<boolean>(false)
   ketcherReady = signal<boolean>(false);
   loading = signal<boolean>(true)
   loaded = signal<boolean>(false)
@@ -71,6 +83,13 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
   ) {
     const ketcherUrl = this.publicPipe.transform('ketcher/index.html');
     this.ketcherUrl = this.sanitizer.bypassSecurityTrustResourceUrl(ketcherUrl);
+    effect(() => {
+      if (this._triggerReset()) {
+        this.resetMolecule()
+        this._triggerReset.set(false)
+        this.onReset.emit()
+      }
+    })
   }
 
   ngOnInit() {
@@ -133,4 +152,11 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
     mol.delete();
     return molfile;
   }
+
+  resetMolecule() {
+    if (this.ketcherReady() && this.initialSmiles) {
+      this.updateKetcherMolfile(this.initialSmiles)
+    }
+  }
+
 }

@@ -13,7 +13,9 @@ import { MoleculeCollectionItemService } from '../../services/graphql/molecule-c
       <app-ketcher-frame
          [smiles]="smiles()"
          [mode]="mode()"
+         [triggerReset]="triggerReset()"
          (exportSmiles)="onSmilesExported($event)"
+         (onReset)="triggerReset.set(false)"
       >
      <div class="sm:flex flex-col 2xs:flex-row gap-3 mt-5 justify-end max-w-2xl mx-auto hidden">
       <button class="relative bottom-[2px] w-full mt-4 py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary/80 dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary/60 disabled:hover:dark:bg-dark-accent-primary/80"
@@ -47,6 +49,7 @@ export class MoleculeEditorComponent implements OnInit, OnDestroy {
   smiles = signal<string>('')
   mId = signal<string | undefined>(undefined) // undefined per mode !== 'edit' (in creazione e modifica = ricreazione da modello non c'è ancora id e lato GraphQL si userà una mutation di creazione)
   error = signal<boolean>(false)
+  triggerReset = signal<boolean>(false)
 
 
   constructor(
@@ -108,7 +111,7 @@ export class MoleculeEditorComponent implements OnInit, OnDestroy {
   }
 
   onReset(): void {
-
+    this.triggerReset.set(true)
   }
 
 }
