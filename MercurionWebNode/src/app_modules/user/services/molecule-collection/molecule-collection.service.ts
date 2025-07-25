@@ -5,6 +5,7 @@ import { UUID } from 'crypto';
 import { GraphqlUtils } from 'src/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap, TypeOrmUtils } from 'src/type-orm-utils/type-orm-utils';
 import { MoleculeCollection } from '../../Models/entities/molecule-collection/molecule-collection.entity';
+import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class MoleculeCollectionService {
@@ -80,6 +81,33 @@ export class MoleculeCollectionService {
 
         qb = TypeOrmUtils.addJoins(qb, 'collection', fieldsMap)
         return qb.getMany()
+    }
+
+    async paginateByUser(
+        userId: UUID,
+        options: IPaginationOptions,
+        search?: string,
+        fieldsMap?: GraphQLFieldsMap
+    ): Promise<Pagination<MoleculeCollection>> {
+
+        const scalarFields = fieldsMap ? GraphqlUtils.getScalarFields(fieldsMap) : ['id', 'name'];
+        const excludedQueryColumns = ['itemCount', 'totalItems', 'itemsPerPage', 'totalPages', 'currentPage']
+        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.REQUIRED_FIELDS).filter(c => !excludedQueryColumns.includes(c))
+
+       
+
+        let qb = this.collectionRepo.createQueryBuilder('collection')
+            .select(columns.map(col => `collection.${col}`))
+            .where('collection.user_id = :userId', { userId });
+
+        if (search) {
+            qb = qb.andWhere('collection.name ILIKE :query', { query: `%${search}%` });
+        }
+
+        qb = qb.orderBy('collection.updatedAt', 'DESC');
+        if (columns.includes('items') && fieldsMap) qb = TypeOrmUtils.addJoins(qb, 'collection', fieldsMap);
+        console.log(qb.getSql())
+        return paginate<MoleculeCollection>(qb, options);
     }
 
 

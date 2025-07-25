@@ -125,6 +125,15 @@ type SyntheticRouteEntity {
   steps: [SyntheticStepEntity!]
 }
 
+type PaginatedMoleculeCollection {
+  items: [MoleculeCollection!]!
+  itemCount: Int!
+  totalItems: Int!
+  itemsPerPage: Int!
+  totalPages: Int!
+  currentPage: Int!
+}
+
 type MoleculeSearchResult {
   id: Int!
   preferredName: String!
@@ -178,6 +187,7 @@ type Query {
   myMoleculeCollections: [MoleculeCollection!]!
   moleculeCollection(id: ID!): MoleculeCollection
   searchMyCollections(query: String, limit: Float): [MoleculeCollection!]!
+  myMoleculeCollectionsPaginated(page: Int! = 1, limit: Int! = 20, search: String): PaginatedMoleculeCollection!
   myMoleculeItems: [MoleculeCollectionItemEntity!]!
   moleculeItem(id: ID!): MoleculeCollectionItemEntity
   chemblMoleculesByCollection(collectionId: ID!): [ChEMBLMoleculeItemEntity!]!

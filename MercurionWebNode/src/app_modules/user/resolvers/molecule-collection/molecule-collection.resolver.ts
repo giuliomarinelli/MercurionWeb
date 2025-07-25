@@ -1,10 +1,11 @@
-import { Resolver, Query, Mutation, Args, ID, Info } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ID, Info, Int } from '@nestjs/graphql';
 import { AuthenticatedUserId } from 'src/metadata/metadata'; // tuo custom decorator userId
 import { UUID } from 'crypto';
 import { GraphQLResolveInfo } from 'graphql';
 import { MoleculeCollection } from '../../Models/entities/molecule-collection/molecule-collection.entity';
 import { MoleculeCollectionService } from '../../services/molecule-collection/molecule-collection.service';
 import { GraphqlUtils } from 'src/graphql-utils/graphql-utils';
+import { PaginatedMoleculeCollection } from '../../Models/DTO/molecule-collection/paginated-molecule-collection';
 
 
 @Resolver(() => MoleculeCollection)
@@ -75,6 +76,27 @@ export class MoleculeCollectionResolver {
         return this.collectionService.delete(id, userId)
     }
 
+    @Query(() => PaginatedMoleculeCollection)
+    async myMoleculeCollectionsPaginated(
+        @AuthenticatedUserId() userId: UUID,
+        @Args('page', { type: () => Int, defaultValue: 1 }) page: number,
+        @Args('limit', { type: () => Int, defaultValue: 20 }) limit: number,
+        @Info() info: GraphQLResolveInfo,
+        @Args('search', { type: () => String, nullable: true }) search?: string
+    ): Promise<PaginatedMoleculeCollection> {
+
+        const fieldsMap = GraphqlUtils.getFieldsMap(info)
+        const paginated = await this.collectionService.paginateByUser(userId, { page, limit }, search, fieldsMap);
+
+        return {
+            items: paginated.items,
+            itemCount: paginated.meta.itemCount,
+            totalItems: Number(paginated.meta.totalItems),
+            itemsPerPage: paginated.meta.itemsPerPage,
+            totalPages: Number(paginated.meta.totalPages),
+            currentPage: paginated.meta.currentPage,
+        }
+    }
 
 
 }
