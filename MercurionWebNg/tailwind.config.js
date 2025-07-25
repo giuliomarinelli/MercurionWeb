@@ -33,6 +33,7 @@ module.exports = {
           'on-surface-main': '#F3F4F6',
           'on-surface-secondary': '#D1D5DB',
           'accent-primary': '#60A5FA',
+          'accent-primary-btn': '#0B6DE5',
           'accent-secondary': '#28B883',
           'accent-secondary-surface': '219C6F',
           'warning': '#FBBF24',

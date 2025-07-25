@@ -16,7 +16,7 @@ interface HistoryItem {
   imports: [RouterLink, DatePipe],
   template: `
     <nav class="flex flex-col h-full bg-transparent z-50 select-none">
-      <header class="flex justify-end items-center gap-3 md:pt-4 mb-3 pr-[10px] sticky top-0">
+      <header class="flex justify-end items-center gap-3 lg:pt-4 mb-3 pr-[10px] sticky top-0">
         <button type="button" class="cursor-pointer hidden lg:block">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current text-light-on-surface-main dark:text-slate-100 w-auto h-7 relative bottom-[2px]">
             <!--!Font Awesome Pro v7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
@@ -26,37 +26,43 @@ interface HistoryItem {
 
       </header>
 
+
       @if (userContext.initials() !== '') {
         <!-- Macro Area Menu -->
         <h6 class="detail">Funzionalità</h6>
-        <div class="mb-4">
+        <div>
           <a class="sidebar-link" routerLink="/collections">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="fill-current w-5 h-5">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-6 h-6">
               <!--!Font Awesome Pro 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-              <path class="text-neutral-700 dark:text-slate-200" d="M55.7 55.7C16.5 94.9 27.6 173.9 76.8 256C27.6 338.1 16.5 417.1 55.7 456.3s118.2 28.1 200.3-21.1c82.1 49.2 161.1 60.3 200.3 21.1s28.1-118.2-21.1-200.3c49.2-82.1 60.3-161.1 21.1-200.3S338.1 27.6 256 76.8C173.9 27.6 94.9 16.5 55.7 55.7zm45.3 45.3c1.3-1.3 16.8-12.4 64 3.3c10.4 3.5 21.4 8 32.8 13.6c-14.2 11.6-28.3 24.3-41.9 38s-26.4 27.7-38 41.9c-5.6-11.4-10.2-22.4-13.6-32.8c-15.7-47.2-4.6-62.7-3.3-64zm0 310.1c-1.3-1.3-12.4-16.8 3.3-64c3.5-10.4 8-21.4 13.6-32.9c11.6 14.2 24.3 28.3 38 41.9s27.7 26.4 41.9 38c-11.4 5.6-22.4 10.2-32.8 13.6c-47.2 15.7-62.7 4.6-64 3.3zM153.7 256c13.5-18.3 29.3-36.8 47.4-54.9s36.6-33.9 54.9-47.4c18.3 13.5 36.8 29.3 54.9 47.4s33.9 36.6 47.4 54.9c-13.5 18.3-29.3 36.8-47.4 54.9s-36.6 33.9-54.9 47.4c-18.3-13.5-36.8-29.3-54.9-47.4s-33.9-36.6-47.4-54.9zM314.2 117.9c11.4-5.6 22.4-10.2 32.9-13.6c47.2-15.7 62.7-4.6 64-3.3s12.4 16.8-3.3 64c-3.5 10.4-8 21.4-13.6 32.8c-11.6-14.2-24.3-28.3-38-41.9s-27.7-26.4-41.9-38zm0 276.2c14.2-11.6 28.3-24.3 41.9-38s26.4-27.7 38-41.9c5.6 11.4 10.2 22.4 13.6 32.9c15.7 47.2 4.6 62.7 3.3 64s-16.8 12.4-64-3.3c-10.4-3.5-21.4-8-32.9-13.6z"/>
-              <path class="text-light-accent-secondary/50 dark:text-dark-accent-secondary" d="M256 296l-40-40 40-40 40 40-40 40z"/>
+              <path d="M154.1 486.4C162 494.3 185.5 503.3 234.5 487C247.7 482.6 261.7 476.6 276.1 469.1C257.2 454.7 238.4 438.3 220.3 420.2C202.2 402.1 185.8 383.3 171.4 364.4C163.9 378.8 157.9 392.8 153.5 406C137.2 455 146.2 478.5 154.1 486.4zM141.3 320C92.1 237.9 81 158.9 120.2 119.7C159.4 80.5 238.4 91.6 320.5 140.8C402.6 91.6 481.6 80.5 520.8 119.7C560 158.9 548.9 237.9 499.7 320C548.9 402.1 560 481.1 520.8 520.3C481.6 559.5 402.6 548.4 320.5 499.2C238.4 548.4 159.4 559.5 120.2 520.3C81 481.1 92.1 402.1 141.3 320zM171.5 275.6C185.9 256.7 202.3 237.9 220.4 219.8C238.5 201.7 257.3 185.3 276.2 170.9C261.8 163.4 247.8 157.4 234.6 153C185.6 136.7 162.1 145.7 154.2 153.6C146.3 161.5 137.3 185 153.6 234C158 247.2 164 261.2 171.5 275.6zM320.5 197.9C298.4 213.4 276 232 254.3 253.7C232.6 275.4 214 297.8 198.5 319.9C214 342 232.6 364.4 254.3 386.1C276 407.8 298.4 426.4 320.5 441.9C342.6 426.4 365 407.8 386.7 386.1C408.4 364.4 427 342 442.5 319.9C427 297.8 408.4 275.4 386.7 253.7C365 232 342.6 213.4 320.5 197.9zM469.5 275.6C477 261.2 483 247.2 487.4 234C503.7 185 494.7 161.5 486.8 153.6C478.9 145.7 455.4 136.7 406.4 153C393.2 157.4 379.2 163.4 364.8 170.9C383.7 185.3 402.5 201.7 420.6 219.8C438.7 237.9 455.1 256.7 469.5 275.6zM469.5 364.3C455.1 383.2 438.7 402 420.6 420.1C402.5 438.2 383.7 454.6 364.8 469C379.2 476.5 393.2 482.5 406.4 486.9C455.4 503.2 478.9 494.2 486.8 486.3C494.7 478.4 503.7 454.9 487.4 405.9C483 392.7 477 378.7 469.5 364.3zM320.5 359.9L280.5 319.9L320.5 279.9L360.5 319.9L320.5 359.9z"/>
             </svg>
             <span class="sidebar-item-text">Collezioni molecolari</span>
           </a>
           <a class="sidebar-link" routerLink="/notebook">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="fill-current w-5 h-5">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-6 h-6">
               <!--!Font Awesome Pro 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-              <path class="text-light-accent-secondary/50 dark:text-dark-accent-secondary/50" d="M64 416c0-17.7 14.3-32 32-32l160 0 96 0 64 0 0 64-64 0-96 0L96 448c-17.7 0-32-14.3-32-32z"/>
-              <path class="text-neutral-700 dark:text-slate-200" d="M0 96C0 43 43 0 96 0L384 0l32 0 32 0 0 384-32 0-64 0-96 0L96 384c-17.7 0-32 14.3-32 32s14.3 32 32 32l160 0 96 0 64 0 32 0 0 64-32 0-32 0L96 512c-53 0-96-43-96-96L0 96zm352 32l-224 0 0 32 224 0 0-32zM128 192l0 32 224 0 0-32-224 0z"/>
+              <path d="M184 64C135.4 64 96 103.4 96 152L96 496C96 540.2 131.8 576 176 576L520 576C533.3 576 544 565.3 544 552C544 538.7 533.3 528 520 528L512 528L512 451.9C531.3 439 544 417 544 392L544 136C544 96.2 511.8 64 472 64L184 64zM464 464L464 528L176 528C158.3 528 144 513.7 144 496C144 478.3 158.3 464 176 464L464 464zM176 416C164.6 416 153.8 418.4 144 422.7L144 152C144 129.9 161.9 112 184 112L472 112C485.3 112 496 122.7 496 136L496 392C496 405.3 485.3 416 472 416L176 416zM224 216C224 229.3 234.7 240 248 240L424 240C437.3 240 448 229.3 448 216C448 202.7 437.3 192 424 192L248 192C234.7 192 224 202.7 224 216zM248 288C234.7 288 224 298.7 224 312C224 325.3 234.7 336 248 336L424 336C437.3 336 448 325.3 448 312C448 298.7 437.3 288 424 288L248 288z"/>
             </svg>
             <span class="sidebar-item-text">Quaderni di Laboratorio</span>
           </a>
           <a class="sidebar-link" routerLink="/molecules">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="fill-current w-5 h-5">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-6 h-6">
               <!--!Font Awesome Pro 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-              <path class="text-neutral-700 dark:text-slate-200"
-                d="M288 0L160 0 128 0 96 0l0 64 32 0 0 150.9L4.7 415.2 0 422.9 0 432l0 48 0 32 32 0 384 0 32 0 0-32 0-48 0-9.1-4.7-7.7L320 214.9 320 64l32 0 0-64L320 0 288 0zM192 224l0-160 64 0 0 160 0 9.1 4.7 7.7L309.5 320l-171 0 48.8-79.2 4.7-7.7 0-9.1z"/>
+              <path d="M192 88C192 74.7 202.7 64 216 64L424 64C437.3 64 448 74.7 448 88C448 101.3 437.3 112 424 112L416 112L416 281.6L536.7 492.8C541.5 501.2 544 510.7 544 520.4C544 551.1 519.1 576 488.4 576L151.6 576C120.9 576 96 551.1 96 520.4C96 510.7 98.5 501.2 103.3 492.8L224 281.6L224 112L216 112C202.7 112 192 101.3 192 88zM272 112L272 288C272 292.2 270.9 296.3 268.8 299.9L229.9 368L410 368L371.1 299.9C369 296.3 367.9 292.2 367.9 288L367.9 112L271.9 112zM202.5 416L145 516.6C144.3 517.7 144 519 144 520.4C144 524.6 147.4 528 151.6 528L488.4 528C492.6 528 496 524.6 496 520.4C496 519.1 495.7 517.8 495 516.6L437.5 416L202.5 416z"/>
             </svg>
             <span class="sidebar-item-text">Esperimenti</span>
           </a>
           <!-- ...altre macro aree -->
+          <hr class="border-slate-300 dark:border-slate-600 my-2"/>
         </div>
-        <hr class="border-slate-300 dark:border-slate-600 my-2"/>
+        <a class="sidebar-link" [routerLink]="'/molecules/editor'" [queryParams]="{ mode: 'create' }">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-6 h-6">
+            <!--!Font Awesome Pro v7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+            <path d="M122.9 379.1C112.2 389.8 104.4 403.2 100.3 417.8L64.9 545.6C62.6 553.9 64.9 562.9 71.1 569C77.3 575.1 86.2 577.5 94.5 575.2L222.3 539.7C236.9 535.6 250.2 527.9 261 517.1L555 223.1C568.4 209.6 576 191.2 576 172C576 152.8 568.4 134.4 554.8 120.9L519.1 85.2C505.6 71.6 487.2 64 468 64C448.8 64 430.4 71.6 416.9 85.2L122.9 379.2zM468 112C474.4 112 480.6 114.6 485.2 119.1L520.9 154.8C525.5 159.4 528 165.5 528 172C528 178.5 525.4 184.6 520.9 189.2L468 242.1L397.9 172L450.8 119.1C455.4 114.5 461.5 112 468 112zM173.9 396L364 205.9L434.1 276L244 466.1L173.9 396zM145.3 435.3L204.7 494.7L122.5 517.5L145.3 435.3z"/>
+          </svg>
+          <span class="sidebar-item-text">Crea una molecola</span>
+        </a>
+        <hr class="border-slate-300 dark:border-slate-600 mb-2"/>
 
         <!-- Cronologia dinamica -->
         <div class="flex-1 overflow-y-auto custom-scrollbar">
@@ -118,7 +124,7 @@ interface HistoryItem {
   `,
   styles: [`
     .sidebar-link {
-      @apply flex items-center gap-3 px-[18px] py-2 rounded-md transition hover:bg-slate-200/50 dark:hover:bg-slate-700/40 w-full mb-1 text-sm;
+      @apply flex items-center gap-[6px] px-[18px] py-2 rounded-md transition hover:bg-slate-200/50 dark:hover:bg-slate-700/40 w-full mb-1 text-sm;
     }
     .sidebar-item-text {
       @apply text-base font-medium;
@@ -130,7 +136,7 @@ interface HistoryItem {
       width: 1.2em; display: inline-block;
     }
     .detail {
-      @apply text-sm font-semibold text-light-slate-detail dark:text-dark-slate-detail mt-1 md:mt-4 mb-2 px-2;
+      @apply text-sm font-semibold text-light-slate-detail dark:text-dark-slate-detail mt-1 lg:mt-2 mb-2 px-2 ml-2;
     }
   `]
 })

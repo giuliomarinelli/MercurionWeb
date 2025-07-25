@@ -16,6 +16,7 @@ import { T1PredictionCardComponent } from '../../components/molecule-detail/t1-p
 import { UserContextService } from '../../services/context/user-context.service';
 import { T1PredictionDTO } from '../../Models/notebook/t1-prediction-model';
 import { MercurionAiService as MercurionAIService } from '../../services/mercurion-ai.service';
+import { EditingLayerComponent } from '../../components/molecule-detail/editing-layer/editing-layer.component';
 
 @Component({
   selector: 'app-molecule-detail',
@@ -28,7 +29,8 @@ import { MercurionAiService as MercurionAIService } from '../../services/mercuri
     MoleculeRoutesComponent,
     MoleculeSynonymsComponent,
     MoleculeCtaChemblComponent,
-    T1PredictionCardComponent
+    T1PredictionCardComponent,
+    EditingLayerComponent
   ],
   template: `
     @if (molecule$ | async; as molecule) {
@@ -74,6 +76,7 @@ import { MercurionAiService as MercurionAIService } from '../../services/mercuri
         </section>
 
         @if (userContext.initials() !== '') {
+          <app-editing-layer [smiles]="molecule.canonicalSmiles" />
           <app-t1-prediction-card [inference]="molecule.t1Inference" />
         }
 

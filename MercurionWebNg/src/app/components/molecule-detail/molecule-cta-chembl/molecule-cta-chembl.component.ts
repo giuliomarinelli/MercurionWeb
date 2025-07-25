@@ -10,7 +10,7 @@ import { Component, Input, Signal, computed, signal } from '@angular/core';
         target="_blank"
         rel="noopener noreferrer"
         class="flex justify-center w-[250px] gap-3 items-center px-4 mt-4 py-2 text-white rounded-md transition-colors duration-150
-         bg-light-accent-primary dark:bg-dark-accent-primary
+         bg-light-accent-primary dark:bg-dark-accent-primary-btn
          hover:bg-dark-accent-primary/90 dark:hover:bg-dark-accent-primary/90
          disabled:bg-dark-accent-primary/65 disabled:dark:bg-dark-accent-primary/65
          disabled:cursor-not-allowed disabled:hover:bg-dark-accent-primary/80 disabled:hover:dark:bg-dark-accent-primary/80"
