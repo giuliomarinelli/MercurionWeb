@@ -1,109 +1,81 @@
 /* ──────────────────────────────────────────────────────────────
- *  SessionSyncService – sincronizza lo stato di login fra WS,
- *  localStorage e routing (no più logout falsi su time‑out ACK)
+ *  SessionSyncService – sincronizza status login <‑> WS
  * ────────────────────────────────────────────────────────────── */
 
 import { Injectable, NgZone, signal } from '@angular/core';
-import { Router }                     from '@angular/router';
-import { RealtimeSocketService }      from './socket.IO/realtime-socket.service';
-import { UserContextService }         from './context/user-context.service';
-import { ToastService }               from './toast.service';
-import { ToastContext }               from '../components/common/toast/toast.component';
+import { Router } from '@angular/router';
+import { RealtimeSocketService } from './socket.IO/realtime-socket.service';
+import { UserContextService } from './context/user-context.service';
+import { ToastService } from './toast.service';
+import { ToastContext } from '../components/common/toast/toast.component';
 
 export type SessionSyncStatus =
-  | 'unknown'          // avvio
-  | 'checking'         // hand‑shake in corso
-  | 'loggedIn'         // ok
-  | 'anonymous'        // nessun token valido
-  | 'sessionExpired'   // evento dal server
-  | 'disconnected'     // WS giù / rete KO
-  | 'error';           // eccezione grave
+  | 'unknown' | 'checking' | 'loggedIn' | 'anonymous'
+  | 'sessionExpired' | 'disconnected' | 'error';
 
 @Injectable({ providedIn: 'root' })
 export class SessionSyncService {
 
-  /* ────── stato reattivo ────── */
   private _status = signal<SessionSyncStatus>('unknown');
   public readonly status = this._status.asReadonly();
 
-  /* ────── internals ────── */
   private handshakePending = false;
-  private lastAnonHS       = 0;
-  private readonly anonCooldown = 5_000;        // ms
+  private lastAnonHS = 0;
+  private readonly anonCooldown = 5_000;
 
-  /* ────── routing helper ────── */
-  private readonly publicExact  = ['/login','/register','/forgot','/privacy','/'];
-  private readonly publicPrefix = ['/molecules/detail'];
-
-  /* ════════════════════════════════════════════════════════════ */
   constructor(
-    private readonly socket  : RealtimeSocketService,
-    private readonly userCtx : UserContextService,
-    private readonly toast   : ToastService,
-    private readonly router  : Router,
-    private readonly zone    : NgZone
+    private readonly socket: RealtimeSocketService,
+    private readonly userCtx: UserContextService,
+    private readonly toast: ToastService,
+    private readonly router: Router,
+    private readonly zone: NgZone,
   ) {
+    /* eventi socket */
+    this.socket.onConnect().subscribe(() => this.zone.run(() => this.syncSession()));
+    this.socket.onDisconnect().subscribe(r => {
+      if (r !== 'io client disconnect') this._status.set('disconnected');
+    });
 
-    /* WS events ------------------------------------------------ */
-    this.socket.onConnect()
-      .subscribe(() => this.zone.run(() => this.syncSession()));
-    this.socket.onDisconnect()
-      .subscribe(r => {
-        if (r !== 'io client disconnect') this._status.set('disconnected');
-      });
-
-    /* errore esplicito dal server */
+    /* 🔴 error centralizzato: Unauthorized → logout immediato */
     this.socket.on<{ detail: string }>('sv.pub.err')
-      .subscribe(err => {
-        if (err?.detail === 'Unauthorized') {
-          this.zone.run(() =>
-            this.becomeAnonymous({
-              toast : 'Autorizzazione scaduta.',
-              level : 'error',
-              navigateIfProtected: true
-            })
-          );
-        }
-      });
+      .subscribe(err => this.zone.run(() => {
+        if (err?.detail === 'Unauthorized') this.becomeAnonymous({
+          toast: 'Sessione non più valida.',
+          level: 'error',
+          navigateIfProtected: true
+        });
+      }));
 
-    /* evento di scadenza sessione */
+    /* evento di scadenza inviato da PubSub */
     this.socket.on('sv.pub.session_expired')
       .subscribe(() => this.zone.run(() => this.handleSessionExpired()));
 
-    /* bootstrap ------------------------------------------------ */
-    this.socket.ensurePublic();   // parte sempre anonima
-    this.syncSession();           // primo hand‑shake
+    /* bootstrap */
+    this.socket.connect();   // parte in public
+    this.syncSession();      // handshake iniziale
 
-    /* cross‑tab sync ------------------------------------------ */
+    /* cross‑tab */
     window.addEventListener('storage', e => {
       if (e.key !== 'login') return;
       e.newValue ? this.onExternalLogin(e.newValue)
-                 : this.onExternalLogout();
+        : this.onExternalLogout();
     });
   }
 
-  /* ═════════════ API esterna ═════════════ */
+  /* ───────── PUBLIC API ───────── */
 
   resumeSession(initials: string) { this.onExternalLogin(initials); }
-  forceSessionCheck()             { this.syncSession(true); }
-
-  logout(): void {
-    localStorage.removeItem('login');
-    this.becomeAnonymous({
-      toast : 'Logout eseguito.',
-      level : 'success',
-      navigateIfProtected: true
-    });
-  }
-
+  forceSessionCheck() { this.syncSession(true); }
+  logout() { this.becomeAnonymous({ toast: 'Logout eseguito.', level: 'success', navigateIfProtected: true }); }
   get currentStatus() { return this._status(); }
 
-  /* ═════════════ hand‑shake principale ═════════════ */
+  /* ───────── Handshake ───────── */
+
   async syncSession(force = false): Promise<void> {
     if (this.handshakePending && !force) return;
 
+    const now = Date.now();
     const hasToken = !!localStorage.getItem('login');
-    const now      = Date.now();
 
     if (!hasToken && !force && now - this.lastAnonHS < this.anonCooldown) {
       if (this._status() !== 'anonymous') this._status.set('anonymous');
@@ -115,89 +87,75 @@ export class SessionSyncService {
 
     try {
       hasToken ? this.socket.ensurePrivate()
-               : this.socket.ensurePublic();
+        : this.socket.ensurePublic();
 
       if (!this.socket.isConnected) {
-        // aspetta davvero la connessione; nessun timeout qui
         await new Promise<void>(res => {
-          const sub = this.socket.onConnect()
-            .subscribe(() => { sub.unsubscribe(); res(); });
+          const sub = this.socket.onConnect().subscribe(() => { sub.unsubscribe(); res(); });
+          setTimeout(() => { sub.unsubscribe(); res(); }, 4_000);
         });
       }
 
-      /* ACK con timeout più generoso (8 s) */
-      const ack: any = await this.socket.emit('so.pub.session_init', undefined, 8_000);
+      /* ACK */
+      const ack: any = await this.socket.emit('so.pub.session_init');
 
-      switch (ack?.detail) {
-
-        case 'websocket session init successful': {
-          const initials = localStorage.getItem('login') ?? 'U';
-          this.userCtx.setInitials(initials);
-          this._status.set('loggedIn');
-          break;
-        }
-
-        case 'Unauthorized': {
-          this.becomeAnonymous({
-            toast: 'Accesso non più valido.',
-            level: 'error',
-            navigateIfProtected: true
-          });
-          break;
-        }
-
-        /* nessun ACK o risposta sconosciuta → rete / server lento */
-        default:
-          this._status.set('disconnected');   // NON logout, attendo riconnessione
+      if (ack?.detail === 'websocket session init successful') {
+        const initials = localStorage.getItem('login') ?? 'U';
+        this.userCtx.setInitials(initials);
+        this._status.set('loggedIn');
+      } else {
+        this.becomeAnonymous();
+        this.lastAnonHS = now;
       }
 
     } catch {
-      this._status.set('disconnected');
+      this._status.set('error');
     } finally {
       this.handshakePending = false;
     }
   }
 
-  /* ═════════════ eventi dal server ═════════════ */
+  /* ───────── Eventi server ───────── */
+
   private handleSessionExpired(): void {
     localStorage.removeItem('login');
     this.becomeAnonymous({
-      toast : 'Sessione scaduta. Effettua di nuovo il login.',
-      level : 'error',
+      toast: 'Sessione scaduta. Effettua di nuovo il login.',
+      level: 'error',
       navigateIfProtected: true
     });
     this._status.set('sessionExpired');
   }
 
-  /* ═════════════ cross‑tab helpers ═════════════ */
-  private onExternalLogin(initials: string): void {
+  /* ───────── Cross‑tab ───────── */
+
+  private onExternalLogin(initials: string) {
     this.userCtx.setInitials(initials);
     localStorage.setItem('login', initials);
     this._status.set('checking');
     this.syncSession(true);
   }
 
-  private onExternalLogout(): void {
+  private onExternalLogout() {
     this.becomeAnonymous({
-      toast : 'Logout da un’altra scheda.',
-      level : 'success',
+      toast: 'Logout da un’altra scheda.',
+      level: 'success',
       navigateIfProtected: true
     });
   }
 
-  /* ═════════════ helper comuni ═════════════ */
+  /* ───────── Helper ───────── */
+
   private becomeAnonymous(opts: {
     toast?: string;
     level?: ToastContext;
     navigateIfProtected?: boolean;
-  } = {}): void {
-
-    const { toast, level = 'success', navigateIfProtected } = opts;
+  } = {}) {
+    const { toast, level = 'warn', navigateIfProtected } = opts;
 
     this.userCtx.clearInitials();
     this._status.set('anonymous');
     this.socket.ensurePublic();
-
     if (toast) this.toast.trigger(toast, level);
 
     if (navigateIfProtected && !this.isPublicRoute(this.router.url)) {
@@ -205,9 +163,12 @@ export class SessionSyncService {
     }
   }
 
+  private readonly publicExact = ['/login', '/register', '/forgot', '/privacy', '/'];
+  private readonly publicPrefix = ['/molecules/detail'];
+
   private isPublicRoute(url: string): boolean {
     const clean = url.split(/[?#]/)[0];
     return this.publicExact.includes(clean) ||
-           this.publicPrefix.some(p => clean.startsWith(p));
+      this.publicPrefix.some(p => clean.startsWith(p));
   }
 }

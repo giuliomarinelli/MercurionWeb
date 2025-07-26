@@ -1,5 +1,5 @@
 /* ──────────────────────────────────────────────────────────────
- *  RealtimeSocketService  – gestione singola connessione socket.io
+ * RealtimeSocketService  – gestione singola connessione WS
  * ────────────────────────────────────────────────────────────── */
 
 import { Injectable } from '@angular/core';
@@ -9,152 +9,116 @@ import { AuthService } from '../auth.service';
 
 export type SocketMode = 'public' | 'private';
 
-/* listener registrati in runtime da altri service/component */
 interface Listener<T = any> {
-  event   : string;
-  handler : (payload: T) => void;
+  event  : string;
+  handler: (payload: T) => void;
 }
 
 @Injectable({ providedIn: 'root' })
 export class RealtimeSocketService {
 
-  /* ───── stato interno ───── */
+  /* stato */
   private socket?: Socket;
   private mode: SocketMode = 'public';
-
-  private readonly listeners: Listener<any>[] = [];   // registry unico
+  private readonly listeners: Listener[] = [];
 
   constructor(private readonly auth: AuthService) { }
 
-  /* ============================================================
-   *  API  – gestite “mode” e reconnessione unica
-   * ============================================================
-   */
+  /* ───────── API “alti‐livello” ───────── */
 
-  /** assicura la modalità *privata* (con token) */
   ensurePrivate(token = this.auth.getWs_accessToken?.() ?? ''): void {
     this.setMode('private', token);
   }
 
-  /** assicura la modalità *pubblica* */
   ensurePublic(): void {
     this.setMode('public');
   }
 
-  /** accesso legacy (es. da on<T>): ridirige a setMode */
   connect(mode: SocketMode = this.mode): void {
     this.setMode(mode);
   }
 
-  /** chiude esplicitamente la connessione */
   disconnect(): void {
     this.socket?.off();
     this.socket?.disconnect();
     this.socket = undefined;
   }
 
-  /** stato attuale */
-  get isConnected(): boolean {
-    return !!this.socket?.connected;
-  }
+  get isConnected(): boolean { return !!this.socket?.connected; }
 
-  /* ============================================================
-   *  Emit con ACK  (promessa che si risolve anche su timeout)
-   * ============================================================
-   */
-  emit<T, R = unknown>(event: string, payload?: T, timeout = 5000): Promise<R | undefined> {
-    if (!this.socket) return Promise.reject('Socket non connessa');
-    return new Promise(resolve => {
+  /* ───────── Emit con ACK ───────── */
+
+  emit<T, R = any>(event: string, payload?: T, timeout = 5_000): Promise<R | undefined> {
+    if (!this.socket) return Promise.reject('socket not connected');
+    return new Promise(res => {
       let settled = false;
-      const timer = setTimeout(() => { if (!settled) { settled = true; resolve(undefined); } }, timeout);
+      const timer = setTimeout(() => { if (!settled) { settled = true; res(undefined); } }, timeout);
 
       this.socket!.emit(event, payload, (ack: R) => {
-        if (!settled) { settled = true; clearTimeout(timer); resolve(ack); }
+        if (!settled) { settled = true; clearTimeout(timer); res(ack); }
       });
     });
   }
 
-  /* ============================================================
-   *  Helpers di subscription – Observable<T>
-   * ============================================================
-   */
+  /* ───────── Observable helper ───────── */
+
   on<T>(event: string): Observable<T> {
     return new Observable<T>(observer => {
-
-      /* se la socket non esiste la creo in modalità corrente */
-      if (!this.socket) this.setMode(this.mode);
-
-      const handler = (data: T) => observer.next(data);
+      if (!this.socket) this.setMode(this.mode);  // autoconnect
+      const handler = (d: T) => observer.next(d);
       this.socket!.on(event, handler);
 
-      /* registra per i futuri reconnect */
       this.listeners.push({ event, handler });
 
-      /* teardown */
       return () => {
         this.socket?.off(event, handler);
-        const idx = this.listeners.findIndex(l => l.event === event && l.handler === handler);
-        if (idx >= 0) this.listeners.splice(idx, 1);
+        const i = this.listeners.findIndex(l => l.event === event && l.handler === handler);
+        if (i >= 0) this.listeners.splice(i, 1);
       };
     });
   }
 
-  /* shortcut tipizzati */
   onConnect()    { return this.on<void>('connect'); }
   onDisconnect() { return this.on<string>('disconnect'); }
 
-  /* ============================================================
-   *              —— IMPLEMENTAZIONE INTERNA ——
-   * ============================================================
-   */
+  /* ───────── IMPLEMENTAZIONE ───────── */
 
-  /** decide se ri‑connettere o solo aggiornare il token */
   private setMode(mode: SocketMode, token?: string): void {
 
-    /* caso ➊: già connessi nello stesso mode ------------------ */
+    /* già nella modalità corretta */
     if (this.socket?.connected && mode === this.mode) {
-
-      /* se privato + token nuovo → refresh senza reconnect */
       if (mode === 'private' && token) {
         this.socket.auth = { token };
         this.socket.emit('auth_refresh');
       }
-      return;           // nient’altro da fare
+      return;
     }
 
-    /* caso ➋: serve effettivamente una nuova connessione ------- */
     this.mode = mode;
     this.recreateSocket(token);
   }
 
-  /** crea la socket e ri‑aggancia TUTTI i listener registrati */
   private recreateSocket(token?: string): void {
 
-    /* chiude la precedente (se esiste) */
     this.socket?.off();
     this.socket?.disconnect();
 
-    /* stessa istanza server per tutto il front‑end */
-    const url = 'http://localhost:8888';
-
-    this.socket = io(url, {
-      path: '/socket.io',
-      transports: ['websocket'],
+    this.socket = io('http://localhost:8888', {
+      path        : '/socket.io',
+      transports  : ['websocket'],
       withCredentials: true,
-
-      /* reconnection nativo (back‑off esponenziale) */
       reconnection: true,
       reconnectionAttempts: Infinity,
-      reconnectionDelay: 2000,
-      reconnectionDelayMax: 8000,
-
-      /* auth solo in modalità privata */
-      auth: this.mode === 'private' ? { token: token ?? this.auth.getWs_accessToken?.() } : undefined
+      reconnectionDelay    : 2_000,
+      reconnectionDelayMax : 8_000,
+      auth: this.mode === 'private'
+        ? { token: token ?? this.auth.getWs_accessToken?.() }
+        : undefined
     });
 
-    /* ri‑hook di tutti i listener dinamici -------------------- */
+    /* ri‑aggancia tutti i listener */
     for (const { event, handler } of this.listeners) {
-      this.socket.on(event, handler);
+      this.socket.on(event, handler);          // NB: **handler** (senza parentesi!)
     }
   }
 }
