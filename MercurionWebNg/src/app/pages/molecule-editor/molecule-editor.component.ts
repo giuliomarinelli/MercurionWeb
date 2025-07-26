@@ -10,6 +10,22 @@ import { CollectionSaveOverlayContextService } from '../../services/context/save
   imports: [KetcherFrameComponent],
   template: `
 
+    <div class="mt-4 mb-6">
+      <h2 class="text-center text-light-accent-primary dark:text-dark-accent-primary font-semibold text-xl 2xs:text-2xl sm:text-4xl">
+        @switch (mode()) {
+          @case ('create') {
+            Crea molecola
+          }
+          @case ('edit') {
+            Modifica molecola
+          }
+          @case ('duplicate') {
+            Crea molecola da struttura
+          }
+        }
+      </h2>
+    </div>
+
     @if (!error()) {
       <app-ketcher-frame
          [smiles]="smiles()"
@@ -31,7 +47,7 @@ import { CollectionSaveOverlayContextService } from '../../services/context/save
       } @else {
         <button
           class="relative bottom-[2px] w-full mt-4 py-2 text-white rounded-md transition-colors duration-150 bg-emerald-600 hover:bg-light-accent-primary/80 dark:hover:bg-emerald-600/90 disabled:bg-light-accent-primary/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary/60 disabled:hover:dark:bg-dark-accent-primary/80"
-          (click)="onSaveAsNew()">Salva nuova
+          (click)="onSaveAsNew()">Salva
         </button>
       }
     </div>
@@ -127,6 +143,7 @@ export class MoleculeEditorComponent implements OnInit, OnDestroy {
   // Esegui qui il vero salvataggio
   doSaveNew(smiles: string) {
     this.saveContext.setSmiles(smiles)
+    this.saveContext.setMode(this.mode())
     this.saveContext.open()
   }
 

@@ -1,4 +1,6 @@
+import { KetcherFrameMode } from './../../components/chem/ketcher-frame/ketcher-frame.component';
 import { Injectable, signal, effect } from '@angular/core';
+
 
 @Injectable({ providedIn: 'root' })
 export class CollectionSaveOverlayContextService {
@@ -7,10 +9,12 @@ export class CollectionSaveOverlayContextService {
   private _isMounted = signal<boolean>(false)
   private _isVisible = signal<boolean>(false)
   private _smiles = signal<string>('')
+  private _mode = signal<KetcherFrameMode>('edit')
 
   readonly isVisible = this._isVisible.asReadonly()
   readonly isMounted =  this._isMounted.asReadonly()
   readonly smiles =  this._smiles.asReadonly()
+  readonly mode = this._mode.asReadonly()
 
 
 
@@ -21,6 +25,10 @@ export class CollectionSaveOverlayContextService {
 
   setSmiles(smiles?: string): void {
     this._smiles.set(smiles ?? '')
+  }
+
+  setMode(mode: KetcherFrameMode): void {
+    this._mode.set(mode)
   }
 
   reset() {

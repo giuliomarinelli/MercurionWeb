@@ -9,6 +9,7 @@ import { MoleculeCollection } from './../../Models/graphql/molecule-collection/m
 import { MoleculeProperties } from '../../Models/graphql/molecule-properties.interface';
 import { NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-collection-save-overlay',
@@ -161,6 +162,7 @@ export class CollectionSaveOverlayComponent implements OnInit {
   moleculeJoinService = inject(MoleculeJoinService)
   toast = inject(ToastService)
   rdkitService = inject(RDKitService)
+  router = inject(Router)
 
   collections = signal<MoleculeCollection[]>([]);
   hasMore = signal(true)
@@ -255,6 +257,10 @@ export class CollectionSaveOverlayComponent implements OnInit {
     }).subscribe({
       next: () => {
         this.toast.trigger(`Molecola salvata correttamente.`, 'success')
+        this.router.navigate(['/molecules/editor'], {queryParams: {
+          mode: this.ctx.mode(),
+          smiles: this.ctx.smiles()
+        }})
         this.ctx.close()
       },
       error: () => this.toast.trigger('Si è verificato un errore!', 'error')
