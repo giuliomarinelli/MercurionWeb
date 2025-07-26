@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter, ViewChild, ElementRef, signal, OnInit, OnDestroy, effect } from '@angular/core';
 import { PublicPipe } from '../../../pipes/public.pipe';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { RDKitLoaderService } from '../../../services/rd-kit-loader.service';
+import { RDKitService } from '../../../services/rd-kit-loader.service';
 import { firstValueFrom } from 'rxjs';
 
 // Per messaging iframe <-> Angular
@@ -85,7 +85,7 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
   constructor(
     private readonly publicPipe: PublicPipe,
     private readonly sanitizer: DomSanitizer,
-    private readonly rdkitLoader: RDKitLoaderService
+    private readonly rdkitLoader: RDKitService
   ) {
     const ketcherUrl = this.publicPipe.transform('ketcher/index.html');
     this.ketcherUrl = this.sanitizer.bypassSecurityTrustResourceUrl(ketcherUrl);

@@ -6,6 +6,7 @@ import { CollectionSaveOverlayContextService } from '../../services/context/save
 import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service';
 import { MoleculeJoinService } from '../../services/graphql/molecule-collection-join.service';
 import { ToastService } from '../../services/toast.service';
+import { RDKitService } from '../../services/rd-kit-loader.service';
 
 @Component({
   selector: 'app-collection-save-overlay',
@@ -57,6 +58,7 @@ export class CollectionSaveOverlayComponent implements OnInit {
   collectionService = inject(MoleculeCollectionService);
   moleculeJoinService = inject(MoleculeJoinService)
   toast = inject(ToastService)
+  rdkitService = inject(RDKitService)
 
   collections = signal<MoleculeCollection[]>([]);
   hasMore = signal(true)
@@ -100,34 +102,36 @@ export class CollectionSaveOverlayComponent implements OnInit {
   }
 
   onSelect(item: Pick<MoleculeCollection, 'id'>) {
-    console.log(item)
-    this.ctx.selectedCollectionId.set(item.id);
-    if (!this.ctx.selectedCollectionId()) {
-      this.toast.trigger('Si è verificato un errore', 'error')
-    }
-    this.moleculeJoinService.addCustomMoleculeToCollection({
-      collectionId: this.ctx.selectedCollectionId()!,
-      input: {
-        canonicalSmiles: this.ctx.smiles()
-      }
-    }).subscribe({
-      next: (res) => {
-        console.log(res)
-      },
-      error: () => this.toast.trigger('Si è verificato un errore!', 'error')
-    })
+    this.ctx.selectedCollectionId.set(item.id)
   }
 
   onCreateNew(name: string) {
     this.collectionService.createCollection(name).subscribe(newColl => {
-      this.collections.set([newColl, ...this.collections()]);
-      this.ctx.selectedCollectionId.set(newColl.id);
+      this.collections.set([newColl, ...this.collections()])
+      this.ctx.selectedCollectionId.set(newColl.id)
     });
   }
 
-  onConfirm() {
-    // Qui callback a parent, toast, chiusura, etc
-    // Esempio: this.ctx.close();
+  async onConfirm() {
+    if (!this.ctx.selectedCollectionId()) {
+      this.toast.trigger('Si è verificato un errore', 'error')
+    }
+    const propertiesJson = JSON.stringify(
+      await this.rdkitService.getMoleculeProperties(this.ctx.smiles())
+    )
+    this.moleculeJoinService.addCustomMoleculeToCollection({
+      collectionId: this.ctx.selectedCollectionId()!,
+      input: {
+        canonicalSmiles: this.ctx.smiles(),
+        propertiesJson
+      }
+    }).subscribe({
+      next: (res) => {
+        this.toast.trigger(`Molecola salvata correttamente.`, 'success')
+        this.ctx.close()
+      },
+      error: () => this.toast.trigger('Si è verificato un errore!', 'error')
+    })
     this.ctx.close()
   }
 

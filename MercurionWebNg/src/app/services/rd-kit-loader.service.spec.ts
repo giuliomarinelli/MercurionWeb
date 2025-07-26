@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { RDKitLoaderService } from './rd-kit-loader.service';
+import { RDKitService } from './rd-kit-loader.service';
 
 describe('RDKitLoaderService', () => {
-  let service: RDKitLoaderService;
+  let service: RDKitService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(RDKitLoaderService);
+    service = TestBed.inject(RDKitService);
   });
 
   it('should be created', () => {

@@ -9,7 +9,7 @@ import {
   SimpleChanges,
 } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { RDKitLoaderService } from '../../../services/rd-kit-loader.service';
+import { RDKitService } from '../../../services/rd-kit-loader.service';
 import type { RDKitModule } from '@rdkit/rdkit';
 
 /**
@@ -84,7 +84,7 @@ export class MoleculeViewerComponent implements OnInit, OnChanges {
   } as const;
 
   constructor(
-    private readonly rdkit: RDKitLoaderService,
+    private readonly rdkit: RDKitService,
     private readonly sanitizer: DomSanitizer,
   ) {}
 

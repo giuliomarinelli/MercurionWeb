@@ -24,21 +24,55 @@ export class CustomMoleculeItemService {
         private readonly joinService: MoleculeCollectionItemJoinService
     ) { }
 
-    async addToCollection(userId: UUID, collectionId: UUID, input: CustomMoleculeItemInput): Promise<CustomMoleculeItemEntity> {
-        let item = await this.customRepo.findOne({ where: { canonicalSmiles: input.canonicalSmiles, userId } })
+    async addToCollection(
+        userId: UUID,
+        collectionId: UUID,
+        input: CustomMoleculeItemInput
+    ): Promise<CustomMoleculeItemEntity> {
+        // 1️⃣ Cerco se esiste già la molecola per quel user+SMILES
+        let item = await this.customRepo.findOne({
+            where: { canonicalSmiles: input.canonicalSmiles, userId }
+        });
+
         if (!item) {
-            item = this.customRepo.create({ id: uuidv7() as UUID, ...input, userId, createdAt: Date.now(), updatedAt: Date.now() })
-            item.type = 'custom'
-            item = await this.customRepo.save(item)
+            // 2️⃣ Non c'è? La creo da zero
+            item = this.customRepo.create({
+                id: uuidv7() as UUID,
+                ...input,             // ⬅ contiene già propertiesJson numerico ✔
+                userId,
+                type: 'custom',
+                createdAt: Date.now(),
+                updatedAt: Date.now()
+            });
+        } else {
+            // 3️⃣ Esiste? Aggiorno SOLO i campi arrivati da input
+            //    (nel tuo caso propertiesJson, ma estendibile a label/notes ecc.)
+            if (input.propertiesJson &&
+                input.propertiesJson !== item.propertiesJson) {
+                item.propertiesJson = input.propertiesJson;
+                item.updatedAt = Date.now();
+            }
+            if (input.label !== undefined) item.label = input.label;
+            if (input.notes !== undefined) item.notes = input.notes;
+            if (input.molFormula !== undefined) item.molFormula = input.molFormula;
+            if (input.name !== undefined) item.name = input.name;
         }
 
-        // Ownership check della collection!
-        const collection = await this.collectionRepo.findOne({ where: { id: collectionId, userId } })
-        if (!collection) throw new RpcException("CustomItemAddError::Forbidden")
+        // 4️⃣ Persisto sempre (creazione o update che sia)
+        item = await this.customRepo.save(item);
 
-        await this.joinService.add(userId, collectionId, item.id)
-        return item
+        // 5️⃣ Controllo ownership della collection
+        const collection = await this.collectionRepo.findOne({
+            where: { id: collectionId, userId }
+        });
+        if (!collection) throw new RpcException('CustomItemAddError::Forbidden');
+
+        // 6️⃣ Link nella join‑table (ignora duplicati all’interno di add)
+        await this.joinService.add(userId, collectionId, item.id);
+
+        return item;
     }
+
 
 
 
