@@ -15,6 +15,8 @@ import { SidenavContextService } from './services/context/sidenav-context.servic
 import { DesignService } from './services/design.service'
 import { SidenavComponent } from './components/common/sidenav/sidenav.component'
 import { SessionSyncService } from './services/session-sync.service'
+import { CollectionSaveOverlayComponent } from './components/collection-save-overlay/collection-save-overlay.component'
+import { CollectionSaveOverlayContextService } from './services/context/save-to-collection-context.service'
 
 @Component({
   selector: 'app-root',
@@ -26,7 +28,8 @@ import { SessionSyncService } from './services/session-sync.service'
     FooterComponent,
     NgxxSpinnerComponent,
     ToastComponent,
-    SidenavComponent
+    SidenavComponent,
+    CollectionSaveOverlayComponent
   ],
   template: `
     <div class="flex flex-col h-screen">
@@ -86,6 +89,9 @@ import { SessionSyncService } from './services/session-sync.service'
     @if (searchContextService.isMounted()) {
       <app-search-overlay />
     }
+    @if (saveOverlayContext.isMounted() && userContext.initials() !== '') {
+      <app-collection-save-overlay />
+    }
     <app-toast [context]="toastService.context()" />
     <app-ngxx-spinner />
   `
@@ -110,7 +116,8 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly pathService: PathService,
     protected readonly sidenavContext: SidenavContextService,
     protected readonly design: DesignService,
-    private readonly sessionSync: SessionSyncService
+    private readonly sessionSync: SessionSyncService,
+    protected readonly saveOverlayContext: CollectionSaveOverlayContextService
   ) {
     this.sessionSync.syncSession();   // ok se ti serve qui
 

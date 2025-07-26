@@ -136,4 +136,34 @@ export class MoleculeCollectionService {
       })
       .pipe(map(res => extractGqlData(res, 'deleteMoleculeCollection')));
   }
+
+  getPaginatedCollections(
+    page: number = 1,
+    limit: number = 20,
+    search?: string
+  ): Observable<{ items: MoleculeCollection[]; totalPages: number; totalItems: number; currentPage: number }> {
+    const query = gql`
+      query PaginatedCollections($page: Int!, $limit: Int!, $search: String) {
+        myMoleculeCollectionsPaginated(page: $page, limit: $limit, search: $search) {
+          items {
+            id
+            name
+          }
+          totalPages
+          totalItems
+          currentPage
+        }
+      }
+    `;
+    return this.apollo
+      .watchQuery<{ myMoleculeCollectionsPaginated: any }>({
+        query,
+        variables: { page, limit, search },
+        fetchPolicy: 'network-only'
+      })
+      .valueChanges.pipe(
+        map(res => extractGqlData(res, 'myMoleculeCollectionsPaginated'))
+      )
+  }
+
 }

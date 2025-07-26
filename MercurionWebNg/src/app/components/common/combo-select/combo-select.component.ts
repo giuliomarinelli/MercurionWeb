@@ -7,7 +7,7 @@ import { FormsModule } from '@angular/forms';
   standalone: true,
   imports: [FormsModule, NgClass],
   template: `
-    <div class="relative w-full max-w-md bg-white dark:bg-neutral-800 rounded-xl shadow p-2 border border-slate-200 dark:border-slate-700">
+    <div class="relative w-full max-w-xl bg-white dark:bg-neutral-800 rounded-xl shadow p-2 border border-slate-200 dark:border-slate-700">
       <!-- Input di ricerca -->
       <input
         type="text"
@@ -20,7 +20,7 @@ import { FormsModule } from '@angular/forms';
       <!-- Scrollable area -->
       <div
         #scrollContainer
-        class="max-h-64 overflow-auto flex flex-col gap-1"
+        class="max-h-64 overflow-auto flex flex-col gap-1 h-56 oveflow-y-auto"
         (scroll)="onScroll($event)"
       >
         @if (filteredItems().length > 0) {
@@ -39,7 +39,7 @@ import { FormsModule } from '@angular/forms';
 
         <!-- CREA NUOVA -->
         @if (canCreateNew) {
-          <div class="px-3 py-2 border-t border-slate-100 dark:border-slate-600 mt-2">
+          <div class="px-3 py-2 border-t border-slate-100 dark:border-slate-600 mt-2 sticky bottom-0 z-20 bg-gray-200 dark:bg-neutral-800">
             @if (creatingNew) {
               <input
                 class="w-2/3 px-2 py-1 mr-2 rounded border dark:bg-neutral-800 dark:text-white"
@@ -66,6 +66,7 @@ import { FormsModule } from '@angular/forms';
   `,
 })
 export class ComboSelectComponent<T> {
+
   @Input({ required: true }) items: T[] = [];
   @Input({ required: true }) displayFn!: (item: T) => string;
   @Input({ required: true }) valueFn!: (item: T) => any;
@@ -118,6 +119,7 @@ export class ComboSelectComponent<T> {
     this.select.emit(item);
     this.creatingNew = false;
   }
+
   isSelected(item: T) {
     return this.valueFn(item) === this.selected;
   }
@@ -127,6 +129,7 @@ export class ComboSelectComponent<T> {
     this.creatingNew = true;
     setTimeout(() => this.newInput?.nativeElement?.focus(), 100);
   }
+
   onCreateNewConfirm() {
     if (this.newItemName.trim()) {
       this.createNew.emit(this.newItemName.trim());

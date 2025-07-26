@@ -3,6 +3,7 @@ import { KetcherFrameComponent, KetcherFrameMode } from '../../components/chem/k
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service';
+import { CollectionSaveOverlayContextService } from '../../services/context/save-to-collection-context.service';
 
 @Component({
   selector: 'app-molecule-editor',
@@ -14,6 +15,7 @@ import { MoleculeCollectionItemService } from '../../services/graphql/molecule-c
          [smiles]="smiles()"
          [mode]="mode()"
          [triggerReset]="triggerReset()"
+         [triggerGetSmiles]="triggerGetSmiles()"
          (exportSmiles)="onSmilesExported($event)"
          (onReset)="triggerReset.set(false)"
       >
@@ -50,11 +52,13 @@ export class MoleculeEditorComponent implements OnInit, OnDestroy {
   mId = signal<string | undefined>(undefined) // undefined per mode !== 'edit' (in creazione e modifica = ricreazione da modello non c'è ancora id e lato GraphQL si userà una mutation di creazione)
   error = signal<boolean>(false)
   triggerReset = signal<boolean>(false)
-
+  triggerGetSmiles = signal<boolean>(false)
+  pendingAction = signal<'save' | 'saveNew' | null>(null)
 
   constructor(
     private readonly route: ActivatedRoute,
-    private readonly moleculeCollectionItemService: MoleculeCollectionItemService
+    private readonly moleculeCollectionItemService: MoleculeCollectionItemService,
+    private readonly saveContext: CollectionSaveOverlayContextService
   ) { }
 
   ngOnInit(): void {
@@ -98,16 +102,37 @@ export class MoleculeEditorComponent implements OnInit, OnDestroy {
     this.smilesByIdSub?.unsubscribe()
   }
 
-  onSmilesExported(e: string) {
-    console.log(e)
-  }
-
   onSave(): void {
-
+    this.pendingAction.set('save');
+    this.triggerGetSmiles.set(true);
   }
 
   onSaveAsNew(): void {
+    this.pendingAction.set('saveNew');
+    this.triggerGetSmiles.set(true);
+  }
 
+  // Quando le SMILES sono arrivate
+  onSmilesExported(e: string) {
+    this.triggerGetSmiles.set(false);
+
+    if (this.pendingAction() === 'saveNew') {
+      this.doSaveNew(e)
+    } else if (this.pendingAction() === 'save') {
+      this.doSaveEdit(e)
+    }
+    this.pendingAction.set(null);
+  }
+
+  // Esegui qui il vero salvataggio
+  doSaveNew(smiles: string) {
+    this.saveContext.setSmiles(smiles)
+    this.saveContext.open()
+  }
+
+  doSaveEdit(smiles: string) {
+    // salva su api, ecc.
+    // ...
   }
 
   onReset(): void {

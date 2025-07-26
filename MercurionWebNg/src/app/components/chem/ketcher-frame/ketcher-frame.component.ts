@@ -59,6 +59,11 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
     this._triggerReset.set(triggerReset)
   }
 
+  @Input()
+  set triggerGetSmiles(triggerGetSmiles: boolean) {
+    this._triggerGetSmiles.set(triggerGetSmiles)
+  }
+
   @Output()
   molChange = new EventEmitter<string>();
 
@@ -70,6 +75,7 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
 
   _smiles = signal<string>('');
   _triggerReset = signal<boolean>(false)
+  _triggerGetSmiles = signal<boolean>(false)
   ketcherReady = signal<boolean>(false);
   loading = signal<boolean>(true)
   loaded = signal<boolean>(false)
@@ -88,6 +94,10 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
         this.resetMolecule()
         this._triggerReset.set(false)
         this.onReset.emit()
+      }
+      if (this._triggerGetSmiles()) {
+        this.requestExportSmiles()
+        this._triggerGetSmiles.set(false)
       }
     })
   }
@@ -126,7 +136,7 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
 
   /** Permette al genitore di chiedere l'export quando vuole */
   requestExportSmiles() {
-    this.postToKetcher({ type: 'getSmiles' });
+    this.postToKetcher({ type: 'getSmiles', payload: {} });
   }
 
   /** Invia il molfile generato da uno SMILES a Ketcher */
