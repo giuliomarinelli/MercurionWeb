@@ -10,7 +10,7 @@ import { AuthService } from '../auth.service';
 export type SocketMode = 'public' | 'private';
 
 interface Listener<T = any> {
-  event  : string;
+  event: string;
   handler: (payload: T) => void;
 }
 
@@ -78,7 +78,7 @@ export class RealtimeSocketService {
     });
   }
 
-  onConnect()    { return this.on<void>('connect'); }
+  onConnect() { return this.on<void>('connect'); }
   onDisconnect() { return this.on<string>('disconnect'); }
 
   /* ───────── IMPLEMENTAZIONE ───────── */
@@ -104,13 +104,13 @@ export class RealtimeSocketService {
     this.socket?.disconnect();
 
     this.socket = io('http://localhost:8888', {
-      path        : '/socket.io',
-      transports  : ['websocket'],
+      path: '/socket.io',
+      transports: ['websocket'],
       withCredentials: true,
       reconnection: true,
       reconnectionAttempts: Infinity,
-      reconnectionDelay    : 2_000,
-      reconnectionDelayMax : 8_000,
+      reconnectionDelay: 2_000,
+      reconnectionDelayMax: 8_000,
       auth: this.mode === 'private'
         ? { token: token ?? this.auth.getWs_accessToken?.() }
         : undefined

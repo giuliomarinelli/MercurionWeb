@@ -9,7 +9,11 @@ export const routes: Routes = [
     redirectTo: 'login'
   },
   {
-    path: 'palette',
+    path: 'playground/combo',
+    loadComponent: () => import('./playground/combo-father/combo-father.component').then(m => m.ComboFatherComponent)
+  },
+  {
+    path: 'playground/palette',
     component: ColorPaletteComponent,
     canActivate: [AuthGuard]
   },
