@@ -40,8 +40,8 @@ export class SessionSyncService {
     this.socket.on<{ detail: string }>('sv.pub.err')
       .subscribe(err => this.zone.run(() => {
         if (err?.detail === 'Unauthorized') this.becomeAnonymous({
-          toast: 'Sessione non più valida.',
-          level: 'error',
+          // toast: 'Sessione non più valida.',
+          // level: 'error',
           navigateIfProtected: true
         });
       }));
