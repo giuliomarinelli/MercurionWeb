@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args, ID, Info } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ID, Info, Int } from '@nestjs/graphql';
 import { AuthenticatedUserId } from 'src/metadata/metadata';
 import { UUID } from 'crypto';
 import { GraphQLResolveInfo } from 'graphql';
@@ -36,8 +36,8 @@ export class MoleculeCollectionItemResolver {
     @Query(() => PaginatedMoleculeCollectionItem)
     async paginatedMoleculeCollectionItemsByUser(
         @AuthenticatedUserId() userId: UUID,
-        @Args('page') page: number,
-        @Args('limit') limit: number,
+        @Args('page', { type: () => Int }) page: number,
+        @Args('limit', { type: () => Int }) limit: number,
         @Info() info: GraphQLResolveInfo
     ): Promise<PaginatedMoleculeCollectionItem> {
         const options: IPaginationOptions = { page, limit }
@@ -49,8 +49,8 @@ export class MoleculeCollectionItemResolver {
     async paginatedMoleculeCollectionItemsByCollection(
         @AuthenticatedUserId() userId: UUID,
         @Args('collectionId') collectionId: UUID,
-        @Args('page') page: number,
-        @Args('limit') limit: number,
+        @Args('page', { type: () => Int }) page: number,
+        @Args('limit', { type: () => Int }) limit: number,
         @Info() info: GraphQLResolveInfo
     ): Promise<PaginatedMoleculeCollectionItem> {
         const options: IPaginationOptions = { page, limit }
