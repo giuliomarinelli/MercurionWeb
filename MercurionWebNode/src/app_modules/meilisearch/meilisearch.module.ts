@@ -29,7 +29,7 @@ import { MoleculeResolver } from './resolvers/molecule.resolver';
         MoleculeService,
         MoleculeResolver
     ],
-    exports: [MoleculeSyncService, MoleculeDetailSyncService]
+    exports: [MoleculeSyncService, MoleculeDetailSyncService, MoleculeService, 'MEILISEARCH_CLIENT']
 
 })
 export class MeilisearchModule { }

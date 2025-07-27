@@ -6,6 +6,8 @@ import { MoleculeCollectionItemEntity } from '../../Models/entities/molecule-col
 import { MoleculeCollectionItemService } from '../../services/molecule-collection/molecule-collection-item.service';
 import { CreateMoleculeItemInput } from '../../Models/DTO/molecule-collection/create-molecule-item.input';
 import { GraphqlUtils } from 'src/graphql-utils/graphql-utils';
+import { PaginatedMoleculeCollectionItem } from '../../Models/DTO/molecule-collection/paginated-molecule-collection-item.dto';
+import { IPaginationOptions } from 'nestjs-typeorm-paginate';
 
 @Resolver(() => MoleculeCollectionItemEntity)
 export class MoleculeCollectionItemResolver {
@@ -30,6 +32,19 @@ export class MoleculeCollectionItemResolver {
         const fieldsMap = GraphqlUtils.getFieldsMap(info)
         return this.itemService.findOne(id, userId, fieldsMap)
     }
+
+    @Query(() => PaginatedMoleculeCollectionItem)
+    async paginatedMoleculeCollectionItems(
+        @AuthenticatedUserId() userId: UUID,
+        @Args('page') page: number,
+        @Args('limit') limit: number,
+        @Info() info: GraphQLResolveInfo
+    ): Promise<PaginatedMoleculeCollectionItem> {
+        const options: IPaginationOptions = { page, limit }
+        const fieldsMap = GraphqlUtils.getFieldsMap(info)
+        return this.itemService.paginateAllByUser(userId, options, fieldsMap)
+    }
+
 
     @Mutation(() => MoleculeCollectionItemEntity)
     async createMoleculeItem(

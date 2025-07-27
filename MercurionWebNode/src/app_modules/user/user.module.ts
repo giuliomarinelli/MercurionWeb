@@ -39,6 +39,8 @@ import { SyntheticStepService } from './services/synth/synthetic-step.service';
 import { SyntheticStepResolver } from './resolvers/synth/synthetic-step.resolver';
 import { SyntheticStepMoleculeRefService } from './services/synth/synthetic-step-molecule-ref.service';
 import { SyntheticStepMoleculeRefResolver } from './resolvers/synth/synthetic-step-molecule-ref.resolver';
+import { MeilisearchModule } from '../meilisearch/meilisearch.module';
+import { MoleculeService } from '../meilisearch/services/molecule.service';
 
 
 @Module({
@@ -58,7 +60,9 @@ import { SyntheticStepMoleculeRefResolver } from './resolvers/synth/synthetic-st
     SyntheticRouteEntity,
     SyntheticStepMoleculeRef,
     SyntheticStepEntity
-  ])],
+  ]),
+    MeilisearchModule
+  ],
   providers: [
     UserService,
     LabNotebookService,
@@ -83,7 +87,8 @@ import { SyntheticStepMoleculeRefResolver } from './resolvers/synth/synthetic-st
     SyntheticStepService,
     SyntheticStepResolver,
     SyntheticStepMoleculeRefService,
-    SyntheticStepMoleculeRefResolver
+    SyntheticStepMoleculeRefResolver,
+    MoleculeService
   ],
   exports: [UserService, TypeOrmModule],
   controllers: []

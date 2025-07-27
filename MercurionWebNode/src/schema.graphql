@@ -134,16 +134,6 @@ type PaginatedMoleculeCollection {
   currentPage: Int!
 }
 
-type MoleculeSearchResult {
-  id: Int!
-  preferredName: String!
-  smiles: String
-  synonyms: [String!]
-  mwFreebase: Float
-  alogp: Float
-  maxPhase: Int
-}
-
 type MoleculeProperties {
   mwFreebase: Float
   alogp: Float
@@ -174,6 +164,52 @@ type MoleculeDetail {
   synonyms: [String!]!
 }
 
+type PaginatedMoleculeCollectionItem {
+  items: [MoleculeCollectionItemUnion!]!
+  itemCount: Int!
+  totalItems: Int!
+  itemsPerPage: Int!
+  totalPages: Int!
+  currentPage: Int!
+}
+
+union MoleculeCollectionItemUnion = CustomMoleculeItemDTO | ChEMBLMoleculeItemDTO
+
+type CustomMoleculeItemDTO {
+  id: ID!
+  label: String
+  notes: String
+  type: String!
+  canonicalSmiles: String
+  molFormula: String
+  name: String
+  propertiesJson: String
+  createdAt: String!
+  updatedAt: String!
+}
+
+type ChEMBLMoleculeItemDTO {
+  id: ID!
+  userId: String!
+  chemblMolregno: String!
+  label: String
+  notes: String
+  type: String!
+  createdAt: String!
+  updatedAt: String!
+  chemblDetails: MoleculeDetail
+}
+
+type MoleculeSearchResult {
+  id: Int!
+  preferredName: String!
+  smiles: String
+  synonyms: [String!]
+  mwFreebase: Float
+  alogp: Float
+  maxPhase: Int
+}
+
 type Query {
   page(id: String!): NotebookPage
   pagesBySection(sectionId: String!): [NotebookPage!]!
@@ -190,6 +226,7 @@ type Query {
   myMoleculeCollectionsPaginated(page: Int! = 1, limit: Int! = 20, search: String): PaginatedMoleculeCollection!
   myMoleculeItems: [MoleculeCollectionItemEntity!]!
   moleculeItem(id: ID!): MoleculeCollectionItemEntity
+  paginatedMoleculeCollectionItems(page: Float!, limit: Float!): PaginatedMoleculeCollectionItem!
   chemblMoleculesByCollection(collectionId: ID!): [ChEMBLMoleculeItemEntity!]!
   findOneChemblMoleculeById(itemId: ID!): ChEMBLMoleculeItemEntity
   customMoleculesByCollection(collectionId: ID!): [CustomMoleculeItemEntity!]!
