@@ -2,6 +2,7 @@ import { Field, ID, ObjectType } from "@nestjs/graphql";
 
 @ObjectType()
 export class CustomMoleculeItemDTO {
+  
   @Field(() => ID)
   id: string
 

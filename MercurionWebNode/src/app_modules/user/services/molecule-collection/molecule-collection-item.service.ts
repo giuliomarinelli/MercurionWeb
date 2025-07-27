@@ -143,6 +143,93 @@ export class MoleculeCollectionItemService {
         };
     }
 
+    async paginateByCollection(
+        userId: UUID,
+        collectionId: UUID,
+        options: IPaginationOptions,
+        fieldsMap: GraphQLFieldsMap,
+    ): Promise<PaginatedMoleculeCollectionItem> {
+
+        // Escludi chiavi DTO/meta non relazionali
+        for (const k of ['items', 'meta', 'links']) {
+            if (k in fieldsMap) delete fieldsMap[k];
+        }
+
+        const EXCLUDED_FIELDS = [
+            'itemCount', 'totalItems', 'itemsPerPage', 'totalPages', 'currentPage', 'meta', 'links'
+        ];
+
+        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap);
+        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, [
+            'id', 'type', 'userId', 'label', 'notes', 'createdAt', 'updatedAt',
+            'canonicalSmiles', 'molFormula', 'name', 'propertiesJson', // custom
+            'chemblMolregno' // chembl
+        ]).filter(col => !EXCLUDED_FIELDS.includes(col));
+
+        // Query builder: join tra la join table e gli items veri e propri
+        let qb = this.itemRepo.createQueryBuilder('item')
+            .innerJoin('item.joins', 'join', 'join.collectionId = :collectionId AND join.userId = :userId', { collectionId, userId })
+            .select(columns.map(col => `item.${col}`))
+            .orderBy('item.createdAt', 'DESC');
+
+        qb = TypeOrmUtils.addJoins(qb, 'item', fieldsMap);
+
+        const page = await paginate<MoleculeCollectionItemEntity>(qb, options);
+
+        // Batch dettagli chembl
+        const chemblItems = page.items.filter(item => item.type === 'chembl');
+        let detailsMap: Record<string, MoleculeDetail> = {};
+        if (chemblItems.length > 0) {
+            const molregnos = chemblItems.map(item => String((item as ChEMBLMoleculeItemEntity).chemblMolregno));
+            const detailsArray = await this.moleculeService.getDetailsByMolregnos(molregnos);
+            detailsMap = Object.fromEntries(detailsArray.map(d => [String(d.id), d]));
+        }
+
+        // Mapping finale
+        const items: Array<CustomMoleculeItemDTO | ChEMBLMoleculeItemDTO> = page.items.map(item => {
+            if (item.type === 'custom') {
+                return {
+                    id: item.id,
+                    userId: item.userId,
+                    label: item.label,
+                    notes: item.notes,
+                    type: item.type,
+                    canonicalSmiles: (item as CustomMoleculeItemEntity).canonicalSmiles,
+                    molFormula: (item as CustomMoleculeItemEntity).molFormula,
+                    name: (item as CustomMoleculeItemEntity).name,
+                    propertiesJson: (item as CustomMoleculeItemEntity).propertiesJson,
+                    createdAt: item.createdAt,
+                    updatedAt: item.updatedAt,
+                } as CustomMoleculeItemDTO;
+            }
+            if (item.type === 'chembl') {
+                const chemblMolregno = String((item as ChEMBLMoleculeItemEntity).chemblMolregno);
+                return {
+                    id: item.id,
+                    label: item.label,
+                    notes: item.notes,
+                    type: item.type,
+                    chemblMolregno,
+                    chemblDetails: detailsMap[chemblMolregno] || null,
+                    createdAt: item.createdAt,
+                    updatedAt: item.updatedAt,
+                } as unknown as ChEMBLMoleculeItemDTO;
+            }
+            throw new RpcException(`UnknownItemType::${item.type}`);
+        });
+
+        // Risposta paginata finale
+        return {
+            items,
+            itemCount: page.meta.itemCount,
+            totalItems: page.meta.totalItems ?? 0,
+            itemsPerPage: page.meta.itemsPerPage,
+            totalPages: page.meta.totalPages ?? 0,
+            currentPage: page.meta.currentPage,
+        };
+    }
+
+
 
 
     async update(id: UUID, userId: UUID, input: Partial<MoleculeCollectionItemEntity>, fieldsMap: GraphQLFieldsMap): Promise<MoleculeCollectionItemEntity | null> {

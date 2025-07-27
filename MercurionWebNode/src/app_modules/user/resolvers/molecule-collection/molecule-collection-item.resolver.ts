@@ -34,7 +34,7 @@ export class MoleculeCollectionItemResolver {
     }
 
     @Query(() => PaginatedMoleculeCollectionItem)
-    async paginatedMoleculeCollectionItems(
+    async paginatedMoleculeCollectionItemsByUser(
         @AuthenticatedUserId() userId: UUID,
         @Args('page') page: number,
         @Args('limit') limit: number,
@@ -43,6 +43,19 @@ export class MoleculeCollectionItemResolver {
         const options: IPaginationOptions = { page, limit }
         const fieldsMap = GraphqlUtils.getFieldsMap(info)
         return this.itemService.paginateAllByUser(userId, options, fieldsMap)
+    }
+
+    @Query(() => PaginatedMoleculeCollectionItem)
+    async paginatedMoleculeCollectionItemsByCollection(
+        @AuthenticatedUserId() userId: UUID,
+        @Args('collectionId') collectionId: UUID,
+        @Args('page') page: number,
+        @Args('limit') limit: number,
+        @Info() info: GraphQLResolveInfo
+    ): Promise<PaginatedMoleculeCollectionItem> {
+        const options: IPaginationOptions = { page, limit }
+        const fieldsMap = GraphqlUtils.getFieldsMap(info)
+        return this.itemService.paginateByCollection(userId, collectionId, options, fieldsMap)
     }
 
 

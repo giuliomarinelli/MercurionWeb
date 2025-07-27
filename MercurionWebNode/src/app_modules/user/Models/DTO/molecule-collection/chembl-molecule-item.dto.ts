@@ -10,9 +10,6 @@ export class ChEMBLMoleculeItemDTO {
     id: UUID
     
     @Field(() => String)
-    userId: UUID
-    
-    @Field(() => String)
     chemblMolregno: number
   
     @Field(() => String, { nullable: true })
