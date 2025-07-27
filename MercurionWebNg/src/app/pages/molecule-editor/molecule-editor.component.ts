@@ -11,7 +11,7 @@ import { ToastService } from '../../services/toast.service';
   imports: [KetcherFrameComponent],
   template: `
 
-    <div class="mt-4 mb-6">
+    <div class="mt-2 mb-6">
       <h2 class="text-center text-light-accent-primary dark:text-dark-accent-primary font-semibold text-xl 2xs:text-2xl sm:text-4xl">
         @switch (mode()) {
           @case ('create') {

@@ -91,6 +91,7 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
     this.ketcherUrl = this.sanitizer.bypassSecurityTrustResourceUrl(ketcherUrl);
     effect(() => {
       if (this._triggerReset()) {
+        console.log(this.initialSmiles)
         this.resetMolecule()
         this._triggerReset.set(false)
         this.onReset.emit()
@@ -164,7 +165,8 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
   }
 
   resetMolecule() {
-    if (this.ketcherReady() && this.initialSmiles) {
+    !this.initialSmiles && (this.initialSmiles = '')
+    if (this.ketcherReady()) {
       this.updateKetcherMolfile(this.initialSmiles)
     }
   }
