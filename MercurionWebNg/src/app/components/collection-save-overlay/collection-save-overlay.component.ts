@@ -1,4 +1,4 @@
-import { Component, HostListener, OnInit, inject, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { ComboSelectComponent } from '../common/combo-select/combo-select.component'
 import { MoleculeCollectionService } from '../../services/graphql/molecule-collection.service';
 import { CollectionSaveOverlayContextService } from '../../services/context/save-to-collection-context.service';
@@ -11,24 +11,36 @@ import { NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
+export type SaveOverlayFormItem = 'name' | 'label' | 'notes'
+
 @Component({
   selector: 'app-collection-save-overlay',
   standalone: true,
   imports: [ComboSelectComponent, NgClass, FormsModule],
   template: `
+
     @if (ctx.isMounted()) {
-      <div class="fixed inset-0 z-[999] bg-black/60 backdrop-blur-sm transition-all duration-300"
-     [class.opacity-0]="!ctx.isVisible()"
-     [class.opacity-100]="ctx.isVisible()">
+    <div
+      class="fixed inset-0 z-[999] bg-black/60 backdrop-blur-sm transition-all duration-300"
+      [class.opacity-0]="!ctx.isVisible()"
+      [class.opacity-100]="ctx.isVisible()"
+    >
       <div class="flex justify-center items-center min-h-screen px-2">
         <div
-          class="w-full max-w-lg bg-white dark:bg-dark-surface-main rounded-xl shadow-lg p-6
-          max-h-[80vh] overflow-y-auto flex flex-col gap-4">
-                <div class="flex items-center justify-between mb-3">
-                  <h2 class="text-lg font-semibold">Scegli la collezione di destinazione</h2>
-                  <button class="text-2xl hover:text-emerald-600" (click)="close()">&times;</button>
-                </div>
-
+          class="w-full max-w-lg bg-white dark:bg-dark-surface-main rounded-xl shadow-lg py-6 px-3 max-h-[80vh] overflow-y-auto flex flex-col gap-4"
+        >
+          <div class="flex items-center justify-between mb-3 px-4 pb-4 border-b border-b-slate-400 ">
+            <h2 class="text-lg font-semibold">
+              Salva molecola
+            </h2>
+            <button class="text-2xl hover:text-emerald-600" (click)="close()">
+              &times;
+            </button>
+          </div>
+          <div class="overflow-y-auto px-3">
+            <h2 class="font-semibold mb-3">
+              Scegli la collezione di destinazione:
+            </h2>
             <!-- ComboBox Collezioni -->
             <app-combo-select
               [items]="collections()"
@@ -45,54 +57,59 @@ import { Router } from '@angular/router';
             />
 
             <!-- FORM CUSTOM MOLECULE -->
-            <form class="mt-8 space-y-5" autocomplete="off" (ngSubmit)="onConfirm()" novalidate>
+            <form
+              class="mt-8 space-y-5"
+              autocomplete="off"
+              (ngSubmit)="onConfirm()"
+              novalidate
+            >
               <!-- NOME MOLECOLA -->
               <div class="relative">
-                <input
+                <input #name
                   type="text"
-                  class="block py-4 px-4 w-full text-sm bg-transparent border-slate-300 border rounded-md
-                  focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-500 peer
-                  dark:bg-neutral-900 dark:text-white"
+                  class="block py-4 px-4 w-full text-sm bg-transparent border-slate-300 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-500 peer dark:text-white"
                   placeholder=" "
                   required
                   name="name"
                   [(ngModel)]="nameModel"
-                  (blur)="nameTouched = true"
+                  (blur)="onBlur('name')"
+                  (focus)="onFocus('name')"
                 />
                 <label
+                  (click)="onFocus('name')"
                   for="name"
-                  class="peer-focus:font-medium absolute transition-all duration-300 bg-white dark:bg-neutral-900 px-1 top-[13px] left-4 origin-[0]"
+                  class="peer-focus:font-medium absolute transition-all duration-300 bg-white dark:bg-dark-surface-main px-1 top-[13px] left-4 origin-[0] cursor-text"
                   [ngClass]="{
-                    'text-emerald-700 dark:text-emerald-300 scale-110 -translate-y-6 text-sm': nameModel || nameTouched,
-                    'text-slate-400 text-lg scale-100 translate-y-0': !(nameModel || nameTouched)
-                  }"
+                        'text-emerald-700 dark:text-emerald-300 scale-110 -translate-y-6 text-sm': nameFocus() || nameModel,
+                        'text-slate-500 dark:text-slate-300 text-lg scale-100 translate-y-0': !nameFocus() && !nameModel
+                      }"
                 >
                   Nome molecola*
                 </label>
-                <div class="text-xs text-red-500 mt-1 min-h-5">
+                <div class="text-sm text-light-error dark:text-dark-error mt-1 min-h-5">
                   @if (!nameModel && nameTouched) { Il nome è obbligatorio. }
                 </div>
               </div>
 
               <!-- LABEL -->
               <div class="relative">
-                <input
+                <input #label
                   type="text"
-                  class="block py-4 px-4 w-full text-sm bg-transparent border-slate-300 border rounded-md
-                  focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-500 peer
-                  dark:bg-neutral-900 dark:text-white"
+                  class="block py-4 px-4 w-full text-sm bg-transparent border-slate-300 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-500 peer dark:text-white"
                   placeholder=" "
                   name="label"
                   [(ngModel)]="labelModel"
-                  (blur)="labelTouched = true"
+                  (blur)="onBlur('label')"
+                  (focus)="onFocus('label')"
                 />
                 <label
+                  (click)="onFocus('label')"
                   for="label"
-                  class="peer-focus:font-medium absolute transition-all duration-300 bg-white dark:bg-neutral-900 px-1 top-[13px] left-4 origin-[0]"
+                  class="peer-focus:font-medium absolute transition-all duration-300 bg-white dark:bg-dark-surface-main px-1 top-[13px] left-4 origin-[0] cursor-text"
                   [ngClass]="{
-                    'text-emerald-700 dark:text-emerald-300 scale-110 -translate-y-6 text-sm': labelModel || labelTouched,
-                    'text-slate-400 text-lg scale-100 translate-y-0': !(labelModel || labelTouched)
-                  }"
+                        'text-emerald-700 dark:text-emerald-300 scale-110 -translate-y-6 text-sm': labelFocus() || labelModel,
+                        'text-slate-500 dark:text-slate-300 text-lg scale-100 translate-y-0': !labelFocus() && !labelModel
+                      }"
                 >
                   Etichetta (facoltativa)
                 </label>
@@ -100,62 +117,98 @@ import { Router } from '@angular/router';
 
               <!-- NOTE -->
               <div class="relative">
-                <textarea
-                  class="block py-4 px-4 w-full text-sm bg-transparent border-slate-300 border rounded-md
-                  focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-500 peer
-                  dark:bg-neutral-900 dark:text-white"
+                <textarea #notes
+                  class="block py-4 px-4 w-full text-sm bg-transparent border-slate-300 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-500 peer dark:text-white"
                   placeholder=" "
                   name="notes"
                   [(ngModel)]="notesModel"
                   rows="2"
-                  (blur)="notesTouched = true"
+                  (blur)="onBlur('notes')"
+                  (focus)="onFocus('notes')"
                 ></textarea>
                 <label
+                  (click)="onFocus('notes')"
                   for="notes"
-                  class="peer-focus:font-medium absolute transition-all duration-300 bg-white dark:bg-neutral-900 px-1 top-[13px] left-4 origin-[0]"
+                  class="peer-focus:font-medium absolute transition-all duration-300 bg-white dark:bg-dark-surface-main px-1 top-[13px] left-4 origin-[0] cursor-text"
                   [ngClass]="{
-                    'text-emerald-700 dark:text-emerald-300 scale-110 -translate-y-6 text-sm': notesModel || notesTouched,
-                    'text-slate-400 text-lg scale-100 translate-y-0': !(notesModel || notesTouched)
-                  }"
+                        'text-emerald-700 dark:text-emerald-400 scale-110 -translate-y-6 text-sm': notesFocus() || notesModel,
+                        'text-slate-500 dark:text-slate-300 text-lg scale-100 translate-y-0': !notesFocus() && !notesModel
+                      }"
                 >
                   Note (facoltative)
                 </label>
               </div>
 
               <!-- Proprietà calcolate -->
-              <div class="bg-emerald-50 dark:bg-emerald-900/40 p-4 rounded-md text-emerald-900 dark:text-emerald-200 mb-2 mt-2">
+              <div
+                class="bg-emerald-50 dark:bg-emerald-900/40 p-4 rounded-md text-emerald-900 dark:text-emerald-200 mb-2 mt-2"
+              >
                 <div class="font-semibold mb-2">Proprietà calcolate</div>
                 <div class="grid grid-cols-2 gap-y-1 gap-x-6 text-sm">
-                  <div><span class="font-semibold">MW:</span> {{ properties()?.mwFreebase ?? '—' }}</div>
-                  <div><span class="font-semibold">LogP:</span> {{ properties()?.alogp ?? '—' }}</div>
-                  <div><span class="font-semibold">HBA:</span> {{ properties()?.hba ?? '—' }}</div>
-                  <div><span class="font-semibold">HBD:</span> {{ properties()?.hbd ?? '—' }}</div>
-                  <div><span class="font-semibold">PSA:</span> {{ properties()?.psa ?? '—' }}</div>
-                  <div><span class="font-semibold">RTB:</span> {{ properties()?.rtb ?? '—' }}</div>
+                  <div>
+                    <span class="font-semibold">MW:</span> {{
+                    properties()?.mwFreebase ?? '—' }}
+                  </div>
+                  <div>
+                    <span class="font-semibold">LogP:</span> {{ properties()?.alogp
+                    ?? '—' }}
+                  </div>
+                  <div>
+                    <span class="font-semibold">HBA:</span> {{ properties()?.hba ??
+                    '—' }}
+                  </div>
+                  <div>
+                    <span class="font-semibold">HBD:</span> {{ properties()?.hbd ??
+                    '—' }}
+                  </div>
+                  <div>
+                    <span class="font-semibold">PSA:</span> {{ properties()?.psa ??
+                    '—' }}
+                  </div>
+                  <div>
+                    <span class="font-semibold">RTB:</span> {{ properties()?.rtb ??
+                    '—' }}
+                  </div>
                 </div>
               </div>
 
               <!-- Bottoni -->
-              <div class="mt-8 flex justify-end gap-2">
-                <button type="button"
-                        class="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
-                        (click)="close()">
+              <div class="mt-8 flex justify-end gap-2 sticky">
+                <button
+                  type="button"
+                  class="px-4 py-2 rounded bg-slate-200 text-light-on-surface-main dark:bg-slate-100 dark:text-neutral-950 hover:bg-gray-300"
+                  (click)="close()"
+                >
                   Annulla
                 </button>
                 <button
                   type="submit"
-                  class="px-4 py-2 rounded bg-emerald-600 text-white font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300"
+                  class="px-4 py-2 rounded bg-emerald-600 text-white font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed"
                   [disabled]="!ctx.selectedCollectionId() || !nameModel"
-                >Salva</button>
+                >
+                  Salva
+                </button>
               </div>
             </form>
           </div>
         </div>
       </div>
-    }
+    </div>
+}
+
   `
 })
 export class CollectionSaveOverlayComponent implements OnInit {
+
+  @ViewChild('name')
+  private nameRef!: ElementRef<HTMLInputElement>
+
+  @ViewChild('label')
+  private labelRef!: ElementRef<HTMLInputElement>
+
+  @ViewChild('notes')
+  private notesRef!: ElementRef<HTMLTextAreaElement>
+
 
   ctx = inject(CollectionSaveOverlayContextService);
   collectionService = inject(MoleculeCollectionService);
@@ -163,6 +216,10 @@ export class CollectionSaveOverlayComponent implements OnInit {
   toast = inject(ToastService)
   rdkitService = inject(RDKitService)
   router = inject(Router)
+
+  nameFocus = signal<boolean>(false)
+  labelFocus = signal<boolean>(false)
+  notesFocus = signal<boolean>(false)
 
   collections = signal<MoleculeCollection[]>([]);
   hasMore = signal(true)
@@ -232,6 +289,38 @@ export class CollectionSaveOverlayComponent implements OnInit {
     });
   }
 
+  onFocus(item: SaveOverlayFormItem): void {
+    switch (item) {
+      case 'label':
+        document.activeElement !== this.labelRef.nativeElement && this.labelRef.nativeElement.focus()
+        this.labelFocus.set(true)
+        break
+        case 'name':
+        document.activeElement !== this.nameRef.nativeElement && this.nameRef.nativeElement.focus()
+        this.nameFocus.set(true)
+        break
+        case 'notes':
+        document.activeElement !== this.notesRef.nativeElement && this.notesRef.nativeElement.focus()
+        this.notesFocus.set(true)
+    }
+  }
+
+  onBlur(item: SaveOverlayFormItem): void {
+    switch (item) {
+      case 'label':
+        this.labelTouched = true
+        this.labelFocus.set(false)
+        break
+      case 'name':
+        this.nameFocus.set(false)
+        this.nameTouched = true
+        break
+      case 'notes':
+        this.notesTouched = true
+        this.notesFocus.set(false)
+    }
+  }
+
   async onConfirm() {
     if (!this.ctx.selectedCollectionId()) {
       this.toast.trigger('Seleziona una collezione', 'error');
@@ -257,10 +346,12 @@ export class CollectionSaveOverlayComponent implements OnInit {
     }).subscribe({
       next: () => {
         this.toast.trigger(`Molecola salvata correttamente.`, 'success')
-        this.router.navigate(['/molecules/editor'], {queryParams: {
-          mode: this.ctx.mode(),
-          smiles: this.ctx.smiles()
-        }})
+        this.router.navigate(['/molecules/editor'], {
+          queryParams: {
+            mode: this.ctx.mode(),
+            smiles: this.ctx.smiles()
+          }
+        })
         this.ctx.close()
       },
       error: () => this.toast.trigger('Si è verificato un errore!', 'error')

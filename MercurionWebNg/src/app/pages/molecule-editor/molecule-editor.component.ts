@@ -4,6 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service';
 import { CollectionSaveOverlayContextService } from '../../services/context/save-to-collection-context.service';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-molecule-editor',
@@ -74,7 +75,8 @@ export class MoleculeEditorComponent implements OnInit, OnDestroy {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly moleculeCollectionItemService: MoleculeCollectionItemService,
-    private readonly saveContext: CollectionSaveOverlayContextService
+    private readonly saveContext: CollectionSaveOverlayContextService,
+    private readonly toast: ToastService
   ) { }
 
   ngOnInit(): void {
@@ -141,13 +143,17 @@ export class MoleculeEditorComponent implements OnInit, OnDestroy {
   }
 
   // Esegui qui il vero salvataggio
-  doSaveNew(smiles: string) {
+  doSaveNew(smiles: string): void {
+    if (!smiles) {
+      this.toast.trigger('La molecola è vuota!', 'error')
+      return
+    }
     this.saveContext.setSmiles(smiles)
     this.saveContext.setMode(this.mode())
     this.saveContext.open()
   }
 
-  doSaveEdit(smiles: string) {
+  doSaveEdit(smiles: string): void {
     // salva su api, ecc.
     // ...
   }

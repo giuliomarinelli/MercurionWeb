@@ -106,7 +106,6 @@ export class MoleculeCollectionService {
 
         qb = qb.orderBy('collection.updatedAt', 'DESC');
         if (columns.includes('items') && fieldsMap) qb = TypeOrmUtils.addJoins(qb, 'collection', fieldsMap);
-        console.log(qb.getSql())
         return paginate<MoleculeCollection>(qb, options);
     }
 
