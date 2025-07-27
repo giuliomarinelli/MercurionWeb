@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args, ID, Info, Int } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ID, Info, Int, ResolveField, Parent } from '@nestjs/graphql';
 import { AuthenticatedUserId } from 'src/metadata/metadata'; // tuo custom decorator userId
 import { UUID } from 'crypto';
 import { GraphQLResolveInfo } from 'graphql';
@@ -6,12 +6,24 @@ import { MoleculeCollection } from '../../Models/entities/molecule-collection/mo
 import { MoleculeCollectionService } from '../../services/molecule-collection/molecule-collection.service';
 import { GraphqlUtils } from 'src/graphql-utils/graphql-utils';
 import { PaginatedMoleculeCollection } from '../../Models/DTO/molecule-collection/paginated-molecule-collection';
+import { InjectRepository } from '@nestjs/typeorm';
+import { MoleculeCollectionItemJoin } from '../../Models/entities/molecule-collection/molecule-collection-item-join.entity';
+import { Repository } from 'typeorm';
 
 
 @Resolver(() => MoleculeCollection)
 export class MoleculeCollectionResolver {
 
-    constructor(private readonly collectionService: MoleculeCollectionService) { }
+    constructor(
+        private readonly collectionService: MoleculeCollectionService,
+        @InjectRepository(MoleculeCollectionItemJoin)
+        private readonly joinRepo: Repository<MoleculeCollectionItemJoin>,
+    ) { }
+
+    @ResolveField(() => Int)
+    async itemsCount(@Parent() collection: MoleculeCollection): Promise<number> {
+        return this.joinRepo.count({ where: { collectionId: collection.id } })
+    }
 
     // Query: Lista collezioni dell'utente
     @Query(() => [MoleculeCollection])

@@ -14,34 +14,35 @@ import { Field, ID, InterfaceType } from '@nestjs/graphql';
 @TableInheritance({ column: { type: 'varchar', name: 'type' } })
 export abstract class MoleculeCollectionItemEntity {
 
-    @Field(() => ID)
-    @PrimaryColumn({ type: 'uuid' })
-    id: UUID
+  @Field(() => ID)
+  @PrimaryColumn({ type: 'uuid' })
+  id: UUID
 
-    @Index()
-    @Column({ type: 'uuid' })
-    userId: UUID
+  @Index()
+  @Column({ type: 'uuid' })
+  userId: UUID
 
-    @Field(() => String, { nullable: true })
-    @Column({ nullable: true, type: 'varchar' })
-    label: string | null
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true, type: 'varchar' })
+  label: string | null
 
-    @Field(() => String, { nullable: true })
-    @Column({ nullable: true, type: 'text' })
-    notes: string | null
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true, type: 'text' })
+  notes: string | null
 
-    @Field()
-    @Column({ type: 'varchar' })
-    type: string
+  @Field()
+  @Column({ type: 'varchar' })
+  type: string
 
-    @Field(() => [MoleculeCollectionItemJoin], { nullable: true })
-    @OneToMany(() => MoleculeCollectionItemJoin, join => join.item)
-    joins: MoleculeCollectionItemJoin[]
+  @Field(() => [MoleculeCollectionItemJoin], { nullable: true })
+  @OneToMany(() => MoleculeCollectionItemJoin, join => join.item)
+  joins: MoleculeCollectionItemJoin[]
 
-    @Column({type: 'bigint'})
-    createdAt: number
-    
-    @Column({type: 'bigint'})
-    updatedAt: number
+  @Column({ type: 'bigint' })
+  createdAt: number
+
+  @Column({ type: 'bigint' })
+  updatedAt: number
+
 
 }

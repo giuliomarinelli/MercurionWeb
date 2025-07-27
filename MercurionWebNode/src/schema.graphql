@@ -14,6 +14,9 @@ type MoleculeCollection {
   id: ID!
   name: String!
   items: [MoleculeCollectionItemJoin!]
+  createdAt: String!
+  updatedAt: String!
+  itemsCount: Int!
 }
 
 type MoleculeCollectionItemJoin {

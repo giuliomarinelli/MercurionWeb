@@ -89,25 +89,26 @@ export class MoleculeCollectionService {
         search?: string,
         fieldsMap?: GraphQLFieldsMap
     ): Promise<Pagination<MoleculeCollection>> {
-
-        const scalarFields = fieldsMap ? GraphqlUtils.getScalarFields(fieldsMap) : ['id', 'name'];
-        const excludedQueryColumns = ['itemCount', 'totalItems', 'itemsPerPage', 'totalPages', 'currentPage']
-        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.REQUIRED_FIELDS).filter(c => !excludedQueryColumns.includes(c))
-
-       
+        // Prendi i campi richiesti dentro "items"
+        const itemsFields = fieldsMap?.items ? Object.keys(fieldsMap.items).filter(k => k !== '__typename') : [];
+        // I campi "esterni" non servono nella select
+        // Unisci ai requiredFields
+        const columns = GraphqlUtils.ensureRequiredFields(itemsFields, this.REQUIRED_FIELDS).filter(c => c !== 'itemsCount')
 
         let qb = this.collectionRepo.createQueryBuilder('collection')
             .select(columns.map(col => `collection.${col}`))
-            .where('collection.user_id = :userId', { userId });
+            .where('collection.user_id = :userId', { userId })
 
         if (search) {
-            qb = qb.andWhere('collection.name ILIKE :query', { query: `%${search}%` });
+            qb = qb.andWhere('collection.name ILIKE :query', { query: `%${search}%` })
         }
 
-        qb = qb.orderBy('collection.updatedAt', 'DESC');
-        if (columns.includes('items') && fieldsMap) qb = TypeOrmUtils.addJoins(qb, 'collection', fieldsMap);
-        return paginate<MoleculeCollection>(qb, options);
+        qb = qb.orderBy('collection.updatedAt', 'DESC')
+        // le join sulle relazioni puoi farle se richieste
+
+        return paginate<MoleculeCollection>(qb, options)
     }
+
 
 
 }

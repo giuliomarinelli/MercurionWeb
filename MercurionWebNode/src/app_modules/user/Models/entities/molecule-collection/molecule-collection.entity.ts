@@ -2,7 +2,7 @@ import { BeforeInsert, Column, Entity, Index, OneToMany, PrimaryColumn } from "t
 import { UUID } from "crypto";
 import { uuidv7 } from "@kripod/uuidv7";
 import { MoleculeCollectionItemJoin } from "./molecule-collection-item-join.entity";
-import { Field, ID, ObjectType } from "@nestjs/graphql";
+import { Field, ID, Int, ObjectType } from "@nestjs/graphql";
 
 @ObjectType()
 @Entity('molecule_collections')
@@ -24,11 +24,16 @@ export class MoleculeCollection {
     @OneToMany(() => MoleculeCollectionItemJoin, join => join.collection)
     items: MoleculeCollectionItemJoin[]
 
+    @Field(() => String)
     @Column({ type: 'bigint' })
     createdAt: number
 
+    @Field(() => String)
     @Column({ type: 'bigint' })
     updatedAt: number
+
+    @Field(() => Int)
+    itemsCount: number
 
     @BeforeInsert()
     private init() {
