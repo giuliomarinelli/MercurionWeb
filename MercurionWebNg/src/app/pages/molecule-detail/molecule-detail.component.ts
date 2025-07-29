@@ -1,5 +1,5 @@
 // Refactor #1: MoleculeDetailComponent
-import { Component, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, effect, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MoleculeService } from '../../services/graphql/molecule.service';
 import { switchMap, Observable, catchError, of, Subscription, forkJoin, map, retry } from 'rxjs';
@@ -14,7 +14,6 @@ import { MoleculeSynonymsComponent } from '../../components/molecule-detail/mole
 import { MoleculeCtaChemblComponent } from '../../components/molecule-detail/molecule-cta-chembl/molecule-cta-chembl.component';
 import { T1PredictionCardComponent } from '../../components/molecule-detail/t1-prediction-card/t1-prediction-card.component';
 import { UserContextService } from '../../services/context/user-context.service';
-import { T1PredictionDTO } from '../../Models/notebook/t1-prediction-model';
 import { MercurionAiService as MercurionAIService } from '../../services/mercurion-ai.service';
 import { EditingLayerComponent } from '../../components/molecule-detail/editing-layer/editing-layer.component';
 
@@ -111,9 +110,21 @@ export class MoleculeDetailComponent implements OnInit {
     protected readonly themeManager: ThemeManagerService,
     protected readonly userContext: UserContextService,
     private readonly mercurionAIService: MercurionAIService
-  ) { }
+  ) {
+    effect(() => {
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'login' && e.newValue && userContext.initials() !== '') {
+          this.fetchAI()
+        }
+      })
+    })
+  }
 
   ngOnInit(): void {
+    this.fetchAI()
+  }
+
+  private fetchAI(): void {
     this.molecule$ = this.route.paramMap.pipe(
       switchMap((params) => {
         this.viewerReady.set(false)
