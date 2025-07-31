@@ -2,7 +2,7 @@
 import { Component, effect, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MoleculeService } from '../../services/graphql/molecule.service';
-import { switchMap, Observable, catchError, of, Subscription, forkJoin, map, retry } from 'rxjs';
+import { switchMap, Observable, catchError, of, Subscription, forkJoin, map, retry, tap } from 'rxjs';
 import { MoleculeDetail } from '../../Models/graphql/molecule.detail';
 import { AsyncPipe } from '@angular/common';
 import { ThemeManagerService } from '../../services/context/theme-manager.service';
@@ -103,6 +103,7 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
   molecule$!: Observable<MoleculeDetail | null>
   viewerReady = signal<boolean>(false)
   fetchError = signal<boolean>(false)
+  private molCached?: MoleculeDetail
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -133,11 +134,22 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
         this.viewerReady.set(false)
         const molregno = params.get('molregno')
         if (!molregno) throw new Error('UndefinedMolregno')
-        return this.moleculeService.getMoleculeByMolregno(molregno)
+        if (this.molCached && this.molCached.id === Number(molregno)) {
+          return of(this.molCached)
+        }
+        return this.moleculeService.getMoleculeByMolregno(molregno).pipe(
+          map(mol => {
+            this.molCached = mol || undefined
+            return mol
+          })
+        )
       }),
       switchMap((molecule) => {
         if (!molecule) return of(null)
-        if (this.userContext.initials() === '') return of(molecule)
+        if (this.userContext.initials() === '') {
+          const { t1Inference, ...rest} = molecule
+          return of(rest)
+        }
         return this.mercurionAIService.t1Inference({ smiles: molecule.canonicalSmiles }).pipe(
           catchError((err) => {
             if (err?.status === 401 || err?.networkError?.status === 401) {
