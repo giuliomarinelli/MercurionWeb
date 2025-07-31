@@ -98,7 +98,7 @@ import { EditingLayerComponent } from '../../components/molecule-detail/editing-
     }
   `,
 })
-export class MoleculeDetailComponent implements OnInit, OnDestroy {
+export class MoleculeDetailComponent {
 
   molecule$!: Observable<MoleculeDetail | null>
   viewerReady = signal<boolean>(false)
@@ -113,20 +113,10 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
     private readonly mercurionAIService: MercurionAIService
   ) {
     effect(() => {
-      window.addEventListener('storage', this.handleFetchData)
+      this.fetchData()
     })
   }
 
-
-  ngOnInit(): void {
-    this.fetchData()
-  }
-
-  private handleFetchData(e: StorageEvent): void {
-    if (e.key === 'login' && e.newValue && this.userContext.initials() !== '') {
-      this.fetchData()
-    }
-  }
 
   private fetchData(): void {
     this.molecule$ = this.route.paramMap.pipe(
@@ -172,10 +162,6 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
         return of(null)
       })
     )
-  }
-
-  ngOnDestroy(): void {
-    window.removeEventListener('storage', this.handleFetchData)
   }
 
 }
