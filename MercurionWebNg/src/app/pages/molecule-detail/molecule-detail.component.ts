@@ -98,7 +98,7 @@ import { EditingLayerComponent } from '../../components/molecule-detail/editing-
     }
   `,
 })
-export class MoleculeDetailComponent {
+export class MoleculeDetailComponent implements OnDestroy {
 
   molecule$!: Observable<MoleculeDetail | null>
   viewerReady = signal<boolean>(false)
@@ -114,9 +114,13 @@ export class MoleculeDetailComponent {
   ) {
     effect(() => {
       this.fetchData()
+      window.addEventListener('storage', this.handleCrossTabFetchData)
     })
   }
 
+  private handleCrossTabFetchData(e: StorageEvent): void {
+    this.fetchData()
+  }
 
   private fetchData(): void {
     this.molecule$ = this.route.paramMap.pipe(
@@ -162,6 +166,10 @@ export class MoleculeDetailComponent {
         return of(null)
       })
     )
+  }
+
+  ngOnDestroy(): void {
+    window.removeEventListener('storage', this.handleCrossTabFetchData)
   }
 
 }
