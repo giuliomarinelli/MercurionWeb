@@ -27,6 +27,7 @@ export class ThemeManagerService {
 
 
   constructor() {
+
     this.initTheme()
 
     // Reactive effect: applica il tema ogni volta che cambia
@@ -60,7 +61,24 @@ export class ThemeManagerService {
     return this.getOsDarkModeMediaQuery().matches ? 'dark' : 'light'
   }
 
+  private handleCrossTabThemeSwitch = (e: StorageEvent): void => {
+    if (e.key === '__tw_mat_theme') {
+      switch (e.newValue) {
+        case 'light':
+          this.chooseTheme('light')
+          break
+        case 'dark':
+          this.chooseTheme('dark')
+          break
+        default:
+          this.chooseTheme('OS')
+
+      }
+    }
+  }
+
   private initTheme(): void {
+    window.addEventListener('storage', this.handleCrossTabThemeSwitch)
     if (this.hasSavedThemeConfig()) {
       this.restoreThemeConfig()
     } else if (this._chosenTheme() === 'OS') {

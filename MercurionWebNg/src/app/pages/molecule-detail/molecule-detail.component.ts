@@ -67,7 +67,6 @@ import { EditingLayerComponent } from '../../components/molecule-detail/editing-
                 [mode]="'detail'"
                 class="w-full h-full"
                 [structure]="molecule.canonicalSmiles"
-                [darkMode]="themeManager.theme() === 'dark'"
                 (rendered)="viewerReady.set(true)"
               />
             </div>

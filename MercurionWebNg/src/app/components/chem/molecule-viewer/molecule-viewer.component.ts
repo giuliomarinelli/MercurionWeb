@@ -1,16 +1,21 @@
 import {
+  ApplicationRef,
   Component,
+  effect,
   EventEmitter,
   HostBinding,
   Input,
+  NgZone,
   OnChanges,
   OnInit,
   Output,
+  signal,
   SimpleChanges,
 } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { RDKitService } from '../../../services/rd-kit-loader.service';
 import type { RDKitModule } from '@rdkit/rdkit';
+import { ThemeManagerService } from '../../../services/context/theme-manager.service';
 
 /**
  * <molecule-viewer>
@@ -56,13 +61,14 @@ export class MoleculeViewerComponent implements OnInit, OnChanges {
   /** SMILES / MolBlock ecc. */
   @Input({ required: true }) structure = '';
   /** Palette light/dark */
-  @Input() darkMode = false;
   /** "preview" (default) | "detail" */
   @Input() mode: 'preview' | 'detail' = 'preview';
   /** Se true mostra solo lo skeleton (no RDKit) */
   @Input() disablePreview = false;
 
   @Output() rendered = new EventEmitter<void>();
+
+  darkMode = signal<boolean>(false);
 
   /* ────── Stato interno ─────────────────────────────────────── */
   svg: SafeHtml | null = null;
@@ -86,17 +92,30 @@ export class MoleculeViewerComponent implements OnInit, OnChanges {
   constructor(
     private readonly rdkit: RDKitService,
     private readonly sanitizer: DomSanitizer,
-  ) {}
+    private readonly appRef: ApplicationRef,
+    private readonly themeManager: ThemeManagerService,
+    private readonly zone: NgZone
+  ) {
+    effect(() => this.darkMode.set(this.themeManager.theme() === 'dark'))
+    effect(() => {
+      const dm = this.darkMode()
+      this.scheduleRender()
+    })
+  }
 
   /* ────── Lifecycle ─────────────────────────────────────────── */
   ngOnInit(): void {
     if (!this.disablePreview) this.initRdkit();
   }
 
+  forceReRendering(): void {
+    this.appRef.tick()
+  }
+
   ngOnChanges(ch: SimpleChanges): void {
     if ('disablePreview' in ch && !this.disablePreview && !this.ready) {
       this.initRdkit();
-    } else if (!this.disablePreview && this.ready && (ch['structure'] || ch['darkMode'])) {
+    } else if (!this.disablePreview && this.ready && (ch['structure'])) {
       this.scheduleRender();
     }
   }
@@ -123,7 +142,7 @@ export class MoleculeViewerComponent implements OnInit, OnChanges {
   }
 
   private buildAtomPalette(): Record<number, [number, number, number]> {
-    const mode = this.darkMode ? 'dark' : 'light';
+    const mode = this.darkMode() ? 'dark' : 'light';
     const p = MoleculeViewerComponent.WCAG[mode];
     const Z: Record<string, number> = {
       H: 1, C: 6, N: 7, O: 8, F: 9, P: 15, S: 16, Cl: 17, Br: 35, I: 53,
@@ -149,7 +168,7 @@ export class MoleculeViewerComponent implements OnInit, OnChanges {
       return;
     }
 
-    const palette = MoleculeViewerComponent.WCAG[this.darkMode ? 'dark' : 'light'];
+    const palette = MoleculeViewerComponent.WCAG[this.darkMode() ? 'dark' : 'light'];
     const rdkitOpts = {
       bondLineWidth: 1.6,
       fixedBondLength: this.structure.length < 40 ? 50 : 30,
@@ -190,7 +209,7 @@ export class MoleculeViewerComponent implements OnInit, OnChanges {
         raw = svgEl.outerHTML;
       }
       document.body.removeChild(tmp);
-    } catch {/* fallback: keep raw as‑is */}
+    } catch {/* fallback: keep raw as‑is */ }
 
     /* 3. Fallback palette (nero / bianco RDKit) */
     raw = raw
@@ -199,7 +218,9 @@ export class MoleculeViewerComponent implements OnInit, OnChanges {
       .replace(/stroke:#E5E7EB/gi, `stroke:${palette.default}`);
 
     /* 4. Bind al template */
-    this.svg = this.sanitizer.bypassSecurityTrustHtml(raw);
-    this.rendered.emit();
+    this.zone.run(() => {
+      this.svg = this.sanitizer.bypassSecurityTrustHtml(raw);
+      this.rendered.emit();
+    })
   }
 }
