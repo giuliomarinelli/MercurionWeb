@@ -29,7 +29,6 @@ import { MoleculeSearchResult } from
         <molecule-viewer
           class="w-full h-full"
           [structure]="_molecule()?.smiles ?? ''"
-          [darkMode]="isDarkMode()"
           [disablePreview]="disablePreview()"
           (rendered)="viewerReady.set(true)">
         </molecule-viewer>
