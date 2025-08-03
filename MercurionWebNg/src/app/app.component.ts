@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, OnDestroy, OnInit, ViewChild, computed, effect, signal, Signal } from '@angular/core'
-import { NavigationEnd, Router, RouterOutlet } from '@angular/router'
+import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router'
 import { HeaderComponent } from './components/common/header/header.component'
 import { ThemeManagerService } from './services/context/theme-manager.service'
 import { SearchOverlayComponent } from './components/search-overlay/search-overlay/search-overlay.component'
@@ -97,10 +97,12 @@ import { CollectionSaveOverlayContextService } from './services/context/save-to-
   `
 })
 export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
+
   title = 'MercurionWebNg'
   isDarkTheme: Signal<boolean> = computed(() => this.themeManagerService.theme() === 'dark')
   headerHeight = signal(64)
   private routeSub?: Subscription
+
   private currentPath = signal<string>('')
   private firstNavigationDone = signal<boolean>(false)
 
@@ -114,6 +116,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly themeManagerService: ThemeManagerService,
     protected readonly searchContextService: SearchContextService,
     private readonly router: Router,
+    private readonly route: ActivatedRoute,
     protected readonly toastService: ToastService,
     protected readonly userContext: UserContextService,
     private readonly pathService: PathService,
@@ -151,8 +154,10 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         const url = normalize(e.urlAfterRedirects);
         this.currentPath.set(url);
         this.pathService.setPath(url);
-        url !== '/login' && sessionStorage.setItem('redirectAfterLogin', url)
         if (!this.firstNavigationDone()) this.firstNavigationDone.set(true);
+        if (this.userContext.initials() !== '') {
+          sessionStorage.setItem('redirectAfterLogin', window.location.pathname.slice(4) + window.location.search)
+        }
       });
 
 

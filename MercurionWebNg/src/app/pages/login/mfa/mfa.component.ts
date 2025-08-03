@@ -190,10 +190,20 @@ export class MfaComponent implements OnInit, OnDestroy {
             if (sessionStorage.getItem('preAuthorizationData')) {
               sessionStorage?.removeItem('preAuthorizationData')
             }
+            this.authService.setAccessToken(res.accessToken as string)
+            this.authService.setWs_accessToken(res.ws_accessToken as string)
             this.sessionSyncService.resumeSession(res.initials ?? 'U')
-            const redirect = sessionStorage.getItem('redirectAfterLogin') || '/profile';
-            sessionStorage.removeItem('redirectAfterLogin');
-            this.router.navigateByUrl(redirect)
+            const redirect = sessionStorage.getItem('redirectAfterLogin') || '/profile'
+            const qpRaw = sessionStorage.getItem('redirectAfterLogin_qp')
+            let qp: Record<string, string> | null = null
+            try {
+              qp = JSON.parse(qpRaw ?? '')
+            } catch {
+              // do nothing
+            }
+            sessionStorage.removeItem('redirectAfterLogin')
+            this.router.navigate([redirect], { queryParams: qp ?? undefined })
+            this.loadingContext.stop()
           },
           error: err => {
             const errBody: HttpErrorRes = err.error

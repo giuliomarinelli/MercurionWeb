@@ -251,7 +251,6 @@ export class LoginComponent implements OnInit, OnDestroy {
             this.authService.setWs_accessToken(res.ws_accessToken as string)
             this.sessionSync.resumeSession(res.initials ?? 'U')
             const redirect = sessionStorage.getItem('redirectAfterLogin') || '/profile'
-            sessionStorage.removeItem('redirectAfterLogin')
             this.router.navigateByUrl(redirect)
             this.loadingContext.stop()
           }
