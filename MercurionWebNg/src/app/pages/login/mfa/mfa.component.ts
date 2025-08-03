@@ -50,6 +50,7 @@ export class MfaComponent implements OnInit, OnDestroy {
       version: ''
     }
   }
+  private pollInterval!: ReturnType<typeof setInterval>
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -59,10 +60,31 @@ export class MfaComponent implements OnInit, OnDestroy {
     private readonly fingerprintService: FingerprintService,
     private readonly loadingContext: LoadingContextService,
     private readonly redirect: AuthRedirectService,
-    private readonly sessionSyncService: SessionSyncService
+    private readonly sessionSyncService: SessionSyncService,
+    private readonly userContext: UserContextService
   ) { }
 
+  private storageListener(e: StorageEvent) {
+    if (e.key === 'login' && e.newValue) {
+      if (this.router.url === '/login' || this.router.url.startsWith('/login')) {
+        const redirect = sessionStorage.getItem('redirectAfterLogin') || '/profile'
+        this.router.navigateByUrl(redirect)
+        this.userContext.setInitials(e.newValue ?? 'U')
+      }
+
+    }
+  }
+
   async ngOnInit(): Promise<void> {
+
+    window.addEventListener('storage', this.storageListener)
+    this.pollInterval = setInterval(() => {
+      if (localStorage.getItem('login') && (this.router.url === '/login' || this.router.url.startsWith('/login'))) {
+        const redirect = sessionStorage.getItem('redirectAfterLogin') || '/profile';
+        this.router.navigateByUrl(redirect);
+      }
+    }, 1000)
+
     // 1. Fingerprint prima di tutto
     const { fingerprintDataEnc, sessionDeviceInfo } = await this.fingerprintService.getSanitizedFingerprint();
     this.fingerprintDataEnc = fingerprintDataEnc;
@@ -222,6 +244,8 @@ export class MfaComponent implements OnInit, OnDestroy {
     this.otpStateSub?.unsubscribe()
     this.otpCallSub?.unsubscribe()
     this.otpVerifySub?.unsubscribe()
+    window.removeEventListener('storage', this.storageListener)
+    clearInterval(this.pollInterval)
   }
 
 
