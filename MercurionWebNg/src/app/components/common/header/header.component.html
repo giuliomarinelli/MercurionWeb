@@ -4,9 +4,9 @@
   <div
     class="mx-auto flex justify-between items-center transition-colors duration-300 ease-out"
   >
-    <div class="flex items-center gap-6">
+    <div class="flex items-center gap-4">
       @if (designService.maxBk("lg")()) {
-        <button (click)="toggleOffCanvasMenu()">
+        <button (click)="noToast(); toggleOffCanvasMenu()">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="h-[22px] w-[22px] min-[350px]:h-6 min-[350px]:w-6 fill-current text-light-on-surface-secondary dark:text-slate-100 off-canvas-menu-button"

@@ -14,6 +14,7 @@ import { AccountService } from '../../../services/account.service';
 import { AuthService } from '../../../services/auth.service';
 import { SessionSyncService } from '../../../services/session-sync.service';
 import { PathService } from '../../../services/path.service';
+import { ToastService } from '../../../services/toast.service';
 
 @Component({
   selector: 'app-header',
@@ -62,7 +63,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
     private accountService: AccountService,
     private readonly authService: AuthService,
     protected readonly userContext: UserContextService,
-    protected readonly pathService: PathService
+    protected readonly pathService: PathService,
+    private readonly toast: ToastService
   ) {
     effect(() => {
       if (this.themeMenuOpen()) {
@@ -136,6 +138,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   protected closeAvatarMobileMenu(): void {
     this.avatarMobileMenuOpen.set(false)
+  }
+
+  protected noToast(): void {
+    this.toast.close()
   }
 
   protected handleDocumentClick = (event: MouseEvent): void => {
