@@ -123,7 +123,7 @@
       <button
         class="flex items-center theme-toggle-button mr-0 xs:mr-1 lg:mr-2 transition-all duration-500"
         [ngClass]="{
-          'xl:ml-5': userContext.initials() !== '' || isLoginPath(),
+          'xl:ml-1': userContext.initials() !== '' || isLoginPath(),
         }"
         (click)="toggleThemeMenu()"
       >

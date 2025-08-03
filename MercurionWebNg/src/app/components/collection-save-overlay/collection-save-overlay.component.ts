@@ -210,12 +210,12 @@ export class CollectionSaveOverlayComponent implements OnInit {
   private notesRef!: ElementRef<HTMLTextAreaElement>
 
 
-  ctx = inject(CollectionSaveOverlayContextService);
-  collectionService = inject(MoleculeCollectionService);
-  moleculeJoinService = inject(MoleculeJoinService)
-  toast = inject(ToastService)
-  rdkitService = inject(RDKitService)
-  router = inject(Router)
+  protected readonly ctx = inject(CollectionSaveOverlayContextService);
+  private readonly collectionService = inject(MoleculeCollectionService);
+  private readonly moleculeJoinService = inject(MoleculeJoinService)
+  private readonly toast = inject(ToastService)
+  private readonly rdkitService = inject(RDKitService)
+  private readonly router = inject(Router)
 
   nameFocus = signal<boolean>(false)
   labelFocus = signal<boolean>(false)
@@ -295,11 +295,11 @@ export class CollectionSaveOverlayComponent implements OnInit {
         document.activeElement !== this.labelRef.nativeElement && this.labelRef.nativeElement.focus()
         this.labelFocus.set(true)
         break
-        case 'name':
+      case 'name':
         document.activeElement !== this.nameRef.nativeElement && this.nameRef.nativeElement.focus()
         this.nameFocus.set(true)
         break
-        case 'notes':
+      case 'notes':
         document.activeElement !== this.notesRef.nativeElement && this.notesRef.nativeElement.focus()
         this.notesFocus.set(true)
     }
@@ -344,12 +344,12 @@ export class CollectionSaveOverlayComponent implements OnInit {
         notes: this.notesModel || undefined,
       }
     }).subscribe({
-      next: () => {
+      next: (reply) => {
         this.toast.trigger(`Molecola salvata correttamente.`, 'success')
         this.router.navigate(['/molecules/editor'], {
           queryParams: {
-            mode: this.ctx.mode(),
-            smiles: this.ctx.smiles()
+            mode: 'edit',
+            m_id: reply.id
           }
         })
         this.ctx.close()
