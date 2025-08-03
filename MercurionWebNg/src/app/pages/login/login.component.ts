@@ -221,7 +221,6 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   onSubmit(): void {
     if (this.loginForm.valid && this.turnstileToken) {
-      console.log('onSubmit')
       this.loadingContext.start()
       const dto: Login_FirstStepWrapper = {
         email: this.loginForm.value['email'],
@@ -229,7 +228,7 @@ export class LoginComponent implements OnInit, OnDestroy {
         remember: false,
         fingerprintBase64: this.fingerprintDataEnc,
         sessionDeviceInfo: this.sessionDeviceInfo,
-        turnstileToken: this.turnstileToken() as string
+        turnstileToken: this.turnstileToken()!
       }
       this.secondStepSubscription = this.authService.login_firstStep(dto).subscribe({
         next: (res: Confirm_Login_FirstStepDTO) => {

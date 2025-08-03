@@ -104,6 +104,9 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   private currentPath = signal<string>('')
   private firstNavigationDone = signal<boolean>(false)
 
+  private publicExact = new Set(['/login', '/register', '/forgot', '/privacy', '/']);
+  private publicPrefixes = ['/molecules/detail'];
+
   @ViewChild(HeaderComponent, { read: ElementRef })
   headerRef!: ElementRef<HTMLElement>
 
@@ -148,12 +151,10 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         const url = normalize(e.urlAfterRedirects);
         this.currentPath.set(url);
         this.pathService.setPath(url);
+        url !== '/login' && sessionStorage.setItem('redirectAfterLogin', url)
         if (!this.firstNavigationDone()) this.firstNavigationDone.set(true);
       });
 
-    // --- Effetto unico ---
-    const publicExact = new Set(['/login', '/register', '/forgot', '/privacy', '/']);
-    const publicPrefixes = ['/molecules/detail'];
 
     let lastProgrammaticNav: string | undefined;
 
@@ -179,9 +180,9 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       }
 
       /* ------------------------------------------------------------------ */
-      const isPublic = publicExact.has(url) ||
-        publicPrefixes.some(p => url.startsWith(p));
-      const isLoggedOutOnly = publicExact.has(url);
+      const isPublic = this.publicExact.has(url) ||
+        this.publicPrefixes.some(p => url.startsWith(p));
+      const isLoggedOutOnly = this.publicExact.has(url);
 
       const safeNavigate = (target: string) => {
         if (target === url) return;
