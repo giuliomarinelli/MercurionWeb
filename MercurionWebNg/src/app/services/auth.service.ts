@@ -20,6 +20,16 @@ export class AuthService {
     private readonly http: HttpClient
   ) { }
 
+  private authBC = new BroadcastChannel('mercurion-auth');
+
+  broadcastLogin(initials: string, wsToken: string) {
+    this.authBC.postMessage({ type: 'logged-in', initials, wsToken });
+  }
+
+  broadcastLogout() {
+    this.authBC.postMessage({ type: 'logged-out' });
+  }
+
   getAccessToken(): string | null {
     return localStorage.getItem('accessToken')
   }

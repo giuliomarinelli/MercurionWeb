@@ -247,12 +247,14 @@ export class LoginComponent implements OnInit, OnDestroy {
               this.router.navigate(['/login/mfa/choose-method'])
             }
           } else {
-            this.authService.setAccessToken(res.accessToken as string)
-            this.authService.setWs_accessToken(res.ws_accessToken as string)
+            this.authService.setAccessToken(res.accessToken ?? null)
+            this.authService.setWs_accessToken(res.ws_accessToken ?? null)
+            localStorage.setItem('login', res.initials ?? 'U')
             this.sessionSync.resumeSession(res.initials ?? 'U')
             const redirect = sessionStorage.getItem('redirectAfterLogin') || '/profile'
             this.router.navigateByUrl(redirect)
             this.loadingContext.stop()
+
           }
         },
         error: err => {

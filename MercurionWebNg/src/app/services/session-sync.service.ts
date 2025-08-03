@@ -55,11 +55,27 @@ export class SessionSyncService {
     this.syncSession();      // handshake iniziale
 
     /* cross‑tab */
+    let debounce: any;
     window.addEventListener('storage', e => {
       if (e.key !== 'login') return;
-      e.newValue ? this.onExternalLogin(e.newValue)
-        : this.onExternalLogout();
+
+      clearTimeout(debounce);
+      debounce = setTimeout(() => {
+        const initials = localStorage.getItem('login');
+        const wsTok = localStorage.getItem('ws_accessToken');
+
+        if (initials && wsTok) {
+          // pacchetto completo → login
+          this.onExternalLogin(initials);
+        } else if (!initials) {
+          // logout certo
+          this.onExternalLogout();
+        }
+      }, 30);               // 30 ms sono più che sufficienti
     });
+
+
+
   }
 
   /* ───────── PUBLIC API ───────── */

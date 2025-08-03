@@ -161,6 +161,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       });
 
 
+
     let lastProgrammaticNav: string | undefined;
 
     /* AppComponent – dentro il costruttore */
