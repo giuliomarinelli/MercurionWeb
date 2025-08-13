@@ -22,15 +22,12 @@ describe('MoleculeCollectionItemService', () => {
           },
         },
         {
-          provide: getRepositoryToken(MoleculeService),
+          provide: MoleculeService,
           useValue: {
-            create: jest.fn(),
-            save: jest.fn(),
-            update: jest.fn(),
-            delete: jest.fn(),
-            createQueryBuilder: jest.fn(),
+            getDetailsByMolregnos: jest.fn(),
+            getDetailByMolregno: jest.fn(),
           },
-        }
+        },
       ],
     }).compile();
 
