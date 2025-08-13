@@ -12,9 +12,11 @@ export class PasswordEncoderService implements PasswordEncoder {
         try {
             return await argon2.hash(password, {
                 type: argon2.argon2id,
-                timeCost: 3,
-                memoryCost: 4096,
-                parallelism: 1,
+                timeCost: 3,                // iterazioni
+                memoryCost: 1 << 16,        // 65536 KiB = 64 MB
+                parallelism: 2,             // thread
+                hashLength: 32,             // opzionale
+                version: 0x13
             })
         } catch (e) {
             const message: string = e.message as string || "Unknown error"
