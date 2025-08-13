@@ -9,7 +9,7 @@ describe('MercurionService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         MercurionAIService,
-        { provide: 'MERCURION_TOX_21_CLIENT', useValue: { send: jest.fn() } },
+        { provide: 'MERCURION_AI_CLIENT', useValue: { send: jest.fn() } },
       ],
     }).compile();
 
