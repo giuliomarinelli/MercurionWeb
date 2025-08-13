@@ -1,3 +1,4 @@
+import { MoleculeService } from './../../../meilisearch/services/molecule.service';
 import { Test, TestingModule } from '@nestjs/testing';
 import { MoleculeCollectionItemService } from './molecule-collection-item.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
@@ -20,6 +21,16 @@ describe('MoleculeCollectionItemService', () => {
             createQueryBuilder: jest.fn(),
           },
         },
+        {
+          provide: getRepositoryToken(MoleculeService),
+          useValue: {
+            create: jest.fn(),
+            save: jest.fn(),
+            update: jest.fn(),
+            delete: jest.fn(),
+            createQueryBuilder: jest.fn(),
+          },
+        }
       ],
     }).compile();
 

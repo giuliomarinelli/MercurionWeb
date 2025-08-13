@@ -15,27 +15,27 @@ export class GeneralUtils {
         }
         return undefined; // Ritorna undefined se la chiave non è valida
     }
-    
+
     static getEnumKeyByValue<T extends object>(enumType: T, value: T[keyof T] | string): string | undefined {
         // Itera attraverso le chiavi dell'enum
         for (const key in enumType) {
-          if (enumType[key as keyof T] === value) {
-            return key; // Ritorna la chiave corrispondente al valore
-          }
+            if (enumType[key as keyof T] === value) {
+                return key; // Ritorna la chiave corrispondente al valore
+            }
         }
         return undefined; // Ritorna undefined se non trova il valore
-      }
+    }
 
-      public static validateMfaStrategy(strategyKey: string | undefined): MfaStrategy | never {
-              if (!strategyKey) {
-                  throw new BadRequestException('strategy is required')
-              }
-              const strategy = this.getEnumValueFromStringKey(MfaStrategy, strategyKey)
-              if (!strategy) {
-                  throw new BadRequestException('Invalid strategy')
-              }
-              return strategy
-          }
-    
+    public static validateMfaStrategy(strategyKey: string | undefined): MfaStrategy | never {
+        if (!strategyKey) {
+            throw new BadRequestException('strategy is required')
+        }
+        const strategy = this.getEnumValueFromStringKey(MfaStrategy, strategyKey)
+        if (!strategy) {
+            throw new BadRequestException('Invalid strategy')
+        }
+        return strategy
+    }
+
 
 }

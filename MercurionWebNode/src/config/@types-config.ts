@@ -103,6 +103,6 @@ export interface MeilisearchConfiguration {
     masterKey: string
 }
 
-export interface CloudFlareConfiguration {
+export interface CloudflareConfiguration {
     secretKey: string
 }

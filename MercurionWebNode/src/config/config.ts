@@ -1,7 +1,7 @@
 
 
 import { registerAs } from "@nestjs/config";
-import { AppConfiguration, CloudFlareConfiguration, DataConfiguration, OAuth2ProviderConfiguration, JwtConfigurations, MeilisearchConfiguration, SecureCookieConfiguration, SessionConfiguration, SmsConfiguration, TotpConfiguration } from "./@types-config";
+import { AppConfiguration, CloudflareConfiguration, DataConfiguration, OAuth2ProviderConfiguration, JwtConfigurations, MeilisearchConfiguration, SecureCookieConfiguration, SessionConfiguration, SmsConfiguration, TotpConfiguration } from "./@types-config";
 import { UUID } from "crypto";
 import { GeneralUtils } from "src/general-utils/general-utils";
 import { SnakeNamingStrategy } from "typeorm-naming-strategies";
@@ -219,8 +219,8 @@ const MeilisearchConfig = registerAs(
     })
 )
 
-const CloudflareConfig =  registerAs(
-    ConfigKey.Cloudflare, (): CloudFlareConfiguration => ({
+const CloudflareConfig = registerAs(
+    ConfigKey.Cloudflare, (): CloudflareConfiguration => ({
         secretKey: process.env.CLOUDFLARE_SECRET_KEY as string
     })
 )

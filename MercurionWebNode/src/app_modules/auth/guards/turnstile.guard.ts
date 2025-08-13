@@ -24,6 +24,6 @@ export class TurnstileGuard implements CanActivate {
 
     if (!valid) throw new UnauthorizedException('Turnstile::Invalid challenge token')
     return true
-  
+
   }
 }

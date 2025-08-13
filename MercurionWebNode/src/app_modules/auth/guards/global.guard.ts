@@ -23,7 +23,7 @@ export class GlobalGuard implements CanActivate {
       private readonly reflector: Reflector
    ) { }
 
-   async canActivate(context: ExecutionContext): Promise<boolean> {
+   async canActivate(context: ExecutionContext): Promise<boolean> | never {
 
       // 🔹 Controlla se la route o l'evento WS ha il decoratore `@Public()`
       const isPublic = this.reflector.get<boolean>(IS_PUBLIC_KEY, context.getHandler())
@@ -35,11 +35,11 @@ export class GlobalGuard implements CanActivate {
          return this.validateHttpRequest(context)
       }
 
-      throw new UnauthorizedException()
+      return false
    }
 
    // 🔹 Validazione per richieste HTTP
-   private async validateHttpRequest(context: ExecutionContext): Promise<boolean> {
+   private async validateHttpRequest(context: ExecutionContext): Promise<boolean> | never {
 
       let req = context.switchToHttp().getRequest<FastifyRequest>()
       let reply = context.switchToHttp().getResponse<FastifyReply>()
