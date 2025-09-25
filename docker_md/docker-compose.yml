@@ -1,0 +1,19 @@
+services:
+  pg_md:
+    image: postgres:16
+    container_name: pg_md
+    environment:
+      POSTGRES_PASSWORD: rootpassword
+      POSTGRES_DB: drugcentral
+      POSTGRES_USER: app
+    ports: ["5434:5432"]
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d drugcentral"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+volumes:
+  pg_data:
