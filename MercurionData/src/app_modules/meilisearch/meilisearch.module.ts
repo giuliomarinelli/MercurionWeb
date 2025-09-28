@@ -3,6 +3,7 @@ import { MoleculePreviewSyncService } from './services/molecule-preview-sync.ser
 import { Meilisearch } from 'meilisearch';
 import { Chembl36ToMeilisearchSyncController } from './controllers/chembl_36_to_meilisearch_sync/chembl_36_to_meilisearch_sync.controller';
 import { Chembl36Module } from '../chembl_36/chembl_36.module';
+import { MoleculeDetailService } from './services/molecule-detail-sync.service';
 
 @Module({
   imports: [
@@ -16,7 +17,8 @@ import { Chembl36Module } from '../chembl_36/chembl_36.module';
                 apiKey: 'root'
             }),
     },
-    MoleculePreviewSyncService
+    MoleculePreviewSyncService,
+    MoleculeDetailService
   ],
   controllers: [Chembl36ToMeilisearchSyncController]
 })
