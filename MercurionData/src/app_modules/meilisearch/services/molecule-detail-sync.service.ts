@@ -5,7 +5,14 @@ import { Subject, Observable } from 'rxjs';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThan } from 'typeorm';
 import { Index, EnqueuedTask, RecordAny, MeiliSearch } from 'meilisearch';
-import { readCheckpoint, writeCheckpoint, resetCheckpoint, isUuid, ZERO_UUID } from '../utils/sync-checkpoint.util';
+import {
+    readCheckpoint,
+    writeCheckpoint,
+    resetCheckpoint,
+    isUuid,
+    ZERO_UUID,
+    CHECKPOINT_FILEPATH,
+} from '../utils/sync-checkpoint.util';
 import { MoleculeIndexView } from 'src/app_modules/chembl_36/Models/entities/molecule-index-mv';
 import type { MoleculeDoc } from 'src/app_modules/chembl_36/Models/DTO/molecule-detail.dtos';
 
@@ -29,8 +36,12 @@ export class MoleculeDetailSyncService {
         this.index = this.meiliClient.index(this.indexUid);
     }
 
-    /** Attende il completamento del task senza dipendere da client.waitForTask (portabile tra SDK). */
-    private async waitForTaskPortable(taskUid: number, timeoutMs = 10 * 60_000, intervalMs = 500) {
+    /** Polling minimale dello stato task Meili */
+    private async waitForTaskPortable(
+        taskUid: number,
+        timeoutMs = 10 * 60_000,
+        intervalMs = 500
+    ): Promise<{ status: TaskStatus; uid: number; error?: any }> {
         const c: any = this.meiliClient;
         const i: any = this.index;
         const start = Date.now();
@@ -49,13 +60,18 @@ export class MoleculeDetailSyncService {
                 : (canGetFromNS ? await c.tasks.getTask(taskUid) : await i.getTask(taskUid));
 
             const status: TaskStatus = t.status;
-            if (status === 'succeeded' || status === 'failed' || status === 'canceled') return t;
-            if (Date.now() - start > timeoutMs) throw new Error(`Timeout in attesa del task ${taskUid} (status=${status})`);
+            if (status === 'succeeded' || status === 'failed' || status === 'canceled') {
+                return { status, uid: taskUid, error: t?.error };
+            }
+
+            if (Date.now() - start > timeoutMs) {
+                throw new Error(`Timeout in attesa del task ${taskUid} (status=${status})`);
+            }
             await new Promise(r => setTimeout(r, intervalMs));
         }
     }
 
-    /** Determina il punto di partenza: checkpoint → primo UUID reale → zero-uuid */
+    /** Determina il punto di partenza: checkpoint → primo UUID reale → ZERO_UUID (per includerlo nel primo batch) */
     private async getStartKeyDeterministic(restart: boolean): Promise<string> {
         if (!restart) {
             const ck = await readCheckpoint();
@@ -68,7 +84,6 @@ export class MoleculeDetailSyncService {
             this.logger.log('🧹 Restart: checkpoint azzerato.');
         }
 
-        // Primo UUID reale in ordine ASC (senza usare findOne con order)
         const first = await this.moleculeRepo
             .createQueryBuilder('v')
             .select(['v.stableUuid'])
@@ -78,17 +93,16 @@ export class MoleculeDetailSyncService {
 
         if (!first?.stableUuid) {
             this.logger.warn('⚠️ molecule_index_mv è vuota: nulla da sincronizzare.');
-            return ZERO_UUID; // non partirà il loop (batch vuoto)
+            return ZERO_UUID;
         }
 
         this.logger.log(`🟢 Primo UUID deterministico rilevato: ${first.stableUuid}. Parto da ZERO_UUID per includerlo.`);
-        // Useremo MoreThan(lastKey): mettere ZERO_UUID garantisce che il primo batch includa il min uuid reale.
         return ZERO_UUID;
     }
 
     /**
      * Stream di sync con keyset pagination su stableUuid.
-     * Se restart=false (default), si riprende dal checkpoint salvato su disco.
+     * Se restart=false (default), riprende dal checkpoint salvato su disco.
      */
     syncAllAsObservable(
         batchSize = 2_500,
@@ -122,7 +136,7 @@ export class MoleculeDetailSyncService {
                     return {
                         stableUuid: row.stableUuid, // primaryKey in Meili
                         molregno: d.id,             // utile per filtri/joins
-                        ...d,                       // doc flatten
+                        ...d,                       // flatten del JSON doc
                     };
                 });
 
@@ -130,20 +144,27 @@ export class MoleculeDetailSyncService {
                     const task: EnqueuedTask = await this.index.addDocuments(docs, { primaryKey: 'stableUuid' });
                     const res = await this.waitForTaskPortable(task.taskUid);
                     if (res.status !== 'succeeded') {
-                        this.logger.error(`❌ Task ${task.taskUid} failed: ${JSON.stringify(res)}`);
+                        this.logger.error(`❌ Task ${res.uid} ${res.status}. Error: ${JSON.stringify(res.error)}`);
                         break; // non aggiorno checkpoint: al riavvio riparto da lastKey precedente
-                    } else {
-                        this.logger.log(`📦 Task ${task.taskUid} OK — batch=${batch.length}`);
-                        lastKey = batch[batch.length - 1].stableUuid;
-                        await writeCheckpoint({ lastKey, updatedAt: new Date().toISOString() });
                     }
+
+                    // OK → aggiorna checkpoint e prosegui
+                    this.logger.log(`📦 Task ${res.uid} OK — batch=${batch.length}`);
+                    lastKey = batch[batch.length - 1].stableUuid;
+
+                    try {
+                        await writeCheckpoint({ lastKey, updatedAt: new Date().toISOString() });
+                        this.logger.log(`💾 Checkpoint aggiornato: lastKey=${lastKey} → ${CHECKPOINT_FILEPATH}`);
+                    } catch (ioErr: any) {
+                        this.logger.error(`❌ Checkpoint write fallita: ${ioErr?.message || ioErr}`);
+                    }
+
+                    synced += batch.length;
+                    subject.next({ synced, total, lastKey });
                 } catch (e: any) {
                     this.logger.error(`❌ Enqueue/wait failed at lastKey=${lastKey}: ${e?.message || e}`);
                     break;
                 }
-
-                synced += batch.length;
-                subject.next({ synced, total, lastKey });
             }
 
             this.logger.log(`✅ Sync completed. Total synced: ${synced}`);

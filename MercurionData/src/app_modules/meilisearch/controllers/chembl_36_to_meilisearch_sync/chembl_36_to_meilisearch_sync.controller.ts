@@ -22,7 +22,7 @@ export class Chembl36ToMeilisearchSyncController {
 
     @Sse('/details') // GET /chembl-36-to-meilisearch-sync/details?startKey=<uuid>&batchSize=5000
     detailsSync(
-        @Query('batch_size') batchSize = 2_500,
+        @Query('batch_size') batchSize = 15_000,
         @Query('restart') restart = false
     ): Observable<MessageEvent> {
         return this.detSyncService.syncAllAsObservable(Number(batchSize), restart).pipe(
