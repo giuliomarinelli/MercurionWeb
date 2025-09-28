@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Chembl36Controller } from './controllers/chembl_36.controller';
+import { Chembl36Module } from './app_modules/chembl_36/chembl_36.module';
 
 
 @Module({
@@ -13,9 +13,10 @@ import { Chembl36Controller } from './controllers/chembl_36.controller';
       password: 'rootpassword',
       username: 'app',
       autoLoadEntities: true
-    })
+    }),
+    Chembl36Module
   ],
-  controllers: [Chembl36Controller],
+  controllers: [],
   providers: [],
 })
 export class AppModule { }

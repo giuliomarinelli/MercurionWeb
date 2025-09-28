@@ -167,142 +167,142 @@ export class LoginComponent implements OnInit, OnDestroy {
       }
     }, 1000)
 
-  const from = this.previousRouteService.getPreviousUrl()
-  if(from && !from.startsWith('/login')) {
-  sessionStorage.setItem('redirectAfterLogin', from)
-}
+    const from = this.previousRouteService.getPreviousUrl()
+    if (from && !from.startsWith('/login')) {
+      sessionStorage.setItem('redirectAfterLogin', from)
+    }
 
-if (sessionStorage?.getItem('mfaError') === 'InvalidOtp') {
-  this.toast.trigger('Codice monouso errato. Ritenta.')
-  sessionStorage?.removeItem('mfaError')
-}
-if (sessionStorage?.getItem('logout') === 'success') {
-  this.toast.trigger('Logout avvenuto con successo!', 'success')
-  sessionStorage?.removeItem('logout')
-} else if (sessionStorage?.getItem('logout') === '403') {
-  this.toast.trigger('Dispositivo non riconosciuto. Accesso negato!')
-  sessionStorage?.removeItem('logout')
-}
-if (sessionStorage?.getItem('MfaError') === 'NotAllowed') {
-  this.toast.trigger('Accesso negato!')
-  sessionStorage?.removeItem('MfaError')
-}
-// if (sessionStorage?.getItem('RouteError')) {
-//   this.toast.trigger('Accesso negato!')
-//   sessionStorage?.removeItem('RouteError')
-// }
-const login = sessionStorage?.getItem('login')
-if (login != null && (login.length === 1 || login.length === 2)) {
-  this.router.navigate([sessionStorage?.getItem('loginLastPath') || '/profile'])
-}
+    if (sessionStorage?.getItem('mfaError') === 'InvalidOtp') {
+      this.toast.trigger('Codice monouso errato. Ritenta.')
+      sessionStorage?.removeItem('mfaError')
+    }
+    if (sessionStorage?.getItem('logout') === 'success') {
+      this.toast.trigger('Logout avvenuto con successo!', 'success')
+      sessionStorage?.removeItem('logout')
+    } else if (sessionStorage?.getItem('logout') === '403') {
+      this.toast.trigger('Dispositivo non riconosciuto. Accesso negato!')
+      sessionStorage?.removeItem('logout')
+    }
+    if (sessionStorage?.getItem('MfaError') === 'NotAllowed') {
+      this.toast.trigger('Accesso negato!')
+      sessionStorage?.removeItem('MfaError')
+    }
+    // if (sessionStorage?.getItem('RouteError')) {
+    //   this.toast.trigger('Accesso negato!')
+    //   sessionStorage?.removeItem('RouteError')
+    // }
+    const login = sessionStorage?.getItem('login')
+    if (login != null && (login.length === 1 || login.length === 2)) {
+      this.router.navigate([sessionStorage?.getItem('loginLastPath') || '/profile'])
+    }
 
-this.emailStatusChangeSubscription = this.loginForm.controls['email'].statusChanges.subscribe(() => {
-  const control = this.loginForm.controls['email']
-  // this.emptyEmail.set(control.errors?.['required'] ?? false)
-  this.malformedEmail.set(control.errors?.['email'] ?? false)
-})
-const { fingerprintDataEnc, sessionDeviceInfo } = await this.fingerprintService.getSanitizedFingerprint()
-this.fingerprintDataEnc = fingerprintDataEnc
-this.sessionDeviceInfo = sessionDeviceInfo
+    this.emailStatusChangeSubscription = this.loginForm.controls['email'].statusChanges.subscribe(() => {
+      const control = this.loginForm.controls['email']
+      // this.emptyEmail.set(control.errors?.['required'] ?? false)
+      this.malformedEmail.set(control.errors?.['email'] ?? false)
+    })
+    const { fingerprintDataEnc, sessionDeviceInfo } = await this.fingerprintService.getSanitizedFingerprint()
+    this.fingerprintDataEnc = fingerprintDataEnc
+    this.sessionDeviceInfo = sessionDeviceInfo
 
   }
 
   protected isFocus(field: 'email' | 'password'): boolean {
-  if (field === 'email') {
-    return this.emailRef?.nativeElement.matches(':focus')
-  } else if (field === 'password') {
-    return this.passwordRef?.nativeElement.matches(':focus')
-  }
-  return false
-}
-
-goToPasswordStep(): void {
-  if(this.loginForm.controls['email'].valid) {
-  this.firstStepSubscription = this.authService.login_stepZero({ email: this.loginForm.value['email'] }).subscribe({
-    next: () => {
-      this.step.set(2)
-    },
-    error: err => {
-      this.serverErrorStep.set(1)
-      console.error(err.error)
-      const body = err.error as HttpErrorRes
-      if (body.statusCode === 400) {
-        // handle bad request
-      } else if (body.statusCode === 401) {
-        this.serverErrorStep.set(1)
-      } else {
-        localStorage?.setItem('lastHttpErr', btoa(JSON.stringify(body)))
-        this.router.navigate(['/'])
-      }
+    if (field === 'email') {
+      return this.emailRef?.nativeElement.matches(':focus')
+    } else if (field === 'password') {
+      return this.passwordRef?.nativeElement.matches(':focus')
     }
-  })
-}
+    return false
   }
 
-onSubmit(): void {
-  if(this.loginForm.valid && this.turnstileToken) {
-  this.loadingContext.start()
-  const dto: Login_FirstStepWrapper = {
-    email: this.loginForm.value['email'],
-    password: this.loginForm.value['password'],
-    remember: false,
-    fingerprintBase64: this.fingerprintDataEnc,
-    sessionDeviceInfo: this.sessionDeviceInfo,
-    turnstileToken: this.turnstileToken()!
-  }
-  this.secondStepSubscription = this.authService.login_firstStep(dto).subscribe({
-    next: (res: Confirm_Login_FirstStepDTO) => {
-      if (res.needsMfa) {
-        const { statusCode, timestamp, message, ...loginFirstStepData } = res
-        sessionStorage?.setItem('preAuthorizationData', btoa(JSON.stringify(loginFirstStepData)))
-        if (res.suspiciousAttempt) {
-          this.router.navigate([`/login/mfa/EMAIL_OTP`], {
-            queryParams: {
-              'trust_verify': true
-            }
-          })
-        } else if (res.enabledMfaStrategies.length === 1) {
-          this.router.navigate([`/login/mfa/${res.enabledMfaStrategies[0]}`])
-        } else {
-          this.router.navigate(['/login/mfa/choose-method'])
+  goToPasswordStep(): void {
+    if (this.loginForm.controls['email'].valid) {
+      this.firstStepSubscription = this.authService.login_stepZero({ email: this.loginForm.value['email'] }).subscribe({
+        next: () => {
+          this.step.set(2)
+        },
+        error: err => {
+          this.serverErrorStep.set(1)
+          console.error(err.error)
+          const body = err.error as HttpErrorRes
+          if (body.statusCode === 400) {
+            // handle bad request
+          } else if (body.statusCode === 401) {
+            this.serverErrorStep.set(1)
+          } else {
+            localStorage?.setItem('lastHttpErr', btoa(JSON.stringify(body)))
+            this.router.navigate(['/'])
+          }
         }
-      } else {
-        this.authService.setAccessToken(res.accessToken ?? null)
-        this.authService.setWs_accessToken(res.ws_accessToken ?? null)
-        localStorage.setItem('login', res.initials ?? 'U')
-        this.sessionSync.resumeSession(res.initials ?? 'U')
-        const redirect = sessionStorage.getItem('redirectAfterLogin') || '/profile'
-        this.router.navigateByUrl(redirect)
-        this.loadingContext.stop()
-
-      }
-    },
-    error: err => {
-      const body = err.error as HttpErrorRes
-      console.error(body)
-      if (body.statusCode === 400) {
-        // handle bad request
-      } else if (body.statusCode === 401) {
-        this.serverErrorStep.set(2)
-        this.turnstileComponent.reset();
-        this.turnstileToken.set(null)
-        this.loadingContext.stop()
-      } else {
-        sessionStorage?.setItem('lastHttpErr', btoa(JSON.stringify(body)))
-        this.router.navigate(['/'])
-      }
+      })
     }
-  })
-}
   }
 
-ngOnDestroy(): void {
-  this.firstStepSubscription?.unsubscribe()
+  onSubmit(): void {
+    if (this.loginForm.valid && this.turnstileToken) {
+      this.loadingContext.start()
+      const dto: Login_FirstStepWrapper = {
+        email: this.loginForm.value['email'],
+        password: this.loginForm.value['password'],
+        remember: false,
+        fingerprintBase64: this.fingerprintDataEnc,
+        sessionDeviceInfo: this.sessionDeviceInfo,
+        turnstileToken: this.turnstileToken()!
+      }
+      this.secondStepSubscription = this.authService.login_firstStep(dto).subscribe({
+        next: (res: Confirm_Login_FirstStepDTO) => {
+          if (res.needsMfa) {
+            const { statusCode, timestamp, message, ...loginFirstStepData } = res
+            sessionStorage?.setItem('preAuthorizationData', btoa(JSON.stringify(loginFirstStepData)))
+            if (res.suspiciousAttempt) {
+              this.router.navigate([`/login/mfa/EMAIL_OTP`], {
+                queryParams: {
+                  'trust_verify': true
+                }
+              })
+            } else if (res.enabledMfaStrategies.length === 1) {
+              this.router.navigate([`/login/mfa/${res.enabledMfaStrategies[0]}`])
+            } else {
+              this.router.navigate(['/login/mfa/choose-method'])
+            }
+          } else {
+            this.authService.setAccessToken(res.accessToken ?? null)
+            this.authService.setWs_accessToken(res.ws_accessToken ?? null)
+            localStorage.setItem('login', res.initials ?? 'U')
+            this.sessionSync.resumeSession(res.initials ?? 'U')
+            const redirect = sessionStorage.getItem('redirectAfterLogin') || '/profile'
+            this.router.navigateByUrl(redirect)
+            this.loadingContext.stop()
+
+          }
+        },
+        error: err => {
+          const body = err.error as HttpErrorRes
+          console.error(body)
+          if (body.statusCode === 400) {
+            // handle bad request
+          } else if (body.statusCode === 401) {
+            this.serverErrorStep.set(2)
+            this.turnstileComponent.reset();
+            this.turnstileToken.set(null)
+            this.loadingContext.stop()
+          } else {
+            sessionStorage?.setItem('lastHttpErr', btoa(JSON.stringify(body)))
+            this.router.navigate(['/'])
+          }
+        }
+      })
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.firstStepSubscription?.unsubscribe()
     this.secondStepSubscription?.unsubscribe()
     this.emailStatusChangeSubscription?.unsubscribe()
     window.removeEventListener('storage', this.storageListener)
     clearInterval(this.pollInterval)
-}
+  }
 
 
 
