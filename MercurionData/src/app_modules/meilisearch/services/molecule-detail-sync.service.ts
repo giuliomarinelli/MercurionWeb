@@ -13,6 +13,7 @@ type TaskStatus = 'enqueued' | 'processing' | 'succeeded' | 'failed' | 'canceled
 
 @Injectable()
 export class MoleculeDetailSyncService {
+    
     private readonly logger = new Logger(MoleculeDetailSyncService.name);
     private index: Index<RecordAny>;
     private readonly indexUid = 'molecule_details_chembl_36';
@@ -41,7 +42,6 @@ export class MoleculeDetailSyncService {
             throw new Error('Nessuna API task disponibile (né client.getTask, né index.getTask, né client.tasks.getTask).');
         }
 
-        // eslint-disable-next-line no-constant-condition
         while (true) {
             const t = canGetFromClient
                 ? await c.getTask(taskUid)
@@ -58,7 +58,6 @@ export class MoleculeDetailSyncService {
      * Se restart=false (default), si riprende dal checkpoint salvato su disco.
      */
     syncAllAsObservable(
-        startKey = ZERO_UUID,
         batchSize = 2_500,
         restart = false
     ): Observable<{ synced: number; total: number; lastKey: string }> {
@@ -66,20 +65,30 @@ export class MoleculeDetailSyncService {
 
         (async () => {
             // 1) Determina il punto di partenza
-            let lastKey = startKey;
+            let lastKey: string;
             if (!restart) {
                 const ck = await readCheckpoint();
                 if (ck?.lastKey && isUuid(ck.lastKey)) {
                     lastKey = ck.lastKey;
                     this.logger.log(`🟡 Ripartenza da checkpoint: ${lastKey}`);
                 } else {
-                    this.logger.log('🟡 Nessun checkpoint valido: si parte da startKey.');
+                    const first = await this.moleculeRepo.findOne({
+                        order: { stableUuid: 'ASC' },
+                        select: ['stableUuid'],
+                    });
+                    lastKey = first ? first.stableUuid : ZERO_UUID;
+                    this.logger.log(`🟡 Nessun checkpoint: parto dal primo UUID deterministico = ${lastKey}`);
                 }
             } else {
-                // reset esplicito su richiesta
                 await resetCheckpoint();
-                this.logger.log('🧹 Restart richiesto: checkpoint azzerato.');
+                const first = await this.moleculeRepo.findOne({
+                    order: { stableUuid: 'ASC' },
+                    select: ['stableUuid'],
+                });
+                lastKey = first ? first.stableUuid : ZERO_UUID;
+                this.logger.log(`🧹 Restart: checkpoint azzerato, parto da ${lastKey}`);
             }
+
 
             const total = await this.moleculeRepo.count();
             this.logger.log(`🔵 Total molecules to sync: ${total}`);
