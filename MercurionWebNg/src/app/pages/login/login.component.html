@@ -24,46 +24,22 @@
 
     @if (step() === 1) {
       <!-- STEP 1: EMAIL -->
-      <div class="relative">
-        <input
-          #email
+      <div class="mt-2">
+        <app-floating-input
+          label="Indirizzo e-mail"
           type="email"
+          autocomplete="email"
           formControlName="email"
-          id="email"
-          class="block py-4 px-4 w-full text-sm text-dark dark:text-light bg-transparent border-slate-300 border dark:border-slate-200 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-light-accent-primary dark:focus:ring-light-accent-primary focus:border-light-accent-primary dark:focus:border-dark-accent-primary peer"
-          placeholder=" "
-          required
-          (input)="serverErrorStep.set(0); onEmailInput()"
-          (blur)="onBlur('email')"
-          (keyup.enter)="goToPasswordStep()"
-        />
-        <label
-          for="email"
-          [ngClass]="{
-            'text-light-accent-secondary dark:text-dark-accent-secondary/90 scale-110 -translate-y-6 text-sm':
-              isFocus('email') || !emptyEmail(),
-            'text-slate-400 text-lg scale-100 translate-y-0 cursor-text':
-              !isFocus('email') && emptyEmail(),
+          [errors]="{
+            required: 'E-mail obbligatoria.',
+            email: 'Formato e-mail non corretto',
           }"
-          class="peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-main dark:bg-neutral-950 px-1 top-[13px] left-4 origin-[0]"
+          [serverError]="
+            serverErrorStep() === 1 ? 'L\'e-mail inserita non è corretta' : null
+          "
+          (enter)="goToPasswordStep()"
         >
-          Indirizzo e-mail</label
-        >
-        <div class="text-sm text-light-error dark:text-dark-error mt-1 min-h-5">
-          @if (
-            loginForm.controls["email"].invalid &&
-            loginForm.controls["email"].touched &&
-            serverErrorStep() === 0
-          ) {
-            @if (emptyEmail()) {
-              E-mail obbligatoria.
-            } @else if (malformedEmail()) {
-              Formato e-mail non corretto
-            }
-          } @else if (serverErrorStep() === 1) {
-            L'e-mail inserita non è corretta
-          }
-        </div>
+        </app-floating-input>
       </div>
       <button
         type="button"
@@ -75,78 +51,46 @@
       </button>
     } @else if (step() === 2) {
       <!-- STEP 2: EMAIL + PASSWORD (email ancora editabile) -->
-      <div class="relative mb-2">
-        <input
-          #email
+      <div class="relative mb-3 mt-2">
+        <app-floating-input
+          label="Indirizzo e-mail"
           type="email"
-          formControlName="email"
-          id="email"
-          class="block py-4 px-4 w-full text-sm text-dark dark:text-light bg-transparent border-slate-300 border dark:border-slate-200 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-light-accent-primary dark:focus:ring-light-accent-primary focus:border-light-accent-primary dark:focus:border-dark-accent-primary peer"
-          placeholder=" "
-          required
-          (input)="onEmailEditStep2()"
-          (blur)="onBlur('email')"
           autocomplete="email"
-        />
-        <label
-          for="email"
-          [ngClass]="{
-            'text-light-accent-secondary dark:text-dark-accent-secondary/90 scale-110 -translate-y-6 text-sm':
-              isFocus('email') || !emptyEmail(),
-            'text-slate-400 text-lg scale-100 translate-y-0 cursor-text':
-              !isFocus('email') && emptyEmail(),
+          formControlName="email"
+          [errors]="{
+            required: 'E-mail obbligatoria.',
+            email: 'Formato e-mail non corretto',
           }"
-          class="peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-main dark:bg-neutral-950 px-1 top-[13px] left-4 origin-[0]"
+          [serverError]="
+            serverErrorStep() === 1 ? 'L\'e-mail inserita non è corretta' : null
+          "
+          (enter)="goToPasswordStep()"
         >
-          Indirizzo e-mail</label
-        >
+        </app-floating-input>
       </div>
-
-      <div class="relative top-2">
-        <input
-          #password
+      <div class="relative">
+        <app-floating-input
+          label="Password"
           type="password"
+          autocomplete="current-password"
           formControlName="password"
-          id="password"
-          class="block py-4 px-4 w-full text-sm text-dark dark:text-light bg-transparent border-slate-300 border dark:border-slate-200 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-light-accent-primary dark:focus:ring-dark-accent-primary focus:border-light-accent-primary dark:focus:border-dark-accent-primary peer"
-          placeholder=" "
-          required
-          (input)="serverErrorStep.set(0); onPasswordInput()"
-          (blur)="onBlur('password')"
-        />
-        <label
-          for="password"
-          [ngClass]="{
-            'text-light-accent-secondary dark:text-dark-accent-secondary scale-110 -translate-y-6 text-sm':
-              isFocus('password') || !emptyPassword(),
-            'text-slate-400 text-lg scale-100 translate-y-0 cursor-text':
-              !isFocus('password') && emptyPassword(),
-          }"
-          class="peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-main dark:bg-neutral-950 px-1 top-[13px] left-4 origin-[0]"
+          [errors]="{ required: 'Password obbligatoria.' }"
+          [serverError]="
+            serverErrorStep() === 2
+              ? 'La password inserita non è corretta.'
+              : null
+          "
         >
-          Password
-        </label>
-        <div class="text-sm text-light-error dark:text-dark-error mt-1 min-h-5">
-          @if (
-            loginForm.controls["password"].invalid &&
-            loginForm.controls["password"].touched &&
-            serverErrorStep() === 0
-          ) {
-            @if (emptyPassword()) {
-              Password obbligatoria.
-            }
-          } @else if (serverErrorStep() === 2) {
-            La password inserita non è corretta.
-          }
-        </div>
+        </app-floating-input>
+
+        <button
+          type="submit"
+          [disabled]="!canLogin()"
+          class="relative bottom-[2px] w-full mt-4 py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary/80 dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary/60 disabled:hover:dark:bg-dark-accent-primary/80"
+        >
+          Accedi
+        </button>
       </div>
-      <button
-        type="submit"
-        [disabled]="!canLogin()"
-        class="relative bottom-[2px] w-full mt-4 py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary/80 dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary/60 disabled:hover:dark:bg-dark-accent-primary/80"
-      >
-        Accedi
-      </button>
       <div class="flex justify-center">
         @if (loadingTurnstile()) {
           <div

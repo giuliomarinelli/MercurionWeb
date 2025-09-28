@@ -20,11 +20,13 @@ import { TurnstileComponent } from '../../components/common/turnstile/turnstile.
 import { PreviousRouteService } from '../../services/previous-route.service';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { SessionSyncService } from '../../services/session-sync.service';
+import { FloatingInputComponent } from '../../components/common/floating-input/floating-input.component';
+
 
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, PublicPipe, NgClass, TurnstileComponent, NgxSkeletonLoaderModule],
+  imports: [ReactiveFormsModule, PublicPipe, TurnstileComponent, NgxSkeletonLoaderModule, FloatingInputComponent],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })
@@ -167,6 +169,8 @@ export class LoginComponent implements OnInit, OnDestroy {
       }
     }, 1000)
 
+
+
     const from = this.previousRouteService.getPreviousUrl()
     if (from && !from.startsWith('/login')) {
       sessionStorage.setItem('redirectAfterLogin', from)
@@ -204,6 +208,15 @@ export class LoginComponent implements OnInit, OnDestroy {
     const { fingerprintDataEnc, sessionDeviceInfo } = await this.fingerprintService.getSanitizedFingerprint()
     this.fingerprintDataEnc = fingerprintDataEnc
     this.sessionDeviceInfo = sessionDeviceInfo
+    this.loginForm.get('email')?.valueChanges.subscribe(() => {
+      if (this.step() === 2) {
+        // torna allo step 1
+        this.step.set(1);
+
+        // svuota la password
+        this.loginForm.get('password')?.reset();
+      }
+    });
 
   }
 

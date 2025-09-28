@@ -39,7 +39,7 @@ export class MoleculePreviewSyncService {
             throw new Error('Nessuna API task disponibile (né client.getTask, né index.getTask, né client.tasks.getTask).');
         }
 
-        // eslint-disable-next-line no-constant-condition
+        
         while (true) {
             const t = canGetFromClient
                 ? await c.getTask(taskUid)
