@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { MoleculePreviewSyncService } from './services/molecule-preview-sync.service';
 import { Meilisearch } from 'meilisearch';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { Chembl36ToMeilisearchSyncController } from './controllers/chembl_36_to_meilisearch_sync/chembl_36_to_meilisearch_sync.controller';
+import { Chembl36Module } from '../chembl_36/chembl_36.module';
 
 @Module({
   imports: [
-    TypeOrmModule
+    Chembl36Module
   ],
   providers: [
     {
