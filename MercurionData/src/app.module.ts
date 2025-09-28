@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Chembl36Module } from './app_modules/chembl_36/chembl_36.module';
+import { MeilisearchModule } from './app_modules/meilisearch/meilisearch.module';
+
 
 
 @Module({
@@ -9,14 +11,14 @@ import { Chembl36Module } from './app_modules/chembl_36/chembl_36.module';
       type: 'postgres',
       host: 'localhost',
       port: 5434,
-      database: 'drugcentral',
+      database: 'chembl_36',
       password: 'rootpassword',
       username: 'app',
       autoLoadEntities: true
     }),
-    Chembl36Module
+    Chembl36Module,
+    MeilisearchModule
   ],
-  controllers: [],
   providers: [],
 })
 export class AppModule { }
