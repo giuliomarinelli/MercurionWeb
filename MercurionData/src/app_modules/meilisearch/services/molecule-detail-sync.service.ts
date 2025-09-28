@@ -7,13 +7,12 @@ import { Repository, MoreThan } from 'typeorm';
 import { Index, EnqueuedTask, RecordAny, MeiliSearch } from 'meilisearch';
 import { readCheckpoint, writeCheckpoint, resetCheckpoint, isUuid, ZERO_UUID } from '../utils/sync-checkpoint.util';
 import { MoleculeIndexView } from 'src/app_modules/chembl_36/Models/entities/molecule-index-mv';
-import { MoleculeDoc } from 'src/app_modules/chembl_36/Models/DTO/molecule-detail.dtos';
+import type { MoleculeDoc } from 'src/app_modules/chembl_36/Models/DTO/molecule-detail.dtos';
 
 type TaskStatus = 'enqueued' | 'processing' | 'succeeded' | 'failed' | 'canceled';
 
 @Injectable()
 export class MoleculeDetailSyncService {
-    
     private readonly logger = new Logger(MoleculeDetailSyncService.name);
     private index: Index<RecordAny>;
     private readonly indexUid = 'molecule_details_chembl_36';
@@ -30,6 +29,7 @@ export class MoleculeDetailSyncService {
         this.index = this.meiliClient.index(this.indexUid);
     }
 
+    /** Attende il completamento del task senza dipendere da client.waitForTask (portabile tra SDK). */
     private async waitForTaskPortable(taskUid: number, timeoutMs = 10 * 60_000, intervalMs = 500) {
         const c: any = this.meiliClient;
         const i: any = this.index;
@@ -42,15 +42,48 @@ export class MoleculeDetailSyncService {
             throw new Error('Nessuna API task disponibile (né client.getTask, né index.getTask, né client.tasks.getTask).');
         }
 
+        // eslint-disable-next-line no-constant-condition
         while (true) {
             const t = canGetFromClient
                 ? await c.getTask(taskUid)
                 : (canGetFromNS ? await c.tasks.getTask(taskUid) : await i.getTask(taskUid));
+
             const status: TaskStatus = t.status;
             if (status === 'succeeded' || status === 'failed' || status === 'canceled') return t;
             if (Date.now() - start > timeoutMs) throw new Error(`Timeout in attesa del task ${taskUid} (status=${status})`);
             await new Promise(r => setTimeout(r, intervalMs));
         }
+    }
+
+    /** Determina il punto di partenza: checkpoint → primo UUID reale → zero-uuid */
+    private async getStartKeyDeterministic(restart: boolean): Promise<string> {
+        if (!restart) {
+            const ck = await readCheckpoint();
+            if (ck?.lastKey && isUuid(ck.lastKey)) {
+                this.logger.log(`🟡 Ripartenza da checkpoint: ${ck.lastKey}`);
+                return ck.lastKey;
+            }
+        } else {
+            await resetCheckpoint();
+            this.logger.log('🧹 Restart: checkpoint azzerato.');
+        }
+
+        // Primo UUID reale in ordine ASC (senza usare findOne con order)
+        const first = await this.moleculeRepo
+            .createQueryBuilder('v')
+            .select(['v.stableUuid'])
+            .orderBy('v.stableUuid', 'ASC')
+            .limit(1)
+            .getOne();
+
+        if (!first?.stableUuid) {
+            this.logger.warn('⚠️ molecule_index_mv è vuota: nulla da sincronizzare.');
+            return ZERO_UUID; // non partirà il loop (batch vuoto)
+        }
+
+        this.logger.log(`🟢 Primo UUID deterministico rilevato: ${first.stableUuid}. Parto da ZERO_UUID per includerlo.`);
+        // Useremo MoreThan(lastKey): mettere ZERO_UUID garantisce che il primo batch includa il min uuid reale.
+        return ZERO_UUID;
     }
 
     /**
@@ -64,37 +97,18 @@ export class MoleculeDetailSyncService {
         const subject = new Subject<{ synced: number; total: number; lastKey: string }>();
 
         (async () => {
-            // 1) Determina il punto di partenza
-            let lastKey: string;
-            if (!restart) {
-                const ck = await readCheckpoint();
-                if (ck?.lastKey && isUuid(ck.lastKey)) {
-                    lastKey = ck.lastKey;
-                    this.logger.log(`🟡 Ripartenza da checkpoint: ${lastKey}`);
-                } else {
-                    const first = await this.moleculeRepo.findOne({
-                        order: { stableUuid: 'ASC' },
-                        select: ['stableUuid'],
-                    });
-                    lastKey = first ? first.stableUuid : ZERO_UUID;
-                    this.logger.log(`🟡 Nessun checkpoint: parto dal primo UUID deterministico = ${lastKey}`);
-                }
-            } else {
-                await resetCheckpoint();
-                const first = await this.moleculeRepo.findOne({
-                    order: { stableUuid: 'ASC' },
-                    select: ['stableUuid'],
-                });
-                lastKey = first ? first.stableUuid : ZERO_UUID;
-                this.logger.log(`🧹 Restart: checkpoint azzerato, parto da ${lastKey}`);
-            }
-
+            let lastKey = await this.getStartKeyDeterministic(restart);
 
             const total = await this.moleculeRepo.count();
+            if (total === 0) {
+                this.logger.warn('⚠️ Nessuna riga nella view. Fine.');
+                subject.complete();
+                return;
+            }
             this.logger.log(`🔵 Total molecules to sync: ${total}`);
 
-            // 2) Loop a batch
             let synced = 0;
+
             while (true) {
                 const batch = await this.moleculeRepo.find({
                     where: { stableUuid: MoreThan(lastKey) },
@@ -103,32 +117,29 @@ export class MoleculeDetailSyncService {
                 });
                 if (batch.length === 0) break;
 
-                // 3) Prepara i documenti piatti per Meili
                 const docs = batch.map(row => {
-                    const d: MoleculeDoc = (row as any).doc;
+                    const d = (row as any).doc as MoleculeDoc;
                     return {
                         stableUuid: row.stableUuid, // primaryKey in Meili
                         molregno: d.id,             // utile per filtri/joins
-                        ...d,
+                        ...d,                       // doc flatten
                     };
                 });
 
-                // 4) Indicizza e aspetta esito task
                 try {
                     const task: EnqueuedTask = await this.index.addDocuments(docs, { primaryKey: 'stableUuid' });
                     const res = await this.waitForTaskPortable(task.taskUid);
                     if (res.status !== 'succeeded') {
                         this.logger.error(`❌ Task ${task.taskUid} failed: ${JSON.stringify(res)}`);
+                        break; // non aggiorno checkpoint: al riavvio riparto da lastKey precedente
                     } else {
                         this.logger.log(`📦 Task ${task.taskUid} OK — batch=${batch.length}`);
-                        // ✅ 5) Persisti checkpoint SOLO dopo esito ok
                         lastKey = batch[batch.length - 1].stableUuid;
                         await writeCheckpoint({ lastKey, updatedAt: new Date().toISOString() });
                     }
                 } catch (e: any) {
                     this.logger.error(`❌ Enqueue/wait failed at lastKey=${lastKey}: ${e?.message || e}`);
-                    // non aggiorno il checkpoint: al riavvio riparto dallo stesso punto
-                    break; // opzionale: oppure rethrow per far fallire il job
+                    break;
                 }
 
                 synced += batch.length;
