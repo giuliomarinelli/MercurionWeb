@@ -2,13 +2,18 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Module } from '@nestjs/common';
 import { MoleculeEmbedding } from './Models/entities/molecule-embedding.entity';
 import { EmbeddingClientService } from './services/embedding-client.service';
+import { EmbeddingSyncStreamService } from './services/embedding-sync-stream.service';
+import { EmbeddingSyncController } from './controllers/embedding-sync.controller';
+import { MoleculeIndexMinView } from '../chembl_36/Models/entities/molecule-index-min.entity';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([
             MoleculeEmbedding
-        ], 'MercurionConn')
+        ], 'MercurionConn'),
+        TypeOrmModule.forFeature([MoleculeIndexMinView])
     ],
-    providers: [EmbeddingClientService]
+    providers: [EmbeddingClientService, EmbeddingSyncStreamService],
+    controllers: [EmbeddingSyncController]
 })
 export class EmbeddingsModule {}
