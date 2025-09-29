@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Chembl36Module } from './app_modules/chembl_36/chembl_36.module';
 import { MeilisearchModule } from './app_modules/meilisearch/meilisearch.module';
+import { EmbeddingsModule } from './app_modules/embeddings/embeddings.module';
 
 
 
@@ -14,10 +15,23 @@ import { MeilisearchModule } from './app_modules/meilisearch/meilisearch.module'
       database: 'chembl_36',
       password: 'rootpassword',
       username: 'app',
-      autoLoadEntities: true
+      autoLoadEntities: true,
+      synchronize: false
+    }),
+    TypeOrmModule.forRoot({
+      name: 'MercurionConn',
+      type: 'postgres',
+      host: 'localhost',
+      port: 5431,
+      database: 'mercurion',
+      password: 'rootpassword',
+      username: 'app',
+      autoLoadEntities: true,
+      synchronize: false
     }),
     Chembl36Module,
-    MeilisearchModule
+    MeilisearchModule,
+    EmbeddingsModule
   ],
   providers: [],
 })
