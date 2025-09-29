@@ -33,7 +33,7 @@ export class EmbeddingSyncStreamService {
         @InjectRepository(MoleculeEmbedding, 'MercurionConn')
         private readonly dstRepo: Repository<MoleculeEmbedding>,
 
-        @InjectDataSource('mercurion')
+        @InjectDataSource('MercurionConn')
         private readonly mercurionDS: DataSource,
 
         private readonly embClient: EmbeddingClientService,
