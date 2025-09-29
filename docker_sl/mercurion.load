@@ -10,7 +10,8 @@ WITH
   on error stop
 CAST
   -- booleani
-  type tinyint when (= precision 1) to boolean drop typemod,
+  type tinyint when (= precision 1) to boolean using tinyint-to-boolean,
+  type tinyint to smallint drop typemod,
   -- tinyint generico
   type tinyint to smallint drop typemod,
   -- UNSIGNED (sintassi giusta: "when unsigned")
