@@ -61,7 +61,7 @@ export class User {
     @Column({ type: 'varchar', default: null, nullable: true })
     appTotpSecret: string | null
 
-    @Column({ type: 'jsonb', default: '[]::jsonb' })
+    @Column({ type: 'jsonb', default: () => "'[]'::jsonb" })
     oldPasswordHashes: OldPasswordItem[]
 
     @OneToMany(() => MfaBackupCode, (backupCode) => backupCode.user, { cascade: true })

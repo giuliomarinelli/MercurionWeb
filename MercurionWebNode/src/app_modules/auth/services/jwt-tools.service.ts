@@ -30,6 +30,7 @@ export class JwtToolsService {
     private readonly emailOtpMfaInactivationTokenConfig: JwtConfiguration
     private readonly smsOtpMfaInactivationTokenConfig: JwtConfiguration
     private readonly appTotpMfaInactivationTokenConfig: JwtConfiguration
+    private readonly changePasswordTokenConfig: JwtConfiguration
 
     private readonly jwtIssuer: string
 
@@ -57,6 +58,7 @@ export class JwtToolsService {
         this.emailOtpMfaInactivationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.emailOtpMfaInactivationToken") as JwtConfiguration
         this.smsOtpMfaInactivationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.smsOtpMfaInactivationToken") as JwtConfiguration
         this.appTotpMfaInactivationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.appTotpMfaInactivationToken") as JwtConfiguration
+        this.changePasswordTokenConfig = this.configService.get<JwtConfiguration>("Jwt.changePasswordToken") as JwtConfiguration
 
         this.jwtIssuer = this.configService.get<string>("Jwt.issuer") as string
 
@@ -81,6 +83,7 @@ export class JwtToolsService {
             case TokenType.EmailOtpMfaInactivationToken: return this.emailOtpMfaInactivationTokenConfig
             case TokenType.SmsOtpMfaActivationToken: return this.smsOtpMfaActivationTokenConfig
             case TokenType.SmsOtpMfaInactivationToken: return this.smsOtpMfaInactivationTokenConfig
+            case TokenType.ChangePasswordToken: return this.changePasswordTokenConfig
         }
     }
 

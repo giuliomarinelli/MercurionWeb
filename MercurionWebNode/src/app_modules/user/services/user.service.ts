@@ -149,6 +149,19 @@ export class UserService {
         return await this.userRepository.findOne({ where: { email, isVerified: true } })
     }
 
+    public async getVerifiedUserPasswordHashById(userId: UUID): Promise<string> | never {
+        try {
+            const { passwordHash } = await this.userRepository.createQueryBuilder('u')
+                .select(['u.passwordHash'])
+                .where('u.id = :userId', { userId })
+                .andWhere('u.isVerified = true')
+                .getOneOrFail()
+            return passwordHash
+        } catch {
+            throw new RpcException('Unauthanticated')
+        }
+    }
+
     public async getVerifiedUserAuthByEmail(email: string): Promise<IAuth | nullish> {
         const user = await this.userRepository.createQueryBuilder('u')
             .select(['u.id', 'u.passwordHash'])

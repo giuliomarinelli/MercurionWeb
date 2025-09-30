@@ -129,6 +129,10 @@ const JwtConfig = registerAs(
             secret: process.env.JWT_SECRETS_APP_MFA_INACTIVATION,
             expiresInMs: Number(process.env.MFA_CHANGE_TIME)
         },
+        changePasswordToken: {
+            secret: process.env.JWT_SECRETS_CHANGE_PASSWORD,
+            expiresInMs: Number(process.env.JWT_EXPIRATION_CHANGE_PASSWORD)
+        },
         issuer: process.env.APP_PROJECT_NAME + `_${process.env.APP_PROJECT_ID as UUID ?? ''}`
     })
 )

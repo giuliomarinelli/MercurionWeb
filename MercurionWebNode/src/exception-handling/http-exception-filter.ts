@@ -48,6 +48,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
                 case 'ChangePhone::InvalidTOTP':
                 case 'InvalidJwtValidation':
                 case 'AuthenticationInvalidCredentials':
+                case 'Unauthanticated':
                     statusCode = HttpStatus.UNAUTHORIZED
             }
 

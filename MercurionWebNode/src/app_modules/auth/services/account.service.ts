@@ -231,7 +231,21 @@ export class AccountService {
 
         return this._r.ok('Phone number successfully updated')
 
-    }   
+    }
+
+    public async changePassword(oldPassword: string, newPassword: string, accessToken: string): Promise<void> | never {
+        const { sub: userId } = await this.jwtTools.verifyTokenAndGetPayload(accessToken, TokenType.AccessToken)
+        const oldPasswordHash = await this.userService.getVerifiedUserPasswordHashById(userId)
+        if (!await this.passwordEncoder.compare(oldPassword, oldPasswordHash)) {
+            throw new RpcException('Unauthenticated')
+        }
+        await this.userService.changePassword(userId, newPassword)
+    }
+
+    public async forgottenPassword(newPassword: string, changePasswordToken: string): Promise<void> | never {
+        const { sub: userId } = await this.jwtTools.verifyTokenAndGetPayload(changePasswordToken, TokenType.ChangePasswordToken)
+        await this.userService.changePassword(userId, newPassword)
+    }
 
 
 
