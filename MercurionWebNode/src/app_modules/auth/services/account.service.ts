@@ -242,6 +242,25 @@ export class AccountService {
         await this.userService.changePassword(userId, newPassword)
     }
 
+    public async sendForgottenPasswordLink(email: string): Promise<void> | never {
+        const userId = await this.userService.getUserIdByEmail(email)
+        if (!userId) {
+            throw new RpcException('Unauthenticated')
+        }
+        const changePasswordToken = await this.jwtTools.generateToken(userId as UUID, TokenType.ChangePasswordToken)
+        const firstName = await this.userService.getUserFirstNameById(userId as UUID)
+        const url = `${this.configService.get<string>("App.activationOrigin")}/account/change_password?t=${changePasswordToken}`
+        await this.mailService.sendEmail(
+            email,
+            'Mercurion: recupera password',
+            {
+                url,
+                firstName
+            },
+            join(__dirname, "../../../app_modules/notification/email-templates/forgotten-password.hbs")
+        )
+    }
+
     public async forgottenPassword(newPassword: string, changePasswordToken: string): Promise<void> | never {
         const { sub: userId } = await this.jwtTools.verifyTokenAndGetPayload(changePasswordToken, TokenType.ChangePasswordToken)
         await this.userService.changePassword(userId, newPassword)

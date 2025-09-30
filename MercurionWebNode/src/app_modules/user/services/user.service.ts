@@ -203,6 +203,16 @@ export class UserService {
         return user.firstName
     }
 
+    public async getVerifiedUserFirstNameById(id: UUID): Promise<string | nullish> {
+        const user = await this.userRepository.createQueryBuilder('u')
+            .select('u.firstName')
+            .where('u.id = :id', { id })
+            .andWhere('u.isVerified =  true')
+            .getOne()
+        if (!user) return user
+        return user.firstName
+    }
+
     public async getUserEmailById(id: UUID): Promise<string | nullish> {
         const user = await this.userRepository.createQueryBuilder('u')
             .select('u.email')
@@ -251,6 +261,17 @@ export class UserService {
         return result.initials
     }
 
+    async getUserIdByEmail(email: string): Promise<string | nullish> {
+        const result = await this.userRepository.createQueryBuilder('u')
+            .select(['u.id'])
+            .where('u.email = :email', { email })
+            .getOne()
+        if (!result) {
+            return result
+        }
+        return result.id
+    }
+
     async changePassword(userId: UUID, newPassword: string): Promise<void> | never {
         await this.userRepository.manager.transaction(async manager => {
 
@@ -258,6 +279,7 @@ export class UserService {
                 .createQueryBuilder(User, 'u')
                 .select(['u.id', 'u.passwordHash', 'u.oldPasswordHashes'])
                 .where('u.id = :userId', { userId })
+                .andWhere('u.isVerified = true')
                 .setLock('pessimistic_write')
                 .getOneOrFail()
 
