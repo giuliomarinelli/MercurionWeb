@@ -75,6 +75,23 @@ services:
     networks:
       - spectralume_network
 
+  # pgvector-init_sl:
+  #   image: postgres:16
+  #   depends_on:
+  #     pg_sl:
+  #       condition: service_healthy
+  #   environment:
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: postgres
+  #     POSTGRES_DB: mercurion
+  #   command: >
+  #     bash -lc '
+  #       psql "host=pg user=$$POSTGRES_USER password=$$POSTGRES_PASSWORD dbname=$$POSTGRES_DB"
+  #       -v ON_ERROR_STOP=1
+  #       -c "CREATE EXTENSION IF NOT EXISTS vector;"
+  #     '
+  #   restart: "no"
+
   meilisearch_sl:
     image: getmeili/meilisearch:latest
     container_name: meilisearch_sl

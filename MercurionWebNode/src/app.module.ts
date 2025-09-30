@@ -24,6 +24,9 @@ import { MercuriusDriver, MercuriusDriverConfig } from '@nestjs/mercurius';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { DropboxObjectStoreModule } from './app_modules/dropbox-object-store/dropbox-object-store.module';
 import { OAuth2ClientModule } from './app_modules/oauth2-client/oauth2-client.module';
+import { EmbeddingModule } from './app_modules/embedding/embedding.module';
+
+
 
 
 
@@ -70,7 +73,8 @@ import { OAuth2ClientModule } from './app_modules/oauth2-client/oauth2-client.mo
     MeilisearchModule,
     SocketIoModule,
     DropboxObjectStoreModule,
-    OAuth2ClientModule
+    OAuth2ClientModule,
+    EmbeddingModule
   ],
   providers: [
     {
