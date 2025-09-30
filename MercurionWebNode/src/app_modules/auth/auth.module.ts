@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { JwtToolsService } from './services/jwt-tools.service';
 import { PasswordEncoderService } from './services/password-encoder.service';
 import { RedisModule } from '../redis/redis.module';
@@ -25,7 +25,7 @@ import { HttpModule } from '@nestjs/axios';
 @Module({
   imports: [
     RedisModule,
-    UserModule,
+    forwardRef(() => UserModule),
     NotificationModule,
     HttpModule
   ],
@@ -45,7 +45,7 @@ import { HttpModule } from '@nestjs/axios';
     GeoIpService,
     TurnstileService
   ],
-  exports: [SecureCookieService, JwtToolsService, JwtService, SessionService],
+  exports: [SecureCookieService, JwtToolsService, JwtService, SessionService, PasswordEncoderService],
   controllers: [AccountController, AuthenticationController],
 })
 export class AuthModule { }

@@ -2,6 +2,7 @@ import { uuidv7 } from '@kripod/uuidv7';
 import { UUID } from "crypto"
 import { BeforeInsert, Column, Entity, OneToMany, PrimaryColumn } from "typeorm"
 import { MfaBackupCode } from "./backup-code.entity"
+import { OldPasswordItem } from '../DTO/old-password-item.interface';
 
 @Entity({ name: 'users' })
 export class User {
@@ -59,6 +60,9 @@ export class User {
 
     @Column({ type: 'varchar', default: null, nullable: true })
     appTotpSecret: string | null
+
+    @Column({ type: 'jsonb', default: '[]::jsonb' })
+    oldPasswordHashes: OldPasswordItem[]
 
     @OneToMany(() => MfaBackupCode, (backupCode) => backupCode.user, { cascade: true })
     backupCodes: MfaBackupCode[]

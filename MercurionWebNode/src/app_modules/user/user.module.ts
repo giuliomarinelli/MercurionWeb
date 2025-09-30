@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { UserService } from './services/user.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './Models/entities/user.entity';
@@ -41,6 +41,7 @@ import { SyntheticStepMoleculeRefService } from './services/synth/synthetic-step
 import { SyntheticStepMoleculeRefResolver } from './resolvers/synth/synthetic-step-molecule-ref.resolver';
 import { MeilisearchModule } from '../meilisearch/meilisearch.module';
 import { MoleculeService } from '../meilisearch/services/molecule.service';
+import { AuthModule } from '../auth/auth.module';
 
 
 @Module({
@@ -59,8 +60,9 @@ import { MoleculeService } from '../meilisearch/services/molecule.service';
     LabNotebook,
     SyntheticRouteEntity,
     SyntheticStepMoleculeRef,
-    SyntheticStepEntity
+    SyntheticStepEntity,
   ]),
+  forwardRef(() => AuthModule),
     MeilisearchModule
   ],
   providers: [

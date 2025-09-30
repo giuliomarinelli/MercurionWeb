@@ -9,6 +9,8 @@ import { MfaStrategy } from '../Models/enums/mfa-strategy.enum';
 import { GeneralUtils } from 'src/general-utils/general-utils';
 import { IAuth } from 'src/app_modules/auth/Models/interfaces/i-auth.interface';
 import { Scope } from '../Models/enums/scope.enum';
+import { PasswordEncoderService } from 'src/app_modules/auth/services/password-encoder.service';
+import { OldPasswordItem } from '../Models/DTO/old-password-item.interface';
 
 @Injectable()
 export class UserService {
@@ -20,6 +22,7 @@ export class UserService {
     constructor(
         @InjectRepository(User) private userRepository: Repository<User>,
         private readonly dataSource: DataSource,
+        private readonly passwordEncoder: PasswordEncoderService
     ) { }
 
     private standardScopes = [
@@ -233,6 +236,55 @@ export class UserService {
             return result
         }
         return result.initials
+    }
+
+    async changePassword(userId: UUID, newPassword: string): Promise<void> | never {
+        await this.userRepository.manager.transaction(async manager => {
+
+            const user = await manager
+                .createQueryBuilder(User, 'u')
+                .select(['u.id', 'u.passwordHash', 'u.oldPasswordHashes'])
+                .where('u.id = :userId', { userId })
+                .setLock('pessimistic_write')
+                .getOneOrFail()
+
+            const oldList: OldPasswordItem[] = Array.isArray(user.oldPasswordHashes)
+                ? user.oldPasswordHashes
+                : []
+
+            const candidates = [
+                user.passwordHash,
+                ...oldList.map(i => i.passwordHash),
+            ].filter(Boolean)
+
+            for (const h of candidates) {
+                const reused = await this.passwordEncoder.compare(newPassword, h)
+                if (reused) {
+                    throw new RpcException('PasswordReused')
+                }
+            }
+
+            const newHash = await this.passwordEncoder.encode(newPassword)
+
+            const nextOld: OldPasswordItem[] = [
+                {
+                    passwordHash: user.passwordHash,
+                    changedAt: Date.now()
+                },
+                ...oldList,
+            ].filter(i => !!i?.passwordHash).slice(0, 50); // cap hard per evitare crescita incontrollata
+
+            await manager
+                .createQueryBuilder()
+                .update(User)
+                .set({
+                    passwordHash: newHash,
+                    oldPasswordHashes: nextOld,
+                })
+                .where('id = :userId', { userId })
+                .execute();
+
+        })
     }
 
 
