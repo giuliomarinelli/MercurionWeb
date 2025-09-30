@@ -1,7 +1,8 @@
+import { ChangePasswordDTO } from './../Models/DTO/change-password.dto';
 import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum';
 import { BadRequestException, Body, Controller, Get, NotFoundException, Param, Patch, Post, Query, UnauthorizedException, ValidationPipe } from '@nestjs/common';
 import { UserRegisterDTO } from 'src/app_modules/user/Models/DTO/user-register.cls.dto';
-import { AuthenticatedUserId, Public } from 'src/metadata/metadata';
+import { AuthenticatedUserId, Authorization, Public } from 'src/metadata/metadata';
 import { ConfirmChangeDTO, ConfirmDTO, ConfirmMfaChange, ConfirmWithObsContDTO } from 'src/Models/confirm-responses.dto';
 import { AccountService } from '../services/account.service';
 import { GeneralUtils } from 'src/general-utils/general-utils';
@@ -12,6 +13,7 @@ import { TotpDTO } from '../Models/DTO/totp.cls.dto';
 import { ChangePhoneDTO } from '../Models/DTO/change-phone.cls.dto';
 import { EmailDTO } from '../Models/DTO/change-email.cls.dto';
 import { UserService } from 'src/app_modules/user/services/user.service';
+
 
 @Controller('account')
 export class AccountController {
@@ -27,7 +29,7 @@ export class AccountController {
     @Post('/register')
     public async registerUser(@Body(new ValidationPipe({ transform: true })) userRegisterDTO: UserRegisterDTO): Promise<ConfirmWithObsContDTO> {
         return await this.accountService.register(userRegisterDTO)
-    } 
+    }
 
     @Public()
     @Patch('/activate')
@@ -133,6 +135,37 @@ export class AccountController {
             throw new NotFoundException('EmailNotFound')
         }
         return email
+    }
+
+    @Patch('/password')
+    public async changePassword(
+        @Body() dto: ChangePasswordDTO,
+        @AuthenticatedUserId() userId: UUID
+    ): Promise<ConfirmDTO> {
+        // eslint-disable-next-line prefer-const
+        let { oldPassword, newPassword } = dto
+        if (!oldPassword) {
+            oldPassword = ''
+        }
+        await this.accountService.changePassword(oldPassword, newPassword, userId)
+        return this._r.ok('Password changed successfully')
+    }
+
+    @Post('/forgotten-password')
+    public async forgottenPassword(@Body() dto: EmailDTO): Promise<ConfirmDTO> {
+        const { email } = dto
+        await this.accountService.sendForgottenPasswordLink(email)
+        return this._r.ok('Password recovery link sent to user email')
+    }
+
+    @Post('/password-recovery')
+    public async passwordRecovery(
+        @Authorization() changePasswordToken: string,
+        @Body() changePasswordDTO: ChangePasswordDTO
+    ): Promise<ConfirmDTO> {
+        const { newPassword } = changePasswordDTO
+        await this.accountService.forgottenPassword(newPassword, changePasswordToken)
+        return this._r.ok('Password changed successfully')
     }
 
 }

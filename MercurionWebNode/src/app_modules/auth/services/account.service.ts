@@ -233,8 +233,7 @@ export class AccountService {
 
     }
 
-    public async changePassword(oldPassword: string, newPassword: string, accessToken: string): Promise<void> | never {
-        const { sub: userId } = await this.jwtTools.verifyTokenAndGetPayload(accessToken, TokenType.AccessToken)
+    public async changePassword(oldPassword: string, newPassword: string, userId: UUID): Promise<void> | never {
         const oldPasswordHash = await this.userService.getVerifiedUserPasswordHashById(userId)
         if (!await this.passwordEncoder.compare(oldPassword, oldPasswordHash)) {
             throw new RpcException('Unauthenticated')
