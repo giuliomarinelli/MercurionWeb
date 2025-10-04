@@ -44,11 +44,7 @@ import { MoleculeSearchResult } from '../../Models/graphql/molecule-search/molec
           [chemblIdInput]="molecule.cmbId"
         />
 
-        <h2 class="font-semibold text-light-accent-primary dark:text-dark-accent-primary mb-4 text-center sm:text-left text-xl">
-            Analoghi suggeriti
-          </h2>
 
-        <app-similars [molecules]="similarMols() ?? []" />
 
         <section>
           <h2 class="font-semibold text-light-accent-primary dark:text-dark-accent-primary mb-4 text-center sm:text-left text-xl">
@@ -83,6 +79,12 @@ import { MoleculeSearchResult } from '../../Models/graphql/molecule-search/molec
             </div>
           </div>
         </section>
+
+        <h2 class="font-semibold text-light-accent-primary dark:text-dark-accent-primary mb-4 text-center sm:text-left text-xl">
+            Analoghi suggeriti
+          </h2>
+
+        <app-similars [molecules]="similarMols() ?? []" />
 
         @if (userContext.initials() !== '') {
           <app-editing-layer [smiles]="molecule.canonicalSmiles" />
@@ -126,9 +128,9 @@ export class MoleculeDetailComponent implements OnDestroy {
     private readonly embeddingService: EmbeddingService,
     private readonly destroyRef: DestroyRef
   ) {
-    this.fetchSimilar()
     effect(() => {
       this.fetchData()
+      this.fetchSimilar()
       window.addEventListener('storage', this.handleCrossTabFetchData)
     })
   }

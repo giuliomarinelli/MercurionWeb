@@ -1,82 +1,149 @@
-import { Inject, Injectable } from "@nestjs/common"
-import { MoleculeDetail } from "../Models/DTO/molecule-detail.gql.dtos"
-import { MoleculeDetailModel } from "src/app_modules/chembl/Models/DTO/molecule-detail-model.interface"
-import { MeiliSearch } from "meilisearch"
-import { RpcException } from "@nestjs/microservices"
-import { MoleculeSearchResult } from "../Models/DTO/molecule-search-result.cls"
+import { Inject, Injectable } from "@nestjs/common";
+import { MoleculeDetail } from "../Models/DTO/molecule-detail.gql.dtos";
+import { MoleculeDetailModel } from "src/app_modules/chembl/Models/DTO/molecule-detail-model.interface";
+import { MeiliSearch } from "meilisearch";
+import { RpcException } from "@nestjs/microservices";
+import { MoleculeSearchResult } from "../Models/DTO/molecule-search-result.cls";
 
+type Maybe<T> = T | null | undefined;
 
 @Injectable()
 export class MoleculeService {
-
     constructor(
-        @Inject('MEILISEARCH_CLIENT')
+        @Inject("MEILISEARCH_CLIENT")
         private readonly meiliClient: MeiliSearch
     ) { }
 
+    // ============= PUBLIC =============
+
     async getDetailByMolregno(molregno: string): Promise<MoleculeDetail> {
-
-        const raw = await this.fetchFromChembl(molregno)
-
-        return {
-            id: raw.id,
-            cmbId: raw.cmbId,
-            preferredName: raw.preferredName,
-            canonicalSmiles: raw.canonicalSmiles,
-            properties: {
-                mwFreebase: raw.properties.mwFreebase,
-                alogp: raw.properties.alogp,
-                hba: raw.properties.hba,
-                hbd: raw.properties.hbd,
-                psa: raw.properties.psa,
-                rtb: raw.properties.rtb
-            },
-            maxPhase: raw.maxPhase,
-            moleculeType: raw.moleculeType,
-            administrationRoutes: {
-                oral: !!raw.administrationRoutes.oral,
-                parenteral: !!raw.administrationRoutes.parenteral,
-                topical: !!raw.administrationRoutes.topical
-            },
-            naturalProduct: !!raw.naturalProduct,
-            prodrug: !!raw.prodrug,
-            blackBoxWarning: !!raw.blackBoxWarning,
-            synonyms: raw.synonyms ?? []
-        }
+        const raw = await this.fetchFromChembl(molregno);
+        // mapping + fallback name + synonyms normalizzati
+        return this.mapMeiliToDTO(raw, molregno);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    private async fetchFromChembl(molregno: string) {
-        const index = this.meiliClient.index('molecule_details_chembl_36');
+    async getDetailsByMolregnos(molregnos: string[]): Promise<MoleculeDetail[]> {
+        const index = this.meiliClient.index<MoleculeDetailModel>(
+            "molecule_details_chembl_36"
+        );
 
-        // se è numerico niente virgolette, altrimenti escapato
-        const safeValue = /^\d+$/.test(molregno)
-            ? molregno
-            : `"${molregno.replace(/"/g, '\\"')}"`;
+        // costruisci il filtro IN (numeri non quotati, stringhe quotate+escapate)
+        const filterValues = molregnos
+            .map((v) => this.quoteForMeiliFilter(v))
+            .join(", ");
+        const filter = `molregno IN [${filterValues}]`;
 
-        const filter = `molregno = ${safeValue}`;
+        const res = await index.search<MoleculeDetailModel>("", {
+            filter,
+            limit: Math.max(molregnos.length, 20),
+        });
 
-        const res = await index.search<MoleculeDetailModel>('', {
+        const hits = res.hits ?? [];
+
+        // indicizza per molregno (fallback su id/cmbId se necessario)
+        const keyOf = (d: MoleculeDetailModel) =>
+            String((d as any).molregno ?? d.id ?? d.cmbId);
+
+        const map = new Map<string, MoleculeDetail>(
+            hits.map((doc) => [keyOf(doc), this.mapMeiliToDTO(doc)])
+        );
+
+        // preserva l'ordine richiesto e applica fallback name sul molregno richiesto
+        const ordered = molregnos
+            .map((m) => {
+                const v = map.get(String(m));
+                if (!v) return undefined;
+                if (!v.preferredName || !v.preferredName.trim()) {
+                    v.preferredName = `Lead ${m}`;
+                }
+                return v;
+            })
+            .filter((x): x is MoleculeDetail => Boolean(x));
+
+        return ordered;
+    }
+
+    async getPreviewsByMolregnos(
+        molregnos: string[]
+    ): Promise<MoleculeSearchResult[]> {
+        const index = this.meiliClient.index("molecule_previews_chembl_36");
+        const results: MoleculeSearchResult[] = [];
+
+        for (const molregno of molregnos) {
+            try {
+                const raw = (await index.getDocument(
+                    Number(molregno)
+                )) as unknown as MoleculeSearchResult;
+
+                // normalizza synonyms
+                const normalizedSynonyms = this.normalizeSynonyms(
+                    (raw as any)?.synonyms as Maybe<string | string[]>
+                );
+
+                const preferredName =
+                    raw?.preferredName && String(raw.preferredName).trim().length > 0
+                        ? String(raw.preferredName).trim()
+                        : `Lead ${molregno}`;
+
+                results.push({
+                    ...raw,
+                    preferredName,
+                    synonyms: normalizedSynonyms,
+                });
+            } catch {
+                // se non trovato o errore, si ignora
+            }
+        }
+
+        return results;
+    }
+
+    // ============= PRIVATE =============
+
+    private async fetchFromChembl(
+        molregno: string
+    ): Promise<MoleculeDetailModel> {
+        const index = this.meiliClient.index<MoleculeDetailModel>(
+            "molecule_details_chembl_36"
+        );
+
+        // numerico → non quotato; altrimenti quotato con escape
+        const filter = `molregno = ${this.quoteForMeiliFilter(molregno)}`;
+
+        const res = await index.search<MoleculeDetailModel>("", {
             filter,
             limit: 1,
         });
 
         if (!res.hits.length) {
             throw new RpcException(
-                `MoleculeDetailNotFound::Molecule with molregno = ${molregno} not found`,
+                `MoleculeDetailNotFound::Molecule with molregno = ${molregno} not found`
             );
         }
 
-        const result = res.hits[0];
-        return this.mapMeiliToDTO(result)
+        return res.hits[0];
     }
-    F
 
-    private mapMeiliToDTO(doc: MoleculeDetailModel): MoleculeDetail {
+    private mapMeiliToDTO(
+        doc: MoleculeDetailModel,
+        fallbackMolregno?: string
+    ): MoleculeDetail {
+        const synonyms = this.normalizeSynonyms(doc.synonyms);
+
+        const preferredName =
+            doc.preferredName && String(doc.preferredName).trim().length > 0
+                ? String(doc.preferredName).trim()
+                : `Lead ${fallbackMolregno ??
+                (doc as any)?.molregno ??
+                doc.id ??
+                doc.cmbId ??
+                "?"
+                }`;
+
         return {
             id: doc.id,
             cmbId: doc.cmbId,
-            preferredName: doc.preferredName,
+            preferredName,
             canonicalSmiles: doc.canonicalSmiles,
             properties: {
                 mwFreebase: doc.properties.mwFreebase,
@@ -84,78 +151,41 @@ export class MoleculeService {
                 hba: doc.properties.hba,
                 hbd: doc.properties.hbd,
                 psa: doc.properties.psa,
-                rtb: doc.properties.rtb
+                rtb: doc.properties.rtb,
             },
             maxPhase: doc.maxPhase,
             moleculeType: doc.moleculeType,
             administrationRoutes: {
                 oral: !!doc.administrationRoutes.oral,
                 parenteral: !!doc.administrationRoutes.parenteral,
-                topical: !!doc.administrationRoutes.topical
+                topical: !!doc.administrationRoutes.topical,
             },
             naturalProduct: !!doc.naturalProduct,
             prodrug: !!doc.prodrug,
             blackBoxWarning: !!doc.blackBoxWarning,
-            synonyms: doc.synonyms ?? []
+            synonyms,
+        };
+    }
+
+    private normalizeSynonyms(
+        raw: Maybe<string | string[]>
+    ): string[] {
+        if (Array.isArray(raw)) {
+            return raw.map((s) => String(s).trim()).filter(Boolean);
         }
-    }
-
-    async getDetailsByMolregnos(molregnos: string[]): Promise<MoleculeDetail[]> {
-        const index = this.meiliClient.index('molecule_details_chembl_36');
-
-        // costruisci il filtro IN (numeri non quotati)
-        const filterValues = molregnos
-            .map(v => (/^\d+$/.test(v) ? v : `"${v.replace(/"/g, '\\"')}"`))
-            .join(', ');
-        const filter = `molregno IN [${filterValues}]`;
-
-        const res = await index.search<MoleculeDetail>('', {
-            filter,
-            limit: Math.max(molregnos.length, 20),
-        });
-
-        
-
-        // 🔧 normalizza le chiavi a stringa su ENTRAMBI i lati
-        const map = new Map<string, MoleculeDetail>(
-            (res.hits ?? []).map(h => [String((h as any).molregno), h]),
-        );
-
-        const ordered = molregnos
-            .map(m => map.get(String(m)))
-            .filter((x): x is MoleculeDetail => Boolean(x));
-
-        
-
-        return ordered;
-    }
-
-
-
-    async getPreviewsByMolregnos(molregnos: string[]): Promise<MoleculeSearchResult[]> {
-        const index = this.meiliClient.index('molecule_previews_chembl_36')
-        const results: MoleculeSearchResult[] = []
-        for (const molregno of molregnos) {
-            let result: MoleculeSearchResult | null = null
-            try {
-                result = await index.getDocument(Number(molregno)) as unknown as MoleculeSearchResult
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, no-extra-boolean-cast
-                (result as any).synonyms = (!!(result as any)) ? (result as any).synonyms.split(';') : []
-                if (!result.preferredName) {
-                    result.preferredName = `Lead ${molregno}`
-                }
-            } catch {
-                // pass
-            }
-            if (result != null) {
-                results.push(result)
-            }
-
+        if (typeof raw === "string") {
+            return raw
+                .split(";")
+                .map((s) => s.trim())
+                .filter((s) => s.length > 0);
         }
-        return results.filter(x => !!x)
+        return [];
     }
 
-
+    private quoteForMeiliFilter(value: string): string {
+        // se tutto numerico → non quotato
+        if (/^\d+$/.test(value)) return value;
+        // altrimenti quotato con escape di eventuali doppi apici
+        return `"${value.replace(/"/g, '\\"')}"`;
+    }
 }

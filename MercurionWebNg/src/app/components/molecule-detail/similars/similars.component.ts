@@ -7,14 +7,16 @@ import { SimilarItemComponent } from '../similar-item/similar-item.component';
   imports: [SimilarItemComponent],
   template: `
 
-    @if (_molecules().length) {
-      @for (molecule of _molecules(); track molecule) {
-        <app-similar-item [molecule]="molecule" />
+    <div class="h-[250px] overflow-y-auto">
+      @if (_molecules().length) {
+        @for (molecule of _molecules(); track molecule; let i = $index) {
+          <app-similar-item [molecule]="molecule" />
+          <hr class="border-slate-600 dark:border-slate-400" />
+        }
+      } @else {
+        <p class="text-center">Caricamento...</p>
       }
-    } @else {
-      <p class="text-center">Caricamento...</p>
-    }
-
+    </div>
   `
 
 })

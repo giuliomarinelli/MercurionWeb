@@ -10,7 +10,6 @@ export class MoleculeResolver {
 
     constructor(
         private readonly moleculeService: MoleculeService
-
     ) { }
 
     @Public()
@@ -24,7 +23,7 @@ export class MoleculeResolver {
     @Public()
     @Query(() => [MoleculeSearchResult])
     async moleculePreviewsByMolregnos(
-        @Args({ name: 'molregnos', type: () => [String] }) molregnos: string[]
+        @Args({ name: 'molregnos', type: () => [String]}) molregnos: string[]
     ): Promise<MoleculeSearchResult[]> {
         return this.moleculeService.getPreviewsByMolregnos(molregnos)
     }
