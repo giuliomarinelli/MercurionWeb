@@ -5,6 +5,7 @@ import { MeiliSearch } from "meilisearch"
 import { RpcException } from "@nestjs/microservices"
 import { MoleculeSearchResult } from "../Models/DTO/molecule-search-result.cls"
 
+
 @Injectable()
 export class MoleculeService {
 
@@ -46,14 +47,30 @@ export class MoleculeService {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     private async fetchFromChembl(molregno: string) {
-        const index = this.meiliClient.index('molecule_details_chembl_36')
+        const index = this.meiliClient.index('molecule_details_chembl_36');
 
-        const result = await index.getDocument(molregno).catch(() => {
-            throw new RpcException(`MoleculeDetailNotFound::Molecule with molregno = ${molregno} not found`)
-        })
+        // se è numerico niente virgolette, altrimenti escapato
+        const safeValue = /^\d+$/.test(molregno)
+            ? molregno
+            : `"${molregno.replace(/"/g, '\\"')}"`;
 
-        return this.mapMeiliToDTO(result as MoleculeDetailModel)
+        const filter = `molregno = ${safeValue}`;
+
+        const res = await index.search<MoleculeDetailModel>('', {
+            filter,
+            limit: 1,
+        });
+
+        if (!res.hits.length) {
+            throw new RpcException(
+                `MoleculeDetailNotFound::Molecule with molregno = ${molregno} not found`,
+            );
+        }
+
+        const result = res.hits[0];
+        return this.mapMeiliToDTO(result)
     }
+    F
 
     private mapMeiliToDTO(doc: MoleculeDetailModel): MoleculeDetail {
         return {
@@ -84,16 +101,32 @@ export class MoleculeService {
     }
 
     async getDetailsByMolregnos(molregnos: string[]): Promise<MoleculeDetail[]> {
-        const index = this.meiliClient.index('molecule_details_chembl_36')
-        const results = await Promise.all(
-            molregnos.map(molregno =>
-                index.getDocument(molregno)
-                    .then(doc => this.mapMeiliToDTO(doc as MoleculeDetailModel))
-                    .catch(() => null)
-            )
+        const index = this.meiliClient.index('molecule_details_chembl_36');
+
+        // costruisci il filtro IN (numeri non quotati)
+        const filterValues = molregnos
+            .map(v => (/^\d+$/.test(v) ? v : `"${v.replace(/"/g, '\\"')}"`))
+            .join(', ');
+        const filter = `molregno IN [${filterValues}]`;
+
+        const res = await index.search<MoleculeDetail>('', {
+            filter,
+            limit: Math.max(molregnos.length, 20),
+        });
+
+        // 🔧 normalizza le chiavi a stringa su ENTRAMBI i lati
+        const map = new Map<string, MoleculeDetail>(
+            (res.hits ?? []).map(h => [String((h as any).molregno), h]),
         );
-        return results.filter(x => !!x)
+
+        const ordered = molregnos
+            .map(m => map.get(String(m)))
+            .filter((x): x is MoleculeDetail => Boolean(x));
+
+        return ordered;
     }
+
+
 
     async getPreviewsByMolregnos(molregnos: string[]): Promise<MoleculeSearchResult[]> {
         const index = this.meiliClient.index('molecule_previews_chembl_36')
@@ -102,6 +135,9 @@ export class MoleculeService {
             let result: MoleculeSearchResult | null = null
             try {
                 result = await index.getDocument(Number(molregno)) as unknown as MoleculeSearchResult
+                if (!result.preferredName) {
+                    result.preferredName = 'Lead'
+                }
             } catch {
                 // pass
             }

@@ -6,7 +6,7 @@ export class MoleculeSearchResult {
     @Field(() => Int)
     id: number
 
-    @Field()
+    @Field(() => String, { nullable: true })
     preferredName: string
 
     @Field(() => String, { nullable: true })

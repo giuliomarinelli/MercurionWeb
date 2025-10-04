@@ -204,7 +204,7 @@ type ChEMBLMoleculeItemDTO {
 
 type MoleculeSearchResult {
   id: Int!
-  preferredName: String!
+  preferredName: String
   smiles: String
   synonyms: [String!]
   mwFreebase: Float
