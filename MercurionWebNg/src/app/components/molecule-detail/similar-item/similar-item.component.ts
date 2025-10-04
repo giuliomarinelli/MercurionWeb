@@ -35,7 +35,14 @@ import { MoleculeSearchResult } from
       </div>
 
 
+
+
+
       <div class="flex-1 min-w-0">
+        <div class="text-base font-medium truncate"
+             [innerHTML]="_molecule()?.preferredName"></div>
+        <div class="text-xs text-gray-500 truncate"
+             [innerHTML]="_molecule()?.synonyms?.[0]"></div>
         <div class="text-xs text-gray-400 mt-1 flex gap-2">
           @if (_molecule()?.mwFreebase) {
             <span>MW: {{ _molecule()?.mwFreebase | number:'1.0-1' }}</span>
@@ -107,7 +114,7 @@ export class SimilarItemComponent implements OnDestroy {
     this.disablePreview.set(true);
 
     this._molecule.set(m);
-    this._pathToMolecule.set(`molecules/detail/${m.id}`);
+    this._pathToMolecule.set(`/molecules/detail/${m.id}`);
 
     // nel caso l’IO fosse stato detachato:
     this.zone.runOutsideAngular(() => this.io.observe(this.host.nativeElement));
