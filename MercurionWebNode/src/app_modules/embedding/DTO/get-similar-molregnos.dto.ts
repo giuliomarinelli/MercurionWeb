@@ -17,7 +17,7 @@ export class GetSimilarMolregnosDto {
     @Transform(({ value }) => (value === undefined ? 10 : Boolean(value)))
     @IsOptional()
     @IsBoolean()
-    only_molregnos?: boolean = true;
+    only_molregnos: boolean = true;
 
     @Transform(({ value }) => (value === undefined ? 10 : Boolean(value)))
     @IsOptional()

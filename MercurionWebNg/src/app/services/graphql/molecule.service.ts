@@ -27,7 +27,7 @@ export class MoleculeService {
       )
   }
 
-  getMoleculePreviewsByMolregno(molregnos: string[]): Observable<MoleculeSearchResult[]> {
+  getMoleculePreviewsByMolregnos(molregnos: string[]): Observable<MoleculeSearchResult[]> {
     return this.apollo
       .watchQuery<{ moleculePreviewsByMolregnos: MoleculeSearchResult[] }>({
         query: GET_MOLECULE_PREVIEWS,

@@ -1,8 +1,11 @@
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { EmbeddingService } from './../../services/embedding.service';
+import { SimilarsComponent } from './../../components/molecule-detail/similars/similars.component';
 // Refactor #1: MoleculeDetailComponent
-import { Component, effect, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, effect, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MoleculeService } from '../../services/graphql/molecule.service';
-import { switchMap, Observable, catchError, of, Subscription, forkJoin, map, retry, tap } from 'rxjs';
+import { switchMap, Observable, catchError, of, Subscription, forkJoin, map, retry, tap, distinctUntilChanged, shareReplay } from 'rxjs';
 import { MoleculeDetail } from '../../Models/graphql/molecule.detail';
 import { AsyncPipe } from '@angular/common';
 import { ThemeManagerService } from '../../services/context/theme-manager.service';
@@ -16,6 +19,7 @@ import { T1PredictionCardComponent } from '../../components/molecule-detail/t1-p
 import { UserContextService } from '../../services/context/user-context.service';
 import { MercurionAiService as MercurionAIService } from '../../services/mercurion-ai.service';
 import { EditingLayerComponent } from '../../components/molecule-detail/editing-layer/editing-layer.component';
+import { MoleculeSearchResult } from '../../Models/graphql/molecule-search/molecule-search-result.interface';
 
 @Component({
   selector: 'app-molecule-detail',
@@ -29,7 +33,8 @@ import { EditingLayerComponent } from '../../components/molecule-detail/editing-
     MoleculeSynonymsComponent,
     MoleculeCtaChemblComponent,
     T1PredictionCardComponent,
-    EditingLayerComponent
+    EditingLayerComponent,
+    SimilarsComponent
   ],
   template: `
     @if (molecule$ | async; as molecule) {
@@ -38,6 +43,12 @@ import { EditingLayerComponent } from '../../components/molecule-detail/editing-
           [nameInput]="molecule.preferredName"
           [chemblIdInput]="molecule.cmbId"
         />
+
+        <h2 class="font-semibold text-light-accent-primary dark:text-dark-accent-primary mb-4 text-center sm:text-left text-xl">
+            Analoghi suggeriti
+          </h2>
+
+        <app-similars [molecules]="similarMols()" />
 
         <section>
           <h2 class="font-semibold text-light-accent-primary dark:text-dark-accent-primary mb-4 text-center sm:text-left text-xl">
@@ -101,7 +112,9 @@ export class MoleculeDetailComponent implements OnDestroy {
 
   molecule$!: Observable<MoleculeDetail | null>
   viewerReady = signal<boolean>(false)
+  similarViewerReady = signal<boolean>(false)
   fetchError = signal<boolean>(false)
+  similarMols = signal<MoleculeSearchResult[] | undefined>(undefined)
   private molCached?: MoleculeDetail
 
   constructor(
@@ -109,19 +122,24 @@ export class MoleculeDetailComponent implements OnDestroy {
     private readonly moleculeService: MoleculeService,
     protected readonly themeManager: ThemeManagerService,
     protected readonly userContext: UserContextService,
-    private readonly mercurionAIService: MercurionAIService
+    private readonly mercurionAIService: MercurionAIService,
+    private readonly embeddingService: EmbeddingService,
+    private readonly destroyRef: DestroyRef
   ) {
     effect(() => {
       this.fetchData()
+      this.fetchSimilar()
       window.addEventListener('storage', this.handleCrossTabFetchData)
     })
   }
 
   private handleCrossTabFetchData(e: StorageEvent): void {
     this.fetchData()
+    this.fetchSimilar()
   }
 
   private fetchData(): void {
+
     this.molecule$ = this.route.paramMap.pipe(
       switchMap((params) => {
         this.viewerReady.set(false)
@@ -140,7 +158,7 @@ export class MoleculeDetailComponent implements OnDestroy {
       switchMap((molecule) => {
         if (!molecule) return of(null)
         if (this.userContext.initials() === '') {
-          const { t1Inference, ...rest} = molecule
+          const { t1Inference, ...rest } = molecule
           return of(rest)
         }
         return this.mercurionAIService.t1Inference({ smiles: molecule.canonicalSmiles }).pipe(
@@ -165,6 +183,28 @@ export class MoleculeDetailComponent implements OnDestroy {
         return of(null)
       })
     )
+  }
+
+  private fetchSimilar(): void {
+    this.route.paramMap.pipe(
+      map(params => {
+        const id = params.get('molregno');
+        if (!id) throw new Error('UndefinedMolregno');
+        return id;
+      }),
+      distinctUntilChanged(),
+      tap(() => this.similarViewerReady.set(false)),
+      switchMap(id => this.embeddingService.getSimilarMolregnos(id)),
+      switchMap(ids => this.moleculeService.getMoleculePreviewsByMolregnos(ids)),
+      tap(() => this.similarViewerReady.set(true)),
+      catchError(err => {
+        console.error(err);
+        this.similarViewerReady.set(false);
+        return of([] as MoleculeSearchResult[]);
+      })
+    )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(previews => this.similarMols.set(previews));
   }
 
   ngOnDestroy(): void {
