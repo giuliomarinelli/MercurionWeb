@@ -73,7 +73,7 @@ export class SimilarItemComponent implements OnDestroy {
   ) {
     /* aggiorna dark mode */
     effect(() => this.isDarkMode.set(this.themeManager.theme() === 'dark'));
-
+    console.log(this._molecule() === undefined)
     /* Avvia viewer quando card entra nel viewport */
     this.zone.runOutsideAngular(() => {
       this.io = new IntersectionObserver(

@@ -48,7 +48,7 @@ import { MoleculeSearchResult } from '../../Models/graphql/molecule-search/molec
             Analoghi suggeriti
           </h2>
 
-        <app-similars [molecules]="similarMols()" />
+        <app-similars [molecules]="similarMols() ?? []" />
 
         <section>
           <h2 class="font-semibold text-light-accent-primary dark:text-dark-accent-primary mb-4 text-center sm:text-left text-xl">
@@ -126,9 +126,9 @@ export class MoleculeDetailComponent implements OnDestroy {
     private readonly embeddingService: EmbeddingService,
     private readonly destroyRef: DestroyRef
   ) {
+    this.fetchSimilar()
     effect(() => {
       this.fetchData()
-      this.fetchSimilar()
       window.addEventListener('storage', this.handleCrossTabFetchData)
     })
   }
@@ -195,7 +195,7 @@ export class MoleculeDetailComponent implements OnDestroy {
       distinctUntilChanged(),
       tap(() => this.similarViewerReady.set(false)),
       switchMap(id => this.embeddingService.getSimilarMolregnos(id)),
-      switchMap(ids => this.moleculeService.getMoleculePreviewsByMolregnos(ids)),
+      switchMap(ids => this.moleculeService.getMoleculePreviewsByMolregnos(ids.map(id => id.toString()))),
       tap(() => this.similarViewerReady.set(true)),
       catchError(err => {
         console.error(err);

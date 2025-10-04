@@ -7,8 +7,8 @@ import { SimilarItemComponent } from '../similar-item/similar-item.component';
   imports: [SimilarItemComponent],
   template: `
 
-    @if (_molecules()) {
-      @for (molecule of molecules; track molecule) {
+    @if (_molecules().length) {
+      @for (molecule of _molecules(); track molecule) {
         <app-similar-item [molecule]="molecule" />
       }
     } @else {
@@ -20,10 +20,10 @@ import { SimilarItemComponent } from '../similar-item/similar-item.component';
 })
 export class SimilarsComponent {
 
-  _molecules = signal<MoleculeSearchResult[] | undefined>(undefined)
+  _molecules = signal<MoleculeSearchResult[]>([])
 
   @Input({ required: true })
-  set molecules(molecules: MoleculeSearchResult[] | undefined) {
+  set molecules(molecules: MoleculeSearchResult[]) {
     this._molecules.set(molecules)
   }
 

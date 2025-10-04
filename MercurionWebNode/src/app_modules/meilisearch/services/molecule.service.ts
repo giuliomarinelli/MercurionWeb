@@ -96,7 +96,7 @@ export class MoleculeService {
             naturalProduct: !!doc.naturalProduct,
             prodrug: !!doc.prodrug,
             blackBoxWarning: !!doc.blackBoxWarning,
-            synonyms: doc.synonyms
+            synonyms: doc.synonyms ?? []
         }
     }
 
@@ -114,6 +114,8 @@ export class MoleculeService {
             limit: Math.max(molregnos.length, 20),
         });
 
+        
+
         // 🔧 normalizza le chiavi a stringa su ENTRAMBI i lati
         const map = new Map<string, MoleculeDetail>(
             (res.hits ?? []).map(h => [String((h as any).molregno), h]),
@@ -122,6 +124,8 @@ export class MoleculeService {
         const ordered = molregnos
             .map(m => map.get(String(m)))
             .filter((x): x is MoleculeDetail => Boolean(x));
+
+        
 
         return ordered;
     }
@@ -135,6 +139,10 @@ export class MoleculeService {
             let result: MoleculeSearchResult | null = null
             try {
                 result = await index.getDocument(Number(molregno)) as unknown as MoleculeSearchResult
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, no-extra-boolean-cast
+                (result as any).synonyms = (!!(result as any)) ? (result as any).synonyms.split(';') : []
                 if (!result.preferredName) {
                     result.preferredName = `Lead ${molregno}`
                 }

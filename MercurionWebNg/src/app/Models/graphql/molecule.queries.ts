@@ -30,7 +30,7 @@ export const GET_MOLECULE_DETAIL = gql`
   }`
 
 export const GET_MOLECULE_PREVIEWS = gql`
-  query MoleculePreviewsByMolregnos($molregnos: [String]) {
+  query MoleculePreviewsByMolregnos($molregnos: [String!]!) {
     moleculePreviewsByMolregnos(molregnos: $molregnos) {
         id
         preferredName
