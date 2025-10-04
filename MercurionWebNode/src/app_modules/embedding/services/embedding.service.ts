@@ -58,27 +58,23 @@ export class EmbeddingService {
         //    Così evitiamo il formato testuale del vector.
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         // prendo k + 5 per sicurezza e filtro in app
+
+
+        await this.moleculeRepo.query('SET hnsw.ef_search = 80');
+
         const k = n + 5;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const rows = await this.moleculeRepo.query(
+            `
+  SELECT molregno, (embedding <=> $1::float8[]::vector) AS distance
+  FROM molecule_embeddings
+  ORDER BY embedding <=> $1::float8[]::vector ASC
+  LIMIT $2
+  `,
+            [embedding, k],
+        );
 
-        const rows: Array<{ molregno: number; dist: number }> =
-            await this.moleculeRepo.query(
-                `
-    SET LOCAL hnsw.ef_search = 80;             -- tuning runtime (provalo anche 64 / 100)
-    SELECT molregno, (embedding <=> $1::float8[]::vector) AS dist
-    FROM molecule_embeddings
-    ORDER BY embedding <=> $1::float8[]::vector   -- usa l’indice HNSW
-    LIMIT $2
-    `,
-                [embedding, k],
-            );
-
-        // filtro lato app
-        const out = rows
-            .filter(r => r.molregno !== molregno)        // escludi il seed
-            .slice(0, n)
-            .map(r => r.molregno);
-
-        return out;
+        return rows.filter(r => r.molregno !== molregno).slice(0, n);
 
     }
 }

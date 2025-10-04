@@ -59,6 +59,13 @@ services:
   pg_sl:
     image: postgres:16
     container_name: pg_sl
+    shm_size: "24gb"              # <— aumenta /dev/shm
+    command: >
+      postgres
+      -c shared_buffers=4GB
+      -c work_mem=128MB
+      -c maintenance_work_mem=4GB
+      -c max_parallel_maintenance_workers=2
     environment:
       POSTGRES_PASSWORD: rootpassword
       POSTGRES_DB: postgres
