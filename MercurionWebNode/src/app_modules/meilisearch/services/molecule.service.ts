@@ -3,6 +3,7 @@ import { MoleculeDetail } from "../Models/DTO/molecule-detail.gql.dtos"
 import { MoleculeDetailModel } from "src/app_modules/chembl/Models/DTO/molecule-detail-model.interface"
 import { MeiliSearch } from "meilisearch"
 import { RpcException } from "@nestjs/microservices"
+import { MoleculeSearchResult } from "../Models/DTO/molecule-search-result.cls"
 
 @Injectable()
 export class MoleculeService {
@@ -45,7 +46,7 @@ export class MoleculeService {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     private async fetchFromChembl(molregno: string) {
-        const index = this.meiliClient.index('molecules_detail')
+        const index = this.meiliClient.index('molecule_details_chembl_36')
 
         const result = await index.getDocument(molregno).catch(() => {
             throw new RpcException(`MoleculeDetailNotFound::Molecule with molregno = ${molregno} not found`)
@@ -83,7 +84,7 @@ export class MoleculeService {
     }
 
     async getDetailsByMolregnos(molregnos: string[]): Promise<MoleculeDetail[]> {
-        const index = this.meiliClient.index('molecules_detail')
+        const index = this.meiliClient.index('molecule_details_chembl_36')
         const results = await Promise.all(
             molregnos.map(molregno =>
                 index.getDocument(molregno)
@@ -91,6 +92,24 @@ export class MoleculeService {
                     .catch(() => null)
             )
         );
+        return results.filter(x => !!x)
+    }
+
+    async getPreviewsByMolregnos(molregnos: string[]): Promise<MoleculeSearchResult[]> {
+        const index = this.meiliClient.index('molecule_previews_chembl_36')
+        const results: MoleculeSearchResult[] = []
+        for (const molregno of molregnos) {
+            let result: MoleculeSearchResult | null = null
+            try {
+                result = await index.getDocument(Number(molregno)) as unknown as MoleculeSearchResult
+            } catch {
+                // pass
+            }
+            if (result != null) {
+                results.push(result)
+            }
+
+        }
         return results.filter(x => !!x)
     }
 

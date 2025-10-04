@@ -2,12 +2,16 @@ import { Args, Query, Resolver } from '@nestjs/graphql'
 import { MoleculeDetail } from '../Models/DTO/molecule-detail.gql.dtos'
 import { MoleculeService } from '../services/molecule.service'
 import { Public } from 'src/metadata/metadata'
+import { MoleculeSearchResult } from '../Models/DTO/molecule-search-result.cls'
 
 
 @Resolver(() => MoleculeDetail)
 export class MoleculeResolver {
 
-    constructor(private readonly moleculeService: MoleculeService) { }
+    constructor(
+        private readonly moleculeService: MoleculeService
+
+    ) { }
 
     @Public()
     @Query(() => [MoleculeDetail])
@@ -17,6 +21,13 @@ export class MoleculeResolver {
         return this.moleculeService.getDetailsByMolregnos(molregnos)
     }
 
+    @Public()
+    @Query(() => [MoleculeSearchResult])
+    async moleculePreviewsByMolregnos(
+        @Args({ name: 'molregnos', type: () => [String] }) molregnos: string[]
+    ): Promise<MoleculeSearchResult[]> {
+        return this.moleculeService.getPreviewsByMolregnos(molregnos)
+    }
 
     @Public()
     @Query(() => MoleculeDetail)

@@ -59,7 +59,7 @@ services:
   pg_sl:
     image: postgres:16
     container_name: pg_sl
-    shm_size: "24gb"              # <— aumenta /dev/shm
+    shm_size: "4gb"              # <— aumenta /dev/shm
     command: >
       postgres
       -c shared_buffers=4GB
