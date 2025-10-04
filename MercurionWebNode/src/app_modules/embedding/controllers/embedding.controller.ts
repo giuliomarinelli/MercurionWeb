@@ -1,21 +1,16 @@
 // embedding/embedding.controller.ts
-import { Controller, Get, Query, UsePipes, ValidationPipe } from '@nestjs/common';
-import { EmbeddingService } from '../services/embedding.service';
+import { Controller, Get, Query } from '@nestjs/common';
 import { GetSimilarMolregnosDto } from '../DTO/get-similar-molregnos.dto';
+import { EmbeddingService, Neighbor } from '../services/embedding.service';
 import { Public } from 'src/metadata/metadata';
-
-
 
 @Controller('embedding')
 export class EmbeddingController {
-    constructor(private readonly embeddingService: EmbeddingService) { }
+    constructor(private readonly svc: EmbeddingService) { }
 
     @Public()
-    @Get('get-similar-molregnos')
-    @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
-    async getSimilarMolregnos(
-        @Query() query: GetSimilarMolregnosDto,
-    ): Promise<number[]> {
-        return this.embeddingService.getSimilarMolregnos(query);
+    @Get('/get-similar-molregnos')
+    getSimilarMolregnos(@Query() dto: GetSimilarMolregnosDto): Promise<Neighbor[]> {
+        return this.svc.getSimilarMolregnos(dto);
     }
 }
