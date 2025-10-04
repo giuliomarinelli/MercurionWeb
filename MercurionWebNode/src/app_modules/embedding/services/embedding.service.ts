@@ -57,21 +57,28 @@ export class EmbeddingService {
         // 2) Query con cast esplicito: float8[] -> vector
         //    Così evitiamo il formato testuale del vector.
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const rows: Array<{ molregno: number; similarity: number }> = await this.moleculeRepo.query(
-            `
-  SELECT
-    molregno,
-    1 - (embedding <=> $1::float8[]::vector) AS similarity
-  FROM molecule_embeddings
-  WHERE embedding IS NOT NULL
-    AND molregno <> $2
-  ORDER BY similarity DESC
-  LIMIT $3
-  `,
-            [embedding, molregno, n],
-        );
+        // prendo k + 5 per sicurezza e filtro in app
+        const k = n + 5;
 
-        return rows.map((r) => r.molregno);
+        const rows: Array<{ molregno: number; dist: number }> =
+            await this.moleculeRepo.query(
+                `
+    SET LOCAL hnsw.ef_search = 80;             -- tuning runtime (provalo anche 64 / 100)
+    SELECT molregno, (embedding <=> $1::float8[]::vector) AS dist
+    FROM molecule_embeddings
+    ORDER BY embedding <=> $1::float8[]::vector   -- usa l’indice HNSW
+    LIMIT $2
+    `,
+                [embedding, k],
+            );
+
+        // filtro lato app
+        const out = rows
+            .filter(r => r.molregno !== molregno)        // escludi il seed
+            .slice(0, n)
+            .map(r => r.molregno);
+
+        return out;
 
     }
 }
