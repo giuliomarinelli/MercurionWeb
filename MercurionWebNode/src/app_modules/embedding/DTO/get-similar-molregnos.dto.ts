@@ -1,6 +1,6 @@
 // embedding/dto/get-similar-molregnos.dto.ts
 import { Transform } from 'class-transformer';
-import { IsInt, IsOptional, Min } from 'class-validator';
+import { IsBoolean, IsInt, IsOptional, Min } from 'class-validator';
 
 export class GetSimilarMolregnosDto {
     @Transform(({ value }) => Number(value))
@@ -13,4 +13,9 @@ export class GetSimilarMolregnosDto {
     @IsInt()
     @Min(1)
     n?: number = 10;
+
+    @Transform(({ value }) => (value === undefined ? 10 : Boolean(value)))
+    @IsOptional()
+    @IsBoolean()
+    only_molregnos?: boolean = false;
 }

@@ -10,7 +10,11 @@ export class EmbeddingController {
 
     @Public()
     @Get('/get-similar-molregnos')
-    getSimilarMolregnos(@Query() dto: GetSimilarMolregnosDto): Promise<Neighbor[]> {
-        return this.svc.getSimilarMolregnos(dto);
+    async getSimilarMolregnos(@Query() dto: GetSimilarMolregnosDto): Promise<Neighbor[] | number[]> {
+        const result = await this.svc.getSimilarMolregnos(dto);
+        if (dto.only_molregnos) {
+            return result.map(r => r.molregno)
+        }
+        return result
     }
 }
