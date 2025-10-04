@@ -29,7 +29,7 @@ export class EmbeddingSyncController {
 
     @Sse('/preferred-names')
     preferredNames(
-        @Query('batch_size') batchSize = 10_000,
+        @Query('batch_size') batchSize = 50_000,
         @Query('restart') restart = false,
         @Query('overwrite_nulls') overwriteNulls = false,
     ): Observable<MessageEvent> {

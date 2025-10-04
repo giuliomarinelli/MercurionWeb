@@ -12,7 +12,7 @@ export class MoleculeEmbedding {
   @Column('text', { name: 'smiles' })
   smiles!: string;
 
-  @Column('varying character', { name: 'preferred_name', default: null })
+  @Column('varchar', { name: 'preferred_name', default: null })
   preferredName: string | null
 
   // pgvector (Nullable finché non calcoliamo)
