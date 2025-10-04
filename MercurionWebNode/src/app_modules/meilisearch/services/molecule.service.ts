@@ -136,7 +136,7 @@ export class MoleculeService {
             try {
                 result = await index.getDocument(Number(molregno)) as unknown as MoleculeSearchResult
                 if (!result.preferredName) {
-                    result.preferredName = 'Lead'
+                    result.preferredName = `Lead ${molregno}`
                 }
             } catch {
                 // pass

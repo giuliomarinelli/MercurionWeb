@@ -20,7 +20,7 @@ export class EmbeddingService implements OnModuleInit {
         await this.dataSource.query('SET hnsw.ef_search = 80'); // prova 60–120
     }
 
-    async getSimilarMolregnos({ molregno, n = 10 }: GetSimilarMolregnosDto): Promise<Neighbor[]> {
+    async getSimilarMolregnos({ molregno, n = 10, with_no_name = true }: GetSimilarMolregnosDto): Promise<Neighbor[]> {
         const row = await this.moleculeRepo.findOne({
             where: { molregno },
             select: ['embedding'],
@@ -44,12 +44,13 @@ export class EmbeddingService implements OnModuleInit {
         const EPS = 1e-12;
         const extra = Math.max(10, Math.ceil(n * 0.25)); // margine per scarti/duplicati
         const k = n + extra;
-
+        const where = with_no_name ? '' : 'WHERE preferred_name IS NOT NULL'
         const rows: Array<{ molregno: number; distance: number }> =
             await this.moleculeRepo.query(
                 `
-    SELECT molregno, (embedding <=> $1::float8[]::vector) AS distance
+    SELECT molregno, (embedding <=> $1::float8[]::vector) AS distance, preferred_name
     FROM molecule_embeddings
+    ${where}
     ORDER BY embedding <=> $1::float8[]::vector ASC
     LIMIT $2
     `,
