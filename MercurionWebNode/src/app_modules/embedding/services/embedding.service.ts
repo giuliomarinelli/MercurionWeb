@@ -57,18 +57,21 @@ export class EmbeddingService {
         // 2) Query con cast esplicito: float8[] -> vector
         //    Così evitiamo il formato testuale del vector.
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const rows: Array<{ molregno: number }> = await this.moleculeRepo.query(
+        const rows: Array<{ molregno: number; similarity: number }> = await this.moleculeRepo.query(
             `
-      SELECT molregno
-      FROM molecule_embeddings
-      WHERE embedding IS NOT NULL
-        AND molregno <> $2
-      ORDER BY embedding <-> $1::float8[]::vector
-      LIMIT $3
-      `,
+  SELECT
+    molregno,
+    1 - (embedding <=> $1::float8[]::vector) AS similarity
+  FROM molecule_embeddings
+  WHERE embedding IS NOT NULL
+    AND molregno <> $2
+  ORDER BY similarity DESC
+  LIMIT $3
+  `,
             [embedding, molregno, n],
         );
 
         return rows.map((r) => r.molregno);
+
     }
 }
