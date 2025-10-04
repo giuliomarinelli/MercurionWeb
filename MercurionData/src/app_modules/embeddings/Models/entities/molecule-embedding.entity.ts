@@ -12,6 +12,9 @@ export class MoleculeEmbedding {
   @Column('text', { name: 'smiles' })
   smiles!: string;
 
+  @Column('varying character', { name: 'preferred_name', default: null })
+  preferredName: string | null
+
   // pgvector (Nullable finché non calcoliamo)
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   @Column({ type: 'vector' as any, nullable: true })
