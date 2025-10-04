@@ -27,5 +27,17 @@ export const GET_MOLECULE_DETAIL = gql`
       blackBoxWarning
       synonyms
     }
-  }
-`;
+  }`
+
+export const GET_MOLECULE_PREVIEWS = gql`
+  query MoleculePreviewsByMolregnos($molregnos: [String]) {
+    moleculePreviewsByMolregnos(molregnos: $molregnos) {
+        id
+        preferredName
+        smiles
+        synonyms
+        mwFreebase
+        alogp
+        maxPhase
+    }
+  } `;

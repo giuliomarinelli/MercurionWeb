@@ -1,6 +1,7 @@
+import { MoleculeSearchResult } from './../../Models/graphql/molecule-search/molecule-search-result.interface';
 import { Injectable } from '@angular/core';
 import { Apollo } from 'apollo-angular';
-import { GET_MOLECULE_DETAIL } from '../../Models/graphql/molecule.queries';
+import { GET_MOLECULE_DETAIL, GET_MOLECULE_PREVIEWS } from '../../Models/graphql/molecule.queries';
 import { map, Observable } from 'rxjs';
 import { MoleculeDetail } from '../../Models/graphql/molecule.detail';
 
@@ -25,4 +26,19 @@ export class MoleculeService {
         map(result => result.data.moleculeByMolregno)
       )
   }
+
+  getMoleculePreviewsByMolregno(molregnos: string[]): Observable<MoleculeSearchResult[]> {
+    return this.apollo
+      .watchQuery<{ moleculePreviewsByMolregnos: MoleculeSearchResult[] }>({
+        query: GET_MOLECULE_PREVIEWS,
+        variables: { molregnos },
+        fetchPolicy: 'cache-first',
+        context: {
+          credentials: 'include'
+        }
+      }).valueChanges.pipe(
+        map(result => result.data.moleculePreviewsByMolregnos)
+      )
+  }
+
 }
