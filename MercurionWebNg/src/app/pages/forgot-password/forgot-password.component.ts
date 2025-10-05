@@ -3,10 +3,11 @@ import { FloatingInputComponent } from '../../components/common/floating-input/f
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AccountService } from '../../services/account.service';
 import { Subscription } from 'rxjs';
+import { TurnstileComponent } from '../../components/common/turnstile/turnstile.component';
 
 @Component({
   selector: 'app-forgot-password',
-  imports: [FloatingInputComponent, ReactiveFormsModule],
+  imports: [FloatingInputComponent, ReactiveFormsModule, TurnstileComponent],
   template: `
 
     <h1 class="text-2xl mt-2 2xs:text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center text-light-accent-primary dark:text-dark-accent-primary">
@@ -42,11 +43,26 @@ import { Subscription } from 'rxjs';
           <button
             type="button"
             (click)="send()"
-            [disabled]="email.invalid"
+            [disabled]="email.invalid || !turnstileToken()"
             class="relative top-[10px] w-full py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary/80 dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary/60 disabled:hover:dark:bg-dark-accent-primary/80"
           >
             Recupera
           </button>
+          <div class="flex justify-center mt-10">
+            @if (loadingTurnstile()) {
+              <div
+                class="w-[300px] h-[71px] overflow-hidden transition-all bg-neutral-200 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 animate-pulse skeleton-pulse"
+              >
+                <span class="sr-only">Loading CAPTCHA…</span>
+              </div>
+            }
+            <app-turnstile
+              (token)="onTurnstileToken($event)"
+              (widgetReady)="onTurnstileRender()"
+              (refresh)="loadingTurnstile.set(true)"
+              class="block h-[71px] mt-1"
+            />
+          </div>
         </div>
       }
       @case (2) {
@@ -61,6 +77,10 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
 
   private readonly accountService = inject(AccountService)
 
+  protected loadingTurnstile = signal<boolean>(true)
+  protected resetTurnstile = signal<boolean>(false)
+  protected turnstileToken = signal<string | null>(null)
+
   private recoverSub?: Subscription
   private servErrSub?: Subscription
 
@@ -70,10 +90,10 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
 
 
   send(): void {
-    if (this.email.valid) {
-      this.recoverSub = this.accountService.sendForgottenPasswordLink({ email: this.email.value! })
+    if (this.email.valid && this.turnstileToken()) {
+      this.recoverSub = this.accountService.sendForgottenPasswordLink({ email: this.email.value! }, this.turnstileToken()!)
         .subscribe({
-          next: (res) => {
+          next: () => {
             this.step.set(2)
           },
           error: () => {
@@ -81,6 +101,16 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
           }
         })
     }
+  }
+
+  onTurnstileToken(token: string): void {
+    this.serverError.set(false)
+    this.turnstileToken.set(token)
+  }
+
+  onTurnstileRender(): void {
+    console.log('render')
+    this.loadingTurnstile.set(false)
   }
 
   ngOnInit(): void {

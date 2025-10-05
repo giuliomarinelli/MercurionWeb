@@ -121,9 +121,6 @@ export class LoginComponent implements OnInit, OnDestroy {
   onTurnstileToken(token: string): void {
     this.serverErrorStep.set(0)
     this.turnstileToken.set(token)
-    console.log('TOKEN CAMBIATO:', token)
-    console.log('Password valid:', this.loginForm.controls['password'].valid)
-    console.log('Form valid:', this.loginForm.valid)
   }
 
   onTurnstileRender(): void {

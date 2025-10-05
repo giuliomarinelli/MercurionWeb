@@ -50,9 +50,12 @@ export class AccountService {
     }
   }
 
-  public sendForgottenPasswordLink(dto: EmailDTO): Observable<ConfirmDTO> {
+  public sendForgottenPasswordLink(dto: EmailDTO, turnstileToken: string): Observable<ConfirmDTO> {
     return this.http.post<ConfirmDTO>('/api/account/forgotten-password', dto, {
-      withCredentials: true
+      withCredentials: true,
+      headers: {
+        'X-Challenge-Token': turnstileToken
+      }
     })
   }
 

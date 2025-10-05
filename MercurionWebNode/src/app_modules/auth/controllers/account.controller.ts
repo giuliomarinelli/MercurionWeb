@@ -1,6 +1,6 @@
 import { ChangePasswordDTO } from './../Models/DTO/change-password.dto';
 import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum';
-import { BadRequestException, Body, Controller, Get, NotFoundException, Param, Patch, Post, Query, UnauthorizedException, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, NotFoundException, Param, Patch, Post, Query, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
 import { UserRegisterDTO } from 'src/app_modules/user/Models/DTO/user-register.cls.dto';
 import { AuthenticatedUserId, Authorization, Public } from 'src/metadata/metadata';
 import { ConfirmChangeDTO, ConfirmDTO, ConfirmMfaChange, ConfirmWithObsContDTO } from 'src/Models/confirm-responses.dto';
@@ -13,6 +13,7 @@ import { TotpDTO } from '../Models/DTO/totp.cls.dto';
 import { ChangePhoneDTO } from '../Models/DTO/change-phone.cls.dto';
 import { EmailDTO } from '../Models/DTO/change-email.cls.dto';
 import { UserService } from 'src/app_modules/user/services/user.service';
+import { TurnstileGuard } from '../guards/turnstile.guard';
 
 
 @Controller('account')
@@ -152,6 +153,7 @@ export class AccountController {
     }
 
     @Public()
+    @UseGuards(TurnstileGuard)
     @Post('/forgotten-password')
     public async forgottenPassword(@Body() dto: EmailDTO): Promise<ConfirmDTO> {
         const { email } = dto
