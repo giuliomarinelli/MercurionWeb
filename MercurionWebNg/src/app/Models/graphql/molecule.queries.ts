@@ -39,5 +39,6 @@ export const GET_MOLECULE_PREVIEWS = gql`
         mwFreebase
         alogp
         maxPhase
+        known
     }
   } `;

@@ -6,4 +6,5 @@ export interface MoleculeSearchResult {
   mwFreebase?: number
   alogp?: number
   maxPhase?: number
+  known: boolean
 }

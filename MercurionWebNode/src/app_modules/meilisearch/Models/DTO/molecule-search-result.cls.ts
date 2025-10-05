@@ -24,4 +24,7 @@ export class MoleculeSearchResult {
     @Field(() => Int, { nullable: true })
     maxPhase?: number
 
+    @Field(() => Boolean)
+    known: boolean
+
 }

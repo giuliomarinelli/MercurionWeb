@@ -71,6 +71,7 @@ export class MoleculeService {
 
         for (const molregno of molregnos) {
             try {
+
                 const raw = (await index.getDocument(
                     Number(molregno)
                 )) as unknown as MoleculeSearchResult;
@@ -79,7 +80,7 @@ export class MoleculeService {
                 const normalizedSynonyms = this.normalizeSynonyms(
                     (raw as any)?.synonyms as Maybe<string | string[]>
                 );
-
+                const known = raw.preferredName != null
                 const preferredName =
                     raw?.preferredName && String(raw.preferredName).trim().length > 0
                         ? String(raw.preferredName).trim()
@@ -87,6 +88,7 @@ export class MoleculeService {
 
                 results.push({
                     ...raw,
+                    known,
                     preferredName,
                     synonyms: normalizedSynonyms,
                 });

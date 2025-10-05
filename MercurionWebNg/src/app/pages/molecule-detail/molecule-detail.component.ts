@@ -2,10 +2,10 @@ import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { EmbeddingService } from './../../services/embedding.service';
 import { SimilarsComponent } from './../../components/molecule-detail/similars/similars.component';
 // Refactor #1: MoleculeDetailComponent
-import { Component, DestroyRef, effect, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, effect, OnDestroy, OnInit, Signal, signal, WritableSignal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MoleculeService } from '../../services/graphql/molecule.service';
-import { switchMap, Observable, catchError, of, Subscription, forkJoin, map, retry, tap, distinctUntilChanged, shareReplay } from 'rxjs';
+import { switchMap, Observable, catchError, of, Subscription, forkJoin, map, retry, tap, distinctUntilChanged, shareReplay, startWith } from 'rxjs';
 import { MoleculeDetail } from '../../Models/graphql/molecule.detail';
 import { AsyncPipe } from '@angular/common';
 import { ThemeManagerService } from '../../services/context/theme-manager.service';
@@ -20,6 +20,7 @@ import { UserContextService } from '../../services/context/user-context.service'
 import { MercurionAiService as MercurionAIService } from '../../services/mercurion-ai.service';
 import { EditingLayerComponent } from '../../components/molecule-detail/editing-layer/editing-layer.component';
 import { MoleculeSearchResult } from '../../Models/graphql/molecule-search/molecule-search-result.interface';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-molecule-detail',
@@ -34,7 +35,8 @@ import { MoleculeSearchResult } from '../../Models/graphql/molecule-search/molec
     MoleculeCtaChemblComponent,
     T1PredictionCardComponent,
     EditingLayerComponent,
-    SimilarsComponent
+    SimilarsComponent,
+    ReactiveFormsModule
   ],
   template: `
     @if (molecule$ | async; as molecule) {
@@ -79,12 +81,56 @@ import { MoleculeSearchResult } from '../../Models/graphql/molecule-search/molec
             </div>
           </div>
         </section>
-
         <h2 class="font-semibold text-light-accent-primary dark:text-dark-accent-primary text-center sm:text-left text-xl">
             Analoghi suggeriti
-          </h2>
+        </h2>
+
+        <div class="flex gap-3">
+          <div class="flex h-6 shrink-0 items-center">
+            <!-- wrapper visivo -->
+            <label class="relative inline-flex items-center gap-2 cursor-pointer select-none">
+              <input
+                id="onlyKnown"
+                type="checkbox"
+                name="onlyKnown"
+                aria-describedby="experimental-compounds-description"
+                class="peer sr-only"
+                [formControl]="onlyKnown"
+              />
+
+              <span
+                class="inline-block size-4 rounded-sm border
+                       border-gray-300 bg-white
+                       peer-checked:bg-indigo-600 peer-checked:border-indigo-600
+                       dark:border-white/10 dark:bg-white/5
+                       dark:peer-checked:bg-indigo-500 dark:peer-checked:border-indigo-500"
+                aria-hidden="true"
+              ></span>
+
+              <svg
+                viewBox="0 0 14 14"
+                fill="none"
+                class="pointer-events-none hidden peer-checked:block
+                       absolute left-[2px] top-1/2 -translate-y-1/2 size-3.5 z-10"
+                aria-hidden="true"
+              >
+                <path d="M3 8L6 11L11 3.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="stroke-white"/>
+              </svg>
+
+              <span class="text-sm font-medium text-gray-900 dark:text-white">Mostra solo composti noti</span>
+            </label>
+            <p
+              id="comments-description"
+              class="text-sm text-gray-500 dark:text-gray-400 ml-2"
+            >
+              Deselezionando questa opzione potrai vedere anche i lead sperimentali
+            </p>
+          </div>
+        </div>
+
+
         <section class="rounded-md border border-slate-300 dark:border-slate-600 relative bottom-4">
-          <app-similars [molecules]="similarMols() ?? []" />
+          <app-similars [molecules]="similarMols() ?? []" [onlyKnown]="onlyKnownSig()" />
         </section>
 
         @if (userContext.initials() !== '') {
@@ -111,14 +157,23 @@ import { MoleculeSearchResult } from '../../Models/graphql/molecule-search/molec
     }
   `,
 })
-export class MoleculeDetailComponent implements OnDestroy {
+export class MoleculeDetailComponent implements OnInit, OnDestroy {
 
   molecule$!: Observable<MoleculeDetail | null>
   viewerReady = signal<boolean>(false)
   similarViewerReady = signal<boolean>(false)
   fetchError = signal<boolean>(false)
   similarMols = signal<MoleculeSearchResult[] | undefined>(undefined)
+  similarMolsCache = signal<MoleculeSearchResult[]>([])
   private molCached?: MoleculeDetail
+  private onlySub?: Subscription
+
+  onlyKnown = new FormControl<boolean>(true, { nonNullable: true })
+
+  onlyKnownSig: Signal<boolean> = toSignal(
+  this.onlyKnown.valueChanges,
+  { initialValue: this.onlyKnown.value }
+)
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -131,8 +186,10 @@ export class MoleculeDetailComponent implements OnDestroy {
   ) {
     effect(() => {
       this.fetchData()
-      this.fetchSimilar()
       window.addEventListener('storage', this.handleCrossTabFetchData)
+    })
+    effect(() => {
+      this.similarMols.set(this.onlyKnownSig() ? this.similarMolsCache().filter(mol => mol.known) : this.similarMolsCache())
     })
   }
 
@@ -189,7 +246,7 @@ export class MoleculeDetailComponent implements OnDestroy {
   }
 
   private fetchSimilar(): void {
-    this.route.paramMap.pipe(
+    this.onlySub = this.route.paramMap.pipe(
       map(params => {
         const id = params.get('molregno');
         if (!id) throw new Error('UndefinedMolregno');
@@ -207,11 +264,19 @@ export class MoleculeDetailComponent implements OnDestroy {
       })
     )
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(previews => this.similarMols.set(previews));
+      .subscribe(previews => {
+        this.similarMolsCache.set(previews)
+        this.similarMols.set(previews.filter(mol => mol.known && this.onlyKnown.value === true))
+      });
+  }
+
+  ngOnInit(): void {
+    this.fetchSimilar()
   }
 
   ngOnDestroy(): void {
     window.removeEventListener('storage', this.handleCrossTabFetchData)
+    this.onlySub?.unsubscribe()
   }
 
 }

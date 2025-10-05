@@ -210,6 +210,7 @@ type MoleculeSearchResult {
   mwFreebase: Float
   alogp: Float
   maxPhase: Int
+  known: Boolean!
 }
 
 type Query {
