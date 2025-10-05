@@ -1,14 +1,15 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { MoleculeDetail } from "../Models/DTO/molecule-detail.gql.dtos";
-import { MoleculeDetailModel } from "src/app_modules/chembl/Models/DTO/molecule-detail-model.interface";
 import { MeiliSearch } from "meilisearch";
 import { RpcException } from "@nestjs/microservices";
 import { MoleculeSearchResult } from "../Models/DTO/molecule-search-result.cls";
+import { MoleculeDetailModel } from "src/app_modules/chembl/Models/DTO/molecule-detail-model.interface";
 
 type Maybe<T> = T | null | undefined;
 
 @Injectable()
 export class MoleculeService {
+    
     constructor(
         @Inject("MEILISEARCH_CLIENT")
         private readonly meiliClient: MeiliSearch

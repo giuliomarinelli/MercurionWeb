@@ -154,7 +154,11 @@ export class AccountController {
     @Post('/forgotten-password')
     public async forgottenPassword(@Body() dto: EmailDTO): Promise<ConfirmDTO> {
         const { email } = dto
-        await this.accountService.sendForgottenPasswordLink(email)
+        try {
+            await this.accountService.sendForgottenPasswordLink(email)
+        } catch {
+            // pass 
+        }
         return this._r.ok('Password recovery link sent to user email')
     }
 

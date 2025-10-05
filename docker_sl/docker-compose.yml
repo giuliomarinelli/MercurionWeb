@@ -34,28 +34,6 @@ services:
     networks:
       - spectralume_network
 
-  mariadb_sl:
-    image: mariadb:latest
-    container_name: mariadb_sl
-    environment:
-      MYSQL_DATABASE: spectralume
-      MYSQL_USER: root
-      MYSQL_PASSWORD: root
-      MYSQL_ROOT_PASSWORD: root
-    ports:
-      - "3307:3306"
-    volumes:
-      - mariadb_data:/var/lib/mysql
-      - ./chembl_data:/data
-    restart: unless-stopped
-    networks:
-      - spectralume_network
-    command:
-      - --server-id=1
-      - --log-bin=mysql-bin
-      - --binlog-format=MIXED
-      - --binlog-do-db=chembl_35
-
   pg_sl:
     image: postgres:16
     container_name: pg_sl
@@ -125,8 +103,6 @@ services:
 
 volumes:
   redis_data:
-    driver: local
-  mariadb_data:
     driver: local
   meili_data:
     driver: local

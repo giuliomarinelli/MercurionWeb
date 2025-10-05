@@ -16,7 +16,6 @@ import { SocketIoModule } from './app_modules/socket.io/socket.io.module';
 import { MercurionModule } from './app_modules/mercurion/mercurion.module';
 import { ResponseService } from './services/response.service';
 import { NotificationModule } from './app_modules/notification/notification.module';
-import { ChemblModule } from './app_modules/chembl/chembl.module';
 import { MeilisearchModule } from './app_modules/meilisearch/meilisearch.module';
 import { GraphQLModule } from '@nestjs/graphql'
 import { TestController } from './test.controller';
@@ -42,12 +41,6 @@ import { EmbeddingModule } from './app_modules/embedding/embedding.module';
       useFactory: (configService: ConfigService) => configService.get<TypeOrmModuleOptions>("Data.sqlDB") ?? {},
       inject: [ConfigService]
     }),
-    TypeOrmModule.forRootAsync({
-      name: 'ChemblDB',
-      imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => configService.get<TypeOrmModuleOptions>("Data.chemblDB") ?? {},
-      inject: [ConfigService]
-    }),
     MailerModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => configService.get<MailerOptions>("Email") ?? {},
@@ -69,7 +62,6 @@ import { EmbeddingModule } from './app_modules/embedding/embedding.module';
     SocketIoModule,
     MercurionModule,
     NotificationModule,
-    ChemblModule,
     MeilisearchModule,
     SocketIoModule,
     DropboxObjectStoreModule,

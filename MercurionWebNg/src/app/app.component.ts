@@ -122,7 +122,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   private currentPath = signal<string>('');
   private firstNavigationDone = signal<boolean>(false);
 
-  private publicExact = new Set(['/login', '/register', '/forgot', '/privacy', '/']);
+  private publicExact = new Set(['/login', '/register', '/forgot', '/privacy', '/', '/forgot-password']);
   private publicPrefixes = ['/molecules/detail'];
 
   @ViewChild('scrollHost') private scrollHostRef!: ElementRef<HTMLElement>;

@@ -1,9 +1,6 @@
 import { Module } from '@nestjs/common';
-import { MoleculeSyncService } from './services/molecule-sync.service';
 import { ConfigService } from '@nestjs/config';
 import { Meilisearch } from 'meilisearch';
-import { ChemblModule } from '../chembl/chembl.module';
-import { MoleculeDetailSyncService } from './services/molecule-detail-sync.service';
 import { MoleculeSearchService } from './services/molecule-search.service';
 import { MoleculeSearchResolver } from './resolvers/molecule-search.resolver';
 import { MeiliLoggerService } from './services/meili-logger.service';
@@ -11,9 +8,8 @@ import { MoleculeService } from './services/molecule.service';
 import { MoleculeResolver } from './resolvers/molecule.resolver';
 
 @Module({
-    imports: [ChemblModule],
     providers: [
-        MoleculeSyncService,
+
         {
             provide: 'MEILISEARCH_CLIENT',
             useFactory: (configService: ConfigService) => new Meilisearch({
@@ -22,14 +18,13 @@ import { MoleculeResolver } from './resolvers/molecule.resolver';
             }),
             inject: [ConfigService]
         },
-        MoleculeDetailSyncService,
         MoleculeSearchService,
         MoleculeSearchResolver,
         MeiliLoggerService,
         MoleculeService,
         MoleculeResolver
     ],
-    exports: [MoleculeSyncService, MoleculeDetailSyncService, MoleculeService, 'MEILISEARCH_CLIENT']
+    exports: [MoleculeService, 'MEILISEARCH_CLIENT']
 
 })
 export class MeilisearchModule { }
