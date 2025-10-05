@@ -248,7 +248,7 @@ export class AccountService {
         }
         const changePasswordToken = await this.jwtTools.generateToken(userId as UUID, TokenType.ChangePasswordToken)
         const firstName = await this.userService.getUserFirstNameById(userId as UUID)
-        const url = `${this.configService.get<string>("App.activationOrigin")}/account/change_password?t=${changePasswordToken}`
+        const url = `${this.configService.get<string>("App.activationOrigin")}/password-recovery?t=${changePasswordToken}`
         await this.mailService.sendEmail(
             email,
             'Mercurion: recupera password',
@@ -261,7 +261,8 @@ export class AccountService {
     }
 
     public async forgottenPassword(newPassword: string, changePasswordToken: string): Promise<void> | never {
-        const { sub: userId } = await this.jwtTools.verifyTokenAndGetPayload(changePasswordToken, TokenType.ChangePasswordToken)
+        const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(changePasswordToken, TokenType.ChangePasswordToken)
+        await this.sessionService.revokeToken(jti)
         await this.userService.changePassword(userId, newPassword)
     }
 

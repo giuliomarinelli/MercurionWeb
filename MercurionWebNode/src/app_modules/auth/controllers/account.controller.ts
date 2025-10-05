@@ -151,6 +151,7 @@ export class AccountController {
         return this._r.ok('Password changed successfully')
     }
 
+    @Public()
     @Post('/forgotten-password')
     public async forgottenPassword(@Body() dto: EmailDTO): Promise<ConfirmDTO> {
         const { email } = dto
@@ -162,6 +163,7 @@ export class AccountController {
         return this._r.ok('Password recovery link sent to user email')
     }
 
+    @Public()
     @Post('/password-recovery')
     public async passwordRecovery(
         @Authorization() changePasswordToken: string,
@@ -172,6 +174,7 @@ export class AccountController {
         return this._r.ok('Password changed successfully')
     }
 
+    @Public()
     @Get('/obscured-email')
     public async getObscuredEmail(@AuthenticatedUserId() userId: UUID): Promise<string> {
         return this.accountService.getObscuredEmailByUserId(userId)
