@@ -14,6 +14,7 @@ import { ChangePhoneDTO } from '../Models/DTO/change-phone.cls.dto';
 import { EmailDTO } from '../Models/DTO/change-email.cls.dto';
 import { UserService } from 'src/app_modules/user/services/user.service';
 import { TurnstileGuard } from '../guards/turnstile.guard';
+import { SercurityService } from '../services/sercurity.service';
 
 
 @Controller('account')
@@ -23,7 +24,8 @@ export class AccountController {
         private readonly accountService: AccountService,
         private readonly _r: ResponseService,
         private readonly mfaService: MfaService,
-        private readonly userService: UserService
+        private readonly userService: UserService,
+        private readonly securityService: SercurityService
     ) { }
 
     @Public()
@@ -155,14 +157,17 @@ export class AccountController {
     @Public()
     @UseGuards(TurnstileGuard)
     @Post('/forgotten-password')
-    public async forgottenPassword(@Body() dto: EmailDTO): Promise<ConfirmDTO> {
+    public async forgottenPassword(@Body() dto: EmailDTO): Promise<ConfirmWithObsContDTO> {
         const { email } = dto
         try {
             await this.accountService.sendForgottenPasswordLink(email)
         } catch {
             // pass 
         }
-        return this._r.ok('Password recovery link sent to user email')
+        return {
+            ...this._r.ok('Password recovery link sent to user email'),
+            obscuredEmail: this.securityService.maskEmail(email)
+        }
     }
 
     @Public()
@@ -174,12 +179,6 @@ export class AccountController {
         const { newPassword } = changePasswordDTO
         await this.accountService.forgottenPassword(newPassword, changePasswordToken)
         return this._r.ok('Password changed successfully')
-    }
-
-    @Public()
-    @Get('/obscured-email')
-    public async getObscuredEmail(@AuthenticatedUserId() userId: UUID): Promise<string> {
-        return this.accountService.getObscuredEmailByUserId(userId)
     }
 
 }

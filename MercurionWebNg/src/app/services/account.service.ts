@@ -4,6 +4,7 @@ import { UserData } from '../Models/account/account.models';
 import { Observable, of, tap } from 'rxjs';
 import { EmailDTO } from '../Models/types/auth/DTO/login.dtos';
 import { ConfirmDTO } from '../Models/confirm.dtos';
+import { ConfirmWithObsContDTO } from '../Models/types/interfaces/confirm.responses';
 
 
 @Injectable({
@@ -50,7 +51,7 @@ export class AccountService {
     }
   }
 
-  public sendForgottenPasswordLink(dto: EmailDTO, turnstileToken: string): Observable<ConfirmDTO> {
+  public sendForgottenPasswordLink(dto: EmailDTO, turnstileToken: string): Observable<ConfirmWithObsContDTO> {
     return this.http.post<ConfirmDTO>('/api/account/forgotten-password', dto, {
       withCredentials: true,
       headers: {
