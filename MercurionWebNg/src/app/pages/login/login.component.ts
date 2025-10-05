@@ -3,7 +3,7 @@ import { Component, computed, effect, ElementRef, OnDestroy, OnInit, Signal, sig
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ThemeManagerService } from '../../services/context/theme-manager.service';
 import { PublicPipe } from '../../pipes/public.pipe';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { Subscription } from 'rxjs';
 import { HttpErrorRes } from '../../Models/types/interfaces/error-res.dto';
@@ -24,9 +24,10 @@ import { FloatingInputComponent } from '../../components/common/floating-input/f
 
 
 
+
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, PublicPipe, TurnstileComponent, NgxSkeletonLoaderModule, FloatingInputComponent],
+  imports: [ReactiveFormsModule, PublicPipe, TurnstileComponent, NgxSkeletonLoaderModule, FloatingInputComponent, RouterLink],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })
@@ -96,7 +97,8 @@ export class LoginComponent implements OnInit, OnDestroy {
   ) {
     this.loginForm = this.fb.group({
       email: this.fb.control(null, [Validators.required, Validators.email]),
-      password: this.fb.control(null, [Validators.required])
+      password: this.fb.control(null, [Validators.required]),
+      remember: this.fb.control(false)
     })
     this.passwordStatusSignal = toSignal(
       this.loginForm.controls['password'].statusChanges,

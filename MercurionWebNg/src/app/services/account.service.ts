@@ -2,6 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { UserData } from '../Models/account/account.models';
 import { Observable, of, tap } from 'rxjs';
+import { EmailDTO } from '../Models/types/auth/DTO/login.dtos';
+import { ConfirmDTO } from '../Models/confirm.dtos';
 
 
 @Injectable({
@@ -47,4 +49,11 @@ export class AccountService {
       )
     }
   }
+
+  public sendForgottenPasswordLink(dto: EmailDTO): Observable<ConfirmDTO> {
+    return this.http.post<ConfirmDTO>('/api/account/forgotten-password', dto, {
+      withCredentials: true
+    })
+  }
+
 }

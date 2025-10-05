@@ -265,6 +265,14 @@ export class AccountService {
         await this.userService.changePassword(userId, newPassword)
     }
 
+    public async getObscuredEmailByUserId(userId: UUID): Promise<string> | never {
+        const email = await this.userService.getUserEmailById(userId)
+        if (!email) {
+            throw new RpcException('Unauthenticated')
+        }
+        return this.securityService.maskEmail(email)
+    }
+
 
 
 }

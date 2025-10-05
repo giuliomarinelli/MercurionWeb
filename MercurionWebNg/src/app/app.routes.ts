@@ -62,5 +62,9 @@ export const routes: Routes = [
     path: 'molecules/editor',
     loadComponent: () => import('./pages/molecule-editor/molecule-editor.component').then(m => m.MoleculeEditorComponent),
     canActivate: [AuthGuard]
+  },
+  {
+    path: 'forgot-password',
+    loadComponent: () => import('./pages/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent)
   }
 ]

@@ -42,9 +42,12 @@ export class MoleculeSearchService {
             filter: searchParams.filter.length > 0 ? searchParams.filter : undefined,
         });
 
+        
+
         return results.hits.filter(hit => hit.preferredName != null).map(hit => {
             hit.synonyms = hit.synonyms?.split(';') as string[]
             hit.synonyms = hit.synonyms?.map((syn: string) => syn.trim()) as string[]
+            hit.known = true
             return hit
         }) as MoleculeSearchResult[]
 

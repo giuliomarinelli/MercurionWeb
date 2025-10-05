@@ -168,4 +168,9 @@ export class AccountController {
         return this._r.ok('Password changed successfully')
     }
 
+    @Get('/obscured-email')
+    public async getObscuredEmail(@AuthenticatedUserId() userId: UUID): Promise<string> {
+        return this.accountService.getObscuredEmailByUserId(userId)
+    }
+
 }
