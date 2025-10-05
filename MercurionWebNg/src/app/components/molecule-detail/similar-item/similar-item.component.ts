@@ -4,7 +4,7 @@ import {
   NgZone
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { DecimalPipe } from '@angular/common';
+import { DecimalPipe, NgClass } from '@angular/common';
 import { MoleculeViewerComponent } from '../../chem/molecule-viewer/molecule-viewer.component';
 import { SearchContextService } from '../../../services/context/search-context.service';
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
@@ -14,13 +14,16 @@ import { MoleculeSearchResult } from
 @Component({
   selector: 'app-similar-item',
   standalone: true,
-  imports: [DecimalPipe, RouterLink, MoleculeViewerComponent],
+  imports: [DecimalPipe, RouterLink, MoleculeViewerComponent, NgClass],
   template: `
     <a [routerLink]="_pathToMolecule()" (click)="searchContext.close()"
-       class="flex items-center gap-3 p-3 rounded-lg hover:bg-indigo-50
-              dark:hover:bg-slate-800 cursor-pointer transition">
+        [ngClass]="{
+          'bg-slate-100 dark:bg-slate-800/80 hover:bg-indigo-50 dark:hover:bg-slate-800': _i() % 2 !== 0,
+          'hover:bg-slate-100/40 dark:hover:bg-slate-700': _i() % 2 === 0
+          }"
+       class="flex items-center gap-3 p-3 cursor-pointer transition h-[90px]">
 
-      <div class="w-12 h-12 flex-shrink-0 rounded-lg overflow-hidden relative">
+      <div class="w-12 h-12 flex-shrink-0 overflow-hidden relative">
         @if (!viewerReady()) {
           <div class="absolute inset-0 z-10 animate-pulse
                       bg-slate-200 dark:bg-slate-700"></div>
@@ -63,6 +66,7 @@ export class SimilarItemComponent implements OnDestroy {
   _molecule = signal<MoleculeSearchResult | undefined>(undefined);
   _pathToMolecule = signal<string>('')
   _query = signal<string>('')
+  _i = signal<number>(0)
   isDarkMode = signal<boolean>(false)
   viewerReady = signal<boolean>(false)
 
@@ -118,6 +122,11 @@ export class SimilarItemComponent implements OnDestroy {
 
     // nel caso l’IO fosse stato detachato:
     this.zone.runOutsideAngular(() => this.io.observe(this.host.nativeElement));
+  }
+
+  @Input({ required: true })
+  set i(i: number) {
+    this._i.set(i)
   }
 
   ngOnDestroy() {

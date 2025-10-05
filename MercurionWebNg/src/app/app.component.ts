@@ -1,25 +1,39 @@
-import { AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, OnDestroy, OnInit, ViewChild, computed, effect, signal, Signal } from '@angular/core'
-import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router'
-import { HeaderComponent } from './components/common/header/header.component'
-import { ThemeManagerService } from './services/context/theme-manager.service'
-import { SearchOverlayComponent } from './components/search-overlay/search-overlay/search-overlay.component'
-import { SearchContextService } from './services/context/search-context.service'
-import { FooterComponent } from './components/common/footer/footer.component'
-import { NgxxSpinnerComponent } from './components/common/ngxx-spinner/ngxx-spinner.component'
-import { filter, Subscription } from 'rxjs'
-import { ToastComponent } from './components/common/toast/toast.component'
-import { ToastService } from './services/toast.service'
-import { UserContextService } from './services/context/user-context.service'
-import { PathService } from './services/path.service'
-import { SidenavContextService } from './services/context/sidenav-context.service'
-import { DesignService } from './services/design.service'
-import { SidenavComponent } from './components/common/sidenav/sidenav.component'
-import { SessionSyncService } from './services/session-sync.service'
-import { CollectionSaveOverlayComponent } from './components/collection-save-overlay/collection-save-overlay.component'
-import { CollectionSaveOverlayContextService } from './services/context/save-to-collection-context.service'
+import {
+  AfterViewInit,
+  Component,
+  CUSTOM_ELEMENTS_SCHEMA,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  computed,
+  effect,
+  signal,
+  Signal,
+  NgZone,
+} from '@angular/core';
+import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { HeaderComponent } from './components/common/header/header.component';
+import { ThemeManagerService } from './services/context/theme-manager.service';
+import { SearchOverlayComponent } from './components/search-overlay/search-overlay/search-overlay.component';
+import { SearchContextService } from './services/context/search-context.service';
+import { FooterComponent } from './components/common/footer/footer.component';
+import { NgxxSpinnerComponent } from './components/common/ngxx-spinner/ngxx-spinner.component';
+import { filter, Subscription } from 'rxjs';
+import { ToastComponent } from './components/common/toast/toast.component';
+import { ToastService } from './services/toast.service';
+import { UserContextService } from './services/context/user-context.service';
+import { PathService } from './services/path.service';
+import { SidenavContextService } from './services/context/sidenav-context.service';
+import { DesignService } from './services/design.service';
+import { SidenavComponent } from './components/common/sidenav/sidenav.component';
+import { SessionSyncService } from './services/session-sync.service';
+import { CollectionSaveOverlayComponent } from './components/collection-save-overlay/collection-save-overlay.component';
+import { CollectionSaveOverlayContextService } from './services/context/save-to-collection-context.service';
 
 @Component({
   selector: 'app-root',
+  standalone: true,
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   imports: [
     RouterOutlet,
@@ -29,7 +43,7 @@ import { CollectionSaveOverlayContextService } from './services/context/save-to-
     NgxxSpinnerComponent,
     ToastComponent,
     SidenavComponent,
-    CollectionSaveOverlayComponent
+    CollectionSaveOverlayComponent,
   ],
   template: `
     <div class="flex flex-col h-screen">
@@ -76,7 +90,8 @@ import { CollectionSaveOverlayContextService } from './services/context/save-to-
             <app-sidenav />
           </aside>
         }
-        <section class="content flex flex-col flex-1 overflow-y-auto
+        <section #scrollHost
+          class="content flex flex-col flex-1 overflow-y-auto
           transition-[margin] duration-500"
           [class.ml-64]="sidenavContext.isOpen() && userContext.initials() && design.minBk('xl')()">
           <main class="flex-1 p-4 block">
@@ -94,29 +109,30 @@ import { CollectionSaveOverlayContextService } from './services/context/save-to-
     }
     <app-toast [context]="toastService.context()" />
     <app-ngxx-spinner />
-  `
+  `,
 })
 export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
+  title = 'MercurionWebNg';
 
-  title = 'MercurionWebNg'
-  isDarkTheme: Signal<boolean> = computed(() => this.themeManagerService.theme() === 'dark')
-  headerHeight = signal(64)
-  private routeSub?: Subscription
+  isDarkTheme: Signal<boolean> = computed(() => this.themeManagerService.theme() === 'dark');
+  headerHeight = signal(64);
 
-  private currentPath = signal<string>('')
-  private firstNavigationDone = signal<boolean>(false)
+  private routeSub?: Subscription;
+
+  private currentPath = signal<string>('');
+  private firstNavigationDone = signal<boolean>(false);
 
   private publicExact = new Set(['/login', '/register', '/forgot', '/privacy', '/']);
   private publicPrefixes = ['/molecules/detail'];
 
-  @ViewChild(HeaderComponent, { read: ElementRef })
-  headerRef!: ElementRef<HTMLElement>
+  @ViewChild('scrollHost') private scrollHostRef!: ElementRef<HTMLElement>;
+  @ViewChild(HeaderComponent, { read: ElementRef }) headerRef!: ElementRef<HTMLElement>;
 
   constructor(
     private readonly themeManagerService: ThemeManagerService,
     protected readonly searchContextService: SearchContextService,
     private readonly router: Router,
-    private readonly route: ActivatedRoute,
+    private readonly zone: NgZone,
     protected readonly toastService: ToastService,
     protected readonly userContext: UserContextService,
     private readonly pathService: PathService,
@@ -125,69 +141,67 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly sessionSync: SessionSyncService,
     protected readonly saveOverlayContext: CollectionSaveOverlayContextService
   ) {
-    this.sessionSync.syncSession();   // ok se ti serve qui
+    // Mantieni la tua sync
+    this.sessionSync.syncSession();
 
-    // --- Utils ---
+    // Utils
     const normalize = (raw: string): string => {
       if (!raw) return '';
-      // togli query/hash
       const qIdx = raw.indexOf('?');
       if (qIdx >= 0) raw = raw.slice(0, qIdx);
       const hIdx = raw.indexOf('#');
       if (hIdx >= 0) raw = raw.slice(0, hIdx);
-      // togli base /app se presente
       if (raw.startsWith('/app/')) raw = raw.slice(4);
       else if (raw === '/app') raw = '/';
-      // togli trailing slash eccetto root
       if (raw.length > 1 && raw.endsWith('/')) raw = raw.slice(0, -1);
       return raw;
     };
 
-    // --- Signal path iniziale PRIMA dell’effetto ---
+    // Path iniziale
     this.currentPath.set(normalize(this.router.url));
     this.pathService.setPath(this.currentPath());
 
-    // --- Aggiornamento path a ogni NavigationEnd ---
+    // Scroll to top su ogni NavigationEnd (animazione sul container)
     this.routeSub = this.router.events
-      .pipe(filter(e => e instanceof NavigationEnd))
+      .pipe(filter((e) => e instanceof NavigationEnd))
       .subscribe((e: NavigationEnd) => {
+        this.scrollToTop(240); // chiamata reale
+
         const url = normalize(e.urlAfterRedirects);
         this.currentPath.set(url);
         this.pathService.setPath(url);
         if (!this.firstNavigationDone()) this.firstNavigationDone.set(true);
         if (this.userContext.initials() !== '') {
-          sessionStorage.setItem('redirectAfterLogin', window.location.pathname.slice(4) + window.location.search)
+          sessionStorage.setItem(
+            'redirectAfterLogin',
+            window.location.pathname.slice(4) + window.location.search
+          );
         }
       });
 
-
-
+    // ---- Logica di sicurezza di navigazione (immutata) ----
     let lastProgrammaticNav: string | undefined;
-
-    /* AppComponent – dentro il costruttore */
     let firstStableReached = false;
 
     effect(() => {
-      if (!this.firstNavigationDone()) return
-      /* dati correnti ---------------------------------------------------- */
-      const initials = this.userContext.initials();   // '' se anonimo
+      if (!this.firstNavigationDone()) return;
+
+      const initials = this.userContext.initials();
       const logged = !!initials;
-      const status = this.sessionSync.status();     // unknown | checking | …
+      const status = this.sessionSync.status();
       const rawUrl = this.currentPath();
       const url = rawUrl.toLowerCase();
 
-      // 1️⃣ aspetta lo stato “stabile” la prima volta
       if (!firstStableReached) {
         if (status === 'loggedIn' || status === 'anonymous') {
-          firstStableReached = true;        // d’ora in poi si può valutare
+          firstStableReached = true;
         } else {
-          return;                           // fermo finché l’hand-shake finisce
+          return;
         }
       }
 
-      /* ------------------------------------------------------------------ */
-      const isPublic = this.publicExact.has(url) ||
-        this.publicPrefixes.some(p => url.startsWith(p));
+      const isPublic =
+        this.publicExact.has(url) || this.publicPrefixes.some((p) => url.startsWith(p));
       const isLoggedOutOnly = this.publicExact.has(url);
 
       const safeNavigate = (target: string) => {
@@ -201,30 +215,50 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         });
       };
 
-      /* home nuda → /login */
       if (url === '/') safeNavigate('/login');
 
-      /* NON loggato */
       if (!logged) {
         if (!isPublic) safeNavigate('/login');
         return;
       }
 
-      /* loggato su pagine “solo-logout” → /profile */
       if (isLoggedOutOnly) safeNavigate('/profile');
     });
-
-
   }
 
+  // Animazione scroll sul container scrollabile
+  private scrollToTop(duration = 240) {
+    // Se il ref non è ancora pronto, riprova al prossimo frame
+    const host = this.scrollHostRef?.nativeElement;
+    if (!host) {
+      requestAnimationFrame(() => this.scrollToTop(duration));
+      return;
+    }
 
-  async ngOnInit() {
+    this.zone.runOutsideAngular(() => {
+      const start = host.scrollTop;
+      if (start === 0) return;
 
+      const startTime = performance.now();
+      const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+
+      const step = (now: number) => {
+        const elapsed = now - startTime;
+        const progress = Math.min(1, elapsed / duration);
+        const y = Math.floor(start * (1 - easeOutCubic(progress)));
+        host.scrollTop = y;
+        if (progress < 1) requestAnimationFrame(step);
+      };
+
+      requestAnimationFrame(step);
+    });
   }
+
+  async ngOnInit() { }
 
   ngAfterViewInit() { }
 
   ngOnDestroy() {
-    this.routeSub?.unsubscribe()
+    this.routeSub?.unsubscribe();
   }
 }

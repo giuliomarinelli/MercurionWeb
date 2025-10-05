@@ -80,11 +80,12 @@ import { MoleculeSearchResult } from '../../Models/graphql/molecule-search/molec
           </div>
         </section>
 
-        <h2 class="font-semibold text-light-accent-primary dark:text-dark-accent-primary mb-4 text-center sm:text-left text-xl">
+        <h2 class="font-semibold text-light-accent-primary dark:text-dark-accent-primary text-center sm:text-left text-xl">
             Analoghi suggeriti
           </h2>
-
-        <app-similars [molecules]="similarMols() ?? []" />
+        <section class="rounded-md border border-slate-300 dark:border-slate-600 relative bottom-4">
+          <app-similars [molecules]="similarMols() ?? []" />
+        </section>
 
         @if (userContext.initials() !== '') {
           <app-editing-layer [smiles]="molecule.canonicalSmiles" />
