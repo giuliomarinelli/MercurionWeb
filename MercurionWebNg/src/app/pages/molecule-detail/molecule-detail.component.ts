@@ -81,12 +81,12 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
             </div>
           </div>
         </section>
-        <h2 class="font-semibold text-light-accent-primary dark:text-dark-accent-primary text-center sm:text-left text-xl">
+        <h2 class="font-semibold relative top-[28px] sm:top-14 text-light-accent-primary dark:text-dark-accent-primary text-center sm:text-left text-xl">
             Analoghi suggeriti
         </h2>
 
-        <div class="flex gap-3">
-          <div class="flex h-6 shrink-0 items-center">
+        <div class="flex gap-3 relative top-2 sm:top-4 justify-center sm:justify-start">
+          <div class="flex-col sm:flex-row flex h-6 shrink-0 justify-center gap-y-1 sm:items-center">
             <!-- wrapper visivo -->
             <label class="relative inline-flex items-center gap-2 cursor-pointer select-none">
               <input
@@ -121,9 +121,10 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
             </label>
             <p
               id="comments-description"
-              class="text-sm text-gray-500 dark:text-gray-400 ml-2"
+              class="text-xs sm:text-[0.625rem] md:text-sm text-gray-500 dark:text-gray-400 ml-2 mb-1 sm:mb-0 text-center sm:text-start"
             >
-              Deselezionando questa opzione potrai vedere anche i lead sperimentali
+              <span class="sm:hidden">Deselezionando questa opzione <br /> potrai vedere anche i lead sperimentali</span>
+              <span class="hidden sm:inline">Deselezionando questa opzione potrai vedere anche i lead sperimentali</span>
             </p>
           </div>
         </div>
