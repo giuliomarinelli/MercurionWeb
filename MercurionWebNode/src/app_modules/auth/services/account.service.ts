@@ -23,6 +23,8 @@ import { ChangePhoneDTO } from '../Models/DTO/change-phone.cls.dto';
 @Injectable()
 export class AccountService {
 
+    private readonly CHANGE_PASSWORD_TOKEN_EXPIRATION_MS: number
+
     constructor(
         private readonly userService: UserService,
         private readonly passwordEncoder: PasswordEncoderService,
@@ -34,7 +36,9 @@ export class AccountService {
         private readonly redisService: RedisService,
         private readonly sessionService: SessionService,
         private readonly _r: ResponseService
-    ) { }
+    ) {
+        this.CHANGE_PASSWORD_TOKEN_EXPIRATION_MS = this.configService.get<number>('Jwt.changePasswordToken.expiresInMs') ?? 300_000
+    }
 
     public async register(registerDTO: UserRegisterDTO): Promise<ConfirmWithObsContDTO> {
 
@@ -264,6 +268,22 @@ export class AccountService {
         const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(changePasswordToken, TokenType.ChangePasswordToken)
         await this.sessionService.revokeToken(jti)
         await this.userService.changePassword(userId, newPassword)
+    }
+
+    public async isAuthorizedToRecoverPassword(changePasswordToken: string): Promise<boolean> {
+        let jti: UUID
+        try {
+            ({ jti } = await this.jwtTools.verifyTokenAndGetPayload(changePasswordToken, TokenType.ChangePasswordToken))
+            const redisKey = `changePasswordLock:${jti}`
+            if (await this.redisService.exists(redisKey)) {
+                return false
+            }
+            await this.redisService.set(redisKey, '1', this.CHANGE_PASSWORD_TOKEN_EXPIRATION_MS / 1000)
+            return true
+        } catch {
+            return false
+        }
+
     }
 
 

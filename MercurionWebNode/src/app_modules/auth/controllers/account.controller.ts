@@ -181,4 +181,12 @@ export class AccountController {
         return this._r.ok('Password changed successfully')
     }
 
+    @Public()
+    @Get('/is-authorized-to-recover-password')
+    isAuthorizedToRecoverPassword(
+        @Authorization() changePasswordToken: string
+    ): Promise<boolean> {
+        return this.accountService.isAuthorizedToRecoverPassword(changePasswordToken)
+    }
+
 }
