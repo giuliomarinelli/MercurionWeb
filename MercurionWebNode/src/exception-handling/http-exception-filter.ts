@@ -39,6 +39,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
                 case 'ChangeEmail::EmailAlreadyInUseOrPending':
                 case 'ChangePhone::NumberAlreadyUsedOrPending':
                 case 'NotAllowedAction':
+                case 'InvalidOrExpiredChangePasswordToken':
+                case 'PasswordReused':
                     statusCode = HttpStatus.FORBIDDEN
                     break
                 case 'ChangeEmailConfirm::NoUnconfirmedEmail':

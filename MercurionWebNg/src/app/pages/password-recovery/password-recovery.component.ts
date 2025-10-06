@@ -1,11 +1,12 @@
 import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AccountService } from '../../services/account.service';
-import { Subscription } from 'rxjs';
+import { distinctUntilChanged, Subscription, take } from 'rxjs';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FloatingInputComponent } from '../../components/common/floating-input/floating-input.component';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { matchPassword } from '../../custom-validators';
+import { ErrorRes } from '../../Models/confirm.dtos';
 
 @Component({
   selector: 'app-password-recovery',
@@ -45,19 +46,25 @@ import { matchPassword } from '../../custom-validators';
                   matchPassword: 'Le due password non corrispondono.'
                 }"
                 [serverError]="
-                  serverError() ? 'Si è verificato un errore' : null
+                  serverError() ? serverErrorMsg() : null
                 "
                 (enter)="send()"
               />
 
               <button
                 type="submit"
-                (click)="send()"
-                [disabled]="form.invalid || step_12_loading()"
+                [disabled]="form.invalid || step_12_loading() || serverError()"
                 class="relative top-[10px] w-full py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary/80 dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary/60 disabled:hover:dark:bg-dark-accent-primary/80"
               >
               @if (!step_12_loading()) {
-                Cambia password
+                @if (!serverError()) {
+                  Cambia password
+                } @else {
+                  <div class="text-slate-200 flex items-center justify-center gap-3">
+                    <span>Redirecting...</span>
+                    <app-classic-spinner [size]="24" />
+                  </div>
+                }
               } @else {
                 <div class="text-slate-200 flex items-center justify-center">
                   <app-classic-spinner [size]="24" />
@@ -99,6 +106,7 @@ export class PasswordRecoveryComponent implements OnInit, OnDestroy {
   canView = signal(false)
   step_12_loading = signal<boolean>(false)
   serverError = signal<boolean>(false)
+  serverErrorMsg = signal<string>('Si è verificato un errore')
 
   form = this.fb.group({
     password: [null, [Validators.required, Validators.minLength(8)]],
@@ -128,7 +136,10 @@ export class PasswordRecoveryComponent implements OnInit, OnDestroy {
 
     this.changePasswordToken.set(t);
     this.authSub = this.accountService.isAuthorizedToRecoverPassword(t)
-      .subscribe({
+      .pipe(
+        distinctUntilChanged(),
+        take(1)
+      ).subscribe({
         next: ok => ok ? this.canView.set(true) : this.router.navigateByUrl('/'),
         error: () => this.router.navigateByUrl('/')
       });
@@ -136,10 +147,22 @@ export class PasswordRecoveryComponent implements OnInit, OnDestroy {
 
   send(): void {
     if (this.form.valid) {
+      this.step_12_loading.set(true)
       this.sendSub = this.accountService.recoverPassword({ newPassword: this.form.controls['password'].value! }, this.changePasswordToken())
         .subscribe({
-          next: () => this.step.set(2),
-          error: () => this.serverError.set(true)
+          next: () => {
+            this.step.set(2)
+            this.step_12_loading.set(false)
+          },
+          error: (e: { error: ErrorRes, status: number }) => {
+            console.log(e)
+            this.serverError.set(true)
+            this.step_12_loading.set(false)
+            if (e.status === 403 && e.error.message === 'PasswordReused') {
+              this.serverErrorMsg.set('Impossibile salvare una password già utilizzata')
+            }
+            setTimeout(() => this.router.navigateByUrl('/forgot-password'), 3000)
+          }
         })
     }
   }

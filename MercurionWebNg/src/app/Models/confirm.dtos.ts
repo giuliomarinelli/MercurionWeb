@@ -23,3 +23,12 @@ export interface TotpMeta {
 }
 
 export type ConfirmWithTotpMetaDTO = ConfirmDTO & TotpMeta
+
+export interface ErrorRes {
+    statusCode: number
+    error: string
+    message?: string
+    timestamp: string
+    requestId: string
+    path: string
+}
