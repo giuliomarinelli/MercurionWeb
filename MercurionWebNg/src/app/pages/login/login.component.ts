@@ -283,18 +283,12 @@ export class LoginComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router)
   private readonly authService = inject(AuthService)
   private readonly fingerprintService = inject(FingerprintService)
-  private readonly toast = inject(ToastService)
-  private readonly previousRouteService = inject(PreviousRouteService)
   private readonly sessionSync = inject(SessionSyncService)
   private readonly userContext = inject(UserContextService)
   // ====================================================
 
   protected readonly uncorrectEmailMsg = 'L\'e-mail inserita non è corretta'
 
-  @ViewChild('email')
-  private emailRef!: ElementRef<HTMLInputElement>
-  @ViewChild('password')
-  private passwordRef!: ElementRef<HTMLInputElement>
   @ViewChild(TurnstileComponent)
   turnstileComponent!: TurnstileComponent
 
@@ -313,9 +307,9 @@ export class LoginComponent implements OnInit, OnDestroy {
   protected loadingLogin = signal<boolean>(false)
 
 
-  private firstStepSubscription: Subscription | undefined
-  private secondStepSubscription: Subscription | undefined
-  private emailStatusChangeSubscription: Subscription | undefined
+  private firstStepSubscription?: Subscription
+  private secondStepSubscription?: Subscription
+  private emailSub?: Subscription
   private pollInterval!: ReturnType<typeof setInterval>
 
   private fingerprintDataEnc: string = ''
@@ -345,22 +339,11 @@ export class LoginComponent implements OnInit, OnDestroy {
       password: this.fb.control(null, [Validators.required]),
       remember: this.fb.control(false)
     })
-    this.passwordStatusSignal = toSignal(
-      this.loginForm.controls['password'].statusChanges,
-      { initialValue: this.loginForm.controls['password'].status }
-    );
-    this.passwordValueSignal = toSignal(
-      this.loginForm.controls['password'].valueChanges,
-      { initialValue: this.loginForm.controls['password'].value }
-    )
   }
-
-  passwordStatusSignal: Signal<string> = signal<'INVALID' | 'VALID' | 'PENDING' | 'DISABLED'>('INVALID')
-  passwordValueSignal!: Signal<any>
 
   canLogin = computed(() =>
     !!this.turnstileToken() &&
-    this.passwordStatusSignal() === 'VALID'
+    this.loginForm.valid
   )
 
   onTurnstileToken(token: string): void {
@@ -373,61 +356,6 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.loadingTurnstile.set(false)
   }
 
-  async ngOnInit(): Promise<void> {
-    window.addEventListener('storage', this.storageListener)
-    this.pollInterval = setInterval(() => {
-      if (localStorage.getItem('login') && (this.router.url === '/login' || this.router.url.startsWith('/login'))) {
-        const redirect = sessionStorage.getItem('redirectAfterLogin') || '/profile';
-        this.router.navigateByUrl(redirect);
-      }
-    }, 1000)
-
-
-
-    const from = this.previousRouteService.getPreviousUrl()
-    if (from && !from.startsWith('/login')) {
-      sessionStorage.setItem('redirectAfterLogin', from)
-    }
-
-    if (sessionStorage?.getItem('mfaError') === 'InvalidOtp') {
-      this.toast.trigger('Codice monouso errato. Ritenta.')
-      sessionStorage?.removeItem('mfaError')
-    }
-    if (sessionStorage?.getItem('logout') === 'success') {
-      this.toast.trigger('Logout avvenuto con successo!', 'success')
-      sessionStorage?.removeItem('logout')
-    } else if (sessionStorage?.getItem('logout') === '403') {
-      this.toast.trigger('Dispositivo non riconosciuto. Accesso negato!')
-      sessionStorage?.removeItem('logout')
-    }
-    if (sessionStorage?.getItem('MfaError') === 'NotAllowed') {
-      this.toast.trigger('Accesso negato!')
-      sessionStorage?.removeItem('MfaError')
-    }
-    const login = sessionStorage?.getItem('login')
-    if (login != null && (login.length === 1 || login.length === 2)) {
-      this.router.navigate([sessionStorage?.getItem('loginLastPath') || '/profile'])
-    }
-
-    this.emailStatusChangeSubscription = this.loginForm.controls['email'].statusChanges.subscribe(() => {
-      const control = this.loginForm.controls['email']
-      // this.emptyEmail.set(control.errors?.['required'] ?? false)
-      this.malformedEmail.set(control.errors?.['email'] ?? false)
-    })
-    const { fingerprintDataEnc, sessionDeviceInfo } = await this.fingerprintService.getSanitizedFingerprint()
-    this.fingerprintDataEnc = fingerprintDataEnc
-    this.sessionDeviceInfo = sessionDeviceInfo
-    this.loginForm.get('email')?.valueChanges.subscribe(() => {
-      if (this.step() === 2) {
-        // torna allo step 1
-        this.step.set(1);
-
-        // svuota la password
-        this.loginForm.get('password')?.reset();
-      }
-    });
-
-  }
 
   goToPasswordStep(): void {
     if (this.loginForm.controls['email'].valid) {
@@ -509,10 +437,31 @@ export class LoginComponent implements OnInit, OnDestroy {
     }
   }
 
+  async ngOnInit(): Promise<void> {
+    window.addEventListener('storage', this.storageListener)
+    this.pollInterval = setInterval(() => {
+      if (localStorage.getItem('login') && (this.router.url === '/login' || this.router.url.startsWith('/login'))) {
+        const redirect = sessionStorage.getItem('redirectAfterLogin') || '/profile';
+        this.router.navigateByUrl(redirect);
+      }
+    }, 1000)
+
+    const { fingerprintDataEnc, sessionDeviceInfo } = await this.fingerprintService.getSanitizedFingerprint()
+    this.fingerprintDataEnc = fingerprintDataEnc
+    this.sessionDeviceInfo = sessionDeviceInfo
+    this.emailSub = this.loginForm.get('email')?.valueChanges.subscribe(() => {
+      if (this.step() === 2) {
+        this.step.set(1);
+        this.loginForm.get('password')?.reset();
+      }
+    });
+
+  }
+
   ngOnDestroy(): void {
     this.firstStepSubscription?.unsubscribe()
     this.secondStepSubscription?.unsubscribe()
-    this.emailStatusChangeSubscription?.unsubscribe()
+    this.emailSub?.unsubscribe()
     window.removeEventListener('storage', this.storageListener)
     clearInterval(this.pollInterval)
   }
