@@ -1,10 +1,10 @@
 import { SecureCookieService } from './../services/secure-cookie.service';
 import { FastifyReply } from 'fastify';
-import { BadRequestException, Body, Controller, Delete, HttpCode, HttpStatus, Logger, Param, Post, Query, Res, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Post, Query, Res, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
 import { Login_FirstStepDTO } from '../Models/DTO/login-first-step.cls.dto';
 import { MfaService } from '../services/mfa.service';
 import { AuthenticationService } from '../services/authentication.service';
-import { SessionId, Authorization, ClientIp, DeviceId, DeviceInfo, Fingerprint, Public } from 'src/metadata/metadata';
+import { SessionId, Authorization, ClientIp, DeviceId, DeviceInfo, Fingerprint, Public, AuthenticatedUserId } from 'src/metadata/metadata';
 import { UUID } from 'crypto';
 import { Authentication } from '../Models/interfaces/authentication.interface';
 import { ResponseService } from 'src/services/response.service';
@@ -180,6 +180,14 @@ export class AuthenticationController {
         }
         this.secureCookieService.clearCookie(reply, '__node_session_id')
         this.logger.debug('Logged out. Response with status 204 - No Content')
+    }
+
+    @Get('/ws-refresh')
+    public async refreshWs_accessToken(
+        @AuthenticatedUserId() userId: UUID,
+        @SessionId() sessionId: UUID
+    ): Promise<string> {
+        return this.jwtTools.generateToken(userId, TokenType.ws_AccessToken, sessionId)
     }
 
 }

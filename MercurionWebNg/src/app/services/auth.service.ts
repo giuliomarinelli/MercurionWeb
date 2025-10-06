@@ -1,9 +1,9 @@
 import { ISessionDeviceInfo } from './../Models/types/auth/DTO/fingerprint.dtos';
 import { Confirm_Login_FirstStepDTO, ConfirmWithAccessTokenAndInitialsDTO } from './../Models/types/interfaces/confirm.responses';
-import { Injectable, signal } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { EmailDTO, Login_FirstStepWrapper } from '../Models/types/auth/DTO/login.dtos';
 import { ConfirmDTO } from '../Models/types/interfaces/confirm.responses';
-import { Observable } from 'rxjs';
+import { finalize, Observable, shareReplay, tap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { ConfirmWithTotpMetaDTO } from '../Models/confirm.dtos';
 import { TotpBodyDTO } from '../Models/types/auth/DTO/totp-body.dto';
@@ -14,6 +14,8 @@ import { JwtHelperService } from './jwt-helper.service';
   providedIn: 'root'
 })
 export class AuthService {
+
+  private inflight$?: Observable<string>;
 
   constructor(
     private readonly jwtHelper: JwtHelperService,
@@ -127,6 +129,20 @@ export class AuthService {
     return this.http.get<ConfirmDTO>('/api/test', {
       withCredentials: true
     })
+  }
+
+  refreshWs_accessToken(): Observable<string> {
+    if (!this.inflight$) {
+      this.inflight$ = this.http.get('/api/authentication/ws-refresh', {
+        withCredentials: true,
+        responseType: 'text'
+      }).pipe(
+        tap(tok => this.setWs_accessToken(tok)),
+        shareReplay(1),
+        finalize(() => { this.inflight$ = undefined; })
+      );
+    }
+    return this.inflight$;
   }
 
 }

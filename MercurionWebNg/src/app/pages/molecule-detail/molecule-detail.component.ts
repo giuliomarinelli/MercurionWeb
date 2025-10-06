@@ -2,7 +2,7 @@ import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { EmbeddingService } from './../../services/embedding.service';
 import { SimilarsComponent } from './../../components/molecule-detail/similars/similars.component';
 // Refactor #1: MoleculeDetailComponent
-import { Component, DestroyRef, effect, OnDestroy, OnInit, Signal, signal, WritableSignal } from '@angular/core';
+import { Component, DestroyRef, effect, inject, OnDestroy, OnInit, Signal, signal, WritableSignal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MoleculeService } from '../../services/graphql/molecule.service';
 import { switchMap, Observable, catchError, of, Subscription, forkJoin, map, retry, tap, distinctUntilChanged, shareReplay, startWith } from 'rxjs';
@@ -160,6 +160,18 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 })
 export class MoleculeDetailComponent implements OnInit, OnDestroy {
 
+  // ======================= DEPS =======================
+  private readonly route = inject(ActivatedRoute)
+  private readonly moleculeService = inject(MoleculeService)
+  protected readonly themeManager = inject(ThemeManagerService)
+  protected readonly userContext = inject(UserContextService)
+  private readonly mercurionAIService = inject(MercurionAIService)
+  private readonly embeddingService = inject(EmbeddingService)
+  private readonly destroyRef = inject(DestroyRef)
+  // ====================================================
+
+  private mode = signal<'SYSTEM' | 'USER'>('SYSTEM')
+
   molecule$!: Observable<MoleculeDetail | null>
   viewerReady = signal<boolean>(false)
   similarViewerReady = signal<boolean>(false)
@@ -172,19 +184,11 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
   onlyKnown = new FormControl<boolean>(true, { nonNullable: true })
 
   onlyKnownSig: Signal<boolean> = toSignal(
-  this.onlyKnown.valueChanges,
-  { initialValue: this.onlyKnown.value }
-)
+    this.onlyKnown.valueChanges,
+    { initialValue: this.onlyKnown.value }
+  )
 
-  constructor(
-    private readonly route: ActivatedRoute,
-    private readonly moleculeService: MoleculeService,
-    protected readonly themeManager: ThemeManagerService,
-    protected readonly userContext: UserContextService,
-    private readonly mercurionAIService: MercurionAIService,
-    private readonly embeddingService: EmbeddingService,
-    private readonly destroyRef: DestroyRef
-  ) {
+  constructor() {
     effect(() => {
       this.fetchData()
       window.addEventListener('storage', this.handleCrossTabFetchData)
@@ -204,12 +208,25 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
     this.molecule$ = this.route.paramMap.pipe(
       switchMap((params) => {
         this.viewerReady.set(false)
-        const molregno = params.get('molregno')
-        if (!molregno) throw new Error('UndefinedMolregno')
-        if (this.molCached && this.molCached.id === Number(molregno)) {
-          return of(this.molCached)
+      const molId = params.get('molregno')
+        this.mode.set(
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(molId ?? '') ?
+            'USER' : 'SYSTEM'
+        )
+        if (!molId) throw new Error('UndefinedMolregno')
+        if (this.mode() === 'SYSTEM') {
+          if (this.molCached && this.molCached.id === Number(molId)) {
+            return of(this.molCached)
+          }
+          return this.moleculeService.getMoleculeByMolregno(molId).pipe(
+            map(mol => {
+              this.molCached = mol || undefined
+              return mol
+            })
+          )
         }
-        return this.moleculeService.getMoleculeByMolregno(molregno).pipe(
+        // placeholder
+        return this.moleculeService.getMoleculeByMolregno(molId).pipe(
           map(mol => {
             this.molCached = mol || undefined
             return mol

@@ -8,6 +8,8 @@ import { CreateMoleculeItemInput } from '../../Models/DTO/molecule-collection/cr
 import { GraphqlUtils } from 'src/graphql-utils/graphql-utils';
 import { PaginatedMoleculeCollectionItem } from '../../Models/DTO/molecule-collection/paginated-molecule-collection-item.dto';
 import { IPaginationOptions } from 'nestjs-typeorm-paginate';
+import { CustomMoleculeItemDTO } from '../../Models/DTO/molecule-collection/custom-molecule-item.dto';
+import { ChEMBLMoleculeItemDTO } from '../../Models/DTO/molecule-collection/chembl-molecule-item.dto';
 
 @Resolver(() => MoleculeCollectionItemEntity)
 export class MoleculeCollectionItemResolver {
@@ -28,9 +30,9 @@ export class MoleculeCollectionItemResolver {
         @Args('id', { type: () => ID }) id: UUID,
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
-    ): Promise<MoleculeCollectionItemEntity | null> {
+    ): Promise<CustomMoleculeItemDTO | ChEMBLMoleculeItemDTO | null> {
         const fieldsMap = GraphqlUtils.getFieldsMap(info)
-        return this.itemService.findOne(id, userId, fieldsMap)
+        return this.itemService.findOneDTO(id, userId, fieldsMap)
     }
 
     @Query(() => PaginatedMoleculeCollectionItem)

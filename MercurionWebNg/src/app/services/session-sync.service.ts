@@ -56,23 +56,37 @@ export class SessionSyncService {
     this.syncSession();      // handshake iniziale
 
     /* cross‑tab */
-    let debounce: any;
-    window.addEventListener('storage', e => {
-      if (e.key !== 'login') return;
+    // Cross-tab sync: reagisce a cambi di `login` e `ws_accessToken` in altre schede
+    let storageDebounce: any;
 
-      clearTimeout(debounce);
-      debounce = setTimeout(() => {
-        const initials = localStorage.getItem('login');
-        const wsTok = localStorage.getItem('ws_accessToken');
+    window.addEventListener('storage', (e: StorageEvent) => {
+      if (e.key !== 'login' && e.key !== 'ws_accessToken') return;
 
-        if (initials && wsTok) {
-          // pacchetto completo → login
-          this.onExternalLogin(initials);
-        } else if (!initials) {
-          // logout certo
+      clearTimeout(storageDebounce);
+      storageDebounce = setTimeout(() => {
+        const initials = localStorage.getItem('login');             // string | null
+        const wsTok = localStorage.getItem('ws_accessToken');    // string | null
+
+        // Caso 1: logout certo (chiave 'login' mancante)
+        if (!initials) {
           this.onExternalLogout();
+          return;
         }
-      }, 30);               // 30 ms sono più che sufficienti
+
+        // Da qui in poi: abbiamo 'login' presente
+
+        // Caso 2: pacchetto completo → login o refresh token cross-tab
+        if (wsTok) {
+          // Se la socket è già connessa in private, aggiorna l'auth in-place
+          // Altrimenti forza la modalità private (reconnect con auth aggiornata)
+          this.socket.ensurePrivate(wsTok);
+          return;
+        }
+
+        // Caso 3: login presente ma token assente → forziamo un controllo sessione
+        // (tenterà refresh lato socket/AuthService; se fallisce, degraderà ad anonimo)
+        this.syncSession(true);
+      }, 30); // 30 ms sono più che sufficienti per la propagazione dello storage
     });
 
 

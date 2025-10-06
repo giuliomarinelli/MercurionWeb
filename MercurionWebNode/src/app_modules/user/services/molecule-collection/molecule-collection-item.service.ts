@@ -43,6 +43,36 @@ export class MoleculeCollectionItemService {
         return qb.getOne()
     }
 
+    async findOneDTO(
+        userId: UUID,
+        itemId: UUID,
+        fieldsMap: GraphQLFieldsMap
+    ): Promise<CustomMoleculeItemDTO | ChEMBLMoleculeItemDTO | null> {
+        // Delego al metodo già esistente
+        const item = await this.findOne(userId, itemId, fieldsMap);
+        if (!item) {
+            return null
+        }
+
+        // Preparo la mappa dettagli solo se è un item ChEMBL
+        const detailsMap: Record<string, MoleculeDetail> = {};
+        if (item.type === 'chembl') {
+            const chemblMolregno = String((item as ChEMBLMoleculeItemEntity).chemblMolregno);
+            const detailsArr = await this.moleculeService.getDetailsByMolregnos([chemblMolregno]);
+            const details = detailsArr?.[0];
+            if (details) {
+                detailsMap[chemblMolregno] = details;
+            }
+        }
+
+        // Applico la trasformazione polimorfica centralizzata
+        return this.toPolymorphicDto(item, detailsMap);
+    }
+
+
+
+
+
     async findAllByUser(userId: UUID, fieldsMap: GraphQLFieldsMap): Promise<MoleculeCollectionItemEntity[]> {
         const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
         const columns = GraphqlUtils.ensureRequiredFields(scalarFields, ['id', 'type'])
@@ -51,6 +81,45 @@ export class MoleculeCollectionItemService {
             .where('item.user_id = :userId', { userId })
         qb = TypeOrmUtils.addJoins(qb, 'item', fieldsMap)
         return qb.getMany()
+    }
+
+    private toPolymorphicDto(
+        item: MoleculeCollectionItemEntity,
+        detailsMap: Record<string, MoleculeDetail>
+    ): CustomMoleculeItemDTO | ChEMBLMoleculeItemDTO {
+        if (item.type === 'custom') {
+            const e = item as CustomMoleculeItemEntity;
+            return {
+                id: e.id,
+                userId: e.userId,
+                label: e.label,
+                notes: e.notes,
+                type: e.type,
+                canonicalSmiles: e.canonicalSmiles,
+                molFormula: e.molFormula,
+                name: e.name,
+                propertiesJson: e.propertiesJson,
+                createdAt: e.createdAt,
+                updatedAt: e.updatedAt,
+            } as CustomMoleculeItemDTO;
+        }
+
+        if (item.type === 'chembl') {
+            const e = item as ChEMBLMoleculeItemEntity;
+            const chemblMolregno = String(e.chemblMolregno);
+            return {
+                id: e.id,
+                label: e.label,
+                notes: e.notes,
+                type: e.type,
+                chemblMolregno,
+                chemblDetails: detailsMap[chemblMolregno] ?? null,
+                createdAt: e.createdAt,
+                updatedAt: e.updatedAt,
+            } as unknown as ChEMBLMoleculeItemDTO;
+        }
+
+        throw new RpcException(`UnknownItemType::${(item as any).type}`);
     }
 
     async paginateAllByUser(
@@ -77,50 +146,19 @@ export class MoleculeCollectionItemService {
             .orderBy('item.createdAt', 'DESC');
 
         // Niente join su campi virtuali!
-
         const page = await paginate<MoleculeCollectionItemEntity>(qb, options);
 
         // Batch ChEMBL
-        const chemblItems = page.items.filter(item => item.type === 'chembl');
+        const chemblItems = page.items.filter(i => i.type === 'chembl') as ChEMBLMoleculeItemEntity[];
         let detailsMap: Record<string, MoleculeDetail> = {};
         if (chemblItems.length > 0) {
-            const molregnos = chemblItems.map(item => String((item as ChEMBLMoleculeItemEntity).chemblMolregno));
+            const molregnos = chemblItems.map(i => String(i.chemblMolregno));
             const detailsArray = await this.moleculeService.getDetailsByMolregnos(molregnos);
             detailsMap = Object.fromEntries(detailsArray.map(d => [String(d.id), d]));
         }
 
-        // Mapping finale ai DTO polimorfici
-        const items: Array<CustomMoleculeItemDTO | ChEMBLMoleculeItemDTO> = page.items.map(item => {
-            if (item.type === 'custom') {
-                return {
-                    id: item.id,
-                    userId: item.userId,
-                    label: item.label,
-                    notes: item.notes,
-                    type: item.type,
-                    canonicalSmiles: (item as CustomMoleculeItemEntity).canonicalSmiles,
-                    molFormula: (item as CustomMoleculeItemEntity).molFormula,
-                    name: (item as CustomMoleculeItemEntity).name,
-                    propertiesJson: (item as CustomMoleculeItemEntity).propertiesJson,
-                    createdAt: item.createdAt,
-                    updatedAt: item.updatedAt,
-                } as CustomMoleculeItemDTO;
-            }
-            if (item.type === 'chembl') {
-                const chemblMolregno = String((item as ChEMBLMoleculeItemEntity).chemblMolregno);
-                return {
-                    id: item.id,
-                    label: item.label,
-                    notes: item.notes,
-                    type: item.type,
-                    chemblMolregno,
-                    chemblDetails: detailsMap[chemblMolregno] || null,
-                    createdAt: item.createdAt,
-                    updatedAt: item.updatedAt,
-                } as unknown as ChEMBLMoleculeItemDTO;
-            }
-            throw new RpcException(`UnknownItemType::${item.type}`);
-        });
+        // Mapping finale ai DTO polimorfici (via metodo estratto)
+        const items = page.items.map(i => this.toPolymorphicDto(i, detailsMap));
 
         // Risposta paginata finale
         return {
@@ -132,8 +170,6 @@ export class MoleculeCollectionItemService {
             currentPage: page.meta.currentPage,
         };
     }
-
-
 
     async paginateByCollection(
         userId: UUID,
@@ -154,55 +190,29 @@ export class MoleculeCollectionItemService {
 
         // Query builder: join su collection join table
         const qb = this.itemRepo.createQueryBuilder('item')
-            .innerJoin('item.joins', 'join', 'join.collectionId = :collectionId AND join.userId = :userId', { collectionId, userId })
+            .innerJoin(
+                'item.joins',
+                'join',
+                'join.collectionId = :collectionId AND join.userId = :userId',
+                { collectionId, userId }
+            )
             .select(itemsFields.map(col => `item.${col}`))
             .orderBy('item.createdAt', 'DESC');
 
         // Niente join su campi virtuali!
-
         const page = await paginate<MoleculeCollectionItemEntity>(qb, options);
 
         // Batch ChEMBL
-        const chemblItems = page.items.filter(item => item.type === 'chembl');
+        const chemblItems = page.items.filter(i => i.type === 'chembl') as ChEMBLMoleculeItemEntity[];
         let detailsMap: Record<string, MoleculeDetail> = {};
         if (chemblItems.length > 0) {
-            const molregnos = chemblItems.map(item => String((item as ChEMBLMoleculeItemEntity).chemblMolregno));
+            const molregnos = chemblItems.map(i => String(i.chemblMolregno));
             const detailsArray = await this.moleculeService.getDetailsByMolregnos(molregnos);
             detailsMap = Object.fromEntries(detailsArray.map(d => [String(d.id), d]));
         }
 
-        // Mapping finale ai DTO polimorfici
-        const items: Array<CustomMoleculeItemDTO | ChEMBLMoleculeItemDTO> = page.items.map(item => {
-            if (item.type === 'custom') {
-                return {
-                    id: item.id,
-                    userId: item.userId,
-                    label: item.label,
-                    notes: item.notes,
-                    type: item.type,
-                    canonicalSmiles: (item as CustomMoleculeItemEntity).canonicalSmiles,
-                    molFormula: (item as CustomMoleculeItemEntity).molFormula,
-                    name: (item as CustomMoleculeItemEntity).name,
-                    propertiesJson: (item as CustomMoleculeItemEntity).propertiesJson,
-                    createdAt: item.createdAt,
-                    updatedAt: item.updatedAt,
-                } as CustomMoleculeItemDTO;
-            }
-            if (item.type === 'chembl') {
-                const chemblMolregno = String((item as ChEMBLMoleculeItemEntity).chemblMolregno);
-                return {
-                    id: item.id,
-                    label: item.label,
-                    notes: item.notes,
-                    type: item.type,
-                    chemblMolregno,
-                    chemblDetails: detailsMap[chemblMolregno] || null,
-                    createdAt: item.createdAt,
-                    updatedAt: item.updatedAt,
-                } as unknown as ChEMBLMoleculeItemDTO;
-            }
-            throw new RpcException(`UnknownItemType::${item.type}`);
-        });
+        // Mapping finale ai DTO polimorfici (via metodo estratto)
+        const items = page.items.map(i => this.toPolymorphicDto(i, detailsMap));
 
         // Risposta paginata finale
         return {
