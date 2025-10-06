@@ -1,11 +1,11 @@
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { EmbeddingService } from './../../services/embedding.service';
 import { SimilarsComponent } from './../../components/molecule-detail/similars/similars.component';
-// Refactor #1: MoleculeDetailComponent
 import { Component, DestroyRef, effect, inject, OnDestroy, OnInit, Signal, signal, WritableSignal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MoleculeService } from '../../services/graphql/molecule.service';
-import { switchMap, Observable, catchError, of, Subscription, forkJoin, map, retry, tap, distinctUntilChanged, shareReplay, startWith } from 'rxjs';
+import { switchMap, Observable, catchError, of, Subscription, forkJoin, retry, tap, distinctUntilChanged, shareReplay, startWith } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { MoleculeDetail } from '../../Models/graphql/molecule.detail';
 import { AsyncPipe } from '@angular/common';
 import { ThemeManagerService } from '../../services/context/theme-manager.service';
@@ -21,6 +21,10 @@ import { MercurionAiService as MercurionAIService } from '../../services/mercuri
 import { EditingLayerComponent } from '../../components/molecule-detail/editing-layer/editing-layer.component';
 import { MoleculeSearchResult } from '../../Models/graphql/molecule-search/molecule-search-result.interface';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { TypeGuardsService } from '../../type-guards.service';
+import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service';
+import { MoleculeCollectionItemEntityShort } from '../../Models/graphql/molecule-collection/molecule-collection.types';
+
 
 @Component({
   selector: 'app-molecule-detail',
@@ -168,9 +172,14 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
   private readonly mercurionAIService = inject(MercurionAIService)
   private readonly embeddingService = inject(EmbeddingService)
   private readonly destroyRef = inject(DestroyRef)
+  private readonly typeGuards = inject(TypeGuardsService)
+  private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService)
   // ====================================================
 
   private mode = signal<'SYSTEM' | 'USER'>('SYSTEM')
+
+  private readonly uuidRe =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
   molecule$!: Observable<MoleculeDetail | null>
   viewerReady = signal<boolean>(false)
@@ -220,10 +229,13 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
           }
           return this.moleculeService.getMoleculeByMolregno(molId).pipe(
             map(mol => {
-              mol.type = 'system'
-              this.molCached = mol || undefined
-              console.log(mol)
-              return mol
+              const molSys = {
+                ...mol,
+                type: 'system'
+              }
+              this.molCached = molSys || undefined
+              console.log(molSys)
+              return molSys
             })
           )
         }
@@ -267,15 +279,47 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
 
   private fetchSimilar(): void {
     this.onlySub = this.route.paramMap.pipe(
-      map(params => {
-        const id = params.get('molregno');
-        if (!id) throw new Error('UndefinedMolregno');
-        return id;
-      }),
+      map(params => params.get('molId')), // string | null
       distinctUntilChanged(),
       tap(() => this.similarViewerReady.set(false)),
-      switchMap(id => this.embeddingService.getSimilarMolregnos(id)),
-      switchMap(ids => this.moleculeService.getMoleculePreviewsByMolregnos(ids.map(id => id.toString()))),
+
+      // 1) Risolvo in un molregno (string) oppure null
+      switchMap((id): Observable<string | null> => {
+        if (!id) return of(null);
+        // UUID -> prendo lo short e, se chembl, estraggo il molregno
+        if (this.uuidRe.test(id)) {
+          const svc$ = this.moleculeCollectionItemService.getItemShortById?.(id);
+          // normalizzo a Observable<Short | null>
+          const src: Observable<MoleculeCollectionItemEntityShort | null> =
+            svc$ ?? of(null);
+
+          return src.pipe(
+            map((mol: MoleculeCollectionItemEntityShort | null) =>
+              mol && this.typeGuards.isChemblMolecule(mol)
+                ? `${mol.chemblMolregno}` // string
+                : null
+            )
+          );
+        }
+
+        // numerico già valido come molregno
+        if (/^\d+$/.test(id)) {
+          return of(id);
+        }
+
+        return of(null);
+      }),
+
+      // 2) Similar solo se ho un molregno
+      switchMap((molregno): Observable<string[]> =>
+        molregno ? this.embeddingService.getSimilarMolregnos(molregno) : of([])
+      ),
+
+      // 3) Previews
+      switchMap((ids: string[]) =>
+        this.moleculeService.getMoleculePreviewsByMolregnos(ids.map(String))
+      ),
+
       tap(() => this.similarViewerReady.set(true)),
       catchError(err => {
         console.error(err);
@@ -285,8 +329,10 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
     )
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(previews => {
-        this.similarMolsCache.set(previews)
-        this.similarMols.set(previews.filter(mol => mol.known && this.onlyKnown.value === true))
+        this.similarMolsCache.set(previews);
+        this.similarMols.set(
+          previews.filter(mol => mol.known && this.onlyKnown.value === true)
+        );
       });
   }
 

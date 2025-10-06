@@ -1,20 +1,29 @@
-import { Injectable } from '@angular/core';
-import { ChEMBLMoleculeItemEntity, CustomMoleculeItemEntity, MoleculeCollectionItem } from './Models/graphql/molecule-collection/molecule-collection.types';
+import { Injectable } from "@angular/core";
+import { MoleculeDetailItem, MoleculeDetailSystem } from "./Models/graphql/molecule.detail";
+import { ChEMBLMoleculeItemEntity, CustomMoleculeItemEntity, MoleculeCollectionItemEntityShort } from "./Models/graphql/molecule-collection/molecule-collection.types";
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class TypeGuardsService {
-
-  isChembl(
-    item: MoleculeCollectionItem
-  ): item is ChEMBLMoleculeItemEntity {
-    return item.type === 'chembl';
+  // chembl
+  isChemblMolecule(item: MoleculeDetailItem): item is ChEMBLMoleculeItemEntity;
+  isChemblMolecule(
+    item: MoleculeCollectionItemEntityShort
+  ): item is MoleculeCollectionItemEntityShort & { type: 'chembl' };
+  isChemblMolecule(item: any): boolean {
+    return item?.type === 'chembl';
   }
 
-  isCustom(
-    item: MoleculeCollectionItem
-  ): item is CustomMoleculeItemEntity {
-    return item.type === 'custom';
+  // custom
+  isCustomMolecule(item: MoleculeDetailItem): item is CustomMoleculeItemEntity;
+  isCustomMolecule(
+    item: MoleculeCollectionItemEntityShort
+  ): item is MoleculeCollectionItemEntityShort & { type: 'custom' };
+  isCustomMolecule(item: any): boolean {
+    return item?.type === 'custom';
+  }
+
+  // system (solo per detail)
+  isSystemMolecule(item: MoleculeDetailItem): item is MoleculeDetailSystem {
+    return item?.type === 'system';
   }
 }

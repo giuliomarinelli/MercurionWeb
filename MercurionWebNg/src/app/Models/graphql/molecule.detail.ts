@@ -1,4 +1,5 @@
 import { T1PredictionDTO } from "../notebook/t1-prediction-model"
+import { MoleculeCollectionItem } from "./molecule-collection/molecule-collection.types"
 import { MoleculeProperties } from "./molecule-properties.interface"
 
 
@@ -22,5 +23,10 @@ export interface MoleculeDetail {
     blackBoxWarning: boolean
     synonyms: string[]
     t1Inference?: T1PredictionDTO
-    type: 'system'
 }
+
+export interface MoleculeDetailSystem extends MoleculeDetail {
+  type: 'system'
+}
+
+export type MoleculeDetailItem = MoleculeDetailSystem | MoleculeCollectionItem

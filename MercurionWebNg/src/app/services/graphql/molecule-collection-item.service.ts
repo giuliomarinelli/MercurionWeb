@@ -1,3 +1,4 @@
+import { MoleculeCollectionItemEntityShort } from './../../Models/graphql/molecule-collection/molecule-collection.types';
 import { Injectable, computed, signal } from '@angular/core';
 import { Apollo, gql } from 'apollo-angular';
 import { map, Observable, tap } from 'rxjs';
@@ -26,6 +27,12 @@ const MOLECULE_ITEM_FRAGMENT = `
   ... on CustomMoleculeItemEntity { canonicalSmiles molFormula name propertiesJson }
 `;
 
+const MOLECULE_ITEM_SHORT = `
+  id
+  type
+  ... on ChEMBLMoleculeItemEntity { chemblMolregno }
+`;
+
 const CUSTOM_MOLECULE_SMILES = gql`
   query CustomMoleculeSmiles($id: ID!) {
     customMoleculeItem(id: $id) {
@@ -49,6 +56,14 @@ const MOLECULE_ITEM = gql`
   query MoleculeItem($id: ID!) {
     moleculeItem(id: $id) {
       ${MOLECULE_ITEM_FRAGMENT}
+    }
+  }
+`;
+
+const MOLECULE_ITEM_FRAG_SHORT = gql`
+  query MoleculeItem($id: ID!) {
+    moleculeItem(id: $id) {
+      ${MOLECULE_ITEM_SHORT}
     }
   }
 `;
@@ -111,6 +126,15 @@ export class MoleculeCollectionItemService {
         fetchPolicy: 'network-only',
       })
       .valueChanges.pipe(map(res => extractGqlData(res, 'moleculeItem')));
+  }
+
+  getItemShortById(id: string): Observable<MoleculeCollectionItemEntityShort> | null {
+    return this.apollo
+      .watchQuery<{ moleculeItem: Partial<MoleculeCollectionItem> | null }>({
+        query: MOLECULE_ITEM_FRAG_SHORT,
+        variables: { id },
+        fetchPolicy: 'network-only'
+      }).valueChanges.pipe(map(res => extractGqlData(res, 'moleculeItem')))
   }
 
   // CREATE

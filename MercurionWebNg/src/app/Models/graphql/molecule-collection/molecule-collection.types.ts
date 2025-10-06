@@ -23,6 +23,12 @@ export interface CustomMoleculeItemEntity extends BaseMoleculeItem {
 }
 export type MoleculeCollectionItem = ChEMBLMoleculeItemEntity | CustomMoleculeItemEntity;
 
+export interface MoleculeCollectionItemEntityShort {
+  id: string
+  type: string
+  chemblMolregno?: number
+}
+
 export interface CreateMoleculeItemInput {
   type: 'chembl' | 'custom';
   canonicalSmiles?: string;
