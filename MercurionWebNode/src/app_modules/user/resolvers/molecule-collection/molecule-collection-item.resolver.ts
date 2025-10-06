@@ -10,6 +10,7 @@ import { PaginatedMoleculeCollectionItem } from '../../Models/DTO/molecule-colle
 import { IPaginationOptions } from 'nestjs-typeorm-paginate';
 import { CustomMoleculeItemDTO } from '../../Models/DTO/molecule-collection/custom-molecule-item.dto';
 import { ChEMBLMoleculeItemDTO } from '../../Models/DTO/molecule-collection/chembl-molecule-item.dto';
+import { MoleculeCollectionItemUnion } from '../../Models/DTO/molecule-collection/molecule-collection-item.union';
 
 @Resolver(() => MoleculeCollectionItemEntity)
 export class MoleculeCollectionItemResolver {
@@ -25,7 +26,7 @@ export class MoleculeCollectionItemResolver {
         return this.itemService.findAllByUser(userId, fieldsMap)
     }
 
-    @Query(() => MoleculeCollectionItemEntity, { nullable: true })
+    @Query(() => MoleculeCollectionItemUnion, { nullable: true })
     async moleculeItem(
         @Args('id', { type: () => ID }) id: UUID,
         @AuthenticatedUserId() userId: UUID,

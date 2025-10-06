@@ -23,7 +23,7 @@ const MOLECULE_ITEM_FRAGMENT = `
   type
   joins { id collection { id name } }
   ... on ChEMBLMoleculeItemEntity { chemblMolregno }
-  ... on CustomMoleculeItemEntity { canonicalSmiles molFormula name propertiesJson }
+  ... on CustomMoleculeItemEntity { canonicalSmiles molFormula name properties }
 `;
 
 const CUSTOM_MOLECULE_SMILES = gql`

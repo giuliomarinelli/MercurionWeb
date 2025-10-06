@@ -10,3 +10,4 @@ export const MoleculeCollectionItemUnion = createUnionType({
         return null;
     },
 });
+

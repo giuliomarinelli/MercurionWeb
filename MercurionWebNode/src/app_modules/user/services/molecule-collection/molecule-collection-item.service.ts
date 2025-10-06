@@ -33,13 +33,21 @@ export class MoleculeCollectionItemService {
     }
 
     async findOne(id: UUID, userId: UUID, fieldsMap: GraphQLFieldsMap): Promise<MoleculeCollectionItemEntity | null> {
-        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
-        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, ['id', 'type'])
-        let qb = this.itemRepo.createQueryBuilder('item')
-            .select(columns.map(col => `item.${col}`))
+        const DB_FIELDS = [
+            'id', 'type', 'userId', 'label', 'notes', 'createdAt', 'updatedAt',
+            'canonicalSmiles', 'molFormula', 'name', 'propertiesJson',
+            'chemblMolregno'
+        ];
+
+        // Prendi solo quelli richiesti e realmente esistenti nel DB
+        const itemsFields = fieldsMap?.items
+            ? Object.keys(fieldsMap.items).filter(k => DB_FIELDS.includes(k))
+            : DB_FIELDS;
+        const qb = this.itemRepo.createQueryBuilder('item')
+            .select(itemsFields.map(col => `item.${col}`))
             .where('item.id = :id', { id })
             .andWhere('item.user_id = :userId', { userId })
-        qb = TypeOrmUtils.addJoins(qb, 'item', fieldsMap)
+        // qb = TypeOrmUtils.addJoins(qb, 'item', fieldsMap)
         return qb.getOne()
     }
 

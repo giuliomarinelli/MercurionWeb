@@ -228,7 +228,7 @@ type Query {
   searchMyCollections(query: String, limit: Float): [MoleculeCollection!]!
   myMoleculeCollectionsPaginated(page: Int! = 1, limit: Int! = 20, search: String): PaginatedMoleculeCollection!
   myMoleculeItems: [MoleculeCollectionItemEntity!]!
-  moleculeItem(id: ID!): MoleculeCollectionItemEntity
+  moleculeItem(id: ID!): MoleculeCollectionItemUnion
   paginatedMoleculeCollectionItemsByUser(page: Int!, limit: Int!): PaginatedMoleculeCollectionItem!
   paginatedMoleculeCollectionItemsByCollection(collectionId: String!, page: Int!, limit: Int!): PaginatedMoleculeCollectionItem!
   chemblMoleculesByCollection(collectionId: ID!): [ChEMBLMoleculeItemEntity!]!
