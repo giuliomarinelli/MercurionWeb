@@ -8,6 +8,7 @@ import { RealtimeSocketService } from './socket.IO/realtime-socket.service';
 import { UserContextService } from './context/user-context.service';
 import { ToastService } from './toast.service';
 import { ToastContext } from '../components/common/toast/toast.component';
+import { environment } from '../../environments/environment.development';
 
 export type SessionSyncStatus =
   | 'unknown' | 'checking' | 'loggedIn' | 'anonymous'
@@ -179,8 +180,8 @@ export class SessionSyncService {
     }
   }
 
-  private readonly publicExact = ['/login', '/register', '/forgot', '/privacy', '/'];
-  private readonly publicPrefix = ['/molecules/detail'];
+  private readonly publicExact = environment.PUBLIC_EXACT_PATHS
+  private readonly publicPrefix = environment.PUBLIC_PREFIXES
 
   private isPublicRoute(url: string): boolean {
     const clean = url.split(/[?#]/)[0];

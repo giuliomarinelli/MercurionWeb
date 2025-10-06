@@ -252,7 +252,7 @@ export class AccountService {
         }
         const changePasswordToken = await this.jwtTools.generateToken(userId as UUID, TokenType.ChangePasswordToken)
         const firstName = await this.userService.getUserFirstNameById(userId as UUID)
-        const url = `${this.configService.get<string>("App.activationOrigin")}/password-recovery?t=${changePasswordToken}`
+        const url = `${this.configService.get<string>("App.activationOrigin")}/password-recovery?t=${encodeURIComponent(changePasswordToken)}`
         await this.mailService.sendEmail(
             email,
             'Mercurion: recupera password',

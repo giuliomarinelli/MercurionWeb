@@ -60,4 +60,13 @@ export class AccountService {
     })
   }
 
+  public isAuthorizedToRecoverPassword(changePasswordToken: string): Observable<boolean> {
+    return this.http.get<boolean>('/api/account/is-authorized-to-recover-password', {
+      withCredentials: true,
+      headers: {
+        'Authorization': `Bearer ${changePasswordToken}`
+      }
+    })
+  }
+
 }

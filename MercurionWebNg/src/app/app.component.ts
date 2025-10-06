@@ -30,6 +30,7 @@ import { SidenavComponent } from './components/common/sidenav/sidenav.component'
 import { SessionSyncService } from './services/session-sync.service';
 import { CollectionSaveOverlayComponent } from './components/collection-save-overlay/collection-save-overlay.component';
 import { CollectionSaveOverlayContextService } from './services/context/save-to-collection-context.service';
+import { environment } from '../environments/environment.development';
 
 @Component({
   selector: 'app-root',
@@ -122,8 +123,8 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   private currentPath = signal<string>('');
   private firstNavigationDone = signal<boolean>(false);
 
-  private publicExact = new Set(['/login', '/register', '/forgot', '/privacy', '/', '/forgot-password']);
-  private publicPrefixes = ['/molecules/detail'];
+  private publicExact = new Set(environment.PUBLIC_EXACT_PATHS);
+  private publicPrefixes = environment.PUBLIC_PREFIXES;
 
   @ViewChild('scrollHost') private scrollHostRef!: ElementRef<HTMLElement>;
   @ViewChild(HeaderComponent, { read: ElementRef }) headerRef!: ElementRef<HTMLElement>;
