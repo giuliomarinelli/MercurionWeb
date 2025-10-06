@@ -1,3 +1,6 @@
+import { T1PredictionDTO } from "../../notebook/t1-prediction-model";
+import { MoleculeDetail } from "../molecule.detail";
+
 // --- TYPE DEFINITIONS (semplificate) ---
 export interface MoleculeCollectionJoin {
   id: string;
@@ -9,10 +12,15 @@ export interface BaseMoleculeItem {
   notes?: string | null;
   type: 'chembl' | 'custom';
   joins: MoleculeCollectionJoin[];
+  createdAt: string
+  updatedAt: string
+  t1Inference?: T1PredictionDTO
 }
 export interface ChEMBLMoleculeItemEntity extends BaseMoleculeItem {
   type: 'chembl';
   chemblMolregno: number;
+  chemblDetails: MoleculeDetail
+
 }
 export interface CustomMoleculeItemEntity extends BaseMoleculeItem {
   type: 'custom';
@@ -20,6 +28,7 @@ export interface CustomMoleculeItemEntity extends BaseMoleculeItem {
   molFormula?: string | null;
   name?: string | null;
   propertiesJson?: string | null;
+  properties?: MoleculeProperties
 }
 export type MoleculeCollectionItem = ChEMBLMoleculeItemEntity | CustomMoleculeItemEntity;
 
@@ -49,19 +58,19 @@ export interface CustomMoleculeItemInput {
   propertiesJson?: string; // da serializzare via JSON.stringify(properties)
 }
 
-export interface CustomMoleculeItemEntity {
-  id: string;
-  type: 'custom';
-  label?: string | null;
-  notes?: string | null;
-  canonicalSmiles: string;
-  molFormula?: string | null;
-  name?: string | null;
-  propertiesJson?: string | null;
-  joins: { id: string; collection: { id: string; name: string } }[];
-  // Getter derivato (non in DB, aggiunto in UI):
-  properties?: MoleculeProperties | null;
-}
+// export interface CustomMoleculeItemEntity {
+//   id: string;
+//   type: 'custom';
+//   label?: string | null;
+//   notes?: string | null;
+//   canonicalSmiles: string;
+//   molFormula?: string | null;
+//   name?: string | null;
+//   propertiesJson?: string | null;
+//   joins: { id: string; collection: { id: string; name: string } }[];
+//   // Getter derivato (non in DB, aggiunto in UI):
+//   properties?: MoleculeProperties | null;
+// }
 
 export interface AddCustomMoleculeToCollectionInput {
   collectionId: string;
