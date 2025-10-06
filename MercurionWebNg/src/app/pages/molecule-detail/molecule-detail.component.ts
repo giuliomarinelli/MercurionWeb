@@ -224,8 +224,8 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
 
   private mode = signal<'SYSTEM' | 'USER'>('SYSTEM')
 
-  private readonly uuidRe =
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  private readonly uuidV7Re = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 
   molecule$!: Observable<MoleculeDetailItem | null>
   viewerReady = signal<boolean>(false)
@@ -269,7 +269,7 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
           return throwError(() => new Error('UndefinedMolregno'));
         }
 
-        const isUUID = this.uuidRe.test(molId);
+        const isUUID = this.uuidV7Re.test(molId);
         this.mode.set(isUUID ? 'USER' : 'SYSTEM');
 
         // === SYSTEM (molregno numerico): restituisco SEMPRE MoleculeDetailSystem
@@ -344,7 +344,7 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
       switchMap((id): Observable<string | null> => {
         if (!id) return of(null);
         // UUID -> prendo lo short e, se chembl, estraggo il molregno
-        if (this.uuidRe.test(id)) {
+        if (this.uuidV7Re.test(id)) {
           const svc$ = this.moleculeCollectionItemService.getItemShortById?.(id);
           // normalizzo a Observable<Short | null>
           const src: Observable<MoleculeCollectionItemEntityShort | null> =
