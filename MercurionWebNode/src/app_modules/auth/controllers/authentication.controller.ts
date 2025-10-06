@@ -20,6 +20,8 @@ import { ISessionDeviceInfo } from '../Models/interfaces/i-session.interface';
 import { FingerprintData } from '../Models/DTO/fingerprints.dtos';
 import { UserService } from 'src/app_modules/user/services/user.service';
 import { TurnstileGuard } from '../guards/turnstile.guard';
+import { ConfigService } from '@nestjs/config';
+import { CookieConfiguration, SecureCookieConfiguration } from 'src/config/@types-config';
 
 
 
@@ -28,14 +30,21 @@ export class AuthenticationController {
 
     private readonly logger = new Logger(AuthenticationController.name)
 
+    private readonly cookieConf: CookieConfiguration
+
     constructor(
         private readonly authService: AuthenticationService,
         private readonly mfaService: MfaService,
         private readonly jwtTools: JwtToolsService,
         private readonly _r: ResponseService,
         private readonly secureCookieService: SecureCookieService,
-        private readonly userService: UserService
-    ) { }
+        private readonly userService: UserService,
+        private readonly configService: ConfigService
+    ) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { secret, ...cookieConf } = this.configService.get<SecureCookieConfiguration>('SecureCookie')!
+        this.cookieConf = cookieConf
+    }
 
     @Public()
     @Post('login/0')
@@ -63,15 +72,14 @@ export class AuthenticationController {
         // eslint-disable-next-line prefer-const
         let { email, password, remember } = dto
 
-        if (remember) {
-            remember = false
-        }
-
         const auth: Authentication = await this.authService.emailAndPasswordAuthentication(email, password, remember, ip, deviceId, sessionDeviceInfo, fingerprintData)
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { userId, sessionId, ...authRes } = auth
 
-        this.secureCookieService.setSignedCookie(reply, '__node_session_id', sessionId)
+        this.secureCookieService.setSignedCookie(reply, '__node_session_id', sessionId, {
+            ...this.cookieConf,
+            maxAge: remember ? 2_592_000 : undefined
+        })
 
         const initials = await this.userService.getUserInitialsByUserId(userId)
 
