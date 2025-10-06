@@ -40,7 +40,7 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/login/mfa/mfa.component').then(m => m.MfaComponent)
   },
   {
-    path: 'molecules/detail/:molregno',
+    path: 'molecules/detail/:molId',
     loadComponent: () => import('./pages/molecule-detail/molecule-detail.component').then(m => m.MoleculeDetailComponent)
   },
   {

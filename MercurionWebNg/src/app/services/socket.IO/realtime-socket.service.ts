@@ -63,20 +63,33 @@ export class RealtimeSocketService {
 
   /* ───────── Observable helper ───────── */
 
+  /* ───────── Observable helper ───────── */
   on<T>(event: string): Observable<T> {
     return new Observable<T>(observer => {
-      if (!this.socket) this.setMode(this.mode);  // autoconnect
       const handler = (d: T) => observer.next(d);
-      this.socket!.on(event, handler);
+
+      // 1) Registra SEMPRE il listener nella lista,
+      //    così recreateSocket() potrà ri-attaccarlo quando la socket esiste.
       this.listeners.push({ event, handler });
 
+      // 2) Se la socket c’è già, attacca subito. Altrimenti, no-op: ci penserà recreateSocket().
+      this.socket?.on(event, handler);
+
+      // 3) Auto-connect: se non c’è socket, avvia la creazione (async-safe).
+      if (!this.socket) this.setMode(this.mode);
+
+      // 4) Cleanup
       return () => {
-        this.socket?.off(event, handler);
+        // Rimuovi dall’array dei listener
         const i = this.listeners.findIndex(l => l.event === event && l.handler === handler);
         if (i >= 0) this.listeners.splice(i, 1);
+
+        // Se la socket esiste, stacca l’handler
+        this.socket?.off(event, handler);
       };
     });
   }
+
 
   onConnect() { return this.on<void>('connect'); }
   onDisconnect() { return this.on<string>('disconnect'); }

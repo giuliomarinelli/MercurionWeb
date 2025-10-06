@@ -22,4 +22,5 @@ export interface MoleculeDetail {
     blackBoxWarning: boolean
     synonyms: string[]
     t1Inference?: T1PredictionDTO
+    type: 'system'
 }

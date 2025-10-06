@@ -208,7 +208,7 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
     this.molecule$ = this.route.paramMap.pipe(
       switchMap((params) => {
         this.viewerReady.set(false)
-      const molId = params.get('molregno')
+        const molId = params.get('molId')
         this.mode.set(
           /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(molId ?? '') ?
             'USER' : 'SYSTEM'
@@ -220,7 +220,9 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
           }
           return this.moleculeService.getMoleculeByMolregno(molId).pipe(
             map(mol => {
+              mol.type = 'system'
               this.molCached = mol || undefined
+              console.log(mol)
               return mol
             })
           )
