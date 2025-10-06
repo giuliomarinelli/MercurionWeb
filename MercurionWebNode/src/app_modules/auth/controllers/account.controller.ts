@@ -1,6 +1,6 @@
 import { ChangePasswordDTO } from './../Models/DTO/change-password.dto';
 import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum';
-import { BadRequestException, Body, Controller, Get, NotFoundException, Param, Patch, Post, Query, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, HttpCode, HttpStatus, NotFoundException, Param, Patch, Post, Query, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
 import { UserRegisterDTO } from 'src/app_modules/user/Models/DTO/user-register.cls.dto';
 import { AuthenticatedUserId, Authorization, Public } from 'src/metadata/metadata';
 import { ConfirmChangeDTO, ConfirmDTO, ConfirmMfaChange, ConfirmWithObsContDTO } from 'src/Models/confirm-responses.dto';
@@ -156,6 +156,7 @@ export class AccountController {
 
     @Public()
     @UseGuards(TurnstileGuard)
+    @HttpCode(HttpStatus.OK)
     @Post('/forgotten-password')
     public async forgottenPassword(@Body() dto: EmailDTO): Promise<ConfirmWithObsContDTO> {
         const { email } = dto
@@ -171,7 +172,7 @@ export class AccountController {
     }
 
     @Public()
-    @Post('/password-recovery')
+    @Patch('/password-recovery')
     public async passwordRecovery(
         @Authorization() changePasswordToken: string,
         @Body() changePasswordDTO: ChangePasswordDTO

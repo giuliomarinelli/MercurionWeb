@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { UserData } from '../Models/account/account.models';
+import { ChangePasswordDTO, UserData } from '../Models/account/account.models';
 import { Observable, of, tap } from 'rxjs';
 import { EmailDTO } from '../Models/types/auth/DTO/login.dtos';
 import { ConfirmDTO } from '../Models/confirm.dtos';
@@ -62,6 +62,15 @@ export class AccountService {
 
   public isAuthorizedToRecoverPassword(changePasswordToken: string): Observable<boolean> {
     return this.http.get<boolean>('/api/account/is-authorized-to-recover-password', {
+      withCredentials: true,
+      headers: {
+        'Authorization': `Bearer ${changePasswordToken}`
+      }
+    })
+  }
+
+  public recoverPassword(dto: ChangePasswordDTO, changePasswordToken: string): Observable<ConfirmDTO> {
+    return this.http.patch<ConfirmDTO>('/api/account/password-recovery', dto, {
       withCredentials: true,
       headers: {
         'Authorization': `Bearer ${changePasswordToken}`
