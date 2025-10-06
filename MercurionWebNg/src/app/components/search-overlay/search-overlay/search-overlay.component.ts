@@ -3,10 +3,11 @@ import { Component, effect, HostListener, OnInit, signal } from '@angular/core';
 import { SearchContextService } from '../../../services/context/search-context.service';
 import { SearchInputComponent } from '../search-input/search-input.component';
 import { SearchResultComponent } from '../search-result/search-result.component';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-search-overlay',
-  imports: [SearchInputComponent, SearchResultComponent],
+  imports: [SearchInputComponent, SearchResultComponent, RouterLink],
   template: `
     <div
       class="fixed inset-0 z-[999] bg-black/70 backdrop-blur-sm text-light-on-surface-main dark:text-slate-50 transition-all duration-300"
@@ -27,8 +28,7 @@ import { SearchResultComponent } from '../search-result/search-result.component'
             </button>
           </div>
 
-          <!-- Qui inserirai i tuoi componenti -->
-          <!-- Esempio placeholder -->
+
           <app-search-input
             (onLoading)="loading.set($event)"
             (onResult)="handleResults($event)"
@@ -38,9 +38,11 @@ import { SearchResultComponent } from '../search-result/search-result.component'
           />
 
           <div
-            class="bg-light-surface-secondary dark:bg-slate-50/10 p-6 h-full rounded-xl text-light-on-surface-main dark:text-sm dark:text-slate-50/90 max-h-[40vh] overflow-y-auto">
-            <p>[🔬] Area input, filtri e risultati</p>
-            <hr class="border-px border-slate-300/50 mt-5" />
+            class="relative bg-light-surface-secondary dark:bg-slate-50/10 p-6 h-full rounded-xl text-light-on-surface-main dark:text-sm dark:text-slate-50/90 max-h-[38vh] overflow-y-auto">
+            <div>
+              <a class="a text-base" routerLink="/advanced-research">Ricerca avanzata</a>
+            </div>
+            <hr class="border-px border-slate-300/50 mt-5 sticky top-[-24px] -z-10" />
             <!-- Skeleton loader -->
             @if (loading()) {
               <div class="space-y-3">

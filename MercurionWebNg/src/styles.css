@@ -86,7 +86,7 @@ body {
 @tailwind components;
 @tailwind utilities;
 
-/* Custom base styles se vuoi */
+/* Custom base styles */
 html,
 body {
   @apply text-light-on-surface-main dark:text-dark-on-surface-main;
@@ -94,6 +94,9 @@ body {
 
 @layer components {
 
+  .a {
+    @apply text-light-accent-primary dark:text-dark-accent-primary hover:underline
+  }
 
   .drawer {
     @apply bg-slate-200/50 dark:dark:bg-neutral-900/75 transition-colors;
