@@ -1,8 +1,8 @@
-import { MoleculeCollectionItemEntityShort } from './../../Models/graphql/molecule-collection/molecule-collection.types';
+import { MoleculeCollectionItemClient, MoleculeCollectionItemEntityShort } from './../../Models/graphql/molecule-collection/molecule-collection.types';
 import { Injectable, computed, signal } from '@angular/core';
 import { Apollo, gql } from 'apollo-angular';
 import { map, Observable, tap } from 'rxjs';
-import { CreateMoleculeItemInput, MoleculeCollectionItem } from '../../Models/graphql/molecule-collection/molecule-collection.types';
+import { CreateMoleculeItemInput, MoleculeItemDTO } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 
 function extractGqlData<T>(res: any, field: keyof T): any {
   if (res.errors && res.errors.length) {
@@ -14,6 +14,103 @@ function extractGqlData<T>(res: any, field: keyof T): any {
   return res.data[field];
 }
 
+function mapDtoToClient(node: MoleculeItemDTO): MoleculeCollectionItemClient {
+  if (node.__typename === 'ChEMBLMoleculeItemDTO') {
+    return {
+      id: node.id,
+      label: node.label ?? null,
+      notes: node.notes ?? null,
+      type: 'chembl',
+      joins: node.joins,
+      chemblMolregno: node.chemblMolregno,
+    };
+  }
+  return {
+    id: node.id,
+    label: node.label ?? null,
+    notes: node.notes ?? null,
+    type: 'custom',
+    joins: node.joins,
+    canonicalSmiles: node.canonicalSmiles,
+    molFormula: node.molFormula ?? null,
+    name: node.name ?? null,
+    propertiesJson: node.propertiesJson ?? null,
+  };
+}
+
+function mapDtoToShort(node: MoleculeItemDTO): MoleculeCollectionItemEntityShort {
+  return {
+    id: node.id,
+    type: node.__typename === 'ChEMBLMoleculeItemDTO' ? 'chembl' : 'custom',
+    chemblMolregno:
+      node.__typename === 'ChEMBLMoleculeItemDTO' ? node.chemblMolregno : undefined,
+  };
+}
+
+const MOLECULE_ITEM = gql`
+  query MoleculeItem($id: ID!) {
+    moleculeItem(id: $id) {
+      __typename
+      ... on ChEMBLMoleculeItemDTO {
+        id
+        label
+        notes
+        joins { id collection { id name } }
+        chemblMolregno
+      }
+      ... on CustomMoleculeItemDTO {
+        id
+        label
+        notes
+        joins { id collection { id name } }
+        canonicalSmiles
+        molFormula
+        name
+        propertiesJson
+      }
+    }
+  }
+`;
+
+const MOLECULE_ITEM_FRAG_SHORT = gql`
+  query MoleculeItemShort($id: ID!) {
+    moleculeItem(id: $id) {
+      __typename
+      ... on ChEMBLMoleculeItemDTO {
+        id
+        chemblMolregno
+      }
+      ... on CustomMoleculeItemDTO {
+        id
+      }
+    }
+  }
+`;
+
+const MY_MOLECULE_ITEMS = gql`
+  query MyMoleculeItems {
+    myMoleculeItems {
+      __typename
+      ... on ChEMBLMoleculeItemDTO {
+        id
+        label
+        notes
+        joins { id collection { id name } }
+        chemblMolregno
+      }
+      ... on CustomMoleculeItemDTO {
+        id
+        label
+        notes
+        joins { id collection { id name } }
+        canonicalSmiles
+        molFormula
+        name
+        propertiesJson
+      }
+    }
+  }
+`;
 
 
 // --- GQL DEFINITIONS ---
@@ -44,29 +141,7 @@ const CUSTOM_MOLECULE_SMILES = gql`
   }
 `;
 
-const MY_MOLECULE_ITEMS = gql`
-  query MyMoleculeItems {
-    myMoleculeItems {
-      ${MOLECULE_ITEM_FRAGMENT}
-    }
-  }
-`;
 
-const MOLECULE_ITEM = gql`
-  query MoleculeItem($id: ID!) {
-    moleculeItem(id: $id) {
-      ${MOLECULE_ITEM_FRAGMENT}
-    }
-  }
-`;
-
-const MOLECULE_ITEM_FRAG_SHORT = gql`
-  query MoleculeItem($id: ID!) {
-    moleculeItem(id: $id) {
-      ${MOLECULE_ITEM_SHORT}
-    }
-  }
-`;
 
 const CREATE_MOLECULE_ITEM = gql`
   mutation CreateMoleculeItem($input: CreateMoleculeItemInput!) {
@@ -101,44 +176,49 @@ export class MoleculeCollectionItemService {
   constructor(private apollo: Apollo) { }
 
   // LISTA TUTTE LE MOLECOLE
-  getAllItems(): Observable<MoleculeCollectionItem[]> {
+  getAllItems(): Observable<MoleculeCollectionItemClient[]> {
     this._loading.set(true);
     return this.apollo
-      .watchQuery<{ myMoleculeItems: MoleculeCollectionItem[] }>({
+      .watchQuery<{ myMoleculeItems: MoleculeItemDTO[] }>({
         query: MY_MOLECULE_ITEMS,
         fetchPolicy: 'network-only',
       })
       .valueChanges.pipe(
-        map(res => extractGqlData(res, 'myMoleculeItems')),
-        tap(items => {
-          this._items.set(items);
-          this._loading.set(false);
-        })
+        map(res => extractGqlData(res, 'myMoleculeItems') as MoleculeItemDTO[]),
+        map(items => items.map(mapDtoToClient)),
+        tap(items => { this._items.set(items as any); this._loading.set(false); })
       );
   }
 
-  // GET BY ID
-  getItemById(id: string): Observable<MoleculeCollectionItem | null> {
+  getItemById(id: string): Observable<MoleculeCollectionItemClient | null> {
     return this.apollo
-      .watchQuery<{ moleculeItem: MoleculeCollectionItem | null }>({
+      .watchQuery<{ moleculeItem: MoleculeItemDTO | null }>({
         query: MOLECULE_ITEM,
         variables: { id },
         fetchPolicy: 'network-only',
       })
-      .valueChanges.pipe(map(res => extractGqlData(res, 'moleculeItem')));
+      .valueChanges.pipe(
+        map(res => extractGqlData(res, 'moleculeItem') as MoleculeItemDTO | null),
+        map(node => (node ? mapDtoToClient(node) : null))
+      );
   }
 
-  getItemShortById(id: string): Observable<MoleculeCollectionItemEntityShort> | null {
+  getItemShortById(id: string): Observable<MoleculeCollectionItemEntityShort | null> {
     return this.apollo
-      .watchQuery<{ moleculeItem: Partial<MoleculeCollectionItem> | null }>({
+      .watchQuery<{ moleculeItem: MoleculeItemDTO | null }>({
         query: MOLECULE_ITEM_FRAG_SHORT,
         variables: { id },
-        fetchPolicy: 'network-only'
-      }).valueChanges.pipe(map(res => extractGqlData(res, 'moleculeItem')))
+        fetchPolicy: 'network-only',
+      })
+      .valueChanges.pipe(
+        map(res => extractGqlData(res, 'moleculeItem') as MoleculeItemDTO | null),
+        map(node => (node ? mapDtoToShort(node) : null))
+      );
   }
 
+
   // CREATE
-  createItem(input: CreateMoleculeItemInput): Observable<MoleculeCollectionItem> {
+  createItem(input: CreateMoleculeItemInput): Observable<MoleculeCollectionItemClient> {
     return this.apollo
       .mutate<{ createMoleculeItem: MoleculeCollectionItem }>({
         mutation: CREATE_MOLECULE_ITEM,
