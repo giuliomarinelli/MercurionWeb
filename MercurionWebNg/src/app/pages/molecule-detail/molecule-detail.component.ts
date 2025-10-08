@@ -24,6 +24,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { TypeGuardsService } from '../../type-guards.service';
 import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service';
 import { MoleculeCollectionItemEntityShort, MoleculeDetailItem } from '../../Models/graphql/molecule-collection/molecule-collection.types';
+import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 
 
 @Component({
@@ -40,7 +41,8 @@ import { MoleculeCollectionItemEntityShort, MoleculeDetailItem } from '../../Mod
     T1PredictionCardComponent,
     EditingLayerComponent,
     SimilarsComponent,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    ClassicSpinnerComponent
   ],
   template: `
     @if (molecule$ | async; as molecule) {
@@ -202,8 +204,8 @@ import { MoleculeCollectionItemEntityShort, MoleculeDetailItem } from '../../Mod
         <p class="text-light-error dark:text-dark-error text-sm">Si è verificato un errore nel caricamento della molecola</p>
       </section>
     } @else {
-      <section class="max-w-4xl mx-auto p-6">
-        <p class="text-gray-600 dark:text-gray-300 text-sm">Caricamento molecola...</p>
+      <section class="absolute inset-0 flex justify-center items-center">
+        <app-classic-spinner [size]="85" />
       </section>
     }
   `,
@@ -233,6 +235,7 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
   fetchError = signal<boolean>(false)
   similarMols = signal<MoleculeSearchResult[] | undefined>(undefined)
   similarMolsCache = signal<MoleculeSearchResult[]>([])
+  fetchMolLoading = signal<boolean>(true)
   private molCached?: MoleculeDetailItem
   private onlySub?: Subscription
 
@@ -319,6 +322,7 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
           .t1Inference({ smiles })
           .pipe(
             map(t1 => ({ ...item, t1Inference: t1 })),
+            tap(() => this.fetchMolLoading.set(false)),
             catchError(() => of(item)) // in caso di errore, tieni il detail base
           );
 
