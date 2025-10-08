@@ -1,8 +1,9 @@
 import { Field, ID, ObjectType } from "@nestjs/graphql";
+import { MoleculeCollectionItemJoin } from "../../entities/molecule-collection/molecule-collection-item-join.entity";
 
 @ObjectType()
 export class CustomMoleculeItemDTO {
-  
+
   @Field(() => ID)
   id: string
 
@@ -32,4 +33,9 @@ export class CustomMoleculeItemDTO {
 
   @Field(() => String)
   updatedAt: number
+
+  @Field(() => [MoleculeCollectionItemJoin], { nullable: true })
+  joins: MoleculeCollectionItemJoin[] | null
+
+
 }

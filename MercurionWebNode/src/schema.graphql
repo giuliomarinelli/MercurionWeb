@@ -189,6 +189,7 @@ type CustomMoleculeItemDTO {
   propertiesJson: String
   createdAt: String!
   updatedAt: String!
+  joins: [MoleculeCollectionItemJoin!]
 }
 
 type ChEMBLMoleculeItemDTO {
@@ -200,6 +201,7 @@ type ChEMBLMoleculeItemDTO {
   createdAt: String!
   updatedAt: String!
   chemblDetails: MoleculeDetail
+  joins: [MoleculeCollectionItemJoin!]
 }
 
 type MoleculeSearchResult {
