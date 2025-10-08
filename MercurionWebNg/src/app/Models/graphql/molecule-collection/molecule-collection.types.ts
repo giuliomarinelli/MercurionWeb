@@ -134,9 +134,11 @@ export type MoleculeCollectionItemClient =
 
 export interface MoleculeCollectionItemEntityShort {
   id: string;
-  type: 'chembl' | 'custom'; // NON string generico
+  type: string; // NON string generico
   chemblMolregno?: number;
 }
 
 // Polimorfico nel componente
 export type MoleculeDetailItem = MoleculeDetailSystem | MoleculeCollectionItemClient;
+
+

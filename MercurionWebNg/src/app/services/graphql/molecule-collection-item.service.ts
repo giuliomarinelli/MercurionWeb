@@ -167,7 +167,7 @@ const DELETE_MOLECULE_ITEM = gql`
 
 @Injectable({ providedIn: 'root' })
 export class MoleculeCollectionItemService {
-  private _items = signal<MoleculeCollectionItem[]>([]);
+  private _items = signal<MoleculeCollectionItemClient[]>([]);
   private _loading = signal<boolean>(false);
 
   readonly items = computed(() => this._items());
@@ -186,7 +186,7 @@ export class MoleculeCollectionItemService {
       .valueChanges.pipe(
         map(res => extractGqlData(res, 'myMoleculeItems') as MoleculeItemDTO[]),
         map(items => items.map(mapDtoToClient)),
-        tap(items => { this._items.set(items as any); this._loading.set(false); })
+        tap(items => { this._items.set(items); this._loading.set(false); })
       );
   }
 
@@ -220,24 +220,28 @@ export class MoleculeCollectionItemService {
   // CREATE
   createItem(input: CreateMoleculeItemInput): Observable<MoleculeCollectionItemClient> {
     return this.apollo
-      .mutate<{ createMoleculeItem: MoleculeCollectionItem }>({
+      .mutate<{ createMoleculeItem: MoleculeItemDTO }>({
         mutation: CREATE_MOLECULE_ITEM,
         variables: { input },
       })
-      .pipe(map(res => extractGqlData(res, 'createMoleculeItem')));
+      .pipe(
+        map(res => extractGqlData(res, 'createMoleculeItem') as MoleculeItemDTO),
+        map(mapDtoToClient)
+      );
   }
 
-  // UPDATE
-  updateItem(id: string, input: CreateMoleculeItemInput): Observable<MoleculeCollectionItem | null> {
+  updateItem(id: string, input: CreateMoleculeItemInput): Observable<MoleculeCollectionItemClient | null> {
     return this.apollo
-      .mutate<{ updateMoleculeItem: MoleculeCollectionItem | null }>({
+      .mutate<{ updateMoleculeItem: MoleculeItemDTO | null }>({
         mutation: UPDATE_MOLECULE_ITEM,
         variables: { id, input },
       })
-      .pipe(map(res => extractGqlData(res, 'updateMoleculeItem')));
+      .pipe(
+        map(res => extractGqlData(res, 'updateMoleculeItem') as MoleculeItemDTO | null),
+        map(node => (node ? mapDtoToClient(node) : null))
+      );
   }
 
-  // DELETE
   deleteItem(id: string): Observable<boolean> {
     return this.apollo
       .mutate<{ deleteMoleculeItem: boolean }>({
@@ -249,26 +253,26 @@ export class MoleculeCollectionItemService {
 
   getCustomSmilesById(id: string) {
     return this.apollo
-      .watchQuery<{ moleculeItem: MoleculeCollectionItem }>({
+      .watchQuery<{ moleculeItem: MoleculeItemDTO | null }>({
         query: MOLECULE_ITEM,
         variables: { id },
         fetchPolicy: 'network-only',
       })
-      .valueChanges
-      .pipe(
-        map(res => {
-          const item = extractGqlData(res, 'moleculeItem');
-          if (!item) throw new Error('Item not found');
-          if (item.type !== 'custom') throw new Error('Not a custom molecule');
+      .valueChanges.pipe(
+        map(res => extractGqlData(res, 'moleculeItem') as MoleculeItemDTO | null),
+        map(node => {
+          if (!node) throw new Error('Item not found');
+          if (node.__typename !== 'CustomMoleculeItemDTO') throw new Error('Not a custom molecule');
           return {
-            id: item.id,
-            canonicalSmiles: item.canonicalSmiles,
-            name: item.name,
-            molFormula: item.molFormula,
+            id: node.id,
+            canonicalSmiles: node.canonicalSmiles,
+            name: node.name ?? null,
+            molFormula: node.molFormula ?? null,
           };
         })
       );
   }
-
-
 }
+
+
+

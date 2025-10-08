@@ -1,17 +1,17 @@
 import { Injectable } from "@angular/core";
 import { MoleculeDetailSystem } from "./Models/graphql/molecule.detail";
-import { ChEMBLMoleculeItemEntity, CustomMoleculeItemEntity, MoleculeCollectionItemEntityShort, MoleculeDetailItem } from "./Models/graphql/molecule-collection/molecule-collection.types";
+import { ChEMBLMoleculeItemEntity, CustomMoleculeItemEntity, MoleculeCollectionItemClient, MoleculeCollectionItemEntityShort, MoleculeDetailItem } from "./Models/graphql/molecule-collection/molecule-collection.types";
 
 @Injectable({ providedIn: 'root' })
 export class TypeGuardsService {
   // chembl
   isChemblMolecule(item: MoleculeDetailItem): item is ChEMBLMoleculeItemEntity;
-  isChemblMolecule(
-    item: MoleculeCollectionItemEntityShort
-  ): item is MoleculeCollectionItemEntityShort & { type: 'chembl' };
+  isChemblMolecule(item: MoleculeCollectionItemClient): item is Extract<MoleculeCollectionItemClient, { type: 'chembl' }>;
+  isChemblMolecule(item: MoleculeCollectionItemEntityShort): item is MoleculeCollectionItemEntityShort & { type: 'chembl' };
   isChemblMolecule(item: any): boolean {
     return item?.type === 'chembl';
   }
+
 
   // custom
   isCustomMolecule(item: MoleculeDetailItem): item is CustomMoleculeItemEntity;
