@@ -26,6 +26,8 @@ export class UserContextService {
 
   logout(): void {
     this.clearInitials()
+    localStorage.removeItem('accessToken')
+    localStorage.removeItem('ws_accessToken')
   }
 
 }

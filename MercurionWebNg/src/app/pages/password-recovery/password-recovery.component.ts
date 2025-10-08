@@ -1,12 +1,13 @@
 import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AccountService } from '../../services/account.service';
-import { distinctUntilChanged, Subscription, take } from 'rxjs';
+import { distinctUntilChanged, Subscription, take, tap } from 'rxjs';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FloatingInputComponent } from '../../components/common/floating-input/floating-input.component';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { matchPassword } from '../../custom-validators';
 import { ErrorRes } from '../../Models/confirm.dtos';
+import { UserContextService } from '../../services/context/user-context.service';
 
 @Component({
   selector: 'app-password-recovery',
@@ -94,6 +95,7 @@ export class PasswordRecoveryComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly accountService = inject(AccountService);
   private readonly fb = inject(FormBuilder)
+  private readonly userCtx = inject(UserContextService)
 
   private changePasswordToken = signal<string>('');
   private authSub?: Subscription;
@@ -138,7 +140,10 @@ export class PasswordRecoveryComponent implements OnInit, OnDestroy {
     this.authSub = this.accountService.isAuthorizedToRecoverPassword(t)
       .pipe(
         distinctUntilChanged(),
-        take(1)
+        take(1),
+        tap(
+          () => this.userCtx.logout()
+        )
       ).subscribe({
         next: ok => ok ? this.canView.set(true) : this.router.navigateByUrl('/'),
         error: () => this.router.navigateByUrl('/')
