@@ -269,6 +269,7 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
 
         const molId = params.get('molId');
         if (!molId) {
+          this.fetchError.set(true)
           return throwError(() => new Error('UndefinedMolregno'));
         }
 
@@ -286,13 +287,19 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
               this.molCached = sys;
               return sys; // compatibile con MoleculeDetailItem
             }),
-            catchError(() => of(null))
+            catchError(() => {
+              this.fetchError.set(true)
+              return of(null)
+            })
           );
         }
 
         // === USER (UUID): restituisco l'item di collezione (chembl | custom)
         return this.moleculeCollectionItemService.getItemById(molId).pipe(
-          catchError(() => of(null))
+          catchError(() => {
+            this.fetchError.set(true)
+            return of(null)
+          })
         );
       }),
 
