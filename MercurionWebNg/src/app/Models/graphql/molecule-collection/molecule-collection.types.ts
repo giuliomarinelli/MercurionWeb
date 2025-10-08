@@ -118,6 +118,7 @@ export type MoleculeCollectionItemClient =
       joins: { id: string; collection: { id: string; name: string } }[];
       chemblMolregno: number;
       createdAt?: string; updatedAt?: string; chemblDetails?: unknown;
+      t1Inference?: T1PredictionDTO
     }
   | {
       id: string;
@@ -130,6 +131,7 @@ export type MoleculeCollectionItemClient =
       name?: string | null;
       propertiesJson?: string | null;
       createdAt?: string; updatedAt?: string;
+      t1Inference?: T1PredictionDTO
     };
 
 export interface MoleculeCollectionItemEntityShort {
@@ -140,5 +142,15 @@ export interface MoleculeCollectionItemEntityShort {
 
 // Polimorfico nel componente
 export type MoleculeDetailItem = MoleculeDetailSystem | MoleculeCollectionItemClient;
+
+export interface MoleculeCollectionItemJoinShort {
+  id: string;
+  item: { id: string; label?: string | null; type: string; };
+}
+export interface MoleculeCollection {
+  id: string;
+  name: string;
+  items?: MoleculeCollectionItemJoinShort[];
+}
 
 
