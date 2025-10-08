@@ -1,5 +1,5 @@
 import { T1PredictionDTO } from "../../notebook/t1-prediction-model";
-import { MoleculeDetail } from "../molecule.detail";
+import { MoleculeDetail, MoleculeDetailSystem } from "../molecule.detail";
 
 // --- TYPE DEFINITIONS (semplificate) ---
 export interface MoleculeCollectionJoin {
@@ -30,7 +30,7 @@ export interface CustomMoleculeItemEntity extends BaseMoleculeItem {
   propertiesJson?: string | null;
   properties?: MoleculeProperties
 }
-export type MoleculeCollectionItem = ChEMBLMoleculeItemEntity | CustomMoleculeItemEntity;
+
 
 export interface MoleculeCollectionItemEntityShort {
   id: string
@@ -92,6 +92,67 @@ export interface MoleculeProperties {
   psa: number | string;
   rtb: number;
 }
+export type MoleculeItemDTO =
+  | {
+    __typename: 'ChEMBLMoleculeItemDTO';
+    id: string;
+    label?: string | null;
+    notes?: string | null;
+    type: string;                           // esposto dal backend
+    createdAt: string | number;             // backend @Field(() => String)
+    updatedAt: string | number;             // backend @Field(() => String)
+    joins?: { id: string; collection: { id: string; name: string } }[] | null;
+    chemblMolregno: string | number;        // backend lo espone come String
+    chemblDetails?: MoleculeDetail | null;  // dettagli per il rendering
+  }
+  | {
+    __typename: 'CustomMoleculeItemDTO';
+    id: string;
+    label?: string | null;
+    notes?: string | null;
+    type: string;                           // esposto dal backend
+    createdAt: string | number;             // backend @Field(() => String)
+    updatedAt: string | number;             // backend @Field(() => String)
+    joins?: { id: string; collection: { id: string; name: string } }[] | null;
+    canonicalSmiles: string;
+    molFormula?: string | null;
+    name?: string | null;
+    propertiesJson?: string | null;
+  };
+
+export type MoleculeCollectionItemClient =
+  | {
+    id: string;
+    label?: string | null;
+    notes?: string | null;
+    type: 'chembl';
+    joins: { id: string; collection: { id: string; name: string } }[];
+    chemblMolregno: number;
+    createdAt?: string; updatedAt?: string; chemblDetails?: unknown;
+    t1Inference?: T1PredictionDTO
+  }
+  | {
+    id: string;
+    label?: string | null;
+    notes?: string | null;
+    type: 'custom';
+    joins: { id: string; collection: { id: string; name: string } }[];
+    canonicalSmiles: string;
+    molFormula?: string | null;
+    name?: string | null;
+    propertiesJson?: string | null;
+    createdAt?: string; updatedAt?: string;
+    t1Inference?: T1PredictionDTO
+  };
+
+export interface MoleculeCollectionItemEntityShort {
+  id: string;
+  type: string; // NON string generico
+  chemblMolregno?: number;
+}
+
+// Polimorfico nel componente
+export type MoleculeDetailItem = MoleculeDetailSystem | MoleculeCollectionItemClient;
 
 export interface MoleculeCollectionItemJoinShort {
   id: string;
@@ -102,4 +163,5 @@ export interface MoleculeCollection {
   name: string;
   items?: MoleculeCollectionItemJoinShort[];
 }
+
 

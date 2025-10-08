@@ -109,6 +109,7 @@ export class MoleculeCollectionItemService {
                 propertiesJson: e.propertiesJson,
                 createdAt: e.createdAt,
                 updatedAt: e.updatedAt,
+                joins: e.joins
             } as CustomMoleculeItemDTO;
         }
 
@@ -124,6 +125,7 @@ export class MoleculeCollectionItemService {
                 chemblDetails: detailsMap[chemblMolregno] ?? null,
                 createdAt: e.createdAt,
                 updatedAt: e.updatedAt,
+                joins: e.joins
             } as unknown as ChEMBLMoleculeItemDTO;
         }
 

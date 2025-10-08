@@ -6,7 +6,7 @@ import { ActivatedRoute } from '@angular/router';
 import { MoleculeService } from '../../services/graphql/molecule.service';
 import { switchMap, Observable, catchError, of, Subscription, forkJoin, retry, tap, distinctUntilChanged, shareReplay, startWith, throwError } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { MoleculeDetail, MoleculeDetailItem, MoleculeDetailSystem } from '../../Models/graphql/molecule.detail';
+import { MoleculeDetailSystem } from '../../Models/graphql/molecule.detail';
 import { AsyncPipe } from '@angular/common';
 import { ThemeManagerService } from '../../services/context/theme-manager.service';
 import { MoleculeHeaderComponent } from '../../components/molecule-detail/molecule-header/molecule-header.component';
@@ -23,7 +23,7 @@ import { MoleculeSearchResult } from '../../Models/graphql/molecule-search/molec
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { TypeGuardsService } from '../../type-guards.service';
 import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service';
-import { MoleculeCollectionItemEntityShort } from '../../Models/graphql/molecule-collection/molecule-collection.types';
+import { MoleculeCollectionItemEntityShort, MoleculeDetailItem } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 
 
 @Component({

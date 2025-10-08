@@ -310,6 +310,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   private firstStepSubscription?: Subscription
   private secondStepSubscription?: Subscription
   private emailSub?: Subscription
+  private pswSub?: Subscription
   private pollInterval!: ReturnType<typeof setInterval>
 
   private fingerprintDataEnc: string = ''
@@ -361,6 +362,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     if (this.loginForm.controls['email'].valid) {
       this.firstStepSubscription = this.authService.login_stepZero({ email: this.loginForm.value['email'] }).subscribe({
         next: () => {
+          this.serverErrorStep.set(0)
           this.step.set(2)
         },
         error: err => {
@@ -450,11 +452,13 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.fingerprintDataEnc = fingerprintDataEnc
     this.sessionDeviceInfo = sessionDeviceInfo
     this.emailSub = this.loginForm.get('email')?.valueChanges.subscribe(() => {
+      this.serverErrorStep.set(0)
       if (this.step() === 2) {
         this.step.set(1);
         this.loginForm.get('password')?.reset();
       }
     });
+    this.pswSub = this.loginForm.get('password')?.valueChanges.subscribe(() => this.serverErrorStep.set(0))
 
   }
 
@@ -462,6 +466,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.firstStepSubscription?.unsubscribe()
     this.secondStepSubscription?.unsubscribe()
     this.emailSub?.unsubscribe()
+    this.pswSub?.unsubscribe()
     window.removeEventListener('storage', this.storageListener)
     clearInterval(this.pollInterval)
   }
