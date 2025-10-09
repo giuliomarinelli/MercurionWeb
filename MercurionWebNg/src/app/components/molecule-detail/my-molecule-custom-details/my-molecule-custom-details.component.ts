@@ -126,7 +126,7 @@ export class MyMoleculeCustomDetailsComponent {
 
   doSave(): void {
     this.mode.set('view')
-    const newValue = this.valueRef.nativeElement.innerHTML
+    const newValue = this.valueRef.nativeElement.innerText
     console.log(newValue)
     this.startValue.set(newValue)
     this._value.set(newValue)
