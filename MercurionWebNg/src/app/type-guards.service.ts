@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { MoleculeDetailSystem } from "./Models/graphql/molecule.detail";
+import { MoleculeDetailSystem } from "./Models/graphql/molecule.detail.models";
 import { ChEMBLMoleculeItemEntity, CustomMoleculeItemEntity, MoleculeCollectionItemClient, MoleculeCollectionItemEntityShort, MoleculeDetailItem } from "./Models/graphql/molecule-collection/molecule-collection.types";
 
 @Injectable({ providedIn: 'root' })
@@ -26,4 +26,13 @@ export class TypeGuardsService {
   isSystemMolecule(item: MoleculeDetailItem): item is MoleculeDetailSystem {
     return item?.type === 'system';
   }
+
+  isUserMoleculeType(item: 'chembl' | 'custom' | 'system'): item is 'chembl' | 'custom' {
+    return item !== 'system'
+  }
+
+  isString(item: unknown): item is string {
+    return typeof item === 'string'
+  }
+
 }

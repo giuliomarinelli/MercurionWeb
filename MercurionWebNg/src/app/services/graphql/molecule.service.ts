@@ -3,7 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { Apollo } from 'apollo-angular';
 import { GET_MOLECULE_DETAIL, GET_MOLECULE_PREVIEWS } from '../../Models/graphql/molecule.queries';
 import { map, Observable } from 'rxjs';
-import { MoleculeDetail } from '../../Models/graphql/molecule.detail';
+import { MoleculeDetail } from '../../Models/graphql/molecule.detail.models';
 
 @Injectable({
   providedIn: 'root'

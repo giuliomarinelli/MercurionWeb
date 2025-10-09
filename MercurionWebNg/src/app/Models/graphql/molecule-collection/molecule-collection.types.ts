@@ -1,5 +1,5 @@
 import { T1PredictionDTO } from "../../notebook/t1-prediction-model";
-import { MoleculeDetail, MoleculeDetailSystem } from "../molecule.detail";
+import { MoleculeDetail, MoleculeDetailSystem } from "../molecule.detail.models";
 
 // --- TYPE DEFINITIONS (semplificate) ---
 export interface MoleculeCollectionJoin {

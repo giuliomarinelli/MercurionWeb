@@ -9,6 +9,7 @@ import {
   CreateMoleculeItemInput,
   MoleculeItemDTO,
 } from '../../Models/graphql/molecule-collection/molecule-collection.types';
+import { CREATE_MOLECULE_ITEM, DELETE_MOLECULE_ITEM, MOLECULE_ITEM, MOLECULE_ITEM_FRAG_SHORT, MY_MOLECULE_ITEMS, UPDATE_MOLECULE_ITEM, UPDATE_MOLECULE_ITEM_LABEL, UPDATE_MOLECULE_ITEM_NOTES } from './graphql-actions/molecule-collection-item';
 
 // ---------- helpers ----------
 function extractGqlData<T>(res: any, field: keyof T, allowNull = false): any {
@@ -69,203 +70,7 @@ function mapDtoToShort(node: MoleculeItemDTO): MoleculeCollectionItemEntityShort
   };
 }
 
-// ---------- GQL ----------
-// Attenzione: campi richiesti dal template inclusi dentro i frammenti
-const MY_MOLECULE_ITEMS = gql`
-  query MyMoleculeItems {
-    myMoleculeItems {
-      __typename
-      ... on ChEMBLMoleculeItemDTO {
-        id
-        label
-        notes
-        type
-        createdAt
-        updatedAt
-        joins { id collection { id name } }
-        chemblMolregno
-        chemblDetails {
-          id
-          cmbId
-          preferredName
-          canonicalSmiles
-          moleculeType
-          maxPhase
-          naturalProduct
-          prodrug
-          blackBoxWarning
-          synonyms
-          properties { mwFreebase alogp hba hbd psa rtb }
-          administrationRoutes { oral parenteral topical }
-        }
-      }
-      ... on CustomMoleculeItemDTO {
-        id
-        label
-        notes
-        type
-        createdAt
-        updatedAt
-        joins { id collection { id name } }
-        canonicalSmiles
-        molFormula
-        name
-        propertiesJson
-      }
-    }
-  }
-`;
 
-const MOLECULE_ITEM = gql`
-  query MoleculeItem($id: ID!) {
-    moleculeItem(id: $id) {
-      __typename
-      ... on ChEMBLMoleculeItemDTO {
-        id
-        label
-        notes
-        type
-        createdAt
-        updatedAt
-        joins { id collection { id name } }
-        chemblMolregno
-        chemblDetails {
-          id
-          cmbId
-          preferredName
-          canonicalSmiles
-          moleculeType
-          maxPhase
-          naturalProduct
-          prodrug
-          blackBoxWarning
-          synonyms
-          properties { mwFreebase alogp hba hbd psa rtb }
-          administrationRoutes { oral parenteral topical }
-        }
-      }
-      ... on CustomMoleculeItemDTO {
-        id
-        label
-        notes
-        type
-        createdAt
-        updatedAt
-        joins { id collection { id name } }
-        canonicalSmiles
-        molFormula
-        name
-        propertiesJson
-      }
-    }
-  }
-`;
-
-const MOLECULE_ITEM_FRAG_SHORT = gql`
-  query MoleculeItemShort($id: ID!) {
-    moleculeItem(id: $id) {
-      __typename
-      ... on ChEMBLMoleculeItemDTO { id type chemblMolregno }
-      ... on CustomMoleculeItemDTO { id type }
-    }
-  }
-`;
-
-const CREATE_MOLECULE_ITEM = gql`
-  mutation CreateMoleculeItem($input: CreateMoleculeItemInput!) {
-    createMoleculeItem(input: $input) {
-      __typename
-      ... on ChEMBLMoleculeItemDTO {
-        id
-        label
-        notes
-        type
-        createdAt
-        updatedAt
-        joins { id collection { id name } }
-        chemblMolregno
-        chemblDetails {
-          id
-          cmbId
-          preferredName
-          canonicalSmiles
-          moleculeType
-          maxPhase
-          naturalProduct
-          prodrug
-          blackBoxWarning
-          synonyms
-          properties { mwFreebase alogp hba hbd psa rtb }
-          administrationRoutes { oral parenteral topical }
-        }
-      }
-      ... on CustomMoleculeItemDTO {
-        id
-        label
-        notes
-        type
-        createdAt
-        updatedAt
-        joins { id collection { id name } }
-        canonicalSmiles
-        molFormula
-        name
-        propertiesJson
-      }
-    }
-  }
-`;
-
-const UPDATE_MOLECULE_ITEM = gql`
-  mutation UpdateMoleculeItem($id: ID!, $input: CreateMoleculeItemInput!) {
-    updateMoleculeItem(id: $id, input: $input) {
-      __typename
-      ... on ChEMBLMoleculeItemDTO {
-        id
-        label
-        notes
-        type
-        createdAt
-        updatedAt
-        joins { id collection { id name } }
-        chemblMolregno
-        chemblDetails {
-          id
-          cmbId
-          preferredName
-          canonicalSmiles
-          moleculeType
-          maxPhase
-          naturalProduct
-          prodrug
-          blackBoxWarning
-          synonyms
-          properties { mwFreebase alogp hba hbd psa rtb }
-          administrationRoutes { oral parenteral topical }
-        }
-      }
-      ... on CustomMoleculeItemDTO {
-        id
-        label
-        notes
-        type
-        createdAt
-        updatedAt
-        joins { id collection { id name } }
-        canonicalSmiles
-        molFormula
-        name
-        propertiesJson
-      }
-    }
-  }
-`;
-
-const DELETE_MOLECULE_ITEM = gql`
-  mutation DeleteMoleculeItem($id: ID!) {
-    deleteMoleculeItem(id: $id)
-  }
-`;
 
 // ---------- Service ----------
 @Injectable({ providedIn: 'root' })
@@ -348,6 +153,30 @@ export class MoleculeCollectionItemService {
         map(res => extractGqlData(res, 'updateMoleculeItem', true) as MoleculeItemDTO | null),
         map(node => (node ? mapDtoToClient(node) : null))
       );
+  }
+
+  updateItemLabel(id: string, label: string, type: 'chembl' | 'custom'): Observable<MoleculeCollectionItemClient | null> {
+    return this.apollo
+      .mutate<{ updateMoleculeItemLabel: MoleculeItemDTO | null }>({
+        mutation: UPDATE_MOLECULE_ITEM_LABEL,
+        variables: { id, label, type }
+      })
+      .pipe(
+        map(res => extractGqlData(res, 'updateMoleculeItem', true) as MoleculeItemDTO | null),
+        map(node => node ? mapDtoToClient(node) : null)
+      )
+  }
+
+  updateItemNotes(id: string, notes: string, type: 'chembl' | 'custom'): Observable<MoleculeCollectionItemClient | null> {
+    return this.apollo
+      .mutate<{ updateMoleculeItemNotes: MoleculeItemDTO | null }>({
+        mutation: UPDATE_MOLECULE_ITEM_NOTES,
+        variables: { id, notes, type }
+      })
+      .pipe(
+        map(res => extractGqlData(res, 'updateMoleculeItem', true) as MoleculeItemDTO | null),
+        map(node => node ? mapDtoToClient(node) : null)
+      )
   }
 
   // DELETE

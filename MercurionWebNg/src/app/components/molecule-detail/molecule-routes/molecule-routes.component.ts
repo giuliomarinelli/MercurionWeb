@@ -1,5 +1,5 @@
 import { Component, Input, signal } from '@angular/core';
-import { AdministrationRoutes } from '../../../Models/graphql/molecule.detail';
+import { AdministrationRoutes } from '../../../Models/graphql/molecule.detail.models';
 
 
 @Component({

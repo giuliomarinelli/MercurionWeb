@@ -1,3 +1,4 @@
+import { MyMoleculeCustomDetailSaveModel } from './../../Models/my-molecule-custom-detail-save.interface';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { EmbeddingService } from './../../services/embedding.service';
 import { SimilarsComponent } from './../../components/molecule-detail/similars/similars.component';
@@ -6,7 +7,6 @@ import { ActivatedRoute } from '@angular/router';
 import { MoleculeService } from '../../services/graphql/molecule.service';
 import { switchMap, Observable, catchError, of, Subscription, forkJoin, retry, tap, distinctUntilChanged, shareReplay, startWith, throwError } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { MoleculeDetailSystem } from '../../Models/graphql/molecule.detail';
 import { AsyncPipe } from '@angular/common';
 import { ThemeManagerService } from '../../services/context/theme-manager.service';
 import { MoleculeHeaderComponent } from '../../components/molecule-detail/molecule-header/molecule-header.component';
@@ -26,6 +26,8 @@ import { MoleculeCollectionItemService } from '../../services/graphql/molecule-c
 import { MoleculeCollectionItemEntityShort, MoleculeDetailItem } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { MyMoleculeCustomDetailsComponent } from '../../components/molecule-detail/my-molecule-custom-details/my-molecule-custom-details.component';
+import { MoleculeDetailSystem } from '../../Models/graphql/molecule.detail.models';
+import { ToastService } from '../../services/toast.service';
 
 
 @Component({
@@ -79,7 +81,7 @@ import { MyMoleculeCustomDetailsComponent } from '../../components/molecule-deta
 
         <section>
           @if (!typeGuards.isSystemMolecule(molecule)) {
-            <app-my-molecule-custom-details [type]="'label'" [value]="molecule.label ?? ''" />
+            <app-my-molecule-custom-details (onSave)="doUpdateInlineDetails($event)" [type]="'label'" [value]="molecule.label ?? ''" />
           }
           <h2 class="font-semibold text-light-accent-primary dark:text-dark-accent-primary mb-4 text-center sm:text-left text-xl">
             Struttura
@@ -237,6 +239,7 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
   private readonly destroyRef = inject(DestroyRef)
   protected readonly typeGuards = inject(TypeGuardsService)
   private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService)
+  private readonly toast = inject(ToastService)
   // ====================================================
 
   private mode = signal<'SYSTEM' | 'USER'>('SYSTEM')
@@ -252,7 +255,12 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
   similarMolsCache = signal<MoleculeSearchResult[]>([])
   fetchMolLoading = signal<boolean>(true)
   private molCached?: MoleculeDetailItem
+  private molId!: string | number
+  private molType!: 'system' | 'chembl' | 'custom'
+
   private onlySub?: Subscription
+  private upLaSub?: Subscription
+  private upNoSub?: Subscription
 
   onlyKnown = new FormControl<boolean>(true, { nonNullable: true })
 
@@ -292,7 +300,7 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
           this.fetchError.set(true)
           return throwError(() => new Error('UndefinedMolregno'));
         }
-
+        this.molId = molId
         const isUUID = this.uuidV7Re.test(molId);
         this.mode.set(isUUID ? 'USER' : 'SYSTEM');
 
@@ -330,6 +338,7 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
           return of(null);
         }
 
+        this.molType = item.type
 
         // Qui item è MoleculeDetailSystem
         const { t1Inference, ...rest } = item;
@@ -427,6 +436,37 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
       });
   }
 
+  doUpdateInlineDetails(e: MyMoleculeCustomDetailSaveModel): void {
+    switch (e.type) {
+      case 'label':
+        this.updateLabel(e.value)
+        break
+      case 'notes':
+        this.updateNotes(e.value)
+        break
+    }
+  }
+
+  private updateLabel(label: string): void {
+    if (this.typeGuards.isString(this.molId) && this.typeGuards.isUserMoleculeType(this.molType)) {
+      this.upLaSub = this.moleculeCollectionItemService.updateItemLabel(this.molId, label, this.molType)
+        .subscribe({
+          next: () => this.toast.trigger('Etichetta aggiornata correttamente', 'success', 1500),
+          error: () => this.toast.trigger('Si è verificato un errore', 'error', 1500)
+        })
+    }
+  }
+
+  private updateNotes(notes: string): void {
+    if (this.typeGuards.isString(this.molId) && this.typeGuards.isUserMoleculeType(this.molType)) {
+      this.upNoSub = this.moleculeCollectionItemService.updateItemNotes(this.molId, notes, this.molType)
+        .subscribe({
+          next: () => this.toast.trigger('Note aggiornate correttamente', 'success', 1500),
+          error: () => this.toast.trigger('Si è verificato un errore', 'error', 1500)
+        })
+    }
+  }
+
   ngOnInit(): void {
     this.fetchSimilar()
   }
@@ -434,6 +474,8 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     window.removeEventListener('storage', this.handleCrossTabFetchData)
     this.onlySub?.unsubscribe()
+    this.upLaSub?.unsubscribe()
+    this.upNoSub?.unsubscribe()
   }
 
 }
