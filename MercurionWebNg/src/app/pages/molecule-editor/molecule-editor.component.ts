@@ -5,6 +5,7 @@ import { Subscription } from 'rxjs';
 import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service';
 import { CollectionSaveOverlayContextService } from '../../services/context/save-to-collection-context.service';
 import { ToastService } from '../../services/toast.service';
+import { RDKitService } from '../../services/rd-kit-loader.service';
 
 @Component({
   selector: 'app-molecule-editor',
@@ -67,6 +68,7 @@ export class MoleculeEditorComponent implements OnInit, OnDestroy {
   private readonly saveContext = inject(CollectionSaveOverlayContextService)
   private readonly toast = inject(ToastService)
   private readonly router = inject(Router)
+  private readonly RDKit = inject(RDKitService)
   // ====================================================
 
   private routeSub?: Subscription
@@ -115,8 +117,8 @@ export class MoleculeEditorComponent implements OnInit, OnDestroy {
     this.saveContext.open()
   }
 
-  doSaveEdit(smiles: string): void {
-    this.molEdSub = this.moleculeCollectionItemService.updateItemCanonicalSmiles(this.mId()!, smiles, 'custom')
+  async doSaveEdit(smiles: string): Promise<void> {
+    this.molEdSub = this.moleculeCollectionItemService.updateItemCanonicalSmiles(this.mId()!, smiles, 'custom', JSON.stringify(await this.RDKit.getMoleculeProperties(smiles)))
       .subscribe({
         next: res => {
           this.toast.trigger('Struttura modificata correttamente', 'success', 2000)

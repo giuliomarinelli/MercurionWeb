@@ -192,11 +192,11 @@ export class MoleculeCollectionItemService {
       )
   }
 
-  updateItemCanonicalSmiles(id: string, canonicalSmiles: string, type: 'custom'): Observable<MoleculeCollectionItemClient | null> {
+  updateItemCanonicalSmiles(id: string, canonicalSmiles: string, type: 'custom', propertiesJson: string): Observable<MoleculeCollectionItemClient | null> {
     return this.apollo
       .mutate<{ updateMoleculeItemName: MoleculeItemDTO | null }>({
         mutation: UPDATE_MOLECULE_ITEM_SMILES,
-        variables: { id, canonicalSmiles, type }
+        variables: { id, canonicalSmiles, type, propertiesJson }
       })
       .pipe(
         map(res => extractGqlData(res, 'updateMoleculeItem', true) as MoleculeItemDTO | null),

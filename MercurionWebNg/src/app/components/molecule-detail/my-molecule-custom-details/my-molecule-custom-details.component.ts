@@ -12,7 +12,7 @@ import { Component, ElementRef, EventEmitter, inject, Input, Output, Renderer2, 
         <p #value
           class="p-2 outline-none"
           [attr.contenteditable]="mode() === 'edit' ? 'true' : null"
-          [ngClass]="{ 'bg-slate-200 dark:bg-slate-400 border border-light-on-surface-main dark:border-dark-on-surface-main rounded-md': mode() === 'edit' }"
+          [ngClass]="{ 'bg-slate-200 dark:bg-slate-700 border border-light-on-surface-main dark:border-dark-on-surface-main rounded-md': mode() === 'edit' }"
           [innerHTML]="_value()"
         >
         </p>
