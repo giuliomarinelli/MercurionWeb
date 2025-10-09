@@ -81,8 +81,8 @@ import { ToastService } from '../../services/toast.service';
 
         <section>
           @if (!typeGuards.isSystemMolecule(molecule)) {
-            <app-my-molecule-custom-details (onSave)="doUpdateInlineDetails($event)" [type]="'label'" [value]="molecule.label ?? ''" />
-            <app-my-molecule-custom-details (onSave)="doUpdateInlineDetails($event)" [type]="'notes'" [value]="molecule.notes ?? ''" />
+            <app-my-molecule-custom-details (onSave)="doUpdateInlineDetails($event)" [type]="'label'" [value]="molecule.label ?? '—'" />
+            <app-my-molecule-custom-details (onSave)="doUpdateInlineDetails($event)" [type]="'notes'" [value]="molecule.notes ?? '—'" />
           }
           <h2 class="font-semibold text-light-accent-primary dark:text-dark-accent-primary mb-4 text-center sm:text-left text-xl">
             Struttura

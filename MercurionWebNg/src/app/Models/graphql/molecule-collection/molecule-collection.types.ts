@@ -101,7 +101,7 @@ export type MoleculeItemDTO =
     type: string;                           // esposto dal backend
     createdAt: string | number;             // backend @Field(() => String)
     updatedAt: string | number;             // backend @Field(() => String)
-    joins?: { id: string; collection: { id: string; name: string } }[] | null;
+    joins?: { id: string; collection: MoleculeCollection }[] | null;
     chemblMolregno: string | number;        // backend lo espone come String
     chemblDetails?: MoleculeDetail | null;  // dettagli per il rendering
   }
@@ -113,7 +113,7 @@ export type MoleculeItemDTO =
     type: string;                           // esposto dal backend
     createdAt: string | number;             // backend @Field(() => String)
     updatedAt: string | number;             // backend @Field(() => String)
-    joins?: { id: string; collection: { id: string; name: string } }[] | null;
+    joins?: { id: string; collection: MoleculeCollection }[] | null;
     canonicalSmiles: string;
     molFormula?: string | null;
     name?: string | null;
@@ -126,7 +126,7 @@ export type MoleculeCollectionItemClient =
     label?: string | null;
     notes?: string | null;
     type: 'chembl';
-    joins: { id: string; collection: { id: string; name: string } }[];
+    joins: { id: string; collection: MoleculeCollection }[];
     chemblMolregno: number;
     createdAt?: string; updatedAt?: string; chemblDetails?: unknown;
     t1Inference?: T1PredictionDTO
@@ -136,7 +136,7 @@ export type MoleculeCollectionItemClient =
     label?: string | null;
     notes?: string | null;
     type: 'custom';
-    joins: { id: string; collection: { id: string; name: string } }[];
+    joins: { id: string; collection: MoleculeCollection }[];
     canonicalSmiles: string;
     molFormula?: string | null;
     name?: string | null;
@@ -164,4 +164,10 @@ export interface MoleculeCollection {
   items?: MoleculeCollectionItemJoinShort[];
 }
 
-
+export interface MoleculeCollection {
+  id: string
+  name: string
+  createdAt: string
+  updatedAt: string
+  itemsCount: number
+}

@@ -59,7 +59,7 @@ export const MOLECULE_ITEM = gql`
         type
         createdAt
         updatedAt
-        joins { id collection { id name } }
+        joins { id collection { id name createdAt updatedAt itemsCount } }
         chemblMolregno
         chemblDetails {
           id
@@ -83,7 +83,7 @@ export const MOLECULE_ITEM = gql`
         type
         createdAt
         updatedAt
-        joins { id collection { id name } }
+        joins { id collection { id name createdAt updatedAt itemsCount } }
         canonicalSmiles
         molFormula
         name

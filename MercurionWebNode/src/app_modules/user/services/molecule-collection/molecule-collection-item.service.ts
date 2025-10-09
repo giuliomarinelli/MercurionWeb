@@ -17,6 +17,7 @@ import { RpcException } from '@nestjs/microservices';
 import { CustomMoleculeItemEntity } from '../../Models/entities/molecule-collection/custom-molecule-item.entity';
 import { ChEMBLMoleculeItemEntity } from '../../Models/entities/molecule-collection/chembl-molecule-item.entity';
 
+
 // TODO: valutare un refactoring per dryificare la duplicazione di logica tra questo service e i service delle entità figlie concrete
 @Injectable()
 export class MoleculeCollectionItemService {
@@ -32,23 +33,75 @@ export class MoleculeCollectionItemService {
         return this.itemRepo.save(entity)
     }
 
-    async findOne(id: UUID, userId: UUID, fieldsMap: GraphQLFieldsMap): Promise<MoleculeCollectionItemEntity | null> {
+    async findOne(
+        id: UUID,
+        userId: UUID,
+        fieldsMap: GraphQLFieldsMap
+    ): Promise<MoleculeCollectionItemEntity | null> {
         const DB_FIELDS = [
             'id', 'type', 'userId', 'label', 'notes', 'createdAt', 'updatedAt',
-            'canonicalSmiles', 'molFormula', 'name', 'propertiesJson',
-            'chemblMolregno'
+            'canonicalSmiles', 'molFormula', 'name', 'propertiesJson', 'chemblMolregno'
         ];
 
-        // Prendi solo quelli richiesti e realmente esistenti nel DB
-        const itemsFields = fieldsMap?.items
-            ? Object.keys(fieldsMap.items).filter(k => DB_FIELDS.includes(k))
-            : DB_FIELDS;
-        const qb = this.itemRepo.createQueryBuilder('item')
-            .select(itemsFields.map(col => `item.${col}`))
+        const wants = (map: any, path: string[]) => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            let cur = map;
+            for (const p of path) {
+                if (!cur || typeof cur !== 'object') return false;
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                cur = cur[p];
+            }
+            return cur !== undefined;
+        };
+
+        const requestedItemCols = Object.keys(fieldsMap ?? {}).filter(k => DB_FIELDS.includes(k));
+        const itemCols = requestedItemCols.length ? requestedItemCols : DB_FIELDS;
+
+        let qb = this.itemRepo
+            .createQueryBuilder('item')
+            .select(itemCols.map(c => `item.${c}`))
             .where('item.id = :id', { id })
             .andWhere('item.user_id = :userId', { userId })
-        // qb = TypeOrmUtils.addJoins(qb, 'item', fieldsMap)
-        return qb.getOne()
+            .distinct(true);
+
+        // joins
+        if (wants(fieldsMap, ['joins'])) {
+            // filtro anche i join per user (visto che la tabella ha user_id)
+            qb = qb.leftJoin('item.joins', 'j', 'j.user_id = :userId', { userId });
+
+            if (wants(fieldsMap, ['joins', 'id'])) {
+                qb = qb.addSelect('j.id', 'j_id');
+            }
+
+            // collection
+            if (wants(fieldsMap, ['joins', 'collection'])) {
+                qb = qb.leftJoin('j.collection', 'c');
+
+                const COL_ALLOWED = ['id', 'name', 'createdAt', 'updatedAt'];
+                const colFieldsMap =
+                    ((fieldsMap?.joins as GraphQLFieldsMap | undefined)?.collection as GraphQLFieldsMap | undefined) ?? {};
+
+                const colCols = COL_ALLOWED.filter(k => (colFieldsMap as any)[k] !== undefined);
+                if (colCols.length) {
+                    qb = qb.addSelect(colCols.map(cn => `c.${cn}`));
+                }
+
+                // itemsCount
+                if (wants(fieldsMap, ['joins', 'collection', 'itemsCount'])) {
+                    qb = qb.loadRelationCountAndMap('c.itemsCount', 'c.items');
+                }
+
+                // === ORDINAMENTO: se ci sono join+collection, ordina per c.updatedAt DESC ===
+                // Per Postgres + DISTINCT: assicurati che la colonna nell'ORDER BY sia anche nel SELECT.
+                if (!colCols.includes('updatedAt')) {
+                    qb = qb.addSelect('c.updatedAt'); // selezione “silenziosa” per supportare ORDER BY
+                }
+                qb = qb.addOrderBy('c.updatedAt', 'DESC', 'NULLS LAST')
+                    .addOrderBy('j.id', 'ASC'); // tie-break stabile
+            }
+        }
+
+        return qb.getOne();
     }
 
     async findOneDTO(
