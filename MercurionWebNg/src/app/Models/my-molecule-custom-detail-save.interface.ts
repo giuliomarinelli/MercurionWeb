@@ -1,5 +1,5 @@
 export interface MyMoleculeCustomDetailSaveModel {
   label: string
   value: string
-  type: 'label' | 'notes'
+  type: 'label' | 'notes' | 'name'
 }

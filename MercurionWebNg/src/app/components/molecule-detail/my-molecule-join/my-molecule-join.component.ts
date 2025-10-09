@@ -1,10 +1,11 @@
-import { Component, Input, signal } from '@angular/core';
+import { Component, computed, Input, signal } from '@angular/core';
 import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
 import { CollectionCardComponent } from '../collection-card/collection-card.component';
+import { SkeletonCollectionCardComponent } from '../../common/skeleton-card-loader/skeleton-card-loader.component';
 
 @Component({
   selector: 'app-my-molecule-join',
-  imports: [CollectionCardComponent],
+  imports: [CollectionCardComponent, SkeletonCollectionCardComponent],
   template: `
 
     @if (collections().length) {
@@ -13,6 +14,10 @@ import { CollectionCardComponent } from '../collection-card/collection-card.comp
           <app-collection-card [collection]="c" [i]="i" />
         }
       </div>
+    } @else if (!loaded()) {
+        @for (i of [0, 1]; track i) {
+          <app-skeleton-collection-card [height]="'112px'" />
+        }
     }
 
   `
@@ -20,7 +25,7 @@ import { CollectionCardComponent } from '../collection-card/collection-card.comp
 export class MyMoleculeJoinComponent {
 
   collections = signal<MoleculeCollection[]>([])
-
+  loaded = computed(() => !!this.collections().length)
 
   @Input({ required: true })
   set joins(joins: { id: string; collection: MoleculeCollection }[] | null) {
@@ -29,6 +34,8 @@ export class MyMoleculeJoinComponent {
     }
     this.collections.set(joins.map(j => j.collection))
   }
+
+
 
 
 

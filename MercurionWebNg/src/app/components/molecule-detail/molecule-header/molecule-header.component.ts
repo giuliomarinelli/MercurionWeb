@@ -1,15 +1,21 @@
 import { Component, Input, signal } from '@angular/core';
+import { MyMoleculeCustomDetailsComponent } from '../my-molecule-custom-details/my-molecule-custom-details.component';
 
 @Component({
   selector: 'molecule-header',
   standalone: true,
+  imports: [MyMoleculeCustomDetailsComponent],
   template: `
     <header class="space-y-2" aria-labelledby="molecule-name">
       @if (_myMol()) {
-        <h2 id="molecule-name"
-            class="text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary">
-          {{ name() }}
-        </h2>
+        @if (!_isCustom()) {
+            <h2 id="molecule-name"
+                class="text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary">
+              {{ name() }}
+            </h2>
+          } @else {
+            <app-my-molecule-custom-details [type]="'name'" [value]="name()" />
+          }
       } @else {
         <h1 id="molecule-name"
             class="text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary">
@@ -32,6 +38,7 @@ export class MoleculeHeaderComponent {
   private readonly _nameSignal = signal<string>('');
   protected readonly _chemblIdSignal = signal<string | undefined>('');
   protected readonly _myMol = signal<boolean>(false)
+  protected readonly _isCustom = signal<boolean>(false)
 
   @Input()
   set nameInput(value: string) {
@@ -48,5 +55,10 @@ export class MoleculeHeaderComponent {
   @Input()
   set myMol(myMol: boolean) {
     this._myMol.set(myMol)
+  }
+
+  @Input()
+  set isCustom(isCustom: boolean) {
+    this._isCustom.set(isCustom ?? false)
   }
 }
