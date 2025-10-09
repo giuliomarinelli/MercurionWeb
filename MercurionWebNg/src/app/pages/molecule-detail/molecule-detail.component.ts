@@ -25,6 +25,7 @@ import { TypeGuardsService } from '../../type-guards.service';
 import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service';
 import { MoleculeCollectionItemEntityShort, MoleculeDetailItem } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
+import { MyMoleculeCustomDetailsComponent } from '../../components/molecule-detail/my-molecule-custom-details/my-molecule-custom-details.component';
 
 
 @Component({
@@ -42,7 +43,8 @@ import { ClassicSpinnerComponent } from '../../components/common/classic-spinner
     EditingLayerComponent,
     SimilarsComponent,
     ReactiveFormsModule,
-    ClassicSpinnerComponent
+    ClassicSpinnerComponent,
+    MyMoleculeCustomDetailsComponent
   ],
   template: `
     @if (molecule$ | async; as molecule) {
@@ -76,6 +78,9 @@ import { ClassicSpinnerComponent } from '../../components/common/classic-spinner
 
 
         <section>
+          @if (!typeGuards.isSystemMolecule(molecule)) {
+            <app-my-molecule-custom-details [type]="'label'" [value]="molecule.label ?? ''" />
+          }
           <h2 class="font-semibold text-light-accent-primary dark:text-dark-accent-primary mb-4 text-center sm:text-left text-xl">
             Struttura
           </h2>
