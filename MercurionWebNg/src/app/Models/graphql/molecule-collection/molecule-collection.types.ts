@@ -4,7 +4,7 @@ import { MoleculeDetail, MoleculeDetailSystem } from "../molecule.detail.models"
 // --- TYPE DEFINITIONS (semplificate) ---
 export interface MoleculeCollectionJoin {
   id: string;
-  collection: { id: string; name: string; };
+  collection: MoleculeCollection
 }
 export interface BaseMoleculeItem {
   id: string;

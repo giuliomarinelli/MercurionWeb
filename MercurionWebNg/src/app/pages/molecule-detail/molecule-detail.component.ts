@@ -54,7 +54,7 @@ import { ToastService } from '../../services/toast.service';
       <section class="max-w-5xl mx-auto p-0 xs:p-4 sm:p-6 md:p-8 space-y-12">
 
         @if (!typeGuards.isSystemMolecule(molecule)) {
-        <h1 class="relative bottom-4 text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-secondary dark:text-dark-accent-secondary">
+        <h1 class="relative bottom-4 text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-secondary dark:text-dark-accent-secondary border-b border-slate-300 dark:border-slate-700 pb-6">
           Le mie molecole
         </h1>
         }
