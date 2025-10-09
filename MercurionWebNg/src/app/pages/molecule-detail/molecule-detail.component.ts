@@ -247,12 +247,17 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
   )
 
   constructor() {
+    this.fetchData()
     effect(() => {
-      this.fetchData()
       window.addEventListener('storage', this.handleCrossTabFetchData)
     })
     effect(() => {
       this.similarMols.set(this.onlyKnownSig() ? this.similarMolsCache().filter(mol => mol.known) : this.similarMolsCache())
+    })
+    effect(() => {
+      if (!this.userContext.initials()) {
+        this.fetchData()
+      }
     })
   }
 
@@ -305,7 +310,10 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
 
       // 2) Enrichment T1 SOLO se è un MoleculeDetailSystem; altrimenti pass-through
       switchMap((item): Observable<MoleculeDetailItem | null> => {
-        if (!item) return of(null);
+        if (!item) {
+          this.fetchError.set(true)
+          return of(null);
+        }
 
 
         // Qui item è MoleculeDetailSystem
