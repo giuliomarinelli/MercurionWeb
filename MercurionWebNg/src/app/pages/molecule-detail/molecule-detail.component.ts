@@ -46,7 +46,15 @@ import { ClassicSpinnerComponent } from '../../components/common/classic-spinner
   ],
   template: `
     @if (molecule$ | async; as molecule) {
+
       <section class="max-w-5xl mx-auto p-0 xs:p-4 sm:p-6 md:p-8 space-y-12">
+
+        @if (!typeGuards.isSystemMolecule(molecule)) {
+        <h1 class="relative bottom-4 text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-secondary dark:text-dark-accent-secondary">
+          Le mie molecole
+        </h1>
+        }
+
         @if (typeGuards.isSystemMolecule(molecule)) {
           <molecule-header
             [nameInput]="molecule.preferredName"
@@ -56,10 +64,12 @@ import { ClassicSpinnerComponent } from '../../components/common/classic-spinner
           <molecule-header
             [nameInput]="molecule.chemblDetails.preferredName"
             [chemblIdInput]="molecule.chemblDetails.cmbId"
+            [myMol]="true"
           />
         } @else if (typeGuards.isCustomMolecule(molecule)) {
           <molecule-header
             [nameInput]="molecule.name ?? 'Lead'"
+            [myMol]="true"
           />
         }
 
@@ -199,15 +209,15 @@ import { ClassicSpinnerComponent } from '../../components/common/classic-spinner
           <molecule-cta-chembl [chemblId]="molecule.chemblDetails.cmbId" />
         }
       </section>
-    } @else if (fetchError()) {
-      <section class="max-w-4xl mx-auto p-6">
-        <p class="text-light-error dark:text-dark-error text-sm">Si è verificato un errore nel caricamento della molecola</p>
-      </section>
-    } @else {
-      <section class="absolute inset-0 flex justify-center items-center">
-        <app-classic-spinner [size]="85" />
-      </section>
-    }
+      } @else if (fetchError()) {
+        <section class="max-w-4xl mx-auto p-6">
+          <p class="text-light-error dark:text-dark-error text-sm">Si è verificato un errore nel caricamento della molecola</p>
+        </section>
+      } @else {
+        <section class="absolute inset-0 flex justify-center items-center">
+          <app-classic-spinner [size]="85" />
+        </section>
+      }
   `,
 })
 export class MoleculeDetailComponent implements OnInit, OnDestroy {

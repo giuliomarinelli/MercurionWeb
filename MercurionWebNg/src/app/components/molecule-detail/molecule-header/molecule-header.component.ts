@@ -5,10 +5,17 @@ import { Component, Input, signal } from '@angular/core';
   standalone: true,
   template: `
     <header class="space-y-2" aria-labelledby="molecule-name">
-      <h1 id="molecule-name"
-          class="text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary">
-        {{ name() }}
-      </h1>
+      @if (_myMol()) {
+        <h2 id="molecule-name"
+            class="text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary">
+          {{ name() }}
+        </h2>
+      } @else {
+        <h1 id="molecule-name"
+            class="text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary">
+          {{ name() }}
+        </h1>
+      }
         @if (_chemblIdSignal()) {
           <p class="text-xs font-semibold tracking-wide text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary">
             ChEMBL ID:
@@ -24,6 +31,7 @@ import { Component, Input, signal } from '@angular/core';
 export class MoleculeHeaderComponent {
   private readonly _nameSignal = signal<string>('');
   protected readonly _chemblIdSignal = signal<string | undefined>('');
+  protected readonly _myMol = signal<boolean>(false)
 
   @Input()
   set nameInput(value: string) {
@@ -36,4 +44,9 @@ export class MoleculeHeaderComponent {
     this._chemblIdSignal.set(value);
   }
   readonly chemblId = this._chemblIdSignal.asReadonly();
+
+  @Input()
+  set myMol(myMol: boolean) {
+    this._myMol.set(myMol)
+  }
 }
