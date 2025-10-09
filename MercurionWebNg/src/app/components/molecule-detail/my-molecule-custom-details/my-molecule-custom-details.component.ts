@@ -5,14 +5,15 @@ import { ChangeDetectorRef, Component, ElementRef, inject, Input, Renderer2, sig
   selector: 'app-my-molecule-custom-details',
   imports: [NgClass],
   template: `
-    <div class="flex text-center sm:text-left gap-3 items-center mb-4">
+    <div class="flex text-center sm:text-left gap-3 items-center mb-4" [class.mb-3="mode() === 'view'"]>
       <h2 [innerHTML]="_label()" class="font-semibold text-light-accent-primary dark:text-dark-accent-primary text-xl"></h2>
 
       <p #value
          class="p-2 outline-none"
-         [innerHTML]="_value()"
          [attr.contenteditable]="mode() === 'edit' ? 'true' : null"
-         [ngClass]="{ 'bg-slate-200 dark:bg-slate-400 border border-light-on-surface-main dark:border-dark-on-surface-main rounded-md': mode() === 'edit' }">
+         [ngClass]="{ 'bg-slate-200 dark:bg-slate-400 border border-light-on-surface-main dark:border-dark-on-surface-main rounded-md': mode() === 'edit' }"
+         [innerHTML]="_value()"
+         >
       </p>
 
       @if (mode() === 'view') {
@@ -22,7 +23,7 @@ import { ChangeDetectorRef, Component, ElementRef, inject, Input, Renderer2, sig
           </svg>
         </button>
       } @else if (mode() === 'edit') {
-        <button class="ml-5 cursor-pointer">
+        <button class="ml-5 cursor-pointer" (click)="doCancel()">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-6 w-auto text-light-error dark:text-dark-error">
             <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
             <path d="M507.4 155.3L518.8 144L496.1 121.4L484.8 132.7L320.1 297.4L155.4 132.7L144.1 121.4L121.5 144L132.8 155.3L297.5 320L132.8 484.7L121.5 496L144.1 518.6L155.4 507.3L320.1 342.6L484.8 507.3L496.1 518.6L518.8 496L507.4 484.7L342.8 320L507.4 155.3z"/>
@@ -64,20 +65,17 @@ export class MyMoleculeCustomDetailsComponent {
   set value(value: string) {
     this._value.set(value);
     this.startValue.set(value)
-   }
+  }
 
   doEdit() {
-    this.mode.set('edit');            // per le classi
-    this.cdr.detectChanges();         // applica subito la classe (opzionale qui)
-
+    this.mode.set('edit');
     const el = this.valueRef.nativeElement;
-    this.r.setAttribute(el, 'contenteditable', 'true'); // lo rendo editabile subito
-    this.r.setAttribute(el, 'tabindex', '0');           // garantisco focusability
+    this.r.setAttribute(el, 'contenteditable', 'true');
+    this.r.setAttribute(el, 'tabindex', '0');
+    el.textContent = this._value();       // <- importante
 
-    // focus dopo il paint del frame corrente:
     requestAnimationFrame(() => {
       el.focus();
-      // caret alla fine
       const range = document.createRange();
       range.selectNodeContents(el);
       range.collapse(false);
@@ -86,8 +84,12 @@ export class MyMoleculeCustomDetailsComponent {
     });
   }
 
-  doCancel(): void {
 
+  doCancel(): void {
+    const el = this.valueRef.nativeElement;
+    el.textContent = this.startValue();   // ripristina il DOM
+    this._value.set(this.startValue());   // riallinea il modello (inutile ma coerente)
+    this.mode.set('view');
   }
 
   doSave(): void {
