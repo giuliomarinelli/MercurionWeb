@@ -203,6 +203,18 @@ export const UPDATE_MOLECULE_ITEM_LABEL = gql`
   }
 `;
 
+export const UPDATE_MOLECULE_ITEM_NAME = gql`
+  mutation UpdateMoleculeItemLabel($id: ID!, $name: String!, $type: String!) {
+    updateMoleculeItem(id: $id, input: { name: $name, type: $type }) {
+      id
+      type
+      ... on CustomMoleculeItemEntity {
+        name
+      }
+    }
+  }
+`;
+
 export const UPDATE_MOLECULE_ITEM_NOTES = gql`
   mutation UpdateMoleculeItemLabel($id: ID!, $notes: String!, $type: String!) {
     updateMoleculeItem(id: $id, input: { notes: $notes, type: $type }) {

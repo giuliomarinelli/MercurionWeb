@@ -1,4 +1,5 @@
-import { Component, Input, signal } from '@angular/core';
+import { MyMoleculeCustomDetailSaveModel } from './../../../Models/my-molecule-custom-detail-save.interface';
+import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
 import { MyMoleculeCustomDetailsComponent } from '../my-molecule-custom-details/my-molecule-custom-details.component';
 
 @Component({
@@ -14,7 +15,7 @@ import { MyMoleculeCustomDetailsComponent } from '../my-molecule-custom-details/
               {{ name() }}
             </h2>
           } @else {
-            <app-my-molecule-custom-details [type]="'name'" [value]="name()" />
+            <app-my-molecule-custom-details [type]="'name'" [value]="name()" (onSave)="doSave($event)" />
           }
       } @else {
         <h1 id="molecule-name"
@@ -61,4 +62,12 @@ export class MoleculeHeaderComponent {
   set isCustom(isCustom: boolean) {
     this._isCustom.set(isCustom ?? false)
   }
+
+  @Output()
+  onSave = new EventEmitter<MyMoleculeCustomDetailSaveModel>
+
+  doSave(e: MyMoleculeCustomDetailSaveModel): void {
+    this.onSave.emit(e)
+  }
+
 }

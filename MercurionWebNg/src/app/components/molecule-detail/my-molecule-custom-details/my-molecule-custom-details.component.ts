@@ -18,7 +18,7 @@ import { Component, ElementRef, EventEmitter, inject, Input, Output, Renderer2, 
         </p>
       } @else {
           <h2 id="molecule-name"
-            class="p-2 outline-none text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary"
+            class="py-2 outline-none text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary"
             [attr.contenteditable]="mode() === 'edit' ? 'true' : null"
             [ngClass]="{ 'bg-slate-100 dark:bg-slate-700 border border-light-on-surface-main dark:border-dark-on-surface-main rounded-md': mode() === 'edit' }"
             #value
@@ -83,6 +83,9 @@ export class MyMoleculeCustomDetailsComponent {
         break
       case 'notes':
         this._label.set('Note:')
+        break
+      case 'name':
+        this._label.set('')
 
     }
   }
@@ -124,6 +127,7 @@ export class MyMoleculeCustomDetailsComponent {
   doSave(): void {
     this.mode.set('view')
     const newValue = this.valueRef.nativeElement.innerHTML
+    console.log(newValue)
     this.startValue.set(newValue)
     this._value.set(newValue)
     this.onSave.emit({

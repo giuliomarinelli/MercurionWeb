@@ -77,6 +77,7 @@ import { MyMoleculeJoinComponent } from '../../components/molecule-detail/my-mol
             [nameInput]="molecule.name ?? 'Lead'"
             [myMol]="true"
             [isCustom]="true"
+            (onSave)="doUpdateInlineDetails($event)"
           />
         }
 
@@ -287,6 +288,7 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
   private onlySub?: Subscription
   private upLaSub?: Subscription
   private upNoSub?: Subscription
+  private upNaSub?: Subscription
 
   onlyKnown = new FormControl<boolean>(true, { nonNullable: true })
 
@@ -463,6 +465,7 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
   }
 
   doUpdateInlineDetails(e: MyMoleculeCustomDetailSaveModel): void {
+    console.log(e)
     switch (e.type) {
       case 'label':
         this.updateLabel(e.value)
@@ -470,6 +473,8 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
       case 'notes':
         this.updateNotes(e.value)
         break
+      case 'name':
+        this.updateName(e.value)
     }
   }
 
@@ -493,6 +498,16 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
     }
   }
 
+  private updateName(name: string): void {
+    if (this.typeGuards.isString(this.molId) && this.typeGuards.isCustomMoleculeType(this.molType)) {
+      this.upNaSub = this.moleculeCollectionItemService.updateItemName(this.molId, name, this.molType)
+        .subscribe({
+          next: () => this.toast.trigger('Nome aggiornate correttamente', 'success', 1500),
+          error: () => this.toast.trigger('Si è verificato un errore', 'error', 1500)
+        })
+    }
+  }
+
   ngOnInit(): void {
     this.fetchSimilar()
   }
@@ -502,6 +517,7 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
     this.onlySub?.unsubscribe()
     this.upLaSub?.unsubscribe()
     this.upNoSub?.unsubscribe()
+    this.upNaSub?.unsubscribe()
   }
 
 }

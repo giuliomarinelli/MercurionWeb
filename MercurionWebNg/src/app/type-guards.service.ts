@@ -31,6 +31,10 @@ export class TypeGuardsService {
     return item !== 'system'
   }
 
+  isCustomMoleculeType(item: 'chembl' | 'custom' | 'system'): item is 'custom' {
+    return item === 'custom'
+  }
+
   isString(item: unknown): item is string {
     return typeof item === 'string'
   }
