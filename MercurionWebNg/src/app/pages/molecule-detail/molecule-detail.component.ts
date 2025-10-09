@@ -28,6 +28,7 @@ import { ClassicSpinnerComponent } from '../../components/common/classic-spinner
 import { MyMoleculeCustomDetailsComponent } from '../../components/molecule-detail/my-molecule-custom-details/my-molecule-custom-details.component';
 import { MoleculeDetailSystem } from '../../Models/graphql/molecule.detail.models';
 import { ToastService } from '../../services/toast.service';
+import { MyMoleculeJoinComponent } from '../../components/molecule-detail/my-molecule-join/my-molecule-join.component';
 
 
 @Component({
@@ -46,7 +47,8 @@ import { ToastService } from '../../services/toast.service';
     SimilarsComponent,
     ReactiveFormsModule,
     ClassicSpinnerComponent,
-    MyMoleculeCustomDetailsComponent
+    MyMoleculeCustomDetailsComponent,
+    MyMoleculeJoinComponent
   ],
   template: `
     @if (molecule$ | async; as molecule) {
@@ -83,6 +85,16 @@ import { ToastService } from '../../services/toast.service';
           @if (!typeGuards.isSystemMolecule(molecule)) {
             <app-my-molecule-custom-details (onSave)="doUpdateInlineDetails($event)" [type]="'label'" [value]="molecule.label ?? '—'" />
             <app-my-molecule-custom-details (onSave)="doUpdateInlineDetails($event)" [type]="'notes'" [value]="molecule.notes ?? '—'" />
+              @if (molecule.joins) {
+                <h2 class="font-semibold my-6 sm:top-14 text-light-accent-primary dark:text-dark-accent-primary text-center sm:text-left text-xl">
+                  Questa molecola fa parte delle seguenti collezioni:
+                </h2>
+                <section class="rounded-md border border-slate-300 dark:border-slate-600">
+                  <app-my-molecule-join [joins]="molecule.joins" />
+                </section>
+
+
+              }
           }
           <h2 class="font-semibold text-light-accent-primary dark:text-dark-accent-primary mb-4 text-center sm:text-left text-xl">
             Struttura

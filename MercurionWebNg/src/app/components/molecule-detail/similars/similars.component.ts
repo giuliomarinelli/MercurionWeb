@@ -18,7 +18,7 @@ import { SimilarItemComponent } from '../similar-item/similar-item.component';
               }
         }
       } @else {
-        <p class="text-center">Caricamento...</p>
+        <p class="text-center">Nessun analogo trovato...</p>
       }
     </div>
   `
