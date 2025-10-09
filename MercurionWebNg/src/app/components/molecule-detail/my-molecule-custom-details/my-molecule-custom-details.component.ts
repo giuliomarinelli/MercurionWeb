@@ -97,9 +97,12 @@ export class MyMoleculeCustomDetailsComponent {
 
   doSave(): void {
     this.mode.set('view')
+    const newValue = this.valueRef.nativeElement.innerHTML
+    this.startValue.set(newValue)
+    this._value.set(newValue)
     this.onSave.emit({
       label: this._label(),
-      value: this.valueRef.nativeElement.innerHTML,
+      value: newValue,
       type: this._type() as 'label' | 'notes'
     })
   }
