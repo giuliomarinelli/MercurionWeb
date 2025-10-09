@@ -9,7 +9,7 @@ import {
   CreateMoleculeItemInput,
   MoleculeItemDTO,
 } from '../../Models/graphql/molecule-collection/molecule-collection.types';
-import { CREATE_MOLECULE_ITEM, DELETE_MOLECULE_ITEM, MOLECULE_ITEM, MOLECULE_ITEM_FRAG_SHORT, MY_MOLECULE_ITEMS, UPDATE_MOLECULE_ITEM, UPDATE_MOLECULE_ITEM_LABEL, UPDATE_MOLECULE_ITEM_NOTES, UPDATE_MOLECULE_ITEM_NAME } from './graphql-actions/molecule-collection-item';
+import { CREATE_MOLECULE_ITEM, DELETE_MOLECULE_ITEM, MOLECULE_ITEM, MOLECULE_ITEM_FRAG_SHORT, MY_MOLECULE_ITEMS, UPDATE_MOLECULE_ITEM, UPDATE_MOLECULE_ITEM_LABEL, UPDATE_MOLECULE_ITEM_NOTES, UPDATE_MOLECULE_ITEM_NAME, UPDATE_MOLECULE_ITEM_SMILES } from './graphql-actions/molecule-collection-item';
 
 // ---------- helpers ----------
 function extractGqlData<T>(res: any, field: keyof T, allowNull = false): any {
@@ -179,11 +179,24 @@ export class MoleculeCollectionItemService {
       )
 
   }
+
   updateItemName(id: string, name: string, type: 'custom'): Observable<MoleculeCollectionItemClient | null> {
     return this.apollo
       .mutate<{ updateMoleculeItemName: MoleculeItemDTO | null }>({
         mutation: UPDATE_MOLECULE_ITEM_NAME,
         variables: { id, name, type }
+      })
+      .pipe(
+        map(res => extractGqlData(res, 'updateMoleculeItem', true) as MoleculeItemDTO | null),
+        map(node => node ? mapDtoToClient(node) : null)
+      )
+  }
+
+  updateItemCanonicalSmiles(id: string, canonicalSmiles: string, type: 'custom'): Observable<MoleculeCollectionItemClient | null> {
+    return this.apollo
+      .mutate<{ updateMoleculeItemName: MoleculeItemDTO | null }>({
+        mutation: UPDATE_MOLECULE_ITEM_SMILES,
+        variables: { id, canonicalSmiles, type }
       })
       .pipe(
         map(res => extractGqlData(res, 'updateMoleculeItem', true) as MoleculeItemDTO | null),

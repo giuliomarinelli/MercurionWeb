@@ -1,6 +1,6 @@
-import { Component, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { KetcherFrameComponent, KetcherFrameMode } from '../../components/chem/ketcher-frame/ketcher-frame.component';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service';
 import { CollectionSaveOverlayContextService } from '../../services/context/save-to-collection-context.service';
@@ -61,8 +61,17 @@ import { ToastService } from '../../services/toast.service';
 })
 export class MoleculeEditorComponent implements OnInit, OnDestroy {
 
+  // ======================= DEPS =======================
+  private readonly route = inject(ActivatedRoute)
+  private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService)
+  private readonly saveContext = inject(CollectionSaveOverlayContextService)
+  private readonly toast = inject(ToastService)
+  private readonly router = inject(Router)
+  // ====================================================
+
   private routeSub?: Subscription
   private smilesByIdSub?: Subscription
+  private molEdSub?: Subscription
 
   mode = signal<KetcherFrameMode>('edit')
   smiles = signal<string>('')
@@ -72,53 +81,6 @@ export class MoleculeEditorComponent implements OnInit, OnDestroy {
   triggerGetSmiles = signal<boolean>(false)
   pendingAction = signal<'save' | 'saveNew' | null>(null)
 
-  constructor(
-    private readonly route: ActivatedRoute,
-    private readonly moleculeCollectionItemService: MoleculeCollectionItemService,
-    private readonly saveContext: CollectionSaveOverlayContextService,
-    private readonly toast: ToastService
-  ) { }
-
-  ngOnInit(): void {
-    this.routeSub = this.route.queryParams.subscribe(qp => {
-      const mode = qp['mode'] as KetcherFrameMode
-      if (!['edit', 'create', 'duplicate'].includes(mode)) {
-        this.error.set(true)
-        return
-      }
-      // se edit bisogna fare chiamata api, se duplicate è come una create ma deve arrivare un query param con le smiles da cui partire
-      // va fatta validazione, non va mostrato l'editor e mostrato messaggio di errore
-      const mId = qp['m_id']
-      if (mode === 'edit' && mId) {
-        this.mode.set('edit')
-        this.smilesByIdSub = this.moleculeCollectionItemService.getCustomSmilesById(mId).subscribe({
-          next: res => {
-            if (!res) {
-              this.error.set(true)
-              return
-            }
-            this.smiles.set(res.canonicalSmiles)
-          },
-          error: () => this.error.set(true)
-        })
-      } else if (mode === 'duplicate' && qp['smiles']) {
-        this.smiles.set(qp['smiles'])
-        this.mode.set('duplicate')
-      } else if (mode === 'create') {
-        this.smiles.set('')
-        this.mode.set('create')
-      } else {
-        this.error.set(true)
-      }
-
-    })
-
-  }
-
-  ngOnDestroy(): void {
-    this.routeSub?.unsubscribe()
-    this.smilesByIdSub?.unsubscribe()
-  }
 
   onSave(): void {
     this.pendingAction.set('save');
@@ -154,12 +116,60 @@ export class MoleculeEditorComponent implements OnInit, OnDestroy {
   }
 
   doSaveEdit(smiles: string): void {
-    // salva su api, ecc.
-    // ...
+    this.molEdSub = this.moleculeCollectionItemService.updateItemCanonicalSmiles(this.mId()!, smiles, 'custom')
+      .subscribe({
+        next: res => {
+          this.toast.trigger('Struttura modificata correttamente', 'success', 2000)
+          this.router.navigateByUrl(`/molecules/detail/${res!.id}`)
+        },
+        error: () => this.toast.trigger('Si è verificato un errore', 'success', 2000)
+      })
   }
 
   onReset(): void {
     this.triggerReset.set(true)
   }
 
+  ngOnInit(): void {
+    this.routeSub = this.route.queryParams.subscribe(qp => {
+      const mode = qp['mode'] as KetcherFrameMode
+      if (!['edit', 'create', 'duplicate'].includes(mode)) {
+        this.error.set(true)
+        return
+      }
+      // se edit bisogna fare chiamata api, se duplicate è come una create ma deve arrivare un query param con le smiles da cui partire
+      // va fatta validazione, non va mostrato l'editor e mostrato messaggio di errore
+      const mId = qp['m_id']
+      if (mode === 'edit' && mId) {
+        this.mode.set('edit')
+        this.smilesByIdSub = this.moleculeCollectionItemService.getCustomSmilesById(mId).subscribe({
+          next: res => {
+            if (!res) {
+              this.error.set(true)
+              return
+            }
+            this.smiles.set(res.canonicalSmiles)
+            this.mId.set(mId)
+          },
+          error: () => this.error.set(true)
+        })
+      } else if (mode === 'duplicate' && qp['smiles']) {
+        this.smiles.set(qp['smiles'])
+        this.mode.set('duplicate')
+      } else if (mode === 'create') {
+        this.smiles.set('')
+        this.mode.set('create')
+      } else {
+        this.error.set(true)
+      }
+
+    })
+
+  }
+
+  ngOnDestroy(): void {
+    this.routeSub?.unsubscribe()
+    this.smilesByIdSub?.unsubscribe()
+    this.molEdSub?.unsubscribe()
+  }
 }

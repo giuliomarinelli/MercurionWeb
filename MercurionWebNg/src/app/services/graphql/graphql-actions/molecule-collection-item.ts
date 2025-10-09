@@ -215,6 +215,18 @@ export const UPDATE_MOLECULE_ITEM_NAME = gql`
   }
 `;
 
+export const UPDATE_MOLECULE_ITEM_SMILES = gql`
+  mutation UpdateMoleculeItemLabel($id: ID!, $canonicalSmiles: String!, $type: String!) {
+    updateMoleculeItem(id: $id, input: { canonicalSmiles: $canonicalSmiles, type: $type }) {
+      id
+      type
+      ... on CustomMoleculeItemEntity {
+        canonicalSmiles
+      }
+    }
+  }
+`;
+
 export const UPDATE_MOLECULE_ITEM_NOTES = gql`
   mutation UpdateMoleculeItemLabel($id: ID!, $notes: String!, $type: String!) {
     updateMoleculeItem(id: $id, input: { notes: $notes, type: $type }) {

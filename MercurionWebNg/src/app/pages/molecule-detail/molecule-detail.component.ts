@@ -3,7 +3,7 @@ import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { EmbeddingService } from './../../services/embedding.service';
 import { SimilarsComponent } from './../../components/molecule-detail/similars/similars.component';
 import { Component, DestroyRef, effect, inject, OnDestroy, OnInit, Signal, signal, WritableSignal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MoleculeService } from '../../services/graphql/molecule.service';
 import { switchMap, Observable, catchError, of, Subscription, forkJoin, retry, tap, distinctUntilChanged, shareReplay, startWith, throwError } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -31,6 +31,7 @@ import { ToastService } from '../../services/toast.service';
 import { MyMoleculeJoinComponent } from '../../components/molecule-detail/my-molecule-join/my-molecule-join.component';
 
 
+
 @Component({
   selector: 'app-molecule-detail',
   standalone: true,
@@ -48,8 +49,9 @@ import { MyMoleculeJoinComponent } from '../../components/molecule-detail/my-mol
     ReactiveFormsModule,
     ClassicSpinnerComponent,
     MyMoleculeCustomDetailsComponent,
-    MyMoleculeJoinComponent
-  ],
+    MyMoleculeJoinComponent,
+    RouterLink
+],
   template: `
     @if (molecule$ | async; as molecule) {
 
@@ -110,8 +112,16 @@ import { MyMoleculeJoinComponent } from '../../components/molecule-detail/my-mol
               <span class="text-slate-100">Aggiungi ad una collezione</span>
             </a>
           }
-          <h2 class="font-semibold text-light-accent-primary dark:text-dark-accent-primary mt-6 mb-4 text-center sm:text-left text-xl">
-            Struttura
+          <h2 class="flex gap-3 items-center font-semibold text-light-accent-primary dark:text-dark-accent-primary mt-6 mb-4 text-center sm:text-left text-xl">
+            <span>Struttura</span>
+            <a class="ml-5 cursor-pointer transition-colors duration-300" title="Modifica Struttura" routerLink="/molecules/editor" [queryParams]="{
+              mode: 'edit',
+              m_id: molId
+            }">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-6 w-auto text-slate-800 hover:text-slate-800/75 dark:text-slate-200 dark:hover:text-slate-200/75">
+                <path d="M58.1 555.9L48 592C50.7 591.2 117.4 572.6 248 536L569.4 214.6L592 192C589.6 189.6 549.1 149.1 470.6 70.6L448 48L425.4 70.6L104 392L58.1 555.9zM252.7 486L154 387.3L347.4 193.9L446.1 292.6L252.7 486zM229.4 508L94.2 545.8L132 410.6L229.4 508zM546.7 192L468.6 270.1L369.9 171.4L448 93.3L546.7 192z"/>
+              </svg>
+            </a>
           </h2>
           <div class="overflow-x-auto flex justify-center sm:justify-start">
             <div class="
@@ -282,8 +292,8 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
   similarMolsCache = signal<MoleculeSearchResult[]>([])
   fetchMolLoading = signal<boolean>(true)
   private molCached?: MoleculeDetailItem
-  private molId!: string | number
   private molType!: 'system' | 'chembl' | 'custom'
+  protected molId!: string | number
 
   private onlySub?: Subscription
   private upLaSub?: Subscription
