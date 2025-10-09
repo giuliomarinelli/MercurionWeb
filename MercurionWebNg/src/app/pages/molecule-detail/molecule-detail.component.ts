@@ -96,7 +96,7 @@ import { MyMoleculeJoinComponent } from '../../components/molecule-detail/my-mol
 
               }
           }
-          <h2 class="font-semibold text-light-accent-primary dark:text-dark-accent-primary mb-4 text-center sm:text-left text-xl">
+          <h2 class="font-semibold text-light-accent-primary dark:text-dark-accent-primary mt-6 mb-4 text-center sm:text-left text-xl">
             Struttura
           </h2>
           <div class="overflow-x-auto flex justify-center sm:justify-start">

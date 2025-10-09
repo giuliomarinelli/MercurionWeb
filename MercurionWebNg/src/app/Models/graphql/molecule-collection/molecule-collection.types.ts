@@ -167,7 +167,7 @@ export interface MoleculeCollection {
 export interface MoleculeCollection {
   id: string
   name: string
-  createdAt: string
-  updatedAt: string
+  createdAt: string | number
+  updatedAt: string | number
   itemsCount: number
 }

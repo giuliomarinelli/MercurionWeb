@@ -8,7 +8,7 @@ import { CollectionCardComponent } from '../collection-card/collection-card.comp
   template: `
 
     @if (collections().length) {
-      <div class="overflow-y-auto border-px relative max-h-[272px] min-h-[90px] transition-[max-height] duration-300 ease-in-out">
+      <div class="overflow-y-auto border-px relative max-h-[224px] min-h-[112px] transition-[max-height] duration-300 ease-in-out">
         @for (c of collections(); track c; let i = $index) {
           <app-collection-card [collection]="c" [i]="i" />
         }
