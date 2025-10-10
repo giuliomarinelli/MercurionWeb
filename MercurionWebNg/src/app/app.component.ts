@@ -31,6 +31,7 @@ import { SessionSyncService } from './services/session-sync.service';
 import { CollectionSaveOverlayComponent } from './components/collection-save-overlay/collection-save-overlay.component';
 import { CollectionSaveOverlayContextService } from './services/context/save-to-collection-context.service';
 import { environment } from '../environments/environment.development';
+import { AuthService } from './services/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -140,8 +141,15 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     protected readonly sidenavContext: SidenavContextService,
     protected readonly design: DesignService,
     private readonly sessionSync: SessionSyncService,
-    protected readonly saveOverlayContext: CollectionSaveOverlayContextService
+    protected readonly saveOverlayContext: CollectionSaveOverlayContextService,
+    private readonly authService: AuthService
   ) {
+
+    if (this.userContext.initials() && this.authService.getCookieValue('__logged_in') !== 'true') {
+      this.userContext.clearInitials()
+      this.authService.setAccessToken(null)
+      this.authService.setWs_accessToken(null)
+    }
     // Mantieni la tua sync
     this.sessionSync.syncSession();
 
