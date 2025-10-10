@@ -73,7 +73,7 @@ export class MyMoleculeCollectionsComponent implements OnInit, OnDestroy, AfterV
         const entry = entries[0];
         if (entry.isIntersecting) this.loadMore();
       },
-      { root: null, rootMargin: '0px 0px 200px 0px', threshold: 0 }
+      { root: null, rootMargin: '0px 0px 500px 0px', threshold: 0 }
     );
 
     this.observer.observe(this.sentinel.nativeElement);
@@ -95,9 +95,9 @@ export class MyMoleculeCollectionsComponent implements OnInit, OnDestroy, AfterV
     }
 
     const newPage = await firstValueFrom(
-      this.moleculeCollectionService.getPaginatedCollections(this.page, 6)
+      this.moleculeCollectionService.getPaginatedCollections(this.page, 10)
         .pipe(
-          debounce(() => interval(200))
+          debounce(() => interval(80))
         )
     )
 
