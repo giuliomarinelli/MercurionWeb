@@ -115,6 +115,7 @@ export class SessionSyncService {
         // Se c'è login ma ack negativo, non sloggare subito: rete/tempo
         if (hasLogin) this._status.set('disconnected');
         else {
+          this.userCtx.logout()
           this._status.set('anonymous');
           this.lastAnonHS = now;
         }

@@ -1,5 +1,5 @@
 /* ──────────────────────────────────────────────────────────────
- * RealtimeSocketService – single-socket, JWT-aware, lock-safe
+ * RealtimeSocketService – public stabile, upgrade/downgrade safe
  * ────────────────────────────────────────────────────────────── */
 import { Injectable } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
@@ -22,14 +22,17 @@ export class RealtimeSocketService {
   private mode: SocketMode = 'public';
   private readonly listeners: Listener[] = [];
 
-  // antirimbalzo connect()
+  // evita spam di connect()
   private connectInFlight = false;
   private lastConnectAt = 0;
 
-  // serializza cambi di modalità (evita race ensurePrivate/ensurePublic sovrapposte)
+  // serializza transizioni (evita race ensurePrivate/ensurePublic sovrapposte)
   private modeOp: Promise<void> = Promise.resolve();
 
-  // opzionale: attesa di stabilizzazione post-connect
+  // traccia l’ultimo token “mandato” in auth per evitare reconnect inutili
+  private lastAuthTokenSent: string | null = null;
+
+  // piccolo delay per stabilizzazione post-connect (join server room, ecc.)
   private stableDelayMs = 100;
 
   constructor(
@@ -47,21 +50,28 @@ export class RealtimeSocketService {
       autoConnect: false,
     });
 
-    // ——— Core listeners (no business logout qui) ———
+    // ——— Core listeners ———
+    this.socket.on('connect', () => {
+      // aggiorna snapshot token inviato in handshake
+      this.lastAuthTokenSent = (this.mode === 'private') ? (this.auth.getWs_accessToken() ?? null) : null;
+    });
+
     this.socket.on('disconnect', async (reason: Socket.DisconnectReason) => {
-      // In private, prepariamo un token fresco per i prossimi attempt solo se scaduto
+      // in public: non fare niente
       if (this.mode !== 'private') return;
+      // non intervenire sul disconnect volontario
       if (reason === 'io client disconnect') return;
+      // prepara token per i prossimi attempt SOLO se necessario
       await this.ensureFreshTokenIfExpired();
     });
 
     this.socket.on('reconnect_attempt', async () => {
       if (this.mode !== 'private') return;
-      // ad ogni attempt carica token valido (refresh solo se scaduto)
       await this.ensureFreshTokenIfExpired();
       const tok = this.auth.getWs_accessToken();
       if (tok && !this.jwt.isTokenExpired(tok)) {
         this.socket.auth = { token: tok };
+        this.lastAuthTokenSent = tok;
       }
     });
 
@@ -74,17 +84,19 @@ export class RealtimeSocketService {
       const tok = this.auth.getWs_accessToken();
       if (tok && !this.jwt.isTokenExpired(tok)) {
         this.socket.auth = { token: tok };
-        // niente this.socket.connect() qui: lascia gestire al backoff interno
+        this.lastAuthTokenSent = tok;
+        // niente connect() manuale: lasciare i retry a socket.io
       }
     });
 
-    // cross-tab: se cambia il token ed è valido, invia auth_refresh live
+    // cross-tab: se cambia il token ed è valido, aggiorna in-place (nessun reconnect)
     window.addEventListener('storage', (e) => {
       if (e.key !== 'ws_accessToken') return;
       if (this.mode !== 'private' || !this.socket.connected) return;
       const latest = this.auth.getWs_accessToken();
       if (latest && !this.jwt.isTokenExpired(latest)) {
         this.socket.auth = { token: latest };
+        this.lastAuthTokenSent = latest;
         this.socket.emit('auth_refresh', latest);
       }
     });
@@ -92,51 +104,81 @@ export class RealtimeSocketService {
 
   /* ───────── API alto livello ───────── */
 
-  /** Porta/lascia la connessione in modalità privata. Serializzato. */
+  /**
+   * Entra/rimani in modalità privata.
+   * - Se sei connesso in public: **reconnect** con token in handshake (upgrade).
+   * - Se sei già private e il token non è cambiato: solo `auth_refresh(token)` (no reconnect).
+   * - Se token assente/scaduto: resta/torna public e connettiti (no loop).
+   */
   async ensurePrivate(): Promise<void> {
     this.modeOp = this.modeOp.then(async () => {
-      this.mode = 'private';
+      const wasPrivate = (this.mode === 'private');
 
-      // 1) assicurati di avere un token valido (refresh solo se scaduto o assente)
+      // 1) assicurati di avere token valido (refresh solo se necessario)
       await this.ensureFreshTokenIfExpired();
 
       const tok = this.auth.getWs_accessToken();
-      if (tok && !this.jwt.isTokenExpired(tok)) {
-        this.socket.auth = { token: tok };
-      } else {
-        // nessun token valido → degrada a public per ora
+      if (!tok || this.jwt.isTokenExpired(tok)) {
+        // token non disponibile: non puoi essere private → rimani/torna public
         this.mode = 'public';
         delete (this.socket as any).auth;
-      }
-
-      // 2) se già connessi:
-      if (this.socket.connected) {
-        if (this.mode === 'private' && tok) {
-          this.socket.emit('auth_refresh', tok);
-        } else {
-          this.socket.emit('auth_refresh', '');
-        }
+        this.lastAuthTokenSent = null;
+        if (!this.socket.connected) this.safeConnect();
         return;
       }
 
-      // 3) connetti (una sola volta)
-      this.safeConnect();
-    });
+      // 2) abbiamo token valido → imposta auth per handshake/attempt successivi
+      this.mode = 'private';
+      this.socket.auth = { token: tok };
 
+      if (!this.socket.connected) {
+        // 3a) non connesso → connettiti con auth
+        this.lastAuthTokenSent = tok;
+        this.safeConnect();
+        return;
+      }
+
+      // 3b) già connesso
+      if (wasPrivate && this.lastAuthTokenSent === tok) {
+        // già private con lo stesso token: niente reconnect, solo refresh soft
+        this.socket.emit('auth_refresh', tok);
+        return;
+      }
+
+      // public -> private (upgrade) OPPURE token diverso → serve reconnect con handshake
+      this.lastAuthTokenSent = tok;
+      this.reconnectWithCurrentAuth();
+    });
     return this.modeOp;
   }
 
-  /** Porta/lascia la connessione in modalità pubblica. Serializzato. */
+  /**
+   * Entra/rimani in modalità pubblica.
+   * - Se eri private: **niente reconnect**; basta `auth_refresh('')` per de-autenticare.
+   * - Se sei già public e connesso: **non fare nulla** (fix loop).
+   */
   async ensurePublic(): Promise<void> {
     this.modeOp = this.modeOp.then(async () => {
+      const wasPrivate = (this.mode === 'private');
+
       this.mode = 'public';
       delete (this.socket as any).auth;
+      this.lastAuthTokenSent = null;
 
-      if (this.socket.connected) {
+      if (!this.socket.connected) {
+        // non connesso → connettiti in public
+        this.safeConnect();
+        return;
+      }
+
+      if (wasPrivate) {
+        // eri private → de-auth in-place, nessun reconnect
         this.socket.emit('auth_refresh', '');
         return;
       }
-      this.safeConnect();
+
+      // già public + connessi → NO-OP (evita loop)
+      return;
     });
     return this.modeOp;
   }
@@ -154,7 +196,7 @@ export class RealtimeSocketService {
 
   get isConnected(): boolean { return this.socket.connected; }
 
-  /** Promessa che si risolve quando siamo connessi, o dopo timeout. */
+  /** Attende connessione o timeout. */
   async waitConnected(timeoutMs = 4000): Promise<boolean> {
     if (this.socket.connected) return true;
     return await new Promise<boolean>(res => {
@@ -167,14 +209,14 @@ export class RealtimeSocketService {
     });
   }
 
-  /** Piccola attesa per stabilizzazione post-connect (es. join room lato server). */
   async waitStable(): Promise<void> {
     await new Promise(r => setTimeout(r, this.stableDelayMs));
   }
 
   /* ───────── Emit con ACK ───────── */
+
   emit<T, R = any>(event: string, payload?: T, timeout = 5000): Promise<R | undefined> {
-    return new Promise((res, rej) => {
+    return new Promise((res) => {
       let settled = false;
       const timer = setTimeout(() => { if (!settled) { settled = true; res(undefined); } }, timeout);
       this.socket.emit(event, payload as any, (ack: R) => {
@@ -184,6 +226,7 @@ export class RealtimeSocketService {
   }
 
   /* ───────── Observable helper ───────── */
+
   on<T>(event: string): Observable<T> {
     return new Observable<T>(observer => {
       const handler = (d: T) => observer.next(d);
@@ -211,6 +254,12 @@ export class RealtimeSocketService {
     finally { setTimeout(() => { this.connectInFlight = false; }, 50); }
   }
 
+  /** Reconnect atomico con l'`auth` già impostata (o rimossa). */
+  private reconnectWithCurrentAuth(): void {
+    this.socket.disconnect();
+    queueMicrotask(() => this.safeConnect());
+  }
+
   /** Se il token è assente o scaduto, prova a rinfrescarlo con lock cross-tab. */
   private async ensureFreshTokenIfExpired(): Promise<void> {
     const tok = this.auth.getWs_accessToken();
@@ -218,6 +267,6 @@ export class RealtimeSocketService {
     if (!needRefresh) return;
 
     const fresh = await this.auth.refreshWsAccessTokenLocked().catch(() => null);
-    if (!fresh) return; // resterà public finché non disponibile
+    if (!fresh) return; // resterai public finché non disponibile
   }
 }
