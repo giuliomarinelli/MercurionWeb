@@ -1,15 +1,22 @@
 import { MoleculeCollection } from './../../Models/graphql/molecule-collection/molecule-collection.types';
 import { debounce, firstValueFrom, interval, Subscription } from 'rxjs';
 import { MyMoleculesHeadingComponent } from './../../components/molecule-detail/my-molecules-heading/my-molecules-heading.component';
-import { AfterViewInit, Component, ElementRef, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, computed, effect, ElementRef, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { MoleculeCollectionService } from '../../services/graphql/molecule-collection.service';
 import { PageModel } from '../../Models/graphql/page.model';
 import { CollectionCardComponent } from '../../components/molecule-detail/collection-card/collection-card.component';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
+import { SkeletonCollectionCardComponent } from '../../components/common/skeleton-card-loader/skeleton-card-loader.component';
+import { ThemeManagerService } from '../../services/context/theme-manager.service';
 
 @Component({
   selector: 'app-my-molecule-collections',
-  imports: [MyMoleculesHeadingComponent, CollectionCardComponent, ClassicSpinnerComponent],
+  imports: [
+    MyMoleculesHeadingComponent,
+    CollectionCardComponent,
+    ClassicSpinnerComponent,
+    SkeletonCollectionCardComponent
+  ],
   template: `
 
   <section class="max-w-5xl mx-auto p-0 xs:p-4 sm:p-6 md:p-8 space-y-12">
@@ -23,9 +30,15 @@ import { ClassicSpinnerComponent } from '../../components/common/classic-spinner
     }
     <div #sentinel class="sentinel"></div>
     @if (loading) {
-      <div class="flex justify-center">
-        <app-classic-spinner [size]="60" />
-      </div>
+      @if (page > 1) {
+        <div class="flex justify-center">
+          <app-classic-spinner [size]="60" />
+        </div>
+      } @else {
+        @for (i of [0, 1, 2, 3, 4]; track i) {
+          <app-skeleton-collection-card />
+        }
+      }
     }
   </section>
 
@@ -35,6 +48,7 @@ export class MyMoleculeCollectionsComponent implements OnInit, OnDestroy, AfterV
 
   // ======================= DEPS =======================
   private readonly moleculeCollectionService = inject(MoleculeCollectionService)
+  private readonly themeManager = inject(ThemeManagerService)
   // ====================================================
 
 
@@ -47,7 +61,11 @@ export class MyMoleculeCollectionsComponent implements OnInit, OnDestroy, AfterV
   loading = false
   done = false
   private observer?: IntersectionObserver
-  private page = 1
+  protected page = 1
+
+
+
+
 
   ngAfterViewInit(): void {
     this.observer = new IntersectionObserver(

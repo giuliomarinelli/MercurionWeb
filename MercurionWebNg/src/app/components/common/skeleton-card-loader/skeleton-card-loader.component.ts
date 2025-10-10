@@ -10,7 +10,7 @@ import { NgClass, NgStyle } from '@angular/common';
       class="
         group focus-visible:outline-none
         grid grid-cols-1 md:grid-cols-12 items-center gap-3 md:gap-4
-        rounded-2xl border p-4 md:p-5
+        border p-4 md:p-5
         bg-white/70 dark:bg-slate-800/50 backdrop-blur-sm
         border-slate-200/70 dark:border-slate-700/60
         transition-all duration-200
