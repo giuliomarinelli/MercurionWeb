@@ -1,7 +1,6 @@
 /* ──────────────────────────────────────────────────────────────
- *  SessionSyncService – sincronizza status login <‑> WS
+ * SessionSyncService – sync login <-> WS, handshake con lock
  * ────────────────────────────────────────────────────────────── */
-
 import { Injectable, NgZone, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { RealtimeSocketService } from './socket.IO/realtime-socket.service';
@@ -16,13 +15,16 @@ export type SessionSyncStatus =
 
 @Injectable({ providedIn: 'root' })
 export class SessionSyncService {
-
   private _status = signal<SessionSyncStatus>('unknown');
   public readonly status = this._status.asReadonly();
 
+  // lock handshake: una sync per volta
   private handshakePending = false;
   private lastAnonHS = 0;
-  private readonly anonCooldown = 5_000;
+  private readonly anonCooldown = 5000;
+
+  private readonly publicExact = environment.PUBLIC_EXACT_PATHS;
+  private readonly publicPrefix = environment.PUBLIC_PREFIXES;
 
   constructor(
     private readonly socket: RealtimeSocketService,
@@ -31,84 +33,56 @@ export class SessionSyncService {
     private readonly router: Router,
     private readonly zone: NgZone,
   ) {
-    /* eventi socket */
-    this.socket.onConnect().subscribe(() => this.zone.run(() => this.syncSession()));
+    // eventi WS
+    this.socket.onConnect().subscribe(() => this.zone.run(() => { void this.syncSession(); }));
     this.socket.onDisconnect().subscribe(r => {
       if (r !== 'io client disconnect') this._status.set('disconnected');
     });
 
-    /* 🔴 error centralizzato: Unauthorized → logout immediato */
+    // errore applicativo
     this.socket.on<{ detail: string }>('sv.pub.err')
       .subscribe(err => this.zone.run(() => {
-        if (err?.detail === 'Unauthorized') this.becomeAnonymous({
-          // toast: 'Sessione non più valida.',
-          // level: 'error',
-          navigateIfProtected: true
-        });
+        if (err?.detail === 'Unauthorized') {
+          // Niente refresh qui: ci pensa il socket service solo se scaduto
+          void this.syncSession(true);
+        }
       }));
 
-    /* evento di scadenza inviato da PubSub */
+    // evento broadcast di scadenza
     this.socket.on('sv.pub.session_expired')
       .subscribe(() => this.zone.run(() => this.handleSessionExpired()));
 
-    /* bootstrap */
-    this.socket.connect();   // parte in public
-    this.syncSession();      // handshake iniziale
+    // bootstrap: una sola entry-point
+    void this.syncSession();
 
-    /* cross‑tab */
-    // Cross-tab sync: reagisce a cambi di `login` e `ws_accessToken` in altre schede
+    // cross-tab storage
     let storageDebounce: any;
-
     window.addEventListener('storage', (e: StorageEvent) => {
       if (e.key !== 'login' && e.key !== 'ws_accessToken') return;
 
       clearTimeout(storageDebounce);
       storageDebounce = setTimeout(() => {
-        const initials = localStorage.getItem('login');             // string | null
-        const wsTok = localStorage.getItem('ws_accessToken');    // string | null
-
-        // Caso 1: logout certo (chiave 'login' mancante)
-        if (!initials) {
-          this.onExternalLogout();
-          return;
-        }
-
-        // Da qui in poi: abbiamo 'login' presente
-
-        // Caso 2: pacchetto completo → login o refresh token cross-tab
-        if (wsTok) {
-          // Se la socket è già connessa in private, aggiorna l'auth in-place
-          // Altrimenti forza la modalità private (reconnect con auth aggiornata)
-          this.socket.ensurePrivate(wsTok);
-          return;
-        }
-
-        // Caso 3: login presente ma token assente → forziamo un controllo sessione
-        // (tenterà refresh lato socket/AuthService; se fallisce, degraderà ad anonimo)
-        this.syncSession(true);
-      }, 30); // 30 ms sono più che sufficienti per la propagazione dello storage
+        void this.syncSession(true);
+      }, 30);
     });
-
-
-
   }
 
-  /* ───────── PUBLIC API ───────── */
+  /* ---------------- Public API ---------------- */
 
   resumeSession(initials: string) { this.onExternalLogin(initials); }
-  forceSessionCheck() { this.syncSession(true); }
+  forceSessionCheck() { void this.syncSession(true); }
   logout() { this.becomeAnonymous({ toast: 'Logout eseguito.', level: 'success', navigateIfProtected: true }); }
   get currentStatus() { return this._status(); }
 
-  /* ───────── Handshake ───────── */
+  /* ---------------- Handshake core ---------------- */
 
   async syncSession(force = false): Promise<void> {
     if (this.handshakePending && !force) return;
 
     const now = Date.now();
-    const hasToken = !!localStorage.getItem('login');
+    const hasLogin = !!localStorage.getItem('login');
 
-    if (!hasToken && !force && now - this.lastAnonHS < this.anonCooldown) {
+    if (!hasLogin && !force && now - this.lastAnonHS < this.anonCooldown) {
       if (this._status() !== 'anonymous') this._status.set('anonymous');
       return;
     }
@@ -117,17 +91,20 @@ export class SessionSyncService {
     this._status.set('checking');
 
     try {
-      hasToken ? this.socket.ensurePrivate()
-        : this.socket.ensurePublic();
+      // 1) allinea modalità WS in base a "login"
+      if (hasLogin) await this.socket.ensurePrivate();
+      else await this.socket.ensurePublic();
 
-      if (!this.socket.isConnected) {
-        await new Promise<void>(res => {
-          const sub = this.socket.onConnect().subscribe(() => { sub.unsubscribe(); res(); });
-          setTimeout(() => { sub.unsubscribe(); res(); }, 4_000);
-        });
+      // 2) aspetta connessione e breve stabilizzazione
+      const connected = await this.socket.waitConnected(4000);
+      if (!connected) {
+        this._status.set(hasLogin ? 'disconnected' : 'anonymous');
+        if (!hasLogin) this.lastAnonHS = now;
+        return;
       }
+      await this.socket.waitStable();
 
-      /* ACK */
+      // 3) handshake (ACK server: “sei ancora loggato”)
       const ack: any = await this.socket.emit('so.pub.session_init');
 
       if (ack?.detail === 'websocket session init successful') {
@@ -135,18 +112,22 @@ export class SessionSyncService {
         this.userCtx.setInitials(initials);
         this._status.set('loggedIn');
       } else {
-        this.becomeAnonymous();
-        this.lastAnonHS = now;
+        // Se c'è login ma ack negativo, non sloggare subito: rete/tempo
+        if (hasLogin) this._status.set('disconnected');
+        else {
+          this._status.set('anonymous');
+          this.lastAnonHS = now;
+        }
       }
 
     } catch {
-      this._status.set('error');
+      this._status.set(hasLogin ? 'disconnected' : 'error');
     } finally {
       this.handshakePending = false;
     }
   }
 
-  /* ───────── Eventi server ───────── */
+  /* ---------------- Eventi server ---------------- */
 
   private handleSessionExpired(): void {
     localStorage.removeItem('login');
@@ -158,13 +139,13 @@ export class SessionSyncService {
     this._status.set('sessionExpired');
   }
 
-  /* ───────── Cross‑tab ───────── */
+  /* ---------------- Cross-tab helpers ---------------- */
 
   private onExternalLogin(initials: string) {
     this.userCtx.setInitials(initials);
     localStorage.setItem('login', initials);
     this._status.set('checking');
-    this.syncSession(true);
+    void this.syncSession(true);
   }
 
   private onExternalLogout() {
@@ -175,7 +156,7 @@ export class SessionSyncService {
     });
   }
 
-  /* ───────── Helper ───────── */
+  /* ---------------- Helper ---------------- */
 
   private becomeAnonymous(opts: {
     toast?: string;
@@ -183,19 +164,15 @@ export class SessionSyncService {
     navigateIfProtected?: boolean;
   } = {}) {
     const { toast, level = 'warn', navigateIfProtected } = opts;
-
     this.userCtx.clearInitials();
     this._status.set('anonymous');
-    this.socket.ensurePublic();
+    void this.socket.ensurePublic();
     if (toast) this.toast.trigger(toast, level);
 
     if (navigateIfProtected && !this.isPublicRoute(this.router.url)) {
       this.router.navigate(['/login']);
     }
   }
-
-  private readonly publicExact = environment.PUBLIC_EXACT_PATHS
-  private readonly publicPrefix = environment.PUBLIC_PREFIXES
 
   private isPublicRoute(url: string): boolean {
     const clean = url.split(/[?#]/)[0];
