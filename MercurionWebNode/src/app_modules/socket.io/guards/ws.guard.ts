@@ -84,15 +84,18 @@ export class WsGuard implements CanActivate {
       client.data.userId = payload.sub
       client.data.sessionId = payload.sid
       client.data.scopes = payload.scp?.split(' ') ?? []
+      this.logger.debug(`Socket ${client.id} polling connection state: PRIVATE (Authenticated)`)
       return true
     } catch {
       this.unauthorized(client)
       return false
     }
   }
-
+  
   private unauthorized(client: Socket): void {
     client.emit('sv.pub.err', { detail: 'Unauthorized' })
+    this.logger.debug(`Socket ${client.id} polling connection state: PUBLIC`)
+
   }
 
 }

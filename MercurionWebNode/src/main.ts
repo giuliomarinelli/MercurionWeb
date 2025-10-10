@@ -18,7 +18,13 @@ import { SecureCookieConfiguration } from './config/@types-config'
 export async function bootstrap() {
   copyBootstrapFiles()
   const logger = new Logger('Bootstrap')
-  const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter())
+  const app = await NestFactory.create<NestFastifyApplication>(
+    AppModule,
+    new FastifyAdapter(),
+    {                      
+      logger: ["error", "warn", "log", "debug", "verbose"],
+    }
+  )
   const configService = app.get<ConfigService>(ConfigService)
   const secureCookieService = app.get<SecureCookieService>(SecureCookieService)
   const natsPort = configService.get<number>('App.natsPort') ?? 4223
