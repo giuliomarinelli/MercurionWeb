@@ -1,6 +1,6 @@
 import { SecureCookieService } from './../services/secure-cookie.service';
-import { FastifyReply } from 'fastify';
-import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Post, Query, Res, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
+import { FastifyReply, FastifyRequest } from 'fastify';
+import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Post, Query, Req, Res, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
 import { Login_FirstStepDTO } from '../Models/DTO/login-first-step.cls.dto';
 import { MfaService } from '../services/mfa.service';
 import { AuthenticationService } from '../services/authentication.service';
@@ -84,6 +84,11 @@ export class AuthenticationController {
         const initials = await this.userService.getUserInitialsByUserId(userId)
 
         if (await this.mfaService.isMfaEnabled(auth.userId) || auth.suspiciousAttempt) {
+            reply.setCookie('__logged_in', remember ? 'pending_long' : 'pending_short', {
+                ...this.cookieConf,
+                maxAge: remember ? 2_592_000 : undefined,
+                httpOnly: false
+            })
             return {
                 ...this._r.ok('MFA first step went on successfully'),
                 ...authRes,
@@ -91,6 +96,11 @@ export class AuthenticationController {
                 initials: initials ?? ''
             }
         }
+        reply.setCookie('__logged_in', 'true', {
+            ...this.cookieConf,
+            maxAge: remember ? 2_592_000 : undefined,
+            httpOnly: false
+        })
 
         return {
             ...this._r.ok('Authenticated successfully'),
@@ -136,9 +146,13 @@ export class AuthenticationController {
         @Param('strategy') strategyKey: string,
         @Body(new ValidationPipe({ transform: true })) dto: TotpBodyDTO,
         @Fingerprint() fingerprintData: FingerprintData,
-        @ClientIp() ip: string
+        @ClientIp() ip: string,
+        @Req() req: FastifyRequest,
+        @Res({ passthrough: true }) reply: FastifyReply
     ): Promise<ConfirmWithTokenPairAndInitialsDTO> {
 
+        const loginPendingVal = req.cookies['__logged_in'] ?? ''
+        const maxAge = loginPendingVal === 'login_pending_long' ? 2_592_000 : undefined
         let userId: UUID
         let sessionId: UUID
         try {
@@ -156,6 +170,11 @@ export class AuthenticationController {
             throw new UnauthorizedException('Invalid MFA OTP')
         }
         const { accessToken, ws_accessToken } = await this.authService.performAuthentication({ userId, sessionId }, fingerprintData, ip, trustVerify)
+        reply.setCookie('__logged_in_', 'true', {
+            ...this.cookieConf,
+            maxAge,
+            httpOnly: false
+        })
         return {
             ...this._r.ok('Authenticated successfully'),
             accessToken,
@@ -179,6 +198,7 @@ export class AuthenticationController {
             // do nothing
         }
         this.secureCookieService.clearCookie(reply, '__node_session_id')
+        reply.clearCookie('__logged_in')
         this.logger.debug('Logged out. Response with status 204 - No Content')
     }
 

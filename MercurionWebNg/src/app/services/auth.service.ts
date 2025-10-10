@@ -35,6 +35,18 @@ export class AuthService {
     }
   }
 
+  getCookieValue(key: string): string | null {
+    const cookies = document.cookie.split('; ');
+    for (const cookie of cookies) {
+      const [name, value] = cookie.split('=');
+      if (name === key) {
+        return decodeURIComponent(value);
+      }
+    }
+    return null;
+  }
+
+
   /* ───────── Broadcast cross-tab (già esistenti) ───────── */
 
   broadcastLogin(initials: string, wsToken: string) {
