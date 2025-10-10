@@ -149,6 +149,9 @@ export class MoleculeCollectionService {
           items {
             id
             name
+            createdAt
+            updatedAt
+            itemsCount
           }
           totalPages
           totalItems
