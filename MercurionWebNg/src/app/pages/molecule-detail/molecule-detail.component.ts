@@ -29,6 +29,7 @@ import { MyMoleculeCustomDetailsComponent } from '../../components/molecule-deta
 import { MoleculeDetailSystem } from '../../Models/graphql/molecule.detail.models';
 import { ToastService } from '../../services/toast.service';
 import { MyMoleculeJoinComponent } from '../../components/molecule-detail/my-molecule-join/my-molecule-join.component';
+import { MyMoleculesHeadingComponent } from '../../components/molecule-detail/my-molecules-heading/my-molecules-heading.component';
 
 
 
@@ -50,7 +51,8 @@ import { MyMoleculeJoinComponent } from '../../components/molecule-detail/my-mol
     ClassicSpinnerComponent,
     MyMoleculeCustomDetailsComponent,
     MyMoleculeJoinComponent,
-    RouterLink
+    RouterLink,
+    MyMoleculesHeadingComponent
 ],
   template: `
     @if (molecule$ | async; as molecule) {
@@ -58,9 +60,7 @@ import { MyMoleculeJoinComponent } from '../../components/molecule-detail/my-mol
       <section class="max-w-5xl mx-auto p-0 xs:p-4 sm:p-6 md:p-8 space-y-12">
 
         @if (!typeGuards.isSystemMolecule(molecule)) {
-        <h1 class="relative bottom-4 text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-secondary dark:text-dark-accent-secondary border-b border-slate-300 dark:border-slate-700 pb-6">
-          Le mie molecole
-        </h1>
+          <app-my-molecules-heading />
         }
 
         @if (typeGuards.isSystemMolecule(molecule)) {

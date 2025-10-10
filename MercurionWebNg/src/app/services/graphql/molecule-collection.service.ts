@@ -2,6 +2,7 @@ import { Injectable, signal, computed } from '@angular/core';
 import { Apollo, gql } from 'apollo-angular';
 import { Observable, map, tap } from 'rxjs';
 import { MoleculeCollection } from '../../Models/graphql/molecule-collection/molecule-collection.types';
+import { PageModel } from '../../Models/graphql/page.model';
 
 function extractGqlData<T>(res: any, field: keyof T): any {
   if (res.errors && res.errors.length) throw new Error(`GqlError::${res.errors.map((e: any) => e.message).join(', ')}`);
@@ -141,7 +142,7 @@ export class MoleculeCollectionService {
     page: number = 1,
     limit: number = 20,
     search?: string
-  ): Observable<{ items: MoleculeCollection[]; totalPages: number; totalItems: number; currentPage: number }> {
+  ): Observable<PageModel<MoleculeCollection>> {
     const query = gql`
       query PaginatedCollections($page: Int!, $limit: Int!, $search: String) {
         myMoleculeCollectionsPaginated(page: $page, limit: $limit, search: $search) {

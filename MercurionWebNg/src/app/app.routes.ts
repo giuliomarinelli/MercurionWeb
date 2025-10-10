@@ -70,5 +70,10 @@ export const routes: Routes = [
   {
     path: 'password-recovery',
     loadComponent: () => import('./pages/password-recovery/password-recovery.component').then(m => m.PasswordRecoveryComponent)
+  },
+  {
+    path: 'molecules/collections',
+    loadComponent: () => import('./pages/my-molecule-collections/my-molecule-collections.component').then(m => m.MyMoleculeCollectionsComponent),
+    canActivate: [AuthGuard]
   }
 ]
