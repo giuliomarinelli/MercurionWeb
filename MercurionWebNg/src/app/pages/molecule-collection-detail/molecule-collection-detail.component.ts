@@ -37,7 +37,7 @@ import { LinkModel } from '../../Models/link.model';
     </div>
     <div #sentinel class="sentinel"></div>
     @if (loading) {
-      @if (page > 1) {
+      @if (page > 1 && items.length > 2) {
         <div class="flex justify-center">
           <app-classic-spinner [size]="60" />
         </div>
@@ -168,7 +168,7 @@ export class MoleculeCollectionDetailComponent implements OnInit, OnDestroy {
       this.items = [...this.items, ...newPage.items];
       this.page++;
     }
-    this.loading = false;
+      this.loading = false;
   }
 
 
