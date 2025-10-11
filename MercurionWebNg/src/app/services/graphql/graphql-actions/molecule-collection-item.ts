@@ -104,7 +104,7 @@ export const MOLECULE_ITEM_FRAG_SHORT = gql`
 `;
 
 export const PAGINATED_MOLECULE_ITEMS_FOR_CARD = gql`
-query PaginatedMoleculeCollectionItemsByCollection($collectionId: String!, $page: Int, $limit: Int) {
+query PaginatedMoleculeCollectionItemsByCollection($collectionId: String!, $page: Int!, $limit: Int!) {
     paginatedMoleculeCollectionItemsByCollection(
         collectionId: $collectionId
         page: $page

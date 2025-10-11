@@ -87,6 +87,7 @@ export class MoleculeCollectionService {
       .valueChanges.pipe(map(res => extractGqlData(res, 'moleculeCollection')));
   }
 
+
   // CREATE
   createCollection(name: string, opts: CollectionFieldsOptions = {}): Observable<MoleculeCollection> {
     const FIELDS = buildCollectionFields(opts);
