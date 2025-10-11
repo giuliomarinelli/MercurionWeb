@@ -48,7 +48,6 @@ export class MyMoleculeCollectionsComponent implements OnInit, OnDestroy, AfterV
 
   // ======================= DEPS =======================
   private readonly moleculeCollectionService = inject(MoleculeCollectionService)
-  private readonly themeManager = inject(ThemeManagerService)
   // ====================================================
 
 

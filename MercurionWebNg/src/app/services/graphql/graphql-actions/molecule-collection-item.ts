@@ -103,6 +103,49 @@ export const MOLECULE_ITEM_FRAG_SHORT = gql`
   }
 `;
 
+export const PAGINATED_MOLECULE_ITEMS_FOR_CARD = gql`
+query PaginatedMoleculeCollectionItemsByCollection($collectionId: String!, $page: Int, $limit: Int) {
+    paginatedMoleculeCollectionItemsByCollection(
+        collectionId: $collectionId
+        page: $page
+        limit: $limit
+    ) {
+        items {
+            ... on CustomMoleculeItemDTO {
+                id
+                type
+                canonicalSmiles
+                name
+                propertiesJson
+                createdAt
+                updatedAt
+            }
+            ... on ChEMBLMoleculeItemDTO {
+                id
+                type
+                createdAt
+                updatedAt
+                chemblDetails {
+                    preferredName
+                    canonicalSmiles
+                    maxPhase
+                    synonyms
+                    properties {
+                        mwFreebase
+                    }
+                }
+                chemblMolregno
+            }
+        }
+        itemCount
+        totalItems
+        itemsPerPage
+        totalPages
+        currentPage
+    }
+}
+`
+
 export const CREATE_MOLECULE_ITEM = gql`
   mutation CreateMoleculeItem($input: CreateMoleculeItemInput!) {
     createMoleculeItem(input: $input) {

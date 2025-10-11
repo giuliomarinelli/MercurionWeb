@@ -51,7 +51,7 @@ export class MoleculeCollectionItemResolver {
     @Query(() => PaginatedMoleculeCollectionItem)
     async paginatedMoleculeCollectionItemsByCollection(
         @AuthenticatedUserId() userId: UUID,
-        @Args('collectionId') collectionId: UUID,
+        @Args('collectionId', { type: () => String }) collectionId: UUID,
         @Args('page', { type: () => Int }) page: number,
         @Args('limit', { type: () => Int }) limit: number,
         @Info() info: GraphQLResolveInfo

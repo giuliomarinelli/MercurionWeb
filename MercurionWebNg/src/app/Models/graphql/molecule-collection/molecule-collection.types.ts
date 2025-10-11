@@ -166,4 +166,6 @@ export interface MoleculeCardItemModel {
   mwFreebase?: number
   maxPhase?: number
   smiles: string
+  createdAt: number
+  updatedAt: number
 }
