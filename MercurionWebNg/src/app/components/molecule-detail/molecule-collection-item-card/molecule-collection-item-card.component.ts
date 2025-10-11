@@ -1,5 +1,7 @@
+import { MoleculeCardItemModel } from './../../../Models/graphql/molecule-collection/molecule-collection.types';
 import {
-  Component, Input, signal, effect, ElementRef, OnDestroy, NgZone
+  Component, Input, signal, effect, ElementRef, OnDestroy, NgZone,
+  inject
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DecimalPipe, NgClass } from '@angular/common';
@@ -7,6 +9,7 @@ import { MoleculeViewerComponent } from '../../chem/molecule-viewer/molecule-vie
 import { SearchContextService } from '../../../services/context/search-context.service';
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
 import { MoleculeSearchResult } from '../../../Models/graphql/molecule-search/molecule-search-result.interface';
+
 
 @Component({
   selector: 'app-molecule-collection-item-card',
@@ -18,7 +21,7 @@ import { MoleculeSearchResult } from '../../../Models/graphql/molecule-search/mo
         [routerLink]="_pathToMolecule()"
         (click)="searchContext.close()"
         class="group block focus-visible:outline-none"
-        aria-label="Apri molecola {{ _molecule()!.preferredName }}"
+        aria-label="Apri molecola {{ _molecule()!.name }}"
       >
         <div
           class="
@@ -39,14 +42,14 @@ import { MoleculeSearchResult } from '../../../Models/graphql/molecule-search/mo
           <div class="md:col-span-8 min-w-0">
             <div
               class="text-base md:text-lg font-semibold text-slate-800 dark:text-slate-100 truncate"
-              [innerHTML]="_molecule()!.preferredName"
-              title="{{ _molecule()!.preferredName }}"
+              [innerHTML]="_molecule()!.name"
+              title="{{ _molecule()!.name }}"
             ></div>
 
             <div
               class="mt-0.5 text-xs md:text-sm text-slate-500 dark:text-slate-400 truncate"
-              [innerHTML]="_molecule()!.synonyms?.[0]"
-              title="{{ _molecule()!.synonyms?.[0] }}"
+              [innerHTML]="_molecule()!.syn"
+              title="{{ _molecule()!.syn }}"
             ></div>
 
             <div class="mt-2 flex flex-wrap items-center gap-2 text-xs">
@@ -83,7 +86,7 @@ import { MoleculeSearchResult } from '../../../Models/graphql/molecule-search/mo
 
               <molecule-viewer
                 class="absolute inset-0 w-full h-full"
-                [structure]="_molecule()!.smiles ?? ''"
+                [structure]="_molecule()!.smiles"
                 [disablePreview]="disablePreview()"
                 (rendered)="viewerReady.set(true)">
               </molecule-viewer>
@@ -95,8 +98,17 @@ import { MoleculeSearchResult } from '../../../Models/graphql/molecule-search/mo
   `
 })
 export class MoleculeCollectionItemCardComponent implements OnDestroy {
+
+  // ======================= DEPS =======================
+  protected readonly searchContext = inject(SearchContextService)
+  private readonly themeManager = inject(ThemeManagerService)
+  private readonly zone = inject(NgZone)
+  private readonly host = inject(ElementRef)
+  // ====================================================
+
+
   /* segnali / stato */
-  _molecule = signal<MoleculeSearchResult | undefined>(undefined);
+  _molecule = signal<MoleculeCardItemModel | undefined>(undefined);
   _pathToMolecule = signal<string>('');
   _i = signal<number>(0);
   isDarkMode = signal<boolean>(false);
@@ -107,12 +119,7 @@ export class MoleculeCollectionItemCardComponent implements OnDestroy {
   private seen = false;
   private io!: IntersectionObserver;
 
-  constructor(
-    protected readonly searchContext: SearchContextService,
-    private readonly themeManager: ThemeManagerService,
-    private readonly zone: NgZone,
-    private host: ElementRef<HTMLElement>
-  ) {
+  constructor() {
     effect(() => this.isDarkMode.set(this.themeManager.theme() === 'dark'));
 
     this.zone.runOutsideAngular(() => {
@@ -142,7 +149,7 @@ export class MoleculeCollectionItemCardComponent implements OnDestroy {
 
   /* inputs ---------------------------------- */
   @Input({ required: true })
-  set molecule(m: MoleculeSearchResult) {
+  set molecule(m: MoleculeCardItemModel) {
     this.seen = false;
     this.viewerReady.set(false);
     this.disablePreview.set(true);

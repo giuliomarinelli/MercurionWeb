@@ -58,20 +58,6 @@ export interface CustomMoleculeItemInput {
   propertiesJson?: string; // da serializzare via JSON.stringify(properties)
 }
 
-// export interface CustomMoleculeItemEntity {
-//   id: string;
-//   type: 'custom';
-//   label?: string | null;
-//   notes?: string | null;
-//   canonicalSmiles: string;
-//   molFormula?: string | null;
-//   name?: string | null;
-//   propertiesJson?: string | null;
-//   joins: { id: string; collection: { id: string; name: string } }[];
-//   // Getter derivato (non in DB, aggiunto in UI):
-//   properties?: MoleculeProperties | null;
-// }
-
 export interface AddCustomMoleculeToCollectionInput {
   collectionId: string;
   input: CustomMoleculeItemInput;
@@ -170,4 +156,14 @@ export interface MoleculeCollection {
   createdAt: string | number
   updatedAt: string | number
   itemsCount: number
+}
+
+export interface MoleculeCardItemModel {
+  id: string
+  type: 'system' | 'chembl' | 'custom'
+  name: string
+  syn: string
+  mwFreebase?: number
+  maxPhase?: number
+  smiles: string
 }
