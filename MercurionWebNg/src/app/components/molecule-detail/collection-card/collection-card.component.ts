@@ -17,7 +17,7 @@ import { DatePipe, NgClass, UpperCasePipe } from '@angular/common';
           class="
             grid grid-cols-1 md:grid-cols-12 items-center gap-3 md:gap-4
             border p-4 md:p-5
-            bg-white/70 dark:bg-slate-800/50 backdrop-blur-sm
+            bg-slate-100 dark:bg-slate-800/50 backdrop-blur-sm
             border-slate-200/70 dark:border-slate-700/60
             transition-all duration-200
             hover:shadow-md hover:-translate-y-0.5
@@ -25,7 +25,7 @@ import { DatePipe, NgClass, UpperCasePipe } from '@angular/common';
             focus-within:ring-2 focus-within:ring-indigo-500/70
           "
           [ngClass]="{
-            'bg-slate-50/60 dark:bg-slate-800/40': _i() % 2 !== 0
+            'bg-slate-100/45 dark:bg-slate-800/40': _i() % 2 !== 0
           }"
         >
           <!-- Colonna sinistra: 8/12 -->
