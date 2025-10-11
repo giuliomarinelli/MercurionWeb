@@ -27,10 +27,9 @@ import { LinkModel } from '../../Models/link.model';
 
     <section class="max-w-5xl mx-auto p-0 xs:p-4 sm:p-6 md:p-8 space-y-12">
     <app-my-molecules-heading [breadcrumb]="breadcrumb" />
-    <h2 class="text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary mb-2" style="margin-block-start: 0">
+    <h2 class="bg-slate-50 dark:bg-neutral-950 z-10 block sticky top-0 text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary pb-8 pt-2" style="margin-block-start: 0">
         {{name()}}
     </h2>
-    <div class="mb-2"></div>
     @for (item of items; track item; let i = $index) {
       <app-molecule-collection-item-card [molecule]="item" [i]="i" [collectionId]="colId()" />
     }

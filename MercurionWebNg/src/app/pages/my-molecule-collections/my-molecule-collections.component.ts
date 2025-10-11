@@ -3,11 +3,9 @@ import { debounce, firstValueFrom, interval, Subscription } from 'rxjs';
 import { MyMoleculesHeadingComponent } from './../../components/molecule-detail/my-molecules-heading/my-molecules-heading.component';
 import { AfterViewInit, Component, computed, effect, ElementRef, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { MoleculeCollectionService } from '../../services/graphql/molecule-collection.service';
-import { PageModel } from '../../Models/graphql/page.model';
 import { CollectionCardComponent } from '../../components/molecule-detail/collection-card/collection-card.component';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { SkeletonCollectionCardComponent } from '../../components/common/skeleton-card-loader/skeleton-card-loader.component';
-import { ThemeManagerService } from '../../services/context/theme-manager.service';
 
 @Component({
   selector: 'app-my-molecule-collections',
@@ -21,10 +19,9 @@ import { ThemeManagerService } from '../../services/context/theme-manager.servic
 
   <section class="max-w-5xl mx-auto p-0 xs:p-4 sm:p-6 md:p-8 space-y-12">
     <app-my-molecules-heading />
-    <h2 class="text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary mb-2" style="margin-block-start: 0">
+    <h2 class="bg-slate-50 dark:bg-neutral-950 z-10 block sticky top-0 bottom-5 text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary pt-2 pb-8" style="margin-block-start: 0">
         Collezioni molecolari
     </h2>
-    <div class="mb-2"></div>
     @for (item of items; track item; let i = $index) {
       <app-collection-card [collection]="item" [i]="i" />
     }
