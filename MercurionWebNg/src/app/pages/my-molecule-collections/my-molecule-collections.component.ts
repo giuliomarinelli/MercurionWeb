@@ -22,9 +22,11 @@ import { SkeletonCollectionCardComponent } from '../../components/common/skeleto
     <h2 class="bg-slate-50 dark:bg-neutral-950 z-10 block sticky top-0 bottom-5 text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary pt-2 pb-8" style="margin-block-start: 0">
         Collezioni molecolari
     </h2>
-    @for (item of items; track item; let i = $index) {
-      <app-collection-card [collection]="item" [i]="i" />
-    }
+    <div class="mt-px relative bottom-10">
+      @for (item of items; track item; let i = $index) {
+        <app-collection-card [collection]="item" [i]="i" />
+      }
+    </div>
     <div #sentinel class="sentinel"></div>
     @if (loading) {
       @if (page > 1) {
@@ -32,9 +34,11 @@ import { SkeletonCollectionCardComponent } from '../../components/common/skeleto
           <app-classic-spinner [size]="60" />
         </div>
       } @else {
-        @for (i of [0, 1, 2, 3, 4]; track i) {
-          <app-skeleton-collection-card />
-        }
+        <div class="relative bottom-10">
+          @for (i of [0, 1, 2, 3, 4]; track i) {
+            <app-skeleton-collection-card />
+          }
+        </div>
       }
     }
   </section>

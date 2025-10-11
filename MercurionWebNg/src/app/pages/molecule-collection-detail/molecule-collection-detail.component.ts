@@ -30,9 +30,11 @@ import { LinkModel } from '../../Models/link.model';
     <h2 class="bg-slate-50 dark:bg-neutral-950 z-10 block sticky top-0 text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary pb-8 pt-2" style="margin-block-start: 0">
         {{name()}}
     </h2>
-    @for (item of items; track item; let i = $index) {
-      <app-molecule-collection-item-card [molecule]="item" [i]="i" [collectionId]="colId()" />
-    }
+    <div class="mt-px relative bottom-10">
+      @for (item of items; track item; let i = $index) {
+        <app-molecule-collection-item-card [molecule]="item" [i]="i" [collectionId]="colId()" />
+      }
+    </div>
     <div #sentinel class="sentinel"></div>
     @if (loading) {
       @if (page > 1) {
