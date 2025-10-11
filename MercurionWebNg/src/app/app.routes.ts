@@ -75,5 +75,9 @@ export const routes: Routes = [
     path: 'molecules/collections',
     loadComponent: () => import('./pages/my-molecule-collections/my-molecule-collections.component').then(m => m.MyMoleculeCollectionsComponent),
     canActivate: [AuthGuard]
+  },
+  {
+    path: 'molecules/collections/detail/:colId',
+    loadComponent: () => import('./pages/molecule-collection-detail/molecule-collection-detail.component').then(m => m.MoleculeCollectionDetailComponent)
   }
 ]
