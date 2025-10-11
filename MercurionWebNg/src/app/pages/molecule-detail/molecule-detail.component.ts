@@ -6,7 +6,7 @@ import { Component, DestroyRef, effect, inject, OnDestroy, OnInit, Signal, signa
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MoleculeService } from '../../services/graphql/molecule.service';
 import { switchMap, Observable, catchError, of, Subscription, forkJoin, retry, tap, distinctUntilChanged, shareReplay, startWith, throwError } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { filter, map } from 'rxjs/operators';
 import { AsyncPipe } from '@angular/common';
 import { ThemeManagerService } from '../../services/context/theme-manager.service';
 import { MoleculeHeaderComponent } from '../../components/molecule-detail/molecule-header/molecule-header.component';
@@ -30,6 +30,8 @@ import { MoleculeDetailSystem } from '../../Models/graphql/molecule.detail.model
 import { ToastService } from '../../services/toast.service';
 import { MyMoleculeJoinComponent } from '../../components/molecule-detail/my-molecule-join/my-molecule-join.component';
 import { MyMoleculesHeadingComponent } from '../../components/molecule-detail/my-molecules-heading/my-molecules-heading.component';
+import { LinkModel } from '../../Models/link.model';
+import { MoleculeCollectionService } from '../../services/graphql/molecule-collection.service';
 
 
 
@@ -53,14 +55,18 @@ import { MyMoleculesHeadingComponent } from '../../components/molecule-detail/my
     MyMoleculeJoinComponent,
     RouterLink,
     MyMoleculesHeadingComponent
-],
+  ],
   template: `
     @if (molecule$ | async; as molecule) {
 
       <section class="max-w-5xl mx-auto p-0 xs:p-4 sm:p-6 md:p-8 space-y-12">
 
         @if (!typeGuards.isSystemMolecule(molecule)) {
-          <app-my-molecules-heading />
+          @if (collectionId()) {
+            <app-my-molecules-heading [breadcrumb]="breadcrumb" />
+          } @else {
+            <app-my-molecules-heading />
+          }
         }
 
         @if (typeGuards.isSystemMolecule(molecule)) {
@@ -114,14 +120,16 @@ import { MyMoleculesHeadingComponent } from '../../components/molecule-detail/my
           }
           <h2 class="flex gap-3 items-center font-semibold text-light-accent-primary dark:text-dark-accent-primary mt-6 mb-4 text-center sm:text-left text-xl">
             <span>Struttura</span>
-            <a class="ml-5 cursor-pointer transition-colors duration-300" title="Modifica Struttura" routerLink="/molecules/editor" [queryParams]="{
-              mode: 'edit',
-              m_id: molId
-            }">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-6 w-auto text-slate-800 hover:text-slate-800/75 dark:text-slate-200 dark:hover:text-slate-200/75">
-                <path d="M58.1 555.9L48 592C50.7 591.2 117.4 572.6 248 536L569.4 214.6L592 192C589.6 189.6 549.1 149.1 470.6 70.6L448 48L425.4 70.6L104 392L58.1 555.9zM252.7 486L154 387.3L347.4 193.9L446.1 292.6L252.7 486zM229.4 508L94.2 545.8L132 410.6L229.4 508zM546.7 192L468.6 270.1L369.9 171.4L448 93.3L546.7 192z"/>
-              </svg>
-            </a>
+            @if (typeGuards.isCustomMolecule(molecule)) {
+              <a class="ml-5 cursor-pointer transition-colors duration-300" title="Modifica Struttura" routerLink="/molecules/editor" [queryParams]="{
+                mode: 'edit',
+                m_id: molId
+              }">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-6 w-auto text-slate-800 hover:text-slate-800/75 dark:text-slate-200 dark:hover:text-slate-200/75">
+                  <path d="M58.1 555.9L48 592C50.7 591.2 117.4 572.6 248 536L569.4 214.6L592 192C589.6 189.6 549.1 149.1 470.6 70.6L448 48L425.4 70.6L104 392L58.1 555.9zM252.7 486L154 387.3L347.4 193.9L446.1 292.6L252.7 486zM229.4 508L94.2 545.8L132 410.6L229.4 508zM546.7 192L468.6 270.1L369.9 171.4L448 93.3L546.7 192z"/>
+                </svg>
+              </a>
+            }
           </h2>
           <div class="overflow-x-auto flex justify-center sm:justify-start">
             <div class="
@@ -276,6 +284,7 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
   private readonly destroyRef = inject(DestroyRef)
   protected readonly typeGuards = inject(TypeGuardsService)
   private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService)
+  private readonly moleculeCollectionService = inject(MoleculeCollectionService)
   private readonly toast = inject(ToastService)
   // ====================================================
 
@@ -291,14 +300,22 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
   similarMols = signal<MoleculeSearchResult[] | undefined>(undefined)
   similarMolsCache = signal<MoleculeSearchResult[]>([])
   fetchMolLoading = signal<boolean>(true)
+  collectionId = signal<string>('')
   private molCached?: MoleculeDetailItem
   private molType!: 'system' | 'chembl' | 'custom'
   protected molId!: string | number
+  protected breadcrumb: LinkModel[] = [
+    {
+      label: 'Collezioni Molecolari',
+      path: '/molecules/collections'
+    }
+  ]
 
   private onlySub?: Subscription
   private upLaSub?: Subscription
   private upNoSub?: Subscription
   private upNaSub?: Subscription
+  private bcSub?: Subscription
 
   onlyKnown = new FormControl<boolean>(true, { nonNullable: true })
 
@@ -328,6 +345,25 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
   }
 
   private fetchData(): void {
+    this.bcSub = this.route.queryParamMap.pipe(
+      map(qp => qp.get('c_id') ?? ''),
+      filter(collectionId => collectionId.length > 0),
+      switchMap(cId => {
+        if (!cId) {
+          return of(null)
+        }
+        this.collectionId.set(cId)
+        return this.moleculeCollectionService.getCollectionById(cId)
+      }),
+      distinctUntilChanged()
+    ).subscribe(col => {
+      if (col) {
+        this.breadcrumb.push({
+          label: col.name,
+          path: `/molecules/collections/detail/${col.id}`
+        })
+      }
+    })
     this.molecule$ = this.route.paramMap.pipe(
       // 1) Carico un elemento polimorfico: System detail OPPURE Collection item
       switchMap((params): Observable<MoleculeDetailItem | null> => {
@@ -528,6 +564,7 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
     this.upLaSub?.unsubscribe()
     this.upNoSub?.unsubscribe()
     this.upNaSub?.unsubscribe()
+    this.bcSub?.unsubscribe()
   }
 
 }

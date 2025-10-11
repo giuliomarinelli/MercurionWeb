@@ -16,6 +16,9 @@ import { MoleculeCardItemModel } from './../../../Models/graphql/molecule-collec
     @if (_molecule()) {
       <a
         [routerLink]="_pathToMolecule()"
+        [queryParams]="{
+          c_id: this._collectionId()
+        }"
         (click)="searchContext.close()"
         class="group block focus-visible:outline-none"
         aria-label="Apri molecola {{ _molecule()!.name }}"
@@ -24,7 +27,7 @@ import { MoleculeCardItemModel } from './../../../Models/graphql/molecule-collec
           class="
             grid grid-cols-1 md:grid-cols-12 items-center gap-3 md:gap-4
             rounded-2xl border p-4 md:p-5
-            bg-white/70 dark:bg-slate-800/50 backdrop-blur-sm
+            bg-slate-100 dark:bg-slate-800/50 backdrop-blur-sm
             border-slate-200/70 dark:border-slate-700/60
             transition-all duration-200
             hover:shadow-md hover:-translate-y-0.5
@@ -32,7 +35,7 @@ import { MoleculeCardItemModel } from './../../../Models/graphql/molecule-collec
             focus-within:ring-2 focus-within:ring-indigo-500/70
           "
           [ngClass]="{
-            'bg-slate-50/60 dark:bg-slate-800/40': _i() % 2 !== 0
+            'bg-slate-100/50 dark:bg-slate-800/40': _i() % 2 !== 0
           }"
         >
           <!-- Colonna sinistra: 8/12 - testo -->
@@ -130,6 +133,7 @@ export class MoleculeCollectionItemCardComponent implements OnDestroy {
   private readonly host = inject(ElementRef<HTMLElement>);
   // ====================================================
 
+  _collectionId = signal<string | null>(null)
   _molecule = signal<MoleculeCardItemModel | undefined>(undefined);
   _pathToMolecule = signal<string>('');
   _i = signal<number>(0);
@@ -185,6 +189,11 @@ export class MoleculeCollectionItemCardComponent implements OnDestroy {
   @Input({ required: true })
   set i(i: number) {
     this._i.set(i);
+  }
+
+  @Input()
+  set collectionId(collectionId: string) {
+    this._collectionId.set(collectionId)
   }
 
   ngOnDestroy() {

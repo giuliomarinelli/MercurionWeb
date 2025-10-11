@@ -10,8 +10,9 @@ import { ActivatedRoute } from '@angular/router';
 import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service';
 import { MoleculeDetail } from '../../Models/graphql/molecule.detail.models';
 import { MoleculeProperties } from '../../Models/graphql/molecule-properties.interface';
-import { PageModel } from '../../Models/graphql/page.model';
-import { Observable } from '@apollo/client/utilities';
+import { LinkModel } from '../../Models/link.model';
+
+
 
 
 @Component({
@@ -25,13 +26,13 @@ import { Observable } from '@apollo/client/utilities';
   template: `
 
     <section class="max-w-5xl mx-auto p-0 xs:p-4 sm:p-6 md:p-8 space-y-12">
-    <app-my-molecules-heading />
+    <app-my-molecules-heading [breadcrumb]="breadcrumb" />
     <h2 class="text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary mb-2" style="margin-block-start: 0">
         {{name()}}
     </h2>
     <div class="mb-2"></div>
     @for (item of items; track item; let i = $index) {
-      <app-molecule-collection-item-card [molecule]="item" [i]="i" />
+      <app-molecule-collection-item-card [molecule]="item" [i]="i" [collectionId]="colId()" />
     }
     <div #sentinel class="sentinel"></div>
     @if (loading) {
@@ -60,10 +61,17 @@ export class MoleculeCollectionDetailComponent implements OnInit, OnDestroy {
   @ViewChild('sentinel', { static: true })
   sentinel!: ElementRef;
 
+  protected readonly breadcrumb: LinkModel[] = [
+    {
+      label: 'Collezioni Molecolari',
+      path: '/molecules/collections'
+    }
+  ]
+
   private colIdSub?: Subscription
   items: MoleculeCardItemModel[] = []
   title = ''
-  loading = false
+  loading = true
   done = false
   private observer?: IntersectionObserver
   protected page = 1
@@ -134,8 +142,8 @@ export class MoleculeCollectionDetailComponent implements OnInit, OnDestroy {
     ).subscribe(page => {
       if (!page) return;
       this.items = page.items;
-      this.page = 2;         // hai già caricato la pagina 1
-      this.startObserver();  // ← adesso è sicuro avviare l’osservatore
+      this.page = 2;
+      this.startObserver();
     });
   }
 
