@@ -11,6 +11,7 @@ import { MoleculeCollectionItemService } from '../../services/graphql/molecule-c
 import { MoleculeDetail } from '../../Models/graphql/molecule.detail.models';
 import { MoleculeProperties } from '../../Models/graphql/molecule-properties.interface';
 import { LinkModel } from '../../Models/link.model';
+import { HistoryContextService } from '../../services/context/history-context.service';
 
 
 
@@ -57,6 +58,7 @@ export class MoleculeCollectionDetailComponent implements OnInit, OnDestroy {
   private readonly moleculeCollectionService = inject(MoleculeCollectionService)
   private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService)
   private readonly route = inject(ActivatedRoute)
+  private readonly historyContext = inject(HistoryContextService)
   // ====================================================
 
   @ViewChild('sentinel', { static: true })
@@ -123,8 +125,14 @@ export class MoleculeCollectionDetailComponent implements OnInit, OnDestroy {
       map(pm => pm.get('colId') ?? ''),
       filter(id => id.length > 0),
       distinctUntilChanged(),
-      switchMap(id => this.moleculeCollectionService.markMoleculeCollectionAsTouched(id))
-    ).subscribe(() => {/* pass */})
+      switchMap(id => this.moleculeCollectionService.markMoleculeCollectionAsTouched(id)),
+      switchMap(res => {
+        if (res) {
+          return this.historyContext.pollNewItem()
+        }
+        return of(null)
+      })
+    ).subscribe(() => {/* pass */ })
     this.colIdSub = this.route.paramMap.pipe(
       map(pm => pm.get('colId') ?? ''),
       filter(id => id.length > 0),
@@ -177,7 +185,7 @@ export class MoleculeCollectionDetailComponent implements OnInit, OnDestroy {
       this.items = [...this.items, ...newPage.items];
       this.page++;
     }
-      this.loading = false;
+    this.loading = false;
   }
 
 

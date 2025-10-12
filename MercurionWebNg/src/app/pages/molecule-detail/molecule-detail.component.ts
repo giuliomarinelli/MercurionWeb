@@ -32,6 +32,7 @@ import { MyMoleculeJoinComponent } from '../../components/molecule-detail/my-mol
 import { MyMoleculesHeadingComponent } from '../../components/molecule-detail/my-molecules-heading/my-molecules-heading.component';
 import { LinkModel } from '../../Models/link.model';
 import { MoleculeCollectionService } from '../../services/graphql/molecule-collection.service';
+import { HistoryContextService } from '../../services/context/history-context.service';
 
 
 
@@ -286,6 +287,7 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
   private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService)
   private readonly moleculeCollectionService = inject(MoleculeCollectionService)
   private readonly toast = inject(ToastService)
+  private readonly historyContext = inject(HistoryContextService)
   // ====================================================
 
   private mode = signal<'SYSTEM' | 'USER'>('SYSTEM')
@@ -576,6 +578,12 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
           flagIds.c_id = args.colId
         }
         return this.moleculeCollectionItemService.markItemAsTouched(args.id, JSON.stringify(flagIds))
+      }),
+      switchMap(res => {
+        if (res) {
+          return this.historyContext.pollNewItem()
+        }
+        return of(null)
       })
     ).subscribe(() => {/* pass */ })
   }

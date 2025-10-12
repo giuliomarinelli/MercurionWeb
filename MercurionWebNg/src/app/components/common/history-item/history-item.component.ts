@@ -41,14 +41,15 @@ import { DatePipe } from '@angular/common';
         </div>
 
         <!-- Testo (titolo + data) -->
-        <div class="flex flex-col justify-center">
-          <p class="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
+        <div class="flex flex-col justify-center min-w-0">
+          <p class="truncate text-sm font-medium text-slate-900 dark:text-slate-100 w-full block">
             {{ _historyDTO()?.itemName }}
           </p>
           <p class="text-xs text-slate-600 dark:text-slate-400 mt-1">
             {{ _historyDTO()!.touchedAt | date: 'dd/MM/yyyy HH:mm:ss' }}
           </p>
         </div>
+
       </a>
     }
   `

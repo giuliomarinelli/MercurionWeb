@@ -1,10 +1,11 @@
-import { AfterViewInit, Component, ElementRef, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, effect, ElementRef, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { HistoryService } from '../../../services/history.service';
 import { debounce, distinctUntilChanged, filter, firstValueFrom, interval, Subscription } from 'rxjs';
 import { HistoryDTO } from '../../../Models/history.models';
 import { NavigationEnd, Router } from '@angular/router';
 import { HistoryItemComponent } from '../history-item/history-item.component';
 import { ClassicSpinnerComponent } from '../classic-spinner/classic-spinner.component';
+import { HistoryContextService } from '../../../services/context/history-context.service';
 
 
 @Component({
@@ -32,6 +33,7 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
   // ======================= DEPS =======================
   private readonly historyService = inject(HistoryService)
   private readonly router = inject(Router)
+  private readonly historyContext = inject(HistoryContextService)
   // ====================================================
 
   @ViewChild('sentinel', { static: true })
@@ -45,6 +47,20 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
   done = false
   private observer?: IntersectionObserver
   protected page = 1
+
+  constructor() {
+    effect(() => {
+      if (this.historyContext.newHistoryItem()) {
+        const newItem = this.historyContext.newHistoryItem()!
+        this.historyContext.clear()
+        const i = this.items.findIndex(item => item.itemId === newItem.itemId)
+        if (i !== -1) {
+          this.items.splice(i, 1)
+        }
+        this.items.unshift(newItem)
+      }
+    })
+  }
 
   private startObserver() {
     if (this.observer) this.observer.disconnect();
