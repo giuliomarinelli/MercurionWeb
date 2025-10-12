@@ -88,4 +88,14 @@ export class MoleculeCollectionItemResolver {
     ): Promise<boolean> {
         return this.itemService.delete(id, userId)
     }
+
+    @Mutation(() => Boolean)
+    async markMoleculeCollectionItemAsTouched(
+        @Args('id', { type: () => ID }) itemId: UUID,
+        @AuthenticatedUserId() userId: UUID
+    ): Promise<boolean> {
+        return await this.itemService.markAsTouched(userId, itemId)
+    }
+
+
 }

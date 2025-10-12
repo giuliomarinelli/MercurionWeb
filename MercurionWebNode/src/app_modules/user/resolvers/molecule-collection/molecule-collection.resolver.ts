@@ -88,6 +88,14 @@ export class MoleculeCollectionResolver {
         return this.collectionService.delete(id, userId)
     }
 
+    @Mutation(() => Boolean)
+    async markMoleculeCollectionAsTouched(
+        @Args('id', { type: () => ID }) collectionId: UUID,
+        @AuthenticatedUserId() userId: UUID
+    ): Promise<boolean> {
+        return await this.collectionService.markAsTouched(userId, collectionId)
+    }
+
     @Query(() => PaginatedMoleculeCollection)
     async myMoleculeCollectionsPaginated(
         @AuthenticatedUserId() userId: UUID,

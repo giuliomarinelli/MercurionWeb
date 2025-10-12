@@ -1,5 +1,5 @@
 import { MoleculeService } from './../../../meilisearch/services/molecule.service';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UUID } from 'crypto';
@@ -22,11 +22,24 @@ import { ChEMBLMoleculeItemEntity } from '../../Models/entities/molecule-collect
 @Injectable()
 export class MoleculeCollectionItemService {
 
+    private readonly logger = new Logger(MoleculeCollectionItemService.name)
+
     constructor(
         @InjectRepository(MoleculeCollectionItemEntity)
         private readonly itemRepo: Repository<MoleculeCollectionItemEntity>,
         private readonly moleculeService: MoleculeService
     ) { }
+
+    async markAsTouched(userId: UUID, itemId: UUID): Promise<boolean> {
+        try{
+            const touchedAt = Date.now()
+            this.itemRepo.update({ userId, id: itemId }, { touchedAt })
+            return true
+        } catch (e) {
+            this.logger.warn(`MoleculeCollectionItemService > markAsTouched: UPDATE FAILED => ${e}`)
+            return false
+        }
+    }
 
     async create(userId: UUID, input: CreateMoleculeItemInput): Promise<MoleculeCollectionItemEntity> {
         const entity = this.itemRepo.create({ id: uuidv7() as UUID, ...input, userId })
