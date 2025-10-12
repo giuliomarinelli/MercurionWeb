@@ -4,8 +4,8 @@ import { Repository } from 'typeorm';
 import { NotebookChapter } from '../../Models/entities/lab-notebook/lab-notebook-chapter.entity';
 import { UUID } from 'crypto';
 import { RpcException } from '@nestjs/microservices';
-import { GraphqlUtils } from 'src/graphql-utils/graphql-utils';
-import { GraphQLFieldsMap, TypeOrmUtils } from 'src/type-orm-utils/type-orm-utils';
+import { GraphqlUtils } from 'src/utils/graphql-utils/graphql-utils';
+import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils';
 import { LabNotebook } from '../../Models/entities/lab-notebook/lab-notebook.entity';
 
 @Injectable()

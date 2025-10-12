@@ -5,8 +5,8 @@ import { NotebookSection } from '../../Models/entities/lab-notebook/lab-notebook
 import { NotebookChapter } from '../../Models/entities/lab-notebook/lab-notebook-chapter.entity';
 import { UUID } from 'crypto';
 import { UpdateSectionInput } from '../../Models/DTO/lab-notebook/update-section-input';
-import { GraphqlUtils } from 'src/graphql-utils/graphql-utils';
-import { GraphQLFieldsMap, TypeOrmUtils } from 'src/type-orm-utils/type-orm-utils';
+import { GraphqlUtils } from 'src/utils/graphql-utils/graphql-utils';
+import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils';
 
 @Injectable()
 export class NotebookSectionService {

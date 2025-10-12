@@ -4,7 +4,7 @@ import { UUID } from 'crypto';
 import { GraphQLResolveInfo } from 'graphql';
 import { MoleculeCollection } from '../../Models/entities/molecule-collection/molecule-collection.entity';
 import { MoleculeCollectionService } from '../../services/molecule-collection/molecule-collection.service';
-import { GraphqlUtils } from 'src/graphql-utils/graphql-utils';
+import { GraphqlUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { PaginatedMoleculeCollection } from '../../Models/DTO/molecule-collection/paginated-molecule-collection';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MoleculeCollectionItemJoin } from '../../Models/entities/molecule-collection/molecule-collection-item-join.entity';

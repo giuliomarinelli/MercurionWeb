@@ -2,8 +2,8 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { UUID } from "crypto";
-import { GraphQLFieldsMap, TypeOrmUtils } from "src/type-orm-utils/type-orm-utils";
-import { GraphqlUtils } from "src/graphql-utils/graphql-utils";
+import { GraphQLFieldsMap, TypeOrmUtils } from "src/utils/type-orm-utils/type-orm-utils";
+import { GraphqlUtils } from "src/utils/graphql-utils/graphql-utils";
 import { SyntheticStepEntity } from "../../Models/entities/synth/synthetic-step.entity";
 import { SyntheticStepInput } from "../../Models/DTO/synth/synthetic-step.input";
 

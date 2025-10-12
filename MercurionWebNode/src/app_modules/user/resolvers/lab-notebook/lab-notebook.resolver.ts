@@ -5,8 +5,8 @@ import { UUID } from 'crypto';
 import { AuthenticatedUserId } from 'src/metadata/metadata';
 import { LabNotebookService } from '../../services/lab-notebook/lab-notebook.service';
 import { GraphQLResolveInfo } from 'graphql';
-import { GraphqlUtils } from 'src/graphql-utils/graphql-utils';
-import { GraphQLFieldsMap } from 'src/type-orm-utils/type-orm-utils';
+import { GraphqlUtils } from 'src/utils/graphql-utils/graphql-utils';
+import { GraphQLFieldsMap } from 'src/utils/type-orm-utils/type-orm-utils';
 
 
 @Resolver(() => LabNotebook)

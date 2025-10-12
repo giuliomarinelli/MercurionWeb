@@ -3,7 +3,7 @@
 import { registerAs } from "@nestjs/config";
 import { AppConfiguration, CloudflareConfiguration, DataConfiguration, OAuth2ProviderConfiguration, JwtConfigurations, MeilisearchConfiguration, SecureCookieConfiguration, SessionConfiguration, SmsConfiguration, TotpConfiguration } from "./@types-config";
 import { UUID } from "crypto";
-import { GeneralUtils } from "src/general-utils/general-utils";
+import { GeneralUtils } from "src/utils/general-utils/general-utils";
 import { SnakeNamingStrategy } from "typeorm-naming-strategies";
 import { MailerOptions } from "@nestjs-modules/mailer";
 import { join } from "path";

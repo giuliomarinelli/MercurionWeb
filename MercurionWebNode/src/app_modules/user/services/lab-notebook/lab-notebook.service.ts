@@ -3,8 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UUID } from 'crypto';
 import { LabNotebook } from '../../Models/entities/lab-notebook/lab-notebook.entity';
-import { GraphqlUtils as GraphQLUtils } from 'src/graphql-utils/graphql-utils';
-import { GraphQLFieldsMap, TypeOrmUtils } from 'src/type-orm-utils/type-orm-utils';
+import { GraphqlUtils as GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
+import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils';
 
 @Injectable()
 export class LabNotebookService {

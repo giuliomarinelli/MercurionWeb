@@ -7,8 +7,8 @@ import { UpdateSectionInput } from '../../Models/DTO/lab-notebook/update-section
 import { NotFoundException } from '@nestjs/common';
 import { NotebookSection } from '../../Models/entities/lab-notebook/lab-notebook-section.entity';
 import { GraphQLResolveInfo } from 'graphql';
-import { GraphqlUtils } from 'src/graphql-utils/graphql-utils';
-import { GraphQLFieldsMap } from 'src/type-orm-utils/type-orm-utils';
+import { GraphqlUtils } from 'src/utils/graphql-utils/graphql-utils';
+import { GraphQLFieldsMap } from 'src/utils/type-orm-utils/type-orm-utils';
 
 
 @Resolver(() => NotebookSection)

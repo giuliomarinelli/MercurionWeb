@@ -5,7 +5,7 @@ import { UserRegisterDTO } from 'src/app_modules/user/Models/DTO/user-register.c
 import { AuthenticatedUserId, Authorization, Public } from 'src/metadata/metadata';
 import { ConfirmChangeDTO, ConfirmDTO, ConfirmMfaChange, ConfirmWithObsContDTO } from 'src/Models/confirm-responses.dto';
 import { AccountService } from '../services/account.service';
-import { GeneralUtils } from 'src/general-utils/general-utils';
+import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { ResponseService } from 'src/services/response.service';
 import { MfaService } from '../services/mfa.service';
 import { UUID } from 'crypto';

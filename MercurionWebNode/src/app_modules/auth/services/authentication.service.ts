@@ -14,7 +14,7 @@ import { SercurityService } from './sercurity.service';
 import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum';
 import { nullish } from 'src/Models/nullish.type';
 import { IAuth } from '../Models/interfaces/i-auth.interface';
-import { GeneralUtils } from 'src/general-utils/general-utils';
+import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { createHash, UUID } from 'crypto';
 import { GeoIpService, GeoLocation } from './geo-ip.service';
 import { TokenPair } from '../Models/interfaces/token-pair.interface';

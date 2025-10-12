@@ -5,7 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { TokenType } from '../Models/enums/token-type.enum';
 import { randomUUID, UUID } from 'crypto';
 import { UserService } from 'src/app_modules/user/services/user.service';
-import { GeneralUtils } from 'src/general-utils/general-utils';
+import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { Scope } from 'src/app_modules/user/Models/enums/scope.enum';
 import { FastifyRequest } from 'fastify';
 import { RpcException } from '@nestjs/microservices';

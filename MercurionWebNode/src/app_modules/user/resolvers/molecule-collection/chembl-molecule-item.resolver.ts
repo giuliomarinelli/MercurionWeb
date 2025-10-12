@@ -4,7 +4,7 @@ import { ChEMBLMoleculeItemService } from "../../services/molecule-collection/ch
 import { AuthenticatedUserId } from "src/metadata/metadata";
 import { UUID } from "crypto";
 import { GraphQLResolveInfo } from 'graphql';
-import { GraphqlUtils } from "src/graphql-utils/graphql-utils";
+import { GraphqlUtils } from "src/utils/graphql-utils/graphql-utils";
 
 
 

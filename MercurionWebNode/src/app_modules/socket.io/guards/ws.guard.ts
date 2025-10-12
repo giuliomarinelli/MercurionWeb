@@ -6,7 +6,7 @@ import { JwtToolsService } from 'src/app_modules/auth/services/jwt-tools.service
 import { SecureCookieService } from 'src/app_modules/auth/services/secure-cookie.service';
 import { SessionService } from 'src/app_modules/auth/services/session.service';
 import { IS_PUBLIC_KEY } from 'src/metadata/metadata';
-import { WebSocketUtils } from 'src/web-socket-utils/web-socket-utils';
+import { WebSocketUtils } from 'src/utils/web-socket-utils/web-socket-utils';
 
 @Injectable()
 export class WsGuard implements CanActivate {

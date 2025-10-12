@@ -21,7 +21,7 @@ import { TotpConfiguration } from 'src/config/@types-config';
 import { join } from 'path';
 import { SessionService } from './session.service';
 import { nullish } from 'src/Models/nullish.type';
-import { GeneralUtils } from 'src/general-utils/general-utils';
+import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
 
 @Injectable()

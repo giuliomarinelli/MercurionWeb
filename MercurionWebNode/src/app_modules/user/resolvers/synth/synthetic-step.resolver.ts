@@ -2,7 +2,7 @@ import { Args, ID, Info, Mutation, Query, Resolver } from "@nestjs/graphql";
 import { AuthenticatedUserId } from "src/metadata/metadata";
 import { UUID } from "crypto";
 import { GraphQLResolveInfo } from "graphql";
-import { GraphqlUtils } from "src/graphql-utils/graphql-utils";
+import { GraphqlUtils } from "src/utils/graphql-utils/graphql-utils";
 import { SyntheticStepEntity } from "../../Models/entities/synth/synthetic-step.entity";
 import { SyntheticStepService } from "../../services/synth/synthetic-step.service";
 import { SyntheticStepInput } from "../../Models/DTO/synth/synthetic-step.input";

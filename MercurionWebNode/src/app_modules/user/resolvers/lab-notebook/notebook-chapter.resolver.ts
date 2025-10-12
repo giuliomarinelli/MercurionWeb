@@ -6,8 +6,8 @@ import { AuthenticatedUserId } from 'src/metadata/metadata';
 import { UpdateChapterInput } from '../../Models/DTO/lab-notebook/update-chapter-input';
 import { GraphQLResolveInfo } from 'graphql';
 import { NotebookChapter } from '../../Models/entities/lab-notebook/lab-notebook-chapter.entity';
-import { GraphqlUtils } from 'src/graphql-utils/graphql-utils';
-import { GraphQLFieldsMap } from 'src/type-orm-utils/type-orm-utils';
+import { GraphqlUtils } from 'src/utils/graphql-utils/graphql-utils';
+import { GraphQLFieldsMap } from 'src/utils/type-orm-utils/type-orm-utils';
 
 @Resolver(() => NotebookChapter)
 export class NotebookChapterResolver {

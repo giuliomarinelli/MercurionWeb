@@ -32,13 +32,14 @@ export class TypeOrmUtils {
         return qb
     }
     static filterJoinsForEntity(fields: Record<string, any>, validJoins: string[]): Record<string, any> {
-    const filtered: Record<string, any> = {};
-    for (const key in fields) {
-        if (validJoins.includes(key) && typeof fields[key] === 'object' && fields[key] !== null) {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            filtered[key] = fields[key];
+        const filtered: Record<string, any> = {};
+        for (const key in fields) {
+            if (validJoins.includes(key) && typeof fields[key] === 'object' && fields[key] !== null) {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                filtered[key] = fields[key];
+            }
         }
+        return filtered;
     }
-    return filtered;
-}
+    
 }

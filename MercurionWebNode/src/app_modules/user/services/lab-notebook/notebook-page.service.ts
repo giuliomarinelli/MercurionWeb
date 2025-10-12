@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { NotebookPage } from '../../Models/entities/lab-notebook/lab-notebook-page.entity';
 import { UUID } from 'crypto';
 import { NotebookSection } from '../../Models/entities/lab-notebook/lab-notebook-section.entity';
-import { GraphqlUtils } from 'src/graphql-utils/graphql-utils';
+import { GraphqlUtils } from 'src/utils/graphql-utils/graphql-utils';
 
 @Injectable()
 export class NotebookPageService {

@@ -4,7 +4,7 @@ import { CustomMoleculeItemService } from "../../services/molecule-collection/cu
 import { AuthenticatedUserId } from "src/metadata/metadata";
 import { UUID } from "crypto";
 import { GraphQLResolveInfo } from 'graphql';
-import { GraphqlUtils } from "src/graphql-utils/graphql-utils";
+import { GraphqlUtils } from "src/utils/graphql-utils/graphql-utils";
 import { CustomMoleculeItemInput } from "../../Models/DTO/molecule-collection/custom-molecule-item.input";
 
 @Resolver(() => CustomMoleculeItemEntity)

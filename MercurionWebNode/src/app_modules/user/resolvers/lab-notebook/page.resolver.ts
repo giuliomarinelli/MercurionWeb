@@ -6,7 +6,7 @@ import { UpdatePageInput } from '../../Models/DTO/lab-notebook/update-page-input
 import { AuthenticatedUserId } from 'src/metadata/metadata';
 import { GraphQLResolveInfo } from 'graphql';
 import { NotebookPage } from '../../Models/entities/lab-notebook/lab-notebook-page.entity';
-import { GraphqlUtils } from 'src/graphql-utils/graphql-utils';
+import { GraphqlUtils } from 'src/utils/graphql-utils/graphql-utils';
 
 
 @Resolver(() => NotebookPage)

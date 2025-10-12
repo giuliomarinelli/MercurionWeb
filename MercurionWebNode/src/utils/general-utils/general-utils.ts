@@ -37,5 +37,10 @@ export class GeneralUtils {
         return strategy
     }
 
+    public static distinctArray<T>(arr: T[]): T[] {
+        const set: Set<T> = new Set(arr)
+        return Array.from(set)
+    }
+
 
 }

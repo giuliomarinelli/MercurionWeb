@@ -11,7 +11,7 @@ import { ResponseService } from 'src/services/response.service';
 import { Confirm_Login_FirstStepDTO, ConfirmDTO, ConfirmWithTokenPairAndInitialsDTO, ConfirmWithTotpMetaDTO } from 'src/Models/confirm-responses.dto';
 import { TestPhoneDTO } from '../Models/DTO/test-phone.cls.dto';
 import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum';
-import { GeneralUtils } from 'src/general-utils/general-utils';
+import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { TotpBodyDTO } from '../Models/DTO/totp.cls.dto';
 import { JwtToolsService } from '../services/jwt-tools.service';
 import { TokenType } from '../Models/enums/token-type.enum';

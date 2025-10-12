@@ -5,7 +5,7 @@ import { GraphQLResolveInfo } from 'graphql';
 import { MoleculeCollectionItemEntity } from '../../Models/entities/molecule-collection/molecule-collection-item.entity';
 import { MoleculeCollectionItemService } from '../../services/molecule-collection/molecule-collection-item.service';
 import { CreateMoleculeItemInput } from '../../Models/DTO/molecule-collection/create-molecule-item.input';
-import { GraphqlUtils } from 'src/graphql-utils/graphql-utils';
+import { GraphqlUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { PaginatedMoleculeCollectionItem } from '../../Models/DTO/molecule-collection/paginated-molecule-collection-item.dto';
 import { IPaginationOptions } from 'nestjs-typeorm-paginate';
 import { CustomMoleculeItemDTO } from '../../Models/DTO/molecule-collection/custom-molecule-item.dto';
