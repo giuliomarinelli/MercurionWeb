@@ -316,6 +316,7 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
   private upNoSub?: Subscription
   private upNaSub?: Subscription
   private bcSub?: Subscription
+  private touchSub?: Subscription
 
   onlyKnown = new FormControl<boolean>(true, { nonNullable: true })
 
@@ -556,6 +557,12 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.fetchSimilar()
+    this.touchSub = this.route.paramMap.pipe(
+      map(pm => pm.get('molId') ?? ''),
+      filter(id => id.length > 0),
+      distinctUntilChanged(),
+      switchMap(id => this.moleculeCollectionItemService.markItemAsTouched(id))
+    ).subscribe(() => {/* pass */})
   }
 
   ngOnDestroy(): void {
@@ -565,6 +572,7 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
     this.upNoSub?.unsubscribe()
     this.upNaSub?.unsubscribe()
     this.bcSub?.unsubscribe()
+    this.touchSub?.unsubscribe()
   }
 
 }

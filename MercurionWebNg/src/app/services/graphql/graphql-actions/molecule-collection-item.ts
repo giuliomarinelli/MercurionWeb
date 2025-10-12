@@ -292,8 +292,8 @@ export const UPDATE_MOLECULE_ITEM_NOTES = gql`
 `;
 
 export const MARK_MOLECULE_COLLECTION_ITEM_AS_TOUCHED = gql`
-  mutation MarkMoleculeCollectionAsTouched($id: ID!) {
-    markMoleculeCollectionAsTouched(id: $id)
+  mutation MarkMoleculeCollectionItemAsTouched($id: ID!) {
+    markMoleculeCollectionItemAsTouched(id: $id)
   }
 
 `

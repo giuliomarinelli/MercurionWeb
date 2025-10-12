@@ -116,7 +116,7 @@ export class MoleculeCollectionService {
             qb = qb.andWhere('collection.name ILIKE :query', { query: `%${search}%` })
         }
 
-        qb = qb.orderBy('collection.updatedAt', 'DESC')
+        qb = qb.orderBy('collection.touchedAt', 'DESC')
         // le join sulle relazioni puoi farle se richieste
 
         return paginate<MoleculeCollection>(qb, options)

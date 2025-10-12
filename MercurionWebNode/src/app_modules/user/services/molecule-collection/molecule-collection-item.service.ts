@@ -52,7 +52,7 @@ export class MoleculeCollectionItemService {
         fieldsMap: GraphQLFieldsMap
     ): Promise<MoleculeCollectionItemEntity | null> {
         const DB_FIELDS = [
-            'id', 'type', 'userId', 'label', 'notes', 'createdAt', 'updatedAt',
+            'id', 'type', 'userId', 'label', 'notes', 'createdAt', 'updatedAt', 'touchedAt',
             'canonicalSmiles', 'molFormula', 'name', 'propertiesJson', 'chemblMolregno'
         ];
 
@@ -90,7 +90,7 @@ export class MoleculeCollectionItemService {
             if (wants(fieldsMap, ['joins', 'collection'])) {
                 qb = qb.leftJoin('j.collection', 'c');
 
-                const COL_ALLOWED = ['id', 'name', 'createdAt', 'updatedAt'];
+                const COL_ALLOWED = ['id', 'name', 'createdAt', 'updatedAt', 'touchedAt'];
                 const colFieldsMap =
                     ((fieldsMap?.joins as GraphQLFieldsMap | undefined)?.collection as GraphQLFieldsMap | undefined) ?? {};
 
@@ -207,7 +207,7 @@ export class MoleculeCollectionItemService {
     ): Promise<PaginatedMoleculeCollectionItem> {
         // Solo campi DB reali!
         const DB_FIELDS = [
-            'id', 'type', 'userId', 'label', 'notes', 'createdAt', 'updatedAt',
+            'id', 'type', 'userId', 'label', 'notes', 'createdAt', 'updatedAt', 'touchedAt',
             'canonicalSmiles', 'molFormula', 'name', 'propertiesJson',
             'chemblMolregno', 'touchedAt'
         ];
@@ -257,7 +257,7 @@ export class MoleculeCollectionItemService {
     ): Promise<PaginatedMoleculeCollectionItem> {
         // Solo campi DB reali!
         const DB_FIELDS = [
-            'id', 'type', 'userId', 'label', 'notes', 'createdAt', 'updatedAt',
+            'id', 'type', 'userId', 'label', 'notes', 'createdAt', 'updatedAt', 'touchedAt',
             'canonicalSmiles', 'molFormula', 'name', 'propertiesJson',
             'chemblMolregno', 'touchedAt'
         ];

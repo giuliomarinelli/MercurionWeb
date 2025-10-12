@@ -70,6 +70,7 @@ export class MoleculeCollectionDetailComponent implements OnInit, OnDestroy {
   ]
 
   private colIdSub?: Subscription
+  private touchSub?: Subscription
   items: MoleculeCardItemModel[] = []
   title = ''
   loading = true
@@ -118,6 +119,12 @@ export class MoleculeCollectionDetailComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.touchSub = this.route.paramMap.pipe(
+      map(pm => pm.get('colId') ?? ''),
+      filter(id => id.length > 0),
+      distinctUntilChanged(),
+      switchMap(id => this.moleculeCollectionService.markMoleculeCollectionAsTouched(id))
+    ).subscribe(() => {/* pass */})
     this.colIdSub = this.route.paramMap.pipe(
       map(pm => pm.get('colId') ?? ''),
       filter(id => id.length > 0),
@@ -152,6 +159,7 @@ export class MoleculeCollectionDetailComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.colIdSub?.unsubscribe()
+    this.touchSub?.unsubscribe()
   }
 
   async loadMore() {

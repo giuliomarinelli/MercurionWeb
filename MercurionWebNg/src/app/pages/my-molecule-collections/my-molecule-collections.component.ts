@@ -45,7 +45,7 @@ import { SkeletonCollectionCardComponent } from '../../components/common/skeleto
 
   `
 })
-export class MyMoleculeCollectionsComponent implements OnInit, OnDestroy, AfterViewInit {
+export class MyMoleculeCollectionsComponent implements OnInit, AfterViewInit {
 
   // ======================= DEPS =======================
   private readonly moleculeCollectionService = inject(MoleculeCollectionService)
@@ -56,7 +56,7 @@ export class MyMoleculeCollectionsComponent implements OnInit, OnDestroy, AfterV
   @ViewChild('sentinel', { static: true })
   sentinel!: ElementRef;
 
-  private pageSub?: Subscription
+
   items: MoleculeCollection[] = []
   loading = false
   done = false
@@ -81,10 +81,6 @@ export class MyMoleculeCollectionsComponent implements OnInit, OnDestroy, AfterV
 
   ngOnInit(): void {
     this.loadMore()
-  }
-
-  ngOnDestroy(): void {
-    this.pageSub?.unsubscribe()
   }
 
   async loadMore() {

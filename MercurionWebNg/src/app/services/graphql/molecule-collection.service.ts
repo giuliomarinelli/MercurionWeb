@@ -3,7 +3,7 @@ import { Apollo, gql } from 'apollo-angular';
 import { Observable, map, tap } from 'rxjs';
 import { MoleculeCollection } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 import { PageModel } from '../../Models/graphql/page.model';
-import { PAGINATED_MOLECULE_COLLECTIONS } from './graphql-actions/molecule-collection';
+import { MARK_MOLECULE_COLLECTION_AS_TOUCHED, PAGINATED_MOLECULE_COLLECTIONS } from './graphql-actions/molecule-collection';
 
 function extractGqlData<T>(res: any, field: keyof T): any {
   if (res.errors && res.errors.length) throw new Error(`GqlError::${res.errors.map((e: any) => e.message).join(', ')}`);
@@ -121,6 +121,16 @@ export class MoleculeCollectionService {
         variables: { name },
       })
       .pipe(map(res => extractGqlData(res, 'createMoleculeCollection')));
+  }
+
+  markMoleculeCollectionAsTouched(id: string): Observable<boolean> {
+    return this.apollo
+      .mutate<{ markMoleculeCollectionAsTouched: boolean }>({
+        mutation: MARK_MOLECULE_COLLECTION_AS_TOUCHED,
+        variables: { id }
+      }).pipe(
+        map(res => extractGqlData(res, 'markMoleculeCollectionAsTouched'))
+      )
   }
 
   // UPDATE
