@@ -8,7 +8,7 @@ import { HistoryService } from '../services/history.service';
 @Controller('history')
 export class HistoryController {
 
-    constructor(
+constructor(
         private readonly historyService: HistoryService
     ) { }
 

@@ -92,9 +92,10 @@ export class MoleculeCollectionItemResolver {
     @Mutation(() => Boolean)
     async markMoleculeCollectionItemAsTouched(
         @Args('id', { type: () => ID }) itemId: UUID,
+        @Args('flagIds', { type: () => String }) flagIds: string,
         @AuthenticatedUserId() userId: UUID
     ): Promise<boolean> {
-        return await this.itemService.markAsTouched(userId, itemId)
+        return await this.itemService.markAsTouched(userId, itemId, flagIds)
     }
 
 

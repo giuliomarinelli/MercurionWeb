@@ -104,7 +104,7 @@ export class HistoryService {
             const { userId: _omit, ...rest } = it;
             const key = `${it.itemEntity}:${it.itemId}`;
             const itemName = nameByKey.get(key) ?? 'N/A';
-            return { ...rest, itemName } as HistoryDTO;
+            return { ...rest, flagIds: it.flagIds, itemName } as HistoryDTO;
         });
 
         return { ...page, items };

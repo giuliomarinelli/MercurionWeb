@@ -32,9 +32,18 @@ export class MoleculeCollectionItemService {
         private readonly moleculeService: MoleculeService,
         private readonly dataSource: DataSource
     ) { }
-    
-    async markAsTouched(userId: UUID, itemId: UUID): Promise<boolean> {
-        try{
+
+    async markAsTouched(userId: UUID, itemId: UUID, _flagIds?: string): Promise<boolean> {
+        try {
+            let flagIds: string
+            if (_flagIds) {
+                try {
+                    JSON.parse(_flagIds)
+                    flagIds = _flagIds
+                } catch {
+                    flagIds = '{}'
+                }
+            }
             await this.dataSource.manager.transaction(async (manager) => {
                 const touchedAt = Date.now()
                 await manager.update(MoleculeCollectionItemEntity, { userId, id: itemId }, { touchedAt })
@@ -43,7 +52,8 @@ export class MoleculeCollectionItemService {
                     itemEntity: HistoryItemEntity.MoleculeCollectionItem,
                     itemId,
                     touchedAt,
-                    userId
+                    userId,
+                    flagIds
                 })
             })
             // this.itemRepo.update()

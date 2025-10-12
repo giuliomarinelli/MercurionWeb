@@ -231,11 +231,11 @@ export class MoleculeCollectionItemService {
       )
   }
 
-  markItemAsTouched(id: string): Observable<boolean> {
+  markItemAsTouched(id: string, flagIds: string): Observable<boolean> {
     return this.apollo
       .mutate<{ markMoleculeCollectionItemAsTouched: boolean }>({
         mutation: MARK_MOLECULE_COLLECTION_ITEM_AS_TOUCHED,
-        variables: { id }
+        variables: { id, flagIds }
       }).pipe(
         map(res => extractGqlData(res, 'markMoleculeCollectionItemAsTouched'))
       )

@@ -561,8 +561,23 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
       map(pm => pm.get('molId') ?? ''),
       filter(id => id.length > 0),
       distinctUntilChanged(),
-      switchMap(id => this.moleculeCollectionItemService.markItemAsTouched(id))
-    ).subscribe(() => {/* pass */})
+      switchMap(id =>
+        this.route.queryParamMap.pipe(
+          map(params => ({
+            id,
+            colId: params.get('c_id') ?? ''
+          }))
+        )
+      ),
+      switchMap(args => {
+        const flagIds: { c_id?: string } = {}
+        const isUUID = this.uuidV7Re.test(args.colId)
+        if (isUUID) {
+          flagIds.c_id = args.colId
+        }
+        return this.moleculeCollectionItemService.markItemAsTouched(args.id, JSON.stringify(flagIds))
+      })
+    ).subscribe(() => {/* pass */ })
   }
 
   ngOnDestroy(): void {

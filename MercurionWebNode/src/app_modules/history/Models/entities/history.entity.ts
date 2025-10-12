@@ -21,6 +21,9 @@ export class History {
     @Column({ type: 'uuid' })
     userId: UUID
 
+    @Column({ type: 'text' })
+    flagIds: string
+
     @BeforeInsert()
     private beforeInsert(): void {
         this.id = uuidv7() as UUID
