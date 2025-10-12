@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from '../user/user.module';
 import { History } from './Models/entities/history.entity';
 import { MeilisearchModule } from '../meilisearch/meilisearch.module';
+import { HistoryController } from './controllers/history.controller';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { MeilisearchModule } from '../meilisearch/meilisearch.module';
     MeilisearchModule
   ],
   providers: [HistoryService],
-  exports: [TypeOrmModule]
+  exports: [TypeOrmModule],
+  controllers: [HistoryController]
 })
 export class HistoryModule {}
