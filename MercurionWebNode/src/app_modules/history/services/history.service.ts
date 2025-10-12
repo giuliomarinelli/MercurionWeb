@@ -22,11 +22,16 @@ export class HistoryService {
     ) { }
 
     async getPaginatedHistory(userId: UUID, options: IPaginationOptions): Promise<Pagination<HistoryDTO>> {
+        // solo Postgres
         const qb = this.historyRepo.createQueryBuilder('h')
             .where('h.userId = :userId', { userId })
-            .orderBy('h.touchedAt', 'DESC');
+            .distinctOn(['h.itemEntity', 'h.itemId'])
+            .orderBy('h.itemEntity', 'ASC')     // richiesto dal DISTINCT ON
+            .addOrderBy('h.itemId', 'ASC')      // richiesto dal DISTINCT ON
+            .addOrderBy('h.touchedAt', 'DESC'); // “la più recente”
 
         const page = await paginate<History>(qb, options);
+
 
         // entity -> set di itemId unici in ordine di apparizione
         const tmp = new Map<HistoryItemEntityEnum, Set<UUID>>();

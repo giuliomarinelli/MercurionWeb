@@ -1,7 +1,7 @@
 import { MoleculeService } from './../../../meilisearch/services/molecule.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { UUID } from 'crypto';
 import { MoleculeCollectionItemEntity } from '../../Models/entities/molecule-collection/molecule-collection-item.entity';
 import { CreateMoleculeItemInput } from '../../Models/DTO/molecule-collection/create-molecule-item.input';
@@ -16,6 +16,8 @@ import { MoleculeDetail } from 'src/app_modules/meilisearch/Models/DTO/molecule-
 import { RpcException } from '@nestjs/microservices';
 import { CustomMoleculeItemEntity } from '../../Models/entities/molecule-collection/custom-molecule-item.entity';
 import { ChEMBLMoleculeItemEntity } from '../../Models/entities/molecule-collection/chembl-molecule-item.entity';
+import { History } from 'src/app_modules/history/Models/entities/history.entity';
+import { HistoryItemEntity } from 'src/app_modules/history/Models/enums/history-item-entity.enum';
 
 
 // TODO: valutare un refactoring per dryificare la duplicazione di logica tra questo service e i service delle entità figlie concrete
@@ -27,13 +29,24 @@ export class MoleculeCollectionItemService {
     constructor(
         @InjectRepository(MoleculeCollectionItemEntity)
         private readonly itemRepo: Repository<MoleculeCollectionItemEntity>,
-        private readonly moleculeService: MoleculeService
+        private readonly moleculeService: MoleculeService,
+        private readonly dataSource: DataSource
     ) { }
-
+    
     async markAsTouched(userId: UUID, itemId: UUID): Promise<boolean> {
         try{
-            const touchedAt = Date.now()
-            this.itemRepo.update({ userId, id: itemId }, { touchedAt })
+            await this.dataSource.manager.transaction(async (manager) => {
+                const touchedAt = Date.now()
+                await manager.update(MoleculeCollectionItemEntity, { userId, id: itemId }, { touchedAt })
+                await manager.insert(History, {
+                    id: uuidv7() as UUID,
+                    itemEntity: HistoryItemEntity.MoleculeCollectionItem,
+                    itemId,
+                    touchedAt,
+                    userId
+                })
+            })
+            // this.itemRepo.update()
             return true
         } catch (e) {
             this.logger.warn(`MoleculeCollectionItemService > markAsTouched: UPDATE FAILED => ${e}`)

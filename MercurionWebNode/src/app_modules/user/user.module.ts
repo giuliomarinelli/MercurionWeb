@@ -42,6 +42,7 @@ import { SyntheticStepMoleculeRefResolver } from './resolvers/synth/synthetic-st
 import { MeilisearchModule } from '../meilisearch/meilisearch.module';
 import { MoleculeService } from '../meilisearch/services/molecule.service';
 import { AuthModule } from '../auth/auth.module';
+import { History } from '../history/Models/entities/history.entity';
 
 
 @Module({
@@ -61,6 +62,7 @@ import { AuthModule } from '../auth/auth.module';
     SyntheticRouteEntity,
     SyntheticStepMoleculeRef,
     SyntheticStepEntity,
+    History
   ]),
   forwardRef(() => AuthModule),
     MeilisearchModule
