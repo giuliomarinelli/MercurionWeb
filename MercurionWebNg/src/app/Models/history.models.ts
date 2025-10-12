@@ -1,6 +1,6 @@
 export interface HistoryDTO {
   id: string
-  itemEntity: string
+  itemEntity: HistoryItemEntity
   touchedAt: number
   itemId: string
   itemName: string

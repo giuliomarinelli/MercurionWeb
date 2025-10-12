@@ -2,6 +2,7 @@ import { DatePipe } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { UserContextService } from '../../../services/context/user-context.service';
+import { HistoryComponent } from '../history/history.component';
 
 interface HistoryItem {
   id: string;
@@ -13,7 +14,7 @@ interface HistoryItem {
 @Component({
   selector: 'app-sidenav',
   standalone: true,
-  imports: [RouterLink, DatePipe],
+  imports: [RouterLink, HistoryComponent],
   template: `
     <nav class="flex flex-col h-full bg-transparent z-50 select-none">
       <header class="flex justify-end items-center gap-3 lg:pt-4 mb-3 pr-[10px] sticky top-0">
@@ -66,31 +67,8 @@ interface HistoryItem {
 
         <!-- Cronologia dinamica -->
         <div class="flex-1 overflow-y-auto custom-scrollbar">
-          <h6 class="detail ">Cronologia</h6>
-          @if (historyItems.length) {
-            <ul>
-              @for (item of historyItems; track item) {
-                <li>
-                  <button
-                    class="w-full text-left sidebar-history-link"
-                    [routerLink]="['/', item.type, item.id]"
-                    [attr.title]="item.title"
-                  >
-                    <span class="icon mr-2">
-                      <!-- Puoi variare l’icona in base a item.type -->
-                      {{ getIcon(item.type) }}
-                    </span>
-                    <span class="truncate">{{ item.title }}</span>
-                    <span class="ml-2 text-xs opacity-50">{{ item.updatedAt | date:'short' }}</span>
-                  </button>
-                </li>
-              }
-            </ul>
-            }
-          @else {
-            <p class="text-xs opacity-60 px-2 py-4">Nessuna attività recente.</p>
-          }
-
+          <h6 class="detail">Cronologia</h6>
+            <app-history class="block" />
         </div>
       } @else {
         <!-- Menu per utente non loggato -->

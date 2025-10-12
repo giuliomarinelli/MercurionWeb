@@ -24,18 +24,20 @@ export class MoleculeCollectionService {
     ) { }
 
     async markAsTouched(userId: UUID, collectionId: UUID): Promise<boolean> {
-        try{
-            await this.dataSource.manager.transaction(async (manager) => {
-                const touchedAt = Date.now()
-                await manager.update(MoleculeCollection, { userId, id: collectionId }, { touchedAt })
-                await manager.insert(History, {
-                    id: uuidv7() as UUID,
-                    itemEntity: HistoryItemEntity.MoleculeCollection,
-                    userId,
-                    touchedAt,
-                    itemId: collectionId
+        try {
+            if (await this.collectionRepo.exists({ where: { userId, id: collectionId } })) {
+                await this.dataSource.manager.transaction(async (manager) => {
+                    const touchedAt = Date.now()
+                    await manager.update(MoleculeCollection, { userId, id: collectionId }, { touchedAt })
+                    await manager.insert(History, {
+                        id: uuidv7() as UUID,
+                        itemEntity: HistoryItemEntity.MoleculeCollection,
+                        userId,
+                        touchedAt,
+                        itemId: collectionId
+                    })
                 })
-            })
+            }
             return true
         } catch (e) {
             this.logger.warn(`MoleculeCollectionService > markAsTouched: UPDATE FAILED => ${e}`)

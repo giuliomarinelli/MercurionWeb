@@ -1,32 +1,47 @@
-import { Component, ElementRef, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { HistoryService } from '../../../services/history.service';
-import { firstValueFrom, Subscription } from 'rxjs';
+import { debounce, distinctUntilChanged, filter, firstValueFrom, interval, Subscription } from 'rxjs';
 import { HistoryDTO } from '../../../Models/history.models';
+import { NavigationEnd, Router } from '@angular/router';
+import { HistoryItemComponent } from '../history-item/history-item.component';
+import { ClassicSpinnerComponent } from '../classic-spinner/classic-spinner.component';
 
 
 @Component({
   selector: 'app-history',
-  imports: [],
+  imports: [HistoryItemComponent, ClassicSpinnerComponent],
   template: `
 
-
+    @for (item of items; track item) {
+      <app-history-item [historyDTO]="item" class="block" />
+    }
+    @if (!items.length) {
+      <p class="text-xs opacity-60 px-2 py-4">Nessuna attività recente.</p>
+    }
+    <div #sentinel id="sentinel"></div>
+    @if (loading || page === 1) {
+      <div class="flex justify-center pt-8">
+        <app-classic-spinner [size]="30" />
+      </div>
+    }
 
   `
 })
-export class HistoryComponent implements OnInit, OnDestroy {
+export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // ======================= DEPS =======================
   private readonly historyService = inject(HistoryService)
+  private readonly router = inject(Router)
   // ====================================================
 
   @ViewChild('sentinel', { static: true })
   sentinel!: ElementRef;
 
-  private pageSub?: Subscription
-  private inPageSub?: Subscription
+  private rSub?: Subscription
+
 
   items: HistoryDTO[] = []
-  loading = true
+  loading = false
   done = false
   private observer?: IntersectionObserver
   protected page = 1
@@ -48,7 +63,12 @@ export class HistoryComponent implements OnInit, OnDestroy {
 
     this.loading = true;
 
-    const newPage = await firstValueFrom(this.fetchPage$(this.page, 7));
+    const newPage = await firstValueFrom(
+      this.historyService.getHistory(this.page, 25).pipe(
+        debounce(() => interval(80)),
+        distinctUntilChanged()
+      )
+    )
     if (!newPage || newPage.items.length === 0) {
       this.done = true;
     } else {
@@ -59,12 +79,21 @@ export class HistoryComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.rSub = this.router.events.pipe(
+      filter(e => e instanceof NavigationEnd)
+    ).subscribe(() => {
+      if (this.page === 1) {
+        this.loadMore()
+      }
+    })
+  }
 
+  ngAfterViewInit(): void {
+    this.startObserver()
   }
 
   ngOnDestroy(): void {
-    this.pageSub?.unsubscribe()
-    this.inPageSub?.unsubscribe()
+    this.rSub?.unsubscribe()
   }
 
 }
