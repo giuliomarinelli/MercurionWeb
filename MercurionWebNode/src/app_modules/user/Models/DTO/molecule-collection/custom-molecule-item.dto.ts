@@ -33,6 +33,9 @@ export class CustomMoleculeItemDTO {
 
   @Field(() => String)
   updatedAt: number
+  
+  @Field(() => String)
+  touchedAt: number
 
   @Field(() => [MoleculeCollectionItemJoin], { nullable: true })
   joins: MoleculeCollectionItemJoin[] | null

@@ -14,6 +14,7 @@ export const MY_MOLECULE_ITEMS = gql`
         type
         createdAt
         updatedAt
+        touchedAt
         joins { id collection { id name } }
         chemblMolregno
         chemblDetails {
@@ -38,6 +39,7 @@ export const MY_MOLECULE_ITEMS = gql`
         type
         createdAt
         updatedAt
+        touchedAt
         joins { id collection { id name } }
         canonicalSmiles
         molFormula
@@ -59,6 +61,7 @@ export const MOLECULE_ITEM = gql`
         type
         createdAt
         updatedAt
+        touchedAt
         joins { id collection { id name createdAt updatedAt itemsCount } }
         chemblMolregno
         chemblDetails {
@@ -83,6 +86,7 @@ export const MOLECULE_ITEM = gql`
         type
         createdAt
         updatedAt
+        touchedAt
         joins { id collection { id name createdAt updatedAt itemsCount } }
         canonicalSmiles
         molFormula
@@ -119,12 +123,14 @@ query PaginatedMoleculeCollectionItemsByCollection($collectionId: String!, $page
                 propertiesJson
                 createdAt
                 updatedAt
+                touchedAt
             }
             ... on ChEMBLMoleculeItemDTO {
                 id
                 type
                 createdAt
                 updatedAt
+                touchedAt
                 chemblDetails {
                     preferredName
                     canonicalSmiles
@@ -157,6 +163,7 @@ export const CREATE_MOLECULE_ITEM = gql`
         type
         createdAt
         updatedAt
+        touchedAt
         joins { id collection { id name } }
         chemblMolregno
         chemblDetails {
@@ -181,6 +188,7 @@ export const CREATE_MOLECULE_ITEM = gql`
         type
         createdAt
         updatedAt
+        touchedAt
         joins { id collection { id name } }
         canonicalSmiles
         molFormula
@@ -202,6 +210,7 @@ export const UPDATE_MOLECULE_ITEM = gql`
         type
         createdAt
         updatedAt
+        touchedAt
         joins { id collection { id name } }
         chemblMolregno
         chemblDetails {
@@ -226,6 +235,7 @@ export const UPDATE_MOLECULE_ITEM = gql`
         type
         createdAt
         updatedAt
+        touchedAt
         joins { id collection { id name } }
         canonicalSmiles
         molFormula

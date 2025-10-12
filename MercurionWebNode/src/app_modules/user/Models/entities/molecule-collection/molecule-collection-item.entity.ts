@@ -43,6 +43,8 @@ export abstract class MoleculeCollectionItemEntity {
 
   @Column({ type: 'bigint' })
   updatedAt: number
-
-
+  
+  @Column({ type: 'bigint' })
+  touchedAt: number
+  
 }

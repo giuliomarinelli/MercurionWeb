@@ -27,6 +27,9 @@ export class ChEMBLMoleculeItemDTO {
 
     @Field(() => String)
     updatedAt: number
+    
+    @Field(() => String)
+    touchedAt: number
 
     // --- Dettagli ChEMBL arricchiti ---
     @Field(() => MoleculeDetail, { nullable: true })

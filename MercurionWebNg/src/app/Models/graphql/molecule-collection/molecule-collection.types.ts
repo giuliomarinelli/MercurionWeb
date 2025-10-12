@@ -14,6 +14,7 @@ export interface BaseMoleculeItem {
   joins: MoleculeCollectionJoin[];
   createdAt: string
   updatedAt: string
+  touchedAt: string
   t1Inference?: T1PredictionDTO
 }
 export interface ChEMBLMoleculeItemEntity extends BaseMoleculeItem {
@@ -87,6 +88,7 @@ export type MoleculeItemDTO =
     type: string;                           // esposto dal backend
     createdAt: string | number;             // backend @Field(() => String)
     updatedAt: string | number;             // backend @Field(() => String)
+    touchedAt: string | number
     joins?: { id: string; collection: MoleculeCollection }[] | null;
     chemblMolregno: string | number;        // backend lo espone come String
     chemblDetails?: MoleculeDetail | null;  // dettagli per il rendering
@@ -99,6 +101,7 @@ export type MoleculeItemDTO =
     type: string;                           // esposto dal backend
     createdAt: string | number;             // backend @Field(() => String)
     updatedAt: string | number;             // backend @Field(() => String)
+    touchedAt: string | number
     joins?: { id: string; collection: MoleculeCollection }[] | null;
     canonicalSmiles: string;
     molFormula?: string | null;
@@ -114,7 +117,10 @@ export type MoleculeCollectionItemClient =
     type: 'chembl';
     joins: { id: string; collection: MoleculeCollection }[];
     chemblMolregno: number;
-    createdAt?: string; updatedAt?: string; chemblDetails?: unknown;
+    createdAt?: string;
+    updatedAt?: string;
+    touchedAt: string
+    chemblDetails?: unknown;
     t1Inference?: T1PredictionDTO
   }
   | {
@@ -122,12 +128,17 @@ export type MoleculeCollectionItemClient =
     label?: string | null;
     notes?: string | null;
     type: 'custom';
-    joins: { id: string; collection: MoleculeCollection }[];
+    joins: {
+      id: string;
+      collection: MoleculeCollection
+    }[];
     canonicalSmiles: string;
     molFormula?: string | null;
     name?: string | null;
     propertiesJson?: string | null;
-    createdAt?: string; updatedAt?: string;
+    createdAt?: string;
+    updatedAt?: string;
+    touchedAt: string
     t1Inference?: T1PredictionDTO
   };
 
@@ -144,17 +155,14 @@ export interface MoleculeCollectionItemJoinShort {
   id: string;
   item: { id: string; label?: string | null; type: string; };
 }
-export interface MoleculeCollection {
-  id: string;
-  name: string;
-  items?: MoleculeCollectionItemJoinShort[];
-}
+
 
 export interface MoleculeCollection {
   id: string
   name: string
   createdAt: string | number
   updatedAt: string | number
+  touchedAt: string | number
   itemsCount: number
 }
 
@@ -168,4 +176,5 @@ export interface MoleculeCardItemModel {
   smiles: string
   createdAt: number
   updatedAt: number
+  touchedAt: number
 }

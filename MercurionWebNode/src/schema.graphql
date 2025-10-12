@@ -16,6 +16,7 @@ type MoleculeCollection {
   items: [MoleculeCollectionItemJoin!]
   createdAt: String!
   updatedAt: String!
+  touchedAt: String!
   itemsCount: Int!
 }
 
@@ -189,6 +190,7 @@ type CustomMoleculeItemDTO {
   propertiesJson: String
   createdAt: String!
   updatedAt: String!
+  touchedAt: String!
   joins: [MoleculeCollectionItemJoin!]
 }
 
@@ -200,6 +202,7 @@ type ChEMBLMoleculeItemDTO {
   type: String!
   createdAt: String!
   updatedAt: String!
+  touchedAt: String!
   chemblDetails: MoleculeDetail
   joins: [MoleculeCollectionItemJoin!]
 }

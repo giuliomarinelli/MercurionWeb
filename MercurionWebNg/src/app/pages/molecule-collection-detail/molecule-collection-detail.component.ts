@@ -98,6 +98,7 @@ export class MoleculeCollectionDetailComponent implements OnInit, OnDestroy {
           smiles: mol.type === 'chembl' ? (mol.chemblDetails as MoleculeDetail)?.canonicalSmiles ?? '' : mol.canonicalSmiles ?? '',
           createdAt: Date.parse(String(mol.createdAt)),
           updatedAt: Date.parse(String(mol.updatedAt)),
+          touchedAt: Date.parse(String(mol.touchedAt))
         }))
       }))
     );

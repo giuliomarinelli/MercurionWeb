@@ -42,7 +42,7 @@ function mapDtoToClient(node: MoleculeItemDTO): MoleculeCollectionItemClient {
       chemblMolregno: toNum(node.chemblMolregno),
       createdAt: String(node.createdAt),
       updatedAt: String(node.updatedAt),
-      // chemblDetails arriva già con i campi necessari al template
+      touchedAt: String(node.touchedAt),
       chemblDetails: node.chemblDetails,
     };
   }
@@ -59,6 +59,7 @@ function mapDtoToClient(node: MoleculeItemDTO): MoleculeCollectionItemClient {
     propertiesJson: node.propertiesJson ?? null,
     createdAt: String(node.createdAt),
     updatedAt: String(node.updatedAt),
+    touchedAt: String(node.touchedAt)
   };
 }
 

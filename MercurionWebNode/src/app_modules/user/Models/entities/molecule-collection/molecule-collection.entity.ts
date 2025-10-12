@@ -32,6 +32,10 @@ export class MoleculeCollection {
     @Column({ type: 'bigint' })
     updatedAt: number
 
+    @Field(() => String)
+    @Column({ type: 'bigint' })
+    touchedAt: number
+
     @Field(() => Int)
     itemsCount: number
 

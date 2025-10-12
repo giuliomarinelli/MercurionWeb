@@ -3,6 +3,7 @@ import { Apollo, gql } from 'apollo-angular';
 import { Observable, map, tap } from 'rxjs';
 import { MoleculeCollection } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 import { PageModel } from '../../Models/graphql/page.model';
+import { PAGINATED_MOLECULE_COLLECTIONS } from './graphql-actions/molecule-collection';
 
 function extractGqlData<T>(res: any, field: keyof T): any {
   if (res.errors && res.errors.length) throw new Error(`GqlError::${res.errors.map((e: any) => e.message).join(', ')}`);
@@ -87,6 +88,22 @@ export class MoleculeCollectionService {
       .valueChanges.pipe(map(res => extractGqlData(res, 'moleculeCollection')));
   }
 
+  getPaginatedCollections(
+    page: number = 1,
+    limit: number = 20,
+    search?: string
+  ): Observable<PageModel<MoleculeCollection>> {
+    return this.apollo
+      .watchQuery<{ myMoleculeCollectionsPaginated: any }>({
+        query: PAGINATED_MOLECULE_COLLECTIONS,
+        variables: { page, limit, search },
+        fetchPolicy: 'network-only'
+      })
+      .valueChanges.pipe(
+        map(res => extractGqlData(res, 'myMoleculeCollectionsPaginated'))
+      )
+  }
+
 
   // CREATE
   createCollection(name: string, opts: CollectionFieldsOptions = {}): Observable<MoleculeCollection> {
@@ -139,36 +156,6 @@ export class MoleculeCollectionService {
       .pipe(map(res => extractGqlData(res, 'deleteMoleculeCollection')));
   }
 
-  getPaginatedCollections(
-    page: number = 1,
-    limit: number = 20,
-    search?: string
-  ): Observable<PageModel<MoleculeCollection>> {
-    const query = gql`
-      query PaginatedCollections($page: Int!, $limit: Int!, $search: String) {
-        myMoleculeCollectionsPaginated(page: $page, limit: $limit, search: $search) {
-          items {
-            id
-            name
-            createdAt
-            updatedAt
-            itemsCount
-          }
-          totalPages
-          totalItems
-          currentPage
-        }
-      }
-    `;
-    return this.apollo
-      .watchQuery<{ myMoleculeCollectionsPaginated: any }>({
-        query,
-        variables: { page, limit, search },
-        fetchPolicy: 'network-only'
-      })
-      .valueChanges.pipe(
-        map(res => extractGqlData(res, 'myMoleculeCollectionsPaginated'))
-      )
-  }
+
 
 }

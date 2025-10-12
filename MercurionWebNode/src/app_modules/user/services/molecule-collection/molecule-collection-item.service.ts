@@ -162,6 +162,7 @@ export class MoleculeCollectionItemService {
                 propertiesJson: e.propertiesJson,
                 createdAt: e.createdAt,
                 updatedAt: e.updatedAt,
+                touchedAt: e.touchedAt,
                 joins: e.joins
             } as CustomMoleculeItemDTO;
         }
@@ -178,6 +179,7 @@ export class MoleculeCollectionItemService {
                 chemblDetails: detailsMap[chemblMolregno] ?? null,
                 createdAt: e.createdAt,
                 updatedAt: e.updatedAt,
+                touchedAt: e.touchedAt,
                 joins: e.joins
             } as unknown as ChEMBLMoleculeItemDTO;
         }
@@ -194,7 +196,7 @@ export class MoleculeCollectionItemService {
         const DB_FIELDS = [
             'id', 'type', 'userId', 'label', 'notes', 'createdAt', 'updatedAt',
             'canonicalSmiles', 'molFormula', 'name', 'propertiesJson',
-            'chemblMolregno'
+            'chemblMolregno', 'touchedAt'
         ];
 
         // Prendi solo quelli richiesti e realmente esistenti nel DB
@@ -206,7 +208,7 @@ export class MoleculeCollectionItemService {
         const qb = this.itemRepo.createQueryBuilder('item')
             .select(itemsFields.map(col => `item.${col}`))
             .where('item.user_id = :userId', { userId })
-            .orderBy('item.createdAt', 'DESC');
+            .orderBy('item.touchedAt', 'DESC');
 
         // Niente join su campi virtuali!
         const page = await paginate<MoleculeCollectionItemEntity>(qb, options);
@@ -244,7 +246,7 @@ export class MoleculeCollectionItemService {
         const DB_FIELDS = [
             'id', 'type', 'userId', 'label', 'notes', 'createdAt', 'updatedAt',
             'canonicalSmiles', 'molFormula', 'name', 'propertiesJson',
-            'chemblMolregno'
+            'chemblMolregno', 'touchedAt'
         ];
 
         const itemsFields = fieldsMap?.items
@@ -260,7 +262,7 @@ export class MoleculeCollectionItemService {
                 { collectionId, userId }
             )
             .select(itemsFields.map(col => `item.${col}`))
-            .orderBy('item.createdAt', 'DESC');
+            .orderBy('item.touchedAt', 'DESC');
 
         // Niente join su campi virtuali!
         const page = await paginate<MoleculeCollectionItemEntity>(qb, options);
