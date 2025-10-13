@@ -27,10 +27,10 @@ import { HistoryContextService } from '../../../services/context/history-context
     }
 
     @if (!items.length && !loading) {
-      <p class="text-xs opacity-60 px-2 py-4">Nessuna attività recente.</p>
+      <p class="text-xs opacity-60 px-6 py-4">Nessuna attività recente.</p>
     }
 
-    @if (loading || page === 1) {
+    @if (loading) {
       <div class="flex justify-center pt-8">
         <app-classic-spinner [size]="30" />
       </div>
