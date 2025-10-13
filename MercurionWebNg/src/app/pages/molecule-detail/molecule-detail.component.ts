@@ -33,6 +33,7 @@ import { MyMoleculesHeadingComponent } from '../../components/molecule-detail/my
 import { LinkModel } from '../../Models/link.model';
 import { MoleculeCollectionService } from '../../services/graphql/molecule-collection.service';
 import { HistoryContextService } from '../../services/context/history-context.service';
+import { HistoryService } from '../../services/history.service';
 
 
 
@@ -288,6 +289,7 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
   private readonly moleculeCollectionService = inject(MoleculeCollectionService)
   private readonly toast = inject(ToastService)
   private readonly historyContext = inject(HistoryContextService)
+  private readonly historyService = inject(HistoryService)
   // ====================================================
 
   private mode = signal<'SYSTEM' | 'USER'>('SYSTEM')
@@ -549,8 +551,13 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
 
   private updateName(name: string): void {
     if (this.typeGuards.isString(this.molId) && this.typeGuards.isCustomMoleculeType(this.molType)) {
-      this.upNaSub = this.moleculeCollectionItemService.updateItemName(this.molId, name, this.molType)
-        .subscribe({
+      this.upNaSub = this.moleculeCollectionItemService.updateItemName(this.molId, name, this.molType).pipe(
+        catchError(() => {
+          this.toast.trigger('Si è verificato un errore', 'error', 1500)
+          return of(null)
+        }),
+        switchMap(() => this.historyContext.pollNewItem())
+      ).subscribe({
           next: () => this.toast.trigger('Nome aggiornate correttamente', 'success', 1500),
           error: () => this.toast.trigger('Si è verificato un errore', 'error', 1500)
         })
