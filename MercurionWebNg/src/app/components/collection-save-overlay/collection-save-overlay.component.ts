@@ -346,10 +346,9 @@ export class CollectionSaveOverlayComponent implements OnInit {
     }).subscribe({
       next: (reply) => {
         this.toast.trigger(`Molecola salvata correttamente.`, 'success')
-        this.router.navigate(['/molecules/editor'], {
+        this.router.navigate([`/molecules/detail/${reply.id}`], {
           queryParams: {
-            mode: 'edit',
-            m_id: reply.id
+            c_id: this.ctx.selectedCollectionId()
           }
         })
         this.ctx.close()

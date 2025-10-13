@@ -12,12 +12,12 @@ import { DatePipe } from '@angular/common';
         [routerLink]="pathToItem()"
         [queryParams]="queryParams()"
         class="grid grid-cols-[auto_1fr] gap-3 items-center py-2 px-3 rounded-xl transition
-                   hover:bg-slate-100 dark:hover:bg-slate-800/70"
+                   hover:bg-slate-50 dark:hover:bg-slate-800/70"
       >
         <!-- Icona -->
         <div
           class="flex size-9 shrink-0 items-center justify-center
-                 rounded-xl border border-slate-200/70 dark:border-slate-700/60
+                 rounded-xl border border-slate-400/70 dark:border-slate-700/60
                  bg-indigo-50 dark:bg-indigo-900/30
                  text-indigo-700 dark:text-indigo-300 text-sm font-semibold"
         >
