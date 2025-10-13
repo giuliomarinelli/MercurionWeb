@@ -552,15 +552,8 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
   private updateName(name: string): void {
     if (this.typeGuards.isString(this.molId) && this.typeGuards.isCustomMoleculeType(this.molType)) {
       this.upNaSub = this.moleculeCollectionItemService.updateItemName(this.molId, name, this.molType).pipe(
-        catchError(() => {
-          this.toast.trigger('Si è verificato un errore', 'error', 1500)
-          return of(null)
-        }),
         switchMap(() => this.historyContext.pollNewItem())
-      ).subscribe({
-          next: () => this.toast.trigger('Nome aggiornate correttamente', 'success', 1500),
-          error: () => this.toast.trigger('Si è verificato un errore', 'error', 1500)
-        })
+      ).subscribe(() => {/* pass */})
     }
   }
 
