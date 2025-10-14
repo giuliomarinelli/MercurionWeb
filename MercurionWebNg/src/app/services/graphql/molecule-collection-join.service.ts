@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Apollo, gql } from 'apollo-angular';
 import { map, Observable } from 'rxjs';
 import { AddChemblMoleculeToCollectionInput, AddCustomMoleculeToCollectionInput, CustomMoleculeItemEntity, MoleculeProperties } from '../../Models/graphql/molecule-collection/molecule-collection.types';
+import { extractGqlData } from './graphql-helpers/extract-gql-data';
 
 
 
@@ -72,12 +73,6 @@ const REMOVE_CUSTOM_FROM_COLLECTION = gql`
   }
 `;
 
-// --- EXTRACT GQL DATA ---
-function extractGqlData<T>(res: any, field: keyof T): any {
-  if (res.errors && res.errors.length) throw new Error(`GqlError::${res.errors.map((e: any) => e.message).join(', ')}`);
-  if (!res.data || !res.data[field]) throw new Error('GqlError::NoData');
-  return res.data[field];
-}
 
 // --- MoleculeJoinService ---
 @Injectable({ providedIn: 'root' })

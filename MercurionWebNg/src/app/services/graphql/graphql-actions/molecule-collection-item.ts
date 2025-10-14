@@ -151,6 +151,12 @@ query PaginatedMoleculeCollectionItemsByCollection($collectionId: String!, $page
     }
 }
 `
+// hasUserChEMBLMoleculeByMolregnoThenGetUUID
+export const HAS_USER_CHEMBL_MOLECULE_BY_MOLREGNO_THEN_GET_UUID = gql`
+  query HasUserChEMBLMoleculeByMolregnoThenGetUUID($molregno: Int!) {
+    hasUserChEMBLMoleculeByMolregnoThenGetUUID(molregno: $molregno)
+}
+`
 
 export const CREATE_MOLECULE_ITEM = gql`
   mutation CreateMoleculeItem($input: CreateMoleculeItemInput!) {

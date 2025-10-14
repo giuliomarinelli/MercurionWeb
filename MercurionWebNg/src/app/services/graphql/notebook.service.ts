@@ -3,17 +3,9 @@ import { ChapterTree, NotebookTree, PageTree, SectionTree } from "../../Models/g
 import { Apollo, gql } from "apollo-angular";
 import { computed, Injectable, signal } from "@angular/core";
 import { GqlRes } from "../../Models/graphql/res.gql";
+import { extractGqlData } from "./graphql-helpers/extract-gql-data";
 
-function extractGqlData<T>(res: unknown, field: keyof T): any {
-  const _res = res as GqlRes<T>
-  if (_res.errors && _res.errors.length) {
-    throw new Error(`GqlError::${_res.errors.map(e => e.message).join(', ')}`)
-  }
-  if (!_res.data || !_res.data[field]) {
-    throw new Error('GqlError::NoData')
-  }
-  return _res.data[field]
-}
+
 
 @Injectable({ providedIn: 'root' })
 export class NotebookService {

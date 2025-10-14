@@ -3,19 +3,10 @@ import { Apollo, gql } from 'apollo-angular';
 import { map, tap } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { MoleculeSearchResult } from '../../Models/graphql/molecule-search/molecule-search-result.interface';
+import { extractGqlData } from './graphql-helpers/extract-gql-data';
 
 
 
-function extractGqlData<T>(res: unknown, field: keyof T): any {
-  const _res = res as any
-  if (_res.errors && _res.errors.length) {
-    throw new Error(`GqlError::${_res.errors.map((e: any) => e.message).join(', ')}`)
-  }
-  if (!_res.data || !_res.data[field]) {
-    throw new Error('GqlError::NoData')
-  }
-  return _res.data[field]
-}
 
 @Injectable({ providedIn: 'root' })
 export class MoleculeSearchService {

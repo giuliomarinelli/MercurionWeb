@@ -4,12 +4,7 @@ import { Observable, map, tap } from 'rxjs';
 import { MoleculeCollection } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 import { PageModel } from '../../Models/graphql/page.model';
 import { MARK_MOLECULE_COLLECTION_AS_TOUCHED, PAGINATED_MOLECULE_COLLECTIONS } from './graphql-actions/molecule-collection';
-
-function extractGqlData<T>(res: any, field: keyof T): any {
-  if (res.errors && res.errors.length) throw new Error(`GqlError::${res.errors.map((e: any) => e.message).join(', ')}`);
-  if (!res.data || !res.data[field]) throw new Error('GqlError::NoData');
-  return res.data[field];
-}
+import { extractGqlData } from './graphql-helpers/extract-gql-data';
 
 
 // --- OPTION OBJECT ---

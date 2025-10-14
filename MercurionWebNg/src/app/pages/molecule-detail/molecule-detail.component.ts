@@ -3,9 +3,9 @@ import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { EmbeddingService } from './../../services/embedding.service';
 import { SimilarsComponent } from './../../components/molecule-detail/similars/similars.component';
 import { Component, DestroyRef, effect, inject, OnDestroy, OnInit, Signal, signal, WritableSignal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MoleculeService } from '../../services/graphql/molecule.service';
-import { switchMap, Observable, catchError, of, Subscription, forkJoin, retry, tap, distinctUntilChanged, shareReplay, startWith, throwError } from 'rxjs';
+import { switchMap, Observable, catchError, of, Subscription, forkJoin, retry, tap, distinctUntilChanged, shareReplay, startWith, throwError, EMPTY } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
 import { AsyncPipe } from '@angular/common';
 import { ThemeManagerService } from '../../services/context/theme-manager.service';
@@ -278,6 +278,7 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
 
   // ======================= DEPS =======================
   private readonly route = inject(ActivatedRoute)
+  private readonly router = inject(Router)
   private readonly moleculeService = inject(MoleculeService)
   protected readonly themeManager = inject(ThemeManagerService)
   protected readonly userContext = inject(UserContextService)
@@ -289,7 +290,6 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
   private readonly moleculeCollectionService = inject(MoleculeCollectionService)
   private readonly toast = inject(ToastService)
   private readonly historyContext = inject(HistoryContextService)
-  private readonly historyService = inject(HistoryService)
   // ====================================================
 
   private mode = signal<'SYSTEM' | 'USER'>('SYSTEM')
@@ -350,104 +350,125 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
   }
 
   private fetchData(): void {
+    // --- breadcrumb
     this.bcSub = this.route.queryParamMap.pipe(
       map(qp => qp.get('c_id') ?? ''),
       filter(collectionId => collectionId.length > 0),
       switchMap(cId => {
-        if (!cId) {
-          return of(null)
-        }
-        this.collectionId.set(cId)
-        return this.moleculeCollectionService.getCollectionById(cId)
+        if (!cId) return of(null);
+        this.collectionId.set(cId);
+        return this.moleculeCollectionService.getCollectionById(cId);
       }),
-      distinctUntilChanged()
+      // opzionale: evita emetti-duplicati se arrivano oggetti diversi ma stesso id
+      distinctUntilChanged((a, b) => a?.id === b?.id)
     ).subscribe(col => {
       if (col) {
         this.breadcrumb.push({
           label: col.name,
           path: `/molecules/collections/detail/${col.id}`
-        })
+        });
       }
-    })
-    this.molecule$ = this.route.paramMap.pipe(
-      // 1) Carico un elemento polimorfico: System detail OPPURE Collection item
-      switchMap((params): Observable<MoleculeDetailItem | null> => {
-        this.viewerReady.set(false);
+    });
 
+    // --- main stream
+    this.molecule$ = this.route.paramMap.pipe(
+      // 1) Estraggo molId
+      switchMap((params): Observable<string> => {
+        this.viewerReady.set(false);
         const molId = params.get('molId');
         if (!molId) {
-          this.fetchError.set(true)
+          this.fetchError.set(true);
           return throwError(() => new Error('UndefinedMolregno'));
         }
-        this.molId = molId
+        this.molId = molId;
+        return of(molId);
+      }),
+
+      // 2) Normalizzo: (molId, molUUID<string|null>) con molUUID già risolto
+      switchMap(molId => {
+        const isUUID = this.uuidV7Re.test(molId);
+        if (!isUUID) {
+          // <- FIX: ritorno un Observable dell’oggetto con molUUID "sciolto"
+          return this.moleculeCollectionItemService
+            .hasUserChEMBLMoleculeByMolregnoThenGetUUID(Number(molId))
+            .pipe(
+              map(molUUID => ({ molId, molUUID })) // molUUID: string | null
+            );
+        }
+        // caso UUID: non devo cercare l'associazione
+        return of({ molId, molUUID: null as string | null });
+      }),
+
+      // 3) Carico il dettaglio in base alla modalità
+      switchMap(({ molId, molUUID }) => {
+        const isMolUUID_UUID = this.uuidV7Re.test(molUUID ?? '');
+        if (molUUID && isMolUUID_UUID) {
+          this.router.navigateByUrl(`/molecules/detail/${molUUID}`)
+          return EMPTY
+        }
         const isUUID = this.uuidV7Re.test(molId);
         this.mode.set(isUUID ? 'USER' : 'SYSTEM');
 
-        // === SYSTEM (molregno numerico): restituisco SEMPRE MoleculeDetailSystem
         if (!isUUID) {
           if (this.molCached && this.molCached.id === Number(molId)) {
-            return of(this.molCached);
+            return of(this.molCached as MoleculeDetailItem);
           }
+
           return this.moleculeService.getMoleculeByMolregno(molId).pipe(
             map(mol => {
+              // null-safe: se la query GraphQL torna null, NON fare lo spread
+              if (!mol) {
+                return null as MoleculeDetailItem | null;
+              }
               const sys: MoleculeDetailSystem = { ...mol, type: 'system' };
               this.molCached = sys;
-              return sys; // compatibile con MoleculeDetailItem
+              return sys as MoleculeDetailItem;
             }),
             catchError(() => {
-              this.fetchError.set(true)
-              return of(null)
+              this.fetchError.set(true);
+              return of(null as MoleculeDetailItem | null);
             })
           );
         }
 
-        // === USER (UUID): restituisco l'item di collezione (chembl | custom)
+
+
+        // === USER (UUID): item di collezione (chembl | custom)
         return this.moleculeCollectionItemService.getItemById(molId).pipe(
           catchError(() => {
-            this.fetchError.set(true)
-            return of(null)
+            this.fetchError.set(true);
+            return of(null);
           })
         );
       }),
 
-      // 2) Enrichment T1 SOLO se è un MoleculeDetailSystem; altrimenti pass-through
+      // 4) Enrichment T1 (solo se c’è item)
       switchMap((item): Observable<MoleculeDetailItem | null> => {
         if (!item) {
-          this.fetchError.set(true)
+          this.fetchError.set(true);
           return of(null);
         }
 
-        this.molType = item.type
+        this.molType = item.type;
 
-        // Qui item è MoleculeDetailSystem
-        const { t1Inference, ...rest } = item;
-
-        let smiles: string = ''
-
+        let smiles = '';
         if (this.typeGuards.isSystemMolecule(item)) {
-          smiles = item.canonicalSmiles
+          smiles = item.canonicalSmiles;
         } else if (this.typeGuards.isChemblMolecule(item)) {
-          smiles = item.chemblDetails.canonicalSmiles
+          smiles = item.chemblDetails.canonicalSmiles;
         } else if (this.typeGuards.isCustomMolecule(item)) {
-          if (item.propertiesJson) {
-            item.properties = JSON.parse(item.propertiesJson)
-          }
-          smiles = item.canonicalSmiles
+          if (item.propertiesJson) item.properties = JSON.parse(item.propertiesJson);
+          smiles = item.canonicalSmiles;
         }
 
-        // Utente autenticato: calcolo T1
-        return this.mercurionAIService
-          .t1Inference({ smiles })
-          .pipe(
-            map(t1 => ({ ...item, t1Inference: t1 })),
-            tap(() => this.fetchMolLoading.set(false)),
-            catchError(() => of(item)) // in caso di errore, tieni il detail base
-          );
-
-
-
+        return this.mercurionAIService.t1Inference({ smiles }).pipe(
+          map(t1 => ({ ...item, t1Inference: t1 })),
+          tap(() => this.fetchMolLoading.set(false)),
+          catchError(() => of(item)) // fallback: tieni il detail base
+        );
       }),
 
+      // 5) Guard rail finale
       catchError((err: any) => {
         const netErr = err?.networkError;
         if (netErr && 'status' in netErr) this.fetchError.set(true);
@@ -455,6 +476,7 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
       })
     );
   }
+
 
   private fetchSimilar(): void {
     this.onlySub = this.route.paramMap.pipe(
@@ -553,7 +575,7 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
     if (this.typeGuards.isString(this.molId) && this.typeGuards.isCustomMoleculeType(this.molType)) {
       this.upNaSub = this.moleculeCollectionItemService.updateItemName(this.molId, name, this.molType).pipe(
         switchMap(() => this.historyContext.pollNewItem())
-      ).subscribe(() => {/* pass */})
+      ).subscribe(() => {/* pass */ })
     }
   }
 
@@ -566,18 +588,19 @@ export class MoleculeDetailComponent implements OnInit, OnDestroy {
       switchMap(id =>
         this.route.queryParamMap.pipe(
           map(params => ({
-            id,
+            molId: id,
             colId: params.get('c_id') ?? ''
           }))
         )
       ),
       switchMap(args => {
         const flagIds: { c_id?: string } = {}
-        const isUUID = this.uuidV7Re.test(args.colId)
-        if (isUUID) {
+        const isUUID_colId = this.uuidV7Re.test(args.colId)
+        const isUUID_molId = this.uuidV7Re.test(args.molId)
+        if (isUUID_colId && isUUID_molId) {
           flagIds.c_id = args.colId
         }
-        return this.moleculeCollectionItemService.markItemAsTouched(args.id, JSON.stringify(flagIds))
+        return this.moleculeCollectionItemService.markItemAsTouched(args.molId, JSON.stringify(flagIds))
       }),
       switchMap(res => {
         if (res) {

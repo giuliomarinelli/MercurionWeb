@@ -10,22 +10,9 @@ import {
   CreateMoleculeItemInput,
   MoleculeItemDTO,
 } from '../../Models/graphql/molecule-collection/molecule-collection.types';
-import { CREATE_MOLECULE_ITEM, DELETE_MOLECULE_ITEM, MOLECULE_ITEM, MOLECULE_ITEM_FRAG_SHORT, MY_MOLECULE_ITEMS, UPDATE_MOLECULE_ITEM, UPDATE_MOLECULE_ITEM_LABEL, UPDATE_MOLECULE_ITEM_NOTES, UPDATE_MOLECULE_ITEM_NAME, UPDATE_MOLECULE_ITEM_SMILES, PAGINATED_MOLECULE_ITEMS_FOR_CARD, MARK_MOLECULE_COLLECTION_ITEM_AS_TOUCHED } from './graphql-actions/molecule-collection-item';
+import { CREATE_MOLECULE_ITEM, DELETE_MOLECULE_ITEM, MOLECULE_ITEM, MOLECULE_ITEM_FRAG_SHORT, MY_MOLECULE_ITEMS, UPDATE_MOLECULE_ITEM, UPDATE_MOLECULE_ITEM_LABEL, UPDATE_MOLECULE_ITEM_NOTES, UPDATE_MOLECULE_ITEM_NAME, UPDATE_MOLECULE_ITEM_SMILES, PAGINATED_MOLECULE_ITEMS_FOR_CARD, MARK_MOLECULE_COLLECTION_ITEM_AS_TOUCHED, HAS_USER_CHEMBL_MOLECULE_BY_MOLREGNO_THEN_GET_UUID } from './graphql-actions/molecule-collection-item';
+import { extractGqlData } from './graphql-helpers/extract-gql-data';
 
-// ---------- helpers ----------
-function extractGqlData<T>(res: any, field: keyof T, allowNull = false): any {
-  if (res.errors?.length) {
-    throw new Error(`GqlError::${res.errors.map((e: any) => e.message).join(', ')}`);
-  }
-  if (!res.data || !(field in res.data)) {
-    throw new Error('GqlError::NoData');
-  }
-  const value = res.data[field as any];
-  if (value === null && !allowNull) {
-    throw new Error('GqlError::NoData');
-  }
-  return value; // può essere null se allowNull=true
-}
 
 function toNum(n: string | number): number {
   return typeof n === 'number' ? n : Number(n);
@@ -155,6 +142,16 @@ export class MoleculeCollectionItemService {
       )
   }
 
+  hasUserChEMBLMoleculeByMolregnoThenGetUUID(molregno: number): Observable<string | null> {
+    return this.apollo
+      .watchQuery<{ hasUserChEMBLMoleculeByMolregnoThenGetUUID: string | null }>({
+        query: HAS_USER_CHEMBL_MOLECULE_BY_MOLREGNO_THEN_GET_UUID,
+        variables: { molregno },
+        fetchPolicy: 'network-only'
+      }).valueChanges.pipe(
+        map(res => extractGqlData(res, 'hasUserChEMBLMoleculeByMolregnoThenGetUUID', true))
+      )
+  }
 
   // CREATE
   createItem(input: CreateMoleculeItemInput): Observable<MoleculeCollectionItemClient> {
