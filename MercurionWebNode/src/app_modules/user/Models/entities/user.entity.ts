@@ -1,8 +1,9 @@
 import { uuidv7 } from '@kripod/uuidv7';
 import { UUID } from "crypto"
-import { BeforeInsert, Column, Entity, OneToMany, PrimaryColumn } from "typeorm"
+import { BeforeInsert, Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryColumn } from "typeorm"
 import { MfaBackupCode } from "./backup-code.entity"
 import { OldPasswordItem } from '../DTO/old-password-item.interface';
+import { DocumentEntity } from 'src/app_modules/dropbox-object-store/Models/entities/document.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -66,6 +67,10 @@ export class User {
 
     @OneToMany(() => MfaBackupCode, (backupCode) => backupCode.user, { cascade: true })
     backupCodes: MfaBackupCode[]
+
+    @OneToOne(() => DocumentEntity, (doc) => doc.id, { cascade: true, onDelete: 'SET NULL', onUpdate: 'CASCADE' })
+    @JoinColumn({ name: 'avatar_id' })
+    avatar: DocumentEntity | null
 
     @BeforeInsert()
     private generateId() {

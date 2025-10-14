@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import axios, { AxiosResponse } from 'axios';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { DocumentEntity } from '../Models/entities/document.entity';
 import { OAuth2ClientService } from 'src/app_modules/oauth2-client/services/oauth2-client.service';
 import { StorageType } from '../Models/enums/storage-type.enum';
@@ -9,6 +9,9 @@ import { UUID } from 'crypto';
 import { DropboxUploadResponse } from '../Models/interfaces/dropbox-upload-response.interface';
 import { RpcException } from '@nestjs/microservices';
 import { uuidv7 } from '@kripod/uuidv7';
+import { StorageScope } from '../Models/enums/storage-scope.enum';
+import { StorageAction } from '../Models/enums/storage-action.type';
+import { User } from 'src/app_modules/user/Models/entities/user.entity';
 
 @Injectable()
 export class DropboxObjectStoreService {
@@ -18,7 +21,8 @@ export class DropboxObjectStoreService {
     constructor(
         private readonly oauth2ClientService: OAuth2ClientService,
         @InjectRepository(DocumentEntity)
-        private readonly documentRepo: Repository<DocumentEntity>
+        private readonly documentRepo: Repository<DocumentEntity>,
+        private readonly dataSource: DataSource
     ) { }
 
     /**
@@ -44,18 +48,21 @@ export class DropboxObjectStoreService {
         size: number,
         ownerUserId: UUID,
         note?: string,
-        isPublic = false
+        isPublic = false,
+        isActive = true,
+        scope: StorageScope = StorageScope.None,
+        action?: StorageAction
     ): Promise<DocumentEntity> {
 
-        const accessToken = await this.getDropboxAccessToken()
+        const accessToken = await this.getDropboxAccessToken();
 
-        // Genera path unico
-        const dropboxPath = `/mercurion/${uuidv7()}_${originalName}`
-        let dropboxFile: DropboxUploadResponse;
+        // Genera un path unico leggibile (non usato come chiave stabile)
+        const dropboxPath = `/mercurion/${uuidv7()}_${originalName}`;
 
+        // 1) Upload su Dropbox
+        let uploadRes: AxiosResponse;
         try {
-            // 1. Upload su Dropbox
-            const res = await axios.post(
+            uploadRes = await axios.post(
                 'https://content.dropboxapi.com/2/files/upload',
                 buffer,
                 {
@@ -70,49 +77,112 @@ export class DropboxObjectStoreService {
                         }),
                         'Content-Type': 'application/octet-stream',
                     },
+                    timeout: 15_000,
                 }
             );
-            dropboxFile = res.data as DropboxUploadResponse;
-
-            // 2. Crea record su DB
-            const document = this.documentRepo.create({
-                userId: ownerUserId,
-                storageType: StorageType.Dropbox,
-                storagePath: dropboxFile.path_display,
-                originalName,
-                size,
-                mimeType,
-                note: note ?? null,
-                isPublic,
-                updatedAt: Date.now(),
-            });
-
-            await this.documentRepo.save(document);
-            return document;
-
         } catch (err) {
-            // 3. Se fallisce il save, elimina il file da Dropbox (best effort)
-            this.logger.error('Upload DB failed, attempt Dropbox cleanup...');
+            this.logger.error('Dropbox upload failed', err);
+            throw new RpcException('UploadFailed::Dropbox error');
+        }
+
+        const file = uploadRes.data as DropboxUploadResponse;
+
+        // Usa un identificatore stabile per le API successive (preferisci id, fallback a path_lower)
+        const storagePath = file.id ?? file.path_lower;
+        if (!storagePath) {
+            // caso estremamente raro, ma meglio difensivo
+            this.logger.error('Dropbox response missing id/path_lower', file);
+            throw new RpcException('UploadFailed::Invalid Dropbox response');
+        }
+
+        // 2) Prepara il DocumentEntity
+        const document = this.documentRepo.create({
+            userId: ownerUserId,
+            storageType: StorageType.Dropbox,
+            storagePath,              // << id o path_lower
+            originalName,
+            size,
+            mimeType,
+            note: note ?? null,
+            isPublic,
+            scope,
+            isActive,
+            // createdAt è messo nel @BeforeInsert; aggiorna solo updatedAt qui
+            updatedAt: Date.now(),
+        });
+
+        // Per cleanup post-commit dell’avatar precedente su Dropbox
+        let oldAvatarPath: string | null = null;
+
+        // 3) Transazione DB: salva documento, sposta avatar, elimina vecchio record
+        try {
+            await this.dataSource.manager.transaction(async (manager) => {
+                await manager.save(DocumentEntity, document);
+
+                if (action === 'ChangeProfileImage') {
+                    const user = await manager.findOne(User, {
+                        where: { id: ownerUserId },
+                        relations: { avatar: true },
+                    });
+                    if (!user) throw new RpcException('NotFound::User');
+
+                    const oldAvatar = user.avatar ?? null;
+
+                    user.avatar = document;              // sposta la FK su nuovo documento
+                    await manager.save(user);
+
+                    if (oldAvatar) {
+                        // elimina SOLO il record DB del vecchio avatar dentro la transazione
+                        await manager.delete(DocumentEntity, { id: oldAvatar.id });
+                        oldAvatarPath = oldAvatar.storagePath; // cleanup file su Dropbox dopo il commit
+                    }
+                }
+            });
+        } catch (err) {
+            // Transazione fallita: rimuovi il file appena caricato su Dropbox (best effort)
             try {
                 await axios.post(
                     'https://api.dropboxapi.com/2/files/delete_v2',
-                    { path: dropboxPath },
+                    { path: storagePath },
                     {
                         headers: {
                             'Authorization': `Bearer ${accessToken}`,
                             'Content-Type': 'application/json',
                         },
+                        timeout: 10_000,
                     }
                 );
-                this.logger.log(`Cleaned up orphan file: ${dropboxPath}`)
-            } catch (dropboxErr) {
-                this.logger.error(
-                    `Failed to cleanup orphan Dropbox file ${dropboxPath}: ${dropboxErr?.message || dropboxErr}`
-                );
+                this.logger.warn(`Rolled back Dropbox file due to DB error: ${storagePath ?? 'UNKNOWN PATH'}`);
+            } catch (cleanupErr) {
+                this.logger.error(`Failed to cleanup new Dropbox file after DB rollback: ${storagePath ?? 'UNKNOWN PATH'}`, cleanupErr);
             }
-            throw err
+            throw err;
         }
+
+        // 4) Post-commit: pulizia del vecchio file su Dropbox (se c'era)
+        if (oldAvatarPath) {
+            try {
+                await axios.post(
+                    'https://api.dropboxapi.com/2/files/delete_v2',
+                    { path: oldAvatarPath },
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${accessToken}`,
+                            'Content-Type': 'application/json',
+                        },
+                        timeout: 10_000,
+                    }
+                );
+            } catch (cleanupErr) {
+                // best effort: mantieni il DB coerente, logga per retry out-of-band
+                // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+                this.logger.error(`Failed to cleanup old avatar on Dropbox: ${oldAvatarPath}`, cleanupErr);
+            }
+        }
+
+        return document;
     }
+
 
 
     /**

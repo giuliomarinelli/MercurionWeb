@@ -1,3 +1,4 @@
+import { StorageAction } from './../Models/enums/storage-action.type';
 // src/app_modules/dropbox-object-store/controllers/document.controller.ts
 import {
     Controller, Post, Get, Delete, Param, Req, Res,
@@ -16,6 +17,8 @@ import { UUID } from 'crypto';
 import { DropboxObjectStoreService } from '../services/dropbox-object-store.service';
 import { DocumentEntity } from '../Models/entities/document.entity';
 import { AuthenticatedUserId } from 'src/metadata/metadata';
+import { StorageScope } from '../Models/enums/storage-scope.enum';
+import { TypeGuards } from 'src/utils/type-guards/type-guards';
 
 @Controller('documents')
 export class DocumentController {
@@ -60,10 +63,26 @@ export class DocumentController {
 
         const noteRaw = fields.note;
         const isPublicRaw = fields.isPublic;
+        const scopeRaw = fields.scope
+        const actionRaw = fields.action
 
         const note = Array.isArray(noteRaw) ? noteRaw[0] : noteRaw;
-        const isPublic =
-            Array.isArray(isPublicRaw) ? isPublicRaw[0] === 'true' : isPublicRaw === 'true';
+        const isPublic = Array.isArray(isPublicRaw) ? isPublicRaw[0] === 'true' : isPublicRaw === 'true';
+        const scope = (Array.isArray(scopeRaw) ? scopeRaw[0] : scopeRaw) || StorageScope.None
+        const actionUnk = (Array.isArray(actionRaw) ? actionRaw[0] : actionRaw)
+        let action: StorageAction = null
+        if (TypeGuards.isStorageAction(actionUnk)) {
+            action = actionUnk
+        }
+        if (!TypeGuards.isEnumValue(StorageScope, scope)) {
+            const allowedValues = Object.keys(StorageScope)
+            res.status(HttpStatus.BAD_REQUEST)
+                .send({
+                    error: `Invalid scope. Allowed values = [${allowedValues.join(', ')}]`
+                })
+            return
+        }
+        
 
         /* ⑤ salva su Dropbox */
         const saved: DocumentEntity = await this.dropboxService.uploadFile(
@@ -74,6 +93,9 @@ export class DocumentController {
             userId as unknown as UUID,   // usa il vero userId passato dal metadata
             note,
             isPublic,
+            true,
+            scope,
+            action
         );
 
         res.status(HttpStatus.CREATED).send(saved);
