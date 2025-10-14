@@ -4,6 +4,7 @@ import { BeforeInsert, Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryC
 import { MfaBackupCode } from "./backup-code.entity"
 import { OldPasswordItem } from '../DTO/old-password-item.interface';
 import { DocumentEntity } from 'src/app_modules/dropbox-object-store/Models/entities/document.entity';
+import { UserGender } from '../enums/user-gender.enum';
 
 @Entity({ name: 'users' })
 export class User {
@@ -37,6 +38,12 @@ export class User {
 
     @Column({ type: 'varchar', default: '' })
     lastName: string
+
+    @Column({ type: 'varchar', default: () => UserGender.Undefined })
+    gender: UserGender
+
+    @Column({ type: 'varchar', nullable: true })
+    job: string | null
 
     @Column({ type: 'varchar', length: 2, default: '' })
     initials: string

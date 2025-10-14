@@ -45,7 +45,7 @@ import { HttpModule } from '@nestjs/axios';
     GeoIpService,
     TurnstileService
   ],
-  exports: [SecureCookieService, JwtToolsService, JwtService, SessionService, PasswordEncoderService],
+  exports: [SecureCookieService, JwtToolsService, JwtService, SessionService, PasswordEncoderService, SercurityService],
   controllers: [AccountController, AuthenticationController],
 })
 export class AuthModule { }

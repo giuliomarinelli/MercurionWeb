@@ -15,6 +15,8 @@ import { EmailDTO } from '../Models/DTO/change-email.cls.dto';
 import { UserService } from 'src/app_modules/user/services/user.service';
 import { TurnstileGuard } from '../guards/turnstile.guard';
 import { SercurityService } from '../services/sercurity.service';
+import { ProfileDTO, ProfileRegistryDTO } from '../Models/DTO/profile.dtos';
+
 
 
 @Controller('account')
@@ -188,6 +190,27 @@ export class AccountController {
         @Authorization() changePasswordToken: string
     ): Promise<boolean> {
         return this.accountService.isAuthorizedToRecoverPassword(changePasswordToken)
+    }
+
+    @Get('/profile-registry')
+    async getProfileRegistry(@AuthenticatedUserId() userId: UUID): Promise<ProfileDTO> {
+        const result = await this.userService.getVerifiedUserProfileById(userId)
+        if (!result) {
+            throw new NotFoundException('UserNotFound')
+        }
+        return result
+    }
+
+    @Patch('/profile-registry')
+    async updateProfileRegistry(
+        @AuthenticatedUserId() userId: UUID,
+        @Body(new ValidationPipe({ transform: true })) dto: ProfileRegistryDTO
+    ): Promise<ProfileRegistryDTO> {
+        const result = await this.userService.updateVerifiedUserProfileRegistryById(userId, dto)
+        if (!result) {
+            throw new NotFoundException('UserNotFound::{updated: false}')
+        }
+        return result 
     }
 
 }

@@ -1,3 +1,4 @@
+import { ProfileRegistryDTO as ProfileRegistryDTO } from './../../auth/Models/DTO/profile.dtos';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../Models/entities/user.entity';
@@ -11,6 +12,8 @@ import { IAuth } from 'src/app_modules/auth/Models/interfaces/i-auth.interface';
 import { Scope } from '../Models/enums/scope.enum';
 import { PasswordEncoderService } from 'src/app_modules/auth/services/password-encoder.service';
 import { OldPasswordItem } from '../Models/DTO/old-password-item.interface';
+import { ProfileDTO } from 'src/app_modules/auth/Models/DTO/profile.dtos';
+import { SercurityService } from 'src/app_modules/auth/services/sercurity.service';
 
 @Injectable()
 export class UserService {
@@ -22,7 +25,8 @@ export class UserService {
     constructor(
         @InjectRepository(User) private userRepository: Repository<User>,
         private readonly dataSource: DataSource,
-        private readonly passwordEncoder: PasswordEncoderService
+        private readonly passwordEncoder: PasswordEncoderService,
+        private readonly securityService: SercurityService
     ) { }
 
     private standardScopes = [
@@ -320,6 +324,47 @@ export class UserService {
                 .execute();
 
         })
+    }
+
+    async getVerifiedUserProfileById(id: UUID): Promise<ProfileDTO | null> {
+
+        const rows = await this.userRepository.createQueryBuilder('u')
+            .select(['u.firstName', 'u.lastName', 'u.gender', 'u.job', 'u.email', 'u.completePhoneNumber'])
+            .where('u.isVerified = true')
+            .andWhere('u.id = :id', { id })
+            .getOne()
+        if (!rows) {
+            return null
+        }
+        const { firstName, lastName, gender, job, email, completePhoneNumber } = rows
+        return {
+            firstName,
+            lastName,
+            gender,
+            job,
+            obscuredEmail: this.securityService.maskEmail(email!),
+            obscuredPhone: completePhoneNumber ? this.securityService.maskPhone(completePhoneNumber) : null
+        }
+
+    }
+
+    async updateVerifiedUserProfileRegistryById(id: UUID, dto: ProfileRegistryDTO): Promise<ProfileRegistryDTO | null> {
+        dto.job = dto.job ?? null
+        const user = await this.userRepository.findOne({
+            where: {
+                id,
+                isVerified: true
+            }
+        })
+        if (!user) {
+            return null
+        }
+        const newUser = {
+            ...user,
+            ...dto,
+            updatedAt: Date.now()
+        }
+        return await this.userRepository.save(newUser)
     }
 
 
