@@ -11,7 +11,7 @@ import { Component, Input, signal } from '@angular/core';
         bg-indigo-50 text-light-accent-primary shrink-0
         dark:bg-slate-700/30 dark:text-dark-accent-primary
         border border-indigo-200/70 dark:border-indigo-700/40
-        group-hover:scale-[1.02] transition-transform
+        group-hover:scale-[1.02] transition-transform cursor-default
       "
     >
       {{_name()}}
