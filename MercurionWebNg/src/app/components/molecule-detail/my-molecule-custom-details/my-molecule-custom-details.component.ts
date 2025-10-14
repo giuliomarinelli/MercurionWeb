@@ -1,10 +1,11 @@
 import { MyMoleculeCustomDetailSaveModel } from './../../../Models/my-molecule-custom-detail-save.interface';
 import { NgClass } from '@angular/common';
 import { Component, ElementRef, EventEmitter, inject, Input, Output, Renderer2, signal, ViewChild } from '@angular/core';
+import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.component';
 
 @Component({
   selector: 'app-my-molecule-custom-details',
-  imports: [NgClass],
+  imports: [NgClass, MoleculeBadgeComponent],
   template: `
     <div class="flex text-center sm:text-left gap-3 items-center mb-4" [class.mb-3="mode() === 'view'"]>
       @if (_type() !== 'name') {
@@ -17,14 +18,17 @@ import { Component, ElementRef, EventEmitter, inject, Input, Output, Renderer2, 
         >
         </p>
       } @else {
-          <h2 id="molecule-name"
-            class="py-2 outline-none text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary"
-            [attr.contenteditable]="mode() === 'edit' ? 'true' : null"
-            [ngClass]="{ 'bg-slate-100 dark:bg-slate-700 border border-light-on-surface-main dark:border-dark-on-surface-main rounded-md': mode() === 'edit' }"
-            #value
-          >
-            {{ _value() }}
-        </h2>
+          <div class="flex gap-6 items-center">
+            <h2 id="molecule-name"
+              class="py-2 outline-none text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary"
+              [attr.contenteditable]="mode() === 'edit' ? 'true' : null"
+              [ngClass]="{ 'bg-slate-100 dark:bg-slate-700 border border-light-on-surface-main dark:border-dark-on-surface-main rounded-md': mode() === 'edit' }"
+              #value
+            >
+              {{ _value() }}
+          </h2>
+          <app-molecule-badge [name]="_badgeName()" class="block relative top-1" />
+        </div>
       }
 
 
@@ -68,6 +72,7 @@ export class MyMoleculeCustomDetailsComponent {
 
   _label = signal<string>('');
   _value = signal<string>('');
+  _badgeName = signal<string>('Personal Molecule')
   startValue = signal<string>('')
   _type = signal<'label' | 'notes' | 'name' | ''>('');
   mode = signal<'view' | 'edit'>('view');
@@ -95,6 +100,13 @@ export class MyMoleculeCustomDetailsComponent {
     this._value.set(value);
     this.startValue.set(value)
   }
+
+  @Input()
+  set badgeName(badgeName: string) {
+    this._badgeName.set(badgeName)
+  }
+
+
 
   @Output()
   onSave = new EventEmitter<MyMoleculeCustomDetailSaveModel>

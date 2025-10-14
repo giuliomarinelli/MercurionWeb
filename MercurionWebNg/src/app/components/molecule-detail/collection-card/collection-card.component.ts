@@ -83,7 +83,14 @@ import { DatePipe, NgClass, UpperCasePipe } from '@angular/common';
                 group-hover:scale-[1.02] transition-transform
               "
             >
-              <strong class="mr-1">{{ _collection()!.itemsCount }}</strong> molecole
+              <strong class="mr-1">{{ _collection()!.itemsCount }}</strong> molecol
+              <span>
+                @if (_collection()!.itemsCount === 1) {
+                  a
+                } @else {
+                  e
+                }
+              </span>
             </span>
 
             <!-- Freccia decorativa al passaggio -->

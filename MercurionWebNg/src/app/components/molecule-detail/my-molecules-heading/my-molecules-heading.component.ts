@@ -22,7 +22,7 @@ import { RouterLink } from '@angular/router';
               >
             </div>
             <div class="flex flex-wrap items-center text-sm md:text-base gap-3">
-              @for (link of _breadcrumb(); track _breadcrumb(); let i = $index) {
+              @for (link of _breadcrumb(); track link; let i = $index) {
                 <a [routerLink]="link.path" [queryParams]="link.queryParams" class="shrink-0 relative top-1 font-light text-slate-700 dark:text-neutral-400   hover:underline">{{link.label}}</a>
                 @if (i !== _breadcrumb().length - 1) {
                   <div class="text-slate-400 dark:text-slate-700 text-xl font-light relative top-1">

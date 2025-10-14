@@ -33,7 +33,7 @@ import { MyMoleculesHeadingComponent } from '../../components/molecule-detail/my
 import { LinkModel } from '../../Models/link.model';
 import { MoleculeCollectionService } from '../../services/graphql/molecule-collection.service';
 import { HistoryContextService } from '../../services/context/history-context.service';
-import { HistoryService } from '../../services/history.service';
+
 
 
 

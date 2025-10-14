@@ -1,27 +1,34 @@
 import { MyMoleculeCustomDetailSaveModel } from './../../../Models/my-molecule-custom-detail-save.interface';
 import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
 import { MyMoleculeCustomDetailsComponent } from '../my-molecule-custom-details/my-molecule-custom-details.component';
+import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.component';
 
 @Component({
   selector: 'molecule-header',
   standalone: true,
-  imports: [MyMoleculeCustomDetailsComponent],
+  imports: [MyMoleculeCustomDetailsComponent, MoleculeBadgeComponent],
   template: `
     <header class="space-y-2" aria-labelledby="molecule-name">
       @if (_myMol()) {
         @if (!_isCustom()) {
+          <div class="flex gap-6 items-center">
             <h2 id="molecule-name"
                 class="text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary">
               {{ name() }}
             </h2>
+            <app-molecule-badge [name]="_badgeName()" class="block relative top-0.5" />
+          </div>
           } @else {
-            <app-my-molecule-custom-details [type]="'name'" [value]="name()" (onSave)="doSave($event)" />
+            <app-my-molecule-custom-details [type]="'name'" [value]="name()" (onSave)="doSave($event)" [badgeName]="_badgeName()" />
           }
       } @else {
-        <h1 id="molecule-name"
-            class="text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary">
-          {{ name() }}
-        </h1>
+          <div class="flex gap-6 items-center">
+            <h1 id="molecule-name"
+                class="text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary">
+              {{ name() }}
+            </h1>
+            <app-molecule-badge [name]="'ChEMBL Molecule'" />
+          </div>
       }
         @if (_chemblIdSignal()) {
           <p class="text-xs font-semibold tracking-wide text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary">
@@ -36,10 +43,12 @@ import { MyMoleculeCustomDetailsComponent } from '../my-molecule-custom-details/
   `
 })
 export class MoleculeHeaderComponent {
+
   private readonly _nameSignal = signal<string>('');
   protected readonly _chemblIdSignal = signal<string | undefined>('');
   protected readonly _myMol = signal<boolean>(false)
   protected readonly _isCustom = signal<boolean>(false)
+  protected readonly _badgeName = signal<string>('ChEMBL Personal Molecule')
 
   @Input()
   set nameInput(value: string) {
@@ -61,6 +70,7 @@ export class MoleculeHeaderComponent {
   @Input()
   set isCustom(isCustom: boolean) {
     this._isCustom.set(isCustom ?? false)
+    this._badgeName.set(isCustom ? 'Personal Molecule' : 'ChEMBL Personal Molecule')
   }
 
   @Output()
