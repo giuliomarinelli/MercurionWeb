@@ -16,11 +16,32 @@ export class ChEMBLMoleculeItemService {
     constructor(
         @InjectRepository(ChEMBLMoleculeItemEntity)
         private readonly chemblRepo: Repository<ChEMBLMoleculeItemEntity>,
-        @InjectRepository(MoleculeCollection)
-        private readonly collectionRepo: Repository<MoleculeCollection>,
         private readonly joinService: MoleculeCollectionItemJoinService,
         private readonly dataSource: DataSource
     ) { }
+
+    async hasUserChEMBLMoleculeByMolregnoThenGetUUID(userId: UUID, molregno: number): Promise<string | null> {
+        const row = await this.chemblRepo.createQueryBuilder('m')
+            .select(['m.id'])
+            .where('m.chemblMolregno = :molregno', { molregno })
+            .andWhere('m.userId = :userId', { userId })
+            .andWhere(`m.type = 'chembl'`)
+            .getOne()
+        if (!row) {
+            return null
+        }
+        return row.id
+
+
+
+        // return this.chemblRepo.exists({
+        //     where: {
+        //         chemblMolregno: molregno,
+        //         userId,
+        //         type: 'chembl'
+        //     }
+        // })
+    }
 
     async addToCollection(
         userId: UUID,
@@ -30,7 +51,7 @@ export class ChEMBLMoleculeItemService {
         notes?: string
     ): Promise<ChEMBLMoleculeItemEntity> {
         return await this.dataSource.transaction(async (manager) => {
-           
+
             let item = await manager.findOne(ChEMBLMoleculeItemEntity, { where: { chemblMolregno, userId } })
             if (!item) {
                 item = manager.create(ChEMBLMoleculeItemEntity, {

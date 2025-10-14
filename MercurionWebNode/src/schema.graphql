@@ -247,6 +247,7 @@ type Query {
   paginatedMoleculeCollectionItemsByCollection(collectionId: String!, page: Int!, limit: Int!): PaginatedMoleculeCollectionItem!
   chemblMoleculesByCollection(collectionId: ID!): [ChEMBLMoleculeItemEntity!]!
   findOneChemblMoleculeById(itemId: ID!): ChEMBLMoleculeItemEntity
+  hasUserChEMBLMoleculeByMolregnoThenGetUUID(molregno: Int!): String
   customMoleculesByCollection(collectionId: ID!): [CustomMoleculeItemEntity!]!
   findOneCustomMoleculeById(itemId: ID!): CustomMoleculeItemEntity
 }

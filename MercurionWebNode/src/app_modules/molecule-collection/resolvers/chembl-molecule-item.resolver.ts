@@ -1,4 +1,4 @@
-import { Args, ID, Info, Mutation, Query, Resolver } from "@nestjs/graphql";
+import { Args, ID, Info, Int, Mutation, Query, Resolver } from "@nestjs/graphql";
 import { ChEMBLMoleculeItemEntity } from "../Models/entities/chembl-molecule-item.entity";
 import { ChEMBLMoleculeItemService } from "../services/chembl-molecule-item.service";
 import { AuthenticatedUserId } from "src/metadata/metadata";
@@ -11,9 +11,9 @@ import { GraphqlUtils } from "src/utils/graphql-utils/graphql-utils";
 
 @Resolver(() => ChEMBLMoleculeItemEntity)
 export class ChEMBLMoleculeItemResolver {
-    
+
     constructor(private readonly service: ChEMBLMoleculeItemService) { }
-    
+
     @Query(() => [ChEMBLMoleculeItemEntity])
     async chemblMoleculesByCollection(
         @Args('collectionId', { type: () => ID }) collectionId: UUID,
@@ -32,6 +32,14 @@ export class ChEMBLMoleculeItemResolver {
     ): Promise<ChEMBLMoleculeItemEntity | null> {
         const fieldsMap = GraphqlUtils.getFieldsMap(info)
         return this.service.findOneById(itemId, userId, fieldsMap)
+    }
+
+    @Query(() => String, { nullable: true })
+    async hasUserChEMBLMoleculeByMolregnoThenGetUUID(
+        @AuthenticatedUserId() userId: UUID,
+        @Args('molregno', { type: () => Int }) molregno: number
+    ): Promise<string | null> {
+        return this.service.hasUserChEMBLMoleculeByMolregnoThenGetUUID(userId, molregno)
     }
 
     @Mutation(() => ChEMBLMoleculeItemEntity)

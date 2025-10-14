@@ -61,7 +61,6 @@ export class MoleculeCollectionItemResolver {
         return this.itemService.paginateByCollection(userId, collectionId, options, fieldsMap)
     }
 
-
     @Mutation(() => MoleculeCollectionItemEntity)
     async createMoleculeItem(
         @Args('input') input: CreateMoleculeItemInput,
