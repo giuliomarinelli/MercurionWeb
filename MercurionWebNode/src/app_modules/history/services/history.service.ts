@@ -6,8 +6,8 @@ import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginat
 import { HistoryDTO } from '../Models/DTO/history.dto';
 import { UUID } from 'crypto';
 import { HistoryItemEntity as HistoryItemEntityEnum } from '../Models/enums/history-item-entity.enum';
-import { MoleculeCollection } from 'src/app_modules/user/Models/entities/molecule-collection/molecule-collection.entity';
-import { MoleculeCollectionItemEntity } from 'src/app_modules/user/Models/entities/molecule-collection/molecule-collection-item.entity';
+import { MoleculeCollection } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection.entity';
+import { MoleculeCollectionItemEntity } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection-item.entity';
 import { MoleculeService } from 'src/app_modules/meilisearch/services/molecule.service';
 import { TypeGuards } from 'src/utils/type-guards/type-guards';
 

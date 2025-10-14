@@ -1,7 +1,7 @@
 import { Field, ID, ObjectType } from "@nestjs/graphql";
 import { UUID } from "crypto";
 import { MoleculeDetail } from "src/app_modules/meilisearch/Models/DTO/molecule-detail.gql.dtos";
-import { MoleculeCollectionItemJoin } from "../../entities/molecule-collection/molecule-collection-item-join.entity";
+import { MoleculeCollectionItemJoin } from "../entities/molecule-collection-item-join.entity";
 
 @ObjectType()
 export class ChEMBLMoleculeItemDTO {

@@ -1,8 +1,8 @@
-import { MoleculeService } from './../../../meilisearch/services/molecule.service';
+import { MoleculeService } from '../../meilisearch/services/molecule.service';
 import { Test, TestingModule } from '@nestjs/testing';
 import { MoleculeCollectionItemService } from './molecule-collection-item.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { MoleculeCollectionItemEntity } from '../../Models/entities/molecule-collection/molecule-collection-item.entity';
+import { MoleculeCollectionItemEntity } from '../Models/entities/molecule-collection-item.entity';
 
 describe('MoleculeCollectionItemService', () => {
   let service: MoleculeCollectionItemService;

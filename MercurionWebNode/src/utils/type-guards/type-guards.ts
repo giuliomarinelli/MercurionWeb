@@ -1,7 +1,7 @@
 import { StorageAction } from "src/app_modules/dropbox-object-store/Models/enums/storage-action.type";
-import { ChEMBLMoleculeItemEntity } from "src/app_modules/user/Models/entities/molecule-collection/chembl-molecule-item.entity";
-import { CustomMoleculeItemEntity } from "src/app_modules/user/Models/entities/molecule-collection/custom-molecule-item.entity";
-import { MoleculeCollectionItemEntity } from "src/app_modules/user/Models/entities/molecule-collection/molecule-collection-item.entity";
+import { ChEMBLMoleculeItemEntity } from "src/app_modules/molecule-collection/Models/entities/chembl-molecule-item.entity";
+import { CustomMoleculeItemEntity } from "src/app_modules/molecule-collection/Models/entities/custom-molecule-item.entity";
+import { MoleculeCollectionItemEntity } from "src/app_modules/molecule-collection/Models/entities/molecule-collection-item.entity";
 
 export class TypeGuards {
 

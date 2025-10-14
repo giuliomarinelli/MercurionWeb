@@ -1,5 +1,5 @@
 import { ObjectType, Field, Int } from "@nestjs/graphql";
-import { MoleculeCollection } from "../../entities/molecule-collection/molecule-collection.entity";
+import { MoleculeCollection } from "../entities/molecule-collection.entity";
 
 
 @ObjectType()

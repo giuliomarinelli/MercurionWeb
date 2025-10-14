@@ -1,13 +1,13 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { ChEMBLMoleculeItemEntity } from "../../Models/entities/molecule-collection/chembl-molecule-item.entity";
+import { ChEMBLMoleculeItemEntity } from "../Models/entities/chembl-molecule-item.entity";
 import { DataSource, Repository } from "typeorm";
 import { UUID } from "crypto";
 import { GraphQLFieldsMap } from "src/utils/type-orm-utils/type-orm-utils";
 import { GraphqlUtils } from "src/utils/graphql-utils/graphql-utils";
 import { MoleculeCollectionItemJoinService } from "./molecule-collection-item-join.service";
 import { RpcException } from "@nestjs/microservices";
-import { MoleculeCollection } from "../../Models/entities/molecule-collection/molecule-collection.entity";
+import { MoleculeCollection } from "../Models/entities/molecule-collection.entity";
 import { uuidv7 } from '@kripod/uuidv7';
 
 @Injectable()

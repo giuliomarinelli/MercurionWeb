@@ -1,5 +1,5 @@
 import { Field, ID, ObjectType } from "@nestjs/graphql";
-import { MoleculeCollectionItemJoin } from "../../entities/molecule-collection/molecule-collection-item-join.entity";
+import { MoleculeCollectionItemJoin } from "../entities/molecule-collection-item-join.entity";
 
 @ObjectType()
 export class CustomMoleculeItemDTO {

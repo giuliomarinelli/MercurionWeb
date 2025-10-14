@@ -1,41 +1,43 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { CustomMoleculeItemService } from './custom-molecule-item.service';
+import { ChEMBLMoleculeItemService } from './chembl-molecule-item.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { CustomMoleculeItemEntity } from '../../Models/entities/molecule-collection/custom-molecule-item.entity';
-import { MoleculeCollection } from '../../Models/entities/molecule-collection/molecule-collection.entity';
+import { ChEMBLMoleculeItemEntity } from '../Models/entities/chembl-molecule-item.entity';
+import { MoleculeCollection } from '../Models/entities/molecule-collection.entity';
 import { MoleculeCollectionItemJoinService } from './molecule-collection-item-join.service';
+import { DataSource } from 'typeorm';
 
-describe('CustomMoleculeItemService', () => {
-  let service: CustomMoleculeItemService;
+describe('ChemblMoleculeItemService', () => {
+  let service: ChEMBLMoleculeItemService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        CustomMoleculeItemService,
+        ChEMBLMoleculeItemService,
         {
           provide: MoleculeCollectionItemJoinService,
           useValue: { add: jest.fn(), remove: jest.fn() },
         },
         {
-          provide: getRepositoryToken(CustomMoleculeItemEntity),
+          provide: getRepositoryToken(ChEMBLMoleculeItemEntity),
           useValue: {
             findOne: jest.fn(),
             create: jest.fn(),
             save: jest.fn(),
-            update: jest.fn(),
             createQueryBuilder: jest.fn(),
           },
         },
         {
           provide: getRepositoryToken(MoleculeCollection),
-          useValue: {
-            findOne: jest.fn(),
-          },
+          useValue: { findOne: jest.fn() },
+        },
+        {
+          provide: DataSource,
+          useValue: { transaction: jest.fn() },
         },
       ],
     }).compile();
 
-    service = module.get<CustomMoleculeItemService>(CustomMoleculeItemService);
+    service = module.get<ChEMBLMoleculeItemService>(ChEMBLMoleculeItemService);
   });
 
   it('should be defined', () => {

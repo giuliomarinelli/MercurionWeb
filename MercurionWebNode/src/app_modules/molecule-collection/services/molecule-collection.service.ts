@@ -4,7 +4,7 @@ import { DataSource, Repository } from 'typeorm';
 import { UUID } from 'crypto';
 import { GraphqlUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils';
-import { MoleculeCollection } from '../../Models/entities/molecule-collection/molecule-collection.entity';
+import { MoleculeCollection } from '../Models/entities/molecule-collection.entity';
 import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { History } from 'src/app_modules/history/Models/entities/history.entity';
 import { HistoryItemEntity } from 'src/app_modules/history/Models/enums/history-item-entity.enum';

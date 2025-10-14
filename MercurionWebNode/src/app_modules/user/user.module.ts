@@ -3,11 +3,6 @@ import { UserService } from './services/user.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './Models/entities/user.entity';
 import { MfaBackupCode } from './Models/entities/backup-code.entity';
-import { ChEMBLMoleculeItemEntity } from './Models/entities/molecule-collection/chembl-molecule-item.entity';
-import { CustomMoleculeItemEntity } from './Models/entities/molecule-collection/custom-molecule-item.entity';
-import { MoleculeCollection } from './Models/entities/molecule-collection/molecule-collection.entity';
-import { MoleculeCollectionItemJoin } from './Models/entities/molecule-collection/molecule-collection-item-join.entity';
-import { MoleculeCollectionItemEntity } from './Models/entities/molecule-collection/molecule-collection-item.entity';
 import { LabNotebookLink } from './Models/DTO/lab-notebook/lab-notebook-link.entity';
 import { NotebookPageService } from './services/lab-notebook/notebook-page.service';
 import { NotebookChapter } from './Models/entities/lab-notebook/lab-notebook-chapter.entity';
@@ -24,15 +19,6 @@ import { LabNotebookService } from './services/lab-notebook/lab-notebook.service
 import { SyntheticRouteEntity } from './Models/entities/synth/synthetic-route.entity';
 import { SyntheticStepMoleculeRef } from './Models/entities/synth/synthetic-step-molecule-ref.entity';
 import { SyntheticStepEntity } from './Models/entities/synth/synthetic-step.entity';
-import { MoleculeCollectionService } from './services/molecule-collection/molecule-collection.service';
-import { MoleculeCollectionItemService } from './services/molecule-collection/molecule-collection-item.service';
-import { MoleculeCollectionResolver } from './resolvers/molecule-collection/molecule-collection.resolver';
-import { MoleculeCollectionItemResolver } from './resolvers/molecule-collection/molecule-collection-item.resolver';
-import { MoleculeCollectionItemJoinService } from './services/molecule-collection/molecule-collection-item-join.service';
-import { CustomMoleculeItemService } from './services/molecule-collection/custom-molecule-item.service';
-import { ChEMBLMoleculeItemResolver } from './resolvers/molecule-collection/chembl-molecule-item.resolver';
-import { CustomMoleculeItemResolver } from './resolvers/molecule-collection/custom-molecule-item.resolver';
-import { ChEMBLMoleculeItemService } from './services/molecule-collection/chembl-molecule-item.service';
 import { SyntheticRouteService } from './services/synth/synthetic-route.service';
 import { SyntheticRouteResolver } from './resolvers/synth/synthetic-route.resolver';
 import { SyntheticStepService } from './services/synth/synthetic-step.service';
@@ -40,20 +26,15 @@ import { SyntheticStepResolver } from './resolvers/synth/synthetic-step.resolver
 import { SyntheticStepMoleculeRefService } from './services/synth/synthetic-step-molecule-ref.service';
 import { SyntheticStepMoleculeRefResolver } from './resolvers/synth/synthetic-step-molecule-ref.resolver';
 import { MeilisearchModule } from '../meilisearch/meilisearch.module';
-import { MoleculeService } from '../meilisearch/services/molecule.service';
 import { AuthModule } from '../auth/auth.module';
 import { History } from '../history/Models/entities/history.entity';
+import { MoleculeCollectionModule } from '../molecule-collection/molecule-collection.module';
 
 
 @Module({
   imports: [TypeOrmModule.forFeature([
     User,
     MfaBackupCode,
-    ChEMBLMoleculeItemEntity,
-    CustomMoleculeItemEntity,
-    MoleculeCollection,
-    MoleculeCollectionItemJoin,
-    MoleculeCollectionItemEntity,
     LabNotebookLink,
     NotebookChapter,
     NotebookPage,
@@ -64,8 +45,9 @@ import { History } from '../history/Models/entities/history.entity';
     SyntheticStepEntity,
     History
   ]),
+  MeilisearchModule,
   forwardRef(() => AuthModule),
-    MeilisearchModule
+  forwardRef(() => MoleculeCollectionModule),
   ],
   providers: [
     UserService,
@@ -77,22 +59,12 @@ import { History } from '../history/Models/entities/history.entity';
     NotebookChapterResolver,
     NotebookSectionResolver,
     LabNotebookResolver,
-    MoleculeCollectionService,
-    MoleculeCollectionItemService,
-    MoleculeCollectionResolver,
-    MoleculeCollectionItemResolver,
-    MoleculeCollectionItemJoinService,
-    CustomMoleculeItemService,
-    ChEMBLMoleculeItemResolver,
-    CustomMoleculeItemResolver,
-    ChEMBLMoleculeItemService,
     SyntheticRouteService,
     SyntheticRouteResolver,
     SyntheticStepService,
     SyntheticStepResolver,
     SyntheticStepMoleculeRefService,
-    SyntheticStepMoleculeRefResolver,
-    MoleculeService
+    SyntheticStepMoleculeRefResolver
   ],
   exports: [UserService, TypeOrmModule],
   controllers: []

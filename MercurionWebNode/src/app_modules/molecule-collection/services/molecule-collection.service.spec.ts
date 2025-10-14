@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MoleculeCollectionService } from './molecule-collection.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { MoleculeCollection } from '../../Models/entities/molecule-collection/molecule-collection.entity';
+import { MoleculeCollection } from '../Models/entities/molecule-collection.entity';
 
 describe('MoleculeCollectionService', () => {
   let service: MoleculeCollectionService;

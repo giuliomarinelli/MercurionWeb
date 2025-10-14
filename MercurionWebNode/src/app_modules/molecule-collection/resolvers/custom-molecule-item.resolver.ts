@@ -1,11 +1,11 @@
 import { Args, ID, Info, Mutation, Query, Resolver } from "@nestjs/graphql";
-import { CustomMoleculeItemEntity } from "../../Models/entities/molecule-collection/custom-molecule-item.entity";
-import { CustomMoleculeItemService } from "../../services/molecule-collection/custom-molecule-item.service";
+import { CustomMoleculeItemEntity } from "../Models/entities/custom-molecule-item.entity";
+import { CustomMoleculeItemService } from "../services/custom-molecule-item.service";
 import { AuthenticatedUserId } from "src/metadata/metadata";
 import { UUID } from "crypto";
 import { GraphQLResolveInfo } from 'graphql';
 import { GraphqlUtils } from "src/utils/graphql-utils/graphql-utils";
-import { CustomMoleculeItemInput } from "../../Models/DTO/molecule-collection/custom-molecule-item.input";
+import { CustomMoleculeItemInput } from "../Models/DTO/custom-molecule-item.input";
 
 @Resolver(() => CustomMoleculeItemEntity)
 export class CustomMoleculeItemResolver {

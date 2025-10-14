@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { UUID } from 'crypto';
-import { MoleculeCollectionItemJoin } from '../../Models/entities/molecule-collection/molecule-collection-item-join.entity';
+import { MoleculeCollectionItemJoin } from '../Models/entities/molecule-collection-item-join.entity';
 
 
 @Injectable()

@@ -2,12 +2,12 @@ import { Resolver, Query, Mutation, Args, ID, Info, Int, ResolveField, Parent } 
 import { AuthenticatedUserId } from 'src/metadata/metadata'; // tuo custom decorator userId
 import { UUID } from 'crypto';
 import { GraphQLResolveInfo } from 'graphql';
-import { MoleculeCollection } from '../../Models/entities/molecule-collection/molecule-collection.entity';
-import { MoleculeCollectionService } from '../../services/molecule-collection/molecule-collection.service';
+import { MoleculeCollection } from '../Models/entities/molecule-collection.entity';
+import { MoleculeCollectionService } from '../services/molecule-collection.service';
 import { GraphqlUtils } from 'src/utils/graphql-utils/graphql-utils';
-import { PaginatedMoleculeCollection } from '../../Models/DTO/molecule-collection/paginated-molecule-collection';
+import { PaginatedMoleculeCollection } from '../Models/DTO/paginated-molecule-collection';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MoleculeCollectionItemJoin } from '../../Models/entities/molecule-collection/molecule-collection-item-join.entity';
+import { MoleculeCollectionItemJoin } from '../Models/entities/molecule-collection-item-join.entity';
 import { Repository } from 'typeorm';
 
 

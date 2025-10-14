@@ -2,7 +2,7 @@ import { UUID } from 'crypto';
 import { uuidv7 } from '@kripod/uuidv7';
 import { BeforeInsert, Column, Entity, ManyToOne, PrimaryColumn, JoinColumn } from 'typeorm';
 import { SyntheticStepEntity } from './synthetic-step.entity';
-import { MoleculeCollectionItemEntity } from '../molecule-collection/molecule-collection-item.entity';
+import { MoleculeCollectionItemEntity } from '../../../../molecule-collection/Models/entities/molecule-collection-item.entity';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { MoleculeRole } from '../../enums/molecule-role.enum';
 

@@ -2,15 +2,15 @@ import { Resolver, Query, Mutation, Args, ID, Info, Int } from '@nestjs/graphql'
 import { AuthenticatedUserId } from 'src/metadata/metadata';
 import { UUID } from 'crypto';
 import { GraphQLResolveInfo } from 'graphql';
-import { MoleculeCollectionItemEntity } from '../../Models/entities/molecule-collection/molecule-collection-item.entity';
-import { MoleculeCollectionItemService } from '../../services/molecule-collection/molecule-collection-item.service';
-import { CreateMoleculeItemInput } from '../../Models/DTO/molecule-collection/create-molecule-item.input';
+import { MoleculeCollectionItemEntity } from '../Models/entities/molecule-collection-item.entity';
+import { MoleculeCollectionItemService } from '../services/molecule-collection-item.service';
+import { CreateMoleculeItemInput } from '../Models/DTO/create-molecule-item.input';
 import { GraphqlUtils } from 'src/utils/graphql-utils/graphql-utils';
-import { PaginatedMoleculeCollectionItem } from '../../Models/DTO/molecule-collection/paginated-molecule-collection-item.dto';
+import { PaginatedMoleculeCollectionItem } from '../Models/DTO/paginated-molecule-collection-item.dto';
 import { IPaginationOptions } from 'nestjs-typeorm-paginate';
-import { CustomMoleculeItemDTO } from '../../Models/DTO/molecule-collection/custom-molecule-item.dto';
-import { ChEMBLMoleculeItemDTO } from '../../Models/DTO/molecule-collection/chembl-molecule-item.dto';
-import { MoleculeCollectionItemUnion } from '../../Models/DTO/molecule-collection/molecule-collection-item.union';
+import { CustomMoleculeItemDTO } from '../Models/DTO/custom-molecule-item.dto';
+import { ChEMBLMoleculeItemDTO } from '../Models/DTO/chembl-molecule-item.dto';
+import { MoleculeCollectionItemUnion } from '../Models/DTO/molecule-collection-item.union';
 
 @Resolver(() => MoleculeCollectionItemEntity)
 export class MoleculeCollectionItemResolver {

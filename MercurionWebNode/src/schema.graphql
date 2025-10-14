@@ -26,27 +26,6 @@ type MoleculeCollectionItemJoin {
   item: MoleculeCollectionItemEntity
 }
 
-type ChEMBLMoleculeItemEntity implements MoleculeCollectionItemEntity {
-  id: ID!
-  label: String
-  notes: String
-  type: String!
-  joins: [MoleculeCollectionItemJoin!]
-  chemblMolregno: Float!
-}
-
-type CustomMoleculeItemEntity implements MoleculeCollectionItemEntity {
-  id: ID!
-  label: String
-  notes: String
-  type: String!
-  joins: [MoleculeCollectionItemJoin!]
-  canonicalSmiles: String!
-  molFormula: String
-  name: String
-  propertiesJson: String
-}
-
 type LabNotebook {
   id: ID!
   title: String!
@@ -129,13 +108,15 @@ type SyntheticRouteEntity {
   steps: [SyntheticStepEntity!]
 }
 
-type PaginatedMoleculeCollection {
-  items: [MoleculeCollection!]!
-  itemCount: Int!
-  totalItems: Int!
-  itemsPerPage: Int!
-  totalPages: Int!
-  currentPage: Int!
+type MoleculeSearchResult {
+  id: Int!
+  preferredName: String
+  smiles: String
+  synonyms: [String!]
+  mwFreebase: Float
+  alogp: Float
+  maxPhase: Int
+  known: Boolean!
 }
 
 type MoleculeProperties {
@@ -166,6 +147,36 @@ type MoleculeDetail {
   prodrug: Boolean!
   blackBoxWarning: Boolean!
   synonyms: [String!]!
+}
+
+type ChEMBLMoleculeItemEntity implements MoleculeCollectionItemEntity {
+  id: ID!
+  label: String
+  notes: String
+  type: String!
+  joins: [MoleculeCollectionItemJoin!]
+  chemblMolregno: Float!
+}
+
+type CustomMoleculeItemEntity implements MoleculeCollectionItemEntity {
+  id: ID!
+  label: String
+  notes: String
+  type: String!
+  joins: [MoleculeCollectionItemJoin!]
+  canonicalSmiles: String!
+  molFormula: String
+  name: String
+  propertiesJson: String
+}
+
+type PaginatedMoleculeCollection {
+  items: [MoleculeCollection!]!
+  itemCount: Int!
+  totalItems: Int!
+  itemsPerPage: Int!
+  totalPages: Int!
+  currentPage: Int!
 }
 
 type PaginatedMoleculeCollectionItem {
@@ -207,17 +218,6 @@ type ChEMBLMoleculeItemDTO {
   joins: [MoleculeCollectionItemJoin!]
 }
 
-type MoleculeSearchResult {
-  id: Int!
-  preferredName: String
-  smiles: String
-  synonyms: [String!]
-  mwFreebase: Float
-  alogp: Float
-  maxPhase: Int
-  known: Boolean!
-}
-
 type Query {
   page(id: String!): NotebookPage
   pagesBySection(sectionId: String!): [NotebookPage!]!
@@ -228,6 +228,15 @@ type Query {
   sectionById(id: ID!): NotebookSection!
   labNotebooksByUser: [LabNotebook!]!
   labNotebook(id: ID!): LabNotebook
+  mySyntheticRoutes: [SyntheticRouteEntity!]!
+  syntheticRoute(id: ID!): SyntheticRouteEntity
+  syntheticStepsByRoute(routeId: ID!): [SyntheticStepEntity!]!
+  syntheticStepById(id: ID!): SyntheticStepEntity
+  stepMoleculeRefs(stepId: ID!): [SyntheticStepMoleculeRef!]!
+  moleculeSearch(input: MoleculeSearchInput!): [MoleculeSearchResult!]!
+  moleculesByMolregnos(molregnos: [String!]!): [MoleculeDetail!]!
+  moleculePreviewsByMolregnos(molregnos: [String!]!): [MoleculeSearchResult!]!
+  moleculeByMolregno(molregno: String!): MoleculeDetail!
   myMoleculeCollections: [MoleculeCollection!]!
   moleculeCollection(id: ID!): MoleculeCollection
   searchMyCollections(query: String, limit: Float): [MoleculeCollection!]!
@@ -240,15 +249,6 @@ type Query {
   findOneChemblMoleculeById(itemId: ID!): ChEMBLMoleculeItemEntity
   customMoleculesByCollection(collectionId: ID!): [CustomMoleculeItemEntity!]!
   findOneCustomMoleculeById(itemId: ID!): CustomMoleculeItemEntity
-  mySyntheticRoutes: [SyntheticRouteEntity!]!
-  syntheticRoute(id: ID!): SyntheticRouteEntity
-  syntheticStepsByRoute(routeId: ID!): [SyntheticStepEntity!]!
-  syntheticStepById(id: ID!): SyntheticStepEntity
-  stepMoleculeRefs(stepId: ID!): [SyntheticStepMoleculeRef!]!
-  moleculeSearch(input: MoleculeSearchInput!): [MoleculeSearchResult!]!
-  moleculesByMolregnos(molregnos: [String!]!): [MoleculeDetail!]!
-  moleculePreviewsByMolregnos(molregnos: [String!]!): [MoleculeSearchResult!]!
-  moleculeByMolregno(molregno: String!): MoleculeDetail!
 }
 
 input MoleculeSearchInput {
@@ -279,6 +279,15 @@ type Mutation {
   createLabNotebook(title: String!): LabNotebook!
   updateLabNotebook(input: UpdateLabNotebookInput!): LabNotebook!
   deleteLabNotebook(id: ID!): Boolean!
+  createSyntheticRoute(input: SyntheticRouteInput!): SyntheticRouteEntity!
+  updateSyntheticRoute(id: ID!, input: SyntheticRouteInput!): SyntheticRouteEntity!
+  deleteSyntheticRoute(id: ID!): Boolean!
+  createSyntheticStep(input: SyntheticStepInput!): SyntheticStepEntity!
+  updateSyntheticStep(id: ID!, input: SyntheticStepInput!): SyntheticStepEntity!
+  deleteSyntheticStep(id: ID!): Boolean!
+  addStepMoleculeRef(input: SyntheticStepMoleculeRefInput!): SyntheticStepMoleculeRef!
+  updateStepMoleculeRef(id: ID!, input: SyntheticStepMoleculeRefInput!): SyntheticStepMoleculeRef!
+  removeStepMoleculeRef(id: ID!): Boolean!
   createMoleculeCollection(name: String!): MoleculeCollection!
   updateMoleculeCollection(id: ID!, name: String!): MoleculeCollection!
   deleteMoleculeCollection(id: ID!): Boolean!
@@ -292,15 +301,6 @@ type Mutation {
   addCustomMoleculeToCollection(collectionId: ID!, input: CustomMoleculeItemInput!): CustomMoleculeItemEntity!
   updateCustomMolecule(id: ID!, input: CustomMoleculeItemInput!): CustomMoleculeItemEntity!
   removeCustomMoleculeFromCollection(collectionId: ID!, itemId: ID!): Boolean!
-  createSyntheticRoute(input: SyntheticRouteInput!): SyntheticRouteEntity!
-  updateSyntheticRoute(id: ID!, input: SyntheticRouteInput!): SyntheticRouteEntity!
-  deleteSyntheticRoute(id: ID!): Boolean!
-  createSyntheticStep(input: SyntheticStepInput!): SyntheticStepEntity!
-  updateSyntheticStep(id: ID!, input: SyntheticStepInput!): SyntheticStepEntity!
-  deleteSyntheticStep(id: ID!): Boolean!
-  addStepMoleculeRef(input: SyntheticStepMoleculeRefInput!): SyntheticStepMoleculeRef!
-  updateStepMoleculeRef(id: ID!, input: SyntheticStepMoleculeRefInput!): SyntheticStepMoleculeRef!
-  removeStepMoleculeRef(id: ID!): Boolean!
 }
 
 input CreatePageInput {
@@ -344,26 +344,6 @@ input UpdateLabNotebookInput {
   id: String!
 }
 
-input CreateMoleculeItemInput {
-  type: String!
-  canonicalSmiles: String
-  molFormula: String
-  name: String
-  propertiesJson: String
-  chemblMolregno: Float
-  label: String
-  notes: String
-}
-
-input CustomMoleculeItemInput {
-  canonicalSmiles: String!
-  label: String
-  notes: String
-  molFormula: String
-  name: String
-  propertiesJson: String
-}
-
 input SyntheticRouteInput {
   title: String!
   notes: String
@@ -384,4 +364,24 @@ input SyntheticStepMoleculeRefInput {
   moleculeId: ID!
   role: MoleculeRole!
   alias: String
+}
+
+input CreateMoleculeItemInput {
+  type: String!
+  canonicalSmiles: String
+  molFormula: String
+  name: String
+  propertiesJson: String
+  chemblMolregno: Float
+  label: String
+  notes: String
+}
+
+input CustomMoleculeItemInput {
+  canonicalSmiles: String!
+  label: String
+  notes: String
+  molFormula: String
+  name: String
+  propertiesJson: String
 }

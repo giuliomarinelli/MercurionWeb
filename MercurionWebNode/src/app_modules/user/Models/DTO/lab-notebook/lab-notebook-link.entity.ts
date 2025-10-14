@@ -1,6 +1,6 @@
 import { BeforeInsert, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 import { UUID } from "crypto";
-import { MoleculeCollectionItemEntity } from "../../entities/molecule-collection/molecule-collection-item.entity";
+import { MoleculeCollectionItemEntity } from "../../../../molecule-collection/Models/entities/molecule-collection-item.entity";
 import { uuidv7 } from "@kripod/uuidv7";
 import { NotebookPage } from "../../entities/lab-notebook/lab-notebook-page.entity";
 
