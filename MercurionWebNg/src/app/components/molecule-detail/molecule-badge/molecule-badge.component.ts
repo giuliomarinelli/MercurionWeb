@@ -5,10 +5,10 @@ import { Component, Input, signal } from '@angular/core';
   imports: [],
   template: `
 
-    <span
+    <div
       class="
         inline-flex items-center rounded-full px-2.5 py-1 text-sm font-medium
-        bg-indigo-50 text-light-accent-primary
+        bg-indigo-50 text-light-accent-primary shrink-0
         dark:bg-slate-700/30 dark:text-dark-accent-primary
         border border-indigo-200/70 dark:border-indigo-700/40
         group-hover:scale-[1.02] transition-transform
@@ -16,7 +16,7 @@ import { Component, Input, signal } from '@angular/core';
     >
       {{_name()}}
 
-    </span>
+    </div>
 
   `
 })

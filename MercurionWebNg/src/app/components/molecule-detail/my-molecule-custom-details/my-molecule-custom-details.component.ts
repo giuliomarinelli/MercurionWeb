@@ -22,6 +22,7 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
             <h2 id="molecule-name"
               class="py-2 outline-none text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary"
               [attr.contenteditable]="mode() === 'edit' ? 'true' : null"
+              [class.px-2]="mode() === 'edit'"
               [ngClass]="{ 'bg-slate-100 dark:bg-slate-700 border border-light-on-surface-main dark:border-dark-on-surface-main rounded-md': mode() === 'edit' }"
               #value
             >
