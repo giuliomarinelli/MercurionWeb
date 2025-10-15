@@ -37,9 +37,9 @@ export interface PmOption {
           (keydown)="onKey($event)"
           class="relative w-full appearance-none text-lg text-slate-600 outline outline-1 -outline-offset-1
                  focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2
-                 focus-visible:outline-light-accent-primary dark:bg-transparent dark:text-slate-400
-                 dark:*:bg-slate-800 dark:focus-visible:outline-dark-accent-primary
-                 hover:bg-slate-100/60 dark:hover:bg-neutral-800/50
+                focus-visible:outline-light-accent-primary dark:bg-transparent dark:text-slate-400
+                dark:focus-visible:outline-dark-accent-primary
+                 hover:bg-slate-200/60 dark:hover:bg-neutral-800/50
                  block p-4 border border-slate-300 dark:border-slate-200 rounded-md transition duration-300
                  focus:outline-none focus:ring-2 focus:ring-light-accent-primary dark:focus:ring-dark-accent-primary
                  focus:border-light-accent-primary dark:focus:border-dark-accent-primary cursor-pointer
@@ -60,20 +60,23 @@ export interface PmOption {
               class="absolute left-0 z-50 mt-2 w-full rounded-md border border-slate-400 dark:border-slate-200
                     bg-slate-100 dark:bg-neutral-800 shadow-lg max-h-60 overflow-auto">
             @for (o of options; let i = $index; track i) {
-              <li role="option"
-                  [attr.aria-selected]="o.value === value"
-                  (click)="choose(i)"
-                  class="px-4 py-3 cursor-pointer text-lg dark:text-slate-200
-                        hover:bg-slate-200/35 dark:hover:bg-slate-700/70 transition"
-                  [class.bg-slate-300/35]="i === highlighted"
-                  [class.dark:bg-slate-800/50]="i === highlighted">
-                {{ o.label }}
-              </li>
+              @if (o.label) {
+                <li role="option"
+                    [attr.aria-selected]="o.value === value"
+                    (click)="choose(i)"
+                    class="px-4 py-3 cursor-pointer text-lg dark:text-slate-200
+                          hover:bg-slate-300/45 dark:hover:bg-slate-700/40 transition"
+                    [class.bg-slate-300/35]="i === highlighted"
+                    [class.dark:bg-slate-700/80]="i === highlighted">
+                  {{ o.label }}
+                </li>
+              }
             }
           </ul>
         }
       </div>
     </div>
+
   `
 })
 export class PmSelectComponent implements ControlValueAccessor {

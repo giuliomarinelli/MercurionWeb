@@ -80,33 +80,15 @@ import { PmOption, PmSelectComponent } from '../../components/common/pm-select/p
                 }"
             />
           </div>
-          <!-- <div class="flex justify-center mx-auto max-w-[500px]">
-            <div class="w-full">
-              <label for="location" class="block ml-[2px] mb-2 text-base text-light-accent-secondary dark:text-dark-accent-secondary/90">
-                Genere
-              </label>
-              <div class="relative">
-                <select id="location" name="location"
-                  class="w-full appearance-none text-lg text-slate-600 outline outline-1 -outline-offset-1 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-light-accent-primary dark:bg-transparent dark:text-slate-400 dark:*:bg-slate-800 dark:focus-visible:outline-dark-accent-primary hover:bg dark:hover:bg-neutral-800/50 hover:bg-slate-100/60
-                  block p-4 border border-slate-300 dark:border-slate-200 rounded-md transition duration-300
-                  focus:outline-none focus:ring-2 focus:ring-light-accent-primary dark:focus:ring-dark-accent-primary
-                  focus:border-light-accent-primary dark:focus:border-dark-accent-primary cursor-pointer">
-                  <option class="cursor-pointer text-lg p-4">United States</option>
-                  <option selected>Canada</option>
-                  <option>Mexico</option>
-                </select>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-600 dark:text-slate-200">
-                  !Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.
-                  <path d="M536 224L320 456L104 224L536 224z"/>
-                </svg>
-              </div>
-            </div>
-          </div> -->
           <pm-select label="Genere"
-           [options]="options"
-           formControlName="location">
+            [options]="options"
+            formControlName="gender">
           </pm-select>
-
+          <div class="tflex justify-center mx-auto max-w-[500px] text-sm text-light-error dark:text-dark-error mt-1 min-h-5">
+            @if (!form.controls['gender'].dirty && form.controls['gender'].invalid) {
+              Genere obbligatorio.
+            }
+          </div>
 
 
 
@@ -138,23 +120,27 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
     lastName: this.fb.control(null, [Validators.required, Validators.pattern(/^[A-ZÀ-Ýa-zà-ÿ\s]+$/)]),
     email: this.fb.control(null, [Validators.required, Validators.email, Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)]),
     job: this.fb.control(null, Validators.pattern(/^[A-ZÀ-Ýa-zà-ÿ0-9\s]+$/)),
-    gender: this.fb.control('None'),
+    gender: this.fb.control(''),
     password: this.fb.control(null, [Validators.required, Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/)])
   })
 
   options: PmOption[] = [
     {
+      label: '',
+      value: '',
+    },
+    {
       label: 'Maschile',
-      value: 'M'
+      value: 'M',
     },
     {
       label: 'Femminile',
-      value: 'F'
+      value: 'F',
     },
     {
       label: 'Non specificato',
-      value: 'Undefined'
-    },
+      value: 'Undefined',
+    }
   ]
 
   onSubmit(): void {
