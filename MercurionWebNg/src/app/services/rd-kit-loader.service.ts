@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { defer, firstValueFrom, from, of } from 'rxjs';
 import { shareReplay } from 'rxjs/operators';
 import type { RDKitModule } from '@rdkit/rdkit';
-import { MoleculeProperties } from '../Models/graphql/molecule-properties.interface';
+import { MoleculeProperties } from '../Models/graphql/molecule-properties.model';
 
 declare global { interface Window { RDKit?: RDKitModule } }
 

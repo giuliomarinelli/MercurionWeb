@@ -3,7 +3,7 @@ import { Apollo, gql } from 'apollo-angular';
 import { map, tap } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { MoleculeSearchResult } from '../../Models/graphql/molecule-search/molecule-search-result.interface';
-import { extractGqlData } from './graphql-helpers/extract-gql-data';
+import { extractGqlData } from './graphql-helpers/extract-gql-data.gql-helper';
 
 
 

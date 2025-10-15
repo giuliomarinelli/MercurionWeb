@@ -6,7 +6,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FloatingInputComponent } from '../../components/common/floating-input/floating-input.component';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { matchPassword } from '../../custom-validators';
-import { ErrorRes } from '../../Models/confirm.dtos';
+import { ErrorRes } from '../../Models/confirm.models';
 import { UserContextService } from '../../services/context/user-context.service';
 
 @Component({

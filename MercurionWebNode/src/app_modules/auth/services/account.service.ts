@@ -42,7 +42,7 @@ export class AccountService {
 
     public async register(registerDTO: UserRegisterDTO): Promise<ConfirmWithObsContDTO> {
 
-        const { password, email, firstName, lastName } = registerDTO
+        const { password, email, firstName, lastName, job } = registerDTO
         const emailKey = `email_registration_lock:${email.toLowerCase()}`
         const ttlSeconds = 2 * 60 * 60; // 2 ore
         const alreadyExists = await this.redisService.exists(emailKey) || await this.userService.existsUserByEmail(email)
@@ -60,7 +60,8 @@ export class AccountService {
             firstName,
             lastName,
             scopes: this.userService.STD_SCOPES,
-            initials
+            initials,
+            job: (job ?? '').trim() ? job : null
         })
         const activationToken: string = await this.jwtTools.generateToken(userId, TokenType.ActivationToken)
         const url: string = `${this.configService.get<string>("App.activationOrigin")}/account/activate?t=${activationToken}`

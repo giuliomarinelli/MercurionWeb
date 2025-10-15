@@ -5,21 +5,17 @@ import { PublicPipe } from '../../pipes/public.pipe';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { Subscription } from 'rxjs';
-import { HttpErrorRes } from '../../Models/types/interfaces/error-res.dto';
-import { Login_FirstStepWrapper } from '../../Models/types/auth/DTO/login.dtos';
-import { Confirm_Login_FirstStepDTO } from '../../Models/types/interfaces/confirm.responses';
+import { HttpErrorRes } from '../../Models/error-res.dto';
+import { Confirm_Login_FirstStepDTO } from '../../Models/confirm.models';
 import { FingerprintService } from '../../services/fingerprint.service';
-import { ISessionDeviceInfo } from '../../Models/types/auth/DTO/fingerprint.dtos';
-import { LoadingContextService } from '../../services/context/loading-context.service';
-import { ToastService } from '../../services/toast.service';
 import { ToastContext } from '../../components/common/toast/toast.component';
 import { UserContextService } from '../../services/context/user-context.service';
 import { TurnstileComponent } from '../../components/common/turnstile/turnstile.component';
-import { PreviousRouteService } from '../../services/previous-route.service';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { SessionSyncService } from '../../services/session-sync.service';
 import { FloatingInputComponent } from '../../components/common/floating-input/floating-input.component';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
+import { ISessionDeviceInfo } from '../../Models/auth/fingerprint.models';
+import { Login_FirstStepWrapper } from '../../Models/auth/login.models';
 
 
 
@@ -71,6 +67,7 @@ import { ClassicSpinnerComponent } from '../../components/common/classic-spinner
               [errors]="{
                 required: 'E-mail obbligatoria.',
                 email: 'Formato e-mail non corretto',
+                pattern: 'Formato e-mail non corretto'
               }"
               [serverError]="serverErrorStep() === 1 ? uncorrectEmailMsg : null"
               (enter)="goToPasswordStep()"
@@ -96,6 +93,7 @@ import { ClassicSpinnerComponent } from '../../components/common/classic-spinner
               [errors]="{
                 required: 'E-mail obbligatoria.',
                 email: 'Formato e-mail non corretto',
+                pattern: 'Formato e-mail non corretto'
               }"
               [serverError]="serverErrorStep() === 1 ? uncorrectEmailMsg : null"
               (enter)="goToPasswordStep()"
@@ -336,7 +334,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
 
   constructor() {
     this.loginForm = this.fb.group({
-      email: this.fb.control(null, [Validators.required, Validators.email]),
+      email: this.fb.control(null, [Validators.required, Validators.email, Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)]),
       password: this.fb.control(null, [Validators.required]),
       remember: this.fb.control(false)
     })

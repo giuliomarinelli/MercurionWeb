@@ -1,4 +1,4 @@
-import { ISessionDeviceInfo } from "./fingerprint.dtos"
+import { ISessionDeviceInfo } from "./fingerprint.models"
 
 export interface EmailDTO {
   email: string

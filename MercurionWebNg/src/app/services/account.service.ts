@@ -2,9 +2,9 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { ChangePasswordDTO, UserData } from '../Models/account/account.models';
 import { Observable, of, tap } from 'rxjs';
-import { EmailDTO } from '../Models/types/auth/DTO/login.dtos';
-import { ConfirmDTO } from '../Models/confirm.dtos';
-import { ConfirmWithObsContDTO } from '../Models/types/interfaces/confirm.responses';
+import { ConfirmDTO } from '../Models/confirm.models';
+import { ConfirmWithObsContDTO } from '../Models/confirm.models';
+import { EmailDTO } from '../Models/auth/login.models';
 
 
 @Injectable({

@@ -6,7 +6,7 @@ import { MoleculeJoinService } from '../../services/graphql/molecule-collection-
 import { ToastService } from '../../services/toast.service';
 import { RDKitService } from '../../services/rd-kit-loader.service';
 import { MoleculeCollection } from './../../Models/graphql/molecule-collection/molecule-collection.types';
-import { MoleculeProperties } from '../../Models/graphql/molecule-properties.interface';
+import { MoleculeProperties } from '../../Models/graphql/molecule-properties.model';
 import { NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';

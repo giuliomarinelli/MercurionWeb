@@ -1,14 +1,14 @@
-import { ISessionDeviceInfo } from './../Models/types/auth/DTO/fingerprint.dtos';
-import { Confirm_Login_FirstStepDTO, ConfirmWithAccessTokenAndInitialsDTO } from './../Models/types/interfaces/confirm.responses';
+import { Confirm_Login_FirstStepDTO, ConfirmWithAccessTokenAndInitialsDTO } from '../Models/confirm.models';
 import { Injectable } from '@angular/core';
-import { EmailDTO, Login_FirstStepWrapper } from '../Models/types/auth/DTO/login.dtos';
-import { ConfirmDTO } from '../Models/types/interfaces/confirm.responses';
+import { ConfirmDTO } from '../Models/confirm.models';
 import { finalize, Observable, shareReplay, tap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { ConfirmWithTotpMetaDTO } from '../Models/confirm.dtos';
-import { TotpBodyDTO } from '../Models/types/auth/DTO/totp-body.dto';
+import { ConfirmWithTotpMetaDTO } from '../Models/confirm.models';
 import { JwtHelperService } from './jwt-helper.service';
 import { firstValueFrom } from 'rxjs';
+import { EmailDTO, Login_FirstStepWrapper } from '../Models/auth/login.models';
+import { TotpBodyDTO } from '../Models/auth/totp-body.dto';
+import { ISessionDeviceInfo } from '../Models/auth/fingerprint.models';
 
 @Injectable({
   providedIn: 'root'
@@ -113,6 +113,9 @@ export class AuthService {
     return this.jwtHelper.getClaim<string>(at, 'sub');
   }
 
+  /* ───────── Register ───────── */
+
+
   /* ───────── Login flow (immutato) ───────── */
 
   public login_stepZero(emailDTO: EmailDTO): Observable<ConfirmDTO> {
@@ -174,10 +177,6 @@ export class AuthService {
     return this.http.delete<void>('/api/authentication/logout', {
       withCredentials: true
     });
-  }
-
-  public backendTest(): Observable<ConfirmDTO> {
-    return this.http.get<ConfirmDTO>('/api/test', { withCredentials: true });
   }
 
   /* ───────── WS refresh HTTP (single-flight per tab) ───────── */

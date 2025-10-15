@@ -1,6 +1,6 @@
 import { Component, EventEmitter, OnInit, Output, OnDestroy, ElementRef, Input, signal, effect, EffectRef } from '@angular/core';
 import { environment } from '../../../../environments/environment.development';
-import { Theme } from '../../../Models/types/theme-types';
+import { Theme } from '../../../Models/theme.models';
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
 
 @Component({

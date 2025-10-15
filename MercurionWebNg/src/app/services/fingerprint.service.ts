@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { FingerprintData, FingerprintDataWrapper, ISessionDeviceInfo } from '../Models/types/auth/DTO/fingerprint.dtos';
 import { getFingerprintData } from '@thumbmarkjs/thumbmarkjs'
-import { RawFingerprintData } from '../Models/types/auth/DTO/fingerprint-raw.dtos';
+import { FingerprintData, FingerprintDataWrapper, ISessionDeviceInfo } from '../Models/auth/fingerprint.models';
+import { RawFingerprintData } from '../Models/auth/fingerprint-raw.models';
+
 
 @Injectable({
   providedIn: 'root'

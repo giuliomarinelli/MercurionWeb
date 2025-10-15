@@ -1,5 +1,5 @@
 import { T1PredictionDTO } from "../notebook/t1-prediction-model"
-import { MoleculeProperties } from "./molecule-properties.interface"
+import { MoleculeProperties } from "./molecule-properties.model"
 
 
 export interface AdministrationRoutes {

@@ -9,7 +9,7 @@ import { SkeletonMoleculeCardComponent } from '../../components/molecule-detail/
 import { ActivatedRoute } from '@angular/router';
 import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service';
 import { MoleculeDetail } from '../../Models/graphql/molecule.detail.models';
-import { MoleculeProperties } from '../../Models/graphql/molecule-properties.interface';
+import { MoleculeProperties } from '../../Models/graphql/molecule-properties.model';
 import { LinkModel } from '../../Models/link.model';
 import { HistoryContextService } from '../../services/context/history-context.service';
 

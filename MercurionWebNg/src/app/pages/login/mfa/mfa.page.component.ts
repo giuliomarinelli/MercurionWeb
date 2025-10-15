@@ -4,15 +4,15 @@ import { Component, ElementRef, OnDestroy, OnInit, signal, ViewChild } from '@an
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { combineLatest, debounceTime, distinctUntilChanged, filter, map, Subscription } from 'rxjs';
-import { Login_FirstStep_Data } from '../../../Models/confirm.dtos';
+import { Login_FirstStep_Data } from '../../../Models/confirm.models';
 import { AuthService } from '../../../services/auth.service';
-import { ISessionDeviceInfo } from '../../../Models/types/auth/DTO/fingerprint.dtos';
 import { FingerprintService } from '../../../services/fingerprint.service';
-import { TotpBodyDTO } from '../../../Models/types/auth/DTO/totp-body.dto';
-import { HttpErrorRes } from '../../../Models/types/interfaces/error-res.dto';
+import { HttpErrorRes } from '../../../Models/error-res.dto';
 import { AuthRedirectService } from '../../../services/auth-redirect.service';
 import { UserContextService } from '../../../services/context/user-context.service';
 import { SessionSyncService } from '../../../services/session-sync.service';
+import { ISessionDeviceInfo } from '../../../Models/auth/fingerprint.models';
+import { TotpBodyDTO } from '../../../Models/auth/totp-body.dto';
 
 export type MfaView = 'EMAIL_OTP' | 'SMS_OTP' | 'PH_V' | 'APP_TOTP' | ''
 

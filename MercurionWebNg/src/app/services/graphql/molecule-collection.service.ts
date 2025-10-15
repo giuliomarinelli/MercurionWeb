@@ -3,8 +3,8 @@ import { Apollo, gql } from 'apollo-angular';
 import { Observable, map, tap } from 'rxjs';
 import { MoleculeCollection } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 import { PageModel } from '../../Models/graphql/page.model';
-import { MARK_MOLECULE_COLLECTION_AS_TOUCHED, PAGINATED_MOLECULE_COLLECTIONS } from './graphql-actions/molecule-collection';
-import { extractGqlData } from './graphql-helpers/extract-gql-data';
+import { MARK_MOLECULE_COLLECTION_AS_TOUCHED, PAGINATED_MOLECULE_COLLECTIONS } from './graphql-actions/molecule-collection.gql-actions';
+import { extractGqlData } from './graphql-helpers/extract-gql-data.gql-helper';
 
 
 // --- OPTION OBJECT ---

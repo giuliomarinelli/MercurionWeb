@@ -13,6 +13,7 @@ export interface Login_FirstStep_Data {
   preAuthorizationToken?: string
   accessToken?: string
   ws_accessToken?: string
+  initials: string
 }
 
 export type Confirm_Login_FirstStepDTO = Login_FirstStep_Data & ConfirmDTO
@@ -32,3 +33,23 @@ export interface ErrorRes {
     requestId: string
     path: string
 }
+
+export type ConfirmWithObsContDTO = ConfirmDTO & {
+    obscuredEmail?: string
+    obscuredPhoneNumber?: string
+}
+
+export type ConfirmWithAccessTokenAndInitialsDTO = ConfirmDTO & {
+    accessToken: string
+    ws_accessToken: string
+    initials: string
+}
+
+export interface AuthenticationData {
+  obscuredEmail?: string
+  obscuredPhoneNumber?: string
+  needsMfa: boolean
+  enabledMfaStrategies: string[]
+  suspiciousAttempt: boolean
+}
+

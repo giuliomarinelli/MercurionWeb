@@ -1,4 +1,4 @@
-import { MyMoleculeCustomDetailSaveModel } from '../../Models/my-molecule-custom-detail-save.interface';
+import { MyMoleculeCustomDetailSaveModel } from '../../Models/my-molecule-custom-detail-save.model';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { EmbeddingService } from '../../services/embedding.service';
 import { SimilarsComponent } from '../../components/molecule-detail/similars/similars.component';

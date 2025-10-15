@@ -1,5 +1,5 @@
 import { Injectable, signal, computed, effect } from '@angular/core';
-import { Theme, ThemeChose, ThemeOwner } from '../../Models/types/theme-types';
+import { Theme, ThemeChose, ThemeOwner } from '../../Models/theme.models';
 
 @Injectable({ providedIn: 'root' })
 export class ThemeManagerService {

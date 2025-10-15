@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 
 @Component({
   selector: 'app-register.page',
@@ -7,5 +7,7 @@ import { Component } from '@angular/core';
   styleUrl: './register.page.component.css'
 })
 export class RegisterPageComponent {
+
+  step = signal<1 | 2>(1)
 
 }

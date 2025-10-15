@@ -1,4 +1,4 @@
-import { MyMoleculeCustomDetailSaveModel } from './../../../Models/my-molecule-custom-detail-save.interface';
+import { MyMoleculeCustomDetailSaveModel } from '../../../Models/my-molecule-custom-detail-save.model';
 import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
 import { MyMoleculeCustomDetailsComponent } from '../my-molecule-custom-details/my-molecule-custom-details.component';
 import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.component';
