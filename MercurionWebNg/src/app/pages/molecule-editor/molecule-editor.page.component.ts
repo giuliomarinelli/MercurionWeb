@@ -60,7 +60,7 @@ import { RDKitService } from '../../services/rd-kit-loader.service';
 
   `
 })
-export class MoleculeEditorComponent implements OnInit, OnDestroy {
+export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
 
   // ======================= DEPS =======================
   private readonly route = inject(ActivatedRoute)

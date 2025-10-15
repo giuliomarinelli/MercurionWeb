@@ -12,7 +12,12 @@ import { UserContextService } from '../../services/context/user-context.service'
 @Component({
   selector: 'app-password-recovery',
   standalone: true,
-  imports: [ReactiveFormsModule, FloatingInputComponent, ClassicSpinnerComponent, RouterLink],
+  imports: [
+    ReactiveFormsModule,
+    FloatingInputComponent,
+    ClassicSpinnerComponent,
+    RouterLink
+  ],
   template: `
     @if (canView()) {
       @switch (step()) {
@@ -89,7 +94,7 @@ import { UserContextService } from '../../services/context/user-context.service'
     }
   `
 })
-export class PasswordRecoveryComponent implements OnInit, OnDestroy {
+export class PasswordRecoveryPageComponent implements OnInit, OnDestroy {
 
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);

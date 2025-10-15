@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { MoleculeEditorComponent } from './molecule-editor.component';
+import { MoleculeEditorPageComponent } from './molecule-editor.page.component';
 
 describe('MoleculeEditorComponent', () => {
-  let component: MoleculeEditorComponent;
-  let fixture: ComponentFixture<MoleculeEditorComponent>;
+  let component: MoleculeEditorPageComponent;
+  let fixture: ComponentFixture<MoleculeEditorPageComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [MoleculeEditorComponent]
+      imports: [MoleculeEditorPageComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(MoleculeEditorComponent);
+    fixture = TestBed.createComponent(MoleculeEditorPageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

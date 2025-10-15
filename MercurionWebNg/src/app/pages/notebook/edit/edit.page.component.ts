@@ -68,7 +68,7 @@ import { NotebookTocComponent } from '../../../components/notebook/notebook-tree
 
   `
 })
-export class NotebookEditComponent implements OnInit, OnDestroy, AfterViewChecked {
+export class NotebookEditPageComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   @ViewChild('h1')
   h1Ref!: ElementRef<HTMLElement>

@@ -88,7 +88,7 @@ import { ClassicSpinnerComponent } from '../../components/common/classic-spinner
   `
 
 })
-export class ForgotPasswordComponent implements OnInit, OnDestroy {
+export class ForgotPasswordPageComponent implements OnInit, OnDestroy {
 
 
   private readonly accountService = inject(AccountService)

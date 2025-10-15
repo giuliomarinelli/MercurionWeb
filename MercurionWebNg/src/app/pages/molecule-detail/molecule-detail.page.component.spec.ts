@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { MoleculeDetailComponent } from './molecule-detail.component';
+import { MoleculeDetailPageComponent } from './molecule-detail.page.component';
 
 describe('MoleculeDetailComponent', () => {
-  let component: MoleculeDetailComponent;
-  let fixture: ComponentFixture<MoleculeDetailComponent>;
+  let component: MoleculeDetailPageComponent;
+  let fixture: ComponentFixture<MoleculeDetailPageComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [MoleculeDetailComponent]
+      imports: [MoleculeDetailPageComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(MoleculeDetailComponent);
+    fixture = TestBed.createComponent(MoleculeDetailPageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

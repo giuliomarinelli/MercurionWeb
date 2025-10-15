@@ -275,7 +275,7 @@ import { ClassicSpinnerComponent } from '../../components/common/classic-spinner
 
   `
 })
-export class LoginComponent implements OnInit, OnDestroy {
+export class LoginPageComponent implements OnInit, OnDestroy {
 
   // ======================= DEPS =======================
   private readonly fb = inject(FormBuilder)

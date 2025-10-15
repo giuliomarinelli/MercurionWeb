@@ -1,7 +1,7 @@
-import { MyMoleculeCustomDetailSaveModel } from './../../Models/my-molecule-custom-detail-save.interface';
+import { MyMoleculeCustomDetailSaveModel } from '../../Models/my-molecule-custom-detail-save.interface';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { EmbeddingService } from './../../services/embedding.service';
-import { SimilarsComponent } from './../../components/molecule-detail/similars/similars.component';
+import { EmbeddingService } from '../../services/embedding.service';
+import { SimilarsComponent } from '../../components/molecule-detail/similars/similars.component';
 import { Component, DestroyRef, effect, inject, OnDestroy, OnInit, Signal, signal, WritableSignal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MoleculeService } from '../../services/graphql/molecule.service';
@@ -274,7 +274,7 @@ import { HistoryContextService } from '../../services/context/history-context.se
       }
   `,
 })
-export class MoleculeDetailComponent implements OnInit, OnDestroy {
+export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
 
   // ======================= DEPS =======================
   private readonly route = inject(ActivatedRoute)

@@ -9,10 +9,10 @@ import { SessionSyncService } from '../../services/session-sync.service';
 @Component({
   selector: 'app-profile',
   imports: [],
-  templateUrl: './profile.component.html',
-  styleUrl: './profile.component.css'
+  templateUrl: './profile.page.component.html',
+  styleUrl: './profile.page.component.css'
 })
-export class ProfileComponent implements AfterViewInit, OnDestroy {
+export class ProfilePageComponent implements AfterViewInit, OnDestroy {
 
   protected loggingOut = signal(false)
   private logoutSub: Subscription | undefined

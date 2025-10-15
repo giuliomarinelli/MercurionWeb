@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { MfaComponent } from './mfa.component';
+import { MfaPageComponent } from './mfa.page.component';
 
 describe('MfaComponent', () => {
-  let component: MfaComponent;
-  let fixture: ComponentFixture<MfaComponent>;
+  let component: MfaPageComponent;
+  let fixture: ComponentFixture<MfaPageComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [MfaComponent]
+      imports: [MfaPageComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(MfaComponent);
+    fixture = TestBed.createComponent(MfaPageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

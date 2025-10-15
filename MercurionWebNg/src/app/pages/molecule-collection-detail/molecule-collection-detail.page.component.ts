@@ -52,7 +52,7 @@ import { HistoryContextService } from '../../services/context/history-context.se
 
   `
 })
-export class MoleculeCollectionDetailComponent implements OnInit, OnDestroy {
+export class MoleculeCollectionDetailPageComponent implements OnInit, OnDestroy {
 
   // ======================= DEPS =======================
   private readonly moleculeCollectionService = inject(MoleculeCollectionService)

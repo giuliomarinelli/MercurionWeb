@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { BtestComponent } from './btest.component';
+import { NotebookEditPageComponent } from './edit.page.component';
 
-describe('BtestComponent', () => {
-  let component: BtestComponent;
-  let fixture: ComponentFixture<BtestComponent>;
+describe('EditComponent', () => {
+  let component: NotebookEditPageComponent;
+  let fixture: ComponentFixture<NotebookEditPageComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [BtestComponent]
+      imports: [NotebookEditPageComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(BtestComponent);
+    fixture = TestBed.createComponent(NotebookEditPageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

@@ -1,6 +1,6 @@
-import { MoleculeCollection } from './../../Models/graphql/molecule-collection/molecule-collection.types';
+import { MoleculeCollection } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 import { debounce, firstValueFrom, interval, Subscription } from 'rxjs';
-import { MyMoleculesHeadingComponent } from './../../components/molecule-detail/my-molecules-heading/my-molecules-heading.component';
+import { MyMoleculesHeadingComponent } from '../../components/molecule-detail/my-molecules-heading/my-molecules-heading.component';
 import { AfterViewInit, Component, computed, effect, ElementRef, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { MoleculeCollectionService } from '../../services/graphql/molecule-collection.service';
 import { CollectionCardComponent } from '../../components/molecule-detail/collection-card/collection-card.component';
@@ -45,7 +45,7 @@ import { SkeletonCollectionCardComponent } from '../../components/common/skeleto
 
   `
 })
-export class MyMoleculeCollectionsComponent implements OnInit, AfterViewInit {
+export class MyMoleculeCollectionsPageComponent implements OnInit, AfterViewInit {
 
   // ======================= DEPS =======================
   private readonly moleculeCollectionService = inject(MoleculeCollectionService)

@@ -24,28 +24,28 @@ export const routes: Routes = [
   },
   {
     path: 'login',
-    loadComponent: () => import('./pages/login/login.component').then(m => m.LoginComponent)
+    loadComponent: () => import('./pages/login/login.page.component').then(m => m.LoginPageComponent)
   },
   {
     path: 'profile',
-    loadComponent: () => import('./pages/profile/profile.component').then(m => m.ProfileComponent),
+    loadComponent: () => import('./pages/profile/profile.page.component').then(m => m.ProfilePageComponent),
     canActivate: [AuthGuard]
   },
   {
     path: 'login/mfa',
-    loadComponent: () => import('./pages/login/mfa/mfa.component').then(m => m.MfaComponent)
+    loadComponent: () => import('./pages/login/mfa/mfa.page.component').then(m => m.MfaPageComponent)
   },
   {
     path: 'login/mfa/:view',
-    loadComponent: () => import('./pages/login/mfa/mfa.component').then(m => m.MfaComponent)
+    loadComponent: () => import('./pages/login/mfa/mfa.page.component').then(m => m.MfaPageComponent)
   },
   {
     path: 'molecules/detail/:molId',
-    loadComponent: () => import('./pages/molecule-detail/molecule-detail.component').then(m => m.MoleculeDetailComponent)
+    loadComponent: () => import('./pages/molecule-detail/molecule-detail.page.component').then(m => m.MoleculeDetailPageComponent)
   },
   {
     path: 'notebook/:notebookId/edit',
-    loadComponent: () => import('./pages/notebook/edit/edit.component').then(m => m.NotebookEditComponent),
+    loadComponent: () => import('./pages/notebook/edit/edit.page.component').then(m => m.NotebookEditPageComponent),
     canActivate: [AuthGuard]
   },
   {
@@ -54,30 +54,25 @@ export const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
-    path: 'btest',
-    loadComponent: () => import('./pages/btest/btest.component').then(m => m.BtestComponent),
-    canActivate: [AuthGuard]
-  },
-  {
     path: 'molecules/editor',
-    loadComponent: () => import('./pages/molecule-editor/molecule-editor.component').then(m => m.MoleculeEditorComponent),
+    loadComponent: () => import('./pages/molecule-editor/molecule-editor.page.component').then(m => m.MoleculeEditorPageComponent),
     canActivate: [AuthGuard]
   },
   {
     path: 'forgot-password',
-    loadComponent: () => import('./pages/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent)
+    loadComponent: () => import('./pages/forgot-password/forgot-password.page.component').then(m => m.ForgotPasswordPageComponent)
   },
   {
     path: 'password-recovery',
-    loadComponent: () => import('./pages/password-recovery/password-recovery.component').then(m => m.PasswordRecoveryComponent)
+    loadComponent: () => import('./pages/password-recovery/password-recovery.page.component').then(m => m.PasswordRecoveryPageComponent)
   },
   {
     path: 'molecules/collections',
-    loadComponent: () => import('./pages/my-molecule-collections/my-molecule-collections.component').then(m => m.MyMoleculeCollectionsComponent),
+    loadComponent: () => import('./pages/my-molecule-collections/my-molecule-collections.page.component').then(m => m.MyMoleculeCollectionsPageComponent),
     canActivate: [AuthGuard]
   },
   {
     path: 'molecules/collections/detail/:colId',
-    loadComponent: () => import('./pages/molecule-collection-detail/molecule-collection-detail.component').then(m => m.MoleculeCollectionDetailComponent)
+    loadComponent: () => import('./pages/molecule-collection-detail/molecule-collection-detail.page.component').then(m => m.MoleculeCollectionDetailPageComponent)
   }
 ]
