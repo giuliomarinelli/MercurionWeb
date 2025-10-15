@@ -329,21 +329,22 @@ export class UserService {
     async getVerifiedUserProfileById(id: UUID): Promise<ProfileDTO | null> {
 
         const rows = await this.userRepository.createQueryBuilder('u')
-            .select(['u.firstName', 'u.lastName', 'u.gender', 'u.job', 'u.email', 'u.completePhoneNumber'])
+            .select(['u.firstName', 'u.lastName', 'u.gender', 'u.job', 'u.email', 'u.completePhoneNumber', 'u.avatarId'])
             .where('u.isVerified = true')
             .andWhere('u.id = :id', { id })
             .getOne()
         if (!rows) {
             return null
         }
-        const { firstName, lastName, gender, job, email, completePhoneNumber } = rows
+        const { firstName, lastName, gender, job, email, completePhoneNumber, avatarId } = rows
         return {
             firstName,
             lastName,
             gender,
             job,
             obscuredEmail: this.securityService.maskEmail(email!),
-            obscuredPhone: completePhoneNumber ? this.securityService.maskPhone(completePhoneNumber) : null
+            obscuredPhone: completePhoneNumber ? this.securityService.maskPhone(completePhoneNumber) : null,
+            avatarId
         }
 
     }
@@ -354,7 +355,7 @@ export class UserService {
             where: {
                 id,
                 isVerified: true
-            }
+            },
         })
         if (!user) {
             return null
