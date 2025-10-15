@@ -1,4 +1,4 @@
-import { EmailDTO } from './change-email.cls.dto';
+import { EmailDTO } from './email.cls.dto';
 
 describe('EmailDTO', () => {
   it('should store the provided email address', () => {

@@ -5,12 +5,13 @@ import { ThemeManagerService } from '../../services/context/theme-manager.servic
 import { AuthService } from '../../services/auth.service';
 import { UserContextService } from '../../services/context/user-context.service';
 import { environment } from '../../../environments/environment.development';
-import { Subscription } from 'rxjs';
+import { Subscription, switchMap } from 'rxjs';
 import { FloatingInputComponent } from '../../components/common/floating-input/floating-input.component';
 import { PmOption, PmSelectComponent } from '../../components/common/pm-select/pm-select.component';
-import { matchPassword } from '../../custom-validators';
-import { UserGender, UserRegistrationFormControls, UserRegistrationFormValue } from '../../Models/auth/user.models';
+import { emailAvailabilityValidator, matchPassword } from '../../custom-validators';
+import { UserGender, UserRegisterDTO, UserRegistrationFormControls, UserRegistrationFormValue } from '../../Models/auth/user.models';
 import { JsonPipe } from '@angular/common';
+import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 
 
 @Component({
@@ -74,8 +75,10 @@ import { JsonPipe } from '@angular/common';
                   formControlName="email"
                   [errors]="{
                     required: this.emailRequired,
-                    pattern: this.emailMalformed
+                    pattern: this.emailMalformed,
+                    emailTaken: 'E-mail già registrata.'
                   }"
+                  [asyncVerify]="true"
               />
               <app-floating-input
                   label="Il tuo lavoro"
@@ -153,6 +156,8 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
   emailMalformed = "Il formato dell'e-mail non è corretto."
 
   step = signal<1 | 2>(1)
+  loading = signal<boolean>(false)
+  obscuredEmail = signal<string>('')
   logoSrc = computed(() => {
     const { PICTOGRAM_LIKE, PICTOGRAM_DARK } = environment.logoSrc
     return this.themeManager.theme() === 'light' ? PICTOGRAM_LIKE : PICTOGRAM_DARK
@@ -168,6 +173,7 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
       }),
       email: this.fb.control('', {
         validators: [Validators.required, Validators.email, Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)],
+        asyncValidators: [emailAvailabilityValidator(this.authService)],
       }),
       job: new FormControl<string | null>(null, {
         nonNullable: false,
@@ -213,7 +219,15 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
 
   onSubmit(): void {
     if (this.form.valid) {
-      const value = this.form.value as UserRegistrationFormValue
+      this.loading.set(true)
+      const { confirmPassword: _omit, ...dto } = this.form.value as UserRegistrationFormValue
+      this.regSub = this.authService.registerUser(dto).subscribe({
+        next: res => {
+          const { obscuredEmail } = res
+          this.obscuredEmail.set(obscuredEmail!)
+        },
+        error: (e) => console.error('SERVER ERROR', e)
+      })
       this.step.set(2)
     } else {
       this.markAll()

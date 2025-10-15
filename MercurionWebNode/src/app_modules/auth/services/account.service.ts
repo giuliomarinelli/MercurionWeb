@@ -40,6 +40,10 @@ export class AccountService {
         this.CHANGE_PASSWORD_TOKEN_EXPIRATION_MS = this.configService.get<number>('Jwt.changePasswordToken.expiresInMs') ?? 300_000
     }
 
+    private getRegistrationLockRedisKey(email: string): string {
+        return `email_registration_lock:${email.toLowerCase()}`
+    }
+
     public async register(registerDTO: UserRegisterDTO): Promise<ConfirmWithObsContDTO> {
 
         const { password, email, firstName, lastName, job, gender } = registerDTO
@@ -286,6 +290,13 @@ export class AccountService {
             return false
         }
 
+    }
+
+    public async isUserAvailableByEmail(email: string): Promise<boolean> {
+        const existsVerified = await this.userService.existsUserByEmail(email)
+        const redisKey = this.getRegistrationLockRedisKey(email)
+        const existsUnverified = await this.redisService.exists(redisKey)
+        return !existsVerified && !existsUnverified
     }
 
 

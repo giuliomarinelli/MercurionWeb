@@ -1,5 +1,5 @@
-import { Confirm_Login_FirstStepDTO, ConfirmWithAccessTokenAndInitialsDTO } from '../Models/confirm.models';
-import { Injectable } from '@angular/core';
+import { Confirm_Login_FirstStepDTO, ConfirmWithAccessTokenAndInitialsDTO, ConfirmWithObsContDTO } from '../Models/confirm.models';
+import { inject, Injectable } from '@angular/core';
 import { ConfirmDTO } from '../Models/confirm.models';
 import { finalize, Observable, shareReplay, tap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
@@ -9,11 +9,19 @@ import { firstValueFrom } from 'rxjs';
 import { EmailDTO, Login_FirstStepWrapper } from '../Models/auth/login.models';
 import { TotpBodyDTO } from '../Models/auth/totp-body.dto';
 import { ISessionDeviceInfo } from '../Models/auth/fingerprint.models';
+import { UserRegisterDTO } from '../Models/auth/user.models';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
+
+  // ======================= DEPS =======================
+  private readonly jwtHelper = inject(JwtHelperService)
+  private readonly http = inject(HttpClient)
+  // ====================================================
+
+
 
   private inflight$?: Observable<string>;
 
@@ -24,10 +32,7 @@ export class AuthService {
   private readonly WS_REFRESH_LOCK = 'ws_refresh_lock'; // JSON { owner: string, expiresAt: number }
   private readonly lockTtlMs = 5000;
 
-  constructor(
-    private readonly jwtHelper: JwtHelperService,
-    private readonly http: HttpClient
-  ) {
+  constructor() {
     // id di tab per il lock cross-tab
     if (!sessionStorage.getItem('tab_id')) {
       const id = (crypto as any)?.randomUUID?.() ?? Math.random().toString(36).slice(2);
@@ -115,6 +120,18 @@ export class AuthService {
 
   /* ───────── Register ───────── */
 
+  registerUser(dto: UserRegisterDTO): Observable<ConfirmWithObsContDTO> {
+    return this.http.post<ConfirmWithObsContDTO>('/api/account/register', dto, {
+      withCredentials: true
+    })
+  }
+
+  isUserAvailableByEmail(email: string): Observable<boolean> {
+    const dto: EmailDTO = { email }
+    return this.http.post<boolean>('/api/account/is-email-available', dto, {
+      withCredentials: true
+    })
+  }
 
   /* ───────── Login flow (immutato) ───────── */
 

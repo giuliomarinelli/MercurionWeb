@@ -1,13 +1,15 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, Output, EventEmitter, ViewChild, ElementRef, inject, signal, computed } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ViewChild, ElementRef, inject, signal, computed, OnDestroy } from '@angular/core';
 import { ControlValueAccessor, NgControl, ReactiveFormsModule, FormControl } from '@angular/forms';
+import { ClassicSpinnerComponent } from '../classic-spinner/classic-spinner.component';
+import { Subscription } from 'rxjs';
 
 type ErrorMap = Record<string, string>;
 
 @Component({
   selector: 'app-floating-input',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ClassicSpinnerComponent],
   template: `
   <div class="relative">
     <input
@@ -39,13 +41,16 @@ type ErrorMap = Record<string, string>;
       {{ label }}
     </label>
 
-    <div class="text-sm text-light-error dark:text-dark-error mt-1 min-h-5">
-      {{ getCurrentError() }}
+    <div class="flex items-center gap-3 text-sm text-light-error dark:text-dark-error mt-1 min-h-5">
+      <span>{{ getCurrentError() }}</span>
+      @if (ngControl?.pending) {
+        <app-classic-spinner [size]="15" />
+      }
     </div>
   </div>
   `
 })
-export class FloatingInputComponent implements ControlValueAccessor {
+export class FloatingInputComponent implements ControlValueAccessor, OnDestroy {
   // ===== Inputs / Outputs
   @Input() label!: string;
   @Input() id = `fi-${Math.random().toString(36).slice(2)}`;
@@ -53,17 +58,24 @@ export class FloatingInputComponent implements ControlValueAccessor {
   @Input() autocomplete?: string;
   @Input() errors: ErrorMap = {};              // es: { required: 'Obbligatorio', email: 'Formato non valido' }
   @Input() serverError: string | null = null;  // es: "Password errata"
+  @Input() asyncVerify = false
   @Output() enter = new EventEmitter<void>();
+
+  private sub?: Subscription
 
   @ViewChild('inp') inp!: ElementRef<HTMLInputElement>;
 
   // ===== NgControl binding (fondamentale per validazione)
-  private readonly ngControl = inject(NgControl, { self: true, optional: true });
+  protected readonly ngControl = inject(NgControl, { self: true, optional: true });
   get control(): FormControl | null { return (this.ngControl?.control as FormControl) ?? null; }
 
   constructor() {
     // registra questo componente come value accessor del control padre
     if (this.ngControl) this.ngControl.valueAccessor = this;
+    if (this.asyncVerify) {
+        this.ngControl?.control?.markAsDirty()
+        this.ngControl?.control?.markAsTouched()
+    }
   }
 
   // ===== Signals interni (come chiedi tu)
@@ -103,4 +115,10 @@ export class FloatingInputComponent implements ControlValueAccessor {
     const key = Object.keys(c.errors)[0];
     return this.errors[key] ?? '';
   }
+
+  ngOnDestroy(): void {
+    this.sub?.unsubscribe()
+  }
+
+
 }

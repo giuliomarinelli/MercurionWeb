@@ -11,7 +11,7 @@ import { MfaService } from '../services/mfa.service';
 import { UUID } from 'crypto';
 import { TotpDTO } from '../Models/DTO/totp.cls.dto';
 import { ChangePhoneDTO } from '../Models/DTO/change-phone.cls.dto';
-import { EmailDTO } from '../Models/DTO/change-email.cls.dto';
+import { EmailDTO } from '../Models/DTO/email.cls.dto';
 import { UserService } from 'src/app_modules/user/services/user.service';
 import { TurnstileGuard } from '../guards/turnstile.guard';
 import { SercurityService } from '../services/sercurity.service';
@@ -210,7 +210,14 @@ export class AccountController {
         if (!result) {
             throw new NotFoundException('UserNotFound::{updated: false}')
         }
-        return result 
+        return result
+    }
+
+    @Public()
+    @HttpCode(HttpStatus.OK)
+    @Post('/is-email-available')    
+    async isEmailAvailable(@Body(new ValidationPipe({ transform: true })) { email }: EmailDTO): Promise<boolean> {
+        return this.accountService.isUserAvailableByEmail(email)
     }
 
 }

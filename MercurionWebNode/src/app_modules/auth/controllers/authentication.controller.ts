@@ -15,7 +15,7 @@ import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { TotpBodyDTO } from '../Models/DTO/totp.cls.dto';
 import { JwtToolsService } from '../services/jwt-tools.service';
 import { TokenType } from '../Models/enums/token-type.enum';
-import { EmailDTO } from '../Models/DTO/change-email.cls.dto';
+import { EmailDTO } from '../Models/DTO/email.cls.dto';
 import { ISessionDeviceInfo } from '../Models/interfaces/i-session.interface';
 import { FingerprintData } from '../Models/DTO/fingerprints.dtos';
 import { UserService } from 'src/app_modules/user/services/user.service';
