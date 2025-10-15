@@ -26,6 +26,6 @@ export class UserRegisterDTO {
     @IsString()
     @Matches(/^(?:[A-ZÀ-Ý][a-zà-ÿ]*(?:\s+[A-ZÀ-Ý][a-zà-ÿ]*)*)?$/)
     @IsOptional()
-    job?: string
+    job?: string | null
 
 }

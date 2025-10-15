@@ -40,7 +40,7 @@ export interface PmOption {
                 focus-visible:outline-light-accent-primary dark:bg-transparent dark:text-slate-400
                 dark:focus-visible:outline-dark-accent-primary
                  hover:bg-slate-200/60 dark:hover:bg-neutral-800/50
-                 block p-4 border border-slate-300 dark:border-slate-200 rounded-md transition duration-300
+                 block px-4 py-3 border border-slate-300 dark:border-slate-200 rounded-md transition duration-300
                  focus:outline-none focus:ring-2 focus:ring-light-accent-primary dark:focus:ring-dark-accent-primary
                  focus:border-light-accent-primary dark:focus:border-dark-accent-primary cursor-pointer
                  text-left pr-10">
