@@ -35,6 +35,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   private emailSub: Subscription | undefined
   private logoutSub: Subscription | undefined
   protected isLoginPath = signal<boolean>(true)
+  protected isRegisterPath = signal<boolean>(false)
   protected isAllowedPath = signal<boolean>(false)
   protected themeMenuOpen = signal<boolean>(false)
   protected themeMenuMounted = signal<boolean>(false)
@@ -222,6 +223,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
         const notAllowedPaths: string[] = ['/login', '/', '/test/spinner']
         this.isAllowedPath.set(!notAllowedPaths.includes(currentPath))
         this.isLoginPath.set(currentPath === '/login')
+        this.isRegisterPath.set(currentPath === '/register')
       })
 
   }

@@ -67,12 +67,14 @@
             class="hover:text-light-accent-primary hover:dark:text-dark-accent-primary transition-colors duration-300"
             >Accedi</a
           >
-          <span class="cursor-default">&middot;</span>
-          <a
-            routerLink="/register"
-            class="hover:text-light-accent-primary hover:dark:text-dark-accent-primary transition-colors duration-300"
-            >Registrati</a
-          >
+          @if (!isRegisterPath()) {
+            <span class="cursor-default">&middot;</span>
+            <a
+              routerLink="/register"
+              class="hover:text-light-accent-primary hover:dark:text-dark-accent-primary transition-colors duration-300"
+              >Registrati</a
+            >
+          }
         </div>
       }
       <!-- Ricerca fittizia o icona -->
