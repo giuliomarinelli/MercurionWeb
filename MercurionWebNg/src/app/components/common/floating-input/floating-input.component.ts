@@ -44,7 +44,9 @@ type ErrorMap = Record<string, string>;
     <div class="flex items-center gap-3 text-sm text-light-error dark:text-dark-error mt-1 min-h-5">
       <span>{{ getCurrentError() }}</span>
       @if (ngControl?.pending) {
-        <app-classic-spinner [size]="15" />
+        <div class="text-light-on-surface-secondary dark:text-slate-200">
+          <app-classic-spinner [size]="15" />
+        </div>
       }
     </div>
   </div>

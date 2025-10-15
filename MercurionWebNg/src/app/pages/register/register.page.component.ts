@@ -9,9 +9,9 @@ import { Subscription, switchMap } from 'rxjs';
 import { FloatingInputComponent } from '../../components/common/floating-input/floating-input.component';
 import { PmOption, PmSelectComponent } from '../../components/common/pm-select/pm-select.component';
 import { emailAvailabilityValidator, matchPassword } from '../../custom-validators';
-import { UserGender, UserRegisterDTO, UserRegistrationFormControls, UserRegistrationFormValue } from '../../Models/auth/user.models';
-import { JsonPipe } from '@angular/common';
+import { UserGenderControl, UserRegistrationFormControls, UserRegistrationFormValue } from '../../Models/auth/user.models';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
+import { Helpers } from '../../helpers';
 
 
 @Component({
@@ -21,7 +21,7 @@ import { ClassicSpinnerComponent } from '../../components/common/classic-spinner
     ReactiveFormsModule,
     FloatingInputComponent,
     PmSelectComponent,
-    JsonPipe
+    ClassicSpinnerComponent
   ],
   template: `
 
@@ -121,17 +121,31 @@ import { ClassicSpinnerComponent } from '../../components/common/classic-spinner
             </div>
             <div class="max-w-sm mx-auto mt-20">
               <button
-              type="submit"
-              [disabled]="false"
-              class="relative bottom-[10px] w-full mt-1 py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary/80 dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary/60 disabled:hover:dark:bg-dark-accent-primary/80"
-             >
-              Continua
+                type="submit"
+                [disabled]="loading()"
+                class="relative bottom-[2px] w-full mt-4 py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary/80 dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary/60 disabled:hover:dark:bg-dark-accent-primary/80"
+              >
+                @if (!loading()) {
+                  Registrati
+                } @else {
+                  <div class="text-slate-200 flex items-center justify-center">
+                    <app-classic-spinner [size]="24"></app-classic-spinner>
+                  </div>
+                }
               </button>
             </div>
             </form>
           }
           @case (2) {
-            {{ form.value | json }}
+            <div class="bg-slate-200 dark:bg-slate-800 border my-16 border-slate-300 dark:border-slate-600 relative p-3 mx-auto max-w-[1024px] rounded-md text-sm flex gap-2 xs:gap-4 items-center flex-col xs:flex-row">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-emerald-800 dark:text-emerald-400">
+                <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+              <path d="M320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM320 128C214 128 128 214 128 320C128 426 214 512 320 512C426 512 512 426 512 320C512 214 426 128 320 128zM439.6 272L419.8 291.8L307.8 403.8C296.9 414.7 279.1 414.7 268.2 403.8C231.5 367.1 208.9 344.5 200.4 336L240 296.4C251.8 308.2 267.8 324.2 288 344.4L380.2 252.2L400 232.4L439.6 272z"/>
+              </svg>
+              <span>La registrazione a Mercurion è avvenuta con successo! Un'e-mail di conferma è stata inviata a <strong class="text-light-accent-primary dark:text-dark-accent-primary">{{obscuredEmail()}}</strong> con un link per attivare il tuo nuovo account.<br />
+                    Affrettati, il link vale soltanto 2 ore a partire da adesso!
+              </span>
+            </div>
           }
         }
       </div>
@@ -177,9 +191,9 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
       }),
       job: new FormControl<string | null>(null, {
         nonNullable: false,
-        validators: [Validators.pattern(/^[A-ZÀ-Ýa-zà-ÿ0-9\s]+$/)],
+        validators: [Validators.pattern(/^(?:[A-Za-zÀ-Ýà-ÿ]+(?:\s+[A-Za-zÀ-Ýà-ÿ]+)*)?$/)],
       }),
-      gender: this.fb.control<UserGender>('M', { validators: [Validators.required] }),
+      gender: this.fb.control<UserGenderControl>('', { validators: [Validators.required] }),
       password: this.fb.control('', {
         validators: [Validators.required, Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/)],
       }),
@@ -221,14 +235,20 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
     if (this.form.valid) {
       this.loading.set(true)
       const { confirmPassword: _omit, ...dto } = this.form.value as UserRegistrationFormValue
+      dto.firstName = Helpers.normalizeTitleCase(dto.firstName)
+      dto.lastName = Helpers.normalizeTitleCase(dto.lastName)
       this.regSub = this.authService.registerUser(dto).subscribe({
         next: res => {
           const { obscuredEmail } = res
           this.obscuredEmail.set(obscuredEmail!)
+          this.loading.set(false)
+          this.step.set(2)
         },
-        error: (e) => console.error('SERVER ERROR', e)
+        error: (e) => {
+          console.error('SERVER ERROR', e)
+          this.loading.set(false)
+        }
       })
-      this.step.set(2)
     } else {
       this.markAll()
     }

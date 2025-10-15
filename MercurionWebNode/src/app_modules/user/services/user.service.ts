@@ -1,5 +1,5 @@
 import { ProfileRegistryDTO as ProfileRegistryDTO } from './../../auth/Models/DTO/profile.dtos';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../Models/entities/user.entity';
 import { DataSource, FindOptionsWhere, Repository } from 'typeorm';
@@ -17,6 +17,8 @@ import { SercurityService } from 'src/app_modules/auth/services/sercurity.servic
 
 @Injectable()
 export class UserService {
+
+    private readonly logger = new Logger(UserService.name)
 
     public get STD_SCOPES(): string {
         return JSON.stringify(this.standardScopes)
@@ -87,6 +89,7 @@ export class UserService {
             await queryRunner.commitTransaction()
             return u$er
         } catch (err) {
+            this.logger.fatal('Error creating new User: ', err)
             await queryRunner.rollbackTransaction()
             throw err
         } finally {

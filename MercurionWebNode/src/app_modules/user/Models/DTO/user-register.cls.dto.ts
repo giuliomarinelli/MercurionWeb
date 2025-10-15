@@ -24,7 +24,7 @@ export class UserRegisterDTO {
     lastName: string
     
     @IsString()
-    @Matches(/^(?:[A-ZÀ-Ý][a-zà-ÿ]*(?:\s+[A-ZÀ-Ý][a-zà-ÿ]*)*)?$/)
+    @Matches(/^(?:[A-Za-zÀ-Ýà-ÿ]+(?:\s+[A-Za-zÀ-Ýà-ÿ]+)*)?$/)
     @IsOptional()
     job?: string | null
 

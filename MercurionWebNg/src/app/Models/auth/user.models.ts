@@ -1,13 +1,15 @@
-import { FormControl, FormGroup, Validators, ValidatorFn, NonNullableFormBuilder, AbstractControl } from '@angular/forms';
+import { FormControl } from '@angular/forms';
 
-export type UserGender = 'M' | 'F' | 'Undefined';
+export type UserGenderControl = 'M' | 'F' | 'Undefined' | '';
+
+export type UserGender = Omit<UserGenderControl, ''>
 
 export interface UserRegisterDTO {
   firstName: string;
   lastName: string;
   email: string;
   job?: string | null;
-  gender: UserGender;
+  gender: UserGenderControl;
   password: string;
 }
 
@@ -21,7 +23,7 @@ export type UserRegistrationFormControls = {
   lastName: FormControl<string>;
   email: FormControl<string>;
   job: FormControl<string | null>;            // opzionale/nullable
-  gender: FormControl<UserGender>;
+  gender: FormControl<UserGenderControl>;
   password: FormControl<string>;
   confirmPassword: FormControl<string>;
 };
