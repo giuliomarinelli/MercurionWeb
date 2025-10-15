@@ -8,6 +8,7 @@ import { ClassicSpinnerComponent } from '../../components/common/classic-spinner
 import { matchPassword } from '../../custom-validators';
 import { ErrorRes } from '../../Models/confirm.models';
 import { UserContextService } from '../../services/context/user-context.service';
+import { Helpers } from '../../helpers';
 
 @Component({
   selector: 'app-password-recovery',
@@ -125,10 +126,6 @@ export class PasswordRecoveryPageComponent implements OnInit, OnDestroy {
     return decodeURIComponent(raw).replace(/[\s\u00A0\u200B-\u200D\uFEFF]/g, '');
   }
 
-  private isValidJwt(t: string) {
-    return /^[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+){2}$/.test(t);
-  }
-
   ngOnInit(): void {
     this.valChSub = this.form.get('password')?.valueChanges.subscribe(() => {
       this.form.get('confirmPassword')?.updateValueAndValidity({ onlySelf: true });
@@ -136,7 +133,7 @@ export class PasswordRecoveryPageComponent implements OnInit, OnDestroy {
     this.valChSub2 = this.form.valueChanges.subscribe(() => this.serverError.set(false))
     const raw = this.route.snapshot.queryParamMap.get('t') ?? '';
     const t = this.sanitizeToken(raw);
-    if (!t || !this.isValidJwt(t)) {
+    if (!t || !Helpers.isValidJwt(t)) {
       this.router.navigateByUrl('/')
       return
     }

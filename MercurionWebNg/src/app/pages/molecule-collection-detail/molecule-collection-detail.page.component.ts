@@ -31,6 +31,9 @@ import { HistoryContextService } from '../../services/context/history-context.se
     <h2 class="bg-slate-50 dark:bg-neutral-950 z-10 block sticky top-0 text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary pb-8 pt-2" style="margin-block-start: 0">
         {{name()}}
     </h2>
+    @if (empty()) {
+      <p class="mt-5 text-slate-700 dark:text-slate-200">Nessuna molecola in questa collezione.</p>
+    }
     <div class="mt-px relative bottom-10">
       @for (item of items; track item; let i = $index) {
         <app-molecule-collection-item-card [molecule]="item" [i]="i" [collectionId]="colId()" />
@@ -82,6 +85,7 @@ export class MoleculeCollectionDetailPageComponent implements OnInit, OnDestroy 
   error = signal<boolean>(false)
   name = signal<string>('')
   colId = signal<string>('')
+  empty = signal<boolean>(false)
 
   private fetchPage$(page = this.page, size = 7) {
     const id = this.colId();
@@ -181,6 +185,9 @@ export class MoleculeCollectionDetailPageComponent implements OnInit, OnDestroy 
     const newPage = await firstValueFrom(this.fetchPage$(this.page, 7));
     if (!newPage || newPage.items.length === 0) {
       this.done = true;
+      if (this.page === 2 && this.items.length === 0) {
+        this.empty.set(true)
+      }
     } else {
       this.items = [...this.items, ...newPage.items];
       this.page++;

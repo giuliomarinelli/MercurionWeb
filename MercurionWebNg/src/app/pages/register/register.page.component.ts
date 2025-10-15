@@ -144,7 +144,7 @@ import { ToastService } from '../../services/toast.service';
                 <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
               <path d="M320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM320 128C214 128 128 214 128 320C128 426 214 512 320 512C426 512 512 426 512 320C512 214 426 128 320 128zM439.6 272L419.8 291.8L307.8 403.8C296.9 414.7 279.1 414.7 268.2 403.8C231.5 367.1 208.9 344.5 200.4 336L240 296.4C251.8 308.2 267.8 324.2 288 344.4L380.2 252.2L400 232.4L439.6 272z"/>
               </svg>
-              <span>La registrazione a Mercurion è avvenuta con successo! Un'e-mail di conferma è stata inviata a <strong class="text-light-accent-primary dark:text-dark-accent-primary">{{obscuredEmail()}}</strong> con un link per attivare il tuo nuovo account.<br />
+              <span><strong>La registrazione a Mercurion è avvenuta con successo!</strong> Un'e-mail di conferma è stata inviata a <strong class="text-light-accent-primary dark:text-dark-accent-primary">{{obscuredEmail()}}</strong> con un link per attivare il tuo nuovo account.<br />
                     Affrettati, il link vale soltanto 2 ore a partire da adesso, dopodiché il tuo account verrà cancellato automaticamente!
                     Sarà comunque necessario attivare il proprio account prima di poter fare il primo login.
               </span>

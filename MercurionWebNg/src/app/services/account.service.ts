@@ -78,4 +78,10 @@ export class AccountService {
     })
   }
 
+  public activateAccount(token: string): Observable<ConfirmDTO> {
+    return this.http.patch<ConfirmDTO>(`/api/account/activate?t=${token}`, null, {
+      withCredentials: true
+    })
+  }
+
 }

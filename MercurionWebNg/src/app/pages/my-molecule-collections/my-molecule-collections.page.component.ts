@@ -1,7 +1,7 @@
 import { MoleculeCollection } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 import { debounce, firstValueFrom, interval, Subscription } from 'rxjs';
 import { MyMoleculesHeadingComponent } from '../../components/molecule-detail/my-molecules-heading/my-molecules-heading.component';
-import { AfterViewInit, Component, computed, effect, ElementRef, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, computed, effect, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { MoleculeCollectionService } from '../../services/graphql/molecule-collection.service';
 import { CollectionCardComponent } from '../../components/molecule-detail/collection-card/collection-card.component';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
@@ -22,6 +22,9 @@ import { SkeletonCollectionCardComponent } from '../../components/common/skeleto
     <h2 class="bg-slate-50 dark:bg-neutral-950 z-10 block sticky top-0 bottom-5 text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary pt-2 pb-8" style="margin-block-start: 0">
         Collezioni molecolari
     </h2>
+    @if (empty()) {
+      <p class="mt-5 text-slate-700 dark:text-slate-200">Nessuna collezione molecolare.</p>
+    }
     <div class="mt-px relative bottom-10">
       @for (item of items; track item; let i = $index) {
         <app-collection-card [collection]="item" [i]="i" />
@@ -63,7 +66,7 @@ export class MyMoleculeCollectionsPageComponent implements OnInit, AfterViewInit
   private observer?: IntersectionObserver
   protected page = 1
 
-
+  empty = signal<boolean>(false)
 
 
 
@@ -98,6 +101,9 @@ export class MyMoleculeCollectionsPageComponent implements OnInit, AfterViewInit
     )
 
     if (newPage.items.length === 0) {
+      if (this.page === 1) {
+        this.empty.set(true)
+      }
       this.done = true;
     } else {
       this.items = [...this.items, ...newPage.items];

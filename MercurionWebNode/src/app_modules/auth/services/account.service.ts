@@ -85,7 +85,8 @@ export class AccountService {
 
     public async activate(activationToken: string): Promise<ConfirmDTO> | never {
 
-        const { sub: userId } = await this.jwtTools.verifyTokenAndGetPayload(activationToken, TokenType.ActivationToken)
+        const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(activationToken, TokenType.ActivationToken)
+        await this.sessionService.revokeToken(jti)
         const user = await this.userService.getUserById(userId)
         if (user == null) {
             throw new RpcException('AccountActivation::User not found')
