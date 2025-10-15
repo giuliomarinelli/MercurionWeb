@@ -13,7 +13,7 @@ type ErrorMap = Record<string, string>;
     <input
       #inp
       [type]="type"
-      class="block py-4 px-4 w-full text-sm text-dark dark:text-light bg-transparent border border-slate-300 dark:border-slate-200 rounded-md transition duration-300
+      class="block py-4 px-4 w-full text-sm text-dark dark:text-light bg-transparent border border-slate-400 dark:border-slate-200 rounded-md transition duration-300
              focus:outline-none focus:ring-2 focus:ring-light-accent-primary dark:focus:ring-dark-accent-primary
              focus:border-light-accent-primary dark:focus:border-dark-accent-primary"
       [attr.id]="id"
@@ -33,7 +33,7 @@ type ErrorMap = Record<string, string>;
       [attr.for]="id"
       [ngClass]="{
         'text-light-accent-secondary dark:text-dark-accent-secondary/90 scale-110 -translate-y-6 text-sm': activeLabel(),
-        'text-slate-400 text-lg scale-100 translate-y-0 cursor-text': !activeLabel()
+        'dark:text-slate-400 text-slate-500 text-lg scale-100 translate-y-0 cursor-text': !activeLabel()
       }"
       class="absolute transition-all duration-300 bg-light-surface-main dark:bg-neutral-950 px-1 top-[13px] left-4 origin-[0]">
       {{ label }}

@@ -16,6 +16,7 @@ import { FloatingInputComponent } from '../../components/common/floating-input/f
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { ISessionDeviceInfo } from '../../Models/auth/fingerprint.models';
 import { Login_FirstStepWrapper } from '../../Models/auth/login.models';
+import { environment } from '../../../environments/environment.development';
 
 
 
@@ -291,9 +292,10 @@ export class LoginPageComponent implements OnInit, OnDestroy {
   turnstileComponent!: TurnstileComponent
 
   protected loginForm!: FormGroup<any>
-  protected logoSrc = computed(() =>
-    this.themeManager.theme() === 'light' ? 'logo/pictogram-light-logo.svg' : 'logo/pictogram-dark-logo-2.svg'
-  )
+  protected logoSrc = computed(() => {
+    const { PICTOGRAM_LIKE, PICTOGRAM_DARK } = environment.logoSrc
+    return this.themeManager.theme() === 'light' ? PICTOGRAM_LIKE : PICTOGRAM_DARK
+  })
 
   protected step = signal<1 | 2>(1)
   protected serverErrorStep = signal<0 | 1 | 2>(0)
@@ -415,7 +417,6 @@ export class LoginPageComponent implements OnInit, OnDestroy {
             const redirect = sessionStorage.getItem('redirectAfterLogin') || '/profile'
             this.router.navigateByUrl(redirect)
             this.loadingLogin.set(false)
-
           }
         },
         error: err => {

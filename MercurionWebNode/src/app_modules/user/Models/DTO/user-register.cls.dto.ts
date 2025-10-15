@@ -1,4 +1,5 @@
-import { IsEmail, IsOptional, IsString, Matches } from "class-validator"
+import { IsEmail, IsEnum, IsOptional, IsString, Matches } from "class-validator"
+import { UserGender } from "../enums/user-gender.enum"
 
 export class UserRegisterDTO {
 
@@ -14,6 +15,9 @@ export class UserRegisterDTO {
     @IsString()
     @Matches(/^[A-ZÀ-Ý][a-zà-ÿ]*(?:\s+[A-ZÀ-Ý][a-zà-ÿ]*)*$/)
     firstName: string
+
+    @IsEnum(UserGender)
+    gender: UserGender
 
     @IsString()
     @Matches(/^[A-ZÀ-Ý][a-zà-ÿ]*(?:\s+[A-ZÀ-Ý][a-zà-ÿ]*)*$/)

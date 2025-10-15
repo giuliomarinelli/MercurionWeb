@@ -94,6 +94,10 @@ body {
 
 @layer components {
 
+  .main-container {
+    @apply max-w-5xl mx-auto p-0 xs:p-4 sm:p-6 md:p-8 space-y-12;
+  }
+
   .a {
     @apply text-light-accent-primary dark:text-dark-accent-primary hover:underline
   }

@@ -61,7 +61,7 @@ import { HistoryContextService } from '../../services/context/history-context.se
   template: `
     @if (molecule$ | async; as molecule) {
 
-      <section class="max-w-5xl mx-auto p-0 xs:p-4 sm:p-6 md:p-8 space-y-12">
+      <section class="main-container">
 
         @if (!typeGuards.isSystemMolecule(molecule)) {
           @if (collectionId()) {
@@ -367,9 +367,8 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
       }
     });
 
-    // --- main stream
+
     this.molecule$ = this.route.paramMap.pipe(
-      // 1) Estraggo molId
       switchMap((params): Observable<string> => {
         this.viewerReady.set(false);
         const molId = params.get('molId');
@@ -391,29 +390,22 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
                   this.router.navigateByUrl(`/molecules/detail/${molregno}`);
                 }
               }),
-              // se ho reindirizzato, chiudo; altrimenti continuo passando lo stesso molId
               mergeMap(molregno => (molregno ? EMPTY : of(molId)))
             );
         }
         return of(molId);
       }),
-
-      // 2.b) Normalizzo: (molId, molUUID<string|null>) con molUUID già risolto
       switchMap(molId => {
         const isUUID = this.uuidV7Re.test(molId);
         if (!isUUID && this.userContext.isLoggedIn()) {
-          // <- FIX: ritorno un Observable dell’oggetto con molUUID "sciolto"
           return this.moleculeCollectionItemService
             .hasUserChEMBLMoleculeByMolregnoThenGetUUID(Number(molId))
             .pipe(
               map(molUUID => ({ molId, molUUID })) // molUUID: string | null
             );
         }
-        // caso UUID: non devo cercare l'associazione
         return of({ molId, molUUID: null as string | null });
       }),
-
-      // 3) Carico il dettaglio in base alla modalità
       switchMap(({ molId, molUUID }) => {
         const isMolUUID_UUID = this.uuidV7Re.test(molUUID ?? '');
         if (molUUID && isMolUUID_UUID && this.userContext.isLoggedIn()) {
@@ -421,15 +413,12 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
           return EMPTY
         }
         const isUUID = this.uuidV7Re.test(molId);
-
         if (!isUUID) {
           if (this.molCached && this.molCached.id === Number(molId)) {
             return of(this.molCached as MoleculeDetailItem);
           }
-
           return this.moleculeService.getMoleculeByMolregno(molId).pipe(
             map(mol => {
-              // null-safe: se la query GraphQL torna null, NON fare lo spread
               if (!mol) {
                 return null as MoleculeDetailItem | null;
               }
@@ -443,10 +432,6 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
             })
           );
         }
-
-
-
-        // === USER (UUID): item di collezione (chembl | custom)
         return this.moleculeCollectionItemService.getItemById(molId).pipe(
           catchError(() => {
             this.fetchError.set(true);
@@ -454,8 +439,6 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
           })
         );
       }),
-
-      // 4) Enrichment T1 (solo se c’è item)
       switchMap((item): Observable<MoleculeDetailItem | null> => {
         if (!item) {
           this.fetchError.set(true);
@@ -477,11 +460,9 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
         return this.mercurionAIService.t1Inference({ smiles }).pipe(
           map(t1 => ({ ...item, t1Inference: t1 })),
           tap(() => this.fetchMolLoading.set(false)),
-          catchError(() => of(item)) // fallback: tieni il detail base
+          catchError(() => of(item))
         );
       }),
-
-      // 5) Guard rail finale
       catchError((err: any) => {
         const netErr = err?.networkError;
         if (netErr && 'status' in netErr) this.fetchError.set(true);

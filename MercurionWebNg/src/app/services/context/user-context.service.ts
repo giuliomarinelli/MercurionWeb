@@ -6,6 +6,7 @@ export class UserContextService {
   private _initials = signal<string>('')
   public readonly initials = this._initials.asReadonly()
   public readonly isLoggedIn = computed(() => this.initials() !== '')
+  public readonly isLoggedOut = computed(() => Boolean(this.initials()) === false)
 
   constructor() {
     const saved = localStorage.getItem('login')
@@ -16,13 +17,10 @@ export class UserContextService {
     this._initials.set(initials)
     localStorage.setItem('login', initials)
   }
+
   clearInitials() {
     this._initials.set('')
     localStorage.removeItem('login')
-  }
-
-  login(init: string): void {
-    this.setInitials(init)
   }
 
   logout(): void {
