@@ -158,6 +158,12 @@ export const HAS_USER_CHEMBL_MOLECULE_BY_MOLREGNO_THEN_GET_UUID = gql`
 }
 `
 
+export const EXISTS_CHEMBL_MOLECULE_BY_UUID_THEN_GET_MOLREGNO = gql`
+  query ExistsChEMBLMoleculeByUUIDThenGetMolregno($_uuid_: String!) {
+    existsChEMBLMoleculeByUUIDThenGetMolregno(_uuid_: $_uuid_)
+}
+`
+
 export const CREATE_MOLECULE_ITEM = gql`
   mutation CreateMoleculeItem($input: CreateMoleculeItemInput!) {
     createMoleculeItem(input: $input) {

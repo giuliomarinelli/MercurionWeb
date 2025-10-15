@@ -74,5 +74,9 @@ export const routes: Routes = [
   {
     path: 'molecules/collections/detail/:colId',
     loadComponent: () => import('./pages/molecule-collection-detail/molecule-collection-detail.page.component').then(m => m.MoleculeCollectionDetailPageComponent)
+  },
+  {
+    path: 'register',
+    loadComponent: () => import('./pages/register/register.page.component').then(m => m.RegisterPageComponent)
   }
 ]

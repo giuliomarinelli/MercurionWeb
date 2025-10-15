@@ -2,11 +2,11 @@ import { MyMoleculeCustomDetailSaveModel } from '../../Models/my-molecule-custom
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { EmbeddingService } from '../../services/embedding.service';
 import { SimilarsComponent } from '../../components/molecule-detail/similars/similars.component';
-import { Component, DestroyRef, effect, inject, OnDestroy, OnInit, Signal, signal, WritableSignal } from '@angular/core';
+import { Component, computed, DestroyRef, effect, inject, OnDestroy, OnInit, Signal, signal, WritableSignal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MoleculeService } from '../../services/graphql/molecule.service';
 import { switchMap, Observable, catchError, of, Subscription, forkJoin, retry, tap, distinctUntilChanged, shareReplay, startWith, throwError, EMPTY } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
+import { filter, map, mergeMap } from 'rxjs/operators';
 import { AsyncPipe } from '@angular/common';
 import { ThemeManagerService } from '../../services/context/theme-manager.service';
 import { MoleculeHeaderComponent } from '../../components/molecule-detail/molecule-header/molecule-header.component';
@@ -292,10 +292,7 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
   private readonly historyContext = inject(HistoryContextService)
   // ====================================================
 
-  private mode = signal<'SYSTEM' | 'USER'>('SYSTEM')
-
   private readonly uuidV7Re = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
 
   molecule$!: Observable<MoleculeDetailItem | null>
   viewerReady = signal<boolean>(false)
@@ -355,7 +352,7 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
       map(qp => qp.get('c_id') ?? ''),
       filter(collectionId => collectionId.length > 0),
       switchMap(cId => {
-        if (!cId) return of(null);
+        if (!cId || !this.userContext.isLoggedIn()) return of(null);
         this.collectionId.set(cId);
         return this.moleculeCollectionService.getCollectionById(cId);
       }),
@@ -383,11 +380,28 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
         this.molId = molId;
         return of(molId);
       }),
+      switchMap((molId: string) => {
+        const isUUID = this.uuidV7Re.test(molId);
+        if (isUUID && !this.userContext.isLoggedIn()) {
+          return this.moleculeCollectionItemService
+            .existsChEMBLMoleculeByUUIDThenGetMolregno(molId)
+            .pipe(
+              tap(molregno => {
+                if (molregno) {
+                  this.router.navigateByUrl(`/molecules/detail/${molregno}`);
+                }
+              }),
+              // se ho reindirizzato, chiudo; altrimenti continuo passando lo stesso molId
+              mergeMap(molregno => (molregno ? EMPTY : of(molId)))
+            );
+        }
+        return of(molId);
+      }),
 
-      // 2) Normalizzo: (molId, molUUID<string|null>) con molUUID già risolto
+      // 2.b) Normalizzo: (molId, molUUID<string|null>) con molUUID già risolto
       switchMap(molId => {
         const isUUID = this.uuidV7Re.test(molId);
-        if (!isUUID) {
+        if (!isUUID && this.userContext.isLoggedIn()) {
           // <- FIX: ritorno un Observable dell’oggetto con molUUID "sciolto"
           return this.moleculeCollectionItemService
             .hasUserChEMBLMoleculeByMolregnoThenGetUUID(Number(molId))
@@ -402,12 +416,11 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
       // 3) Carico il dettaglio in base alla modalità
       switchMap(({ molId, molUUID }) => {
         const isMolUUID_UUID = this.uuidV7Re.test(molUUID ?? '');
-        if (molUUID && isMolUUID_UUID) {
+        if (molUUID && isMolUUID_UUID && this.userContext.isLoggedIn()) {
           this.router.navigateByUrl(`/molecules/detail/${molUUID}`)
           return EMPTY
         }
         const isUUID = this.uuidV7Re.test(molId);
-        this.mode.set(isUUID ? 'USER' : 'SYSTEM');
 
         if (!isUUID) {
           if (this.molCached && this.molCached.id === Number(molId)) {

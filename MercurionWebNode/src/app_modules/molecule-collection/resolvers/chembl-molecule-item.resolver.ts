@@ -1,7 +1,7 @@
 import { Args, ID, Info, Int, Mutation, Query, Resolver } from "@nestjs/graphql";
 import { ChEMBLMoleculeItemEntity } from "../Models/entities/chembl-molecule-item.entity";
 import { ChEMBLMoleculeItemService } from "../services/chembl-molecule-item.service";
-import { AuthenticatedUserId } from "src/metadata/metadata";
+import { AuthenticatedUserId, Public } from "src/metadata/metadata";
 import { UUID } from "crypto";
 import { GraphQLResolveInfo } from 'graphql';
 import { GraphqlUtils } from "src/utils/graphql-utils/graphql-utils";
@@ -40,6 +40,14 @@ export class ChEMBLMoleculeItemResolver {
         @Args('molregno', { type: () => Int }) molregno: number
     ): Promise<string | null> {
         return this.service.hasUserChEMBLMoleculeByMolregnoThenGetUUID(userId, molregno)
+    }
+
+    @Public()
+    @Query(() => String, { nullable: true })
+    async existsChEMBLMoleculeByUUIDThenGetMolregno(
+        @Args('_uuid_', { type: () => String }) _uuid_: UUID
+    ): Promise<string | null> {
+        return this.service.existsChEMBLMoleculeByUUIDThenGetMolregno(_uuid_)
     }
 
     @Mutation(() => ChEMBLMoleculeItemEntity)

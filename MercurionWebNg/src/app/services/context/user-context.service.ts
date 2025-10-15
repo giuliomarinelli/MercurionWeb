@@ -1,10 +1,11 @@
-import { Injectable, signal } from "@angular/core";
+import { computed, Injectable, signal } from "@angular/core";
 
 @Injectable({ providedIn: 'root' })
 export class UserContextService {
 
   private _initials = signal<string>('')
   public readonly initials = this._initials.asReadonly()
+  public readonly isLoggedIn = computed(() => this.initials() !== '')
 
   constructor() {
     const saved = localStorage.getItem('login')

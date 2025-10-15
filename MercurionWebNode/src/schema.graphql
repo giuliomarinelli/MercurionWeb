@@ -248,6 +248,7 @@ type Query {
   chemblMoleculesByCollection(collectionId: ID!): [ChEMBLMoleculeItemEntity!]!
   findOneChemblMoleculeById(itemId: ID!): ChEMBLMoleculeItemEntity
   hasUserChEMBLMoleculeByMolregnoThenGetUUID(molregno: Int!): String
+  existsChEMBLMoleculeByUUIDThenGetMolregno(_uuid_: String!): String
   customMoleculesByCollection(collectionId: ID!): [CustomMoleculeItemEntity!]!
   findOneCustomMoleculeById(itemId: ID!): CustomMoleculeItemEntity
 }

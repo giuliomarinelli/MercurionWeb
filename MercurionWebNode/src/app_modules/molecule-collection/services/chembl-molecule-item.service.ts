@@ -31,16 +31,18 @@ export class ChEMBLMoleculeItemService {
             return null
         }
         return row.id
+    }
 
-
-
-        // return this.chemblRepo.exists({
-        //     where: {
-        //         chemblMolregno: molregno,
-        //         userId,
-        //         type: 'chembl'
-        //     }
-        // })
+    async existsChEMBLMoleculeByUUIDThenGetMolregno(_uuid_: UUID): Promise<string | null> {
+        const row = await this.chemblRepo.createQueryBuilder('m')
+            .select(['m.chemblMolregno'])
+            .where('m.id = :_uuid_', { _uuid_ })
+            .andWhere(`m.type = 'chembl'`)
+            .getOne()
+        if (!row) {
+            return null
+        }
+        return row.chemblMolregno.toString()
     }
 
     async addToCollection(
