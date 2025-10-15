@@ -12,6 +12,7 @@ import { emailAvailabilityValidator, matchPassword } from '../../custom-validato
 import { UserGenderControl, UserRegistrationFormControls, UserRegistrationFormValue } from '../../Models/auth/user.models';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { Helpers } from '../../helpers';
+import { ToastService } from '../../services/toast.service';
 
 
 @Component({
@@ -76,6 +77,7 @@ import { Helpers } from '../../helpers';
                   [errors]="{
                     required: this.emailRequired,
                     pattern: this.emailMalformed,
+                    email: this.emailMalformed,
                     emailTaken: 'E-mail già registrata.'
                   }"
                   [asyncVerify]="true"
@@ -122,7 +124,7 @@ import { Helpers } from '../../helpers';
             <div class="max-w-sm mx-auto mt-20">
               <button
                 type="submit"
-                [disabled]="loading()"
+                [disabled]="loading() || settedDisabledBtn()"
                 class="relative bottom-[2px] w-full mt-4 py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary/80 dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary/60 disabled:hover:dark:bg-dark-accent-primary/80"
               >
                 @if (!loading()) {
@@ -143,7 +145,8 @@ import { Helpers } from '../../helpers';
               <path d="M320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM320 128C214 128 128 214 128 320C128 426 214 512 320 512C426 512 512 426 512 320C512 214 426 128 320 128zM439.6 272L419.8 291.8L307.8 403.8C296.9 414.7 279.1 414.7 268.2 403.8C231.5 367.1 208.9 344.5 200.4 336L240 296.4C251.8 308.2 267.8 324.2 288 344.4L380.2 252.2L400 232.4L439.6 272z"/>
               </svg>
               <span>La registrazione a Mercurion è avvenuta con successo! Un'e-mail di conferma è stata inviata a <strong class="text-light-accent-primary dark:text-dark-accent-primary">{{obscuredEmail()}}</strong> con un link per attivare il tuo nuovo account.<br />
-                    Affrettati, il link vale soltanto 2 ore a partire da adesso!
+                    Affrettati, il link vale soltanto 2 ore a partire da adesso, dopodiché il tuo account verrà cancellato automaticamente!
+                    Sarà comunque necessario attivare il proprio account prima di poter fare il primo login.
               </span>
             </div>
           }
@@ -161,10 +164,12 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
   private readonly themeManager = inject(ThemeManagerService)
   private readonly authService = inject(AuthService)
   protected readonly userContext = inject(UserContextService)
+  private readonly toast = inject(ToastService)
   // ====================================================
 
   private regSub?: Subscription
   private valChSub?: Subscription
+  private fSub?:Subscription
 
   emailRequired = "L'e-mail è obbligatoria."
   emailMalformed = "Il formato dell'e-mail non è corretto."
@@ -172,6 +177,7 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
   step = signal<1 | 2>(1)
   loading = signal<boolean>(false)
   obscuredEmail = signal<string>('')
+  settedDisabledBtn = signal<boolean>(false)
   logoSrc = computed(() => {
     const { PICTOGRAM_LIKE, PICTOGRAM_DARK } = environment.logoSrc
     return this.themeManager.theme() === 'light' ? PICTOGRAM_LIKE : PICTOGRAM_DARK
@@ -197,7 +203,7 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
       password: this.fb.control('', {
         validators: [Validators.required, Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/)],
       }),
-      confirmPassword: this.fb.control('', { validators: [Validators.required] }),
+      confirmPassword: this.fb.control('', { validators: [Validators.required, matchPassword] }),
     },
     { validators: matchPassword }
   );
@@ -245,11 +251,13 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
           this.step.set(2)
         },
         error: (e) => {
-          console.error('SERVER ERROR', e)
+          this.toast.trigger('Si è verificato un errore nel server.', 'error', 3000)
           this.loading.set(false)
         }
       })
     } else {
+      this.settedDisabledBtn.set(true)
+      this.toast.trigger('Errore: controlla i campi con le scritte in rosso!')
       this.markAll()
     }
   }
@@ -258,11 +266,17 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
     this.valChSub = this.form.get('password')?.valueChanges.subscribe(() => {
       this.form.get('confirmPassword')?.updateValueAndValidity({ onlySelf: true });
     })
+    this.form.valueChanges.subscribe(() => {
+      if (this.settedDisabledBtn()) {
+        this.settedDisabledBtn.set(false)
+      }
+    })
   }
 
   ngOnDestroy(): void {
     this.regSub?.unsubscribe()
     this.valChSub?.unsubscribe()
+    this.fSub?.unsubscribe()
   }
 
 }
