@@ -4,7 +4,7 @@ import { ThemeManagerService } from '../../services/context/theme-manager.servic
 import { PublicPipe } from '../../pipes/public.pipe';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { Subscription } from 'rxjs';
+import { Subscription, tap } from 'rxjs';
 import { HttpErrorRes } from '../../Models/error-res.dto';
 import { Confirm_Login_FirstStepDTO } from '../../Models/confirm.models';
 import { FingerprintService } from '../../services/fingerprint.service';
@@ -96,6 +96,7 @@ import { environment } from '../../../environments/environment.development';
                 email: 'Formato e-mail non corretto',
                 pattern: 'Formato e-mail non corretto'
               }"
+              [disabled]="goingToPasswordStep()"
               [serverError]="serverErrorStep() === 1 ? uncorrectEmailMsg : null"
               (enter)="goToPasswordStep()"
             >
@@ -305,6 +306,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
   protected resetTurnstile = signal<boolean>(false)
   protected turnstileToken = signal<string | null>(null)
   protected loadingLogin = signal<boolean>(false)
+  protected goingToPasswordStep = signal<boolean>(false)
 
 
   private firstStepSubscription?: Subscription
@@ -360,12 +362,16 @@ export class LoginPageComponent implements OnInit, OnDestroy {
 
   goToPasswordStep(): void {
     if (this.loginForm.controls['email'].valid) {
-      this.firstStepSubscription = this.authService.login_stepZero({ email: this.loginForm.value['email'] }).subscribe({
+      this.firstStepSubscription = this.authService.login_stepZero({ email: this.loginForm.value['email'] }).pipe(
+        tap(() => this.goingToPasswordStep.set(true))
+      ).subscribe({
         next: () => {
           this.serverErrorStep.set(0)
           this.step.set(2)
+          this.goingToPasswordStep.set(false)
         },
         error: err => {
+          this.goingToPasswordStep.set(false)
           this.serverErrorStep.set(1)
           console.error(err.error)
           const body = err.error as HttpErrorRes

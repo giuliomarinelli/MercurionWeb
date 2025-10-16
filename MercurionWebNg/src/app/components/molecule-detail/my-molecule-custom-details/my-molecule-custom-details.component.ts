@@ -1,123 +1,207 @@
 import { MyMoleculeCustomDetailSaveModel } from '../../../Models/my-molecule-custom-detail-save.model';
 import { NgClass } from '@angular/common';
-import { Component, ElementRef, EventEmitter, inject, Input, Output, Renderer2, signal, ViewChild } from '@angular/core';
+import {
+  Component, ElementRef, EventEmitter, inject, Input, Output, Renderer2, signal, ViewChild, ChangeDetectionStrategy
+} from '@angular/core';
 import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.component';
 
 @Component({
   selector: 'app-my-molecule-custom-details',
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgClass, MoleculeBadgeComponent],
+  // l’host non introduce box extra nel layout del parent
+  host: { 'class': 'contents' },
+  styles: [`
+    :host { display: contents; }
+  `],
   template: `
-    <div class="flex text-center sm:text-left gap-3 items-center mb-4" [class.mb-3="mode() === 'view'"]>
-      @if (_type() !== 'name') {
-        <h2 [innerHTML]="_label()" class="font-semibold text-light-accent-primary dark:text-dark-accent-primary text-xl"></h2>
-        <p #value
-          class="p-2 outline-none"
+    @switch (_type()) {
+
+      @case ('cardName') {
+      <div class="flex items-center gap-4 min-w-0">
+        <div
+          #value
+          class="text-base md:text-lg font-semibold text-slate-800 dark:text-slate-100 truncate min-w-0"
           [attr.contenteditable]="mode() === 'edit' ? 'true' : null"
-          [ngClass]="{ 'bg-slate-200 dark:bg-slate-700 border border-light-on-surface-main dark:border-dark-on-surface-main rounded-md': mode() === 'edit' }"
-          [innerHTML]="_value()"
+          [ngClass]="{
+            'px-1 py-0.5 bg-slate-100 dark:bg-slate-700 border border-light-on-surface-main dark:border-dark-on-surface-main rounded-md': mode() === 'edit'
+          }"
+          title="{{ _value() }}"
         >
-        </p>
-      } @else {
-          <div class="flex gap-6 items-center">
-            <h2 id="molecule-name"
+          {{ _value() }}
+        </div>
+
+        <app-molecule-badge class="shrink-0" [name]="_badgeName()" />
+
+        @if (mode() === 'view') {
+          <!-- z-30: sopra l’overlay -->
+          <button type="button"
+                  class="ml-3 relative z-30 cursor-pointer transition-colors duration-300"
+                  title="Modifica"
+                  (click)="doEdit()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
+                 class="h-6 w-auto fill-current text-slate-800 hover:text-slate-800/75 dark:text-slate-200 dark:hover:text-slate-200/75">
+              <path d="M58.1 555.9L48 592C50.7 591.2 117.4 572.6 248 536L569.4 214.6L592 192C589.6 189.6 549.1 149.1 470.6 70.6L448 48L425.4 70.6L104 392L58.1 555.9zM252.7 486L154 387.3L347.4 193.9L446.1 292.6L252.7 486zM229.4 508L94.2 545.8L132 410.6L229.4 508zM546.7 192L468.6 270.1L369.9 171.4L448 93.3L546.7 192z"/>
+            </svg>
+          </button>
+        } @else {
+          <button type="button"
+                  class="ml-3 relative z-30 cursor-pointer transition-colors duration-300"
+                  title="Annulla"
+                  (click)="doCancel()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
+                 class="h-6 w-auto fill-current text-light-error hover:text-light-error/75 dark:text-dark-error dark:hover:text-dark-error/75">
+              <path d="M507.4 155.3L518.8 144L496.1 121.4L484.8 132.7L320.1 297.4L155.4 132.7L144.1 121.4L121.5 144L132.8 155.3L297.5 320L132.8 484.7L121.5 496L144.1 518.6L155.4 507.3L320.1 342.6L484.8 507.3L496.1 518.6L518.8 496L507.4 484.7L342.8 320L507.4 155.3z"/>
+            </svg>
+          </button>
+          <button type="button"
+                  class="ml-3 relative z-30 cursor-pointer transition-colors duration-300"
+                  title="Salva"
+                  (click)="doSave()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
+                 class="h-6 w-auto fill-current text-light-accent-secondary hover:text-light-accent-secondary/75 dark:text-dark-accent-secondary dark:hover:text-dark-accent-secondary/75">
+              <path d="M550.5 140.5L541.1 153.4L261.1 537.4L250.1 552.5L236.9 539.3L100.9 403.3L89.6 392L112.2 369.4L123.5 380.7L246.3 503.5L515.3 134.6L524.7 121.7L550.6 140.6z"/>
+            </svg>
+          </button>
+        }
+      </div>
+    }
+
+      @case ('name') {
+        <div class="flex items-center gap-6">
+          <h2 id="molecule-name"
+              #value
               class="py-2 outline-none text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary"
               [attr.contenteditable]="mode() === 'edit' ? 'true' : null"
-              [class.px-2]="mode() === 'edit'"
-              [ngClass]="{ 'bg-slate-100 dark:bg-slate-700 border border-light-on-surface-main dark:border-dark-on-surface-main rounded-md': mode() === 'edit' }"
-              #value
-            >
-              {{ _value() }}
+              [ngClass]="{
+                'px-2 bg-slate-100 dark:bg-slate-700 border border-light-on-surface-main dark:border-dark-on-surface-main rounded-md':
+                mode() === 'edit'
+              }">
+            {{ _value() }}
           </h2>
           <app-molecule-badge [name]="_badgeName()" class="block relative top-1" />
+          @if (mode() === 'view') {
+            <button class="ml-5 cursor-pointer transition-colors duration-300" title="Modifica" (click)="doEdit()">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
+                   class="h-8 w-auto fill-current text-slate-800 hover:text-slate-800/75 dark:text-slate-200 dark:hover:text-slate-200/75">
+                <path d="M58.1 555.9L48 592C50.7 591.2 117.4 572.6 248 536L569.4 214.6L592 192C589.6 189.6 549.1 149.1 470.6 70.6L448 48L425.4 70.6L104 392L58.1 555.9zM252.7 486L154 387.3L347.4 193.9L446.1 292.6L252.7 486zM229.4 508L94.2 545.8L132 410.6L229.4 508zM546.7 192L468.6 270.1L369.9 171.4L448 93.3L546.7 192z"/>
+              </svg>
+            </button>
+          } @else {
+            <button class="ml-5 cursor-pointer transition-colors duration-300" title="Annulla" (click)="doCancel()">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
+                   class="h-8 w-auto fill-current text-light-error hover:text-light-error/75 dark:text-dark-error dark:hover:text-dark-error/75">
+                <path d="M507.4 155.3L518.8 144L496.1 121.4L484.8 132.7L320.1 297.4L155.4 132.7L144.1 121.4L121.5 144L132.8 155.3L297.5 320L132.8 484.7L121.5 496L144.1 518.6L155.4 507.3L320.1 342.6L484.8 507.3L496.1 518.6L518.8 496L507.4 484.7L342.8 320L507.4 155.3z"/>
+              </svg>
+            </button>
+            <button class="ml-5 cursor-pointer transition-colors duration-300" title="Salva" (click)="doSave()">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
+                   class="h-8 w-auto fill-current text-light-accent-secondary hover:text-light-accent-secondary/75 dark:text-dark-accent-secondary dark:hover:text-dark-accent-secondary/75">
+                <path d="M550.5 140.5L541.1 153.4L261.1 537.4L250.1 552.5L236.9 539.3L100.9 403.3L89.6 392L112.2 369.4L123.5 380.7L246.3 503.5L515.3 134.6L524.7 121.7L550.6 140.6z"/>
+              </svg>
+            </button>
+          }
         </div>
       }
 
+      @default {
+        <!-- label / notes -->
+        <div class="flex text-center sm:text-left gap-3 items-center"
+             [class.mb-4]="_type() !== 'name'"
+             [class.mb-3]="mode() === 'view' && _type() === 'name'">
+          @if (_type() !== 'name') {
+            <h2 [innerHTML]="_label()" class="font-semibold text-light-accent-primary dark:text-dark-accent-primary text-xl"></h2>
+            <p
+              #value
+              class="p-2 outline-none"
+              [attr.contenteditable]="mode() === 'edit' ? 'true' : null"
+              [ngClass]="{
+                'bg-slate-200 dark:bg-slate-700 border border-light-on-surface-main dark:border-dark-on-surface-main rounded-md': mode() === 'edit'
+              }"
+              [innerHTML]="_value()">
+            </p>
 
-
-
-      @if (mode() === 'view') {
-        <button class="ml-5 cursor-pointer transition-colors duration-300" title="Modifica" (click)="doEdit()">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current text-slate-800 hover:text-slate-800/75 dark:text-slate-200 dark:hover:text-slate-200/75"
-            [ngClass]="{'h-8 w-auto': _type() === 'name', 'h-6 w-auto': _type() !== 'name'}"
-          >
-            <path d="M58.1 555.9L48 592C50.7 591.2 117.4 572.6 248 536L569.4 214.6L592 192C589.6 189.6 549.1 149.1 470.6 70.6L448 48L425.4 70.6L104 392L58.1 555.9zM252.7 486L154 387.3L347.4 193.9L446.1 292.6L252.7 486zM229.4 508L94.2 545.8L132 410.6L229.4 508zM546.7 192L468.6 270.1L369.9 171.4L448 93.3L546.7 192z"/>
-          </svg>
-        </button>
-      } @else if (mode() === 'edit') {
-        <button class="ml-5 cursor-pointer transition-colors duration-300" title="Annulla" (click)="doCancel()">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current text-light-error hover:text-light-error/75 dark:text-dark-error dark:hover:text-dark-error/75"
-            [ngClass]="{'h-8 w-auto': _type() === 'name', 'h-6 w-auto': _type() !== 'name'}"
-          >
-            <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-            <path d="M507.4 155.3L518.8 144L496.1 121.4L484.8 132.7L320.1 297.4L155.4 132.7L144.1 121.4L121.5 144L132.8 155.3L297.5 320L132.8 484.7L121.5 496L144.1 518.6L155.4 507.3L320.1 342.6L484.8 507.3L496.1 518.6L518.8 496L507.4 484.7L342.8 320L507.4 155.3z"/>
-          </svg>
-        </button>
-        <button class="ml-5 cursor-pointer" title="Salva" (click)="doSave()">
-          <svg xmlns="http://www.w3.org/2000/svg" title="Salva" viewBox="0 0 640 640" class="fill-current text-light-accent-secondary hover:text-light-accent-secondary/75 dark:text-dark-accent-secondary dark:hover:text-dark-accent-secondary/75"
-            [ngClass]="{'h-8 w-auto': _type() === 'name', 'h-6 w-auto': _type() !== 'name'}"
-          >
-            <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-            <path d="M550.5 140.5L541.1 153.4L261.1 537.4L250.1 552.5L236.9 539.3L100.9 403.3L89.6 392L112.2 369.4L123.5 380.7L246.3 503.5L515.3 134.6L524.7 121.7L550.6 140.6z"/>
-          </svg>
-        </button>
+            @if (mode() === 'view') {
+              <button type="button"
+                  class="ml-5 cursor-pointer transition-colors duration-300"
+                  title="Modifica"
+                  (click)="onEdit($event)">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
+                     class="h-6 w-auto fill-current text-slate-800 hover:text-slate-800/75 dark:text-slate-200 dark:hover:text-slate-200/75">
+                  <path d="M58.1 555.9L48 592C50.7 591.2 117.4 572.6 248 536L569.4 214.6L592 192C589.6 189.6 549.1 149.1 470.6 70.6L448 48L425.4 70.6L104 392L58.1 555.9zM252.7 486L154 387.3L347.4 193.9L446.1 292.6L252.7 486zM229.4 508L94.2 545.8L132 410.6L229.4 508zM546.7 192L468.6 270.1L369.9 171.4L448 93.3L546.7 192z"/>
+                </svg>
+              </button>
+            } @else {
+              <button type="button"
+                  class="ml-5 cursor-pointer transition-colors duration-300"
+                  title="Annulla"
+                  (click)="onCancel($event)">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
+                     class="h-6 w-auto fill-current text-light-error hover:text-light-error/75 dark:text-dark-error dark:hover:text-dark-error/75">
+                  <path d="M507.4 155.3L518.8 144L496.1 121.4L484.8 132.7L320.1 297.4L155.4 132.7L144.1 121.4L121.5 144L132.8 155.3L297.5 320L132.8 484.7L121.5 496L144.1 518.6L155.4 507.3L320.1 342.6L484.8 507.3L496.1 518.6L518.8 496L507.4 484.7L342.8 320L507.4 155.3z"/>
+                </svg>
+              </button>
+              <button type="button"
+                  class="ml-5 cursor-pointer"
+                  title="Salva"
+                  (click)="onSave($event)">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
+                     class="h-6 w-auto fill-current text-light-accent-secondary hover:text-light-accent-secondary/75 dark:text-dark-accent-secondary dark:hover:text-dark-accent-secondary/75">
+                  <path d="M550.5 140.5L541.1 153.4L261.1 537.4L250.1 552.5L236.9 539.3L100.9 403.3L89.6 392L112.2 369.4L123.5 380.7L246.3 503.5L515.3 134.6L524.7 121.7L550.6 140.6z"/>
+                </svg>
+              </button>
+            }
+          }
+        </div>
       }
-    </div>
+    }
   `
 })
 export class MyMoleculeCustomDetailsComponent {
-
-  // ======================= DEPS =======================
-  private readonly r = inject(Renderer2)
-  // ====================================================
-
+  private readonly r = inject(Renderer2);
 
   _label = signal<string>('');
   _value = signal<string>('');
-  _badgeName = signal<string>('Personal Molecule')
-  startValue = signal<string>('')
-  _type = signal<'label' | 'notes' | 'name' | ''>('');
+  _badgeName = signal<string>('Personal Molecule');
+  startValue = signal<string>('');
+  _type = signal<'label' | 'notes' | 'name' | 'cardName'>('label');
+  _molId = signal<string>('')
   mode = signal<'view' | 'edit'>('view');
 
-  @ViewChild('value') valueRef!: ElementRef<HTMLParagraphElement>;
+  @ViewChild('value') valueRef!: ElementRef<HTMLElement>;
 
   @Input({ required: true })
-  set type(type: 'label' | 'notes' | 'name') {
+  set type(type: 'label' | 'notes' | 'name' | 'cardName') {
     this._type.set(type);
-    switch (type) {
-      case 'label':
-        this._label.set('Etichetta:')
-        break
-      case 'notes':
-        this._label.set('Note:')
-        break
-      case 'name':
-        this._label.set('')
-
-    }
+    this._label.set(type === 'label' ? 'Etichetta:' : type === 'notes' ? 'Note:' : '');
   }
 
   @Input({ required: true })
   set value(value: string) {
     this._value.set(value);
-    this.startValue.set(value)
+    this.startValue.set(value);
+  }
+
+  @Input({ required: true })
+  set molId(molId: string) {
+    this._molId.set(molId)
   }
 
   @Input()
-  set badgeName(badgeName: string) {
-    this._badgeName.set(badgeName)
-  }
-
-
+  set badgeName(badgeName: string) { this._badgeName.set(badgeName); }
 
   @Output()
-  onSave = new EventEmitter<MyMoleculeCustomDetailSaveModel>
+  onSaving = new EventEmitter<MyMoleculeCustomDetailSaveModel>();
 
+  /* -------- actions -------- */
   doEdit() {
     this.mode.set('edit');
     const el = this.valueRef.nativeElement;
     this.r.setAttribute(el, 'contenteditable', 'true');
     this.r.setAttribute(el, 'tabindex', '0');
-    el.textContent = this._value();       // <- importante
+    // per edit coerente rispetto al value corrente
+    el.textContent = this._value();
 
     requestAnimationFrame(() => {
       el.focus();
@@ -125,29 +209,52 @@ export class MyMoleculeCustomDetailsComponent {
       range.selectNodeContents(el);
       range.collapse(false);
       const sel = window.getSelection();
-      sel?.removeAllRanges(); sel?.addRange(range);
+      sel?.removeAllRanges();
+      sel?.addRange(range);
     });
   }
 
-
   doCancel(): void {
     const el = this.valueRef.nativeElement;
-    el.textContent = this.startValue();   // ripristina il DOM
-    this._value.set(this.startValue());   // riallinea il modello (inutile ma coerente)
+    el.textContent = this.startValue();   // ripristina DOM
+    this._value.set(this.startValue());   // riallinea modello
     this.mode.set('view');
+    this.r.removeAttribute(el, 'contenteditable');
+    this.r.removeAttribute(el, 'tabindex');
   }
 
   doSave(): void {
-    this.mode.set('view')
-    const newValue = this.valueRef.nativeElement.innerText
-    console.log(newValue)
-    this.startValue.set(newValue)
-    this._value.set(newValue)
-    this.onSave.emit({
+    const el = this.valueRef.nativeElement;
+    const newValue = el.innerText;
+    this.startValue.set(newValue);
+    this._value.set(newValue);
+    this.mode.set('view');
+    this.r.removeAttribute(el, 'contenteditable');
+    this.r.removeAttribute(el, 'tabindex');
+
+    this.onSaving.emit({
       label: this._label(),
       value: newValue,
-      type: this._type() as 'label' | 'notes' | 'name'
-    })
+      type: this._type() as 'label' | 'notes' | 'name' | 'cardName',
+      id: this._molId()
+    });
   }
 
+  onEdit(ev: MouseEvent) {
+    ev.preventDefault();
+    ev.stopPropagation();
+    this.doEdit();
+  }
+
+  onCancel(ev: MouseEvent) {
+    ev.preventDefault();
+    ev.stopPropagation();
+    this.doCancel();
+  }
+
+  onSave(ev: MouseEvent) {
+    ev.preventDefault();
+    ev.stopPropagation();
+    this.doSave();
+  }
 }

@@ -181,6 +181,7 @@ query PaginatedMoleculeCollectionItemsByUser($page: Int!, $limit: Int!) {
                         mwFreebase
                     }
                 }
+                chemblMolregno
             }
         }
         itemCount

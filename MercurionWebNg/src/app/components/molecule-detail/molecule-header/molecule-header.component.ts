@@ -19,7 +19,7 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
             <app-molecule-badge [name]="_badgeName()" class="block relative top-0.5" />
           </div>
           } @else {
-            <app-my-molecule-custom-details [type]="'name'" [value]="name()" (onSave)="doSave($event)" [badgeName]="_badgeName()" />
+            <app-my-molecule-custom-details [type]="'name'" [value]="name()" (onSaving)="doSave($event)" [badgeName]="_badgeName()" [molId]="_molId()" />
           }
       } @else {
           <div class="flex gap-6 items-center">
@@ -49,6 +49,7 @@ export class MoleculeHeaderComponent {
   protected readonly _myMol = signal<boolean>(false)
   protected readonly _isCustom = signal<boolean>(false)
   protected readonly _badgeName = signal<string>('ChEMBL Personal Molecule')
+  protected readonly _molId = signal<string>('')
 
   @Input()
   set nameInput(value: string) {
@@ -72,6 +73,12 @@ export class MoleculeHeaderComponent {
     this._isCustom.set(isCustom ?? false)
     this._badgeName.set(isCustom ? 'Personal Molecule' : 'ChEMBL Personal Molecule')
   }
+
+  @Input({ required: true })
+  set molId(molId: string) {
+    this._molId.set(molId)
+  }
+
 
   @Output()
   onSave = new EventEmitter<MyMoleculeCustomDetailSaveModel>

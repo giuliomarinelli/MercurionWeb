@@ -75,12 +75,14 @@ import { HistoryContextService } from '../../services/context/history-context.se
           <molecule-header
             [nameInput]="molecule.preferredName"
             [chemblIdInput]="molecule.cmbId"
+            [molId]="molecule.id.toString()"
           />
         } @else if (typeGuards.isChemblMolecule(molecule)) {
           <molecule-header
             [nameInput]="molecule.chemblDetails.preferredName"
             [chemblIdInput]="molecule.chemblDetails.cmbId"
             [myMol]="true"
+            [molId]="molecule.id"
           />
         } @else if (typeGuards.isCustomMolecule(molecule)) {
           <molecule-header
@@ -88,6 +90,7 @@ import { HistoryContextService } from '../../services/context/history-context.se
             [myMol]="true"
             [isCustom]="true"
             (onSave)="doUpdateInlineDetails($event)"
+            [molId]="molecule.id"
           />
         }
 
@@ -95,8 +98,8 @@ import { HistoryContextService } from '../../services/context/history-context.se
 
         <section>
           @if (!typeGuards.isSystemMolecule(molecule)) {
-            <app-my-molecule-custom-details (onSave)="doUpdateInlineDetails($event)" [type]="'label'" [value]="molecule.label ?? '—'" />
-            <app-my-molecule-custom-details (onSave)="doUpdateInlineDetails($event)" [type]="'notes'" [value]="molecule.notes ?? '—'" />
+            <app-my-molecule-custom-details (onSaving)="doUpdateInlineDetails($event)" [type]="'label'" [value]="molecule.label ?? '—'" [molId]="molecule.id"/>
+            <app-my-molecule-custom-details (onSaving)="doUpdateInlineDetails($event)" [type]="'notes'" [value]="molecule.notes ?? '—'" [molId]="molecule.id"/>
               @if (molecule.joins) {
                 <h2 class="font-semibold my-6 sm:top-14 text-light-accent-primary dark:text-dark-accent-primary text-center sm:text-left text-xl">
                   Questa molecola fa parte delle seguenti collezioni:
