@@ -1,54 +1,37 @@
-import { AfterViewInit, Component, OnDestroy, signal } from '@angular/core';
-import { LoadingContextService } from '../../services/context/loading-context.service';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { AccountService } from '../../services/account.service';
+import { ProfileDTO } from '../../Models/account/account.models';
 import { Subscription } from 'rxjs';
-import { AuthService } from '../../services/auth.service';
-import { Router } from '@angular/router';
-import { UserContextService } from '../../services/context/user-context.service';
-import { SessionSyncService } from '../../services/session-sync.service';
+
 
 @Component({
   selector: 'app-profile',
   imports: [],
-  templateUrl: './profile.page.component.html',
-  styleUrl: './profile.page.component.css'
+  template: `
+
+
+
+  `
 })
-export class ProfilePageComponent implements AfterViewInit, OnDestroy {
+export class ProfilePageComponent implements OnInit, OnDestroy {
 
-  protected loggingOut = signal(false)
-  private logoutSub: Subscription | undefined
+  // ======================= DEPS =======================
+  private readonly accountService = inject(AccountService)
+  // ====================================================
 
-  constructor(
-    private readonly loadingContext: LoadingContextService,
-    private readonly authService: AuthService,
-    private readonly router: Router,
-    private readonly userContext: UserContextService,
-    private readonly sessionSync: SessionSyncService
-  ) { }
+  private prSub?: Subscription
 
-  ngAfterViewInit(): void {
-    this.loadingContext.stop()
-  }
+  private profile!: ProfileDTO
 
-  logout(): void {
-    this.logoutSub = this.authService.logout().subscribe({
-      next: () => {
-        sessionStorage?.removeItem('RouteError')
-        sessionStorage?.setItem('logout', 'success')
-        localStorage?.removeItem('login')
-        this.sessionSync.logout()
-        this.router.navigate(['/login'])
-      },
-      error: () => {
-        sessionStorage?.removeItem('RouteError')
-        sessionStorage?.setItem('logout', 'success')
-        this.sessionSync.logout()
-        this.router.navigate(['/login'])
-      }
+  ngOnInit(): void {
+    this.prSub = this.accountService.getProfileRegistry().subscribe({
+      next: profile => this.profile = profile,
+      error: e => console.error(e)
     })
   }
 
   ngOnDestroy(): void {
-    this.logoutSub?.unsubscribe()
+    this.prSub?.unsubscribe()
   }
 
 }

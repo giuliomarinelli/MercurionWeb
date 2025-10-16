@@ -27,3 +27,4 @@ export type UserRegistrationFormControls = {
   password: FormControl<string>;
   confirmPassword: FormControl<string>;
 };
+

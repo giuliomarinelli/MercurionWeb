@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { ChangePasswordDTO, UserData } from '../Models/account/account.models';
+import { ChangePasswordDTO, ProfileDTO, UserData } from '../Models/account/account.models';
 import { Observable, of, tap } from 'rxjs';
 import { ConfirmDTO } from '../Models/confirm.models';
 import { ConfirmWithObsContDTO } from '../Models/confirm.models';
@@ -80,6 +80,12 @@ export class AccountService {
 
   public activateAccount(token: string): Observable<ConfirmDTO> {
     return this.http.patch<ConfirmDTO>(`/api/account/activate?t=${token}`, null, {
+      withCredentials: true
+    })
+  }
+
+  public getProfileRegistry(): Observable<ProfileDTO> {
+    return this.http.get<ProfileDTO>('/api/account/profile-registry', {
       withCredentials: true
     })
   }

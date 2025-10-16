@@ -1,3 +1,5 @@
+import { UserGender } from "../auth/user.models"
+
 export interface UserData {
   email?: string | null
   ts?: number
@@ -6,4 +8,14 @@ export interface UserData {
 export interface ChangePasswordDTO {
     oldPassword?: string
     newPassword: string
+}
+
+export interface ProfileDTO {
+    firstName: string
+    lastName: string
+    gender: UserGender
+    job?: string | null
+    obscuredEmail: string
+    obscuredPhone: string | null
+    avatarId: string | null
 }

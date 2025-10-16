@@ -339,24 +339,38 @@ export class UserService {
     }
 
     async getVerifiedUserProfileById(id: UUID): Promise<ProfileDTO | null> {
+        try {
+            const row = await this.userRepository.findOne({
+                where: { id, isVerified: true },
+                relations: { avatar: true },
+                select: {
+                    id: true, // <-- fondamentale per evitare l'errore
+                    firstName: true,
+                    lastName: true,
+                    gender: true,
+                    job: true,
+                    email: true,
+                    completePhoneNumber: true,
+                    avatar: { id: true },
+                },
+            });
 
-        const rows = await this.userRepository.createQueryBuilder('u')
-            .select(['u.firstName', 'u.lastName', 'u.gender', 'u.job', 'u.email', 'u.completePhoneNumber', 'u.avatarId'])
-            .where('u.isVerified = true')
-            .andWhere('u.id = :id', { id })
-            .getOne()
-        if (!rows) {
-            return null
-        }
-        const { firstName, lastName, gender, job, email, completePhoneNumber, avatarId } = rows
-        return {
-            firstName,
-            lastName,
-            gender,
-            job,
-            obscuredEmail: this.securityService.maskEmail(email!),
-            obscuredPhone: completePhoneNumber ? this.securityService.maskPhone(completePhoneNumber) : null,
-            avatarId
+            if (!row) return null;
+
+            const { firstName, lastName, gender, job, email, completePhoneNumber, avatar } = row;
+            return {
+                firstName,
+                lastName,
+                gender,
+                job,
+                obscuredEmail: this.securityService.maskEmail(email ?? ''),
+                obscuredPhone: completePhoneNumber ? this.securityService.maskPhone(completePhoneNumber) : null,
+                avatarId: avatar?.id ?? null,
+            };
+
+        } catch (e) {
+            this.logger.warn('Failed to fetch profile', e)
+            throw e
         }
 
     }

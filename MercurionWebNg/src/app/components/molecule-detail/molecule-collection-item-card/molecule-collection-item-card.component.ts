@@ -222,19 +222,20 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
                 />
               </svg>
             </button>
-
-            <!-- 🧩 Rimuovi dalla collezione -->
-            <button
-              type="button"
-              class="relative z-30 px-3 py-1 rounded-md border border-slate-300 dark:border-slate-600
-                     text-slate-600 dark:text-slate-300 text-xs font-medium
-                     hover:bg-slate-200 dark:hover:bg-slate-700
-                     transition-colors duration-150"
-              title="Rimuovi dalla collezione"
-              (click)="onRemoveFromCollection()"
-            >
-              Rimuovi da questa collezione
-            </button>
+            @if (_collectionId()) {
+              <!-- 🧩 Rimuovi dalla collezione -->
+              <button
+                type="button"
+                class="relative z-30 px-3 py-1 rounded-md border border-slate-300 dark:border-slate-600
+                       text-slate-600 dark:text-slate-300 text-xs font-medium
+                       hover:bg-slate-200 dark:hover:bg-slate-700
+                       transition-colors duration-150"
+                title="Rimuovi dalla collezione"
+                (click)="onRemoveFromCollection()"
+              >
+                Rimuovi da questa collezione
+              </button>
+            }
           </div>
         </div>
       </div>

@@ -1,6 +1,6 @@
 import { uuidv7 } from '@kripod/uuidv7';
 import { UUID } from "crypto"
-import { BeforeInsert, Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryColumn, RelationId } from "typeorm"
+import { BeforeInsert, Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryColumn } from "typeorm"
 import { MfaBackupCode } from "./backup-code.entity"
 import { OldPasswordItem } from '../DTO/old-password-item.interface';
 import { DocumentEntity } from 'src/app_modules/dropbox-object-store/Models/entities/document.entity';
@@ -78,10 +78,6 @@ export class User {
     @OneToOne(() => DocumentEntity, { cascade: true, nullable: true })
     @JoinColumn({ name: 'avatar_id' })
     avatar: DocumentEntity | null;
-
-    // questo NON crea una colonna aggiuntiva: è un “derivato” dell’FK
-    @RelationId((user: User) => user.avatar)
-    avatarId: UUID | null;
 
     @BeforeInsert()
     private generateId() {
