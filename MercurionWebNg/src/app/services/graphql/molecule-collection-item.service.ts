@@ -10,7 +10,7 @@ import {
   CreateMoleculeItemInput,
   MoleculeItemDTO,
 } from '../../Models/graphql/molecule-collection/molecule-collection.types';
-import { CREATE_MOLECULE_ITEM, DELETE_MOLECULE_ITEM, MOLECULE_ITEM, MOLECULE_ITEM_FRAG_SHORT, MY_MOLECULE_ITEMS, UPDATE_MOLECULE_ITEM, UPDATE_MOLECULE_ITEM_LABEL, UPDATE_MOLECULE_ITEM_NOTES, UPDATE_MOLECULE_ITEM_NAME, UPDATE_MOLECULE_ITEM_SMILES, PAGINATED_MOLECULE_ITEMS_FOR_CARD, MARK_MOLECULE_COLLECTION_ITEM_AS_TOUCHED, HAS_USER_CHEMBL_MOLECULE_BY_MOLREGNO_THEN_GET_UUID, EXISTS_CHEMBL_MOLECULE_BY_UUID_THEN_GET_MOLREGNO } from './graphql-actions/molecule-collection-item.gql-actions';
+import { CREATE_MOLECULE_ITEM, DELETE_MOLECULE_ITEM, MOLECULE_ITEM, MOLECULE_ITEM_FRAG_SHORT, MY_MOLECULE_ITEMS, UPDATE_MOLECULE_ITEM, UPDATE_MOLECULE_ITEM_LABEL, UPDATE_MOLECULE_ITEM_NOTES, UPDATE_MOLECULE_ITEM_NAME, UPDATE_MOLECULE_ITEM_SMILES, PAGINATED_MOLECULE_ITEMS_FOR_CARD_BY_COLLECTION, MARK_MOLECULE_COLLECTION_ITEM_AS_TOUCHED, HAS_USER_CHEMBL_MOLECULE_BY_MOLREGNO_THEN_GET_UUID, EXISTS_CHEMBL_MOLECULE_BY_UUID_THEN_GET_MOLREGNO, ALL_PAGINATED_MOLECULE_ITEMS_FOR_CARD } from './graphql-actions/molecule-collection-item.gql-actions';
 import { extractGqlData } from './graphql-helpers/extract-gql-data.gql-helper';
 
 
@@ -121,7 +121,7 @@ export class MoleculeCollectionItemService {
   getPaginatedItemsForCollection(collectionId: string, page: number = 1, limit: number = 20): Observable<PageModel<MoleculeCollectionItemClient>> {
     return this.apollo
       .watchQuery<{ paginatedMoleculeCollectionItemsByCollection: PageModel<MoleculeItemDTO> }>({
-        query: PAGINATED_MOLECULE_ITEMS_FOR_CARD,
+        query: PAGINATED_MOLECULE_ITEMS_FOR_CARD_BY_COLLECTION,
         variables: {
           collectionId,
           page,
@@ -131,6 +131,25 @@ export class MoleculeCollectionItemService {
       })
       .valueChanges.pipe(
         map(res => extractGqlData(res, 'paginatedMoleculeCollectionItemsByCollection', true) as PageModel<MoleculeItemDTO>),
+        map(node => {
+          const mappedItems = node.items.map(i => mapDtoToClient(i))
+          const newNode = {
+            ...node,
+            items: mappedItems
+          }
+          return newNode
+        })
+      )
+  }
+
+  getAllPaginatedItems(page = 1, limit = 20): Observable<PageModel<MoleculeCollectionItemClient>> {
+    return this.apollo
+      .watchQuery<{ paginatedMoleculeCollectionItemsByUser: PageModel<MoleculeItemDTO> }>({
+        query: ALL_PAGINATED_MOLECULE_ITEMS_FOR_CARD,
+        variables: { page, limit },
+        fetchPolicy: 'network-only'
+      }).valueChanges.pipe(
+        map(res => extractGqlData(res, 'paginatedMoleculeCollectionItemsByUser', true) as PageModel<MoleculeItemDTO>),
         map(node => {
           const mappedItems = node.items.map(i => mapDtoToClient(i))
           const newNode = {

@@ -8,10 +8,9 @@ import { MoleculeCollectionItemCardComponent } from '../../components/molecule-d
 import { SkeletonMoleculeCardComponent } from '../../components/molecule-detail/skeleton-molecule-card/skeleton-molecule-card.component';
 import { ActivatedRoute } from '@angular/router';
 import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service';
-import { MoleculeDetail } from '../../Models/graphql/molecule.detail.models';
-import { MoleculeProperties } from '../../Models/graphql/molecule-properties.model';
 import { LinkModel } from '../../Models/link.model';
 import { HistoryContextService } from '../../services/context/history-context.service';
+import { Helpers } from '../../helpers';
 
 
 
@@ -93,20 +92,7 @@ export class MoleculeCollectionDetailPageComponent implements OnInit, OnDestroy 
       debounce(() => interval(80)),
       map(page => ({
         ...page,
-        items: page.items.map(mol => ({
-          id: mol.id,
-          type: mol.type as 'chembl' | 'custom',
-          name: mol.type === 'chembl' ? (mol.chemblDetails as MoleculeDetail)?.preferredName ?? '' : mol.name ?? '',
-          syn: mol.type === 'chembl' ? (mol.chemblDetails as MoleculeDetail)?.synonyms?.[0] ?? '' : '',
-          mwFreebase: mol.type === 'chembl'
-            ? (mol.chemblDetails as MoleculeDetail)?.properties.mwFreebase ?? 0
-            : (() => { try { return (JSON.parse(mol.propertiesJson ?? '') as MoleculeProperties).mwFreebase ?? 0 } catch { return 0 } })(),
-          maxPhase: mol.type === 'chembl' ? (mol.chemblDetails as MoleculeDetail)?.maxPhase ?? 0 : undefined,
-          smiles: mol.type === 'chembl' ? (mol.chemblDetails as MoleculeDetail)?.canonicalSmiles ?? '' : mol.canonicalSmiles ?? '',
-          createdAt: Date.parse(String(mol.createdAt)),
-          updatedAt: Date.parse(String(mol.updatedAt)),
-          touchedAt: Date.parse(String(mol.touchedAt))
-        }))
+        items: page.items.map(mol => Helpers.moleculeClientToCardAdapter(mol))
       }))
     );
   }

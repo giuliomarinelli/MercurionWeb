@@ -81,6 +81,10 @@ export const routes: Routes = [
   },
   {
     path: 'account/activate',
-    loadComponent: () => import('./pages/account-activate.page/account-activate.page.component').then(m => m.AccountActivatePageComponent)
+    loadComponent: () => import('./pages/account-activate/account-activate.page.component').then(m => m.AccountActivatePageComponent)
+  },
+  {
+    path: 'molecules/all-my-molecules',
+    loadComponent: () => import('./pages/all-my-molecules/all-my-molecules.page.component').then(m => m.AllMyMoleculesPageComponent)
   }
 ]

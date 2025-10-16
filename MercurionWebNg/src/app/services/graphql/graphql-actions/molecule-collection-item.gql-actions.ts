@@ -107,7 +107,8 @@ export const MOLECULE_ITEM_FRAG_SHORT = gql`
   }
 `;
 
-export const PAGINATED_MOLECULE_ITEMS_FOR_CARD = gql`
+
+export const PAGINATED_MOLECULE_ITEMS_FOR_CARD_BY_COLLECTION = gql`
 query PaginatedMoleculeCollectionItemsByCollection($collectionId: String!, $page: Int!, $limit: Int!) {
     paginatedMoleculeCollectionItemsByCollection(
         collectionId: $collectionId
@@ -150,6 +151,46 @@ query PaginatedMoleculeCollectionItemsByCollection($collectionId: String!, $page
         currentPage
     }
 }
+`
+export const ALL_PAGINATED_MOLECULE_ITEMS_FOR_CARD = gql`
+query PaginatedMoleculeCollectionItemsByUser($page: Int!, $limit: Int!) {
+    paginatedMoleculeCollectionItemsByUser(page: $page, limit: $limit) {
+        items {
+            ... on CustomMoleculeItemDTO {
+                id
+                type
+                canonicalSmiles
+                name
+                propertiesJson
+                createdAt
+                updatedAt
+                touchedAt
+            }
+            ... on ChEMBLMoleculeItemDTO {
+                id
+                type
+                createdAt
+                updatedAt
+                touchedAt
+                chemblDetails {
+                    preferredName
+                    canonicalSmiles
+                    maxPhase
+                    synonyms
+                    properties {
+                        mwFreebase
+                    }
+                }
+            }
+        }
+        itemCount
+        totalItems
+        itemsPerPage
+        totalPages
+        currentPage
+    }
+}
+
 `
 // hasUserChEMBLMoleculeByMolregnoThenGetUUID
 export const HAS_USER_CHEMBL_MOLECULE_BY_MOLREGNO_THEN_GET_UUID = gql`
