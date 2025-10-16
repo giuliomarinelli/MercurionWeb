@@ -364,7 +364,7 @@ export class UserService {
                 gender,
                 job,
                 obscuredEmail: this.securityService.maskEmail(email ?? ''),
-                obscuredPhone: completePhoneNumber ? this.securityService.maskPhone(completePhoneNumber) : null,
+                obscuredPhone: completePhoneNumber ? this.securityService.maskPhone(completePhoneNumber ?? '') : null,
                 avatarId: avatar?.id ?? null,
             };
 
