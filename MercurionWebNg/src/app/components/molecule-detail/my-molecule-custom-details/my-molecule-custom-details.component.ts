@@ -161,7 +161,10 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
   `
 })
 export class MyMoleculeCustomDetailsComponent {
+
+  // ======================= DEPS =======================
   private readonly r = inject(Renderer2);
+  // ====================================================
 
   _label = signal<string>('');
   _value = signal<string>('');

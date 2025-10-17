@@ -28,4 +28,10 @@ export interface MoleculeDetailSystem extends MoleculeDetail {
   type: 'system'
 }
 
+export interface NormalizedMoleculeCollectionBasicData {
+  id: string
+  name: string
+  canonicalSmiles: string
+  type: 'system' | 'chembl' | 'custom'
+}
 

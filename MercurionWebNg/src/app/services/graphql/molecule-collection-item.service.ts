@@ -1,5 +1,6 @@
+import { NormalizedMoleculeCollectionBasicData } from './../../Models/graphql/molecule.detail.models';
 import { PageModel } from './../../Models/graphql/page.model';
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import { Apollo } from 'apollo-angular';
 import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
@@ -10,8 +11,9 @@ import {
   CreateMoleculeItemInput,
   MoleculeItemDTO,
 } from '../../Models/graphql/molecule-collection/molecule-collection.types';
-import { CREATE_MOLECULE_ITEM, DELETE_MOLECULE_ITEM, MOLECULE_ITEM, MOLECULE_ITEM_FRAG_SHORT, MY_MOLECULE_ITEMS, UPDATE_MOLECULE_ITEM, UPDATE_MOLECULE_ITEM_LABEL, UPDATE_MOLECULE_ITEM_NOTES, UPDATE_MOLECULE_ITEM_NAME, UPDATE_MOLECULE_ITEM_SMILES, PAGINATED_MOLECULE_ITEMS_FOR_CARD_BY_COLLECTION, MARK_MOLECULE_COLLECTION_ITEM_AS_TOUCHED, HAS_USER_CHEMBL_MOLECULE_BY_MOLREGNO_THEN_GET_UUID, EXISTS_CHEMBL_MOLECULE_BY_UUID_THEN_GET_MOLREGNO, ALL_PAGINATED_MOLECULE_ITEMS_FOR_CARD } from './graphql-actions/molecule-collection-item.gql-actions';
+import { CREATE_MOLECULE_ITEM, DELETE_MOLECULE_ITEM, MOLECULE_ITEM, MOLECULE_ITEM_FRAG_SHORT, MY_MOLECULE_ITEMS, UPDATE_MOLECULE_ITEM, UPDATE_MOLECULE_ITEM_LABEL, UPDATE_MOLECULE_ITEM_NOTES, UPDATE_MOLECULE_ITEM_NAME, UPDATE_MOLECULE_ITEM_SMILES, PAGINATED_MOLECULE_ITEMS_FOR_CARD_BY_COLLECTION, MARK_MOLECULE_COLLECTION_ITEM_AS_TOUCHED, HAS_USER_CHEMBL_MOLECULE_BY_MOLREGNO_THEN_GET_UUID, EXISTS_CHEMBL_MOLECULE_BY_UUID_THEN_GET_MOLREGNO, ALL_PAGINATED_MOLECULE_ITEMS_FOR_CARD, ALL_BASIC_DATA } from './graphql-actions/molecule-collection-item.gql-actions';
 import { extractGqlData } from './graphql-helpers/extract-gql-data.gql-helper';
+import { TypeGuardsService } from '../../type-guards.service';
 
 
 function toNum(n: string | number): number {
@@ -64,13 +66,50 @@ function mapDtoToShort(node: MoleculeItemDTO): MoleculeCollectionItemEntityShort
 // ---------- Service ----------
 @Injectable({ providedIn: 'root' })
 export class MoleculeCollectionItemService {
+
+  // ======================= DEPS =======================
+  private readonly apollo = inject(Apollo)
+  private readonly typeGuards = inject(TypeGuardsService)
+  // ====================================================
+
+
+
   private _items = signal<MoleculeCollectionItemClient[]>([]);
   private _loading = signal<boolean>(false);
 
   readonly items = computed(() => this._items());
   readonly loading = computed(() => this._loading());
 
-  constructor(private apollo: Apollo) { }
+
+  private normalizeClientItem(item: MoleculeCollectionItemClient): NormalizedMoleculeCollectionBasicData {
+    let name = ''
+    let canonicalSmiles = ''
+    if (this.typeGuards.isChemblMolecule(item)) {
+      name = item.chemblDetails.preferredName
+      canonicalSmiles = item.chemblDetails.canonicalSmiles
+    } else if (this.typeGuards.isCustomMolecule(item)) {
+      name = item.name ?? 'Lead sconosciuto'
+      canonicalSmiles = item.canonicalSmiles
+    }
+    return {
+      id: item.id,
+      name,
+      canonicalSmiles,
+      type: item.type
+    }
+  }
+
+  getAllNormalizedBasicData(): Observable<NormalizedMoleculeCollectionBasicData[]> {
+    return this.apollo
+      .watchQuery<{ myMoleculeItems: MoleculeItemDTO[] }>({
+        query: ALL_BASIC_DATA,
+        fetchPolicy: 'network-only'
+      }).valueChanges.pipe(
+        map(res => extractGqlData(res, 'myMoleculeItems') as MoleculeItemDTO[]),
+        map(items => items.map(mapDtoToClient)),
+        map(items => items.map(this.normalizeClientItem))
+      )
+  }
 
   // LISTA
   getAllItems(): Observable<MoleculeCollectionItemClient[]> {
@@ -89,6 +128,7 @@ export class MoleculeCollectionItemService {
         })
       );
   }
+
 
   // GET BY ID (polimorfico, può essere null)
   getItemById(id: string): Observable<MoleculeCollectionItemClient | null> {

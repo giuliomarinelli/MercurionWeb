@@ -11,3 +11,5 @@ export function extractGqlData<T>(res: any, field: keyof T, allowNull = false): 
   }
   return value; // può essere null se allowNull=true
 }
+
+

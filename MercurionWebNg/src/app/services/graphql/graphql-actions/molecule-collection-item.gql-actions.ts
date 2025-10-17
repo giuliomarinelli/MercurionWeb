@@ -50,6 +50,28 @@ export const MY_MOLECULE_ITEMS = gql`
   }
 `;
 
+export const ALL_BASIC_DATA = gql`
+  query MyMoleculeItems {
+    myMoleculeItems {
+      __typename
+      ... on ChEMBLMoleculeItemDTO {
+        id
+        type
+        chemblDetails {
+          preferredName
+          canonicalSmiles
+        }
+      }
+      ... on CustomMoleculeItemDTO {
+        id
+        type
+        name
+        canonicalSmiles
+      }
+    }
+  }
+`
+
 export const MOLECULE_ITEM = gql`
   query MoleculeItem($id: ID!) {
     moleculeItem(id: $id) {
