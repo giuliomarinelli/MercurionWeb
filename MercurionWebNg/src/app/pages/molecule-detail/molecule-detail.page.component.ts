@@ -74,6 +74,7 @@ import { HistoryContextService } from '../../services/context/history-context.se
             [nameInput]="molecule.preferredName"
             [chemblIdInput]="molecule.cmbId"
             [molId]="molecule.id.toString()"
+            [smiles]="molecule.canonicalSmiles"
           />
         } @else if (typeGuards.isChemblMolecule(molecule)) {
           <molecule-header
@@ -81,13 +82,15 @@ import { HistoryContextService } from '../../services/context/history-context.se
             [chemblIdInput]="molecule.chemblDetails.cmbId"
             [myMol]="true"
             [molId]="molecule.id"
+            [smiles]="molecule.chemblDetails.canonicalSmiles"
           />
         } @else if (typeGuards.isCustomMolecule(molecule)) {
           <molecule-header
             [nameInput]="molecule.name ?? 'Lead'"
             [myMol]="true"
             [isCustom]="true"
-            (onSave)="doUpdateInlineDetails($event)"
+            (onSave)="doUpdateInlineDetails($event)"ù
+            [smiles]="molecule.canonicalSmiles"
             [molId]="molecule.id"
           />
         }

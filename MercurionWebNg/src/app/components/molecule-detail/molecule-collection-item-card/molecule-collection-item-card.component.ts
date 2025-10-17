@@ -226,14 +226,18 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
               <!-- 🧩 Rimuovi dalla collezione -->
               <button
                 type="button"
-                class="relative z-30 px-3 py-1 rounded-md border border-slate-300 dark:border-slate-600
+                class="flex items-center gap-2 relative z-30 px-3 py-1 rounded-md border border-slate-300 dark:border-slate-600
                        text-slate-600 dark:text-slate-300 text-xs font-medium
                        hover:bg-slate-200 dark:hover:bg-slate-700
                        transition-colors duration-150"
                 title="Rimuovi dalla collezione"
                 (click)="onRemoveFromCollection()"
               >
-                Rimuovi da questa collezione
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-4 w-auto">
+                  <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                  <path d="M96 304L544 304L544 336L96 336L96 304z"/>
+                </svg>
+                <span>Rimuovi da questa collezione</span>
               </button>
             }
           </div>
