@@ -2,10 +2,10 @@ import { MyMoleculeCustomDetailSaveModel } from '../../Models/my-molecule-custom
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { EmbeddingService } from '../../services/embedding.service';
 import { SimilarsComponent } from '../../components/molecule-detail/similars/similars.component';
-import { Component, computed, DestroyRef, effect, inject, OnDestroy, OnInit, Signal, signal, WritableSignal } from '@angular/core';
+import { Component, DestroyRef, effect, inject, OnDestroy, OnInit, Signal, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MoleculeService } from '../../services/graphql/molecule.service';
-import { switchMap, Observable, catchError, of, Subscription, forkJoin, retry, tap, distinctUntilChanged, shareReplay, startWith, throwError, EMPTY } from 'rxjs';
+import { switchMap, Observable, catchError, of, Subscription, tap, distinctUntilChanged, throwError, EMPTY } from 'rxjs';
 import { filter, map, mergeMap } from 'rxjs/operators';
 import { AsyncPipe } from '@angular/common';
 import { ThemeManagerService } from '../../services/context/theme-manager.service';
@@ -18,7 +18,6 @@ import { MoleculeCtaChemblComponent } from '../../components/molecule-detail/mol
 import { T1PredictionCardComponent } from '../../components/molecule-detail/t1-prediction-card/t1-prediction-card.component';
 import { UserContextService } from '../../services/context/user-context.service';
 import { MercurionAiService as MercurionAIService } from '../../services/mercurion-ai.service';
-import { EditingLayerComponent } from '../../components/molecule-detail/editing-layer/editing-layer.component';
 import { MoleculeSearchResult } from '../../Models/graphql/molecule-search/molecule-search-result.interface';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { TypeGuardsService } from '../../type-guards.service';
@@ -49,7 +48,6 @@ import { HistoryContextService } from '../../services/context/history-context.se
     MoleculeSynonymsComponent,
     MoleculeCtaChemblComponent,
     T1PredictionCardComponent,
-    EditingLayerComponent,
     SimilarsComponent,
     ReactiveFormsModule,
     ClassicSpinnerComponent,
@@ -93,36 +91,7 @@ import { HistoryContextService } from '../../services/context/history-context.se
             [molId]="molecule.id"
           />
         }
-
-
-
-        <section>
-          @if (!typeGuards.isSystemMolecule(molecule)) {
-            <app-my-molecule-custom-details (onSaving)="doUpdateInlineDetails($event)" [type]="'label'" [value]="molecule.label ?? '—'" [molId]="molecule.id"/>
-            <app-my-molecule-custom-details (onSaving)="doUpdateInlineDetails($event)" [type]="'notes'" [value]="molecule.notes ?? '—'" [molId]="molecule.id"/>
-              @if (molecule.joins) {
-                <h2 class="font-semibold my-6 sm:top-14 text-light-accent-primary dark:text-dark-accent-primary text-center sm:text-left text-xl">
-                  Questa molecola fa parte delle seguenti collezioni:
-                </h2>
-                <section class="rounded-md border border-slate-300 dark:border-slate-600">
-                  <app-my-molecule-join [joins]="molecule.joins" />
-                </section>
-
-              }
-          }
-          @if (userContext.initials()) {
-            <a
-              class="flex justify-center mx-auto sm:mx-0 text-sm w-fit 2xs:text-base xs:w-[370px] gap-2 items-center px-4 mt-6 py-2 text-white rounded-md transition-colors duration-150
-               bg-emerald-600
-               hover:bg-emerald-400/90 dark:hover:bg-emerald-600/90"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-6 h-6">
-                <!--!Font Awesome Pro v7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-                <path d="M320 112C434.9 112 528 205.1 528 320C528 434.9 434.9 528 320 528C205.1 528 112 434.9 112 320C112 205.1 205.1 112 320 112zM320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM296 408C296 421.3 306.7 432 320 432C333.3 432 344 421.3 344 408L344 344L408 344C421.3 344 432 333.3 432 320C432 306.7 421.3 296 408 296L344 296L344 232C344 218.7 333.3 208 320 208C306.7 208 296 218.7 296 232L296 296L232 296C218.7 296 208 306.7 208 320C208 333.3 218.7 344 232 344L296 344L296 408z"/>
-              </svg>
-              <span class="text-slate-100">Aggiungi ad una collezione</span>
-            </a>
-          }
+        <section class="relative -top-4">
           <h2 class="flex gap-3 items-center font-semibold text-light-accent-primary dark:text-dark-accent-primary mt-6 mb-4 text-center sm:text-left text-xl">
             <span>Struttura</span>
             @if (typeGuards.isCustomMolecule(molecule)) {
@@ -179,9 +148,32 @@ import { HistoryContextService } from '../../services/context/history-context.se
                 }
             </div>
           </div>
+          @if (!typeGuards.isSystemMolecule(molecule)) {
+                    <div class="mt-8"></div>
+                <app-my-molecule-custom-details (onSaving)="doUpdateInlineDetails($event)" [type]="'label'" [value]="molecule.label ?? '—'" [molId]="molecule.id"/>
+                <app-my-molecule-custom-details (onSaving)="doUpdateInlineDetails($event)" [type]="'notes'" [value]="molecule.notes ?? '—'" [molId]="molecule.id"/>
+                @if (userContext.isLoggedIn()) {
+                  <app-t1-prediction-card [inference]="molecule.t1Inference" />
+                }
+
+                @if (typeGuards.isSystemMolecule(molecule) || typeGuards.isCustomMolecule(molecule)) {
+                  <molecule-properties [properties]="molecule.properties" />
+                } @else if (typeGuards.isChemblMolecule(molecule)) {
+                  <molecule-properties [properties]="molecule.chemblDetails.properties" />
+                }
+              @if (molecule.joins) {
+                <h2 class="font-semibold mt-8 mb-3 sm:top-14 text-light-accent-primary dark:text-dark-accent-primary text-center sm:text-left text-xl">
+                  Questa molecola fa parte delle seguenti collezioni:
+                </h2>
+                <section class="rounded-md border border-slate-300 dark:border-slate-600">
+                  <app-my-molecule-join [joins]="molecule.joins" />
+                </section>
+
+              }
+          }
         </section>
           @if (typeGuards.isSystemMolecule(molecule) || typeGuards.isChemblMolecule(molecule)) {
-            <h2 class="font-semibold relative top-[28px] sm:top-14 text-light-accent-primary dark:text-dark-accent-primary text-center sm:text-left text-xl">
+            <h2 class="font-semibold relative -top-[28px] sm:top-14 text-light-accent-primary dark:text-dark-accent-primary text-center sm:text-left text-xl" style="margin-block-start: -38px  ">
                 Analoghi suggeriti
             </h2>
 
@@ -235,20 +227,7 @@ import { HistoryContextService } from '../../services/context/history-context.se
             </section>
           }
 
-        @if (userContext.initials() !== '') {
-            @if (typeGuards.isSystemMolecule(molecule) || typeGuards.isCustomMolecule(molecule)) {
-              <app-editing-layer [smiles]="molecule.canonicalSmiles" />
-            } @else if (typeGuards.isChemblMolecule(molecule)) {
-              <app-editing-layer [smiles]="molecule.chemblDetails.canonicalSmiles" />
-            }
-          <app-t1-prediction-card [inference]="molecule.t1Inference" />
-        }
 
-        @if (typeGuards.isSystemMolecule(molecule) || typeGuards.isCustomMolecule(molecule)) {
-          <molecule-properties [properties]="molecule.properties" />
-        } @else if (typeGuards.isChemblMolecule(molecule)) {
-          <molecule-properties [properties]="molecule.chemblDetails.properties" />
-        }
         @if (typeGuards.isSystemMolecule(molecule)) {
           <molecule-routes [adminRoutesInput]="molecule.administrationRoutes" />
         } @else if (typeGuards.isChemblMolecule(molecule)) {
@@ -345,8 +324,10 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
   }
 
   private handleCrossTabFetchData(e: StorageEvent): void {
-    this.fetchData()
-    this.fetchSimilar()
+    if (e.newValue) {
+      this.fetchData()
+      this.fetchSimilar()
+    }
   }
 
   private fetchData(): void {
@@ -535,7 +516,6 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
   }
 
   doUpdateInlineDetails(e: MyMoleculeCustomDetailSaveModel): void {
-    console.log(e)
     switch (e.type) {
       case 'label':
         this.updateLabel(e.value)

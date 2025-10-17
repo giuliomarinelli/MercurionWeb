@@ -6,7 +6,7 @@ import { AdministrationRoutes } from '../../../Models/graphql/molecule.detail.mo
   selector: 'molecule-routes',
   standalone: true,
   template: `
-    <section class="mt-12 mb-8">
+    <section class="my-4">
       <h2 class="font-semibold text-light-accent-primary dark:text-dark-accent-primary mb-6 text-center sm:text-left text-xl">Vie di somministrazione</h2>
       <div class="flex flex-wrap gap-2 text-sm justify-center sm:justify-start">
         @if (adminRoutes().oral) {
