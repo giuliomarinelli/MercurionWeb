@@ -42,7 +42,7 @@ import { NgClass } from '@angular/common';
           </p>
         }
       </div>
-      <div class="flex items-center gap-3 relative" [ngClass]="{
+      @if (_isLoggedIn()) {        <div class="flex items-center gap-3 relative" [ngClass]="{
         '-top-6 mt-6': !_isCustom()
       }">
           <!-- Duplica -->
@@ -106,7 +106,9 @@ import { NgClass } from '@angular/common';
               </svg>
               <span>Aggiungi ad una collezione</span>
             </button>
-      </div>
+        </div>
+      }
+
     </header>
 
   `
@@ -127,6 +129,7 @@ export class MoleculeHeaderComponent {
       smiles: this._smiles()
     }
   }))
+  protected readonly _isLoggedIn = signal<boolean>(false)
 
   @Input()
   set nameInput(value: string) {
@@ -159,6 +162,11 @@ export class MoleculeHeaderComponent {
   set isCustom(isCustom: boolean) {
     this._isCustom.set(isCustom ?? false)
     this._badgeName.set(isCustom ? 'Personal Molecule' : 'ChEMBL Personal Molecule')
+  }
+
+  @Input({ required: true })
+  set isLoggedIn(isLoggedIn: boolean) {
+    this._isLoggedIn.set(isLoggedIn)
   }
 
 

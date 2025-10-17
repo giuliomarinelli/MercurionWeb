@@ -75,6 +75,7 @@ import { HistoryContextService } from '../../services/context/history-context.se
             [chemblIdInput]="molecule.cmbId"
             [molId]="molecule.id.toString()"
             [smiles]="molecule.canonicalSmiles"
+            [isLoggedIn]="userContext.isLoggedIn()"
           />
         } @else if (typeGuards.isChemblMolecule(molecule)) {
           <molecule-header
@@ -83,6 +84,7 @@ import { HistoryContextService } from '../../services/context/history-context.se
             [myMol]="true"
             [molId]="molecule.id"
             [smiles]="molecule.chemblDetails.canonicalSmiles"
+            [isLoggedIn]="userContext.isLoggedIn()"
           />
         } @else if (typeGuards.isCustomMolecule(molecule)) {
           <molecule-header
@@ -92,6 +94,7 @@ import { HistoryContextService } from '../../services/context/history-context.se
             (onSave)="doUpdateInlineDetails($event)"ù
             [smiles]="molecule.canonicalSmiles"
             [molId]="molecule.id"
+            [isLoggedIn]="userContext.isLoggedIn()"
           />
         }
         <section class="relative -top-4">

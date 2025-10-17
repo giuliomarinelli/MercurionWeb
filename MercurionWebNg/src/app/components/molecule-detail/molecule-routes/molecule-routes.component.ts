@@ -1,4 +1,4 @@
-import { Component, Input, signal } from '@angular/core';
+import { Component, computed, Input, signal } from '@angular/core';
 import { AdministrationRoutes } from '../../../Models/graphql/molecule.detail.models';
 
 
@@ -34,6 +34,9 @@ import { AdministrationRoutes } from '../../../Models/graphql/molecule.detail.mo
             🧴 Topica
           </span>
         }
+        @if (noItem()) {
+          <p class="text-sm text-gray-500 dark:text-gray-400 relative -top-3">Nessuna via di somministrazione disponibile.</p>
+        }
       </div>
     </section>
   `,
@@ -42,7 +45,8 @@ export class MoleculeRoutesComponent {
   private readonly routeSignal = signal<AdministrationRoutes>({
     oral: false,
     parenteral: false,
-    topical: false
+    topical: false,
+    __typename: ''
   })
 
   @Input()
@@ -51,4 +55,10 @@ export class MoleculeRoutesComponent {
   }
 
   readonly adminRoutes = this.routeSignal.asReadonly()
+
+  protected noItem = computed(() => {
+    const { __typename: _omit, ...rest } = this.adminRoutes()
+    return Object.values(rest).every(r => !r)
+  })
+
 }

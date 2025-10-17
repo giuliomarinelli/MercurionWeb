@@ -6,6 +6,7 @@ export interface AdministrationRoutes {
     oral: boolean
     parenteral: boolean
     topical: boolean
+    __typename: string
 }
 
 export interface MoleculeDetail {
