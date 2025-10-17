@@ -3,11 +3,12 @@ import { Component, computed, EventEmitter, Input, Output, signal } from '@angul
 import { MyMoleculeCustomDetailsComponent } from '../my-molecule-custom-details/my-molecule-custom-details.component';
 import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.component';
 import { RouterLink } from '@angular/router';
+import { NgClass } from '@angular/common';
 
 @Component({
   selector: 'molecule-header',
   standalone: true,
-  imports: [MyMoleculeCustomDetailsComponent, MoleculeBadgeComponent, RouterLink],
+  imports: [MyMoleculeCustomDetailsComponent, MoleculeBadgeComponent, RouterLink, NgClass],
   template: `
     <header class="flex flex-wrap gap-3 justify-between" aria-labelledby="molecule-name">
       <div class="space-y-2 ">
@@ -41,11 +42,13 @@ import { RouterLink } from '@angular/router';
           </p>
         }
       </div>
-      <div class="flex items-center gap-3 relative -top-6 mt-6">
+      <div class="flex items-center gap-3 relative" [ngClass]="{
+        '-top-6 mt-6': !_isCustom()
+      }">
           <!-- Duplica -->
           <a
             type="button"
-            class="relative z-30 p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700
+            class="relative p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700
                    transition-colors duration-150"
             title="Crea una nuova molecola da questa struttura (Duplica)"
             [routerLink]="pathToDuplicate().url"
@@ -68,7 +71,7 @@ import { RouterLink } from '@angular/router';
           <!-- Elimina -->
           <button
             type="button"
-            class="relative z-30 p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700
+            class="relative p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700
                    transition-colors duration-150"
             title="Elimina da tutte le collezioni"
             (click)="onDelete()"
@@ -90,7 +93,7 @@ import { RouterLink } from '@angular/router';
             <!-- 🧩 Aggiungi ad una collezione -->
             <button
               type="button"
-              class="flex items-center gap-2 relative z-30 px-3 py-1 rounded-md border border-slate-300 dark:border-slate-600
+              class="flex items-center gap-2 relative px-3 py-1 rounded-md border border-slate-300 dark:border-slate-600
                      text-slate-600 dark:text-slate-300 text-xs font-medium
                      hover:bg-slate-200 dark:hover:bg-slate-700
                      transition-colors duration-150"
