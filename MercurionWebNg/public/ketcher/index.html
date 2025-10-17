@@ -44,7 +44,7 @@
       }
       waitForKetcher();
       window.addEventListener("message", async function (event) {
-        console.log("Ketcher RICEVE:", event.data)
+        // console.log("Ketcher RICEVE:", event.data)
         if (!event.data) return;
         const { type, payload } = event.data;
         if (!window.ketcher) {
