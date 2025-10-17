@@ -11,78 +11,75 @@ import { RDKitService } from '../../services/rd-kit-loader.service';
   selector: 'app-molecule-editor',
   imports: [KetcherFrameComponent],
   template: `
-
     <div class="mt-2 mb-6">
       <h2 class="text-center text-light-accent-primary dark:text-dark-accent-primary font-semibold text-xl 2xs:text-2xl sm:text-4xl">
         @switch (mode()) {
-          @case ('create') {
-            Crea molecola
-          }
-          @case ('edit') {
-            Modifica molecola
-          }
-          @case ('duplicate') {
-            Crea molecola da struttura
-          }
+          @case ('create') { Crea una nuova molecola }
+          @case ('edit') { Modifica una molecola }
+          @case ('duplicate') { Crea molecola da struttura (Duplica) }
         }
       </h2>
     </div>
 
     @if (!error()) {
       <app-ketcher-frame
-         [smiles]="smiles()"
-         [mode]="mode()"
-         [triggerReset]="triggerReset()"
-         [triggerGetSmiles]="triggerGetSmiles()"
-         (exportSmiles)="onSmilesExported($event)"
-         (onReset)="triggerReset.set(false)"
+        [smiles]="smiles()"
+        [mode]="mode()"
+        [triggerReset]="triggerReset()"
+        [triggerGetSmiles]="triggerGetSmiles()"
+        (exportSmiles)="onSmilesExported($event)"
+        (exportPolledSmiles)="onSmilesPollExported($event)"
+        (onReset)="triggerReset.set(false)"
       >
-     <div class="sm:flex flex-col 2xs:flex-row gap-3 mt-5 justify-end max-w-2xl mx-auto hidden">
-      <button class="relative bottom-[2px] w-full mt-4 py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary/80 dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary/60 disabled:hover:dark:bg-dark-accent-primary/80"
-        (click)="onReset()">Resetta
-      </button>
-      @if (mode() === 'edit') {
-        <button
-          class="relative bottom-[2px] w-full mt-4 py-2 text-white rounded-md transition-colors duration-150 bg-emerald-600 hover:bg-light-accent-primary/80 dark:hover:bg-emerald-600/90 disabled:bg-light-accent-primary/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary/60 disabled:hover:dark:bg-dark-accent-primary/80"
-          (click)="onSave()">Salva
-        </button>
-      } @else {
-        <button
-          class="relative bottom-[2px] w-full mt-4 py-2 text-white rounded-md transition-colors duration-150 bg-emerald-600 hover:bg-light-accent-primary/80 dark:hover:bg-emerald-600/90 disabled:bg-light-accent-primary/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary/60 disabled:hover:dark:bg-dark-accent-primary/80"
-          (click)="onSaveAsNew()">Salva
-        </button>
-      }
-    </div>
-    </app-ketcher-frame>
+        <div class="sm:flex flex-col 2xs:flex-row gap-3 mt-5 justify-end max-w-2xl mx-auto hidden">
+          <button
+            class="relative bottom-[2px] w-full mt-4 py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary/80 dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary/60 disabled:hover:dark:bg-dark-accent-primary/80"
+            (click)="onReset()">Resetta
+          </button>
+
+          @if (mode() === 'edit') {
+            <button
+              class="relative bottom-[2px] w-full mt-4 py-2 text-white rounded-md transition-colors duration-150 bg-emerald-600 hover:bg-light-accent-primary/80 dark:hover:bg-emerald-600/90 disabled:bg-light-accent-primary/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary/60 disabled:hover:dark:bg-dark-accent-primary/80"
+              (click)="onSave()">Salva
+            </button>
+          } @else {
+            <button
+              class="relative bottom-[2px] w-full mt-4 py-2 text-white rounded-md transition-colors duration-150 bg-emerald-600 hover:bg-light-accent-primary/80 dark:hover:bg-emerald-600/90 disabled:bg-light-accent-primary/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary/60 disabled:hover:dark:bg-dark-accent-primary/80"
+              (click)="onSaveAsNew()">Salva
+            </button>
+          }
+        </div>
+      </app-ketcher-frame>
     } @else {
       <h3 class="text-center text-5xl font-semibold text-light-error dark:text-dark-error">Si è verificato un errore</h3>
     }
-
   `
 })
 export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
 
   // ======================= DEPS =======================
-  private readonly route = inject(ActivatedRoute)
-  private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService)
-  private readonly saveContext = inject(CollectionSaveOverlayContextService)
-  private readonly toast = inject(ToastService)
-  private readonly router = inject(Router)
-  private readonly RDKit = inject(RDKitService)
+  private readonly route = inject(ActivatedRoute);
+  private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService);
+  private readonly saveContext = inject(CollectionSaveOverlayContextService);
+  private readonly toast = inject(ToastService);
+  private readonly router = inject(Router);
+  private readonly RDKit = inject(RDKitService);
   // ====================================================
 
-  private routeSub?: Subscription
-  private smilesByIdSub?: Subscription
-  private molEdSub?: Subscription
+  private routeSub?: Subscription;
+  private smilesByIdSub?: Subscription;
+  private molEdSub?: Subscription;
 
-  mode = signal<KetcherFrameMode>('edit')
-  smiles = signal<string>('')
-  mId = signal<string | undefined>(undefined) // undefined per mode !== 'edit' (in creazione e modifica = ricreazione da modello non c'è ancora id e lato GraphQL si userà una mutation di creazione)
-  error = signal<boolean>(false)
-  triggerReset = signal<boolean>(false)
-  triggerGetSmiles = signal<boolean>(false)
-  pendingAction = signal<'save' | 'saveNew' | null>(null)
+  mode = signal<KetcherFrameMode>('edit');
+  smiles = signal<string>('');
+  checkSmiles = signal<string>('174dd9b9-661a-4231-b7af-57e0109e2af8')
+  mId = signal<string | undefined>(undefined);
+  error = signal<boolean>(false);
+  triggerReset = signal<boolean>(false);
+  triggerGetSmiles = signal<boolean>(false);
+  pendingAction = signal<'save' | 'saveNew' | null>(null);
 
+  // NIENTE polling qui
 
   onSave(): void {
     this.pendingAction.set('save');
@@ -94,14 +91,20 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
     this.triggerGetSmiles.set(true);
   }
 
-  // Quando le SMILES sono arrivate
+  onSmilesPollExported(e: string): void {
+    this.checkSmiles.set(e);
+    console.log(e);
+    // qui puoi fare il check live di duplicati/collisioni
+  }
+
+  // Quando le SMILES sono arrivate su richiesta esplicita (salvataggio)
   onSmilesExported(e: string) {
     this.triggerGetSmiles.set(false);
 
     if (this.pendingAction() === 'saveNew') {
-      this.doSaveNew(e)
+      this.doSaveNew(e);
     } else if (this.pendingAction() === 'save') {
-      this.doSaveEdit(e)
+      this.doSaveEdit(e);
     }
     this.pendingAction.set(null);
   }
@@ -109,69 +112,67 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   // Esegui qui il vero salvataggio
   doSaveNew(smiles: string): void {
     if (!smiles) {
-      this.toast.trigger('La molecola è vuota!', 'error')
-      return
+      this.toast.trigger('La molecola è vuota!', 'error');
+      return;
     }
-    this.saveContext.setSmiles(smiles)
-    this.saveContext.setMode(this.mode())
-    this.saveContext.open()
+    this.saveContext.setSmiles(smiles);
+    this.saveContext.setMode(this.mode());
+    this.saveContext.open();
   }
 
   async doSaveEdit(smiles: string): Promise<void> {
-    this.molEdSub = this.moleculeCollectionItemService.updateItemCanonicalSmiles(this.mId()!, smiles, 'custom', JSON.stringify(await this.RDKit.getMoleculeProperties(smiles)))
+    this.molEdSub = this.moleculeCollectionItemService
+      .updateItemCanonicalSmiles(this.mId()!, smiles, 'custom', JSON.stringify(await this.RDKit.getMoleculeProperties(smiles)))
       .subscribe({
         next: res => {
-          this.toast.trigger('Struttura modificata correttamente', 'success', 2000)
-          this.router.navigateByUrl(`/molecules/detail/${res!.id}`)
+          this.toast.trigger('Struttura modificata correttamente', 'success', 2000);
+          this.router.navigateByUrl(`/molecules/detail/${res!.id}`);
         },
         error: () => this.toast.trigger('Si è verificato un errore', 'success', 2000)
-      })
+      });
   }
 
   onReset(): void {
-    this.triggerReset.set(true)
+    this.triggerReset.set(true);
   }
 
   ngOnInit(): void {
     this.routeSub = this.route.queryParams.subscribe(qp => {
-      const mode = qp['mode'] as KetcherFrameMode
+      const mode = qp['mode'] as KetcherFrameMode;
       if (!['edit', 'create', 'duplicate'].includes(mode)) {
-        this.error.set(true)
-        return
+        this.error.set(true);
+        return;
       }
-      // se edit bisogna fare chiamata api, se duplicate è come una create ma deve arrivare un query param con le smiles da cui partire
-      // va fatta validazione, non va mostrato l'editor e mostrato messaggio di errore
-      const mId = qp['m_id']
+
+      const mId = qp['m_id'];
       if (mode === 'edit' && mId) {
-        this.mode.set('edit')
+        this.mode.set('edit');
         this.smilesByIdSub = this.moleculeCollectionItemService.getCustomSmilesById(mId).subscribe({
           next: res => {
             if (!res) {
-              this.error.set(true)
-              return
+              this.error.set(true);
+              return;
             }
-            this.smiles.set(res.canonicalSmiles)
-            this.mId.set(mId)
+            this.smiles.set(res.canonicalSmiles);
+            this.mId.set(mId);
           },
           error: () => this.error.set(true)
-        })
+        });
       } else if (mode === 'duplicate' && qp['smiles']) {
-        this.smiles.set(qp['smiles'])
-        this.mode.set('duplicate')
+        this.smiles.set(qp['smiles']);
+        this.mode.set('duplicate');
       } else if (mode === 'create') {
-        this.smiles.set('')
-        this.mode.set('create')
+        this.smiles.set('');
+        this.mode.set('create');
       } else {
-        this.error.set(true)
+        this.error.set(true);
       }
-
-    })
-
+    });
   }
 
   ngOnDestroy(): void {
-    this.routeSub?.unsubscribe()
-    this.smilesByIdSub?.unsubscribe()
-    this.molEdSub?.unsubscribe()
+    this.routeSub?.unsubscribe();
+    this.smilesByIdSub?.unsubscribe();
+    this.molEdSub?.unsubscribe();
   }
 }
