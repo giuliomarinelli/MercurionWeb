@@ -55,7 +55,7 @@ import { NgClass } from '@angular/common';
             [queryParams]="pathToDuplicate().queryParams"
           >
             <svg
-              class="size-4 text-slate-600 dark:text-slate-300"
+              class="size-7 text-slate-600 dark:text-slate-300"
               viewBox="0 0 20 20"
               fill="currentColor"
               aria-hidden="true"
@@ -77,7 +77,7 @@ import { NgClass } from '@angular/common';
             (click)="onDelete()"
           >
             <svg
-              class="size-4 text-light-error dark:text-dark-error"
+              class="size-7 text-light-error dark:text-dark-error"
               viewBox="0 0 20 20"
               fill="currentColor"
               aria-hidden="true"
@@ -100,7 +100,7 @@ import { NgClass } from '@angular/common';
               title="Aggiungi ad una collezione"
               (click)="onAddToCollection()"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-4 w-auto">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto">
                 <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                 <path d="M336 112L336 96L304 96L304 304L96 304L96 336L304 336L304 544L336 544L336 336L544 336L544 304L336 304L336 112z"/>
               </svg>
