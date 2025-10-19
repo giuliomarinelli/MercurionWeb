@@ -101,16 +101,16 @@ services:
     - spectralume_network
     restart: unless-stopped
 
-  volumes:
-    redis_data:
-      external: true
-      name: docker_sl_redis_data
-    pg_data:
-      external: true
-      name: docker_sl_pg_data
-    meili_data:
-      external: true
-      name: docker_sl_meili_data
+volumes:
+  redis_data:
+    external: true
+    name: docker_sl_redis_data
+  pg_data:
+    external: true
+    name: docker_sl_pg_data
+  meili_data:
+    external: true
+    name: docker_sl_meili_data
 
 
 networks:
