@@ -101,13 +101,17 @@ services:
     - spectralume_network
     restart: unless-stopped
 
-volumes:
-  redis_data:
-    driver: local
-  meili_data:
-    driver: local
-  pg_data:
-    driver: local
+  volumes:
+    redis_data:
+      external: true
+      name: docker_sl_redis_data
+    pg_data:
+      external: true
+      name: docker_sl_pg_data
+    meili_data:
+      external: true
+      name: docker_sl_meili_data
+
 
 networks:
   spectralume_network:
