@@ -16,6 +16,7 @@ import { CustomMoleculeItemResolver } from './resolvers/custom-molecule-item.res
 import { ChEMBLMoleculeItemService } from './services/chembl-molecule-item.service';
 import { UserModule } from '../user/user.module';
 import { MeilisearchModule } from '../meilisearch/meilisearch.module';
+import { History } from '../history/Models/entities/history.entity';
 
 @Module({
     imports: [
@@ -25,6 +26,7 @@ import { MeilisearchModule } from '../meilisearch/meilisearch.module';
             MoleculeCollection,
             MoleculeCollectionItemJoin,
             MoleculeCollectionItemEntity,
+            History
         ]),
         forwardRef(() => UserModule),
         MeilisearchModule

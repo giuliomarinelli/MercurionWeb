@@ -85,6 +85,7 @@ import { HistoryContextService } from '../../services/context/history-context.se
             [molId]="molecule.id"
             [smiles]="molecule.chemblDetails.canonicalSmiles"
             [isLoggedIn]="userContext.isLoggedIn()"
+            (onDelete)="doDelete($event)"
           />
         } @else if (typeGuards.isCustomMolecule(molecule)) {
           <molecule-header
@@ -95,6 +96,7 @@ import { HistoryContextService } from '../../services/context/history-context.se
             [smiles]="molecule.canonicalSmiles"
             [molId]="molecule.id"
             [isLoggedIn]="userContext.isLoggedIn()"
+            (onDelete)="doDelete($event)"
           />
         }
         <section class="relative -top-4">
@@ -306,6 +308,7 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
   private upNaSub?: Subscription
   private bcSub?: Subscription
   private touchSub?: Subscription
+  private delSub?: Subscription
 
   onlyKnown = new FormControl<boolean>(true, { nonNullable: true })
 
@@ -562,6 +565,18 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
     }
   }
 
+  doDelete(id: string): void {
+    this.delSub = this.moleculeCollectionItemService.deleteItem(id).subscribe({
+      next: ok => {
+        if (ok) {
+          this.historyContext.triggerRemoveItemFromHistoryView(id)
+          this.toast.trigger('Molecola eliminata con successo', 'success', 2500)
+          this.router.navigateByUrl('/molecules/collections')
+        }
+      }
+    })
+  }
+
   ngOnInit(): void {
     this.fetchSimilar()
     this.touchSub = this.route.paramMap.pipe(
@@ -602,6 +617,7 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
     this.upNaSub?.unsubscribe()
     this.bcSub?.unsubscribe()
     this.touchSub?.unsubscribe()
+    this.delSub?.unsubscribe()
   }
 
 }

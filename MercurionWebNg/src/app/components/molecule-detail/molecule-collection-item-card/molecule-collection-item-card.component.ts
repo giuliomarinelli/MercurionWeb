@@ -1,6 +1,8 @@
 import {
   Component, Input, signal, effect, ElementRef, OnDestroy, NgZone, inject,
-  computed
+  computed,
+  Output,
+  EventEmitter
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DecimalPipe, NgClass, DatePipe } from '@angular/common';
@@ -207,7 +209,7 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
               class="relative z-30 p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700
                      transition-colors duration-150"
               title="Elimina da tutte le collezioni"
-              (click)="onDelete()"
+              (click)="doDelete()"
             >
               <svg
                 class="size-4 text-light-error dark:text-dark-error"
@@ -324,12 +326,8 @@ export class MoleculeCollectionItemCardComponent implements OnDestroy {
     }
   }
 
-  onDuplicate(): void {
-
-  }
-
-  onDelete(): void {
-
+  doDelete(): void {
+    this.onDelete.emit(this._molecule()!.id)
   }
 
   onRemoveFromCollection(): void {
@@ -358,6 +356,9 @@ export class MoleculeCollectionItemCardComponent implements OnDestroy {
   set collectionId(collectionId: string) {
     this._collectionId.set(collectionId)
   }
+
+  @Output()
+  onDelete = new EventEmitter<string>()
 
   ngOnDestroy() {
     this.io?.disconnect();

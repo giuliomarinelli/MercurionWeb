@@ -74,7 +74,7 @@ import { NgClass } from '@angular/common';
             class="relative p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700
                    transition-colors duration-150"
             title="Elimina da tutte le collezioni"
-            (click)="onDelete()"
+            (click)="doDelete()"
           >
             <svg
               class="size-7 text-light-error dark:text-dark-error"
@@ -172,7 +172,10 @@ export class MoleculeHeaderComponent {
 
 
   @Output()
-  onSave = new EventEmitter<MyMoleculeCustomDetailSaveModel>
+  onSave = new EventEmitter<MyMoleculeCustomDetailSaveModel>()
+
+  @Output()
+  onDelete = new EventEmitter<string>()
 
   doSave(e: MyMoleculeCustomDetailSaveModel): void {
     this.onSave.emit(e)
@@ -182,8 +185,8 @@ export class MoleculeHeaderComponent {
 
   }
 
-  onDelete(): void {
-
+  doDelete(): void {
+    this.onDelete.emit(this._molId())
   }
 
 }

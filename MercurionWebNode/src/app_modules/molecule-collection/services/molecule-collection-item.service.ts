@@ -33,7 +33,7 @@ export class MoleculeCollectionItemService {
         private readonly dataSource: DataSource
     ) { }
 
-    
+
 
     async markAsTouched(userId: UUID, itemId: UUID, _flagIds?: string): Promise<boolean> {
         try {
@@ -343,10 +343,21 @@ export class MoleculeCollectionItemService {
 
     async delete(id: UUID, userId: UUID): Promise<boolean> {
         try {
-            await this.itemRepo.delete({ id, userId })
-            return true
+            let ok = false
+            await this.dataSource.manager.transaction(async manager => {
+                const resItem = await manager.delete(MoleculeCollectionItemEntity, { id, userId })
+                ok = (resItem.affected ?? 0) > 0
+                if (!ok) return
+                await manager.delete(History, {
+                    itemId: id,
+                    itemEntity: HistoryItemEntity.MoleculeCollectionItem,
+                    userId
+                })
+            })
+            return ok
         } catch {
             return false
         }
     }
+
 }

@@ -11,10 +11,17 @@ export class HistoryContextService {
   private readonly historyService = inject(HistoryService)
 
   private _newHistoryItem = signal<HistoryDTO | null>(null)
-  readonly newHistoryItem = this._newHistoryItem.asReadonly()
+  private _removeItemTriggerSignal = signal<string | null>(null)
 
-  clear(): void {
+  readonly newHistoryItem = this._newHistoryItem.asReadonly()
+  readonly removeItemTriggerSignal = this._removeItemTriggerSignal.asReadonly()
+
+  clearNewHistoryItem(): void {
     this._newHistoryItem.set(null)
+  }
+
+  clearRemoveItemTriggerSignal(): void {
+    this._removeItemTriggerSignal.set(null)
   }
 
   pollNewItem(): Observable<HistoryDTO> {
@@ -22,6 +29,10 @@ export class HistoryContextService {
       map(page => page.items[0]),
       tap(item => this._newHistoryItem.set(item))
     )
+  }
+
+  triggerRemoveItemFromHistoryView(itemId: string): void {
+    this._removeItemTriggerSignal.set(itemId)
   }
 
 }
