@@ -27,10 +27,10 @@ export class MoleculeCollectionItemJoin {
     @JoinColumn({ name: 'item_id' })
     item: MoleculeCollectionItemEntity
 
-    @Column({ type: 'uuid', name: 'collection_id', insert: false, update: false })
+    @Column({ type: 'uuid' })
     collectionId: UUID
 
-    @Column({ type: 'uuid', name: 'item_id', insert: false, update: false })
+    @Column({ type: 'uuid' })
     itemId: UUID
 
     // 🔧 Estensioni future: tag, commenti, ordine, metadati?

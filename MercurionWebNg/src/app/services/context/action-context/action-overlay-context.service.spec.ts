@@ -1,13 +1,14 @@
 import { TestBed } from '@angular/core/testing';
+import { ActionOverlayContextService } from './action-overlay-context.service';
 
-import { SaveToCollectionContextService } from './save-to-collection-context.service';
+
 
 describe('SaveToCollectionContextService', () => {
-  let service: SaveToCollectionContextService;
+  let service: ActionOverlayContextService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(SaveToCollectionContextService);
+    service = TestBed.inject(ActionOverlayContextService);
   });
 
   it('should be created', () => {

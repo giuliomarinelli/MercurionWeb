@@ -1,9 +1,10 @@
+import { CustomMoleculeCollectionItemSaveContextService } from './../../services/context/action-context/custom-molecule-collection-item-save-context.service';
 import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { KetcherFrameComponent, KetcherFrameMode } from '../../components/chem/ketcher-frame/ketcher-frame.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service';
-import { CollectionSaveOverlayContextService } from '../../services/context/save-to-collection-context.service';
+import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
 import { ToastService } from '../../services/toast.service';
 import { RDKitService } from '../../services/rd-kit-loader.service';
 
@@ -60,7 +61,8 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   // ======================= DEPS =======================
   private readonly route = inject(ActivatedRoute);
   private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService);
-  private readonly saveContext = inject(CollectionSaveOverlayContextService);
+  private readonly overlayContext = inject(ActionOverlayContextService);
+  private readonly saveContext = inject(CustomMoleculeCollectionItemSaveContextService)
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
   private readonly RDKit = inject(RDKitService);
@@ -78,8 +80,6 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   triggerReset = signal<boolean>(false);
   triggerGetSmiles = signal<boolean>(false);
   pendingAction = signal<'save' | 'saveNew' | null>(null);
-
-  // NIENTE polling qui
 
   onSave(): void {
     this.pendingAction.set('save');
@@ -115,9 +115,10 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
       this.toast.trigger('La molecola è vuota!', 'error');
       return;
     }
-    this.saveContext.setSmiles(smiles);
-    this.saveContext.setMode(this.mode());
-    this.saveContext.open();
+    this.saveContext.setSmiles(smiles)
+    this.saveContext.setMode(this.mode())
+    this.saveContext.reset()
+    this.overlayContext.open('MoleculeCollectionItemSave')
   }
 
   async doSaveEdit(smiles: string): Promise<void> {

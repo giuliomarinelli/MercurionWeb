@@ -30,47 +30,49 @@ export class CustomMoleculeItemService {
         input: CustomMoleculeItemInput
     ): Promise<CustomMoleculeItemEntity> {
         // 1️⃣ Cerco se esiste già la molecola per quel user+SMILES
-        let item = await this.customRepo.findOne({
-            where: { canonicalSmiles: input.canonicalSmiles, userId }
-        });
-
-        if (!item) {
-            // 2️⃣ Non c'è? La creo da zero
-            item = this.customRepo.create({
-                id: uuidv7() as UUID,
-                ...input,             // ⬅ contiene già propertiesJson numerico ✔
-                userId,
-                type: 'custom',
-                createdAt: Date.now(),
-                updatedAt: Date.now()
+        return this.customRepo.manager.transaction(async manager => {
+            let item = await this.customRepo.findOne({
+                where: { canonicalSmiles: input.canonicalSmiles, userId }
             });
-        } else {
-            // 3️⃣ Esiste? Aggiorno SOLO i campi arrivati da input
-            //    (nel tuo caso propertiesJson, ma estendibile a label/notes ecc.)
-            if (input.propertiesJson &&
-                input.propertiesJson !== item.propertiesJson) {
-                item.propertiesJson = input.propertiesJson;
-                item.updatedAt = Date.now();
+
+            if (!item) {
+                // 2️⃣ Non c'è? La creo da zero
+                item = this.customRepo.create({
+                    id: uuidv7() as UUID,
+                    ...input,             // ⬅ contiene già propertiesJson numerico ✔
+                    userId,
+                    type: 'custom',
+                    createdAt: Date.now(),
+                    updatedAt: Date.now()
+                });
+            } else {
+                // 3️⃣ Esiste? Aggiorno SOLO i campi arrivati da input
+                //    (nel tuo caso propertiesJson, ma estendibile a label/notes ecc.)
+                if (input.propertiesJson &&
+                    input.propertiesJson !== item.propertiesJson) {
+                    item.propertiesJson = input.propertiesJson;
+                    item.updatedAt = Date.now();
+                }
+                if (input.label !== undefined) item.label = input.label;
+                if (input.notes !== undefined) item.notes = input.notes;
+                if (input.molFormula !== undefined) item.molFormula = input.molFormula;
+                if (input.name !== undefined) item.name = input.name;
             }
-            if (input.label !== undefined) item.label = input.label;
-            if (input.notes !== undefined) item.notes = input.notes;
-            if (input.molFormula !== undefined) item.molFormula = input.molFormula;
-            if (input.name !== undefined) item.name = input.name;
-        }
 
-        // 4️⃣ Persisto sempre (creazione o update che sia)
-        item = await this.customRepo.save(item);
+            // 4️⃣ Persisto sempre (creazione o update che sia)
+            item = await manager.save(item);
 
-        // 5️⃣ Controllo ownership della collection
-        const collection = await this.collectionRepo.findOne({
-            where: { id: collectionId, userId }
-        });
-        if (!collection) throw new RpcException('CustomItemAddError::Forbidden');
+            // 5️⃣ Controllo ownership della collection
+            const collection = await this.collectionRepo.findOne({
+                where: { id: collectionId, userId }
+            });
+            if (!collection) throw new RpcException('CustomItemAddError::Forbidden');
 
-        // 6️⃣ Link nella join‑table (ignora duplicati all’interno di add)
-        await this.joinService.add(userId, collectionId, item.id);
+            // 6️⃣ Link nella join‑table (ignora duplicati all’interno di add)
+            await this.joinService.addWithManager(userId, collectionId, item.id, manager);
 
-        return item;
+            return item;
+        })
     }
 
 

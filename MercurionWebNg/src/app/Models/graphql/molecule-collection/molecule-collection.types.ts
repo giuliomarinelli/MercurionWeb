@@ -1,4 +1,5 @@
 import { T1PredictionDTO } from "../../notebook/t1-prediction-model";
+import { MoleculeProperties } from "../molecule-properties.model";
 import { MoleculeDetail, MoleculeDetailSystem } from "../molecule.detail.models";
 
 // --- TYPE DEFINITIONS (semplificate) ---
@@ -71,14 +72,7 @@ export interface AddChemblMoleculeToCollectionInput {
   notes?: string;
 }
 
-export interface MoleculeProperties {
-  mwFreebase: number | string;
-  alogp: number | string;
-  hba: number;
-  hbd: number;
-  psa: number | string;
-  rtb: number;
-}
+
 export type MoleculeItemDTO =
   | {
     __typename: 'ChEMBLMoleculeItemDTO';

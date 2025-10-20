@@ -28,10 +28,10 @@ import { SidenavContextService } from './services/context/sidenav-context.servic
 import { DesignService } from './services/design.service';
 import { SidenavComponent } from './components/common/sidenav/sidenav.component';
 import { SessionSyncService } from './services/session-sync.service';
-import { CollectionSaveOverlayComponent } from './components/collection-save-overlay/collection-save-overlay.component';
-import { CollectionSaveOverlayContextService } from './services/context/save-to-collection-context.service';
+import { ActionOverlayContextService } from './services/context/action-context/action-overlay-context.service';
 import { environment } from '../environments/environment.development';
 import { AuthService } from './services/auth.service';
+import { ActionComponent } from './components/action-overlay/action-overlay.component';
 
 @Component({
   selector: 'app-root',
@@ -45,7 +45,7 @@ import { AuthService } from './services/auth.service';
     NgxxSpinnerComponent,
     ToastComponent,
     SidenavComponent,
-    CollectionSaveOverlayComponent,
+    ActionComponent,
   ],
   template: `
     <div class="flex flex-col h-screen">
@@ -107,7 +107,7 @@ import { AuthService } from './services/auth.service';
       <app-search-overlay />
     }
     @if (saveOverlayContext.isMounted() && userContext.initials() !== '') {
-      <app-collection-save-overlay />
+      <app-action-overlay />
     }
     <app-toast [context]="toastService.context()" />
     <app-ngxx-spinner />
@@ -141,7 +141,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     protected readonly sidenavContext: SidenavContextService,
     protected readonly design: DesignService,
     private readonly sessionSync: SessionSyncService,
-    protected readonly saveOverlayContext: CollectionSaveOverlayContextService,
+    protected readonly saveOverlayContext: ActionOverlayContextService,
     private readonly authService: AuthService
   ) {
 

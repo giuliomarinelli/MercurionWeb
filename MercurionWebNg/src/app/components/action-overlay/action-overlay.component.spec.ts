@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { CollectionSaveOverlayComponent } from './collection-save-overlay.component';
+import { ActionComponent } from './action-overlay.component';
 
 describe('CollectionSaveOverlayComponent', () => {
-  let component: CollectionSaveOverlayComponent;
-  let fixture: ComponentFixture<CollectionSaveOverlayComponent>;
+  let component: ActionComponent;
+  let fixture: ComponentFixture<ActionComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CollectionSaveOverlayComponent]
+      imports: [ActionComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(CollectionSaveOverlayComponent);
+    fixture = TestBed.createComponent(ActionComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

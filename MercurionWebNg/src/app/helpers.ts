@@ -1,4 +1,5 @@
-import { MoleculeCardItemModel, MoleculeCollectionItemClient, MoleculeProperties } from './Models/graphql/molecule-collection/molecule-collection.types';
+import { MoleculeCardItemModel, MoleculeCollectionItemClient } from './Models/graphql/molecule-collection/molecule-collection.types';
+import { MoleculeProperties } from './Models/graphql/molecule-properties.model';
 import { MoleculeDetail } from './Models/graphql/molecule.detail.models';
 export class Helpers {
 
@@ -33,6 +34,15 @@ export class Helpers {
       createdAt: Date.parse(String(mol.createdAt)),
       updatedAt: Date.parse(String(mol.updatedAt)),
       touchedAt: Date.parse(String(mol.touchedAt))
+    }
+  }
+
+  static parseMoleculeProperties(json?: string | null): MoleculeProperties | null {
+    if (!json) return null;
+    try {
+      return JSON.parse(json) as MoleculeProperties;
+    } catch {
+      return null;
     }
   }
 

@@ -1,20 +1,14 @@
+import { Helpers } from './../../helpers';
 import { Injectable } from '@angular/core';
 import { Apollo, gql } from 'apollo-angular';
 import { map, Observable } from 'rxjs';
-import { AddChemblMoleculeToCollectionInput, AddCustomMoleculeToCollectionInput, CustomMoleculeItemEntity, MoleculeProperties } from '../../Models/graphql/molecule-collection/molecule-collection.types';
+import { AddChemblMoleculeToCollectionInput, AddCustomMoleculeToCollectionInput, CustomMoleculeItemEntity } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 import { extractGqlData } from './graphql-helpers/extract-gql-data.gql-helper';
 
 
 
-// Helper: parsing string JSON -> MoleculeProperties
-export function parseMoleculeProperties(json?: string | null): MoleculeProperties | null {
-  if (!json) return null;
-  try {
-    return JSON.parse(json) as MoleculeProperties;
-  } catch {
-    return null;
-  }
-}
+
+
 
 
 
@@ -100,7 +94,7 @@ export class MoleculeJoinService {
         map(res => extractGqlData(res, 'addCustomMoleculeToCollection')),
         map(entity => ({
           ...entity,
-          properties: parseMoleculeProperties(entity.propertiesJson)
+          properties: Helpers.parseMoleculeProperties(entity.propertiesJson)
         }))
       );
   }

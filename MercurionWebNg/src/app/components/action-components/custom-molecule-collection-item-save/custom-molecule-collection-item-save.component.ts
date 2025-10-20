@@ -1,31 +1,24 @@
-import { Component, ElementRef, HostListener, OnInit, ViewChild, inject, signal } from '@angular/core';
-import { ComboSelectComponent } from '../common/combo-select/combo-select.component'
-import { MoleculeCollectionService } from '../../services/graphql/molecule-collection.service';
-import { CollectionSaveOverlayContextService } from '../../services/context/save-to-collection-context.service';
-import { MoleculeJoinService } from '../../services/graphql/molecule-collection-join.service';
-import { ToastService } from '../../services/toast.service';
-import { RDKitService } from '../../services/rd-kit-loader.service';
-import { MoleculeCollection } from './../../Models/graphql/molecule-collection/molecule-collection.types';
-import { MoleculeProperties } from '../../Models/graphql/molecule-properties.model';
+import { CustomMoleculeCollectionItemSaveContextService } from './../../../services/context/action-context/custom-molecule-collection-item-save-context.service';
 import { NgClass } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { Component, ElementRef, HostListener, inject, signal, ViewChild } from '@angular/core';
+import { ComboSelectComponent } from '../../common/combo-select/combo-select.component';
+import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
+import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
+import { MoleculeJoinService } from '../../../services/graphql/molecule-collection-join.service';
+import { ToastService } from '../../../services/toast.service';
+import { RDKitService } from '../../../services/rd-kit-loader.service';
 import { Router } from '@angular/router';
-
-export type SaveOverlayFormItem = 'name' | 'label' | 'notes'
+import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
+import { FormsModule } from '@angular/forms';
+import { MoleculeProperties } from '../../../Models/graphql/molecule-properties.model';
+import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.models';
 
 @Component({
-  selector: 'app-collection-save-overlay',
-  standalone: true,
-  imports: [ComboSelectComponent, NgClass, FormsModule],
+  selector: 'app-custom-molecule-collection-item-save',
+  imports: [NgClass, ComboSelectComponent, FormsModule],
   template: `
 
-    @if (ctx.isMounted()) {
-    <div
-      class="fixed inset-0 z-[999] bg-black/60 backdrop-blur-sm transition-all duration-300"
-      [class.opacity-0]="!ctx.isVisible()"
-      [class.opacity-100]="ctx.isVisible()"
-    >
-      <div class="flex justify-center items-center min-h-screen px-2">
+    <div class="flex justify-center items-center min-h-screen px-2">
         <div
           class="w-full max-w-lg bg-white dark:bg-dark-surface-main rounded-xl shadow-lg py-6 px-3 max-h-[80vh] overflow-y-auto flex flex-col gap-4"
         >
@@ -49,7 +42,7 @@ export type SaveOverlayFormItem = 'name' | 'label' | 'notes'
               [hasMore]="hasMore()"
               [canCreateNew]="true"
               [searchPlaceholder]="'Cerca collezione...'"
-              [selected]="ctx.selectedCollectionId()"
+              [selected]="saveCtx.selectedCollectionId()"
               (searchChange)="onSearchChange($event)"
               (loadMore)="onScrollEnd()"
               (select)="onSelect($event)"
@@ -184,7 +177,7 @@ export type SaveOverlayFormItem = 'name' | 'label' | 'notes'
                 <button
                   type="submit"
                   class="px-4 py-2 rounded bg-emerald-600 text-white font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed"
-                  [disabled]="!ctx.selectedCollectionId() || !nameModel"
+                  [disabled]="!saveCtx.selectedCollectionId() || !nameModel"
                 >
                   Salva
                 </button>
@@ -193,12 +186,10 @@ export type SaveOverlayFormItem = 'name' | 'label' | 'notes'
           </div>
         </div>
       </div>
-    </div>
-}
 
   `
 })
-export class CollectionSaveOverlayComponent implements OnInit {
+export class CustomMoleculeCollectionItemSaveComponent {
 
   @ViewChild('name')
   private nameRef!: ElementRef<HTMLInputElement>
@@ -210,7 +201,8 @@ export class CollectionSaveOverlayComponent implements OnInit {
   private notesRef!: ElementRef<HTMLTextAreaElement>
 
 
-  protected readonly ctx = inject(CollectionSaveOverlayContextService);
+  protected readonly overlayCtx = inject(ActionOverlayContextService);
+  protected readonly saveCtx = inject(CustomMoleculeCollectionItemSaveContextService);
   private readonly collectionService = inject(MoleculeCollectionService);
   private readonly moleculeJoinService = inject(MoleculeJoinService)
   private readonly toast = inject(ToastService)
@@ -241,7 +233,7 @@ export class CollectionSaveOverlayComponent implements OnInit {
 
   async loadProperties() {
     this.properties.set(
-      await this.rdkitService.getMoleculeProperties(this.ctx.smiles())
+      await this.rdkitService.getMoleculeProperties(this.saveCtx.smiles())
     );
   }
 
@@ -256,19 +248,19 @@ export class CollectionSaveOverlayComponent implements OnInit {
   loadCollections(reset = false) {
     if (this.loading()) return;
     this.loading.set(true);
-    const page = reset ? 1 : this.ctx.page();
-    this.collectionService.getPaginatedCollections(page, 12, this.ctx.searchTerm()).subscribe(res => {
+    const page = reset ? 1 : this.saveCtx.page();
+    this.collectionService.getPaginatedCollections(page, 12, this.saveCtx.searchTerm()).subscribe(res => {
       if (reset) this.collections.set(res.items);
       else this.collections.set([...this.collections(), ...res.items]);
       this.hasMore.set(res.currentPage < res.totalPages);
-      this.ctx.page.set(res.currentPage + 1);
+      this.saveCtx.page.set(res.currentPage + 1);
       this.loading.set(false);
     });
   }
 
   onSearchChange(term: string) {
-    this.ctx.searchTerm.set(term);
-    this.ctx.page.set(1);
+    this.saveCtx.searchTerm.set(term);
+    this.saveCtx.page.set(1);
     this.loadCollections(true);
   }
 
@@ -279,13 +271,13 @@ export class CollectionSaveOverlayComponent implements OnInit {
   }
 
   onSelect(item: Pick<MoleculeCollection, 'id'>) {
-    this.ctx.selectedCollectionId.set(item.id)
+    this.saveCtx.selectedCollectionId.set(item.id)
   }
 
   onCreateNew(name: string) {
     this.collectionService.createCollection(name).subscribe(newColl => {
       this.collections.set([newColl, ...this.collections()])
-      this.ctx.selectedCollectionId.set(newColl.id)
+      this.saveCtx.selectedCollectionId.set(newColl.id)
     });
   }
 
@@ -322,7 +314,7 @@ export class CollectionSaveOverlayComponent implements OnInit {
   }
 
   async onConfirm() {
-    if (!this.ctx.selectedCollectionId()) {
+    if (!this.saveCtx.selectedCollectionId()) {
       this.toast.trigger('Seleziona una collezione', 'error');
       return;
     }
@@ -335,9 +327,9 @@ export class CollectionSaveOverlayComponent implements OnInit {
     const propertiesJson = JSON.stringify(this.properties());
 
     this.moleculeJoinService.addCustomMoleculeToCollection({
-      collectionId: this.ctx.selectedCollectionId()!,
+      collectionId: this.saveCtx.selectedCollectionId()!,
       input: {
-        canonicalSmiles: this.ctx.smiles(),
+        canonicalSmiles: this.saveCtx.smiles(),
         propertiesJson,
         name: this.nameModel,
         label: this.labelModel || undefined,
@@ -348,21 +340,22 @@ export class CollectionSaveOverlayComponent implements OnInit {
         this.toast.trigger(`Molecola salvata correttamente.`, 'success')
         this.router.navigate([`/molecules/detail/${reply.id}`], {
           queryParams: {
-            c_id: this.ctx.selectedCollectionId()
+            c_id: this.saveCtx.selectedCollectionId()
           }
         })
-        this.ctx.close()
+        this.overlayCtx.close()
       },
       error: () => this.toast.trigger('Si è verificato un errore!', 'error')
     })
   }
 
   close() {
-    this.ctx.close()
+    this.overlayCtx.close()
   }
 
   @HostListener('document:keydown.escape')
   onEscape() {
-    if (this.ctx.isOpened()) this.close()
+    if (this.overlayCtx.isOpened()) this.close()
   }
+
 }
