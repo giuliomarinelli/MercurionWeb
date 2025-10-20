@@ -22,9 +22,29 @@ import { RouterLink } from '@angular/router';
 
   <section class="max-w-5xl mx-auto p-0 xs:p-4 sm:p-6 md:p-8 space-y-12">
     <app-my-molecules-heading />
-    <h2 class="bg-slate-50 dark:bg-neutral-950 z-10 block sticky top-0 bottom-5 text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary pt-2 pb-8" style="margin-block-start: 0">
-        Collezioni molecolari
-    </h2>
+    <div class="flex flex-wrap gap-y-4 justify-between items-center relative -top-12 pt-2">
+        <h2 class="bg-slate-50 dark:bg-neutral-950 z-10 block sticky top-0 bottom-5 text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary" style="margin-block-start: 0">
+            Le mie collezioni molecolari
+        </h2>
+        <div class="flex items-center gap-3">
+          <!-- 🧩 Aggiungi nuove molecole -->
+          <button
+            type="button"
+            class="flex items-center gap-2 relative px-3 py-1 rounded-md border border-slate-300 dark:border-slate-600
+                   text-slate-600 dark:text-slate-300 text-xs font-medium
+                   hover:bg-slate-200 dark:hover:bg-slate-700
+                   transition-colors duration-150"
+            title="Aggiungi nuove molecole"
+            (click)="doAddMolecules()"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto">
+              <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+              <path d="M336 112L336 96L304 96L304 304L96 304L96 336L304 336L304 544L336 544L336 336L544 336L544 304L336 304L336 112z"/>
+            </svg>
+            <span>Aggiungi nuove molecole</span>
+          </button>
+        </div>
+      </div>
     @if (empty()) {
       <p class="mt-5 text-slate-700 dark:text-slate-200">Nessuna collezione molecolare.</p>
     } @else {
@@ -122,6 +142,10 @@ export class MyMoleculeCollectionsPageComponent implements OnInit, AfterViewInit
     }
 
     this.loading = false;
+  }
+
+  doAddMolecules(): void {
+
   }
 
 }

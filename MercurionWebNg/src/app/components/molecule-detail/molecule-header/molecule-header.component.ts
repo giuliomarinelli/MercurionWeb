@@ -42,9 +42,8 @@ import { NgClass } from '@angular/common';
           </p>
         }
       </div>
-      @if (_isLoggedIn()) {        <div class="flex items-center gap-3 relative" [ngClass]="{
-        '-top-6 mt-6': !_isCustom()
-      }">
+      @if (_isLoggedIn()) {
+        <div class="flex items-center gap-3 relative" [ngClass]="{'-top-6 mt-6': !_isCustom()}">
           <!-- Duplica -->
           <a
             type="button"

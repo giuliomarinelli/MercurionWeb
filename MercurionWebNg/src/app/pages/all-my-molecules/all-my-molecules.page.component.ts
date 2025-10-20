@@ -24,12 +24,30 @@ import { ToastService } from '../../services/toast.service';
 
     <section class="max-w-5xl mx-auto p-0 xs:p-4 sm:p-6 md:p-8 space-y-12">
       <app-my-molecules-heading />
-      <h2 class="bg-slate-50 dark:bg-neutral-950 z-10 block sticky top-0 bottom-5 text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary pt-2 pb-8" style="margin-block-start: 0">
-          Tutte le mie molecole
-      </h2>
-      @if (empty()) {
-        <p class="mt-5 text-slate-700 dark:text-slate-200">Nessuna molecola.</p>
-      } @else {
+      <div class="flex flex-wrap gap-y-4 justify-between items-center relative -top-12 pt-2">
+        <h2 class="bg-slate-50 dark:bg-neutral-950 z-10 block sticky top-0 bottom-5 text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary" style="margin-block-start: 0">
+            Tutte le mie molecole
+        </h2>
+        <div class="flex items-center gap-3">
+          <!-- 🧩 Aggiungi nuove molecole -->
+          <button
+            type="button"
+            class="flex items-center gap-2 relative px-3 py-1 rounded-md border border-slate-300 dark:border-slate-600
+                   text-slate-600 dark:text-slate-300 text-xs font-medium
+                   hover:bg-slate-200 dark:hover:bg-slate-700
+                   transition-colors duration-150"
+            title="Aggiungi nuove molecole alla collezione"
+            (click)="doAddMolecules()"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto">
+              <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+              <path d="M336 112L336 96L304 96L304 304L96 304L96 336L304 336L304 544L336 544L336 336L544 336L544 304L336 304L336 112z"/>
+            </svg>
+            <span>Aggiungi nuove molecole</span>
+          </button>
+        </div>
+      </div>
+      @if (!empty()) {
         <div class="flex gap-2 items-center flex-wrap">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-8 h-auto relative -top-2">
             <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
@@ -43,6 +61,7 @@ import { ToastService } from '../../services/toast.service';
           <app-molecule-collection-item-card [molecule]="item" [i]="i" (onDelete)="doDelete($event)" />
         }
       </div>
+      <div #sentinel class="sentinel"></div>
       @if (loading) {
         @if (page > 1) {
           <div class="flex justify-center">
@@ -55,8 +74,11 @@ import { ToastService } from '../../services/toast.service';
             }
           </div>
         }
+      } @else if (empty()) {
+        @if (empty()) {
+        <p class="relative -top-8 text-slate-700 dark:text-slate-200">Nessuna molecola.</p>
       }
-      <div #sentinel class="sentinel"></div>
+      }
     </section>
 
   `
@@ -151,6 +173,10 @@ export class AllMyMoleculesPageComponent implements OnInit, AfterViewInit, OnDes
       },
       error: () => this.toast.trigger('Si è verificato un errore.', 'error', 2500)
     })
+  }
+
+  doAddMolecules(): void {
+
   }
 
 }
