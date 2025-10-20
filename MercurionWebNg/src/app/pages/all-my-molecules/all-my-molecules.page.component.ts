@@ -1,13 +1,15 @@
 import { MoleculeCardItemModel } from './../../Models/graphql/molecule-collection/molecule-collection.types';
-import { AfterViewInit, Component, ElementRef, inject, OnInit, signal, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { MoleculeCollectionItemCardComponent } from '../../components/molecule-detail/molecule-collection-item-card/molecule-collection-item-card.component';
-import { debounce, firstValueFrom, interval, map } from 'rxjs';
+import { debounce, firstValueFrom, interval, map, Subscription } from 'rxjs';
 import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service';
 import { Helpers } from '../../helpers';
 import { SkeletonMoleculeCardComponent } from '../../components/molecule-detail/skeleton-molecule-card/skeleton-molecule-card.component';
 import { MyMoleculesHeadingComponent } from '../../components/molecule-detail/my-molecules-heading/my-molecules-heading.component';
 import { RouterLink } from '@angular/router';
+import { HistoryContextService } from '../../services/context/history-context.service';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-all-my-molecules.page',
@@ -38,7 +40,7 @@ import { RouterLink } from '@angular/router';
       }
       <div class="mt-px relative bottom-10">
         @for (item of items; track item; let i = $index) {
-          <app-molecule-collection-item-card [molecule]="item" [i]="i" />
+          <app-molecule-collection-item-card [molecule]="item" [i]="i" (onDelete)="doDelete($event)" />
         }
       </div>
       @if (loading) {
@@ -59,15 +61,20 @@ import { RouterLink } from '@angular/router';
 
   `
 })
-export class AllMyMoleculesPageComponent implements OnInit, AfterViewInit {
+export class AllMyMoleculesPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // ======================= DEPS =======================
   private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService)
+  private readonly historyContext = inject(HistoryContextService)
+  private readonly toast = inject(ToastService)
   // ====================================================
 
 
   @ViewChild('sentinel', { static: true })
   sentinel!: ElementRef<HTMLDivElement>;
+
+
+  private delSub?: Subscription
 
 
   items: MoleculeCardItemModel[] = []
@@ -93,6 +100,10 @@ export class AllMyMoleculesPageComponent implements OnInit, AfterViewInit {
     );
 
     this.observer.observe(this.sentinel.nativeElement);
+  }
+
+  ngOnDestroy(): void {
+      this.delSub?.unsubscribe()
   }
 
   private fetchPage$(page = this.page, size = 10) {
@@ -125,6 +136,21 @@ export class AllMyMoleculesPageComponent implements OnInit, AfterViewInit {
     }
 
     this.loading = false;
+  }
+
+  doDelete(id: string): void {
+    this.delSub = this.moleculeCollectionItemService.deleteItem(id).subscribe({
+      next: ok => {
+        if (ok) {
+          this.historyContext.triggerRemoveItemFromHistoryView(id)
+          const i = this.items.findIndex(item => item.id === id)
+          if (i !== -1) {
+            this.items.splice(i, 1)
+          }
+        }
+      },
+      error: () => this.toast.trigger('Si è verificato un errore.', 'error', 2500)
+    })
   }
 
 }

@@ -570,10 +570,11 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
       next: ok => {
         if (ok) {
           this.historyContext.triggerRemoveItemFromHistoryView(id)
-          this.toast.trigger('Molecola eliminata con successo', 'success', 2500)
+          this.toast.trigger('Molecola eliminata con successo.', 'success', 2500)
           this.router.navigateByUrl('/molecules/collections')
         }
-      }
+      },
+      error: () => this.toast.trigger('Si è verificato un errore.', 'error', 2500)
     })
   }
 

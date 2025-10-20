@@ -11,6 +11,7 @@ import { MoleculeCollectionItemService } from '../../services/graphql/molecule-c
 import { LinkModel } from '../../Models/link.model';
 import { HistoryContextService } from '../../services/context/history-context.service';
 import { Helpers } from '../../helpers';
+import { ToastService } from '../../services/toast.service';
 
 
 
@@ -35,7 +36,7 @@ import { Helpers } from '../../helpers';
     }
     <div class="mt-px relative bottom-10">
       @for (item of items; track item; let i = $index) {
-        <app-molecule-collection-item-card [molecule]="item" [i]="i" [collectionId]="colId()" />
+        <app-molecule-collection-item-card [molecule]="item" [i]="i" [collectionId]="colId()" (onDelete)="doDelete($event)" />
       }
     </div>
     <div #sentinel class="sentinel"></div>
@@ -61,6 +62,7 @@ export class MoleculeCollectionDetailPageComponent implements OnInit, OnDestroy 
   private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService)
   private readonly route = inject(ActivatedRoute)
   private readonly historyContext = inject(HistoryContextService)
+  private readonly toast = inject(ToastService)
   // ====================================================
 
   @ViewChild('sentinel', { static: true })
@@ -75,6 +77,7 @@ export class MoleculeCollectionDetailPageComponent implements OnInit, OnDestroy 
 
   private colIdSub?: Subscription
   private touchSub?: Subscription
+  private delSub?: Subscription
   items: MoleculeCardItemModel[] = []
   title = ''
   loading = true
@@ -158,6 +161,7 @@ export class MoleculeCollectionDetailPageComponent implements OnInit, OnDestroy 
   ngOnDestroy(): void {
     this.colIdSub?.unsubscribe()
     this.touchSub?.unsubscribe()
+    this.delSub?.unsubscribe()
   }
 
   async loadMore() {
@@ -179,6 +183,21 @@ export class MoleculeCollectionDetailPageComponent implements OnInit, OnDestroy 
       this.page++;
     }
     this.loading = false;
+  }
+
+  doDelete(id: string): void {
+    this.delSub = this.moleculeCollectionItemService.deleteItem(id).subscribe({
+      next: ok => {
+        if (ok) {
+          this.historyContext.triggerRemoveItemFromHistoryView(id)
+          const i = this.items.findIndex(item => item.id === id)
+          if (i !== -1) {
+            this.items.splice(i, 1)
+          }
+        }
+      },
+      error: () => this.toast.trigger('Si è verificato un errore.', 'error', 2500)
+    })
   }
 
 
