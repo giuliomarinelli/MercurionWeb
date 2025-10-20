@@ -20,7 +20,7 @@ import { UserContextService } from '../../services/context/user-context.service'
 import { MercurionAiService as MercurionAIService } from '../../services/mercurion-ai.service';
 import { MoleculeSearchResult } from '../../Models/graphql/molecule-search/molecule-search-result.interface';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { TypeGuardsService } from '../../type-guards.service';
+import { TypeGuardsService } from '../../services/type-guards.service';
 import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service';
 import { MoleculeCollectionItemEntityShort, MoleculeDetailItem } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';

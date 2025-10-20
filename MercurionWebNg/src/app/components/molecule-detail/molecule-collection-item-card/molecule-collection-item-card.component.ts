@@ -12,7 +12,7 @@ import { ThemeManagerService } from '../../../services/context/theme-manager.ser
 import { MoleculeCardItemModel } from './../../../Models/graphql/molecule-collection/molecule-collection.types';
 import { MyMoleculeCustomDetailsComponent } from '../my-molecule-custom-details/my-molecule-custom-details.component';
 import { MyMoleculeCustomDetailSaveModel } from '../../../Models/my-molecule-custom-detail-save.model';
-import { TypeGuardsService } from '../../../type-guards.service';
+import { TypeGuardsService } from '../../../services/type-guards.service';
 import { switchMap } from 'rxjs/operators';
 import { HistoryContextService } from '../../../services/context/history-context.service';
 import { Subscription } from 'rxjs';

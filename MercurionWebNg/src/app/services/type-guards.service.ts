@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
-import { MoleculeDetailSystem } from "./Models/graphql/molecule.detail.models";
-import { ChEMBLMoleculeItemEntity, CustomMoleculeItemEntity, MoleculeCollectionItemClient, MoleculeCollectionItemEntityShort, MoleculeDetailItem } from "./Models/graphql/molecule-collection/molecule-collection.types";
+import { MoleculeDetailSystem } from "../Models/graphql/molecule.detail.models";
+import { ChEMBLMoleculeItemEntity, CustomMoleculeItemEntity, MoleculeCollectionItemClient, MoleculeCollectionItemEntityShort, MoleculeDetailItem } from "../Models/graphql/molecule-collection/molecule-collection.types";
 
 @Injectable({ providedIn: 'root' })
 export class TypeGuardsService {

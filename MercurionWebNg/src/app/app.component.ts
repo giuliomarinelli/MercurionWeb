@@ -11,6 +11,8 @@ import {
   signal,
   Signal,
   NgZone,
+  EnvironmentInjector,
+  inject
 } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { HeaderComponent } from './components/common/header/header.component';
@@ -19,7 +21,7 @@ import { SearchOverlayComponent } from './components/search-overlay/search-overl
 import { SearchContextService } from './services/context/search-context.service';
 import { FooterComponent } from './components/common/footer/footer.component';
 import { NgxxSpinnerComponent } from './components/common/ngxx-spinner/ngxx-spinner.component';
-import { filter, Subscription } from 'rxjs';
+import { filter, Subscription, combineLatest } from 'rxjs';
 import { ToastComponent } from './components/common/toast/toast.component';
 import { ToastService } from './services/toast.service';
 import { UserContextService } from './services/context/user-context.service';
@@ -32,6 +34,9 @@ import { ActionOverlayContextService } from './services/context/action-context/a
 import { environment } from '../environments/environment.development';
 import { AuthService } from './services/auth.service';
 import { ActionComponent } from './components/action-overlay/action-overlay.component';
+import { ModalComponent } from './components/common/modal/modal.component';
+import { ModalContextService } from './services/context/modal-context.service';
+import { ModalService } from './services/modal.service';
 
 @Component({
   selector: 'app-root',
@@ -46,6 +51,7 @@ import { ActionComponent } from './components/action-overlay/action-overlay.comp
     ToastComponent,
     SidenavComponent,
     ActionComponent,
+    ModalComponent
   ],
   template: `
     <div class="flex flex-col h-screen">
@@ -109,6 +115,7 @@ import { ActionComponent } from './components/action-overlay/action-overlay.comp
     @if (saveOverlayContext.isMounted() && userContext.initials() !== '') {
       <app-action-overlay />
     }
+    <app-modal />
     <app-toast [context]="toastService.context()" />
     <app-ngxx-spinner />
   `,
@@ -130,6 +137,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('scrollHost') private scrollHostRef!: ElementRef<HTMLElement>;
   @ViewChild(HeaderComponent, { read: ElementRef }) headerRef!: ElementRef<HTMLElement>;
 
+  private readonly env = inject(EnvironmentInjector);
   constructor(
     private readonly themeManagerService: ThemeManagerService,
     protected readonly searchContextService: SearchContextService,
@@ -142,7 +150,9 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     protected readonly design: DesignService,
     private readonly sessionSync: SessionSyncService,
     protected readonly saveOverlayContext: ActionOverlayContextService,
-    private readonly authService: AuthService
+    private readonly authService: AuthService,
+    protected readonly modalContext: ModalContextService,
+    private readonly modal: ModalService
   ) {
 
     if (this.userContext.initials() && this.authService.getCookieValue('__logged_in') !== 'true') {
@@ -263,9 +273,16 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  async ngOnInit() { }
+  async ngOnInit() {
 
-  ngAfterViewInit() { }
+  }
+
+  ngAfterViewInit() {
+    // opzionale: microtask per dare tempo all’host di registrare l’outlet
+    setTimeout(()=>queueMicrotask(() => {
+        this.modal.confirmDelete();
+    }), 2000);
+  }
 
   ngOnDestroy() {
     this.routeSub?.unsubscribe();
