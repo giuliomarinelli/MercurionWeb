@@ -63,26 +63,27 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
   protected page = 1;
 
   constructor() {
-    // Aggiornamento in testa quando arriva un elemento nuovo dal context
     effect(() => {
-      if (this.historyContext.newHistoryItem()) {
-        const newItem = this.historyContext.newHistoryItem()!;
-        this.historyContext.clearNewHistoryItem();
-        const i = this.items.findIndex(item => item.itemId === newItem.itemId);
-        if (i !== -1) {
-          this.items.splice(i, 1);
-        }
-        this.items.unshift(newItem);
+      const ni = this.historyContext.newHistoryItem();
+      if (ni) {
+        // post-render: niente NG0100
+        queueMicrotask(() => {
+          this.historyContext.clearNewHistoryItem();
+          // immutabile: niente splice/unshift
+          const next = [ni, ...this.items.filter(it => it.itemId !== ni.itemId)];
+          this.items = next;
+        });
       }
     });
+
+    // remove item
     effect(() => {
-      if (this.historyContext.removeItemTriggerSignal()) {
-        const itemId = this.historyContext.removeItemTriggerSignal()
-        this.historyContext.clearRemoveItemTriggerSignal()
-        const i = this.items.findIndex(item => item.itemId === itemId)
-        if (i !== -1) {
-          this.items.splice(i, 1)
-        }
+      const rmId = this.historyContext.removeItemTriggerSignal();
+      if (rmId) {
+        queueMicrotask(() => {
+          this.historyContext.clearRemoveItemTriggerSignal();
+          this.items = this.items.filter(it => it.itemId !== rmId);
+        });
       }
     })
   }
@@ -93,7 +94,7 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
       .pipe(filter(e => e instanceof NavigationEnd))
       .subscribe(() => {
         if (this.page === 1) {
-          this.loadMore();
+          queueMicrotask(() => this.loadMore());
         }
       });
   }
@@ -103,7 +104,7 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
     this.startObserver();
     // Primo caricamento esplicito: non dipendere dal routing
     if (this.page === 1) {
-      this.loadMore();
+      queueMicrotask(() => this.loadMore());
     }
   }
 
