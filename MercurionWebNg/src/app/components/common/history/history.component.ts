@@ -22,7 +22,7 @@ import { HistoryContextService } from '../../../services/context/history-context
   standalone: true,
   imports: [HistoryItemComponent, ClassicSpinnerComponent],
   template: `
-    @for (item of items; track item) {
+    @for (item of items; track item.id) {
       <app-history-item [historyDTO]="item" class="block" />
     }
 

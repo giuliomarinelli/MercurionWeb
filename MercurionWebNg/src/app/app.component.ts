@@ -279,9 +279,9 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit() {
     // opzionale: microtask per dare tempo all’host di registrare l’outlet
-    setTimeout(()=>queueMicrotask(() => {
-        this.modal.confirmDelete();
-    }), 2000);
+    // setTimeout(()=>queueMicrotask(() => {
+    //     this.modal.confirmDelete();
+    // }), 2000);
   }
 
   ngOnDestroy() {
