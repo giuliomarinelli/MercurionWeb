@@ -33,7 +33,7 @@ import { FormsModule } from '@angular/forms';
   template: `
     <div class="relative w-full max-w-xl bg-white dark:bg-neutral-800 rounded-xl shadow p-2 border border-slate-200 dark:border-slate-700">
       <!-- Selected chips / summary -->
-      @if (selected?.length) {
+      @if (selected.length) {
         <div class="flex flex-wrap items-center gap-1 mb-2 px-1">
           @for (val of selected; track val) {
             <span class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-700 dark:bg-blue-900/50 dark:text-blue-200 border border-blue-200 dark:border-blue-800">
