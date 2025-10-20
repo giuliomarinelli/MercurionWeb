@@ -157,7 +157,7 @@ import { HistoryContextService } from '../../services/context/history-context.se
             </div>
           </div>
           @if (!typeGuards.isSystemMolecule(molecule)) {
-                    <div class="mt-8"></div>
+                <div class="mt-8"></div>
                 <app-my-molecule-custom-details (onSaving)="doUpdateInlineDetails($event)" [type]="'label'" [value]="molecule.label ?? '—'" [molId]="molecule.id"/>
                 <app-my-molecule-custom-details (onSaving)="doUpdateInlineDetails($event)" [type]="'notes'" [value]="molecule.notes ?? '—'" [molId]="molecule.id"/>
                 @if (userContext.isLoggedIn()) {
