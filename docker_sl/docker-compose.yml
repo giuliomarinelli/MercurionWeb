@@ -35,50 +35,36 @@ services:
       - spectralume_network
 
   pg_sl:
-    image: postgres:16
+    build:
+      context: .
+      dockerfile: Dockerfile.postgres
+    image: local/postgres16-pgvector
     container_name: pg_sl
-    shm_size: "4gb"              # <— aumenta /dev/shm
+    shm_size: "4gb"
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: rootpassword
+      POSTGRES_DB: mercurion
     command: >
       postgres
       -c shared_buffers=4GB
       -c work_mem=128MB
       -c maintenance_work_mem=4GB
       -c max_parallel_maintenance_workers=2
-    environment:
-      POSTGRES_PASSWORD: rootpassword
-      POSTGRES_DB: postgres
-      POSTGRES_USER: app
     ports: ["5431:5432"]
     volumes:
       - pg_data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U app -d drugcentral"]
+      test: ["CMD-SHELL", "pg_isready -U app -d mercurion"]
       interval: 5s
       timeout: 3s
       retries: 20
-    networks:
-      - spectralume_network
 
-  # pgvector-init_sl:
-  #   image: postgres:16
-  #   depends_on:
-  #     pg_sl:
-  #       condition: service_healthy
-  #   environment:
-  #     POSTGRES_USER: postgres
-  #     POSTGRES_PASSWORD: postgres
-  #     POSTGRES_DB: mercurion
-  #   command: >
-  #     bash -lc '
-  #       psql "host=pg user=$$POSTGRES_USER password=$$POSTGRES_PASSWORD dbname=$$POSTGRES_DB"
-  #       -v ON_ERROR_STOP=1
-  #       -c "CREATE EXTENSION IF NOT EXISTS vector;"
-  #     '
-  #   restart: "no"
-
+  
   meilisearch_sl:
-    image: getmeili/meilisearch:latest
+    image: getmeili/meilisearch:v1.14.0
     container_name: meilisearch_sl
     ports:
       - "7700:7700"
