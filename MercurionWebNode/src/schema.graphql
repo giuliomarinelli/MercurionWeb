@@ -249,8 +249,6 @@ type Query {
   findOneChemblMoleculeById(itemId: ID!): ChEMBLMoleculeItemEntity
   hasUserChEMBLMoleculeByMolregnoThenGetUUID(molregno: Int!): String
   existsChEMBLMoleculeByUUIDThenGetMolregno(_uuid_: String!): String
-  customMoleculesByCollection(collectionId: ID!): [CustomMoleculeItemEntity!]!
-  findOneCustomMoleculeById(itemId: ID!): CustomMoleculeItemEntity
 }
 
 input MoleculeSearchInput {
@@ -301,7 +299,6 @@ type Mutation {
   addChemblMoleculeToCollection(collectionId: ID!, chemblMolregno: Float!, label: String, notes: String): ChEMBLMoleculeItemEntity!
   removeChemblMoleculeFromCollection(collectionId: ID!, itemId: ID!): Boolean!
   addCustomMoleculeToCollection(collectionId: ID!, input: CustomMoleculeItemInput!): CustomMoleculeItemEntity!
-  updateCustomMolecule(id: ID!, input: CustomMoleculeItemInput!): CustomMoleculeItemEntity!
   removeCustomMoleculeFromCollection(collectionId: ID!, itemId: ID!): Boolean!
 }
 

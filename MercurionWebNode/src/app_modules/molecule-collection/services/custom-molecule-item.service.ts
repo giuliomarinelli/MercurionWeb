@@ -4,8 +4,6 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { CustomMoleculeItemEntity } from "../Models/entities/custom-molecule-item.entity";
 import { Repository } from "typeorm";
 import { UUID } from "crypto";
-import { GraphQLFieldsMap } from "src/utils/type-orm-utils/type-orm-utils";
-import { GraphqlUtils } from "src/utils/graphql-utils/graphql-utils";
 import { CustomMoleculeItemInput } from "../Models/DTO/custom-molecule-item.input";
 import { MoleculeCollection } from '../Models/entities/molecule-collection.entity';
 import { RpcException } from '@nestjs/microservices';
@@ -75,41 +73,8 @@ export class CustomMoleculeItemService {
         })
     }
 
-
-
-
-    async update(userId: UUID, id: UUID, input: CustomMoleculeItemInput, fieldsMap: GraphQLFieldsMap): Promise<CustomMoleculeItemEntity | null> {
-        await this.customRepo.update({ id, userId }, { ...input })
-        return this.findOneById(id, userId, fieldsMap)
-    }
-
     async removeFromCollection(userId: UUID, collectionId: UUID, itemId: UUID): Promise<boolean> {
         return this.joinService.remove(userId, collectionId, itemId)
     }
 
-
-    async findByCollection(
-        collectionId: UUID, userId: UUID, fieldsMap: GraphQLFieldsMap
-    ): Promise<CustomMoleculeItemEntity[]> {
-        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
-        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.REQUIRED_FIELD)
-        const qb = this.customRepo.createQueryBuilder('item')
-            .select(columns.map(col => `item.${col}`))
-            .innerJoin('item.joins', 'join')
-            .where('join.collection = :collectionId', { collectionId })
-            .andWhere('item.user_id = :userId', { userId })
-        return qb.getMany()
-    }
-
-    async findOneById(
-        itemId: UUID, userId: UUID, fieldsMap: GraphQLFieldsMap
-    ): Promise<CustomMoleculeItemEntity | null> {
-        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
-        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.REQUIRED_FIELD)
-        const qb = this.customRepo.createQueryBuilder('item')
-            .select(columns.map(col => `item.${col}`))
-            .where('item.id = :itemId', { itemId })
-            .andWhere('item.user_id = :userId', { userId })
-        return qb.getOne()
-    }
 }
