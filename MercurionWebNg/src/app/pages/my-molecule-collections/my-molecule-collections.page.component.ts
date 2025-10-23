@@ -7,6 +7,7 @@ import { CollectionCardComponent } from '../../components/molecule-detail/collec
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { SkeletonCollectionCardComponent } from '../../components/common/skeleton-card-loader/skeleton-card-loader.component';
 import { RouterLink } from '@angular/router';
+import { PmSearchInputComponent } from '../../components/common/pm-search-input/pm-search-input.component';
 
 
 @Component({
@@ -16,8 +17,9 @@ import { RouterLink } from '@angular/router';
     CollectionCardComponent,
     ClassicSpinnerComponent,
     SkeletonCollectionCardComponent,
-    RouterLink
-],
+    RouterLink,
+    PmSearchInputComponent
+  ],
   template: `
 
   <section class="max-w-5xl mx-auto p-0 xs:p-4 sm:p-6 md:p-8 space-y-12">
@@ -44,7 +46,15 @@ import { RouterLink } from '@angular/router';
             <span>Aggiungi nuove molecole</span>
           </button>
         </div>
-      </div>
+    </div>
+    <pm-search-input
+      class="block relative top-6"
+      [placeholder]="'Cerca collezione...'"
+      [value]="searchTerm()"
+      (valueChange)="doQuery($event)"
+      (submitted)="doQuery($event)"
+      (cleared)="doClear()"
+    />
     @if (empty()) {
       <p class="mt-5 text-slate-700 dark:text-slate-200">Nessuna collezione molecolare.</p>
     } @else {
@@ -57,7 +67,7 @@ import { RouterLink } from '@angular/router';
       </div>
     }
     <div class="mt-px relative bottom-10">
-      @for (item of items; track item; let i = $index) {
+      @for (item of items; track item.id; let i = $index) {
         <app-collection-card [collection]="item" [i]="i" />
       }
     </div>
@@ -88,7 +98,7 @@ export class MyMoleculeCollectionsPageComponent implements OnInit, AfterViewInit
 
 
   @ViewChild('sentinel', { static: true })
-  sentinel!: ElementRef;
+  sentinel!: ElementRef<HTMLDivElement>;
 
 
   items: MoleculeCollection[] = []
@@ -99,7 +109,7 @@ export class MyMoleculeCollectionsPageComponent implements OnInit, AfterViewInit
 
   empty = signal<boolean>(false)
 
-
+  searchTerm = signal<string>('')
 
   ngAfterViewInit(): void {
     this.observer = new IntersectionObserver(
@@ -125,7 +135,7 @@ export class MyMoleculeCollectionsPageComponent implements OnInit, AfterViewInit
     }
 
     const newPage = await firstValueFrom(
-      this.moleculeCollectionService.getPaginatedCollections(this.page, 10)
+      this.moleculeCollectionService.getPaginatedCollections(this.page, 10, this.searchTerm())
         .pipe(
           debounce(() => interval(80))
         )
@@ -146,6 +156,24 @@ export class MyMoleculeCollectionsPageComponent implements OnInit, AfterViewInit
 
   doAddMolecules(): void {
 
+  }
+
+  private resetPagination(): void {
+    this.items = []
+    this.page = 1
+    this.done = false
+    this.empty.set(false)
+    this.loadMore()
+  }
+
+  doQuery(q: string): void {
+    this.searchTerm.set(q)
+    this.resetPagination()
+  }
+
+  doClear(): void {
+    this.searchTerm.set('')
+    this.resetPagination()
   }
 
 }

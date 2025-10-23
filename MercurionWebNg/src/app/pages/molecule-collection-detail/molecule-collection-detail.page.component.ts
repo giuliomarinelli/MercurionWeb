@@ -165,7 +165,7 @@ export class MoleculeCollectionDetailPageComponent implements OnInit, OnDestroy 
   private fetchPage$(page = this.page, size = 7) {
     const id = this.colId();
     return this.moleculeCollectionItemService.getPaginatedItemsForCollection(id, page, size).pipe(
-      debounce(() => interval(80)),
+      debounce(() => interval(200)),
       map(page => ({
         ...page,
         items: page.items.map(mol => Helpers.moleculeClientToCardAdapter(mol))
@@ -286,12 +286,19 @@ export class MoleculeCollectionDetailPageComponent implements OnInit, OnDestroy 
 
   }
 
+  private resetPagination(): void {
+    this.page = 1
+    this.loadMore()
+  }
+
   doQuery(q: string): void {
     this.searchTerm.set(q)
+    this.resetPagination()
   }
 
   doClear(): void {
     this.searchTerm.set('')
+    this.resetPagination()
   }
 
 }
