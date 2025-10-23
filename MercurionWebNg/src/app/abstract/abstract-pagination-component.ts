@@ -1,0 +1,63 @@
+import { ElementRef, signal } from "@angular/core";
+import { firstValueFrom, Observable } from "rxjs";
+import { PageModel } from "../Models/graphql/page.model";
+
+export abstract class AbstractPaginationComponent<T> {
+  protected sentinel: ElementRef<unknown> | undefined
+  protected items: T[] = []
+  protected loading = false
+  protected done = false
+  protected observer?: IntersectionObserver
+  protected page = 1
+  protected empty = signal<boolean>(false)
+  protected searchTerm = signal<string>('')
+
+  protected abstract fetch$(): Observable<PageModel<T>>
+
+  protected abstract doQuery(q: string): void
+
+  protected abstract doClear(): void
+
+  protected async loadMore(): Promise<void> {
+    if (this.loading || this.done) return;
+
+    if (!this.done) {
+      this.loading = true;
+    }
+
+    const newPage = await firstValueFrom(
+      this.fetch$()
+    )
+
+    if (newPage.items.length === 0) {
+      if (this.page === 1) {
+        this.empty.set(true)
+      }
+      this.done = true;
+    } else {
+      this.items = [...this.items, ...newPage.items];
+      this.page++;
+    }
+
+    this.loading = false;
+  }
+
+  protected resetPagination(): void {
+    this.items = []
+    this.page = 1
+    this.done = false
+    this.empty.set(false)
+    this.loadMore()
+  }
+
+  protected query(q: string): void {
+    this.searchTerm.set(q)
+    this.resetPagination()
+  }
+
+  protected clear(): void {
+    this.searchTerm.set('')
+    this.resetPagination()
+  }
+
+}
