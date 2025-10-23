@@ -41,6 +41,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
                 case 'NotAllowedAction':
                 case 'InvalidOrExpiredChangePasswordToken':
                 case 'PasswordReused':
+                case 'ChEMBLItemAddError::Forbidden':
+                case 'CustomItemAddError::Forbidden':
                     statusCode = HttpStatus.FORBIDDEN
                     break
                 case 'ChangeEmailConfirm::NoUnconfirmedEmail':
