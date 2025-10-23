@@ -52,13 +52,14 @@ import { PageModel } from '../../Models/graphql/page.model';
     </div>
     <pm-search-input
       class="block relative"
+      [class.invisible]="empty() && earlyDone"
       [placeholder]="'Cerca collezione...'"
       [value]="searchTerm()"
       (valueChange)="doQuery($event)"
       (submitted)="doQuery($event)"
       (cleared)="doClear()"
     />
-    @if (empty()) {
+    @if (empty() && earlyDone) {
       <p class="mt-5 text-slate-700 dark:text-slate-200">Nessuna collezione molecolare.</p>
     } @else {
       <div class="flex gap-2 items-center flex-wrap relative -top-6">
@@ -121,11 +122,11 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
       )
   }
 
-  doQuery(q: string): void {
+  protected override doQuery(q: string): void {
     this.query(q)
   }
 
-  doClear(): void {
+  protected override doClear(): void {
     this.clear()
   }
 

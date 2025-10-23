@@ -98,15 +98,14 @@ import { AbstractPaginationComponent } from '../../abstract/abstract-pagination-
         </button>
       </div>
     </div>
-    @if (!empty() && done) {
       <pm-search-input
+        [class.invisible]="empty() && earlyDone"
         [value]="searchTerm()"
         (valueChange)="doQuery($event)"
         (submitted)="doQuery($event)"
         (cleared)="doClear()"
       />
-    }
-    <div class="mt-px relative bottom-10">
+    <div class="mt-px relative -top-8">
       @for (item of items; track item; let i = $index) {
         <app-molecule-collection-item-card [molecule]="item" [i]="i" [collectionId]="colId()" (onDelete)="doDelete($event)" />
       }
@@ -118,11 +117,13 @@ import { AbstractPaginationComponent } from '../../abstract/abstract-pagination-
           <app-classic-spinner [size]="60" />
         </div>
       } @else {
+        <div class="relative -top-8">
         @for (i of [0, 1, 2, 3, 4]; track i) {
-          <app-skeleton-molecule-card />
-        }
+            <app-skeleton-molecule-card />
+          }
+        </div>
       }
-    } @else if (empty()) {
+    } @else if (empty() && earlyDone) {
       <p class="relative -top-8 text-slate-700 dark:text-slate-200">Nessuna molecola in questa collezione.</p>
     }
   </section>
@@ -225,8 +226,8 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
     const newPage = await firstValueFrom(this.fetch$(this.page, 7));
     if (!newPage || newPage.items.length === 0) {
       this.done = true;
-      if (this.items.length === 0) {
-        this.empty.set(true)
+      if (this.page === 1) {
+        this.earlyDone = true
       }
     } else {
       this.items = [...this.items, ...newPage.items];
@@ -264,11 +265,11 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
   }
 
 
-  doQuery(q: string): void {
+  protected override doQuery(q: string): void {
     this.query(q)
   }
 
-  doClear(): void {
+  protected override doClear(): void {
     this.clear()
   }
 

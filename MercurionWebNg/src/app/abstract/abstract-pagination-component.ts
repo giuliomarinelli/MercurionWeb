@@ -7,9 +7,10 @@ export abstract class AbstractPaginationComponent<T> {
   protected items: T[] = []
   protected loading = false
   protected done = false
+  protected earlyDone = false
   protected observer?: IntersectionObserver
   protected page = 1
-  protected empty = signal<boolean>(false)
+  protected empty = signal<boolean>(true)
   protected searchTerm = signal<string>('')
 
   protected abstract fetch$(page?: number, size?: number): Observable<PageModel<T>>
@@ -30,11 +31,12 @@ export abstract class AbstractPaginationComponent<T> {
     )
 
     if (newPage.items.length === 0) {
-      if (this.page === 1) {
-        this.empty.set(true)
-      }
       this.done = true;
+      this.earlyDone = true
     } else {
+      if (this.empty()) {
+        this.empty.set(false)
+      }
       this.items = [...this.items, ...newPage.items];
       this.page++;
     }
