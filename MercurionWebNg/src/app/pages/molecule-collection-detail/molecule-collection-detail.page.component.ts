@@ -14,6 +14,8 @@ import { Helpers } from '../../helpers';
 import { ToastService } from '../../services/toast.service';
 import { PmSearchInputComponent } from '../../components/common/pm-search-input/pm-search-input.component';
 import { AbstractPaginationComponent } from '../../abstract/abstract-pagination-component';
+import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
+import { AddMoleculesToCollectionContextService } from '../../services/context/add-molecules-to-collection-context.service';
 
 
 
@@ -98,13 +100,13 @@ import { AbstractPaginationComponent } from '../../abstract/abstract-pagination-
         </button>
       </div>
     </div>
-      <pm-search-input
+    <pm-search-input
         [class.invisible]="empty() && earlyDone"
         [value]="searchTerm()"
         (valueChange)="doQuery($event)"
         (submitted)="doQuery($event)"
         (cleared)="doClear()"
-      />
+    />
     <div class="mt-px relative -top-8">
       @for (item of items; track item; let i = $index) {
         <app-molecule-collection-item-card [molecule]="item" [i]="i" [collectionId]="colId()" (onDelete)="doDelete($event)" />
@@ -138,6 +140,8 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
   private readonly route = inject(ActivatedRoute)
   private readonly historyContext = inject(HistoryContextService)
   private readonly toast = inject(ToastService)
+  private readonly actionCtx = inject(ActionOverlayContextService)
+  private readonly addCtx = inject(AddMoleculesToCollectionContextService)
   // ====================================================
 
   @ViewChild('sentinel', { static: true })
@@ -265,8 +269,12 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
   doDeleteCollection(): void {
 
   }
-  doAddToCollection(): void {
 
+  doAddToCollection(): void {
+    queueMicrotask(() => {
+      this.addCtx.setCollectionId(this.colId())
+      this.actionCtx.open('AddMoleculesToCollection')
+    })
   }
 
 

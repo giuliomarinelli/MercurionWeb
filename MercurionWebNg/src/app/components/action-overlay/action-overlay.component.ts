@@ -1,11 +1,15 @@
 import { Component, inject } from '@angular/core';
 import { CustomMoleculeCollectionItemSaveComponent } from "../action-components/custom-molecule-collection-item-save/custom-molecule-collection-item-save.component";
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
+import { AddMoleculesToCollectionComponent } from '../action-components/add-molecules-to-collection/add-molecules-to-collection.component';
 
 @Component({
   selector: 'app-action-overlay',
   standalone: true,
-  imports: [CustomMoleculeCollectionItemSaveComponent],
+  imports: [
+    CustomMoleculeCollectionItemSaveComponent,
+    AddMoleculesToCollectionComponent
+  ],
   template: `
 
     @if (ctx.isMounted() && ctx.scope()) {
@@ -17,6 +21,9 @@ import { ActionOverlayContextService } from '../../services/context/action-conte
         @switch (ctx.scope()) {
           @case ('MoleculeCollectionItemSave') {
             <app-custom-molecule-collection-item-save />
+          }
+          @case ('AddMoleculesToCollection') {
+            <app-add-molecules-to-collection />
           }
         }
 
