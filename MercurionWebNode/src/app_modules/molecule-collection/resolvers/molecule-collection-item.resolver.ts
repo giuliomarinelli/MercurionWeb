@@ -42,11 +42,13 @@ export class MoleculeCollectionItemResolver {
         @Args('page', { type: () => Int }) page: number,
         @Args('limit', { type: () => Int }) limit: number,
         @Args('q', { type: () => String }) q: string,
+        @Args('excludeJoinedToCollection', { type: () => Boolean, nullable: true }) excludeJoinedToCollection: boolean | null,
+        @Args('collectionId', { type: () => ID, nullable: true }) collectionId: UUID | null,
         @Info() info: GraphQLResolveInfo
     ): Promise<PaginatedMoleculeCollectionItem> {
         const options: IPaginationOptions = { page, limit }
         const fieldsMap = GraphqlUtils.getFieldsMap(info)
-        return this.itemService.paginateAllByUser(userId, options, q, fieldsMap)
+        return this.itemService.paginateAllByUser(userId, options, q, excludeJoinedToCollection ?? false, collectionId, fieldsMap)
     }
 
     @Query(() => PaginatedMoleculeCollectionItem)
@@ -56,11 +58,12 @@ export class MoleculeCollectionItemResolver {
         @Args('page', { type: () => Int }) page: number,
         @Args('limit', { type: () => Int }) limit: number,
         @Args('q', { type: () => String }) q: string,
+        @Args('excluded', { type: () => Boolean, nullable: true }) excluded: boolean | null,
         @Info() info: GraphQLResolveInfo
     ): Promise<PaginatedMoleculeCollectionItem> {
         const options: IPaginationOptions = { page, limit }
         const fieldsMap = GraphqlUtils.getFieldsMap(info)
-        return this.itemService.paginateByCollection(userId, collectionId, options, q, fieldsMap)
+        return this.itemService.paginateByCollection(userId, collectionId, options, q, excluded ?? false, fieldsMap)
     }
 
     @Mutation(() => MoleculeCollectionItemEntity)

@@ -176,8 +176,8 @@ query PaginatedMoleculeCollectionItemsByCollection($collectionId: String!, $page
 }
 `
 export const ALL_PAGINATED_MOLECULE_ITEMS_FOR_CARD = gql`
-query PaginatedMoleculeCollectionItemsByUser($page: Int!, $limit: Int!, $q: String!) {
-    paginatedMoleculeCollectionItemsByUser(page: $page, limit: $limit, q: $q) {
+query PaginatedMoleculeCollectionItemsByUser($page: Int!, $limit: Int!, $q: String!, $excludeJoinedToCollection: Boolean, $collectionId: ID) {
+    paginatedMoleculeCollectionItemsByUser(page: $page, limit: $limit, q: $q, excludeJoinedToCollection: $excludeJoinedToCollection, collectionId: $collectionId) {
         items {
             ... on CustomMoleculeItemDTO {
                 id

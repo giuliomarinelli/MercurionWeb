@@ -225,13 +225,14 @@ export class MoleculeCollectionItemService {
         userId: UUID,
         options: IPaginationOptions,
         searchTerm: string = '',
+        excludeJoinedToCollection: boolean = false,
+        collectionId: UUID | null = null,
         fieldsMap: GraphQLFieldsMap,
     ): Promise<PaginatedMoleculeCollectionItem> {
         // Solo campi DB reali!
         const DB_FIELDS = [
             'id', 'type', 'userId', 'label', 'notes', 'createdAt', 'updatedAt', 'touchedAt',
-            'canonicalSmiles', 'molFormula', 'name', 'propertiesJson',
-            'chemblMolregno'
+            'canonicalSmiles', 'molFormula', 'name', 'propertiesJson', 'chemblMolregno'
         ];
 
         // Prendi solo quelli richiesti e realmente esistenti nel DB
@@ -239,13 +240,25 @@ export class MoleculeCollectionItemService {
             ? Object.keys(fieldsMap.items).filter(k => DB_FIELDS.includes(k))
             : DB_FIELDS;
 
-        // Query builder
+        // Base query: tutti gli item dell'utente
         let qb = this.itemRepo.createQueryBuilder('item')
             .select(itemsFields.map(col => `item.${col}`))
-            .where('item.userId = :userId', { userId })
+            .where('item.userId = :userId', { userId });
+
+        // Se devo escludere quelli già linkati a una collection specifica, uso LEFT JOIN e filtro IS NULL
+        if (excludeJoinedToCollection && collectionId) {
+            qb = qb
+                .leftJoin(
+                    'item.joins',
+                    'join',
+                    'join.collectionId = :collectionId AND join.userId = :userId',
+                    { collectionId, userId }
+                )
+                .andWhere('join.id IS NULL'); // => tieni solo NON già linkati alla collection
+        }
 
         if (searchTerm.trim()) {
-            qb = qb.andWhere('item.name ILIKE :query', { query: `%${searchTerm}%` })
+            qb = qb.andWhere('item.name ILIKE :query', { query: `%${searchTerm}%` });
         }
 
         qb = qb.orderBy('item.touchedAt', 'DESC');
@@ -275,38 +288,47 @@ export class MoleculeCollectionItemService {
             currentPage: page.meta.currentPage,
         };
     }
+
 
     async paginateByCollection(
         userId: UUID,
         collectionId: UUID,
         options: IPaginationOptions,
         searchTerm: string = '',
+        excluded: boolean = false,
         fieldsMap: GraphQLFieldsMap,
     ): Promise<PaginatedMoleculeCollectionItem> {
         // Solo campi DB reali!
         const DB_FIELDS = [
             'id', 'type', 'userId', 'label', 'notes', 'createdAt', 'updatedAt', 'touchedAt',
-            'canonicalSmiles', 'molFormula', 'name', 'propertiesJson',
-            'chemblMolregno'
+            'canonicalSmiles', 'molFormula', 'name', 'propertiesJson', 'chemblMolregno'
         ];
 
         const itemsFields = fieldsMap?.items
             ? Object.keys(fieldsMap.items).filter(k => DB_FIELDS.includes(k))
             : DB_FIELDS;
 
-        // Query builder: join su collection join table
+        // LEFT JOIN condizionato sulla collection corrente
         let qb = this.itemRepo.createQueryBuilder('item')
-            .innerJoin(
+            .leftJoin(
                 'item.joins',
                 'join',
                 'join.collectionId = :collectionId AND join.userId = :userId',
                 { collectionId, userId }
             )
-            .select(itemsFields.map(col => `item.${col}`))
+            .select(itemsFields.map(col => `item.${col}`));
 
+        // Filtri:
+        // - excluded === true  -> togli già linkati  -> join.id IS NULL
+        // - excluded === false -> solo già linkati   -> join.id IS NOT NULL
+        if (excluded) {
+            qb = qb.andWhere('join.id IS NULL');
+        } else {
+            qb = qb.andWhere('join.id IS NOT NULL');
+        }
 
-        if (searchTerm.trim()) {
-            qb = qb.andWhere('item.name ILIKE :query', { query: `%${searchTerm}%` })
+        if (searchTerm?.trim()) {
+            qb = qb.andWhere('item.name ILIKE :query', { query: `%${searchTerm}%` });
         }
 
         qb = qb.orderBy('item.touchedAt', 'DESC');
@@ -314,7 +336,7 @@ export class MoleculeCollectionItemService {
         // Niente join su campi virtuali!
         const page = await paginate<MoleculeCollectionItemEntity>(qb, options);
 
-        // Batch ChEMBL
+        // Batch ChEMBL enrichment
         const chemblItems = page.items.filter(i => i.type === 'chembl') as ChEMBLMoleculeItemEntity[];
         let detailsMap: Record<string, MoleculeDetail> = {};
         if (chemblItems.length > 0) {
@@ -323,10 +345,10 @@ export class MoleculeCollectionItemService {
             detailsMap = Object.fromEntries(detailsArray.map(d => [String(d.id), d]));
         }
 
-        // Mapping finale ai DTO polimorfici (via metodo estratto)
+        // Mapping finale ai DTO polimorfici
         const items = page.items.map(i => this.toPolymorphicDto(i, detailsMap));
 
-        // Risposta paginata finale
+        // Risposta paginata
         return {
             items,
             itemCount: page.meta.itemCount,
@@ -336,6 +358,7 @@ export class MoleculeCollectionItemService {
             currentPage: page.meta.currentPage,
         };
     }
+
 
     async update(id: UUID, userId: UUID, input: Partial<MoleculeCollectionItemEntity>, fieldsMap: GraphQLFieldsMap): Promise<MoleculeCollectionItemEntity | null> {
         await this.itemRepo.update({ id, userId }, { ...input })

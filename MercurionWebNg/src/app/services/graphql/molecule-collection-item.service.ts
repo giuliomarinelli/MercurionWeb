@@ -183,11 +183,11 @@ export class MoleculeCollectionItemService {
       )
   }
 
-  getAllPaginatedItems(page = 1, limit = 20, q: string): Observable<PageModel<MoleculeCollectionItemClient>> {
+  getAllPaginatedItems(page = 1, limit = 20, q: string, excludeJoinedToCollection: boolean | null = null, collectionId: string | null = null): Observable<PageModel<MoleculeCollectionItemClient>> {
     return this.apollo
       .watchQuery<{ paginatedMoleculeCollectionItemsByUser: PageModel<MoleculeItemDTO> }>({
         query: ALL_PAGINATED_MOLECULE_ITEMS_FOR_CARD,
-        variables: { page, limit, q },
+        variables: { page, limit, q, excludeJoinedToCollection, collectionId },
         fetchPolicy: 'network-only'
       }).valueChanges.pipe(
         map(res => extractGqlData(res, 'paginatedMoleculeCollectionItemsByUser', true) as PageModel<MoleculeItemDTO>),
