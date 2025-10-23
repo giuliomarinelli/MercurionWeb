@@ -33,8 +33,6 @@ export class MoleculeCollectionItemService {
         private readonly dataSource: DataSource
     ) { }
 
-
-
     async markAsTouched(userId: UUID, itemId: UUID, _flagIds?: string): Promise<boolean> {
         try {
             let flagIds: string
@@ -169,10 +167,6 @@ export class MoleculeCollectionItemService {
         // Applico la trasformazione polimorfica centralizzata
         return this.toPolymorphicDto(item, detailsMap);
     }
-
-
-
-
 
     async findAllByUser(userId: UUID, fieldsMap: GraphQLFieldsMap): Promise<MoleculeCollectionItemEntity[]> {
         const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
@@ -329,11 +323,6 @@ export class MoleculeCollectionItemService {
             currentPage: page.meta.currentPage,
         };
     }
-
-
-
-
-
 
     async update(id: UUID, userId: UUID, input: Partial<MoleculeCollectionItemEntity>, fieldsMap: GraphQLFieldsMap): Promise<MoleculeCollectionItemEntity | null> {
         await this.itemRepo.update({ id, userId }, { ...input })
