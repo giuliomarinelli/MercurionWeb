@@ -123,7 +123,7 @@ import { AbstractPaginationComponent } from '../../abstract/abstract-pagination-
           }
         </div>
       }
-    } @else if (empty() && earlyDone) {
+    } @else if (empty() && (earlyDone || done)) {
       <p class="relative -top-8 text-slate-700 dark:text-slate-200">Nessuna molecola in questa collezione.</p>
     }
   </section>

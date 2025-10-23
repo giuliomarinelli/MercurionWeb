@@ -53,7 +53,6 @@ import { PmSearchInputComponent } from '../../components/common/pm-search-input/
       <pm-search-input
         class="block relative"
         [class.invisible]="empty() && earlyDone"
-        [placeholder]="'Cerca collezione...'"
         [value]="searchTerm()"
         (valueChange)="doQuery($event)"
         (submitted)="doQuery($event)"
@@ -84,7 +83,7 @@ import { PmSearchInputComponent } from '../../components/common/pm-search-input/
             }
           </div>
         }
-      } @else if (empty() && earlyDone) {
+      } @else if (empty() && (earlyDone || done)) {
         <p class="relative -top-8 text-slate-700 dark:text-slate-200">Nessuna molecola.</p>
       }
     </section>

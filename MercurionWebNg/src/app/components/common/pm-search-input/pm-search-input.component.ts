@@ -20,7 +20,7 @@ import { Component, Input, Output, EventEmitter, ViewChild, ElementRef } from '@
         (keydown.enter)="onEnter()"
         [placeholder]="placeholder"
         [disabled]="disabled"
-        class="pl-10 pr-8 py-2 w-full text-sm text-slate-800 dark:text-slate-200
+        class="pl-10 pr-8 py-[10px] w-full text-sm text-slate-800 dark:text-slate-200
                bg-slate-100 dark:bg-neutral-800
                border border-slate-500/40 dark:border-none
                hover:bg-slate-200/30 dark:hover:bg-neutral-700

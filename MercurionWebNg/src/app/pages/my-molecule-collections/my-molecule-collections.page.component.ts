@@ -59,7 +59,7 @@ import { PageModel } from '../../Models/graphql/page.model';
       (submitted)="doQuery($event)"
       (cleared)="doClear()"
     />
-    @if (empty() && earlyDone) {
+    @if (empty() && (earlyDone || done)) {
       <p class="mt-5 text-slate-700 dark:text-slate-200">Nessuna collezione molecolare.</p>
     } @else {
       <div class="flex gap-2 items-center flex-wrap relative -top-6">

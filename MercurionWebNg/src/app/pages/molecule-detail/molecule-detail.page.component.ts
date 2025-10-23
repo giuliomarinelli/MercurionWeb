@@ -258,7 +258,7 @@ import { HistoryContextService } from '../../services/context/history-context.se
           <p class="text-light-error dark:text-dark-error text-sm">Si è verificato un errore nel caricamento della molecola</p>
         </section>
       } @else {
-        <section class="absolute inset-0 flex justify-center items-center">
+        <section class="w-5xl mx-auto h-full flex justify-center items-center">
           <app-classic-spinner [size]="85" />
         </section>
       }
