@@ -114,8 +114,8 @@ export class MoleculeCollectionService {
     async paginateByUser(
         userId: UUID,
         options: IPaginationOptions,
-        search?: string,
-        fieldsMap?: GraphQLFieldsMap
+        searchTerm: string = '',
+        fieldsMap?: GraphQLFieldsMap,
     ): Promise<Pagination<MoleculeCollection>> {
         // Prendi i campi richiesti dentro "items"
         const itemsFields = fieldsMap?.items ? Object.keys(fieldsMap.items).filter(k => k !== '__typename') : [];
@@ -127,8 +127,8 @@ export class MoleculeCollectionService {
             .select(columns.map(col => `collection.${col}`))
             .where('collection.user_id = :userId', { userId })
 
-        if (search) {
-            qb = qb.andWhere('collection.name ILIKE :query', { query: `%${search}%` })
+        if (searchTerm.trim()) {
+            qb = qb.andWhere('collection.name ILIKE :query', { query: `%${searchTerm}%` })
         }
 
         qb = qb.orderBy('collection.touchedAt', 'DESC')

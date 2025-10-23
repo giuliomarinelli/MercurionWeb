@@ -240,11 +240,11 @@ type Query {
   myMoleculeCollections: [MoleculeCollection!]!
   moleculeCollection(id: ID!): MoleculeCollection
   searchMyCollections(query: String, limit: Float): [MoleculeCollection!]!
-  myMoleculeCollectionsPaginated(page: Int! = 1, limit: Int! = 20, search: String): PaginatedMoleculeCollection!
+  myMoleculeCollectionsPaginated(page: Int! = 1, limit: Int! = 20, q: String!): PaginatedMoleculeCollection!
   myMoleculeItems: [MoleculeCollectionItemEntity!]!
   moleculeItem(id: ID!): MoleculeCollectionItemUnion
-  paginatedMoleculeCollectionItemsByUser(page: Int!, limit: Int!): PaginatedMoleculeCollectionItem!
-  paginatedMoleculeCollectionItemsByCollection(collectionId: String!, page: Int!, limit: Int!): PaginatedMoleculeCollectionItem!
+  paginatedMoleculeCollectionItemsByUser(page: Int!, limit: Int!, q: String!): PaginatedMoleculeCollectionItem!
+  paginatedMoleculeCollectionItemsByCollection(collectionId: String!, page: Int!, limit: Int!, q: String!): PaginatedMoleculeCollectionItem!
   chemblMoleculesByCollection(collectionId: ID!): [ChEMBLMoleculeItemEntity!]!
   findOneChemblMoleculeById(itemId: ID!): ChEMBLMoleculeItemEntity
   hasUserChEMBLMoleculeByMolregnoThenGetUUID(molregno: Int!): String

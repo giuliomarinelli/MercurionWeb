@@ -57,7 +57,7 @@ export class GlobalGuard implements CanActivate {
 
          try {
             payload = await this.jwtToolsService.verifyTokenAndGetPayload(accessToken, TokenType.AccessToken)
-            this.logger.debug(`Valid access token: ${JSON.stringify(payload)}`)
+            // this.logger.debug(`Valid access token: ${JSON.stringify(payload)}`)
          } catch (e) {
 
             if (e instanceof RpcException && e.message === 'InvalidOrExpiredAccessToken') {

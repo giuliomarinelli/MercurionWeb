@@ -224,13 +224,14 @@ export class MoleculeCollectionItemService {
     async paginateAllByUser(
         userId: UUID,
         options: IPaginationOptions,
+        searchTerm: string = '',
         fieldsMap: GraphQLFieldsMap,
     ): Promise<PaginatedMoleculeCollectionItem> {
         // Solo campi DB reali!
         const DB_FIELDS = [
             'id', 'type', 'userId', 'label', 'notes', 'createdAt', 'updatedAt', 'touchedAt',
             'canonicalSmiles', 'molFormula', 'name', 'propertiesJson',
-            'chemblMolregno', 'touchedAt'
+            'chemblMolregno'
         ];
 
         // Prendi solo quelli richiesti e realmente esistenti nel DB
@@ -239,10 +240,15 @@ export class MoleculeCollectionItemService {
             : DB_FIELDS;
 
         // Query builder
-        const qb = this.itemRepo.createQueryBuilder('item')
+        let qb = this.itemRepo.createQueryBuilder('item')
             .select(itemsFields.map(col => `item.${col}`))
-            .where('item.user_id = :userId', { userId })
-            .orderBy('item.touchedAt', 'DESC');
+            .where('item.userId = :userId', { userId })
+
+        if (searchTerm.trim()) {
+            qb = qb.andWhere('item.name ILIKE :query', { query: `%${searchTerm}%` })
+        }
+
+        qb = qb.orderBy('item.touchedAt', 'DESC');
 
         // Niente join su campi virtuali!
         const page = await paginate<MoleculeCollectionItemEntity>(qb, options);
@@ -274,13 +280,14 @@ export class MoleculeCollectionItemService {
         userId: UUID,
         collectionId: UUID,
         options: IPaginationOptions,
+        searchTerm: string = '',
         fieldsMap: GraphQLFieldsMap,
     ): Promise<PaginatedMoleculeCollectionItem> {
         // Solo campi DB reali!
         const DB_FIELDS = [
             'id', 'type', 'userId', 'label', 'notes', 'createdAt', 'updatedAt', 'touchedAt',
             'canonicalSmiles', 'molFormula', 'name', 'propertiesJson',
-            'chemblMolregno', 'touchedAt'
+            'chemblMolregno'
         ];
 
         const itemsFields = fieldsMap?.items
@@ -288,7 +295,7 @@ export class MoleculeCollectionItemService {
             : DB_FIELDS;
 
         // Query builder: join su collection join table
-        const qb = this.itemRepo.createQueryBuilder('item')
+        let qb = this.itemRepo.createQueryBuilder('item')
             .innerJoin(
                 'item.joins',
                 'join',
@@ -296,7 +303,13 @@ export class MoleculeCollectionItemService {
                 { collectionId, userId }
             )
             .select(itemsFields.map(col => `item.${col}`))
-            .orderBy('item.touchedAt', 'DESC');
+
+
+        if (searchTerm.trim()) {
+            qb = qb.andWhere('item.name ILIKE :query', { query: `%${searchTerm}%` })
+        }
+
+        qb = qb.orderBy('item.touchedAt', 'DESC');
 
         // Niente join su campi virtuali!
         const page = await paginate<MoleculeCollectionItemEntity>(qb, options);

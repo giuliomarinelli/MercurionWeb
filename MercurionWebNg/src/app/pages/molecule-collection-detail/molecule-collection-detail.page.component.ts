@@ -12,6 +12,7 @@ import { LinkModel } from '../../Models/link.model';
 import { HistoryContextService } from '../../services/context/history-context.service';
 import { Helpers } from '../../helpers';
 import { ToastService } from '../../services/toast.service';
+import { PmSearchInputComponent } from '../../components/common/pm-search-input/pm-search-input.component';
 
 
 
@@ -22,7 +23,8 @@ import { ToastService } from '../../services/toast.service';
     MyMoleculesHeadingComponent,
     ClassicSpinnerComponent,
     MoleculeCollectionItemCardComponent,
-    SkeletonMoleculeCardComponent
+    SkeletonMoleculeCardComponent,
+    PmSearchInputComponent
   ],
   template: `
 
@@ -95,6 +97,12 @@ import { ToastService } from '../../services/toast.service';
         </button>
       </div>
     </div>
+    <pm-search-input
+      [value]="searchTerm()"
+      (valueChange)="doQuery($event)"
+      (submitted)="doQuery($event)"
+      (cleared)="doClear()"
+    />
     <div class="mt-px relative bottom-10">
       @for (item of items; track item; let i = $index) {
         <app-molecule-collection-item-card [molecule]="item" [i]="i" [collectionId]="colId()" (onDelete)="doDelete($event)" />
@@ -151,6 +159,8 @@ export class MoleculeCollectionDetailPageComponent implements OnInit, OnDestroy 
   name = signal<string>('')
   colId = signal<string>('')
   empty = signal<boolean>(false)
+  searchTerm = signal<string>('')
+
 
   private fetchPage$(page = this.page, size = 7) {
     const id = this.colId();
@@ -274,6 +284,14 @@ export class MoleculeCollectionDetailPageComponent implements OnInit, OnDestroy 
   }
   doAddToCollection(): void {
 
+  }
+
+  doQuery(q: string): void {
+    this.searchTerm.set(q)
+  }
+
+  doClear(): void {
+    this.searchTerm.set('')
   }
 
 }

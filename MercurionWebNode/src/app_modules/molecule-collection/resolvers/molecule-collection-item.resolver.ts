@@ -41,11 +41,12 @@ export class MoleculeCollectionItemResolver {
         @AuthenticatedUserId() userId: UUID,
         @Args('page', { type: () => Int }) page: number,
         @Args('limit', { type: () => Int }) limit: number,
+        @Args('q', { type: () => String }) q: string,
         @Info() info: GraphQLResolveInfo
     ): Promise<PaginatedMoleculeCollectionItem> {
         const options: IPaginationOptions = { page, limit }
         const fieldsMap = GraphqlUtils.getFieldsMap(info)
-        return this.itemService.paginateAllByUser(userId, options, fieldsMap)
+        return this.itemService.paginateAllByUser(userId, options, q, fieldsMap)
     }
 
     @Query(() => PaginatedMoleculeCollectionItem)
@@ -54,11 +55,12 @@ export class MoleculeCollectionItemResolver {
         @Args('collectionId', { type: () => String }) collectionId: UUID,
         @Args('page', { type: () => Int }) page: number,
         @Args('limit', { type: () => Int }) limit: number,
+        @Args('q', { type: () => String }) q: string,
         @Info() info: GraphQLResolveInfo
     ): Promise<PaginatedMoleculeCollectionItem> {
         const options: IPaginationOptions = { page, limit }
         const fieldsMap = GraphqlUtils.getFieldsMap(info)
-        return this.itemService.paginateByCollection(userId, collectionId, options, fieldsMap)
+        return this.itemService.paginateByCollection(userId, collectionId, options, q, fieldsMap)
     }
 
     @Mutation(() => MoleculeCollectionItemEntity)

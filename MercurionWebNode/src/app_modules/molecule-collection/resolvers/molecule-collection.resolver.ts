@@ -102,11 +102,11 @@ export class MoleculeCollectionResolver {
         @Args('page', { type: () => Int, defaultValue: 1 }) page: number,
         @Args('limit', { type: () => Int, defaultValue: 20 }) limit: number,
         @Info() info: GraphQLResolveInfo,
-        @Args('search', { type: () => String, nullable: true }) search?: string
+        @Args('q', { type: () => String }) q: string
     ): Promise<PaginatedMoleculeCollection> {
 
         const fieldsMap = GraphqlUtils.getFieldsMap(info)
-        const paginated = await this.collectionService.paginateByUser(userId, { page, limit }, search, fieldsMap);
+        const paginated = await this.collectionService.paginateByUser(userId, { page, limit }, q, fieldsMap);
 
         return {
             items: paginated.items,

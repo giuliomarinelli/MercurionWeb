@@ -11,4 +11,7 @@ export class ChEMBLMoleculeItemEntity extends MoleculeCollectionItemEntity {
     @Column({ type: 'bigint' })
     chemblMolregno: number
 
+    @Column({ type: 'varchar' })
+    name: string | null
+
 }
