@@ -12,8 +12,9 @@ export abstract class AbstractPaginationComponent<T> {
   protected page = 1
   protected empty = signal<boolean>(true)
   protected searchTerm = signal<string>('')
+  protected root: ElementRef | null = null
 
-  protected abstract fetch$(page?: number, size?: number): Observable<PageModel<T>>
+  protected abstract fetch$(page?: number, size?: number, q?: string): Observable<PageModel<T>>
 
   protected abstract doQuery(q: string): void
 
@@ -48,7 +49,7 @@ export abstract class AbstractPaginationComponent<T> {
     this.items = []
     this.page = 1
     this.done = false
-    this.empty.set(false)
+    this.empty.set(true)
     this.loadMore()
   }
 
@@ -69,7 +70,7 @@ export abstract class AbstractPaginationComponent<T> {
         const entry = entries[0];
         if (entry.isIntersecting) this.loadMore();
       },
-      { root: null, rootMargin: '0px 0px 500px 0px', threshold: 0 }
+      { root: this.root?.nativeElement ?? null, rootMargin: '0px 0px 500px 0px', threshold: 0 }
     );
     if (this.sentinel) {
       this.observer.observe(this.sentinel.nativeElement as HTMLDivElement);
