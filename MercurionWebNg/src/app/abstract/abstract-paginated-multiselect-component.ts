@@ -7,11 +7,19 @@ export abstract class AbstractPaginatedMultiselectComponent<T> extends AbstractP
 
   protected multiselectItems = signal<AbstractMultiselectItem<T>[]>([]);
 
-  protected isSelectedAll = computed(() => {
+  protected isSelectedAll = computed<boolean>(() => {
     const items = this.multiselectItems();
     if (items.length === 0) return false;
     return items.every(i => i.isChecked());
   });
+
+  protected isSelectedNothing = computed<boolean>(() => {
+    const items = this.multiselectItems()
+    if (items.length === 0) {
+      return true
+    }
+    return items.every(i => !i.isChecked())
+  })
 
   protected selectAll(): void {
     queueMicrotask(() => {

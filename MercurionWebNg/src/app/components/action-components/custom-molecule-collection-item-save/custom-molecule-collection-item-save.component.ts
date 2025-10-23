@@ -166,26 +166,26 @@ import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.model
               </div>
 
               <!-- Bottoni -->
-              <div class="mt-8 flex justify-end gap-2 sticky">
-                <button
-                  type="button"
-                  class="px-4 py-2 rounded bg-slate-200 text-light-on-surface-main dark:bg-slate-100 dark:text-neutral-950 hover:bg-gray-300"
-                  (click)="close()"
-                >
-                  Annulla
-                </button>
-                <button
-                  type="submit"
-                  class="px-4 py-2 rounded bg-emerald-600 text-white font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed"
-                  [disabled]="!saveCtx.selectedCollectionId() || !nameModel"
-                >
-                  Salva
-                </button>
-              </div>
             </form>
           </div>
+          <div class="mt-8 flex justify-end gap-2 sticky">
+            <button
+              type="button"
+              class="px-4 py-2 rounded bg-slate-200 text-light-on-surface-main dark:bg-slate-100 dark:text-neutral-950 hover:bg-gray-300"
+              (click)="close()"
+            >
+              Annulla
+            </button>
+            <button
+              type="submit"
+              class="px-4 py-2 rounded bg-emerald-600 text-white font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed"
+              [disabled]="!saveCtx.selectedCollectionId() || !nameModel"
+            >
+              Salva
+            </button>
+          </div>
         </div>
-      </div>
+    </div>
 
   `
 })
@@ -199,7 +199,6 @@ export class CustomMoleculeCollectionItemSaveComponent {
 
   @ViewChild('notes')
   private notesRef!: ElementRef<HTMLTextAreaElement>
-
 
   protected readonly overlayCtx = inject(ActionOverlayContextService);
   protected readonly saveCtx = inject(CustomMoleculeCollectionItemSaveContextService);

@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { MoleculeCollectionService } from '../../services/graphql/molecule-collection.service';
-import { catchError, debounce, debounceTime, distinctUntilChanged, filter, firstValueFrom, interval, map, of, Subscription, switchMap, tap } from 'rxjs';
+import { catchError, debounce, debounceTime, distinctUntilChanged, filter, firstValueFrom, interval, map, Observable, of, Subscription, switchMap, tap } from 'rxjs';
 import { MoleculeCardItemModel, MoleculeCollection } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 import { MyMoleculesHeadingComponent } from '../../components/molecule-detail/my-molecules-heading/my-molecules-heading.component';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
@@ -158,7 +158,12 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
   name = signal<string>('')
   colId = signal<string>('')
 
-  protected fetch$(page = this.page, size = 7) {
+  protected override fetch$(page = this.page, size = 7): Observable<{
+    items: MoleculeCardItemModel[];
+    totalPages: number;
+    totalItems: number;
+    currentPage: number;
+  }> {
     const id = this.colId();
     return this.moleculeCollectionItemService.getPaginatedItemsForCollection(id, page, size, this.searchTerm()).pipe(
       debounceTime(200),
