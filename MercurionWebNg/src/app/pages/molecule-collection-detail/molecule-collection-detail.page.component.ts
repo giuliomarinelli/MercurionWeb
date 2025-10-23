@@ -1,6 +1,6 @@
-import { Component, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { MoleculeCollectionService } from '../../services/graphql/molecule-collection.service';
-import { catchError, debounce, distinctUntilChanged, filter, firstValueFrom, interval, map, of, Subscription, switchMap, tap } from 'rxjs';
+import { catchError, debounce, debounceTime, distinctUntilChanged, filter, firstValueFrom, interval, map, of, Subscription, switchMap, tap } from 'rxjs';
 import { MoleculeCardItemModel, MoleculeCollection } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 import { MyMoleculesHeadingComponent } from '../../components/molecule-detail/my-molecules-heading/my-molecules-heading.component';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
@@ -13,6 +13,7 @@ import { HistoryContextService } from '../../services/context/history-context.se
 import { Helpers } from '../../helpers';
 import { ToastService } from '../../services/toast.service';
 import { PmSearchInputComponent } from '../../components/common/pm-search-input/pm-search-input.component';
+import { AbstractPaginationComponent } from '../../abstract/abstract-pagination-component';
 
 
 
@@ -97,12 +98,14 @@ import { PmSearchInputComponent } from '../../components/common/pm-search-input/
         </button>
       </div>
     </div>
-    <pm-search-input
-      [value]="searchTerm()"
-      (valueChange)="doQuery($event)"
-      (submitted)="doQuery($event)"
-      (cleared)="doClear()"
-    />
+    @if (!empty() && done) {
+      <pm-search-input
+        [value]="searchTerm()"
+        (valueChange)="doQuery($event)"
+        (submitted)="doQuery($event)"
+        (cleared)="doClear()"
+      />
+    }
     <div class="mt-px relative bottom-10">
       @for (item of items; track item; let i = $index) {
         <app-molecule-collection-item-card [molecule]="item" [i]="i" [collectionId]="colId()" (onDelete)="doDelete($event)" />
@@ -126,7 +129,7 @@ import { PmSearchInputComponent } from '../../components/common/pm-search-input/
 
   `
 })
-export class MoleculeCollectionDetailPageComponent implements OnInit, OnDestroy {
+export class MoleculeCollectionDetailPageComponent extends AbstractPaginationComponent<MoleculeCardItemModel> implements OnInit, OnDestroy, AfterViewInit {
 
   // ======================= DEPS =======================
   private readonly moleculeCollectionService = inject(MoleculeCollectionService)
@@ -137,7 +140,7 @@ export class MoleculeCollectionDetailPageComponent implements OnInit, OnDestroy 
   // ====================================================
 
   @ViewChild('sentinel', { static: true })
-  sentinel!: ElementRef;
+  declare sentinel: ElementRef | undefined
 
   protected readonly breadcrumb: LinkModel[] = [
     {
@@ -149,41 +152,20 @@ export class MoleculeCollectionDetailPageComponent implements OnInit, OnDestroy 
   private colIdSub?: Subscription
   private touchSub?: Subscription
   private delSub?: Subscription
-  items: MoleculeCardItemModel[] = []
   title = ''
-  loading = true
-  done = false
-  private observer?: IntersectionObserver
-  protected page = 1
   error = signal<boolean>(false)
   name = signal<string>('')
   colId = signal<string>('')
-  empty = signal<boolean>(false)
-  searchTerm = signal<string>('')
 
-
-  private fetchPage$(page = this.page, size = 7) {
+  protected fetch$(page = this.page, size = 7) {
     const id = this.colId();
-    return this.moleculeCollectionItemService.getPaginatedItemsForCollection(id, page, size).pipe(
-      debounce(() => interval(200)),
+    return this.moleculeCollectionItemService.getPaginatedItemsForCollection(id, page, size, this.searchTerm()).pipe(
+      debounceTime(200),
       map(page => ({
         ...page,
         items: page.items.map(mol => Helpers.moleculeClientToCardAdapter(mol))
       }))
     );
-  }
-
-
-  private startObserver() {
-    if (this.observer) this.observer.disconnect();
-    this.observer = new IntersectionObserver(
-      entries => {
-        const entry = entries[0];
-        if (entry.isIntersecting) this.loadMore();
-      },
-      { root: null, rootMargin: '0px 0px 500px 0px', threshold: 0 }
-    );
-    this.observer.observe(this.sentinel.nativeElement);
   }
 
   ngOnInit(): void {
@@ -210,26 +192,21 @@ export class MoleculeCollectionDetailPageComponent implements OnInit, OnDestroy 
           return
         }
         this.colId.set(col.id)
-        this.name.set(col.name)
-        this.items = []
-        this.page = 1
-        this.done = false
-        this.loading = false
       }),
-      // carica la prima pagina *prima* di avviare l’osservatore
-      switchMap(() => this.fetchPage$()),
       catchError(() => {
         this.error.set(true)
         return of(null)
       })
-    ).subscribe(page => {
-      if (!page) return;
-      this.items = page.items;
-      this.page = 2;
-      this.startObserver();
+    ).subscribe(col => {
+      if (!col) return;
+      this.name.set(col.name)
+      this.loadMore(col.id)
     });
   }
 
+  ngAfterViewInit(): void {
+    this.startObserver()
+  }
 
   ngOnDestroy(): void {
     this.colIdSub?.unsubscribe()
@@ -237,18 +214,18 @@ export class MoleculeCollectionDetailPageComponent implements OnInit, OnDestroy 
     this.delSub?.unsubscribe()
   }
 
-  async loadMore() {
+  protected override async loadMore(_id?: string) {
     if (this.loading || this.done) return;
 
-    const id = this.colId();
+    const id = this.colId() ?? _id;
     if (!id) return; // ← guardia fondamentale
 
     this.loading = true;
 
-    const newPage = await firstValueFrom(this.fetchPage$(this.page, 7));
+    const newPage = await firstValueFrom(this.fetch$(this.page, 7));
     if (!newPage || newPage.items.length === 0) {
       this.done = true;
-      if (this.page === 2 && this.items.length === 0) {
+      if (this.items.length === 0) {
         this.empty.set(true)
       }
     } else {
@@ -286,19 +263,13 @@ export class MoleculeCollectionDetailPageComponent implements OnInit, OnDestroy 
 
   }
 
-  private resetPagination(): void {
-    this.page = 1
-    this.loadMore()
-  }
 
   doQuery(q: string): void {
-    this.searchTerm.set(q)
-    this.resetPagination()
+    this.query(q)
   }
 
   doClear(): void {
-    this.searchTerm.set('')
-    this.resetPagination()
+    this.clear()
   }
 
 }

@@ -103,17 +103,7 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
   declare sentinel: ElementRef<HTMLDivElement> | undefined
 
   ngAfterViewInit(): void {
-    this.observer = new IntersectionObserver(
-      entries => {
-        const entry = entries[0];
-        if (entry.isIntersecting) {
-          this.loadMore()
-        };
-      },
-      { root: null, rootMargin: '0px 0px 500px 0px', threshold: 0 }
-    );
-
-    this.observer.observe(this.sentinel!.nativeElement);
+    this.startObserver()
   }
 
   ngOnInit(): void {

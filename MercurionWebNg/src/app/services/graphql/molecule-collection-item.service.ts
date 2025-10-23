@@ -158,14 +158,15 @@ export class MoleculeCollectionItemService {
       );
   }
 
-  getPaginatedItemsForCollection(collectionId: string, page: number = 1, limit: number = 20): Observable<PageModel<MoleculeCollectionItemClient>> {
+  getPaginatedItemsForCollection(collectionId: string, page: number = 1, limit: number = 20, q: string): Observable<PageModel<MoleculeCollectionItemClient>> {
     return this.apollo
       .watchQuery<{ paginatedMoleculeCollectionItemsByCollection: PageModel<MoleculeItemDTO> }>({
         query: PAGINATED_MOLECULE_ITEMS_FOR_CARD_BY_COLLECTION,
         variables: {
           collectionId,
           page,
-          limit
+          limit,
+          q
         },
         fetchPolicy: 'network-only'
       })

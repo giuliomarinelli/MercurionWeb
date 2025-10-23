@@ -3,7 +3,7 @@ import { firstValueFrom, Observable } from "rxjs";
 import { PageModel } from "../Models/graphql/page.model";
 
 export abstract class AbstractPaginationComponent<T> {
-  protected sentinel: ElementRef<unknown> | undefined
+  protected sentinel: ElementRef<HTMLDivElement> | undefined
   protected items: T[] = []
   protected loading = false
   protected done = false
@@ -12,7 +12,7 @@ export abstract class AbstractPaginationComponent<T> {
   protected empty = signal<boolean>(false)
   protected searchTerm = signal<string>('')
 
-  protected abstract fetch$(): Observable<PageModel<T>>
+  protected abstract fetch$(page?: number, size?: number): Observable<PageModel<T>>
 
   protected abstract doQuery(q: string): void
 
@@ -58,6 +58,20 @@ export abstract class AbstractPaginationComponent<T> {
   protected clear(): void {
     this.searchTerm.set('')
     this.resetPagination()
+  }
+
+  protected startObserver() {
+    if (this.observer) this.observer.disconnect();
+    this.observer = new IntersectionObserver(
+      entries => {
+        const entry = entries[0];
+        if (entry.isIntersecting) this.loadMore();
+      },
+      { root: null, rootMargin: '0px 0px 500px 0px', threshold: 0 }
+    );
+    if (this.sentinel) {
+      this.observer.observe(this.sentinel.nativeElement as HTMLDivElement);
+    }
   }
 
 }
