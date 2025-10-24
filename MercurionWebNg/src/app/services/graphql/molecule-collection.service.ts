@@ -3,7 +3,7 @@ import { Apollo, gql } from 'apollo-angular';
 import { Observable, map, tap } from 'rxjs';
 import { MoleculeCollection } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 import { PageModel } from '../../Models/graphql/page.model';
-import { MARK_MOLECULE_COLLECTION_AS_TOUCHED, PAGINATED_MOLECULE_COLLECTIONS } from './graphql-actions/molecule-collection.gql-actions';
+import { MARK_MOLECULE_COLLECTION_AS_TOUCHED, PAGINATED_MOLECULE_COLLECTIONS, UPDATE_MOLECULE_COLLECTION_NAME } from './graphql-actions/molecule-collection.gql-actions';
 import { extractGqlData } from './graphql-helpers/extract-gql-data.gql-helper';
 
 
@@ -144,6 +144,18 @@ export class MoleculeCollectionService {
         variables: { id, name },
       })
       .pipe(map(res => extractGqlData(res, 'updateMoleculeCollection')));
+  }
+
+  updateCollectionName(id: string, name: string): Observable<MoleculeCollection | null> {
+    return this.apollo
+      .mutate<{updateMoleculeCollection: MoleculeCollection | null}>({
+        mutation: UPDATE_MOLECULE_COLLECTION_NAME,
+        variables: {
+          id, name
+        }
+      }).pipe(
+        map(res => extractGqlData(res, 'updateMoleculeCollection'))
+      )
   }
 
   // DELETE

@@ -1,4 +1,4 @@
-import { MyMoleculeCustomDetailSaveModel } from '../../../Models/my-molecule-custom-detail-save.model';
+import { CustomDetailSaveModel } from '../../../Models/custom-detail-save.model';
 import { NgClass } from '@angular/common';
 import {
   Component, ElementRef, EventEmitter, inject, Input, Output, Renderer2, signal, ViewChild, ChangeDetectionStrategy
@@ -6,7 +6,7 @@ import {
 import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.component';
 
 @Component({
-  selector: 'app-my-molecule-custom-details',
+  selector: 'app-custom-details',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgClass, MoleculeBadgeComponent],
@@ -81,8 +81,9 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
               }">
             {{ _value() }}
           </h2>
-          <app-molecule-badge [name]="_badgeName()" class="block relative top-1" />
-          @i
+            @if (_badgeName()) {
+              <app-molecule-badge [name]="_badgeName()" class="block relative top-1" />
+            }
             @if (mode() === 'view') {
               <button class="cursor-pointer transition-colors duration-300" title="Modifica" (click)="doEdit()">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
@@ -162,7 +163,7 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
     }
   `
 })
-export class MyMoleculeCustomDetailsComponent {
+export class CustomDetailsComponent {
 
   // ======================= DEPS =======================
   private readonly r = inject(Renderer2);
@@ -173,7 +174,7 @@ export class MyMoleculeCustomDetailsComponent {
   _badgeName = signal<string>('Personal Molecule');
   startValue = signal<string>('');
   _type = signal<'label' | 'notes' | 'name' | 'cardName'>('label');
-  _molId = signal<string>('')
+  _itemId = signal<string>('')
   mode = signal<'view' | 'edit'>('view');
   _isReadonly = signal<Boolean>(false)
 
@@ -192,8 +193,8 @@ export class MyMoleculeCustomDetailsComponent {
   }
 
   @Input({ required: true })
-  set molId(molId: string) {
-    this._molId.set(molId)
+  set itemId(itemId: string) {
+    this._itemId.set(itemId)
   }
 
   @Input()
@@ -207,7 +208,7 @@ export class MyMoleculeCustomDetailsComponent {
 
 
   @Output()
-  onSaving = new EventEmitter<MyMoleculeCustomDetailSaveModel>();
+  onSaving = new EventEmitter<CustomDetailSaveModel>()
 
   /* -------- actions -------- */
   doEdit() {
@@ -251,7 +252,7 @@ export class MyMoleculeCustomDetailsComponent {
       label: this._label(),
       value: newValue,
       type: this._type() as 'label' | 'notes' | 'name' | 'cardName',
-      id: this._molId()
+      id: this._itemId()
     });
   }
 

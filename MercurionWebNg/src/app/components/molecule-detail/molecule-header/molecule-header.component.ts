@@ -1,6 +1,6 @@
-import { MyMoleculeCustomDetailSaveModel } from '../../../Models/my-molecule-custom-detail-save.model';
+import { CustomDetailSaveModel } from '../../../Models/custom-detail-save.model';
 import { Component, computed, EventEmitter, Input, Output, signal } from '@angular/core';
-import { MyMoleculeCustomDetailsComponent } from '../my-molecule-custom-details/my-molecule-custom-details.component';
+import { CustomDetailsComponent } from '../my-molecule-custom-details/custom-details.component';
 import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.component';
 import { RouterLink } from '@angular/router';
 import { NgClass } from '@angular/common';
@@ -8,7 +8,7 @@ import { NgClass } from '@angular/common';
 @Component({
   selector: 'molecule-header',
   standalone: true,
-  imports: [MyMoleculeCustomDetailsComponent, MoleculeBadgeComponent, RouterLink, NgClass],
+  imports: [CustomDetailsComponent, MoleculeBadgeComponent, RouterLink, NgClass],
   template: `
     <header class="flex flex-wrap gap-3 justify-between" aria-labelledby="molecule-name">
       <div class="space-y-2 ">
@@ -22,7 +22,7 @@ import { NgClass } from '@angular/common';
             <app-molecule-badge [name]="_badgeName()" class="block relative top-0.5" />
           </div>
           } @else {
-            <app-my-molecule-custom-details [type]="'name'" [value]="name()" (onSaving)="doSave($event)" [badgeName]="_badgeName()" [molId]="_molId()" />
+            <app-custom-details [type]="'name'" [value]="name()" (onSaving)="doSave($event)" [badgeName]="_badgeName()" [itemId]="_molId()" />
           }
         } @else {
           <div class="flex gap-6 items-center">
@@ -171,12 +171,12 @@ export class MoleculeHeaderComponent {
 
 
   @Output()
-  onSave = new EventEmitter<MyMoleculeCustomDetailSaveModel>()
+  onSave = new EventEmitter<CustomDetailSaveModel>()
 
   @Output()
   onDelete = new EventEmitter<string>()
 
-  doSave(e: MyMoleculeCustomDetailSaveModel): void {
+  doSave(e: CustomDetailSaveModel): void {
     this.onSave.emit(e)
   }
 

@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { MyMoleculeCustomDetailsComponent } from './my-molecule-custom-details.component';
+import { CustomDetailsComponent } from './custom-details.component';
 
 describe('MyMoleculeCustomDetailsComponent', () => {
-  let component: MyMoleculeCustomDetailsComponent;
-  let fixture: ComponentFixture<MyMoleculeCustomDetailsComponent>;
+  let component: CustomDetailsComponent;
+  let fixture: ComponentFixture<CustomDetailsComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [MyMoleculeCustomDetailsComponent]
+      imports: [CustomDetailsComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(MyMoleculeCustomDetailsComponent);
+    fixture = TestBed.createComponent(CustomDetailsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

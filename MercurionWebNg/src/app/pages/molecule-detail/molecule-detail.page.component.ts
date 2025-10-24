@@ -1,4 +1,4 @@
-import { MyMoleculeCustomDetailSaveModel } from '../../Models/my-molecule-custom-detail-save.model';
+import { CustomDetailSaveModel } from '../../Models/custom-detail-save.model';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { EmbeddingService } from '../../services/embedding.service';
 import { SimilarsComponent } from '../../components/molecule-detail/similars/similars.component';
@@ -24,7 +24,7 @@ import { TypeGuardsService } from '../../services/type-guards.service';
 import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service';
 import { MoleculeCollectionItemEntityShort, MoleculeDetailItem } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
-import { MyMoleculeCustomDetailsComponent } from '../../components/molecule-detail/my-molecule-custom-details/my-molecule-custom-details.component';
+import { CustomDetailsComponent } from '../../components/molecule-detail/my-molecule-custom-details/custom-details.component';
 import { MoleculeDetailSystem } from '../../Models/graphql/molecule.detail.models';
 import { ToastService } from '../../services/toast.service';
 import { MyMoleculeJoinComponent } from '../../components/molecule-detail/my-molecule-join/my-molecule-join.component';
@@ -51,7 +51,7 @@ import { HistoryContextService } from '../../services/context/history-context.se
     SimilarsComponent,
     ReactiveFormsModule,
     ClassicSpinnerComponent,
-    MyMoleculeCustomDetailsComponent,
+    CustomDetailsComponent,
     MyMoleculeJoinComponent,
     RouterLink,
     MyMoleculesHeadingComponent
@@ -158,8 +158,8 @@ import { HistoryContextService } from '../../services/context/history-context.se
           </div>
           @if (!typeGuards.isSystemMolecule(molecule)) {
                 <div class="mt-8"></div>
-                <app-my-molecule-custom-details (onSaving)="doUpdateInlineDetails($event)" [type]="'label'" [value]="molecule.label ?? '—'" [molId]="molecule.id"/>
-                <app-my-molecule-custom-details (onSaving)="doUpdateInlineDetails($event)" [type]="'notes'" [value]="molecule.notes ?? '—'" [molId]="molecule.id"/>
+                <app-custom-details (onSaving)="doUpdateInlineDetails($event)" [type]="'label'" [value]="molecule.label ?? '—'" [itemId]="molecule.id"/>
+                <app-custom-details (onSaving)="doUpdateInlineDetails($event)" [type]="'notes'" [value]="molecule.notes ?? '—'" [itemId]="molecule.id"/>
                 @if (userContext.isLoggedIn()) {
                   <app-t1-prediction-card [inference]="molecule.t1Inference" />
                 }
@@ -524,7 +524,7 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
       });
   }
 
-  doUpdateInlineDetails(e: MyMoleculeCustomDetailSaveModel): void {
+  doUpdateInlineDetails(e: CustomDetailSaveModel): void {
     switch (e.type) {
       case 'label':
         this.updateLabel(e.value)

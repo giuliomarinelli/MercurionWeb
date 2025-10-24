@@ -1,3 +1,4 @@
+import { CustomDetailsComponent } from '../../components/molecule-detail/my-molecule-custom-details/custom-details.component';
 import {
   AfterViewInit,
   Component,
@@ -44,6 +45,7 @@ import { ClassicSpinnerComponent } from '../../components/common/classic-spinner
 import { MoleculeCollectionItemCardComponent } from '../../components/molecule-detail/molecule-collection-item-card/molecule-collection-item-card.component';
 import { SkeletonMoleculeCardComponent } from '../../components/molecule-detail/skeleton-molecule-card/skeleton-molecule-card.component';
 import { PmSearchInputComponent } from '../../components/common/pm-search-input/pm-search-input.component';
+import { CustomDetailSaveModel } from '../../Models/custom-detail-save.model';
 
 @Component({
   selector: 'app-molecule-collection-detail',
@@ -53,18 +55,16 @@ import { PmSearchInputComponent } from '../../components/common/pm-search-input/
     ClassicSpinnerComponent,
     MoleculeCollectionItemCardComponent,
     SkeletonMoleculeCardComponent,
-    PmSearchInputComponent
+    PmSearchInputComponent,
+    CustomDetailsComponent
   ],
   template: `
   <section class="max-w-5xl mx-auto p-0 xs:p-4 sm:p-6 md:p-8 space-y-12">
     <app-my-molecules-heading [breadcrumb]="breadcrumb" />
 
     <div class="flex flex-wrap justify-between items-center pb-8 pt-2 relative -top-14 gap-y-4">
-      <h2
-        class="bg-slate-50 dark:bg-neutral-950 z-10 block sticky top-0 text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary"
-        style="margin-block-start: 0">
-        {{ name() }}
-      </h2>
+
+      <app-custom-details [itemId]="colId()!" [type]="'name'" [value]="name()" [badgeName]="''" (onSaving)="doRenameCollection($event)" />
 
       <div class="flex items-center justify-end gap-3">
         <button
@@ -141,8 +141,7 @@ import { PmSearchInputComponent } from '../../components/common/pm-search-input/
   </section>
   `
 })
-export class MoleculeCollectionDetailPageComponent
-  extends AbstractPaginationComponent<MoleculeCardItemModel>
+export class MoleculeCollectionDetailPageComponent extends AbstractPaginationComponent<MoleculeCardItemModel>
   implements OnInit, OnDestroy, AfterViewInit {
 
   private readonly colService = inject(MoleculeCollectionService);
@@ -153,14 +152,16 @@ export class MoleculeCollectionDetailPageComponent
   private readonly overlay = inject(ActionOverlayContextService);
   protected readonly addCtx = inject(AddMoleculesToCollectionContextService);
   private readonly zone = inject(NgZone);
+  private readonly historyContext = inject(HistoryContextService)
 
   @ViewChild('sentinel', { static: true })
-  declare sentinel: ElementRef | undefined;
+  protected declare sentinel: ElementRef | undefined;
 
   private scrollFallbackSub?: Subscription;
   private colIdSub?: Subscription;
   private touchSub?: Subscription;
   private delSub?: Subscription;
+  private reSub?: Subscription;
 
   error = signal<boolean>(false);
   name = signal<string>('');
@@ -234,6 +235,7 @@ export class MoleculeCollectionDetailPageComponent
     this.touchSub?.unsubscribe();
     this.delSub?.unsubscribe();
     this.scrollFallbackSub?.unsubscribe();
+    this.reSub?.unsubscribe()
     this.observer?.disconnect();
   }
 
@@ -337,6 +339,13 @@ export class MoleculeCollectionDetailPageComponent
 
   doDuplicateCollection(): void { /* TODO */ }
   doDeleteCollection(): void { /* TODO */ }
+
+  doRenameCollection(e: CustomDetailSaveModel): void {
+    const { value: name } = e
+    this.reSub = this.colService.updateCollectionName(this.colId(), name).pipe(
+      switchMap(() => this.historyContext.pollNewItem())
+    ).subscribe(() => { /* pass */ })
+  }
 
   doAddToCollection(): void {
     queueMicrotask(() => {

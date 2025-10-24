@@ -361,7 +361,7 @@ export class MoleculeCollectionItemService {
 
 
     async update(id: UUID, userId: UUID, input: Partial<MoleculeCollectionItemEntity>, fieldsMap: GraphQLFieldsMap): Promise<MoleculeCollectionItemEntity | null> {
-        await this.itemRepo.update({ id, userId }, { ...input })
+        await this.itemRepo.update({ id, userId }, { ...input, updatedAt: Date.now() })
         await this.markAsTouched(userId, id)
         return this.findOne(id, userId, fieldsMap)
     }

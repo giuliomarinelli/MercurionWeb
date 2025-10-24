@@ -10,8 +10,8 @@ import { MoleculeViewerComponent } from '../../chem/molecule-viewer/molecule-vie
 import { SearchContextService } from '../../../services/context/search-context.service';
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
 import { MoleculeCardItemModel } from './../../../Models/graphql/molecule-collection/molecule-collection.types';
-import { MyMoleculeCustomDetailsComponent } from '../my-molecule-custom-details/my-molecule-custom-details.component';
-import { MyMoleculeCustomDetailSaveModel } from '../../../Models/my-molecule-custom-detail-save.model';
+import { CustomDetailsComponent } from '../my-molecule-custom-details/custom-details.component';
+import { CustomDetailSaveModel } from '../../../Models/custom-detail-save.model';
 import { TypeGuardsService } from '../../../services/type-guards.service';
 import { switchMap } from 'rxjs/operators';
 import { HistoryContextService } from '../../../services/context/history-context.service';
@@ -28,7 +28,7 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
     RouterLink,
     MoleculeViewerComponent,
     NgClass,
-    MyMoleculeCustomDetailsComponent,
+    CustomDetailsComponent,
     MoleculeBadgeComponent
   ],
   template: `
@@ -75,11 +75,11 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
             </div>
           } @else if (_molecule()!.type === 'custom') {
             <!-- Il figlio mette i bottoni sopra l'overlay grazie a z-30 -->
-            <app-my-molecule-custom-details
+            <app-custom-details
               [type]="'cardName'"
               [value]="_molecule()!.name"
               class="block"
-              [molId]="_molecule()!.id"
+              [itemId]="_molecule()!.id"
               [isReadonly]="_isReadonly()"
               (onSaving)="doSave($event)"
             />
@@ -316,7 +316,7 @@ export class MoleculeCollectionItemCardComponent implements OnDestroy {
     });
   }
 
-  doSave(e: MyMoleculeCustomDetailSaveModel): void {
+  doSave(e: CustomDetailSaveModel): void {
     if (e.type === 'cardName') {
       const { id, value: name } = e
       this.updateName(id, name, 'custom')
