@@ -135,7 +135,6 @@ export class ChEMBLMoleculeItemService {
     ): Promise<boolean> {
         try {
             return await this.dataSource.manager.transaction(async manager => {
-                dtos.reverse()
                 const molregnoMap = new Map<number, AddManyChEMBLItemDTO>()
                 for (const dto of dtos) {
                     if (!molregnoMap.has(dto.chemblMolregno)) {

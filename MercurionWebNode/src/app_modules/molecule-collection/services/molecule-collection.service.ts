@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-escape */
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
@@ -16,17 +17,17 @@ export class MoleculeCollectionService {
     private readonly REQUIRED_FIELDS = ['id', 'name']
 
     // Query set-based con lock “a gruppo”
-    private readonly CREATE_MANY_COLLECTIONS_QUERY = ` 
-WITH payload AS (
-  SELECT jsonb_to_recordset($1::jsonb)
-         AS t(
-           id uuid,
-           user_id text,
-           name text,
-           created_at bigint,
-           updated_at bigint,
-           touched_at bigint
-         )
+    private readonly CREATE_MANY_COLLECTIONS_QUERY = `WITH payload AS (
+  SELECT *
+  FROM jsonb_to_recordset($1::jsonb)
+       AS t(
+         id uuid,
+         user_id text,
+         name text,
+         created_at bigint,
+         updated_at bigint,
+         touched_at bigint
+       )
 ),
 -- normalizza il base_name rimuovendo " (n)" finale, se presente
 norm AS (
@@ -34,7 +35,7 @@ norm AS (
     id,
     user_id,
     CASE
-      WHEN name ~ ' \\(\\d+\\)$' THEN substring(name FROM '^(.*) \\(\\d+\\)$')
+      WHEN name ~ ' \(\d+\)$' THEN substring(name FROM '^(.*) \(\d+\)$')
       ELSE name
     END AS base_name,
     created_at,
@@ -63,7 +64,7 @@ existing AS (
     e.user_id,
     e.base_name,
     COALESCE(MAX(
-      COALESCE( (regexp_match(mc.name, ' \\((\\d+)\\)$'))[1]::int, 0 )
+      COALESCE( (regexp_match(mc.name, ' \((\d+)\)$'))[1]::int, 0 )
     ), 0) AS max_suffix
   FROM (
     SELECT DISTINCT user_id, base_name FROM norm
@@ -81,23 +82,44 @@ final_rows AS (
   SELECT
     r.id,
     r.user_id,
-    CASE
-      WHEN (COALESCE(e.max_suffix,0) + r.rn) = 0 THEN r.base_name
-      ELSE r.base_name || ' (' || (COALESCE(e.max_suffix,0) + r.rn) || ')'
-    END AS name,
+    (
+      CASE
+        WHEN (COALESCE(e.max_suffix,0) + r.rn) = 0 THEN
+          LEFT(r.base_name, 255)  -- nessun suffisso
+        ELSE
+          -- calcola il suffisso
+          ' (' || (COALESCE(e.max_suffix,0) + r.rn)::text || ')'
+      END
+    ) AS suffix,
+    r.base_name,
     r.created_at,
     r.updated_at,
     r.touched_at
   FROM ranked r
   LEFT JOIN existing e
     ON e.user_id = r.user_id AND e.base_name = r.base_name
+),
+final_rows2 AS (
+  SELECT
+    id,
+    user_id,
+    CASE
+      WHEN suffix IS NULL THEN LEFT(base_name, 255)
+      ELSE
+        -- spazio per base_name = 255 - length(suffix) in caratteri
+        LEFT(base_name, GREATEST(1, 255 - char_length(suffix))) || suffix
+    END AS name,
+    created_at,
+    updated_at,
+    touched_at
+  FROM final_rows
 )
 INSERT INTO public.molecule_collections
   (id, user_id, name, created_at, updated_at, touched_at)
-SELECT
-  id, user_id, name, created_at, updated_at, touched_at
-FROM final_rows;
-      `
+SELECT id, user_id, name, created_at, updated_at, touched_at
+FROM final_rows2;
+
+`
 
     private readonly logger = new Logger(MoleculeCollectionService.name)
 
@@ -167,7 +189,7 @@ FROM final_rows;
             })
             return true
         } catch (e) {
-            this.logger.warn(`Database error: ${e?.message || e}`)
+            this.logger.warn(`Database error: ${e?.message || e}`, e)
             return false
         }
     }
