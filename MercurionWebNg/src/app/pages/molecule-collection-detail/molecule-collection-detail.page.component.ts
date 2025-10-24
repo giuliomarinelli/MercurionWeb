@@ -103,7 +103,6 @@ import { PmSearchInputComponent } from '../../components/common/pm-search-input/
     </div>
 
     <pm-search-input
-      [class.invisible]="empty() && earlyDone"
       [value]="searchTerm()"
       (valueChange)="doQuery($event)"
       (submitted)="doQuery($event)"
@@ -134,7 +133,7 @@ import { PmSearchInputComponent } from '../../components/common/pm-search-input/
           }
         </div>
       }
-    } @else if (empty() && (earlyDone || done)) {
+    } @else if (empty() && (earlyDone)) {
       <p class="relative -top-8 text-slate-700 dark:text-slate-200">
         Nessuna molecola in questa collezione.
       </p>

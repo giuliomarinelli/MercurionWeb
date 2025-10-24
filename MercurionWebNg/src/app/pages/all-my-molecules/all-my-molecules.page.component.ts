@@ -52,7 +52,6 @@ import { PmSearchInputComponent } from '../../components/common/pm-search-input/
       </div>
       <pm-search-input
         class="block relative"
-        [class.invisible]="empty() && earlyDone"
         [value]="searchTerm()"
         (valueChange)="doQuery($event)"
         (submitted)="doQuery($event)"

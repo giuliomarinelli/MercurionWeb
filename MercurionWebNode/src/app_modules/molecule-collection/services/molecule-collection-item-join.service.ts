@@ -6,6 +6,7 @@ import { MoleculeCollectionItemJoin } from '../Models/entities/molecule-collecti
 import { uuidv7 } from '@kripod/uuidv7';
 import { MoleculeCollectionService } from './molecule-collection.service';
 import { MoleculeCollectionItemService } from './molecule-collection-item.service';
+import { MoleculeCollectionItemEntity } from '../Models/entities/molecule-collection-item.entity';
 
 
 @Injectable()
@@ -93,7 +94,7 @@ export class MoleculeCollectionItemJoinService {
             // Sostituisci con la tua sorgente reale (es. Molecule o MoleculeCollectionItemEntity)
             const qbAll = manager
                 // .createQueryBuilder(Molecule, 'it')
-                .createQueryBuilder('ItemsEntity', 'it')
+                .createQueryBuilder(MoleculeCollectionItemEntity, 'it')
                 .select('it.id', 'id');
 
             if (distinct.length > 0) {

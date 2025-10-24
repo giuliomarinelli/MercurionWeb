@@ -52,7 +52,6 @@ import { PageModel } from '../../Models/graphql/page.model';
     </div>
     <pm-search-input
       class="block relative"
-      [class.invisible]="empty() && earlyDone"
       [placeholder]="'Cerca collezione...'"
       [value]="searchTerm()"
       (valueChange)="doQuery($event)"
