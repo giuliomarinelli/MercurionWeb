@@ -1,7 +1,7 @@
 import { MoleculeCollection } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 import { debounce, debounceTime, firstValueFrom, interval, Subscription } from 'rxjs';
 import { MyMoleculesHeadingComponent } from '../../components/molecule-detail/my-molecules-heading/my-molecules-heading.component';
-import { AfterViewInit, Component, ElementRef, inject, OnInit, signal, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, inject, OnInit, signal, ViewChild, effect } from '@angular/core';
 import { MoleculeCollectionService } from '../../services/graphql/molecule-collection.service';
 import { CollectionCardComponent } from '../../components/molecule-detail/collection-card/collection-card.component';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
@@ -12,6 +12,7 @@ import { AbstractPaginationComponent } from '../../abstract/abstract-pagination-
 import { Observable } from 'rxjs';
 import { PageModel } from '../../Models/graphql/page.model';
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
+import { CreateCollectionContextService } from '../../services/context/action-context/create-collection-context.service';
 
 
 @Component({
@@ -98,7 +99,18 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
   // ======================= DEPS =======================
   private readonly moleculeCollectionService = inject(MoleculeCollectionService)
   private readonly actionOverlayContext = inject(ActionOverlayContextService)
+  private readonly createCtx = inject(CreateCollectionContextService)
   // ====================================================
+
+  constructor() {
+    super();
+    // React when CreateCollection overlay reports new items
+    effect(() => {
+      const t = this.createCtx.addedTick();
+      if (t === 0) return;
+      this.resetPagination();
+    });
+  }
 
 
   @ViewChild('sentinel', { static: true })

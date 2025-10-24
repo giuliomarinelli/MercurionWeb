@@ -2,6 +2,9 @@ import { AfterViewInit, Component, computed, ElementRef, inject, OnDestroy, OnIn
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
+import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
+import { ToastService } from '../../../services/toast.service';
+import { CreateCollectionContextService } from '../../../services/context/action-context/create-collection-context.service';
 
 @Component({
   selector: 'app-create-collection',
@@ -83,6 +86,7 @@ import { Subscription } from 'rxjs';
               [class.pr-10]="name().trim()"
               [class.pl-4]="name().trim()"
               [class.px-4]="!name().trim()"
+              (keyup.enter)="onAddNewName(_trim(name()))"
             />
             @if (name().trim()) {
               <button type="button"
@@ -119,7 +123,7 @@ import { Subscription } from 'rxjs';
           type="button"
           class="px-4 py-2 rounded bg-emerald-600 text-white font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed"
           [disabled]="false"
-
+          (click)="doSubmit()"
         >
           <span>Crea</span>
 
@@ -134,9 +138,12 @@ import { Subscription } from 'rxjs';
 export class CreateCollectionComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private readonly overlayContext = inject(ActionOverlayContextService)
-
+  private readonly moleculeCollectionService = inject(MoleculeCollectionService)
+  private readonly toast = inject(ToastService)
+  private readonly createContext = inject(CreateCollectionContextService)
 
   private naSub?: Subscription
+  private addSub?: Subscription
 
 
   @ViewChild('nameInput')
@@ -156,6 +163,7 @@ export class CreateCollectionComponent implements OnInit, AfterViewInit, OnDestr
 
   ngOnDestroy(): void {
     this.naSub?.unsubscribe()
+    this.addSub?.unsubscribe()
   }
 
   clear(): void {
@@ -178,6 +186,7 @@ export class CreateCollectionComponent implements OnInit, AfterViewInit, OnDestr
   // chiamata quando clicchi un risultato di ricerca
   onAddNewName(name: string) {
     this.addChip(name)
+    this.clear()
   }
 
   alreadyAdded(name: string): boolean {
@@ -199,6 +208,19 @@ export class CreateCollectionComponent implements OnInit, AfterViewInit, OnDestr
     this.selectedChips = []
   }
 
-
+  doSubmit(): void {
+    if (this.selectedChips.length) {
+      this.addSub = this.moleculeCollectionService.createManyCollections(this.selectedChips).subscribe({
+          next: ok => {
+            this.createContext.notifyAdded()
+            this.overlayContext.close()
+          },
+          error: () => {
+            this.toast.trigger('Si è verificato un errore.', 'error', 3000)
+            this.overlayContext.close()
+          }
+        })
+    }
+  }
 
 }
