@@ -5,7 +5,7 @@ import { AuthenticatedUserId, Public } from "src/metadata/metadata";
 import { UUID } from "crypto";
 import { GraphQLResolveInfo } from 'graphql';
 import { GraphqlUtils } from "src/utils/graphql-utils/graphql-utils";
-import { AddManyChEMBLItemsDTO } from "../Models/DTO/add-many-chembl-items.dto";
+import { AddManyChEMBLItemDTO } from "../Models/DTO/add-many-chembl-items.dto";
 
 
 
@@ -75,7 +75,7 @@ export class ChEMBLMoleculeItemResolver {
     async addManyChemblItemsToCollection(
         @AuthenticatedUserId() userId: UUID,
         @Args('collectionId', { type: () => ID }) collectionId: UUID,
-        @Args('input', { type: () => [AddManyChEMBLItemsDTO] }) dtos: AddManyChEMBLItemsDTO[]
+        @Args('input', { type: () => [AddManyChEMBLItemDTO] }) dtos: AddManyChEMBLItemDTO[]
     ): Promise<boolean> {
         return this.service.addManyChemblItemsToCollection(userId, collectionId, dtos)
     }

@@ -10,7 +10,7 @@ import { RpcException } from "@nestjs/microservices";
 import { MoleculeCollection } from "../Models/entities/molecule-collection.entity";
 import { uuidv7 } from '@kripod/uuidv7';
 import { GeneralUtils } from "src/utils/general-utils/general-utils";
-import { AddManyChEMBLItemsDTO } from "../Models/DTO/add-many-chembl-items.dto";
+import { AddManyChEMBLItemDTO } from "../Models/DTO/add-many-chembl-items.dto";
 
 @Injectable()
 export class ChEMBLMoleculeItemService {
@@ -105,7 +105,7 @@ export class ChEMBLMoleculeItemService {
     async addManyChemblItemsToCollection(
         userId: UUID,
         collectionId: UUID,
-        dtos: AddManyChEMBLItemsDTO[]
+        dtos: AddManyChEMBLItemDTO[]
     ): Promise<boolean> {
         return await this.dataSource.manager.transaction(async manager => {
             try {
