@@ -1,14 +1,12 @@
-import { IsNotEmpty, IsNumber, IsString, Min } from "class-validator";
+import { Field, ID, InputType } from "@nestjs/graphql";
 
+@InputType()
 export class AddManyChEMBLItemsDTO {
 
-    @IsNumber()
-    @Min(1)
-    @IsNotEmpty()
+    @Field(() => ID)
     chemblMolregno: number
-
-    @IsString()
-    @IsNotEmpty()
+    
+    @Field(() => String)
     name: string
 
 }

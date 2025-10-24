@@ -124,101 +124,105 @@ export type ChipItem = { id: string; name: string }
           </div>
         }
         @case ('chembl') {
-          <div #scrollRoot class="py-6 px-3 flex flex-col gap-4 min-h-[60vh] max-h-[60vh]">
-            <div>Cerca su ChEMBL e seleziona:</div>
+          @switch (step()) {
+            @case (1) {
+              <div #scrollRoot class="py-6 px-3 flex flex-col gap-4 min-h-[60vh] max-h-[60vh]">
+                <div>Cerca su ChEMBL e seleziona:</div>
 
-            <!-- search -->
-            <app-search-input
-              [search_excludeAlreadyAdded]="true"
-              (onLoading)="chemblLoading.set($event)"
-              (onResult)="handleResults($event)"
-              (onError)="handleError($event)"
-              (onQuery)="chemblQuery.set($event)"
-              (onEmpty)="chemblEmpty.set(true)"
-            />
+                <!-- search -->
+                <app-search-input
+                  [search_excludeAlreadyAdded]="true"
+                  (onLoading)="chemblLoading.set($event)"
+                  (onResult)="handleResults($event)"
+                  (onError)="handleError($event)"
+                  (onQuery)="chemblQuery.set($event)"
+                  (onEmpty)="chemblEmpty.set(true)"
+                />
 
-            <!-- CHIPS AREA (con bordo) -->
-            <div class="border-b min-h-24 relative">
-              @if (selectedMolecules.length === 0) {
-                <div class="absolute inset-0 flex justify-center items-center text-sm text-gray-500 dark:text-gray-400">
-                  Qui vedrai le molecole selezionate.
+                <!-- CHIPS AREA (con bordo) -->
+                <div class="border-b min-h-24 relative">
+                  @if (selectedMolecules.length === 0) {
+                    <div class="absolute inset-0 flex justify-center items-center text-sm text-gray-500 dark:text-gray-400">
+                      Qui vedrai le molecole selezionate.
+                    </div>
+                  }
+
+                  <!-- chips (fuori dall'absolute) -->
+                  <div class="relative flex flex-wrap items-center gap-2 py-3" role="list" aria-label="Molecole selezionate">
+                    @for (m of selectedMolecules; track m.id) {
+                      <span
+                        role="listitem"
+                        class="group inline-flex items-center gap-2 max-w-full
+                               rounded-full px-3 py-1.5
+                               bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-300
+                               dark:bg-indigo-500/20 dark:text-indigo-100 dark:ring-indigo-400/40
+                               shadow-sm"
+                        title="{{ m.name }}"
+                      >
+                        <span class="truncate max-w-[16rem] text-sm font-medium">{{ m.name }}</span>
+
+                        <button
+                          type="button"
+                          (click)="removeChip(m.id)"
+                          class="shrink-0 inline-flex size-5 items-center justify-center rounded-full
+                                 hover:bg-indigo-100 dark:hover:bg-indigo-400/30
+                                 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1
+                                 dark:focus:ring-offset-gray-900"
+                          aria-label="Rimuovi {{ m.name }}"
+                        >
+                          <svg viewBox="0 0 20 20" fill="none" class="size-3.5">
+                            <path d="M6 6l8 8M14 6l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                          </svg>
+                        </button>
+                      </span>
+                    }
+
+                    @if (selectedMolecules.length > 0) {
+                      <span class="grow"></span>
+                      <button
+                        type="button"
+                        (click)="clearChips()"
+                        class="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm
+                               ring-1 ring-inset ring-indigo-300 text-indigo-700 hover:bg-indigo-50
+                               dark:ring-indigo-400/40 dark:text-indigo-100 dark:hover:bg-indigo-500/20
+                               focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1
+                               dark:focus:ring-offset-gray-900"
+                      >
+                        Pulisci tutto
+                        <svg viewBox="0 0 20 20" fill="none" class="size-3.5">
+                          <path d="M5 10h10M10 5v10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                        </svg>
+                      </button>
+                    }
+                  </div>
                 </div>
-              }
 
-              <!-- chips (fuori dall'absolute) -->
-              <div class="relative flex flex-wrap items-center gap-2 py-3" role="list" aria-label="Molecole selezionate">
-                @for (m of selectedMolecules; track m.id) {
-                  <span
-                    role="listitem"
-                    class="group inline-flex items-center gap-2 max-w-full
-                           rounded-full px-3 py-1.5
-                           bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-300
-                           dark:bg-indigo-500/20 dark:text-indigo-100 dark:ring-indigo-400/40
-                           shadow-sm"
-                    title="{{ m.name }}"
-                  >
-                    <span class="truncate max-w-[16rem] text-sm font-medium">{{ m.name }}</span>
-
-                    <button
-                      type="button"
-                      (click)="removeChip(m.id)"
-                      class="shrink-0 inline-flex size-5 items-center justify-center rounded-full
-                             hover:bg-indigo-100 dark:hover:bg-indigo-400/30
-                             focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1
-                             dark:focus:ring-offset-gray-900"
-                      aria-label="Rimuovi {{ m.name }}"
-                    >
-                      <svg viewBox="0 0 20 20" fill="none" class="size-3.5">
-                        <path d="M6 6l8 8M14 6l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                      </svg>
-                    </button>
-                  </span>
-                }
-
-                @if (selectedMolecules.length > 0) {
-                  <span class="grow"></span>
-                  <button
-                    type="button"
-                    (click)="clearChips()"
-                    class="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm
-                           ring-1 ring-inset ring-indigo-300 text-indigo-700 hover:bg-indigo-50
-                           dark:ring-indigo-400/40 dark:text-indigo-100 dark:hover:bg-indigo-500/20
-                           focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1
-                           dark:focus:ring-offset-gray-900"
-                  >
-                    Pulisci tutto
-                    <svg viewBox="0 0 20 20" fill="none" class="size-3.5">
-                      <path d="M5 10h10M10 5v10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-                    </svg>
-                  </button>
-                }
+                <!-- RISULTATI -->
+                <div class="overflow-y-auto relative">
+                  @if (chemblLoading()) {
+                    <app-search-result-skeleton-loader />
+                  } @else if (chemblResults().length) {
+                    @for (molecule of chemblResults(); track molecule.id) {
+                      <app-search-result
+                        [molecule]="molecule"
+                        [query]="chemblQuery()"
+                        [search_excludeAlreadyAdded]="true"
+                        (onChipItem)="addChip($event)"
+                      />
+                    }
+                  } @else if (!chemblResults().length && !chemblError() && !chemblEmpty()) {
+                    <div class="text-sm text-gray-400 text-center py-8">
+                      Nessun risultato trovato.
+                    </div>
+                  } @else if (chemblError()) {
+                    <div class="text-sm text-red-500 bg-red-50 dark:bg-red-950 rounded px-4 py-2 text-center">
+                      Errore nella ricerca. Riprova.
+                    </div>
+                  }
+                </div>
               </div>
-            </div>
-
-            <!-- RISULTATI -->
-            <div class="overflow-y-auto relative">
-              @if (chemblLoading()) {
-                <app-search-result-skeleton-loader />
-              } @else if (chemblResults().length) {
-                @for (molecule of chemblResults(); track molecule.id) {
-                  <app-search-result
-                    [molecule]="molecule"
-                    [query]="chemblQuery()"
-                    [search_excludeAlreadyAdded]="true"
-                    (onChipItem)="addChip($event)"
-                  />
-                }
-              } @else if (!chemblResults().length && !chemblError() && !chemblEmpty()) {
-                <div class="text-sm text-gray-400 text-center py-8">
-                  Nessun risultato trovato.
-                </div>
-              } @else if (chemblError()) {
-                <div class="text-sm text-red-500 bg-red-50 dark:bg-red-950 rounded px-4 py-2 text-center">
-                  Errore nella ricerca. Riprova.
-                </div>
-              }
-            </div>
-          </div>
+            }
+          }
 }
 
 

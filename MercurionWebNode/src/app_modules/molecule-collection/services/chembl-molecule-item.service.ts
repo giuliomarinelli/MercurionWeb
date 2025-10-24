@@ -107,7 +107,6 @@ export class ChEMBLMoleculeItemService {
         collectionId: UUID,
         dtos: AddManyChEMBLItemsDTO[]
     ): Promise<boolean> {
-
         return await this.dataSource.manager.transaction(async manager => {
             try {
                 const molregnosRows = await manager.find(ChEMBLMoleculeItemEntity, {
