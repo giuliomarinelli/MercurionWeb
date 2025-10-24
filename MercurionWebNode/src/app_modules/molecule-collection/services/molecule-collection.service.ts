@@ -10,6 +10,7 @@ import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginat
 import { History } from 'src/app_modules/history/Models/entities/history.entity';
 import { HistoryItemEntity } from 'src/app_modules/history/Models/enums/history-item-entity.enum';
 import { uuidv7 } from '@kripod/uuidv7';
+import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 
 @Injectable()
 export class MoleculeCollectionService {
@@ -158,7 +159,7 @@ FROM final_rows2;
             await this.markAsTouched(userId, persisted.id)
             return persisted
         } catch (e) {
-            this.logger.warn(e.message) // e.message = `duplicate key value violates unique constraint "unique_name_per_user"`
+            this.logger.warn(e.message) 
             throw e
         }
     }
@@ -177,7 +178,7 @@ FROM final_rows2;
                     return {
                         id: uuidv7() as UUID,
                         user_id: String(userId),
-                        name: String(name),
+                        name: GeneralUtils.normalizeSpaces(String(name)),
                         created_at: now,
                         updated_at: now,
                         touched_at: now,
@@ -189,7 +190,7 @@ FROM final_rows2;
             })
             return true
         } catch (e) {
-            this.logger.warn(`Database error: ${e?.message || e}`, e)
+            this.logger.warn(`Database error: ${e?.message || e}`/*, e*/)
             return false
         }
     }

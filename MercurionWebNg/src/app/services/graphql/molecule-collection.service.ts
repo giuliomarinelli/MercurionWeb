@@ -3,7 +3,7 @@ import { Apollo, gql } from 'apollo-angular';
 import { Observable, map, tap } from 'rxjs';
 import { MoleculeCollection } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 import { PageModel } from '../../Models/graphql/page.model';
-import { MARK_MOLECULE_COLLECTION_AS_TOUCHED, PAGINATED_MOLECULE_COLLECTIONS, UPDATE_MOLECULE_COLLECTION_NAME } from './graphql-actions/molecule-collection.gql-actions';
+import { CREATE_MANY_MOLECULE_COLLECTIONS, MARK_MOLECULE_COLLECTION_AS_TOUCHED, PAGINATED_MOLECULE_COLLECTIONS, UPDATE_MOLECULE_COLLECTION_NAME } from './graphql-actions/molecule-collection.gql-actions';
 import { extractGqlData } from './graphql-helpers/extract-gql-data.gql-helper';
 
 
@@ -118,6 +118,18 @@ export class MoleculeCollectionService {
       .pipe(map(res => extractGqlData(res, 'createMoleculeCollection')));
   }
 
+  createManyCollections(names: string[]): Observable<boolean> {
+    return this.apollo
+      .mutate<{ createManyMoleculeCollections: boolean }>({
+        mutation: CREATE_MANY_MOLECULE_COLLECTIONS,
+        variables: {
+          names
+        }
+      }).pipe(
+        map(res => extractGqlData(res, 'createManyMoleculeCollections'))
+      )
+  }
+
   markMoleculeCollectionAsTouched(id: string): Observable<boolean> {
     return this.apollo
       .mutate<{ markMoleculeCollectionAsTouched: boolean }>({
@@ -148,7 +160,7 @@ export class MoleculeCollectionService {
 
   updateCollectionName(id: string, name: string): Observable<MoleculeCollection | null> {
     return this.apollo
-      .mutate<{updateMoleculeCollection: MoleculeCollection | null}>({
+      .mutate<{ updateMoleculeCollection: MoleculeCollection | null }>({
         mutation: UPDATE_MOLECULE_COLLECTION_NAME,
         variables: {
           id, name

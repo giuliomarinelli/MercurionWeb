@@ -42,4 +42,10 @@ export class GeneralUtils {
         return Array.from(set)
     }
 
+    public static normalizeSpaces(input: string): string {
+        return input
+            .trim()                  
+            .replace(/\s+/g, ' ')
+    }
+
 }

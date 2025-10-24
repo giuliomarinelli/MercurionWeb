@@ -18,6 +18,12 @@ export const PAGINATED_MOLECULE_COLLECTIONS = gql`
   }
     `;
 
+export const CREATE_MANY_MOLECULE_COLLECTIONS = gql`
+  mutation CreateManyMoleculeCollections($names: [String!]!) {
+    createManyMoleculeCollections(names: $names)
+}
+`
+
 export const MARK_MOLECULE_COLLECTION_AS_TOUCHED = gql`
   mutation MarkMoleculeCollectionAsTouched($id: ID!) {
     markMoleculeCollectionAsTouched(id: $id)
