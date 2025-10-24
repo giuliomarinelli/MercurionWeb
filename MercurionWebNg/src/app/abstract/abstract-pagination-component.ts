@@ -27,15 +27,16 @@ export abstract class AbstractPaginationComponent<T> {
 
     if (newPage.items.length === 0) {
       this.done = true;
-      this.earlyDone = true;
-    } else {
-      if (this.empty()) this.empty.set(false);
-      this.items = [...this.items, ...newPage.items];
-      this.page++;
-    }
+      if (this.page === 1) {
+        this.earlyDone = true;
+      } else {
+        if (this.empty()) this.empty.set(false);
+        this.items = [...this.items, ...newPage.items];
+        this.page++;
+      }
 
-    this.loading = false;
-  }
+      this.loading = false;
+    }
 
   protected resetPagination(): void {
     this.items = [];
