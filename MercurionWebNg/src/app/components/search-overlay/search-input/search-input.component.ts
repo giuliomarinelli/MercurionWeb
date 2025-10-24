@@ -1,13 +1,10 @@
-import { MoleculeCollectionItemService } from './../../../services/graphql/molecule-collection-item.service';
-import { AfterViewInit, Component, effect, ElementRef, EventEmitter, inject, Input, Output, signal, ViewChild } from '@angular/core';
-
+import { AfterViewInit, OnInit, Component, effect, ElementRef, EventEmitter, inject, Input, Output, signal, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { MoleculeSearchService } from '../../../services/graphql/molecule-search.service';
+import { MoleculeCollectionItemService } from './../../../services/graphql/molecule-collection-item.service';
 import { MoleculeSearchResult } from '../../../Models/graphql/molecule-search/molecule-search-result.interface';
-import { MoleculeCardItemModel } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
-
 
 @Component({
   selector: 'app-search-input',
@@ -27,112 +24,89 @@ import { MoleculeCardItemModel } from '../../../Models/graphql/molecule-collecti
         [class.px-4]="!query().trim()"
       />
       @if (query().trim()) {
-      <button type="button"
-              (click)="clear()"
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-indigo-500 transition"
-              tabindex="-1"
-              aria-label="Cancella ricerca">
-        <!-- Icona X SVG -->
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 20 20">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 6l8 8m0-8l-8 8"/>
-        </svg>
-      </button>
+        <button type="button"
+                (click)="clear()"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-indigo-500 transition"
+                tabindex="-1"
+                aria-label="Cancella ricerca">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 20 20">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 6l8 8m0-8l-8 8"/>
+          </svg>
+        </button>
       }
     </div>
-
   `
 })
 export class SearchInputComponent implements AfterViewInit {
+  private readonly searchService = inject(MoleculeSearchService);
+  private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService);
 
-  private readonly searchService = inject(MoleculeSearchService)
-  private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService)
+  _search_excludeAlreadyAdded = signal<boolean>(false);
 
-  _search_excludeAlreadyAdded = signal<boolean>(false)
-
-  @ViewChild('searchInput')
-  private searchInputRef!: ElementRef<HTMLInputElement>
+  @ViewChild('searchInput') private searchInputRef!: ElementRef<HTMLInputElement>;
 
   @Input()
-  set search_excludeAlreadyAdded(search_excludeAlreadyAdded: boolean) {
-    this._search_excludeAlreadyAdded.set(search_excludeAlreadyAdded)
-  }
+  set search_excludeAlreadyAdded(v: boolean) { this._search_excludeAlreadyAdded.set(v); }
 
-  @Output()
-  onResult = new EventEmitter<MoleculeSearchResult[]>()
+  @Output() onResult = new EventEmitter<MoleculeSearchResult[]>();
+  @Output() onLoading = new EventEmitter<boolean>();
+  @Output() onError = new EventEmitter<unknown>();
+  @Output() onQuery = new EventEmitter<string>();
+  @Output() onEmpty = new EventEmitter<void>();
 
-  @Output()
-  onLoading = new EventEmitter<boolean>()
+  query = signal('');
 
-  @Output()
-  onError = new EventEmitter<unknown>()
-
-  @Output()
-  onQuery = new EventEmitter<string>()
-
-  @Output()
-  onEmpty = new EventEmitter<void>()
-
-  query = signal('')
+  // ⛔️ rimosso l'effect nel constructor: emetteva troppo presto
 
   constructor() {
-
-    effect(() => {
-      if (!this.query().trim()) {
-        this.onEmpty.emit()
-      }
-    })
-
-    const query$ = toObservable(this.query)
+    const query$ = toObservable(this.query);
 
     query$
-      .pipe(debounceTime(80), distinctUntilChanged())
+      .pipe(
+        debounceTime(120),
+        distinctUntilChanged()
+      )
       .subscribe(term => {
-        this.onQuery.emit(this.query())
-        const trimmed = term.trim()
-        if (!trimmed) {
-          this.onEmpty.emit()
-          return
-        }
-        if (trimmed.length > 1) {
-          this.onLoading.emit(true)
-          if (this._search_excludeAlreadyAdded()) {
-            this.moleculeCollectionItemService.searchChemblMolecules_excludeAlreadyAdded(trimmed).subscribe({
-              next: res => {
-                this.onResult.emit(res)
-                this.onLoading.emit(false)
-              },
-              error: err => {
-                this.onError.emit(err)
-                this.onLoading.emit(false)
-              }
-            })
-          } else {
-            this.searchService.searchMolecule(trimmed, 100).subscribe({
-              next: res => {
-                this.onResult.emit(res)
-                this.onLoading.emit(false)
-              },
-              error: err => {
-                this.onError.emit(err)
-                this.onLoading.emit(false)
-              }
-            })
-          }
-        } else {
-          this.searchService.clearResults()
-          this.onResult.emit([])
-        }
-      })
+        const raw = term ?? '';
+        const trimmed = raw.trim();
 
+        // sempre notifico la query corrente
+        this.onQuery.emit(raw);
+
+        // Stato "vuoto" per < 2 char
+        if (trimmed.length < 2) {
+          this.onLoading.emit(false);
+          this.searchService.clearResults();
+          this.onResult.emit([]);
+          this.onEmpty.emit();
+          return;
+        }
+
+        // Ricerca
+        this.onLoading.emit(true);
+        const req$ = this._search_excludeAlreadyAdded()
+          ? this.moleculeCollectionItemService.searchChemblMolecules_excludeAlreadyAdded(trimmed)
+          : this.searchService.searchMolecule(trimmed, 100);
+
+        req$.subscribe({
+          next: res => { this.onResult.emit(res); this.onLoading.emit(false); },
+          error: err => { this.onError.emit(err); this.onLoading.emit(false); }
+        });
+      });
   }
 
   clear(): void {
-    this.query.set('')
-    this.onEmpty.emit()
-    queueMicrotask(() => this.searchInputRef.nativeElement.focus())
+    this.query.set('');
+    // emetto subito per garantire sincronizzazione UI
+    this.onEmpty.emit();
+    queueMicrotask(() => this.searchInputRef.nativeElement.focus());
   }
 
   ngAfterViewInit(): void {
-    queueMicrotask(() => this.searchInputRef.nativeElement.focus())
+    // assicura l’empty iniziale quando il parent ha già i listener
+    queueMicrotask(() => {
+      if (!this.query().trim()) this.onEmpty.emit();
+      this.searchInputRef.nativeElement.focus();
+    });
   }
 }

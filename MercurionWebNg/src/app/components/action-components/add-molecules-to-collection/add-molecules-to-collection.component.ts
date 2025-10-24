@@ -14,6 +14,9 @@ import { ClassicSpinnerComponent } from '../../common/classic-spinner/classic-sp
 import { SkeletonMoleculeCardComponent } from '../../molecule-detail/skeleton-molecule-card/skeleton-molecule-card.component';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { SearchInputComponent } from '../../search-overlay/search-input/search-input.component';
+import { MoleculeSearchResult } from '../../../Models/graphql/molecule-search/molecule-search-result.interface';
+import { SearchResultSkeletonLoaderComponent } from '../../search-overlay/search-result-skeleton-loader/search-result-skeleton-loader.component';
+import { SearchResultComponent } from '../../search-overlay/search-result/search-result.component';
 
 export type ChipItem = { id: string; name: string }
 
@@ -26,7 +29,9 @@ export type ChipItem = { id: string; name: string }
     ClassicSpinnerComponent,
     SkeletonMoleculeCardComponent,
     ReactiveFormsModule,
-    SearchInputComponent
+    SearchInputComponent,
+    SearchResultSkeletonLoaderComponent,
+    SearchResultComponent
   ],
   template: `
 <div class="flex justify-center items-center min-h-screen px-2">
@@ -119,14 +124,20 @@ export type ChipItem = { id: string; name: string }
           </div>
         }
         @case ('chembl') {
-          <div #scrollRoot class="py-6 px-3 overflow-y-auto flex flex-col gap-4 min-h-[60vh] max-h-[60vh]">
-            Cerca su ChEMBL e seleziona:
+          <div #scrollRoot class="py-6 px-3 flex flex-col gap-4 min-h-[60vh] max-h-[60vh]">
+            <div>Cerca su ChEMBL e seleziona:</div>
 
-            <!-- collega l'evento del tuo search: rinomina (selected) se il tuo output si chiama diversamente -->
+            <!-- search -->
             <app-search-input
               [search_excludeAlreadyAdded]="true"
+              (onLoading)="chemblLoading.set($event)"
+              (onResult)="handleResults($event)"
+              (onError)="handleError($event)"
+              (onQuery)="chemblQuery.set($event)"
+              (onEmpty)="chemblEmpty.set(true)"
             />
 
+            <!-- CHIPS AREA (con bordo) -->
             <div class="border-b min-h-24 relative">
               @if (selectedMolecules.length === 0) {
                 <div class="absolute inset-0 flex justify-center items-center text-sm text-gray-500 dark:text-gray-400">
@@ -134,7 +145,7 @@ export type ChipItem = { id: string; name: string }
                 </div>
               }
 
-              <!-- CHIPS WRAP (fuori dall'absolute) -->
+              <!-- chips (fuori dall'absolute) -->
               <div class="relative flex flex-wrap items-center gap-2 py-3" role="list" aria-label="Molecole selezionate">
                 @for (m of selectedMolecules; track m.id) {
                   <span
@@ -157,7 +168,6 @@ export type ChipItem = { id: string; name: string }
                              dark:focus:ring-offset-gray-900"
                       aria-label="Rimuovi {{ m.name }}"
                     >
-                      <!-- icona X sottile -->
                       <svg viewBox="0 0 20 20" fill="none" class="size-3.5">
                         <path d="M6 6l8 8M14 6l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                       </svg>
@@ -166,9 +176,7 @@ export type ChipItem = { id: string; name: string }
                 }
 
                 @if (selectedMolecules.length > 0) {
-                  <!-- Spacer flessibile per spingere il pulsante a destra -->
                   <span class="grow"></span>
-
                   <button
                     type="button"
                     (click)="clearChips()"
@@ -186,8 +194,33 @@ export type ChipItem = { id: string; name: string }
                 }
               </div>
             </div>
+
+            <!-- RISULTATI -->
+            <div class="overflow-y-auto relative">
+              @if (chemblLoading()) {
+                <app-search-result-skeleton-loader />
+              } @else if (chemblResults().length) {
+                @for (molecule of chemblResults(); track molecule.id) {
+                  <app-search-result
+                    [molecule]="molecule"
+                    [query]="chemblQuery()"
+                    [search_excludeAlreadyAdded]="true"
+                    (onChipItem)="addChip($event)"
+                  />
+                }
+              } @else if (!chemblResults().length && !chemblError() && !chemblEmpty()) {
+                <div class="text-sm text-gray-400 text-center py-8">
+                  Nessun risultato trovato.
+                </div>
+              } @else if (chemblError()) {
+                <div class="text-sm text-red-500 bg-red-50 dark:bg-red-950 rounded px-4 py-2 text-center">
+                  Errore nella ricerca. Riprova.
+                </div>
+              }
+            </div>
           </div>
 }
+
 
       }
 
@@ -206,7 +239,7 @@ export type ChipItem = { id: string; name: string }
       <button
         type="submit"
         class="px-4 py-2 rounded bg-emerald-600 text-white font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed"
-        [disabled]="isSelectedNothing()"
+        [disabled]="(isSelectedNothing() && this.method() === 'my') || (this.selectedIds.length === 0 && this.method() === 'chembl')"
         (click)="doSubmit()"
       >
         @if (step() === 1) { <span>Aggiungi</span> }
@@ -230,7 +263,7 @@ export class AddMoleculesToCollectionComponent
   error = signal<boolean>(false);
   methodControl = new FormControl<'my' | 'chembl'>('my', { nonNullable: true })
   method = signal<'my' | 'chembl'>('my')
-  searchLoading = signal<boolean>(false)
+
 
   @ViewChild('scrollRoot', { static: false }) protected declare root: ElementRef<HTMLDivElement>;
   @ViewChild('sentinel', { static: false }) protected declare sentinel: ElementRef<HTMLDivElement>;
@@ -239,8 +272,18 @@ export class AddMoleculesToCollectionComponent
     super()
     effect(() => {
       if (this.method() === 'my') {
-        this.resetPagination()
-        this.loadMore()
+        queueMicrotask(() => {
+          this.clearChips()
+          this.resetPagination()
+          this.startObserver()
+          this.loadMore()
+        })
+      } else if (this.method() === 'chembl') {
+        this.chemblEmpty.set(true)
+        this.chemblError.set(null)
+        this.chemblLoading.set(false)
+        this.chemblQuery.set('')
+        this.chemblResults.set([])
       }
     })
   }
@@ -326,6 +369,12 @@ export class AddMoleculesToCollectionComponent
 
   // ============= ChEMBL search selection
 
+  chemblQuery = signal<string>('')
+  chemblLoading = signal<boolean>(false)
+  chemblResults = signal<MoleculeSearchResult[]>([])
+  chemblError = signal<unknown | null>(null)
+  chemblEmpty = signal<boolean>(true)
+
   selectedMolecules: ChipItem[] = [];
 
   // comodo se ti serve passare gli id altrove
@@ -351,6 +400,24 @@ export class AddMoleculesToCollectionComponent
 
   clearChips() {
     this.selectedMolecules = [];
+  }
+
+  onEmpty(): void {
+    this.chemblEmpty.set(true)
+    this.chemblQuery.set('')
+    this.chemblResults.set([])
+  }
+
+  handleResults(results: MoleculeSearchResult[]): void {
+    this.chemblEmpty.set(false)
+    this.chemblResults.set(results)
+    this.chemblError.set(null)
+  }
+
+  handleError(err: unknown): void {
+    this.chemblEmpty.set(false)
+    this.chemblError.set(err)
+    this.chemblResults.set([])
   }
 
 
