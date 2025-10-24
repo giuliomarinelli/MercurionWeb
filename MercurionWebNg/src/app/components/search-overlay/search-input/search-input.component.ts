@@ -1,10 +1,12 @@
-import { AfterViewInit, Component, effect, ElementRef, EventEmitter, Output, signal, ViewChild } from '@angular/core';
+import { MoleculeCollectionItemService } from './../../../services/graphql/molecule-collection-item.service';
+import { AfterViewInit, Component, effect, ElementRef, EventEmitter, inject, Input, Output, signal, ViewChild } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { MoleculeSearchService } from '../../../services/graphql/molecule-search.service';
 import { MoleculeSearchResult } from '../../../Models/graphql/molecule-search/molecule-search-result.interface';
+import { MoleculeCardItemModel } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
 
 
 @Component({
@@ -42,8 +44,18 @@ import { MoleculeSearchResult } from '../../../Models/graphql/molecule-search/mo
 })
 export class SearchInputComponent implements AfterViewInit {
 
+  private readonly searchService = inject(MoleculeSearchService)
+  private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService)
+
+  _search_excludeAlreadyAdded = signal<boolean>(false)
+
   @ViewChild('searchInput')
   private searchInputRef!: ElementRef<HTMLInputElement>
+
+  @Input()
+  set search_excludeAlreadyAdded(search_excludeAlreadyAdded: boolean) {
+    this._search_excludeAlreadyAdded.set(search_excludeAlreadyAdded)
+  }
 
   @Output()
   onResult = new EventEmitter<MoleculeSearchResult[]>()
@@ -62,7 +74,7 @@ export class SearchInputComponent implements AfterViewInit {
 
   query = signal('')
 
-  constructor(private readonly searchService: MoleculeSearchService) {
+  constructor() {
 
     effect(() => {
       if (!this.query().trim()) {
@@ -83,16 +95,29 @@ export class SearchInputComponent implements AfterViewInit {
         }
         if (trimmed.length > 1) {
           this.onLoading.emit(true)
-          this.searchService.searchMolecule(trimmed, 100).subscribe({
-            next: res => {
-              this.onResult.emit(res)
-              this.onLoading.emit(false)
-            },
-            error: err => {
-              this.onError.emit(err)
-              this.onLoading.emit(false)
-            }
-          })
+          if (this._search_excludeAlreadyAdded()) {
+            this.moleculeCollectionItemService.searchChemblMolecules_excludeAlreadyAdded(trimmed).subscribe({
+              next: res => {
+                this.onResult.emit(res)
+                this.onLoading.emit(false)
+              },
+              error: err => {
+                this.onError.emit(err)
+                this.onLoading.emit(false)
+              }
+            })
+          } else {
+            this.searchService.searchMolecule(trimmed, 100).subscribe({
+              next: res => {
+                this.onResult.emit(res)
+                this.onLoading.emit(false)
+              },
+              error: err => {
+                this.onError.emit(err)
+                this.onLoading.emit(false)
+              }
+            })
+          }
         } else {
           this.searchService.clearResults()
           this.onResult.emit([])

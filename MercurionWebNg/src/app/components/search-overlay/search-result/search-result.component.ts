@@ -1,7 +1,9 @@
 import {
   Component, Input, signal, effect,
   ElementRef, OnDestroy,
-  NgZone
+  NgZone,
+  Output,
+  EventEmitter
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
@@ -10,48 +12,90 @@ import { SearchContextService } from '../../../services/context/search-context.s
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
 import { MoleculeSearchResult } from
   '../../../Models/graphql/molecule-search/molecule-search-result.interface';
+import { ChipItem } from '../../action-components/add-molecules-to-collection/add-molecules-to-collection.component';
 
 @Component({
   selector: 'app-search-result',
   standalone: true,
   imports: [DecimalPipe, RouterLink, MoleculeViewerComponent],
   template: `
-    <a [routerLink]="_pathToMolecule()" (click)="searchContext.close()"
-       class="flex items-center gap-3 p-3 rounded-lg hover:bg-indigo-50
-              dark:hover:bg-slate-800 cursor-pointer transition">
+    @if (!_search_excludeAlreadyAdded()) {
+      <a [routerLink]="_pathToMolecule()" (click)="searchContext.close()"
+         class="flex items-center gap-3 p-3 rounded-lg hover:bg-indigo-50
+                dark:hover:bg-slate-800 cursor-pointer transition">
 
-      <div class="w-12 h-12 flex-shrink-0 rounded-lg overflow-hidden relative">
-        @if (!viewerReady()) {
-          <div class="absolute inset-0 z-10 animate-pulse
-                      bg-slate-200 dark:bg-slate-700"></div>
-        }
-
-        <molecule-viewer
-          class="w-full h-full"
-          [structure]="_molecule()?.smiles ?? ''"
-          [disablePreview]="disablePreview()"
-          (rendered)="viewerReady.set(true)">
-        </molecule-viewer>
-      </div>
-
-
-      <div class="flex-1 min-w-0">
-        <div class="text-base font-medium truncate"
-             [innerHTML]="highlight(_molecule()?.preferredName)"></div>
-        <div class="text-xs text-gray-500 truncate"
-             [innerHTML]="highlight(_molecule()?.synonyms?.[0])"></div>
-        <div class="text-xs text-gray-400 mt-1 flex gap-2">
-          @if (_molecule()?.mwFreebase) {
-            <span>MW: {{ _molecule()?.mwFreebase | number:'1.0-1' }}</span>
+        <div class="w-12 h-12 flex-shrink-0 rounded-lg overflow-hidden relative">
+          @if (!viewerReady()) {
+            <div class="absolute inset-0 z-10 animate-pulse
+                        bg-slate-200 dark:bg-slate-700"></div>
           }
-          @if (_molecule()?.maxPhase) {
-            <span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
-              Phase {{ _molecule()?.maxPhase }}
-            </span>
-          }
+
+          <molecule-viewer
+            class="w-full h-full"
+            [structure]="_molecule()?.smiles ?? ''"
+            [disablePreview]="disablePreview()"
+            (rendered)="viewerReady.set(true)">
+          </molecule-viewer>
         </div>
-      </div>
-    </a>
+
+
+        <div class="flex-1 min-w-0">
+          <div class="text-base font-medium truncate"
+               [innerHTML]="highlight(_molecule()?.preferredName)"></div>
+          <div class="text-xs text-gray-500 truncate"
+               [innerHTML]="highlight(_molecule()?.synonyms?.[0])"></div>
+          <div class="text-xs text-gray-400 mt-1 flex gap-2">
+            @if (_molecule()?.mwFreebase) {
+              <span>MW: {{ _molecule()?.mwFreebase | number:'1.0-1' }}</span>
+            }
+            @if (_molecule()?.maxPhase) {
+              <span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
+                Phase {{ _molecule()?.maxPhase }}
+              </span>
+            }
+          </div>
+        </div>
+      </a>
+    } @else {
+      <button
+          (click)="doEmitChipItem()"
+          class="flex items-center gap-3 p-3 rounded-lg hover:bg-indigo-50
+                dark:hover:bg-slate-800 cursor-pointer transition"
+          title="Clicca per selezionare la molecola">
+
+        <div class="w-12 h-12 flex-shrink-0 rounded-lg overflow-hidden relative">
+          @if (!viewerReady()) {
+            <div class="absolute inset-0 z-10 animate-pulse
+                        bg-slate-200 dark:bg-slate-700"></div>
+          }
+
+          <molecule-viewer
+            class="w-full h-full"
+            [structure]="_molecule()?.smiles ?? ''"
+            [disablePreview]="disablePreview()"
+            (rendered)="viewerReady.set(true)">
+          </molecule-viewer>
+        </div>
+
+
+        <div class="flex-1 min-w-0">
+          <div class="text-base font-medium truncate"
+               [innerHTML]="highlight(_molecule()?.preferredName)"></div>
+          <div class="text-xs text-gray-500 truncate"
+               [innerHTML]="highlight(_molecule()?.synonyms?.[0])"></div>
+          <div class="text-xs text-gray-400 mt-1 flex gap-2">
+            @if (_molecule()?.mwFreebase) {
+              <span>MW: {{ _molecule()?.mwFreebase | number:'1.0-1' }}</span>
+            }
+            @if (_molecule()?.maxPhase) {
+              <span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
+                Phase {{ _molecule()?.maxPhase }}
+              </span>
+            }
+          </div>
+        </div>
+      </button>
+    }
   `
 })
 export class SearchResultComponent implements OnDestroy {
@@ -62,6 +106,7 @@ export class SearchResultComponent implements OnDestroy {
   _query = signal<string>('')
   isDarkMode = signal<boolean>(false)
   viewerReady = signal<boolean>(false)
+  _search_excludeAlreadyAdded = signal<boolean>(false)
 
   /** viewer OFF finché true */
   disablePreview = signal<boolean>(true)
@@ -131,6 +176,25 @@ export class SearchResultComponent implements OnDestroy {
       '<mark class="bg-blue-300/75 dark:bg-blue-300/80 rounded px-1">$1</mark>'
     );
   }
+
+  doEmitChipItem(): void {
+    let i = -1
+    if (this._molecule()!.synonyms && Array.isArray(this._molecule()!.synonyms)) {
+      i = this._molecule()!.synonyms!.findIndex(syn => !!syn)
+    }
+    this.onChipItem.emit({
+      id: String(this._molecule()!.id),
+      name: this._molecule()!.preferredName ?? (this._molecule()!.synonyms && i !== -1 ? this._molecule()!.synonyms![i] : `Lead ${this._molecule()!.id}`)
+    })
+  }
+
+  @Input()
+  set search_excludeAlreadyAdded(search_excludeAlreadyAdded: boolean) {
+    this._search_excludeAlreadyAdded.set(search_excludeAlreadyAdded)
+  }
+
+  @Output()
+  onChipItem = new EventEmitter<ChipItem>()
 
   ngOnDestroy() {
     this.io.disconnect();

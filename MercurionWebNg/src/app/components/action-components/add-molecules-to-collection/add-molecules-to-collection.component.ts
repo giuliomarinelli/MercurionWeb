@@ -8,11 +8,14 @@ import { MoleculeCollectionItemService } from '../../../services/graphql/molecul
 import { Helpers } from '../../../helpers';
 import { MoleculeCardItemModel } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
 import { PageModel } from '../../../Models/graphql/page.model';
-
 import { PmSearchInputComponent } from '../../common/pm-search-input/pm-search-input.component';
 import { MoleculeCollectionItemSelectCardComponent } from '../../molecule-detail/molecule-collection-item-select-card/molecule-collection-item-select-card.component';
 import { ClassicSpinnerComponent } from '../../common/classic-spinner/classic-spinner.component';
 import { SkeletonMoleculeCardComponent } from '../../molecule-detail/skeleton-molecule-card/skeleton-molecule-card.component';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { SearchInputComponent } from '../../search-overlay/search-input/search-input.component';
+
+export type ChipItem = { id: string; name: string }
 
 @Component({
   selector: 'app-add-molecules-to-collection',
@@ -21,7 +24,9 @@ import { SkeletonMoleculeCardComponent } from '../../molecule-detail/skeleton-mo
     PmSearchInputComponent,
     MoleculeCollectionItemSelectCardComponent,
     ClassicSpinnerComponent,
-    SkeletonMoleculeCardComponent
+    SkeletonMoleculeCardComponent,
+    ReactiveFormsModule,
+    SearchInputComponent
   ],
   template: `
 <div class="flex justify-center items-center min-h-screen px-2">
@@ -32,73 +37,160 @@ import { SkeletonMoleculeCardComponent } from '../../molecule-detail/skeleton-mo
       <h2 class="text-lg font-semibold">Aggiungi molecole alla collezione</h2>
       <button class="text-2xl hover:text-emerald-600" (click)="close()">&times;</button>
     </div>
+    <div class="mx-auto">
+      <div class="mt-6 space-y-6 sm:flex sm:items-center sm:space-x-10 sm:space-y-0 px-6 pb-6 border-b border-spacing-y-[0.3px]">
+        <div class="flex items-center">
+          <input id="email" type="radio" name="method" value="my" [formControl]="methodControl" class="cursor-pointer relative size-4 appearance-none rounded-full border border-gray-300 bg-white before:absolute before:inset-1 before:rounded-full before:bg-white checked:border-indigo-600 checked:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400 dark:border-white/10 dark:bg-white/5 dark:checked:border-indigo-500 dark:checked:bg-indigo-500 dark:focus-visible:outline-indigo-500 dark:disabled:border-white/5 dark:disabled:bg-white/10 dark:disabled:before:bg-white/20 forced-colors:appearance-auto forced-colors:before:hidden [&:not(:checked)]:before:hidden" />
+          <label for="email" class="cursor-pointer ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white">Seleziona da <span class="italic">Le mie molecole</span></label>
+        </div>
+        <div class="flex items-center">
+          <input id="sms" type="radio" name="method" value="chembl" [formControl]="methodControl" class="cursor-pointer relative size-4 appearance-none rounded-full border border-gray-300 bg-white before:absolute before:inset-1 before:rounded-full before:bg-white checked:border-indigo-600 checked:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400 dark:border-white/10 dark:bg-white/5 dark:checked:border-indigo-500 dark:checked:bg-indigo-500 dark:focus-visible:outline-indigo-500 dark:disabled:border-white/5 dark:disabled:bg-white/10 dark:disabled:before:bg-white/20 forced-colors:appearance-auto forced-colors:before:hidden [&:not(:checked)]:before:hidden" />
+          <label for="sms" class="cursor-pointer ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white">Cerca e seleziona da ChEMBL DB</label>
+        </div>
+      </div>
+    </div>
+      @switch (method()) {
+        @case ('my') {
+           <!-- Root scrollabile -->
+          <div #scrollRoot class="py-6 px-3 overflow-y-auto flex flex-col gap-4 min-h-[60vh] max-h-[60vh]">
+            @switch (step()) {
+              @case (1) {
+                <div class="px-3">
+                  <h2 class="font-semibold mb-3">Scegli le molecole da aggiungere alla collezione:</h2>
 
-    <!-- Root scrollabile -->
-    <div #scrollRoot class="py-6 px-3 overflow-y-auto flex flex-col gap-4 min-h-[60vh] max-h-[60vh]">
-      @switch (step()) {
-        @case (1) {
-          <div class="px-3">
-            <h2 class="font-semibold mb-3">Scegli le molecole da aggiungere alla collezione:</h2>
+                  <!-- 🔎 Search: sempre visibile -->
+                  <pm-search-input
+                    class="block"
+                    [value]="searchTerm()"
+                    (valueChange)="doQuery($event)"
+                    (submitted)="doQuery($event)"
+                    (cleared)="doClear()"
+                  />
 
-            <!-- 🔎 Search: sempre visibile -->
-            <pm-search-input
-              class="block"
-              [value]="searchTerm()"
-              (valueChange)="doQuery($event)"
-              (submitted)="doQuery($event)"
-              (cleared)="doClear()"
-            />
+                  <!-- Lista -->
+                  <div class="mt-6">
+                    <!-- Riga "Seleziona tutti" -->
+                    <app-molecule-collection-item-select-card class="block mb-6"
+                      [isSelectAll]="true"
+                      [value]="isSelectedAll()"
+                      [indeterminate]="isPartiallySelected()"
+                      (selectedAll)="onSelectAllChange($event)"
+                    />
 
-            <!-- Lista -->
-            <div class="mt-6">
-              <!-- Riga "Seleziona tutti" -->
-              <app-molecule-collection-item-select-card class="block mb-6"
-                [isSelectAll]="true"
-                [value]="isSelectedAll()"
-                [indeterminate]="isPartiallySelected()"
-                (selectedAll)="onSelectAllChange($event)"
-              />
+                    <!-- Righe elementi -->
+                    @for (row of multiselectItems(); track row.item.id; let i = $index) {
+                      <app-molecule-collection-item-select-card
+                        [molecule]="row.item"
+                        [i]="i"
+                        [(value)]="row.isChecked"
+                      />
+                    }
+                  </div>
 
-              <!-- Righe elementi -->
-              @for (row of multiselectItems(); track row.item.id; let i = $index) {
-                <app-molecule-collection-item-select-card
-                  [molecule]="row.item"
-                  [i]="i"
-                  [(value)]="row.isChecked"
-                />
-              }
-            </div>
+                  <!-- Sentinel per IntersectionObserver (figlio del root) -->
+                  <div #sentinel class="h-1 w-full"></div>
 
-            <!-- Sentinel per IntersectionObserver (figlio del root) -->
-            <div #sentinel class="h-1 w-full"></div>
-
-            <!-- Loading / Skeleton / Empty -->
-            @if (loading) {
-              @if (page > 1) {
-                <div class="flex justify-center py-4">
-                  <app-classic-spinner [size]="60" />
-                </div>
-              } @else {
-                <div class="space-y-4">
-                  @for (i of [0,1,2,3,4]; track i) {
-                    <app-skeleton-molecule-card />
+                  <!-- Loading / Skeleton / Empty -->
+                  @if (loading) {
+                    @if (page > 1) {
+                      <div class="flex justify-center py-4">
+                        <app-classic-spinner [size]="60" />
+                      </div>
+                    } @else {
+                      <div class="space-y-4">
+                        @for (i of [0,1,2,3,4]; track i) {
+                          <app-skeleton-molecule-card />
+                        }
+                      </div>
+                    }
+                  } @else if (empty() && (earlyDone || done)) {
+                    <p class="text-slate-700 dark:text-slate-200 py-6">Nessuna molecola.</p>
                   }
                 </div>
               }
-            } @else if (empty() && (earlyDone || done)) {
-              <p class="text-slate-700 dark:text-slate-200 py-6">Nessuna molecola.</p>
+              @case (2) {
+                @if (error()) {
+                  <span class="text-light-error dark:text-dark-error">Si è verificato un errore</span>
+                } @else {
+                  <span class="text-light-accent-secondary dark:text-dark-accent-secondary">Molecole aggiunte con successo!</span>
+                }
+              }
             }
           </div>
         }
-        @case (2) {
-          @if (error()) {
-            <span class="text-light-error dark:text-dark-error">Si è verificato un errore</span>
-          } @else {
-            <span class="text-light-accent-secondary dark:text-dark-accent-secondary">Molecole aggiunte con successo!</span>
-          }
-        }
+        @case ('chembl') {
+          <div #scrollRoot class="py-6 px-3 overflow-y-auto flex flex-col gap-4 min-h-[60vh] max-h-[60vh]">
+            Cerca su ChEMBL e seleziona:
+
+            <!-- collega l'evento del tuo search: rinomina (selected) se il tuo output si chiama diversamente -->
+            <app-search-input
+              [search_excludeAlreadyAdded]="true"
+            />
+
+            <div class="border-b min-h-24 relative">
+              @if (selectedMolecules.length === 0) {
+                <div class="absolute inset-0 flex justify-center items-center text-sm text-gray-500 dark:text-gray-400">
+                  Qui vedrai le molecole selezionate.
+                </div>
+              }
+
+              <!-- CHIPS WRAP (fuori dall'absolute) -->
+              <div class="relative flex flex-wrap items-center gap-2 py-3" role="list" aria-label="Molecole selezionate">
+                @for (m of selectedMolecules; track m.id) {
+                  <span
+                    role="listitem"
+                    class="group inline-flex items-center gap-2 max-w-full
+                           rounded-full px-3 py-1.5
+                           bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-300
+                           dark:bg-indigo-500/20 dark:text-indigo-100 dark:ring-indigo-400/40
+                           shadow-sm"
+                    title="{{ m.name }}"
+                  >
+                    <span class="truncate max-w-[16rem] text-sm font-medium">{{ m.name }}</span>
+
+                    <button
+                      type="button"
+                      (click)="removeChip(m.id)"
+                      class="shrink-0 inline-flex size-5 items-center justify-center rounded-full
+                             hover:bg-indigo-100 dark:hover:bg-indigo-400/30
+                             focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1
+                             dark:focus:ring-offset-gray-900"
+                      aria-label="Rimuovi {{ m.name }}"
+                    >
+                      <!-- icona X sottile -->
+                      <svg viewBox="0 0 20 20" fill="none" class="size-3.5">
+                        <path d="M6 6l8 8M14 6l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                      </svg>
+                    </button>
+                  </span>
+                }
+
+                @if (selectedMolecules.length > 0) {
+                  <!-- Spacer flessibile per spingere il pulsante a destra -->
+                  <span class="grow"></span>
+
+                  <button
+                    type="button"
+                    (click)="clearChips()"
+                    class="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm
+                           ring-1 ring-inset ring-indigo-300 text-indigo-700 hover:bg-indigo-50
+                           dark:ring-indigo-400/40 dark:text-indigo-100 dark:hover:bg-indigo-500/20
+                           focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1
+                           dark:focus:ring-offset-gray-900"
+                  >
+                    Pulisci tutto
+                    <svg viewBox="0 0 20 20" fill="none" class="size-3.5">
+                      <path d="M5 10h10M10 5v10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                    </svg>
+                  </button>
+                }
+              </div>
+            </div>
+          </div>
+}
+
       }
-    </div>
+
 
     <!-- Footer azioni (fuori dallo scroll) -->
     <div class="my-4 mr-8 flex justify-end gap-2">
@@ -136,10 +228,22 @@ export class AddMoleculesToCollectionComponent
   step = signal<1 | 2>(1);
   step_12_loading = signal<boolean>(false);
   error = signal<boolean>(false);
+  methodControl = new FormControl<'my' | 'chembl'>('my', { nonNullable: true })
+  method = signal<'my' | 'chembl'>('my')
+  searchLoading = signal<boolean>(false)
 
-  // ⚠️ non statici: il sentinel entra/esce con @switch
   @ViewChild('scrollRoot', { static: false }) protected declare root: ElementRef<HTMLDivElement>;
   @ViewChild('sentinel', { static: false }) protected declare sentinel: ElementRef<HTMLDivElement>;
+
+  constructor() {
+    super()
+    effect(() => {
+      if (this.method() === 'my') {
+        this.resetPagination()
+        this.loadMore()
+      }
+    })
+  }
 
   // Ri-arma l'observer quando torni allo step 1 (dopo che il DOM è pronto)
   private _rearmOnStep = effect(() => {
@@ -151,6 +255,7 @@ export class AddMoleculesToCollectionComponent
   });
 
   ngOnInit(): void {
+    this.methodControl.valueChanges.subscribe(val => this.method.set(val))
     this.loadMore(); // prima pagina
   }
 
@@ -218,4 +323,35 @@ export class AddMoleculesToCollectionComponent
       this.actionOverlayContext.close();
     }
   }
+
+  // ============= ChEMBL search selection
+
+  selectedMolecules: ChipItem[] = [];
+
+  // comodo se ti serve passare gli id altrove
+  get selectedIds(): string[] {
+    return this.selectedMolecules.map(c => c.id);
+  }
+
+  // chiamata quando clicchi un risultato di ricerca
+  onSearchHit(hit: { id: string; name: string }) {
+    this.addChip(hit);
+  }
+
+  // API
+  addChip(chip: ChipItem) {
+    if (!chip?.id) return;
+    if (this.selectedMolecules.some(c => c.id === chip.id)) return;
+    this.selectedMolecules = [...this.selectedMolecules, chip]; // OnPush-friendly
+  }
+
+  removeChip(id: string) {
+    this.selectedMolecules = this.selectedMolecules.filter(c => c.id !== id);
+  }
+
+  clearChips() {
+    this.selectedMolecules = [];
+  }
+
+
 }

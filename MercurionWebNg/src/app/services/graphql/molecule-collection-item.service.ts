@@ -228,7 +228,7 @@ export class MoleculeCollectionItemService {
       )
   }
 
-  searchChemblMolecules_excludeAlreadyAdded(query: string, limit = 100): Observable<MoleculeCardItemModel[]> {
+  searchChemblMolecules_excludeAlreadyAdded(query: string, limit = 100): Observable<MoleculeSearchResult[]> {
     const input: MoleculeSearchInput = {
       query,
       limit
@@ -239,8 +239,7 @@ export class MoleculeCollectionItemService {
         variables: { input },
         fetchPolicy: 'network-only'
       }).valueChanges.pipe(
-        map(res => extractGqlData(res, 'moleculeSearch_excludeAlreadyAdded')),
-        map((res: MoleculeSearchResult[]) => res.map(item => Helpers.moleculeSearchResultToMoleculeCardItemModel(item)))
+        map(res => extractGqlData(res, 'moleculeSearch_excludeAlreadyAdded'))
       )
   }
 
