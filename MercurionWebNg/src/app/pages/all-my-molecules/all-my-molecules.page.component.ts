@@ -97,6 +97,38 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
   private readonly toast = inject(ToastService)
   // ====================================================
 
+  // Ensure infinite scroll fills the viewport when content is short
+  private enforceInfiniteScroll(attempts = 5): void {
+    if (attempts <= 0 || this.loading || this.done) return;
+
+    const check = () => {
+      if (this.loading || this.done) return;
+
+      const rootEl = this.root?.nativeElement as HTMLElement | null | undefined;
+
+      if (rootEl instanceof HTMLElement) {
+        const notEnough = rootEl.scrollHeight <= rootEl.clientHeight + 1;
+        if (notEnough) {
+          this.loadMore();
+          queueMicrotask(() => this.enforceInfiniteScroll(attempts - 1));
+        }
+        return;
+      }
+
+      if (typeof window === 'undefined' || typeof document === 'undefined') return;
+      const docEl = document.documentElement ?? document.body;
+      if (!docEl) return;
+
+      const viewportHeight = window.innerHeight || docEl.clientHeight;
+      const contentHeight = Math.max(docEl.scrollHeight, document.body?.scrollHeight ?? 0);
+      if (contentHeight <= viewportHeight + 1) {
+        this.loadMore();
+        queueMicrotask(() => this.enforceInfiniteScroll(attempts - 1));
+      }
+    };
+
+    requestAnimationFrame(check);
+  }
 
   @ViewChild('sentinel', { static: true })
   declare sentinel: ElementRef<HTMLDivElement> | undefined
@@ -105,19 +137,22 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
   private delSub?: Subscription
 
 
-  async ngOnInit(): Promise<void> {
-    await this.loadMore()
+  ngOnInit(): void {
+    queueMicrotask(() => this.loadMore())
   }
 
   ngAfterViewInit(): void {
-    this.startObserver()
+    queueMicrotask(() => {
+      this.startObserver();
+      this.enforceInfiniteScroll();
+    })
   }
 
   ngOnDestroy(): void {
     this.delSub?.unsubscribe()
   }
 
-  protected fetch$(page = this.page, size = 10) {
+  protected override fetch$(page = this.page, size = 10) {
     return this.moleculeCollectionItemService.getAllPaginatedItems(page, size, this.searchTerm()).pipe(
       debounceTime(200),
       map(page => ({
@@ -136,6 +171,8 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
           const i = this.items.findIndex(item => item.id === id)
           if (i !== -1) {
             this.items.splice(i, 1)
+            // After deletion, ensure infinite scroll still loads more if needed
+            queueMicrotask(() => this.enforceInfiniteScroll())
           }
         }
       },

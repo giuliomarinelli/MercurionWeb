@@ -61,13 +61,15 @@ export abstract class AbstractPaginationComponent<T> {
 
   /** Idempotente e robusto a layout dinamici (switch di step, skeleton, ecc.) */
   protected startObserver(bottomPx: number = 500): void {
-    if (!this.root || !this.sentinel) return;
+    if (!this.sentinel) return;
 
-    // Stacca l’eventuale precedente
+    const rootEl = this.root?.nativeElement ?? null;
+
+    // Stacca l'eventuale precedente
     this.observer?.disconnect();
 
     const opts: IntersectionObserverInit = {
-      root: this.root.nativeElement,
+      root: rootEl,
       rootMargin: `0px 0px ${bottomPx}px 0px`,
       threshold: 0
     };
@@ -85,9 +87,26 @@ export abstract class AbstractPaginationComponent<T> {
 
     // Prime fetch se il contenuto non riempie il container (niente scroll -> niente intersect)
     requestAnimationFrame(() => {
-      const el = this.root!.nativeElement;
-      const notEnoughContent = el.scrollHeight <= el.clientHeight + 1;
-      if (notEnoughContent && !this.loading && !this.done) {
+      if (this.loading || this.done) return;
+
+      if (rootEl instanceof HTMLElement) {
+        const notEnoughContent = rootEl.scrollHeight <= rootEl.clientHeight + 1;
+        if (notEnoughContent) this.loadMore();
+        return;
+      }
+
+      if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+      const docEl = document.documentElement ?? document.body;
+      if (!docEl) return;
+
+      const viewportHeight = window.innerHeight || docEl.clientHeight;
+      const contentHeight = Math.max(
+        docEl.scrollHeight,
+        document.body?.scrollHeight ?? 0
+      );
+
+      if (contentHeight <= viewportHeight + 1) {
         this.loadMore();
       }
     });

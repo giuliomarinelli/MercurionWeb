@@ -45,14 +45,25 @@ export type ChipItem = { id: string; name: string }
     </div>
     <div class="mx-auto">
       <div class="mt-6 space-y-6 sm:flex sm:items-center sm:space-x-10 sm:space-y-0 px-6 pb-6 border-b border-spacing-y-[0.3px]">
-        <div class="flex items-center">
-          <input id="email" type="radio" name="method" value="my" [formControl]="methodControl" class="cursor-pointer relative size-4 appearance-none rounded-full border border-gray-300 bg-white before:absolute before:inset-1 before:rounded-full before:bg-white checked:border-indigo-600 checked:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400 dark:border-white/10 dark:bg-white/5 dark:checked:border-indigo-500 dark:checked:bg-indigo-500 dark:focus-visible:outline-indigo-500 dark:disabled:border-white/5 dark:disabled:bg-white/10 dark:disabled:before:bg-white/20 forced-colors:appearance-auto forced-colors:before:hidden [&:not(:checked)]:before:hidden" />
-          <label for="email" class="cursor-pointer ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white">Seleziona da <span class="italic">Le mie molecole</span></label>
-        </div>
-        <div class="flex items-center">
-          <input id="sms" type="radio" name="method" value="chembl" [formControl]="methodControl" class="cursor-pointer relative size-4 appearance-none rounded-full border border-gray-300 bg-white before:absolute before:inset-1 before:rounded-full before:bg-white checked:border-indigo-600 checked:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400 dark:border-white/10 dark:bg-white/5 dark:checked:border-indigo-500 dark:checked:bg-indigo-500 dark:focus-visible:outline-indigo-500 dark:disabled:border-white/5 dark:disabled:bg-white/10 dark:disabled:before:bg-white/20 forced-colors:appearance-auto forced-colors:before:hidden [&:not(:checked)]:before:hidden" />
-          <label for="sms" class="cursor-pointer ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white">Cerca e seleziona da ChEMBL DB</label>
-        </div>
+        @if (step() === 1) {
+          <div class="flex items-center">
+            <input id="my" type="radio" name="method" value="my" [formControl]="methodControl" class="cursor-pointer relative size-4 appearance-none rounded-full border border-gray-300 bg-white before:absolute before:inset-1 before:rounded-full before:bg-white checked:border-indigo-600 checked:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400 dark:border-white/10 dark:bg-white/5 dark:checked:border-indigo-500 dark:checked:bg-indigo-500 dark:focus-visible:outline-indigo-500 dark:disabled:border-white/5 dark:disabled:bg-white/10 dark:disabled:before:bg-white/20 forced-colors:appearance-auto forced-colors:before:hidden [&:not(:checked)]:before:hidden" />
+            <label for="my" class="cursor-pointer ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white">Seleziona da <span class="italic">Le mie molecole</span></label>
+          </div>
+          <div class="flex items-center">
+            <input id="chembl" type="radio" name="method" value="chembl" [formControl]="methodControl" class="cursor-pointer relative size-4 appearance-none rounded-full border border-gray-300 bg-white before:absolute before:inset-1 before:rounded-full before:bg-white checked:border-indigo-600 checked:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400 dark:border-white/10 dark:bg-white/5 dark:checked:border-indigo-500 dark:checked:bg-indigo-500 dark:focus-visible:outline-indigo-500 dark:disabled:border-white/5 dark:disabled:bg-white/10 dark:disabled:before:bg-white/20 forced-colors:appearance-auto forced-colors:before:hidden [&:not(:checked)]:before:hidden" />
+            <label for="chembl" class="cursor-pointer ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white">Cerca e seleziona da ChEMBL DB</label>
+          </div>
+        } @else if (step() === 2) {
+            <div class="flex items-center">
+              <input [attr.disabled]="true" id="my" type="radio" name="method" value="my" [formControl]="methodControl" class="cursor-not-allowed relative size-4 appearance-none rounded-full border border-gray-300 bg-white before:absolute before:inset-1 before:rounded-full before:bg-white checked:border-indigo-600 checked:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400 dark:border-white/10 dark:bg-white/5 dark:checked:border-indigo-500 dark:checked:bg-indigo-500 dark:focus-visible:outline-indigo-500 dark:disabled:border-white/5 dark:disabled:bg-white/10 dark:disabled:before:bg-white/20 forced-colors:appearance-auto forced-colors:before:hidden [&:not(:checked)]:before:hidden" />
+              <label for="my" class="cursor-not-allowed ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white">Seleziona da <span class="italic">Le mie molecole</span></label>
+            </div>
+            <div class="flex items-center">
+              <input [attr.disabled]="true" id="chembl" type="radio" name="method" value="chembl" [formControl]="methodControl" class="cursor-not-allowed relative size-4 appearance-none rounded-full border border-gray-300 bg-white before:absolute before:inset-1 before:rounded-full before:bg-white checked:border-indigo-600 checked:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400 dark:border-white/10 dark:bg-white/5 dark:checked:border-indigo-500 dark:checked:bg-indigo-500 dark:focus-visible:outline-indigo-500 dark:disabled:border-white/5 dark:disabled:bg-white/10 dark:disabled:before:bg-white/20 forced-colors:appearance-auto forced-colors:before:hidden [&:not(:checked)]:before:hidden" />
+              <label for="chembl" class="cursor-not-allowed ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white">Cerca e seleziona da ChEMBL DB</label>
+            </div>
+          }
       </div>
     </div>
       @switch (method()) {
