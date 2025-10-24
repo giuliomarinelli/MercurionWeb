@@ -102,6 +102,7 @@ export class ChEMBLMoleculeItemService {
         return this.joinService.remove(userId, collectionId, itemId)
     }
 
+    // TODO: implementation => if exists it fetches ChEMBLMoleculeItem and adds to collection without creating
     async addManyChemblItemsToCollection(
         userId: UUID,
         collectionId: UUID,

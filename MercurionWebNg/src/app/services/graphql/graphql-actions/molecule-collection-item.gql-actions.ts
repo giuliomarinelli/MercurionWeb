@@ -245,6 +245,17 @@ export const SEARCH_CHEMBL_MOLECULES_EXCLUDE_ALREADY_ADDED = gql`
 `
 
 
+export const ADD_MANY_CHEMBL_ITEMS_TO_COLLECTION = gql`
+  mutation AddManyChemblItemsToCollection($collectionId: ID!, $input: [AddManyChEMBLItemDTO!]!) {
+    addManyChemblItemsToCollection(
+        collectionId: $collectionId
+        input: $input
+    )
+}
+
+`
+
+
 export const CREATE_MOLECULE_ITEM = gql`
   mutation CreateMoleculeItem($input: CreateMoleculeItemInput!) {
     createMoleculeItem(input: $input) {

@@ -17,6 +17,7 @@ import { SearchInputComponent } from '../../search-overlay/search-input/search-i
 import { MoleculeSearchResult } from '../../../Models/graphql/molecule-search/molecule-search-result.interface';
 import { SearchResultSkeletonLoaderComponent } from '../../search-overlay/search-result-skeleton-loader/search-result-skeleton-loader.component';
 import { SearchResultComponent } from '../../search-overlay/search-result/search-result.component';
+import { AddManyChEMBLItemDTO } from '../../../Models/graphql/add-many-chembl-item.dto';
 
 export type ChipItem = { id: string; name: string }
 
@@ -126,7 +127,7 @@ export type ChipItem = { id: string; name: string }
         @case ('chembl') {
           @switch (step()) {
             @case (1) {
-              <div #scrollRoot class="py-6 px-3 flex flex-col gap-4 min-h-[60vh] max-h-[60vh]">
+              <div class="py-6 px-3 flex flex-col gap-4 min-h-[60vh] max-h-[60vh]">
                 <div>Cerca su ChEMBL e seleziona:</div>
 
                 <!-- search -->
@@ -222,8 +223,17 @@ export type ChipItem = { id: string; name: string }
                 </div>
               </div>
             }
+            @case (2) {
+              <div class="py-6 px-3 flex flex-col gap-4 min-h-[60vh] max-h-[60vh]">
+                @if (error()) {
+                  <span class="text-light-error dark:text-dark-error">Si è verificato un errore</span>
+                } @else {
+                  <span class="text-light-accent-secondary dark:text-dark-accent-secondary">Molecole aggiunte con successo!</span>
+                }
+              </div>
+              }
           }
-}
+        }
 
 
       }
@@ -244,7 +254,7 @@ export type ChipItem = { id: string; name: string }
         type="submit"
         class="px-4 py-2 rounded bg-emerald-600 text-white font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed"
         [disabled]="(isSelectedNothing() && this.method() === 'my') || (this.selectedIds.length === 0 && this.method() === 'chembl')"
-        (click)="method() === 'my' ? doSubmit() : doSubmitChembl()"
+        (click)="step() === 1 ? dispatchSubmit() : close()"
       >
         @if (step() === 1) { <span>Aggiungi</span> }
         @else if (step() === 2) { <span>Ok</span> }
@@ -341,7 +351,7 @@ export class AddMoleculesToCollectionComponent
     this.actionOverlayContext.close();
   }
 
-  doSubmit(): void {
+  private doSubmit(): void {
     if (this.step() === 1) {
       if (this.isSelectedNothing()) return;
 
@@ -426,8 +436,35 @@ export class AddMoleculesToCollectionComponent
     this.chemblResults.set([])
   }
 
-  doSubmitChembl(): void {
+  private doSubmitChembl(): void {
+    const dtos: AddManyChEMBLItemDTO[] = this.selectedMolecules.map(chip => {
+      const dto: AddManyChEMBLItemDTO = {
+        chemblMolregno: Number(chip.id),
+        name: chip.name
+      }
+      return dto
+    })
+    this.moleculeCollectionItemService.addManyChEMBLItemsToCollection(this.addContext.collectionId()!, dtos).subscribe({
+      next: ok => {
+        this.step_12_loading.set(false);
+        this.addContext.notifyAdded()
+        this.error.set(!ok);
+        this.step.set(2);
+      },
+      error: () => {
+        this.step_12_loading.set(false);
+        this.error.set(true);
+        this.step.set(2);
+      }
+    })
+  }
 
+  dispatchSubmit(): void {
+    if (this.method() === 'my') {
+      queueMicrotask(() => this.doSubmit())
+    } else if (this.method() === 'chembl') {
+      queueMicrotask(() => this.doSubmitChembl())
+    }
   }
 
 }
