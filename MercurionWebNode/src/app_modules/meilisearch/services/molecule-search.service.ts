@@ -9,7 +9,7 @@ import { UUID } from 'crypto';
 
 @Injectable()
 export class MoleculeSearchService {
-
+    
     constructor(
         @Inject('MEILISEARCH_CLIENT')
         private readonly meiliClient: MeiliSearch,

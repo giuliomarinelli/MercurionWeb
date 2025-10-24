@@ -172,3 +172,5 @@ export interface MoleculeCardItemModel {
   updatedAt: number
   touchedAt: number
 }
+
+

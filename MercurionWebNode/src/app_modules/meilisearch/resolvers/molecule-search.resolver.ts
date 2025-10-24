@@ -9,6 +9,7 @@ import { UUID } from 'crypto';
 
 @Resolver(() => MoleculeSearchResult)
 export class MoleculeSearchResolver {
+  
   constructor(private readonly moleculeSearchService: MoleculeSearchService) { }
 
   @Public()

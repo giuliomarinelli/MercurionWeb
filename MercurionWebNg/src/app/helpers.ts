@@ -1,5 +1,6 @@
 import { MoleculeCardItemModel, MoleculeCollectionItemClient } from './Models/graphql/molecule-collection/molecule-collection.types';
 import { MoleculeProperties } from './Models/graphql/molecule-properties.model';
+import { MoleculeSearchResult } from './Models/graphql/molecule-search/molecule-search-result.interface';
 import { MoleculeDetail } from './Models/graphql/molecule.detail.models';
 export class Helpers {
 
@@ -44,6 +45,22 @@ export class Helpers {
     } catch {
       return null;
     }
+  }
+
+  static moleculeSearchResultToMoleculeCardItemModel(dto: MoleculeSearchResult): MoleculeCardItemModel {
+    const now = Date.now()
+    return ({
+      id: dto.id.toString(),
+      name: dto.preferredName,
+      smiles: dto.smiles!,
+      syn: dto.synonyms && dto.synonyms.length !== 0 ? dto.synonyms[0] : '',
+      type: 'chembl',
+      mwFreebase: dto.mwFreebase,
+      maxPhase: dto.maxPhase,
+      createdAt: now,
+      touchedAt: now,
+      updatedAt: now
+    })
   }
 
 }
