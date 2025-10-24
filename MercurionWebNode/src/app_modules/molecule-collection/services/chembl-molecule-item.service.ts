@@ -20,6 +20,18 @@ export class ChEMBLMoleculeItemService {
         private readonly dataSource: DataSource
     ) { }
 
+    async getChemblMolregnosByUserId(userId: UUID): Promise<number[]> {
+            const rows = await this.chemblRepo.find({
+                where: {
+                    userId, type: 'chembl'
+                },
+                select: { 
+                    chemblMolregno: true
+                }
+            })
+            return rows.map(r => r.chemblMolregno)
+        } 
+
     async hasUserChEMBLMoleculeByMolregnoThenGetUUID(userId: UUID, molregno: number): Promise<string | null> {
         const row = await this.chemblRepo.createQueryBuilder('m')
             .select(['m.id'])

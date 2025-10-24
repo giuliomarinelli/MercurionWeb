@@ -108,6 +108,15 @@ type SyntheticRouteEntity {
   steps: [SyntheticStepEntity!]
 }
 
+type ChEMBLMoleculeItemEntity implements MoleculeCollectionItemEntity {
+  id: ID!
+  label: String
+  notes: String
+  type: String!
+  joins: [MoleculeCollectionItemJoin!]
+  chemblMolregno: Float!
+}
+
 type MoleculeSearchResult {
   id: Int!
   preferredName: String
@@ -147,15 +156,6 @@ type MoleculeDetail {
   prodrug: Boolean!
   blackBoxWarning: Boolean!
   synonyms: [String!]!
-}
-
-type ChEMBLMoleculeItemEntity implements MoleculeCollectionItemEntity {
-  id: ID!
-  label: String
-  notes: String
-  type: String!
-  joins: [MoleculeCollectionItemJoin!]
-  chemblMolregno: Float!
 }
 
 type CustomMoleculeItemEntity implements MoleculeCollectionItemEntity {
@@ -234,6 +234,7 @@ type Query {
   syntheticStepById(id: ID!): SyntheticStepEntity
   stepMoleculeRefs(stepId: ID!): [SyntheticStepMoleculeRef!]!
   moleculeSearch(input: MoleculeSearchInput!): [MoleculeSearchResult!]!
+  moleculeSearch_excludeAlreadyAdded(input: MoleculeSearchInput!): [MoleculeSearchResult!]!
   moleculesByMolregnos(molregnos: [String!]!): [MoleculeDetail!]!
   moleculePreviewsByMolregnos(molregnos: [String!]!): [MoleculeSearchResult!]!
   moleculeByMolregno(molregno: String!): MoleculeDetail!

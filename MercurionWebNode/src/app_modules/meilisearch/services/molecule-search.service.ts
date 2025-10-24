@@ -1,8 +1,10 @@
+import { ChEMBLMoleculeItemService } from './../../molecule-collection/services/chembl-molecule-item.service';
 import { Injectable, Inject } from '@nestjs/common';
 import { MeiliSearch } from 'meilisearch'; // o dove hai il client
 import { MoleculeSearchInput } from '../Models/DTO/molecule-search-input.cls';
 import { SearchParams } from '../Models/interfaces/search-params.interface';
 import { MoleculeSearchResult } from '../Models/DTO/molecule-search-result.cls';
+import { UUID } from 'crypto';
 
 
 @Injectable()
@@ -11,17 +13,18 @@ export class MoleculeSearchService {
     constructor(
         @Inject('MEILISEARCH_CLIENT')
         private readonly meiliClient: MeiliSearch,
+        private readonly chemblItemService: ChEMBLMoleculeItemService
     ) { }
 
 
     async searchMolecules(input: MoleculeSearchInput): Promise<MoleculeSearchResult[]> {
-        
+
         const index = this.meiliClient.index('molecule_previews_chembl_36')
 
         const searchParams: SearchParams = {
             q: input.query || '',
             limit: input.limit || 10,
-            filter: [] 
+            filter: []
         };
 
         if (input.maxPhase !== undefined) {
@@ -42,7 +45,7 @@ export class MoleculeSearchService {
             filter: searchParams.filter.length > 0 ? searchParams.filter : undefined,
         });
 
-        
+
 
         return results.hits.filter(hit => hit.preferredName != null).map(hit => {
             hit.synonyms = hit.synonyms?.split(';') as string[]
@@ -52,4 +55,14 @@ export class MoleculeSearchService {
         }) as MoleculeSearchResult[]
 
     }
+
+    async searchMolecules_excludeAlreadyAdded(input: MoleculeSearchInput, userId: UUID): Promise<MoleculeSearchResult[]> {
+        if (!input.query) {
+            return []
+        }
+        const results = await this.searchMolecules(input)
+        const excludedMolregnos = await this.chemblItemService.getChemblMolregnosByUserId(userId)
+        return results.filter(res => !excludedMolregnos.includes(res.id))
+    }
+
 }

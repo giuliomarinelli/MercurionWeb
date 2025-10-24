@@ -29,7 +29,7 @@ import { History } from '../history/Models/entities/history.entity';
             History
         ]),
         forwardRef(() => UserModule),
-        MeilisearchModule
+        forwardRef(() => MeilisearchModule)
     ],
     providers: [
         MoleculeCollectionService,
@@ -43,7 +43,8 @@ import { History } from '../history/Models/entities/history.entity';
         ChEMBLMoleculeItemService
     ],
     exports: [
-        TypeOrmModule
+        TypeOrmModule,
+        ChEMBLMoleculeItemService
     ]
 })
 export class MoleculeCollectionModule { }
