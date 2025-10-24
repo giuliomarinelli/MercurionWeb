@@ -1,3 +1,4 @@
+import { MoleculeCollectionItemJoin } from './../Models/entities/molecule-collection-item-join.entity';
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { ChEMBLMoleculeItemEntity } from "../Models/entities/chembl-molecule-item.entity";
@@ -32,6 +33,31 @@ export class ChEMBLMoleculeItemService {
             }
         })
         return rows.map(r => r.chemblMolregno)
+    }
+
+    async getChemblMolregnosByCollectionId(userId: UUID, collectionId: UUID): Promise<number[]> {
+        const joinRows = await this.dataSource.createQueryBuilder(MoleculeCollectionItemJoin, 'j')
+            .select(['j.itemId'])
+            .where('j.userId = :userId', { userId })
+            .andWhere('j.collectionId = :collectionId', { collectionId })
+            .getMany()
+        const itemIds = joinRows.map(r => r.itemId)
+        const _where = itemIds.map(itemId => {
+            const itemClause: Pick<ChEMBLMoleculeItemEntity, 'id' | 'userId' | 'type'> = {
+                userId,
+                id: itemId,
+                type: 'chembl'
+            }
+            return itemClause
+        })
+        const itemRows = await this.chemblRepo.find({
+            where: _where,
+            select: {
+                chemblMolregno: true
+            }
+        })
+        return itemRows.map(r => r.chemblMolregno)
+
     }
 
     async hasUserChEMBLMoleculeByMolregnoThenGetUUID(userId: UUID, molregno: number): Promise<string | null> {
@@ -118,10 +144,33 @@ export class ChEMBLMoleculeItemService {
                         chemblMolregno: true
                     }
                 })
-                const alreadyPresentMolregnos = molregnosRows.map(chMol => chMol.chemblMolregno)
-                const clearedDTOs = GeneralUtils.distinctArray(dtos.filter(dto => !alreadyPresentMolregnos.includes(dto.chemblMolregno)))
+                const userAlreadyPresentMolregnos = molregnosRows.map(chMol => chMol.chemblMolregno)
+                const joinRows = await manager.createQueryBuilder(MoleculeCollectionItemJoin, 'j')
+                    .select(['j.itemId'])
+                    .where('j.userId = :userId', { userId })
+                    .andWhere('j.collectionId = :collectionId', { collectionId })
+                    .getMany()
+                const chemblItemIds = joinRows.map(r => r.itemId)
+                const _where = chemblItemIds.map(itemId => {
+                    const itemClause: Pick<ChEMBLMoleculeItemEntity, 'id' | 'userId' | 'type'> = {
+                        userId,
+                        id: itemId,
+                        type: 'chembl'
+                    }
+                    return itemClause
+                })
+                const itemRows = await this.chemblRepo.find({
+                    where: _where,
+                    select: {
+                        chemblMolregno: true
+                    }
+                })
+                const collectionAlreadyPresentMolregnos = itemRows.map(item => item.chemblMolregno)
+                const toCreateOrJoinDTOs = GeneralUtils.distinctArray(dtos.filter(dto => !userAlreadyPresentMolregnos.includes(dto.chemblMolregno)))
+                const toJoinOnlyMolregnos = GeneralUtils.distinctArray(dtos.map(dto => dto.chemblMolregno).filter(molregno => !collectionAlreadyPresentMolregnos.includes(molregno) && toCreateOrJoinDTOs.map(dto => dto.chemblMolregno).includes(molregno)))
+                const toCreateAndJoinDTOs = GeneralUtils.distinctArray(toCreateOrJoinDTOs.filter(dto => !toJoinOnlyMolregnos.includes(dto.chemblMolregno)))
                 const entities: ChEMBLMoleculeItemEntity[] = []
-                for (const { chemblMolregno, name } of clearedDTOs) {
+                for (const { chemblMolregno, name } of toCreateAndJoinDTOs) {
                     const now = Date.now()
                     const entity = manager.create(ChEMBLMoleculeItemEntity, {
                         id: uuidv7() as UUID,
@@ -135,8 +184,23 @@ export class ChEMBLMoleculeItemService {
                     })
                     entities.push(entity)
                 }
-                const itemIds = (await manager.save(ChEMBLMoleculeItemEntity, entities))
-                    .map(item => item.id)
+                let itemIds = (await manager.save(ChEMBLMoleculeItemEntity, entities)).map(item => item.id)
+                const __where = toJoinOnlyMolregnos.map(molregno => {
+                    const itemClause: Pick<ChEMBLMoleculeItemEntity, 'chemblMolregno' | 'userId' | 'type'> = {
+                        userId,
+                        chemblMolregno: molregno,
+                        type: 'chembl'
+                    }
+                    return itemClause
+                })
+                const itemUUIDsRows = await manager.find(ChEMBLMoleculeItemEntity, {
+                    where: __where,
+                    select: {
+                        id: true
+                    }
+                })
+                const itemUUIDs = itemUUIDsRows.map(i => i.id)
+                itemIds = [...itemIds, ...itemUUIDs]
                 await this.joinService.addManyWithManager(userId, collectionId, itemIds, false, manager)
                 return true
             } catch {

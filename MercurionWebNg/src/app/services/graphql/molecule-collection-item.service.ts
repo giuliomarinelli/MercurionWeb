@@ -229,7 +229,7 @@ export class MoleculeCollectionItemService {
       )
   }
 
-  searchChemblMolecules_excludeAlreadyAdded(query: string, limit = 100): Observable<MoleculeSearchResult[]> {
+  searchChemblMolecules_excludeAlreadyAdded(query: string, collectionId: string, limit = 100): Observable<MoleculeSearchResult[]> {
     const input: MoleculeSearchInput = {
       query,
       limit
@@ -237,7 +237,7 @@ export class MoleculeCollectionItemService {
     return this.apollo
       .watchQuery<{ moleculeSearch_excludeAlreadyAdded: MoleculeSearchResult[] }>({
         query: SEARCH_CHEMBL_MOLECULES_EXCLUDE_ALREADY_ADDED,
-        variables: { input },
+        variables: { input, collectionId },
         fetchPolicy: 'network-only'
       }).valueChanges.pipe(
         map(res => extractGqlData(res, 'moleculeSearch_excludeAlreadyAdded'))

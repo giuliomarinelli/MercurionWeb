@@ -234,7 +234,7 @@ type Query {
   syntheticStepById(id: ID!): SyntheticStepEntity
   stepMoleculeRefs(stepId: ID!): [SyntheticStepMoleculeRef!]!
   moleculeSearch(input: MoleculeSearchInput!): [MoleculeSearchResult!]!
-  moleculeSearch_excludeAlreadyAdded(input: MoleculeSearchInput!): [MoleculeSearchResult!]!
+  moleculeSearch_excludeAlreadyAdded(input: MoleculeSearchInput!, collectionId: ID!): [MoleculeSearchResult!]!
   moleculesByMolregnos(molregnos: [String!]!): [MoleculeDetail!]!
   moleculePreviewsByMolregnos(molregnos: [String!]!): [MoleculeSearchResult!]!
   moleculeByMolregno(molregno: String!): MoleculeDetail!

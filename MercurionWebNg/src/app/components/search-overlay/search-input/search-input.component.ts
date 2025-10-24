@@ -5,6 +5,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { MoleculeSearchService } from '../../../services/graphql/molecule-search.service';
 import { MoleculeCollectionItemService } from './../../../services/graphql/molecule-collection-item.service';
 import { MoleculeSearchResult } from '../../../Models/graphql/molecule-search/molecule-search-result.interface';
+import { AddMoleculesToCollectionContextService } from '../../../services/context/add-molecules-to-collection-context.service';
 
 @Component({
   selector: 'app-search-input',
@@ -38,8 +39,10 @@ import { MoleculeSearchResult } from '../../../Models/graphql/molecule-search/mo
   `
 })
 export class SearchInputComponent implements AfterViewInit {
+
   private readonly searchService = inject(MoleculeSearchService);
   private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService);
+  private readonly addContext = inject(AddMoleculesToCollectionContextService)
 
   _search_excludeAlreadyAdded = signal<boolean>(false);
 
@@ -85,7 +88,7 @@ export class SearchInputComponent implements AfterViewInit {
         // Ricerca
         this.onLoading.emit(true);
         const req$ = this._search_excludeAlreadyAdded()
-          ? this.moleculeCollectionItemService.searchChemblMolecules_excludeAlreadyAdded(trimmed)
+          ? this.moleculeCollectionItemService.searchChemblMolecules_excludeAlreadyAdded(trimmed, this.addContext.collectionId()!)
           : this.searchService.searchMolecule(trimmed, 100);
 
         req$.subscribe({

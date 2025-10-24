@@ -127,7 +127,7 @@ import { PmSearchInputComponent } from '../../components/common/pm-search-input/
           <app-classic-spinner [size]="60" />
         </div>
       } @else {
-        <div class="relative -top-8">
+        <div class="relative -top-20">
           @for (i of [0,1,2,3,4]; track i) {
             <app-skeleton-molecule-card />
           }

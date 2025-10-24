@@ -230,8 +230,8 @@ export const EXISTS_CHEMBL_MOLECULE_BY_UUID_THEN_GET_MOLREGNO = gql`
 `
 
 export const SEARCH_CHEMBL_MOLECULES_EXCLUDE_ALREADY_ADDED = gql`
-  query MoleculeSearch_excludeAlreadyAdded($input: MoleculeSearchInput!) {
-    moleculeSearch_excludeAlreadyAdded(input: $input) {
+  query MoleculeSearch_excludeAlreadyAdded($input: MoleculeSearchInput!, $collectionId: ID!) {
+    moleculeSearch_excludeAlreadyAdded(input: $input, collectionId: $collectionId) {
       id
       preferredName
       smiles

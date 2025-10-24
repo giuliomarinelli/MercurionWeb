@@ -9,7 +9,7 @@ import { UUID } from 'crypto';
 
 @Injectable()
 export class MoleculeSearchService {
-    
+
     constructor(
         @Inject('MEILISEARCH_CLIENT')
         private readonly meiliClient: MeiliSearch,
@@ -56,12 +56,12 @@ export class MoleculeSearchService {
 
     }
 
-    async searchMolecules_excludeAlreadyAdded(input: MoleculeSearchInput, userId: UUID): Promise<MoleculeSearchResult[]> {
+    async searchMolecules_excludeAlreadyAdded(input: MoleculeSearchInput, collectionId: UUID, userId: UUID): Promise<MoleculeSearchResult[]> {
         if (!input.query) {
             return []
         }
         const results = await this.searchMolecules(input)
-        const excludedMolregnos = await this.chemblItemService.getChemblMolregnosByUserId(userId)
+        const excludedMolregnos = await this.chemblItemService.getChemblMolregnosByCollectionId(userId, collectionId)
         return results.filter(res => !excludedMolregnos.includes(res.id))
     }
 
