@@ -381,7 +381,8 @@ export class AddMoleculesToCollectionComponent
             this.step_12_loading.set(false);
             this.addContext.notifyAdded()
             this.error.set(!ok);
-            this.step.set(2);
+            this.addContext.clearCollectionId()
+            this.actionOverlayContext.close()
           },
           error: () => {
             this.step_12_loading.set(false);
@@ -460,7 +461,8 @@ export class AddMoleculesToCollectionComponent
         this.step_12_loading.set(false);
         this.addContext.notifyAdded()
         this.error.set(!ok);
-        this.step.set(2);
+        this.addContext.clearCollectionId()
+        this.actionOverlayContext.close()
       },
       error: () => {
         this.step_12_loading.set(false);
