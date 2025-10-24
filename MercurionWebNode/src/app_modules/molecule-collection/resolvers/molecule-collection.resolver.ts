@@ -67,6 +67,14 @@ export class MoleculeCollectionResolver {
         return this.collectionService.create(userId, name)
     }
 
+    @Mutation(() => Boolean)
+    async createManyMoleculeCollections(
+        @Args('names', { type: () => [String] }) names: string[],
+        @AuthenticatedUserId() userId: UUID
+    ): Promise<boolean> {
+        return this.collectionService.createMany(userId, names)
+    }
+
     // Mutation: Aggiorna collezione
     @Mutation(() => MoleculeCollection)
     async updateMoleculeCollection(

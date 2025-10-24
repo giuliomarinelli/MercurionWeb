@@ -133,8 +133,9 @@ export class ChEMBLMoleculeItemService {
         collectionId: UUID,
         dtos: AddManyChEMBLItemDTO[]
     ): Promise<boolean> {
-        return await this.dataSource.manager.transaction(async manager => {
-            try {
+        try {
+            return await this.dataSource.manager.transaction(async manager => {
+                dtos.reverse()
                 const molregnoMap = new Map<number, AddManyChEMBLItemDTO>()
                 for (const dto of dtos) {
                     if (!molregnoMap.has(dto.chemblMolregno)) {
@@ -212,10 +213,10 @@ export class ChEMBLMoleculeItemService {
                 }
 
                 return true
-            } catch {
-                return false
-            }
-        })
+            })
+        } catch {
+            return false
+        }
     }
 
     async findByCollection(

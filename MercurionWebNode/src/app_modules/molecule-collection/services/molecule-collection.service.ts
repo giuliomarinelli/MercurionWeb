@@ -15,6 +15,90 @@ export class MoleculeCollectionService {
 
     private readonly REQUIRED_FIELDS = ['id', 'name']
 
+    // Query set-based con lock “a gruppo”
+    private readonly CREATE_MANY_COLLECTIONS_QUERY = ` 
+WITH payload AS (
+  SELECT jsonb_to_recordset($1::jsonb)
+         AS t(
+           id uuid,
+           user_id text,
+           name text,
+           created_at bigint,
+           updated_at bigint,
+           touched_at bigint
+         )
+),
+-- normalizza il base_name rimuovendo " (n)" finale, se presente
+norm AS (
+  SELECT
+    id,
+    user_id,
+    CASE
+      WHEN name ~ ' \\(\\d+\\)$' THEN substring(name FROM '^(.*) \\(\\d+\\)$')
+      ELSE name
+    END AS base_name,
+    created_at,
+    updated_at,
+    COALESCE(touched_at, 0)::bigint AS touched_at
+  FROM payload
+),
+-- lock per ciascuna coppia (user_id, base_name) per evitare race
+locks AS (
+  SELECT pg_advisory_xact_lock(
+           ((hashtextextended(user_id, 17))::bigint << 32)
+           # (hashtextextended(base_name, 42))::bigint
+         )
+  FROM (SELECT DISTINCT user_id, base_name FROM norm) d
+),
+-- rank locale dei duplicati nel batch
+ranked AS (
+  SELECT
+    n.*,
+    ROW_NUMBER() OVER (PARTITION BY user_id, base_name ORDER BY id) - 1 AS rn
+  FROM norm n
+),
+-- massimo suffisso già presente nel DB per ogni (user_id, base_name)
+existing AS (
+  SELECT
+    e.user_id,
+    e.base_name,
+    COALESCE(MAX(
+      COALESCE( (regexp_match(mc.name, ' \\((\\d+)\\)$'))[1]::int, 0 )
+    ), 0) AS max_suffix
+  FROM (
+    SELECT DISTINCT user_id, base_name FROM norm
+  ) e
+  LEFT JOIN LATERAL (
+    SELECT mc.name
+    FROM public.molecule_collections mc
+    WHERE mc.user_id = e.user_id
+      AND (mc.name = e.base_name OR mc.name LIKE e.base_name || ' (%)')
+  ) mc ON true
+  GROUP BY e.user_id, e.base_name
+),
+-- costruzione del nome finale unico
+final_rows AS (
+  SELECT
+    r.id,
+    r.user_id,
+    CASE
+      WHEN (COALESCE(e.max_suffix,0) + r.rn) = 0 THEN r.base_name
+      ELSE r.base_name || ' (' || (COALESCE(e.max_suffix,0) + r.rn) || ')'
+    END AS name,
+    r.created_at,
+    r.updated_at,
+    r.touched_at
+  FROM ranked r
+  LEFT JOIN existing e
+    ON e.user_id = r.user_id AND e.base_name = r.base_name
+)
+INSERT INTO public.molecule_collections
+  (id, user_id, name, created_at, updated_at, touched_at)
+SELECT
+  id, user_id, name, created_at, updated_at, touched_at
+FROM final_rows;
+      `
+
     private readonly logger = new Logger(MoleculeCollectionService.name)
 
     constructor(
@@ -46,11 +130,48 @@ export class MoleculeCollectionService {
     }
 
     async create(userId: UUID, name: string): Promise<MoleculeCollection> {
-        const collection = this.collectionRepo.create({ name, userId })
-        const persisted = await this.collectionRepo.save(collection)
-        await this.markAsTouched(userId, persisted.id)
-        return persisted
+        try {
+            const collection = this.collectionRepo.create({ name, userId })
+            const persisted = await this.collectionRepo.save(collection)
+            await this.markAsTouched(userId, persisted.id)
+            return persisted
+        } catch (e) {
+            this.logger.warn(e.message) // e.message = `duplicate key value violates unique constraint "unique_name_per_user"`
+            throw e
+        }
     }
+
+    async createMany(userId: UUID, names: string[]): Promise<boolean> {
+        try {
+
+            if (!names.length) {
+                return true
+            }
+
+            await this.dataSource.manager.transaction(async (manager) => {
+
+                const payload = names.map((name) => {
+                    const now = Date.now()
+                    return {
+                        id: uuidv7() as UUID,
+                        user_id: String(userId),
+                        name: String(name),
+                        created_at: now,
+                        updated_at: now,
+                        touched_at: now,
+                    }
+                })
+                const sql = this.CREATE_MANY_COLLECTIONS_QUERY
+                await manager.query(sql, [JSON.stringify(payload)])
+
+            })
+            return true
+        } catch (e) {
+            this.logger.warn(`Database error: ${e?.message || e}`)
+            return false
+        }
+    }
+
 
     async findOne(id: UUID, userId: UUID, fieldsMap: GraphQLFieldsMap): Promise<MoleculeCollection | null> {
         const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)

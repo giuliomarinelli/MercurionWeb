@@ -290,6 +290,7 @@ type Mutation {
   updateStepMoleculeRef(id: ID!, input: SyntheticStepMoleculeRefInput!): SyntheticStepMoleculeRef!
   removeStepMoleculeRef(id: ID!): Boolean!
   createMoleculeCollection(name: String!): MoleculeCollection!
+  createManyMoleculeCollections(names: [String!]!): Boolean!
   updateMoleculeCollection(id: ID!, name: String!): MoleculeCollection!
   deleteMoleculeCollection(id: ID!): Boolean!
   markMoleculeCollectionAsTouched(id: ID!): Boolean!
