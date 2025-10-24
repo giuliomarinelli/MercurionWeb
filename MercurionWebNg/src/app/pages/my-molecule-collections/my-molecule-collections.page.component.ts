@@ -110,6 +110,16 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
       if (t === 0) return;
       this.resetPagination();
     });
+
+    // Fallback: if the CreateCollection overlay just closed and a tick occurred, refresh
+    effect(() => {
+      const scope = this.actionOverlayContext.scope();
+      const visible = this.actionOverlayContext.isVisible();
+      const t = this.createCtx.addedTick();
+      if (scope === 'CreateCollection' && !visible && t > 0) {
+        this.resetPagination();
+      }
+    });
   }
 
 
