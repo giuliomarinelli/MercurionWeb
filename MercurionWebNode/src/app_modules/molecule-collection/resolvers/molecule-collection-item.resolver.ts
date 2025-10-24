@@ -11,11 +11,15 @@ import { IPaginationOptions } from 'nestjs-typeorm-paginate';
 import { CustomMoleculeItemDTO } from '../Models/DTO/custom-molecule-item.dto';
 import { ChEMBLMoleculeItemDTO } from '../Models/DTO/chembl-molecule-item.dto';
 import { MoleculeCollectionItemUnion } from '../Models/DTO/molecule-collection-item.union';
+import { MoleculeCollectionItemJoinService } from '../services/molecule-collection-item-join.service';
 
 @Resolver(() => MoleculeCollectionItemEntity)
 export class MoleculeCollectionItemResolver {
 
-    constructor(private readonly itemService: MoleculeCollectionItemService) { }
+    constructor(
+        private readonly itemService: MoleculeCollectionItemService,
+        private readonly joinService: MoleculeCollectionItemJoinService
+    ) { }
 
     @Query(() => [MoleculeCollectionItemEntity])
     async myMoleculeItems(
@@ -100,6 +104,21 @@ export class MoleculeCollectionItemResolver {
         @AuthenticatedUserId() userId: UUID
     ): Promise<boolean> {
         return await this.itemService.markAsTouched(userId, itemId, flagIds)
+    }
+
+    @Mutation(() => Boolean)
+    async addManyMoleculesToCollection(
+        @AuthenticatedUserId() userId: UUID,
+        @Args('collectionId', { type: () => ID }) collectionId: UUID,
+        @Args('itemIds', { type: () => [ID] }) itemIds: UUID[],
+        @Args('selectAll', { type: () => Boolean }) selectAll: boolean
+    ): Promise<boolean> {
+        try {
+            await this.joinService.addMany(userId, collectionId, itemIds, selectAll)
+            return true
+        } catch {
+            return false
+        }
     }
 
 

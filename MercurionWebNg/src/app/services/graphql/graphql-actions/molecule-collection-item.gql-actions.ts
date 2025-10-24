@@ -368,6 +368,12 @@ export const UPDATE_MOLECULE_ITEM_NOTES = gql`
   }
 `;
 
+export const ADD_MANY_MOLECULES_TO_COLLECTION = gql`
+  mutation AddManyMoleculesToCollection($collectionId: ID!, $itemIds: [ID!]!, $selectAll: Boolean!) {
+    addManyMoleculesToCollection(collectionId: $collectionId, itemIds: $itemIds, selectAll: $selectAll)
+  }
+`
+
 export const MARK_MOLECULE_COLLECTION_ITEM_AS_TOUCHED = gql`
   mutation MarkMoleculeCollectionItemAsTouched($id: ID!, $flagIds: String!) {
     markMoleculeCollectionItemAsTouched(id: $id, flagIds: $flagIds)

@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, effect, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { MoleculeCollectionService } from '../../services/graphql/molecule-collection.service';
 import { catchError, debounce, debounceTime, distinctUntilChanged, filter, firstValueFrom, interval, map, Observable, of, Subscription, switchMap, tap } from 'rxjs';
 import { MoleculeCardItemModel, MoleculeCollection } from '../../Models/graphql/molecule-collection/molecule-collection.types';
@@ -161,6 +161,31 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
   error = signal<boolean>(false)
   name = signal<string>('')
   colId = signal<string>('')
+
+  constructor() {
+    super()
+    effect(() => {
+      const tick = this.addCtx.addedTick(); // legge il segnale; quando cambia, l’effect scatta
+      if (tick === 0) return;               // evita il primo run a freddo
+
+      // rifetch: reset + prima pagina
+      this.items = [];
+      this.page = 1;
+      this.done = false;
+      this.earlyDone = false;
+      this.empty.set(true);
+
+      // se vuoi animare/scroll-top:
+      // this.root?.nativeElement?.scrollTo({ top: 0 });
+
+      // carica la prima pagina e assicurati che l'observer sia vivo
+      queueMicrotask(async () => {
+        await this.loadMore();
+        this.startObserver(); // idempotente
+      });
+    });
+
+  }
 
   protected override fetch$(page = this.page, size = 7): Observable<{
     items: MoleculeCardItemModel[];

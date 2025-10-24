@@ -3,6 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, Repository } from 'typeorm';
 import { UUID } from 'crypto';
 import { MoleculeCollectionItemJoin } from '../Models/entities/molecule-collection-item-join.entity';
+import { uuidv7 } from '@kripod/uuidv7';
+import { MoleculeCollectionService } from './molecule-collection.service';
+import { MoleculeCollectionItemService } from './molecule-collection-item.service';
 
 
 @Injectable()
@@ -11,7 +14,9 @@ export class MoleculeCollectionItemJoinService {
     constructor(
         @InjectRepository(MoleculeCollectionItemJoin)
         private readonly joinRepo: Repository<MoleculeCollectionItemJoin>,
-        private readonly dataSource: DataSource
+        private readonly dataSource: DataSource,
+        private readonly collectionService: MoleculeCollectionService,
+        private readonly itemService: MoleculeCollectionItemService
     ) { }
 
     // Metodo STANDARD (fuori da transaction esplicita)
@@ -77,7 +82,7 @@ export class MoleculeCollectionItemJoinService {
         selectAll: boolean,
         manager: EntityManager
     ): Promise<UUID[]> {
-        
+
         const distinct = Array.from(new Set(itemIds));
 
         // 1) Costruisci i candidati
@@ -127,10 +132,20 @@ export class MoleculeCollectionItemJoinService {
                 .createQueryBuilder()
                 .insert()
                 .into(MoleculeCollectionItemJoin)
-                .values(toInsert.map(itemId => ({ userId, collectionId, itemId })))
+                .values(toInsert.map(itemId => ({ id: uuidv7() as UUID, userId, collectionId, itemId })))
                 .orIgnore() // richiede unique su (user_id, collection_id, item_id)
                 .execute();
         }
+
+        // TODO: sistemare in modo più elegante
+
+        await this.collectionService.markAsTouched(userId, collectionId)
+
+        for (const itemId of toInsert) {
+            await this.itemService.markAsTouched(userId, itemId)
+        }
+
+
 
         // 3) Ritorna gli scartati
         return Array.from(alreadySet);

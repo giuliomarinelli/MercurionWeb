@@ -11,7 +11,7 @@ import {
   CreateMoleculeItemInput,
   MoleculeItemDTO,
 } from '../../Models/graphql/molecule-collection/molecule-collection.types';
-import { CREATE_MOLECULE_ITEM, DELETE_MOLECULE_ITEM, MOLECULE_ITEM, MOLECULE_ITEM_FRAG_SHORT, MY_MOLECULE_ITEMS, UPDATE_MOLECULE_ITEM, UPDATE_MOLECULE_ITEM_LABEL, UPDATE_MOLECULE_ITEM_NOTES, UPDATE_MOLECULE_ITEM_NAME, UPDATE_MOLECULE_ITEM_SMILES, PAGINATED_MOLECULE_ITEMS_FOR_CARD_BY_COLLECTION, MARK_MOLECULE_COLLECTION_ITEM_AS_TOUCHED, HAS_USER_CHEMBL_MOLECULE_BY_MOLREGNO_THEN_GET_UUID, EXISTS_CHEMBL_MOLECULE_BY_UUID_THEN_GET_MOLREGNO, ALL_PAGINATED_MOLECULE_ITEMS_FOR_CARD, ALL_BASIC_DATA } from './graphql-actions/molecule-collection-item.gql-actions';
+import { CREATE_MOLECULE_ITEM, DELETE_MOLECULE_ITEM, MOLECULE_ITEM, MOLECULE_ITEM_FRAG_SHORT, MY_MOLECULE_ITEMS, UPDATE_MOLECULE_ITEM, UPDATE_MOLECULE_ITEM_LABEL, UPDATE_MOLECULE_ITEM_NOTES, UPDATE_MOLECULE_ITEM_NAME, UPDATE_MOLECULE_ITEM_SMILES, PAGINATED_MOLECULE_ITEMS_FOR_CARD_BY_COLLECTION, MARK_MOLECULE_COLLECTION_ITEM_AS_TOUCHED, HAS_USER_CHEMBL_MOLECULE_BY_MOLREGNO_THEN_GET_UUID, EXISTS_CHEMBL_MOLECULE_BY_UUID_THEN_GET_MOLREGNO, ALL_PAGINATED_MOLECULE_ITEMS_FOR_CARD, ALL_BASIC_DATA, ADD_MANY_MOLECULES_TO_COLLECTION } from './graphql-actions/molecule-collection-item.gql-actions';
 import { extractGqlData } from './graphql-helpers/extract-gql-data.gql-helper';
 import { TypeGuardsService } from '../type-guards.service';
 
@@ -308,6 +308,20 @@ export class MoleculeCollectionItemService {
         variables: { id, flagIds }
       }).pipe(
         map(res => extractGqlData(res, 'markMoleculeCollectionItemAsTouched'))
+      )
+  }
+
+  addManyMoleculesToCollection(collectionId: string, itemIds: string[], selectAll: boolean): Observable<boolean> {
+    return this.apollo
+      .mutate<{ addManyMoleculesToCollection: boolean }>({
+        mutation: ADD_MANY_MOLECULES_TO_COLLECTION,
+        variables: {
+          collectionId,
+          itemIds,
+          selectAll
+        }
+      }).pipe(
+        map(res => extractGqlData(res, 'addManyMoleculesToCollection'))
       )
   }
 

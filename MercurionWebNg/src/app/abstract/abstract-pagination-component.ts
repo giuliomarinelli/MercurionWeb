@@ -21,7 +21,6 @@ export abstract class AbstractPaginationComponent<T> {
 
   protected async loadMore(): Promise<void> {
     if (this.loading || this.done) return;
-
     this.loading = true;
 
     const newPage = await firstValueFrom(this.fetch$());
@@ -45,6 +44,9 @@ export abstract class AbstractPaginationComponent<T> {
     this.earlyDone = false;
     this.empty.set(true);
     void this.loadMore();
+
+    // Re-attach dopo il reset (nuovo layout)
+    queueMicrotask(() => this.startObserver());
   }
 
   protected query(q: string): void {
@@ -57,19 +59,37 @@ export abstract class AbstractPaginationComponent<T> {
     this.resetPagination();
   }
 
+  /** Idempotente e robusto a layout dinamici (switch di step, skeleton, ecc.) */
   protected startObserver(bottomPx: number = 500): void {
-    if (this.observer) this.observer.disconnect();
+    if (!this.root || !this.sentinel) return;
 
-    this.observer = new IntersectionObserver(
-      entries => {
-        const entry = entries[0];
-        if (entry.isIntersecting) this.loadMore();
-      },
-      { root: this.root?.nativeElement ?? null, rootMargin: `0px 0px ${bottomPx}px 0px`, threshold: 0 }
-    );
+    // Stacca l’eventuale precedente
+    this.observer?.disconnect();
 
-    if (this.sentinel) {
-      this.observer.observe(this.sentinel.nativeElement as HTMLDivElement);
-    }
+    const opts: IntersectionObserverInit = {
+      root: this.root.nativeElement,
+      rootMargin: `0px 0px ${bottomPx}px 0px`,
+      threshold: 0
+    };
+
+    this.observer = new IntersectionObserver((entries) => {
+      const entry = entries[0];
+      if (entry.isIntersecting) this.loadMore();
+    }, opts);
+
+    // Osserva quando il DOM è misurabile
+    requestAnimationFrame(() => {
+      if (!this.sentinel) return;
+      this.observer!.observe(this.sentinel.nativeElement);
+    });
+
+    // Prime fetch se il contenuto non riempie il container (niente scroll -> niente intersect)
+    requestAnimationFrame(() => {
+      const el = this.root!.nativeElement;
+      const notEnoughContent = el.scrollHeight <= el.clientHeight + 1;
+      if (notEnoughContent && !this.loading && !this.done) {
+        this.loadMore();
+      }
+    });
   }
 }
