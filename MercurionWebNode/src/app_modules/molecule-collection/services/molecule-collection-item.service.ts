@@ -68,7 +68,9 @@ export class MoleculeCollectionItemService {
 
     async create(userId: UUID, input: CreateMoleculeItemInput): Promise<MoleculeCollectionItemEntity> {
         const entity = this.itemRepo.create({ id: uuidv7() as UUID, ...input, userId })
-        return this.itemRepo.save(entity)
+        const persisted = await this.itemRepo.save(entity)
+        await this.markAsTouched(userId, persisted.id)
+        return persisted
     }
 
     async findOne(

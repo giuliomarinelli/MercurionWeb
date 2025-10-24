@@ -11,6 +11,7 @@ import { PmSearchInputComponent } from '../../components/common/pm-search-input/
 import { AbstractPaginationComponent } from '../../abstract/abstract-pagination-component';
 import { Observable } from 'rxjs';
 import { PageModel } from '../../Models/graphql/page.model';
+import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
 
 
 @Component({
@@ -32,7 +33,7 @@ import { PageModel } from '../../Models/graphql/page.model';
             Le mie collezioni molecolari
         </h2>
         <div class="flex items-center gap-3">
-          <!-- 🧩 Aggiungi nuove molecole -->
+          <!-- 🧩 Crea una o più nuove collezioni -->
           <button
             type="button"
             class="flex items-center gap-2 relative px-3 py-1 rounded-md border border-slate-300 dark:border-slate-600
@@ -40,13 +41,13 @@ import { PageModel } from '../../Models/graphql/page.model';
                    hover:bg-slate-200 dark:hover:bg-slate-700
                    transition-colors duration-150"
             title="Aggiungi nuove molecole"
-            (click)="doAddMolecules()"
+            (click)="createNewCollection()"
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto">
               <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
               <path d="M336 112L336 96L304 96L304 304L96 304L96 336L304 336L304 544L336 544L336 336L544 336L544 304L336 304L336 112z"/>
             </svg>
-            <span>Aggiungi nuove molecole</span>
+            <span>Crea una o più nuove collezioni</span>
           </button>
         </div>
     </div>
@@ -96,6 +97,7 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
 
   // ======================= DEPS =======================
   private readonly moleculeCollectionService = inject(MoleculeCollectionService)
+  private readonly actionOverlayContext = inject(ActionOverlayContextService)
   // ====================================================
 
 
@@ -110,8 +112,8 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
     this.loadMore()
   }
 
-  doAddMolecules(): void {
-
+  createNewCollection(): void {
+    this.actionOverlayContext.open('CreateCollection')
   }
 
   fetch$(): Observable<PageModel<MoleculeCollection>> {

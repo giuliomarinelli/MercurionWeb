@@ -14,7 +14,7 @@ export class ActionOverlayContextService {
 
   readonly isOpened = this._isOpened.asReadonly()
   readonly isVisible = this._isVisible.asReadonly()
-  readonly isMounted =  this._isMounted.asReadonly()
+  readonly isMounted = this._isMounted.asReadonly()
   readonly scope = this._scope.asReadonly()
 
   constructor() {
@@ -35,7 +35,10 @@ export class ActionOverlayContextService {
   }
 
   close() {
-    this._isOpened.set(false)
+    queueMicrotask(() => {
+      this._isOpened.set(false)
+      setTimeout(() => this._scope.set(''), 500)
+    })
   }
 
 }

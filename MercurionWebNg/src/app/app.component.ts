@@ -33,7 +33,7 @@ import { SessionSyncService } from './services/session-sync.service';
 import { ActionOverlayContextService } from './services/context/action-context/action-overlay-context.service';
 import { environment } from '../environments/environment.development';
 import { AuthService } from './services/auth.service';
-import { ActionComponent } from './components/action-overlay/action-overlay.component';
+import { ActionComponent } from './components/action-components/action-overlay/action-overlay.component';
 import { ModalComponent } from './components/common/modal/modal.component';
 import { ModalContextService } from './services/context/modal-context.service';
 import { ModalService } from './services/modal.service';

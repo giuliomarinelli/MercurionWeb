@@ -47,7 +47,9 @@ export class MoleculeCollectionService {
 
     async create(userId: UUID, name: string): Promise<MoleculeCollection> {
         const collection = this.collectionRepo.create({ name, userId })
-        return this.collectionRepo.save(collection);
+        const persisted = await this.collectionRepo.save(collection)
+        await this.markAsTouched(userId, persisted.id)
+        return persisted
     }
 
     async findOne(id: UUID, userId: UUID, fieldsMap: GraphQLFieldsMap): Promise<MoleculeCollection | null> {

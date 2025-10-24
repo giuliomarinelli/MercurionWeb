@@ -275,8 +275,7 @@ export type ChipItem = { id: string; name: string }
 </div>
 `
 })
-export class AddMoleculesToCollectionComponent
-  extends AbstractPaginatedMultiselectComponent<MoleculeCardItemModel>
+export class AddMoleculesToCollectionComponent extends AbstractPaginatedMultiselectComponent<MoleculeCardItemModel>
   implements OnInit, AfterViewInit, OnDestroy {
 
   private readonly actionOverlayContext = inject(ActionOverlayContextService);

@@ -1,14 +1,16 @@
 import { Component, inject } from '@angular/core';
-import { CustomMoleculeCollectionItemSaveComponent } from "../action-components/custom-molecule-collection-item-save/custom-molecule-collection-item-save.component";
-import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
-import { AddMoleculesToCollectionComponent } from '../action-components/add-molecules-to-collection/add-molecules-to-collection.component';
+import { CustomMoleculeCollectionItemSaveComponent } from "../custom-molecule-collection-item-save/custom-molecule-collection-item-save.component";
+import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
+import { AddMoleculesToCollectionComponent } from '../add-molecules-to-collection/add-molecules-to-collection.component';
+import { CreateCollectionComponent } from '../create-collection/create-collection.component';
 
 @Component({
   selector: 'app-action-overlay',
   standalone: true,
   imports: [
     CustomMoleculeCollectionItemSaveComponent,
-    AddMoleculesToCollectionComponent
+    AddMoleculesToCollectionComponent,
+    CreateCollectionComponent
   ],
   template: `
 
@@ -24,6 +26,9 @@ import { AddMoleculesToCollectionComponent } from '../action-components/add-mole
           }
           @case ('AddMoleculesToCollection') {
             <app-add-molecules-to-collection />
+          }
+          @case ('CreateCollection') {
+            <app-create-collection />
           }
         }
 
