@@ -86,7 +86,7 @@ final_rows AS (
     (
       CASE
         WHEN (COALESCE(e.max_suffix,0) + r.rn) = 0 THEN
-          LEFT(r.base_name, 255)  -- nessun suffisso
+          NULL  -- nessun suffisso
         ELSE
           -- calcola il suffisso
           ' (' || (COALESCE(e.max_suffix,0) + r.rn)::text || ')'
