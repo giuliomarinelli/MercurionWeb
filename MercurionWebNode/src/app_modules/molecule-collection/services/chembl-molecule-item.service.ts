@@ -10,7 +10,6 @@ import { MoleculeCollectionItemJoinService } from "./molecule-collection-item-jo
 import { RpcException } from "@nestjs/microservices";
 import { MoleculeCollection } from "../Models/entities/molecule-collection.entity";
 import { uuidv7 } from '@kripod/uuidv7';
-import { GeneralUtils } from "src/utils/general-utils/general-utils";
 import { AddManyChEMBLItemDTO } from "../Models/DTO/add-many-chembl-items.dto";
 
 @Injectable()
@@ -136,72 +135,82 @@ export class ChEMBLMoleculeItemService {
     ): Promise<boolean> {
         return await this.dataSource.manager.transaction(async manager => {
             try {
-                const molregnosRows = await manager.find(ChEMBLMoleculeItemEntity, {
-                    where: {
-                        userId, type: 'chembl'
-                    },
-                    select: {
-                        chemblMolregno: true
+                const molregnoMap = new Map<number, AddManyChEMBLItemDTO>()
+                for (const dto of dtos) {
+                    if (!molregnoMap.has(dto.chemblMolregno)) {
+                        molregnoMap.set(dto.chemblMolregno, dto)
                     }
-                })
-                const userAlreadyPresentMolregnos = molregnosRows.map(chMol => chMol.chemblMolregno)
+                }
+
+                if (molregnoMap.size === 0) {
+                    return true
+                }
+
+                const requestedMolregnos = Array.from(molregnoMap.keys())
+
                 const joinRows = await manager.createQueryBuilder(MoleculeCollectionItemJoin, 'j')
                     .select(['j.itemId'])
                     .where('j.userId = :userId', { userId })
                     .andWhere('j.collectionId = :collectionId', { collectionId })
                     .getMany()
-                const chemblItemIds = joinRows.map(r => r.itemId)
-                const _where = chemblItemIds.map(itemId => {
-                    const itemClause: Pick<ChEMBLMoleculeItemEntity, 'id' | 'userId' | 'type'> = {
+                const alreadyJoinedItemIds = new Set(joinRows.map(r => r.itemId))
+
+                const existingItems = await manager.find(ChEMBLMoleculeItemEntity, {
+                    where: requestedMolregnos.map(molregno => ({
                         userId,
-                        id: itemId,
+                        chemblMolregno: molregno,
                         type: 'chembl'
-                    }
-                    return itemClause
-                })
-                const itemRows = await this.chemblRepo.find({
-                    where: _where,
+                    })),
                     select: {
+                        id: true,
                         chemblMolregno: true
                     }
                 })
-                const collectionAlreadyPresentMolregnos = itemRows.map(item => item.chemblMolregno)
-                const toCreateOrJoinDTOs = GeneralUtils.distinctArray(dtos.filter(dto => !userAlreadyPresentMolregnos.includes(dto.chemblMolregno)))
-                const toJoinOnlyMolregnos = GeneralUtils.distinctArray(dtos.map(dto => dto.chemblMolregno).filter(molregno => !collectionAlreadyPresentMolregnos.includes(molregno) && toCreateOrJoinDTOs.map(dto => dto.chemblMolregno).includes(molregno)))
-                const toCreateAndJoinDTOs = GeneralUtils.distinctArray(toCreateOrJoinDTOs.filter(dto => !toJoinOnlyMolregnos.includes(dto.chemblMolregno)))
-                const entities: ChEMBLMoleculeItemEntity[] = []
-                for (const { chemblMolregno, name } of toCreateAndJoinDTOs) {
+
+                const existingMolregnoToId = new Map(existingItems.map(item => [item.chemblMolregno, item.id] as const))
+
+                const newEntities: ChEMBLMoleculeItemEntity[] = []
+                for (const molregno of requestedMolregnos) {
+                    if (existingMolregnoToId.has(molregno)) {
+                        continue
+                    }
+                    const dto = molregnoMap.get(molregno)
+                    if (!dto) {
+                        continue
+                    }
                     const now = Date.now()
-                    const entity = manager.create(ChEMBLMoleculeItemEntity, {
+                    newEntities.push(manager.create(ChEMBLMoleculeItemEntity, {
                         id: uuidv7() as UUID,
                         userId,
                         type: 'chembl',
                         createdAt: now,
                         updatedAt: now,
                         touchedAt: now,
-                        chemblMolregno,
-                        name
-                    })
-                    entities.push(entity)
-                }
-                let itemIds = (await manager.save(ChEMBLMoleculeItemEntity, entities)).map(item => item.id)
-                const __where = toJoinOnlyMolregnos.map(molregno => {
-                    const itemClause: Pick<ChEMBLMoleculeItemEntity, 'chemblMolregno' | 'userId' | 'type'> = {
-                        userId,
                         chemblMolregno: molregno,
-                        type: 'chembl'
+                        name: dto.name
+                    }))
+                }
+
+                const createdItems = newEntities.length > 0
+                    ? await manager.save(ChEMBLMoleculeItemEntity, newEntities)
+                    : []
+
+                const itemsToJoin: UUID[] = []
+
+                for (const created of createdItems) {
+                    itemsToJoin.push(created.id)
+                }
+
+                for (const existing of existingItems) {
+                    if (!alreadyJoinedItemIds.has(existing.id)) {
+                        itemsToJoin.push(existing.id)
                     }
-                    return itemClause
-                })
-                const itemUUIDsRows = await manager.find(ChEMBLMoleculeItemEntity, {
-                    where: __where,
-                    select: {
-                        id: true
-                    }
-                })
-                const itemUUIDs = itemUUIDsRows.map(i => i.id)
-                itemIds = [...itemIds, ...itemUUIDs]
-                await this.joinService.addManyWithManager(userId, collectionId, itemIds, false, manager)
+                }
+
+                if (itemsToJoin.length > 0) {
+                    await this.joinService.addManyWithManager(userId, collectionId, itemsToJoin, false, manager)
+                }
+
                 return true
             } catch {
                 return false
