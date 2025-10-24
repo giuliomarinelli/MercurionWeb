@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, computed, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
@@ -18,10 +18,56 @@ import { Subscription } from 'rxjs';
         <div class="mt-6 space-y-6 sm:flex sm:items-center sm:space-x-10 sm:space-y-0 px-6 pb-6 border-b border-spacing-y-[0.3px]">
         </div>
       </div> -->
-      <div class="border-b min-h-48 relative">
-        <div class="absolute inset-0 flex justify-center items-center text-sm text-gray-500 dark:text-gray-400">
-          Qui vedrai l'anteprima dei nomi delle nuove collezioni.
-        </div>
+      <div class="border-b">
+        @if (selectedChips.length === 0) {
+          <div class="flex items-center justify-center py-12 text-sm text-gray-500 dark:text-gray-400">
+            Qui vedrai l'anteprima dei nomi delle nuove collezioni.
+          </div>
+        } @else {
+          <div class="flex flex-wrap items-start min-h-[116px] gap-2 py-3 px-3" role="list" aria-label="Molecole selezionate">
+            @for (c of selectedChips; track c) {
+              <span
+                role="listitem"
+                class="group inline-flex items-center gap-2 max-w-full
+                       rounded-full px-3 py-1.5
+                       bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-300
+                       dark:bg-indigo-500/20 dark:text-indigo-100 dark:ring-indigo-400/40
+                       shadow-sm"
+                title="{{ c }}"
+              >
+                <span class="truncate max-w-[16rem] text-sm font-medium">{{ c }}</span>
+                <button
+                  type="button"
+                  (click)="removeChip(c)"
+                  class="shrink-0 inline-flex size-5 items-center justify-center rounded-full
+                         hover:bg-indigo-100 dark:hover:bg-indigo-400/30
+                         focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1
+                         dark:focus:ring-offset-gray-900"
+                  aria-label="Rimuovi {{ c }}"
+                >
+                  <svg viewBox="0 0 20 20" fill="none" class="size-3.5">
+                    <path d="M6 6l8 8M14 6l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                  </svg>
+                </button>
+              </span>
+            }
+            <span class="grow"></span>
+            <button
+              type="button"
+              (click)="clearChips()"
+              class="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm
+                     ring-1 ring-inset ring-indigo-300 text-indigo-700 hover:bg-indigo-50
+                     dark:ring-indigo-400/40 dark:text-indigo-100 dark:hover:bg-indigo-500/20
+                     focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1
+                     dark:focus:ring-offset-gray-900"
+            >
+              Pulisci tutto
+              <svg viewBox="0 0 20 20" fill="none" class="size-3.5">
+                <path d="M5 10h10M10 5v10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
+        }
       </div>
       <div class="py-6 px-3 overflow-y-auto flex flex-col gap-4 min-h-[25vh] max-h-[45vh]">
         <label for="nameInput" class="ml-px text-sm font-semibold block">Nome nuova collezione</label>
@@ -51,10 +97,11 @@ import { Subscription } from 'rxjs';
             }
           </div>
           <button
-            type="submit"
+            type="button"
             class="col-span-3 px-4 py-2 rounded bg-emerald-600 text-white font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed transition-colors"
-            [disabled]="false"
-
+            [disabled]="!name() || alreadyAdded(_trim(name()))"
+            (click)="onAddNewName(_trim(name()))"
+            [title]="title()"
           >Aggiungi</button>
         </div>
       </div>
@@ -69,7 +116,7 @@ import { Subscription } from 'rxjs';
           </button>
 
         <button
-          type="submit"
+          type="button"
           class="px-4 py-2 rounded bg-emerald-600 text-white font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed"
           [disabled]="false"
 
@@ -97,6 +144,7 @@ export class CreateCollectionComponent implements OnInit, AfterViewInit, OnDestr
 
   nameControl = new FormControl('', { nonNullable: true })
   name = signal<string>('')
+  title = computed(() => this.name() ? 'Non puoi aggiungere duplicati.' : '')
 
   ngOnInit(): void {
     this.naSub = this.nameControl.valueChanges.subscribe(val => this.name.set(val))
@@ -111,11 +159,44 @@ export class CreateCollectionComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   clear(): void {
-    queueMicrotask(() => this.nameInputRef.nativeElement.focus());
+    queueMicrotask(() => {
+      this.nameControl.setValue('')
+      this.nameInputRef.nativeElement.focus()
+    });
   }
 
   close(): void {
     this.overlayContext.close()
+  }
+
+  _trim(s: string): string {
+    return s.trim()
+  }
+
+  selectedChips: string[] = [];
+
+  // chiamata quando clicchi un risultato di ricerca
+  onAddNewName(name: string) {
+    this.addChip(name)
+  }
+
+  alreadyAdded(name: string): boolean {
+    return this.selectedChips.includes(name)
+  }
+
+  // API
+  addChip(chip: string) {
+    if (!chip) return
+    if (this.selectedChips.some(name => name === chip)) return
+    this.selectedChips = [...this.selectedChips, chip]
+  }
+
+  removeChip(name: string) {
+    this.selectedChips = this.selectedChips.filter(c => c !== name)
+  }
+
+  clearChips() {
+    this.selectedChips = []
   }
 
 
