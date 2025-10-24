@@ -9,6 +9,8 @@ import { MoleculeCollectionItemJoinService } from "./molecule-collection-item-jo
 import { RpcException } from "@nestjs/microservices";
 import { MoleculeCollection } from "../Models/entities/molecule-collection.entity";
 import { uuidv7 } from '@kripod/uuidv7';
+import { GeneralUtils } from "src/utils/general-utils/general-utils";
+import { AddManyChEMBLItemsDTO } from "../Models/DTO/add-many-chembl-items.dto";
 
 @Injectable()
 export class ChEMBLMoleculeItemService {
@@ -21,16 +23,16 @@ export class ChEMBLMoleculeItemService {
     ) { }
 
     async getChemblMolregnosByUserId(userId: UUID): Promise<number[]> {
-            const rows = await this.chemblRepo.find({
-                where: {
-                    userId, type: 'chembl'
-                },
-                select: { 
-                    chemblMolregno: true
-                }
-            })
-            return rows.map(r => r.chemblMolregno)
-        } 
+        const rows = await this.chemblRepo.find({
+            where: {
+                userId, type: 'chembl'
+            },
+            select: {
+                chemblMolregno: true
+            }
+        })
+        return rows.map(r => r.chemblMolregno)
+    }
 
     async hasUserChEMBLMoleculeByMolregnoThenGetUUID(userId: UUID, molregno: number): Promise<string | null> {
         const row = await this.chemblRepo.createQueryBuilder('m')
@@ -100,6 +102,48 @@ export class ChEMBLMoleculeItemService {
         return this.joinService.remove(userId, collectionId, itemId)
     }
 
+    async addManyChemblItemsToCollection(
+        userId: UUID,
+        collectionId: UUID,
+        dtos: AddManyChEMBLItemsDTO[]
+    ): Promise<boolean> {
+
+        return await this.dataSource.manager.transaction(async manager => {
+            try {
+                const molregnosRows = await manager.find(ChEMBLMoleculeItemEntity, {
+                    where: {
+                        userId, type: 'chembl'
+                    },
+                    select: {
+                        chemblMolregno: true
+                    }
+                })
+                const alreadyPresentMolregnos = molregnosRows.map(chMol => chMol.chemblMolregno)
+                const clearedDTOs = GeneralUtils.distinctArray(dtos.filter(dto => !alreadyPresentMolregnos.includes(dto.chemblMolregno)))
+                const entities: ChEMBLMoleculeItemEntity[] = []
+                for (const { chemblMolregno, name } of clearedDTOs) {
+                    const now = Date.now()
+                    const entity = manager.create(ChEMBLMoleculeItemEntity, {
+                        id: uuidv7() as UUID,
+                        userId,
+                        type: 'chembl',
+                        createdAt: now,
+                        updatedAt: now,
+                        touchedAt: now,
+                        chemblMolregno,
+                        name
+                    })
+                    entities.push(entity)
+                }
+                const itemIds = (await manager.save(ChEMBLMoleculeItemEntity, entities))
+                    .map(item => item.id)
+                await this.joinService.addManyWithManager(userId, collectionId, itemIds, false, manager)
+                return true
+            } catch {
+                return false
+            }
+        })
+    }
 
     async findByCollection(
         collectionId: UUID,

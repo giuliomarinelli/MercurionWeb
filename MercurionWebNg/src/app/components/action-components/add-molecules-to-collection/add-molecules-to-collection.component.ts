@@ -240,7 +240,7 @@ export type ChipItem = { id: string; name: string }
         type="submit"
         class="px-4 py-2 rounded bg-emerald-600 text-white font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed"
         [disabled]="(isSelectedNothing() && this.method() === 'my') || (this.selectedIds.length === 0 && this.method() === 'chembl')"
-        (click)="doSubmit()"
+        (click)="method() === 'my' ? doSubmit() : doSubmitChembl()"
       >
         @if (step() === 1) { <span>Aggiungi</span> }
         @else if (step() === 2) { <span>Ok</span> }
@@ -273,12 +273,14 @@ export class AddMoleculesToCollectionComponent
     effect(() => {
       if (this.method() === 'my') {
         queueMicrotask(() => {
+          this.step.set(1)
           this.clearChips()
           this.resetPagination()
           this.startObserver()
           this.loadMore()
         })
       } else if (this.method() === 'chembl') {
+        this.step.set(1)
         this.chemblEmpty.set(true)
         this.chemblError.set(null)
         this.chemblLoading.set(false)
@@ -420,5 +422,8 @@ export class AddMoleculesToCollectionComponent
     this.chemblResults.set([])
   }
 
+  doSubmitChembl(): void {
+
+  }
 
 }
