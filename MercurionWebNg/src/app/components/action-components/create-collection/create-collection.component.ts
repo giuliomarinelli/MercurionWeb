@@ -5,17 +5,16 @@ import { Subscription } from 'rxjs';
 import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
 import { ToastService } from '../../../services/toast.service';
 import { CreateCollectionContextService } from '../../../services/context/action-context/create-collection-context.service';
-
 @Component({
   selector: 'app-create-collection',
   imports: [ReactiveFormsModule],
   template: `
 
   <div class="flex justify-center items-center min-h-screen px-2">
-    <div class="w-full max-w-5xl bg-white dark:bg-dark-surface-main rounded-xl shadow-lg">
-      <div class="flex items-center justify-between px-4 py-4 border-b border-b-slate-400 sticky top-0 z-50 rounded-t-xl bg-white dark:bg-dark-surface-main">
+    <div class="w-full max-w-2xl bg-white/95 dark:bg-dark-surface-main/95 rounded-xl shadow-xl ring-1 ring-black/5 dark:ring-white/10 overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200/80 dark:border-white/10 sticky top-0 z-50 rounded-t-xl bg-white/90 dark:bg-dark-surface-main/90 backdrop-blur">
         <h2 class="text-lg font-semibold">Crea una o più collezioni molecolari</h2>
-        <button class="text-2xl hover:text-emerald-600" (click)="close()">&times;</button>
+        <button class="inline-flex items-center justify-center size-8 rounded-md text-slate-500 hover:text-emerald-600 hover:bg-slate-100 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-transparent transition" (click)="close()">&times;</button>
       </div>
       <!-- <div class="mx-auto">
         <div class="mt-6 space-y-6 sm:flex sm:items-center sm:space-x-10 sm:space-y-0 px-6 pb-6 border-b border-spacing-y-[0.3px]">
@@ -72,7 +71,7 @@ import { CreateCollectionContextService } from '../../../services/context/action
           </div>
         }
       </div>
-      <div class="py-6 px-3 overflow-y-auto flex flex-col gap-4 min-h-[25vh] max-h-[45vh]">
+      <div class="py-6 px-4 overflow-y-auto flex flex-col gap-4 min-h-[25vh] max-h-[45vh]">
         <label for="nameInput" class="ml-px text-sm font-semibold block">Nome nuova collezione</label>
         <div class="grid grid-cols-12 gap-4">
           <div class="col-span-9 flex gap-2 items-center relative">
@@ -82,7 +81,7 @@ import { CreateCollectionContextService } from '../../../services/context/action
               [formControl]="nameControl"
               type="text"
               placeholder="Inserisci una nuova collezione..."
-              class="flex-1 px-4 py-2 rounded-lg bg-white/90 text-black placeholder:text-gray-500 shadow focus:outline-none focus:ring-2 focus:ring-indigo-500 transition w-full"
+              class="flex-1 px-4 py-2 rounded-lg bg-white/90 text-black placeholder:text-gray-500 shadow-sm ring-1 ring-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition w-full"
               [class.pr-10]="name().trim()"
               [class.pl-4]="name().trim()"
               [class.px-4]="!name().trim()"
@@ -102,18 +101,18 @@ import { CreateCollectionContextService } from '../../../services/context/action
           </div>
           <button
             type="button"
-            class="col-span-3 px-4 py-2 rounded bg-emerald-600 text-white font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed transition-colors"
+            class="col-span-3 px-4 py-2 rounded-md bg-emerald-600 text-white font-semibold shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-white disabled:bg-emerald-300 disabled:cursor-not-allowed transition-colors"
             [disabled]="!name() || alreadyAdded(_trim(name()))"
             (click)="onAddNewName(_trim(name()))"
             [title]="title()"
           >Aggiungi</button>
         </div>
       </div>
-      <div class="my-4 mr-8 flex justify-end gap-2">
+      <div class="px-4 py-4 border-t border-slate-200/80 dark:border-white/10 bg-white/80 dark:bg-dark-surface-main/80 backdrop-blur sticky bottom-0 flex justify-end gap-3">
 
           <button
             type="button"
-            class="px-4 py-2 rounded bg-slate-200 text-light-on-surface-main dark:bg-slate-100 dark:text-neutral-950 hover:bg-gray-300"
+            class="px-4 py-2 rounded-md bg-slate-200 text-light-on-surface-main dark:bg-slate-100 dark:text-neutral-950 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-white"
             (click)="close()"
           >
             Annulla
@@ -121,7 +120,7 @@ import { CreateCollectionContextService } from '../../../services/context/action
 
         <button
           type="button"
-          class="px-4 py-2 rounded bg-emerald-600 text-white font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed"
+          class="px-4 py-2 rounded-md bg-emerald-600 text-white font-semibold shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-white disabled:bg-emerald-300 disabled:cursor-not-allowed"
           [disabled]="false"
           (click)="doSubmit()"
         >
