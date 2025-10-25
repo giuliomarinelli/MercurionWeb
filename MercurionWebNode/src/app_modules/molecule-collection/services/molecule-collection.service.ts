@@ -268,8 +268,15 @@ WHERE i.user_id = $2::uuid
 
   async delete(collectionId: UUID, userId: UUID): Promise<boolean> {
     try {
-      await this.dataSource.query(this.DELETE_COLLECTION_AND_ORPHAN_MOLECULES, [collectionId, userId])
-      return true
+      return await this.dataSource.manager.transaction(async (manager) => {
+        await manager.query(this.DELETE_COLLECTION_AND_ORPHAN_MOLECULES, [collectionId, userId])
+        await manager.delete(History, {
+          itemId: collectionId,
+          itemEntity: HistoryItemEntity.MoleculeCollection,
+          userId
+        })
+        return true
+      })
     } catch (e) {
       this.logger.warn(`MoleculeCollection > delete: Error => ${e}`)
       return false

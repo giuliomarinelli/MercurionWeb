@@ -228,7 +228,11 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
       distinctUntilChanged(),
       switchMap(id => this.colService.markMoleculeCollectionAsTouched(id)),
       switchMap(res => res ? this.history.pollNewItem() : of(null))
-    ).subscribe(() => { });
+    ).subscribe((res) => {
+      if (res == null) {
+        this.router.navigateByUrl('/404-not-found')
+      }
+    })
 
     // cambia collezione ⇒ reset + prima pagina + observer
     this.colIdSub = this.route.paramMap.pipe(

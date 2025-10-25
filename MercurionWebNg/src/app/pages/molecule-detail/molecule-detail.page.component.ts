@@ -419,7 +419,10 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
               this.molCached = sys;
               return sys as MoleculeDetailItem;
             }),
-            catchError(() => {
+            catchError((e) => {
+              if (e.message.startsWith('MoleculeDetailNotFound::')) {
+                this.router.navigateByUrl('/404-not-found')
+              }
               this.fetchError.set(true);
               return of(null as MoleculeDetailItem | null);
             })

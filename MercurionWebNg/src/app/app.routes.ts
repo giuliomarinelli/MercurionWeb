@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router'
 import { ColorPaletteComponent } from './playground/color-palette/color-palette.component'
 import { AuthGuard } from './guards/auth-guard.guard'
+import { NotFound404LandingPageComponent } from './pages/not-found-404-template/not-found-404-landing.page.component'
 
 export const routes: Routes = [
   {
@@ -86,5 +87,13 @@ export const routes: Routes = [
   {
     path: 'molecules/all-my-molecules',
     loadComponent: () => import('./pages/all-my-molecules/all-my-molecules.page.component').then(m => m.AllMyMoleculesPageComponent)
+  },
+  {
+    path: '404-not-found',
+    loadComponent: () => import('./pages/not-found-404-template/not-found-404-landing.page.component').then(m => m.NotFound404LandingPageComponent)
+  },
+  {
+    path: '**',
+    redirectTo: '/404-not-found'
   }
 ]

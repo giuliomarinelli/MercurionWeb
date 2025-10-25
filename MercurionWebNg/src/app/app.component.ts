@@ -11,7 +11,6 @@ import {
   signal,
   Signal,
   NgZone,
-  EnvironmentInjector,
   inject
 } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
@@ -20,7 +19,6 @@ import { ThemeManagerService } from './services/context/theme-manager.service';
 import { SearchOverlayComponent } from './components/search-overlay/search-overlay/search-overlay.component';
 import { SearchContextService } from './services/context/search-context.service';
 import { FooterComponent } from './components/common/footer/footer.component';
-import { NgxxSpinnerComponent } from './components/common/ngxx-spinner/ngxx-spinner.component';
 import { filter, Subscription, combineLatest } from 'rxjs';
 import { ToastComponent } from './components/common/toast/toast.component';
 import { ToastService } from './services/toast.service';
@@ -34,9 +32,7 @@ import { ActionOverlayContextService } from './services/context/action-context/a
 import { environment } from '../environments/environment.development';
 import { AuthService } from './services/auth.service';
 import { ActionComponent } from './components/action-components/action-overlay/action-overlay.component';
-import { ModalComponent } from './components/common/modal/modal.component';
-import { ModalContextService } from './services/context/modal-context.service';
-import { ModalService } from './services/modal.service';
+import { AppContextService } from './services/context/app-context.service';
 
 @Component({
   selector: 'app-root',
@@ -47,84 +43,101 @@ import { ModalService } from './services/modal.service';
     HeaderComponent,
     SearchOverlayComponent,
     FooterComponent,
-    NgxxSpinnerComponent,
     ToastComponent,
     SidenavComponent,
-    ActionComponent,
-    ModalComponent
+    ActionComponent
   ],
   template: `
-    <div class="flex flex-col h-screen">
-      <app-header class="sticky top-0 z-30" />
-      <div class="drawer-container relative flex flex-1 overflow-hidden custom-scrollbar">
-        @if (userContext.initials() && design.minBk('xl')()) {
-          <div class="absolute top-4 left-[10px] z-30 group">
-            <button class="cursor-pointer" (click)="sidenavContext.toggle()" aria-label="Sidebar">
-              @if (sidenavContext.isVisible()) {
-                <!-- icona open -->
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-auto text-light-on-surface-main hover:text-light-on-surface-secondary dark:text-dark-on-surface-main hover:dark:text-dark-on-surface-secondary transition-colors duration-150">
-                  <rect width="18" height="18" x="3" y="3" rx="2" />
-                  <path d="M9 3v18" />
-                </svg>
-              } @else {
-                <!-- icona closed -->
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-auto text-light-on-surface-main hover:text-light-on-surface-secondary dark:text-dark-on-surface-main hover:dark:text-dark-on-surface-secondary transition-colors duration-150">
-                  <rect width="18" height="18" x="3" y="3" rx="2" />
-                  <rect x="3" y="3" width="6" height="18" rx="2" fill="currentColor" stroke="none"/>
-                </svg>
-              }
-            </button>
-            <span
-              class="absolute left-20 top-full mt-2 -translate-x-1/2 whitespace-nowrap rounded
-                     bg-neutral-900/90 dark:bg-neutral-100/90 px-2 py-1 text-xs text-neutral-50
-                     dark:text-neutral-900 opacity-0 group-hover:opacity-100
-                     transition-opacity duration-150 pointer-events-none z-40 shadow-lg"
-              role="tooltip">
-              @if (sidenavContext.isVisible()) {
-                Nascondi barra laterale
-              } @else {
-                Mostra barra laterale
-              }
-            </span>
-          </div>
-        }
-        @if (sidenavContext.isMounted() && userContext.initials() && design.minBk('xl')()) {
-          <aside
-            class="drawer absolute inset-y-0 left-0 w-64
-              transition-transform duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]
-              -translate-x-full"
-            [class.translate-x-0]="sidenavContext.isVisible()"
-            [class.-translate-x-full]="!sidenavContext.isVisible()">
-            <app-sidenav />
-          </aside>
-        }
-        <section #scrollHost
-          class="content flex flex-col flex-1 overflow-y-auto
-          transition-[margin] duration-500"
-          [class.ml-64]="sidenavContext.isOpen() && userContext.initials() && design.minBk('xl')()">
-          <main class="flex-1 p-4 block">
-            <router-outlet />
-          </main>
-          <app-footer class="shrink-0" />
-        </section>
+    @if (is_not_404_route()) {
+      <div class="flex flex-col h-screen">
+        <app-header class="sticky top-0 z-30" />
+        <div class="drawer-container relative flex flex-1 overflow-hidden custom-scrollbar">
+          @if (userContext.isLoggedIn() && design.minBk('xl')()) {
+            <div class="absolute top-4 left-[10px] z-30 group">
+              <button class="cursor-pointer" (click)="sidenavContext.toggle()" aria-label="Sidebar">
+                @if (sidenavContext.isVisible()) {
+                  <!-- icona open -->
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-auto text-light-on-surface-main hover:text-light-on-surface-secondary dark:text-dark-on-surface-main hover:dark:text-dark-on-surface-secondary transition-colors duration-150">
+                    <rect width="18" height="18" x="3" y="3" rx="2" />
+                    <path d="M9 3v18" />
+                  </svg>
+                } @else {
+                  <!-- icona closed -->
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-auto text-light-on-surface-main hover:text-light-on-surface-secondary dark:text-dark-on-surface-main hover:dark:text-dark-on-surface-secondary transition-colors duration-150">
+                    <rect width="18" height="18" x="3" y="3" rx="2" />
+                    <rect x="3" y="3" width="6" height="18" rx="2" fill="currentColor" stroke="none"/>
+                  </svg>
+                }
+              </button>
+              <span
+                class="absolute left-20 top-full mt-2 -translate-x-1/2 whitespace-nowrap rounded
+                       bg-neutral-900/90 dark:bg-neutral-100/90 px-2 py-1 text-xs text-neutral-50
+                       dark:text-neutral-900 opacity-0 group-hover:opacity-100
+                       transition-opacity duration-150 pointer-events-none z-40 shadow-lg"
+                role="tooltip">
+                @if (sidenavContext.isVisible()) {
+                  Nascondi barra laterale
+                } @else {
+                  Mostra barra laterale
+                }
+              </span>
+            </div>
+          }
+          @if (sidenavContext.isMounted() && userContext.isLoggedIn() && design.minBk('xl')()) {
+            <aside
+              class="drawer absolute inset-y-0 left-0 w-64
+                transition-transform duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]
+                -translate-x-full"
+              [class.translate-x-0]="sidenavContext.isVisible()"
+              [class.-translate-x-full]="!sidenavContext.isVisible()">
+              <app-sidenav />
+            </aside>
+          }
+          <section #scrollHost
+            class="content flex flex-col flex-1 overflow-y-auto
+            transition-[margin] duration-500"
+            [class.ml-64]="sidenavContext.isOpen() && userContext.isLoggedIn() && design.minBk('xl')()">
+            <main class="flex-1 p-4 block">
+              <router-outlet />
+            </main>
+            <app-footer class="shrink-0" />
+          </section>
+        </div>
       </div>
-    </div>
-    @if (searchContextService.isMounted()) {
-      <app-search-overlay />
+      @if (searchContextService.isMounted()) {
+        <app-search-overlay />
+      }
+      @if (saveOverlayContext.isMounted() && userContext.isLoggedIn()) {
+        <app-action-overlay />
+      }
+      <app-toast [context]="toastService.context()" />
+    } @else {
+      <router-outlet />
     }
-    @if (saveOverlayContext.isMounted() && userContext.initials() !== '') {
-      <app-action-overlay />
-    }
-    <app-modal />
-    <app-toast [context]="toastService.context()" />
-    <app-ngxx-spinner />
   `,
 })
 export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
+
+  private readonly themeManagerService = inject(ThemeManagerService)
+  protected readonly searchContextService = inject(SearchContextService)
+  private readonly router = inject(Router)
+  private readonly zone = inject(NgZone)
+  protected readonly toastService = inject(ToastService)
+  protected readonly userContext = inject(UserContextService)
+  private readonly pathService = inject(PathService)
+  protected readonly sidenavContext = inject(SidenavContextService)
+  protected readonly design = inject(DesignService)
+  private readonly sessionSync = inject(SessionSyncService)
+  protected readonly saveOverlayContext = inject(ActionOverlayContextService)
+  private readonly authService = inject(AuthService)
+  private readonly appContext = inject(AppContextService)
+
+
   title = 'MercurionWebNg';
 
   isDarkTheme: Signal<boolean> = computed(() => this.themeManagerService.theme() === 'dark');
   headerHeight = signal(64);
+  is_not_404_route = signal<boolean>(true)
 
   private routeSub?: Subscription;
 
@@ -137,25 +150,18 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('scrollHost') private scrollHostRef!: ElementRef<HTMLElement>;
   @ViewChild(HeaderComponent, { read: ElementRef }) headerRef!: ElementRef<HTMLElement>;
 
-  private readonly env = inject(EnvironmentInjector);
-  constructor(
-    private readonly themeManagerService: ThemeManagerService,
-    protected readonly searchContextService: SearchContextService,
-    private readonly router: Router,
-    private readonly zone: NgZone,
-    protected readonly toastService: ToastService,
-    protected readonly userContext: UserContextService,
-    private readonly pathService: PathService,
-    protected readonly sidenavContext: SidenavContextService,
-    protected readonly design: DesignService,
-    private readonly sessionSync: SessionSyncService,
-    protected readonly saveOverlayContext: ActionOverlayContextService,
-    private readonly authService: AuthService,
-    protected readonly modalContext: ModalContextService,
-    private readonly modal: ModalService
-  ) {
 
-    if (this.userContext.initials() && this.authService.getCookieValue('__logged_in') !== 'true') {
+  constructor() {
+
+    effect(() => {
+      const t = this.appContext.addedTick()
+      if (t === 0) {
+        return
+      }
+      this.is_not_404_route.set(true)
+    })
+
+    if (this.userContext.isLoggedIn() && this.authService.getCookieValue('__logged_in') !== 'true') {
       this.userContext.clearInitials()
       this.authService.setAccessToken(null)
       this.authService.setWs_accessToken(null)
@@ -187,10 +193,13 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         this.scrollToTop(240); // chiamata reale
 
         const url = normalize(e.urlAfterRedirects);
+        if (url === '/404-not-found') {
+          this.is_not_404_route.set(false)
+        }
         this.currentPath.set(url);
         this.pathService.setPath(url);
         if (!this.firstNavigationDone()) this.firstNavigationDone.set(true);
-        if (this.userContext.initials() !== '') {
+        if (this.userContext.isLoggedIn()) {
           sessionStorage.setItem(
             'redirectAfterLogin',
             window.location.pathname.slice(4) + window.location.search
@@ -278,10 +287,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit() {
-    // opzionale: microtask per dare tempo all’host di registrare l’outlet
-    // setTimeout(()=>queueMicrotask(() => {
-    //     this.modal.confirmDelete();
-    // }), 2000);
+
   }
 
   ngOnDestroy() {
