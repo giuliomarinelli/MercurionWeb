@@ -12,7 +12,7 @@ import {
   OnDestroy,
   NgZone
 } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   catchError,
   debounceTime,
@@ -159,14 +159,15 @@ import { Observable } from 'rxjs';
 export class MoleculeCollectionDetailPageComponent extends AbstractPaginationComponent<MoleculeCardItemModel>
   implements OnInit, OnDestroy, AfterViewInit {
 
-  private readonly colService = inject(MoleculeCollectionService);
-  private readonly itemService = inject(MoleculeCollectionItemService);
-  private readonly route = inject(ActivatedRoute);
-  private readonly history = inject(HistoryContextService);
-  private readonly toast = inject(ToastService);
-  private readonly overlay = inject(ActionOverlayContextService);
-  protected readonly addCtx = inject(AddMoleculesToCollectionContextService);
-  private readonly zone = inject(NgZone);
+  private readonly colService = inject(MoleculeCollectionService)
+  private readonly itemService = inject(MoleculeCollectionItemService)
+  private readonly route = inject(ActivatedRoute)
+  private readonly router = inject(Router)
+  private readonly history = inject(HistoryContextService)
+  private readonly toast = inject(ToastService)
+  private readonly overlay = inject(ActionOverlayContextService)
+  protected readonly addCtx = inject(AddMoleculesToCollectionContextService)
+  private readonly zone = inject(NgZone)
   private readonly historyContext = inject(HistoryContextService)
 
   @ViewChild('sentinel', { static: true })
@@ -178,6 +179,7 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
   private delSub?: Subscription;
   private reSub?: Subscription;
   private reFrCoSub?: Subscription
+  private delColSub?: Subscription
 
   error = signal<boolean>(false);
   name = signal<string>('');
@@ -189,13 +191,11 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
   ];
 
   constructor() {
-    super();
-
-    // Quando chiudi l’overlay dopo l’add: reset + refetch + re-attach observer
+    super()
     effect(() => {
-      const t = this.addCtx.addedTick();
-      if (t === 0) return;
-      this.resetAndRefetch();
+      const t = this.addCtx.addedTick()
+      if (t === 0) return
+      this.resetAndRefetch()
     });
   }
 
@@ -254,13 +254,14 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
   }
 
   ngOnDestroy(): void {
-    this.colIdSub?.unsubscribe();
-    this.touchSub?.unsubscribe();
-    this.delSub?.unsubscribe();
-    this.scrollFallbackSub?.unsubscribe();
+    this.colIdSub?.unsubscribe()
+    this.touchSub?.unsubscribe()
+    this.delSub?.unsubscribe()
+    this.scrollFallbackSub?.unsubscribe()
     this.reSub?.unsubscribe()
     this.reFrCoSub?.unsubscribe()
-    this.observer?.disconnect();
+    this.delColSub?.unsubscribe()
+    this.observer?.disconnect()
   }
 
   // ========= paging =========
@@ -365,7 +366,22 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
   }
 
   doDuplicateCollection(): void { /* TODO */ }
-  doDeleteCollection(): void { /* TODO */ }
+  doDeleteCollection(): void {
+    const onError = () => queueMicrotask(() => this.toast.trigger('Si è verificato un errore.', 'error', 3000))
+    this.delColSub = this.colService.deleteCollection(this.colId()).subscribe({
+      next: ok => {
+        if (ok) {
+          queueMicrotask(() => {
+            this.toast.trigger('Collezione eliminata con successo.', 'success', 3000)
+            this.router.navigateByUrl('/molecules/collections')
+          })
+        } else {
+          onError()
+        }
+      },
+      error: () => onError()
+    })
+  }
 
   doRenameCollection(e: CustomDetailSaveModel): void {
     const { value: name } = e
