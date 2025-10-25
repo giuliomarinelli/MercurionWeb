@@ -113,7 +113,7 @@ export class ChEMBLMoleculeItemService {
             if (!collection) throw new RpcException("ChEMBLItemAddError::Forbidden");
 
             // 3. Crea la join (se il joinService usa repository, passagli manager.queryRunner.manager oppure implementa la logica qui)
-            await this.joinService.addWithManager(userId, collectionId, item.id, manager);
+            await this.joinService.addMoleculeToCollectionWithManager(userId, collectionId, item.id, manager);
 
             // 4. Aggiorna updatedAt della collection
             await manager.update(MoleculeCollection, { id: collectionId, userId }, { updatedAt: Date.now() });
@@ -124,7 +124,7 @@ export class ChEMBLMoleculeItemService {
 
 
     async removeFromCollection(userId: UUID, collectionId: UUID, itemId: UUID): Promise<boolean> {
-        return this.joinService.remove(userId, collectionId, itemId)
+        return this.joinService.removeMoleculeFromCollection(userId, collectionId, itemId)
     }
 
     // TODO: implementation => if exists it fetches ChEMBLMoleculeItem and adds to collection without creating

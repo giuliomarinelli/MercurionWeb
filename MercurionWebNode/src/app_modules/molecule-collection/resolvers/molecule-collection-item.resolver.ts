@@ -114,11 +114,21 @@ export class MoleculeCollectionItemResolver {
         @Args('selectAll', { type: () => Boolean }) selectAll: boolean
     ): Promise<boolean> {
         try {
-            await this.joinService.addMany(userId, collectionId, itemIds, selectAll)
+            await this.joinService.addManyMoleculesToCollection(userId, collectionId, itemIds, selectAll)
             return true
         } catch {
             return false
         }
+    }
+
+    @Mutation(() => Boolean)
+    async removeMoleculeFromCollection(
+        @AuthenticatedUserId() userId: UUID,
+        @Args('collectionId', { type: () => ID }) collectionId: UUID,
+        @Args('itemId', { type: () => ID }) itemId: UUID,
+        @Args('deleteCollectionIfEmpty', { type: () => Boolean, nullable: true }) deleteCollectionIfEmpty: boolean | null
+    ): Promise<boolean> {
+        return this.removeMoleculeFromCollection(userId, collectionId, itemId, deleteCollectionIfEmpty ?? false)
     }
 
 

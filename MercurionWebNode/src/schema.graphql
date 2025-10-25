@@ -299,6 +299,7 @@ type Mutation {
   deleteMoleculeItem(id: ID!): Boolean!
   markMoleculeCollectionItemAsTouched(id: ID!, flagIds: String!): Boolean!
   addManyMoleculesToCollection(collectionId: ID!, itemIds: [ID!]!, selectAll: Boolean!): Boolean!
+  removeMoleculeFromCollection(collectionId: ID!, itemId: ID!, deleteCollectionIfEmpty: Boolean): Boolean!
   addChemblMoleculeToCollection(collectionId: ID!, chemblMolregno: Float!, label: String, notes: String): ChEMBLMoleculeItemEntity!
   removeChemblMoleculeFromCollection(collectionId: ID!, itemId: ID!): Boolean!
   addManyChemblItemsToCollection(collectionId: ID!, input: [AddManyChEMBLItemDTO!]!): Boolean!

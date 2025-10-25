@@ -67,14 +67,14 @@ export class CustomMoleculeItemService {
             if (!collection) throw new RpcException('CustomItemAddError::Forbidden');
 
             // 6️⃣ Link nella join‑table (ignora duplicati all’interno di add)
-            await this.joinService.addWithManager(userId, collectionId, item.id, manager);
+            await this.joinService.addMoleculeToCollectionWithManager(userId, collectionId, item.id, manager);
 
             return item;
         })
     }
 
     async removeFromCollection(userId: UUID, collectionId: UUID, itemId: UUID): Promise<boolean> {
-        return this.joinService.remove(userId, collectionId, itemId)
+        return this.joinService.removeMoleculeFromCollection(userId, collectionId, itemId)
     }
 
 }

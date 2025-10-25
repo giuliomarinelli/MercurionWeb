@@ -1,12 +1,14 @@
+import { MoleculeCollectionItemJoin } from './../Models/entities/molecule-collection-item-join.entity';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, Repository } from 'typeorm';
 import { UUID } from 'crypto';
-import { MoleculeCollectionItemJoin } from '../Models/entities/molecule-collection-item-join.entity';
 import { uuidv7 } from '@kripod/uuidv7';
 import { MoleculeCollectionService } from './molecule-collection.service';
 import { MoleculeCollectionItemService } from './molecule-collection-item.service';
+import { MoleculeCollection } from '../Models/entities/molecule-collection.entity';
 import { MoleculeCollectionItemEntity } from '../Models/entities/molecule-collection-item.entity';
+
 
 
 @Injectable()
@@ -23,12 +25,12 @@ export class MoleculeCollectionItemJoinService {
     // Metodo STANDARD (fuori da transaction esplicita)
     async add(userId: UUID, collectionId: UUID, itemId: UUID): Promise<MoleculeCollectionItemJoin> {
         return await this.joinRepo.manager.transaction(async manager => {
-            return this.addWithManager(userId, collectionId, itemId, manager);
+            return this.addMoleculeToCollectionWithManager(userId, collectionId, itemId, manager);
         })
     }
 
     // Metodo ATOMICO per usare il manager di una transaction già aperta
-    async addWithManager(
+    async addMoleculeToCollectionWithManager(
         userId: UUID,
         collectionId: UUID,
         itemId: UUID,
@@ -42,27 +44,48 @@ export class MoleculeCollectionItemJoinService {
         return await manager.save(MoleculeCollectionItemJoin, join)
     }
 
-    async remove(userId: UUID, collectionId: UUID, itemId: UUID): Promise<boolean> {
-        return await this.joinRepo.manager.transaction(async manager => {
-            return this.removeWithManager(userId, collectionId, itemId, manager);
-        })
+    async removeMoleculeFromCollection(userId: UUID, collectionId: UUID, itemId: UUID, deleteCollectionIfEmpty = false): Promise<boolean> {
+        try {
+            return await this.joinRepo.manager.transaction(async manager => {
+                return this.removeMoleculeFromCollectionWithManager(userId, collectionId, itemId, deleteCollectionIfEmpty, manager);
+            })
+        } catch {
+            return false
+        }
     }
 
-    async removeWithManager(
+    async removeMoleculeFromCollectionWithManager(
         userId: UUID,
         collectionId: UUID,
         itemId: UUID,
+        deleteCollectionIfEmpty = false,
         manager: EntityManager
     ): Promise<boolean> {
         const join = await manager.findOne(MoleculeCollectionItemJoin, {
             where: { collectionId, itemId, userId }
         });
-        if (!join) return false
-        await manager.delete(MoleculeCollectionItemJoin, { id: join.id })
+        if (!join) {
+            return false
+        }
+        await manager.delete(MoleculeCollectionItemJoin,
+            {
+                id: join.id
+            })
+        if (!deleteCollectionIfEmpty) {
+            return true
+        }
+        const itemsPerCollectionCount = await manager.count(MoleculeCollectionItemJoin, {
+            where: {
+                collectionId, userId
+            }
+        })
+        if (itemsPerCollectionCount === 0) {
+            await manager.delete(MoleculeCollection, { id: collectionId })
+        }
         return true
     }
 
-    async addMany(
+    async addManyMoleculesToCollection(
         userId: UUID,
         collectionId: UUID,
         itemIds: UUID[],
