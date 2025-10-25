@@ -1,7 +1,8 @@
 import { CustomDetailSaveModel } from '../../../Models/custom-detail-save.model';
 import { NgClass } from '@angular/common';
 import {
-  Component, ElementRef, EventEmitter, inject, Input, Output, Renderer2, signal, ViewChild, ChangeDetectionStrategy
+  Component, ElementRef, EventEmitter, inject, Input, Output, Renderer2, signal, ViewChild, ChangeDetectionStrategy,
+  effect
 } from '@angular/core';
 import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.component';
 
@@ -177,6 +178,8 @@ export class CustomDetailsComponent {
   _itemId = signal<string>('')
   mode = signal<'view' | 'edit'>('view');
   _isReadonly = signal<Boolean>(false)
+  lastValue = signal<string | null>(null)
+  _triggerRollback = signal<boolean>(false)
 
   @ViewChild('value') valueRef!: ElementRef<HTMLElement>;
 
@@ -205,10 +208,34 @@ export class CustomDetailsComponent {
     this._isReadonly.set(isReadonly)
   }
 
-
+  @Input()
+  set triggerRollback(triggerRollback: boolean) {
+    this._triggerRollback.set(triggerRollback)
+  }
 
   @Output()
   onSaving = new EventEmitter<CustomDetailSaveModel>()
+
+  @Output()
+  onDoingRollback = new EventEmitter<void>()
+
+  constructor() {
+    effect(() => {
+      if (this._triggerRollback() && this.lastValue()) {
+        queueMicrotask(() => {
+          this._triggerRollback.set(false)
+          // restore model and DOM to the last valid value
+          const restore = this.lastValue()!
+          this._value.set(restore)
+          this.startValue.set(restore)
+          const el = this.valueRef.nativeElement
+          el.textContent = restore
+          this.mode.set('view')
+          this.onDoingRollback.emit()
+        })
+      }
+    })
+  }
 
   /* -------- actions -------- */
   doEdit() {
@@ -233,7 +260,7 @@ export class CustomDetailsComponent {
   doCancel(): void {
     const el = this.valueRef.nativeElement;
     el.textContent = this.startValue();   // ripristina DOM
-    this._value.set(this.startValue());   // riallinea modello
+    this._value.set(this.lastValue() ?? this.startValue());   // riallinea modello
     this.mode.set('view');
     this.r.removeAttribute(el, 'contenteditable');
     this.r.removeAttribute(el, 'tabindex');
@@ -243,6 +270,7 @@ export class CustomDetailsComponent {
     const el = this.valueRef.nativeElement;
     const newValue = el.innerText;
     this.startValue.set(newValue);
+    this.lastValue.set(this._value())
     this._value.set(newValue);
     this.mode.set('view');
     this.r.removeAttribute(el, 'contenteditable');

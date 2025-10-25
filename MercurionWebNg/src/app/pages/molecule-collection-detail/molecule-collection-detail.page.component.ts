@@ -25,7 +25,9 @@ import {
   switchMap,
   tap,
   throttleTime,
-  fromEvent
+  fromEvent,
+  EMPTY,
+  throwError
 } from 'rxjs';
 
 import { AbstractPaginationComponent } from '../../abstract/abstract-pagination-component';
@@ -66,7 +68,15 @@ import { Observable } from 'rxjs';
 
     <div class="flex flex-wrap justify-between items-center pb-8 pt-2 relative -top-14 gap-y-4">
 
-      <app-custom-details [itemId]="colId()!" [type]="'name'" [value]="name()" [badgeName]="''" (onSaving)="doRenameCollection($event)" />
+      <app-custom-details
+        [itemId]="colId()!"
+        [type]="'name'"
+        [value]="name()"
+        [badgeName]="''"
+        [triggerRollback]="triggerRenameRollback()"
+        (onSaving)="doRenameCollection($event)"
+        (onDoingRollback)="triggerRenameRollback.set(false)"
+         />
 
       <div class="flex items-center justify-end gap-3">
         <button
@@ -172,6 +182,7 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
   error = signal<boolean>(false);
   name = signal<string>('');
   colId = signal<string>('');
+  triggerRenameRollback = signal<boolean>(false)
 
   protected readonly breadcrumb: LinkModel[] = [
     { label: 'Collezioni Molecolari', path: '/molecules/collections' }
@@ -342,12 +353,12 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
         const i = this.items.findIndex(item => item.id === id)
         if (i !== -1) {
           queueMicrotask(() => {
-              this.history.triggerRemoveItemFromHistoryView(id)
-              this.items[i].triggerDisappear.set(true)
-              setTimeout(() => this.items[i].collapse.set(true), 120)
-              setTimeout(() => this.items.splice(i, 1), 500)
-            })
-          }
+            this.history.triggerRemoveItemFromHistoryView(id)
+            this.items[i].triggerDisappear.set(true)
+            setTimeout(() => this.items[i].collapse.set(true), 120)
+            setTimeout(() => this.items.splice(i, 1), 500)
+          })
+        }
       },
       error: () => this.toast.trigger('Si è verificato un errore.', 'error', 2500)
     });
@@ -359,8 +370,19 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
   doRenameCollection(e: CustomDetailSaveModel): void {
     const { value: name } = e
     this.reSub = this.colService.updateCollectionName(this.colId(), name).pipe(
-      switchMap(() => this.historyContext.pollNewItem())
-    ).subscribe(() => { /* pass */ })
+      switchMap(() => this.historyContext.pollNewItem()),
+      catchError(e => {
+        if (e.message === `duplicate key value violates unique constraint "unique_name_per_user"`) {
+          queueMicrotask(() => {
+            this.triggerRenameRollback.set(true)
+            this.toast.trigger('Questo nome esiiste già. Impossibile rinominare!', 'error', 3000)
+          })
+          return EMPTY;
+        }
+        return throwError(() => e)
+      }),
+    ).subscribe();
+
   }
 
   doAddToCollection(): void {
