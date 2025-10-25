@@ -237,7 +237,7 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
                          hover:bg-slate-200 dark:hover:bg-slate-700
                          transition-colors duration-150"
                   title="Rimuovi dalla collezione"
-                  (click)="onRemoveFromCollection()"
+                  (click)="doRemoveFromCollection()"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-4 w-auto">
                     <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
@@ -265,6 +265,43 @@ export class MoleculeCollectionItemCardComponent implements OnDestroy {
   private readonly historyContext = inject(HistoryContextService)
   private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService)
   // ====================================================
+
+  /* inputs ---------------------------------- */
+  @Input({ required: true })
+  set molecule(m: MoleculeCardItemModel) {
+    this.seen = false;
+    this.viewerReady.set(false);
+    this.disablePreview.set(true);
+
+    this._molecule.set(m);
+    this._pathToMolecule.set(`/molecules/detail/${m.id}`);
+
+    this.zone.runOutsideAngular(() => this.io.observe(this.host.nativeElement));
+  }
+
+  @Input({ required: true })
+  set i(i: number) {
+    this._i.set(i);
+  }
+
+  @Input()
+  set collectionId(collectionId: string) {
+    this._collectionId.set(collectionId)
+  }
+
+  @Input()
+  set isReadonly(isReadonly: boolean) {
+    this._isReadonly.set(isReadonly)
+  }
+
+  /* outputs ---------------------------------- */
+
+  @Output()
+  onDelete = new EventEmitter<string>()
+
+  @Output()
+  onRemoveFromCollection = new EventEmitter<string>()
+
 
   private upNaSub?: Subscription
 
@@ -336,40 +373,10 @@ export class MoleculeCollectionItemCardComponent implements OnDestroy {
     this.onDelete.emit(this._molecule()!.id)
   }
 
-  onRemoveFromCollection(): void {
-
+  doRemoveFromCollection(): void {
+    this.onRemoveFromCollection.emit(this._molecule()!.id)
   }
 
-  /* inputs ---------------------------------- */
-  @Input({ required: true })
-  set molecule(m: MoleculeCardItemModel) {
-    this.seen = false;
-    this.viewerReady.set(false);
-    this.disablePreview.set(true);
-
-    this._molecule.set(m);
-    this._pathToMolecule.set(`/molecules/detail/${m.id}`);
-
-    this.zone.runOutsideAngular(() => this.io.observe(this.host.nativeElement));
-  }
-
-  @Input({ required: true })
-  set i(i: number) {
-    this._i.set(i);
-  }
-
-  @Input()
-  set collectionId(collectionId: string) {
-    this._collectionId.set(collectionId)
-  }
-
-  @Input()
-  set isReadonly(isReadonly: boolean) {
-    this._isReadonly.set(isReadonly)
-  }
-
-  @Output()
-  onDelete = new EventEmitter<string>()
 
   ngOnDestroy() {
     this.io?.disconnect();

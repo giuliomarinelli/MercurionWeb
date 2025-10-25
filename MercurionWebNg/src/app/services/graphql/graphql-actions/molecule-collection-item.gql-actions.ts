@@ -401,7 +401,11 @@ export const ADD_MANY_MOLECULES_TO_COLLECTION = gql`
   }
 `
 
-
+export const REMOVE_MOLECULE_FROM_COLLECTION = gql`
+  mutation RemoveMoleculeFromCollection($collectionId: ID!, $itemId: ID!, $deleteCollectionIfEmpty: Boolean) {
+    removeMoleculeFromCollection(collectionId: $collectionId, itemId: $itemId, deleteCollectionIfEmpty: $deleteCollectionIfEmpty)
+  }
+`
 
 export const MARK_MOLECULE_COLLECTION_ITEM_AS_TOUCHED = gql`
   mutation MarkMoleculeCollectionItemAsTouched($id: ID!, $flagIds: String!) {

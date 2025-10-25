@@ -114,7 +114,8 @@ import { CustomDetailSaveModel } from '../../Models/custom-detail-save.model';
           [molecule]="item"
           [i]="i"
           [collectionId]="colId()"
-          (onDelete)="doDelete($event)"/>
+          (onDelete)="doDelete($event)"
+          (onRemoveFromCollection)="doRemoveMoleculeFromCollection($event)"/>
       }
     </div>
 
@@ -162,6 +163,7 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
   private touchSub?: Subscription;
   private delSub?: Subscription;
   private reSub?: Subscription;
+  private reFrCoSub?: Subscription
 
   error = signal<boolean>(false);
   name = signal<string>('');
@@ -236,6 +238,7 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
     this.delSub?.unsubscribe();
     this.scrollFallbackSub?.unsubscribe();
     this.reSub?.unsubscribe()
+    this.reFrCoSub?.unsubscribe()
     this.observer?.disconnect();
   }
 
@@ -352,6 +355,23 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
       this.addCtx.setCollectionId(this.colId());
       this.overlay.open('AddMoleculesToCollection');
     });
+  }
+
+  doRemoveMoleculeFromCollection(moleculeId: string): void {
+    const onError = () => queueMicrotask(() => this.toast.trigger('Si è verificato un errore', 'error', 3000))
+    this.reFrCoSub = this.itemService.removeMoleculeFromCollection(this.colId(), moleculeId).subscribe({
+      next: ok => {
+        if (ok) {
+          const i = this.items.findIndex(item => item.id === moleculeId)
+          if (i !== -1) {
+            this.items.splice(i, 1)
+          }
+        } else {
+          onError()
+        }
+      },
+      error: () => onError()
+    })
   }
 
   // ========= search =========

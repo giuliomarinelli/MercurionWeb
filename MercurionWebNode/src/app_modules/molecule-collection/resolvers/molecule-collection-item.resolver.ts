@@ -128,7 +128,7 @@ export class MoleculeCollectionItemResolver {
         @Args('itemId', { type: () => ID }) itemId: UUID,
         @Args('deleteCollectionIfEmpty', { type: () => Boolean, nullable: true }) deleteCollectionIfEmpty: boolean | null
     ): Promise<boolean> {
-        return this.removeMoleculeFromCollection(userId, collectionId, itemId, deleteCollectionIfEmpty ?? false)
+        return this.joinService.removeMoleculeFromCollection(userId, collectionId, itemId, deleteCollectionIfEmpty ?? false)
     }
 
 
