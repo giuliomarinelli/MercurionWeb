@@ -120,7 +120,7 @@ import { CreateCollectionContextService } from '../../../services/context/action
 
         <button
           type="button"
-          class="px-4 py-2 rounded-md bg-emerald-600 text-white font-semibold shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-white disabled:bg-emerald-300 disabled:cursor-not-allowed"
+          class="px-4 py-2 rounded-md bg-emerald-600 text-white font-semibold shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-white disabled:bg-emerald-300 disabled:cursor-not-allowed min-w-10"
           [disabled]="false"
           (click)="doSubmit()"
         >

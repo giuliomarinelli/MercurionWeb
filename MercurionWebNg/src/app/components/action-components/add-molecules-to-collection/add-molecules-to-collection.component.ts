@@ -263,12 +263,28 @@ export type ChipItem = { id: string; name: string }
       }
       <button
         type="submit"
-        class="px-4 py-2 rounded bg-emerald-600 text-white font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed"
-        [disabled]="(isSelectedNothing() && this.method() === 'my') || (this.selectedIds.length === 0 && this.method() === 'chembl')"
+        class="relative inline-flex items-center justify-center px-4 py-2 rounded bg-emerald-600 text-white font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed"
+        [disabled]="(isSelectedNothing() && this.method() === 'my') || (this.selectedIds.length === 0 && this.method() === 'chembl' || step_12_loading())"
         (click)="step() === 1 ? dispatchSubmit() : close()"
+        [attr.aria-busy]="step_12_loading()"
       >
-        @if (step() === 1) { <span>Aggiungi</span> }
-        @else if (step() === 2) { <span>Ok</span> }
+        <!-- Keep label in flow to preserve size -->
+        <span [class.invisible]="step_12_loading()">
+          @if (step() === 1) {
+            <span>Aggiungi</span>
+          } @else if (step() === 2) {
+            <span>Ok</span>
+          }
+        </span>
+
+        <!-- Overlay spinner without affecting layout -->
+        <span
+          aria-hidden="true"
+          class="absolute inset-0 flex items-center justify-center"
+          [class.hidden]="!step_12_loading()"
+        >
+          <app-classic-spinner [size]="24"></app-classic-spinner>
+        </span>
       </button>
     </div>
   </div>

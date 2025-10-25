@@ -401,6 +401,8 @@ export const ADD_MANY_MOLECULES_TO_COLLECTION = gql`
   }
 `
 
+
+
 export const MARK_MOLECULE_COLLECTION_ITEM_AS_TOUCHED = gql`
   mutation MarkMoleculeCollectionItemAsTouched($id: ID!, $flagIds: String!) {
     markMoleculeCollectionItemAsTouched(id: $id, flagIds: $flagIds)
