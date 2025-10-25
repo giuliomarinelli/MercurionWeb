@@ -1,3 +1,4 @@
+import { signal } from '@angular/core';
 import { MoleculeCardItemModel, MoleculeCollectionItemClient } from './Models/graphql/molecule-collection/molecule-collection.types';
 import { MoleculeProperties } from './Models/graphql/molecule-properties.model';
 import { MoleculeSearchResult } from './Models/graphql/molecule-search/molecule-search-result.interface';
@@ -34,7 +35,9 @@ export class Helpers {
       smiles: mol.type === 'chembl' ? (mol.chemblDetails as MoleculeDetail)?.canonicalSmiles ?? '' : mol.canonicalSmiles ?? '',
       createdAt: Date.parse(String(mol.createdAt)),
       updatedAt: Date.parse(String(mol.updatedAt)),
-      touchedAt: Date.parse(String(mol.touchedAt))
+      touchedAt: Date.parse(String(mol.touchedAt)),
+      triggerDisappear: signal<boolean>(false),
+      collapse: signal<boolean>(false)
     }
   }
 
@@ -59,7 +62,9 @@ export class Helpers {
       maxPhase: dto.maxPhase,
       createdAt: now,
       touchedAt: now,
-      updatedAt: now
+      updatedAt: now,
+      triggerDisappear: signal<boolean>(false),
+      collapse: signal<boolean>(false)
     })
   }
 

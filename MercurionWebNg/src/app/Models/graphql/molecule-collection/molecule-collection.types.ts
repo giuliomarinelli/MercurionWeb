@@ -1,3 +1,4 @@
+import { WritableSignal } from "@angular/core";
 import { T1PredictionDTO } from "../../notebook/t1-prediction-model";
 import { MoleculeProperties } from "../molecule-properties.model";
 import { MoleculeDetail, MoleculeDetailSystem } from "../molecule.detail.models";
@@ -171,6 +172,8 @@ export interface MoleculeCardItemModel {
   createdAt: number
   updatedAt: number
   touchedAt: number
+  triggerDisappear: WritableSignal<boolean>
+  collapse: WritableSignal<boolean>
 }
 
 

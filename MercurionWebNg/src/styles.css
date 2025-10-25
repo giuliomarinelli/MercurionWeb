@@ -51,7 +51,19 @@ body {
   font-family: 'Space Grotesk', sans-serif;
 }
 
+.fade-out {
+  opacity: 0;
+  transform: scaleY(0.95);
+  transition:
+    opacity 150ms ease-out,
+    transform 150ms ease-out;
+}
 
+/* Fase 2: ricomposizione layout */
+.collapse {
+  max-height: 0; padding: 0;
+  transition: max-height 200ms ease-in;
+}
 
 .custom-scrollbar {
   scrollbar-width: thin;

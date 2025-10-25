@@ -42,12 +42,16 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
           rounded-2xl border p-4 md:p-5
           bg-slate-100 dark:bg-slate-800/50 backdrop-blur-sm
           border-slate-200/70 dark:border-slate-700/60
-          transition-all duration-200
+          transition-all duration-300 overflow-hidden
           hover:shadow-md hover:-translate-y-0.5
           hover:border-indigo-300/50 dark:hover:border-indigo-400/30
           focus-within:ring-2 focus-within:ring-indigo-500/70
         "
-        [ngClass]="{ 'bg-slate-100/50 dark:bg-slate-800/40': _i() % 2 !== 0 }"
+        [ngClass]="{
+          'bg-slate-100/50 dark:bg-slate-800/40': _i() % 2 !== 0,
+          'fade-out': _triggerDisappear(),
+          'collapse': _collapse()
+        }"
         aria-label="Card molecola {{ _molecule()!.name }}"
       >
         <!-- OVERLAY CLICKABLE: copre tutta la card, tranne i bottoni con z-index maggiore -->
@@ -55,6 +59,7 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
           class="absolute inset-0 rounded-2xl"
           [class.z-10]="!_isReadonly()"
           [class.pointer-events-none]="_isReadonly()"
+          [class.hidden]="_triggerDisappear()"
           [routerLink]="_pathToMolecule()"
           [queryParams]="{ c_id: _collectionId() }"
           (click)="searchContext.close()"
@@ -294,6 +299,16 @@ export class MoleculeCollectionItemCardComponent implements OnDestroy {
     this._isReadonly.set(isReadonly)
   }
 
+  @Input()
+  set triggerDisappear(triggerDisappear: boolean) {
+    this._triggerDisappear.set(triggerDisappear)
+  }
+
+  @Input()
+  set collapse(collapse: boolean) {
+    this._collapse.set(collapse)
+  }
+
   /* outputs ---------------------------------- */
 
   @Output()
@@ -321,6 +336,8 @@ export class MoleculeCollectionItemCardComponent implements OnDestroy {
       smiles: this._molecule()!.smiles
     }
   }))
+  _triggerDisappear = signal<boolean>(false)
+  _collapse = signal<boolean>(false)
 
   private seen = false;
   private io!: IntersectionObserver;

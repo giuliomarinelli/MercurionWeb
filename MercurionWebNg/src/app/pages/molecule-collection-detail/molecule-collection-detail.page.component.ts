@@ -1,3 +1,4 @@
+import { PageModel } from './../../Models/graphql/page.model';
 import { CustomDetailsComponent } from '../../components/molecule-detail/my-molecule-custom-details/custom-details.component';
 import {
   AfterViewInit,
@@ -46,6 +47,7 @@ import { MoleculeCollectionItemCardComponent } from '../../components/molecule-d
 import { SkeletonMoleculeCardComponent } from '../../components/molecule-detail/skeleton-molecule-card/skeleton-molecule-card.component';
 import { PmSearchInputComponent } from '../../components/common/pm-search-input/pm-search-input.component';
 import { CustomDetailSaveModel } from '../../Models/custom-detail-save.model';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-molecule-collection-detail',
@@ -109,11 +111,13 @@ import { CustomDetailSaveModel } from '../../Models/custom-detail-save.model';
       (cleared)="doClear()" />
 
     <div class="mt-px relative -top-8">
-      @for (item of items; track item; let i = $index) {
+      @for (item of items; track item.id; let i = $index) {
         <app-molecule-collection-item-card
           [molecule]="item"
           [i]="i"
           [collectionId]="colId()"
+          [triggerDisappear]="item.triggerDisappear()"
+          [collapse]="item.collapse()"
           (onDelete)="doDelete($event)"
           (onRemoveFromCollection)="doRemoveMoleculeFromCollection($event)"/>
       }
@@ -185,7 +189,13 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
   }
 
   // ========= data fetch =========
-  protected override fetch$(page = this.page, size = 7) {
+  protected override fetch$(
+    page: number = this.page,
+    size: number = 7,
+    q?: string,
+    excludeJoinedToCollection?: boolean,
+    collectionId?: boolean
+  ): Observable<PageModel<MoleculeCardItemModel>> {
     const id = this.colId();
     return this.itemService
       .getPaginatedItemsForCollection(id, page, size, this.searchTerm())
@@ -195,7 +205,7 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
           ...p,
           items: p.items.map(mol => Helpers.moleculeClientToCardAdapter(mol))
         }))
-      );
+      )
   }
 
   // ========= lifecycle =========
@@ -329,12 +339,15 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
     this.delSub = this.itemService.deleteItem(id).subscribe({
       next: ok => {
         if (!ok) return;
-        this.history.triggerRemoveItemFromHistoryView(id);
-        const i = this.items.findIndex(item => item.id === id);
+        const i = this.items.findIndex(item => item.id === id)
         if (i !== -1) {
-          this.items.splice(i, 1);
-          if (!this.items.length) this.empty.set(true);
-        }
+          queueMicrotask(() => {
+              this.history.triggerRemoveItemFromHistoryView(id)
+              this.items[i].triggerDisappear.set(true)
+              setTimeout(() => this.items[i].collapse.set(true), 120)
+              setTimeout(() => this.items.splice(i, 1), 500)
+            })
+          }
       },
       error: () => this.toast.trigger('Si è verificato un errore.', 'error', 2500)
     });
@@ -364,7 +377,12 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
         if (ok) {
           const i = this.items.findIndex(item => item.id === moleculeId)
           if (i !== -1) {
-            this.items.splice(i, 1)
+            queueMicrotask(() => {
+              this.history.triggerRemoveItemFromHistoryView(moleculeId)
+              this.items[i].triggerDisappear.set(true)
+              setTimeout(() => this.items[i].collapse.set(true), 120)
+              setTimeout(() => this.items.splice(i, 1), 500)
+            })
           }
         } else {
           onError()
