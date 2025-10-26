@@ -54,6 +54,14 @@ export abstract class AbstractPaginatedMultiselectComponent<T> extends AbstractP
     this.isSelectedAll() ? this.unselectAll() : this.selectAll();
   }
 
+  protected onSelectAllChange(checked: boolean): void {
+    if (checked) {
+      this.selectAll()
+    } else {
+      this.unselectAll()
+    }
+  }
+
   // 👇 qui propaghiamo il bulk ai nuovi item
   protected override async loadMore(): Promise<void> {
     if (this.loading || this.done) return;

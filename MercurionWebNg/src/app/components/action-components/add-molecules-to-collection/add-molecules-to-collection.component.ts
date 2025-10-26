@@ -18,6 +18,7 @@ import { SearchResultSkeletonLoaderComponent } from '../../search-overlay/search
 import { SearchResultComponent } from '../../search-overlay/search-result/search-result.component';
 import { AddManyChEMBLItemDTO } from '../../../Models/graphql/add-many-chembl-item.dto';
 import { AddMoleculesToCollectionContextService } from '../../../services/context/action-context/add-molecules-to-collection-context.service';
+import { Subscription } from 'rxjs';
 
 export type ChipItem = { id: string; name: string }
 
@@ -298,6 +299,10 @@ export class AddMoleculesToCollectionComponent extends AbstractPaginatedMultisel
   private readonly addContext = inject(AddMoleculesToCollectionContextService);
   private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService);
 
+
+  private ctrlSub?: Subscription
+
+
   step = signal<1 | 2>(1);
   step_12_loading = signal<boolean>(false);
   error = signal<boolean>(false);
@@ -341,15 +346,16 @@ export class AddMoleculesToCollectionComponent extends AbstractPaginatedMultisel
 
   ngOnInit(): void {
     this.methodControl.valueChanges.subscribe(val => this.method.set(val))
-    this.loadMore(); // prima pagina
+    queueMicrotask(() => this.loadMore())
   }
 
   ngAfterViewInit(): void {
-    this.startObserver();
+    queueMicrotask(() => this.startObserver())
   }
 
   ngOnDestroy(): void {
-    this.observer?.disconnect();
+    this.ctrlSub?.unsubscribe()
+    this.observer?.disconnect()
   }
 
   // datasource
@@ -357,7 +363,7 @@ export class AddMoleculesToCollectionComponent extends AbstractPaginatedMultisel
     return this.moleculeCollectionItemService
       .getAllPaginatedItems(this.page, 8, this.searchTerm(), true, this.addContext.collectionId())
       .pipe(
-        debounceTime(200),
+        debounceTime(100),
         map(p => ({
           ...p,
           items: p.items.map(mol => Helpers.moleculeClientToCardAdapter(mol))
@@ -367,11 +373,6 @@ export class AddMoleculesToCollectionComponent extends AbstractPaginatedMultisel
 
   protected override doQuery(q: string): void { this.query(q); }
   protected override doClear(): void { this.clear(); }
-
-  onSelectAllChange(checked: boolean): void {
-    if (checked) this.selectAll();
-    else this.unselectAll();
-  }
 
   close(): void {
     this.actionOverlayContext.close();

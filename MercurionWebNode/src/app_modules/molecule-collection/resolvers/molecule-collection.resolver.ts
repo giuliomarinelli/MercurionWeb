@@ -109,12 +109,14 @@ export class MoleculeCollectionResolver {
         @AuthenticatedUserId() userId: UUID,
         @Args('page', { type: () => Int, defaultValue: 1 }) page: number,
         @Args('limit', { type: () => Int, defaultValue: 20 }) limit: number,
+        @Args('excludeJoinedToMolecule', { type: () => Boolean, nullable: true }) excludeJoinedToMolecule: boolean | null,
+        @Args('moleculeId', { type: () => ID, nullable: true }) moleculeId: UUID | null,
         @Info() info: GraphQLResolveInfo,
         @Args('q', { type: () => String }) q: string
     ): Promise<PaginatedMoleculeCollection> {
 
         const fieldsMap = GraphqlUtils.getFieldsMap(info)
-        const paginated = await this.collectionService.paginateByUser(userId, { page, limit }, q, fieldsMap);
+        const paginated = await this.collectionService.paginateAllByUser(userId, { page, limit }, q, excludeJoinedToMolecule ?? false, moleculeId, fieldsMap);
 
         return {
             items: paginated.items,

@@ -86,12 +86,20 @@ export class MoleculeCollectionService {
   getPaginatedCollections(
     page: number = 1,
     limit: number = 20,
-    q: string
+    q: string,
+    excludeJoinedToMolecule: boolean | null = null,
+    moleculeId: string | null = null
   ): Observable<PageModel<MoleculeCollection>> {
     return this.apollo
       .watchQuery<{ myMoleculeCollectionsPaginated: any }>({
         query: PAGINATED_MOLECULE_COLLECTIONS,
-        variables: { page, limit, q },
+        variables: {
+          page,
+          limit,
+          q,
+          excludeJoinedToMolecule,
+          moleculeId
+        },
         fetchPolicy: 'network-only'
       })
       .valueChanges.pipe(

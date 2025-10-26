@@ -11,6 +11,8 @@ import { History } from 'src/app_modules/history/Models/entities/history.entity'
 import { HistoryItemEntity } from 'src/app_modules/history/Models/enums/history-item-entity.enum';
 import { uuidv7 } from '@kripod/uuidv7';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
+import { MoleculeCollectionItemJoin } from '../Models/entities/molecule-collection-item-join.entity';
+import { ChEMBLMoleculeItemEntity } from '../Models/entities/chembl-molecule-item.entity';
 
 @Injectable()
 export class MoleculeCollectionService {
@@ -298,30 +300,59 @@ WHERE i.user_id = $2::uuid
     return qb.getMany()
   }
 
-  async paginateByUser(
+  async paginateAllByUser(
     userId: UUID,
     options: IPaginationOptions,
     searchTerm: string = '',
+    excludeJoinedToMolecule: boolean = false,
+    moleculeId: UUID | null = null,
     fieldsMap?: GraphQLFieldsMap,
   ): Promise<Pagination<MoleculeCollection>> {
-    // Prendi i campi richiesti dentro "items"
+    
     const itemsFields = fieldsMap?.items ? Object.keys(fieldsMap.items).filter(k => k !== '__typename') : [];
-    // I campi "esterni" non servono nella select
-    // Unisci ai requiredFields
     const columns = GraphqlUtils.ensureRequiredFields(itemsFields, this.REQUIRED_FIELDS).filter(c => c !== 'itemsCount')
 
     let qb = this.collectionRepo.createQueryBuilder('collection')
       .select(columns.map(col => `collection.${col}`))
-      .where('collection.user_id = :userId', { userId })
+      .where('collection.userId = :userId', { userId })
+
+    if (excludeJoinedToMolecule && moleculeId) {
+      
+      const raw = String(moleculeId)
+      const isMolregno = /^\d+$/.test(raw)
+
+      if (isMolregno) {
+        qb = qb.andWhere(qb2 => {
+          const sub = qb2.subQuery()
+            .select('1')
+            .from(MoleculeCollectionItemJoin, 'j')
+            // ChildEntity su STI: TypeORM aggiunge automaticamente il discriminator (type='chembl')
+            .innerJoin(ChEMBLMoleculeItemEntity, 'chembl', 'chembl.id = j.itemId AND chembl.chemblMolregno = :molregno')
+            .where('j.collectionId = collection.id')
+            .getQuery()
+          return `NOT EXISTS ${sub}`
+        }).setParameter('molregno', Number(raw))
+      } else {
+        qb = qb.andWhere(qb2 => {
+          const sub = qb2.subQuery()
+            .select('1')
+            .from(MoleculeCollectionItemJoin, 'j')
+            .where('j.collectionId = collection.id')
+            .andWhere('j.itemId = :itemId')
+            .getQuery();
+          return `NOT EXISTS ${sub}`
+        }).setParameter('itemId', raw)
+      }
+    }
 
     if (searchTerm.trim()) {
       qb = qb.andWhere('collection.name ILIKE :query', { query: `%${searchTerm}%` })
     }
 
     qb = qb.orderBy('collection.touchedAt', 'DESC')
-    // le join sulle relazioni puoi farle se richieste
-
+    
     return paginate<MoleculeCollection>(qb, options)
+
   }
 
 
