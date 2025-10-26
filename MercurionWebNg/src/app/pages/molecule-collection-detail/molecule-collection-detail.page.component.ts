@@ -184,6 +184,7 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
   name = signal<string>('');
   colId = signal<string>('');
   triggerRenameRollback = signal<boolean>(false)
+  private tick = signal<number>(0)
 
   protected readonly breadcrumb: LinkModel[] = [
     { label: 'Collezioni Molecolari', path: '/molecules/collections' }
@@ -193,9 +194,18 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
     super()
     effect(() => {
       const t = this.addCtx.addedTick()
-      if (t === 0) return
+      if (t === 0) {
+        return
+      }
       this.resetAndRefetch()
-    });
+    })
+    effect(() => {
+      const t = this.tick()
+      if (t === 0) {
+        return
+      }
+      this.resetAndRefetch()
+    })
   }
 
   // ========= data fetch =========
@@ -360,7 +370,12 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
             this.history.triggerRemoveItemFromHistoryView(id)
             this.items[i].triggerDisappear.set(true)
             setTimeout(() => this.items[i].collapse.set(true), 120)
-            setTimeout(() => this.items.splice(i, 1), 500)
+            setTimeout(() => {
+              this.items.splice(i, 1)
+              if (this.items.length === 0) {
+                this.tick.update(x => x + 1)
+              }
+            }, 500)
           })
         }
       },
@@ -433,7 +448,12 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
               this.history.triggerRemoveItemFromHistoryView(moleculeId)
               this.items[i].triggerDisappear.set(true)
               setTimeout(() => this.items[i].collapse.set(true), 120)
-              setTimeout(() => this.items.splice(i, 1), 500)
+              setTimeout(() => {
+                this.items.splice(i, 1)
+                if (this.items.length === 0) {
+                  this.tick.update(x => x + 1)
+                }
+              }, 500)
             })
           }
         } else {

@@ -1,5 +1,5 @@
 import { MoleculeCardItemModel } from './../../Models/graphql/molecule-collection/molecule-collection.types';
-import { AfterViewInit, Component, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, effect, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { MoleculeCollectionItemCardComponent } from '../../components/molecule-detail/molecule-collection-item-card/molecule-collection-item-card.component';
 import { debounceTime, map, Subscription } from 'rxjs';
@@ -102,6 +102,8 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
   private readonly toast = inject(ToastService)
   // ====================================================
 
+  private tick = signal<number>(0)
+
   // Ensure infinite scroll fills the viewport when content is short
   private enforceInfiniteScroll(attempts = 5): void {
     if (attempts <= 0 || this.loading || this.done) return;
@@ -140,6 +142,19 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
 
 
   private delSub?: Subscription
+
+  constructor() {
+    super()
+    effect(() => {
+      const t = this.tick()
+      if (t === 0) {
+        return
+      }
+      queueMicrotask(() => {
+        this.resetPagination()
+      })
+    })
+  }
 
 
   ngOnInit(): void {
@@ -180,7 +195,12 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
               this.historyContext.triggerRemoveItemFromHistoryView(id)
               this.items[i].triggerDisappear.set(true)
               setTimeout(() => this.items[i].collapse.set(true), 120)
-              setTimeout(() => this.items.splice(i, 1), 500)
+              setTimeout(() => {
+                this.items.splice(i, 1)
+                if (this.items.length === 0) {
+                  this.tick.update(x => x + 1)
+                }
+              }, 500)
               this.enforceInfiniteScroll()
             })
           }

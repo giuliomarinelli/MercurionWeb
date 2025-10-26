@@ -334,8 +334,15 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
     })
     effect(() => {
       if (!this.userContext.initials()) {
-        this.fetchData()
+        queueMicrotask(() => this.fetchData())
       }
+    })
+    effect(() => {
+      const t = this.bindContext.addedTick()
+      if (t === 0) {
+        return
+      }
+      queueMicrotask(() => this.fetchData())
     })
   }
 

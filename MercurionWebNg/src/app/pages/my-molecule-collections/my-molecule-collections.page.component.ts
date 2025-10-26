@@ -120,15 +120,18 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
   @ViewChild('sentinel', { static: true })
   declare sentinel: ElementRef<HTMLDivElement> | undefined
 
+  private tick = signal<number>(0)
 
   constructor() {
 
     super();
 
     effect(() => {
-      const t = this.createCtx.addedTick();
-      if (t === 0) return;
-      this.resetPagination();
+      const t = this.createCtx.addedTick()
+      if (t === 0) {
+        return
+      }
+      queueMicrotask(() => this.resetPagination())
     });
 
     effect(() => {
@@ -136,7 +139,15 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
       if (t === 0) {
         return
       }
-      this.resetPagination()
+      queueMicrotask(() => this.resetPagination())
+    })
+
+    effect(() => {
+      const t = this.tick()
+      if (t === 0) {
+        return
+      }
+      queueMicrotask(() => this.resetPagination())
     })
 
     // Fallback: if the CreateCollection overlay just closed and a tick occurred, refresh
@@ -244,7 +255,12 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
               this.historyContext.triggerRemoveItemFromHistoryView(collectionId)
               this.items[i].triggerDisappear.set(true)
               setTimeout(() => this.items[i].collapse.set(true), 120)
-              setTimeout(() => this.items.splice(i, 1), 500)
+              setTimeout(() => {
+                this.items.splice(i, 1)
+                if (this.items.length === 0) {
+                  this.tick.update(x => x + 1)
+                }
+              }, 500)
             })
           }
 
