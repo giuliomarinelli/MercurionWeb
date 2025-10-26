@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router'
-import { ColorPaletteComponent } from './playground/color-palette/color-palette.component'
 import { AuthGuard } from './guards/auth-guard.guard'
-import { NotFound404LandingPageComponent } from './pages/not-found-404-template/not-found-404-landing.page.component'
+
 
 export const routes: Routes = [
   {
@@ -10,26 +9,12 @@ export const routes: Routes = [
     redirectTo: 'login'
   },
   {
-    path: 'playground/combo',
-    loadComponent: () => import('./playground/combo-father/combo-father.component').then(m => m.ComboFatherComponent)
-  },
-  {
-    path: 'playground/palette',
-    component: ColorPaletteComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'test/spinner',
-    loadComponent: () => import('./pages/test-spinner/test-spinner.component').then(m => m.TestSpinnerComponent),
-    canActivate: [AuthGuard]
-  },
-  {
     path: 'login',
     loadComponent: () => import('./pages/login/login.page.component').then(m => m.LoginPageComponent)
   },
   {
     path: 'profile',
-    loadComponent: () => import('./pages/profile/profile.page.component').then(m => m.ProfilePageComponent),
+    loadComponent: () => import('./pages/profile/dashboard.page.component').then(m => m.ProfilePageComponent),
     canActivate: [AuthGuard]
   },
   {
@@ -90,7 +75,7 @@ export const routes: Routes = [
   },
   {
     path: '404-not-found',
-    loadComponent: () => import('./pages/not-found-404-template/not-found-404-landing.page.component').then(m => m.NotFound404LandingPageComponent)
+    loadComponent: () => import('./pages/not-found-404-landing/not-found-404-landing.page.component').then(m => m.NotFound404LandingPageComponent)
   },
   {
     path: '**',

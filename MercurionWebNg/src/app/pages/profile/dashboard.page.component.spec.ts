@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ComboFatherComponent } from './combo-father.component';
+import { ProfilePageComponent } from './dashboard.page.component';
 
-describe('ComboFatherComponent', () => {
-  let component: ComboFatherComponent;
-  let fixture: ComponentFixture<ComboFatherComponent>;
+describe('ProfileComponent', () => {
+  let component: ProfilePageComponent;
+  let fixture: ComponentFixture<ProfilePageComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ComboFatherComponent]
+      imports: [ProfilePageComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(ComboFatherComponent);
+    fixture = TestBed.createComponent(ProfilePageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

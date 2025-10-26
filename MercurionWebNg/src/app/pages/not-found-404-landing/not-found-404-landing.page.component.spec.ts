@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-
+import { NotFound404LandingPageComponent } from './not-found-404-landing.page.component';
 
 describe('NotFound404TemplateComponent', () => {
   let component: NotFound404LandingPageComponent;
