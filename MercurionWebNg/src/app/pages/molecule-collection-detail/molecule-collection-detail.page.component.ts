@@ -39,11 +39,9 @@ import { HistoryContextService } from '../../services/context/history-context.se
 import { ToastService } from '../../services/toast.service';
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
 import { AddMoleculesToCollectionContextService } from '../../services/context/add-molecules-to-collection-context.service';
-
 import { Helpers } from '../../helpers';
 import { LinkModel } from '../../Models/link.model';
 import { MoleculeCardItemModel } from '../../Models/graphql/molecule-collection/molecule-collection.types';
-
 import { MyMoleculesHeadingComponent } from '../../components/molecule-detail/my-molecules-heading/my-molecules-heading.component';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { MoleculeCollectionItemCardComponent } from '../../components/molecule-detail/molecule-collection-item-card/molecule-collection-item-card.component';

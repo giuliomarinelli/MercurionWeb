@@ -1,7 +1,8 @@
-import { MoleculeCollection } from '../../Models/graphql/molecule-collection/molecule-collection.types';
-import { debounce, debounceTime, firstValueFrom, interval, Subscription } from 'rxjs';
+import { HistoryContextService } from './../../services/context/history-context.service';
+import { MoleculeCollection, UiMoleculeCollection } from '../../Models/graphql/molecule-collection/molecule-collection.types';
+import { catchError, debounceTime, EMPTY, firstValueFrom, map, of, Subscription, switchMap, tap } from 'rxjs';
 import { MyMoleculesHeadingComponent } from '../../components/molecule-detail/my-molecules-heading/my-molecules-heading.component';
-import { AfterViewInit, Component, ElementRef, inject, OnInit, signal, ViewChild, effect } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, inject, OnInit, ViewChild, effect, OnDestroy, signal } from '@angular/core';
 import { MoleculeCollectionService } from '../../services/graphql/molecule-collection.service';
 import { CollectionCardComponent } from '../../components/molecule-detail/collection-card/collection-card.component';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
@@ -13,6 +14,7 @@ import { Observable } from 'rxjs';
 import { PageModel } from '../../Models/graphql/page.model';
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
 import { CreateCollectionContextService } from '../../services/context/action-context/create-collection-context.service';
+import { ToastService } from '../../services/toast.service';
 
 
 @Component({
@@ -73,7 +75,14 @@ import { CreateCollectionContextService } from '../../services/context/action-co
     }
     <div class="mt-px relative -top-16">
       @for (item of items; track item.id; let i = $index) {
-        <app-collection-card [collection]="item" [i]="i" />
+        <app-collection-card
+          [collection]="item"
+          [i]="i"
+          [triggerDisappear]="item.triggerDisappear()"
+          [collapse]="item.collapse()"
+          (onDuplicate)="doDuplicateCollection($event)"
+          (onDelete)="doDeleteCollection($event)"
+          (onAddMolecules)="doAddMoleculesToCollection($event)"  />
       }
     </div>
     <div #sentinel class="sentinel"></div>
@@ -94,17 +103,26 @@ import { CreateCollectionContextService } from '../../services/context/action-co
 
   `
 })
-export class MyMoleculeCollectionsPageComponent extends AbstractPaginationComponent<MoleculeCollection> implements OnInit, AfterViewInit {
+export class MyMoleculeCollectionsPageComponent extends AbstractPaginationComponent<UiMoleculeCollection> implements OnInit, AfterViewInit, OnDestroy {
 
   // ======================= DEPS =======================
   private readonly moleculeCollectionService = inject(MoleculeCollectionService)
   private readonly actionOverlayContext = inject(ActionOverlayContextService)
   private readonly createCtx = inject(CreateCollectionContextService)
+  private readonly toast = inject(ToastService)
+  private readonly historyContext = inject(HistoryContextService)
   // ====================================================
 
+  private delColSub?: Subscription
+
+  @ViewChild('sentinel', { static: true })
+  declare sentinel: ElementRef<HTMLDivElement> | undefined
+
+
   constructor() {
+
     super();
-    // React when CreateCollection overlay reports new items
+
     effect(() => {
       const t = this.createCtx.addedTick();
       if (t === 0) return;
@@ -123,25 +141,62 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
   }
 
 
-  @ViewChild('sentinel', { static: true })
-  declare sentinel: ElementRef<HTMLDivElement> | undefined
+  ngOnInit(): void {
+    this.loadMore()
+  }
 
   ngAfterViewInit(): void {
     this.startObserver()
   }
 
-  ngOnInit(): void {
-    this.loadMore()
+  ngOnDestroy(): void {
+    this.delColSub?.unsubscribe()
   }
+
+  protected override async loadMore(): Promise<void> {
+
+    if (this.loading || this.done) {
+      return
+    }
+
+    this.loading = true
+
+    const newPage = await firstValueFrom(this.fetch$())
+
+    if (newPage.items.length === 0) {
+      this.done = true
+      if (this.page === 1) {
+        this.earlyDone = true
+      }
+    } else {
+      if (this.empty()) {
+        this.empty.set(false)
+      }
+
+      this.items = [...this.items, ...newPage.items]
+      this.page++
+    }
+
+    this.loading = false
+  }
+
 
   createNewCollection(): void {
     this.actionOverlayContext.open('CreateCollection')
   }
 
-  fetch$(): Observable<PageModel<MoleculeCollection>> {
+  protected fetch$(): Observable<PageModel<UiMoleculeCollection>> {
     return this.moleculeCollectionService.getPaginatedCollections(this.page, 10, this.searchTerm())
       .pipe(
-        debounceTime(200)
+        debounceTime(200),
+        map(page => ({
+          ...page,
+          items: page.items.map(item => ({
+            ...item,
+            triggerDisappear: signal<boolean>(false),
+            collapse: signal<boolean>(false)
+          }))
+        }))
       )
   }
 
@@ -151,6 +206,45 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
 
   protected override doClear(): void {
     this.clear()
+  }
+
+  doDuplicateCollection(collectionId: string): void {
+
+  }
+
+  doDeleteCollection(collectionId: string): void {
+    const onError = () => queueMicrotask(() => this.toast.trigger('Si è verificato un errore.', 'error', 3000))
+    this.delColSub = this.moleculeCollectionService.deleteCollection(collectionId).pipe(
+      switchMap(ok => {
+        if (!ok) {
+          onError()
+          return of(ok)
+        }
+        return of(true)
+      }),
+      catchError(() => {
+        onError()
+        return EMPTY
+      }),
+      tap((ok) => {
+        if (ok) {
+          const i = this.items.findIndex(col => col.id === collectionId)
+          if (i !== -1) {
+            queueMicrotask(() => {
+              this.historyContext.triggerRemoveItemFromHistoryView(collectionId)
+              this.items[i].triggerDisappear.set(true)
+              setTimeout(() => this.items[i].collapse.set(true), 120)
+              setTimeout(() => this.items.splice(i, 1), 500)
+            })
+          }
+
+        }
+      })
+    ).subscribe(() => { /* pass */ })
+  }
+
+  doAddMoleculesToCollection(collectionId: string): void {
+
   }
 
 }

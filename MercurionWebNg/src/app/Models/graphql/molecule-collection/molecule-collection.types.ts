@@ -161,7 +161,14 @@ export interface MoleculeCollection {
   itemsCount: number
 }
 
-export interface MoleculeCardItemModel {
+export interface Animatable {
+  triggerDisappear: WritableSignal<boolean>
+  collapse: WritableSignal<boolean>
+}
+
+export type UiMoleculeCollection = MoleculeCollection & Animatable
+
+export interface MoleculeCardItemModel extends Animatable {
   id: string
   type: 'system' | 'chembl' | 'custom'
   name: string
@@ -172,8 +179,6 @@ export interface MoleculeCardItemModel {
   createdAt: number
   updatedAt: number
   touchedAt: number
-  triggerDisappear: WritableSignal<boolean>
-  collapse: WritableSignal<boolean>
 }
 
 

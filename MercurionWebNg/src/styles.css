@@ -1,48 +1,46 @@
-
-
 @font-face {
-    font-family: 'Space Grotesk';
-    src: url('/app/fonts/space_grotesk/SpaceGrotesk-Light.woff2') format('woff2'),
-        url('/app/fonts/space_grotesk/SpaceGrotesk-Light.woff') format('woff');
-    font-weight: 300;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Space Grotesk';
+  src: url('/app/fonts/space_grotesk/SpaceGrotesk-Light.woff2') format('woff2'),
+    url('/app/fonts/space_grotesk/SpaceGrotesk-Light.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Space Grotesk';
-    src: url('/app/fonts/space_grotesk/SpaceGrotesk-Regular.woff2') format('woff2'),
-        url('/app/fonts/space_grotesk/SpaceGrotesk-Regular.woff') format('woff');
-    font-weight: normal;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Space Grotesk';
+  src: url('/app/fonts/space_grotesk/SpaceGrotesk-Regular.woff2') format('woff2'),
+    url('/app/fonts/space_grotesk/SpaceGrotesk-Regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Space Grotesk';
-    src: url('/app/fonts/space_grotesk/SpaceGrotesk-Medium.woff2') format('woff2'),
-        url('/app/fonts/space_grotesk/SpaceGrotesk-Medium.woff') format('woff');
-    font-weight: 500;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Space Grotesk';
+  src: url('/app/fonts/space_grotesk/SpaceGrotesk-Medium.woff2') format('woff2'),
+    url('/app/fonts/space_grotesk/SpaceGrotesk-Medium.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Space Grotesk';
-    src: url('/app/fonts/space_grotesk/SpaceGrotesk-Bold.woff2') format('woff2'),
-        url('/app/fonts/space_grotesk/SpaceGrotesk-Bold.woff') format('woff');
-    font-weight: bold;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Space Grotesk';
+  src: url('/app/fonts/space_grotesk/SpaceGrotesk-Bold.woff2') format('woff2'),
+    url('/app/fonts/space_grotesk/SpaceGrotesk-Bold.woff') format('woff');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Space Grotesk';
-    src: url('/app/fonts/space_grotesk/SpaceGrotesk-SemiBold.woff2') format('woff2'),
-        url('/app/fonts/space_grotesk/SpaceGrotesk-SemiBold.woff') format('woff');
-    font-weight: 600;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Space Grotesk';
+  src: url('/app/fonts/space_grotesk/SpaceGrotesk-SemiBold.woff2') format('woff2'),
+    url('/app/fonts/space_grotesk/SpaceGrotesk-SemiBold.woff') format('woff');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
 }
 
 html,
@@ -61,35 +59,49 @@ body {
 
 /* Fase 2: ricomposizione layout */
 .collapse {
-  max-height: 0; padding: 0;
-  transition: max-height 200ms ease-in;
+  max-height: 0;
+  padding: 0;
+  transition: max-height 200ms ease-in !important;
 }
+
+
 
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: #45556c #f3f4f6;
-  scrollbar-width: 3px;       /* thumb, track - LIGHT */
+  scrollbar-width: 3px;
+  /* thumb, track - LIGHT */
 }
+
 .custom-scrollbar::-webkit-scrollbar {
   width: 3px;
 }
+
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #f59e42;                     /* thumb - LIGHT */
+  background: #f59e42;
+  /* thumb - LIGHT */
   border-radius: 3px;
 }
+
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #f3f4f6;                     /* track - LIGHT */
+  background: #f3f4f6;
+  /* track - LIGHT */
 }
 
 /* VERSIONE DARK: attiva se <html class="dark"> */
 .dark .custom-scrollbar {
-  scrollbar-color: #cad5e2 #262626;         /* thumb, track - DARK */
+  scrollbar-color: #cad5e2 #262626;
+  /* thumb, track - DARK */
 }
+
 .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #fbbf24;                     /* thumb - DARK */
+  background: #fbbf24;
+  /* thumb - DARK */
 }
+
 .dark .custom-scrollbar::-webkit-scrollbar-track {
-  background: #262626;                     /* track - DARK */
+  background: #262626;
+  /* track - DARK */
 }
 
 
