@@ -14,12 +14,13 @@ import { CreateCollectionContextService } from '../../../services/context/action
     <div class="w-full max-w-2xl bg-white/95 dark:bg-dark-surface-main/95 rounded-xl shadow-xl ring-1 ring-black/5 dark:ring-white/10 overflow-hidden">
       <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200/80 dark:border-white/10 sticky top-0 z-50 rounded-t-xl bg-white/90 dark:bg-dark-surface-main/90 backdrop-blur">
         <h2 class="text-lg font-semibold">Crea una o più collezioni molecolari</h2>
-        <button class="inline-flex items-center justify-center size-8 rounded-md text-slate-500 hover:text-emerald-600 hover:bg-slate-100 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-transparent transition" (click)="close()">&times;</button>
+        <button class="inline-flex items-center justify-center size-8 rounded-md text-slate-500 hover:text-emerald-600 hover:bg-slate-100 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-transparent transition" (click)="close()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-5 h-auto">
+            <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+            <path d="M182.9 137.4L160.3 114.7L115 160L137.6 182.6L275 320L137.6 457.4L115 480L160.3 525.3L182.9 502.6L320.3 365.3L457.6 502.6L480.3 525.3L525.5 480L502.9 457.4L365.5 320L502.9 182.6L525.5 160L480.3 114.7L457.6 137.4L320.3 274.7L182.9 137.4z"/>
+          </svg>
+        </button>
       </div>
-      <!-- <div class="mx-auto">
-        <div class="mt-6 space-y-6 sm:flex sm:items-center sm:space-x-10 sm:space-y-0 px-6 pb-6 border-b border-spacing-y-[0.3px]">
-        </div>
-      </div> -->
       <div class="border-b">
         @if (selectedChips.length === 0) {
           <div class="flex items-center justify-center py-12 text-sm text-gray-500 dark:text-gray-400">
@@ -71,8 +72,8 @@ import { CreateCollectionContextService } from '../../../services/context/action
           </div>
         }
       </div>
-      <div class="py-6 px-4 overflow-y-auto flex flex-col gap-4 min-h-[25vh] max-h-[45vh]">
-        <label for="nameInput" class="ml-px text-sm font-semibold block">Nome nuova collezione</label>
+      <div class="py-12 px-4 overflow-y-auto flex flex-col gap-4 relative -top-1">
+        <label for="nameInput" class="ml-px text-sm font-semibold block">Nome della nuova collezione</label>
         <div class="grid grid-cols-12 gap-4">
           <div class="col-span-9 flex gap-2 items-center relative">
             <input
@@ -121,7 +122,7 @@ import { CreateCollectionContextService } from '../../../services/context/action
         <button
           type="button"
           class="px-4 py-2 rounded-md bg-emerald-600 text-white font-semibold shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-white disabled:bg-emerald-300 disabled:cursor-not-allowed min-w-10"
-          [disabled]="false"
+          [disabled]="selectedChips.length === 0"
           (click)="doSubmit()"
         >
           <span>Crea</span>

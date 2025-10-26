@@ -23,14 +23,14 @@ export class MoleculeCollectionService {
   FROM jsonb_to_recordset($1::jsonb)
        AS t(
          id uuid,
-         user_id uuid,        -- <— qui: era text
+         user_id uuid,        -- UUID ok
          name text,
          created_at bigint,
          updated_at bigint,
          touched_at bigint
        )
 ),
--- normalizza il base_name rimuovendo " (n)" finale, se presente
+-- base_name = nome senza eventuale " (n)" finale
 norm AS (
   SELECT
     id,
@@ -44,80 +44,76 @@ norm AS (
     COALESCE(touched_at, 0)::bigint AS touched_at
   FROM payload
 ),
--- lock per ciascuna coppia (user_id, base_name) per evitare race
+-- lock per (user_id, base_name)
 locks AS (
   SELECT pg_advisory_xact_lock(
-           ((hashtextextended(user_id::text, 17))::bigint << 32)  -- <— cast a text per l’hash
+           ((hashtextextended(user_id::text, 17))::bigint << 32)
            # (hashtextextended(base_name, 42))::bigint
          )
   FROM (SELECT DISTINCT user_id, base_name FROM norm) d
 ),
--- rank locale dei duplicati nel batch
+-- ranking locale nel batch
 ranked AS (
   SELECT
     n.*,
     ROW_NUMBER() OVER (PARTITION BY user_id, base_name ORDER BY id) - 1 AS rn
   FROM norm n
 ),
--- massimo suffisso già presente nel DB per ogni (user_id, base_name)
+-- stato esistente nel DB: se esiste il plain e qual è il max suffisso
 existing AS (
   SELECT
     e.user_id,
     e.base_name,
-    COALESCE(MAX(
-      COALESCE( (regexp_match(mc.name, ' \((\d+)\)$'))[1]::int, 0 )
-    ), 0) AS max_suffix
-  FROM (
-    SELECT DISTINCT user_id, base_name FROM norm
-  ) e
-  LEFT JOIN LATERAL (
-    SELECT mc.name
-    FROM public.molecule_collections mc
-    WHERE mc.user_id = e.user_id
-      AND (mc.name = e.base_name OR mc.name LIKE e.base_name || ' (%)')
-  ) mc ON true
+    -- true se esiste 'base_name' senza suffisso
+    BOOL_OR(mc.name = e.base_name) AS has_plain,
+    -- massimo numero di suffisso presente (NULL se non ce ne sono)
+    MAX( NULLIF( (regexp_match(mc.name, ' \((\d+)\)$'))[1], NULL )::int ) AS max_suffix_num
+  FROM (SELECT DISTINCT user_id, base_name FROM norm) e
+  LEFT JOIN public.molecule_collections mc
+    ON mc.user_id = e.user_id
+   AND (mc.name = e.base_name OR mc.name LIKE e.base_name || ' (%)')
   GROUP BY e.user_id, e.base_name
 ),
--- costruzione del nome finale unico
-final_rows AS (
+-- calcolo indice del suffisso da usare per ciascuna riga del batch
+assigned AS (
   SELECT
     r.id,
     r.user_id,
-    (
-      CASE
-        WHEN (COALESCE(e.max_suffix,0) + r.rn) = 0 THEN
-          NULL
-        ELSE
-          ' (' || (COALESCE(e.max_suffix,0) + r.rn)::text || ')'
-      END
-    ) AS suffix,
     r.base_name,
     r.created_at,
     r.updated_at,
-    r.touched_at
+    r.touched_at,
+    CASE
+      WHEN COALESCE(e.has_plain, false) = false AND r.rn = 0 THEN 0
+      ELSE COALESCE(e.max_suffix_num, 0) + CASE WHEN COALESCE(e.has_plain, false) THEN 1 ELSE 0 END + r.rn
+    END AS suffix_idx
   FROM ranked r
   LEFT JOIN existing e
     ON e.user_id = r.user_id AND e.base_name = r.base_name
 ),
-final_rows2 AS (
+-- costruzione del nome finale con gestione 255 char
+final_rows AS (
   SELECT
     id,
     user_id,
     CASE
-      WHEN suffix IS NULL THEN LEFT(base_name, 255)
-      ELSE LEFT(base_name, GREATEST(1, 255 - char_length(suffix))) || suffix
+      WHEN suffix_idx = 0 THEN
+        LEFT(base_name, 255)
+      ELSE
+        -- costruisci il suffisso " (n)"
+        -- e tronca il base_name per non superare 255
+        LEFT(base_name, GREATEST(1, 255 - char_length(' (' || suffix_idx::text || ')')))
+        || ' (' || suffix_idx::text || ')'
     END AS name,
     created_at,
     updated_at,
     touched_at
-  FROM final_rows
+  FROM assigned
 )
 INSERT INTO public.molecule_collections
   (id, user_id, name, created_at, updated_at, touched_at)
 SELECT id, user_id, name, created_at, updated_at, touched_at
-FROM final_rows2;
-
-
+FROM final_rows;
 `
 
   private readonly DELETE_COLLECTION_AND_ORPHAN_MOLECULES = `WITH candidates AS (
