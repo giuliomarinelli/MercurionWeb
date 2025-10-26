@@ -311,13 +311,13 @@ WHERE i.user_id = $2::uuid
     
     const itemsFields = fieldsMap?.items ? Object.keys(fieldsMap.items).filter(k => k !== '__typename') : [];
     const columns = GraphqlUtils.ensureRequiredFields(itemsFields, this.REQUIRED_FIELDS).filter(c => c !== 'itemsCount')
-
+    
     let qb = this.collectionRepo.createQueryBuilder('collection')
       .select(columns.map(col => `collection.${col}`))
       .where('collection.userId = :userId', { userId })
 
     if (excludeJoinedToMolecule && moleculeId) {
-      
+
       const raw = String(moleculeId)
       const isMolregno = /^\d+$/.test(raw)
 

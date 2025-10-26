@@ -3,6 +3,7 @@ import { MfaStrategy } from "src/app_modules/user/Models/enums/mfa-strategy.enum
 
 export class GeneralUtils {
 
+    private static readonly uuidV7Re = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
     public static getEnumValue<T>(enumType: T, value: string | number): T[keyof T] | undefined {
         return Object.values(enumType as [keyof T]).find(val => val === value) as T[keyof T] | undefined;
@@ -46,6 +47,10 @@ export class GeneralUtils {
         return input
             .trim()                  
             .replace(/\s+/g, ' ')
+    }
+
+    public static isValidUUIDv7(uuid: string): boolean {
+        return this.uuidV7Re.test(uuid)
     }
 
 }

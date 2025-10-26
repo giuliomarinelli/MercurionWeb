@@ -32,6 +32,8 @@ import { MyMoleculesHeadingComponent } from '../../components/molecule-detail/my
 import { LinkModel } from '../../Models/link.model';
 import { MoleculeCollectionService } from '../../services/graphql/molecule-collection.service';
 import { HistoryContextService } from '../../services/context/history-context.service';
+import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
+import { BindCollectionsToMoleculeContextService } from '../../services/context/action-context/bind-collections-to-molecule-context.service';
 
 
 
@@ -76,6 +78,7 @@ import { HistoryContextService } from '../../services/context/history-context.se
             [molId]="molecule.id.toString()"
             [smiles]="molecule.canonicalSmiles"
             [isLoggedIn]="userContext.isLoggedIn()"
+            (onAddToCollection)="doAddToManyCollections()"
           />
         } @else if (typeGuards.isChemblMolecule(molecule)) {
           <molecule-header
@@ -86,6 +89,7 @@ import { HistoryContextService } from '../../services/context/history-context.se
             [smiles]="molecule.chemblDetails.canonicalSmiles"
             [isLoggedIn]="userContext.isLoggedIn()"
             (onDelete)="doDelete($event)"
+            (onAddToCollection)="doAddToManyCollections()"
           />
         } @else if (typeGuards.isCustomMolecule(molecule)) {
           <molecule-header
@@ -97,6 +101,7 @@ import { HistoryContextService } from '../../services/context/history-context.se
             [molId]="molecule.id"
             [isLoggedIn]="userContext.isLoggedIn()"
             (onDelete)="doDelete($event)"
+            (onAddToCollection)="doAddToManyCollections()"
           />
         }
         <section class="relative -top-4">
@@ -280,6 +285,8 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
   private readonly moleculeCollectionService = inject(MoleculeCollectionService)
   private readonly toast = inject(ToastService)
   private readonly historyContext = inject(HistoryContextService)
+  private readonly actionOverlayContext = inject(ActionOverlayContextService)
+  private readonly bindContext = inject(BindCollectionsToMoleculeContextService)
   // ====================================================
 
   private readonly uuidV7Re = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -578,6 +585,13 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
         }
       },
       error: () => this.toast.trigger('Si è verificato un errore.', 'error', 2500)
+    })
+  }
+
+  doAddToManyCollections(): void {
+    queueMicrotask(() => {
+      this.bindContext.setMoleculeId(this.molId.toString())
+      this.actionOverlayContext.open('BindCollectionsToMolecule')
     })
   }
 

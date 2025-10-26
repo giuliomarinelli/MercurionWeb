@@ -3,6 +3,7 @@ import { CustomMoleculeCollectionItemSaveComponent } from "../custom-molecule-co
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 import { AddMoleculesToCollectionComponent } from '../add-molecules-to-collection/add-molecules-to-collection.component';
 import { CreateCollectionComponent } from '../create-collection/create-collection.component';
+import { BindCollectionsToMoleculeComponent } from '../bind-collections-to-molecule/bind-collections-to-molecule.component';
 
 @Component({
   selector: 'app-action-overlay',
@@ -10,7 +11,8 @@ import { CreateCollectionComponent } from '../create-collection/create-collectio
   imports: [
     CustomMoleculeCollectionItemSaveComponent,
     AddMoleculesToCollectionComponent,
-    CreateCollectionComponent
+    CreateCollectionComponent,
+    BindCollectionsToMoleculeComponent
   ],
   template: `
 
@@ -29,6 +31,9 @@ import { CreateCollectionComponent } from '../create-collection/create-collectio
           }
           @case ('CreateCollection') {
             <app-create-collection />
+          }
+          @case ('BindCollectionsToMolecule') {
+            <app-bind-collections-to-molecule />
           }
         }
 

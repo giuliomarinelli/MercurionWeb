@@ -18,6 +18,7 @@ import { CustomMoleculeItemEntity } from '../Models/entities/custom-molecule-ite
 import { ChEMBLMoleculeItemEntity } from '../Models/entities/chembl-molecule-item.entity';
 import { History } from 'src/app_modules/history/Models/entities/history.entity';
 import { HistoryItemEntity } from 'src/app_modules/history/Models/enums/history-item-entity.enum';
+import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 
 
 // TODO: valutare un refactoring per dryificare la duplicazione di logica tra questo service e i service delle entità figlie concrete
@@ -34,6 +35,9 @@ export class MoleculeCollectionItemService {
     ) { }
 
     async markAsTouched(userId: UUID, itemId: UUID, _flagIds?: string): Promise<boolean> {
+        if (!GeneralUtils.isValidUUIDv7(itemId)) {
+            return false
+        }
         try {
             let flagIds: string
             if (_flagIds) {

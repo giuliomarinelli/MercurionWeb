@@ -184,7 +184,7 @@ export class MoleculeHeaderComponent {
   }
 
   doAddToCollection(): void {
-
+    this.onAddToCollection.emit()
   }
 
   doDelete(): void {

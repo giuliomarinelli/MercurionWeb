@@ -1,8 +1,8 @@
 import { gql } from "apollo-angular";
 
 export const PAGINATED_MOLECULE_COLLECTIONS = gql`
-  query PaginatedCollections($page: Int!, $limit: Int!, $q: String!, $excludeJoinedToCollection: Boolean, $moleculeId: ID) {
-    myMoleculeCollectionsPaginated(page: $page, limit: $limit, q: $q, excludeJoinedToCollection: $excludeJoinedToCollection, moleculeId: $moleculeId) {
+  query PaginatedCollections($page: Int!, $limit: Int!, $q: String!, $excludeJoinedToMolecule: Boolean, $moleculeId: ID) {
+    myMoleculeCollectionsPaginated(page: $page, limit: $limit, q: $q, excludeJoinedToMolecule: $excludeJoinedToMolecule, moleculeId: $moleculeId) {
       items {
         id
         name
