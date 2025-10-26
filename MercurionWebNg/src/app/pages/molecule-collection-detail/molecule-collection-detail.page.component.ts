@@ -27,7 +27,8 @@ import {
   throttleTime,
   fromEvent,
   EMPTY,
-  throwError
+  throwError,
+  mergeMap
 } from 'rxjs';
 
 import { AbstractPaginationComponent } from '../../abstract/abstract-pagination-component';
@@ -370,21 +371,32 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
   }
 
   doDuplicateCollection(): void { /* TODO */ }
+
   doDeleteCollection(): void {
     const onError = () => queueMicrotask(() => this.toast.trigger('Si è verificato un errore.', 'error', 3000))
-    this.delColSub = this.colService.deleteCollection(this.colId()).subscribe({
-      next: ok => {
+    this.delColSub = this.colService.deleteCollection(this.colId()).pipe(
+      switchMap(ok => {
         if (ok) {
           queueMicrotask(() => {
             this.toast.trigger('Collezione eliminata con successo.', 'success', 3000)
             this.router.navigateByUrl('/molecules/collections')
           })
-        } else {
+          return of(ok)
+        }
+        return of(false)
+      }),
+      catchError(() => {
+        onError()
+        return EMPTY
+      }),
+      mergeMap(ok => {
+        if (!ok) {
           onError()
         }
-      },
-      error: () => onError()
-    })
+        return !ok ? EMPTY : of(ok)
+      }),
+      tap(() => this.historyContext.triggerRemoveItemFromHistoryView(this.colId()))
+    ).subscribe(() => { /* pass */ })
   }
 
   doRenameCollection(e: CustomDetailSaveModel): void {

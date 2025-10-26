@@ -116,7 +116,7 @@ SELECT id, user_id, name, created_at, updated_at, touched_at
 FROM final_rows;
 `
 
-  private readonly DELETE_COLLECTION_AND_ORPHAN_MOLECULES = `WITH candidates AS (
+  private readonly DELETE_COLLECTION_AND_ORPHAN_MOLECULES_QUERY = `WITH candidates AS (
   SELECT DISTINCT j.item_id
   FROM molecule_collection_items_join j
   WHERE j.collection_id = $1::uuid
@@ -265,7 +265,7 @@ WHERE i.user_id = $2::uuid
   async delete(collectionId: UUID, userId: UUID): Promise<boolean> {
     try {
       return await this.dataSource.manager.transaction(async (manager) => {
-        await manager.query(this.DELETE_COLLECTION_AND_ORPHAN_MOLECULES, [collectionId, userId])
+        await manager.query(this.DELETE_COLLECTION_AND_ORPHAN_MOLECULES_QUERY, [collectionId, userId])
         await manager.delete(History, {
           itemId: collectionId,
           itemEntity: HistoryItemEntity.MoleculeCollection,
