@@ -4,7 +4,7 @@
 services:
 
   redis_sl:
-    image: redis:latest
+    image: redis@sha256:4521b581dbddea6e7d81f8fe95ede93f5648aaa66a9dacd581611bf6fe7527bd
     container_name: redis_sl
     ports:
       - "6378:6379"
@@ -24,8 +24,9 @@ services:
 
 
   nats_sl:
-    image: nats:latest
+    image: nats@sha256:77a161c7d888a1791d5a46b50cd87a2f8466ce40a33cbb51238d227ace01e35a
     container_name: nats_sl
+    command: ["nats-server", "-m", "8222"] 
     ports:
       - "4223:4222"
       - "6223:6222"
@@ -33,6 +34,7 @@ services:
     restart: unless-stopped
     networks:
       - spectralume_network
+    
 
   pg_sl:
     build:
@@ -64,7 +66,7 @@ services:
 
   
   meilisearch_sl:
-    image: getmeili/meilisearch:v1.14.0
+    image: getmeili/meilisearch@sha256:8cd411ba5d9ec2dfce02e241305208eebacce0fd74a72bece21cadd03dc566ce
     container_name: meilisearch_sl
     ports:
       - "7700:7700"
@@ -77,7 +79,7 @@ services:
       - spectralume_network
 
   nginx_sl:
-    image: nginx:latest
+    image: nginx:1.27-alpine
     container_name: nginx_sl
     ports:
     - "8888:80"
