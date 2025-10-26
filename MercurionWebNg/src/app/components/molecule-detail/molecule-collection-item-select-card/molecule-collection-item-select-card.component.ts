@@ -48,19 +48,20 @@ import { MoleculeCardItemModel } from '../../../Models/graphql/molecule-collecti
 export class MoleculeCollectionItemSelectCardComponent implements OnInit, OnDestroy {
   private coSub?: Subscription;
 
-  control = new FormControl(false, { nonNullable: true });
-  value = model<boolean>(false);                 // model input per [(value)]
   @Input() indeterminate = false;                // per lo stato parziale
-
-  _molecule = signal<MoleculeCardItemModel | null>(null);
-  _i = signal<number>(-1);
-  _isSelectAll = signal<boolean>(false);
-
   @Input() set molecule(m: MoleculeCardItemModel) { this._molecule.set(m); }
   @Input() set i(i: number) { this._i.set(i); }
   @Input() set isSelectAll(isSelectAll: boolean) { this._isSelectAll.set(isSelectAll); }
 
   @Output() selectedAll = new EventEmitter<boolean>();
+
+  control = new FormControl(false, { nonNullable: true });
+  value = model<boolean>(false);                 // model input per [(value)]
+
+  _molecule = signal<MoleculeCardItemModel | null>(null);
+  _i = signal<number>(-1);
+  _isSelectAll = signal<boolean>(false);
+
 
   // sync IN: padre -> formcontrol (senza loop)
   syncIn = effect(() => {

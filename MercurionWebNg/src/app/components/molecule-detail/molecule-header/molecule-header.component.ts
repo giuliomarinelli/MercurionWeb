@@ -97,13 +97,13 @@ import { NgClass } from '@angular/common';
                      hover:bg-slate-200 dark:hover:bg-slate-700
                      transition-colors duration-150"
               title="Aggiungi ad una o più collezioni molecolari"
-              (click)="onAddToCollection()"
+              (click)="doAddToCollection()"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto">
                 <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                 <path d="M336 112L336 96L304 96L304 304L96 304L96 336L304 336L304 544L336 544L336 336L544 336L544 304L336 304L336 112z"/>
               </svg>
-              <span>Aggiungi ad un o più collezioni</span>
+              <span>Aggiungi ad una o più collezioni</span>
             </button>
         </div>
       }
@@ -176,11 +176,14 @@ export class MoleculeHeaderComponent {
   @Output()
   onDelete = new EventEmitter<string>()
 
+  @Output()
+  onAddToCollection = new EventEmitter<void>()
+
   doSave(e: CustomDetailSaveModel): void {
     this.onSave.emit(e)
   }
 
-  onAddToCollection(): void {
+  doAddToCollection(): void {
 
   }
 
