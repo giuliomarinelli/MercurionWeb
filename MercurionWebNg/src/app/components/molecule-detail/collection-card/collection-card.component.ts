@@ -130,7 +130,7 @@ import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/
                   </span>
                 </div>
 
-                @if (!_isReadonly()) {
+                @if (!_isReadonly() && !_hideActionButtons()) {
                   <div class="flex items-center gap-3">
                     <button
                       type="button"
@@ -192,6 +192,7 @@ export class CollectionCardComponent {
   _isReadonly = signal<boolean>(false);
   _triggerDisappear = signal<boolean>(false)
   _collapse = signal<boolean>(false)
+  _hideActionButtons = signal<boolean>(false)
 
 
   @Input({ required: true })
@@ -216,6 +217,11 @@ export class CollectionCardComponent {
   @Input()
   set collapse(collapse: boolean) {
     this._collapse.set(collapse)
+  }
+
+  @Input()
+  set hideActionButtons(hideActionButtons: boolean) {
+    this._hideActionButtons.set(hideActionButtons)
   }
 
   @Output()

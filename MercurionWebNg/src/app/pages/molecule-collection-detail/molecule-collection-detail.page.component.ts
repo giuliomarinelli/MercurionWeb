@@ -210,7 +210,7 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
     return this.itemService
       .getPaginatedItemsForCollection(id, page, size, this.searchTerm())
       .pipe(
-        debounceTime(200),
+        debounceTime(20),
         map(p => ({
           ...p,
           items: p.items.map(mol => Helpers.moleculeClientToCardAdapter(mol))

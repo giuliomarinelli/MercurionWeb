@@ -10,7 +10,7 @@ import { SkeletonCollectionCardComponent } from '../../common/skeleton-card-load
     @if (collections().length) {
       <div class="overflow-y-auto relative max-h-[224px] min-h-[112px] transition-[max-height] duration-300 ease-in-out border">
         @for (c of collections(); track c; let i = $index) {
-          <app-collection-card [collection]="c" [i]="i" />
+          <app-collection-card [collection]="c" [i]="i" [hideActionButtons]="true" />
         }
       </div>
     } @else if (!loaded() && !notFound()) {

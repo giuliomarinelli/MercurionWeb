@@ -65,8 +65,13 @@ import { PmSearchInputComponent } from '../../components/common/pm-search-input/
           <a class="a relative -top-2" routerLink="/molecules/collections">Mostra tutte le mie collezioni molecolari</a>
         </div>
       <div class="mt-px relative -top-16">
-        @for (item of items; track item; let i = $index) {
-          <app-molecule-collection-item-card [molecule]="item" [i]="i" (onDelete)="doDelete($event)" />
+        @for (item of items; track item.id; let i = $index) {
+          <app-molecule-collection-item-card
+            [molecule]="item"
+            [i]="i"
+            [triggerDisappear]="item.triggerDisappear()"
+            [collapse]="item.collapse()"
+            (onDelete)="doDelete($event)" />
         }
       </div>
       <div #sentinel class="sentinel"></div>
@@ -154,7 +159,7 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
 
   protected override fetch$(page = this.page, size = 10) {
     return this.moleculeCollectionItemService.getAllPaginatedItems(page, size, this.searchTerm()).pipe(
-      debounceTime(200),
+      debounceTime(20),
       map(page => ({
         ...page,
         items: page.items.map(mol => Helpers.moleculeClientToCardAdapter(mol))
@@ -164,19 +169,26 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
 
 
   doDelete(id: string): void {
+    const onError = () => queueMicrotask(() => this.toast.trigger('Si è verificato un errore.', 'error', 3000))
     this.delSub = this.moleculeCollectionItemService.deleteItem(id).subscribe({
       next: ok => {
         if (ok) {
           this.historyContext.triggerRemoveItemFromHistoryView(id)
           const i = this.items.findIndex(item => item.id === id)
           if (i !== -1) {
-            this.items.splice(i, 1)
-            // After deletion, ensure infinite scroll still loads more if needed
-            queueMicrotask(() => this.enforceInfiniteScroll())
+            queueMicrotask(() => {
+              this.historyContext.triggerRemoveItemFromHistoryView(id)
+              this.items[i].triggerDisappear.set(true)
+              setTimeout(() => this.items[i].collapse.set(true), 120)
+              setTimeout(() => this.items.splice(i, 1), 500)
+              this.enforceInfiniteScroll()
+            })
           }
+        } else {
+          onError()
         }
       },
-      error: () => this.toast.trigger('Si è verificato un errore.', 'error', 2500)
+      error: () => onError()
     })
   }
 
