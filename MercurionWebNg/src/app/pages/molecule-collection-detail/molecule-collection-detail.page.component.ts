@@ -38,7 +38,6 @@ import { MoleculeCollectionItemService } from '../../services/graphql/molecule-c
 import { HistoryContextService } from '../../services/context/history-context.service';
 import { ToastService } from '../../services/toast.service';
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
-import { AddMoleculesToCollectionContextService } from '../../services/context/add-molecules-to-collection-context.service';
 import { Helpers } from '../../helpers';
 import { LinkModel } from '../../Models/link.model';
 import { MoleculeCardItemModel } from '../../Models/graphql/molecule-collection/molecule-collection.types';
@@ -49,6 +48,7 @@ import { SkeletonMoleculeCardComponent } from '../../components/molecule-detail/
 import { PmSearchInputComponent } from '../../components/common/pm-search-input/pm-search-input.component';
 import { CustomDetailSaveModel } from '../../Models/custom-detail-save.model';
 import { Observable } from 'rxjs';
+import { AddMoleculesToCollectionContextService } from '../../services/context/action-context/add-molecules-to-collection-context.service';
 
 @Component({
   selector: 'app-molecule-collection-detail',

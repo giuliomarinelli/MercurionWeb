@@ -3,7 +3,6 @@ import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, inj
 import { AbstractPaginatedMultiselectComponent } from '../../../abstract/abstract-paginated-multiselect-component';
 import { debounceTime, map, Observable } from 'rxjs';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
-import { AddMoleculesToCollectionContextService } from './../../../services/context/add-molecules-to-collection-context.service';
 import { MoleculeCollectionItemService } from '../../../services/graphql/molecule-collection-item.service';
 import { Helpers } from '../../../helpers';
 import { MoleculeCardItemModel } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
@@ -18,6 +17,7 @@ import { MoleculeSearchResult } from '../../../Models/graphql/molecule-search/mo
 import { SearchResultSkeletonLoaderComponent } from '../../search-overlay/search-result-skeleton-loader/search-result-skeleton-loader.component';
 import { SearchResultComponent } from '../../search-overlay/search-result/search-result.component';
 import { AddManyChEMBLItemDTO } from '../../../Models/graphql/add-many-chembl-item.dto';
+import { AddMoleculesToCollectionContextService } from '../../../services/context/action-context/add-molecules-to-collection-context.service';
 
 export type ChipItem = { id: string; name: string }
 

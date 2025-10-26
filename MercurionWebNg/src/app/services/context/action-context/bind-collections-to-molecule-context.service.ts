@@ -5,7 +5,7 @@ import { Injectable, signal } from '@angular/core';
 })
 export class BindCollectionsToMoleculeContextService {
 
-  private _moleculeId = signal<string | null>(null)
+  private _moleculeId = signal<string | number | null>(null)
   private _addedTick = signal<number>(0)
 
   readonly moleculeId = this._moleculeId.asReadonly()

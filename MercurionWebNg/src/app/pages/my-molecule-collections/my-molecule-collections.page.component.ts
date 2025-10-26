@@ -1,6 +1,5 @@
-import { AddMoleculesToCollectionContextService } from './../../services/context/add-molecules-to-collection-context.service';
 import { HistoryContextService } from './../../services/context/history-context.service';
-import { MoleculeCollection, UiMoleculeCollection } from '../../Models/graphql/molecule-collection/molecule-collection.types';
+import { UiMoleculeCollection } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 import { catchError, debounceTime, EMPTY, firstValueFrom, map, of, Subscription, switchMap, tap } from 'rxjs';
 import { MyMoleculesHeadingComponent } from '../../components/molecule-detail/my-molecules-heading/my-molecules-heading.component';
 import { AfterViewInit, Component, ElementRef, inject, OnInit, ViewChild, effect, OnDestroy, signal } from '@angular/core';
@@ -16,6 +15,7 @@ import { PageModel } from '../../Models/graphql/page.model';
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
 import { CreateCollectionContextService } from '../../services/context/action-context/create-collection-context.service';
 import { ToastService } from '../../services/toast.service';
+import { AddMoleculesToCollectionContextService } from '../../services/context/action-context/add-molecules-to-collection-context.service';
 
 
 @Component({

@@ -5,7 +5,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { MoleculeSearchService } from '../../../services/graphql/molecule-search.service';
 import { MoleculeCollectionItemService } from './../../../services/graphql/molecule-collection-item.service';
 import { MoleculeSearchResult } from '../../../Models/graphql/molecule-search/molecule-search-result.interface';
-import { AddMoleculesToCollectionContextService } from '../../../services/context/add-molecules-to-collection-context.service';
+import { AddMoleculesToCollectionContextService } from '../../../services/context/action-context/add-molecules-to-collection-context.service';
 
 @Component({
   selector: 'app-search-input',
