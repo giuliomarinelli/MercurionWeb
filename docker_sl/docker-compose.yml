@@ -26,7 +26,6 @@ services:
   nats_sl:
     image: nats@sha256:77a161c7d888a1791d5a46b50cd87a2f8466ce40a33cbb51238d227ace01e35a
     container_name: nats_sl
-    command: ["nats-server", "-m", "8222"] 
     ports:
       - "4223:4222"
       - "6223:6222"
