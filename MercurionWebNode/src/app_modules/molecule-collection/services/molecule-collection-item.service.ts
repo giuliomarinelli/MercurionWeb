@@ -1,9 +1,9 @@
+import { MoleculeCollectionItemEntity } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection-item.entity';
 import { MoleculeService } from '../../meilisearch/services/molecule.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, EntityManager, Repository } from 'typeorm';
 import { UUID } from 'crypto';
-import { MoleculeCollectionItemEntity } from '../Models/entities/molecule-collection-item.entity';
 import { CreateMoleculeItemInput } from '../Models/DTO/create-molecule-item.input';
 import { GraphqlUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils';
@@ -35,11 +35,28 @@ export class MoleculeCollectionItemService {
     ) { }
 
     async markAsTouched(userId: UUID, itemId: UUID, _flagIds?: string): Promise<boolean> {
+
+        try {
+            return await this.dataSource.manager.transaction(async (manager) => {
+                return this.markAsTouchedWithManager(userId, itemId, manager, _flagIds)
+            })
+        } catch (e) {
+            this.logger.warn(`MoleculeCollectionItemService > markAsTouched: UPDATE FAILED => ${e}`)
+            return false
+        }
+
+    }
+
+
+
+    async markAsTouchedWithManager(userId: UUID, itemId: UUID, manager: EntityManager, _flagIds?: string): Promise<boolean> {
+        
         if (!GeneralUtils.isValidUUIDv7(itemId)) {
             return false
         }
-        try {
-            let flagIds: string
+
+        if (await manager.exists(MoleculeCollectionItemEntity, { where: { userId, id: itemId } })) {
+            let flagIds: string = '{}'
             if (_flagIds) {
                 try {
                     JSON.parse(_flagIds)
@@ -48,26 +65,19 @@ export class MoleculeCollectionItemService {
                     flagIds = '{}'
                 }
             }
-            if (await this.itemRepo.exists({ where: { userId, id: itemId } })) {
-                await this.dataSource.manager.transaction(async (manager) => {
-                    const touchedAt = Date.now()
-                    await manager.update(MoleculeCollectionItemEntity, { userId, id: itemId }, { touchedAt })
-                    await manager.insert(History, {
-                        id: uuidv7() as UUID,
-                        itemEntity: HistoryItemEntity.MoleculeCollectionItem,
-                        itemId,
-                        touchedAt,
-                        userId,
-                        flagIds
-                    })
-                })
-            }
-
+            const touchedAt = Date.now()
+            await manager.update(MoleculeCollectionItemEntity, { userId, id: itemId }, { touchedAt })
+            await manager.insert(History, {
+                id: uuidv7() as UUID,
+                itemEntity: HistoryItemEntity.MoleculeCollectionItem,
+                itemId,
+                touchedAt,
+                userId,
+                flagIds
+            })
             return true
-        } catch (e) {
-            this.logger.warn(`MoleculeCollectionItemService > markAsTouched: UPDATE FAILED => ${e}`)
-            return false
         }
+        return false
     }
 
     async create(userId: UUID, input: CreateMoleculeItemInput): Promise<MoleculeCollectionItemEntity> {

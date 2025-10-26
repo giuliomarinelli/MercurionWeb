@@ -208,7 +208,7 @@ export class ChEMBLMoleculeItemService {
                 }
 
                 if (itemsToJoin.length > 0) {
-                    await this.joinService.addManyWithManager(userId, collectionId, itemsToJoin, false, manager)
+                    await this.joinService.addManyMoleculesToCollectionWithManager(userId, collectionId, itemsToJoin, false, manager)
                 }
 
                 return true

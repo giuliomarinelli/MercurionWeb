@@ -1,4 +1,4 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable, Logger } from "@nestjs/common";
 import { MoleculeDetail } from "../Models/DTO/molecule-detail.gql.dtos";
 import { MeiliSearch } from "meilisearch";
 import { RpcException } from "@nestjs/microservices";
@@ -9,13 +9,29 @@ type Maybe<T> = T | null | undefined;
 
 @Injectable()
 export class MoleculeService {
-    
+
+    private readonly logger = new Logger(MoleculeService.name)
+
     constructor(
         @Inject("MEILISEARCH_CLIENT")
         private readonly meiliClient: MeiliSearch
     ) { }
 
     // ============= PUBLIC =============
+
+    async existsMoleculeByMolregno(molregno: number): Promise<boolean> {
+        const index = this.meiliClient.index('molecule_previews_chembl_36')
+        try {
+            await index.getDocument(String(molregno))
+            return true
+        } catch (e) {
+            if (e.cause.code === 'document_not_found') {
+                return false
+            }
+            this.logger.warn(`MoleculeService > existsMoleculeByMolregno: Error => ${e}`)
+            throw e
+        }
+    }
 
     async getDetailByMolregno(molregno: string): Promise<MoleculeDetail> {
         const raw = await this.fetchFromChembl(molregno);

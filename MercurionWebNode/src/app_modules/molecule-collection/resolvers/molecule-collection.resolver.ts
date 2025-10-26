@@ -9,6 +9,7 @@ import { PaginatedMoleculeCollection } from '../Models/DTO/paginated-molecule-co
 import { InjectRepository } from '@nestjs/typeorm';
 import { MoleculeCollectionItemJoin } from '../Models/entities/molecule-collection-item-join.entity';
 import { Repository } from 'typeorm';
+import { MoleculeCollectionItemJoinService } from '../services/molecule-collection-item-join.service';
 
 
 @Resolver(() => MoleculeCollection)
@@ -16,6 +17,7 @@ export class MoleculeCollectionResolver {
 
     constructor(
         private readonly collectionService: MoleculeCollectionService,
+        private readonly joinService: MoleculeCollectionItemJoinService,
         @InjectRepository(MoleculeCollectionItemJoin)
         private readonly joinRepo: Repository<MoleculeCollectionItemJoin>,
     ) { }
@@ -58,7 +60,6 @@ export class MoleculeCollectionResolver {
         return this.collectionService.searchByName(userId, query, limit, fieldsMap)
     }
 
-    // Mutation: Crea collezione
     @Mutation(() => MoleculeCollection)
     async createMoleculeCollection(
         @Args('name') name: string,
@@ -75,7 +76,6 @@ export class MoleculeCollectionResolver {
         return this.collectionService.createMany(userId, names)
     }
 
-    // Mutation: Aggiorna collezione
     @Mutation(() => MoleculeCollection)
     async updateMoleculeCollection(
         @Args('id', { type: () => ID }) id: UUID,
@@ -87,7 +87,6 @@ export class MoleculeCollectionResolver {
         return this.collectionService.update(id, userId, { name }, fieldsMap)
     }
 
-    // Mutation: Elimina collezione
     @Mutation(() => Boolean)
     async deleteMoleculeCollection(
         @Args('id', { type: () => ID }) id: UUID,
@@ -126,6 +125,16 @@ export class MoleculeCollectionResolver {
             totalPages: Number(paginated.meta.totalPages),
             currentPage: paginated.meta.currentPage,
         }
+    }
+
+    @Mutation(() => Boolean)
+    async bindManyCollectionsToMolecule(
+        @AuthenticatedUserId() userId: UUID,
+        @Args('moleculeId', { type: () => ID }) moleculeId: string,
+        @Args('collectionIds', { type: () => [ID] }) collectionIds: UUID[],
+        @Args('selectAll', { type: () => Boolean }) selectAll: boolean
+    ): Promise<boolean> {
+        return this.joinService.bindManyCollectionsToMolecule(userId, moleculeId, collectionIds, selectAll)
     }
 
 

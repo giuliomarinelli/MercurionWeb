@@ -1,5 +1,5 @@
 import { MoleculeCollectionItemJoin } from './../Models/entities/molecule-collection-item-join.entity';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, Repository } from 'typeorm';
 import { UUID } from 'crypto';
@@ -8,18 +8,24 @@ import { MoleculeCollectionService } from './molecule-collection.service';
 import { MoleculeCollectionItemService } from './molecule-collection-item.service';
 import { MoleculeCollection } from '../Models/entities/molecule-collection.entity';
 import { MoleculeCollectionItemEntity } from '../Models/entities/molecule-collection-item.entity';
+import { ChEMBLMoleculeItemEntity } from '../Models/entities/chembl-molecule-item.entity';
+import { MoleculeService } from 'src/app_modules/meilisearch/services/molecule.service';
+
 
 
 
 @Injectable()
 export class MoleculeCollectionItemJoinService {
 
+    private readonly logger = new Logger(MoleculeCollectionItemJoinService.name)
+
     constructor(
         @InjectRepository(MoleculeCollectionItemJoin)
         private readonly joinRepo: Repository<MoleculeCollectionItemJoin>,
         private readonly dataSource: DataSource,
         private readonly collectionService: MoleculeCollectionService,
-        private readonly itemService: MoleculeCollectionItemService
+        private readonly itemService: MoleculeCollectionItemService,
+        private readonly moleculeService: MoleculeService
     ) { }
 
     // Metodo STANDARD (fuori da transaction esplicita)
@@ -92,14 +98,14 @@ export class MoleculeCollectionItemJoinService {
         selectAll: boolean
     ): Promise<UUID[]> {
         return this.dataSource.manager.transaction(manager =>
-            this.addManyWithManager(userId, collectionId, itemIds, selectAll, manager)
+            this.addManyMoleculesToCollectionWithManager(userId, collectionId, itemIds, selectAll, manager)
         );
     }
 
     /**
      * @returns itemId scartati perché la join (userId, collectionId, itemId) esisteva già
      */
-    async addManyWithManager(
+    async addManyMoleculesToCollectionWithManager(
         userId: UUID,
         collectionId: UUID,
         itemIds: UUID[],
@@ -114,18 +120,14 @@ export class MoleculeCollectionItemJoinService {
         if (!selectAll) {
             candidateIds = distinct;
         } else {
-            // Sostituisci con la tua sorgente reale (es. Molecule o MoleculeCollectionItemEntity)
+
             const qbAll = manager
                 // .createQueryBuilder(Molecule, 'it')
                 .createQueryBuilder(MoleculeCollectionItemEntity, 'it')
                 .select('it.id', 'id');
 
             if (distinct.length > 0) {
-                // Postgres-ottimizzato
                 qbAll.where('NOT (it.id = ANY(:excluded))', { excluded: distinct });
-
-                // Se preferisci la compatibilità universale:
-                // qbAll.where('it.id NOT IN (:...excluded)', { excluded: distinct });
             }
 
             const rows = await qbAll.getRawMany<{ id: UUID }>();
@@ -144,9 +146,6 @@ export class MoleculeCollectionItemJoinService {
         // Postgres-ottimizzato:
         qbExisting.andWhere('j.itemId = ANY(:ids)', { ids: candidateIds });
 
-        // Fallback cross-db:
-        // qbExisting.andWhere('j.itemId IN (:...ids)', { ids: candidateIds });
-
         const alreadyRows = await qbExisting.getRawMany<{ itemId: UUID }>();
         const alreadySet = new Set(alreadyRows.map(r => r.itemId));
 
@@ -161,17 +160,142 @@ export class MoleculeCollectionItemJoinService {
                 .execute();
         }
 
-        // TODO: sistemare in modo più elegante
 
-        await this.collectionService.markAsTouched(userId, collectionId)
+
+        await this.collectionService.markAsTouchedWithManager(userId, collectionId, manager)
 
         for (const itemId of toInsert) {
-            await this.itemService.markAsTouched(userId, itemId)
+            await this.itemService.markAsTouchedWithManager(userId, itemId, manager)
         }
-
-
 
         // 3) Ritorna gli scartati
         return Array.from(alreadySet);
     }
+
+    async bindManyCollectionsToMolecule(userId: UUID, moleculeId: string, collectionIds: UUID[], selectAll: boolean): Promise<boolean> {
+        try {
+            return await this.dataSource.manager.transaction(async (manager) => {
+                return this.bindManyCollectionsToMoleculeWithManager(userId, moleculeId, collectionIds, selectAll, manager)
+            })
+        } catch (e) {
+            this.logger.warn(`MoleculeCollectionItemJoinService > bindManyCollectionsToMolecule: Error => ${e.message || e}`)
+            return false
+        }
+    }
+
+    async bindManyCollectionsToMoleculeWithManager(
+        userId: UUID,
+        moleculeId: string,
+        collectionIds: UUID[],
+        selectAll: boolean,
+        manager: EntityManager
+    ): Promise<boolean> {
+
+        const isMolregno = /^\d+$/.test(String(moleculeId))
+
+        if (isMolregno) {
+            const chemblMolregno = Number(moleculeId)
+            const existsChemblMolecule = await this.moleculeService.existsMoleculeByMolregno(chemblMolregno)
+            if (!existsChemblMolecule) {
+                return false
+            }
+            const [chemblMol] = (await this.moleculeService.getPreviewsByMolregnos([String(chemblMolregno)])).filter(res => !!res)
+            let name = chemblMol.preferredName
+            if ((!name || !name.trim()) && !!chemblMol.synonyms && Array.isArray(chemblMol.synonyms) && chemblMol.synonyms.length > 0) {
+                for (const syn of chemblMol.synonyms) {
+                    if (!syn || !syn.trim()) {
+                        continue
+                    }
+                    name = syn
+                    break
+                }
+            }
+            if (!name) {
+                name = `Lead ${chemblMolregno}`
+            }
+            const existsEntity = await manager.exists(ChEMBLMoleculeItemEntity, {
+                where: {
+                    userId,
+                    chemblMolregno
+                }
+            })
+            if (existsEntity) {
+                const row = await manager.findOne(ChEMBLMoleculeItemEntity, {
+                    where: {
+                        userId,
+                        chemblMolregno
+                    },
+                    select: {
+                        id: true
+                    }
+                })
+                moleculeId = row!.id
+            } else {
+                const now = Date.now()
+                const newEntity = manager.create(ChEMBLMoleculeItemEntity, {
+                    id: uuidv7() as UUID,
+                    userId,
+                    type: 'chembl',
+                    chemblMolregno,
+                    name,
+                    createdAt: now,
+                    updatedAt: now,
+                    touchedAt: now
+                })
+                const persisted = await manager.save(newEntity)
+                moleculeId = persisted.id
+            }
+        }
+
+        const distinct = Array.from(new Set(collectionIds))
+        let candidateIds: string[]
+
+        if (!selectAll) {
+            candidateIds = distinct
+        } else {
+            const qbAll = manager
+                .createQueryBuilder(MoleculeCollection, 'c')
+                .select(['c.id']);
+
+            if (distinct.length > 0) {
+                qbAll.where('NOT (c.id = ANY(:excluded))', { excluded: distinct })
+            }
+            const rows = await qbAll.getRawMany<Pick<MoleculeCollection, 'id'>>()
+            candidateIds = rows.map(r => r.id)
+        }
+        if (candidateIds.length === 0) {
+            return false
+        }
+        const qbExisting = manager
+            .createQueryBuilder(MoleculeCollectionItemJoin, 'j')
+            .select(['j.collectionId'])
+            .where('j.userId = :userId', { userId })
+            .andWhere('j.itemId = :itemId', { itemId: moleculeId })
+            .andWhere('j.itemId = ANY(:ids)', { ids: candidateIds })
+
+        const alreadyRows = await qbExisting.getRawMany<Pick<MoleculeCollectionItemJoin, 'collectionId'>>()
+        const alreadySet = new Set(alreadyRows.map(r => r.collectionId))
+        const toInsert = candidateIds.filter(id => !alreadySet.has(id as UUID))
+        if (toInsert.length > 0) {
+            await manager
+                .createQueryBuilder()
+                .insert()
+                .into(MoleculeCollectionItemJoin)
+                .values(toInsert.map(collectionId => ({
+                    id: uuidv7() as UUID,
+                    collectionId: collectionId as UUID,
+                    userId,
+                    itemId: moleculeId as UUID
+                })))
+                .orIgnore()
+                .execute()
+        }
+        await this.itemService.markAsTouchedWithManager(userId, moleculeId as UUID, manager)
+        for (const collectionId of toInsert) {
+            await this.collectionService.markAsTouchedWithManager(userId, collectionId as UUID, manager)
+        }
+        return true
+    }
+
+
 }
