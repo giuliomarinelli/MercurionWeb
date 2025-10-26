@@ -56,11 +56,43 @@ import { NgClass, NgStyle } from '@angular/common';
         <div class="hidden md:block h-4 w-4 rounded bg-slate-200/70 dark:bg-slate-700/60"></div>
       </div>
 
-      <!-- Footer meta: full width -->
-      <div class="md:col-span-12 mt-1 md:mt-0 flex items-center gap-3">
-        <div class="h-3 w-36 rounded bg-slate-200/70 dark:bg-slate-700/60"></div>
-        <span class="size-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
-        <div class="h-3 w-32 rounded bg-slate-200/70 dark:bg-slate-700/60"></div>
+      <!-- Footer: meta + (azioni placeholder se non readonly) -->
+      <div class="md:col-span-12 mt-1 md:mt-0 flex items-center justify-between">
+        <!-- Meta left -->
+        <div class="flex items-center gap-3">
+          <div class="h-3 w-36 rounded bg-slate-200/70 dark:bg-slate-700/60"></div>
+          <span class="size-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+          <div class="h-3 w-32 rounded bg-slate-200/70 dark:bg-slate-700/60"></div>
+        </div>
+
+        <!-- Azioni right (solo se !readonly) -->
+        @if (!_isReadonly()) {
+          <div class="flex items-center gap-3">
+            <!-- Duplica (icona) -->
+            <div
+              class="h-7 w-7 rounded-md border
+                     border-slate-200/70 dark:border-slate-700/60
+                     bg-slate-200/70 dark:bg-slate-700/60"
+              aria-hidden="true">
+            </div>
+
+            <!-- Elimina (icona) -->
+            <div
+              class="h-7 w-7 rounded-md border
+                     border-slate-200/70 dark:border-slate-700/60
+                     bg-slate-200/70 dark:bg-slate-700/60"
+              aria-hidden="true">
+            </div>
+
+            <!-- Aggiungi molecole (pill) -->
+            <div
+              class="h-7 w-28 rounded-md border
+                     border-slate-300 dark:border-slate-600
+                     bg-slate-100 dark:bg-slate-800/60"
+              aria-hidden="true">
+            </div>
+          </div>
+        }
       </div>
 
       <span class="sr-only">Caricamento collezione…</span>
@@ -69,14 +101,18 @@ import { NgClass, NgStyle } from '@angular/common';
 })
 export class SkeletonCollectionCardComponent {
   private _index = signal(0);
+  _i = this._index;
+
   _height = signal<string>('auto');
+  _isReadonly = signal<boolean>(false);
 
   @Input()
   set i(value: number) { this._index.set(value ?? 0); }
-  _i = this._index;
 
   @Input()
-  set height(value: string) {
-    this._height.set(value || 'auto');
-  }
+  set height(value: string) { this._height.set(value || 'auto'); }
+
+  /** Se true, nasconde i placeholder dei pulsanti d'azione. */
+  @Input()
+  set isReadonly(value: boolean) { this._isReadonly.set(!!value); }
 }

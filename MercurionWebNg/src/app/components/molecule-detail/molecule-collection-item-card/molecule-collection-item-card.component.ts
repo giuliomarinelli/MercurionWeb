@@ -149,10 +149,10 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
           <!-- Footer meta -->
         @if(!_isReadonly()) {
           <div
-          class="md:col-span-12 mt-1 md:mt-0 flex justify-between items-center text-xs text-slate-500 dark:text-slate-400"
+          class="md:col-span-12 mt-1 md:mt-0 flex justify-between items-center text-xs text-slate-500 dark:text-slate-400 relative"
           >
             <!-- Colonna sinistra: date -->
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-3 relative z-30 pointer-events-auto">
               <div class="inline-flex items-center shrink-0">
                 <svg
                   class="size-3.5 mr-1.5"
@@ -187,7 +187,7 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
 
             <!-- Colonna destra: pulsanti -->
             <!-- Colonna destra: pulsanti -->
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-3 relative z-30 pointer-events-auto">
               <!-- Duplica -->
               <a
                 type="button"
