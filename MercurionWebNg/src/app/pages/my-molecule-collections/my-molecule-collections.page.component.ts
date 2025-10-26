@@ -1,3 +1,4 @@
+import { AddMoleculesToCollectionContextService } from './../../services/context/add-molecules-to-collection-context.service';
 import { HistoryContextService } from './../../services/context/history-context.service';
 import { MoleculeCollection, UiMoleculeCollection } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 import { catchError, debounceTime, EMPTY, firstValueFrom, map, of, Subscription, switchMap, tap } from 'rxjs';
@@ -109,6 +110,7 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
   private readonly moleculeCollectionService = inject(MoleculeCollectionService)
   private readonly actionOverlayContext = inject(ActionOverlayContextService)
   private readonly createCtx = inject(CreateCollectionContextService)
+  private readonly addCtx = inject(AddMoleculesToCollectionContextService)
   private readonly toast = inject(ToastService)
   private readonly historyContext = inject(HistoryContextService)
   // ====================================================
@@ -128,6 +130,14 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
       if (t === 0) return;
       this.resetPagination();
     });
+
+    effect(() => {
+      const t = this.addCtx.addedTick()
+      if (t === 0) {
+        return
+      }
+      this.resetPagination()
+    })
 
     // Fallback: if the CreateCollection overlay just closed and a tick occurred, refresh
     effect(() => {
@@ -244,7 +254,8 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
   }
 
   doAddMoleculesToCollection(collectionId: string): void {
-
+    this.addCtx.setCollectionId(collectionId)
+    this.actionOverlayContext.open('AddMoleculesToCollection')
   }
 
 }
