@@ -53,6 +53,7 @@ export class AuthenticationService {
         if (!await this.passwordEncoder.compare(password, auth.passwordHash)) {
             throw new RpcException('AuthenticationInvalidCredentials')
         }
+        const unknwonDeviceId = !await this.sessionService.isKnownDeviceId(deviceId, auth.userId)
         const fingerprint = this.generateFingerprint(fingerprintData)
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { city, country, ip, region, ...geoLocation } = this.geoIpService.getLocation(IP)
@@ -66,7 +67,7 @@ export class AuthenticationService {
         const _enabledMfaStrategies: MfaStrategy[] = await this.mfaService.getEnabledMfaStrategies(auth.userId)
         let needsMfa: boolean = !!_enabledMfaStrategies.length
         const isMfaEnabledBySettings: boolean = needsMfa
-        if ((!inWhiteList || !isTrustedCurrentLocation) && !needsMfa) {
+        if ((!inWhiteList || !isTrustedCurrentLocation || unknwonDeviceId) && !needsMfa) {
             needsMfa = true
         }
         if (!needsMfa) {
@@ -77,7 +78,7 @@ export class AuthenticationService {
         const obscuredPhoneNumber = phone && _enabledMfaStrategies.includes(MfaStrategy.SMS_OTP) ? this.securityService.maskEmail(phone) : undefined
         let enabledMfaStrategies: string[] = _enabledMfaStrategies.map(val => GeneralUtils.getEnumKeyByValue(MfaStrategy, val)).filter(val => val !== undefined)
         let suspiciousAttempt: boolean = false
-        if ((!inWhiteList || !isTrustedCurrentLocation) && !isMfaEnabledBySettings) {
+        if ((!inWhiteList || !isTrustedCurrentLocation || unknwonDeviceId) && !isMfaEnabledBySettings) {
             enabledMfaStrategies = ['EMAIL_OTP']
             suspiciousAttempt = true
             obscuredEmail = this.securityService.maskEmail(email)
@@ -105,21 +106,25 @@ export class AuthenticationService {
     // Restituisce un DTO di risposta con l'Access Token e se l'utente ha MFA attiva, attiva anche la sessione
     public async performAuthentication(auth: Authentication | Omit<Authentication, 'needsMfa' | 'enabledMfaStrategies' | 'suspiciousAttempt'>, fingerprintData: FingerprintData, ip: string, trustVerify: boolean = false): Promise<TokenPair> {
         const { userId, sessionId } = auth
-        if (await this.mfaService.isMfaEnabled(userId) || trustVerify) {
-            await this.sessionService.activateSession(sessionId, auth.userId)
+        const session = await this.sessionService.getSession(sessionId, userId)
+        if (session) {
+            if (await this.mfaService.isMfaEnabled(userId) || trustVerify) {
+                await this.sessionService.activateSession(sessionId, auth.userId)
+                await this.sessionService.setDeviceIdAsKnown(session.deviceId, userId)
+            }
+            const fingerprint: string = this.generateFingerprint(fingerprintData)
+            await this.sessionService.addFingerprintToWhiteList(userId, fingerprint)
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { city, country, ip: _ip, region, ...geoLocation } = this.geoIpService.getLocation(ip)
+            await this.sessionService.addTrustedLocation(userId, geoLocation as GeoLocation)
+            const accessToken = await this.jwtTools.generateToken(userId, TokenType.AccessToken, sessionId)
+            const ws_accessToken = await this.jwtTools.generateToken(userId, TokenType.ws_AccessToken, sessionId)
+            return {
+                accessToken,
+                ws_accessToken
+            }
         }
-        const fingerprint: string = this.generateFingerprint(fingerprintData)
-        await this.sessionService.addFingerprintToWhiteList(userId, fingerprint)
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { city, country, ip: _ip, region, ...geoLocation } = this.geoIpService.getLocation(ip)
-        await this.sessionService.addTrustedLocation(userId, geoLocation as GeoLocation)
-        const accessToken = await this.jwtTools.generateToken(userId, TokenType.AccessToken, sessionId)
-        const ws_accessToken = await this.jwtTools.generateToken(userId, TokenType.ws_AccessToken, sessionId)
-        return {
-            accessToken,
-            ws_accessToken
-        }
-
+        throw new RpcException('InvalidSession')
     }
 
     public async verifyEmail(email: string): Promise<boolean> {

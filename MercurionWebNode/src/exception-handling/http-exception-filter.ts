@@ -53,6 +53,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
                 case 'InvalidJwtValidation':
                 case 'AuthenticationInvalidCredentials':
                 case 'Unauthanticated':
+                case 'InvalidSession':
                     statusCode = HttpStatus.UNAUTHORIZED
             }
 
@@ -72,7 +73,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
                     timestamp: new Date().toISOString(),
                     path: req.url,
                     requestId: req.id
-                } 
+                }
             )
 
     }

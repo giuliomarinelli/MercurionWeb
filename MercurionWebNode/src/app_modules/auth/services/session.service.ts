@@ -33,7 +33,7 @@ export class SessionService {
 
     // 🔹 Creazione di una nuova sessione (semplificata con Omit<>)
     async createSession(
-        sessionData: Omit<ISession, | 'sessionId' | 'expiresAt' | 'lastAccessedAt' | 'valid' | 'doNotAskMfaPhoneNumberVerification'>,
+        sessionData: Omit<ISession, 'createdAt' | 'sessionId' | 'expiresAt' | 'lastAccessedAt' | 'valid' | 'doNotAskMfaPhoneNumberVerification'>,
         rememberMe: boolean
     ): Promise<ISession> {
 
@@ -51,6 +51,7 @@ export class SessionService {
             sessionId,
             ...sessionData,
             expiresAt,
+            createdAt: Date.now(),
             lastAccessedAt: Date.now(),
             valid: false
         }
@@ -68,6 +69,7 @@ export class SessionService {
         await this.redisService.hset(sessionKey, 'sessionDeviceInfo', JSON.stringify(sessionData.sessionDeviceInfo))
         await this.redisService.hset(sessionKey, 'fingerprint', sessionData.fingerprint)
         await this.redisService.hset(sessionKey, 'location', sessionData.location)
+        await this.redisService.hset(sessionKey, 'createdAt', session.createdAt.toString())
 
         await this.redisService.setTTL(sessionKey, ttlSeconds)
         await this.redisService.sadd(`user_sessions:${sessionData.userId}`, sessionId)
@@ -93,12 +95,13 @@ export class SessionService {
 
         let key: string = ''
 
-        try {
-            key = userId ? this.getSessionKeyOrPattern(sessionId, userId) : (await this.redisService.scan(this.getSessionKeyOrPattern(sessionId))).keys[0]
-        } catch {
-            return null
+        if (userId) {
+            key = this.getSessionKeyOrPattern(sessionId, userId)
+        } else {
+            const pattern = this.getSessionKeyOrPattern(sessionId)
+            const [_key] = await this.redisService.scanIterate(pattern)
+            key = _key
         }
-
 
         const sessionData: Record<string, string> | nullish = await this.redisService.hgetall(key)
 
@@ -111,6 +114,7 @@ export class SessionService {
             sessionId: sessionData.sessionId as UUID,
             userId: sessionData.userId as UUID,
             deviceId: sessionData.deviceId as UUID,
+            createdAt: parseInt(sessionData.createdAt, 10),
             expiresAt: parseInt(sessionData.expiresAt, 10),
             lastAccessedAt: parseInt(sessionData.lastAccessedAt, 10),
             IP: sessionData.IP,
@@ -125,22 +129,15 @@ export class SessionService {
     }
 
     async getAllSessionsByUserId(userId: string, opts?: SessionFetchOptions): Promise<ISession[]> {
-        const keys: string[] = [];
-        const matchPattern = `session:*:${userId}`;
 
-        let cursor = '0';
-        do {
-            const scanned = await this.redisService.scan(matchPattern, cursor, 1000)
-            if (scanned.keys?.length) {
-                keys.push(...scanned.keys)
-            }
-            cursor = scanned.cursor;
-        } while (cursor !== '0');
+        const matchPattern = `session:*:${userId}`
+        const keys = await this.redisService.scanIterate(matchPattern)
 
-        // carica i dettagli in pipeline (molto più veloce di un await per chiave)
-        if (keys.length === 0) return [];
+        if (keys.length === 0) {
+            return []
+        }
 
-        const pipeline = this.redisService.getClient().pipeline();
+        const pipeline = this.redisService.getClient().pipeline()
         for (const key of keys) {
             pipeline.hgetall(key)
         }
@@ -156,6 +153,7 @@ export class SessionService {
                     sessionId: sd.sessionId as UUID,
                     userId: sd.userId as UUID,
                     deviceId: sd.deviceId as UUID,
+                    createdAt: parseInt(sd.createdAt, 10),
                     expiresAt: parseInt(sd.expiresAt, 10),
                     lastAccessedAt: parseInt(sd.lastAccessedAt, 10),
                     IP: sd.IP,
@@ -164,19 +162,19 @@ export class SessionService {
                     fingerprint: sd.fingerprint,
                     location: sd.location,
                 };
-                return s;
+                return s
             } catch {
-                // se un record è corrotto, lo saltiamo
-                return null;
+                return null
             }
-        }).filter(Boolean) as ISession[];
+        }).filter(Boolean) as ISession[]
 
-        return opts?.onlyValid ? sessions.filter(s => s.valid) : sessions;
+        return opts?.onlyValid ? sessions.filter(s => s.valid) : sessions
     }
 
 
     // 🔹 Validazione della sessione, deviceId e scadenza
     async validateSession(sessionId: string, deviceId: string, userId?: string): Promise<boolean> {
+
         const session = await this.getSession(sessionId, userId)
 
         if (session == null) return false
@@ -192,17 +190,14 @@ export class SessionService {
 
     // 🔹 Aggiornare lastAccessedAt ad ogni accesso
     async updateLastAccessed(sessionId: string, userId?: string): Promise<void> {
+
         let sessionKey = ''
 
-        try {
-            if (userId) {
-                sessionKey = this.getSessionKeyOrPattern(sessionId, userId)
-            } else {
-                sessionKey = (await this.redisService.scan(this.getSessionKeyOrPattern(sessionId))).keys[0]
-            }
-        } catch (e) {
-            this.logger.warn(`updateLastAccessed > Error: ${e.message || e}`)
-            throw new RpcException('UnauthorizedNoSuchSession')
+        if (userId) {
+            sessionKey = this.getSessionKeyOrPattern(sessionId, userId)
+        } else {
+            const pattern = this.getSessionKeyOrPattern(sessionId)
+            sessionKey = (await this.redisService.scanIterate(pattern))[0]
         }
 
         const now = Date.now()
@@ -221,16 +216,14 @@ export class SessionService {
     // 🔹 Revocare una sessione (es. logout o invalidazione)
     async revokeSession(sessionId: string, userId?: string): Promise<void> {
         let sessionKey: string = ''
-        try {
-            if (userId) {
-                sessionKey = this.getSessionKeyOrPattern(sessionId, userId)
-            } else {
-                sessionKey = (await this.redisService.scan(this.getSessionKeyOrPattern(sessionId))).keys[0]
-            }
-        } catch (e) {
-            this.logger.warn(`revokeSession > Error: ${e.message || e}`)
-            throw new RpcException('UnauthorizedNoSuchSession')
+
+        if (userId) {
+            sessionKey = this.getSessionKeyOrPattern(sessionId, userId)
+        } else {
+            const pattern = this.getSessionKeyOrPattern(sessionId)
+            sessionKey = (await this.redisService.scanIterate(pattern))[0]
         }
+
         await this.redisService.hset(sessionKey, 'valid', 'false');
     }
 
@@ -250,8 +243,6 @@ export class SessionService {
         return keys.map(k => k.split(':')[2])
     }
 
-
-
     public async getFingerprintWhiteList(userId: UUID): Promise<string[]> {
         const key: string = this.getUserFingerprintsWhiteListKey(userId as string)
         const val: string | null = await this.redisService.get(key)
@@ -266,7 +257,7 @@ export class SessionService {
 
     public async existsSession(sessionId: string): Promise<boolean> {
         const matchPattern = this.getSessionKeyOrPattern(sessionId)
-        const keys: string [] = []
+        const keys: string[] = []
         let cursor = '0'
         do {
             const scanned = await this.redisService.scan(matchPattern, cursor, 1000)
@@ -281,7 +272,13 @@ export class SessionService {
     }
 
     public async destroySession(sessionId: string, deviceId: string, userId?: UUID): Promise<void> | never {
-        const sessionKey = this.getSessionKeyOrPattern(sessionId, userId)
+        let sessionKey: string
+        if (userId) {
+            sessionKey = this.getSessionKeyOrPattern(sessionId, userId)
+        } else {
+            const pattern = this.getSessionKeyOrPattern(sessionId)
+            sessionKey = (await this.redisService.scanIterate(pattern))[0]
+        }
         const exists = await this.existsSession(sessionId)
         const expectedDeviceId = await this.redisService.hget(sessionKey, 'deviceId')
         const deviceIdMatches = expectedDeviceId === deviceId
@@ -351,6 +348,14 @@ export class SessionService {
         } catch {
             return []
         }
+    }
+
+    public async setDeviceIdAsKnown(deviceId: string, userId: string): Promise<void> {
+        await this.redisService.sadd(`knownDeviceId:${userId}`, deviceId)
+    }
+
+    public async isKnownDeviceId(deviceId: string, userId: string): Promise<boolean> {
+        return this.redisService.sismember(`knownDeviceId:${userId}`, deviceId)
     }
 
 

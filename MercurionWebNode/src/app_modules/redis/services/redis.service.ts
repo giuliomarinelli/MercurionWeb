@@ -49,6 +49,22 @@ export class RedisService {
     return { cursor: nextCursor, keys }
   }
 
+  public async scanIterate(pattern = '*'): Promise<string[]> {
+
+    const keys: string[] = []
+    let cursor = '0';
+    do {
+      const scanned = await this.scan(pattern, cursor, 1000)
+      if (scanned.keys?.length) {
+        keys.push(...scanned.keys)
+      }
+      cursor = scanned.cursor
+    } while (cursor !== '0')
+
+    return keys
+    
+  }
+
   // Hash operations
   public async hset(hash: string, key: string, value: string): Promise<number> {
     return this.redisClient.hset(hash, key, value)

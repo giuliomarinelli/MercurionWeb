@@ -5,6 +5,7 @@ export interface ISession {
     userId: UUID
     deviceId: string
     expiresAt: number
+    createdAt: number
     lastAccessedAt: number
     IP: string
     valid: boolean
