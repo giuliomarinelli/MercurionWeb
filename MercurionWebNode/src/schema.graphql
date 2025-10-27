@@ -179,6 +179,11 @@ type PaginatedMoleculeCollection {
   currentPage: Int!
 }
 
+type BindManyCollectionsToMoleculeDTO {
+  ok: Boolean!
+  moleculeUUID: ID
+}
+
 type PaginatedMoleculeCollectionItem {
   items: [MoleculeCollectionItemUnion!]!
   itemCount: Int!
@@ -294,7 +299,7 @@ type Mutation {
   updateMoleculeCollection(id: ID!, name: String!): MoleculeCollection!
   deleteMoleculeCollection(id: ID!): Boolean!
   markMoleculeCollectionAsTouched(id: ID!): Boolean!
-  bindManyCollectionsToMolecule(moleculeId: ID!, collectionIds: [ID!]!, selectAll: Boolean!): Boolean!
+  bindManyCollectionsToMolecule(moleculeId: ID!, collectionIds: [ID!]!, selectAll: Boolean!): BindManyCollectionsToMoleculeDTO!
   createMoleculeItem(input: CreateMoleculeItemInput!): MoleculeCollectionItemEntity!
   updateMoleculeItem(id: ID!, input: CreateMoleculeItemInput!): MoleculeCollectionItemEntity!
   deleteMoleculeItem(id: ID!): Boolean!

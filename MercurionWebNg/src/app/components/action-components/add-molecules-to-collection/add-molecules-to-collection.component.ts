@@ -301,6 +301,8 @@ export class AddMoleculesToCollectionComponent extends AbstractPaginatedMultisel
 
 
   private ctrlSub?: Subscription
+  private suSub1?: Subscription
+  private suSub2?: Subscription
 
 
   step = signal<1 | 2>(1);
@@ -355,6 +357,8 @@ export class AddMoleculesToCollectionComponent extends AbstractPaginatedMultisel
 
   ngOnDestroy(): void {
     this.ctrlSub?.unsubscribe()
+    this.suSub1?.unsubscribe()
+    this.suSub2?.unsubscribe()
     this.observer?.disconnect()
   }
 
@@ -380,7 +384,11 @@ export class AddMoleculesToCollectionComponent extends AbstractPaginatedMultisel
 
   private doSubmit(): void {
     if (this.step() === 1) {
-      if (this.isSelectedNothing()) return;
+      if (this.isSelectedNothing()) {
+        return
+      }
+
+      this.step_12_loading.set(true)
 
       let itemIds: string[] = [];
       if (this.isSelectedAll()) {
@@ -389,8 +397,7 @@ export class AddMoleculesToCollectionComponent extends AbstractPaginatedMultisel
         itemIds = this.multiselectItems().filter(w => w.isChecked()).map(w => w.item.id);
       }
 
-      this.step_12_loading.set(true);
-      this.moleculeCollectionItemService
+      this.suSub1 = this.moleculeCollectionItemService
         .addManyMoleculesToCollection(this.addContext.collectionId()!, itemIds, this.isSelectedAll())
         .subscribe({
           next: ok => {
@@ -472,7 +479,7 @@ export class AddMoleculesToCollectionComponent extends AbstractPaginatedMultisel
       }
       return dto
     })
-    this.moleculeCollectionItemService.addManyChEMBLItemsToCollection(this.addContext.collectionId()!, dtos).subscribe({
+    this.suSub2 = this.moleculeCollectionItemService.addManyChEMBLItemsToCollection(this.addContext.collectionId()!, dtos).subscribe({
       next: ok => {
         this.step_12_loading.set(false);
         this.addContext.notifyAdded()

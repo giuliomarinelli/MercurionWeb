@@ -38,3 +38,11 @@ export const UPDATE_MOLECULE_COLLECTION_NAME = gql`
     }
 }
 `
+export const BIND_MANY_COLLECTIONS_TO_MOLECULE = gql`
+  mutation BindManyCollectionsToMolecule($moleculeId: ID!, $collectionIds: [ID!]!, $selectAll: Boolean!) {
+    bindManyCollectionsToMolecule(moleculeId: $moleculeId, collectionIds: $collectionIds, selectAll: $selectAll) {
+      ok
+      moleculeUUID
+    }
+}
+`

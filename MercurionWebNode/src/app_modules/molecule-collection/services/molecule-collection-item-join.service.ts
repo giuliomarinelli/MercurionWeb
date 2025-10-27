@@ -10,6 +10,7 @@ import { MoleculeCollection } from '../Models/entities/molecule-collection.entit
 import { MoleculeCollectionItemEntity } from '../Models/entities/molecule-collection-item.entity';
 import { ChEMBLMoleculeItemEntity } from '../Models/entities/chembl-molecule-item.entity';
 import { MoleculeService } from 'src/app_modules/meilisearch/services/molecule.service';
+import { BindManyCollectionsToMoleculeDTO } from '../Models/DTO/bind-many-collections-to-molecule.dto';
 
 
 
@@ -172,14 +173,17 @@ export class MoleculeCollectionItemJoinService {
         return Array.from(alreadySet);
     }
 
-    async bindManyCollectionsToMolecule(userId: UUID, moleculeId: string, collectionIds: UUID[], selectAll: boolean): Promise<boolean> {
+    async bindManyCollectionsToMolecule(userId: UUID, moleculeId: string, collectionIds: UUID[], selectAll: boolean): Promise<BindManyCollectionsToMoleculeDTO> {
         try {
             return await this.dataSource.manager.transaction(async (manager) => {
                 return this.bindManyCollectionsToMoleculeWithManager(userId, moleculeId, collectionIds, selectAll, manager)
             })
         } catch (e) {
             this.logger.warn(`MoleculeCollectionItemJoinService > bindManyCollectionsToMolecule: Error => ${e.message || e}`)
-            return false
+            return {
+                ok: false,
+                moleculeUUID: null
+            }
         }
     }
 
@@ -189,15 +193,20 @@ export class MoleculeCollectionItemJoinService {
         collectionIds: UUID[],
         selectAll: boolean,
         manager: EntityManager
-    ): Promise<boolean> {
+    ): Promise<BindManyCollectionsToMoleculeDTO> {
 
         const isMolregno = /^\d+$/.test(String(moleculeId))
+
+        let moleculeUUID: UUID | null = null
 
         if (isMolregno) {
             const chemblMolregno = Number(moleculeId)
             const existsChemblMolecule = await this.moleculeService.existsMoleculeByMolregno(chemblMolregno)
             if (!existsChemblMolecule) {
-                return false
+                return {
+                    ok: false,
+                    moleculeUUID
+                }
             }
             const [chemblMol] = (await this.moleculeService.getPreviewsByMolregnos([String(chemblMolregno)])).filter(res => !!res)
             let name = chemblMol.preferredName
@@ -230,6 +239,7 @@ export class MoleculeCollectionItemJoinService {
                     }
                 })
                 moleculeId = row!.id
+                moleculeUUID = moleculeId as UUID
             } else {
                 const now = Date.now()
                 const newEntity = manager.create(ChEMBLMoleculeItemEntity, {
@@ -244,6 +254,7 @@ export class MoleculeCollectionItemJoinService {
                 })
                 const persisted = await manager.save(newEntity)
                 moleculeId = persisted.id
+                moleculeUUID = moleculeId as UUID
             }
         }
 
@@ -255,7 +266,7 @@ export class MoleculeCollectionItemJoinService {
         } else {
             const qbAll = manager
                 .createQueryBuilder(MoleculeCollection, 'c')
-                .select(['c.id']);
+                .select('c.id', 'id');
 
             if (distinct.length > 0) {
                 qbAll.where('NOT (c.id = ANY(:excluded))', { excluded: distinct })
@@ -264,7 +275,10 @@ export class MoleculeCollectionItemJoinService {
             candidateIds = rows.map(r => r.id)
         }
         if (candidateIds.length === 0) {
-            return false
+            return {
+                ok: false,
+                moleculeUUID
+            }
         }
         const qbExisting = manager
             .createQueryBuilder(MoleculeCollectionItemJoin, 'j')
@@ -294,7 +308,10 @@ export class MoleculeCollectionItemJoinService {
         for (const collectionId of toInsert) {
             await this.collectionService.markAsTouchedWithManager(userId, collectionId as UUID, manager)
         }
-        return true
+        return {
+            ok: true,
+            moleculeUUID
+        }
     }
 
 

@@ -1,9 +1,9 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { Apollo, gql } from 'apollo-angular';
 import { Observable, map, tap } from 'rxjs';
-import { MoleculeCollection } from '../../Models/graphql/molecule-collection/molecule-collection.types';
+import { BindManyCollectionsToMoleculeDTO, MoleculeCollection } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 import { PageModel } from '../../Models/graphql/page.model';
-import { CREATE_MANY_MOLECULE_COLLECTIONS, MARK_MOLECULE_COLLECTION_AS_TOUCHED, PAGINATED_MOLECULE_COLLECTIONS, UPDATE_MOLECULE_COLLECTION_NAME } from './graphql-actions/molecule-collection.gql-actions';
+import { BIND_MANY_COLLECTIONS_TO_MOLECULE, CREATE_MANY_MOLECULE_COLLECTIONS, MARK_MOLECULE_COLLECTION_AS_TOUCHED, PAGINATED_MOLECULE_COLLECTIONS, UPDATE_MOLECULE_COLLECTION_NAME } from './graphql-actions/molecule-collection.gql-actions';
 import { extractGqlData } from './graphql-helpers/extract-gql-data.gql-helper';
 
 
@@ -193,6 +193,18 @@ export class MoleculeCollectionService {
       .pipe(map(res => extractGqlData(res, 'deleteMoleculeCollection')));
   }
 
-
+  bindManyCollectionsToMolecule(moleculeId: string, collectionIds: string[], selectAll: boolean): Observable<BindManyCollectionsToMoleculeDTO> {
+    return this.apollo
+      .mutate<{ bindManyCollectionsToMolecule: BindManyCollectionsToMoleculeDTO }>({
+        mutation: BIND_MANY_COLLECTIONS_TO_MOLECULE,
+        variables: {
+          moleculeId,
+          collectionIds,
+          selectAll
+        }
+      }).pipe(
+        map(res => extractGqlData(res, 'bindManyCollectionsToMolecule'))
+      )
+  }
 
 }

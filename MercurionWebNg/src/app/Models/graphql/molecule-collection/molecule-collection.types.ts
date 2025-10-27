@@ -181,4 +181,7 @@ export interface MoleculeCardItemModel extends Animatable {
   touchedAt: number
 }
 
-
+export interface BindManyCollectionsToMoleculeDTO {
+  ok: boolean
+  moleculeUUID: string | null
+}

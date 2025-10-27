@@ -1,15 +1,16 @@
 import { BindCollectionsToMoleculeContextService } from './../../../services/context/action-context/bind-collections-to-molecule-context.service';
-import { AfterViewInit, Component, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, effect, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { AbstractPaginatedMultiselectComponent } from '../../../abstract/abstract-paginated-multiselect-component';
 import { UiMoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
-import { debounceTime, map, Observable } from 'rxjs';
+import { debounceTime, map, Observable, Subscription } from 'rxjs';
 import { PageModel } from '../../../Models/graphql/page.model';
 import { ClassicSpinnerComponent } from '../../common/classic-spinner/classic-spinner.component';
 import { PmSearchInputComponent } from '../../common/pm-search-input/pm-search-input.component';
 import { CollectionSelectCardComponent } from '../../molecule-detail/collection-select-card/collection-select-card.component';
 import { SkeletonCollectionCardComponent } from '../../common/skeleton-card-loader/skeleton-card-loader.component';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-bind-collections-to-molecule',
@@ -51,7 +52,8 @@ import { SkeletonCollectionCardComponent } from '../../common/skeleton-card-load
                 <app-collection-select-card
                   [collection]="row.item"
                   [i]="i"
-                  [(value)]="row.isChecked"
+                  [value]="row.isChecked()"
+                  (valueChange)="row.isChecked.set($event)"
                 />
               }
             </div>
@@ -112,7 +114,7 @@ import { SkeletonCollectionCardComponent } from '../../common/skeleton-card-load
         <span
           aria-hidden="true"
           class="absolute inset-0 flex items-center justify-center"
-          [class.hidden]="!step_12_loading()"
+          [class.hidden]="!step_12_loading() || (step() === 1 && isSelectedNothing())"
         >
           <app-classic-spinner [size]="24"></app-classic-spinner>
         </span>
@@ -127,6 +129,10 @@ export class BindCollectionsToMoleculeComponent extends AbstractPaginatedMultise
   private readonly actionOverlayContext = inject(ActionOverlayContextService)
   private readonly bindContext = inject(BindCollectionsToMoleculeContextService)
   private readonly moleculeCollectionService = inject(MoleculeCollectionService)
+  private readonly router = inject(Router)
+
+
+  private suSub?: Subscription
 
   step = signal<1 | 2>(1)
   step_12_loading = signal<boolean>(false)
@@ -147,8 +153,17 @@ export class BindCollectionsToMoleculeComponent extends AbstractPaginatedMultise
   }
 
   ngOnDestroy(): void {
+    this.suSub?.unsubscribe()
     this.observer?.disconnect()
   }
+
+  private _rearmOnStep = effect(() => {
+    if (this.step() === 1) {
+      queueMicrotask(() => this.startObserver());
+    } else {
+      this.observer?.disconnect();
+    }
+  });
 
   protected override fetch$(page?: number, size?: number, q?: string, excludeJoinedToCollection?: boolean, collectionId?: boolean): Observable<PageModel<UiMoleculeCollection>> {
 
@@ -178,7 +193,39 @@ export class BindCollectionsToMoleculeComponent extends AbstractPaginatedMultise
   }
 
   doSubmit(): void {
-
+    if (this.step() === 1) {
+      if (this.isSelectedNothing()) {
+        return
+      }
+      this.step_12_loading.set(true)
+      let collectionIds: string[] = []
+      if (this.isSelectedAll()) {
+        collectionIds = this.multiselectItems().filter(w => !w.isChecked()).map(w => w.item.id)
+      } else {
+        collectionIds = this.multiselectItems().filter(w => w.isChecked()).map(w => w.item.id)
+      }
+      this.suSub = this.moleculeCollectionService
+        .bindManyCollectionsToMolecule(this.bindContext.moleculeId()!, collectionIds, this.isSelectedAll())
+        .subscribe({
+          next: ({ ok, moleculeUUID }) => {
+            this.step_12_loading.set(false)
+            this.bindContext.notifyAdded()
+            this.error.set(!ok)
+            this.bindContext.clearMoleculeId()
+            queueMicrotask(() => {
+              this.actionOverlayContext.close()
+              if (moleculeUUID) {
+                this.router.navigateByUrl(`/molecules/detail/${moleculeUUID}`)
+              }
+            })
+          },
+          error: () => {
+            this.step_12_loading.set(false)
+            this.error.set(true)
+            this.step.set(2)
+          }
+        })
+    }
   }
 
 }

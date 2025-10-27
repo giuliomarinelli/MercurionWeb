@@ -10,6 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { MoleculeCollectionItemJoin } from '../Models/entities/molecule-collection-item-join.entity';
 import { Repository } from 'typeorm';
 import { MoleculeCollectionItemJoinService } from '../services/molecule-collection-item-join.service';
+import { BindManyCollectionsToMoleculeDTO } from '../Models/DTO/bind-many-collections-to-molecule.dto';
 
 
 @Resolver(() => MoleculeCollection)
@@ -127,13 +128,13 @@ export class MoleculeCollectionResolver {
         }
     }
 
-    @Mutation(() => Boolean)
+    @Mutation(() => BindManyCollectionsToMoleculeDTO)
     async bindManyCollectionsToMolecule(
         @AuthenticatedUserId() userId: UUID,
         @Args('moleculeId', { type: () => ID }) moleculeId: string,
         @Args('collectionIds', { type: () => [ID] }) collectionIds: UUID[],
         @Args('selectAll', { type: () => Boolean }) selectAll: boolean
-    ): Promise<boolean> {
+    ): Promise<BindManyCollectionsToMoleculeDTO> {
         return this.joinService.bindManyCollectionsToMolecule(userId, moleculeId, collectionIds, selectAll)
     }
 
