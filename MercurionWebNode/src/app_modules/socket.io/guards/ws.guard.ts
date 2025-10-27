@@ -92,7 +92,7 @@ export class WsGuard implements CanActivate {
 
   private unauthorized(client: Socket): void {
     client.emit('sv.pub.err', { detail: 'Unauthorized' })
-    this.logger.debug(`Socket ${client.id} polling connection state: PUBLIC`)
+    // this.logger.debug(`Socket ${client.id} polling connection state: PUBLIC`)
   }
 
 }
