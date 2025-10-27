@@ -5,6 +5,8 @@ import { ISession, ISessionDeviceInfo } from '../Models/interfaces/i-session.int
 import { nullish } from 'src/Models/nullish.type';
 import { RpcException } from '@nestjs/microservices';
 import { GeoLocation } from './geo-ip.service';
+import { SessionFetchOptions } from '../Models/interfaces/session-fetch-options.interface';
+
 
 @Injectable()
 export class SessionService {
@@ -12,10 +14,6 @@ export class SessionService {
     private readonly logger = new Logger(SessionService.name)
 
     constructor(private readonly redisService: RedisService) { }
-
-    async onModuleInit() {
-        this.getActiveSessionsForUser('01970782-5eba-7000-9636-9c781e5b1a5f')
-    }
 
     private getSessionKeyOrPattern(sessionId: string, userId?: string): string {
         return `session:${sessionId}:${userId ?? '*'}`
@@ -30,9 +28,7 @@ export class SessionService {
     }
 
     public async getActiveSessionsForUser(userId: UUID): Promise<string[]> {
-        const s = await this.redisService.getClient().smembers(`user_sessions:${userId}`)
-        this.logger.debug(s)
-        return s
+        return this.redisService.getClient().smembers(`user_sessions:${userId}`)
     }
 
     // 🔹 Creazione di una nuova sessione (semplificata con Omit<>)
@@ -40,6 +36,13 @@ export class SessionService {
         sessionData: Omit<ISession, | 'sessionId' | 'expiresAt' | 'lastAccessedAt' | 'valid' | 'doNotAskMfaPhoneNumberVerification'>,
         rememberMe: boolean
     ): Promise<ISession> {
+
+        const userSessionsByDeviceId = (await this.getAllSessionsByUserId(sessionData.userId)).filter(s => s.deviceId === sessionData.deviceId)
+
+        for (const s of userSessionsByDeviceId) {
+            await this.destroySession(s.sessionId, s.deviceId, s.userId)
+        }
+
         const sessionId = randomUUID();
         const ttlSeconds = rememberMe ? 30 * 24 * 60 * 60 : 60 * 60 // 30 giorni o 60 min
         const expiresAt = Date.now() + ttlSeconds * 1000
@@ -50,7 +53,7 @@ export class SessionService {
             expiresAt,
             lastAccessedAt: Date.now(),
             valid: false
-        };
+        }
 
         const sessionKey = this.getSessionKeyOrPattern(sessionId, sessionData.userId);
 
@@ -120,6 +123,57 @@ export class SessionService {
         return session
 
     }
+
+    async getAllSessionsByUserId(userId: string, opts?: SessionFetchOptions): Promise<ISession[]> {
+        const keys: string[] = [];
+        const matchPattern = `session:*:${userId}`;
+
+        let cursor = '0';
+        do {
+            const scanned = await this.redisService.scan(matchPattern, cursor, 1000)
+            if (scanned.keys?.length) {
+                keys.push(...scanned.keys)
+            }
+            cursor = scanned.cursor;
+        } while (cursor !== '0');
+
+        // carica i dettagli in pipeline (molto più veloce di un await per chiave)
+        if (keys.length === 0) return [];
+
+        const pipeline = this.redisService.getClient().pipeline();
+        for (const key of keys) {
+            pipeline.hgetall(key)
+        }
+        const results = await pipeline.exec()
+
+        const sessions = results?.map(([, sessionData]) => {
+            if (!sessionData || Object.keys(sessionData).length === 0) {
+                return null
+            }
+            try {
+                const sd = sessionData as Record<string, string>
+                const s: ISession = {
+                    sessionId: sd.sessionId as UUID,
+                    userId: sd.userId as UUID,
+                    deviceId: sd.deviceId as UUID,
+                    expiresAt: parseInt(sd.expiresAt, 10),
+                    lastAccessedAt: parseInt(sd.lastAccessedAt, 10),
+                    IP: sd.IP,
+                    valid: JSON.parse(sd.valid) as boolean,
+                    sessionDeviceInfo: JSON.parse(sd.sessionDeviceInfo) as ISessionDeviceInfo,
+                    fingerprint: sd.fingerprint,
+                    location: sd.location,
+                };
+                return s;
+            } catch {
+                // se un record è corrotto, lo saltiamo
+                return null;
+            }
+        }).filter(Boolean) as ISession[];
+
+        return opts?.onlyValid ? sessions.filter(s => s.valid) : sessions;
+    }
+
 
     // 🔹 Validazione della sessione, deviceId e scadenza
     async validateSession(sessionId: string, deviceId: string, userId?: string): Promise<boolean> {
@@ -211,13 +265,23 @@ export class SessionService {
     }
 
     public async existsSession(sessionId: string): Promise<boolean> {
-        const sessionKey = this.getSessionKeyOrPattern(sessionId)
+        const matchPattern = this.getSessionKeyOrPattern(sessionId)
+        const keys: string [] = []
+        let cursor = '0'
+        do {
+            const scanned = await this.redisService.scan(matchPattern, cursor, 1000)
+            if (scanned.keys?.length) {
+                keys.push(...scanned.keys)
+            }
+            cursor = scanned.cursor;
+        } while (cursor !== '0')
+        const [sessionKey] = keys
         const value = await this.redisService.hget(sessionKey, 'sessionId')
         return value !== null && value !== undefined
     }
 
     public async destroySession(sessionId: string, deviceId: string, userId?: UUID): Promise<void> | never {
-        const sessionKey = this.getSessionKeyOrPattern(sessionId)
+        const sessionKey = this.getSessionKeyOrPattern(sessionId, userId)
         const exists = await this.existsSession(sessionId)
         const expectedDeviceId = await this.redisService.hget(sessionKey, 'deviceId')
         const deviceIdMatches = expectedDeviceId === deviceId

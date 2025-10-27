@@ -119,6 +119,8 @@ export class GlobalGuard implements CanActivate {
 
          req.headers['x-user-id'] = payload.sub
 
+         this.logger.debug(await this.sessionService.getAllSessionsByUserId(payload.sub))
+
          return true
 
       } catch {
