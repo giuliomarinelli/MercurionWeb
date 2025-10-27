@@ -26,7 +26,7 @@ export class Synthesis {
 
     @Field(() => [SynthStep], { nullable: true })
     @OneToMany(() => SynthStep, step => step.synth, { cascade: true })
-    steps: SynthStep[]
+    steps: SynthStep[] | null
 
     @BeforeInsert()
     private generateId() {

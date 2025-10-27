@@ -26,14 +26,14 @@ export class SynthStepMoleculeRef {
     @Column({ type: 'uuid' })
     stepId: UUID
 
-    @Field(() => CustomMoleculeItemEntity)
-    @ManyToOne(() => CustomMoleculeItemEntity, { onDelete: 'CASCADE' })
+    @Field(() => CustomMoleculeItemEntity, { nullable: true })
+    @ManyToOne(() => CustomMoleculeItemEntity, { onDelete: 'SET NULL' })
     @JoinColumn({ name: 'molecule_id' })
-    molecule: CustomMoleculeItemEntity
+    molecule: CustomMoleculeItemEntity | null
 
-    @Field(() => ID)
+    @Field(() => ID, { nullable: true })
     @Column({ type: 'uuid' })
-    moleculeId: UUID
+    moleculeId: UUID | null
 
     @Field(() => MoleculeRole)
     @Column({ type: 'varchar' })

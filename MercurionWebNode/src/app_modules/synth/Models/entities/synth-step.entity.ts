@@ -31,27 +31,27 @@ export class SynthStep {
     @Column({ type: 'int', name: 'step_order' })
     order: number
 
-    @Field(() => [SynthStepMoleculeRef])
+    @Field(() => [SynthStepMoleculeRef], { nullable: true })
     @OneToMany(() => SynthStepMoleculeRef, ref => ref.step, { cascade: true })
-    moleculeRefs: SynthStepMoleculeRef[]
+    moleculeRefs: SynthStepMoleculeRef[] | null
 
-    @Field(() => CustomMoleculeItemEntity)
-    @OneToOne(() => CustomMoleculeItemEntity, mol => mol.id, { cascade: true, onDelete: 'CASCADE' })
+    @Field(() => CustomMoleculeItemEntity, { nullable: true })
+    @OneToOne(() => CustomMoleculeItemEntity, mol => mol.id, { cascade: true, onDelete: 'SET NULL' })
     @JoinColumn()
-    mainSubstrate: CustomMoleculeItemEntity
+    mainSubstrate: CustomMoleculeItemEntity | null
 
-    @Field(() => ID)
+    @Field(() => ID, { nullable: true })
     @Column({ type: 'uuid' })
-    mainSubstrateId: UUID
+    mainSubstrateId: UUID | null
 
-    @Field(() => CustomMoleculeItemEntity)
-    @OneToOne(() => CustomMoleculeItemEntity, mol => mol.id, { cascade: true, onDelete: 'CASCADE' })
+    @Field(() => CustomMoleculeItemEntity, { nullable: true })
+    @OneToOne(() => CustomMoleculeItemEntity, mol => mol.id, { cascade: true, onDelete: 'SET NULL' })
     @JoinColumn()
-    mainProduct: CustomMoleculeItemEntity
+    mainProduct: CustomMoleculeItemEntity | null
 
-    @Field(() => ID)
+    @Field(() => ID, { nullable: true })
     @Column({ type: 'uuid' })
-    mainProductId: UUID
+    mainProductId: UUID | null
 
     @Field(() => String, { nullable: true })
     @Column({ type: 'text', nullable: true })
@@ -62,8 +62,8 @@ export class SynthStep {
     reactionType: string | null // es. "ossidazione", "alchilazione"
 
     @Field(() => [String])
-    @Column({ type: 'varchar', nullable: true, default: () => `'[]'::jsonb` })
-    conditions: string[] | null // condizioni di reazione (sulla freccia, es: "HCl, 60°C")
+    @Column({ type: 'jsonb', default: () => `'[]'::jsonb` })
+    conditions: string[] // condizioni di reazione (sulla freccia, es: "HCl, 60°C")
 
     @BeforeInsert()
     private generateId() {

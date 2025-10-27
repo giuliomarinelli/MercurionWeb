@@ -192,8 +192,8 @@ type SynthStepMoleculeRef {
   id: ID!
   step: SynthStep!
   stepId: ID!
-  molecule: CustomMoleculeItemEntity!
-  moleculeId: ID!
+  molecule: CustomMoleculeItemEntity
+  moleculeId: ID
   role: MoleculeRole!
   showAliasOnTheArrow: Boolean!
 }
@@ -211,11 +211,11 @@ type SynthStep {
   synth: Synthesis!
   synthId: ID
   order: Int!
-  moleculeRefs: [SynthStepMoleculeRef!]!
-  mainSubstrate: CustomMoleculeItemEntity!
-  mainSubstrateId: ID!
-  mainProduct: CustomMoleculeItemEntity!
-  mainProductId: ID!
+  moleculeRefs: [SynthStepMoleculeRef!]
+  mainSubstrate: CustomMoleculeItemEntity
+  mainSubstrateId: ID
+  mainProduct: CustomMoleculeItemEntity
+  mainProductId: ID
   description: String
   reactionType: String
   conditions: [String!]!
