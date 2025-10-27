@@ -1,19 +1,19 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { SyntheticStepMoleculeRefService } from './synthetic-step-molecule-ref.service';
+import { SynthStepMoleculeRefService } from './synth-step-molecule-ref.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { SyntheticStepMoleculeRef } from '../Models/entities/synthetic-step-molecule-ref.entity';
-import { SyntheticStepEntity } from '../Models/entities/synthetic-step.entity';
+import { SynthStepMoleculeRef } from '../Models/entities/synth-step-molecule-ref.entity';
+import { SynthStep } from '../Models/entities/synth-step.entity';
 import { MoleculeCollectionItemEntity } from '../../molecule-collection/Models/entities/molecule-collection-item.entity';
 
 describe('SyntheticStepMoleculeRefService', () => {
-  let service: SyntheticStepMoleculeRefService;
+  let service: SynthStepMoleculeRefService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        SyntheticStepMoleculeRefService,
+        SynthStepMoleculeRefService,
         {
-          provide: getRepositoryToken(SyntheticStepMoleculeRef),
+          provide: getRepositoryToken(SynthStepMoleculeRef),
           useValue: {
             findOne: jest.fn(),
             find: jest.fn(),
@@ -24,7 +24,7 @@ describe('SyntheticStepMoleculeRefService', () => {
           },
         },
         {
-          provide: getRepositoryToken(SyntheticStepEntity),
+          provide: getRepositoryToken(SynthStep),
           useValue: { findOne: jest.fn() },
         },
         {
@@ -34,7 +34,7 @@ describe('SyntheticStepMoleculeRefService', () => {
       ],
     }).compile();
 
-    service = module.get<SyntheticStepMoleculeRefService>(SyntheticStepMoleculeRefService);
+    service = module.get<SynthStepMoleculeRefService>(SynthStepMoleculeRefService);
   });
 
   it('should be defined', () => {

@@ -1,9 +1,10 @@
 import { registerEnumType } from '@nestjs/graphql';
 
 export enum MoleculeRole {
-    REACTANT = 'reactant',
-    PRODUCT = 'product',
-    REAGENT = 'reagent'
+    Reactant = 'Reactant',
+    Substrate = 'Substrate',
+    Product = 'Product',
+    SubProduct = 'SubProduct'
 }
 
 registerEnumType(MoleculeRole, {

@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SyntheticStepService } from './synthetic-step.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { SyntheticStepEntity } from '../Models/entities/synthetic-step.entity';
+import { SynthStep } from '../Models/entities/synth-step.entity';
 
 describe('SyntheticStepService', () => {
   let service: SyntheticStepService;
@@ -11,7 +11,7 @@ describe('SyntheticStepService', () => {
       providers: [
         SyntheticStepService,
         {
-          provide: getRepositoryToken(SyntheticStepEntity),
+          provide: getRepositoryToken(SynthStep),
           useValue: {
             create: jest.fn(),
             save: jest.fn(),

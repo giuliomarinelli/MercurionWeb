@@ -43,8 +43,11 @@ export abstract class MoleculeCollectionItemEntity {
 
   @Column({ type: 'bigint' })
   updatedAt: number
-  
+
   @Column({ type: 'bigint' })
   touchedAt: number
-  
+
+  @Column({ type: 'varchar', nullable: true })
+  alias: string | null
+
 }

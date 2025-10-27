@@ -1,16 +1,16 @@
 import { UUID } from 'crypto';
 import { uuidv7 } from '@kripod/uuidv7';
 import { BeforeInsert, Column, Entity, OneToMany, PrimaryColumn, Index } from 'typeorm';
-import { SyntheticStepEntity } from './synthetic-step.entity';
+import { SynthStep } from './synth-step.entity';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 
 @ObjectType()
-@Entity('synthetic_routes')
-export class SyntheticRouteEntity {
+@Entity('synthesis')
+export class Synthesis {
 
     @Field(() => ID)
     @PrimaryColumn({ type: 'uuid' })
-    id: UUID
+    id: UUID    
 
     @Index()
     @Column({ type: 'uuid' })
@@ -24,9 +24,9 @@ export class SyntheticRouteEntity {
     @Column({ type: 'text', nullable: true })
     notes: string | null
 
-    @Field(() => [SyntheticStepEntity], { nullable: true })
-    @OneToMany(() => SyntheticStepEntity, step => step.route, { cascade: true })
-    steps: SyntheticStepEntity[]
+    @Field(() => [SynthStep], { nullable: true })
+    @OneToMany(() => SynthStep, step => step.synth, { cascade: true })
+    steps: SynthStep[]
 
     @BeforeInsert()
     private generateId() {

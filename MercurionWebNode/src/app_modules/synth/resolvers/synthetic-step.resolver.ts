@@ -3,16 +3,16 @@ import { AuthenticatedUserId } from "src/metadata/metadata";
 import { UUID } from "crypto";
 import { GraphQLResolveInfo } from "graphql";
 import { GraphqlUtils } from "src/utils/graphql-utils/graphql-utils";
-import { SyntheticStepEntity } from "../Models/entities/synthetic-step.entity";
+import { SynthStep } from "../Models/entities/synth-step.entity";
 import { SyntheticStepService } from "../services/synthetic-step.service";
-import { SyntheticStepInput } from "../Models/DTO/synthetic-step.input";
+import { SynthStepInput } from "../Models/DTO/synth-step.input";
 
-@Resolver(() => SyntheticStepEntity)
+@Resolver(() => SynthStep)
 export class SyntheticStepResolver {
 
     constructor(private readonly service: SyntheticStepService) { }
 
-    @Query(() => [SyntheticStepEntity])
+    @Query(() => [SynthStep])
     async syntheticStepsByRoute(
         @Args('routeId', { type: () => ID }) routeId: UUID,
         @AuthenticatedUserId() userId: UUID,
@@ -22,7 +22,7 @@ export class SyntheticStepResolver {
         return this.service.findByRoute(userId, routeId, fieldsMap)
     }
 
-    @Query(() => SyntheticStepEntity, { nullable: true })
+    @Query(() => SynthStep, { nullable: true })
     async syntheticStepById(
         @Args('id', { type: () => ID }) id: UUID,
         @AuthenticatedUserId() userId: UUID,
@@ -32,19 +32,19 @@ export class SyntheticStepResolver {
         return this.service.findOneById(userId, id, fieldsMap)
     }
 
-    @Mutation(() => SyntheticStepEntity)
+    @Mutation(() => SynthStep)
     async createSyntheticStep(
         @AuthenticatedUserId() userId: UUID,
-        @Args('input') input: SyntheticStepInput
+        @Args('input') input: SynthStepInput
     ) {
         return this.service.create(userId, input)
     }
 
-    @Mutation(() => SyntheticStepEntity)
+    @Mutation(() => SynthStep)
     async updateSyntheticStep(
         @AuthenticatedUserId() userId: UUID,
         @Args('id', { type: () => ID }) id: UUID,
-        @Args('input') input: SyntheticStepInput,
+        @Args('input') input: SynthStepInput,
         @Info() info: GraphQLResolveInfo
     ) {
         const fieldsMap = GraphqlUtils.getFieldsMap(info)

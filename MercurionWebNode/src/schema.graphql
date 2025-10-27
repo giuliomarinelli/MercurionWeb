@@ -188,39 +188,44 @@ type ChEMBLMoleculeItemDTO {
   joins: [MoleculeCollectionItemJoin!]
 }
 
-type SyntheticStepMoleculeRef {
+type SynthStepMoleculeRef {
   id: ID!
-  step: SyntheticStepEntity
-  molecule: MoleculeCollectionItemEntity
+  step: SynthStep!
+  stepId: ID!
+  molecule: CustomMoleculeItemEntity!
+  moleculeId: ID!
   role: MoleculeRole!
-  alias: String
+  showAliasOnTheArrow: Boolean!
 }
 
 """Ruolo della molecola in una reazione chimica"""
 enum MoleculeRole {
-  REACTANT
-  PRODUCT
-  REAGENT
+  Reactant
+  Substrate
+  Product
+  SubProduct
 }
 
-type SyntheticStepEntity {
+type SynthStep {
   id: ID!
-  route: SyntheticRouteEntity
-  routeId: String
-  order: Float!
+  synth: Synthesis!
+  synthId: ID
+  order: Int!
+  moleculeRefs: [SynthStepMoleculeRef!]!
+  mainSubstrate: CustomMoleculeItemEntity!
+  mainSubstrateId: ID!
+  mainProduct: CustomMoleculeItemEntity!
+  mainProductId: ID!
   description: String
   reactionType: String
-  conditions: String
-  moleculeRefs: [SyntheticStepMoleculeRef!]
-  rawEditorData: String
-  structureImage: String
+  conditions: [String!]!
 }
 
-type SyntheticRouteEntity {
+type Synthesis {
   id: ID!
   title: String!
   notes: String
-  steps: [SyntheticStepEntity!]
+  steps: [SynthStep!]
 }
 
 type Query {
@@ -250,11 +255,11 @@ type Query {
   findOneChemblMoleculeById(itemId: ID!): ChEMBLMoleculeItemEntity
   hasUserChEMBLMoleculeByMolregnoThenGetUUID(molregno: Int!): String
   existsChEMBLMoleculeByUUIDThenGetMolregno(_uuid_: String!): String
-  mySyntheticRoutes: [SyntheticRouteEntity!]!
-  syntheticRoute(id: ID!): SyntheticRouteEntity
-  syntheticStepsByRoute(routeId: ID!): [SyntheticStepEntity!]!
-  syntheticStepById(id: ID!): SyntheticStepEntity
-  stepMoleculeRefs(stepId: ID!): [SyntheticStepMoleculeRef!]!
+  mySyntheticRoutes: [Synthesis!]!
+  syntheticRoute(id: ID!): Synthesis
+  syntheticStepsByRoute(routeId: ID!): [SynthStep!]!
+  syntheticStepById(id: ID!): SynthStep
+  stepMoleculeRefs(stepId: ID!): [SynthStepMoleculeRef!]!
 }
 
 input MoleculeSearchInput {
@@ -302,14 +307,14 @@ type Mutation {
   addManyChemblItemsToCollection(collectionId: ID!, input: [AddManyChEMBLItemDTO!]!): Boolean!
   addCustomMoleculeToCollection(collectionId: ID!, input: CustomMoleculeItemInput!): CustomMoleculeItemEntity!
   removeCustomMoleculeFromCollection(collectionId: ID!, itemId: ID!): Boolean!
-  createSyntheticRoute(input: SyntheticRouteInput!): SyntheticRouteEntity!
-  updateSyntheticRoute(id: ID!, input: SyntheticRouteInput!): SyntheticRouteEntity!
+  createSyntheticRoute(input: SynthesisInput!): Synthesis!
+  updateSyntheticRoute(id: ID!, input: SynthesisInput!): Synthesis!
   deleteSyntheticRoute(id: ID!): Boolean!
-  createSyntheticStep(input: SyntheticStepInput!): SyntheticStepEntity!
-  updateSyntheticStep(id: ID!, input: SyntheticStepInput!): SyntheticStepEntity!
+  createSyntheticStep(input: SynthStepInput!): SynthStep!
+  updateSyntheticStep(id: ID!, input: SynthStepInput!): SynthStep!
   deleteSyntheticStep(id: ID!): Boolean!
-  addStepMoleculeRef(input: SyntheticStepMoleculeRefInput!): SyntheticStepMoleculeRef!
-  updateStepMoleculeRef(id: ID!, input: SyntheticStepMoleculeRefInput!): SyntheticStepMoleculeRef!
+  addStepMoleculeRef(input: SynthStepMoleculeRefInput!): SynthStepMoleculeRef!
+  updateStepMoleculeRef(id: ID!, input: SynthStepMoleculeRefInput!): SynthStepMoleculeRef!
   removeStepMoleculeRef(id: ID!): Boolean!
 }
 
@@ -379,24 +384,24 @@ input CustomMoleculeItemInput {
   propertiesJson: String
 }
 
-input SyntheticRouteInput {
+input SynthesisInput {
   title: String!
   notes: String
 }
 
-input SyntheticStepInput {
-  routeId: ID!
-  order: Float!
+input SynthStepInput {
+  synthId: ID!
+  order: Int!
+  mainSubstrateId: ID!
+  mainProductId: ID!
   description: String
   reactionType: String
-  conditions: String
-  rawEditorData: String
-  structureImage: String
+  conditions: [String!]!
 }
 
-input SyntheticStepMoleculeRefInput {
+input SynthStepMoleculeRefInput {
   stepId: ID!
   moleculeId: ID!
   role: MoleculeRole!
-  alias: String
+  showAliasOnTheArrow: Boolean!
 }

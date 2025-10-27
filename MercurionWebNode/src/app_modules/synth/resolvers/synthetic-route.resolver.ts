@@ -3,16 +3,16 @@ import { AuthenticatedUserId } from "src/metadata/metadata";
 import { UUID } from "crypto";
 import { GraphQLResolveInfo } from 'graphql';
 import { GraphqlUtils } from "src/utils/graphql-utils/graphql-utils";
-import { SyntheticRouteEntity } from "../Models/entities/synthetic-route.entity";
-import { SyntheticRouteService } from "../services/synthetic-route.service";
-import { SyntheticRouteInput } from "../Models/DTO/synthetic-route.input";
+import { Synthesis } from "../Models/entities/synthesis.entity";
+import { SynthesisService } from "../services/synthesis.service";
+import { SynthesisInput } from "../Models/DTO/synthesis.input";
 
-@Resolver(() => SyntheticRouteEntity)
+@Resolver(() => Synthesis)
 export class SyntheticRouteResolver {
 
-    constructor(private readonly routeService: SyntheticRouteService) { }
+    constructor(private readonly routeService: SynthesisService) { }
 
-    @Query(() => [SyntheticRouteEntity])
+    @Query(() => [Synthesis])
     async mySyntheticRoutes(
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
@@ -21,7 +21,7 @@ export class SyntheticRouteResolver {
         return this.routeService.findAllByUser(userId, fieldsMap)
     }
 
-    @Query(() => SyntheticRouteEntity, { nullable: true })
+    @Query(() => Synthesis, { nullable: true })
     async syntheticRoute(
         @Args('id', { type: () => ID }) id: UUID,
         @AuthenticatedUserId() userId: UUID,
@@ -31,19 +31,19 @@ export class SyntheticRouteResolver {
         return this.routeService.findOne(id, userId, fieldsMap);
     }
 
-    @Mutation(() => SyntheticRouteEntity)
+    @Mutation(() => Synthesis)
     async createSyntheticRoute(
         @AuthenticatedUserId() userId: UUID,
-        @Args('input') input: SyntheticRouteInput
+        @Args('input') input: SynthesisInput
     ) {
         return this.routeService.create(userId, input);
     }
 
-    @Mutation(() => SyntheticRouteEntity)
+    @Mutation(() => Synthesis)
     async updateSyntheticRoute(
         @AuthenticatedUserId() userId: UUID,
         @Args('id', { type: () => ID }) id: UUID,
-        @Args('input') input: SyntheticRouteInput,
+        @Args('input') input: SynthesisInput,
         @Info() info: GraphQLResolveInfo
     ) {
         const fieldsMap = GraphqlUtils.getFieldsMap(info)

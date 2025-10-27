@@ -1,17 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { SyntheticRouteService } from './synthetic-route.service';
+import { SynthesisService } from './synthesis.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { SyntheticRouteEntity } from '../Models/entities/synthetic-route.entity';
+import { Synthesis } from '../Models/entities/synthesis.entity';
 
 describe('SyntheticRouteService', () => {
-  let service: SyntheticRouteService;
+  let service: SynthesisService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        SyntheticRouteService,
+        SynthesisService,
         {
-          provide: getRepositoryToken(SyntheticRouteEntity),
+          provide: getRepositoryToken(Synthesis),
           useValue: {
             create: jest.fn(),
             save: jest.fn(),
@@ -23,7 +23,7 @@ describe('SyntheticRouteService', () => {
       ],
     }).compile();
 
-    service = module.get<SyntheticRouteService>(SyntheticRouteService);
+    service = module.get<SynthesisService>(SynthesisService);
   });
 
   it('should be defined', () => {

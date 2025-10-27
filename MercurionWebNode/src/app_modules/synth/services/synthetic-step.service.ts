@@ -4,8 +4,8 @@ import { Repository } from "typeorm";
 import { UUID } from "crypto";
 import { GraphQLFieldsMap, TypeOrmUtils } from "src/utils/type-orm-utils/type-orm-utils";
 import { GraphqlUtils } from "src/utils/graphql-utils/graphql-utils";
-import { SyntheticStepEntity } from "../Models/entities/synthetic-step.entity";
-import { SyntheticStepInput } from "../Models/DTO/synthetic-step.input";
+import { SynthStep } from "../Models/entities/synth-step.entity";
+import { SynthStepInput } from "../Models/DTO/synth-step.input";
 
 @Injectable()
 export class SyntheticStepService {
@@ -13,16 +13,16 @@ export class SyntheticStepService {
     private readonly REQUIRED_FIELDS = ['id', 'order', 'userId']
 
     constructor(
-        @InjectRepository(SyntheticStepEntity)
-        private readonly stepRepo: Repository<SyntheticStepEntity>
+        @InjectRepository(SynthStep)
+        private readonly stepRepo: Repository<SynthStep>
     ) { }
 
-    async create(userId: UUID, input: SyntheticStepInput): Promise<SyntheticStepEntity> {
+    async create(userId: UUID, input: SynthStepInput): Promise<SynthStep> {
         const step = this.stepRepo.create({ ...input, userId })
         return this.stepRepo.save(step)
     }
 
-    async update(userId: UUID, id: UUID, input: Partial<SyntheticStepInput>, fieldsMap: GraphQLFieldsMap): Promise<SyntheticStepEntity | null> {
+    async update(userId: UUID, id: UUID, input: Partial<SynthStepInput>, fieldsMap: GraphQLFieldsMap): Promise<SynthStep | null> {
         await this.stepRepo.update({ id, userId }, { ...input })
         return this.findOneById(userId, id, fieldsMap)
     }
@@ -36,7 +36,7 @@ export class SyntheticStepService {
         }
     }
 
-    async findOneById(userId: UUID, id: UUID, fieldsMap: GraphQLFieldsMap): Promise<SyntheticStepEntity | null> {
+    async findOneById(userId: UUID, id: UUID, fieldsMap: GraphQLFieldsMap): Promise<SynthStep | null> {
         const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
         const relationalFields = GraphqlUtils.getRelationalFields(fieldsMap)
         const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.REQUIRED_FIELDS)
@@ -54,7 +54,7 @@ export class SyntheticStepService {
     }
 
 
-    async findByRoute(userId: UUID, routeId: UUID, fieldsMap: GraphQLFieldsMap): Promise<SyntheticStepEntity[]> {
+    async findByRoute(userId: UUID, routeId: UUID, fieldsMap: GraphQLFieldsMap): Promise<SynthStep[]> {
         const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
         const relationalFields = GraphqlUtils.getRelationalFields(fieldsMap)
         const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.REQUIRED_FIELDS)

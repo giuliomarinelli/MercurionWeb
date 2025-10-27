@@ -1,16 +1,16 @@
 import { Args, ID, Mutation, Query, Resolver } from "@nestjs/graphql";
 import { UUID } from "crypto";
-import { SyntheticStepMoleculeRef } from "../Models/entities/synthetic-step-molecule-ref.entity";
-import { SyntheticStepMoleculeRefService } from "../services/synthetic-step-molecule-ref.service";
-import { SyntheticStepMoleculeRefInput } from "../Models/DTO/synthetic-step-molecule-ref.input";
+import { SynthStepMoleculeRef } from "../Models/entities/synth-step-molecule-ref.entity";
+import { SynthStepMoleculeRefService } from "../services/synth-step-molecule-ref.service";
+import { SynthStepMoleculeRefInput } from "../Models/DTO/synth-step-molecule-ref.input";
 import { AuthenticatedUserId } from "src/metadata/metadata";
 
-@Resolver(() => SyntheticStepMoleculeRef)
+@Resolver(() => SynthStepMoleculeRef)
 export class SyntheticStepMoleculeRefResolver {
 
-    constructor(private readonly service: SyntheticStepMoleculeRefService) { }
+    constructor(private readonly service: SynthStepMoleculeRefService) { }
 
-    @Query(() => [SyntheticStepMoleculeRef])
+    @Query(() => [SynthStepMoleculeRef])
     async stepMoleculeRefs(
         @Args('stepId', { type: () => ID }) stepId: UUID,
         @AuthenticatedUserId() userId: UUID
@@ -18,18 +18,18 @@ export class SyntheticStepMoleculeRefResolver {
         return this.service.findByStep(stepId, userId)
     }
 
-    @Mutation(() => SyntheticStepMoleculeRef)
+    @Mutation(() => SynthStepMoleculeRef)
     async addStepMoleculeRef(
-        @Args('input') input: SyntheticStepMoleculeRefInput,
+        @Args('input') input: SynthStepMoleculeRefInput,
         @AuthenticatedUserId() userId: UUID
     ) {
         return this.service.create(userId, input)
     }
 
-    @Mutation(() => SyntheticStepMoleculeRef)
+    @Mutation(() => SynthStepMoleculeRef)
     async updateStepMoleculeRef(
         @Args('id', { type: () => ID }) id: UUID,
-        @Args('input') input: SyntheticStepMoleculeRefInput,
+        @Args('input') input: SynthStepMoleculeRefInput,
         @AuthenticatedUserId() userId: UUID
     ) {
         return this.service.update(id, userId, input)
