@@ -62,11 +62,11 @@ export class GlobalGuard implements CanActivate {
 
             if (e instanceof RpcException && e.message === 'InvalidOrExpiredAccessToken') {
 
-               this.logger.debug('Expired access token, starting refresh procedure')
+               this.logger.debug('Possibly expired access token, trying refresh')
 
                payload = await this.jwtToolsService.verifyTokenAndGetPayload(accessToken, TokenType.AccessToken, true)
 
-               const deviceId = req.headers['x-device-id'] as string
+               const deviceId = req.headers['x-device-id'] as string | null | undefined
 
                if (!deviceId) {
                   this.logger.warn('[Refreshing] No provided deviceId')
@@ -79,8 +79,8 @@ export class GlobalGuard implements CanActivate {
                }
 
                if (!await this.sessionService.validateSession(payload.sid, deviceId)) {
-                  this.logger.warn('[Refreshing] Invalid session')
-                  throw new UnauthorizedException('Session expired')
+                  this.logger.warn('[Refreshing] Invalid session or expired session')
+                  throw new UnauthorizedException()
                }
 
 
@@ -98,7 +98,7 @@ export class GlobalGuard implements CanActivate {
             }
          }
 
-         const deviceId = req.headers['x-device-id'] as string | undefined
+         const deviceId = req.headers['x-device-id'] as string | null | undefined
 
          if (!deviceId) {
             this.logger.warn('[Normal flow] No provided deviceId')
@@ -111,7 +111,7 @@ export class GlobalGuard implements CanActivate {
          }
 
          if (!await this.sessionService.validateSession(payload.sid, deviceId)) {
-            this.logger.warn('[Normal flow] Invalid session')
+            this.logger.warn('[Normal flow] Invalid or expired session')
             throw new UnauthorizedException()
          }
 
@@ -128,5 +128,5 @@ export class GlobalGuard implements CanActivate {
    }
 
 
-   
+
 }

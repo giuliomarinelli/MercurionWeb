@@ -20,9 +20,7 @@ export class WsGuard implements CanActivate {
     private readonly secureCookieService: SecureCookieService
   ) { }
 
-  async canActivate(
-    context: ExecutionContext,
-  ): Promise<boolean> {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
 
     const isPublic = this.reflector.get<boolean>(IS_PUBLIC_KEY, context.getHandler())
     if (isPublic) {
@@ -41,7 +39,7 @@ export class WsGuard implements CanActivate {
     const client: Socket = context.switchToWs().getClient()
     const token = client.handshake.auth.token as string
     const rawDeviceId: string | undefined = WebSocketUtils.parseCookie(client.handshake.headers.cookie)['__device_id'] || undefined
-    let deviceId: string | undefined  
+    let deviceId: string | undefined
     if (rawDeviceId) {
       try {
         deviceId = this.secureCookieService.verifyAndParseCookie(rawDeviceId)
@@ -91,11 +89,10 @@ export class WsGuard implements CanActivate {
       return false
     }
   }
-  
+
   private unauthorized(client: Socket): void {
     client.emit('sv.pub.err', { detail: 'Unauthorized' })
     this.logger.debug(`Socket ${client.id} polling connection state: PUBLIC`)
-
   }
 
 }
