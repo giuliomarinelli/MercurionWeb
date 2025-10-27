@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { randomUUID, UUID } from 'crypto';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { ISession, ISessionDeviceInfo } from '../Models/interfaces/i-session.interface';
@@ -8,10 +8,17 @@ import { GeoLocation } from './geo-ip.service';
 
 @Injectable()
 export class SessionService {
+
+    private readonly logger = new Logger(SessionService.name)
+
     constructor(private readonly redisService: RedisService) { }
 
-    private getSessionKey(sessionId: string): string {
-        return `session:${sessionId}`
+    async onModuleInit() {
+        this.getActiveSessionsForUser('01970782-5eba-7000-9636-9c781e5b1a5f')
+    }
+
+    private getSessionKeyOrPattern(sessionId: string, userId?: string): string {
+        return `session:${sessionId}:${userId ?? '*'}`
     }
 
     private getUserFingerprintsWhiteListKey(userId: string): string {
@@ -23,7 +30,9 @@ export class SessionService {
     }
 
     public async getActiveSessionsForUser(userId: UUID): Promise<string[]> {
-        return await this.redisService.getClient().smembers(`user_sessions:${userId}`)
+        const s = await this.redisService.getClient().smembers(`user_sessions:${userId}`)
+        this.logger.debug(s)
+        return s
     }
 
     // 🔹 Creazione di una nuova sessione (semplificata con Omit<>)
@@ -43,7 +52,7 @@ export class SessionService {
             valid: false
         };
 
-        const sessionKey = this.getSessionKey(sessionId);
+        const sessionKey = this.getSessionKeyOrPattern(sessionId, sessionData.userId);
 
         await this.redisService.hset(sessionKey, 'sessionId', sessionId)
         await this.redisService.hset(sessionKey, 'userId', sessionData.userId)
@@ -69,17 +78,27 @@ export class SessionService {
     }
 
 
-    async activateSession(sessionId: string): Promise<void> | never {
-        const session = await this.getSession(sessionId)
+    async activateSession(sessionId: string, userId: string): Promise<void> | never {
+        const session = await this.getSession(sessionId, userId)
         if (!session) throw new RpcException('UnauthorizedNoSuchSession')
-        await this.redisService.hset(this.getSessionKey(sessionId), 'valid', 'true')
+        await this.redisService.hset(this.getSessionKeyOrPattern(sessionId, userId), 'valid', 'true')
     }
 
 
     // 🔹 Recupero dell'intera sessione
-    async getSession(sessionId: string): Promise<ISession | null> {
+    async getSession(sessionId: string, userId?: string): Promise<ISession | null> {
 
-        const sessionData: Record<string, string> | nullish = await this.redisService.hgetall(this.getSessionKey(sessionId))
+        let key: string = ''
+
+        try {
+            key = userId ? this.getSessionKeyOrPattern(sessionId, userId) : (await this.redisService.scan(this.getSessionKeyOrPattern(sessionId))).keys[0]
+        } catch {
+            return null
+        }
+
+
+        const sessionData: Record<string, string> | nullish = await this.redisService.hgetall(key)
+
 
         if (!sessionData || Object.keys(sessionData).length === 0) {
             return null
@@ -103,8 +122,8 @@ export class SessionService {
     }
 
     // 🔹 Validazione della sessione, deviceId e scadenza
-    async validateSession(sessionId: string, deviceId: string): Promise<boolean> {
-        const session = await this.getSession(sessionId)
+    async validateSession(sessionId: string, deviceId: string, userId?: string): Promise<boolean> {
+        const session = await this.getSession(sessionId, userId)
 
         if (session == null) return false
 
@@ -118,8 +137,20 @@ export class SessionService {
 
 
     // 🔹 Aggiornare lastAccessedAt ad ogni accesso
-    async updateLastAccessed(sessionId: string): Promise<void> {
-        const sessionKey = this.getSessionKey(sessionId)
+    async updateLastAccessed(sessionId: string, userId?: string): Promise<void> {
+        let sessionKey = ''
+
+        try {
+            if (userId) {
+                sessionKey = this.getSessionKeyOrPattern(sessionId, userId)
+            } else {
+                sessionKey = (await this.redisService.scan(this.getSessionKeyOrPattern(sessionId))).keys[0]
+            }
+        } catch (e) {
+            this.logger.warn(`updateLastAccessed > Error: ${e.message || e}`)
+            throw new RpcException('UnauthorizedNoSuchSession')
+        }
+
         const now = Date.now()
 
         const longTermRaw = await this.redisService.hget(sessionKey, 'longTerm')
@@ -133,22 +164,20 @@ export class SessionService {
         await this.redisService.hset(sessionKey, 'lastAccessedAt', now.toString())
     }
 
-
-
-    // 🔹 Aggiornare doNotAskMfaPhoneNumberVerification ad ogni accesso
-    async updateDoNotAskMfaPhoneNumberVerification(sessionId: string, value: boolean): Promise<void> {
-        await this.redisService.hset(this.getSessionKey(sessionId), 'doNotAskMfaPhoneNumberVerification', value.toString())
-    }
-
-    async isDoNotAskMfaPhoneNumberVerification(sessionId: UUID): Promise<boolean> {
-        const prop = await this.redisService.hget(this.getSessionKey(sessionId), 'doNotAskMfaPhoneNumberVerification')
-        if (prop == undefined) return false
-        return JSON.parse(prop) as boolean
-    }
-
     // 🔹 Revocare una sessione (es. logout o invalidazione)
-    async revokeSession(sessionId: string): Promise<void> {
-        await this.redisService.hset(this.getSessionKey(sessionId), 'valid', 'false');
+    async revokeSession(sessionId: string, userId?: string): Promise<void> {
+        let sessionKey: string = ''
+        try {
+            if (userId) {
+                sessionKey = this.getSessionKeyOrPattern(sessionId, userId)
+            } else {
+                sessionKey = (await this.redisService.scan(this.getSessionKeyOrPattern(sessionId))).keys[0]
+            }
+        } catch (e) {
+            this.logger.warn(`revokeSession > Error: ${e.message || e}`)
+            throw new RpcException('UnauthorizedNoSuchSession')
+        }
+        await this.redisService.hset(sessionKey, 'valid', 'false');
     }
 
     // 🔹 Revoca e blacklist di un token specifico
@@ -182,13 +211,13 @@ export class SessionService {
     }
 
     public async existsSession(sessionId: string): Promise<boolean> {
-        const sessionKey = this.getSessionKey(sessionId)
+        const sessionKey = this.getSessionKeyOrPattern(sessionId)
         const value = await this.redisService.hget(sessionKey, 'sessionId')
         return value !== null && value !== undefined
     }
 
     public async destroySession(sessionId: string, deviceId: string, userId?: UUID): Promise<void> | never {
-        const sessionKey = this.getSessionKey(sessionId)
+        const sessionKey = this.getSessionKeyOrPattern(sessionId)
         const exists = await this.existsSession(sessionId)
         const expectedDeviceId = await this.redisService.hget(sessionKey, 'deviceId')
         const deviceIdMatches = expectedDeviceId === deviceId

@@ -78,7 +78,7 @@ export class GlobalGuard implements CanActivate {
                   throw new UnauthorizedException()
                }
 
-               if (!await this.sessionService.validateSession(payload.sid, deviceId)) {
+               if (!await this.sessionService.validateSession(payload.sid, deviceId, payload.sub)) {
                   this.logger.warn('[Refreshing] Invalid session or expired session')
                   throw new UnauthorizedException()
                }
@@ -87,7 +87,7 @@ export class GlobalGuard implements CanActivate {
                const newToken = await this.jwtToolsService.generateToken(payload.sub, TokenType.AccessToken, payload.sid)
 
 
-               await this.sessionService.updateLastAccessed(payload.sid)
+               await this.sessionService.updateLastAccessed(payload.sid, payload.sub)
 
                reply.header('X-New-Access-Token', newToken)
                await this.sessionService.revokeToken(payload.jti)
@@ -110,12 +110,12 @@ export class GlobalGuard implements CanActivate {
             throw new UnauthorizedException()
          }
 
-         if (!await this.sessionService.validateSession(payload.sid, deviceId)) {
+         if (!await this.sessionService.validateSession(payload.sid, deviceId, payload.sub)) {
             this.logger.warn('[Normal flow] Invalid or expired session')
             throw new UnauthorizedException()
          }
 
-         await this.sessionService.updateLastAccessed(payload.sid)
+         await this.sessionService.updateLastAccessed(payload.sid, payload.sub)
 
          req.headers['x-user-id'] = payload.sub
 

@@ -73,7 +73,7 @@ export class WsGuard implements CanActivate {
         return false
       }
 
-      if (!await this.sessionService.validateSession(payload.sid, deviceId)) {
+      if (!await this.sessionService.validateSession(payload.sid, deviceId, payload.sub)) {
         this.unauthorized(client)
         return false
       }

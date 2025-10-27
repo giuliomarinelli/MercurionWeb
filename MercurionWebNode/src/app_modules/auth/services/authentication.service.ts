@@ -70,7 +70,7 @@ export class AuthenticationService {
             needsMfa = true
         }
         if (!needsMfa) {
-            await this.sessionService.activateSession(sessionId)
+            await this.sessionService.activateSession(sessionId, auth.userId)
         }
         const phone: string | nullish = await this.userService.getPhoneNumberById(auth.userId)
         let obscuredEmail = _enabledMfaStrategies.includes(MfaStrategy.EMAIL_OTP) ? this.securityService.maskEmail(email) : undefined
@@ -106,7 +106,7 @@ export class AuthenticationService {
     public async performAuthentication(auth: Authentication | Omit<Authentication, 'needsMfa' | 'enabledMfaStrategies' | 'suspiciousAttempt'>, fingerprintData: FingerprintData, ip: string, trustVerify: boolean = false): Promise<TokenPair> {
         const { userId, sessionId } = auth
         if (await this.mfaService.isMfaEnabled(userId) || trustVerify) {
-            await this.sessionService.activateSession(sessionId)
+            await this.sessionService.activateSession(sessionId, auth.userId)
         }
         const fingerprint: string = this.generateFingerprint(fingerprintData)
         await this.sessionService.addFingerprintToWhiteList(userId, fingerprint)

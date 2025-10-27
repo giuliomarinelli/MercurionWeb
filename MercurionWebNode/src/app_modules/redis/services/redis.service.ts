@@ -40,6 +40,15 @@ export class RedisService {
     return (await this.redisClient.exists(key)) === 1
   }
 
+  public async scan(pattern = '*', cursor: string = '0', count = 100): Promise<{ cursor: string; keys: string[] }> {
+    const [nextCursor, keys] = await this.redisClient.scan(
+      cursor,
+      'MATCH', pattern,
+      'COUNT', String(count),
+    );
+    return { cursor: nextCursor, keys }
+  }
+
   // Hash operations
   public async hset(hash: string, key: string, value: string): Promise<number> {
     return this.redisClient.hset(hash, key, value)
