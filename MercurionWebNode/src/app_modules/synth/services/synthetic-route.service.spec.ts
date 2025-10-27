@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SyntheticRouteService } from './synthetic-route.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { SyntheticRouteEntity } from '../../Models/entities/synth/synthetic-route.entity';
+import { SyntheticRouteEntity } from '../Models/entities/synthetic-route.entity';
 
 describe('SyntheticRouteService', () => {
   let service: SyntheticRouteService;

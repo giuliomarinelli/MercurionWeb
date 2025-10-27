@@ -1,8 +1,8 @@
 import { Args, ID, Mutation, Query, Resolver } from "@nestjs/graphql";
 import { UUID } from "crypto";
-import { SyntheticStepMoleculeRef } from "../../Models/entities/synth/synthetic-step-molecule-ref.entity";
-import { SyntheticStepMoleculeRefService } from "../../services/synth/synthetic-step-molecule-ref.service";
-import { SyntheticStepMoleculeRefInput } from "../../Models/DTO/synth/synthetic-step-molecule-ref.input";
+import { SyntheticStepMoleculeRef } from "../Models/entities/synthetic-step-molecule-ref.entity";
+import { SyntheticStepMoleculeRefService } from "../services/synthetic-step-molecule-ref.service";
+import { SyntheticStepMoleculeRefInput } from "../Models/DTO/synthetic-step-molecule-ref.input";
 import { AuthenticatedUserId } from "src/metadata/metadata";
 
 @Resolver(() => SyntheticStepMoleculeRef)

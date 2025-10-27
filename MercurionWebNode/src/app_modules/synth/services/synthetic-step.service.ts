@@ -4,8 +4,8 @@ import { Repository } from "typeorm";
 import { UUID } from "crypto";
 import { GraphQLFieldsMap, TypeOrmUtils } from "src/utils/type-orm-utils/type-orm-utils";
 import { GraphqlUtils } from "src/utils/graphql-utils/graphql-utils";
-import { SyntheticStepEntity } from "../../Models/entities/synth/synthetic-step.entity";
-import { SyntheticStepInput } from "../../Models/DTO/synth/synthetic-step.input";
+import { SyntheticStepEntity } from "../Models/entities/synthetic-step.entity";
+import { SyntheticStepInput } from "../Models/DTO/synthetic-step.input";
 
 @Injectable()
 export class SyntheticStepService {

@@ -2,10 +2,10 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { UUID } from "crypto";
-import { SyntheticStepMoleculeRef } from "../../Models/entities/synth/synthetic-step-molecule-ref.entity";
-import { SyntheticStepMoleculeRefInput } from "../../Models/DTO/synth/synthetic-step-molecule-ref.input";
-import { MoleculeCollectionItemEntity } from "../../../molecule-collection/Models/entities/molecule-collection-item.entity";
-import { SyntheticStepEntity } from "../../Models/entities/synth/synthetic-step.entity";
+import { SyntheticStepMoleculeRef } from "../Models/entities/synthetic-step-molecule-ref.entity";
+import { SyntheticStepMoleculeRefInput } from "../Models/DTO/synthetic-step-molecule-ref.input";
+import { MoleculeCollectionItemEntity } from "../../molecule-collection/Models/entities/molecule-collection-item.entity";
+import { SyntheticStepEntity } from "../Models/entities/synthetic-step.entity";
 import { RpcException } from "@nestjs/microservices";
 
 @Injectable()

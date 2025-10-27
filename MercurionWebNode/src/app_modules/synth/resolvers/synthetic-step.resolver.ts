@@ -3,9 +3,9 @@ import { AuthenticatedUserId } from "src/metadata/metadata";
 import { UUID } from "crypto";
 import { GraphQLResolveInfo } from "graphql";
 import { GraphqlUtils } from "src/utils/graphql-utils/graphql-utils";
-import { SyntheticStepEntity } from "../../Models/entities/synth/synthetic-step.entity";
-import { SyntheticStepService } from "../../services/synth/synthetic-step.service";
-import { SyntheticStepInput } from "../../Models/DTO/synth/synthetic-step.input";
+import { SyntheticStepEntity } from "../Models/entities/synthetic-step.entity";
+import { SyntheticStepService } from "../services/synthetic-step.service";
+import { SyntheticStepInput } from "../Models/DTO/synthetic-step.input";
 
 @Resolver(() => SyntheticStepEntity)
 export class SyntheticStepResolver {

@@ -1,5 +1,5 @@
 import { Field, ID, InputType } from "@nestjs/graphql";
-import { MoleculeRole } from "../../enums/molecule-role.enum";
+import { MoleculeRole } from "../enums/molecule-role.enum";
 
 @InputType()
 export class SyntheticStepMoleculeRefInput {

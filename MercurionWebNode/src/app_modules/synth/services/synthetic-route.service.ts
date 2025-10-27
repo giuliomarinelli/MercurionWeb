@@ -4,8 +4,8 @@ import { Repository } from "typeorm";
 import { UUID } from "crypto";
 import { GraphqlUtils } from "src/utils/graphql-utils/graphql-utils";
 import { GraphQLFieldsMap, TypeOrmUtils } from "src/utils/type-orm-utils/type-orm-utils";
-import { SyntheticRouteEntity } from "../../Models/entities/synth/synthetic-route.entity";
-import { SyntheticRouteInput } from "../../Models/DTO/synth/synthetic-route.input";
+import { SyntheticRouteEntity } from "../Models/entities/synthetic-route.entity";
+import { SyntheticRouteInput } from "../Models/DTO/synthetic-route.input";
 
 @Injectable()
 export class SyntheticRouteService {

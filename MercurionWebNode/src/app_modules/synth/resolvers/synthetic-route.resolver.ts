@@ -3,9 +3,9 @@ import { AuthenticatedUserId } from "src/metadata/metadata";
 import { UUID } from "crypto";
 import { GraphQLResolveInfo } from 'graphql';
 import { GraphqlUtils } from "src/utils/graphql-utils/graphql-utils";
-import { SyntheticRouteEntity } from "../../Models/entities/synth/synthetic-route.entity";
-import { SyntheticRouteService } from "../../services/synth/synthetic-route.service";
-import { SyntheticRouteInput } from "../../Models/DTO/synth/synthetic-route.input";
+import { SyntheticRouteEntity } from "../Models/entities/synthetic-route.entity";
+import { SyntheticRouteService } from "../services/synthetic-route.service";
+import { SyntheticRouteInput } from "../Models/DTO/synthetic-route.input";
 
 @Resolver(() => SyntheticRouteEntity)
 export class SyntheticRouteResolver {

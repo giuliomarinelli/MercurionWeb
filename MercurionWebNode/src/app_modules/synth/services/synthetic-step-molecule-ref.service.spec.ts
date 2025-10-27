@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SyntheticStepMoleculeRefService } from './synthetic-step-molecule-ref.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { SyntheticStepMoleculeRef } from '../../Models/entities/synth/synthetic-step-molecule-ref.entity';
-import { SyntheticStepEntity } from '../../Models/entities/synth/synthetic-step.entity';
-import { MoleculeCollectionItemEntity } from '../../../molecule-collection/Models/entities/molecule-collection-item.entity';
+import { SyntheticStepMoleculeRef } from '../Models/entities/synthetic-step-molecule-ref.entity';
+import { SyntheticStepEntity } from '../Models/entities/synthetic-step.entity';
+import { MoleculeCollectionItemEntity } from '../../molecule-collection/Models/entities/molecule-collection-item.entity';
 
 describe('SyntheticStepMoleculeRefService', () => {
   let service: SyntheticStepMoleculeRefService;

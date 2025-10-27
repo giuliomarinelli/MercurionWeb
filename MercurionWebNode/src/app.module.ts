@@ -26,6 +26,7 @@ import { OAuth2ClientModule } from './app_modules/oauth2-client/oauth2-client.mo
 import { EmbeddingModule } from './app_modules/embedding/embedding.module';
 import { HistoryModule } from './app_modules/history/history.module';
 import { MoleculeCollectionModule } from './app_modules/molecule-collection/molecule-collection.module';
+import { SynthModule } from './app_modules/synth/synth.module';
 
 
 
@@ -70,7 +71,8 @@ import { MoleculeCollectionModule } from './app_modules/molecule-collection/mole
     OAuth2ClientModule,
     EmbeddingModule,
     HistoryModule,
-    MoleculeCollectionModule
+    MoleculeCollectionModule,
+    SynthModule
   ],
   providers: [
     {

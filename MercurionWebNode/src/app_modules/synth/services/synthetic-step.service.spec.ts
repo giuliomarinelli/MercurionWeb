@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SyntheticStepService } from './synthetic-step.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { SyntheticStepEntity } from '../../Models/entities/synth/synthetic-step.entity';
+import { SyntheticStepEntity } from '../Models/entities/synthetic-step.entity';
 
 describe('SyntheticStepService', () => {
   let service: SyntheticStepService;
