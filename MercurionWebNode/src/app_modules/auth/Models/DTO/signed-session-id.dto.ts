@@ -1,0 +1,10 @@
+import { IsNotEmpty, IsString, Matches } from "class-validator";
+
+export class SignedSessionIdDTO {
+
+    @IsString()
+    @IsNotEmpty()
+    @Matches(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\.[0-9a-fA-F]{64}$/)
+    signedSessionId: string
+
+}

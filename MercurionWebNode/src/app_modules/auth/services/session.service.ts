@@ -20,7 +20,7 @@ export class SessionService {
     constructor(
         private readonly redisService: RedisService,
         private readonly configService: ConfigService
-    ) { 
+    ) {
         this.secret = this.configService.get<string>('App.sessionSignatureSecret')!
     }
 
@@ -62,7 +62,7 @@ export class SessionService {
         return sessionId as UUID
     }
 
-    convertSessionToDTO(session: ISession, current = false, showValid = false): SessionDTO {
+    private convertSessionToDTO(session: ISession, current = false, showValid = false): SessionDTO {
         return ({
             id: this.signSessionId(session.sessionId),
             createdAt: session.createdAt,
@@ -75,7 +75,7 @@ export class SessionService {
         })
     }
 
-    convertSessionListToDTOs(sessionList: ISession[], activeSessionId?: UUID): SessionDTO[] {
+    private convertSessionListToDTOs(sessionList: ISession[], activeSessionId?: UUID): SessionDTO[] {
         return sessionList.map(s => s.sessionId === activeSessionId ? this.convertSessionToDTO(s, true) : this.convertSessionToDTO(s))
     }
 
@@ -349,6 +349,44 @@ export class SessionService {
         throw new ForbiddenException('NotAllowedAction')
     }
 
+    public async destroyAllSessionsAndRevokeAllTokensByUserId(userId: string): Promise<void> {
+        const pattern = `session:*:${userId}`
+        const keys = await this.redisService.scanIterate(pattern)
+        const pipeline = this.redisService.getClient().pipeline()
+        for (const key of keys) {
+            if (key.split(':').length !== 3) {
+                continue
+            }
+            const [, sessionId] = key.split(':')
+            const jtiList = await this.getJtiListBySessionId(sessionId)
+            for (const jti of jtiList) {
+                pipeline.sadd(`revoked:${jti}`, jti)
+            }
+            pipeline.del(key)
+        }
+        await pipeline.exec()
+    }
+
+    public async destroySessionAndRevokeAllTokensBySignedSessionId(signedSessionId: string, userId?: string): Promise<void> | never {
+        const sessionId = this.verifyAndParseSignedSessionId(signedSessionId)
+        let key: string
+        if (userId) {
+            key = this.getSessionKeyOrPattern(sessionId, userId)
+        } else {
+            const pattern = this.getSessionKeyOrPattern(sessionId)
+            key = (await this.redisService.scanIterate(pattern))[0]
+        }
+        if (!key || key.split(':').length !== 3) {
+            throw new RpcException('InvalidSession')
+        }
+        const jtiList = await this.getJtiListBySessionId(sessionId)
+        const pipeline = this.redisService.getClient().pipeline()
+        for (const jti of jtiList) {
+            pipeline.sadd(`revoked:${jti}`, jti)
+        }
+        pipeline.del(key)
+        await pipeline.exec()
+    }
 
     public async addFingerprintToWhiteList(userId: UUID, fingerprint: string): Promise<void> {
         const key = `fingerprint:${userId}:${fingerprint}`

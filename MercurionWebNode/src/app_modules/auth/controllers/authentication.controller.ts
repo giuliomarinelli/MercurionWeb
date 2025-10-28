@@ -1,6 +1,7 @@
+import { SessionService } from 'src/app_modules/auth/services/session.service';
 import { SecureCookieService } from './../services/secure-cookie.service';
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Post, Query, Req, Res, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Query, Req, Res, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
 import { Login_FirstStepDTO } from '../Models/DTO/login-first-step.cls.dto';
 import { MfaService } from '../services/mfa.service';
 import { AuthenticationService } from '../services/authentication.service';
@@ -22,6 +23,7 @@ import { UserService } from 'src/app_modules/user/services/user.service';
 import { TurnstileGuard } from '../guards/turnstile.guard';
 import { ConfigService } from '@nestjs/config';
 import { CookieConfiguration, SecureCookieConfiguration } from 'src/config/@types-config';
+import { SignedSessionIdDTO } from '../Models/DTO/signed-session-id.dto';
 
 
 
@@ -39,7 +41,8 @@ export class AuthenticationController {
         private readonly _r: ResponseService,
         private readonly secureCookieService: SecureCookieService,
         private readonly userService: UserService,
-        private readonly configService: ConfigService
+        private readonly configService: ConfigService,
+        private readonly sessionService: SessionService
     ) {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { secret, ...cookieConf } = this.configService.get<SecureCookieConfiguration>('SecureCookie')!
@@ -201,6 +204,26 @@ export class AuthenticationController {
         reply.clearCookie('__logged_in')
         this.logger.debug('Logged out. Response with status 204 - No Content')
     }
+
+
+    @Patch('/logout-from-session')
+    public async logoutFromSession(
+        @AuthenticatedUserId() userId: UUID,
+        @Body(new ValidationPipe({ transform: true })) { signedSessionId }: SignedSessionIdDTO
+    ): Promise<ConfirmDTO> {
+        await this.sessionService.destroySessionAndRevokeAllTokensBySignedSessionId(signedSessionId, userId)
+        return this._r.ok('Action performed successfully')
+    }
+
+
+    @Patch('/logout-from-all-sessions')
+    public async logoutFromAllSessions(
+        @AuthenticatedUserId() userId: UUID
+    ): Promise<ConfirmDTO> {
+        await this.sessionService.destroyAllSessionsAndRevokeAllTokensByUserId(userId)
+        return this._r.ok('Action performed successfully')
+    }
+
 
     @Get('/ws-refresh')
     public async refreshWs_accessToken(

@@ -44,6 +44,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
                 case 'ChEMBLItemAddError::Forbidden':
                 case 'CustomItemAddError::Forbidden':
                 case 'InvalidSessionSignature':
+                case 'InvalidSession':
                     statusCode = HttpStatus.FORBIDDEN
                     break
                 case 'ChangeEmailConfirm::NoUnconfirmedEmail':
@@ -54,7 +55,6 @@ export class HttpExceptionFilter implements ExceptionFilter {
                 case 'InvalidJwtValidation':
                 case 'AuthenticationInvalidCredentials':
                 case 'Unauthanticated':
-                case 'InvalidSession':
                     statusCode = HttpStatus.UNAUTHORIZED
             }
 
