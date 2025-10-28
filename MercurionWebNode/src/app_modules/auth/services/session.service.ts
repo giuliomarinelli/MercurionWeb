@@ -1,11 +1,13 @@
 import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
-import { randomUUID, UUID } from 'crypto';
+import { createHmac, randomUUID, UUID } from 'crypto';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { ISession, ISessionDeviceInfo } from '../Models/interfaces/i-session.interface';
 import { nullish } from 'src/Models/nullish.type';
 import { RpcException } from '@nestjs/microservices';
 import { GeoLocation } from './geo-ip.service';
 import { SessionFetchOptions } from '../Models/interfaces/session-fetch-options.interface';
+import { SessionDTO } from '../Models/DTO/session.dto';
+import { ConfigService } from '@nestjs/config';
 
 
 @Injectable()
@@ -13,7 +15,14 @@ export class SessionService {
 
     private readonly logger = new Logger(SessionService.name)
 
-    constructor(private readonly redisService: RedisService) { }
+    private readonly secret: string
+
+    constructor(
+        private readonly redisService: RedisService,
+        private readonly configService: ConfigService
+    ) { 
+        this.secret = this.configService.get<string>('App.sessionSignatureSecret')!
+    }
 
     private getSessionKeyOrPattern(sessionId: string, userId?: string): string {
         return `session:${sessionId}:${userId ?? '*'}`
@@ -27,8 +36,47 @@ export class SessionService {
         return `trustedLocation:${userId}`
     }
 
-    public async getActiveSessionsForUser(userId: UUID): Promise<string[]> {
+    public async getActivatedSessionsForUser(userId: UUID): Promise<string[]> {
         return this.redisService.getClient().smembers(`user_sessions:${userId}`)
+    }
+
+    private signSessionId(sessionId: UUID): string {
+        const signature = createHmac('sha256', this.secret)
+            .update(sessionId)
+            .digest('hex')
+        return `${sessionId}.${signature}`
+    }
+
+    private verifyAndParseSignedSessionId(signed: string): UUID | never {
+        const e = new RpcException('InvalidSessionSignature')
+        if (signed.split('.').length !== 2) {
+            throw e
+        }
+        const [sessionId, signature] = signed.split('.')
+        const expectedSignature = createHmac('sha256', this.secret)
+            .update(sessionId)
+            .digest('hex')
+        if (signature !== expectedSignature) {
+            throw e
+        }
+        return sessionId as UUID
+    }
+
+    convertSessionToDTO(session: ISession, current = false, showValid = false): SessionDTO {
+        return ({
+            id: this.signSessionId(session.sessionId),
+            createdAt: session.createdAt,
+            expiresAt: session.expiresAt,
+            lastAccessedAt: session.lastAccessedAt,
+            valid: showValid ? session.valid : undefined,
+            current,
+            location: session.location,
+            browser: session.sessionDeviceInfo.browser.name
+        })
+    }
+
+    convertSessionListToDTOs(sessionList: ISession[], activeSessionId?: UUID): SessionDTO[] {
+        return sessionList.map(s => s.sessionId === activeSessionId ? this.convertSessionToDTO(s, true) : this.convertSessionToDTO(s))
     }
 
     // 🔹 Creazione di una nuova sessione (semplificata con Omit<>)
@@ -41,6 +89,8 @@ export class SessionService {
 
         for (const s of userSessionsByDeviceId) {
             await this.destroySession(s.sessionId, s.deviceId, s.userId)
+            await this.redisService.del(`session_user:${s.sessionId}`)
+            await this.redisService.srem(`user_sessions:${s.userId}`, s.sessionId)
         }
 
         const sessionId = randomUUID();
@@ -169,6 +219,13 @@ export class SessionService {
         }).filter(Boolean) as ISession[]
 
         return opts?.onlyValid ? sessions.filter(s => s.valid) : sessions
+    }
+
+    async getAllActiveSessionsByUserIdAsDTOs(userId: string, currentSessionId: UUID): Promise<SessionDTO[]> {
+        const activeSessions = await this.getAllSessionsByUserId(userId, {
+            onlyValid: true
+        })
+        return this.convertSessionListToDTOs(activeSessions, currentSessionId)
     }
 
 

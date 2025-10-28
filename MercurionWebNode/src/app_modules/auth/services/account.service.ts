@@ -20,6 +20,8 @@ import { SessionService } from './session.service';
 import { SmsSenderService } from 'src/app_modules/notification/services/sms-sender/sms-sender.service';
 import { ChangePhoneDTO } from '../Models/DTO/change-phone.cls.dto';
 
+
+
 @Injectable()
 export class AccountService {
 
@@ -299,6 +301,5 @@ export class AccountService {
         const existsUnverified = await this.redisService.exists(redisKey)
         return !existsVerified && !existsUnverified
     }
-
 
 }

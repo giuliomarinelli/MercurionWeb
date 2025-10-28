@@ -14,6 +14,7 @@ export interface AppConfiguration {
     activationOrigin: string
     globalName: string
     host: string
+    sessionSignatureSecret: string
 
 }
 

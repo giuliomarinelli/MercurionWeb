@@ -4,8 +4,8 @@ export interface ISession {
     sessionId: UUID
     userId: UUID
     deviceId: string
-    expiresAt: number
     createdAt: number
+    expiresAt: number
     lastAccessedAt: number
     IP: string
     valid: boolean

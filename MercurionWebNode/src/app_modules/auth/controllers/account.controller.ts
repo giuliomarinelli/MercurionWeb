@@ -2,7 +2,7 @@ import { ChangePasswordDTO } from './../Models/DTO/change-password.dto';
 import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum';
 import { BadRequestException, Body, Controller, Get, HttpCode, HttpStatus, NotFoundException, Param, Patch, Post, Query, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
 import { UserRegisterDTO } from 'src/app_modules/user/Models/DTO/user-register.cls.dto';
-import { AuthenticatedUserId, Authorization, Public } from 'src/metadata/metadata';
+import { AuthenticatedUserId, Authorization, Public, SessionId } from 'src/metadata/metadata';
 import { ConfirmChangeDTO, ConfirmDTO, ConfirmMfaChange, ConfirmWithObsContDTO } from 'src/Models/confirm-responses.dto';
 import { AccountService } from '../services/account.service';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
@@ -16,6 +16,8 @@ import { UserService } from 'src/app_modules/user/services/user.service';
 import { TurnstileGuard } from '../guards/turnstile.guard';
 import { SercurityService } from '../services/sercurity.service';
 import { ProfileDTO, ProfileRegistryDTO } from '../Models/DTO/profile.dtos';
+import { SessionService } from '../services/session.service';
+import { SessionDTO } from '../Models/DTO/session.dto';
 
 
 
@@ -27,7 +29,8 @@ export class AccountController {
         private readonly _r: ResponseService,
         private readonly mfaService: MfaService,
         private readonly userService: UserService,
-        private readonly securityService: SercurityService
+        private readonly securityService: SercurityService,
+        private readonly sessionService: SessionService
     ) { }
 
     @Public()
@@ -218,6 +221,14 @@ export class AccountController {
     @Post('/is-email-available')    
     async isEmailAvailable(@Body(new ValidationPipe({ transform: true })) { email }: EmailDTO): Promise<boolean> {
         return this.accountService.isUserAvailableByEmail(email)
+    }
+
+    @Get('/active-sessions')
+    public async getActiveSessions(
+        @AuthenticatedUserId() userId: UUID,
+        @SessionId() sessionId: UUID
+    ): Promise<SessionDTO[]> {
+        return this.sessionService.getAllActiveSessionsByUserIdAsDTOs(userId, sessionId)
     }
 
 }
