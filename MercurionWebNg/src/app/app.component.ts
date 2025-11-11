@@ -31,7 +31,7 @@ import { SessionSyncService } from './services/session-sync.service';
 import { ActionOverlayContextService } from './services/context/action-context/action-overlay-context.service';
 import { environment } from '../environments/environment.development';
 import { AuthService } from './services/auth.service';
-import { ActionComponent } from './components/action-components/action-overlay/action-overlay.component';
+import { ActionOverlayComponent } from './components/action-components/action-overlay/action-overlay.component';
 import { AppContextService } from './services/context/app-context.service';
 
 @Component({
@@ -45,7 +45,7 @@ import { AppContextService } from './services/context/app-context.service';
     FooterComponent,
     ToastComponent,
     SidenavComponent,
-    ActionComponent
+    ActionOverlayComponent
   ],
   template: `
     @if (is_not_404_route()) {

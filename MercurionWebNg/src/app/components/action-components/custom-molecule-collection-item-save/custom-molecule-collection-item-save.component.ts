@@ -80,7 +80,7 @@ import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.model
                   Nome molecola*
                 </label>
                 <div class="text-sm text-light-error dark:text-dark-error mt-1 min-h-5">
-                  @if (!nameModel && nameTouched) { Il nome è obbligatorio. }
+                  @if (!nameModel && nameTouched) { Il nome Ã¨ obbligatorio. }
                 </div>
               </div>
 
@@ -140,49 +140,45 @@ import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.model
                 <div class="grid grid-cols-2 gap-y-1 gap-x-6 text-sm">
                   <div>
                     <span class="font-semibold">MW:</span> {{
-                    properties()?.mwFreebase ?? '—' }}
+                    properties()?.mwFreebase ?? '-'  }}
                   </div>
                   <div>
                     <span class="font-semibold">LogP:</span> {{ properties()?.alogp
-                    ?? '—' }}
+                    ?? '-'  }}
                   </div>
                   <div>
-                    <span class="font-semibold">HBA:</span> {{ properties()?.hba ??
-                    '—' }}
+                    <span class="font-semibold">HBA:</span> {{ properties()?.hba ?? '-'  }}
                   </div>
                   <div>
-                    <span class="font-semibold">HBD:</span> {{ properties()?.hbd ??
-                    '—' }}
+                    <span class="font-semibold">HBD:</span> {{ properties()?.hbd ?? '-'  }}
                   </div>
                   <div>
-                    <span class="font-semibold">PSA:</span> {{ properties()?.psa ??
-                    '—' }}
+                    <span class="font-semibold">PSA:</span> {{ properties()?.psa ?? '-'  }}
                   </div>
                   <div>
-                    <span class="font-semibold">RTB:</span> {{ properties()?.rtb ??
-                    '—' }}
+                    <span class="font-semibold">RTB:</span> {{ properties()?.rtb ?? '-'  }}
                   </div>
                 </div>
               </div>
 
               <!-- Bottoni -->
+              <div class="mt-8 flex justify-end gap-2 sticky">
+                <button
+                  type="button"
+                  class="px-4 py-2 rounded bg-slate-200 text-light-on-surface-main dark:bg-slate-100 dark:text-neutral-950 hover:bg-gray-300"
+                  (click)="close()"
+                >
+                  Annulla
+                </button>
+                <button
+                  type="submit"
+                  class="px-4 py-2 rounded bg-emerald-600 text-white font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed"
+                  [disabled]="!saveCtx.selectedCollectionId() || !nameModel"
+                >
+                  Salva
+                </button>
+              </div>
             </form>
-          </div>
-          <div class="mt-8 flex justify-end gap-2 sticky">
-            <button
-              type="button"
-              class="px-4 py-2 rounded bg-slate-200 text-light-on-surface-main dark:bg-slate-100 dark:text-neutral-950 hover:bg-gray-300"
-              (click)="close()"
-            >
-              Annulla
-            </button>
-            <button
-              type="submit"
-              class="px-4 py-2 rounded bg-emerald-600 text-white font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed"
-              [disabled]="!saveCtx.selectedCollectionId() || !nameModel"
-            >
-              Salva
-            </button>
           </div>
         </div>
     </div>
@@ -319,7 +315,7 @@ export class CustomMoleculeCollectionItemSaveComponent {
     }
     if (!this.nameModel) {
       this.nameTouched = true;
-      this.toast.trigger('Il nome è obbligatorio!', 'error');
+      this.toast.trigger('Il nome Ã¨ obbligatorio!', 'error');
       return;
     }
 

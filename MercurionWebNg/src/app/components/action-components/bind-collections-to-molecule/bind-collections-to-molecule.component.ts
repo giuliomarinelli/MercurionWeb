@@ -1,5 +1,5 @@
 import { BindCollectionsToMoleculeContextService } from './../../../services/context/action-context/bind-collections-to-molecule-context.service';
-import { AfterViewInit, Component, effect, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, effect, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { AbstractPaginatedMultiselectComponent } from '../../../abstract/abstract-paginated-multiselect-component';
 import { UiMoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
@@ -14,6 +14,7 @@ import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-bind-collections-to-molecule',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ClassicSpinnerComponent, PmSearchInputComponent, CollectionSelectCardComponent, SkeletonCollectionCardComponent],
   template: `
 <div class="flex justify-center items-center min-h-screen px-2">

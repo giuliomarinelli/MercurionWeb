@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core'
 import { CustomMoleculeCollectionItemSaveComponent } from "../custom-molecule-collection-item-save/custom-molecule-collection-item-save.component";
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 import { AddMoleculesToCollectionComponent } from '../add-molecules-to-collection/add-molecules-to-collection.component';
@@ -8,6 +8,7 @@ import { BindCollectionsToMoleculeComponent } from '../bind-collections-to-molec
 @Component({
   selector: 'app-action-overlay',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CustomMoleculeCollectionItemSaveComponent,
     AddMoleculesToCollectionComponent,
@@ -21,6 +22,8 @@ import { BindCollectionsToMoleculeComponent } from '../bind-collections-to-molec
         class="fixed inset-0 z-[999] bg-black/60 backdrop-blur-sm transition-all duration-300"
         [class.opacity-0]="!ctx.isVisible()"
         [class.opacity-100]="ctx.isVisible()"
+        role="dialog"
+        aria-modal="true"
       >
         @switch (ctx.scope()) {
           @case ('MoleculeCollectionItemSave') {
@@ -42,7 +45,7 @@ import { BindCollectionsToMoleculeComponent } from '../bind-collections-to-molec
 
   `
 })
-export class ActionComponent {
+export class ActionOverlayComponent {
 
   protected readonly ctx = inject(ActionOverlayContextService)
 

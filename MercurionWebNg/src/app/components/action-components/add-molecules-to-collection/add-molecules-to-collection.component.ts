@@ -1,5 +1,4 @@
-// ================== AddMoleculesToCollectionComponent ==================
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, inject, signal, effect } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, inject, signal, effect, ChangeDetectionStrategy } from '@angular/core';
 import { AbstractPaginatedMultiselectComponent } from '../../../abstract/abstract-paginated-multiselect-component';
 import { debounceTime, map, Observable } from 'rxjs';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
@@ -20,10 +19,14 @@ import { AddManyChEMBLItemDTO } from '../../../Models/graphql/add-many-chembl-it
 import { AddMoleculesToCollectionContextService } from '../../../services/context/action-context/add-molecules-to-collection-context.service';
 import { Subscription } from 'rxjs';
 
-export type ChipItem = { id: string; name: string }
+export type ChipItem = {
+  id: string
+  name: string
+}
 
 @Component({
   selector: 'app-add-molecules-to-collection',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [
     PmSearchInputComponent,
@@ -38,8 +41,6 @@ export type ChipItem = { id: string; name: string }
   template: `
 <div class="flex justify-center items-center min-h-screen px-2">
   <div class="w-full max-w-5xl bg-white dark:bg-dark-surface-main rounded-xl shadow-lg">
-
-    <!-- Header sticky fuori dallo scroll -->
     <div class="flex items-center justify-between px-4 py-4 border-b border-b-slate-400 sticky top-0 z-50 rounded-t-xl bg-white dark:bg-dark-surface-main">
       <h2 class="text-lg font-semibold">Aggiungi molecole alla collezione</h2>
       <button class="text-2xl hover:text-emerald-600" (click)="close()">&times;</button>
@@ -69,14 +70,12 @@ export type ChipItem = { id: string; name: string }
     </div>
       @switch (method()) {
         @case ('my') {
-           <!-- Root scrollabile -->
           <div #scrollRoot class="py-6 px-3 overflow-y-auto flex flex-col gap-4 min-h-[60vh] max-h-[60vh]">
             @switch (step()) {
               @case (1) {
                 <div class="px-3">
                   <h2 class="font-semibold mb-3">Scegli le molecole da aggiungere alla collezione:</h2>
 
-                  <!-- 🔎 Search: sempre visibile -->
                   <pm-search-input
                     class="block"
                     [value]="searchTerm()"
@@ -84,10 +83,7 @@ export type ChipItem = { id: string; name: string }
                     (submitted)="doQuery($event)"
                     (cleared)="doClear()"
                   />
-
-                  <!-- Lista -->
                   <div class="mt-6">
-                    <!-- Riga "Seleziona tutti" -->
                     <app-molecule-collection-item-select-card class="block mb-6"
                       [isSelectAll]="true"
                       [value]="isSelectedAll()"
@@ -95,7 +91,6 @@ export type ChipItem = { id: string; name: string }
                       (selectedAll)="onSelectAllChange($event)"
                     />
 
-                    <!-- Righe elementi -->
                     @for (row of multiselectItems(); track row.item.id; let i = $index) {
                       <app-molecule-collection-item-select-card
                         [molecule]="row.item"
@@ -104,11 +99,7 @@ export type ChipItem = { id: string; name: string }
                       />
                     }
                   </div>
-
-                  <!-- Sentinel per IntersectionObserver (figlio del root) -->
                   <div #sentinel class="h-1 w-full"></div>
-
-                  <!-- Loading / Skeleton / Empty -->
                   @if (loading) {
                     @if (page > 1) {
                       <div class="flex justify-center py-4">
@@ -142,7 +133,6 @@ export type ChipItem = { id: string; name: string }
               <div class="py-6 px-3 flex flex-col gap-4 min-h-[60vh] max-h-[60vh]">
                 <div>Cerca su ChEMBL e seleziona:</div>
 
-                <!-- search -->
                 <app-search-input
                   [search_excludeAlreadyAdded]="true"
                   (onLoading)="chemblLoading.set($event)"
@@ -152,7 +142,6 @@ export type ChipItem = { id: string; name: string }
                   (onEmpty)="chemblEmpty.set(true)"
                 />
 
-                <!-- CHIPS AREA (con bordo) -->
                 <div class="border-b min-h-24 relative">
                   @if (selectedMolecules.length === 0) {
                     <div class="absolute inset-0 flex justify-center items-center text-sm text-gray-500 dark:text-gray-400">
@@ -160,7 +149,7 @@ export type ChipItem = { id: string; name: string }
                     </div>
                   }
 
-                  <!-- chips (fuori dall'absolute) -->
+
                   <div class="relative flex flex-wrap items-center gap-2 py-3" role="list" aria-label="Molecole selezionate">
                     @for (m of selectedMolecules; track m.id) {
                       <span
@@ -210,7 +199,6 @@ export type ChipItem = { id: string; name: string }
                   </div>
                 </div>
 
-                <!-- RISULTATI -->
                 <div class="overflow-y-auto relative">
                   @if (chemblLoading()) {
                     <app-search-result-skeleton-loader />
@@ -246,12 +234,8 @@ export type ChipItem = { id: string; name: string }
               }
           }
         }
-
-
       }
 
-
-    <!-- Footer azioni (fuori dallo scroll) -->
     <div class="my-4 mr-8 flex justify-end gap-2">
       @if (step() === 1) {
         <button
@@ -263,13 +247,12 @@ export type ChipItem = { id: string; name: string }
         </button>
       }
       <button
-        type="submit"
+        type="button"
         class="relative inline-flex items-center justify-center px-4 py-2 rounded bg-emerald-600 text-white font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed"
         [disabled]="(isSelectedNothing() && this.method() === 'my') || (this.selectedIds.length === 0 && this.method() === 'chembl' || step_12_loading())"
         (click)="step() === 1 ? dispatchSubmit() : close()"
         [attr.aria-busy]="step_12_loading()"
       >
-        <!-- Keep label in flow to preserve size -->
         <span [class.invisible]="step_12_loading()">
           @if (step() === 1) {
             <span>Aggiungi</span>
@@ -278,7 +261,6 @@ export type ChipItem = { id: string; name: string }
           }
         </span>
 
-        <!-- Overlay spinner without affecting layout -->
         <span
           aria-hidden="true"
           class="absolute inset-0 flex items-center justify-center"
@@ -305,15 +287,16 @@ export class AddMoleculesToCollectionComponent extends AbstractPaginatedMultisel
   private suSub2?: Subscription
 
 
-  step = signal<1 | 2>(1);
-  step_12_loading = signal<boolean>(false);
-  error = signal<boolean>(false);
+  step = signal<1 | 2>(1)
+  step_12_loading = signal<boolean>(false)
+  error = signal<boolean>(false)
   methodControl = new FormControl<'my' | 'chembl'>('my', { nonNullable: true })
   method = signal<'my' | 'chembl'>('my')
 
 
-  @ViewChild('scrollRoot', { static: false }) protected declare root: ElementRef<HTMLDivElement>;
-  @ViewChild('sentinel', { static: false }) protected declare sentinel: ElementRef<HTMLDivElement>;
+  @ViewChild('scrollRoot', { static: false }) protected declare root: ElementRef<HTMLDivElement>
+
+  @ViewChild('sentinel', { static: false }) protected declare sentinel: ElementRef<HTMLDivElement>
 
   constructor() {
     super()
@@ -337,14 +320,13 @@ export class AddMoleculesToCollectionComponent extends AbstractPaginatedMultisel
     })
   }
 
-  // Ri-arma l'observer quando torni allo step 1 (dopo che il DOM è pronto)
   private _rearmOnStep = effect(() => {
     if (this.step() === 1) {
-      queueMicrotask(() => this.startObserver());
+      queueMicrotask(() => this.startObserver())
     } else {
-      this.observer?.disconnect();
+      this.observer?.disconnect()
     }
-  });
+  })
 
   ngOnInit(): void {
     this.methodControl.valueChanges.subscribe(val => this.method.set(val))
@@ -375,8 +357,12 @@ export class AddMoleculesToCollectionComponent extends AbstractPaginatedMultisel
       );
   }
 
-  protected override doQuery(q: string): void { this.query(q); }
-  protected override doClear(): void { this.clear(); }
+  protected override doQuery(q: string): void {
+    this.query(q)
+  }
+  protected override doClear(): void {
+    this.clear()
+  }
 
   close(): void {
     this.actionOverlayContext.close();
@@ -403,18 +389,18 @@ export class AddMoleculesToCollectionComponent extends AbstractPaginatedMultisel
           next: ok => {
             this.step_12_loading.set(false);
             this.addContext.notifyAdded()
-            this.error.set(!ok);
+            this.error.set(!ok)
             this.addContext.clearCollectionId()
             this.actionOverlayContext.close()
           },
           error: () => {
-            this.step_12_loading.set(false);
-            this.error.set(true);
-            this.step.set(2);
+            this.step_12_loading.set(false)
+            this.error.set(true)
+            this.step.set(2)
           }
         });
     } else {
-      this.actionOverlayContext.close();
+      this.actionOverlayContext.close()
     }
   }
 
@@ -426,23 +412,22 @@ export class AddMoleculesToCollectionComponent extends AbstractPaginatedMultisel
   chemblError = signal<unknown | null>(null)
   chemblEmpty = signal<boolean>(true)
 
-  selectedMolecules: ChipItem[] = [];
+  selectedMolecules: ChipItem[] = []
 
-  // comodo se ti serve passare gli id altrove
   get selectedIds(): string[] {
-    return this.selectedMolecules.map(c => c.id);
+    return this.selectedMolecules.map(c => c.id)
   }
 
   // chiamata quando clicchi un risultato di ricerca
   onSearchHit(hit: { id: string; name: string }) {
-    this.addChip(hit);
+    this.addChip(hit)
   }
 
   // API
   addChip(chip: ChipItem) {
-    if (!chip?.id) return;
-    if (this.selectedMolecules.some(c => c.id === chip.id)) return;
-    this.selectedMolecules = [...this.selectedMolecules, chip]; // OnPush-friendly
+    if (!chip?.id) return
+    if (this.selectedMolecules.some(c => c.id === chip.id)) return
+    this.selectedMolecules = [...this.selectedMolecules, chip] // OnPush-friendly
   }
 
   removeChip(id: string) {

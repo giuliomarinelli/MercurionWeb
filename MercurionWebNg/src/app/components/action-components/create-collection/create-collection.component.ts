@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, computed, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, computed, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild , ChangeDetectionStrategy } from '@angular/core'
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
@@ -7,13 +7,14 @@ import { ToastService } from '../../../services/toast.service';
 import { CreateCollectionContextService } from '../../../services/context/action-context/create-collection-context.service';
 @Component({
   selector: 'app-create-collection',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule],
   template: `
 
   <div class="flex justify-center items-center min-h-screen px-2">
     <div class="w-full max-w-2xl bg-white/95 dark:bg-dark-surface-main/95 rounded-xl shadow-xl ring-1 ring-black/5 dark:ring-white/10 overflow-hidden">
       <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200/80 dark:border-white/10 sticky top-0 z-50 rounded-t-xl bg-white/90 dark:bg-dark-surface-main/90 backdrop-blur">
-        <h2 class="text-lg font-semibold">Crea una o più collezioni molecolari</h2>
+        <h2 class="text-lg font-semibold">Crea una o piÃ¹ collezioni molecolari</h2>
         <button class="inline-flex items-center justify-center size-8 rounded-md text-slate-500 hover:text-emerald-600 hover:bg-slate-100 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-transparent transition" (click)="close()">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-5 h-auto">
             <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
@@ -170,7 +171,7 @@ export class CreateCollectionComponent implements OnInit, AfterViewInit, OnDestr
     queueMicrotask(() => {
       this.nameControl.setValue('')
       this.nameInputRef.nativeElement.focus()
-    });
+    })
   }
 
   close(): void {
@@ -181,9 +182,8 @@ export class CreateCollectionComponent implements OnInit, AfterViewInit, OnDestr
     return s.trim()
   }
 
-  selectedChips: string[] = [];
+  selectedChips: string[] = []
 
-  // chiamata quando clicchi un risultato di ricerca
   onAddNewName(name: string) {
     this.addChip(name)
     this.clear()
@@ -211,15 +211,15 @@ export class CreateCollectionComponent implements OnInit, AfterViewInit, OnDestr
   doSubmit(): void {
     if (this.selectedChips.length) {
       this.addSub = this.moleculeCollectionService.createManyCollections(this.selectedChips).subscribe({
-          next: ok => {
-            this.createContext.notifyAdded()
-            this.overlayContext.close()
-          },
-          error: () => {
-            this.toast.trigger('Si è verificato un errore.', 'error', 3000)
-            this.overlayContext.close()
-          }
-        })
+        next: () => {
+          this.createContext.notifyAdded()
+          this.overlayContext.close()
+        },
+        error: () => {
+          this.toast.trigger('Si è verificato un errore.', 'error', 3000)
+          this.overlayContext.close()
+        }
+      })
     }
   }
 
