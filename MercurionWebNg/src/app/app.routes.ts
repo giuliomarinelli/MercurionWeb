@@ -29,16 +29,16 @@ export const routes: Routes = [
     path: 'molecules/detail/:molId',
     loadComponent: () => import('./pages/molecule-detail/molecule-detail.page.component').then(m => m.MoleculeDetailPageComponent)
   },
-  {
-    path: 'notebook/:notebookId/edit',
-    loadComponent: () => import('./pages/notebook/edit/edit.page.component').then(m => m.NotebookEditPageComponent),
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'notebook',
-    loadComponent: () => import('./pages/notebook/notebook-landing/notebook-landing.component').then(m => m.NotebookLandingComponent),
-    canActivate: [AuthGuard]
-  },
+  // {
+  //   path: 'notebook/:notebookId/edit',
+  //   loadComponent: () => import('./pages/notebook/edit/edit.page.component').then(m => m.NotebookEditPageComponent),
+  //   canActivate: [AuthGuard]
+  // },
+  // {
+  //   path: 'notebook',
+  //   loadComponent: () => import('./pages/notebook/notebook-landing/notebook-landing.component').then(m => m.NotebookLandingComponent),
+  //   canActivate: [AuthGuard]
+  // },
   {
     path: 'molecules/editor',
     loadComponent: () => import('./pages/molecule-editor/molecule-editor.page.component').then(m => m.MoleculeEditorPageComponent),
