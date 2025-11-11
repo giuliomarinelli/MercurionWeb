@@ -96,7 +96,7 @@ import { BindCollectionsToMoleculeContextService } from '../../services/context/
             [nameInput]="molecule.name ?? 'Lead'"
             [myMol]="true"
             [isCustom]="true"
-            (onSave)="doUpdateInlineDetails($event)"ù
+            (onSave)="doUpdateInlineDetails($event)"
             [smiles]="molecule.canonicalSmiles"
             [molId]="molecule.id"
             [isLoggedIn]="userContext.isLoggedIn()"
