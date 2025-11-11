@@ -192,10 +192,9 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       .subscribe((e: NavigationEnd) => {
         this.scrollToTop(240); // chiamata reale
 
-        const url = normalize(e.urlAfterRedirects);
-        if (url === '/404-not-found') {
-          this.is_not_404_route.set(false)
-        }
+        const url = normalize(e.urlAfterRedirects)
+        // Toggle layout wrapper based on 404 route
+        this.is_not_404_route.set(url !== '/404-not-found')
         this.currentPath.set(url);
         this.pathService.setPath(url);
         if (!this.firstNavigationDone()) this.firstNavigationDone.set(true);
@@ -256,7 +255,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // Animazione scroll sul container scrollabile
   private scrollToTop(duration = 240) {
-    // Se il ref non è ancora pronto, riprova al prossimo frame
+    // Se il ref non Ã¨ ancora pronto, riprova al prossimo frame
     const host = this.scrollHostRef?.nativeElement;
     if (!host) {
       requestAnimationFrame(() => this.scrollToTop(duration));
