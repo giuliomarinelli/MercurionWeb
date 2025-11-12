@@ -155,7 +155,7 @@ export class AuthenticationController {
     ): Promise<ConfirmWithTokenPairAndInitialsDTO> {
 
         const loginPendingVal = req.cookies['__logged_in'] ?? ''
-        const maxAge = loginPendingVal === 'login_pending_long' ? 2_592_000 : undefined
+        const maxAge = loginPendingVal === 'pending_long' ? 2_592_000 : undefined
         let userId: UUID
         let sessionId: UUID
         try {

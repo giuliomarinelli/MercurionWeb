@@ -96,7 +96,7 @@ export const ClientIp = createParamDecorator(
             throw new UnauthorizedException('Missing client IP')
         }
 
-        return ip;
+        return ip
     }
 )
 

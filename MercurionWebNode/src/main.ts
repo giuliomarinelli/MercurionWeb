@@ -74,7 +74,7 @@ export async function bootstrap() {
     } catch {
       deviceId = randomUUID()
       secureCookieService.setSignedCookie(reply, '__device_id', deviceId, {
-        maxAge: 31556952000,
+        maxAge: 31_556_952,
         ...cookieConf
       })
     }

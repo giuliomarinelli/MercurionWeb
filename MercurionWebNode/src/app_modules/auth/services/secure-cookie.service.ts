@@ -15,7 +15,7 @@ export class SecureCookieService {
 
     constructor(private readonly configService: ConfigService) {
 
-        const { secret, ...options } = configService.get<SecureCookieConfiguration>("SecureCookie") as SecureCookieConfiguration
+        const { secret, ...options } = configService.get<SecureCookieConfiguration>("SecureCookie")!
 
         this.secret = secret
         this.defaultCookieOptions = options
