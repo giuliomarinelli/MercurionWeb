@@ -21,7 +21,9 @@
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.2",
+    "@fastify/helmet": "^13.0.2",
     "@fastify/middie": "^9.0.3",
+    "@fastify/rate-limit": "^10.3.0",
     "@kripod/uuidv7": "^0.3.4",
     "@nestjs-modules/mailer": "^2.0.2",
     "@nestjs/axios": "^4.0.0",

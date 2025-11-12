@@ -173,7 +173,7 @@ export class AuthenticationController {
             throw new UnauthorizedException('Invalid MFA OTP')
         }
         const { accessToken, ws_accessToken } = await this.authService.performAuthentication({ userId, sessionId }, fingerprintData, ip, trustVerify)
-        reply.setCookie('__logged_in_', 'true', {
+        reply.setCookie('__logged_in', 'true', {
             ...this.cookieConf,
             maxAge,
             httpOnly: false

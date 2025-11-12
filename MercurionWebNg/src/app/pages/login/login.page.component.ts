@@ -112,6 +112,7 @@ import { environment } from '../../../environments/environment.development';
               [serverError]="
                 serverErrorStep() === 2
                   ? 'La password inserita non è corretta.'
+                  : serverErrorStep() === 2429 ? 'Hai raggiunto il limite massimo di tentativi, riprova tra 5 minutes.'
                   : null
               "
             >
@@ -299,7 +300,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
   })
 
   protected step = signal<1 | 2>(1)
-  protected serverErrorStep = signal<0 | 1 | 2>(0)
+  protected serverErrorStep = signal<0 | 1 | 2 | 2429>(0)
   protected malformedEmail = signal<boolean>(false)
   protected toastLevel = signal<ToastContext>('error')
   protected loadingTurnstile = signal<boolean>(true)
@@ -325,6 +326,14 @@ export class LoginPageComponent implements OnInit, OnDestroy {
     }
   }
 
+  constructor() {
+    this.loginForm = this.fb.group({
+      email: this.fb.control(null, [Validators.required, Validators.email, Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)]),
+      password: this.fb.control(null, [Validators.required]),
+      remember: this.fb.control(false)
+    })
+  }
+
   private storageListener(e: StorageEvent) {
     if (e.key === 'login' && e.newValue) {
       if (this.router.url === '/login' || this.router.url.startsWith('/login')) {
@@ -334,14 +343,6 @@ export class LoginPageComponent implements OnInit, OnDestroy {
       }
 
     }
-  }
-
-  constructor() {
-    this.loginForm = this.fb.group({
-      email: this.fb.control(null, [Validators.required, Validators.email, Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)]),
-      password: this.fb.control(null, [Validators.required]),
-      remember: this.fb.control(false)
-    })
   }
 
   canLogin = computed(() =>
@@ -358,7 +359,6 @@ export class LoginPageComponent implements OnInit, OnDestroy {
     console.log('render')
     this.loadingTurnstile.set(false)
   }
-
 
   goToPasswordStep(): void {
     if (this.loginForm.controls['email'].valid) {
@@ -427,14 +427,15 @@ export class LoginPageComponent implements OnInit, OnDestroy {
         },
         error: err => {
           const body = err.error as HttpErrorRes
-          console.error(body)
+          this.turnstileComponent.reset();
+          this.turnstileToken.set(null)
+          this.loadingLogin.set(false)
           if (body.statusCode === 400) {
-            // handle bad request
+            // handle bad request if necessary
           } else if (body.statusCode === 401) {
             this.serverErrorStep.set(2)
-            this.turnstileComponent.reset();
-            this.turnstileToken.set(null)
-            this.loadingLogin.set(false)
+          } else if (body.statusCode === 429) {
+            this.serverErrorStep.set(2429)
           } else {
             sessionStorage?.setItem('lastHttpErr', btoa(JSON.stringify(body)))
             this.router.navigate(['/'])

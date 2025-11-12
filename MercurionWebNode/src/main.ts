@@ -8,11 +8,13 @@ import { HttpExceptionFilter } from './exception-handling/http-exception-filter'
 import { IoAdapter } from '@nestjs/platform-socket.io'
 import { copyBootstrapFiles } from './copy-bootstrap-files'
 import fastifyCookie from '@fastify/cookie'
+import helmet from '@fastify/helmet'
+import rateLimit from '@fastify/rate-limit'
 import { randomUUID } from 'crypto'
 import { SecureCookieService } from './app_modules/auth/services/secure-cookie.service'
 import { Environment } from './config/config'
 import { SecureCookieConfiguration } from './config/@types-config'
-
+import { routeAwareMax } from './config/rate-limit.config'
 
 
 export async function bootstrap() {
@@ -21,7 +23,7 @@ export async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter(),
-    {                      
+    {
       logger: ["error", "warn", "log", "debug", "verbose"],
     }
   )
@@ -39,11 +41,30 @@ export async function bootstrap() {
   })
   app.useGlobalFilters(new HttpExceptionFilter())
   app.setGlobalPrefix('api')
-
+  await app.register(helmet, {
+    contentSecurityPolicy: {
+      useDefaults: true,
+      directives: {
+        "default-src": ["'self'"],
+        "script-src": ["'self'", "'strict-dynamic'"],
+        "object-src": ["'none'"],
+        "base-uri": ["'none'"],
+        "frame-ancestors": ["'none'"],
+        // aggiungere connect-src/img-src/font-src se servono CDN interni
+      }
+    },
+    referrerPolicy: {
+      policy:
+        'no-referrer'
+    },
+    crossOriginResourcePolicy: {
+      policy: 'same-origin'
+    }
+  })
   await app.register(fastifyCookie)
   const fastify = app.getHttpAdapter().getInstance()   // istanza Fastify reale
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { secret, ...cookieConf } = configService.get<SecureCookieConfiguration>('SecureCookie') as SecureCookieConfiguration
+  const { secret, ...cookieConf } = configService.get<SecureCookieConfiguration>('SecureCookie')!
   fastify.addHook('onRequest', (req, reply, done) => {
 
     let deviceId: string | null = null
@@ -69,21 +90,40 @@ export async function bootstrap() {
     const isDev = configService.get<Environment>('App.env') === Environment.Development
 
     const mockIp = req.headers['x-mock-ip']?.toString().trim()
-    const forwarded = req.headers['x-forwarded-for']?.toString().split(',')[0]
 
-    req.headers['x-client-ip'] = isDev && mockIp
-      ? mockIp
-      : (forwarded ?? req.ip)
-
+    const cfIp = req.headers['cf-connecting-ip']?.toString().trim()
+    req.headers['x-client-ip'] = isDev && mockIp ? mockIp : (cfIp || req.ip)
 
     done()
   })
+  await app.register(rateLimit, {
+    hook: 'preHandler',
+    timeWindow: '5 minute',
+    // Chiave: da preferire deviceId, altrimenti IP reale
+    keyGenerator: (req) => {
+      const dev = (req.headers['x-device-id'] as string) || '';
+      const ip = (req.headers['x-client-ip'] as string) || req.ip || '';
+      return `${dev}|${ip}`;
+    },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    max: (req, key) => routeAwareMax(req),
+    skipOnError: true,                    // non bloccare in caso di errore interno del plugin
+    errorResponseBuilder: (req, ctx) => ({
+      statusCode: 429,
+      error: 'Too Many Requests',
+      message: `Rate limit exceeded. Retry in ${ctx.after}.`,
+      timestamp: new Date().toISOString(),
+      requestId: req.id,
+      path: req.url
+    })
+  })
   fastify.addContentTypeParser('multipart/form-data', (req, payload, done) => {
     done(null, req);
-  });
+  })
   const port = configService.get<number>('App.port')
   const host = configService.get<string>('App.host') as string
   const appUrl = `${host}:${port ?? 8099}`
+
   await app.listen(port ?? 8099, host.replace('http://', ''))
   await app.startAllMicroservices()
 
