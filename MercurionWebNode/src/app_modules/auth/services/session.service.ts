@@ -17,6 +17,9 @@ export class SessionService {
 
     private readonly secret: string
 
+    private readonly SHORT_SESSION_TTL = 3600
+    private readonly LONG_SESSION_TTL = 2_592_000
+ 
     constructor(
         private readonly redisService: RedisService,
         private readonly configService: ConfigService
@@ -81,7 +84,7 @@ export class SessionService {
 
     // 🔹 Creazione di una nuova sessione (semplificata con Omit<>)
     async createSession(
-        sessionData: Omit<ISession, 'createdAt' | 'sessionId' | 'expiresAt' | 'lastAccessedAt' | 'valid' | 'doNotAskMfaPhoneNumberVerification'>,
+        sessionData: Omit<ISession, 'createdAt' | 'sessionId' | 'expiresAt' | 'lastAccessedAt' | 'valid'>,
         rememberMe: boolean
     ): Promise<ISession> {
 
@@ -94,7 +97,7 @@ export class SessionService {
         }
 
         const sessionId = randomUUID();
-        const ttlSeconds = rememberMe ? 30 * 24 * 60 * 60 : 60 * 60 // 30 giorni o 60 min
+        const ttlSeconds = rememberMe ? this.LONG_SESSION_TTL : this.SHORT_SESSION_TTL
         const expiresAt = Date.now() + ttlSeconds * 1000
 
         const session: ISession = {
@@ -211,7 +214,7 @@ export class SessionService {
                     sessionDeviceInfo: JSON.parse(sd.sessionDeviceInfo) as ISessionDeviceInfo,
                     fingerprint: sd.fingerprint,
                     location: sd.location,
-                };
+                }
                 return s
             } catch {
                 return null
@@ -263,7 +266,7 @@ export class SessionService {
         const isLongTerm = longTermRaw === 'true'
 
         if (!isLongTerm) {
-            const newTTL = 60 * 60; // Rinnovo TTL solo se sessione breve
+            const newTTL = this.SHORT_SESSION_TTL; // Rinnovo TTL solo se sessione breve
             await this.redisService.setTTL(sessionKey, newTTL)
         }
 

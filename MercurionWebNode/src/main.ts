@@ -15,58 +15,70 @@ import { SecureCookieService } from './app_modules/auth/services/secure-cookie.s
 import { Environment } from './config/config'
 import { SecureCookieConfiguration } from './config/@types-config'
 import { routeAwareMax } from './config/rate-limit.config'
+import { RedisService } from './app_modules/redis/services/redis.service'
+import { isIP } from 'net' // 🔒 valida IP
 
+function isValidIp(ip?: string): boolean {
+  return !!ip && isIP(ip) !== 0
+}
 
 export async function bootstrap() {
   copyBootstrapFiles()
   const logger = new Logger('Bootstrap')
+
+  // 🔒 trustProxy per IP reali dietro CF/NGINX
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter(),
-    {
-      logger: ["error", "warn", "log", "debug", "verbose"],
-    }
+    new FastifyAdapter({ trustProxy: true }),
+    { logger: ['error', 'warn', 'log', 'debug', 'verbose'] }
   )
+
   const configService = app.get<ConfigService>(ConfigService)
   const secureCookieService = app.get<SecureCookieService>(SecureCookieService)
+  const redisService = app.get<RedisService>(RedisService)
+
   const natsPort = configService.get<number>('App.natsPort') ?? 4223
   const natsHost = configService.get<string>('App.natsHost')
   const natsUrl: string = `${natsHost}:${natsPort}`
+
   app.useWebSocketAdapter(new IoAdapter(app))
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.NATS,
-    options: {
-      servers: [natsUrl],
-    },
+    options: { servers: [natsUrl] },
   })
+
   app.useGlobalFilters(new HttpExceptionFilter())
   app.setGlobalPrefix('api')
+
   await app.register(helmet, {
     contentSecurityPolicy: {
       useDefaults: true,
       directives: {
         "default-src": ["'self'"],
-        "script-src": ["'self'", "'strict-dynamic'"],
+        // Nota: 'strict-dynamic' ha senso solo con nonce/hash sugli script.
+        "script-src": ["'self'"],
         "object-src": ["'none'"],
         "base-uri": ["'none'"],
         "frame-ancestors": ["'none'"],
         // aggiungere connect-src/img-src/font-src se servono CDN interni
       }
     },
-    referrerPolicy: {
-      policy:
-        'no-referrer'
-    },
-    crossOriginResourcePolicy: {
-      policy: 'same-origin'
-    }
+    referrerPolicy: { policy: 'no-referrer' },
+    crossOriginResourcePolicy: { policy: 'same-origin' },
+    // Facoltativi ma utili:
+    crossOriginOpenerPolicy: { policy: 'same-origin' },
+    // hsts: { maxAge: 31536000, includeSubDomains: true, preload: true }, // abilita qui se non lo metti in Cloudflare
+    // xDnsPrefetchControl: { allow: false },
   })
+
   await app.register(fastifyCookie)
-  const fastify = app.getHttpAdapter().getInstance()   // istanza Fastify reale
+
+  const fastify = app.getHttpAdapter().getInstance()
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { secret, ...cookieConf } = configService.get<SecureCookieConfiguration>('SecureCookie')!
-  fastify.addHook('onRequest', (req, reply, done) => {
 
+  // 🔒 Hook precoce: genera/sovrascrive header interni (anti-spoof)
+  fastify.addHook('onRequest', (req, reply, done) => {
     let deviceId: string | null = null
 
     try {
@@ -74,13 +86,13 @@ export async function bootstrap() {
     } catch {
       deviceId = randomUUID()
       secureCookieService.setSignedCookie(reply, '__device_id', deviceId, {
-        maxAge: 31_556_952,
+        maxAge: 31_556_952, // ~1 anno in secondi
         ...cookieConf
       })
     }
 
-    // 🔥 Inietta deviceId nella richiesta PRIMA della guard
     req.headers['x-device-id'] = deviceId
+
     try {
       req.headers['x-session-id'] = secureCookieService.getSignedCookie(req, '__node_session_id')
     } catch {
@@ -88,38 +100,43 @@ export async function bootstrap() {
     }
 
     const isDev = configService.get<Environment>('App.env') === Environment.Development
-
     const mockIp = req.headers['x-mock-ip']?.toString().trim()
 
-    const cfIp = req.headers['cf-connecting-ip']?.toString().trim()
-    req.headers['x-client-ip'] = isDev && mockIp ? mockIp : (cfIp || req.ip)
+    const cfIpRaw = req.headers['cf-connecting-ip']?.toString().trim()
+    const cfIp = isValidIp(cfIpRaw) ? cfIpRaw : undefined
 
+    req.headers['x-client-ip'] = isDev && mockIp ? mockIp : (cfIp || req.ip)
     done()
   })
+
+  // 🔒 Rate limit distribuito (Redis), finestra 5 minuti chiara (ms)
   await app.register(rateLimit, {
     hook: 'preHandler',
-    timeWindow: '5 minute',
-    // Chiave: da preferire deviceId, altrimenti IP reale
+    timeWindow: 5 * 60 * 1000, // 5 minutes
     keyGenerator: (req) => {
-      const dev = (req.headers['x-device-id'] as string) || '';
-      const ip = (req.headers['x-client-ip'] as string) || req.ip || '';
-      return `${dev}|${ip}`;
+      const dev = (req.headers['x-device-id'] as string) || ''
+      const ip = (req.headers['x-client-ip'] as string) || req.ip || ''
+      return `${dev}|${ip}`
     },
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    max: (req, key) => routeAwareMax(req),
-    skipOnError: true,                    // non bloccare in caso di errore interno del plugin
+    max: (req) => routeAwareMax(req),
+    skipOnError: true,
     errorResponseBuilder: (req, ctx) => ({
       statusCode: 429,
       error: 'Too Many Requests',
       message: `Rate limit exceeded. Retry in ${ctx.after}.`,
       timestamp: new Date().toISOString(),
       requestId: req.id,
-      path: req.url
-    })
+      path: req.url?.split('?')[0] || req.url
+    }),
+    redis: redisService.getClient(),
+    nameSpace: 'ratelimit:'
   })
+
+  // Parser multipart passthrough
   fastify.addContentTypeParser('multipart/form-data', (req, payload, done) => {
-    done(null, req);
+    done(null, req)
   })
+
   const port = configService.get<number>('App.port')
   const host = configService.get<string>('App.host') as string
   const appUrl = `${host}:${port ?? 8099}`
@@ -130,9 +147,9 @@ export async function bootstrap() {
   const lastColonIndex = appUrl.lastIndexOf(':')
   const coloredUrl =
     '\x1b[36m' + appUrl.slice(0, lastColonIndex) +
-    '\x1b[34m:\x1b[31m' + // blu + magenta
+    '\x1b[34m:\x1b[31m' +
     appUrl.slice(lastColonIndex + 1) +
-    '\x1b[0m';
+    '\x1b[0m'
 
   logger.log(`Fastify listening on ${coloredUrl}`)
 
@@ -147,4 +164,3 @@ export async function bootstrap() {
 }
 
 bootstrap()
-
