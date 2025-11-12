@@ -15,6 +15,7 @@ export interface AppConfiguration {
     globalName: string
     host: string
     sessionSignatureSecret: string
+    passwordPepper: string
 
 }
 

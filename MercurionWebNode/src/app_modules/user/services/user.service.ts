@@ -14,6 +14,7 @@ import { PasswordEncoderService } from 'src/app_modules/auth/services/password-e
 import { OldPasswordItem } from '../Models/DTO/old-password-item.interface';
 import { ProfileDTO } from 'src/app_modules/auth/Models/DTO/profile.dtos';
 import { SercurityService } from 'src/app_modules/auth/services/sercurity.service';
+import { CompareResult } from 'src/app_modules/auth/Models/enums/compare-result.enum';
 
 @Injectable()
 export class UserService {
@@ -309,8 +310,8 @@ export class UserService {
             ].filter(Boolean)
 
             for (const h of candidates) {
-                const reused = await this.passwordEncoder.compare(newPassword, h)
-                if (reused) {
+                const res = await this.passwordEncoder.compareWithFallback(newPassword, h, true)
+                if (res !== CompareResult.NoMatch) {
                     throw new RpcException('PasswordReused')
                 }
             }
@@ -323,7 +324,7 @@ export class UserService {
                     changedAt: Date.now()
                 },
                 ...oldList,
-            ].filter(i => !!i?.passwordHash).slice(0, 50); // cap hard per evitare crescita incontrollata
+            ].filter(i => !!i?.passwordHash).slice(0, 50) // cap hard per evitare crescita incontrollata
 
             await manager
                 .createQueryBuilder()
@@ -393,6 +394,47 @@ export class UserService {
         }
         return await this.userRepository.save(newUser)
     }
+
+    async updatePasswordHashByUserId(userId: UUID, passwordHash: string): Promise<void> | never {
+        try {
+            await this.userRepository.update({ id: userId }, { passwordHash, updatedAt: Date.now() })
+        } catch (e) {
+            this.logger.warn('updatePasswordHashByUserId => Error ', e)
+            throw new RpcException('PersistenceError')
+        }
+    }
+
+    async migratePasswordHash(userId: UUID, currentHash: string, newHash: string): Promise<void> {
+        await this.userRepository.manager.transaction(async (manager) => {
+            const user = await manager
+                .createQueryBuilder(User, 'u')
+                .select(['u.id', 'u.passwordHash', 'u.oldPasswordHashes'])
+                .where('u.id = :userId', { userId })
+                .andWhere('u.isVerified = true')
+                .setLock('pessimistic_write')
+                .getOneOrFail()
+
+            // Evita condizioni di gara: migra solo se il current combacia
+            if (user.passwordHash !== currentHash) return
+
+            const oldList: OldPasswordItem[] = Array.isArray(user.oldPasswordHashes)
+                ? user.oldPasswordHashes
+                : []
+
+            const nextOld: OldPasswordItem[] = [
+                { passwordHash: user.passwordHash, changedAt: Date.now() },
+                ...oldList,
+            ].slice(0, 50)
+
+            await manager
+                .createQueryBuilder()
+                .update(User)
+                .set({ passwordHash: newHash, oldPasswordHashes: nextOld })
+                .where('id = :userId', { userId })
+                .execute()
+        })
+    }
+
 
 
 }

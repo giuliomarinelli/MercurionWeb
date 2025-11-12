@@ -47,7 +47,8 @@ const AppConfig = registerAs(
         activationOrigin: process.env.APP_USER_ACTIVATION_ORIGIN ?? '',
         globalName: process.env.APP_GLOBAL_NAME ?? '',
         host: process.env.APP_HOST ?? 'http://localhost',
-        sessionSignatureSecret: process.env.APP_SESSION_SIGNATURE_SECRET!
+        sessionSignatureSecret: process.env.APP_SESSION_SIGNATURE_SECRET!,
+        passwordPepper: process.env.APP_PASSWORD_PEPPER!
     })
 )
 

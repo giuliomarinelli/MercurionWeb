@@ -18,6 +18,7 @@ import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { createHash, UUID } from 'crypto';
 import { GeoIpService, GeoLocation } from './geo-ip.service';
 import { TokenPair } from '../Models/interfaces/token-pair.interface';
+import { CompareResult } from '../Models/enums/compare-result.enum';
 
 @Injectable()
 export class AuthenticationService {
@@ -50,8 +51,22 @@ export class AuthenticationService {
         if (!auth || !auth.userId || !auth.passwordHash) {
             throw new RpcException('AuthenticationInvalidCredentials')
         }
-        if (!await this.passwordEncoder.compare(password, auth.passwordHash)) {
-            throw new RpcException('AuthenticationInvalidCredentials')
+        const cmp = await this.passwordEncoder.compareWithFallback(password, auth.passwordHash, true);
+        if (cmp === CompareResult.NoMatch) {
+            throw new RpcException('AuthenticationInvalidCredentials');
+        }
+
+        // Opportunistic upgrade (non-blocking)
+        try {
+            if (
+                cmp === CompareResult.MatchLegacy ||
+                (await this.passwordEncoder.needsRehash(auth.passwordHash))
+            ) {
+                const newHash = await this.passwordEncoder.encode(password)
+                await this.userService.migratePasswordHash(auth.userId, auth.passwordHash, newHash)
+            }
+        } catch {
+            // pass
         }
         const unknwonDeviceId = !await this.sessionService.isKnownDeviceId(deviceId, auth.userId)
         const fingerprint = this.generateFingerprint(fingerprintData)
