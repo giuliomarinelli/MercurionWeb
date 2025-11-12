@@ -1,9 +1,10 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { RedisService } from './redis.service'; // Importa RedisService
+import { RedisService } from './redis.service';
 import { Redis } from 'ioredis';
 import { AccessTokenRefreshService } from 'src/app_modules/oauth2-client/services/access-token-refresh.service';
 import { UUID } from 'crypto';
 import { Server } from 'socket.io';
+import { SessionService } from 'src/app_modules/auth/services/session.service';
 
 @Injectable()
 export class PubSubService implements OnModuleInit {
@@ -14,76 +15,131 @@ export class PubSubService implements OnModuleInit {
 
   constructor(
     private readonly redisService: RedisService,
-    private readonly accessTokenRefreshService: AccessTokenRefreshService
+    private readonly accessTokenRefreshService: AccessTokenRefreshService,
+    private readonly sessionService: SessionService,
   ) {
     this.subscriber = this.redisService.getClient().duplicate()
+    this.subscriber.on('error', (e) => this.logger.error(`Redis subscriber error: ${e?.message || e}`))
   }
 
-  onModuleInit() {
-    // Iscriviti agli eventi di scadenza e cancellazione chiavi
-    this.subscribeToKeyspaceEvents()
+  async onModuleInit() {
+    await this.ensureKeyspaceEvents()     // log se non correttamente configurato
+    await this.subscribeToKeyspaceEvents() // psubscribe
   }
 
   public setSocketServer(server: Server): void {
     this.socketServer = server
   }
 
-  private subscribeToKeyspaceEvents(): void {
-    this.subscriber.subscribe('__keyevent@0__:expired')
-    this.subscriber.subscribe('__keyevent@0__:del')
+  private async ensureKeyspaceEvents() {
+    try {
+      const client = this.redisService.getClient()
+      const res = await client.config('GET', 'notify-keyspace-events')
+      const current = Array.isArray(res) ? res[1] as string : ''
+      if (!current || !/[E]/.test(current) || !/[x]/.test(current) || !/[g]/.test(current)) {
+        this.logger.warn(
+          `Redis notify-keyspace-events="${current}". Si consiglia almeno "Exg" per expired/del keyevents.`,
+        )
+      }
+    } catch {
+      this.logger.warn('Redis Keyspace Events are not correctly configured')
+      // Alcuni managed Redis non permettono CONFIG GET
+    }
+  }
 
-    this.subscriber.on('message', (channel, key) => {
-      if (channel === '__keyevent@0__:expired' || channel === '__keyevent@0__:del') {
-        if (key.startsWith('access_token:')) {
-          this.handleAccessTokenExpired(channel, key); // <-- NO await, NO return
-        } else if (key.startsWith('session:')) {
-          this.handleSessionExpired(channel, key)
+  private async subscribeToKeyspaceEvents(): Promise<void> {
+    await (this.subscriber as any).psubscribe('__keyevent@0__:*');
+    this.subscriber.on('pmessage', (_pattern, channel, key) => {
+      try {
+        const event = channel.split(':').pop(); // 'expired' | 'del' | ...
+        if (!event) return;
+
+        if (key.startsWith('session:') && (event === 'expired' || event === 'del')) {
+          this.handleSessionEvent(event, key)
         }
+
+        if (key.startsWith('access_token:') && event === 'expired') {
+          this.handleAccessTokenExpired(key)
+        }
+      } catch (e) {
+        this.logger.error(`PubSub handler error for key="${key}": ${e?.message || e}`)
       }
     })
   }
 
-  private async handleAccessTokenExpired(channel: string, key: string) {
-    this.logger.log(`Access token key expired or deleted: ${key}`);
+  // access_token:{provider}:{userId?}
+  private async handleAccessTokenExpired(key: string) {
+    this.logger.log(`Access token key expired: ${key}`)
+    const [, provider, ...userIdParts] = key.split(':')
+    const userId = userIdParts.length > 0 ? (userIdParts.join(':') as UUID) : undefined
 
-    // Estrai provider e userId
-    const [, provider, ...userIdParts] = key.split(':');
-    const userId = userIdParts.length > 0 ? userIdParts.join(':') : undefined;
-
-    this.logger.log(`Trigger refresh for provider=${provider} userId=${userId ?? '[none]'}`);
+    // anti-thrashing lock (30s)
+    const lockKey = `oauth2:refresh_lock:${provider}:${userId ?? '__global__'}`
+    const ok = await this.redisService.getClient().set(lockKey, '1', 'EX', 30, 'NX')
+    if (!ok) {
+      this.logger.debug(`Skip refresh (locked) for provider=${provider} userId=${userId ?? '[none]'}`)
+      return
+    }
 
     try {
       await this.accessTokenRefreshService.refreshAccessToken(provider, userId as UUID);
-      this.logger.log(`Access token refreshed successfully for provider=${provider} userId=${userId ?? '[none]'}`);
+      this.logger.log(`Access token refreshed for provider=${provider} userId=${userId ?? '[none]'}`)
     } catch (err) {
-      this.logger.error(
-        `Error refreshing access token for provider=${provider} userId=${userId ?? '[none]'}: ${err?.message || err}`,
-      );
+      this.logger.error(`Error refreshing access token for provider=${provider} userId=${userId ?? '[none]'}: ${err?.message || err}`)
+    } finally {
+      await this.redisService.getClient().del(lockKey)
     }
   }
 
-  private async handleSessionExpired(channel: string, key: string): Promise<void> {
-    if (!this.socketServer) return;
+  // session:{sid}:{uid}
+  private async handleSessionEvent(event: 'expired' | 'del', key: string): Promise<void> {
+    
+    const parts = key.split(':') // ["session", sid, uid]
+    if (parts.length !== 3) {
+      this.logger.warn(`Unexpected session key format on ${event}: ${key}`)
+      return
+    }
+    const sessionId = parts[1]
+    const userId = parts[2]
 
-    const sessionId = key.split(':')[1];
-
-    const userId = await this.redisService.getClient().get(`session_user:${sessionId}`);
-    if (userId) {
-      await this.redisService.getClient().srem(`user_sessions:${userId}`, sessionId);
+    try {
+      const jtis = await this.sessionService.getJtiListBySessionId(sessionId)
+      for (const jti of jtis) {
+        await this.sessionService.revokeToken(jti)
+      }
+    } catch (e) {
+      this.logger.warn(`Failed to revoke JTIs for session ${sessionId}: ${e?.message || e}`)
     }
 
-    this.socketServer.to(`ws_session:${sessionId}`).emit('sv.pub.session_expired', { detail: 'session expired', reason: channel })
-    this.socketServer.in(`ws_session:${sessionId}`).socketsLeave(`ws_session:${sessionId}`)
-    this.logger.log(`🛑 Emesso evento session_expired e pulita la room ws_session:${sessionId} (${channel})`)
+    try {
+      const client = this.redisService.getClient()
+      const pipe = client.pipeline()
+      pipe.srem(`user_sessions:${userId}`, sessionId)
+      await pipe.exec()
+    } catch (e) {
+      this.logger.warn(`Failed to cleanup indexes for session ${sessionId}: ${e?.message || e}`)
+    }
+
+    if (this.socketServer) {
+      try {
+        this.socketServer.to(`ws_session:${sessionId}`).emit('sv.pub.session_expired', {
+          detail: 'session expired',
+          reason: event,
+        })
+        this.socketServer.in(`ws_session:${sessionId}`).socketsLeave(`ws_session:${sessionId}`)
+      } catch (e) {
+        this.logger.warn(`Failed WS notify/leave for session ${sessionId}: ${e?.message || e}`)
+      }
+    }
+
+    this.logger.log(`🛑 Session ${sessionId} (${event}) → revoked JTIs, cleaned indexes, notified WS`)
   }
 
-
-  // Metodo per la pubblicazione, se necessario
+  // Pub/Sub utilità opzionali
   public async publish(channel: string, message: string): Promise<void> {
-    await this.redisService.getClient().publish(channel, message);
+    await this.redisService.getClient().publish(channel, message)
   }
 
-  // Metodo di sottoscrizione con callback personalizzabile
   public subscribe(channel: string, callback: (message: string) => void): void {
     this.subscriber.subscribe(channel)
     this.subscriber.on('message', (chan, message) => {

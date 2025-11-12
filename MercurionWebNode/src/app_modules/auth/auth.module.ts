@@ -24,7 +24,7 @@ import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
-    RedisModule,
+    forwardRef(() => RedisModule),
     forwardRef(() => UserModule),
     NotificationModule,
     HttpModule

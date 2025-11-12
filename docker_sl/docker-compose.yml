@@ -13,7 +13,7 @@ services:
     restart: unless-stopped
     command: >
       redis-server
-      --notify-keyspace-events Ex
+      --notify-keyspace-events Exg
       --save "900 1"
       --save "300 10"
       --save "60 10000"

@@ -38,6 +38,49 @@ export class SessionService {
         return `trustedLocation:${userId}`
     }
 
+    private getUserIdFromSessionKey(key: string): string | undefined {
+        const parts = key.split(':')
+        return parts.length === 3 ? parts[2] : undefined
+    }
+
+    private async findUserIdInUserSets(sessionId: string): Promise<string | undefined> {
+        const keys = await this.redisService.scanIterate('user_sessions:*')
+        for (const key of keys) {
+            if (await this.redisService.sismember(key, sessionId)) {
+                const [, userId] = key.split(':')
+                return userId
+            }
+        }
+        return undefined
+    }
+
+    private async resolveSessionContext(sessionId: string, userId?: string): Promise<{ key?: string; userId?: string }> {
+        if (userId) {
+            return {
+                key: this.getSessionKeyOrPattern(sessionId, userId),
+                userId,
+            }
+        }
+
+        const [matchedKey] = await this.redisService.scanIterate(this.getSessionKeyOrPattern(sessionId))
+        if (matchedKey) {
+            return {
+                key: matchedKey,
+                userId: this.getUserIdFromSessionKey(matchedKey),
+            }
+        }
+
+        const resolvedUserId = await this.findUserIdInUserSets(sessionId)
+        if (resolvedUserId) {
+            return {
+                key: this.getSessionKeyOrPattern(sessionId, resolvedUserId),
+                userId: resolvedUserId,
+            }
+        }
+
+        return {}
+    }
+
     public async getActivatedSessionsForUser(userId: UUID): Promise<string[]> {
         return this.redisService.getClient().smembers(`user_sessions:${userId}`)
     }
@@ -115,7 +158,6 @@ export class SessionService {
 
         for (const s of userSessionsByDeviceId) {
             await this.destroySession(s.sessionId, s.deviceId, s.userId)
-            await this.redisService.del(`session_user:${s.sessionId}`)
             await this.redisService.srem(`user_sessions:${s.userId}`, s.sessionId)
         }
 
@@ -149,11 +191,6 @@ export class SessionService {
 
         await this.redisService.setTTL(sessionKey, ttlSeconds)
         await this.redisService.sadd(`user_sessions:${sessionData.userId}`, sessionId)
-        await this.redisService.set(
-            `session_user:${sessionId}`,
-            sessionData.userId,
-            ttlSeconds
-        )
 
         return session
     }
@@ -231,11 +268,6 @@ export class SessionService {
     }
 
     public async existsSession(sessionId: string): Promise<boolean> {
-        // 1) mapping veloce
-        const uid = await this.redisService.get(`session_user:${sessionId}`)
-        if (uid) return true
-
-        // 2) fallback a scan (ultima spiaggia)
         const [key] = await this.redisService.scanIterate(this.getSessionKeyOrPattern(sessionId))
         if (!key) return false
 
@@ -250,17 +282,11 @@ export class SessionService {
         if (userId) {
             key = this.getSessionKeyOrPattern(sessionId, userId)
         } else {
-            // prova lookup diretto dell'owner
-            const uid = await this.redisService.get(`session_user:${sessionId}`)
-            if (uid) {
-                key = this.getSessionKeyOrPattern(sessionId, uid)
-            } else {
-                const [k] = await this.redisService.scanIterate(this.getSessionKeyOrPattern(sessionId))
-                if (!k) {
-                    return null
-                }
-                key = k
+            const [k] = await this.redisService.scanIterate(this.getSessionKeyOrPattern(sessionId))
+            if (!k) {
+                return null
             }
+            key = k
         }
 
         const sessionData: Record<string, string> | null = await this.redisService.hgetall(key)
@@ -295,14 +321,9 @@ export class SessionService {
         if (userId) {
             sessionKey = this.getSessionKeyOrPattern(sessionId, userId)
         } else {
-            const uid = await this.redisService.get(`session_user:${sessionId}`)
-            if (uid) {
-                sessionKey = this.getSessionKeyOrPattern(sessionId, uid)
-            } else {
-                const [k] = await this.redisService.scanIterate(this.getSessionKeyOrPattern(sessionId))
-                if (!k) return
-                sessionKey = k
-            }
+            const [k] = await this.redisService.scanIterate(this.getSessionKeyOrPattern(sessionId))
+            if (!k) return
+            sessionKey = k
         }
 
         const now = Date.now()
@@ -311,15 +332,9 @@ export class SessionService {
         const longTermRaw = await this.redisService.hget(sessionKey, 'longTerm')
         const isLongTerm = longTermRaw === 'true'
 
-        // rinnova TTL solo per sessioni brevi e allinea mapping session_user:{sid}
+        // rinnova TTL solo per sessioni brevi
         if (!isLongTerm) {
-            const newTTL = this.SHORT_SESSION_TTL
-            await this.redisService.setTTL(sessionKey, newTTL)
-
-            const sid = await this.redisService.hget(sessionKey, 'sessionId')
-            if (sid) {
-                await this.redisService.setTTL(`session_user:${sid}`, newTTL)
-            }
+            await this.redisService.setTTL(sessionKey, this.SHORT_SESSION_TTL)
         }
     }
 
@@ -377,26 +392,8 @@ export class SessionService {
 
     // ✅ distruzione "strict"
     public async destroySession(sessionId: string, deviceId: string, userId?: UUID): Promise<void> {
-        let key = ''
-        let uid: string | undefined
-
-        if (userId) {
-            uid = userId as unknown as string
-            key = this.getSessionKeyOrPattern(sessionId, uid)
-        } else {
-            // prova mapping veloce, poi fallback a scan
-            uid = await this.redisService.get(`session_user:${sessionId}`) ?? undefined
-            key = uid
-                ? this.getSessionKeyOrPattern(sessionId, uid)
-                : (await this.redisService.scanIterate(this.getSessionKeyOrPattern(sessionId)))[0]
-        }
-
+        const { key, userId: resolvedUid } = await this.resolveSessionContext(sessionId, userId as string | undefined)
         if (!key) {
-            // idempotente: se non c'è più nulla, prova solo a pulire gli indici e stop
-            const pipeline = this.redisService.getClient().pipeline()
-            if (uid) pipeline.srem(`user_sessions:${uid}`, sessionId)
-            pipeline.del(`session_user:${sessionId}`)
-            await pipeline.exec()
             return
         }
 
@@ -405,11 +402,11 @@ export class SessionService {
             throw new ForbiddenException('NotAllowedAction')
         }
 
+        const uid = resolvedUid ?? this.getUserIdFromSessionKey(key)
         const client = this.redisService.getClient()
         const pipe = client.pipeline()
 
         if (uid) pipe.srem(`user_sessions:${uid}`, sessionId)
-        pipe.del(`session_user:${sessionId}`)
         if (typeof (client as any).unlink === 'function') {
             (pipe as any).unlink(key)
         } else {
@@ -429,7 +426,6 @@ export class SessionService {
         const pipe = client.pipeline()
 
         pipe.srem(`user_sessions:${userId}`, sessionId)
-        pipe.del(`session_user:${sessionId}`)
 
         if (exists) {
             if (typeof (client as any).unlink === 'function') {
@@ -465,7 +461,6 @@ export class SessionService {
             for (const jti of jtis) pipeline.sadd(`revoked:${jti}`, jti)
 
             pipeline.srem(`user_sessions:${userId}`, sid)
-            pipeline.del(`session_user:${sid}`)
 
             if (typeof client.unlink === 'function') {
                 pipeline.unlink(key)
@@ -487,10 +482,9 @@ export class SessionService {
         
         const sessionId = this.verifyAndParseSignedSessionId(signedSessionId)
 
-        const uid = userId ?? (await this.redisService.get(`session_user:${sessionId}`)) ?? undefined
-        if (!uid) throw new RpcException('InvalidSession')
+        const { key, userId: uid } = await this.resolveSessionContext(sessionId, userId)
+        if (!uid || !key) throw new RpcException('InvalidSession')
 
-        const key = this.getSessionKeyOrPattern(sessionId, uid)
         const exists = await this.redisService.hget(key, 'sessionId')
 
         const client = this.redisService.getClient()
@@ -500,7 +494,6 @@ export class SessionService {
         for (const jti of jtis) pipeline.sadd(`revoked:${jti}`, jti)
 
         pipeline.srem(`user_sessions:${uid}`, sessionId)
-        pipeline.del(`session_user:${sessionId}`)
 
         if (exists) {
             if (typeof client.unlink === 'function') {

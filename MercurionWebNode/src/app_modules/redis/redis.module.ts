@@ -3,9 +3,13 @@ import { RedisService } from './services/redis.service';
 import { PubSubService } from './services/pub-sub.service';
 import Redis from 'ioredis';
 import { OAuth2ClientModule } from '../oauth2-client/oauth2-client.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-    imports: [forwardRef(() => OAuth2ClientModule)],
+    imports: [
+        forwardRef(() => OAuth2ClientModule),
+        forwardRef(() => AuthModule)
+    ],
     providers: [
         {
             provide: Redis,
