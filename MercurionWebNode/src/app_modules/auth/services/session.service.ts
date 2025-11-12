@@ -2,7 +2,6 @@ import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { createHmac, randomUUID, UUID } from 'crypto';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { ISession, ISessionDeviceInfo } from '../Models/interfaces/i-session.interface';
-import { nullish } from 'src/Models/nullish.type';
 import { RpcException } from '@nestjs/microservices';
 import { GeoLocation } from './geo-ip.service';
 import { SessionFetchOptions } from '../Models/interfaces/session-fetch-options.interface';
@@ -19,7 +18,7 @@ export class SessionService {
 
     private readonly SHORT_SESSION_TTL = 3600
     private readonly LONG_SESSION_TTL = 2_592_000
- 
+
     constructor(
         private readonly redisService: RedisService,
         private readonly configService: ConfigService
@@ -82,6 +81,30 @@ export class SessionService {
         return sessionList.map(s => s.sessionId === activeSessionId ? this.convertSessionToDTO(s, true) : this.convertSessionToDTO(s))
     }
 
+    private async ttlOfIssuedJti(jti: string, sessionId?: string): Promise<number | null> {
+        const client = this.redisService.getClient();
+        if (sessionId) {
+            const k = `issued:${sessionId}:${jti}`
+            const ttl = await client.ttl(k)
+            return ttl >= 0 ? ttl : null
+        }
+        // fallback: scan veloce una sola chiave
+        const [k] = await this.redisService.scanIterate(`issued:*:${jti}`)
+        if (!k) return null
+        const ttl = await client.ttl(k)
+        return ttl >= 0 ? ttl : null
+    }
+
+    private async revokeManyJtis(jtis: string[]): Promise<void> {
+        if (!jtis.length) return
+        const pipe = this.redisService.getClient().pipeline()
+        for (const jti of jtis) {
+            pipe.sadd(`revoked:${jti}`, jti)
+        }
+        await pipe.exec()
+    }
+
+
     // 🔹 Creazione di una nuova sessione (semplificata con Omit<>)
     async createSession(
         sessionData: Omit<ISession, 'createdAt' | 'sessionId' | 'expiresAt' | 'lastAccessedAt' | 'valid'>,
@@ -142,45 +165,6 @@ export class SessionService {
         await this.redisService.hset(this.getSessionKeyOrPattern(sessionId, userId), 'valid', 'true')
     }
 
-
-    // 🔹 Recupero dell'intera sessione
-    async getSession(sessionId: string, userId?: string): Promise<ISession | null> {
-
-        let key: string = ''
-
-        if (userId) {
-            key = this.getSessionKeyOrPattern(sessionId, userId)
-        } else {
-            const pattern = this.getSessionKeyOrPattern(sessionId)
-            const [_key] = await this.redisService.scanIterate(pattern)
-            key = _key
-        }
-
-        const sessionData: Record<string, string> | nullish = await this.redisService.hgetall(key)
-
-
-        if (!sessionData || Object.keys(sessionData).length === 0) {
-            return null
-        }
-
-        const session: ISession = {
-            sessionId: sessionData.sessionId as UUID,
-            userId: sessionData.userId as UUID,
-            deviceId: sessionData.deviceId as UUID,
-            createdAt: parseInt(sessionData.createdAt, 10),
-            expiresAt: parseInt(sessionData.expiresAt, 10),
-            lastAccessedAt: parseInt(sessionData.lastAccessedAt, 10),
-            IP: sessionData.IP,
-            valid: JSON.parse(sessionData.valid) as boolean,
-            sessionDeviceInfo: JSON.parse(sessionData.sessionDeviceInfo) as ISessionDeviceInfo,
-            fingerprint: sessionData.fingerprint,
-            location: sessionData.location
-        }
-
-        return session
-
-    }
-
     async getAllSessionsByUserId(userId: string, opts?: SessionFetchOptions): Promise<ISession[]> {
 
         const matchPattern = `session:*:${userId}`
@@ -231,7 +215,6 @@ export class SessionService {
         return this.convertSessionListToDTOs(activeSessions, currentSessionId)
     }
 
-
     // 🔹 Validazione della sessione, deviceId e scadenza
     async validateSession(sessionId: string, deviceId: string, userId?: string): Promise<boolean> {
 
@@ -247,31 +230,99 @@ export class SessionService {
         return true
     }
 
+    public async existsSession(sessionId: string): Promise<boolean> {
+        // 1) mapping veloce
+        const uid = await this.redisService.get(`session_user:${sessionId}`)
+        if (uid) return true
 
-    // 🔹 Aggiornare lastAccessedAt ad ogni accesso
-    async updateLastAccessed(sessionId: string, userId?: string): Promise<void> {
+        // 2) fallback a scan (ultima spiaggia)
+        const [key] = await this.redisService.scanIterate(this.getSessionKeyOrPattern(sessionId))
+        if (!key) return false
 
-        let sessionKey = ''
+        const value = await this.redisService.hget(key, 'sessionId')
+        return value !== null && value !== undefined
+    }
+
+    public async getSession(sessionId: string, userId?: string): Promise<ISession | null> {
+
+        let key: string
+
+        if (userId) {
+            key = this.getSessionKeyOrPattern(sessionId, userId)
+        } else {
+            // prova lookup diretto dell'owner
+            const uid = await this.redisService.get(`session_user:${sessionId}`)
+            if (uid) {
+                key = this.getSessionKeyOrPattern(sessionId, uid)
+            } else {
+                const [k] = await this.redisService.scanIterate(this.getSessionKeyOrPattern(sessionId))
+                if (!k) {
+                    return null
+                }
+                key = k
+            }
+        }
+
+        const sessionData: Record<string, string> | null = await this.redisService.hgetall(key)
+        if (!sessionData || Object.keys(sessionData).length === 0) {
+            return null
+        }
+
+        try {
+            const session: ISession = {
+                sessionId: sessionData.sessionId as UUID,
+                userId: sessionData.userId as UUID,
+                deviceId: sessionData.deviceId as UUID,
+                createdAt: parseInt(sessionData.createdAt, 10),
+                expiresAt: parseInt(sessionData.expiresAt, 10),
+                lastAccessedAt: parseInt(sessionData.lastAccessedAt, 10),
+                IP: sessionData.IP,
+                valid: JSON.parse(sessionData.valid) as boolean,
+                sessionDeviceInfo: JSON.parse(sessionData.sessionDeviceInfo) as ISessionDeviceInfo,
+                fingerprint: sessionData.fingerprint,
+                location: sessionData.location
+            }
+            return session
+        } catch {
+            return null
+        }
+    }
+
+    public async updateLastAccessed(sessionId: string, userId?: string): Promise<void> {
+
+        let sessionKey: string
 
         if (userId) {
             sessionKey = this.getSessionKeyOrPattern(sessionId, userId)
         } else {
-            const pattern = this.getSessionKeyOrPattern(sessionId)
-            sessionKey = (await this.redisService.scanIterate(pattern))[0]
+            const uid = await this.redisService.get(`session_user:${sessionId}`)
+            if (uid) {
+                sessionKey = this.getSessionKeyOrPattern(sessionId, uid)
+            } else {
+                const [k] = await this.redisService.scanIterate(this.getSessionKeyOrPattern(sessionId))
+                if (!k) return
+                sessionKey = k
+            }
         }
 
         const now = Date.now()
+        await this.redisService.hset(sessionKey, 'lastAccessedAt', now.toString())
 
         const longTermRaw = await this.redisService.hget(sessionKey, 'longTerm')
         const isLongTerm = longTermRaw === 'true'
 
+        // rinnova TTL solo per sessioni brevi e allinea mapping session_user:{sid}
         if (!isLongTerm) {
-            const newTTL = this.SHORT_SESSION_TTL; // Rinnovo TTL solo se sessione breve
+            const newTTL = this.SHORT_SESSION_TTL
             await this.redisService.setTTL(sessionKey, newTTL)
-        }
 
-        await this.redisService.hset(sessionKey, 'lastAccessedAt', now.toString())
+            const sid = await this.redisService.hget(sessionKey, 'sessionId')
+            if (sid) {
+                await this.redisService.setTTL(`session_user:${sid}`, newTTL)
+            }
+        }
     }
+
 
     // 🔹 Revocare una sessione (es. logout o invalidazione)
     async revokeSession(sessionId: string, userId?: string): Promise<void> {
@@ -284,17 +335,24 @@ export class SessionService {
             sessionKey = (await this.redisService.scanIterate(pattern))[0]
         }
 
-        await this.redisService.hset(sessionKey, 'valid', 'false');
+        await this.redisService.hset(sessionKey, 'valid', 'false')
     }
 
     // 🔹 Revoca e blacklist di un token specifico
-    async revokeToken(jti: string): Promise<void> {
-        await this.redisService.sadd(`revoked:${jti}`, jti);
+    async revokeToken(jti: string, sessionId?: string): Promise<void> {
+        const ttl = await this.ttlOfIssuedJti(jti, sessionId)
+        // fallback: 7 giorni se non trovi TTL (es. token già scaduto o issued mancante)
+        const ex = ttl && ttl > 0 ? ttl : 7 * 24 * 3600;
+        await this.redisService.set(`revoked:${jti}`, '1', ex)
     }
 
-    // 🔹 Controlla se il token è stato revocato
     async isTokenRevoked(jti: string): Promise<boolean> {
-        return await this.redisService.sismember(`revoked:${jti}`, jti);
+        return !!(await this.redisService.exists(`revoked:${jti}`))
+    }
+
+    public async revokeAllTokensBySessionId(sessionId: string): Promise<void> {
+        const jtis = await this.getJtiListBySessionId(sessionId)
+        await this.revokeManyJtis(jtis)
     }
 
     public async getJtiListBySessionId(sessionId: string): Promise<string[]> {
@@ -315,81 +373,146 @@ export class SessionService {
         return whiteList
     }
 
-    public async existsSession(sessionId: string): Promise<boolean> {
-        const matchPattern = this.getSessionKeyOrPattern(sessionId)
-        const keys: string[] = []
-        let cursor = '0'
-        do {
-            const scanned = await this.redisService.scan(matchPattern, cursor, 1000)
-            if (scanned.keys?.length) {
-                keys.push(...scanned.keys)
-            }
-            cursor = scanned.cursor;
-        } while (cursor !== '0')
-        const [sessionKey] = keys
-        const value = await this.redisService.hget(sessionKey, 'sessionId')
-        return value !== null && value !== undefined
-    }
 
-    public async destroySession(sessionId: string, deviceId: string, userId?: UUID): Promise<void> | never {
-        let sessionKey: string
+
+    // ✅ distruzione "strict"
+    public async destroySession(sessionId: string, deviceId: string, userId?: UUID): Promise<void> {
+        let key = ''
+        let uid: string | undefined
+
         if (userId) {
-            sessionKey = this.getSessionKeyOrPattern(sessionId, userId)
+            uid = userId as unknown as string
+            key = this.getSessionKeyOrPattern(sessionId, uid)
         } else {
-            const pattern = this.getSessionKeyOrPattern(sessionId)
-            sessionKey = (await this.redisService.scanIterate(pattern))[0]
+            // prova mapping veloce, poi fallback a scan
+            uid = await this.redisService.get(`session_user:${sessionId}`) ?? undefined
+            key = uid
+                ? this.getSessionKeyOrPattern(sessionId, uid)
+                : (await this.redisService.scanIterate(this.getSessionKeyOrPattern(sessionId)))[0]
         }
-        const exists = await this.existsSession(sessionId)
-        const expectedDeviceId = await this.redisService.hget(sessionKey, 'deviceId')
-        const deviceIdMatches = expectedDeviceId === deviceId
-        if (exists && deviceIdMatches) {
-            if (userId) {
-                await this.redisService.srem(`user_sessions:${userId}`, sessionId)
-            }
-            await this.redisService.del(sessionKey)
+
+        if (!key) {
+            // idempotente: se non c'è più nulla, prova solo a pulire gli indici e stop
+            const pipeline = this.redisService.getClient().pipeline()
+            if (uid) pipeline.srem(`user_sessions:${uid}`, sessionId)
+            pipeline.del(`session_user:${sessionId}`)
+            await pipeline.exec()
             return
         }
-        throw new ForbiddenException('NotAllowedAction')
+
+        const expectedDeviceId = await this.redisService.hget(key, 'deviceId')
+        if (expectedDeviceId && expectedDeviceId !== deviceId) {
+            throw new ForbiddenException('NotAllowedAction')
+        }
+
+        const client = this.redisService.getClient()
+        const pipe = client.pipeline()
+
+        if (uid) pipe.srem(`user_sessions:${uid}`, sessionId)
+        pipe.del(`session_user:${sessionId}`)
+        if (typeof (client as any).unlink === 'function') {
+            (pipe as any).unlink(key)
+        } else {
+            pipe.del(key)
+        }
+        await pipe.exec()
+    }
+
+    // ✅ distruzione "by owner"
+    public async destroySessionByOwner(sessionId: string, userId: string): Promise<void> {
+
+        const key = this.getSessionKeyOrPattern(sessionId, userId)
+
+        // se la sessione non esiste più, fai solo cleanup indici ed esci
+        const exists = await this.redisService.hget(key, 'sessionId')
+        const client = this.redisService.getClient()
+        const pipe = client.pipeline()
+
+        pipe.srem(`user_sessions:${userId}`, sessionId)
+        pipe.del(`session_user:${sessionId}`)
+
+        if (exists) {
+            if (typeof (client as any).unlink === 'function') {
+                (pipe as any).unlink(key)
+            } else {
+                pipe.del(key)
+            }
+        }
+
+        await pipe.exec()
     }
 
     public async destroyAllSessionsAndRevokeAllTokensByUserId(userId: string): Promise<void> {
         const pattern = `session:*:${userId}`
         const keys = await this.redisService.scanIterate(pattern)
-        const pipeline = this.redisService.getClient().pipeline()
+        if (!keys.length) {
+            await this.redisService.getClient().del(`user_sessions:${userId}`)
+            return
+        }
+
+        const client = this.redisService.getClient()
+        const pipeline = client.pipeline()
+
         for (const key of keys) {
-            if (key.split(':').length !== 3) {
+            const parts = key.split(':')
+            if (parts.length !== 3) {
                 continue
             }
-            const [, sessionId] = key.split(':')
-            const jtiList = await this.getJtiListBySessionId(sessionId)
-            for (const jti of jtiList) {
-                pipeline.sadd(`revoked:${jti}`, jti)
+
+            const sid = parts[1]
+
+            const jtis = await this.getJtiListBySessionId(sid)
+            for (const jti of jtis) pipeline.sadd(`revoked:${jti}`, jti)
+
+            pipeline.srem(`user_sessions:${userId}`, sid)
+            pipeline.del(`session_user:${sid}`)
+
+            if (typeof client.unlink === 'function') {
+                pipeline.unlink(key)
+            } else {
+                pipeline.del(key)
             }
-            pipeline.del(key)
         }
+
+        pipeline.exec()
+
+        const remaining = await this.redisService.getClient().scard(`user_sessions:${userId}`)
+        if (remaining === 0) {
+            await this.redisService.del(`user_sessions:${userId}`)
+        }
+    }
+
+
+    public async destroySessionAndRevokeAllTokensBySignedSessionId(signedSessionId: string, userId?: string): Promise<void> {
+        
+        const sessionId = this.verifyAndParseSignedSessionId(signedSessionId)
+
+        const uid = userId ?? (await this.redisService.get(`session_user:${sessionId}`)) ?? undefined
+        if (!uid) throw new RpcException('InvalidSession')
+
+        const key = this.getSessionKeyOrPattern(sessionId, uid)
+        const exists = await this.redisService.hget(key, 'sessionId')
+
+        const client = this.redisService.getClient()
+        const pipeline = client.pipeline()
+
+        const jtis = await this.getJtiListBySessionId(sessionId)
+        for (const jti of jtis) pipeline.sadd(`revoked:${jti}`, jti)
+
+        pipeline.srem(`user_sessions:${uid}`, sessionId)
+        pipeline.del(`session_user:${sessionId}`)
+
+        if (exists) {
+            if (typeof client.unlink === 'function') {
+                pipeline.unlink(key)
+            } else {
+                pipeline.del(key)
+            }
+        }
+
         await pipeline.exec()
     }
 
-    public async destroySessionAndRevokeAllTokensBySignedSessionId(signedSessionId: string, userId?: string): Promise<void> | never {
-        const sessionId = this.verifyAndParseSignedSessionId(signedSessionId)
-        let key: string
-        if (userId) {
-            key = this.getSessionKeyOrPattern(sessionId, userId)
-        } else {
-            const pattern = this.getSessionKeyOrPattern(sessionId)
-            key = (await this.redisService.scanIterate(pattern))[0]
-        }
-        if (!key || key.split(':').length !== 3) {
-            throw new RpcException('InvalidSession')
-        }
-        const jtiList = await this.getJtiListBySessionId(sessionId)
-        const pipeline = this.redisService.getClient().pipeline()
-        for (const jti of jtiList) {
-            pipeline.sadd(`revoked:${jti}`, jti)
-        }
-        pipeline.del(key)
-        await pipeline.exec()
-    }
 
     public async addFingerprintToWhiteList(userId: UUID, fingerprint: string): Promise<void> {
         const key = `fingerprint:${userId}:${fingerprint}`

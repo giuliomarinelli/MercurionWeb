@@ -213,6 +213,10 @@ export class JwtToolsService {
         }
     }
 
+    public decodeUnsafe(token: string): AppJwtPayload {
+        return this.jwtService.decode(token)
+    }
+
     public extractAccessTokenFromReq(req: FastifyRequest): string {
         const authorizationHeader = String(req.headers['authorization'] ?? '')
         const m = authorizationHeader.match(/^Bearer\s+([A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+)$/i)

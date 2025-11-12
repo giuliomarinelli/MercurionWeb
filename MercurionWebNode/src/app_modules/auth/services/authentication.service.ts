@@ -19,6 +19,7 @@ import { createHash, UUID } from 'crypto';
 import { GeoIpService, GeoLocation } from './geo-ip.service';
 import { TokenPair } from '../Models/interfaces/token-pair.interface';
 import { CompareResult } from '../Models/enums/compare-result.enum';
+import { RedisService } from 'src/app_modules/redis/services/redis.service';
 
 @Injectable()
 export class AuthenticationService {
@@ -31,7 +32,8 @@ export class AuthenticationService {
         private readonly mfaService: MfaService,
         private readonly jwtTools: JwtToolsService,
         private readonly _r: ResponseService,
-        private readonly geoIpService: GeoIpService
+        private readonly geoIpService: GeoIpService,
+        private readonly redisService: RedisService
     ) { }
 
     private generateFingerprint(fingerprintData: FingerprintData): string {
@@ -105,21 +107,24 @@ export class AuthenticationService {
             enabledMfaStrategies,
             obscuredEmail,
             obscuredPhoneNumber,
-            suspiciousAttempt
+            suspiciousAttempt,
+            deviceId: deviceId as UUID
         }
 
     }
 
     // Restituisce un PreAuthorizationToken da un oggetto Authentication dopo che il primo fattore di autenticazione è andato a buon fine
     public async performPreAuthenticationForMfa(auth: Authentication): Promise<string> {
-
-        const { userId, sessionId } = auth
-        return await this.jwtTools.generateToken(userId, TokenType.PreAuthorizationToken, sessionId)
-
+        const { userId, sessionId, deviceId } = auth
+        const token = await this.jwtTools.generateToken(userId, TokenType.PreAuthorizationToken, sessionId)
+        const payload = this.jwtTools.decodeUnsafe(token)
+        await this.redisService.set(`mfa:pat:dev:${payload.jti}`, deviceId, 300) // 5 min
+        return token
     }
 
+
     // Restituisce un DTO di risposta con l'Access Token e se l'utente ha MFA attiva, attiva anche la sessione
-    public async performAuthentication(auth: Authentication | Omit<Authentication, 'needsMfa' | 'enabledMfaStrategies' | 'suspiciousAttempt'>, fingerprintData: FingerprintData, ip: string, trustVerify: boolean = false): Promise<TokenPair> {
+    public async performAuthentication(auth: Authentication | Omit<Authentication, 'deviceId' | 'needsMfa' | 'enabledMfaStrategies' | 'suspiciousAttempt'>, fingerprintData: FingerprintData, ip: string, trustVerify: boolean = false): Promise<TokenPair> {
         const { userId, sessionId } = auth
         const session = await this.sessionService.getSession(sessionId, userId)
         if (session) {

@@ -24,6 +24,7 @@ import { TurnstileGuard } from '../guards/turnstile.guard';
 import { ConfigService } from '@nestjs/config';
 import { CookieConfiguration, SecureCookieConfiguration } from 'src/config/@types-config';
 import { SignedSessionIdDTO } from '../Models/DTO/signed-session-id.dto';
+import { RedisService } from 'src/app_modules/redis/services/redis.service';
 
 
 
@@ -42,7 +43,8 @@ export class AuthenticationController {
         private readonly secureCookieService: SecureCookieService,
         private readonly userService: UserService,
         private readonly configService: ConfigService,
-        private readonly sessionService: SessionService
+        private readonly sessionService: SessionService,
+        private readonly redisService: RedisService
     ) {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { secret, ...cookieConf } = this.configService.get<SecureCookieConfiguration>('SecureCookie')!
@@ -151,17 +153,24 @@ export class AuthenticationController {
         @Fingerprint() fingerprintData: FingerprintData,
         @ClientIp() ip: string,
         @Req() req: FastifyRequest,
-        @Res({ passthrough: true }) reply: FastifyReply
+        @Res({ passthrough: true }) reply: FastifyReply,
+        @DeviceId() actualDeviceId: UUID
     ): Promise<ConfirmWithTokenPairAndInitialsDTO> {
 
         const loginPendingVal = req.cookies['__logged_in'] ?? ''
         const maxAge = loginPendingVal === 'pending_long' ? 2_592_000 : undefined
         let userId: UUID
         let sessionId: UUID
+        let jti: UUID
         try {
-            ({ sub: userId, sid: sessionId } = await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken))
+            ({ sub: userId, sid: sessionId, jti } = await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken))
         } catch {
             throw new UnauthorizedException()
+        }
+        const expectedDev = await this.redisService.get(`mfa:pat:dev:${jti}`)
+        if (expectedDev && expectedDev !== actualDeviceId) {
+            await this.sessionService.revokeToken(jti) 
+            throw new UnauthorizedException('MfaDeviceMismatch')
         }
         const { totp } = dto
         const strategy: MfaStrategy | undefined = GeneralUtils.getEnumValueFromStringKey(MfaStrategy, strategyKey)

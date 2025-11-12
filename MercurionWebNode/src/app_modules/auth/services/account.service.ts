@@ -273,11 +273,23 @@ export class AccountService {
         )
     }
 
+    // TODO: notifiche di sicurezza per cambio password, telefono, email
     public async forgottenPassword(newPassword: string, changePasswordToken: string): Promise<void> | never {
-        const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(changePasswordToken, TokenType.ChangePasswordToken)
-        await this.sessionService.revokeToken(jti)
+        
+        const { sub: userId } = await this.jwtTools.verifyTokenAndGetPayload(
+            changePasswordToken,
+            TokenType.ChangePasswordToken
+        )
+        const sessions = await this.sessionService.getAllSessionsByUserId(userId as string, { onlyValid: false })
+        for (const s of sessions) {
+            await this.sessionService.revokeAllTokensBySessionId(s.sessionId)
+        }
+        for (const s of sessions) {
+            await this.sessionService.destroySessionByOwner(s.sessionId, s.userId)
+        }
         await this.userService.changePassword(userId, newPassword)
     }
+
 
     public async isAuthorizedToRecoverPassword(changePasswordToken: string): Promise<boolean> {
         let jti: UUID

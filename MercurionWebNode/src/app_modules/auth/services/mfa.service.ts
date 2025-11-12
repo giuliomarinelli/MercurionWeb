@@ -105,13 +105,41 @@ export class MfaService {
         }
     }
 
+    private attemptsKey(userId: UUID, strategy: MfaStrategy): string {
+        return `mfa:attempts:${userId}:${strategy}`
+    }
+    private lockKey(userId: UUID, strategy: MfaStrategy): string {
+        return `mfa:lock:${userId}:${strategy}`
+    }
+
+    private async assertNotLocked(userId: UUID, strategy: MfaStrategy): Promise<void> | never {
+        const locked = await this.redisService.exists(this.lockKey(userId, strategy))
+        if (locked) throw new RpcException('MfaTemporarilyLocked')
+    }
+
+    private async noteFail(userId: UUID, strategy: MfaStrategy): Promise<void> {
+        const key = this.attemptsKey(userId, strategy)
+        const n = parseInt((await this.redisService.get(key)) || '0', 10) + 1
+        await this.redisService.set(key, String(n), 300) // 5 min finestra soft
+        if (n >= 5) { // soglia: 5 errori nella finestra
+            await this.redisService.set(this.lockKey(userId, strategy), '1', 900) // lock 15 min
+        }
+    }
+
+    private async resetAttempts(userId: UUID, strategy: MfaStrategy): Promise<void> {
+        await this.redisService.del(this.attemptsKey(userId, strategy))
+        await this.redisService.del(this.lockKey(userId, strategy))
+    }
+
+
     public async sendOtpToUser(preAuthorizationToken: string, strategy: MfaStrategy, trustVerify: boolean, phoneNumberToVerify?: string): Promise<TotpMetadata> {
 
         let userId: UUID
         let jti: UUID
 
         try {
-            ({ sub: userId,  jti } = await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken))
+            ({ sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken))
+            await this.assertNotLocked(userId, strategy)
         } catch {
             throw new RpcException('InvalidJwtValidation')
         }
@@ -168,7 +196,9 @@ export class MfaService {
     }
 
     public async verifyUserOtpOrAppTotp(totp: string, preAuthorizationToken: string, strategy: MfaStrategy): Promise<boolean> {
+
         const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken)
+        await this.assertNotLocked(userId, strategy)
         await this.sessionService.revokeToken(jti)
         if (!await this.userService.existsUserById(userId)) {
             throw new RpcException('NoSuchUser')
@@ -186,8 +216,16 @@ export class MfaService {
                 throw new RpcException(`UnsupportedMfaStrategy::${GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy)}`)
 
         }
-        if (!otpSecret) throw new RpcException('OtpSecretNotFound')
-        return this.securityService.verifyTotp(totp, otpSecret)
+        if (!otpSecret) {
+            throw new RpcException('OtpSecretNotFound')
+        }
+        const ok = this.securityService.verifyTotp(totp, otpSecret)
+        if (!ok) {
+            await this.noteFail(userId, strategy)
+            return false
+        }
+        await this.resetAttempts(userId, strategy)
+        return true
     }
 
     public async enableMfa_firstStep(userId: UUID, strategy: MfaStrategy): Promise<MfaAuthMetadata> {

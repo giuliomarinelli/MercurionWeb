@@ -45,6 +45,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
                 case 'CustomItemAddError::Forbidden':
                 case 'InvalidSessionSignature':
                 case 'InvalidSession':
+                case 'MfaTemporarilyLocked':
                     statusCode = HttpStatus.FORBIDDEN
                     break
                 case 'ChangeEmailConfirm::NoUnconfirmedEmail':
