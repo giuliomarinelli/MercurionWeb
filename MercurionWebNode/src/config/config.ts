@@ -134,7 +134,12 @@ const JwtConfig = registerAs(
             secret: process.env.JWT_SECRETS_CHANGE_PASSWORD,
             expiresInMs: Number(process.env.JWT_EXPIRATION_CHANGE_PASSWORD)
         },
-        issuer: process.env.APP_PROJECT_NAME + `_${process.env.APP_PROJECT_ID as UUID ?? ''}`
+        issuer: process.env.APP_PROJECT_NAME + `_${process.env.APP_PROJECT_ID as UUID ?? ''}`,
+        audience: {
+            access: process.env.JWT_AUD_API!,
+            ws: process.env.JWT_AUD_WS!,
+            auth: process.env.JWT_AUD_AUTH!
+        }
     })
 )
 

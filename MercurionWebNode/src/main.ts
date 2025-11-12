@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module'
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify'
-import { Logger } from '@nestjs/common'
+import { Logger, ValidationPipe } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { MicroserviceOptions, Transport } from '@nestjs/microservices'
 import { HttpExceptionFilter } from './exception-handling/http-exception-filter'
@@ -65,11 +65,17 @@ export async function bootstrap() {
     },
     referrerPolicy: { policy: 'no-referrer' },
     crossOriginResourcePolicy: { policy: 'same-origin' },
-    // Facoltativi ma utili:
     crossOriginOpenerPolicy: { policy: 'same-origin' },
-    // hsts: { maxAge: 31536000, includeSubDomains: true, preload: true }, // abilita qui se non lo metti in Cloudflare
-    // xDnsPrefetchControl: { allow: false },
+    xPoweredBy: false
   })
+
+  app.useGlobalPipes(new ValidationPipe({
+    transform: true,
+    whitelist: true,             // rimuove campi extra
+    forbidNonWhitelisted: true,  // 400 se arrivano campi sconosciuti
+    forbidUnknownValues: true,
+    transformOptions: { enableImplicitConversion: true }
+  }))
 
   await app.register(fastifyCookie)
 
@@ -79,6 +85,11 @@ export async function bootstrap() {
 
   // 🔒 Hook precoce: genera/sovrascrive header interni (anti-spoof)
   fastify.addHook('onRequest', (req, reply, done) => {
+
+    req.headers['x-device-id'] = undefined
+    req.headers['x-session-id'] = undefined
+    req.headers['x-client-ip'] = undefined
+
     let deviceId: string | null = null
 
     try {
@@ -109,6 +120,29 @@ export async function bootstrap() {
     done()
   })
 
+  // Parser multipart passthrough
+  fastify.addContentTypeParser('multipart/form-data', (req, payload, done) => {
+    done(null, req)
+  })
+
+  fastify.addHook('onSend', (req, reply, payload, done) => {
+    reply.header('Cache-Control', 'no-store')
+    const DISABLE_ALL = '()'
+    reply.header(
+      'Permissions-Policy',
+      [
+        `geolocation=${DISABLE_ALL}`,
+        `microphone=${DISABLE_ALL}`,
+        `camera=${DISABLE_ALL}`,
+        `payment=${DISABLE_ALL}`,
+        `usb=${DISABLE_ALL}`,
+        `bluetooth=${DISABLE_ALL}`,
+        `interest-cohort=${DISABLE_ALL}`,
+        `fullscreen=(self)`
+      ].join(', '))
+    done()
+  })
+
   // 🔒 Rate limit distribuito (Redis), finestra 5 minuti chiara (ms)
   await app.register(rateLimit, {
     hook: 'preHandler',
@@ -132,10 +166,6 @@ export async function bootstrap() {
     nameSpace: 'ratelimit:'
   })
 
-  // Parser multipart passthrough
-  fastify.addContentTypeParser('multipart/form-data', (req, payload, done) => {
-    done(null, req)
-  })
 
   const port = configService.get<number>('App.port')
   const host = configService.get<string>('App.host') as string

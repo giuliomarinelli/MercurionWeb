@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService, JwtSignOptions, JwtVerifyOptions } from '@nestjs/jwt';
-import { JwtConfiguration } from 'src/config/@types-config';
+import { JwtAudience, JwtConfiguration } from 'src/config/@types-config';
 import { ConfigService } from '@nestjs/config';
 import { TokenType } from '../Models/enums/token-type.enum';
 import { randomUUID, UUID } from 'crypto';
@@ -33,6 +33,7 @@ export class JwtToolsService {
     private readonly changePasswordTokenConfig: JwtConfiguration
 
     private readonly jwtIssuer: string
+    private readonly jwtAudience: JwtAudience
 
     private readonly privateKey: string
     private readonly publicKey: string
@@ -61,6 +62,26 @@ export class JwtToolsService {
         this.changePasswordTokenConfig = this.configService.get<JwtConfiguration>("Jwt.changePasswordToken") as JwtConfiguration
 
         this.jwtIssuer = this.configService.get<string>("Jwt.issuer") as string
+        this.jwtAudience = this.configService.get<JwtAudience>('Jwt.audience')!
+
+        const minLen = 48; // es. 384 bit per HS512
+        [
+            this.preAuthorizationTokenConfig,
+            this.activationTokenConfig,
+            this.phoneNumberVerificationTokenConfig,
+            this.emailVerificationTokenConfig,
+            this.emailOtpMfaActivationTokenConfig,
+            this.smsOtpMfaActivationTokenConfig,
+            this.appTotpMfaActivationTokenConfig,
+            this.emailOtpMfaInactivationTokenConfig,
+            this.smsOtpMfaInactivationTokenConfig,
+            this.appTotpMfaInactivationTokenConfig,
+            this.changePasswordTokenConfig,
+        ].forEach((c) => {
+            if (!c?.secret || c.secret.length < minLen) {
+                throw new Error('Weak JWT secret in config')
+            }
+        })
 
         this.privateKey = readFileSync(resolve(__dirname, '../../../config/keys/private.pem'), 'utf8')
         this.publicKey = readFileSync(resolve(__dirname, '../../../config/keys/public.pem'), 'utf8')
@@ -68,6 +89,7 @@ export class JwtToolsService {
         this.ws_publicKey = readFileSync(resolve(__dirname, '../../../config/keys/ws_public.pem'), 'utf8')
 
     }
+
 
     private getJwtConfigurationFromTokenType(type: TokenType): JwtConfiguration {
         switch (type) {
@@ -87,6 +109,7 @@ export class JwtToolsService {
         }
     }
 
+    // TODO: valutare la necessità di implementazione del claim kid per rotazione secrets
     public async generateToken(userId: UUID, type: TokenType, sessionId?: UUID): Promise<string> {
         const jwtConfig = this.getJwtConfigurationFromTokenType(type)
         const scopes: string[] = await this.userService.getUserScopesById(userId) ?? []
@@ -94,12 +117,16 @@ export class JwtToolsService {
 
         // 🔹 Usa RS256 per gli AccessToken, HS512 per gli altri
         let signOptions: JwtSignOptions
+        let aud: string
         if (type === TokenType.AccessToken) {
             signOptions = { algorithm: "RS256", privateKey: this.privateKey }
+            aud = this.jwtAudience.access
         } else if (type === TokenType.ws_AccessToken) {
             signOptions = { algorithm: "RS256", privateKey: this.ws_privateKey }
+            aud = this.jwtAudience.ws
         } else {
             signOptions = { algorithm: "HS512", secret: jwtConfig.secret }
+            aud = this.jwtAudience.auth
         }
 
         const jti: UUID = randomUUID() // Genera JTI univoco per il token
@@ -109,6 +136,7 @@ export class JwtToolsService {
         const token: string = await this.jwtService.signAsync(
             {
                 iss: this.jwtIssuer,
+                aud,
                 sub: userId,
                 jti,
                 sid: sessionId,
@@ -143,16 +171,39 @@ export class JwtToolsService {
             let verifyOptions: JwtVerifyOptions
 
             if (type === TokenType.AccessToken) {
-                verifyOptions = { algorithms: ["RS256"], publicKey: this.publicKey, ignoreExpiration }
+                verifyOptions = {
+                    algorithms: ['RS256'],
+                    publicKey: this.publicKey,
+                    issuer: this.jwtIssuer,
+                    audience: this.jwtAudience.access,
+                    clockTolerance: 60,
+                    ignoreExpiration
+                }
             } else if (type === TokenType.ws_AccessToken) {
-                verifyOptions = { algorithms: ["RS256"], publicKey: this.ws_publicKey, ignoreExpiration }
+                verifyOptions = {
+                    algorithms: ['RS256'],
+                    publicKey: this.ws_publicKey,
+                    issuer: this.jwtIssuer,
+                    audience: this.jwtAudience.ws,
+                    clockTolerance: 60,
+                    ignoreExpiration
+                }
             } else {
-                verifyOptions = { algorithms: ["HS512"], secret: jwtConfig.secret, ignoreExpiration }
+                verifyOptions = {
+                    algorithms: ['HS512'],
+                    secret: jwtConfig.secret,
+                    issuer: this.jwtIssuer,
+                    audience: this.jwtAudience.auth,
+                    clockTolerance: 60,
+                    ignoreExpiration
+                }
             }
 
             await this.jwtService.verifyAsync(token, verifyOptions)
             const payload: AppJwtPayload = this.jwtService.decode<AppJwtPayload>(token)
-
+            if (payload.typ !== type) {
+                throw new RpcException('')
+            }
             if (await this.sessionService.isTokenRevoked(payload.jti)) {
                 throw new RpcException(`Revoked${type}`)
             }
@@ -162,18 +213,13 @@ export class JwtToolsService {
         }
     }
 
-    public extractAccessTokenFromReq(req: FastifyRequest): string | never {
-        
-        const authorizationHeader: string = req.headers['authorization'] ?? ''
-
-        if (
-            !authorizationHeader ||
-            !authorizationHeader.trim() ||
-            !new RegExp(/^Bearer\s[\w-]+(?:\.[\w-]+){2}$/).test(authorizationHeader)
-        ) {
+    public extractAccessTokenFromReq(req: FastifyRequest): string {
+        const authorizationHeader = String(req.headers['authorization'] ?? '')
+        const m = authorizationHeader.match(/^Bearer\s+([A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+)$/i)
+        if (!m) {
             throw new RpcException('NoProvidedAccessToken')
         }
-
-        return authorizationHeader.split(/\s/)[1]
+        return m[1]
     }
+
 }

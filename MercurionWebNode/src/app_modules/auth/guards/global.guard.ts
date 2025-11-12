@@ -8,6 +8,7 @@ import { Reflector } from '@nestjs/core';
 import { GqlContextType, GqlExecutionContext } from '@nestjs/graphql';
 import { AppJwtPayload } from '../Models/interfaces/app-jwt-payload.interface';
 import { RpcException } from '@nestjs/microservices';
+import { timingSafeEqual } from 'node:crypto';
 
 
 
@@ -73,7 +74,7 @@ export class GlobalGuard implements CanActivate {
                   throw new UnauthorizedException()
                }
 
-               if (req.headers['x-session-id'] !== payload.sid) {
+               if (!timingSafeEqual(Buffer.from((req.headers['x-session-id'] ?? '') as string), Buffer.from(payload.sid))) {
                   this.logger.warn('[Refreshing] Cookie sessionId and old token claim sid mismatch')
                   throw new UnauthorizedException()
                }
@@ -89,7 +90,7 @@ export class GlobalGuard implements CanActivate {
 
                await this.sessionService.updateLastAccessed(payload.sid, payload.sub)
 
-               reply.header('X-New-Access-Token', newToken)
+               reply.header('X-New-Access-Token', encodeURIComponent(newToken))
                await this.sessionService.revokeToken(payload.jti)
                req.headers['x-user-id'] = payload.sub
                return true
@@ -123,8 +124,12 @@ export class GlobalGuard implements CanActivate {
 
          return true
 
-      } catch {
-         this.logger.warn('Thrown generic UnauthorizedException')
+      } catch (e) {
+         if (e instanceof UnauthorizedException) {
+            this.logger.warn('Thrown generic UnauthorizedException')
+            throw e
+         }
+         this.logger.warn('GlobalGuard internal error', e)
          throw new UnauthorizedException()
       }
    }

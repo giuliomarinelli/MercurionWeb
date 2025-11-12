@@ -32,6 +32,12 @@ export interface JwtConfiguration {
 
 }
 
+export interface JwtAudience {
+    access: string,
+    ws: string,
+    auth: string
+}
+
 export interface JwtConfigurations {
 
     accessToken: JwtConfiguration
@@ -48,6 +54,7 @@ export interface JwtConfigurations {
     appTotpMfaInactivationToken: JwtConfiguration
     changePasswordToken: JwtConfiguration
     issuer: string
+    audience: JwtAudience
 
 }
 
