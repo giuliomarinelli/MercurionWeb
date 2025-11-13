@@ -51,23 +51,68 @@ export async function bootstrap() {
   app.setGlobalPrefix('api')
 
   await app.register(helmet, {
-    contentSecurityPolicy: {
-      useDefaults: true,
-      directives: {
-        "default-src": ["'self'"],
-        // Nota: 'strict-dynamic' ha senso solo con nonce/hash sugli script.
-        "script-src": ["'self'"],
-        "object-src": ["'none'"],
-        "base-uri": ["'none'"],
-        "frame-ancestors": ["'none'"],
-        // aggiungere connect-src/img-src/font-src se servono CDN interni
-      }
+    // CSP: in dev spesso rompe (Playground, HMR, ecc.),
+    // quindi la teniamo solo in produzione.
+    contentSecurityPolicy:
+      configService.get<Environment>('App.env') === Environment.Production
+        ? {
+          useDefaults: true,
+          directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            imgSrc: ["'self'", 'data:'],
+            fontSrc: ["'self'", 'data:'],
+            connectSrc: [
+              "'self'",
+              'https:',
+              'wss:',
+            ],
+            objectSrc: ["'none'"],
+            baseUri: ["'none'"],
+            frameAncestors: ["'none'"],
+            formAction: ["'self'"],
+          },
+        }
+        : false,
+
+    // niente referrer
+    referrerPolicy: {
+      policy: 'no-referrer'
     },
-    referrerPolicy: { policy: 'no-referrer' },
-    crossOriginResourcePolicy: { policy: 'same-origin' },
-    crossOriginOpenerPolicy: { policy: 'same-origin' },
-    xPoweredBy: false
+
+    // niente embedding di risorse da altri origin
+    crossOriginResourcePolicy: {
+      policy: 'same-origin'
+    },
+
+    // isolamento finestra (anti XS-Leaks)
+    crossOriginOpenerPolicy: {
+      policy: 'same-origin'
+    },
+
+    // COEP spesso rompe con librerie che non mettono i header giusti:
+    // lo tieni off finché non decidi di fare la combo COEP+COOP+CORP.
+    crossOriginEmbedderPolicy: false,
+
+    // vieta qualsiasi iframe
+    frameguard: { action: 'deny' },
+
+    // togliere X-Powered-By se dovesse spuntare da qualche parte
+    hidePoweredBy: true,
+
+    // HSTS solo in produzione e solo se stai servendo via HTTPS dietro
+    // Cloudflare/Nginx in modo coerente.
+    hsts:
+      configService.get<Environment>('App.env') === Environment.Production
+        ? {
+          maxAge: 31536000, // 1 anno
+          includeSubDomains: true,
+          preload: true,
+        }
+        : false,
   })
+
 
   app.useGlobalPipes(new ValidationPipe({
     transform: true,
