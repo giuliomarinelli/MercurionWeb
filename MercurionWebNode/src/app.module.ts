@@ -17,16 +17,14 @@ import { MercurionModule } from './app_modules/mercurion/mercurion.module';
 import { ResponseService } from './services/response.service';
 import { NotificationModule } from './app_modules/notification/notification.module';
 import { MeilisearchModule } from './app_modules/meilisearch/meilisearch.module';
-import { GraphQLModule } from '@nestjs/graphql'
 import { TestController } from './test.controller';
-import { MercuriusDriver, MercuriusDriverConfig } from '@nestjs/mercurius';
-import { FastifyReply, FastifyRequest } from 'fastify';
 import { DropboxObjectStoreModule } from './app_modules/dropbox-object-store/dropbox-object-store.module';
 import { OAuth2ClientModule } from './app_modules/oauth2-client/oauth2-client.module';
 import { EmbeddingModule } from './app_modules/embedding/embedding.module';
 import { HistoryModule } from './app_modules/history/history.module';
 import { MoleculeCollectionModule } from './app_modules/molecule-collection/molecule-collection.module';
 import { SynthModule } from './app_modules/synth/synth.module';
+import { MercurionGraphQLModule } from './mercurion-graphql.module';
 
 
 
@@ -49,16 +47,7 @@ import { SynthModule } from './app_modules/synth/synth.module';
       useFactory: async (configService: ConfigService) => configService.get<MailerOptions>("Email") ?? {},
       inject: [ConfigService]
     }),
-    GraphQLModule.forRoot<MercuriusDriverConfig>({
-      driver: MercuriusDriver,
-      autoSchemaFile: join(process.cwd(), 'src', 'schema.graphql'),
-      path: '/api/graphql',
-      graphiql: true,
-      context: (request: FastifyRequest, reply: FastifyReply) => ({
-        request,
-        reply
-      })
-    }),
+    MercurionGraphQLModule,
     RedisModule,
     UserModule,
     AuthModule,
