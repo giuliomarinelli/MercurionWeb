@@ -16,9 +16,8 @@ export class TypeGuards {
         enumObj: T,
         value: string | number
     ): value is T[keyof T] {
-        // Gli enum numerici hanno una "reverse mapping", quindi escludiamo le chiavi numeriche
-        const enumValues = Object.values(enumObj).filter(v => typeof v !== 'number' || typeof value === 'number');
-        return enumValues.includes(value);
+        const enumValues = Object.values(enumObj).filter(v => typeof v !== 'number' || typeof value === 'number')
+        return enumValues.includes(value)
     }
     static isStorageAction(item: string | null | undefined): item is StorageAction {
         switch (item) {

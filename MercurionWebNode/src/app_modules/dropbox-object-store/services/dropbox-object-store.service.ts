@@ -25,6 +25,22 @@ export class DropboxObjectStoreService {
         private readonly dataSource: DataSource
     ) { }
 
+    private sanitizeFileName(name: string): string {
+        if (!name) return 'upload.bin';
+
+        // prendi solo l'ultima componente dopo eventuali slash o backslash
+        const base = name.split(/[/\\]/).pop() ?? 'upload.bin';
+
+        const trimmed = base.trim() || 'upload.bin';
+
+        // consenti solo lettere, numeri, punto, trattino, underscore
+        const safe = trimmed.replace(/[^\w.-]/g, '_');
+
+        // limite di lunghezza per non avere nomi kilometrici
+        return safe.slice(0, 100);
+    }
+
+
     /**
      * Prende il token globale dell'applicazione per Dropbox
      */
@@ -53,11 +69,23 @@ export class DropboxObjectStoreService {
         scope: StorageScope = StorageScope.None,
         action?: StorageAction
     ): Promise<DocumentEntity> {
+        if (size !== buffer.length) {
+            this.logger.warn(`Size mismatch: declared=${size}, actual=${buffer.length}`);
+        }
+
+        if (!mimeType) {
+            mimeType = 'application/octet-stream';
+        }
+
+        if (note && note.length > 1000) {
+            note = note.slice(0, 1000);
+        }
 
         const accessToken = await this.getDropboxAccessToken();
 
         // Genera un path unico leggibile (non usato come chiave stabile)
-        const dropboxPath = `/mercurion/${uuidv7()}_${originalName}`;
+        const safeOriginalName = this.sanitizeFileName(originalName);
+        const dropboxPath = `/mercurion/${uuidv7()}_${safeOriginalName}`;
 
         // 1) Upload su Dropbox
         let uploadRes: AxiosResponse;

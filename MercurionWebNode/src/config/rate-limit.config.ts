@@ -74,6 +74,8 @@ export function routeAwareMax(req: FastifyRequest): number {
     if (method === 'PATCH' && path === '/api/account/mfa/backup/regenerate')
         return scale(3)   // 3 richieste ogni 5 minuti
 
+    if (method === 'POST' && path === '/api/documents/upload') return scale(4)
+
 
     return scale(100)
 }

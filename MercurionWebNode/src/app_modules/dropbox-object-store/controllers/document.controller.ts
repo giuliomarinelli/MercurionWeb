@@ -1,5 +1,4 @@
 import { StorageAction } from './../Models/enums/storage-action.type';
-// src/app_modules/dropbox-object-store/controllers/document.controller.ts
 import {
     Controller, Post, Get, Delete, Param, Req, Res,
     Logger, HttpStatus, InternalServerErrorException,
@@ -34,12 +33,25 @@ export class DocumentController {
         @Res({ passthrough: true }) res: FastifyReply,
         @AuthenticatedUserId() userId: string,
     ) {
+
+        const ALLOWED_MIME = new Set<string>([
+            'application/pdf',
+            'text/csv',
+            'chemical/x-mdl-sdfile',
+            'image/png',
+            'image/jpeg'
+        ])
+
+        const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MiB
+
+
         /* ① parser */
         const form = formidable({
-            maxFileSize: 50 * 1024 * 1024,  // 50 MB
+            maxFileSize: MAX_FILE_SIZE,
             allowEmptyFiles: false,
             multiples: false,
-        });     
+            filter: ({ name, mimetype }) => name === 'file' && !!mimetype
+        })
 
         /* ② parse()  → wrapper Promise per tipi corretti */
         const [fields, files]: [Fields, Files] = await new Promise((resolve, reject) => {
@@ -52,11 +64,20 @@ export class DocumentController {
         const file = Array.isArray(uploaded) ? uploaded[0] : uploaded;
 
         if (!file) {
-            res
-                .status(HttpStatus.BAD_REQUEST)
-                .send({ error: 'file mancante nel form-data' });
-            return;
+            res.status(HttpStatus.BAD_REQUEST).send({ error: 'file mancante nel form-data' })
+            return
         }
+
+        if (!ALLOWED_MIME.has(file.mimetype ?? '')) {
+            res.status(HttpStatus.BAD_REQUEST).send({ error: 'Tipo di file non consentito' })
+            return
+        }
+
+        if (file.size > MAX_FILE_SIZE) {
+            res.status(HttpStatus.BAD_REQUEST).send({ error: 'File troppo grande' })
+            return
+        }
+
 
         /* ④ buffer in RAM (oppure lavora a stream via file.filepath) */
         const buffer = await fs.readFile(file.filepath);
@@ -66,7 +87,15 @@ export class DocumentController {
         const scopeRaw = fields.scope
         const actionRaw = fields.action
 
-        const note = Array.isArray(noteRaw) ? noteRaw[0] : noteRaw;
+        const MAX_NOTE_LEN = 1000
+
+        let note: string | null = Array.isArray(noteRaw) ? noteRaw[0] : noteRaw
+        if (typeof note === 'string') {
+            note = note.slice(0, MAX_NOTE_LEN)
+        } else {
+            note = null
+        }
+
         const isPublic = Array.isArray(isPublicRaw) ? isPublicRaw[0] === 'true' : isPublicRaw === 'true';
         const scope = (Array.isArray(scopeRaw) ? scopeRaw[0] : scopeRaw) || StorageScope.None
         const actionUnk = (Array.isArray(actionRaw) ? actionRaw[0] : actionRaw)
@@ -82,23 +111,28 @@ export class DocumentController {
                 })
             return
         }
-        
 
-        /* ⑤ salva su Dropbox */
-        const saved: DocumentEntity = await this.dropboxService.uploadFile(
-            buffer,
-            file.originalFilename ?? 'upload.bin',
-            file.mimetype ?? 'application/octet-stream',
-            file.size,
-            userId as unknown as UUID,   // usa il vero userId passato dal metadata
-            note,
-            isPublic,
-            true,
-            scope,
-            action
-        );
-
-        res.status(HttpStatus.CREATED).send(saved);
+        try {
+            /* ⑤ salva su Dropbox */
+            const saved: DocumentEntity = await this.dropboxService.uploadFile(
+                buffer,
+                file.originalFilename ?? 'upload.bin',
+                file.mimetype ?? 'application/octet-stream',
+                file.size,
+                userId as UUID,   // usa il vero userId passato dal metadata
+                note ?? '',
+                isPublic,
+                true,
+                scope,
+                action
+            );
+            res.status(HttpStatus.CREATED).send(saved);
+        } catch (e) {
+            this.logger.warn('Upload error:', e)
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ error: 'Upload failed' })
+        } finally {
+            await fs.unlink(file.filepath).catch(() => null)
+        }
     }
 
     /** Scarica un documento */
@@ -108,19 +142,19 @@ export class DocumentController {
         @AuthenticatedUserId() userId: string,
         @Res({ passthrough: true }) res: FastifyReply,
     ) {
-        const document = await this.dropboxService.getDocumentById(id as UUID);
+        const document = await this.dropboxService.getDocumentById(id as UUID)
         if (!document) {
-            res.status(HttpStatus.NOT_FOUND).send({ message: 'File not found' });
+            res.status(HttpStatus.NOT_FOUND).send({ message: 'File not found' })
             return;
         }
         try {
-            const buffer = await this.dropboxService.downloadFile(id as UUID, userId as UUID);
-            res.header('Content-Type', document.mimeType);
-            res.header('Content-Disposition', `attachment; filename="${document.originalName}"`);
-            res.send(buffer);
+            const buffer = await this.dropboxService.downloadFile(id as UUID, userId as UUID)
+            res.header('Content-Type', document.mimeType)
+            res.header('Content-Disposition', `attachment; filename="${document.originalName}"`)
+            res.send(buffer)
         } catch (err) {
-            this.logger.error('Download error:', err);
-            throw new InternalServerErrorException('Download failed');
+            this.logger.error('Download error:', err)
+            throw new InternalServerErrorException('Download failed')
         }
     }
 
