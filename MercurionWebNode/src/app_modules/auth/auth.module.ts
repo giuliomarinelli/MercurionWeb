@@ -19,6 +19,7 @@ import { IpService } from './services/ip.service';
 import { GeoIpService } from './services/geo-ip.service';
 import { TurnstileService } from './services/turnstile.service';
 import { HttpModule } from '@nestjs/axios';
+import { MeilisearchModule } from '../meilisearch/meilisearch.module';
 
 
 
@@ -27,7 +28,8 @@ import { HttpModule } from '@nestjs/axios';
     forwardRef(() => RedisModule),
     forwardRef(() => UserModule),
     NotificationModule,
-    HttpModule
+    HttpModule,
+    MeilisearchModule
   ],
   providers: [
     JwtToolsService,

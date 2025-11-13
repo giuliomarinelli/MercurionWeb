@@ -27,7 +27,12 @@ import { SecurityAuditService } from './services/security-audit/security-audit.s
         MoleculeResolver,
         SecurityAuditService
     ],
-    exports: [MoleculeService, 'MEILISEARCH_CLIENT']
+    exports: [
+        MoleculeService,
+        'MEILISEARCH_CLIENT',
+        SecurityAuditService,
+        MeiliLoggerService
+    ]
 
 })
 export class MeilisearchModule { }
