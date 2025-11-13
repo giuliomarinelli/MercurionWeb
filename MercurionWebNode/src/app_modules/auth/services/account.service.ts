@@ -19,6 +19,9 @@ import { EmailTotpContext } from 'src/app_modules/notification/Models/contexts/e
 import { SessionService } from './session.service';
 import { SmsSenderService } from 'src/app_modules/notification/services/sms-sender/sms-sender.service';
 import { ChangePhoneDTO } from '../Models/DTO/change-phone.cls.dto';
+import { ContactChangeKind } from '../Models/enums/contact-change-kind.enum';
+import { PasswordContext } from '../Models/enums/password-context.enum';
+import { CompareResult } from '../Models/enums/compare-result.enum';
 
 
 
@@ -26,6 +29,20 @@ import { ChangePhoneDTO } from '../Models/DTO/change-phone.cls.dto';
 export class AccountService {
 
     private readonly CHANGE_PASSWORD_TOKEN_EXPIRATION_MS: number
+
+    private readonly CHANGE_CONTACT_FAIL_WINDOW_SECONDS = 10 * 60
+    private readonly CHANGE_CONTACT_MAX_FAILS = 5
+    private readonly CHANGE_CONTACT_LOCK_SECONDS = 15 * 60
+
+    private readonly CHANGE_CONTACT_SEND_WINDOW_SECONDS = 10 * 60
+    private readonly CHANGE_CONTACT_MAX_SENDS = 5
+
+    private readonly PASSWORD_FAIL_WINDOW_SECONDS = 10 * 60
+    private readonly PASSWORD_MAX_FAILS = 5
+    private readonly PASSWORD_LOCK_SECONDS = 15 * 60
+
+    private readonly PASSWORD_RESET_SEND_WINDOW_SECONDS = 10 * 60
+    private readonly PASSWORD_RESET_MAX_SENDS = 5
 
     constructor(
         private readonly userService: UserService,
@@ -44,6 +61,142 @@ export class AccountService {
 
     private getRegistrationLockRedisKey(email: string): string {
         return `email_registration_lock:${email.toLowerCase()}`
+    }
+
+    private getChangeFailKey(userId: UUID, kind: ContactChangeKind): string {
+        return `change:${kind}:totp:fail:${userId}`
+    }
+
+    private getChangeLockKey(userId: UUID, kind: ContactChangeKind): string {
+        return `change:${kind}:totp:lock:${userId}`
+    }
+
+    private getChangeSendKey(userId: UUID, kind: ContactChangeKind): string {
+        return `change:${kind}:send:${userId}`
+    }
+
+    private getChangeSendLockKey(userId: UUID, kind: ContactChangeKind): string {
+        return `change:${kind}:send:lock:${userId}`
+    }
+
+    private async ensureContactChangeNotLocked(userId: UUID, kind: ContactChangeKind): Promise<void> {
+        const lockKey = this.getChangeLockKey(userId, kind)
+        const locked = await this.redisService.exists(lockKey)
+        if (locked) {
+            throw new RpcException(`Change${kind.charAt(0).toUpperCase()}${kind.slice(1)}::TooManyAttempts`)
+        }
+    }
+
+    private async registerContactChangeFailure(userId: UUID, kind: ContactChangeKind): Promise<void> {
+
+        const failKey = this.getChangeFailKey(userId, kind)
+        const lockKey = this.getChangeLockKey(userId, kind)
+
+        const fails = await this.redisService.getClient().incr(failKey)
+
+        if (fails === 1) {
+            await this.redisService.setTTL(failKey, this.CHANGE_CONTACT_FAIL_WINDOW_SECONDS)
+        }
+
+        if (fails >= this.CHANGE_CONTACT_MAX_FAILS) {
+            await this.redisService.set(lockKey, '1', this.CHANGE_CONTACT_LOCK_SECONDS)
+            await this.redisService.del(failKey)
+        }
+    }
+
+    private async clearContactChangeFailures(userId: UUID, kind: ContactChangeKind): Promise<void> {
+        const failKey = this.getChangeFailKey(userId, kind)
+        const lockKey = this.getChangeLockKey(userId, kind)
+        await this.redisService.del(failKey)
+        await this.redisService.del(lockKey)
+    }
+
+    private async throttleContactChangeSend(userId: UUID, kind: ContactChangeKind): Promise<void> {
+        const countKey = this.getChangeSendKey(userId, kind)
+        const lockKey = this.getChangeSendLockKey(userId, kind)
+
+        const locked = await this.redisService.exists(lockKey)
+        if (locked) {
+            throw new RpcException(`Change${kind.charAt(0).toUpperCase()}${kind.slice(1)}Send::TooManyRequests`)
+        }
+
+        const cnt = await this.redisService.getClient().incr(countKey)
+        if (cnt === 1) {
+            await this.redisService.setTTL(countKey, this.CHANGE_CONTACT_SEND_WINDOW_SECONDS)
+        }
+
+        if (cnt > this.CHANGE_CONTACT_MAX_SENDS) {
+            await this.redisService.set(lockKey, '1', this.CHANGE_CONTACT_LOCK_SECONDS)
+            throw new RpcException(`Change${kind.charAt(0).toUpperCase()}${kind.slice(1)}Send::TooManyRequests`)
+        }
+    }
+
+    private getPasswordFailKey(userId: UUID, context: PasswordContext = PasswordContext.CHANGE): string {
+        return `pwd:fail:${context}:${userId}`
+    }
+
+    private getPasswordLockKey(userId: UUID, context: PasswordContext = PasswordContext.CHANGE): string {
+        return `pwd:lock:${context}:${userId}`
+    }
+
+    private getPasswordResetSendKey(userId: UUID, context: PasswordContext = PasswordContext.RESET_SEND): string {
+        return `pwd:reset:${context}:send:${userId}`
+    }
+
+    private getPasswordResetSendLockKey(userId: UUID, context: PasswordContext = PasswordContext.RESET_SEND): string {
+        return `pwd:reset:${context}:send:lock:${userId}`
+    }
+
+    private async ensurePasswordNotLocked(userId: UUID, context: PasswordContext = PasswordContext.CHANGE): Promise<void> {
+        const lockKey = this.getPasswordLockKey(userId, context)
+        const locked = await this.redisService.exists(lockKey)
+        if (locked) {
+            throw new RpcException('Password::TooManyAttempts')
+        }
+    }
+
+    private async registerPasswordFailure(userId: UUID, context: PasswordContext = PasswordContext.CHANGE): Promise<void> {
+        const failKey = this.getPasswordFailKey(userId, context)
+        const lockKey = this.getPasswordLockKey(userId, context)
+
+        const fails = await this.redisService.getClient().incr(failKey)
+
+        if (fails === 1) {
+            await this.redisService.setTTL(failKey, this.PASSWORD_FAIL_WINDOW_SECONDS)
+        }
+
+        if (fails >= this.PASSWORD_MAX_FAILS) {
+            await this.redisService.set(lockKey, '1', this.PASSWORD_LOCK_SECONDS)
+            await this.redisService.del(failKey)
+        }
+    }
+
+    private async clearPasswordFailures(userId: UUID, context: PasswordContext = PasswordContext.CHANGE): Promise<void> {
+        const failKey = this.getPasswordFailKey(userId, context)
+        const lockKey = this.getPasswordLockKey(userId, context)
+        await this.redisService.del(failKey)
+        await this.redisService.del(lockKey)
+    }
+
+    private async throttlePasswordResetSend(userId: UUID, context: PasswordContext = PasswordContext.RESET_SEND,): Promise<void> {
+
+        const countKey = this.getPasswordResetSendKey(userId, context)
+        const lockKey = this.getPasswordResetSendLockKey(userId, context)
+
+        const locked = await this.redisService.exists(lockKey)
+        if (locked) {
+            throw new RpcException('PasswordResetSend::TooManyRequests')
+        }
+
+        const cnt = await this.redisService.getClient().incr(countKey)
+        if (cnt === 1) {
+            await this.redisService.setTTL(countKey, this.PASSWORD_RESET_SEND_WINDOW_SECONDS)
+        }
+
+        if (cnt > this.PASSWORD_RESET_MAX_SENDS) {
+            await this.redisService.set(lockKey, '1', this.PASSWORD_LOCK_SECONDS)
+            throw new RpcException('PasswordResetSend::TooManyRequests')
+        }
     }
 
     public async register(registerDTO: UserRegisterDTO): Promise<ConfirmWithObsContDTO> {
@@ -112,7 +265,10 @@ export class AccountService {
         if (newEmail.toLowerCase() === user.email?.toLowerCase())
             throw new RpcException('ChangeEmail::NewEmailIsCurrentEmail')
 
-        // Lock per evitare abusi
+        // TODO: notifiche di sicurezza per cambio password, telefono, email
+        await this.throttleContactChangeSend(userId, ContactChangeKind.EMAIL)
+
+        // Lock per evitare abusi e race condition
         const lockKey = `email_change_lock:${newEmail.toLowerCase()}`
         const exists = await this.redisService.exists(lockKey)
         if (exists) throw new RpcException('ChangeEmail::EmailAlreadyInUseOrPending')
@@ -153,12 +309,19 @@ export class AccountService {
         const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(emailVerificationToken, TokenType.EmailVerificationToken)
         await this.sessionService.revokeToken(jti)
 
+        await this.ensureContactChangeNotLocked(userId, ContactChangeKind.EMAIL)
+
         const user = await this.userService.getUserById(userId)
         if (!user) throw new RpcException('ChangeEmailConfirm::UserNotFound')
         if (!user.unconfirmedEmail) throw new RpcException('ChangeEmailConfirm::NoUnconfirmedEmail')
 
         const isTotpValid = this.securityService.verifyTotp(totp, user.otpSecret)
-        if (!isTotpValid) throw new RpcException('ChangeEmailConfirm::InvalidTotp')
+        if (!isTotpValid) {
+            await this.registerContactChangeFailure(userId, ContactChangeKind.EMAIL)
+            throw new RpcException('ChangeEmailConfirm::InvalidTotp')
+        }
+
+        await this.clearContactChangeFailures(userId, ContactChangeKind.EMAIL)
 
         const emailToConfirm = user.unconfirmedEmail
         await this.userService.updateUser(userId, {
@@ -174,9 +337,11 @@ export class AccountService {
 
     public async changePhoneNumber_firstStep_requestTotp(userId: UUID, dto: ChangePhoneDTO): Promise<ConfirmChangeDTO> {
 
+
         const { internationalPrefix, phoneNumber } = dto
         const user = await this.userService.getUserById(userId)
         if (!user) throw new RpcException('ChangePhone::UserNotFound')
+        await this.throttleContactChangeSend(userId, ContactChangeKind.PHONE)
 
         const fullNumber = `${internationalPrefix}${phoneNumber}`
         const currentNumber = user.completePhoneNumber
@@ -185,6 +350,7 @@ export class AccountService {
             throw new RpcException('ChangePhone::NumberAlreadySet')
         }
 
+        // lock per evitare abusi e race condition
         const lockKey = `phone_change_lock:${fullNumber}`
         const existsLock = await this.redisService.exists(lockKey)
         if (existsLock) throw new RpcException('ChangePhone::NumberAlreadyUsedOrPending')
@@ -220,6 +386,8 @@ export class AccountService {
 
         await this.sessionService.revokeToken(jti)
 
+        await this.ensureContactChangeNotLocked(userId, ContactChangeKind.PHONE)
+
         const user = await this.userService.getUserById(userId)
         if (!user) throw new RpcException('ChangePhone::UserNotFound')
 
@@ -227,7 +395,10 @@ export class AccountService {
             throw new RpcException('ChangePhone::NoPendingChange')
 
         const isTotpValid = this.securityService.verifyTotp(totp, user.otpSecret)
-        if (!isTotpValid) throw new RpcException('ChangePhone::InvalidTOTP')
+        if (!isTotpValid) {
+            await this.registerContactChangeFailure(userId, ContactChangeKind.PHONE)
+            throw new RpcException('ChangePhone::InvalidTOTP')
+        }
 
         const completePhoneNumber = user.unconfirmedPhoneNumber
         const phoneNumberPrefixLength = user.unconfirmedPhoneNumberPrefixLength
@@ -241,16 +412,20 @@ export class AccountService {
         })
 
         await this.redisService.del(`phone_change_lock:${completePhoneNumber}`)
+        await this.clearContactChangeFailures(userId, ContactChangeKind.PHONE)
 
         return this._r.ok('Phone number successfully updated')
 
     }
 
     public async changePassword(oldPassword: string, newPassword: string, userId: UUID): Promise<void> | never {
+        await this.ensurePasswordNotLocked(userId, PasswordContext.CHANGE)
         const oldPasswordHash = await this.userService.getVerifiedUserPasswordHashById(userId)
-        if (!await this.passwordEncoder.compare(oldPassword, oldPasswordHash)) {
+        if (await this.passwordEncoder.compareWithFallback(oldPassword, oldPasswordHash) === CompareResult.NoMatch) {
+            await this.registerPasswordFailure(userId, PasswordContext.CHANGE)
             throw new RpcException('Unauthenticated')
         }
+        await this.clearPasswordFailures(userId, PasswordContext.CHANGE)
         await this.userService.changePassword(userId, newPassword)
     }
 
@@ -259,6 +434,7 @@ export class AccountService {
         if (!userId) {
             throw new RpcException('Unauthenticated')
         }
+        await this.throttlePasswordResetSend(userId as UUID, PasswordContext.RESET_SEND)
         const changePasswordToken = await this.jwtTools.generateToken(userId as UUID, TokenType.ChangePasswordToken)
         const firstName = await this.userService.getUserFirstNameById(userId as UUID)
         const url = `${this.configService.get<string>("App.activationOrigin")}/password-recovery?t=${encodeURIComponent(changePasswordToken)}`
@@ -273,9 +449,7 @@ export class AccountService {
         )
     }
 
-    // TODO: notifiche di sicurezza per cambio password, telefono, email
     public async forgottenPassword(newPassword: string, changePasswordToken: string): Promise<void> | never {
-        
         const { sub: userId } = await this.jwtTools.verifyTokenAndGetPayload(
             changePasswordToken,
             TokenType.ChangePasswordToken
@@ -288,10 +462,13 @@ export class AccountService {
             await this.sessionService.destroySessionByOwner(s.sessionId, s.userId)
         }
         await this.userService.changePassword(userId, newPassword)
+        await this.clearPasswordFailures(userId, PasswordContext.CHANGE)
+
     }
 
 
     public async isAuthorizedToRecoverPassword(changePasswordToken: string): Promise<boolean> {
+
         let jti: UUID
         try {
             ({ jti } = await this.jwtTools.verifyTokenAndGetPayload(changePasswordToken, TokenType.ChangePasswordToken))

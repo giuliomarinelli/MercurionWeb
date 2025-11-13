@@ -61,6 +61,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
                 case 'Authentication::TooManyAttempts':
                 case 'Mfa::TooManyAttempts':
                 case 'MfaSend::TooManyRequests':
+                case 'ChangeEmail::TooManyAttempts':
+                case 'ChangePhone::TooManyAttempts':
+                case 'ChangeEmailSend::TooManyRequests':
+                case 'ChangePhoneSend::TooManyRequests':
+                case 'Password::TooManyAttempts':
+                case 'PasswordResetSend::TooManyRequests':
                     statusCode = HttpStatus.TOO_MANY_REQUESTS
             }
 
