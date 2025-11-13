@@ -9,6 +9,18 @@ export class MercurionAIService {
 
     constructor(@Inject('MERCURION_AI_CLIENT') private readonly mercurionAIClient: ClientProxy) { }
 
+    private isValidInferencePayload(res: MercurionInferResDTO): boolean {
+        const labels: (keyof MercurionInferDataDTO)[] = ["SR-ATAD5", "NR-AhR", "SR-MMP", "SR-p53"]
+        for (const label of labels) {
+            const v = res[label]
+            if (!v) continue
+            if (typeof v.probability !== 'number' || !Number.isFinite(v.probability)) return false
+            if (typeof v.threshold !== 'number' || !Number.isFinite(v.threshold)) return false
+            if (typeof v.is_positive !== 'boolean') return false
+        }
+        return true
+    }
+
     public async getInferenceFromTop4MercurionTox21(dto: MercurionInferReqDTO): Promise<MercurionInferDataDTO> | never {
 
         const res: MercurionInferResDTO = await firstValueFrom(
@@ -22,6 +34,9 @@ export class MercurionAIService {
                 })
             )
         )
+        if (!this.isValidInferencePayload(res)) {
+            throw new RpcException('MercurionTox21ClientConnection::InvalidPayload')
+        }
         if (res.error != undefined && res.error.trim()) {
             throw new RpcException(`MercurionTox21ClientConnection::${res.error}`)
         }

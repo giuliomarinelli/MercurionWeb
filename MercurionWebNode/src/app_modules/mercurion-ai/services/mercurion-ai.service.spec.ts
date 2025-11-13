@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { MercurionAIService } from './mercurion.service';
-import { ClientProxy } from '@nestjs/microservices';
+import { MercurionAIService } from './mercurion-ai.service';
+
 
 describe('MercurionService', () => {
   let service: MercurionAIService;

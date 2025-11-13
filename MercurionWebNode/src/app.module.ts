@@ -13,7 +13,6 @@ import { JwtToolsService } from './app_modules/auth/services/jwt-tools.service';
 import { SessionService } from './app_modules/auth/services/session.service';
 import { JwtService } from '@nestjs/jwt';
 import { SocketIoModule } from './app_modules/socket.io/socket.io.module';
-import { MercurionModule } from './app_modules/mercurion/mercurion.module';
 import { ResponseService } from './services/response.service';
 import { NotificationModule } from './app_modules/notification/notification.module';
 import { MeilisearchModule } from './app_modules/meilisearch/meilisearch.module';
@@ -25,6 +24,7 @@ import { HistoryModule } from './app_modules/history/history.module';
 import { MoleculeCollectionModule } from './app_modules/molecule-collection/molecule-collection.module';
 import { SynthModule } from './app_modules/synth/synth.module';
 import { MercurionGraphQLModule } from './mercurion-graphql.module';
+import { MercurionAIModule } from './app_modules/mercurion-ai/mercurion-ai.module';
 
 
 
@@ -52,7 +52,7 @@ import { MercurionGraphQLModule } from './mercurion-graphql.module';
     UserModule,
     AuthModule,
     SocketIoModule,
-    MercurionModule,
+    MercurionAIModule,
     NotificationModule,
     MeilisearchModule,
     SocketIoModule,

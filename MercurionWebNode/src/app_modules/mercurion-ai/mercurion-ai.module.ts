@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { MercurionAIService } from './services/mercurion.service';
+import { MercurionAIService } from './services/mercurion-ai.service';
 import { MercurionAIController } from './controllers/mercurion.controller';
 import { JwtToolsService } from '../auth/services/jwt-tools.service';
 import { AuthModule } from '../auth/auth.module';
@@ -32,4 +32,4 @@ import { RedisModule } from '../redis/redis.module';
     providers: [MercurionAIService, JwtToolsService],
     controllers: [MercurionAIController]
 })
-export class MercurionModule { }
+export class MercurionAIModule { }
