@@ -7,6 +7,7 @@ import { MeiliLoggerService } from './services/meili-logger.service';
 import { MoleculeService } from './services/molecule.service';
 import { MoleculeResolver } from './resolvers/molecule.resolver';
 import { MoleculeCollectionModule } from '../molecule-collection/molecule-collection.module';
+import { SecurityAuditService } from './services/security-audit/security-audit.service';
 
 @Module({
     imports: [forwardRef(() => MoleculeCollectionModule)],
@@ -23,7 +24,8 @@ import { MoleculeCollectionModule } from '../molecule-collection/molecule-collec
         MoleculeSearchResolver,
         MeiliLoggerService,
         MoleculeService,
-        MoleculeResolver
+        MoleculeResolver,
+        SecurityAuditService
     ],
     exports: [MoleculeService, 'MEILISEARCH_CLIENT']
 

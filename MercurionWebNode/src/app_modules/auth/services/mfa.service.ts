@@ -25,6 +25,7 @@ import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { MfaContext } from '../Models/enums/mfa-context.enum';
 import { uuidv7 } from '@kripod/uuidv7';
+import { SecurityAuditService } from 'src/app_modules/meilisearch/services/security-audit/security-audit.service';
 
 @Injectable()
 export class MfaService {
@@ -61,7 +62,8 @@ export class MfaService {
         private readonly configService: ConfigService,
         private readonly jwtTools: JwtToolsService,
         private readonly sessionService: SessionService,
-        private readonly redisService: RedisService
+        private readonly redisService: RedisService,
+        private readonly securityAuditService: SecurityAuditService
     ) {
         this.totpConfig = this.configService.get<TotpConfiguration>('Totp') as TotpConfiguration
         this.appName = this.configService.get<string>("App.globalName") as string
@@ -535,6 +537,8 @@ export class MfaService {
 
         await this.userService.appendMfaStrategy(userId, strategy)
 
+        await this.securityAuditService.mfaEnabled(userId, GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy) ?? 'unknown')
+
         return true
     }
 
@@ -699,6 +703,7 @@ export class MfaService {
             }
         })
 
+        await this.securityAuditService.mfaDisabled(userId, GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy) ?? 'unknown')
 
         await this.clearMfaFailures(userId, strategy, context)
         return true

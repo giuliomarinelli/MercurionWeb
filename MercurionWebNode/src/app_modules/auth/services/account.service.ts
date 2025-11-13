@@ -22,6 +22,7 @@ import { ChangePhoneDTO } from '../Models/DTO/change-phone.cls.dto';
 import { ContactChangeKind } from '../Models/enums/contact-change-kind.enum';
 import { PasswordContext } from '../Models/enums/password-context.enum';
 import { CompareResult } from '../Models/enums/compare-result.enum';
+import { SecurityAuditService } from 'src/app_modules/meilisearch/services/security-audit/security-audit.service';
 
 
 
@@ -56,7 +57,8 @@ export class AccountService {
         private readonly smsService: SmsSenderService,
         private readonly redisService: RedisService,
         private readonly sessionService: SessionService,
-        private readonly _r: ResponseService
+        private readonly _r: ResponseService,
+        private readonly securityAuditService: SecurityAuditService
     ) {
         this.CHANGE_PASSWORD_TOKEN_EXPIRATION_MS = this.configService.get<number>('Jwt.changePasswordToken.expiresInMs') ?? 300_000
         this.redisIdHmacSecret = this.configService.get<string>('App.redisIdHmacSecret')!
@@ -333,6 +335,9 @@ export class AccountService {
 
         await this.clearContactChangeFailures(userId, ContactChangeKind.EMAIL)
 
+        const maskedOldEmail = this.securityService.maskEmail(user.email ?? '') || null
+        const maskedNewEmail = this.securityService.maskEmail(user.unconfirmedEmail ?? '')
+
         const emailToConfirm = user.unconfirmedEmail
         await this.userService.updateUser(userId, {
             email: emailToConfirm,
@@ -341,6 +346,8 @@ export class AccountService {
         })
 
         await this.redisService.del(`email_change_lock:${this.hmacKey(emailToConfirm.toLowerCase())}`)
+
+        await this.securityAuditService.emailChanged(userId, maskedOldEmail, maskedNewEmail)
 
         return this._r.ok('Email successfully changed and verified')
     }
@@ -409,7 +416,8 @@ export class AccountService {
             await this.registerContactChangeFailure(userId, ContactChangeKind.PHONE)
             throw new RpcException('ChangePhone::InvalidTOTP')
         }
-
+        const maskedOldPhone = this.securityService.maskPhone(user.completePhoneNumber ?? '') || null
+        const maskedNewPhone = this.securityService.maskPhone(user.unconfirmedPhoneNumber ?? '')
         const completePhoneNumber = user.unconfirmedPhoneNumber
         const phoneNumberPrefixLength = user.unconfirmedPhoneNumberPrefixLength
 
@@ -424,6 +432,8 @@ export class AccountService {
         await this.redisService.del(`phone_change_lock:${this.hmacKey(completePhoneNumber)}`)
         await this.clearContactChangeFailures(userId, ContactChangeKind.PHONE)
 
+        await this.securityAuditService.phoneChanged(userId, maskedOldPhone, maskedNewPhone)
+
         return this._r.ok('Phone number successfully updated')
 
     }
@@ -437,6 +447,7 @@ export class AccountService {
         }
         await this.clearPasswordFailures(userId, PasswordContext.CHANGE)
         await this.userService.changePassword(userId, newPassword)
+        await this.securityAuditService.passwordChanged(userId, { viaResetFlow: false })
     }
 
     public async sendForgottenPasswordLink(email: string): Promise<void> | never {
@@ -473,7 +484,7 @@ export class AccountService {
         }
         await this.userService.changePassword(userId, newPassword)
         await this.clearPasswordFailures(userId, PasswordContext.CHANGE)
-
+        await this.securityAuditService.passwordChanged(userId, { viaResetFlow: true })
     }
 
 
