@@ -16,7 +16,7 @@ export function routeAwareMax(req: FastifyRequest): number {
     const path = raw.toLowerCase().replace(/\/+$/, '')
 
     if (method === 'POST' && path.startsWith('/api/authentication/login/1'))
-        return scale(8)
+        return scale(4)
 
     if (
         method === 'POST' &&

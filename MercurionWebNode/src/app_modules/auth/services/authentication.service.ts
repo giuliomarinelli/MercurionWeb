@@ -36,26 +36,60 @@ export class AuthenticationService {
         private readonly redisService: RedisService
     ) { }
 
+    private getFailKey(email: string): string {
+        return `auth:fails:${email.toLowerCase()}`
+    }
+
+    private getLockKey(email: string): string {
+        return `auth:lock:${email.toLowerCase()}`
+    }
+
+    private async bumpLoginFailCounter(failKey: string, lockKey: string): Promise<void> {
+        const fails = await this.redisService.getClient().incr(failKey)
+        if (fails === 1) {
+            await this.redisService.setTTL(failKey, 15 * 60) // 15 min
+        }
+
+        const MAX_FAILS = 8
+        if (fails >= MAX_FAILS) {
+            await this.redisService.set(lockKey, '1', 5 * 60) // lock 10 min
+            await this.redisService.del(failKey)
+        }
+    }
+
     private generateFingerprint(fingerprintData: FingerprintData): string {
         return createHash('sha256').update(JSON.stringify(fingerprintData)).digest('hex')
     }
 
     // Restituisce un oggetto Authentication necessario per generare un token JWT
-    public async emailAndPasswordAuthentication(email: string,
+    public async emailAndPasswordAuthentication(
+        email: string,
         password: string,
         remember: boolean,
         IP: string,
         deviceId: string,
         sessionDeviceInfo: ISessionDeviceInfo,
-        fingerprintData: FingerprintData): Promise<Authentication> {
+        fingerprintData: FingerprintData
+    ): Promise<Authentication> {
+
+        const lockKey = this.getLockKey(email)
+        const failKey = this.getFailKey(email)
+
+        const isLocked = await this.redisService.exists(this.getLockKey(email))
+        if (isLocked) {
+            throw new RpcException('Authentication::TooManyAttempts');
+        }
 
         const auth: IAuth | nullish = await this.userService.getVerifiedUserAuthByEmail(email)
         if (!auth || !auth.userId || !auth.passwordHash) {
+            await this.bumpLoginFailCounter(failKey, lockKey)
             throw new RpcException('AuthenticationInvalidCredentials')
         }
-        const cmp = await this.passwordEncoder.compareWithFallback(password, auth.passwordHash, true);
+
+        const cmp = await this.passwordEncoder.compareWithFallback(password, auth.passwordHash, true)
         if (cmp === CompareResult.NoMatch) {
-            throw new RpcException('AuthenticationInvalidCredentials');
+            await this.bumpLoginFailCounter(failKey, lockKey)
+            throw new RpcException('AuthenticationInvalidCredentials')
         }
 
         // Opportunistic upgrade (non-blocking)
@@ -100,6 +134,8 @@ export class AuthenticationService {
             suspiciousAttempt = true
             obscuredEmail = this.securityService.maskEmail(email)
         }
+        await this.redisService.del(failKey)
+        await this.redisService.del(lockKey)
         return {
             userId: auth.userId,
             sessionId,

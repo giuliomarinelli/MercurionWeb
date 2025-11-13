@@ -112,7 +112,7 @@ import { environment } from '../../../environments/environment.development';
               [serverError]="
                 serverErrorStep() === 2
                   ? 'La password inserita non è corretta.'
-                  : serverErrorStep() === 2429 ? 'Hai raggiunto il limite massimo di tentativi, riprova tra 5 minutes.'
+                  : serverErrorStep() === 2429 ? 'Troppi tentativi, riprova tra qualche minuto.'
                   : null
               "
             >

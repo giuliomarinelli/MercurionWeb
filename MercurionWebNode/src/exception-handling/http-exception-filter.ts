@@ -57,6 +57,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
                 case 'AuthenticationInvalidCredentials':
                 case 'Unauthanticated':
                     statusCode = HttpStatus.UNAUTHORIZED
+                    break
+                case 'Authentication::TooManyAttempts':
+                case 'Mfa::TooManyAttempts':
+                case 'MfaSend::TooManyRequests':
+                    statusCode = HttpStatus.TOO_MANY_REQUESTS
             }
 
             nonHttpInternalErrorRes = {

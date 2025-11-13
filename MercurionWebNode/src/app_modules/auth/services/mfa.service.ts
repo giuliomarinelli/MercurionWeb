@@ -23,12 +23,20 @@ import { SessionService } from './session.service';
 import { nullish } from 'src/Models/nullish.type';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
+import { MfaContext } from '../Models/enums/mfa-context.enum';
 
 @Injectable()
 export class MfaService {
 
     private readonly totpConfig: TotpConfiguration
     private readonly appName: string
+
+    private readonly MFA_FAIL_WINDOW_SECONDS = 10 * 60
+    private readonly MFA_LOCK_SECONDS = 10 * 60
+    private readonly MFA_MAX_FAILS = 5
+
+    private readonly MFA_SEND_WINDOW_SECONDS = 10 * 60
+    private readonly MFA_MAX_SENDS = 5
 
     constructor(
         private readonly securityService: SercurityService,
@@ -96,8 +104,8 @@ export class MfaService {
     }
 
     public async getBackupCodesStatus(userId: UUID): Promise<BackupCodeStatusDTO> {
-        const codes = await this.backupCodeRepository.find({ where: { user: { id: userId } } });
-        const used = codes.filter(c => c.used).length;
+        const codes = await this.backupCodeRepository.find({ where: { user: { id: userId } } })
+        const used = codes.filter(c => c.used).length
         return {
             total: codes.length,
             used,
@@ -105,30 +113,73 @@ export class MfaService {
         }
     }
 
-    private attemptsKey(userId: UUID, strategy: MfaStrategy): string {
-        return `mfa:attempts:${userId}:${strategy}`
-    }
-    private lockKey(userId: UUID, strategy: MfaStrategy): string {
-        return `mfa:lock:${userId}:${strategy}`
+    private getMfaFailKey(userId: UUID, strategy: MfaStrategy, context: MfaContext = MfaContext.VERIFY): string {
+        return `mfa:fail:${context}:${userId}:${strategy}`;
     }
 
-    private async assertNotLocked(userId: UUID, strategy: MfaStrategy): Promise<void> | never {
-        const locked = await this.redisService.exists(this.lockKey(userId, strategy))
-        if (locked) throw new RpcException('MfaTemporarilyLocked')
+    private getMfaLockKey(userId: UUID, strategy: MfaStrategy, context: MfaContext = MfaContext.VERIFY): string {
+        return `mfa:lock:${context}:${userId}:${strategy}`;
     }
 
-    private async noteFail(userId: UUID, strategy: MfaStrategy): Promise<void> {
-        const key = this.attemptsKey(userId, strategy)
-        const n = parseInt((await this.redisService.get(key)) || '0', 10) + 1
-        await this.redisService.set(key, String(n), 300) // 5 min finestra soft
-        if (n >= 5) { // soglia: 5 errori nella finestra
-            await this.redisService.set(this.lockKey(userId, strategy), '1', 900) // lock 15 min
+    private getMfaSendKey(userId: UUID, strategy: MfaStrategy, context: MfaContext = MfaContext.SEND): string {
+        return `mfa:${context}:${userId}:${strategy}`
+    }
+
+    private getMfaSendLockKey(userId: UUID, strategy: MfaStrategy, context: MfaContext = MfaContext.SEND): string {
+        return `mfa:${context}:lock:${userId}:${strategy}`
+    }
+
+    private async ensureMfaNotLocked(userId: UUID, strategy: MfaStrategy, context: MfaContext = MfaContext.VERIFY): Promise<void> {
+        const lockKey = this.getMfaLockKey(userId, strategy, context)
+        const locked = await this.redisService.exists(lockKey)
+        if (locked) {
+            throw new RpcException('Mfa::TooManyAttempts')
         }
     }
 
-    private async resetAttempts(userId: UUID, strategy: MfaStrategy): Promise<void> {
-        await this.redisService.del(this.attemptsKey(userId, strategy))
-        await this.redisService.del(this.lockKey(userId, strategy))
+    private async registerMfaFailure(userId: UUID, strategy: MfaStrategy, context: MfaContext = MfaContext.VERIFY): Promise<void> {
+        const failKey = this.getMfaFailKey(userId, strategy, context)
+        const lockKey = this.getMfaLockKey(userId, strategy, context)
+
+        const fails = await this.redisService.getClient().incr(failKey)
+
+        if (fails === 1) {
+            await this.redisService.setTTL(failKey, this.MFA_FAIL_WINDOW_SECONDS)
+        }
+
+        if (fails >= this.MFA_MAX_FAILS) {
+            await this.redisService.set(lockKey, '1', this.MFA_LOCK_SECONDS)
+            await this.redisService.del(failKey)
+        }
+    }
+
+    private async clearMfaFailures(userId: UUID, strategy: MfaStrategy, context: MfaContext,): Promise<void> {
+        const failKey = this.getMfaFailKey(userId, strategy, context)
+        const lockKey = this.getMfaLockKey(userId, strategy, context)
+        await this.redisService.del(failKey)
+        await this.redisService.del(lockKey)
+    }
+
+
+    private async throttleMfaSend(userId: UUID, strategy: MfaStrategy, context: MfaContext = MfaContext.SEND): Promise<void> {
+
+        const countKey = this.getMfaSendKey(userId, strategy, context)
+        const lockKey = this.getMfaSendLockKey(userId, strategy, context)
+
+        const locked = await this.redisService.exists(lockKey)
+        if (locked) {
+            throw new RpcException('MfaSend::TooManyRequests')
+        }
+
+        const cnt = await this.redisService.getClient().incr(countKey)
+        if (cnt === 1) {
+            await this.redisService.setTTL(countKey, this.MFA_SEND_WINDOW_SECONDS)
+        }
+
+        if (cnt > this.MFA_MAX_SENDS) {
+            await this.redisService.set(lockKey, '1', 10 * 60)
+            throw new RpcException('MfaSend::TooManyRequests')
+        }
     }
 
 
@@ -139,10 +190,10 @@ export class MfaService {
 
         try {
             ({ sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken))
-            await this.assertNotLocked(userId, strategy)
         } catch {
             throw new RpcException('InvalidJwtValidation')
         }
+        await this.throttleMfaSend(userId, strategy, MfaContext.SEND)
         const user = await this.userService.getUserById(userId)
         if (!user) {
             throw new RpcException('NoSuchUser')
@@ -198,8 +249,9 @@ export class MfaService {
     public async verifyUserOtpOrAppTotp(totp: string, preAuthorizationToken: string, strategy: MfaStrategy): Promise<boolean> {
 
         const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken)
-        await this.assertNotLocked(userId, strategy)
         await this.sessionService.revokeToken(jti)
+        const context = MfaContext.VERIFY
+        await this.ensureMfaNotLocked(userId, strategy, context)
         if (!await this.userService.existsUserById(userId)) {
             throw new RpcException('NoSuchUser')
         }
@@ -221,14 +273,16 @@ export class MfaService {
         }
         const ok = this.securityService.verifyTotp(totp, otpSecret)
         if (!ok) {
-            await this.noteFail(userId, strategy)
+            await this.registerMfaFailure(userId, strategy, context)
             return false
         }
-        await this.resetAttempts(userId, strategy)
+        await this.clearMfaFailures(userId, strategy, context)
         return true
     }
 
     public async enableMfa_firstStep(userId: UUID, strategy: MfaStrategy): Promise<MfaAuthMetadata> {
+
+        await this.throttleMfaSend(userId, strategy, MfaContext.ENABLE_SEND)
 
         let totpSecret: string | nullish
         let TOTP: string
@@ -340,6 +394,9 @@ export class MfaService {
             throw new RpcException('NoSuchUser')
         }
 
+        const context = MfaContext.ENABLE_VERIFY
+        await this.ensureMfaNotLocked(userId, strategy, context)
+
         let otpSecret: string | nullish
 
         if (strategy === MfaStrategy.APP_TOTP) {
@@ -347,7 +404,10 @@ export class MfaService {
             if (!otpSecret) throw new RpcException('TemporaryAppTotpSecretNotFound')
 
             const isValid = this.securityService.verifyTotp(totp, otpSecret)
-            if (!isValid) return false
+            if (!isValid) {
+                await this.registerMfaFailure(userId, strategy, context)
+                return false
+            }
 
             await this.userService.updateUser(userId, { appTotpSecret: otpSecret })
             await this.redisService.del(`mfa:temp:app-secret:${userId}`)
@@ -356,15 +416,20 @@ export class MfaService {
             if (!otpSecret) throw new RpcException('OtpSecretNotFound')
 
             const isValid = this.securityService.verifyTotp(totp, otpSecret)
-            if (!isValid) return false
+            if (!isValid) {
+                await this.registerMfaFailure(userId, strategy, context)
+                return false
+            }
         }
-
+        
         await this.userService.appendMfaStrategy(userId, strategy)
 
         return true
     }
 
     public async disableMfa_firstStep(userId: UUID, strategy: MfaStrategy): Promise<MfaAuthMetadata> {
+
+        await this.throttleMfaSend(userId, strategy, MfaContext.DISABLE_SEND)
 
         let totpSecret: string | nullish
         let TOTP: string
@@ -437,6 +502,8 @@ export class MfaService {
                 throw new RpcException(`UnsupportedMfaStrategy::${GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy)}`)
         }
 
+        await this.clearMfaFailures(userId, strategy, MfaContext.DISABLE_VERIFY)
+
         return {
             ...metadata,
             secureToken
@@ -448,7 +515,6 @@ export class MfaService {
         secureToken: string,
         strategy: MfaStrategy
     ): Promise<boolean> {
-
         let tokenType: TokenType
 
         switch (strategy) {
@@ -468,6 +534,9 @@ export class MfaService {
         const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(secureToken, tokenType);
         await this.sessionService.revokeToken(jti.toString())
 
+        const context = MfaContext.DISABLE_VERIFY
+        await this.ensureMfaNotLocked(userId, strategy, context)
+
         if (!await this.userService.existsUserById(userId)) {
             throw new RpcException('NoSuchUser')
         }
@@ -484,9 +553,13 @@ export class MfaService {
         }
 
         const isValid = this.securityService.verifyTotp(totp, otpSecret)
-        if (!isValid) return false
+        if (!isValid) {
+            await this.registerMfaFailure(userId, strategy, context)
+            return false
+        }
 
         await this.userService.removeMfaStrategy(userId, strategy)
+        await this.clearMfaFailures(userId, strategy, context)
         return true
     }
 
