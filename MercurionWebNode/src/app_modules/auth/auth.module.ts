@@ -29,7 +29,7 @@ import { MeilisearchModule } from '../meilisearch/meilisearch.module';
     forwardRef(() => UserModule),
     NotificationModule,
     HttpModule,
-    MeilisearchModule
+    forwardRef(() => MeilisearchModule)
   ],
   providers: [
     JwtToolsService,

@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, LoggerService } from '@nestjs/common';
 import axios, { AxiosResponse } from 'axios';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
@@ -12,18 +12,22 @@ import { uuidv7 } from '@kripod/uuidv7';
 import { StorageScope } from '../Models/enums/storage-scope.enum';
 import { StorageAction } from '../Models/enums/storage-action.type';
 import { User } from 'src/app_modules/user/Models/entities/user.entity';
+import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 
 @Injectable()
 export class DropboxObjectStoreService {
 
-    private readonly logger = new Logger(DropboxObjectStoreService.name)
+    private readonly logger: LoggerService
 
     constructor(
         private readonly oauth2ClientService: OAuth2ClientService,
         @InjectRepository(DocumentEntity)
         private readonly documentRepo: Repository<DocumentEntity>,
-        private readonly dataSource: DataSource
-    ) { }
+        private readonly dataSource: DataSource,
+        meiliLogger: MeiliLoggerService
+    ) {
+        this.logger = meiliLogger.forContext(DropboxObjectStoreService.name)
+    }
 
     private sanitizeFileName(name: string): string {
         if (!name) return 'upload.bin';

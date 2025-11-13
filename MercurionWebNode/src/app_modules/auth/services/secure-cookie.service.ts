@@ -1,19 +1,24 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, LoggerService } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createHmac } from 'crypto';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { CookieSerializeOptions } from '@fastify/cookie'
 import { SecureCookieConfiguration } from 'src/config/@types-config';
 import { RpcException } from '@nestjs/microservices';
+import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 
 @Injectable()
 export class SecureCookieService {
 
-    private readonly logger = new Logger(SecureCookieService.name)
+    private readonly logger: LoggerService
     private readonly secret: string
     private readonly defaultCookieOptions: CookieSerializeOptions
 
-    constructor(private readonly configService: ConfigService) {
+    constructor(
+        private readonly configService: ConfigService,
+        meiliLogger: MeiliLoggerService
+    ) {
+        this.logger = meiliLogger.forContext(SecureCookieService.name)
 
         const { secret, ...options } = configService.get<SecureCookieConfiguration>("SecureCookie")!
 

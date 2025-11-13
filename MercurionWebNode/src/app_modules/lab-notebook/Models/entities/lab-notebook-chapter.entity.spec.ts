@@ -1,4 +1,4 @@
-import { NotebookChapter } from './lab-notebook-chapter.entity';
+import { NotebookChapter } from '../../../user/Models/entities/lab-notebook/lab-notebook-chapter.entity';
 
 describe('NotebookChapter', () => {
   it('should instantiate a notebook chapter', () => {

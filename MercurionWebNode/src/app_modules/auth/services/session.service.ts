@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
+import { ForbiddenException, Injectable, LoggerService } from '@nestjs/common';
 import { createHmac, randomUUID, UUID } from 'crypto';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { ISession, ISessionDeviceInfo } from '../Models/interfaces/i-session.interface';
@@ -7,12 +7,13 @@ import { GeoLocation } from './geo-ip.service';
 import { SessionFetchOptions } from '../Models/interfaces/session-fetch-options.interface';
 import { SessionDTO } from '../Models/DTO/session.dto';
 import { ConfigService } from '@nestjs/config';
+import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 
 
 @Injectable()
 export class SessionService {
 
-    private readonly logger = new Logger(SessionService.name)
+    private readonly logger: LoggerService
 
     private readonly secret: string
 
@@ -21,8 +22,10 @@ export class SessionService {
 
     constructor(
         private readonly redisService: RedisService,
-        private readonly configService: ConfigService
+        private readonly configService: ConfigService,
+        meiliLogger: MeiliLoggerService
     ) {
+        this.logger = meiliLogger.forContext(SessionService.name)
         this.secret = this.configService.get<string>('App.sessionSignatureSecret')!
         this.SHORT_SESSION_TTL = this.configService.get<number>('Session.shortSessionLasting')!
         this.LONG_SESSION_TTL = this.configService.get<number>('Session.persistentSessionLasting')!

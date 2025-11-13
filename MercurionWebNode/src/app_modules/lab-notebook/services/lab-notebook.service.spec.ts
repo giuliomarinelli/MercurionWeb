@@ -1,6 +1,6 @@
 import { LabNotebookService } from './lab-notebook.service';
 import { Repository } from 'typeorm';
-import { LabNotebook } from '../../Models/entities/lab-notebook/lab-notebook.entity';
+import { LabNotebook } from '../Models/entities/lab-notebook.entity';
 
 // PATCH: fieldsMap è sempre oggetto
 const EMPTY_FIELDS_MAP = {};

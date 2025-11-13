@@ -1,6 +1,6 @@
 import { MoleculeCollectionItemEntity } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection-item.entity';
 import { MoleculeService } from '../../meilisearch/services/molecule.service';
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, LoggerService } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, Repository } from 'typeorm';
 import { UUID } from 'crypto';
@@ -19,20 +19,24 @@ import { ChEMBLMoleculeItemEntity } from '../Models/entities/chembl-molecule-ite
 import { History } from 'src/app_modules/history/Models/entities/history.entity';
 import { HistoryItemEntity } from 'src/app_modules/history/Models/enums/history-item-entity.enum';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
+import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 
 
 // TODO: valutare un refactoring per dryificare la duplicazione di logica tra questo service e i service delle entità figlie concrete
 @Injectable()
 export class MoleculeCollectionItemService {
 
-    private readonly logger = new Logger(MoleculeCollectionItemService.name)
+    private readonly logger: LoggerService
 
     constructor(
         @InjectRepository(MoleculeCollectionItemEntity)
         private readonly itemRepo: Repository<MoleculeCollectionItemEntity>,
         private readonly moleculeService: MoleculeService,
-        private readonly dataSource: DataSource
-    ) { }
+        private readonly dataSource: DataSource,
+        meiliLogger: MeiliLoggerService
+    ) {
+        this.logger = meiliLogger.forContext(MoleculeCollectionItemService.name)
+    }
 
     async markAsTouched(userId: UUID, itemId: UUID, _flagIds?: string): Promise<boolean> {
 

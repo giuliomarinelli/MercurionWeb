@@ -3,7 +3,7 @@ import { Server, Socket } from 'socket.io';
 // import { randomUUID, UUID } from 'crypto';
 // import { nullish } from 'src/Models/nullish.type';
 // import { MoleculeSyncService } from '../meilisearch/services/molecule-sync.service';
-import { Logger, OnModuleInit, UseGuards } from '@nestjs/common';
+import { LoggerService, OnModuleInit, UseGuards } from '@nestjs/common';
 // import { ConfigService } from '@nestjs/config';
 // import { MoleculeDetailSyncService } from '../meilisearch/services/molecule-detail-sync.service';
 import Redis from 'ioredis';
@@ -12,6 +12,7 @@ import { WsGuard } from './guards/ws.guard';
 import { PubSubService } from '../redis/services/pub-sub.service';
 import { Public } from 'src/metadata/metadata';
 import { UUID } from 'crypto';
+import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 
 
 
@@ -19,7 +20,7 @@ import { UUID } from 'crypto';
 @UseGuards(WsGuard)
 export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, OnModuleInit {
 
-  private readonly logger = new Logger(SocketIOGateway.name)
+  private readonly logger: LoggerService
 
   @WebSocketServer()
   private readonly server: Server
@@ -30,8 +31,11 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
     // private readonly moleculeSyncService: MoleculeSyncService,
     // private readonly moleculeDetailSyncService: MoleculeDetailSyncService,
     // private readonly configService: ConfigService,
-    private readonly pubSubService: PubSubService
-  ) { }
+    private readonly pubSubService: PubSubService,
+    meiliLogger: MeiliLoggerService
+  ) {
+    this.logger = meiliLogger.forContext(SocketIOGateway.name)
+  }
 
   onModuleInit() {
     // this.handleDetailSync()

@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { NotebookPage } from '../../Models/entities/lab-notebook/lab-notebook-page.entity';
+import { NotebookPage } from '../Models/entities/lab-notebook-page.entity';
 import { UUID } from 'crypto';
-import { NotebookSection } from '../../Models/entities/lab-notebook/lab-notebook-section.entity';
+import { NotebookSection } from '../Models/entities/lab-notebook-section.entity';
 import { GraphqlUtils } from 'src/utils/graphql-utils/graphql-utils';
 
 @Injectable()

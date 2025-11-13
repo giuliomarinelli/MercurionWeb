@@ -1,5 +1,5 @@
 import { ProfileRegistryDTO as ProfileRegistryDTO } from './../../auth/Models/DTO/profile.dtos';
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, LoggerService } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../Models/entities/user.entity';
 import { DataSource, FindOptionsWhere, Repository } from 'typeorm';
@@ -15,11 +15,12 @@ import { OldPasswordItem } from '../Models/DTO/old-password-item.interface';
 import { ProfileDTO } from 'src/app_modules/auth/Models/DTO/profile.dtos';
 import { SercurityService } from 'src/app_modules/auth/services/sercurity.service';
 import { CompareResult } from 'src/app_modules/auth/Models/enums/compare-result.enum';
+import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 
 @Injectable()
 export class UserService {
 
-    private readonly logger = new Logger(UserService.name)
+    private readonly logger: LoggerService
 
     public get STD_SCOPES(): string {
         return JSON.stringify(this.standardScopes)
@@ -29,8 +30,11 @@ export class UserService {
         @InjectRepository(User) private userRepository: Repository<User>,
         private readonly dataSource: DataSource,
         private readonly passwordEncoder: PasswordEncoderService,
-        private readonly securityService: SercurityService
-    ) { }
+        private readonly securityService: SercurityService,
+        meiliLogger: MeiliLoggerService
+    ) {
+        this.logger = meiliLogger.forContext(UserService.name)
+    }
 
     private standardScopes = [
         Scope.UseInference,
@@ -90,7 +94,7 @@ export class UserService {
             await queryRunner.commitTransaction()
             return u$er
         } catch (err) {
-            this.logger.fatal('Error creating new User: ', err)
+            this.logger.error('Error creating new User: ', err)
             await queryRunner.rollbackTransaction()
             throw err
         } finally {

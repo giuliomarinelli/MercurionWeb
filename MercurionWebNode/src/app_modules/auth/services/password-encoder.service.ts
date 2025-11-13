@@ -1,21 +1,24 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, LoggerService } from '@nestjs/common'
 import { PasswordEncoder } from '../Models/interfaces/password-encoder.interface'
 import * as argon2 from 'argon2'
 import { RpcException } from '@nestjs/microservices'
 import { createHmac } from 'crypto'
 import { ConfigService } from '@nestjs/config'
 import { CompareResult } from '../Models/enums/compare-result.enum'
+import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service'
 
 @Injectable()
 export class PasswordEncoderService implements PasswordEncoder {
 
-    private readonly logger = new Logger(PasswordEncoderService.name)
+    private readonly logger: LoggerService
 
     private readonly pepper: string
 
     constructor(
-        private readonly configService: ConfigService
+        private readonly configService: ConfigService,
+        meiliLogger: MeiliLoggerService
     ) {
+        this.logger = meiliLogger.forContext(PasswordEncoderService.name)
         this.pepper = this.configService.get<string>('App.passwordPepper')!
     }
 

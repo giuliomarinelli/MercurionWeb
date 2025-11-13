@@ -1,7 +1,7 @@
 import { SessionService } from 'src/app_modules/auth/services/session.service';
 import { SecureCookieService } from './../services/secure-cookie.service';
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Query, Req, Res, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpStatus, LoggerService, Param, Patch, Post, Query, Req, Res, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
 import { Login_FirstStepDTO } from '../Models/DTO/login-first-step.cls.dto';
 import { MfaService } from '../services/mfa.service';
 import { AuthenticationService } from '../services/authentication.service';
@@ -25,13 +25,14 @@ import { ConfigService } from '@nestjs/config';
 import { CookieConfiguration, SecureCookieConfiguration } from 'src/config/@types-config';
 import { SignedSessionIdDTO } from '../Models/DTO/signed-session-id.dto';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
+import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 
 
 
 @Controller('authentication')
 export class AuthenticationController {
 
-    private readonly logger = new Logger(AuthenticationController.name)
+    private readonly logger: LoggerService
 
     private readonly cookieConf: CookieConfiguration
     private readonly LONG_SESSION_TTL: number
@@ -45,8 +46,10 @@ export class AuthenticationController {
         private readonly userService: UserService,
         private readonly configService: ConfigService,
         private readonly sessionService: SessionService,
-        private readonly redisService: RedisService
+        private readonly redisService: RedisService,
+        meiliLogger: MeiliLoggerService
     ) {
+        this.logger = meiliLogger.forContext(AuthenticationController.name)
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { secret, ...cookieConf } = this.configService.get<SecureCookieConfiguration>('SecureCookie')!
         this.cookieConf = cookieConf

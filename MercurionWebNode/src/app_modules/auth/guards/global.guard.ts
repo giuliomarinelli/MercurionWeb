@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException, Logger } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException, LoggerService } from '@nestjs/common';
 import { JwtToolsService } from '../services/jwt-tools.service';
 import { SessionService } from '../services/session.service';
 import { IS_PUBLIC_KEY } from 'src/metadata/metadata';
@@ -9,6 +9,7 @@ import { GqlContextType, GqlExecutionContext } from '@nestjs/graphql';
 import { AppJwtPayload } from '../Models/interfaces/app-jwt-payload.interface';
 import { RpcException } from '@nestjs/microservices';
 import { timingSafeEqual } from 'node:crypto';
+import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 
 
 
@@ -16,13 +17,16 @@ import { timingSafeEqual } from 'node:crypto';
 @Injectable()
 export class GlobalGuard implements CanActivate {
 
-   private readonly logger = new Logger(GlobalGuard.name)
+   private readonly logger: LoggerService
 
    constructor(
       private readonly jwtToolsService: JwtToolsService,
       private readonly sessionService: SessionService,
-      private readonly reflector: Reflector
-   ) { }
+      private readonly reflector: Reflector,
+      meiliLogger: MeiliLoggerService
+   ) {
+      this.logger = meiliLogger.forContext(GlobalGuard.name)
+   }
 
    async canActivate(context: ExecutionContext): Promise<boolean> | never {
 
@@ -63,7 +67,7 @@ export class GlobalGuard implements CanActivate {
 
             if (e instanceof RpcException && e.message === 'InvalidOrExpiredAccessToken') {
 
-               this.logger.debug('Possibly expired access token, trying refresh')
+               this.logger.debug?.('Possibly expired access token, trying refresh')
 
                payload = await this.jwtToolsService.verifyTokenAndGetPayload(accessToken, TokenType.AccessToken, true)
 

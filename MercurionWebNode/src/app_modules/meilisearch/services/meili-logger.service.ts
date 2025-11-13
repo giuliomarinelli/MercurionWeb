@@ -81,28 +81,30 @@ export class MeiliLoggerService extends Logger implements LoggerService, OnModul
         return out
     }
 
-    public forContext(context: string): LoggerService {
+    public forContext(context: string): LoggerService & { fatal(message: string | object): void } {
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
+        const logger = this
         return {
             log(message: string | object) {
-                this.log(message, context)
+                logger.log(message, context)
             },
             error(message: string | object, stack?: string) {
-                this.error(message, context, stack)
+                logger.error(message, context, stack)
             },
             warn(message: string | object) {
-                this.warn(message, context)
+                logger.warn(message, context)
             },
             debug(message: string | object) {
-                this.debug(message, context)
+                logger.debug(message, context)
             },
             verbose(message: string | object) {
-                this.verbose(message, context)
+                logger.verbose(message, context)
             },
             fatal(message: string | object) {
-                this.fatal(message, context)
+                logger.fatal(message, context)
             },
             setLogLevels(levels: LogLevel[]) {
-                this.setLogLevels(levels)
+                logger.setLogLevels(levels)
             }
         }
     }
@@ -136,6 +138,10 @@ export class MeiliLoggerService extends Logger implements LoggerService, OnModul
     public override fatal(message: string | object, context?: string): void {
         super.fatal(message, context)
         this.sendToMeili(this.createLogEntry('fatal', message, context))
+    }
+
+    public setLogLevels(levels: LogLevel[]): void {
+        Logger.overrideLogger(levels)
     }
 
 }

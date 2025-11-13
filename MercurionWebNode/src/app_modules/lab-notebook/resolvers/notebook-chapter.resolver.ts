@@ -1,13 +1,13 @@
 import { Resolver, Query, Mutation, Args, ID, Info } from '@nestjs/graphql';
-import { NotebookChapterService } from '../../services/lab-notebook/notebook-chapter.service';
+import { NotebookChapterService } from '../services/notebook-chapter.service';
 import { UUID } from 'crypto';
-import { CreateChapterInput } from '../../Models/DTO/lab-notebook/create-notebook-chapter-input';
 import { AuthenticatedUserId } from 'src/metadata/metadata';
-import { UpdateChapterInput } from '../../Models/DTO/lab-notebook/update-chapter-input';
 import { GraphQLResolveInfo } from 'graphql';
-import { NotebookChapter } from '../../Models/entities/lab-notebook/lab-notebook-chapter.entity';
+import { NotebookChapter } from '../Models/entities/lab-notebook-chapter.entity';
 import { GraphqlUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap } from 'src/utils/type-orm-utils/type-orm-utils';
+import { CreateChapterInput } from '../Models/DTO/create-notebook-chapter-input';
+import { UpdateChapterInput } from '../Models/DTO/update-chapter-input';
 
 @Resolver(() => NotebookChapter)
 export class NotebookChapterResolver {

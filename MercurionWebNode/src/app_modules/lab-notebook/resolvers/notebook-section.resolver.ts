@@ -1,14 +1,14 @@
 import { Resolver, Query, Mutation, Args, ID, Info } from '@nestjs/graphql';
-import { NotebookSectionService } from '../../services/lab-notebook/notebook-section.service';
+import { NotebookSectionService } from '../services/notebook-section.service';
 import { AuthenticatedUserId } from 'src/metadata/metadata';
 import { UUID } from 'crypto';
-import { CreateSectionInput } from '../../Models/DTO/lab-notebook/create-section-input';
-import { UpdateSectionInput } from '../../Models/DTO/lab-notebook/update-section-input';
 import { NotFoundException } from '@nestjs/common';
-import { NotebookSection } from '../../Models/entities/lab-notebook/lab-notebook-section.entity';
+import { NotebookSection } from '../Models/entities/lab-notebook-section.entity';
 import { GraphQLResolveInfo } from 'graphql';
 import { GraphqlUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap } from 'src/utils/type-orm-utils/type-orm-utils';
+import { CreateSectionInput } from '../Models/DTO/create-section-input';
+import { UpdateSectionInput } from '../Models/DTO/update-section-input';
 
 
 @Resolver(() => NotebookSection)

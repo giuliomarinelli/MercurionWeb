@@ -4,11 +4,13 @@ import { PubSubService } from './services/pub-sub.service';
 import Redis from 'ioredis';
 import { OAuth2ClientModule } from '../oauth2-client/oauth2-client.module';
 import { AuthModule } from '../auth/auth.module';
+import { MeilisearchModule } from '../meilisearch/meilisearch.module';
 
 @Module({
     imports: [
         forwardRef(() => OAuth2ClientModule),
-        forwardRef(() => AuthModule)
+        forwardRef(() => AuthModule),
+        MeilisearchModule
     ],
     providers: [
         {

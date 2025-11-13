@@ -1,5 +1,5 @@
 import { MoleculeCollectionItemJoin } from './../Models/entities/molecule-collection-item-join.entity';
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, LoggerService } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, Repository } from 'typeorm';
 import { UUID } from 'crypto';
@@ -11,6 +11,7 @@ import { MoleculeCollectionItemEntity } from '../Models/entities/molecule-collec
 import { ChEMBLMoleculeItemEntity } from '../Models/entities/chembl-molecule-item.entity';
 import { MoleculeService } from 'src/app_modules/meilisearch/services/molecule.service';
 import { BindManyCollectionsToMoleculeDTO } from '../Models/DTO/bind-many-collections-to-molecule.dto';
+import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 
 
 
@@ -18,7 +19,7 @@ import { BindManyCollectionsToMoleculeDTO } from '../Models/DTO/bind-many-collec
 @Injectable()
 export class MoleculeCollectionItemJoinService {
 
-    private readonly logger = new Logger(MoleculeCollectionItemJoinService.name)
+    private readonly logger: LoggerService
 
     constructor(
         @InjectRepository(MoleculeCollectionItemJoin)
@@ -26,8 +27,11 @@ export class MoleculeCollectionItemJoinService {
         private readonly dataSource: DataSource,
         private readonly collectionService: MoleculeCollectionService,
         private readonly itemService: MoleculeCollectionItemService,
-        private readonly moleculeService: MoleculeService
-    ) { }
+        private readonly moleculeService: MoleculeService,
+        meiliLogger: MeiliLoggerService
+    ) {
+        this.logger = meiliLogger.forContext(MoleculeCollectionItemJoinService.name)
+    }
 
     // Metodo STANDARD (fuori da transaction esplicita)
     async add(userId: UUID, collectionId: UUID, itemId: UUID): Promise<MoleculeCollectionItemJoin> {

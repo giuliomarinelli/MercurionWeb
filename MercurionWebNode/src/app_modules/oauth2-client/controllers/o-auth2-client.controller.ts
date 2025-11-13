@@ -1,19 +1,23 @@
-import { Controller, Get, Query, Param, Res, Logger } from '@nestjs/common';
+import { Controller, Get, Query, Param, Res, LoggerService } from '@nestjs/common';
 import { OAuth2ClientService } from '../services/oauth2-client.service';
 import { FastifyReply } from 'fastify/types/reply';
 import { UUID } from 'crypto';
 import { Public } from 'src/metadata/metadata';
+import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 
 
 
 @Controller('oauth2')
 export class OAuth2ClientController {
 
-    private readonly logger = new Logger(OAuth2ClientController.name)
+    private readonly logger: LoggerService
 
     constructor(
-        private readonly oauth2ClientService: OAuth2ClientService
-    ) { }
+        private readonly oauth2ClientService: OAuth2ClientService,
+        meiliLogger: MeiliLoggerService
+    ) {
+        this.logger = meiliLogger.forContext(OAuth2ClientController.name)
+    }
 
     @Public()
     @Get(':provider/login')

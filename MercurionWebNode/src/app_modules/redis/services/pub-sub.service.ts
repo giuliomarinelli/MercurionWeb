@@ -1,23 +1,26 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, LoggerService, OnModuleInit } from '@nestjs/common';
 import { RedisService } from './redis.service';
 import { Redis } from 'ioredis';
 import { AccessTokenRefreshService } from 'src/app_modules/oauth2-client/services/access-token-refresh.service';
 import { UUID } from 'crypto';
 import { Server } from 'socket.io';
 import { SessionService } from 'src/app_modules/auth/services/session.service';
+import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 
 @Injectable()
 export class PubSubService implements OnModuleInit {
 
   private readonly subscriber: Redis
-  private readonly logger = new Logger(PubSubService.name)
+  private readonly logger: LoggerService
   private socketServer: Server | undefined
 
   constructor(
     private readonly redisService: RedisService,
     private readonly accessTokenRefreshService: AccessTokenRefreshService,
     private readonly sessionService: SessionService,
+    meiliLogger: MeiliLoggerService,
   ) {
+    this.logger = meiliLogger.forContext(PubSubService.name)
     this.subscriber = this.redisService.getClient().duplicate()
     this.subscriber.on('error', (e) => this.logger.error(`Redis subscriber error: ${e?.message || e}`))
   }
@@ -77,7 +80,7 @@ export class PubSubService implements OnModuleInit {
     const lockKey = `oauth2:refresh_lock:${provider}:${userId ?? '__global__'}`
     const ok = await this.redisService.getClient().set(lockKey, '1', 'EX', 30, 'NX')
     if (!ok) {
-      this.logger.debug(`Skip refresh (locked) for provider=${provider} userId=${userId ?? '[none]'}`)
+      this.logger.debug?.(`Skip refresh (locked) for provider=${provider} userId=${userId ?? '[none]'}`)
       return
     }
 

@@ -1,12 +1,12 @@
 import { Resolver, Query, Mutation, Args, ID, Info } from '@nestjs/graphql';
-import { NotebookPageService } from '../../services/lab-notebook/notebook-page.service';
+import { NotebookPageService } from '../services/notebook-page.service';
 import { UUID } from 'crypto';
-import { CreatePageInput } from '../../Models/DTO/lab-notebook/create-page-input';
-import { UpdatePageInput } from '../../Models/DTO/lab-notebook/update-page-input';
 import { AuthenticatedUserId } from 'src/metadata/metadata';
 import { GraphQLResolveInfo } from 'graphql';
-import { NotebookPage } from '../../Models/entities/lab-notebook/lab-notebook-page.entity';
+import { NotebookPage } from '../Models/entities/lab-notebook-page.entity';
 import { GraphqlUtils } from 'src/utils/graphql-utils/graphql-utils';
+import { CreatePageInput } from '../Models/DTO/create-page-input';
+import { UpdatePageInput } from '../Models/DTO/update-page-input';
 
 
 @Resolver(() => NotebookPage)

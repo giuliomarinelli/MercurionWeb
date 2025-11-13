@@ -1,14 +1,18 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, LoggerService } from '@nestjs/common';
 import { Redis } from 'ioredis';
+import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 
 @Injectable()
 export class RedisService {
 
-  private readonly logger = new Logger(RedisService.name)
+  private readonly logger: LoggerService
 
   constructor(
-    private readonly redisClient: Redis
-  ) { }
+    private readonly redisClient: Redis,
+    meiliLogger: MeiliLoggerService
+  ) {
+    this.logger = meiliLogger.forContext(RedisService.name)
+  }
 
 
   public getClient(): Redis {
@@ -101,16 +105,16 @@ export class RedisService {
   async scanKeysByPattern(pattern: string): Promise<string[]> {
     const keys: string[] = [];
     let cursor = '0';
-    this.logger.debug('🔍 Scanning pattern:', pattern);
+    this.logger.debug?.('🔍 Scanning pattern:', pattern);
 
     do {
       const [nextCursor, results] = await this.redisClient.scan(cursor, 'MATCH', pattern, 'COUNT', '100');
-      this.logger.debug('→ SCAN returned cursor:', nextCursor, '| results:', results);
+      this.logger.debug?.('→ SCAN returned cursor:', nextCursor, '| results:', results);
       cursor = nextCursor;
       keys.push(...results);
     } while (cursor !== '0');
 
-    this.logger.debug('✅ Total keys found:', keys.length);
+    this.logger.debug?.('✅ Total keys found:', keys.length);
     return keys;
   }
 

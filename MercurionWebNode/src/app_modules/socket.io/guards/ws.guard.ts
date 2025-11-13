@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable, Logger } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, LoggerService } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Socket } from 'socket.io';
 import { TokenType } from 'src/app_modules/auth/Models/enums/token-type.enum';
@@ -7,18 +7,22 @@ import { SecureCookieService } from 'src/app_modules/auth/services/secure-cookie
 import { SessionService } from 'src/app_modules/auth/services/session.service';
 import { IS_PUBLIC_KEY } from 'src/metadata/metadata';
 import { WebSocketUtils } from 'src/utils/web-socket-utils/web-socket-utils';
+import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 
 @Injectable()
 export class WsGuard implements CanActivate {
 
-  private readonly logger = new Logger(WsGuard.name)
+  private readonly logger: LoggerService
 
   constructor(
     private readonly jwtTools: JwtToolsService,
     private readonly sessionService: SessionService,
     private readonly reflector: Reflector,
-    private readonly secureCookieService: SecureCookieService
-  ) { }
+    private readonly secureCookieService: SecureCookieService,
+    meiliLogger: MeiliLoggerService
+  ) {
+    this.logger = meiliLogger.forContext(WsGuard.name)
+  }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
 
@@ -82,7 +86,7 @@ export class WsGuard implements CanActivate {
       client.data.userId = payload.sub
       client.data.sessionId = payload.sid
       client.data.scopes = payload.scp?.split(' ') ?? []
-      this.logger.debug(`Socket ${client.id} polling connection state: PRIVATE (Authenticated)`)
+      this.logger.debug?.(`Socket ${client.id} polling connection state: PRIVATE (Authenticated)`)
       return true
     } catch {
       this.unauthorized(client)

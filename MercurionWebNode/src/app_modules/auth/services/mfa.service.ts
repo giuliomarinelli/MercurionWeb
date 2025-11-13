@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, LoggerService } from '@nestjs/common';
 import { UUID } from 'crypto';
 import { SercurityService } from './sercurity.service';
 import { UserService } from 'src/app_modules/user/services/user.service';
@@ -26,11 +26,12 @@ import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { MfaContext } from '../Models/enums/mfa-context.enum';
 import { uuidv7 } from '@kripod/uuidv7';
 import { SecurityAuditService } from 'src/app_modules/meilisearch/services/security-audit/security-audit.service';
+import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 
 @Injectable()
 export class MfaService {
 
-    private readonly logger = new Logger(MfaService.name)
+    private readonly logger: LoggerService
 
     private readonly totpConfig: TotpConfiguration
     private readonly appName: string
@@ -63,8 +64,10 @@ export class MfaService {
         private readonly jwtTools: JwtToolsService,
         private readonly sessionService: SessionService,
         private readonly redisService: RedisService,
-        private readonly securityAuditService: SecurityAuditService
+        private readonly securityAuditService: SecurityAuditService,
+        meiliLogger: MeiliLoggerService
     ) {
+        this.logger = meiliLogger.forContext(MfaService.name)
         this.totpConfig = this.configService.get<TotpConfiguration>('Totp') as TotpConfiguration
         this.appName = this.configService.get<string>("App.globalName") as string
     }

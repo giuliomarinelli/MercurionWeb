@@ -1,13 +1,19 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, LoggerService } from '@nestjs/common';
 import { OAuth2ClientService } from './oauth2-client.service';
 import { UUID } from 'crypto';
+import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 
 @Injectable()
 export class AccessTokenRefreshService {
 
-    private readonly logger = new Logger(AccessTokenRefreshService.name)
+    private readonly logger: LoggerService
 
-    constructor(private readonly oauth2ClientService: OAuth2ClientService) { }
+    constructor(
+        private readonly oauth2ClientService: OAuth2ClientService,
+        meiliLogger: MeiliLoggerService
+    ) {
+        this.logger = meiliLogger.forContext(AccessTokenRefreshService.name)
+    }
 
     /**
      * Forza il rinnovo dell'access token di uno user per uno specifico provider.

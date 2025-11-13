@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UUID } from 'crypto';
-import { LabNotebook } from '../../Models/entities/lab-notebook/lab-notebook.entity';
+import { LabNotebook } from '../Models/entities/lab-notebook.entity';
 import { GraphqlUtils as GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils';
 

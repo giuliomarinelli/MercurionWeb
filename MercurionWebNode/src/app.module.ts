@@ -25,6 +25,7 @@ import { MoleculeCollectionModule } from './app_modules/molecule-collection/mole
 import { SynthModule } from './app_modules/synth/synth.module';
 import { MercurionGraphQLModule } from './mercurion-graphql.module';
 import { MercurionAIModule } from './app_modules/mercurion-ai/mercurion-ai.module';
+import { LabNotebookModule } from './app_modules/lab-notebook/lab-notebook.module';
 
 
 
@@ -61,7 +62,8 @@ import { MercurionAIModule } from './app_modules/mercurion-ai/mercurion-ai.modul
     EmbeddingModule,
     HistoryModule,
     MoleculeCollectionModule,
-    SynthModule
+    SynthModule,
+    LabNotebookModule
   ],
   providers: [
     {

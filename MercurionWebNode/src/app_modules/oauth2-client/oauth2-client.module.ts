@@ -6,9 +6,14 @@ import { OAuth2TokenEntity } from './Models/entities/oauth2-token.entity';
 import { RedisModule } from '../redis/redis.module';
 import { OAuth2ClientController } from './controllers/o-auth2-client.controller';
 import { AccessTokenRefreshService } from './services/access-token-refresh.service';
+import { MeilisearchModule } from '../meilisearch/meilisearch.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([OAuth2TokenEntity]), forwardRef(() => RedisModule)],
+    imports: [
+        TypeOrmModule.forFeature([OAuth2TokenEntity]),
+        forwardRef(() => RedisModule),
+        MeilisearchModule
+    ],
     providers: [OAuth2PersistenceService, OAuth2ClientService, AccessTokenRefreshService],
     controllers: [OAuth2ClientController],
     exports: [AccessTokenRefreshService, OAuth2ClientService]

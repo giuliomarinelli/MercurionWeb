@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotebookChapterService } from './notebook-chapter.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { NotebookChapter } from '../../Models/entities/lab-notebook/lab-notebook-chapter.entity';
+import { NotebookChapter } from '../Models/entities/lab-notebook-chapter.entity';
 
 describe('NotebookChapterService', () => {
   let service: NotebookChapterService;

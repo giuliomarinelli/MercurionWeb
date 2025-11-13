@@ -1,5 +1,5 @@
 /* eslint-disable no-useless-escape */
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, LoggerService } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, Repository } from 'typeorm';
 import { UUID } from 'crypto';
@@ -13,6 +13,7 @@ import { uuidv7 } from '@kripod/uuidv7';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { MoleculeCollectionItemJoin } from '../Models/entities/molecule-collection-item-join.entity';
 import { ChEMBLMoleculeItemEntity } from '../Models/entities/chembl-molecule-item.entity';
+import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 
 @Injectable()
 export class MoleculeCollectionService {
@@ -139,13 +140,16 @@ WHERE i.user_id = $2::uuid
   );
 `
 
-  private readonly logger = new Logger(MoleculeCollectionService.name)
+  private readonly logger: LoggerService
 
   constructor(
     @InjectRepository(MoleculeCollection)
     private readonly collectionRepo: Repository<MoleculeCollection>,
-    private readonly dataSource: DataSource
-  ) { }
+    private readonly dataSource: DataSource,
+    meiliLogger: MeiliLoggerService
+  ) {
+    this.logger = meiliLogger.forContext(MoleculeCollectionService.name)
+  }
 
   async markAsTouched(userId: UUID, collectionId: UUID): Promise<boolean> {
     try {
