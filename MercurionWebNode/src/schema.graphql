@@ -26,53 +26,6 @@ type MoleculeCollectionItemJoin {
   item: MoleculeCollectionItemEntity
 }
 
-type LabNotebook {
-  id: ID!
-  title: String!
-  chapters: [NotebookChapter!]!
-  createdAt: String
-  updatedAt: String
-}
-
-type NotebookChapter {
-  id: ID!
-  title: String!
-  notebook: LabNotebook!
-  sections: [NotebookSection!]
-  order: Int!
-  createdAt: String
-  updatedAt: String
-}
-
-type NotebookSection {
-  id: ID!
-  title: String!
-  chapter: NotebookChapter!
-  pages: [NotebookPage!]
-  order: Int!
-  description: String
-  createdAt: String
-  updatedAt: String
-}
-
-type LabNotebookLinkType {
-  id: ID!
-  noteId: ID!
-  itemId: ID!
-}
-
-type NotebookPage {
-  id: ID!
-  title: String
-  content: String
-  sanitizedText: String
-  section: NotebookSection!
-  links: [LabNotebookLinkType!]!
-  createdAt: String
-  updatedAt: String
-  order: Int!
-}
-
 type ChEMBLMoleculeItemEntity implements MoleculeCollectionItemEntity {
   id: ID!
   label: String
@@ -228,16 +181,54 @@ type Synthesis {
   steps: [SynthStep!]
 }
 
+type LabNotebook {
+  id: ID!
+  title: String!
+  chapters: [NotebookChapter!]!
+  createdAt: String
+  updatedAt: String
+}
+
+type NotebookChapter {
+  id: ID!
+  title: String!
+  notebook: LabNotebook!
+  sections: [NotebookSection!]
+  order: Int!
+  createdAt: String
+  updatedAt: String
+}
+
+type NotebookSection {
+  id: ID!
+  title: String!
+  chapter: NotebookChapter!
+  pages: [NotebookPage!]
+  order: Int!
+  description: String
+  createdAt: String
+  updatedAt: String
+}
+
+type LabNotebookLinkType {
+  id: ID!
+  noteId: ID!
+  itemId: ID!
+}
+
+type NotebookPage {
+  id: ID!
+  title: String
+  content: String
+  sanitizedText: String
+  section: NotebookSection!
+  links: [LabNotebookLinkType!]!
+  createdAt: String
+  updatedAt: String
+  order: Int!
+}
+
 type Query {
-  page(id: String!): NotebookPage
-  pagesBySection(sectionId: String!): [NotebookPage!]!
-  pageById(id: ID!): NotebookPage!
-  chaptersByNotebook(notebookId: ID!): [NotebookChapter!]!
-  chapterById(id: ID!): NotebookChapter!
-  sectionByChapterId(chapterId: ID!): NotebookSection!
-  sectionById(id: ID!): NotebookSection!
-  labNotebooksByUser: [LabNotebook!]!
-  labNotebook(id: ID!): LabNotebook
   moleculeSearch(input: MoleculeSearchInput!): [MoleculeSearchResult!]!
   moleculeSearch_excludeAlreadyAdded(input: MoleculeSearchInput!, collectionId: ID!): [MoleculeSearchResult!]!
   moleculesByMolregnos(molregnos: [String!]!): [MoleculeDetail!]!
@@ -260,6 +251,15 @@ type Query {
   syntheticStepsByRoute(routeId: ID!): [SynthStep!]!
   syntheticStepById(id: ID!): SynthStep
   stepMoleculeRefs(stepId: ID!): [SynthStepMoleculeRef!]!
+  page(id: String!): NotebookPage
+  pagesBySection(sectionId: String!): [NotebookPage!]!
+  pageById(id: ID!): NotebookPage!
+  chaptersByNotebook(notebookId: ID!): [NotebookChapter!]!
+  chapterById(id: ID!): NotebookChapter!
+  sectionByChapterId(chapterId: ID!): NotebookSection!
+  sectionById(id: ID!): NotebookSection!
+  labNotebooksByUser: [LabNotebook!]!
+  labNotebook(id: ID!): LabNotebook
 }
 
 input MoleculeSearchInput {
@@ -272,24 +272,6 @@ input MoleculeSearchInput {
 }
 
 type Mutation {
-  createPage(input: CreatePageInput!): NotebookPage!
-  updatePage(input: UpdatePageInput!): NotebookPage
-  deletePage(id: String!): Boolean!
-  movePage(pageId: ID!, direction: String!): Boolean!
-  reorderPages(sectionId: ID!, orderedIds: [ID!]!): Boolean!
-  createChapter(input: CreateChapterInput!): NotebookChapter!
-  updateChapter(input: UpdateChapterInput!): NotebookChapter!
-  deleteChapter(id: ID!): Boolean!
-  moveChapter(chapterId: ID!, direction: String!): Boolean!
-  reorderChapters(notebookId: ID!, orderedIds: [ID!]!): Boolean!
-  createSection(input: CreateSectionInput!): NotebookSection!
-  updateSection(input: UpdateSectionInput!): NotebookSection!
-  deleteSection(id: ID!): Boolean!
-  moveSection(sectionId: ID!, direction: String!): Boolean!
-  reorderSections(chapterId: ID!, orderedIds: [ID!]!): Boolean!
-  createLabNotebook(title: String!): LabNotebook!
-  updateLabNotebook(input: UpdateLabNotebookInput!): LabNotebook!
-  deleteLabNotebook(id: ID!): Boolean!
   createMoleculeCollection(name: String!): MoleculeCollection!
   createManyMoleculeCollections(names: [String!]!): Boolean!
   updateMoleculeCollection(id: ID!, name: String!): MoleculeCollection!
@@ -316,47 +298,24 @@ type Mutation {
   addStepMoleculeRef(input: SynthStepMoleculeRefInput!): SynthStepMoleculeRef!
   updateStepMoleculeRef(id: ID!, input: SynthStepMoleculeRefInput!): SynthStepMoleculeRef!
   removeStepMoleculeRef(id: ID!): Boolean!
-}
-
-input CreatePageInput {
-  sectionId: ID!
-  title: String
-  content: String
-}
-
-input UpdatePageInput {
-  id: ID!
-  title: String
-  content: String
-  order: Int
-}
-
-input CreateChapterInput {
-  notebookId: String!
-  title: String!
-}
-
-input UpdateChapterInput {
-  id: ID!
-  title: String
-  order: Int
-}
-
-input CreateSectionInput {
-  chapterId: ID!
-  title: String!
-  description: String
-}
-
-input UpdateSectionInput {
-  id: ID!
-  title: String
-  description: String
-}
-
-input UpdateLabNotebookInput {
-  title: String
-  id: String!
+  createPage(input: CreatePageInput!): NotebookPage!
+  updatePage(input: UpdatePageInput!): NotebookPage
+  deletePage(id: String!): Boolean!
+  movePage(pageId: ID!, direction: String!): Boolean!
+  reorderPages(sectionId: ID!, orderedIds: [ID!]!): Boolean!
+  createChapter(input: CreateChapterInput!): NotebookChapter!
+  updateChapter(input: UpdateChapterInput!): NotebookChapter!
+  deleteChapter(id: ID!): Boolean!
+  moveChapter(chapterId: ID!, direction: String!): Boolean!
+  reorderChapters(notebookId: ID!, orderedIds: [ID!]!): Boolean!
+  createSection(input: CreateSectionInput!): NotebookSection!
+  updateSection(input: UpdateSectionInput!): NotebookSection!
+  deleteSection(id: ID!): Boolean!
+  moveSection(sectionId: ID!, direction: String!): Boolean!
+  reorderSections(chapterId: ID!, orderedIds: [ID!]!): Boolean!
+  createLabNotebook(title: String!): LabNotebook!
+  updateLabNotebook(input: UpdateLabNotebookInput!): LabNotebook!
+  deleteLabNotebook(id: ID!): Boolean!
 }
 
 input CreateMoleculeItemInput {
@@ -404,4 +363,45 @@ input SynthStepMoleculeRefInput {
   moleculeId: ID!
   role: MoleculeRole!
   showAliasOnTheArrow: Boolean!
+}
+
+input CreatePageInput {
+  sectionId: ID!
+  title: String
+  content: String
+}
+
+input UpdatePageInput {
+  id: ID!
+  title: String
+  content: String
+  order: Int
+}
+
+input CreateChapterInput {
+  notebookId: String!
+  title: String!
+}
+
+input UpdateChapterInput {
+  id: ID!
+  title: String
+  order: Int
+}
+
+input CreateSectionInput {
+  chapterId: ID!
+  title: String!
+  description: String
+}
+
+input UpdateSectionInput {
+  id: ID!
+  title: String
+  description: String
+}
+
+input UpdateLabNotebookInput {
+  title: String
+  id: String!
 }

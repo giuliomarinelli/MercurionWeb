@@ -21,7 +21,7 @@ import { LabNotebookResolver } from './resolvers/lab-notebook.resolver';
             NotebookChapter,
             NotebookPage,
             NotebookSection,
-            LabNotebook
+            LabNotebook 
         ])
     ],
     providers: [
