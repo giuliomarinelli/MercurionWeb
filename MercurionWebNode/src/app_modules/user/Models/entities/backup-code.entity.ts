@@ -25,6 +25,9 @@ export class MfaBackupCode {
     @JoinColumn()
     user: User
 
+    @Column({ type: 'uuid' })
+    userId: UUID
+
     @BeforeInsert()
     private generateId() {
         this.id = uuidv7() as UUID

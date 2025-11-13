@@ -18,6 +18,8 @@ import { SercurityService } from '../services/sercurity.service';
 import { ProfileDTO, ProfileRegistryDTO } from '../Models/DTO/profile.dtos';
 import { SessionService } from '../services/session.service';
 import { SessionDTO } from '../Models/DTO/session.dto';
+import { BackupCodeStatusDTO } from 'src/app_modules/user/Models/DTO/backup-code-status.dto';
+import { RpcException } from '@nestjs/microservices';
 
 
 
@@ -218,7 +220,7 @@ export class AccountController {
 
     @Public()
     @HttpCode(HttpStatus.OK)
-    @Post('/is-email-available')    
+    @Post('/is-email-available')
     async isEmailAvailable(@Body(new ValidationPipe({ transform: true })) { email }: EmailDTO): Promise<boolean> {
         return this.accountService.isUserAvailableByEmail(email)
     }
@@ -231,4 +233,30 @@ export class AccountController {
         return this.sessionService.getAllActiveSessionsByUserIdAsDTOs(userId, sessionId)
     }
 
+    @Get('/mfa/backup/status')
+    public async getBackupCodesStatus(
+        @AuthenticatedUserId() userId: UUID
+    ): Promise<BackupCodeStatusDTO> {
+        return this.mfaService.getBackupCodesStatus(userId)
+    }
+
+    @Patch('/mfa/backup/regenerate')
+    @HttpCode(HttpStatus.OK)
+    public async regenerateBackupCodes(
+        @AuthenticatedUserId() userId: UUID
+    ): Promise<{ codes: string[] }> {
+
+        const strategies = await this.mfaService.getEnabledMfaStrategies(userId)
+        if (!strategies.length) {
+            throw new RpcException('BackupCodes::MfaNotEnabled')
+        }
+
+        const codes = await this.mfaService.regenerateBackupCodes(userId)
+
+        // volendo puoi anche loggare un evento di sicurezza o mandare email
+        // "Sono stati rigenerati i codici di backup del tuo account"
+
+        return { codes }
+    }
+    
 }

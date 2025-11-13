@@ -1,11 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { UUID } from 'crypto';
 import { SercurityService } from './sercurity.service';
 import { UserService } from 'src/app_modules/user/services/user.service';
 import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MfaBackupCode } from 'src/app_modules/user/Models/entities/backup-code.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { PasswordEncoderService } from './password-encoder.service';
 import { User } from 'src/app_modules/user/Models/entities/user.entity';
 import { BackupCodeStatusDTO } from 'src/app_modules/user/Models/DTO/backup-code-status.dto';
@@ -24,9 +24,12 @@ import { nullish } from 'src/Models/nullish.type';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { MfaContext } from '../Models/enums/mfa-context.enum';
+import { uuidv7 } from '@kripod/uuidv7';
 
 @Injectable()
 export class MfaService {
+
+    private readonly logger = new Logger(MfaService.name)
 
     private readonly totpConfig: TotpConfiguration
     private readonly appName: string
@@ -38,12 +41,21 @@ export class MfaService {
     private readonly MFA_SEND_WINDOW_SECONDS = 10 * 60
     private readonly MFA_MAX_SENDS = 5
 
+    private readonly BACKUP_FAIL_WINDOW_SECONDS = 10 * 60    // 10 minuti
+    private readonly BACKUP_MAX_FAILS = 5                    // 5 tentativi
+    private readonly BACKUP_LOCK_SECONDS = 15 * 60           // 15 minuti
+
+    // backup codes: rigenerazione
+    private readonly BACKUP_REGEN_WINDOW_SECONDS = 60 * 60   // 1 ora
+    private readonly BACKUP_REGEN_MAX_REQUESTS = 3           // max 3 rigenerazioni/ora
+
     constructor(
-        private readonly securityService: SercurityService,
-        private readonly userService: UserService,
-        private readonly passwordEncoderService: PasswordEncoderService,
         @InjectRepository(MfaBackupCode)
         private readonly backupCodeRepository: Repository<MfaBackupCode>,
+        private readonly dataSource: DataSource,
+        private readonly passwordEncoderService: PasswordEncoderService,
+        private readonly securityService: SercurityService,
+        private readonly userService: UserService,
         private readonly smsService: SmsSenderService,
         private readonly mailService: MailSenderService,
         private readonly configService: ConfigService,
@@ -63,40 +75,135 @@ export class MfaService {
         return await this.userService.getUserEnabledMfaStrategies(userId)
     }
 
+    private getBackupFailKey(userId: UUID): string {
+        return `mfa:backup:fail:${userId}`
+    }
+
+    private getBackupLockKey(userId: UUID): string {
+        return `mfa:backup:lock:${userId}`
+    }
+
+    private getBackupRegenKey(userId: UUID): string {
+        return `mfa:backup:regen:${userId}`
+    }
+
+    private getBackupRegenLockKey(userId: UUID): string {
+        return `mfa:backup:regen:lock:${userId}`
+    }
+
+    private async ensureBackupNotLocked(userId: UUID): Promise<void> {
+        const lockKey = this.getBackupLockKey(userId)
+        const locked = await this.redisService.exists(lockKey)
+        if (locked) {
+            throw new RpcException('BackupCode::TooManyAttempts')
+        }
+    }
+
+    private async registerBackupFailure(userId: UUID): Promise<void> {
+        const failKey = this.getBackupFailKey(userId)
+        const lockKey = this.getBackupLockKey(userId)
+
+        const fails = await this.redisService.getClient().incr(failKey)
+
+        if (fails === 1) {
+            await this.redisService.setTTL(failKey, this.BACKUP_FAIL_WINDOW_SECONDS)
+        }
+
+        if (fails >= this.BACKUP_MAX_FAILS) {
+            await this.redisService.set(lockKey, '1', this.BACKUP_LOCK_SECONDS)
+            await this.redisService.del(failKey)
+        }
+    }
+
+    private async clearBackupFailures(userId: UUID): Promise<void> {
+        const failKey = this.getBackupFailKey(userId)
+        const lockKey = this.getBackupLockKey(userId)
+        await this.redisService.del(failKey)
+        await this.redisService.del(lockKey)
+    }
+
+    private async throttleBackupRegeneration(userId: UUID): Promise<void> {
+        const countKey = this.getBackupRegenKey(userId)
+        const lockKey = this.getBackupRegenLockKey(userId)
+
+        const locked = await this.redisService.exists(lockKey)
+        if (locked) {
+            throw new RpcException('BackupCodeRegen::TooManyRequests')
+        }
+
+        const cnt = await this.redisService.getClient().incr(countKey)
+        if (cnt === 1) {
+            await this.redisService.setTTL(countKey, this.BACKUP_REGEN_WINDOW_SECONDS)
+        }
+
+        if (cnt > this.BACKUP_REGEN_MAX_REQUESTS) {
+            await this.redisService.set(lockKey, '1', this.BACKUP_REGEN_WINDOW_SECONDS)
+            throw new RpcException('BackupCodeRegen::TooManyRequests')
+        }
+    }
+
+
     public async generateBackupCodes(userId: UUID): Promise<string[]> {
+
         const codes = Array.from({ length: 10 }).map(() => this.securityService.generateReadableCode())
 
         const entities = await Promise.all(codes.map(async code => ({
+            id: uuidv7() as UUID,
             hash: await this.passwordEncoderService.encode(code),
             used: false,
             createdAt: Date.now(),
             user: { id: userId } as Pick<User, 'id'>
         })))
-
-        await this.backupCodeRepository.save(entities)
-        return codes
+        try {
+            await this.backupCodeRepository.save(entities)
+            return codes
+        } catch (e) {
+            this.logger.warn(' > generateBackupCodes > ERROR', e)
+            throw e
+        }
     }
 
     public async verifyBackupCode(userId: UUID, plainCode: string): Promise<boolean> {
 
-        const codes = await this.backupCodeRepository.find({ where: { user: { id: userId }, used: false } })
+        await this.ensureBackupNotLocked(userId)
 
+        const codes = await this.backupCodeRepository.find({
+            where: { userId, used: false }
+        })
+
+        if (!codes || !codes.length) {
+            await this.registerBackupFailure(userId)
+            return false
+        }
+
+        let matched = false
         for (const c of codes) {
             const match = await this.passwordEncoderService.compare(plainCode, c.hash)
             if (match) {
+                matched = true
                 c.used = true
                 c.usedAt = Date.now()
                 await this.backupCodeRepository.save(c)
-                return true
+                break
             }
         }
-        return false
+
+        if (!matched) {
+            await this.registerBackupFailure(userId)
+            return false
+        }
+
+        await this.clearBackupFailures(userId)
+        return true
     }
 
+
     public async regenerateBackupCodes(userId: UUID): Promise<string[]> {
-        await this.backupCodeRepository.delete({ user: { id: userId } })
-        return await this.generateBackupCodes(userId)
+        await this.throttleBackupRegeneration(userId)
+        await this.backupCodeRepository.delete({ userId })
+        return this.generateBackupCodes(userId)
     }
+
 
     public async hasValidBackupCodes(userId: UUID): Promise<boolean> {
         const count = await this.backupCodeRepository.count({ where: { user: { id: userId }, used: false } })
@@ -111,6 +218,10 @@ export class MfaService {
             used,
             remaining: codes.length - used
         }
+    }
+
+    public async destroyBackupCodes(userId: UUID): Promise<void> {
+        await this.backupCodeRepository.delete({ userId })
     }
 
     private getMfaFailKey(userId: UUID, strategy: MfaStrategy, context: MfaContext = MfaContext.VERIFY): string {
@@ -421,7 +532,7 @@ export class MfaService {
                 return false
             }
         }
-        
+
         await this.userService.appendMfaStrategy(userId, strategy)
 
         return true
@@ -558,7 +669,30 @@ export class MfaService {
             return false
         }
 
-        await this.userService.removeMfaStrategy(userId, strategy)
+        await this.dataSource.manager.transaction(async (manager) => {
+            
+            const row = await manager.createQueryBuilder(User, 'u')
+                .select(['u.mfaStrategies'])
+                .where('u.id = :id', { id: userId })
+                .getOneOrFail()
+            
+            const { mfaStrategies: rawMfaStrategies } = row
+            const mfaStrategiesWithoutJustDisabledStrategy = (JSON.parse(rawMfaStrategies) as string[])
+                .map(uuid => GeneralUtils.getEnumValue(MfaStrategy, uuid))
+                .filter(val => val != undefined).filter(st => st !== strategy)
+            await manager.update(User,
+                {
+                    id: userId
+                },
+                {
+                    mfaStrategies: JSON.stringify(mfaStrategiesWithoutJustDisabledStrategy)
+                })
+            if (mfaStrategiesWithoutJustDisabledStrategy.length === 0) {
+                await manager.delete(MfaBackupCode, { userId })
+            }
+        })
+
+
         await this.clearMfaFailures(userId, strategy, context)
         return true
     }

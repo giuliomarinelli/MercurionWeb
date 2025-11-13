@@ -171,7 +171,7 @@ export class AuthenticationController {
         }
         const expectedDev = await this.redisService.get(`mfa:pat:dev:${jti}`)
         if (expectedDev && expectedDev !== actualDeviceId) {
-            await this.sessionService.revokeToken(jti) 
+            await this.sessionService.revokeToken(jti)
             throw new UnauthorizedException('MfaDeviceMismatch')
         }
         const { totp } = dto
@@ -243,5 +243,61 @@ export class AuthenticationController {
     ): Promise<string> {
         return this.jwtTools.generateToken(userId, TokenType.ws_AccessToken, sessionId)
     }
+
+    @Public()
+    @Post('/login/backup/3')
+    @HttpCode(HttpStatus.OK)
+    public async login_thirdStep_backupCode(
+        @Authorization() preAuthorizationToken: string,
+        @Body('code') code: string,
+        @Fingerprint() fingerprintData: FingerprintData,
+        @ClientIp() ip: string,
+        @Req() req: FastifyRequest,
+        @Res({ passthrough: true }) reply: FastifyReply,
+        @DeviceId() actualDeviceId: UUID
+    ): Promise<ConfirmWithTokenPairAndInitialsDTO> {
+
+        const loginPendingVal = req.cookies['__logged_in'] ?? ''
+        const maxAge = loginPendingVal === 'pending_long' ? this.LONG_SESSION_TTL : undefined
+
+        let userId: UUID
+        let sessionId: UUID
+        let jti: UUID
+
+        try {
+            ({ sub: userId, sid: sessionId, jti } = await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken))
+        } catch {
+            throw new UnauthorizedException()
+        }
+
+        const expectedDev = await this.redisService.get(`mfa:pat:dev:${jti}`)
+        if (expectedDev && expectedDev !== actualDeviceId) {
+            await this.sessionService.revokeToken(jti)
+            throw new UnauthorizedException('MfaDeviceMismatch')
+        }
+
+        const ok = await this.mfaService.verifyBackupCode(userId, code)
+        await this.sessionService.revokeToken(jti)
+
+        if (!ok) {
+            throw new UnauthorizedException('InvalidBackupCode')
+        }
+
+        const { accessToken, ws_accessToken } = await this.authService.performAuthentication({ userId, sessionId }, fingerprintData, ip)
+
+        reply.setCookie('__logged_in', 'true', {
+            ...this.cookieConf,
+            maxAge,
+            httpOnly: false
+        })
+
+        return {
+            ...this._r.ok('Authenticated successfully (backup code)'),
+            accessToken,
+            ws_accessToken,
+            initials: (await this.userService.getUserInitialsByUserId(userId)) ?? ''
+        }
+    }
+
 
 }

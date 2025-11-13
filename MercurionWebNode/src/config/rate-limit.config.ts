@@ -45,10 +45,10 @@ export function routeAwareMax(req: FastifyRequest): number {
     if (method === 'POST' && path === '/api/account/register') return scale(12)
     if (method === 'PATCH' && path === '/api/account/activate') return scale(12)
 
-    if (method === 'PATCH' && path === '/api/account/email/1') return scale(6)   
-    if (method === 'PATCH' && path === '/api/account/email/2') return scale(10)  
-    if (method === 'PATCH' && path === '/api/account/phone/1') return scale(4)   
-    if (method === 'PATCH' && path === '/api/account/phone/2') return scale(8)   
+    if (method === 'PATCH' && path === '/api/account/email/1') return scale(6)
+    if (method === 'PATCH' && path === '/api/account/email/2') return scale(10)
+    if (method === 'PATCH' && path === '/api/account/phone/1') return scale(4)
+    if (method === 'PATCH' && path === '/api/account/phone/2') return scale(8)
 
     if (method === 'PATCH' && path.startsWith('/api/account/mfa/enable/') && /\/1$/.test(path)) return scale(3)
     if (method === 'PATCH' && path.startsWith('/api/account/mfa/enable/') && /\/2$/.test(path)) return scale(6)
@@ -67,6 +67,12 @@ export function routeAwareMax(req: FastifyRequest): number {
     if (method === 'GET' && path === '/api/account/email') return scale(60)
 
     if (method === 'GET' && path === '/api/account/active-sessions') return scale(40)
+
+    if (method === 'GET' && path === '/api/account/mfa/backup/status')
+        return scale(30)
+
+    if (method === 'PATCH' && path === '/api/account/mfa/backup/regenerate')
+        return scale(3)   // 3 richieste ogni 5 minuti
 
 
     return scale(100)
