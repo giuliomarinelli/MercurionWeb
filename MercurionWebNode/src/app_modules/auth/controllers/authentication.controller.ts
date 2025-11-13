@@ -34,6 +34,7 @@ export class AuthenticationController {
     private readonly logger = new Logger(AuthenticationController.name)
 
     private readonly cookieConf: CookieConfiguration
+    private readonly LONG_SESSION_TTL: number
 
     constructor(
         private readonly authService: AuthenticationService,
@@ -49,6 +50,7 @@ export class AuthenticationController {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { secret, ...cookieConf } = this.configService.get<SecureCookieConfiguration>('SecureCookie')!
         this.cookieConf = cookieConf
+        this.LONG_SESSION_TTL = this.configService.get<number>('Session.persistentSessionLasting')!
     }
 
     @Public()
@@ -83,7 +85,7 @@ export class AuthenticationController {
 
         this.secureCookieService.setSignedCookie(reply, '__node_session_id', sessionId, {
             ...this.cookieConf,
-            maxAge: remember ? 2_592_000 : undefined
+            maxAge: remember ? this.LONG_SESSION_TTL : undefined
         })
 
         const initials = await this.userService.getUserInitialsByUserId(userId)
@@ -91,7 +93,7 @@ export class AuthenticationController {
         if (await this.mfaService.isMfaEnabled(auth.userId) || auth.suspiciousAttempt) {
             reply.setCookie('__logged_in', remember ? 'pending_long' : 'pending_short', {
                 ...this.cookieConf,
-                maxAge: remember ? 2_592_000 : undefined,
+                maxAge: remember ? this.LONG_SESSION_TTL : undefined,
                 httpOnly: false
             })
             return {
@@ -103,7 +105,7 @@ export class AuthenticationController {
         }
         reply.setCookie('__logged_in', 'true', {
             ...this.cookieConf,
-            maxAge: remember ? 2_592_000 : undefined,
+            maxAge: remember ? this.LONG_SESSION_TTL : undefined,
             httpOnly: false
         })
 
@@ -158,7 +160,7 @@ export class AuthenticationController {
     ): Promise<ConfirmWithTokenPairAndInitialsDTO> {
 
         const loginPendingVal = req.cookies['__logged_in'] ?? ''
-        const maxAge = loginPendingVal === 'pending_long' ? 2_592_000 : undefined
+        const maxAge = loginPendingVal === 'pending_long' ? this.LONG_SESSION_TTL : undefined
         let userId: UUID
         let sessionId: UUID
         let jti: UUID
@@ -211,7 +213,7 @@ export class AuthenticationController {
         }
         this.secureCookieService.clearCookie(reply, '__node_session_id')
         reply.clearCookie('__logged_in')
-        this.logger.debug('Logged out. Response with status 204 - No Content')
+        // this.logger.debug('Logged out. Response with status 204 - No Content')
     }
 
 

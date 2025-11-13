@@ -202,8 +202,8 @@ const TotpConfig = registerAs(
 const SessionConfig = registerAs(
 
     ConfigKey.Session, (): SessionConfiguration => ({
-        shortSessionLasting: Number(process.env.SHORT_SESSION_LASTING),
-        persistentSessionLasting: Number(process.env.PERSISTENT_SESSION_LASTING),
+        shortSessionLasting: Number(process.env.SHORT_SESSION_LASTING), 
+        persistentSessionLasting: Number(process.env.PERSISTENT_SESSION_LASTING), 
         sessionZeroId: process.env.SESSION_ZERO_ID as UUID
     })
 

@@ -16,14 +16,16 @@ export class SessionService {
 
     private readonly secret: string
 
-    private readonly SHORT_SESSION_TTL = 3600
-    private readonly LONG_SESSION_TTL = 2_592_000
+    private readonly SHORT_SESSION_TTL: number
+    private readonly LONG_SESSION_TTL: number
 
     constructor(
         private readonly redisService: RedisService,
         private readonly configService: ConfigService
     ) {
         this.secret = this.configService.get<string>('App.sessionSignatureSecret')!
+        this.SHORT_SESSION_TTL = this.configService.get<number>('Session.shortSessionLasting')!
+        this.LONG_SESSION_TTL = this.configService.get<number>('Session.persistentSessionLasting')!
     }
 
     private getSessionKeyOrPattern(sessionId: string, userId?: string): string {
@@ -138,18 +140,21 @@ export class SessionService {
         return ttl >= 0 ? ttl : null
     }
 
-    private async revokeManyJtis(jtis: string[]): Promise<void> {
-        if (!jtis.length) return
-        const pipe = this.redisService.getClient().pipeline()
-        for (const jti of jtis) {
-            pipe.sadd(`revoked:${jti}`, jti)
-        }
-        await pipe.exec()
+    private async setRevokedJti(jti: string, sessionId?: string): Promise<void> {
+        const ttl = await this.ttlOfIssuedJti(jti, sessionId)
+        const ex = ttl && ttl > 0 ? ttl : 30 * 24 * 3600;
+        await this.redisService.set(`revoked:${jti}`, '1', ex)
     }
 
+    public async revokeManyJtis(jtis: string[], sessionId?: string): Promise<void> {
+        if (!jtis.length) {
+            return
+        }
+        await Promise.all(jtis.map(jti => this.setRevokedJti(jti, sessionId)))
+    }
 
     // 🔹 Creazione di una nuova sessione (semplificata con Omit<>)
-    async createSession(
+    public async createSession(
         sessionData: Omit<ISession, 'createdAt' | 'sessionId' | 'expiresAt' | 'lastAccessedAt' | 'valid'>,
         rememberMe: boolean
     ): Promise<ISession> {
@@ -163,7 +168,7 @@ export class SessionService {
 
         const sessionId = randomUUID();
         const ttlSeconds = rememberMe ? this.LONG_SESSION_TTL : this.SHORT_SESSION_TTL
-        const expiresAt = Date.now() + ttlSeconds * 1000
+        const expiresAt = Date.now() + this.LONG_SESSION_TTL * 1000
 
         const session: ISession = {
             sessionId,
@@ -196,13 +201,13 @@ export class SessionService {
     }
 
 
-    async activateSession(sessionId: string, userId: string): Promise<void> | never {
+    public async activateSession(sessionId: string, userId: string): Promise<void> | never {
         const session = await this.getSession(sessionId, userId)
         if (!session) throw new RpcException('UnauthorizedNoSuchSession')
         await this.redisService.hset(this.getSessionKeyOrPattern(sessionId, userId), 'valid', 'true')
     }
 
-    async getAllSessionsByUserId(userId: string, opts?: SessionFetchOptions): Promise<ISession[]> {
+    public async getAllSessionsByUserId(userId: string, opts?: SessionFetchOptions): Promise<ISession[]> {
 
         const matchPattern = `session:*:${userId}`
         const keys = await this.redisService.scanIterate(matchPattern)
@@ -245,7 +250,7 @@ export class SessionService {
         return opts?.onlyValid ? sessions.filter(s => s.valid) : sessions
     }
 
-    async getAllActiveSessionsByUserIdAsDTOs(userId: string, currentSessionId: UUID): Promise<SessionDTO[]> {
+    public async getAllActiveSessionsByUserIdAsDTOs(userId: string, currentSessionId: UUID): Promise<SessionDTO[]> {
         const activeSessions = await this.getAllSessionsByUserId(userId, {
             onlyValid: true
         })
@@ -253,7 +258,7 @@ export class SessionService {
     }
 
     // 🔹 Validazione della sessione, deviceId e scadenza
-    async validateSession(sessionId: string, deviceId: string, userId?: string): Promise<boolean> {
+    public async validateSession(sessionId: string, deviceId: string, userId?: string): Promise<boolean> {
 
         const session = await this.getSession(sessionId, userId)
 
@@ -340,7 +345,7 @@ export class SessionService {
 
 
     // 🔹 Revocare una sessione (es. logout o invalidazione)
-    async revokeSession(sessionId: string, userId?: string): Promise<void> {
+    public async revokeSession(sessionId: string, userId?: string): Promise<void> {
         let sessionKey: string = ''
 
         if (userId) {
@@ -355,19 +360,19 @@ export class SessionService {
 
     // 🔹 Revoca e blacklist di un token specifico
     async revokeToken(jti: string, sessionId?: string): Promise<void> {
-        const ttl = await this.ttlOfIssuedJti(jti, sessionId)
-        // fallback: 7 giorni se non trovi TTL (es. token già scaduto o issued mancante)
-        const ex = ttl && ttl > 0 ? ttl : 7 * 24 * 3600;
-        await this.redisService.set(`revoked:${jti}`, '1', ex)
+        await this.setRevokedJti(jti, sessionId)
     }
 
-    async isTokenRevoked(jti: string): Promise<boolean> {
+    public async isTokenRevoked(jti: string): Promise<boolean> {
         return !!(await this.redisService.exists(`revoked:${jti}`))
     }
 
     public async revokeAllTokensBySessionId(sessionId: string): Promise<void> {
         const jtis = await this.getJtiListBySessionId(sessionId)
-        await this.revokeManyJtis(jtis)
+        if (!jtis.length) {
+            return
+        }
+        await this.revokeManyJtis(jtis, sessionId)
     }
 
     public async getJtiListBySessionId(sessionId: string): Promise<string[]> {
@@ -458,7 +463,9 @@ export class SessionService {
             const sid = parts[1]
 
             const jtis = await this.getJtiListBySessionId(sid)
-            for (const jti of jtis) pipeline.sadd(`revoked:${jti}`, jti)
+            for (const jti of jtis) {
+                await this.setRevokedJti(jti, sid)
+            }
 
             pipeline.srem(`user_sessions:${userId}`, sid)
 
@@ -479,7 +486,7 @@ export class SessionService {
 
 
     public async destroySessionAndRevokeAllTokensBySignedSessionId(signedSessionId: string, userId?: string): Promise<void> {
-        
+
         const sessionId = this.verifyAndParseSignedSessionId(signedSessionId)
 
         const { key, userId: uid } = await this.resolveSessionContext(sessionId, userId)
@@ -491,7 +498,9 @@ export class SessionService {
         const pipeline = client.pipeline()
 
         const jtis = await this.getJtiListBySessionId(sessionId)
-        for (const jti of jtis) pipeline.sadd(`revoked:${jti}`, jti)
+        for (const jti of jtis) {
+            await this.setRevokedJti(jti, sessionId)
+        }
 
         pipeline.srem(`user_sessions:${uid}`, sessionId)
 
