@@ -670,16 +670,18 @@ export class MfaService {
         }
 
         await this.dataSource.manager.transaction(async (manager) => {
-            
+
             const row = await manager.createQueryBuilder(User, 'u')
                 .select(['u.mfaStrategies'])
                 .where('u.id = :id', { id: userId })
                 .getOneOrFail()
-            
+
             const { mfaStrategies: rawMfaStrategies } = row
-            const mfaStrategiesWithoutJustDisabledStrategy = (JSON.parse(rawMfaStrategies) as string[])
+            const mfaStrategiesWithoutJustDisabledStrategy = (JSON.parse(rawMfaStrategies || '[]') as string[])
                 .map(uuid => GeneralUtils.getEnumValue(MfaStrategy, uuid))
-                .filter(val => val != undefined).filter(st => st !== strategy)
+                .filter((val): val is MfaStrategy => val !== undefined)
+                .filter(st => st !== strategy)
+
             await manager.update(User,
                 {
                     id: userId
@@ -687,6 +689,11 @@ export class MfaService {
                 {
                     mfaStrategies: JSON.stringify(mfaStrategiesWithoutJustDisabledStrategy)
                 })
+            if (strategy === MfaStrategy.APP_TOTP) {
+                await manager.update(User, { id: userId }, {
+                    appTotpSecret: null
+                })
+            }
             if (mfaStrategiesWithoutJustDisabledStrategy.length === 0) {
                 await manager.delete(MfaBackupCode, { userId })
             }
