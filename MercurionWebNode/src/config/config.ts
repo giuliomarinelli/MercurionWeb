@@ -48,7 +48,8 @@ const AppConfig = registerAs(
         globalName: process.env.APP_GLOBAL_NAME ?? '',
         host: process.env.APP_HOST ?? 'http://localhost',
         sessionSignatureSecret: process.env.APP_SESSION_SIGNATURE_SECRET!,
-        passwordPepper: process.env.APP_PASSWORD_PEPPER!
+        passwordPepper: process.env.APP_PASSWORD_PEPPER!,
+        redisIdHmacSecret: process.env.APP_REDIS_ID_HMAC_SECRET!
     })
 )
 
@@ -194,7 +195,8 @@ const TotpConfig = registerAs(
 
         bytes: Number(process.env.TOTP_CONFIG_BYTES),
         digits: Number(process.env.TOTP_CONFIG_DIGITS),
-        period: Number(process.env.TOTP_CONFIG_PERIOD)
+        period: Number(process.env.TOTP_CONFIG_PERIOD),
+        totpPepper: process.env.TOTP_CONFIG_PEPPER!
 
     })
 )

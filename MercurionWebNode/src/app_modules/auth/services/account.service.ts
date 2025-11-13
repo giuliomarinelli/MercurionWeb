@@ -14,7 +14,7 @@ import { UserActivationContext } from 'src/app_modules/notification/Models/conte
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { RpcException } from '@nestjs/microservices';
 import { User } from 'src/app_modules/user/Models/entities/user.entity';
-import { UUID } from 'crypto';
+import { createHmac, UUID } from 'crypto';
 import { EmailTotpContext } from 'src/app_modules/notification/Models/contexts/email-totp.context';
 import { SessionService } from './session.service';
 import { SmsSenderService } from 'src/app_modules/notification/services/sms-sender/sms-sender.service';
@@ -44,6 +44,8 @@ export class AccountService {
     private readonly PASSWORD_RESET_SEND_WINDOW_SECONDS = 10 * 60
     private readonly PASSWORD_RESET_MAX_SENDS = 5
 
+    private readonly redisIdHmacSecret: string
+
     constructor(
         private readonly userService: UserService,
         private readonly passwordEncoder: PasswordEncoderService,
@@ -57,10 +59,18 @@ export class AccountService {
         private readonly _r: ResponseService
     ) {
         this.CHANGE_PASSWORD_TOKEN_EXPIRATION_MS = this.configService.get<number>('Jwt.changePasswordToken.expiresInMs') ?? 300_000
+        this.redisIdHmacSecret = this.configService.get<string>('App.redisIdHmacSecret')!
+    }
+
+    private hmacKey(raw: string): string {
+        return createHmac('sha256', this.redisIdHmacSecret)
+            .update(raw.toLowerCase(), 'utf8')
+            .digest('hex')
     }
 
     private getRegistrationLockRedisKey(email: string): string {
-        return `email_registration_lock:${email.toLowerCase()}`
+        const digest = this.hmacKey(email.toLowerCase())
+        return `email_registration_lock:${digest}`
     }
 
     private getChangeFailKey(userId: UUID, kind: ContactChangeKind): string {
@@ -199,16 +209,16 @@ export class AccountService {
         }
     }
 
-    public async register(registerDTO: UserRegisterDTO): Promise<ConfirmWithObsContDTO> {
+    public async registerUser(registerDTO: UserRegisterDTO): Promise<ConfirmWithObsContDTO> {
 
         const { password, email, firstName, lastName, job, gender } = registerDTO
-        const emailKey = `email_registration_lock:${email.toLowerCase()}`
+        const emailKey = this.getRegistrationLockRedisKey(email)
         const ttlSeconds = 2 * 60 * 60; // 2 ore
         const alreadyExists = await this.redisService.exists(emailKey) || await this.userService.existsUserByEmail(email)
         if (alreadyExists) {
             throw new RpcException('UserRegistrationConflict::Email already exists')
         }
-        await this.redisService.set(emailKey, 'locked', ttlSeconds);
+        await this.redisService.set(emailKey, 'locked', ttlSeconds)
         const passwordHash = await this.passwordEncoder.encode(password)
         const otpSecret = this.securityService.generateOtpSecret()
         const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
@@ -252,7 +262,7 @@ export class AccountService {
         isVerified = true
         updatedAt = Date.now()
         await this.userService.updateUser(userId, { email, unconfirmedEmail, isVerified, updatedAt }) as User
-        await this.redisService.del(`email_registration_lock:${email.toLowerCase()}`)
+        await this.redisService.del(this.getRegistrationLockRedisKey(email))
         return this._r.ok('Account activated successfully')
     }
 
@@ -269,7 +279,7 @@ export class AccountService {
         await this.throttleContactChangeSend(userId, ContactChangeKind.EMAIL)
 
         // Lock per evitare abusi e race condition
-        const lockKey = `email_change_lock:${newEmail.toLowerCase()}`
+        const lockKey = `email_change_lock:${this.hmacKey(newEmail.toLowerCase())}`
         const exists = await this.redisService.exists(lockKey)
         if (exists) throw new RpcException('ChangeEmail::EmailAlreadyInUseOrPending')
 
@@ -330,7 +340,7 @@ export class AccountService {
             updatedAt: Date.now()
         })
 
-        await this.redisService.del(`email_change_lock:${emailToConfirm.toLowerCase()}`)
+        await this.redisService.del(`email_change_lock:${this.hmacKey(emailToConfirm.toLowerCase())}`)
 
         return this._r.ok('Email successfully changed and verified')
     }
@@ -351,7 +361,7 @@ export class AccountService {
         }
 
         // lock per evitare abusi e race condition
-        const lockKey = `phone_change_lock:${fullNumber}`
+        const lockKey = `phone_change_lock:${this.hmacKey(fullNumber)}`
         const existsLock = await this.redisService.exists(lockKey)
         if (existsLock) throw new RpcException('ChangePhone::NumberAlreadyUsedOrPending')
 
@@ -411,7 +421,7 @@ export class AccountService {
             updatedAt: Date.now()
         })
 
-        await this.redisService.del(`phone_change_lock:${completePhoneNumber}`)
+        await this.redisService.del(`phone_change_lock:${this.hmacKey(completePhoneNumber)}`)
         await this.clearContactChangeFailures(userId, ContactChangeKind.PHONE)
 
         return this._r.ok('Phone number successfully updated')

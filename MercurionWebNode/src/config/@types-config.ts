@@ -16,6 +16,7 @@ export interface AppConfiguration {
     host: string
     sessionSignatureSecret: string
     passwordPepper: string
+    redisIdHmacSecret: string
 
 }
 
@@ -86,6 +87,7 @@ export interface TotpConfiguration {
     bytes: number
     digits: number
     period: number
+    totpPepper: string
 
 }
 

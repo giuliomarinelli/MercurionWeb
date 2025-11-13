@@ -1,21 +1,43 @@
 import { ConfigService } from '@nestjs/config';
 import { Injectable } from '@nestjs/common';
 import { TotpConfiguration } from 'src/config/@types-config';
-import { randomBytes } from 'crypto';
+import { createHmac, randomBytes } from 'crypto';
 import * as speakeasy from 'speakeasy'
 import { TotpWrapper } from '../Models/interfaces/totp-wrapper.interface';
 import { AppTotpWrapper } from '../Models/interfaces/app-totp-wrapper.interface';
 import * as qrcode from 'qrcode';
+import * as base32 from 'hi-base32'
 
 @Injectable()
 export class SercurityService {
 
-    private readonly totpConf: TotpConfiguration
+    private readonly totpConf: Omit<TotpConfiguration, 'totpPepper'>
+    private readonly totpPepper: string
 
     constructor(private readonly configService: ConfigService) {
-        this.totpConf = this.configService.get<TotpConfiguration>('Totp') as TotpConfiguration
+        const { totpPepper, ...totpConf } = this.configService.get<TotpConfiguration>('Totp')!
+        this.totpConf = totpConf
+        this.totpPepper = totpPepper
     }
 
+    /**
+     * Dal segreto salvato in db viene creato un hmac con un segreto salvato sulle variabili d'ambiente
+     * Se viene leakato il segreto dal db non sarà quindi sufficiente per generare TOTP validi
+     */
+    private derivePepperedBase32Secret(rawBase32: string): string {
+
+        const rawBytes = Buffer.from(base32.decode.asBytes(rawBase32))
+        const hmacBytes = createHmac('sha256', this.totpPepper)
+            .update(rawBytes)
+            .digest()
+        // re-encode in base32 (senza padding =)
+        const derived = base32.encode(hmacBytes).toString().replace(/=+$/, '')
+        return derived
+    }
+
+    /** 
+     * Genera un segreto base32 da salvare sul db
+     */
     public generateSecret(bytes: number, encode: 'hex' | 'base32' | 'base64'): string {
 
         const buffer: Buffer = randomBytes(bytes)
@@ -44,25 +66,42 @@ export class SercurityService {
     }
 
     public generateAppTotpSecret(): AppTotpWrapper {
-        const secret = speakeasy.generateSecret({
-            name: this.configService.get<string>('App.globalName'),
+
+        const baseName = this.configService.get<string>('App.globalName')!
+
+        const rawSecret = speakeasy.generateSecret({
+            name: baseName,
             length: this.totpConf.bytes,
-            issuer: this.configService.get<string>('App.globalName')
+            issuer: baseName
         })
-    
+
         const algorithm = 'SHA256'
-        const otpauth_url = `${secret.otpauth_url}&algorithm=${algorithm}&digits=${this.totpConf.digits}&period=${this.totpConf.period}`
-    
+
+        // secret effettivo usato dall’app di autenticazione
+        const derivedBase32 = this.derivePepperedBase32Secret(rawSecret.base32)
+
+        const label = encodeURIComponent(baseName)
+        const issuer = encodeURIComponent(baseName)
+
+        const otpauth_url =
+            `otpauth://totp/${label}?secret=${derivedBase32}` +
+            `&issuer=${issuer}` +
+            `&algorithm=${algorithm}` +
+            `&digits=${this.totpConf.digits}`
+
         return {
-            totpSecret: secret.base32,
+            totpSecret: rawSecret.base32, // questo va in DB
             otpauth_url
         }
     }
 
+
     public generateTotp(base32Secret: string): TotpWrapper {
 
+        const derivedSecret = this.derivePepperedBase32Secret(base32Secret)
+
         const TOTP = speakeasy.totp({
-            secret: base32Secret,
+            secret: derivedSecret,
             encoding: 'base32',
             digits: this.totpConf.digits,
             step: this.totpConf.period,
@@ -81,10 +120,13 @@ export class SercurityService {
         }
     }
 
+
     public verifyTotp(totp: string, base32Secret: string): boolean {
 
+        const derivedSecret = this.derivePepperedBase32Secret(base32Secret)
+
         return speakeasy.totp.verify({
-            secret: base32Secret,
+            secret: derivedSecret,
             encoding: 'base32',
             token: totp,
             digits: this.totpConf.digits,
@@ -94,11 +136,12 @@ export class SercurityService {
         })
     }
 
+
     public generateReadableCode(): string {
         const raw = randomBytes(6).toString('hex'); // 12 caratteri esadecimali (6 byte)
         const chunks = raw.match(/.{1,4}/g);         // Spezza in blocchi da 4 caratteri
         return chunks?.join('-') ?? raw;             // Formatta tipo: "8f4a-d20b-c7e9"
-      }
+    }
 
     public maskEmail(email: string): string {
         const [localPart, domain] = email.split('@')
@@ -117,6 +160,6 @@ export class SercurityService {
     maskPhone(phone: string): string {
         return phone.slice(0, 3) + '******' + phone.slice(-2)
     }
-    
+
 
 }
