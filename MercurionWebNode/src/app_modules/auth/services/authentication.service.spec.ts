@@ -5,14 +5,15 @@ describe('AuthenticationService', () => {
 
   beforeEach(() => {
     service = new AuthenticationService(
-      {} as any,
-      {} as any,
-      {} as any,
-      {} as any,
-      {} as any,
-      {} as any,
-      {} as any,
-      {} as any,
+      {} as any, // passwordEncoder
+      {} as any, // userService
+      {} as any, // sessionService
+      {} as any, // securityService
+      {} as any, // mfaService
+      {} as any, // jwtTools
+      {} as any, // responseService
+      {} as any, // geoIpService
+      {} as any, // redisService
     );
   });
 

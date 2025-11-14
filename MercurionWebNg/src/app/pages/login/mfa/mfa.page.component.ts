@@ -14,12 +14,13 @@ import { SessionSyncService } from '../../../services/session-sync.service';
 import { ISessionDeviceInfo } from '../../../Models/auth/fingerprint.models';
 import { TotpBodyDTO } from '../../../Models/auth/totp-body.dto';
 import { ToastService } from '../../../services/toast.service';
+import { ClassicSpinnerComponent } from '../../../components/common/classic-spinner/classic-spinner.component';
 
 export type MfaView = 'EMAIL_OTP' | 'SMS_OTP' | 'PH_V' | 'APP_TOTP' | ''
 
 @Component({
   selector: 'app-mfa',
-  imports: [ReactiveFormsModule, NgClass],
+  imports: [ReactiveFormsModule, NgClass, ClassicSpinnerComponent],
   template: `
 
     @if (canView()) {
@@ -131,6 +132,10 @@ export type MfaView = 'EMAIL_OTP' | 'SMS_OTP' | 'PH_V' | 'APP_TOTP' | ''
               privacy</a>
           </div>
         </form>
+      </div>
+    } @else {
+      <div class="absolute inset-0 flex justify-center items-center">
+        <app-classic-spinner [size]="60" />
       </div>
     }
 

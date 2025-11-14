@@ -5,7 +5,14 @@ describe('UserService', () => {
   let service: UserService;
 
   beforeEach(() => {
-    service = new UserService({} as any, {} as any);
+    const loggerMock = { log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() };
+    service = new UserService(
+      {} as any,
+      {} as any,
+      {} as any,
+      {} as any,
+      { forContext: jest.fn().mockReturnValue(loggerMock) } as any
+    );
   });
 
   it('should be defined', () => {

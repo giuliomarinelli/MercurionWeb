@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotebookSectionService } from '../../user/services/lab-notebook/notebook-section.service';
+import { NotebookSectionService } from './notebook-section.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { NotebookSection } from '../Models/entities/lab-notebook-section.entity';
 
