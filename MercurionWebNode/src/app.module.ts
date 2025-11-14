@@ -27,15 +27,13 @@ import { MercurionGraphQLModule } from './mercurion-graphql.module';
 import { MercurionAIModule } from './app_modules/mercurion-ai/mercurion-ai.module';
 import { LabNotebookModule } from './app_modules/lab-notebook/lab-notebook.module';
 
-
-
-
+const nodeEnv = process.env.NODE_ENV ?? 'development'
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: join(__dirname, '../env/development.env'),
+      envFilePath: join(__dirname, `../env/.env.${nodeEnv}`),
       load: [...configurations]
     }),
     TypeOrmModule.forRootAsync({

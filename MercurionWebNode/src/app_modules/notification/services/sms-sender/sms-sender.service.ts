@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { SmsConfiguration } from 'src/config/@types-config';
+import { SmsConfiguration } from 'src/config/config.types';
 import { Twilio } from 'twilio';
 import { MessageInstance } from 'twilio/lib/rest/api/v2010/account/message';
 
@@ -23,7 +23,7 @@ export class SmsSenderService {
 
     public async sendSms(to: string, body: string): Promise<MessageInstance> {
 
-        return await this.smsClient.messages.create({
+        return this.smsClient.messages.create({
             to,
             body,
             from: this.configService.get<string>("Sms.number")

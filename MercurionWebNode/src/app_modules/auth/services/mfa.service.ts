@@ -17,7 +17,7 @@ import { TokenType } from '../Models/enums/token-type.enum';
 import { RpcException } from '@nestjs/microservices';
 import { JwtToolsService } from './jwt-tools.service';
 import { EmailTotpContext } from 'src/app_modules/notification/Models/contexts/email-totp.context';
-import { TotpConfiguration } from 'src/config/@types-config';
+import { TotpConfiguration } from 'src/config/config.types';
 import { join } from 'path';
 import { SessionService } from './session.service';
 import { nullish } from 'src/Models/nullish.type';

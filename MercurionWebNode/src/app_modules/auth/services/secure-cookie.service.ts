@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { createHmac } from 'crypto';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { CookieSerializeOptions } from '@fastify/cookie'
-import { SecureCookieConfiguration } from 'src/config/@types-config';
+import { SecureCookieConfiguration } from 'src/config/config.types';
 import { RpcException } from '@nestjs/microservices';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 

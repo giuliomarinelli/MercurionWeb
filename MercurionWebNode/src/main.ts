@@ -13,7 +13,7 @@ import rateLimit from '@fastify/rate-limit'
 import { randomUUID } from 'crypto'
 import { SecureCookieService } from './app_modules/auth/services/secure-cookie.service'
 import { Environment } from './config/config'
-import { SecureCookieConfiguration } from './config/@types-config'
+import { SecureCookieConfiguration } from './config/config.types'
 import { routeAwareMax } from './config/rate-limit.config'
 import { RedisService } from './app_modules/redis/services/redis.service'
 import { isIP } from 'net' // 🔒 valida IP
@@ -236,6 +236,7 @@ export async function bootstrap() {
     '\x1b[0m'
 
   logger.log(`NATS client connected to NATS server on ${coloredNatsUrl}`)
+  
 }
 
 bootstrap()

@@ -1,6 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import { Injectable } from '@nestjs/common';
-import { TotpConfiguration } from 'src/config/@types-config';
+import { TotpConfiguration } from 'src/config/config.types';
 import { createHmac, randomBytes } from 'crypto';
 import * as speakeasy from 'speakeasy'
 import { TotpWrapper } from '../Models/interfaces/totp-wrapper.interface';

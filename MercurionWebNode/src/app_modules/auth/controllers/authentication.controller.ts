@@ -22,7 +22,7 @@ import { FingerprintData } from '../Models/DTO/fingerprints.dtos';
 import { UserService } from 'src/app_modules/user/services/user.service';
 import { TurnstileGuard } from '../guards/turnstile.guard';
 import { ConfigService } from '@nestjs/config';
-import { CookieConfiguration, SecureCookieConfiguration } from 'src/config/@types-config';
+import { CookieConfiguration, SecureCookieConfiguration } from 'src/config/config.types';
 import { SignedSessionIdDTO } from '../Models/DTO/signed-session-id.dto';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';

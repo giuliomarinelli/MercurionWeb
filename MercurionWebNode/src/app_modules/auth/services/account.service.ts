@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config';
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable, LoggerService } from '@nestjs/common';
 import { UserRegisterDTO } from 'src/app_modules/user/Models/DTO/user-register.cls.dto';
 import { UserService } from 'src/app_modules/user/services/user.service';
 import { ConfirmChangeDTO, ConfirmDTO, ConfirmWithObsContDTO } from 'src/Models/confirm-responses.dto';
@@ -10,7 +10,7 @@ import { JwtToolsService } from './jwt-tools.service';
 import { TokenType } from '../Models/enums/token-type.enum';
 import { join } from 'path';
 import { MailSenderService } from 'src/app_modules/notification/services/mail-sender/mail-sender.service';
-import { UserActivationContext } from 'src/app_modules/notification/Models/contexts/user-activation.context';
+import { UserCtaContext } from 'src/app_modules/notification/Models/contexts/user-cta.context';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { RpcException } from '@nestjs/microservices';
 import { User } from 'src/app_modules/user/Models/entities/user.entity';
@@ -23,11 +23,16 @@ import { ContactChangeKind } from '../Models/enums/contact-change-kind.enum';
 import { PasswordContext } from '../Models/enums/password-context.enum';
 import { CompareResult } from '../Models/enums/compare-result.enum';
 import { SecurityAuditService } from 'src/app_modules/meilisearch/services/security-audit/security-audit.service';
+import { UserContext } from 'src/app_modules/notification/Models/contexts/user.context';
+import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+
 
 
 
 @Injectable()
 export class AccountService {
+
+    private readonly logger: LoggerService
 
     private readonly CHANGE_PASSWORD_TOKEN_EXPIRATION_MS: number
 
@@ -58,10 +63,12 @@ export class AccountService {
         private readonly redisService: RedisService,
         private readonly sessionService: SessionService,
         private readonly _r: ResponseService,
-        private readonly securityAuditService: SecurityAuditService
+        private readonly securityAuditService: SecurityAuditService,
+        meiliLogger: MeiliLoggerService
     ) {
         this.CHANGE_PASSWORD_TOKEN_EXPIRATION_MS = this.configService.get<number>('Jwt.changePasswordToken.expiresInMs') ?? 300_000
         this.redisIdHmacSecret = this.configService.get<string>('App.redisIdHmacSecret')!
+        this.logger = meiliLogger.forContext(AccountService.name)
     }
 
     private hmacKey(raw: string): string {
@@ -237,7 +244,7 @@ export class AccountService {
         })
         const activationToken: string = await this.jwtTools.generateToken(userId, TokenType.ActivationToken)
         const url: string = `${this.configService.get<string>("App.activationOrigin")}/account/activate?t=${activationToken}`
-        await this.mailService.sendEmail<UserActivationContext>(
+        await this.mailService.sendEmail<UserCtaContext>(
             email,
             `${firstName}, completa la tua registrazione a Mercurion`, // ${this.configService.get<string>("App.globalName")}
             { firstName, url },
@@ -277,7 +284,7 @@ export class AccountService {
         if (newEmail.toLowerCase() === user.email?.toLowerCase())
             throw new RpcException('ChangeEmail::NewEmailIsCurrentEmail')
 
-        // TODO: notifiche di sicurezza per cambio password, telefono, email
+
         await this.throttleContactChangeSend(userId, ContactChangeKind.EMAIL)
 
         // Lock per evitare abusi e race condition
@@ -337,17 +344,39 @@ export class AccountService {
 
         const maskedOldEmail = this.securityService.maskEmail(user.email ?? '') || null
         const maskedNewEmail = this.securityService.maskEmail(user.unconfirmedEmail ?? '')
-
-        const emailToConfirm = user.unconfirmedEmail
+        const oldEmail = user.email
+        const newEmail = user.unconfirmedEmail
         await this.userService.updateUser(userId, {
-            email: emailToConfirm,
+            email: newEmail,
             unconfirmedEmail: null,
             updatedAt: Date.now()
         })
 
-        await this.redisService.del(`email_change_lock:${this.hmacKey(emailToConfirm.toLowerCase())}`)
+        await this.redisService.del(`email_change_lock:${this.hmacKey(newEmail.toLowerCase())}`)
 
         await this.securityAuditService.emailChanged(userId, maskedOldEmail, maskedNewEmail)
+
+        this.mailService.sendEmail<UserContext>(
+            oldEmail!,
+            'Mercurion: email modificata',
+            {
+                firstName: user.firstName
+            },
+            join(__dirname, "../../../app_modules/notification/email-templates/email-changed-old-contact.hbs")
+        ).catch((e) => {
+            this.logger.warn(`Errore durante l'invio mail email changed, oldEmail=${oldEmail}, userId=${userId}`, e)
+        })
+
+        this.mailService.sendEmail<UserContext>(
+            newEmail,
+            'Mercurion: email modificata',
+            {
+                firstName: user.firstName
+            },
+            join(__dirname, "../../../app_modules/notification/email-templates/email-changed-new-contact.hbs")
+        ).catch((e) => {
+            this.logger.warn(`Errore durante l'invio mail email changed, newEmail=${newEmail}, userId=${userId}`, e)
+        })
 
         return this._r.ok('Email successfully changed and verified')
     }
@@ -418,21 +447,36 @@ export class AccountService {
         }
         const maskedOldPhone = this.securityService.maskPhone(user.completePhoneNumber ?? '') || null
         const maskedNewPhone = this.securityService.maskPhone(user.unconfirmedPhoneNumber ?? '')
-        const completePhoneNumber = user.unconfirmedPhoneNumber
-        const phoneNumberPrefixLength = user.unconfirmedPhoneNumberPrefixLength
+        const oldCompletePhoneNumber = user.completePhoneNumber
+        const newCompletePhoneNumber = user.unconfirmedPhoneNumber
+        const newPhoneNumberPrefixLength = user.unconfirmedPhoneNumberPrefixLength
+
 
         await this.userService.updateUser(userId, {
-            completePhoneNumber,
-            phoneNumberPrefixLength,
+            completePhoneNumber: newCompletePhoneNumber,
+            phoneNumberPrefixLength: newPhoneNumberPrefixLength,
             unconfirmedPhoneNumber: null,
             unconfirmedPhoneNumberPrefixLength: 0,
             updatedAt: Date.now()
         })
 
-        await this.redisService.del(`phone_change_lock:${this.hmacKey(completePhoneNumber)}`)
+        await this.redisService.del(`phone_change_lock:${this.hmacKey(newCompletePhoneNumber)}`)
         await this.clearContactChangeFailures(userId, ContactChangeKind.PHONE)
 
+        const oldNotificationBody = 'Mercurion: il numero di telefono del tuo account è stato cambiato. Se non sei stato tu, reimposta subito la password e contatta il supporto Mercurion.';
+
+        const newNotificationBody = 'Mercurion: questo numero è stato appena associato a un account Mercurion. Se non riconosci questa operazione, ignora il messaggio e contatta il supporto.';
+
         await this.securityAuditService.phoneChanged(userId, maskedOldPhone, maskedNewPhone)
+        if (oldCompletePhoneNumber != null) {
+            this.smsService.sendSms(oldCompletePhoneNumber, oldNotificationBody).catch((e) => {
+                this.logger.warn(`Errore durante l'invio sms phone changed, oldPhone=${oldCompletePhoneNumber}, userId=${userId}`, e)
+            })
+        }
+
+        this.smsService.sendSms(newCompletePhoneNumber, newNotificationBody).catch((e) => {
+            this.logger.warn(`Errore durante l'invio sms phone changed, newPhone=${newCompletePhoneNumber}, userId=${userId}`, e)
+        })
 
         return this._r.ok('Phone number successfully updated')
 
@@ -448,6 +492,18 @@ export class AccountService {
         await this.clearPasswordFailures(userId, PasswordContext.CHANGE)
         await this.userService.changePassword(userId, newPassword)
         await this.securityAuditService.passwordChanged(userId, { viaResetFlow: false })
+        const email = (await this.userService.getUserEmailById(userId))!
+        const firstName = (await this.userService.getUserFirstNameById(userId))!
+        this.mailService.sendEmail<UserContext>(
+            email,
+            'Mercurion: password modificata',
+            {
+                firstName
+            },
+            join(__dirname, "../../../app_modules/notification/email-templates/password-changed-notification.hbs")
+        ).catch((e) => {
+            this.logger.warn(`Errore durante l'invio email password changed, userId=${userId}`, e)
+        })
     }
 
     public async sendForgottenPasswordLink(email: string): Promise<void> | never {
@@ -459,12 +515,12 @@ export class AccountService {
         const changePasswordToken = await this.jwtTools.generateToken(userId as UUID, TokenType.ChangePasswordToken)
         const firstName = await this.userService.getUserFirstNameById(userId as UUID)
         const url = `${this.configService.get<string>("App.activationOrigin")}/password-recovery?t=${encodeURIComponent(changePasswordToken)}`
-        await this.mailService.sendEmail(
+        await this.mailService.sendEmail<UserCtaContext>(
             email,
-            'Mercurion: recupera password',
+            'Mercurion: recupero password',
             {
                 url,
-                firstName
+                firstName: firstName ?? 'Utente'
             },
             join(__dirname, "../../../app_modules/notification/email-templates/forgotten-password.hbs")
         )
@@ -485,6 +541,18 @@ export class AccountService {
         await this.userService.changePassword(userId, newPassword)
         await this.clearPasswordFailures(userId, PasswordContext.CHANGE)
         await this.securityAuditService.passwordChanged(userId, { viaResetFlow: true })
+        const email = (await this.userService.getUserEmailById(userId))!
+        const firstName = (await this.userService.getUserFirstNameById(userId))!
+        this.mailService.sendEmail<UserContext>(
+            email,
+            'Mercurion: password modificata',
+            {
+                firstName
+            },
+            join(__dirname, "../../../app_modules/notification/email-templates/password-changed-notification.hbs")
+        ).catch((e) => {
+            this.logger.warn(`Errore durante l'invio email password changed, userId=${userId}`, e)
+        })
     }
 
 

@@ -2,7 +2,7 @@ import { Injectable, LoggerService, UnauthorizedException } from '@nestjs/common
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosResponse } from 'axios';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
-import { OAuth2ProviderConfiguration } from 'src/config/@types-config';
+import { OAuth2ProviderConfiguration } from 'src/config/config.types';
 import { IOAuth2ClientService } from '../Models/interfaces/i-oauth2-client-service.interface';
 import { OAuth2PersistenceService } from './o-auth2-persistence.service';
 import { UUID } from 'crypto';
