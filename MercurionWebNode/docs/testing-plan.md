@@ -8,160 +8,161 @@ The goals are:
 3. Cross‑cutting helpers (response builder, logger adapters, guards, decorators) are validated once and reused through shared test utilities.
 
 For quick reference, the spec names mirror the file list under `src/**/**.spec.ts`.  
+Status legend: `[x]` baseline spec implemented, `[ ]` still to-do/needs coverage.
 Below each class you’ll find the scenarios that must be covered or improved.
 
 ---
 
 ## Core / Bootstrap
 
-- `app.module.ts` (`src/app.module.spec.ts`)
+- [ ] `app.module.ts` (`src/app.module.spec.ts`)
   - Validate that all feature modules are imported and global providers (guards, services) are registered once.
   - Use partial mocks for `ConfigService` to assert environment dependent registrations.
-- `MercurionGraphQLModule` (`src/mercurion-graphql.module.ts`)
+- [ ] `MercurionGraphQLModule` (`src/mercurion-graphql.module.ts`)
   - Cover `errorFormatter` logic for successful responses, user‑facing errors, and internal errors in prod vs dev.
   - Ensure GraphQL context wiring exposes Fastify request/reply to downstream decorators.
-- `main.ts` (indirect via e2e in `test/app.e2e-spec.ts`)
+- [ ] `main.ts` (indirect via e2e in `test/app.e2e-spec.ts`)
   - Keep smoke test to ensure app boots with mocked Config + Redis services.
-- `TestController` (`src/test.controller.spec.ts`)
+- [ ] `TestController` (`src/test.controller.spec.ts`)
   - Verify any diagnostic endpoints respond with mocked data.
 
 ## Utility Modules
 
-- `HttpExceptionFilter` / `HttpStatusMap`
+- [ ] `HttpExceptionFilter` / `HttpStatusMap`
   - Already have specs; extend to cover GraphQL bypass and RPC error mapping edge cases.
-- `ResponseService`
+- [ ] `ResponseService`
   - Assert timestamp formatting and default status code paths.
-- `GraphqlUtils`, `TypeOrmUtils`, `WebSocketUtils`, `GeneralUtils`, `TypeGuards`
+- [ ] `GraphqlUtils`, `TypeOrmUtils`, `WebSocketUtils`, `GeneralUtils`, `TypeGuards`
   - Ensure every helper function has positive/negative test cases, especially MFA strategy validation and GraphQL field parsing.
 
 ## Auth Module
 
 ### Controllers
 
-- `AuthenticationController`
+- [x] `AuthenticationController`
   - Login zero/first/third step flows: verify cookies, MFA branches, and unauthorized cases.
   - Logout routes: cookies cleared and services invoked.
   - Backup code + ws refresh: ensure Redis/session interactions.
-- `AccountController`
+- [ ] `AccountController`
   - Registration, activation, email/phone changes, MFA enable/disable, password flows with Turnstile guard branches.
 
 ### Services
 
-- `AuthenticationService`, `AccountService`, `MfaService`, `SessionService`, `SercurityService`, `TurnstileService`
+- [ ] `AuthenticationService`, `AccountService`, `MfaService`, `SessionService`, `SercurityService`, `TurnstileService`
   - Cover token issuance, MFA sequence, Redis/session persistence, security masking utilities.
   - Use fake repositories / Redis mocks; assert error branches raise `RpcException`/`UnauthorizedException`.
-- `JwtToolsService`
+- [x] `JwtToolsService`
   - Unit test all token types (`AccessToken`, `ws_AccessToken`, PreAuth, etc.), revoked token handling, decode helpers.
-- `SecureCookieService`, `PasswordEncoderService`, `IpService`, `GeoIpService`
+- [ ] `SecureCookieService`, `PasswordEncoderService`, `IpService`, `GeoIpService` (baseline specs in place for SecureCookie/PasswordEncoder/GeoIp; IpService still pending richer tests)
   - Validate cookie signing/verification, password hashing, IP lookups (mock geoip-lite).
 
 ### Guards
 
-- `GlobalGuard`, `TurnstileGuard`, `WsGuard`
+- [ ] `GlobalGuard`, `TurnstileGuard`, `WsGuard`
   - Mock reflector metadata and JWT service to cover public vs protected routes, refresh flow, and Turnstile challenge validation.
 
 ### DTOs
 
-- `login-first-step`, `login-second-step`, `email`, `change-phone`, `totp`, `test-phone`, etc.
+- [ ] `login-first-step`, `login-second-step`, `email`, `change-phone`, `totp`, `test-phone`, etc.
   - Use `class-validator` to assert acceptance/rejection of valid/invalid payloads (already scaffolded but expand to cover new decorators).
 
 ## User Module
 
-- `UserModule`/`UserService`
+- [ ] `UserModule`/`UserService`
   - Cover repository queries, note CRUD, backup codes, session lookups.
-- `User`/`BackupCode` entities
+- [ ] `User`/`BackupCode` entities
   - Ensure column metadata and hooks behave (using TypeORM testing utilities).
-- DTOs (`user-register`, `create-note`, `update-note`)
+- [ ] DTOs (`user-register`, `create-note`, `update-note`)
   - Validate `class-validator` decorators.
 
 ## Notification Module
 
-- `NotificationModule`, `MailSenderService`, `SmsSenderService`
+- [ ] `NotificationModule`, `MailSenderService`, `SmsSenderService`
   - Mock nodemailer/twilio clients and assert payload mapping, error retries, templating.
 
 ## Redis Module
 
-- `RedisModule`, `RedisService`, `PubSubService`
+- [x] `RedisModule`, `RedisService`, `PubSubService`
   - Current specs cover basic RedisService operations; extend to `scan`, `scanIterate`, set membership helpers, and Pub/Sub publish/subscribe flows with mocked clients.
 
 ## Meilisearch Module
 
-- `MeilisearchModule`
+- [ ] `MeilisearchModule`
   - Ensure `MEILISEARCH_CLIENT` factory picks host/key from ConfigService.
-- `MoleculeSearchService`
+- [x] `MoleculeSearchService`
   - Verify filter composition, result mapping (synonyms splitting, known flag) and `searchMolecules_excludeAlreadyAdded`.
-- `MoleculeService`, `SecurityAuditService`, `MeiliLoggerService`
+- [ ] `MoleculeService`, `SecurityAuditService`, `MeiliLoggerService` (first two now have baseline specs; MeiliLoggerService pending)
   - Cover detail fetch caching, audit logging, logger context creation.
-- Resolvers (`MoleculeSearchResolver`, `MoleculeResolver`)
+- [x] Resolvers (`MoleculeSearchResolver`, `MoleculeResolver`)
   - Assert they proxy arguments to services and honor decorators.
-- DTOs (`molecule-search-input`, `molecule-search-result`, `molecule-detail`)
+- [ ] DTOs (`molecule-search-input`, `molecule-search-result`, `molecule-detail`)
   - Validate `class-validator` metadata and GraphQL schema alignment.
 
 ## Molecule Collection Module
 
-- Services: `MoleculeCollectionService`, `MoleculeCollectionItemService`, `MoleculeCollectionItemJoinService`, `CustomMoleculeItemService`, `ChEMBLMoleculeItemService`
+- [ ] Services: `MoleculeCollectionService`, `MoleculeCollectionItemService`, `MoleculeCollectionItemJoinService`, `CustomMoleculeItemService`, `ChEMBLMoleculeItemService` (basic specs exist for the first three; behavior tests still pending across the board)
   - Cover CRUD, TypeORM query builder branches, `markAsTouched`, DTO conversion, and ChemBL synchronization.
-- Entities: `MoleculeCollection`, `MoleculeCollectionItemEntity`, `CustomMoleculeItemEntity`, `ChEMBLMoleculeItemEntity`, `MoleculeCollectionItemJoin`
+- [ ] Entities: `MoleculeCollection`, `MoleculeCollectionItemEntity`, `CustomMoleculeItemEntity`, `ChEMBLMoleculeItemEntity`, `MoleculeCollectionItemJoin`
   - Ensure hooks (`BeforeInsert`), relations, and computed fields (itemsCount) behave.
-- DTOs (`CreateMoleculeItemInput`, `AddManyChEMBLItemDTO`, etc.)
+- [ ] DTOs (`CreateMoleculeItemInput`, `AddManyChEMBLItemDTO`, etc.)
   - Validate new `class-validator` decorators.
 
 ## Lab Notebook Module
 
-- Services: `LabNotebookService`, `NotebookSectionService`, `NotebookChapterService`, `NotebookPageService`
+- [ ] Services: `LabNotebookService`, `NotebookSectionService`, `NotebookChapterService`, `NotebookPageService` (smoke specs exist but lack behavioral assertions)
   - Test hierarchical CRUD, ordering logic, and relation loading.
-- Entities: `LabNotebook`, `LabNotebookSection`, `LabNotebookChapter`, `LabNotebookPage`, `LabNotebookLink`
+- [ ] Entities: `LabNotebook`, `LabNotebookSection`, `LabNotebookChapter`, `LabNotebookPage`, `LabNotebookLink`
   - Validate ordering hooks and relation metadata.
-- DTOs (create/update notebook/chapter/section/page)
+- [ ] DTOs (create/update notebook/chapter/section/page)
   - Ensure validators reject/accept correct payloads.
 
 ## Synth Module
 
-- Services: `SynthesisService`, `SyntheticStepService`, `SynthStepMoleculeRefService`
+- [ ] Services: `SynthesisService`, `SyntheticStepService`, `SynthStepMoleculeRefService`
   - Cover creation/update flows, relation linking, and role enforcement.
-- DTOs (`SynthesisInput`, `SynthStepInput`, `SynthStepMoleculeRefInput`)
+- [ ] DTOs (`SynthesisInput`, `SynthStepInput`, `SynthStepMoleculeRefInput`)
   - Validate numeric/string/enum constraints.
 
 ## Embedding Module
 
-- `EmbeddingModule`, `EmbeddingService`, `EmbeddingController`
+- [ ] `EmbeddingModule`, `EmbeddingService`, `EmbeddingController` (baseline unit specs exist for controller/service; expand to cover vector logic)
   - Mock vector store/external API calls; assert DTO validation and response formatting.
 
 ## History Module
 
-- `HistoryService`, `HistoryController`
+- [x] `HistoryService`, `HistoryController`
   - Test addition/query of history entities, pagination, and user scoping.
 
 ## OAuth2 Client Module
 
-- Services: `OAuth2ClientService`, `OAuth2PersistenceService`, `AccessTokenRefreshService`
+- [ ] Services: `OAuth2ClientService`, `OAuth2PersistenceService`, `AccessTokenRefreshService` (client + refresh services now have mocks; persistence service still pending)
   - Cover OAuth handshake, token refresh scheduling, persistence failure handling.
-- Controller: `OAuth2ClientController`
+- [x] Controller: `OAuth2ClientController`
   - Validate callback endpoints and error branches.
 
 ## Dropbox Object Store Module
 
-- `DropboxObjectStoreService`, `DocumentController`
+- [x] `DropboxObjectStoreService`, `DocumentController`
   - Mock Dropbox SDK interactions, ensure upload/download/delete flows set ACLs correctly.
 
 ## Socket.IO Module
 
-- `SocketIoModule`, `SocketIoGateway`
+- [ ] `SocketIoModule`, `SocketIoGateway` (gateway baseline spec exists; module scenarios TBD)
   - Test gateway room joins, message broadcasting, and Redis adapter configuration.
 
 ## Mercurion AI Module
 
-- Module + Controller + Service + DTO (`smiles.cls.dto`)
+- [ ] Module + Controller + Service + DTO (`smiles.cls.dto`)
   - Cover SMILES validation, AI orchestration requests, and controller endpoints.
 
 ## Meili Logger / Shared Services
 
-- `MeiliLoggerService`
+- [ ] `MeiliLoggerService`
   - Ensure `forContext` returns a Nest‐compatible logger facade and respects log levels.
 
 ## Additional E2E / Integration
 
-- `test/app.e2e-spec.ts`
+- [ ] `test/app.e2e-spec.ts`
   - Keep smoke endpoints and add targeted GraphQL resolver checks once per sprint.
 
 ---
