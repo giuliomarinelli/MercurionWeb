@@ -36,7 +36,7 @@ import { ClassicSpinnerComponent } from '../../components/common/classic-spinner
               email: 'Formato e-mail non corretto',
             }"
             [serverError]="
-              serverError() ? 'Si è verificato un errore' : null
+              serverError() ? this.errMsg() : null
             "
             (enter)="send()"
           />
@@ -102,12 +102,14 @@ export class ForgotPasswordPageComponent implements OnInit, OnDestroy {
   protected serverError = signal<boolean>(false)
   protected step_12_loading = signal<boolean>(false)
   protected obscuredEmail = signal<string>('')
+  protected errMsg = signal<string>('Si è verificato un errore.')
 
   protected email = new FormControl<string | null>(null, [Validators.required, Validators.email])
 
   private recoverSub?: Subscription
   private servErrSub?: Subscription
   private obsMailSub?: Subscription
+  private emailCtrlSub?: Subscription
 
   send(): void {
     if (this.email.valid && this.turnstileToken()) {
@@ -119,8 +121,12 @@ export class ForgotPasswordPageComponent implements OnInit, OnDestroy {
             this.step_12_loading.set(false)
             this.obscuredEmail.set(obscuredEmail!)
           },
-          error: () => {
+          error: (e) => {
+            if ('status' in e && 'error' in e && e.status === 429) {
+              this.errMsg.set('Troppi tentativi, riprova tra qualche minuto.')
+            }
             this.serverError.set(true)
+            this.step_12_loading.set(false)
           }
         })
     }
@@ -132,18 +138,21 @@ export class ForgotPasswordPageComponent implements OnInit, OnDestroy {
   }
 
   onTurnstileRender(): void {
-    console.log('render')
     this.loadingTurnstile.set(false)
   }
 
   ngOnInit(): void {
-    this.email.valueChanges.subscribe(() => this.serverError.set(false))
+    this.emailCtrlSub = this.email.valueChanges.subscribe(() => {
+      this.serverError.set(false)
+      this.errMsg.set('Si è verificato un errore.')
+    })
   }
 
   ngOnDestroy(): void {
     this.recoverSub?.unsubscribe()
     this.servErrSub?.unsubscribe()
     this.obsMailSub?.unsubscribe()
+    this.emailCtrlSub?.unsubscribe()
   }
 
 }

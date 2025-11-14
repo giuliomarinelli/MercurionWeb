@@ -3,6 +3,7 @@ import { Reflector } from '@nestjs/core';
 import { GlobalGuard } from './global.guard';
 import { JwtToolsService } from '../services/jwt-tools.service';
 import { SessionService } from '../services/session.service';
+import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 
 describe('GlobalGuard', () => {
   let guard: GlobalGuard;
@@ -14,6 +15,7 @@ describe('GlobalGuard', () => {
         { provide: JwtToolsService, useValue: {} },
         { provide: SessionService, useValue: {} },
         { provide: Reflector, useValue: { get: jest.fn() } },
+        { provide: MeiliLoggerService, useValue: { forContext: jest.fn().mockReturnValue({ log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() }) } },
       ],
     }).compile();
 

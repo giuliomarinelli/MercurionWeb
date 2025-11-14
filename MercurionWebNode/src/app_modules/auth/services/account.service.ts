@@ -190,7 +190,7 @@ export class AccountService {
         await this.redisService.del(lockKey)
     }
 
-    private async throttlePasswordResetSend(userId: UUID, context: PasswordContext = PasswordContext.RESET_SEND,): Promise<void> {
+    private async throttlePasswordResetSend(userId: UUID, context: PasswordContext = PasswordContext.RESET_SEND): Promise<void> {
 
         const countKey = this.getPasswordResetSendKey(userId, context)
         const lockKey = this.getPasswordResetSendLockKey(userId, context)

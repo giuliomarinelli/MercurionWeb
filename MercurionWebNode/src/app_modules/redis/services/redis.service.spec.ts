@@ -1,10 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RedisService } from './redis.service';
 import { Redis } from 'ioredis';
+import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 
 describe('RedisService', () => {
   let service: RedisService;
   let redisClient: Redis;
+  const mockLogger = {
+    debug: jest.fn(),
+    log: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+  };
 
   beforeEach(async () => {
     // Mock del client Redis
@@ -22,6 +29,10 @@ describe('RedisService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         RedisService,
+        {
+          provide: MeiliLoggerService,
+          useValue: { forContext: jest.fn().mockReturnValue(mockLogger) },
+        },
         {
           provide: Redis, // Fornisce un mock del Redis client
           useValue: redisClient,

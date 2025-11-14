@@ -85,23 +85,33 @@ export class MeiliLoggerService extends Logger implements LoggerService, OnModul
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         const logger = this
         return {
-            log(message: string | object) {
-                logger.log(message, context)
+            log(...messages: (string | object)[]) {
+                for (const message of messages) {
+                    logger.log(message, context)
+                }
             },
             error(message: string | object, stack?: string) {
                 logger.error(message, context, stack)
             },
-            warn(message: string | object) {
-                logger.warn(message, context)
+            warn(...messages: (string | object)[]) {
+                for (const message of messages) {
+                    logger.warn(message, context)
+                }
             },
-            debug(message: string | object) {
-                logger.debug(message, context)
+            debug(...messages: (string | object)[]) {
+                for (const message of messages) {
+                    logger.debug(message, context)
+                }
             },
-            verbose(message: string | object) {
-                logger.verbose(message, context)
+            verbose(...messages: (string | object)[]) {
+                for (const message of messages) {
+                    logger.verbose(message, context)
+                }
             },
-            fatal(message: string | object) {
-                logger.fatal(message, context)
+            fatal(...messages: (string | object)[]) {
+                for (const message of messages) {
+                    logger.fatal(message, context)
+                }
             },
             setLogLevels(levels: LogLevel[]) {
                 logger.setLogLevels(levels)

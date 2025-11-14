@@ -6,7 +6,10 @@ describe('SecurityAuditService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [SecurityAuditService],
+      providers: [
+        SecurityAuditService,
+        { provide: 'MEILISEARCH_CLIENT', useValue: { getIndex: jest.fn(), createIndex: jest.fn(), index: jest.fn().mockReturnValue({ addDocuments: jest.fn() }) } },
+      ],
     }).compile();
 
     service = module.get<SecurityAuditService>(SecurityAuditService);

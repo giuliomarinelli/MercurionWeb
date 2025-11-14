@@ -1,12 +1,33 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { HistoryService } from './history.service';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { History } from '../Models/entities/history.entity';
+import { DataSource } from 'typeorm';
+import { MoleculeService } from 'src/app_modules/meilisearch/services/molecule.service';
 
 describe('HistoryService', () => {
   let service: HistoryService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [HistoryService],
+      providers: [
+        HistoryService,
+        {
+          provide: getRepositoryToken(History),
+          useValue: { createQueryBuilder: jest.fn() },
+        },
+        {
+          provide: DataSource,
+          useValue: { getRepository: jest.fn() },
+        },
+        {
+          provide: MoleculeService,
+          useValue: {
+            getDetailByMolregnos: jest.fn(),
+            getDetailByMolregno: jest.fn(),
+          },
+        },
+      ],
     }).compile();
 
     service = module.get<HistoryService>(HistoryService);

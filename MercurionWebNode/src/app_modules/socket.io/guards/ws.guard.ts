@@ -13,7 +13,7 @@ import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-l
 export class WsGuard implements CanActivate {
 
   private readonly logger: LoggerService
-
+  
   constructor(
     private readonly jwtTools: JwtToolsService,
     private readonly sessionService: SessionService,

@@ -3,11 +3,14 @@ import { DropboxObjectStoreService } from './dropbox-object-store.service';
 import { OAuth2ClientService } from 'src/app_modules/oauth2-client/services/oauth2-client.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { DocumentEntity } from '../Models/entities/document.entity';
+import { DataSource } from 'typeorm';
+import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 
 describe('DropboxObjectStoreService', () => {
   let service: DropboxObjectStoreService;
 
   beforeEach(async () => {
+    const mockLogger = { log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() };
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         DropboxObjectStoreService,
@@ -23,6 +26,8 @@ describe('DropboxObjectStoreService', () => {
             delete: jest.fn(),
           },
         },
+        { provide: DataSource, useValue: { createQueryRunner: jest.fn().mockReturnValue({ connect: jest.fn(), startTransaction: jest.fn(), manager: { create: jest.fn(), save: jest.fn(), update: jest.fn() }, commitTransaction: jest.fn(), rollbackTransaction: jest.fn(), release: jest.fn() }) } },
+        { provide: MeiliLoggerService, useValue: { forContext: jest.fn().mockReturnValue(mockLogger) } },
       ],
     }).compile();
 

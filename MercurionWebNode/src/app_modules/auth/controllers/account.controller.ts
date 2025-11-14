@@ -169,8 +169,11 @@ export class AccountController {
         const { email } = dto
         try {
             await this.accountService.sendForgottenPasswordLink(email)
-        } catch {
-            // pass 
+        } catch (e) {
+            if (e instanceof RpcException && e.message === 'PasswordResetSend::TooManyRequests') {
+                throw e
+            }
+            // pass
         }
         return {
             ...this._r.ok('Password recovery link sent to user email'),
@@ -255,6 +258,7 @@ export class AccountController {
 
         // volendo puoi anche loggare un evento di sicurezza o mandare email
         // "Sono stati rigenerati i codici di backup del tuo account"
+        // TODO
 
         return { codes }
     }
