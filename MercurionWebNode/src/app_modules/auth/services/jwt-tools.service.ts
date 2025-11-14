@@ -202,7 +202,7 @@ export class JwtToolsService {
             await this.jwtService.verifyAsync(token, verifyOptions)
             const payload: AppJwtPayload = this.jwtService.decode<AppJwtPayload>(token)
             if (payload.typ !== type) {
-                throw new RpcException('')
+                throw new RpcException(`InvalidToken::Type mismatch`)
             }
             if (await this.sessionService.isTokenRevoked(payload.jti)) {
                 throw new RpcException(`Revoked${type}`)

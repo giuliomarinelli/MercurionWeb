@@ -133,7 +133,11 @@ export class GlobalGuard implements CanActivate {
             this.logger.warn('Thrown generic UnauthorizedException')
             throw e
          }
-         this.logger.warn('GlobalGuard internal error', e)
+         if (e instanceof RpcException) {
+            this.logger.warn(e.message || 'GlobalGuard internal unknown error')
+            throw new UnauthorizedException()
+         }
+         this.logger.warn('GlobalGuard internal unknown error', e)
          throw new UnauthorizedException()
       }
    }
