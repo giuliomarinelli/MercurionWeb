@@ -7,6 +7,8 @@ import { catchError, firstValueFrom, throwError, timeout, TimeoutError } from 'r
 @Injectable()
 export class MercurionAIService {
 
+    private readonly MAX_NATS_PAYLOAD_BYTES = 4 * 1024
+
     constructor(@Inject('MERCURION_AI_CLIENT') private readonly mercurionAIClient: ClientProxy) { }
 
     private isValidInferencePayload(res: MercurionInferResDTO): boolean {
@@ -21,19 +23,37 @@ export class MercurionAIService {
         return true
     }
 
-    public async getInferenceFromTop4MercurionTox21(dto: MercurionInferReqDTO): Promise<MercurionInferDataDTO> | never {
+    private ensurePayloadSize(dto: MercurionInferReqDTO) {
+        const size = Buffer.byteLength(JSON.stringify(dto), 'utf8')
+        if (size > this.MAX_NATS_PAYLOAD_BYTES) {
+            throw new RpcException('MercurionTox21ClientConnection::PayloadTooLarge')
+        }
+    }
+
+    public async getInferenceFromTop4MercurionTox21(
+        dto: MercurionInferReqDTO,
+    ): Promise<MercurionInferDataDTO> {
+
+        this.ensurePayloadSize(dto)
 
         const res: MercurionInferResDTO = await firstValueFrom(
-            this.mercurionAIClient.send<MercurionInferResDTO>('inference.tox21.smiles', dto).pipe(
-                timeout(3000), // ⏱️ Timeout dopo 3 secondi
-                catchError((err) => {
-                    if (err instanceof TimeoutError) {
-                        return throwError(() => new RpcException('MercurionTox21ClientConnectionTimeoutNoResponse'))
-                    }
-                    return throwError(() => new RpcException('MercurionTox21ClientConnectionUnknownError'))
-                })
-            )
+            this.mercurionAIClient
+                .send<MercurionInferResDTO>('inference.tox21.smiles', dto)
+                .pipe(
+                    timeout(3000),
+                    catchError((err) => {
+                        if (err instanceof TimeoutError) {
+                            return throwError(() =>
+                                new RpcException('MercurionTox21ClientConnectionTimeoutNoResponse'),
+                            );
+                        }
+                        return throwError(() =>
+                            new RpcException('MercurionTox21ClientConnectionUnknownError'),
+                        );
+                    }),
+                ),
         )
+
         if (!this.isValidInferencePayload(res)) {
             throw new RpcException('MercurionTox21ClientConnection::InvalidPayload')
         }
@@ -43,7 +63,6 @@ export class MercurionAIService {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { error, ...data } = res
         return data
-
     }
 
 }

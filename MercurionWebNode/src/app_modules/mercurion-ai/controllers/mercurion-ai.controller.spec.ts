@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { MercurionAIController } from './mercurion.controller';
+import { MercurionAIController } from './mercurion-ai.controller';
 import { MercurionAIService } from '../services/mercurion-ai.service';
 
 describe('MercurionController', () => {

@@ -145,6 +145,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
             case 'BackupCodeRegen::TooManyRequests':
                 statusCode = HttpStatus.TOO_MANY_REQUESTS
                 break
+            case 'MercurionTox21ClientConnection::PayloadTooLarge':
+                statusCode = HttpStatus.PAYLOAD_TOO_LARGE
+                break
+            case 'MercurionTox21ClientConnectionTimeoutNoResponse':
+                statusCode = HttpStatus.GATEWAY_TIMEOUT
+                break
         }
 
         return {

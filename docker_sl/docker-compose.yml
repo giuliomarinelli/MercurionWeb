@@ -27,13 +27,16 @@ services:
 
 
   nats_sl:
-    image: nats@sha256:77a161c7d888a1791d5a46b50cd87a2f8466ce40a33cbb51238d227ace01e35a
+    image: nats@sha256:77a161c7d888a1791d5a46b50cd87a2f8466ce40a33cbb51238d227ace01e35a # v2.12.1
     container_name: nats_sl
     ports:
       - "4223:4222"
       - "6223:6222"
       - "8223:8222"
     restart: unless-stopped
+    volumes:
+      - ./nats/nats.conf:/etc/nats/nats.conf:ro
+    command: ["-c", "/etc/nats/nats.conf"]
     networks:
       - spectralume_network
     
