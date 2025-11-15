@@ -113,8 +113,8 @@ export class DropboxObjectStoreService {
                     timeout: 15_000,
                 }
             );
-        } catch (err) {
-            this.logger.error('Dropbox upload failed', err);
+        } catch (e) {
+            this.logger.warn('Dropbox upload failed', e as string | object);
             throw new RpcException('UploadFailed::Dropbox error');
         }
 
@@ -187,7 +187,7 @@ export class DropboxObjectStoreService {
                 );
                 this.logger.warn(`Rolled back Dropbox file due to DB error: ${storagePath ?? 'UNKNOWN PATH'}`);
             } catch (cleanupErr) {
-                this.logger.error(`Failed to cleanup new Dropbox file after DB rollback: ${storagePath ?? 'UNKNOWN PATH'}`, cleanupErr);
+                this.logger.warn(`Failed to cleanup new Dropbox file after DB rollback: ${storagePath ?? 'UNKNOWN PATH'}`, cleanupErr as string | object);
             }
             throw err;
         }
@@ -209,7 +209,7 @@ export class DropboxObjectStoreService {
             } catch (cleanupErr) {
                 // best effort: mantieni il DB coerente, logga per retry out-of-band
                 // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                this.logger.error(`Failed to cleanup old avatar on Dropbox: ${oldAvatarPath}`, cleanupErr);
+                this.logger.warn(`Failed to cleanup old avatar on Dropbox: ${oldAvatarPath}`, cleanupErr as string | object);
             }
         }
 
@@ -280,7 +280,7 @@ export class DropboxObjectStoreService {
                 }
             );
         } catch (err) {
-            this.logger.error(`Failed to delete Dropbox file: ${document.storagePath}`, err)
+            this.logger.warn(`Failed to delete Dropbox file: ${document.storagePath}`, err as string | object)
             throw new RpcException('DeleteFailed::Could not remove file from Dropbox')
         }
 
@@ -288,7 +288,7 @@ export class DropboxObjectStoreService {
         try {
             await this.documentRepo.delete({ id: documentId });
         } catch (err) {
-            this.logger.error(`File deleted from Dropbox but not from DB! DocumentId: ${documentId}`, err)
+            this.logger.warn(`File deleted from Dropbox but not from DB! DocumentId: ${documentId}`, err as string | object)
             throw new RpcException('DeleteFailed::File removed from Dropbox but not from DB')
         }
     }

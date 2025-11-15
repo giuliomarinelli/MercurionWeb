@@ -164,7 +164,7 @@ export class MfaService {
             await this.backupCodeRepository.save(entities)
             return codes
         } catch (e) {
-            this.logger.warn(' > generateBackupCodes > ERROR', e)
+            this.logger.warn(' > generateBackupCodes > ERROR', e as string | object)
             throw e
         }
     }

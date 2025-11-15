@@ -365,7 +365,7 @@ export class AccountService {
             },
             join(__dirname, "../../../app_modules/notification/email-templates/email-changed-old-contact.hbs")
         ).catch((e) => {
-            this.logger.warn(`Errore durante l'invio mail email changed, oldEmail=${oldEmail}, userId=${userId}`, e)
+            this.logger.warn(`Errore durante l'invio mail email changed, oldEmail=${oldEmail}, userId=${userId}`, e as string | object)
         })
 
         this.mailService.sendEmail<UserContext>(
@@ -376,7 +376,7 @@ export class AccountService {
             },
             join(__dirname, "../../../app_modules/notification/email-templates/email-changed-new-contact.hbs")
         ).catch((e) => {
-            this.logger.warn(`Errore durante l'invio mail email changed, newEmail=${newEmail}, userId=${userId}`, e)
+            this.logger.warn(`Errore durante l'invio mail email changed, newEmail=${newEmail}, userId=${userId}`, e as string | object)
         })
 
         return this._r.ok('Email successfully changed and verified')
@@ -471,12 +471,12 @@ export class AccountService {
         await this.securityAuditService.phoneChanged(userId, maskedOldPhone, maskedNewPhone)
         if (oldCompletePhoneNumber != null) {
             this.smsService.sendSms(oldCompletePhoneNumber, oldNotificationBody).catch((e) => {
-                this.logger.warn(`Errore durante l'invio sms phone changed, oldPhone=${oldCompletePhoneNumber}, userId=${userId}`, e)
+                this.logger.warn(`Errore durante l'invio sms phone changed, oldPhone=${oldCompletePhoneNumber}, userId=${userId}`, e as string | object)
             })
         }
 
         this.smsService.sendSms(newCompletePhoneNumber, newNotificationBody).catch((e) => {
-            this.logger.warn(`Errore durante l'invio sms phone changed, newPhone=${newCompletePhoneNumber}, userId=${userId}`, e)
+            this.logger.warn(`Errore durante l'invio sms phone changed, newPhone=${newCompletePhoneNumber}, userId=${userId}`, e as string | object)
         })
 
         return this._r.ok('Phone number successfully updated')
@@ -503,7 +503,7 @@ export class AccountService {
             },
             join(__dirname, "../../../app_modules/notification/email-templates/password-changed-notification.hbs")
         ).catch((e) => {
-            this.logger.warn(`Errore durante l'invio email password changed, userId=${userId}`, e)
+            this.logger.warn(`Errore durante l'invio email password changed, userId=${userId}`, e as string | object)
         })
     }
 
@@ -552,7 +552,7 @@ export class AccountService {
             },
             join(__dirname, "../../../app_modules/notification/email-templates/password-changed-notification.hbs")
         ).catch((e) => {
-            this.logger.warn(`Errore durante l'invio email password changed, userId=${userId}`, e)
+            this.logger.warn(`Errore durante l'invio email password changed, userId=${userId}`, e as string | object)
         })
     }
 

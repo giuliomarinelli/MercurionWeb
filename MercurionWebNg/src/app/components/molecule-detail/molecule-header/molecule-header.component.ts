@@ -67,28 +67,29 @@ import { NgClass } from '@angular/common';
               />
             </svg>
           </a>
-          <!-- Elimina -->
-          <button
-            type="button"
-            class="relative p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700
-                   transition-colors duration-150"
-            title="Elimina da tutte le collezioni"
-            (click)="doDelete()"
-          >
-            <svg
-              class="size-7 text-light-error dark:text-dark-error"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              aria-hidden="true"
+          @if (!_isSystemMolecule()) {
+            <!-- Elimina -->
+            <button
+              type="button"
+              class="relative p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700
+                     transition-colors duration-150"
+              title="Elimina da tutte le collezioni"
+              (click)="doDelete()"
             >
-              <path
-                fill-rule="evenodd"
-                d="M6 8a1 1 0 0 1 1 1v7h6V9a1 1 0 1 1 2 0v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V9a1 1 0 0 1 1-1zM4 5a1 1 0 0 1 1-1h2V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1h2a1 1 0 0 1 1 1v1H4V5z"
-                clip-rule="evenodd"
-              />
-            </svg>
-          </button>
-
+              <svg
+                class="size-7 text-light-error dark:text-dark-error"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M6 8a1 1 0 0 1 1 1v7h6V9a1 1 0 1 1 2 0v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V9a1 1 0 0 1 1-1zM4 5a1 1 0 0 1 1-1h2V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1h2a1 1 0 0 1 1 1v1H4V5z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </button>
+          }
             <!-- 🧩 Aggiungi ad una collezione -->
             <button
               type="button"
@@ -120,6 +121,7 @@ export class MoleculeHeaderComponent {
   protected readonly _isCustom = signal<boolean>(false)
   protected readonly _badgeName = signal<string>('ChEMBL Personal Molecule')
   protected readonly _molId = signal<string>('')
+  protected readonly _isSystemMolecule = signal<boolean>(false)
   private readonly _smiles = signal<string>('')
   protected pathToDuplicate = computed(() => ({
     url: `/molecules/editor`,
@@ -168,7 +170,10 @@ export class MoleculeHeaderComponent {
     this._isLoggedIn.set(isLoggedIn)
   }
 
-
+  @Input()
+  set isSystemMolecule(isSystemMolecule: boolean) {
+    this._isSystemMolecule.set(isSystemMolecule)
+  }
 
   @Output()
   onSave = new EventEmitter<CustomDetailSaveModel>()

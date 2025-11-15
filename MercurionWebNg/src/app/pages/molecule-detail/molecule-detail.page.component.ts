@@ -74,7 +74,7 @@ import { BindCollectionsToMoleculeContextService } from '../../services/context/
 
         @if (typeGuards.isSystemMolecule(molecule)) {
           <molecule-header [nameInput]="molecule.preferredName" [chemblIdInput]="molecule.cmbId"
-            [molId]="molecule.id.toString()" [smiles]="molecule.canonicalSmiles" [isLoggedIn]="userContext.isLoggedIn()"
+            [molId]="molecule.id.toString()" [isSystemMolecule]="true" [smiles]="molecule.canonicalSmiles" [isLoggedIn]="userContext.isLoggedIn()"
             (onAddToCollection)="doAddToManyCollections()" />
         } @else if (typeGuards.isChemblMolecule(molecule)) {
           <molecule-header [nameInput]="molecule.chemblDetails.preferredName" [chemblIdInput]="molecule.chemblDetails.cmbId"
