@@ -8,7 +8,7 @@ import {
 } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
-import { catchError, filter, tap } from 'rxjs/operators';
+import { catchError, tap } from 'rxjs/operators';
 import { UserContextService } from '../services/context/user-context.service';
 import { ToastService } from '../services/toast.service';
 import { Router } from '@angular/router';

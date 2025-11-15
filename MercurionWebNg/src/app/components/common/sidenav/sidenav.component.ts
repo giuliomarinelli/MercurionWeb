@@ -79,7 +79,7 @@ interface HistoryItem {
               <path d="M58.1 555.9L48 592C50.7 591.2 117.4 572.6 248 536L569.4 214.6L592 192C589.6 189.6 549.1 149.1 470.6 70.6L448 48L425.4 70.6L104 392L58.1 555.9zM252.7 486L154 387.3L347.4 193.9L446.1 292.6L252.7 486zM229.4 508L94.2 545.8L132 410.6L229.4 508zM546.7 192L468.6 270.1L369.9 171.4L448 93.3L546.7 192z"/>
             </svg>
           </div>
-          <span class="sidebar-item-text">Crea una molecola</span>
+          <span class="sidebar-item-text">Disegna una molecola</span>
         </a>
         <div class="mb-1"></div>
         <hr class="border-slate-300 dark:border-slate-600 mb-2"/>
