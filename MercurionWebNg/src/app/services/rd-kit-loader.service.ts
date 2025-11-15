@@ -19,8 +19,8 @@ export class RDKitService {
       import('@rdkit/rdkit').then(m =>
         (m as any).default({
           locateFile: () =>
-            this.basePath === '/app/'
-              ? '/app/RDKit_minimal.wasm'
+            this.basePath === '/m/'
+              ? '/m/RDKit_minimal.wasm'
               : '/RDKit_minimal.wasm'
         }).then((rdk: RDKitModule | undefined) => (window.RDKit = rdk))
       )
