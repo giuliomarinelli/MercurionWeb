@@ -5,18 +5,18 @@ import { Component, Input, signal } from '@angular/core';
   imports: [],
   template: `
 
-    <div
+    <button
       class="
         inline-flex items-center rounded-full px-2.5 py-1 text-sm font-medium
         bg-indigo-50 text-light-accent-primary shrink-0
         dark:bg-slate-700/30 dark:text-dark-accent-primary
         border border-indigo-200/70 dark:border-indigo-700/40
-        group-hover:scale-[1.02] transition-transform cursor-default
+        hover:transform hover:scale-[1.03] transition-transform cursor-default
       "
     >
       {{_name()}}
 
-    </div>
+    </button>
 
   `
 })
