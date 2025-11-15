@@ -14,7 +14,6 @@ export const routes: Routes = [
   },
   {
     // redirect per retrocompatibilità
-    // TODO: sostituire tutti i routerLink e i Router.navigate/navigateByUrl che puntano a /profile con /dashboard
     path: 'profile',
     redirectTo: 'dashboard'
   },

@@ -258,7 +258,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         return;
       }
 
-      if (isLoggedOutOnly) safeNavigate('/profile');
+      if (isLoggedOutOnly) safeNavigate('/dashboard');
     });
   }
 

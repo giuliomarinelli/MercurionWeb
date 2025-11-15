@@ -33,7 +33,7 @@ export class NotFound404LandingPageComponent {
   private readonly router = inject(Router)
 
   protected homeContent = computed<string>(() => this.userContext.isLoggedIn() ? 'Vai alla Dashboard' : 'Vai alla Home')
-  protected homePath = computed<string>(() => this.userContext.isLoggedIn() ? '/profile' : '/')
+  protected homePath = computed<string>(() => this.userContext.isLoggedIn() ? '/dashboard' : '/')
 
   goBack(): void {
     queueMicrotask(() => this.location.back())

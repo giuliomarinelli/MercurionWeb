@@ -344,7 +344,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
   private storageListener(e: StorageEvent) {
     if (e.key === 'login' && e.newValue) {
       if (this.router.url === '/login' || this.router.url.startsWith('/login')) {
-        const redirect = sessionStorage.getItem('redirectAfterLogin') || '/profile'
+        const redirect = sessionStorage.getItem('redirectAfterLogin') || '/dashboard'
         this.router.navigateByUrl(redirect)
         this.userContext.setInitials(e.newValue ?? 'U')
       }
@@ -427,7 +427,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
             this.authService.setWs_accessToken(res.ws_accessToken ?? null)
             localStorage.setItem('login', res.initials ?? 'U')
             this.sessionSync.resumeSession(res.initials ?? 'U')
-            const redirect = sessionStorage.getItem('redirectAfterLogin') || '/profile'
+            const redirect = sessionStorage.getItem('redirectAfterLogin') || '/dashboard'
             this.sessionSync.resumeSession(res.initials ?? 'U')
             this.router.navigateByUrl(redirect)
             this.loadingLogin.set(false)
@@ -457,7 +457,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
     window.addEventListener('storage', this.storageListener)
     this.pollInterval = setInterval(() => {
       if (localStorage.getItem('login') && (this.router.url === '/login' || this.router.url.startsWith('/login'))) {
-        const redirect = sessionStorage.getItem('redirectAfterLogin') || '/profile';
+        const redirect = sessionStorage.getItem('redirectAfterLogin') || '/dashboard';
         this.router.navigateByUrl(redirect);
       }
     }, 1000)
