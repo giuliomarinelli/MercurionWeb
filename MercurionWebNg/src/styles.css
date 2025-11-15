@@ -36,8 +36,8 @@
 
 @font-face {
   font-family: 'Space Grotesk';
-  src: url('/app/fonts/space_grotesk/SpaceGrotesk-SemiBold.woff2') format('woff2'),
-    url('/app/fonts/space_grotesk/SpaceGrotesk-SemiBold.woff') format('woff');
+  src: url('/m/fonts/space_grotesk/SpaceGrotesk-SemiBold.woff2') format('woff2'),
+    url('/m/fonts/space_grotesk/SpaceGrotesk-SemiBold.woff') format('woff');
   font-weight: 600;
   font-style: normal;
   font-display: swap;
