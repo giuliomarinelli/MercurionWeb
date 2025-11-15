@@ -170,7 +170,12 @@ export class AuthenticationController {
         try {
             ({ sub: userId, sid: sessionId, jti } = await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken))
         } catch {
-            throw new UnauthorizedException()
+            try {
+                await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken, true)
+                throw new UnauthorizedException('ExpiredPreauthorizationToken')
+            } catch {
+                throw new UnauthorizedException()
+            }
         }
         const expectedDev = await this.redisService.get(`mfa:pat:dev:${jti}`)
         if (expectedDev && expectedDev !== actualDeviceId) {

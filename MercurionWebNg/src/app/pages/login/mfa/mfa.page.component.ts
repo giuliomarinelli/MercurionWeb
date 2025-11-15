@@ -24,7 +24,7 @@ export type MfaView = 'EMAIL_OTP' | 'SMS_OTP' | 'PH_V' | 'APP_TOTP' | ''
   template: `
 
     @if (canView()) {
-      <div class="min-h-screen flex flex-col items-center justify-center px-4 py-8">
+      <div class="min-h-screen flex flex-col items-center px-4 py-12 relative top-6">
 
         <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-auto mb-6"
           viewBox="0 0 512 512"><!--!Font Awesome Pro 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
@@ -105,17 +105,19 @@ export type MfaView = 'EMAIL_OTP' | 'SMS_OTP' | 'PH_V' | 'APP_TOTP' | ''
             </div>
           </div>
 
-          <!-- Social buttons placeholder -->
+
           <div class="space-y-3 dark:text-slate-100">
-            <button type="button"
-              class="w-full flex items-center justify-center border rounded-md py-2.5 text-sm dark:hover:bg-slate-100 gap-3 dark:hover:text-neutral-900 hover:bg-slate-200/80 bg-slate-200 dark:bg-transparent transition-colors duration-150">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-auto fill-current"
-                viewBox="0 0 512 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
-                <path
-                  d="M64 144a48 48 0 1 0 0-96 48 48 0 1 0 0 96zM192 64c-17.7 0-32 14.3-32 32s14.3 32 32 32l288 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L192 64zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32l288 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-288 0zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32l288 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-288 0zM64 464a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm48-208a48 48 0 1 0 -96 0 48 48 0 1 0 96 0z" />
-              </svg>
-              <span>Prova con un altro metodo</span>
-            </button>
+            @if (!unTrusted()) {
+              <button type="button"
+                class="w-full flex items-center justify-center border rounded-md py-2.5 text-sm dark:hover:bg-slate-100 gap-3 dark:hover:text-neutral-900 hover:bg-slate-200/80 bg-slate-200 dark:bg-transparent transition-colors duration-150">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-auto fill-current"
+                  viewBox="0 0 512 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+                  <path
+                    d="M64 144a48 48 0 1 0 0-96 48 48 0 1 0 0 96zM192 64c-17.7 0-32 14.3-32 32s14.3 32 32 32l288 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L192 64zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32l288 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-288 0zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32l288 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-288 0zM64 464a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm48-208a48 48 0 1 0 -96 0 48 48 0 1 0 96 0z" />
+                </svg>
+                <span>Prova con un altro metodo</span>
+              </button>
+            }
             <button type="button"
               class="w-full flex items-center justify-center border rounded-md py-2.5 text-sm dark:hover:bg-slate-100 gap-3 dark:hover:text-neutral-900 hover:bg-slate-200/80 bg-slate-200 dark:bg-transparent transition-colors duration-150">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="h-5 w-auto fill-current">
@@ -286,10 +288,25 @@ export class MfaPageComponent implements OnInit, OnDestroy {
         this.canView.set(true)
       },
       error: (e) => {
-        if ('error' in e && 'status' in e && e.status === 429) {
-          this.toast.trigger('Troppi tentativi, riprova tra qualche minuto.', 'error', 3000)
-          this.router.navigateByUrl('/login')
-          return
+        if ('error' in e && 'status' in e) {
+          if (e.status === 429) {
+            this.toast.trigger('Troppi tentativi, riprova tra qualche minuto.', 'error', 3000)
+            this.router.navigateByUrl('/login')
+            return
+          } else if (e.status === 401) {
+            if (e.error.message && e.error.message === 'ExpiredPreauthorizationToken') {
+              this.toast.trigger('Tempo scaduto. Devi ritentare il login.', 'error', 3000)
+              this.router.navigateByUrl('/login')
+              return
+            } else if (e.error.message && e.error.message === 'Invalid MFA OTP') {
+              this.toast.trigger('Codice errato. Devi ritentare il login.', 'error', 3000)
+              this.router.navigateByUrl('/login')
+              return
+            }
+            this.toast.trigger('Si è verificato un errore.', 'error', 3000)
+            this.router.navigateByUrl('/login')
+            return
+          }
         }
         this.toast.trigger('Si è verificato un errore.', 'error', 3000)
         this.router.navigateByUrl('/login')

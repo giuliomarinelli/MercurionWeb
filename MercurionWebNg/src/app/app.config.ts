@@ -39,7 +39,7 @@ export const appConfig: ApplicationConfig = {
     {
       provide: HTTP_INTERCEPTORS,
       useClass: AuthFallbackInterceptor,
-      multi: true,
+      multi: true
     }
   ]
 };

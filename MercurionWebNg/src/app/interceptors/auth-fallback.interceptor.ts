@@ -63,7 +63,6 @@ export class AuthFallbackInterceptor implements HttpInterceptor {
 
       // 2) caso classico: 401, REST o GraphQL
       catchError((e: any) => {
-
         if (e instanceof HttpErrorResponse && e.status === 401) {
           const body = e.error
           if (isFatalUnauthenticatedBody(body)) {

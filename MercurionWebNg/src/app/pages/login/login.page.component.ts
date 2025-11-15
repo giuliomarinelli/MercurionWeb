@@ -1,5 +1,5 @@
 import { Component, computed, effect, ElementRef, inject, OnDestroy, OnInit, Signal, signal, ViewChild } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormControlStatus, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ThemeManagerService } from '../../services/context/theme-manager.service';
 import { PublicPipe } from '../../pipes/public.pipe';
 import { Router, RouterLink } from '@angular/router';
@@ -17,6 +17,7 @@ import { ClassicSpinnerComponent } from '../../components/common/classic-spinner
 import { ISessionDeviceInfo } from '../../Models/auth/fingerprint.models';
 import { Login_FirstStepWrapper } from '../../Models/auth/login.models';
 import { environment } from '../../../environments/environment.development';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 
 
@@ -309,6 +310,9 @@ export class LoginPageComponent implements OnInit, OnDestroy {
   protected loadingLogin = signal<boolean>(false)
   protected goingToPasswordStep = signal<boolean>(false)
 
+  private formStatus!: Signal<FormControlStatus>
+
+
 
   private firstStepSubscription?: Subscription
   private secondStepSubscription?: Subscription
@@ -332,6 +336,9 @@ export class LoginPageComponent implements OnInit, OnDestroy {
       password: this.fb.control(null, [Validators.required]),
       remember: this.fb.control(false)
     })
+    this.formStatus = toSignal(this.loginForm.statusChanges, {
+      initialValue: this.loginForm.status,
+    })
   }
 
   private storageListener(e: StorageEvent) {
@@ -345,11 +352,11 @@ export class LoginPageComponent implements OnInit, OnDestroy {
     }
   }
 
-  canLogin = computed(() =>
-    !!this.turnstileToken() &&
-    this.loginForm.valid
-  )
-
+  canLogin = computed(() => {
+    const hasToken = !!this.turnstileToken()
+    const isValid = this.formStatus() === 'VALID'
+    return hasToken && isValid
+  })
   onTurnstileToken(token: string): void {
     this.serverErrorStep.set(0)
     this.turnstileToken.set(token)
@@ -389,7 +396,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
   }
 
   onSubmit(): void {
-    if (this.loginForm.valid && this.turnstileToken) {
+    if (this.loginForm.valid && this.turnstileToken()) {
       this.loadingLogin.set(true)
       const dto: Login_FirstStepWrapper = {
         email: this.loginForm.value['email'],
