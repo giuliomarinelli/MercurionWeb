@@ -27,6 +27,8 @@ export class UserContextService {
     this.clearInitials()
     localStorage.removeItem('accessToken')
     localStorage.removeItem('ws_accessToken')
+    localStorage.removeItem('ws_accessToken_ts')
+    document.cookie = '__logged_in=; Max-Age=0; path=/'
   }
 
 }

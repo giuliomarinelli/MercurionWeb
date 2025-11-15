@@ -9,6 +9,7 @@ import { APP_BASE_HREF } from '@angular/common';
 import { provideAnimations } from '@angular/platform-browser/animations'
 import { NgxSpinnerModule } from 'ngx-spinner';
 import { AuthInterceptor } from './interceptors/auth-interceptor.interceptor';
+import { AuthFallbackInterceptor } from './interceptors/auth-fallback.interceptor';
 
 
 export const appConfig: ApplicationConfig = {
@@ -34,6 +35,11 @@ export const appConfig: ApplicationConfig = {
       provide: HTTP_INTERCEPTORS,
       useClass: AuthInterceptor,
       multi: true
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthFallbackInterceptor,
+      multi: true,
     }
   ]
 };

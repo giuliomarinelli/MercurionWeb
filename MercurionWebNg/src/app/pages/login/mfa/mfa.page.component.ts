@@ -284,7 +284,7 @@ export class MfaPageComponent implements OnInit, OnDestroy {
     ).subscribe({
       next: () => {
         this.canView.set(true)
-       },
+      },
       error: (e) => {
         if ('error' in e && 'status' in e && e.status === 429) {
           this.toast.trigger('Troppi tentativi, riprova tra qualche minuto.', 'error', 3000)
@@ -363,8 +363,10 @@ export class MfaPageComponent implements OnInit, OnDestroy {
             if (e.status === 401) {
               switch (errBody.message) {
                 case 'Invalid MFA strategy':
-                case 'MfaDeviceMismatch':
                   message = 'Operazione non autorizzata.'
+                  break
+                case 'MfaDeviceMismatch':
+                  message = 'Hai inserito il codice da un altro browser o dispositivo. Accesso negato.'
                   break
                 case 'Invalid MFA OTP':
                   message = 'Il codice inserito non è corretto, devi ripetere il login.'

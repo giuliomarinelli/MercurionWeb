@@ -1,0 +1,78 @@
+import {
+  HttpInterceptor,
+  HttpRequest,
+  HttpHandler,
+  HttpEvent,
+  HttpErrorResponse,
+  HttpResponse
+} from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
+import { Observable, throwError } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
+import { UserContextService } from '../services/context/user-context.service';
+import { ToastService } from '../services/toast.service';
+import { Router } from '@angular/router';
+
+
+function isFatalUnauthenticatedBody(body: any): boolean {
+
+  if (!body) {
+    return false
+  }
+
+  // REST shape
+  if (body.message === 'Fatal: unauthenticated') {
+    return true
+  }
+
+  // GraphQL shape
+  if (Array.isArray(body.errors)) {
+    return body.errors.some((e: any) =>
+      e?.message === 'Fatal: unauthenticated' ||
+      e?.extensions?.code === 'UNAUTHENTICATED'
+    )
+  }
+
+  return false
+}
+
+@Injectable()
+export class AuthFallbackInterceptor implements HttpInterceptor {
+
+  private readonly userContext = inject(UserContextService)
+  private readonly toast = inject(ToastService)
+  private readonly router = inject(Router)
+
+  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+
+    const forceLogout = () => {
+      this.toast.trigger('Sessione scaduta. Effettua di nuovo il login.', 'error')
+      this.userContext.logout()
+      this.router.navigateByUrl('/login')
+    }
+
+    return next.handle(req).pipe(
+      // 1) caso GraphQL che torna 200 ma con errors (se mai capitasse)
+      tap((event) => {
+        if (event instanceof HttpResponse) {
+          if (isFatalUnauthenticatedBody(event.body)) {
+            forceLogout()
+          }
+        }
+      }),
+
+      // 2) caso classico: 401, REST o GraphQL
+      catchError((e: any) => {
+
+        if (e instanceof HttpErrorResponse && e.status === 401) {
+          const body = e.error
+          if (isFatalUnauthenticatedBody(body)) {
+            forceLogout()
+          }
+        }
+
+        return throwError(() => e)
+      }),
+    );
+  }
+}

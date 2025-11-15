@@ -3,6 +3,9 @@ import { Theme, ThemeChose, ThemeOwner } from '../../Models/theme.models';
 
 @Injectable({ providedIn: 'root' })
 export class ThemeManagerService {
+
+  private readonly themeStorageKey = 'tw_theme'
+
   private readonly _theme = signal<Theme>(this.getOsDefaultTheme)
   private readonly _themeOwner = signal<ThemeOwner>('OS')
   private readonly _chosenTheme = signal<ThemeChose>('OS')
@@ -62,7 +65,7 @@ export class ThemeManagerService {
   }
 
   private handleCrossTabThemeSwitch = (e: StorageEvent): void => {
-    if (e.key === '__tw_mat_theme') {
+    if (e.key === this.themeStorageKey) {
       switch (e.newValue) {
         case 'light':
           this.chooseTheme('light')
@@ -104,11 +107,11 @@ export class ThemeManagerService {
   }
 
   private saveThemeConfig(theme: Theme): void {
-    localStorage.setItem('__tw_mat_theme', theme)
+    localStorage.setItem(this.themeStorageKey, theme)
   }
 
   private restoreThemeConfig(): void {
-    const themeConfig = localStorage.getItem('__tw_mat_theme') as Theme | null
+    const themeConfig = localStorage.getItem(this.themeStorageKey) as Theme | null
     if (themeConfig === 'dark' || themeConfig === 'light') {
       this._theme.set(themeConfig)
       this._themeOwner.set('User')
@@ -116,11 +119,11 @@ export class ThemeManagerService {
   }
 
   private clearThemeConfig(): void {
-    localStorage.removeItem('__tw_mat_theme')
+    localStorage.removeItem(this.themeStorageKey)
   }
 
   private hasSavedThemeConfig(): boolean {
-    return !!localStorage.getItem('__tw_mat_theme')
+    return !!localStorage.getItem(this.themeStorageKey)
   }
 
   getOsDarkModeMediaQuery(): MediaQueryList {
