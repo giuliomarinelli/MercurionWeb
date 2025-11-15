@@ -9,7 +9,7 @@ import { Component, Input, signal } from '@angular/core';
       @if (synonyms().length > 0) {
         <ul class="flex flex-wrap gap-2 justify-center sm:justify-start">
           @for (syn of synonyms(); track syn) {
-            <li class="px-3 py-1 rounded-full bg-gray-200 dark:bg-gray-700 text-sm text-gray-800 dark:text-gray-100">
+            <li class="px-3 py-1 rounded-full bg-gray-200 dark:bg-gray-700 text-sm text-gray-800 dark:text-gray-100 cursor-default">
               {{ syn }}
             </li>
           }
