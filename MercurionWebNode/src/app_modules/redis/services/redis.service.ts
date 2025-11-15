@@ -1,11 +1,12 @@
-import { Injectable, LoggerService } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Redis } from 'ioredis';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 
 @Injectable()
 export class RedisService {
 
-  private readonly logger: LoggerService
+  private readonly logger: MeiliContextLogger
 
   constructor(
     private readonly redisClient: Redis,
@@ -114,7 +115,7 @@ export class RedisService {
       keys.push(...results);
     } while (cursor !== '0');
 
-    this.logger.debug?.('✅ Total keys found:', keys.length);
+    this.logger.debug?.('✅ Total keys found:', keys.length.toString());
     return keys;
   }
 

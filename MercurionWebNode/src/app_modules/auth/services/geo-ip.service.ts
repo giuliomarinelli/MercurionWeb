@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 // src/app_modules/common/services/geo-ip.service.ts
 
-import { Injectable, LoggerService } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import * as geoip from 'geoip-lite';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 
 export interface GeoLocationInfo {
     ip: string;
@@ -22,7 +23,7 @@ export interface GeoLocation {
 @Injectable()
 export class GeoIpService {
 
-    private readonly logger: LoggerService;
+    private readonly logger: MeiliContextLogger;
 
     constructor(meiliLogger: MeiliLoggerService) {
         this.logger = meiliLogger.forContext(GeoIpService.name)

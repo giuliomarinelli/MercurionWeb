@@ -1,4 +1,4 @@
-import { Injectable, LoggerService, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { RedisService } from './redis.service';
 import { Redis } from 'ioredis';
 import { OAuth2AccessTokenRefreshService } from 'src/app_modules/oauth2-client/services/access-token-refresh.service';
@@ -6,12 +6,13 @@ import { UUID } from 'crypto';
 import { Server } from 'socket.io';
 import { SessionService } from 'src/app_modules/auth/services/session.service';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 
 @Injectable()
 export class PubSubService implements OnModuleInit {
 
   private readonly subscriber: Redis
-  private readonly logger: LoggerService
+  private readonly logger: MeiliContextLogger
   private socketServer: Server | undefined
 
   constructor(

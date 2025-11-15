@@ -1,4 +1,4 @@
-import { Injectable, LoggerService } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import axios, { AxiosResponse } from 'axios';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
@@ -13,11 +13,12 @@ import { StorageScope } from '../Models/enums/storage-scope.enum';
 import { StorageAction } from '../Models/enums/storage-action.type';
 import { User } from 'src/app_modules/user/Models/entities/user.entity';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 
 @Injectable()
 export class DropboxObjectStoreService {
 
-    private readonly logger: LoggerService
+    private readonly logger: MeiliContextLogger
 
     constructor(
         private readonly oauth2ClientService: OAuth2ClientService,
@@ -123,7 +124,7 @@ export class DropboxObjectStoreService {
         const storagePath = file.id ?? file.path_lower;
         if (!storagePath) {
             // caso estremamente raro, ma meglio difensivo
-            this.logger.error('Dropbox response missing id/path_lower', file);
+            this.logger.warn('Dropbox response missing id/path_lower', file);
             throw new RpcException('UploadFailed::Invalid Dropbox response');
         }
 

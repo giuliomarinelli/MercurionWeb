@@ -1,17 +1,18 @@
-import { Inject, Injectable, LoggerService } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { MoleculeDetail } from "../Models/DTO/molecule-detail.gql.dtos";
 import { MeiliSearch } from "meilisearch";
 import { RpcException } from "@nestjs/microservices";
 import { MoleculeSearchResult } from "../Models/DTO/molecule-search-result.cls";
 import { MoleculeDetailModel } from "src/app_modules/chembl/Models/DTO/molecule-detail-model.interface";
 import { MeiliLoggerService } from "./meili-logger.service";
+import { MeiliContextLogger } from "src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface";
 
 type Maybe<T> = T | null | undefined;
 
 @Injectable()
 export class MoleculeService {
 
-    private readonly logger: LoggerService
+    private readonly logger: MeiliContextLogger
 
     constructor(
         @Inject("MEILISEARCH_CLIENT")

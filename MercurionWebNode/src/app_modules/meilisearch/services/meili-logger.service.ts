@@ -2,6 +2,7 @@ import { Inject, Injectable, Logger, LoggerService, LogLevel, OnModuleInit } fro
 import { MeiliSearch } from 'meilisearch';
 import { LogEntry } from '../Models/DTO/log-entry.interface';
 import { uuidv7 } from '@kripod/uuidv7';
+import { MeiliContextLogger } from '../Models/interfaces/meili-context-logger.interface';
 
 
 @Injectable()
@@ -81,7 +82,7 @@ export class MeiliLoggerService extends Logger implements LoggerService, OnModul
         return out
     }
 
-    public forContext(context: string): LoggerService & { fatal(message: string | object): void } {
+    public forContext(context: string): MeiliContextLogger {
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         const logger = this
         return {

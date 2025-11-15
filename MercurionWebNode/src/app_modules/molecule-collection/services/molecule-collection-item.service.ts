@@ -1,6 +1,6 @@
 import { MoleculeCollectionItemEntity } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection-item.entity';
 import { MoleculeService } from '../../meilisearch/services/molecule.service';
-import { Injectable, LoggerService } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, Repository } from 'typeorm';
 import { UUID } from 'crypto';
@@ -20,13 +20,14 @@ import { History } from 'src/app_modules/history/Models/entities/history.entity'
 import { HistoryItemEntity } from 'src/app_modules/history/Models/enums/history-item-entity.enum';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 
 
 // TODO: valutare un refactoring per dryificare la duplicazione di logica tra questo service e i service delle entità figlie concrete
 @Injectable()
 export class MoleculeCollectionItemService {
 
-    private readonly logger: LoggerService
+    private readonly logger: MeiliContextLogger
 
     constructor(
         @InjectRepository(MoleculeCollectionItemEntity)

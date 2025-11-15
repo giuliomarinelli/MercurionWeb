@@ -1,7 +1,7 @@
 import { StorageAction } from './../Models/enums/storage-action.type';
 import {
     Controller, Post, Get, Delete, Param, Req, Res,
-    LoggerService, HttpStatus, InternalServerErrorException,
+    HttpStatus, InternalServerErrorException,
 } from '@nestjs/common';
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { promises as fs } from 'node:fs';              // fs/promises
@@ -19,11 +19,12 @@ import { AuthenticatedUserId } from 'src/metadata/metadata';
 import { StorageScope } from '../Models/enums/storage-scope.enum';
 import { TypeGuards } from 'src/utils/type-guards/type-guards';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 
 @Controller('documents')
 export class DocumentController {
 
-    private readonly logger: LoggerService;
+    private readonly logger: MeiliContextLogger;
 
     constructor(
         private readonly dropboxService: DropboxObjectStoreService,

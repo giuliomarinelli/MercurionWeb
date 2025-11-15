@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, LoggerService } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { createHmac, randomUUID, UUID } from 'crypto';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { ISession, ISessionDeviceInfo } from '../Models/interfaces/i-session.interface';
@@ -8,12 +8,13 @@ import { SessionFetchOptions } from '../Models/interfaces/session-fetch-options.
 import { SessionDTO } from '../Models/DTO/session.dto';
 import { ConfigService } from '@nestjs/config';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 
 
 @Injectable()
 export class SessionService {
 
-    private readonly logger: LoggerService
+    private readonly logger: MeiliContextLogger
 
     private readonly secret: string
 

@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config';
-import { HttpStatus, Injectable, LoggerService } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { UserRegisterDTO } from 'src/app_modules/user/Models/DTO/user-register.cls.dto';
 import { UserService } from 'src/app_modules/user/services/user.service';
 import { ConfirmChangeDTO, ConfirmDTO, ConfirmWithObsContDTO } from 'src/Models/confirm-responses.dto';
@@ -25,6 +25,7 @@ import { CompareResult } from '../Models/enums/compare-result.enum';
 import { SecurityAuditService } from 'src/app_modules/meilisearch/services/security-audit/security-audit.service';
 import { UserContext } from 'src/app_modules/notification/Models/contexts/user.context';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 
 
 
@@ -32,7 +33,7 @@ import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-l
 @Injectable()
 export class AccountService {
 
-    private readonly logger: LoggerService
+    private readonly logger: MeiliContextLogger
 
     private readonly CHANGE_PASSWORD_TOKEN_EXPIRATION_MS: number
 

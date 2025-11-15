@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable, LoggerService } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Socket } from 'socket.io';
 import { TokenType } from 'src/app_modules/auth/Models/enums/token-type.enum';
@@ -8,11 +8,12 @@ import { SessionService } from 'src/app_modules/auth/services/session.service';
 import { IS_PUBLIC_KEY } from 'src/metadata/metadata';
 import { WebSocketUtils } from 'src/utils/web-socket-utils/web-socket-utils';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 
 @Injectable()
 export class WsGuard implements CanActivate {
 
-  private readonly logger: LoggerService
+  private readonly logger: MeiliContextLogger
   
   constructor(
     private readonly jwtTools: JwtToolsService,

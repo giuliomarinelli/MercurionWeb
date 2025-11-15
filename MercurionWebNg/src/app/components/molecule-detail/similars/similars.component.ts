@@ -23,8 +23,8 @@ import { SkeletonCollectionCardComponent } from '../../common/skeleton-card-load
             <app-skeleton-collection-card [height]="'45px'" />
           }
       } @else {
-        <div class="absolute inset-0">
-          Nessun analogo trovato...
+        <div class="absolute inset-0 flex justify-center items-center text-sm">
+          Nessun analogo noto trovato... Deseleziona&nbsp;<strong>Mostra solo composti noti</strong>&nbsp;per vedere i lead sperimentali più simili.
         </div>
       }
     </div>

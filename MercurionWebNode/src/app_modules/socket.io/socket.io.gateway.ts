@@ -1,6 +1,6 @@
 import { WebSocketGateway, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, MessageBody, ConnectedSocket } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { LoggerService, OnModuleInit, UseGuards } from '@nestjs/common';
+import { OnModuleInit, UseGuards } from '@nestjs/common';
 import Redis from 'ioredis';
 import { createAdapter } from '@socket.io/redis-adapter';
 import { WsGuard } from './guards/ws.guard';
@@ -8,6 +8,7 @@ import { PubSubService } from '../redis/services/pub-sub.service';
 import { Public } from 'src/metadata/metadata';
 import { UUID } from 'crypto';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 
 
 
@@ -15,7 +16,7 @@ import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-l
 @UseGuards(WsGuard)
 export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, OnModuleInit {
 
-  private readonly logger: LoggerService
+  private readonly logger: MeiliContextLogger
 
   @WebSocketServer()
   private readonly server: Server

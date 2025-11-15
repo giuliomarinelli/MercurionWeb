@@ -1,7 +1,7 @@
 import { SessionService } from 'src/app_modules/auth/services/session.service';
 import { SecureCookieService } from './../services/secure-cookie.service';
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpStatus, LoggerService, Param, Patch, Post, Query, Req, Res, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Query, Req, Res, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
 import { Login_FirstStepDTO } from '../Models/DTO/login-first-step.cls.dto';
 import { MfaService } from '../services/mfa.service';
 import { AuthenticationService } from '../services/authentication.service';
@@ -26,13 +26,14 @@ import { CookieConfiguration, SecureCookieConfiguration } from 'src/config/confi
 import { SignedSessionIdDTO } from '../Models/DTO/signed-session-id.dto';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 
 
 
 @Controller('authentication')
 export class AuthenticationController {
 
-    private readonly logger: LoggerService
+    private readonly logger: MeiliContextLogger
 
     private readonly cookieConf: CookieConfiguration
     private readonly LONG_SESSION_TTL: number

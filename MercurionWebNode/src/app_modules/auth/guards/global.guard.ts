@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException, LoggerService } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtToolsService } from '../services/jwt-tools.service';
 import { SessionService } from '../services/session.service';
 import { IS_PUBLIC_KEY } from 'src/metadata/metadata';
@@ -10,6 +10,7 @@ import { AppJwtPayload } from '../Models/interfaces/app-jwt-payload.interface';
 import { RpcException } from '@nestjs/microservices';
 import { timingSafeEqual } from 'node:crypto';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 
 
 
@@ -17,7 +18,7 @@ import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-l
 @Injectable()
 export class GlobalGuard implements CanActivate {
 
-   private readonly logger: LoggerService
+   private readonly logger: MeiliContextLogger
 
    constructor(
       private readonly jwtToolsService: JwtToolsService,

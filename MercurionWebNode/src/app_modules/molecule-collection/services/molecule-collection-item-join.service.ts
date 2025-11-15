@@ -1,5 +1,5 @@
 import { MoleculeCollectionItemJoin } from './../Models/entities/molecule-collection-item-join.entity';
-import { Injectable, LoggerService } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, Repository } from 'typeorm';
 import { UUID } from 'crypto';
@@ -12,6 +12,7 @@ import { ChEMBLMoleculeItemEntity } from '../Models/entities/chembl-molecule-ite
 import { MoleculeService } from 'src/app_modules/meilisearch/services/molecule.service';
 import { BindManyCollectionsToMoleculeDTO } from '../Models/DTO/bind-many-collections-to-molecule.dto';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 
 
 
@@ -19,7 +20,7 @@ import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-l
 @Injectable()
 export class MoleculeCollectionItemJoinService {
 
-    private readonly logger: LoggerService
+    private readonly logger: MeiliContextLogger
 
     constructor(
         @InjectRepository(MoleculeCollectionItemJoin)

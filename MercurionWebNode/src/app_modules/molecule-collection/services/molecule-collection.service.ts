@@ -1,5 +1,5 @@
 /* eslint-disable no-useless-escape */
-import { Injectable, LoggerService } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, Repository } from 'typeorm';
 import { UUID } from 'crypto';
@@ -14,6 +14,7 @@ import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { MoleculeCollectionItemJoin } from '../Models/entities/molecule-collection-item-join.entity';
 import { ChEMBLMoleculeItemEntity } from '../Models/entities/chembl-molecule-item.entity';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 
 @Injectable()
 export class MoleculeCollectionService {
@@ -140,7 +141,7 @@ WHERE i.user_id = $2::uuid
   );
 `
 
-  private readonly logger: LoggerService
+  private readonly logger: MeiliContextLogger
 
   constructor(
     @InjectRepository(MoleculeCollection)

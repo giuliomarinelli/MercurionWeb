@@ -1,4 +1,4 @@
-import { Injectable, LoggerService, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosResponse } from 'axios';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
@@ -8,10 +8,11 @@ import { OAuth2PersistenceService } from './o-auth2-persistence.service';
 import { UUID } from 'crypto';
 import { OAuth2TokenData } from '../Models/interfaces/oauth2-token-data.interface';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 
 @Injectable()
 export class OAuth2ClientService implements IOAuth2ClientService {
-    private readonly logger: LoggerService;
+    private readonly logger: MeiliContextLogger;
 
     constructor(
         private readonly configService: ConfigService,

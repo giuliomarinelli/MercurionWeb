@@ -1,5 +1,5 @@
 import { ProfileRegistryDTO as ProfileRegistryDTO } from './../../auth/Models/DTO/profile.dtos';
-import { Injectable, LoggerService } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../Models/entities/user.entity';
 import { DataSource, FindOptionsWhere, Repository } from 'typeorm';
@@ -16,11 +16,12 @@ import { ProfileDTO } from 'src/app_modules/auth/Models/DTO/profile.dtos';
 import { SercurityService } from 'src/app_modules/auth/services/sercurity.service';
 import { CompareResult } from 'src/app_modules/auth/Models/enums/compare-result.enum';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 
 @Injectable()
 export class UserService {
 
-    private readonly logger: LoggerService
+    private readonly logger: MeiliContextLogger
 
     public get STD_SCOPES(): string {
         return JSON.stringify(this.standardScopes)
