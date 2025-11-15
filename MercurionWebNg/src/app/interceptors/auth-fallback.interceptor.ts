@@ -8,7 +8,7 @@ import {
 } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { catchError, filter, tap } from 'rxjs/operators';
 import { UserContextService } from '../services/context/user-context.service';
 import { ToastService } from '../services/toast.service';
 import { Router } from '@angular/router';
@@ -56,7 +56,9 @@ export class AuthFallbackInterceptor implements HttpInterceptor {
       tap((event) => {
         if (event instanceof HttpResponse) {
           if (isFatalUnauthenticatedBody(event.body)) {
-            forceLogout()
+            if (this.userContext.isLoggedIn()) {
+              forceLogout()
+            }
           }
         }
       }),
@@ -66,7 +68,9 @@ export class AuthFallbackInterceptor implements HttpInterceptor {
         if (e instanceof HttpErrorResponse && e.status === 401) {
           const body = e.error
           if (isFatalUnauthenticatedBody(body)) {
-            forceLogout()
+            if (this.userContext.isLoggedIn()) {
+              forceLogout()
+            }
           }
         }
 

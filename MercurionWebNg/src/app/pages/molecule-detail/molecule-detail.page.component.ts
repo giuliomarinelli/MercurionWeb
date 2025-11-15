@@ -142,9 +142,9 @@ import { BindCollectionsToMoleculeContextService } from '../../services/context/
               [itemId]="molecule.id" />
             <app-custom-details (onSaving)="doUpdateInlineDetails($event)" [type]="'notes'" [value]="molecule.notes ?? '—'"
               [itemId]="molecule.id" />
-            @if (userContext.isLoggedIn()) {
-            <app-t1-prediction-card [inference]="molecule.t1Inference" />
-            }
+          }
+          @if (userContext.isLoggedIn()) {
+          <app-t1-prediction-card [inference]="molecule.t1Inference" />
           }
 
 
