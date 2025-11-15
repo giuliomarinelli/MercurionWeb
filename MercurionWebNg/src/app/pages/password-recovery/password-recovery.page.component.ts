@@ -34,7 +34,7 @@ import { Helpers } from '../../helpers';
             </span>
           </div>
             <form (ngSubmit)="send()" [formGroup]="form" class="mt-2 max-w-[400px] mx-auto">
-              <app-floating-input class="mb-5 block"
+              <app-floating-input class="mb-3 block"
                 label="Nuova password"
                 type="password"
                 formControlName="password"

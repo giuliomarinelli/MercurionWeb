@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RedisService } from './services/redis.service';
 import { PubSubService } from './services/pub-sub.service';
-import { AccessTokenRefreshService } from '../oauth2-client/services/access-token-refresh.service';
+import { OAuth2AccessTokenRefreshService } from '../oauth2-client/services/access-token-refresh.service';
 import { SessionService } from '../auth/services/session.service';
 import { MeiliLoggerService } from '../meilisearch/services/meili-logger.service';
 import Redis from 'ioredis';
@@ -30,7 +30,7 @@ describe('RedisModule (providers wiring)', () => {
         { provide: Redis, useValue: mockRedisClient },
         RedisService,
         {
-          provide: AccessTokenRefreshService,
+          provide: OAuth2AccessTokenRefreshService,
           useValue: { refreshAccessToken: jest.fn() },
         },
         {

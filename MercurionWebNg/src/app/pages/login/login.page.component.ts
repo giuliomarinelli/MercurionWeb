@@ -428,6 +428,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
             localStorage.setItem('login', res.initials ?? 'U')
             this.sessionSync.resumeSession(res.initials ?? 'U')
             const redirect = sessionStorage.getItem('redirectAfterLogin') || '/profile'
+            this.sessionSync.resumeSession(res.initials ?? 'U')
             this.router.navigateByUrl(redirect)
             this.loadingLogin.set(false)
           }

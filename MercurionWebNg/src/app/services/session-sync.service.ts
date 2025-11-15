@@ -9,11 +9,11 @@
  * ────────────────────────────────────────────────────────────── */
 import { Injectable, NgZone, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { RealtimeSocketService } from './socket.IO/realtime-socket.service';
 import { UserContextService } from './context/user-context.service';
 import { ToastService } from './toast.service';
 import { ToastContext } from '../components/common/toast/toast.component';
 import { environment } from '../../environments/environment.development';
+import { RealtimeSocketService } from './socket.IO/realtime-socket.service';
 
 export type SessionSyncStatus =
   | 'unknown' | 'checking' | 'loggedIn' | 'anonymous'
@@ -21,6 +21,9 @@ export type SessionSyncStatus =
 
 @Injectable({ providedIn: 'root' })
 export class SessionSyncService {
+
+  private _handshakeTick = signal(0);
+  public readonly handshakeTick = this._handshakeTick.asReadonly();
 
   private _status = signal<SessionSyncStatus>('unknown');
   public readonly status = this._status.asReadonly();
@@ -107,7 +110,15 @@ export class SessionSyncService {
 
   /* ---------------- Public API ---------------- */
 
-  resumeSession(initials: string) { this.onExternalLogin(initials); }
+  resumeSession(initials: string) {
+    this.onExternalLogin(initials)
+    this._handshakeTick.update(x => x + 1)
+  }
+
+  requestHandshake() {
+    this._handshakeTick.update(x => x + 1)
+  }
+
   forceSessionCheck() { void this.syncSession(true); }
   logout() {
     // logout esplicito: togli "login" e degrada WS a PUBLIC subito

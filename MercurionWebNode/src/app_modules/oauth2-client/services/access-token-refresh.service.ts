@@ -4,7 +4,7 @@ import { UUID } from 'crypto';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 
 @Injectable()
-export class AccessTokenRefreshService {
+export class OAuth2AccessTokenRefreshService {
 
     private readonly logger: LoggerService
 
@@ -12,7 +12,7 @@ export class AccessTokenRefreshService {
         private readonly oauth2ClientService: OAuth2ClientService,
         meiliLogger: MeiliLoggerService
     ) {
-        this.logger = meiliLogger.forContext(AccessTokenRefreshService.name)
+        this.logger = meiliLogger.forContext(OAuth2AccessTokenRefreshService.name)
     }
 
     /**

@@ -154,6 +154,15 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor() {
 
     effect(() => {
+      // Scudo anti race condition per la connessione ws dopo il login e l'emissione dell'evento di handshake
+      const t = this.sessionSync.handshakeTick()
+      if (t === 0) {
+        return
+      }
+      void this.sessionSync.syncSession(true)
+    })
+
+    effect(() => {
       const t = this.appContext.addedTick()
       if (t === 0) {
         return

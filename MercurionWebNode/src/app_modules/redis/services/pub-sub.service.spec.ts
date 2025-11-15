@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PubSubService } from './pub-sub.service';
 import { RedisService } from './redis.service';
 import Redis from 'ioredis';
-import { AccessTokenRefreshService } from 'src/app_modules/oauth2-client/services/access-token-refresh.service';
+import { OAuth2AccessTokenRefreshService } from 'src/app_modules/oauth2-client/services/access-token-refresh.service';
 import { SessionService } from 'src/app_modules/auth/services/session.service';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 
@@ -23,7 +23,7 @@ describe('PubSubService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PubSubService,
-        { provide: AccessTokenRefreshService, useValue: { refreshAccessToken: jest.fn() } },
+        { provide: OAuth2AccessTokenRefreshService, useValue: { refreshAccessToken: jest.fn() } },
         { provide: RedisService, useValue: { getClient: () => redisClient } },
         { provide: SessionService, useValue: { getJtiListBySessionId: jest.fn().mockResolvedValue([]), revokeToken: jest.fn() } },
         { provide: MeiliLoggerService, useValue: { forContext: jest.fn().mockReturnValue(mockLogger) } },

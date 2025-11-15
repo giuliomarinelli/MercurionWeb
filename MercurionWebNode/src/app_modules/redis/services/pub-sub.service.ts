@@ -1,7 +1,7 @@
 import { Injectable, LoggerService, OnModuleInit } from '@nestjs/common';
 import { RedisService } from './redis.service';
 import { Redis } from 'ioredis';
-import { AccessTokenRefreshService } from 'src/app_modules/oauth2-client/services/access-token-refresh.service';
+import { OAuth2AccessTokenRefreshService } from 'src/app_modules/oauth2-client/services/access-token-refresh.service';
 import { UUID } from 'crypto';
 import { Server } from 'socket.io';
 import { SessionService } from 'src/app_modules/auth/services/session.service';
@@ -16,7 +16,7 @@ export class PubSubService implements OnModuleInit {
 
   constructor(
     private readonly redisService: RedisService,
-    private readonly accessTokenRefreshService: AccessTokenRefreshService,
+    private readonly oauth2_accessTokenRefreshService: OAuth2AccessTokenRefreshService,
     private readonly sessionService: SessionService,
     meiliLogger: MeiliLoggerService,
   ) {
@@ -85,7 +85,7 @@ export class PubSubService implements OnModuleInit {
     }
 
     try {
-      await this.accessTokenRefreshService.refreshAccessToken(provider, userId as UUID);
+      await this.oauth2_accessTokenRefreshService.refreshAccessToken(provider, userId as UUID);
       this.logger.log(`Access token refreshed for provider=${provider} userId=${userId ?? '[none]'}`)
     } catch (err) {
       this.logger.error(`Error refreshing access token for provider=${provider} userId=${userId ?? '[none]'}: ${err?.message || err}`)

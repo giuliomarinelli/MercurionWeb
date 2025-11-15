@@ -368,7 +368,6 @@ export class MfaPageComponent implements OnInit, OnDestroy {
           this.sessionSyncService.resumeSession(res.initials ?? 'U')
           const redirect = sessionStorage.getItem('redirectAfterLogin') || '/profile'
           this.router.navigateByUrl(redirect)
-          this.loadingContext.stop()
         },
         error: (e) => {
           if (sessionStorage.getItem('preAuthorizationData')) {

@@ -5,7 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { OAuth2TokenEntity } from './Models/entities/oauth2-token.entity';
 import { RedisModule } from '../redis/redis.module';
 import { OAuth2ClientController } from './controllers/o-auth2-client.controller';
-import { AccessTokenRefreshService } from './services/access-token-refresh.service';
+import { OAuth2AccessTokenRefreshService } from './services/access-token-refresh.service';
 import { MeilisearchModule } from '../meilisearch/meilisearch.module';
 
 @Module({
@@ -14,8 +14,8 @@ import { MeilisearchModule } from '../meilisearch/meilisearch.module';
         forwardRef(() => RedisModule),
         MeilisearchModule
     ],
-    providers: [OAuth2PersistenceService, OAuth2ClientService, AccessTokenRefreshService],
+    providers: [OAuth2PersistenceService, OAuth2ClientService, OAuth2AccessTokenRefreshService],
     controllers: [OAuth2ClientController],
-    exports: [AccessTokenRefreshService, OAuth2ClientService]
+    exports: [OAuth2AccessTokenRefreshService, OAuth2ClientService]
 })
 export class OAuth2ClientModule { }
