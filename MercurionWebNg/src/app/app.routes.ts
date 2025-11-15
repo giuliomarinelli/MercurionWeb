@@ -13,7 +13,13 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/login/login.page.component').then(m => m.LoginPageComponent)
   },
   {
+    // redirect per retrocompatibilità
+    // TODO: sostituire tutti i routerLink e i Router.navigate/navigateByUrl che puntano a /profile con /dashboard
     path: 'profile',
+    redirectTo: 'dashboard'
+  },
+  {
+    path: 'dashboard',
     loadComponent: () => import('./pages/profile/dashboard.page.component').then(m => m.ProfilePageComponent),
     canActivate: [AuthGuard]
   },

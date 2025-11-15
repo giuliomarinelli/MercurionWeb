@@ -246,7 +246,7 @@ export class AccountService {
         const url: string = `${this.configService.get<string>("App.activationOrigin")}/account/activate?t=${activationToken}`
         await this.mailService.sendEmail<UserCtaContext>(
             email,
-            `${firstName}, completa la tua registrazione a Mercurion`, // ${this.configService.get<string>("App.globalName")}
+            `${firstName}, completa la tua registrazione a Mercurion`, 
             { firstName, url },
             join(__dirname, "../../../app_modules/notification/email-templates/confirmation.hbs")
         )

@@ -27,7 +27,7 @@ export const appConfig: ApplicationConfig = {
     }),
     {
       provide: APP_BASE_HREF,
-      useValue: '/app'
+      useValue: '/m'
     },
     provideAnimations(),
     importProvidersFrom(NgxSpinnerModule),

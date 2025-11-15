@@ -5,7 +5,7 @@ import { BASE_PATH } from './base-path.token';
 @Injectable({ providedIn: 'root' })
 export class PublicPipe implements PipeTransform {
 
-  private base = inject(BASE_PATH)              // ⇐ '/app/'  o  '/'
+  private base = inject(BASE_PATH)
 
   transform(path: string): string {
     // eliminazione slash finali/iniziali per evitare ///
