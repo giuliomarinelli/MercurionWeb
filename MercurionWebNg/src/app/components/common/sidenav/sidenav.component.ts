@@ -16,17 +16,7 @@ interface HistoryItem {
   standalone: true,
   imports: [RouterLink, HistoryComponent],
   template: `
-    <nav class="flex flex-col h-full bg-transparent z-50 select-none">
-      <header class="flex justify-end items-center gap-3 lg:pt-4 mb-3 pr-[10px] sticky top-0">
-        <button type="button" class="cursor-pointer hidden lg:block">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current text-light-on-surface-main dark:text-slate-100 w-auto h-7 relative bottom-[2px]">
-            <!--!Font Awesome Pro v7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-            <path d="M320 112C434.9 112 528 205.1 528 320C528 434.9 434.9 528 320 528C205.1 528 112 434.9 112 320C112 205.1 205.1 112 320 112zM320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM280 400C266.7 400 256 410.7 256 424C256 437.3 266.7 448 280 448L360 448C373.3 448 384 437.3 384 424C384 410.7 373.3 400 360 400L352 400L352 312C352 298.7 341.3 288 328 288L280 288C266.7 288 256 298.7 256 312C256 325.3 266.7 336 280 336L304 336L304 400L280 400zM320 256C337.7 256 352 241.7 352 224C352 206.3 337.7 192 320 192C302.3 192 288 206.3 288 224C288 241.7 302.3 256 320 256z"/>
-          </svg>
-        </button>
-
-      </header>
-
+    <nav class="flex flex-col h-full bg-transparent z-50 select-none pt-12">
 
       @if (userContext.initials() !== '') {
         <!-- Macro Area Menu -->
@@ -35,10 +25,10 @@ interface HistoryItem {
           <a class="sidebar-link" routerLink="molecules/collections">
             <div
               class="flex size-9 shrink-0 items-center justify-center
-                     rounded-xl border border-slate-400/70 dark:border-slate-700/60
-                     bg-emerald-50 dark:bg-emerald-900/30
+                     rounded-xl border border-slate-400/70 dark:border-slate-500/60
+                     bg-teal-100 dark:bg-emerald-600/30
                      text-indigo-700 dark:text-indigo-300 text-sm font-semibold"
-              >
+            >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
                 class="fill-current h-5 w-auto text-slate-900 dark:text-slate-200">
                 <path d="M239.6 502.1C188.8 519 157.3 512.2 142.9 497.7C128.5 483.2 121.6 451.7 138.5 401C143.9 384.8 151.4 367.7 161 350.1C177.8 373.9 197.7 397.5 220.4 420.2C243.1 442.9 266.7 462.8 290.5 479.6C272.9 489.2 255.8 496.8 239.6 502.1zM120.2 119.7C81 158.9 92.1 237.9 141.3 320C92.1 402.1 81 481.1 120.2 520.3C159.4 559.5 238.4 548.4 320.5 499.2C402.6 548.4 481.6 559.5 520.8 520.3C560 481.1 548.9 402.1 499.7 320C548.9 237.9 560 158.9 520.8 119.7C481.6 80.5 402.6 91.6 320.5 140.8C238.4 91.6 159.4 80.5 120.2 119.7zM243 397.5C217.7 372.2 196.4 345.9 179.2 320C196.4 294.1 217.8 267.7 243 242.5C268.2 217.3 294.6 195.9 320.5 178.7C346.4 195.9 372.8 217.3 398 242.5C423.2 267.7 444.6 294.1 461.8 320C444.6 345.9 423.2 372.3 398 397.5C372.8 422.7 346.4 444.1 320.5 461.3C294.6 444.1 268.2 422.7 243 397.5z"/>
@@ -49,39 +39,39 @@ interface HistoryItem {
           <a class="sidebar-link" routerLink="/notebook">
             <div
               class="flex size-9 shrink-0 items-center justify-center
-                     rounded-xl border border-slate-400/70 dark:border-slate-700/60
-                     bg-emerald-50 dark:bg-emerald-900/30
+                     rounded-xl border border-slate-400/70 dark:border-slate-500/60
+                     bg-teal-100 dark:bg-emerald-600/30
                      text-indigo-700 dark:text-indigo-300 text-sm font-semibold"
-            >
+              >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto text-slate-900 dark:text-slate-200">
                 <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-                <path d="M96 64L544 64L544 480L512 480L512 544L544 544L544 576L96 576L96 512L96 512L96 80L96 64zM160 480C142.3 480 128 494.3 128 512L128 544L480 544L480 480L160 480zM128 456.6C137.4 451.2 148.3 448 160 448L512 448L512 96L128 96L128 456.6zM240 192L448 192L448 224L224 224L224 192L240 192zM240 288L448 288L448 320L224 320L224 288L240 288z"/>
+                <path d="M336 64L400 128L608 128L608 448L128 448L128 64L336 64zM400 160L386.7 160L377.3 150.6L322.7 96L160 96L160 416L576 416L576 160L400 160zM64 176L64 512L512 512L512 544L32 544L32 160L64 160L64 176z"/>
               </svg>
             </div>
-            <span class="sidebar-item-text">Quaderni di Laboratorio</span>
+            <span class="sidebar-item-text">Le mie collezioni</span>
           </a>
+          <hr class="border-slate-300 dark:border-slate-600 my-2"/>
           <a class="sidebar-link" routerLink="/molecules">
             <div
               class="flex size-9 shrink-0 items-center justify-center
-                     rounded-xl border border-slate-400/70 dark:border-slate-700/60
-                     bg-emerald-50 dark:bg-emerald-900/30
+                     rounded-xl border border-slate-400/70 dark:border-slate-500/60
+                     bg-blue-200 dark:bg-blue-700/60
                      text-indigo-700 dark:text-indigo-300 text-sm font-semibold"
-            >
+              >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto text-slate-900 dark:text-slate-200">
                 <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-                <path d="M224 288L96 512L96 576L544 576L544 512L416 288L416 96L448 96L448 64L192 64L192 96L224 96L224 288zM256 96L384 96L384 296.5L388.2 303.9L434 384L206 384L251.8 303.9L256 296.5L256 96zM187.7 416L452.3 416L512 520.5L512 544L128 544L128 520.5L187.7 416z"/>
+                <path d="M552.1 320L590.7 320C578.7 308 548 277.3 498.7 228L579.4 147.3L590.7 136L579.4 124.7L515.4 60.7L504.1 49.4L492.8 60.7L412.1 141.4C362.7 92 332.1 61.4 320.1 49.4L320.1 320L49.5 320C61.5 332 92.2 362.7 141.5 412L60.8 492.7L49.5 504L60.8 515.3L124.8 579.3L136.1 590.6L147.4 579.3L228.1 498.6C277.5 548 308.1 578.6 320.1 590.6L320.1 320L552.1 320zM464.8 239.3L513.5 288L352.1 288L352.1 126.6C390.8 165.3 410.8 185.3 412.1 186.6L423.4 175.3L504.1 94.6L545.5 136L464.8 216.7L453.5 228L464.8 239.3zM175.4 400.7L126.7 352L288.1 352L288.1 513.4C249.4 474.7 229.4 454.7 228.1 453.4L216.8 464.7L136.1 545.4L94.7 504L175.4 423.3L186.7 412L175.4 400.7z"/>
               </svg>
             </div>
-            <span class="sidebar-item-text">Esperimenti</span>
+            <span class="sidebar-item-text">Importa da ChEMBL</span>
           </a>
           <!-- ...altre macro aree -->
-          <hr class="border-slate-300 dark:border-slate-600 my-2"/>
         </div>
         <a class="sidebar-link" [routerLink]="'/molecules/editor'" [queryParams]="{ mode: 'create' }">
           <div
               class="flex size-9 shrink-0 items-center justify-center
                      rounded-xl border border-slate-400/70 dark:border-slate-500/60
-                     bg-sky-100 dark:bg-sky-700/60
+                     bg-blue-200 dark:bg-blue-700/60
                      text-indigo-700 dark:text-indigo-300 text-sm font-semibold"
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto text-slate-900 dark:text-slate-200">
