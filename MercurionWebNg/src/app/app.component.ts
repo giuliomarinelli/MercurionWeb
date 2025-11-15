@@ -174,6 +174,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       this.userContext.clearInitials()
       this.authService.setAccessToken(null)
       this.authService.setWs_accessToken(null)
+      localStorage.removeItem('ws_accessToken_ts')
     }
     // Mantieni la tua sync
     this.sessionSync.syncSession();
@@ -185,8 +186,8 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       if (qIdx >= 0) raw = raw.slice(0, qIdx);
       const hIdx = raw.indexOf('#');
       if (hIdx >= 0) raw = raw.slice(0, hIdx);
-      if (raw.startsWith('/app/')) raw = raw.slice(4);
-      else if (raw === '/app') raw = '/';
+      if (raw.startsWith('/m/')) raw = raw.slice(4);
+      else if (raw === '/m') raw = '/';
       if (raw.length > 1 && raw.endsWith('/')) raw = raw.slice(0, -1);
       return raw;
     };
@@ -210,8 +211,11 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         if (this.userContext.isLoggedIn()) {
           sessionStorage.setItem(
             'redirectAfterLogin',
-            window.location.pathname.slice(4) + window.location.search
+            window.location.pathname.slice(2) + window.location.search
           );
+        }
+        if (url === '/login') {
+          this.router.navigateByUrl('/dashboard')
         }
       });
 

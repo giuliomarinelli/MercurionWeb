@@ -22,7 +22,7 @@ interface HistoryItem {
         <!-- Macro Area Menu -->
         <h6 class="detail">Funzionalità</h6>
         <div>
-          <a class="sidebar-link" routerLink="molecules/collections">
+          <a class="sidebar-link" routerLink="molecules/all-my-molecules">
             <div
               class="flex size-9 shrink-0 items-center justify-center
                      rounded-xl border border-slate-400/70 dark:border-slate-500/60
@@ -36,7 +36,7 @@ interface HistoryItem {
             </div>
             <span class="sidebar-item-text">Le mie molecole</span>
           </a>
-          <a class="sidebar-link" routerLink="/notebook">
+          <a class="sidebar-link" routerLink="molecules/collections">
             <div
               class="flex size-9 shrink-0 items-center justify-center
                      rounded-xl border border-slate-400/70 dark:border-slate-500/60
@@ -51,7 +51,7 @@ interface HistoryItem {
             <span class="sidebar-item-text">Le mie collezioni</span>
           </a>
           <hr class="border-slate-300 dark:border-slate-600 my-2"/>
-          <a class="sidebar-link" routerLink="/molecules">
+          <button class="sidebar-link">
             <div
               class="flex size-9 shrink-0 items-center justify-center
                      rounded-xl border border-slate-400/70 dark:border-slate-500/60
@@ -64,7 +64,7 @@ interface HistoryItem {
               </svg>
             </div>
             <span class="sidebar-item-text">Importa da ChEMBL</span>
-          </a>
+          </button>
           <!-- ...altre macro aree -->
         </div>
         <a class="sidebar-link" [routerLink]="'/molecules/editor'" [queryParams]="{ mode: 'create' }">
@@ -121,7 +121,7 @@ interface HistoryItem {
   `,
   styles: [`
     .sidebar-link {
-      @apply flex items-center -mx-px gap-3 px-3 py-2 rounded-md transition hover:bg-slate-50/70 dark:hover:bg-slate-700/40 w-full mb-1 text-sm;
+      @apply flex items-center -mx-px gap-3 px-3 py-2 rounded-md transition hover:bg-slate-50 dark:hover:bg-slate-800/70 w-full mb-1 text-sm;
     }
     .sidebar-item-text {
       @apply text-base;
