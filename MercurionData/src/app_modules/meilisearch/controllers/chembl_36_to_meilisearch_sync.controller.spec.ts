@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { Chembl36ToMeilisearchSyncController } from './chembl_36_to_meilisearch_sync.controller';
 
+
 describe('Chembl36ToMeilisearchSyncController', () => {
   let controller: Chembl36ToMeilisearchSyncController;
 

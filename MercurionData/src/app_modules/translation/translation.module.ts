@@ -5,6 +5,7 @@ import { MoleculeNameI18n } from './Models/entities/molecule-name-i18n.entity';
 import { MoleculeIndexView } from '../chembl_36/Models/entities/molecule-index-mv';
 import { MoleculeNameI18nSeedController } from './controllers/molecule-name-i18n-seed.controller';
 import { PreferredNameTranslationService } from './services/preferred-name-translation.service';
+import { PreferredNameTranslationController } from './controllers/preferred-name-translation.controller';
 
 
 @Module({
@@ -13,6 +14,6 @@ import { PreferredNameTranslationService } from './services/preferred-name-trans
         TypeOrmModule.forFeature([MoleculeIndexView])
      ],
     providers: [MoleculeNameI18nSeedService, PreferredNameTranslationService],
-    controllers: [MoleculeNameI18nSeedController]
+    controllers: [MoleculeNameI18nSeedController, PreferredNameTranslationController]
 })
 export class TranslationModule {}

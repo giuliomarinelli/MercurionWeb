@@ -2,8 +2,8 @@
 import { Controller, Query, Sse, MessageEvent } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { MoleculePreviewSyncService } from '../../services/molecule-preview-sync.service';
-import { MoleculeDetailSyncService } from '../../services/molecule-detail-sync.service';
+import { MoleculePreviewSyncService } from '../services/molecule-preview-sync.service';
+import { MoleculeDetailSyncService } from '../services/molecule-detail-sync.service';
 
 @Controller('chembl-36-to-meilisearch-sync')
 export class Chembl36ToMeilisearchSyncController {
