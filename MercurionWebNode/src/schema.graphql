@@ -38,6 +38,7 @@ type ChEMBLMoleculeItemEntity implements MoleculeCollectionItemEntity {
 type MoleculeSearchResult {
   id: Int!
   preferredName: String
+  preferredNameIt: String
   smiles: String
   synonyms: [String!]
   mwFreebase: Float
@@ -65,6 +66,7 @@ type MoleculeDetail {
   id: Int!
   cmbId: String!
   preferredName: String
+  preferredNameIt: String
   canonicalSmiles: String
   properties: MoleculeProperties!
   maxPhase: Float

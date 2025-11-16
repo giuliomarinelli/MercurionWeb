@@ -10,6 +10,9 @@ export class MoleculeSearchResult {
     preferredName: string
 
     @Field(() => String, { nullable: true })
+    preferredNameIt: string
+
+    @Field(() => String, { nullable: true })
     smiles: string
 
     @Field(() => [String], { nullable: true })

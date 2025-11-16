@@ -2,6 +2,7 @@ export interface MoleculeDetailModel {
     id: number
     cmbId: string
     preferredName: string
+    preferredNameIt: string
     canonicalSmiles: string
     standardInchi: string
     standardInchiKey: string

@@ -6,6 +6,7 @@ export const GET_MOLECULE_DETAIL = gql`
       id
       cmbId
       preferredName
+      preferredNameIt
       canonicalSmiles
       moleculeType
       maxPhase
@@ -34,6 +35,7 @@ export const GET_MOLECULE_PREVIEWS = gql`
     moleculePreviewsByMolregnos(molregnos: $molregnos) {
         id
         preferredName
+        preferredNameIt
         smiles
         synonyms
         mwFreebase

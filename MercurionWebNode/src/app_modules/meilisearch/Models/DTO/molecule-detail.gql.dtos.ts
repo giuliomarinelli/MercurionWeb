@@ -22,6 +22,7 @@ export class MoleculeDetail {
     @Field(() => Int) id: number
     @Field() cmbId: string
     @Field({ nullable: true }) preferredName: string
+    @Field({ nullable: true }) preferredNameIt: string
     @Field({ nullable: true }) canonicalSmiles: string
     @Field(() => MoleculeProperties) properties: MoleculeProperties
     @Field(() => Float, { nullable: true }) maxPhase: number | null

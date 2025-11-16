@@ -113,7 +113,7 @@ export class MeiliPreferredNameItPreviewSyncService {
         }));
 
         try {
-          const task: EnqueuedTask = await this.index.addDocuments(docs, { primaryKey: 'id' });
+          const task: EnqueuedTask = await this.index.updateDocuments(docs);
           const res = await this.waitForTaskPortable(task.taskUid);
           if (res.status !== 'succeeded') {
             this.logger.error(`❌ [preview] Task ${res.uid} ${res.status}. Error: ${JSON.stringify(res.error)}`);

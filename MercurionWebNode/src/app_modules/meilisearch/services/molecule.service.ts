@@ -164,10 +164,21 @@ export class MoleculeService {
                 "?"
                 }`;
 
+        const preferredNameIt =
+            doc.preferredNameIt && String(doc.preferredNameIt).trim().length > 0
+                ? String(doc.preferredNameIt).trim()
+                : `Lead ${fallbackMolregno ??
+                (doc as any)?.molregno ??
+                doc.id ??
+                doc.cmbId ??
+                "?"
+                }`;
+
         return {
             id: doc.id,
             cmbId: doc.cmbId,
             preferredName,
+            preferredNameIt,
             canonicalSmiles: doc.canonicalSmiles,
             properties: {
                 mwFreebase: doc.properties.mwFreebase,

@@ -114,11 +114,11 @@ export class MoleculePreviewSyncService {
             this.logger.log(`🔵 Creating index ${uid}...`);
             await this.meiliClient.createIndex(uid, { primaryKey: 'id' });
             await this.meiliClient.index(uid).updateSettings({
-                searchableAttributes: ['preferredName', 'synonyms', 'cmbId', 'smiles'],
+                searchableAttributes: ['preferredNameIt', 'preferredName', 'synonyms', 'cmbId', 'smiles'],
                 filterableAttributes: [
                     'maxPhase', 'mwFreebase', 'alogp', 'moleculeType',
                     'oralAdmin', 'parenteralAdmin', 'topicalAdmin',
-                    'blackBoxWarningFlag', 'naturalProductFlag', 'prodrugFlag',
+                    'blackBoxWarningFlag', 'naturalProductFlag', 'prodrugFlag', 
                 ],
             });
             this.logger.log(`✅ Index ${uid} created & configured.`);
