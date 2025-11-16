@@ -87,12 +87,12 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
           #value
           class="py-2 outline-none text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider
                  text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary
-                 rounded-md border border-transparent bg-transparent
+                 rounded-md border
                  transition-[background-color,border-color] duration-150"
           [attr.contenteditable]="mode() === 'edit' ? 'true' : null"
           [ngClass]="{
-            'bg-slate-100 dark:bg-slate-700 border-light-on-surface-main dark:border-dark-on-surface-main':
-              mode() === 'edit'
+            'bg-slate-300 dark:bg-slate-700 border-light-on-surface-main dark:border-dark-on-surface-main': mode() === 'edit',
+            'border-transparent bg-transparent': mode() === 'view'
           }"
         >
           {{ _value() }}
@@ -148,13 +148,13 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
         <div class="flex items-center gap-3 min-w-0">
           <p
             #value
-            class="outline-none py-1 rounded-md border border-transparent bg-transparent min-w-0
+            class="outline-none py-1 rounded-md border min-w-0
                    text-light-on-surface-main dark:text-dark-on-surface-main
                    transition-[background-color,border-color] duration-150"
             [attr.contenteditable]="mode() === 'edit' ? 'true' : null"
             [ngClass]="{
-              'bg-slate-200 dark:bg-slate-700 border-light-on-surface-main dark:border-dark-on-surface-main':
-                mode() === 'edit'
+              'bg-slate-200 dark:bg-slate-700 border-light-on-surface-main dark:border-dark-on-surface-main': mode() === 'edit',
+              'border-transparent bg-transparent': mode() === 'view'
             }"
             [innerHTML]="_value()">
           </p>
