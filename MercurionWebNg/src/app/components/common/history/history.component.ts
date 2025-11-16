@@ -8,9 +8,10 @@ import {
   inject,
   effect,
   NgZone,
+  signal,
 } from '@angular/core';
 import { HistoryService } from '../../../services/history.service';
-import { debounce, distinctUntilChanged, filter, firstValueFrom, interval, Subscription } from 'rxjs';
+import { catchError, debounce, distinctUntilChanged, EMPTY, filter, firstValueFrom, interval, Subscription } from 'rxjs';
 import { HistoryDTO } from '../../../Models/history.models';
 import { NavigationEnd, Router } from '@angular/router';
 import { HistoryItemComponent } from '../history-item/history-item.component';
@@ -36,6 +37,12 @@ import { HistoryContextService } from '../../../services/context/history-context
       </div>
     }
 
+    @if (serverError()) {
+      <div class="flex justify-center pt-8 text-sm">
+        <p class="text-light-error dark:text-dark-error">Si è verificato un errore.</p>
+      </div>
+    }
+
     <!-- Il sentinel DEVE essere l'ultimo elemento -->
     <div #sentinel id="sentinel" style="height: 1px;"></div>
   `
@@ -56,6 +63,8 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
   private rSub?: Subscription;
   private observer?: IntersectionObserver;
   private rootEl: HTMLElement | null = null;
+
+  serverError = signal<boolean>(false)
 
   items: HistoryDTO[] = [];
   loading = false;
@@ -157,7 +166,12 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
       this.historyService.getHistory(this.page, 15).pipe(
         // lascio la tua logica di debounce/distinct
         debounce(() => interval(80)),
-        distinctUntilChanged()
+        distinctUntilChanged(),
+        catchError(() => {
+          this.serverError.set(true)
+          this.loading = false
+          return EMPTY
+        })
       )
     );
 
