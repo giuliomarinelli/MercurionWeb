@@ -76,8 +76,10 @@ export class MoleculeNameI18nSeedService {
             updated_at   = NOW()
       `;
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const res: any = await this.mercurionDS.query(sql, params);
       // rowCount non è garantito via TypeORM, quindi stimiamo con batch.length
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const batchCount =
         typeof res?.rowCount === 'number' ? res.rowCount : batch.length;
 
