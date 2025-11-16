@@ -29,6 +29,7 @@ export class MoleculeSearchService {
             moleculeSearch(input: $input) {
               id
               preferredName
+              preferredNameIt
               smiles
               synonyms
               mwFreebase

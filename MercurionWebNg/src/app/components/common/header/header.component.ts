@@ -1,7 +1,7 @@
 import { NgClass, NgOptimizedImage } from '@angular/common';
 import { ApplicationRef, ChangeDetectorRef, Component, computed, effect, OnChanges, OnDestroy, OnInit, Signal, signal, SimpleChanges, WritableSignal } from '@angular/core';
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
-import { ThemeChose } from '../../../Models/theme.models';
+import { ThemeChoice } from '../../../Models/theme.models';
 import { DesignService } from '../../../services/design.service';
 import { NavComponent } from '../nav/nav.component';
 import { SearchContextService } from '../../../services/context/search-context.service';
@@ -96,7 +96,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     })
   }
 
-  protected onThemeChange(theme: ThemeChose): void {
+  protected onThemeChange(theme: ThemeChoice): void {
     queueMicrotask(() => {
       this.themeManager.chooseTheme(theme)
       console.log(this.themeManager.theme())

@@ -2,7 +2,7 @@ export type Theme = "light" | "dark"
 
 export type ThemeOwner = "OS" | "User"
 
-export type ThemeChose = "light" | "dark" | "OS"
+export type ThemeChoice = "light" | "dark" | "OS"
 
 export interface ThemeStorage {
 

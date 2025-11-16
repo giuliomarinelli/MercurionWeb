@@ -73,16 +73,16 @@ import { BindCollectionsToMoleculeContextService } from '../../services/context/
         }
 
         @if (typeGuards.isSystemMolecule(molecule)) {
-          <molecule-header [nameInput]="molecule.preferredName" [chemblIdInput]="molecule.cmbId"
+          <molecule-header [nameInput]="molecule.preferredNameIt" [chemblIdInput]="molecule.cmbId"
             [molId]="molecule.id.toString()" [isSystemMolecule]="true" [smiles]="molecule.canonicalSmiles" [isLoggedIn]="userContext.isLoggedIn()"
             (onAddToCollection)="doAddToManyCollections()" />
         } @else if (typeGuards.isChemblMolecule(molecule)) {
-          <molecule-header [nameInput]="molecule.chemblDetails.preferredName" [chemblIdInput]="molecule.chemblDetails.cmbId"
+          <molecule-header [nameInput]="molecule.chemblDetails.preferredNameIt" [chemblIdInput]="molecule.chemblDetails.cmbId"
             [myMol]="true" [molId]="molecule.id" [smiles]="molecule.chemblDetails.canonicalSmiles"
             [isLoggedIn]="userContext.isLoggedIn()" (onDelete)="doDelete($event)"
             (onAddToCollection)="doAddToManyCollections()" />
         } @else if (typeGuards.isCustomMolecule(molecule)) {
-          <molecule-header [nameInput]="molecule.name ?? 'Lead'" [myMol]="true" [isCustom]="true"
+          <molecule-header [nameInput]="molecule.name ?? '<Lead sconosciuto>'" [myMol]="true" [isCustom]="true"
             (onSave)="doUpdateInlineDetails($event)" [smiles]="molecule.canonicalSmiles" [molId]="molecule.id"
             [isLoggedIn]="userContext.isLoggedIn()" (onDelete)="doDelete($event)"
             (onAddToCollection)="doAddToManyCollections()" />
@@ -418,7 +418,7 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
           })
         )
       }),
-      switchMap((item): Observable<MoleculeDetailItem | null> => {
+      switchMap((item: MoleculeDetailItem | null): Observable<MoleculeDetailItem | null> => {
         if (!item) {
           this.fetchError.set(true)
           return of(null)

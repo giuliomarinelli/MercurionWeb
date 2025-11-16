@@ -13,6 +13,7 @@ export interface MoleculeDetail {
     id: number
     cmbId: string
     preferredName: string
+    preferredNameIt: string
     canonicalSmiles: string
     properties: MoleculeProperties
     maxPhase: number | null

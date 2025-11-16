@@ -1,5 +1,5 @@
 import { Injectable, signal, computed, effect } from '@angular/core';
-import { Theme, ThemeChose, ThemeOwner } from '../../Models/theme.models';
+import { Theme, ThemeChoice, ThemeOwner } from '../../Models/theme.models';
 
 @Injectable({ providedIn: 'root' })
 export class ThemeManagerService {
@@ -8,7 +8,7 @@ export class ThemeManagerService {
 
   private readonly _theme = signal<Theme>(this.getOsDefaultTheme)
   private readonly _themeOwner = signal<ThemeOwner>('OS')
-  private readonly _chosenTheme = signal<ThemeChose>('OS')
+  private readonly _chosenTheme = signal<ThemeChoice>('OS')
 
   // Pubblici readonly Signals!
   readonly theme = this._theme.asReadonly()
@@ -48,7 +48,7 @@ export class ThemeManagerService {
   }
 
   // Cambio tema manuale
-  chooseTheme(chosen: ThemeChose) {
+  chooseTheme(chosen: ThemeChoice) {
     this._chosenTheme.set(chosen)
     this._themeOwner.set(chosen === 'OS' ? 'OS' : 'User')
 
