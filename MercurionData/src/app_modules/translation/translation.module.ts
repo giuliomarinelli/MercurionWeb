@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { MoleculeNameI18n } from './Models/entities/molecule-name-i18n.entity';
 import { MoleculeIndexView } from '../chembl_36/Models/entities/molecule-index-mv';
 import { MoleculeNameI18nSeedController } from './controllers/molecule-name-i18n-seed.controller';
+import { PreferredNameTranslationService } from './services/preferred-name-translation.service';
 
 
 @Module({
@@ -11,7 +12,7 @@ import { MoleculeNameI18nSeedController } from './controllers/molecule-name-i18n
         TypeOrmModule.forFeature([MoleculeNameI18n], 'MercurionConn'),
         TypeOrmModule.forFeature([MoleculeIndexView])
      ],
-    providers: [MoleculeNameI18nSeedService],
+    providers: [MoleculeNameI18nSeedService, PreferredNameTranslationService],
     controllers: [MoleculeNameI18nSeedController]
 })
 export class TranslationModule {}
