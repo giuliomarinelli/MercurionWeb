@@ -1,3 +1,4 @@
+import { TranslationModule } from './app_modules/translation/translation.module';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Chembl36Module } from './app_modules/chembl_36/chembl_36.module';
@@ -31,7 +32,8 @@ import { EmbeddingsModule } from './app_modules/embeddings/embeddings.module';
     }),
     Chembl36Module,
     MeilisearchModule,
-    EmbeddingsModule
+    EmbeddingsModule,
+    TranslationModule
   ],
   providers: [],
 })
