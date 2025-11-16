@@ -4,11 +4,17 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Chembl36Module } from './app_modules/chembl_36/chembl_36.module';
 import { MeilisearchModule } from './app_modules/meilisearch/meilisearch.module';
 import { EmbeddingsModule } from './app_modules/embeddings/embeddings.module';
+import { ConfigModule } from '@nestjs/config';
+import { join } from 'path';
 
 
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: join(process.cwd(), '.env')
+    }),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
