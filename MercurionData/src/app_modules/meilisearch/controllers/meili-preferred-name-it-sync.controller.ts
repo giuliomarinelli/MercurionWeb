@@ -1,4 +1,3 @@
-// src/app_modules/i18n/controllers/meili-preferred-name-it-sync.controller.ts
 import { Controller, Query, Sse, MessageEvent } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';

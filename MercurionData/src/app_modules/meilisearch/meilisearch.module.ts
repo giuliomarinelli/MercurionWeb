@@ -8,6 +8,9 @@ import { MeiliPreferredNameItSyncService } from './services/meili-preferred-name
 import { MeiliPreferredNameItSyncController } from './controllers/meili-preferred-name-it-sync.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MoleculeNameI18n } from '../translation/Models/entities/molecule-name-i18n.entity';
+import { MeiliPreferredNameItPreviewSyncService } from './services/meili-preferred-name-it-preview.service';
+import { MeiliPreferredNameItPreviewSyncController } from './controllers/meili-preferred-name-it-preview-sync.controller';
+
 
 @Module({
   imports: [
@@ -24,8 +27,9 @@ import { MoleculeNameI18n } from '../translation/Models/entities/molecule-name-i
     },
     MoleculePreviewSyncService,
     MoleculeDetailSyncService,
-    MeiliPreferredNameItSyncService
+    MeiliPreferredNameItSyncService,
+    MeiliPreferredNameItPreviewSyncService
   ],
-  controllers: [Chembl36ToMeilisearchSyncController, MeiliPreferredNameItSyncController]
+  controllers: [Chembl36ToMeilisearchSyncController, MeiliPreferredNameItSyncController, MeiliPreferredNameItPreviewSyncController]
 })
 export class MeilisearchModule { }
