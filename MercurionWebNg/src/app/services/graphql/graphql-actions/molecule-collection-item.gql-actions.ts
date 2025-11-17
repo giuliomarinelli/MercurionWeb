@@ -237,6 +237,7 @@ export const SEARCH_CHEMBL_MOLECULES_EXCLUDE_ALREADY_ADDED = gql`
     moleculeSearch_excludeAlreadyAdded(input: $input, collectionId: $collectionId) {
       id
       preferredName
+      preferredNameIt
       smiles
       synonyms
       mwFreebase

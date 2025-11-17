@@ -8,6 +8,9 @@ interface MoleculeCollectionItemEntity {
   notes: String
   type: String!
   joins: [MoleculeCollectionItemJoin!]
+  createdAt: String!
+  updatedAt: String!
+  touchedAt: String!
 }
 
 type MoleculeCollection {
@@ -32,6 +35,9 @@ type ChEMBLMoleculeItemEntity implements MoleculeCollectionItemEntity {
   notes: String
   type: String!
   joins: [MoleculeCollectionItemJoin!]
+  createdAt: String!
+  updatedAt: String!
+  touchedAt: String!
   chemblMolregno: Float!
 }
 
@@ -84,6 +90,9 @@ type CustomMoleculeItemEntity implements MoleculeCollectionItemEntity {
   notes: String
   type: String!
   joins: [MoleculeCollectionItemJoin!]
+  createdAt: String!
+  updatedAt: String!
+  touchedAt: String!
   canonicalSmiles: String!
   molFormula: String
   name: String

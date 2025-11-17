@@ -14,4 +14,7 @@ export class ChEMBLMoleculeItemEntity extends MoleculeCollectionItemEntity {
     @Column({ type: 'varchar' })
     name: string | null
 
+    @Column({ type: 'varchar' })
+    nameEn
+
 }

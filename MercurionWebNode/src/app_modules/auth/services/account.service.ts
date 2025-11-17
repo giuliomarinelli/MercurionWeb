@@ -26,6 +26,11 @@ import { SecurityAuditService } from 'src/app_modules/meilisearch/services/secur
 import { UserContext } from 'src/app_modules/notification/Models/contexts/user.context';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { DataSource } from 'typeorm';
+import { ChEMBLMoleculeItemEntity } from 'src/app_modules/molecule-collection/Models/entities/chembl-molecule-item.entity';
+import { uuidv7 } from '@kripod/uuidv7';
+import { MoleculeCollection } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection.entity';
+import { MoleculeCollectionItemJoin } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection-item-join.entity';
 
 
 
@@ -65,6 +70,7 @@ export class AccountService {
         private readonly sessionService: SessionService,
         private readonly _r: ResponseService,
         private readonly securityAuditService: SecurityAuditService,
+        private readonly dataSource: DataSource,
         meiliLogger: MeiliLoggerService
     ) {
         this.CHANGE_PASSWORD_TOKEN_EXPIRATION_MS = this.configService.get<number>('Jwt.changePasswordToken.expiresInMs') ?? 300_000
@@ -247,7 +253,7 @@ export class AccountService {
         const url: string = `${this.configService.get<string>("App.activationOrigin")}/account/activate?t=${activationToken}`
         await this.mailService.sendEmail<UserCtaContext>(
             email,
-            `${firstName}, completa la tua registrazione a Mercurion`, 
+            `${firstName}, completa la tua registrazione a Mercurion`,
             { firstName, url },
             join(__dirname, "../../../app_modules/notification/email-templates/confirmation.hbs")
         )
@@ -260,20 +266,53 @@ export class AccountService {
 
     public async activate(activationToken: string): Promise<ConfirmDTO> | never {
 
-        const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(activationToken, TokenType.ActivationToken)
-        await this.sessionService.revokeToken(jti)
-        const user = await this.userService.getUserById(userId)
-        if (user == null) {
-            throw new RpcException('AccountActivation::User not found')
-        }
-        let { isVerified, email, unconfirmedEmail, updatedAt } = user
-        email = unconfirmedEmail as string
-        unconfirmedEmail = null
-        isVerified = true
-        updatedAt = Date.now()
-        await this.userService.updateUser(userId, { email, unconfirmedEmail, isVerified, updatedAt }) as User
-        await this.redisService.del(this.getRegistrationLockRedisKey(email))
-        return this._r.ok('Account activated successfully')
+        return this.dataSource.manager.transaction(async (manager) => {
+            const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(activationToken, TokenType.ActivationToken)
+            await this.sessionService.revokeToken(jti)
+            const user = await manager.findOne(User, { where: { id: userId } })
+            if (user == null) {
+                throw new RpcException('AccountActivation::User not found')
+            }
+            let { isVerified, email, unconfirmedEmail, updatedAt } = user
+            email = unconfirmedEmail!
+            unconfirmedEmail = null
+            isVerified = true
+            updatedAt = Date.now()
+            await manager.update(User, { id: userId }, { email, unconfirmedEmail, isVerified, updatedAt })
+            const now = Date.now()
+            const firstMol = manager.create(ChEMBLMoleculeItemEntity, {
+                chemblMolregno: 1280,
+                name: 'ASPIRINA',
+                nameEn: 'ASPIRIN',
+                id: uuidv7() as UUID,
+                userId,
+                label: 'Acido acetilsalicilico',
+                notes: 'La mia prima molecola su Mercurion',
+                type: 'chembl',
+                createdAt: now,
+                updatedAt: now,
+                touchedAt: now
+            })
+            const firstMolPersisted = await manager.save(firstMol)
+            const firstCol = manager.create(MoleculeCollection, {
+                id: uuidv7() as UUID,
+                name: 'La mia prima collezione',
+                createdAt: now,
+                updatedAt: now,
+                touchedAt: now,
+                userId
+            })
+            const firstColPersisted = await manager.save(firstCol)
+            const join = manager.create(MoleculeCollectionItemJoin, {
+                id: uuidv7() as UUID,
+                userId,
+                collectionId: firstColPersisted.id,
+                itemId: firstMolPersisted.id
+            })
+            await manager.save(join)
+            await this.redisService.del(this.getRegistrationLockRedisKey(email))
+            return this._r.ok('Account activated successfully')
+        })
     }
 
     public async changeEmail_firstStep_requestTotp(userId: UUID, newEmail: string): Promise<ConfirmChangeDTO> {

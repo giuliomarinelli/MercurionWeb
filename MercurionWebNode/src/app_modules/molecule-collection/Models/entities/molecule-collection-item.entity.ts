@@ -38,12 +38,15 @@ export abstract class MoleculeCollectionItemEntity {
   @OneToMany(() => MoleculeCollectionItemJoin, join => join.item)
   joins: MoleculeCollectionItemJoin[]
 
+  @Field(() => String)
   @Column({ type: 'bigint' })
   createdAt: number
 
+  @Field(() => String)
   @Column({ type: 'bigint' })
   updatedAt: number
 
+  @Field(() => String)
   @Column({ type: 'bigint' })
   touchedAt: number
 

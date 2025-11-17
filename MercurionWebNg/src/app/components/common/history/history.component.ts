@@ -244,14 +244,16 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
     );
 
     if (!newPage || !newPage.items || newPage.items.length === 0) {
-      this.emptyChange.emit(true)
-      this.done = true;
+      if (this.items().length === 0) {
+        this.emptyChange.emit(true)
+      }
+      this.done = true
     } else {
       this.emptyChange.emit(false)
       this.items.update(items => [...items, ...newPage.items])
-      this.page++;
+      this.page++
     }
 
-    this.loading = false;
+    this.loading = false
   }
 }

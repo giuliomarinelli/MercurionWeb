@@ -79,7 +79,7 @@ import { ChipItem } from '../../action-components/add-molecules-to-collection/ad
 
         <div class="flex-1 min-w-0">
           <div class="text-base font-medium truncate"
-               [innerHTML]="highlight(_molecule()?.preferredName)"></div>
+               [innerHTML]="highlight(_molecule()?.preferredNameIt)"></div>
           <div class="text-xs text-gray-500 truncate"
                [innerHTML]="highlight(_molecule()?.synonyms?.[0])"></div>
           <div class="text-xs text-gray-400 mt-1 flex gap-2">
@@ -180,7 +180,7 @@ export class SearchResultComponent implements OnDestroy {
     }
     this.onChipItem.emit({
       id: String(this._molecule()!.id),
-      name: this._molecule()!.preferredName ?? (this._molecule()!.synonyms && i !== -1 ? this._molecule()!.synonyms![i] : `Lead ${this._molecule()!.id}`)
+      name: this._molecule()!.preferredNameIt ?? this._molecule()!.preferredName ?? (this._molecule()!.synonyms && i !== -1 ? this._molecule()!.synonyms![i] : `Lead ${this._molecule()!.id}`)
     })
   }
 

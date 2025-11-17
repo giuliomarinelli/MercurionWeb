@@ -45,7 +45,7 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
             @if (mode() === 'view') {
               <button
                 type="button"
-                class="ml-2 cursor-pointer transition-transform transition-colors duration-150 hover:scale-[1.05]"
+                class="ml-2 cursor-pointer transition-[transform,color] duration-150 hover:scale-[1.05]"
                 title="Modifica"
                 (click)="doEdit()">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
