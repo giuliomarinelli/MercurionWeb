@@ -158,6 +158,7 @@ query PaginatedMoleculeCollectionItemsByCollection($collectionId: String!, $page
                 touchedAt
                 chemblDetails {
                     preferredName
+                    preferredNameIt
                     canonicalSmiles
                     maxPhase
                     synonyms
@@ -198,6 +199,7 @@ query PaginatedMoleculeCollectionItemsByUser($page: Int!, $limit: Int!, $q: Stri
                 touchedAt
                 chemblDetails {
                     preferredName
+                    preferredNameIt
                     canonicalSmiles
                     maxPhase
                     synonyms

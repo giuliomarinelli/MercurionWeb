@@ -22,11 +22,11 @@ export class Helpers {
     return /^[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+){2}$/.test(t);
   }
 
-  static moleculeClientToCardAdapter(mol: MoleculeCollectionItemClient): MoleculeCardItemModel {
+  static moleculeClientToCardConverter(mol: MoleculeCollectionItemClient): MoleculeCardItemModel {
     return {
       id: mol.id,
       type: mol.type as 'chembl' | 'custom',
-      name: mol.type === 'chembl' ? (mol.chemblDetails as MoleculeDetail)?.preferredName ?? '' : mol.name ?? '',
+      name: mol.type === 'chembl' ? (mol.chemblDetails as MoleculeDetail)?.preferredNameIt ?? (mol.chemblDetails as MoleculeDetail)?.preferredName ?? `Lead ${(mol.chemblDetails as MoleculeDetail)?.id}` : mol.name ?? 'Lead sconosciuto',
       syn: mol.type === 'chembl' ? (mol.chemblDetails as MoleculeDetail)?.synonyms?.[0] ?? '' : '',
       mwFreebase: mol.type === 'chembl'
         ? (mol.chemblDetails as MoleculeDetail)?.properties.mwFreebase ?? 0

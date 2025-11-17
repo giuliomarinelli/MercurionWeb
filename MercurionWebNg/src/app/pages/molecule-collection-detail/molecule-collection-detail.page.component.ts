@@ -223,7 +223,7 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
         debounceTime(20),
         map(p => ({
           ...p,
-          items: p.items.map(mol => Helpers.moleculeClientToCardAdapter(mol))
+          items: p.items.map(mol => Helpers.moleculeClientToCardConverter(mol))
         }))
       )
   }

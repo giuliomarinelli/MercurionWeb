@@ -177,7 +177,7 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
       debounceTime(20),
       map(page => ({
         ...page,
-        items: page.items.map(mol => Helpers.moleculeClientToCardAdapter(mol))
+        items: page.items.map(mol => Helpers.moleculeClientToCardConverter(mol))
       }))
     );
   }

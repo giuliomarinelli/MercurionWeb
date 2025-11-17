@@ -352,7 +352,7 @@ export class AddMoleculesToCollectionComponent extends AbstractPaginatedMultisel
         debounceTime(100),
         map(p => ({
           ...p,
-          items: p.items.map(mol => Helpers.moleculeClientToCardAdapter(mol))
+          items: p.items.map(mol => Helpers.moleculeClientToCardConverter(mol))
         }))
       );
   }
