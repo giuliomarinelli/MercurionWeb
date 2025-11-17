@@ -10,16 +10,23 @@ import { MoleculeCollection } from 'src/app_modules/molecule-collection/Models/e
 import { MoleculeCollectionItemEntity } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection-item.entity';
 import { MoleculeService } from 'src/app_modules/meilisearch/services/molecule.service';
 import { TypeGuards } from 'src/utils/type-guards/type-guards';
+import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 
 @Injectable()
 export class HistoryService {
+
+    private readonly logger: MeiliContextLogger
 
     constructor(
         @InjectRepository(History)
         private readonly historyRepo: Repository<History>,
         private readonly dataSource: DataSource,
-        private readonly moleculeService: MoleculeService
-    ) { }
+        private readonly moleculeService: MoleculeService,
+        loggerFactory: MeiliLoggerService
+    ) {
+        this.logger = loggerFactory.forContext(HistoryService.name)
+    }
 
     async getPaginatedHistory(
         userId: UUID,
@@ -90,11 +97,14 @@ export class HistoryService {
 
                 await Promise.all(rows.map(async (r) => {
                     if (TypeGuards.isChemblMolecule(r)) {
-                        const { preferredName } =
-                            await this.moleculeService.getDetailByMolregno(String(r.chemblMolregno));
+                        const detail = await this.moleculeService.getDetailByMolregno(String(r.chemblMolregno));
+                        if (!detail) {
+                            return
+                        }
+                        const { preferredNameIt, preferredName } = detail
                         nameByKey.set(
                             `${HistoryItemEntityEnum.MoleculeCollectionItem}:${r.id}`,
-                            preferredName ?? `Lead ${r.chemblMolregno}`,
+                            preferredNameIt ?? preferredName ?? `Lead ${r.chemblMolregno}`,
                         );
                     } else if (TypeGuards.isCustomMolecule(r)) {
                         nameByKey.set(
@@ -120,7 +130,15 @@ export class HistoryService {
         return { ...page, items };
     }
 
-
+    async deleteHistory(userId: UUID): Promise<boolean> {
+        try {
+            await this.historyRepo.delete({ userId })
+            return true
+        } catch (e) {
+            this.logger.warn(`Error trying to delete history, userId=${userId}`, e as object)
+            return false
+        }
+    }
 
 
 }

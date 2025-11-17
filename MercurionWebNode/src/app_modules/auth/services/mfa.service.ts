@@ -25,7 +25,7 @@ import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { MfaContext } from '../Models/enums/mfa-context.enum';
 import { uuidv7 } from '@kripod/uuidv7';
-import { SecurityAuditService } from 'src/app_modules/meilisearch/services/security-audit/security-audit.service';
+import { SecurityAuditService } from 'src/app_modules/meilisearch/services/security-audit.service';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 

@@ -75,7 +75,7 @@ import { AddMoleculesToCollectionContextService } from '../../services/context/a
         [triggerRollback]="triggerRenameRollback()"
         (onSaving)="doRenameCollection($event)"
         (onDoingRollback)="triggerRenameRollback.set(false)"
-         />
+      />
 
       <div class="flex items-center justify-end gap-3">
         <button

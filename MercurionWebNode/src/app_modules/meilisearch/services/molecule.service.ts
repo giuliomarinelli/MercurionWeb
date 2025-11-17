@@ -1,7 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { MoleculeDetail } from "../Models/DTO/molecule-detail.gql.dtos";
 import { MeiliSearch } from "meilisearch";
-import { RpcException } from "@nestjs/microservices";
 import { MoleculeSearchResult } from "../Models/DTO/molecule-search-result.cls";
 import { MoleculeDetailModel } from "src/app_modules/chembl/Models/DTO/molecule-detail-model.interface";
 import { MeiliLoggerService } from "./meili-logger.service";
@@ -38,10 +37,10 @@ export class MoleculeService {
         }
     }
 
-    async getDetailByMolregno(molregno: string): Promise<MoleculeDetail> {
+    async getDetailByMolregno(molregno: string): Promise<MoleculeDetail | null> {
         const raw = await this.fetchFromChembl(molregno);
         // mapping + fallback name + synonyms normalizzati
-        return this.mapMeiliToDTO(raw, molregno);
+        return raw ? this.mapMeiliToDTO(raw, molregno) : null
     }
 
     async getDetailsByMolregnos(molregnos: string[]): Promise<MoleculeDetail[]> {
@@ -96,22 +95,31 @@ export class MoleculeService {
 
                 const raw = (await index.getDocument(
                     Number(molregno)
-                )) as unknown as MoleculeSearchResult;
+                )) as unknown as MoleculeSearchResult | null;
+
+                if (!raw) {
+                    continue
+                }
 
                 // normalizza synonyms
                 const normalizedSynonyms = this.normalizeSynonyms(
                     (raw as any)?.synonyms as Maybe<string | string[]>
                 );
-                const known = raw.preferredName != null
+                const known = raw.preferredName != null || raw.preferredNameIt != null
                 const preferredName =
                     raw?.preferredName && String(raw.preferredName).trim().length > 0
                         ? String(raw.preferredName).trim()
+                        : `Lead ${molregno}`;
+                const preferredNameIt =
+                    raw?.preferredNameIt && String(raw.preferredNameIt).trim().length > 0
+                        ? String(raw.preferredNameIt).trim()
                         : `Lead ${molregno}`;
 
                 results.push({
                     ...raw,
                     known,
                     preferredName,
+                    preferredNameIt,
                     synonyms: normalizedSynonyms,
                 });
             } catch {
@@ -126,7 +134,7 @@ export class MoleculeService {
 
     private async fetchFromChembl(
         molregno: string
-    ): Promise<MoleculeDetailModel> {
+    ): Promise<MoleculeDetailModel | null> {
         const index = this.meiliClient.index<MoleculeDetailModel>(
             "molecule_details_chembl_36"
         );
@@ -139,13 +147,7 @@ export class MoleculeService {
             limit: 1,
         });
 
-        if (!res.hits.length) {
-            throw new RpcException(
-                `MoleculeDetailNotFound::Molecule with molregno = ${molregno} not found`
-            );
-        }
-
-        return res.hits[0];
+        return res.hits.length ? res.hits[0] : null
     }
 
     private mapMeiliToDTO(

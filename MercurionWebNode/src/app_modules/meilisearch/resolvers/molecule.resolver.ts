@@ -23,7 +23,7 @@ export class MoleculeResolver {
     @Public()
     @Query(() => [MoleculeSearchResult])
     async moleculePreviewsByMolregnos(
-        @Args({ name: 'molregnos', type: () => [String]}) molregnos: string[]
+        @Args({ name: 'molregnos', type: () => [String] }) molregnos: string[]
     ): Promise<MoleculeSearchResult[]> {
         return this.moleculeService.getPreviewsByMolregnos(molregnos)
     }
@@ -31,8 +31,8 @@ export class MoleculeResolver {
     @Public()
     @Query(() => MoleculeDetail)
     async moleculeByMolregno(
-        @Args('molregno') molregno: string
-    ): Promise<MoleculeDetail> {
+        @Args('molregno', { type: () => String, nullable: true }) molregno: string
+    ): Promise<MoleculeDetail | null> {
         return this.moleculeService.getDetailByMolregno(molregno)
     }
 

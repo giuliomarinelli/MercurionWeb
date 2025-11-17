@@ -7,7 +7,7 @@ import { MeiliLoggerService } from './services/meili-logger.service';
 import { MoleculeService } from './services/molecule.service';
 import { MoleculeResolver } from './resolvers/molecule.resolver';
 import { MoleculeCollectionModule } from '../molecule-collection/molecule-collection.module';
-import { SecurityAuditService } from './services/security-audit/security-audit.service';
+import { SecurityAuditService } from './services/security-audit.service';
 
 @Module({
     imports: [forwardRef(() => MoleculeCollectionModule)],

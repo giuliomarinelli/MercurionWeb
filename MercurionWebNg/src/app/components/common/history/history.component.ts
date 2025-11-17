@@ -9,6 +9,9 @@ import {
   effect,
   NgZone,
   signal,
+  Input,
+  Output,
+  EventEmitter,
 } from '@angular/core';
 import { HistoryService } from '../../../services/history.service';
 import { catchError, debounce, distinctUntilChanged, EMPTY, filter, firstValueFrom, interval, Subscription } from 'rxjs';
@@ -17,17 +20,34 @@ import { NavigationEnd, Router } from '@angular/router';
 import { HistoryItemComponent } from '../history-item/history-item.component';
 import { ClassicSpinnerComponent } from '../classic-spinner/classic-spinner.component';
 import { HistoryContextService } from '../../../services/context/history-context.service';
+import { NgClass } from '@angular/common';
 
 @Component({
   selector: 'app-history',
   standalone: true,
-  imports: [HistoryItemComponent, ClassicSpinnerComponent],
-  template: `
-    @for (item of items; track item.id) {
-      <app-history-item [historyDTO]="item" class="block" />
+  imports: [HistoryItemComponent, ClassicSpinnerComponent, NgClass],
+  styles: `
+    .fade-out-ani {
+          animation: 0.5s ease-in both fade-out;
+        }
+    @keyframes fade-out {
+      from {
+        opacity: 1
+      }
+      to {
+        opacity: 0
+      }
     }
-
-    @if (!items.length && !loading) {
+  `,
+  template: `
+    @if (items().length) {
+      <div [ngClass]="fadeOut()">
+        @for (item of items(); track item.id) {
+          <app-history-item [historyDTO]="item" class="block" />
+        }
+      </div>
+    }
+    @if (!items().length && !loading) {
       <p class="text-xs opacity-60 px-6 py-4">Nessuna attività recente.</p>
     }
 
@@ -60,13 +80,29 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('sentinel', { static: true })
   sentinel!: ElementRef<HTMLElement>;
 
+  @Input()
+  set triggerDelete(triggerDelete: boolean) {
+    this._triggerDelete.set(triggerDelete)
+  }
+
+  @Input()
+  set triggerEmptyCheck(triggerEmptyCheck: boolean) {
+    this._triggerEmptyCheck.set(triggerEmptyCheck)
+  }
+
+  @Output()
+  emptyChange = new EventEmitter<boolean>()
+
   private rSub?: Subscription;
   private observer?: IntersectionObserver;
   private rootEl: HTMLElement | null = null;
 
   serverError = signal<boolean>(false)
+  _triggerDelete = signal<boolean>(false)
+  _triggerEmptyCheck = signal<boolean>(false)
+  fadeOut = signal<string>('')
 
-  items: HistoryDTO[] = [];
+  items = signal<HistoryDTO[]>([]);
   loading = false;
   done = false;
   protected page = 1;
@@ -79,8 +115,9 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
         queueMicrotask(() => {
           this.historyContext.clearNewHistoryItem();
           // immutabile: niente splice/unshift
-          const next = [ni, ...this.items.filter(it => it.itemId !== ni.itemId)];
-          this.items = next;
+          this.items.update(items => items.filter(it => it.itemId !== ni.itemId))
+          const next = [ni, ...this.items()]
+          this.items.set(next);
         });
       }
     });
@@ -91,10 +128,41 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
       if (rmId) {
         queueMicrotask(() => {
           this.historyContext.clearRemoveItemTriggerSignal();
-          this.items = this.items.filter(it => it.itemId !== rmId);
+          this.items.update(items => items.filter(it => it.itemId !== rmId))
         });
       }
     })
+
+    effect(() => {
+      if (this._triggerDelete()) {
+        queueMicrotask(() => {
+          this._triggerDelete.set(false)
+          this.fadeOut.set('fade-out-ani')
+        })
+        setTimeout(() => {
+          this.items.set([])
+          this.fadeOut.set('')
+          this.emptyChange.emit(true)
+        }, 600)
+      }
+    })
+
+    effect(() => {
+      const i = this.items()
+      if (i.length === 0) {
+        this.emptyChange.emit(true)
+      } else {
+        this.emptyChange.emit(false)
+      }
+    })
+
+    effect(() => {
+      if (this._triggerEmptyCheck()) {
+        this._triggerEmptyCheck.set(false)
+        this.emptyChange.emit(true)
+      }
+    })
+
   }
 
   ngOnInit(): void {
@@ -176,9 +244,11 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
     );
 
     if (!newPage || !newPage.items || newPage.items.length === 0) {
+      this.emptyChange.emit(true)
       this.done = true;
     } else {
-      this.items = [...this.items, ...newPage.items];
+      this.emptyChange.emit(false)
+      this.items.update(items => [...items, ...newPage.items])
       this.page++;
     }
 

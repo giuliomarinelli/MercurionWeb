@@ -235,7 +235,7 @@ type Query {
   moleculeSearch_excludeAlreadyAdded(input: MoleculeSearchInput!, collectionId: ID!): [MoleculeSearchResult!]!
   moleculesByMolregnos(molregnos: [String!]!): [MoleculeDetail!]!
   moleculePreviewsByMolregnos(molregnos: [String!]!): [MoleculeSearchResult!]!
-  moleculeByMolregno(molregno: String!): MoleculeDetail!
+  moleculeByMolregno(molregno: String): MoleculeDetail!
   myMoleculeCollections: [MoleculeCollection!]!
   moleculeCollection(id: ID!): MoleculeCollection
   searchMyCollections(query: String, limit: Float): [MoleculeCollection!]!

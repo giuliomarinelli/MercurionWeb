@@ -5,7 +5,7 @@ import { SimilarsComponent } from '../../components/molecule-detail/similars/sim
 import { Component, DestroyRef, effect, inject, OnDestroy, OnInit, Signal, signal } from '@angular/core'
 import { ActivatedRoute, Router, RouterLink } from '@angular/router'
 import { MoleculeService } from '../../services/graphql/molecule.service'
-import { switchMap, Observable, catchError, of, Subscription, tap, distinctUntilChanged, throwError, EMPTY, fromEvent } from 'rxjs'
+import { switchMap, Observable, catchError, of, Subscription, tap, distinctUntilChanged, throwError, EMPTY, fromEvent, defer } from 'rxjs'
 import { filter, map, mergeMap } from 'rxjs/operators'
 import { AsyncPipe } from '@angular/common'
 import { ThemeManagerService } from '../../services/context/theme-manager.service'
@@ -411,9 +411,12 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
             })
           )
         }
-        return this.moleculeCollectionItemService.getItemById(molId).pipe(
-          catchError(() => {
+        return defer(() =>
+          this.moleculeCollectionItemService.getItemById(molId)
+        ).pipe(
+          catchError(err => {
             this.fetchError.set(true)
+            console.error('getItemById sync error', err)
             return of(null)
           })
         )

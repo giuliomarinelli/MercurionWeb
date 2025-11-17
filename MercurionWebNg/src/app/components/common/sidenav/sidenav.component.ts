@@ -1,8 +1,12 @@
-import { DatePipe } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { DatePipe, NgClass } from '@angular/common';
+import { Component, effect, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { UserContextService } from '../../../services/context/user-context.service';
 import { HistoryComponent } from '../history/history.component';
+import { Subscription } from 'rxjs';
+import { HistoryService } from '../../../services/history.service';
+import { ToastService } from '../../../services/toast.service';
+import { ClassicSpinnerComponent } from "../classic-spinner/classic-spinner.component";
 
 interface HistoryItem {
   id: string;
@@ -14,7 +18,7 @@ interface HistoryItem {
 @Component({
   selector: 'app-sidenav',
   standalone: true,
-  imports: [RouterLink, HistoryComponent],
+  imports: [RouterLink, HistoryComponent, ClassicSpinnerComponent, NgClass],
   template: `
     <nav class="flex flex-col h-full bg-transparent z-50 select-none pt-12">
 
@@ -86,8 +90,49 @@ interface HistoryItem {
 
         <!-- Cronologia dinamica -->
         <div class="flex-1 overflow-y-auto custom-scrollbar">
-          <h6 class="detail">Cronologia</h6>
-            <app-history class="block" />
+          <div class="flex justify-between items-center">
+            <h6 class="detail">Cronologia</h6>
+            @if (triggerDelete()) {
+              <div>
+                <app-classic-spinner [size]="16" class="block mt-2 mr-5" />
+              </div>
+            } @else {
+              <button
+                type="button"
+                class="relative p-1 rounded-md
+                       transition-colors duration-150 mr-4 disabled:text-slate-300 dark:disabled:text-slate-600 disabled:cursor-not-allowed"
+                [ngClass]="{
+                  'hover:bg-slate-200': !isHistoryEmpty(),
+                  'dark:hover:bg-slate-700': !isHistoryEmpty()
+                }"
+                title="Cancella la cronologia"
+                [disabled]="isHistoryEmpty()"
+                (click)="doDeleteHistory()"
+              >
+                <svg
+                  [ngClass]="{
+                    'size-4': true,
+                    'text-light-error': !isHistoryEmpty(),
+                    'dark:text-dark-error': !isHistoryEmpty(),
+                    'pointer-events-none': isHistoryEmpty()
+                  }"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M6 8a1 1 0 0 1 1 1v7h6V9a1 1 0 1 1 2 0v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V9a1 1 0 0 1 1-1zM4 5a1 1 0 0 1 1-1h2V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1h2a1 1 0 0 1 1 1v1H4V5z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </button>
+            }
+          </div>
+          <app-history class="block"
+            [triggerDelete]="triggerDelete()"
+            [triggerEmptyCheck]="triggerEmptyCheck()"
+            (emptyChange)="handleEmptyChange($event)" />
         </div>
       } @else {
         <!-- Menu per utente non loggato -->
@@ -137,21 +182,25 @@ interface HistoryItem {
     }
   `]
 })
-export class SidenavComponent implements OnInit {
+export class SidenavComponent implements OnInit, OnDestroy {
 
-  historyItems: HistoryItem[] = [];
+  private readonly historyService = inject(HistoryService)
+  protected readonly userContext = inject(UserContextService)
+  private readonly toast = inject(ToastService)
 
-  constructor(protected readonly userContext: UserContextService) { }
+
+  triggerDelete = signal<boolean>(false)
+  isHistoryEmpty = signal<boolean>(false)
+  triggerEmptyCheck = signal<boolean>(true)
+
+  private delSub?: Subscription
 
   ngOnInit() {
-    // **TODO: Qui chiami la tua API paginata**
-    // Sostituisci questo mock con una fetch reale (servizio HTTP)
-    setTimeout(() => {
-      this.historyItems = [
-        { id: 'abc', type: 'notebook', title: 'Notebook QSAR', updatedAt: new Date().toISOString() },
-        { id: 'xyz', type: 'collection', title: 'Collezione Tossicità', updatedAt: new Date().toISOString() },
-      ];
-    }, 600);
+
+  }
+
+  ngOnDestroy(): void {
+    this.delSub?.unsubscribe()
   }
 
   getIcon(type: HistoryItem['type']): string {
@@ -162,4 +211,25 @@ export class SidenavComponent implements OnInit {
       default: return '📄';
     }
   }
+
+  doDeleteHistory(): void {
+    const onError = () => queueMicrotask(() => this.toast.trigger('Si è verificato un errore nella cancellazione della cronologia.'))
+    this.delSub = this.historyService.deleteHistory().subscribe({
+      next: (ok) => {
+        if (!ok) {
+          onError()
+          return
+        }
+        queueMicrotask(() => this.triggerDelete.set(true))
+      },
+      error: () => onError()
+    })
+  }
+
+  handleEmptyChange(e: boolean): void {
+    this.isHistoryEmpty.set(e)
+    this.triggerDelete.set(false)
+    this.triggerEmptyCheck.set(false)
+  }
+
 }

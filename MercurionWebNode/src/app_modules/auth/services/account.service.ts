@@ -22,7 +22,7 @@ import { ChangePhoneDTO } from '../Models/DTO/change-phone.cls.dto';
 import { ContactChangeKind } from '../Models/enums/contact-change-kind.enum';
 import { PasswordContext } from '../Models/enums/password-context.enum';
 import { CompareResult } from '../Models/enums/compare-result.enum';
-import { SecurityAuditService } from 'src/app_modules/meilisearch/services/security-audit/security-audit.service';
+import { SecurityAuditService } from 'src/app_modules/meilisearch/services/security-audit.service';
 import { UserContext } from 'src/app_modules/notification/Models/contexts/user.context';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';

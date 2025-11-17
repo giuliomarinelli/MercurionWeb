@@ -90,6 +90,7 @@ export const MOLECULE_ITEM = gql`
           id
           cmbId
           preferredName
+          preferredNameIt
           canonicalSmiles
           moleculeType
           maxPhase

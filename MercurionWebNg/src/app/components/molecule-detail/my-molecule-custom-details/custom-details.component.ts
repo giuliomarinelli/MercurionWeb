@@ -39,13 +39,13 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
         <app-molecule-badge class="shrink-0" [name]="_badgeName()" />
 
         @if (false) {
-           <!-- !_isReadonly()  -->
+           <!-- !_isReadonly() <==> Per ora non permettiamo la modifica inline del nome sulla card  -->
 
           <div class="flex items-center justify-end w-[4.5rem] shrink-0">
             @if (mode() === 'view') {
               <button
                 type="button"
-                class="ml-2 cursor-pointer transition-transform duration-150 hover:scale-[1.05]"
+                class="ml-2 cursor-pointer transition-transform transition-colors duration-150 hover:scale-[1.05]"
                 title="Modifica"
                 (click)="doEdit()">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
@@ -56,7 +56,7 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
             } @else {
               <button
                 type="button"
-                class="mr-1 cursor-pointer transition-transform duration-150 hover:scale-[1.05]"
+                class="mr-1 cursor-pointer transition-[transform,color] duration-300 hover:scale-[1.05]"
                 title="Annulla"
                 (click)="doCancel()">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
@@ -66,7 +66,7 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
               </button>
               <button
                 type="button"
-                class="cursor-pointer transition-transform duration-150 hover:scale-[1.05]"
+                class="cursor-pointer transition-[transform,color] duration-300 hover:scale-[1.05]"
                 title="Salva"
                 (click)="doSave()">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
@@ -88,7 +88,7 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
           class="py-2 outline-none text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider
                  text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary
                  rounded-md border
-                 transition-[background-color,border-color] duration-150"
+                 transition-[background-color,border-color[],color] duration-300"
           [attr.contenteditable]="mode() === 'edit' ? 'true' : null"
           [ngClass]="{
             'bg-slate-300 dark:bg-slate-700 border-light-on-surface-main dark:border-dark-on-surface-main': mode() === 'edit',
@@ -105,7 +105,7 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
         <div class="flex items-center w-[4.5rem] shrink-0">
           @if (mode() === 'view') {
             <button
-              class="cursor-pointer transition-transform duration-150 hover:scale-[1.075]"
+              class="cursor-pointer transition-[transform,color] duration-300 hover:scale-[1.075]"
               title="Modifica"
               (click)="doEdit()">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
@@ -115,7 +115,7 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
             </button>
           } @else {
             <button
-              class="mr-1 cursor-pointer transition-transform duration-150 hover:scale-[1.075]"
+              class="mr-1 cursor-pointer transition-[transform,color] duration-300 hover:scale-[1.075]"
               title="Annulla"
               (click)="doCancel()">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
@@ -124,7 +124,7 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
               </svg>
             </button>
             <button
-              class="cursor-pointer transition-transform duration-150 hover:scale-[1.075]"
+              class="cursor-pointer transition-[transform,color] duration-300 hover:scale-[1.075]"
               title="Salva"
               (click)="doSave()">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
@@ -150,7 +150,7 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
             #value
             class="outline-none py-1 rounded-md border min-w-0
                    text-light-on-surface-main dark:text-dark-on-surface-main
-                   transition-[background-color,border-color] duration-150"
+                   transition-[background-color,border-color[],color] duration-300"
             [attr.contenteditable]="mode() === 'edit' ? 'true' : null"
             [ngClass]="{
               'bg-slate-200 dark:bg-slate-700 border-light-on-surface-main dark:border-dark-on-surface-main': mode() === 'edit',
@@ -163,7 +163,7 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
             @if (mode() === 'view') {
               <button
                 type="button"
-                class="cursor-pointer transition-transform duration-150 hover:scale-[1.075]"
+                class="cursor-pointer transition-[transform,color] duration-300 hover:scale-[1.075]"
                 title="Modifica"
                 (click)="onEdit($event)">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
@@ -174,7 +174,7 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
             } @else {
               <button
                 type="button"
-                class="mr-1 cursor-pointer transition-transform duration-150 hover:scale-[1.075]"
+                class="mr-1 cursor-pointer transition-[transform,color] duration-300 hover:scale-[1.075]"
                 title="Annulla"
                 (click)="onCancel($event)">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
@@ -184,7 +184,7 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
               </button>
               <button
                 type="button"
-                class="cursor-pointer transition-transform duration-150 hover:scale-[1.075]"
+                class="cursor-pointer transition-[transform,color] duration-300 hover:scale-[1.075]"
                 title="Salva"
                 (click)="onSave($event)">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"

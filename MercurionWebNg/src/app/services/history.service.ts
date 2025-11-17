@@ -20,4 +20,10 @@ export class HistoryService {
     )
   }
 
+  deleteHistory(): Observable<boolean> {
+    return this.http.delete<boolean>('/api/history', {
+      withCredentials: true
+    })
+  }
+
 }

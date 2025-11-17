@@ -2,7 +2,7 @@ import { MoleculeSearchResult } from './../../Models/graphql/molecule-search/mol
 import { inject, Injectable } from '@angular/core';
 import { Apollo } from 'apollo-angular';
 import { GET_MOLECULE_DETAIL, GET_MOLECULE_PREVIEWS } from './graphql-actions/molecule.gql-queries';
-import { map, Observable } from 'rxjs';
+import { map, Observable, of, switchMap, throwError } from 'rxjs';
 import { MoleculeDetail } from '../../Models/graphql/molecule.detail.models';
 
 @Injectable({
@@ -23,7 +23,13 @@ export class MoleculeService {
         }
       })
       .valueChanges.pipe(
-        map(result => result.data.moleculeByMolregno)
+        map(result => result.data.moleculeByMolregno),
+        switchMap(mol => {
+          if (mol == null) {
+            return throwError(() => new Error('MOLECULE_NOT_FOUND'))
+          }
+          return of(mol)
+        })
       )
   }
 
