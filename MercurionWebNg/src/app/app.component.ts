@@ -54,7 +54,7 @@ import { AppContextService } from './services/context/app-context.service';
         <div class="drawer-container relative flex flex-1 overflow-hidden custom-scrollbar">
           @if (userContext.isLoggedIn() && design.minBk('xl')()) {
             <div class="absolute top-4 left-[10px] z-30 group">
-              <button class="cursor-pointer" (click)="sidenavContext.toggle()" aria-label="Sidebar">
+              <button class="cursor-pointer hover:transform hover:scale-[1.05] transition-transform duration-300" (click)="sidenavContext.toggle()" aria-label="Sidebar">
                 @if (sidenavContext.isVisible()) {
                   <!-- icona open -->
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-auto text-light-on-surface-main hover:text-light-on-surface-secondary dark:text-dark-on-surface-main hover:dark:text-dark-on-surface-secondary transition-colors duration-150">
