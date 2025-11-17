@@ -11,6 +11,7 @@ describe('AccountService', () => {
         return undefined;
       }),
     };
+    const meiliLoggerMock = { forContext: jest.fn(() => ({ warn: jest.fn() })) };
     service = new AccountService(
       {} as any, // userService
       {} as any, // passwordEncoder
@@ -23,6 +24,8 @@ describe('AccountService', () => {
       {} as any, // sessionService
       {} as any, // responseService
       {} as any, // securityAuditService
+      {} as any, // dataSource
+      meiliLoggerMock as any, // meiliLogger
     );
   });
 
