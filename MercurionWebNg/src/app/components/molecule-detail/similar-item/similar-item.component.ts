@@ -43,7 +43,7 @@ import { MoleculeSearchResult } from
 
       <div class="flex-1 min-w-0">
         <div class="text-base font-medium truncate"
-             [innerHTML]="_molecule()?.preferredName"></div>
+             [innerHTML]="_molecule()?.preferredNameIt"></div>
         <div class="text-xs text-gray-500 truncate"
              [innerHTML]="_molecule()?.synonyms?.[0]"></div>
         <div class="text-xs text-gray-400 mt-1 flex gap-2">
