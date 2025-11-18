@@ -1,7 +1,7 @@
 
 
 import { registerAs } from "@nestjs/config";
-import { AppConfiguration, CloudflareConfiguration, DataConfiguration, OAuth2ProviderConfiguration, JwtConfigurations, MeilisearchConfiguration, SecureCookieConfiguration, SessionConfiguration, SmsConfiguration, TotpConfiguration } from "./config.types";
+import { AppConfiguration, CloudflareConfiguration, DataConfiguration, OAuth2ProviderConfiguration, JwtConfigurations, MeilisearchConfiguration, SecureCookieConfiguration, SessionConfiguration, SmsConfiguration, TotpConfiguration, RedisConfiguration } from "./config.types";
 import { UUID } from "crypto";
 import { GeneralUtils } from "src/utils/general-utils/general-utils";
 import { SnakeNamingStrategy } from "typeorm-naming-strategies";
@@ -10,16 +10,13 @@ import { join } from "path";
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter'
 
 export enum Environment {
-
     Development = 'development',
     Staging = 'staging',
     Production = 'production',
-    Testing = 'testing',
-
+    Test = 'test'
 }
 
 export enum ConfigKey {
-
     App = 'App',
     Data = 'Data',
     Jwt = "Jwt",
@@ -30,8 +27,8 @@ export enum ConfigKey {
     Session = "Session",
     Dropbox = "Dropbox",
     Meilisearch = 'Meilisearch',
-    Cloudflare = 'Cloudflare'
-
+    Cloudflare = 'Cloudflare',
+    Redis = 'Redis'
 }
 
 const AppConfig = registerAs(
@@ -238,6 +235,13 @@ const CloudflareConfig = registerAs(
     })
 )
 
+const RedisConfig = registerAs(
+    ConfigKey.Redis, (): RedisConfiguration => ({
+        host: process.env.REDIS_HOST!,
+        port: Number(process.env.REDIS_PORT)
+    })
+)
+
 
 export const configurations = [
     AppConfig,
@@ -250,5 +254,6 @@ export const configurations = [
     SessionConfig,
     DropboxConfig,
     MeilisearchConfig,
-    CloudflareConfig
+    CloudflareConfig,
+    RedisConfig
 ]

@@ -4,6 +4,8 @@ import { firstValueFrom } from 'rxjs';
 import { ConfigService } from '@nestjs/config';
 import { TurnstileResponse } from '../Models/interfaces/turnstile-response.interface';
 import { AxiosResponse } from 'axios';
+import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 
 
 
@@ -11,12 +13,15 @@ import { AxiosResponse } from 'axios';
 export class TurnstileService {
 
   private readonly secret: string
+  private readonly logger: MeiliContextLogger
 
   constructor(
     private readonly http: HttpService,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
+    loggerFactory: MeiliLoggerService
   ) {
     this.secret = this.configService.get<string>('Cloudflare.secretKey') as string
+    this.logger = loggerFactory.forContext(TurnstileService.name)
   }
 
   async verifyToken(token: string, remoteIp?: string): Promise<boolean> {
@@ -37,8 +42,8 @@ export class TurnstileService {
       )
 
       return res.data.success
-    } catch {
-      // Puoi loggare dettagli qui se vuoi debugging avanzato
+    } catch (e) {
+      this.logger.warn('Error in CF Turnstile validation', e as object)
       return false
     }
   }

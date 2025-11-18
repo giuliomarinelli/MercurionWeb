@@ -118,3 +118,8 @@ export interface MeilisearchConfiguration {
 export interface CloudflareConfiguration {
     secretKey: string
 }
+
+export interface RedisConfiguration {
+    host: string
+    port: number
+}

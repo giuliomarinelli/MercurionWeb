@@ -46,9 +46,9 @@ export async function bootstrap() {
   const redisService = app.get<RedisService>(RedisService)
   const loggerFactory = app.get<MeiliLoggerService>(MeiliLoggerService)
   const logger = loggerFactory.forContext('Bootstrap')
-  
+
   logger.setLogLevels(Array.from(logLevels))
-  
+
   const env = configService.get<Environment>('App.env')
 
   const natsPort = configService.get<number>('App.natsPort') ?? 4223
@@ -68,7 +68,7 @@ export async function bootstrap() {
     // CSP: in dev spesso rompe (Playground, HMR, ecc.),
     // quindi la teniamo solo in produzione.
     contentSecurityPolicy:
-      configService.get<Environment>('App.env') === Environment.Production
+      [Environment.Production, Environment.Staging].includes(env ?? Environment.Development)
         ? {
           useDefaults: true,
           directives: {
@@ -118,7 +118,7 @@ export async function bootstrap() {
     // HSTS solo in produzione e solo se stai servendo via HTTPS dietro
     // Cloudflare/Nginx in modo coerente.
     hsts:
-      configService.get<Environment>('App.env') === Environment.Production
+      [Environment.Production, Environment.Staging].includes(env ?? Environment.Development)
         ? {
           maxAge: 31536000, // 1 anno
           includeSubDomains: true,
@@ -169,13 +169,13 @@ export async function bootstrap() {
       req.headers['x-session-id'] = undefined
     }
 
-    const isDev = configService.get<Environment>('App.env') === Environment.Development
+    const isDevOrTest = env === Environment.Development || env === Environment.Test
     const mockIp = req.headers['x-mock-ip']?.toString().trim()
 
     const cfIpRaw = req.headers['cf-connecting-ip']?.toString().trim()
     const cfIp = isValidIp(cfIpRaw) ? cfIpRaw : undefined
 
-    req.headers['x-client-ip'] = isDev && mockIp ? mockIp : (cfIp || req.ip)
+    req.headers['x-client-ip'] = isDevOrTest && mockIp ? mockIp : (cfIp || req.ip)
     done()
   })
 

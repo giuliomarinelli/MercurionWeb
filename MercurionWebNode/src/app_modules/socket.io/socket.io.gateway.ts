@@ -1,6 +1,6 @@
 import { WebSocketGateway, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, MessageBody, ConnectedSocket } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { OnModuleInit, UseGuards } from '@nestjs/common';
+import { UseGuards } from '@nestjs/common';
 import Redis from 'ioredis';
 import { createAdapter } from '@socket.io/redis-adapter';
 import { WsGuard } from './guards/ws.guard';
@@ -9,31 +9,32 @@ import { Public } from 'src/metadata/metadata';
 import { UUID } from 'crypto';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { ConfigService } from '@nestjs/config';
+import { RedisConfiguration } from 'src/config/config.types';
 
 
 
 @WebSocketGateway()
 @UseGuards(WsGuard)
-export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, OnModuleInit {
+export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
 
   private readonly logger: MeiliContextLogger
+  private readonly redisConf: RedisConfiguration
 
   @WebSocketServer()
   private readonly server: Server
 
   constructor(
+    private readonly configService: ConfigService,
     private readonly pubSubService: PubSubService,
-    meiliLogger: MeiliLoggerService
+    loggerFactory: MeiliLoggerService
   ) {
-    this.logger = meiliLogger.forContext(SocketIOGateway.name)
-  }
-
-  onModuleInit() {
-    // this.handleDetailSync()
+    this.logger = loggerFactory.forContext(SocketIOGateway.name)
+    this.redisConf = this.configService.get<RedisConfiguration>('Redis')!
   }
 
   afterInit(server: Server) {
-    const pubClient = new Redis({ host: 'localhost', port: 6378 })
+    const pubClient = new Redis({ host: this.redisConf.host, port: this.redisConf.port })
     const subClient = pubClient.duplicate()
     server.adapter(createAdapter(pubClient, subClient))
     this.pubSubService.setSocketServer(server)

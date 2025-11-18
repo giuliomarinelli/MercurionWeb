@@ -1,5 +1,5 @@
 
-# Configurazione Docker Compose per ambiente di sviluppo
+# Configurazione Docker Compose per ambiente di sviluppo e testing
 
 services:
 
@@ -68,6 +68,8 @@ services:
       interval: 5s
       timeout: 3s
       retries: 20
+    networks:
+      - spectralume_network
 
   
   meilisearch_sl:
@@ -83,16 +85,66 @@ services:
     networks:
       - spectralume_network
 
-  nginx_sl:
+  nginx_sl_dev:
     image: nginx:1.27-alpine
-    container_name: nginx_sl
+    container_name: nginx_sl_dev
     ports:
-    - "8888:80"
+      - "8888:80"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx_dev/nginx.conf:/etc/nginx/nginx.conf:ro
     networks:
-    - spectralume_network
+      - spectralume_network
     restart: unless-stopped
+  
+  nginx_sl_test:
+    image: nginx:1.27-alpine
+    container_name: nginx_sl_test
+    ports:
+      - "8880:80"
+    volumes:
+      - ./nginx_test/default.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - spectralume_network
+    restart: unless-stopped
+    command: ["nginx", "-g", "daemon off;"]
+
+  mercurion_web_node:
+    container_name: mercurion_web_node
+    build:
+      context: ../MercurionWebNode
+      dockerfile: ../MercurionWebNode/Dockerfile.test
+    environment:
+      NODE_ENV: test
+      # qui l’URL che i test usano per colpire l’API
+      API_BASE_URL: http://mercurion_nginx:8880
+    command: ["node", "dist/main.js"]
+    expose:
+      - 8098
+    networks:
+      - spectralume_network
+  
+  mercurion_tox_21:
+    container_name: mercurion_tox_21
+    build:
+      context: ../../MercurionAI/MercurionTox21
+      dockerfile: ../../MercurionAI/MercurionTox21/Dockerfile.test
+    environment:
+      NATS_URL: nats://nats_sl:4222
+      API_BASE_URL: http://mercurion_nginx:8880
+    networks:
+      - spectralume_network
+    
+  mercurion_web_ng:
+    build:
+      context: ../MercurionWebNg
+      dockerfile: ../MercurionWebNg/Dockerfile.test
+    container_name: mercurion_web_ng
+    expose:
+      - 3497       
+    networks:
+      - spectralume_network
+
+
 
 volumes:
   redis_data:

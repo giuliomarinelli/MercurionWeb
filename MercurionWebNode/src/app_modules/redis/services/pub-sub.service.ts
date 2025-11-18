@@ -19,9 +19,9 @@ export class PubSubService implements OnModuleInit {
     private readonly redisService: RedisService,
     private readonly oauth2_accessTokenRefreshService: OAuth2AccessTokenRefreshService,
     private readonly sessionService: SessionService,
-    meiliLogger: MeiliLoggerService,
+    loggerFactory: MeiliLoggerService,
   ) {
-    this.logger = meiliLogger.forContext(PubSubService.name)
+    this.logger = loggerFactory.forContext(PubSubService.name)
     this.subscriber = this.redisService.getClient().duplicate()
     this.subscriber.on('error', (e) => this.logger.error(`Redis subscriber error: ${e?.message || e}`))
   }
