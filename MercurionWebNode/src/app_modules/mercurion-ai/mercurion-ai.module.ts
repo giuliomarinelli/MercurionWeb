@@ -20,7 +20,7 @@ import { RedisModule } from '../redis/redis.module';
                 useFactory: async (config: ConfigService) => ({
                     transport: Transport.NATS,
                     options: {
-                        servers: [`nats://localhost:${config.get<number>('App.natsPort') ?? 4223}`],
+                        servers: [`${config.get<string>('App.natsHost')}:${config.get<number>('App.natsPort') ?? 4223}`],
                     },
                 }),
             },

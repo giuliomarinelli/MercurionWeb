@@ -122,17 +122,7 @@ services:
       - 8098
     networks:
       - spectralume_network
-  
-  mercurion_tox_21:
-    container_name: mercurion_tox_21
-    build:
-      context: ../../MercurionAI/MercurionTox21
-      dockerfile: ../../MercurionAI/MercurionTox21/Dockerfile.test
-    environment:
-      NATS_URL: nats://nats_sl:4222
-      API_BASE_URL: http://mercurion_nginx:8880
-    networks:
-      - spectralume_network
+    restart: unless-stopped
     
   mercurion_web_ng:
     build:
@@ -143,6 +133,7 @@ services:
       - 3497       
     networks:
       - spectralume_network
+    restart: unless-stopped
 
 
 
