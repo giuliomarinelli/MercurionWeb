@@ -13,7 +13,7 @@ COPY public ./public
 COPY tailwind.config.js ./
 
 
-# build in configurazione "testing" (usa baseHref /m/)
+# build in configurazione "testing" (con baseHref /m/)
 RUN npm run build -- --configuration testing
 
 # ====== STAGE 2: Nginx statico ======
@@ -22,7 +22,6 @@ FROM nginx:1.27-alpine
 WORKDIR /usr/share/nginx/html
 RUN rm -rf ./*
 
-# metto tutta la build dentro /m
 RUN mkdir -p m
 COPY --from=build /app/dist/mercurion-web-ng/browser/ ./m/
 
