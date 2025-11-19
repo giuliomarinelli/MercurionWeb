@@ -6,6 +6,7 @@ import { io, Socket } from 'socket.io-client';
 import { Observable } from 'rxjs';
 import { AuthService } from '../auth.service';
 import { JwtHelperService } from '../jwt-helper.service';
+import { environment } from '../../../environments/environment.development';
 
 export type SocketMode = 'public' | 'private';
 
@@ -16,7 +17,7 @@ interface Listener<T = any> {
 
 @Injectable({ providedIn: 'root' })
 export class RealtimeSocketService {
-  private readonly url = 'http://localhost:8888';
+  private readonly url = environment.wsUrl;
   private socket: Socket;
   private mode: SocketMode = 'public';
   private readonly listeners: Listener[] = [];
