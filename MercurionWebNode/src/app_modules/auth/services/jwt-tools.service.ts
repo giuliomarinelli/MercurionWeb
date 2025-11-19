@@ -132,7 +132,11 @@ export class JwtToolsService {
     public async generateToken(userId: UUID, type: TokenType, sessionId?: UUID): Promise<string> {
         const jwtConfig = this.getJwtConfigurationFromTokenType(type)
         const scopes: string[] = await this.userService.getUserScopesById(userId) ?? []
-        const scp: string = scopes.map(s => GeneralUtils.getEnumKeyByValue(Scope, s)).join(' ')
+        const scp = scopes
+            .map((s) => GeneralUtils.getEnumKeyByValue(Scope, s))
+            .filter((k): k is string => !!k)
+            .join(' ')
+
 
         // 🔹 Usa RS256 per gli AccessToken, HS512 per gli altri
         let signOptions: JwtSignOptions

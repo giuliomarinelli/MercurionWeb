@@ -11,6 +11,7 @@ import { RpcException } from '@nestjs/microservices';
 import { timingSafeEqual } from 'node:crypto';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { ScopeService } from '../services/scope.service';
 
 
 
@@ -24,9 +25,10 @@ export class GlobalGuard implements CanActivate {
       private readonly jwtToolsService: JwtToolsService,
       private readonly sessionService: SessionService,
       private readonly reflector: Reflector,
-      meiliLogger: MeiliLoggerService
+      private readonly scopeService: ScopeService,
+      loggerFactory: MeiliLoggerService
    ) {
-      this.logger = meiliLogger.forContext(GlobalGuard.name)
+      this.logger = loggerFactory.forContext(GlobalGuard.name)
    }
 
    async canActivate(context: ExecutionContext): Promise<boolean> | never {
@@ -63,7 +65,7 @@ export class GlobalGuard implements CanActivate {
 
          try {
             payload = await this.jwtToolsService.verifyTokenAndGetPayload(accessToken, TokenType.AccessToken)
-            // this.logger.debug(`Valid access token: ${JSON.stringify(payload)}`)
+            await this.scopeService.scopeVerificationLayer(payload.sub, context, this.reflector, payload.scp)
          } catch (e) {
 
             if (e instanceof RpcException && e.message === 'InvalidOrExpiredAccessToken') {
@@ -71,6 +73,8 @@ export class GlobalGuard implements CanActivate {
                this.logger.debug?.('Possibly expired access token, trying refresh')
 
                payload = await this.jwtToolsService.verifyTokenAndGetPayload(accessToken, TokenType.AccessToken, true)
+
+               await this.scopeService.scopeVerificationLayer(payload.sub, context, this.reflector, payload.scp)
 
                const deviceId = req.headers['x-device-id'] as string | null | undefined
 
@@ -130,7 +134,13 @@ export class GlobalGuard implements CanActivate {
          return true
 
       } catch (e) {
+         if (e instanceof RpcException && e.message === 'Forbidden::missing permissions') {
+            throw new UnauthorizedException(e.message)
+         }
          const fatal = new UnauthorizedException('Fatal: unauthenticated')
+         if (e instanceof RpcException && e.message === 'Unauthorized') {
+            throw fatal
+         }
          if (e instanceof UnauthorizedException) {
             this.logger.warn('Thrown generic UnauthorizedException')
             throw fatal
@@ -139,7 +149,7 @@ export class GlobalGuard implements CanActivate {
             this.logger.warn(e.message || 'GlobalGuard internal unknown error')
             throw fatal
          }
-         this.logger.warn('GlobalGuard internal unknown error', e)
+         this.logger.warn('GlobalGuard internal unknown error', e as object)
          throw fatal
       }
    }

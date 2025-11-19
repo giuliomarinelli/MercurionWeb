@@ -1,5 +1,5 @@
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
-import { Injectable } from '@nestjs/common';
+import { ExecutionContext, Injectable } from '@nestjs/common';
 import { Scope } from 'src/app_modules/user/Models/enums/scope.enum';
 import { SercurityService } from './sercurity.service';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
@@ -8,6 +8,9 @@ import { User } from 'src/app_modules/user/Models/entities/user.entity';
 import { Repository } from 'typeorm';
 import { UUID } from 'crypto';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { Reflector } from '@nestjs/core';
+import { SCOPES_KEY } from 'src/metadata/metadata';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class ScopeService {
@@ -18,8 +21,14 @@ export class ScopeService {
 
     private standardScopes: Scope[] = [
         Scope.UseInference,
-        Scope.UploadMolecule,
+        Scope.CreateMolecule,
         Scope.ViewMolecule,
+        Scope.EditMolecule,
+        Scope.DeleteMolecule,
+        Scope.CreateCollection,
+        Scope.ViewCollection,
+        Scope.EditCollection,
+        Scope.DeleteCollection,
         Scope.EditOwnProfile,
         Scope.DeleteOwnAccount,
         Scope.ManageMFA
@@ -44,7 +53,7 @@ export class ScopeService {
         }
         return encryptedScopeVals.map((es) => this.securityService.decrypt_AES256(es))
             .filter((ds) => (this.scopeValues).includes(ds as Scope))
-            .map((strScopeVal) => GeneralUtils.getEnumValue(Scope, strScopeVal)!)
+            .map((strScopeVal) => strScopeVal as Scope)
     }
 
     encryptScopes(...decryptedScopeVals: Scope[]): string[] {
@@ -55,7 +64,38 @@ export class ScopeService {
             .map((ds) => this.securityService.encrypt_AES256(ds))
     }
 
-    async verifyUserHasScopes(userId: UUID, ...scopes: Scope[]): Promise<boolean> {
+    async scopeVerificationLayer(userId: UUID, context: ExecutionContext, reflector: Reflector, jwtScpClaim: string): Promise<void> {
+        const requiredScopes = reflector.getAllAndOverride<Scope[]>(SCOPES_KEY, [
+            context.getHandler(),
+            context.getClass()
+        ])
+
+        if (!requiredScopes || requiredScopes.length === 0) {
+            return
+        }
+
+        const jwtScopes = this.generateScopesArrayFromJwtClaim(jwtScpClaim)
+
+        const validFromDB = await this.verifyUserHasScopes(userId, ...requiredScopes)
+        const validFromJwt = requiredScopes.every((scp) => jwtScopes.includes(scp))
+
+        if (!validFromDB || !validFromJwt) {
+            throw new RpcException('Forbidden::missing permissions')
+        }
+    }
+
+    generateScopesArrayFromJwtClaim(rawScopes: string | undefined): Scope[] {
+        if (!rawScopes) {
+            return []
+        }
+        const parts = rawScopes.split(/\s+/).filter(Boolean)
+        return parts
+            .map((s) => GeneralUtils.getEnumValueFromStringKey(Scope, s) ?? '')
+            .filter((s): s is Scope => this.scopeValues.includes(s as Scope))
+    }
+
+
+    private async verifyUserHasScopes(userId: UUID, ...scopes: Scope[]): Promise<boolean> {
         try {
             const { scopes: encScopes } = await this.userRepo.findOneOrFail({
                 where:
@@ -78,5 +118,7 @@ export class ScopeService {
             return false
         }
     }
+
+
 
 }

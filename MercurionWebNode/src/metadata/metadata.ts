@@ -4,7 +4,8 @@ import { UUID } from 'crypto';
 import { FastifyRequest } from 'fastify';
 import { FingerprintData } from 'src/app_modules/auth/Models/DTO/fingerprints.dtos';
 import { TokenType } from 'src/app_modules/auth/Models/enums/token-type.enum';
-import { Scope } from 'twilio/lib/jwt/ClientCapability';
+import { Scope } from 'src/app_modules/user/Models/enums/scope.enum';
+
 
 export const IS_PUBLIC_KEY = 'isPublic'
 export const Public = () => SetMetadata(IS_PUBLIC_KEY, true)
