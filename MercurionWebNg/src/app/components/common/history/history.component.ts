@@ -21,6 +21,7 @@ import { HistoryItemComponent } from '../history-item/history-item.component';
 import { ClassicSpinnerComponent } from '../classic-spinner/classic-spinner.component';
 import { HistoryContextService } from '../../../services/context/history-context.service';
 import { NgClass } from '@angular/common';
+import { AppContextService } from '../../../services/context/app-context.service';
 
 @Component({
   selector: 'app-history',
@@ -70,11 +71,12 @@ import { NgClass } from '@angular/common';
 export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // ======================= DEPS =======================
-  private readonly historyService = inject(HistoryService);
-  private readonly router = inject(Router);
-  private readonly historyContext = inject(HistoryContextService);
-  private readonly ngZone = inject(NgZone);
-  private readonly hostRef = inject(ElementRef<HTMLElement>);
+  private readonly historyService = inject(HistoryService)
+  private readonly router = inject(Router)
+  private readonly historyContext = inject(HistoryContextService)
+  private readonly ngZone = inject(NgZone)
+  private readonly hostRef = inject(ElementRef<HTMLElement>)
+  private readonly appContext = inject(AppContextService)
   // ====================================================
 
   @ViewChild('sentinel', { static: true })
@@ -93,43 +95,45 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
   @Output()
   emptyChange = new EventEmitter<boolean>()
 
-  private rSub?: Subscription;
-  private observer?: IntersectionObserver;
-  private rootEl: HTMLElement | null = null;
+  private rSub?: Subscription
+  private observer?: IntersectionObserver
+  private rootEl: HTMLElement | null = null
 
   serverError = signal<boolean>(false)
   _triggerDelete = signal<boolean>(false)
   _triggerEmptyCheck = signal<boolean>(false)
   fadeOut = signal<string>('')
 
-  items = signal<HistoryDTO[]>([]);
-  loading = false;
-  done = false;
-  protected page = 1;
+  items = signal<HistoryDTO[]>([])
+  loading = false
+  done = false
+  protected page = 1
 
   constructor() {
     effect(() => {
-      const ni = this.historyContext.newHistoryItem();
+      const ni = this.historyContext.newHistoryItem()
       if (ni) {
         // post-render: niente NG0100
         queueMicrotask(() => {
-          this.historyContext.clearNewHistoryItem();
+          this.historyContext.clearNewHistoryItem()
           // immutabile: niente splice/unshift
           this.items.update(items => items.filter(it => it.itemId !== ni.itemId))
           const next = [ni, ...this.items()]
-          this.items.set(next);
+          this.items.set(next)
         });
       }
     });
 
     // remove item
     effect(() => {
-      const rmId = this.historyContext.removeItemTriggerSignal();
+      const rmId = this.historyContext.removeItemTriggerSignal()
       if (rmId) {
         queueMicrotask(() => {
-          this.historyContext.clearRemoveItemTriggerSignal();
+          const hostRef = new ElementRef(this.findScrollContainer() ?? document.body)
+          this.appContext.scrollToTop(hostRef, 400)
+          this.historyContext.clearRemoveItemTriggerSignal()
           this.items.update(items => items.filter(it => it.itemId !== rmId))
-        });
+        })
       }
     })
 
@@ -169,19 +173,31 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
     // Mantieni il tuo comportamento su NavigationEnd (non lo tolgo)
     this.rSub = this.router.events
       .pipe(filter(e => e instanceof NavigationEnd))
-      .subscribe(() => {
+      .subscribe((e) => {
         if (this.page === 1) {
-          queueMicrotask(() => this.loadMore());
+          queueMicrotask(() => this.loadMore())
         }
-      });
+        const rootRef = new ElementRef(this.findScrollContainer() ?? document.body)
+        const pathPrefixes = ['/molecules/collections', '/molecules/all-my-molecules', '/molecules/detail']
+        let scroll = false
+        for (const p of pathPrefixes) {
+          if (e.urlAfterRedirects.startsWith(p)) {
+            scroll = true
+            break
+          }
+        }
+        if (scroll) {
+          queueMicrotask(() => this.appContext.scrollToTop(rootRef, 400))
+        }
+      })
   }
 
   ngAfterViewInit(): void {
-    this.rootEl = this.findScrollContainer();
-    this.startObserver();
+    this.rootEl = this.findScrollContainer()
+    this.startObserver()
     // Primo caricamento esplicito: non dipendere dal routing
     if (this.page === 1) {
-      queueMicrotask(() => this.loadMore());
+      queueMicrotask(() => this.loadMore())
     }
   }
 
@@ -222,11 +238,11 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     );
 
-    this.observer.observe(this.sentinel.nativeElement);
+    this.observer.observe(this.sentinel.nativeElement)
   }
 
   async loadMore() {
-    if (this.loading || this.done) return;
+    if (this.loading || this.done) return
 
     this.loading = true;
 

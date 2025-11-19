@@ -15,6 +15,7 @@ import { ISessionDeviceInfo } from '../../../Models/auth/fingerprint.models';
 import { TotpBodyDTO } from '../../../Models/auth/totp-body.dto';
 import { ToastService } from '../../../services/toast.service';
 import { ClassicSpinnerComponent } from '../../../components/common/classic-spinner/classic-spinner.component';
+import { AppContextService } from '../../../services/context/app-context.service';
 
 export type MfaView = 'EMAIL_OTP' | 'SMS_OTP' | 'PH_V' | 'APP_TOTP' | ''
 
@@ -155,6 +156,7 @@ export class MfaPageComponent implements OnInit, OnDestroy {
   private readonly sessionSyncService = inject(SessionSyncService)
   private readonly userContext = inject(UserContextService)
   private readonly toast = inject(ToastService)
+  private readonly appContext = inject(AppContextService)
 
   @ViewChild('otp')
   private otpRef!: ElementRef<HTMLInputElement>
@@ -194,7 +196,6 @@ export class MfaPageComponent implements OnInit, OnDestroy {
         this.router.navigateByUrl(redirect)
         this.userContext.setInitials(e.newValue ?? 'U')
       }
-
     }
   }
 
@@ -203,16 +204,15 @@ export class MfaPageComponent implements OnInit, OnDestroy {
     window.addEventListener('storage', this.storageListener)
     this.pollInterval = setInterval(() => {
       if (localStorage.getItem('login') && (this.router.url === '/login' || this.router.url.startsWith('/login'))) {
-        const redirect = sessionStorage.getItem('redirectAfterLogin') || '/dashboard';
-        this.router.navigateByUrl(redirect);
+        const redirect = sessionStorage.getItem('redirectAfterLogin') || '/dashboard'
+        this.router.navigateByUrl(redirect)
       }
     }, 1000)
 
     // 1. Fingerprint prima di tutto
-    const { fingerprintDataEnc, sessionDeviceInfo } = await this.fingerprintService.getSanitizedFingerprint();
-    this.fingerprintDataEnc = fingerprintDataEnc;
-    this.sessionDeviceInfo = sessionDeviceInfo;
-
+    const { fingerprintDataEnc, sessionDeviceInfo } = await this.fingerprintService.getSanitizedFingerprint()
+    this.fingerprintDataEnc = fingerprintDataEnc
+    this.sessionDeviceInfo = sessionDeviceInfo
     // 2. Inizializzazione form controls
     this.otpControl = this.fb.control(null, [Validators.required]);
     this.phoneControl = this.fb.control(null, [Validators.required]);
@@ -221,15 +221,14 @@ export class MfaPageComponent implements OnInit, OnDestroy {
     const raw = sessionStorage.getItem('preAuthorizationData')
 
     if (!raw) {
-      await this.redirect.redirectToLogin('NotAllowed')
+      this.router.navigateByUrl('/403-forbidden')
       return
     }
 
     try {
       this.loginFirstStepData = JSON.parse(atob(raw)) as Login_FirstStep_Data;
-    } catch (e) {
-      console.error('❌ Malformed preAuthorizationData', e)
-      await this.redirect.redirectToLogin('NotAllowed')
+    } catch {
+      this.router.navigateByUrl('/403-forbidden')
       return
     }
 

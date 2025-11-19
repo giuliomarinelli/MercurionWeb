@@ -83,6 +83,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/not-found-404-landing/not-found-404-landing.page.component').then(m => m.NotFound404LandingPageComponent)
   },
   {
+    path: '403-forbidden',
+    loadComponent: () => import('./pages/forbidden-403-landing/forbidden-403-landing.page.component').then(m => m.Forbidden403LandingPageComponent)
+  },
+  {
     path: '**',
     redirectTo: '/404-not-found'
   }

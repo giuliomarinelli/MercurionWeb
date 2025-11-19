@@ -154,6 +154,14 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor() {
 
     effect(() => {
+      const t = this.appContext.addedScrollTick()
+      if (t === 0) {
+        return
+      }
+      queueMicrotask(() => this.appContext.scrollToTop(this.scrollHostRef, 400))
+    })
+
+    effect(() => {
       // Scudo anti race condition per la connessione ws dopo il login e l'emissione dell'evento di handshake
       const t = this.sessionSync.handshakeTick()
       if (t === 0) {

@@ -50,7 +50,7 @@ export class Helpers {
     }
   }
 
-  static moleculeSearchResultToMoleculeCardItemModel(dto: MoleculeSearchResult): MoleculeCardItemModel {
+  static moleculeSearchResultToMoleculeCardItemModelConverter(dto: MoleculeSearchResult): MoleculeCardItemModel {
     const now = Date.now()
     return ({
       id: dto.id.toString(),

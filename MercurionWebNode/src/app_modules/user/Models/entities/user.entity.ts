@@ -51,7 +51,7 @@ export class User {
     @Column({ type: 'boolean', default: false })
     isVerified: boolean // portato a true dopo attivazione account con link email
 
-    @Column({ type: 'text', default: '[]' })
+    @Column({ type: 'jsonb', default: '[]' })
     scopes: string[] 
 
     @Column({ type: 'text', default: '[]' })
