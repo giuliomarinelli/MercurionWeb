@@ -77,7 +77,10 @@ export class User {
 
     @OneToOne(() => DocumentEntity, { cascade: true, nullable: true })
     @JoinColumn({ name: 'avatar_id' })
-    avatar: DocumentEntity | null;
+    avatar: DocumentEntity | null
+
+    @Column()
+    avatarId: UUID | null
 
     @BeforeInsert()
     private generateId() {

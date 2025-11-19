@@ -37,7 +37,7 @@ export class MoleculeCollectionItemJoinService {
     // Metodo STANDARD (fuori da transaction esplicita)
     async add(userId: UUID, collectionId: UUID, itemId: UUID): Promise<MoleculeCollectionItemJoin> {
         return await this.joinRepo.manager.transaction(async manager => {
-            return this.addMoleculeToCollectionWithManager(userId, collectionId, itemId, manager);
+            return this.addMoleculeToCollectionWithManager(userId, collectionId, itemId, manager)
         })
     }
 

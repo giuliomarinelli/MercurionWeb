@@ -1,3 +1,4 @@
+import { MoleculeCollection } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection.entity';
 import { ProfileRegistryDTO as ProfileRegistryDTO } from './../../auth/Models/DTO/profile.dtos';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -17,6 +18,9 @@ import { CompareResult } from 'src/app_modules/auth/Models/enums/compare-result.
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 import { ScopeService } from 'src/app_modules/auth/services/scope.service';
+import { MoleculeCollectionItemEntity } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection-item.entity';
+import { HistoryService } from 'src/app_modules/history/services/history.service';
+
 
 @Injectable()
 export class UserService {
@@ -27,8 +31,9 @@ export class UserService {
         @InjectRepository(User) private userRepository: Repository<User>,
         private readonly dataSource: DataSource,
         private readonly passwordEncoder: PasswordEncoderService,
-        private readonly securityService: SercurityService,
         private readonly scopeService: ScopeService,
+        private readonly securityService: SercurityService,
+        private readonly historyService: HistoryService,
         meiliLogger: MeiliLoggerService
     ) {
         this.logger = meiliLogger.forContext(UserService.name)
@@ -313,39 +318,81 @@ export class UserService {
     }
 
     async getVerifiedUserProfileById(id: UUID): Promise<ProfileDTO | null> {
+
         try {
-            const row = await this.userRepository.findOne({
-                where: { id, isVerified: true },
-                relations: { avatar: true },
-                select: {
-                    id: true, // <-- fondamentale per evitare l'errore
-                    firstName: true,
-                    lastName: true,
-                    gender: true,
-                    job: true,
-                    email: true,
-                    completePhoneNumber: true,
-                    avatar: { id: true },
-                },
-            });
+            return this.dataSource.manager.transaction(async (manager) => {
+                const profileRow = await manager.findOne(User, {
+                    where: { id, isVerified: true },
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        gender: true,
+                        job: true,
+                        email: true,
+                        completePhoneNumber: true,
+                        avatarId: true
+                    }
+                })
 
-            if (!row) return null;
+                if (!profileRow) {
+                    return null
+                }
 
-            const { firstName, lastName, gender, job, email, completePhoneNumber, avatar } = row;
-            return {
-                firstName,
-                lastName,
-                gender,
-                job,
-                obscuredEmail: this.securityService.maskEmail(email ?? ''),
-                obscuredPhone: completePhoneNumber ? this.securityService.maskPhone(completePhoneNumber ?? '') : null,
-                avatarId: avatar?.id ?? null,
-            };
+                const { firstName, lastName, gender, job, email, completePhoneNumber, avatarId } = profileRow
 
+                const personalMoleculeCount = await manager.count(MoleculeCollectionItemEntity, {
+                    where: {
+                        type: 'custom',
+                        userId: id
+                    }
+                })
+
+                const chemblMoleculeCount = await manager.count(MoleculeCollectionItemEntity, {
+                    where: {
+                        type: 'chembl',
+                        userId: id
+                    }
+                })
+
+                const collectionCount = await manager.count(MoleculeCollection, {
+                    where: {
+                        userId: id
+                    }
+                })
+
+                const { items: recentHistory } = await this.historyService.getPaginatedHistoryWithManager(
+                    id,
+                    {
+                        limit: 200,
+                        page: 1
+                    },
+                    manager
+                )
+
+                const result: ProfileDTO = {
+                    firstName,
+                    lastName,
+                    gender,
+                    job,
+                    obscuredEmail: this.securityService.maskEmail(email!),
+                    obscuredPhone: completePhoneNumber ? this.securityService.maskPhone(completePhoneNumber) : null,
+                    avatarId,
+                    recentHistory,
+                    personalMoleculeCount,
+                    chemblMoleculeCount,
+                    collectionCount
+                }
+
+                return result
+
+            })
         } catch (e) {
             this.logger.warn('Failed to fetch profile', e as object)
             throw e
         }
+
+
 
     }
 
