@@ -21,6 +21,8 @@ import { TurnstileService } from './services/turnstile.service';
 import { HttpModule } from '@nestjs/axios';
 import { MeilisearchModule } from '../meilisearch/meilisearch.module';
 import { ScopeService } from './services/scope.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { User } from '../user/Models/entities/user.entity';
 
 
 
@@ -30,7 +32,8 @@ import { ScopeService } from './services/scope.service';
     forwardRef(() => UserModule),
     NotificationModule,
     HttpModule,
-    forwardRef(() => MeilisearchModule)
+    forwardRef(() => MeilisearchModule),
+    TypeOrmModule.forFeature([User])
   ],
   providers: [
     JwtToolsService,

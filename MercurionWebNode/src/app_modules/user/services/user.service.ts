@@ -34,16 +34,21 @@ export class UserService {
         this.logger = meiliLogger.forContext(UserService.name)
     }
 
-    public async getUserScopesById(userId: UUID): Promise<string[] | null> | never {
-        const user = await this.userRepository
-            .createQueryBuilder("user")
-            .select(["user.scopes"])
-            .where("user.id = :userId", { userId })
-            .getOne()
-        if (!user) {
+    public async getUserScopesById(userId: UUID): Promise<string[] | null> {
+        try {
+            const user = await this.userRepository
+                .createQueryBuilder("user")
+                .select(["user.scopes"])
+                .where("user.id = :userId", { userId })
+                .getOne()
+            if (!user) {
+                return null
+            }
+            return this.scopeService.decryptScopes(...user.scopes)
+        } catch (e) {
+            this.logger.warn(`Error in getScopesById, userId=${userId}`, e as object)
             return null
         }
-        return this.scopeService.decryptScopes(...user.scopes) 
     }
 
     public async createUser(userProps: Partial<User>): Promise<User> {
