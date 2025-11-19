@@ -15,14 +15,6 @@ export class PasswordEncoderService implements PasswordEncoder {
 
     private readonly pepper: string
 
-    constructor(
-        private readonly configService: ConfigService,
-        meiliLogger: MeiliLoggerService
-    ) {
-        this.logger = meiliLogger.forContext(PasswordEncoderService.name)
-        this.pepper = this.configService.get<string>('App.passwordPepper')!
-    }
-
     private readonly params = {
         type: argon2.argon2id,
         timeCost: 3,
@@ -31,6 +23,14 @@ export class PasswordEncoderService implements PasswordEncoder {
         hashLength: 32,
         version: 0x13,
     } as const
+
+    constructor(
+        private readonly configService: ConfigService,
+        meiliLogger: MeiliLoggerService
+    ) {
+        this.logger = meiliLogger.forContext(PasswordEncoderService.name)
+        this.pepper = this.configService.get<string>('App.passwordPepper')!
+    }
 
     private normalize(pw: string): string {
         const capped = pw.length > 1024 ? pw.slice(0, 1024) : pw

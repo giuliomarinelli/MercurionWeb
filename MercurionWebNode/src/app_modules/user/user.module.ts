@@ -18,7 +18,7 @@ import { MoleculeCollectionModule } from '../molecule-collection/molecule-collec
     ]),
     forwardRef(() => MeilisearchModule),
     forwardRef(() => AuthModule),
-    forwardRef(() => MoleculeCollectionModule),
+    forwardRef(() => MoleculeCollectionModule)
   ],
   providers: [
     UserService

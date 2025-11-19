@@ -31,6 +31,7 @@ import { ChEMBLMoleculeItemEntity } from 'src/app_modules/molecule-collection/Mo
 import { uuidv7 } from '@kripod/uuidv7';
 import { MoleculeCollection } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection.entity';
 import { MoleculeCollectionItemJoin } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection-item-join.entity';
+import { ScopeService } from './scope.service';
 
 
 
@@ -71,6 +72,7 @@ export class AccountService {
         private readonly _r: ResponseService,
         private readonly securityAuditService: SecurityAuditService,
         private readonly dataSource: DataSource,
+        private readonly scopeService: ScopeService,
         meiliLogger: MeiliLoggerService
     ) {
         this.CHANGE_PASSWORD_TOKEN_EXPIRATION_MS = this.configService.get<number>('Jwt.changePasswordToken.expiresInMs') ?? 300_000
@@ -244,7 +246,7 @@ export class AccountService {
             unconfirmedEmail: email,
             firstName,
             lastName,
-            scopes: this.userService.STD_SCOPES,
+            scopes: this.scopeService.getEncryptedStandardScopes(),
             initials,
             job: (job ?? '').trim() ? job : null,
             gender

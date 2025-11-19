@@ -46,7 +46,8 @@ const AppConfig = registerAs(
         host: process.env.APP_HOST ?? 'http://localhost',
         sessionSignatureSecret: process.env.APP_SESSION_SIGNATURE_SECRET!,
         passwordPepper: process.env.APP_PASSWORD_PEPPER!,
-        redisIdHmacSecret: process.env.APP_REDIS_ID_HMAC_SECRET!
+        redisIdHmacSecret: process.env.APP_REDIS_ID_HMAC_SECRET!,
+        AES_secret: process.env.APP_AES_SECRET!
     })
 )
 

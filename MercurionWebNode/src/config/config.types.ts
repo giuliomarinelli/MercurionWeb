@@ -17,6 +17,7 @@ export interface AppConfiguration {
     sessionSignatureSecret: string
     passwordPepper: string
     redisIdHmacSecret: string
+    AES_secret: string
 
 }
 

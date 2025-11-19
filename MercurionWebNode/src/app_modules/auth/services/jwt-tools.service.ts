@@ -128,7 +128,7 @@ export class JwtToolsService {
         }
     }
 
-    // TODO: valutare la necessità di implementazione del claim kid per rotazione secrets
+    // TODO: valutare la necessità di implementazione del claim kid per rotazione secrets => Previsto per Mercurion 1.x
     public async generateToken(userId: UUID, type: TokenType, sessionId?: UUID): Promise<string> {
         const jwtConfig = this.getJwtConfigurationFromTokenType(type)
         const scopes: string[] = await this.userService.getUserScopesById(userId) ?? []

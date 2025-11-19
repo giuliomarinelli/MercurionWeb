@@ -1,7 +1,7 @@
 import { ConfigService } from '@nestjs/config';
 import { Injectable } from '@nestjs/common';
 import { TotpConfiguration } from 'src/config/config.types';
-import { createHmac, randomBytes } from 'crypto';
+import { createCipheriv, createDecipheriv, createHmac, randomBytes } from 'crypto';
 import * as speakeasy from 'speakeasy'
 import { TotpWrapper } from '../Models/interfaces/totp-wrapper.interface';
 import { AppTotpWrapper } from '../Models/interfaces/app-totp-wrapper.interface';
@@ -13,12 +13,43 @@ export class SercurityService {
 
     private readonly totpConf: Omit<TotpConfiguration, 'totpPepper'>
     private readonly totpPepper: string
+    private readonly AES_secret: string
 
     constructor(private readonly configService: ConfigService) {
         const { totpPepper, ...totpConf } = this.configService.get<TotpConfiguration>('Totp')!
         this.totpConf = totpConf
         this.totpPepper = totpPepper
+        this.AES_secret = this.configService.get<string>('App.AES_secret')!
     }
+
+    encrypt_AES256(value: string) {
+        const key = Buffer.from(this.AES_secret, 'base64')
+        const iv = randomBytes(12)
+        const cipher = createCipheriv('aes-256-gcm', key, iv)
+        const encrypted = Buffer.concat([
+            cipher.update(value, 'utf8'),
+            cipher.final(),
+        ])
+        const tag = cipher.getAuthTag()
+        return Buffer.concat([iv, tag, encrypted]).toString('hex')
+    }
+
+    decrypt_AES256(payload: string) {
+        const key = Buffer.from(this.AES_secret, 'base64')
+        const data = Buffer.from(payload, 'hex')
+        const iv = data.subarray(0, 12)
+        const tag = data.subarray(12, 28)
+        const text = data.subarray(28)
+
+        const decipher = createDecipheriv('aes-256-gcm', key, iv)
+        decipher.setAuthTag(tag)
+        const decrypted = Buffer.concat([
+            decipher.update(text),
+            decipher.final()
+        ])
+        return decrypted.toString('utf8')
+    }
+
 
     /**
      * Dal segreto salvato in db viene creato un hmac con un segreto salvato sulle variabili d'ambiente
@@ -144,7 +175,7 @@ export class SercurityService {
     }
 
     public maskEmail(email: string): string {
-        
+
         const [localPart, domain] = email.split('@')
 
         if (!domain) return '*'.repeat(localPart.length) + '@'
@@ -162,6 +193,8 @@ export class SercurityService {
     maskPhone(phone: string): string {
         return phone.slice(0, 3) + '******' + phone.slice(-2)
     }
+
+
 
 
 }

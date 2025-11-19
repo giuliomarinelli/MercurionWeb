@@ -20,6 +20,7 @@ import { GeoIpService } from './services/geo-ip.service';
 import { TurnstileService } from './services/turnstile.service';
 import { HttpModule } from '@nestjs/axios';
 import { MeilisearchModule } from '../meilisearch/meilisearch.module';
+import { ScopeService } from './services/scope.service';
 
 
 
@@ -45,9 +46,18 @@ import { MeilisearchModule } from '../meilisearch/meilisearch.module';
     AuthenticationService,
     IpService,
     GeoIpService,
-    TurnstileService
+    TurnstileService,
+    ScopeService
   ],
-  exports: [SecureCookieService, JwtToolsService, JwtService, SessionService, PasswordEncoderService, SercurityService],
+  exports: [
+    SecureCookieService,
+    JwtToolsService,
+    JwtService,
+    SessionService,
+    PasswordEncoderService,
+    SercurityService,
+    ScopeService
+  ],
   controllers: [AccountController, AuthenticationController],
 })
 export class AuthModule { }
