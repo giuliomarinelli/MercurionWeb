@@ -52,7 +52,7 @@ export class User {
     isVerified: boolean // portato a true dopo attivazione account con link email
 
     @Column({ type: 'text', default: '[]' })
-    scopes: string // JSON.stringify degli scope UUID - permessi dell'utente (senza ruoli inutili e pesanti)
+    scopes: string[] 
 
     @Column({ type: 'text', default: '[]' })
     mfaStrategies: string // JSON.stringify delle strategy UUID - permessi dell'utente (senza ruoli inutili e pesanti)

@@ -1,4 +1,5 @@
 
+import { LogLevel } from "@nestjs/common"
 import { Authentication } from "src/app_modules/auth/Models/interfaces/authentication.interface"
 import { MfaAuthMetadata, TotpMetadata } from "src/app_modules/auth/Models/interfaces/totp-wrapper.interface"
 
@@ -35,3 +36,7 @@ export type Confirm_Login_FirstStepDTO = ConfirmDTO & Omit<Authentication, 'user
 }
 
 export type ConfirmWithTotpMetaDTO = ConfirmDTO & TotpMetadata
+
+export type ConfirmNewLogLevelsDTO = ConfirmDTO & {
+    currentLogLevels: LogLevel[]
+}

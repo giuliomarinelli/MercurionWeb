@@ -9,7 +9,6 @@ import { nullish } from 'src/Models/nullish.type';
 import { MfaStrategy } from '../Models/enums/mfa-strategy.enum';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { IAuth } from 'src/app_modules/auth/Models/interfaces/i-auth.interface';
-import { Scope } from '../Models/enums/scope.enum';
 import { PasswordEncoderService } from 'src/app_modules/auth/services/password-encoder.service';
 import { OldPasswordItem } from '../Models/DTO/old-password-item.interface';
 import { ProfileDTO } from 'src/app_modules/auth/Models/DTO/profile.dtos';
@@ -17,70 +16,39 @@ import { SercurityService } from 'src/app_modules/auth/services/sercurity.servic
 import { CompareResult } from 'src/app_modules/auth/Models/enums/compare-result.enum';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { ScopeService } from 'src/app_modules/auth/services/scope.service';
 
 @Injectable()
 export class UserService {
 
     private readonly logger: MeiliContextLogger
 
-    public get STD_SCOPES(): string {
-        return JSON.stringify(this.standardScopes)
-    }
-
     constructor(
         @InjectRepository(User) private userRepository: Repository<User>,
         private readonly dataSource: DataSource,
         private readonly passwordEncoder: PasswordEncoderService,
         private readonly securityService: SercurityService,
+        private readonly scopeService: ScopeService,
         meiliLogger: MeiliLoggerService
     ) {
         this.logger = meiliLogger.forContext(UserService.name)
     }
 
-    private standardScopes = [
-        Scope.UseInference,
-        Scope.ViewInferenceHistory,
-        Scope.UploadMolecule,
-        Scope.ViewMolecule,
-        Scope.EditOwnProfile,
-        Scope.DeleteOwnAccount,
-        Scope.ManageMFA
-    ]
-
-    public generateScopeArray(rawScopes: string, mode: 'JSON' | 'JWT'): string[] | never {
-
-        switch (mode) {
-            case 'JSON':
-                try {
-                    return JSON.parse(rawScopes) || []
-                } catch {
-                    throw new RpcException('GenerateScopeArrayJson')
-                }
-            case 'JWT':
-                {
-                    if (!/^\s*$|^(\w+( \w+)*)$/.test(rawScopes)) {
-                        throw new RpcException('GenerateScopeArrayJWTMalformed')
-                    }
-                    const scopes = rawScopes.split(/\s/)
-                    return scopes.length > 0 ? scopes : []
-                }
-
-        }
-    }
-
-    public async getUserScopesById(userId: UUID): Promise<string[] | null> | never {
-        const user = await this.userRepository
-            .createQueryBuilder("user")
-            .select(["user.scopes"])
-            .where("user.id = :userId", { userId })
-            .getOne();
-
-        if (!user) {
+    public async getUserScopesById(userId: UUID): Promise<string[] | null> {
+        try {
+            const user = await this.userRepository
+                .createQueryBuilder("user")
+                .select(["user.scopes"])
+                .where("user.id = :userId", { userId })
+                .getOne()
+            if (!user) {
+                return null
+            }
+            return this.scopeService.decryptScopes(...user.scopes)
+        } catch (e) {
+            this.logger.warn(`Error in getScopesById, userId=${userId}`, e as object)
             return null
         }
-
-        return JSON.parse(user.scopes) as string[] ?? []
-
     }
 
     public async createUser(userProps: Partial<User>): Promise<User> {
@@ -94,10 +62,10 @@ export class UserService {
             const u$er = await queryRunner.manager.save(user)
             await queryRunner.commitTransaction()
             return u$er
-        } catch (err) {
-            this.logger.error('Error creating new User: ', err)
+        } catch (e) {
+            this.logger.warn('Error creating new User: ', e as object)
             await queryRunner.rollbackTransaction()
-            throw err
+            throw e
         } finally {
             await queryRunner.release()
         }
@@ -375,7 +343,7 @@ export class UserService {
             };
 
         } catch (e) {
-            this.logger.warn('Failed to fetch profile', e)
+            this.logger.warn('Failed to fetch profile', e as object)
             throw e
         }
 
@@ -404,7 +372,7 @@ export class UserService {
         try {
             await this.userRepository.update({ id: userId }, { passwordHash, updatedAt: Date.now() })
         } catch (e) {
-            this.logger.warn('updatePasswordHashByUserId => Error ', e)
+            this.logger.warn('updatePasswordHashByUserId => Error ', e as object)
             throw new RpcException('PersistenceError')
         }
     }

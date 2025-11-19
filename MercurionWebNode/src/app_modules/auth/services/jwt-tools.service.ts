@@ -14,6 +14,7 @@ import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { SessionService } from './session.service';
+import { Environment } from 'src/config/config';
 
 @Injectable()
 export class JwtToolsService {
@@ -83,10 +84,28 @@ export class JwtToolsService {
             }
         })
 
-        this.privateKey = readFileSync(resolve(__dirname, '../../../config/keys/private.pem'), 'utf8')
-        this.publicKey = readFileSync(resolve(__dirname, '../../../config/keys/public.pem'), 'utf8')
-        this.ws_privateKey = readFileSync(resolve(__dirname, '../../../config/keys/ws_private.pem'), 'utf8')
-        this.ws_publicKey = readFileSync(resolve(__dirname, '../../../config/keys/ws_public.pem'), 'utf8')
+        const env = this.configService.get<Environment>('App.env')!
+        let privateKeyFileName: string
+        let publicKeyFileName: string
+        let ws_privateKeyFileName: string
+        let ws_publicKeyFileName: string
+
+        if (env !== Environment.Production) {
+            privateKeyFileName = `private.${env}.pem`
+            publicKeyFileName = `public.${env}.pem`
+            ws_privateKeyFileName = `ws_private.${env}.pem`
+            ws_publicKeyFileName = `ws_public.${env}.pem`
+        } else {
+            privateKeyFileName = `private.pem`
+            publicKeyFileName = `public.pem`
+            ws_privateKeyFileName = `ws_private.pem`
+            ws_publicKeyFileName = `ws_public.pem`
+        }
+
+        this.privateKey = readFileSync(resolve(__dirname, `../../../config/keys/${privateKeyFileName}`), 'utf8')
+        this.publicKey = readFileSync(resolve(__dirname, `../../../config/keys/${publicKeyFileName}`), 'utf8')
+        this.ws_privateKey = readFileSync(resolve(__dirname, `../../../config/keys/${ws_privateKeyFileName}`), 'utf8')
+        this.ws_publicKey = readFileSync(resolve(__dirname, `../../../config/keys/${ws_publicKeyFileName}`), 'utf8')
 
     }
 
@@ -109,11 +128,15 @@ export class JwtToolsService {
         }
     }
 
-    // TODO: valutare la necessità di implementazione del claim kid per rotazione secrets
+    // TODO: valutare la necessità di implementazione del claim kid per rotazione secrets => Previsto per Mercurion 1.x
     public async generateToken(userId: UUID, type: TokenType, sessionId?: UUID): Promise<string> {
         const jwtConfig = this.getJwtConfigurationFromTokenType(type)
         const scopes: string[] = await this.userService.getUserScopesById(userId) ?? []
-        const scp: string = scopes.map(s => GeneralUtils.getEnumKeyByValue(Scope, s)).join(' ')
+        const scp = scopes
+            .map((s) => GeneralUtils.getEnumKeyByValue(Scope, s))
+            .filter((k): k is string => !!k)
+            .join(' ')
+
 
         // 🔹 Usa RS256 per gli AccessToken, HS512 per gli altri
         let signOptions: JwtSignOptions

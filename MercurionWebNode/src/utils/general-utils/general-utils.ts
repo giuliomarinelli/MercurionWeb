@@ -5,9 +5,10 @@ export class GeneralUtils {
 
     private static readonly uuidV7Re = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
-    public static getEnumValue<T>(enumType: T, value: string | number): T[keyof T] | undefined {
-        return Object.values(enumType as [keyof T]).find(val => val === value) as T[keyof T] | undefined;
+    public static getEnumValue<T extends object>(enumType: T, value: string | number): T[keyof T] | undefined {
+        return Object.values(enumType).find((val) => val === value) as T[keyof T] | undefined
     }
+
 
     public static getEnumValueFromStringKey<T extends object>(enumType: T, key: string): T[keyof T] | undefined {
         // Verifica se la chiave esiste nell'enum
@@ -45,7 +46,7 @@ export class GeneralUtils {
 
     public static normalizeSpaces(input: string): string {
         return input
-            .trim()                  
+            .trim()
             .replace(/\s+/g, ' ')
     }
 

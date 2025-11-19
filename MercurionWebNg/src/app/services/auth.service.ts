@@ -22,7 +22,6 @@ export class AuthService {
   // ====================================================
 
 
-
   private inflight$?: Observable<string>;
 
   private authBC = new BroadcastChannel('mercurion-auth');
@@ -41,14 +40,14 @@ export class AuthService {
   }
 
   getCookieValue(key: string): string | null {
-    const cookies = document.cookie.split('; ');
+    const cookies = document.cookie.split('; ')
     for (const cookie of cookies) {
-      const [name, value] = cookie.split('=');
-      if (name === key) {
-        return decodeURIComponent(value);
+      const [name, value] = cookie.split('=')
+      if (name.trim() === key) {
+        return decodeURIComponent(value)
       }
     }
-    return null;
+    return null
   }
 
 
@@ -298,7 +297,7 @@ export class AuthService {
         await this.sleep(50);
       }
     } finally {
-      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('storage', onStorage)
     }
   }
 }

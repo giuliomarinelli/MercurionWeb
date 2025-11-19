@@ -200,7 +200,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     this.routeSub = this.router.events
       .pipe(filter((e) => e instanceof NavigationEnd))
       .subscribe((e: NavigationEnd) => {
-        this.scrollToTop(240); // chiamata reale
+        this.appContext.scrollToTop(this.scrollHostRef, 240); // chiamata reale
 
         const url = normalize(e.urlAfterRedirects)
         // Toggle layout wrapper based on 404 route
@@ -266,33 +266,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  // Animazione scroll sul container scrollabile
-  private scrollToTop(duration = 240) {
-    // Se il ref non Ã¨ ancora pronto, riprova al prossimo frame
-    const host = this.scrollHostRef?.nativeElement;
-    if (!host) {
-      requestAnimationFrame(() => this.scrollToTop(duration));
-      return;
-    }
 
-    this.zone.runOutsideAngular(() => {
-      const start = host.scrollTop;
-      if (start === 0) return;
-
-      const startTime = performance.now();
-      const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
-
-      const step = (now: number) => {
-        const elapsed = now - startTime;
-        const progress = Math.min(1, elapsed / duration);
-        const y = Math.floor(start * (1 - easeOutCubic(progress)));
-        host.scrollTop = y;
-        if (progress < 1) requestAnimationFrame(step);
-      };
-
-      requestAnimationFrame(step);
-    });
-  }
 
   async ngOnInit() {
 

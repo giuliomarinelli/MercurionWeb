@@ -4,11 +4,19 @@ import { UUID } from 'crypto';
 import { FastifyRequest } from 'fastify';
 import { FingerprintData } from 'src/app_modules/auth/Models/DTO/fingerprints.dtos';
 import { TokenType } from 'src/app_modules/auth/Models/enums/token-type.enum';
+import { Scope } from 'src/app_modules/user/Models/enums/scope.enum';
+
 
 export const IS_PUBLIC_KEY = 'isPublic'
 export const Public = () => SetMetadata(IS_PUBLIC_KEY, true)
 
 export const RequiresTokenType = (type: TokenType) => SetMetadata('tokenType', type)
+
+export const SCOPES_KEY = 'required_scopes';
+
+export const HasScopes = (...scopes: Scope[]) => {
+  return SetMetadata(SCOPES_KEY, scopes)
+}
 
 export const AuthenticatedUserId = createParamDecorator(
     (data: unknown, ctx: ExecutionContext): string => {

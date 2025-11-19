@@ -9,20 +9,22 @@ import { IS_PUBLIC_KEY } from 'src/metadata/metadata';
 import { WebSocketUtils } from 'src/utils/web-socket-utils/web-socket-utils';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { ScopeService } from 'src/app_modules/auth/services/scope.service';
 
 @Injectable()
 export class WsGuard implements CanActivate {
 
   private readonly logger: MeiliContextLogger
-  
+
   constructor(
     private readonly jwtTools: JwtToolsService,
     private readonly sessionService: SessionService,
     private readonly reflector: Reflector,
     private readonly secureCookieService: SecureCookieService,
-    meiliLogger: MeiliLoggerService
+    private readonly scopeService: ScopeService,
+    loggerFactory: MeiliLoggerService
   ) {
-    this.logger = meiliLogger.forContext(WsGuard.name)
+    this.logger = loggerFactory.forContext(WsGuard.name)
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -73,6 +75,8 @@ export class WsGuard implements CanActivate {
 
       const payload = await this.jwtTools.verifyTokenAndGetPayload(token, TokenType.ws_AccessToken)
 
+      await this.scopeService.scopeVerificationLayer(payload.sub, context, this.reflector, payload.scp)
+
       if (sessionId !== payload.sid) {
         this.unauthorized(client)
         return false
@@ -86,7 +90,7 @@ export class WsGuard implements CanActivate {
       // 🔹 Inietta lo userId e gli scope nei dati della socket
       client.data.userId = payload.sub
       client.data.sessionId = payload.sid
-      client.data.scopes = payload.scp?.split(' ') ?? []
+      client.data.scopes = this.scopeService.generateScopesArrayFromJwtClaim(payload.scp)
       this.logger.debug?.(`Socket ${client.id} polling connection state: PRIVATE (Authenticated)`)
       return true
     } catch {
