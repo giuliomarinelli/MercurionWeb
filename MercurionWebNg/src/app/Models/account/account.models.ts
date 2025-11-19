@@ -1,4 +1,5 @@
 import { UserGender } from "../auth/user.models"
+import { HistoryDTO } from "../history.models"
 
 export interface UserData {
   email?: string | null
@@ -14,8 +15,12 @@ export interface ProfileDTO {
     firstName: string
     lastName: string
     gender: UserGender
-    job?: string | null
+    job: string | null
     obscuredEmail: string
     obscuredPhone: string | null
     avatarId: string | null
+    recentHistory: HistoryDTO[]
+    personalMoleculeCount: number
+    chemblMoleculeCount: number
+    collectionCount: number
 }
