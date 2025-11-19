@@ -17,7 +17,7 @@ interface Listener<T = any> {
 
 @Injectable({ providedIn: 'root' })
 export class RealtimeSocketService {
-  private readonly url = environment.wsUrl;
+
   private socket: Socket;
   private mode: SocketMode = 'public';
   private readonly listeners: Listener[] = [];
@@ -39,7 +39,8 @@ export class RealtimeSocketService {
     private readonly auth: AuthService,
     private readonly jwt: JwtHelperService,
   ) {
-    this.socket = io(this.url, {
+
+    this.socket = io(environment.wsUrl, {
       path: '/socket.io',
       transports: ['websocket'],
       withCredentials: true,
