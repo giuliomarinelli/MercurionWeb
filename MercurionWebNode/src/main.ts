@@ -25,13 +25,13 @@ function isValidIp(ip?: string): boolean {
 
 export async function bootstrap() {
 
-  copyBootstrapFiles()
-
   const logLevels = new Set<LogLevel>(['error', 'warn', 'log', 'debug', 'verbose', 'fatal'])
 
   if ((process.env.NODE_ENV ?? 'development') !== 'development') {
     logLevels.delete('debug')
     logLevels.delete('verbose')
+  } else {
+    copyBootstrapFiles()
   }
 
   // 🔒 trustProxy per IP reali dietro CF/NGINX
@@ -241,7 +241,7 @@ export async function bootstrap() {
     appUrl.slice(lastColonIndex + 1) +
     '\x1b[0m'
 
-  logger.log(`MercurionWebNode started in \x1b[36m${env} \x1b[32menvironment`)
+  logger.log(`MercurionWebNode started in \x1b[36m${env!.toUpperCase()} \x1b[32menvironment`)
 
   logger.log(`Fastify listening on ${coloredUrl}`)
 

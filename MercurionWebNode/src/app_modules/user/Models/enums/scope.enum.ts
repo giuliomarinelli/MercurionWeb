@@ -11,7 +11,7 @@ export enum Scope {
     EditMolecule = "71f4f198-f8f3-41f4-928b-1b1297a09bd6",
     DeleteMolecule = "0d49d7a1-e30b-4ac1-8802-5cb0105b6e53",
 
-    // 🧑‍🔬 Esperimenti
+    // 🧑‍🔬 Esperimenti => Al momento non utilizzati
     CreateExperiment = "dc2aa78e-6e37-45b1-a2b3-e1b7992d6e94",
     ViewExperiment = "197c4d93-e79e-4e89-9345-3df7a6f88120",
     DeleteExperiment = "bedbb2dc-b2ef-4c38-bfa9-9c899190ba68",
@@ -25,5 +25,6 @@ export enum Scope {
     ViewUsers = "49a29c59-1ec9-4a30-a832-cc95e4e36496",
     AssignScopes = "9ea4a41c-39a5-4bd4-95f7-88568decccf8",
     DeleteUsers = "b71d1e53-3187-44ab-9331-e2e52b4304f1",
-    SystemSettings = "8bcb6f7f-ccbb-4de2-bb3a-2e1a6d7c19f8"
+    SystemSettings = "8bcb6f7f-ccbb-4de2-bb3a-2e1a6d7c19f8",
+    ChangeLogLevels = '2154bae4-5d31-4b24-ae38-d601d7065072'
 }
