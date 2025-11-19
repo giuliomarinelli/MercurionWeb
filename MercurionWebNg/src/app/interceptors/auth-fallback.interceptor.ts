@@ -12,6 +12,7 @@ import { catchError, tap } from 'rxjs/operators';
 import { UserContextService } from '../services/context/user-context.service';
 import { ToastService } from '../services/toast.service';
 import { Router } from '@angular/router';
+import { HttpErrorRes } from '../Models/error-res.dto';
 
 
 function isFatalUnauthenticatedBody(body: any): boolean {
@@ -65,6 +66,12 @@ export class AuthFallbackInterceptor implements HttpInterceptor {
 
       // 2) caso classico: 401, REST o GraphQL
       catchError((e: any) => {
+        if (e instanceof HttpErrorResponse && e.status === 403) {
+          const body = e.error as HttpErrorRes
+          if (body.message === 'Forbidden::missing permissions') {
+            this.router.navigateByUrl('/403-forbidden')
+          }
+        }
         if (e instanceof HttpErrorResponse && e.status === 401) {
           const body = e.error
           if (isFatalUnauthenticatedBody(body)) {
