@@ -203,9 +203,9 @@ export class AccountController {
     @Get('/profile-registry')
     async getProfileRegistry(
         @AuthenticatedUserId() userId: UUID,
-        @Query('get_recent_history') getRecentHistory = true
+        @Query('get_recent_history') getRecentHistory = 'true'
     ): Promise<ProfileDTO> {
-        const result = await this.userService.getVerifiedUserProfileById(userId, getRecentHistory)
+        const result = await this.userService.getVerifiedUserProfileById(userId, getRecentHistory === 'true')
         if (!result) {
             throw new NotFoundException('UserNotFound')
         }

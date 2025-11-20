@@ -158,7 +158,6 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
             }"
             [innerHTML]="_value()">
           </p>
-
           <div class="flex items-center w-[4.5rem] shrink-0">
             @if (mode() === 'view') {
               <button
