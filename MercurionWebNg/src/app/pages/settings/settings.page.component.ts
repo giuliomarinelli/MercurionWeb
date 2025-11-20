@@ -1,12 +1,14 @@
 import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { CdkAccordionModule } from '@angular/cdk/accordion';
-import { of, Subscription, switchMap } from 'rxjs';
+import { EMPTY, Observable, of, Subscription, switchMap } from 'rxjs';
 import { AccountService } from '../../services/account.service';
-import { MfaStrategy, ProfileDTO, SessionDTO } from '../../Models/account/account.models';
+import { MfaStrategy, ProfileDTO, SessionDTOExt } from '../../Models/account/account.models';
 import { ToastService } from '../../services/toast.service';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { Router } from '@angular/router';
 import { SessionCardComponent } from '../../components/common/session-card/session-card.component';
+import { AuthService } from '../../services/auth.service';
+
 
 @Component({
   selector: 'm-settings.page',
@@ -61,14 +63,22 @@ import { SessionCardComponent } from '../../components/common/session-card/sessi
           @for (item of items; track item; let i = $index) {
             <cdk-accordion-item #accordionItem="cdkAccordionItem">
               <button
-                class="w-full p-4 bg-slate-200 dark:bg-slate-800 border-slate-300 dark:border-slate-500 text-start"
+                class="w-full p-4 bg-slate-200 dark:bg-slate-800 border-slate-300 dark:border-slate-500 text-start flex items-center gap-2"
                 [class.border-b]="i !== items.length - 1"
                 (click)="accordionItem.toggle()"
                 tabindex="0"
                 [attr.id]="'accordion-header-' + i"
                 [attr.aria-expanded]="accordionItem.expanded"
                 [attr.aria-controls]="'accordion-body-' + i">
-                {{ item }}
+                @switch (i) {
+                    @case (3) {
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto">
+                        <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                        <path d="M320 64C373 64 416 107 416 160L416 224L224 224L224 160C224 107 267 64 320 64zM192 160L192 224L128 224L128 576L512 576L512 224L448 224L448 160C448 89.3 390.7 32 320 32C249.3 32 192 89.3 192 160zM160 256L480 256L480 544L160 544L160 256zM336 352L336 336L304 336L304 464L336 464L336 352z"/>
+                      </svg>
+                    }
+                }
+                <span>{{ item }}</span>
               </button>
               @if (accordionItem.expanded) {
                 <div
@@ -148,7 +158,7 @@ import { SessionCardComponent } from '../../components/common/session-card/sessi
                           <h3 class="font-bold text-lg my-3">Sessioni attive</h3>
                           <div class="flex flex-col gap-y-4 mb-3">
                             @for (s of activeSessions; track s.id) {
-                              <app-session-card [session]="s" />
+                              <app-session-card [session]="s" (onLoggingOutFromSession)="doLogoutFromSession($event)" />
                             }
                           </div>
                           <button
@@ -160,11 +170,13 @@ import { SessionCardComponent } from '../../components/common/session-card/sessi
                               hover:bg-light-error/80
                               transition-colors duration-150
                             "
+                            (click)="doLogoutFromAllSessions()"
                           >
                             <svg xmlns="http://www.w3.org/2000/svg"
-                                 viewBox="0 0 512 512"
-                                 class="fill-current h-6 w-auto">
-                              <path d="M497 273L329 441c-9 9-24 9-33 0s-9-24 0-33l139-139H168c-13 0-24-11-24-24s11-24 24-24h267L296 104c-9-9-9-24 0-33s24-9 33 0l168 168c9 9 9 24 0 33z"/>
+                                 viewBox="0 0 640 640"
+                                 class="fill-current h-6 w-6">
+                              <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                              <path d="M240.1 128L256.1 128L256.1 96L64.1 96L64.1 544L256.1 544L256.1 512L96.1 512L96.1 128L240.1 128zM571.4 331.3L582.7 320L571.4 308.7L427.4 164.7L416.1 153.4L393.5 176L404.8 187.3L521.5 304L224.1 304L224.1 336L521.5 336L404.8 452.7L393.5 464L416.1 486.6L427.4 475.3L571.4 331.3z" />
                             </svg>
                             <span>Esci da tutte le sessioni</span>
                           </button>
@@ -196,7 +208,9 @@ export class SettingsPageComponent implements OnInit, OnDestroy {
   private readonly accountService = inject(AccountService)
   private readonly toast = inject(ToastService)
   private readonly router = inject(Router)
+  private readonly authService = inject(AuthService)
 
+  pipeStarter$: Observable<null> = of(null)
 
   profileFetchError = signal<boolean>(false)
   loading = signal<boolean>(true)
@@ -205,11 +219,13 @@ export class SettingsPageComponent implements OnInit, OnDestroy {
   profile!: ProfileDTO
   isEnabledMfa!: boolean
   enabledMfaStrategies!: MfaStrategy[]
-  activeSessions!: SessionDTO[]
+  activeSessions!: SessionDTOExt[]
 
   items = ['Generali', 'Anagrafica', 'Contatti', 'Sicurezza', '...']
 
   private fetchSub?: Subscription
+  private sLoguotSub?: Subscription
+  private allLoguotSub?: Subscription
 
   ngOnInit(): void {
     this.fetchSub = this.accountService.isMfaEnabled().pipe(
@@ -226,7 +242,10 @@ export class SettingsPageComponent implements OnInit, OnDestroy {
         return this.accountService.getActiveSessions()
       }),
       switchMap((s) => {
-        this.activeSessions = s
+        this.activeSessions = s.map((s) => ({
+          ...s,
+          triggerDisappear: signal<boolean>(false)
+        }))
         return this.accountService.getProfileRegistry(false)
       })
     ).subscribe({
@@ -244,6 +263,51 @@ export class SettingsPageComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.fetchSub?.unsubscribe()
+    this.sLoguotSub?.unsubscribe()
+    this.allLoguotSub?.unsubscribe()
+  }
+
+  doLogoutFromSession(ssid: string): void {
+    const onError = () => queueMicrotask(() => this.toast.trigger(`Si è verificato un errore. La sessione non è stata eliminata. Contatta il supporto.`, 'error', 3000))
+    this.sLoguotSub = this.pipeStarter$.pipe(
+      switchMap(() => {
+        const s = this.activeSessions.find((s) => s.id === ssid)
+        if (!s) {
+          onError()
+          return EMPTY
+        }
+        return this.authService.logoutFromSession(ssid, s.current)
+      })
+    ).subscribe({
+      next: () => {
+        const s = this.activeSessions.find((s) => s.id === ssid)
+        if (!s) {
+          onError()
+          return
+        }
+        if (s.current) {
+          queueMicrotask(() => this.toast.trigger('Logout dalla sessione corrente effettuato con successo.', 'success', 3000))
+        }
+        queueMicrotask(() => {
+          s.triggerDisappear.set(true)
+          setTimeout(() => {
+            const i = this.activeSessions.findIndex((s) => s.id === ssid)
+            if (i !== -1) {
+              this.activeSessions.splice(i, 1)
+            }
+          }, 350)
+        })
+      },
+      error: () => onError()
+    })
+  }
+
+  doLogoutFromAllSessions(): void {
+    const onError = () => queueMicrotask(() => this.toast.trigger(`Si è verificato un errore. Le sessioni non sono state eliminate. Contatta il supporto.`, 'error', 3000))
+    this.allLoguotSub = this.authService.logoutFromAllSessions().subscribe({
+      next: () => queueMicrotask(() => this.toast.trigger('Logout da tutte le sessioni effetttuato con successo.', 'success', 3000)),
+      error: () => onError()
+    })
   }
 
 }

@@ -6,11 +6,12 @@ import { HttpClient } from '@angular/common/http';
 import { ConfirmWithTotpMetaDTO } from '../Models/confirm.models';
 import { JwtHelperService } from './jwt-helper.service';
 import { firstValueFrom } from 'rxjs';
-import { EmailDTO, Login_FirstStepWrapper } from '../Models/auth/login.models';
+import { EmailDTO, Login_FirstStepWrapper, SignedSessionIdDTO } from '../Models/auth/login.models';
 import { TotpBodyDTO } from '../Models/auth/totp-body.dto';
 import { ISessionDeviceInfo } from '../Models/auth/fingerprint.models';
 import { UserRegisterDTO } from '../Models/auth/user.models';
 import { TypeGuardsService } from './type-guards.service';
+import { UserContextService } from './context/user-context.service';
 
 export type TokenType = 'access_token' | 'ws_accessToken'
 
@@ -23,6 +24,7 @@ export class AuthService {
   private readonly jwtHelper = inject(JwtHelperService)
   private readonly http = inject(HttpClient)
   private readonly typeGuards = inject(TypeGuardsService)
+  private readonly userContext = inject(UserContextService)
   // ====================================================
 
   private readonly AT_NAMESPACE = ''
@@ -213,7 +215,7 @@ export class AuthService {
     }
     return this.http.delete<void>('/api/authentication/logout', {
       withCredentials: true
-    });
+    })
   }
 
   /* ───────── WS refresh HTTP (single-flight per tab) ───────── */
@@ -382,6 +384,25 @@ export class AuthService {
     if (this.typeGuards.isNotNullish(key) && !!localStorage.getItem(key)) {
       localStorage.removeItem(key)
     }
+  }
+
+  logoutFromSession(ssid: string, current = false): Observable<ConfirmDTO> {
+    const body: SignedSessionIdDTO = {
+      signedSessionId: ssid
+    }
+    return this.http.patch<ConfirmDTO>('/api/authentication/logout-from-session', body, {
+      withCredentials: true
+    }).pipe(tap(() => {
+      if (current) {
+        this.userContext.logout()
+      }
+    }))
+  }
+
+  logoutFromAllSessions(): Observable<ConfirmDTO> {
+    return this.http.patch<ConfirmDTO>('/api/authentication/logout-from-all-sessions', null, {
+      withCredentials: true
+    }).pipe(tap(() => this.userContext.logout()))
   }
 
 }

@@ -12,6 +12,7 @@ import { GqlContextType } from '@nestjs/graphql';
 import { InternalErrorRes } from 'src/Models/error-res.dto';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { randomBytes } from 'node:crypto';
 
 
 @Catch()
@@ -59,13 +60,15 @@ export class HttpExceptionFilter implements ExceptionFilter {
                 error: base.error ?? HttpStatusMap.getDescriptionFromHttpStatusCode(status),
                 message: 'Internal server error'
             }
-            : base;
+            : base
+
+        const reqIdSuffix = randomBytes(16).toString('hex')
 
         res.code(status).send({
             ...safeBase,
             timestamp: new Date().toISOString(),
             path: req.url,
-            requestId: req.id
+            requestId: `${req.id}-${reqIdSuffix}`
         })
     }
 

@@ -218,11 +218,10 @@ export class AuthenticationController {
         try {
             await this.authService.performLogout(sessionId, deviceId)
         } catch {
-            // do nothing
+            // pass
         }
         this.secureCookieService.clearCookie(reply, '__node_session_id')
         reply.clearCookie('__logged_in')
-        // this.logger.debug('Logged out. Response with status 204 - No Content')
     }
 
 
@@ -235,7 +234,6 @@ export class AuthenticationController {
         return this._r.ok('Action performed successfully')
     }
 
-
     @Patch('/logout-from-all-sessions')
     public async logoutFromAllSessions(
         @AuthenticatedUserId() userId: UUID
@@ -243,7 +241,6 @@ export class AuthenticationController {
         await this.sessionService.destroyAllSessionsAndRevokeAllTokensByUserId(userId)
         return this._r.ok('Action performed successfully')
     }
-
 
     @Get('/ws-refresh')
     public async refreshWs_accessToken(

@@ -32,7 +32,8 @@ export const routes: Routes = [
   },
   {
     path: 'molecules/detail/:molId',
-    loadComponent: () => import('./pages/molecule-detail/molecule-detail.page.component').then(m => m.MoleculeDetailPageComponent)
+    loadComponent: () => import('./pages/molecule-detail/molecule-detail.page.component').then(m => m.MoleculeDetailPageComponent),
+    canActivate: [AuthGuard]
   },
   // {
   //   path: 'notebook/:notebookId/edit',
@@ -64,7 +65,8 @@ export const routes: Routes = [
   },
   {
     path: 'molecules/collections/detail/:colId',
-    loadComponent: () => import('./pages/molecule-collection-detail/molecule-collection-detail.page.component').then(m => m.MoleculeCollectionDetailPageComponent)
+    loadComponent: () => import('./pages/molecule-collection-detail/molecule-collection-detail.page.component').then(m => m.MoleculeCollectionDetailPageComponent),
+    canActivate: [AuthGuard]
   },
   {
     path: 'register',
@@ -76,7 +78,8 @@ export const routes: Routes = [
   },
   {
     path: 'molecules/all-my-molecules',
-    loadComponent: () => import('./pages/all-my-molecules/all-my-molecules.page.component').then(m => m.AllMyMoleculesPageComponent)
+    loadComponent: () => import('./pages/all-my-molecules/all-my-molecules.page.component').then(m => m.AllMyMoleculesPageComponent),
+    canActivate: [AuthGuard]
   },
   {
     path: '404-not-found',
@@ -88,7 +91,8 @@ export const routes: Routes = [
   },
   {
     path: 'settings',
-    loadComponent: () => import('./pages/settings/settings.page.component').then(m => m.SettingsPageComponent)
+    loadComponent: () => import('./pages/settings/settings.page.component').then(m => m.SettingsPageComponent),
+    canActivate: [AuthGuard]
   },
   {
     path: '**',

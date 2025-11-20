@@ -32,7 +32,7 @@ export class MercurionAIService implements OnModuleInit {
     }
 
     onModuleInit(): void {
-        this.logger.log(`MercurionWebNode connected via NATS to MercurionTox21,\n=> namespace=\x1b[36m${this.namespace}`)
+        this.logger.log(`MercurionWebNode connected via NATS to MercurionTox21,\n  => NATS namespace = \x1b[36m${this.namespace}`)
     }
 
     private isValidInferencePayload(res: MercurionInferResDTO): boolean {

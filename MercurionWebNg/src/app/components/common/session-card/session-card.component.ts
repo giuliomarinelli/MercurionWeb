@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { SessionDTO } from '../../../Models/account/account.models';
+import { SessionDTOExt } from '../../../Models/account/account.models';
 import { DatePipe } from '@angular/common';
 
 @Component({
@@ -12,11 +12,14 @@ import { DatePipe } from '@angular/common';
         w-full rounded-md border p-4 mb-3
         bg-slate-100 dark:bg-slate-800
         border-slate-300 dark:border-slate-600
-        transition-all
+        transition-all max-h-fit duration-150 ease-linear
+        opacity-100
       "
       [class.bg-emerald-100]="session.current"
       [class.dark:bg-emerald-900]="session.current"
       [class.border-emerald-400]="session.current"
+      [class.max-h-0]="session.triggerDisappear()"
+      [class.opacity-0]="session.triggerDisappear()"
     >
 
       <!-- header -->
@@ -100,7 +103,7 @@ import { DatePipe } from '@angular/common';
         >
           <svg xmlns="http://www.w3.org/2000/svg"
                viewBox="0 0 512 512"
-               class="fill-current h-4 w-auto">
+               class="fill-current h-4 w-4 relative -left-1">
             <path d="M497 273L329 441c-9 9-24 9-33 0s-9-24 0-33l139-139H168c-13 0-24-11-24-24s11-24 24-24h267L296 104c-9-9-9-24 0-33s24-9 33 0l168 168c9 9 9 24 0 33z"/>
           </svg>
           <span>Esci da questa sessione</span>
@@ -115,7 +118,7 @@ import { DatePipe } from '@angular/common';
 export class SessionCardComponent {
 
   @Input({ required: true })
-  session!: SessionDTO
+  session!: SessionDTOExt
 
   @Output()
   onLoggingOutFromSession = new EventEmitter<string>()

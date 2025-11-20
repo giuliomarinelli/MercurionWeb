@@ -1,3 +1,4 @@
+import { WritableSignal } from "@angular/core"
 import { UserGender } from "../auth/user.models"
 import { HistoryDTO } from "../history.models"
 
@@ -36,4 +37,8 @@ export interface SessionDTO {
     current: boolean
     location: string
     browser: string
+}
+
+export interface SessionDTOExt extends SessionDTO {
+  triggerDisappear: WritableSignal<boolean>
 }

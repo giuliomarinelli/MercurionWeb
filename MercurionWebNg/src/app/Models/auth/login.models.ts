@@ -16,3 +16,7 @@ export type Login_FirstStepWrapper = Login_FirstStepDTO & {
   turnstileToken: string
 }
 
+export interface SignedSessionIdDTO {
+    signedSessionId: string
+}
+
