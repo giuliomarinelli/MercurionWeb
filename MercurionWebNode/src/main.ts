@@ -61,7 +61,7 @@ export async function bootstrap() {
     options: { servers: [natsUrl] },
   })
 
-  app.useGlobalFilters(new HttpExceptionFilter())
+  app.useGlobalFilters(new HttpExceptionFilter(loggerFactory))
   app.setGlobalPrefix('api')
 
   await app.register(helmet, {
