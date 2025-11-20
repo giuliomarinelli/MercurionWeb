@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { ChangePasswordDTO, MfaStrategy, ProfileDTO, UserData } from '../Models/account/account.models';
+import { ChangePasswordDTO, MfaStrategy, ProfileDTO, SessionDTO, UserData } from '../Models/account/account.models';
 import { Observable, of, tap } from 'rxjs';
 import { ConfirmDTO } from '../Models/confirm.models';
 import { ConfirmWithObsContDTO } from '../Models/confirm.models';
@@ -99,6 +99,12 @@ export class AccountService {
 
   public getEnabledMfaStrategies(): Observable<MfaStrategy[]> {
     return this.http.get<MfaStrategy[]>('/api/account/mfa-active-strategies', {
+      withCredentials: true
+    })
+  }
+
+  public getActiveSessions(): Observable<SessionDTO[]> {
+    return this.http.get<SessionDTO[]>('/api/account/active-sessions', {
       withCredentials: true
     })
   }

@@ -2,12 +2,51 @@ import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { CdkAccordionModule } from '@angular/cdk/accordion';
 import { of, Subscription, switchMap } from 'rxjs';
 import { AccountService } from '../../services/account.service';
-import { MfaStrategy, ProfileDTO } from '../../Models/account/account.models';
+import { MfaStrategy, ProfileDTO, SessionDTO } from '../../Models/account/account.models';
 import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'm-settings.page',
   imports: [CdkAccordionModule],
+  styles: `
+
+    .accordion-body {
+      overflow: hidden;
+    }
+
+    /* apertura */
+    .accordion-enter {
+      animation: accordion-down 180ms linear;
+    }
+
+    /* chiusura */
+    .accordion-leave {
+      animation: accordion-up 150ms ease-in forwards;
+    }
+
+    @keyframes accordion-down {
+      from {
+        transform: translateY(-4px);
+        max-height: 0;
+      }
+      to {
+        transform: translateY(0);
+        max-height: 999px;
+      }
+    }
+
+    @keyframes accordion-up {
+      from {
+        transform: translateY(0);
+        max-height: 999px;
+      }
+      to {
+        transform: translateY(-4px);
+        max-height: 0;
+      }
+    }
+
+  `,
   template: `
 
     <section class="main-container">
@@ -27,30 +66,30 @@ import { ToastService } from '../../services/toast.service';
               [attr.aria-controls]="'accordion-body-' + i">
               {{ item }}
             </button>
-            @if(accordionItem.expanded) {
+            @if (accordionItem.expanded) {
               <div
-                class="px-4 py-8 bg-slate-100 dark:bg-slate-700"
+                class="accordion-body px-4 bg-slate-100 dark:bg-slate-700"
+                animate.enter="accordion-enter"
+                animate.leave="accordion-leave"
                 role="region"
-                [style.display]="accordionItem.expanded ? '' : 'none'"
                 [attr.id]="'accordion-body-' + i"
                 [attr.aria-labelledby]="'accordion-header-' + i"
               >
-                @switch (i) {
-                  @case (0) {
-                    Lorem ipsum dolor, sit amet, consectetur adipisicing elit. Perferendis excepturi incidunt ipsum
-                deleniti labore, tempore non nam doloribus blanditiis veritatis illo autem iure aliquid ullam
-                rem tenetur deserunt velit culpa?
+                <div class="py-6">
+                  @switch (i) {
+                    @case (0) { <!-- Generali --> }
+                    @case (1) { <!-- Anagrafica --> }
+                    @case (2) { <!-- Contatti --> }
+                    @case (3) { <!-- Sicurezza --> }
+                    @default { ... }
                   }
-                  @default {
-                    none
-                  }
-                }
-
+                </div>
               </div>
             }
           </cdk-accordion-item>
         }
       </cdk-accordion>
+
     </section>
   `
 })
@@ -65,6 +104,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy {
   profile!: ProfileDTO
   isEnabledMfa!: boolean
   enabledMfaStrategies!: MfaStrategy[]
+  activeSessions!: SessionDTO[]
 
   items = ['Generali', 'Anagrafica', 'Contatti', 'Sicurezza', '...']
 
@@ -82,6 +122,10 @@ export class SettingsPageComponent implements OnInit, OnDestroy {
       }),
       switchMap((str) => {
         this.enabledMfaStrategies = str
+        return this.accountService.getActiveSessions()
+      }),
+      switchMap((s) => {
+        this.activeSessions = s
         return this.accountService.getProfileRegistry(false)
       })
     ).subscribe({
