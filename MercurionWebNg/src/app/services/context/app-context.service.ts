@@ -13,12 +13,19 @@ export class AppContextService {
   private _addedScrollTick = signal<number>(0)
   readonly addedScrollTick = this._addedScrollTick.asReadonly()
 
+  private _refetchDashboardaddedTick = signal<number>(0)
+  readonly refetchDashboardAddedTick = this._refetchDashboardaddedTick.asReadonly()
+
   notifyAdded(): void {
     this._addedTick.update(x => x + 1)
   }
 
   triggerScrollToTopGlobally(): void {
     this._addedScrollTick.update(x => x + 1)
+  }
+
+  triggerDashboardRefetch(): void {
+    this._refetchDashboardaddedTick.update(x => x + 1)
   }
 
   scrollToTop(host: ElementRef<HTMLElement>, duration = 240) {

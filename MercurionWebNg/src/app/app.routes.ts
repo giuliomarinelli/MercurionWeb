@@ -19,7 +19,7 @@ export const routes: Routes = [
   },
   {
     path: 'dashboard',
-    loadComponent: () => import('./pages/profile/dashboard.page.component').then(m => m.ProfilePageComponent),
+    loadComponent: () => import('./pages/profile/dashboard.page.component').then(m => m.DashboardPageComponent),
     canActivate: [AuthGuard]
   },
   {

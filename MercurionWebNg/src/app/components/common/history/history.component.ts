@@ -141,6 +141,7 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
       if (this._triggerDelete()) {
         queueMicrotask(() => {
           this._triggerDelete.set(false)
+          this.appContext.triggerDashboardRefetch()
           this.fadeOut.set('fade-out-ani')
         })
         setTimeout(() => {
