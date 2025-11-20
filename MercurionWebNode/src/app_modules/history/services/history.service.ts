@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, EntityManager, Repository } from 'typeorm';
 import { History } from '../Models/entities/history.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate';
@@ -32,8 +32,23 @@ export class HistoryService {
         userId: UUID,
         options: IPaginationOptions,
     ): Promise<Pagination<HistoryDTO>> {
+        try {
+            return this.dataSource.manager.transaction(async (manager) => {
+                return this.getPaginatedHistoryWithManager(userId, options, manager)
+            })
+        } catch (e) {
+            this.logger.warn(`Error in History fetch, userId=${userId}`, e as object)
+            throw e
+        }
+    }
+
+    async getPaginatedHistoryWithManager(
+        userId: UUID,
+        options: IPaginationOptions,
+        manager: EntityManager
+    ): Promise<Pagination<HistoryDTO>> {
         // Subquery: per ciascuna (itemEntity,itemId) scelgo l'id della riga più recente
-        const latestIdsQb = this.historyRepo.createQueryBuilder('x')
+        const latestIdsQb = manager.createQueryBuilder(History, 'x')
             .select('x.id', 'id')
             .where('x.userId = :userId', { userId })
             .distinctOn(['x.itemEntity', 'x.itemId'])
@@ -44,7 +59,7 @@ export class HistoryService {
             .addOrderBy('x.id', 'DESC'); // tie-breaker
 
         // Query principale: mantengo alias 'h' (entità History) -> paginate può mappare
-        const qb = this.historyRepo.createQueryBuilder('h')
+        const qb = manager.createQueryBuilder(History, 'h')
             .innerJoin(
                 '(' + latestIdsQb.getQuery() + ')',
                 'dh',
@@ -55,79 +70,75 @@ export class HistoryService {
             .orderBy('h.touchedAt', 'DESC')
             .addOrderBy('h.id', 'DESC');
 
-        const page = await paginate<History>(qb, options);
+        const page = await paginate<History>(qb, options)
 
         // Raccolgo gli ID per tipo presenti in questa pagina (deduplicati)
-        const idsByType = new Map<HistoryItemEntityEnum, Set<UUID>>();
+        const idsByType = new Map<HistoryItemEntityEnum, Set<UUID>>()
         for (const { itemEntity, itemId } of page.items) {
-            if (!idsByType.has(itemEntity)) idsByType.set(itemEntity, new Set<UUID>());
-            idsByType.get(itemEntity)!.add(itemId);
+            if (!idsByType.has(itemEntity)) idsByType.set(itemEntity, new Set<UUID>())
+            idsByType.get(itemEntity)!.add(itemId)
         }
 
         // Risoluzione nomi: `${entity}:${id}` -> name
-        const nameByKey = new Map<string, string>();
+        const nameByKey = new Map<string, string>()
 
         // ---- MoleculeCollection
         {
             const itemIds = [...(idsByType.get(HistoryItemEntityEnum.MoleculeCollection) ?? [])];
             if (itemIds.length) {
-                const rows = await this.dataSource.getRepository(MoleculeCollection)
-                    .createQueryBuilder('c')
+                const rows = await manager.createQueryBuilder(MoleculeCollection, 'c')
                     .select(['c.id', 'c.name'])
                     .where('c.userId = :userId', { userId })
                     .andWhere('c.id IN (:...itemIds)', { itemIds })
-                    .getMany();
+                    .getMany()
 
                 for (const r of rows) {
-                    nameByKey.set(`${HistoryItemEntityEnum.MoleculeCollection}:${r.id}`, r.name ?? 'N/A');
+                    nameByKey.set(`${HistoryItemEntityEnum.MoleculeCollection}:${r.id}`, r.name ?? 'N/A')
                 }
             }
         }
 
         // ---- MoleculeCollectionItem
         {
-            const itemIds = [...(idsByType.get(HistoryItemEntityEnum.MoleculeCollectionItem) ?? [])];
+            const itemIds = [...(idsByType.get(HistoryItemEntityEnum.MoleculeCollectionItem) ?? [])]
             if (itemIds.length) {
-                const rows = await this.dataSource.getRepository(MoleculeCollectionItemEntity)
-                    .createQueryBuilder('c')
+                const rows = await manager.createQueryBuilder(MoleculeCollectionItemEntity, 'c')
                     .select(['c.id', 'c.name', 'c.chemblMolregno', 'c.type'])
                     .where('c.userId = :userId', { userId })
                     .andWhere('c.id IN (:...itemIds)', { itemIds })
-                    .getMany();
+                    .getMany()
 
                 await Promise.all(rows.map(async (r) => {
                     if (TypeGuards.isChemblMolecule(r)) {
-                        const detail = await this.moleculeService.getDetailByMolregno(String(r.chemblMolregno));
+                        const detail = await this.moleculeService.getDetailByMolregno(String(r.chemblMolregno))
                         if (!detail) {
                             return
                         }
                         const { preferredNameIt, preferredName } = detail
                         nameByKey.set(
                             `${HistoryItemEntityEnum.MoleculeCollectionItem}:${r.id}`,
-                            preferredNameIt ?? preferredName ?? `Lead ${r.chemblMolregno}`,
-                        );
+                            preferredNameIt ?? preferredName ?? `Lead ${r.chemblMolregno}`
+                        )
                     } else if (TypeGuards.isCustomMolecule(r)) {
                         nameByKey.set(
                             `${HistoryItemEntityEnum.MoleculeCollectionItem}:${r.id}`,
                             r.name ?? 'Lead sconosciuto',
-                        );
-                    } else {
-                        nameByKey.set(`${HistoryItemEntityEnum.MoleculeCollectionItem}:${r.id}`, 'N/A');
-                    }
-                }));
+                        )
+                    } 
+                }))
             }
         }
 
         // Costruisco i DTO nell’ordine della pagina
         const items: HistoryDTO[] = page.items.map((it) => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unused-vars
-            const { userId: _omit, ...rest } = it as any;
-            const key = `${it.itemEntity}:${it.itemId}`;
-            const itemName = nameByKey.get(key) ?? 'N/A';
-            return { ...rest, itemName } as HistoryDTO;
-        });
+            const { userId: _omit, ...rest } = it
+            const key = `${it.itemEntity}:${it.itemId}`
+            const itemName = nameByKey.get(key) ?? 'N/A'
+            return { ...rest, itemName } as HistoryDTO
+        }).filter(h => h.itemName !== 'N/A')
 
-        return { ...page, items };
+        return { ...page, items }
     }
 
     async deleteHistory(userId: UUID): Promise<boolean> {

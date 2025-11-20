@@ -3,6 +3,8 @@ import { MeiliSearch } from 'meilisearch';
 import { LogEntry } from '../Models/DTO/log-entry.interface';
 import { uuidv7 } from '@kripod/uuidv7';
 import { MeiliContextLogger } from '../Models/interfaces/meili-context-logger.interface';
+import { ConfigService } from '@nestjs/config';
+import { Environment } from 'src/config/config';
 
 
 @Injectable()
@@ -12,7 +14,8 @@ export class MeiliLoggerService extends Logger implements LoggerService, OnModul
 
     constructor(
         @Inject('MEILISEARCH_CLIENT')
-        private readonly meiliClient: MeiliSearch
+        private readonly meiliClient: MeiliSearch,
+        private readonly configService: ConfigService
     ) {
         super()
     }
@@ -22,10 +25,12 @@ export class MeiliLoggerService extends Logger implements LoggerService, OnModul
     }
 
     private async ensureIndexExists(): Promise<void> {
+        const env = this.configService.get<Environment>('App.env')!
+        const idxName = `mercurion_web_node_logs_${env}`
         try {
-            await this.meiliClient.getIndex('logs')
+            await this.meiliClient.getIndex(idxName)
         } catch {
-            await this.meiliClient.createIndex('logs', { primaryKey: 'id' })
+            await this.meiliClient.createIndex(idxName, { primaryKey: 'id' })
         }
     }
 

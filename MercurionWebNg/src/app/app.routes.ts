@@ -19,7 +19,7 @@ export const routes: Routes = [
   },
   {
     path: 'dashboard',
-    loadComponent: () => import('./pages/profile/dashboard.page.component').then(m => m.ProfilePageComponent),
+    loadComponent: () => import('./pages/profile/dashboard.page.component').then(m => m.DashboardPageComponent),
     canActivate: [AuthGuard]
   },
   {
@@ -81,6 +81,10 @@ export const routes: Routes = [
   {
     path: '404-not-found',
     loadComponent: () => import('./pages/not-found-404-landing/not-found-404-landing.page.component').then(m => m.NotFound404LandingPageComponent)
+  },
+  {
+    path: '403-forbidden',
+    loadComponent: () => import('./pages/forbidden-403-landing/forbidden-403-landing.page.component').then(m => m.Forbidden403LandingPageComponent)
   },
   {
     path: '**',

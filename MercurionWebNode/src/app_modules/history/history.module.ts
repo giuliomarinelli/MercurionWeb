@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { HistoryService } from './services/history.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from '../user/user.module';
@@ -9,11 +9,11 @@ import { HistoryController } from './controllers/history.controller';
 @Module({
   imports: [
     TypeOrmModule.forFeature([History]),
-    UserModule,
-    MeilisearchModule
+    forwardRef(() => UserModule),
+    forwardRef(() => MeilisearchModule)
   ],
   providers: [HistoryService],
-  exports: [TypeOrmModule],
+  exports: [TypeOrmModule, HistoryService],
   controllers: [HistoryController]
 })
-export class HistoryModule {}
+export class HistoryModule { }

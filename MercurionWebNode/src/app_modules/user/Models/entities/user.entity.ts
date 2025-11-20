@@ -51,7 +51,7 @@ export class User {
     @Column({ type: 'boolean', default: false })
     isVerified: boolean // portato a true dopo attivazione account con link email
 
-    @Column({ type: 'text', default: '[]' })
+    @Column({ type: 'jsonb', default: '[]' })
     scopes: string[] 
 
     @Column({ type: 'text', default: '[]' })
@@ -77,7 +77,10 @@ export class User {
 
     @OneToOne(() => DocumentEntity, { cascade: true, nullable: true })
     @JoinColumn({ name: 'avatar_id' })
-    avatar: DocumentEntity | null;
+    avatar: DocumentEntity | null
+
+    @Column()
+    avatarId: UUID | null
 
     @BeforeInsert()
     private generateId() {

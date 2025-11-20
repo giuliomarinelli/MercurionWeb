@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, computed, ElementRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { PublicPipe } from '../../pipes/public.pipe';
 import { FormBuilder, ReactiveFormsModule, Validators, FormGroup, FormControl, NonNullableFormBuilder } from '@angular/forms';
 import { ThemeManagerService } from '../../services/context/theme-manager.service';
@@ -13,6 +13,7 @@ import { UserGenderControl, UserRegistrationFormControls, UserRegistrationFormVa
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { Helpers } from '../../helpers';
 import { ToastService } from '../../services/toast.service';
+import { AppContextService } from '../../services/context/app-context.service';
 
 
 @Component({
@@ -165,6 +166,7 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService)
   protected readonly userContext = inject(UserContextService)
   private readonly toast = inject(ToastService)
+  private readonly appContext = inject(AppContextService)
   // ====================================================
 
   private regSub?: Subscription
@@ -234,7 +236,7 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
         control.markAsTouched();
         control.updateValueAndValidity({ onlySelf: true });
       }
-    });
+    })
   }
 
   onSubmit(): void {
@@ -247,11 +249,14 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
         next: res => {
           const { obscuredEmail } = res
           this.obscuredEmail.set(obscuredEmail!)
-          this.loading.set(false)
-          this.step.set(2)
+          queueMicrotask(() => {
+            this.loading.set(false)
+            this.step.set(2)
+            this.appContext.triggerScrollToTopGlobally()
+          })
         },
-        error: (e) => {
-          this.toast.trigger('Si è verificato un errore nel server.', 'error', 3000)
+        error: () => {
+          this.toast.trigger('Si è verificato un errore lato server.', 'error', 3000)
           this.loading.set(false)
         }
       })
