@@ -27,8 +27,6 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     catch(e: unknown, host: ArgumentsHost) {
 
-        this.logger.warn('Error', e as object)
-
         const ctxType = host.getType<GqlContextType>()
 
         if (ctxType === 'graphql' || ctxType === 'ws') return
@@ -40,11 +38,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
         let base: InternalErrorRes
 
         if (e instanceof RpcException) {
-            base = this.handleRpcException(e);
+            base = this.handleRpcException(e)
         } else if (e instanceof HttpException) {
-            base = this.handleHttpException(e);
+            base = this.handleHttpException(e)
         } else {
-            // qualunque altra eccezione: 500 generico
+            this.logger.warn('Unhandled Internal Error', e as object)
             base = {
                 statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
                 error: HttpStatusMap.getDescriptionFromHttpStatusCode(HttpStatus.INTERNAL_SERVER_ERROR,),

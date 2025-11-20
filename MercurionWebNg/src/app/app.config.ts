@@ -8,7 +8,7 @@ import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@a
 import { APP_BASE_HREF } from '@angular/common';
 import { provideAnimations } from '@angular/platform-browser/animations'
 import { NgxSpinnerModule } from 'ngx-spinner';
-import { AuthInterceptor } from './interceptors/auth-interceptor.interceptor';
+import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { AuthFallbackInterceptor } from './interceptors/auth-fallback.interceptor';
 
 

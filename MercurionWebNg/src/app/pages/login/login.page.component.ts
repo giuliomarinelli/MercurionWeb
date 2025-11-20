@@ -410,7 +410,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
         next: (res: Confirm_Login_FirstStepDTO) => {
           if (res.needsMfa) {
             const { statusCode, timestamp, message, ...loginFirstStepData } = res
-            sessionStorage?.setItem('preAuthorizationData', btoa(JSON.stringify(loginFirstStepData)))
+            sessionStorage?.setItem('preAuthorizationData', btoa(JSON.stringify(loginFirstStepData ?? '')))
             if (res.suspiciousAttempt) {
               this.router.navigate([`/login/mfa/EMAIL_OTP`], {
                 queryParams: {

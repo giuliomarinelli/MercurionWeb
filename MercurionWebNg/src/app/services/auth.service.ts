@@ -10,6 +10,9 @@ import { EmailDTO, Login_FirstStepWrapper } from '../Models/auth/login.models';
 import { TotpBodyDTO } from '../Models/auth/totp-body.dto';
 import { ISessionDeviceInfo } from '../Models/auth/fingerprint.models';
 import { UserRegisterDTO } from '../Models/auth/user.models';
+import { TypeGuardsService } from './type-guards.service';
+
+export type TokenType = 'access_token' | 'ws_accessToken'
 
 @Injectable({
   providedIn: 'root'
@@ -19,7 +22,11 @@ export class AuthService {
   // ======================= DEPS =======================
   private readonly jwtHelper = inject(JwtHelperService)
   private readonly http = inject(HttpClient)
+  private readonly typeGuards = inject(TypeGuardsService)
   // ====================================================
+
+  private readonly AT_NAMESPACE = ''
+  private readonly WS_AT_NAMESPACE = 'ws_'
 
 
   private inflight$?: Observable<string>;
@@ -150,7 +157,14 @@ export class AuthService {
         'X-Mock-IP': '91.122.12.8',
         'X-Challenge-Token': turnstileToken
       }
-    });
+    }).pipe(tap((res) => {
+      if (this.typeGuards.isNotNullish(res.accessToken)) {
+        const scp = this.getUserScopesFromClaims(res.accessToken)
+        if (scp && scp.length) {
+          this.setCachedScopes(scp)
+        }
+      }
+    }))
   }
 
   public login_secondStep(strategy: 'EMAIL_OTP' | 'SMS_OTP', preAuthorizationToken: string, trustVerify: boolean = false): Observable<ConfirmWithTotpMetaDTO> {
@@ -178,7 +192,14 @@ export class AuthService {
         'Authorization': `Bearer ${preauthorizationToken}`,
         'X-Mock-IP': '91.122.12.8'
       }
-    });
+    }).pipe(tap((res) => {
+      if (this.typeGuards.isNotNullish(res.accessToken)) {
+        const scp = this.getUserScopesFromClaims(res.accessToken)
+        if (scp && scp.length) {
+          this.setCachedScopes(scp)
+        }
+      }
+    }))
   }
 
   public logout(): Observable<void> {
@@ -300,4 +321,67 @@ export class AuthService {
       window.removeEventListener('storage', onStorage)
     }
   }
+
+  getUserScopesFromClaims(token: string): string[] {
+    if (!token) {
+      return []
+    }
+    const scp = this.jwtHelper.getClaim<string>(token, 'scp')
+    if (!scp) {
+      return []
+    }
+    return scp.split(/\s+/)
+  }
+
+  private generateScopesStorageKey(context: TokenType): string | null {
+    switch (context) {
+      case 'access_token':
+        return this.AT_NAMESPACE + 'scp'
+      case 'ws_accessToken':
+        return this.WS_AT_NAMESPACE + 'scp'
+      default:
+        return null
+    }
+  }
+
+  setCachedScopes(scp: string[] | null, context: TokenType = 'access_token'): void {
+
+    const key = this.generateScopesStorageKey(context)
+
+    if (!this.typeGuards.isNotNullish(key)) return
+
+    if (scp === null) {
+      this.clearCachedScopes(context)
+      return
+    }
+
+    const encVal = btoa(JSON.stringify(scp))
+    localStorage.setItem(key, encVal)
+  }
+
+  getCachedScopes(context: TokenType = 'access_token'): string[] | null {
+
+    const key = this.generateScopesStorageKey(context)
+
+    if (!this.typeGuards.isNotNullish(key)) return null
+
+    const raw = localStorage.getItem(key)
+    if (!raw) return null
+
+    try {
+      const decoded = atob(raw)
+      const parsed = JSON.parse(decoded) as string[]
+      return parsed
+    } catch {
+      return null
+    }
+  }
+
+  clearCachedScopes(context: TokenType): void {
+    const key = this.generateScopesStorageKey(context)
+    if (this.typeGuards.isNotNullish(key) && !!localStorage.getItem(key)) {
+      localStorage.removeItem(key)
+    }
+  }
+
 }

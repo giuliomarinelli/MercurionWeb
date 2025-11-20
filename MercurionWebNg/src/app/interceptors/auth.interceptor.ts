@@ -37,7 +37,10 @@ export class AuthInterceptor implements HttpInterceptor {
           const newToken = e.headers.get('X-New-Access-Token')
           if (newToken) {
             this.authService.setAccessToken(newToken)
-            console.log(`Refresh => nuovo access token: ${newToken}`)
+            const scp = this.authService.getUserScopesFromClaims(newToken)
+            if (scp && scp.length) {
+              this.authService.setCachedScopes(scp)
+            }
           }
         }
       }),
