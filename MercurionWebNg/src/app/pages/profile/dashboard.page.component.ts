@@ -280,24 +280,29 @@ export class DashboardPageComponent implements OnInit, OnDestroy {
     if (!this.profile || !this.overviewCanvas) return
 
     const ctx = this.overviewCanvas.getContext('2d')
-    if (!ctx) return;
+    if (!ctx) return
 
     this.overviewChart?.destroy()
 
     const palette = this.getChartPalette(this.currentTheme())
 
-    const config: ChartConfiguration<'doughnut'> = {
+    // 👉 dati reali
+    const realData = [
+      this.profile.personalMoleculeCount,
+      this.profile.chemblMoleculeCount,
+      this.profile.collectionCount,
+    ]
+
+    // 👉 partenza a 0 per forzare l'animazione
+    const initialData = [0, 0, 0]
+
+    this.overviewChart = new Chart(ctx, {
       type: 'doughnut',
       data: {
         labels: ['Molecole personali', 'Molecole ChEMBL', 'Collezioni'],
         datasets: [
           {
-            data: [
-              this.profile.personalMoleculeCount,
-              this.profile.chemblMoleculeCount,
-              this.profile.collectionCount,
-            ],
-            // QUI settiamo esplicitamente i colori
+            data: initialData,
             backgroundColor: palette.doughnut,
             borderColor: 'transparent',
             hoverOffset: 6,
@@ -308,11 +313,11 @@ export class DashboardPageComponent implements OnInit, OnDestroy {
         responsive: true,
         maintainAspectRatio: false,
         cutout: '60%',
+        animation: {
+          duration: 700,
+          easing: 'easeOutCubic',
+        },
         plugins: {
-          // disabilita qualunque plugin di autocolors che provi a mettere la palette brand
-          colors: {
-            enabled: false,
-          } as any,
           legend: {
             position: 'bottom',
             labels: {
@@ -322,10 +327,17 @@ export class DashboardPageComponent implements OnInit, OnDestroy {
           },
         },
       },
-    };
+    })
 
-    this.overviewChart = new Chart(ctx, config)
+    // 🔥 step 2: set dei valori reali → parte l’animazione
+    queueMicrotask(() => {
+      if (!this.overviewChart) return
+      const ds = this.overviewChart.data.datasets[0] as any
+      ds.data = realData
+      this.overviewChart.update()
+    })
   }
+
 
   // --------- BAR ATTIVITÀ ---------
   private buildActivityChart(): void {
