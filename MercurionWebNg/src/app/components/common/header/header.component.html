@@ -297,22 +297,14 @@
       '-translate-x-full': !offCanvasMenuOpen(),
     }">
   <!-- Header of the offcanvas -->
-  <div class="flex justify-between items-center px-5 border-b py-5 border-slate-400 dark:border-dark-border">
+  <div class="flex justify-between items-center px-4 border-b py-5 border-slate-400 dark:border-dark-border">
     <div class="flex items-center gap-3">
-      <button (click)="openSearchOverlay(); offCanvasMenuOpen.set(true)"
-        class="xs:hidden flex items-center cursor-pointer transition">
-        <svg class="w-5 h-5 fill-current text-slate-700 dark:text-dark-accent-primary"
-          xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-          <path
-            d="M505 442.7L405.3 343c28.4-34.9 45.5-79 45.5-127.3C450.8 103.5 347.3 0 225.4 0S0 103.5 0 215.6s103.5 215.6 225.4 215.6c48.3 0 92.4-17.1 127.3-45.5l99.7 99.7c4.6 4.6 10.6 7 16.7 7s12.1-2.3 16.7-7c9.3-9.2 9.3-24.4 0-33.7zM225.4 367c-83.5 0-151.4-67.9-151.4-151.4s67.9-151.4 151.4-151.4 151.4 67.9 151.4 151.4-67.9 151.4-151.4 151.4z" />
-        </svg>
-      </button>
+      <!-- openSearchOverlay(); offCanvasMenuOpen.set(true) -->
       <button type="button" class="cursor-pointer">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
           class="w-[26px] h-[26px] fill-current text-slate-600 dark:text-slate-400 relative bottom-[0.5px]">
-          <!--!Font Awesome Pro v7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-          <path
-            d="M320 112C434.9 112 528 205.1 528 320C528 434.9 434.9 528 320 528C205.1 528 112 434.9 112 320C112 205.1 205.1 112 320 112zM320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM280 400C266.7 400 256 410.7 256 424C256 437.3 266.7 448 280 448L360 448C373.3 448 384 437.3 384 424C384 410.7 373.3 400 360 400L352 400L352 312C352 298.7 341.3 288 328 288L280 288C266.7 288 256 298.7 256 312C256 325.3 266.7 336 280 336L304 336L304 400L280 400zM320 256C337.7 256 352 241.7 352 224C352 206.3 337.7 192 320 192C302.3 192 288 206.3 288 224C288 241.7 302.3 256 320 256z" />
+          <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+          <path d="M320 96C443.7 96 544 196.3 544 320C544 443.7 443.7 544 320 544C196.3 544 96 443.7 96 320C96 196.3 196.3 96 320 96zM320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM202.1 411.9L192 448C194.7 447.2 261.4 428.6 392 392C428.6 261.4 447.2 194.7 448 192C445.3 192.8 378.6 211.4 248 248L202.1 411.9zM238.2 401.8L274 274L401.8 238.2L366 366L238.2 401.8zM320 344C333.3 344 344 333.3 344 320C344 306.7 333.3 296 320 296C306.7 296 296 306.7 296 320C296 333.3 306.7 344 320 344z"/>
         </svg>
       </button>
       <span
@@ -328,8 +320,6 @@
   </div>
 
   <!-- Menu items -->
-
-  <app-nav (onCloseOffCanvasMenu)="themeMenuOpen.set($event)" />
   <app-sidenav />
 
   <!-- Sezione avatar -->
@@ -362,14 +352,14 @@
       <div class="z-[999]">
         <!-- Header -->
         <button
-          class="group truncate flex items-center w-full mb-2 pl-1 pr-6 py-4 gap-4 transition-colors duration-300 cursor-default border-b-slate-400/60 dark:border-slate-300 border-b-[0.5px]">
+          class="group flex items-center w-full mb-2 pl-1 pr-6 py-4 gap-4 transition-colors duration-300 cursor-default border-b-slate-400/60 dark:border-slate-300 border-b-[0.5px]">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
             class="fill-current h-5 w-5 text-emerald-500 dark:text-dark-accent-primary">
             <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
             <path
               d="M224 192C224 139 267 96 320 96C373 96 416 139 416 192C416 245 373 288 320 288C267 288 224 245 224 192zM129.5 576L183.7 400L456.4 400L510.6 576L544.1 576L480.1 368L160.1 368L96.1 576L129.6 576zM320 320C390.7 320 448 262.7 448 192C448 121.3 390.7 64 320 64C249.3 64 192 121.3 192 192C192 262.7 249.3 320 320 320z" />
           </svg>
-          <span class="text-sm text-green-800 dark:text-dark-accent-primary font-medium">
+          <span class="text-sm text-green-800 dark:text-dark-accent-primary font-medium truncate">
             {{ email() }}
           </span>
         </button>
