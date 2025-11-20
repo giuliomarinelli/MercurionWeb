@@ -119,7 +119,205 @@ import { MfaStrategyCardComponent } from '../../components/common/mfa-strategy-c
                     <div class="py-6">
                       @switch (i) {
                           @case (0) {
-                            booooooooooooooh
+
+                            <div class="space-y-6">
+
+                              <!-- Titolo -->
+                              <div>
+                                <h3 class="font-bold text-lg mb-1">
+                                  Riepilogo account
+                                </h3>
+                                <p class="text-sm text-slate-600 dark:text-slate-300">
+                                  Qui trovi una panoramica veloce del tuo profilo e dello stato dell'account.
+                                </p>
+                              </div>
+
+                              <!-- RIGA 1: Profilo + Sicurezza -->
+                              <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+                                <!-- Card profilo -->
+                                <div
+                                  class="rounded-md border border-slate-300 dark:border-slate-600
+                                         bg-slate-50 dark:bg-slate-800/70 px-4 py-3 flex flex-col gap-2"
+                                >
+                                  <div class="flex items-center justify-between gap-3 mb-1">
+                                    <div>
+                                      <div class="text-xs uppercase text-slate-500 dark:text-slate-400">
+                                        Profilo
+                                      </div>
+                                      <div class="text-base font-semibold text-slate-800 dark:text-slate-100">
+                                        {{ profile.firstName }} {{ profile.lastName }}
+                                      </div>
+                                    </div>
+
+                                    <!-- iniziali "fittizie" da avatarId o fallback -->
+                                    <div
+                                      class="h-10 w-10 rounded-full flex items-center justify-center
+                                             bg-slate-200 dark:bg-slate-700 text-sm font-bold
+                                             text-slate-700 dark:text-slate-100"
+                                    >
+                                      {{ profile.firstName[0] }}{{ profile.lastName[0] }}
+                                    </div>
+                                  </div>
+
+                                  <div class="text-sm space-y-1">
+                                    <div class="flex justify-between gap-2">
+                                      <span class="text-slate-500 dark:text-slate-400">Ruolo</span>
+                                      <span class="font-medium text-slate-800 dark:text-slate-100">
+                                        {{ profile.job ?? 'Non specificato' }}
+                                      </span>
+                                    </div>
+                                    <div class="flex justify-between gap-2">
+                                      <span class="text-slate-500 dark:text-slate-400">Genere</span>
+                                      <span class="font-medium text-slate-800 dark:text-slate-100">
+                                        {{ profile.gender }}
+                                      </span>
+                                    </div>
+                                    <div class="flex justify-between gap-2">
+                                      <span class="text-slate-500 dark:text-slate-400">E-mail</span>
+                                      <span class="font-mono text-xs text-slate-700 dark:text-slate-200">
+                                        {{ profile.obscuredEmail }}
+                                      </span>
+                                    </div>
+                                    <div class="flex justify-between gap-2">
+                                      <span class="text-slate-500 dark:text-slate-400">Telefono</span>
+                                      <span class="font-mono text-xs text-slate-700 dark:text-slate-200">
+                                        {{ profile.obscuredPhone ?? '—' }}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <!-- Card sicurezza -->
+                                <div
+                                  class="rounded-md border border-slate-300 dark:border-slate-600
+                                         bg-slate-50 dark:bg-slate-800/70 px-4 py-3 flex flex-col gap-3"
+                                >
+                                  <div class="flex items-center justify-between mb-1">
+                                    <div>
+                                      <div class="text-xs uppercase text-slate-500 dark:text-slate-400">
+                                        Sicurezza
+                                      </div>
+                                      <div class="text-base font-semibold text-slate-800 dark:text-slate-100">
+                                        Stato dell'account
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div class="space-y-2 text-sm">
+                                    <div class="flex items-center justify-between gap-2">
+                                      <span class="text-slate-500 dark:text-slate-400">
+                                        Autenticazione a più fattori
+                                      </span>
+                                      <span
+                                        class="px-2 py-[2px] rounded text-xs font-semibold"
+                                        [class.bg-emerald-200]="isEnabledMfa"
+                                        [class.text-emerald-800]="isEnabledMfa"
+                                        [class.bg-amber-200]="!isEnabledMfa"
+                                        [class.text-amber-800]="!isEnabledMfa"
+                                      >
+                                        {{ isEnabledMfa ? 'Attiva' : 'Non attiva' }}
+                                      </span>
+                                    </div>
+
+                                    <div class="flex items-center justify-between gap-2">
+                                      <span class="text-slate-500 dark:text-slate-400">
+                                        Sessioni attive
+                                      </span>
+                                      <span class="font-medium text-slate-800 dark:text-slate-100">
+                                        {{ activeSessions.length || 0 }}
+                                      </span>
+                                    </div>
+                                    @if (activeSessions.length) {
+                                      <div class="flex items-center justify-between gap-2">
+                                        <span class="text-slate-500 dark:text-slate-400">
+                                          Sessione corrente
+                                        </span>
+                                        <span class="text-xs text-right text-slate-700 dark:text-slate-200">
+                                          {{
+                                            getCurrentSessionBrowser()
+                                          }}
+                                          ·
+                                          {{
+                                            getCurrentSessionLocation()
+                                          }}
+                                        </span>
+                                      </div>
+                                    }
+                                  </div>
+
+                                  <div class="flex justify-end pt-2">
+                                    <button
+                                      type="button"
+                                      class="
+                                        text-xs underline text-slate-600 dark:text-slate-300
+                                        hover:text-slate-800 dark:hover:text-slate-100
+                                        transition-colors duration-150
+                                      "
+                                      (click)="accordionItem.toggle()"
+                                    >
+                                      Vai alle impostazioni di sicurezza
+                                    </button>
+                                  </div>
+                                </div>
+
+                              </div>
+
+                              <!-- RIGA 2: Statistiche Mercurion -->
+                              <div>
+                                <h4 class="font-bold text-base mb-3">
+                                  Attività su Mercurion
+                                </h4>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+
+                                  <div
+                                    class="rounded-md border border-slate-300 dark:border-slate-600
+                                           bg-slate-50 dark:bg-slate-800/70 px-4 py-3"
+                                  >
+                                    <div class="text-xs uppercase text-slate-500 dark:text-slate-400 mb-1">
+                                      Molecole personali
+                                    </div>
+                                    <div class="text-2xl font-semibold text-slate-800 dark:text-slate-100">
+                                      {{ profile.personalMoleculeCount }}
+                                    </div>
+                                  </div>
+
+                                  <div
+                                    class="rounded-md border border-slate-300 dark:border-slate-600
+                                           bg-slate-50 dark:bg-slate-800/70 px-4 py-3"
+                                  >
+                                    <div class="text-xs uppercase text-slate-500 dark:text-slate-400 mb-1">
+                                      Molecole da ChEMBL
+                                    </div>
+                                    <div class="text-2xl font-semibold text-slate-800 dark:text-slate-100">
+                                      {{ profile.chemblMoleculeCount }}
+                                    </div>
+                                  </div>
+
+                                  <div
+                                    class="rounded-md border border-slate-300 dark:border-slate-600
+                                           bg-slate-50 dark:bg-slate-800/70 px-4 py-3"
+                                  >
+                                    <div class="text-xs uppercase text-slate-500 dark:text-slate-400 mb-1">
+                                      Collezioni
+                                    </div>
+                                    <div class="text-2xl font-semibold text-slate-800 dark:text-slate-100">
+                                      {{ profile.collectionCount }}
+                                    </div>
+                                  </div>
+
+                                </div>
+                              </div>
+                              <div>
+                                <h4 class="font-bold text-base mb-3">
+                                  Informazioni sulla versione
+                                </h4>
+                                <p>Mercurion {{currentVersion}}</p>
+                              </div>
+
+                            </div>
+
+
                           }
                           @case (1) {
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
@@ -286,6 +484,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy {
 
   profileFetchError = signal<boolean>(false)
   loading = signal<boolean>(true)
+  currentVersion!: string
 
 
   profile!: ProfileDTO
@@ -300,7 +499,11 @@ export class SettingsPageComponent implements OnInit, OnDestroy {
   private allLoguotSub?: Subscription
 
   ngOnInit(): void {
-    this.fetchSub = this.accountService.isMfaEnabled().pipe(
+    this.fetchSub = this.accountService.getCurrentVersion().pipe(
+      switchMap((curVers) => {
+        this.currentVersion = curVers
+        return this.accountService.isMfaEnabled()
+      }),
       switchMap((ok) => {
         if (!ok) {
           this.isEnabledMfa = false
@@ -337,6 +540,14 @@ export class SettingsPageComponent implements OnInit, OnDestroy {
     this.fetchSub?.unsubscribe()
     this.sLoguotSub?.unsubscribe()
     this.allLoguotSub?.unsubscribe()
+  }
+
+  getCurrentSessionBrowser(): string {
+    return this.activeSessions.find((s) => s.current)?.browser ?? '—'
+  }
+
+  getCurrentSessionLocation(): string {
+    return this.activeSessions.find((s) => s.current)?.location ?? '—'
   }
 
   doLogoutFromSession(ssid: string): void {

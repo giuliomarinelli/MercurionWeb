@@ -109,4 +109,10 @@ export class AccountService {
     })
   }
 
+  public getCurrentVersion(): Observable<string> {
+    return this.http.get('/api/account/current-version', {
+      responseType: 'text'
+    })
+  }
+
 }

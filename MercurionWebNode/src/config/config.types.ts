@@ -18,6 +18,7 @@ export interface AppConfiguration {
     passwordPepper: string
     redisIdHmacSecret: string
     AES_secret: string
+    version: string
 
 }
 

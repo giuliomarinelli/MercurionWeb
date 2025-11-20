@@ -20,6 +20,7 @@ import { SessionService } from '../services/session.service';
 import { SessionDTO } from '../Models/DTO/session.dto';
 import { BackupCodeStatusDTO } from 'src/app_modules/user/Models/DTO/backup-code-status.dto';
 import { RpcException } from '@nestjs/microservices';
+import { ConfigService } from '@nestjs/config';
 
 
 
@@ -32,7 +33,8 @@ export class AccountController {
         private readonly mfaService: MfaService,
         private readonly userService: UserService,
         private readonly securityService: SercurityService,
-        private readonly sessionService: SessionService
+        private readonly sessionService: SessionService,
+        private readonly configService: ConfigService
     ) { }
 
     @Public()
@@ -276,6 +278,11 @@ export class AccountController {
         return (await this.mfaService.getEnabledMfaStrategies(userId))
             .map((val) => GeneralUtils.getEnumKeyByValue(MfaStrategy, val))
             .filter((key) => key != undefined)
+    }
+
+    @Get('/current-version')
+    public getCurrentVersion(): string {
+        return this.configService.get<string>('App.version')!
     }
 
 }
