@@ -74,11 +74,12 @@ export class MfaService {
     }
 
     public async isMfaEnabled(userId: UUID): Promise<boolean> {
-        return !!(await this.userService.getUserEnabledMfaStrategies(userId)).length
+        return !!(await this.userService.getUserEncryptedEnabledMfaStrategies(userId)).length
     }
 
     public async getEnabledMfaStrategies(userId: UUID): Promise<MfaStrategy[]> {
-        return await this.userService.getUserEnabledMfaStrategies(userId)
+        return (await this.userService.getUserEncryptedEnabledMfaStrategies(userId))
+            .map((s) => this.securityService.decrypt_AES256(s) as MfaStrategy)
     }
 
     private getBackupFailKey(userId: UUID): string {
@@ -317,7 +318,7 @@ export class MfaService {
         }
         if (!user.otpSecret) throw new RpcException('OtpSecretNotFound')
         let strategyError: boolean = true
-        if ((await this.userService.getUserEnabledMfaStrategies(userId)).includes(strategy)) {
+        if ((await this.userService.getUserEncryptedEnabledMfaStrategies(userId)).includes(strategy)) {
             strategyError = false
         } else if (strategy === MfaStrategy.EMAIL_OTP && trustVerify) {
             strategyError = false
@@ -416,7 +417,7 @@ export class MfaService {
             throw new RpcException('NoSuchUser')
         }
         const firstName = await this.userService.getUserFirstNameById(userId) as string
-        if ((await this.userService.getUserEnabledMfaStrategies(userId)).includes(strategy))
+        if ((await this.userService.getUserEncryptedEnabledMfaStrategies(userId)).includes(strategy))
             throw new RpcException(`InvalidMfaStrategy::${GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy)} strategy for MFA already enabled for this user`)
 
         switch (strategy) {
@@ -566,7 +567,7 @@ export class MfaService {
             throw new RpcException('NoSuchUser')
         }
 
-        const strategies = await this.userService.getUserEnabledMfaStrategies(userId)
+        const strategies = await this.userService.getUserEncryptedEnabledMfaStrategies(userId)
         if (!strategies.includes(strategy)) {
             throw new RpcException(`InvalidMfaStrategy::${strategy} strategy not currently active`)
         }

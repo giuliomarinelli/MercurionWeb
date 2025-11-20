@@ -1,5 +1,5 @@
 import { NgClass, NgOptimizedImage } from '@angular/common';
-import { ApplicationRef, ChangeDetectorRef, Component, computed, effect, OnChanges, OnDestroy, OnInit, Signal, signal, SimpleChanges, WritableSignal } from '@angular/core';
+import { ApplicationRef, ChangeDetectorRef, Component, computed, effect, OnDestroy, OnInit, Signal, signal } from '@angular/core';
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
 import { ThemeChoice } from '../../../Models/theme.models';
 import { DesignService } from '../../../services/design.service';
