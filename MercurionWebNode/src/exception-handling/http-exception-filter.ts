@@ -10,14 +10,24 @@ import { RpcException } from '@nestjs/microservices';
 import { HttpStatusMap } from './http-status-map';
 import { GqlContextType } from '@nestjs/graphql';
 import { InternalErrorRes } from 'src/Models/error-res.dto';
+import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
 
-    private readonly isProd = process.env.NODE_ENV === 'production'
+    private readonly logger: MeiliContextLogger
+
+    constructor(loggerFactory: MeiliLoggerService) {
+        this.logger = loggerFactory.forContext(HttpExceptionFilter.name)
+    }
+
+    private readonly isNotDev = process.env.NODE_ENV !== 'development'
 
     catch(e: unknown, host: ArgumentsHost) {
+
+        this.logger.warn('Error', e as object)
 
         const ctxType = host.getType<GqlContextType>()
 
@@ -38,14 +48,14 @@ export class HttpExceptionFilter implements ExceptionFilter {
             base = {
                 statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
                 error: HttpStatusMap.getDescriptionFromHttpStatusCode(HttpStatus.INTERNAL_SERVER_ERROR,),
-                message: (this.isProd ? 'Internal server error' : (e as any).message ?? 'Internal server error') as string
+                message: (this.isNotDev ? 'Internal server error' : (e as any).message ?? 'Internal server error') as string
             }
         }
 
         const status = base.statusCode ?? HttpStatus.INTERNAL_SERVER_ERROR;
 
         // in prod, per tutti i 5xx => messaggio generico
-        const safeBase: InternalErrorRes = this.isProd && status >= 500
+        const safeBase: InternalErrorRes = this.isNotDev && status >= 500
             ? {
                 statusCode: status,
                 error: base.error ?? HttpStatusMap.getDescriptionFromHttpStatusCode(status),
@@ -70,7 +80,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
             return {
                 statusCode: status,
                 error: HttpStatusMap.getDescriptionFromHttpStatusCode(status),
-                message: this.isProd && status >= 500 ? undefined : resp
+                message: this.isNotDev && status >= 500 ? undefined : resp
             }
         }
 
