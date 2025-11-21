@@ -1,6 +1,6 @@
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
-import { CdkAccordionModule } from '@angular/cdk/accordion';
-import { EMPTY, Observable, of, Subscription, switchMap } from 'rxjs';
+import { AfterViewInit, Component, inject, OnDestroy, OnInit, QueryList, signal, ViewChild, ViewChildren } from '@angular/core';
+import { CdkAccordion, CdkAccordionItem, CdkAccordionModule } from '@angular/cdk/accordion';
+import { EMPTY, Observable, of, startWith, Subscription, switchMap } from 'rxjs';
 import { AccountService } from '../../services/account.service';
 import { MfaStrategy, ProfileDTO, SessionDTOExt } from '../../Models/account/account.models';
 import { ToastService } from '../../services/toast.service';
@@ -9,6 +9,7 @@ import { Router } from '@angular/router';
 import { SessionCardComponent } from '../../components/common/session-card/session-card.component';
 import { AuthService } from '../../services/auth.service';
 import { MfaStrategyCardComponent } from '../../components/common/mfa-strategy-card/mfa-strategy-card.component';
+import { AppContextService } from '../../services/context/app-context.service';
 
 
 @Component({
@@ -63,49 +64,59 @@ import { MfaStrategyCardComponent } from '../../components/common/mfa-strategy-c
         <div class="flex flex-col justify-between">
           <cdk-accordion class="flex flex-col w-full border border-slate-300 dark:border-slate-500">
             @for (item of items; track item; let i = $index) {
-              <cdk-accordion-item #accordionItem="cdkAccordionItem">
-                <button
-                  class="
-                    w-full p-4 bg-slate-200 dark:bg-slate-800 border-slate-300
-                    dark:border-slate-500 text-start flex items-center gap-2
-                    hover:bg-slate-200/75 dark:hover:bg-slate-800/75
-                    transition-colors duration-300
-                    "
+              <cdk-accordion-item #accordionItem="cdkAccordionItem" (opened)="scrollToTop(i)">
+                  <button
+                    class="
+                      w-full p-4 bg-slate-200 dark:bg-slate-800 border-slate-300
+                      dark:border-slate-500 text-start flex items-center justify-between
+                      hover:bg-slate-200/75 dark:hover:bg-slate-800/75
+                      transition-colors duration-300
+                      "
 
-                  [class.border-b]="i !== items.length - 1"
-                  (click)="accordionItem.toggle()"
-                  tabindex="0"
-                  [attr.id]="'accordion-header-' + i"
-                  [attr.aria-expanded]="accordionItem.expanded"
-                  [attr.aria-controls]="'accordion-body-' + i">
-                  @switch (i) {
-                      @case (0) {
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto">
-                          <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-                          <path d="M64 464L144 464L144 400L304 400L304 464L576 464L576 496L304 496L304 560L144 560L144 496L64 496L64 464zM272 496L272 432L176 432L176 528L272 528L272 496zM64 304L336 304L336 240L496 240L496 304L576 304L576 336L496 336L496 400L336 400L336 336L64 336L64 304zM176 176L64 176L64 144L176 144L176 80L336 80L336 144L576 144L576 176L336 176L336 240L176 240L176 176zM208 176L208 208L304 208L304 112L208 112L208 176zM464 304L464 272L368 272L368 368L464 368L464 304z"/>
-                        </svg>
+                    [class.border-b]="i !== items.length - 1"
+                    (click)="accordionItem.toggle()"
+                    tabindex="0"
+                    [attr.id]="'accordion-header-' + i"
+                    [attr.aria-expanded]="accordionItem.expanded"
+                    [attr.aria-controls]="'accordion-body-' + i">
+                    <div class="flex items-center gap-2">
+                      @switch (i) {
+                          @case (0) {
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto">
+                              <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                              <path d="M64 464L144 464L144 400L304 400L304 464L576 464L576 496L304 496L304 560L144 560L144 496L64 496L64 464zM272 496L272 432L176 432L176 528L272 528L272 496zM64 304L336 304L336 240L496 240L496 304L576 304L576 336L496 336L496 400L336 400L336 336L64 336L64 304zM176 176L64 176L64 144L176 144L176 80L336 80L336 144L576 144L576 176L336 176L336 240L176 240L176 176zM208 176L208 208L304 208L304 112L208 112L208 176zM464 304L464 272L368 272L368 368L464 368L464 304z"/>
+                            </svg>
+                          }
+                          @case (1) {
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto">
+                              <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                              <path d="M576 128L576 512L64 512L64 128L576 128zM64 96L32 96L32 544L608 544L608 96L64 96zM192 256C192 238.3 206.3 224 224 224C241.7 224 256 238.3 256 256C256 273.7 241.7 288 224 288C206.3 288 192 273.7 192 256zM288 256C288 220.7 259.3 192 224 192C188.7 192 160 220.7 160 256C160 291.3 188.7 320 224 320C259.3 320 288 291.3 288 256zM167.1 384L281 384L302.3 448L336 448L304 352L144 352L112 448L145.7 448L167 384zM384 224L368 224L368 256L528 256L528 224L384 224zM384 320L368 320L368 352L528 352L528 320L384 320z"/>
+                            </svg>
+                          }
+                          @case (2) {
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto">
+                              <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                              <path d="M320 64C373 64 416 107 416 160L416 224L224 224L224 160C224 107 267 64 320 64zM192 160L192 224L128 224L128 576L512 576L512 224L448 224L448 160C448 89.3 390.7 32 320 32C249.3 32 192 89.3 192 160zM160 256L480 256L480 544L160 544L160 256zM336 352L336 336L304 336L304 464L336 464L336 352z"/>
+                            </svg>
+                          }
+                          @case (3) {
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto">
+                              <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                              <path d="M231.2 280L288 224L192 64L64 128L64 144C64 382.6 257.4 576 496 576L512 576L576 448L416 352L360 408.8C300.8 386 254 339.2 231.2 280zM421.1 392.4L534.1 460.2L492.2 544C274.3 542 98 365.7 96 147.8L179.8 105.9L247.6 218.9C217.7 248.4 199.8 266.1 193.8 272L201.3 291.6C227.3 359.2 280.8 412.7 348.4 438.7L368 446.2C373.9 440.2 391.6 422.3 421 392.4z"/>
+                            </svg>
+                          }
                       }
-                      @case (1) {
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto">
-                          <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-                          <path d="M576 128L576 512L64 512L64 128L576 128zM64 96L32 96L32 544L608 544L608 96L64 96zM192 256C192 238.3 206.3 224 224 224C241.7 224 256 238.3 256 256C256 273.7 241.7 288 224 288C206.3 288 192 273.7 192 256zM288 256C288 220.7 259.3 192 224 192C188.7 192 160 220.7 160 256C160 291.3 188.7 320 224 320C259.3 320 288 291.3 288 256zM167.1 384L281 384L302.3 448L336 448L304 352L144 352L112 448L145.7 448L167 384zM384 224L368 224L368 256L528 256L528 224L384 224zM384 320L368 320L368 352L528 352L528 320L384 320z"/>
-                        </svg>
-                      }
-                      @case (2) {
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto">
-                          <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-                          <path d="M320 64C373 64 416 107 416 160L416 224L224 224L224 160C224 107 267 64 320 64zM192 160L192 224L128 224L128 576L512 576L512 224L448 224L448 160C448 89.3 390.7 32 320 32C249.3 32 192 89.3 192 160zM160 256L480 256L480 544L160 544L160 256zM336 352L336 336L304 336L304 464L336 464L336 352z"/>
-                        </svg>
-                      }
-                      @case (3) {
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto">
-                          <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-                          <path d="M231.2 280L288 224L192 64L64 128L64 144C64 382.6 257.4 576 496 576L512 576L576 448L416 352L360 408.8C300.8 386 254 339.2 231.2 280zM421.1 392.4L534.1 460.2L492.2 544C274.3 542 98 365.7 96 147.8L179.8 105.9L247.6 218.9C217.7 248.4 199.8 266.1 193.8 272L201.3 291.6C227.3 359.2 280.8 412.7 348.4 438.7L368 446.2C373.9 440.2 391.6 422.3 421 392.4z"/>
-                        </svg>
-                      }
-                  }
-                  <span>{{ item }}</span>
-                </button>
+                      <span>{{ item }}</span>
+                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 640 640"
+                      class="fill-current h-6 w-auto transition-transform duration-200"
+                      [class.rotate-180]="accordionItem.expanded"
+                      [class.rotate-0]="!accordionItem.expanded">
+                      <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                      <path d="M320 96C196.3 96 96 196.3 96 320C96 443.7 196.3 544 320 544C443.7 544 544 443.7 544 320C544 196.3 443.7 96 320 96zM320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM331.3 411.3L320 422.6L308.7 411.3L196.7 299.3L185.4 288L208 265.4L219.3 276.7L320 377.4L420.7 276.7L432 265.4L454.6 288L443.3 299.3L331.3 411.3z"/>
+                    </svg>
+                  </button>
                 @if (accordionItem.expanded) {
                   <div
                     class="accordion-body px-4 bg-slate-100 dark:bg-slate-700"
@@ -254,7 +265,7 @@ import { MfaStrategyCardComponent } from '../../components/common/mfa-strategy-c
                                         hover:text-slate-800 dark:hover:text-slate-100
                                         transition-colors duration-150
                                       "
-                                      (click)="accordionItem.toggle()"
+                                      (click)="switchToAccordionItem(3, i)"
                                     >
                                       Vai alle impostazioni di sicurezza
                                     </button>
@@ -473,12 +484,19 @@ import { MfaStrategyCardComponent } from '../../components/common/mfa-strategy-c
     }
   `
 })
-export class SettingsPageComponent implements OnInit, OnDestroy {
+export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private readonly accountService = inject(AccountService)
   private readonly toast = inject(ToastService)
   private readonly router = inject(Router)
   private readonly authService = inject(AuthService)
+  private readonly appContext = inject(AppContextService)
+
+  @ViewChild(CdkAccordion)
+  accordion!: CdkAccordion
+
+  @ViewChildren(CdkAccordionItem)
+  accordionItems!: QueryList<CdkAccordionItem>
 
   pipeStarter$: Observable<null> = of(null)
 
@@ -497,6 +515,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy {
   private fetchSub?: Subscription
   private sLoguotSub?: Subscription
   private allLoguotSub?: Subscription
+  private viewSub?: Subscription
 
   ngOnInit(): void {
     this.fetchSub = this.accountService.getCurrentVersion().pipe(
@@ -536,10 +555,50 @@ export class SettingsPageComponent implements OnInit, OnDestroy {
     })
   }
 
+  ngAfterViewInit(): void {
+    this.viewSub = this.accordionItems.changes
+      .pipe(startWith(this.accordionItems))
+      .subscribe((items: QueryList<CdkAccordionItem>) => {
+        const arr = items.toArray()
+        if (arr.length) {
+          this.switchToAccordionItem(0)
+        }
+      })
+  }
+
   ngOnDestroy(): void {
     this.fetchSub?.unsubscribe()
     this.sLoguotSub?.unsubscribe()
     this.allLoguotSub?.unsubscribe()
+    this.viewSub?.unsubscribe()
+  }
+
+  switchToAccordionItem(i: number, currentIdx?: number): void {
+    const items = this.accordionItems?.toArray() ?? []
+    if (i > items.length - 1) {
+      return
+    }
+    if (!this.accordion.multi) {
+      if (currentIdx !== undefined && currentIdx >= 0 && currentIdx < items.length) {
+        if (currentIdx !== i) {
+          items[currentIdx].close()
+        }
+      } else {
+        items.forEach((it, idx) => {
+          if (idx !== i && it.expanded) {
+            it.close()
+          }
+        })
+      }
+    }
+    const item = items[i]
+    item.open()
+  }
+
+  scrollToTop(i: number): void {
+    if (i < 2) {
+      queueMicrotask(() => this.appContext.triggerScrollToTopGlobally())
+    }
   }
 
   getCurrentSessionBrowser(): string {
