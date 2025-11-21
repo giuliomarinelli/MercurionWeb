@@ -285,4 +285,22 @@ export class AccountController {
         return this.configService.get<string>('App.version')!
     }
 
+    @Get('/masked-email')
+    public async getMaskedEmail(@AuthenticatedUserId() userId: UUID): Promise<string> {
+        const email = await this.userService.getUserEmailById(userId)
+        if (!email) {
+            throw new NotFoundException('Fatal::email not found')
+        }
+        return this.securityService.maskEmail(email)
+    }
+
+    @Get('/masked-phone')
+    public async getMaskedPhone(@AuthenticatedUserId() userId: UUID): Promise<string | null> {
+        const completePhone = await this.userService.getPhoneNumberById(userId)
+        if (!completePhone) {
+            return null
+        }
+        return this.securityService.maskPhone(completePhone)
+    }
+
 }

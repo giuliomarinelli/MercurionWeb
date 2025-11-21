@@ -396,6 +396,36 @@ import { SensitiveDataChangeContextService } from '../../services/context/action
                             </div>
                           }
                           @case (3) {
+                            <h3 class="font-bold text-lg my-3">Password</h3>
+                            <div class="flex items-center gap-8">
+                              <div class="flex items-center">
+                                @for (x of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]; track x) {
+                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-5 h-5">
+                                    <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                                    <path d="M320 256C355.3 256 384 284.7 384 320C384 355.3 355.3 384 320 384C284.7 384 256 355.3 256 320C256 284.7 284.7 256 320 256z"/>
+                                  </svg>
+                                }
+                              </div>
+                              <button
+                                type="button"
+                                class="
+                                  flex items-center gap-2 px-3 py-2 rounded-md
+                                  bg-emerald-800
+                                  text-slate-100 font-medium text-sm
+                                  hover:bg-emerald-800/80
+                                  transition-colors duration-150
+                                "
+                                (click)="changePassword()"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                     viewBox="0 0 640 640"
+                                     class="fill-current h-6 w-6 relative -left-1">
+                                  <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                                  <path d="M256 240C256 160.5 320.5 96 400 96C479.5 96 544 160.5 544 240C544 319.5 479.5 384 400 384C388.9 384 378 382.7 367.6 380.4L359 378.4L352.7 384.7L321.3 416.1L255.9 416.1L255.9 480.1L191.9 480.1L191.9 544.1L95.9 544.1L95.9 462.7L258.7 299.9L265.6 293L262.7 283.7C258.3 269.9 256 255.3 256 240zM400 64C302.8 64 224 142.8 224 240C224 255.1 225.9 269.8 229.5 283.9L68.7 444.7L64 449.4L64 576L224 576L224 512L288 512L288 448L334.6 448L339.3 443.3L369.3 413.3C379.3 415.1 389.5 416 400 416C497.2 416 576 337.2 576 240C576 142.8 497.2 64 400 64zM432 232C445.3 232 456 221.3 456 208C456 194.7 445.3 184 432 184C418.7 184 408 194.7 408 208C408 221.3 418.7 232 432 232z"/>
+                                </svg>
+                                <span>Cambia password</span>
+                              </button>
+                            </div>
                             <h3 class="font-bold text-lg my-3">Sessioni attive</h3>
                             <div class="flex flex-col gap-y-4 mb-3">
                               @for (s of activeSessions; track s.id) {
@@ -671,6 +701,10 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   editAnagraphics(): void {
+
+  }
+
+  changePassword(): void {
 
   }
 

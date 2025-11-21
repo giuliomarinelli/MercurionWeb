@@ -111,7 +111,22 @@ export class AccountService {
 
   public getCurrentVersion(): Observable<string> {
     return this.http.get('/api/account/current-version', {
-      responseType: 'text'
+      responseType: 'text',
+      withCredentials: true
+    })
+  }
+
+  public getMaskedEmail(): Observable<string> {
+    return this.http.get('/api/account/masked-email', {
+      responseType: 'text',
+      withCredentials: true
+    })
+  }
+
+  public getMaskedPhone(): Observable<string | null> {
+    return this.http.get('/api/account/masked-phone', {
+      responseType: 'text',
+      withCredentials: true
     })
   }
 

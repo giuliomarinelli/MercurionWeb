@@ -15,7 +15,7 @@ export const matchPassword: ValidatorFn = (control: AbstractControl) => {
 export function emailAvailabilityValidator(auth: AuthService): AsyncValidatorFn {
   return (control: AbstractControl) => {
     if (!control.value) {
-      return of(null); // campo vuoto: non validare
+      return of(null)
     }
 
     return of(control.value).pipe(
@@ -27,6 +27,6 @@ export function emailAvailabilityValidator(auth: AuthService): AsyncValidatorFn 
           catchError(() => of({ serverError: true }))
         )
       )
-    );
-  };
+    )
+  }
 }

@@ -22,6 +22,7 @@ import { HistoryService } from 'src/app_modules/history/services/history.service
 import { HistoryDTO } from 'src/app_modules/history/Models/DTO/history.dto';
 
 
+
 @Injectable()
 export class UserService {
 
@@ -371,7 +372,7 @@ export class UserService {
                 let recentHistory: HistoryDTO[] = []
 
                 if (getRecentHistory) {
-                     ({ items: recentHistory } = await this.historyService.getPaginatedHistoryWithManager(
+                    ({ items: recentHistory } = await this.historyService.getPaginatedHistoryWithManager(
                         id,
                         {
                             limit: 200,
@@ -464,7 +465,7 @@ export class UserService {
                 .where('id = :userId', { userId })
                 .execute()
         })
-    }
+    }   
 
 
 
