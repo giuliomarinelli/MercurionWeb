@@ -23,12 +23,12 @@ import { AppContextService } from '../../services/context/app-context.service';
 
     /* apertura */
     .accordion-enter {
-      animation: accordion-down 180ms linear;
+      animation: accordion-down 300ms linear;
     }
 
     /* chiusura */
     .accordion-leave {
-      animation: accordion-up 150ms ease-in forwards;
+      animation: accordion-up 300ms linear forwards;
     }
 
     @keyframes accordion-down {

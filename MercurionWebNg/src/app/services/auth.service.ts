@@ -12,6 +12,7 @@ import { ISessionDeviceInfo } from '../Models/auth/fingerprint.models';
 import { UserRegisterDTO } from '../Models/auth/user.models';
 import { TypeGuardsService } from './type-guards.service';
 import { UserContextService } from './context/user-context.service';
+import { Router } from '@angular/router';
 
 export type TokenType = 'access_token' | 'ws_accessToken'
 
@@ -25,6 +26,7 @@ export class AuthService {
   private readonly http = inject(HttpClient)
   private readonly typeGuards = inject(TypeGuardsService)
   private readonly userContext = inject(UserContextService)
+  private readonly router = inject(Router)
   // ====================================================
 
   private readonly AT_NAMESPACE = ''
@@ -395,6 +397,7 @@ export class AuthService {
     }).pipe(tap(() => {
       if (current) {
         this.userContext.logout()
+        this.router.navigateByUrl('/login')
       }
     }))
   }
@@ -402,7 +405,10 @@ export class AuthService {
   logoutFromAllSessions(): Observable<ConfirmDTO> {
     return this.http.patch<ConfirmDTO>('/api/authentication/logout-from-all-sessions', null, {
       withCredentials: true
-    }).pipe(tap(() => this.userContext.logout()))
+    }).pipe(tap(() => {
+      this.userContext.logout()
+      this.router.navigateByUrl('/login')
+    }))
   }
 
 }
