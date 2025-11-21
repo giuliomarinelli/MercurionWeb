@@ -23,6 +23,9 @@ import { MeilisearchModule } from '../meilisearch/meilisearch.module';
 import { ScopeService } from './services/scope.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../user/Models/entities/user.entity';
+import { CountryService } from './services/country.service';
+import { Country } from './Models/entities/country.entity';
+import { CountryController } from './controllers/country.controller';
 
 
 
@@ -33,7 +36,7 @@ import { User } from '../user/Models/entities/user.entity';
     NotificationModule,
     HttpModule,
     forwardRef(() => MeilisearchModule),
-    TypeOrmModule.forFeature([User])
+    TypeOrmModule.forFeature([User, Country])
   ],
   providers: [
     JwtToolsService,
@@ -50,7 +53,8 @@ import { User } from '../user/Models/entities/user.entity';
     IpService,
     GeoIpService,
     TurnstileService,
-    ScopeService
+    ScopeService,
+    CountryService
   ],
   exports: [
     SecureCookieService,
@@ -61,6 +65,6 @@ import { User } from '../user/Models/entities/user.entity';
     SercurityService,
     ScopeService
   ],
-  controllers: [AccountController, AuthenticationController],
+  controllers: [AccountController, AuthenticationController, CountryController],
 })
 export class AuthModule { }
