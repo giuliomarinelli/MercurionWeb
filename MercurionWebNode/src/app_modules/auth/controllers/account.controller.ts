@@ -95,7 +95,7 @@ export class AccountController {
     ): Promise<ConfirmMfaChange> {
         const strategy: MfaStrategy = GeneralUtils.validateMfaStrategy(strategyKey)
         return {
-            ...this._r.ok(`OTP sent or QR generated for MFA strategy ${strategyKey}`),
+            ...this._r.ok(`OTP sent or QR generated and secure_token generated for MFA strategy ${strategyKey}`),
             ...await this.mfaService.enableMfa_firstStep(userId, strategy)
         }
     }
@@ -121,7 +121,7 @@ export class AccountController {
     ): Promise<ConfirmMfaChange> {
         const strategy: MfaStrategy = GeneralUtils.validateMfaStrategy(strategyKey)
         return {
-            ...this._r.ok(`OTP sent or QR check enabled for MFA strategy ${strategyKey}`),
+            ...this._r.ok(`OTP sent and/or secure_token generated for MFA strategy ${strategyKey}`),
             ...await this.mfaService.disableMfa_firstStep(userId, strategy)
         }
     }

@@ -2,9 +2,10 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { ChangePasswordDTO, MfaStrategy, ProfileDTO, SessionDTO, UserData } from '../Models/account/account.models';
 import { Observable, of, tap } from 'rxjs';
-import { ConfirmDTO } from '../Models/confirm.models';
+import { ConfirmDTO, ConfirmMfaChange } from '../Models/confirm.models';
 import { ConfirmWithObsContDTO } from '../Models/confirm.models';
 import { EmailDTO } from '../Models/auth/login.models';
+import { TotpDTO } from '../Models/auth/totp.models';
 
 
 @Injectable({
@@ -126,6 +127,38 @@ export class AccountService {
   public getMaskedPhone(): Observable<string | null> {
     return this.http.get('/api/account/masked-phone', {
       responseType: 'text',
+      withCredentials: true
+    })
+  }
+
+  public enableMfa_firstStep(strategy: MfaStrategy): Observable<ConfirmMfaChange> {
+    return this.http.patch<ConfirmMfaChange>(`/api/account/mfa/enable/${strategy}/1`, null, {
+      withCredentials: true
+    })
+  }
+
+  public enableMfa_secondStep(strategy: MfaStrategy, totp: string, secureToken: string): Observable<ConfirmDTO> {
+    const body: TotpDTO = {
+      totp,
+      secureToken
+    }
+    return this.http.patch<ConfirmDTO>(`/api/account/mfa/enable/${strategy}/2`, totp, {
+      withCredentials: true
+    })
+  }
+
+  public disableMfa_secondStep(strategy: MfaStrategy): Observable<ConfirmMfaChange> {
+    return this.http.patch<ConfirmMfaChange>(`/api/account/mfa/disable/${strategy}/1`, null, {
+      withCredentials: true
+    })
+  }
+
+  public disable_secondStep(strategy: MfaStrategy, totp: string, secureToken: string): Observable<ConfirmDTO> {
+    const body: TotpDTO = {
+      totp,
+      secureToken
+    }
+    return this.http.patch<ConfirmDTO>(`/api/account/mfa/disable/${strategy}/2`, totp, {
       withCredentials: true
     })
   }

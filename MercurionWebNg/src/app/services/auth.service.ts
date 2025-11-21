@@ -7,12 +7,13 @@ import { ConfirmWithTotpMetaDTO } from '../Models/confirm.models';
 import { JwtHelperService } from './jwt-helper.service';
 import { firstValueFrom } from 'rxjs';
 import { EmailDTO, Login_FirstStepWrapper, SignedSessionIdDTO } from '../Models/auth/login.models';
-import { TotpBodyDTO } from '../Models/auth/totp-body.dto';
+import { TotpBodyDTO } from '../Models/auth/totp.models';
 import { ISessionDeviceInfo } from '../Models/auth/fingerprint.models';
 import { UserRegisterDTO } from '../Models/auth/user.models';
 import { TypeGuardsService } from './type-guards.service';
 import { UserContextService } from './context/user-context.service';
 import { Router } from '@angular/router';
+import { MfaStrategy } from '../Models/account/account.models';
 
 export type TokenType = 'access_token' | 'ws_accessToken'
 
@@ -48,6 +49,14 @@ export class AuthService {
       const id = (crypto as any)?.randomUUID?.() ?? Math.random().toString(36).slice(2);
       sessionStorage.setItem('tab_id', id);
     }
+  }
+
+  getMfaStrategiesDescrMap(): Map<MfaStrategy, string> {
+    const map = new Map()
+    map.set('EMAIL_OTP', 'autenticazione a più fattori via mail')
+    map.set('SMS_OTP', 'autenticazione a più fattori via sms')
+    map.set('APP_TOTP', 'autenticazione a più fattori via app')
+    return map
   }
 
   getCookieValue(key: string): string | null {

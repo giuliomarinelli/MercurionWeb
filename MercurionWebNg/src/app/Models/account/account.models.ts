@@ -28,6 +28,11 @@ export interface ProfileDTO {
 
 export type MfaStrategy = 'EMAIL_OTP' | 'SMS_OTP' | 'APP_TOTP'
 
+export interface MfaStrategyDTO {
+  strategy: MfaStrategy
+  enabled: boolean
+}
+
 export interface SessionDTO {
     id : string
     createdAt: number

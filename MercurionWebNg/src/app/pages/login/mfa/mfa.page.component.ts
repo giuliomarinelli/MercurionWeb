@@ -12,7 +12,7 @@ import { AuthRedirectService } from '../../../services/auth-redirect.service';
 import { UserContextService } from '../../../services/context/user-context.service';
 import { SessionSyncService } from '../../../services/session-sync.service';
 import { ISessionDeviceInfo } from '../../../Models/auth/fingerprint.models';
-import { TotpBodyDTO } from '../../../Models/auth/totp-body.dto';
+import { TotpBodyDTO } from '../../../Models/auth/totp.models';
 import { ToastService } from '../../../services/toast.service';
 import { ClassicSpinnerComponent } from '../../../components/common/classic-spinner/classic-spinner.component';
 import { AppContextService } from '../../../services/context/app-context.service';

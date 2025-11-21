@@ -491,7 +491,7 @@ import { SensitiveDataChangeContextService } from '../../services/context/action
                               </h4>
                               <div class="flex flex-col gap-y-1">
                                 @for (s of enabledMfaStrategies; track s) {
-                                  <m-mfa-strategy-card [strategy]="s" />
+                                  <m-mfa-strategy-card [activeStrategies]="enabledMfaStrategies" [strategy]="s" />
                                 }
                               </div>
                             }

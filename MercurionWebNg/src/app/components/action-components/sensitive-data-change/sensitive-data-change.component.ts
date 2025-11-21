@@ -11,16 +11,21 @@ import { ToastService } from '../../../services/toast.service';
 import { FormControl, FormGroup, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { emailAvailabilityValidator } from '../../../custom-validators';
 import { AuthService } from '../../../services/auth.service';
+import { PhonePrefixDTO } from '../../../Models/country.models';
+import { CountryService } from '../../../services/country.service';
+import { PmSelectComponent } from '../../common/pm-select/pm-select.component';
+import { MfaStrategyCardComponent } from '../../common/mfa-strategy-card/mfa-strategy-card.component';
 
 @Component({
   selector: 'm-sensitive-data-change',
-  imports: [ClassicSpinnerComponent, ReactiveFormsModule],
+  imports: [
+    ClassicSpinnerComponent,
+    ReactiveFormsModule,
+    PmSelectComponent,
+    MfaStrategyCardComponent
+  ],
   template: `
-  <!-- 'EnableMfa'
-  | 'ConfigMfa'
-  | 'ChangeEmail'
-  | 'ChangePhone'
-  | 'AddPhone' -->
+
 
 <div class="flex justify-center items-center min-h-screen px-2">
   <div class="w-full max-w-5xl bg-white dark:bg-dark-surface-main rounded-xl shadow-lg">
@@ -60,7 +65,25 @@ import { AuthService } from '../../../services/auth.service';
       </button>
     </div>
     <div class="py-6 px-3 overflow-y-auto flex flex-col gap-4 min-h-[60vh] max-h-[60vh]">
-      <!-- body -->
+      @if ((innerScope() === 'EnableMfa' || innerScope() === 'ConfigMfa')) {
+        @if ((enableMfaStep() === 'CHOOSE_STRATEGY' || disableMfaStep() === 'CHOOSE_STRATEGY')) {
+          <h3 class="text-lg font-semibold mb-6">
+            Strategie di autenticazione a più fattori:
+          </h3>
+          <div class="flex flex-col gap-y-4">
+            @for (s of allMfaStrategies; track s) {
+              <m-mfa-strategy-card
+                [strategy]="s"
+                [activeStrategies]="enabledMfaStrategies()"
+                [showActions]="true"
+                (onEnableMfa)="handleEnableMfa($event)"
+                (onDisableMfa)="handleDisableMfa($event)"  />
+            }
+          </div>
+        } @else if (enableMfaStep() === 'OTP_VERIFICATION') {
+
+        }
+      }
     </div>
     <div class="my-4 mr-8 flex justify-end gap-2">
       @if (true) {
@@ -109,6 +132,7 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
   private readonly toast = inject(ToastService)
   private readonly fb = inject(NonNullableFormBuilder)
   private readonly authService = inject(AuthService)
+  private readonly countryService = inject(CountryService)
 
   emailCtrl!: FormControl
   phoneForm!: FormGroup
@@ -121,6 +145,8 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
 
   innerScope = signal<SensitiveDataChangeInnerScope>('')
 
+  allMfaStrategies: MfaStrategy[] = ['EMAIL_OTP', 'SMS_OTP', 'APP_TOTP']
+
   changeOrAddContactStep = signal<'NEW_CONTACT_FORM' | 'OTP_VERIFICATION' | 'OK_OR_ERROR' | ''>('')
   removePhoneStep = signal<'OTP_VERIFICATION' | 'OK_OR_ERROR' | ''>('')
   enableMfaStep = signal<'CHOOSE_STRATEGY' | 'APP:SCAN_QR_CODE_OR_COPY_SECRET' | 'OTP_VERIFICATION' | 'OK_OR_ERROR' | ''>('')
@@ -130,12 +156,15 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
   enabledMfaStrategies = signal<MfaStrategy[]>([])
   maskedEmail = signal<string>('')
   maskedPhone = signal<string>('')
+  phonePrefixes = signal<PhonePrefixDTO[]>([])
 
+  mfaStrategiesDescrMap!: Map<MfaStrategy, string>
 
 
   ngOnInit(): void {
     this.fetchSub = this.fluxStarter$.pipe(
       tap(() => {
+        this.mfaStrategiesDescrMap = this.authService.getMfaStrategiesDescrMap()
         this.emailCtrl = this.fb.control('', [Validators.required, Validators.pattern('todo')], emailAvailabilityValidator(this.authService))
         this.phoneForm = this.fb.group({
           prefix: this.fb.control('+39'),
@@ -201,9 +230,19 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
             this.close()
             return
         }
+      }),
+      switchMap(() => {
+        if (['ConfigMfa', 'EnableMfa', 'AddPhone', 'ChangePhone'].includes(this.innerScope())) {
+          return this.countryService.getAllPhonePrefixes()
+        }
+        return of(null)
       })
     ).subscribe({
-      next: () => { /* pass */ },
+      next: (res) => {
+        if (res != null) {
+          this.phonePrefixes.set(res)
+        }
+      },
       error: (e: HttpErrorResponse) => {
         queueMicrotask(() => {
           this.toast.trigger('Si è verificato un errore.', 'error', 3000)
@@ -211,7 +250,6 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
         })
       }
     })
-
 
   }
 
@@ -222,6 +260,16 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
   close(): void {
     this.dataChangeContext.clearInnerScope()
     this.actionContext.close()
+  }
+
+  handleEnableMfa(s: MfaStrategy): void {
+    this.disableMfaStep.set('')
+    this.enableMfaStep.set(s === 'APP_TOTP' ? 'APP:SCAN_QR_CODE_OR_COPY_SECRET' : 'OTP_VERIFICATION')
+  }
+
+  handleDisableMfa(s: MfaStrategy): void {
+    this.enableMfaStep.set('')
+    this.disableMfaStep.set('OTP_VERIFICATION')
   }
 
 }
