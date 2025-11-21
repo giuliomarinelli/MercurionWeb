@@ -10,6 +10,8 @@ import { SessionCardComponent } from '../../components/common/session-card/sessi
 import { AuthService } from '../../services/auth.service';
 import { MfaStrategyCardComponent } from '../../components/common/mfa-strategy-card/mfa-strategy-card.component';
 import { AppContextService } from '../../services/context/app-context.service';
+import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
+import { SensitiveDataChangeContextService } from '../../services/context/action-context/sensitive-data-change-context.service';
 
 
 @Component({
@@ -348,7 +350,7 @@ import { AppContextService } from '../../services/context/app-context.service';
                               <div class="p-2 sm:p-4"><strong>{{profile.job ?? '―'}}</strong></div>
                             </div>
                             <button class="absolute right-6 top-6 cursor-pointer transition-[transform,color] duration-300 hover:scale-[1.075]"
-                              title="Modifica anagrafica">
+                              title="Modifica anagrafica" (click)="editAnagraphics()">
                               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-[22px] w-auto fill-current text-slate-800 hover:text-slate-800/75 dark:text-slate-200 dark:hover:text-slate-200/75">
                                 <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                                 <path d="M58.1 555.9L48 592C50.7 591.2 117.4 572.6 248 536L569.4 214.6L592 192C589.6 189.6 549.1 149.1 470.6 70.6L448 48L425.4 70.6L104 392L58.1 555.9zM252.7 486L154 387.3L347.4 193.9L446.1 292.6L252.7 486zM229.4 508L94.2 545.8L132 410.6L229.4 508zM546.7 192L468.6 270.1L369.9 171.4L448 93.3L546.7 192z"/>
@@ -361,7 +363,7 @@ import { AppContextService } from '../../services/context/app-context.service';
                               <div class="p-2 sm:p-4 sm:col-span-2 flex justify-between items-center">
                                 <strong>{{profile.obscuredEmail}}</strong>
                                   <button class="cursor-pointer transition-[transform,color] duration-300 hover:scale-[1.075]"
-                                    title="Modifica e-mail">
+                                    title="Modifica e-mail" (click)="changeEmail()">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-[22px] w-auto fill-current text-slate-800 hover:text-slate-800/75 dark:text-slate-200 dark:hover:text-slate-200/75">
                                     <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                                     <path d="M58.1 555.9L48 592C50.7 591.2 117.4 572.6 248 536L569.4 214.6L592 192C589.6 189.6 549.1 149.1 470.6 70.6L448 48L425.4 70.6L104 392L58.1 555.9zM252.7 486L154 387.3L347.4 193.9L446.1 292.6L252.7 486zM229.4 508L94.2 545.8L132 410.6L229.4 508zM546.7 192L468.6 270.1L369.9 171.4L448 93.3L546.7 192z"/>
@@ -375,7 +377,7 @@ import { AppContextService } from '../../services/context/app-context.service';
                                 <strong>{{profile.obscuredPhone ?? '―'}}</strong>
                                   @if (profile.obscuredPhone) {
                                     <button class="cursor-pointer transition-[transform,color] duration-300 hover:scale-[1.075]"
-                                      title="Modifica numero di telefono">
+                                      title="Modifica numero di telefono" (click)="changePhone()">
                                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-[22px] w-auto fill-current text-slate-800 hover:text-slate-800/75 dark:text-slate-200 dark:hover:text-slate-200/75 transition-colors duration-300">
                                         <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                                         <path d="M58.1 555.9L48 592C50.7 591.2 117.4 572.6 248 536L569.4 214.6L592 192C589.6 189.6 549.1 149.1 470.6 70.6L448 48L425.4 70.6L104 392L58.1 555.9zM252.7 486L154 387.3L347.4 193.9L446.1 292.6L252.7 486zM229.4 508L94.2 545.8L132 410.6L229.4 508zM546.7 192L468.6 270.1L369.9 171.4L448 93.3L546.7 192z"/>
@@ -383,7 +385,7 @@ import { AppContextService } from '../../services/context/app-context.service';
                                     </button>
                                   } @else {
                                     <button class="cursor-pointer transition-[transform,color] duration-300 hover:scale-[1.075] border border-slate-300 dark:border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-700"
-                                      title="Aggiungi un numero di telefono">
+                                      title="Aggiungi un numero di telefono" (click)="addPhone()">
                                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-[22px] w-auto fill-current text-slate-800 hover:text-slate-800/75 dark:text-slate-200 dark:hover:text-slate-200/75 transition-colors duration-300">
                                         <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                                         <path d="M336 112L336 96L304 96L304 304L96 304L96 336L304 336L304 544L336 544L336 336L544 336L544 304L336 304L336 112z"/>
@@ -491,6 +493,8 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly router = inject(Router)
   private readonly authService = inject(AuthService)
   private readonly appContext = inject(AppContextService)
+  private readonly actionContext = inject(ActionOverlayContextService)
+  private readonly changeDataContext = inject(SensitiveDataChangeContextService)
 
   @ViewChild(CdkAccordion)
   accordion!: CdkAccordion
@@ -653,11 +657,42 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   doEnableMfa(): void {
-
+    queueMicrotask(() => {
+      this.changeDataContext.setInnerScope('EnableMfa')
+      this.actionContext.open('SensitiveDataChange')
+    })
   }
 
   doConfigMfa(): void {
+    queueMicrotask(() => {
+      this.changeDataContext.setInnerScope('ConfigMfa')
+      this.actionContext.open('SensitiveDataChange')
+    })
+  }
 
+  editAnagraphics(): void {
+
+  }
+
+  changeEmail(): void {
+    queueMicrotask(() => {
+      this.changeDataContext.setInnerScope('ChangeEmail')
+      this.actionContext.open('SensitiveDataChange')
+    })
+  }
+
+  changePhone(): void {
+    queueMicrotask(() => {
+      this.changeDataContext.setInnerScope('ChangePhone')
+      this.actionContext.open('SensitiveDataChange')
+    })
+  }
+
+  addPhone(): void {
+    queueMicrotask(() => {
+      this.changeDataContext.setInnerScope('AddPhone')
+      this.actionContext.open('SensitiveDataChange')
+    })
   }
 
 }

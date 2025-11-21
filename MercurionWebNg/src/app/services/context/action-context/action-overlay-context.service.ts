@@ -1,7 +1,5 @@
-import { KetcherFrameMode } from '../../../components/chem/ketcher-frame/ketcher-frame.component';
 import { Injectable, signal, effect, inject } from '@angular/core';
 import { ActionScope } from '../../../Models/action/action-overlay.models';
-import { CustomMoleculeCollectionItemSaveComponent } from '../../../components/action-components/custom-molecule-collection-item-save/custom-molecule-collection-item-save.component';
 
 
 @Injectable({ providedIn: 'root' })
