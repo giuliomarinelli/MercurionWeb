@@ -47,7 +47,8 @@ const AppConfig = registerAs(
         sessionSignatureSecret: process.env.APP_SESSION_SIGNATURE_SECRET!,
         passwordPepper: process.env.APP_PASSWORD_PEPPER!,
         redisIdHmacSecret: process.env.APP_REDIS_ID_HMAC_SECRET!,
-        AES_secret: process.env.APP_AES_SECRET!
+        AES_secret: process.env.APP_AES_SECRET!,
+        version: process.env.APP_VERSION!
     })
 )
 

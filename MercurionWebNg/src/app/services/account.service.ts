@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { ChangePasswordDTO, ProfileDTO, UserData } from '../Models/account/account.models';
+import { ChangePasswordDTO, MfaStrategy, ProfileDTO, SessionDTO, UserData } from '../Models/account/account.models';
 import { Observable, of, tap } from 'rxjs';
 import { ConfirmDTO } from '../Models/confirm.models';
 import { ConfirmWithObsContDTO } from '../Models/confirm.models';
@@ -84,9 +84,34 @@ export class AccountService {
     })
   }
 
-  public getProfileRegistry(): Observable<ProfileDTO> {
-    return this.http.get<ProfileDTO>('/api/account/profile-registry', {
+  public getProfileRegistry(getRecentHistory = true): Observable<ProfileDTO> {
+    const suffix = getRecentHistory ? '' : '?get_recent_history=false'
+    return this.http.get<ProfileDTO>(`/api/account/profile-registry${suffix}`, {
       withCredentials: true
+    })
+  }
+
+  public isMfaEnabled(): Observable<boolean> {
+    return this.http.get<boolean>('/api/account/is-mfa-enabled', {
+      withCredentials: true
+    })
+  }
+
+  public getEnabledMfaStrategies(): Observable<MfaStrategy[]> {
+    return this.http.get<MfaStrategy[]>('/api/account/mfa-active-strategies', {
+      withCredentials: true
+    })
+  }
+
+  public getActiveSessions(): Observable<SessionDTO[]> {
+    return this.http.get<SessionDTO[]>('/api/account/active-sessions', {
+      withCredentials: true
+    })
+  }
+
+  public getCurrentVersion(): Observable<string> {
+    return this.http.get('/api/account/current-version', {
+      responseType: 'text'
     })
   }
 

@@ -61,7 +61,7 @@ export async function bootstrap() {
     options: { servers: [natsUrl] },
   })
 
-  app.useGlobalFilters(new HttpExceptionFilter())
+  app.useGlobalFilters(new HttpExceptionFilter(loggerFactory))
   app.setGlobalPrefix('api')
 
   await app.register(helmet, {
@@ -241,7 +241,9 @@ export async function bootstrap() {
     appUrl.slice(lastColonIndex + 1) +
     '\x1b[0m'
 
-  logger.log(`MercurionWebNode started in \x1b[36m${env!.toUpperCase()} \x1b[32menvironment`)
+  const envUc = env?.toUpperCase() ?? 'DEVELOPMENT'
+
+  logger.log(`MercurionWebNode started in \x1b[36m${envUc} \x1b[32menvironment`)
 
   logger.log(`Fastify listening on ${coloredUrl}`)
 

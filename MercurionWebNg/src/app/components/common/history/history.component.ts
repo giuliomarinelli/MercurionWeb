@@ -42,7 +42,7 @@ import { AppContextService } from '../../../services/context/app-context.service
   `,
   template: `
     @if (items().length) {
-      <div [ngClass]="fadeOut()">
+      <div [ngClass]="fadeOut()" class="pb-36 xs:pb-4 lg:pb-0">
         @for (item of items(); track item.id) {
           <app-history-item [historyDTO]="item" class="block" />
         }

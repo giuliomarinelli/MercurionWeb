@@ -44,7 +44,7 @@ type ChartPalette = {
   standalone: true,
   imports: [ClassicSpinnerComponent],
   template: `
-    <section class="main-container py-8">
+    <section class="main-container py-8 cursor-default">
       @if (profile) {
 
         <!-- HEADER UTENTE -->
@@ -71,7 +71,7 @@ type ChartPalette = {
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div
               class="rounded-lg border border-slate-300/70 dark:border-slate-700/70
-                     bg-blue-100 dark:bg-[#050816] px-4 py-4 shadow-sm">
+                     bg-blue-50 dark:bg-[#050816] px-4 py-4 shadow-sm">
               <p class="text-sm text-neutral-950 dark:text-slate-400 font-semibold">
                 Totale molecole
               </p>
@@ -82,7 +82,7 @@ type ChartPalette = {
 
             <div
               class="rounded-lg border border-slate-300/70 dark:border-slate-700/70
-                     bg-blue-100 dark:bg-[#050816] px-4 py-4 shadow-sm">
+                     bg-blue-50 dark:bg-[#050816] px-4 py-4 shadow-sm">
               <p class="text-sm text-neutral-950 dark:text-slate-400 font-semibold">
                 Molecole personali
               </p>
@@ -93,7 +93,7 @@ type ChartPalette = {
 
             <div
               class="rounded-lg border border-slate-300/70 dark:border-slate-700/70
-                     bg-blue-100 dark:bg-[#050816] px-4 py-4 shadow-sm">
+                     bg-blue-50 dark:bg-[#050816] px-4 py-4 shadow-sm">
               <p class="text-sm text-neutral-950 dark:text-slate-400 font-semibold">
                 Molecole ChEMBL
               </p>
@@ -104,7 +104,7 @@ type ChartPalette = {
 
             <div
               class="rounded-lg border border-slate-300/70 dark:border-slate-700/70
-                     bg-blue-100 dark:bg-[#050816] px-4 py-4 shadow-sm">
+                     bg-blue-50 dark:bg-[#050816] px-4 py-4 shadow-sm">
               <p class="text-sm text-neutral-950 dark:text-slate-400 font-semibold">
                 Collezioni
               </p>
@@ -117,9 +117,9 @@ type ChartPalette = {
           <!-- DOUGHNUT -->
           <div
             class="rounded-lg border border-slate-300/70 dark:border-slate-700/70
-                  bg-blue-100 dark:bg-[#050816] px-4 py-4 shadow-sm
+                  bg-blue-50 dark:bg-[#050816] px-4 py-4 shadow-sm
                    h-[260px] sm:h-[300px]">
-            <h2 class="text-sm font-semibold mb-2 text-slate-200">
+            <h2 class="text-sm font-semibold mb-2 text-neutral-950 dark:text-slate-200">
               Composizione workspace
             </h2>
             <div class="relative h-[210px] sm:h-[250px]">
@@ -132,9 +132,9 @@ type ChartPalette = {
         <section class="mx-auto max-w-5xl mt-12">
           <div
             class="rounded-lg border border-slate-300/70 dark:border-slate-700/70
-                   bg-blue-100 dark:bg-[#050816] px-4 py-4 shadow-sm
+                   bg-blue-50 dark:bg-[#050816] px-4 py-4 shadow-sm
                    h-[260px] sm:h-[360px]">
-            <h2 class="text-sm font-semibold mb-2 text-slate-200">
+            <h2 class="text-sm font-semibold mb-2 text-neutral-950 dark:text-slate-200">
               Attività recente
             </h2>
             <p class="text-xs text-neutral-950 dark:text-slate-300 mb-2">

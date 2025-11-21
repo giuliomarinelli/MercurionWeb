@@ -1,15 +1,13 @@
-import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, CanActivate, CanActivateChild, GuardResult, MaybeAsync, Router, RouterStateSnapshot, UrlTree } from '@angular/router';
-import { ToastService } from '../services/toast.service';
+import { inject, Injectable } from '@angular/core';
+import { CanActivate, Router, UrlTree } from '@angular/router';
+
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthGuard implements CanActivate {
 
-  constructor(
-    private readonly router: Router
-  ) {}
+  private readonly router = inject(Router)
 
   canActivate(): boolean | UrlTree {
 
@@ -17,11 +15,12 @@ export class AuthGuard implements CanActivate {
 
     const isValid = login && (login.length === 1 || login.length === 2)
 
-    if (isValid) return true
-
-    sessionStorage?.setItem('RouteError', 'AccessDenied')
+    if (isValid) {
+      return true
+    }
 
     return this.router.parseUrl('/login')
+
   }
 
 }

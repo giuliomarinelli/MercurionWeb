@@ -134,6 +134,7 @@ export class GlobalGuard implements CanActivate {
          return true
 
       } catch (e) {
+         this.logger.debug(`Authentication/Authorization error`, (e?.stack ?? e) as object)
          if (e instanceof RpcException && e.message === 'Forbidden::missing permissions') {
             throw new UnauthorizedException(e.message)
          }

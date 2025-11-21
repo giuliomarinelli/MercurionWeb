@@ -8,7 +8,7 @@ import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@a
 import { APP_BASE_HREF } from '@angular/common';
 import { provideAnimations } from '@angular/platform-browser/animations'
 import { NgxSpinnerModule } from 'ngx-spinner';
-import { AuthInterceptor } from './interceptors/auth-interceptor.interceptor';
+import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { AuthFallbackInterceptor } from './interceptors/auth-fallback.interceptor';
 
 
@@ -29,7 +29,7 @@ export const appConfig: ApplicationConfig = {
       provide: APP_BASE_HREF,
       useValue: '/m'
     },
-    provideAnimations(),
+    provideAnimations(), // @angular/animations è deprecato dalla v20.2, pacchetto legacy che verrà ritirato a novembre 2026 => usare enter/leave + CSS come nuova alternativa
     importProvidersFrom(NgxSpinnerModule),
     {
       provide: HTTP_INTERCEPTORS,

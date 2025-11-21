@@ -20,6 +20,7 @@ import { SessionService } from '../services/session.service';
 import { SessionDTO } from '../Models/DTO/session.dto';
 import { BackupCodeStatusDTO } from 'src/app_modules/user/Models/DTO/backup-code-status.dto';
 import { RpcException } from '@nestjs/microservices';
+import { ConfigService } from '@nestjs/config';
 
 
 
@@ -32,7 +33,8 @@ export class AccountController {
         private readonly mfaService: MfaService,
         private readonly userService: UserService,
         private readonly securityService: SercurityService,
-        private readonly sessionService: SessionService
+        private readonly sessionService: SessionService,
+        private readonly configService: ConfigService
     ) { }
 
     @Public()
@@ -201,8 +203,11 @@ export class AccountController {
     }
 
     @Get('/profile-registry')
-    async getProfileRegistry(@AuthenticatedUserId() userId: UUID): Promise<ProfileDTO> {
-        const result = await this.userService.getVerifiedUserProfileById(userId)
+    async getProfileRegistry(
+        @AuthenticatedUserId() userId: UUID,
+        @Query('get_recent_history') getRecentHistory = 'true'
+    ): Promise<ProfileDTO> {
+        const result = await this.userService.getVerifiedUserProfileById(userId, getRecentHistory === 'true')
         if (!result) {
             throw new NotFoundException('UserNotFound')
         }
@@ -256,11 +261,28 @@ export class AccountController {
 
         const codes = await this.mfaService.regenerateBackupCodes(userId)
 
-        // volendo puoi anche loggare un evento di sicurezza o mandare email
+        // volendo si può anche loggare un evento di sicurezza o mandare email
         // "Sono stati rigenerati i codici di backup del tuo account"
         // TODO
 
         return { codes }
     }
-    
+
+    @Get('/is-mfa-enabled')
+    public async isMfaEnabled(@AuthenticatedUserId() userId: UUID): Promise<boolean> {
+        return this.mfaService.isMfaEnabled(userId)
+    }
+
+    @Get('/mfa-active-strategies')
+    public async getMfaActiveStrategies(@AuthenticatedUserId() userId: UUID): Promise<string[]> {
+        return (await this.mfaService.getEnabledMfaStrategies(userId))
+            .map((val) => GeneralUtils.getEnumKeyByValue(MfaStrategy, val))
+            .filter((key) => key != undefined)
+    }
+
+    @Get('/current-version')
+    public getCurrentVersion(): string {
+        return this.configService.get<string>('App.version')!
+    }
+
 }

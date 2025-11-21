@@ -113,7 +113,7 @@ export class SessionService {
         return sessionId as UUID
     }
 
-    private convertSessionToDTO(session: ISession, current = false, showValid = false): SessionDTO {
+    private convertSessionToDTO(session: ISession, current = false, showValid = true): SessionDTO {
         return ({
             id: this.signSessionId(session.sessionId),
             createdAt: session.createdAt,
@@ -243,7 +243,7 @@ export class SessionService {
                     valid: JSON.parse(sd.valid) as boolean,
                     sessionDeviceInfo: JSON.parse(sd.sessionDeviceInfo) as ISessionDeviceInfo,
                     fingerprint: sd.fingerprint,
-                    location: sd.location,
+                    location: sd.location
                 }
                 return s
             } catch {

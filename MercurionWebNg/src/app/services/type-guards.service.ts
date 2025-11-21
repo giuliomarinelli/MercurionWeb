@@ -39,4 +39,28 @@ export class TypeGuardsService {
     return typeof item === 'string'
   }
 
+  isNotNullish<T>(item: T | null | undefined): item is T {
+    return item != null
+  }
+
+  isNullish<T>(item: T | null | undefined): item is null | undefined {
+    return item == null
+  }
+
+  isNotNull<T>(item: T | null): item is T {
+    return item !== null
+  }
+
+  isNotUndefined<T>(item: T | null): item is T {
+    return item !== undefined
+  }
+
+  isUndefined<T>(item: T | null | undefined): item is undefined {
+    return item === undefined
+  }
+
+  isNull<T>(item: T | null | undefined): item is null {
+    return item === null
+  }
+
 }

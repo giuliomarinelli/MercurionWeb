@@ -8,7 +8,6 @@ import { RpcException } from '@nestjs/microservices';
 import { UUID } from 'crypto';
 import { nullish } from 'src/Models/nullish.type';
 import { MfaStrategy } from '../Models/enums/mfa-strategy.enum';
-import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { IAuth } from 'src/app_modules/auth/Models/interfaces/i-auth.interface';
 import { PasswordEncoderService } from 'src/app_modules/auth/services/password-encoder.service';
 import { OldPasswordItem } from '../Models/DTO/old-password-item.interface';
@@ -20,12 +19,14 @@ import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interface
 import { ScopeService } from 'src/app_modules/auth/services/scope.service';
 import { MoleculeCollectionItemEntity } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection-item.entity';
 import { HistoryService } from 'src/app_modules/history/services/history.service';
+import { HistoryDTO } from 'src/app_modules/history/Models/DTO/history.dto';
 
 
 @Injectable()
 export class UserService {
 
     private readonly logger: MeiliContextLogger
+    private readonly mfaStrategyVals = Object.values(MfaStrategy)
 
     constructor(
         @InjectRepository(User) private userRepository: Repository<User>,
@@ -110,7 +111,7 @@ export class UserService {
         }
     }
 
-    public async getUserEnabledMfaStrategies(id: UUID): Promise<MfaStrategy[]> {
+    public async getUserEncryptedEnabledMfaStrategies(id: UUID): Promise<string[]> {
 
         if (!await this.existsUserById(id)) {
             throw new RpcException('MfaSettings::User not found')
@@ -122,8 +123,8 @@ export class UserService {
             .getOne() as User
 
         return (JSON.parse(rawMfaStrategies) as string[])
-            .map(uuid => GeneralUtils.getEnumValue(MfaStrategy, uuid))
-            .filter(val => val != undefined)
+            .filter(Boolean)
+            .filter((s) => this.mfaStrategyVals.includes(this.securityService.decrypt_AES256(s) as MfaStrategy))
 
     }
 
@@ -227,15 +228,21 @@ export class UserService {
     }
 
     public async appendMfaStrategy(id: UUID, strategy: MfaStrategy): Promise<void> {
-        const currentStrategies: MfaStrategy[] = await this.getUserEnabledMfaStrategies(id)
+        const currentStrategies: MfaStrategy[] = (await this.getUserEncryptedEnabledMfaStrategies(id))
+            .map((s) => this.securityService.decrypt_AES256(s) as MfaStrategy)
+            .filter((s) => this.mfaStrategyVals.includes(s))
         const updatedStrategies = Array.from(new Set([...currentStrategies, strategy]))
+            .map((s) => this.securityService.encrypt_AES256(s))
         const mfaStrategies = JSON.stringify(updatedStrategies)
         await this.updateUser(id, { mfaStrategies })
     }
 
     public async removeMfaStrategy(id: UUID, strategy: MfaStrategy): Promise<void> {
-        const currentStrategies: MfaStrategy[] = await this.getUserEnabledMfaStrategies(id)
+        const currentStrategies: MfaStrategy[] = (await this.getUserEncryptedEnabledMfaStrategies(id))
+            .map((s) => this.securityService.decrypt_AES256(s) as MfaStrategy)
+            .filter((s) => this.mfaStrategyVals.includes(s))
         const updated = currentStrategies.filter(s => s !== strategy)
+            .map((s) => this.securityService.encrypt_AES256(s))
         const userProps: Partial<User> = {
             mfaStrategies: JSON.stringify(updated)
         }
@@ -317,7 +324,7 @@ export class UserService {
         })
     }
 
-    async getVerifiedUserProfileById(id: UUID): Promise<ProfileDTO | null> {
+    async getVerifiedUserProfileById(id: UUID, getRecentHistory = true): Promise<ProfileDTO | null> {
 
         try {
             return this.dataSource.manager.transaction(async (manager) => {
@@ -361,14 +368,18 @@ export class UserService {
                     }
                 })
 
-                const { items: recentHistory } = await this.historyService.getPaginatedHistoryWithManager(
-                    id,
-                    {
-                        limit: 200,
-                        page: 1
-                    },
-                    manager
-                )
+                let recentHistory: HistoryDTO[] = []
+
+                if (getRecentHistory) {
+                     ({ items: recentHistory } = await this.historyService.getPaginatedHistoryWithManager(
+                        id,
+                        {
+                            limit: 200,
+                            page: 1
+                        },
+                        manager
+                    ))
+                }
 
                 const result: ProfileDTO = {
                     firstName,

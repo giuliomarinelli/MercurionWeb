@@ -10,12 +10,21 @@ import { RpcException } from '@nestjs/microservices';
 import { HttpStatusMap } from './http-status-map';
 import { GqlContextType } from '@nestjs/graphql';
 import { InternalErrorRes } from 'src/Models/error-res.dto';
+import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { randomBytes } from 'node:crypto';
 
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
 
-    private readonly isProd = process.env.NODE_ENV === 'production'
+    private readonly logger: MeiliContextLogger
+
+    constructor(loggerFactory: MeiliLoggerService) {
+        this.logger = loggerFactory.forContext(HttpExceptionFilter.name)
+    }
+
+    private readonly isNotDev = process.env.NODE_ENV !== 'development'
 
     catch(e: unknown, host: ArgumentsHost) {
 
@@ -30,34 +39,36 @@ export class HttpExceptionFilter implements ExceptionFilter {
         let base: InternalErrorRes
 
         if (e instanceof RpcException) {
-            base = this.handleRpcException(e);
+            base = this.handleRpcException(e)
         } else if (e instanceof HttpException) {
-            base = this.handleHttpException(e);
+            base = this.handleHttpException(e)
         } else {
-            // qualunque altra eccezione: 500 generico
+            this.logger.warn('Unhandled Internal Error', e as object)
             base = {
                 statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
                 error: HttpStatusMap.getDescriptionFromHttpStatusCode(HttpStatus.INTERNAL_SERVER_ERROR,),
-                message: (this.isProd ? 'Internal server error' : (e as any).message ?? 'Internal server error') as string
+                message: (this.isNotDev ? 'Internal server error' : (e as any).message ?? 'Internal server error') as string
             }
         }
 
         const status = base.statusCode ?? HttpStatus.INTERNAL_SERVER_ERROR;
 
         // in prod, per tutti i 5xx => messaggio generico
-        const safeBase: InternalErrorRes = this.isProd && status >= 500
+        const safeBase: InternalErrorRes = this.isNotDev && status >= 500
             ? {
                 statusCode: status,
                 error: base.error ?? HttpStatusMap.getDescriptionFromHttpStatusCode(status),
                 message: 'Internal server error'
             }
-            : base;
+            : base
+
+        const reqIdSuffix = randomBytes(16).toString('hex')
 
         res.code(status).send({
             ...safeBase,
             timestamp: new Date().toISOString(),
             path: req.url,
-            requestId: req.id
+            requestId: `${req.id}-${reqIdSuffix}`
         })
     }
 
@@ -70,7 +81,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
             return {
                 statusCode: status,
                 error: HttpStatusMap.getDescriptionFromHttpStatusCode(status),
-                message: this.isProd && status >= 500 ? undefined : resp
+                message: this.isNotDev && status >= 500 ? undefined : resp
             }
         }
 

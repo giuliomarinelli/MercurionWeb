@@ -62,7 +62,7 @@ export class SearchInputComponent implements AfterViewInit {
   // ⛔️ rimosso l'effect nel constructor: emetteva troppo presto
 
   constructor() {
-    const query$ = toObservable(this.query);
+    const query$ = toObservable(this.query)
 
     query$
       .pipe(
