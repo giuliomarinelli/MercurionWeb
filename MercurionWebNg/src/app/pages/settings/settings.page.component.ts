@@ -1,6 +1,6 @@
-import { AfterViewInit, Component, effect, inject, OnDestroy, OnInit, QueryList, signal, ViewChild, ViewChildren } from '@angular/core'
+import { AfterViewInit, Component, effect, ElementRef, inject, OnDestroy, OnInit, QueryList, signal, ViewChild, ViewChildren } from '@angular/core'
 import { CdkAccordion, CdkAccordionItem, CdkAccordionModule } from '@angular/cdk/accordion'
-import { EMPTY, Observable, of, startWith, Subscription, switchMap } from 'rxjs'
+import { EMPTY, filter, Observable, of, startWith, Subscription, switchMap } from 'rxjs'
 import { AccountService } from '../../services/account.service'
 import { MfaStrategy, ProfileDTO, SessionDTOExt } from '../../Models/account/account.models'
 import { ToastService } from '../../services/toast.service'
@@ -11,7 +11,7 @@ import { MfaStrategyCardComponent } from '../../components/common/mfa-strategy-c
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service'
 import { SensitiveDataChangeContextService } from '../../services/context/action-context/sensitive-data-change-context.service'
 import { AppContextService } from '../../services/context/app-context.service'
-import { Router } from '@angular/router'
+import { ActivatedRoute, Router } from '@angular/router'
 
 @Component({
   selector: 'm-settings.page',
@@ -71,12 +71,12 @@ import { Router } from '@angular/router'
         <div class="flex flex-col justify-between">
           <cdk-accordion class="flex flex-col w-full border border-slate-300 dark:border-slate-500">
             @for (item of items; track item; let i = $index) {
-              <cdk-accordion-item #accordionItem="cdkAccordionItem">
+              <cdk-accordion-item #accordionItem="cdkAccordionItem" (opened)="onAccordionOpened(i)">
                 <div class="border-b border-slate-300 dark:border-slate-500" [class.border-b-0]="i === items.length - 1">
                   <button
                     type="button"
                     [id]="computeId(i)"
-                    class="scroll-mt-[140px]
+                    class="
                       w-full p-4 bg-slate-200 dark:bg-slate-800
                       text-start flex items-center justify-between
                       hover:bg-slate-200/75 dark:hover:bg-slate-800/75
@@ -530,6 +530,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly accountService = inject(AccountService)
   private readonly toast = inject(ToastService)
   private readonly router = inject(Router)
+  private readonly route = inject(ActivatedRoute)
   private readonly authService = inject(AuthService)
   private readonly actionContext = inject(ActionOverlayContextService)
   private readonly changeDataContext = inject(SensitiveDataChangeContextService)
@@ -540,6 +541,11 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
   @ViewChildren(CdkAccordionItem)
   accordionItems!: QueryList<CdkAccordionItem>
+
+  @ViewChildren(CdkAccordionItem, { read: ElementRef })
+  accordionItemHosts!: QueryList<ElementRef<HTMLElement>>
+
+  scrollRootRef!: ElementRef<HTMLElement>
 
   pipeStarter$: Observable<null> = of(null)
 
@@ -554,11 +560,14 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
   items = ['Generali', 'Anagrafica', 'Contatti', 'Sicurezza']
   private readonly accordionAnchors = ['general', 'personal_details', 'contact_details', 'security']
+  private pendingIndex: number | null = null
 
   private fetchSub?: Subscription
   private sLoguotSub?: Subscription
   private allLoguotSub?: Subscription
   private viewSub?: Subscription
+  private fragmentSub?: Subscription
+
 
   constructor() {
     effect(() => {
@@ -568,28 +577,53 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
       }
       this.fetch(true)
     })
+    effect(() => {
+      const rootRef = this.appContext.globalScollRootRef()
+      if (!rootRef) {
+        return
+      }
+      this.scrollRootRef = rootRef
+    })
   }
 
   ngOnInit(): void {
     this.fetch()
+    this.fragmentSub = this.route.fragment
+      .pipe(startWith(this.route.snapshot.fragment))
+      .subscribe((frag) => this.applyFragment(frag))
   }
 
   ngAfterViewInit(): void {
+    this.appContext.notifyRequestGlobalScrollRootRefTick()
+
     this.viewSub = this.accordionItems.changes
       .pipe(startWith(this.accordionItems))
       .subscribe(items => {
         const arr = items.toArray()
-        if (arr.length) {
-          this.openAccordionAtIndex(0, { closeOthers: true })
-        }
+        if (!arr.length) return
+
+        queueMicrotask(() => {
+          const currentFrag = this.route.snapshot.fragment
+
+          if (!currentFrag) {
+            // ✅ fallback SOLO all'avvio se non c'è fragment
+            this.openAccordionAtIndex(0, { closeOthers: true })
+            return
+          }
+
+          this.applyFragment(currentFrag)
+        })
       })
   }
+
+
 
   ngOnDestroy(): void {
     this.fetchSub?.unsubscribe()
     this.sLoguotSub?.unsubscribe()
     this.allLoguotSub?.unsubscribe()
     this.viewSub?.unsubscribe()
+    this.fragmentSub?.unsubscribe()
   }
 
   private fetch(rerender = false): void {
@@ -635,7 +669,9 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private openAccordionAtIndex(index: number | null, opts?: { closeOthers?: boolean }): void {
     const items = this.accordionItems?.toArray() ?? []
-    if (!items.length) return
+    if (!items.length) {
+      return
+    }
 
     const closeOthers = opts?.closeOthers ?? true
 
@@ -657,25 +693,61 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
     })
   }
 
-  handleAccordionClick(index: number): void {
+  handleAccordionClick(i: number): void {
     const items = this.accordionItems?.toArray() ?? []
-    const item = items[index]
+    const item = items[i]
     if (!item) return
+
+    const fragment = this.accordionAnchors[i] ?? this.accordionAnchors[0]
 
     if (item.expanded) {
       item.close()
+      this.router.navigate([], {
+        relativeTo: this.route,
+        fragment: undefined,
+        replaceUrl: true,
+        queryParamsHandling: 'preserve'
+      })
       return
     }
 
-    this.openAccordionAtIndex(index, { closeOthers: true })
-
-    this.appContext.triggerScrollToTopGlobally()
+    this.router.navigate(['/settings'], {
+      fragment,
+      queryParamsHandling: 'preserve'
+    })
   }
 
-  // usato dal bottone "Vai alle impostazioni di sicurezza"
+
+
+
+  onAccordionOpened(i: number): void {
+    setTimeout(() => {
+      const hosts = this.accordionItemHosts.toArray()
+      const itemEl = hosts[i]?.nativeElement
+      const scrollRoot = this.scrollRootRef?.nativeElement
+      if (!itemEl || !scrollRoot) {
+        return
+      }
+
+      const btn = itemEl.querySelector('button') as HTMLElement | null
+      const targetEl = btn ?? itemEl
+
+      const headerOffset = this.appContext.headerHeight() - 48
+      const y = this.appContext.getScrollYRelativeToRoot(targetEl, scrollRoot) - headerOffset
+
+      this.appContext.smoothTo(this.scrollRootRef, y, 240)
+    }, 310)
+  }
+
   switchToAccordionItem(index: number, _opts?: { currentIdx?: number; updateFragment?: boolean }): void {
-    this.handleAccordionClick(index)
+    const frag = this.computeId(index)
+    this.router.navigate([], {
+      relativeTo: this.route,
+      fragment: frag,
+      replaceUrl: true
+    })
   }
+
 
   getCurrentSessionBrowser(): string {
     return this.activeSessions.find(s => s.current)?.browser ?? '—'
@@ -774,5 +846,53 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   computeId(i: number): string {
     return this.accordionAnchors[i] ?? this.accordionAnchors[0]
   }
+
+  smoothToAccordionItem(i: number): void {
+    const hostRef = this.accordionItemHosts.get(i)
+    if (!hostRef || !this.scrollRootRef) return
+
+    const hostEl = hostRef.nativeElement
+    const btn = hostEl.querySelector('button') as HTMLElement | null
+    const targetEl = btn ?? hostEl
+
+    const rootEl = this.scrollRootRef.nativeElement
+
+    const rootStyle = getComputedStyle(rootEl)
+    const padTop = parseFloat(rootStyle.paddingTop || '0')
+
+    const headerOffset = this.appContext.headerHeight() // SOLO header
+    const y =
+      this.appContext.getScrollYRelativeToRoot(targetEl, rootEl)
+      - headerOffset
+      - padTop        // <-- toglie il p-4 reale
+    // (se vuoi 4-8px di respiro, sottrai ancora un filo)
+
+    this.appContext.smoothTo(this.scrollRootRef, y, 240)
+  }
+
+  private indexFromFragment(frag: string | null | undefined): number {
+    if (!frag) return 0
+    const idx = this.accordionAnchors.indexOf(frag)
+    return idx === -1 ? 0 : idx
+  }
+
+  private applyFragment(frag: string | null | undefined): void {
+    // ✅ se non c'è fragment: chiudi tutto e non riaprire niente
+    if (!frag) {
+      this.openAccordionAtIndex(null, { closeOthers: true })
+      return
+    }
+
+    const idx = this.indexFromFragment(frag)
+    this.pendingIndex = idx
+
+    const itemsArr = this.accordionItems?.toArray() ?? []
+    if (!itemsArr.length) return
+
+    this.openAccordionAtIndex(idx, { closeOthers: true })
+  }
+
+
+
 
 }
