@@ -208,8 +208,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     this.routeSub = this.router.events
       .pipe(filter((e) => e instanceof NavigationEnd))
       .subscribe((e: NavigationEnd) => {
-        this.appContext.scrollToTop(this.scrollHostRef, 240); // chiamata reale
-
+        this.appContext.scrollToTop(this.scrollHostRef, 240)
         const url = normalize(e.urlAfterRedirects)
         // Toggle layout wrapper based on 404 route
         this.is_not_404_route.set(url !== '/404-not-found')

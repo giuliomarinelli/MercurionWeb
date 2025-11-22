@@ -31,15 +31,20 @@ type ErrorMap = Record<string, string>;
       [attr.aria-required]="isRequired() ? 'true' : null"
     />
 
-    <label
-      [attr.for]="id"
-      [ngClass]="{
-        'text-light-accent-secondary dark:text-dark-accent-secondary/90 scale-110 -translate-y-6 text-sm': activeLabel(),
-        'dark:text-slate-400 text-slate-500 text-lg scale-100 translate-y-0 cursor-text': !activeLabel()
-      }"
-      class="absolute transition-all duration-300 bg-light-surface-main dark:bg-neutral-950 px-1 top-[13px] left-4 origin-[0]">
-      {{ label }}
-    </label>
+      <label
+        [attr.for]="id"
+        [ngClass]="[
+          activeLabel()
+            ? 'text-light-accent-secondary dark:text-dark-accent-secondary/90 scale-110 -translate-y-6 text-sm'
+            : 'dark:text-slate-400 text-slate-500 text-lg scale-100 translate-y-0 cursor-text',
+          bgClass,
+          darkBgClass
+        ]"
+        class="absolute transition-all duration-300 px-1 top-[13px] left-4 origin-[0]"
+      >
+        {{ label }}
+      </label>
+
 
     <div class="flex items-center gap-3 text-sm text-light-error dark:text-dark-error mt-1 min-h-5">
       <span>{{ getCurrentError() }}</span>
@@ -61,6 +66,9 @@ export class FloatingInputComponent implements ControlValueAccessor, OnDestroy {
   @Input() errors: ErrorMap = {};              // es: { required: 'Obbligatorio', email: 'Formato non valido' }
   @Input() serverError: string | null = null;  // es: "Password errata"
   @Input() asyncVerify = false
+  @Input() bgClass = 'bg-light-surface-main'
+  @Input() darkBgClass = 'dark:bg-neutral-950'
+
   @Output() enter = new EventEmitter<void>();
 
   private sub?: Subscription

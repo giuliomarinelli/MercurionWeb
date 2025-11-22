@@ -1,22 +1,27 @@
-import { AfterViewInit, Component, inject, OnDestroy, OnInit, QueryList, signal, ViewChild, ViewChildren } from '@angular/core';
-import { CdkAccordion, CdkAccordionItem, CdkAccordionModule } from '@angular/cdk/accordion';
-import { EMPTY, Observable, of, startWith, Subscription, switchMap } from 'rxjs';
-import { AccountService } from '../../services/account.service';
-import { MfaStrategy, ProfileDTO, SessionDTOExt } from '../../Models/account/account.models';
-import { ToastService } from '../../services/toast.service';
-import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
-import { Router } from '@angular/router';
-import { SessionCardComponent } from '../../components/common/session-card/session-card.component';
-import { AuthService } from '../../services/auth.service';
-import { MfaStrategyCardComponent } from '../../components/common/mfa-strategy-card/mfa-strategy-card.component';
-import { AppContextService } from '../../services/context/app-context.service';
-import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
-import { SensitiveDataChangeContextService } from '../../services/context/action-context/sensitive-data-change-context.service';
-
+import { AfterViewInit, Component, effect, inject, OnDestroy, OnInit, QueryList, signal, ViewChild, ViewChildren } from '@angular/core'
+import { CdkAccordion, CdkAccordionItem, CdkAccordionModule } from '@angular/cdk/accordion'
+import { EMPTY, Observable, of, startWith, Subscription, switchMap } from 'rxjs'
+import { AccountService } from '../../services/account.service'
+import { MfaStrategy, ProfileDTO, SessionDTOExt } from '../../Models/account/account.models'
+import { ToastService } from '../../services/toast.service'
+import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component'
+import { SessionCardComponent } from '../../components/common/session-card/session-card.component'
+import { AuthService } from '../../services/auth.service'
+import { MfaStrategyCardComponent } from '../../components/common/mfa-strategy-card/mfa-strategy-card.component'
+import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service'
+import { SensitiveDataChangeContextService } from '../../services/context/action-context/sensitive-data-change-context.service'
+import { AppContextService } from '../../services/context/app-context.service'
+import { Router } from '@angular/router'
 
 @Component({
   selector: 'm-settings.page',
-  imports: [CdkAccordionModule, ClassicSpinnerComponent, SessionCardComponent, MfaStrategyCardComponent],
+  standalone: true,
+  imports: [
+    CdkAccordionModule,
+    ClassicSpinnerComponent,
+    SessionCardComponent,
+    MfaStrategyCardComponent
+  ],
   styles: `
 
     .accordion-body {
@@ -30,7 +35,7 @@ import { SensitiveDataChangeContextService } from '../../services/context/action
 
     /* chiusura */
     .accordion-leave {
-      animation: accordion-up 300ms linear forwards;
+      animation: accordion-up 200ms linear forwards;
     }
 
     @keyframes accordion-down {
@@ -59,26 +64,25 @@ import { SensitiveDataChangeContextService } from '../../services/context/action
   template: `
 
     @if (!loading())  {
-      <section class="main-container">
+      <section #pageTop class="main-container">
         <h1 class="mt-4 xs:mt-0 relative bottom-4 text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary border-b border-slate-300 dark:border-slate-700 pb-6">
           Impostazioni
         </h1>
         <div class="flex flex-col justify-between">
           <cdk-accordion class="flex flex-col w-full border border-slate-300 dark:border-slate-500">
             @for (item of items; track item; let i = $index) {
-              <cdk-accordion-item #accordionItem="cdkAccordionItem" (opened)="scrollToTop(i)">
+              <cdk-accordion-item #accordionItem="cdkAccordionItem">
+                <div class="border-b border-slate-300 dark:border-slate-500" [class.border-b-0]="i === items.length - 1">
                   <button
-                    class="
-                      w-full p-4 bg-slate-200 dark:bg-slate-800 border-slate-300
-                      dark:border-slate-500 text-start flex items-center justify-between
+                    type="button"
+                    [id]="computeId(i)"
+                    class="scroll-mt-[140px]
+                      w-full p-4 bg-slate-200 dark:bg-slate-800
+                      text-start flex items-center justify-between
                       hover:bg-slate-200/75 dark:hover:bg-slate-800/75
                       transition-colors duration-300
                       "
-
-                    [class.border-b]="i !== items.length - 1"
-                    (click)="accordionItem.toggle()"
-                    tabindex="0"
-                    [attr.id]="'accordion-header-' + i"
+                    (click)="handleAccordionClick(i)"
                     [attr.aria-expanded]="accordionItem.expanded"
                     [attr.aria-controls]="'accordion-body-' + i">
                     <div class="flex items-center gap-2">
@@ -98,13 +102,13 @@ import { SensitiveDataChangeContextService } from '../../services/context/action
                           @case (2) {
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto">
                               <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-                              <path d="M320 64C373 64 416 107 416 160L416 224L224 224L224 160C224 107 267 64 320 64zM192 160L192 224L128 224L128 576L512 576L512 224L448 224L448 160C448 89.3 390.7 32 320 32C249.3 32 192 89.3 192 160zM160 256L480 256L480 544L160 544L160 256zM336 352L336 336L304 336L304 464L336 464L336 352z"/>
+                              <path d="M231.2 280L288 224L192 64L64 128L64 144C64 382.6 257.4 576 496 576L512 576L576 448L416 352L360 408.8C300.8 386 254 339.2 231.2 280zM421.1 392.4L534.1 460.2L492.2 544C274.3 542 98 365.7 96 147.8L179.8 105.9L247.6 218.9C217.7 248.4 199.8 266.1 193.8 272L201.3 291.6C227.3 359.2 280.8 412.7 348.4 438.7L368 446.2C373.9 440.2 391.6 422.3 421 392.4z"/>
                             </svg>
                           }
                           @case (3) {
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto">
                               <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-                              <path d="M231.2 280L288 224L192 64L64 128L64 144C64 382.6 257.4 576 496 576L512 576L576 448L416 352L360 408.8C300.8 386 254 339.2 231.2 280zM421.1 392.4L534.1 460.2L492.2 544C274.3 542 98 365.7 96 147.8L179.8 105.9L247.6 218.9C217.7 248.4 199.8 266.1 193.8 272L201.3 291.6C227.3 359.2 280.8 412.7 348.4 438.7L368 446.2C373.9 440.2 391.6 422.3 421 392.4z"/>
+                              <path d="M320 64C373 64 416 107 416 160L416 224L224 224L224 160C224 107 267 64 320 64zM192 160L192 224L128 224L128 576L512 576L512 224L448 224L448 160C448 89.3 390.7 32 320 32C249.3 32 192 89.3 192 160zM160 256L480 256L480 544L160 544L160 256zM336 352L336 336L304 336L304 464L336 464L336 352z"/>
                             </svg>
                           }
                       }
@@ -119,6 +123,7 @@ import { SensitiveDataChangeContextService } from '../../services/context/action
                       <path d="M320 96C196.3 96 96 196.3 96 320C96 443.7 196.3 544 320 544C443.7 544 544 443.7 544 320C544 196.3 443.7 96 320 96zM320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM331.3 411.3L320 422.6L308.7 411.3L196.7 299.3L185.4 288L208 265.4L219.3 276.7L320 377.4L420.7 276.7L432 265.4L454.6 288L443.3 299.3L331.3 411.3z"/>
                     </svg>
                   </button>
+                </div>
                 @if (accordionItem.expanded) {
                   <div
                     class="accordion-body px-4 bg-slate-100 dark:bg-slate-700"
@@ -126,7 +131,7 @@ import { SensitiveDataChangeContextService } from '../../services/context/action
                     animate.leave="accordion-leave"
                     role="region"
                     [attr.id]="'accordion-body-' + i"
-                    [attr.aria-labelledby]="'accordion-header-' + i"
+                    [attr.aria-labelledby]="computeId(i)"
                     [class.relative]="i === 1"
                   >
                     <div class="py-6">
@@ -267,7 +272,7 @@ import { SensitiveDataChangeContextService } from '../../services/context/action
                                         hover:text-slate-800 dark:hover:text-slate-100
                                         transition-colors duration-150
                                       "
-                                      (click)="switchToAccordionItem(3, i)"
+                                      (click)="switchToAccordionItem(3, { currentIdx: i, updateFragment: true })"
                                     >
                                       Vai alle impostazioni di sicurezza
                                     </button>
@@ -410,6 +415,8 @@ import { SensitiveDataChangeContextService } from '../../services/context/action
                                 type="button"
                                 class="
                                   flex items-center gap-2 px-3 py-2 rounded-md
+                                  dark:bg-emerald-700/90
+                                  dark:hover:bg-emerald-700/65
                                   bg-emerald-800
                                   text-slate-100 font-medium text-sm
                                   hover:bg-emerald-800/80
@@ -436,9 +443,9 @@ import { SensitiveDataChangeContextService } from '../../services/context/action
                               type="button"
                               class="
                                 flex items-center gap-2 px-3 py-2 rounded-md
-                                bg-light-error
+                                bg-light-error dark:bg-red-600/75
                                 text-slate-100 font-medium text-sm
-                                hover:bg-light-error/80
+                                hover:bg-light-error/80 dark:hover:bg-red-600/60
                                 transition-colors duration-150
                               "
                               (click)="doLogoutFromAllSessions()"
@@ -460,6 +467,8 @@ import { SensitiveDataChangeContextService } from '../../services/context/action
                                   type="button"
                                   class="
                                     flex items-center gap-2 px-3 py-2 rounded-md
+                                    dark:bg-emerald-700/90
+                                    dark:hover:bg-emerald-700/65
                                     bg-emerald-800
                                     text-slate-100 font-medium text-sm
                                     hover:bg-emerald-800/80
@@ -502,7 +511,7 @@ import { SensitiveDataChangeContextService } from '../../services/context/action
                   </div>
                 }
               </cdk-accordion-item>
-            }
+              }
           </cdk-accordion>
           <div class="h-[50vh]"></div>
         </div>
@@ -522,9 +531,9 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly toast = inject(ToastService)
   private readonly router = inject(Router)
   private readonly authService = inject(AuthService)
-  private readonly appContext = inject(AppContextService)
   private readonly actionContext = inject(ActionOverlayContextService)
   private readonly changeDataContext = inject(SensitiveDataChangeContextService)
+  private readonly appContext = inject(AppContextService)
 
   @ViewChild(CdkAccordion)
   accordion!: CdkAccordion
@@ -538,64 +547,40 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   loading = signal<boolean>(true)
   currentVersion!: string
 
-
   profile!: ProfileDTO
   isEnabledMfa!: boolean
   enabledMfaStrategies!: MfaStrategy[]
   activeSessions!: SessionDTOExt[]
 
   items = ['Generali', 'Anagrafica', 'Contatti', 'Sicurezza']
+  private readonly accordionAnchors = ['general', 'personal_details', 'contact_details', 'security']
 
   private fetchSub?: Subscription
   private sLoguotSub?: Subscription
   private allLoguotSub?: Subscription
   private viewSub?: Subscription
 
-  ngOnInit(): void {
-    this.fetchSub = this.accountService.getCurrentVersion().pipe(
-      switchMap((curVers) => {
-        this.currentVersion = curVers
-        return this.accountService.isMfaEnabled()
-      }),
-      switchMap((ok) => {
-        if (!ok) {
-          this.isEnabledMfa = false
-          return of([])
-        }
-        this.isEnabledMfa = true
-        return this.accountService.getEnabledMfaStrategies()
-      }),
-      switchMap((str) => {
-        this.enabledMfaStrategies = str
-        return this.accountService.getActiveSessions()
-      }),
-      switchMap((s) => {
-        this.activeSessions = s.map((s) => ({
-          ...s,
-          triggerDisappear: signal<boolean>(false)
-        }))
-        return this.accountService.getProfileRegistry(false)
-      })
-    ).subscribe({
-      next: (profile) => {
-        this.profile = profile
-        this.loading.set(false)
-      },
-      error: () => queueMicrotask(() => {
-        this.profileFetchError.set(true)
-        this.toast.trigger(`Si è verificato un errore nel caricamento delle informazioni dell'account.`)
-        this.router.navigateByUrl('/dashboard')
-      })
+  constructor() {
+    effect(() => {
+      const t = this.changeDataContext.addedTick()
+      if (t === 0) {
+        return
+      }
+      this.fetch(true)
     })
+  }
+
+  ngOnInit(): void {
+    this.fetch()
   }
 
   ngAfterViewInit(): void {
     this.viewSub = this.accordionItems.changes
       .pipe(startWith(this.accordionItems))
-      .subscribe((items: QueryList<CdkAccordionItem>) => {
+      .subscribe(items => {
         const arr = items.toArray()
         if (arr.length) {
-          this.switchToAccordionItem(0)
+          this.openAccordionAtIndex(0, { closeOthers: true })
         }
       })
   }
@@ -607,47 +592,104 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
     this.viewSub?.unsubscribe()
   }
 
-  switchToAccordionItem(i: number, currentIdx?: number): void {
-    const items = this.accordionItems?.toArray() ?? []
-    if (i > items.length - 1) {
-      return
-    }
-    if (!this.accordion.multi) {
-      if (currentIdx !== undefined && currentIdx >= 0 && currentIdx < items.length) {
-        if (currentIdx !== i) {
-          items[currentIdx].close()
+  private fetch(rerender = false): void {
+    this.fetchSub = this.accountService.getCurrentVersion().pipe(
+      switchMap(curVers => {
+        if (rerender) {
+          this.openAccordionAtIndex(3, { closeOthers: true })
         }
-      } else {
-        items.forEach((it, idx) => {
-          if (idx !== i && it.expanded) {
-            it.close()
-          }
-        })
-      }
-    }
-    const item = items[i]
-    item.open()
+        this.currentVersion = curVers
+        return this.accountService.isMfaEnabled()
+      }),
+      switchMap(ok => {
+        if (!ok) {
+          this.isEnabledMfa = false
+          return of([])
+        }
+        this.isEnabledMfa = true
+        return this.accountService.getEnabledMfaStrategies()
+      }),
+      switchMap(str => {
+        this.enabledMfaStrategies = str
+        return this.accountService.getActiveSessions()
+      }),
+      switchMap(s => {
+        this.activeSessions = s.map(ss => ({
+          ...ss,
+          triggerDisappear: signal<boolean>(false)
+        }))
+        return this.accountService.getProfileRegistry(false)
+      })
+    ).subscribe({
+      next: profile => {
+        this.profile = profile
+        this.loading.set(false)
+      },
+      error: () => queueMicrotask(() => {
+        this.profileFetchError.set(true)
+        this.toast.trigger(`Si è verificato un errore nel caricamento delle informazioni dell'account.`)
+        this.router.navigateByUrl('/dashboard')
+      })
+    })
   }
 
-  scrollToTop(i: number): void {
-    if (i < 2) {
-      queueMicrotask(() => this.appContext.triggerScrollToTopGlobally())
+  private openAccordionAtIndex(index: number | null, opts?: { closeOthers?: boolean }): void {
+    const items = this.accordionItems?.toArray() ?? []
+    if (!items.length) return
+
+    const closeOthers = opts?.closeOthers ?? true
+
+    if (index === null || index < 0 || index >= items.length) {
+      if (closeOthers) {
+        items.forEach(item => {
+          if (item.expanded) item.close()
+        })
+      }
+      return
     }
+
+    items.forEach((item, i) => {
+      if (i === index) {
+        if (!item.expanded) item.open()
+      } else if (closeOthers && item.expanded && !this.accordion.multi) {
+        item.close()
+      }
+    })
+  }
+
+  handleAccordionClick(index: number): void {
+    const items = this.accordionItems?.toArray() ?? []
+    const item = items[index]
+    if (!item) return
+
+    if (item.expanded) {
+      item.close()
+      return
+    }
+
+    this.openAccordionAtIndex(index, { closeOthers: true })
+
+    this.appContext.triggerScrollToTopGlobally()
+  }
+
+  // usato dal bottone "Vai alle impostazioni di sicurezza"
+  switchToAccordionItem(index: number, _opts?: { currentIdx?: number; updateFragment?: boolean }): void {
+    this.handleAccordionClick(index)
   }
 
   getCurrentSessionBrowser(): string {
-    return this.activeSessions.find((s) => s.current)?.browser ?? '—'
+    return this.activeSessions.find(s => s.current)?.browser ?? '—'
   }
 
   getCurrentSessionLocation(): string {
-    return this.activeSessions.find((s) => s.current)?.location ?? '—'
+    return this.activeSessions.find(s => s.current)?.location ?? '—'
   }
 
   doLogoutFromSession(ssid: string): void {
     const onError = () => queueMicrotask(() => this.toast.trigger(`Si è verificato un errore. La sessione non è stata eliminata. Contatta il supporto.`, 'error', 3000))
     this.sLoguotSub = this.pipeStarter$.pipe(
       switchMap(() => {
-        const s = this.activeSessions.find((s) => s.id === ssid)
+        const s = this.activeSessions.find(ss => ss.id === ssid)
         if (!s) {
           onError()
           return EMPTY
@@ -656,7 +698,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
       })
     ).subscribe({
       next: () => {
-        const s = this.activeSessions.find((s) => s.id === ssid)
+        const s = this.activeSessions.find(ss => ss.id === ssid)
         if (!s) {
           onError()
           return
@@ -667,7 +709,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
         queueMicrotask(() => {
           s.triggerDisappear.set(true)
           setTimeout(() => {
-            const i = this.activeSessions.findIndex((s) => s.id === ssid)
+            const i = this.activeSessions.findIndex(ss => ss.id === ssid)
             if (i !== -1) {
               this.activeSessions.splice(i, 1)
             }
@@ -701,11 +743,11 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   editAnagraphics(): void {
-
+    // TODO
   }
 
   changePassword(): void {
-
+    // TODO
   }
 
   changeEmail(): void {
@@ -727,6 +769,10 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
       this.changeDataContext.setInnerScope('AddPhone')
       this.actionContext.open('SensitiveDataChange')
     })
+  }
+
+  computeId(i: number): string {
+    return this.accordionAnchors[i] ?? this.accordionAnchors[0]
   }
 
 }

@@ -101,15 +101,18 @@ export class MfaStrategyCardComponent {
 
   _activeStrategies = signal<MfaStrategy[]>([])
   _strategy = signal<MfaStrategyDTO | null>(null)
+  private currentStrategy: MfaStrategy | null = null
 
   @Input({ required: true })
   set strategy(strategy: MfaStrategy) {
-    this.setStrategy(strategy)
+    this.currentStrategy = strategy
+    this.updateStrategyState()
   }
 
   @Input({ required: true })
   set activeStrategies(activeStrategies: MfaStrategy[]) {
-    this._activeStrategies.set(activeStrategies)
+    this._activeStrategies.set(activeStrategies ?? [])
+    this.updateStrategyState()
   }
 
   @Input()
@@ -121,13 +124,14 @@ export class MfaStrategyCardComponent {
   @Output()
   onDisableMfa = new EventEmitter<MfaStrategy>()
 
-  private setStrategy(strategy: MfaStrategy): void {
-    if (!this._activeStrategies()) {
+  private updateStrategyState(): void {
+    if (!this.currentStrategy) {
       return
     }
+    const active = this._activeStrategies()
     this._strategy.set({
-      strategy,
-      enabled: this._activeStrategies().includes(strategy)
+      strategy: this.currentStrategy,
+      enabled: active.includes(this.currentStrategy)
     })
   }
 

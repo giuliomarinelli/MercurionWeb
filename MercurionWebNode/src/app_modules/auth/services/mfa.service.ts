@@ -457,7 +457,8 @@ export class MfaService {
 
             case MfaStrategy.APP_TOTP:
 
-                ({ totpSecret, otpauth_url } = this.securityService.generateAppTotpSecret())
+                email = await this.userService.getUserEmailById(userId) as string
+                ({ totpSecret, otpauth_url } = this.securityService.generateAppTotpSecret(email))
                 metadata = {
                     generatedAt: Date.now(),
                     expiresAt: Date.now() + this.totpConfig.period * 1000
@@ -521,7 +522,7 @@ export class MfaService {
             otpSecret = await this.redisService.get(`mfa:temp:app-secret:${userId}`)
             if (!otpSecret) throw new RpcException('TemporaryAppTotpSecretNotFound')
 
-            const isValid = this.securityService.verifyTotp(totp, otpSecret)
+            const isValid = this.securityService.verifyTotp(totp, otpSecret, true)
             if (!isValid) {
                 await this.registerMfaFailure(userId, strategy, context)
                 return false

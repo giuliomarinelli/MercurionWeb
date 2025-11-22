@@ -96,7 +96,7 @@ export class SercurityService {
         return this.generateSecret(this.totpConf.bytes, 'base32')
     }
 
-    public generateAppTotpSecret(): AppTotpWrapper {
+    public generateAppTotpSecret(email: string): AppTotpWrapper {
 
         const baseName = this.configService.get<string>('App.globalName')!
 
@@ -106,7 +106,7 @@ export class SercurityService {
             issuer: baseName
         })
 
-        const algorithm = 'SHA256'
+        const algorithm = 'SHA1'
 
         // secret effettivo usato dall’app di autenticazione
         const derivedBase32 = this.derivePepperedBase32Secret(rawSecret.base32)
@@ -115,7 +115,7 @@ export class SercurityService {
         const issuer = encodeURIComponent(baseName)
 
         const otpauth_url =
-            `otpauth://totp/${label}?secret=${derivedBase32}` +
+            `otpauth://totp/${label}:${email}?secret=${derivedBase32}` +
             `&issuer=${issuer}` +
             `&algorithm=${algorithm}` +
             `&digits=${this.totpConf.digits}`
@@ -152,7 +152,7 @@ export class SercurityService {
     }
 
 
-    public verifyTotp(totp: string, base32Secret: string): boolean {
+    public verifyTotp(totp: string, base32Secret: string, app = false): boolean {
 
         const derivedSecret = this.derivePepperedBase32Secret(base32Secret)
 
@@ -161,10 +161,11 @@ export class SercurityService {
             encoding: 'base32',
             token: totp,
             digits: this.totpConf.digits,
-            step: this.totpConf.period,
-            algorithm: 'sha256',
+            step: app ? 30 : this.totpConf.period,
+            algorithm: app ? 'sha1' : 'sha256',
             window: 1
         })
+        
     }
 
 

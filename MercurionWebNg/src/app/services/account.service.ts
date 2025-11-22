@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { ChangePasswordDTO, MfaStrategy, ProfileDTO, SessionDTO, UserData } from '../Models/account/account.models';
-import { Observable, of, tap } from 'rxjs';
+import { map, Observable, of, tap } from 'rxjs';
 import { ConfirmDTO, ConfirmMfaChange } from '../Models/confirm.models';
 import { ConfirmWithObsContDTO } from '../Models/confirm.models';
 import { EmailDTO } from '../Models/auth/login.models';
@@ -142,25 +142,33 @@ export class AccountService {
       totp,
       secureToken
     }
-    return this.http.patch<ConfirmDTO>(`/api/account/mfa/enable/${strategy}/2`, totp, {
+    return this.http.patch<ConfirmDTO>(`/api/account/mfa/enable/${strategy}/2`, body, {
       withCredentials: true
     })
   }
 
-  public disableMfa_secondStep(strategy: MfaStrategy): Observable<ConfirmMfaChange> {
+  public disableMfa_firstStep(strategy: MfaStrategy): Observable<ConfirmMfaChange> {
     return this.http.patch<ConfirmMfaChange>(`/api/account/mfa/disable/${strategy}/1`, null, {
       withCredentials: true
     })
   }
 
-  public disable_secondStep(strategy: MfaStrategy, totp: string, secureToken: string): Observable<ConfirmDTO> {
+  public disableMfa_secondStep(strategy: MfaStrategy, totp: string, secureToken: string): Observable<ConfirmDTO> {
     const body: TotpDTO = {
       totp,
       secureToken
     }
-    return this.http.patch<ConfirmDTO>(`/api/account/mfa/disable/${strategy}/2`, totp, {
+    return this.http.patch<ConfirmDTO>(`/api/account/mfa/disable/${strategy}/2`, body, {
       withCredentials: true
     })
+  }
+
+  public getBackupCodes(): Observable<string[]> {
+    return this.http.patch<{ codes: string[] }>('/api/account/mfa/backup/regenerate', null, {
+      withCredentials: true
+    }).pipe(
+      map((res) => res.codes)
+    )
   }
 
 }
