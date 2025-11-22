@@ -1,7 +1,6 @@
 import { MfaStrategyDTO } from './../../../Models/account/account.models';
-import { Component, effect, EventEmitter, inject, Input, Output, signal } from '@angular/core';
+import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
 import { MfaStrategy } from '../../../Models/account/account.models';
-import { TypeGuardsService } from '../../../services/type-guards.service';
 
 @Component({
   selector: 'm-mfa-strategy-card',
@@ -53,9 +52,18 @@ import { TypeGuardsService } from '../../../services/type-guards.service';
             >
               {{ _strategy()!.enabled ? 'Attiva' : 'Non attiva' }}
             </span>
-
+            @if (_strategy()!.strategy === 'SMS_OTP' && noPhone) {
+              <div class="flex items-center gap-4 flex-wrap text-sm">
+                <span >Per attivare questa strategia</span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto">
+                    <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                    <path d="M571.4 331.3L582.7 320L571.4 308.7L395.4 132.7L384.1 121.4L361.5 144L372.8 155.3L521.5 304L64.1 304L64.1 336L521.5 336L372.8 484.7L361.5 496L384.1 518.6L571.4 331.3z"/>
+                </svg>
+                <button class="a">aggiungi un numero di telefono</button>
+              </div>
+            }
       </div>
-      @if (showActions) {
+      @if (showActions && !(noPhone && _strategy()!.strategy === 'SMS_OTP')) {
         <button
           type="button"
           [class.bg-emerald-800]="!_strategy()!.enabled"
@@ -96,9 +104,6 @@ import { TypeGuardsService } from '../../../services/type-guards.service';
 })
 export class MfaStrategyCardComponent {
 
-  private readonly typeGuards = inject(TypeGuardsService)
-
-
   _activeStrategies = signal<MfaStrategy[]>([])
   _strategy = signal<MfaStrategyDTO | null>(null)
   private currentStrategy: MfaStrategy | null = null
@@ -118,6 +123,9 @@ export class MfaStrategyCardComponent {
   @Input()
   showActions = false
 
+  @Input()
+  noPhone = false
+
   @Output()
   onEnableMfa = new EventEmitter<MfaStrategy>()
 
@@ -136,13 +144,17 @@ export class MfaStrategyCardComponent {
   }
 
   handleActionClick(): void {
-    const s = this._strategy()
-    if (this.typeGuards.isNotNull(s)) {
-      if (s.enabled) {
-        this.onDisableMfa.emit(s.strategy)
-      } else {
-        this.onEnableMfa.emit(s.strategy)
-      }
+    const state = this._strategy()
+    if (!state) {
+      return
+    }
+    if (state.strategy === 'SMS_OTP' && this.noPhone && !state.enabled) {
+      return
+    }
+    if (state.enabled) {
+      this.onDisableMfa.emit(state.strategy)
+    } else {
+      this.onEnableMfa.emit(state.strategy)
     }
   }
 

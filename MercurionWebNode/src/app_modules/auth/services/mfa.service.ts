@@ -467,6 +467,7 @@ export class MfaService {
                 // salvataggio temporaneo del secret in redis (con TTL), associato allo user
                 await this.redisService.set(`mfa:temp:app-secret:${userId}`, totpSecret, 300) // 5 minuti
                 secureToken = await this.jwtTools.generateToken(userId, TokenType.AppTotpMfaActivationToken)
+                await this.clearMfaFailures(userId, strategy, MfaContext.ENABLE_SEND)
                 return {
                     ...metadata,
                     secret: totpSecret,
@@ -476,6 +477,8 @@ export class MfaService {
                 }
 
         }
+
+        await this.clearMfaFailures(userId, strategy, MfaContext.ENABLE_SEND)
 
         return {
             ...metadata,
@@ -541,6 +544,8 @@ export class MfaService {
             }
         }
 
+        await this.clearMfaFailures(userId, strategy, context)
+
         await this.userService.appendMfaStrategy(userId, strategy)
 
         await this.securityAuditService.mfaEnabled(userId, GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy) ?? 'unknown')
@@ -568,7 +573,8 @@ export class MfaService {
             throw new RpcException('NoSuchUser')
         }
 
-        const strategies = await this.userService.getUserEncryptedEnabledMfaStrategies(userId)
+        const encStrategies = await this.userService.getUserEncryptedEnabledMfaStrategies(userId)
+        const strategies = encStrategies.map((s) => this.securityService.decrypt_AES256(s) as MfaStrategy)
         if (!strategies.includes(strategy)) {
             throw new RpcException(`InvalidMfaStrategy::${strategy} strategy not currently active`)
         }
@@ -623,7 +629,7 @@ export class MfaService {
                 throw new RpcException(`UnsupportedMfaStrategy::${GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy)}`)
         }
 
-        await this.clearMfaFailures(userId, strategy, MfaContext.DISABLE_VERIFY)
+        await this.clearMfaFailures(userId, strategy, MfaContext.DISABLE_SEND)
 
         return {
             ...metadata,
@@ -652,7 +658,7 @@ export class MfaService {
                 throw new RpcException(`UnsupportedMfaStrategy::${GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy)}`)
         }
 
-        const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(secureToken, tokenType);
+        const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(secureToken, tokenType)
         await this.sessionService.revokeToken(jti.toString())
 
         const context = MfaContext.DISABLE_VERIFY
@@ -673,7 +679,7 @@ export class MfaService {
             throw new RpcException('OtpSecretNotFound')
         }
 
-        const isValid = this.securityService.verifyTotp(totp, otpSecret)
+        const isValid = this.securityService.verifyTotp(totp, otpSecret, true)
         if (!isValid) {
             await this.registerMfaFailure(userId, strategy, context)
             return false
@@ -688,9 +694,11 @@ export class MfaService {
 
             const { mfaStrategies: rawMfaStrategies } = row
             const mfaStrategiesWithoutJustDisabledStrategy = (JSON.parse(rawMfaStrategies || '[]') as string[])
+                .map((enc) => this.securityService.decrypt_AES256(enc))
                 .map(uuid => GeneralUtils.getEnumValue(MfaStrategy, uuid))
                 .filter((val): val is MfaStrategy => val !== undefined)
                 .filter(st => st !== strategy)
+                .map((uuid) => this.securityService.encrypt_AES256(uuid))
 
             await manager.update(User,
                 {

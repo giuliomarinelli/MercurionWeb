@@ -99,9 +99,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
     private handleRpcException(e: RpcException): InternalErrorRes {
 
         const raw = e.getError();
-        const msg = (typeof raw === 'string' ? raw : (raw as any)?.message ?? e.message) as string
+        let msg = (typeof raw === 'string' ? raw : (raw as any)?.message ?? e.message) as string
 
         let statusCode = HttpStatus.INTERNAL_SERVER_ERROR
+        
 
         switch (msg) {
             case 'UserRegistrationConflict::Email already exists':
@@ -156,6 +157,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
             case 'BackupCode::TooManyAttempts':
             case 'BackupCodeRegen::TooManyRequests':
                 statusCode = HttpStatus.TOO_MANY_REQUESTS
+                msg = 'Rate limit exceeded.'
                 break
             case 'MercurionTox21ClientConnection::PayloadTooLarge':
                 statusCode = HttpStatus.PAYLOAD_TOO_LARGE

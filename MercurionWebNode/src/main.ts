@@ -14,13 +14,22 @@ import { randomBytes, randomUUID } from 'crypto'
 import { SecureCookieService } from './app_modules/auth/services/secure-cookie.service'
 import { Environment } from './config/config'
 import { SecureCookieConfiguration } from './config/config.types'
-import { routeAwareMax } from './config/rate-limit.config'
+import { resolveRateLimitPath, routeAwareMax } from './config/rate-limit.config'
+import { FastifyRequest } from 'fastify'
 import { RedisService } from './app_modules/redis/services/redis.service'
 import { isIP } from 'net' // 🔒 valida IP
 import { MeiliLoggerService } from './app_modules/meilisearch/services/meili-logger.service'
 
 function isValidIp(ip?: string): boolean {
   return !!ip && isIP(ip) !== 0
+}
+
+function buildRateLimitKey(req: FastifyRequest): string {
+  const deviceId = (req.headers['x-device-id'] as string) || ''
+  const clientIp = (req.headers['x-client-ip'] as string) || req.ip || ''
+  const method = (req.method || 'GET').toUpperCase()
+  const routePath = resolveRateLimitPath(req)
+  return `${method}:${routePath}|${deviceId}|${clientIp}`
 }
 
 export async function bootstrap() {
@@ -207,11 +216,7 @@ export async function bootstrap() {
   await app.register(rateLimit, {
     hook: 'preHandler',
     timeWindow: 5 * 60 * 1000, // 5 minutes
-    keyGenerator: (req) => {
-      const dev = (req.headers['x-device-id'] as string) || ''
-      const ip = (req.headers['x-client-ip'] as string) || req.ip || ''
-      return `${dev}|${ip}`
-    },
+    keyGenerator: buildRateLimitKey,
     max: (req) => routeAwareMax(req),
     skipOnError: true,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

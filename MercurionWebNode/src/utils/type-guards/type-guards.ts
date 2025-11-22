@@ -9,9 +9,11 @@ export class TypeGuards {
         return item.type === 'chembl'
 
     }
+
     static isCustomMolecule(item: MoleculeCollectionItemEntity): item is CustomMoleculeItemEntity {
         return item.type === 'custom'
     }
+
     static isEnumValue<T extends Record<string, string | number>>(
         enumObj: T,
         value: string | number
@@ -19,6 +21,7 @@ export class TypeGuards {
         const enumValues = Object.values(enumObj).filter(v => typeof v !== 'number' || typeof value === 'number')
         return enumValues.includes(value)
     }
+
     static isStorageAction(item: string | null | undefined): item is StorageAction {
         switch (item) {
             case 'ChangeProfileImage':
@@ -27,6 +30,10 @@ export class TypeGuards {
                 return true
         }
         return false
+    }
+
+    static isThruthyString(item: unknown): item is string {
+        return !!item && typeof item === 'string'
     }
 
 }
