@@ -5,6 +5,8 @@ const scale = (n: number) => n * WINDOW_MIN
 
 export function routeAwareMax(req: FastifyRequest): number {
 
+    // TODO: implementare il rate limiting per le nuove rotte: qui su fastify (binding con IP + deviceId) e, se necessario, su Redis (binding diretto con l'account)
+
     const method = (req.method || 'GET').toUpperCase()
 
     // ignora metodi non significativi per il rate limit

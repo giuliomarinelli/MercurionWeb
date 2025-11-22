@@ -13,29 +13,7 @@ import { UserContextService } from '../services/context/user-context.service';
 import { ToastService } from '../services/toast.service';
 import { Router } from '@angular/router';
 import { HttpErrorRes } from '../Models/error-res.dto';
-
-
-function isFatalUnauthenticatedBody(body: any): boolean {
-
-  if (!body) {
-    return false
-  }
-
-  // REST shape
-  if (body.message === 'Fatal: unauthenticated') {
-    return true
-  }
-
-  // GraphQL shape
-  if (Array.isArray(body.errors)) {
-    return body.errors.some((e: any) =>
-      e?.message === 'Fatal: unauthenticated' ||
-      e?.extensions?.code === 'UNAUTHENTICATED'
-    )
-  }
-
-  return false
-}
+import { isFatalUnauthenticatedBody } from './fatal-unauthenticated.util';
 
 @Injectable()
 export class AuthFallbackInterceptor implements HttpInterceptor {

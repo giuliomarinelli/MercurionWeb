@@ -10,7 +10,7 @@ import { copyBootstrapFiles } from './copy-bootstrap-files'
 import fastifyCookie from '@fastify/cookie'
 import helmet from '@fastify/helmet'
 import rateLimit from '@fastify/rate-limit'
-import { randomUUID } from 'crypto'
+import { randomBytes, randomUUID } from 'crypto'
 import { SecureCookieService } from './app_modules/auth/services/secure-cookie.service'
 import { Environment } from './config/config'
 import { SecureCookieConfiguration } from './config/config.types'
@@ -202,6 +202,7 @@ export async function bootstrap() {
     done()
   })
 
+  const reqIdSuffix = randomBytes(16).toString('hex')
   // 🔒 Rate limit distribuito (Redis), finestra 5 minuti chiara (ms)
   await app.register(rateLimit, {
     hook: 'preHandler',
@@ -219,7 +220,7 @@ export async function bootstrap() {
       error: 'Too Many Requests',
       message: `Rate limit exceeded.`,
       timestamp: new Date().toISOString(),
-      requestId: req.id,
+      requestId: `${req.id}-${reqIdSuffix}`,
       path: req.url?.split('?')[0] || req.url
     }),
     redis: redisService.getClient(),

@@ -170,7 +170,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       if (t === 0) {
         return
       }
-      queueMicrotask(() => this.appContext.smoothToTop(this.scrollHostRef, 400))
+      queueMicrotask(() => this.appContext.smoothToTop(this.scrollHostRef, 0, 240))
     })
 
     effect(() => {
@@ -222,7 +222,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       .subscribe((e: NavigationEnd) => {
         const url = normalize(e.urlAfterRedirects)
         if (url !== '/settings') {
-          this.appContext.smoothToTop(this.scrollHostRef, 240)
+          this.appContext.smoothToTop(this.scrollHostRef, 0, 240)
         }
         // Toggle layout wrapper based on 404 route
         this.is_not_404_route.set(url !== '/404-not-found')
