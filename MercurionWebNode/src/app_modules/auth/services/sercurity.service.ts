@@ -185,7 +185,7 @@ export class SercurityService {
         const extension = domainParts.pop() || ''
         const domainWithoutExt = domainParts.join('.')
         const visibleDomain = domainWithoutExt.slice(-2)
-        const maskedLocal = '*'.repeat(localPart.length)
+        const maskedLocal = localPart.slice(0, 2) + '*'.repeat(localPart.length - 2)
         const maskedDomain = '*'.repeat(domainWithoutExt.length - 2)
 
         return `${maskedLocal}@${maskedDomain}${visibleDomain}.${extension}`
