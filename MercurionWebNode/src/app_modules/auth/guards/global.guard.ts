@@ -61,22 +61,18 @@ export class GlobalGuard implements CanActivate {
 
       let accessToken: string = ''
       let newToken: string = ''
+      let payload: AppJwtPayload
+      let newPayload: AppJwtPayload
 
       try {
 
          accessToken = this.jwtToolsService.extractAccessTokenFromReq(req)
 
-         let payload: AppJwtPayload
 
-         try {
-            if ((req.query as any)['pre_auth'] === 'true') {
-               payload = await this.jwtToolsService.verifyTokenAndGetPayload(accessToken, TokenType.PreAuthorizationToken)
-               this.tokenType = TokenType.PreAuthorizationToken
-            } else {
+         try {           
                payload = await this.jwtToolsService.verifyTokenAndGetPayload(accessToken, TokenType.AccessToken)
                await this.scopeService.scopeVerificationLayer(payload.sub, context, this.reflector, payload.scp)
-               this.tokenType = TokenType.AccessToken
-            }
+               this.tokenType = TokenType.AccessToken            
          } catch (e) {
             const { jti } = this.jwtToolsService.decodeUnsafe(accessToken)
             if (e instanceof RpcException && e.message === 'InvalidOrExpiredAccessToken') {

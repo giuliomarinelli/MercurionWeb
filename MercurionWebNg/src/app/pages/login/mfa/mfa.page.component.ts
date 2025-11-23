@@ -356,7 +356,7 @@ export class MfaPageComponent implements OnInit, OnDestroy {
           view as 'EMAIL_OTP' | 'SMS_OTP',
           this.loginFirstStepData?.preAuthorizationToken ?? '',
           this.unTrusted()
-        );
+        )
       })
     ).subscribe({
       next: () => this.canView.set(true),

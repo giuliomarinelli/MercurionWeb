@@ -157,6 +157,7 @@ export async function bootstrap() {
     req.headers['x-device-id'] = undefined
     req.headers['x-session-id'] = undefined
     req.headers['x-client-ip'] = undefined
+    req.headers['x-user-id'] = undefined
 
     let deviceId: string | null = null
 

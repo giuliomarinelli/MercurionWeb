@@ -114,16 +114,20 @@ export class UserService {
 
     public async getUserEncryptedEnabledMfaStrategies(id: UUID): Promise<string[]> {
 
-        if (!await this.existsUserById(id)) {
+        const user = await this.userRepository.createQueryBuilder('u')
+            .select('u.mfaStrategies')
+            .where('u.id = :id', { id })
+            .getOne()
+
+        if (!user) {
             throw new RpcException('MfaSettings::User not found')
         }
 
-        const { mfaStrategies: rawMfaStrategies } = await this.userRepository.createQueryBuilder('u')
-            .select('u.mfaStrategies')
-            .where('u.id = :id', { id })
-            .getOne() as User
+        if (!user.mfaStrategies) {
+            return []
+        }
 
-        return (JSON.parse(rawMfaStrategies) as string[])
+        return (JSON.parse(user.mfaStrategies) as string[])
             .filter(Boolean)
             .filter((s) => this.mfaStrategyVals.includes(this.securityService.decrypt_AES256(s) as MfaStrategy))
 
