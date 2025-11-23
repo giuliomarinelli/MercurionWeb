@@ -114,10 +114,11 @@ export class AccountController {
         return this._r.ok(`MFA successfully enabled for strategy ${strategyKey}`)
     }
 
+    @Public()
     @Patch('/mfa/disable/:strategy/1')
     public async disableMfa_firstStep(
         @Param('strategy') strategyKey: string | undefined,
-        @AuthenticatedUserId() userId: UUID
+        @Authorization() userId: UUID
     ): Promise<ConfirmMfaChange> {
         const strategy: MfaStrategy = GeneralUtils.validateMfaStrategy(strategyKey)
         return {

@@ -21,6 +21,7 @@ import { TypeGuards } from 'src/utils/type-guards/type-guards';
 export class GlobalGuard implements CanActivate {
 
    private readonly logger: MeiliContextLogger
+   private tokenType: TokenType
 
    constructor(
       private readonly jwtToolsService: JwtToolsService,
@@ -68,11 +69,21 @@ export class GlobalGuard implements CanActivate {
          let payload: AppJwtPayload
 
          try {
-            payload = await this.jwtToolsService.verifyTokenAndGetPayload(accessToken, TokenType.AccessToken)
-            await this.scopeService.scopeVerificationLayer(payload.sub, context, this.reflector, payload.scp)
+            if ((req.query as any)['pre_auth'] === 'true') {
+               payload = await this.jwtToolsService.verifyTokenAndGetPayload(accessToken, TokenType.PreAuthorizationToken)
+               this.tokenType = TokenType.PreAuthorizationToken
+            } else {
+               payload = await this.jwtToolsService.verifyTokenAndGetPayload(accessToken, TokenType.AccessToken)
+               await this.scopeService.scopeVerificationLayer(payload.sub, context, this.reflector, payload.scp)
+               this.tokenType = TokenType.AccessToken
+            }
          } catch (e) {
             const { jti } = this.jwtToolsService.decodeUnsafe(accessToken)
             if (e instanceof RpcException && e.message === 'InvalidOrExpiredAccessToken') {
+
+               if (this.tokenType !== TokenType.AccessToken) {
+                  throw e
+               }
 
                this.logger.debug?.(`Possibly expired access token, jti=${jti}, trying to refresh`)
 
@@ -175,7 +186,7 @@ export class GlobalGuard implements CanActivate {
                case 2:
                   key = 'refreshed_access_token_jti'
                   break
-               case 3: 
+               case 3:
                   key = 'cookie_session_id'
                   break
                case 4:

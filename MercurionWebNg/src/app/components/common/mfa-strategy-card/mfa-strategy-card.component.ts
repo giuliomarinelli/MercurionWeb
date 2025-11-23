@@ -1,10 +1,11 @@
 import { MfaStrategyDTO } from './../../../Models/account/account.models';
 import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
 import { MfaStrategy } from '../../../Models/account/account.models';
+import { NgClass } from '@angular/common';
 
 @Component({
   selector: 'm-mfa-strategy-card',
-  imports: [],
+  imports: [NgClass],
   template: `
 
   <div
@@ -12,11 +13,15 @@ import { MfaStrategy } from '../../../Models/account/account.models';
       w-full rounded-md border p-4 mb-3
       bg-slate-100 dark:bg-slate-800
       border-slate-300 dark:border-slate-600
-      transition-all max-h-fit duration-150 ease-linear
-      opacity-100 flex gap-6 items-center flex-wrap
-      text-xs font-semibold cursor-default gap-y-4 justify-between
+      max-h-fit opacity-100 flex gap-6 items-center flex-wrap
+      text-xs font-semibold gap-y-4 justify-between
+      transition-all duration-150 ease-linear
     "
-  >
+    [ngClass]="{
+      'cursor-pointer hover:-translate-y-1 hover:shadow-md': choose,
+      'cursor-default': !choose
+    }">
+
 
     @if (_strategy()) {
       <div class="flex items-center gap-6">
@@ -40,7 +45,11 @@ import { MfaStrategy } from '../../../Models/account/account.models';
                   <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                   <path d="M256 128L256 256L128 256L128 128L256 128zM128 96L96 96L96 288L288 288L288 96L128 96zM256 384L256 512L128 512L128 384L256 384zM128 352L96 352L96 544L288 544L288 352L128 352zM384 128L512 128L512 256L384 256L384 128zM352 96L352 288L544 288L544 96L352 96zM472 424L424 424L424 472L472 472L472 424zM216 168L168 168L168 216L216 216L216 168zM168 424L168 472L216 472L216 424L168 424zM472 168L424 168L424 216L472 216L472 168zM360 360L360 408L408 408L408 360L360 360zM360 488L360 536L408 536L408 488L360 488zM536 488L488 488L488 536L536 536L536 488zM488 360L488 408L536 408L536 360L488 360z"/>
                 </svg>
-                <span>Utilizza un'app di autenticazione come Google Authenticator, Microsoft Authenticator o Authy.</span>
+                  @if (choose) {
+                    <span>Utilizza l'app di autenticazione.</span>
+                  } @else {
+                    <span>Utilizza un'app di autenticazione come Google Authenticator, Microsoft Authenticator o Authy.</span>
+                  }
               }
             }
             <span
@@ -125,6 +134,9 @@ export class MfaStrategyCardComponent {
 
   @Input()
   noPhone = false
+
+  @Input()
+  choose = false
 
   @Output()
   onEnableMfa = new EventEmitter<MfaStrategy>()

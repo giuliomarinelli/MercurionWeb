@@ -403,12 +403,9 @@ import { ActivatedRoute, Router } from '@angular/router'
                           @case (3) {
                             <h3 class="font-bold text-lg my-3">Password</h3>
                             <div class="flex items-center gap-8">
-                              <div class="flex items-center">
-                                @for (x of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]; track x) {
-                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-5 h-5">
-                                    <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-                                    <path d="M320 256C355.3 256 384 284.7 384 320C384 355.3 355.3 384 320 384C284.7 384 256 355.3 256 320C256 284.7 284.7 256 320 256z"/>
-                                  </svg>
+                              <div class="flex items-center gap-1">
+                                @for (x of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]; track x) {
+                                  <span>●</span>
                                 }
                               </div>
                               <button

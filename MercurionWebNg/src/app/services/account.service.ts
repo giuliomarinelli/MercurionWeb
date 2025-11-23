@@ -98,7 +98,7 @@ export class AccountService {
     })
   }
 
-  public getEnabledMfaStrategies(): Observable<MfaStrategy[]> {
+  public getEnabledMfaStrategies(preauth = false): Observable<MfaStrategy[]> {
     return this.http.get<MfaStrategy[]>('/api/account/mfa-active-strategies', {
       withCredentials: true
     })

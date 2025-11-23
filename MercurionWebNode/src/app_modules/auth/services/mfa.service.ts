@@ -318,7 +318,7 @@ export class MfaService {
         }
         if (!user.otpSecret) throw new RpcException('OtpSecretNotFound')
         let strategyError: boolean = true
-        if ((await this.userService.getUserEncryptedEnabledMfaStrategies(userId)).includes(strategy)) {
+        if ((await this.userService.getUserEncryptedEnabledMfaStrategies(userId)).map((enc) => this.securityService.decrypt_AES256(enc)).includes(strategy)) {
             strategyError = false
         } else if (strategy === MfaStrategy.EMAIL_OTP && trustVerify) {
             strategyError = false
@@ -389,7 +389,7 @@ export class MfaService {
         if (!otpSecret) {
             throw new RpcException('OtpSecretNotFound')
         }
-        const ok = this.securityService.verifyTotp(totp, otpSecret)
+        const ok = this.securityService.verifyTotp(totp, otpSecret, strategy === MfaStrategy.APP_TOTP)
         if (!ok) {
             await this.registerMfaFailure(userId, strategy, context)
             return false
@@ -679,7 +679,7 @@ export class MfaService {
             throw new RpcException('OtpSecretNotFound')
         }
 
-        const isValid = this.securityService.verifyTotp(totp, otpSecret, true)
+        const isValid = this.securityService.verifyTotp(totp, otpSecret, strategy === MfaStrategy.APP_TOTP)
         if (!isValid) {
             await this.registerMfaFailure(userId, strategy, context)
             return false

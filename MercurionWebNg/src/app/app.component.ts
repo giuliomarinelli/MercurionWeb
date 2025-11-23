@@ -48,7 +48,7 @@ import { AppContextService } from './services/context/app-context.service';
     ActionOverlayComponent
   ],
   template: `
-    @if (is_not_404_route()) {
+    @if (is_not_404_route() && is_not_403_route()) {
       <div class="flex flex-col h-screen">
         <app-header class="sticky top-0 z-30" />
         <div class="drawer-container relative flex flex-1 overflow-hidden custom-scrollbar">
@@ -137,6 +137,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   isDarkTheme: Signal<boolean> = computed(() => this.themeManagerService.theme() === 'dark');
   headerHeight = signal(64);
   is_not_404_route = signal<boolean>(true)
+  is_not_403_route = signal<boolean>(true)
 
   private routeSub?: Subscription;
 
@@ -170,7 +171,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       if (t === 0) {
         return
       }
-      queueMicrotask(() => this.appContext.smoothToTop(this.scrollHostRef, 0, 240))
+      queueMicrotask(() => this.appContext.smoothToTop(this.scrollHostRef, 400))
     })
 
     effect(() => {
@@ -222,10 +223,11 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       .subscribe((e: NavigationEnd) => {
         const url = normalize(e.urlAfterRedirects)
         if (url !== '/settings') {
-          this.appContext.smoothToTop(this.scrollHostRef, 0, 240)
+          this.appContext.smoothToTop(this.scrollHostRef, 400)
         }
         // Toggle layout wrapper based on 404 route
         this.is_not_404_route.set(url !== '/404-not-found')
+        this.is_not_403_route.set(url !== '/403-forbidden')
         this.currentPath.set(url);
         this.pathService.setPath(url);
         if (!this.firstNavigationDone()) this.firstNavigationDone.set(true);

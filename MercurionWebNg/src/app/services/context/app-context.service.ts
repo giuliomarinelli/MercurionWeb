@@ -49,27 +49,23 @@ export class AppContextService {
     this._headerHeight.set(h)
   }
 
-  smoothToTop(host: ElementRef<HTMLElement>, targetY: number, duration = 240) {
+  smoothToTop(host: ElementRef<HTMLElement>, duration = 240) {
 
     const el = host?.nativeElement
     if (!el) {
-      requestAnimationFrame(() => this.smoothToTop(host, targetY, duration))
+      requestAnimationFrame(() => this.smoothToTop(host, duration))
       return
     }
 
     this.zone.runOutsideAngular(() => {
-      const startY = el.scrollTop
-      const delta = targetY - startY
-      if (delta === 0) {
-        return
-      }
+
       const startTime = performance.now()
       const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3)
 
       const step = (now: number) => {
         const elapsed = now - startTime
         const progress = Math.min(1, elapsed / duration)
-        el.scrollTop = startY + delta * easeOutCubic(progress)
+        el.scrollTop = easeOutCubic(progress)
         if (progress < 1) requestAnimationFrame(step)
       }
 

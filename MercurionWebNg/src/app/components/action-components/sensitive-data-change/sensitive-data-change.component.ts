@@ -354,7 +354,7 @@ import { RouterLink } from '@angular/router';
                       <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                       <path d="M338.2 81.3L574.4 512L592 544L48 544L65.6 512L301.8 81.3L320 48L338.2 81.3zM102 512L538 512L320 114.6L102 512zM340 460L300 460L300 420L340 420L340 460zM331.2 384L308.8 384L296 240L344 240L331.2 384z"/>
                     </svg>
-                    <p class="text-light-warning dark:text-dark-warning">Tutti i metodi di autenticazione a più fattori sono ora disattivi.</p>
+                    <p class="text-light-warning dark:text-dark-warning">Tutti i metodi di autenticazione a più fattori sono ora disattivi. I codici di backup sono stati invalidati.</p>
                   </div>
                 }
               </div>

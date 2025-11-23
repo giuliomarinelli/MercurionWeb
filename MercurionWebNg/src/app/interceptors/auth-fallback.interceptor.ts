@@ -25,7 +25,7 @@ export class AuthFallbackInterceptor implements HttpInterceptor {
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
 
     const forceLogout = () => {
-      this.toast.trigger('Sessione scaduta. Effettua di nuovo il login.', 'error')
+      this.toast.trigger('Sessione scaduta o invalidata. Effettua di nuovo il login.', 'error')
       this.userContext.logout()
       this.router.navigateByUrl('/login')
     }
