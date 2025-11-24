@@ -13,6 +13,8 @@ import { DatePipe } from '@angular/common';
         [queryParams]="queryParams()"
         class="grid grid-cols-[auto_1fr] gap-3 items-center py-2 px-3 rounded-xl transition
                    hover:bg-slate-50 dark:hover:bg-slate-800/70"
+        [class.bg-slate-100/80]="_selected()"
+        [class.dark:bg-slate-700/80]="_selected()"
       >
         <!-- Icona -->
         @switch (_historyDTO()!.itemEntity) {
@@ -68,7 +70,9 @@ import { DatePipe } from '@angular/common';
   `
 })
 export class HistoryItemComponent {
+
   _historyDTO = signal<HistoryDTO | undefined>(undefined)
+  _selected = signal<boolean>(false)
   pathToItem = signal<string>('')
   queryParams = signal<Record<string, string>>({})
 
@@ -79,6 +83,11 @@ export class HistoryItemComponent {
       this.computePathToItem(historyDTO.itemEntity, historyDTO.itemId)
     )
     this.queryParams.set(JSON.parse(historyDTO.flagIds))
+  }
+
+  @Input()
+  set selected(selected: boolean) {
+    this._selected.set(selected)
   }
 
   private computePathToItem(entity: HistoryItemEntity, id: string): string {

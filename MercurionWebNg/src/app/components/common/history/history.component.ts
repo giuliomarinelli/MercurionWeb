@@ -15,8 +15,8 @@ import {
 } from '@angular/core';
 import { HistoryService } from '../../../services/history.service';
 import { catchError, debounce, distinctUntilChanged, EMPTY, filter, firstValueFrom, interval, Subscription } from 'rxjs';
-import { HistoryDTO } from '../../../Models/history.models';
-import { NavigationEnd, Router } from '@angular/router';
+import { HistoryDTOExt } from '../../../Models/history.models';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { HistoryItemComponent } from '../history-item/history-item.component';
 import { ClassicSpinnerComponent } from '../classic-spinner/classic-spinner.component';
 import { HistoryContextService } from '../../../services/context/history-context.service';
@@ -44,7 +44,7 @@ import { AppContextService } from '../../../services/context/app-context.service
     @if (items().length) {
       <div [ngClass]="fadeOut()" class="pb-36 xs:pb-4 lg:pb-0">
         @for (item of items(); track item.id) {
-          <app-history-item [historyDTO]="item" class="block" />
+          <app-history-item [historyDTO]="item" [selected]="item.selected()" class="block" />
         }
       </div>
     }
@@ -73,14 +73,15 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
   // ======================= DEPS =======================
   private readonly historyService = inject(HistoryService)
   private readonly router = inject(Router)
+  private readonly route = inject(ActivatedRoute)
   private readonly historyContext = inject(HistoryContextService)
-  private readonly ngZone = inject(NgZone)
+  private readonly zone = inject(NgZone)
   private readonly hostRef = inject(ElementRef<HTMLElement>)
   private readonly appContext = inject(AppContextService)
   // ====================================================
 
   @ViewChild('sentinel', { static: true })
-  sentinel!: ElementRef<HTMLElement>;
+  sentinel!: ElementRef<HTMLElement>
 
   @Input()
   set triggerDelete(triggerDelete: boolean) {
@@ -96,35 +97,42 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
   emptyChange = new EventEmitter<boolean>()
 
   private rSub?: Subscription
+
   private observer?: IntersectionObserver
   private rootEl: HTMLElement | null = null
+
 
   serverError = signal<boolean>(false)
   _triggerDelete = signal<boolean>(false)
   _triggerEmptyCheck = signal<boolean>(false)
   fadeOut = signal<string>('')
+  selectedItemId = signal<string>('')
 
-  items = signal<HistoryDTO[]>([])
+  items = signal<HistoryDTOExt[]>([])
   loading = false
   done = false
   protected page = 1
 
   constructor() {
+
+    effect(() => {
+      const selectedItemId = this.selectedItemId()
+      this.setItemAsSelected(selectedItemId)
+    })
+
     effect(() => {
       const ni = this.historyContext.newHistoryItem()
       if (ni) {
-        // post-render: niente NG0100
         queueMicrotask(() => {
           this.historyContext.clearNewHistoryItem()
-          // immutabile: niente splice/unshift
           this.items.update(items => items.filter(it => it.itemId !== ni.itemId))
           const next = [ni, ...this.items()]
           this.items.set(next)
-        });
+          this.selectedItemId.set(ni.itemId || '')
+        })
       }
-    });
+    })
 
-    // remove item
     effect(() => {
       const rmId = this.historyContext.removeItemTriggerSignal()
       if (rmId) {
@@ -133,6 +141,10 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
           this.appContext.smoothToTop(hostRef, 400)
           this.historyContext.clearRemoveItemTriggerSignal()
           this.items.update(items => items.filter(it => it.itemId !== rmId))
+          const selectedItemId = this.items().find((item) => item.itemId === rmId)?.itemId ?? ''
+          if (this.selectedItemId() === selectedItemId) {
+            this.selectedItemId.set('')
+          }
         })
       }
     })
@@ -167,11 +179,9 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
         this.emptyChange.emit(true)
       }
     })
-
   }
 
   ngOnInit(): void {
-    // Mantieni il tuo comportamento su NavigationEnd (non lo tolgo)
     this.rSub = this.router.events
       .pipe(filter(e => e instanceof NavigationEnd))
       .subscribe((e) => {
@@ -190,13 +200,21 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
         if (scroll) {
           queueMicrotask(() => this.appContext.smoothToTop(rootRef, 400))
         }
+        let route = this.route.root
+        while (route.firstChild) {
+          route = route.firstChild
+        }
+
+        const molId = route.snapshot.paramMap.get('molId') ?? ''
+        const colId = route.snapshot.paramMap.get('colId') ?? ''
+        this.selectedItemId.set(molId || colId || '')
+
       })
   }
 
   ngAfterViewInit(): void {
     this.rootEl = this.findScrollContainer()
     this.startObserver()
-    // Primo caricamento esplicito: non dipendere dal routing
     if (this.page === 1) {
       queueMicrotask(() => this.loadMore())
     }
@@ -204,10 +222,9 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnDestroy(): void {
     this.rSub?.unsubscribe();
-    if (this.observer) this.observer.disconnect();
+    if (this.observer) this.observer.disconnect()
   }
 
-  // Trova il vero contenitore scrollabile (la tua sidebar ha .custom-scrollbar)
   private findScrollContainer(): HTMLElement | null {
     let el: HTMLElement | null = this.hostRef.nativeElement;
     while (el && el !== document.body) {
@@ -226,10 +243,10 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
 
     this.observer = new IntersectionObserver(
       entries => {
-        const entry = entries[0];
+        const entry = entries[0]
         if (entry.isIntersecting) {
           // La callback di IO è fuori dallo NgZone: rientro esplicitamente
-          this.ngZone.run(() => this.loadMore());
+          this.zone.run(() => this.loadMore());
         }
       },
       {
@@ -237,15 +254,16 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
         rootMargin: '0px 0px 300px 0px',  // un piccolo prefetch in anticipo
         threshold: 0
       }
-    );
+    )
 
     this.observer.observe(this.sentinel.nativeElement)
   }
 
   async loadMore() {
+
     if (this.loading || this.done) return
 
-    this.loading = true;
+    this.loading = true
 
     const newPage = await firstValueFrom(
       this.historyService.getHistory(this.page, 15).pipe(
@@ -258,7 +276,7 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
           return EMPTY
         })
       )
-    );
+    )
 
     if (!newPage || !newPage.items || newPage.items.length === 0) {
       if (this.items().length === 0) {
@@ -268,9 +286,26 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
     } else {
       this.emptyChange.emit(false)
       this.items.update(items => [...items, ...newPage.items])
+      const selectedItemId = this.items().find((item) => item.itemId === this.selectedItemId())?.itemId ?? ''
+      if (selectedItemId) {
+        this.selectedItemId.set(selectedItemId)
+      }
       this.page++
     }
 
     this.loading = false
   }
+
+  setItemAsSelected(itemId: string): void {
+    const items = this.items()
+    if (!items.length) {
+      return
+    }
+
+    for (const item of items) {
+      const shouldSelect = !!itemId && item.itemId === itemId
+      item.selected.set(shouldSelect)
+    }
+  }
+
 }

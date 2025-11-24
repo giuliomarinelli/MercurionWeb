@@ -1,3 +1,5 @@
+import { WritableSignal } from "@angular/core"
+
 export interface HistoryDTO {
   id: string
   itemEntity: HistoryItemEntity
@@ -5,6 +7,10 @@ export interface HistoryDTO {
   itemId: string
   itemName: string
   flagIds: string
+}
+
+export interface HistoryDTOExt extends HistoryDTO {
+  selected: WritableSignal<boolean>
 }
 
 export type HistoryItemEntity = 'molecule_collections' | 'molecule_collection_items'
