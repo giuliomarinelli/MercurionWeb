@@ -26,7 +26,7 @@ export interface ProfileDTO {
   collectionCount: number
 }
 
-export type MfaStrategy = 'EMAIL_OTP' | 'SMS_OTP' | 'APP_TOTP'
+export type MfaStrategy = 'EMAIL_OTP' | 'SMS_OTP' | 'APP_TOTP' | 'BACKUP_CODE'
 
 export interface MfaStrategyDTO {
   strategy: MfaStrategy

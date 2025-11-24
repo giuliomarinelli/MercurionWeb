@@ -1,7 +1,8 @@
 import { MfaStrategyDTO } from './../../../Models/account/account.models';
-import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
+import { Component, EventEmitter, inject, Input, Output, signal } from '@angular/core';
 import { MfaStrategy } from '../../../Models/account/account.models';
 import { NgClass } from '@angular/common';
+import { DesignService } from '../../../services/design.service';
 
 @Component({
   selector: 'm-mfa-strategy-card',
@@ -27,28 +28,42 @@ import { NgClass } from '@angular/common';
       <div class="flex items-center gap-6">
           @switch (_strategy()!.strategy) {
               @case ('EMAIL_OTP') {
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-7 w-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-7 w-auto shrink-0">
                   <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                   <path d="M80 128L64 128L64 512L576 512L576 128L80 128zM544 184L544 199.9L320 364.2L96 199.9L96 160L544 160L544 184zM544 239.6L544 480L96 480L96 239.6L310.5 396.9L320 403.8L329.5 396.9L544 239.6z"/>
                 </svg>
                 <span>Invia un codice monouso via e-mail.</span>
               }
               @case ('SMS_OTP') {
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-7 w-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-7 w-auto shrink-0">
                   <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                   <path d="M256 96L256 160L384 160L384 96L464 96L464 544L176 544L176 96L256 96zM256 64L144 64L144 576L496 576L496 64L256 64zM288 96L352 96L352 128L288 128L288 96zM272 464L272 496L368 496L368 464L272 464z"/>
                 </svg>
                 <span>Invia un codice monouso via sms.</span>
               }
               @case ('APP_TOTP') {
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-7 w-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-7 w-auto shrink-0">
                   <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                   <path d="M256 128L256 256L128 256L128 128L256 128zM128 96L96 96L96 288L288 288L288 96L128 96zM256 384L256 512L128 512L128 384L256 384zM128 352L96 352L96 544L288 544L288 352L128 352zM384 128L512 128L512 256L384 256L384 128zM352 96L352 288L544 288L544 96L352 96zM472 424L424 424L424 472L472 472L472 424zM216 168L168 168L168 216L216 216L216 168zM168 424L168 472L216 472L216 424L168 424zM472 168L424 168L424 216L472 216L472 168zM360 360L360 408L408 408L408 360L360 360zM360 488L360 536L408 536L408 488L360 488zM536 488L488 488L488 536L536 536L536 488zM488 360L488 408L536 408L536 360L488 360z"/>
                 </svg>
-                  @if (choose) {
+                  @if (choose || design.maxBk('sm')()) {
                     <span>Utilizza l'app di autenticazione.</span>
                   } @else {
                     <span>Utilizza un'app di autenticazione come Google Authenticator, Microsoft Authenticator o Authy.</span>
+                  }
+              }
+              @case ('BACKUP_CODE') {
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-7 w-auto shrink-0">
+                  <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                  <path d="M112.6 178.9L320 98.3L527.6 178.9C532.9 270 498.8 463.8 320 541.1C141.3 463.8 107.2 270 112.6 178.9zM559.6 177L558.3 156.5L539.1 149L331.6 68.5L320 64L308.5 68.5L101 149L81.8 156.5L80.6 177C77.7 226.9 85.5 303.3 117.9 377.9C150.6 453.2 208.9 527.9 307.3 570.5L320 576L332.7 570.5C431.1 527.9 489.4 453.2 522.1 377.9C554.5 303.2 562.3 226.9 559.4 177zM320 248C333.3 248 344 258.7 344 272C344 285.3 333.3 296 320 296C306.7 296 296 285.3 296 272C296 258.7 306.7 248 320 248zM376 272C376 241.1 350.9 216 320 216C289.1 216 264 241.1 264 272C264 297.4 280.9 318.8 304 325.7L304 416L336 416L336 325.7C359.1 318.8 376 297.4 376 272z"/>
+                </svg>
+                  @if (choose) {
+                    <span>Utilizza un codice di backup.</span>
+                  } @else {
+                    <p class="flex flex-col gap-y-2 sm:gap-y-[2px]">
+                      <span>Utilizza un codice di backup.</span>
+                      <span class="font-extralight text-[0.7rem]">I codici di backup restano validi finché non disattivi tutti i metodi di autenticazione a più fattori. Ogni codice di backup è monouso.</span>
+                    </p>
                   }
               }
             }
@@ -72,7 +87,7 @@ import { NgClass } from '@angular/common';
               </div>
             }
       </div>
-      @if (showActions && !(noPhone && _strategy()!.strategy === 'SMS_OTP')) {
+      @if (showActions && !(noPhone && _strategy()!.strategy === 'SMS_OTP') && _strategy()!.strategy !== 'BACKUP_CODE') {
         <button
           type="button"
           [class.bg-emerald-800]="!_strategy()!.enabled"
@@ -112,6 +127,8 @@ import { NgClass } from '@angular/common';
   `
 })
 export class MfaStrategyCardComponent {
+
+  protected readonly design = inject(DesignService)
 
   _activeStrategies = signal<MfaStrategy[]>([])
   _strategy = signal<MfaStrategyDTO | null>(null)

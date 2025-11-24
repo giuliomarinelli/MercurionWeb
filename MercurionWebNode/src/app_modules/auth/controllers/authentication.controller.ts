@@ -1,7 +1,7 @@
 import { SessionService } from 'src/app_modules/auth/services/session.service';
 import { SecureCookieService } from './../services/secure-cookie.service';
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Query, Req, Res, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, HttpCode, HttpStatus, Param, Patch, Post, Query, Req, Res, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
 import { Login_FirstStepDTO } from '../Models/DTO/login-first-step.cls.dto';
 import { MfaService } from '../services/mfa.service';
 import { AuthenticationService } from '../services/authentication.service';
@@ -13,7 +13,6 @@ import { Confirm_Login_FirstStepDTO, ConfirmDTO, ConfirmWithTokenPairAndInitials
 import { TestPhoneDTO } from '../Models/DTO/test-phone.cls.dto';
 import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
-import { TotpBodyDTO } from '../Models/DTO/totp.cls.dto';
 import { JwtToolsService } from '../services/jwt-tools.service';
 import { TokenType } from '../Models/enums/token-type.enum';
 import { EmailDTO } from '../Models/DTO/email.cls.dto';
@@ -27,6 +26,12 @@ import { SignedSessionIdDTO } from '../Models/DTO/signed-session-id.dto';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { TypeGuards } from 'src/utils/type-guards/type-guards';
+import { VerifyBodyDTO } from '../Models/DTO/verify-body.cls.dto.';
+import { VerifyBodyPipe } from '../validation-pipes/verify-body.pipe';
+import { VerifyKind } from '../Models/enums/verify-kind.enum';
+import { BackupCodeDTO } from '../Models/DTO/backup-code.cls.dto';
+import { TotpBodyDTO } from '../Models/DTO/totp.cls.dto';
 
 
 
@@ -155,7 +160,7 @@ export class AuthenticationController {
         @Query('trust_verify') trustVerify: boolean = false,
         @Authorization() preAuthorizationToken: string,
         @Param('strategy') strategyKey: string,
-        @Body(new ValidationPipe({ transform: true })) dto: TotpBodyDTO,
+        @Body(new VerifyBodyPipe()) body: VerifyBodyDTO,
         @Fingerprint() fingerprintData: FingerprintData,
         @ClientIp() ip: string,
         @Req() req: FastifyRequest,
@@ -169,6 +174,7 @@ export class AuthenticationController {
         let sessionId: UUID
         let jti: UUID
         try {
+            // Nota: questa verifica è una ridondanza intenzionale. Permette di aggiungere un layer di sicurezza in più ed evitare un possibile stato di "unico punto di rottura"
             ({ sub: userId, sid: sessionId, jti } = await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken))
         } catch {
             try {
@@ -183,13 +189,25 @@ export class AuthenticationController {
             await this.sessionService.revokeToken(jti)
             throw new UnauthorizedException('MfaDeviceMismatch')
         }
-        const { totp } = dto
+        let code: string
+
+        if (body.kind === VerifyKind.TOTP) {
+            code = (body.payload as TotpBodyDTO).totp
+        } else if (body.kind === VerifyKind.BACKUP) {
+            code = (body.payload as BackupCodeDTO).code
+        } else {
+            throw new ForbiddenException('Forbidden::missing permissions')
+        }
         const strategy: MfaStrategy | undefined = GeneralUtils.getEnumValueFromStringKey(MfaStrategy, strategyKey)
-        if (!strategy) {
+        if (!TypeGuards.isMfaStrategy(strategy)) {
             throw new BadRequestException('Invalid MFA strategy')
         }
-        const isTotpValid: boolean = await this.mfaService.verifyUserOtpOrAppTotp(totp, preAuthorizationToken, strategy)
-        if (!isTotpValid) {
+        const isVerificationOk: boolean = strategy !== MfaStrategy.BACKUP_CODE
+            ?
+            await this.mfaService.verifyUserOtpOrAppTotp(code, preAuthorizationToken, strategy)
+            :
+            await this.mfaService.verifyBackupCode(code, preAuthorizationToken)
+        if (!isVerificationOk) {
             throw new UnauthorizedException('Invalid MFA OTP')
         }
         const { accessToken, ws_accessToken } = await this.authService.performAuthentication({ userId, sessionId }, fingerprintData, ip, trustVerify)
@@ -249,61 +267,5 @@ export class AuthenticationController {
     ): Promise<string> {
         return this.jwtTools.generateToken(userId, TokenType.ws_AccessToken, sessionId)
     }
-
-    @Public()
-    @Post('/login/backup/3')
-    @HttpCode(HttpStatus.OK)
-    public async login_thirdStep_backupCode(
-        @Authorization() preAuthorizationToken: string,
-        @Body('code') code: string,
-        @Fingerprint() fingerprintData: FingerprintData,
-        @ClientIp() ip: string,
-        @Req() req: FastifyRequest,
-        @Res({ passthrough: true }) reply: FastifyReply,
-        @DeviceId() actualDeviceId: UUID
-    ): Promise<ConfirmWithTokenPairAndInitialsDTO> {
-
-        const loginPendingVal = req.cookies['__logged_in'] ?? ''
-        const maxAge = loginPendingVal === 'pending_long' ? this.LONG_SESSION_TTL : undefined
-
-        let userId: UUID
-        let sessionId: UUID
-        let jti: UUID
-
-        try {
-            ({ sub: userId, sid: sessionId, jti } = await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken))
-        } catch {
-            throw new UnauthorizedException()
-        }
-
-        const expectedDev = await this.redisService.get(`mfa:pat:dev:${jti}`)
-        if (expectedDev && expectedDev !== actualDeviceId) {
-            await this.sessionService.revokeToken(jti)
-            throw new UnauthorizedException('MfaDeviceMismatch')
-        }
-
-        const ok = await this.mfaService.verifyBackupCode(userId, code)
-        await this.sessionService.revokeToken(jti)
-
-        if (!ok) {
-            throw new UnauthorizedException('InvalidBackupCode')
-        }
-
-        const { accessToken, ws_accessToken } = await this.authService.performAuthentication({ userId, sessionId }, fingerprintData, ip)
-
-        reply.setCookie('__logged_in', 'true', {
-            ...this.cookieConf,
-            maxAge,
-            httpOnly: false
-        })
-
-        return {
-            ...this._r.ok('Authenticated successfully (backup code)'),
-            accessToken,
-            ws_accessToken,
-            initials: (await this.userService.getUserInitialsByUserId(userId)) ?? ''
-        }
-    }
-
 
 }

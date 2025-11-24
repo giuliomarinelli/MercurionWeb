@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import { CanActivate, ExecutionContext, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtToolsService } from '../services/jwt-tools.service';
 import { SessionService } from '../services/session.service';
 import { IS_PUBLIC_KEY } from 'src/metadata/metadata';
@@ -62,7 +62,7 @@ export class GlobalGuard implements CanActivate {
       let accessToken: string = ''
       let newToken: string = ''
       let payload: AppJwtPayload
-      let newPayload: AppJwtPayload
+      
 
       try {
 
@@ -196,7 +196,7 @@ export class GlobalGuard implements CanActivate {
          }).join(', ')
          this.logger.debug(`Authentication/Authorization error${errorInfo ? ', ' + errorInfo : ''}`, (e?.stack ?? e) as object)
          if (e instanceof RpcException && e.message === 'Forbidden::missing permissions') {
-            throw new UnauthorizedException(e.message)
+            throw new ForbiddenException(e.message)
          }
          const fatal = new UnauthorizedException('Fatal: unauthenticated')
          if (e instanceof RpcException && e.message === 'Unauthorized') {

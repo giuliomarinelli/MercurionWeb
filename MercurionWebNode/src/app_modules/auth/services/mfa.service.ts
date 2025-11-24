@@ -28,6 +28,7 @@ import { uuidv7 } from '@kripod/uuidv7';
 import { SecurityAuditService } from 'src/app_modules/meilisearch/services/security-audit.service';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { TypeGuards } from 'src/utils/type-guards/type-guards';
 
 @Injectable()
 export class MfaService {
@@ -150,58 +151,117 @@ export class MfaService {
     }
 
 
-    public async generateBackupCodes(userId: UUID): Promise<string[]> {
+    public async generateBackupCodes(userId: UUID): Promise<string[]> | never {
 
-        const codes = Array.from({ length: 10 }).map(() => this.securityService.generateReadableCode())
-
-        const entities = await Promise.all(codes.map(async code => ({
-            id: uuidv7() as UUID,
-            hash: await this.passwordEncoderService.encode(code),
-            used: false,
-            createdAt: Date.now(),
-            user: { id: userId } as Pick<User, 'id'>
-        })))
         try {
-            await this.backupCodeRepository.save(entities)
-            return codes
+            const codes = Array.from({ length: 10 }).map(() => this.securityService.generateReadableCode())
+
+            const entities = await Promise.all(codes.map(async code => ({
+                id: uuidv7() as UUID,
+                hash: await this.passwordEncoderService.encode(code),
+                used: false,
+                createdAt: Date.now(),
+                user: { id: userId } as Pick<User, 'id'>
+            })))
+            try {
+                return this.dataSource.manager.transaction(async (manager) => {
+                    await manager.save(MfaBackupCode, entities)
+                    const row = await manager.findOne(User, {
+                        where: {
+                            id: userId
+                        },
+                        select: {
+                            mfaStrategies: true
+                        }
+                    })
+                    if (!row) {
+                        throw new RpcException('Unauthenticated')
+                    }
+                    let mfaStrategies: MfaStrategy[] = []
+                    try {
+                        const deserialized = JSON.parse(row.mfaStrategies) as MfaStrategy[]
+                        mfaStrategies = deserialized.map((enc) => this.securityService.decrypt_AES256(enc))
+                            .filter((dec) => TypeGuards.isMfaStrategy(dec))
+                        mfaStrategies.push(MfaStrategy.BACKUP_CODE)
+                    } catch (e) {
+                        this.logger.warn(`User.mfaStrategies json array deserialization error: `, (e.stack ?? e) as object)
+                    }
+                    const encMfaStrategies = mfaStrategies.length ?
+                        GeneralUtils.distinctArray(mfaStrategies).map((dec) => this.securityService.encrypt_AES256(dec))
+                        :
+                        []
+                    const serialized = JSON.stringify(encMfaStrategies)
+                    await manager.update(User, {
+                        id: userId
+                    },
+                        {
+                            mfaStrategies: serialized
+                        }
+                    )
+                    return codes
+                })
+
+            } catch (e) {
+                this.logger.warn(` > generateBackupCodes > Unexpected error in transaction, userId=${userId}`, (e.stack ?? e) as string | object)
+                throw e
+            }
         } catch (e) {
-            this.logger.warn(' > generateBackupCodes > ERROR', e as string | object)
+            this.logger.warn(` > generateBackupCodes > Unexpected global error in this method, userId=${userId}`, (e.stack ?? e) as string | object)
             throw e
         }
     }
 
-    public async verifyBackupCode(userId: UUID, plainCode: string): Promise<boolean> {
+    public async verifyBackupCode(plainCode: string, preAuthorizationToken: string): Promise<boolean> {
 
-        await this.ensureBackupNotLocked(userId)
+        let userId: string = ''
+        let jti: string = ''
 
-        const codes = await this.backupCodeRepository.find({
-            where: { userId, used: false }
-        })
+        try {
 
-        if (!codes || !codes.length) {
-            await this.registerBackupFailure(userId)
-            return false
-        }
+            ({ sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken))
 
-        let matched = false
-        for (const c of codes) {
-            const match = await this.passwordEncoderService.compare(plainCode, c.hash)
-            if (match) {
-                matched = true
-                c.used = true
-                c.usedAt = Date.now()
-                await this.backupCodeRepository.save(c)
-                break
+            await this.sessionService.revokeToken(jti)
+
+            await this.ensureBackupNotLocked(userId as UUID)
+
+            const codes = await this.backupCodeRepository.find({
+                where: {
+                    userId: userId as UUID,
+                    used: false
+                }
+            })
+
+            if (!codes || !codes.length) {
+                await this.registerBackupFailure(userId as UUID)
+                return false
             }
-        }
 
-        if (!matched) {
-            await this.registerBackupFailure(userId)
+            let matched = false
+            for (const c of codes) {
+                const match = (await this.passwordEncoderService.compare(plainCode, c.hash))
+                if (match) {
+                    matched = true
+                    c.used = true
+                    c.usedAt = Date.now()
+                    await this.backupCodeRepository.save(c)
+                    break
+                }
+            }
+
+            if (!matched) {
+                await this.registerBackupFailure(userId as UUID)
+                return false
+            }
+
+            await this.clearBackupFailures(userId as UUID)
+            return true
+        } catch (e) {
+            const logData: string[] = []
+            logData.push(userId ? `user_id=${userId}` : '', jti ? `pre_authorization_token_jti=${jti}` : '')
+            const logDataStr = logData.length ? ', ' + logData.join(', ') : ''
+            this.logger.warn(` > verifyBackupCode${logDataStr} > Error: `, (e.stack ?? e) as object)
             return false
         }
-
-        await this.clearBackupFailures(userId)
-        return true
     }
 
 
@@ -411,7 +471,7 @@ export class MfaService {
         let email: string
         let completePhoneNumber: string
         let otpauth_url: string
-        let secureToken: string
+        let secureToken: string = ''
 
         if (!await this.userService.existsUserById(userId)) {
             throw new RpcException('NoSuchUser')
