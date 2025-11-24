@@ -157,7 +157,7 @@ export class AuthService {
   public login_stepZero(emailDTO: EmailDTO): Observable<ConfirmDTO> {
     return this.http.post<ConfirmDTO>('/api/authentication/login/0', emailDTO,
       { withCredentials: true }
-    );
+    )
   }
 
   public login_firstStep(loginWrapper: Login_FirstStepWrapper): Observable<Confirm_Login_FirstStepDTO> {
@@ -177,6 +177,7 @@ export class AuthService {
           this.setCachedScopes(scp)
         }
       }
+      this.userContext.logout()
     }))
   }
 
