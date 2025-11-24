@@ -5,7 +5,7 @@ import { UserService } from 'src/app_modules/user/services/user.service';
 import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MfaBackupCode } from 'src/app_modules/user/Models/entities/backup-code.entity';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, EntityManager, Repository } from 'typeorm';
 import { PasswordEncoderService } from './password-encoder.service';
 import { User } from 'src/app_modules/user/Models/entities/user.entity';
 import { BackupCodeStatusDTO } from 'src/app_modules/user/Models/DTO/backup-code-status.dto';
@@ -151,7 +151,7 @@ export class MfaService {
     }
 
 
-    public async generateBackupCodes(userId: UUID): Promise<string[]> | never {
+    public async generateBackupCodes(userId: UUID, manager: EntityManager): Promise<string[]> | never {
 
         try {
             const codes = Array.from({ length: 10 }).map(() => this.securityService.generateReadableCode())
@@ -163,44 +163,42 @@ export class MfaService {
                 createdAt: Date.now(),
                 user: { id: userId } as Pick<User, 'id'>
             })))
+
             try {
-                return this.dataSource.manager.transaction(async (manager) => {
-                    await manager.save(MfaBackupCode, entities)
-                    const row = await manager.findOne(User, {
-                        where: {
-                            id: userId
-                        },
-                        select: {
-                            mfaStrategies: true
-                        }
-                    })
-                    if (!row) {
-                        throw new RpcException('Unauthenticated')
-                    }
-                    let mfaStrategies: MfaStrategy[] = []
-                    try {
-                        const deserialized = JSON.parse(row.mfaStrategies) as MfaStrategy[]
-                        mfaStrategies = deserialized.map((enc) => this.securityService.decrypt_AES256(enc))
-                            .filter((dec) => TypeGuards.isMfaStrategy(dec))
-                        mfaStrategies.push(MfaStrategy.BACKUP_CODE)
-                    } catch (e) {
-                        this.logger.warn(`User.mfaStrategies json array deserialization error: `, (e.stack ?? e) as object)
-                    }
-                    const encMfaStrategies = mfaStrategies.length ?
-                        GeneralUtils.distinctArray(mfaStrategies).map((dec) => this.securityService.encrypt_AES256(dec))
-                        :
-                        []
-                    const serialized = JSON.stringify(encMfaStrategies)
-                    await manager.update(User, {
+                await manager.save(MfaBackupCode, entities)
+                const row = await manager.findOne(User, {
+                    where: {
                         id: userId
                     },
-                        {
-                            mfaStrategies: serialized
-                        }
-                    )
-                    return codes
+                    select: {
+                        mfaStrategies: true
+                    }
                 })
-
+                if (!row) {
+                    throw new RpcException('Unauthenticated')
+                }
+                let mfaStrategies: MfaStrategy[] = []
+                try {
+                    const deserialized = JSON.parse(row.mfaStrategies) as MfaStrategy[]
+                    mfaStrategies = deserialized.map((enc) => this.securityService.decrypt_AES256(enc))
+                        .filter((dec) => TypeGuards.isMfaStrategy(dec))
+                    mfaStrategies.push(MfaStrategy.BACKUP_CODE)
+                } catch (e) {
+                    this.logger.warn(`User.mfaStrategies json array deserialization error: `, (e.stack ?? e) as object)
+                }
+                const encMfaStrategies = mfaStrategies.length ?
+                    GeneralUtils.distinctArray(mfaStrategies).map((dec) => this.securityService.encrypt_AES256(dec))
+                    :
+                    []
+                const serialized = JSON.stringify(encMfaStrategies)
+                await manager.update(User, {
+                    id: userId
+                },
+                    {
+                        mfaStrategies: serialized
+                    }
+                )
+                return codes
             } catch (e) {
                 this.logger.warn(` > generateBackupCodes > Unexpected error in transaction, userId=${userId}`, (e.stack ?? e) as string | object)
                 throw e
@@ -267,8 +265,38 @@ export class MfaService {
 
     public async regenerateBackupCodes(userId: UUID): Promise<string[]> {
         await this.throttleBackupRegeneration(userId)
-        await this.backupCodeRepository.delete({ userId })
-        return this.generateBackupCodes(userId)
+        return this.dataSource.manager.transaction(async (manager) => {
+            await manager.delete(MfaBackupCode, { userId })
+            const rawStrategiesRows = await manager.findOne(User, {
+                where: {
+                    id: userId
+                },
+                select: {
+                    mfaStrategies: true
+                }
+            })
+            if (!rawStrategiesRows) {
+                return []
+            }
+            let deserialized: string[]
+            try {
+                deserialized = JSON.parse(rawStrategiesRows.mfaStrategies) as MfaStrategy[]
+            } catch (e) {
+                this.logger.warn(` > regenerateBackupCodes: error in MFA Strategies deserialization, userId=${userId}: `, (e.stack ?? e) as object)
+                return []
+            }
+            let decrypted = deserialized.map((enc) => this.securityService.decrypt_AES256(enc) as MfaStrategy)
+            decrypted.push(MfaStrategy.BACKUP_CODE)
+            decrypted = GeneralUtils.distinctArray(decrypted)
+            const encrypted = decrypted.map((dec) => this.securityService.encrypt_AES256(dec))
+            await manager.update(User, {
+                id: userId
+            }, {
+                mfaStrategies: JSON.stringify(encrypted)
+            }
+            )
+            return this.generateBackupCodes(userId, manager)
+        })
     }
 
 
@@ -707,13 +735,13 @@ export class MfaService {
         switch (strategy) {
             case MfaStrategy.EMAIL_OTP:
                 tokenType = TokenType.EmailOtpMfaInactivationToken
-                break;
+                break
             case MfaStrategy.SMS_OTP:
                 tokenType = TokenType.SmsOtpMfaInactivationToken
-                break;
+                break
             case MfaStrategy.APP_TOTP:
                 tokenType = TokenType.AppTotpMfaInactivationToken
-                break;
+                break
             default:
                 throw new RpcException(`UnsupportedMfaStrategy::${GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy)}`)
         }
@@ -753,19 +781,35 @@ export class MfaService {
                 .getOneOrFail()
 
             const { mfaStrategies: rawMfaStrategies } = row
-            const mfaStrategiesWithoutJustDisabledStrategy = (JSON.parse(rawMfaStrategies || '[]') as string[])
+            let deserialized: string[]
+            try {
+                deserialized = JSON.parse(rawMfaStrategies || '[]') as string[]
+            } catch (e) {
+                this.logger.warn(` > disableMfa_secondStep_verifyTotpAndRemoveStrategy: error in deserialization: `, (e.stack ?? e) as object)
+                throw e
+            }
+            const mfaStrategiesWithoutJustDisabledStrategy = deserialized
                 .map((enc) => this.securityService.decrypt_AES256(enc))
                 .map(uuid => GeneralUtils.getEnumValue(MfaStrategy, uuid))
                 .filter((val): val is MfaStrategy => val !== undefined)
                 .filter(st => st !== strategy)
-                .map((uuid) => this.securityService.encrypt_AES256(uuid))
+
+            if (mfaStrategiesWithoutJustDisabledStrategy.length === 1 && mfaStrategiesWithoutJustDisabledStrategy) {
+                const i = mfaStrategiesWithoutJustDisabledStrategy.findIndex((st) => st === MfaStrategy.BACKUP_CODE)
+                if (i !== -1) {
+                    mfaStrategiesWithoutJustDisabledStrategy.splice(i, 1)
+                }
+            }
 
             await manager.update(User,
                 {
                     id: userId
                 },
                 {
-                    mfaStrategies: JSON.stringify(mfaStrategiesWithoutJustDisabledStrategy)
+                    mfaStrategies: JSON.stringify(
+                        mfaStrategiesWithoutJustDisabledStrategy.map((uuid) => this.securityService.encrypt_AES256(uuid))
+                    )
+
                 })
             if (strategy === MfaStrategy.APP_TOTP) {
                 await manager.update(User, { id: userId }, {
