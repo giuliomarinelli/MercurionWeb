@@ -13,11 +13,24 @@ export class AppContextService {
   private _addedScrollTick = signal<number>(0)
   readonly addedScrollTick = this._addedScrollTick.asReadonly()
 
+  private _addedGlobalScrollRootRefTick = signal<number>(0)
+  readonly addedGlobalScrollRootRefTick = this._addedGlobalScrollRootRefTick.asReadonly()
+
   private _refetchDashboardaddedTick = signal<number>(0)
   readonly refetchDashboardAddedTick = this._refetchDashboardaddedTick.asReadonly()
 
+  private _globalScollRootRef = signal<ElementRef<HTMLElement> | null>(null)
+  readonly globalScollRootRef = this._globalScollRootRef.asReadonly()
+
+  private _headerHeight = signal<number>(0)
+  readonly headerHeight = this._headerHeight.asReadonly()
+
   notifyAdded(): void {
     this._addedTick.update(x => x + 1)
+  }
+
+  notifyRequestGlobalScrollRootRefTick(): void {
+    this._addedGlobalScrollRootRefTick.update(x => x + 1)
   }
 
   triggerScrollToTopGlobally(): void {
@@ -28,19 +41,23 @@ export class AppContextService {
     this._refetchDashboardaddedTick.update(x => x + 1)
   }
 
-  scrollToTop(host: ElementRef<HTMLElement>, duration = 240) {
+  setGlobalScrollRootRef(r: ElementRef<HTMLElement>): void {
+    this._globalScollRootRef.set(r)
+  }
 
-    const nativeElement = host?.nativeElement;
+  setHeaderHeight(h: number) {
+    this._headerHeight.set(h)
+  }
 
-    if (!nativeElement) {
-      requestAnimationFrame(() => this.scrollToTop(nativeElement, duration))
+  smoothToTop(host: ElementRef<HTMLElement>, duration = 240) {
+
+    const el = host?.nativeElement
+    if (!el) {
+      requestAnimationFrame(() => this.smoothToTop(host, duration))
       return
     }
 
     this.zone.runOutsideAngular(() => {
-
-      const start = nativeElement.scrollTop
-      if (start === 0) return
 
       const startTime = performance.now()
       const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3)
@@ -48,14 +65,55 @@ export class AppContextService {
       const step = (now: number) => {
         const elapsed = now - startTime
         const progress = Math.min(1, elapsed / duration)
-        const y = Math.floor(start * (1 - easeOutCubic(progress)))
-        nativeElement.scrollTop = y
+        el.scrollTop = easeOutCubic(progress)
         if (progress < 1) requestAnimationFrame(step)
-      };
+      }
 
       requestAnimationFrame(step)
     })
   }
+
+  smoothTo(
+    host: ElementRef<HTMLElement>,
+    targetY: number,
+    duration = 240
+  ) {
+    const el = host?.nativeElement;
+    if (!el) {
+      requestAnimationFrame(() => this.smoothTo(host, targetY, duration));
+      return;
+    }
+
+    this.zone.runOutsideAngular(() => {
+
+      const start = el.scrollTop
+      const delta = targetY - start
+      if (delta === 0) {
+        return
+      }
+      const startTime = performance.now()
+      const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3)
+
+      const step = (now: number) => {
+        const elapsed = now - startTime
+        const progress = Math.min(1, elapsed / duration)
+        el.scrollTop = start + delta * easeOutCubic(progress)
+        if (progress < 1) requestAnimationFrame(step)
+      }
+
+      requestAnimationFrame(step)
+    })
+  }
+
+  getScrollYRelativeToRoot(
+    el: HTMLElement,
+    scrollRoot: HTMLElement
+  ): number {
+    const elRect = el.getBoundingClientRect()
+    const rootRect = scrollRoot.getBoundingClientRect()
+    return (elRect.top - rootRect.top) + scrollRoot.scrollTop
+  }
+
 
 
 

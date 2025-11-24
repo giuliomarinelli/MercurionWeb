@@ -5,7 +5,7 @@ import { UserService } from 'src/app_modules/user/services/user.service';
 import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MfaBackupCode } from 'src/app_modules/user/Models/entities/backup-code.entity';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, EntityManager, Repository } from 'typeorm';
 import { PasswordEncoderService } from './password-encoder.service';
 import { User } from 'src/app_modules/user/Models/entities/user.entity';
 import { BackupCodeStatusDTO } from 'src/app_modules/user/Models/DTO/backup-code-status.dto';
@@ -28,6 +28,7 @@ import { uuidv7 } from '@kripod/uuidv7';
 import { SecurityAuditService } from 'src/app_modules/meilisearch/services/security-audit.service';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { TypeGuards } from 'src/utils/type-guards/type-guards';
 
 @Injectable()
 export class MfaService {
@@ -149,68 +150,165 @@ export class MfaService {
         }
     }
 
-
-    public async generateBackupCodes(userId: UUID): Promise<string[]> {
+    public async generateBackupCodes(userId: UUID, manager: EntityManager): Promise<string[]> {
 
         const codes = Array.from({ length: 10 }).map(() => this.securityService.generateReadableCode())
 
-        const entities = await Promise.all(codes.map(async code => ({
-            id: uuidv7() as UUID,
-            hash: await this.passwordEncoderService.encode(code),
-            used: false,
-            createdAt: Date.now(),
-            user: { id: userId } as Pick<User, 'id'>
-        })))
+        const entities = await Promise.all(
+            codes.map(async plain => ({
+                id: uuidv7() as UUID,
+                hash: await this.passwordEncoderService.encode(plain),
+                used: false,
+                createdAt: Date.now(),
+                user: { id: userId } as Pick<User, "id">,
+            }))
+        )
+
+        await manager.save(MfaBackupCode, entities)
+
+        const row = await manager.findOne(User, {
+            where: { id: userId },
+            select: { mfaStrategies: true },
+        });
+
+        if (!row) {
+            throw new RpcException("Unauthenticated")
+        }
+
+        let deserialized: string[]
         try {
-            await this.backupCodeRepository.save(entities)
-            return codes
-        } catch (e) {
-            this.logger.warn(' > generateBackupCodes > ERROR', e as string | object)
-            throw e
-        }
-    }
-
-    public async verifyBackupCode(userId: UUID, plainCode: string): Promise<boolean> {
-
-        await this.ensureBackupNotLocked(userId)
-
-        const codes = await this.backupCodeRepository.find({
-            where: { userId, used: false }
-        })
-
-        if (!codes || !codes.length) {
-            await this.registerBackupFailure(userId)
-            return false
-        }
-
-        let matched = false
-        for (const c of codes) {
-            const match = await this.passwordEncoderService.compare(plainCode, c.hash)
-            if (match) {
-                matched = true
-                c.used = true
-                c.usedAt = Date.now()
-                await this.backupCodeRepository.save(c)
-                break
+            deserialized = JSON.parse(row.mfaStrategies || "[]") as string[]
+            if (!Array.isArray(deserialized)) {
+                deserialized = []
             }
+        } catch (e) {
+            this.logger.warn(
+                `User.mfaStrategies json array deserialization error, userId=${userId}: `,
+                (e.stack ?? e) as object
+            )
+            deserialized = []
         }
 
-        if (!matched) {
-            await this.registerBackupFailure(userId)
-            return false
+        if (deserialized.length === 0) {
+            return []
         }
 
-        await this.clearBackupFailures(userId)
-        return true
+        let decrypted = deserialized
+            .map(enc => this.securityService.decrypt_AES256(enc))
+            .filter((st) => TypeGuards.isMfaStrategy(st))
+
+        decrypted.push(MfaStrategy.BACKUP_CODE)
+        decrypted = GeneralUtils.distinctArray(decrypted)
+
+        const encrypted = decrypted.map(dec => this.securityService.encrypt_AES256(dec))
+        await manager.update(
+            User,
+            { id: userId },
+            { mfaStrategies: JSON.stringify(encrypted) }
+        )
+
+        return codes
     }
 
+    public async verifyBackupCode(plainCode: string, preAuthorizationToken: string): Promise<boolean> {
+
+        let userId: string = ''
+        let jti: string = ''
+
+        try {
+
+            ({ sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken))
+
+            await this.sessionService.revokeToken(jti)
+
+            await this.ensureBackupNotLocked(userId as UUID)
+
+            const codes = await this.backupCodeRepository.find({
+                where: {
+                    userId: userId as UUID,
+                    used: false
+                }
+            })
+
+            if (!codes || !codes.length) {
+                await this.registerBackupFailure(userId as UUID)
+                return false
+            }
+
+            let matched = false
+            for (const c of codes) {
+                const match = (await this.passwordEncoderService.compare(plainCode, c.hash))
+                if (match) {
+                    matched = true
+                    c.used = true
+                    c.usedAt = Date.now()
+                    await this.backupCodeRepository.save(c)
+                    break
+                }
+            }
+
+            if (!matched) {
+                await this.registerBackupFailure(userId as UUID)
+                return false
+            }
+
+            await this.clearBackupFailures(userId as UUID)
+            return true
+        } catch (e) {
+            const logData: string[] = []
+            logData.push(userId ? `user_id=${userId}` : '', jti ? `pre_authorization_token_jti=${jti}` : '')
+            const logDataStr = logData.length ? ', ' + logData.join(', ') : ''
+            this.logger.warn(` > verifyBackupCode${logDataStr} > Error: `, (e.stack ?? e) as object)
+            return false
+        }
+    }
 
     public async regenerateBackupCodes(userId: UUID): Promise<string[]> {
-        await this.throttleBackupRegeneration(userId)
-        await this.backupCodeRepository.delete({ userId })
-        return this.generateBackupCodes(userId)
-    }
 
+        await this.throttleBackupRegeneration(userId)
+
+        return this.dataSource.manager.transaction(async (manager) => {
+
+            await manager.delete(MfaBackupCode, { userId })
+
+            const row = await manager.findOne(User, {
+                where: { id: userId },
+                select: { mfaStrategies: true }
+            })
+
+            if (!row) {
+                throw new RpcException("Unauthenticated")
+            }
+
+            let deserialized: string[] = []
+            try {
+                deserialized = JSON.parse(row.mfaStrategies || "[]") as string[]
+                if (!Array.isArray(deserialized)) deserialized = []
+            } catch (e) {
+                this.logger.warn(
+                    ` > regenerateBackupCodes: error in MFA Strategies deserialization, userId=${userId}: `,
+                    (e.stack ?? e) as object
+                );
+                deserialized = []
+            }
+
+            let decrypted = deserialized
+                .map(enc => this.securityService.decrypt_AES256(enc))
+                .filter((st) => TypeGuards.isMfaStrategy(st))
+
+            decrypted.push(MfaStrategy.BACKUP_CODE)
+            decrypted = GeneralUtils.distinctArray(decrypted)
+
+            const encrypted = decrypted.map(dec => this.securityService.encrypt_AES256(dec))
+            await manager.update(
+                User,
+                { id: userId },
+                { mfaStrategies: JSON.stringify(encrypted) }
+            )
+
+            return this.generateBackupCodes(userId, manager)
+        })
+    }
 
     public async hasValidBackupCodes(userId: UUID): Promise<boolean> {
         const count = await this.backupCodeRepository.count({ where: { user: { id: userId }, used: false } })
@@ -318,7 +416,7 @@ export class MfaService {
         }
         if (!user.otpSecret) throw new RpcException('OtpSecretNotFound')
         let strategyError: boolean = true
-        if ((await this.userService.getUserEncryptedEnabledMfaStrategies(userId)).includes(strategy)) {
+        if ((await this.userService.getUserEncryptedEnabledMfaStrategies(userId)).map((enc) => this.securityService.decrypt_AES256(enc)).includes(strategy)) {
             strategyError = false
         } else if (strategy === MfaStrategy.EMAIL_OTP && trustVerify) {
             strategyError = false
@@ -389,7 +487,7 @@ export class MfaService {
         if (!otpSecret) {
             throw new RpcException('OtpSecretNotFound')
         }
-        const ok = this.securityService.verifyTotp(totp, otpSecret)
+        const ok = this.securityService.verifyTotp(totp, otpSecret, strategy === MfaStrategy.APP_TOTP)
         if (!ok) {
             await this.registerMfaFailure(userId, strategy, context)
             return false
@@ -411,7 +509,7 @@ export class MfaService {
         let email: string
         let completePhoneNumber: string
         let otpauth_url: string
-        let secureToken: string
+        let secureToken: string = ''
 
         if (!await this.userService.existsUserById(userId)) {
             throw new RpcException('NoSuchUser')
@@ -457,7 +555,8 @@ export class MfaService {
 
             case MfaStrategy.APP_TOTP:
 
-                ({ totpSecret, otpauth_url } = this.securityService.generateAppTotpSecret())
+                email = await this.userService.getUserEmailById(userId) as string
+                ({ totpSecret, otpauth_url } = this.securityService.generateAppTotpSecret(email))
                 metadata = {
                     generatedAt: Date.now(),
                     expiresAt: Date.now() + this.totpConfig.period * 1000
@@ -466,6 +565,7 @@ export class MfaService {
                 // salvataggio temporaneo del secret in redis (con TTL), associato allo user
                 await this.redisService.set(`mfa:temp:app-secret:${userId}`, totpSecret, 300) // 5 minuti
                 secureToken = await this.jwtTools.generateToken(userId, TokenType.AppTotpMfaActivationToken)
+                await this.clearMfaFailures(userId, strategy, MfaContext.ENABLE_SEND)
                 return {
                     ...metadata,
                     secret: totpSecret,
@@ -475,6 +575,8 @@ export class MfaService {
                 }
 
         }
+
+        await this.clearMfaFailures(userId, strategy, MfaContext.ENABLE_SEND)
 
         return {
             ...metadata,
@@ -521,7 +623,7 @@ export class MfaService {
             otpSecret = await this.redisService.get(`mfa:temp:app-secret:${userId}`)
             if (!otpSecret) throw new RpcException('TemporaryAppTotpSecretNotFound')
 
-            const isValid = this.securityService.verifyTotp(totp, otpSecret)
+            const isValid = this.securityService.verifyTotp(totp, otpSecret, true)
             if (!isValid) {
                 await this.registerMfaFailure(userId, strategy, context)
                 return false
@@ -539,6 +641,8 @@ export class MfaService {
                 return false
             }
         }
+
+        await this.clearMfaFailures(userId, strategy, context)
 
         await this.userService.appendMfaStrategy(userId, strategy)
 
@@ -567,7 +671,8 @@ export class MfaService {
             throw new RpcException('NoSuchUser')
         }
 
-        const strategies = await this.userService.getUserEncryptedEnabledMfaStrategies(userId)
+        const encStrategies = await this.userService.getUserEncryptedEnabledMfaStrategies(userId)
+        const strategies = encStrategies.map((s) => this.securityService.decrypt_AES256(s) as MfaStrategy)
         if (!strategies.includes(strategy)) {
             throw new RpcException(`InvalidMfaStrategy::${strategy} strategy not currently active`)
         }
@@ -622,7 +727,7 @@ export class MfaService {
                 throw new RpcException(`UnsupportedMfaStrategy::${GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy)}`)
         }
 
-        await this.clearMfaFailures(userId, strategy, MfaContext.DISABLE_VERIFY)
+        await this.clearMfaFailures(userId, strategy, MfaContext.DISABLE_SEND)
 
         return {
             ...metadata,
@@ -640,18 +745,18 @@ export class MfaService {
         switch (strategy) {
             case MfaStrategy.EMAIL_OTP:
                 tokenType = TokenType.EmailOtpMfaInactivationToken
-                break;
+                break
             case MfaStrategy.SMS_OTP:
                 tokenType = TokenType.SmsOtpMfaInactivationToken
-                break;
+                break
             case MfaStrategy.APP_TOTP:
                 tokenType = TokenType.AppTotpMfaInactivationToken
-                break;
+                break
             default:
                 throw new RpcException(`UnsupportedMfaStrategy::${GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy)}`)
         }
 
-        const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(secureToken, tokenType);
+        const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(secureToken, tokenType)
         await this.sessionService.revokeToken(jti.toString())
 
         const context = MfaContext.DISABLE_VERIFY
@@ -672,7 +777,7 @@ export class MfaService {
             throw new RpcException('OtpSecretNotFound')
         }
 
-        const isValid = this.securityService.verifyTotp(totp, otpSecret)
+        const isValid = this.securityService.verifyTotp(totp, otpSecret, strategy === MfaStrategy.APP_TOTP)
         if (!isValid) {
             await this.registerMfaFailure(userId, strategy, context)
             return false
@@ -686,17 +791,35 @@ export class MfaService {
                 .getOneOrFail()
 
             const { mfaStrategies: rawMfaStrategies } = row
-            const mfaStrategiesWithoutJustDisabledStrategy = (JSON.parse(rawMfaStrategies || '[]') as string[])
+            let deserialized: string[]
+            try {
+                deserialized = JSON.parse(rawMfaStrategies || '[]') as string[]
+            } catch (e) {
+                this.logger.warn(` > disableMfa_secondStep_verifyTotpAndRemoveStrategy: error in deserialization: `, (e.stack ?? e) as object)
+                throw e
+            }
+            const mfaStrategiesWithoutJustDisabledStrategy = deserialized
+                .map((enc) => this.securityService.decrypt_AES256(enc))
                 .map(uuid => GeneralUtils.getEnumValue(MfaStrategy, uuid))
                 .filter((val): val is MfaStrategy => val !== undefined)
                 .filter(st => st !== strategy)
+
+            if (mfaStrategiesWithoutJustDisabledStrategy.length === 1 && mfaStrategiesWithoutJustDisabledStrategy) {
+                const i = mfaStrategiesWithoutJustDisabledStrategy.findIndex((st) => st === MfaStrategy.BACKUP_CODE)
+                if (i !== -1) {
+                    mfaStrategiesWithoutJustDisabledStrategy.splice(i, 1)
+                }
+            }
 
             await manager.update(User,
                 {
                     id: userId
                 },
                 {
-                    mfaStrategies: JSON.stringify(mfaStrategiesWithoutJustDisabledStrategy)
+                    mfaStrategies: JSON.stringify(
+                        mfaStrategiesWithoutJustDisabledStrategy.map((uuid) => this.securityService.encrypt_AES256(uuid))
+                    )
+
                 })
             if (strategy === MfaStrategy.APP_TOTP) {
                 await manager.update(User, { id: userId }, {

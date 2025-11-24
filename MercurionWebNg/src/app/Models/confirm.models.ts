@@ -18,12 +18,22 @@ export interface Login_FirstStep_Data {
 
 export type Confirm_Login_FirstStepDTO = Login_FirstStep_Data & ConfirmDTO
 
-export interface TotpMeta {
+export interface TotpMetadata {
   generatedAt: number
   expiresAt: number
 }
 
-export type ConfirmWithTotpMetaDTO = ConfirmDTO & TotpMeta
+export type ConfirmWithTotpMetaDTO = ConfirmDTO & TotpMetadata
+
+export type ConfirmMfaChange = ConfirmDTO & MfaAuthMetadata
+
+export type TotpAuthMetadata = TotpMetadata & {
+    secret?: string
+    otpauthUrl?: string
+    qrCode?: string
+}
+
+export type MfaAuthMetadata = TotpAuthMetadata & { secureToken: string }
 
 export interface ErrorRes {
     statusCode: number

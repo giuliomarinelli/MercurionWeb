@@ -95,7 +95,7 @@ export class AccountController {
     ): Promise<ConfirmMfaChange> {
         const strategy: MfaStrategy = GeneralUtils.validateMfaStrategy(strategyKey)
         return {
-            ...this._r.ok(`OTP sent or QR generated for MFA strategy ${strategyKey}`),
+            ...this._r.ok(`OTP sent or QR generated and secure_token generated for MFA strategy ${strategyKey}`),
             ...await this.mfaService.enableMfa_firstStep(userId, strategy)
         }
     }
@@ -121,7 +121,7 @@ export class AccountController {
     ): Promise<ConfirmMfaChange> {
         const strategy: MfaStrategy = GeneralUtils.validateMfaStrategy(strategyKey)
         return {
-            ...this._r.ok(`OTP sent or QR check enabled for MFA strategy ${strategyKey}`),
+            ...this._r.ok(`OTP sent and/or secure_token generated for MFA strategy ${strategyKey}`),
             ...await this.mfaService.disableMfa_firstStep(userId, strategy)
         }
     }
@@ -263,7 +263,7 @@ export class AccountController {
 
         // volendo si può anche loggare un evento di sicurezza o mandare email
         // "Sono stati rigenerati i codici di backup del tuo account"
-        // TODO
+        // TODO maybe
 
         return { codes }
     }
@@ -283,6 +283,24 @@ export class AccountController {
     @Get('/current-version')
     public getCurrentVersion(): string {
         return this.configService.get<string>('App.version')!
+    }
+
+    @Get('/masked-email')
+    public async getMaskedEmail(@AuthenticatedUserId() userId: UUID): Promise<string> {
+        const email = await this.userService.getUserEmailById(userId)
+        if (!email) {
+            throw new NotFoundException('Fatal::email not found')
+        }
+        return this.securityService.maskEmail(email)
+    }
+
+    @Get('/masked-phone')
+    public async getMaskedPhone(@AuthenticatedUserId() userId: UUID): Promise<string | null> {
+        const completePhone = await this.userService.getPhoneNumberById(userId)
+        if (!completePhone) {
+            return null
+        }
+        return this.securityService.maskPhone(completePhone)
     }
 
 }

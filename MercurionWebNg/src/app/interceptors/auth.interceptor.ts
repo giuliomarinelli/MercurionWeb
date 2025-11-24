@@ -5,6 +5,7 @@ import {
 import {
   HttpEvent,
   HttpHandler,
+  HttpErrorResponse,
   HttpInterceptor,
   HttpRequest,
   HttpResponse
@@ -13,6 +14,7 @@ import { Observable, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { UserContextService } from '../services/context/user-context.service';
 import { AuthService } from '../services/auth.service'; // Assumendo che sia il service dove gestisci il token
+import { isFatalUnauthenticatedBody } from './fatal-unauthenticated.util';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
@@ -45,7 +47,7 @@ export class AuthInterceptor implements HttpInterceptor {
         }
       }),
       catchError(err => {
-        if (err.status === 401) {
+        if (err instanceof HttpErrorResponse && err.status === 401 && isFatalUnauthenticatedBody(err.error)) {
           this.zone.run(() => this.userContext.clearInitials())
         }
         return throwError(() => err)

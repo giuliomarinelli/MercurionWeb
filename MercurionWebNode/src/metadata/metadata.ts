@@ -12,7 +12,7 @@ export const Public = () => SetMetadata(IS_PUBLIC_KEY, true)
 
 export const RequiresTokenType = (type: TokenType) => SetMetadata('tokenType', type)
 
-export const SCOPES_KEY = 'required_scopes';
+export const SCOPES_KEY = 'required_scopes'
 
 export const HasScopes = (...scopes: Scope[]) => {
   return SetMetadata(SCOPES_KEY, scopes)

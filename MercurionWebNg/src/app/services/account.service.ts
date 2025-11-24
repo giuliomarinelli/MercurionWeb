@@ -1,10 +1,11 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { ChangePasswordDTO, MfaStrategy, ProfileDTO, SessionDTO, UserData } from '../Models/account/account.models';
-import { Observable, of, tap } from 'rxjs';
-import { ConfirmDTO } from '../Models/confirm.models';
+import { map, Observable, of, tap } from 'rxjs';
+import { ConfirmDTO, ConfirmMfaChange } from '../Models/confirm.models';
 import { ConfirmWithObsContDTO } from '../Models/confirm.models';
 import { EmailDTO } from '../Models/auth/login.models';
+import { TotpDTO } from '../Models/auth/totp.models';
 
 
 @Injectable({
@@ -97,7 +98,7 @@ export class AccountService {
     })
   }
 
-  public getEnabledMfaStrategies(): Observable<MfaStrategy[]> {
+  public getEnabledMfaStrategies(preauth = false): Observable<MfaStrategy[]> {
     return this.http.get<MfaStrategy[]>('/api/account/mfa-active-strategies', {
       withCredentials: true
     })
@@ -111,8 +112,63 @@ export class AccountService {
 
   public getCurrentVersion(): Observable<string> {
     return this.http.get('/api/account/current-version', {
-      responseType: 'text'
+      responseType: 'text',
+      withCredentials: true
     })
+  }
+
+  public getMaskedEmail(): Observable<string> {
+    return this.http.get('/api/account/masked-email', {
+      responseType: 'text',
+      withCredentials: true
+    })
+  }
+
+  public getMaskedPhone(): Observable<string | null> {
+    return this.http.get('/api/account/masked-phone', {
+      responseType: 'text',
+      withCredentials: true
+    })
+  }
+
+  public enableMfa_firstStep(strategy: MfaStrategy): Observable<ConfirmMfaChange> {
+    return this.http.patch<ConfirmMfaChange>(`/api/account/mfa/enable/${strategy}/1`, null, {
+      withCredentials: true
+    })
+  }
+
+  public enableMfa_secondStep(strategy: MfaStrategy, totp: string, secureToken: string): Observable<ConfirmDTO> {
+    const body: TotpDTO = {
+      totp,
+      secureToken
+    }
+    return this.http.patch<ConfirmDTO>(`/api/account/mfa/enable/${strategy}/2`, body, {
+      withCredentials: true
+    })
+  }
+
+  public disableMfa_firstStep(strategy: MfaStrategy): Observable<ConfirmMfaChange> {
+    return this.http.patch<ConfirmMfaChange>(`/api/account/mfa/disable/${strategy}/1`, null, {
+      withCredentials: true
+    })
+  }
+
+  public disableMfa_secondStep(strategy: MfaStrategy, totp: string, secureToken: string): Observable<ConfirmDTO> {
+    const body: TotpDTO = {
+      totp,
+      secureToken
+    }
+    return this.http.patch<ConfirmDTO>(`/api/account/mfa/disable/${strategy}/2`, body, {
+      withCredentials: true
+    })
+  }
+
+  public getBackupCodes(): Observable<string[]> {
+    return this.http.patch<{ codes: string[] }>('/api/account/mfa/backup/regenerate', null, {
+      withCredentials: true
+    }).pipe(
+      map((res) => res.codes)
+    )
   }
 
 }

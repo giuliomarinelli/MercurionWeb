@@ -130,7 +130,7 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
       if (rmId) {
         queueMicrotask(() => {
           const hostRef = new ElementRef(this.findScrollContainer() ?? document.body)
-          this.appContext.scrollToTop(hostRef, 400)
+          this.appContext.smoothToTop(hostRef, 400)
           this.historyContext.clearRemoveItemTriggerSignal()
           this.items.update(items => items.filter(it => it.itemId !== rmId))
         })
@@ -188,7 +188,7 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
           }
         }
         if (scroll) {
-          queueMicrotask(() => this.appContext.scrollToTop(rootRef, 400))
+          queueMicrotask(() => this.appContext.smoothToTop(rootRef, 400))
         }
       })
   }

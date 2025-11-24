@@ -249,7 +249,7 @@ export class SessionSyncService {
     // scadenza certa → rimuovi login locale e vai anonimo
     localStorage.removeItem('login');
     this.becomeAnonymous({
-      toast: 'Sessione scaduta. Effettua di nuovo il login.',
+      toast: 'Sessione scaduta o invalidata. Effettua di nuovo il login.',
       level: 'error',
       navigateIfProtected: true,
       removeLoginKey: false

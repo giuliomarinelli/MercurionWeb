@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import { CanActivate, ExecutionContext, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtToolsService } from '../services/jwt-tools.service';
 import { SessionService } from '../services/session.service';
 import { IS_PUBLIC_KEY } from 'src/metadata/metadata';
@@ -12,6 +12,7 @@ import { timingSafeEqual } from 'node:crypto';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 import { ScopeService } from '../services/scope.service';
+import { TypeGuards } from 'src/utils/type-guards/type-guards';
 
 
 
@@ -20,6 +21,7 @@ import { ScopeService } from '../services/scope.service';
 export class GlobalGuard implements CanActivate {
 
    private readonly logger: MeiliContextLogger
+   private tokenType: TokenType
 
    constructor(
       private readonly jwtToolsService: JwtToolsService,
@@ -57,20 +59,29 @@ export class GlobalGuard implements CanActivate {
          reply = (GqlExecutionContext.create(context).getContext().reply as FastifyReply)
       }
 
+      let accessToken: string = ''
+      let newToken: string = ''
+      let payload: AppJwtPayload
+      
+
       try {
 
-         const accessToken: string = this.jwtToolsService.extractAccessTokenFromReq(req)
+         accessToken = this.jwtToolsService.extractAccessTokenFromReq(req)
 
-         let payload: AppJwtPayload
 
-         try {
-            payload = await this.jwtToolsService.verifyTokenAndGetPayload(accessToken, TokenType.AccessToken)
-            await this.scopeService.scopeVerificationLayer(payload.sub, context, this.reflector, payload.scp)
+         try {           
+               payload = await this.jwtToolsService.verifyTokenAndGetPayload(accessToken, TokenType.AccessToken)
+               await this.scopeService.scopeVerificationLayer(payload.sub, context, this.reflector, payload.scp)
+               this.tokenType = TokenType.AccessToken            
          } catch (e) {
-
+            const { jti } = this.jwtToolsService.decodeUnsafe(accessToken)
             if (e instanceof RpcException && e.message === 'InvalidOrExpiredAccessToken') {
 
-               this.logger.debug?.('Possibly expired access token, trying refresh')
+               if (this.tokenType !== TokenType.AccessToken) {
+                  throw e
+               }
+
+               this.logger.debug?.(`Possibly expired access token, jti=${jti}, trying to refresh`)
 
                payload = await this.jwtToolsService.verifyTokenAndGetPayload(accessToken, TokenType.AccessToken, true)
 
@@ -94,7 +105,7 @@ export class GlobalGuard implements CanActivate {
                }
 
 
-               const newToken = await this.jwtToolsService.generateToken(payload.sub, TokenType.AccessToken, payload.sid)
+               newToken = await this.jwtToolsService.generateToken(payload.sub, TokenType.AccessToken, payload.sid)
 
 
                await this.sessionService.updateLastAccessed(payload.sid, payload.sub)
@@ -134,23 +145,72 @@ export class GlobalGuard implements CanActivate {
          return true
 
       } catch (e) {
-         this.logger.debug(`Authentication/Authorization error`, (e?.stack ?? e) as object)
+         const newTokenPayload = (newToken ? this.jwtToolsService.decodeUnsafe(newToken) : null)
+         const oldTokenPayload = (accessToken ? this.jwtToolsService.decodeUnsafe(newToken) : null)
+         let newJti: string = ''
+         let oldJti: string = ''
+         const cookieSid = req.headers['x-session-id'] as string ?? ''
+         const deviceId = req.headers['x-device-id'] as string ?? ''
+         let newTokenSid: string = ''
+         let oldTokenSid: string = ''
+         if (newTokenPayload) {
+            if (TypeGuards.isThruthyString(newTokenPayload.jti)) {
+               newJti = newTokenPayload.jti
+            }
+            if (TypeGuards.isThruthyString(newTokenPayload.sid)) {
+               newTokenSid = newTokenPayload.sid
+            }
+         }
+         if (oldTokenPayload) {
+            if (TypeGuards.isThruthyString(oldTokenPayload.jti)) {
+               oldJti = oldTokenPayload.jti
+            }
+            if (TypeGuards.isThruthyString(oldTokenPayload.sid)) {
+               oldTokenSid = oldTokenPayload.sid
+            }
+         }
+         const arr = [oldJti, oldTokenSid, newJti, cookieSid, newTokenSid, deviceId]
+         const errorInfo = arr.filter((val) => !!val).map((val, i) => {
+            let key = ''
+            switch (i) {
+               case 0:
+                  key = 'current_access_token_jti'
+                  break
+               case 1:
+                  key = 'current_access_token_session_id'
+                  break
+               case 2:
+                  key = 'refreshed_access_token_jti'
+                  break
+               case 3:
+                  key = 'cookie_session_id'
+                  break
+               case 4:
+                  key = 'refreshed_token_session_id'
+                  break
+               case 5:
+                  key = 'device_id'
+                  break
+            }
+            return `${key}=${val}`
+         }).join(', ')
+         this.logger.debug(`Authentication/Authorization error${errorInfo ? ', ' + errorInfo : ''}`, (e?.stack ?? e) as object)
          if (e instanceof RpcException && e.message === 'Forbidden::missing permissions') {
-            throw new UnauthorizedException(e.message)
+            throw new ForbiddenException(e.message)
          }
          const fatal = new UnauthorizedException('Fatal: unauthenticated')
          if (e instanceof RpcException && e.message === 'Unauthorized') {
             throw fatal
          }
          if (e instanceof UnauthorizedException) {
-            this.logger.warn('Thrown generic UnauthorizedException')
+            this.logger.warn(`Thrown generic UnauthorizedException${errorInfo ? ', ' + errorInfo : ''}`)
             throw fatal
          }
          if (e instanceof RpcException) {
-            this.logger.warn(e.message || 'GlobalGuard internal unknown error')
+            this.logger.warn(`GlobalGuard internal unknown error as RpcException${errorInfo ? ', ' + errorInfo : ''}`, e.stack ?? e)
             throw fatal
          }
-         this.logger.warn('GlobalGuard internal unknown error', e as object)
+         this.logger.warn(`GlobalGuard internal unknown error${errorInfo ? ', ' + errorInfo : ''}`, (e.stack ?? e) as object)
          throw fatal
       }
    }

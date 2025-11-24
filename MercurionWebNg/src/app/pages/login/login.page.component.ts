@@ -420,7 +420,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
             } else if (res.enabledMfaStrategies.length === 1) {
               this.router.navigate([`/login/mfa/${res.enabledMfaStrategies[0]}`])
             } else {
-              this.router.navigate(['/login/mfa/choose-method'])
+              this.router.navigate(['/login/mfa/CHOOSE_METHOD'])
             }
           } else {
             this.authService.setAccessToken(res.accessToken ?? null)

@@ -4,6 +4,7 @@ import { ActionOverlayContextService } from '../../../services/context/action-co
 import { AddMoleculesToCollectionComponent } from '../add-molecules-to-collection/add-molecules-to-collection.component';
 import { CreateCollectionComponent } from '../create-collection/create-collection.component';
 import { BindCollectionsToMoleculeComponent } from '../bind-collections-to-molecule/bind-collections-to-molecule.component';
+import { SensitiveDataChangeComponent } from '../sensitive-data-change/sensitive-data-change.component';
 
 @Component({
   selector: 'app-action-overlay',
@@ -13,7 +14,8 @@ import { BindCollectionsToMoleculeComponent } from '../bind-collections-to-molec
     CustomMoleculeCollectionItemSaveComponent,
     AddMoleculesToCollectionComponent,
     CreateCollectionComponent,
-    BindCollectionsToMoleculeComponent
+    BindCollectionsToMoleculeComponent,
+    SensitiveDataChangeComponent
   ],
   template: `
 
@@ -37,6 +39,9 @@ import { BindCollectionsToMoleculeComponent } from '../bind-collections-to-molec
           }
           @case ('BindCollectionsToMolecule') {
             <app-bind-collections-to-molecule />
+          }
+          @case ('SensitiveDataChange') {
+            <m-sensitive-data-change />
           }
         }
 

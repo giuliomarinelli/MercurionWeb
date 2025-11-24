@@ -1,5 +1,5 @@
 import { ApplicationConfig, importProvidersFrom, inject, provideZoneChangeDetection } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, withInMemoryScrolling } from '@angular/router';
 import { routes } from './app.routes';
 import { provideApollo } from 'apollo-angular';
 import { InMemoryCache } from '@apollo/client/core';
@@ -15,7 +15,13 @@ import { AuthFallbackInterceptor } from './interceptors/auth-fallback.intercepto
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
-    provideRouter(routes),
+    provideRouter(
+      routes,
+      withInMemoryScrolling({
+        anchorScrolling: 'disabled',
+        scrollPositionRestoration: 'enabled'
+      })
+    ),
     provideHttpClient(withInterceptorsFromDi()),
     provideApollo(() => {
       const httpLink = inject(HttpLink);

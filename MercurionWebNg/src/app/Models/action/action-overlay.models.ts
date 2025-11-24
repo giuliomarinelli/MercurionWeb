@@ -3,6 +3,17 @@ export type ActionScope =
   | 'AddMoleculesToCollection'
   | 'CreateCollection'
   | 'BindCollectionsToMolecule'
+  | 'SensitiveDataChange'
   | ''
 
 export type SaveOverlayFormItem = 'name' | 'label' | 'notes'
+
+export type SensitiveDataChangeInnerScope =
+  'EnableMfa'
+  | 'ChangePassword'
+  | 'ConfigMfa'
+  | 'ChangeEmail'
+  | 'ChangePhone'
+  | 'AddPhone'
+  | 'RemovePhone'
+  | ''

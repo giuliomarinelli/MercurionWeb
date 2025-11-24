@@ -19,7 +19,7 @@ import { ThemeManagerService } from './services/context/theme-manager.service';
 import { SearchOverlayComponent } from './components/search-overlay/search-overlay/search-overlay.component';
 import { SearchContextService } from './services/context/search-context.service';
 import { FooterComponent } from './components/common/footer/footer.component';
-import { filter, Subscription, combineLatest } from 'rxjs';
+import { filter, Subscription } from 'rxjs';
 import { ToastComponent } from './components/common/toast/toast.component';
 import { ToastService } from './services/toast.service';
 import { UserContextService } from './services/context/user-context.service';
@@ -48,7 +48,7 @@ import { AppContextService } from './services/context/app-context.service';
     ActionOverlayComponent
   ],
   template: `
-    @if (is_not_404_route()) {
+    @if (is_not_404_route() && is_not_403_route()) {
       <div class="flex flex-col h-screen">
         <app-header class="sticky top-0 z-30" />
         <div class="drawer-container relative flex flex-1 overflow-hidden custom-scrollbar">
@@ -121,7 +121,6 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly themeManagerService = inject(ThemeManagerService)
   protected readonly searchContextService = inject(SearchContextService)
   private readonly router = inject(Router)
-  private readonly zone = inject(NgZone)
   protected readonly toastService = inject(ToastService)
   protected readonly userContext = inject(UserContextService)
   private readonly pathService = inject(PathService)
@@ -138,6 +137,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   isDarkTheme: Signal<boolean> = computed(() => this.themeManagerService.theme() === 'dark');
   headerHeight = signal(64);
   is_not_404_route = signal<boolean>(true)
+  is_not_403_route = signal<boolean>(true)
 
   private routeSub?: Subscription;
 
@@ -147,18 +147,31 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   private publicExact = new Set(environment.PUBLIC_EXACT_PATHS);
   private publicPrefixes = environment.PUBLIC_PREFIXES;
 
-  @ViewChild('scrollHost') private scrollHostRef!: ElementRef<HTMLElement>;
-  @ViewChild(HeaderComponent, { read: ElementRef }) headerRef!: ElementRef<HTMLElement>;
+  @ViewChild('scrollHost')
+  private scrollHostRef!: ElementRef<HTMLElement>
+
+  @ViewChild(HeaderComponent, { read: ElementRef })
+  headerRef!: ElementRef<HTMLElement>
 
 
   constructor() {
+
+    effect(() => {
+      const t = this.appContext.addedGlobalScrollRootRefTick()
+      if (t === 0) {
+        return
+      }
+      if (!this.appContext.globalScollRootRef()) {
+        this.appContext.setGlobalScrollRootRef(this.scrollHostRef)
+      }
+    })
 
     effect(() => {
       const t = this.appContext.addedScrollTick()
       if (t === 0) {
         return
       }
-      queueMicrotask(() => this.appContext.scrollToTop(this.scrollHostRef, 400))
+      queueMicrotask(() => this.appContext.smoothToTop(this.scrollHostRef, 400))
     })
 
     effect(() => {
@@ -201,18 +214,20 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     };
 
     // Path iniziale
-    this.currentPath.set(normalize(this.router.url));
-    this.pathService.setPath(this.currentPath());
+    this.currentPath.set(normalize(this.router.url))
+    this.pathService.setPath(this.currentPath())
 
     // Scroll to top su ogni NavigationEnd (animazione sul container)
     this.routeSub = this.router.events
       .pipe(filter((e) => e instanceof NavigationEnd))
       .subscribe((e: NavigationEnd) => {
-        this.appContext.scrollToTop(this.scrollHostRef, 240); // chiamata reale
-
         const url = normalize(e.urlAfterRedirects)
+        if (url !== '/settings') {
+          this.appContext.smoothToTop(this.scrollHostRef, 400)
+        }
         // Toggle layout wrapper based on 404 route
         this.is_not_404_route.set(url !== '/404-not-found')
+        this.is_not_403_route.set(url !== '/403-forbidden')
         this.currentPath.set(url);
         this.pathService.setPath(url);
         if (!this.firstNavigationDone()) this.firstNavigationDone.set(true);
@@ -242,9 +257,9 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
       if (!firstStableReached) {
         if (status === 'loggedIn' || status === 'anonymous') {
-          firstStableReached = true;
+          firstStableReached = true
         } else {
-          return;
+          return
         }
       }
 
@@ -253,24 +268,24 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       const isLoggedOutOnly = this.publicExact.has(url);
 
       const safeNavigate = (target: string) => {
-        if (target === url) return;
-        if (lastProgrammaticNav === target) return;
-        lastProgrammaticNav = target;
+        if (target === url) return
+        if (lastProgrammaticNav === target) return
+        lastProgrammaticNav = target
         queueMicrotask(() => {
           if (this.router.url.toLowerCase() === url) {
             this.router.navigateByUrl(target);
           }
-        });
-      };
+        })
+      }
 
-      if (url === '/') safeNavigate('/login');
+      if (url === '/') safeNavigate('/login')
 
       if (!logged) {
-        if (!isPublic) safeNavigate('/login');
+        if (!isPublic) safeNavigate('/login')
         return;
       }
 
-      if (isLoggedOutOnly) safeNavigate('/dashboard');
+      if (isLoggedOutOnly) safeNavigate('/dashboard')
     });
   }
 
@@ -281,7 +296,10 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit() {
-
+    queueMicrotask(() => {
+      const h = this.headerRef?.nativeElement?.offsetHeight ?? 64
+      this.appContext.setHeaderHeight(h)
+    })
   }
 
   ngOnDestroy() {
