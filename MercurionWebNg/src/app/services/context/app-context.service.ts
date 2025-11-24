@@ -50,27 +50,7 @@ export class AppContextService {
   }
 
   smoothToTop(host: ElementRef<HTMLElement>, duration = 240) {
-
-    const el = host?.nativeElement
-    if (!el) {
-      requestAnimationFrame(() => this.smoothToTop(host, duration))
-      return
-    }
-
-    this.zone.runOutsideAngular(() => {
-
-      const startTime = performance.now()
-      const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3)
-
-      const step = (now: number) => {
-        const elapsed = now - startTime
-        const progress = Math.min(1, elapsed / duration)
-        el.scrollTop = easeOutCubic(progress)
-        if (progress < 1) requestAnimationFrame(step)
-      }
-
-      requestAnimationFrame(step)
-    })
+    this.smoothTo(host, 0, duration)
   }
 
   smoothTo(
