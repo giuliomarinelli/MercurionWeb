@@ -558,6 +558,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   items = ['Generali', 'Anagrafica', 'Contatti', 'Sicurezza']
   private readonly accordionAnchors = ['general', 'personal_details', 'contact_details', 'security']
   private pendingIndex: number | null = null
+  private skipSmoothToTopOnClose = false
 
   private fetchSub?: Subscription
   private sLoguotSub?: Subscription
@@ -671,8 +672,17 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     const closeOthers = opts?.closeOthers ?? true
+    const hasValidIndex = index !== null && index >= 0 && index < items.length
+    const isMultiAccordion = this.accordion?.multi ?? false
+    const switchingBetweenItems =
+      closeOthers
+      && hasValidIndex
+      && !isMultiAccordion
+      && items.some((item, i) => i !== index && item.expanded)
 
-    if (index === null || index < 0 || index >= items.length) {
+    this.skipSmoothToTopOnClose = switchingBetweenItems
+
+    if (!hasValidIndex) {
       if (closeOthers) {
         items.forEach(item => {
           if (item.expanded) item.close()
@@ -684,7 +694,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
     items.forEach((item, i) => {
       if (i === index) {
         if (!item.expanded) item.open()
-      } else if (closeOthers && item.expanded && !this.accordion.multi) {
+      } else if (closeOthers && item.expanded && !isMultiAccordion) {
         item.close()
       }
     })
@@ -718,6 +728,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
   onAccordionOpened(i: number): void {
+    this.skipSmoothToTopOnClose = false
     setTimeout(() => {
       const hosts = this.accordionItemHosts.toArray()
       const itemEl = hosts[i]?.nativeElement
@@ -890,6 +901,9 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   smoothToTop(): void {
+    if (this.skipSmoothToTopOnClose) {
+      return
+    }
     for (const item of Array.from(this.accordionItems)) {
       if (item.expanded) {
         return
