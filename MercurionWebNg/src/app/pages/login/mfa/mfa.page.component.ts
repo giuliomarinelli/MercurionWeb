@@ -10,15 +10,13 @@ import { HttpErrorRes } from '../../../Models/error-res.dto'
 import { UserContextService } from '../../../services/context/user-context.service'
 import { SessionSyncService } from '../../../services/session-sync.service'
 import { ISessionDeviceInfo } from '../../../Models/auth/fingerprint.models'
-import { TotpBodyDTO } from '../../../Models/auth/totp.models'
+import { BackupCodeDTO, TotpBodyDTO } from '../../../Models/auth/totp.models'
 import { ToastService } from '../../../services/toast.service'
 import { ClassicSpinnerComponent } from '../../../components/common/classic-spinner/classic-spinner.component'
 import { HttpErrorResponse } from '@angular/common/http'
 import { AccountService } from '../../../services/account.service'
-import { MfaStrategy } from '../../../Models/account/account.models'
+import { MfaStrategy, MfaView } from '../../../Models/account/account.models'
 import { MfaStrategyCardComponent } from '../../../components/common/mfa-strategy-card/mfa-strategy-card.component'
-
-export type MfaView = 'EMAIL_OTP' | 'SMS_OTP' | 'CHOOSE_METHOD' | 'APP_TOTP' | ''
 
 @Component({
   selector: 'app-mfa',
@@ -46,7 +44,7 @@ export type MfaView = 'EMAIL_OTP' | 'SMS_OTP' | 'CHOOSE_METHOD' | 'APP_TOTP' | '
           Verifica la tua identità.
         </h1>
 
-        <form class="w-full max-w-sm space-y-6" (submit)="$event.preventDefault()">
+        <form class="w-full max-w-sm space-y-6" (submit)="$event.preventDefault(); verifyCode()">
 
           @switch (true) {
 
@@ -72,7 +70,7 @@ export type MfaView = 'EMAIL_OTP' | 'SMS_OTP' | 'CHOOSE_METHOD' | 'APP_TOTP' | '
               </div>
             }
 
-            @case (['EMAIL_OTP', 'SMS_OTP', 'APP_TOTP'].includes(view())) {
+            @case (['EMAIL_OTP', 'SMS_OTP', 'APP_TOTP', 'BACKUP_CODE'].includes(view())) {
 
               <p class="text-sm text-center relative bottom-2">
                 @if (unTrusted() && view() === 'EMAIL_OTP') {
@@ -80,7 +78,7 @@ export type MfaView = 'EMAIL_OTP' | 'SMS_OTP' | 'CHOOSE_METHOD' | 'APP_TOTP' | '
                     Abbiamo rilevato un accesso insolito.
                   </span>
                   Perciò abbiamo
-                } @else {
+                } @else if (['EMAIL_OTP', 'SMS_OTP'].includes(view())) {
                   Abbiamo
                 }&nbsp;
 
@@ -98,14 +96,19 @@ export type MfaView = 'EMAIL_OTP' | 'SMS_OTP' | 'CHOOSE_METHOD' | 'APP_TOTP' | '
                     </span>
                   }
                   @case ('APP_TOTP') {
-                    <span>apri la tua app di autenticazione e inserisci il codice</span>
+                    <span>Apri la tua app di autenticazione e inserisci il codice generato</span>
+                  }
+                  @case ('BACKUP_CODE') {
+                    <span>Inserisci un codice di backup</span>
                   }
                 }
-                <span>&nbsp;con un codice di accesso</span>
+                @if (['EMAIL_OTP', 'SMS_OTP'].includes(view())) {
+                  <span>&nbsp;con un codice di accesso</span>
+                }
               </p>
 
               <div class="relative">
-                <input #otp type="text" [formControl]="otpControl" id="otp"
+                <input #otp type="text" [formControl]="codeControl" id="otp"
                   class="block py-4 px-4 w-full text-sm text-dark dark:text-light bg-transparent border-slate-300 border dark:border-slate-200 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-light-accent-primary dark:focus:ring-dark-accent-primary focus:border-light-accent-primary dark:focus:border-dark-accent-primary peer"
                   placeholder=" " required
                   (focus)="isOtpFocused.set(true)"
@@ -118,11 +121,15 @@ export type MfaView = 'EMAIL_OTP' | 'SMS_OTP' | 'CHOOSE_METHOD' | 'APP_TOTP' | '
                   }"
                   class="peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-main dark:bg-neutral-950 px-1 top-[13px] left-4 origin-[0]"
                   (click)="!isOtpFocused() && isOtpFocused.set(true); forceFocusOnOtp()">
-                  Codice monouso
+                  @if (view() !== 'BACKUP_CODE') {
+                    Codice monouso
+                  } @else {
+                    Codice di backup
+                  }
                 </label>
 
                 <div class="text-sm text-light-error dark:text-dark-error mt-1 min-h-5">
-                  @if (otpControl.invalid && otpControl.touched && !serverError()) {
+                  @if (codeControl.invalid && codeControl.touched && !serverError()) {
                     @if (isOtpEmpty()) {
                       Il campo codice è vuoto.
                     }
@@ -133,16 +140,21 @@ export type MfaView = 'EMAIL_OTP' | 'SMS_OTP' | 'CHOOSE_METHOD' | 'APP_TOTP' | '
               </div>
 
               <button
-                type="button"
-                (click)="verifyOtp()"
-                [disabled]="otpControl.invalid || loading()"
+                type="submit"
+                [disabled]="codeControl.invalid || loading()"
                 class="relative bottom-[10px] w-full mt-4 py-2 text-white rounded-md transition-colors duration-150
                        bg-light-accent-primary dark:bg-dark-accent-primary-btn
                        hover:bg-dark-accent-primary/80 dark:hover:bg-dark-accent-primary/80
                        disabled:bg-dark-accent-primary/80 disabled:dark:bg-dark-accent-primary/80
                        disabled:cursor-not-allowed disabled:hover:bg-dark-accent-primary/80 disabled:hover:dark:bg-dark-accent-primary/80"
               >
-                Continua
+                @if (!loading()) {
+                  <span>Verifica</span>
+                } @else {
+                  <div class="text-slate-200 flex items-center justify-center">
+                    <app-classic-spinner [size]="24"></app-classic-spinner>
+                  </div>
+                }
               </button>
 
             }
@@ -159,7 +171,7 @@ export type MfaView = 'EMAIL_OTP' | 'SMS_OTP' | 'CHOOSE_METHOD' | 'APP_TOTP' | '
           </div>
 
           <div class="space-y-3 dark:text-slate-100">
-            @if (!unTrusted()) {
+            @if (!unTrusted() && !(view() === 'CHOOSE_METHOD')) {
               <button type="button"
                 class="w-full flex items-center justify-center border rounded-md py-2.5 text-sm dark:hover:bg-slate-100 gap-3 dark:hover:text-neutral-900 hover:bg-slate-200/80 bg-slate-200 dark:bg-transparent transition-colors duration-150"
                 (click)="goTo('CHOOSE_METHOD')">
@@ -202,7 +214,6 @@ export class MfaPageComponent implements OnInit, OnDestroy {
   private readonly sessionSyncService = inject(SessionSyncService)
   private readonly userContext = inject(UserContextService)
   private readonly toast = inject(ToastService)
-  private readonly accountService = inject(AccountService)
 
   @ViewChild('otp')
   private otpRef!: ElementRef<HTMLInputElement>
@@ -215,11 +226,10 @@ export class MfaPageComponent implements OnInit, OnDestroy {
   protected serverError = signal<boolean>(false)
   protected unTrusted = signal<boolean>(false)
 
-  // view valide
-  private readonly viewList: MfaView[] = ['EMAIL_OTP', 'SMS_OTP', 'APP_TOTP', 'CHOOSE_METHOD', '']
+  private readonly viewList: MfaView[] = ['EMAIL_OTP', 'SMS_OTP', 'APP_TOTP', 'BACKUP_CODE', 'CHOOSE_METHOD', '']
 
   protected enabledMfaStrategies = signal<MfaStrategy[]>([])
-  protected otpControl!: FormControl
+  protected codeControl!: FormControl
   protected phoneControl!: FormControl
   protected isOtpFocused = signal<boolean>(false)
   protected isOtpEmpty = signal<boolean>(true)
@@ -264,7 +274,7 @@ export class MfaPageComponent implements OnInit, OnDestroy {
     this.sessionDeviceInfo = sessionDeviceInfo
 
     // 2) form
-    this.otpControl = this.fb.control(null, [Validators.required])
+    this.codeControl = this.fb.control(null, [Validators.required])
     this.phoneControl = this.fb.control(null, [Validators.required])
 
     // 3) preAuthorizationData
@@ -282,14 +292,17 @@ export class MfaPageComponent implements OnInit, OnDestroy {
     }
 
     // 4) auto-verify otp a 6 cifre
-    this.otpStateSub = this.otpControl.valueChanges.pipe(
+    this.otpStateSub = this.codeControl.valueChanges.pipe(
       filter(val => !!val),
       debounceTime(300),
       distinctUntilChanged(),
-    ).subscribe(code => {
-      if (code.length === 6) {
+    ).subscribe((code: string) => {
+      if (this.view() !== 'BACKUP_CODE' && code.length === 6) {
         this.loading.set(true)
-        this.verifyOtp()
+        this.verifyCode()
+      } else if (this.view() === 'BACKUP_CODE' && code.length === 14) {
+        this.loading.set(true)
+        this.verifyCode()
       }
     })
 
@@ -340,6 +353,12 @@ export class MfaPageComponent implements OnInit, OnDestroy {
 
         // APP_TOTP: mostra input ma NON invia OTP
         if (view === 'APP_TOTP') {
+          this.loading.set(false)
+          this.canView.set(true)
+          return EMPTY
+        }
+
+        if (view === 'BACKUP_CODE') {
           this.loading.set(false)
           this.canView.set(true)
           return EMPTY
@@ -419,6 +438,7 @@ export class MfaPageComponent implements OnInit, OnDestroy {
       case 'EMAIL_OTP': return 'EMAIL_OTP'
       case 'SMS_OTP': return 'SMS_OTP'
       case 'APP_TOTP': return 'APP_TOTP'
+      case 'BACKUP_CODE': return 'BACKUP_CODE'
       default: return 'CHOOSE_METHOD'
     }
   }
@@ -435,62 +455,72 @@ export class MfaPageComponent implements OnInit, OnDestroy {
 
   // ---- VERIFY
 
-  verifyOtp(): void {
+  verifyCode(): void {
+
     const currentView = this.view()
-    if (!['EMAIL_OTP', 'SMS_OTP', 'APP_TOTP'].includes(currentView)) return
 
-    const totpDTO: TotpBodyDTO = { totp: this.otpControl.value }
+    if (!['EMAIL_OTP', 'SMS_OTP', 'APP_TOTP', 'BACKUP_CODE'].includes(currentView)) {
+      return
+    }
 
-    this.otpVerifySub = this.authService.login_thirdStep(
-      currentView as 'EMAIL_OTP' | 'SMS_OTP' | 'APP_TOTP',
-      totpDTO,
-      {
-        fingerprintBase64: this.fingerprintDataEnc,
-        sessionDeviceInfo: this.sessionDeviceInfo,
-      },
-      this.loginFirstStepData?.preAuthorizationToken ?? '',
-      this.unTrusted()
-    ).subscribe({
-      next: (res) => {
-        this.authService.setAccessToken(res.accessToken ?? null)
-        this.authService.setWs_accessToken(res.ws_accessToken ?? null)
-        sessionStorage.removeItem('preAuthorizationData')
+    let dto: TotpBodyDTO | BackupCodeDTO = this.view() !== 'BACKUP_CODE' ? {
+      totp: this.codeControl.value
+    }
+    :
+    {
+      code: this.codeControl.value
+    }
 
-        localStorage.setItem('login', res.initials ?? 'U')
-        this.sessionSyncService.resumeSession(res.initials ?? 'U')
+      this.otpVerifySub = this.authService.login_thirdStep(
+        currentView as MfaStrategy,
+        dto,
+        {
+          fingerprintBase64: this.fingerprintDataEnc,
+          sessionDeviceInfo: this.sessionDeviceInfo,
+        },
+        this.loginFirstStepData?.preAuthorizationToken ?? '',
+        this.unTrusted()
+      ).subscribe({
+        next: (res) => {
+          this.authService.setAccessToken(res.accessToken ?? null)
+          this.authService.setWs_accessToken(res.ws_accessToken ?? null)
+          sessionStorage.removeItem('preAuthorizationData')
 
-        const redirect = sessionStorage.getItem('redirectAfterLogin') || '/dashboard'
-        this.router.navigateByUrl(redirect)
-      },
-      error: (e) => {
-        sessionStorage.removeItem('preAuthorizationData')
+          localStorage.setItem('login', res.initials ?? 'U')
+          this.sessionSyncService.resumeSession(res.initials ?? 'U')
 
-        let message = 'Si è verificato un errore.'
-        if ('error' in e && 'status' in e) {
-          const errBody: HttpErrorRes = e.error
-          if (e.status === 401) {
-            switch (errBody.message) {
-              case 'Invalid MFA strategy':
-                message = 'Operazione non autorizzata.'
-                break
-              case 'MfaDeviceMismatch':
-                message = 'Hai inserito il codice da un altro browser o dispositivo. Accesso negato.'
-                break
-              case 'Invalid MFA OTP':
-                message = 'Il codice inserito non è corretto, devi ripetere il login.'
-                break
-              default:
-                message = 'Si è verificato un errore.'
+          const redirect = sessionStorage.getItem('redirectAfterLogin') || '/dashboard'
+          this.router.navigateByUrl(redirect)
+        },
+        error: (e) => {
+          sessionStorage.removeItem('preAuthorizationData')
+
+          let message = 'Si è verificato un errore.'
+          if ('error' in e && 'status' in e) {
+            const errBody: HttpErrorRes = e.error
+            if (e.status === 401) {
+              switch (errBody.message) {
+                case 'Invalid MFA strategy':
+                  message = 'Operazione non autorizzata.'
+                  break
+                case 'MfaDeviceMismatch':
+                  message = 'Hai inserito il codice da un altro browser o dispositivo. Accesso negato.'
+                  break
+                case 'Invalid MFA OTP':
+                  message = 'Il codice inserito non è corretto, devi ripetere il login.'
+                  break
+                default:
+                  message = 'Si è verificato un errore.'
+              }
+            } else if (e.status === 429) {
+              message = 'Troppi tentativi, riprova tra qualche minuto.'
             }
-          } else if (e.status === 429) {
-            message = 'Troppi tentativi, riprova tra qualche minuto.'
           }
-        }
 
-        this.toast.trigger(message, 'error', 3000)
-        this.router.navigateByUrl('/login')
-      }
-    })
+          this.toast.trigger(message, 'error', 3000)
+          this.router.navigateByUrl('/login')
+        }
+      })
   }
 
   ngOnDestroy(): void {

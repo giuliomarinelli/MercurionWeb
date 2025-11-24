@@ -82,8 +82,10 @@ import { RouterLink } from '@angular/router';
                   [activeStrategies]="enabledMfaStrategies()"
                   [showActions]="true"
                   [noPhone]="s === 'SMS_OTP' && obscuredPhone() === null"
+                  [config]="true"
                   (onEnableMfa)="handleEnableMfa($event)"
-                  (onDisableMfa)="handleDisableMfa($event)"  />
+                  (onDisableMfa)="handleDisableMfa($event)"
+                  (onRefreshBackupCodes)="handleRefreshBackupCodes()"  />
               }
             </div>
           } @else if (enableMfaStep() === 'OTP_VERIFICATION') {
@@ -429,6 +431,7 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
   private disMfaSub?: Subscription
   private enMfaTotpSub?: Subscription
   private disMfaTotpSub?: Subscription
+  private refCodSub?: Subscription
 
   private fluxStarter$: Observable<null> = of(null)
 
@@ -579,6 +582,7 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
     this.disMfaSub?.unsubscribe()
     this.enMfaTotpSub?.unsubscribe()
     this.disMfaTotpSub?.unsubscribe()
+    this.refCodSub?.unsubscribe()
   }
 
   private onError(code = 500): void {
@@ -655,6 +659,10 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
       },
       error: (e: HttpErrorResponse) => this.onError(e.status)
     })
+  }
+
+  handleRefreshBackupCodes(): void {
+    // TODO
   }
 
   routeAction(): void {

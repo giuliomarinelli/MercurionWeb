@@ -150,7 +150,6 @@ export class MfaService {
         }
     }
 
-
     public async generateBackupCodes(userId: UUID, manager: EntityManager): Promise<string[]> {
 
         const codes = Array.from({ length: 10 }).map(() => this.securityService.generateReadableCode())
@@ -211,7 +210,6 @@ export class MfaService {
         return codes
     }
 
-
     public async verifyBackupCode(plainCode: string, preAuthorizationToken: string): Promise<boolean> {
 
         let userId: string = ''
@@ -265,7 +263,6 @@ export class MfaService {
         }
     }
 
-
     public async regenerateBackupCodes(userId: UUID): Promise<string[]> {
 
         await this.throttleBackupRegeneration(userId)
@@ -312,8 +309,6 @@ export class MfaService {
             return this.generateBackupCodes(userId, manager)
         })
     }
-
-
 
     public async hasValidBackupCodes(userId: UUID): Promise<boolean> {
         const count = await this.backupCodeRepository.count({ where: { user: { id: userId }, used: false } })

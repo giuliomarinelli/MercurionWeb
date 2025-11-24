@@ -71,7 +71,7 @@ import { ActivatedRoute, Router } from '@angular/router'
         <div class="flex flex-col justify-between">
           <cdk-accordion class="flex flex-col w-full border border-slate-300 dark:border-slate-500">
             @for (item of items; track item; let i = $index) {
-              <cdk-accordion-item #accordionItem="cdkAccordionItem" (opened)="onAccordionOpened(i)">
+              <cdk-accordion-item #accordionItem="cdkAccordionItem" (opened)="onAccordionOpened(i)" (closed)="smoothToTop()">
                 <div class="border-b border-slate-300 dark:border-slate-500" [class.border-b-0]="i === items.length - 1">
                   <button
                     type="button"
@@ -889,7 +889,14 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
     this.openAccordionAtIndex(idx, { closeOthers: true })
   }
 
-
+  smoothToTop(): void {
+    for (const item of Array.from(this.accordionItems)) {
+      if (item.expanded) {
+        return
+      }
+    }
+    this.appContext.smoothToTop(this.scrollRootRef)
+  }
 
 
 }

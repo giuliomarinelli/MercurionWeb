@@ -9,22 +9,22 @@ import { DesignService } from '../../../services/design.service';
   imports: [NgClass],
   template: `
 
-  <div
-    class="
-      w-full rounded-md border p-4 mb-3
-      bg-slate-100 dark:bg-slate-800
-      border-slate-300 dark:border-slate-600
-      max-h-fit opacity-100 flex gap-6 items-center flex-wrap
-      text-xs font-semibold gap-y-4 justify-between
-      transition-all duration-150 ease-linear
-    "
-    [ngClass]="{
-      'cursor-pointer hover:-translate-y-1 hover:shadow-md': choose,
-      'cursor-default': !choose
+  @if (_strategy() && !(_strategy()!.strategy === 'BACKUP_CODE' && !_strategy()!.enabled)) {
+    <div
+      class="
+        w-full rounded-md border p-4 mb-3
+        bg-slate-100 dark:bg-slate-800
+        border-slate-300 dark:border-slate-600
+        max-h-fit opacity-100 flex gap-6 items-center flex-wrap
+        text-xs font-semibold gap-y-4 justify-between
+        transition-all duration-150 ease-linear
+      "
+      [ngClass]="{
+        'cursor-pointer hover:-translate-y-1 hover:shadow-md': choose,
+        'cursor-default': !choose
     }">
 
 
-    @if (_strategy()) {
       <div class="flex items-center gap-6">
           @switch (_strategy()!.strategy) {
               @case ('EMAIL_OTP') {
@@ -62,20 +62,11 @@ import { DesignService } from '../../../services/design.service';
                   } @else {
                     <p class="flex flex-col gap-y-2 sm:gap-y-[2px]">
                       <span>Utilizza un codice di backup.</span>
-                      <span class="font-extralight text-[0.7rem]">I codici di backup restano validi finché non disattivi tutti i metodi di autenticazione a più fattori. Ogni codice di backup è monouso.</span>
+                      <span class="font-extralight text-[0.7rem]">I codici di backup restano validi finché non disattivi tutti gli altri metodi di autenticazione a più fattori.<br /> Ogni codice di backup è monouso.</span>
                     </p>
                   }
-              }
-            }
-            <span
-              class="px-2 py-[2px] rounded text-xs font-semibold"
-              [class.bg-emerald-200]="_strategy()!.enabled"
-              [class.text-emerald-800]="_strategy()!.enabled"
-              [class.bg-amber-200]="!_strategy()!.enabled"
-              [class.text-amber-800]="!_strategy()!.enabled"
-            >
-              {{ _strategy()!.enabled ? 'Attiva' : 'Non attiva' }}
-            </span>
+                }
+          }
             @if (_strategy()!.strategy === 'SMS_OTP' && noPhone) {
               <div class="flex items-center gap-4 flex-wrap text-sm">
                 <span >Per attivare questa strategia</span>
@@ -86,14 +77,25 @@ import { DesignService } from '../../../services/design.service';
                 <button class="a">aggiungi un numero di telefono</button>
               </div>
             }
+        @if (choose || config) {
+          <span
+            class="px-2 py-[2px] rounded text-xs font-semibold"
+            [class.bg-emerald-200]="_strategy()!.enabled"
+            [class.text-emerald-800]="_strategy()!.enabled"
+            [class.bg-amber-200]="!_strategy()!.enabled"
+            [class.text-amber-800]="!_strategy()!.enabled"
+          >
+            {{ _strategy()!.enabled ? 'Attiva' : 'Non attiva' }}
+          </span>
+        }
       </div>
-      @if (showActions && !(noPhone && _strategy()!.strategy === 'SMS_OTP') && _strategy()!.strategy !== 'BACKUP_CODE') {
+      @if (showActions && !(noPhone && _strategy()!.strategy === 'SMS_OTP')) {
         <button
           type="button"
-          [class.bg-emerald-800]="!_strategy()!.enabled"
-          [class.hover:bg-emerald-800/80]="!_strategy()!.enabled"
-          [class.bg-light-error]="_strategy()!.enabled"
-          [class.hover:bg-light-error/80]="_strategy()!.enabled"
+          [class.bg-emerald-800]="!_strategy()!.enabled || _strategy()!.strategy === 'BACKUP_CODE'"
+          [class.hover:bg-emerald-800/80]="!_strategy()!.enabled || _strategy()!.strategy === 'BACKUP_CODE'"
+          [class.bg-light-error]="_strategy()!.enabled && _strategy()!.strategy !== 'BACKUP_CODE'"
+          [class.hover:bg-light-error/80]="_strategy()!.enabled && _strategy()!.strategy !== 'BACKUP_CODE'"
           class="
             flex items-center gap-1 px-3 py-2 rounded-md
             text-slate-100 font-medium text-sm
@@ -101,27 +103,36 @@ import { DesignService } from '../../../services/design.service';
           "
           (click)="handleActionClick()"
         >
-          @if (!_strategy()!.enabled) {
-            <svg xmlns="http://www.w3.org/2000/svg"
-                 viewBox="0 0 640 640"
-                 class="fill-current h-6 w-6 relative -left-1">
-              <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-              <path d="M320 64C356.1 64 388 82.1 407.1 109.6C440.1 103.6 475.5 113.4 501 138.9C526.5 164.4 536.3 199.8 530.3 232.8C557.9 252 576 283.9 576 320C576 356.1 557.9 388 530.4 407.1C536.4 440.1 526.6 475.5 501.1 501C475.6 526.5 440.2 536.3 407.2 530.3C388 557.9 356.1 576 320 576C283.9 576 252 557.9 232.9 530.4C199.9 536.4 164.5 526.6 139 501.1C113.5 475.6 103.7 440.2 109.7 407.2C82.1 388 64 356.1 64 320C64 283.9 82.1 252 109.6 232.9C103.6 199.9 113.4 164.5 138.9 139C164.4 113.5 199.8 103.7 232.8 109.7C252 82.1 283.9 64 320 64zM320 96C291.7 96 267 111.9 254.6 135.4L248.4 147.1L235.8 143.2C210.4 135.4 181.7 141.6 161.6 161.6C141.5 181.6 135.4 210.4 143.2 235.8L147.1 248.4L135.4 254.6C111.9 267 96 291.7 96 320C96 348.3 111.9 373 135.4 385.4L147.1 391.6L143.2 404.2C135.4 429.6 141.6 458.3 161.6 478.4C181.6 498.5 210.4 504.6 235.8 496.8L248.4 492.9L254.6 504.6C267 528.1 291.7 544 320 544C348.3 544 373 528.1 385.4 504.6L391.6 492.9L404.2 496.8C429.6 504.6 458.3 498.4 478.4 478.4C498.5 458.4 504.6 429.7 496.8 404.3L492.9 391.6L504.6 385.4C528.1 373 544 348.3 544 320C544 291.7 528.1 267 504.6 254.6L492.9 248.4L496.8 235.7C504.6 210.3 498.4 181.6 478.4 161.6C458.4 141.6 429.6 135.4 404.2 143.2L391.6 147.1L385.4 135.4C373 111.9 348.3 96 320 96zM422.3 240.1L412.9 253L307.3 398.2L296.1 413.6L282.9 399.9L228.5 343.6L217.4 332.1L240.4 309.9C242.8 312.4 260.2 330.4 292.7 364L387.1 234.2L396.5 221.3L422.4 240.1z"/>
-            </svg>
-            <span>Attiva</span>
+          @if (!_strategy()!.enabled && _strategy()!.strategy !== 'BACKUP_CODE') {
+              <svg xmlns="http://www.w3.org/2000/svg"
+                   viewBox="0 0 640 640"
+                   class="fill-current h-6 w-6 relative -left-1">
+                <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                <path d="M320 64C356.1 64 388 82.1 407.1 109.6C440.1 103.6 475.5 113.4 501 138.9C526.5 164.4 536.3 199.8 530.3 232.8C557.9 252 576 283.9 576 320C576 356.1 557.9 388 530.4 407.1C536.4 440.1 526.6 475.5 501.1 501C475.6 526.5 440.2 536.3 407.2 530.3C388 557.9 356.1 576 320 576C283.9 576 252 557.9 232.9 530.4C199.9 536.4 164.5 526.6 139 501.1C113.5 475.6 103.7 440.2 109.7 407.2C82.1 388 64 356.1 64 320C64 283.9 82.1 252 109.6 232.9C103.6 199.9 113.4 164.5 138.9 139C164.4 113.5 199.8 103.7 232.8 109.7C252 82.1 283.9 64 320 64zM320 96C291.7 96 267 111.9 254.6 135.4L248.4 147.1L235.8 143.2C210.4 135.4 181.7 141.6 161.6 161.6C141.5 181.6 135.4 210.4 143.2 235.8L147.1 248.4L135.4 254.6C111.9 267 96 291.7 96 320C96 348.3 111.9 373 135.4 385.4L147.1 391.6L143.2 404.2C135.4 429.6 141.6 458.3 161.6 478.4C181.6 498.5 210.4 504.6 235.8 496.8L248.4 492.9L254.6 504.6C267 528.1 291.7 544 320 544C348.3 544 373 528.1 385.4 504.6L391.6 492.9L404.2 496.8C429.6 504.6 458.3 498.4 478.4 478.4C498.5 458.4 504.6 429.7 496.8 404.3L492.9 391.6L504.6 385.4C528.1 373 544 348.3 544 320C544 291.7 528.1 267 504.6 254.6L492.9 248.4L496.8 235.7C504.6 210.3 498.4 181.6 478.4 161.6C458.4 141.6 429.6 135.4 404.2 143.2L391.6 147.1L385.4 135.4C373 111.9 348.3 96 320 96zM422.3 240.1L412.9 253L307.3 398.2L296.1 413.6L282.9 399.9L228.5 343.6L217.4 332.1L240.4 309.9C242.8 312.4 260.2 330.4 292.7 364L387.1 234.2L396.5 221.3L422.4 240.1z"/>
+              </svg>
+              <span>Attiva</span>
           } @else {
-            <svg xmlns="http://www.w3.org/2000/svg"
-                 viewBox="0 0 640 640"
-                 class="fill-current h-6 w-6 relative -left-1">
-              <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-              <path d="M160 240C160 178.1 210.1 128 272 128C311.3 128 345.8 148.2 365.8 178.8L373.5 190.5L386.1 184.5C397.5 179 410.4 176 424 176C472.6 176 512 215.4 512 264L512 324.9L521.1 329.2C553.6 344.7 576 377.7 576 416L576 512L64 512L64 400C64 347.8 99.7 304 148 291.5L160 288.4L160 240zM272 96C192.5 96 128 160.5 128 240L128 264.2C72.1 284 32 337.3 32 400L32 544L608 544L608 416C608 368.6 582.2 327.2 544 305.1L544 264C544 197.7 490.3 144 424 144C410.3 144 397.1 146.3 384.8 150.5C358.4 117.3 317.7 96 272 96zM241.4 296C243.4 298 262.1 316.7 297.4 352C262 387.4 243.4 406 241.4 408L264 430.6C266 428.6 284.7 410 320 374.6L376 430.6L398.6 408C396.6 406 377.9 387.3 342.6 352C378 316.6 396.6 298 398.6 296L376 273.4C374 275.4 355.3 294.1 320 329.4C284.6 294 266 275.4 264 273.4L241.4 296z"/>
-            </svg>
-            <span>Disattiva</span>
+              @if (_strategy()!.strategy !== 'BACKUP_CODE') {
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     viewBox="0 0 640 640"
+                     class="fill-current h-6 w-6 relative -left-1">
+                  <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                  <path d="M160 240C160 178.1 210.1 128 272 128C311.3 128 345.8 148.2 365.8 178.8L373.5 190.5L386.1 184.5C397.5 179 410.4 176 424 176C472.6 176 512 215.4 512 264L512 324.9L521.1 329.2C553.6 344.7 576 377.7 576 416L576 512L64 512L64 400C64 347.8 99.7 304 148 291.5L160 288.4L160 240zM272 96C192.5 96 128 160.5 128 240L128 264.2C72.1 284 32 337.3 32 400L32 544L608 544L608 416C608 368.6 582.2 327.2 544 305.1L544 264C544 197.7 490.3 144 424 144C410.3 144 397.1 146.3 384.8 150.5C358.4 117.3 317.7 96 272 96zM241.4 296C243.4 298 262.1 316.7 297.4 352C262 387.4 243.4 406 241.4 408L264 430.6C266 428.6 284.7 410 320 374.6L376 430.6L398.6 408C396.6 406 377.9 387.3 342.6 352C378 316.6 396.6 298 398.6 296L376 273.4C374 275.4 355.3 294.1 320 329.4C284.6 294 266 275.4 264 273.4L241.4 296z"/>
+                </svg>
+                <span>Disattiva</span>
+              } @else {
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     viewBox="0 0 640 640"
+                     class="fill-current h-6 w-6 relative -left-[2px]">
+                  <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                  <path d="M544 64L544 183.8L507 144.7C458.5 93.2 390.8 64 320 64C180.3 64 64.1 180.4 64 320C63.9 459.3 180.3 575.9 320 576C420.1 576.1 513.4 515.5 554 424.1L524.8 411.1C489.4 491 407.6 544.1 320.1 544C198 543.9 96 441.6 96.1 320C96.2 198.1 198.1 96 320.1 96C382.1 96 441.3 121.5 483.9 166.6L523 208L400.1 208L400.1 240L576.1 240L576.1 64L544.1 64z"/>
+                </svg>
+              }
           }
         </button>
       }
-    }
-  </div>
+    </div>
+  }
 
 
   `
@@ -155,11 +166,17 @@ export class MfaStrategyCardComponent {
   @Input()
   choose = false
 
+  @Input()
+  config = false
+
   @Output()
   onEnableMfa = new EventEmitter<MfaStrategy>()
 
   @Output()
   onDisableMfa = new EventEmitter<MfaStrategy>()
+
+  @Output()
+  onRefreshBackupCodes = new EventEmitter<void>()
 
   private updateStrategyState(): void {
     if (!this.currentStrategy) {
@@ -181,6 +198,10 @@ export class MfaStrategyCardComponent {
       return
     }
     if (state.enabled) {
+      if (state.strategy === 'BACKUP_CODE') {
+        this.onRefreshBackupCodes.emit()
+        return
+      }
       this.onDisableMfa.emit(state.strategy)
     } else {
       this.onEnableMfa.emit(state.strategy)
