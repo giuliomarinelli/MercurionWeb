@@ -211,6 +211,12 @@ export class SessionService {
         await this.redisService.hset(this.getSessionKeyOrPattern(sessionId, userId), 'valid', 'true')
     }
 
+    public async isSessionLongTerm(sessionId: UUID, userId: UUID): Promise<boolean> {
+        const key = this.getSessionKeyOrPattern(sessionId, userId)
+        const longTermRaw = await this.redisService.hget(key, 'longTerm')
+        return longTermRaw === 'true'
+    }
+
     public async getAllSessionsByUserId(userId: string, opts?: SessionFetchOptions): Promise<ISession[]> {
 
         const matchPattern = `session:*:${userId}`

@@ -169,7 +169,7 @@ export class AuthenticationController {
     ): Promise<ConfirmWithTokenPairAndInitialsDTO> {
 
         const loginPendingVal = req.cookies['__logged_in'] ?? ''
-        const maxAge = loginPendingVal === 'pending_long' ? this.LONG_SESSION_TTL : undefined
+        let shouldPersistLogin = loginPendingVal === 'pending_long'
         let userId: UUID
         let sessionId: UUID
         let jti: UUID
@@ -184,6 +184,10 @@ export class AuthenticationController {
                 throw new UnauthorizedException()
             }
         }
+        if (!shouldPersistLogin) {
+            shouldPersistLogin = await this.sessionService.isSessionLongTerm(sessionId, userId)
+        }
+        const maxAge = shouldPersistLogin ? this.LONG_SESSION_TTL : undefined
         const expectedDev = await this.redisService.get(`mfa:pat:dev:${jti}`)
         if (expectedDev && expectedDev !== actualDeviceId) {
             await this.sessionService.revokeToken(jti)

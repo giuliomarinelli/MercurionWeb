@@ -182,7 +182,8 @@ export class AuthService {
   }
 
   public login_secondStep(strategy: 'EMAIL_OTP' | 'SMS_OTP', preAuthorizationToken: string, trustVerify: boolean = false): Observable<ConfirmWithTotpMetaDTO> {
-    return this.http.post<ConfirmWithTotpMetaDTO>(`/api/authentication/login/${strategy}/2?trust_verify=${trustVerify}`, {}, {
+    const query = trustVerify ? `?trust_verify=${trustVerify}` : ''
+    return this.http.post<ConfirmWithTotpMetaDTO>(`/api/authentication/login/${strategy}/2${query}`, {}, {
       withCredentials: true,
       headers: {
         'Authorization': `Bearer ${preAuthorizationToken}`
@@ -207,7 +208,7 @@ export class AuthService {
       payload: dto
     }
     const query = trustVerify ? `?trust_verify=${trustVerify}` : ''
-    return this.http.post<ConfirmWithAccessTokenAndInitialsDTO>(`/api/authentication/login/${strategy}/3`, body, {
+    return this.http.post<ConfirmWithAccessTokenAndInitialsDTO>(`/api/authentication/login/${strategy}/3${query}`, body, {
       withCredentials: true,
       headers: {
         'X-Fingerprint': fingerprintBase64,
