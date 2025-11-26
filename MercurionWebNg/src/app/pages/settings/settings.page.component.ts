@@ -868,18 +868,18 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
     const rootStyle = getComputedStyle(rootEl)
     const padTop = parseFloat(rootStyle.paddingTop || '0')
 
-    const headerOffset = this.appContext.headerHeight() // SOLO header
+    const headerOffset = this.appContext.headerHeight()
     const y =
       this.appContext.getScrollYRelativeToRoot(targetEl, rootEl)
       - headerOffset
-      - padTop        // <-- toglie il p-4 reale
-    // (se vuoi 4-8px di respiro, sottrai ancora un filo)
-
+      - padTop
     this.appContext.smoothTo(this.scrollRootRef, y, 240)
   }
 
   private indexFromFragment(frag: string | null | undefined): number {
-    if (!frag) return 0
+    if (!frag) {
+      return 0
+    }
     const idx = this.accordionAnchors.indexOf(frag)
     return idx === -1 ? 0 : idx
   }
@@ -895,7 +895,9 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
     this.pendingIndex = idx
 
     const itemsArr = this.accordionItems?.toArray() ?? []
-    if (!itemsArr.length) return
+    if (!itemsArr.length) {
+      return
+    }
 
     this.openAccordionAtIndex(idx, { closeOthers: true })
   }

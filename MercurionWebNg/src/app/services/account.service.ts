@@ -1,8 +1,8 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { ChangePasswordDTO, MfaStrategy, ProfileDTO, SessionDTO, UserData } from '../Models/account/account.models';
+import { inject, Injectable, signal } from '@angular/core';
+import { ChangePasswordDTO, MfaStrategy, PhoneDTO, ProfileDTO, SessionDTO, UserData } from '../Models/account/account.models';
 import { map, Observable, of, tap } from 'rxjs';
-import { ConfirmDTO, ConfirmMfaChange } from '../Models/confirm.models';
+import { ConfirmChangeDTO, ConfirmDTO, ConfirmMfaChange } from '../Models/confirm.models';
 import { ConfirmWithObsContDTO } from '../Models/confirm.models';
 import { EmailDTO } from '../Models/auth/login.models';
 import { TotpDTO } from '../Models/auth/totp.models';
@@ -13,41 +13,35 @@ import { TotpDTO } from '../Models/auth/totp.models';
 })
 export class AccountService {
 
-  private USER_KEY = 'user_d'
-  private CACHE_TIME = 15 * 60 * 1000 // 15 minuti
+  private readonly http = inject(HttpClient)
 
-  constructor(private readonly http: HttpClient) { }
+  private cachedEmail = signal<string>('')
 
-  private getStoredEmail(): string | null {
-    const raw = sessionStorage?.getItem(this.USER_KEY)
-    if (!raw) return null
-    const user_d = JSON.parse(raw) as UserData
-    if (!user_d?.email) return null
-    if (user_d.ts && Date.now() - user_d.ts < this.CACHE_TIME) {
-      return user_d.email
+  private getCachedEmail(): string | null {
+    const cached = this.cachedEmail()
+    if (!cached) {
+      return null
     }
-    return null
+    return cached
   }
 
-  private setStoredEmail(email: string): void {
-    if (!email) return
-    const user_d = {
-      email,
-      ts: Date.now()
+  private setCachedEmail(email: string): void {
+    if (!email) {
+      return
     }
-    sessionStorage?.setItem(this.USER_KEY, JSON.stringify(user_d))
+    this.cachedEmail.set(email)
   }
 
-  public getEmail(): Observable<string> {
-    const storedEmail = this.getStoredEmail()
-    if (storedEmail) {
-      return of(storedEmail)
+  public getEmail(refetch = false): Observable<string> {
+    const cached = this.getCachedEmail()
+    if (cached && !refetch) {
+      return of(cached)
     } else {
       return this.http.get('/api/account/email', {
         withCredentials: true,
         responseType: 'text'
       }).pipe(
-        tap(email => this.setStoredEmail(email))
+        tap(email => this.setCachedEmail(email))
       )
     }
   }
@@ -169,6 +163,46 @@ export class AccountService {
     }).pipe(
       map((res) => res.codes)
     )
+  }
+
+  public changeEmail_firstStep(newEmail: string): Observable<ConfirmChangeDTO> {
+    const body: EmailDTO = {
+      email: newEmail
+    }
+    return this.http.patch<ConfirmChangeDTO>('/api/account/email/1', body, {
+      withCredentials: true
+    })
+  }
+
+  public changeEmail_secondStep(otp: string, secureToken: string): Observable<ConfirmDTO> {
+    const body: TotpDTO = {
+      secureToken,
+      totp: otp
+    }
+    return this.http.patch<ConfirmDTO>('/api/account/email/2', body, {
+      withCredentials: true
+    })
+  }
+
+  public maskEmail(email: string): Observable<string> {
+    const body: EmailDTO = {
+      email
+    }
+    return this.http.post('/api/account/mask-email', body, {
+      responseType: 'text',
+      withCredentials: true
+    })
+  }
+
+  public maskPhone(prefix: string, phone: string): Observable<string> {
+    const body: PhoneDTO = {
+      phone,
+      internationalPrefix: prefix
+    }
+    return this.http.post('/api/account/mask-phone', body, {
+      responseType: 'text',
+      withCredentials: true
+    })
   }
 
 }

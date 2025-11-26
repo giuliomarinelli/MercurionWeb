@@ -174,7 +174,7 @@ export class SercurityService {
             algorithm: app ? 'sha1' : 'sha256',
             window: 1
         })
-        
+
     }
 
 
@@ -186,19 +186,36 @@ export class SercurityService {
 
     public maskEmail(email: string): string {
 
-        const [localPart, domain] = email.split('@')
+        const [localPart = '', domain] = email.split('@')
 
-        if (!domain) return '*'.repeat(localPart.length) + '@'
+        const localStarsLen = Math.max(localPart.length - 4, 10)
+
+        if (!domain) {
+            const maskedLocal =
+                localPart.slice(0, 2) +
+                '*'.repeat(localStarsLen) +
+                localPart.slice(-2)
+
+            return maskedLocal + '@'
+        }
 
         const domainParts = domain.split('.')
         const extension = domainParts.pop() || ''
         const domainWithoutExt = domainParts.join('.')
+
         const visibleDomain = domainWithoutExt.slice(-2)
-        const maskedLocal = localPart.slice(0, 2) + '*'.repeat(localPart.length - 2)
-        const maskedDomain = '*'.repeat(domainWithoutExt.length - 2)
+
+        const domainStarsLen = Math.max(domainWithoutExt.length - 2, 3)
+        const maskedDomain = '*'.repeat(domainStarsLen)
+
+        const maskedLocal =
+            localPart.slice(0, 2) +
+            '*'.repeat(localStarsLen) +
+            localPart.slice(-2)
 
         return `${maskedLocal}@${maskedDomain}${visibleDomain}.${extension}`
     }
+
 
     maskPhone(phone: string): string {
         return phone.slice(0, 3) + '******' + phone.slice(-2)

@@ -63,3 +63,8 @@ export interface AuthenticationData {
   suspiciousAttempt: boolean
 }
 
+export type ConfirmChangeDTO = ConfirmWithObsContDTO & TotpMetadata & {
+    emailVerificationToken?: string
+    phoneNumberVerificationToken?: string
+}
+

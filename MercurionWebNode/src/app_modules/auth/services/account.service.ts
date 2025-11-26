@@ -323,18 +323,19 @@ export class AccountService {
         if (!user) throw new RpcException('ChangeEmail::UserNotFound')
 
         if (!newEmail || newEmail.trim() === '') throw new RpcException('ChangeEmail::EmptyEmail')
-        if (newEmail.toLowerCase() === user.email?.toLowerCase())
+        if (newEmail.toLowerCase() === user.email?.toLowerCase()) {
             throw new RpcException('ChangeEmail::NewEmailIsCurrentEmail')
-
+        }
 
         await this.throttleContactChangeSend(userId, ContactChangeKind.EMAIL)
 
         // Lock per evitare abusi e race condition
         const lockKey = `email_change_lock:${this.hmacKey(newEmail.toLowerCase())}`
         const exists = await this.redisService.exists(lockKey)
-        if (exists) throw new RpcException('ChangeEmail::EmailAlreadyInUseOrPending')
-
-        await this.redisService.set(lockKey, 'locked', 3600) // 1h TTL
+        if (exists) {
+            throw new RpcException('ChangeEmail::EmailAlreadyInUseOrPending')
+        }
+        await this.redisService.set(lockKey, 'locked', 300)
 
         await this.userService.updateUser(userId, {
             unconfirmedEmail: newEmail,
@@ -406,7 +407,7 @@ export class AccountService {
             },
             join(__dirname, "../../../app_modules/notification/email-templates/email-changed-old-contact.hbs")
         ).catch((e) => {
-            this.logger.warn(`Errore durante l'invio mail email changed, oldEmail=${oldEmail}, userId=${userId}`, e as string | object)
+            this.logger.warn(`Errore durante l'invio mail email changed, oldEmail=${this.hmacKey(oldEmail ?? '')}, userId=${userId}`, e as string | object)
         })
 
         this.mailService.sendEmail<UserContext>(
@@ -417,7 +418,7 @@ export class AccountService {
             },
             join(__dirname, "../../../app_modules/notification/email-templates/email-changed-new-contact.hbs")
         ).catch((e) => {
-            this.logger.warn(`Errore durante l'invio mail email changed, newEmail=${newEmail}, userId=${userId}`, e as string | object)
+            this.logger.warn(`Errore durante l'invio mail email changed, newEmail=${this.hmacKey(newEmail)}, userId=${userId}`, e as string | object)
         })
 
         return this._r.ok('Email successfully changed and verified')
@@ -443,7 +444,7 @@ export class AccountService {
         const existsLock = await this.redisService.exists(lockKey)
         if (existsLock) throw new RpcException('ChangePhone::NumberAlreadyUsedOrPending')
 
-        await this.redisService.set(lockKey, 'locked', 3600) // 1h TTL
+        await this.redisService.set(lockKey, 'locked', 300)
 
         await this.userService.updateUser(userId, {
             unconfirmedPhoneNumber: fullNumber,
@@ -512,12 +513,12 @@ export class AccountService {
         await this.securityAuditService.phoneChanged(userId, maskedOldPhone, maskedNewPhone)
         if (oldCompletePhoneNumber != null) {
             this.smsService.sendSms(oldCompletePhoneNumber, oldNotificationBody).catch((e) => {
-                this.logger.warn(`Errore durante l'invio sms phone changed, oldPhone=${oldCompletePhoneNumber}, userId=${userId}`, e as string | object)
+                this.logger.warn(`Errore durante l'invio sms phone changed, oldPhone=${this.hmacKey(oldCompletePhoneNumber)}, userId=${userId}`, e as string | object)
             })
         }
 
         this.smsService.sendSms(newCompletePhoneNumber, newNotificationBody).catch((e) => {
-            this.logger.warn(`Errore durante l'invio sms phone changed, newPhone=${newCompletePhoneNumber}, userId=${userId}`, e as string | object)
+            this.logger.warn(`Errore durante l'invio sms phone changed, newPhone=${this.hmacKey(newCompletePhoneNumber)}, userId=${userId}`, e as string | object)
         })
 
         return this._r.ok('Phone number successfully updated')

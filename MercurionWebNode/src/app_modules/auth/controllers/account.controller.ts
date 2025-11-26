@@ -303,4 +303,15 @@ export class AccountController {
         return this.securityService.maskPhone(completePhone)
     }
 
+    @Post('/mask-email')
+    public maskEmail(@Body(new ValidationPipe()) { email }: EmailDTO): string {
+        return this.securityService.maskEmail(email)
+    }
+
+    @Post('/mask-phone')
+    public maskPhone(@Body(new ValidationPipe()) { internationalPrefix, phoneNumber }: ChangePhoneDTO): string {
+        const phone = internationalPrefix.trim() + phoneNumber.trim()
+        return this.securityService.maskPhone(phone)
+    }
+
 }
