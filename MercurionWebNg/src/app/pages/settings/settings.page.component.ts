@@ -381,13 +381,35 @@ import { ActivatedRoute, Router } from '@angular/router'
                               <div class="p-2 sm:p-4 sm:col-span-2 flex justify-between items-center">
                                 <strong>{{profile.obscuredPhone ?? '―'}}</strong>
                                   @if (profile.obscuredPhone) {
-                                    <button class="cursor-pointer transition-[transform,color] duration-300 hover:scale-[1.075]"
-                                      title="Modifica numero di telefono" (click)="changePhone()">
-                                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-[22px] w-auto fill-current text-slate-800 hover:text-slate-800/75 dark:text-slate-200 dark:hover:text-slate-200/75 transition-colors duration-300">
-                                        <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-                                        <path d="M58.1 555.9L48 592C50.7 591.2 117.4 572.6 248 536L569.4 214.6L592 192C589.6 189.6 549.1 149.1 470.6 70.6L448 48L425.4 70.6L104 392L58.1 555.9zM252.7 486L154 387.3L347.4 193.9L446.1 292.6L252.7 486zM229.4 508L94.2 545.8L132 410.6L229.4 508zM546.7 192L468.6 270.1L369.9 171.4L448 93.3L546.7 192z"/>
-                                      </svg>
-                                    </button>
+                                    <div class="flex items-center gap-4">
+                                      <button class="cursor-pointer transition-[transform,color] duration-300 hover:scale-[1.075]"
+                                        title="Modifica numero di telefono" (click)="changePhone()">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-[22px] w-auto fill-current text-slate-800 hover:text-slate-800/75 dark:text-slate-200 dark:hover:text-slate-200/75 transition-colors duration-300">
+                                          <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                                          <path d="M58.1 555.9L48 592C50.7 591.2 117.4 572.6 248 536L569.4 214.6L592 192C589.6 189.6 549.1 149.1 470.6 70.6L448 48L425.4 70.6L104 392L58.1 555.9zM252.7 486L154 387.3L347.4 193.9L446.1 292.6L252.7 486zM229.4 508L94.2 545.8L132 410.6L229.4 508zM546.7 192L468.6 270.1L369.9 171.4L448 93.3L546.7 192z"/>
+                                        </svg>
+                                      </button>
+                                      <button
+                                        type="button"
+                                        class="relative p-1 rounded-md
+                                               transition-colors duration-150"
+                                        title="Elimina numero di telefono"
+                                        (click)="deletePhone()"
+                                      >
+                                        <svg
+                                          class="h-[22px] w-auto text-light-error dark:text-dark-error hover:text-light-error/80 dark:hover:text-dark-error/80 hover:scale-[1.15] transition-all duration-300"
+                                          viewBox="0 0 20 20"
+                                          fill="currentColor"
+                                          aria-hidden="true"
+                                        >
+                                          <path
+                                            fill-rule="evenodd"
+                                            d="M6 8a1 1 0 0 1 1 1v7h6V9a1 1 0 1 1 2 0v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V9a1 1 0 0 1 1-1zM4 5a1 1 0 0 1 1-1h2V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1h2a1 1 0 0 1 1 1v1H4V5z"
+                                            clip-rule="evenodd"
+                                          />
+                                        </svg>
+                                      </button>
+                                    </div>
                                   } @else {
                                     <button class="cursor-pointer transition-[transform,color] duration-300 hover:scale-[1.075] border border-slate-300 dark:border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-700"
                                       title="Aggiungi un numero di telefono" (click)="addPhone()">
@@ -847,6 +869,13 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   addPhone(): void {
     queueMicrotask(() => {
       this.changeDataContext.setInnerScope('AddPhone')
+      this.actionContext.open('SensitiveDataChange')
+    })
+  }
+
+  deletePhone(): void {
+    queueMicrotask(() => {
+      this.changeDataContext.setInnerScope('RemovePhone')
       this.actionContext.open('SensitiveDataChange')
     })
   }

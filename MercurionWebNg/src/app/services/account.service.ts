@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
-import { ChangePasswordDTO, MfaStrategy, PhoneDTO, ProfileDTO, SessionDTO, UserData } from '../Models/account/account.models';
+import { ChangePasswordDTO, MfaStrategy, ChangePhoneDTO, ProfileDTO, SessionDTO, UserData } from '../Models/account/account.models';
 import { map, Observable, of, tap } from 'rxjs';
 import { ConfirmChangeDTO, ConfirmDTO, ConfirmMfaChange } from '../Models/confirm.models';
 import { ConfirmWithObsContDTO } from '../Models/confirm.models';
@@ -184,6 +184,32 @@ export class AccountService {
     })
   }
 
+  public changePhoneNumber_firstStep(prefix: string, phone: string): Observable<ConfirmChangeDTO> {
+    const body: ChangePhoneDTO = {
+      phoneNumber: phone,
+      internationalPrefix: prefix
+    }
+    return this.http.patch<ConfirmChangeDTO>('/api/account/phone/1', body, {
+      withCredentials: true
+    })
+  }
+
+  public deletePhoneNumber_firstStep(): Observable<ConfirmChangeDTO> {
+    return this.http.delete<ConfirmChangeDTO>('/api/account/phone/1', {
+      withCredentials: true
+    })
+  }
+
+  public changePhoneNumber_secondStep(totp: string, secureToken: string): Observable<ConfirmDTO> {
+    const body: TotpDTO = {
+      secureToken,
+      totp
+    }
+    return this.http.patch<ConfirmDTO>('/api/account/phone/2', body, {
+      withCredentials: true
+    })
+  }
+
   public maskEmail(email: string): Observable<string> {
     const body: EmailDTO = {
       email
@@ -195,8 +221,8 @@ export class AccountService {
   }
 
   public maskPhone(prefix: string, phone: string): Observable<string> {
-    const body: PhoneDTO = {
-      phone,
+    const body: ChangePhoneDTO = {
+      phoneNumber: phone,
       internationalPrefix: prefix
     }
     return this.http.post('/api/account/mask-phone', body, {

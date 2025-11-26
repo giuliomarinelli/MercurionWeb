@@ -424,15 +424,55 @@ export class AccountService {
         return this._r.ok('Email successfully changed and verified')
     }
 
+    public async deletePhoneNumber_firstStep_requestTotp(userId: UUID): Promise<ConfirmChangeDTO> {
+        const user = await this.userService.getUserById(userId)
+        if (!user) {
+            throw new RpcException('DeletePhone::UserNotFound')
+        }
+        const currentNumber = user.completePhoneNumber
+        if (!currentNumber) {
+            throw new RpcException('DeletePhone::NoPhoneNumber')
+        }
+        const lockKey = `phone_change_lock:${this.hmacKey(currentNumber)}`
+        const existsLock = await this.redisService.exists(lockKey)
+        if (existsLock) {
+            throw new RpcException('DeletePhone::NumberAlreadyUsedOrPending')
+        }
+        await this.redisService.set(lockKey, 'locked', 300)
+        await this.userService.updateUser(userId, {
+            unconfirmedPhoneNumber: null,
+            unconfirmedPhoneNumberPrefixLength: 0,
+            updatedAt: Date.now()
+        })
+
+        const phoneNumberVerificationToken = await this.jwtTools.generateToken(userId, TokenType.PhoneNumberVerificationToken)
+        const { TOTP: totp, ...metadata } = this.securityService.generateTotp(user.otpSecret)
+
+        await this.smsService.sendSms(
+            currentNumber,
+            `Ciao ${user.firstName}, questo è il tuo codice per rimuovere il tuo attuale numero da Mercurion: ${totp}\nValido per ${this.configService.get<number>('Totp.period')} secondi.`
+        )
+
+        return {
+            ...this._r.ok(`Phone number deletion requested. Check ${this.securityService.maskPhone(currentNumber)} for verification code.`),
+            obscuredPhoneNumber: this.securityService.maskPhone(currentNumber),
+            phoneNumberVerificationToken,
+            ...metadata
+        }
+
+    }
+
     public async changePhoneNumber_firstStep_requestTotp(userId: UUID, dto: ChangePhoneDTO): Promise<ConfirmChangeDTO> {
 
 
         const { internationalPrefix, phoneNumber } = dto
         const user = await this.userService.getUserById(userId)
-        if (!user) throw new RpcException('ChangePhone::UserNotFound')
+        if (!user) {
+            throw new RpcException('ChangePhone::UserNotFound')
+        }
         await this.throttleContactChangeSend(userId, ContactChangeKind.PHONE)
 
-        const fullNumber = `${internationalPrefix}${phoneNumber}`
+        const fullNumber = `${internationalPrefix ?? ''}${phoneNumber ?? ''}`
         const currentNumber = user.completePhoneNumber
 
         if (fullNumber === currentNumber) {
@@ -442,7 +482,9 @@ export class AccountService {
         // lock per evitare abusi e race condition
         const lockKey = `phone_change_lock:${this.hmacKey(fullNumber)}`
         const existsLock = await this.redisService.exists(lockKey)
-        if (existsLock) throw new RpcException('ChangePhone::NumberAlreadyUsedOrPending')
+        if (existsLock) {
+            throw new RpcException('ChangePhone::NumberAlreadyUsedOrPending')
+        }
 
         await this.redisService.set(lockKey, 'locked', 300)
 
@@ -461,7 +503,7 @@ export class AccountService {
         )
 
         return {
-            ...this._r.ok(`Phone number change requested. Check ${fullNumber} for verification code.`),
+            ...this._r.ok(`Phone number change requested. Check ${this.securityService.maskPhone(fullNumber)} for verification code.`),
             obscuredPhoneNumber: this.securityService.maskPhone(fullNumber),
             phoneNumberVerificationToken,
             ...metadata

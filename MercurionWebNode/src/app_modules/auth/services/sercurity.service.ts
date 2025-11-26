@@ -186,6 +186,8 @@ export class SercurityService {
 
     public maskEmail(email: string): string {
 
+        email = email.trim().toLowerCase()
+
         const [localPart = '', domain] = email.split('@')
 
         const localStarsLen = Math.max(localPart.length - 4, 10)

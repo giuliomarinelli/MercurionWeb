@@ -61,7 +61,7 @@ export class FloatingInputComponent implements ControlValueAccessor, OnDestroy {
   // ===== Inputs / Outputs
   @Input() label!: string;
   @Input() id = `fi-${Math.random().toString(36).slice(2)}`;
-  @Input() type: 'text' | 'email' | 'password' = 'text';
+  @Input() type: 'text' | 'email' | 'password' | 'tel' = 'text';
   @Input() autocomplete?: string;
   @Input() errors: ErrorMap = {};              // es: { required: 'Obbligatorio', email: 'Formato non valido' }
   @Input() serverError: string | null = null;  // es: "Password errata"

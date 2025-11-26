@@ -50,8 +50,8 @@ export interface SessionDTOExt extends SessionDTO {
   triggerDisappear: WritableSignal<boolean>
 }
 
-export interface PhoneDTO {
-  phone: string
+export interface ChangePhoneDTO {
+  phoneNumber: string
   internationalPrefix: string
 }
 

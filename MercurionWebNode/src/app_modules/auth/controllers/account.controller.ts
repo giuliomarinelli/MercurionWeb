@@ -1,6 +1,6 @@
 import { ChangePasswordDTO } from './../Models/DTO/change-password.dto';
 import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum';
-import { BadRequestException, Body, Controller, Get, HttpCode, HttpStatus, NotFoundException, Param, Patch, Post, Query, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpStatus, NotFoundException, Param, Patch, Post, Query, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
 import { UserRegisterDTO } from 'src/app_modules/user/Models/DTO/user-register.cls.dto';
 import { AuthenticatedUserId, Authorization, Public, SessionId } from 'src/metadata/metadata';
 import { ConfirmChangeDTO, ConfirmDTO, ConfirmMfaChange, ConfirmWithObsContDTO } from 'src/Models/confirm-responses.dto';
@@ -75,7 +75,12 @@ export class AccountController {
         @AuthenticatedUserId() userId: UUID,
         @Body(new ValidationPipe({ transform: true })) dto: ChangePhoneDTO
     ): Promise<ConfirmChangeDTO> {
-        return await this.accountService.changePhoneNumber_firstStep_requestTotp(userId, dto)
+        return this.accountService.changePhoneNumber_firstStep_requestTotp(userId, dto)
+    }
+
+    @Delete('/phone/1')
+    public async deletePhoneNumber_firstStep(@AuthenticatedUserId() userId: UUID): Promise<ConfirmChangeDTO> {
+        return this.accountService.deletePhoneNumber_firstStep_requestTotp(userId)
     }
 
     @Patch('/phone/2')

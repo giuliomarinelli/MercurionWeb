@@ -7,13 +7,14 @@ import { UserContextService } from '../../services/context/user-context.service'
 import { environment } from '../../../environments/environment.development';
 import { Subscription, switchMap } from 'rxjs';
 import { FloatingInputComponent } from '../../components/common/floating-input/floating-input.component';
-import { PmOption, PmSelectComponent } from '../../components/common/pm-select/pm-select.component';
+import { PmSelectComponent } from '../../components/common/pm-select/pm-select.component';
 import { emailAvailabilityValidator, matchPassword } from '../../custom-validators';
 import { UserGenderControl, UserRegistrationFormControls, UserRegistrationFormValue } from '../../Models/auth/user.models';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { Helpers } from '../../helpers';
 import { ToastService } from '../../services/toast.service';
 import { AppContextService } from '../../services/context/app-context.service';
+import { PmOption } from '../../Models/pm-option.model';
 
 
 @Component({
