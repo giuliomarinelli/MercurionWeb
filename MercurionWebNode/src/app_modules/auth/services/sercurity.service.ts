@@ -1,7 +1,7 @@
 import { ConfigService } from '@nestjs/config';
 import { Injectable } from '@nestjs/common';
 import { TotpConfiguration } from 'src/config/config.types';
-import { createCipheriv, createDecipheriv, createHmac, randomBytes } from 'crypto';
+import { createCipheriv, createDecipheriv, createHmac, randomBytes, UUID } from 'crypto';
 import * as speakeasy from 'speakeasy'
 import { TotpWrapper } from '../Models/interfaces/totp-wrapper.interface';
 import { AppTotpWrapper } from '../Models/interfaces/app-totp-wrapper.interface';
@@ -14,12 +14,14 @@ export class SercurityService {
     private readonly totpConf: Omit<TotpConfiguration, 'totpPepper'>
     private readonly totpPepper: string
     private readonly AES_secret: string
+    private readonly deviceIdSignatureSecret: string
 
     constructor(private readonly configService: ConfigService) {
         const { totpPepper, ...totpConf } = this.configService.get<TotpConfiguration>('Totp')!
         this.totpConf = totpConf
         this.totpPepper = totpPepper
         this.AES_secret = this.configService.get<string>('App.AES_secret')!
+        this.deviceIdSignatureSecret = this.configService.get<string>('App.deviceIdSignatureSecret')!
     }
 
     encrypt_AES256(value: string) {
@@ -48,6 +50,13 @@ export class SercurityService {
             decipher.final()
         ])
         return decrypted.toString('utf8')
+    }
+
+    signDeviceId(deviceId: UUID): string {
+        const signature = createHmac('sha256', this.deviceIdSignatureSecret)
+            .update(deviceId)
+            .digest('hex')
+        return `${deviceId}.${signature}`
     }
 
 

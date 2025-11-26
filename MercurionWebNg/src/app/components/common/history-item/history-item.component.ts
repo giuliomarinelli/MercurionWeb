@@ -13,7 +13,7 @@ import { DatePipe } from '@angular/common';
         [queryParams]="queryParams()"
         class="grid grid-cols-[auto_1fr] gap-3 items-center py-2 px-3 rounded-xl transition
                    hover:bg-slate-50 dark:hover:bg-slate-800/70"
-        [class.bg-slate-100/80]="_selected()"
+        [class.bg-slate-300/65]="_selected()"
         [class.dark:bg-slate-700/80]="_selected()"
       >
         <!-- Icona -->

@@ -32,6 +32,7 @@ import { VerifyBodyPipe } from '../validation-pipes/verify-body.pipe';
 import { VerifyKind } from '../Models/enums/verify-kind.enum';
 import { BackupCodeDTO } from '../Models/DTO/backup-code.cls.dto';
 import { TotpBodyDTO } from '../Models/DTO/totp.cls.dto';
+import { SercurityService } from '../services/sercurity.service';
 
 
 
@@ -53,9 +54,10 @@ export class AuthenticationController {
         private readonly configService: ConfigService,
         private readonly sessionService: SessionService,
         private readonly redisService: RedisService,
-        meiliLogger: MeiliLoggerService
+        private readonly securityService: SercurityService,
+        loggerFactory: MeiliLoggerService
     ) {
-        this.logger = meiliLogger.forContext(AuthenticationController.name)
+        this.logger = loggerFactory.forContext(AuthenticationController.name)
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { secret, ...cookieConf } = this.configService.get<SecureCookieConfiguration>('SecureCookie')!
         this.cookieConf = cookieConf
@@ -90,7 +92,7 @@ export class AuthenticationController {
 
         const auth: Authentication = await this.authService.emailAndPasswordAuthentication(email, password, remember, ip, deviceId, sessionDeviceInfo, fingerprintData)
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { userId, sessionId, ...authRes } = auth
+        const { userId, sessionId, deviceId: _omit, ...authRes } = auth
 
         this.secureCookieService.setSignedCookie(reply, '__node_session_id', sessionId, {
             ...this.cookieConf,
@@ -109,7 +111,8 @@ export class AuthenticationController {
                 ...this._r.ok('MFA first step went on successfully'),
                 ...authRes,
                 preAuthorizationToken: await this.authService.performPreAuthenticationForMfa(auth),
-                initials: initials ?? ''
+                initials: initials ?? '',
+                deviceId: this.securityService.signDeviceId(deviceId)
             }
         }
         reply.setCookie('__logged_in', 'true', {
@@ -122,7 +125,8 @@ export class AuthenticationController {
             ...this._r.ok('Authenticated successfully'),
             ...authRes,
             ...await this.authService.performAuthentication(auth, fingerprintData, ip),
-            initials: initials ?? ''
+            initials: initials ?? '',
+            deviceId: this.securityService.signDeviceId(deviceId)
         }
 
     }
@@ -180,11 +184,13 @@ export class AuthenticationController {
             try {
                 await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken, true)
                 throw new UnauthorizedException('ExpiredPreauthorizationToken')
-            } catch {
-                throw new UnauthorizedException()
+            } catch (e) {
+                this.logger.warn(` > login_thirdStep > Error: ${e.message || e}`)
+                throw new UnauthorizedException('InvalidPreauthorizationToken')
             }
         }
         if (!shouldPersistLogin) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             shouldPersistLogin = await this.sessionService.isSessionLongTerm(sessionId, userId)
         }
         const maxAge = shouldPersistLogin ? this.LONG_SESSION_TTL : undefined
@@ -224,7 +230,8 @@ export class AuthenticationController {
             ...this._r.ok('Authenticated successfully'),
             accessToken,
             ws_accessToken,
-            initials: await this.userService.getUserInitialsByUserId(userId) ?? ''
+            initials: await this.userService.getUserInitialsByUserId(userId) ?? '',
+            deviceId: this.securityService.signDeviceId(actualDeviceId)
         }
 
     }

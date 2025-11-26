@@ -170,7 +170,7 @@ export class SessionService {
             await this.redisService.srem(`user_sessions:${s.userId}`, s.sessionId)
         }
 
-        const sessionId = randomUUID();
+        const sessionId = randomUUID()
         const ttlSeconds = rememberMe ? this.LONG_SESSION_TTL : this.SHORT_SESSION_TTL
         const expiresAt = Date.now() + this.LONG_SESSION_TTL * 1000
 

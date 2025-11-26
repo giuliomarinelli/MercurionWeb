@@ -18,6 +18,7 @@ export type ConfirmWithTokenPairAndInitialsDTO = ConfirmDTO & {
     accessToken: string
     ws_accessToken: string
     initials: string
+    deviceId: string
 }
 
 
@@ -28,11 +29,12 @@ export type ConfirmChangeDTO = ConfirmWithObsContDTO & TotpMetadata & {
     phoneNumberVerificationToken?: string
 }
 
-export type Confirm_Login_FirstStepDTO = ConfirmDTO & Omit<Authentication, 'userId' | 'sessionId'> & {
+export type Confirm_Login_FirstStepDTO = ConfirmDTO & Omit<Authentication, 'userId' | 'sessionId' | 'deviceId'> & {
     preAuthorizationToken?: string
     accessToken?: string
     ws_accessToken?: string
     initials: string
+    deviceId: string
 }
 
 export type ConfirmWithTotpMetaDTO = ConfirmDTO & TotpMetadata

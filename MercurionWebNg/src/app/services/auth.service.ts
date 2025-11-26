@@ -183,7 +183,7 @@ export class AuthService {
 
   public login_secondStep(strategy: 'EMAIL_OTP' | 'SMS_OTP', preAuthorizationToken: string, trustVerify: boolean = false): Observable<ConfirmWithTotpMetaDTO> {
     const query = trustVerify ? `?trust_verify=${trustVerify}` : ''
-    return this.http.post<ConfirmWithTotpMetaDTO>(`/api/authentication/login/${strategy}/2${query}`, {}, {
+    return this.http.post<ConfirmWithTotpMetaDTO>(`/api/authentication/login/${strategy}/2${query}`, null, {
       withCredentials: true,
       headers: {
         'Authorization': `Bearer ${preAuthorizationToken}`
