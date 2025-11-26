@@ -130,6 +130,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
             case 'InvalidSession':
             case 'MfaTemporarilyLocked':
             case 'Forbidden::missing permissions':
+            case 'BackupCodesAlreadyGenerated':
                 statusCode = HttpStatus.FORBIDDEN
                 break
 

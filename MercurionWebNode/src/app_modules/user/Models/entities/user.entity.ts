@@ -82,6 +82,9 @@ export class User {
     @Column()
     avatarId: UUID | null
 
+    @Column()
+    backupCodesGiven: boolean
+
     @BeforeInsert()
     private generateId() {
         this.id = uuidv7() as UUID

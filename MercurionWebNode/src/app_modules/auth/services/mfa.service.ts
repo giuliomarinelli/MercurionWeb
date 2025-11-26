@@ -152,6 +152,8 @@ export class MfaService {
 
     public async generateBackupCodes(userId: UUID, manager: EntityManager): Promise<string[]> {
 
+        await manager.delete(MfaBackupCode, { userId })    
+
         const codes = Array.from({ length: 10 }).map(() => this.securityService.generateReadableCode())
 
         const entities = await Promise.all(
@@ -168,11 +170,18 @@ export class MfaService {
 
         const row = await manager.findOne(User, {
             where: { id: userId },
-            select: { mfaStrategies: true },
-        });
+            select: {
+                mfaStrategies: true,
+                backupCodesGiven: true
+            }
+        })
 
         if (!row) {
             throw new RpcException("Unauthenticated")
+        }
+
+        if (row.backupCodesGiven) {
+            throw new RpcException('BackupCodesAlreadyGenerated')
         }
 
         let deserialized: string[]
@@ -204,7 +213,10 @@ export class MfaService {
         await manager.update(
             User,
             { id: userId },
-            { mfaStrategies: JSON.stringify(encrypted) }
+            {
+                mfaStrategies: JSON.stringify(encrypted),
+                backupCodesGiven: true
+            }
         )
 
         return codes
@@ -267,9 +279,7 @@ export class MfaService {
 
         await this.throttleBackupRegeneration(userId)
 
-        return this.dataSource.manager.transaction(async (manager) => {
-
-            await manager.delete(MfaBackupCode, { userId })
+        return this.dataSource.manager.transaction(async (manager) => {                    
 
             const row = await manager.findOne(User, {
                 where: { id: userId },
@@ -786,11 +796,13 @@ export class MfaService {
         await this.dataSource.manager.transaction(async (manager) => {
 
             const row = await manager.createQueryBuilder(User, 'u')
-                .select(['u.mfaStrategies'])
+                .select(['u.mfaStrategies', 'u.backupCodesGiven'])
                 .where('u.id = :id', { id: userId })
                 .getOneOrFail()
 
-            const { mfaStrategies: rawMfaStrategies } = row
+            // eslint-disable-next-line prefer-const
+            let { mfaStrategies: rawMfaStrategies, backupCodesGiven } = row
+            backupCodesGiven = false
             let deserialized: string[]
             try {
                 deserialized = JSON.parse(rawMfaStrategies || '[]') as string[]
@@ -818,7 +830,8 @@ export class MfaService {
                 {
                     mfaStrategies: JSON.stringify(
                         mfaStrategiesWithoutJustDisabledStrategy.map((uuid) => this.securityService.encrypt_AES256(uuid))
-                    )
+                    ),
+                    backupCodesGiven
 
                 })
             if (strategy === MfaStrategy.APP_TOTP) {
