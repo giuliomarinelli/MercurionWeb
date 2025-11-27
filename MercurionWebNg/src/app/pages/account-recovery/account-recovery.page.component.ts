@@ -52,7 +52,7 @@ import { HttpErrorResponse } from '@angular/common/http';
             <path d="M320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM320 96C196.3 96 96 196.3 96 320C96 443.7 196.3 544 320 544C443.7 544 544 443.7 544 320C544 196.3 443.7 96 320 96zM438.3 236.5L428.9 249.4L300.9 425.4L289.9 440.6L201.3 352L223.9 329.4L286 391.5L403 230.7L412.4 217.8L438.3 236.6z"/>
           </svg>
         }
-        <div class="flex flex-col gap-y-2">
+        <div class="flex flex-col gap-y-2 min-w-0 break-words">
           @switch (step()) {
               @case (1) {
                 <span>Inserisci il codice di recupero dell'account che ti abbiamo fornito al momento dell'attivazione e clicca su <span class="font-semibold text-light-accent-secondary dark:text-dark-accent-secondary">Continua</span></span>
@@ -169,22 +169,23 @@ import { HttpErrorResponse } from '@angular/common/http';
                   }
                 </button>
               </div>
+              <div class="flex justify-center relative top-3">
+                @if (loadingTurnstile()) {
+                  <div
+                    class="w-[300px] h-[71px] overflow-hidden transition-all bg-neutral-200 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 animate-pulse skeleton-pulse"
+                  >
+                    <span class="sr-only">Loading CAPTCHA…</span>
+                  </div>
+                }
+                <app-turnstile
+                  (token)="onTurnstileToken($event)"
+                  (widgetReady)="onTurnstileRender()"
+                  (refresh)="loadingTurnstile.set(true)"
+                  class="block h-[71px] mt-1"
+                />
+              </div>
             </form>
-            <div class="flex justify-center">
-              @if (loadingTurnstile()) {
-                <div
-                  class="w-[300px] h-[71px] overflow-hidden transition-all bg-neutral-200 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 animate-pulse skeleton-pulse"
-                >
-                  <span class="sr-only">Loading CAPTCHA…</span>
-                </div>
-              }
-              <app-turnstile
-                (token)="onTurnstileToken($event)"
-                (widgetReady)="onTurnstileRender()"
-                (refresh)="loadingTurnstile.set(true)"
-                class="block h-[71px] mt-1"
-              />
-            </div>
+
           }
           <div class="relative py-2 -top-1">
             <div class="absolute inset-0 flex items-center">
