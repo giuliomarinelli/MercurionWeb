@@ -2,9 +2,9 @@
  * SessionSyncService – sync login <-> WS con cookie guard
  * Regole:
  *  - "LoggedIn" ⇢ userCtx.initials !== '' **E** cookie (__logged_in | __logged_in_) === 'true'
- *  - PUBLIC: 15× (1/s) so.pub.session_init → ACK ⇒ upgrade PRIVATE
- *  - PRIVATE: 15× (1/s) so.pub.session_init → ACK ⇒ resti PRIVATE
- *  - No ACK: stop a 15, mantieni modalità. Se MAI verificato e cookie assente ⇒ stato anonimo.
+ *  - PUBLIC: WS attiva ma senza handshake session_init
+ *  - PRIVATE: handshake so.pub.session_init → ACK ⇒ mantieni PRIVATE
+ *  - No ACK in PRIVATE: degrada a anonimo/public.
  *  - Niente autologout da `storage` se il cookie è presente.
  * ────────────────────────────────────────────────────────────── */
 import { Injectable, NgZone, signal } from '@angular/core';
@@ -54,7 +54,10 @@ export class SessionSyncService {
     private readonly zone: NgZone,
   ) {
     // eventi WS
-    this.socket.onConnect().subscribe(() => this.zone.run(() => { void this.syncSession(); }));
+    this.socket.onConnect().subscribe(() =>
+      this.zone.run(() => { void this.syncSession(); }),
+    );
+
     this.socket.onDisconnect().subscribe(r => {
       if (r !== 'io client disconnect') this._status.set('disconnected');
     });
@@ -69,9 +72,9 @@ export class SessionSyncService {
     this.socket.on('sv.pub.session_expired')
       .subscribe(() => this.zone.run(() => this.handleSessionExpired()));
 
-    // bootstrap
-    this.socket.connect();           // parte PUBLIC
-    void this.syncSession();         // handshake iniziale
+    // bootstrap: parte PUBLIC, poi decide se uppare a PRIVATE
+    this.socket.connect();
+    void this.syncSession();
 
     // cross-tab con guardia cookie (evita falsi "logout da un’altra scheda")
     let storageDebounce: any;
@@ -111,20 +114,27 @@ export class SessionSyncService {
   /* ---------------- Public API ---------------- */
 
   resumeSession(initials: string) {
-    this.onExternalLogin(initials)
-    this._handshakeTick.update(x => x + 1)
+    this.onExternalLogin(initials);
+    this._handshakeTick.update(x => x + 1);
   }
 
   requestHandshake() {
-    this._handshakeTick.update(x => x + 1)
+    this._handshakeTick.update(x => x + 1);
   }
 
   forceSessionCheck() { void this.syncSession(true); }
+
   logout() {
-    // logout esplicito: togli "login" e degrada WS a PUBLIC subito
+    // logout esplicito: togli "login" e degrada WS
     localStorage.removeItem('login');
-    this.becomeAnonymous({ toast: 'Logout eseguito.', level: 'success', navigateIfProtected: true, removeLoginKey: false });
+    this.becomeAnonymous({
+      toast: 'Logout eseguito.',
+      level: 'success',
+      navigateIfProtected: true,
+      removeLoginKey: false
+    });
   }
+
   get currentStatus() { return this._status(); }
 
   /* ---------------- Handshake core ---------------- */
@@ -142,7 +152,7 @@ export class SessionSyncService {
     const initials = localStorage.getItem('login') ?? '';
     const cookieLogged = this.hasClientLoginCookieTrue();
 
-    // Regola nuova: senza cookie NON consideriamo loggati → puntiamo PUBLIC
+    // Regola: senza cookie NON consideriamo loggati → targetIsPrivate = false
     const targetIsPrivate = cookieLogged && initials !== '';
 
     // cooldown se anon
@@ -155,8 +165,11 @@ export class SessionSyncService {
     this._status.set('checking');
 
     try {
-      if (targetIsPrivate) await this.socket.ensurePrivate();
-      else await this.socket.ensurePublic();
+      if (targetIsPrivate) {
+        await this.socket.ensurePrivate();
+      } else {
+        await this.socket.ensurePublic();
+      }
 
       const connected = await this.socket.waitConnected(4000);
       if (!connected) {
@@ -164,8 +177,17 @@ export class SessionSyncService {
         if (!targetIsPrivate) this.lastAnonHS = now;
         return;
       }
+
       await this.socket.waitStable();
 
+      // 🔹 Caso PUBLIC: WS attiva per eventi pubblici, ma niente handshake session_init
+      if (!targetIsPrivate) {
+        this._status.set('anonymous');
+        this.lastAnonHS = now;
+        return;
+      }
+
+      // 🔹 Caso PRIVATE: facciamo l’handshake forte via so.pub.session_init
       const startMode = this.socket.getMode();
       await this.pollHandshake(startMode, targetIsPrivate);
 
@@ -216,7 +238,7 @@ export class SessionSyncService {
             this._status.set('loggedIn');
           }
         } else {
-          // niente cookie ⇒ consideraci anonimi anche con ACK (caso raro, ma coerente con la policy)
+          // niente cookie ⇒ consideraci anonimi anche con ACK
           this._status.set('anonymous');
           this.lastAnonHS = Date.now();
           await this.socket.ensurePublic();
@@ -232,9 +254,8 @@ export class SessionSyncService {
     }
 
     // === 15 tentativi falliti ===
-    // Se non abbiamo mai verificato e NON c'è cookie ⇒ evitiamo UI fantasma
-    if (!this.verifiedOnce && !this.hasClientLoginCookieTrue()) {
-      // ripulisci UI a stato anonimo e riporta WS in PUBLIC
+    // Se eravamo in PRIVATE e nel frattempo il cookie è sparito → degrada a anonimo
+    if (targetIsPrivate && !this.verifiedOnce && !this.hasClientLoginCookieTrue()) {
       this.userCtx.clearInitials();
       this._status.set('anonymous');
       this.lastAnonHS = Date.now();
@@ -304,7 +325,7 @@ export class SessionSyncService {
     this.userCtx.clearInitials();
     this._status.set('anonymous');
 
-    // Ripristina SUBITO la WS pubblica (senza reload)
+    // Ripristina SUBITO la WS pubblica (senza reload) per eventi pubblici
     void this.socket.reconnectPublicNow();
 
     if (toast) this.toast.trigger(toast, level);

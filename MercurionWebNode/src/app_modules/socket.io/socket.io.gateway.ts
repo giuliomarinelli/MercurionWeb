@@ -11,6 +11,8 @@ import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-l
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 import { ConfigService } from '@nestjs/config';
 import { RedisConfiguration } from 'src/config/config.types';
+import { JwtToolsService } from '../auth/services/jwt-tools.service';
+import { TokenType } from '../auth/Models/enums/token-type.enum';
 
 
 
@@ -27,6 +29,7 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
   constructor(
     private readonly configService: ConfigService,
     private readonly pubSubService: PubSubService,
+    private readonly jwtTools: JwtToolsService,
     loggerFactory: MeiliLoggerService
   ) {
     this.logger = loggerFactory.forContext(SocketIOGateway.name)
@@ -43,8 +46,34 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
 
 
   async handleConnection(client: Socket) {
-    this.logger.log(`🔗 Connected socket ${client.id}`)
+    this.logger.log(`🔗 Connected socket ${client.id}`);
+
+    const token = client.handshake.auth?.token as string | undefined;
+
+    if (!token) {
+      // connessione PUBLIC, nessun binding alle room utente
+      this.logger.log(`Socket ${client.id} connesso in PUBLIC mode`);
+      return;
+    }
+
+    try {
+      // qui usa lo stesso servizio che usi nel WsGuard
+      const { sub: userId, sid: sessionId } = await this.jwtTools.verifyTokenAndGetPayload(token, TokenType.ws_AccessToken);
+
+      client.data.userId = userId;
+      client.data.sessionId = sessionId;
+
+      this.joinUserRooms(client);  // idempotente, usa già .rooms.has(...)
+      this.logger.log(
+        `Socket ${client.id} autenticato onConnect, bind ws_session:${sessionId}, ws_user:${userId}`
+      );
+    } catch (e: any) {
+      this.logger.warn(`WS auth fallita su handleConnection per ${client.id}: ${e?.message || e}`);
+      // se questo gateway è solo privato puoi anche fare:
+      // client.disconnect(true);
+    }
   }
+
 
 
   handleDisconnect(client: Socket): void {
@@ -97,7 +126,7 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
     this.joinUserRooms(client)
     return { detail: 'websocket session init successful' }
   }
-  
+
 }
 
 
