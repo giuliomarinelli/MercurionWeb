@@ -46,3 +46,7 @@ export type ConfirmWithTotpMetaDTO = ConfirmDTO & TotpMetadata
 export type ConfirmNewLogLevelsDTO = ConfirmDTO & {
     currentLogLevels: LogLevel[]
 }
+
+export type ConfirmWithRecoveryTokenDTO = ConfirmDTO & {
+    recoveryToken: string
+}

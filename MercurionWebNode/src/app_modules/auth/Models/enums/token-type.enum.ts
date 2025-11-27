@@ -8,10 +8,11 @@ export enum TokenType {
     PhoneNumberVerificationToken = "PhoneNumberVerificationToken",
     EmailOtpMfaActivationToken = "EmailOtpMfaActivationToken",
     SmsOtpMfaActivationToken = "SmsOtpMfaActivationToken",
-    AppTotpMfaActivationToken = "AppTotpMfaActivationToken",    
+    AppTotpMfaActivationToken = "AppTotpMfaActivationToken",
     EmailOtpMfaInactivationToken = "EmailOtpMfaInactivationToken",
     SmsOtpMfaInactivationToken = "SmsOtpMfaInactivationToken",
-    AppTotpMfaInactivationToken = "AppTotpMfaInactivationToken",   
-    ChangePasswordToken = "ChangePasswordToken"   
+    AppTotpMfaInactivationToken = "AppTotpMfaInactivationToken",
+    ChangePasswordToken = "ChangePasswordToken",
+    AccountRecoveryToken = "AccountRecoveryToken"
 
 }

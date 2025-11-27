@@ -32,6 +32,8 @@ import { uuidv7 } from '@kripod/uuidv7';
 import { MoleculeCollection } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection.entity';
 import { MoleculeCollectionItemJoin } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection-item-join.entity';
 import { ScopeService } from './scope.service';
+import { MfaBackupCode } from 'src/app_modules/user/Models/entities/backup-code.entity';
+
 
 
 
@@ -56,6 +58,10 @@ export class AccountService {
 
     private readonly PASSWORD_RESET_SEND_WINDOW_SECONDS = 10 * 60
     private readonly PASSWORD_RESET_MAX_SENDS = 5
+
+    private readonly RECOVERY_FAIL_WINDOW_SECONDS = 24 * 60 * 60  // 1 giorno
+    private readonly RECOVERY_MAX_FAILS = 2
+    private readonly RECOVERY_LOCK_SECONDS = 24 * 60 * 60
 
     private readonly redisIdHmacSecret: string
 
@@ -105,6 +111,32 @@ export class AccountService {
 
     private getChangeSendLockKey(userId: UUID, kind: ContactChangeKind): string {
         return `change:${kind}:send:lock:${userId}`
+    }
+
+    private getRecoveryFailKey(code: string) {
+        return `recovery:fail:${this.hmacKey(code)}`
+    }
+    private getRecoveryLockKey(code: string) {
+        return `recovery:lock:${this.hmacKey(code)}`
+    }
+
+    private async ensureRecoveryNotLocked(code: string) {
+        if (await this.redisService.exists(this.getRecoveryLockKey(code))) {
+            throw new RpcException('AccountRecovery::TooManyAttempts')
+        }
+    }
+
+    private async registerRecoveryFailure(code: string) {
+        const failKey = this.getRecoveryFailKey(code)
+        const lockKey = this.getRecoveryLockKey(code)
+
+        const fails = await this.redisService.getClient().incr(failKey)
+        if (fails === 1) await this.redisService.setTTL(failKey, this.RECOVERY_FAIL_WINDOW_SECONDS)
+
+        if (fails >= this.RECOVERY_MAX_FAILS) {
+            await this.redisService.set(lockKey, '1', this.RECOVERY_LOCK_SECONDS)
+            await this.redisService.del(failKey)
+        }
     }
 
     private async ensureContactChangeNotLocked(userId: UUID, kind: ContactChangeKind): Promise<void> {
@@ -668,6 +700,89 @@ export class AccountService {
         const redisKey = this.getRegistrationLockRedisKey(email)
         const existsUnverified = await this.redisService.exists(redisKey)
         return !existsVerified && !existsUnverified
+    }
+
+    public async recoverAccount_firstStep(code: string): Promise<string> | never {
+        return this.dataSource.manager.transaction(async (manager) => {
+
+            await this.ensureRecoveryNotLocked(code)
+
+            const getTrue = () => true
+
+            const BATCH_SIZE = 5_000
+
+            let lastId: UUID | null = null
+            let userId: UUID | null = null
+
+            // scan a batch paginati con early-exit
+            while (getTrue()) {
+                const qb = manager
+                    .createQueryBuilder(User, 'u')
+                    .select(['u.id', 'u.accountRecoveryCodeHash'])
+                    .where('u.accountRecoveryCodeHash IS NOT NULL')
+                    .andWhere('u.isVerified = true')
+
+                if (lastId) {
+                    // UUIDv7 è ordinabile cronologicamente => paging per cursore
+                    qb.andWhere('u.id > :lastId', { lastId })
+                }
+
+                const batch = await qb
+                    .orderBy('u.id', 'ASC')
+                    .take(BATCH_SIZE)
+                    .getMany()
+
+                if (batch.length === 0) {
+                    break
+                }
+
+                for (const row of batch) {
+                    const hash = row.accountRecoveryCodeHash
+                    if (!hash) {
+                        continue
+                    }
+
+                    const matches = (await this.passwordEncoder.compareWithFallback(code, hash, true)) !== CompareResult.NoMatch
+
+                    if (matches) {
+                        userId = row.id
+                        break
+                    }
+                }
+
+                if (userId) break
+
+                // aggiorna cursore per batch successivo
+                lastId = batch[batch.length - 1].id
+            }
+
+            if (!userId) {
+                await this.registerRecoveryFailure(code)
+                throw new RpcException('AccountRecovery::wrong recovery code')
+            }
+
+            const user = await manager.findOne(User, { where: { id: userId } })
+            if (!user) {
+                await this.registerRecoveryFailure(code)
+                throw new RpcException('AccountRecovery::wrong recovery code')
+            }
+
+            await this.redisService.del(this.getRecoveryFailKey(code))
+            await this.redisService.del(this.getRecoveryLockKey(code))
+
+            user.locked = true
+            user.mfaStrategies = '[]'
+            await manager.save(user)
+
+            await manager.delete(MfaBackupCode, { userId })
+            await this.sessionService.destroyAllSessionsAndRevokeAllTokensByUserId(userId)
+            await this.securityAuditService.accountRecovery(
+                userId,
+                'ACCOUNT_RECOVERY_TOKEN_GENERATED'
+            )
+
+            return this.jwtTools.generateToken(userId, TokenType.AccountRecoveryToken)
+        })
     }
 
 }

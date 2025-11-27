@@ -11,6 +11,8 @@ export type SecurityAuditEventType =
   | 'PHONE_CHANGED'
   | 'MFA_ENABLED'
   | 'MFA_DISABLED'
+  | 'ACCOUNT_RECOVERY_TOKEN_GENERATED'
+  | 'ACCOUNT_RECOVERY_ACCOUNT_RECOVERED'
 
 export interface SecurityAuditEvent {
   id: string
@@ -191,4 +193,10 @@ export class SecurityAuditService implements OnModuleInit {
     })
     await this.send(event)
   }
+
+  async accountRecovery(userId: UUID, strategy: | 'ACCOUNT_RECOVERY_TOKEN_GENERATED' | 'ACCOUNT_RECOVERY_ACCOUNT_RECOVERED'): Promise<void> {
+    const event = this.buildEvent(userId, strategy)
+    await this.send(event)
+  }
+  
 }

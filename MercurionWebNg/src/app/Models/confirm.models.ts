@@ -72,3 +72,7 @@ export type ConfirmWithRecoveryCodeDTO = ConfirmDTO & {
     recoveryCode: string
 }
 
+export type ConfirmWithRecoveryTokenDTO = ConfirmDTO & {
+    recoveryToken: string
+}
+

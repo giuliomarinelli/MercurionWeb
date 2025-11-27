@@ -32,6 +32,7 @@ export class JwtToolsService {
     private readonly smsOtpMfaInactivationTokenConfig: JwtConfiguration
     private readonly appTotpMfaInactivationTokenConfig: JwtConfiguration
     private readonly changePasswordTokenConfig: JwtConfiguration
+    private readonly accountRecoveryTokenConfig: JwtConfiguration
 
     private readonly jwtIssuer: string
     private readonly jwtAudience: JwtAudience
@@ -61,11 +62,12 @@ export class JwtToolsService {
         this.smsOtpMfaInactivationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.smsOtpMfaInactivationToken") as JwtConfiguration
         this.appTotpMfaInactivationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.appTotpMfaInactivationToken") as JwtConfiguration
         this.changePasswordTokenConfig = this.configService.get<JwtConfiguration>("Jwt.changePasswordToken") as JwtConfiguration
+        this.accountRecoveryTokenConfig = this.configService.get<JwtConfiguration>("Jwt.accountRecoveryToken") as JwtConfiguration
 
         this.jwtIssuer = this.configService.get<string>("Jwt.issuer") as string
         this.jwtAudience = this.configService.get<JwtAudience>('Jwt.audience')!
 
-        const minLen = 48; // es. 384 bit per HS512
+        const minLen = 48; // 384 bit per HS512
         [
             this.preAuthorizationTokenConfig,
             this.activationTokenConfig,
@@ -78,6 +80,7 @@ export class JwtToolsService {
             this.smsOtpMfaInactivationTokenConfig,
             this.appTotpMfaInactivationTokenConfig,
             this.changePasswordTokenConfig,
+            this.accountRecoveryTokenConfig
         ].forEach((c) => {
             if (!c?.secret || c.secret.length < minLen) {
                 throw new Error('Weak JWT secret in config')
@@ -125,6 +128,7 @@ export class JwtToolsService {
             case TokenType.SmsOtpMfaActivationToken: return this.smsOtpMfaActivationTokenConfig
             case TokenType.SmsOtpMfaInactivationToken: return this.smsOtpMfaInactivationTokenConfig
             case TokenType.ChangePasswordToken: return this.changePasswordTokenConfig
+            case TokenType.AccountRecoveryToken: return this.accountRecoveryTokenConfig
         }
     }
 

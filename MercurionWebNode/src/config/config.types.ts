@@ -58,6 +58,7 @@ export interface JwtConfigurations {
     smsOtpMfaInactivationToken: JwtConfiguration
     appTotpMfaInactivationToken: JwtConfiguration
     changePasswordToken: JwtConfiguration
+    accountRecoveryToken: JwtConfiguration
     issuer: string
     audience: JwtAudience
 

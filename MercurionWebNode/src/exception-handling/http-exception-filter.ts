@@ -145,6 +145,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
             case 'InvalidJwtValidation':
             case 'AuthenticationInvalidCredentials':
             case 'Unauthanticated':
+            case 'AccountRecovery::wrong recovery code':
                 statusCode = HttpStatus.UNAUTHORIZED
                 break
 
@@ -159,6 +160,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
             case 'PasswordResetSend::TooManyRequests':
             case 'BackupCode::TooManyAttempts':
             case 'BackupCodeRegen::TooManyRequests':
+            case 'AccountRecovery::TooManyAttempts':
                 statusCode = HttpStatus.TOO_MANY_REQUESTS
                 msg = 'Rate limit exceeded.'
                 break
