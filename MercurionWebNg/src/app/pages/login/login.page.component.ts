@@ -185,6 +185,28 @@ import { toSignal } from '@angular/core/rxjs-interop';
 
           <p class="text-sm">Ricordami per 30 giorni</p>
         </div>
+        <div class="relative py-2">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t"></div>
+          </div>
+          <div class="relative flex justify-center text-sm">
+            <span
+              class="bg-light-surface-main dark:bg-neutral-950 px-2 text-gray-500 dark:text-slate-300"
+              >IN CASO DI EMERGENZA</span
+            >
+          </div>
+        </div>
+        <a title="Usa il codice di recupero mostrato all’attivazione per recuperare e ripristinare il tuo account"
+           routerLink="/account-recovery"
+           class="w-full flex items-center justify-center border rounded-md py-2.5 text-sm dark:hover:bg-slate-100 gap-3 dark:hover:text-neutral-900 hover:bg-slate-200/80 bg-slate-200 dark:bg-transparent transition-colors duration-150"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto">
+            <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+            <path d="M592 544L48 544L320 48L592 544zM292 420L292 476L348 476L348 420L292 420zM288 224L300.8 384L339.2 384L352 224L288 224z"/>
+          </svg>
+          <span class="text-[0.85rem] hidden sm:block">Recupera account inaccessibile o hackerato</span>
+          <span class="text-xs block sm:hidden">Recupera account</span>
+        </a>
 
         <div class="relative py-2">
           <div class="absolute inset-0 flex items-center">

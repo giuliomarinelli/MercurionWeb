@@ -10,7 +10,6 @@ import { UUID } from 'crypto';
 import { Authentication } from '../Models/interfaces/authentication.interface';
 import { ResponseService } from 'src/services/response.service';
 import { Confirm_Login_FirstStepDTO, ConfirmDTO, ConfirmWithTokenPairAndInitialsDTO, ConfirmWithTotpMetaDTO } from 'src/Models/confirm-responses.dto';
-import { TestPhoneDTO } from '../Models/DTO/test-phone.cls.dto';
 import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { JwtToolsService } from '../services/jwt-tools.service';
@@ -137,8 +136,7 @@ export class AuthenticationController {
     public async login_secondStep(
         @Query('trust_verify') trustVerify: boolean = false,
         @Authorization() preAuthorizationToken: string,
-        @Param('strategy') strategyKey: string,
-        @Body(new ValidationPipe({ transform: true })) dto: TestPhoneDTO = { completePhoneNumber: '' }
+        @Param('strategy') strategyKey: string        
     ): Promise<ConfirmWithTotpMetaDTO> {
         try {
             await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken)
@@ -149,7 +147,7 @@ export class AuthenticationController {
         if (!strategy || strategy === MfaStrategy.APP_TOTP) {
             throw new BadRequestException('Invalid MFA strategy')
         }
-        const { generatedAt, expiresAt } = await this.mfaService.sendOtpToUser(preAuthorizationToken, strategy, trustVerify, dto.completePhoneNumber)
+        const { generatedAt, expiresAt } = await this.mfaService.sendOtpToUser(preAuthorizationToken, strategy, trustVerify)
         return {
             ...this._r.ok(`OTP successfully sent to user with strategy ${strategyKey}`),
             generatedAt,

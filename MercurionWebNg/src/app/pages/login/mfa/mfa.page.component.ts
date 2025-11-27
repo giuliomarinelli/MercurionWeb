@@ -382,7 +382,6 @@ export class MfaPageComponent implements OnInit, OnDestroy {
       next: () => this.canView.set(true),
       error: (e) => {
         if ('error' in e && 'status' in e) {
-          console.log(e)
           const he = e as HttpErrorResponse
           if (he.status === 429) {
             this.toast.trigger('Troppi tentativi, riprova tra qualche minuto.', 'error', 3000)
@@ -405,8 +404,6 @@ export class MfaPageComponent implements OnInit, OnDestroy {
             return
           }
         }
-
-        console.log('CALLBACK', e)
         this.router.navigateByUrl('/403-forbidden')
       }
     })

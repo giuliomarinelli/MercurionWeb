@@ -16,20 +16,18 @@ export class CountryService {
         const rows = await this.countryRepo.find({
             select: {
                 id: true,
-                iso2: true,
-                emoji: true,
+                iso2: true,                
                 phonecode: true
             }
         })
         return rows.map((r) => {
-            const { id, iso2, emoji, phonecode } = r
+            const { id, iso2, phonecode } = r
             return ({
                 id,
-                iso2,
-                emoji,
+                iso2,            
                 phonecode: phonecode ? `+${phonecode}` : null
             })
-        }).filter((dto) => dto.phonecode != null && dto.iso2 != null && dto.emoji != null)
+        }).filter((dto) => dto.phonecode != null && dto.iso2 != null)
     }
 
 }

@@ -24,7 +24,7 @@ export class SercurityService {
         this.AES_secret = this.configService.get<string>('App.AES_secret')!
         this.deviceIdSignatureSecret = this.configService.get<string>('App.deviceIdSignatureSecret')!
     }
-    
+
     encrypt_AES256(value: string) {
         const key = Buffer.from(this.AES_secret, 'base64')
         const iv = randomBytes(12)
@@ -227,7 +227,7 @@ export class SercurityService {
 
 
     maskPhone(phone: string): string {
-        return phone.slice(0, 3) + '******' + phone.slice(-2)
+        return phone.slice(0, 3) + '*'.repeat(8) + phone.slice(-2)
     }
 
 

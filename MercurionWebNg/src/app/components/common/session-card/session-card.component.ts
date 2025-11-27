@@ -28,9 +28,11 @@ import { DatePipe } from '@angular/common';
           <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">
             Sessione {{ session.current ? '(attuale)' : '' }}
           </span>
-          <span class="text-[0.70rem] text-slate-500 dark:text-slate-400 select-all">
+          <button
+            class="text-[0.70rem] text-slate-500 dark:text-slate-400 cursor-default truncate select-all"
+            [attr.title]="'ID: ' + session.id">
             ID: {{ session.id }}
-          </span>
+          </button>
         </div>
       </div>
 

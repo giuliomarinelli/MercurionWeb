@@ -409,13 +409,12 @@ export class MfaService {
     }
 
 
-    public async sendOtpToUser(preAuthorizationToken: string, strategy: MfaStrategy, trustVerify: boolean, phoneNumberToVerify?: string): Promise<TotpMetadata> {
+    public async sendOtpToUser(preAuthorizationToken: string, strategy: MfaStrategy, trustVerify: boolean): Promise<TotpMetadata> {
 
         let userId: UUID
-        let jti: UUID
 
         try {
-            ({ sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken))
+            ({ sub: userId } = await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken))
         } catch {
             throw new RpcException('InvalidJwtValidation')
         }
@@ -453,14 +452,9 @@ export class MfaService {
                 )
                 break
 
-            case MfaStrategy.SMS_OTP:
-
-                if (phoneNumberToVerify !== user.completePhoneNumber) {
-                    await this.sessionService.revokeToken(jti)
-                    throw new RpcException('NoSuchPhoneNumber')
-                }
+            case MfaStrategy.SMS_OTP:                
                 await this.smsService.sendSms(
-                    user.completePhoneNumber,
+                    user.completePhoneNumber!,
                     `Ciao ${user.firstName}. Ecco il tuo codice per accedere a ${this.appName}: ${TOTP}\nE' valido per ${this.totpConfig.period} secondi.`
                 )
                 break
