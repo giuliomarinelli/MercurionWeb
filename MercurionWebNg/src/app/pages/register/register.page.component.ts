@@ -182,8 +182,8 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
   obscuredEmail = signal<string>('')
   settedDisabledBtn = signal<boolean>(false)
   logoSrc = computed(() => {
-    const { PICTOGRAM_LIKE, PICTOGRAM_DARK } = environment.logoSrc
-    return this.themeManager.theme() === 'light' ? PICTOGRAM_LIKE : PICTOGRAM_DARK
+    const { PICTOGRAM_LIGHT, PICTOGRAM_DARK } = environment.logoSrc
+    return this.themeManager.theme() === 'light' ? PICTOGRAM_LIGHT : PICTOGRAM_DARK
   })
 
   form: FormGroup<UserRegistrationFormControls> = this.fb.group(

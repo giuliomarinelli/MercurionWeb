@@ -671,6 +671,22 @@ export class AccountService {
         if (!userId) {
             throw new RpcException('Unauthenticated')
         }
+        let locked: boolean
+        try {
+            ({ locked } = await this.dataSource.getRepository(User).findOneOrFail({
+                where: {
+                    id: userId as UUID
+                },
+                select: {
+                    locked: true
+                }
+            }))
+        } catch {
+            throw new RpcException('Forbidden::missing permissions')
+        }
+        if (locked) {
+            throw new RpcException('Forbidden::missing permissions')
+        }
         await this.throttlePasswordResetSend(userId as UUID, PasswordContext.RESET_SEND)
         const changePasswordToken = await this.jwtTools.generateToken(userId as UUID, TokenType.ChangePasswordToken)
         const firstName = await this.userService.getUserFirstNameById(userId as UUID)
@@ -691,6 +707,22 @@ export class AccountService {
             changePasswordToken,
             TokenType.ChangePasswordToken
         )
+        let locked: boolean
+        try {
+            ({ locked } = await this.dataSource.getRepository(User).findOneOrFail({
+                where: {
+                    id: userId
+                },
+                select: {
+                    locked: true
+                }
+            }))
+        } catch {
+            throw new RpcException('Forbidden::missing permissions')
+        }
+        if (locked) {
+            throw new RpcException('Forbidden::missing permissions')
+        }
         const sessions = await this.sessionService.getAllSessionsByUserId(userId as string, { onlyValid: false })
         for (const s of sessions) {
             await this.sessionService.revokeAllTokensBySessionId(s.sessionId)
@@ -811,6 +843,8 @@ export class AccountService {
             user.locked = true
             user.mfaStrategies = '[]'
             user.recoveryMode = true
+            user.unconfirmedEmail = user.email
+            user.email = null
 
             await manager.save(user)
 
@@ -830,7 +864,7 @@ export class AccountService {
             const { newEmail, newPassword } = dto
             let userId: UUID
             let jti: UUID
-            
+
             try {
                 ({ sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(secureToken, TokenType.AccountRecoveryToken))
             } catch (e) {
@@ -868,6 +902,7 @@ export class AccountService {
             user.accountRecoveryCodeHash = newAccountRecoveryCodeHash
             user.locked = false
             user.recoveryMode = false
+            user.oldPasswordHashes = []
             await manager.save(user)
             await this.clearRecoverySecondFailures(userId)
             return newRecoveryCode

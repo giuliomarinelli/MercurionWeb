@@ -318,8 +318,8 @@ export class LoginPageComponent implements OnInit, OnDestroy {
 
   protected loginForm!: FormGroup<any>
   protected logoSrc = computed(() => {
-    const { PICTOGRAM_LIKE, PICTOGRAM_DARK } = environment.logoSrc
-    return this.themeManager.theme() === 'light' ? PICTOGRAM_LIKE : PICTOGRAM_DARK
+    const { PICTOGRAM_LIGHT, PICTOGRAM_DARK } = environment.logoSrc
+    return this.themeManager.theme() === 'light' ? PICTOGRAM_LIGHT : PICTOGRAM_DARK
   })
 
   protected step = signal<1 | 2>(1)
@@ -379,13 +379,13 @@ export class LoginPageComponent implements OnInit, OnDestroy {
     const isValid = this.formStatus() === 'VALID'
     return hasToken && isValid
   })
+
   onTurnstileToken(token: string): void {
     this.serverErrorStep.set(0)
     this.turnstileToken.set(token)
   }
 
   onTurnstileRender(): void {
-    console.log('render')
     this.loadingTurnstile.set(false)
   }
 

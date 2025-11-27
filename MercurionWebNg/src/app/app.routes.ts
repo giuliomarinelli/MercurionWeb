@@ -95,6 +95,10 @@ export const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
+    path: 'account-recovery',
+    loadComponent: () => import('./pages/account-recovery/account-recovery.page.component').then(m => m.AccountRecoveryPageComponent)
+  },
+  {
     path: '**',
     redirectTo: '/404-not-found'
   }
