@@ -102,7 +102,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
         let msg = (typeof raw === 'string' ? raw : (raw as any)?.message ?? e.message) as string
 
         let statusCode = HttpStatus.INTERNAL_SERVER_ERROR
-        
+
 
         switch (msg) {
             case 'UserRegistrationConflict::Email already exists':
@@ -130,10 +130,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
             case 'InvalidSession':
             case 'MfaTemporarilyLocked':
             case 'Forbidden::missing permissions':
+            case 'BackupCodesAlreadyGenerated':
                 statusCode = HttpStatus.FORBIDDEN
                 break
 
             case 'ChangeEmailConfirm::NoUnconfirmedEmail':
+            case 'DeletePhone::UserNotFound':
+            case 'DeletePhone::NoPhoneNumber':
                 statusCode = HttpStatus.BAD_REQUEST
                 break
 

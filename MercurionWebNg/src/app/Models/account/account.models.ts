@@ -36,16 +36,25 @@ export interface MfaStrategyDTO {
 }
 
 export interface SessionDTO {
-    id : string
-    createdAt: number
-    expiresAt: number
-    lastAccessedAt: number
-    valid?: boolean
-    current: boolean
-    location: string
-    browser: string
+  id: string
+  createdAt: number
+  expiresAt: number
+  lastAccessedAt: number
+  valid?: boolean
+  current: boolean
+  location: string
+  browser: string
 }
 
 export interface SessionDTOExt extends SessionDTO {
   triggerDisappear: WritableSignal<boolean>
+}
+
+export interface ChangePhoneDTO {
+  phoneNumber: string
+  internationalPrefix: string
+}
+
+export interface EmailDTO {
+  email: string
 }

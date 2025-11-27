@@ -1,19 +1,20 @@
-import { Component, computed, ElementRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { PublicPipe } from '../../pipes/public.pipe';
-import { FormBuilder, ReactiveFormsModule, Validators, FormGroup, FormControl, NonNullableFormBuilder } from '@angular/forms';
+import { ReactiveFormsModule, Validators, FormGroup, FormControl, NonNullableFormBuilder } from '@angular/forms';
 import { ThemeManagerService } from '../../services/context/theme-manager.service';
 import { AuthService } from '../../services/auth.service';
 import { UserContextService } from '../../services/context/user-context.service';
 import { environment } from '../../../environments/environment.development';
 import { Subscription, switchMap } from 'rxjs';
 import { FloatingInputComponent } from '../../components/common/floating-input/floating-input.component';
-import { PmOption, PmSelectComponent } from '../../components/common/pm-select/pm-select.component';
+import { PmSelectComponent } from '../../components/common/pm-select/pm-select.component';
 import { emailAvailabilityValidator, matchPassword } from '../../custom-validators';
 import { UserGenderControl, UserRegistrationFormControls, UserRegistrationFormValue } from '../../Models/auth/user.models';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { Helpers } from '../../helpers';
 import { ToastService } from '../../services/toast.service';
 import { AppContextService } from '../../services/context/app-context.service';
+import { PmOption } from '../../Models/pm-option.model';
 
 
 @Component({
@@ -143,7 +144,7 @@ import { AppContextService } from '../../services/context/app-context.service';
             <div class="bg-slate-200 dark:bg-slate-800 border my-16 border-slate-300 dark:border-slate-600 relative p-3 mx-auto max-w-[1024px] rounded-md text-sm flex gap-2 xs:gap-4 items-center flex-col xs:flex-row">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-emerald-800 dark:text-emerald-400">
                 <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-              <path d="M320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM320 128C214 128 128 214 128 320C128 426 214 512 320 512C426 512 512 426 512 320C512 214 426 128 320 128zM439.6 272L419.8 291.8L307.8 403.8C296.9 414.7 279.1 414.7 268.2 403.8C231.5 367.1 208.9 344.5 200.4 336L240 296.4C251.8 308.2 267.8 324.2 288 344.4L380.2 252.2L400 232.4L439.6 272z"/>
+                <path d="M320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM320 128C214 128 128 214 128 320C128 426 214 512 320 512C426 512 512 426 512 320C512 214 426 128 320 128zM439.6 272L419.8 291.8L307.8 403.8C296.9 414.7 279.1 414.7 268.2 403.8C231.5 367.1 208.9 344.5 200.4 336L240 296.4C251.8 308.2 267.8 324.2 288 344.4L380.2 252.2L400 232.4L439.6 272z"/>
               </svg>
               <span><strong>La registrazione a Mercurion è avvenuta con successo!</strong> Un'e-mail di conferma è stata inviata a <strong class="text-light-accent-primary dark:text-dark-accent-primary">{{obscuredEmail()}}</strong> con un link per attivare il tuo nuovo account.<br />
                     Affrettati, il link vale soltanto 2 ore a partire da adesso, dopodiché il tuo account verrà cancellato automaticamente!

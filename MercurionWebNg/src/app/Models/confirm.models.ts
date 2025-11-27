@@ -63,3 +63,12 @@ export interface AuthenticationData {
   suspiciousAttempt: boolean
 }
 
+export type ConfirmChangeDTO = ConfirmWithObsContDTO & TotpMetadata & {
+    emailVerificationToken?: string
+    phoneNumberVerificationToken?: string
+}
+
+export type ConfirmWithRecoveryCodeDTO = ConfirmDTO & {
+    recoveryCode: string
+}
+

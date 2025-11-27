@@ -2,7 +2,7 @@ import { ConfigService } from '@nestjs/config';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { UserRegisterDTO } from 'src/app_modules/user/Models/DTO/user-register.cls.dto';
 import { UserService } from 'src/app_modules/user/services/user.service';
-import { ConfirmChangeDTO, ConfirmDTO, ConfirmWithObsContDTO } from 'src/Models/confirm-responses.dto';
+import { ConfirmChangeDTO, ConfirmDTO, ConfirmWithObsContDTO, ConfirmWithRecoveryCodeDTO } from 'src/Models/confirm-responses.dto';
 import { PasswordEncoderService } from './password-encoder.service';
 import { SercurityService } from './sercurity.service';
 import { ResponseService } from 'src/services/response.service';
@@ -266,7 +266,7 @@ export class AccountService {
 
     }
 
-    public async activate(activationToken: string): Promise<ConfirmDTO> | never {
+    public async activateUser(activationToken: string): Promise<ConfirmWithRecoveryCodeDTO> | never {
 
         return this.dataSource.manager.transaction(async (manager) => {
             const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(activationToken, TokenType.ActivationToken)
@@ -276,11 +276,13 @@ export class AccountService {
                 throw new RpcException('AccountActivation::User not found')
             }
             let { isVerified, email, unconfirmedEmail, updatedAt } = user
+            const recoveryCode = this.securityService.generateAccountRecoveryReadableCode()
+            const accountRecoveryCodeHash = await this.passwordEncoder.encode(recoveryCode)
             email = unconfirmedEmail!
             unconfirmedEmail = null
             isVerified = true
             updatedAt = Date.now()
-            await manager.update(User, { id: userId }, { email, unconfirmedEmail, isVerified, updatedAt })
+            await manager.update(User, { id: userId }, { email, unconfirmedEmail, isVerified, updatedAt, accountRecoveryCodeHash })
             const now = Date.now()
             const firstMol = manager.create(ChEMBLMoleculeItemEntity, {
                 chemblMolregno: 1280,
@@ -313,7 +315,10 @@ export class AccountService {
             })
             await manager.save(join)
             await this.redisService.del(this.getRegistrationLockRedisKey(email))
-            return this._r.ok('Account activated successfully')
+            return {
+                ...this._r.ok('Account activated successfully'),
+                recoveryCode
+            }
         })
     }
 
@@ -323,18 +328,19 @@ export class AccountService {
         if (!user) throw new RpcException('ChangeEmail::UserNotFound')
 
         if (!newEmail || newEmail.trim() === '') throw new RpcException('ChangeEmail::EmptyEmail')
-        if (newEmail.toLowerCase() === user.email?.toLowerCase())
+        if (newEmail.toLowerCase() === user.email?.toLowerCase()) {
             throw new RpcException('ChangeEmail::NewEmailIsCurrentEmail')
-
+        }
 
         await this.throttleContactChangeSend(userId, ContactChangeKind.EMAIL)
 
         // Lock per evitare abusi e race condition
         const lockKey = `email_change_lock:${this.hmacKey(newEmail.toLowerCase())}`
         const exists = await this.redisService.exists(lockKey)
-        if (exists) throw new RpcException('ChangeEmail::EmailAlreadyInUseOrPending')
-
-        await this.redisService.set(lockKey, 'locked', 3600) // 1h TTL
+        if (exists) {
+            throw new RpcException('ChangeEmail::EmailAlreadyInUseOrPending')
+        }
+        await this.redisService.set(lockKey, 'locked', 300)
 
         await this.userService.updateUser(userId, {
             unconfirmedEmail: newEmail,
@@ -406,7 +412,7 @@ export class AccountService {
             },
             join(__dirname, "../../../app_modules/notification/email-templates/email-changed-old-contact.hbs")
         ).catch((e) => {
-            this.logger.warn(`Errore durante l'invio mail email changed, oldEmail=${oldEmail}, userId=${userId}`, e as string | object)
+            this.logger.warn(`Errore durante l'invio mail email changed, oldEmail=${this.hmacKey(oldEmail ?? '')}, userId=${userId}`, e as string | object)
         })
 
         this.mailService.sendEmail<UserContext>(
@@ -417,10 +423,48 @@ export class AccountService {
             },
             join(__dirname, "../../../app_modules/notification/email-templates/email-changed-new-contact.hbs")
         ).catch((e) => {
-            this.logger.warn(`Errore durante l'invio mail email changed, newEmail=${newEmail}, userId=${userId}`, e as string | object)
+            this.logger.warn(`Errore durante l'invio mail email changed, newEmail=${this.hmacKey(newEmail)}, userId=${userId}`, e as string | object)
         })
 
         return this._r.ok('Email successfully changed and verified')
+    }
+
+    public async deletePhoneNumber_firstStep_requestTotp(userId: UUID): Promise<ConfirmChangeDTO> {
+        const user = await this.userService.getUserById(userId)
+        if (!user) {
+            throw new RpcException('DeletePhone::UserNotFound')
+        }
+        const currentNumber = user.completePhoneNumber
+        if (!currentNumber) {
+            throw new RpcException('DeletePhone::NoPhoneNumber')
+        }
+        const lockKey = `phone_change_lock:${this.hmacKey(currentNumber)}`
+        const existsLock = await this.redisService.exists(lockKey)
+        if (existsLock) {
+            throw new RpcException('DeletePhone::NumberAlreadyUsedOrPending')
+        }
+        await this.redisService.set(lockKey, 'locked', 300)
+        await this.userService.updateUser(userId, {
+            unconfirmedPhoneNumber: null,
+            unconfirmedPhoneNumberPrefixLength: 0,
+            updatedAt: Date.now()
+        })
+
+        const phoneNumberVerificationToken = await this.jwtTools.generateToken(userId, TokenType.PhoneNumberVerificationToken)
+        const { TOTP: totp, ...metadata } = this.securityService.generateTotp(user.otpSecret)
+
+        await this.smsService.sendSms(
+            currentNumber,
+            `Ciao ${user.firstName}, questo è il tuo codice per rimuovere il tuo attuale numero da Mercurion: ${totp}\nValido per ${this.configService.get<number>('Totp.period')} secondi.`
+        )
+
+        return {
+            ...this._r.ok(`Phone number deletion requested. Check ${this.securityService.maskPhone(currentNumber)} for verification code.`),
+            obscuredPhoneNumber: this.securityService.maskPhone(currentNumber),
+            phoneNumberVerificationToken,
+            ...metadata
+        }
+
     }
 
     public async changePhoneNumber_firstStep_requestTotp(userId: UUID, dto: ChangePhoneDTO): Promise<ConfirmChangeDTO> {
@@ -428,10 +472,12 @@ export class AccountService {
 
         const { internationalPrefix, phoneNumber } = dto
         const user = await this.userService.getUserById(userId)
-        if (!user) throw new RpcException('ChangePhone::UserNotFound')
+        if (!user) {
+            throw new RpcException('ChangePhone::UserNotFound')
+        }
         await this.throttleContactChangeSend(userId, ContactChangeKind.PHONE)
 
-        const fullNumber = `${internationalPrefix}${phoneNumber}`
+        const fullNumber = `${internationalPrefix ?? ''}${phoneNumber ?? ''}`
         const currentNumber = user.completePhoneNumber
 
         if (fullNumber === currentNumber) {
@@ -441,9 +487,11 @@ export class AccountService {
         // lock per evitare abusi e race condition
         const lockKey = `phone_change_lock:${this.hmacKey(fullNumber)}`
         const existsLock = await this.redisService.exists(lockKey)
-        if (existsLock) throw new RpcException('ChangePhone::NumberAlreadyUsedOrPending')
+        if (existsLock) {
+            throw new RpcException('ChangePhone::NumberAlreadyUsedOrPending')
+        }
 
-        await this.redisService.set(lockKey, 'locked', 3600) // 1h TTL
+        await this.redisService.set(lockKey, 'locked', 300)
 
         await this.userService.updateUser(userId, {
             unconfirmedPhoneNumber: fullNumber,
@@ -460,7 +508,7 @@ export class AccountService {
         )
 
         return {
-            ...this._r.ok(`Phone number change requested. Check ${fullNumber} for verification code.`),
+            ...this._r.ok(`Phone number change requested. Check ${this.securityService.maskPhone(fullNumber)} for verification code.`),
             obscuredPhoneNumber: this.securityService.maskPhone(fullNumber),
             phoneNumberVerificationToken,
             ...metadata
@@ -512,12 +560,12 @@ export class AccountService {
         await this.securityAuditService.phoneChanged(userId, maskedOldPhone, maskedNewPhone)
         if (oldCompletePhoneNumber != null) {
             this.smsService.sendSms(oldCompletePhoneNumber, oldNotificationBody).catch((e) => {
-                this.logger.warn(`Errore durante l'invio sms phone changed, oldPhone=${oldCompletePhoneNumber}, userId=${userId}`, e as string | object)
+                this.logger.warn(`Errore durante l'invio sms phone changed, oldPhone=${this.hmacKey(oldCompletePhoneNumber)}, userId=${userId}`, e as string | object)
             })
         }
 
         this.smsService.sendSms(newCompletePhoneNumber, newNotificationBody).catch((e) => {
-            this.logger.warn(`Errore durante l'invio sms phone changed, newPhone=${newCompletePhoneNumber}, userId=${userId}`, e as string | object)
+            this.logger.warn(`Errore durante l'invio sms phone changed, newPhone=${this.hmacKey(newCompletePhoneNumber)}, userId=${userId}`, e as string | object)
         })
 
         return this._r.ok('Phone number successfully updated')

@@ -52,7 +52,7 @@ export class User {
     isVerified: boolean // portato a true dopo attivazione account con link email
 
     @Column({ type: 'jsonb', default: '[]' })
-    scopes: string[] 
+    scopes: string[]
 
     @Column({ type: 'text', default: '[]' })
     mfaStrategies: string // JSON.stringify delle strategy UUID - permessi dell'utente (senza ruoli inutili e pesanti)
@@ -81,6 +81,12 @@ export class User {
 
     @Column()
     avatarId: UUID | null
+
+    @Column()
+    backupCodesGiven: boolean
+
+    @Column({ type: 'varchar', nullable: true })
+    accountRecoveryCodeHash: string | null
 
     @BeforeInsert()
     private generateId() {

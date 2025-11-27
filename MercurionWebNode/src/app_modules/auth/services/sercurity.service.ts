@@ -1,12 +1,13 @@
 import { ConfigService } from '@nestjs/config';
 import { Injectable } from '@nestjs/common';
 import { TotpConfiguration } from 'src/config/config.types';
-import { createCipheriv, createDecipheriv, createHmac, randomBytes } from 'crypto';
+import { createCipheriv, createDecipheriv, createHmac, randomBytes, UUID } from 'crypto';
 import * as speakeasy from 'speakeasy'
 import { TotpWrapper } from '../Models/interfaces/totp-wrapper.interface';
 import { AppTotpWrapper } from '../Models/interfaces/app-totp-wrapper.interface';
 import * as qrcode from 'qrcode';
 import * as base32 from 'hi-base32'
+import { PasswordEncoderService } from './password-encoder.service';
 
 @Injectable()
 export class SercurityService {
@@ -14,12 +15,14 @@ export class SercurityService {
     private readonly totpConf: Omit<TotpConfiguration, 'totpPepper'>
     private readonly totpPepper: string
     private readonly AES_secret: string
+    private readonly deviceIdSignatureSecret: string
 
-    constructor(private readonly configService: ConfigService) {
+    constructor(private readonly configService: ConfigService, private readonly pe: PasswordEncoderService) {
         const { totpPepper, ...totpConf } = this.configService.get<TotpConfiguration>('Totp')!
         this.totpConf = totpConf
         this.totpPepper = totpPepper
         this.AES_secret = this.configService.get<string>('App.AES_secret')!
+        this.deviceIdSignatureSecret = this.configService.get<string>('App.deviceIdSignatureSecret')!
     }
 
     encrypt_AES256(value: string) {
@@ -48,6 +51,13 @@ export class SercurityService {
             decipher.final()
         ])
         return decrypted.toString('utf8')
+    }
+
+    signDeviceId(deviceId: UUID): string {
+        const signature = createHmac('sha256', this.deviceIdSignatureSecret)
+            .update(deviceId)
+            .digest('hex')
+        return `${deviceId}.${signature}`
     }
 
 
@@ -165,7 +175,7 @@ export class SercurityService {
             algorithm: app ? 'sha1' : 'sha256',
             window: 1
         })
-        
+
     }
 
 
@@ -175,24 +185,49 @@ export class SercurityService {
         return chunks?.join('-') ?? raw            // Formatta tipo: "8f4a-d20b-c7e9"
     }
 
+    public generateAccountRecoveryReadableCode(): string {
+        const raw = randomBytes(32).toString('hex')
+        const chunks = raw.match(/.{1,4}/g)?.map((hex) => parseInt(hex, 16).toString())
+        return chunks?.join('-') ?? raw
+    }
+
     public maskEmail(email: string): string {
 
-        const [localPart, domain] = email.split('@')
+        email = email.trim().toLowerCase()
 
-        if (!domain) return '*'.repeat(localPart.length) + '@'
+        const [localPart = '', domain] = email.split('@')
+
+        const localStarsLen = Math.max(localPart.length - 4, 10)
+
+        if (!domain) {
+            const maskedLocal =
+                localPart.slice(0, 2) +
+                '*'.repeat(localStarsLen) +
+                localPart.slice(-2)
+
+            return maskedLocal + '@'
+        }
 
         const domainParts = domain.split('.')
         const extension = domainParts.pop() || ''
         const domainWithoutExt = domainParts.join('.')
+
         const visibleDomain = domainWithoutExt.slice(-2)
-        const maskedLocal = localPart.slice(0, 2) + '*'.repeat(localPart.length - 2)
-        const maskedDomain = '*'.repeat(domainWithoutExt.length - 2)
+
+        const domainStarsLen = Math.max(domainWithoutExt.length - 2, 3)
+        const maskedDomain = '*'.repeat(domainStarsLen)
+
+        const maskedLocal =
+            localPart.slice(0, 2) +
+            '*'.repeat(localStarsLen) +
+            localPart.slice(-2)
 
         return `${maskedLocal}@${maskedDomain}${visibleDomain}.${extension}`
     }
 
+
     maskPhone(phone: string): string {
-        return phone.slice(0, 3) + '******' + phone.slice(-2)
+        return phone.slice(0, 3) + '*'.repeat(8) + phone.slice(-2)
     }
 
 

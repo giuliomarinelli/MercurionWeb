@@ -225,7 +225,7 @@
         <path
           d="M240 192C240 147.8 275.8 112 320 112C364.2 112 400 147.8 400 192C400 236.2 364.2 272 320 272C275.8 272 240 236.2 240 192zM146.2 576L195.4 416L444.5 416L493.7 576L543.9 576L479.9 368L159.9 368L95.9 576L146.1 576zM320 320C390.7 320 448 262.7 448 192C448 121.3 390.7 64 320 64C249.3 64 192 121.3 192 192C192 262.7 249.3 320 320 320z" />
       </svg>
-      <span class="text-sm text-green-800 dark:text-dark-accent-primary font-medium">{{ email() }}</span>
+      <span class="text-sm text-green-800 dark:text-dark-accent-primary font-medium truncate">{{ email() }}</span>
     </button>
     <a routerLink="/dashboard" (click)="closeAvatarMenu()"
       class="group flex items-center w-full pl-4 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300">
@@ -329,7 +329,7 @@
     <button (click)="toggleOffCanvasMenu(); toggleAvatarMobileMenu()" [innerHTML]="userContext.initials()"
       class="avatar-toggle-button rounded-full cursor-pointer bg-emerald-500 text-slate-100 dark:bg-dark-accent-primary p-2 text-sm font-semibold "></button>
     <button (click)="toggleOffCanvasMenu(); toggleAvatarMobileMenu()"
-      class="text-sm text-green-800 dark:text-dark-accent-primary font-medium">
+      class="text-sm text-green-800 dark:text-dark-accent-primary font-medium truncate">
       {{ email() }}
     </button>
   </div>

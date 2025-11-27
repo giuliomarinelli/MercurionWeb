@@ -89,7 +89,7 @@ import { DesignService } from '../../../services/design.service';
           </span>
         }
       </div>
-      @if (showActions && !(noPhone && _strategy()!.strategy === 'SMS_OTP')) {
+      @if (showActions && !(noPhone && _strategy()!.strategy === 'SMS_OTP') && _strategy()!.strategy !== 'BACKUP_CODE') {
         <button
           type="button"
           [class.bg-emerald-800]="!_strategy()!.enabled || _strategy()!.strategy === 'BACKUP_CODE'"
@@ -103,7 +103,7 @@ import { DesignService } from '../../../services/design.service';
           "
           (click)="handleActionClick()"
         >
-          @if (!_strategy()!.enabled && _strategy()!.strategy !== 'BACKUP_CODE') {
+          @if (!_strategy()!.enabled) {
               <svg xmlns="http://www.w3.org/2000/svg"
                    viewBox="0 0 640 640"
                    class="fill-current h-6 w-6 relative -left-1">
@@ -112,23 +112,15 @@ import { DesignService } from '../../../services/design.service';
               </svg>
               <span>Attiva</span>
           } @else {
-              @if (_strategy()!.strategy !== 'BACKUP_CODE') {
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     viewBox="0 0 640 640"
-                     class="fill-current h-6 w-6 relative -left-1">
-                  <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-                  <path d="M160 240C160 178.1 210.1 128 272 128C311.3 128 345.8 148.2 365.8 178.8L373.5 190.5L386.1 184.5C397.5 179 410.4 176 424 176C472.6 176 512 215.4 512 264L512 324.9L521.1 329.2C553.6 344.7 576 377.7 576 416L576 512L64 512L64 400C64 347.8 99.7 304 148 291.5L160 288.4L160 240zM272 96C192.5 96 128 160.5 128 240L128 264.2C72.1 284 32 337.3 32 400L32 544L608 544L608 416C608 368.6 582.2 327.2 544 305.1L544 264C544 197.7 490.3 144 424 144C410.3 144 397.1 146.3 384.8 150.5C358.4 117.3 317.7 96 272 96zM241.4 296C243.4 298 262.1 316.7 297.4 352C262 387.4 243.4 406 241.4 408L264 430.6C266 428.6 284.7 410 320 374.6L376 430.6L398.6 408C396.6 406 377.9 387.3 342.6 352C378 316.6 396.6 298 398.6 296L376 273.4C374 275.4 355.3 294.1 320 329.4C284.6 294 266 275.4 264 273.4L241.4 296z"/>
-                </svg>
-                <span>Disattiva</span>
-              } @else {
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     viewBox="0 0 640 640"
-                     class="fill-current h-6 w-6 relative -left-[2px]">
-                  <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-                  <path d="M544 64L544 183.8L507 144.7C458.5 93.2 390.8 64 320 64C180.3 64 64.1 180.4 64 320C63.9 459.3 180.3 575.9 320 576C420.1 576.1 513.4 515.5 554 424.1L524.8 411.1C489.4 491 407.6 544.1 320.1 544C198 543.9 96 441.6 96.1 320C96.2 198.1 198.1 96 320.1 96C382.1 96 441.3 121.5 483.9 166.6L523 208L400.1 208L400.1 240L576.1 240L576.1 64L544.1 64z"/>
-                </svg>
-              }
-          }
+              <svg xmlns="http://www.w3.org/2000/svg"
+                   viewBox="0 0 640 640"
+                   class="fill-current h-6 w-6 relative -left-1">
+                <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                <path d="M160 240C160 178.1 210.1 128 272 128C311.3 128 345.8 148.2 365.8 178.8L373.5 190.5L386.1 184.5C397.5 179 410.4 176 424 176C472.6 176 512 215.4 512 264L512 324.9L521.1 329.2C553.6 344.7 576 377.7 576 416L576 512L64 512L64 400C64 347.8 99.7 304 148 291.5L160 288.4L160 240zM272 96C192.5 96 128 160.5 128 240L128 264.2C72.1 284 32 337.3 32 400L32 544L608 544L608 416C608 368.6 582.2 327.2 544 305.1L544 264C544 197.7 490.3 144 424 144C410.3 144 397.1 146.3 384.8 150.5C358.4 117.3 317.7 96 272 96zM241.4 296C243.4 298 262.1 316.7 297.4 352C262 387.4 243.4 406 241.4 408L264 430.6C266 428.6 284.7 410 320 374.6L376 430.6L398.6 408C396.6 406 377.9 387.3 342.6 352C378 316.6 396.6 298 398.6 296L376 273.4C374 275.4 355.3 294.1 320 329.4C284.6 294 266 275.4 264 273.4L241.4 296z"/>
+              </svg>
+              <span>Disattiva</span>
+            }
+
         </button>
       }
     </div>

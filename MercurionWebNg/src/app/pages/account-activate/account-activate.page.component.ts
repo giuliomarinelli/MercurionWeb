@@ -29,10 +29,14 @@ import { UserContextService } from '../../services/context/user-context.service'
         <div class="bg-slate-200 dark:bg-slate-800 border my-16 border-slate-300 dark:border-slate-600 relative p-3 mx-auto max-w-[1024px] rounded-md text-sm flex gap-2 xs:gap-4 items-center flex-col xs:flex-row">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-emerald-800 dark:text-emerald-400">
             <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-          <path d="M320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM320 128C214 128 128 214 128 320C128 426 214 512 320 512C426 512 512 426 512 320C512 214 426 128 320 128zM439.6 272L419.8 291.8L307.8 403.8C296.9 414.7 279.1 414.7 268.2 403.8C231.5 367.1 208.9 344.5 200.4 336L240 296.4C251.8 308.2 267.8 324.2 288 344.4L380.2 252.2L400 232.4L439.6 272z"/>
+            <path d="M320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM320 96C196.3 96 96 196.3 96 320C96 443.7 196.3 544 320 544C443.7 544 544 443.7 544 320C544 196.3 443.7 96 320 96zM438.3 236.5L428.9 249.4L300.9 425.4L289.9 440.6L201.3 352L223.9 329.4L286 391.5L403 230.7L412.4 217.8L438.3 236.6z"/>
           </svg>
-          <strong>Il tuo account è stato attivato con successo! <a class="text-light-accent-primary dark:text-dark-accent-primary hover:underline" routerLink="/login">Vai al login</a>.
-          </strong>
+          <div class="flex flex-col gap-y-2">
+            <p><strong>Il tuo account è stato attivato con successo!</strong>.</p>
+            <p><span>Questo è il codice per recuperare l'account nel caso non riuscissi più ad accedere. Lo puoi visualizzare solo in questo momento. <br />Salvalo in un posto sicuro, come un Password Manager oppure stampalo e custodiscilo in un luogo inaccessibile ad altri:</span>.</p>
+            <p class="text-light-warning dark:text-dark-warning font-semibold">{{recoveryCode()}}</p>
+            <p><a class="text-center text-light-accent-primary dark:text-dark-accent-primary hover:underline" routerLink="/login">Vai al login</a></p>
+          </div>
         </div>
       </div>
     }
@@ -50,6 +54,7 @@ export class AccountActivatePageComponent implements OnInit, OnDestroy {
 
   loading = signal<boolean>(false)
   canView = signal<boolean>(false)
+  recoveryCode = signal<string>('')
 
   private redirectToRoot(): void {
     this.router.navigateByUrl('/')
@@ -71,9 +76,10 @@ export class AccountActivatePageComponent implements OnInit, OnDestroy {
       }),
       switchMap(t => this.accountService.activateAccount(t))
     ).subscribe({
-      next: () => {
+      next: (res) => {
         this.canView.set(true)
         this.loading.set(false)
+        this.recoveryCode.set(res.recoveryCode)
       },
       error: () => this.redirectToRoot()
     })

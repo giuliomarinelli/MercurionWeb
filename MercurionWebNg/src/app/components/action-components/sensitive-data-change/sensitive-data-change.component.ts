@@ -4,19 +4,23 @@ import { SensitiveDataChangeContextService } from './../../../services/context/a
 import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { ClassicSpinnerComponent } from '../../common/classic-spinner/classic-spinner.component';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
-import { combineLatest, EMPTY, Observable, of, Subscription, switchMap, tap, finalize } from 'rxjs';
+import { combineLatest, EMPTY, Observable, of, Subscription, switchMap, tap, finalize, filter, pipe, catchError, throwError, take, mergeMap } from 'rxjs';
 import { AccountService } from '../../../services/account.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ToastService } from '../../../services/toast.service';
 import { FormControl, FormGroup, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { emailAvailabilityValidator } from '../../../custom-validators';
 import { AuthService } from '../../../services/auth.service';
-import { PhonePrefixDTO } from '../../../Models/country.models';
+import { PhonePrefixWithEmojiUrlDTO } from '../../../Models/country.models';
 import { CountryService } from '../../../services/country.service';
 import { MfaStrategyCardComponent } from '../../common/mfa-strategy-card/mfa-strategy-card.component';
 import { FloatingInputComponent } from "../../common/floating-input/floating-input.component";
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { PmSelectComponent } from '../../common/pm-select/pm-select.component';
+import { PmOption } from '../../../Models/pm-option.model';
 
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 @Component({
   selector: 'm-sensitive-data-change',
@@ -25,7 +29,8 @@ import { RouterLink } from '@angular/router';
     ReactiveFormsModule,
     MfaStrategyCardComponent,
     FloatingInputComponent,
-    RouterLink
+    RouterLink,
+    PmSelectComponent
   ],
   template: `
 
@@ -69,7 +74,7 @@ import { RouterLink } from '@angular/router';
     </div>
     <!-- Body -->
     <div class="py-6 px-3 overflow-y-auto flex flex-col gap-4 min-h-[60vh] max-h-[60vh] relative">
-      @if (!loading()) {
+    @if (!loading()) {
         @if ((innerScope() === 'EnableMfa' || innerScope() === 'ConfigMfa')) {
           @if ((enableMfaStep() === 'CHOOSE_STRATEGY' || disableMfaStep() === 'CHOOSE_STRATEGY')) {
             <p class="text-lg mb-6">
@@ -361,16 +366,266 @@ import { RouterLink } from '@angular/router';
                 }
               </div>
         }
-        }
-      } @else {
-        <div class="absolute inset-0 flex justify-center items-center z-[999]">
-          <app-classic-spinner [size]="45" />
-        </div>
+      } @else if (innerScope() === 'ChangeEmail') {
+          @switch (changeEmailStep()) {
+              @case ('NEW_CONTACT_FORM') {
+                <div class="flex flex-col gap-y-6">
+                  <div class="relative py-8 px-4 flex items-center gap-6 rounded-md border border-slate-600 dark:border-slate-400 bg-slate-200 dark:bg-slate-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-12 w-auto shrink-0">
+                      <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                      <path d="M80 128L64 128L64 512L321.4 512C316.7 501.8 312.9 491.1 310 480L96 480L96 239.6L307.6 394.8C309.8 383.5 313 372.6 317.1 362.1L96 199.9L96 160L544 160L544 246C555.1 248.9 565.8 252.7 576 257.4L576 128L80 128zM496 320C557.9 320 608 370.1 608 432C608 493.9 557.9 544 496 544C434.1 544 384 493.9 384 432C384 370.1 434.1 320 496 320zM496 576C575.5 576 640 511.5 640 432C640 352.5 575.5 288 496 288C416.5 288 352 352.5 352 432C352 511.5 416.5 576 496 576zM566.4 380.5L540.5 361.7L531.1 374.6L478.1 447.5C457.7 427 445 414.3 440 409.4L417.4 432C420.2 434.8 437.3 451.9 468.7 483.3L481.9 496.5L492.9 481.4L556.9 393.4L566.3 380.5z"/>
+                    </svg>
+                    <span class="text-[0.925rem] leading-[1.25rem]">E-mail corrente:&nbsp;
+                      <strong class="text-light-accent-primary dark:text-dark-accent-primary">{{obscuredEmail()}}</strong>
+                      .&nbsp; Inserisci nel campo di input la nuova e-mail che vuoi impostare. Una volta confermato il cambio, dovrai accedere a Mercurion con il nuovo indirizzo e tutte le notifiche arriveranno al nuovo indirizzo.
+                    </span>
+                  </div>
+                  <div class="relative min-h-[25vh] rounded-md border border-slate-600 dark:border-slate-400 bg-slate-200 dark:bg-slate-700">
+                    <div class="absolute inset-0 flex justify-center items-center px-6">
+                      <app-floating-input
+                        class="w-full max-w-md"
+                        label="Nuova e-mail"
+                        type="email"
+                        autocomplete="email"
+                        [formControl]="emailCtrl"
+                        [errors]="{
+                            required: 'La nuova e-mail è obbligatoria.',
+                            email: 'Formato e-mail non corretto.',
+                            pattern: 'Formato e-mail non corretto.',
+                            emailTaken: 'E-mail già registrata.'
+                          }"
+                        [asyncVerify]="true"
+                        [serverError]="serverErrorMsg"
+                        [bgClass]="'bg-slate-200'"
+                        [darkBgClass]="'dark:bg-slate-700'"
+                        (enter)="routeAction()"/>
+                    </div>
+                  </div>
+                </div>
+              }
+              @case ('OTP_VERIFICATION') {
+                <div class="flex flex-col gap-y-6">
+                  <div class="relative py-8 px-4 rounded-md flex flex-col gap-y-2 border border-slate-600 dark:border-slate-400 bg-slate-200 dark:bg-slate-700">
+                    <div class="flex items-center gap-6">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-12 w-auto shrink-0  relative -top-1">
+                        <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                        <path d="M80 128L64 128L64 512L321.4 512C316.7 501.8 312.9 491.1 310 480L96 480L96 239.6L307.6 394.8C309.8 383.5 313 372.6 317.1 362.1L96 199.9L96 160L544 160L544 246C555.1 248.9 565.8 252.7 576 257.4L576 128L80 128zM496 320C557.9 320 608 370.1 608 432C608 493.9 557.9 544 496 544C434.1 544 384 493.9 384 432C384 370.1 434.1 320 496 320zM496 576C575.5 576 640 511.5 640 432C640 352.5 575.5 288 496 288C416.5 288 352 352.5 352 432C352 511.5 416.5 576 496 576zM566.4 380.5L540.5 361.7L531.1 374.6L478.1 447.5C457.7 427 445 414.3 440 409.4L417.4 432C420.2 434.8 437.3 451.9 468.7 483.3L481.9 496.5L492.9 481.4L556.9 393.4L566.3 380.5z"/>
+                      </svg>
+                      <div class="text-[0.925rem] leading-[1.25rem]">
+                        <ul class="list-disc list-inside mb-2 font-semibold">
+                          <li class="list-item py-2">E-mail corrente:&nbsp;<strong class="text-light-accent-primary dark:text-dark-accent-primary">{{obscuredEmail()}}</strong></li>
+                          <li class="list-item py-2">Nuova e-mail da confermare:&nbsp;<strong class="text-light-error dark:text-dark-error">{{tempObscuredEmail()}}</strong></li>
+                        </ul>
+                      </div>
+                    </div>
+                    <span class="text-sm">Abbiamo inviato un codice monouso a&nbsp;<strong class="text-light-error dark:text-dark-error">{{tempObscuredEmail()}}</strong>. Inserisci il codice monouso nel campo di input seguente per confermare il cambio di indirizzo e-mail.</span>
+                  </div>
+                  <div class="relative min-h-[25vh] rounded-md border border-slate-600 dark:border-slate-400 bg-slate-200 dark:bg-slate-700">
+                    <div class="absolute inset-0 flex justify-center items-center px-6">
+                        <app-floating-input
+                          class="w-full max-w-md"
+                          label="Codice monouso"
+                          type="text"
+                          autocomplete="text"
+                          [formControl]="otpCtrl"
+                          [errors]="{
+                               required: 'Il codice monouso è obbligatorio.',
+                               pattern: 'Il codice deve contenere 6 cifre.'
+                             }"
+                          [serverError]="serverErrorMsg"
+                          [bgClass]="'bg-slate-200'"
+                          [darkBgClass]="'dark:bg-slate-700'"
+                          (enter)="routeAction()" />
+                    </div>
+                  </div>
+                </div>
+              }
+              @case ('OK_OR_ERROR') {
+                <div class="bg-slate-200 dark:bg-slate-800 border my-16 border-slate-300 dark:border-slate-600 relative p-3 mx-auto max-w-[1024px] rounded-md text-sm flex gap-2 xs:gap-4 items-center flex-col xs:flex-row">
+                  @if (!serverError()) {
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-emerald-800 dark:text-emerald-400">
+                      <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                      <path d="M320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM320 96C196.3 96 96 196.3 96 320C96 443.7 196.3 544 320 544C443.7 544 544 443.7 544 320C544 196.3 443.7 96 320 96zM438.3 236.5L428.9 249.4L300.9 425.4L289.9 440.6L201.3 352L223.9 329.4L286 391.5L403 230.7L412.4 217.8L438.3 236.6z"/>
+                    </svg>
+                    <span>L'indirizzo e-mail è stato correttamente cambiato da
+                      &nbsp;<strong class="text-light-error dark:text-dark-error">{{obscuredEmail()}}</strong>
+                      a
+                      &nbsp;<strong class="text-light-accent-primary dark:text-dark-accent-primary">{{tempObscuredEmail()}}</strong>.
+                    </span>
+                  } @else {
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-light-error dark:text-dark-error">
+                      <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                      <path d="M320 96C443.7 96 544 196.3 544 320C544 443.7 443.7 544 320 544C196.3 544 96 443.7 96 320C96 196.3 196.3 96 320 96zM320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM419.4 243.2L396.8 220.6L385.5 231.9L320 297.4L254.5 231.9L243.2 220.6L220.6 243.2L231.9 254.5L297.4 320L231.9 385.5L220.6 396.8L243.2 419.4L254.5 408.1L320 342.6L385.5 408.1L396.8 419.4L419.4 396.8L342.6 320L408.1 254.5L419.4 243.2z"/>
+                    </svg>
+                      @switch (serverError()) {
+                          @case (401) {
+                            <span>Il codice monouso è errato.</span>
+                          }
+                          @case (429) {
+                            <span>Hai raggiunto il limite massimo di richieste inoltrate al server.&nbsp;Riprova fra alcuni minuti.</span>
+                          }
+                          @case (403) {
+                            <span>Il cambio e-mail verso&nbsp;<strong class="text-light-error dark:text-dark-error">{{tempObscuredEmail()}}</strong>&nbsp;è temporaneamente non disponibile per motivi di sicurezza. Riprova tra 5 minuti.</span>
+                          }
+                          @default {
+                            <span>Si è verificato un errore inaspettato. Contatta il supporto se dovesse ripetersi.</span>
+                          }
+                      }
+                  }
+              </div>
+              }
+          }
+      } @else if (innerScope() === 'ChangePhone' || innerScope() === 'AddPhone') {
+          @switch (changeOrAddPhoneStep()) {
+            @case ('NEW_CONTACT_FORM') {
+              <div class="flex flex-col gap-y-6">
+                <div class="relative py-8 px-4 flex items-center gap-6 rounded-md border border-slate-600 dark:border-slate-400 bg-slate-200 dark:bg-slate-700">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-12 w-auto shrink-0">
+                    <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                    <path d="M256 96L256 160L384 160L384 96L464 96L464 544L176 544L176 96L256 96zM256 64L144 64L144 576L496 576L496 64L256 64zM288 96L352 96L352 128L288 128L288 96zM272 464L272 496L368 496L368 464L272 464z"/>
+                  </svg>
+                    @if (innerScope() === 'ChangePhone') {
+                      <span class="text-[0.925rem] leading-[1.25rem]">Numero di telefono corrente:&nbsp;
+                        <strong class="text-light-accent-primary dark:text-dark-accent-primary">{{obscuredPhone()}}</strong>
+                        .&nbsp; Inserisci di seguito il nuovo numero di telefono che vuoi impostare. Una volta confermato il cambio, l'autenticazione a più fattori e le notifiche faranno riferimento al nuovo numero.
+                      </span>
+                    } @else {
+                      <span>Inserisci di seguito il nuovo numero di telefono che vuoi impostare. Una volta confermato il numero, l'autenticazione a più fattori via SMS potrà essere attivata per quel numero e le notifiche faranno riferimento al nuovo numero.</span>
+                    }
+                </div>
+                <div class="relative min-h-[25vh] rounded-md border border-slate-600 dark:border-slate-400 bg-slate-200 dark:bg-slate-700">
+                  <div class="absolute inset-0 flex justify-center items-center px-6">
+                    <div class="flex w-full max-w-2xl items-center gap-4" [formGroup]="phoneForm">
+                      <pm-select
+                          id="settings-change-phone-prefix"
+                          label="Prefisso internazionale"
+                          formControlName="prefix"
+                          [options]="computePrefixValues()"
+                          [containerClass]="'flex-none w-full'"
+                          [maxHeight]="200" />
+                      <app-floating-input
+                        class="w-full max-w-md relative top-7"
+                        label="Nuovo numero"
+                        type="tel"
+                        autocomplete="tel"
+                        formControlName="phone"
+                        [errors]="{
+                            required: 'Il nuovo numero di telefono è obbligatorio.',
+                            pattern: 'Il formato del numero di telefono non è corretto.',
+                          }"
+                        [asyncVerify]="true"
+                        [serverError]="serverErrorMsg"
+                        [bgClass]="'bg-slate-200'"
+                        [darkBgClass]="'dark:bg-slate-700'"
+                        (enter)="routeAction()" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+            @case ('OTP_VERIFICATION') {
+              <div class="flex flex-col gap-y-6">
+                <div class="relative py-8 px-4 rounded-md flex flex-col gap-y-2 border border-slate-600 dark:border-slate-400 bg-slate-200 dark:bg-slate-700">
+                  <div class="flex items-center gap-6">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-12 w-auto shrink-0  relative -top-1">
+                      <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                      <path d="M256 96L256 160L384 160L384 96L464 96L464 544L176 544L176 96L256 96zM256 64L144 64L144 576L496 576L496 64L256 64zM288 96L352 96L352 128L288 128L288 96zM272 464L272 496L368 496L368 464L272 464z"/>
+                    </svg>
+                    <div class="text-[0.925rem] leading-[1.25rem]">
+                      @if (innerScope() === 'ChangePhone') {
+                        <ul class="list-disc list-inside mb-2 font-semibold">
+                          <li class="list-item py-2">Telefono corrente:&nbsp;<strong class="text-light-accent-primary dark:text-dark-accent-primary">{{obscuredPhone()}}</strong></li>
+                          <li class="list-item py-2">Nuovo telefono da confermare:&nbsp;<strong class="text-light-error dark:text-dark-error">{{tempObscuredPhone()}}</strong></li>
+                        </ul>
+                      } @else {
+                        <span class="text-sm">Abbiamo inviato via SMS un codice monouso a&nbsp;<strong class="text-light-error dark:text-dark-error">{{tempObscuredPhone()}}</strong>. Inserisci il codice monouso nel campo di input seguente per confermare l'aggiunta del nuovo numero di telefono.</span>
+                      }
+                    </div>
+                  </div>
+                  @if (innerScope() === 'ChangePhone') {
+                    <span class="text-sm">Abbiamo inviato via SMS un codice monouso a&nbsp;<strong class="text-light-error dark:text-dark-error">{{tempObscuredPhone()}}</strong>. Inserisci il codice monouso nel campo di input seguente per confermare l'aggiunta del nuovo numero di telefono.</span>
+                  }
+                </div>
+                <div class="relative min-h-[25vh] rounded-md border border-slate-600 dark:border-slate-400 bg-slate-200 dark:bg-slate-700">
+                  <div class="absolute inset-0 flex justify-center items-center px-6">
+                      <app-floating-input
+                        class="w-full max-w-md"
+                        label="Codice monouso"
+                        type="text"
+                        autocomplete="text"
+                        [formControl]="otpCtrl"
+                        [errors]="{
+                             required: 'Il codice monouso è obbligatorio.',
+                             pattern: 'Il codice deve contenere 6 cifre.'
+                           }"
+                        [serverError]="serverErrorMsg"
+                        [bgClass]="'bg-slate-200'"
+                        [darkBgClass]="'dark:bg-slate-700'"
+                        (enter)="routeAction()" />
+                  </div>
+                </div>
+              </div>
+            }
+            @case ('OK_OR_ERROR') {
+                <div class="bg-slate-200 dark:bg-slate-800 border my-16 border-slate-300 dark:border-slate-600 relative p-3 mx-auto max-w-[1024px] rounded-md text-sm flex gap-2 xs:gap-4 items-center flex-col xs:flex-row">
+                  @if (!serverError()) {
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-emerald-800 dark:text-emerald-400">
+                      <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                      <path d="M320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM320 96C196.3 96 96 196.3 96 320C96 443.7 196.3 544 320 544C443.7 544 544 443.7 544 320C544 196.3 443.7 96 320 96zM438.3 236.5L428.9 249.4L300.9 425.4L289.9 440.6L201.3 352L223.9 329.4L286 391.5L403 230.7L412.4 217.8L438.3 236.6z"/>
+                    </svg>
+                    @if (innerScope() === 'ChangePhone') {
+                      <span>Il numero di telefono è stato correttamente cambiato da
+                        &nbsp;<strong class="text-light-error dark:text-dark-error">{{obscuredPhone()}}</strong>
+                        a
+                        &nbsp;<strong class="text-light-accent-primary dark:text-dark-accent-primary">{{tempObscuredPhone()}}</strong>.
+                      </span>
+                    } @else {
+                      <span>Nuovo numero di telefono aggiunto con successo:&nbsp;<strong class="text-light-accent-primary dark:text-dark-accent-primary">{{tempObscuredPhone()}}</strong>.</span>
+                    }
+                  } @else {
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-light-error dark:text-dark-error">
+                      <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                      <path d="M320 96C443.7 96 544 196.3 544 320C544 443.7 443.7 544 320 544C196.3 544 96 443.7 96 320C96 196.3 196.3 96 320 96zM320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM419.4 243.2L396.8 220.6L385.5 231.9L320 297.4L254.5 231.9L243.2 220.6L220.6 243.2L231.9 254.5L297.4 320L231.9 385.5L220.6 396.8L243.2 419.4L254.5 408.1L320 342.6L385.5 408.1L396.8 419.4L419.4 396.8L342.6 320L408.1 254.5L419.4 243.2z"/>
+                    </svg>
+                      @switch (serverError()) {
+                          @case (401) {
+                            <span>Il codice monouso è errato.</span>
+                          }
+                          @case (429) {
+                            <span>Hai raggiunto il limite massimo di richieste inoltrate al server.&nbsp;Riprova fra alcuni minuti.</span>
+                          }
+                          @case (403) {
+                            @if (innerScope() === 'AddPhone') {
+                              <span>L'aggiunta del nuovo numero di telefono&nbsp;<strong class="text-light-error dark:text-dark-error">{{tempObscuredPhone()}}</strong>&nbsp;è temporaneamente non disponibile per motivi di sicurezza. Riprova tra 5 minuti.</span>
+                            } @else {
+                              <span>Il cambio di numero di telefono&nbsp;<strong class="text-light-error dark:text-dark-error">{{tempObscuredPhone()}}</strong>&nbsp;è temporaneamente non disponibile per motivi di sicurezza. Riprova tra 5 minuti.</span>
+                            }
+                          }
+                          @default {
+                            <span>Si è verificato un errore inaspettato. Contatta il supporto se dovesse ripetersi.</span>
+                          }
+                      }
+                  }
+                </div>
+              }
+          }
       }
+    } @else {
+      <div class="absolute inset-0 flex justify-center items-center z-[999]">
+        <app-classic-spinner [size]="45" />
+      </div>
+    }
     </div>
     <div class="my-4 mr-8 flex justify-end gap-2">
         <button
-          [class.hidden]="enableMfaStep() === 'CHOOSE_STRATEGY' || disableMfaStep() === 'CHOOSE_STRATEGY' || enableMfaStep() === 'OK_OR_ERROR' || disableMfaStep() === 'OK_OR_ERROR'"
+          [class.hidden]="
+            enableMfaStep() === 'CHOOSE_STRATEGY'
+            || disableMfaStep() === 'CHOOSE_STRATEGY'
+            || enableMfaStep() === 'OK_OR_ERROR'
+            || disableMfaStep() === 'OK_OR_ERROR'
+            || changeEmailStep() === 'OK_OR_ERROR'
+            || changeOrAddPhoneStep() === 'OK_OR_ERROR'
+          "
           type="button"
           class="px-4 py-2 rounded bg-slate-200 text-light-on-surface-main dark:bg-slate-100 dark:text-neutral-950 hover:bg-gray-300"
           (click)="close()"
@@ -383,16 +638,35 @@ import { RouterLink } from '@angular/router';
         (click)="routeAction()"
         type="submit"
         class="relative inline-flex items-center justify-center px-4 py-2 rounded bg-emerald-600 text-white font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed"
-        [disabled]="loading()"
+        [disabled]="
+          loading()
+          || (innerScope() === 'ChangeEmail' && changeEmailStep() === 'NEW_CONTACT_FORM' && emailCtrl.invalid)
+          || (innerScope() === 'ChangeEmail' && changeEmailStep() === 'OTP_VERIFICATION' && otpCtrl.invalid)
+          || ((innerScope() === 'ChangePhone' || innerScope() === 'AddPhone') && (changeOrAddPhoneStep() === 'OTP_VERIFICATION' || changeOrAddPhoneStep() === 'NEW_CONTACT_FORM') && phoneForm.invalid)
+        "
         [attr.aria-busy]="loading()"
       >
 
-        <span>
-          @if (enableMfaStep() === 'OTP_VERIFICATION' || disableMfaStep() === 'OTP_VERIFICATION') {
+        <span [class.invisible]="loading()">
+          @if (
+          enableMfaStep() === 'OTP_VERIFICATION'
+          || disableMfaStep() === 'OTP_VERIFICATION'
+          || changeEmailStep() === 'OTP_VERIFICATION'
+          || changeOrAddPhoneStep() === 'OTP_VERIFICATION'
+          ) {
             <span>Verifica codice</span>
-          } @else if (enableMfaStep() === 'APP:SCAN_QR_CODE_OR_COPY_SECRET') {
+          } @else if (
+          enableMfaStep() === 'APP:SCAN_QR_CODE_OR_COPY_SECRET'
+          || changeEmailStep() === 'NEW_CONTACT_FORM'
+          || ((innerScope() === 'AddPhone' || innerScope() === 'ChangePhone') && (changeOrAddPhoneStep() === 'NEW_CONTACT_FORM'))
+          ) {
             <span>Avanti</span>
-          } @else if (enableMfaStep() === 'OK_OR_ERROR' || disableMfaStep() === 'OK_OR_ERROR') {
+          } @else if (
+          enableMfaStep() === 'OK_OR_ERROR'
+          || disableMfaStep() === 'OK_OR_ERROR'
+          || changeEmailStep() === 'OK_OR_ERROR'
+          || changeOrAddPhoneStep() === 'OK_OR_ERROR'
+          ) {
             <span>Ok</span>
           }
         </span>
@@ -403,7 +677,7 @@ import { RouterLink } from '@angular/router';
           class="absolute inset-0 flex items-center justify-center"
           [class.hidden]="!loading()"
         >
-          <app-classic-spinner [size]="24"></app-classic-spinner>
+          <app-classic-spinner [size]="24" />
         </span>
       </button>
     </div>
@@ -420,8 +694,9 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
   private readonly fb = inject(NonNullableFormBuilder)
   private readonly authService = inject(AuthService)
   private readonly countryService = inject(CountryService)
+  private readonly router = inject(Router)
 
-  emailCtrl!: FormControl
+  emailCtrl!: FormControl<string>
   phoneForm!: FormGroup
   otpCtrl!: FormControl
   passwordForm!: FormGroup
@@ -432,6 +707,11 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
   private enMfaTotpSub?: Subscription
   private disMfaTotpSub?: Subscription
   private refCodSub?: Subscription
+  private emailCtrlSub?: Subscription
+  private sendNewEmailSub?: Subscription
+  private verifyNewEmailSub?: Subscription
+  private sendNewPhoneSub?: Subscription
+  private verifyNewPhoneSub?: Subscription
 
   private fluxStarter$: Observable<null> = of(null)
 
@@ -441,8 +721,9 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
 
   readonly allMfaStrategies: MfaStrategy[] = ['EMAIL_OTP', 'SMS_OTP', 'APP_TOTP', 'BACKUP_CODE']
 
-  changeOrAddContactStep = signal<'NEW_CONTACT_FORM' | 'OTP_VERIFICATION' | 'OK_OR_ERROR' | ''>('')
-  removePhoneStep = signal<'OTP_VERIFICATION' | 'OK_OR_ERROR' | ''>('')
+  changeOrAddPhoneStep = signal<'NEW_CONTACT_FORM' | 'OTP_VERIFICATION' | 'OK_OR_ERROR' | ''>('')
+  deletePhoneStep = signal<'OTP_VERIFICATION' | 'OK_OR_ERROR' | ''>('')
+  changeEmailStep = signal<'NEW_CONTACT_FORM' | 'OTP_VERIFICATION' | 'OK_OR_ERROR' | ''>('')
   enableMfaStep = signal<'CHOOSE_STRATEGY' | 'APP:SCAN_QR_CODE_OR_COPY_SECRET' | 'OTP_VERIFICATION' | 'OK_OR_ERROR' | ''>('')
   disableMfaStep = signal<'CHOOSE_STRATEGY' | 'OTP_VERIFICATION' | 'OK_OR_ERROR' | ''>('')
   changePasswordStep = signal<'CHANGE_PASSWORD_FORM' | 'OK_OR_ERROR' | ''>('')
@@ -453,10 +734,13 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
 
   serverError = signal<number>(0)
 
-  phonePrefixes = signal<PhonePrefixDTO[]>([])
+  phonePrefixes = signal<PhonePrefixWithEmojiUrlDTO[]>([])
 
   obscuredEmail = signal<string>('')
   obscuredPhone = signal<string | null>(null)
+
+  tempObscuredEmail = signal<string>('')
+  tempObscuredPhone = signal<string | null>(null)
 
   currentMfaStrategy = signal<MfaStrategy | ''>('')
 
@@ -475,10 +759,20 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
     this.fetchSub = this.fluxStarter$.pipe(
       tap(() => {
         this.mfaStrategiesDescrMap = this.authService.getMfaStrategiesDescrMap()
-        this.emailCtrl = this.fb.control('', [Validators.required, Validators.pattern('todo')], emailAvailabilityValidator(this.authService))
+        this.emailCtrl = this.fb.control('', {
+          validators: [Validators.required, Validators.email, Validators.pattern(EMAIL_PATTERN)],
+          asyncValidators: [emailAvailabilityValidator(this.authService)]
+        })
+        this.emailCtrlSub = this.emailCtrl.valueChanges.pipe(
+          filter(() => !this.emailCtrl.touched)
+        ).subscribe((val: string) => {
+          if (val.length !== 0) {
+            this.emailCtrl.markAsTouched()
+          }
+        })
         this.phoneForm = this.fb.group({
           prefix: this.fb.control(107),
-          phone: this.fb.control('', [Validators.required, Validators.pattern('todo')])
+          phone: this.fb.control('', [Validators.required, Validators.pattern(/^\d{6,15}$/)])
         })
         this.otpCtrl = this.fb.control('', [Validators.required, Validators.pattern(/^\d{6}$/)])
         this.passwordForm = this.fb.group({
@@ -507,7 +801,7 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
         this.innerScope.set(is)
         switch (is) {
           case 'ChangeEmail':
-            this.changeOrAddContactStep.set('NEW_CONTACT_FORM')
+            this.changeEmailStep.set('NEW_CONTACT_FORM')
             return this.accountService.getMaskedEmail()
           case 'EnableMfa':
             this.enableMfaStep.set('CHOOSE_STRATEGY')
@@ -518,13 +812,13 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
             return this.accountService.getEnabledMfaStrategies()
           case 'AddPhone':
           case 'ChangePhone':
-            this.changeOrAddContactStep.set('NEW_CONTACT_FORM')
+            this.changeOrAddPhoneStep.set('NEW_CONTACT_FORM')
             return this.accountService.getMaskedPhone()
           case 'ChangePassword':
             this.changePasswordStep.set('CHANGE_PASSWORD_FORM')
             return of(null)
           case 'RemovePhone':
-            this.removePhoneStep.set('OTP_VERIFICATION')
+            this.deletePhoneStep.set('OTP_VERIFICATION')
             return this.accountService.getMaskedPhone()
           default:
             this.close()
@@ -583,6 +877,11 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
     this.enMfaTotpSub?.unsubscribe()
     this.disMfaTotpSub?.unsubscribe()
     this.refCodSub?.unsubscribe()
+    this.emailCtrlSub?.unsubscribe()
+    this.sendNewEmailSub?.unsubscribe()
+    this.verifyNewEmailSub?.unsubscribe()
+    this.sendNewPhoneSub?.unsubscribe()
+    this.verifyNewPhoneSub?.unsubscribe()
   }
 
   private onError(code = 500): void {
@@ -606,15 +905,52 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
     }
   }
 
-  close(): void {
+  close(fragment?: 'general' | 'personal_details' | 'contact_details' | 'security'): void {
     this.dataChangeContext.notifyAdded()
     this.dataChangeContext.clearInnerScope()
+    if (fragment) {
+      this.router.navigate([], { fragment })
+    }
     this.actionContext.close()
   }
+
+  computePrefixValues(): PmOption[] {
+
+    const arr = [...this.phonePrefixes()]
+
+    const toNum = (code: string) => Number(String(code).replace(/[^\d]/g, ''))
+
+    arr.sort((a, b) => {
+      const diff = toNum(a.phonecode) - toNum(b.phonecode)
+      if (diff !== 0) {
+        return diff
+      }
+      return a.iso2.localeCompare(b.iso2)
+    })
+
+    const IT = arr.find((el) => el.iso2 === 'IT')
+    const i = arr.indexOf(IT!)
+    arr.splice(i, 1)
+    arr.unshift(IT!)
+
+    return arr.map(item => ({
+      label: `${item.iso2} ${item.phonecode}`,
+      value: item.id,
+      iconUrl: item.emojiUrl,
+      iconAlt: `${item.iso2} flag`
+    }))
+
+  }
+
+
 
   handleEnableMfa(s: MfaStrategy): void {
     this.loading.set(true)
     this.enMfaSub = this.accountService.enableMfa_firstStep(s).pipe(
+      tap(() => {
+        this.serverError.set(0)
+        this.otpCtrl.setValue('')
+      }),
       finalize(() => this.loading.set(false))
     ).subscribe({
       next: (res) => {
@@ -645,6 +981,10 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
   handleDisableMfa(s: MfaStrategy): void {
     this.loading.set(true)
     this.disMfaSub = this.accountService.disableMfa_firstStep(s).pipe(
+      tap(() => {
+        this.serverError.set(0)
+        this.otpCtrl.setValue('')
+      }),
       finalize(() => this.loading.set(false))
     ).subscribe({
       next: (res) => {
@@ -679,11 +1019,36 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
       return
     }
     if (this.enableMfaStep() === 'OK_OR_ERROR' || this.disableMfaStep() === 'OK_OR_ERROR') {
-      this.close()
+      this.close('security')
       return
     }
     if (this.disableMfaStep() === 'OTP_VERIFICATION') {
       this.verifyTotpForDisablingMfa(this.currentMfaStrategy() as MfaStrategy)
+      return
+    }
+    if (this.changeEmailStep() === 'NEW_CONTACT_FORM') {
+      this.sendNewEmail()
+      return
+    }
+    if (this.changeEmailStep() === 'OTP_VERIFICATION') {
+      this.confirmNewEmail()
+      return
+    }
+    if (this.changeEmailStep() === 'OK_OR_ERROR') {
+      this.close('contact_details')
+      return
+    }
+    if (this.changeOrAddPhoneStep() === 'NEW_CONTACT_FORM') {
+      this.sendNewPhone()
+      return
+    }
+    if (this.changeOrAddPhoneStep() === 'OTP_VERIFICATION') {
+      this.verifyNewPhone()
+      return
+    }
+    if (this.changeOrAddPhoneStep() === 'OK_OR_ERROR') {
+      this.close('contact_details')
+      return
     }
     this.onError()
   }
@@ -693,7 +1058,6 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
     if (this.otpCtrl.invalid) {
       return
     }
-    this.serverError.set(0)
     this.loading.set(true)
     this.enMfaTotpSub = this.accountService.enableMfa_secondStep(s, this.otpCtrl.value, this.secureToken()).pipe(
       switchMap(() => {
@@ -701,6 +1065,10 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
           return this.accountService.getBackupCodes()
         }
         return of(null)
+      }),
+      tap(() => {
+        this.serverError.set(0)
+        this.otpCtrl.setValue('')
       }),
       finalize(() => queueMicrotask(() => this.loading.set(false)))
     ).subscribe({
@@ -722,9 +1090,12 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
     if (this.otpCtrl.invalid) {
       return
     }
-    this.serverError.set(0)
     this.loading.set(true)
     this.disMfaTotpSub = this.accountService.disableMfa_secondStep(s, this.otpCtrl.value, this.secureToken()).pipe(
+      tap(() => {
+        this.serverError.set(0)
+        this.otpCtrl.setValue('')
+      }),
       finalize(() => queueMicrotask(() => this.loading.set(false)))
     ).subscribe({
       next: () => queueMicrotask(() => {
@@ -736,6 +1107,115 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
         this.disableMfaStep.set('OK_OR_ERROR')
       })
     })
+  }
+
+  private sendNewEmail(): void {
+    this.loading.set(true)
+    this.otpCtrl.updateValueAndValidity()
+    this.emailCtrl.markAsTouched()
+    if (this.emailCtrl.valid) {
+      this.sendNewEmailSub = this.accountService.changeEmail_firstStep(this.emailCtrl.value).pipe(
+        tap(() => {
+          this.serverError.set(0)
+          this.otpCtrl.setValue('')
+        }),
+        catchError((e: HttpErrorResponse) => {
+          return this.accountService.maskEmail(this.emailCtrl.value).pipe(
+            take(1),
+            mergeMap((maskedEmail) =>
+              throwError(() => ({
+                ...e,
+                obscuredEmail: maskedEmail
+              }))
+            )
+          )
+        }),
+        finalize(() => this.loading.set(false))
+      ).subscribe({
+        next: (res) => queueMicrotask(() => {
+          this.tempObscuredEmail.set(res.obscuredEmail!)
+          this.secureToken.set(res.emailVerificationToken!)
+          this.changeEmailStep.set('OTP_VERIFICATION')
+        }),
+        error: (e: (HttpErrorResponse & { obscuredEmail: string })) => queueMicrotask(() => {
+          this.serverError.set(e.status)
+          this.tempObscuredEmail.set(e.obscuredEmail)
+          this.changeEmailStep.set('OK_OR_ERROR')
+        })
+      })
+    }
+  }
+
+  private confirmNewEmail(): void {
+    this.loading.set(true)
+    this.otpCtrl.markAllAsTouched()
+    this.otpCtrl.updateValueAndValidity()
+    if (this.otpCtrl.valid && this.secureToken()) {
+      this.verifyNewEmailSub = this.accountService.changeEmail_secondStep(this.otpCtrl.value, this.secureToken()).pipe(
+        tap(() => {
+          this.serverError.set(0)
+          this.otpCtrl.setValue('')
+        }),
+        finalize(() => queueMicrotask(() => {
+          this.loading.set(false)
+          this.secureToken.set('')
+          this.changeEmailStep.set('OK_OR_ERROR')
+        }))
+      ).subscribe({
+        next: () => this.accountService.getEmail(true),
+        error: (e: HttpErrorResponse) => queueMicrotask(() => this.serverError.set(e.status))
+      })
+    }
+
+  }
+
+  private sendNewPhone(): void {
+    this.phoneForm.markAllAsTouched()
+    if (this.phoneForm.valid) {
+      this.loading.set(true)
+      const prefix = this.phonePrefixes().find((pr) => pr.id === this.phoneForm.controls['prefix'].value)!
+      this.sendNewPhoneSub = this.accountService.changePhoneNumber_firstStep(
+        prefix.phonecode, this.phoneForm.controls['phone'].value
+      ).pipe(
+        finalize(() => this.loading.set(false))
+      ).subscribe({
+        next: (res) => queueMicrotask(() => {
+          this.tempObscuredPhone.set(res.obscuredPhoneNumber!)
+          this.secureToken.set(res.phoneNumberVerificationToken!)
+          this.changeOrAddPhoneStep.set('OTP_VERIFICATION')
+        }),
+        error: (e: HttpErrorResponse) => queueMicrotask(() => {
+          this.serverError.set(e.status)
+          this.changeOrAddPhoneStep.set('OK_OR_ERROR')
+        })
+      }
+      )
+
+    }
+  }
+
+  private deleteCurrentPhone(): void {
+
+  }
+
+  private confirmNewPhoneOrCurrentPhoneDeletion(): void {
+
+  }
+
+  private verifyNewPhone(): void {
+    this.otpCtrl.markAsTouched()
+    this.loading.set(true)
+    if (this.otpCtrl.valid) {
+      this.verifyNewPhoneSub = this.accountService.changePhoneNumber_secondStep(this.otpCtrl.value, this.secureToken()).pipe(
+        finalize(() => queueMicrotask(() => {
+          this.loading.set(false)
+          this.changeOrAddPhoneStep.set('OK_OR_ERROR')
+        }))
+      ).subscribe({
+        next: () => { /* pass */ },
+        error: (e: HttpErrorResponse) => this.serverError.set(e.status)
+      })
+    }
   }
 
 }

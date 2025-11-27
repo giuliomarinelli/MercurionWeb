@@ -19,6 +19,7 @@ export interface AppConfiguration {
     redisIdHmacSecret: string
     AES_secret: string
     version: string
+    deviceIdSignatureSecret: string
 
 }
 
