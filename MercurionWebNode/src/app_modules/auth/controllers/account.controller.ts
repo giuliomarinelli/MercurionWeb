@@ -3,7 +3,7 @@ import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum
 import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpStatus, NotFoundException, Param, Patch, Post, Query, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
 import { UserRegisterDTO } from 'src/app_modules/user/Models/DTO/user-register.cls.dto';
 import { AuthenticatedUserId, Authorization, Public, SessionId } from 'src/metadata/metadata';
-import { ConfirmChangeDTO, ConfirmDTO, ConfirmMfaChange, ConfirmWithObsContDTO } from 'src/Models/confirm-responses.dto';
+import { ConfirmChangeDTO, ConfirmDTO, ConfirmMfaChange, ConfirmWithObsContDTO, ConfirmWithRecoveryCodeDTO } from 'src/Models/confirm-responses.dto';
 import { AccountService } from '../services/account.service';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { ResponseService } from 'src/services/response.service';
@@ -45,11 +45,11 @@ export class AccountController {
 
     @Public()
     @Patch('/activate')
-    public async activateAccount(@Query('t') activationToken: string): Promise<ConfirmDTO> {
+    public async activateAccount(@Query('t') activationToken: string): Promise<ConfirmWithRecoveryCodeDTO> {
         if (!/^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$/.test(activationToken)) {
             throw new BadRequestException('Invalid t param pattern')
         }
-        return await this.accountService.activate(activationToken)
+        return this.accountService.activateUser(activationToken)
     }
 
     @Patch('/email/1')

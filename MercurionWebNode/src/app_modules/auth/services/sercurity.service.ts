@@ -7,6 +7,7 @@ import { TotpWrapper } from '../Models/interfaces/totp-wrapper.interface';
 import { AppTotpWrapper } from '../Models/interfaces/app-totp-wrapper.interface';
 import * as qrcode from 'qrcode';
 import * as base32 from 'hi-base32'
+import { PasswordEncoderService } from './password-encoder.service';
 
 @Injectable()
 export class SercurityService {
@@ -16,14 +17,14 @@ export class SercurityService {
     private readonly AES_secret: string
     private readonly deviceIdSignatureSecret: string
 
-    constructor(private readonly configService: ConfigService) {
+    constructor(private readonly configService: ConfigService, private readonly pe: PasswordEncoderService) {
         const { totpPepper, ...totpConf } = this.configService.get<TotpConfiguration>('Totp')!
         this.totpConf = totpConf
         this.totpPepper = totpPepper
         this.AES_secret = this.configService.get<string>('App.AES_secret')!
         this.deviceIdSignatureSecret = this.configService.get<string>('App.deviceIdSignatureSecret')!
     }
-
+    
     encrypt_AES256(value: string) {
         const key = Buffer.from(this.AES_secret, 'base64')
         const iv = randomBytes(12)
@@ -182,6 +183,12 @@ export class SercurityService {
         const raw = randomBytes(6).toString('hex') // 12 caratteri esadecimali (6 byte)
         const chunks = raw.match(/.{1,4}/g)         // Spezza in blocchi da 4 caratteri
         return chunks?.join('-') ?? raw            // Formatta tipo: "8f4a-d20b-c7e9"
+    }
+
+    public generateAccountRecoveryReadableCode(): string {
+        const raw = randomBytes(32).toString('hex')
+        const chunks = raw.match(/.{1,4}/g)?.map((hex) => parseInt(hex, 16).toString())
+        return chunks?.join('-') ?? raw
     }
 
     public maskEmail(email: string): string {

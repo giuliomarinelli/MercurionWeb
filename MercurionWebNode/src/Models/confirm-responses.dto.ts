@@ -9,6 +9,10 @@ export type ConfirmDTO = {
     message: string
 }
 
+export type ConfirmWithRecoveryCodeDTO = ConfirmDTO & {
+    recoveryCode: string
+}
+
 export type ConfirmWithObsContDTO = ConfirmDTO & {
     obscuredEmail?: string
     obscuredPhoneNumber?: string

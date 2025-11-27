@@ -68,3 +68,7 @@ export type ConfirmChangeDTO = ConfirmWithObsContDTO & TotpMetadata & {
     phoneNumberVerificationToken?: string
 }
 
+export type ConfirmWithRecoveryCodeDTO = ConfirmDTO & {
+    recoveryCode: string
+}
+

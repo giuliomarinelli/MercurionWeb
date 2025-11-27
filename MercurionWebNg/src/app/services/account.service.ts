@@ -1,3 +1,4 @@
+import { ConfirmWithRecoveryCodeDTO } from './../Models/confirm.models';
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { ChangePasswordDTO, MfaStrategy, ChangePhoneDTO, ProfileDTO, SessionDTO, UserData } from '../Models/account/account.models';
@@ -73,8 +74,8 @@ export class AccountService {
     })
   }
 
-  public activateAccount(token: string): Observable<ConfirmDTO> {
-    return this.http.patch<ConfirmDTO>(`/api/account/activate?t=${token}`, null, {
+  public activateAccount(token: string): Observable<ConfirmWithRecoveryCodeDTO> {
+    return this.http.patch<ConfirmWithRecoveryCodeDTO>(`/api/account/activate?t=${token}`, null, {
       withCredentials: true
     })
   }

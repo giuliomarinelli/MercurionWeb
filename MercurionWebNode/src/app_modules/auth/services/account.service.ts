@@ -2,7 +2,7 @@ import { ConfigService } from '@nestjs/config';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { UserRegisterDTO } from 'src/app_modules/user/Models/DTO/user-register.cls.dto';
 import { UserService } from 'src/app_modules/user/services/user.service';
-import { ConfirmChangeDTO, ConfirmDTO, ConfirmWithObsContDTO } from 'src/Models/confirm-responses.dto';
+import { ConfirmChangeDTO, ConfirmDTO, ConfirmWithObsContDTO, ConfirmWithRecoveryCodeDTO } from 'src/Models/confirm-responses.dto';
 import { PasswordEncoderService } from './password-encoder.service';
 import { SercurityService } from './sercurity.service';
 import { ResponseService } from 'src/services/response.service';
@@ -266,7 +266,7 @@ export class AccountService {
 
     }
 
-    public async activate(activationToken: string): Promise<ConfirmDTO> | never {
+    public async activateUser(activationToken: string): Promise<ConfirmWithRecoveryCodeDTO> | never {
 
         return this.dataSource.manager.transaction(async (manager) => {
             const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(activationToken, TokenType.ActivationToken)
@@ -276,11 +276,13 @@ export class AccountService {
                 throw new RpcException('AccountActivation::User not found')
             }
             let { isVerified, email, unconfirmedEmail, updatedAt } = user
+            const recoveryCode = this.securityService.generateAccountRecoveryReadableCode()
+            const accountRecoveryCodeHash = await this.passwordEncoder.encode(recoveryCode)
             email = unconfirmedEmail!
             unconfirmedEmail = null
             isVerified = true
             updatedAt = Date.now()
-            await manager.update(User, { id: userId }, { email, unconfirmedEmail, isVerified, updatedAt })
+            await manager.update(User, { id: userId }, { email, unconfirmedEmail, isVerified, updatedAt, accountRecoveryCodeHash })
             const now = Date.now()
             const firstMol = manager.create(ChEMBLMoleculeItemEntity, {
                 chemblMolregno: 1280,
@@ -313,7 +315,10 @@ export class AccountService {
             })
             await manager.save(join)
             await this.redisService.del(this.getRegistrationLockRedisKey(email))
-            return this._r.ok('Account activated successfully')
+            return {
+                ...this._r.ok('Account activated successfully'),
+                recoveryCode
+            }
         })
     }
 

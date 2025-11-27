@@ -914,22 +914,6 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
     this.actionContext.close()
   }
 
-  private toFlagEmoji(code: string): string {
-    if (!code) {
-      return ''
-    }
-    return code
-      .trim()
-      .toUpperCase()
-      .replace(/./g, char => {
-        if (!/[A-Z]/.test(char)) {
-          return ''
-        }
-        const offset = char.charCodeAt(0) - 65
-        return String.fromCodePoint(0x1F1E6 + offset)
-      })
-  }
-
   computePrefixValues(): PmOption[] {
 
     const arr = [...this.phonePrefixes()]
