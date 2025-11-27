@@ -86,10 +86,15 @@ export function routeAwareMax(req: FastifyRequest): number {
         return scale(30)
 
     if (method === 'PATCH' && path === '/api/account/mfa/backup/regenerate')
-        return scale(6)   
+        return scale(6)
 
     if (method === 'POST' && path === '/api/documents/upload') return scale(4)
 
+    if (method === 'POST' && path === '/api/account/recovery/1')
+        return scale(2)
+    
+    if (method === 'POST' && path === '/api/account/recovery/2')
+        return scale(2)
 
     return scale(100)
 }

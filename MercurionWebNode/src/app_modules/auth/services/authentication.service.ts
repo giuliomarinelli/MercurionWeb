@@ -58,7 +58,7 @@ export class AuthenticationService {
     }
 
     private generateFingerprint(fingerprintData: FingerprintData): string {
-        return createHash('sha256').update(JSON.stringify(fingerprintData)).digest('hex')
+        return createHash('sha256').update(JSON.stringify(fingerprintData).toLocaleLowerCase()).digest('hex')
     }
 
     // Restituisce un oggetto Authentication necessario per generare un token JWT
@@ -81,7 +81,7 @@ export class AuthenticationService {
         }
 
         const auth: IAuth | nullish = await this.userService.getVerifiedUserAuthByEmail(email)
-        if (!auth || !auth.userId || !auth.passwordHash) {
+        if (!auth || !auth.userId || !auth.passwordHash || auth.locked) {
             await this.bumpLoginFailCounter(failKey, lockKey)
             throw new RpcException('AuthenticationInvalidCredentials')
         }

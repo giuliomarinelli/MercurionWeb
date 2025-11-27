@@ -57,7 +57,7 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
     }
 
     try {
-      // qui usa lo stesso servizio che usi nel WsGuard
+      
       const { sub: userId, sid: sessionId } = await this.jwtTools.verifyTokenAndGetPayload(token, TokenType.ws_AccessToken);
 
       client.data.userId = userId;
@@ -74,14 +74,8 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
     }
   }
 
-
-
   handleDisconnect(client: Socket): void {
     this.logger.log(`🔗 Disconnected socket ${client.id}`)
-  }
-
-  private getSessionId(client: Socket): string | undefined {
-    return client.data?.sessionId as (string | undefined)
   }
 
   private getUserId(client: Socket): UUID | undefined {
@@ -96,11 +90,11 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
     if (sessionId && userId) {
       if (!client.rooms.has(`ws_session:${sessionId}`)) {
         client.join(`ws_session:${sessionId}`)
-        this.logger.log(`Socket ${client.id} joinato a ws_session:${sessionId}`)
+        this.logger.debug(`Socket ${client.id} joinato a ws_session:${sessionId}`)
       }
       if (!client.rooms.has(`ws_user:${userId}`)) {
         client.join(`ws_user:${userId}`);
-        this.logger.log(`Socket ${client.id} joinato a ws_user:${userId}`)
+        this.logger.debug(`Socket ${client.id} joinato a ws_user:${userId}`)
       }
 
     } else {

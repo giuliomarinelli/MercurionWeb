@@ -88,6 +88,12 @@ export class User {
     @Column({ type: 'varchar', nullable: true })
     accountRecoveryCodeHash: string | null
 
+    @Column()
+    locked: boolean
+
+    @Column()
+    recoveryMode: boolean
+
     @BeforeInsert()
     private generateId() {
         this.id = uuidv7() as UUID

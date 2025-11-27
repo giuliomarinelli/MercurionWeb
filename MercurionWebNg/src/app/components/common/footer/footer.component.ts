@@ -57,8 +57,8 @@ export class FooterComponent implements OnInit {
   protected logoSrc = signal<string>('')
 
   constructor() {
-    const { PICTOGRAM_LIKE, PICTOGRAM_DARK } = environment.logoSrc
-    effect(() => this.logoSrc.set(this.themeManager.theme() === 'dark' ? PICTOGRAM_DARK : PICTOGRAM_LIKE))
+    const { PICTOGRAM_LIGHT, PICTOGRAM_DARK } = environment.logoSrc
+    effect(() => this.logoSrc.set(this.themeManager.theme() === 'dark' ? PICTOGRAM_DARK : PICTOGRAM_LIGHT))
   }
 
   ngOnInit(): void {

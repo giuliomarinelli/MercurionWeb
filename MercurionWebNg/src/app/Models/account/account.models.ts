@@ -58,3 +58,12 @@ export interface ChangePhoneDTO {
 export interface EmailDTO {
   email: string
 }
+
+export interface RecoverCredentialsDTO {
+    newEmail: string
+    newPassword: string
+}
+
+export interface RecoveryCodeDTO {
+    code: string
+}

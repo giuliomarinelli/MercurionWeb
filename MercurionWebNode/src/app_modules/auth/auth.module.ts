@@ -26,6 +26,7 @@ import { User } from '../user/Models/entities/user.entity';
 import { CountryService } from './services/country.service';
 import { Country } from './Models/entities/country.entity';
 import { CountryController } from './controllers/country.controller';
+import { RecoveryController } from './controllers/recovery.controller';
 
 
 
@@ -65,6 +66,6 @@ import { CountryController } from './controllers/country.controller';
     SercurityService,
     ScopeService
   ],
-  controllers: [AccountController, AuthenticationController, CountryController],
+  controllers: [AccountController, AuthenticationController, CountryController, RecoveryController],
 })
 export class AuthModule { }

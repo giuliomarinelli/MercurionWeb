@@ -84,7 +84,9 @@ export class TurnstileComponent implements OnInit, OnDestroy {
 
   public reset(): void {
     if ((window as any).turnstile && this.widgetId) {
+      this.zone.run(() => this.refresh.emit());
       (window as any).turnstile.reset(this.widgetId);
+      this.waitForWidgetVisible();
     }
   }
 

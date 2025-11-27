@@ -136,6 +136,10 @@ const JwtConfig = registerAs(
             secret: process.env.JWT_SECRETS_CHANGE_PASSWORD,
             expiresInMs: Number(process.env.JWT_EXPIRATION_CHANGE_PASSWORD)
         },
+        accountRecoveryToken: {
+            secret: process.env.JWT_SECRETS_ACCOUNT_RECOVERY,
+            expiresInMs: Number(process.env.JWT_EXPIRATION_ACCOUNT_RECOVERY)
+        },
         issuer: process.env.APP_PROJECT_NAME + `_${process.env.APP_PROJECT_ID as UUID ?? ''}`,
         audience: {
             access: process.env.JWT_AUD_API!,

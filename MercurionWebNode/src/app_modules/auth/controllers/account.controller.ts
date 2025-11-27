@@ -24,6 +24,7 @@ import { ConfigService } from '@nestjs/config';
 
 
 
+
 @Controller('account')
 export class AccountController {
 
@@ -308,11 +309,13 @@ export class AccountController {
         return this.securityService.maskPhone(completePhone)
     }
 
+    @HttpCode(HttpStatus.OK)
     @Post('/mask-email')
     public maskEmail(@Body(new ValidationPipe()) { email }: EmailDTO): string {
         return this.securityService.maskEmail(email)
     }
 
+    @HttpCode(HttpStatus.OK)
     @Post('/mask-phone')
     public maskPhone(@Body(new ValidationPipe()) { internationalPrefix, phoneNumber }: ChangePhoneDTO): string {
         const phone = internationalPrefix.trim() + phoneNumber.trim()
