@@ -187,8 +187,8 @@ export class SercurityService {
 
     public generateAccountRecoveryReadableCode(): string {
         const raw = randomBytes(32).toString('hex')
-        const chunks = raw.match(/.{1,4}/g)?.map((hex) => parseInt(hex, 16).toString())
-        return chunks?.join('-') ?? raw
+        const chunks = raw.match(/.{1,4}/g)?.map((hex) => parseInt(hex, 16).toString().padStart(5, '0'))
+        return chunks?.join('-') ?? raw // 27669-46565-09790-45140-26341-64007-40932-48517-14657-40313-25075-51614-21752-51491-50369-20601
     }
 
     public maskEmail(email: string): string {
