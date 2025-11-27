@@ -33,6 +33,7 @@ import { MoleculeCollection } from 'src/app_modules/molecule-collection/Models/e
 import { MoleculeCollectionItemJoin } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection-item-join.entity';
 import { ScopeService } from './scope.service';
 import { MfaBackupCode } from 'src/app_modules/user/Models/entities/backup-code.entity';
+import { RecoverCredentialsDTO } from '../Models/DTO/recover-cretentials.cls.dto';
 
 
 
@@ -62,6 +63,10 @@ export class AccountService {
     private readonly RECOVERY_FAIL_WINDOW_SECONDS = 24 * 60 * 60  // 1 giorno
     private readonly RECOVERY_MAX_FAILS = 2
     private readonly RECOVERY_LOCK_SECONDS = 24 * 60 * 60
+
+    private readonly RECOVERY_SECOND_FAIL_WINDOW_SECONDS = 10 * 60
+    private readonly RECOVERY_SECOND_MAX_FAILS = 2
+    private readonly RECOVERY_SECOND_LOCK_SECONDS = 15 * 60
 
     private readonly redisIdHmacSecret: string
 
@@ -118,6 +123,39 @@ export class AccountService {
     }
     private getRecoveryLockKey(code: string) {
         return `recovery:lock:${this.hmacKey(code)}`
+    }
+
+    private getRecoverySecondFailKey(userId: UUID) {
+        return `recovery:second:fail:${userId}`
+    }
+    private getRecoverySecondLockKey(userId: UUID) {
+        return `recovery:second:lock:${userId}`
+    }
+
+    private async ensureRecoverySecondNotLocked(userId: UUID) {
+        if (await this.redisService.exists(this.getRecoverySecondLockKey(userId))) {
+            throw new RpcException('AccountRecoverySecond::TooManyAttempts')
+        }
+    }
+
+    private async registerRecoverySecondFailure(userId: UUID) {
+        const failKey = this.getRecoverySecondFailKey(userId)
+        const lockKey = this.getRecoverySecondLockKey(userId)
+
+        const fails = await this.redisService.getClient().incr(failKey)
+        if (fails === 1) {
+            await this.redisService.setTTL(failKey, this.RECOVERY_SECOND_FAIL_WINDOW_SECONDS)
+        }
+
+        if (fails >= this.RECOVERY_SECOND_MAX_FAILS) {
+            await this.redisService.set(lockKey, '1', this.RECOVERY_SECOND_LOCK_SECONDS)
+            await this.redisService.del(failKey)
+        }
+    }
+
+    private async clearRecoverySecondFailures(userId: UUID) {
+        await this.redisService.del(this.getRecoverySecondFailKey(userId))
+        await this.redisService.del(this.getRecoverySecondLockKey(userId))
     }
 
     private async ensureRecoveryNotLocked(code: string) {
@@ -772,6 +810,8 @@ export class AccountService {
 
             user.locked = true
             user.mfaStrategies = '[]'
+            user.recoveryMode = true
+
             await manager.save(user)
 
             await manager.delete(MfaBackupCode, { userId })
@@ -783,6 +823,56 @@ export class AccountService {
 
             return this.jwtTools.generateToken(userId, TokenType.AccountRecoveryToken)
         })
+    }
+
+    public async recoverAccount_secondStep(dto: RecoverCredentialsDTO, secureToken: string): Promise<string> | never {
+        return this.dataSource.manager.transaction(async (manager) => {
+            const { newEmail, newPassword } = dto
+            let userId: UUID
+            let jti: UUID
+            
+            try {
+                ({ sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(secureToken, TokenType.AccountRecoveryToken))
+            } catch (e) {
+                this.logger.debug(`recoverAccount_secondStep > error in secure_token validation: `, (e.stack ?? e) as object)
+                throw new RpcException('Unauthenticated')
+            }
+            await this.sessionService.revokeToken(jti)
+            const user = await manager.findOne(User, {
+                where: {
+                    id: userId
+                }
+            })
+            await this.ensureRecoverySecondNotLocked(userId)
+            if (!user || !user.accountRecoveryCodeHash) {
+                await this.registerRecoverySecondFailure(userId)
+                throw new RpcException('Unauthenticated')
+            }
+            const newRecoveryCode = this.securityService.generateAccountRecoveryReadableCode()
+            const newAccountRecoveryCodeHash = await this.passwordEncoder.encode(newRecoveryCode)
+            const newPasswordHash = await this.passwordEncoder.encode(newPassword)
+            user.email = newEmail
+            user.unconfirmedEmail = null
+            user.completePhoneNumber = null
+            user.phoneNumberPrefixLength = 0
+            user.unconfirmedPhoneNumber = null
+            user.unconfirmedPhoneNumberPrefixLength = 0
+            user.passwordHash = newPasswordHash
+            user.isVerified = true
+            user.scopes = this.scopeService.getEncryptedStandardScopes()
+            user.updatedAt = Date.now()
+            user.otpSecret = this.securityService.generateOtpSecret()
+            user.appTotpSecret = null
+            user.avatarId = null
+            user.backupCodesGiven = false
+            user.accountRecoveryCodeHash = newAccountRecoveryCodeHash
+            user.locked = false
+            user.recoveryMode = false
+            await manager.save(user)
+            await this.clearRecoverySecondFailures(userId)
+            return newRecoveryCode
+        })
+
     }
 
 }

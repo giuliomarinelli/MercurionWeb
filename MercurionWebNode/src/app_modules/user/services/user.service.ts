@@ -165,15 +165,16 @@ export class UserService {
 
     public async getVerifiedUserAuthByEmail(email: string): Promise<IAuth | nullish> {
         const user = await this.userRepository.createQueryBuilder('u')
-            .select(['u.id', 'u.passwordHash'])
+            .select(['u.id', 'u.passwordHash', 'u.locked'])
             .where('u.isVerified = true')
             .andWhere('u.email = :email', { email })
             .getOne()
         if (!user) return user
-        const { id: userId, passwordHash } = user
+        const { id: userId, passwordHash, locked } = user
         return {
             userId,
-            passwordHash
+            passwordHash,
+            locked
         }
     }
 

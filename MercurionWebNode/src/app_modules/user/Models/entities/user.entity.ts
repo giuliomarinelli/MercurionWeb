@@ -91,6 +91,9 @@ export class User {
     @Column()
     locked: boolean
 
+    @Column()
+    recoveryMode: boolean
+
     @BeforeInsert()
     private generateId() {
         this.id = uuidv7() as UUID

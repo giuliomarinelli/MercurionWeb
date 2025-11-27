@@ -90,8 +90,11 @@ export function routeAwareMax(req: FastifyRequest): number {
 
     if (method === 'POST' && path === '/api/documents/upload') return scale(4)
 
-    if (method === 'POST' && path.startsWith('/api/account/recovery'))
-        return scale(1)
+    if (method === 'POST' && path === '/api/account/recovery/1')
+        return scale(2)
+    
+    if (method === 'POST' && path === '/api/account/recovery/2')
+        return scale(2)
 
     return scale(100)
 }
