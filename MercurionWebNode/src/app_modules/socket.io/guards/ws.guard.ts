@@ -106,6 +106,7 @@ export class WsGuard implements CanActivate {
 
   private unauthorized(client: Socket): void {
     client.emit('sv.pub.err', { detail: 'Unauthorized' })
+    client.disconnect()
   }
 
 }
