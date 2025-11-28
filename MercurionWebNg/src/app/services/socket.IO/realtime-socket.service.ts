@@ -61,12 +61,12 @@ export class RealtimeSocketService {
     this.socket.on('disconnect', async (reason: any) => {
       if (this.mode !== 'private') return;
       if (reason === 'io client disconnect') return;
-      await this.ensureFreshTokenIfExpired();
+      await this.ensureFreshToken(); // soft
     });
 
     this.socket.on('reconnect_attempt', async () => {
       if (this.mode !== 'private') return;
-      await this.ensureFreshTokenIfExpired();
+      await this.ensureFreshToken(); // soft
       const tok = this.auth.getWs_accessToken();
       if (tok && !this.jwt.isTokenExpired(tok)) {
         this.socket.auth = { token: tok };
@@ -79,7 +79,8 @@ export class RealtimeSocketService {
       const isAuthErr = (err?.code === 'AUTH_EXPIRED') ||
         (typeof err?.message === 'string' && /auth|token/i.test(err.message));
       if (!isAuthErr) return;
-      await this.ensureFreshTokenIfExpired();
+
+      await this.ensureFreshToken(true); // <-- FORZA refresh
       const tok = this.auth.getWs_accessToken();
       if (tok && !this.jwt.isTokenExpired(tok)) {
         this.socket.auth = { token: tok };
@@ -110,19 +111,23 @@ export class RealtimeSocketService {
    * - Se sei già private e il token non è cambiato: solo `auth_refresh(token)` (no reconnect).
    * - Se token assente/scaduto: resta/torna public e connettiti (no loop).
    */
-  async ensurePrivate(tokenOverride?: string): Promise<void> {
+  async ensurePrivate(
+    tokenOverride?: string,
+    opts?: { forceRefresh?: boolean },
+  ): Promise<void> {
     this.modeOp = this.modeOp.then(async () => {
       const wasPrivate = (this.mode === 'private');
+      const forceRefresh = opts?.forceRefresh === true;
 
-      // 1) assicurati di avere token valido (refresh solo se necessario)
+      // 1) assicuriamoci di avere un token WS valido
       let tok = tokenOverride ?? this.auth.getWs_accessToken();
       if (!tokenOverride) {
-        await this.ensureFreshTokenIfExpired();
+        await this.ensureFreshToken(forceRefresh);
         tok = this.auth.getWs_accessToken();
       }
 
       if (!tok || this.jwt.isTokenExpired(tok)) {
-        // token non disponibile: non puoi essere private → rimani/torna public
+        // token non disponibile → fallback PUBLIC
         this.mode = 'public';
         delete (this.socket as any).auth;
         this.lastAuthTokenSent = null;
@@ -130,30 +135,31 @@ export class RealtimeSocketService {
         return;
       }
 
-      // 2) abbiamo token valido → imposta auth per handshake/attempt successivi
+      // 2) abbiamo un token valido → configuriamo auth per handshake
       this.mode = 'private';
       this.socket.auth = { token: tok };
 
       if (!this.socket.connected) {
-        // 3a) non connesso → connettiti con auth
+        // non connesso → connettiti con auth
         this.lastAuthTokenSent = tok;
         this.safeConnect();
         return;
       }
 
-      // 3b) già connesso
+      // 3) già connesso
       if (wasPrivate && this.lastAuthTokenSent === tok) {
-        // già private con lo stesso token: niente reconnect, solo refresh soft
+        // stesso token → refresh soft opzionale lato server
         this.socket.emit('auth_refresh', tok);
         return;
       }
 
-      // public -> private (upgrade) OPPURE token diverso → serve reconnect con handshake
+      // public -> private o token cambiato → serve reconnect
       this.lastAuthTokenSent = tok;
       this.reconnectWithCurrentAuth();
     });
     return this.modeOp;
   }
+
 
   /**
    * Entra/rimani in modalità pubblica.
@@ -279,10 +285,12 @@ export class RealtimeSocketService {
   }
 
   /** Se il token è assente o scaduto, prova a rinfrescarlo con lock cross-tab. */
-  private async ensureFreshTokenIfExpired(): Promise<void> {
+  /** Se force=true, forza il refresh anche se il JWT non risulta scaduto. */
+  private async ensureFreshToken(force = false): Promise<void> {
     const tok = this.auth.getWs_accessToken();
-    const needRefresh = !tok || this.jwt.isTokenExpired(tok);
+    const needRefresh = force || !tok || this.jwt.isTokenExpired(tok);
     if (!needRefresh) return;
     await this.auth.refreshWsAccessTokenLocked().catch(() => null);
   }
+
 }

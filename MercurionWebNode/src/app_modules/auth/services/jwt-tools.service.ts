@@ -235,7 +235,8 @@ export class JwtToolsService {
                 throw new RpcException(`Revoked${type}`)
             }
             return payload
-        } catch {
+        } catch (e) {
+            console.log(e)
             throw new RpcException(`InvalidOrExpired${type}`)
         }
     }
