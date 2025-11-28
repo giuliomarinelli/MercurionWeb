@@ -34,8 +34,6 @@ function buildRateLimitKey(req: FastifyRequest): string {
 
 export async function bootstrap() {
 
-  console.log('NEW')
-
   const logLevels = new Set<LogLevel>(['error', 'warn', 'log', 'debug', 'verbose', 'fatal'])
 
   if ((process.env.NODE_ENV ?? 'development') !== 'development') {

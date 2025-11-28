@@ -110,6 +110,11 @@ export class JwtToolsService {
         this.ws_privateKey = readFileSync(resolve(__dirname, `../../../config/keys/${ws_privateKeyFileName}`), 'utf8')
         this.ws_publicKey = readFileSync(resolve(__dirname, `../../../config/keys/${ws_publicKeyFileName}`), 'utf8')
 
+        console.log('Chiave privata\n', this.privateKey)
+        console.log('Chiave pubblica\n', this.publicKey)
+        console.log('Chiave privata ws\n', this.ws_privateKey)
+        console.log('Chiave pubblica ws\n', this.ws_publicKey)
+
     }
 
 
