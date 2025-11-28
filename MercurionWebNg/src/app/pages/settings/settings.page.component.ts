@@ -849,7 +849,10 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   changePassword(): void {
-    // TODO
+    queueMicrotask(() => {
+      this.changeDataContext.setInnerScope('ChangePassword')
+      this.actionContext.open('SensitiveDataChange')
+    })
   }
 
   changeEmail(): void {

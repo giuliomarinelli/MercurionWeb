@@ -2,7 +2,7 @@ import { ConfigService } from '@nestjs/config';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { UserRegisterDTO } from 'src/app_modules/user/Models/DTO/user-register.cls.dto';
 import { UserService } from 'src/app_modules/user/services/user.service';
-import { ConfirmChangeDTO, ConfirmDTO, ConfirmWithObsContDTO, ConfirmWithRecoveryCodeDTO } from 'src/Models/confirm-responses.dto';
+import { ConfirmChangeDTO, ConfirmDTO, ConfirmWithObsContDTO, ConfirmWithPhoneMfaFeedback, ConfirmWithRecoveryCodeDTO } from 'src/Models/confirm-responses.dto';
 import { PasswordEncoderService } from './password-encoder.service';
 import { SercurityService } from './sercurity.service';
 import { ResponseService } from 'src/services/response.service';
@@ -34,6 +34,10 @@ import { MoleculeCollectionItemJoin } from 'src/app_modules/molecule-collection/
 import { ScopeService } from './scope.service';
 import { MfaBackupCode } from 'src/app_modules/user/Models/entities/backup-code.entity';
 import { RecoverCredentialsDTO } from '../Models/DTO/recover-cretentials.cls.dto';
+import { TypeGuards } from 'src/utils/type-guards/type-guards';
+import { GeneralUtils } from 'src/utils/general-utils/general-utils';
+import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum';
+
 
 
 
@@ -500,6 +504,7 @@ export class AccountService {
     }
 
     public async deletePhoneNumber_firstStep_requestTotp(userId: UUID): Promise<ConfirmChangeDTO> {
+
         const user = await this.userService.getUserById(userId)
         if (!user) {
             throw new RpcException('DeletePhone::UserNotFound')
@@ -508,7 +513,7 @@ export class AccountService {
         if (!currentNumber) {
             throw new RpcException('DeletePhone::NoPhoneNumber')
         }
-        const lockKey = `phone_change_lock:${this.hmacKey(currentNumber)}`
+        const lockKey = `phone_change_lock:${this.hmacKey(userId)}:${this.hmacKey(currentNumber)}`
         const existsLock = await this.redisService.exists(lockKey)
         if (existsLock) {
             throw new RpcException('DeletePhone::NumberAlreadyUsedOrPending')
@@ -535,6 +540,85 @@ export class AccountService {
             ...metadata
         }
 
+    }
+
+    public async deletePhoneNumber_secondStep_verifyTotp(totp: string, secureToken: string): Promise<ConfirmWithPhoneMfaFeedback> {
+
+        return this.dataSource.manager.transaction(async (manager) => {
+
+            const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(secureToken, TokenType.PhoneNumberVerificationToken)
+
+            await this.sessionService.revokeToken(jti)
+
+            await this.ensureContactChangeNotLocked(userId, ContactChangeKind.PHONE)
+
+            const user = await manager.findOne(User, { where: { id: userId } })
+            if (!user) {
+                throw new RpcException('DeletePhone::UserNotFound')
+            }
+
+            if (user.unconfirmedPhoneNumber || Number(user.unconfirmedPhoneNumberPrefixLength)) {
+                throw new RpcException('DeletePhone::NoPendingDeletion')
+            }
+
+            const isTotpValid = this.securityService.verifyTotp(totp, user.otpSecret)
+            if (!isTotpValid) {
+                await this.registerContactChangeFailure(userId, ContactChangeKind.PHONE)
+                throw new RpcException('ChangePhone::InvalidTOTP')
+            }
+            const maskedOldPhone = this.securityService.maskPhone(user.completePhoneNumber ?? '') || null            
+            const oldCompletePhoneNumber = user.completePhoneNumber
+
+            await manager.update(User, { id: userId }, {
+                completePhoneNumber: null,
+                phoneNumberPrefixLength: 0,
+                unconfirmedPhoneNumber: null,
+                unconfirmedPhoneNumberPrefixLength: 0,
+                updatedAt: Date.now()
+            })
+
+            let phoneMfaDisabled = false
+
+            let deserialized: string[]
+
+            try {
+                deserialized = JSON.parse(user.mfaStrategies) as string[]
+            } catch {
+                deserialized = []
+            }
+
+            let strategies = deserialized.map((enc) => this.securityService.decrypt_AES256(enc))
+                .filter((dec) => TypeGuards.isMfaStrategy(dec))
+
+            if (strategies.includes(MfaStrategy.SMS_OTP)) {
+                strategies = strategies.filter((s) => s !== MfaStrategy.SMS_OTP)
+                const encoded = GeneralUtils.distinctArray(strategies)
+                    .map((dec) => this.securityService.encrypt_AES256(dec))
+                const serialized = JSON.stringify(encoded)
+                await manager.update(User, { id: userId }, {
+                    mfaStrategies: serialized,
+                    updatedAt: Date.now()
+                })
+                phoneMfaDisabled = true
+            }
+
+            await this.redisService.del(`phone_change_lock:${this.hmacKey(userId)}:${this.hmacKey(oldCompletePhoneNumber ?? '')}`)
+            await this.clearContactChangeFailures(userId, ContactChangeKind.PHONE)
+
+            const oldNotificationBody = 'Mercurion: il numero di telefono del tuo account è stato eliminato. Se non sei stato tu, reimposta subito la password e contatta il supporto Mercurion.'
+
+            await this.securityAuditService.phoneChanged(userId, maskedOldPhone, '')
+            if (oldCompletePhoneNumber != null) {
+                this.smsService.sendSms(oldCompletePhoneNumber, oldNotificationBody).catch((e) => {
+                    this.logger.warn(`Errore durante l'invio sms phone deleted, currentPhone=${this.hmacKey(oldCompletePhoneNumber)}, userId=${userId}`, e as string | object)
+                })
+            }
+
+            return {
+                ...this._r.ok('Phone number successfully deleted'),
+                phoneMfaDisabled
+            }
+        })
     }
 
     public async changePhoneNumber_firstStep_requestTotp(userId: UUID, dto: ChangePhoneDTO): Promise<ConfirmChangeDTO> {
@@ -647,7 +731,7 @@ export class AccountService {
         const oldPasswordHash = await this.userService.getVerifiedUserPasswordHashById(userId)
         if (await this.passwordEncoder.compareWithFallback(oldPassword, oldPasswordHash) === CompareResult.NoMatch) {
             await this.registerPasswordFailure(userId, PasswordContext.CHANGE)
-            throw new RpcException('Unauthenticated')
+            throw new RpcException('ChangePassword::Invalid Credentials')
         }
         await this.clearPasswordFailures(userId, PasswordContext.CHANGE)
         await this.userService.changePassword(userId, newPassword)

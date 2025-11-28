@@ -3,7 +3,7 @@ import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum
 import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpStatus, NotFoundException, Param, Patch, Post, Query, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
 import { UserRegisterDTO } from 'src/app_modules/user/Models/DTO/user-register.cls.dto';
 import { AuthenticatedUserId, Authorization, Public, SessionId } from 'src/metadata/metadata';
-import { ConfirmChangeDTO, ConfirmDTO, ConfirmMfaChange, ConfirmWithObsContDTO, ConfirmWithRecoveryCodeDTO } from 'src/Models/confirm-responses.dto';
+import { ConfirmChangeDTO, ConfirmDTO, ConfirmMfaChange, ConfirmWithObsContDTO, ConfirmWithPhoneMfaFeedback, ConfirmWithRecoveryCodeDTO } from 'src/Models/confirm-responses.dto';
 import { AccountService } from '../services/account.service';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { ResponseService } from 'src/services/response.service';
@@ -66,9 +66,21 @@ export class AccountController {
         @Body(new ValidationPipe({ transform: true })) dto: TotpDTO
     ): Promise<ConfirmDTO> {
         const { totp, secureToken } = dto
-        const isValid = await this.accountService.changeEmail_secondStep_verifyTotp(totp, secureToken);
+        const isValid = await this.accountService.changeEmail_secondStep_verifyTotp(totp, secureToken)
         if (!isValid) throw new UnauthorizedException('Invalid TOTP code')
         return this._r.ok('Email changed successfully')
+    }
+
+    @Delete('/phone/1')
+    public async deletePhoneNumber_firstStep(@AuthenticatedUserId() userId: UUID): Promise<ConfirmChangeDTO> {
+        return this.accountService.deletePhoneNumber_firstStep_requestTotp(userId)
+    }
+
+    @Patch('/phone/del/2')
+    public async deletePhoneNumber_secondStep(
+        @Body(new ValidationPipe({ transform: true })) dto: TotpDTO
+    ): Promise<ConfirmWithPhoneMfaFeedback> {
+        return this.accountService.deletePhoneNumber_secondStep_verifyTotp(dto.totp, dto.secureToken)
     }
 
     @Patch('/phone/1')
@@ -79,18 +91,15 @@ export class AccountController {
         return this.accountService.changePhoneNumber_firstStep_requestTotp(userId, dto)
     }
 
-    @Delete('/phone/1')
-    public async deletePhoneNumber_firstStep(@AuthenticatedUserId() userId: UUID): Promise<ConfirmChangeDTO> {
-        return this.accountService.deletePhoneNumber_firstStep_requestTotp(userId)
-    }
-
     @Patch('/phone/2')
     public async changePhoneNumber_secondStep(
         @Body(new ValidationPipe({ transform: true })) dto: TotpDTO
     ): Promise<ConfirmDTO> {
         const { totp, secureToken } = dto
         const isValid = await this.accountService.changePhoneNumber_secondStep_verifyTotp(totp, secureToken)
-        if (!isValid) throw new UnauthorizedException('Invalid TOTP code')
+        if (!isValid) {
+            throw new UnauthorizedException('Invalid TOTP code')
+        }
         return this._r.ok('Phone number changed successfully')
     }
 
@@ -157,7 +166,7 @@ export class AccountController {
 
     @Patch('/password')
     public async changePassword(
-        @Body() dto: ChangePasswordDTO,
+        @Body(new ValidationPipe({ transform: true })) dto: ChangePasswordDTO,
         @AuthenticatedUserId() userId: UUID
     ): Promise<ConfirmDTO> {
         // eslint-disable-next-line prefer-const

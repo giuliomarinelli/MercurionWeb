@@ -10,6 +10,7 @@ type ErrorMap = Record<string, string>;
   selector: 'app-floating-input',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, ClassicSpinnerComponent],
+  host: { class: 'block' },
   template: `
   <div class="relative">
     <input

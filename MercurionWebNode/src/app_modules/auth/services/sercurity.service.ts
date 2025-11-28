@@ -79,19 +79,19 @@ export class SercurityService {
     /** 
      * Genera un segreto base32 da salvare sul db
      */
-    public generateSecret(bytes: number, encode: 'hex' | 'base32' | 'base64'): string {
+    public generateSecret(bytes: number, encoding: 'hex' | 'base32' | 'base64'): string {
 
         const buffer: Buffer = randomBytes(bytes)
         const hexPrefix: string = "0x"
-        switch (encode) {
+        switch (encoding) {
             case 'base32':
                 return speakeasy.generateSecret({ length: bytes }).base32
 
             case 'base64':
-                return buffer.toString(encode)
+                return buffer.toString(encoding)
 
             case 'hex':
-                return hexPrefix + buffer.toString(encode)
+                return hexPrefix + buffer.toString(encoding)
         }
     }
 

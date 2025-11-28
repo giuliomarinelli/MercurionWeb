@@ -21,13 +21,13 @@ export class User {
     @Column({ type: 'varchar', nullable: true, default: null })
     completePhoneNumber: string | null // opzionale: numero di telefono comprensivo del prefisso internazionale
 
-    @Column({ type: 'int', default: 0 })
+    @Column({ type: 'bigint', default: 0 })
     phoneNumberPrefixLength: number // lunghezza del prefisso internazionale se si vuole parsare solo il numero
 
     @Column({ type: 'varchar', nullable: true, default: null })
     unconfirmedPhoneNumber: string | null
 
-    @Column({ type: 'int', nullable: true, default: null })
+    @Column({ type: 'bigint', nullable: true, default: null })
     unconfirmedPhoneNumberPrefixLength: number | null
 
     @Column({ type: 'varchar', length: 100 })
