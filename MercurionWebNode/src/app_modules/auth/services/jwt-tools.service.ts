@@ -105,10 +105,14 @@ export class JwtToolsService {
             ws_publicKeyFileName = `ws_public.pem`
         }
 
+        console.log('[JWT] env =', env);
+        console.log('[JWT] ws keys:', ws_privateKeyFileName, ws_publicKeyFileName);
+        console.log('[JWT] access keys:', privateKeyFileName, publicKeyFileName);
+
         this.privateKey = readFileSync(resolve(__dirname, `../../../config/keys/${privateKeyFileName}`), 'utf8')
         this.publicKey = readFileSync(resolve(__dirname, `../../../config/keys/${publicKeyFileName}`), 'utf8')
         this.ws_privateKey = readFileSync(resolve(__dirname, `../../../config/keys/${ws_privateKeyFileName}`), 'utf8')
-        this.ws_publicKey = readFileSync(resolve(__dirname, `../../../config/keys/${ws_publicKeyFileName}`), 'utf8')    
+        this.ws_publicKey = readFileSync(resolve(__dirname, `../../../config/keys/${ws_publicKeyFileName}`), 'utf8')
 
     }
 
