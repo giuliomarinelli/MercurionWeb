@@ -731,7 +731,7 @@ export class AccountService {
         const oldPasswordHash = await this.userService.getVerifiedUserPasswordHashById(userId)
         if (await this.passwordEncoder.compareWithFallback(oldPassword, oldPasswordHash) === CompareResult.NoMatch) {
             await this.registerPasswordFailure(userId, PasswordContext.CHANGE)
-            throw new RpcException('Unauthenticated')
+            throw new RpcException('ChangePassword::Invalid Credentials')
         }
         await this.clearPasswordFailures(userId, PasswordContext.CHANGE)
         await this.userService.changePassword(userId, newPassword)

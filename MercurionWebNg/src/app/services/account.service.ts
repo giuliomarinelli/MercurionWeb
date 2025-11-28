@@ -74,6 +74,12 @@ export class AccountService {
     })
   }
 
+  public changePassword(dto: ChangePasswordDTO): Observable<ConfirmDTO> {
+    return this.http.patch<ConfirmDTO>('/api/account/password', dto, {
+      withCredentials: true
+    })
+  }
+
   public activateAccount(token: string): Observable<ConfirmWithRecoveryCodeDTO> {
     return this.http.patch<ConfirmWithRecoveryCodeDTO>(`/api/account/activate?t=${token}`, null, {
       withCredentials: true

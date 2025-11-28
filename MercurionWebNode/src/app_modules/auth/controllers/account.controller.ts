@@ -166,7 +166,7 @@ export class AccountController {
 
     @Patch('/password')
     public async changePassword(
-        @Body() dto: ChangePasswordDTO,
+        @Body(new ValidationPipe({ transform: true })) dto: ChangePasswordDTO,
         @AuthenticatedUserId() userId: UUID
     ): Promise<ConfirmDTO> {
         // eslint-disable-next-line prefer-const

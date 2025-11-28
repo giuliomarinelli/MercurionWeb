@@ -1,4 +1,4 @@
-import { MfaStrategy } from './../../../Models/account/account.models';
+import { ChangePasswordDTO, MfaStrategy } from './../../../Models/account/account.models';
 import { SensitiveDataChangeInnerScope } from './../../../Models/action/action-overlay.models';
 import { SensitiveDataChangeContextService } from './../../../services/context/action-context/sensitive-data-change-context.service';
 import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
@@ -9,7 +9,7 @@ import { AccountService } from '../../../services/account.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ToastService } from '../../../services/toast.service';
 import { FormControl, FormGroup, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { emailAvailabilityValidator } from '../../../custom-validators';
+import { emailAvailabilityValidator, matchPassword } from '../../../custom-validators';
 import { AuthService } from '../../../services/auth.service';
 import { PhonePrefixWithEmojiUrlDTO } from '../../../Models/country.models';
 import { CountryService } from '../../../services/country.service';
@@ -682,6 +682,93 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 </div>
               }
           }
+      } @else if (innerScope() === 'ChangePassword') {
+          @switch (changePasswordStep()) {
+            @case ('CHANGE_PASSWORD_FORM') {
+              <div class="flex flex-col gap-y-6">
+                <div class="relative py-8 px-4 flex items-center gap-6 rounded-md border border-slate-600 dark:border-slate-400 bg-slate-200 dark:bg-slate-700">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-12 w-auto shrink-0">
+                    <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                    <path d="M256 240C256 160.5 320.5 96 400 96C479.5 96 544 160.5 544 240C544 319.5 479.5 384 400 384C388.9 384 378 382.7 367.6 380.4L359 378.4L352.7 384.7L321.3 416.1L255.9 416.1L255.9 480.1L191.9 480.1L191.9 544.1L95.9 544.1L95.9 462.7L258.7 299.9L265.6 293L262.7 283.7C258.3 269.9 256 255.3 256 240zM400 64C302.8 64 224 142.8 224 240C224 255.1 225.9 269.8 229.5 283.9L68.7 444.7L64 449.4L64 576L224 576L224 512L288 512L288 448L334.6 448L339.3 443.3L369.3 413.3C379.3 415.1 389.5 416 400 416C497.2 416 576 337.2 576 240C576 142.8 497.2 64 400 64zM432 232C445.3 232 456 221.3 456 208C456 194.7 445.3 184 432 184C418.7 184 408 194.7 408 208C408 221.3 418.7 232 432 232z"/>
+                  </svg>
+                    <span>Inserisci di seguito la password corrente e la nuova password che vuoi impostare. Ricordati che non puoi impostare password già usate impassato.</span>
+                </div>
+                <div class="relative min-h-[30vh] rounded-md border border-slate-600 dark:border-slate-400 bg-slate-200 dark:bg-slate-700">
+                  <div class="flex justify-center items-center px-6 py-6" [formGroup]="passwordForm">
+                    <div class="flex flex-col gap-y-4 w-full max-w-lg">
+                      <app-floating-input
+                        class="block w-full max-w-lg"
+                        label="Password corrente"
+                        type="password"
+                        autocomplete="password"
+                        formControlName="oldPassword"
+                        [errors]="{
+                            required: 'La password corrente è un campo obbligatorio.'
+                          }"
+                        [bgClass]="'bg-slate-200'"
+                        [darkBgClass]="'dark:bg-slate-700'"
+                        (enter)="routeAction()" />
+                      <app-floating-input
+                        class="block w-full max-w-lg"
+                        label="Nuova password"
+                        type="password"
+                        autocomplete="password"
+                        formControlName="password"
+                        [errors]="{
+                            required: 'Nuova password è un campo obbligatorio.',
+                            pattern: 'La password deve essere di almeno 8 caratteri: almeno uno minuscolo, uno maiuscolo, un numero e un carattere speciale.'
+                          }"
+                        [bgClass]="'bg-slate-200'"
+                        [darkBgClass]="'dark:bg-slate-700'"
+                        (enter)="routeAction()" />
+                      <app-floating-input
+                        class="block w-full max-w-lg"
+                        label="Reinserisci la nuova password"
+                        type="password"
+                        autocomplete="password"
+                        formControlName="confirmPassword"
+                        [errors]="{
+                            required: 'Il campo di conferma password è obbligatorio.',
+                            matchPassword: 'Le due password non corrispondono.'
+                          }"
+                        [bgClass]="'bg-slate-200'"
+                        [darkBgClass]="'dark:bg-slate-700'" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+            @case ('OK_OR_ERROR') {
+              <div class="bg-slate-200 dark:bg-slate-800 border my-16 border-slate-300 dark:border-slate-600 relative p-3 mx-auto max-w-[1024px] rounded-md text-sm flex gap-2 xs:gap-4 items-center flex-col xs:flex-row">
+                @if (!serverError()) {
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-emerald-800 dark:text-emerald-400">
+                    <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                    <path d="M256 240C256 160.5 320.5 96 400 96C479.5 96 544 160.5 544 240C544 319.5 479.5 384 400 384C388.9 384 378 382.7 367.6 380.4L359 378.4L352.7 384.7L321.3 416.1L255.9 416.1L255.9 480.1L191.9 480.1L191.9 544.1L95.9 544.1L95.9 462.7L258.7 299.9L265.6 293L262.7 283.7C258.3 269.9 256 255.3 256 240zM400 64C302.8 64 224 142.8 224 240C224 255.1 225.9 269.8 229.5 283.9L68.7 444.7L64 449.4L64 576L224 576L224 512L288 512L288 448L334.6 448L339.3 443.3L369.3 413.3C379.3 415.1 389.5 416 400 416C497.2 416 576 337.2 576 240C576 142.8 497.2 64 400 64zM432 232C445.3 232 456 221.3 456 208C456 194.7 445.3 184 432 184C418.7 184 408 194.7 408 208C408 221.3 418.7 232 432 232z"/>
+                  </svg>
+                  <span>La password è stata modificata con successo</span>
+                } @else {
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-light-error dark:text-dark-error">
+                    <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                    <path d="M320 96C443.7 96 544 196.3 544 320C544 443.7 443.7 544 320 544C196.3 544 96 443.7 96 320C96 196.3 196.3 96 320 96zM320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM419.4 243.2L396.8 220.6L385.5 231.9L320 297.4L254.5 231.9L243.2 220.6L220.6 243.2L231.9 254.5L297.4 320L231.9 385.5L220.6 396.8L243.2 419.4L254.5 408.1L320 342.6L385.5 408.1L396.8 419.4L419.4 396.8L342.6 320L408.1 254.5L419.4 243.2z"/>
+                  </svg>
+                    @switch (serverError()) {
+                      @case (429) {
+                        <span>Hai raggiunto il limite massimo di richieste inoltrate al server.&nbsp;Riprova fra alcuni minuti.</span>
+                      }
+                      @case (403) {
+                        <span>Non puoi utilizzare una password già impiegata in precedenza.</span>
+                      }
+                      @case (401) {
+                        <span>La password corrente non è corretta.</span>
+                      }
+                      @default {
+                        <span>Si è verificato un errore inaspettato. Contatta il supporto se dovesse ripetersi.</span>
+                      }
+                    }
+                }
+              </div>
+            }
+          }
       }
     } @else {
       <div class="absolute inset-0 flex justify-center items-center z-[999]">
@@ -699,9 +786,10 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             || changeEmailStep() === 'OK_OR_ERROR'
             || changeOrAddPhoneStep() === 'OK_OR_ERROR'
             || deletePhoneStep() === 'OK_OR_ERROR'
+            || changePasswordStep() === 'OK_OR_ERROR'
           "
           type="button"
-          class="px-4 py-2 rounded bg-slate-200 text-light-on-surface-main dark:bg-slate-100 dark:text-neutral-950 hover:bg-gray-300"
+          class="px-4 py-2 rounded bg-slate-200 text-light-on-surface-main dark:bg-slate-100 dark:text-neutral-950 hover:bg-gray-300 transition-colors duration-300"
           (click)="close()"
         >
           Annulla
@@ -711,13 +799,14 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         [class.invisible]="enableMfaStep() === 'CHOOSE_STRATEGY' || disableMfaStep() === 'CHOOSE_STRATEGY'"
         (click)="routeAction()"
         type="button"
-        class="relative inline-flex items-center justify-center px-4 py-2 rounded bg-emerald-600 text-white font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed"
+        class="relative inline-flex items-center justify-center px-4 py-2 rounded bg-emerald-600 text-white font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed transition-colors duration-300"
         [disabled]="
           loading()
           || (innerScope() === 'ChangeEmail' && changeEmailStep() === 'NEW_CONTACT_FORM' && emailCtrl.invalid)
           || (innerScope() === 'ChangeEmail' && changeEmailStep() === 'OTP_VERIFICATION' && otpCtrl.invalid)
           || ((innerScope() === 'ChangePhone' || innerScope() === 'AddPhone') && (changeOrAddPhoneStep() === 'OTP_VERIFICATION' || changeOrAddPhoneStep() === 'NEW_CONTACT_FORM') && phoneForm.invalid)
           || (innerScope() === 'RemovePhone' && deletePhoneStep() === 'OTP_VERIFICATION' && otpCtrl.invalid)
+          || (innerScope() === 'ChangePassword' && changePasswordStep() === 'CHANGE_PASSWORD_FORM' && passwordForm.invalid)
         "
         [attr.aria-busy]="loading()"
       >
@@ -735,14 +824,20 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
           enableMfaStep() === 'APP:SCAN_QR_CODE_OR_COPY_SECRET'
           || changeEmailStep() === 'NEW_CONTACT_FORM'
           || ((innerScope() === 'AddPhone' || innerScope() === 'ChangePhone') && (changeOrAddPhoneStep() === 'NEW_CONTACT_FORM'))
+          || changePasswordStep() === 'CHANGE_PASSWORD_FORM'
           ) {
-            <span>Avanti</span>
+            @if (changePasswordStep() === 'CHANGE_PASSWORD_FORM') {
+              <span>Cambia password</span>
+            } @else {
+              <span>Avanti</span>
+            }
           } @else if (
           enableMfaStep() === 'OK_OR_ERROR'
           || disableMfaStep() === 'OK_OR_ERROR'
           || changeEmailStep() === 'OK_OR_ERROR'
           || changeOrAddPhoneStep() === 'OK_OR_ERROR'
           || deletePhoneStep() === 'OK_OR_ERROR'
+          || changePasswordStep() === 'OK_OR_ERROR'
           ) {
             <span>Ok</span>
           }
@@ -790,6 +885,7 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
   private sendNewPhoneSub?: Subscription
   private verifyNewPhoneSub?: Subscription
   private delPhoneSub?: Subscription
+  private chPwdSub?: Subscription
 
   private fluxStarter$: Observable<null> = of(null)
 
@@ -854,8 +950,9 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
         this.otpCtrl = this.fb.control('', [Validators.required, Validators.pattern(/^\d{6}$/)])
         this.passwordForm = this.fb.group({
           oldPassword: this.fb.control('', Validators.required),
-          newPassword: this.fb.control('', [Validators.required, Validators.pattern('todo')])
-        })
+          password: this.fb.control('', [Validators.required, Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/)]),
+          confirmPassword: this.fb.control('', [Validators.required, matchPassword])
+        }, { validators: matchPassword })
       }),
       switchMap(() => {
         return combineLatest([
@@ -975,6 +1072,7 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
     this.sendNewPhoneSub?.unsubscribe()
     this.verifyNewPhoneSub?.unsubscribe()
     this.delPhoneSub?.unsubscribe()
+    this.chPwdSub?.unsubscribe()
   }
 
   private onError(code = 500): void {
@@ -1159,6 +1257,14 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
       this.close('contact_details')
       return
     }
+    if (this.changePasswordStep() === 'CHANGE_PASSWORD_FORM') {
+      this.changePassword()
+      return
+    }
+    if (this.changePasswordStep() === 'OK_OR_ERROR') {
+      this.close('security')
+      return
+    }
     this.onError()
   }
 
@@ -1328,6 +1434,27 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
         finalize(() => queueMicrotask(() => {
           this.loading.set(false)
           this.changeOrAddPhoneStep.set('OK_OR_ERROR')
+        }))
+      ).subscribe({
+        next: () => { /* pass */ },
+        error: (e: HttpErrorResponse) => this.serverError.set(e.status)
+      })
+    }
+  }
+
+  private changePassword(): void {
+    this.passwordForm.markAllAsTouched()
+    this.passwordForm.updateValueAndValidity()
+    this.loading.set(true)
+    if (this.passwordForm.valid) {
+      const dto: ChangePasswordDTO = {
+        oldPassword: this.passwordForm.controls['oldPassword'].value,
+        newPassword: this.passwordForm.controls['password'].value
+      }
+      this.chPwdSub = this.accountService.changePassword(dto).pipe(
+        finalize(() => queueMicrotask(() => {
+          this.loading.set(false)
+          this.changePasswordStep.set('OK_OR_ERROR')
         }))
       ).subscribe({
         next: () => { /* pass */ },

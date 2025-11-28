@@ -148,6 +148,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
             case 'AuthenticationInvalidCredentials':
             case 'Unauthanticated':
             case 'AccountRecovery::wrong recovery code':
+            case 'ChangePassword::Invalid Credentials':
                 statusCode = HttpStatus.UNAUTHORIZED
                 break
 
