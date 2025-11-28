@@ -22,6 +22,9 @@ export type SessionSyncStatus =
 @Injectable({ providedIn: 'root' })
 export class SessionSyncService {
 
+  private unauthorizedRetries = 0;
+  private readonly MAX_UNAUTH_RETRIES = 2;
+
   private _handshakeTick = signal(0);
   public readonly handshakeTick = this._handshakeTick.asReadonly();
 
@@ -65,8 +68,11 @@ export class SessionSyncService {
     // errore applicativo → tentiamo resync (niente logout automatico)
     this.socket.on<{ detail: string }>('sv.pub.err')
       .subscribe(err => this.zone.run(() => {
-        if (err?.detail === 'Unauthorized') { void this.syncSession(true); }
+        if (err?.detail === 'Unauthorized') {
+          void this.handleUnauthorized();
+        }
       }));
+
 
     // scadenza sessione lato server
     this.socket.on('sv.pub.session_expired')
@@ -217,6 +223,7 @@ export class SessionSyncService {
       const ack: any = await this.socket.emit('so.pub.session_init', undefined, 1200);
 
       if (ack?.detail === 'websocket session init successful') {
+        this.unauthorizedRetries = 0
         // ACK riuscito: setta iniziali se le abbiamo, e valida cookie
         const initials = localStorage.getItem('login') ?? 'U';
         this.userCtx.setInitials(initials);
@@ -265,6 +272,33 @@ export class SessionSyncService {
   }
 
   /* ---------------- Eventi server ---------------- */
+
+  private async handleUnauthorized(): Promise<void> {
+    const initials = localStorage.getItem('login') ?? '';
+    const cookieLogged = this.hasClientLoginCookieTrue();
+
+    // Se non risultiamo loggati, non tentiamo nemmeno il private
+    if (!initials || !cookieLogged) {
+      this._status.set('anonymous');
+      this.lastAnonHS = Date.now();
+      return;
+    }
+
+    // Troppi tentativi → trattiamo come sessione scaduta
+    if (this.unauthorizedRetries >= this.MAX_UNAUTH_RETRIES) {
+      this.unauthorizedRetries = 0;
+      this.handleSessionExpired();
+      return;
+    }
+
+    this.unauthorizedRetries++;
+
+    // 1) Forza refresh del ws_accessToken
+    await this.socket.ensurePrivate(undefined, { forceRefresh: true });
+    // 2) Rilancia un sync completo (che rilancerà il pollHandshake)
+    await this.syncSession(true);
+  }
+
 
   private handleSessionExpired(): void {
     // scadenza certa → rimuovi login locale e vai anonimo
