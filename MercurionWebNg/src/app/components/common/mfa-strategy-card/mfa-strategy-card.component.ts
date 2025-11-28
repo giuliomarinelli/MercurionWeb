@@ -67,16 +67,7 @@ import { DesignService } from '../../../services/design.service';
                   }
                 }
           }
-            @if (_strategy()!.strategy === 'SMS_OTP' && noPhone) {
-              <div class="flex items-center gap-4 flex-wrap text-sm">
-                <span >Per attivare questa strategia</span>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto">
-                    <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-                    <path d="M571.4 331.3L582.7 320L571.4 308.7L395.4 132.7L384.1 121.4L361.5 144L372.8 155.3L521.5 304L64.1 304L64.1 336L521.5 336L372.8 484.7L361.5 496L384.1 518.6L571.4 331.3z"/>
-                </svg>
-                <button class="a">aggiungi un numero di telefono</button>
-              </div>
-            }
+
         @if (choose || config) {
           <span
             class="px-2 py-[2px] rounded text-xs font-semibold"
@@ -87,6 +78,16 @@ import { DesignService } from '../../../services/design.service';
           >
             {{ _strategy()!.enabled ? 'Attiva' : 'Non attiva' }}
           </span>
+          @if (_strategy()!.strategy === 'SMS_OTP' && noPhone) {
+              <div class="flex items-center gap-4 flex-wrap text-sm">
+                <span >Per attivare questa strategia</span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto">
+                    <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                    <path d="M571.4 331.3L582.7 320L571.4 308.7L395.4 132.7L384.1 121.4L361.5 144L372.8 155.3L521.5 304L64.1 304L64.1 336L521.5 336L372.8 484.7L361.5 496L384.1 518.6L571.4 331.3z"/>
+                </svg>
+                <button class="a" (click)="doAddNewPhone()">Aggiungi un numero di telefono</button>
+              </div>
+            }
         }
       </div>
       @if (showActions && !(noPhone && _strategy()!.strategy === 'SMS_OTP') && _strategy()!.strategy !== 'BACKUP_CODE') {
@@ -168,7 +169,7 @@ export class MfaStrategyCardComponent {
   onDisableMfa = new EventEmitter<MfaStrategy>()
 
   @Output()
-  onRefreshBackupCodes = new EventEmitter<void>()
+  onAddNewPhone = new EventEmitter<void>()
 
   private updateStrategyState(): void {
     if (!this.currentStrategy) {
@@ -190,14 +191,14 @@ export class MfaStrategyCardComponent {
       return
     }
     if (state.enabled) {
-      if (state.strategy === 'BACKUP_CODE') {
-        this.onRefreshBackupCodes.emit()
-        return
-      }
       this.onDisableMfa.emit(state.strategy)
     } else {
       this.onEnableMfa.emit(state.strategy)
     }
+  }
+
+  doAddNewPhone(): void {
+    this.onAddNewPhone.emit()
   }
 
 }

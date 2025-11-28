@@ -1,4 +1,4 @@
-import { ConfirmWithRecoveryCodeDTO } from './../Models/confirm.models';
+import { ConfirmWithPhoneMfaFeedback, ConfirmWithRecoveryCodeDTO } from './../Models/confirm.models';
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { ChangePasswordDTO, MfaStrategy, ChangePhoneDTO, ProfileDTO, SessionDTO, UserData } from '../Models/account/account.models';
@@ -195,18 +195,28 @@ export class AccountService {
     })
   }
 
-  public deletePhoneNumber_firstStep(): Observable<ConfirmChangeDTO> {
-    return this.http.delete<ConfirmChangeDTO>('/api/account/phone/1', {
-      withCredentials: true
-    })
-  }
-
   public changePhoneNumber_secondStep(totp: string, secureToken: string): Observable<ConfirmDTO> {
     const body: TotpDTO = {
       secureToken,
       totp
     }
     return this.http.patch<ConfirmDTO>('/api/account/phone/2', body, {
+      withCredentials: true
+    })
+  }
+
+  public deletePhoneNumber_firstStep(): Observable<ConfirmChangeDTO> {
+    return this.http.delete<ConfirmChangeDTO>('/api/account/phone/1', {
+      withCredentials: true
+    })
+  }
+
+  public deletePhoneNumber_secondStep(totp: string, secureToken: string): Observable<ConfirmWithPhoneMfaFeedback> {
+    const body: TotpDTO = {
+      secureToken,
+      totp
+    }
+    return this.http.patch<ConfirmWithPhoneMfaFeedback>('/api/account/phone/del/2', body, {
       withCredentials: true
     })
   }

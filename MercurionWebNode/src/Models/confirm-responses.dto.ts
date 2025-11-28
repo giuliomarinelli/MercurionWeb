@@ -50,3 +50,7 @@ export type ConfirmNewLogLevelsDTO = ConfirmDTO & {
 export type ConfirmWithRecoveryTokenDTO = ConfirmDTO & {
     recoveryToken: string
 }
+
+export type ConfirmWithPhoneMfaFeedback = ConfirmDTO & {
+    phoneMfaDisabled: boolean
+}

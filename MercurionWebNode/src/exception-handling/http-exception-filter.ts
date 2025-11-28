@@ -131,12 +131,14 @@ export class HttpExceptionFilter implements ExceptionFilter {
             case 'MfaTemporarilyLocked':
             case 'Forbidden::missing permissions':
             case 'BackupCodesAlreadyGenerated':
+            case 'DeletePhone::NumberAlreadyUsedOrPending':
+            case 'DeletePhone::NoPendingDeletion':            
                 statusCode = HttpStatus.FORBIDDEN
                 break
 
             case 'ChangeEmailConfirm::NoUnconfirmedEmail':
             case 'DeletePhone::UserNotFound':
-            case 'DeletePhone::NoPhoneNumber':
+            case 'DeletePhone::NoPhoneNumber':                                             
                 statusCode = HttpStatus.BAD_REQUEST
                 break
 

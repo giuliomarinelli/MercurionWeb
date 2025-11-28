@@ -58,7 +58,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
               Aggiungi un numero di telefono
             }
             @case ('RemovePhone') {
-              Rimuovi un numero di telefono
+              Rimuovi il numero di telefono
             }
             @case ('ChangePassword') {
               Cambia la password
@@ -90,7 +90,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                   [config]="true"
                   (onEnableMfa)="handleEnableMfa($event)"
                   (onDisableMfa)="handleDisableMfa($event)"
-                  (onRefreshBackupCodes)="handleRefreshBackupCodes()"  />
+                  (onAddNewPhone)="switchToAddNewPhone()"  />
               }
             </div>
           } @else if (enableMfaStep() === 'OTP_VERIFICATION') {
@@ -609,6 +609,79 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 </div>
               }
           }
+      } @else if (innerScope() === 'RemovePhone') {
+          @switch (deletePhoneStep()) {
+              @case ('OTP_VERIFICATION') {
+                <div class="flex flex-col gap-y-6">
+                <div class="relative py-8 px-4 rounded-md flex flex-col gap-y-2 border border-slate-600 dark:border-slate-400 bg-slate-200 dark:bg-slate-700">
+                  <div class="flex items-center gap-6">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-12 w-auto shrink-0 relative -top-1">
+                      <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                      <path d="M144.1 121.3L144.1 64L496.1 64L496.1 473.3L606.7 583.9L584.1 606.5L33.7 56.1L56.3 33.5L144.1 121.3zM176.1 266.5L176.1 544L453.6 544L485.6 576L144.1 576L144.1 234.5L176.1 266.5zM368.1 496L272.1 496L272.1 464L368.1 464L368.1 496zM176.1 153.3L464.1 441.3L464.1 96L176.1 96L176.1 153.3z"/>
+                    </svg>
+                    <div class="text-[0.925rem] leading-[1.25rem]">
+                      <span class="text-sm">Abbiamo inviato via SMS un codice monouso a&nbsp;<strong class="text-light-accent-primary dark:text-dark-accent-primary">{{obscuredPhone()}}</strong>. Inserisci il codice monouso nel campo di input seguente per confermare l'eliminazione del nuovo numero di telefono dal tuo account.</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="relative min-h-[25vh] rounded-md border border-slate-600 dark:border-slate-400 bg-slate-200 dark:bg-slate-700">
+                  <div class="absolute inset-0 flex justify-center items-center px-6">
+                    <app-floating-input
+                      class="w-full max-w-md"
+                      label="Codice monouso"
+                      type="text"
+                      autocomplete="text"
+                      [formControl]="otpCtrl"
+                      [errors]="{
+                           required: 'Il codice monouso è obbligatorio.',
+                           pattern: 'Il codice deve contenere 6 cifre.'
+                         }"
+                      [serverError]="serverErrorMsg"
+                      [bgClass]="'bg-slate-200'"
+                      [darkBgClass]="'dark:bg-slate-700'"
+                      (enter)="routeAction()" />
+                  </div>
+                </div>
+              </div>
+              }
+              @case ('OK_OR_ERROR') {
+                <div class="bg-slate-200 dark:bg-slate-800 border my-16 border-slate-300 dark:border-slate-600 relative p-3 mx-auto max-w-[1024px] rounded-md text-sm flex gap-2 xs:gap-4 items-center flex-col xs:flex-row">
+                  @if (!serverError()) {
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-emerald-800 dark:text-emerald-400">
+                      <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                      <path d="M144.1 121.3L144.1 64L496.1 64L496.1 473.3L606.7 583.9L584.1 606.5L33.7 56.1L56.3 33.5L144.1 121.3zM176.1 266.5L176.1 544L453.6 544L485.6 576L144.1 576L144.1 234.5L176.1 266.5zM368.1 496L272.1 496L272.1 464L368.1 464L368.1 496zM176.1 153.3L464.1 441.3L464.1 96L176.1 96L176.1 153.3z" />
+                    </svg>
+                    <span>
+                      Il numero di telefono è stato correttamente eliminato dall'account.
+                      @if (phoneMfaDisabled()) {
+                        &nbsp;<span class="font-semibold text-light-accent-primary dark:text-dark-accent-primary">
+                          L'autenticazione a più fattori via SMS è stata disabilitata
+                        </span>.
+                      }
+                    </span>
+                  } @else {
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-light-error dark:text-dark-error">
+                      <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                      <path d="M320 96C443.7 96 544 196.3 544 320C544 443.7 443.7 544 320 544C196.3 544 96 443.7 96 320C96 196.3 196.3 96 320 96zM320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM419.4 243.2L396.8 220.6L385.5 231.9L320 297.4L254.5 231.9L243.2 220.6L220.6 243.2L231.9 254.5L297.4 320L231.9 385.5L220.6 396.8L243.2 419.4L254.5 408.1L320 342.6L385.5 408.1L396.8 419.4L419.4 396.8L342.6 320L408.1 254.5L419.4 243.2z"/>
+                    </svg>
+                      @switch (serverError()) {
+                        @case (401) {
+                          <span>Il codice monouso è errato.</span>
+                        }
+                        @case (429) {
+                          <span>Hai raggiunto il limite massimo di richieste inoltrate al server.&nbsp;Riprova fra alcuni minuti.</span>
+                        }
+                        @case (403) {
+                          <span>L'eliminazione del numero di telefono&nbsp;<strong class="text-light-error dark:text-dark-error">{{obscuredPhone()}}</strong>&nbsp;è temporaneamente non disponibile per motivi di sicurezza. Riprova tra 5 minuti.</span>
+                        }
+                        @default {
+                          <span>Si è verificato un errore inaspettato. Contatta il supporto se dovesse ripetersi.</span>
+                        }
+                      }
+                  }
+                </div>
+              }
+          }
       }
     } @else {
       <div class="absolute inset-0 flex justify-center items-center z-[999]">
@@ -625,6 +698,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             || disableMfaStep() === 'OK_OR_ERROR'
             || changeEmailStep() === 'OK_OR_ERROR'
             || changeOrAddPhoneStep() === 'OK_OR_ERROR'
+            || deletePhoneStep() === 'OK_OR_ERROR'
           "
           type="button"
           class="px-4 py-2 rounded bg-slate-200 text-light-on-surface-main dark:bg-slate-100 dark:text-neutral-950 hover:bg-gray-300"
@@ -636,13 +710,14 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       <button
         [class.invisible]="enableMfaStep() === 'CHOOSE_STRATEGY' || disableMfaStep() === 'CHOOSE_STRATEGY'"
         (click)="routeAction()"
-        type="submit"
+        type="button"
         class="relative inline-flex items-center justify-center px-4 py-2 rounded bg-emerald-600 text-white font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed"
         [disabled]="
           loading()
           || (innerScope() === 'ChangeEmail' && changeEmailStep() === 'NEW_CONTACT_FORM' && emailCtrl.invalid)
           || (innerScope() === 'ChangeEmail' && changeEmailStep() === 'OTP_VERIFICATION' && otpCtrl.invalid)
           || ((innerScope() === 'ChangePhone' || innerScope() === 'AddPhone') && (changeOrAddPhoneStep() === 'OTP_VERIFICATION' || changeOrAddPhoneStep() === 'NEW_CONTACT_FORM') && phoneForm.invalid)
+          || (innerScope() === 'RemovePhone' && deletePhoneStep() === 'OTP_VERIFICATION' && otpCtrl.invalid)
         "
         [attr.aria-busy]="loading()"
       >
@@ -653,6 +728,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
           || disableMfaStep() === 'OTP_VERIFICATION'
           || changeEmailStep() === 'OTP_VERIFICATION'
           || changeOrAddPhoneStep() === 'OTP_VERIFICATION'
+          || deletePhoneStep() === 'OTP_VERIFICATION'
           ) {
             <span>Verifica codice</span>
           } @else if (
@@ -666,6 +742,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
           || disableMfaStep() === 'OK_OR_ERROR'
           || changeEmailStep() === 'OK_OR_ERROR'
           || changeOrAddPhoneStep() === 'OK_OR_ERROR'
+          || deletePhoneStep() === 'OK_OR_ERROR'
           ) {
             <span>Ok</span>
           }
@@ -712,6 +789,7 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
   private verifyNewEmailSub?: Subscription
   private sendNewPhoneSub?: Subscription
   private verifyNewPhoneSub?: Subscription
+  private delPhoneSub?: Subscription
 
   private fluxStarter$: Observable<null> = of(null)
 
@@ -743,6 +821,7 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
   tempObscuredPhone = signal<string | null>(null)
 
   currentMfaStrategy = signal<MfaStrategy | ''>('')
+  phoneMfaDisabled = signal<boolean>(false)
 
   loading = signal<boolean>(false)
 
@@ -752,8 +831,6 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
   qrCode = signal<string>('')
 
   mfaStrategiesDescrMap!: Map<MfaStrategy, string>
-
-
 
   ngOnInit(): void {
     this.fetchSub = this.fluxStarter$.pipe(
@@ -837,8 +914,8 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
           case 'AddPhone':
           case 'ChangePhone':
           case 'RemovePhone': {
-            const phone = (res as string | null | undefined)?.trim()
-            this.obscuredPhone.set(phone && phone !== 'null' && phone !== 'undefined' ? phone : null)
+            const phone = (res as string | null | undefined)?.trim() ?? ''
+            this.obscuredPhone.set(!!phone ? phone : null)
             break
           }
           case 'ChangePassword':
@@ -850,6 +927,21 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
         }
       }),
       switchMap(() => {
+        if (this.innerScope() === 'RemovePhone' && this.deletePhoneStep() === 'OTP_VERIFICATION') {
+          return this.accountService.deletePhoneNumber_firstStep().pipe(
+            catchError((e: HttpErrorResponse) => {
+              this.serverError.set(e.status)
+              this.deletePhoneStep.set('OK_OR_ERROR')
+              return of(null)
+            })
+          )
+        }
+        return of(null)
+      }),
+      switchMap((res) => {
+        if (res && res.phoneNumberVerificationToken) {
+          this.secureToken.set(res.phoneNumberVerificationToken)
+        }
         if (['ConfigMfa', 'EnableMfa', 'AddPhone', 'ChangePhone'].includes(this.innerScope())) {
           return this.countryService.getAllPhonePrefixes()
         }
@@ -882,6 +974,7 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
     this.verifyNewEmailSub?.unsubscribe()
     this.sendNewPhoneSub?.unsubscribe()
     this.verifyNewPhoneSub?.unsubscribe()
+    this.delPhoneSub?.unsubscribe()
   }
 
   private onError(code = 500): void {
@@ -906,11 +999,11 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
   }
 
   close(fragment?: 'general' | 'personal_details' | 'contact_details' | 'security'): void {
-    this.dataChangeContext.notifyAdded()
     this.dataChangeContext.clearInnerScope()
     if (fragment) {
-      this.router.navigate([], { fragment })
+      this.router.navigate(['/settings'], { fragment })
     }
+    this.dataChangeContext.notifyAdded()
     this.actionContext.close()
   }
 
@@ -941,8 +1034,6 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
     }))
 
   }
-
-
 
   handleEnableMfa(s: MfaStrategy): void {
     this.loading.set(true)
@@ -1001,8 +1092,18 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
     })
   }
 
-  handleRefreshBackupCodes(): void {
-    // TODO
+  switchToAddNewPhone(): void {
+    queueMicrotask(() => {
+      this.dataChangeContext.setInnerScope('AddPhone')
+      this.innerScope.set('AddPhone')
+      this.serverError.set(0)
+      this.deletePhoneStep.set('')
+      this.changeEmailStep.set('')
+      this.enableMfaStep.set('')
+      this.disableMfaStep.set('')
+      this.changePasswordStep.set('')
+      this.changeOrAddPhoneStep.set('NEW_CONTACT_FORM')
+    })
   }
 
   routeAction(): void {
@@ -1047,6 +1148,14 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
       return
     }
     if (this.changeOrAddPhoneStep() === 'OK_OR_ERROR') {
+      this.close('contact_details')
+      return
+    }
+    if (this.deletePhoneStep() === 'OTP_VERIFICATION') {
+      this.deleteCurrentPhone_verifyTotp()
+      return
+    }
+    if (this.deletePhoneStep() === 'OK_OR_ERROR') {
       this.close('contact_details')
       return
     }
@@ -1188,18 +1297,27 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
           this.serverError.set(e.status)
           this.changeOrAddPhoneStep.set('OK_OR_ERROR')
         })
-      }
-      )
+      })
 
     }
   }
 
-  private deleteCurrentPhone(): void {
+  private deleteCurrentPhone_verifyTotp(): void {
+    this.otpCtrl.markAsTouched()
+    this.otpCtrl.updateValueAndValidity()
+    this.loading.set(true)
+    if (this.otpCtrl.valid) {
+      this.delPhoneSub = this.accountService.deletePhoneNumber_secondStep(this.otpCtrl.value, this.secureToken()).pipe(
+        finalize(() => queueMicrotask(() => {
+          this.deletePhoneStep.set('OK_OR_ERROR')
+          this.loading.set(false)
+        }))
+      ).subscribe({
+        next: (res) => this.phoneMfaDisabled.set(res.phoneMfaDisabled),
+        error: (e: HttpErrorResponse) => this.serverError.set(e.status)
+      })
 
-  }
-
-  private confirmNewPhoneOrCurrentPhoneDeletion(): void {
-
+    }
   }
 
   private verifyNewPhone(): void {
