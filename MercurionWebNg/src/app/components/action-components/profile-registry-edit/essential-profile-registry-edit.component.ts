@@ -92,8 +92,24 @@ type RegistryFormValue = {
                 darkBgClass="dark:bg-dark-surface-main" />
             </div>
           }
-        } @else if (step() === 2) {
-          <!-- Step 2 template qui -->
+        } @else if (step() === 2 && error()) {
+          <div class="bg-slate-200 dark:bg-slate-800 border my-16 border-slate-300 dark:border-slate-600 relative p-3 mx-auto max-w-[1024px] rounded-md text-sm flex gap-2 xs:gap-4 items-center flex-col xs:flex-row">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-light-error dark:text-dark-error">
+              <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+              <path d="M320 96C443.7 96 544 196.3 544 320C544 443.7 443.7 544 320 544C196.3 544 96 443.7 96 320C96 196.3 196.3 96 320 96zM320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM419.4 243.2L396.8 220.6L385.5 231.9L320 297.4L254.5 231.9L243.2 220.6L220.6 243.2L231.9 254.5L297.4 320L231.9 385.5L220.6 396.8L243.2 419.4L254.5 408.1L320 342.6L385.5 408.1L396.8 419.4L419.4 396.8L342.6 320L408.1 254.5L419.4 243.2z"/>
+            </svg>
+              @switch (error()) {
+                @case (429) {
+                  <span>Hai raggiunto il limite massimo di richieste inoltrate al server.&nbsp;Riprova fra alcuni minuti.</span>
+                }
+                @case (401) {
+                  <span>Non sei in possesso delle autorizzazioni per compiere questa operazione.</span>
+                }
+                @default {
+                  <span>Si è verificato un errore inaspettato. Contatta il supporto se dovesse ripetersi.</span>
+                }
+              }
+          </div>
         }
       </div>
     </div>
@@ -101,7 +117,7 @@ type RegistryFormValue = {
       @if (step() === 1) {
         <button
         type="button"
-        class="px-4 py-2 rounded bg-slate-200 text-light-on-surface-main dark:bg-slate-100 dark:text-neutral-950 hover:bg-gray-300"
+        class="px-4 py-2 rounded bg-slate-200 text-light-on-surface-main dark:bg-slate-100 dark:text-neutral-950 hover:bg-gray-300 transition-colors duration-300"
         (click)="close()"
         >
         Annulla
@@ -109,7 +125,7 @@ type RegistryFormValue = {
       <button
         type="button"
         title="Resetta"
-        class="px-4 py-2 rounded bg-slate-200 text-light-on-surface-main disabled:text-slate-200 dark:disabled:text-neutral-400 dark:bg-slate-100 dark:text-neutral-950 disabled:bg-slate-100 dark:disabled:bg-slate-50 disabled:cursor-not-allowed hover:bg-gray-300"
+        class="px-4 py-2 rounded bg-slate-200 text-light-on-surface-main disabled:text-slate-200 dark:disabled:text-neutral-400 dark:bg-slate-100 dark:text-neutral-950 disabled:bg-slate-100 dark:disabled:bg-slate-50 disabled:cursor-not-allowed hover:bg-gray-300 transition-colors duration-300"
         [disabled]="isGroupValueTheSameAsInitialValueSig()"
         (click)="reset()"
       >
@@ -121,8 +137,8 @@ type RegistryFormValue = {
       }
       <button
         type="button"
-        class="relative inline-flex items-center justify-center px-4 py-2 rounded bg-emerald-600 text-white font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed"
-        [disabled]="isGroupValueTheSameAsInitialValueSig()"
+        class="relative inline-flex items-center justify-center px-4 py-2 rounded bg-emerald-600 text-white font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed transition-colors duration-300"
+        [disabled]="isGroupValueTheSameAsInitialValueSig() || step_12_loading()"
         [attr.aria-busy]="step_12_loading()"
         (click)="routeAction()"
       >
@@ -166,15 +182,15 @@ export class EssentialProfileRegistryEditComponent implements OnInit, OnDestroy 
   options: PmOption[] = [
     {
       label: 'Maschile',
-      value: 'M',
+      value: 'M'
     },
     {
       label: 'Femminile',
-      value: 'F',
+      value: 'F'
     },
     {
       label: 'Non specificato',
-      value: 'Undefined',
+      value: 'Undefined'
     }
   ]
 

@@ -570,8 +570,6 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
   scrollRootRef!: ElementRef<HTMLElement>
 
-  pipeStarter$: Observable<null> = of(null)
-
   profileFetchError = signal<boolean>(false)
   loading = signal<boolean>(true)
   currentVersion!: string
@@ -599,14 +597,14 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
       if (t === 0) {
         return
       }
-      this.fetch(true)
+      this.fetch()
     })
     effect(() => {
       const t = this.registryContext.addedTick()
       if (t === 0) {
         return
       }
-      this.fetch(true)
+      this.fetch()
     })
     effect(() => {
       const rootRef = this.appContext.globalScollRootRef()
@@ -657,12 +655,9 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
     this.fragmentSub?.unsubscribe()
   }
 
-  private fetch(rerender = false): void {
+  private fetch(): void {
     this.fetchSub = this.accountService.getCurrentVersion().pipe(
       switchMap(curVers => {
-        if (rerender) {
-          this.openAccordionAtIndex(3, { closeOthers: true })
-        }
         this.currentVersion = curVers
         return this.accountService.isMfaEnabled()
       }),
@@ -800,7 +795,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
   doLogoutFromSession(ssid: string): void {
     const onError = () => queueMicrotask(() => this.toast.trigger(`Si è verificato un errore. La sessione non è stata eliminata. Contatta il supporto.`, 'error', 3000))
-    this.sLoguotSub = this.pipeStarter$.pipe(
+    this.sLoguotSub = of(null).pipe(
       switchMap(() => {
         const s = this.activeSessions.find(ss => ss.id === ssid)
         if (!s) {
