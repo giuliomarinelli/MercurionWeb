@@ -12,6 +12,8 @@ import { ActionOverlayContextService } from '../../services/context/action-conte
 import { SensitiveDataChangeContextService } from '../../services/context/action-context/sensitive-data-change-context.service'
 import { AppContextService } from '../../services/context/app-context.service'
 import { ActivatedRoute, Router } from '@angular/router'
+import { GenderPipe } from '../../pipes/gender.pipe'
+import { ProfileRegistryEditContextService } from '../../services/context/action-context/profile-registry-edit-context.service'
 
 @Component({
   selector: 'm-settings.page',
@@ -20,7 +22,8 @@ import { ActivatedRoute, Router } from '@angular/router'
     CdkAccordionModule,
     ClassicSpinnerComponent,
     SessionCardComponent,
-    MfaStrategyCardComponent
+    MfaStrategyCardComponent,
+    GenderPipe
   ],
   styles: `
 
@@ -188,7 +191,7 @@ import { ActivatedRoute, Router } from '@angular/router'
                                     <div class="flex justify-between gap-2">
                                       <span class="text-slate-500 dark:text-slate-400">Genere</span>
                                       <span class="font-medium text-slate-800 dark:text-slate-100">
-                                        {{ profile.gender }}
+                                        {{ profile.gender | gender}}
                                       </span>
                                     </div>
                                     <div class="flex justify-between gap-2">
@@ -348,14 +351,14 @@ import { ActivatedRoute, Router } from '@angular/router'
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
                               <div class="p-2 sm:p-4">Genere</div>
-                              <div class="p-2 sm:p-4"><strong>{{profile.gender}}</strong></div>
+                              <div class="p-2 sm:p-4"><strong>{{profile.gender | gender}}</strong></div>
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
                               <div class="p-2 sm:p-4">Lavoro</div>
                               <div class="p-2 sm:p-4"><strong>{{profile.job ?? '―'}}</strong></div>
                             </div>
                             <button class="absolute right-6 top-6 cursor-pointer transition-[transform,color] duration-300 hover:scale-[1.075]"
-                              title="Modifica anagrafica" (click)="editAnagraphics()">
+                              title="Modifica anagrafica" (click)="editPersonalDetails()">
                               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-[22px] w-auto fill-current text-slate-800 hover:text-slate-800/75 dark:text-slate-200 dark:hover:text-slate-200/75">
                                 <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                                 <path d="M58.1 555.9L48 592C50.7 591.2 117.4 572.6 248 536L569.4 214.6L592 192C589.6 189.6 549.1 149.1 470.6 70.6L448 48L425.4 70.6L104 392L58.1 555.9zM252.7 486L154 387.3L347.4 193.9L446.1 292.6L252.7 486zM229.4 508L94.2 545.8L132 410.6L229.4 508zM546.7 192L468.6 270.1L369.9 171.4L448 93.3L546.7 192z"/>
@@ -554,6 +557,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly actionContext = inject(ActionOverlayContextService)
   private readonly changeDataContext = inject(SensitiveDataChangeContextService)
   private readonly appContext = inject(AppContextService)
+  private readonly registryContext = inject(ProfileRegistryEditContextService)
 
   @ViewChild(CdkAccordion)
   accordion!: CdkAccordion
@@ -565,8 +569,6 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   accordionItemHosts!: QueryList<ElementRef<HTMLElement>>
 
   scrollRootRef!: ElementRef<HTMLElement>
-
-  pipeStarter$: Observable<null> = of(null)
 
   profileFetchError = signal<boolean>(false)
   loading = signal<boolean>(true)
@@ -595,7 +597,14 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
       if (t === 0) {
         return
       }
-      this.fetch(true)
+      this.fetch()
+    })
+    effect(() => {
+      const t = this.registryContext.addedTick()
+      if (t === 0) {
+        return
+      }
+      this.fetch()
     })
     effect(() => {
       const rootRef = this.appContext.globalScollRootRef()
@@ -646,12 +655,9 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
     this.fragmentSub?.unsubscribe()
   }
 
-  private fetch(rerender = false): void {
+  private fetch(): void {
     this.fetchSub = this.accountService.getCurrentVersion().pipe(
       switchMap(curVers => {
-        if (rerender) {
-          this.openAccordionAtIndex(3, { closeOthers: true })
-        }
         this.currentVersion = curVers
         return this.accountService.isMfaEnabled()
       }),
@@ -789,7 +795,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
   doLogoutFromSession(ssid: string): void {
     const onError = () => queueMicrotask(() => this.toast.trigger(`Si è verificato un errore. La sessione non è stata eliminata. Contatta il supporto.`, 'error', 3000))
-    this.sLoguotSub = this.pipeStarter$.pipe(
+    this.sLoguotSub = of(null).pipe(
       switchMap(() => {
         const s = this.activeSessions.find(ss => ss.id === ssid)
         if (!s) {
@@ -844,8 +850,8 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
     })
   }
 
-  editAnagraphics(): void {
-    // TODO
+  editPersonalDetails(): void {
+    queueMicrotask(() => this.actionContext.open('EssentialProfileRegistryEdit'))
   }
 
   changePassword(): void {

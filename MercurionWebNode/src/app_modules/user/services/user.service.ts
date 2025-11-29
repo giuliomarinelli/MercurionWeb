@@ -269,7 +269,7 @@ export class UserService {
         return result.initials
     }
 
-    async getUserIdByEmail(email: string): Promise<string | nullish> {
+    public async getUserIdByEmail(email: string): Promise<string | nullish> {
         const result = await this.userRepository.createQueryBuilder('u')
             .select(['u.id'])
             .where('u.email = :email', { email })
@@ -280,7 +280,7 @@ export class UserService {
         return result.id
     }
 
-    async changePassword(userId: UUID, newPassword: string): Promise<void> | never {
+    public async changePassword(userId: UUID, newPassword: string): Promise<void> | never {
         await this.userRepository.manager.transaction(async manager => {
 
             const user = await manager
@@ -330,7 +330,7 @@ export class UserService {
         })
     }
 
-    async getVerifiedUserProfileById(id: UUID, getRecentHistory = true): Promise<ProfileDTO | null> {
+    public async getVerifiedUserProfileById(id: UUID, getRecentHistory = true): Promise<ProfileDTO | null> {
 
         try {
             return this.dataSource.manager.transaction(async (manager) => {
@@ -408,13 +408,35 @@ export class UserService {
             this.logger.warn('Failed to fetch profile', e as object)
             throw e
         }
-
-
-
     }
 
-    async updateVerifiedUserProfileRegistryById(id: UUID, dto: ProfileRegistryDTO): Promise<ProfileRegistryDTO | null> {
-        dto.job = dto.job ?? null
+    public async getVerifiedUserEssentialProfileRegistryById(id: UUID): Promise<ProfileRegistryDTO> {
+        const row = await this.userRepository.findOne({
+            where: {
+                id,
+                isVerified: true
+            },
+            select: {
+                firstName: true,
+                lastName: true,
+                gender: true,
+                job: true
+            }
+        })
+        if (!row) {
+            throw new RpcException('Unauthenticated')
+        }
+        const { firstName, lastName, gender, job } = row
+        return {
+            firstName,
+            lastName,
+            gender,
+            job: job ?? ''
+        }
+    }
+
+    public async updateVerifiedUserProfileRegistryById(id: UUID, dto: ProfileRegistryDTO): Promise<ProfileRegistryDTO | null> {
+        dto.job = dto.job || null
         const user = await this.userRepository.findOne({
             where: {
                 id,
@@ -432,7 +454,7 @@ export class UserService {
         return await this.userRepository.save(newUser)
     }
 
-    async updatePasswordHashByUserId(userId: UUID, passwordHash: string): Promise<void> | never {
+    public async updatePasswordHashByUserId(userId: UUID, passwordHash: string): Promise<void> | never {
         try {
             await this.userRepository.update({ id: userId }, { passwordHash, updatedAt: Date.now() })
         } catch (e) {
@@ -441,7 +463,7 @@ export class UserService {
         }
     }
 
-    async migratePasswordHash(userId: UUID, currentHash: string, newHash: string): Promise<void> {
+    public async migratePasswordHash(userId: UUID, currentHash: string, newHash: string): Promise<void> {
         await this.userRepository.manager.transaction(async (manager) => {
             const user = await manager
                 .createQueryBuilder(User, 'u')
@@ -451,8 +473,10 @@ export class UserService {
                 .setLock('pessimistic_write')
                 .getOneOrFail()
 
-            // Evita condizioni di gara: migra solo se il current combacia
-            if (user.passwordHash !== currentHash) return
+            // Evita race condition: migra solo se il current combacia
+            if (user.passwordHash !== currentHash) {
+                return
+            }
 
             const oldList: OldPasswordItem[] = Array.isArray(user.oldPasswordHashes)
                 ? user.oldPasswordHashes
@@ -470,7 +494,7 @@ export class UserService {
                 .where('id = :userId', { userId })
                 .execute()
         })
-    }   
+    }
 
 
 

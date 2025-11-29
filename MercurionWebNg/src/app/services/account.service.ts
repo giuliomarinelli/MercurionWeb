@@ -1,7 +1,7 @@
 import { ConfirmWithPhoneMfaFeedback, ConfirmWithRecoveryCodeDTO } from './../Models/confirm.models';
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
-import { ChangePasswordDTO, MfaStrategy, ChangePhoneDTO, ProfileDTO, SessionDTO, UserData } from '../Models/account/account.models';
+import { ChangePasswordDTO, MfaStrategy, ChangePhoneDTO, ProfileDTO, SessionDTO, ProfileRegistryDTO } from '../Models/account/account.models';
 import { map, Observable, of, tap } from 'rxjs';
 import { ConfirmChangeDTO, ConfirmDTO, ConfirmMfaChange } from '../Models/confirm.models';
 import { ConfirmWithObsContDTO } from '../Models/confirm.models';
@@ -87,8 +87,20 @@ export class AccountService {
   }
 
   public getProfileRegistry(getRecentHistory = true): Observable<ProfileDTO> {
-    const suffix = getRecentHistory ? '' : '?get_recent_history=false'
-    return this.http.get<ProfileDTO>(`/api/account/profile-registry${suffix}`, {
+    const query = getRecentHistory ? '' : '?get_recent_history=false'
+    return this.http.get<ProfileDTO>(`/api/account/profile-registry${query}`, {
+      withCredentials: true
+    })
+  }
+
+  public getEssentialProfileRegistry(): Observable<ProfileRegistryDTO> {
+    return this.http.get<ProfileRegistryDTO>('/api/account/profile-registry/essential', {
+      withCredentials: true
+    })
+  }
+
+  public updateProfileRegistry(dto: ProfileRegistryDTO): Observable<ProfileRegistryDTO> {
+    return this.http.patch<ProfileRegistryDTO>('/api/account/profile-registry', dto, {
       withCredentials: true
     })
   }
