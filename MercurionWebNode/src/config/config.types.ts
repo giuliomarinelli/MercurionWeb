@@ -135,5 +135,5 @@ export interface SSO_Configuration {
 }
 
 export interface SSO_Configurations {
-    google: SSO_Configuration
+    Google: SSO_Configuration
 }

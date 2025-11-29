@@ -8,6 +8,7 @@ import { AuthProvider } from '../Models/enums/auth-provider.enum';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 import { RpcException } from '@nestjs/microservices';
+import { SSO_Configuration } from 'src/config/config.types';
 
 /**
  * Google OIDC:
@@ -34,9 +35,10 @@ export class GoogleProviderClient implements ISocialProviderClient {
         private readonly configService: ConfigService,
         loggerFactory: MeiliLoggerService
     ) {
-        this.clientId = this.configService.get<string>('GOOGLE_CLIENT_ID')!// TODO: mettere namespace corretti
-        this.clientSecret = this.configService.get<string>('GOOGLE_CLIENT_SECRET')!// TODO: mettere namespace corretti
-        this.redirectUri = this.configService.get<string>('GOOGLE_REDIRECT_URI')!// TODO: mettere namespace corretti
+        const { clientId, clientSecret, redirectUri } = this.configService.get<SSO_Configuration>('SSO.Google')!
+        this.clientId = clientId
+        this.clientSecret = clientSecret
+        this.redirectUri = redirectUri
         this.logger = loggerFactory.forContext(GoogleProviderClient.name)
     }
 
@@ -63,7 +65,7 @@ export class GoogleProviderClient implements ISocialProviderClient {
     }
 
     async getProfileFromCode(code: string): Promise<ProviderProfile> {
-        
+
         const discovery = await this.getDiscovery()
 
         // Token exchange <==> OAuth2 Flow

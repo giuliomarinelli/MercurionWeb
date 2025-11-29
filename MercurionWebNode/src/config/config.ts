@@ -252,10 +252,10 @@ const RedisConfig = registerAs(
 
 const SSO_Config = registerAs(
     ConfigKey.SSO, (): SSO_Configurations => ({
-        google: {
-            clientId: "",
-            clientSecret: "",
-            redirectUri: ""
+        Google: {
+            clientId: process.env.GOOGLE_CLIENT_ID!,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+            redirectUri: process.env.GOOGLE_REDIRECT_URI!
         }
     })
 )

@@ -20,11 +20,7 @@ export class SocialAuthService {
 
     private readonly logger: MeiliContextLogger
 
-    constructor(
-        @InjectRepository(User)
-        private readonly userRepo: Repository<User>,
-        @InjectRepository(AuthIdentity)
-        private readonly idRepo: Repository<AuthIdentity>,
+    constructor(        
         private readonly providerRegistry: SocialProviderRegistry,
         private readonly dataSource: DataSource,
         private readonly sessionService: SessionService,
@@ -79,7 +75,7 @@ export class SocialAuthService {
                     emailVerified: profile.emailVerified
                 })
 
-                await this.idRepo.save(identity)
+                await manager.save(identity)
                 identity.user = user
 
             } else {
@@ -91,7 +87,7 @@ export class SocialAuthService {
                     identity.email = profile.email
                     identity.emailVerified = profile.emailVerified
                     identity.updatedAt = Date.now()
-                    await this.idRepo.save(identity)
+                    await manager.save(identity)
                 }
             }
 
