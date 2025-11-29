@@ -1,10 +1,10 @@
 import { Controller, Get, Param, Query, Res } from '@nestjs/common';
 import { FastifyReply } from 'fastify/types/reply';
-import { ClientIp, Public } from 'src/metadata/metadata';
+import { Public } from 'src/metadata/metadata';
 import { SocialAuthService } from '../services/social-auth.service';
 import { AuthProvider } from '../Models/enums/auth-provider.enum';
 import { ConfigService } from '@nestjs/config';
-import { randomUUID } from 'crypto';
+
 
 
 @Controller('oauth2/sso')
@@ -36,12 +36,10 @@ export class SocialAuthController {
   async callback(
     @Param('provider') provider: AuthProvider,
     @Query('code') code: string,
-    @ClientIp() ip: string,
     @Res() reply: FastifyReply
   ): Promise<void> {
-    const deviceId = randomUUID()
-    const sso_pat = await this.socialAuth.loginWithProvider(provider, code, ip, deviceId)
-    const redirectUrl = `${this.base}/oauth2/callback?t=${sso_pat}`
+    const sso_pat = await this.socialAuth.loginWithProvider(provider, code)
+    const redirectUrl = `${this.base}/oauth2/callback?t=${sso_pat}&provider=${provider}`
     reply.redirect(redirectUrl, 302)
   }
 }

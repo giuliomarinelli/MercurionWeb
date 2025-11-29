@@ -32,6 +32,8 @@ import { VerifyKind } from '../Models/enums/verify-kind.enum';
 import { BackupCodeDTO } from '../Models/DTO/backup-code.cls.dto';
 import { TotpBodyDTO } from '../Models/DTO/totp.cls.dto';
 import { SercurityService } from '../services/sercurity.service';
+import { AuthProvider } from 'src/app_modules/sso/Models/enums/auth-provider.enum';
+import { SsoGuard } from '../guards/sso.guard';
 
 
 
@@ -136,7 +138,7 @@ export class AuthenticationController {
     public async login_secondStep(
         @Query('trust_verify') trustVerify: boolean = false,
         @Authorization() preAuthorizationToken: string,
-        @Param('strategy') strategyKey: string        
+        @Param('strategy') strategyKey: string
     ): Promise<ConfirmWithTotpMetaDTO> {
         try {
             await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken)
@@ -277,4 +279,40 @@ export class AuthenticationController {
         return this.jwtTools.generateToken(userId, TokenType.ws_AccessToken, sessionId)
     }
 
+    @Public()
+    @Post('/sso/:provider/authorize-flow')
+    @HttpCode(HttpStatus.OK)
+    @UseGuards(SsoGuard)
+    public async authorize_sso(
+        @ClientIp() IP: string,
+        @Fingerprint() fd: FingerprintData,
+        @DeviceInfo() di: ISessionDeviceInfo,
+        @Authorization() sso_pat: string,
+        @DeviceId() deviceId: UUID,
+        @Param('provider') provider: string,
+        @Res() reply: FastifyReply
+    ): Promise<ConfirmWithTokenPairAndInitialsDTO> {
+        if (TypeGuards.isAuthProvider(provider) && provider !== AuthProvider.Mercurion) {
+            const maxAge = this.LONG_SESSION_TTL
+            const { sub: userId } = await this.jwtTools.verifyTokenAndGetPayload(sso_pat, TokenType.SSO_PreAuthorizationToken)
+            const { accessToken, ws_accessToken, sessionId } = await this.authService.perform_SSO_Authentication(sso_pat, IP, deviceId, di, fd, provider)
+            this.secureCookieService.setSignedCookie(reply, '__node_session_id', sessionId, {
+                ...this.cookieConf,
+                maxAge
+            })
+            reply.setCookie('__logged_in', 'true', {
+                ...this.cookieConf,
+                maxAge,
+                httpOnly: false
+            })
+            return {
+                ...this._r.ok(`Authenticated successfully, oauth2_provider=${provider}`),
+                accessToken,
+                ws_accessToken,
+                deviceId: this.securityService.signDeviceId(deviceId),
+                initials: await this.userService.getUserInitialsByUserId(userId) ?? ''
+            }
+        }
+        throw new BadRequestException('Invalid oauth2_provider')
+    }
 }

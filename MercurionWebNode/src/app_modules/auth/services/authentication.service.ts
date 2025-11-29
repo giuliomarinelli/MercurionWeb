@@ -184,6 +184,33 @@ export class AuthenticationService {
         throw new RpcException('InvalidSession')
     }
 
+    public async perform_SSO_Authentication(
+        sso_pat: string,
+        IP: string,
+        deviceId: string,
+        sessionDeviceInfo: ISessionDeviceInfo,
+        fingerprintData: FingerprintData,
+        provider: AuthProvider
+    ): Promise<TokenPair & { sessionId: UUID }> {
+        const { sub: userId } = await this.jwtTools.verifyTokenAndGetPayload(sso_pat, TokenType.SSO_PreAuthorizationToken)
+        if (!await this.userService.existsUserById(userId)) {
+            throw new RpcException('Unauthenticated')
+        }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { latitude: _omit, longitude: __omit, ip: ___omit, city, region, country } = this.geoIpService.getLocation(IP)
+        const location = [city, region, country].filter((el) => !!el).join(', ')
+        const fingerprint = this.generateFingerprint(fingerprintData)
+        const { sessionId } = await this.sessionService.createSession({ deviceId, IP, fingerprint, location, provider, userId, sessionDeviceInfo }, true)
+        await this.sessionService.activateSession(sessionId, userId)
+        const accessToken = await this.jwtTools.generateToken(userId, TokenType.AccessToken, sessionId)
+        const ws_accessToken = await this.jwtTools.generateToken(userId, TokenType.ws_AccessToken, sessionId)
+        return {
+            accessToken,
+            ws_accessToken,
+            sessionId
+        }
+    }
+
     public async verifyEmail(email: string): Promise<boolean> {
         return this.userService.existsUserByEmail(email)
     }

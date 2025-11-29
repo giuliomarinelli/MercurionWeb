@@ -99,6 +99,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/account-recovery/account-recovery.page.component').then(m => m.AccountRecoveryPageComponent)
   },
   {
+    path: 'oauth2/callback',
+    loadComponent: () => import('./pages/sso/sso.page.component').then(m => m.SsoPageComponent)
+  },
+  {
     path: '**',
     redirectTo: '/404-not-found'
   }

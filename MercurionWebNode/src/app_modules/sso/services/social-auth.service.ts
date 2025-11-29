@@ -8,21 +8,19 @@ import { MeiliLoggerService } from "src/app_modules/meilisearch/services/meili-l
 import { MeiliContextLogger } from "src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface";
 import { uuidv7 } from "@kripod/uuidv7";
 import { UUID } from "crypto";
-import { SessionService } from "src/app_modules/auth/services/session.service";
-import { GeoIpService } from "src/app_modules/auth/services/geo-ip.service";
 import { JwtToolsService } from 'src/app_modules/auth/services/jwt-tools.service';
 import { TokenType } from 'src/app_modules/auth/Models/enums/token-type.enum';
+import { ScopeService } from "src/app_modules/auth/services/scope.service";
 
 @Injectable()
 export class SocialAuthService {
 
     private readonly logger: MeiliContextLogger
 
-    constructor(        
+    constructor(
         private readonly providerRegistry: SocialProviderRegistry,
         private readonly dataSource: DataSource,
-        private readonly sessionService: SessionService,
-        private readonly geoIpService: GeoIpService,
+        private readonly scopeService: ScopeService,
         private readonly jwtTools: JwtToolsService,
         loggerFactory: MeiliLoggerService
     ) {
@@ -33,7 +31,7 @@ export class SocialAuthService {
         return this.providerRegistry.get(provider).getAuthorizationUrl(state);
     }
 
-    async loginWithProvider(provider: AuthProvider, code: string, ip: string, deviceId: string): Promise<string> {
+    async loginWithProvider(provider: AuthProvider, code: string): Promise<string> {
 
         return this.dataSource.manager.transaction(async (manager: EntityManager) => {
 
@@ -56,10 +54,10 @@ export class SocialAuthService {
                 const user = manager.create(User, {
                     id: uuidv7() as UUID,
                     sso: true,
-                    passwordHash: null,
-                    firstName: profile.firstName ?? '',
-                    lastName: profile.lastName ?? '',
-                    isVerified: profile.emailVerified
+                    firstName: profile.firstName ? profile.firstName.charAt(0).toUpperCase() + profile.firstName.slice(1) : '',
+                    lastName: profile.lastName ? profile.lastName.charAt(0).toUpperCase() + profile.lastName.slice(1) : '',
+                    isVerified: profile.emailVerified,
+                    scopes: this.scopeService.getEncryptedStandardScopes()
                 })
 
                 await manager.save(user)
@@ -87,28 +85,9 @@ export class SocialAuthService {
                     identity.updatedAt = Date.now()
                     await manager.save(identity)
                 }
-            }            
-            
-            const { sessionId } = await this.sessionService.createSession({
-                deviceId,
-                fingerprint: provider,
-                IP: '',
-                location: '',
-                sessionDeviceInfo: {
-                    osPlatform: "",
-                    useragent: "",
-                    browser: {
-                        name: "",
-                        version: ""
-                    }
-                },
-                userId: identity.userId,
-                provider
-            }, true)
+            }
 
-            await this.sessionService.activateSession(sessionId, identity.userId)
-
-            const sso_preAuuthorizationToken = await this.jwtTools.generateToken(identity.userId, TokenType.SSO_PreAuthorizationToken, sessionId)
+            const sso_preAuuthorizationToken = await this.jwtTools.generateToken(identity.userId, TokenType.SSO_PreAuthorizationToken)
 
             return sso_preAuuthorizationToken
         })
