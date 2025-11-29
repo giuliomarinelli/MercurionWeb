@@ -127,3 +127,13 @@ export interface RedisConfiguration {
     host: string
     port: number
 }
+
+export interface SSO_Configuration {
+    clientId: string
+    clientSecret: string
+    redirectUri: string
+}
+
+export interface SSO_Configurations {
+    google: SSO_Configuration
+}

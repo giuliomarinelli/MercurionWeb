@@ -132,13 +132,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
             case 'Forbidden::missing permissions':
             case 'BackupCodesAlreadyGenerated':
             case 'DeletePhone::NumberAlreadyUsedOrPending':
-            case 'DeletePhone::NoPendingDeletion':            
+            case 'DeletePhone::NoPendingDeletion':
                 statusCode = HttpStatus.FORBIDDEN
                 break
 
             case 'ChangeEmailConfirm::NoUnconfirmedEmail':
             case 'DeletePhone::UserNotFound':
-            case 'DeletePhone::NoPhoneNumber':                                             
+            case 'DeletePhone::NoPhoneNumber':
                 statusCode = HttpStatus.BAD_REQUEST
                 break
 
@@ -149,6 +149,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
             case 'Unauthanticated':
             case 'AccountRecovery::wrong recovery code':
             case 'ChangePassword::Invalid Credentials':
+            case 'SSO_Unauthorized::No id_token from Google':
+            case 'SSO_Unauthorized::Invalid Google id_token':
                 statusCode = HttpStatus.UNAUTHORIZED
                 break
 

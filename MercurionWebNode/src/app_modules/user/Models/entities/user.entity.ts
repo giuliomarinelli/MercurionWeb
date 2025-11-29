@@ -5,6 +5,7 @@ import { MfaBackupCode } from "./backup-code.entity"
 import { OldPasswordItem } from '../DTO/old-password-item.interface';
 import { DocumentEntity } from 'src/app_modules/dropbox-object-store/Models/entities/document.entity';
 import { UserGender } from '../enums/user-gender.enum';
+import { AuthIdentity } from '../../../sso/Models/entities/auth-identity.entity'
 
 @Entity({ name: 'users' })
 export class User {
@@ -30,8 +31,8 @@ export class User {
     @Column({ type: 'bigint', nullable: true, default: null })
     unconfirmedPhoneNumberPrefixLength: number | null
 
-    @Column({ type: 'varchar', length: 100 })
-    passwordHash: string // hash argon2
+    @Column({ type: 'varchar', length: 100, nullable: true })
+    passwordHash: string | null // hash argon2
 
     @Column({ type: 'varchar', default: '' })
     firstName: string
@@ -79,20 +80,26 @@ export class User {
     @JoinColumn({ name: 'avatar_id' })
     avatar: DocumentEntity | null
 
-    @Column()
+    @Column({ type: 'uuid', nullable: true })
     avatarId: UUID | null
 
-    @Column()
+    @Column({ type: 'boolean', default: false })
     backupCodesGiven: boolean
 
     @Column({ type: 'varchar', nullable: true })
     accountRecoveryCodeHash: string | null
 
-    @Column()
+    @Column({ type: 'bool', default: false })
     locked: boolean
 
-    @Column()
+    @Column({ type: 'bool', default: false })
     recoveryMode: boolean
+
+    @Column({ type: 'boolean', default: false })
+    sso: boolean
+
+    @OneToMany(() => AuthIdentity, (ai) => ai.user, { cascade: true })
+    authIdentities: AuthIdentity[]
 
     @BeforeInsert()
     private generateId() {

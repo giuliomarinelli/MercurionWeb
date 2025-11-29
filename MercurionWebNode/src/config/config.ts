@@ -1,7 +1,7 @@
 
 
 import { registerAs } from "@nestjs/config";
-import { AppConfiguration, CloudflareConfiguration, DataConfiguration, OAuth2ProviderConfiguration, JwtConfigurations, MeilisearchConfiguration, SecureCookieConfiguration, SessionConfiguration, SmsConfiguration, TotpConfiguration, RedisConfiguration } from "./config.types";
+import { AppConfiguration, CloudflareConfiguration, DataConfiguration, OAuth2ProviderConfiguration, JwtConfigurations, MeilisearchConfiguration, SecureCookieConfiguration, SessionConfiguration, SmsConfiguration, TotpConfiguration, RedisConfiguration, SSO_Configurations } from "./config.types";
 import { UUID } from "crypto";
 import { GeneralUtils } from "src/utils/general-utils/general-utils";
 import { SnakeNamingStrategy } from "typeorm-naming-strategies";
@@ -28,7 +28,8 @@ export enum ConfigKey {
     Dropbox = "Dropbox",
     Meilisearch = 'Meilisearch',
     Cloudflare = 'Cloudflare',
-    Redis = 'Redis'
+    Redis = 'Redis',
+    SSO = 'SSO'
 }
 
 const AppConfig = registerAs(
@@ -249,6 +250,16 @@ const RedisConfig = registerAs(
     })
 )
 
+const SSO_Config = registerAs(
+    ConfigKey.SSO, (): SSO_Configurations => ({
+        google: {
+            clientId: "",
+            clientSecret: "",
+            redirectUri: ""
+        }
+    })
+)
+
 
 export const configurations = [
     AppConfig,
@@ -262,5 +273,6 @@ export const configurations = [
     DropboxConfig,
     MeilisearchConfig,
     CloudflareConfig,
-    RedisConfig
+    RedisConfig,
+    SSO_Config
 ]
