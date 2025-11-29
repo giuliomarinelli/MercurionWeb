@@ -329,8 +329,7 @@ export class UserService {
                     oldPasswordHashes: nextOld,
                 })
                 .where('id = :userId', { userId })
-                .execute();
-
+                .execute()
         })
     }
 
