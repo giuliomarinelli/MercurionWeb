@@ -1,16 +1,17 @@
+import { UserGender, UserGenderControl } from './../../../Models/auth/user.models';
 import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { ClassicSpinnerComponent } from '../../common/classic-spinner/classic-spinner.component';
-import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { catchError, finalize, of, Subscription, switchMap, tap } from 'rxjs';
+import { FormControl, FormGroup, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { catchError, finalize, of, Subscription, switchMap } from 'rxjs';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 import { Router } from '@angular/router';
-import { UserGenderControl } from '../../../Models/auth/user.models';
 import { AccountService } from '../../../services/account.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ProfileRegistryDTO } from '../../../Models/account/account.models';
 import { FloatingInputComponent } from '../../common/floating-input/floating-input.component';
 import { PmSelectComponent } from '../../common/pm-select/pm-select.component';
 import { PmOption } from '../../../Models/pm-option.model';
+import { ProfileRegistryEditContextService } from '../../../services/context/action-context/profile-registry-edit-context.service';
 
 type RegistryFormValue = {
   firstName: string
@@ -40,53 +41,57 @@ type RegistryFormValue = {
         </svg>
       </button>
     </div>
-    <div class="mx-auto">
+    <div class="mx-auto relative">
       <div
-        class="mt-6 px-6 pb-6 border-b border-spacing-y-[0.3px]"
+        class="mt-6 px-6 pb-6 border-b border-spacing-y-[0.3px] min-h-60 transition-[min-height]"
         [formGroup]="registryGroup">
         @if (step() === 1) {
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-12 w-full px-3 pt-9">
-            <app-floating-input
-              label="Nome *"
-              type="text"
-              autocomplete="current-name"
-              formControlName="firstName"
-              [errors]="{
-                required: 'Il nome è obbligatorio.',
-                pattern: 'Il formato del nome non è valido.'
-              }"
-              bgClass="bg-white"
-              darkBgClass="dark:bg-dark-surface-main" />
+          @if (onStart_loading()) {
+            <div class="absolute inset-0 flex justify-center items-center">
+              <app-classic-spinner [size]="45" />
+            </div>
+          } @else {
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-12 w-full px-3 pt-9">
+              <app-floating-input
+                label="Nome *"
+                type="text"
+                autocomplete="current-name"
+                formControlName="firstName"
+                [errors]="{
+                  required: 'Il nome è obbligatorio.',
+                  pattern: 'Il formato del nome non è valido.'
+                }"
+                bgClass="bg-white"
+                darkBgClass="dark:bg-dark-surface-main" />
 
-            <app-floating-input
-              label="Cognome *"
-              type="text"
-              autocomplete="current-surname"
-              formControlName="lastName"
-              [errors]="{
-                required: 'Il cognome è obbligatorio.',
-                pattern: 'Il formato del cognome non è valido.'
-              }"
-              bgClass="bg-white"
-              darkBgClass="dark:bg-dark-surface-main" />
+              <app-floating-input
+                label="Cognome *"
+                type="text"
+                autocomplete="current-surname"
+                formControlName="lastName"
+                [errors]="{
+                  required: 'Il cognome è obbligatorio.',
+                  pattern: 'Il formato del cognome non è valido.'
+                }"
+                bgClass="bg-white"
+                darkBgClass="dark:bg-dark-surface-main" />
 
-            <!-- Genere sotto e largo come 2 colonne -->
-            <pm-select
-              class="relative -top-[30px]"
-              label="Genere *"
-              [options]="options"
-              formControlName="gender" />
+              <pm-select
+                class="relative -top-[30px]"
+                label="Genere *"
+                [options]="options"
+                formControlName="gender" />
 
-            <app-floating-input
-              label="Il tuo lavoro"
-              type="text"
-              autocomplete="current-job"
-              formControlName="job"
-              [errors]="{}"
-              bgClass="bg-white"
-              darkBgClass="dark:bg-dark-surface-main" />
-
-          </div>
+              <app-floating-input
+                label="Il tuo lavoro"
+                type="text"
+                autocomplete="current-job"
+                formControlName="job"
+                [errors]="{}"
+                bgClass="bg-white"
+                darkBgClass="dark:bg-dark-surface-main" />
+            </div>
+          }
         } @else if (step() === 2) {
           <!-- Step 2 template qui -->
         }
@@ -95,18 +100,31 @@ type RegistryFormValue = {
     <div class="my-4 mr-8 flex justify-end gap-2">
       @if (step() === 1) {
         <button
-          type="button"
-          class="px-4 py-2 rounded bg-slate-200 text-light-on-surface-main dark:bg-slate-100 dark:text-neutral-950 hover:bg-gray-300"
-          (click)="close()"
+        type="button"
+        class="px-4 py-2 rounded bg-slate-200 text-light-on-surface-main dark:bg-slate-100 dark:text-neutral-950 hover:bg-gray-300"
+        (click)="close()"
         >
-          Annulla
-        </button>
+        Annulla
+      </button>
+      <button
+        type="button"
+        title="Resetta"
+        class="px-4 py-2 rounded bg-slate-200 text-light-on-surface-main disabled:text-slate-200 dark:disabled:text-neutral-400 dark:bg-slate-100 dark:text-neutral-950 disabled:bg-slate-100 dark:disabled:bg-slate-50 disabled:cursor-not-allowed hover:bg-gray-300"
+        [disabled]="isGroupValueTheSameAsInitialValueSig()"
+        (click)="reset()"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current size-6">
+          <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+          <path d="M544 64L544 183.8L507 144.7C458.5 93.2 390.8 64 320 64C180.3 64 64.1 180.4 64 320C63.9 459.3 180.3 575.9 320 576C420.1 576.1 513.4 515.5 554 424.1L524.8 411.1C489.4 491 407.6 544.1 320.1 544C198 543.9 96 441.6 96.1 320C96.2 198.1 198.1 96 320.1 96C382.1 96 441.3 121.5 483.9 166.6L523 208L400.1 208L400.1 240L576.1 240L576.1 64L544.1 64z"/>
+        </svg>
+      </button>
       }
       <button
         type="button"
         class="relative inline-flex items-center justify-center px-4 py-2 rounded bg-emerald-600 text-white font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed"
         [disabled]="isGroupValueTheSameAsInitialValueSig()"
         [attr.aria-busy]="step_12_loading()"
+        (click)="routeAction()"
       >
         <span [class.invisible]="step_12_loading()">
           @if (step() === 1) {
@@ -136,6 +154,7 @@ export class EssentialProfileRegistryEditComponent implements OnInit, OnDestroy 
   private readonly router = inject(Router)
   private readonly fb = inject(NonNullableFormBuilder)
   private readonly accountService = inject(AccountService)
+  private readonly registryContext = inject(ProfileRegistryEditContextService)
 
   private readonly registryKeys: (keyof RegistryFormValue)[] = [
     'firstName',
@@ -145,19 +164,19 @@ export class EssentialProfileRegistryEditComponent implements OnInit, OnDestroy 
   ]
 
   options: PmOption[] = [
-      {
-        label: 'Maschile',
-        value: 'M',
-      },
-      {
-        label: 'Femminile',
-        value: 'F',
-      },
-      {
-        label: 'Non specificato',
-        value: 'Undefined',
-      }
-    ]
+    {
+      label: 'Maschile',
+      value: 'M',
+    },
+    {
+      label: 'Femminile',
+      value: 'F',
+    },
+    {
+      label: 'Non specificato',
+      value: 'Undefined',
+    }
+  ]
 
   step = signal<1 | 2>(1)
   step_12_loading = signal<boolean>(false)
@@ -173,17 +192,16 @@ export class EssentialProfileRegistryEditComponent implements OnInit, OnDestroy 
     job: this.fb.control('', Validators.pattern(/^(?:[A-Za-zÀ-Ýà-ÿ]+(?:\s+[A-Za-zÀ-Ýà-ÿ]+)*)?$/))
   })
 
-  private formSub?: Subscription
   private fetchSub?: Subscription
-  private regSub?: Subscription
+  private upRegSub?: Subscription
 
   ngOnInit(): void {
     this.fetchSub = of(null).pipe(
-      finalize(() => this.onStart_loading.set(false)),
       switchMap(() => {
         return this.accountService.getEssentialProfileRegistry().pipe(
           catchError((e: HttpErrorResponse) => {
             this.error.set(e.status)
+            this.onStart_loading.set(false)
             return of(null)
           })
         )
@@ -206,16 +224,15 @@ export class EssentialProfileRegistryEditComponent implements OnInit, OnDestroy 
       next: (res) => {
         if (res) {
           this.isGroupValueTheSameAsInitialValueSig.set(this.isGroupValueTheSameAsInitialValue())
-          console.log(this.isGroupValueTheSameAsInitialValueSig())
+          this.onStart_loading.set(false)
         }
       }
     })
   }
 
   ngOnDestroy(): void {
-    this.formSub?.unsubscribe()
     this.fetchSub?.unsubscribe()
-    this.regSub?.unsubscribe()
+    this.upRegSub?.unsubscribe()
   }
 
   close(): void {
@@ -223,9 +240,57 @@ export class EssentialProfileRegistryEditComponent implements OnInit, OnDestroy 
     this.actionContext.close()
   }
 
-  isGroupValueTheSameAsInitialValue(): boolean {
+  reset(): void {
+    if (this.initialValue()) {
+      const { firstName, lastName, gender, job } = this.initialValue()!
+      this.registryGroup.setValue({
+        firstName,
+        lastName,
+        gender: gender as UserGenderControl,
+        job: job ?? ''
+      })
+    }
+  }
+
+  routeAction(): void {
+    switch (this.step()) {
+      case 1:
+        this.updateRegistry()
+        break
+      case 2:
+        this.close()
+        break
+    }
+  }
+
+  private updateRegistry(): void {
+    this.registryGroup.markAllAsTouched()
+    this.registryGroup.updateValueAndValidity()
+    if (this.registryGroup.valid) {
+      this.error.set(0)
+      this.step_12_loading.set(true)
+      const dto = this.toProfileRegistryDTO(this.registryGroup)
+      this.upRegSub = this.accountService.updateProfileRegistry(dto).pipe(
+        finalize(() => queueMicrotask(() => {
+          this.step_12_loading.set(false)
+        }))
+      ).subscribe({
+        next: () => queueMicrotask(() => {
+          this.registryContext.notifyAdded()
+          this.close()
+        }),
+        error: (e: HttpErrorResponse) => {
+          this.error.set(e.status)
+          this.step.set(2)
+        }
+      })
+    }
+  }
+
+  private isGroupValueTheSameAsInitialValue(): boolean {
+
     const init = this.initialValue()
-    if (!init) return false;
+    if (!init) return false
 
     return this.registryKeys.every((key) => {
       const initVal =
@@ -237,6 +302,37 @@ export class EssentialProfileRegistryEditComponent implements OnInit, OnDestroy 
 
       return initVal === formVal
     })
+  }
+
+  private toProfileRegistryDTO(
+    group: FormGroup<{
+      firstName: FormControl<string>
+      lastName: FormControl<string>
+      gender: FormControl<UserGenderControl>
+      job: FormControl<string>
+    }>
+  ): ProfileRegistryDTO {
+
+    const { firstName, lastName, gender, job } = group.getRawValue()
+
+    return {
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      gender: this.normalizeGender(gender),
+      job: this.normalizeJob(job)
+    }
+  }
+
+  private normalizeJob(job: string): string | null {
+    const trimmed = job.trim()
+    return trimmed.length > 0 ? trimmed : null
+  }
+
+  private normalizeGender(gender: UserGenderControl): UserGender {
+    if (!gender) {
+      return 'Undefined'
+    }
+    return gender as UserGender
   }
 
 }

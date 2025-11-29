@@ -12,6 +12,8 @@ import { ActionOverlayContextService } from '../../services/context/action-conte
 import { SensitiveDataChangeContextService } from '../../services/context/action-context/sensitive-data-change-context.service'
 import { AppContextService } from '../../services/context/app-context.service'
 import { ActivatedRoute, Router } from '@angular/router'
+import { GenderPipe } from '../../pipes/gender.pipe'
+import { ProfileRegistryEditContextService } from '../../services/context/action-context/profile-registry-edit-context.service'
 
 @Component({
   selector: 'm-settings.page',
@@ -20,7 +22,8 @@ import { ActivatedRoute, Router } from '@angular/router'
     CdkAccordionModule,
     ClassicSpinnerComponent,
     SessionCardComponent,
-    MfaStrategyCardComponent
+    MfaStrategyCardComponent,
+    GenderPipe
   ],
   styles: `
 
@@ -188,7 +191,7 @@ import { ActivatedRoute, Router } from '@angular/router'
                                     <div class="flex justify-between gap-2">
                                       <span class="text-slate-500 dark:text-slate-400">Genere</span>
                                       <span class="font-medium text-slate-800 dark:text-slate-100">
-                                        {{ profile.gender }}
+                                        {{ profile.gender | gender}}
                                       </span>
                                     </div>
                                     <div class="flex justify-between gap-2">
@@ -348,7 +351,7 @@ import { ActivatedRoute, Router } from '@angular/router'
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
                               <div class="p-2 sm:p-4">Genere</div>
-                              <div class="p-2 sm:p-4"><strong>{{profile.gender}}</strong></div>
+                              <div class="p-2 sm:p-4"><strong>{{profile.gender | gender}}</strong></div>
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
                               <div class="p-2 sm:p-4">Lavoro</div>
@@ -554,6 +557,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly actionContext = inject(ActionOverlayContextService)
   private readonly changeDataContext = inject(SensitiveDataChangeContextService)
   private readonly appContext = inject(AppContextService)
+  private readonly registryContext = inject(ProfileRegistryEditContextService)
 
   @ViewChild(CdkAccordion)
   accordion!: CdkAccordion
@@ -592,6 +596,13 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   constructor() {
     effect(() => {
       const t = this.changeDataContext.addedTick()
+      if (t === 0) {
+        return
+      }
+      this.fetch(true)
+    })
+    effect(() => {
+      const t = this.registryContext.addedTick()
       if (t === 0) {
         return
       }
