@@ -729,7 +729,7 @@ export class AccountService {
     public async changePassword(oldPassword: string, newPassword: string, userId: UUID): Promise<void> | never {
         await this.ensurePasswordNotLocked(userId, PasswordContext.CHANGE)
         const oldPasswordHash = await this.userService.getVerifiedUserPasswordHashById(userId)
-        if (await this.passwordEncoder.compareWithFallback(oldPassword, oldPasswordHash) === CompareResult.NoMatch) {
+        if (oldPasswordHash && await this.passwordEncoder.compareWithFallback(oldPassword, oldPasswordHash) === CompareResult.NoMatch) {
             await this.registerPasswordFailure(userId, PasswordContext.CHANGE)
             throw new RpcException('ChangePassword::Invalid Credentials')
         }

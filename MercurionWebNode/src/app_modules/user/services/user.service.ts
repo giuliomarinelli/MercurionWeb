@@ -150,7 +150,7 @@ export class UserService {
         })
     }
 
-    public async getVerifiedUserPasswordHashById(userId: UUID): Promise<string> | never {
+    public async getVerifiedUserPasswordHashById(userId: UUID): Promise<string | null> | never {
         try {
             const { passwordHash } = await this.userRepository.createQueryBuilder('u')
                 .select(['u.passwordHash'])
@@ -169,7 +169,9 @@ export class UserService {
             .where('u.isVerified = true')
             .andWhere('u.email = :email', { email })
             .getOne()
-        if (!user) return user
+        if (!user || !user.passwordHash) {
+            return null
+        }
         const { id: userId, passwordHash, locked } = user
         return {
             userId,
@@ -288,6 +290,8 @@ export class UserService {
                 .select(['u.id', 'u.passwordHash', 'u.oldPasswordHashes'])
                 .where('u.id = :userId', { userId })
                 .andWhere('u.isVerified = true')
+                .andWhere('u.sso = false')
+                .andWhere('u.passwordHash IS NOT NULL')
                 .setLock('pessimistic_write')
                 .getOneOrFail()
 
@@ -296,7 +300,7 @@ export class UserService {
                 : []
 
             const candidates = [
-                user.passwordHash,
+                user.passwordHash!,
                 ...oldList.map(i => i.passwordHash),
             ].filter(Boolean)
 
@@ -311,7 +315,7 @@ export class UserService {
 
             const nextOld: OldPasswordItem[] = [
                 {
-                    passwordHash: user.passwordHash,
+                    passwordHash: user.passwordHash!,
                     changedAt: Date.now()
                 },
                 ...oldList,
