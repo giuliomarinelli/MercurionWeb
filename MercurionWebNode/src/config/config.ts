@@ -141,12 +141,17 @@ const JwtConfig = registerAs(
             secret: process.env.JWT_SECRETS_ACCOUNT_RECOVERY,
             expiresInMs: Number(process.env.JWT_EXPIRATION_ACCOUNT_RECOVERY)
         },
+        sso_preAuthorizationToken: {
+            secret: process.env.JWT_SECRETS_SSO_PRE_AUTHORIZATION_TOKEN!,
+            expiresInMs: Number(process.env.JWT_EXPIRATION_SSO_PRE_AUTHORIZATION_TOKEN)
+        },
         issuer: process.env.APP_PROJECT_NAME + `_${process.env.APP_PROJECT_ID as UUID ?? ''}`,
         audience: {
             access: process.env.JWT_AUD_API!,
             ws: process.env.JWT_AUD_WS!,
             auth: process.env.JWT_AUD_AUTH!
-        }
+
+        },
     })
 )
 
@@ -209,8 +214,8 @@ const TotpConfig = registerAs(
 const SessionConfig = registerAs(
 
     ConfigKey.Session, (): SessionConfiguration => ({
-        shortSessionLasting: Number(process.env.SHORT_SESSION_LASTING), 
-        persistentSessionLasting: Number(process.env.PERSISTENT_SESSION_LASTING), 
+        shortSessionLasting: Number(process.env.SHORT_SESSION_LASTING),
+        persistentSessionLasting: Number(process.env.PERSISTENT_SESSION_LASTING),
         sessionZeroId: process.env.SESSION_ZERO_ID as UUID
     })
 

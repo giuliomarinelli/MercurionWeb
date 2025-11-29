@@ -5,6 +5,7 @@ import { StorageAction } from "src/app_modules/dropbox-object-store/Models/enums
 import { ChEMBLMoleculeItemEntity } from "src/app_modules/molecule-collection/Models/entities/chembl-molecule-item.entity";
 import { CustomMoleculeItemEntity } from "src/app_modules/molecule-collection/Models/entities/custom-molecule-item.entity";
 import { MoleculeCollectionItemEntity } from "src/app_modules/molecule-collection/Models/entities/molecule-collection-item.entity";
+import { AuthProvider } from "src/app_modules/sso/Models/enums/auth-provider.enum";
 import { MfaStrategy } from "src/app_modules/user/Models/enums/mfa-strategy.enum";
 
 export class TypeGuards {
@@ -75,6 +76,10 @@ export class TypeGuards {
             'kind' in item &&
             ('payload' in item)
         )
+    }
+
+    static isAuthProvider(item: string): item is AuthProvider {
+        return Object.values(AuthProvider).map((p) => p as string).includes(item)
     }
 
 

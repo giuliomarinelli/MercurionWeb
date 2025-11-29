@@ -13,6 +13,7 @@ export enum TokenType {
     SmsOtpMfaInactivationToken = "SmsOtpMfaInactivationToken",
     AppTotpMfaInactivationToken = "AppTotpMfaInactivationToken",
     ChangePasswordToken = "ChangePasswordToken",
-    AccountRecoveryToken = "AccountRecoveryToken"
+    AccountRecoveryToken = "AccountRecoveryToken",
+    SSO_PreAuthorizationToken = "SSO_PreAuthorizationToken"
 
 }

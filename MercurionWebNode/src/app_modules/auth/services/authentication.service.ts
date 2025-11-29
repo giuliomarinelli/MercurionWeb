@@ -20,6 +20,7 @@ import { GeoIpService, GeoLocation } from './geo-ip.service';
 import { TokenPair } from '../Models/interfaces/token-pair.interface';
 import { CompareResult } from '../Models/enums/compare-result.enum';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
+import { AuthProvider } from 'src/app_modules/sso/Models/enums/auth-provider.enum';
 
 @Injectable()
 export class AuthenticationService {
@@ -112,7 +113,7 @@ export class AuthenticationService {
         const location = locations.filter(loc => loc != null).join(', ')
         const alreadyTrustedLocations: GeoLocation[] = await this.sessionService.getTrustedLocations(auth.userId)
         const isTrustedCurrentLocation: boolean = this.geoIpService.isTrustedLocation(geoLocation as GeoLocation, alreadyTrustedLocations)
-        const session = await this.sessionService.createSession({ deviceId, userId: auth.userId, IP, sessionDeviceInfo, fingerprint, location }, remember)
+        const session = await this.sessionService.createSession({ deviceId, userId: auth.userId, IP, sessionDeviceInfo, fingerprint, location, provider: AuthProvider.Microsoft }, remember)
         const sessionId = session.sessionId
         const inWhiteList: boolean = await this.sessionService.isFingerprintInWhiteList(auth.userId, fingerprint)
         const _enabledMfaStrategies: MfaStrategy[] = await this.mfaService.getEnabledMfaStrategies(auth.userId)

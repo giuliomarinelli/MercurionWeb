@@ -1,3 +1,5 @@
+import { AuthProvider } from "src/app_modules/sso/Models/enums/auth-provider.enum"
+
 export interface SessionDTO {
     id : string
     createdAt: number
@@ -7,4 +9,5 @@ export interface SessionDTO {
     current: boolean
     location: string
     browser: string
+    provider: AuthProvider
 }

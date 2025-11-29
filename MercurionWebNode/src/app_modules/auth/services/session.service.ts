@@ -1,7 +1,7 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { createHmac, randomUUID, UUID } from 'crypto';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
-import { ISession, ISessionDeviceInfo } from '../Models/interfaces/i-session.interface';
+import { ISession, ISessionDeviceInfo, ISSO_SessionActivationData } from '../Models/interfaces/i-session.interface';
 import { RpcException } from '@nestjs/microservices';
 import { GeoLocation } from './geo-ip.service';
 import { SessionFetchOptions } from '../Models/interfaces/session-fetch-options.interface';
@@ -9,6 +9,8 @@ import { SessionDTO } from '../Models/DTO/session.dto';
 import { ConfigService } from '@nestjs/config';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { AuthProvider } from 'src/app_modules/sso/Models/enums/auth-provider.enum';
+import { TypeGuards } from 'src/utils/type-guards/type-guards';
 
 
 @Injectable()
@@ -122,7 +124,8 @@ export class SessionService {
             valid: showValid ? session.valid : undefined,
             current,
             location: session.location,
-            browser: session.sessionDeviceInfo.browser.name
+            browser: session.sessionDeviceInfo.browser.name,
+            provider: session.provider
         })
     }
 
@@ -180,7 +183,8 @@ export class SessionService {
             expiresAt,
             createdAt: Date.now(),
             lastAccessedAt: Date.now(),
-            valid: false
+            valid: false,
+            provider: sessionData.provider
         }
 
         const sessionKey = this.getSessionKeyOrPattern(sessionId, sessionData.userId);
@@ -197,6 +201,7 @@ export class SessionService {
         await this.redisService.hset(sessionKey, 'fingerprint', sessionData.fingerprint)
         await this.redisService.hset(sessionKey, 'location', sessionData.location)
         await this.redisService.hset(sessionKey, 'createdAt', session.createdAt.toString())
+        await this.redisService.hset(sessionKey, 'provider', session.provider.toString())
 
         await this.redisService.setTTL(sessionKey, ttlSeconds)
         await this.redisService.sadd(`user_sessions:${sessionData.userId}`, sessionId)
@@ -205,10 +210,21 @@ export class SessionService {
     }
 
 
-    public async activateSession(sessionId: string, userId: string): Promise<void> | never {
+    public async activateSession(sessionId: string, userId: string, sso_data?: ISSO_SessionActivationData): Promise<void> | never {
         const session = await this.getSession(sessionId, userId)
-        if (!session) throw new RpcException('UnauthorizedNoSuchSession')
-        await this.redisService.hset(this.getSessionKeyOrPattern(sessionId, userId), 'valid', 'true')
+        if (!session) {
+            throw new RpcException('UnauthorizedNoSuchSession')
+        }
+        const key = this.getSessionKeyOrPattern(sessionId, userId)
+        await this.redisService.hset(key, 'valid', 'true')
+        if (sso_data) {
+            const { IP, deviceId, fingerprint, location, sessionDeviceInfo } = sso_data
+            await this.redisService.hset(key, 'IP', IP)
+            await this.redisService.hset(key, 'deviceId', deviceId)
+            await this.redisService.hset(key, 'fingerprint', fingerprint)
+            await this.redisService.hset(key, 'location', location)
+            await this.redisService.hset(key, 'sessionDeviceInfo', JSON.stringify(sessionDeviceInfo))
+        }
     }
 
     public async isSessionLongTerm(sessionId: UUID, userId: UUID): Promise<boolean> {
@@ -249,7 +265,8 @@ export class SessionService {
                     valid: JSON.parse(sd.valid) as boolean,
                     sessionDeviceInfo: JSON.parse(sd.sessionDeviceInfo) as ISessionDeviceInfo,
                     fingerprint: sd.fingerprint,
-                    location: sd.location
+                    location: sd.location,
+                    provider: TypeGuards.isAuthProvider(sd.provider) ? sd.provider : AuthProvider.Mercurion
                 }
                 return s
             } catch {
@@ -321,7 +338,8 @@ export class SessionService {
                 valid: JSON.parse(sessionData.valid) as boolean,
                 sessionDeviceInfo: JSON.parse(sessionData.sessionDeviceInfo) as ISessionDeviceInfo,
                 fingerprint: sessionData.fingerprint,
-                location: sessionData.location
+                location: sessionData.location,
+                provider: TypeGuards.isAuthProvider(sessionData.provider) ? sessionData.provider : AuthProvider.Mercurion
             }
             return session
         } catch {

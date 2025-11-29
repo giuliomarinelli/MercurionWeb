@@ -33,6 +33,7 @@ export class JwtToolsService {
     private readonly appTotpMfaInactivationTokenConfig: JwtConfiguration
     private readonly changePasswordTokenConfig: JwtConfiguration
     private readonly accountRecoveryTokenConfig: JwtConfiguration
+    private readonly sso_preAuthorizationTokenConfig: JwtConfiguration
 
     private readonly jwtIssuer: string
     private readonly jwtAudience: JwtAudience
@@ -63,6 +64,7 @@ export class JwtToolsService {
         this.appTotpMfaInactivationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.appTotpMfaInactivationToken") as JwtConfiguration
         this.changePasswordTokenConfig = this.configService.get<JwtConfiguration>("Jwt.changePasswordToken") as JwtConfiguration
         this.accountRecoveryTokenConfig = this.configService.get<JwtConfiguration>("Jwt.accountRecoveryToken") as JwtConfiguration
+        this.sso_preAuthorizationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.sso_preAuthorizationToken") as JwtConfiguration
 
         this.jwtIssuer = this.configService.get<string>("Jwt.issuer") as string
         this.jwtAudience = this.configService.get<JwtAudience>('Jwt.audience')!
@@ -129,6 +131,7 @@ export class JwtToolsService {
             case TokenType.SmsOtpMfaInactivationToken: return this.smsOtpMfaInactivationTokenConfig
             case TokenType.ChangePasswordToken: return this.changePasswordTokenConfig
             case TokenType.AccountRecoveryToken: return this.accountRecoveryTokenConfig
+            case TokenType.SSO_PreAuthorizationToken: return this.sso_preAuthorizationTokenConfig
         }
     }
 

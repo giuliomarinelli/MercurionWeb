@@ -20,7 +20,7 @@ export class SocialProviderRegistry {
             [AuthProvider.Microsoft]: null,
             [AuthProvider.Apple]: null,
             [AuthProvider.Facebook]: null,
-            [AuthProvider.Local]: null // non usato qui
+            [AuthProvider.Mercurion]: null // non usato qui
         }
     }
 

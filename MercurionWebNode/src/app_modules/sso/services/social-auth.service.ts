@@ -1,7 +1,6 @@
 import { Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "src/app_modules/user/Models/entities/user.entity";
-import { DataSource, EntityManager, Repository } from "typeorm";
+import { DataSource, EntityManager } from "typeorm";
 import { AuthIdentity } from "../Models/entities/auth-identity.entity";
 import { AuthProvider } from "../Models/enums/auth-provider.enum";
 import { SocialProviderRegistry } from "./social-provider-registry";
@@ -11,7 +10,6 @@ import { uuidv7 } from "@kripod/uuidv7";
 import { UUID } from "crypto";
 import { SessionService } from "src/app_modules/auth/services/session.service";
 import { GeoIpService } from "src/app_modules/auth/services/geo-ip.service";
-import { SSO_AuthData } from '../Models/interfaces/sso-auth-data.interface';
 import { JwtToolsService } from 'src/app_modules/auth/services/jwt-tools.service';
 import { TokenType } from 'src/app_modules/auth/Models/enums/token-type.enum';
 
@@ -35,7 +33,7 @@ export class SocialAuthService {
         return this.providerRegistry.get(provider).getAuthorizationUrl(state);
     }
 
-    async loginWithProvider(provider: AuthProvider, code: string, ip: string, deviceId: string): Promise<SSO_AuthData> {
+    async loginWithProvider(provider: AuthProvider, code: string, ip: string, deviceId: string): Promise<string> {
 
         return this.dataSource.manager.transaction(async (manager: EntityManager) => {
 
@@ -89,19 +87,13 @@ export class SocialAuthService {
                     identity.updatedAt = Date.now()
                     await manager.save(identity)
                 }
-            }
-
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { latitude: _omit, longitude: __omit, ip: ___omit, city, region, country } = this.geoIpService.getLocation(ip)
-
-            const location = [city, region, country].filter((el) => !!el).join(', ')
-
-            // 3) Inizio flusso auth Mercurion
+            }            
+            
             const { sessionId } = await this.sessionService.createSession({
                 deviceId,
                 fingerprint: provider,
-                IP: ip,
-                location,
+                IP: '',
+                location: '',
                 sessionDeviceInfo: {
                     osPlatform: "",
                     useragent: "",
@@ -110,19 +102,15 @@ export class SocialAuthService {
                         version: ""
                     }
                 },
-                userId: identity.userId
+                userId: identity.userId,
+                provider
             }, true)
 
             await this.sessionService.activateSession(sessionId, identity.userId)
 
-            const accessToken = await this.jwtTools.generateToken(identity.userId, TokenType.AccessToken, sessionId)
-            const ws_accessToken = await this.jwtTools.generateToken(identity.userId, TokenType.ws_AccessToken, sessionId)
+            const sso_preAuuthorizationToken = await this.jwtTools.generateToken(identity.userId, TokenType.SSO_PreAuthorizationToken, sessionId)
 
-            return {
-                accessToken,
-                ws_accessToken,
-                sessionId
-            }
+            return sso_preAuuthorizationToken
         })
 
     }

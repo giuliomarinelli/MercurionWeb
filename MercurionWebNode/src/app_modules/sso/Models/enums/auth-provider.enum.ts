@@ -1,5 +1,5 @@
 export enum AuthProvider {
-    Local = 'Local',
+    Mercurion = 'Mercurion',
     Google = 'Google',
     Microsoft = 'Microsoft',
     Apple = 'Apple',
