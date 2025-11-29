@@ -5,6 +5,7 @@ import { AddMoleculesToCollectionComponent } from '../add-molecules-to-collectio
 import { CreateCollectionComponent } from '../create-collection/create-collection.component';
 import { BindCollectionsToMoleculeComponent } from '../bind-collections-to-molecule/bind-collections-to-molecule.component';
 import { SensitiveDataChangeComponent } from '../sensitive-data-change/sensitive-data-change.component';
+import { EssentialProfileRegistryEditComponent } from '../profile-registry-edit/essential-profile-registry-edit.component';
 
 @Component({
   selector: 'app-action-overlay',
@@ -15,7 +16,8 @@ import { SensitiveDataChangeComponent } from '../sensitive-data-change/sensitive
     AddMoleculesToCollectionComponent,
     CreateCollectionComponent,
     BindCollectionsToMoleculeComponent,
-    SensitiveDataChangeComponent
+    SensitiveDataChangeComponent,
+    EssentialProfileRegistryEditComponent
   ],
   template: `
 
@@ -42,6 +44,9 @@ import { SensitiveDataChangeComponent } from '../sensitive-data-change/sensitive
           }
           @case ('SensitiveDataChange') {
             <m-sensitive-data-change />
+          }
+          @case ('EssentialProfileRegistryEdit') {
+            <m-essential-profile-registry-edit />
           }
         }
 

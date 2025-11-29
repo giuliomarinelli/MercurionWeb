@@ -121,7 +121,8 @@ import { Router } from '@angular/router';
         </span>
       </button>
     </div>
-
+  </div>
+</div>
   `
 })
 export class BindCollectionsToMoleculeComponent extends AbstractPaginatedMultiselectComponent<UiMoleculeCollection>

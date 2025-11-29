@@ -4,6 +4,7 @@ export type ActionScope =
   | 'CreateCollection'
   | 'BindCollectionsToMolecule'
   | 'SensitiveDataChange'
+  | 'EssentialProfileRegistryEdit'
   | ''
 
 export type SaveOverlayFormItem = 'name' | 'label' | 'notes'

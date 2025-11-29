@@ -218,7 +218,7 @@ export class AccountController {
     }
 
     @Get('/profile-registry')
-    async getProfileRegistry(
+    public async getProfileRegistry(
         @AuthenticatedUserId() userId: UUID,
         @Query('get_recent_history') getRecentHistory = 'true'
     ): Promise<ProfileDTO> {
@@ -229,8 +229,13 @@ export class AccountController {
         return result
     }
 
+    @Get('/profile-registry/essential')
+    public async getEssentialProfileRegistry(@AuthenticatedUserId() userId :UUID): Promise<ProfileRegistryDTO> {
+        return this.userService.getVerifiedUserEssentialProfileRegistryById(userId)
+    }
+
     @Patch('/profile-registry')
-    async updateProfileRegistry(
+    public async updateProfileRegistry(
         @AuthenticatedUserId() userId: UUID,
         @Body(new ValidationPipe({ transform: true })) dto: ProfileRegistryDTO
     ): Promise<ProfileRegistryDTO> {
@@ -244,7 +249,7 @@ export class AccountController {
     @Public()
     @HttpCode(HttpStatus.OK)
     @Post('/is-email-available')
-    async isEmailAvailable(@Body(new ValidationPipe({ transform: true })) { email }: EmailDTO): Promise<boolean> {
+    public async isEmailAvailable(@Body(new ValidationPipe({ transform: true })) { email }: EmailDTO): Promise<boolean> {
         return this.accountService.isUserAvailableByEmail(email)
     }
 
