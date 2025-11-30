@@ -29,6 +29,7 @@ import { SecurityAuditService } from 'src/app_modules/meilisearch/services/secur
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 import { TypeGuards } from 'src/utils/type-guards/type-guards';
+import { ProvidedEmailDTO } from '../Models/DTO/provided-email.dto';
 
 @Injectable()
 export class MfaService {
@@ -525,6 +526,7 @@ export class MfaService {
         let completePhoneNumber: string
         let otpauth_url: string
         let secureToken: string = ''
+        let dto: ProvidedEmailDTO | null = null
 
         if (!await this.userService.existsUserById(userId)) {
             throw new RpcException('NoSuchUser')
@@ -547,7 +549,7 @@ export class MfaService {
         switch (strategy) {
             case MfaStrategy.EMAIL_OTP:
 
-                email = await this.userService.getUserEmailById(userId) as string
+                email = (await this.userService.getUserProvidedEmailById(userId))!.email 
                 totpSecret = await this.userService.getOtpSecretByUserId(userId)
                 if (!totpSecret) {
                     throw new RpcException('TotpSecretNotFound')
@@ -581,8 +583,11 @@ export class MfaService {
 
             case MfaStrategy.APP_TOTP:
 
-                email = await this.userService.getUserEmailById(userId) as string
-                ({ totpSecret, otpauth_url } = this.securityService.generateAppTotpSecret(email))
+                dto = await this.userService.getUserProvidedEmailById(userId)
+                if (!dto) {
+                    throw new RpcException('NoSuchUser')
+                }               
+                ({ totpSecret, otpauth_url } = this.securityService.generateAppTotpSecret(dto.email))
                 metadata = {
                     generatedAt: Date.now(),
                     expiresAt: Date.now() + this.totpConfig.period * 1000
@@ -720,7 +725,7 @@ export class MfaService {
 
         switch (strategy) {
             case MfaStrategy.EMAIL_OTP:
-                email = await this.userService.getUserEmailById(userId) as string
+                email = (await this.userService.getUserProvidedEmailById(userId))!.email 
                 totpSecret = await this.userService.getOtpSecretByUserId(userId)
                 if (!totpSecret) {
                     throw new RpcException('TotpSecretNotFound')

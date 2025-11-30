@@ -21,6 +21,8 @@ import { MoleculeCollectionItemEntity } from 'src/app_modules/molecule-collectio
 import { HistoryService } from 'src/app_modules/history/services/history.service';
 import { HistoryDTO } from 'src/app_modules/history/Models/DTO/history.dto';
 import { AuthIdentity } from 'src/app_modules/sso/Models/entities/auth-identity.entity';
+import { ProvidedEmailDTO } from 'src/app_modules/auth/Models/DTO/provided-email.dto';
+import { AuthProvider } from 'src/app_modules/sso/Models/enums/auth-provider.enum';
 
 
 
@@ -152,15 +154,16 @@ export class UserService {
         })
     }
 
-    public async getVerifiedUserPasswordHashById(userId: UUID): Promise<string | null> | never {
+    public async getVerifiedUserPasswordHashById(userId: UUID): Promise<string> | never {
         try {
             const { passwordHash } = await this.userRepository.createQueryBuilder('u')
                 .select(['u.passwordHash'])
                 .where('u.id = :userId', { userId })
                 .andWhere('u.isVerified = true')
                 .andWhere('u.sso = false')
+                .andWhere('u.hashedPassword IS NOT NULL')
                 .getOneOrFail()
-            return passwordHash
+            return passwordHash!
         } catch {
             throw new RpcException('Unauthanticated')
         }
@@ -223,25 +226,26 @@ export class UserService {
         return user.firstName
     }
 
-    public async getUserEmailById(id: UUID): Promise<string | nullish> {
+    public async getUserProvidedEmailById(id: UUID): Promise<ProvidedEmailDTO | null> {
         const userRow = await this.userRepository.createQueryBuilder('u')
             .select(['u.email', 'u.sso'])
             .where('u.id = :id', { id })
+            .leftJoin("u.authIdentities", "a")
+            .addSelect(["a.email", "a.provider"])
             .getOne()
-        if (!userRow) return userRow
+        if (!userRow) {
+            return null
+        }
         if (userRow.sso) {
-            const identityRows = await this.dataSource.getRepository(AuthIdentity).find({
-                where: {
-                    userId: id
-                }
-            })
-            for (const r of identityRows) {
-                if (r.email) {
-                    return r.email
-                }
+            return {
+                email: userRow.authIdentities[0]?.email ?? '',
+                provider: userRow.authIdentities[0]?.provider ?? ''
             }
         }
-        return userRow.email
+        return {
+            email: userRow.email ?? '',
+            provider: AuthProvider.Mercurion
+        }
     }
 
     public async getPhoneNumberById(id: UUID): Promise<string | nullish> {
@@ -289,7 +293,7 @@ export class UserService {
             .where('id = :id', { id })
             .getOne()
         if (!result) {
-            return result
+            return null
         }
         return result.initials
     }
@@ -301,23 +305,27 @@ export class UserService {
             .andWhere('u.sso = false')
             .getOne()
         if (!result) {
-            return result
+            return null
         }
         return result.id
     }
 
     public async changePassword(userId: UUID, newPassword: string): Promise<void> | never {
         await this.userRepository.manager.transaction(async manager => {
-
-            const user = await manager
-                .createQueryBuilder(User, 'u')
-                .select(['u.id', 'u.passwordHash', 'u.oldPasswordHashes'])
-                .where('u.id = :userId', { userId })
-                .andWhere('u.isVerified = true')
-                .andWhere('u.sso = false')
-                .andWhere('u.passwordHash IS NOT NULL')
-                .setLock('pessimistic_write')
-                .getOneOrFail()
+            let user!: User
+            try {
+                user = await manager
+                    .createQueryBuilder(User, 'u')
+                    .select(['u.id', 'u.passwordHash', 'u.oldPasswordHashes'])
+                    .where('u.id = :userId', { userId })
+                    .andWhere('u.isVerified = true')
+                    .andWhere('u.sso = false')
+                    .andWhere('u.passwordHash IS NOT NULL')
+                    .setLock('pessimistic_write')
+                    .getOneOrFail()
+            } catch {
+                throw new RpcException('UnprocessableEntity')
+            }
 
             const oldList: OldPasswordItem[] = Array.isArray(user.oldPasswordHashes)
                 ? user.oldPasswordHashes
@@ -385,10 +393,10 @@ export class UserService {
                 const { firstName, lastName, gender, job, completePhoneNumber, avatarId, initials } = profileRow
 
                 let _email: string | null = null
-                let authIdentityRows: AuthIdentity[]
+                let authIdentityRow: AuthIdentity | null
 
                 if (profileRow.sso) {
-                    authIdentityRows = await manager.find(AuthIdentity, {
+                    authIdentityRow = await manager.findOne(AuthIdentity, {
                         where: {
                             userId: id
                         },
@@ -396,13 +404,10 @@ export class UserService {
                             email: true
                         }
                     })
-
-                    for (const row of authIdentityRows) {
-                        if (row.email) {
-                            _email = row.email
-                            break
-                        }
+                    if (!authIdentityRow) {
+                        return null
                     }
+                    _email = authIdentityRow.email
                 } else {
                     _email = profileRow.email
                 }
@@ -440,8 +445,6 @@ export class UserService {
                     ))
                 }
 
-
-
                 const result: ProfileDTO = {
                     firstName,
                     lastName,
@@ -458,7 +461,6 @@ export class UserService {
                 }
 
                 return result
-
             })
         } catch (e) {
             this.logger.warn('Failed to fetch profile', e as object)
@@ -566,6 +568,22 @@ export class UserService {
         })
     }
 
+    public async getAuthProviderByUserId(id: UUID): Promise<AuthProvider | null> {
+        try {
+            const { provider } = await this.dataSource.getRepository(AuthIdentity)
+                .createQueryBuilder('u')
+                .select(['u.provider'])
+                .where('u.userId = :userId', { userId: id })
+                .getOneOrFail()
+            return provider
+        } catch {
+            return await this.userRepository.exists({where: {
+                id
+            }})
+            ? AuthProvider.Mercurion
+            : null
+        }
+    }
 
 
 }

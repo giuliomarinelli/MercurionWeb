@@ -21,6 +21,8 @@ import { SessionDTO } from '../Models/DTO/session.dto';
 import { BackupCodeStatusDTO } from 'src/app_modules/user/Models/DTO/backup-code-status.dto';
 import { RpcException } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
+import { ProvidedEmailDTO } from '../Models/DTO/provided-email.dto';
+import { AuthProvider } from 'src/app_modules/sso/Models/enums/auth-provider.enum';
 
 
 
@@ -156,12 +158,21 @@ export class AccountController {
     }
 
     @Get('/email')
-    public async getEmail(@AuthenticatedUserId() userId: UUID): Promise<string> {
-        const email = await this.userService.getUserEmailById(userId)
-        if (email == null) {
+    public async getProvidedEmail(@AuthenticatedUserId() userId: UUID): Promise<ProvidedEmailDTO> {
+        const dto = await this.userService.getUserProvidedEmailById(userId)
+        if (dto == null) {
             throw new NotFoundException('EmailNotFound')
         }
-        return email
+        return dto
+    }
+
+    @Get('/auth-provider')
+    public async getAuthProvider(@AuthenticatedUserId() userId: UUID): Promise<AuthProvider> {
+        const p = await this.userService.getAuthProviderByUserId(userId)
+        if (!p) {
+            throw new NotFoundException()
+        }
+        return p
     }
 
     @Patch('/password')
@@ -307,11 +318,11 @@ export class AccountController {
 
     @Get('/masked-email')
     public async getMaskedEmail(@AuthenticatedUserId() userId: UUID): Promise<string> {
-        const email = await this.userService.getUserEmailById(userId)
-        if (!email) {
+        const dto = await this.userService.getUserProvidedEmailById(userId)
+        if (!dto) {
             throw new NotFoundException('Fatal::email not found')
         }
-        return this.securityService.maskEmail(email)
+        return this.securityService.maskEmail(dto.email)
     }
 
     @Get('/masked-phone')

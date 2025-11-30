@@ -1,6 +1,7 @@
 import { WritableSignal } from "@angular/core"
 import { UserGender } from "../auth/user.models"
 import { HistoryDTO } from "../history.models"
+import { AuthProvider } from "../auth/provider.models"
 
 export interface UserData {
   email?: string | null
@@ -73,4 +74,9 @@ export interface RecoverCredentialsDTO {
 
 export interface RecoveryCodeDTO {
     code: string
+}
+
+export interface ProvidedEmailDTO {
+    email: string
+    provider: AuthProvider
 }

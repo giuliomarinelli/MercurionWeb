@@ -8,17 +8,17 @@ import { AuthProvider } from '../enums/auth-provider.enum';
 
 @Entity('auth_identities')
 export class AuthIdentity {
+
     @PrimaryColumn({ type: 'uuid' })
-    id: UUID;
+    id: UUID
 
     @Column({ type: 'uuid' })
-    userId: UUID;
+    userId: UUID
 
     @ManyToOne(() => User, (u) => u.authIdentities, {
         onDelete: 'CASCADE',
         nullable: false
     })
-
     @JoinColumn({ name: 'user_id' })
     user: User
 

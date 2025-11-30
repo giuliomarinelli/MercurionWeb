@@ -759,7 +759,7 @@ export class AccountService {
         await this.clearPasswordFailures(userId, PasswordContext.CHANGE)
         await this.userService.changePassword(userId, newPassword)
         await this.securityAuditService.passwordChanged(userId, { viaResetFlow: false })
-        const email = (await this.userService.getUserEmailById(userId))!
+        const email = (await this.userService.getUserProvidedEmailById(userId))!.email
         const firstName = (await this.userService.getUserFirstNameById(userId))!
         this.mailService.sendEmail<UserContext>(
             email,
@@ -845,7 +845,7 @@ export class AccountService {
         await this.userService.changePassword(userId, newPassword)
         await this.clearPasswordFailures(userId, PasswordContext.CHANGE)
         await this.securityAuditService.passwordChanged(userId, { viaResetFlow: true })
-        const email = (await this.userService.getUserEmailById(userId))!
+        const email = (await this.userService.getUserProvidedEmailById(userId))!.email
         const firstName = (await this.userService.getUserFirstNameById(userId))!
         this.mailService.sendEmail<UserContext>(
             email,
