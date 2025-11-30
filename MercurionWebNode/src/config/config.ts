@@ -271,6 +271,11 @@ const SSO_Config = registerAs(
             clientId: process.env.LINKEDIN_CLIENT_ID!,
             clientSecret: process.env.LINKEDIN_CLIENT_SECRET!,
             redirectUri: process.env.LINKEDIN_REDIRECT_URI!
+        },
+        Discord: {
+            clientId: process.env.DISCORD_CLIENT_ID!,
+            clientSecret: process.env.DISCORD_CLIENT_SECRET!,
+            redirectUri: process.env.DISCORD_REDIRECT_URI!
         }
     })
 )

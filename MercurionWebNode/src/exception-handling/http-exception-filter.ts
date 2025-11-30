@@ -155,6 +155,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
             case 'SSO_Unauthorized::No id_token from Google':
             case 'SSO_Unauthorized::Invalid Google id_token':
             case 'SSO_Unauthorized::GitHub: access_token missing':
+            case 'SSO_Unauthorized::Discord: missing access token':
                 statusCode = HttpStatus.UNAUTHORIZED
                 break
 
@@ -179,6 +180,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
             case 'MercurionTox21ClientConnectionTimeoutNoResponse':
                 statusCode = HttpStatus.GATEWAY_TIMEOUT
                 break
+        }
+
+        if (e.message.startsWith('Provider not supported')) {
+            msg = `SSO_BadRequest::${e.message}`
+            statusCode = HttpStatus.BAD_REQUEST
         }
 
         return {

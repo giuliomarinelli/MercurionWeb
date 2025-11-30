@@ -12,6 +12,7 @@ import { ResponseService } from 'src/services/response.service';
 import { GitHubProviderClient } from './providers/github-provider-client';
 import { RedisModule } from '../redis/redis.module';
 import { LinkedInProviderClient } from './providers/linkedin-provider-client';
+import { DiscordProviderClient } from './providers/discord-provider-client';
 
 @Module({
     imports: [
@@ -22,7 +23,7 @@ import { LinkedInProviderClient } from './providers/linkedin-provider-client';
         forwardRef(() => RedisModule)
     ],
     exports: [TypeOrmModule],
-    providers: [SocialAuthService, SocialProviderRegistry, GoogleProviderClient, ResponseService, GitHubProviderClient, LinkedInProviderClient],
+    providers: [SocialAuthService, SocialProviderRegistry, GoogleProviderClient, ResponseService, GitHubProviderClient, LinkedInProviderClient, DiscordProviderClient],
     controllers: [SocialAuthController]
 })
 export class SSO_Module { }
