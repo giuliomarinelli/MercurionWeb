@@ -20,6 +20,7 @@ import { ScopeService } from 'src/app_modules/auth/services/scope.service';
 import { MoleculeCollectionItemEntity } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection-item.entity';
 import { HistoryService } from 'src/app_modules/history/services/history.service';
 import { HistoryDTO } from 'src/app_modules/history/Models/DTO/history.dto';
+import { AuthIdentity } from 'src/app_modules/sso/Models/entities/auth-identity.entity';
 
 
 
@@ -83,7 +84,7 @@ export class UserService {
     }
 
     public async existsUserByEmail(email: string): Promise<boolean> {
-        return this.userRepository.exists({ where: { email } })
+        return this.userRepository.exists({ where: { email, sso: false } })
     }
 
     public async getUserById(id: UUID, isVerified?: boolean): Promise<User | nullish> {
@@ -91,7 +92,7 @@ export class UserService {
         if (isVerified != undefined) {
             where.isVerified = isVerified
         }
-        return await this.userRepository.findOne({ where })
+        return this.userRepository.findOne({ where })
     }
 
     public async updateUser(id: UUID, userProps: Partial<User>): Promise<User | nullish> {
@@ -115,7 +116,7 @@ export class UserService {
     public async getUserEncryptedEnabledMfaStrategies(id: UUID): Promise<string[]> {
 
         const user = await this.userRepository.createQueryBuilder('u')
-            .select('u.mfaStrategies')
+            .select(['u.mfaStrategies', 'u.sso'])
             .where('u.id = :id', { id })
             .getOne()
 
@@ -123,7 +124,7 @@ export class UserService {
             throw new RpcException('MfaSettings::User not found')
         }
 
-        if (!user.mfaStrategies) {
+        if (user.sso || !user.mfaStrategies) {
             return []
         }
 
@@ -138,14 +139,15 @@ export class UserService {
     }
 
     public async getVerifiedUserByEmail(email: string): Promise<User | nullish> {
-        return await this.userRepository.findOne({ where: { email, isVerified: true } })
+        return await this.userRepository.findOne({ where: { email, isVerified: true, sso: false } })
     }
 
     public async existsVerifiedUserByEmail(email: string): Promise<boolean> {
         return await this.userRepository.exists({
             where: {
                 email,
-                isVerified: true
+                isVerified: true,
+                sso: false
             }
         })
     }
@@ -156,6 +158,7 @@ export class UserService {
                 .select(['u.passwordHash'])
                 .where('u.id = :userId', { userId })
                 .andWhere('u.isVerified = true')
+                .andWhere('u.sso = false')
                 .getOneOrFail()
             return passwordHash
         } catch {
@@ -167,6 +170,7 @@ export class UserService {
         const user = await this.userRepository.createQueryBuilder('u')
             .select(['u.id', 'u.passwordHash', 'u.locked'])
             .where('u.isVerified = true')
+            .andWhere('u.sso = false')
             .andWhere('u.email = :email', { email })
             .getOne()
         if (!user || !user.passwordHash) {
@@ -184,6 +188,7 @@ export class UserService {
         const user = await this.userRepository.createQueryBuilder('u')
             .select('u.otpSecret')
             .where('u.id = :id', { id })
+            .andWhere('u.sso = false')
             .getOne()
         if (!user) return user
         return user.otpSecret
@@ -193,6 +198,7 @@ export class UserService {
         const user = await this.userRepository.createQueryBuilder('u')
             .select('u.appTotpSecret')
             .where('u.id = :id', { id })
+            .andWhere('u.sso = false')
             .getOne()
         if (!user) return user
         return user.appTotpSecret
@@ -218,21 +224,38 @@ export class UserService {
     }
 
     public async getUserEmailById(id: UUID): Promise<string | nullish> {
-        const user = await this.userRepository.createQueryBuilder('u')
-            .select('u.email')
+        const userRow = await this.userRepository.createQueryBuilder('u')
+            .select(['u.email', 'u.sso'])
             .where('u.id = :id', { id })
             .getOne()
-        if (!user) return user
-        return user.email
+        if (!userRow) return userRow
+        if (userRow.sso) {
+            const identityRows = await this.dataSource.getRepository(AuthIdentity).find({
+                where: {
+                    userId: id
+                }
+            })
+            for (const r of identityRows) {
+                if (r.email) {
+                    return r.email
+                }
+            }
+        }
+        return userRow.email
     }
 
     public async getPhoneNumberById(id: UUID): Promise<string | nullish> {
-        const user = await this.userRepository.createQueryBuilder('u')
-            .select('u.completePhoneNumber')
+        const userRow = await this.userRepository.createQueryBuilder('u')
+            .select(['u.completePhoneNumber', 'u.sso'])
             .where('u.id = :id', { id })
             .getOne()
-        if (!user) return user
-        return user.completePhoneNumber
+        if (!userRow) {
+            return null
+        }
+        if (userRow.sso) {
+            throw new RpcException('UnprocessableEntity')
+        }
+        return userRow.completePhoneNumber
     }
 
     public async appendMfaStrategy(id: UUID, strategy: MfaStrategy): Promise<void> {
@@ -275,6 +298,7 @@ export class UserService {
         const result = await this.userRepository.createQueryBuilder('u')
             .select(['u.id'])
             .where('u.email = :email', { email })
+            .andWhere('u.sso = false')
             .getOne()
         if (!result) {
             return result
@@ -337,6 +361,7 @@ export class UserService {
 
         try {
             return this.dataSource.manager.transaction(async (manager) => {
+
                 const profileRow = await manager.findOne(User, {
                     where: { id, isVerified: true },
                     select: {
@@ -347,7 +372,8 @@ export class UserService {
                         job: true,
                         email: true,
                         completePhoneNumber: true,
-                        avatarId: true
+                        avatarId: true,
+                        sso: true
                     }
                 })
 
@@ -355,7 +381,30 @@ export class UserService {
                     return null
                 }
 
-                const { firstName, lastName, gender, job, email, completePhoneNumber, avatarId } = profileRow
+                const { firstName, lastName, gender, job, completePhoneNumber, avatarId } = profileRow
+
+                let _email: string | null = null
+                let authIdentityRows: AuthIdentity[]
+
+                if (profileRow.sso) {
+                    authIdentityRows = await manager.find(AuthIdentity, {
+                        where: {
+                            userId: id
+                        },
+                        select: {
+                            email: true
+                        }
+                    })
+
+                    for (const row of authIdentityRows) {
+                        if (row.email) {
+                            _email = row.email
+                            break
+                        }
+                    }
+                } else {
+                    _email = profileRow.email
+                }
 
                 const personalMoleculeCount = await manager.count(MoleculeCollectionItemEntity, {
                     where: {
@@ -390,12 +439,14 @@ export class UserService {
                     ))
                 }
 
+
+
                 const result: ProfileDTO = {
                     firstName,
                     lastName,
                     gender,
                     job,
-                    obscuredEmail: this.securityService.maskEmail(email ?? ''),
+                    obscuredEmail: this.securityService.maskEmail(_email ?? ''),
                     obscuredPhone: completePhoneNumber ? this.securityService.maskPhone(completePhoneNumber) : null,
                     avatarId,
                     recentHistory,
@@ -454,7 +505,7 @@ export class UserService {
             ...dto,
             updatedAt: Date.now()
         }
-        return await this.userRepository.save(newUser)
+        return this.userRepository.save(newUser)
     }
 
     public async updatePasswordHashByUserId(userId: UUID, passwordHash: string): Promise<void> | never {

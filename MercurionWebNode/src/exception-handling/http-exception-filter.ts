@@ -105,6 +105,9 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
 
         switch (msg) {
+            case 'UnprocessableEntity':
+                statusCode = HttpStatus.UNPROCESSABLE_ENTITY
+                break
             case 'UserRegistrationConflict::Email already exists':
             case 'ChangeEmail::NewEmailIsCurrentEmail':
             case 'ChangePhone::NumberAlreadySet':

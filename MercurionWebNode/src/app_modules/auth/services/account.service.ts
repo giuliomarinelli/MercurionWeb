@@ -399,7 +399,13 @@ export class AccountService {
     public async changeEmail_firstStep_requestTotp(userId: UUID, newEmail: string): Promise<ConfirmChangeDTO> {
 
         const user = await this.userService.getUserById(userId)
-        if (!user) throw new RpcException('ChangeEmail::UserNotFound')
+        if (!user) {
+            throw new RpcException('ChangeEmail::UserNotFound')
+        }
+
+        if (user.sso) {
+            throw new RpcException('UnprocessableEntity')
+        }
 
         if (!newEmail || newEmail.trim() === '') throw new RpcException('ChangeEmail::EmptyEmail')
         if (newEmail.toLowerCase() === user.email?.toLowerCase()) {
@@ -509,6 +515,9 @@ export class AccountService {
         if (!user) {
             throw new RpcException('DeletePhone::UserNotFound')
         }
+        if (user.sso) {
+            throw new RpcException('UnprocessableEntity')
+        }
         const currentNumber = user.completePhoneNumber
         if (!currentNumber) {
             throw new RpcException('DeletePhone::NoPhoneNumber')
@@ -566,7 +575,7 @@ export class AccountService {
                 await this.registerContactChangeFailure(userId, ContactChangeKind.PHONE)
                 throw new RpcException('ChangePhone::InvalidTOTP')
             }
-            const maskedOldPhone = this.securityService.maskPhone(user.completePhoneNumber ?? '') || null            
+            const maskedOldPhone = this.securityService.maskPhone(user.completePhoneNumber ?? '') || null
             const oldCompletePhoneNumber = user.completePhoneNumber
 
             await manager.update(User, { id: userId }, {
@@ -628,6 +637,9 @@ export class AccountService {
         const user = await this.userService.getUserById(userId)
         if (!user) {
             throw new RpcException('ChangePhone::UserNotFound')
+        }
+        if (user.sso) {
+            throw new RpcException('UnprocessableEntity')
         }
         await this.throttleContactChangeSend(userId, ContactChangeKind.PHONE)
 
@@ -727,6 +739,17 @@ export class AccountService {
     }
 
     public async changePassword(oldPassword: string, newPassword: string, userId: UUID): Promise<void> | never {
+        const ur = await this.dataSource.getRepository(User).findOne({
+            where: {
+                id: userId
+            },
+            select: {
+                sso: true
+            }
+        })
+        if ((ur && ur.sso) || !ur) {
+            throw new RpcException('UnprocessableEntity')
+        }
         await this.ensurePasswordNotLocked(userId, PasswordContext.CHANGE)
         const oldPasswordHash = await this.userService.getVerifiedUserPasswordHashById(userId)
         if (oldPasswordHash && await this.passwordEncoder.compareWithFallback(oldPassword, oldPasswordHash) === CompareResult.NoMatch) {
@@ -756,15 +779,20 @@ export class AccountService {
             throw new RpcException('Unauthenticated')
         }
         let locked: boolean
+        let sso: boolean = false
         try {
-            ({ locked } = await this.dataSource.getRepository(User).findOneOrFail({
+            ({ locked, sso } = await this.dataSource.getRepository(User).findOneOrFail({
                 where: {
                     id: userId as UUID
                 },
                 select: {
-                    locked: true
+                    locked: true,
+                    sso: true
                 }
             }))
+            if (sso) {
+            throw new RpcException('UnprocessableEntity')
+        }
         } catch {
             throw new RpcException('Forbidden::missing permissions')
         }

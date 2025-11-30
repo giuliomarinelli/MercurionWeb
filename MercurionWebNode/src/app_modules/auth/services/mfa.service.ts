@@ -152,7 +152,7 @@ export class MfaService {
 
     public async generateBackupCodes(userId: UUID, manager: EntityManager): Promise<string[]> {
 
-        await manager.delete(MfaBackupCode, { userId })    
+        await manager.delete(MfaBackupCode, { userId })
 
         const codes = Array.from({ length: 10 }).map(() => this.securityService.generateReadableCode())
 
@@ -279,7 +279,7 @@ export class MfaService {
 
         await this.throttleBackupRegeneration(userId)
 
-        return this.dataSource.manager.transaction(async (manager) => {                    
+        return this.dataSource.manager.transaction(async (manager) => {
 
             const row = await manager.findOne(User, {
                 where: { id: userId },
@@ -326,6 +326,17 @@ export class MfaService {
     }
 
     public async getBackupCodesStatus(userId: UUID): Promise<BackupCodeStatusDTO> {
+        const ur = await this.dataSource.getRepository(User).findOne({
+            where: {
+                id: userId
+            },
+            select: {
+                sso: true
+            }
+        })
+        if (ur && ur.sso) {
+            throw new RpcException('UnprocessableEntity')
+        }
         const codes = await this.backupCodeRepository.find({ where: { user: { id: userId } } })
         const used = codes.filter(c => c.used).length
         return {
@@ -452,7 +463,7 @@ export class MfaService {
                 )
                 break
 
-            case MfaStrategy.SMS_OTP:                
+            case MfaStrategy.SMS_OTP:
                 await this.smsService.sendSms(
                     user.completePhoneNumber!,
                     `Ciao ${user.firstName}. Ecco il tuo codice per accedere a ${this.appName}: ${TOTP}\nE' valido per ${this.totpConfig.period} secondi.`
@@ -517,6 +528,17 @@ export class MfaService {
 
         if (!await this.userService.existsUserById(userId)) {
             throw new RpcException('NoSuchUser')
+        }
+        const ur = await this.dataSource.getRepository(User).findOne({
+            where: {
+                id: userId
+            },
+            select: {
+                sso: true
+            }
+        })
+        if (ur!.sso) {
+            throw new RpcException('UnprocessableEntity')
         }
         const firstName = await this.userService.getUserFirstNameById(userId) as string
         if ((await this.userService.getUserEncryptedEnabledMfaStrategies(userId)).includes(strategy))
@@ -673,6 +695,19 @@ export class MfaService {
 
         if (!await this.userService.existsUserById(userId)) {
             throw new RpcException('NoSuchUser')
+        }
+
+        const ur = await this.dataSource.getRepository(User).findOne({
+            where: {
+                id: userId
+            },
+            select: {
+                sso: true
+            }
+        })
+
+        if (ur!.sso) {
+            throw new RpcException('UnprocessableEntity')
         }
 
         const encStrategies = await this.userService.getUserEncryptedEnabledMfaStrategies(userId)

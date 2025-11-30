@@ -1,4 +1,4 @@
-import { Component, computed, effect, ElementRef, inject, OnDestroy, OnInit, Signal, signal, ViewChild } from '@angular/core';
+import { Component, computed, inject, OnDestroy, OnInit, Signal, signal, ViewChild } from '@angular/core';
 import { FormBuilder, FormControlStatus, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ThemeManagerService } from '../../services/context/theme-manager.service';
 import { PublicPipe } from '../../pipes/public.pipe';
@@ -222,8 +222,8 @@ import { toSignal } from '@angular/core/rxjs-interop';
 
         <!-- Social buttons placeholder -->
         <div class="space-y-3 dark:text-slate-100">
-          <button
-            type="button"
+          <a
+            href="/api/oauth2/sso/Google/login"
             class="w-full flex items-center justify-center border rounded-md py-2.5 text-sm dark:hover:bg-slate-100 gap-3 dark:hover:text-neutral-900 hover:bg-slate-200/80 bg-slate-200 dark:bg-transparent transition-colors duration-150"
           >
             <svg
@@ -238,7 +238,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
               />
             </svg>
             <span>Continua con Google</span>
-          </button>
+          </a>
           <button
             type="button"
             class="w-full flex items-center justify-center border rounded-md py-2.5 text-sm dark:hover:bg-slate-100 gap-3 dark:hover:text-neutral-900 hover:bg-slate-200/80 bg-slate-200 dark:bg-transparent transition-colors duration-150"
