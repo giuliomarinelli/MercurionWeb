@@ -18,6 +18,7 @@ import { ISessionDeviceInfo } from '../../Models/auth/fingerprint.models';
 import { Login_FirstStepWrapper } from '../../Models/auth/login.models';
 import { environment } from '../../../environments/environment.development';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { SSO_AuthProvider } from '../../Models/auth/provider.models';
 
 
 
@@ -494,7 +495,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
         this.step.set(1);
         this.loginForm.get('password')?.reset();
       }
-    });
+    })
     this.pswSub = this.loginForm.get('password')?.valueChanges.subscribe(() => this.serverErrorStep.set(0))
 
   }
@@ -508,6 +509,6 @@ export class LoginPageComponent implements OnInit, OnDestroy {
     clearInterval(this.pollInterval)
   }
 
-
-
 }
+
+

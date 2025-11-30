@@ -10,13 +10,15 @@ import { AuthModule } from '../auth/auth.module';
 import { MeilisearchModule } from '../meilisearch/meilisearch.module';
 import { ResponseService } from 'src/services/response.service';
 import { GitHubProviderClient } from './providers/github-provider-client';
+import { RedisModule } from '../redis/redis.module';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([AuthIdentity]),
         forwardRef(() => UserModule),
         AuthModule,
-        forwardRef(() => MeilisearchModule)
+        forwardRef(() => MeilisearchModule),
+        forwardRef(() => RedisModule)
     ],
     exports: [TypeOrmModule],
     providers: [SocialAuthService, SocialProviderRegistry, GoogleProviderClient, ResponseService, GitHubProviderClient],

@@ -5,7 +5,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { TypeGuardsService } from '../../services/type-guards.service';
 import { FingerprintService } from '../../services/fingerprint.service';
 import { AuthService } from '../../services/auth.service';
-import { UserContextService } from '../../services/context/user-context.service';
 import { SessionSyncService } from '../../services/session-sync.service';
 
 @Component({
@@ -36,7 +35,7 @@ export class SsoPageComponent implements OnInit, OnDestroy {
       switchMap((fw) => combineLatest([of(fw.fingerprintDataEnc), of(btoa(JSON.stringify(fw.sessionDeviceInfo))), this.route.queryParamMap])),
       switchMap(([fp_enc, di_enc, p]) => {
         const sso_pat = p.get('t') ?? ''
-        const provider = p.get('provider')
+        const provider = p.get('provider') ?? ''
         if (this.typeGuards.is_SSO_AuthProvider(provider) && /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(sso_pat)) {
           history.replaceState({}, '', location.pathname + '?provider=' + provider)
           localStorage.removeItem('accessToken')

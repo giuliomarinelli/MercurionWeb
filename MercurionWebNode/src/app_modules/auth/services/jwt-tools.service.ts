@@ -246,8 +246,7 @@ export class JwtToolsService {
             }
             return payload
         } catch (e) {
-            this.logger.warn(' > verifyTokenAndGetPayload > Error: ', (e.stack ?? e) as object)
-            this.logger.debug(TokenType.SSO_PreAuthorizationToken, token)
+            this.logger.warn(' > verifyTokenAndGetPayload > Error: ', (e.message ?? e) as string | object)
             throw new RpcException(`InvalidOrExpired${type}`)
         }
     }

@@ -13,14 +13,15 @@ export class SocialProviderRegistry {
     constructor(
         google: GoogleProviderClient,
         github: GitHubProviderClient,
-        // apple: AppleProviderClient,
         // facebook: FacebookProviderClient,
+        // linkedIn: LinkedInProviderClient,
+        // discord: DiscordProviderClient,
     ) {
         this.map = {
             [AuthProvider.Google]: google,
-            [AuthProvider.GitHub]: github,
-            [AuthProvider.Apple]: null,
-            [AuthProvider.Facebook]: null,
+            [AuthProvider.GitHub]: github,                   
+            [AuthProvider.LinkedIn]: null,
+            [AuthProvider.Discord]: null,
             [AuthProvider.Mercurion]: null // non usato qui
         }
     }
