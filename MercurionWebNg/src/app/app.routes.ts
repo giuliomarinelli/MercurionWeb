@@ -32,8 +32,7 @@ export const routes: Routes = [
   },
   {
     path: 'molecules/detail/:molId',
-    loadComponent: () => import('./pages/molecule-detail/molecule-detail.page.component').then(m => m.MoleculeDetailPageComponent),
-    canActivate: [AuthGuard]
+    loadComponent: () => import('./pages/molecule-detail/molecule-detail.page.component').then(m => m.MoleculeDetailPageComponent)
   },
   // {
   //   path: 'notebook/:notebookId/edit',

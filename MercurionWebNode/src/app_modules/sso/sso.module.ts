@@ -1,3 +1,4 @@
+import { MoleculeCollectionItemJoin } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection-item-join.entity';
 import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthIdentity } from './Models/entities/auth-identity.entity';
@@ -13,10 +14,17 @@ import { GitHubProviderClient } from './providers/github-provider-client';
 import { RedisModule } from '../redis/redis.module';
 import { LinkedInProviderClient } from './providers/linkedin-provider-client';
 import { DiscordProviderClient } from './providers/discord-provider-client';
+import { MoleculeCollection } from '../molecule-collection/Models/entities/molecule-collection.entity';
+import { ChEMBLMoleculeItemEntity } from '../molecule-collection/Models/entities/chembl-molecule-item.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([AuthIdentity]),
+        TypeOrmModule.forFeature([
+            AuthIdentity,
+            MoleculeCollection,
+            ChEMBLMoleculeItemEntity,
+            MoleculeCollectionItemJoin
+        ]),
         forwardRef(() => UserModule),
         AuthModule,
         forwardRef(() => MeilisearchModule),

@@ -14,6 +14,9 @@ import { ScopeService } from "src/app_modules/auth/services/scope.service";
 import { ConfigService } from "@nestjs/config";
 import { RedisService } from "src/app_modules/redis/services/redis.service";
 import { RpcException } from "@nestjs/microservices";
+import { ChEMBLMoleculeItemEntity } from "src/app_modules/molecule-collection/Models/entities/chembl-molecule-item.entity";
+import { MoleculeCollection } from "src/app_modules/molecule-collection/Models/entities/molecule-collection.entity";
+import { MoleculeCollectionItemJoin } from "src/app_modules/molecule-collection/Models/entities/molecule-collection-item-join.entity";
 
 @Injectable()
 export class SocialAuthService {
@@ -115,8 +118,102 @@ export class SocialAuthService {
                         emailVerified: profile.emailVerified
                     })
 
-                    await manager.save(identity)
                     identity.user = user
+                    await manager.save(identity)
+
+                    const userId = user.id
+
+                    const now = Date.now()
+                    const _1stMol = manager.create(ChEMBLMoleculeItemEntity, {
+                        chemblMolregno: 1280,
+                        name: 'ASPIRINA',
+                        nameEn: 'ASPIRIN',
+                        id: uuidv7() as UUID,
+                        userId,
+                        label: 'Acido acetilsalicilico',
+                        notes: 'La mia prima molecola su Mercurion',
+                        type: 'chembl',
+                        createdAt: now,
+                        updatedAt: now,
+                        touchedAt: now
+                    })
+                    const _2ndMol = manager.create(ChEMBLMoleculeItemEntity, {
+                        chemblMolregno: 11674,
+                        name: 'IBUPROFENE',
+                        nameEn: 'IBUPROFEN',
+                        id: uuidv7() as UUID,
+                        userId,
+                        label: 'Antinfiammatorio non steroideo derivato dell\'acido arilpropionico',
+                        notes: 'La mia seconda molecola su Mercurion',
+                        type: 'chembl',
+                        createdAt: now,
+                        updatedAt: now,
+                        touchedAt: now - 1
+                    })
+                    const _3rdMol = manager.create(ChEMBLMoleculeItemEntity, {
+                        chemblMolregno: 5080,
+                        name: 'KETOROLAC',
+                        nameEn: 'KETOROLAC',
+                        id: uuidv7() as UUID,
+                        userId,
+                        label: null,
+                        notes: 'La mia terza molecola su Mercurion',
+                        type: 'chembl',
+                        createdAt: now,
+                        updatedAt: now,
+                        touchedAt: now - 2
+                    })
+                    const _4rdMol = manager.create(ChEMBLMoleculeItemEntity, {
+                        chemblMolregno: 173,
+                        name: 'INDOMETACINA',
+                        nameEn: 'INDOMETHACIN',
+                        id: uuidv7() as UUID,
+                        userId,
+                        label: 'Indometacina',
+                        notes: 'Gastrotossica, nefrotossica',
+                        type: 'chembl',
+                        createdAt: now,
+                        updatedAt: now,
+                        touchedAt: now - 3
+                    })
+                    const _5rdMol = manager.create(ChEMBLMoleculeItemEntity, {
+                        chemblMolregno: 16591,
+                        name: 'KETOPROFENE',
+                        nameEn: 'KETOPROFEN',
+                        id: uuidv7() as UUID,
+                        userId,
+                        label: null,
+                        notes: 'Potente antinfiammatorio, buon analgesico',
+                        type: 'chembl',
+                        createdAt: now,
+                        updatedAt: now,
+                        touchedAt: now - 4
+                    })
+                    await manager.save(_1stMol)
+                    await manager.save(_2ndMol)
+                    await manager.save(_3rdMol)
+                    await manager.save(_4rdMol)
+                    await manager.save(_5rdMol)
+                    const firstCol = manager.create(MoleculeCollection, {
+                        id: uuidv7() as UUID,
+                        name: 'La mia prima collezione',
+                        createdAt: now,
+                        updatedAt: now,
+                        touchedAt: now,
+                        userId
+                    })
+                    const firstColPersisted = await manager.save(firstCol)
+                    const joins = [_1stMol, _2ndMol, _3rdMol, _4rdMol, _5rdMol].map((mol) => {
+                        const join = manager.create(MoleculeCollectionItemJoin, {
+                            id: uuidv7() as UUID,
+                            userId,
+                            collectionId: firstColPersisted.id,
+                            itemId: mol.id
+                        })
+                        return join
+                    })
+
+                    await manager.save(joins)
 
                 } else {
 
