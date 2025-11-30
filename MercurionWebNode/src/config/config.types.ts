@@ -138,4 +138,6 @@ export interface SSO_Configuration {
 export interface SSO_Configurations {
     Google: SSO_Configuration,
     GitHub: SSO_Configuration
+    LinkedIn: SSO_Configuration
+    // Discord: SSO_Configuration
 }

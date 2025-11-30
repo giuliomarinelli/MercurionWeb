@@ -1,5 +1,5 @@
 import { MoleculeCollection } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection.entity';
-import { ProfileRegistryDTO as ProfileRegistryDTO } from './../../auth/Models/DTO/profile.dtos';
+import { ProfileRegistryClientDTO, ProfileRegistryDTO as ProfileRegistryDTO } from './../../auth/Models/DTO/profile.dtos';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../Models/entities/user.entity';
@@ -373,7 +373,8 @@ export class UserService {
                         email: true,
                         completePhoneNumber: true,
                         avatarId: true,
-                        sso: true
+                        sso: true,
+                        initials: true
                     }
                 })
 
@@ -381,7 +382,7 @@ export class UserService {
                     return null
                 }
 
-                const { firstName, lastName, gender, job, completePhoneNumber, avatarId } = profileRow
+                const { firstName, lastName, gender, job, completePhoneNumber, avatarId, initials } = profileRow
 
                 let _email: string | null = null
                 let authIdentityRows: AuthIdentity[]
@@ -452,7 +453,8 @@ export class UserService {
                     recentHistory,
                     personalMoleculeCount,
                     chemblMoleculeCount,
-                    collectionCount
+                    collectionCount,
+                    initials
                 }
 
                 return result
@@ -464,7 +466,7 @@ export class UserService {
         }
     }
 
-    public async getVerifiedUserEssentialProfileRegistryById(id: UUID): Promise<ProfileRegistryDTO> {
+    public async getVerifiedUserEssentialProfileRegistryById(id: UUID): Promise<ProfileRegistryClientDTO> {
         const row = await this.userRepository.findOne({
             where: {
                 id,
@@ -474,38 +476,52 @@ export class UserService {
                 firstName: true,
                 lastName: true,
                 gender: true,
-                job: true
+                job: true,
+                initials: true
             }
         })
         if (!row) {
             throw new RpcException('Unauthenticated')
         }
-        const { firstName, lastName, gender, job } = row
+        const { firstName, lastName, gender, job, initials } = row
         return {
             firstName,
             lastName,
             gender,
-            job: job ?? ''
+            job: job ?? '',
+            initials
         }
     }
 
-    public async updateVerifiedUserProfileRegistryById(id: UUID, dto: ProfileRegistryDTO): Promise<ProfileRegistryDTO | null> {
+    public async updateVerifiedUserProfileRegistryById(id: UUID, dto: ProfileRegistryDTO): Promise<ProfileRegistryClientDTO | null> {
         dto.job = dto.job || null
-        const user = await this.userRepository.findOne({
+        const exists = await this.userRepository.exists({
             where: {
                 id,
                 isVerified: true
-            },
+            }
         })
-        if (!user) {
+        if (!exists) {
             return null
         }
-        const newUser = {
-            ...user,
-            ...dto,
-            updatedAt: Date.now()
+        const firstName = dto.firstName
+        const lastName = dto.lastName
+        const gender = dto.gender
+        const job = dto.job
+        const initials = dto.firstName.charAt(0).toUpperCase() + dto.lastName.charAt(0).toUpperCase()
+        const result: Pick<User, 'firstName' | 'lastName' | 'gender' | 'job' | 'initials'> = {
+            firstName,
+            lastName,
+            gender,
+            job,
+            initials
         }
-        return this.userRepository.save(newUser)
+        await this.userRepository.update({ id }, {
+            ...result,
+            updatedAt: Date.now()
+        })
+        return result
+
     }
 
     public async updatePasswordHashByUserId(userId: UUID, passwordHash: string): Promise<void> | never {

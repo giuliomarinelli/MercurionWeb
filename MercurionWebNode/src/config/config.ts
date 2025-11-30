@@ -266,6 +266,11 @@ const SSO_Config = registerAs(
             clientId: process.env.GITHUB_CLIENT_ID!,
             clientSecret: process.env.GITHUB_CLIENT_SECRET!,
             redirectUri: process.env.GITHUB_REDIRECT_URI!
+        },
+        LinkedIn: {
+            clientId: process.env.LINKEDIN_CLIENT_ID!,
+            clientSecret: process.env.LINKEDIN_CLIENT_SECRET!,
+            redirectUri: process.env.LINKEDIN_REDIRECT_URI!
         }
     })
 )

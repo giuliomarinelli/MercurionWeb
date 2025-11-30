@@ -11,6 +11,7 @@ import { MeilisearchModule } from '../meilisearch/meilisearch.module';
 import { ResponseService } from 'src/services/response.service';
 import { GitHubProviderClient } from './providers/github-provider-client';
 import { RedisModule } from '../redis/redis.module';
+import { LinkedInProviderClient } from './providers/linkedin-provider-client';
 
 @Module({
     imports: [
@@ -21,7 +22,7 @@ import { RedisModule } from '../redis/redis.module';
         forwardRef(() => RedisModule)
     ],
     exports: [TypeOrmModule],
-    providers: [SocialAuthService, SocialProviderRegistry, GoogleProviderClient, ResponseService, GitHubProviderClient],
+    providers: [SocialAuthService, SocialProviderRegistry, GoogleProviderClient, ResponseService, GitHubProviderClient, LinkedInProviderClient],
     controllers: [SocialAuthController]
 })
 export class SSO_Module { }

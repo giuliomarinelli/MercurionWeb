@@ -17,6 +17,7 @@ export interface ProfileDTO {
     personalMoleculeCount: number
     chemblMoleculeCount: number
     collectionCount: number
+    initials: string
 }
 
 export class ProfileRegistryDTO {
@@ -37,4 +38,8 @@ export class ProfileRegistryDTO {
     @IsOptional()
     job?: string | null
 
+}
+
+export type ProfileRegistryClientDTO = ProfileRegistryDTO & {
+    initials: string
 }

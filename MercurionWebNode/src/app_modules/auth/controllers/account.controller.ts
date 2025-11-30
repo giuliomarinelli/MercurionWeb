@@ -15,7 +15,7 @@ import { EmailDTO } from '../Models/DTO/email.cls.dto';
 import { UserService } from 'src/app_modules/user/services/user.service';
 import { TurnstileGuard } from '../guards/turnstile.guard';
 import { SercurityService } from '../services/sercurity.service';
-import { ProfileDTO, ProfileRegistryDTO } from '../Models/DTO/profile.dtos';
+import { ProfileDTO, ProfileRegistryClientDTO, ProfileRegistryDTO } from '../Models/DTO/profile.dtos';
 import { SessionService } from '../services/session.service';
 import { SessionDTO } from '../Models/DTO/session.dto';
 import { BackupCodeStatusDTO } from 'src/app_modules/user/Models/DTO/backup-code-status.dto';
@@ -230,7 +230,7 @@ export class AccountController {
     }
 
     @Get('/profile-registry/essential')
-    public async getEssentialProfileRegistry(@AuthenticatedUserId() userId :UUID): Promise<ProfileRegistryDTO> {
+    public async getEssentialProfileRegistry(@AuthenticatedUserId() userId :UUID): Promise<ProfileRegistryClientDTO> {
         return this.userService.getVerifiedUserEssentialProfileRegistryById(userId)
     }
 
@@ -238,7 +238,7 @@ export class AccountController {
     public async updateProfileRegistry(
         @AuthenticatedUserId() userId: UUID,
         @Body(new ValidationPipe({ transform: true })) dto: ProfileRegistryDTO
-    ): Promise<ProfileRegistryDTO> {
+    ): Promise<ProfileRegistryClientDTO> {
         const result = await this.userService.updateVerifiedUserProfileRegistryById(userId, dto)
         if (!result) {
             throw new NotFoundException('UserNotFound::{updated: false}')

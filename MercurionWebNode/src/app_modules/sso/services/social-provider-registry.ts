@@ -4,6 +4,7 @@ import { ISocialProviderClient } from "../Models/interfaces/i-social-provider-cl
 import { GoogleProviderClient } from "../providers/google-provider-client";
 import { RpcException } from "@nestjs/microservices";
 import { GitHubProviderClient } from "../providers/github-provider-client";
+import { LinkedInProviderClient } from "../providers/linkedin-provider-client";
 
 @Injectable()
 export class SocialProviderRegistry {
@@ -13,14 +14,14 @@ export class SocialProviderRegistry {
     constructor(
         google: GoogleProviderClient,
         github: GitHubProviderClient,
-        // facebook: FacebookProviderClient,
+        linkedIn: LinkedInProviderClient,
         // linkedIn: LinkedInProviderClient,
         // discord: DiscordProviderClient,
     ) {
         this.map = {
             [AuthProvider.Google]: google,
             [AuthProvider.GitHub]: github,                   
-            [AuthProvider.LinkedIn]: null,
+            [AuthProvider.LinkedIn]: linkedIn,
             [AuthProvider.Discord]: null,
             [AuthProvider.Mercurion]: null // non usato qui
         }

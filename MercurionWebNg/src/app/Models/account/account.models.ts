@@ -24,9 +24,14 @@ export interface ProfileDTO {
   personalMoleculeCount: number
   chemblMoleculeCount: number
   collectionCount: number
+  initials: string
 }
 
 export type ProfileRegistryDTO = Pick<ProfileDTO, 'firstName' | 'lastName' | 'gender' | 'job'>
+
+export type ProfileRegistryClientDTO = ProfileRegistryDTO & {
+    initials: string
+}
 
 export type MfaStrategy = 'EMAIL_OTP' | 'SMS_OTP' | 'APP_TOTP' | 'BACKUP_CODE'
 
