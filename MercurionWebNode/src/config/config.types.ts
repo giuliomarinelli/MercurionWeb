@@ -59,6 +59,7 @@ export interface JwtConfigurations {
     appTotpMfaInactivationToken: JwtConfiguration
     changePasswordToken: JwtConfiguration
     accountRecoveryToken: JwtConfiguration
+    sso_preAuthorizationToken: JwtConfiguration
     issuer: string
     audience: JwtAudience
 
@@ -126,4 +127,17 @@ export interface CloudflareConfiguration {
 export interface RedisConfiguration {
     host: string
     port: number
+}
+
+export interface SSO_Configuration {
+    clientId: string
+    clientSecret: string
+    redirectUri: string
+}
+
+export interface SSO_Configurations {
+    Google: SSO_Configuration,
+    GitHub: SSO_Configuration
+    LinkedIn: SSO_Configuration
+    Discord: SSO_Configuration
 }

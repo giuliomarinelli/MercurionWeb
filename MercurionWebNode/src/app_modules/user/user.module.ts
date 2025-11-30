@@ -8,6 +8,7 @@ import { AuthModule } from '../auth/auth.module';
 import { History } from '../history/Models/entities/history.entity';
 import { MoleculeCollectionModule } from '../molecule-collection/molecule-collection.module';
 import { HistoryModule } from '../history/history.module';
+import { SSO_Module } from '../sso/sso.module';
 
 
 @Module({
@@ -20,7 +21,8 @@ import { HistoryModule } from '../history/history.module';
     forwardRef(() => MeilisearchModule),
     forwardRef(() => AuthModule),
     forwardRef(() => MoleculeCollectionModule),
-    forwardRef(() => HistoryModule)
+    forwardRef(() => HistoryModule),
+    forwardRef(() => SSO_Module)
   ],
   providers: [
     UserService

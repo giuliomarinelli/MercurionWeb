@@ -54,6 +54,7 @@
     "graphql-fields": "^2.0.3",
     "hi-base32": "^0.5.1",
     "ioredis": "^5.5.0",
+    "jose": "^6.1.2",
     "meilisearch": "^0.50.0",
     "mercurius": "^16.1.0",
     "mysql2": "^3.12.0",

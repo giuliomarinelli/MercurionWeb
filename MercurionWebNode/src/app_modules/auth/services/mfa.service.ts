@@ -29,6 +29,7 @@ import { SecurityAuditService } from 'src/app_modules/meilisearch/services/secur
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 import { TypeGuards } from 'src/utils/type-guards/type-guards';
+import { ProvidedEmailDTO } from '../Models/DTO/provided-email.dto';
 
 @Injectable()
 export class MfaService {
@@ -152,7 +153,7 @@ export class MfaService {
 
     public async generateBackupCodes(userId: UUID, manager: EntityManager): Promise<string[]> {
 
-        await manager.delete(MfaBackupCode, { userId })    
+        await manager.delete(MfaBackupCode, { userId })
 
         const codes = Array.from({ length: 10 }).map(() => this.securityService.generateReadableCode())
 
@@ -279,7 +280,7 @@ export class MfaService {
 
         await this.throttleBackupRegeneration(userId)
 
-        return this.dataSource.manager.transaction(async (manager) => {                    
+        return this.dataSource.manager.transaction(async (manager) => {
 
             const row = await manager.findOne(User, {
                 where: { id: userId },
@@ -326,6 +327,17 @@ export class MfaService {
     }
 
     public async getBackupCodesStatus(userId: UUID): Promise<BackupCodeStatusDTO> {
+        const ur = await this.dataSource.getRepository(User).findOne({
+            where: {
+                id: userId
+            },
+            select: {
+                sso: true
+            }
+        })
+        if (ur && ur.sso) {
+            throw new RpcException('UnprocessableEntity')
+        }
         const codes = await this.backupCodeRepository.find({ where: { user: { id: userId } } })
         const used = codes.filter(c => c.used).length
         return {
@@ -452,7 +464,7 @@ export class MfaService {
                 )
                 break
 
-            case MfaStrategy.SMS_OTP:                
+            case MfaStrategy.SMS_OTP:
                 await this.smsService.sendSms(
                     user.completePhoneNumber!,
                     `Ciao ${user.firstName}. Ecco il tuo codice per accedere a ${this.appName}: ${TOTP}\nE' valido per ${this.totpConfig.period} secondi.`
@@ -514,9 +526,21 @@ export class MfaService {
         let completePhoneNumber: string
         let otpauth_url: string
         let secureToken: string = ''
+        let dto: ProvidedEmailDTO | null = null
 
         if (!await this.userService.existsUserById(userId)) {
             throw new RpcException('NoSuchUser')
+        }
+        const ur = await this.dataSource.getRepository(User).findOne({
+            where: {
+                id: userId
+            },
+            select: {
+                sso: true
+            }
+        })
+        if (ur!.sso) {
+            throw new RpcException('UnprocessableEntity')
         }
         const firstName = await this.userService.getUserFirstNameById(userId) as string
         if ((await this.userService.getUserEncryptedEnabledMfaStrategies(userId)).includes(strategy))
@@ -525,7 +549,7 @@ export class MfaService {
         switch (strategy) {
             case MfaStrategy.EMAIL_OTP:
 
-                email = await this.userService.getUserEmailById(userId) as string
+                email = (await this.userService.getUserProvidedEmailById(userId))!.email 
                 totpSecret = await this.userService.getOtpSecretByUserId(userId)
                 if (!totpSecret) {
                     throw new RpcException('TotpSecretNotFound')
@@ -559,8 +583,11 @@ export class MfaService {
 
             case MfaStrategy.APP_TOTP:
 
-                email = await this.userService.getUserEmailById(userId) as string
-                ({ totpSecret, otpauth_url } = this.securityService.generateAppTotpSecret(email))
+                dto = await this.userService.getUserProvidedEmailById(userId)
+                if (!dto) {
+                    throw new RpcException('NoSuchUser')
+                }               
+                ({ totpSecret, otpauth_url } = this.securityService.generateAppTotpSecret(dto.email))
                 metadata = {
                     generatedAt: Date.now(),
                     expiresAt: Date.now() + this.totpConfig.period * 1000
@@ -675,6 +702,19 @@ export class MfaService {
             throw new RpcException('NoSuchUser')
         }
 
+        const ur = await this.dataSource.getRepository(User).findOne({
+            where: {
+                id: userId
+            },
+            select: {
+                sso: true
+            }
+        })
+
+        if (ur!.sso) {
+            throw new RpcException('UnprocessableEntity')
+        }
+
         const encStrategies = await this.userService.getUserEncryptedEnabledMfaStrategies(userId)
         const strategies = encStrategies.map((s) => this.securityService.decrypt_AES256(s) as MfaStrategy)
         if (!strategies.includes(strategy)) {
@@ -685,7 +725,7 @@ export class MfaService {
 
         switch (strategy) {
             case MfaStrategy.EMAIL_OTP:
-                email = await this.userService.getUserEmailById(userId) as string
+                email = (await this.userService.getUserProvidedEmailById(userId))!.email 
                 totpSecret = await this.userService.getOtpSecretByUserId(userId)
                 if (!totpSecret) {
                     throw new RpcException('TotpSecretNotFound')

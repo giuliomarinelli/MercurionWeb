@@ -358,7 +358,7 @@ export class AccountService {
             updatedAt = Date.now()
             await manager.update(User, { id: userId }, { email, unconfirmedEmail, isVerified, updatedAt, accountRecoveryCodeHash })
             const now = Date.now()
-            const firstMol = manager.create(ChEMBLMoleculeItemEntity, {
+            const _1stMol = manager.create(ChEMBLMoleculeItemEntity, {
                 chemblMolregno: 1280,
                 name: 'ASPIRINA',
                 nameEn: 'ASPIRIN',
@@ -371,7 +371,63 @@ export class AccountService {
                 updatedAt: now,
                 touchedAt: now
             })
-            const firstMolPersisted = await manager.save(firstMol)
+            const _2ndMol = manager.create(ChEMBLMoleculeItemEntity, {
+                chemblMolregno: 11674,
+                name: 'IBUPROFENE',
+                nameEn: 'IBUPROFEN',
+                id: uuidv7() as UUID,
+                userId,
+                label: 'Antinfiammatorio non steroideo derivato dell\'acido arilpropionico',
+                notes: 'La mia seconda molecola su Mercurion',
+                type: 'chembl',
+                createdAt: now,
+                updatedAt: now,
+                touchedAt: now - 1
+            })
+            const _3rdMol = manager.create(ChEMBLMoleculeItemEntity, {
+                chemblMolregno: 5080,
+                name: 'KETOROLAC',
+                nameEn: 'KETOROLAC',
+                id: uuidv7() as UUID,
+                userId,
+                label: null,
+                notes: 'La mia terza molecola su Mercurion',
+                type: 'chembl',
+                createdAt: now,
+                updatedAt: now,
+                touchedAt: now - 2
+            })
+            const _4rdMol = manager.create(ChEMBLMoleculeItemEntity, {
+                chemblMolregno: 173,
+                name: 'INDOMETACINA',
+                nameEn: 'INDOMETHACIN',
+                id: uuidv7() as UUID,
+                userId,
+                label: 'Indometacina',
+                notes: 'Gastrotossica, nefrotossica',
+                type: 'chembl',
+                createdAt: now,
+                updatedAt: now,
+                touchedAt: now - 3
+            })
+            const _5rdMol = manager.create(ChEMBLMoleculeItemEntity, {
+                chemblMolregno: 16591,
+                name: 'KETOPROFENE',
+                nameEn: 'KETOPROFEN',
+                id: uuidv7() as UUID,
+                userId,
+                label: null,
+                notes: 'Potente antinfiammatorio, buon analgesico',
+                type: 'chembl',
+                createdAt: now,
+                updatedAt: now,
+                touchedAt: now - 4
+            })
+            await manager.save(_1stMol)
+            await manager.save(_2ndMol)
+            await manager.save(_3rdMol)
+            await manager.save(_4rdMol)
+            await manager.save(_5rdMol)
             const firstCol = manager.create(MoleculeCollection, {
                 id: uuidv7() as UUID,
                 name: 'La mia prima collezione',
@@ -381,13 +437,17 @@ export class AccountService {
                 userId
             })
             const firstColPersisted = await manager.save(firstCol)
-            const join = manager.create(MoleculeCollectionItemJoin, {
-                id: uuidv7() as UUID,
-                userId,
-                collectionId: firstColPersisted.id,
-                itemId: firstMolPersisted.id
+            const joins = [_1stMol, _2ndMol, _3rdMol, _4rdMol, _5rdMol].map((mol) => {
+                const join = manager.create(MoleculeCollectionItemJoin, {
+                    id: uuidv7() as UUID,
+                    userId,
+                    collectionId: firstColPersisted.id,
+                    itemId: mol.id
+                })
+                return join
             })
-            await manager.save(join)
+
+            await manager.save(joins)
             await this.redisService.del(this.getRegistrationLockRedisKey(email))
             return {
                 ...this._r.ok('Account activated successfully'),
@@ -399,7 +459,13 @@ export class AccountService {
     public async changeEmail_firstStep_requestTotp(userId: UUID, newEmail: string): Promise<ConfirmChangeDTO> {
 
         const user = await this.userService.getUserById(userId)
-        if (!user) throw new RpcException('ChangeEmail::UserNotFound')
+        if (!user) {
+            throw new RpcException('ChangeEmail::UserNotFound')
+        }
+
+        if (user.sso) {
+            throw new RpcException('UnprocessableEntity')
+        }
 
         if (!newEmail || newEmail.trim() === '') throw new RpcException('ChangeEmail::EmptyEmail')
         if (newEmail.toLowerCase() === user.email?.toLowerCase()) {
@@ -509,6 +575,9 @@ export class AccountService {
         if (!user) {
             throw new RpcException('DeletePhone::UserNotFound')
         }
+        if (user.sso) {
+            throw new RpcException('UnprocessableEntity')
+        }
         const currentNumber = user.completePhoneNumber
         if (!currentNumber) {
             throw new RpcException('DeletePhone::NoPhoneNumber')
@@ -566,7 +635,7 @@ export class AccountService {
                 await this.registerContactChangeFailure(userId, ContactChangeKind.PHONE)
                 throw new RpcException('ChangePhone::InvalidTOTP')
             }
-            const maskedOldPhone = this.securityService.maskPhone(user.completePhoneNumber ?? '') || null            
+            const maskedOldPhone = this.securityService.maskPhone(user.completePhoneNumber ?? '') || null
             const oldCompletePhoneNumber = user.completePhoneNumber
 
             await manager.update(User, { id: userId }, {
@@ -628,6 +697,9 @@ export class AccountService {
         const user = await this.userService.getUserById(userId)
         if (!user) {
             throw new RpcException('ChangePhone::UserNotFound')
+        }
+        if (user.sso) {
+            throw new RpcException('UnprocessableEntity')
         }
         await this.throttleContactChangeSend(userId, ContactChangeKind.PHONE)
 
@@ -727,16 +799,27 @@ export class AccountService {
     }
 
     public async changePassword(oldPassword: string, newPassword: string, userId: UUID): Promise<void> | never {
+        const ur = await this.dataSource.getRepository(User).findOne({
+            where: {
+                id: userId
+            },
+            select: {
+                sso: true
+            }
+        })
+        if ((ur && ur.sso) || !ur) {
+            throw new RpcException('UnprocessableEntity')
+        }
         await this.ensurePasswordNotLocked(userId, PasswordContext.CHANGE)
         const oldPasswordHash = await this.userService.getVerifiedUserPasswordHashById(userId)
-        if (await this.passwordEncoder.compareWithFallback(oldPassword, oldPasswordHash) === CompareResult.NoMatch) {
+        if (oldPasswordHash && await this.passwordEncoder.compareWithFallback(oldPassword, oldPasswordHash) === CompareResult.NoMatch) {
             await this.registerPasswordFailure(userId, PasswordContext.CHANGE)
             throw new RpcException('ChangePassword::Invalid Credentials')
         }
         await this.clearPasswordFailures(userId, PasswordContext.CHANGE)
         await this.userService.changePassword(userId, newPassword)
         await this.securityAuditService.passwordChanged(userId, { viaResetFlow: false })
-        const email = (await this.userService.getUserEmailById(userId))!
+        const email = (await this.userService.getUserProvidedEmailById(userId))!.email
         const firstName = (await this.userService.getUserFirstNameById(userId))!
         this.mailService.sendEmail<UserContext>(
             email,
@@ -756,15 +839,20 @@ export class AccountService {
             throw new RpcException('Unauthenticated')
         }
         let locked: boolean
+        let sso: boolean = false
         try {
-            ({ locked } = await this.dataSource.getRepository(User).findOneOrFail({
+            ({ locked, sso } = await this.dataSource.getRepository(User).findOneOrFail({
                 where: {
                     id: userId as UUID
                 },
                 select: {
-                    locked: true
+                    locked: true,
+                    sso: true
                 }
             }))
+            if (sso) {
+                throw new RpcException('UnprocessableEntity')
+            }
         } catch {
             throw new RpcException('Forbidden::missing permissions')
         }
@@ -817,7 +905,7 @@ export class AccountService {
         await this.userService.changePassword(userId, newPassword)
         await this.clearPasswordFailures(userId, PasswordContext.CHANGE)
         await this.securityAuditService.passwordChanged(userId, { viaResetFlow: true })
-        const email = (await this.userService.getUserEmailById(userId))!
+        const email = (await this.userService.getUserProvidedEmailById(userId))!.email
         const firstName = (await this.userService.getUserFirstNameById(userId))!
         this.mailService.sendEmail<UserContext>(
             email,

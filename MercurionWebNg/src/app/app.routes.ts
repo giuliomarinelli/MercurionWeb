@@ -32,8 +32,7 @@ export const routes: Routes = [
   },
   {
     path: 'molecules/detail/:molId',
-    loadComponent: () => import('./pages/molecule-detail/molecule-detail.page.component').then(m => m.MoleculeDetailPageComponent),
-    canActivate: [AuthGuard]
+    loadComponent: () => import('./pages/molecule-detail/molecule-detail.page.component').then(m => m.MoleculeDetailPageComponent)
   },
   // {
   //   path: 'notebook/:notebookId/edit',
@@ -97,6 +96,10 @@ export const routes: Routes = [
   {
     path: 'account-recovery',
     loadComponent: () => import('./pages/account-recovery/account-recovery.page.component').then(m => m.AccountRecoveryPageComponent)
+  },
+  {
+    path: 'oauth2/callback',
+    loadComponent: () => import('./pages/sso/sso.page.component').then(m => m.SsoPageComponent)
   },
   {
     path: '**',

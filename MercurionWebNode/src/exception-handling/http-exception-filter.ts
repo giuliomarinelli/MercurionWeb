@@ -105,6 +105,9 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
 
         switch (msg) {
+            case 'UnprocessableEntity':
+                statusCode = HttpStatus.UNPROCESSABLE_ENTITY
+                break
             case 'UserRegistrationConflict::Email already exists':
             case 'ChangeEmail::NewEmailIsCurrentEmail':
             case 'ChangePhone::NumberAlreadySet':
@@ -132,13 +135,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
             case 'Forbidden::missing permissions':
             case 'BackupCodesAlreadyGenerated':
             case 'DeletePhone::NumberAlreadyUsedOrPending':
-            case 'DeletePhone::NoPendingDeletion':            
+            case 'DeletePhone::NoPendingDeletion':
                 statusCode = HttpStatus.FORBIDDEN
                 break
 
             case 'ChangeEmailConfirm::NoUnconfirmedEmail':
             case 'DeletePhone::UserNotFound':
-            case 'DeletePhone::NoPhoneNumber':                                             
+            case 'DeletePhone::NoPhoneNumber':
                 statusCode = HttpStatus.BAD_REQUEST
                 break
 
@@ -149,6 +152,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
             case 'Unauthanticated':
             case 'AccountRecovery::wrong recovery code':
             case 'ChangePassword::Invalid Credentials':
+            case 'SSO_Unauthorized::No id_token from Google':
+            case 'SSO_Unauthorized::Invalid Google id_token':
+            case 'SSO_Unauthorized::GitHub: access_token missing':
+            case 'SSO_Unauthorized::Discord: missing access token':
                 statusCode = HttpStatus.UNAUTHORIZED
                 break
 
@@ -173,6 +180,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
             case 'MercurionTox21ClientConnectionTimeoutNoResponse':
                 statusCode = HttpStatus.GATEWAY_TIMEOUT
                 break
+        }
+
+        if (e.message.startsWith('Provider not supported')) {
+            msg = `SSO_BadRequest::${e.message}`
+            statusCode = HttpStatus.BAD_REQUEST
         }
 
         return {

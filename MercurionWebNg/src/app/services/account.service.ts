@@ -1,12 +1,14 @@
 import { ConfirmWithPhoneMfaFeedback, ConfirmWithRecoveryCodeDTO } from './../Models/confirm.models';
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
-import { ChangePasswordDTO, MfaStrategy, ChangePhoneDTO, ProfileDTO, SessionDTO, ProfileRegistryDTO } from '../Models/account/account.models';
-import { map, Observable, of, tap } from 'rxjs';
+import { ChangePasswordDTO, MfaStrategy, ChangePhoneDTO, ProfileDTO, SessionDTO, ProfileRegistryDTO, ProfileRegistryClientDTO, ProvidedEmailDTO } from '../Models/account/account.models';
+import { map, Observable, of, switchMap, tap, throwError } from 'rxjs';
 import { ConfirmChangeDTO, ConfirmDTO, ConfirmMfaChange } from '../Models/confirm.models';
 import { ConfirmWithObsContDTO } from '../Models/confirm.models';
 import { EmailDTO } from '../Models/auth/login.models';
 import { TotpDTO } from '../Models/auth/totp.models';
+import { AuthProvider } from '../Models/auth/provider.models';
+import { TypeGuardsService } from './type-guards.service';
 
 
 @Injectable({
@@ -15,36 +17,50 @@ import { TotpDTO } from '../Models/auth/totp.models';
 export class AccountService {
 
   private readonly http = inject(HttpClient)
+  private readonly typeGuards = inject(TypeGuardsService)
 
-  private cachedEmail = signal<string>('')
+  private cachedProvidedEmail = signal<ProvidedEmailDTO | null>(null)
 
-  private getCachedEmail(): string | null {
-    const cached = this.cachedEmail()
+  private getCachedProvidedEmail(): ProvidedEmailDTO | null {
+    const cached = this.cachedProvidedEmail()
     if (!cached) {
       return null
     }
     return cached
   }
 
-  private setCachedEmail(email: string): void {
-    if (!email) {
+  private setCachedProvidedEmail(dto: ProvidedEmailDTO): void {
+    if (!dto) {
       return
     }
-    this.cachedEmail.set(email)
+    this.cachedProvidedEmail.set(dto)
   }
 
-  public getEmail(refetch = false): Observable<string> {
-    const cached = this.getCachedEmail()
+  public getProvidedEmail(refetch = false): Observable<ProvidedEmailDTO> {
+    const cached = this.getCachedProvidedEmail()
     if (cached && !refetch) {
       return of(cached)
     } else {
-      return this.http.get('/api/account/email', {
-        withCredentials: true,
-        responseType: 'text'
+      return this.http.get<ProvidedEmailDTO>('/api/account/email', {
+        withCredentials: true
       }).pipe(
-        tap(email => this.setCachedEmail(email))
+        tap(dto => this.setCachedProvidedEmail(dto))
       )
     }
+  }
+
+  public getAuthProvider(): Observable<AuthProvider> {
+    return this.http.get('/api/account/auth-provider', {
+      withCredentials: true,
+      responseType: 'text'
+    }).pipe(
+      switchMap((p) => {
+        if (this.typeGuards.is_SSO_AuthProvider(p)) {
+          return of(p as AuthProvider)
+        }
+        return throwError(() => new Error('invalid_provider'))
+      })
+    )
   }
 
   public sendForgottenPasswordLink(dto: EmailDTO, turnstileToken: string): Observable<ConfirmWithObsContDTO> {
@@ -93,14 +109,14 @@ export class AccountService {
     })
   }
 
-  public getEssentialProfileRegistry(): Observable<ProfileRegistryDTO> {
-    return this.http.get<ProfileRegistryDTO>('/api/account/profile-registry/essential', {
+  public getEssentialProfileRegistry(): Observable<ProfileRegistryClientDTO> {
+    return this.http.get<ProfileRegistryClientDTO>('/api/account/profile-registry/essential', {
       withCredentials: true
     })
   }
 
-  public updateProfileRegistry(dto: ProfileRegistryDTO): Observable<ProfileRegistryDTO> {
-    return this.http.patch<ProfileRegistryDTO>('/api/account/profile-registry', dto, {
+  public updateProfileRegistry(dto: ProfileRegistryDTO): Observable<ProfileRegistryClientDTO> {
+    return this.http.patch<ProfileRegistryClientDTO>('/api/account/profile-registry', dto, {
       withCredentials: true
     })
   }

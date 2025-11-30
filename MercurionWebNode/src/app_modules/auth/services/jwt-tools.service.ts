@@ -15,9 +15,13 @@ import { resolve } from 'path';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { SessionService } from './session.service';
 import { Environment } from 'src/config/config';
+import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 
 @Injectable()
 export class JwtToolsService {
+
+    private readonly logger: MeiliContextLogger
 
     private readonly accessTokenConfig: JwtConfiguration = { expiresInMs: 0 }
     private readonly ws_accessTokenConfig: JwtConfiguration = { expiresInMs: 0 }
@@ -33,6 +37,7 @@ export class JwtToolsService {
     private readonly appTotpMfaInactivationTokenConfig: JwtConfiguration
     private readonly changePasswordTokenConfig: JwtConfiguration
     private readonly accountRecoveryTokenConfig: JwtConfiguration
+    private readonly sso_preAuthorizationTokenConfig: JwtConfiguration
 
     private readonly jwtIssuer: string
     private readonly jwtAudience: JwtAudience
@@ -47,8 +52,11 @@ export class JwtToolsService {
         private readonly configService: ConfigService,
         private readonly userService: UserService,
         private readonly redisservice: RedisService,
-        private readonly sessionService: SessionService
+        private readonly sessionService: SessionService,
+        loggerFactory: MeiliLoggerService
     ) {
+        this.logger = loggerFactory.forContext(JwtToolsService.name)
+
         this.accessTokenConfig.expiresInMs = this.configService.get<number>("Jwt.accessToken.expiresInMs") as number
         this.ws_accessTokenConfig.expiresInMs = this.configService.get<number>("Jwt.ws_accessToken.expiresInMs") as number
         this.preAuthorizationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.preAuthorizationToken") as JwtConfiguration
@@ -63,6 +71,7 @@ export class JwtToolsService {
         this.appTotpMfaInactivationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.appTotpMfaInactivationToken") as JwtConfiguration
         this.changePasswordTokenConfig = this.configService.get<JwtConfiguration>("Jwt.changePasswordToken") as JwtConfiguration
         this.accountRecoveryTokenConfig = this.configService.get<JwtConfiguration>("Jwt.accountRecoveryToken") as JwtConfiguration
+        this.sso_preAuthorizationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.sso_preAuthorizationToken") as JwtConfiguration
 
         this.jwtIssuer = this.configService.get<string>("Jwt.issuer") as string
         this.jwtAudience = this.configService.get<JwtAudience>('Jwt.audience')!
@@ -129,6 +138,7 @@ export class JwtToolsService {
             case TokenType.SmsOtpMfaInactivationToken: return this.smsOtpMfaInactivationTokenConfig
             case TokenType.ChangePasswordToken: return this.changePasswordTokenConfig
             case TokenType.AccountRecoveryToken: return this.accountRecoveryTokenConfig
+            case TokenType.SSO_PreAuthorizationToken: return this.sso_preAuthorizationTokenConfig
         }
     }
 
@@ -236,7 +246,7 @@ export class JwtToolsService {
             }
             return payload
         } catch (e) {
-            console.log(e)
+            this.logger.warn(' > verifyTokenAndGetPayload > Error: ', (e.message ?? e) as string | object)
             throw new RpcException(`InvalidOrExpired${type}`)
         }
     }

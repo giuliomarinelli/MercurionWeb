@@ -1,4 +1,5 @@
 import { UUID } from "crypto";
+import { AuthProvider } from "src/app_modules/sso/Models/enums/auth-provider.enum";
 
 export interface ISession {
     sessionId: UUID
@@ -12,6 +13,7 @@ export interface ISession {
     sessionDeviceInfo: ISessionDeviceInfo
     fingerprint: string
     location: string
+    provider: AuthProvider
 }
 
 export interface ISessionDeviceInfo {
@@ -22,3 +24,5 @@ export interface ISessionDeviceInfo {
         version: string
     }
 }
+
+export type ISSO_SessionActivationData = Pick<ISession, 'IP' | 'fingerprint' | 'sessionDeviceInfo' | 'location' | 'deviceId'>

@@ -20,6 +20,7 @@ import { GeoIpService, GeoLocation } from './geo-ip.service';
 import { TokenPair } from '../Models/interfaces/token-pair.interface';
 import { CompareResult } from '../Models/enums/compare-result.enum';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
+import { AuthProvider } from 'src/app_modules/sso/Models/enums/auth-provider.enum';
 
 @Injectable()
 export class AuthenticationService {
@@ -112,7 +113,7 @@ export class AuthenticationService {
         const location = locations.filter(loc => loc != null).join(', ')
         const alreadyTrustedLocations: GeoLocation[] = await this.sessionService.getTrustedLocations(auth.userId)
         const isTrustedCurrentLocation: boolean = this.geoIpService.isTrustedLocation(geoLocation as GeoLocation, alreadyTrustedLocations)
-        const session = await this.sessionService.createSession({ deviceId, userId: auth.userId, IP, sessionDeviceInfo, fingerprint, location }, remember)
+        const session = await this.sessionService.createSession({ deviceId, userId: auth.userId, IP, sessionDeviceInfo, fingerprint, location, provider: AuthProvider.Mercurion }, remember)
         const sessionId = session.sessionId
         const inWhiteList: boolean = await this.sessionService.isFingerprintInWhiteList(auth.userId, fingerprint)
         const _enabledMfaStrategies: MfaStrategy[] = await this.mfaService.getEnabledMfaStrategies(auth.userId)
@@ -181,6 +182,34 @@ export class AuthenticationService {
             }
         }
         throw new RpcException('InvalidSession')
+    }
+
+    public async perform_SSO_Authentication(
+        sso_pat: string,
+        IP: string,
+        deviceId: string,
+        sessionDeviceInfo: ISessionDeviceInfo,
+        fingerprintData: FingerprintData,
+        provider: AuthProvider
+    ): Promise<TokenPair & { sessionId: UUID }> {
+        const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(sso_pat, TokenType.SSO_PreAuthorizationToken)
+        await this.sessionService.revokeToken(jti)
+        if (!await this.userService.existsUserById(userId)) {
+            throw new RpcException('Unauthenticated')
+        }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { latitude: _omit, longitude: __omit, ip: ___omit, city, region, country } = this.geoIpService.getLocation(IP)
+        const location = [city, region, country].filter((el) => !!el).join(', ')
+        const fingerprint = this.generateFingerprint(fingerprintData)
+        const { sessionId } = await this.sessionService.createSession({ deviceId, IP, fingerprint, location, provider, userId, sessionDeviceInfo }, true)
+        await this.sessionService.activateSession(sessionId, userId)
+        const accessToken = await this.jwtTools.generateToken(userId, TokenType.AccessToken, sessionId)
+        const ws_accessToken = await this.jwtTools.generateToken(userId, TokenType.ws_AccessToken, sessionId)
+        return {
+            accessToken,
+            ws_accessToken,
+            sessionId
+        }
     }
 
     public async verifyEmail(email: string): Promise<boolean> {

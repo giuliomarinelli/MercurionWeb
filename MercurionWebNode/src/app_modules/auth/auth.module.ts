@@ -64,7 +64,8 @@ import { RecoveryController } from './controllers/recovery.controller';
     SessionService,
     PasswordEncoderService,
     SercurityService,
-    ScopeService
+    ScopeService,
+    GeoIpService
   ],
   controllers: [AccountController, AuthenticationController, CountryController, RecoveryController],
 })

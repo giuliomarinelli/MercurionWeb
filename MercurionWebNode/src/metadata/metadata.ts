@@ -15,7 +15,7 @@ export const RequiresTokenType = (type: TokenType) => SetMetadata('tokenType', t
 export const SCOPES_KEY = 'required_scopes'
 
 export const HasScopes = (...scopes: Scope[]) => {
-  return SetMetadata(SCOPES_KEY, scopes)
+    return SetMetadata(SCOPES_KEY, scopes)
 }
 
 export const AuthenticatedUserId = createParamDecorator(
@@ -98,6 +98,7 @@ export const ClientIp = createParamDecorator(
         const req = ctx.getType() === 'http' ? ctx.switchToHttp().getRequest<FastifyRequest>()
             :
             (GqlExecutionContext.create(ctx).getContext().request as FastifyRequest)
+
         const ip = req.headers['x-client-ip']
 
         if (!ip || typeof ip !== 'string') {

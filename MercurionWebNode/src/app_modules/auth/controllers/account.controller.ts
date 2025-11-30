@@ -15,12 +15,14 @@ import { EmailDTO } from '../Models/DTO/email.cls.dto';
 import { UserService } from 'src/app_modules/user/services/user.service';
 import { TurnstileGuard } from '../guards/turnstile.guard';
 import { SercurityService } from '../services/sercurity.service';
-import { ProfileDTO, ProfileRegistryDTO } from '../Models/DTO/profile.dtos';
+import { ProfileDTO, ProfileRegistryClientDTO, ProfileRegistryDTO } from '../Models/DTO/profile.dtos';
 import { SessionService } from '../services/session.service';
 import { SessionDTO } from '../Models/DTO/session.dto';
 import { BackupCodeStatusDTO } from 'src/app_modules/user/Models/DTO/backup-code-status.dto';
 import { RpcException } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
+import { ProvidedEmailDTO } from '../Models/DTO/provided-email.dto';
+import { AuthProvider } from 'src/app_modules/sso/Models/enums/auth-provider.enum';
 
 
 
@@ -41,7 +43,7 @@ export class AccountController {
     @Public()
     @Post('/register')
     public async registerUser(@Body(new ValidationPipe({ transform: true })) userRegisterDTO: UserRegisterDTO): Promise<ConfirmWithObsContDTO> {
-        return await this.accountService.registerUser(userRegisterDTO)
+        return this.accountService.registerUser(userRegisterDTO)
     }
 
     @Public()
@@ -156,12 +158,21 @@ export class AccountController {
     }
 
     @Get('/email')
-    public async getEmail(@AuthenticatedUserId() userId: UUID): Promise<string> {
-        const email = await this.userService.getUserEmailById(userId)
-        if (email == null) {
+    public async getProvidedEmail(@AuthenticatedUserId() userId: UUID): Promise<ProvidedEmailDTO> {
+        const dto = await this.userService.getUserProvidedEmailById(userId)
+        if (dto == null) {
             throw new NotFoundException('EmailNotFound')
         }
-        return email
+        return dto
+    }
+
+    @Get('/auth-provider')
+    public async getAuthProvider(@AuthenticatedUserId() userId: UUID): Promise<AuthProvider> {
+        const p = await this.userService.getAuthProviderByUserId(userId)
+        if (!p) {
+            throw new NotFoundException()
+        }
+        return p
     }
 
     @Patch('/password')
@@ -230,7 +241,7 @@ export class AccountController {
     }
 
     @Get('/profile-registry/essential')
-    public async getEssentialProfileRegistry(@AuthenticatedUserId() userId :UUID): Promise<ProfileRegistryDTO> {
+    public async getEssentialProfileRegistry(@AuthenticatedUserId() userId :UUID): Promise<ProfileRegistryClientDTO> {
         return this.userService.getVerifiedUserEssentialProfileRegistryById(userId)
     }
 
@@ -238,7 +249,7 @@ export class AccountController {
     public async updateProfileRegistry(
         @AuthenticatedUserId() userId: UUID,
         @Body(new ValidationPipe({ transform: true })) dto: ProfileRegistryDTO
-    ): Promise<ProfileRegistryDTO> {
+    ): Promise<ProfileRegistryClientDTO> {
         const result = await this.userService.updateVerifiedUserProfileRegistryById(userId, dto)
         if (!result) {
             throw new NotFoundException('UserNotFound::{updated: false}')
@@ -307,11 +318,11 @@ export class AccountController {
 
     @Get('/masked-email')
     public async getMaskedEmail(@AuthenticatedUserId() userId: UUID): Promise<string> {
-        const email = await this.userService.getUserEmailById(userId)
-        if (!email) {
+        const dto = await this.userService.getUserProvidedEmailById(userId)
+        if (!dto) {
             throw new NotFoundException('Fatal::email not found')
         }
-        return this.securityService.maskEmail(email)
+        return this.securityService.maskEmail(dto.email)
     }
 
     @Get('/masked-phone')

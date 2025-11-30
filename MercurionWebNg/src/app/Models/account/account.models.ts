@@ -1,6 +1,7 @@
 import { WritableSignal } from "@angular/core"
 import { UserGender } from "../auth/user.models"
 import { HistoryDTO } from "../history.models"
+import { AuthProvider } from "../auth/provider.models"
 
 export interface UserData {
   email?: string | null
@@ -24,9 +25,14 @@ export interface ProfileDTO {
   personalMoleculeCount: number
   chemblMoleculeCount: number
   collectionCount: number
+  initials: string
 }
 
 export type ProfileRegistryDTO = Pick<ProfileDTO, 'firstName' | 'lastName' | 'gender' | 'job'>
+
+export type ProfileRegistryClientDTO = ProfileRegistryDTO & {
+    initials: string
+}
 
 export type MfaStrategy = 'EMAIL_OTP' | 'SMS_OTP' | 'APP_TOTP' | 'BACKUP_CODE'
 
@@ -68,4 +74,9 @@ export interface RecoverCredentialsDTO {
 
 export interface RecoveryCodeDTO {
     code: string
+}
+
+export interface ProvidedEmailDTO {
+    email: string
+    provider: AuthProvider
 }

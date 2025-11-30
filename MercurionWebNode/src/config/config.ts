@@ -1,7 +1,7 @@
 
 
 import { registerAs } from "@nestjs/config";
-import { AppConfiguration, CloudflareConfiguration, DataConfiguration, OAuth2ProviderConfiguration, JwtConfigurations, MeilisearchConfiguration, SecureCookieConfiguration, SessionConfiguration, SmsConfiguration, TotpConfiguration, RedisConfiguration } from "./config.types";
+import { AppConfiguration, CloudflareConfiguration, DataConfiguration, OAuth2ProviderConfiguration, JwtConfigurations, MeilisearchConfiguration, SecureCookieConfiguration, SessionConfiguration, SmsConfiguration, TotpConfiguration, RedisConfiguration, SSO_Configurations } from "./config.types";
 import { UUID } from "crypto";
 import { GeneralUtils } from "src/utils/general-utils/general-utils";
 import { SnakeNamingStrategy } from "typeorm-naming-strategies";
@@ -28,7 +28,8 @@ export enum ConfigKey {
     Dropbox = "Dropbox",
     Meilisearch = 'Meilisearch',
     Cloudflare = 'Cloudflare',
-    Redis = 'Redis'
+    Redis = 'Redis',
+    SSO = 'SSO'
 }
 
 const AppConfig = registerAs(
@@ -140,12 +141,17 @@ const JwtConfig = registerAs(
             secret: process.env.JWT_SECRETS_ACCOUNT_RECOVERY,
             expiresInMs: Number(process.env.JWT_EXPIRATION_ACCOUNT_RECOVERY)
         },
+        sso_preAuthorizationToken: {
+            secret: process.env.JWT_SECRETS_SSO_PRE_AUTHORIZATION_TOKEN!,
+            expiresInMs: Number(process.env.JWT_EXPIRATION_SSO_PRE_AUTHORIZATION_TOKEN)
+        },
         issuer: process.env.APP_PROJECT_NAME + `_${process.env.APP_PROJECT_ID as UUID ?? ''}`,
         audience: {
             access: process.env.JWT_AUD_API!,
             ws: process.env.JWT_AUD_WS!,
             auth: process.env.JWT_AUD_AUTH!
-        }
+
+        },
     })
 )
 
@@ -208,8 +214,8 @@ const TotpConfig = registerAs(
 const SessionConfig = registerAs(
 
     ConfigKey.Session, (): SessionConfiguration => ({
-        shortSessionLasting: Number(process.env.SHORT_SESSION_LASTING), 
-        persistentSessionLasting: Number(process.env.PERSISTENT_SESSION_LASTING), 
+        shortSessionLasting: Number(process.env.SHORT_SESSION_LASTING),
+        persistentSessionLasting: Number(process.env.PERSISTENT_SESSION_LASTING),
         sessionZeroId: process.env.SESSION_ZERO_ID as UUID
     })
 
@@ -249,6 +255,31 @@ const RedisConfig = registerAs(
     })
 )
 
+const SSO_Config = registerAs(
+    ConfigKey.SSO, (): SSO_Configurations => ({
+        Google: {
+            clientId: process.env.GOOGLE_CLIENT_ID!,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+            redirectUri: process.env.GOOGLE_REDIRECT_URI!
+        },
+        GitHub: {
+            clientId: process.env.GITHUB_CLIENT_ID!,
+            clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+            redirectUri: process.env.GITHUB_REDIRECT_URI!
+        },
+        LinkedIn: {
+            clientId: process.env.LINKEDIN_CLIENT_ID!,
+            clientSecret: process.env.LINKEDIN_CLIENT_SECRET!,
+            redirectUri: process.env.LINKEDIN_REDIRECT_URI!
+        },
+        Discord: {
+            clientId: process.env.DISCORD_CLIENT_ID!,
+            clientSecret: process.env.DISCORD_CLIENT_SECRET!,
+            redirectUri: process.env.DISCORD_REDIRECT_URI!
+        }
+    })
+)
+
 
 export const configurations = [
     AppConfig,
@@ -262,5 +293,6 @@ export const configurations = [
     DropboxConfig,
     MeilisearchConfig,
     CloudflareConfig,
-    RedisConfig
+    RedisConfig,
+    SSO_Config
 ]

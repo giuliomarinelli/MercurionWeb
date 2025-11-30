@@ -27,6 +27,7 @@ import { MercurionGraphQLModule } from './mercurion-graphql.module';
 import { MercurionAIModule } from './app_modules/mercurion-ai/mercurion-ai.module';
 import { LabNotebookModule } from './app_modules/lab-notebook/lab-notebook.module';
 import { AdminModule } from './app_modules/admin/admin.module';
+import { SSO_Module } from './app_modules/sso/sso.module';
 
 const nodeEnv = process.env.NODE_ENV ?? 'development'
 
@@ -63,7 +64,8 @@ const nodeEnv = process.env.NODE_ENV ?? 'development'
     MoleculeCollectionModule,
     SynthModule,
     LabNotebookModule,
-    AdminModule
+    AdminModule,
+    SSO_Module
   ],
   providers: [
     {
