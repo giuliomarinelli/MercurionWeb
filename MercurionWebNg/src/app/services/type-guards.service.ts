@@ -68,7 +68,7 @@ export class TypeGuardsService {
     if (!item) {
       return false
     }
-    return ['Google', 'Microsoft', 'Apple', 'Facebook'].includes(item as string)
+    return ['Google', 'GitHub', 'Apple', 'Facebook'].includes(item as string)
   }
 
 }

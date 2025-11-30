@@ -58,7 +58,7 @@ export class SocialAuthService {
                     lastName: profile.lastName ? profile.lastName.charAt(0).toUpperCase() + profile.lastName.slice(1) : '',
                     isVerified: true,
                     scopes: this.scopeService.getEncryptedStandardScopes(),
-                    initials: `${profile.firstName?.charAt(0).toUpperCase() ?? 'U'}${profile.lastName?.charAt(0).toUpperCase() ?? 'U'}`,
+                    initials: `${profile.firstName?.charAt(0).toUpperCase() || 'U'}${profile.lastName?.charAt(0).toUpperCase() || 'U'}`,
                 })
 
                 await manager.save(user)

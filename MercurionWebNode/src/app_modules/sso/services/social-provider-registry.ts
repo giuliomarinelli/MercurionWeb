@@ -3,6 +3,7 @@ import { AuthProvider } from "../Models/enums/auth-provider.enum";
 import { ISocialProviderClient } from "../Models/interfaces/i-social-provider-client.interface";
 import { GoogleProviderClient } from "../providers/google-provider-client";
 import { RpcException } from "@nestjs/microservices";
+import { GitHubProviderClient } from "../providers/github-provider-client";
 
 @Injectable()
 export class SocialProviderRegistry {
@@ -11,13 +12,13 @@ export class SocialProviderRegistry {
 
     constructor(
         google: GoogleProviderClient,
-        // microsoft: MicrosoftProviderClient,
+        github: GitHubProviderClient,
         // apple: AppleProviderClient,
         // facebook: FacebookProviderClient,
     ) {
         this.map = {
             [AuthProvider.Google]: google,
-            [AuthProvider.Microsoft]: null,
+            [AuthProvider.GitHub]: github,
             [AuthProvider.Apple]: null,
             [AuthProvider.Facebook]: null,
             [AuthProvider.Mercurion]: null // non usato qui

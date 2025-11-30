@@ -15,9 +15,13 @@ import { resolve } from 'path';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { SessionService } from './session.service';
 import { Environment } from 'src/config/config';
+import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 
 @Injectable()
 export class JwtToolsService {
+
+    private readonly logger: MeiliContextLogger
 
     private readonly accessTokenConfig: JwtConfiguration = { expiresInMs: 0 }
     private readonly ws_accessTokenConfig: JwtConfiguration = { expiresInMs: 0 }
@@ -48,8 +52,11 @@ export class JwtToolsService {
         private readonly configService: ConfigService,
         private readonly userService: UserService,
         private readonly redisservice: RedisService,
-        private readonly sessionService: SessionService
+        private readonly sessionService: SessionService,
+        loggerFactory: MeiliLoggerService
     ) {
+        this.logger = loggerFactory.forContext(JwtToolsService.name)
+
         this.accessTokenConfig.expiresInMs = this.configService.get<number>("Jwt.accessToken.expiresInMs") as number
         this.ws_accessTokenConfig.expiresInMs = this.configService.get<number>("Jwt.ws_accessToken.expiresInMs") as number
         this.preAuthorizationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.preAuthorizationToken") as JwtConfiguration
@@ -239,7 +246,8 @@ export class JwtToolsService {
             }
             return payload
         } catch (e) {
-            console.log(e)
+            this.logger.warn(' > verifyTokenAndGetPayload > Error: ', (e.stack ?? e) as object)
+            this.logger.debug(TokenType.SSO_PreAuthorizationToken, token)
             throw new RpcException(`InvalidOrExpired${type}`)
         }
     }

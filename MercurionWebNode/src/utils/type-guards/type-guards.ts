@@ -78,8 +78,19 @@ export class TypeGuards {
         )
     }
 
-    static isAuthProvider(item: string): item is AuthProvider {
-        return Object.values(AuthProvider).map((p) => p as string).includes(item)
+    static isAuthProvider(item: unknown): item is AuthProvider {
+        if (!item) {
+            return false
+        }
+        return Object.values(AuthProvider).map((p) => p as string).includes(item as string)
+    }
+
+    static is_SSO_AuthProvider(item: unknown): item is AuthProvider {
+        if (!item) {
+            return false
+        }
+        return Object.values(AuthProvider).filter((p) => p !== AuthProvider.Mercurion)
+            .map((p) => p as string).includes(item as string)
     }
 
 

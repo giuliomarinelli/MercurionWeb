@@ -239,8 +239,8 @@ import { toSignal } from '@angular/core/rxjs-interop';
             </svg>
             <span>Continua con Google</span>
           </a>
-          <button
-            type="button"
+          <a
+            href="/api/oauth2/sso/GitHub/login"
             class="w-full flex items-center justify-center border rounded-md py-2.5 text-sm dark:hover:bg-slate-100 gap-3 dark:hover:text-neutral-900 hover:bg-slate-200/80 bg-slate-200 dark:bg-transparent transition-colors duration-150"
           >
             <div class="relative">
@@ -254,7 +254,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
               </svg>
             </div>
             <span>Continua con GitHub</span>
-          </button>
+          </a>
           <button
             type="button"
             class="w-full flex items-center justify-center border rounded-md py-2.5 text-sm dark:hover:bg-slate-100 gap-3 dark:hover:text-neutral-900 hover:bg-slate-200/80 bg-slate-200 dark:bg-transparent transition-colors duration-150"

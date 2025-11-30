@@ -9,6 +9,7 @@ import { GoogleProviderClient } from './providers/google-provider-client';
 import { AuthModule } from '../auth/auth.module';
 import { MeilisearchModule } from '../meilisearch/meilisearch.module';
 import { ResponseService } from 'src/services/response.service';
+import { GitHubProviderClient } from './providers/github-provider-client';
 
 @Module({
     imports: [
@@ -18,7 +19,7 @@ import { ResponseService } from 'src/services/response.service';
         forwardRef(() => MeilisearchModule)
     ],
     exports: [TypeOrmModule],
-    providers: [SocialAuthService, SocialProviderRegistry, GoogleProviderClient, ResponseService],
+    providers: [SocialAuthService, SocialProviderRegistry, GoogleProviderClient, ResponseService, GitHubProviderClient],
     controllers: [SocialAuthController]
 })
 export class SSO_Module { }

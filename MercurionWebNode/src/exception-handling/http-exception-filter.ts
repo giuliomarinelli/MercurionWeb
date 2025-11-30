@@ -154,6 +154,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
             case 'ChangePassword::Invalid Credentials':
             case 'SSO_Unauthorized::No id_token from Google':
             case 'SSO_Unauthorized::Invalid Google id_token':
+            case 'SSO_Unauthorized::GitHub: access_token missing':
                 statusCode = HttpStatus.UNAUTHORIZED
                 break
 

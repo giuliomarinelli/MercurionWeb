@@ -39,6 +39,11 @@ export class SsoPageComponent implements OnInit, OnDestroy {
         const provider = p.get('provider')
         if (this.typeGuards.is_SSO_AuthProvider(provider) && /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(sso_pat)) {
           history.replaceState({}, '', location.pathname + '?provider=' + provider)
+          localStorage.removeItem('accessToken')
+          localStorage.removeItem('ws_accessToken')
+          localStorage.removeItem('ws_accessToken_ts')
+          localStorage.removeItem('login')
+          document.cookie = '__logged_in=; Max-Age=0; path=/'
           return this.authService.sso_authorizeFlow(fp_enc, di_enc, sso_pat, provider).pipe(
             catchError(() => {
               queueMicrotask(() => {

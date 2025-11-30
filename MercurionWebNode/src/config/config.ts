@@ -261,6 +261,11 @@ const SSO_Config = registerAs(
             clientId: process.env.GOOGLE_CLIENT_ID!,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
             redirectUri: process.env.GOOGLE_REDIRECT_URI!
+        },
+        GitHub: {
+            clientId: process.env.GITHUB_CLIENT_ID!,
+            clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+            redirectUri: process.env.GITHUB_REDIRECT_URI!
         }
     })
 )
