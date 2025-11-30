@@ -1,7 +1,7 @@
 export enum AuthProvider {
     Mercurion = 'Mercurion',
     Google = 'Google',
-    Microsoft = 'Microsoft',
+    GitHub = 'GitHub',
     Apple = 'Apple',
     Facebook = 'Facebook'
 }

@@ -88,9 +88,9 @@ export class SocialAuthService {
                 }
             }
 
-            const sso_preAuuthorizationToken = await this.jwtTools.generateToken(identity.userId, TokenType.SSO_PreAuthorizationToken)
+            const sso_preAuthorizationToken = await this.jwtTools.generateToken(identity.userId, TokenType.SSO_PreAuthorizationToken)
 
-            return sso_preAuuthorizationToken
+            return sso_preAuthorizationToken
         })
 
     }

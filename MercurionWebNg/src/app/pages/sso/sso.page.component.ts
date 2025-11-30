@@ -26,7 +26,6 @@ export class SsoPageComponent implements OnInit, OnDestroy {
   private readonly typeGuards = inject(TypeGuardsService)
   private readonly fingerprintService = inject(FingerprintService)
   private readonly authService = inject(AuthService)
-  private readonly userContext = inject(UserContextService)
   private readonly sessionSync = inject(SessionSyncService)
 
   private sub?: Subscription
@@ -36,13 +35,21 @@ export class SsoPageComponent implements OnInit, OnDestroy {
       switchMap(() => defer(() => from(this.fingerprintService.getSanitizedFingerprint()))),
       switchMap((fw) => combineLatest([of(fw.fingerprintDataEnc), of(btoa(JSON.stringify(fw.sessionDeviceInfo))), this.route.queryParamMap])),
       switchMap(([fp_enc, di_enc, p]) => {
-        console.log(fp_enc, di_enc, p)
         const sso_pat = p.get('t') ?? ''
         const provider = p.get('provider')
-        if (this.typeGuards.is_SSO_AuthProvider(provider) && /^[A-Za-z0-9_-]+=*(?:\.[A-Za-z0-9_-]+=*){2}$/.test(sso_pat)) {
+        if (this.typeGuards.is_SSO_AuthProvider(provider) && /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(sso_pat)) {
+          history.replaceState({}, '', location.pathname + '?provider=' + provider)
           return this.authService.sso_authorizeFlow(fp_enc, di_enc, sso_pat, provider).pipe(
             catchError(() => {
-              this.router.navigateByUrl('/404-not-found')
+              queueMicrotask(() => {
+                sessionStorage.removeItem('redirectAfterLogin')
+                this.router.navigate(['/login'], {
+                  queryParams: {
+                    err: 'sso_failed',
+                    provider
+                  }
+                })
+              })
               return EMPTY
             })
           )
