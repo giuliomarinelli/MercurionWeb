@@ -14,6 +14,7 @@ import { TypeGuardsService } from './type-guards.service';
 import { UserContextService } from './context/user-context.service';
 import { Router } from '@angular/router';
 import { MfaStrategy } from '../Models/account/account.models';
+import { SSO_AuthProvider } from '../Models/auth/provider.models';
 
 export type TokenType = 'access_token' | 'ws_accessToken'
 
@@ -431,4 +432,15 @@ export class AuthService {
     }))
   }
 
+  sso_authorizeFlow(fingerprintBase64: string, sessionDeviceInfoBase64: string, sso_preAuthorizationToken: string, provider: SSO_AuthProvider): Observable<ConfirmWithAccessTokenAndInitialsDTO> {
+    return this.http.post<ConfirmWithAccessTokenAndInitialsDTO>(`/api/authentication/sso/${provider}/authorize-flow`, null, {
+      withCredentials: true,
+      headers: {
+        'X-Fingerprint': fingerprintBase64,
+        'X-Device-Info': sessionDeviceInfoBase64,
+        'X-Mock-IP': '91.122.12.8',
+        'Authorization': `Bearer ${sso_preAuthorizationToken}`
+      }
+    })
+  }
 }

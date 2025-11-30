@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core";
 import { MoleculeDetailSystem } from "../Models/graphql/molecule.detail.models";
 import { ChEMBLMoleculeItemEntity, CustomMoleculeItemEntity, MoleculeCollectionItemClient, MoleculeCollectionItemEntityShort, MoleculeDetailItem } from "../Models/graphql/molecule-collection/molecule-collection.types";
+import { SSO_AuthProvider } from "../Models/auth/provider.models";
 
 @Injectable({ providedIn: 'root' })
 export class TypeGuardsService {
@@ -61,6 +62,13 @@ export class TypeGuardsService {
 
   isNull<T>(item: T | null | undefined): item is null {
     return item === null
+  }
+
+  is_SSO_AuthProvider(item: unknown): item is SSO_AuthProvider {
+    if (!item) {
+      return false
+    }
+    return ['Google', 'Microsoft', 'Apple', 'Facebook'].includes(item as string)
   }
 
 }

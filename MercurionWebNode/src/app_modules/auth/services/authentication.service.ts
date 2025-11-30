@@ -192,7 +192,8 @@ export class AuthenticationService {
         fingerprintData: FingerprintData,
         provider: AuthProvider
     ): Promise<TokenPair & { sessionId: UUID }> {
-        const { sub: userId } = await this.jwtTools.verifyTokenAndGetPayload(sso_pat, TokenType.SSO_PreAuthorizationToken)
+        const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(sso_pat, TokenType.SSO_PreAuthorizationToken)
+        await this.sessionService.revokeToken(jti)
         if (!await this.userService.existsUserById(userId)) {
             throw new RpcException('Unauthenticated')
         }
