@@ -6,12 +6,14 @@ import {
   JoinColumn,
   Index,
   BeforeInsert,
+  Generated,
 } from 'typeorm'
 import { ObjectType, Field, ID } from '@nestjs/graphql'
 import { Ticket } from './ticket.entity'
 import { AuthorType } from '../enums/author-type.enum'
 import { uuidv7 } from '@kripod/uuidv7'
 import { UUID } from 'crypto'
+import { JsonValue } from 'src/Models/json.types'
 
 @ObjectType()
 @Entity({ name: 'ticket_messages' })
@@ -24,10 +26,11 @@ export class TicketMessage {
   id: UUID
 
   @Field()
-  @Column({ type: 'bigint', unique: true, insert: false, update: false, name: 'public_id' })
+  @Column({ type: 'bigint', unique: true, name: 'public_id' })
+  @Generated('increment')
   publicId: string
 
-  @Field()
+  @Field(() => ID)
   @Column({ type: 'uuid', name: 'ticket_id' })
   ticketId: UUID
 
@@ -43,13 +46,12 @@ export class TicketMessage {
   @Column({ type: 'uuid', name: 'author_id', nullable: true })
   authorId: UUID | null
 
-  @Field()
   @Column({ type: 'uuid', name: 'user_id' })
-  userId: string
+  userId: UUID
 
   @Field(() => String)
   @Column({ type: 'jsonb', name: 'content_delta' })
-  contentDelta: Record<string, unknown> | string | number | boolean
+  contentDelta: JsonValue
 
   @Field()
   @Column({ type: 'text', name: 'content_html' })

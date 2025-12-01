@@ -65,6 +65,7 @@ export class ScopeService {
     }
 
     async scopeVerificationLayer(userId: UUID, context: ExecutionContext, reflector: Reflector, jwtScpClaim: string): Promise<void> {
+        
         const requiredScopes = reflector.getAllAndOverride<Scope[]>(SCOPES_KEY, [
             context.getHandler(),
             context.getClass()

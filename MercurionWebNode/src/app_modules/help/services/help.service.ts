@@ -2,20 +2,20 @@ import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { DataSource, Repository } from 'typeorm'
 import { uuidv7 } from '@kripod/uuidv7'
-import { UUID } from 'crypto'
+import { randomBytes, UUID } from 'crypto'
 import { Maybe } from 'graphql/jsutils/Maybe'
 import { RpcException } from '@nestjs/microservices'
 import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate'
-
 import { Ticket } from '../Models/entities/ticket.entity'
 import { TicketMessage } from '../Models/entities/ticket-message.entity'
 import { TicketStatus } from '../Models/enums/ticket-status.enum'
 import { AuthorType } from '../Models/enums/author-type.enum'
 import { MailSenderService } from 'src/app_modules/notification/services/mail-sender/mail-sender.service'
-
 import { GraphqlUtils } from 'src/utils/graphql-utils/graphql-utils'
 import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils'
 import { TicketDetailDTO } from '../Models/DTO/ticket-detail.dto'
+import { JsonValue } from 'src/Models/json.types'
+import { TypeGuards } from 'src/utils/type-guards/type-guards'
 
 @Injectable()
 export class HelpService {
@@ -39,43 +39,48 @@ export class HelpService {
   async createTicket(input: {
     userId: UUID
     subject: string
-    contentDelta: Record<string, unknown> | string | boolean | number
+    contentDelta: JsonValue
     contentHtml: string
   }): Promise<Ticket> {
     const now = Date.now()
 
     const ticket = new Ticket()
-    ticket.id = uuidv7() as UUID
     ticket.userId = input.userId
     ticket.subject = input.subject
     ticket.status = TicketStatus.Open
-    ticket.createdAt = String(now)
-    ticket.updatedAt = String(now)
-    ticket.lastMessageAt = String(now)
+    this.stampTicket(ticket, now)
 
-    const firstMsg = this.makeUserMessage({
-      ticketId: ticket.id,
-      userId: input.userId,
-      delta: input.contentDelta,
-      html: input.contentHtml,
-      now
-    })
+    let firstMsg: TicketMessage | null = null
 
     await this.dataSource.transaction(async (manager) => {
-      await manager.save(Ticket, ticket)
-      await manager.save(TicketMessage, firstMsg)
+
+      await manager.save(ticket)
+
+      const message = this.makeUserMessage({
+        ticketId: ticket.id,
+        userId: input.userId,
+        delta: input.contentDelta,
+        html: input.contentHtml,
+        now
+      })
+      firstMsg = message
+
+      await manager.save(message)
     })
+
+    if (!firstMsg) throw new Error('Failed to create first ticket message')
 
     await this.mailer.notifySupportNewTicket(ticket, firstMsg)
     await this.mailer.confirmUserTicketOpened(ticket, firstMsg)
 
+    ticket.publicId = this.generateReadablePublicId(ticket.publicId)
     return ticket
   }
 
   async addUserMessage(input: {
     ticketId: UUID
     userId: UUID
-    contentDelta: Record<string, unknown> | string | number | boolean
+    contentDelta: JsonValue
     contentHtml: string
   }): Promise<{ ok: boolean }> {
     await this.dataSource.transaction(async (manager) => {
@@ -116,7 +121,7 @@ export class HelpService {
 
   async addSupportMessage(input: {
     ticketId: UUID
-    contentDelta: Record<string, unknown> | string | number | boolean
+    contentDelta: JsonValue
     contentHtml: string
   }): Promise<{ ok: boolean }> {
     let ticketUserId: UUID
@@ -168,6 +173,7 @@ export class HelpService {
   }
 
   async reopenTicket(ticketId: UUID) {
+
     const now = Date.now()
 
     const res = await this.ticketRepo.update(ticketId, {
@@ -183,10 +189,11 @@ export class HelpService {
   // Public API (READ) — field aware
   // -----------------------------
 
-  async listMyTickets(
+  async listTickets(
     userId: UUID,
     options: IPaginationOptions,
     fieldsMap?: GraphQLFieldsMap,
+    onlyOwner: boolean = true
   ): Promise<Pagination<Ticket>> {
 
     const itemFieldsMap = fieldsMap?.items ?? {}
@@ -198,25 +205,45 @@ export class HelpService {
 
     let qb = this.ticketRepo.createQueryBuilder('t')
       .select(columns.map(col => `t.${col}`))
-      .where('t.user_id = :userId', { userId })
       .orderBy('t.last_message_at', 'DESC')
 
-    // join solo se richiesto nella paginazione
+    if (onlyOwner) {
+      qb = qb.where('t.user_id = :userId', { userId })
+    }
+
     if (fieldsMap?.items) {
       const joins = TypeOrmUtils.filterJoinsForEntity(fieldsMap.items, ['messages'])
       qb = TypeOrmUtils.addJoins(qb, 't', joins as GraphQLFieldsMap)
     }
 
-    return paginate<Ticket>(qb, options)
-
+    let page = await paginate<Ticket>(qb, options)
+    page = {
+      ...page,
+      items: page.items.map((i) => {
+        i.publicId = this.generateReadablePublicId(i.publicId)
+        if (i.messages) {
+          i.messages = i.messages.map((m) => {
+            m.publicId = this.generateReadablePublicId(m.publicId)
+            return m
+          })
+        }
+        return i
+      })
+    }
+    return page
   }
 
-  async getOneTicketDetail(
+
+  async getTicketDetail(
     ticketId: UUID,
     userId: UUID,
-    fieldsMap: GraphQLFieldsMap
+    fieldsMap: GraphQLFieldsMap,
+    onlyOwner: boolean = true
   ): Promise<TicketDetailDTO> {
-    const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
+
+    const ticketFields = fieldsMap.ticket ?? {}
+    const scalarFields = GraphqlUtils.getScalarFields(ticketFields)
+
     const ticketColumns = GraphqlUtils.ensureRequiredFields(
       scalarFields,
       this.REQUIRED_TICKET_FIELDS
@@ -225,16 +252,16 @@ export class HelpService {
     let qb = this.ticketRepo.createQueryBuilder('t')
       .select(ticketColumns.map(col => `t.${col}`))
       .where('t.id = :ticketId', { ticketId })
-      .andWhere('t.user_id = :userId', { userId })
 
-    // join “lazy” se richiesto dal client
+    if (onlyOwner) {
+      qb = qb.andWhere('t.user_id = :userId', { userId })
+    }
+
     const joins = TypeOrmUtils.filterJoinsForEntity(fieldsMap, ['messages'])
     qb = TypeOrmUtils.addJoins(qb, 't', joins as GraphQLFieldsMap)
 
     const ticket = await qb.getOne()
-    if (!ticket) {
-      throw new RpcException('TicketNotFound')
-    }
+    if (!ticket) throw new RpcException('TicketNotFound')
 
     if (!fieldsMap.messages) {
       return { ticket, messages: [] }
@@ -252,8 +279,17 @@ export class HelpService {
       .orderBy('m.created_at', 'ASC')
       .getMany()
 
-    return { ticket, messages }
+    ticket.publicId = this.generateReadablePublicId(ticket.publicId)
+
+    return {
+      ticket,
+      messages: messages.map((m) => {
+        m.publicId = this.generateReadablePublicId(m.publicId)
+        return m
+      })
+    }
   }
+
 
   // -----------------------------
   // Private helpers
@@ -265,10 +301,18 @@ export class HelpService {
     ticket.lastMessageAt = String(now)
   }
 
+  private generateReadablePublicId(publicId: string): string {
+    const prefix = 'MTCK-#' 
+    if (TypeGuards.isThruthyString(publicId) && /^\d+$/.test(publicId)) {
+      return `${prefix}${publicId.padStart(9, '0')}`
+    }
+    return prefix + '-f-' + parseInt(randomBytes(8).toString('hex'), 16).toString().padStart(16, '0')
+  }
+
   private makeUserMessage(input: {
     ticketId: UUID
     userId: UUID
-    delta: Record<string, unknown> | string | number | boolean
+    delta: JsonValue
     html: string
     now: number
   }) {
@@ -287,7 +331,7 @@ export class HelpService {
   private makeSupportMessage(input: {
     ticketId: UUID
     userId: UUID
-    delta: Record<string, unknown> | string | number | boolean
+    delta: JsonValue
     html: string
     now: number
   }) {

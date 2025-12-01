@@ -155,10 +155,9 @@ type ChEMBLMoleculeItemDTO {
 type TicketMessage {
   id: ID!
   publicId: String!
-  ticketId: String!
+  ticketId: ID!
   authorType: AuthorType!
   authorId: ID
-  userId: String!
   contentDelta: String!
   contentHtml: String!
   createdAt: String!
@@ -167,6 +166,38 @@ type TicketMessage {
 enum AuthorType {
   User
   Support
+}
+
+type Ticket {
+  id: ID!
+  publicId: String!
+  subject: String!
+  status: TicketStatus!
+  lastMessageAt: String!
+  createdAt: String!
+  updatedAt: String!
+  messages: [TicketMessage!]
+}
+
+enum TicketStatus {
+  Open
+  WaitingUser
+  WaitingSupport
+  Closed
+}
+
+type TicketDetailDTO {
+  ticket: Ticket!
+  messages: [TicketMessage!]
+}
+
+type PaginatedTicket {
+  items: [Ticket!]!
+  itemCount: Int!
+  totalItems: Int!
+  itemsPerPage: Int!
+  totalPages: Int!
+  currentPage: Int!
 }
 
 type SynthStepMoleculeRef {
@@ -274,6 +305,10 @@ type Query {
   findOneChemblMoleculeById(itemId: ID!): ChEMBLMoleculeItemEntity
   hasUserChEMBLMoleculeByMolregnoThenGetUUID(molregno: Int!): String
   existsChEMBLMoleculeByUUIDThenGetMolregno(_uuid_: String!): String
+  myTicketDetail(ticketId: ID!): TicketDetailDTO!
+  myTickets(page: Int!, limit: Int!): PaginatedTicket!
+  ticketDetailAsSupport(ticketId: ID!): TicketDetailDTO!
+  ticketsAsSupport(page: Int!, limit: Int!): PaginatedTicket!
   mySyntheticRoutes: [Synthesis!]!
   syntheticRoute(id: ID!): Synthesis
   syntheticStepsByRoute(routeId: ID!): [SynthStep!]!
@@ -317,6 +352,12 @@ type Mutation {
   addManyChemblItemsToCollection(collectionId: ID!, input: [AddManyChEMBLItemDTO!]!): Boolean!
   addCustomMoleculeToCollection(collectionId: ID!, input: CustomMoleculeItemInput!): CustomMoleculeItemEntity!
   removeCustomMoleculeFromCollection(collectionId: ID!, itemId: ID!): Boolean!
+  createTicket(subject: String!, contentDelta: JSON!, contentHtml: String!): Ticket!
+  addTicketMessage(ticketId: ID!, contentDelta: JSON!, contentHtml: String!): Boolean!
+  closeMyTicket(ticketId: ID!): Boolean!
+  addSupportTicketMessage(ticketId: ID!, contentDelta: JSON!, contentHtml: String!): Boolean!
+  closeTicketAsSupport(ticketId: ID!): Boolean!
+  reopenTicketAsSupport(ticketId: ID!): Boolean!
   createSyntheticRoute(input: SynthesisInput!): Synthesis!
   updateSyntheticRoute(id: ID!, input: SynthesisInput!): Synthesis!
   deleteSyntheticRoute(id: ID!): Boolean!
@@ -370,6 +411,11 @@ input CustomMoleculeItemInput {
   name: String
   propertiesJson: String
 }
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON
 
 input SynthesisInput {
   title: String!

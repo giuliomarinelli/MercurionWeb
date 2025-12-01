@@ -30,6 +30,7 @@ import { AdminModule } from './app_modules/admin/admin.module';
 import { SSO_Module } from './app_modules/sso/sso.module';
 import { HelpModule } from './app_modules/help/help.module';
 
+
 const nodeEnv = process.env.NODE_ENV ?? 'development'
 
 @Module({
@@ -77,7 +78,7 @@ const nodeEnv = process.env.NODE_ENV ?? 'development'
     JwtToolsService,
     SessionService,
     JwtService,
-    ResponseService
+    ResponseService    
   ],
   controllers: [TestController]
 })

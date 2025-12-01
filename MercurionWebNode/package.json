@@ -52,6 +52,7 @@
     "geoip-lite": "^1.4.10",
     "graphql": "^16.11.0",
     "graphql-fields": "^2.0.3",
+    "graphql-type-json": "^0.3.2",
     "hi-base32": "^0.5.1",
     "ioredis": "^5.5.0",
     "jose": "^6.1.2",

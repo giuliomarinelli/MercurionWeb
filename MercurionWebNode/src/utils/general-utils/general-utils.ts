@@ -58,14 +58,14 @@ export class GeneralUtils {
 
     static paginationToFlatPaginationConverter<T>(page: Pagination<T>): FlatPagination<T> {
         const { items, meta } = page
-        const {currentPage, itemsPerPage, itemCount, totalItems, totalPages} = meta
+        const { currentPage, itemsPerPage, itemCount, totalItems, totalPages } = meta
         return {
             items,
             itemCount,
             itemsPerPage,
             currentPage,
-            totalPages: totalItems ?? -1,
-            totalItems: totalPages ?? -1
+            totalPages: totalPages ?? -1,
+            totalItems: totalItems ?? -1
         }
     }
 

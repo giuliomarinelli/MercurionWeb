@@ -5,6 +5,7 @@ import {
   OneToMany,
   Index,
   BeforeInsert,
+  Generated,
 } from 'typeorm'
 import { ObjectType, Field, ID } from '@nestjs/graphql'
 import { TicketStatus } from '../enums/ticket-status.enum'
@@ -23,13 +24,12 @@ export class Ticket {
 
   /**
    * Generato dal DB via identity.
-   * insert:false/update:false per evitare che TypeORM provi a settarlo.
    */
   @Field()
-  @Column({ type: 'bigint', unique: true, insert: false, update: false, name: 'public_id' })
+  @Column({ type: 'bigint', unique: true, name: 'public_id' })
+  @Generated('increment')
   publicId: string
 
-  @Field()
   @Column({ type: 'uuid', name: 'user_id' })
   userId: UUID
 

@@ -4,6 +4,7 @@ import { HelpService } from './services/help.service';
 import { Ticket } from './Models/entities/ticket.entity';
 import { TicketMessage } from './Models/entities/ticket-message.entity';
 import { NotificationModule } from '../notification/notification.module';
+import { HelpResolver } from './resolvers/help.resolver';
 
 @Module({
     imports: [
@@ -14,6 +15,9 @@ import { NotificationModule } from '../notification/notification.module';
         forwardRef(() => NotificationModule)
     ],
     exports: [TypeOrmModule],
-    providers: [HelpService]
+    providers: [
+        HelpService,
+        HelpResolver
+    ]
 })
 export class HelpModule {}
