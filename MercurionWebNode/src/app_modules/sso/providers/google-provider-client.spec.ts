@@ -1,5 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import { GoogleProviderClient } from './google-provider-client';
+import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 
 describe('GoogleProviderClientService', () => {
   let service: GoogleProviderClient;
@@ -12,7 +13,10 @@ describe('GoogleProviderClientService', () => {
         redirectUri: 'https://example.com/callback',
       }),
     } as unknown as ConfigService;
-    service = new GoogleProviderClient(configService);
+    const loggerFactory = {
+      forContext: jest.fn().mockReturnValue({ warn: jest.fn() }),
+    } as unknown as MeiliLoggerService;
+    service = new GoogleProviderClient(configService, loggerFactory);
   });
 
   it('should be defined', () => {

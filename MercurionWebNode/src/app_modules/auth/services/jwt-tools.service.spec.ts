@@ -3,6 +3,15 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 
+jest.mock('src/config/config', () => ({
+  Environment: {
+    Development: 'development',
+    Staging: 'staging',
+    Production: 'production',
+    Test: 'test',
+  },
+}));
+
 jest.mock('fs', () => ({
   readFileSync: jest.fn().mockReturnValue('-----BEGIN KEY-----\nmock\n-----END KEY-----'),
 }));
