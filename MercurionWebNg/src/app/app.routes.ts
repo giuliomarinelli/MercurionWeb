@@ -102,6 +102,11 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/sso/sso.page.component').then(m => m.SsoPageComponent)
   },
   {
+    path: 'help',
+    loadComponent: () => import('./pages/help.page/help.page.component').then(m => m.HelpPageComponent),
+    canActivate: [AuthGuard]
+  },
+  {
     path: '**',
     redirectTo: '/404-not-found'
   }

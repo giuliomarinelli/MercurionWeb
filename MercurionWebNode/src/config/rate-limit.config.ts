@@ -1,4 +1,5 @@
 import { FastifyRequest } from 'fastify'
+import { isIP } from 'net' // 🔒 valida IP
 
 const WINDOW_MIN = 4
 const scale = (n: number) => n * WINDOW_MIN
@@ -14,6 +15,18 @@ function normalizeRoutePath(path?: string): string {
 export function resolveRateLimitPath(req: FastifyRequest): string {
     const routeUrl = req.routeOptions?.url
     return normalizeRoutePath(routeUrl ?? req.url)
+}
+
+export function isValidIp(ip?: string): boolean {
+  return !!ip && isIP(ip) !== 0
+}
+
+export function buildRateLimitKey(req: FastifyRequest): string {
+  const deviceId = (req.headers['x-device-id'] as string) || ''
+  const clientIp = (req.headers['x-client-ip'] as string) || req.ip || ''
+  const method = (req.method || 'GET').toUpperCase()
+  const routePath = resolveRateLimitPath(req)
+  return `${method}:${routePath}|${deviceId}|${clientIp}`
 }
 
 export function routeAwareMax(req: FastifyRequest): number {

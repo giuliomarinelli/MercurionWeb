@@ -94,7 +94,6 @@ export class ScopeService {
             .filter((s): s is Scope => this.scopeValues.includes(s as Scope))
     }
 
-
     private async verifyUserHasScopes(userId: UUID, ...scopes: Scope[]): Promise<boolean> {
         try {
             const { scopes: encScopes } = await this.userRepo.findOneOrFail({

@@ -34,6 +34,8 @@ import { MoleculeCollectionService } from '../../services/graphql/molecule-colle
 import { HistoryContextService } from '../../services/context/history-context.service'
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service'
 import { BindCollectionsToMoleculeContextService } from '../../services/context/action-context/bind-collections-to-molecule-context.service'
+import { HttpErrorResponse } from '@angular/common/http'
+import { HttpErrorBody as HttpErrorBody } from '../../Models/http-error-body.dto'
 
 
 
@@ -143,10 +145,10 @@ import { BindCollectionsToMoleculeContextService } from '../../services/context/
             <app-custom-details (onSaving)="doUpdateInlineDetails($event)" [type]="'notes'" [value]="molecule.notes ?? '—'"
               [itemId]="molecule.id" />
           }
-          @if (userContext.isLoggedIn()) {
-          <app-t1-prediction-card [inference]="molecule.t1Inference" />
-          }
 
+          @if (userContext.isLoggedIn()) {
+            <app-t1-prediction-card [inference]="molecule.t1Inference" />
+          }
 
           @if (typeGuards.isSystemMolecule(molecule) || typeGuards.isCustomMolecule(molecule)) {
             <molecule-properties [properties]="molecule.properties" />
@@ -402,9 +404,11 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
               this.molCached = sys
               return sys as MoleculeDetailItem
             }),
-            catchError((e) => {
-              if (e.message.startsWith('MoleculeDetailNotFound::')) {
+            catchError((e: HttpErrorResponse) => {
+              const body: HttpErrorBody = e.error
+              if (body.message?.startsWith('MoleculeDetailNotFound::')) {
                 this.router.navigateByUrl('/404-not-found')
+                return EMPTY
               }
               this.fetchError.set(true)
               return of(null as MoleculeDetailItem | null)
@@ -414,9 +418,8 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
         return defer(() =>
           this.moleculeCollectionItemService.getItemById(molId)
         ).pipe(
-          catchError(err => {
+          catchError(() => {
             this.fetchError.set(true)
-            console.error('getItemById sync error', err)
             return of(null)
           })
         )
@@ -439,15 +442,16 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
           smiles = item.canonicalSmiles
         }
 
-        return this.mercurionAIService.t1Inference({ smiles }).pipe(
+        return this.userContext.isLoggedIn() ? this.mercurionAIService.t1Inference({ smiles }).pipe(
           map(t1 => ({ ...item, t1Inference: t1 })),
           tap(() => this.fetchMolLoading.set(false)),
           catchError(() => of(item))
-        )
+        ) :
+          of(item)
       }),
-      catchError((err: any) => {
-        const netErr = err?.networkError
-        if (netErr && 'status' in netErr) this.fetchError.set(true)
+      catchError((err: unknown) => {
+        const netErr = (err as Record<string, string>)['networkError']
+        if (netErr && 'status' in (netErr as unknown as object)) this.fetchError.set(true)
         return of(null)
       })
     )
@@ -588,17 +592,21 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
           }))
         )
       ),
-      switchMap(args => {
+      switchMap((args) => {
         const flagIds: { c_id?: string } = {}
         const isUUID_colId = this.uuidV7Re.test(args.colId)
         const isUUID_molId = this.uuidV7Re.test(args.molId)
         if (isUUID_colId && isUUID_molId) {
           flagIds.c_id = args.colId
         }
-        return this.moleculeCollectionItemService.markItemAsTouched(args.molId, JSON.stringify(flagIds))
+        return this.userContext.isLoggedIn()
+          ?
+          this.moleculeCollectionItemService.markItemAsTouched(args.molId, JSON.stringify(flagIds))
+          :
+          of(false)
       }),
-      switchMap(res => {
-        if (res) {
+      switchMap((ok) => {
+        if (ok) {
           return this.historyContext.pollNewItem()
         }
         return of(null)

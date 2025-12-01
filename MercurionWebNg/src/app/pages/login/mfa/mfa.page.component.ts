@@ -6,7 +6,7 @@ import { combineLatest, debounceTime, distinctUntilChanged, EMPTY, filter, map, 
 import { Login_FirstStep_Data } from '../../../Models/confirm.models'
 import { AuthService } from '../../../services/auth.service'
 import { FingerprintService } from '../../../services/fingerprint.service'
-import { HttpErrorRes } from '../../../Models/error-res.dto'
+import { HttpErrorBody } from '../../../Models/http-error-body.dto'
 import { UserContextService } from '../../../services/context/user-context.service'
 import { SessionSyncService } from '../../../services/session-sync.service'
 import { ISessionDeviceInfo } from '../../../Models/auth/fingerprint.models'
@@ -494,7 +494,7 @@ export class MfaPageComponent implements OnInit, OnDestroy {
 
           let message = 'Si è verificato un errore.'
           if ('error' in e && 'status' in e) {
-            const errBody: HttpErrorRes = e.error
+            const errBody: HttpErrorBody = e.error
             if (e.status === 401) {
               switch (errBody.message) {
                 case 'Invalid MFA strategy':
