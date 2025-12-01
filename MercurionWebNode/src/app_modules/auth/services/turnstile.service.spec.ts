@@ -3,6 +3,7 @@ import { TurnstileService } from './turnstile.service';
 import { HttpService } from '@nestjs/axios';
 import { of, throwError } from 'rxjs';
 import { ConfigService } from '@nestjs/config';
+import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 
 describe('TurnstileService', () => {
   let service: TurnstileService;
@@ -15,6 +16,10 @@ describe('TurnstileService', () => {
         TurnstileService,
         { provide: HttpService, useValue: httpService },
         { provide: ConfigService, useValue: { get: () => 'secret' } },
+        {
+          provide: MeiliLoggerService,
+          useValue: { forContext: jest.fn().mockReturnValue({ warn: jest.fn() }) },
+        },
       ],
     }).compile();
 

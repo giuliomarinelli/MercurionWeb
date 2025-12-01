@@ -1,18 +1,18 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { ScopeService } from './scope.service';
+import { SercurityService } from './sercurity.service';
+import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 
 describe('ScopeService', () => {
-  let service: ScopeService;
-
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [ScopeService],
-    }).compile();
-
-    service = module.get<ScopeService>(ScopeService);
-  });
-
   it('should be defined', () => {
+    const service = new ScopeService(
+      {} as unknown as SercurityService,
+      {
+        findOneOrFail: jest.fn(),
+      } as any,
+      {
+        forContext: jest.fn().mockReturnValue({ warn: jest.fn() }),
+      } as unknown as MeiliLoggerService,
+    );
     expect(service).toBeDefined();
   });
 });

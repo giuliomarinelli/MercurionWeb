@@ -1,15 +1,18 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { GoogleProviderClientService } from './google-provider-client';
+import { ConfigService } from '@nestjs/config';
+import { GoogleProviderClient } from './google-provider-client';
 
 describe('GoogleProviderClientService', () => {
-  let service: GoogleProviderClientService;
+  let service: GoogleProviderClient;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [GoogleProviderClientService],
-    }).compile();
-
-    service = module.get<GoogleProviderClientService>(GoogleProviderClientService);
+  beforeEach(() => {
+    const configService = {
+      get: jest.fn().mockReturnValue({
+        clientId: 'id',
+        clientSecret: 'secret',
+        redirectUri: 'https://example.com/callback',
+      }),
+    } as unknown as ConfigService;
+    service = new GoogleProviderClient(configService);
   });
 
   it('should be defined', () => {

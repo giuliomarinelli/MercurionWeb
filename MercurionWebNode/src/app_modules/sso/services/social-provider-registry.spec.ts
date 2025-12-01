@@ -1,18 +1,18 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { SocialProviderRegistry } from './social-provider-registry';
+import { AuthProvider } from '../Models/enums/auth-provider.enum';
 
 describe('SocialProviderRegistryService', () => {
-  let service: SocialProviderRegistry;
-
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [SocialProviderRegistry],
-    }).compile();
-
-    service = module.get<SocialProviderRegistry>(SocialProviderRegistry);
-  });
-
   it('should be defined', () => {
-    expect(service).toBeDefined();
+    const mockClient = {
+      getAuthorizationUrl: jest.fn(),
+      getProfileFromCode: jest.fn(),
+    };
+    const registry = new SocialProviderRegistry(
+      mockClient as any,
+      mockClient as any,
+      mockClient as any,
+      mockClient as any,
+    );
+    expect(registry.get(AuthProvider.Google)).toBeDefined();
   });
 });
