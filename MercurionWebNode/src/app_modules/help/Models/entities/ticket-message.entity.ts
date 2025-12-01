@@ -6,12 +6,12 @@ import {
   JoinColumn,
   Index,
   BeforeInsert,
-} from 'typeorm';
-import { ObjectType, Field, ID } from '@nestjs/graphql';
-import { Ticket } from './ticket.entity';
-import { AuthorType } from '../enums/author-type.enum';
-import { uuidv7 } from '@kripod/uuidv7';
-import { UUID } from 'crypto';
+} from 'typeorm'
+import { ObjectType, Field, ID } from '@nestjs/graphql'
+import { Ticket } from './ticket.entity'
+import { AuthorType } from '../enums/author-type.enum'
+import { uuidv7 } from '@kripod/uuidv7'
+import { UUID } from 'crypto'
 
 @ObjectType()
 @Entity({ name: 'ticket_messages' })

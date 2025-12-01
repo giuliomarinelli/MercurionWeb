@@ -1,7 +1,7 @@
 // ================== AbstractPaginationComponent ==================
 import { ElementRef, signal } from "@angular/core";
 import { firstValueFrom, Observable } from "rxjs";
-import { PageModel } from "../Models/graphql/page.model";
+import { PageModel } from "../Models/graphql/page.models";
 
 export abstract class AbstractPaginationComponent<T> {
   protected sentinel: ElementRef<HTMLDivElement> | undefined;

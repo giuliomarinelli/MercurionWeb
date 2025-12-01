@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
-import { PageModel } from '../Models/graphql/page.model';
+import { PageModel } from '../Models/graphql/page.models';
 import { distinctUntilChanged, map, Observable } from 'rxjs';
 import { HistoryDTO, HistoryDTOExt } from '../Models/history.models';
 

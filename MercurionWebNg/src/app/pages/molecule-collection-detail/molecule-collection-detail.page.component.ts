@@ -1,4 +1,4 @@
-import { PageModel } from './../../Models/graphql/page.model';
+import { PageModel } from '../../Models/graphql/page.models';
 import { CustomDetailsComponent } from '../../components/molecule-detail/my-molecule-custom-details/custom-details.component';
 import {
   AfterViewInit,

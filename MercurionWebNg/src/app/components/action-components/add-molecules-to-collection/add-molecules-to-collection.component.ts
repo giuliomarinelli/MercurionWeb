@@ -5,7 +5,7 @@ import { ActionOverlayContextService } from '../../../services/context/action-co
 import { MoleculeCollectionItemService } from '../../../services/graphql/molecule-collection-item.service';
 import { Helpers } from '../../../helpers';
 import { MoleculeCardItemModel } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
-import { PageModel } from '../../../Models/graphql/page.model';
+import { PageModel } from '../../../Models/graphql/page.models';
 import { PmSearchInputComponent } from '../../common/pm-search-input/pm-search-input.component';
 import { MoleculeCollectionItemSelectCardComponent } from '../../molecule-detail/molecule-collection-item-select-card/molecule-collection-item-select-card.component';
 import { ClassicSpinnerComponent } from '../../common/classic-spinner/classic-spinner.component';

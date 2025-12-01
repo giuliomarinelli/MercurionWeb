@@ -1,5 +1,7 @@
 import { BadRequestException } from "@nestjs/common";
+import { Pagination } from "nestjs-typeorm-paginate";
 import { MfaStrategy } from "src/app_modules/user/Models/enums/mfa-strategy.enum";
+import { FlatPagination } from "src/Models/flat-pagination.interface";
 
 export class GeneralUtils {
 
@@ -52,6 +54,19 @@ export class GeneralUtils {
 
     public static isValidUUIDv7(uuid: string): boolean {
         return this.uuidV7Re.test(uuid)
+    }
+
+    static paginationToFlatPaginationConverter<T>(page: Pagination<T>): FlatPagination<T> {
+        const { items, meta } = page
+        const {currentPage, itemsPerPage, itemCount, totalItems, totalPages} = meta
+        return {
+            items,
+            itemCount,
+            itemsPerPage,
+            currentPage,
+            totalPages: totalItems ?? -1,
+            totalItems: totalPages ?? -1
+        }
     }
 
 }

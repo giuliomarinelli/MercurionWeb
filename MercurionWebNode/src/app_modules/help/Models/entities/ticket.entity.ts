@@ -5,12 +5,12 @@ import {
   OneToMany,
   Index,
   BeforeInsert,
-} from 'typeorm';
-import { ObjectType, Field, ID } from '@nestjs/graphql';
-import { TicketStatus } from '../enums/ticket-status.enum';
-import { uuidv7 } from '@kripod/uuidv7';
-import { UUID } from 'crypto';
-import { TicketMessage } from './ticket-message.entity';
+} from 'typeorm'
+import { ObjectType, Field, ID } from '@nestjs/graphql'
+import { TicketStatus } from '../enums/ticket-status.enum'
+import { uuidv7 } from '@kripod/uuidv7'
+import { UUID } from 'crypto'
+import { TicketMessage } from './ticket-message.entity'
 
 @ObjectType()
 @Entity({ name: 'tickets' })
