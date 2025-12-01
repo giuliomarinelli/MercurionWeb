@@ -152,6 +152,23 @@ type ChEMBLMoleculeItemDTO {
   joins: [MoleculeCollectionItemJoin!]
 }
 
+type TicketMessage {
+  id: ID!
+  publicId: String!
+  ticketId: String!
+  authorType: AuthorType!
+  authorId: ID
+  userId: String!
+  contentDelta: String!
+  contentHtml: String!
+  createdAt: String!
+}
+
+enum AuthorType {
+  User
+  Support
+}
+
 type SynthStepMoleculeRef {
   id: ID!
   step: SynthStep!

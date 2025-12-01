@@ -119,6 +119,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
             case 'ChangeEmailConfirm::UserNotFound':
             case 'ChangePhone::UserNotFound':
             case 'NoSuchUser':
+            case 'TicketNotFound':
                 statusCode = HttpStatus.NOT_FOUND
                 break
 
