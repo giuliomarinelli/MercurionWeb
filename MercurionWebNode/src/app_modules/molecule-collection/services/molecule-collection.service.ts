@@ -15,6 +15,7 @@ import { MoleculeCollectionItemJoin } from '../Models/entities/molecule-collecti
 import { ChEMBLMoleculeItemEntity } from '../Models/entities/chembl-molecule-item.entity';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { pruneNullCollectionJoins } from '../utils/prune-molecule-collection-joins.util';
 
 @Injectable()
 export class MoleculeCollectionService {
@@ -246,7 +247,8 @@ WHERE i.user_id = $2::uuid
 
     qb = TypeOrmUtils.addJoins(qb, 'collection', fieldsMap)
 
-    return qb.getOne()
+    const collection = await qb.getOne()
+    return pruneNullCollectionJoins(collection)
   }
 
   async findAllByUser(userId: UUID, fieldsMap: GraphQLFieldsMap): Promise<MoleculeCollection[]> {
@@ -260,7 +262,8 @@ WHERE i.user_id = $2::uuid
 
     qb = TypeOrmUtils.addJoins(qb, 'collection', fieldsMap)
 
-    return qb.getMany()
+    const rows = await qb.getMany()
+    return pruneNullCollectionJoins(rows)
   }
 
   async update(id: UUID, userId: UUID, input: Partial<MoleculeCollection>, fieldsMap: GraphQLFieldsMap): Promise<MoleculeCollection | null> {
@@ -302,7 +305,8 @@ WHERE i.user_id = $2::uuid
       .limit(limit)
 
     qb = TypeOrmUtils.addJoins(qb, 'collection', fieldsMap)
-    return qb.getMany()
+    const rows = await qb.getMany()
+    return pruneNullCollectionJoins(rows)
   }
 
   async paginateAllByUser(
@@ -356,7 +360,9 @@ WHERE i.user_id = $2::uuid
 
     qb = qb.orderBy('collection.touchedAt', 'DESC')
     
-    return paginate<MoleculeCollection>(qb, options)
+    const paginated = await paginate<MoleculeCollection>(qb, options)
+    pruneNullCollectionJoins(paginated.items)
+    return paginated
 
   }
 

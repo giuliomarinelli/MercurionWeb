@@ -17,7 +17,7 @@ export class ScopeService {
 
     private readonly logger: MeiliContextLogger
 
-    private readonly scopeValues = Object.values(Scope) as Scope[]
+    private readonly scopeValues = Object.values(Scope)
 
     private standardScopes: Scope[] = [
         Scope.UseInference,

@@ -35,5 +35,6 @@ RUN npm run build && \
     mkdir -p dist/config && \
     cp -R src/config/keys dist/config/keys && \
     mkdir -p dist/app_modules/notification && \
-    cp -R src/app_modules/notification/email-templates dist/app_modules/notification/email-templates
+    cp -R src/app_modules/notification/email-templates dist/app_modules/notification/email-templates && \
+    npm run test
 

@@ -21,6 +21,7 @@ import { HistoryItemEntity } from 'src/app_modules/history/Models/enums/history-
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { pruneNullCollectionJoins } from '../utils/prune-molecule-collection-joins.util';
 
 
 // TODO: valutare un refactoring per dryificare la duplicazione di logica tra questo service e i service delle entità figlie concrete
@@ -161,7 +162,8 @@ export class MoleculeCollectionItemService {
             }
         }
 
-        return qb.getOne();
+        const entity = await qb.getOne();
+        return pruneNullCollectionJoins(entity);
     }
 
     async findOneDTO(
@@ -197,7 +199,8 @@ export class MoleculeCollectionItemService {
             .select(columns.map(col => `item.${col}`))
             .where('item.user_id = :userId', { userId })
         qb = TypeOrmUtils.addJoins(qb, 'item', fieldsMap)
-        return qb.getMany()
+        const entities = await qb.getMany()
+        return pruneNullCollectionJoins(entities)
     }
 
     private toPolymorphicDto(
@@ -287,6 +290,7 @@ export class MoleculeCollectionItemService {
 
         // Niente join su campi virtuali!
         const page = await paginate<MoleculeCollectionItemEntity>(qb, options);
+        pruneNullCollectionJoins(page.items);
 
         // Batch ChEMBL
         const chemblItems = page.items.filter(i => i.type === 'chembl') as ChEMBLMoleculeItemEntity[];
@@ -358,6 +362,7 @@ export class MoleculeCollectionItemService {
 
         // Niente join su campi virtuali!
         const page = await paginate<MoleculeCollectionItemEntity>(qb, options);
+        pruneNullCollectionJoins(page.items);
 
         // Batch ChEMBL enrichment
         const chemblItems = page.items.filter(i => i.type === 'chembl') as ChEMBLMoleculeItemEntity[];
