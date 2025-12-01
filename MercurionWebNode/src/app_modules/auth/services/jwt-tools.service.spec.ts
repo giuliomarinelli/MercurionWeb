@@ -1,6 +1,16 @@
 import { JwtToolsService } from './jwt-tools.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+
+jest.mock('src/config/config', () => ({
+  Environment: {
+    Development: 'development',
+    Staging: 'staging',
+    Production: 'production',
+    Test: 'test',
+  },
+}));
 
 jest.mock('fs', () => ({
   readFileSync: jest.fn().mockReturnValue('-----BEGIN KEY-----\nmock\n-----END KEY-----'),
@@ -36,6 +46,9 @@ describe('JwtToolsService', () => {
       { getUserScopesById: jest.fn().mockResolvedValue([]) } as any,
       { set: jest.fn() } as any,
       { isTokenRevoked: jest.fn().mockResolvedValue(false), revokeToken: jest.fn() } as any,
+      {
+        forContext: jest.fn().mockReturnValue({ log: jest.fn(), warn: jest.fn() }),
+      } as unknown as MeiliLoggerService,
     );
   });
 

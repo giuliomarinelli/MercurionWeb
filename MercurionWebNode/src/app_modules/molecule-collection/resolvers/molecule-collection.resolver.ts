@@ -24,8 +24,11 @@ export class MoleculeCollectionResolver {
     ) { }
 
     @ResolveField(() => Int)
-    async itemsCount(@Parent() collection: MoleculeCollection): Promise<number> {
-        return this.joinRepo.count({ where: { collectionId: collection.id } })
+    async itemsCount(
+        @Parent() collection: MoleculeCollection,
+        @AuthenticatedUserId() userId: UUID
+    ): Promise<number> {
+        return this.joinRepo.count({ where: { collectionId: collection.id, userId } })
     }
 
     // Query: Lista collezioni dell'utente

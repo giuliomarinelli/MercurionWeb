@@ -134,7 +134,7 @@ export class MoleculeCollectionItemService {
 
             // collection
             if (wants(fieldsMap, ['joins', 'collection'])) {
-                qb = qb.leftJoin('j.collection', 'c');
+                qb = qb.leftJoin('j.collection', 'c', 'c.user_id = :userId', { userId });
 
                 const COL_ALLOWED = ['id', 'name', 'createdAt', 'updatedAt', 'touchedAt'];
                 const colFieldsMap =
@@ -147,7 +147,8 @@ export class MoleculeCollectionItemService {
 
                 // itemsCount
                 if (wants(fieldsMap, ['joins', 'collection', 'itemsCount'])) {
-                    qb = qb.loadRelationCountAndMap('c.itemsCount', 'c.items');
+                    qb = qb.loadRelationCountAndMap('c.itemsCount', 'c.items', 'items', relQb =>
+                        relQb.andWhere('items.user_id = :userId', { userId }));
                 }
 
                 // === ORDINAMENTO: se ci sono join+collection, ordina per c.updatedAt DESC ===
@@ -164,12 +165,12 @@ export class MoleculeCollectionItemService {
     }
 
     async findOneDTO(
-        userId: UUID,
         itemId: UUID,
+        userId: UUID,
         fieldsMap: GraphQLFieldsMap
     ): Promise<CustomMoleculeItemDTO | ChEMBLMoleculeItemDTO | null> {
         // Delego al metodo già esistente
-        const item = await this.findOne(userId, itemId, fieldsMap);
+        const item = await this.findOne(itemId, userId, fieldsMap);
         if (!item) {
             return null
         }
@@ -331,6 +332,7 @@ export class MoleculeCollectionItemService {
 
         // LEFT JOIN condizionato sulla collection corrente
         let qb = this.itemRepo.createQueryBuilder('item')
+            .where('item.userId = :userId', { userId })
             .leftJoin(
                 'item.joins',
                 'join',

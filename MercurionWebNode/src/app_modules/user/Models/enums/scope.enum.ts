@@ -8,7 +8,7 @@ export enum Scope {
     EditMolecule = "71f4f198-f8f3-41f4-928b-1b1297a09bd6",
     DeleteMolecule = "0d49d7a1-e30b-4ac1-8802-5cb0105b6e53",
     
-    // 🧪 Molecole 
+    // 🧪 Collezioni Molecole 
     CreateCollection = "e04aad50-01a9-46b6-902b-4762d19106d9",
     ViewCollection = "caad2624-74df-4357-8508-60b969b3e4ce",
     EditCollection = "b563a154-a1b0-4480-b235-e2d58776a31f",

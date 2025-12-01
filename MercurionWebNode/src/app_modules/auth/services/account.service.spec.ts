@@ -1,4 +1,5 @@
 import { AccountService } from './account.service';
+import { ScopeService } from './scope.service';
 
 describe('AccountService', () => {
   let service: AccountService;
@@ -25,6 +26,7 @@ describe('AccountService', () => {
       {} as any, // responseService
       {} as any, // securityAuditService
       {} as any, // dataSource
+      {} as ScopeService, // scopeService
       meiliLoggerMock as any, // meiliLogger
     );
   });

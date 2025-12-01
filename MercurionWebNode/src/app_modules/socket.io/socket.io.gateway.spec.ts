@@ -7,6 +7,8 @@ import { SessionService } from 'src/app_modules/auth/services/session.service';
 import { Reflector } from '@nestjs/core';
 import { SecureCookieService } from 'src/app_modules/auth/services/secure-cookie.service';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { ConfigService } from '@nestjs/config';
+import { ScopeService } from 'src/app_modules/auth/services/scope.service';
 
 describe('SocketGateway', () => {
   let gateway: SocketIOGateway;
@@ -15,12 +17,14 @@ describe('SocketGateway', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SocketIOGateway,
+        { provide: ConfigService, useValue: { get: jest.fn().mockReturnValue({ host: 'localhost', port: 6379 }) } },
         { provide: PubSubService, useValue: { setSocketServer: jest.fn() } },
         WsGuard,
         { provide: JwtToolsService, useValue: {} },
         { provide: SessionService, useValue: {} },
         { provide: Reflector, useValue: { get: jest.fn() } },
         { provide: SecureCookieService, useValue: {} },
+        { provide: ScopeService, useValue: { scopeVerificationLayer: jest.fn(), generateScopesArrayFromJwtClaim: jest.fn() } },
         { provide: MeiliLoggerService, useValue: { forContext: jest.fn().mockReturnValue({ log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() }) } },
       ],
     }).compile();

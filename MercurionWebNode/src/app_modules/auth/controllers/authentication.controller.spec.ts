@@ -14,6 +14,7 @@ import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { UnauthorizedException } from '@nestjs/common';
 import { EmailDTO } from '../Models/DTO/email.cls.dto';
+import { SercurityService } from '../services/sercurity.service';
 
 describe('AuthenticationController', () => {
   let controller: AuthenticationController;
@@ -81,6 +82,7 @@ describe('AuthenticationController', () => {
         },
         { provide: SessionService, useValue: { revokeToken: jest.fn() } },
         { provide: RedisService, useValue: { get: jest.fn() } },
+        { provide: SercurityService, useValue: { signDeviceId: jest.fn((id) => id) } },
         { provide: MeiliLoggerService, useValue: { forContext: jest.fn().mockReturnValue(mockLogger) } },
       ],
     }).compile();

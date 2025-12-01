@@ -1,22 +1,20 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { MercurionAIService } from './mercurion-ai.service';
-
+import { ConfigService } from '@nestjs/config';
+import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 
 describe('MercurionService', () => {
-  let service: MercurionAIService;
-
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        MercurionAIService,
-        { provide: 'MERCURION_AI_CLIENT', useValue: { send: jest.fn() } },
-      ],
-    }).compile();
-
-    service = module.get<MercurionAIService>(MercurionAIService);
-  });
-
   it('should be defined', () => {
+    const config = {
+      get: jest.fn().mockReturnValue('development'),
+    } as unknown as ConfigService;
+    const loggerFactory = {
+      forContext: jest.fn().mockReturnValue({ log: jest.fn(), warn: jest.fn() }),
+    } as unknown as MeiliLoggerService;
+    const service = new MercurionAIService(
+      { send: jest.fn() } as any,
+      config,
+      loggerFactory,
+    );
     expect(service).toBeDefined();
   });
 });

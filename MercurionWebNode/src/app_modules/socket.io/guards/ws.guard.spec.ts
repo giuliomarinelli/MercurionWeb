@@ -5,6 +5,7 @@ import { JwtToolsService } from 'src/app_modules/auth/services/jwt-tools.service
 import { SessionService } from 'src/app_modules/auth/services/session.service';
 import { SecureCookieService } from 'src/app_modules/auth/services/secure-cookie.service';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { ScopeService } from 'src/app_modules/auth/services/scope.service';
 
 describe('WsGuard', () => {
   let guard: WsGuard;
@@ -17,6 +18,7 @@ describe('WsGuard', () => {
         { provide: SessionService, useValue: {} },
         { provide: Reflector, useValue: { get: jest.fn() } },
         { provide: SecureCookieService, useValue: {} },
+        { provide: ScopeService, useValue: { scopeVerificationLayer: jest.fn(), generateScopesArrayFromJwtClaim: jest.fn() } },
         { provide: MeiliLoggerService, useValue: { forContext: jest.fn().mockReturnValue({ log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() }) } },
       ],
     }).compile();

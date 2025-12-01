@@ -8,6 +8,7 @@ import { TurnstileGuard } from '../guards/turnstile.guard';
 import { TurnstileService } from '../services/turnstile.service';
 import { SercurityService } from '../services/sercurity.service';
 import { SessionService } from '../services/session.service';
+import { ConfigService } from '@nestjs/config';
 
 describe('AccountController', () => {
   let controller: AccountController;
@@ -24,6 +25,12 @@ describe('AccountController', () => {
         { provide: TurnstileService, useValue: {} },
         { provide: SercurityService, useValue: { maskEmail: jest.fn() } },
         { provide: SessionService, useValue: {} },
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn().mockReturnValue({}),
+          },
+        },
       ],
     }).compile();
 
