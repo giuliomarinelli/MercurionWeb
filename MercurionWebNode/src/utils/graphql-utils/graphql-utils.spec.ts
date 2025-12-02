@@ -1,7 +1,7 @@
-import { GraphqlUtils } from './graphql-utils';
+import { GraphQLUtils } from './graphql-utils';
 
 describe('GraphqlUtils', () => {
   it('should be defined', () => {
-    expect(new GraphqlUtils()).toBeDefined();
+    expect(new GraphQLUtils()).toBeDefined();
   });
 });

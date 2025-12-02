@@ -4,7 +4,7 @@ import { ChEMBLMoleculeItemService } from "../services/chembl-molecule-item.serv
 import { AuthenticatedUserId } from "src/metadata/metadata";
 import { UUID } from "crypto";
 import { GraphQLResolveInfo } from 'graphql';
-import { GraphqlUtils } from "src/utils/graphql-utils/graphql-utils";
+import { GraphQLUtils } from "src/utils/graphql-utils/graphql-utils";
 import { AddManyChEMBLItemDTO } from "../Models/DTO/add-many-chembl-items.dto";
 
 
@@ -21,7 +21,7 @@ export class ChEMBLMoleculeItemResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ) {
-        const fieldsMap = GraphqlUtils.getFieldsMap(info)
+        const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.service.findByCollection(collectionId, userId, fieldsMap)
     }
 
@@ -31,7 +31,7 @@ export class ChEMBLMoleculeItemResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ): Promise<ChEMBLMoleculeItemEntity | null> {
-        const fieldsMap = GraphqlUtils.getFieldsMap(info)
+        const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.service.findOneById(itemId, userId, fieldsMap)
     }
 

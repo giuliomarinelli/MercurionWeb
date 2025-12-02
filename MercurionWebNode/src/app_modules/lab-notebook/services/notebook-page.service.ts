@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { NotebookPage } from '../Models/entities/lab-notebook-page.entity';
 import { UUID } from 'crypto';
 import { NotebookSection } from '../Models/entities/lab-notebook-section.entity';
-import { GraphqlUtils } from 'src/utils/graphql-utils/graphql-utils';
+import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
 
 @Injectable()
 export class NotebookPageService {
@@ -43,7 +43,7 @@ export class NotebookPageService {
         scalarFields: string[] = [],
         relationalFields: string[] = []
     ): Promise<NotebookPage | null> {
-        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.NOTEBOOK_PAGE_REQUIRED_FIELDS)
+        const columns = GraphQLUtils.ensureRequiredFields(scalarFields, this.NOTEBOOK_PAGE_REQUIRED_FIELDS)
 
         let qb = this.pageRepo.createQueryBuilder('page')
             .select(columns.map(col => `page.${col}`))
@@ -68,7 +68,7 @@ export class NotebookPageService {
         scalarFields: string[] = [],
         relationalFields: string[] = []
     ): Promise<NotebookPage[]> {
-        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.NOTEBOOK_PAGE_REQUIRED_FIELDS)
+        const columns = GraphQLUtils.ensureRequiredFields(scalarFields, this.NOTEBOOK_PAGE_REQUIRED_FIELDS)
 
         let qb = this.pageRepo.createQueryBuilder('page')
             .select(columns.map(col => `page.${col}`))
@@ -98,7 +98,7 @@ export class NotebookPageService {
         relationalFields: string[] = []
     ): Promise<NotebookPage[]> {
 
-        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.NOTEBOOK_PAGE_REQUIRED_FIELDS)
+        const columns = GraphQLUtils.ensureRequiredFields(scalarFields, this.NOTEBOOK_PAGE_REQUIRED_FIELDS)
 
         let qb = this.pageRepo.createQueryBuilder('page')
             .select(columns.map(col => `page.${col}`))

@@ -157,7 +157,6 @@ type TicketMessage {
   publicId: String!
   ticketId: ID!
   authorType: AuthorType!
-  authorId: ID
   contentDelta: String!
   contentHtml: String!
   createdAt: String!
@@ -193,6 +192,15 @@ type TicketDetailDTO {
 
 type PaginatedTicket {
   items: [Ticket!]!
+  itemCount: Int!
+  totalItems: Int!
+  itemsPerPage: Int!
+  totalPages: Int!
+  currentPage: Int!
+}
+
+type PaginatedTicketMessage {
+  items: [TicketMessage!]!
   itemCount: Int!
   totalItems: Int!
   itemsPerPage: Int!
@@ -307,8 +315,10 @@ type Query {
   existsChEMBLMoleculeByUUIDThenGetMolregno(_uuid_: String!): String
   myTicketDetail(ticketId: ID!): TicketDetailDTO!
   myTickets(page: Int!, limit: Int!): PaginatedTicket!
+  myTicketMessages(page: Int!, limit: Int!, ticketId: ID!): PaginatedTicketMessage!
   ticketDetailAsSupport(ticketId: ID!): TicketDetailDTO!
   ticketsAsSupport(page: Int!, limit: Int!): PaginatedTicket!
+  ticketMessagesAsSupport(page: Int!, limit: Int!, ticketId: ID!): PaginatedTicketMessage!
   mySyntheticRoutes: [Synthesis!]!
   syntheticRoute(id: ID!): Synthesis
   syntheticStepsByRoute(routeId: ID!): [SynthStep!]!

@@ -4,7 +4,7 @@ import { UUID } from 'crypto';
 import { GraphQLResolveInfo } from 'graphql';
 import { MoleculeCollection } from '../Models/entities/molecule-collection.entity';
 import { MoleculeCollectionService } from '../services/molecule-collection.service';
-import { GraphqlUtils } from 'src/utils/graphql-utils/graphql-utils';
+import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { PaginatedMoleculeCollection } from '../Models/DTO/paginated-molecule-collection';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MoleculeCollectionItemJoin } from '../Models/entities/molecule-collection-item-join.entity';
@@ -38,7 +38,7 @@ export class MoleculeCollectionResolver {
         @Info() info: GraphQLResolveInfo
     ): Promise<MoleculeCollection[]> {
         // Info per selezione campi, come pattern visto prima
-        const fieldsMap = GraphqlUtils.getFieldsMap(info)
+        const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.collectionService.findAllByUser(userId, fieldsMap)
     }
 
@@ -49,7 +49,7 @@ export class MoleculeCollectionResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ): Promise<MoleculeCollection | null> {
-        const fieldsMap = GraphqlUtils.getFieldsMap(info)
+        const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.collectionService.findOne(id, userId, fieldsMap)
     }
 
@@ -60,7 +60,7 @@ export class MoleculeCollectionResolver {
         @Args('query', { nullable: true }) query?: string,
         @Args('limit', { nullable: true }) limit?: number
     ): Promise<MoleculeCollection[]> {
-        const fieldsMap = GraphqlUtils.getFieldsMap(info)
+        const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.collectionService.searchByName(userId, query, limit, fieldsMap)
     }
 
@@ -87,7 +87,7 @@ export class MoleculeCollectionResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ): Promise<MoleculeCollection | null> {
-        const fieldsMap = GraphqlUtils.getFieldsMap(info)
+        const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.collectionService.update(id, userId, { name }, fieldsMap)
     }
 
@@ -118,7 +118,7 @@ export class MoleculeCollectionResolver {
         @Args('q', { type: () => String }) q: string
     ): Promise<PaginatedMoleculeCollection> {
 
-        const fieldsMap = GraphqlUtils.getFieldsMap(info)
+        const fieldsMap = GraphQLUtils.getFieldsMap(info)
         const paginated = await this.collectionService.paginateAllByUser(userId, { page, limit }, q, excludeJoinedToMolecule ?? false, moleculeId, fieldsMap);
 
         return {

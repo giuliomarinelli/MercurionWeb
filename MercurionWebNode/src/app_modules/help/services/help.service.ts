@@ -11,7 +11,7 @@ import { TicketMessage } from '../Models/entities/ticket-message.entity'
 import { TicketStatus } from '../Models/enums/ticket-status.enum'
 import { AuthorType } from '../Models/enums/author-type.enum'
 import { MailSenderService } from 'src/app_modules/notification/services/mail-sender/mail-sender.service'
-import { GraphqlUtils } from 'src/utils/graphql-utils/graphql-utils'
+import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils'
 import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils'
 import { TicketDetailDTO } from '../Models/DTO/ticket-detail.dto'
 import { JsonValue } from 'src/Models/json.types'
@@ -42,6 +42,7 @@ export class HelpService {
     contentDelta: JsonValue
     contentHtml: string
   }): Promise<Ticket> {
+
     const now = Date.now()
 
     const ticket = new Ticket()
@@ -197,8 +198,8 @@ export class HelpService {
   ): Promise<Pagination<Ticket>> {
 
     const itemFieldsMap = fieldsMap?.items ?? {}
-    const scalarFields = GraphqlUtils.getScalarFields(itemFieldsMap)
-    const columns = GraphqlUtils.ensureRequiredFields(
+    const scalarFields = GraphQLUtils.getScalarFields(itemFieldsMap)
+    const columns = GraphQLUtils.ensureRequiredFields(
       scalarFields,
       this.REQUIRED_TICKET_FIELDS
     )
@@ -222,8 +223,8 @@ export class HelpService {
       items: page.items.map((i) => {
         i.publicId = this.generateReadablePublicId(i.publicId)
         if (i.messages) {
-          i.messages = i.messages.map((m) => {
-            m.publicId = this.generateReadablePublicId(m.publicId)
+          i.messages = i.messages.map((m,) => {
+            m.publicId = this.generateReadablePublicId(m.publicId, 'Message')
             return m
           })
         }
@@ -233,7 +234,6 @@ export class HelpService {
     return page
   }
 
-
   async getTicketDetail(
     ticketId: UUID,
     userId: UUID,
@@ -242,9 +242,9 @@ export class HelpService {
   ): Promise<TicketDetailDTO> {
 
     const ticketFields = fieldsMap.ticket ?? {}
-    const scalarFields = GraphqlUtils.getScalarFields(ticketFields)
+    const scalarFields = GraphQLUtils.getScalarFields(ticketFields)
 
-    const ticketColumns = GraphqlUtils.ensureRequiredFields(
+    const ticketColumns = GraphQLUtils.ensureRequiredFields(
       scalarFields,
       this.REQUIRED_TICKET_FIELDS
     )
@@ -267,8 +267,8 @@ export class HelpService {
       return { ticket, messages: [] }
     }
 
-    const msgScalarFields = GraphqlUtils.getScalarFields(fieldsMap.messages)
-    const msgColumns = GraphqlUtils.ensureRequiredFields(
+    const msgScalarFields = GraphQLUtils.getScalarFields(fieldsMap.messages)
+    const msgColumns = GraphQLUtils.ensureRequiredFields(
       msgScalarFields,
       this.REQUIRED_MESSAGE_FIELDS
     )
@@ -284,10 +284,52 @@ export class HelpService {
     return {
       ticket,
       messages: messages.map((m) => {
-        m.publicId = this.generateReadablePublicId(m.publicId)
+        m.publicId = this.generateReadablePublicId(m.publicId, 'Message')
         return m
       })
     }
+  }
+
+  async listTicketMessages(
+    ticketId: UUID,
+    userId: UUID,
+    options: IPaginationOptions,
+    fieldsMap: GraphQLFieldsMap,
+    onlyOwner: boolean = true
+  ): Promise<Pagination<TicketMessage>> {
+
+    if (onlyOwner) {
+      const owns = await this.ticketRepo.exists({
+        where: { id: ticketId, userId }
+      })
+      if (!owns) {
+        throw new RpcException('TicketNotFound')        
+      }
+    }
+
+    const itemFieldsMap = fieldsMap?.items ?? {}
+    const scalarFields = GraphQLUtils.getScalarFields(itemFieldsMap)
+    const columns = GraphQLUtils.ensureRequiredFields(
+      scalarFields,
+      this.REQUIRED_MESSAGE_FIELDS
+    )
+
+    const qb = this.msgRepo.createQueryBuilder('m')
+      .select(columns.map(col => `m.${col}`))
+      .where('m.ticket_id = :ticketId', { ticketId })
+      .orderBy('m.created_at', 'DESC')
+
+    let page = await paginate<TicketMessage>(qb, options)
+
+    page = {
+      ...page,
+      items: page.items.map((m) => {
+        m.publicId = this.generateReadablePublicId(m.publicId, 'Message')
+        return m
+      })
+    }
+
+    return page
   }
 
 
@@ -301,8 +343,8 @@ export class HelpService {
     ticket.lastMessageAt = String(now)
   }
 
-  private generateReadablePublicId(publicId: string): string {
-    const prefix = 'MTCK-#' 
+  private generateReadablePublicId(publicId: string, scope: 'Ticket' | 'Message' = 'Ticket'): string {
+    const prefix = scope === 'Ticket' ? 'MTCK-#' : 'MTCKM-#'
     if (TypeGuards.isThruthyString(publicId) && /^\d+$/.test(publicId)) {
       return `${prefix}${publicId.padStart(9, '0')}`
     }

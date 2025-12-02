@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, Repository } from 'typeorm';
 import { UUID } from 'crypto';
-import { GraphqlUtils } from 'src/utils/graphql-utils/graphql-utils';
+import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils';
 import { MoleculeCollection } from '../Models/entities/molecule-collection.entity';
 import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate';
@@ -237,8 +237,8 @@ WHERE i.user_id = $2::uuid
 
 
   async findOne(id: UUID, userId: UUID, fieldsMap: GraphQLFieldsMap): Promise<MoleculeCollection | null> {
-    const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
-    const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.REQUIRED_FIELDS)
+    const scalarFields = GraphQLUtils.getScalarFields(fieldsMap)
+    const columns = GraphQLUtils.ensureRequiredFields(scalarFields, this.REQUIRED_FIELDS)
 
     let qb = this.collectionRepo.createQueryBuilder('collection')
       .select(columns.map(col => `collection.${col}`))
@@ -252,8 +252,8 @@ WHERE i.user_id = $2::uuid
   }
 
   async findAllByUser(userId: UUID, fieldsMap: GraphQLFieldsMap): Promise<MoleculeCollection[]> {
-    const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
-    const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.REQUIRED_FIELDS)
+    const scalarFields = GraphQLUtils.getScalarFields(fieldsMap)
+    const columns = GraphQLUtils.ensureRequiredFields(scalarFields, this.REQUIRED_FIELDS)
 
     let qb = this.collectionRepo.createQueryBuilder('collection')
       .select(columns.map(col => `collection.${col}`))
@@ -290,8 +290,8 @@ WHERE i.user_id = $2::uuid
   }
 
   async searchByName(userId: UUID, query: string | undefined, limit: number = 10, fieldsMap: GraphQLFieldsMap): Promise<MoleculeCollection[]> {
-    const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
-    const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.REQUIRED_FIELDS)
+    const scalarFields = GraphQLUtils.getScalarFields(fieldsMap)
+    const columns = GraphQLUtils.ensureRequiredFields(scalarFields, this.REQUIRED_FIELDS)
 
     let qb = this.collectionRepo.createQueryBuilder('collection')
       .select(columns.map(col => `collection.${col}`))
@@ -319,7 +319,7 @@ WHERE i.user_id = $2::uuid
   ): Promise<Pagination<MoleculeCollection>> {
     
     const itemsFields = fieldsMap?.items ? Object.keys(fieldsMap.items).filter(k => k !== '__typename') : [];
-    const columns = GraphqlUtils.ensureRequiredFields(itemsFields, this.REQUIRED_FIELDS).filter(c => c !== 'itemsCount')
+    const columns = GraphQLUtils.ensureRequiredFields(itemsFields, this.REQUIRED_FIELDS).filter(c => c !== 'itemsCount')
     
     let qb = this.collectionRepo.createQueryBuilder('collection')
       .select(columns.map(col => `collection.${col}`))

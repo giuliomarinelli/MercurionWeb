@@ -5,7 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, Repository } from 'typeorm';
 import { UUID } from 'crypto';
 import { CreateMoleculeItemInput } from '../Models/DTO/create-molecule-item.input';
-import { GraphqlUtils } from 'src/utils/graphql-utils/graphql-utils';
+import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils';
 import { uuidv7 } from '@kripod/uuidv7';
 import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
@@ -193,8 +193,8 @@ export class MoleculeCollectionItemService {
     }
 
     async findAllByUser(userId: UUID, fieldsMap: GraphQLFieldsMap): Promise<MoleculeCollectionItemEntity[]> {
-        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
-        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, ['id', 'type'])
+        const scalarFields = GraphQLUtils.getScalarFields(fieldsMap)
+        const columns = GraphQLUtils.ensureRequiredFields(scalarFields, ['id', 'type'])
         let qb = this.itemRepo.createQueryBuilder('item')
             .select(columns.map(col => `item.${col}`))
             .where('item.user_id = :userId', { userId })

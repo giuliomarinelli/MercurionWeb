@@ -4,7 +4,7 @@ import {
 } from '@nestjs/graphql'
 import { GraphQLResolveInfo } from 'graphql'
 import { UUID } from 'crypto'
-import { GraphqlUtils } from 'src/utils/graphql-utils/graphql-utils'
+import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils'
 import { GraphQLFieldsMap } from 'src/utils/type-orm-utils/type-orm-utils'
 import { Scope } from 'src/app_modules/user/Models/enums/scope.enum'
 import { HelpService } from '../services/help.service'
@@ -15,6 +15,7 @@ import { JsonValue } from 'src/Models/json.types'
 import GraphQLJSON from 'graphql-type-json'
 import { PaginatedTicket } from '../Models/DTO/paginated-ticket.type.gql'
 import { GeneralUtils } from 'src/utils/general-utils/general-utils'
+import { PaginatedTicketMessage } from '../Models/DTO/paginated-ticket-message.type.gql'
 
 
 @Resolver(() => Ticket)
@@ -32,7 +33,7 @@ export class HelpResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo,
     ): Promise<TicketDetailDTO> {
-        const fieldsMap = GraphqlUtils.getFieldsMap(info)
+        const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.helpService.getTicketDetail(
             ticketId,
             userId,
@@ -48,13 +49,29 @@ export class HelpResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo,
     ): Promise<PaginatedTicket> {
-        const fieldsMap = GraphqlUtils.getFieldsMap(info)
+        const fieldsMap = GraphQLUtils.getFieldsMap(info)
         const pagination = await this.helpService.listTickets(
             userId,
             { page, limit },
             fieldsMap as GraphQLFieldsMap,
             true
         )
+        const flat = GeneralUtils.paginationToFlatPaginationConverter(pagination)
+        return {
+            ...flat
+        }
+    }
+
+    @Query(() => PaginatedTicketMessage)
+    async myTicketMessages(
+        @Args('page', { type: () => Int }) page: number = 1,
+        @Args('limit', { type: () => Int }) limit: number = 20,
+        @Args('ticketId', { type: () => ID }) ticketId: UUID,
+        @AuthenticatedUserId() userId: UUID,
+        @Info() info: GraphQLResolveInfo,
+    ): Promise<PaginatedTicketMessage> {
+        const fieldsMap = GraphQLUtils.getFieldsMap(info)
+        const pagination = await this.helpService.listTicketMessages(ticketId, userId, { page, limit }, fieldsMap)
         const flat = GeneralUtils.paginationToFlatPaginationConverter(pagination)
         return {
             ...flat
@@ -113,7 +130,7 @@ export class HelpResolver {
         @AuthenticatedUserId() userId: UUID, // lo passiamo ma non filtra
         @Info() info: GraphQLResolveInfo,
     ): Promise<TicketDetailDTO> {
-        const fieldsMap = GraphqlUtils.getFieldsMap(info)
+        const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.helpService.getTicketDetail(
             ticketId,
             userId,
@@ -130,13 +147,30 @@ export class HelpResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo,
     ): Promise<PaginatedTicket> {
-        const fieldsMap = GraphqlUtils.getFieldsMap(info)
+        const fieldsMap = GraphQLUtils.getFieldsMap(info)
         const pagination = await this.helpService.listTickets(
             userId,
             { page, limit },
             fieldsMap as GraphQLFieldsMap,
             false
         )
+        const flat = GeneralUtils.paginationToFlatPaginationConverter(pagination)
+        return {
+            ...flat
+        }
+    }
+
+    @HasScopes(Scope.HandleTickets)
+    @Query(() => PaginatedTicketMessage)
+    async ticketMessagesAsSupport(
+        @Args('page', { type: () => Int }) page: number = 1,
+        @Args('limit', { type: () => Int }) limit: number = 20,
+        @Args('ticketId', { type: () => ID }) ticketId: UUID,
+        @AuthenticatedUserId() userId: UUID,
+        @Info() info: GraphQLResolveInfo,
+    ): Promise<PaginatedTicketMessage> {
+        const fieldsMap = GraphQLUtils.getFieldsMap(info)
+        const pagination = await this.helpService.listTicketMessages(ticketId, userId, { page, limit }, fieldsMap, false)
         const flat = GeneralUtils.paginationToFlatPaginationConverter(pagination)
         return {
             ...flat

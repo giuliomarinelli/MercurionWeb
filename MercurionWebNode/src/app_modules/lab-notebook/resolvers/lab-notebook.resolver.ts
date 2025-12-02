@@ -4,7 +4,7 @@ import { UUID } from 'crypto';
 import { AuthenticatedUserId } from 'src/metadata/metadata';
 import { LabNotebookService } from '../services/lab-notebook.service';
 import { GraphQLResolveInfo } from 'graphql';
-import { GraphqlUtils } from 'src/utils/graphql-utils/graphql-utils';
+import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap } from 'src/utils/type-orm-utils/type-orm-utils';
 import { UpdateLabNotebookInput } from '../Models/DTO/update-lab-notebook-input';
 
@@ -19,7 +19,7 @@ export class LabNotebookResolver {
         @AuthenticatedUserId() userId: string,
         @Info() info: GraphQLResolveInfo
     ): Promise<LabNotebook[]> {
-        const fieldsMap = GraphqlUtils.getFieldsMap(info) as GraphQLFieldsMap
+        const fieldsMap = GraphQLUtils.getFieldsMap(info) as GraphQLFieldsMap
         return this.notebookService.findAllByUser(userId as UUID, fieldsMap)
     }
 
@@ -29,7 +29,7 @@ export class LabNotebookResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ): Promise<LabNotebook | null> {
-        const fieldsMap = GraphqlUtils.getFieldsMap(info) as GraphQLFieldsMap
+        const fieldsMap = GraphQLUtils.getFieldsMap(info) as GraphQLFieldsMap
         return this.notebookService.findOne(id as UUID, userId, fieldsMap)
     }
 
@@ -46,7 +46,7 @@ export class LabNotebookResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ): Promise<LabNotebook | null> {
-        const fieldsMap = GraphqlUtils.getFieldsMap(info) as GraphQLFieldsMap
+        const fieldsMap = GraphQLUtils.getFieldsMap(info) as GraphQLFieldsMap
         return this.notebookService.update(id as UUID, userId, input, fieldsMap)
     }
 

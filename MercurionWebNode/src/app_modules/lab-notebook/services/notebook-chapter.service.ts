@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { NotebookChapter } from '../Models/entities/lab-notebook-chapter.entity';
 import { UUID } from 'crypto';
 import { RpcException } from '@nestjs/microservices';
-import { GraphqlUtils } from 'src/utils/graphql-utils/graphql-utils';
+import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils';
 import { LabNotebook } from '../Models/entities/lab-notebook.entity';
 
@@ -103,8 +103,8 @@ export class NotebookChapterService {
         userId: UUID,
         fieldsMap: GraphQLFieldsMap
     ): Promise<NotebookChapter[]> {
-        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap);
-        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.NOTEBOOK_CHAPTER_REQUIRED_FIELDS);
+        const scalarFields = GraphQLUtils.getScalarFields(fieldsMap);
+        const columns = GraphQLUtils.ensureRequiredFields(scalarFields, this.NOTEBOOK_CHAPTER_REQUIRED_FIELDS);
 
         let qb = this.chapterRepo.createQueryBuilder('chapter')
             .select(columns.map(col => `chapter.${col}`))
@@ -130,8 +130,8 @@ export class NotebookChapterService {
         fieldsMap: GraphQLFieldsMap
     ): Promise<NotebookChapter | null> {
 
-        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
-        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.NOTEBOOK_CHAPTER_REQUIRED_FIELDS)
+        const scalarFields = GraphQLUtils.getScalarFields(fieldsMap)
+        const columns = GraphQLUtils.ensureRequiredFields(scalarFields, this.NOTEBOOK_CHAPTER_REQUIRED_FIELDS)
 
         let qb = this.chapterRepo.createQueryBuilder('chapter')
             .select(columns.map(col => `chapter.${col}`))

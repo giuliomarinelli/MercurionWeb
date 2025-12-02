@@ -5,7 +5,7 @@ import { ChEMBLMoleculeItemEntity } from "../Models/entities/chembl-molecule-ite
 import { DataSource, Repository } from "typeorm";
 import { UUID } from "crypto";
 import { GraphQLFieldsMap } from "src/utils/type-orm-utils/type-orm-utils";
-import { GraphqlUtils } from "src/utils/graphql-utils/graphql-utils";
+import { GraphQLUtils } from "src/utils/graphql-utils/graphql-utils";
 import { MoleculeCollectionItemJoinService } from "./molecule-collection-item-join.service";
 import { RpcException } from "@nestjs/microservices";
 import { MoleculeCollection } from "../Models/entities/molecule-collection.entity";
@@ -224,8 +224,8 @@ export class ChEMBLMoleculeItemService {
         userId: UUID,
         fieldsMap: GraphQLFieldsMap
     ): Promise<ChEMBLMoleculeItemEntity[]> {
-        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
-        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, ['id', 'chemblMolregno', 'userId'])
+        const scalarFields = GraphQLUtils.getScalarFields(fieldsMap)
+        const columns = GraphQLUtils.ensureRequiredFields(scalarFields, ['id', 'chemblMolregno', 'userId'])
 
         const qb = this.chemblRepo.createQueryBuilder('item')
             .select(columns.map(col => `item.${col}`))
@@ -242,8 +242,8 @@ export class ChEMBLMoleculeItemService {
         fieldsMap: GraphQLFieldsMap
     ): Promise<ChEMBLMoleculeItemEntity | null> {
 
-        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
-        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, ['id', 'chemblMolregno', 'userId'])
+        const scalarFields = GraphQLUtils.getScalarFields(fieldsMap)
+        const columns = GraphQLUtils.ensureRequiredFields(scalarFields, ['id', 'chemblMolregno', 'userId'])
 
         const qb = this.chemblRepo.createQueryBuilder('item')
             .select(columns.map(col => `item.${col}`))

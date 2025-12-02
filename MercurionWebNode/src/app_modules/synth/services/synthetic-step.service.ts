@@ -3,7 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { UUID } from "crypto";
 import { GraphQLFieldsMap, TypeOrmUtils } from "src/utils/type-orm-utils/type-orm-utils";
-import { GraphqlUtils } from "src/utils/graphql-utils/graphql-utils";
+import { GraphQLUtils } from "src/utils/graphql-utils/graphql-utils";
 import { SynthStep } from "../Models/entities/synth-step.entity";
 import { SynthStepInput } from "../Models/DTO/synth-step.input";
 
@@ -37,9 +37,9 @@ export class SyntheticStepService {
     }
 
     async findOneById(userId: UUID, id: UUID, fieldsMap: GraphQLFieldsMap): Promise<SynthStep | null> {
-        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
-        const relationalFields = GraphqlUtils.getRelationalFields(fieldsMap)
-        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.REQUIRED_FIELDS)
+        const scalarFields = GraphQLUtils.getScalarFields(fieldsMap)
+        const relationalFields = GraphQLUtils.getRelationalFields(fieldsMap)
+        const columns = GraphQLUtils.ensureRequiredFields(scalarFields, this.REQUIRED_FIELDS)
         let qb = this.stepRepo.createQueryBuilder('step')
             .select(columns.map(col => `step.${col}`))
             .where('step.id = :id', { id })
@@ -55,9 +55,9 @@ export class SyntheticStepService {
 
 
     async findByRoute(userId: UUID, routeId: UUID, fieldsMap: GraphQLFieldsMap): Promise<SynthStep[]> {
-        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
-        const relationalFields = GraphqlUtils.getRelationalFields(fieldsMap)
-        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.REQUIRED_FIELDS)
+        const scalarFields = GraphQLUtils.getScalarFields(fieldsMap)
+        const relationalFields = GraphQLUtils.getRelationalFields(fieldsMap)
+        const columns = GraphQLUtils.ensureRequiredFields(scalarFields, this.REQUIRED_FIELDS)
         let qb = this.stepRepo.createQueryBuilder('step')
             .select(columns.map(col => `step.${col}`))
             .where('step.route_id = :routeId', { routeId })

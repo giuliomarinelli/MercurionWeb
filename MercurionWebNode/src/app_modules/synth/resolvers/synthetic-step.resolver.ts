@@ -2,7 +2,7 @@ import { Args, ID, Info, Mutation, Query, Resolver } from "@nestjs/graphql";
 import { AuthenticatedUserId } from "src/metadata/metadata";
 import { UUID } from "crypto";
 import { GraphQLResolveInfo } from "graphql";
-import { GraphqlUtils } from "src/utils/graphql-utils/graphql-utils";
+import { GraphQLUtils } from "src/utils/graphql-utils/graphql-utils";
 import { SynthStep } from "../Models/entities/synth-step.entity";
 import { SyntheticStepService } from "../services/synthetic-step.service";
 import { SynthStepInput } from "../Models/DTO/synth-step.input";
@@ -18,7 +18,7 @@ export class SyntheticStepResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ) {
-        const fieldsMap = GraphqlUtils.getFieldsMap(info)
+        const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.service.findByRoute(userId, routeId, fieldsMap)
     }
 
@@ -28,7 +28,7 @@ export class SyntheticStepResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ) {
-        const fieldsMap = GraphqlUtils.getFieldsMap(info)
+        const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.service.findOneById(userId, id, fieldsMap)
     }
 
@@ -47,7 +47,7 @@ export class SyntheticStepResolver {
         @Args('input') input: SynthStepInput,
         @Info() info: GraphQLResolveInfo
     ) {
-        const fieldsMap = GraphqlUtils.getFieldsMap(info)
+        const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.service.update(userId, id, input, fieldsMap)
     }
 
