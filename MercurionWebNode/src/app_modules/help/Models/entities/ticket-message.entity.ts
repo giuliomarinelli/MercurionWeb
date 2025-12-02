@@ -42,9 +42,11 @@ export class TicketMessage {
   @Column({ type: 'varchar', length: 30, name: 'author_type' })
   authorType: AuthorType
 
+  @Field(() => ID, { nullable: true })
   @Column({ type: 'uuid', name: 'author_id', nullable: true })
   authorId: UUID | null
 
+  @Field(() => ID, { nullable: true })
   @Column({ type: 'uuid', name: 'user_id' })
   userId: UUID
 

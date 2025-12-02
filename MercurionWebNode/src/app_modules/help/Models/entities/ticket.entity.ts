@@ -30,6 +30,7 @@ export class Ticket {
   @Generated('increment')
   publicId: string
 
+  @Field(() => ID, { nullable: true })
   @Column({ type: 'uuid', name: 'user_id' })
   userId: UUID
 

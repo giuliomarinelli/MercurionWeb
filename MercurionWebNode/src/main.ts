@@ -142,10 +142,13 @@ export async function bootstrap() {
   // 🔒 Hook precoce: genera/sovrascrive header interni (anti-spoof)
   fastify.addHook('onRequest', (req, reply, done) => {
 
+    // ========== SCUDO ANTI-SPOOFING ==========
+
     req.headers['x-device-id'] = undefined
     req.headers['x-session-id'] = undefined
     req.headers['x-client-ip'] = undefined
     req.headers['x-user-id'] = undefined
+    req.headers['x-scopes'] = undefined
 
     let deviceId: string | null = null
 

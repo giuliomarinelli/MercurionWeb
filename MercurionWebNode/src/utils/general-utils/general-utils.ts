@@ -56,8 +56,8 @@ export class GeneralUtils {
         return this.uuidV7Re.test(uuid)
     }
 
-    static paginationToFlatPaginationConverter<T>(page: Pagination<T>): FlatPagination<T> {
-        const { items, meta } = page
+    public static paginationToFlatPaginationConverter<T>(pagination: Pagination<T>): FlatPagination<T> {
+        const { items, meta } = pagination
         const { currentPage, itemsPerPage, itemCount, totalItems, totalPages } = meta
         return {
             items,
@@ -69,4 +69,20 @@ export class GeneralUtils {
         }
     }
 
+    public static arrayEqualsIgnoreDuplicatesAndSorting<T>(a: T[], b: T[]): boolean {
+        const aAsSet = new Set<T>(a)
+        const bAsSet = new Set<T>(b)
+        if (aAsSet.size !== bAsSet.size) {
+            return false
+        }
+        for (const x of aAsSet) {
+            if (!bAsSet.has(x)) {
+                return false
+            }
+        }
+        return true
+    }
+
 }
+
+

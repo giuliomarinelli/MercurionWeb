@@ -62,17 +62,17 @@ export class GlobalGuard implements CanActivate {
       let accessToken: string = ''
       let newToken: string = ''
       let payload: AppJwtPayload
-      
+
 
       try {
 
          accessToken = this.jwtToolsService.extractAccessTokenFromReq(req)
 
 
-         try {           
-               payload = await this.jwtToolsService.verifyTokenAndGetPayload(accessToken, TokenType.AccessToken)
-               await this.scopeService.scopeVerificationLayer(payload.sub, context, this.reflector, payload.scp)
-               this.tokenType = TokenType.AccessToken            
+         try {
+            payload = await this.jwtToolsService.verifyTokenAndGetPayload(accessToken, TokenType.AccessToken)
+            await this.scopeService.scopeVerificationLayer(payload.sub, context, this.reflector, payload.scp)
+            this.tokenType = TokenType.AccessToken
          } catch (e) {
             const { jti } = this.jwtToolsService.decodeUnsafe(accessToken)
             if (e instanceof RpcException && e.message === 'InvalidOrExpiredAccessToken') {
@@ -113,6 +113,7 @@ export class GlobalGuard implements CanActivate {
                reply.header('X-New-Access-Token', encodeURIComponent(newToken))
                await this.sessionService.revokeToken(payload.jti)
                req.headers['x-user-id'] = payload.sub
+               req.headers['x-scopes'] = JSON.stringify(await this.scopeService.verifyUserClaimScopesConsistencyThenGetScopes(payload.sub, newToken))
                return true
             } else {
                throw e
@@ -139,8 +140,7 @@ export class GlobalGuard implements CanActivate {
          await this.sessionService.updateLastAccessed(payload.sid, payload.sub)
 
          req.headers['x-user-id'] = payload.sub
-
-         // this.logger.debug(await this.sessionService.getAllSessionsByUserId(payload.sub))
+         req.headers['x-scopes'] = JSON.stringify(await this.scopeService.verifyUserClaimScopesConsistencyThenGetScopes(payload.sub, accessToken))
 
          return true
 

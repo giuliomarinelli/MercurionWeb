@@ -157,6 +157,8 @@ type TicketMessage {
   publicId: String!
   ticketId: ID!
   authorType: AuthorType!
+  authorId: ID
+  userId: ID
   contentDelta: String!
   contentHtml: String!
   createdAt: String!
@@ -170,6 +172,7 @@ enum AuthorType {
 type Ticket {
   id: ID!
   publicId: String!
+  userId: ID
   subject: String!
   status: TicketStatus!
   lastMessageAt: String!

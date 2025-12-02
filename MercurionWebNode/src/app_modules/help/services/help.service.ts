@@ -41,7 +41,7 @@ export class HelpService {
     subject: string
     contentDelta: JsonValue
     contentHtml: string
-  }): Promise<Ticket> {
+  }, canViewUsers: boolean = false): Promise<Ticket> {
 
     const now = Date.now()
 
@@ -67,12 +67,24 @@ export class HelpService {
       firstMsg = message
 
       await manager.save(message)
+
     })
 
-    if (!firstMsg) throw new Error('Failed to create first ticket message')
+    if (!firstMsg) {
+      throw new RpcException('Failed to create first ticket message')
+    }
+
 
     await this.mailer.notifySupportNewTicket(ticket, firstMsg)
     await this.mailer.confirmUserTicketOpened(ticket, firstMsg)
+
+    if (!canViewUsers) {
+      Object.entries(ticket).forEach(([key,]) => {
+        if (['authorId', 'userId', 'messages'].includes(key)) {
+          (ticket[key] as Maybe<string | object>) = undefined
+        }
+      })
+    }
 
     ticket.publicId = this.generateReadablePublicId(ticket.publicId)
     return ticket
@@ -194,15 +206,20 @@ export class HelpService {
     userId: UUID,
     options: IPaginationOptions,
     fieldsMap?: GraphQLFieldsMap,
-    onlyOwner: boolean = true
+    onlyOwner: boolean = true,
+    canViewUsers: boolean = false
   ): Promise<Pagination<Ticket>> {
 
     const itemFieldsMap = fieldsMap?.items ?? {}
     const scalarFields = GraphQLUtils.getScalarFields(itemFieldsMap)
-    const columns = GraphQLUtils.ensureRequiredFields(
+    let columns = GraphQLUtils.ensureRequiredFields(
       scalarFields,
       this.REQUIRED_TICKET_FIELDS
     )
+
+    if (!canViewUsers) {
+      columns = columns.filter((c) => c !== 'userId')
+    }
 
     let qb = this.ticketRepo.createQueryBuilder('t')
       .select(columns.map(col => `t.${col}`))
@@ -238,16 +255,21 @@ export class HelpService {
     ticketId: UUID,
     userId: UUID,
     fieldsMap: GraphQLFieldsMap,
-    onlyOwner: boolean = true
+    onlyOwner: boolean = true,
+    canViewUsers: boolean = false
   ): Promise<TicketDetailDTO> {
 
     const ticketFields = fieldsMap.ticket ?? {}
     const scalarFields = GraphQLUtils.getScalarFields(ticketFields)
 
-    const ticketColumns = GraphQLUtils.ensureRequiredFields(
+    let ticketColumns = GraphQLUtils.ensureRequiredFields(
       scalarFields,
       this.REQUIRED_TICKET_FIELDS
     )
+
+    if (!canViewUsers) {
+      ticketColumns = ticketColumns.filter((c) => c !== 'userId') 
+    }
 
     let qb = this.ticketRepo.createQueryBuilder('t')
       .select(ticketColumns.map(col => `t.${col}`))
@@ -257,36 +279,14 @@ export class HelpService {
       qb = qb.andWhere('t.user_id = :userId', { userId })
     }
 
-    const joins = TypeOrmUtils.filterJoinsForEntity(fieldsMap, ['messages'])
-    qb = TypeOrmUtils.addJoins(qb, 't', joins as GraphQLFieldsMap)
-
     const ticket = await qb.getOne()
     if (!ticket) throw new RpcException('TicketNotFound')
-
-    if (!fieldsMap.messages) {
-      return { ticket, messages: [] }
-    }
-
-    const msgScalarFields = GraphQLUtils.getScalarFields(fieldsMap.messages)
-    const msgColumns = GraphQLUtils.ensureRequiredFields(
-      msgScalarFields,
-      this.REQUIRED_MESSAGE_FIELDS
-    )
-
-    const messages = await this.msgRepo.createQueryBuilder('m')
-      .select(msgColumns.map(col => `m.${col}`))
-      .where('m.ticket_id = :ticketId', { ticketId })
-      .orderBy('m.created_at', 'ASC')
-      .getMany()
 
     ticket.publicId = this.generateReadablePublicId(ticket.publicId)
 
     return {
       ticket,
-      messages: messages.map((m) => {
-        m.publicId = this.generateReadablePublicId(m.publicId, 'Message')
-        return m
-      })
+      messages: undefined
     }
   }
 
@@ -295,7 +295,8 @@ export class HelpService {
     userId: UUID,
     options: IPaginationOptions,
     fieldsMap: GraphQLFieldsMap,
-    onlyOwner: boolean = true
+    onlyOwner: boolean = true,
+    canViewUsers: boolean = false
   ): Promise<Pagination<TicketMessage>> {
 
     if (onlyOwner) {
@@ -303,16 +304,20 @@ export class HelpService {
         where: { id: ticketId, userId }
       })
       if (!owns) {
-        throw new RpcException('TicketNotFound')        
+        throw new RpcException('TicketNotFound')
       }
     }
 
     const itemFieldsMap = fieldsMap?.items ?? {}
     const scalarFields = GraphQLUtils.getScalarFields(itemFieldsMap)
-    const columns = GraphQLUtils.ensureRequiredFields(
+    let columns = GraphQLUtils.ensureRequiredFields(
       scalarFields,
       this.REQUIRED_MESSAGE_FIELDS
     )
+
+    if (!canViewUsers) {
+      columns = columns.filter((c) => !['authorId', 'userId'].includes(c))
+    }
 
     const qb = this.msgRepo.createQueryBuilder('m')
       .select(columns.map(col => `m.${col}`))
