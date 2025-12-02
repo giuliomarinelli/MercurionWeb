@@ -21,16 +21,37 @@ import { JsonPipe } from '@angular/common';
 
 
     <section class="main-container">
-        @if (handleTickets()) {
-          <m-tabs [tabs]="tabs" (tabChange)="switchTab($event)" [activeIndex]="activeTab()" />
+      <h1 class="mt-4 xs:mt-0 relative bottom-4 text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary border-b border-slate-300 dark:border-slate-700 pb-6">
+        <a class="hover:underline" routerLink="/molecules/all-my-molecules">Supporto</a>
+      </h1>
+      @if (handleTickets()) {
+        <m-tabs [tabs]="tabs" (tabChange)="switchTab($event)" [activeIndex]="activeTab()" />
+      }
+      <button
+        type="button"
+        class="relative bottom-[10px] w-fit mx-auto sm:mx-0 mt-1 py-2.5 px-8 text-white rounded-md transition-colors duration-150 bg-light-accent-primary dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary/80 dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary/60 disabled:hover:dark:bg-dark-accent-primary/80 flex justify-center items-center gap-4">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current size-7">
+          <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+          <path d="M145.5 460.9L152.6 443.4L140.7 428.7C112.5 393.8 96 350.6 96 304C96 191 194.3 96 320 96C445.7 96 544 191 544 304C544 417 445.7 512 320 512C287.4 512 256.6 505.6 228.8 494L217.6 489.4L206.1 493.3L120.2 522.8L145.4 460.8zM64 576C78.8 570.9 129.6 553.4 216.5 523.6C248.1 536.7 283.2 544 320 544C461.4 544 576 436.5 576 304C576 171.5 461.4 64 320 64C178.6 64 64 171.5 64 304C64 358.4 83.3 408.6 115.8 448.8C88.7 515.5 71.4 557.9 64 576zM320 224C340.6 224 357.2 240.7 357.2 261.2C357.2 276.9 348.8 285.7 338.7 291.3C328.1 297.3 317.7 298.6 306.1 300L304 300.3L304 352L336 352L336 327.1C341.3 325.4 347.8 323 354.5 319.2C371 309.9 389.3 292.1 389.3 261.2C389.3 223 358.3 192 320.1 192C281.9 192 250.9 223 250.9 261.2L282.9 261.2C282.9 240.6 299.6 224 320.1 224zM300 420L340 420L340 380L300 380L300 420z"/>
+        </svg>
+        <span>
+          Apri un nuovo ticket di suporto
+        </span>
+      </button>
+      <p class="my-4 font-medium">
+        @if (handleTickets() && activeTab() === 1) {
+          Gli utenti hanno creato complessivamente&nbsp;<strong class="text-light-accent-primary dark:text-dark-accent-primary">{{totalItems()}}</strong>&nbsp;ticket.
+        } @else {
+          Ci sono un totale di&nbsp;<strong class="text-light-accent-primary dark:text-dark-accent-primary">{{totalItems()}}</strong>&nbsp;ticket.
         }
-        <div class="mt-px relative -top-8">
-        @for (item of items; track item.id; let i = $index) {
-          <!-- TODO: card/tile -->
-          <div class="my-24">
-            {{item | json }}
-          </div>
-        }
+      </p>
+      <div class="mt-px relative -top-8">
+      @for (item of items; track item.id; let i = $index) {
+        <!-- TODO: card/tile -->
+        <div class="my-24">
+          {{item | json }}
+        </div>
+      }
       </div>
 
       <!-- Sentinel con altezza > 0 -->
@@ -74,6 +95,7 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Omit
 
   handleTickets = signal<boolean>(false)
   activeTab = signal<0 | 1>(0)
+  totalItems = signal<number>(0)
 
   switchTab(i: number): void {
     if (i < 0 || i > 1) {
@@ -89,7 +111,7 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Omit
   }
 
   ngOnInit(): void {
-    const handleTickets = (this.authService.getCachedScopes() ?? this.authService.getUserScopesFromClaims()).includes('HandleTickets')
+    const handleTickets = (this.authService.getCachedScopes() ?? this.authService.getUserScopesFromClaims(null, true)).includes('HandleTickets')
     this.handleTickets.set(handleTickets)
     queueMicrotask(() => this.loadMore())
   }
@@ -115,6 +137,9 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Omit
           }
         }
         return this.helpService.myTickets(this.page, this.ITEMS_PER_PAGE)
+      }),
+      tap((res) => {
+        this.totalItems.set(res.totalItems)
       })
     )
   }

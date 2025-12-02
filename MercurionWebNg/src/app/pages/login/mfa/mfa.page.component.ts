@@ -342,7 +342,6 @@ export class MfaPageComponent implements OnInit, OnDestroy {
 
           try {
             const pd: Login_FirstStep_Data = JSON.parse(atob(pdRaw))
-            console.log('PD', pd)
             this.enabledMfaStrategies.set(pd.enabledMfaStrategies as MfaStrategy[])
             return EMPTY
           } catch {

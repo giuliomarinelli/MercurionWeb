@@ -15,6 +15,7 @@ import { UserContextService } from './context/user-context.service';
 import { Router } from '@angular/router';
 import { MfaStrategy } from '../Models/account/account.models';
 import { SSO_AuthProvider } from '../Models/auth/provider.models';
+import { Maybe } from 'graphql/jsutils/Maybe';
 
 export type TokenType = 'access_token' | 'ws_accessToken'
 
@@ -347,8 +348,8 @@ export class AuthService {
     }
   }
 
-  getUserScopesFromClaims(token?: string): string[] {
-    token = token ?? this.getAccessToken() as string | undefined
+  getUserScopesFromClaims(token?: Maybe<string>, setCache = false): string[] {
+    token = token ?? this.getAccessToken() as Maybe<string>
     if (!token) {
       return []
     }
@@ -356,7 +357,11 @@ export class AuthService {
     if (!scp) {
       return []
     }
-    return scp.split(/\s+/)
+    const scpArr = scp.split(/\s+/)
+    if (setCache) {
+      this.setCachedScopes(scpArr)
+    }
+    return scpArr
   }
 
   private generateScopesStorageKey(context: TokenType): string | null {
