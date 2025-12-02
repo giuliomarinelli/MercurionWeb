@@ -209,7 +209,7 @@ export class HelpService {
       .orderBy('t.last_message_at', 'DESC')
 
     if (onlyOwner) {
-      qb = qb.where('t.user_id = :userId', { userId })
+      qb = qb.andWhere('t.user_id = :userId', { userId })
     }
 
     if (fieldsMap?.items) {

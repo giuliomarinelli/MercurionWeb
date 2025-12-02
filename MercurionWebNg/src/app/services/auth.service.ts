@@ -347,7 +347,8 @@ export class AuthService {
     }
   }
 
-  getUserScopesFromClaims(token: string): string[] {
+  getUserScopesFromClaims(token?: string): string[] {
+    token = token ?? this.getAccessToken() as string | undefined
     if (!token) {
       return []
     }

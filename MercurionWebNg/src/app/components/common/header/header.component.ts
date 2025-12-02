@@ -304,7 +304,8 @@ import { ProvidedEmailDTO } from '../../../Models/account/account.models';
       </svg>
       <span>Impostazioni</span>
     </a>
-    <button (click)="closeAvatarMenu()"
+    <a (click)="closeAvatarMenu()"
+      routerLink="/help"
       class="group flex items-center w-full pl-4 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
         class="fill-current h-5 w-5 text-gray-600 dark:text-slate-200 ">
@@ -313,7 +314,7 @@ import { ProvidedEmailDTO } from '../../../Models/account/account.models';
           d="M152.6 443.4C150.9 447.6 140.1 474.1 120.2 522.9L206.1 493.4L217.6 489.5L228.8 494.1C256.6 505.6 287.4 512.1 320 512.1C445.7 512.1 544 417.1 544 304.1C544 191.1 445.7 96 320 96C194.3 96 96 191 96 304C96 350.6 112.5 393.8 140.7 428.7L152.6 443.4zM104.2 562.2L64 576C71.4 557.9 88.7 515.4 115.8 448.8C83.3 408.6 64 358.4 64 304C64 171.5 178.6 64 320 64C461.4 64 576 171.5 576 304C576 436.5 461.4 544 320 544C283.2 544 248.1 536.7 216.5 523.6L104.2 562.2z" />
       </svg>
       <span>Supporto</span>
-    </button>
+    </a>
     <button (click)="closeAvatarMenu()"
       class="group flex items-center w-full mb-2 pl-4 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
@@ -444,7 +445,8 @@ import { ProvidedEmailDTO } from '../../../Models/account/account.models';
           <span>Impostazioni</span>
         </a>
         <!-- Assistenza -->
-        <button (click)="closeAvatarMobileMenu()"
+        <a (click)="closeAvatarMobileMenu()"
+          routerLink="/help"
           class="group flex items-center w-full pl-1 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
             class="fill-current h-5 w-5 text-gray-600 dark:text-slate-200 ">
@@ -453,7 +455,7 @@ import { ProvidedEmailDTO } from '../../../Models/account/account.models';
               d="M152.6 443.4C150.9 447.6 140.1 474.1 120.2 522.9L206.1 493.4L217.6 489.5L228.8 494.1C256.6 505.6 287.4 512.1 320 512.1C445.7 512.1 544 417.1 544 304.1C544 191.1 445.7 96 320 96C194.3 96 96 191 96 304C96 350.6 112.5 393.8 140.7 428.7L152.6 443.4zM104.2 562.2L64 576C71.4 557.9 88.7 515.4 115.8 448.8C83.3 408.6 64 358.4 64 304C64 171.5 178.6 64 320 64C461.4 64 576 171.5 576 304C576 436.5 461.4 544 320 544C283.2 544 248.1 536.7 216.5 523.6L104.2 562.2z" />
           </svg>
           <span>Supporto</span>
-        </button>
+        </a>
         <!-- Feedback -->
         <button (click)="closeAvatarMobileMenu()"
           class="group flex items-center w-full mb-2 pl-1 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300">

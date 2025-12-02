@@ -2,6 +2,7 @@ import { Injectable } from "@angular/core";
 import { MoleculeDetailSystem } from "../Models/graphql/molecule.detail.models";
 import { ChEMBLMoleculeItemEntity, CustomMoleculeItemEntity, MoleculeCollectionItemClient, MoleculeCollectionItemEntityShort, MoleculeDetailItem } from "../Models/graphql/molecule-collection/molecule-collection.types";
 import { SSO_AuthProvider } from "../Models/auth/provider.models";
+import { Ticket } from "../Models/graphql/help.models";
 
 @Injectable({ providedIn: 'root' })
 export class TypeGuardsService {
@@ -69,6 +70,10 @@ export class TypeGuardsService {
       return false
     }
     return ['Google', 'GitHub', 'LinkedIn', 'Discord'].includes(item as string)
+  }
+
+  isTicketVsOmitUpdatedAt(item: Ticket | Omit<Ticket, 'updatedAt'>): item is Ticket {
+    return !!(item as Ticket).updatedAt
   }
 
 }
