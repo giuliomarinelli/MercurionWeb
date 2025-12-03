@@ -16,7 +16,7 @@ type TicketCardMode = 'user' | 'support';
   imports: [DatePipe, NgClass],
   template: `
   @if (_ticket()) {
-    <div class="relative">
+    <div class="relative" (click)="openDetail()">
       <div
         class="
           relative
@@ -185,8 +185,12 @@ export class TicketCardComponent {
   /* outputs -------------------------- */
 
   @Output() open = new EventEmitter<string>()
+
   @Output() close = new EventEmitter<string>()
+
   @Output() reopen = new EventEmitter<string>()
+
+  @Output() onOpenDetail = new EventEmitter<string>()
 
   /* state ---------------------------- */
   _ticket = signal<Ticket | APIClientTicket | undefined>(undefined)
@@ -259,6 +263,14 @@ export class TicketCardComponent {
       return t.userFullName
     }
     return ''
+  }
+
+  openDetail(): void {
+    const id = this._ticket()?.id ?? ''
+    if (!id) {
+      return
+    }
+    this.onOpenDetail.emit(id)
   }
 
 }

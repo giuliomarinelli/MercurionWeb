@@ -157,7 +157,7 @@ export class HelpService {
       )
   }
 
-  public ticketMessagesAsSupport(page: number, limit: number, ticketId: number): Observable<PageModel<TicketMessage>> {
+  public ticketMessagesAsSupport(page: number, limit: number, ticketId: string): Observable<PageModel<TicketMessage>> {
     return this.apollo
       .watchQuery<{ ticketMessagesAsSupport: PageModel<TicketMessage> }>({
         query: TICKET_MESSAGES_AS_SUPPORT,

@@ -10,6 +10,8 @@ import { TabsComponent } from '../../components/common/tabs/tabs.component';
 import { TicketCardComponent } from '../../components/support/ticket-card/ticket-card.component';
 import { TypeGuardsService } from '../../services/type-guards.service';
 import { TicketCardSkeletonComponent } from '../../components/support/ticket-card-skeleton/ticket-card-skeleton.component';
+import { TicketDetailContextService } from '../../services/context/action-context/ticket-detail-context.service';
+import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
 
 @Component({
   selector: 'm-help-page',
@@ -54,7 +56,8 @@ import { TicketCardSkeletonComponent } from '../../components/support/ticket-car
             [i]="i"
             [cardMode]="typeGuards.isClientTicket(item) ? 'user' : (typeGuards.isTicket(item) ? 'support' : 'user')"
             [triggerDisappear]="item.triggerDisappear()"
-            [collapse]="item.collapse()"  />
+            [collapse]="item.collapse()"
+            (onOpenDetail)="openTicketDetail($event)"  />
       }
       </div>
 
@@ -87,6 +90,8 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
   private readonly authService = inject(AuthService)
   private readonly helpService = inject(HelpService)
   protected readonly typeGuards = inject(TypeGuardsService)
+  private readonly detailContext = inject(TicketDetailContextService)
+  private readonly overlayContext = inject(ActionOverlayContextService)
 
   @ViewChild('sentinel')
   protected declare sentinel: ElementRef<HTMLDivElement>
@@ -154,6 +159,13 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
 
   protected override doClear(): void {
     // Al momento niente barra di ricerca
+  }
+
+  openTicketDetail(ticketId: string): void {
+    queueMicrotask(() => {
+      this.detailContext.setTicketId(ticketId)
+      this.overlayContext.open('TicketDetail')
+    })
   }
 
 
