@@ -79,6 +79,10 @@ export class HelpService {
       throw new RpcException('Failed to create first ticket message')
     }
 
+    if (canViewUsers) {
+      await this.attachTicketUserFullNames([ticket])
+    }
+
     await this.mailer.notifySupportNewTicket(ticket, firstMsg)
     await this.mailer.confirmUserTicketOpened(ticket, firstMsg)
 
@@ -93,6 +97,7 @@ export class HelpService {
     ticket.publicId = this.generateReadablePublicId(ticket.publicId)
     return ticket
   }
+
 
   async addUserMessage(input: {
     ticketId: UUID
@@ -380,7 +385,7 @@ export class HelpService {
     hiddenWhenNoUsers: string[],
     nonDbFields: string[],
     extraRequired: string[]
-  ) {
+  ): string[] {
     // required + requested
     let cols = GraphQLUtils.ensureRequiredFields(scalarFields, required)
 
@@ -400,7 +405,7 @@ export class HelpService {
     return cols
   }
 
-  private async attachTicketUserFullNames(tickets: Ticket[]) {
+  private async attachTicketUserFullNames(tickets: Ticket[]): Promise<void> {
     const ids: UUID[] = []
 
     for (const t of tickets) {
@@ -430,7 +435,7 @@ export class HelpService {
   private async attachMessageFullNames(
     messages: TicketMessage[],
     opts: { user: boolean; author: boolean }
-  ) {
+  ): Promise<void> {
     const ids: UUID[] = []
 
     for (const m of messages) {
@@ -462,8 +467,8 @@ export class HelpService {
     }
   }
 
-  private stampTicket(ticket: Ticket, now: number) {
-    ;(ticket as unknown as Record<string, Maybe<string>>).createdAt ??= String(now)
+  private stampTicket(ticket: Ticket, now: number): void {
+    ; (ticket as unknown as Record<string, Maybe<string>>).createdAt ??= String(now)
     ticket.updatedAt = String(now)
     ticket.lastMessageAt = String(now)
   }
@@ -491,7 +496,7 @@ export class HelpService {
     delta: JsonValue
     html: string
     now: number
-  }) {
+  }): TicketMessage {
     const m = new TicketMessage()
     m.id = uuidv7() as UUID
     m.ticketId = input.ticketId
@@ -510,7 +515,7 @@ export class HelpService {
     delta: JsonValue
     html: string
     now: number
-  }) {
+  }): TicketMessage {
     const m = new TicketMessage()
     m.id = uuidv7() as UUID
     m.ticketId = input.ticketId

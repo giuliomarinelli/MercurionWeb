@@ -10,6 +10,7 @@ export const MY_TICKET_DETAIL = gql`
             status
             lastMessageAt
             createdAt
+            updatedAt
         }
     }
   }
@@ -30,6 +31,7 @@ export const MY_TICKETS = gql`
             status
             lastMessageAt
             createdAt
+            updatedAt
         }
     }
   }
@@ -69,6 +71,7 @@ export const CREATE_TICKET = gql`
         status
         lastMessageAt
         createdAt
+        updatedAt
     }
   }
 `
@@ -96,6 +99,8 @@ export const TICKET_DETAIL_AS_SUPPORT = gql`
             lastMessageAt
             createdAt
             updatedAt
+            userId
+            userFullName
         }
     }
   }
@@ -117,6 +122,8 @@ export const TICKETS_AS_SUPPORT = gql`
             lastMessageAt
             createdAt
             updatedAt
+            userId
+            userFullName
         }
     }
   }
@@ -138,6 +145,10 @@ export const TICKET_MESSAGES_AS_SUPPORT = gql`
             contentDelta
             contentHtml
             createdAt
+            userId
+            authorId
+            userFullName
+            authorFullName
         }
     }
   }

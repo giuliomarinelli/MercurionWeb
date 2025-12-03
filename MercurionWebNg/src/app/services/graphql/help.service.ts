@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { Apollo } from 'apollo-angular';
 import { map, Observable } from 'rxjs';
-import { Ticket, TicketMessage } from '../../Models/graphql/help.models';
+import { ClientTicket, Ticket, TicketMessage } from '../../Models/graphql/help.models';
 import { ADD_SUPPORT_TICKET_MESSAGE, ADD_TICKET_MESSAGE, CLOSE_MY_TICKET, CLOSE_TICKET_AS_SUPPORT, CREATE_TICKET, MY_TICKET_DETAIL, MY_TICKET_MESSAGES, MY_TICKETS, REOPEN_TICKET_AS_SUPPORT, TICKET_DETAIL_AS_SUPPORT, TICKET_MESSAGES_AS_SUPPORT, TICKETS_AS_SUPPORT } from './graphql-actions/help.gql-actions';
 import { extractGqlData } from './graphql-helpers/extract-gql-data.gql-helper';
 import { PageModel } from '../../Models/graphql/page.models';
@@ -14,9 +14,9 @@ export class HelpService {
 
   private readonly apollo = inject(Apollo)
 
-  public myTicketDetail(ticketId: string): Observable<Omit<Ticket, 'updatedAt'>> {
+  public myTicketDetail(ticketId: string): Observable<ClientTicket> {
     return this.apollo
-      .watchQuery<{ myTicketDetail: { ticket: Omit<Ticket, 'updatedAt'> } }>({
+      .watchQuery<{ myTicketDetail: { ticket: ClientTicket } }>({
         query: MY_TICKET_DETAIL,
         variables: {
           ticketId
@@ -24,13 +24,13 @@ export class HelpService {
         fetchPolicy: 'network-only'
       }).valueChanges.pipe(
         map((res) => extractGqlData(res, 'myTicketDetail')),
-        map((res: { ticket: Omit<Ticket, 'updatedAt'> }) => res.ticket)
+        map((res: { ticket: ClientTicket }) => res.ticket)
       )
   }
 
-  public myTickets(page: number, limit: number): Observable<PageModel<Omit<Ticket, 'updatedAt'>>> {
+  public myTickets(page: number, limit: number): Observable<PageModel<ClientTicket>> {
     return this.apollo
-      .watchQuery<{ myTickets: PageModel<Omit<Ticket, 'updatedAt'>> }>({
+      .watchQuery<{ myTickets: PageModel<ClientTicket> }>({
         query: MY_TICKETS,
         variables: {
           page,
@@ -56,9 +56,9 @@ export class HelpService {
       )
   }
 
-  public createTicket(subject: string, contentHtml: string, contentDelta: JsonValue): Observable<Omit<Ticket, 'updatedAt'>> {
+  public createTicket(subject: string, contentHtml: string, contentDelta: JsonValue): Observable<ClientTicket> {
     return this.apollo
-      .mutate<{ createTicket: Omit<Ticket, 'updatedAt'> }>({
+      .mutate<{ createTicket: ClientTicket }>({
         mutation: CREATE_TICKET,
         variables: {
           subject,
