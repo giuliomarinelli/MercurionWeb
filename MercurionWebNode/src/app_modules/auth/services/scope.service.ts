@@ -47,11 +47,6 @@ export class ScopeService {
         this.logger = loggerFactory.forContext(ScopeService.name)
     }
 
-    onModuleInit() {
-        const encVals = Object.values(Scope).filter((s) => s !== Scope.ViewUsers).map((dec) => this.securityService.encrypt_AES256(dec))
-        console.log(JSON.stringify(encVals), encVals.length)
-    }
-
     getEncryptedStandardScopes() {
         return this.encryptScopes(...this.standardScopes)
     }

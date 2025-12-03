@@ -46,9 +46,15 @@ export class TicketMessage {
   @Column({ type: 'uuid', name: 'author_id', nullable: true })
   authorId: UUID | null
 
+  @Field(() => String, { nullable: true })
+  authorFullName?: string
+
   @Field(() => ID, { nullable: true })
   @Column({ type: 'uuid', name: 'user_id' })
   userId: UUID
+
+  @Field(() => String, { nullable: true })
+  userFullName?: string
 
   @Field(() => String)
   @Column({ type: 'jsonb', name: 'content_delta' })

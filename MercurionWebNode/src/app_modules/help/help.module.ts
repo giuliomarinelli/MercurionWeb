@@ -5,12 +5,14 @@ import { Ticket } from './Models/entities/ticket.entity';
 import { TicketMessage } from './Models/entities/ticket-message.entity';
 import { NotificationModule } from '../notification/notification.module';
 import { HelpResolver } from './resolvers/help.resolver';
+import { User } from '../user/Models/entities/user.entity';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([  
             Ticket,
-            TicketMessage
+            TicketMessage,
+            User
         ]),
         forwardRef(() => NotificationModule)
     ],

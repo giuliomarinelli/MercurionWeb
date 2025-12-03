@@ -34,6 +34,9 @@ export class Ticket {
   @Column({ type: 'uuid', name: 'user_id' })
   userId: UUID
 
+  @Field(() => String, { nullable: true })
+  userFullName?: string
+
   @Field()
   @Column({ type: 'varchar', length: 255 })
   subject: string

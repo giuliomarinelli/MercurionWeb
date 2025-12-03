@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { DataSource, Repository } from 'typeorm'
+import { DataSource, In, Repository } from 'typeorm'
 import { uuidv7 } from '@kripod/uuidv7'
 import { randomBytes, UUID } from 'crypto'
 import { Maybe } from 'graphql/jsutils/Maybe'
@@ -16,6 +16,7 @@ import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-or
 import { TicketDetailDTO } from '../Models/DTO/ticket-detail.dto'
 import { JsonValue } from 'src/Models/json.types'
 import { TypeGuards } from 'src/utils/type-guards/type-guards'
+import { User } from 'src/app_modules/user/Models/entities/user.entity'
 
 @Injectable()
 export class HelpService {
@@ -23,12 +24,18 @@ export class HelpService {
   private readonly REQUIRED_TICKET_FIELDS = ['id', 'publicId', 'status', 'lastMessageAt']
   private readonly REQUIRED_MESSAGE_FIELDS = ['id', 'publicId', 'createdAt', 'authorType']
 
+  // campi transienti GraphQL (non esistono sul DB)
+  private readonly TICKET_NON_DB_FIELDS = ['userFullName']
+  private readonly MESSAGE_NON_DB_FIELDS = ['userFullName', 'authorFullName']
+
   constructor(
     private readonly dataSource: DataSource,
     @InjectRepository(Ticket)
     private readonly ticketRepo: Repository<Ticket>,
     @InjectRepository(TicketMessage)
     private readonly msgRepo: Repository<TicketMessage>,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
     private readonly mailer: MailSenderService,
   ) { }
 
@@ -54,7 +61,6 @@ export class HelpService {
     let firstMsg: TicketMessage | null = null
 
     await this.dataSource.transaction(async (manager) => {
-
       await manager.save(ticket)
 
       const message = this.makeUserMessage({
@@ -67,21 +73,19 @@ export class HelpService {
       firstMsg = message
 
       await manager.save(message)
-
     })
 
     if (!firstMsg) {
       throw new RpcException('Failed to create first ticket message')
     }
 
-
     await this.mailer.notifySupportNewTicket(ticket, firstMsg)
     await this.mailer.confirmUserTicketOpened(ticket, firstMsg)
 
     if (!canViewUsers) {
-      Object.entries(ticket).forEach(([key,]) => {
-        if (['authorId', 'userId', 'messages'].includes(key)) {
-          (ticket[key] as Maybe<string | object>) = undefined
+      Object.entries(ticket).forEach(([key]) => {
+        if (['authorId', 'userId', 'messages', 'userFullName'].includes(key)) {
+          (ticket as unknown as Record<string, Maybe<string | object>>)[key] = undefined
         }
       })
     }
@@ -173,7 +177,6 @@ export class HelpService {
   }
 
   async closeTicket(ticketId: UUID): Promise<{ ok: boolean }> {
-
     const now = Date.now()
 
     const res = await this.ticketRepo.update(ticketId, {
@@ -186,7 +189,6 @@ export class HelpService {
   }
 
   async reopenTicket(ticketId: UUID) {
-
     const now = Date.now()
 
     const res = await this.ticketRepo.update(ticketId, {
@@ -212,14 +214,17 @@ export class HelpService {
 
     const itemFieldsMap = fieldsMap?.items ?? {}
     const scalarFields = GraphQLUtils.getScalarFields(itemFieldsMap)
-    let columns = GraphQLUtils.ensureRequiredFields(
-      scalarFields,
-      this.REQUIRED_TICKET_FIELDS
-    )
 
-    if (!canViewUsers) {
-      columns = columns.filter((c) => c !== 'userId')
-    }
+    const wantsUserFullName = scalarFields.includes('userFullName')
+
+    const columns = this.buildColumns(
+      scalarFields,
+      this.REQUIRED_TICKET_FIELDS,
+      canViewUsers,
+      ['userId'],
+      this.TICKET_NON_DB_FIELDS,
+      wantsUserFullName && canViewUsers ? ['userId'] : []
+    )
 
     let qb = this.ticketRepo.createQueryBuilder('t')
       .select(columns.map(col => `t.${col}`))
@@ -235,12 +240,17 @@ export class HelpService {
     }
 
     let page = await paginate<Ticket>(qb, options)
+
+    if (canViewUsers && wantsUserFullName) {
+      await this.attachTicketUserFullNames(page.items)
+    }
+
     page = {
       ...page,
       items: page.items.map((i) => {
         i.publicId = this.generateReadablePublicId(i.publicId)
         if (i.messages) {
-          i.messages = i.messages.map((m,) => {
+          i.messages = i.messages.map((m) => {
             m.publicId = this.generateReadablePublicId(m.publicId, 'Message')
             return m
           })
@@ -248,6 +258,7 @@ export class HelpService {
         return i
       })
     }
+
     return page
   }
 
@@ -262,14 +273,16 @@ export class HelpService {
     const ticketFields = fieldsMap.ticket ?? {}
     const scalarFields = GraphQLUtils.getScalarFields(ticketFields)
 
-    let ticketColumns = GraphQLUtils.ensureRequiredFields(
-      scalarFields,
-      this.REQUIRED_TICKET_FIELDS
-    )
+    const wantsUserFullName = scalarFields.includes('userFullName')
 
-    if (!canViewUsers) {
-      ticketColumns = ticketColumns.filter((c) => c !== 'userId') 
-    }
+    const ticketColumns = this.buildColumns(
+      scalarFields,
+      this.REQUIRED_TICKET_FIELDS,
+      canViewUsers,
+      ['userId'],
+      this.TICKET_NON_DB_FIELDS,
+      wantsUserFullName && canViewUsers ? ['userId'] : []
+    )
 
     let qb = this.ticketRepo.createQueryBuilder('t')
       .select(ticketColumns.map(col => `t.${col}`))
@@ -281,6 +294,10 @@ export class HelpService {
 
     const ticket = await qb.getOne()
     if (!ticket) throw new RpcException('TicketNotFound')
+
+    if (canViewUsers && wantsUserFullName) {
+      await this.attachTicketUserFullNames([ticket])
+    }
 
     ticket.publicId = this.generateReadablePublicId(ticket.publicId)
 
@@ -310,14 +327,22 @@ export class HelpService {
 
     const itemFieldsMap = fieldsMap?.items ?? {}
     const scalarFields = GraphQLUtils.getScalarFields(itemFieldsMap)
-    let columns = GraphQLUtils.ensureRequiredFields(
-      scalarFields,
-      this.REQUIRED_MESSAGE_FIELDS
-    )
 
-    if (!canViewUsers) {
-      columns = columns.filter((c) => !['authorId', 'userId'].includes(c))
-    }
+    const wantsUserFullName = scalarFields.includes('userFullName')
+    const wantsAuthorFullName = scalarFields.includes('authorFullName')
+
+    const extraIds: string[] = []
+    if (canViewUsers && wantsUserFullName) extraIds.push('userId')
+    if (canViewUsers && wantsAuthorFullName) extraIds.push('authorId')
+
+    const columns = this.buildColumns(
+      scalarFields,
+      this.REQUIRED_MESSAGE_FIELDS,
+      canViewUsers,
+      ['authorId', 'userId'],
+      this.MESSAGE_NON_DB_FIELDS,
+      extraIds
+    )
 
     const qb = this.msgRepo.createQueryBuilder('m')
       .select(columns.map(col => `m.${col}`))
@@ -325,6 +350,13 @@ export class HelpService {
       .orderBy('m.created_at', 'DESC')
 
     let page = await paginate<TicketMessage>(qb, options)
+
+    if (canViewUsers && (wantsUserFullName || wantsAuthorFullName)) {
+      await this.attachMessageFullNames(page.items, {
+        user: wantsUserFullName,
+        author: wantsAuthorFullName
+      })
+    }
 
     page = {
       ...page,
@@ -337,23 +369,120 @@ export class HelpService {
     return page
   }
 
-
   // -----------------------------
   // Private helpers
   // -----------------------------
 
+  private buildColumns(
+    scalarFields: string[],
+    required: string[],
+    canViewUsers: boolean,
+    hiddenWhenNoUsers: string[],
+    nonDbFields: string[],
+    extraRequired: string[]
+  ) {
+    // required + requested
+    let cols = GraphQLUtils.ensureRequiredFields(scalarFields, required)
+
+    // mai selezionare transienti
+    cols = cols.filter(c => !nonDbFields.includes(c))
+
+    // se servono fullName, forza gli id necessari
+    if (extraRequired.length) {
+      cols = GraphQLUtils.ensureRequiredFields(cols, extraRequired)
+    }
+
+    // permessi utenti
+    if (!canViewUsers) {
+      cols = cols.filter(c => !hiddenWhenNoUsers.includes(c))
+    }
+
+    return cols
+  }
+
+  private async attachTicketUserFullNames(tickets: Ticket[]) {
+    const ids: UUID[] = []
+
+    for (const t of tickets) {
+      if (t.userId) ids.push(t.userId)
+    }
+
+    if (!ids.length) return
+
+    const users = await this.userRepo.find({
+      where: { id: In(ids) },
+      select: ['id', 'firstName', 'lastName']
+    })
+
+    const map = new Map<string, string>(
+      users.map(u => [
+        String(u.id),
+        `${u.firstName} ${u.lastName}`.trim()
+      ])
+    )
+
+    for (const t of tickets) {
+      if (!t.userId) continue
+      t.userFullName = map.get(String(t.userId))
+    }
+  }
+
+  private async attachMessageFullNames(
+    messages: TicketMessage[],
+    opts: { user: boolean; author: boolean }
+  ) {
+    const ids: UUID[] = []
+
+    for (const m of messages) {
+      if (opts.user && m.userId) ids.push(m.userId)
+      if (opts.author && m.authorId) ids.push(m.authorId)
+    }
+
+    if (!ids.length) return
+
+    const users = await this.userRepo.find({
+      where: { id: In(ids) },
+      select: ['id', 'firstName', 'lastName']
+    })
+
+    const map = new Map<string, string>(
+      users.map(u => [
+        String(u.id),
+        `${u.firstName} ${u.lastName}`.trim()
+      ])
+    )
+
+    for (const m of messages) {
+      if (opts.user && m.userId) {
+        m.userFullName = map.get(String(m.userId))
+      }
+      if (opts.author && m.authorId) {
+        m.authorFullName = map.get(String(m.authorId))
+      }
+    }
+  }
+
   private stampTicket(ticket: Ticket, now: number) {
-    (ticket as unknown as Record<string, Maybe<string>>).createdAt ??= String(now)
+    ;(ticket as unknown as Record<string, Maybe<string>>).createdAt ??= String(now)
     ticket.updatedAt = String(now)
     ticket.lastMessageAt = String(now)
   }
 
-  private generateReadablePublicId(publicId: string, scope: 'Ticket' | 'Message' = 'Ticket'): string {
+  private generateReadablePublicId(
+    publicId: string,
+    scope: 'Ticket' | 'Message' = 'Ticket'
+  ): string {
     const prefix = scope === 'Ticket' ? 'MTCK-#' : 'MTCKM-#'
     if (TypeGuards.isThruthyString(publicId) && /^\d+$/.test(publicId)) {
       return `${prefix}${publicId.padStart(9, '0')}`
     }
-    return prefix + '-f-' + parseInt(randomBytes(8).toString('hex'), 16).toString().padStart(16, '0')
+    return (
+      prefix +
+      '-f-' +
+      parseInt(randomBytes(8).toString('hex'), 16)
+        .toString()
+        .padStart(16, '0')
+    )
   }
 
   private makeUserMessage(input: {

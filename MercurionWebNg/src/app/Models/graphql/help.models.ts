@@ -12,7 +12,11 @@ export interface Ticket {
   lastMessageAt: string
   createdAt: string
   updatedAt: string
+  userId: string
+  userFullName: string
 }
+
+export type ClientTicket = Omit<Ticket, 'userId' | 'userFullName'>
 
 export type TicketStatus = 'Open' | 'WaitingUser' | 'WaitingSupport' | 'Closed'
 
@@ -25,9 +29,14 @@ export interface TicketMessage {
   ticket: Ticket
   authorType: AuthorType
   userId: string
+  authorId: string
+  userFullName: string
+  authorFullName: string
   contentDelta: JsonValue
   contentHtml: string
   createdAt: string
 }
+
+export type ClientTicketMessage = Omit<TicketMessage, 'userId' | 'authorId' | 'userFullName' | 'authorFullName'>
 
 

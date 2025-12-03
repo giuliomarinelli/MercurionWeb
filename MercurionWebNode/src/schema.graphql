@@ -158,7 +158,9 @@ type TicketMessage {
   ticketId: ID!
   authorType: AuthorType!
   authorId: ID
+  authorFullName: String
   userId: ID
+  userFullName: String
   contentDelta: String!
   contentHtml: String!
   createdAt: String!
@@ -173,6 +175,7 @@ type Ticket {
   id: ID!
   publicId: String!
   userId: ID
+  userFullName: String
   subject: String!
   status: TicketStatus!
   lastMessageAt: String!

@@ -147,7 +147,7 @@ export class HelpResolver {
         )
     }
 
-    @HasScopes(Scope.HandleTickets)
+    @HasScopes(Scope.HandleTickets) // Se non ha lo scope HandleTickets viene restituito un errore 403
     @Query(() => PaginatedTicket)
     async ticketsAsSupport(
         @Args('page', { type: () => Int }) page: number = 1,
@@ -162,7 +162,9 @@ export class HelpResolver {
             { page, limit },
             fieldsMap as GraphQLFieldsMap,
             false,
-            scopes.includes(Scope.ViewUsers)
+            scopes.includes(Scope.ViewUsers) /* Se ha lo scope HandleTickets ma non ha lo scope ViewUsers, allora potrà vedere 
+                tutti i ticket di supporto presenti nel sistema, ma gli userId avranno valore null, se invece ha anche lo scope
+                ViewUsers, allora potrà vedere tutti i ticket di supporto del sistema e gli userId saranno valorizzati  */
         )
         const flat = GeneralUtils.paginationToFlatPaginationConverter(pagination)
         return {
