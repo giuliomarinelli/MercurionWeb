@@ -1,4 +1,4 @@
-import { ClientTicket, ClientTicketMessage, TicketMessage } from './../Models/graphql/help.models';
+import { APIClientTicket, ClientTicketMessage, TicketMessage } from './../Models/graphql/help.models';
 import { Injectable } from "@angular/core";
 import { MoleculeDetailSystem } from "../Models/graphql/molecule.detail.models";
 import { ChEMBLMoleculeItemEntity, CustomMoleculeItemEntity, MoleculeCollectionItemClient, MoleculeCollectionItemEntityShort, MoleculeDetailItem } from "../Models/graphql/molecule-collection/molecule-collection.types";
@@ -80,7 +80,7 @@ export class TypeGuardsService {
   // --- TICKET guards ---
 
   isTicket(
-    item: Maybe<Ticket | ClientTicket>
+    item: Maybe<Ticket | APIClientTicket>
   ): item is Ticket {
     if (!item) return false
 
@@ -92,8 +92,8 @@ export class TypeGuardsService {
   }
 
   isClientTicket(
-    item: Maybe<ClientTicket | Ticket>
-  ): item is ClientTicket {
+    item: Maybe<APIClientTicket | Ticket>
+  ): item is APIClientTicket {
     if (!item) return false
 
     const rec = this.asRecord(item)

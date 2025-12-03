@@ -1,21 +1,23 @@
 import { AfterViewInit, Component, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { Observable, of, Subscription, switchMap, tap, throwError } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
-import { Ticket } from '../../Models/graphql/help.models';
+import { ClientTicket, Ticket } from '../../Models/graphql/help.models';
 import { AbstractPaginationComponent } from '../../abstract/abstract-pagination-component'
 import { PageModel } from '../../Models/graphql/page.models';
 import { HelpService } from '../../services/graphql/help.service';
-import { TypeGuardsService } from '../../services/type-guards.service';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { TabsComponent } from '../../components/common/tabs/tabs.component';
-import { JsonPipe } from '@angular/common';
+import { TicketCardComponent } from '../../components/support/ticket-card/ticket-card.component';
+import { TypeGuardsService } from '../../services/type-guards.service';
+import { TicketCardSkeletonComponent } from '../../components/support/ticket-card-skeleton/ticket-card-skeleton.component';
 
 @Component({
   selector: 'm-help-page',
   imports: [
     ClassicSpinnerComponent,
     TabsComponent,
-    JsonPipe
+    TicketCardComponent,
+    TicketCardSkeletonComponent
   ],
   template: `
 
@@ -47,10 +49,12 @@ import { JsonPipe } from '@angular/common';
       </p>
       <div class="mt-px relative -top-8">
       @for (item of items; track item.id; let i = $index) {
-        <!-- TODO: card/tile -->
-        <div class="my-24">
-          {{item | json }}
-        </div>
+          <m-ticket-card
+            [ticket]="item"
+            [i]="i"
+            [cardMode]="typeGuards.isClientTicket(item) ? 'user' : (typeGuards.isTicket(item) ? 'support' : 'user')"
+            [triggerDisappear]="item.triggerDisappear()"
+            [collapse]="item.collapse()"  />
       }
       </div>
 
@@ -65,7 +69,7 @@ import { JsonPipe } from '@angular/common';
         } @else {
           <div class="relative -top-20">
             @for (i of [0, 1, 2, 3, 4]; track i) {
-              <!-- TODO: skeleton loader -->
+              <m-ticket-card-skeleton [i]="i" />
             }
           </div>
         }
@@ -78,11 +82,11 @@ import { JsonPipe } from '@angular/common';
 
     `
 })
-export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Omit<Ticket, 'updatedAt'>> implements OnInit, OnDestroy, AfterViewInit {
+export class HelpPageComponent extends AbstractPaginationComponent<Ticket | ClientTicket> implements OnInit, OnDestroy, AfterViewInit {
 
   private readonly authService = inject(AuthService)
   private readonly helpService = inject(HelpService)
-  private readonly typeGuards = inject(TypeGuardsService)
+  protected readonly typeGuards = inject(TypeGuardsService)
 
   @ViewChild('sentinel')
   protected declare sentinel: ElementRef<HTMLDivElement>
@@ -126,7 +130,7 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Omit
     this.startObserver()
   }
 
-  protected override fetch$(): Observable<PageModel<Ticket | Omit<Ticket, 'updatedAt'>>> {
+  protected override fetch$(): Observable<PageModel<Ticket | ClientTicket>> {
     return of(null).pipe(
       switchMap(() => {
         if (this.activeTab() === 1) {

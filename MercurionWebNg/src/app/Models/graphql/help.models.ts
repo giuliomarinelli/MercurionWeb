@@ -1,3 +1,4 @@
+import { WritableSignal } from "@angular/core"
 import { JsonValue } from "../json.models"
 
 export interface TicketDetailDTO {
@@ -14,7 +15,13 @@ export interface Ticket {
   updatedAt: string
   userId: string
   userFullName: string
+  triggerDisappear: WritableSignal<boolean>
+  collapse: WritableSignal<boolean>
 }
+
+export type APITicket = Omit<Ticket, 'triggerDisappear' | 'collapse'>
+
+export type APIClientTicket = Omit<APITicket, 'userId' | 'userFullName'>
 
 export type ClientTicket = Omit<Ticket, 'userId' | 'userFullName'>
 
@@ -35,7 +42,13 @@ export interface TicketMessage {
   contentDelta: JsonValue
   contentHtml: string
   createdAt: string
+  triggerDisappear: WritableSignal<boolean>
+  collapse: WritableSignal<boolean>
 }
+
+export type APITicketMessage = Omit<TicketMessage, 'triggerDisappear' | 'collapse'>
+
+export type APIClientTicketMessage = Omit<APITicketMessage, 'userId' | 'authorId' | 'userFullName' | 'authorFullName'>
 
 export type ClientTicketMessage = Omit<TicketMessage, 'userId' | 'authorId' | 'userFullName' | 'authorFullName'>
 

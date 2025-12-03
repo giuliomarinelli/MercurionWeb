@@ -1,7 +1,7 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { Apollo } from 'apollo-angular';
 import { map, Observable } from 'rxjs';
-import { ClientTicket, Ticket, TicketMessage } from '../../Models/graphql/help.models';
+import { APIClientTicket, APIClientTicketMessage, APITicket, ClientTicket, ClientTicketMessage, Ticket, TicketMessage } from '../../Models/graphql/help.models';
 import { ADD_SUPPORT_TICKET_MESSAGE, ADD_TICKET_MESSAGE, CLOSE_MY_TICKET, CLOSE_TICKET_AS_SUPPORT, CREATE_TICKET, MY_TICKET_DETAIL, MY_TICKET_MESSAGES, MY_TICKETS, REOPEN_TICKET_AS_SUPPORT, TICKET_DETAIL_AS_SUPPORT, TICKET_MESSAGES_AS_SUPPORT, TICKETS_AS_SUPPORT } from './graphql-actions/help.gql-actions';
 import { extractGqlData } from './graphql-helpers/extract-gql-data.gql-helper';
 import { PageModel } from '../../Models/graphql/page.models';
@@ -16,7 +16,7 @@ export class HelpService {
 
   public myTicketDetail(ticketId: string): Observable<ClientTicket> {
     return this.apollo
-      .watchQuery<{ myTicketDetail: { ticket: ClientTicket } }>({
+      .watchQuery<{ myTicketDetail: { ticket: APIClientTicket } }>({
         query: MY_TICKET_DETAIL,
         variables: {
           ticketId
@@ -24,13 +24,18 @@ export class HelpService {
         fetchPolicy: 'network-only'
       }).valueChanges.pipe(
         map((res) => extractGqlData(res, 'myTicketDetail')),
-        map((res: { ticket: ClientTicket }) => res.ticket)
+        map((res: { ticket: APIClientTicket }) => res.ticket),
+        map((res) => ({
+          ...res,
+          triggerDisappear: signal<boolean>(false),
+          collapse: signal<boolean>(false)
+        }))
       )
   }
 
   public myTickets(page: number, limit: number): Observable<PageModel<ClientTicket>> {
     return this.apollo
-      .watchQuery<{ myTickets: PageModel<ClientTicket> }>({
+      .watchQuery<{ myTickets: PageModel<APIClientTicket> }>({
         query: MY_TICKETS,
         variables: {
           page,
@@ -38,13 +43,21 @@ export class HelpService {
         },
         fetchPolicy: 'network-only'
       }).valueChanges.pipe(
-        map((res) => extractGqlData(res, 'myTickets'))
+        map((res) => extractGqlData(res, 'myTickets')),
+        map((res: PageModel<APIClientTicket>) => ({
+          ...res,
+          items: res.items.map((i) => ({
+            ...i,
+            triggerDisappear: signal<boolean>(false),
+            collapse: signal<boolean>(false)
+          }))
+        }))
       )
   }
 
-  public myTicketMessages(page: number, limit: number, ticketId: string): Observable<PageModel<TicketMessage>> {
+  public myTicketMessages(page: number, limit: number, ticketId: string): Observable<PageModel<ClientTicketMessage>> {
     return this.apollo
-      .watchQuery<{ myTicketMessages: PageModel<TicketMessage> }>({
+      .watchQuery<{ myTicketMessages: PageModel<APIClientTicketMessage> }>({
         query: MY_TICKET_MESSAGES,
         variables: {
           page,
@@ -52,13 +65,21 @@ export class HelpService {
           ticketId
         }
       }).valueChanges.pipe(
-        map((res) => extractGqlData(res, 'myTicketMessages'))
+        map((res) => extractGqlData(res, 'myTicketMessages')),
+        map((p) => ({
+          ...p,
+          items: p.items.map((m) => ({
+            ...m,
+            triggerDisappear: signal<boolean>(false),
+            collapse: signal<boolean>(false)
+          }))
+        }))
       )
   }
 
   public createTicket(subject: string, contentHtml: string, contentDelta: JsonValue): Observable<ClientTicket> {
     return this.apollo
-      .mutate<{ createTicket: ClientTicket }>({
+      .mutate<{ createTicket: APIClientTicket }>({
         mutation: CREATE_TICKET,
         variables: {
           subject,
@@ -66,7 +87,12 @@ export class HelpService {
           contentDelta
         }
       }).pipe(
-        map((res) => extractGqlData(res, 'createTicket'))
+        map((res) => extractGqlData(res, 'createTicket')),
+        map((res: APIClientTicket) => ({
+          ...res,
+          triggerDisappear: signal<boolean>(false),
+          collapse: signal<boolean>(false)
+        }))
       )
   }
 
@@ -111,7 +137,7 @@ export class HelpService {
 
   public ticketsAsSupport(page: number, limit: number): Observable<PageModel<Ticket>> {
     return this.apollo
-      .watchQuery<{ ticketsAsSupport: PageModel<Ticket> }>({
+      .watchQuery<{ ticketsAsSupport: PageModel<APITicket> }>({
         query: TICKETS_AS_SUPPORT,
         variables: {
           page,
@@ -119,7 +145,15 @@ export class HelpService {
         },
         fetchPolicy: 'network-only'
       }).valueChanges.pipe(
-        map((res) => extractGqlData(res, 'ticketsAsSupport'))
+        map((res) => extractGqlData(res, 'ticketsAsSupport')),
+        map((res) => ({
+          ...res,
+          items: res.items.map((i) => ({
+            ...i,
+            collapse: signal<boolean>(false),
+            triggerDisappear: signal<boolean>(false)
+          }))
+        }))
       )
   }
 

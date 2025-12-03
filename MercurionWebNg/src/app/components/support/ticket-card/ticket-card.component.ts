@@ -2,9 +2,11 @@ import {
   Component, Input, Output, EventEmitter, signal, computed, effect
 } from '@angular/core';
 import { DatePipe, NgClass } from '@angular/common';
-import { Ticket } from '../../../Models/graphql/help.models'; // path tuo
+import { APIClientTicket, Ticket } from '../../../Models/graphql/help.models'; // path tuo
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
 import { inject } from '@angular/core';
+import { TypeGuardsService } from '../../../services/type-guards.service';
+import { Maybe } from 'graphql/jsutils/Maybe';
 
 type TicketCardMode = 'user' | 'support';
 
@@ -32,7 +34,7 @@ type TicketCardMode = 'user' | 'support';
           'fade-out': _triggerDisappear(),
           'collapse': _collapse()
         }"
-        aria-label="Ticket {{ _ticket()!.publicId ?? _ticket()!.id }}"
+        aria-label="Ticket {{ _ticket()!.publicId }}"
       >
         <!-- overlay clickabile -->
         <button
@@ -90,10 +92,10 @@ type TicketCardMode = 'user' | 'support';
               {{ _ticket()!.createdAt | date:'mediumDate' }}
             </span>
 
-            @if (mode() === 'support') {
+            @if (mode() === 'support' && typeGuards.isTicket(_ticket())) {
               <span class="text-slate-300 dark:text-slate-600">•</span>
               <span class="truncate">
-                User: {{ _ticket()!.userId }}
+                Utente: {{ getUserFullNameIfIsTicket(this._ticket()) }}
               </span>
             }
           </div>
@@ -144,94 +146,119 @@ type TicketCardMode = 'user' | 'support';
 })
 export class TicketCardComponent {
 
-  private readonly themeManager = inject(ThemeManagerService);
+  private readonly themeManager = inject(ThemeManagerService)
+  protected readonly typeGuards = inject(TypeGuardsService)
 
   /* inputs --------------------------- */
   @Input({ required: true })
-  set ticket(t: Ticket) { this._ticket.set(t); }
+  set ticket(t: Ticket | APIClientTicket) {
+    this._ticket.set(t)
+  }
 
   @Input()
-  set i(i: number) { this._i.set(i); }
+  set i(i: number) {
+    this._i.set(i)
+  }
 
   /** user | support (default user) */
   @Input()
-  set cardMode(m: TicketCardMode) { this.mode.set(m); }
+  set cardMode(m: TicketCardMode) {
+    this.mode.set(m)
+  }
 
   @Input()
-  set triggerDisappear(v: boolean) { this._triggerDisappear.set(v); }
+  set triggerDisappear(v: boolean) {
+    this._triggerDisappear.set(v)
+  }
 
   @Input()
-  set collapse(v: boolean) { this._collapse.set(v); }
+  set collapse(v: boolean) {
+    this._collapse.set(v)
+  }
 
   /** abilita/disabilita i bottoni (default true) */
   @Input()
-  set allowActions(v: boolean) { this._allowActions.set(v); }
+  set allowActions(v: boolean) {
+    this._allowActions.set(v)
+  }
 
   /* outputs -------------------------- */
-  @Output() open = new EventEmitter<string>();
-  @Output() close = new EventEmitter<string>();
-  @Output() reopen = new EventEmitter<string>();
+
+  @Output() open = new EventEmitter<string>()
+  @Output() close = new EventEmitter<string>()
+  @Output() reopen = new EventEmitter<string>()
 
   /* state ---------------------------- */
-  _ticket = signal<Ticket | undefined>(undefined);
-  _i = signal<number>(0);
-  mode = signal<TicketCardMode>('user');
-  _triggerDisappear = signal<boolean>(false);
-  _collapse = signal<boolean>(false);
-  _allowActions = signal<boolean>(true);
-
-  isDarkMode = signal<boolean>(false);
+  _ticket = signal<Ticket | APIClientTicket | undefined>(undefined)
+  _i = signal<number>(0)
+  mode = signal<TicketCardMode>('user')
+  _triggerDisappear = signal<boolean>(false)
+  _collapse = signal<boolean>(false)
+  _allowActions = signal<boolean>(true)
+  isDarkMode = signal<boolean>(false)
 
   constructor() {
-    effect(() => this.isDarkMode.set(this.themeManager.theme() === 'dark'));
+    effect(() => this.isDarkMode.set(this.themeManager.theme() === 'dark'))
   }
 
   /* computed ------------------------- */
 
   readablePublicId = computed(() => {
-    const t = this._ticket();
-    if (!t) return '';
-    const pid = (t as any).publicId ?? '';
-    return pid ? String(pid) : String(t.id).slice(0, 8);
-  });
+    const t = this._ticket()
+    if (!t) {
+      return ''
+    }
+    const pid = (t as any).publicId ?? ''
+    return pid ? String(pid) : String(t.id).slice(0, 8)
+  })
 
   statusLabel = computed(() => {
-    const s = this._ticket()?.status;
+    const s = this._ticket()?.status
     switch (s) {
-      case 'Open': return 'Aperto';
-      case 'WaitingSupport': return 'In attesa supporto';
-      case 'WaitingUser': return 'In attesa utente';
-      case 'Closed': return 'Chiuso';
-      default: return String(s ?? '');
+      case 'Open': return 'Aperto'
+      case 'WaitingSupport': return 'In attesa supporto'
+      case 'WaitingUser': return 'In attesa utente'
+      case 'Closed': return 'Chiuso'
+      default: return String(s ?? '')
     }
   });
 
   statusBadgeClass = computed(() => {
-    const s = this._ticket()?.status;
+    const s = this._ticket()?.status
     // palette leggibile anche su dark
     switch (s) {
       case 'Open':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200/70 dark:bg-emerald-900/20 dark:text-emerald-200 dark:border-emerald-700/40';
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200/70 dark:bg-emerald-900/20 dark:text-emerald-200 dark:border-emerald-700/40'
       case 'WaitingSupport':
-        return 'bg-amber-50 text-amber-700 border-amber-200/70 dark:bg-amber-900/20 dark:text-amber-200 dark:border-amber-700/40';
+        return 'bg-amber-50 text-amber-700 border-amber-200/70 dark:bg-amber-900/20 dark:text-amber-200 dark:border-amber-700/40'
       case 'WaitingUser':
-        return 'bg-sky-50 text-sky-700 border-sky-200/70 dark:bg-sky-900/20 dark:text-sky-200 dark:border-sky-700/40';
+        return 'bg-sky-50 text-sky-700 border-sky-200/70 dark:bg-sky-900/20 dark:text-sky-200 dark:border-sky-700/40'
       case 'Closed':
-        return 'bg-slate-200 text-slate-700 border-slate-300/70 dark:bg-slate-700/60 dark:text-slate-200 dark:border-slate-600/60';
+        return 'bg-slate-200 text-slate-700 border-slate-300/70 dark:bg-slate-700/60 dark:text-slate-200 dark:border-slate-600/60'
       default:
-        return 'bg-slate-100 text-slate-700 border-slate-200/70 dark:bg-slate-800/60 dark:text-slate-200 dark:border-slate-700/60';
+        return 'bg-slate-100 text-slate-700 border-slate-200/70 dark:bg-slate-800/60 dark:text-slate-200 dark:border-slate-700/60'
     }
-  });
+  })
 
   showCloseButton = computed(() => {
     const t = this._ticket();
-    if (!t || !this._allowActions()) return false;
-    return t.status !== 'Closed';
-  });
+    if (!t || !this._allowActions()) {
+      return false
+    }
+    return t.status !== 'Closed'
+  })
 
   showReopenButton = computed(() => {
     const t = this._ticket();
     if (!t || !this._allowActions()) return false;
-    return t.status === 'Closed';
-  });
+    return t.status === 'Closed'
+  })
+
+  getUserFullNameIfIsTicket(t: Maybe<Ticket | APIClientTicket>): string {
+    if (this.typeGuards.isTicket(t)) {
+      return t.userFullName
+    }
+    return ''
+  }
+
 }

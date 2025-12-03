@@ -477,7 +477,7 @@ export class HelpService {
     publicId: string,
     scope: 'Ticket' | 'Message' = 'Ticket'
   ): string {
-    const prefix = scope === 'Ticket' ? 'MTCK-#' : 'MTCKM-#'
+    const prefix = scope === 'Ticket' ? 'MTCK-' : 'MTCKM-'
     if (TypeGuards.isThruthyString(publicId) && /^\d+$/.test(publicId)) {
       return `${prefix}${publicId.padStart(9, '0')}`
     }
