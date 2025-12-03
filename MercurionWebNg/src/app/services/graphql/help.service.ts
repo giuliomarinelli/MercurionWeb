@@ -1,7 +1,7 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { Apollo } from 'apollo-angular';
 import { map, Observable } from 'rxjs';
-import { APIClientTicket, APIClientTicketMessage, APITicket, ClientTicket, ClientTicketMessage, Ticket, TicketMessage } from '../../Models/graphql/help.models';
+import { APIClientTicket, APIClientTicketMessage, APITicket, APITicketMessage, ClientTicket, ClientTicketMessage, Ticket, TicketMessage } from '../../Models/graphql/help.models';
 import { ADD_SUPPORT_TICKET_MESSAGE, ADD_TICKET_MESSAGE, CLOSE_MY_TICKET, CLOSE_TICKET_AS_SUPPORT, CREATE_TICKET, MY_TICKET_DETAIL, MY_TICKET_MESSAGES, MY_TICKETS, REOPEN_TICKET_AS_SUPPORT, TICKET_DETAIL_AS_SUPPORT, TICKET_MESSAGES_AS_SUPPORT, TICKETS_AS_SUPPORT } from './graphql-actions/help.gql-actions';
 import { extractGqlData } from './graphql-helpers/extract-gql-data.gql-helper';
 import { PageModel } from '../../Models/graphql/page.models';
@@ -63,7 +63,8 @@ export class HelpService {
           page,
           limit,
           ticketId
-        }
+        },
+        fetchPolicy: 'network-only'
       }).valueChanges.pipe(
         map((res) => extractGqlData(res, 'myTicketMessages')),
         map((p) => ({
@@ -159,7 +160,7 @@ export class HelpService {
 
   public ticketMessagesAsSupport(page: number, limit: number, ticketId: string): Observable<PageModel<TicketMessage>> {
     return this.apollo
-      .watchQuery<{ ticketMessagesAsSupport: PageModel<TicketMessage> }>({
+      .watchQuery<{ ticketMessagesAsSupport: PageModel<APITicketMessage> }>({
         query: TICKET_MESSAGES_AS_SUPPORT,
         variables: {
           page,
@@ -168,7 +169,15 @@ export class HelpService {
         },
         fetchPolicy: 'network-only'
       }).valueChanges.pipe(
-        map((res) => extractGqlData(res, 'ticketMessagesAsSupport'))
+        map((res) => extractGqlData(res, 'ticketMessagesAsSupport')),
+        map((res) => ({
+          ...res,
+          items: res.items.map((i) => ({
+            ...i,
+            triggerDisappear: signal<boolean>(false),
+            collapse: signal<boolean>(false)
+          }))
+        }))
       )
   }
 

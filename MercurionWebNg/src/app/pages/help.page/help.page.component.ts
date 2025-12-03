@@ -164,6 +164,7 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
   openTicketDetail(ticketId: string): void {
     queueMicrotask(() => {
       this.detailContext.setTicketId(ticketId)
+      this.detailContext.setInnerScope(this.activeTab() === 0 ? 'User' : 'Support')
       this.overlayContext.open('TicketDetail')
     })
   }

@@ -105,7 +105,7 @@ export class TypeGuardsService {
 
   // --- MESSAGE guards ---
 
-  isMessageTicket(
+  isTicketMessage(
     item: Maybe<TicketMessage | ClientTicketMessage>
   ): item is TicketMessage {
     if (!item) return false
@@ -117,7 +117,7 @@ export class TypeGuardsService {
     return this.allPresentStrings(rec, discriminants)
   }
 
-  isClientMessageTicket(
+  isClientTicketMessage(
     item: Maybe<ClientTicketMessage | TicketMessage>
   ): item is ClientTicketMessage {
     if (!item) return false
