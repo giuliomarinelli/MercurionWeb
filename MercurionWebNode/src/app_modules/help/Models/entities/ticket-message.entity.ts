@@ -58,7 +58,7 @@ export class TicketMessage {
 
   @Field(() => String)
   @Column({ type: 'jsonb', name: 'content_delta' })
-  contentDelta: JsonValue
+  contentDelta: JsonValue | string
 
   @Field()
   @Column({ type: 'text', name: 'content_html' })

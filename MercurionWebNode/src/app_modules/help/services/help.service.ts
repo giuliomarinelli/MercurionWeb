@@ -367,6 +367,7 @@ export class HelpService {
       ...page,
       items: page.items.map((m) => {
         m.publicId = this.generateReadablePublicId(m.publicId, 'Message')
+        m.contentDelta = JSON.stringify(m.contentDelta)
         return m
       })
     }

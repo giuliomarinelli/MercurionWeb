@@ -1,18 +1,27 @@
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, inject, NgZone, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, computed, effect, ElementRef, inject, NgZone, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { TicketDetailContextService } from '../../../services/context/action-context/ticket-detail-context.service';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 import { ClientTicket, ClientTicketMessage, Ticket, TicketMessage } from '../../../Models/graphql/help.models';
 import { AbstractPaginationComponent } from '../../../abstract/abstract-pagination-component';
-import { filter, firstValueFrom, Observable, of, switchMap } from 'rxjs';
+import { catchError, filter, firstValueFrom, Observable, of, switchMap, tap } from 'rxjs';
 import { PageModel } from '../../../Models/graphql/page.models';
 import { HelpService } from '../../../services/graphql/help.service';
 import { TypeGuardsService } from '../../../services/type-guards.service';
 import { MessageItemComponent } from '../message-item/message-item.component';
 import { TicketDetailInnerScope } from '../../../Models/action/action-overlay.models';
+import { DatePipe, NgClass } from '@angular/common';
+import { Maybe } from 'graphql/jsutils/Maybe';
+import { TicketComposerComponent } from '../../support/ticket-composer/ticket-composer.component';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'm-ticket-detail',
-  imports: [MessageItemComponent],
+  imports: [
+    MessageItemComponent,
+    DatePipe,
+    NgClass,
+    TicketComposerComponent
+  ],
   template: `
 
 <div class="flex justify-center items-center min-h-screen px-2">
@@ -30,7 +39,51 @@ import { TicketDetailInnerScope } from '../../../Models/action/action-overlay.mo
         </svg>
       </button>
     </div>
-    <div #scrollRoot class="py-6 px-3 overflow-y-auto flex flex-col gap-4 min-h-[60vh] max-h-[60vh]">
+    <!-- INFO TICKET (non scrollabile) -->
+    @if (ticket()) {
+      <div class="
+          px-4 py-3 border-b border-slate-200/70 dark:border-slate-700/60
+          bg-slate-50/70 dark:bg-slate-800/40
+          flex flex-col gap-2
+        ">
+
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="
+              text-xs font-medium
+              text-slate-700 dark:text-slate-200
+              bg-slate-200/70 dark:bg-slate-700/60
+              border border-slate-300/60 dark:border-slate-600/60
+              px-2 py-0.5 rounded-full">
+            #{{ ticket()!.publicId }}
+          </span>
+
+          <span class="text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 border"
+                [ngClass]="statusBadgeClass()">
+            {{ statusLabel() }}
+          </span>
+
+          @if (innerScope() === 'Support' && typeGuards.isTicket(ticket())) {
+            <span class="text-xs text-slate-600 dark:text-slate-300">
+              Utente: <span class="font-medium">{{ getUserFullNameFromTicket() }}</span>
+            </span>
+          }
+        </div>
+
+        <div class="text-base md:text-lg font-semibold text-slate-900 dark:text-slate-50">
+          {{ ticket()!.subject }}
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+          <span>Creato: {{ ticket()!.createdAt | date:'medium' }}</span>
+          <span class="text-slate-300 dark:text-slate-600">•</span>
+          <span>Aggiornato: {{ ticket()!.updatedAt | date:'medium' }}</span>
+          <span class="text-slate-300 dark:text-slate-600">•</span>
+          <span>Ultimo msg: {{ ticket()!.lastMessageAt | date:'medium' }}</span>
+        </div>
+      </div>
+    }
+
+    <div #scrollRoot class="py-6 px-3 overflow-y-auto flex flex-col gap-4 min-h-[30vh] max-h-[40vh]">
       <div #sentinel class="w-full h-px"></div>
       <!-- body scrollabile: qui ci vanno i messaggi in stile chat -->
       @for (item of items; track item.id; let i = $index) {
@@ -46,8 +99,8 @@ import { TicketDetailInnerScope } from '../../../Models/action/action-overlay.mo
         }
       }
     </div>
-    <div class="my-4 mr-8 flex justify-end gap-2">
-      <!-- footer esterno allo scroll -->
+    <div class="my-4 px-3 sm:px-4 w-full">
+      <m-ticket-composer class="block w-full" (send)="onSend($event)" />
     </div>
   </div>
 </div>
@@ -63,6 +116,8 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
   protected readonly typeGuards = inject(TypeGuardsService)
   private readonly cdr = inject(ChangeDetectorRef)
 
+  private composerSub?: Subscription
+
   private readonly ITEMS_PER_PAGE = 10
 
   @ViewChild('sentinel')
@@ -73,12 +128,42 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
 
   ticket = signal<Ticket | ClientTicket | null>(null)
   innerScope = signal<TicketDetailInnerScope>('User')
+  watchableInnerScope = signal<boolean>(false)
+
+  constructor() {
+    super()
+    effect(() => {
+      const w = this.watchableInnerScope()
+      if (!w) {
+        return
+      }
+      const is = this.detailContext.innerScope()
+      if (is !== this.innerScope()) {
+        this.innerScope.set(is)
+      }
+    })
+    effect(() => {
+      const id = this.detailContext.ticketId()
+      if (!id) {
+        return
+      }
+      this.resetPagination()
+      this.items = []
+      this.ticket.set(null)
+      this.done = false
+      this.earlyDone = false
+      this.loading = false
+      this.empty.set(true)
+      queueMicrotask(() => this.loadMore())
+    })
+  }
 
   ngOnInit(): void {
-    queueMicrotask(() => this.loadMore())
+
   }
 
   ngOnDestroy(): void {
+    this.composerSub?.unsubscribe()
     this.observer?.disconnect()
   }
 
@@ -92,7 +177,6 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
       this.detailContext.resetInnerScope()
       this.detailContext.clearTicketId()
     })
-
   }
 
   protected override fetch$(): Observable<PageModel<TicketMessage | ClientTicketMessage>> {
@@ -120,12 +204,17 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
         }
         return default$
       }),
-      filter((val) => !!val)
+      filter((val) => !!val),
+      tap(() => this.watchableInnerScope.set(true))
     )
   }
 
   protected override async loadMore(): Promise<void> {
-    if (this.loading || this.done) return
+
+    if (this.loading || this.done) {
+      return
+    }
+
     this.loading = true
 
     const rootEl = this.root?.nativeElement
@@ -149,16 +238,100 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
     this.cdr.markForCheck()
 
     queueMicrotask(() => {
-      if (!rootEl) return
+      if (!rootEl) {
+        return
+      }
       const newHeight = rootEl.scrollHeight
       const delta = newHeight - prevHeight
       rootEl.scrollTop = prevTop + delta
-
-      // extra-sicurezza: dopo aver toccato DOM
       this.cdr.markForCheck()
     })
   }
 
+  statusLabel = computed(() => {
+    const s = this.ticket()?.status;
+    switch (s) {
+      case 'Open': return 'Aperto'
+      case 'WaitingSupport': return 'In attesa supporto'
+      case 'WaitingUser': return 'In attesa utente'
+      case 'Closed': return 'Chiuso'
+      default: return String(s ?? '')
+    }
+  })
+
+  statusBadgeClass = computed(() => {
+    const s = this.ticket()?.status;
+    switch (s) {
+      case 'Open':
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200/70 dark:bg-emerald-900/20 dark:text-emerald-200 dark:border-emerald-700/40'
+      case 'WaitingSupport':
+        return 'bg-amber-50 text-amber-700 border-amber-200/70 dark:bg-amber-900/20 dark:text-amber-200 dark:border-amber-700/40'
+      case 'WaitingUser':
+        return 'bg-sky-50 text-sky-700 border-sky-200/70 dark:bg-sky-900/20 dark:text-sky-200 dark:border-sky-700/40'
+      case 'Closed':
+        return 'bg-slate-200 text-slate-700 border-slate-300/70 dark:bg-slate-700/60 dark:text-slate-200 dark:border-slate-600/60'
+      default:
+        return 'bg-slate-100 text-slate-700 border-slate-200/70 dark:bg-slate-800/60 dark:text-slate-200 dark:border-slate-700/60'
+    }
+  })
+
+  getUserFullNameFromTicket(): string {
+    const t: Maybe<Ticket | ClientTicket> = this.ticket()
+    if (!t) {
+      return ''
+    }
+    if (this.typeGuards.isTicket(t)) {
+      return t.userFullName
+    }
+    return ''
+  }
+
+  async onSend(e: { html: string, delta: any }) {
+
+    const ticketId = this.detailContext.ticketId()
+
+    if (!ticketId) {
+      return
+    }
+
+    // optimistic minimalissimo
+    const optimistic: Omit<ClientTicketMessage, 'ticket'> = {
+      id: 'tmp-' + crypto.randomUUID(),
+      publicId: '',
+      ticketId,
+      authorType: this.innerScope() === 'Support' ? 'Support' : 'User',
+      contentHtml: e.html,
+      contentDelta: e.delta,
+      createdAt: new Date().toISOString(),
+      triggerDisappear: signal(false),
+      collapse: signal(false)
+    }
+
+    this.items = [...this.items, optimistic as unknown as ClientTicketMessage]
+    this.cdr.markForCheck()
+
+    const add$ = this.innerScope() === 'Support'
+      ? this.helpService.addSupportTicketMessage(ticketId, e.delta, e.html)
+      : this.helpService.addTicketMessage(ticketId, e.delta, e.html)
+
+    this.composerSub = add$.pipe(
+      tap(() => {
+        this.ticket.update(t => t ? ({ ...t, lastMessageAt: optimistic.createdAt }) : t)
+        this.cdr.markForCheck()
+      }),
+      catchError((e) => {
+        // rollback se fallisce
+        this.items = this.items.filter(x => x.id !== optimistic.id)
+        this.cdr.markForCheck()
+        throw e
+      })
+    ).subscribe({
+      complete: () => queueMicrotask(() => {
+        const el = this.root?.nativeElement
+        if (el) el.scrollTop = el.scrollHeight
+      })
+    })
+  }
 
   protected override doQuery(q: string): void {
     // Per adesso non usiamo la ricerca
