@@ -1,9 +1,26 @@
-import { AfterViewInit, ChangeDetectorRef, Component, computed, effect, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { TicketDetailContextService } from '../../../services/context/action-context/ticket-detail-context.service';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
-import { ClientTicket, ClientTicketMessage, Ticket, TicketMessage } from '../../../Models/graphql/help.models';
+import {
+  ClientTicket,
+  ClientTicketMessage,
+  Ticket,
+  TicketMessage,
+} from '../../../Models/graphql/help.models';
 import { AbstractPaginationComponent } from '../../../abstract/abstract-pagination-component';
-import { filter, firstValueFrom, Observable, of, switchMap, tap } from 'rxjs';
+import { distinctUntilChanged, filter, firstValueFrom, Observable, of, switchMap } from 'rxjs';
 import { PageModel } from '../../../Models/graphql/page.models';
 import { HelpService } from '../../../services/graphql/help.service';
 import { TypeGuardsService } from '../../../services/type-guards.service';
@@ -17,144 +34,173 @@ import { AppContextService } from '../../../services/context/app-context.service
 
 @Component({
   selector: 'm-ticket-detail',
-  imports: [
-    MessageItemComponent,
-    DatePipe,
-    NgClass,
-    TicketComposerComponent
+  standalone: true,
+  imports: [MessageItemComponent, DatePipe, NgClass, TicketComposerComponent],
+  styles: [
+    `
+      :host {
+        display: block;
+        width: 100%;
+      }
+
+      :host ::ng-deep .ql-toolbar.ql-snow {
+        border: 1px solid rgb(203 213 225 / 0.7);
+        border-radius: 0.75rem;
+        background: white;
+      }
+
+      :host-context(.dark) ::ng-deep .ql-toolbar.ql-snow {
+        border-color: rgb(51 65 85 / 0.8);
+        background: #1f2937;
+      }
+
+      :host ::ng-deep .ql-container.ql-snow {
+        border: 1px solid rgb(203 213 225 / 0.7);
+        border-radius: 0.75rem;
+        background: white;
+      }
+
+      :host-context(.dark) ::ng-deep .ql-container.ql-snow {
+        border-color: rgb(51 65 85 / 0.8);
+        background: #1f2937;
+      }
+
+      :host ::ng-deep .ql-editor {
+        min-height: 110px;
+        font-size: 0.95rem;
+      }
+
+      :host-context(.dark) ::ng-deep .ql-editor {
+        color: rgb(226 232 240);
+      }
+
+      :host-context(.dark) ::ng-deep .ql-editor.ql-blank::before {
+        color: rgb(148 163 184);
+      }
+
+      :host-context(.dark) ::ng-deep .ql-toolbar button svg,
+      :host-context(.dark) ::ng-deep .ql-toolbar .ql-stroke {
+        stroke: rgb(226 232 240);
+      }
+      :host-context(.dark) ::ng-deep .ql-toolbar .ql-fill {
+        fill: rgb(226 232 240);
+      }
+    `,
   ],
-  styles: [`
-    :host { display:block; width:100%; }
-
-    :host ::ng-deep .ql-toolbar.ql-snow {
-      border: 1px solid rgb(203 213 225 / .7);
-      border-radius: 0.75rem;
-      background: white;
-    }
-
-    :host-context(.dark) ::ng-deep .ql-toolbar.ql-snow {
-      border-color: rgb(51 65 85 / .8);
-      background: #1f2937; /* dark surface */
-    }
-
-    :host ::ng-deep .ql-container.ql-snow {
-      border: 1px solid rgb(203 213 225 / .7);
-      border-radius: 0.75rem;
-      background: white;
-    }
-
-    :host-context(.dark) ::ng-deep .ql-container.ql-snow {
-      border-color: rgb(51 65 85 / .8);
-      background: #1f2937;
-    }
-
-    :host ::ng-deep .ql-editor {
-      min-height: 110px;
-      font-size: 0.95rem;
-    }
-
-    :host-context(.dark) ::ng-deep .ql-editor {
-      color: rgb(226 232 240); /* slate-200 */
-    }
-
-    :host-context(.dark) ::ng-deep .ql-editor.ql-blank::before {
-      color: rgb(148 163 184); /* slate-400 */
-    }
-
-    :host-context(.dark) ::ng-deep .ql-toolbar button svg,
-    :host-context(.dark) ::ng-deep .ql-toolbar .ql-stroke {
-      stroke: rgb(226 232 240);
-    }
-    :host-context(.dark) ::ng-deep .ql-toolbar .ql-fill {
-      fill: rgb(226 232 240);
-    }
-
-  `],
   template: `
-
-<div class="flex justify-center items-center min-h-screen px-2">
-  <div class="w-full max-w-5xl bg-white dark:bg-dark-surface-main rounded-xl shadow-lg">
-    <div class="flex items-center justify-between px-4 py-4 border-b border-b-slate-400 sticky top-0 z-50 rounded-t-xl bg-white dark:bg-dark-surface-main">
-      <!-- header sticky -->
-      <h2 class="text-lg font-semibold">Dettaglio Ticket&nbsp;
-        <span class="font-semibold text-light-accent-secondary dark:text-dark-accent-secondary" [innerText]="ticket()?.publicId ? '#' + ticket()?.publicId : ''">
-        </span>
-      </h2>
-      <button class="inline-flex items-center justify-center size-8 rounded-md text-slate-500 hover:text-emerald-600 hover:bg-slate-100 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-transparent transition" (click)="close()">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-5 h-auto">
-          <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-          <path d="M182.9 137.4L160.3 114.7L115 160L137.6 182.6L275 320L137.6 457.4L115 480L160.3 525.3L182.9 502.6L320.3 365.3L457.6 502.6L480.3 525.3L525.5 480L502.9 457.4L365.5 320L502.9 182.6L525.5 160L480.3 114.7L457.6 137.4L320.3 274.7L182.9 137.4z"/>
-        </svg>
-      </button>
-    </div>
-    <!-- INFO TICKET (non scrollabile) -->
-    @if (ticket()) {
-      <div class="
-          px-4 py-3 border-b border-slate-200/70 dark:border-slate-700/60
-          bg-slate-50/70 dark:bg-slate-800/40
-          flex flex-col gap-2
-        ">
-
-        <div class="flex flex-wrap items-center gap-2">
-          <span class="
-              text-xs font-medium
-              text-slate-700 dark:text-slate-200
-              bg-slate-200/70 dark:bg-slate-700/60
-              border border-slate-300/60 dark:border-slate-600/60
-              px-2 py-0.5 rounded-full">
-            #{{ ticket()!.publicId }}
-          </span>
-
-          <span class="text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 border"
-                [ngClass]="statusBadgeClass()">
-            {{ statusLabel() }}
-          </span>
-
-          @if (innerScope() === 'Support' && typeGuards.isTicket(ticket())) {
-            <span class="text-xs text-slate-600 dark:text-slate-300">
-              Utente: <span class="font-medium">{{ getUserFullNameFromTicket() }}</span>
+    <div class="flex justify-center items-center min-h-screen px-2">
+      <div
+        class="w-full max-w-5xl bg-white dark:bg-dark-surface-main rounded-xl shadow-lg"
+      >
+        <div
+          class="flex items-center justify-between px-4 py-4 border-b border-b-slate-400 sticky top-0 z-50 rounded-t-xl bg-white dark:bg-dark-surface-main"
+        >
+          <h2 class="text-lg font-semibold">
+            Dettaglio Ticket&nbsp;
+            <span
+              class="font-semibold text-light-accent-secondary dark:text-dark-accent-secondary"
+              [innerText]="ticket()?.publicId ? '#' + ticket()!.publicId : ''"
+            >
             </span>
+          </h2>
+          <button
+            class="inline-flex items-center justify-center size-8 rounded-md text-slate-500 hover:text-emerald-600 hover:bg-slate-100 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-transparent transition"
+            (click)="close()"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 640 640"
+              class="fill-current w-5 h-auto"
+            >
+              <path
+                d="M182.9 137.4L160.3 114.7L115 160L137.6 182.6L275 320L137.6 457.4L115 480L160.3 525.3L182.9 502.6L320.3 365.3L457.6 502.6L480.3 525.3L525.5 480L502.9 457.4L365.5 320L502.9 182.6L525.5 160L480.3 114.7L457.6 137.4L320.3 274.7L182.9 137.4z"
+              />
+            </svg>
+          </button>
+        </div>
+
+        @if (ticket()) {
+          <div
+            class="px-4 py-3 border-b border-slate-200/70 dark:border-slate-700/60 bg-slate-50/70 dark:bg-slate-800/40 flex flex-col gap-2"
+          >
+            <div class="flex flex-wrap items-center gap-2">
+              <span
+                class="text-xs font-medium text-slate-700 dark:text-slate-200 bg-slate-200/70 dark:bg-slate-700/60 border border-slate-300/60 dark:border-slate-600/60 px-2 py-0.5 rounded-full"
+              >
+                #{{ ticket()!.publicId }}
+              </span>
+
+              <span
+                class="text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 border"
+                [ngClass]="statusBadgeClass()"
+              >
+                {{ statusLabel() }}
+              </span>
+
+              @if (innerScope() === 'Support' && typeGuards.isTicket(ticket())) {
+                <span
+                  class="text-xs text-slate-600 dark:text-slate-300"
+                >
+                  Utente:
+                  <span class="font-medium">
+                    {{ getUserFullNameFromTicket() }}
+                  </span>
+                </span>
+              }
+            </div>
+
+            <div
+              class="text-base md:text-lg font-semibold text-slate-900 dark:text-slate-50"
+            >
+              {{ ticket()!.subject }}
+            </div>
+
+            <div
+              class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400"
+            >
+              <span>Creato: {{ ticket()!.createdAt | date: 'medium' }}</span>
+              <span class="text-slate-300 dark:text-slate-600">•</span>
+              <span
+                >Aggiornato:
+                {{ ticket()!.updatedAt | date: 'medium' }}</span
+              >
+              <span class="text-slate-300 dark:text-slate-600">•</span>
+              <span
+                >Ultimo msg:
+                {{ ticket()!.lastMessageAt | date: 'medium' }}</span
+              >
+            </div>
+          </div>
+        }
+
+        <div
+          #scrollRoot
+          class="py-6 px-3 overflow-y-auto flex flex-col gap-4 min-h-[30vh] max-h-[40vh]"
+        >
+          <div #sentinel class="w-full h-px"></div>
+
+          @for (item of items; track item.id; let i = $index) {
+            @if (typeGuards.isTicketMessage(item)) {
+              <m-message-item
+                [message]="item"
+                [selfAuthorType]="innerScope()"
+                [showAuthor]="true"
+              />
+            } @else {
+              <m-message-item
+                [message]="item"
+                [selfAuthorType]="innerScope()"
+              />
+            }
           }
         </div>
 
-        <div class="text-base md:text-lg font-semibold text-slate-900 dark:text-slate-50">
-          {{ ticket()!.subject }}
-        </div>
-
-        <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
-          <span>Creato: {{ ticket()!.createdAt | date:'medium' }}</span>
-          <span class="text-slate-300 dark:text-slate-600">•</span>
-          <span>Aggiornato: {{ ticket()!.updatedAt | date:'medium' }}</span>
-          <span class="text-slate-300 dark:text-slate-600">•</span>
-          <span>Ultimo msg: {{ ticket()!.lastMessageAt | date:'medium' }}</span>
+        <div class="border-t border-slate-200/70 dark:border-slate-700/60">
+          <m-ticket-composer (send)="onSend($event)"></m-ticket-composer>
         </div>
       </div>
-    }
-
-    <div #scrollRoot class="py-6 px-3 overflow-y-auto flex flex-col gap-4 min-h-[30vh] max-h-[40vh]">
-      <div #sentinel class="w-full h-px"></div>
-      <!-- body scrollabile: qui ci vanno i messaggi in stile chat -->
-      @for (item of items; track item.id; let i = $index) {
-        @if (typeGuards.isTicketMessage(item)) {
-          <m-message-item
-            [message]="item"
-            [selfAuthorType]="innerScope()"
-            [showAuthor]="true" />
-        } @else {
-          <m-message-item
-            [message]="item"
-            [selfAuthorType]="innerScope()" />
-        }
-      }
     </div>
-    <div class="border-t border-slate-200/70 dark:border-slate-700/60">
-      <m-ticket-composer (send)="onSend($event)"></m-ticket-composer>
-    </div>
-  </div>
-</div>
-
-
- `
+  `,
 })
 export class TicketDetailComponent extends AbstractPaginationComponent<TicketMessage | ClientTicketMessage> implements OnInit, OnDestroy, AfterViewInit {
 
@@ -164,12 +210,11 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
   protected readonly typeGuards = inject(TypeGuardsService)
   private readonly cdr = inject(ChangeDetectorRef)
   private readonly appCtx = inject(AppContextService)
+  private firstMessageSet = signal<boolean>(false)
 
-  private composerSub?: Subscription
+  private composerSub?: Subscription;
 
-  private readonly ITEMS_PER_PAGE = 10
-
-  private prevTicketId = ''
+  private readonly ITEMS_PER_PAGE = 10;
 
   @ViewChild('sentinel')
   protected declare sentinel: ElementRef<HTMLDivElement>
@@ -177,200 +222,230 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
   @ViewChild('scrollRoot')
   protected declare root: ElementRef<HTMLDivElement>
 
-  ticket = signal<Ticket | ClientTicket | null>(null)
-  innerScope = signal<TicketDetailInnerScope>('User')
-  watchableInnerScope = signal<boolean>(false)
+  ticket = signal<Ticket | ClientTicket | null>(null);
+  innerScope = computed(
+    () => this.detailContext.innerScope() as TicketDetailInnerScope
+  )
+  /** chiave ticket+scope, per capire quando reset tare tutto */
+  private currentKey = '';
+  /** true dopo il primo load della key corrente, per gestire lo scroll */
+  private firstLoadForKey = false;
 
   constructor() {
-    super()
+    super();
+
+    // reagisce a (ticketId, innerScope) del context
     effect(() => {
-      const w = this.watchableInnerScope()
-      if (!w) {
-        return
+      const id = this.detailContext.ticketId();
+      const scope = this.detailContext.innerScope();
+
+      if (!id) {
+        return;
       }
-      const is = this.detailContext.innerScope()
-      if (is !== this.innerScope()) {
-        this.innerScope.set(is)
+
+      const key = `${scope}|${id}`;
+      if (key === this.currentKey) {
+        return;
       }
-    })
-    effect(() => {
-      const id = this.detailContext.ticketId()
-      if (!id || id === this.prevTicketId) {
-        return
-      }
-      this.prevTicketId = id;
-      this.ticket.set(null)
-      this.items = []
-      this.page = 1
-      this.done = false
-      this.earlyDone = false
-      this.empty.set(true)
-      queueMicrotask(() => {
-        const rootEl = this.root?.nativeElement
-        if (rootEl) rootEl.scrollTop = rootEl.scrollHeight
-      })
-      queueMicrotask(() => this.loadMore())
-      queueMicrotask(() => this.startObserver())
-    })
+
+      this.currentKey = key;
+      this.resetForNewKey();
+    });
   }
 
-  ngOnInit(): void {
+  private resetForNewKey(): void {
+    this.resetPagination(); // del base class
+    this.ticket.set(null);
+    this.items = [];
+    this.empty.set(true);
+    this.loading = false;
+    this.done = false;
+    this.earlyDone = false;
+    this.firstLoadForKey = false;
+
+    // piccolo “pre-scroll” di sicurezza (se il root esiste già)
+    queueMicrotask(() => {
+      const rootEl = this.root?.nativeElement;
+      if (rootEl) {
+        rootEl.scrollTop = rootEl.scrollHeight;
+      }
+    });
+
+    queueMicrotask(() => this.loadMore());
+  }
+
+  ngOnInit(): void { }
+
+  ngAfterViewInit(): void {
+    this.startObserver();
   }
 
   ngOnDestroy(): void {
-    this.composerSub?.unsubscribe()
-    this.observer?.disconnect()
-  }
-
-  ngAfterViewInit(): void {
-    this.startObserver()
+    this.composerSub?.unsubscribe();
+    this.observer?.disconnect();
   }
 
   private smoothToBottom(duration = 200) {
-    const rootEl = this.root?.nativeElement
-    if (!rootEl) {
-      return
-    }
-    const target = rootEl.scrollHeight
-    this.appCtx.smoothTo(this.root, target, duration)
+    const rootEl = this.root?.nativeElement;
+    if (!rootEl) return;
+    const target = rootEl.scrollHeight;
+    this.appCtx.smoothTo(this.root, target, duration);
   }
 
   close(): void {
     queueMicrotask(() => {
-      this.overlayContext.close()
-      this.detailContext.resetInnerScope()
-      this.detailContext.clearTicketId()
-    })
+      this.overlayContext.close();
+      this.detailContext.clearTicketId();
+    });
   }
 
-  protected override fetch$(): Observable<PageModel<TicketMessage | ClientTicketMessage>> {
+  protected override fetch$(): Observable<
+    PageModel<TicketMessage | ClientTicketMessage>
+  > {
+    const scope = this.innerScope();
+    const tId = this.detailContext.ticketId();
+
     return of(null).pipe(
       switchMap(() => {
         if (this.page === 1 && !this.ticket()) {
-          const is = this.detailContext.innerScope()
-          const tId = this.detailContext.ticketId()
-          this.innerScope.set(is)
-          if (is === 'User') {
-            return this.helpService.myTicketDetail(tId)
-          } else if (is === 'Support') {
-            return this.helpService.ticketDetailAsSupport(tId)
-          }
+          return scope === 'User'
+            ? this.helpService.myTicketDetail(tId)
+            : this.helpService.ticketDetailAsSupport(tId);
         }
-        return of(null)
+        return of(null);
       }),
       switchMap((t: ClientTicket | Ticket | null) => {
-        if (t) {
-          this.ticket.set(t)
-        }
-        const default$ = this.helpService.myTicketMessages(this.page, this.ITEMS_PER_PAGE, this.detailContext.ticketId())
-        if (this.innerScope() === 'User') {
-          return default$
-        } else if (this.innerScope() === 'Support') {
-          return this.helpService.ticketMessagesAsSupport(this.page, this.ITEMS_PER_PAGE, this.detailContext.ticketId())
-        }
-        return default$
+        if (t) this.ticket.set(t);
+
+        return scope === 'User'
+          ? this.helpService.myTicketMessages(
+            this.page,
+            this.ITEMS_PER_PAGE,
+            tId,
+          )
+          : this.helpService.ticketMessagesAsSupport(
+            this.page,
+            this.ITEMS_PER_PAGE,
+            tId,
+          );
       }),
-      filter((val) => !!val),
-      tap(() => this.watchableInnerScope.set(true))
-    )
+      filter(Boolean),
+      distinctUntilChanged()
+    );
   }
 
   protected override async loadMore(): Promise<void> {
+    // se non ho root ancora, non faccio nulla
+    const rootEl = this.root?.nativeElement;
+    if (!rootEl) return;
 
-    if (this.loading || this.done) {
-      return
-    }
+    // guardia top: consideriamo "in alto" quando scrollTop è quasi zero
+    const isAtTop = rootEl.scrollTop <= 8;
 
-    this.loading = true
+    /**
+     * Regola:
+     * - page === 1: bootstrap → allowed sempre
+     * - page >= 2: allowed solo se l'utente è davvero tornato in alto
+     */
+    const allowed = this.page === 1 || isAtTop;
+    if (!allowed) return;
 
-    const rootEl = this.root?.nativeElement
-    const prevHeight = rootEl?.scrollHeight ?? 0
-    const prevTop = rootEl?.scrollTop ?? 0
+    if (this.loading || this.done) return;
+    this.loading = true;
 
-    const newPage = await firstValueFrom(this.fetch$())
+    const prevHeight = rootEl.scrollHeight;
+    const prevTop = rootEl.scrollTop;
 
-    let wasFirstPage = false
+    const newPage = await firstValueFrom(this.fetch$());
 
     if (newPage.items.length === 0) {
-      this.done = true
-      if (this.page === 1) this.earlyDone = true
+      this.done = true;
+      if (this.page === 1) this.earlyDone = true;
     } else {
-      if (this.empty()) this.empty.set(false)
-      const chunk = [...newPage.items].reverse()
-      this.items = [...chunk, ...this.items]
-      wasFirstPage = this.page === 1
-      this.page++
+      if (this.empty()) this.empty.set(false);
+
+      // 👇 paracadute anti-overlap (super leggero, ma ti salva sempre)
+      const existingIds = new Set(this.items.map(i => i.id));
+      const chunk = [...newPage.items]
+        .reverse()
+        .filter(i => !existingIds.has(i.id));
+
+      if (chunk.length > 0) {
+        this.items = [...chunk, ...this.items];
+        this.page++;
+      } else {
+        // se tutto era overlap non avanzi pagina, così non “buchi” dati
+        // (al prossimo scroll-up riprovi)
+      }
     }
 
-    this.loading = false
+    this.loading = false;
 
     queueMicrotask(() => {
-      if (!rootEl) {
-        return
+      // prima pagina della key → scroll in fondo
+      if (!this.firstLoadForKey) {
+        this.firstLoadForKey = true;
+        this.smoothToBottom(180);
+        return;
       }
-      if (wasFirstPage) {
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => this.smoothToBottom(180))
-        })
-        return
-      }
-      const newHeight = rootEl.scrollHeight
-      const delta = newHeight - prevHeight
-      rootEl.scrollTop = prevTop + delta
-    })
 
-    this.cdr.markForCheck()
+      // pagine successive → preserva posizione
+      const newHeight = rootEl.scrollHeight;
+      const delta = newHeight - prevHeight;
+      rootEl.scrollTop = prevTop + delta;
+    });
 
+    this.cdr.markForCheck();
   }
+
 
   statusLabel = computed(() => {
     const s = this.ticket()?.status;
     switch (s) {
-      case 'Open': return 'Aperto'
-      case 'WaitingSupport': return 'In attesa supporto'
-      case 'WaitingUser': return 'In attesa utente'
-      case 'Closed': return 'Chiuso'
-      default: return String(s ?? '')
+      case 'Open':
+        return 'Aperto';
+      case 'WaitingSupport':
+        return 'In attesa supporto';
+      case 'WaitingUser':
+        return 'In attesa utente';
+      case 'Closed':
+        return 'Chiuso';
+      default:
+        return String(s ?? '');
     }
-  })
+  });
 
   statusBadgeClass = computed(() => {
     const s = this.ticket()?.status;
     switch (s) {
       case 'Open':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200/70 dark:bg-emerald-900/20 dark:text-emerald-200 dark:border-emerald-700/40'
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200/70 dark:bg-emerald-900/20 dark:text-emerald-200 dark:border-emerald-700/40';
       case 'WaitingSupport':
-        return 'bg-amber-50 text-amber-700 border-amber-200/70 dark:bg-amber-900/20 dark:text-amber-200 dark:border-amber-700/40'
+        return 'bg-amber-50 text-amber-700 border-amber-200/70 dark:bg-amber-900/20 dark:text-amber-200 dark:border-amber-700/40';
       case 'WaitingUser':
-        return 'bg-sky-50 text-sky-700 border-sky-200/70 dark:bg-sky-900/20 dark:text-sky-200 dark:border-sky-700/40'
+        return 'bg-sky-50 text-sky-700 border-sky-200/70 dark:bg-sky-900/20 dark:text-sky-200 dark:border-sky-700/40';
       case 'Closed':
-        return 'bg-slate-200 text-slate-700 border-slate-300/70 dark:bg-slate-700/60 dark:text-slate-200 dark:border-slate-600/60'
+        return 'bg-slate-200 text-slate-700 border-slate-300/70 dark:bg-slate-700/60 dark:text-slate-200 dark:border-slate-600/60';
       default:
-        return 'bg-slate-100 text-slate-700 border-slate-200/70 dark:bg-slate-800/60 dark:text-slate-200 dark:border-slate-700/60'
+        return 'bg-slate-100 text-slate-700 border-slate-200/70 dark:bg-slate-800/60 dark:text-slate-200 dark:border-slate-700/60';
     }
-  })
+  });
 
   getUserFullNameFromTicket(): string {
-    const t: Maybe<Ticket | ClientTicket> = this.ticket()
-    if (!t) {
-      return ''
-    }
+    const t: Maybe<Ticket | ClientTicket> = this.ticket();
+    if (!t) return '';
     if (this.typeGuards.isTicket(t)) {
-      return t.userFullName
+      return t.userFullName;
     }
-    return ''
+    return '';
   }
 
   onSend(e: { html: string; delta: any }) {
+    const ticketId = this.detailContext.ticketId();
+    if (!ticketId) return;
 
-    const ticketId = this.detailContext.ticketId()
-    if (!ticketId) {
-      return
-    }
+    const nowIso = new Date().toISOString();
 
-    const nowIso = new Date().toISOString()
-
-    // messaggio ottimistico
     const optimistic: any = {
       id: 'optimistic-' + crypto.randomUUID(),
       publicId: '',
@@ -380,36 +455,29 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
       contentHtml: e.html,
       createdAt: nowIso,
       triggerDisappear: signal(false),
-      collapse: signal(false)
-    }
+      collapse: signal(false),
+    };
 
-    this.items = [...this.items, optimistic]
+    this.items = [...this.items, optimistic];
 
-    queueMicrotask(() => this.smoothToBottom(160))
+    queueMicrotask(() => this.smoothToBottom(160));
 
-    const send$ = this.innerScope() === 'User'
-      ? this.helpService.addTicketMessage(ticketId, e.delta, e.html)
-      : this.helpService.addSupportTicketMessage(ticketId, e.delta, e.html)
+    const send$ =
+      this.innerScope() === 'User'
+        ? this.helpService.addTicketMessage(ticketId, e.delta, e.html)
+        : this.helpService.addSupportTicketMessage(ticketId, e.delta, e.html);
 
     send$.subscribe({
       next: () => {
-        // niente da fare per ora, l’ottimistico resta
-        // in futuro col WS lo rimpiazziamo con quello vero
+        // in futuro rimpiazzo via WS
       },
       error: () => {
-        // rollback: va tolto optimistic
-        this.items = this.items.filter(m => m.id !== optimistic.id)
-        // toast/snackbar
-      }
-    })
+        this.items = this.items.filter((m) => m.id !== optimistic.id);
+        // TODO: toast
+      },
+    });
   }
 
-
-  protected override doQuery(q: string): void {
-    // Per adesso non usiamo la ricerca
-  }
-  protected override doClear(): void {
-    // Per adesso non usiamo la ricerca
-  }
-
+  protected override doQuery(q: string): void { }
+  protected override doClear(): void { }
 }

@@ -125,14 +125,20 @@ export class HelpService {
 
   public ticketDetailAsSupport(ticketId: string): Observable<Ticket> {
     return this.apollo
-      .watchQuery<{ ticketDetailAsSupport: Ticket }>({
+      .watchQuery<{ ticketDetailAsSupport: { ticket: APITicket }}>({
         query: TICKET_DETAIL_AS_SUPPORT,
         variables: {
           ticketId
         },
         fetchPolicy: 'network-only'
       }).valueChanges.pipe(
-        map((res) => extractGqlData(res, 'ticketDetailAsSupport'))
+        map((res) => extractGqlData(res, 'ticketDetailAsSupport') as { ticket: APITicket }),
+        map((res: { ticket: APITicket }) => res.ticket),
+        map((res) => ({
+          ...res,
+          triggerDisappear: signal<boolean>(false),
+          collapse: signal<boolean>(false)
+        }))
       )
   }
 

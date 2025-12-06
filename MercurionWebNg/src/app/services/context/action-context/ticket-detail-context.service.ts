@@ -27,6 +27,12 @@ export class TicketDetailContextService {
   }
 
   setInnerScope(innerScope: TicketDetailInnerScope) {
+    const prev = this._innerScope()
+    console.log(
+    '[TicketDetailContext] setInnerScope',
+    prev, '→', innerScope,
+    new Error().stack
+  )
     this._innerScope.set(innerScope)
   }
 

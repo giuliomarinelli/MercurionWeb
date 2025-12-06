@@ -6,6 +6,7 @@ export type ActionScope =
   | 'SensitiveDataChange'
   | 'EssentialProfileRegistryEdit'
   | 'TicketDetail'
+  | 'NewTicket'
   | ''
 
 export type SaveOverlayFormItem = 'name' | 'label' | 'notes'

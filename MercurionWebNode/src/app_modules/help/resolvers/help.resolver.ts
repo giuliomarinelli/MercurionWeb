@@ -91,7 +91,7 @@ export class HelpResolver {
     async createTicket(
         @AuthenticatedUserId() userId: UUID,
         @Args('subject') subject: string,
-        @Args('contentDelta', { type: () => GraphQLJSON }) contentDelta: JsonValue,
+        @Args('contentDelta', { type: () => GraphQLJSON }) contentDelta: string | JsonValue,
         @Args('contentHtml') contentHtml: string,
         @Scopes() scopes: Scope[]
     ): Promise<Ticket> {
