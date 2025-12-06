@@ -1,9 +1,10 @@
 import { ObjectType, Field, Int } from "@nestjs/graphql";
 import { MoleculeCollection } from "../entities/molecule-collection.entity";
+import { FlatPagination } from "src/Models/flat-pagination.interface";
 
 
 @ObjectType()
-export class PaginatedMoleculeCollection {
+export class PaginatedMoleculeCollection implements FlatPagination<MoleculeCollection> {
 
     @Field(() => [MoleculeCollection])
     items: MoleculeCollection[]
@@ -22,4 +23,5 @@ export class PaginatedMoleculeCollection {
 
     @Field(() => Int)
     currentPage: number
+    
 }

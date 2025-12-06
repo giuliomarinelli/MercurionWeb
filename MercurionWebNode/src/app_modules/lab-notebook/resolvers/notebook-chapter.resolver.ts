@@ -4,7 +4,7 @@ import { UUID } from 'crypto';
 import { AuthenticatedUserId } from 'src/metadata/metadata';
 import { GraphQLResolveInfo } from 'graphql';
 import { NotebookChapter } from '../Models/entities/lab-notebook-chapter.entity';
-import { GraphqlUtils } from 'src/utils/graphql-utils/graphql-utils';
+import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap } from 'src/utils/type-orm-utils/type-orm-utils';
 import { CreateChapterInput } from '../Models/DTO/create-notebook-chapter-input';
 import { UpdateChapterInput } from '../Models/DTO/update-chapter-input';
@@ -20,7 +20,7 @@ export class NotebookChapterResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ): Promise<NotebookChapter[]> {
-        const fieldsMap = GraphqlUtils.getFieldsMap(info) as GraphQLFieldsMap
+        const fieldsMap = GraphQLUtils.getFieldsMap(info) as GraphQLFieldsMap
         return this.chapterService.listChapters(
             notebookId as UUID,
             userId,
@@ -34,7 +34,7 @@ export class NotebookChapterResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ): Promise<NotebookChapter | null> {
-        const fieldsMap = GraphqlUtils.getFieldsMap(info) as GraphQLFieldsMap
+        const fieldsMap = GraphQLUtils.getFieldsMap(info) as GraphQLFieldsMap
         return this.chapterService.getChapter(
             id as UUID,
             userId,
@@ -61,7 +61,7 @@ export class NotebookChapterResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ): Promise<NotebookChapter | null> {
-        const fieldsMap = GraphqlUtils.getFieldsMap(info) as GraphQLFieldsMap
+        const fieldsMap = GraphQLUtils.getFieldsMap(info) as GraphQLFieldsMap
         return this.chapterService.updateChapter(id as UUID, userId, input, fieldsMap)
     }
 

@@ -5,6 +5,8 @@ export type ActionScope =
   | 'BindCollectionsToMolecule'
   | 'SensitiveDataChange'
   | 'EssentialProfileRegistryEdit'
+  | 'TicketDetail'
+  | 'NewTicket'
   | ''
 
 export type SaveOverlayFormItem = 'name' | 'label' | 'notes'
@@ -18,3 +20,5 @@ export type SensitiveDataChangeInnerScope =
   | 'AddPhone'
   | 'RemovePhone'
   | ''
+
+export type TicketDetailInnerScope = 'User' | 'Support'

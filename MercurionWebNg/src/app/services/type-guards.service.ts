@@ -1,7 +1,10 @@
+import { APIClientTicket, ClientTicketMessage, TicketMessage } from './../Models/graphql/help.models';
 import { Injectable } from "@angular/core";
 import { MoleculeDetailSystem } from "../Models/graphql/molecule.detail.models";
 import { ChEMBLMoleculeItemEntity, CustomMoleculeItemEntity, MoleculeCollectionItemClient, MoleculeCollectionItemEntityShort, MoleculeDetailItem } from "../Models/graphql/molecule-collection/molecule-collection.types";
 import { SSO_AuthProvider } from "../Models/auth/provider.models";
+import { Ticket } from "../Models/graphql/help.models";
+import { Maybe } from 'graphql/jsutils/Maybe';
 
 @Injectable({ providedIn: 'root' })
 export class TypeGuardsService {
@@ -12,7 +15,6 @@ export class TypeGuardsService {
   isChemblMolecule(item: any): boolean {
     return item?.type === 'chembl';
   }
-
 
   // custom
   isCustomMolecule(item: MoleculeDetailItem): item is CustomMoleculeItemEntity;
@@ -69,6 +71,90 @@ export class TypeGuardsService {
       return false
     }
     return ['Google', 'GitHub', 'LinkedIn', 'Discord'].includes(item as string)
+  }
+
+  isTicketVsOmitUpdatedAt(item: Ticket | Omit<Ticket, 'updatedAt'>): item is Ticket {
+    return !!(item as Ticket).updatedAt
+  }
+
+  // --- TICKET guards ---
+
+  isTicket(
+    item: Maybe<Ticket | APIClientTicket>
+  ): item is Ticket {
+    if (!item) return false
+
+    const rec = this.asRecord(item)
+    const discriminants = ['userId', 'userFullName'] as const
+
+    // full Ticket solo se entrambi presenti e NON nullish e stringhe non vuote
+    return this.allPresentStrings(rec, discriminants)
+  }
+
+  isClientTicket(
+    item: Maybe<APIClientTicket | Ticket>
+  ): item is APIClientTicket {
+    if (!item) return false
+
+    const rec = this.asRecord(item)
+    const discriminants = ['userId', 'userFullName'] as const
+
+    // ClientTicket se entrambi nullish (missing/undefined/null)
+    return this.allNullish(rec, discriminants)
+  }
+
+  // --- MESSAGE guards ---
+
+  isTicketMessage(
+    item: Maybe<TicketMessage | ClientTicketMessage>
+  ): item is TicketMessage {
+    if (!item) return false
+
+    const rec = this.asRecord(item)
+    const discriminants = ['userId', 'authorId', 'userFullName', 'authorFullName'] as const
+
+    // full Message solo se tutti presenti e non nullish e stringhe non vuote
+    return this.allPresentStrings(rec, discriminants)
+  }
+
+  isClientTicketMessage(
+    item: Maybe<ClientTicketMessage | TicketMessage>
+  ): item is ClientTicketMessage {
+    if (!item) return false
+
+    const rec = this.asRecord(item)
+    const discriminants = ['userId', 'authorId', 'userFullName', 'authorFullName'] as const
+
+    // ClientMessage se tutti nullish (missing/undefined/null)
+    return this.allNullish(rec, discriminants)
+  }
+
+  // --- helpers DRY / strict ---
+
+  private asRecord(item: unknown): Record<string, unknown> {
+    return item as Record<string, unknown>
+  }
+
+  private hasNonEmptyString(value: unknown): value is string {
+    return typeof value === 'string' && value.trim().length > 0
+  }
+
+  private allNullish(rec: Record<string, unknown>, keys: readonly string[]): boolean {
+    for (const k of keys) {
+      if (!this.isNullish(rec[k])) {
+        return false
+      }
+    }
+    return true
+  }
+
+  private allPresentStrings(rec: Record<string, unknown>, keys: readonly string[]): boolean {
+    for (const k of keys) {
+      if (!this.hasNonEmptyString(rec[k])) {
+        return false
+      }
+    }
+    return true
   }
 
 }

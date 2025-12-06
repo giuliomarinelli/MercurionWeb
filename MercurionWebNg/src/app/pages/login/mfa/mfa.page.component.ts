@@ -6,7 +6,7 @@ import { combineLatest, debounceTime, distinctUntilChanged, EMPTY, filter, map, 
 import { Login_FirstStep_Data } from '../../../Models/confirm.models'
 import { AuthService } from '../../../services/auth.service'
 import { FingerprintService } from '../../../services/fingerprint.service'
-import { HttpErrorRes } from '../../../Models/error-res.dto'
+import { HttpErrorBody } from '../../../Models/http-error-body.dto'
 import { UserContextService } from '../../../services/context/user-context.service'
 import { SessionSyncService } from '../../../services/session-sync.service'
 import { ISessionDeviceInfo } from '../../../Models/auth/fingerprint.models'
@@ -342,7 +342,6 @@ export class MfaPageComponent implements OnInit, OnDestroy {
 
           try {
             const pd: Login_FirstStep_Data = JSON.parse(atob(pdRaw))
-            console.log('PD', pd)
             this.enabledMfaStrategies.set(pd.enabledMfaStrategies as MfaStrategy[])
             return EMPTY
           } catch {
@@ -463,61 +462,63 @@ export class MfaPageComponent implements OnInit, OnDestroy {
     let dto: TotpBodyDTO | BackupCodeDTO = this.view() !== 'BACKUP_CODE' ? {
       totp: this.codeControl.value
     }
-    :
-    {
-      code: this.codeControl.value
-    }
+      :
+      {
+        code: this.codeControl.value
+      }
 
-      this.otpVerifySub = this.authService.login_thirdStep(
-        currentView as MfaStrategy,
-        dto,
-        {
-          fingerprintBase64: this.fingerprintDataEnc,
-          sessionDeviceInfo: this.sessionDeviceInfo,
-        },
-        this.loginFirstStepData?.preAuthorizationToken ?? '',
-        this.unTrusted()
-      ).subscribe({
-        next: (res) => {
-          this.authService.setAccessToken(res.accessToken ?? null)
-          this.authService.setWs_accessToken(res.ws_accessToken ?? null)
-          sessionStorage.removeItem('preAuthorizationData')
+    localStorage.removeItem('scp')
 
-          localStorage.setItem('login', res.initials ?? 'U')
-          this.sessionSyncService.resumeSession(res.initials ?? 'U')
+    this.otpVerifySub = this.authService.login_thirdStep(
+      currentView as MfaStrategy,
+      dto,
+      {
+        fingerprintBase64: this.fingerprintDataEnc,
+        sessionDeviceInfo: this.sessionDeviceInfo,
+      },
+      this.loginFirstStepData?.preAuthorizationToken ?? '',
+      this.unTrusted()
+    ).subscribe({
+      next: (res) => {
+        this.authService.setAccessToken(res.accessToken ?? null)
+        this.authService.setWs_accessToken(res.ws_accessToken ?? null)
+        sessionStorage.removeItem('preAuthorizationData')
 
-          const redirect = sessionStorage.getItem('redirectAfterLogin') || '/dashboard'
-          this.router.navigateByUrl(redirect)
-        },
-        error: (e) => {
-          sessionStorage.removeItem('preAuthorizationData')
+        localStorage.setItem('login', res.initials ?? 'U')
+        this.sessionSyncService.resumeSession(res.initials ?? 'U')
 
-          let message = 'Si è verificato un errore.'
-          if ('error' in e && 'status' in e) {
-            const errBody: HttpErrorRes = e.error
-            if (e.status === 401) {
-              switch (errBody.message) {
-                case 'Invalid MFA strategy':
-                  message = 'Operazione non autorizzata.'
-                  break
-                case 'MfaDeviceMismatch':
-                  message = 'Hai inserito il codice da un altro browser o dispositivo. Accesso negato.'
-                  break
-                case 'Invalid MFA OTP':
-                  message = 'Il codice inserito non è corretto, devi ripetere il login.'
-                  break
-                default:
-                  message = 'Si è verificato un errore.'
-              }
-            } else if (e.status === 429) {
-              message = 'Troppi tentativi, riprova tra qualche minuto.'
+        const redirect = sessionStorage.getItem('redirectAfterLogin') || '/dashboard'
+        this.router.navigateByUrl(redirect)
+      },
+      error: (e) => {
+        sessionStorage.removeItem('preAuthorizationData')
+
+        let message = 'Si è verificato un errore.'
+        if ('error' in e && 'status' in e) {
+          const errBody: HttpErrorBody = e.error
+          if (e.status === 401) {
+            switch (errBody.message) {
+              case 'Invalid MFA strategy':
+                message = 'Operazione non autorizzata.'
+                break
+              case 'MfaDeviceMismatch':
+                message = 'Hai inserito il codice da un altro browser o dispositivo. Accesso negato.'
+                break
+              case 'Invalid MFA OTP':
+                message = 'Il codice inserito non è corretto, devi ripetere il login.'
+                break
+              default:
+                message = 'Si è verificato un errore.'
             }
+          } else if (e.status === 429) {
+            message = 'Troppi tentativi, riprova tra qualche minuto.'
           }
-
-          this.toast.trigger(message, 'error', 3000)
-          this.router.navigateByUrl('/login')
         }
-      })
+
+        this.toast.trigger(message, 'error', 3000)
+        this.router.navigateByUrl('/login')
+      }
+    })
   }
 
   ngOnDestroy(): void {

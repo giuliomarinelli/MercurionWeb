@@ -28,6 +28,8 @@ import { MercurionAIModule } from './app_modules/mercurion-ai/mercurion-ai.modul
 import { LabNotebookModule } from './app_modules/lab-notebook/lab-notebook.module';
 import { AdminModule } from './app_modules/admin/admin.module';
 import { SSO_Module } from './app_modules/sso/sso.module';
+import { HelpModule } from './app_modules/help/help.module';
+
 
 const nodeEnv = process.env.NODE_ENV ?? 'development'
 
@@ -65,7 +67,8 @@ const nodeEnv = process.env.NODE_ENV ?? 'development'
     SynthModule,
     LabNotebookModule,
     AdminModule,
-    SSO_Module
+    SSO_Module,
+    HelpModule
   ],
   providers: [
     {
@@ -75,7 +78,7 @@ const nodeEnv = process.env.NODE_ENV ?? 'development'
     JwtToolsService,
     SessionService,
     JwtService,
-    ResponseService
+    ResponseService    
   ],
   controllers: [TestController]
 })

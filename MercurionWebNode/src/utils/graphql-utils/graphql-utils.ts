@@ -4,7 +4,7 @@ import * as graphqlFields from 'graphql-fields';
 /**
  * Utility class per la gestione delle query GraphQL dinamiche.
  */
-export class GraphqlUtils {
+export class GraphQLUtils {
     /**
      * Restituisce la mappa dei campi richiesti (root level) dalla query GraphQL.
      * @param info Oggetto GraphQLResolveInfo del resolver.

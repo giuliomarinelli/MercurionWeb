@@ -25,9 +25,11 @@ export enum Scope {
     DeleteUsers = "b71d1e53-3187-44ab-9331-e2e52b4304f1",
     SystemSettings = "8bcb6f7f-ccbb-4de2-bb3a-2e1a6d7c19f8",
     ChangeLogLevels = '2154bae4-5d31-4b24-ae38-d601d7065072',
+    HandleTickets = 'c8a33eb5-4b50-4748-9ded-6f9b714cc91e',
 
     // 🔬 Inferenza e AI: Admmin
     ViewInferenceHistory = "2f4c8163-e2c3-4e2c-8c6a-7a7d63c1e160",
     ViewModelPerformance = "c84501f4-1a5f-4d2b-8e38-6a6f6ac0fd8a",
     TrainNewModel = "7c28f145-f2aa-4a3b-a5d2-4f2a6f77f733"
+
 }

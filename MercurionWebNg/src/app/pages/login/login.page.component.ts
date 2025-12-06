@@ -5,7 +5,7 @@ import { PublicPipe } from '../../pipes/public.pipe';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { Subscription, tap } from 'rxjs';
-import { HttpErrorRes } from '../../Models/error-res.dto';
+import { HttpErrorBody } from '../../Models/http-error-body.dto';
 import { Confirm_Login_FirstStepDTO } from '../../Models/confirm.models';
 import { FingerprintService } from '../../services/fingerprint.service';
 import { ToastContext } from '../../components/common/toast/toast.component';
@@ -402,7 +402,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
           this.goingToPasswordStep.set(false)
           this.serverErrorStep.set(1)
           console.error(err.error)
-          const body = err.error as HttpErrorRes
+          const body = err.error as HttpErrorBody
           if (body.statusCode === 400) {
             // handle bad request
           } else if (body.statusCode === 401) {
@@ -419,6 +419,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
   onSubmit(): void {
     if (this.loginForm.valid && this.turnstileToken()) {
       this.loadingLogin.set(true)
+      localStorage.removeItem('scp')
       const dto: Login_FirstStepWrapper = {
         email: this.loginForm.value['email'],
         password: this.loginForm.value['password'],
@@ -454,7 +455,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
           }
         },
         error: err => {
-          const body = err.error as HttpErrorRes
+          const body = err.error as HttpErrorBody
           this.turnstileComponent.reset();
           this.turnstileToken.set(null)
           this.loadingLogin.set(false)

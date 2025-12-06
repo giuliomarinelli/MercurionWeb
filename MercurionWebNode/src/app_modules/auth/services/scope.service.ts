@@ -1,5 +1,6 @@
+import { TokenType } from 'src/app_modules/auth/Models/enums/token-type.enum';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
-import { ExecutionContext, Injectable } from '@nestjs/common';
+import { ExecutionContext, Inject, Injectable, forwardRef } from '@nestjs/common';
 import { Scope } from 'src/app_modules/user/Models/enums/scope.enum';
 import { SercurityService } from './sercurity.service';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
@@ -11,6 +12,7 @@ import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interface
 import { Reflector } from '@nestjs/core';
 import { SCOPES_KEY } from 'src/metadata/metadata';
 import { RpcException } from '@nestjs/microservices';
+import { JwtToolsService } from './jwt-tools.service';
 
 @Injectable()
 export class ScopeService {
@@ -38,6 +40,8 @@ export class ScopeService {
         private readonly securityService: SercurityService,
         @InjectRepository(User)
         private readonly userRepo: Repository<User>,
+        @Inject(forwardRef(() => JwtToolsService))
+        private readonly jwtTools: JwtToolsService,
         loggerFactory: MeiliLoggerService
     ) {
         this.logger = loggerFactory.forContext(ScopeService.name)
@@ -65,6 +69,7 @@ export class ScopeService {
     }
 
     async scopeVerificationLayer(userId: UUID, context: ExecutionContext, reflector: Reflector, jwtScpClaim: string): Promise<void> {
+
         const requiredScopes = reflector.getAllAndOverride<Scope[]>(SCOPES_KEY, [
             context.getHandler(),
             context.getClass()
@@ -94,8 +99,7 @@ export class ScopeService {
             .filter((s): s is Scope => this.scopeValues.includes(s as Scope))
     }
 
-
-    private async verifyUserHasScopes(userId: UUID, ...scopes: Scope[]): Promise<boolean> {
+    async verifyUserHasScopes(userId: UUID, ...scopes: Scope[]): Promise<boolean> {
         try {
             const { scopes: encScopes } = await this.userRepo.findOneOrFail({
                 where:
@@ -119,6 +123,23 @@ export class ScopeService {
         }
     }
 
-
+    async verifyUserClaimScopesConsistencyThenGetScopes(userId: UUID, token: string, type: TokenType = TokenType.AccessToken): Promise<Scope[]> | never {
+        const { scopes: encScopes } = await this.userRepo.findOneOrFail({
+            where:
+            {
+                id: userId
+            },
+            select: {
+                scopes: true
+            }
+        })
+        const decPersistedScopes = this.decryptScopes(...encScopes)
+        const { scp } = await this.jwtTools.verifyTokenAndGetPayload(token, type)
+        const tokenClaimScopes = this.generateScopesArrayFromJwtClaim(scp)
+        if (GeneralUtils.arrayEqualsIgnoreDuplicatesAndSorting(decPersistedScopes, tokenClaimScopes)) {
+            return decPersistedScopes
+        }
+        throw new RpcException('Forbidden::missing permissions')
+    }
 
 }

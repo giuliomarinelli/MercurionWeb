@@ -109,3 +109,17 @@ export const ClientIp = createParamDecorator(
     }
 )
 
+export const Scopes = createParamDecorator(
+    (data: unknown, ctx: ExecutionContext): Scope[] => {
+        const req = ctx.getType() === 'http' ? ctx.switchToHttp().getRequest<FastifyRequest>()
+            :
+            (GqlExecutionContext.create(ctx).getContext().request as FastifyRequest)
+
+        try {
+            return JSON.parse(req.headers['x-scopes'] as string) as Scope[]
+        } catch {
+            return []
+        }
+    }
+)
+

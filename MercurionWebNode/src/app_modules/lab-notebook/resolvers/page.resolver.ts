@@ -4,7 +4,7 @@ import { UUID } from 'crypto';
 import { AuthenticatedUserId } from 'src/metadata/metadata';
 import { GraphQLResolveInfo } from 'graphql';
 import { NotebookPage } from '../Models/entities/lab-notebook-page.entity';
-import { GraphqlUtils } from 'src/utils/graphql-utils/graphql-utils';
+import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { CreatePageInput } from '../Models/DTO/create-page-input';
 import { UpdatePageInput } from '../Models/DTO/update-page-input';
 
@@ -20,9 +20,9 @@ export class NotebookPagePageResolver {
         @Info() info: GraphQLResolveInfo,
         @AuthenticatedUserId() userId: UUID
     ): Promise<NotebookPage | null> {
-        const fieldsMap = GraphqlUtils.getFieldsMap(info)
-        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
-        const relationalFields = GraphqlUtils.getRelationalFields(fieldsMap)
+        const fieldsMap = GraphQLUtils.getFieldsMap(info)
+        const scalarFields = GraphQLUtils.getScalarFields(fieldsMap)
+        const relationalFields = GraphQLUtils.getRelationalFields(fieldsMap)
         return this.pageService.getPage(id as UUID, userId, scalarFields, relationalFields)
     }
 
@@ -32,9 +32,9 @@ export class NotebookPagePageResolver {
         @Info() info: GraphQLResolveInfo,
         @AuthenticatedUserId() userId: UUID
     ): Promise<NotebookPage[]> {
-        const fieldsMap = GraphqlUtils.getFieldsMap(info)
-        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
-        const relationalFields = GraphqlUtils.getRelationalFields(fieldsMap)
+        const fieldsMap = GraphQLUtils.getFieldsMap(info)
+        const scalarFields = GraphQLUtils.getScalarFields(fieldsMap)
+        const relationalFields = GraphQLUtils.getRelationalFields(fieldsMap)
         return this.pageService.findBySection(sectionId as UUID, userId, scalarFields, relationalFields)
     }
 
@@ -44,9 +44,9 @@ export class NotebookPagePageResolver {
         @Info() info: GraphQLResolveInfo,
         @AuthenticatedUserId() userId: UUID
     ): Promise<NotebookPage | null> {
-        const fieldsMap = GraphqlUtils.getFieldsMap(info)
-        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
-        const relationalFields = GraphqlUtils.getRelationalFields(fieldsMap)
+        const fieldsMap = GraphQLUtils.getFieldsMap(info)
+        const scalarFields = GraphQLUtils.getScalarFields(fieldsMap)
+        const relationalFields = GraphQLUtils.getRelationalFields(fieldsMap)
         return this.pageService.getPage(id as UUID, userId, scalarFields, relationalFields)
     }
 

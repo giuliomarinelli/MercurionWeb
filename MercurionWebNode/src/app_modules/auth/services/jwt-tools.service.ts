@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { JwtService, JwtSignOptions, JwtVerifyOptions } from '@nestjs/jwt';
 import { JwtAudience, JwtConfiguration } from 'src/config/config.types';
 import { ConfigService } from '@nestjs/config';
@@ -50,6 +50,7 @@ export class JwtToolsService {
     constructor(
         private readonly jwtService: JwtService,
         private readonly configService: ConfigService,
+        @Inject(forwardRef(() => UserService))
         private readonly userService: UserService,
         private readonly redisservice: RedisService,
         private readonly sessionService: SessionService,

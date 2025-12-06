@@ -5,7 +5,7 @@ import { GraphQLResolveInfo } from 'graphql';
 import { MoleculeCollectionItemEntity } from '../Models/entities/molecule-collection-item.entity';
 import { MoleculeCollectionItemService } from '../services/molecule-collection-item.service';
 import { CreateMoleculeItemInput } from '../Models/DTO/create-molecule-item.input';
-import { GraphqlUtils } from 'src/utils/graphql-utils/graphql-utils';
+import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { PaginatedMoleculeCollectionItem } from '../Models/DTO/paginated-molecule-collection-item.dto';
 import { IPaginationOptions } from 'nestjs-typeorm-paginate';
 import { CustomMoleculeItemDTO } from '../Models/DTO/custom-molecule-item.dto';
@@ -26,7 +26,7 @@ export class MoleculeCollectionItemResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ): Promise<MoleculeCollectionItemEntity[]> {
-        const fieldsMap = GraphqlUtils.getFieldsMap(info)
+        const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.itemService.findAllByUser(userId, fieldsMap)
     }
 
@@ -36,7 +36,7 @@ export class MoleculeCollectionItemResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ): Promise<CustomMoleculeItemDTO | ChEMBLMoleculeItemDTO | null> {
-        const fieldsMap = GraphqlUtils.getFieldsMap(info)
+        const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.itemService.findOneDTO(id, userId, fieldsMap)
     }
 
@@ -51,7 +51,7 @@ export class MoleculeCollectionItemResolver {
         @Info() info: GraphQLResolveInfo
     ): Promise<PaginatedMoleculeCollectionItem> {
         const options: IPaginationOptions = { page, limit }
-        const fieldsMap = GraphqlUtils.getFieldsMap(info)
+        const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.itemService.paginateAllByUser(userId, options, q, excludeJoinedToCollection ?? false, collectionId, fieldsMap)
     }
 
@@ -66,7 +66,7 @@ export class MoleculeCollectionItemResolver {
         @Info() info: GraphQLResolveInfo
     ): Promise<PaginatedMoleculeCollectionItem> {
         const options: IPaginationOptions = { page, limit }
-        const fieldsMap = GraphqlUtils.getFieldsMap(info)
+        const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.itemService.paginateByCollection(userId, collectionId, options, q, excluded ?? false, fieldsMap)
     }
 
@@ -85,7 +85,7 @@ export class MoleculeCollectionItemResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ): Promise<MoleculeCollectionItemEntity | null> {
-        const fieldsMap = GraphqlUtils.getFieldsMap(info)
+        const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.itemService.update(id, userId, input, fieldsMap)
     }
 

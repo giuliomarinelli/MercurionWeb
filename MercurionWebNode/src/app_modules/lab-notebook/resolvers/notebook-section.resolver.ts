@@ -5,7 +5,7 @@ import { UUID } from 'crypto';
 import { NotFoundException } from '@nestjs/common';
 import { NotebookSection } from '../Models/entities/lab-notebook-section.entity';
 import { GraphQLResolveInfo } from 'graphql';
-import { GraphqlUtils } from 'src/utils/graphql-utils/graphql-utils';
+import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap } from 'src/utils/type-orm-utils/type-orm-utils';
 import { CreateSectionInput } from '../Models/DTO/create-section-input';
 import { UpdateSectionInput } from '../Models/DTO/update-section-input';
@@ -22,7 +22,7 @@ export class NotebookSectionResolver {
         @AuthenticatedUserId() userId: string,
         @Info() info: GraphQLResolveInfo
     ): Promise<NotebookSection> {
-        const fieldsMap = GraphqlUtils.getFieldsMap(info) as GraphQLFieldsMap;
+        const fieldsMap = GraphQLUtils.getFieldsMap(info) as GraphQLFieldsMap;
         const result: NotebookSection | null = await this.sectionService.getSectionByChapterId(
             userId as UUID,
             chapterId as UUID,
@@ -38,7 +38,7 @@ export class NotebookSectionResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ): Promise<NotebookSection | null> {
-        const fieldsMap = GraphqlUtils.getFieldsMap(info) as GraphQLFieldsMap
+        const fieldsMap = GraphQLUtils.getFieldsMap(info) as GraphQLFieldsMap
         return this.sectionService.getSection(
             id as UUID,
             userId,
@@ -60,7 +60,7 @@ export class NotebookSectionResolver {
         @AuthenticatedUserId() userId: string,
         @Info() info: GraphQLResolveInfo
     ): Promise<NotebookSection | null> {
-        const fieldsMap = GraphqlUtils.getFieldsMap(info)
+        const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.sectionService.update(userId as UUID, id as UUID, input, fieldsMap)
     }
 

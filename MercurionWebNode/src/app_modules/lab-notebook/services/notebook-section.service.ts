@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { NotebookSection } from '../Models/entities/lab-notebook-section.entity';
 import { NotebookChapter } from '../Models/entities/lab-notebook-chapter.entity';
 import { UUID } from 'crypto';
-import { GraphqlUtils } from 'src/utils/graphql-utils/graphql-utils';
+import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils';
 import { UpdateSectionInput } from '../Models/DTO/update-section-input';
 
@@ -125,8 +125,8 @@ export class NotebookSectionService {
         chapterId: UUID,
         fieldsMap: GraphQLFieldsMap
     ): Promise<NotebookSection | null> {
-        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
-        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.NOTEBOOK_SECTION_REQUIRED_FIELDS)
+        const scalarFields = GraphQLUtils.getScalarFields(fieldsMap)
+        const columns = GraphQLUtils.ensureRequiredFields(scalarFields, this.NOTEBOOK_SECTION_REQUIRED_FIELDS)
 
         let qb = this.sectionRepo.createQueryBuilder('section')
             .select(columns.map(col => `section.${col}`))
@@ -146,8 +146,8 @@ export class NotebookSectionService {
         userId: UUID,
         fieldsMap: GraphQLFieldsMap
     ): Promise<NotebookSection | null> {
-        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap)
-        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, this.NOTEBOOK_SECTION_REQUIRED_FIELDS)
+        const scalarFields = GraphQLUtils.getScalarFields(fieldsMap)
+        const columns = GraphQLUtils.ensureRequiredFields(scalarFields, this.NOTEBOOK_SECTION_REQUIRED_FIELDS)
 
         let qb = this.sectionRepo.createQueryBuilder('section')
             .select(columns.map(col => `section.${col}`))

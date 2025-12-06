@@ -92,11 +92,11 @@ export class MoleculeJoinService {
       })
       .pipe(
         map(res => extractGqlData(res, 'addCustomMoleculeToCollection')),
-        map(entity => ({
+        map((entity) => ({
           ...entity,
           properties: Helpers.parseMoleculeProperties(entity.propertiesJson)
         }))
-      );
+      )
   }
 
   // Rimuovi Chembl
@@ -106,7 +106,7 @@ export class MoleculeJoinService {
         mutation: REMOVE_CHEMBL_FROM_COLLECTION,
         variables: { collectionId, itemId },
       })
-      .pipe(map(res => extractGqlData(res, 'removeChemblMoleculeFromCollection')));
+      .pipe(map(res => extractGqlData(res, 'removeChemblMoleculeFromCollection')))
   }
 
   // Rimuovi Custom

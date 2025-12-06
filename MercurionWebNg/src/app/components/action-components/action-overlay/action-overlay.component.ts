@@ -6,6 +6,8 @@ import { CreateCollectionComponent } from '../create-collection/create-collectio
 import { BindCollectionsToMoleculeComponent } from '../bind-collections-to-molecule/bind-collections-to-molecule.component';
 import { SensitiveDataChangeComponent } from '../sensitive-data-change/sensitive-data-change.component';
 import { EssentialProfileRegistryEditComponent } from '../profile-registry-edit/essential-profile-registry-edit.component';
+import { TicketDetailComponent } from '../ticket-detail/ticket-detail.component';
+import { NewTicketComponent } from '../new-ticket/new-ticket.component';
 
 @Component({
   selector: 'app-action-overlay',
@@ -17,7 +19,9 @@ import { EssentialProfileRegistryEditComponent } from '../profile-registry-edit/
     CreateCollectionComponent,
     BindCollectionsToMoleculeComponent,
     SensitiveDataChangeComponent,
-    EssentialProfileRegistryEditComponent
+    EssentialProfileRegistryEditComponent,
+    TicketDetailComponent,
+    NewTicketComponent
   ],
   template: `
 
@@ -47,6 +51,12 @@ import { EssentialProfileRegistryEditComponent } from '../profile-registry-edit/
           }
           @case ('EssentialProfileRegistryEdit') {
             <m-essential-profile-registry-edit />
+          }
+          @case ('TicketDetail') {
+            <m-ticket-detail />
+          }
+          @case ('NewTicket') {
+            <m-new-ticket />
           }
         }
 

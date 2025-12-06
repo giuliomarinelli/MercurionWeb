@@ -5,7 +5,7 @@ import { UiMoleculeCollection } from '../../../Models/graphql/molecule-collectio
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
 import { debounceTime, map, Observable, Subscription } from 'rxjs';
-import { PageModel } from '../../../Models/graphql/page.model';
+import { PageModel } from '../../../Models/graphql/page.models';
 import { ClassicSpinnerComponent } from '../../common/classic-spinner/classic-spinner.component';
 import { PmSearchInputComponent } from '../../common/pm-search-input/pm-search-input.component';
 import { CollectionSelectCardComponent } from '../../molecule-detail/collection-select-card/collection-select-card.component';

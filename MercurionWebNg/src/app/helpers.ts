@@ -41,12 +41,12 @@ export class Helpers {
     }
   }
 
-  static parseMoleculeProperties(json?: string | null): MoleculeProperties | null {
-    if (!json) return null;
+  static parseMoleculeProperties(json?: string | null): MoleculeProperties | undefined {
+    if (!json) return undefined;
     try {
       return JSON.parse(json) as MoleculeProperties;
     } catch {
-      return null;
+      return undefined;
     }
   }
 

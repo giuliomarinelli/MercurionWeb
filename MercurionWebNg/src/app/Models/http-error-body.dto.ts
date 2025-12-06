@@ -1,4 +1,4 @@
-export interface HttpErrorRes {
+export interface HttpErrorBody {
   timestamp: string
   requestId: string
   path: string

@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { UUID } from "crypto";
-import { GraphqlUtils } from "src/utils/graphql-utils/graphql-utils";
+import { GraphQLUtils } from "src/utils/graphql-utils/graphql-utils";
 import { GraphQLFieldsMap, TypeOrmUtils } from "src/utils/type-orm-utils/type-orm-utils";
 import { Synthesis } from "../Models/entities/synthesis.entity";
 import { SynthesisInput } from "../Models/DTO/synthesis.input";
@@ -35,8 +35,8 @@ export class SynthesisService {
     }
 
     async findAllByUser(userId: UUID, fieldsMap: GraphQLFieldsMap): Promise<Synthesis[]> {
-        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap);
-        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, ['id', 'title'])
+        const scalarFields = GraphQLUtils.getScalarFields(fieldsMap);
+        const columns = GraphQLUtils.ensureRequiredFields(scalarFields, ['id', 'title'])
         let qb = this.routeRepo.createQueryBuilder('route')
             .select(columns.map(col => `route.${col}`))
             .where('route.user_id = :userId', { userId })
@@ -46,8 +46,8 @@ export class SynthesisService {
     }
 
     async findOne(id: UUID, userId: UUID, fieldsMap: GraphQLFieldsMap): Promise<Synthesis | null> {
-        const scalarFields = GraphqlUtils.getScalarFields(fieldsMap);
-        const columns = GraphqlUtils.ensureRequiredFields(scalarFields, ['id', 'title'])
+        const scalarFields = GraphQLUtils.getScalarFields(fieldsMap);
+        const columns = GraphQLUtils.ensureRequiredFields(scalarFields, ['id', 'title'])
         let qb = this.routeRepo.createQueryBuilder('route')
             .select(columns.map(col => `route.${col}`))
             .where('route.id = :id', { id })

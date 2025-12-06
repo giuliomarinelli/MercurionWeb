@@ -11,7 +11,7 @@ import { RouterLink } from '@angular/router';
 import { PmSearchInputComponent } from '../../components/common/pm-search-input/pm-search-input.component';
 import { AbstractPaginationComponent } from '../../abstract/abstract-pagination-component';
 import { Observable } from 'rxjs';
-import { PageModel } from '../../Models/graphql/page.model';
+import { PageModel } from '../../Models/graphql/page.models';
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
 import { CreateCollectionContextService } from '../../services/context/action-context/create-collection-context.service';
 import { ToastService } from '../../services/toast.service';

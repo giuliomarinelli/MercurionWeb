@@ -42,6 +42,7 @@ export class SsoPageComponent implements OnInit, OnDestroy {
           localStorage.removeItem('ws_accessToken')
           localStorage.removeItem('ws_accessToken_ts')
           localStorage.removeItem('login')
+          localStorage.removeItem('scp')
           document.cookie = '__logged_in=; Max-Age=0; path=/'
           return this.authService.sso_authorizeFlow(fp_enc, di_enc, sso_pat, provider).pipe(
             catchError(() => {

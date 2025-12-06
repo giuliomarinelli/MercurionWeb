@@ -3,7 +3,7 @@ import { computed, effect, signal } from "@angular/core";
 import { AbstractMultiselectItem } from "../Models/abstract.models";
 import { AbstractPaginationComponent } from "./abstract-pagination-component";
 import { firstValueFrom } from "rxjs";
-import { PageModel } from "../Models/graphql/page.model";
+import { PageModel } from "../Models/graphql/page.models";
 
 export abstract class AbstractPaginatedMultiselectComponent<T> extends AbstractPaginationComponent<T> {
 

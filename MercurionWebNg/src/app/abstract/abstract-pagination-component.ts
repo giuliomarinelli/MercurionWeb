@@ -1,7 +1,7 @@
 // ================== AbstractPaginationComponent ==================
 import { ElementRef, signal } from "@angular/core";
 import { firstValueFrom, Observable } from "rxjs";
-import { PageModel } from "../Models/graphql/page.model";
+import { PageModel } from "../Models/graphql/page.models";
 
 export abstract class AbstractPaginationComponent<T> {
   protected sentinel: ElementRef<HTMLDivElement> | undefined;
@@ -15,7 +15,9 @@ export abstract class AbstractPaginationComponent<T> {
   protected searchTerm = signal<string>('');
   protected root: ElementRef | null = null;
 
+  protected abstract fetch$(): Observable<PageModel<T>>
   protected abstract fetch$(page?: number, size?: number, q?: string, excludeJoinedToCollection?: boolean, collectionId?: boolean): Observable<PageModel<T>>;
+
   protected abstract doQuery(q: string): void;
   protected abstract doClear(): void;
 

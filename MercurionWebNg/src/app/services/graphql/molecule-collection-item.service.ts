@@ -1,6 +1,6 @@
 import { MoleculeSearchResult } from './../../Models/graphql/molecule-search/molecule-search-result.interface';
 import { NormalizedMoleculeCollectionBasicData } from './../../Models/graphql/molecule.detail.models';
-import { PageModel } from './../../Models/graphql/page.model';
+import { PageModel } from '../../Models/graphql/page.models';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Apollo } from 'apollo-angular';
 import { Observable } from 'rxjs';

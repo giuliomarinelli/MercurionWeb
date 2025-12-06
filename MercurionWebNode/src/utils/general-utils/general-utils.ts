@@ -1,5 +1,7 @@
 import { BadRequestException } from "@nestjs/common";
+import { Pagination } from "nestjs-typeorm-paginate";
 import { MfaStrategy } from "src/app_modules/user/Models/enums/mfa-strategy.enum";
+import { FlatPagination } from "src/Models/flat-pagination.interface";
 
 export class GeneralUtils {
 
@@ -54,4 +56,33 @@ export class GeneralUtils {
         return this.uuidV7Re.test(uuid)
     }
 
+    public static paginationToFlatPaginationConverter<T>(pagination: Pagination<T>): FlatPagination<T> {
+        const { items, meta } = pagination
+        const { currentPage, itemsPerPage, itemCount, totalItems, totalPages } = meta
+        return {
+            items,
+            itemCount,
+            itemsPerPage,
+            currentPage,
+            totalPages: totalPages ?? -1,
+            totalItems: totalItems ?? -1
+        }
+    }
+
+    public static arrayEqualsIgnoreDuplicatesAndSorting<T>(a: T[], b: T[]): boolean {
+        const aAsSet = new Set<T>(a)
+        const bAsSet = new Set<T>(b)
+        if (aAsSet.size !== bAsSet.size) {
+            return false
+        }
+        for (const x of aAsSet) {
+            if (!bAsSet.has(x)) {
+                return false
+            }
+        }
+        return true
+    }
+
 }
+
+
