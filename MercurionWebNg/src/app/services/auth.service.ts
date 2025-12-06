@@ -379,10 +379,12 @@ export class AuthService {
 
     const key = this.generateScopesStorageKey(context)
 
-    if (!this.typeGuards.isNotNullish(key)) return
-
     if (scp === null) {
       this.clearCachedScopes(context)
+      return
+    }
+
+    if (!this.typeGuards.isNotNullish(key)) {
       return
     }
 

@@ -462,61 +462,63 @@ export class MfaPageComponent implements OnInit, OnDestroy {
     let dto: TotpBodyDTO | BackupCodeDTO = this.view() !== 'BACKUP_CODE' ? {
       totp: this.codeControl.value
     }
-    :
-    {
-      code: this.codeControl.value
-    }
+      :
+      {
+        code: this.codeControl.value
+      }
 
-      this.otpVerifySub = this.authService.login_thirdStep(
-        currentView as MfaStrategy,
-        dto,
-        {
-          fingerprintBase64: this.fingerprintDataEnc,
-          sessionDeviceInfo: this.sessionDeviceInfo,
-        },
-        this.loginFirstStepData?.preAuthorizationToken ?? '',
-        this.unTrusted()
-      ).subscribe({
-        next: (res) => {
-          this.authService.setAccessToken(res.accessToken ?? null)
-          this.authService.setWs_accessToken(res.ws_accessToken ?? null)
-          sessionStorage.removeItem('preAuthorizationData')
+    localStorage.removeItem('scp')
 
-          localStorage.setItem('login', res.initials ?? 'U')
-          this.sessionSyncService.resumeSession(res.initials ?? 'U')
+    this.otpVerifySub = this.authService.login_thirdStep(
+      currentView as MfaStrategy,
+      dto,
+      {
+        fingerprintBase64: this.fingerprintDataEnc,
+        sessionDeviceInfo: this.sessionDeviceInfo,
+      },
+      this.loginFirstStepData?.preAuthorizationToken ?? '',
+      this.unTrusted()
+    ).subscribe({
+      next: (res) => {
+        this.authService.setAccessToken(res.accessToken ?? null)
+        this.authService.setWs_accessToken(res.ws_accessToken ?? null)
+        sessionStorage.removeItem('preAuthorizationData')
 
-          const redirect = sessionStorage.getItem('redirectAfterLogin') || '/dashboard'
-          this.router.navigateByUrl(redirect)
-        },
-        error: (e) => {
-          sessionStorage.removeItem('preAuthorizationData')
+        localStorage.setItem('login', res.initials ?? 'U')
+        this.sessionSyncService.resumeSession(res.initials ?? 'U')
 
-          let message = 'Si è verificato un errore.'
-          if ('error' in e && 'status' in e) {
-            const errBody: HttpErrorBody = e.error
-            if (e.status === 401) {
-              switch (errBody.message) {
-                case 'Invalid MFA strategy':
-                  message = 'Operazione non autorizzata.'
-                  break
-                case 'MfaDeviceMismatch':
-                  message = 'Hai inserito il codice da un altro browser o dispositivo. Accesso negato.'
-                  break
-                case 'Invalid MFA OTP':
-                  message = 'Il codice inserito non è corretto, devi ripetere il login.'
-                  break
-                default:
-                  message = 'Si è verificato un errore.'
-              }
-            } else if (e.status === 429) {
-              message = 'Troppi tentativi, riprova tra qualche minuto.'
+        const redirect = sessionStorage.getItem('redirectAfterLogin') || '/dashboard'
+        this.router.navigateByUrl(redirect)
+      },
+      error: (e) => {
+        sessionStorage.removeItem('preAuthorizationData')
+
+        let message = 'Si è verificato un errore.'
+        if ('error' in e && 'status' in e) {
+          const errBody: HttpErrorBody = e.error
+          if (e.status === 401) {
+            switch (errBody.message) {
+              case 'Invalid MFA strategy':
+                message = 'Operazione non autorizzata.'
+                break
+              case 'MfaDeviceMismatch':
+                message = 'Hai inserito il codice da un altro browser o dispositivo. Accesso negato.'
+                break
+              case 'Invalid MFA OTP':
+                message = 'Il codice inserito non è corretto, devi ripetere il login.'
+                break
+              default:
+                message = 'Si è verificato un errore.'
             }
+          } else if (e.status === 429) {
+            message = 'Troppi tentativi, riprova tra qualche minuto.'
           }
-
-          this.toast.trigger(message, 'error', 3000)
-          this.router.navigateByUrl('/login')
         }
-      })
+
+        this.toast.trigger(message, 'error', 3000)
+        this.router.navigateByUrl('/login')
+      }
+    })
   }
 
   ngOnDestroy(): void {

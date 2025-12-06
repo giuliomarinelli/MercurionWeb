@@ -1,9 +1,9 @@
-import { AfterViewInit, ChangeDetectorRef, Component, computed, effect, ElementRef, inject, NgZone, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, computed, effect, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { TicketDetailContextService } from '../../../services/context/action-context/ticket-detail-context.service';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 import { ClientTicket, ClientTicketMessage, Ticket, TicketMessage } from '../../../Models/graphql/help.models';
 import { AbstractPaginationComponent } from '../../../abstract/abstract-pagination-component';
-import { catchError, filter, firstValueFrom, Observable, of, switchMap, tap } from 'rxjs';
+import { filter, firstValueFrom, Observable, of, switchMap, tap } from 'rxjs';
 import { PageModel } from '../../../Models/graphql/page.models';
 import { HelpService } from '../../../services/graphql/help.service';
 import { TypeGuardsService } from '../../../services/type-guards.service';
@@ -13,6 +13,7 @@ import { DatePipe, NgClass } from '@angular/common';
 import { Maybe } from 'graphql/jsutils/Maybe';
 import { TicketComposerComponent } from '../../support/ticket-composer/ticket-composer.component';
 import { Subscription } from 'rxjs';
+import { AppContextService } from '../../../services/context/app-context.service';
 
 @Component({
   selector: 'm-ticket-detail',
@@ -22,6 +23,53 @@ import { Subscription } from 'rxjs';
     NgClass,
     TicketComposerComponent
   ],
+  styles: [`
+    :host { display:block; width:100%; }
+
+    :host ::ng-deep .ql-toolbar.ql-snow {
+      border: 1px solid rgb(203 213 225 / .7);
+      border-radius: 0.75rem;
+      background: white;
+    }
+
+    :host-context(.dark) ::ng-deep .ql-toolbar.ql-snow {
+      border-color: rgb(51 65 85 / .8);
+      background: #1f2937; /* dark surface */
+    }
+
+    :host ::ng-deep .ql-container.ql-snow {
+      border: 1px solid rgb(203 213 225 / .7);
+      border-radius: 0.75rem;
+      background: white;
+    }
+
+    :host-context(.dark) ::ng-deep .ql-container.ql-snow {
+      border-color: rgb(51 65 85 / .8);
+      background: #1f2937;
+    }
+
+    :host ::ng-deep .ql-editor {
+      min-height: 110px;
+      font-size: 0.95rem;
+    }
+
+    :host-context(.dark) ::ng-deep .ql-editor {
+      color: rgb(226 232 240); /* slate-200 */
+    }
+
+    :host-context(.dark) ::ng-deep .ql-editor.ql-blank::before {
+      color: rgb(148 163 184); /* slate-400 */
+    }
+
+    :host-context(.dark) ::ng-deep .ql-toolbar button svg,
+    :host-context(.dark) ::ng-deep .ql-toolbar .ql-stroke {
+      stroke: rgb(226 232 240);
+    }
+    :host-context(.dark) ::ng-deep .ql-toolbar .ql-fill {
+      fill: rgb(226 232 240);
+    }
+
+  `],
   template: `
 
 <div class="flex justify-center items-center min-h-screen px-2">
@@ -99,8 +147,8 @@ import { Subscription } from 'rxjs';
         }
       }
     </div>
-    <div class="my-4 px-3 sm:px-4 w-full">
-      <m-ticket-composer class="block w-full" (send)="onSend($event)" />
+    <div class="border-t border-slate-200/70 dark:border-slate-700/60">
+      <m-ticket-composer (send)="onSend($event)"></m-ticket-composer>
     </div>
   </div>
 </div>
@@ -115,10 +163,13 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
   private readonly helpService = inject(HelpService)
   protected readonly typeGuards = inject(TypeGuardsService)
   private readonly cdr = inject(ChangeDetectorRef)
+  private readonly appCtx = inject(AppContextService)
 
   private composerSub?: Subscription
 
   private readonly ITEMS_PER_PAGE = 10
+
+  private prevTicketId = ''
 
   @ViewChild('sentinel')
   protected declare sentinel: ElementRef<HTMLDivElement>
@@ -144,22 +195,26 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
     })
     effect(() => {
       const id = this.detailContext.ticketId()
-      if (!id) {
+      if (!id || id === this.prevTicketId) {
         return
       }
-      this.resetPagination()
-      this.items = []
+      this.prevTicketId = id;
       this.ticket.set(null)
+      this.items = []
+      this.page = 1
       this.done = false
       this.earlyDone = false
-      this.loading = false
       this.empty.set(true)
+      queueMicrotask(() => {
+        const rootEl = this.root?.nativeElement
+        if (rootEl) rootEl.scrollTop = rootEl.scrollHeight
+      })
       queueMicrotask(() => this.loadMore())
+      queueMicrotask(() => this.startObserver())
     })
   }
 
   ngOnInit(): void {
-
   }
 
   ngOnDestroy(): void {
@@ -169,6 +224,15 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
 
   ngAfterViewInit(): void {
     this.startObserver()
+  }
+
+  private smoothToBottom(duration = 200) {
+    const rootEl = this.root?.nativeElement
+    if (!rootEl) {
+      return
+    }
+    const target = rootEl.scrollHeight
+    this.appCtx.smoothTo(this.root, target, duration)
   }
 
   close(): void {
@@ -183,11 +247,13 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
     return of(null).pipe(
       switchMap(() => {
         if (this.page === 1 && !this.ticket()) {
-          this.innerScope.set(this.detailContext.innerScope())
-          if (this.innerScope() === 'User') {
-            return this.helpService.myTicketDetail(this.detailContext.ticketId())
-          } else if (this.innerScope() === 'Support') {
-            return this.helpService.ticketDetailAsSupport(this.detailContext.ticketId())
+          const is = this.detailContext.innerScope()
+          const tId = this.detailContext.ticketId()
+          this.innerScope.set(is)
+          if (is === 'User') {
+            return this.helpService.myTicketDetail(tId)
+          } else if (is === 'Support') {
+            return this.helpService.ticketDetailAsSupport(tId)
           }
         }
         return of(null)
@@ -197,9 +263,9 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
           this.ticket.set(t)
         }
         const default$ = this.helpService.myTicketMessages(this.page, this.ITEMS_PER_PAGE, this.detailContext.ticketId())
-        if (this.detailContext.innerScope() === 'User') {
+        if (this.innerScope() === 'User') {
           return default$
-        } else if (this.detailContext.innerScope() === 'Support') {
+        } else if (this.innerScope() === 'Support') {
           return this.helpService.ticketMessagesAsSupport(this.page, this.ITEMS_PER_PAGE, this.detailContext.ticketId())
         }
         return default$
@@ -223,6 +289,8 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
 
     const newPage = await firstValueFrom(this.fetch$())
 
+    let wasFirstPage = false
+
     if (newPage.items.length === 0) {
       this.done = true
       if (this.page === 1) this.earlyDone = true
@@ -230,22 +298,29 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
       if (this.empty()) this.empty.set(false)
       const chunk = [...newPage.items].reverse()
       this.items = [...chunk, ...this.items]
+      wasFirstPage = this.page === 1
       this.page++
     }
 
     this.loading = false
 
-    this.cdr.markForCheck()
-
     queueMicrotask(() => {
       if (!rootEl) {
+        return
+      }
+      if (wasFirstPage) {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => this.smoothToBottom(180))
+        })
         return
       }
       const newHeight = rootEl.scrollHeight
       const delta = newHeight - prevHeight
       rootEl.scrollTop = prevTop + delta
-      this.cdr.markForCheck()
     })
+
+    this.cdr.markForCheck()
+
   }
 
   statusLabel = computed(() => {
@@ -286,52 +361,49 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
     return ''
   }
 
-  async onSend(e: { html: string, delta: any }) {
+  onSend(e: { html: string; delta: any }) {
 
     const ticketId = this.detailContext.ticketId()
-
     if (!ticketId) {
       return
     }
 
-    // optimistic minimalissimo
-    const optimistic: Omit<ClientTicketMessage, 'ticket'> = {
-      id: 'tmp-' + crypto.randomUUID(),
+    const nowIso = new Date().toISOString()
+
+    // messaggio ottimistico
+    const optimistic: any = {
+      id: 'optimistic-' + crypto.randomUUID(),
       publicId: '',
       ticketId,
-      authorType: this.innerScope() === 'Support' ? 'Support' : 'User',
-      contentHtml: e.html,
+      authorType: this.innerScope(), // User o Support
       contentDelta: e.delta,
-      createdAt: new Date().toISOString(),
+      contentHtml: e.html,
+      createdAt: nowIso,
       triggerDisappear: signal(false),
       collapse: signal(false)
     }
 
-    this.items = [...this.items, optimistic as unknown as ClientTicketMessage]
-    this.cdr.markForCheck()
+    this.items = [...this.items, optimistic]
 
-    const add$ = this.innerScope() === 'Support'
-      ? this.helpService.addSupportTicketMessage(ticketId, e.delta, e.html)
-      : this.helpService.addTicketMessage(ticketId, e.delta, e.html)
+    queueMicrotask(() => this.smoothToBottom(160))
 
-    this.composerSub = add$.pipe(
-      tap(() => {
-        this.ticket.update(t => t ? ({ ...t, lastMessageAt: optimistic.createdAt }) : t)
-        this.cdr.markForCheck()
-      }),
-      catchError((e) => {
-        // rollback se fallisce
-        this.items = this.items.filter(x => x.id !== optimistic.id)
-        this.cdr.markForCheck()
-        throw e
-      })
-    ).subscribe({
-      complete: () => queueMicrotask(() => {
-        const el = this.root?.nativeElement
-        if (el) el.scrollTop = el.scrollHeight
-      })
+    const send$ = this.innerScope() === 'User'
+      ? this.helpService.addTicketMessage(ticketId, e.delta, e.html)
+      : this.helpService.addSupportTicketMessage(ticketId, e.delta, e.html)
+
+    send$.subscribe({
+      next: () => {
+        // niente da fare per ora, l’ottimistico resta
+        // in futuro col WS lo rimpiazziamo con quello vero
+      },
+      error: () => {
+        // rollback: va tolto optimistic
+        this.items = this.items.filter(m => m.id !== optimistic.id)
+        // toast/snackbar
+      }
     })
   }
+
 
   protected override doQuery(q: string): void {
     // Per adesso non usiamo la ricerca

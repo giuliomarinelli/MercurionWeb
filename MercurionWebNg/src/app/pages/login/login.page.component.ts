@@ -419,6 +419,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
   onSubmit(): void {
     if (this.loginForm.valid && this.turnstileToken()) {
       this.loadingLogin.set(true)
+      localStorage.removeItem('scp')
       const dto: Login_FirstStepWrapper = {
         email: this.loginForm.value['email'],
         password: this.loginForm.value['password'],
