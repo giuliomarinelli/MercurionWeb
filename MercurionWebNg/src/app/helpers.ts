@@ -5,6 +5,13 @@ import { MoleculeSearchResult } from './Models/graphql/molecule-search/molecule-
 import { MoleculeDetail } from './Models/graphql/molecule.detail.models';
 export class Helpers {
 
+  static breakHex(str: string, id = true): string {
+    const idPart = str.split('.')[0]
+    const shaPart = id ? str.split('.')[1] : idPart
+    const chunks = shaPart.match(/.{1,4}/g)
+    return id ? idPart + '.' + (chunks?.join('-') ?? str) : (chunks?.join('-') ?? str)
+  }
+
   static normalizeTitleCase(input: string): string {
     if (!input) return '';
 

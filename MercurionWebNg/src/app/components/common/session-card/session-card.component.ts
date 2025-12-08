@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { SessionDTOExt } from '../../../Models/account/account.models';
 import { DatePipe } from '@angular/common';
+import { Helpers } from '../../../helpers'
+import { SessionDTOExt } from '../../../Models/account/account.models';
 
 @Component({
   selector: 'app-session-card',
@@ -29,9 +30,9 @@ import { DatePipe } from '@angular/common';
             Sessione {{ session.current ? '(attuale)' : '' }}
           </span>
           <button
-            class="text-[0.70rem] text-slate-500 dark:text-slate-400 cursor-default truncate select-all"
+            class="text-[0.70rem] text-slate-500 dark:text-slate-400 cursor-default select-all break-words"
             [attr.title]="'ID: ' + session.id">
-            ID: {{ session.id }}
+            ID: {{ breakHex(session.id) }}
           </button>
         </div>
       </div>
@@ -50,6 +51,20 @@ import { DatePipe } from '@angular/common';
           <span class="text-slate-500 dark:text-slate-400 block text-xs uppercase mb-1">Ultimo accesso</span>
           <span class="text-slate-700 dark:text-slate-200">
             {{ session.lastAccessedAt | date:'short' }}
+          </span>
+        </div>
+
+        <div>
+          <span class="text-slate-500 dark:text-slate-400 block text-xs uppercase mb-1">Provider di autenticazione</span>
+          <span class="text-slate-700 dark:text-slate-200">
+            {{ session.provider }}
+          </span>
+        </div>
+
+        <div>
+          <span class="text-slate-500 dark:text-slate-400 block text-xs uppercase mb-1">Provider di autorizzazione</span>
+          <span class="text-slate-700 dark:text-slate-200">
+            Mercurion
           </span>
         </div>
 
@@ -127,6 +142,10 @@ export class SessionCardComponent {
 
   logoutFromSession(sid: string): void {
     this.onLoggingOutFromSession.emit(sid)
+  }
+
+  breakHex(str: string): string {
+    return Helpers.breakHex(str)
   }
 
 }

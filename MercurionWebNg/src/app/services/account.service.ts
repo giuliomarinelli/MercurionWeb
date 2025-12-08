@@ -1,7 +1,7 @@
 import { ConfirmWithPhoneMfaFeedback, ConfirmWithRecoveryCodeDTO } from './../Models/confirm.models';
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
-import { ChangePasswordDTO, MfaStrategy, ChangePhoneDTO, ProfileDTO, SessionDTO, ProfileRegistryDTO, ProfileRegistryClientDTO, ProvidedEmailDTO } from '../Models/account/account.models';
+import { ChangePasswordDTO, MfaStrategy, ChangePhoneDTO, ProfileDTO, SessionDTO, ProfileRegistryDTO, ProfileRegistryClientDTO, ProvidedEmailDTO, VersionDTO } from '../Models/account/account.models';
 import { map, Observable, of, switchMap, tap, throwError } from 'rxjs';
 import { ConfirmChangeDTO, ConfirmDTO, ConfirmMfaChange } from '../Models/confirm.models';
 import { ConfirmWithObsContDTO } from '../Models/confirm.models';
@@ -139,9 +139,8 @@ export class AccountService {
     })
   }
 
-  public getCurrentVersion(): Observable<string> {
-    return this.http.get('/api/account/current-version', {
-      responseType: 'text',
+  public getCurrentVersion(): Observable<VersionDTO> {
+    return this.http.get<VersionDTO>('/api/account/current-version', {
       withCredentials: true
     })
   }

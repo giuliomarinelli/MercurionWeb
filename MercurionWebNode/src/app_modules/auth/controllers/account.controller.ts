@@ -8,7 +8,7 @@ import { AccountService } from '../services/account.service';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { ResponseService } from 'src/services/response.service';
 import { MfaService } from '../services/mfa.service';
-import { UUID } from 'crypto';
+import { createHash, UUID } from 'crypto';
 import { TotpDTO } from '../Models/DTO/totp.cls.dto';
 import { ChangePhoneDTO } from '../Models/DTO/change-phone.cls.dto';
 import { EmailDTO } from '../Models/DTO/email.cls.dto';
@@ -23,6 +23,7 @@ import { RpcException } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
 import { ProvidedEmailDTO } from '../Models/DTO/provided-email.dto';
 import { AuthProvider } from 'src/app_modules/sso/Models/enums/auth-provider.enum';
+import { VersionDTO } from '../Models/DTO/version.dto';
 
 
 
@@ -241,7 +242,7 @@ export class AccountController {
     }
 
     @Get('/profile-registry/essential')
-    public async getEssentialProfileRegistry(@AuthenticatedUserId() userId :UUID): Promise<ProfileRegistryClientDTO> {
+    public async getEssentialProfileRegistry(@AuthenticatedUserId() userId: UUID): Promise<ProfileRegistryClientDTO> {
         return this.userService.getVerifiedUserEssentialProfileRegistryById(userId)
     }
 
@@ -312,8 +313,15 @@ export class AccountController {
     }
 
     @Get('/current-version')
-    public getCurrentVersion(): string {
-        return this.configService.get<string>('App.version')!
+    public getCurrentVersion(): VersionDTO {
+        const version = this.configService.get<string>('App.version')!
+        const versionHash = createHash('sha256')
+            .update(version)
+            .digest('hex')
+        return {
+            version,
+            versionHash
+        }
     }
 
     @Get('/masked-email')

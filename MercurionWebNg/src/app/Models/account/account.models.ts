@@ -52,6 +52,7 @@ export interface SessionDTO {
   current: boolean
   location: string
   browser: string
+  provider: AuthProvider
 }
 
 export interface SessionDTOExt extends SessionDTO {
@@ -79,4 +80,9 @@ export interface RecoveryCodeDTO {
 export interface ProvidedEmailDTO {
     email: string
     provider: AuthProvider
+}
+
+export interface VersionDTO {
+    version: string
+    versionHash: string
 }

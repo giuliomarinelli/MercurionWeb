@@ -1,12 +1,12 @@
+import { AuthService } from './../../services/auth.service';
 import { AfterViewInit, Component, effect, ElementRef, inject, OnDestroy, OnInit, QueryList, signal, ViewChild, ViewChildren } from '@angular/core'
 import { CdkAccordion, CdkAccordionItem, CdkAccordionModule } from '@angular/cdk/accordion'
-import { EMPTY, filter, Observable, of, startWith, Subscription, switchMap } from 'rxjs'
+import { EMPTY, filter, map, Observable, of, startWith, Subscription, switchMap } from 'rxjs'
 import { AccountService } from '../../services/account.service'
-import { MfaStrategy, ProfileDTO, SessionDTOExt } from '../../Models/account/account.models'
+import { MfaStrategy, ProfileDTO, SessionDTOExt, VersionDTO } from '../../Models/account/account.models'
 import { ToastService } from '../../services/toast.service'
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component'
 import { SessionCardComponent } from '../../components/common/session-card/session-card.component'
-import { AuthService } from '../../services/auth.service'
 import { MfaStrategyCardComponent } from '../../components/common/mfa-strategy-card/mfa-strategy-card.component'
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service'
 import { SensitiveDataChangeContextService } from '../../services/context/action-context/sensitive-data-change-context.service'
@@ -14,6 +14,8 @@ import { AppContextService } from '../../services/context/app-context.service'
 import { ActivatedRoute, Router } from '@angular/router'
 import { GenderPipe } from '../../pipes/gender.pipe'
 import { ProfileRegistryEditContextService } from '../../services/context/action-context/profile-registry-edit-context.service'
+import { AuthProvider } from '../../Models/auth/provider.models';
+import { Helpers } from '../../helpers';
 
 @Component({
   selector: 'm-settings.page',
@@ -201,11 +203,25 @@ import { ProfileRegistryEditContextService } from '../../services/context/action
                                       </span>
                                     </div>
                                     <div class="flex justify-between gap-2">
-                                      <span class="text-slate-500 dark:text-slate-400">Telefono</span>
+                                      <span class="text-slate-500 dark:text-slate-400">Provider di autenticazione</span>
                                       <span class="font-mono text-xs text-slate-700 dark:text-slate-200">
-                                        {{ profile.obscuredPhone ?? '—' }}
+                                        {{ authProvider() }}
                                       </span>
                                     </div>
+                                    <div class="flex justify-between gap-2">
+                                      <span class="text-slate-500 dark:text-slate-400">Provider di autorizzazione</span>
+                                      <span class="font-mono text-xs text-slate-700 dark:text-slate-200">
+                                        Mercurion
+                                      </span>
+                                    </div>
+                                      @if (!is_sso()) {
+                                        <div class="flex justify-between gap-2">
+                                          <span class="text-slate-500 dark:text-slate-400">Telefono</span>
+                                          <span class="font-mono text-xs text-slate-700 dark:text-slate-200">
+                                            {{ profile.obscuredPhone ?? '—' }}
+                                          </span>
+                                        </div>
+                                      }
                                   </div>
                                 </div>
 
@@ -234,10 +250,14 @@ import { ProfileRegistryEditContextService } from '../../services/context/action
                                         class="px-2 py-[2px] rounded text-xs font-semibold"
                                         [class.bg-emerald-200]="isEnabledMfa"
                                         [class.text-emerald-800]="isEnabledMfa"
-                                        [class.bg-amber-200]="!isEnabledMfa"
-                                        [class.text-amber-800]="!isEnabledMfa"
+                                        [class.bg-amber-200]="!isEnabledMfa || is_sso()"
+                                        [class.text-amber-800]="!isEnabledMfa || is_sso()"
                                       >
-                                        {{ isEnabledMfa ? 'Attiva' : 'Non attiva' }}
+                                        @if (is_sso()) {
+                                          In carico al provider
+                                        } @else {
+                                          {{ isEnabledMfa ? 'Attiva' : 'Non attiva' }}
+                                        }
                                       </span>
                                     </div>
 
@@ -330,10 +350,12 @@ import { ProfileRegistryEditContextService } from '../../services/context/action
                                 </div>
                               </div>
                               <div>
-                                <h4 class="font-bold text-base mb-3">
+                                <h4 class="font-bold text-base mt-3 mb-3">
                                   Informazioni sulla versione
                                 </h4>
-                                <p>Mercurion {{currentVersion}}</p>
+                                <p>Mercurion {{currentVersion.version}}</p>
+                                <p class="text-xs">mercurion@sha256:{{breakHex(currentVersion.versionHash)}}</p>
+
                               </div>
 
                             </div>
@@ -370,91 +392,97 @@ import { ProfileRegistryEditContextService } from '../../services/context/action
                               <div class="p-2 sm:p-4 sm:col-span-1">E-mail</div>
                               <div class="p-2 sm:p-4 sm:col-span-2 flex justify-between items-center">
                                 <strong>{{profile.obscuredEmail}}</strong>
+                                @if (!is_sso()) {
                                   <button class="cursor-pointer transition-[transform,color] duration-300 hover:scale-[1.075]"
                                     title="Modifica e-mail" (click)="changeEmail()">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-[22px] w-auto fill-current text-slate-800 hover:text-slate-800/75 dark:text-slate-200 dark:hover:text-slate-200/75">
-                                    <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-                                    <path d="M58.1 555.9L48 592C50.7 591.2 117.4 572.6 248 536L569.4 214.6L592 192C589.6 189.6 549.1 149.1 470.6 70.6L448 48L425.4 70.6L104 392L58.1 555.9zM252.7 486L154 387.3L347.4 193.9L446.1 292.6L252.7 486zM229.4 508L94.2 545.8L132 410.6L229.4 508zM546.7 192L468.6 270.1L369.9 171.4L448 93.3L546.7 192z"/>
-                                  </svg>
-                                </button>
-                              </div>
-                            </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
-                              <div class="p-2 sm:p-4 sm:col-span-1">Numero di telefono</div>
-                              <div class="p-2 sm:p-4 sm:col-span-2 flex justify-between items-center">
-                                <strong>{{profile.obscuredPhone ?? '―'}}</strong>
-                                  @if (profile.obscuredPhone) {
-                                    <div class="flex items-center gap-4">
-                                      <button class="cursor-pointer transition-[transform,color] duration-300 hover:scale-[1.075]"
-                                        title="Modifica numero di telefono" (click)="changePhone()">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-[22px] w-auto fill-current text-slate-800 hover:text-slate-800/75 dark:text-slate-200 dark:hover:text-slate-200/75 transition-colors duration-300">
-                                          <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-                                          <path d="M58.1 555.9L48 592C50.7 591.2 117.4 572.6 248 536L569.4 214.6L592 192C589.6 189.6 549.1 149.1 470.6 70.6L448 48L425.4 70.6L104 392L58.1 555.9zM252.7 486L154 387.3L347.4 193.9L446.1 292.6L252.7 486zM229.4 508L94.2 545.8L132 410.6L229.4 508zM546.7 192L468.6 270.1L369.9 171.4L448 93.3L546.7 192z"/>
-                                        </svg>
-                                      </button>
-                                      <button
-                                        type="button"
-                                        class="relative p-1 rounded-md
-                                               transition-colors duration-150"
-                                        title="Elimina numero di telefono"
-                                        (click)="deletePhone()"
-                                      >
-                                        <svg
-                                          class="h-[22px] w-auto text-light-error dark:text-dark-error hover:text-light-error/80 dark:hover:text-dark-error/80 hover:scale-[1.15] transition-all duration-300"
-                                          viewBox="0 0 20 20"
-                                          fill="currentColor"
-                                          aria-hidden="true"
-                                        >
-                                          <path
-                                            fill-rule="evenodd"
-                                            d="M6 8a1 1 0 0 1 1 1v7h6V9a1 1 0 1 1 2 0v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V9a1 1 0 0 1 1-1zM4 5a1 1 0 0 1 1-1h2V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1h2a1 1 0 0 1 1 1v1H4V5z"
-                                            clip-rule="evenodd"
-                                          />
-                                        </svg>
-                                      </button>
-                                    </div>
-                                  } @else {
-                                    <button class="cursor-pointer transition-[transform,color] duration-300 hover:scale-[1.075] border border-slate-300 dark:border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-700"
-                                      title="Aggiungi un numero di telefono" (click)="addPhone()">
-                                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-[22px] w-auto fill-current text-slate-800 hover:text-slate-800/75 dark:text-slate-200 dark:hover:text-slate-200/75 transition-colors duration-300">
-                                        <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-                                        <path d="M336 112L336 96L304 96L304 304L96 304L96 336L304 336L304 544L336 544L336 336L544 336L544 304L336 304L336 112z"/>
-                                      </svg>
-                                    </button>
-                                  }
-                              </div>
-                            </div>
-                          }
-                          @case (3) {
-                            <h3 class="font-bold text-lg my-3">Password</h3>
-                            <div class="flex items-center gap-8">
-                              <div class="flex items-center gap-1">
-                                @for (x of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]; track x) {
-                                  <span>●</span>
+                                      <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                                      <path d="M58.1 555.9L48 592C50.7 591.2 117.4 572.6 248 536L569.4 214.6L592 192C589.6 189.6 549.1 149.1 470.6 70.6L448 48L425.4 70.6L104 392L58.1 555.9zM252.7 486L154 387.3L347.4 193.9L446.1 292.6L252.7 486zM229.4 508L94.2 545.8L132 410.6L229.4 508zM546.7 192L468.6 270.1L369.9 171.4L448 93.3L546.7 192z"/>
+                                    </svg>
+                                  </button>
                                 }
                               </div>
-                              <button
-                                type="button"
-                                class="
-                                  flex items-center gap-2 px-3 py-2 rounded-md
-                                  dark:bg-emerald-700/90
-                                  dark:hover:bg-emerald-700/65
-                                  bg-emerald-800
-                                  text-slate-100 font-medium text-sm
-                                  hover:bg-emerald-800/80
-                                  transition-colors duration-150
-                                "
-                                (click)="changePassword()"
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg"
-                                     viewBox="0 0 640 640"
-                                     class="fill-current h-6 w-6 relative -left-1">
-                                  <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-                                  <path d="M256 240C256 160.5 320.5 96 400 96C479.5 96 544 160.5 544 240C544 319.5 479.5 384 400 384C388.9 384 378 382.7 367.6 380.4L359 378.4L352.7 384.7L321.3 416.1L255.9 416.1L255.9 480.1L191.9 480.1L191.9 544.1L95.9 544.1L95.9 462.7L258.7 299.9L265.6 293L262.7 283.7C258.3 269.9 256 255.3 256 240zM400 64C302.8 64 224 142.8 224 240C224 255.1 225.9 269.8 229.5 283.9L68.7 444.7L64 449.4L64 576L224 576L224 512L288 512L288 448L334.6 448L339.3 443.3L369.3 413.3C379.3 415.1 389.5 416 400 416C497.2 416 576 337.2 576 240C576 142.8 497.2 64 400 64zM432 232C445.3 232 456 221.3 456 208C456 194.7 445.3 184 432 184C418.7 184 408 194.7 408 208C408 221.3 418.7 232 432 232z"/>
-                                </svg>
-                                <span>Cambia password</span>
-                              </button>
                             </div>
+                            @if (!is_sso()) {
+                              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
+                                <div class="p-2 sm:p-4 sm:col-span-1">Numero di telefono</div>
+                                <div class="p-2 sm:p-4 sm:col-span-2 flex justify-between items-center">
+                                  <strong>{{profile.obscuredPhone ?? '―'}}</strong>
+                                    @if (profile.obscuredPhone) {
+                                      <div class="flex items-center gap-4">
+                                        <button class="cursor-pointer transition-[transform,color] duration-300 hover:scale-[1.075]"
+                                          title="Modifica numero di telefono" (click)="changePhone()">
+                                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-[22px] w-auto fill-current text-slate-800 hover:text-slate-800/75 dark:text-slate-200 dark:hover:text-slate-200/75 transition-colors duration-300">
+                                            <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                                            <path d="M58.1 555.9L48 592C50.7 591.2 117.4 572.6 248 536L569.4 214.6L592 192C589.6 189.6 549.1 149.1 470.6 70.6L448 48L425.4 70.6L104 392L58.1 555.9zM252.7 486L154 387.3L347.4 193.9L446.1 292.6L252.7 486zM229.4 508L94.2 545.8L132 410.6L229.4 508zM546.7 192L468.6 270.1L369.9 171.4L448 93.3L546.7 192z"/>
+                                          </svg>
+                                        </button>
+                                        <button
+                                          type="button"
+                                          class="relative p-1 rounded-md
+                                                 transition-colors duration-150"
+                                          title="Elimina numero di telefono"
+                                          (click)="deletePhone()"
+                                        >
+                                          <svg
+                                            class="h-[22px] w-auto text-light-error dark:text-dark-error hover:text-light-error/80 dark:hover:text-dark-error/80 hover:scale-[1.15] transition-all duration-300"
+                                            viewBox="0 0 20 20"
+                                            fill="currentColor"
+                                            aria-hidden="true"
+                                          >
+                                            <path
+                                              fill-rule="evenodd"
+                                              d="M6 8a1 1 0 0 1 1 1v7h6V9a1 1 0 1 1 2 0v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V9a1 1 0 0 1 1-1zM4 5a1 1 0 0 1 1-1h2V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1h2a1 1 0 0 1 1 1v1H4V5z"
+                                              clip-rule="evenodd"
+                                            />
+                                          </svg>
+                                        </button>
+                                      </div>
+                                    } @else {
+                                      <button class="cursor-pointer transition-[transform,color] duration-300 hover:scale-[1.075] border border-slate-300 dark:border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-700"
+                                        title="Aggiungi un numero di telefono" (click)="addPhone()">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-[22px] w-auto fill-current text-slate-800 hover:text-slate-800/75 dark:text-slate-200 dark:hover:text-slate-200/75 transition-colors duration-300">
+                                          <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                                          <path d="M336 112L336 96L304 96L304 304L96 304L96 336L304 336L304 544L336 544L336 336L544 336L544 304L336 304L336 112z"/>
+                                        </svg>
+                                      </button>
+                                    }
+                                </div>
+                              </div>
+                            }
+                          }
+                          @case (3) {
+                            @if (!is_sso()) {
+                              <h3 class="font-bold text-lg my-3">Password</h3>
+                              <div class="flex items-center gap-8">
+                                <div class="flex items-center gap-1">
+                                  @for (x of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]; track x) {
+                                    <span>●</span>
+                                  }
+                                </div>
+                                <button
+                                  type="button"
+                                  class="
+                                    flex items-center gap-2 px-3 py-2 rounded-md
+                                    dark:bg-emerald-700/90
+                                    dark:hover:bg-emerald-700/65
+                                    bg-emerald-800
+                                    text-slate-100 font-medium text-sm
+                                    hover:bg-emerald-800/80
+                                    transition-colors duration-150
+                                  "
+                                  (click)="changePassword()"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg"
+                                       viewBox="0 0 640 640"
+                                       class="fill-current h-6 w-6 relative -left-1">
+                                    <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                                    <path d="M256 240C256 160.5 320.5 96 400 96C479.5 96 544 160.5 544 240C544 319.5 479.5 384 400 384C388.9 384 378 382.7 367.6 380.4L359 378.4L352.7 384.7L321.3 416.1L255.9 416.1L255.9 480.1L191.9 480.1L191.9 544.1L95.9 544.1L95.9 462.7L258.7 299.9L265.6 293L262.7 283.7C258.3 269.9 256 255.3 256 240zM400 64C302.8 64 224 142.8 224 240C224 255.1 225.9 269.8 229.5 283.9L68.7 444.7L64 449.4L64 576L224 576L224 512L288 512L288 448L334.6 448L339.3 443.3L369.3 413.3C379.3 415.1 389.5 416 400 416C497.2 416 576 337.2 576 240C576 142.8 497.2 64 400 64zM432 232C445.3 232 456 221.3 456 208C456 194.7 445.3 184 432 184C418.7 184 408 194.7 408 208C408 221.3 418.7 232 432 232z"/>
+                                  </svg>
+                                  <span>Cambia password</span>
+                                </button>
+                              </div>
+                            }
                             <h3 class="font-bold text-lg my-3">Sessioni attive</h3>
                             <div class="flex flex-col gap-y-4 mb-3">
                               @for (s of activeSessions; track s.id) {
@@ -480,51 +508,53 @@ import { ProfileRegistryEditContextService } from '../../services/context/action
                               </svg>
                               <span>Esci da tutte le sessioni</span>
                             </button>
-                            <hr class="border-[0.5px] border-slate-400 dark:border-slate-500 mt-6" />
-                            <h3 class="font-bold text-lg mt-6 mb-3">Autenticazione a più fattori</h3>
-                            <div class="flex gap-8 items-center">
-                              <p class="pl-3">{{isEnabledMfa ? 'Attiva' : 'Non attiva'}}</p>
-                              @if (!isEnabledMfa) {
-                                <button
-                                  type="button"
-                                  class="
-                                    flex items-center gap-2 px-3 py-2 rounded-md
-                                    dark:bg-emerald-700/90
-                                    dark:hover:bg-emerald-700/65
-                                    bg-emerald-800
-                                    text-slate-100 font-medium text-sm
-                                    hover:bg-emerald-800/80
-                                    transition-colors duration-150
-                                  "
-                                  (click)="doEnableMfa()"
-                                >
-                                  <svg xmlns="http://www.w3.org/2000/svg"
-                                       viewBox="0 0 640 640"
-                                       class="fill-current h-6 w-6 relative -left-1">
-                                    <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-                                    <path d="M432.2 432L398.5 432L377.2 368L263.3 368L242 432L208.3 432L240.3 336L400.3 336L432.3 432zM320.2 304C284.9 304 256.2 275.3 256.2 240C256.2 204.7 284.9 176 320.2 176C355.5 176 384.2 204.7 384.2 240C384.2 275.3 355.5 304 320.2 304zM320.2 208C302.5 208 288.2 222.3 288.2 240C288.2 257.7 302.5 272 320.2 272C337.9 272 352.2 257.7 352.2 240C352.2 222.3 337.9 208 320.2 208zM320.2 576L307.5 570.5C156.3 505.1 71.4 337.8 80.7 177L81.9 156.5L320.2 64L558.5 156.5L559.6 177C569 337.8 484 505.1 332.9 570.5L320.2 576zM112.7 178.9C105.9 326.2 180.4 480.6 320.2 541.1C460 480.6 534.5 326.2 527.7 178.9L320.2 98.3L112.7 178.9z"/>
-                                  </svg>
-                                  <span>Attiva l'autenticazione a più fattori</span>
-                                </button>
-                              }
-                            </div>
-                            @if (isEnabledMfa) {
-                              <h4 class="font-bold text-base my-3 flex justify-between items-center">
-                                <span>Strategie attive</span>
-                                <button class="cursor-pointer transition-[transform,color] duration-300 hover:scale-[1.075]"
-                                  title="Configura l'autenticazione a più fattori: aggiungi o rimuovi metodi"
-                                  (click)="doConfigMfa()">
-                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-7 w-auto fill-current text-slate-800 hover:text-slate-800/75 dark:text-slate-200 dark:hover:text-slate-200/75">
-                                    <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-                                    <path d="M384.1 48L404.6 147.5C412.4 151.3 420 155.7 427.2 160.6L523.7 128.6L587.7 239.5L511.7 307C512.3 315.6 512.3 324.5 511.7 333L587.7 400.5L523.7 511.4L427.2 479.4C420 484.2 412.5 488.6 404.6 492.5L384.1 592L256.1 592L235.6 492.5C227.8 488.7 220.2 484.3 213 479.4L116.5 511.4L52.5 400.5L128.5 333C127.9 324.4 127.9 315.5 128.5 307L52.5 239.4L116.5 128.5L213 160.5C220.2 155.7 227.7 151.3 235.6 147.4L256.1 47.9L384.1 47.9zM437.3 191L422.4 196L409.4 187.2C403.4 183.2 397.1 179.5 390.6 176.3L376.5 169.4L373.3 154L358.1 80L282.3 80C270.1 139.1 264 168.9 263.9 169.4L249.8 176.3C243.3 179.5 237 183.1 231 187.2L218 196C217.5 195.8 188.7 186.3 131.4 167.2L93.3 232.8C138.4 272.9 161.2 293.1 161.5 293.4L160.5 309C160 316.2 160 323.6 160.5 330.8L161.5 346.4L149.8 356.8L93.3 407L131.2 472.7L202.9 448.9L217.8 443.9L230.8 452.7C236.8 456.7 243.1 460.4 249.6 463.6L263.7 470.5C263.8 471 269.9 500.7 282.1 559.9L357.9 559.9L373.1 485.9L376.3 470.5L390.4 463.6C396.9 460.4 403.2 456.8 409.2 452.7L422.2 443.9L437.1 448.9L508.8 472.7L546.7 407L490.2 356.8L478.5 346.4L479.5 330.8C480 323.6 480 316.2 479.5 309L478.5 293.4L490.2 283L546.7 232.8L508.8 167.1L437.1 190.9zM264.1 320C264.1 350.9 289.1 376 320.1 376C351 376 376 350.9 376 320C376 289.1 351 264.1 320.1 264.1C289.1 264.1 264.1 289.1 264.1 320zM320 408C271.4 408 232 368.6 232.1 320C232.1 271.3 271.5 232 320.1 232C368.7 232 408.1 271.4 408.1 320.1C408 368.7 368.6 408 320 408z"/>
-                                  </svg>
-                                </button>
-                              </h4>
-                              <div class="flex flex-col gap-y-1">
-                                @for (s of enabledMfaStrategies; track s) {
-                                  <m-mfa-strategy-card [activeStrategies]="enabledMfaStrategies" [strategy]="s" />
+                            @if (!is_sso()) {
+                              <hr class="border-[0.5px] border-slate-400 dark:border-slate-500 mt-6" />
+                              <h3 class="font-bold text-lg mt-6 mb-3">Autenticazione a più fattori</h3>
+                              <div class="flex gap-8 items-center">
+                                <p class="pl-3">{{isEnabledMfa ? 'Attiva' : 'Non attiva'}}</p>
+                                @if (!isEnabledMfa) {
+                                  <button
+                                    type="button"
+                                    class="
+                                      flex items-center gap-2 px-3 py-2 rounded-md
+                                      dark:bg-emerald-700/90
+                                      dark:hover:bg-emerald-700/65
+                                      bg-emerald-800
+                                      text-slate-100 font-medium text-sm
+                                      hover:bg-emerald-800/80
+                                      transition-colors duration-150
+                                    "
+                                    (click)="doEnableMfa()"
+                                  >
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                         viewBox="0 0 640 640"
+                                         class="fill-current h-6 w-6 relative -left-1">
+                                      <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                                      <path d="M432.2 432L398.5 432L377.2 368L263.3 368L242 432L208.3 432L240.3 336L400.3 336L432.3 432zM320.2 304C284.9 304 256.2 275.3 256.2 240C256.2 204.7 284.9 176 320.2 176C355.5 176 384.2 204.7 384.2 240C384.2 275.3 355.5 304 320.2 304zM320.2 208C302.5 208 288.2 222.3 288.2 240C288.2 257.7 302.5 272 320.2 272C337.9 272 352.2 257.7 352.2 240C352.2 222.3 337.9 208 320.2 208zM320.2 576L307.5 570.5C156.3 505.1 71.4 337.8 80.7 177L81.9 156.5L320.2 64L558.5 156.5L559.6 177C569 337.8 484 505.1 332.9 570.5L320.2 576zM112.7 178.9C105.9 326.2 180.4 480.6 320.2 541.1C460 480.6 534.5 326.2 527.7 178.9L320.2 98.3L112.7 178.9z"/>
+                                    </svg>
+                                    <span>Attiva l'autenticazione a più fattori</span>
+                                  </button>
                                 }
                               </div>
+                              @if (isEnabledMfa) {
+                                <h4 class="font-bold text-base my-3 flex justify-between items-center">
+                                  <span>Strategie attive</span>
+                                  <button class="cursor-pointer transition-[transform,color] duration-300 hover:scale-[1.075]"
+                                    title="Configura l'autenticazione a più fattori: aggiungi o rimuovi metodi"
+                                    (click)="doConfigMfa()">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-7 w-auto fill-current text-slate-800 hover:text-slate-800/75 dark:text-slate-200 dark:hover:text-slate-200/75">
+                                      <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                                      <path d="M384.1 48L404.6 147.5C412.4 151.3 420 155.7 427.2 160.6L523.7 128.6L587.7 239.5L511.7 307C512.3 315.6 512.3 324.5 511.7 333L587.7 400.5L523.7 511.4L427.2 479.4C420 484.2 412.5 488.6 404.6 492.5L384.1 592L256.1 592L235.6 492.5C227.8 488.7 220.2 484.3 213 479.4L116.5 511.4L52.5 400.5L128.5 333C127.9 324.4 127.9 315.5 128.5 307L52.5 239.4L116.5 128.5L213 160.5C220.2 155.7 227.7 151.3 235.6 147.4L256.1 47.9L384.1 47.9zM437.3 191L422.4 196L409.4 187.2C403.4 183.2 397.1 179.5 390.6 176.3L376.5 169.4L373.3 154L358.1 80L282.3 80C270.1 139.1 264 168.9 263.9 169.4L249.8 176.3C243.3 179.5 237 183.1 231 187.2L218 196C217.5 195.8 188.7 186.3 131.4 167.2L93.3 232.8C138.4 272.9 161.2 293.1 161.5 293.4L160.5 309C160 316.2 160 323.6 160.5 330.8L161.5 346.4L149.8 356.8L93.3 407L131.2 472.7L202.9 448.9L217.8 443.9L230.8 452.7C236.8 456.7 243.1 460.4 249.6 463.6L263.7 470.5C263.8 471 269.9 500.7 282.1 559.9L357.9 559.9L373.1 485.9L376.3 470.5L390.4 463.6C396.9 460.4 403.2 456.8 409.2 452.7L422.2 443.9L437.1 448.9L508.8 472.7L546.7 407L490.2 356.8L478.5 346.4L479.5 330.8C480 323.6 480 316.2 479.5 309L478.5 293.4L490.2 283L546.7 232.8L508.8 167.1L437.1 190.9zM264.1 320C264.1 350.9 289.1 376 320.1 376C351 376 376 350.9 376 320C376 289.1 351 264.1 320.1 264.1C289.1 264.1 264.1 289.1 264.1 320zM320 408C271.4 408 232 368.6 232.1 320C232.1 271.3 271.5 232 320.1 232C368.7 232 408.1 271.4 408.1 320.1C408 368.7 368.6 408 320 408z"/>
+                                    </svg>
+                                  </button>
+                                </h4>
+                                <div class="flex flex-col gap-y-1">
+                                  @for (s of enabledMfaStrategies; track s) {
+                                    <m-mfa-strategy-card [activeStrategies]="enabledMfaStrategies" [strategy]="s" />
+                                  }
+                                </div>
+                              }
                             }
                           }
                           @default { ... }
@@ -572,12 +602,15 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
   profileFetchError = signal<boolean>(false)
   loading = signal<boolean>(true)
-  currentVersion!: string
+  currentVersion!: VersionDTO
 
   profile!: ProfileDTO
   isEnabledMfa!: boolean
   enabledMfaStrategies!: MfaStrategy[]
   activeSessions!: SessionDTOExt[]
+
+  is_sso = signal<boolean>(false)
+  authProvider = signal<AuthProvider | null>(null)
 
   items = ['Generali', 'Anagrafica', 'Contatti', 'Sicurezza']
   private readonly accordionAnchors = ['general', 'personal_details', 'contact_details', 'security']
@@ -589,6 +622,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   private allLoguotSub?: Subscription
   private viewSub?: Subscription
   private fragmentSub?: Subscription
+  private provSub?: Subscription
 
 
   constructor() {
@@ -616,6 +650,12 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnInit(): void {
+    this.provSub = this.accountService.getProvidedEmail(true).pipe(
+      map((res) => queueMicrotask(() => {
+        this.is_sso.set(res.provider !== 'Mercurion')
+        this.authProvider.set(res.provider)
+      }))
+    ).subscribe(() => { /* pass */ })
     this.fetch()
     this.fragmentSub = this.route.fragment
       .pipe(startWith(this.route.snapshot.fragment))
@@ -645,14 +685,17 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
       })
   }
 
-
-
   ngOnDestroy(): void {
     this.fetchSub?.unsubscribe()
     this.sLoguotSub?.unsubscribe()
     this.allLoguotSub?.unsubscribe()
     this.viewSub?.unsubscribe()
     this.fragmentSub?.unsubscribe()
+    this.provSub?.unsubscribe()
+  }
+
+  breakHex(str: string): string {
+    return Helpers.breakHex(str, false)
   }
 
   private fetch(): void {
@@ -751,9 +794,6 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
       queryParamsHandling: 'preserve'
     })
   }
-
-
-
 
   onAccordionOpened(i: number): void {
     this.skipSmoothToTopOnClose = false
