@@ -3,7 +3,6 @@ import { UUID } from "crypto"
 import { Environment } from "./config"
 
 export interface AppConfiguration {
-
     env: Environment
     port: number
     natsPort: number
@@ -20,21 +19,16 @@ export interface AppConfiguration {
     AES_secret: string
     version: string
     deviceIdSignatureSecret: string
-
+    supportEmail: string
 }
 
 export interface DataConfiguration {
-
-    sqlDB: TypeOrmModuleOptions,
-    chemblDB: TypeOrmModuleOptions
-
+    pgSQL: TypeOrmModuleOptions
 }
 
 export interface JwtConfiguration {
-
     secret?: string
     expiresInMs: number
-
 }
 
 export interface JwtAudience {
@@ -44,7 +38,6 @@ export interface JwtAudience {
 }
 
 export interface JwtConfigurations {
-
     accessToken: JwtConfiguration
     ws_accessToken: JwtConfiguration
     preAuthorizationToken: JwtConfiguration
@@ -62,46 +55,37 @@ export interface JwtConfigurations {
     sso_preAuthorizationToken: JwtConfiguration
     issuer: string
     audience: JwtAudience
-
 }
 
 export interface SmsConfiguration {
-
     accountSID: string
     authToken: string
     number: string
     from: string
-
 }
 
 export interface SecureCookieConfiguration {
-
     path: string
     httpOnly: boolean
     sameSite: "strict" | "lax" | "none"
     secure: boolean
     domain: string
     secret: string
-
 }
 
 export type CookieConfiguration = Omit<SecureCookieConfiguration, "secret">
 
 export interface TotpConfiguration {
-
     bytes: number
     digits: number
     period: number
     totpPepper: string
-
 }
 
 export interface SessionConfiguration {
-
     shortSessionLasting: number
     persistentSessionLasting: number
     sessionZeroId: UUID
-
 }
 
 export interface OAuth2ProviderConfiguration {

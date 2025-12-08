@@ -42,7 +42,7 @@ const nodeEnv = process.env.NODE_ENV ?? 'development'
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => configService.get<TypeOrmModuleOptions>("Data.sqlDB") ?? {},
+      useFactory: (configService: ConfigService) => configService.get<TypeOrmModuleOptions>("Data.pgSQL") ?? {},
       inject: [ConfigService]
     }),
     MailerModule.forRootAsync({

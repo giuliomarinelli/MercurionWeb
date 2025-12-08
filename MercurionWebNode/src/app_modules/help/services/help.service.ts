@@ -83,6 +83,8 @@ export class HelpService {
       await this.attachTicketUserFullNames([ticket])
     }
 
+    ticket.publicId = this.generateReadablePublicId(ticket.publicId)
+
     await this.mailer.notifySupportNewTicket(ticket, firstMsg)
     await this.mailer.confirmUserTicketOpened(ticket, firstMsg)
 
@@ -105,6 +107,9 @@ export class HelpService {
     contentDelta: JsonValue
     contentHtml: string
   }): Promise<{ ok: boolean }> {
+
+    let msg: TicketMessage
+    
     await this.dataSource.transaction(async (manager) => {
       const now = Date.now()
 
@@ -115,7 +120,7 @@ export class HelpService {
 
       if (!ticket) throw new RpcException('TicketNotFound')
 
-      const msg = this.makeUserMessage({
+      msg = this.makeUserMessage({
         ticketId: ticket.id,
         userId: input.userId,
         delta: input.contentDelta,
@@ -136,7 +141,8 @@ export class HelpService {
     })
 
     const freshTicket = await this.ticketRepo.findOneByOrFail({ id: input.ticketId })
-    await this.mailer.notifySupportNewMessage(freshTicket)
+    freshTicket.publicId = this.generateReadablePublicId(freshTicket.publicId)
+    await this.mailer.notifySupportNewMessage(freshTicket, msg!)
 
     return { ok: true }
   }
@@ -173,9 +179,11 @@ export class HelpService {
 
       await manager.save(TicketMessage, msg)
       await manager.save(Ticket, ticket)
+  
     })
 
     const freshTicket = await this.ticketRepo.findOneByOrFail({ id: input.ticketId })
+    freshTicket.publicId = this.generateReadablePublicId(freshTicket.publicId)
     await this.mailer.notifyUserSupportReplied(freshTicket, ticketUserId!)
 
     return { ok: true }
