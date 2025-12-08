@@ -50,13 +50,14 @@ const AppConfig = registerAs(
         redisIdHmacSecret: process.env.APP_REDIS_ID_HMAC_SECRET!,
         AES_secret: process.env.APP_AES_SECRET!,
         version: process.env.APP_VERSION!,
-        deviceIdSignatureSecret: process.env.APP_DEVICE_ID_SIGNATURE_SECRET!
+        deviceIdSignatureSecret: process.env.APP_DEVICE_ID_SIGNATURE_SECRET!,
+        supportEmail: process.env.APP_SUPPORT_EMAIL!
     })
 )
 
 const DataConfig = registerAs(
     ConfigKey.Data, (): DataConfiguration => ({
-        sqlDB: {
+        pgSQL: {
             type: process.env.SQL_DATABASE_TYPE as 'mariadb' | 'postgres',
             host: process.env.SQL_DATABASE_HOST,
             port: Number(process.env.SQL_DATABASE_PORT),
@@ -68,19 +69,6 @@ const DataConfig = registerAs(
             logger: process.env.SQL_DATABASE_LOGGER as 'debug' | 'file' | 'simple-console' | 'advanced-console',
             autoLoadEntities: true,
             namingStrategy: new SnakeNamingStrategy(),
-        },
-        chemblDB: {
-            type: process.env.CHEMBL_DATABASE_TYPE as 'mariadb' | 'postgres',
-            host: process.env.CHEMBL_DATABASE_HOST,
-            port: Number(process.env.CHEMBL_DATABASE_PORT),
-            username: process.env.CHEMBL_DATABASE_USERNAME,
-            password: process.env.CHEMBL_DATABASE_PASSWORD,
-            database: process.env.CHEMBL_DATABASE,
-            synchronize: JSON.parse(process.env.CHEMBL_DATABASE_SYNCHRONIZE ?? 'false') as boolean,
-            logging: JSON.parse(process.env.CHEMBL_DATABASE_LOGGING ?? 'false') as boolean,
-            logger: process.env.CHEMBL_DATABASE_LOGGER as 'debug' | 'file' | 'simple-console' | 'advanced-console',
-            autoLoadEntities: true,
-            namingStrategy: new SnakeNamingStrategy()
         }
     })
 )

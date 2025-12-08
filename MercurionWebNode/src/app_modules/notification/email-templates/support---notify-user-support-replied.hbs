@@ -2,7 +2,7 @@
 <html lang="it">
 
 <head>
-  <title>Mercurion: verifica dell'indirizzo email</title>
+  <title>Mercurion: autenticazione a più fattori</title>
   <meta charset="UTF-8" />
   <style>
     :root {
@@ -215,20 +215,17 @@
       </svg>
     </div>
 
-    <h1>Ciao {{firstName}}!</h1>
-    <p>Questo è il codice per verificare il tuo indirizzo email su Mercurion.</p>
-
-    <p
-      style="margin: 20px 0 8px; font-size: 28px; letter-spacing: 0.18em; text-align:center; font-weight:700; color:#11141D;">
-      {{totp}}
+    <h1>Ciao {{userFirstName}}!</h1>
+    <p>
+      Il ticket <strong>#{{ticketPublicId}}</strong> ha ricevuto una nuova risposta.
     </p>
 
     <p style="text-align:center; font-size:13px; color:#6B7280; margin:0 0 20px;">
-      Il codice è valido per {{period}} secondi. Non condividerlo con nessuno.
+      {{ticketMessageBody}}
     </p>
 
     <div class="footer">
-      Se non hai richiesto la verifica di questo indirizzo email, puoi ignorare questa email.
+      Se non hai richiesto assistenza, puoi ignorare questa email.
     </div>
 
   </div>

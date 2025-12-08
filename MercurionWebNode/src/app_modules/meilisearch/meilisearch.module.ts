@@ -8,9 +8,13 @@ import { MoleculeService } from './services/molecule.service';
 import { MoleculeResolver } from './resolvers/molecule.resolver';
 import { MoleculeCollectionModule } from '../molecule-collection/molecule-collection.module';
 import { SecurityAuditService } from './services/security-audit.service';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
-    imports: [forwardRef(() => MoleculeCollectionModule)],
+    imports: [
+        forwardRef(() => MoleculeCollectionModule),
+        forwardRef(() => NotificationModule)
+    ],
     providers: [
         {
             provide: 'MEILISEARCH_CLIENT',

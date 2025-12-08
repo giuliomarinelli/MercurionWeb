@@ -12,6 +12,7 @@ import { TypeGuardsService } from '../../services/type-guards.service';
 import { TicketCardSkeletonComponent } from '../../components/support/ticket-card-skeleton/ticket-card-skeleton.component';
 import { TicketDetailContextService } from '../../services/context/action-context/ticket-detail-context.service';
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
+import { NewTicketContextService } from '../../services/context/action-context/new-ticket-context.service';
 
 @Component({
   selector: 'm-help-page',
@@ -91,6 +92,7 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
   protected readonly typeGuards = inject(TypeGuardsService)
   private readonly detailContext = inject(TicketDetailContextService)
   private readonly overlayContext = inject(ActionOverlayContextService)
+  private readonly newTicketContext = inject(NewTicketContextService)
 
   @ViewChild('sentinel')
   protected declare sentinel: ElementRef<HTMLDivElement>
@@ -112,15 +114,28 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
     // resettiamo la paginazione e ricarichiamo la lista
     effect(() => {
       const tick = this.detailContext.addedTick()
-      if (!tick) return
+      if (!tick) {
+        return
+      }
 
       // ha senso ricaricare solo in sezione utente
-      if (this.activeTab() !== 0) return
+      if (this.activeTab() !== 0) {
+        return
+      }
 
       this.resetPagination()
       queueMicrotask(() => this.loadMore())
     })
+    effect(() => {
+      const t = this.newTicketContext.addedTick()
+      if (t === 0 || this.activeTab() !== 0) {
+        return
+      }
+      this.resetPagination()
+      queueMicrotask(() => this.loadMore())
+    })
   }
+
 
   switchTab(i: number): void {
     if (i < 0 || i > 1) {

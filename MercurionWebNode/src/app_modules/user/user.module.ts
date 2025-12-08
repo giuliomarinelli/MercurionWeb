@@ -9,6 +9,7 @@ import { History } from '../history/Models/entities/history.entity';
 import { MoleculeCollectionModule } from '../molecule-collection/molecule-collection.module';
 import { HistoryModule } from '../history/history.module';
 import { SSO_Module } from '../sso/sso.module';
+import { NotificationModule } from '../notification/notification.module';
 
 
 @Module({
@@ -22,7 +23,8 @@ import { SSO_Module } from '../sso/sso.module';
     forwardRef(() => AuthModule),
     forwardRef(() => MoleculeCollectionModule),
     forwardRef(() => HistoryModule),
-    forwardRef(() => SSO_Module)
+    forwardRef(() => SSO_Module),
+    forwardRef(() => NotificationModule)
   ],
   providers: [
     UserService
