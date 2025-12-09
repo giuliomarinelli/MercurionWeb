@@ -3,7 +3,7 @@ import { AdministrationRoutes } from '../../../Models/graphql/molecule.detail.mo
 
 
 @Component({
-  selector: 'molecule-routes',
+  selector: 'm-molecule-routes',
   standalone: true,
   template: `
     <section class="my-4">

@@ -5,7 +5,7 @@ import { UiMoleculeCollection } from '../../../Models/graphql/molecule-collectio
 import { CollectionCardComponent } from '../collection-card/collection-card.component';
 
 @Component({
-  selector: 'app-collection-select-card',
+  selector: 'm-collection-select-card',
   imports: [ReactiveFormsModule, CollectionCardComponent],
   template: `
     <div class="grid grid-cols-[28px_1fr] gap-3 items-center w-full">
@@ -25,7 +25,7 @@ import { CollectionCardComponent } from '../collection-card/collection-card.comp
         @if (_isSelectAll()) {
           <span class="block w-full select-none font-semibold ml-[2px]">SELEZIONA TUTTI</span>
         } @else {
-          <app-collection-card
+          <m-collection-card
             class="block w-full"
             [collection]="_collection()!"
             [i]="_i()"

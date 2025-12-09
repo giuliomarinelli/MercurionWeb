@@ -67,7 +67,7 @@ import { NewTicketContextService } from '../../services/context/action-context/n
       @if (loading) {
         @if (page > 1 && items.length > 2) {
           <div class="flex justify-center">
-            <app-classic-spinner [size]="60" />
+            <m-classic-spinner [size]="60" />
           </div>
         } @else {
           <div class="relative -top-20">

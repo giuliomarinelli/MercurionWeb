@@ -11,24 +11,36 @@ import { DesignService } from '../../../services/design.service';
 import { SearchContextService } from '../../../services/context/search-context.service';
 
 @Component({
-  selector: 'app-sidenav',
+  selector: 'm-sidenav',
   standalone: true,
-  imports: [RouterLink, HistoryComponent, ClassicSpinnerComponent, NgClass],
+  imports: [
+    RouterLink,
+    HistoryComponent,
+    ClassicSpinnerComponent,
+    NgClass
+  ],
   template: `
     <nav class="flex flex-col h-full bg-transparent z-50 select-none pt-4 lg:pt-12">
       @if (designService.maxBk('xs')()) {
       <h6 class="detail">Strumenti</h6>
       <div>
-        <button class="sidebar-link flex items-center gap-3 ml-4 mb-6" (click)="searchOverlayContext.open()">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="w-5 h-5 fill-current dark:text-slate-400 text-slate-600">
-            <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-            <path d="M448.1 272C448.1 174.8 369.3 96 272.1 96C174.9 96 96.1 174.8 96.1 272C96.1 369.2 174.9 448 272.1 448C369.3 448 448.1 369.2 448.1 272zM407.5 430C371.1 461.2 323.8 480 272.2 480C157.3 480 64.2 386.9 64.2 272C64.2 157.1 157.3 64 272.2 64C387.1 64 480.2 157.1 480.2 272C480.2 323.7 461.4 371 430.2 407.3L571.6 548.7L582.9 560L560.3 582.6L549 571.3L407.6 429.9z"/>
-          </svg>
-          @if (userContext.isLoggedIn()) {
-            <span>Cerca molecola</span>
-          } @else {
-            <span>Cerca molecola ChEMBL</span>
-          }
+        <button type="button" class="sidebar-link" routerLink="molecules/all-my-molecules" (click)="searchOverlayContext.open()">
+          <div
+            class="flex size-9 shrink-0 items-center justify-center
+                   rounded-xl border border-slate-400/70 dark:border-slate-500/60
+                   bg-slate-200 dark:bg-slate-800
+                   text-sm font-semibold">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto text-slate-900 dark:text-slate-200">
+              <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+              <path d="M448.1 272C448.1 174.8 369.3 96 272.1 96C174.9 96 96.1 174.8 96.1 272C96.1 369.2 174.9 448 272.1 448C369.3 448 448.1 369.2 448.1 272zM407.5 430C371.1 461.2 323.8 480 272.2 480C157.3 480 64.2 386.9 64.2 272C64.2 157.1 157.3 64 272.2 64C387.1 64 480.2 157.1 480.2 272C480.2 323.7 461.4 371 430.2 407.3L571.6 548.7L582.9 560L560.3 582.6L549 571.3L407.6 429.9z"/>
+            </svg>
+          </div>
+          <span class="sidebar-item-text">
+            @if (userContext.isLoggedIn()) {
+              <span>Cerca molecola</span>
+            } @else {
+              <span>Cerca molecola ChEMBL</span>
+            }</span>
         </button>
       </div>
       }
@@ -104,7 +116,7 @@ import { SearchContextService } from '../../../services/context/search-context.s
             <h6 class="detail">Cronologia</h6>
             @if (triggerDelete()) {
               <div>
-                <app-classic-spinner [size]="16" class="block mt-2 mr-5" />
+                <m-classic-spinner [size]="16" class="block mt-2 mr-5" />
               </div>
             } @else {
               <button
@@ -139,7 +151,7 @@ import { SearchContextService } from '../../../services/context/search-context.s
               </button>
             }
           </div>
-          <app-history class="block"
+          <m-history class="block"
             [triggerDelete]="triggerDelete()"
             [triggerEmptyCheck]="triggerEmptyCheck()"
             (emptyChange)="handleEmptyChange($event)" />

@@ -7,7 +7,7 @@ import { TurnstileComponent } from '../../components/common/turnstile/turnstile.
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 
 @Component({
-  selector: 'app-forgot-password',
+  selector: 'm-forgot-password',
   imports: [FloatingInputComponent, ReactiveFormsModule, TurnstileComponent, ClassicSpinnerComponent],
   template: `
 
@@ -26,7 +26,7 @@ import { ClassicSpinnerComponent } from '../../components/common/classic-spinner
         </div>
         <!-- STEP 1: EMAIL -->
         <div class="mt-2 max-w-[400px] mx-auto">
-          <app-floating-input
+          <m-floating-input
             label="Indirizzo e-mail"
             type="email"
             autocomplete="email"
@@ -51,7 +51,7 @@ import { ClassicSpinnerComponent } from '../../components/common/classic-spinner
               Recupera
             } @else {
               <div class="text-slate-200 flex items-center justify-center">
-                <app-classic-spinner [size]="24"></app-classic-spinner>
+                <m-classic-spinner [size]="24"></m-classic-spinner>
               </div>
 
             }
@@ -64,7 +64,7 @@ import { ClassicSpinnerComponent } from '../../components/common/classic-spinner
                 <span class="sr-only">Loading CAPTCHA…</span>
               </div>
             }
-            <app-turnstile
+            <m-turnstile
               (token)="onTurnstileToken($event)"
               (widgetReady)="onTurnstileRender()"
               (refresh)="loadingTurnstile.set(true)"

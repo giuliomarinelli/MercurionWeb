@@ -12,7 +12,7 @@ import { MoleculeSearchResult } from
   '../../../Models/graphql/molecule-search/molecule-search-result.interface';
 
 @Component({
-  selector: 'app-similar-item',
+  selector: 'm-similar-item',
   standalone: true,
   imports: [DecimalPipe, RouterLink, MoleculeViewerComponent, NgClass],
   template: `
@@ -29,12 +29,12 @@ import { MoleculeSearchResult } from
                       bg-slate-200 dark:bg-slate-700"></div>
         }
 
-        <molecule-viewer
+        <m-molecule-viewer
           class="w-full h-full"
           [structure]="_molecule()?.smiles ?? ''"
           [disablePreview]="disablePreview()"
           (rendered)="viewerReady.set(true)">
-        </molecule-viewer>
+        </m-molecule-viewer>
       </div>
 
 

@@ -120,7 +120,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             <div class="flex flex-col gap-y-6">
               <div class="relative min-h-[25vh] rounded-md border border-slate-600 dark:border-slate-400 bg-slate-200 dark:bg-slate-700">
                 <div class="absolute inset-0 flex justify-center items-center px-6">
-                  <app-floating-input
+                  <m-floating-input
                     class="w-full max-w-md"
                     label="Codice monouso"
                     type="text"
@@ -256,7 +256,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
               <div class="relative min-h-[25vh] rounded-md border border-slate-600 dark:border-slate-400 bg-slate-200 dark:bg-slate-700">
                 <div class="absolute inset-0 flex justify-center items-center px-6">
                   <div class="flex flex-col items-center gap-y-4">
-                    <app-floating-input
+                    <m-floating-input
                       class="w-full max-w-md"
                       label="Codice monouso"
                       type="text"
@@ -382,7 +382,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                   </div>
                   <div class="relative min-h-[25vh] rounded-md border border-slate-600 dark:border-slate-400 bg-slate-200 dark:bg-slate-700">
                     <div class="absolute inset-0 flex justify-center items-center px-6">
-                      <app-floating-input
+                      <m-floating-input
                         class="w-full max-w-md"
                         label="Nuova e-mail"
                         type="email"
@@ -422,7 +422,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                   </div>
                   <div class="relative min-h-[25vh] rounded-md border border-slate-600 dark:border-slate-400 bg-slate-200 dark:bg-slate-700">
                     <div class="absolute inset-0 flex justify-center items-center px-6">
-                        <app-floating-input
+                        <m-floating-input
                           class="w-full max-w-md"
                           label="Codice monouso"
                           type="text"
@@ -496,14 +496,14 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 <div class="relative min-h-[25vh] rounded-md border border-slate-600 dark:border-slate-400 bg-slate-200 dark:bg-slate-700">
                   <div class="absolute inset-0 flex justify-center items-center px-6">
                     <div class="flex w-full max-w-2xl items-center gap-4" [formGroup]="phoneForm">
-                      <pm-select
+                      <m-select
                           id="settings-change-phone-prefix"
                           label="Prefisso internazionale"
                           formControlName="prefix"
                           [options]="computePrefixValues()"
                           [containerClass]="'flex-none w-full'"
                           [maxHeight]="200" />
-                      <app-floating-input
+                      <m-floating-input
                         class="w-full max-w-md relative top-7"
                         label="Nuovo numero"
                         type="tel"
@@ -548,7 +548,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 </div>
                 <div class="relative min-h-[25vh] rounded-md border border-slate-600 dark:border-slate-400 bg-slate-200 dark:bg-slate-700">
                   <div class="absolute inset-0 flex justify-center items-center px-6">
-                      <app-floating-input
+                      <m-floating-input
                         class="w-full max-w-md"
                         label="Codice monouso"
                         type="text"
@@ -626,7 +626,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 </div>
                 <div class="relative min-h-[25vh] rounded-md border border-slate-600 dark:border-slate-400 bg-slate-200 dark:bg-slate-700">
                   <div class="absolute inset-0 flex justify-center items-center px-6">
-                    <app-floating-input
+                    <m-floating-input
                       class="w-full max-w-md"
                       label="Codice monouso"
                       type="text"
@@ -696,7 +696,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 <div class="relative min-h-[30vh] rounded-md border border-slate-600 dark:border-slate-400 bg-slate-200 dark:bg-slate-700">
                   <div class="flex justify-center items-center px-6 py-6" [formGroup]="passwordForm">
                     <div class="flex flex-col gap-y-4 w-full max-w-lg">
-                      <app-floating-input
+                      <m-floating-input
                         class="block w-full max-w-lg"
                         label="Password corrente"
                         type="password"
@@ -708,7 +708,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                         [bgClass]="'bg-slate-200'"
                         [darkBgClass]="'dark:bg-slate-700'"
                         (enter)="routeAction()" />
-                      <app-floating-input
+                      <m-floating-input
                         class="block w-full max-w-lg"
                         label="Nuova password"
                         type="password"
@@ -721,7 +721,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                         [bgClass]="'bg-slate-200'"
                         [darkBgClass]="'dark:bg-slate-700'"
                         (enter)="routeAction()" />
-                      <app-floating-input
+                      <m-floating-input
                         class="block w-full max-w-lg"
                         label="Reinserisci la nuova password"
                         type="password"
@@ -772,7 +772,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       }
     } @else {
       <div class="absolute inset-0 flex justify-center items-center z-[999]">
-        <app-classic-spinner [size]="45" />
+        <m-classic-spinner [size]="45" />
       </div>
     }
     </div>
@@ -849,7 +849,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
           class="absolute inset-0 flex items-center justify-center"
           [class.hidden]="!loading()"
         >
-          <app-classic-spinner [size]="24" />
+          <m-classic-spinner [size]="24" />
         </span>
       </button>
     </div>

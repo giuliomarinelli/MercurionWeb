@@ -13,7 +13,7 @@ import { SessionSyncService } from '../../services/session-sync.service';
   template: `
 
     <div class="absolute inset-0 flex justify-center items-center">
-      <app-classic-spinner [size]="60" />
+      <m-classic-spinner [size]="60" />
     </div>
 
   `

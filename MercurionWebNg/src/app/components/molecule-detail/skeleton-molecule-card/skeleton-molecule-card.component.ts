@@ -2,7 +2,7 @@ import { Component, Input, signal } from '@angular/core';
 import { NgClass, NgStyle } from '@angular/common';
 
 @Component({
-  selector: 'app-skeleton-molecule-card',
+  selector: 'm-skeleton-molecule-card',
   standalone: true,
   imports: [NgClass, NgStyle],
   template: `

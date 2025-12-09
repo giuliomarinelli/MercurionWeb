@@ -5,7 +5,7 @@ import { RouterModule } from '@angular/router';
 type TocMode = 'edit' | 'read';
 
 @Component({
-  selector: 'app-notebook-toc',
+  selector: 'm-notebook-toc',
   standalone: true,
   imports: [RouterModule],
   template: `

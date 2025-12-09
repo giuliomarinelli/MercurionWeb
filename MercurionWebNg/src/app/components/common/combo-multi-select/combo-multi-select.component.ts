@@ -27,7 +27,7 @@ import { FormsModule } from '@angular/forms';
  *  - È presente una barra con i "chip" dei selezionati (removibili) mantenendo lo stile sobrio
  */
 @Component({
-  selector: 'app-combo-multiselect',
+  selector: 'm-combo-multiselect',
   standalone: true,
   imports: [FormsModule, NgClass],
   template: `

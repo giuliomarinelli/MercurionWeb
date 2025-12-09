@@ -6,7 +6,7 @@ import { RouterLink } from '@angular/router';
 import { NgClass } from '@angular/common';
 
 @Component({
-  selector: 'molecule-header',
+  selector: 'm-molecule-header',
   standalone: true,
   imports: [CustomDetailsComponent, MoleculeBadgeComponent, RouterLink, NgClass],
   template: `
@@ -19,10 +19,10 @@ import { NgClass } from '@angular/common';
                 class="text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary">
               {{ name() }}
             </h2>
-            <app-molecule-badge [name]="_badgeName()" class="block relative top-0.5" />
+            <m-molecule-badge [name]="_badgeName()" class="block relative top-0.5" />
           </div>
           } @else {
-            <app-custom-details [type]="'name'" [value]="name()" (onSaving)="doSave($event)" [badgeName]="_badgeName()" [itemId]="_molId()" />
+            <m-custom-details [type]="'name'" [value]="name()" (onSaving)="doSave($event)" [badgeName]="_badgeName()" [itemId]="_molId()" />
           }
         } @else {
           <div class="flex gap-6 items-center">
@@ -30,7 +30,7 @@ import { NgClass } from '@angular/common';
                 class="text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-left text-light-accent-primary dark:text-dark-accent-primary">
               {{ name() }}
             </h1>
-            <app-molecule-badge [name]="'ChEMBL Molecule'" />
+            <m-molecule-badge [name]="'ChEMBL Molecule'" />
           </div>
         }
         @if (_chemblIdSignal()) {

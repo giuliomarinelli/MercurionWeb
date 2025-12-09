@@ -6,7 +6,7 @@ import { Subscription } from 'rxjs';
 import { MoleculeCardItemModel } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
 
 @Component({
-  selector: 'app-molecule-collection-item-select-card',
+  selector: 'm-molecule-collection-item-select-card',
   standalone: true,
   imports: [
     MoleculeCollectionItemCardComponent,
@@ -34,7 +34,7 @@ import { MoleculeCardItemModel } from '../../../Models/graphql/molecule-collecti
         @if (_isSelectAll()) {
           <span class="block w-full select-none font-semibold ml-[2px]">SELEZIONA TUTTI</span>
         } @else {
-          <app-molecule-collection-item-card
+          <m-molecule-collection-item-card
             class="block w-full"
             [molecule]="_molecule()!"
             [i]="_i()"

@@ -24,7 +24,7 @@ import { SSO_AuthProvider } from '../../Models/auth/provider.models';
 
 
 @Component({
-  selector: 'app-login',
+  selector: 'm-login',
   imports: [
     ReactiveFormsModule,
     PublicPipe,
@@ -62,7 +62,7 @@ import { SSO_AuthProvider } from '../../Models/auth/provider.models';
         @if (step() === 1) {
           <!-- STEP 1: EMAIL -->
           <div class="mt-2">
-            <app-floating-input
+            <m-floating-input
               label="Indirizzo e-mail"
               type="email"
               autocomplete="email"
@@ -75,7 +75,7 @@ import { SSO_AuthProvider } from '../../Models/auth/provider.models';
               [serverError]="serverErrorStep() === 1 ? uncorrectEmailMsg : null"
               (enter)="goToPasswordStep()"
             >
-            </app-floating-input>
+            </m-floating-input>
           </div>
           <button
             type="button"
@@ -88,7 +88,7 @@ import { SSO_AuthProvider } from '../../Models/auth/provider.models';
         } @else if (step() === 2) {
           <!-- STEP 2: EMAIL + PASSWORD (email ancora editabile) -->
           <div class="relative mb-3 mt-2">
-            <app-floating-input
+            <m-floating-input
               label="Indirizzo e-mail"
               type="email"
               autocomplete="email"
@@ -102,10 +102,10 @@ import { SSO_AuthProvider } from '../../Models/auth/provider.models';
               [serverError]="serverErrorStep() === 1 ? uncorrectEmailMsg : null"
               (enter)="goToPasswordStep()"
             >
-            </app-floating-input>
+            </m-floating-input>
           </div>
           <div class="relative">
-            <app-floating-input
+            <m-floating-input
               label="Password"
               type="password"
               autocomplete="current-password"
@@ -118,7 +118,7 @@ import { SSO_AuthProvider } from '../../Models/auth/provider.models';
                   : null
               "
             >
-            </app-floating-input>
+            </m-floating-input>
 
             <button
               type="submit"
@@ -129,7 +129,7 @@ import { SSO_AuthProvider } from '../../Models/auth/provider.models';
                 Accedi
               } @else {
                 <div class="text-slate-200 flex items-center justify-center">
-                  <app-classic-spinner [size]="24"></app-classic-spinner>
+                  <m-classic-spinner [size]="24"></m-classic-spinner>
                 </div>
               }
             </button>
@@ -142,7 +142,7 @@ import { SSO_AuthProvider } from '../../Models/auth/provider.models';
                 <span class="sr-only">Loading CAPTCHA…</span>
               </div>
             }
-            <app-turnstile
+            <m-turnstile
               (token)="onTurnstileToken($event)"
               (widgetReady)="onTurnstileRender()"
               (refresh)="loadingTurnstile.set(true)"

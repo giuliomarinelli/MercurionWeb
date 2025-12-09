@@ -4,7 +4,7 @@ import { PercentPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
 @Component({
-  selector: 'app-t1-prediction-card',
+  selector: 'm-t1-prediction-card',
   imports: [PercentPipe, RouterLink],
   template: `
 

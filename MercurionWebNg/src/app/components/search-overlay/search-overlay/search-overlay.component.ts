@@ -7,7 +7,7 @@ import { RouterLink } from '@angular/router';
 import { SearchResultSkeletonLoaderComponent } from '../search-result-skeleton-loader/search-result-skeleton-loader.component';
 
 @Component({
-  selector: 'app-search-overlay',
+  selector: 'm-search-overlay',
   imports: [SearchInputComponent, SearchResultComponent, RouterLink, SearchResultSkeletonLoaderComponent],
   template: `
     <div
@@ -30,7 +30,7 @@ import { SearchResultSkeletonLoaderComponent } from '../search-result-skeleton-l
           </div>
 
 
-          <app-search-input
+          <m-molecule-search-input
             (onLoading)="loading.set($event)"
             (onResult)="handleResults($event)"
             (onError)="handleError($event)"
@@ -46,11 +46,11 @@ import { SearchResultSkeletonLoaderComponent } from '../search-result-skeleton-l
             <hr class="border-px border-slate-300/50 mt-5 sticky top-[-24px] -z-10" />
             <!-- Skeleton loader -->
             @if (loading()) {
-                <app-search-result-skeleton-loader />
+                <m-search-result-skeleton-loader />
               } @else if (results().length) {
                 <!-- Lista risultati -->
                 @for (molecule of results(); track molecule.id) {
-                  <app-search-result [molecule]="molecule" [query]="query()" />
+                  <m-search-result [molecule]="molecule" [query]="query()" />
                 }
               } @else if (!results().length && !error() && !empty()) {
                 <div class="text-sm text-gray-400 text-center py-8">

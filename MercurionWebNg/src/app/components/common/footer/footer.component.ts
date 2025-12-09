@@ -5,7 +5,7 @@ import { PublicPipe } from '../../../pipes/public.pipe';
 import { environment } from '../../../../environments/environment.development';
 
 @Component({
-  selector: 'app-footer',
+  selector: 'm-footer',
   imports: [NgOptimizedImage, PublicPipe],
   template: `
     <footer class="px-6 py-4 text-xs sm:text-sm">

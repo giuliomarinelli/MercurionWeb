@@ -19,7 +19,7 @@ import { MfaStrategy, MfaView } from '../../../Models/account/account.models'
 import { MfaStrategyCardComponent } from '../../../components/common/mfa-strategy-card/mfa-strategy-card.component'
 
 @Component({
-  selector: 'app-mfa',
+  selector: 'm-mfa',
   imports: [
     ReactiveFormsModule,
     NgClass,
@@ -152,7 +152,7 @@ import { MfaStrategyCardComponent } from '../../../components/common/mfa-strateg
                   <span>Verifica</span>
                 } @else {
                   <div class="text-slate-200 flex items-center justify-center">
-                    <app-classic-spinner [size]="24"></app-classic-spinner>
+                    <m-classic-spinner [size]="24"></m-classic-spinner>
                   </div>
                 }
               </button>
@@ -199,7 +199,7 @@ import { MfaStrategyCardComponent } from '../../../components/common/mfa-strateg
       </div>
     } @else {
       <div class="absolute inset-0 flex justify-center items-center">
-        <app-classic-spinner [size]="60" />
+        <m-classic-spinner [size]="60" />
       </div>
     }
   `

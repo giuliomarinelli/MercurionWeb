@@ -1,7 +1,7 @@
 import { Component, Input, signal } from '@angular/core';
 
 @Component({
-  selector: 'molecule-synonyms',
+  selector: 'm-molecule-synonyms',
   standalone: true,
   template: `
     <section class="mt-4 mb-8">

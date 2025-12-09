@@ -486,7 +486,7 @@ import { Helpers } from '../../helpers';
                             <h3 class="font-bold text-lg my-3">Sessioni attive</h3>
                             <div class="flex flex-col gap-y-4 mb-3">
                               @for (s of activeSessions; track s.id) {
-                                <app-session-card [session]="s" (onLoggingOutFromSession)="doLogoutFromSession($event)" />
+                                <m-session-card [session]="s" (onLoggingOutFromSession)="doLogoutFromSession($event)" />
                               }
                             </div>
                             <button
@@ -571,7 +571,7 @@ import { Helpers } from '../../helpers';
     } @else {
       <div class="absolute inset-0">
         <div class="mx-auto max-w-5xl flex justify-center items-center h-full">
-          <app-classic-spinner [size]="60" />
+          <m-classic-spinner [size]="60" />
         </div>
       </div>
     }

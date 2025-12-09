@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 
 @Component({
-  selector: 'app-history-item',
+  selector: 'm-history-item',
   imports: [RouterLink, DatePipe],
   template: `
     @if (_historyDTO()) {

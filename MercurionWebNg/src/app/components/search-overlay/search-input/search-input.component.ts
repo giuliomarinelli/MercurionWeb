@@ -8,7 +8,7 @@ import { MoleculeSearchResult } from '../../../Models/graphql/molecule-search/mo
 import { AddMoleculesToCollectionContextService } from '../../../services/context/action-context/add-molecules-to-collection-context.service';
 
 @Component({
-  selector: 'app-search-input',
+  selector: 'm-molecule-search-input',
   standalone: true,
   imports: [FormsModule],
   template: `

@@ -4,18 +4,18 @@ import { CollectionCardComponent } from '../collection-card/collection-card.comp
 import { SkeletonCollectionCardComponent } from '../../common/skeleton-card-loader/skeleton-card-loader.component';
 
 @Component({
-  selector: 'app-my-molecule-join',
+  selector: 'm-my-molecule-join',
   imports: [CollectionCardComponent, SkeletonCollectionCardComponent],
   template: `
     @if (collections().length) {
       <div class="overflow-y-auto relative max-h-[224px] min-h-[112px] transition-[max-height] duration-300 ease-in-out border">
         @for (c of collections(); track c; let i = $index) {
-          <app-collection-card [collection]="c" [i]="i" [hideActionButtons]="true" />
+          <m-collection-card [collection]="c" [i]="i" [hideActionButtons]="true" />
         }
       </div>
     } @else if (!loaded() && !notFound()) {
       @for (i of [0, 1]; track i) {
-        <app-skeleton-collection-card [height]="'112px'" />
+        <m-skeleton-collection-card [height]="'112px'" />
       }
     } @else if (notFound()) {
       <div class="flex items-center justify-center min-h-[112px] text-sm text-muted-foreground">

@@ -14,7 +14,7 @@ import { MoleculeProperties } from '../../../Models/graphql/molecule-properties.
 import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.models';
 
 @Component({
-  selector: 'app-custom-molecule-collection-item-save',
+  selector: 'm-custom-molecule-collection-item-save',
   imports: [NgClass, ComboSelectComponent, FormsModule],
   template: `
 
@@ -35,7 +35,7 @@ import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.model
               Scegli la collezione di destinazione:
             </h2>
             <!-- ComboBox Collezioni -->
-            <app-combo-select
+            <m-combo-select
               [items]="collections()"
               [displayFn]="displayCollection"
               [valueFn]="valueCollection"

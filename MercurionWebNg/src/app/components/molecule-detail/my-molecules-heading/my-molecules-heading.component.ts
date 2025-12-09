@@ -4,7 +4,7 @@ import { DesignService } from '../../../services/design.service';
 import { RouterLink } from '@angular/router';
 
 @Component({
-  selector: 'app-my-molecules-heading',
+  selector: 'm-my-molecules-heading',
   imports: [RouterLink],
   template: `
 

@@ -5,12 +5,12 @@ import { NotebookTreeComponent } from '../../../components/notebook/notebook-tre
 import { Subscription } from 'rxjs';
 
 @Component({
-  selector: 'app-notebook-landing',
+  selector: 'm-notebook-landing',
   imports: [NotebookTreeComponent],
   template: `
 
     <h1 class="text-6xl text-center mb-3">Hola</h1>
-    <app-notebook-tree [notebooks]="notebooks()" />
+    <m-notebook-tree [notebooks]="notebooks()" />
   `
 })
 export class NotebookLandingComponent implements OnInit, OnDestroy {

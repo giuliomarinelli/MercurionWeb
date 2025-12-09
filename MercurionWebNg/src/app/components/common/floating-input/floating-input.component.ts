@@ -7,7 +7,7 @@ import { Subscription } from 'rxjs';
 type ErrorMap = Record<string, string>;
 
 @Component({
-  selector: 'app-floating-input',
+  selector: 'm-floating-input',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, ClassicSpinnerComponent],
   host: { class: 'block' },
@@ -51,7 +51,7 @@ type ErrorMap = Record<string, string>;
       <span>{{ getCurrentError() }}</span>
       @if (ngControl?.pending) {
         <div class="text-light-on-surface-secondary dark:text-slate-200">
-          <app-classic-spinner [size]="15" />
+          <m-classic-spinner [size]="15" />
         </div>
       }
     </div>

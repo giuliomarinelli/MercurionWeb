@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter, ViewChild, ElementRef } from '@angular/core';
 
 @Component({
-  selector: 'pm-search-input',
+  selector: 'm-search-input',
   template: `
     <div class="relative w-[240px] mr-2">
       <svg

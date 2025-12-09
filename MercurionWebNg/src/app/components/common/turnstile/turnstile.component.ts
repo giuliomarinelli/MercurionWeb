@@ -13,7 +13,7 @@ import { Theme } from '../../../Models/theme.models';
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
 
 @Component({
-  selector: 'app-turnstile',
+  selector: 'm-turnstile',
   standalone: true,
   template: `
     <div [id]="containerId"></div>

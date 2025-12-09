@@ -4,7 +4,7 @@ import { NotebookService } from '../../../services/graphql/notebook.service';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 @Component({
-  selector: 'app-notebook-tree',
+  selector: 'm-notebook-tree',
   imports: [RouterLink],
   styles: `
     .selectable {

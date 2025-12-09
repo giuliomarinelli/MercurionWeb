@@ -18,7 +18,7 @@ import { PmOption } from '../../Models/pm-option.model';
 
 
 @Component({
-  selector: 'app-register.page',
+  selector: 'm-register.page',
   imports: [
     PublicPipe,
     ReactiveFormsModule,
@@ -49,7 +49,7 @@ import { PmOption } from '../../Models/pm-option.model';
           @case (1) {
             <form [formGroup]="form" (ngSubmit)="onSubmit()">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-8">
-              <app-floating-input
+              <m-floating-input
                   label="Nome *"
                   type="text"
                   autocomplete="current-name"
@@ -59,7 +59,7 @@ import { PmOption } from '../../Models/pm-option.model';
                     pattern: 'Il formato del nome non è valido.'
                   }"
               />
-              <app-floating-input
+              <m-floating-input
                   label="Cognome *"
                   type="text"
                   autocomplete="current-surname"
@@ -71,7 +71,7 @@ import { PmOption } from '../../Models/pm-option.model';
               />
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-6">
-              <app-floating-input
+              <m-floating-input
                   label="E-mail *"
                   type="email"
                   autocomplete="current-email"
@@ -84,7 +84,7 @@ import { PmOption } from '../../Models/pm-option.model';
                   }"
                   [asyncVerify]="true"
               />
-              <app-floating-input
+              <m-floating-input
                   label="Il tuo lavoro"
                   type="text"
                   autocomplete="current-job"
@@ -92,17 +92,17 @@ import { PmOption } from '../../Models/pm-option.model';
                   [errors]="{}"
               />
             </div>
-            <pm-select label="Genere *"
+            <m-select label="Genere *"
               [options]="options"
               formControlName="gender">
-            </pm-select>
+            </m-select>
             <div class="tflex justify-center mx-auto max-w-[500px] text-sm text-light-error dark:text-dark-error mt-1 min-h-5 mb-8">
               @if (form.controls['gender'].touched && form.controls['gender'].invalid) {
                 Genere obbligatorio.
               }
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-8">
-              <app-floating-input
+              <m-floating-input
                   label="Password"
                   type="password"
                   autocomplete="current-password"
@@ -112,7 +112,7 @@ import { PmOption } from '../../Models/pm-option.model';
                     pattern: 'La password deve essere di almeno 8 caratteri: almeno uno minuscolo, uno maiuscolo, un numero e un carattere speciale.'
                   }"
               />
-              <app-floating-input
+              <m-floating-input
                   label="Inserisci di nuovo la password"
                   type="password"
                   autocomplete="current-password"
@@ -133,7 +133,7 @@ import { PmOption } from '../../Models/pm-option.model';
                   Registrati
                 } @else {
                   <div class="text-slate-200 flex items-center justify-center">
-                    <app-classic-spinner [size]="24"></app-classic-spinner>
+                    <m-classic-spinner [size]="24"></m-classic-spinner>
                   </div>
                 }
               </button>

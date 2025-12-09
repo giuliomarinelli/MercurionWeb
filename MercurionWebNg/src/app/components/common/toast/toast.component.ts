@@ -6,7 +6,7 @@ import { ToastService } from '../../../services/toast.service';
 export type ToastContext = 'error' | 'warn' | 'success'
 
 @Component({
-  selector: 'app-toast',
+  selector: 'm-toast',
   standalone: true,
   imports: [CommonModule, NgClass],
   template: `

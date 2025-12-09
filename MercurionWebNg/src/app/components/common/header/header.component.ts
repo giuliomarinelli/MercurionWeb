@@ -18,7 +18,7 @@ import { ToastService } from '../../../services/toast.service';
 import { ProvidedEmailDTO } from '../../../Models/account/account.models';
 
 @Component({
-  selector: 'app-header',
+  selector: 'm-header',
   imports: [
     NgOptimizedImage,
     NgClass,
@@ -59,7 +59,7 @@ import { ProvidedEmailDTO } from '../../../Models/account/account.models';
       </div>
       }
       @if (designService.minBk("lg")() && userContext.initials() != "") {
-      <app-nav [header]="true"></app-nav>
+      <m-nav [header]="true"></m-nav>
       }
     </div>
     @if (designService.maxBk("xs")()) {
@@ -378,7 +378,7 @@ import { ProvidedEmailDTO } from '../../../Models/account/account.models';
   </div>
 
   <!-- Menu items -->
-  <app-sidenav (menuItemClick)="closeOffCanvasMenu()" />
+  <m-sidenav (menuItemClick)="closeOffCanvasMenu()" />
 
   <!-- Sezione avatar -->
   @if (userContext.initials() !== "" && designService.maxBk("xs")()) {
