@@ -1,4 +1,4 @@
-import { Component, Input, signal } from '@angular/core';
+import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
 import { HistoryDTO, HistoryItemEntity } from '../../../Models/history.models';
 import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
@@ -15,6 +15,7 @@ import { DatePipe } from '@angular/common';
                    hover:bg-slate-50 dark:hover:bg-slate-800/70"
         [class.bg-slate-300/65]="_selected()"
         [class.dark:bg-slate-700/80]="_selected()"
+        (click)="notifyClick()"
       >
         <!-- Icona -->
         @switch (_historyDTO()!.itemEntity) {
@@ -88,6 +89,12 @@ export class HistoryItemComponent {
   @Input()
   set selected(selected: boolean) {
     this._selected.set(selected)
+  }
+
+  @Output() itemClick = new EventEmitter<void>()
+
+  notifyClick(): void {
+    this.itemClick.emit()
   }
 
   private computePathToItem(entity: HistoryItemEntity, id: string): string {

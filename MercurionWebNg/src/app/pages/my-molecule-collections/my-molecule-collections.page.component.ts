@@ -33,7 +33,7 @@ import { AddMoleculesToCollectionContextService } from '../../services/context/a
   <section class="max-w-5xl mx-auto p-0 xs:p-4 sm:p-6 md:p-8 space-y-12">
     <m-my-molecules-heading />
     <div class="flex flex-wrap gap-y-4 justify-between items-center relative -top-12 pt-2">
-        <h2 class="bg-slate-50 dark:bg-neutral-950 z-10 block sticky top-0 bottom-5 text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary" style="margin-block-start: 0">
+        <h2 class="h1 bg-slate-50 dark:bg-neutral-950 z-10 block sticky top-0 bottom-5" style="margin-block-start: 0">
             Le mie collezioni molecolari
         </h2>
         <div class="flex items-center gap-3">

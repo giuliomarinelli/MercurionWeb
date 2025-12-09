@@ -21,7 +21,7 @@ import { SearchContextService } from '../../../services/context/search-context.s
   ],
   template: `
     <nav class="flex flex-col h-full bg-transparent z-50 select-none pt-4 lg:pt-12">
-      @if (designService.maxBk('xs')()) {
+      @if (designService.maxBk('sm')()) {
       <h6 class="detail">Strumenti</h6>
       <div [class.px-2]="userContext.isLoggedOut()">
         <button type="button" class="sidebar-link" routerLink="molecules/all-my-molecules" (click)="searchOverlayContext.open()">
@@ -155,7 +155,8 @@ import { SearchContextService } from '../../../services/context/search-context.s
           <m-history class="block"
             [triggerDelete]="triggerDelete()"
             [triggerEmptyCheck]="triggerEmptyCheck()"
-            (emptyChange)="handleEmptyChange($event)" />
+            (emptyChange)="handleEmptyChange($event)"
+            (itemClick)="handleMenuItemClick()" />
         </div>
       } @else {
         <!-- Menu per utente non loggato -->
@@ -267,8 +268,9 @@ export class SidenavComponent implements OnDestroy {
 
   @Output()
   onOpenOffCanvas = new EventEmitter<void>()
+
   @Output()
-  menuItemClick = new EventEmitter<void>()
+  onMenuItemClick = new EventEmitter<void>()
 
   triggerDelete = signal<boolean>(false)
   isHistoryEmpty = signal<boolean>(false)
@@ -301,11 +303,11 @@ export class SidenavComponent implements OnDestroy {
   }
 
   handleMenuItemClick(): void {
-    this.menuItemClick.emit()
+    this.onMenuItemClick.emit()
   }
 
-  openOffCanvas(): void {
-
+  closeOffCanvasMenu(): void {
+    this.onMenuItemClick.emit()
   }
 
 }

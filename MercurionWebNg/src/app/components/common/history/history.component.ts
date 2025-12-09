@@ -42,9 +42,13 @@ import { AppContextService } from '../../../services/context/app-context.service
   `,
   template: `
     @if (items().length) {
-      <div [ngClass]="fadeOut()" class="pb-36 xs:pb-4 lg:pb-0">
+      <div [ngClass]="fadeOut()" class="pb-36 sm:pb-4 lg:pb-0">
         @for (item of items(); track item.id) {
-          <m-history-item [historyDTO]="item" [selected]="item.selected()" class="block" />
+          <m-history-item
+            [historyDTO]="item"
+            [selected]="item.selected()"
+            class="block"
+            (itemClick)="handleItemClick()" />
         }
       </div>
     }
@@ -95,6 +99,8 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
 
   @Output()
   emptyChange = new EventEmitter<boolean>()
+  @Output()
+  itemClick = new EventEmitter<void>()
 
   private rSub?: Subscription
 
@@ -223,6 +229,10 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnDestroy(): void {
     this.rSub?.unsubscribe();
     if (this.observer) this.observer.disconnect()
+  }
+
+  handleItemClick(): void {
+    this.itemClick.emit()
   }
 
   private findScrollContainer(): HTMLElement | null {
