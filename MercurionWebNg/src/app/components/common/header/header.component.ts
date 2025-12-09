@@ -16,6 +16,7 @@ import { SessionSyncService } from '../../../services/session-sync.service';
 import { PathService } from '../../../services/path.service';
 import { ToastService } from '../../../services/toast.service';
 import { ProvidedEmailDTO } from '../../../Models/account/account.models';
+import { environment } from '../../../../environments/environment.development';
 
 @Component({
   selector: 'm-header',
@@ -355,24 +356,21 @@ import { ProvidedEmailDTO } from '../../../Models/account/account.models';
       '-translate-x-full': !offCanvasMenuOpen(),
     }">
   <!-- Header of the offcanvas -->
-  <div class="flex justify-between items-center px-4 border-b py-5 border-slate-400 dark:border-dark-border">
-    <div class="flex items-center gap-3">
-      <!-- openSearchOverlay(); offCanvasMenuOpen.set(true) -->
-      <button type="button" class="cursor-pointer">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
-          class="w-[26px] h-[26px] fill-current text-slate-600 dark:text-slate-400 relative bottom-[0.5px]">
-          <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-          <path d="M320 96C443.7 96 544 196.3 544 320C544 443.7 443.7 544 320 544C196.3 544 96 443.7 96 320C96 196.3 196.3 96 320 96zM320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM202.1 411.9L192 448C194.7 447.2 261.4 428.6 392 392C428.6 261.4 447.2 194.7 448 192C445.3 192.8 378.6 211.4 248 248L202.1 411.9zM238.2 401.8L274 274L401.8 238.2L366 366L238.2 401.8zM320 344C333.3 344 344 333.3 344 320C344 306.7 333.3 296 320 296C306.7 296 296 306.7 296 320C296 333.3 306.7 344 320 344z"/>
-        </svg>
-      </button>
-      <span
-        class="tracking-wider text-light-on-surface-main dark:text-slate-200 font-semibold text-lg">Mercurion.</span>
+  <div class="flex justify-between items-center px-4 border-b py-[18px] border-slate-300 dark:border-dark-border">
+    <div class="flex items-center gap-4">
+      <a routerLink="/">
+        <img [ngSrc]="pictogramLogo() | public" alt="Pittogramma Logo di Mercurion" width="186" height="234" class="w-auto h-[30px] contrast-115" />
+      </a>
+      <span class="text-lg">Mercurion</span>
     </div>
-    <button (click)="closeOffCanvasMenu()">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 fill-current dark:text-slate-400 text-slate-600"
-        viewBox="0 0 384 512">
-        <path
-          d="M310.6 361.4L233.3 284.1 310.6 206.7c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L188 238.7 110.6 161.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L142.7 284.1 65.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L188 329.3l77.3 77.3c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3z" />
+    <button
+      class="inline-flex items-center justify-center size-8 rounded-md text-slate-500 hover:text-emerald-600 hover:bg-slate-100 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-transparent transition"
+      (click)="closeOffCanvasMenu()">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 640 640"
+        class="fill-current w-5 h-auto">
+          <path d="M182.9 137.4L160.3 114.7L115 160L137.6 182.6L275 320L137.6 457.4L115 480L160.3 525.3L182.9 502.6L320.3 365.3L457.6 502.6L480.3 525.3L525.5 480L502.9 457.4L365.5 320L502.9 182.6L525.5 160L480.3 114.7L457.6 137.4L320.3 274.7L182.9 137.4z" />
       </svg>
     </button>
   </div>
@@ -537,6 +535,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.themeManager.theme() === 'light' ? 'logo/complete-light-logo.svg' : 'logo/complete-dark-logo-2.svg'
   )
 
+  pictogramLogo = computed<string>(() => {
+    const { PICTOGRAM_LIGHT, PICTOGRAM_DARK } = environment.logoSrc
+    return this.themeManager.theme() === 'light' ? PICTOGRAM_LIGHT : PICTOGRAM_DARK
+  })
+
 
   constructor() {
     effect(() => {
@@ -674,11 +677,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   getProvidedEmail(): void {
-    this.emailSub = this.accountService
-      .getProvidedEmail()
-      .subscribe(dto => {
-        this.providedEmail.set(dto)
-      })
+    if (this.userContext.isLoggedIn()) {
+      this.emailSub = this.accountService
+        .getProvidedEmail()
+        .subscribe((dto) => {
+          this.providedEmail.set(dto)
+        })
+    }
   }
 
   logout(): void {
@@ -713,8 +718,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
       })
 
   }
-
-
 
   ngOnDestroy(): void {
     document.removeEventListener('click', this.handleDocumentClick, true)
