@@ -444,11 +444,16 @@ export class AddMoleculesToCollectionComponent extends AbstractPaginatedMultisel
     this.chemblResults.set([])
   }
 
-  handleResults(results: MoleculeSearchResult[]): void {
+  handleResults(results: MoleculeSearchResult[] | PageModel<MoleculeCardItemModel>): void {
     this.chemblEmpty.set(false)
-    this.chemblResults.set(results)
     this.chemblError.set(null)
+    if (Array.isArray(results)) {
+      this.chemblResults.set(results)
+      return
+    }
+    this.chemblResults.set([])
   }
+
 
   handleError(err: unknown): void {
     this.chemblEmpty.set(false)
