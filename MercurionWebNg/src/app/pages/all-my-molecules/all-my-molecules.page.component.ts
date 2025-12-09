@@ -163,8 +163,8 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
 
   ngAfterViewInit(): void {
     queueMicrotask(() => {
-      this.startObserver();
-      this.enforceInfiniteScroll();
+      this.startObserver()
+      this.enforceInfiniteScroll()
     })
   }
 
@@ -179,7 +179,7 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
         ...page,
         items: page.items.map(mol => Helpers.moleculeClientToCardConverter(mol))
       }))
-    );
+    )
   }
 
 

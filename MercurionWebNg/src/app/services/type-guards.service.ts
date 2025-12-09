@@ -5,6 +5,9 @@ import { ChEMBLMoleculeItemEntity, CustomMoleculeItemEntity, MoleculeCollectionI
 import { SSO_AuthProvider } from "../Models/auth/provider.models";
 import { Ticket } from "../Models/graphql/help.models";
 import { Maybe } from 'graphql/jsutils/Maybe';
+import { MoleculeSearchResult } from '../Models/graphql/molecule-search/molecule-search-result.interface';
+import { PageModel } from '../Models/graphql/page.models';
+import { JsonValue } from '../Models/json.models';
 
 @Injectable({ providedIn: 'root' })
 export class TypeGuardsService {
@@ -155,6 +158,51 @@ export class TypeGuardsService {
       }
     }
     return true
+  }
+
+  private isObject = (v: unknown): v is Record<string, unknown> =>
+    typeof v === 'object' && v !== null
+
+  private isMoleculeSearchResult = (v: unknown): v is MoleculeSearchResult => {
+    if (!this.isObject(v)) {
+      return false
+    }
+    return (
+      (typeof (v as Record<string, number>)?.['id'] === 'number' ||
+        typeof (v as Record<string, string>)?.['id'] === 'number') &&
+      typeof (v as Record<string, string>)?.['preferredName'] === 'string' &&
+      typeof (v as Record<string, string>)?.['preferredNameIt'] === 'string' &&
+      typeof (v as Record<string, boolean>)?.['known'] === 'boolean'
+    )
+  }
+
+  isMoleculeSearchResultArray<T = unknown>(
+    item: MoleculeSearchResult[] | PageModel<T>
+  ): item is MoleculeSearchResult[] {
+    return Array.isArray(item) && item.every(this.isMoleculeSearchResult)
+  }
+
+  isPageModel<T = unknown>(
+    item: MoleculeSearchResult[] | PageModel<T>
+  ): item is PageModel<T> {
+
+    if (!this.isObject(item)) {
+      return false
+    }
+
+    if (Array.isArray(item)) {
+      return false
+    }
+
+    const itemsVal = item.items
+    return (
+      Array.isArray(itemsVal) &&
+      typeof item.itemCount === 'number' &&
+      typeof item.totalItems === 'number' &&
+      typeof item.itemsPerPage === 'number' &&
+      typeof item.totalPages === 'number' &&
+      typeof item.currentPage === 'number'
+    )
   }
 
 }

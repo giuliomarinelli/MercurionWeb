@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { SearchFilterComponent } from './search-filter.component';
+import { CloseButtonComponent } from './close-button.component';
 
-describe('SearchFilterComponent', () => {
-  let component: SearchFilterComponent;
-  let fixture: ComponentFixture<SearchFilterComponent>;
+describe('CloseButtonComponent', () => {
+  let component: CloseButtonComponent;
+  let fixture: ComponentFixture<CloseButtonComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SearchFilterComponent]
+      imports: [CloseButtonComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(SearchFilterComponent);
+    fixture = TestBed.createComponent(CloseButtonComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
