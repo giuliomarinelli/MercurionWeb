@@ -59,7 +59,7 @@ import { environment } from '../../../../environments/environment.development';
         }
       </div>
       }
-      @if (designService.minBk("lg")() && userContext.initials() != "") {
+      @if (designService.minBk("lg")() && userContext.isLoggedIn()) {
       <m-nav [header]="true"></m-nav>
       }
     </div>
@@ -70,7 +70,7 @@ import { environment } from '../../../../environments/environment.development';
     </a>
     }
     <div class="theme-menu-container flex gap-2">
-      @if (userContext.initials() === "" && !isLoginPath()) {
+      @if (!userContext.isLoggedIn() && !isLoginPath()) {
       <div
         class="hidden lg:flex items-center gap-3 text-sm xl:text-[0.925rem] font-medium text-light-on-surface-main dark:text-slate-100 tracking-wider mr-3 relative top-[1px]">
         <a routerLink="/login"
@@ -84,8 +84,8 @@ import { environment } from '../../../../environments/environment.development';
       }
       <!-- Ricerca fittizia o icona -->
       @if (
-      userContext.initials() !== "" ||
-      (userContext.initials() === "" && isLoginPath())
+      userContext.isLoggedIn() ||
+      (!userContext.isLoggedIn() && isLoginPath())
       ) {
       <div class="hidden lg:block">
         <div (click)="openSearchOverlay()"
@@ -104,7 +104,7 @@ import { environment } from '../../../../environments/environment.development';
       </div>
       }
       <div class="hidden xs:block" [ngClass]="{
-          'lg:hidden': userContext.initials() !== '' || isLoginPath(),
+          'lg:hidden': userContext.isLoggedIn() || isLoginPath(),
         }">
         <button (click)="openSearchOverlay()" class="p-2 hover:bg-white/10 rounded-full relative left-0.5">
           <svg class="w-5 h-5 fill-current text-slate-600 dark:text-gray-200" xmlns="http://www.w3.org/2000/svg"
@@ -116,7 +116,7 @@ import { environment } from '../../../../environments/environment.development';
       </div>
 
       <button class="flex items-center theme-toggle-button mr-0 xs:mr-1 lg:mr-2 transition-all duration-500" [ngClass]="{
-          'xl:ml-1': userContext.initials() !== '' || isLoginPath(),
+          'xl:ml-1': userContext.isLoggedIn() || isLoginPath(),
         }" (click)="toggleThemeMenu()">
         @if (themeManager.theme() === "dark") {
         <svg xmlns="http://www.w3.org/2000/svg"
@@ -137,7 +137,7 @@ import { environment } from '../../../../environments/environment.development';
       </button>
       @if (
       designService.minBk("sm")() &&
-      userContext.initials() !== "" &&
+      userContext.isLoggedIn() &&
       isAllowedPath()
       ) {
       <button (click)="toggleAvatarMenu()" [innerHTML]="userContext.initials()"
@@ -379,7 +379,7 @@ import { environment } from '../../../../environments/environment.development';
   <m-sidenav (menuItemClick)="closeOffCanvasMenu()" />
 
   <!-- Sezione avatar -->
-  @if (userContext.initials() !== "" && designService.maxBk("xs")()) {
+  @if (userContext.isLoggedIn() && designService.maxBk("xs")()) {
   <div
     class="sticky bottom-0 border-t py-3 px-5 bg-slate-100 dark:bg-neutral-800 border-slate-400 dark:border-dark-border flex gap-3 items-center">
     <button (click)="toggleAvatarMobileMenu()" [innerHTML]="userContext.initials()"
@@ -391,7 +391,7 @@ import { environment } from '../../../../environments/environment.development';
   </div>
   }
   <!-- Modal avatar mobile (solo xs/sm) -->
-  @if (avatarMobileMenuMounted() && userContext.initials() !== "") {
+  @if (avatarMobileMenuMounted() && userContext.isLoggedIn()) {
   <div class="fixed inset-0 z-[10000] bg-black/50 flex items-end sm:hidden transition-opacity duration-300" [ngClass]="{
           'opacity-100 pointer-events-auto': avatarMobileMenuVisible(),
           'opacity-0 pointer-events-none': !avatarMobileMenuVisible(),
