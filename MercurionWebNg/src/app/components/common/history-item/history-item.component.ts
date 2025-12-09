@@ -62,7 +62,7 @@ import { DatePipe } from '@angular/common';
             {{ _historyDTO()?.itemName }}
           </p>
           <p class="text-xs text-slate-500 dark:text-slate-300/65 mt-1">
-            {{ _historyDTO()!.touchedAt | date: 'dd/MM/yyyy HH:mm:ss' }}
+            {{ _historyDTO()!.touchedAt | date : 'dd/MM/yyyy HH:mm:ss' }}
           </p>
         </div>
 

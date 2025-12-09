@@ -1,11 +1,25 @@
-import { AfterViewInit, OnInit, Component, effect, ElementRef, EventEmitter, inject, Input, Output, signal, ViewChild } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { toObservable } from '@angular/core/rxjs-interop';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { MoleculeSearchService } from '../../../services/graphql/molecule-search.service';
-import { MoleculeCollectionItemService } from './../../../services/graphql/molecule-collection-item.service';
-import { MoleculeSearchResult } from '../../../Models/graphql/molecule-search/molecule-search-result.interface';
-import { AddMoleculesToCollectionContextService } from '../../../services/context/action-context/add-molecules-to-collection-context.service';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  Output,
+  ViewChild,
+  inject,
+  signal
+} from '@angular/core'
+import { FormsModule } from '@angular/forms'
+import { toObservable } from '@angular/core/rxjs-interop'
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators'
+import { Subscription } from 'rxjs'
+import { MoleculeSearchResult } from '../../../Models/graphql/molecule-search/molecule-search-result.interface'
+import { PageModel } from '../../../Models/graphql/page.models'
+import { MoleculeCardItemModel } from '../../../Models/graphql/molecule-collection/molecule-collection.types'
+import { MoleculeCollectionItemService } from '../../../services/graphql/molecule-collection-item.service'
+import { AddMoleculesToCollectionContextService } from '../../../services/context/action-context/add-molecules-to-collection-context.service'
+import { UserContextService } from '../../../services/context/user-context.service'
 
 @Component({
   selector: 'm-molecule-search-input',
@@ -16,8 +30,12 @@ import { AddMoleculesToCollectionContextService } from '../../../services/contex
       <input
         #searchInput
         type="text"
-        placeholder="Cerca molecola..."
-        class="flex-1 px-4 py-2 rounded-lg bg-white/90 text-black placeholder:text-gray-500 shadow focus:outline-none focus:ring-2 focus:ring-indigo-500 transition w-full"
+        [placeholder]="userContext.isLoggedOut() ? 'Cerca molecola ChEMBL...' : 'Cerca molecola...'"
+        class="flex-1 px-4 py-2 rounded-xl bg-white/95 dark:bg-white/5
+         text-black dark:text-white placeholder:text-gray-500 dark:placeholder:text-slate-400
+         shadow-sm ring-1 ring-slate-200/70 dark:ring-white/10
+         focus:outline-none focus:ring-2 focus:ring-indigo-500/70 focus:ring-offset-0
+         transition w-full"
         [ngModel]="query()"
         (ngModelChange)="query.set($event)"
         [class.pr-10]="query().trim()"
@@ -38,78 +56,120 @@ import { AddMoleculesToCollectionContextService } from '../../../services/contex
     </div>
   `
 })
-export class SearchInputComponent implements AfterViewInit {
+export class SearchInputComponent implements AfterViewInit, OnDestroy {
 
-  private readonly searchService = inject(MoleculeSearchService);
-  private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService);
+  private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService)
   private readonly addContext = inject(AddMoleculesToCollectionContextService)
+  protected readonly userContext = inject(UserContextService)
 
-  _search_excludeAlreadyAdded = signal<boolean>(false);
+  protected query = signal('')
 
-  @ViewChild('searchInput') private searchInputRef!: ElementRef<HTMLInputElement>;
+  private _search_excludeAlreadyAdded = signal(false)
+  private _viewMode = signal<'my' | 'chembl'>('chembl')
+
+  private sub?: Subscription
+
+  @ViewChild('searchInput')
+  private searchInputRef!: ElementRef<HTMLInputElement>
 
   @Input()
-  set search_excludeAlreadyAdded(v: boolean) { this._search_excludeAlreadyAdded.set(v); }
+  set search_excludeAlreadyAdded(v: boolean) {
+    this._search_excludeAlreadyAdded.set(v)
+  }
 
-  @Output() onResult = new EventEmitter<MoleculeSearchResult[]>();
-  @Output() onLoading = new EventEmitter<boolean>();
-  @Output() onError = new EventEmitter<unknown>();
-  @Output() onQuery = new EventEmitter<string>();
-  @Output() onEmpty = new EventEmitter<void>();
+  @Input()
+  set viewMode(mode: 'my' | 'chembl') {
+    this._viewMode.set(mode)
+  }
 
-  query = signal('');
+  @Output()
+  onResult = new EventEmitter<MoleculeSearchResult[] | PageModel<MoleculeCardItemModel>>()
 
-  // ⛔️ rimosso l'effect nel constructor: emetteva troppo presto
+  @Output()
+  onLoading = new EventEmitter<boolean>()
+
+  @Output()
+  onError = new EventEmitter<unknown>()
+
+  @Output()
+  onQuery = new EventEmitter<string>()
+
+  @Output()
+  onEmpty = new EventEmitter<void>()
 
   constructor() {
     const query$ = toObservable(this.query)
 
-    query$
+    this.sub = query$
       .pipe(
-        debounceTime(120),
+        debounceTime(300),
         distinctUntilChanged()
       )
-      .subscribe(term => {
-        const raw = term ?? '';
-        const trimmed = raw.trim();
+      .subscribe(raw => {
+        const value = raw ?? ''
+        const trimmed = value.trim()
+        const mode = this._viewMode()
+        const exclude = this._search_excludeAlreadyAdded()
 
-        // sempre notifico la query corrente
-        this.onQuery.emit(raw);
+        // Sempre notifico la query corrente
+        this.onQuery.emit(value)
 
-        // Stato "vuoto" per < 2 char
-        if (trimmed.length < 2) {
-          this.onLoading.emit(false);
-          this.searchService.clearResults();
-          this.onResult.emit([]);
-          this.onEmpty.emit();
-          return;
+        // Caso overlay "normale": niente HTTP qui, pensa il padre
+        if (!exclude) {
+          if (mode === 'chembl' && trimmed.length < 2) {
+            this.onEmpty.emit()
+          }
+          return
         }
 
-        // Ricerca
-        this.onLoading.emit(true);
-        const req$ = this._search_excludeAlreadyAdded()
-          ? this.moleculeCollectionItemService.searchChemblMolecules_excludeAlreadyAdded(trimmed, this.addContext.collectionId()!)
-          : this.searchService.searchMolecule(trimmed, 100);
+        // Caso legacy: search_excludeAlreadyAdded = true
+        if (trimmed.length < 2) {
+          this.onLoading.emit(false)
+          this.onResult.emit([])
+          this.onEmpty.emit()
+          return
+        }
 
-        req$.subscribe({
-          next: res => { this.onResult.emit(res); this.onLoading.emit(false); },
-          error: err => { this.onError.emit(err); this.onLoading.emit(false); }
-        });
-      });
+        const collectionId = this.addContext.collectionId()
+        if (!collectionId) {
+          this.onLoading.emit(false)
+          this.onResult.emit([])
+          return
+        }
+
+        this.onLoading.emit(true)
+
+        this.moleculeCollectionItemService
+          .searchChemblMolecules_excludeAlreadyAdded(trimmed, collectionId)
+          .subscribe({
+            next: res => {
+              this.onResult.emit(res)
+              this.onLoading.emit(false)
+            },
+            error: err => {
+              this.onError.emit(err)
+              this.onLoading.emit(false)
+            }
+          })
+      })
   }
 
   clear(): void {
-    this.query.set('');
-    // emetto subito per garantire sincronizzazione UI
-    this.onEmpty.emit();
-    queueMicrotask(() => this.searchInputRef.nativeElement.focus());
+    this.query.set('')
+    this.onEmpty.emit()
+    queueMicrotask(() => this.searchInputRef.nativeElement.focus())
   }
 
   ngAfterViewInit(): void {
-    // assicura l’empty iniziale quando il parent ha già i listener
     queueMicrotask(() => {
-      if (!this.query().trim()) this.onEmpty.emit();
-      this.searchInputRef.nativeElement.focus();
-    });
+      if (!this.query().trim()) {
+        this.onEmpty.emit()
+      }
+      this.searchInputRef.nativeElement.focus()
+    })
+  }
+
+  ngOnDestroy(): void {
+    this.sub?.unsubscribe()
   }
 }

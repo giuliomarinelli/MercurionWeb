@@ -18,7 +18,11 @@ import { ChipItem } from '../../action-components/add-molecules-to-collection/ad
   selector: 'm-search-result',
   standalone: true,
   host: { class: 'block w-full' },
-  imports: [DecimalPipe, RouterLink, MoleculeViewerComponent],
+  imports: [
+    DecimalPipe,
+    RouterLink,
+    MoleculeViewerComponent
+  ],
   template: `
     @if (!_search_excludeAlreadyAdded()) {
       <a [routerLink]="_pathToMolecule()" (click)="searchContext.close()"

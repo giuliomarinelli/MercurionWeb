@@ -47,7 +47,9 @@ export abstract class AbstractPaginationComponent<T> {
     this.done = false;
     this.earlyDone = false;
     this.empty.set(true);
+    this.loading = false;
     void this.loadMore();
+
 
     // Re-attach dopo il reset (nuovo layout)
     queueMicrotask(() => this.startObserver());

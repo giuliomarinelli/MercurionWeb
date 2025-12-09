@@ -216,6 +216,7 @@ export class CustomDetailsComponent {
   _isReadonly = signal<Boolean>(false)
   lastValue = signal<string | null>(null)
   _triggerRollback = signal<boolean>(false)
+  _hideActions = signal<boolean>(false)
 
   @ViewChild('value') valueRef!: ElementRef<HTMLElement>;
 
@@ -247,6 +248,11 @@ export class CustomDetailsComponent {
   @Input()
   set triggerRollback(triggerRollback: boolean) {
     this._triggerRollback.set(triggerRollback)
+  }
+
+  @Input()
+  set hideActions(hideActions: boolean) {
+    this._hideActions.set(hideActions)
   }
 
   @Output()

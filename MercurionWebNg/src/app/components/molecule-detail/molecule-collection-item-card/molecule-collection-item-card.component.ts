@@ -100,10 +100,10 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
           <div class="mt-2 flex md:hidden items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
             <span class="inline-flex items-center">
               <span class="size-1.5 rounded-full bg-slate-300 dark:bg-slate-500 mr-2"></span>
-              Creato: {{ _molecule()!.createdAt | date:'mediumDate' }}
+              Creato: {{ _molecule()!.createdAt | date : 'dd/MM/yyyy HH:mm:ss' }}
             </span>
             <span class="text-slate-300 dark:text-slate-600">•</span>
-            <span>Agg.: {{ _molecule()!.updatedAt | date:'mediumDate' }}</span>
+            <span>Agg.: {{ _molecule()!.updatedAt | date :'dd/MM/yyyy HH:mm:ss' }}</span>
           </div>
 
           <div class="mt-2 flex flex-wrap items-center gap-2 text-xs">
@@ -165,7 +165,7 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
                   />
                   <path d="M3 8h14v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8z" />
                 </svg>
-                Creato: {{ _molecule()!.createdAt | date: 'mediumDate' }}
+                Creato: {{ _molecule()!.createdAt | date : 'dd/MM/yyyy HH:mm:ss' }}
               </div>
 
               <div class="size-1 rounded-full bg-slate-300 dark:bg-slate-600"></div>
@@ -181,77 +181,78 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
                     d="M10 2a8 8 0 1 0 8 8 8.01 8.01 0 0 0-8-8Zm.75 4.75a.75.75 0 0 0-1.5 0v3.69l2.72 2.72a.75.75 0 0 0 1.06-1.06l-2.28-2.28V6.75Z"
                   />
                 </svg>
-                Aggiornato: {{ _molecule()!.updatedAt | date: 'mediumDate' }}
+                Aggiornato: {{ _molecule()!.updatedAt | date : 'dd/MM/yyyy HH:mm:ss' }}
               </div>
             </div>
 
-            <!-- Colonna destra: pulsanti -->
-            <!-- Colonna destra: pulsanti -->
-            <div class="flex items-center gap-3 relative z-30 pointer-events-auto">
-              <!-- Duplica -->
-              <a
-                type="button"
-                class="relative z-30 p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700
-                       transition-colors duration-150"
-                title="Crea una nuova molecola da questa struttura (Duplica)"
-                [routerLink]="pathToDuplicate().url"
-                [queryParams]="pathToDuplicate().queryParams"
-              >
-                <svg
-                  class="size-4 text-slate-600 dark:text-slate-300"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true"
+            @if (!_hideActions()) {
+              <!-- Colonna destra: pulsanti -->
+              <div class="flex items-center gap-3 relative z-30 pointer-events-auto">
+                <!-- Duplica -->
+                <a
+                  type="button"
+                  class="relative z-30 p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700
+                         transition-colors duration-150"
+                  title="Crea una nuova molecola da questa struttura (Duplica)"
+                  [routerLink]="pathToDuplicate().url"
+                  [queryParams]="pathToDuplicate().queryParams"
                 >
-                  <path
-                    d="M4 4a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v1h-1V4a1 1 0 0 0-1-1H6a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h1v1H6a2 2 0 0 1-2-2V4z"
-                  />
-                  <path
-                    d="M8 6a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2V6z"
-                  />
-                </svg>
-              </a>
+                  <svg
+                    class="size-4 text-slate-600 dark:text-slate-300"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M4 4a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v1h-1V4a1 1 0 0 0-1-1H6a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h1v1H6a2 2 0 0 1-2-2V4z"
+                    />
+                    <path
+                      d="M8 6a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2V6z"
+                    />
+                  </svg>
+                </a>
 
-              <!-- Elimina -->
-              <button
-                type="button"
-                class="relative z-30 p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700
-                       transition-colors duration-150"
-                title="Elimina da tutte le collezioni"
-                (click)="doDelete()"
-              >
-                <svg
-                  class="size-4 text-light-error dark:text-dark-error"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M6 8a1 1 0 0 1 1 1v7h6V9a1 1 0 1 1 2 0v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V9a1 1 0 0 1 1-1zM4 5a1 1 0 0 1 1-1h2V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1h2a1 1 0 0 1 1 1v1H4V5z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-              </button>
-              @if (_collectionId()) {
-                <!-- 🧩 Rimuovi dalla collezione -->
+                <!-- Elimina -->
                 <button
                   type="button"
-                  class="flex items-center gap-2 relative z-30 px-3 py-1 rounded-md border border-slate-300 dark:border-slate-600
-                         text-slate-600 dark:text-slate-300 text-xs font-medium
-                         hover:bg-slate-200 dark:hover:bg-slate-700
+                  class="relative z-30 p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700
                          transition-colors duration-150"
-                  title="Rimuovi dalla collezione"
-                  (click)="doRemoveFromCollection()"
+                  title="Elimina da tutte le collezioni"
+                  (click)="doDelete()"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-4 w-auto">
-                    <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-                    <path d="M96 304L544 304L544 336L96 336L96 304z"/>
+                  <svg
+                    class="size-4 text-light-error dark:text-dark-error"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M6 8a1 1 0 0 1 1 1v7h6V9a1 1 0 1 1 2 0v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V9a1 1 0 0 1 1-1zM4 5a1 1 0 0 1 1-1h2V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1h2a1 1 0 0 1 1 1v1H4V5z"
+                      clip-rule="evenodd"
+                    />
                   </svg>
-                  <span>Rimuovi da questa collezione</span>
                 </button>
-              }
-            </div>
+                @if (_collectionId()) {
+                  <!-- 🧩 Rimuovi dalla collezione -->
+                  <button
+                    type="button"
+                    class="flex items-center gap-2 relative z-30 px-3 py-1 rounded-md border border-slate-300 dark:border-slate-600
+                           text-slate-600 dark:text-slate-300 text-xs font-medium
+                           hover:bg-slate-200 dark:hover:bg-slate-700
+                           transition-colors duration-150"
+                    title="Rimuovi dalla collezione"
+                    (click)="doRemoveFromCollection()"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-4 w-auto">
+                      <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                      <path d="M96 304L544 304L544 336L96 336L96 304z"/>
+                    </svg>
+                    <span>Rimuovi da questa collezione</span>
+                  </button>
+                }
+              </div>
+            }
           </div>
           }
       </div>
@@ -274,19 +275,18 @@ export class MoleculeCollectionItemCardComponent implements OnDestroy {
   /* inputs ---------------------------------- */
   @Input({ required: true })
   set molecule(m: MoleculeCardItemModel) {
-    this.seen = false;
-    this.viewerReady.set(false);
-    this.disablePreview.set(true);
-
-    this._molecule.set(m);
-    this._pathToMolecule.set(`/molecules/detail/${m.id}`);
+    this.seen = false
+    this.viewerReady.set(false)
+    this.disablePreview.set(true)
+    this._molecule.set(m)
+    this._pathToMolecule.set(`/molecules/detail/${m.id}`)
 
     this.zone.runOutsideAngular(() => this.io.observe(this.host.nativeElement));
   }
 
   @Input({ required: true })
   set i(i: number) {
-    this._i.set(i);
+    this._i.set(i)
   }
 
   @Input()
@@ -297,6 +297,11 @@ export class MoleculeCollectionItemCardComponent implements OnDestroy {
   @Input()
   set isReadonly(isReadonly: boolean) {
     this._isReadonly.set(isReadonly)
+  }
+
+  @Input()
+  set hideActions(hideActions: boolean) {
+    this._hideActions.set(hideActions)
   }
 
   @Input()
@@ -338,6 +343,7 @@ export class MoleculeCollectionItemCardComponent implements OnDestroy {
   }))
   _triggerDisappear = signal<boolean>(false)
   _collapse = signal<boolean>(false)
+  _hideActions = signal<boolean>(false)
 
   private seen = false;
   private io!: IntersectionObserver;

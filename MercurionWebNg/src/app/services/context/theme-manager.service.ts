@@ -65,19 +65,25 @@ export class ThemeManagerService {
   }
 
   private handleCrossTabThemeSwitch = (e: StorageEvent): void => {
-    if (e.key === this.themeStorageKey) {
-      switch (e.newValue) {
-        case 'light':
-          this.chooseTheme('light')
-          break
-        case 'dark':
-          this.chooseTheme('dark')
-          break
-        default:
-          this.chooseTheme('OS')
-
-      }
+    if (e.key !== this.themeStorageKey) {
+      return
     }
+
+    const parsed = this.deserializeThemeConfig(e.newValue)
+
+    if (!parsed) {
+      this.chooseTheme('OS')
+      return
+    }
+
+    const nextChoice: ThemeChoice =
+      typeof parsed === 'string'
+        ? parsed
+        : parsed.themeOwner === 'OS'
+          ? 'OS'
+          : parsed.theme ?? this.getOsDefaultTheme
+
+    this.chooseTheme(nextChoice)
   }
 
   private initTheme(): void {
@@ -107,15 +113,40 @@ export class ThemeManagerService {
   }
 
   private saveThemeConfig(theme: Theme): void {
-    localStorage.setItem(this.themeStorageKey, theme)
+    const payload = {
+      theme,
+      themeOwner: 'User',
+      isEnabled: true
+    }
+    localStorage.setItem(this.themeStorageKey, JSON.stringify(payload))
   }
 
   private restoreThemeConfig(): void {
-    const themeConfig = localStorage.getItem(this.themeStorageKey) as Theme | null
-    if (themeConfig === 'dark' || themeConfig === 'light') {
+    const themeConfig = this.deserializeThemeConfig(localStorage.getItem(this.themeStorageKey))
+    if (!themeConfig) {
+      return
+    }
+
+    if (typeof themeConfig === 'string') {
       this._theme.set(themeConfig)
       this._themeOwner.set('User')
+      this._chosenTheme.set(themeConfig)
+      return
     }
+
+    const owner: ThemeOwner = themeConfig.themeOwner ?? 'OS'
+    const savedTheme: Theme = themeConfig.theme ?? this.getOsDefaultTheme
+
+    if (owner === 'OS') {
+      this._themeOwner.set('OS')
+      this._theme.set(this.getOsDefaultTheme)
+      this._chosenTheme.set('OS')
+      return
+    }
+
+    this._themeOwner.set('User')
+    this._theme.set(savedTheme)
+    this._chosenTheme.set(savedTheme)
   }
 
   private clearThemeConfig(): void {
@@ -123,7 +154,29 @@ export class ThemeManagerService {
   }
 
   private hasSavedThemeConfig(): boolean {
-    return !!localStorage.getItem(this.themeStorageKey)
+    return !!this.deserializeThemeConfig(localStorage.getItem(this.themeStorageKey))
+  }
+
+  private deserializeThemeConfig(raw: string | null): { theme: Theme | null, themeOwner: ThemeOwner, isEnabled: boolean } | Theme | null {
+    if (!raw) {
+      return null
+    }
+
+    // New JSON format
+    try {
+      const parsed = JSON.parse(raw)
+      if (typeof parsed === 'object' && parsed !== null) {
+        const theme = parsed.theme === 'dark' || parsed.theme === 'light' ? parsed.theme : null
+        const themeOwner: ThemeOwner = parsed.themeOwner === 'User' ? 'User' : 'OS'
+        const isEnabled = parsed.isEnabled !== false
+        return { theme, themeOwner, isEnabled }
+      }
+    } catch {
+      // Fallback to legacy value
+    }
+
+    // Legacy raw string
+    return raw === 'dark' || raw === 'light' ? raw : null
   }
 
   getOsDarkModeMediaQuery(): MediaQueryList {
