@@ -170,8 +170,6 @@ export class TypeGuardsService {
     return (
       (typeof (v as Record<string, number>)?.['id'] === 'number' ||
         typeof (v as Record<string, string>)?.['id'] === 'number') &&
-      typeof (v as Record<string, string>)?.['preferredName'] === 'string' &&
-      typeof (v as Record<string, string>)?.['preferredNameIt'] === 'string' &&
       typeof (v as Record<string, boolean>)?.['known'] === 'boolean'
     )
   }

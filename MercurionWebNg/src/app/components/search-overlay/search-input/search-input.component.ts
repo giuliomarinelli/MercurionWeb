@@ -7,7 +7,7 @@ import { MoleculeCollectionItemService } from './../../../services/graphql/molec
 import { MoleculeSearchResult } from '../../../Models/graphql/molecule-search/molecule-search-result.interface';
 import { AddMoleculesToCollectionContextService } from '../../../services/context/action-context/add-molecules-to-collection-context.service';
 import { Helpers } from '../../../helpers';
-import { Observable } from 'rxjs';
+import { firstValueFrom, Observable, Subscription } from 'rxjs';
 import { PageModel } from '../../../Models/graphql/page.models';
 import { MoleculeCardItemModel } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
 import { AbstractPaginationComponent } from '../../../abstract/abstract-pagination-component';
@@ -52,7 +52,8 @@ export class SearchInputComponent extends AbstractPaginationComponent<MoleculeCa
   _search_excludeAlreadyAdded = signal<boolean>(false)
   _viewMode = signal<'my' | 'chembl'>('chembl')
 
-  @ViewChild('searchInput') private searchInputRef!: ElementRef<HTMLInputElement>;
+  @ViewChild('searchInput')
+  private searchInputRef!: ElementRef<HTMLInputElement>
 
   @Input()
   set search_excludeAlreadyAdded(v: boolean) {
@@ -82,7 +83,12 @@ export class SearchInputComponent extends AbstractPaginationComponent<MoleculeCa
 
   protected override query = signal('')
 
+  private sub?: Subscription
+
   private firstTime = signal<boolean>(true)
+
+  protected declare sentinel: ElementRef<HTMLDivElement>
+  protected declare root: ElementRef<HTMLElement>
 
   constructor() {
 
@@ -97,13 +103,12 @@ export class SearchInputComponent extends AbstractPaginationComponent<MoleculeCa
       const m = this._viewMode()
       if (m === 'my') {
         this.resetPagination()
-        queueMicrotask(() => this.loadMore())
       }
     })
 
     const query$ = toObservable(this.query)
 
-    query$
+    this.sub = query$
       .pipe(
         debounceTime(300),
         distinctUntilChanged()
@@ -116,7 +121,7 @@ export class SearchInputComponent extends AbstractPaginationComponent<MoleculeCa
         this.onQuery.emit(raw)
 
         // Stato "vuoto" per < 2 char
-        if (trimmed.length < 2 && this._viewMode() === 'my') {
+        if (trimmed.length < 2 && this._viewMode() === 'chembl') {
           this.onLoading.emit(false)
           this.searchService.clearResults()
           this.onResult.emit([])
@@ -161,16 +166,17 @@ export class SearchInputComponent extends AbstractPaginationComponent<MoleculeCa
       this.searchInputRef.nativeElement.focus()
     })
     if (this._viewMode() === 'my') {
-      this.startObserver()
+      this.startObserver(600)
     }
   }
 
   ngOnDestroy(): void {
     this.observer?.disconnect()
+    this.sub?.unsubscribe()
   }
 
   protected override fetch$(): Observable<PageModel<MoleculeCardItemModel>> {
-    return this.moleculeCollectionItemService.getAllPaginatedItems(this.page, 10, this.searchTerm()).pipe(
+    return this.moleculeCollectionItemService.getAllPaginatedItems(this.page, 5, this.searchTerm()).pipe(
       debounceTime(20),
       map(page => ({
         ...page,
@@ -179,12 +185,93 @@ export class SearchInputComponent extends AbstractPaginationComponent<MoleculeCa
     )
   }
 
+  protected override resetPagination(): void {
+    if (this._viewMode() !== 'my') {
+      return
+    }
+
+    this.items = []
+    this.page = 1
+    this.done = false
+    this.earlyDone = false
+    this.loading = false
+    this.empty.set(true)
+
+    this.onResult.emit({
+      items: [],
+      itemCount: 0,
+      totalItems: 0,
+      itemsPerPage: 0,
+      totalPages: 0,
+      currentPage: 1
+    })
+
+    this.startObserver(600)
+    void this.loadMore()
+  }
+
+  protected override async loadMore(): Promise<void> {
+    if (this._viewMode() !== 'my') {
+      return
+    }
+    if (this.loading || this.done) {
+      return
+    }
+
+    this.loading = true
+    this.onLoading.emit(true)
+
+    try {
+      this.observer?.disconnect()
+
+      const page = await firstValueFrom(this.fetch$())
+
+      if (!page.items.length) {
+        this.done = true
+        if (this.page === 1) this.earlyDone = true
+      } else {
+        this.items = [...this.items, ...page.items]
+        this.empty.set(false)
+        this.page++
+      }
+
+      this.onResult.emit({
+        ...page,
+        items: this.items,
+        itemCount: this.items.length,
+        currentPage: this.page - 1
+      });
+
+    } catch (e) {
+      this.onError.emit(e)
+    } finally {
+      this.loading = false
+      this.onLoading.emit(false)
+      queueMicrotask(() => this.startObserver())
+    }
+  }
+
+
   protected override doQuery(q: string): void {
     super.query(q)
   }
 
   protected override doClear(): void {
     super.clear()
+  }
+
+  setScrollRoot(root: ElementRef<HTMLElement>) {
+    this.root = root
+    if (this._viewMode() === 'my') {
+      this.startObserver(600)
+    }
+  }
+
+  setSentinel(sentinel: ElementRef<HTMLDivElement>) {
+    this.sentinel = sentinel
+    if (this._viewMode() === 'my') {
+      this.startObserver(600)
+    }
   }
 
 }

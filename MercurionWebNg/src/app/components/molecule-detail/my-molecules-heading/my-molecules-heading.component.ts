@@ -13,8 +13,8 @@ import { RouterLink } from '@angular/router';
         <a class="hover:underline" routerLink="/molecules/all-my-molecules">Le mie molecole</a>
       </h1>
     } @else {
-      <div class="flex flex-wrap gap-4 items-center border-b border-slate-300 dark:border-slate-700 pb-6 relative bottom-4">
-        <h1 class="sm:w-full shrink-0 mt-4 xs:mt-0 text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-secondary dark:text-dark-accent-secondary">
+      <div class="flex flex-wrap gap-4 items-center sm:justify-start border-b border-slate-300 dark:border-slate-700 pb-6 relative bottom-4">
+        <h1 class="shrink-0 mt-4 xs:mt-0 text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-secondary dark:text-dark-accent-secondary">
           <a class="hover:underline" routerLink="/molecules/all-my-molecules">Le mie molecole</a>
         </h1>
           @if (_breadcrumb().length) {

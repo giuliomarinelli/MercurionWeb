@@ -1,5 +1,5 @@
 import { MoleculeSearchResult } from './../../../Models/graphql/molecule-search/molecule-search-result.interface';
-import { Component, effect, HostListener, inject, OnInit, signal } from '@angular/core';
+import { AfterViewInit, Component, effect, ElementRef, HostListener, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { SearchContextService } from '../../../services/context/search-context.service';
 import { SearchInputComponent } from '../search-input/search-input.component';
 import { SearchResultComponent } from '../search-result/search-result.component';
@@ -11,7 +11,6 @@ import { PageModel } from '../../../Models/graphql/page.models';
 import { MoleculeCardItemModel } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
 import { TypeGuardsService } from '../../../services/type-guards.service';
 import { SkeletonMoleculeCardComponent } from '../../molecule-detail/skeleton-molecule-card/skeleton-molecule-card.component';
-import { SkeletonCollectionCardComponent } from "../../common/skeleton-card-loader/skeleton-card-loader.component";
 import { MoleculeCollectionItemCardComponent } from '../../molecule-detail/molecule-collection-item-card/molecule-collection-item-card.component';
 
 @Component({
@@ -23,9 +22,8 @@ import { MoleculeCollectionItemCardComponent } from '../../molecule-detail/molec
     CloseButtonComponent,
     SearchResultSkeletonLoaderComponent,
     SkeletonMoleculeCardComponent,
-    SkeletonCollectionCardComponent,
     MoleculeCollectionItemCardComponent
-],
+  ],
   template: `
     <div
       class="fixed inset-0 z-[999] bg-black/70 backdrop-blur-sm text-light-on-surface-main dark:text-slate-50 transition-all duration-300"
@@ -46,9 +44,10 @@ import { MoleculeCollectionItemCardComponent } from '../../molecule-detail/molec
             (onResult)="handleResults($event)"
             (onError)="handleError($event)"
             (onQuery)="query.set($event)"
-            (onEmpty)="empty.set(true)" />
+            (onEmpty)="handleEmpty()" />
 
-          <div class="relative bg-light-surface-secondary dark:bg-slate-50/10 p-6 h-full rounded-xl text-light-on-surface-main dark:text-sm dark:text-slate-50/90 max-h-[38vh] overflow-y-auto">
+          <div class="relative bg-light-surface-secondary dark:bg-slate-50/10 p-6 h-full rounded-xl text-light-on-surface-main dark:text-sm dark:text-slate-50/90 max-h-[38vh] overflow-y-auto overflow-anchor-none"
+            #scrollRoot>
             <m-search-type-selector (onViewClick)="handleViewClick($event)" />
             <hr class="border-px border-slate-300/50 mt-5 sticky top-[-24px] -z-10" />
             @switch (_viewMode()) {
@@ -74,13 +73,15 @@ import { MoleculeCollectionItemCardComponent } from '../../molecule-detail/molec
               @case ('my') {
                 @if (loading()) {
                 <!-- Skeleton loader -->
-                  <m-skeleton-collection-card />
+                  @for(i of [0, 1, 2, 3, 4, 5]; track i) {
+                   <m-skeleton-molecule-card />
+                  }
                 } @else if (pagination(results()).items.length) {
                   <!-- Lista risultati -->
                   @for (molecule of pagination(results()).items; track molecule.id; let i = $index) {
                     <m-molecule-collection-item-card [molecule]="molecule" [i]="i" />
                   }
-                } @else if (!array(results()).length && !error() && !empty()) {
+                } @else if (!pagination(results()).items.length) {
                   <div class="text-sm text-gray-400 text-center py-8">
                     Nessun risultato trovato.
                   </div>
@@ -91,7 +92,7 @@ import { MoleculeCollectionItemCardComponent } from '../../molecule-detail/molec
                 }
               }
             }
-
+            <div #sentinel class="h-1 w-full"></div>
           </div>
         </div>
       </div>
@@ -100,10 +101,19 @@ import { MoleculeCollectionItemCardComponent } from '../../molecule-detail/molec
 
   `
 })
-export class SearchOverlayComponent implements OnInit {
+export class SearchOverlayComponent implements AfterViewInit {
 
   private readonly userContext = inject(UserContextService)
   protected readonly typeGuards = inject(TypeGuardsService)
+
+  @ViewChild('scrollRoot')
+  scrollRoot!: ElementRef<HTMLElement>
+
+  @ViewChild('sentinel')
+  sentinel!: ElementRef<HTMLDivElement>
+
+  @ViewChild(SearchInputComponent)
+  searchInput!: SearchInputComponent
 
   empty = signal<boolean>(true)
   query = signal<string>('')
@@ -127,8 +137,9 @@ export class SearchOverlayComponent implements OnInit {
     }
   }
 
-  ngOnInit(): void {
-
+  ngAfterViewInit(): void {
+    this.searchInput.setScrollRoot(this.scrollRoot)
+    this.searchInput.setSentinel(this.sentinel)
   }
 
   onEmpty(): void {
@@ -163,17 +174,23 @@ export class SearchOverlayComponent implements OnInit {
   }
 
   pagination(item: MoleculeSearchResult[] | PageModel<unknown>): PageModel<MoleculeCardItemModel> {
-    if (!this.typeGuards.isPageModel(item)) {
-      return {
-        items: [],
-        itemCount: 0,
-        totalItems: 0,
-        itemsPerPage: 0,
-        totalPages: 0,
-        currentPage: 0
-      }
+    if (!Array.isArray(item)) {
+      return item as PageModel<MoleculeCardItemModel>
     }
-    return item as PageModel<MoleculeCardItemModel>
+    return {
+      items: [],
+      itemCount: 0,
+      totalItems: 0,
+      itemsPerPage: 0,
+      totalPages: 0,
+      currentPage: 0
+    }
+  }
+
+  handleEmpty(): void {
+    if (this._viewMode() === 'chembl') {
+      this.empty.set(true)
+    }
   }
 
 }
