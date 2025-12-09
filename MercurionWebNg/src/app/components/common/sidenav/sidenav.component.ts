@@ -1,5 +1,5 @@
 import { DatePipe, NgClass } from '@angular/common';
-import { Component, effect, inject, OnDestroy, OnInit, Output, signal } from '@angular/core';
+import { Component, effect, EventEmitter, inject, OnDestroy, OnInit, Output, signal } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { UserContextService } from '../../../services/context/user-context.service';
 import { HistoryComponent } from '../history/history.component';
@@ -10,13 +10,6 @@ import { ClassicSpinnerComponent } from "../classic-spinner/classic-spinner.comp
 import { DesignService } from '../../../services/design.service';
 import { SearchContextService } from '../../../services/context/search-context.service';
 
-interface HistoryItem {
-  id: string;
-  type: 'notebook' | 'collection' | 'molecule'; // ecc
-  title: string;
-  updatedAt: string;
-}
-
 @Component({
   selector: 'app-sidenav',
   standalone: true,
@@ -24,7 +17,9 @@ interface HistoryItem {
   template: `
     <nav class="flex flex-col h-full bg-transparent z-50 select-none pt-4 lg:pt-12">
       @if (designService.maxBk('xs')()) {
-        <button class="flex items-center gap-3 ml-4 mb-2" (click)="searchOverlayContext.open()">
+      <h6 class="detail">Strumenti</h6>
+      <div>
+        <button class="sidebar-link flex items-center gap-3 ml-4 mb-6" (click)="searchOverlayContext.open()">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="w-5 h-5 fill-current dark:text-slate-400 text-slate-600">
             <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
             <path d="M448.1 272C448.1 174.8 369.3 96 272.1 96C174.9 96 96.1 174.8 96.1 272C96.1 369.2 174.9 448 272.1 448C369.3 448 448.1 369.2 448.1 272zM407.5 430C371.1 461.2 323.8 480 272.2 480C157.3 480 64.2 386.9 64.2 272C64.2 157.1 157.3 64 272.2 64C387.1 64 480.2 157.1 480.2 272C480.2 323.7 461.4 371 430.2 407.3L571.6 548.7L582.9 560L560.3 582.6L549 571.3L407.6 429.9z"/>
@@ -35,12 +30,13 @@ interface HistoryItem {
             <span>Cerca molecola ChEMBL</span>
           }
         </button>
+      </div>
       }
-      @if (userContext.initials() !== '') {
+      @if (userContext.isLoggedIn()) {
         <!-- Macro Area Menu -->
         <h6 class="detail">Funzionalità</h6>
         <div>
-          <a class="sidebar-link" routerLink="molecules/all-my-molecules">
+          <a class="sidebar-link" routerLink="molecules/all-my-molecules" (click)="handleMenuItemClick()">
             <div
               class="flex size-9 shrink-0 items-center justify-center
                      rounded-xl border border-slate-400/70 dark:border-slate-500/60
@@ -54,7 +50,7 @@ interface HistoryItem {
             </div>
             <span class="sidebar-item-text">Le mie molecole</span>
           </a>
-          <a class="sidebar-link" routerLink="molecules/collections">
+          <a class="sidebar-link" routerLink="molecules/collections" (click)="handleMenuItemClick()">
             <div
               class="flex size-9 shrink-0 items-center justify-center
                      rounded-xl border border-slate-400/70 dark:border-slate-500/60
@@ -69,7 +65,7 @@ interface HistoryItem {
             <span class="sidebar-item-text">Le mie collezioni</span>
           </a>
           <hr class="border-slate-300 dark:border-slate-600 my-2"/>
-          <button class="sidebar-link">
+          <button class="sidebar-link" (click)="handleMenuItemClick()">
             <div
               class="flex size-9 shrink-0 items-center justify-center
                      rounded-xl border border-slate-400/70 dark:border-slate-500/60
@@ -85,7 +81,7 @@ interface HistoryItem {
           </button>
           <!-- ...altre macro aree -->
         </div>
-        <a class="sidebar-link" [routerLink]="'/molecules/editor'" [queryParams]="{ mode: 'create' }">
+        <a class="sidebar-link" [routerLink]="'/molecules/editor'" [queryParams]="{ mode: 'create' }" (click)="handleMenuItemClick()">
           <div
               class="flex size-9 shrink-0 items-center justify-center
                      rounded-xl border border-slate-400/70 dark:border-slate-500/60
@@ -152,28 +148,27 @@ interface HistoryItem {
         <!-- Menu per utente non loggato -->
         <h6 class="detail">Piacere di averti qui.</h6>
         <div class="mb-4">
-          <a class="sidebar-link" routerLink="/login">
+          <a class="sidebar-link" routerLink="/login" (click)="handleMenuItemClick()">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-5 h-5 text-light-on-surface-main dark:text-slate-200">
               <!--!Font Awesome Free v7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
               <path d="M409 337C418.4 327.6 418.4 312.4 409 303.1L265 159C258.1 152.1 247.8 150.1 238.8 153.8C229.8 157.5 224 166.3 224 176L224 256L112 256C85.5 256 64 277.5 64 304L64 336C64 362.5 85.5 384 112 384L224 384L224 464C224 473.7 229.8 482.5 238.8 486.2C247.8 489.9 258.1 487.9 265 481L409 337zM416 480C398.3 480 384 494.3 384 512C384 529.7 398.3 544 416 544L480 544C533 544 576 501 576 448L576 192C576 139 533 96 480 96L416 96C398.3 96 384 110.3 384 128C384 145.7 398.3 160 416 160L480 160C497.7 160 512 174.3 512 192L512 448C512 465.7 497.7 480 480 480L416 480z"/>
             </svg>
             <span class="sidebar-item-text">Accedi</span>
           </a>
-          <a class="sidebar-link" routerLink="/register">
+          <a class="sidebar-link" routerLink="/register" (click)="handleMenuItemClick()">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-5 h-5 text-light-on-surface-main dark:text-slate-200">
               <!--!Font Awesome Free v7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
               <path d="M256 312C322.3 312 376 258.3 376 192C376 125.7 322.3 72 256 72C189.7 72 136 125.7 136 192C136 258.3 189.7 312 256 312zM226.3 368C127.8 368 48 447.8 48 546.3C48 562.7 61.3 576 77.7 576L308 576C285.3 544.5 272 505.8 272 464C272 429.2 281.3 396.5 297.5 368.4C293.6 368.1 289.7 368 285.7 368L226.3 368zM464 608C543.5 608 608 543.5 608 464C608 384.5 543.5 320 464 320C384.5 320 320 384.5 320 464C320 543.5 384.5 608 464 608zM480 400L480 448L528 448C536.8 448 544 455.2 544 464C544 472.8 536.8 480 528 480L480 480L480 528C480 536.8 472.8 544 464 544C455.2 544 448 536.8 448 528L448 480L400 480C391.2 480 384 472.8 384 464C384 455.2 391.2 448 400 448L448 448L448 400C448 391.2 455.2 384 464 384C472.8 384 480 391.2 480 400z"/>
             </svg>
             <span class="sidebar-item-text">Registrati</span>
           </a>
-          <a class="sidebar-link" routerLink="/collections">
+          <a class="sidebar-link" routerLink="/collections" (click)="handleMenuItemClick()">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-5 h-5 text-light-on-surface-main dark:text-slate-200">
               <!--!Font Awesome Free v7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
               <path d="M112 128C85.5 128 64 149.5 64 176C64 191.1 71.1 205.3 83.2 214.4L291.2 370.4C308.3 383.2 331.7 383.2 348.8 370.4L556.8 214.4C568.9 205.3 576 191.1 576 176C576 149.5 554.5 128 528 128L112 128zM64 260L64 448C64 483.3 92.7 512 128 512L512 512C547.3 512 576 483.3 576 448L576 260L377.6 408.8C343.5 434.4 296.5 434.4 262.4 408.8L64 260z"/>
             </svg>
             <span class="sidebar-item-text">Contattaci</span>
           </a>
-
         </div>
       }
     </nav>
@@ -196,7 +191,7 @@ interface HistoryItem {
     }
   `]
 })
-export class SidenavComponent implements OnInit, OnDestroy {
+export class SidenavComponent implements OnDestroy {
 
   private readonly historyService = inject(HistoryService)
   protected readonly userContext = inject(UserContextService)
@@ -204,27 +199,19 @@ export class SidenavComponent implements OnInit, OnDestroy {
   protected readonly designService = inject(DesignService)
   protected readonly searchOverlayContext = inject(SearchContextService)
 
+  @Output()
+  onOpenOffCanvas = new EventEmitter<void>()
+  @Output()
+  menuItemClick = new EventEmitter<void>()
+
   triggerDelete = signal<boolean>(false)
   isHistoryEmpty = signal<boolean>(false)
   triggerEmptyCheck = signal<boolean>(true)
 
   private delSub?: Subscription
 
-  ngOnInit() {
-
-  }
-
   ngOnDestroy(): void {
     this.delSub?.unsubscribe()
-  }
-
-  getIcon(type: HistoryItem['type']): string {
-    switch (type) {
-      case 'notebook': return '📔';
-      case 'collection': return '📁';
-      case 'molecule': return '🧬';
-      default: return '📄';
-    }
   }
 
   doDeleteHistory(): void {
@@ -245,6 +232,14 @@ export class SidenavComponent implements OnInit, OnDestroy {
     this.isHistoryEmpty.set(e)
     this.triggerDelete.set(false)
     this.triggerEmptyCheck.set(false)
+  }
+
+  handleMenuItemClick(): void {
+    this.menuItemClick.emit()
+  }
+
+  openOffCanvas(): void {
+
   }
 
 }

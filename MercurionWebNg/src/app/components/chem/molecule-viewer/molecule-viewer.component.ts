@@ -159,13 +159,16 @@ export class MoleculeViewerComponent implements OnInit, OnChanges {
 
   /* ────── Core rendering ─────────────────────────────────────── */
   private renderSvg(): void {
-    if (!this.structure) return;
+    if (!this.structure || !this.RDK) return;
 
     /* 1. RDKit produce lo SVG grezzo */
-    const mol = this.RDK.get_mol(this.structure.split('$$$$')[0]);
+    const mol = this.RDK.get_mol(this.structure.split('$$$$')[0])
+    if (!mol) {
+      return
+    }
     if (!mol?.is_valid()) {
-      mol?.delete?.();
-      return;
+      mol?.delete?.()
+      return
     }
 
     const palette = MoleculeViewerComponent.WCAG[this.darkMode() ? 'dark' : 'light'];

@@ -10,7 +10,6 @@ import {
   effect,
   signal,
   Signal,
-  NgZone,
   inject
 } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
@@ -50,7 +49,9 @@ import { AppContextService } from './services/context/app-context.service';
   template: `
     @if (is_not_404_route() && is_not_403_route()) {
       <div class="flex flex-col h-screen">
-        <app-header class="sticky top-0 z-30" />
+        <app-header class="sticky top-0 z-30"
+          [triggerOpenOffCanvas]="_triggerOpenOffCanvas()"
+          (onOffCanvasMenuOpen)="triggerOpenOffCanvas()" />
         <div class="drawer-container relative flex flex-1 overflow-hidden custom-scrollbar">
           @if (userContext.isLoggedIn() && design.minBk('xl')()) {
             <div class="absolute top-4 left-[10px] z-30 group">
@@ -141,11 +142,13 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private routeSub?: Subscription;
 
-  private currentPath = signal<string>('');
-  private firstNavigationDone = signal<boolean>(false);
+  private currentPath = signal<string>('')
+  private firstNavigationDone = signal<boolean>(false)
 
-  private publicExact = new Set(environment.PUBLIC_EXACT_PATHS);
-  private publicPrefixes = environment.PUBLIC_PREFIXES;
+  private publicExact = new Set(environment.PUBLIC_EXACT_PATHS)
+  private publicPrefixes = environment.PUBLIC_PREFIXES
+
+  _triggerOpenOffCanvas = signal<boolean>(false)
 
   @ViewChild('scrollHost')
   private scrollHostRef!: ElementRef<HTMLElement>
@@ -286,10 +289,12 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       }
 
       if (isLoggedOutOnly) safeNavigate('/dashboard')
-    });
+    })
   }
 
-
+  triggerOpenOffCanvas(): void {
+    this._triggerOpenOffCanvas.set(true)
+  }
 
   async ngOnInit() {
 

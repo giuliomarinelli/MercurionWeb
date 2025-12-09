@@ -1,5 +1,5 @@
 import { NgClass, NgOptimizedImage } from '@angular/common';
-import { Component, computed, effect, inject, OnDestroy, OnInit, Signal, signal } from '@angular/core';
+import { Component, computed, effect, EventEmitter, inject, Input, OnDestroy, OnInit, Output, Signal, signal } from '@angular/core';
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
 import { ThemeChoice } from '../../../Models/theme.models';
 import { DesignService } from '../../../services/design.service';
@@ -343,13 +343,13 @@ import { ProvidedEmailDTO } from '../../../Models/account/account.models';
 }
 <!-- Offcanvas backdrop -->
 @if (offCanvasMenuOpen()) {
-<div class="fixed inset-0 z-[9998] bg-black/30 transition-opacity duration-300" (click)="closeOffCanvasMenu()"></div>
+  <div class="fixed inset-0 z-[9998] bg-black/30 transition-opacity duration-300" (click)="closeOffCanvasMenu()"></div>
 }
 
 <!-- Offcanvas Navigation Sidebar -->
 @if (designService.maxBk("lg")()) {
 <div
-  class="offcanvas-menu-container fixed top-0 left-0 h-full z-[9999] bg-slate-200 dark:bg-neutral-900 shadow-lg transform transition-transform duration-300 ease-in-out w-full 2xs:w-[74%] xs:w-[64%] sm:w-[50%] md:w-[40%] lg:w-[40%] xl:w-[30%] -translate-x-full"
+  class="off-canvas-menu-container offcanvas-menu-container fixed top-0 left-0 h-full z-[9999] bg-slate-200 dark:bg-neutral-900 shadow-lg transform transition-transform duration-300 ease-in-out w-full 2xs:w-[74%] xs:w-[64%] sm:w-[50%] md:w-[40%] lg:w-[40%] xl:w-[30%] -translate-x-full"
   [ngClass]="{
       'translate-x-0': offCanvasMenuOpen(),
       '-translate-x-full': !offCanvasMenuOpen(),
@@ -378,15 +378,15 @@ import { ProvidedEmailDTO } from '../../../Models/account/account.models';
   </div>
 
   <!-- Menu items -->
-  <app-sidenav />
+  <app-sidenav (menuItemClick)="closeOffCanvasMenu()" />
 
   <!-- Sezione avatar -->
   @if (userContext.initials() !== "" && designService.maxBk("xs")()) {
   <div
     class="sticky bottom-0 border-t py-3 px-5 bg-slate-100 dark:bg-neutral-800 border-slate-400 dark:border-dark-border flex gap-3 items-center">
-    <button (click)="toggleOffCanvasMenu(); toggleAvatarMobileMenu()" [innerHTML]="userContext.initials()"
-      class="avatar-toggle-button rounded-full cursor-pointer bg-emerald-500 text-slate-100 dark:bg-dark-accent-primary p-2 text-sm font-semibold "></button>
-    <button (click)="toggleOffCanvasMenu(); toggleAvatarMobileMenu()"
+    <button (click)="toggleAvatarMobileMenu()" [innerHTML]="userContext.initials()"
+      class="avatar-toggle-button rounded-full cursor-pointer bg-emerald-500 text-slate-100 dark:bg-dark-accent-primary-btn p-2 text-sm font-semibold "></button>
+    <button (click)="toggleAvatarMobileMenu()"
       class="text-sm text-green-800 dark:text-dark-accent-primary font-medium truncate">
       {{ providedEmail()?.email }}
     </button>
@@ -504,6 +504,14 @@ export class HeaderComponent implements OnInit, OnDestroy {
   protected readonly pathService = inject(PathService)
   private readonly toast = inject(ToastService)
 
+  @Input()
+  set triggerOpenOffCanvas(triggerOpenOffCanvas: boolean) {
+    this._triggerOpenOffCanvas.set(triggerOpenOffCanvas)
+  }
+
+  @Output()
+  onOffCanvasMenuOpen = new EventEmitter<boolean>()
+
   private routeSub?: Subscription
   private emailSub?: Subscription
   private logoutSub?: Subscription
@@ -522,6 +530,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   protected avatarMobileMenuMounted = signal<boolean>(false)
   protected avatarMobileMenuVisible = signal<boolean>(false)
   protected providedEmail = signal<ProvidedEmailDTO | null>(null)
+  private _triggerOpenOffCanvas = signal<boolean>(false)
 
   readonly menuOpenClass: Signal<boolean> = computed(() => this.themeMenuOpen())
   readonly logoSrc = computed(() =>
@@ -530,6 +539,14 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
 
   constructor() {
+    effect(() => {
+      const t = this._triggerOpenOffCanvas()
+      if (!t) {
+        return
+      }
+      this.offCanvasMenuOpen.set(true)
+      this.onOffCanvasMenuOpen.emit(true)
+    })
     effect(() => {
       if (this.themeMenuOpen()) {
         this.themeMenuMounted.set(true)
@@ -610,6 +627,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   protected handleDocumentClick = (event: MouseEvent): void => {
 
+    if (this.searchContextService.isOpenedSearchOverlay()) {
+      return
+    }
+
     if (this.avatarMobileMenuMounted()) {
       return
     }
@@ -640,7 +661,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
   protected handleEscape = (event: KeyboardEvent): void => {
     if (event.key === 'Escape') {
       this.themeMenuOpen.set(false)
-      this.offCanvasMenuOpen.set(false)
+      if (!this.searchContextService.isOpenedSearchOverlay()) {
+        this.offCanvasMenuOpen.set(false)
+      }
       this.avatarMenuOpen.set(false)
       this.avatarMobileMenuVisible.set(false)
     }
