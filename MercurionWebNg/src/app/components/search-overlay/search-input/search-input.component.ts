@@ -1,16 +1,25 @@
-import { AfterViewInit, OnInit, Component, effect, ElementRef, EventEmitter, inject, Input, Output, signal, ViewChild, OnDestroy } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { toObservable } from '@angular/core/rxjs-interop';
-import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
-import { MoleculeSearchService } from '../../../services/graphql/molecule-search.service';
-import { MoleculeCollectionItemService } from './../../../services/graphql/molecule-collection-item.service';
-import { MoleculeSearchResult } from '../../../Models/graphql/molecule-search/molecule-search-result.interface';
-import { AddMoleculesToCollectionContextService } from '../../../services/context/action-context/add-molecules-to-collection-context.service';
-import { Helpers } from '../../../helpers';
-import { firstValueFrom, Observable, Subscription } from 'rxjs';
-import { PageModel } from '../../../Models/graphql/page.models';
-import { MoleculeCardItemModel } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
-import { AbstractPaginationComponent } from '../../../abstract/abstract-pagination-component';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  Output,
+  ViewChild,
+  inject,
+  signal
+} from '@angular/core'
+import { FormsModule } from '@angular/forms'
+import { toObservable } from '@angular/core/rxjs-interop'
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators'
+import { Subscription } from 'rxjs'
+import { MoleculeSearchResult } from '../../../Models/graphql/molecule-search/molecule-search-result.interface'
+import { PageModel } from '../../../Models/graphql/page.models'
+import { MoleculeCardItemModel } from '../../../Models/graphql/molecule-collection/molecule-collection.types'
+import { MoleculeCollectionItemService } from '../../../services/graphql/molecule-collection-item.service'
+import { AddMoleculesToCollectionContextService } from '../../../services/context/action-context/add-molecules-to-collection-context.service'
+import { UserContextService } from '../../../services/context/user-context.service'
 
 @Component({
   selector: 'm-molecule-search-input',
@@ -21,7 +30,7 @@ import { AbstractPaginationComponent } from '../../../abstract/abstract-paginati
       <input
         #searchInput
         type="text"
-        placeholder="Cerca molecola..."
+        [placeholder]="userContext.isLoggedOut() ? 'Cerca molecola ChEMBL...' : 'Cerca molecola...'"
         class="flex-1 px-4 py-2 rounded-lg bg-white/90 text-black placeholder:text-gray-500 shadow focus:outline-none focus:ring-2 focus:ring-indigo-500 transition w-full"
         [ngModel]="query()"
         (ngModelChange)="query.set($event)"
@@ -43,14 +52,18 @@ import { AbstractPaginationComponent } from '../../../abstract/abstract-paginati
     </div>
   `
 })
-export class SearchInputComponent extends AbstractPaginationComponent<MoleculeCardItemModel> implements OnDestroy, AfterViewInit {
+export class SearchInputComponent implements AfterViewInit, OnDestroy {
 
-  private readonly searchService = inject(MoleculeSearchService);
-  private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService);
+  private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService)
   private readonly addContext = inject(AddMoleculesToCollectionContextService)
+  protected readonly userContext = inject(UserContextService)
 
-  _search_excludeAlreadyAdded = signal<boolean>(false)
-  _viewMode = signal<'my' | 'chembl'>('chembl')
+  protected query = signal('')
+
+  private _search_excludeAlreadyAdded = signal(false)
+  private _viewMode = signal<'my' | 'chembl'>('chembl')
+
+  private sub?: Subscription
 
   @ViewChild('searchInput')
   private searchInputRef!: ElementRef<HTMLInputElement>
@@ -61,9 +74,8 @@ export class SearchInputComponent extends AbstractPaginationComponent<MoleculeCa
   }
 
   @Input()
-  set viewMode(viewMode: 'my' | 'chembl') {
-    this._search_excludeAlreadyAdded.set(false)
-    this._viewMode.set(viewMode)
+  set viewMode(mode: 'my' | 'chembl') {
+    this._viewMode.set(mode)
   }
 
   @Output()
@@ -81,31 +93,7 @@ export class SearchInputComponent extends AbstractPaginationComponent<MoleculeCa
   @Output()
   onEmpty = new EventEmitter<void>()
 
-  protected override query = signal('')
-
-  private sub?: Subscription
-
-  private firstTime = signal<boolean>(true)
-
-  protected declare sentinel: ElementRef<HTMLDivElement>
-  protected declare root: ElementRef<HTMLElement>
-
   constructor() {
-
-    super()
-
-    effect(() => {
-      const f = this.firstTime()
-      if (f) {
-        this.firstTime.set(false)
-        return
-      }
-      const m = this._viewMode()
-      if (m === 'my') {
-        this.resetPagination()
-      }
-    })
-
     const query$ = toObservable(this.query)
 
     this.sub = query$
@@ -113,46 +101,56 @@ export class SearchInputComponent extends AbstractPaginationComponent<MoleculeCa
         debounceTime(300),
         distinctUntilChanged()
       )
-      .subscribe(term => {
-        const raw = term ?? ''
-        const trimmed = raw.trim()
+      .subscribe(raw => {
+        const value = raw ?? ''
+        const trimmed = value.trim()
+        const mode = this._viewMode()
+        const exclude = this._search_excludeAlreadyAdded()
 
-        // sempre notifico la query corrente
-        this.onQuery.emit(raw)
+        // Sempre notifico la query corrente
+        this.onQuery.emit(value)
 
-        // Stato "vuoto" per < 2 char
-        if (trimmed.length < 2 && this._viewMode() === 'chembl') {
+        // Caso overlay "normale": niente HTTP qui, pensa il padre
+        if (!exclude) {
+          if (mode === 'chembl' && trimmed.length < 2) {
+            this.onEmpty.emit()
+          }
+          return
+        }
+
+        // Caso legacy: search_excludeAlreadyAdded = true
+        if (trimmed.length < 2) {
           this.onLoading.emit(false)
-          this.searchService.clearResults()
           this.onResult.emit([])
           this.onEmpty.emit()
           return
         }
 
-        this.onLoading.emit(true)
-        const req$: Observable<MoleculeSearchResult[] | PageModel<MoleculeCardItemModel>> = this._search_excludeAlreadyAdded()
-          ? this.moleculeCollectionItemService.searchChemblMolecules_excludeAlreadyAdded(trimmed, this.addContext.collectionId()!)
-          : (
-            this._viewMode() === 'chembl' ?
-              this.searchService.searchMolecule(trimmed, 100)
-              :
-              this.fetch$()
-          )
+        const collectionId = this.addContext.collectionId()
+        if (!collectionId) {
+          this.onLoading.emit(false)
+          this.onResult.emit([])
+          return
+        }
 
-        req$.subscribe({
-          next: res => {
-            this.onResult.emit(res)
-            this.onLoading.emit(false)
-          },
-          error: err => {
-            this.onError.emit(err)
-            this.onLoading.emit(false)
-          }
-        })
+        this.onLoading.emit(true)
+
+        this.moleculeCollectionItemService
+          .searchChemblMolecules_excludeAlreadyAdded(trimmed, collectionId)
+          .subscribe({
+            next: res => {
+              this.onResult.emit(res)
+              this.onLoading.emit(false)
+            },
+            error: err => {
+              this.onError.emit(err)
+              this.onLoading.emit(false)
+            }
+          })
       })
   }
 
-  protected override clear(): void {
+  clear(): void {
     this.query.set('')
     this.onEmpty.emit()
     queueMicrotask(() => this.searchInputRef.nativeElement.focus())
@@ -165,113 +163,9 @@ export class SearchInputComponent extends AbstractPaginationComponent<MoleculeCa
       }
       this.searchInputRef.nativeElement.focus()
     })
-    if (this._viewMode() === 'my') {
-      this.startObserver(600)
-    }
   }
 
   ngOnDestroy(): void {
-    this.observer?.disconnect()
     this.sub?.unsubscribe()
   }
-
-  protected override fetch$(): Observable<PageModel<MoleculeCardItemModel>> {
-    return this.moleculeCollectionItemService.getAllPaginatedItems(this.page, 5, this.searchTerm()).pipe(
-      debounceTime(20),
-      map(page => ({
-        ...page,
-        items: page.items.map(mol => Helpers.moleculeClientToCardConverter(mol))
-      }))
-    )
-  }
-
-  protected override resetPagination(): void {
-    if (this._viewMode() !== 'my') {
-      return
-    }
-
-    this.items = []
-    this.page = 1
-    this.done = false
-    this.earlyDone = false
-    this.loading = false
-    this.empty.set(true)
-
-    this.onResult.emit({
-      items: [],
-      itemCount: 0,
-      totalItems: 0,
-      itemsPerPage: 0,
-      totalPages: 0,
-      currentPage: 1
-    })
-
-    this.startObserver(600)
-    void this.loadMore()
-  }
-
-  protected override async loadMore(): Promise<void> {
-    if (this._viewMode() !== 'my') {
-      return
-    }
-    if (this.loading || this.done) {
-      return
-    }
-
-    this.loading = true
-    this.onLoading.emit(true)
-
-    try {
-      this.observer?.disconnect()
-
-      const page = await firstValueFrom(this.fetch$())
-
-      if (!page.items.length) {
-        this.done = true
-        if (this.page === 1) this.earlyDone = true
-      } else {
-        this.items = [...this.items, ...page.items]
-        this.empty.set(false)
-        this.page++
-      }
-
-      this.onResult.emit({
-        ...page,
-        items: this.items,
-        itemCount: this.items.length,
-        currentPage: this.page - 1
-      });
-
-    } catch (e) {
-      this.onError.emit(e)
-    } finally {
-      this.loading = false
-      this.onLoading.emit(false)
-      queueMicrotask(() => this.startObserver())
-    }
-  }
-
-
-  protected override doQuery(q: string): void {
-    super.query(q)
-  }
-
-  protected override doClear(): void {
-    super.clear()
-  }
-
-  setScrollRoot(root: ElementRef<HTMLElement>) {
-    this.root = root
-    if (this._viewMode() === 'my') {
-      this.startObserver(600)
-    }
-  }
-
-  setSentinel(sentinel: ElementRef<HTMLDivElement>) {
-    this.sentinel = sentinel
-    if (this._viewMode() === 'my') {
-      this.startObserver(600)
-    }
-  }
-
 }

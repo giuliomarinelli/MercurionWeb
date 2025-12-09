@@ -1,20 +1,35 @@
-import { MoleculeSearchResult } from './../../../Models/graphql/molecule-search/molecule-search-result.interface';
-import { AfterViewInit, Component, effect, ElementRef, HostListener, inject, OnInit, signal, ViewChild } from '@angular/core';
-import { SearchContextService } from '../../../services/context/search-context.service';
-import { SearchInputComponent } from '../search-input/search-input.component';
-import { SearchResultComponent } from '../search-result/search-result.component';
-import { SearchResultSkeletonLoaderComponent } from '../search-result-skeleton-loader/search-result-skeleton-loader.component';
-import { SearchTypeSelectorComponent } from '../search-type-selector/search-type-selector.component';
-import { CloseButtonComponent } from '../../common/close-button/close-button.component';
-import { UserContextService } from '../../../services/context/user-context.service';
-import { PageModel } from '../../../Models/graphql/page.models';
-import { MoleculeCardItemModel } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
-import { TypeGuardsService } from '../../../services/type-guards.service';
-import { SkeletonMoleculeCardComponent } from '../../molecule-detail/skeleton-molecule-card/skeleton-molecule-card.component';
-import { MoleculeCollectionItemCardComponent } from '../../molecule-detail/molecule-collection-item-card/molecule-collection-item-card.component';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  HostListener,
+  ViewChild,
+  inject,
+  signal
+} from '@angular/core'
+
+import { SearchContextService } from '../../../services/context/search-context.service'
+import { SearchInputComponent } from '../search-input/search-input.component'
+import { SearchResultComponent } from '../search-result/search-result.component'
+import { SearchResultSkeletonLoaderComponent } from '../search-result-skeleton-loader/search-result-skeleton-loader.component'
+import { SearchTypeSelectorComponent } from '../search-type-selector/search-type-selector.component'
+import { CloseButtonComponent } from '../../common/close-button/close-button.component'
+import { UserContextService } from '../../../services/context/user-context.service'
+import { MoleculeSearchResult } from '../../../Models/graphql/molecule-search/molecule-search-result.interface'
+import { PageModel } from '../../../Models/graphql/page.models'
+import { MoleculeCardItemModel, MoleculeCollectionItemClient } from '../../../Models/graphql/molecule-collection/molecule-collection.types'
+import { SkeletonMoleculeCardComponent } from '../../molecule-detail/skeleton-molecule-card/skeleton-molecule-card.component'
+import { MoleculeCollectionItemCardComponent } from '../../molecule-detail/molecule-collection-item-card/molecule-collection-item-card.component'
+import { MoleculeSearchService } from '../../../services/graphql/molecule-search.service'
+import { MoleculeCollectionItemService } from '../../../services/graphql/molecule-collection-item.service'
+import { Helpers } from '../../../helpers'
+import { Subscription } from 'rxjs'
+import { map } from 'rxjs/operators'
+import { Maybe } from 'graphql/jsutils/Maybe'
 
 @Component({
   selector: 'm-search-overlay',
+  standalone: true,
   imports: [
     SearchInputComponent,
     SearchResultComponent,
@@ -28,10 +43,12 @@ import { MoleculeCollectionItemCardComponent } from '../../molecule-detail/molec
     <div
       class="fixed inset-0 z-[999] bg-black/70 backdrop-blur-sm text-light-on-surface-main dark:text-slate-50 transition-all duration-300"
       [class.opacity-0]="!searchContextService.isVisible()"
-      [class.opacity-100]="searchContextService.isVisible()">
+      [class.opacity-100]="searchContextService.isVisible()"
+    >
       <div class="flex justify-center items-center pt-32 sm:pt-40 px-4">
         <div
-          class="w-full h-[60vh] max-w-3xl space-y-6 bg-light-surface-main/85 dark:bg-dark-surface-main/85 p-3 2xs:p-4 md:p-6 lg:p-12 rounded-lg">
+          class="w-full h-[60vh] max-w-3xl space-y-6 bg-light-surface-main/85 dark:bg-dark-surface-main/85 p-3 2xs:p-4 md:p-6 lg:p-12 rounded-lg"
+        >
           <!-- HEADER -->
           <div class="flex justify-between items-center mb-3 relative md:-top-2 lg:-top-4">
             <h2 class="text-2xl font-medium tracking-wide">Ricerca molecolare</h2>
@@ -40,27 +57,28 @@ import { MoleculeCollectionItemCardComponent } from '../../molecule-detail/molec
 
           <m-molecule-search-input
             [viewMode]="_viewMode()"
-            (onLoading)="loading.set($event)"
-            (onResult)="handleResults($event)"
-            (onError)="handleError($event)"
-            (onQuery)="query.set($event)"
+            [search_excludeAlreadyAdded]="false"
+            (onQuery)="handleQuery($event)"
             (onEmpty)="handleEmpty()" />
 
-          <div class="relative bg-light-surface-secondary dark:bg-slate-50/10 p-6 h-full rounded-xl text-light-on-surface-main dark:text-sm dark:text-slate-50/90 max-h-[38vh] overflow-y-auto overflow-anchor-none"
+          <div
+            class="relative bg-light-surface-secondary dark:bg-slate-50/10 h-full rounded-xl text-light-on-surface-main dark:text-sm dark:text-slate-50/90 max-h-[38vh] overflow-y-auto border border-spacing-px border-slate-300/50"
             #scrollRoot>
-            <m-search-type-selector (onViewClick)="handleViewClick($event)" />
-            <hr class="border-px border-slate-300/50 mt-5 sticky top-[-24px] -z-10" />
+              @if (userContext.isLoggedIn()) {
+                <div class="sticky top-0 bg-light-surface-secondary dark:bg-slate-800 z-30 p-6 border-b border-spacing-px border-slate-300/50 mb-3">
+                  <m-search-type-selector (onViewClick)="handleViewClick($event)" />
+                </div>
+              }
+
             @switch (_viewMode()) {
               @case ('chembl') {
                 @if (loading()) {
-                <!-- Skeleton loader -->
                   <m-search-result-skeleton-loader />
-                } @else if (array(results()).length) {
-                  <!-- Lista risultati -->
-                  @for (molecule of array(results()); track molecule.id) {
+                } @else if (chemblResults().length) {
+                  @for (molecule of chemblResults(); track molecule.id) {
                     <m-search-result [molecule]="molecule" [query]="query()" />
                   }
-                } @else if (!array(results()).length && !error() && !empty()) {
+                } @else if (showChemblEmptyMessage()) {
                   <div class="text-sm text-gray-400 text-center py-8">
                     Nessun risultato trovato.
                   </div>
@@ -68,20 +86,27 @@ import { MoleculeCollectionItemCardComponent } from '../../molecule-detail/molec
                   <div class="text-sm text-light-error dark:text-dark-error rounded px-4 py-2 text-center">
                     Errore nella ricerca. Riprova.
                   </div>
+                } @else {
+                  <div class="text-sm text-gray-400 text-center py-8">
+                    Qui compariranno i risultati quando digiterai.
+                  </div>
                 }
               }
               @case ('my') {
-                @if (loading()) {
-                <!-- Skeleton loader -->
-                  @for(i of [0, 1, 2, 3, 4, 5]; track i) {
-                   <m-skeleton-molecule-card />
+                @if (loading() && !myItems().length) {
+                  @for (i of [0,1,2,3,4,5]; track i) {
+                    <m-skeleton-molecule-card />
                   }
-                } @else if (pagination(results()).items.length) {
-                  <!-- Lista risultati -->
-                  @for (molecule of pagination(results()).items; track molecule.id; let i = $index) {
+                } @else if (myItems().length) {
+                  @for (molecule of myItems(); track molecule.id; let i = $index) {
                     <m-molecule-collection-item-card [molecule]="molecule" [i]="i" />
                   }
-                } @else if (!pagination(results()).items.length) {
+                  @if (loading() && myItems().length) {
+                    <div class="mt-3">
+                      <m-skeleton-molecule-card />
+                    </div>
+                  }
+                } @else if (showMyEmptyMessage()) {
                   <div class="text-sm text-gray-400 text-center py-8">
                     Nessun risultato trovato.
                   </div>
@@ -92,39 +117,46 @@ import { MoleculeCollectionItemCardComponent } from '../../molecule-detail/molec
                 }
               }
             }
+
             <div #sentinel class="h-1 w-full"></div>
           </div>
         </div>
       </div>
     </div>
-
-
   `
 })
 export class SearchOverlayComponent implements AfterViewInit {
 
-  private readonly userContext = inject(UserContextService)
-  protected readonly typeGuards = inject(TypeGuardsService)
+  protected readonly searchContextService = inject(SearchContextService)
+  protected readonly userContext = inject(UserContextService)
+  private readonly chemblService = inject(MoleculeSearchService)
+  private readonly collectionService = inject(MoleculeCollectionItemService)
 
   @ViewChild('scrollRoot')
-  scrollRoot!: ElementRef<HTMLElement>
+  private scrollRoot!: ElementRef<HTMLElement>
 
   @ViewChild('sentinel')
-  sentinel!: ElementRef<HTMLDivElement>
+  private sentinel!: ElementRef<HTMLDivElement>
 
-  @ViewChild(SearchInputComponent)
-  searchInput!: SearchInputComponent
-
-  empty = signal<boolean>(true)
   query = signal<string>('')
-  loading = signal<boolean>(false)
-  results = signal<MoleculeSearchResult[] | PageModel<MoleculeCardItemModel>>([])
-  error = signal<unknown | null>(null)
-  _viewMode = signal<'my' | 'chembl'>('chembl')
 
-  constructor(protected readonly searchContextService: SearchContextService) {
-    effect(() => this.empty() && this.results.set([]))
-  }
+  protected _viewMode = signal<'my' | 'chembl'>('chembl')
+
+  loading = signal<boolean>(false)
+  error = signal<unknown | null>(null)
+
+  chemblResults = signal<MoleculeSearchResult[]>([])
+  private chemblSub?: Subscription
+
+  myItems = signal<MoleculeCardItemModel[]>([])
+  private myPage = signal<number>(0)
+  private myTotalPages = signal<number | null>(null)
+  private myDone = signal<boolean>(false)
+  private mySub?: Subscription
+
+  private observer?: IntersectionObserver
+
+  constructor() { }
 
   close(): void {
     this.searchContextService.isOpenedSearchOverlay.set(false)
@@ -138,59 +170,181 @@ export class SearchOverlayComponent implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.searchInput.setScrollRoot(this.scrollRoot)
-    this.searchInput.setSentinel(this.sentinel)
+    const rootEl = this.scrollRoot?.nativeElement ?? null
+    const sentinelEl = this.sentinel?.nativeElement
+    if (!sentinelEl) return
+
+    this.observer = new IntersectionObserver(entries => {
+      const entry = entries[0]
+      if (!entry.isIntersecting) return
+      if (this._viewMode() !== 'my') return
+      if (this.loading() || this.myDone()) return
+
+      // stacco subito, così non resta "incollato" intersecting
+      this.observer?.unobserve(sentinelEl)
+      this.loadNextMyPage()
+    }, {
+      root: rootEl,
+      rootMargin: '0px 0px 200px 0px',
+      threshold: 0
+    })
+
+    this.observer.observe(sentinelEl)
   }
 
-  onEmpty(): void {
-    this.empty.set(true)
-    this.query.set('')
-  }
+  // ======= HANDLERS =======
 
-  handleResults(results: MoleculeSearchResult[] | PageModel<MoleculeCardItemModel>): void {
-    this.empty.set(false)
-    this.results.set(results)
+  handleQuery(raw: string): void {
+    this.query.set(raw ?? '')
     this.error.set(null)
-  }
 
-  handleError(e: unknown): void {
-    this.empty.set(false)
-    this.error.set(e)
-    this.results.set([])
-  }
+    const trimmed = this.query().trim()
 
-  handleViewClick(e: 'my' | 'chembl'): void {
-    if (this._viewMode() === e) {
+    if (this._viewMode() === 'chembl') {
+      if (trimmed.length < 2) {
+        this.loading.set(false)
+        this.chemblResults.set([])
+        return
+      }
+      this.searchChembl(trimmed)
       return
     }
-    this._viewMode.set(e)
-  }
 
-  array(item: MoleculeSearchResult[] | PageModel<unknown>): MoleculeSearchResult[] {
-    if (!this.typeGuards.isMoleculeSearchResultArray(item)) {
-      return []
-    }
-    return item
-  }
-
-  pagination(item: MoleculeSearchResult[] | PageModel<unknown>): PageModel<MoleculeCardItemModel> {
-    if (!Array.isArray(item)) {
-      return item as PageModel<MoleculeCardItemModel>
-    }
-    return {
-      items: [],
-      itemCount: 0,
-      totalItems: 0,
-      itemsPerPage: 0,
-      totalPages: 0,
-      currentPage: 0
-    }
+    // mode "my"
+    this.resetMyState()
+    this.loadNextMyPage()
   }
 
   handleEmpty(): void {
     if (this._viewMode() === 'chembl') {
-      this.empty.set(true)
+      this.chemblResults.set([])
+      this.loading.set(false)
+      this.error.set(null)
     }
   }
 
+  handleViewClick(mode: 'my' | 'chembl'): void {
+    if (this._viewMode() === mode) return
+
+    this._viewMode.set(mode)
+    this.error.set(null)
+    this.loading.set(false)
+
+    if (mode === 'chembl') {
+      // passo a chembl: stop paginazione "my"
+      this.mySub?.unsubscribe()
+      this.myItems.set([])
+      this.myPage.set(0)
+      this.myTotalPages.set(null)
+      this.myDone.set(false)
+
+      const trimmed = this.query().trim()
+      if (trimmed.length >= 2) {
+        this.searchChembl(trimmed)
+      } else {
+        this.chemblResults.set([])
+      }
+      return
+    }
+
+    // passo a "my"
+    this.chemblSub?.unsubscribe()
+    this.chemblResults.set([])
+    this.resetMyState()
+    this.loadNextMyPage()
+  }
+
+  // ======= CHEMBL =======
+
+  private searchChembl(term: string): void {
+    this.chemblSub?.unsubscribe()
+    this.loading.set(true)
+    this.error.set(null)
+
+    this.chemblSub = this.chemblService
+      .searchMolecule(term, 100)
+      .subscribe({
+        next: res => {
+          this.chemblResults.set(res ?? [])
+          this.loading.set(false)
+        },
+        error: err => {
+          this.error.set(err)
+          this.chemblResults.set([])
+          this.loading.set(false)
+        }
+      })
+  }
+
+  protected showChemblEmptyMessage(): boolean {
+    if (this.loading() || this.error()) return false
+    const trimmed = this.query().trim()
+    return trimmed.length >= 2 && this.chemblResults().length === 0
+  }
+
+  // ======= MY MOLECULES + INFINITE SCROLL =======
+
+  private resetMyState(): void {
+    this.mySub?.unsubscribe()
+    this.myItems.set([])
+    this.myPage.set(0)
+    this.myTotalPages.set(null)
+    this.myDone.set(false)
+  }
+
+  protected loadNextMyPage(): void {
+    if (this._viewMode() !== 'my') return
+    if (this.loading() || this.myDone()) return
+
+    const nextPage = this.myPage() + 1
+    const q = this.query().trim()
+
+    this.loading.set(true)
+    this.error.set(null)
+
+    this.mySub?.unsubscribe()
+
+    this.mySub = this.collectionService
+      .getAllPaginatedItems(nextPage, 7, q)
+      .pipe(
+        map((page: PageModel<MoleculeCollectionItemClient>) => ({
+          ...page,
+          items: page.items.map(mol => Helpers.moleculeClientToCardConverter(mol))
+        }))
+      )
+      .subscribe({
+        next: page => {
+          const merged = [...this.myItems(), ...page.items]
+          this.myItems.set(merged)
+          this.myPage.set(page.currentPage)
+          this.myTotalPages.set(page.totalPages)
+
+          if (page.currentPage >= page.totalPages || page.items.length === 0) {
+            this.myDone.set(true)
+          }
+
+          this.loading.set(false)
+
+          // riattacco dopo che Angular ha renderizzato i nuovi items
+          queueMicrotask(() => {
+            const sentinelEl = this.sentinel?.nativeElement
+            if (sentinelEl) this.observer?.observe(sentinelEl)
+          })
+        },
+        error: err => {
+          this.error.set(err)
+          this.loading.set(false)
+
+          queueMicrotask(() => {
+            const sentinelEl = this.sentinel?.nativeElement
+            if (sentinelEl) this.observer?.observe(sentinelEl)
+          })
+        }
+      })
+  }
+
+  protected showMyEmptyMessage(): boolean {
+    if (this.loading() || this.error()) return false
+    return this.myItems().length === 0
+  }
 }
