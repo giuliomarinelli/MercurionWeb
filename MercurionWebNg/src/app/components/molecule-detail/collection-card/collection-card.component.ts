@@ -47,6 +47,7 @@ import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/
         (keydown.space)="goToCollection($event)"
         [attr.aria-label]="'Apri collezione ' + _collection()!.name"
         [class.disappear-card]="_triggerDisappear()"
+        [class.cursor-default]="_isReadonly()"
       >
         <!-- Wrapper che anima l'altezza -->
         <div class="clip-wrapper">

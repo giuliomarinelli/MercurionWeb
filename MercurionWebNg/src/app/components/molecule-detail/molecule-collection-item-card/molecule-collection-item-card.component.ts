@@ -50,7 +50,8 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
         [ngClass]="{
           'bg-slate-100/50 dark:bg-slate-800/40': _i() % 2 !== 0,
           'fade-out': _triggerDisappear(),
-          'collapse': _collapse()
+          'collapse': _collapse(),
+          'cursor-default': _isReadonly()
         }"
         aria-label="Card molecola {{ _molecule()!.name }}"
       >

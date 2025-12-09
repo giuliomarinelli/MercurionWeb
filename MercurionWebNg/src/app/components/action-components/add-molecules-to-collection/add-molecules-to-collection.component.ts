@@ -95,7 +95,8 @@ export type ChipItem = {
                       <m-molecule-collection-item-select-card
                         [molecule]="row.item"
                         [i]="i"
-                        [(value)]="row.isChecked"
+                        [value]="row.isChecked()"
+                        (valueChange)="row.isChecked.set($event)"
                       />
                     }
                   </div>
@@ -240,7 +241,7 @@ export type ChipItem = {
       @if (step() === 1) {
         <button
           type="button"
-          class="px-4 py-2 rounded bg-slate-200 text-light-on-surface-main dark:bg-slate-100 dark:text-neutral-950 hover:bg-gray-300"
+          class="px-4 py-2 rounded bg-slate-200 text-light-on-surface-main dark:bg-slate-100 dark:text-neutral-950 hover:bg-gray-300 transition-colors duration-300"
           (click)="close()"
         >
           Annulla
@@ -248,7 +249,7 @@ export type ChipItem = {
       }
       <button
         type="button"
-        class="relative inline-flex items-center justify-center px-4 py-2 rounded bg-emerald-600 text-white font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed"
+        class="relative inline-flex items-center justify-center px-4 py-2 rounded bg-emerald-600 text-white font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed transition-colors duration-300"
         [disabled]="(isSelectedNothing() && this.method() === 'my') || (this.selectedIds.length === 0 && this.method() === 'chembl' || step_12_loading())"
         (click)="step() === 1 ? dispatchSubmit() : close()"
         [attr.aria-busy]="step_12_loading()"
