@@ -47,8 +47,10 @@ import { Maybe } from 'graphql/jsutils/Maybe'
     >
       <div class="flex justify-center items-center pt-32 sm:pt-40 px-4">
         <div
-          class="w-full h-[60vh] max-w-3xl space-y-6 bg-light-surface-main/85 dark:bg-dark-surface-main/85 p-3 2xs:p-4 md:p-6 lg:p-12 rounded-lg"
-        >
+          class="w-full h-[60vh] max-w-3xl space-y-6
+          bg-light-surface-main/90 dark:bg-dark-surface-main/90
+           p-4 md:p-6 lg:p-10
+           rounded-2xl shadow-2xl ring-1 ring-black/5 dark:ring-white/5">
           <!-- HEADER -->
           <div class="flex justify-between items-center mb-3 relative md:-top-2 lg:-top-4">
             <h2 class="text-2xl font-medium tracking-wide">Ricerca molecolare</h2>
@@ -65,7 +67,11 @@ import { Maybe } from 'graphql/jsutils/Maybe'
             class="relative bg-light-surface-secondary dark:bg-slate-50/10 h-full rounded-xl text-light-on-surface-main dark:text-sm dark:text-slate-50/90 max-h-[38vh] overflow-y-auto border border-spacing-px border-slate-300/50"
             #scrollRoot>
               @if (userContext.isLoggedIn()) {
-                <div class="sticky top-0 bg-light-surface-secondary dark:bg-slate-800 z-30 p-6 border-b border-spacing-px border-slate-300/50 mb-3">
+                <div class="sticky top-0 z-30
+                     bg-light-surface-secondary/95 dark:bg-slate-800/95 backdrop-blur
+                     px-6 pt-5 pb-4
+                     border-b border-slate-200/60 dark:border-white/10
+                     overflow-y-auto scrollbar-thin scrollbar-thumb-slate-400/40 dark:scrollbar-thumb-white/20 scrollbar-track-transparent">
                   <m-search-type-selector (onViewClick)="handleViewClick($event)" />
                 </div>
               }
@@ -99,7 +105,7 @@ import { Maybe } from 'graphql/jsutils/Maybe'
                   }
                 } @else if (myItems().length) {
                   @for (molecule of myItems(); track molecule.id; let i = $index) {
-                    <m-molecule-collection-item-card [molecule]="molecule" [i]="i" />
+                    <m-molecule-collection-item-card [molecule]="molecule" [i]="i" [hideActions]="true" />
                   }
                   @if (loading() && myItems().length) {
                     <div class="mt-3">

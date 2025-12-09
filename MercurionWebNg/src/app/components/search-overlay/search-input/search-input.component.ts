@@ -31,7 +31,11 @@ import { UserContextService } from '../../../services/context/user-context.servi
         #searchInput
         type="text"
         [placeholder]="userContext.isLoggedOut() ? 'Cerca molecola ChEMBL...' : 'Cerca molecola...'"
-        class="flex-1 px-4 py-2 rounded-lg bg-white/90 text-black placeholder:text-gray-500 shadow focus:outline-none focus:ring-2 focus:ring-indigo-500 transition w-full"
+        class="flex-1 px-4 py-2 rounded-xl bg-white/95 dark:bg-white/5
+         text-black dark:text-white placeholder:text-gray-500 dark:placeholder:text-slate-400
+         shadow-sm ring-1 ring-slate-200/70 dark:ring-white/10
+         focus:outline-none focus:ring-2 focus:ring-indigo-500/70 focus:ring-offset-0
+         transition w-full"
         [ngModel]="query()"
         (ngModelChange)="query.set($event)"
         [class.pr-10]="query().trim()"

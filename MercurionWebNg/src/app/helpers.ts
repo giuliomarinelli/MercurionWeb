@@ -40,9 +40,9 @@ export class Helpers {
         : (() => { try { return (JSON.parse(mol.propertiesJson ?? '') as MoleculeProperties).mwFreebase ?? 0 } catch { return 0 } })() as number,
       maxPhase: mol.type === 'chembl' ? (mol.chemblDetails as MoleculeDetail)?.maxPhase ?? 0 : undefined,
       smiles: mol.type === 'chembl' ? (mol.chemblDetails as MoleculeDetail)?.canonicalSmiles ?? '' : mol.canonicalSmiles ?? '',
-      createdAt: Date.parse(String(mol.createdAt)),
-      updatedAt: Date.parse(String(mol.updatedAt)),
-      touchedAt: Date.parse(String(mol.touchedAt)),
+      createdAt: Number(mol.createdAt),
+      updatedAt: Number(mol.updatedAt),
+      touchedAt: Number(mol.touchedAt),
       triggerDisappear: signal<boolean>(false),
       collapse: signal<boolean>(false)
     }

@@ -87,10 +87,10 @@ import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/
                   <div class="mt-1 flex md:hidden items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                     <span class="inline-flex items-center">
                       <span class="size-1.5 rounded-full bg-slate-300 dark:bg-slate-500 mr-2"></span>
-                      Creato: {{ _collection()!.createdAt | date:'mediumDate' }}
+                      Creato: {{ _collection()!.createdAt | date :'dd/MM/yyyy HH:mm:ss' }}
                     </span>
                     <span class="text-slate-300 dark:text-slate-600">&middot;</span>
-                    <span>Agg.: {{ _collection()!.updatedAt | date:'mediumDate' }}</span>
+                    <span>Agg.: {{ _collection()!.updatedAt | date :'dd/MM/yyyy HH:mm:ss' }}</span>
                   </div>
                 </div>
               </div>
@@ -119,14 +119,14 @@ import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/
                       <path d="M6 2a1 1 0 0 1 1 1v1h6V3a1 1 0 1 1 2 0v1h1a2 2 0 0 1 2 2v1H3V6a2 2 0 0 1 2-2h1V3a1 1 0 0 1 1-1z"/>
                       <path d="M3 8h14v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8z"/>
                     </svg>
-                    Creato: {{ _collection()!.createdAt | date:'mediumDate' }}
+                    Creato: {{ _collection()!.createdAt | date :'dd/MM/yyyy HH:mm:ss' }}
                   </span>
                   <span class="size-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
                   <span class="inline-flex items-center">
                     <svg class="size-3.5 mr-1.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                       <path d="M10 2a8 8 0 1 0 8 8 8.01 8.01 0 0 0-8-8Zm.75 4.75a.75.75 0 0 0-1.5 0v3.69l2.72 2.72a.75.75 0 0 0 1.06-1.06l-2.28-2.28V6.75Z"/>
                     </svg>
-                    Aggiornato: {{ _collection()!.updatedAt | date:'mediumDate' }}
+                    Aggiornato: {{ _collection()!.updatedAt | date :'dd/MM/yyyy HH:mm:ss' }}
                   </span>
                 </div>
 

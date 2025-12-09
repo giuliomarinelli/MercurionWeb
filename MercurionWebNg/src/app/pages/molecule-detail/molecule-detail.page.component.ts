@@ -322,7 +322,6 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
     // --- breadcrumb
     this.bcSub?.unsubscribe()
     this.bcSub = this.route.queryParamMap.pipe(
-      distinctUntilChanged(),
       map((qp): string => qp.get('c_id') ?? ''),
       filter(collectionId => collectionId.length > 0),
       switchMap((cId) => {
@@ -331,7 +330,7 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
         return this.moleculeCollectionService.getCollectionById(cId)
       }),
       distinctUntilChanged((a, b) => a?.id === b?.id)
-    ).subscribe(col => {
+    ).subscribe((col) => {
       if (col) {
         const list = [
           ...this.breadcrumb,
@@ -464,7 +463,6 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
       map(params => params.get('molId')), // string | null
       distinctUntilChanged(),
       tap(() => this.similarViewerReady.set(false)),
-
       switchMap((id): Observable<string | null> => {
         if (!id) return of(null)
         // UUID -> prendo lo short e, se chembl, estraggo il molregno

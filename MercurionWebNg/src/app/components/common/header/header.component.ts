@@ -121,7 +121,9 @@ import { environment } from '../../../../environments/environment.development';
 
       <button class="flex items-center justify-center size-10 rounded-full theme-toggle-button mr-0 xs:mr-1 lg:mr-2 transition-all duration-500 hover:bg-slate-200/80 dark:hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400/70" [ngClass]="{
           'xl:ml-1': userContext.isLoggedIn() || isLoginPath(),
-        }" (click)="toggleThemeMenu()">
+        }"
+        (click)="toggleThemeMenu()"
+        [attr.title]="themeMenuOpen() ? 'Chiudi il menù di selezione del tema' : 'Apri il menu di selezione del tema'">
         @if (themeManager.theme() === "dark") {
         <svg xmlns="http://www.w3.org/2000/svg"
           class="h-[22px] w-[22px] min-[350px]:h-7 min-[350px]:w-7 fill-current text-slate-100 hover:text-slate-300 transition-colors duration-300"
@@ -145,6 +147,7 @@ import { environment } from '../../../../environments/environment.development';
       isAllowedPath()
       ) {
       <button (click)="toggleAvatarMenu()" [innerHTML]="userContext.initials()"
+        [attr.title]="avatarMenuOpen() ? 'Chiudi il menù utente' : 'Apri il menu utente'"
         class="avatar-toggle-button inline-flex items-center justify-center size-10 rounded-full cursor-pointer bg-light-accent-secondary-500/80 text-slate-100 dark:bg-dark-accent-primary-btn bg-light-accent-secondary/85 hover:bg-slate-400/50 hover:text-light-on-surface-secondary dark:hover:text-slate-100 dark:hover:bg-slate-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400/70 text-sm font-semibold transition-colors duration-300">
       </button>
       }
@@ -221,7 +224,7 @@ import { environment } from '../../../../environments/environment.development';
         <path
           d="M223.5 32C100 32 0 132.3 0 256S100 480 223.5 480c60.6 0 115.5-24.2 155.8-63.4c5-4.9 6.3-12.5 3.1-18.7s-10.1-9.7-17-8.5c-9.8 1.7-19.8 2.6-30.1 2.6c-96.9 0-175.5-78.8-175.5-176c0-65.8 36-123.1 89.3-153.3c6.1-3.5 9.2-10.5 7.7-17.3s-7.3-11.9-14.3-12.5c-6.3-.5-12.6-.8-19-.8z" />
       </svg>
-      } @else if (themeManager.isSystemLight) {
+      } @else {
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 512 512">
         <!--!Font Awesome Pro 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
         <path class="fill-current text-light-accent-secondary dark:text-dark-accent-secondary"
@@ -387,7 +390,9 @@ import { environment } from '../../../../environments/environment.development';
   <div
     class="sticky bottom-0 border-t py-3 px-5 bg-slate-100 dark:bg-neutral-800 border-slate-400 dark:border-dark-border flex gap-3 items-center">
     <button (click)="toggleAvatarMobileMenu()" [innerHTML]="userContext.initials()"
-      class="avatar-toggle-button inline-flex items-center justify-center size-10 rounded-full cursor-pointer bg-emerald-500 text-slate-100 dark:bg-dark-accent-primary-btn hover:bg-slate-200/80 dark:hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400/70 text-sm font-semibold transition-colors duration-300"></button>
+      class="avatar-toggle-button inline-flex items-center justify-center size-10 rounded-full cursor-pointer bg-emerald-500 text-slate-100 dark:bg-dark-accent-primary-btn hover:bg-slate-200/80 dark:hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400/70 text-sm font-semibold transition-colors duration-300"
+      [attr.title]="avatarMobileMenuOpen() ? 'Chiudi il menù utente' : 'Apri il menu utente'">
+    </button>
     <button (click)="toggleAvatarMobileMenu()"
       class="text-sm text-green-800 dark:text-dark-accent-primary font-medium truncate">
       {{ providedEmail()?.email }}
