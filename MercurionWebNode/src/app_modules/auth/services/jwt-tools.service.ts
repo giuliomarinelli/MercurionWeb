@@ -90,7 +90,8 @@ export class JwtToolsService {
             this.smsOtpMfaInactivationTokenConfig,
             this.appTotpMfaInactivationTokenConfig,
             this.changePasswordTokenConfig,
-            this.accountRecoveryTokenConfig
+            this.accountRecoveryTokenConfig,
+            this.sso_preAuthorizationTokenConfig
         ].forEach((c) => {
             if (!c?.secret || c.secret.length < minLen) {
                 throw new Error('Weak JWT secret in config')
@@ -200,7 +201,12 @@ export class JwtToolsService {
     }
 
 
-    public async verifyTokenAndGetPayload(token: string, type: TokenType, ignoreExpiration: boolean = false): Promise<AppJwtPayload> | never {
+    public async verifyTokenAndGetPayload(
+        token: string,
+        type: TokenType,
+        ignoreExpiration: boolean = false,
+        skipRevocationCheck: boolean = false
+    ): Promise<AppJwtPayload> | never {
 
         const jwtConfig = this.getJwtConfigurationFromTokenType(type)
 
@@ -242,7 +248,7 @@ export class JwtToolsService {
             if (payload.typ !== type) {
                 throw new RpcException(`InvalidToken::Type mismatch`)
             }
-            if (await this.sessionService.isTokenRevoked(payload.jti)) {
+            if (!skipRevocationCheck && await this.sessionService.isTokenRevoked(payload.jti)) {
                 throw new RpcException(`Revoked${type}`)
             }
             return payload

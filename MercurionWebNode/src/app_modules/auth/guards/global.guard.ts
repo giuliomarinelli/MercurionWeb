@@ -21,7 +21,9 @@ import { TypeGuards } from 'src/utils/type-guards/type-guards';
 export class GlobalGuard implements CanActivate {
 
    private readonly logger: MeiliContextLogger
-   private tokenType: TokenType
+   private tokenType: TokenType = TokenType.AccessToken
+   // Small grace window before revoking an expired token to avoid race conditions on concurrent refreshes
+   private readonly refreshRevocationDelayMs = 1500
 
    constructor(
       private readonly jwtToolsService: JwtToolsService,
@@ -69,21 +71,20 @@ export class GlobalGuard implements CanActivate {
          accessToken = this.jwtToolsService.extractAccessTokenFromReq(req)
 
 
-         try {
+         try {            
             payload = await this.jwtToolsService.verifyTokenAndGetPayload(accessToken, TokenType.AccessToken)
             await this.scopeService.scopeVerificationLayer(payload.sub, context, this.reflector, payload.scp)
-            this.tokenType = TokenType.AccessToken
          } catch (e) {
-            const { jti } = this.jwtToolsService.decodeUnsafe(accessToken)
+            
             if (e instanceof RpcException && e.message === 'InvalidOrExpiredAccessToken') {
 
                if (this.tokenType !== TokenType.AccessToken) {
                   throw e
                }
 
-               this.logger.debug?.(`Possibly expired access token, jti=${jti}, trying to refresh`)
-
                payload = await this.jwtToolsService.verifyTokenAndGetPayload(accessToken, TokenType.AccessToken, true)
+               
+               this.logger.debug(`Expired access token, jti=${payload.jti}, trying to refresh`)
 
                await this.scopeService.scopeVerificationLayer(payload.sub, context, this.reflector, payload.scp)
 
@@ -107,11 +108,12 @@ export class GlobalGuard implements CanActivate {
 
                newToken = await this.jwtToolsService.generateToken(payload.sub, TokenType.AccessToken, payload.sid)
 
-
                await this.sessionService.updateLastAccessed(payload.sid, payload.sub)
 
                reply.header('X-New-Access-Token', encodeURIComponent(newToken))
-               await this.sessionService.revokeToken(payload.jti)
+               setTimeout(() => {
+                  void this.sessionService.revokeToken(payload.jti)
+               }, this.refreshRevocationDelayMs).unref?.()
                req.headers['x-user-id'] = payload.sub
                req.headers['x-scopes'] = JSON.stringify(await this.scopeService.verifyUserClaimScopesConsistencyThenGetScopes(payload.sub, newToken))
                return true
@@ -146,7 +148,7 @@ export class GlobalGuard implements CanActivate {
 
       } catch (e) {
          const newTokenPayload = (newToken ? this.jwtToolsService.decodeUnsafe(newToken) : null)
-         const oldTokenPayload = (accessToken ? this.jwtToolsService.decodeUnsafe(newToken) : null)
+         const oldTokenPayload = (accessToken ? this.jwtToolsService.decodeUnsafe(accessToken) : null)
          let newJti: string = ''
          let oldJti: string = ''
          const cookieSid = req.headers['x-session-id'] as string ?? ''
