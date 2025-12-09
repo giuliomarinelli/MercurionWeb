@@ -3,7 +3,7 @@ import { Component, Input, Output, EventEmitter, ElementRef, ViewChild, signal }
 import { FormsModule } from '@angular/forms';
 
 @Component({
-  selector: 'app-combo-select',
+  selector: 'm-combo-select',
   standalone: true,
   imports: [FormsModule, NgClass],
   template: `

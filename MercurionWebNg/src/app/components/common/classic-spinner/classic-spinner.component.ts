@@ -1,7 +1,7 @@
 import { Component, Input } from '@angular/core';
 
 @Component({
-  selector: 'app-classic-spinner',
+  selector: 'm-classic-spinner',
   standalone: true,
   template: `
     <span

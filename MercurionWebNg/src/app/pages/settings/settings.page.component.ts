@@ -1,7 +1,7 @@
 import { AuthService } from './../../services/auth.service';
 import { AfterViewInit, Component, effect, ElementRef, inject, OnDestroy, OnInit, QueryList, signal, ViewChild, ViewChildren } from '@angular/core'
 import { CdkAccordion, CdkAccordionItem, CdkAccordionModule } from '@angular/cdk/accordion'
-import { EMPTY, filter, map, Observable, of, startWith, Subscription, switchMap } from 'rxjs'
+import { EMPTY, map, of, startWith, Subscription, switchMap } from 'rxjs'
 import { AccountService } from '../../services/account.service'
 import { MfaStrategy, ProfileDTO, SessionDTOExt, VersionDTO } from '../../Models/account/account.models'
 import { ToastService } from '../../services/toast.service'
@@ -70,7 +70,7 @@ import { Helpers } from '../../helpers';
 
     @if (!loading())  {
       <section #pageTop class="main-container">
-        <h1 class="mt-4 xs:mt-0 relative bottom-4 text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary border-b border-slate-300 dark:border-slate-700 pb-6">
+        <h1 class="h1-underline">
           Impostazioni
         </h1>
         <div class="flex flex-col justify-between">
@@ -486,7 +486,7 @@ import { Helpers } from '../../helpers';
                             <h3 class="font-bold text-lg my-3">Sessioni attive</h3>
                             <div class="flex flex-col gap-y-4 mb-3">
                               @for (s of activeSessions; track s.id) {
-                                <app-session-card [session]="s" (onLoggingOutFromSession)="doLogoutFromSession($event)" />
+                                <m-session-card [session]="s" (onLoggingOutFromSession)="doLogoutFromSession($event)" />
                               }
                             </div>
                             <button
@@ -571,7 +571,7 @@ import { Helpers } from '../../helpers';
     } @else {
       <div class="absolute inset-0">
         <div class="mx-auto max-w-5xl flex justify-center items-center h-full">
-          <app-classic-spinner [size]="60" />
+          <m-classic-spinner [size]="60" />
         </div>
       </div>
     }

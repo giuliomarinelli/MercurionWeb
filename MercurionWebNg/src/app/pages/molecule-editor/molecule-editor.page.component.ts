@@ -9,7 +9,7 @@ import { ToastService } from '../../services/toast.service';
 import { RDKitService } from '../../services/rd-kit-loader.service';
 
 @Component({
-  selector: 'app-molecule-editor',
+  selector: 'm-molecule-editor',
   imports: [KetcherFrameComponent],
   template: `
     <div class="mt-2 mb-6">
@@ -23,7 +23,7 @@ import { RDKitService } from '../../services/rd-kit-loader.service';
     </div>
 
     @if (!error()) {
-      <app-ketcher-frame
+      <m-ketcher-frame
         [smiles]="smiles()"
         [mode]="mode()"
         [triggerReset]="triggerReset()"
@@ -50,7 +50,7 @@ import { RDKitService } from '../../services/rd-kit-loader.service';
             </button>
           }
         </div>
-      </app-ketcher-frame>
+      </m-ketcher-frame>
     } @else {
       <h3 class="text-center text-5xl font-semibold text-light-error dark:text-dark-error">Si è verificato un errore</h3>
     }

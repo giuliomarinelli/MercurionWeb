@@ -16,7 +16,7 @@ import { ClassicSpinnerComponent } from '../classic-spinner/classic-spinner.comp
 type FileKind = 'all' | 'images' | 'pdf';
 
 @Component({
-  selector: 'app-file-uploader',
+  selector: 'm-file-uploader',
   standalone: true,
   imports: [CommonModule, ClassicSpinnerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -107,7 +107,7 @@ type FileKind = 'all' | 'images' | 'pdf';
         }
         @if (loading) {
           <!-- Spinner overlay -->
-          <app-classic-spinner
+          <m-classic-spinner
             *ngIf="loading"
             [overlay]="true"
             [size]="56"

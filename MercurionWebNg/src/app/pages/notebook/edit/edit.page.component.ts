@@ -8,7 +8,7 @@ import { NotebookTocComponent } from '../../../components/notebook/notebook-tree
 
 
 @Component({
-  selector: 'lab-notebook-edit-component',
+  selector: 'm-lab-notebook-edit-component',
   standalone: true,
   imports: [LabNotebookEditorComponent, NotebookTocComponent],
   template: `
@@ -22,14 +22,14 @@ import { NotebookTocComponent } from '../../../components/notebook/notebook-tree
                   {{title()}}.
                 </h1>
               }
-              <lab-notebook-editor
+              <m-lab-notebook-editor
               class="block"
               [content]="currentPage()?.content || ''"
               [triggerContentEmission]="trigger()"
               (emitContent)="saveContent($event)" />
 
             </div>
-            <app-notebook-toc class="basis-64"
+            <m-notebook-toc class="basis-64"
                 [style.paddingTop.px]="offsetHeight()"
                 [notebook]="notebook()"
                 [mode]="'edit'"
@@ -52,7 +52,7 @@ import { NotebookTocComponent } from '../../../components/notebook/notebook-tree
             Seleziona un <b>paragrafo</b> per modificare il contenuto.<br>
             (Ogni paragrafo è una “pagina” del quaderno/esperimento.)
           </div>
-          <app-notebook-toc class="block mt-4"
+          <m-notebook-toc class="block mt-4"
                 [notebook]="notebook()"
                 [mode]="'edit'"
                 [selectedIds]="{

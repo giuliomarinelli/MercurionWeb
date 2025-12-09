@@ -41,7 +41,7 @@ import { HttpErrorBody as HttpErrorBody } from '../../Models/http-error-body.dto
 
 
 @Component({
-  selector: 'app-molecule-detail',
+  selector: 'm-molecule-detail',
   standalone: true,
   imports: [
     AsyncPipe,
@@ -68,23 +68,23 @@ import { HttpErrorBody as HttpErrorBody } from '../../Models/http-error-body.dto
 
         @if (!typeGuards.isSystemMolecule(molecule)) {
           @if (collectionId()) {
-            <app-my-molecules-heading [breadcrumb]="breadcrumb" />
+            <m-my-molecules-heading [breadcrumb]="breadcrumb" />
           } @else {
-            <app-my-molecules-heading />
+            <m-my-molecules-heading />
           }
         }
 
         @if (typeGuards.isSystemMolecule(molecule)) {
-          <molecule-header [nameInput]="molecule.preferredNameIt" [chemblIdInput]="molecule.cmbId"
+          <m-molecule-header [nameInput]="molecule.preferredNameIt" [chemblIdInput]="molecule.cmbId"
             [molId]="molecule.id.toString()" [isSystemMolecule]="true" [smiles]="molecule.canonicalSmiles" [isLoggedIn]="userContext.isLoggedIn()"
             (onAddToCollection)="doAddToManyCollections()" />
         } @else if (typeGuards.isChemblMolecule(molecule)) {
-          <molecule-header [nameInput]="molecule.chemblDetails.preferredNameIt" [chemblIdInput]="molecule.chemblDetails.cmbId"
+          <m-molecule-header [nameInput]="molecule.chemblDetails.preferredNameIt" [chemblIdInput]="molecule.chemblDetails.cmbId"
             [myMol]="true" [molId]="molecule.id" [smiles]="molecule.chemblDetails.canonicalSmiles"
             [isLoggedIn]="userContext.isLoggedIn()" (onDelete)="doDelete($event)"
             (onAddToCollection)="doAddToManyCollections()" />
         } @else if (typeGuards.isCustomMolecule(molecule)) {
-          <molecule-header [nameInput]="molecule.name ?? '<Lead sconosciuto>'" [myMol]="true" [isCustom]="true"
+          <m-molecule-header [nameInput]="molecule.name ?? '<Lead sconosciuto>'" [myMol]="true" [isCustom]="true"
             (onSave)="doUpdateInlineDetails($event)" [smiles]="molecule.canonicalSmiles" [molId]="molecule.id"
             [isLoggedIn]="userContext.isLoggedIn()" (onDelete)="doDelete($event)"
             (onAddToCollection)="doAddToManyCollections()" />
@@ -127,33 +127,33 @@ import { HttpErrorBody as HttpErrorBody } from '../../Models/http-error-body.dto
                             bg-slate-200 dark:bg-slate-700"></div>
               }
               @if (typeGuards.isSystemMolecule(molecule)) {
-                <molecule-viewer [mode]="'detail'" class="w-full h-full" [structure]="molecule.canonicalSmiles"
+                <m-molecule-viewer [mode]="'detail'" class="w-full h-full" [structure]="molecule.canonicalSmiles"
                 (rendered)="viewerReady.set(true)" />
               } @else if (typeGuards.isChemblMolecule(molecule)) {
-                <molecule-viewer [mode]="'detail'" class="w-full h-full" [structure]="molecule.chemblDetails.canonicalSmiles"
+                <m-molecule-viewer [mode]="'detail'" class="w-full h-full" [structure]="molecule.chemblDetails.canonicalSmiles"
                 (rendered)="viewerReady.set(true)" />
               } @else if (typeGuards.isCustomMolecule(molecule)) {
-                <molecule-viewer [mode]="'detail'" class="w-full h-full" [structure]="molecule.canonicalSmiles"
+                <m-molecule-viewer [mode]="'detail'" class="w-full h-full" [structure]="molecule.canonicalSmiles"
                 (rendered)="viewerReady.set(true)" />
               }
             </div>
           </div>
           @if (!typeGuards.isSystemMolecule(molecule)) {
             <div class="mt-8"></div>
-            <app-custom-details (onSaving)="doUpdateInlineDetails($event)" [type]="'label'" [value]="molecule.label ?? '—'"
+            <m-custom-details (onSaving)="doUpdateInlineDetails($event)" [type]="'label'" [value]="molecule.label ?? '—'"
               [itemId]="molecule.id" />
-            <app-custom-details (onSaving)="doUpdateInlineDetails($event)" [type]="'notes'" [value]="molecule.notes ?? '—'"
+            <m-custom-details (onSaving)="doUpdateInlineDetails($event)" [type]="'notes'" [value]="molecule.notes ?? '—'"
               [itemId]="molecule.id" />
           }
 
           @if (userContext.isLoggedIn()) {
-            <app-t1-prediction-card [inference]="molecule.t1Inference" />
+            <m-t1-prediction-card [inference]="molecule.t1Inference" />
           }
 
           @if (typeGuards.isSystemMolecule(molecule) || typeGuards.isCustomMolecule(molecule)) {
-            <molecule-properties [properties]="molecule.properties" />
+            <m-molecule-properties [properties]="molecule.properties" />
           } @else if (typeGuards.isChemblMolecule(molecule)) {
-            <molecule-properties [properties]="molecule.chemblDetails.properties" />
+            <m-molecule-properties [properties]="molecule.chemblDetails.properties" />
           }
           @if (!typeGuards.isSystemMolecule(molecule) && molecule.joins) {
             <h2
@@ -161,7 +161,7 @@ import { HttpErrorBody as HttpErrorBody } from '../../Models/http-error-body.dto
               Questa molecola fa parte delle seguenti collezioni:
             </h2>
             <section class="rounded-md border border-slate-300 dark:border-slate-600">
-              <app-my-molecule-join [joins]="molecule.joins" />
+              <m-my-molecule-join [joins]="molecule.joins" />
             </section>
           }
         </section>
@@ -204,26 +204,26 @@ import { HttpErrorBody as HttpErrorBody } from '../../Models/http-error-body.dto
 
 
           <section class="rounded-md border border-slate-300 dark:border-slate-600 relative bottom-4">
-            <app-similars [molecules]="similarMols() ?? []" [onlyKnown]="onlyKnownSig()" />
+            <m-similars [molecules]="similarMols() ?? []" [onlyKnown]="onlyKnownSig()" />
           </section>
           }
 
 
           @if (typeGuards.isSystemMolecule(molecule)) {
-            <molecule-routes [adminRoutesInput]="molecule.administrationRoutes" />
+            <m-molecule-routes [adminRoutesInput]="molecule.administrationRoutes" />
           } @else if (typeGuards.isChemblMolecule(molecule)) {
-            <molecule-routes [adminRoutesInput]="molecule.chemblDetails.administrationRoutes" />
+            <m-molecule-routes [adminRoutesInput]="molecule.chemblDetails.administrationRoutes" />
           }
           @if (typeGuards.isSystemMolecule(molecule)) {
-            <molecule-synonyms [synonymsInput]="molecule.synonyms" />
+            <m-molecule-synonyms [synonymsInput]="molecule.synonyms" />
           } @else if (typeGuards.isChemblMolecule(molecule)) {
-            <molecule-synonyms [synonymsInput]="molecule.chemblDetails.synonyms" />
+            <m-molecule-synonyms [synonymsInput]="molecule.chemblDetails.synonyms" />
           }
 
           @if (typeGuards.isSystemMolecule(molecule)) {
-            <molecule-cta-chembl [chemblId]="molecule.cmbId" />
+            <m-molecule-cta-chembl [chemblId]="molecule.cmbId" />
           } @else if (typeGuards.isChemblMolecule(molecule)) {
-            <molecule-cta-chembl [chemblId]="molecule.chemblDetails.cmbId" />
+            <m-molecule-cta-chembl [chemblId]="molecule.chemblDetails.cmbId" />
           }
       </section>
         } @else if (fetchError()) {
@@ -232,7 +232,7 @@ import { HttpErrorBody as HttpErrorBody } from '../../Models/http-error-body.dto
         </section>
         } @else {
         <section class="w-5xl mx-auto h-full flex justify-center items-center">
-          <app-classic-spinner [size]="85" />
+          <m-classic-spinner [size]="85" />
         </section>
         }
   `,

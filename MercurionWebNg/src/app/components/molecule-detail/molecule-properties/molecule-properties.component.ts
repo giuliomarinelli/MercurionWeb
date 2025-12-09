@@ -1,7 +1,7 @@
 import { Component, Input, computed, signal } from '@angular/core';
 
 @Component({
-  selector: 'molecule-properties',
+  selector: 'm-molecule-properties',
   standalone: true,
   template: `
     <section class="mt-6">

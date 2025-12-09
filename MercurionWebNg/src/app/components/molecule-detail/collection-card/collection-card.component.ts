@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
 
 @Component({
-  selector: 'app-collection-card',
+  selector: 'm-collection-card',
   standalone: true,
   imports: [NgClass, DatePipe, UpperCasePipe],
   styles: `

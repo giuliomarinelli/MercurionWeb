@@ -10,7 +10,6 @@ import {
   effect,
   signal,
   Signal,
-  NgZone,
   inject
 } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
@@ -35,7 +34,7 @@ import { ActionOverlayComponent } from './components/action-components/action-ov
 import { AppContextService } from './services/context/app-context.service';
 
 @Component({
-  selector: 'app-root',
+  selector: 'm-root',
   standalone: true,
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   imports: [
@@ -50,7 +49,9 @@ import { AppContextService } from './services/context/app-context.service';
   template: `
     @if (is_not_404_route() && is_not_403_route()) {
       <div class="flex flex-col h-screen">
-        <app-header class="sticky top-0 z-30" />
+        <m-header class="sticky top-0 z-30"
+          [triggerOpenOffCanvas]="_triggerOpenOffCanvas()"
+          (onOffCanvasMenuOpen)="triggerOpenOffCanvas()" />
         <div class="drawer-container relative flex flex-1 overflow-hidden custom-scrollbar">
           @if (userContext.isLoggedIn() && design.minBk('xl')()) {
             <div class="absolute top-4 left-[10px] z-30 group">
@@ -90,7 +91,7 @@ import { AppContextService } from './services/context/app-context.service';
                 -translate-x-full"
               [class.translate-x-0]="sidenavContext.isVisible()"
               [class.-translate-x-full]="!sidenavContext.isVisible()">
-              <app-sidenav />
+              <m-sidenav />
             </aside>
           }
           <section #scrollHost
@@ -100,17 +101,17 @@ import { AppContextService } from './services/context/app-context.service';
             <main class="flex-1 p-4 block">
               <router-outlet />
             </main>
-            <app-footer class="shrink-0" />
+            <m-footer class="shrink-0" />
           </section>
         </div>
       </div>
       @if (searchContextService.isMounted()) {
-        <app-search-overlay />
+        <m-search-overlay />
       }
       @if (saveOverlayContext.isMounted() && userContext.isLoggedIn()) {
-        <app-action-overlay />
+        <m-action-overlay />
       }
-      <app-toast [context]="toastService.context()" />
+      <m-toast [context]="toastService.context()" />
     } @else {
       <router-outlet />
     }
@@ -141,11 +142,13 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private routeSub?: Subscription;
 
-  private currentPath = signal<string>('');
-  private firstNavigationDone = signal<boolean>(false);
+  private currentPath = signal<string>('')
+  private firstNavigationDone = signal<boolean>(false)
 
-  private publicExact = new Set(environment.PUBLIC_EXACT_PATHS);
-  private publicPrefixes = environment.PUBLIC_PREFIXES;
+  private publicExact = new Set(environment.PUBLIC_EXACT_PATHS)
+  private publicPrefixes = environment.PUBLIC_PREFIXES
+
+  _triggerOpenOffCanvas = signal<boolean>(false)
 
   @ViewChild('scrollHost')
   private scrollHostRef!: ElementRef<HTMLElement>
@@ -286,10 +289,12 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       }
 
       if (isLoggedOutOnly) safeNavigate('/dashboard')
-    });
+    })
   }
 
-
+  triggerOpenOffCanvas(): void {
+    this._triggerOpenOffCanvas.set(true)
+  }
 
   async ngOnInit() {
 

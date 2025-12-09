@@ -1,7 +1,7 @@
 import { Component, Input, Signal, computed, signal } from '@angular/core';
 
 @Component({
-  selector: 'molecule-cta-chembl',
+  selector: 'm-molecule-cta-chembl',
   standalone: true,
   template: `
     <section class="mt-6 flex justify-center sm:justify-start">

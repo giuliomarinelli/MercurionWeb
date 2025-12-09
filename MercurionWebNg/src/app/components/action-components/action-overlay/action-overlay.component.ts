@@ -10,7 +10,7 @@ import { TicketDetailComponent } from '../ticket-detail/ticket-detail.component'
 import { NewTicketComponent } from '../new-ticket/new-ticket.component';
 
 @Component({
-  selector: 'app-action-overlay',
+  selector: 'm-action-overlay',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
@@ -35,16 +35,16 @@ import { NewTicketComponent } from '../new-ticket/new-ticket.component';
       >
         @switch (ctx.scope()) {
           @case ('MoleculeCollectionItemSave') {
-            <app-custom-molecule-collection-item-save />
+            <m-custom-molecule-collection-item-save />
           }
           @case ('AddMoleculesToCollection') {
-            <app-add-molecules-to-collection />
+            <m-add-molecules-to-collection />
           }
           @case ('CreateCollection') {
-            <app-create-collection />
+            <m-create-collection />
           }
           @case ('BindCollectionsToMolecule') {
-            <app-bind-collections-to-molecule />
+            <m-bind-collections-to-molecule />
           }
           @case ('SensitiveDataChange') {
             <m-sensitive-data-change />

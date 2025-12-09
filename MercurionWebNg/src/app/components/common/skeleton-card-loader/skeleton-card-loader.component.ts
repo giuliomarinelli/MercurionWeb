@@ -2,7 +2,7 @@ import { Component, Input, signal } from '@angular/core';
 import { NgClass, NgStyle } from '@angular/common';
 
 @Component({
-  selector: 'app-skeleton-collection-card',
+  selector: 'm-skeleton-collection-card',
   standalone: true,
   imports: [NgClass, NgStyle],
   template: `

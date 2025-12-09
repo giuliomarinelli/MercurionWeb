@@ -4,7 +4,7 @@ import { SimilarItemComponent } from '../similar-item/similar-item.component';
 import { SkeletonCollectionCardComponent } from '../../common/skeleton-card-loader/skeleton-card-loader.component';
 
 @Component({
-  selector: 'app-similars',
+  selector: 'm-similars',
   imports: [SimilarItemComponent, SkeletonCollectionCardComponent],
   template: `
 
@@ -13,14 +13,14 @@ import { SkeletonCollectionCardComponent } from '../../common/skeleton-card-load
     [class.max-h-[272px]]="!_onlyKnown()">
       @if (_molecules().length) {
         @for (molecule of _molecules(); track molecule; let i = $index) {
-          <app-similar-item [molecule]="molecule" [i]="i" />
+          <m-similar-item [molecule]="molecule" [i]="i" />
             @if (i !== _molecules().length - 1) {
               <hr class="border-slate-300 dark:border-slate-600" />
               }
         }
       } @else if (loading()) {
           @for (i of [0, 1]; track i) {
-            <app-skeleton-collection-card [height]="'45px'" />
+            <m-skeleton-collection-card [height]="'45px'" />
           }
       } @else {
         <div class="absolute inset-0 flex justify-center items-center text-sm">

@@ -5,7 +5,7 @@ import { Location } from '@angular/common';
 import { AppContextService } from '../../services/context/app-context.service';
 
 @Component({
-  selector: 'app-not-found-404-landing-page',
+  selector: 'm-not-found-404-landing-page',
   imports: [],
   template: `
 

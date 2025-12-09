@@ -4,7 +4,7 @@ import { Helpers } from '../../../helpers'
 import { SessionDTOExt } from '../../../Models/account/account.models';
 
 @Component({
-  selector: 'app-session-card',
+  selector: 'm-session-card',
   imports: [DatePipe],
   template: `
 

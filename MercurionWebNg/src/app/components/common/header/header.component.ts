@@ -1,5 +1,5 @@
-import { NgClass, NgOptimizedImage } from '@angular/common';
-import { Component, computed, effect, inject, OnDestroy, OnInit, Signal, signal } from '@angular/core';
+import { NgClass, NgOptimizedImage, NgTemplateOutlet } from '@angular/common';
+import { Component, computed, effect, EventEmitter, inject, Input, OnDestroy, OnInit, Output, Signal, signal } from '@angular/core';
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
 import { ThemeChoice } from '../../../Models/theme.models';
 import { DesignService } from '../../../services/design.service';
@@ -16,25 +16,28 @@ import { SessionSyncService } from '../../../services/session-sync.service';
 import { PathService } from '../../../services/path.service';
 import { ToastService } from '../../../services/toast.service';
 import { ProvidedEmailDTO } from '../../../Models/account/account.models';
+import { environment } from '../../../../environments/environment.development';
 
 @Component({
-  selector: 'app-header',
+  selector: 'm-header',
   imports: [
     NgOptimizedImage,
     NgClass,
     NavComponent,
     RouterLink,
     PublicPipe,
-    SidenavComponent
+    SidenavComponent,
+    NgTemplateOutlet
   ],
   template: `
 
- <header
-  class="px-5 py-4 bg-light-surface-secondary dark:bg-neutral-950 border-b-[0.5px] border-slate-300/65 dark:border-slate-300/40 header-shadow">
-  <div class="mx-auto flex justify-between items-center transition-colors duration-300 ease-out">
+ <header class="px-6 py-4 bg-light-surface-secondary dark:bg-neutral-950 border-b-[0.5px] border-slate-300/65 dark:border-slate-300/40 header-shadow">
+  <div class="w-full flex justify-between items-center transition-colors duration-300 ease-out">
     <div class="flex items-center gap-4">
       @if (designService.maxBk("lg")()) {
-      <button (click)="noToast(); toggleOffCanvasMenu()">
+      <button
+        class="inline-flex items-center justify-center size-10 rounded-full hover:bg-slate-200/80 dark:hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400/70 transition-colors"
+        (click)="noToast(); toggleOffCanvasMenu()">
         <svg xmlns="http://www.w3.org/2000/svg"
           class="h-[22px] w-[22px] min-[350px]:h-6 min-[350px]:w-6 fill-current text-light-on-surface-secondary dark:text-slate-100 off-canvas-menu-button"
           viewBox="0 0 448 512">
@@ -44,7 +47,7 @@ import { ProvidedEmailDTO } from '../../../Models/account/account.models';
         </svg>
       </button>
       }
-      @if (designService.minBk("sm")()) {
+      @if (designService.minBk("md")()) {
       <div class="flex gap-7 items-center">
         <a routerLink="/">
           <img [ngSrc]="logoSrc() | public" alt="Mercurion" width="927" height="234" title="Mercurion" priority="true"
@@ -58,18 +61,18 @@ import { ProvidedEmailDTO } from '../../../Models/account/account.models';
         }
       </div>
       }
-      @if (designService.minBk("lg")() && userContext.initials() != "") {
-      <app-nav [header]="true"></app-nav>
+      @if (designService.minBk("lg")() && userContext.isLoggedIn()) {
+      <m-nav [header]="true"></m-nav>
       }
     </div>
-    @if (designService.maxBk("xs")()) {
+    @if (designService.maxBk("sm")()) {
     <a routerLink="/">
       <img [ngSrc]="logoSrc() | public" alt="Mercurion" width="927" height="234" priority="true"
         class="w-[128px] min-[350px]:w-[145px] h-auto contrast-115" />
     </a>
     }
-    <div class="theme-menu-container flex gap-2">
-      @if (userContext.initials() === "" && !isLoginPath()) {
+    <div class="theme-menu-container flex gap-2 pr-2">
+      @if (!userContext.isLoggedIn() && !isLoginPath()) {
       <div
         class="hidden lg:flex items-center gap-3 text-sm xl:text-[0.925rem] font-medium text-light-on-surface-main dark:text-slate-100 tracking-wider mr-3 relative top-[1px]">
         <a routerLink="/login"
@@ -83,8 +86,8 @@ import { ProvidedEmailDTO } from '../../../Models/account/account.models';
       }
       <!-- Ricerca fittizia o icona -->
       @if (
-      userContext.initials() !== "" ||
-      (userContext.initials() === "" && isLoginPath())
+      userContext.isLoggedIn() ||
+      (!userContext.isLoggedIn() && isLoginPath())
       ) {
       <div class="hidden lg:block">
         <div (click)="openSearchOverlay()"
@@ -102,10 +105,12 @@ import { ProvidedEmailDTO } from '../../../Models/account/account.models';
         </div>
       </div>
       }
-      <div class="hidden xs:block" [ngClass]="{
-          'lg:hidden': userContext.initials() !== '' || isLoginPath(),
+      <div class="hidden sm:block" [ngClass]="{
+          'lg:hidden': userContext.isLoggedIn() || isLoginPath(),
         }">
-        <button (click)="openSearchOverlay()" class="p-2 hover:bg-white/10 rounded-full relative left-0.5">
+        <button
+          (click)="openSearchOverlay()"
+          class="inline-flex items-center justify-center size-10 rounded-full relative left-0.5 text-slate-600 dark:text-gray-200 hover:bg-slate-200/80 dark:hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400/70 transition-colors">
           <svg class="w-5 h-5 fill-current text-slate-600 dark:text-gray-200" xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 512 512">
             <path
@@ -114,8 +119,8 @@ import { ProvidedEmailDTO } from '../../../Models/account/account.models';
         </button>
       </div>
 
-      <button class="flex items-center theme-toggle-button mr-0 xs:mr-1 lg:mr-2 transition-all duration-500" [ngClass]="{
-          'xl:ml-1': userContext.initials() !== '' || isLoginPath(),
+      <button class="flex items-center justify-center size-10 rounded-full theme-toggle-button mr-0 xs:mr-1 lg:mr-2 transition-all duration-500 hover:bg-slate-200/80 dark:hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400/70" [ngClass]="{
+          'xl:ml-1': userContext.isLoggedIn() || isLoginPath(),
         }" (click)="toggleThemeMenu()">
         @if (themeManager.theme() === "dark") {
         <svg xmlns="http://www.w3.org/2000/svg"
@@ -135,12 +140,13 @@ import { ProvidedEmailDTO } from '../../../Models/account/account.models';
         }
       </button>
       @if (
-      designService.minBk("sm")() &&
-      userContext.initials() !== "" &&
+      designService.minBk("md")() &&
+      userContext.isLoggedIn() &&
       isAllowedPath()
       ) {
       <button (click)="toggleAvatarMenu()" [innerHTML]="userContext.initials()"
-        class="avatar-toggle-button rounded-full cursor-pointer bg-light-accent-secondary-500/80 text-slate-100 dark:bg-dark-accent-primary-btn bg-light-accent-secondary/85 hover:bg-light-accent-secondary/65 dark:hover:bg-dark-accent-primary-btn/90 p-2 text-sm font-semibold transition-colors duration-300"></button>
+        class="avatar-toggle-button inline-flex items-center justify-center size-10 rounded-full cursor-pointer bg-light-accent-secondary-500/80 text-slate-100 dark:bg-dark-accent-primary-btn bg-light-accent-secondary/85 hover:bg-slate-400/50 hover:text-light-on-surface-secondary dark:hover:text-slate-100 dark:hover:bg-slate-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400/70 text-sm font-semibold transition-colors duration-300">
+      </button>
       }
 
     </div>
@@ -238,6 +244,36 @@ import { ProvidedEmailDTO } from '../../../Models/account/account.models';
   </div>
 </div>
 }
+<!-- Provider icon template (shared desktop + mobile avatar) -->
+<ng-template #providerIcon let-provider="provider">
+  @switch (provider) {
+    @case ('Mercurion') {
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-5 text-emerald-500 dark:text-dark-accent-primary">
+        <path d="M240 192C240 147.8 275.8 112 320 112C364.2 112 400 147.8 400 192C400 236.2 364.2 272 320 272C275.8 272 240 236.2 240 192zM146.2 576L195.4 416L444.5 416L493.7 576L543.9 576L479.9 368L159.9 368L95.9 576L146.1 576zM320 320C390.7 320 448 262.7 448 192C448 121.3 390.7 64 320 64C249.3 64 192 121.3 192 192C192 262.7 249.3 320 320 320z" />
+      </svg>
+    }
+    @case ('Google') {
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-5 text-emerald-500 dark:text-dark-accent-primary">
+        <path d="M564 325.8C564 467.3 467.1 568 324 568C186.8 568 76 457.2 76 320C76 182.8 186.8 72 324 72C390.8 72 447 96.5 490.3 136.9L422.8 201.8C334.5 116.6 170.3 180.6 170.3 320C170.3 406.5 239.4 476.6 324 476.6C422.2 476.6 459 406.2 464.8 369.7L324 369.7L324 284.4L560.1 284.4C562.4 297.1 564 309.3 564 325.8z"/>
+      </svg>
+    }
+    @case ('LinkedIn') {
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-5 text-emerald-500 dark:text-dark-accent-primary">
+        <path d="M160 96C124.7 96 96 124.7 96 160L96 480C96 515.3 124.7 544 160 544L480 544C515.3 544 544 515.3 544 480L544 160C544 124.7 515.3 96 480 96L160 96zM165 266.2L231.5 266.2L231.5 480L165 480L165 266.2zM236.7 198.5C236.7 219.8 219.5 237 198.2 237C176.9 237 159.7 219.8 159.7 198.5C159.7 177.2 176.9 160 198.2 160C219.5 160 236.7 177.2 236.7 198.5zM413.9 480L413.9 376C413.9 351.2 413.4 319.3 379.4 319.3C344.8 319.3 339.5 346.3 339.5 374.2L339.5 480L273.1 480L273.1 266.2L336.8 266.2L336.8 295.4L337.7 295.4C346.6 278.6 368.3 260.9 400.6 260.9C467.8 260.9 480.3 305.2 480.3 362.8L480.3 480L413.9 480z"/>
+      </svg>
+    }
+    @case ('GitHub') {
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-5 text-emerald-500 dark:text-dark-accent-primary">
+        <path d="M237.9 461.4C237.9 463.4 235.6 465 232.7 465C229.4 465.3 227.1 463.7 227.1 461.4C227.1 459.4 229.4 457.8 232.3 457.8C235.3 457.5 237.9 459.1 237.9 461.4zM206.8 456.9C206.1 458.9 208.1 461.2 211.1 461.8C213.7 462.8 216.7 461.8 217.3 459.8C217.9 457.8 216 455.5 213 454.6C210.4 453.9 207.5 454.9 206.8 456.9zM251 455.2C248.1 455.9 246.1 457.8 246.4 460.1C246.7 462.1 249.3 463.4 252.3 462.7C255.2 462 257.2 460.1 256.9 458.1C256.6 456.2 253.9 454.9 251 455.2zM316.8 72C178.1 72 72 177.3 72 316C72 426.9 141.8 521.8 241.5 555.2C254.3 557.5 258.8 549.6 258.8 543.1C258.8 536.9 258.5 502.7 258.5 481.7C258.5 481.7 188.5 496.7 173.8 451.9C173.8 451.9 162.4 422.8 146 415.3C146 415.3 123.1 399.6 147.6 399.9C147.6 399.9 172.5 401.9 186.2 425.7C208.1 464.3 244.8 453.2 259.1 446.6C261.4 430.6 267.9 419.5 275.1 412.9C219.2 406.7 162.8 398.6 162.8 302.4C162.8 274.9 170.4 261.1 186.4 243.5C183.8 237 175.3 210.2 189 175.6C209.9 169.1 258 202.6 258 202.6C278 197 299.5 194.1 320.8 194.1C342.1 194.1 363.6 197 383.6 202.6C383.6 202.6 431.7 169 452.6 175.6C466.3 210.3 457.8 237 455.2 243.5C471.2 261.2 481 275 481 302.4C481 398.9 422.1 406.6 366.2 412.9C375.4 420.8 383.2 435.8 383.2 459.3C383.2 493 382.9 534.7 382.9 542.9C382.9 549.4 387.5 557.3 400.2 555C500.2 521.8 568 426.9 568 316C568 177.3 455.5 72 316.8 72zM169.2 416.9C167.9 417.9 168.2 420.2 169.9 422.1C171.5 423.7 173.8 424.4 175.1 423.1C176.4 422.1 176.1 419.8 174.4 417.9C172.8 416.3 170.5 415.6 169.2 416.9zM158.4 408.8C157.7 410.1 158.7 411.7 160.7 412.7C162.3 413.7 164.3 413.4 165 412C165.7 410.7 164.7 409.1 162.7 408.1C160.7 407.5 159.1 407.8 158.4 408.8zM190.8 444.4C189.2 445.7 189.8 448.7 192.1 450.6C194.4 452.9 197.3 453.2 198.6 451.6C199.9 450.3 199.3 447.3 197.3 445.4C195.1 443.1 192.1 442.8 190.8 444.4zM179.4 429.7C177.8 430.7 177.8 433.3 179.4 435.6C181 437.9 183.7 438.9 185 437.9C186.6 436.6 186.6 434 185 431.7C183.6 429.4 181 428.4 179.4 429.7z"/>
+      </svg>
+    }
+    @case ('Discord') {
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-5 text-emerald-500 dark:text-dark-accent-primary">
+        <path d="M524.5 133.8C524.3 133.5 524.1 133.2 523.7 133.1C485.6 115.6 445.3 103.1 404 96C403.6 95.9 403.2 96 402.9 96.1C402.6 96.2 402.3 96.5 402.1 96.9C396.6 106.8 391.6 117.1 387.2 127.5C342.6 120.7 297.3 120.7 252.8 127.5C248.3 117 243.3 106.8 237.7 96.9C237.5 96.6 237.2 96.3 236.9 96.1C236.6 95.9 236.2 95.9 235.8 95.9C194.5 103 154.2 115.5 116.1 133C115.8 133.1 115.5 133.4 115.3 133.7C39.1 247.5 18.2 358.6 28.4 468.2C28.4 468.5 28.5 468.7 28.6 469C28.7 469.3 28.9 469.4 29.1 469.6C73.5 502.5 123.1 527.6 175.9 543.8C176.3 543.9 176.7 543.9 177 543.8C177.3 543.7 177.7 543.4 177.9 543.1C189.2 527.7 199.3 511.3 207.9 494.3C208 494.1 208.1 493.8 208.1 493.5C208.1 493.2 208.1 493 208 492.7C207.9 492.4 207.8 492.2 207.6 492.1C207.4 492 207.2 491.8 206.9 491.7C191.1 485.6 175.7 478.3 161 469.8C160.7 469.6 160.5 469.4 160.3 469.2C160.1 469 160 468.6 160 468.3C160 468 160 467.7 160.2 467.4C160.4 467.1 160.5 466.9 160.8 466.7C163.9 464.4 167 462 169.9 459.6C170.2 459.4 170.5 459.2 170.8 459.2C171.1 459.2 171.5 459.2 171.8 459.3C268 503.2 372.2 503.2 467.3 459.3C467.6 459.2 468 459.1 468.3 459.1C468.6 459.1 469 459.3 469.2 459.5C472.1 461.9 475.2 464.4 478.3 466.7C478.5 466.9 478.7 467.1 478.9 467.4C479.1 467.7 479.1 468 479.1 468.3C479.1 468.6 479 468.9 478.8 469.2C478.6 469.5 478.4 469.7 478.2 469.8C463.5 478.4 448.2 485.7 432.3 491.6C432.1 491.7 431.8 491.8 431.6 492C431.4 492.2 431.3 492.4 431.2 492.7C431.1 493 431.1 493.2 431.1 493.5C431.1 493.8 431.2 494 431.3 494.3C440.1 511.3 450.1 527.6 461.3 543.1C461.5 543.4 461.9 543.7 462.2 543.8C462.5 543.9 463 543.9 463.3 543.8C516.2 527.6 565.9 502.5 610.4 469.6C610.6 469.4 610.8 469.2 610.9 469C611 468.8 611.1 468.5 611.1 468.2C623.4 341.4 590.6 231.3 524.2 133.7zM222.5 401.5C193.5 401.5 169.7 374.9 169.7 342.3C169.7 309.7 193.1 283.1 222.5 283.1C252.2 283.1 275.8 309.9 275.3 342.3C275.3 375 251.9 401.5 222.5 401.5zM417.9 401.5C388.9 401.5 365.1 374.9 365.1 342.3C365.1 309.7 388.5 283.1 417.9 283.1C447.6 283.1 471.2 309.9 470.7 342.3C470.7 375 447.5 401.5 417.9 401.5z"/>
+      </svg>
+    }
+  }
+</ng-template>
 <!-- Menu avatar -->
 @if (avatarMenuMounted() && designService.minBk('sm')()) {
 <div
@@ -250,38 +286,7 @@ import { ProvidedEmailDTO } from '../../../Models/account/account.models';
   <div class="z-[999]">
     <button
       class="group truncate flex items-center w-full mb-2 pl-4 pr-6 py-4 gap-4 transition-colors duration-300 cursor-default border-slate-400/60 dark:border-slate-300 border-b-[0.5px]">
-        @switch (providedEmail()?.provider) {
-          @case ('Mercurion') {
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-5 text-emerald-500 dark:text-dark-accent-primary">
-              <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-              <path d="M240 192C240 147.8 275.8 112 320 112C364.2 112 400 147.8 400 192C400 236.2 364.2 272 320 272C275.8 272 240 236.2 240 192zM146.2 576L195.4 416L444.5 416L493.7 576L543.9 576L479.9 368L159.9 368L95.9 576L146.1 576zM320 320C390.7 320 448 262.7 448 192C448 121.3 390.7 64 320 64C249.3 64 192 121.3 192 192C192 262.7 249.3 320 320 320z" />
-            </svg>
-          }
-          @case ('Google') {
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-5 text-emerald-500 dark:text-dark-accent-primary">
-              <!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
-              <path d="M564 325.8C564 467.3 467.1 568 324 568C186.8 568 76 457.2 76 320C76 182.8 186.8 72 324 72C390.8 72 447 96.5 490.3 136.9L422.8 201.8C334.5 116.6 170.3 180.6 170.3 320C170.3 406.5 239.4 476.6 324 476.6C422.2 476.6 459 406.2 464.8 369.7L324 369.7L324 284.4L560.1 284.4C562.4 297.1 564 309.3 564 325.8z"/>
-            </svg>
-          }
-          @case ('LinkedIn') {
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-5 text-emerald-500 dark:text-dark-accent-primary">
-              <!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
-              <path d="M160 96C124.7 96 96 124.7 96 160L96 480C96 515.3 124.7 544 160 544L480 544C515.3 544 544 515.3 544 480L544 160C544 124.7 515.3 96 480 96L160 96zM165 266.2L231.5 266.2L231.5 480L165 480L165 266.2zM236.7 198.5C236.7 219.8 219.5 237 198.2 237C176.9 237 159.7 219.8 159.7 198.5C159.7 177.2 176.9 160 198.2 160C219.5 160 236.7 177.2 236.7 198.5zM413.9 480L413.9 376C413.9 351.2 413.4 319.3 379.4 319.3C344.8 319.3 339.5 346.3 339.5 374.2L339.5 480L273.1 480L273.1 266.2L336.8 266.2L336.8 295.4L337.7 295.4C346.6 278.6 368.3 260.9 400.6 260.9C467.8 260.9 480.3 305.2 480.3 362.8L480.3 480L413.9 480z"/>
-            </svg>
-          }
-          @case ('GitHub') {
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-5 text-emerald-500 dark:text-dark-accent-primary">
-              <!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
-              <path d="M237.9 461.4C237.9 463.4 235.6 465 232.7 465C229.4 465.3 227.1 463.7 227.1 461.4C227.1 459.4 229.4 457.8 232.3 457.8C235.3 457.5 237.9 459.1 237.9 461.4zM206.8 456.9C206.1 458.9 208.1 461.2 211.1 461.8C213.7 462.8 216.7 461.8 217.3 459.8C217.9 457.8 216 455.5 213 454.6C210.4 453.9 207.5 454.9 206.8 456.9zM251 455.2C248.1 455.9 246.1 457.8 246.4 460.1C246.7 462.1 249.3 463.4 252.3 462.7C255.2 462 257.2 460.1 256.9 458.1C256.6 456.2 253.9 454.9 251 455.2zM316.8 72C178.1 72 72 177.3 72 316C72 426.9 141.8 521.8 241.5 555.2C254.3 557.5 258.8 549.6 258.8 543.1C258.8 536.9 258.5 502.7 258.5 481.7C258.5 481.7 188.5 496.7 173.8 451.9C173.8 451.9 162.4 422.8 146 415.3C146 415.3 123.1 399.6 147.6 399.9C147.6 399.9 172.5 401.9 186.2 425.7C208.1 464.3 244.8 453.2 259.1 446.6C261.4 430.6 267.9 419.5 275.1 412.9C219.2 406.7 162.8 398.6 162.8 302.4C162.8 274.9 170.4 261.1 186.4 243.5C183.8 237 175.3 210.2 189 175.6C209.9 169.1 258 202.6 258 202.6C278 197 299.5 194.1 320.8 194.1C342.1 194.1 363.6 197 383.6 202.6C383.6 202.6 431.7 169 452.6 175.6C466.3 210.3 457.8 237 455.2 243.5C471.2 261.2 481 275 481 302.4C481 398.9 422.1 406.6 366.2 412.9C375.4 420.8 383.2 435.8 383.2 459.3C383.2 493 382.9 534.7 382.9 542.9C382.9 549.4 387.5 557.3 400.2 555C500.2 521.8 568 426.9 568 316C568 177.3 455.5 72 316.8 72zM169.2 416.9C167.9 417.9 168.2 420.2 169.9 422.1C171.5 423.7 173.8 424.4 175.1 423.1C176.4 422.1 176.1 419.8 174.4 417.9C172.8 416.3 170.5 415.6 169.2 416.9zM158.4 408.8C157.7 410.1 158.7 411.7 160.7 412.7C162.3 413.7 164.3 413.4 165 412C165.7 410.7 164.7 409.1 162.7 408.1C160.7 407.5 159.1 407.8 158.4 408.8zM190.8 444.4C189.2 445.7 189.8 448.7 192.1 450.6C194.4 452.9 197.3 453.2 198.6 451.6C199.9 450.3 199.3 447.3 197.3 445.4C195.1 443.1 192.1 442.8 190.8 444.4zM179.4 429.7C177.8 430.7 177.8 433.3 179.4 435.6C181 437.9 183.7 438.9 185 437.9C186.6 436.6 186.6 434 185 431.7C183.6 429.4 181 428.4 179.4 429.7z"/>
-            </svg>
-          }
-          @case ('Discord') {
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-5 text-emerald-500 dark:text-dark-accent-primary">
-              <!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
-              <path d="M524.5 133.8C524.3 133.5 524.1 133.2 523.7 133.1C485.6 115.6 445.3 103.1 404 96C403.6 95.9 403.2 96 402.9 96.1C402.6 96.2 402.3 96.5 402.1 96.9C396.6 106.8 391.6 117.1 387.2 127.5C342.6 120.7 297.3 120.7 252.8 127.5C248.3 117 243.3 106.8 237.7 96.9C237.5 96.6 237.2 96.3 236.9 96.1C236.6 95.9 236.2 95.9 235.8 95.9C194.5 103 154.2 115.5 116.1 133C115.8 133.1 115.5 133.4 115.3 133.7C39.1 247.5 18.2 358.6 28.4 468.2C28.4 468.5 28.5 468.7 28.6 469C28.7 469.3 28.9 469.4 29.1 469.6C73.5 502.5 123.1 527.6 175.9 543.8C176.3 543.9 176.7 543.9 177 543.8C177.3 543.7 177.7 543.4 177.9 543.1C189.2 527.7 199.3 511.3 207.9 494.3C208 494.1 208.1 493.8 208.1 493.5C208.1 493.2 208.1 493 208 492.7C207.9 492.4 207.8 492.2 207.6 492.1C207.4 492 207.2 491.8 206.9 491.7C191.1 485.6 175.7 478.3 161 469.8C160.7 469.6 160.5 469.4 160.3 469.2C160.1 469 160 468.6 160 468.3C160 468 160 467.7 160.2 467.4C160.4 467.1 160.5 466.9 160.8 466.7C163.9 464.4 167 462 169.9 459.6C170.2 459.4 170.5 459.2 170.8 459.2C171.1 459.2 171.5 459.2 171.8 459.3C268 503.2 372.2 503.2 467.3 459.3C467.6 459.2 468 459.1 468.3 459.1C468.6 459.1 469 459.3 469.2 459.5C472.1 461.9 475.2 464.4 478.3 466.7C478.5 466.9 478.7 467.1 478.9 467.4C479.1 467.7 479.1 468 479.1 468.3C479.1 468.6 479 468.9 478.8 469.2C478.6 469.5 478.4 469.7 478.2 469.8C463.5 478.4 448.2 485.7 432.3 491.6C432.1 491.7 431.8 491.8 431.6 492C431.4 492.2 431.3 492.4 431.2 492.7C431.1 493 431.1 493.2 431.1 493.5C431.1 493.8 431.2 494 431.3 494.3C440.1 511.3 450.1 527.6 461.3 543.1C461.5 543.4 461.9 543.7 462.2 543.8C462.5 543.9 463 543.9 463.3 543.8C516.2 527.6 565.9 502.5 610.4 469.6C610.6 469.4 610.8 469.2 610.9 469C611 468.8 611.1 468.5 611.1 468.2C623.4 341.4 590.6 231.3 524.2 133.7zM222.5 401.5C193.5 401.5 169.7 374.9 169.7 342.3C169.7 309.7 193.1 283.1 222.5 283.1C252.2 283.1 275.8 309.9 275.3 342.3C275.3 375 251.9 401.5 222.5 401.5zM417.9 401.5C388.9 401.5 365.1 374.9 365.1 342.3C365.1 309.7 388.5 283.1 417.9 283.1C447.6 283.1 471.2 309.9 470.7 342.3C470.7 375 447.5 401.5 417.9 401.5z"/>
-            </svg>
-          }
-        }
+        <ng-container [ngTemplateOutlet]="providerIcon" [ngTemplateOutletContext]="{ provider: providedEmail()?.provider }" />
       <span class="text-sm text-green-800 dark:text-dark-accent-primary font-medium truncate">{{ providedEmail()?.email }}</span>
     </button>
     <a routerLink="/dashboard" (click)="closeAvatarMenu()"
@@ -343,58 +348,56 @@ import { ProvidedEmailDTO } from '../../../Models/account/account.models';
 }
 <!-- Offcanvas backdrop -->
 @if (offCanvasMenuOpen()) {
-<div class="fixed inset-0 z-[9998] bg-black/30 transition-opacity duration-300" (click)="closeOffCanvasMenu()"></div>
+  <div class="fixed inset-0 z-[9998] bg-black/30 transition-opacity duration-300" (click)="closeOffCanvasMenu()"></div>
 }
 
 <!-- Offcanvas Navigation Sidebar -->
 @if (designService.maxBk("lg")()) {
 <div
-  class="offcanvas-menu-container fixed top-0 left-0 h-full z-[9999] bg-slate-200 dark:bg-neutral-900 shadow-lg transform transition-transform duration-300 ease-in-out w-full 2xs:w-[74%] xs:w-[64%] sm:w-[50%] md:w-[40%] lg:w-[40%] xl:w-[30%] -translate-x-full"
+  class="off-canvas-menu-container offcanvas-menu-container fixed top-0 left-0 h-full z-[9999] bg-slate-200 dark:bg-neutral-900 shadow-lg transform transition-transform duration-300 ease-in-out w-full 2xs:w-[74%] xs:w-[64%] sm:w-[50%] md:w-[40%] lg:w-[40%] xl:w-[30%] -translate-x-full"
   [ngClass]="{
       'translate-x-0': offCanvasMenuOpen(),
       '-translate-x-full': !offCanvasMenuOpen(),
     }">
   <!-- Header of the offcanvas -->
-  <div class="flex justify-between items-center px-4 border-b py-5 border-slate-400 dark:border-dark-border">
-    <div class="flex items-center gap-3">
-      <!-- openSearchOverlay(); offCanvasMenuOpen.set(true) -->
-      <button type="button" class="cursor-pointer">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
-          class="w-[26px] h-[26px] fill-current text-slate-600 dark:text-slate-400 relative bottom-[0.5px]">
-          <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-          <path d="M320 96C443.7 96 544 196.3 544 320C544 443.7 443.7 544 320 544C196.3 544 96 443.7 96 320C96 196.3 196.3 96 320 96zM320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM202.1 411.9L192 448C194.7 447.2 261.4 428.6 392 392C428.6 261.4 447.2 194.7 448 192C445.3 192.8 378.6 211.4 248 248L202.1 411.9zM238.2 401.8L274 274L401.8 238.2L366 366L238.2 401.8zM320 344C333.3 344 344 333.3 344 320C344 306.7 333.3 296 320 296C306.7 296 296 306.7 296 320C296 333.3 306.7 344 320 344z"/>
-        </svg>
-      </button>
-      <span
-        class="tracking-wider text-light-on-surface-main dark:text-slate-200 font-semibold text-lg">Mercurion.</span>
+  <div class="flex justify-between items-center px-4 border-b py-[18px] border-slate-300 dark:border-dark-border">
+    <div class="flex items-center gap-4">
+      <a routerLink="/">
+        <img [ngSrc]="pictogramLogo() | public" alt="Pittogramma Logo di Mercurion" width="186" height="234" class="w-auto h-[30px] contrast-115" />
+      </a>
+      <span class="text-lg">Mercurion</span>
     </div>
-    <button (click)="closeOffCanvasMenu()">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 fill-current dark:text-slate-400 text-slate-600"
-        viewBox="0 0 384 512">
-        <path
-          d="M310.6 361.4L233.3 284.1 310.6 206.7c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L188 238.7 110.6 161.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L142.7 284.1 65.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L188 329.3l77.3 77.3c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3z" />
+    <button
+      class="inline-flex items-center justify-center size-8 rounded-md text-slate-500 hover:text-emerald-600 hover:bg-slate-100 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-transparent transition"
+      (click)="closeOffCanvasMenu()">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 640 640"
+        class="fill-current w-5 h-auto">
+          <path d="M182.9 137.4L160.3 114.7L115 160L137.6 182.6L275 320L137.6 457.4L115 480L160.3 525.3L182.9 502.6L320.3 365.3L457.6 502.6L480.3 525.3L525.5 480L502.9 457.4L365.5 320L502.9 182.6L525.5 160L480.3 114.7L457.6 137.4L320.3 274.7L182.9 137.4z" />
       </svg>
     </button>
   </div>
 
   <!-- Menu items -->
-  <app-sidenav />
+  <m-sidenav (menuItemClick)="closeOffCanvasMenu()" />
 
   <!-- Sezione avatar -->
-  @if (userContext.initials() !== "" && designService.maxBk("xs")()) {
+  @if (userContext.isLoggedIn() && designService.maxBk("sm")()) {
   <div
     class="sticky bottom-0 border-t py-3 px-5 bg-slate-100 dark:bg-neutral-800 border-slate-400 dark:border-dark-border flex gap-3 items-center">
-    <button (click)="toggleOffCanvasMenu(); toggleAvatarMobileMenu()" [innerHTML]="userContext.initials()"
-      class="avatar-toggle-button rounded-full cursor-pointer bg-emerald-500 text-slate-100 dark:bg-dark-accent-primary p-2 text-sm font-semibold "></button>
-    <button (click)="toggleOffCanvasMenu(); toggleAvatarMobileMenu()"
+    <button (click)="toggleAvatarMobileMenu()" [innerHTML]="userContext.initials()"
+      class="avatar-toggle-button inline-flex items-center justify-center size-10 rounded-full cursor-pointer bg-emerald-500 text-slate-100 dark:bg-dark-accent-primary-btn hover:bg-slate-200/80 dark:hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400/70 text-sm font-semibold transition-colors duration-300"></button>
+    <button (click)="toggleAvatarMobileMenu()"
       class="text-sm text-green-800 dark:text-dark-accent-primary font-medium truncate">
       {{ providedEmail()?.email }}
     </button>
   </div>
   }
-  <!-- Modal avatar mobile (solo xs/sm) -->
-  @if (avatarMobileMenuMounted() && userContext.initials() !== "") {
-  <div class="fixed inset-0 z-[10000] bg-black/50 flex items-end sm:hidden transition-opacity duration-300" [ngClass]="{
+  <!-- Modal avatar mobile (solo <= sm) -->
+  @if (avatarMobileMenuMounted() && userContext.isLoggedIn()) {
+  <div class="fixed inset-0 z-[10000] bg-black/50 flex items-end sm:hidden transition-opacity duration-300"
+       [ngClass]="{
           'opacity-100 pointer-events-auto': avatarMobileMenuVisible(),
           'opacity-0 pointer-events-none': !avatarMobileMenuVisible(),
         }" (click)="closeAvatarMobileMenu()">
@@ -411,18 +414,13 @@ import { ProvidedEmailDTO } from '../../../Models/account/account.models';
         <!-- Header -->
         <button
           class="group flex items-center w-full mb-2 pl-1 pr-6 py-4 gap-4 transition-colors duration-300 cursor-default border-b-slate-400/60 dark:border-slate-300 border-b-[0.5px]">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
-            class="fill-current h-5 w-5 text-emerald-500 dark:text-dark-accent-primary">
-            <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-            <path
-              d="M224 192C224 139 267 96 320 96C373 96 416 139 416 192C416 245 373 288 320 288C267 288 224 245 224 192zM129.5 576L183.7 400L456.4 400L510.6 576L544.1 576L480.1 368L160.1 368L96.1 576L129.6 576zM320 320C390.7 320 448 262.7 448 192C448 121.3 390.7 64 320 64C249.3 64 192 121.3 192 192C192 262.7 249.3 320 320 320z" />
-          </svg>
+          <ng-container [ngTemplateOutlet]="providerIcon" [ngTemplateOutletContext]="{ provider: providedEmail()?.provider }" />
           <span class="text-sm text-green-800 dark:text-dark-accent-primary font-medium truncate">
             {{ providedEmail()?.email }}
           </span>
         </button>
         <!-- Profilo -->
-        <a routerLink="/dashboard" (click)="closeAvatarMobileMenu()"
+        <a routerLink="/dashboard" (click)="closeAvatarMobileMenu(); closeOffCanvasMenu()"
           class="group flex items-center w-full pl-1 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
             class="fill-current h-5 w-5 text-gray-600 dark:text-slate-200 ">
@@ -434,7 +432,7 @@ import { ProvidedEmailDTO } from '../../../Models/account/account.models';
           <span>Dashboard</span>
         </a>
         <!-- Impostazioni -->
-        <a (click)="closeAvatarMobileMenu()" routerLink="/settings"
+        <a (click)="closeAvatarMobileMenu(); closeOffCanvasMenu()" routerLink="/settings"
           class="group flex items-center w-full pl-1 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
             class="fill-current h-5 w-5 text-gray-600 dark:text-slate-200 ">
@@ -445,7 +443,7 @@ import { ProvidedEmailDTO } from '../../../Models/account/account.models';
           <span>Impostazioni</span>
         </a>
         <!-- Assistenza -->
-        <a (click)="closeAvatarMobileMenu()"
+        <a (click)="closeAvatarMobileMenu(); closeOffCanvasMenu()"
           routerLink="/help"
           class="group flex items-center w-full pl-1 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
@@ -457,7 +455,7 @@ import { ProvidedEmailDTO } from '../../../Models/account/account.models';
           <span>Supporto</span>
         </a>
         <!-- Feedback -->
-        <button (click)="closeAvatarMobileMenu()"
+        <button (click)="closeAvatarMobileMenu(); closeOffCanvasMenu()"
           class="group flex items-center w-full mb-2 pl-1 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
             class="fill-current h-5 w-5 text-gray-600 dark:text-slate-200">
@@ -471,7 +469,7 @@ import { ProvidedEmailDTO } from '../../../Models/account/account.models';
           class="hover:bg-slate-200/40 transition-colors duration-300 border-slate-400/60 dark:border-slate-300 border-t-[0.5px]">
         </div>
         <!-- Esci -->
-        <button (click)="logout(); closeAvatarMobileMenu()"
+        <button (click)="logout(); closeAvatarMobileMenu(); closeOffCanvasMenu()"
           class="group flex items-center w-full my-1 pl-1 pr-6 py-3 gap-4 hover:bg-slate-300/50 transition-colors duration-300 dark:hover:bg-slate-300/30">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
             class="fill-current h-5 w-5 text-gray-600 dark:text-slate-200">
@@ -504,6 +502,14 @@ export class HeaderComponent implements OnInit, OnDestroy {
   protected readonly pathService = inject(PathService)
   private readonly toast = inject(ToastService)
 
+  @Input()
+  set triggerOpenOffCanvas(triggerOpenOffCanvas: boolean) {
+    this._triggerOpenOffCanvas.set(triggerOpenOffCanvas)
+  }
+
+  @Output()
+  onOffCanvasMenuOpen = new EventEmitter<boolean>()
+
   private routeSub?: Subscription
   private emailSub?: Subscription
   private logoutSub?: Subscription
@@ -522,14 +528,28 @@ export class HeaderComponent implements OnInit, OnDestroy {
   protected avatarMobileMenuMounted = signal<boolean>(false)
   protected avatarMobileMenuVisible = signal<boolean>(false)
   protected providedEmail = signal<ProvidedEmailDTO | null>(null)
+  private _triggerOpenOffCanvas = signal<boolean>(false)
 
   readonly menuOpenClass: Signal<boolean> = computed(() => this.themeMenuOpen())
   readonly logoSrc = computed(() =>
     this.themeManager.theme() === 'light' ? 'logo/complete-light-logo.svg' : 'logo/complete-dark-logo-2.svg'
   )
 
+  pictogramLogo = computed<string>(() => {
+    const { PICTOGRAM_LIGHT, PICTOGRAM_DARK } = environment.logoSrc
+    return this.themeManager.theme() === 'light' ? PICTOGRAM_LIGHT : PICTOGRAM_DARK
+  })
+
 
   constructor() {
+    effect(() => {
+      const t = this._triggerOpenOffCanvas()
+      if (!t) {
+        return
+      }
+      this.offCanvasMenuOpen.set(true)
+      this.onOffCanvasMenuOpen.emit(true)
+    })
     effect(() => {
       if (this.themeMenuOpen()) {
         this.themeMenuMounted.set(true)
@@ -610,6 +630,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   protected handleDocumentClick = (event: MouseEvent): void => {
 
+    if (this.searchContextService.isOpenedSearchOverlay()) {
+      return
+    }
+
     if (this.avatarMobileMenuMounted()) {
       return
     }
@@ -640,7 +664,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
   protected handleEscape = (event: KeyboardEvent): void => {
     if (event.key === 'Escape') {
       this.themeMenuOpen.set(false)
-      this.offCanvasMenuOpen.set(false)
+      if (!this.searchContextService.isOpenedSearchOverlay()) {
+        this.offCanvasMenuOpen.set(false)
+      }
       this.avatarMenuOpen.set(false)
       this.avatarMobileMenuVisible.set(false)
     }
@@ -651,11 +677,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   getProvidedEmail(): void {
-    this.emailSub = this.accountService
-      .getProvidedEmail()
-      .subscribe(dto => {
-        this.providedEmail.set(dto)
-      })
+    if (this.userContext.isLoggedIn()) {
+      this.emailSub = this.accountService
+        .getProvidedEmail()
+        .subscribe((dto) => {
+          this.providedEmail.set(dto)
+        })
+    }
   }
 
   logout(): void {
@@ -691,8 +719,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   }
 
-
-
   ngOnDestroy(): void {
     document.removeEventListener('click', this.handleDocumentClick, true)
     document.removeEventListener('keydown', this.handleEscape, true)
@@ -700,6 +726,5 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.emailSub?.unsubscribe()
     this.logoutSub?.unsubscribe()
   }
-
 
 }

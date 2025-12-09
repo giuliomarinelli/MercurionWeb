@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'app-search-result-skeleton-loader',
+  selector: 'm-search-result-skeleton-loader',
   imports: [],
   template: `
 

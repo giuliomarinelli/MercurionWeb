@@ -51,7 +51,7 @@ import { Observable } from 'rxjs';
 import { AddMoleculesToCollectionContextService } from '../../services/context/action-context/add-molecules-to-collection-context.service';
 
 @Component({
-  selector: 'app-molecule-collection-detail',
+  selector: 'm-molecule-collection-detail',
   standalone: true,
   imports: [
     MyMoleculesHeadingComponent,
@@ -63,11 +63,11 @@ import { AddMoleculesToCollectionContextService } from '../../services/context/a
   ],
   template: `
   <section class="max-w-5xl mx-auto p-0 xs:p-4 sm:p-6 md:p-8 space-y-12">
-    <app-my-molecules-heading [breadcrumb]="breadcrumb" />
+    <m-my-molecules-heading [breadcrumb]="breadcrumb" />
 
     <div class="flex flex-wrap justify-between items-center pb-8 pt-2 relative -top-14 gap-y-4">
 
-      <app-custom-details
+      <m-custom-details
         [itemId]="colId()!"
         [type]="'name'"
         [value]="name()"
@@ -113,7 +113,7 @@ import { AddMoleculesToCollectionContextService } from '../../services/context/a
       </div>
     </div>
 
-    <pm-search-input
+    <m-search-input
       [value]="searchTerm()"
       (valueChange)="doQuery($event)"
       (submitted)="doQuery($event)"
@@ -121,7 +121,7 @@ import { AddMoleculesToCollectionContextService } from '../../services/context/a
 
     <div class="mt-px relative -top-8">
       @for (item of items; track item.id; let i = $index) {
-        <app-molecule-collection-item-card
+        <m-molecule-collection-item-card
           [molecule]="item"
           [i]="i"
           [collectionId]="colId()"
@@ -138,12 +138,12 @@ import { AddMoleculesToCollectionContextService } from '../../services/context/a
     @if (loading) {
       @if (page > 1 && items.length > 2) {
         <div class="flex justify-center">
-          <app-classic-spinner [size]="60" />
+          <m-classic-spinner [size]="60" />
         </div>
       } @else {
         <div class="relative -top-20">
           @for (i of [0,1,2,3,4]; track i) {
-            <app-skeleton-molecule-card />
+            <m-skeleton-molecule-card />
           }
         </div>
       }

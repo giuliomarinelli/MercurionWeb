@@ -7,13 +7,13 @@ import { AccountService } from '../../services/account.service';
 import { UserContextService } from '../../services/context/user-context.service';
 
 @Component({
-  selector: 'app-account-activate.page',
+  selector: 'm-account-activate.page',
   imports: [ClassicSpinnerComponent, RouterLink],
   template: `
 
     @if (loading()) {
       <div class="absolute inset-0 flex justify-center items-center">
-        <app-classic-spinner [size]="85" />
+        <m-classic-spinner [size]="85" />
       </div>
     } @else if (canView()) {
       <div class="mt-2 flex justify-center items-center flex-wrap gap-4 text-light-accent-secondary dark:text-dark-accent-secondary mb-8">

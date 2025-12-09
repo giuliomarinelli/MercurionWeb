@@ -20,7 +20,7 @@ import { MoleculeCollectionItemService } from '../../../services/graphql/molecul
 import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.component';
 
 @Component({
-  selector: 'app-molecule-collection-item-card',
+  selector: 'm-molecule-collection-item-card',
   standalone: true,
   imports: [
     DecimalPipe,
@@ -75,12 +75,12 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
               >
               <div class="flex items-center gap-4">
                 <span>{{ _molecule()!.name }}</span>
-                <app-molecule-badge [name]="'ChEMBL Personal Molecule'" />
+                <m-molecule-badge [name]="'ChEMBL Personal Molecule'" />
               </div>
             </div>
           } @else if (_molecule()!.type === 'custom') {
             <!-- Il figlio mette i bottoni sopra l'overlay grazie a z-30 -->
-            <app-custom-details
+            <m-custom-details
               [type]="'cardName'"
               [value]="_molecule()!.name"
               class="block"
@@ -137,12 +137,12 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
               <div class="absolute inset-0 z-20 animate-pulse
                           bg-slate-200/80 dark:bg-slate-700/70"></div>
             }
-            <molecule-viewer
+            <m-molecule-viewer
               class="absolute inset-0 w-full h-full"
               [structure]="_molecule()!.smiles"
               [disablePreview]="disablePreview()"
               (rendered)="viewerReady.set(true)">
-            </molecule-viewer>
+            </m-molecule-viewer>
           </div>
         </div>
 

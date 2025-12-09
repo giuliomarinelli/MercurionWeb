@@ -6,7 +6,7 @@ import { MoleculeCollectionService } from '../../../services/graphql/molecule-co
 import { ToastService } from '../../../services/toast.service';
 import { CreateCollectionContextService } from '../../../services/context/action-context/create-collection-context.service';
 @Component({
-  selector: 'app-create-collection',
+  selector: 'm-create-collection',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule],
   template: `

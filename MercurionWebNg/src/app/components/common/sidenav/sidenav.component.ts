@@ -1,5 +1,5 @@
 import { DatePipe, NgClass } from '@angular/common';
-import { Component, effect, inject, OnDestroy, OnInit, Output, signal } from '@angular/core';
+import { Component, effect, EventEmitter, inject, OnDestroy, OnInit, Output, signal } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { UserContextService } from '../../../services/context/user-context.service';
 import { HistoryComponent } from '../history/history.component';
@@ -10,37 +10,46 @@ import { ClassicSpinnerComponent } from "../classic-spinner/classic-spinner.comp
 import { DesignService } from '../../../services/design.service';
 import { SearchContextService } from '../../../services/context/search-context.service';
 
-interface HistoryItem {
-  id: string;
-  type: 'notebook' | 'collection' | 'molecule'; // ecc
-  title: string;
-  updatedAt: string;
-}
-
 @Component({
-  selector: 'app-sidenav',
+  selector: 'm-sidenav',
   standalone: true,
-  imports: [RouterLink, HistoryComponent, ClassicSpinnerComponent, NgClass],
+  imports: [
+    RouterLink,
+    HistoryComponent,
+    ClassicSpinnerComponent,
+    NgClass
+  ],
   template: `
     <nav class="flex flex-col h-full bg-transparent z-50 select-none pt-4 lg:pt-12">
-      @if (designService.maxBk('xs')()) {
-        <button class="flex items-center gap-3 ml-4 mb-2" (click)="searchOverlayContext.open()">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="w-5 h-5 fill-current dark:text-slate-400 text-slate-600">
-            <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-            <path d="M448.1 272C448.1 174.8 369.3 96 272.1 96C174.9 96 96.1 174.8 96.1 272C96.1 369.2 174.9 448 272.1 448C369.3 448 448.1 369.2 448.1 272zM407.5 430C371.1 461.2 323.8 480 272.2 480C157.3 480 64.2 386.9 64.2 272C64.2 157.1 157.3 64 272.2 64C387.1 64 480.2 157.1 480.2 272C480.2 323.7 461.4 371 430.2 407.3L571.6 548.7L582.9 560L560.3 582.6L549 571.3L407.6 429.9z"/>
-          </svg>
-          @if (userContext.isLoggedIn()) {
-            <span>Cerca molecola</span>
-          } @else {
-            <span>Cerca molecola ChEMBL</span>
-          }
+      @if (designService.maxBk('sm')()) {
+      <h6 class="detail">Strumenti</h6>
+      <div [class.px-2]="userContext.isLoggedOut()">
+        <button type="button" class="sidebar-link" routerLink="molecules/all-my-molecules" (click)="searchOverlayContext.open()">
+          <div
+            class="flex size-9 shrink-0 items-center justify-center
+                   rounded-xl border border-slate-400/70 dark:border-slate-500/60
+                   bg-slate-200 dark:bg-slate-800
+                   text-sm font-semibold">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto text-slate-900 dark:text-slate-200">
+              <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+              <path d="M448.1 272C448.1 174.8 369.3 96 272.1 96C174.9 96 96.1 174.8 96.1 272C96.1 369.2 174.9 448 272.1 448C369.3 448 448.1 369.2 448.1 272zM407.5 430C371.1 461.2 323.8 480 272.2 480C157.3 480 64.2 386.9 64.2 272C64.2 157.1 157.3 64 272.2 64C387.1 64 480.2 157.1 480.2 272C480.2 323.7 461.4 371 430.2 407.3L571.6 548.7L582.9 560L560.3 582.6L549 571.3L407.6 429.9z"/>
+            </svg>
+          </div>
+          <span class="sidebar-item-text">
+            @if (userContext.isLoggedIn()) {
+              <span>Cerca molecola</span>
+            } @else {
+              <span>Cerca molecola ChEMBL</span>
+            }</span>
         </button>
+      </div>
+      <hr class="border-slate-300 dark:border-slate-600 my-2" />
       }
-      @if (userContext.initials() !== '') {
+      @if (userContext.isLoggedIn()) {
         <!-- Macro Area Menu -->
         <h6 class="detail">Funzionalità</h6>
         <div>
-          <a class="sidebar-link" routerLink="molecules/all-my-molecules">
+          <a class="sidebar-link" routerLink="molecules/all-my-molecules" (click)="handleMenuItemClick()">
             <div
               class="flex size-9 shrink-0 items-center justify-center
                      rounded-xl border border-slate-400/70 dark:border-slate-500/60
@@ -54,7 +63,7 @@ interface HistoryItem {
             </div>
             <span class="sidebar-item-text">Le mie molecole</span>
           </a>
-          <a class="sidebar-link" routerLink="molecules/collections">
+          <a class="sidebar-link" routerLink="molecules/collections" (click)="handleMenuItemClick()">
             <div
               class="flex size-9 shrink-0 items-center justify-center
                      rounded-xl border border-slate-400/70 dark:border-slate-500/60
@@ -68,8 +77,8 @@ interface HistoryItem {
             </div>
             <span class="sidebar-item-text">Le mie collezioni</span>
           </a>
-          <hr class="border-slate-300 dark:border-slate-600 my-2"/>
-          <button class="sidebar-link">
+          <hr class="border-slate-300 dark:border-slate-600 my-2" />
+          <button class="sidebar-link" (click)="handleMenuItemClick()">
             <div
               class="flex size-9 shrink-0 items-center justify-center
                      rounded-xl border border-slate-400/70 dark:border-slate-500/60
@@ -85,7 +94,7 @@ interface HistoryItem {
           </button>
           <!-- ...altre macro aree -->
         </div>
-        <a class="sidebar-link" [routerLink]="'/molecules/editor'" [queryParams]="{ mode: 'create' }">
+        <a class="sidebar-link" [routerLink]="'/molecules/editor'" [queryParams]="{ mode: 'create' }" (click)="handleMenuItemClick()">
           <div
               class="flex size-9 shrink-0 items-center justify-center
                      rounded-xl border border-slate-400/70 dark:border-slate-500/60
@@ -108,7 +117,7 @@ interface HistoryItem {
             <h6 class="detail">Cronologia</h6>
             @if (triggerDelete()) {
               <div>
-                <app-classic-spinner [size]="16" class="block mt-2 mr-5" />
+                <m-classic-spinner [size]="16" class="block mt-2 mr-5" />
               </div>
             } @else {
               <button
@@ -143,37 +152,90 @@ interface HistoryItem {
               </button>
             }
           </div>
-          <app-history class="block"
+          <m-history class="block"
             [triggerDelete]="triggerDelete()"
             [triggerEmptyCheck]="triggerEmptyCheck()"
-            (emptyChange)="handleEmptyChange($event)" />
+            (emptyChange)="handleEmptyChange($event)"
+            (itemClick)="handleMenuItemClick()" />
         </div>
       } @else {
         <!-- Menu per utente non loggato -->
         <h6 class="detail">Piacere di averti qui.</h6>
-        <div class="mb-4">
-          <a class="sidebar-link" routerLink="/login">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-5 h-5 text-light-on-surface-main dark:text-slate-200">
-              <!--!Font Awesome Free v7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
-              <path d="M409 337C418.4 327.6 418.4 312.4 409 303.1L265 159C258.1 152.1 247.8 150.1 238.8 153.8C229.8 157.5 224 166.3 224 176L224 256L112 256C85.5 256 64 277.5 64 304L64 336C64 362.5 85.5 384 112 384L224 384L224 464C224 473.7 229.8 482.5 238.8 486.2C247.8 489.9 258.1 487.9 265 481L409 337zM416 480C398.3 480 384 494.3 384 512C384 529.7 398.3 544 416 544L480 544C533 544 576 501 576 448L576 192C576 139 533 96 480 96L416 96C398.3 96 384 110.3 384 128C384 145.7 398.3 160 416 160L480 160C497.7 160 512 174.3 512 192L512 448C512 465.7 497.7 480 480 480L416 480z"/>
-            </svg>
+        <div [class.px-2]="userContext.isLoggedOut()">
+          <a class="sidebar-link" (click)="handleMenuItemClick()" routerLink="/login">
+            <div
+              class="flex size-9 shrink-0 items-center justify-center
+                     rounded-xl border border-slate-400/70 dark:border-slate-500/60
+                     bg-blue-200 dark:bg-blue-700/60
+                     text-indigo-700 dark:text-indigo-300 text-sm font-semibold"
+              >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto text-slate-900 dark:text-slate-200">
+                <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                <path d="M384 256L384 288L544 288L544 352L384 352L384 437.4L259.7 320L384 202.6L384 256zM576 256L416 256L416 128.3C381.9 160.5 357.3 183.7 236.3 298C235.4 298.9 227.6 306.2 213 320C222.9 329.3 256.6 361.2 375.5 473.4C377.2 475 390.7 487.8 416 511.6L416 383.9L576 383.9L576 255.9zM240 512L96 512L96 128L256 128L256 96L64 96L64 544L256 544L256 512L240 512z"/>
+              </svg>
+            </div>
             <span class="sidebar-item-text">Accedi</span>
           </a>
-          <a class="sidebar-link" routerLink="/register">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-5 h-5 text-light-on-surface-main dark:text-slate-200">
-              <!--!Font Awesome Free v7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
-              <path d="M256 312C322.3 312 376 258.3 376 192C376 125.7 322.3 72 256 72C189.7 72 136 125.7 136 192C136 258.3 189.7 312 256 312zM226.3 368C127.8 368 48 447.8 48 546.3C48 562.7 61.3 576 77.7 576L308 576C285.3 544.5 272 505.8 272 464C272 429.2 281.3 396.5 297.5 368.4C293.6 368.1 289.7 368 285.7 368L226.3 368zM464 608C543.5 608 608 543.5 608 464C608 384.5 543.5 320 464 320C384.5 320 320 384.5 320 464C320 543.5 384.5 608 464 608zM480 400L480 448L528 448C536.8 448 544 455.2 544 464C544 472.8 536.8 480 528 480L480 480L480 528C480 536.8 472.8 544 464 544C455.2 544 448 536.8 448 528L448 480L400 480C391.2 480 384 472.8 384 464C384 455.2 391.2 448 400 448L448 448L448 400C448 391.2 455.2 384 464 384C472.8 384 480 391.2 480 400z"/>
-            </svg>
+          <a class="sidebar-link" (click)="handleMenuItemClick()" routerLink="/register">
+            <div
+              class="flex size-9 shrink-0 items-center justify-center
+                     rounded-xl border border-slate-400/70 dark:border-slate-500/60
+                     bg-blue-200 dark:bg-blue-700/60
+                     text-indigo-700 dark:text-indigo-300 text-sm font-semibold"
+              >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto text-slate-900 dark:text-slate-200">
+                <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                <path d="M288 96C395.3 96 485.1 171.5 506.9 272.3C518.4 272.9 529.6 274.6 540.4 277.2C520 156.2 414.8 64 288 64C146.6 64 32 178.6 32 320C32 461.4 146.6 576 288 576C304.7 576 321 574.4 336.8 571.4C330.5 562.1 325 552.1 320.4 541.7C309.8 543.2 299 544 288 544C243.9 544 202.7 531.2 168 509.2L199.1 416L310.1 416C313 404.9 316.8 394.2 321.5 384L176 384L141 489C93.8 448 64 387.5 64 320C64 196.3 164.3 96 288 96zM336 256C336 282.5 314.5 304 288 304C261.5 304 240 282.5 240 256C240 229.5 261.5 208 288 208C314.5 208 336 229.5 336 256zM288 176C243.8 176 208 211.8 208 256C208 300.2 243.8 336 288 336C332.2 336 368 300.2 368 256C368 211.8 332.2 176 288 176zM384 464C384 402.1 434.1 352 496 352C557.9 352 608 402.1 608 464C608 525.9 557.9 576 496 576C434.1 576 384 525.9 384 464zM640 464C640 384.5 575.5 320 496 320C416.5 320 352 384.5 352 464C352 543.5 416.5 608 496 608C575.5 608 640 543.5 640 464zM512 400L512 384L480 384L480 448L416 448L416 480L480 480L480 544L512 544L512 480L576 480L576 448L512 448L512 400z"/>
+              </svg>
+            </div>
             <span class="sidebar-item-text">Registrati</span>
           </a>
-          <a class="sidebar-link" routerLink="/collections">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-5 h-5 text-light-on-surface-main dark:text-slate-200">
-              <!--!Font Awesome Free v7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
-              <path d="M112 128C85.5 128 64 149.5 64 176C64 191.1 71.1 205.3 83.2 214.4L291.2 370.4C308.3 383.2 331.7 383.2 348.8 370.4L556.8 214.4C568.9 205.3 576 191.1 576 176C576 149.5 554.5 128 528 128L112 128zM64 260L64 448C64 483.3 92.7 512 128 512L512 512C547.3 512 576 483.3 576 448L576 260L377.6 408.8C343.5 434.4 296.5 434.4 262.4 408.8L64 260z"/>
-            </svg>
+          <a class="sidebar-link" (click)="handleMenuItemClick()" routerLink="/contact-us">
+            <div
+              class="flex size-9 shrink-0 items-center justify-center
+                     rounded-xl border border-slate-400/70 dark:border-slate-500/60
+                     bg-blue-200 dark:bg-blue-700/60
+                     text-indigo-700 dark:text-indigo-300 text-sm font-semibold"
+              >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto text-slate-900 dark:text-slate-200">
+                <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                <path d="M80 128L64 128L64 512L576 512L576 128L80 128zM544 184L544 199.9L320 364.2L96 199.9L96 160L544 160L544 184zM544 239.6L544 480L96 480L96 239.6L310.5 396.9L320 403.8L329.5 396.9L544 239.6z"/>
+              </svg>
+            </div>
             <span class="sidebar-item-text">Contattaci</span>
           </a>
-
+        </div>
+        <hr class="border-slate-300 dark:border-slate-600 my-2" />
+        <div class="mb-4" [class.px-2]="userContext.isLoggedOut()">
+          <h6 class="detail">Documenti</h6>
+          <a class="sidebar-link" (click)="handleMenuItemClick()" routerLink="/terms-and-conditions">
+            <div
+              class="flex size-9 shrink-0 items-center justify-center
+                     rounded-xl border border-slate-400/70 dark:border-slate-500/60
+                     bg-amber-100 dark:bg-amber-600/75
+                     text-indigo-700 dark:text-indigo-300 text-sm font-semibold transition-colors duration-300"
+              >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto text-slate-900 dark:text-slate-200">
+                <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                <path d="M320 96L160 96L160 544L480 544L480 256L320 256L320 96zM466.7 224L352 109.3L352 224L466.7 224zM160 64L352 64L512 224L512 576L128 576L128 64L160 64zM264.3 368L299.9 368L303.3 379.4L323.9 448L448 448L448 480L300.1 480L296.7 468.6L277.1 403.3L220.5 474L210.5 486.5L185.5 466.5L195.5 454L259.5 374L264.3 368zM208 160L288 160L288 192L192 192L192 160L208 160zM208 224L288 224L288 256L192 256L192 224L208 224z"/>
+              </svg>
+            </div>
+            <span class="sidebar-item-text">Termini e Condizioni</span>
+          </a>
+          <a class="sidebar-link" (click)="handleMenuItemClick()" routerLink="/privacy">
+            <div
+              class="flex size-9 shrink-0 items-center justify-center
+                     rounded-xl border border-slate-400/70 dark:border-slate-500/60
+                     bg-amber-100 dark:bg-amber-600/75
+                     text-indigo-700 dark:text-indigo-300 text-sm font-semibold transition-colors duration-300"
+              >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto text-slate-900 dark:text-slate-200">
+                <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                <path d="M160 192C160 139 203 96 256 96C309 96 352 139 352 192C352 245 309 288 256 288C203 288 160 245 160 192zM65.5 576L119.7 400L272.1 400L272.1 368L96.1 368L32.1 576L65.6 576zM256 320C326.7 320 384 262.7 384 192C384 121.3 326.7 64 256 64C185.3 64 128 121.3 128 192C128 262.7 185.3 320 256 320zM352 391.2L448 359.2L448 566L447 565.6C389.2 539.9 352 482.6 352 419.4L352 391.2zM481 565.5L480 565.9L480 359.1L576 391.1L576 419.3C576 482.5 538.8 539.8 481 565.5zM464 320.1L320 368.1L320 419.3C320 495.2 364.7 563.9 434 594.8L464 608.1L494 594.8C563.3 564 608 495.2 608 419.3L608 368.1L464 320.1z"/>
+              </svg>
+            </div>
+            <span class="sidebar-item-text">Informativa sulla Privacy</span>
+          </a>
         </div>
       }
     </nav>
@@ -196,7 +258,7 @@ interface HistoryItem {
     }
   `]
 })
-export class SidenavComponent implements OnInit, OnDestroy {
+export class SidenavComponent implements OnDestroy {
 
   private readonly historyService = inject(HistoryService)
   protected readonly userContext = inject(UserContextService)
@@ -204,27 +266,20 @@ export class SidenavComponent implements OnInit, OnDestroy {
   protected readonly designService = inject(DesignService)
   protected readonly searchOverlayContext = inject(SearchContextService)
 
+  @Output()
+  onOpenOffCanvas = new EventEmitter<void>()
+
+  @Output()
+  onMenuItemClick = new EventEmitter<void>()
+
   triggerDelete = signal<boolean>(false)
   isHistoryEmpty = signal<boolean>(false)
   triggerEmptyCheck = signal<boolean>(true)
 
   private delSub?: Subscription
 
-  ngOnInit() {
-
-  }
-
   ngOnDestroy(): void {
     this.delSub?.unsubscribe()
-  }
-
-  getIcon(type: HistoryItem['type']): string {
-    switch (type) {
-      case 'notebook': return '📔';
-      case 'collection': return '📁';
-      case 'molecule': return '🧬';
-      default: return '📄';
-    }
   }
 
   doDeleteHistory(): void {
@@ -245,6 +300,14 @@ export class SidenavComponent implements OnInit, OnDestroy {
     this.isHistoryEmpty.set(e)
     this.triggerDelete.set(false)
     this.triggerEmptyCheck.set(false)
+  }
+
+  handleMenuItemClick(): void {
+    this.onMenuItemClick.emit()
+  }
+
+  closeOffCanvasMenu(): void {
+    this.onMenuItemClick.emit()
   }
 
 }

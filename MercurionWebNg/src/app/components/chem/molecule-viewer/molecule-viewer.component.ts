@@ -18,7 +18,7 @@ import type { RDKitModule } from '@rdkit/rdkit';
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
 
 /**
- * <molecule-viewer>
+ * <m-molecule-viewer>
  * ---------------------------------------------------------------------------
  * Un unico componente con **due varianti** d'uso:
  *   • **preview**  – thumbnail quadrato (tipicamente 48 × 48 px) che "riempie"
@@ -30,16 +30,16 @@ import { ThemeManagerService } from '../../../services/context/theme-manager.ser
  * Esempio d'uso:
  * ```html
  * <!-- anteprima, 48 × 48 -->
- * <molecule-viewer [structure]="smiles" mode="preview" class="h-12 w-12" />
+ * <m-molecule-viewer [structure]="smiles" mode="preview" class="h-12 w-12" />
  *
  * <!-- dettaglio fluido, altezza fissa 400 px -->
- * <molecule-viewer [structure]="smiles" mode="detail"
+ * <m-molecule-viewer [structure]="smiles" mode="detail"
  *                  class="h-[400px] w-full max-w-[680px]" />
  * ```
  */
 
 @Component({
-  selector: 'molecule-viewer',
+  selector: 'm-molecule-viewer',
   standalone: true,
   template: `<div class="wrap" [innerHTML]="svg"></div>`,
   styles: [
@@ -159,13 +159,16 @@ export class MoleculeViewerComponent implements OnInit, OnChanges {
 
   /* ────── Core rendering ─────────────────────────────────────── */
   private renderSvg(): void {
-    if (!this.structure) return;
+    if (!this.structure || !this.RDK) return;
 
     /* 1. RDKit produce lo SVG grezzo */
-    const mol = this.RDK.get_mol(this.structure.split('$$$$')[0]);
+    const mol = this.RDK.get_mol(this.structure.split('$$$$')[0])
+    if (!mol) {
+      return
+    }
     if (!mol?.is_valid()) {
-      mol?.delete?.();
-      return;
+      mol?.delete?.()
+      return
     }
 
     const palette = MoleculeViewerComponent.WCAG[this.darkMode() ? 'dark' : 'light'];

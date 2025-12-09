@@ -1,7 +1,7 @@
 import { Component, Input, signal } from '@angular/core';
 
 @Component({
-  selector: 'app-molecule-badge',
+  selector: 'm-molecule-badge',
   imports: [],
   template: `
 

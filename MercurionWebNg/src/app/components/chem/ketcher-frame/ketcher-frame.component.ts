@@ -8,7 +8,7 @@ import { firstValueFrom } from 'rxjs';
 export type KetcherFrameMode = 'create' | 'edit' | 'duplicate';
 
 @Component({
-  selector: 'app-ketcher-frame',
+  selector: 'm-ketcher-frame',
   standalone: true,
   template: `
     <div class="relative w-full">

@@ -1,7 +1,7 @@
 import { Component, Input, signal } from '@angular/core';
 
 @Component({
-  selector: 'app-avatar',
+  selector: 'm-avatar',
   imports: [],
   template: `
 

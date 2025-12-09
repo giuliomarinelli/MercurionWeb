@@ -74,7 +74,7 @@ import { HttpErrorResponse } from '@angular/common/http';
           @if (step() === 1) {
             <!-- STEP 1: CODE -->
             <div class="mt-2">
-              <app-floating-input
+              <m-floating-input
                 label="Codice di recupero"
                 type="text"
                 autocomplete="text"
@@ -96,7 +96,7 @@ import { HttpErrorResponse } from '@angular/common/http';
                   Continua
                 } @else {
                   <div class="text-slate-200 flex items-center justify-center">
-                    <app-classic-spinner [size]="24"></app-classic-spinner>
+                    <m-classic-spinner [size]="24"></m-classic-spinner>
                   </div>
                 }
               </button>
@@ -108,7 +108,7 @@ import { HttpErrorResponse } from '@angular/common/http';
                   <span class="sr-only">Loading CAPTCHA…</span>
                 </div>
               }
-              <app-turnstile
+              <m-turnstile
                 (token)="onTurnstileToken($event)"
                 (widgetReady)="onTurnstileRender()"
                 (refresh)="loadingTurnstile.set(true)"
@@ -119,7 +119,7 @@ import { HttpErrorResponse } from '@angular/common/http';
             <!-- STEP 2: NUOVE CREDENZIALI -->
             <form [formGroup]="recoveryGroup" (ngSubmit)="goToThirdStep()">
               <div class="relative mb-6 mt-2">
-                <app-floating-input
+                <m-floating-input
                   label="Nuova e-mail"
                   type="email"
                   autocomplete="email"
@@ -132,7 +132,7 @@ import { HttpErrorResponse } from '@angular/common/http';
                   [disabled]="loading()" />
               </div>
               <div class="relative mb-6 mt-2">
-                <app-floating-input
+                <m-floating-input
                 label="Nuova password"
                 type="password"
                 autocomplete="current-password"
@@ -143,7 +143,7 @@ import { HttpErrorResponse } from '@angular/common/http';
                   }" />
               </div>
               <div class="relative mb-6 mt-2">
-                <app-floating-input
+                <m-floating-input
                 label="Reinserisci la nuova password"
                 type="password"
                 autocomplete="current-password"
@@ -164,7 +164,7 @@ import { HttpErrorResponse } from '@angular/common/http';
                     Continua
                   } @else {
                     <div class="text-slate-200 flex items-center justify-center">
-                      <app-classic-spinner [size]="24"></app-classic-spinner>
+                      <m-classic-spinner [size]="24"></m-classic-spinner>
                     </div>
                   }
                 </button>
@@ -177,7 +177,7 @@ import { HttpErrorResponse } from '@angular/common/http';
                     <span class="sr-only">Loading CAPTCHA…</span>
                   </div>
                 }
-                <app-turnstile
+                <m-turnstile
                   (token)="onTurnstileToken($event)"
                   (widgetReady)="onTurnstileRender()"
                   (refresh)="loadingTurnstile.set(true)"

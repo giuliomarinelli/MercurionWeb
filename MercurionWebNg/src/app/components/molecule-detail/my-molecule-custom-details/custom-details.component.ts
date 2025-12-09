@@ -7,7 +7,7 @@ import {
 import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.component';
 
 @Component({
-  selector: 'app-custom-details',
+  selector: 'm-custom-details',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgClass, MoleculeBadgeComponent],
@@ -36,7 +36,7 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
           {{ _value() }}
         </div>
 
-        <app-molecule-badge class="shrink-0" [name]="_badgeName()" />
+        <m-molecule-badge class="shrink-0" [name]="_badgeName()" />
 
         @if (false) {
            <!-- !_isReadonly() <==> Per ora non permettiamo la modifica inline del nome sulla card  -->
@@ -99,7 +99,7 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
         </h2>
 
         @if (_badgeName()) {
-          <app-molecule-badge [name]="_badgeName()" class="block relative top-1 shrink-0" />
+          <m-molecule-badge [name]="_badgeName()" class="block relative top-1 shrink-0" />
         }
 
         <div class="flex items-center w-[4.5rem] shrink-0">

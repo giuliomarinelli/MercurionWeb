@@ -10,13 +10,13 @@ import { Component, Input, ChangeDetectionStrategy, ViewEncapsulation } from '@a
  * ---------------------------------------------------------------
  * Esempi
  * ---------------------------------------------------------------
- * <chem-spinner class="w-16 h-16 text-cyan-500" />
- * <chem-spinner [size]="96" overlay
+ * <m-chem-spinner class="w-16 h-16 text-cyan-500" />
+ * <m-chem-spinner [size]="96" overlay
  *               bondClass="stroke-emerald-500"
  *               atomClass="fill-amber-400" />
  */
 @Component({
-  selector: 'chem-spinner',
+  selector: 'm-chem-spinner',
   standalone: true,
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,

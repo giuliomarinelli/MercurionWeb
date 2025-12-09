@@ -48,11 +48,11 @@ type RegistryFormValue = {
         @if (step() === 1) {
           @if (onStart_loading()) {
             <div class="absolute inset-0 flex justify-center items-center">
-              <app-classic-spinner [size]="45" />
+              <m-classic-spinner [size]="45" />
             </div>
           } @else {
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-12 w-full px-3 pt-9">
-              <app-floating-input
+              <m-floating-input
                 label="Nome *"
                 type="text"
                 autocomplete="current-name"
@@ -64,7 +64,7 @@ type RegistryFormValue = {
                 bgClass="bg-white"
                 darkBgClass="dark:bg-dark-surface-main" />
 
-              <app-floating-input
+              <m-floating-input
                 label="Cognome *"
                 type="text"
                 autocomplete="current-surname"
@@ -76,13 +76,13 @@ type RegistryFormValue = {
                 bgClass="bg-white"
                 darkBgClass="dark:bg-dark-surface-main" />
 
-              <pm-select
+              <m-select
                 class="relative -top-[30px]"
                 label="Genere *"
                 [options]="options"
                 formControlName="gender" />
 
-              <app-floating-input
+              <m-floating-input
                 label="Il tuo lavoro"
                 type="text"
                 autocomplete="current-job"
@@ -155,7 +155,7 @@ type RegistryFormValue = {
           class="absolute inset-0 flex items-center justify-center"
           [class.hidden]="!step_12_loading()"
         >
-          <app-classic-spinner [size]="24"></app-classic-spinner>
+          <m-classic-spinner [size]="24"></m-classic-spinner>
         </span>
       </button>
     </div>

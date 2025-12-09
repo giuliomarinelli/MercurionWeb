@@ -40,7 +40,7 @@ type ChartPalette = {
 
 // ====================== COMPONENT ======================
 @Component({
-  selector: 'app-dashboard',
+  selector: 'm-dashboard',
   standalone: true,
   imports: [ClassicSpinnerComponent],
   template: `
@@ -147,7 +147,7 @@ type ChartPalette = {
         </section>
       } @else if (loading()) {
         <div class="absolute inset-0 flex justify-center items-center max-w-5xl mx-auto">
-          <app-classic-spinner [size]="60" />
+          <m-classic-spinner [size]="60" />
         </div>
       } @else if (serverError()) {
         <p class="text-light-error dark:text-dark-error">Si è verificato un errore nel caricamento della dashboard.</p>

@@ -62,13 +62,10 @@ import { TicketDetailContextService } from '../../../services/context/action-con
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 640 640"
-              class="fill-current w-5 h-auto"
-            >
-              <path
-                d="M182.9 137.4L160.3 114.7L115 160L137.6 182.6L275 320L137.6 457.4L115 480L160.3 525.3L182.9 502.6L320.3 365.3L457.6 502.6L480.3 525.3L525.5 480L502.9 457.4L365.5 320L502.9 182.6L525.5 160L480.3 114.7L457.6 137.4L320.3 274.7L182.9 137.4z"
-              />
+              class="fill-current w-5 h-auto">
+                <path d="M182.9 137.4L160.3 114.7L115 160L137.6 182.6L275 320L137.6 457.4L115 480L160.3 525.3L182.9 502.6L320.3 365.3L457.6 502.6L480.3 525.3L525.5 480L502.9 457.4L365.5 320L502.9 182.6L525.5 160L480.3 114.7L457.6 137.4L320.3 274.7L182.9 137.4z" />
             </svg>
-          </button>
+        </button>
       </div>
 
       <div class="p-4 flex flex-col gap-4">

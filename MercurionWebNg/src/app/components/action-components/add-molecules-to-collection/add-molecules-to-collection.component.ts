@@ -25,7 +25,7 @@ export type ChipItem = {
 }
 
 @Component({
-  selector: 'app-add-molecules-to-collection',
+  selector: 'm-add-molecules-to-collection',
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [
@@ -76,7 +76,7 @@ export type ChipItem = {
                 <div class="px-3">
                   <h2 class="font-semibold mb-3">Scegli le molecole da aggiungere alla collezione:</h2>
 
-                  <pm-search-input
+                  <m-search-input
                     class="block"
                     [value]="searchTerm()"
                     (valueChange)="doQuery($event)"
@@ -84,7 +84,7 @@ export type ChipItem = {
                     (cleared)="doClear()"
                   />
                   <div class="mt-6">
-                    <app-molecule-collection-item-select-card class="block mb-6"
+                    <m-molecule-collection-item-select-card class="block mb-6"
                       [isSelectAll]="true"
                       [value]="isSelectedAll()"
                       [indeterminate]="isPartiallySelected()"
@@ -92,7 +92,7 @@ export type ChipItem = {
                     />
 
                     @for (row of multiselectItems(); track row.item.id; let i = $index) {
-                      <app-molecule-collection-item-select-card
+                      <m-molecule-collection-item-select-card
                         [molecule]="row.item"
                         [i]="i"
                         [(value)]="row.isChecked"
@@ -103,12 +103,12 @@ export type ChipItem = {
                   @if (loading) {
                     @if (page > 1) {
                       <div class="flex justify-center py-4">
-                        <app-classic-spinner [size]="60" />
+                        <m-classic-spinner [size]="60" />
                       </div>
                     } @else {
                       <div class="space-y-4">
                         @for (i of [0,1,2,3,4]; track i) {
-                          <app-skeleton-molecule-card />
+                          <m-skeleton-molecule-card />
                         }
                       </div>
                     }
@@ -133,7 +133,7 @@ export type ChipItem = {
               <div class="py-6 px-3 flex flex-col gap-4 min-h-[60vh] max-h-[60vh]">
                 <div>Cerca su ChEMBL e seleziona:</div>
 
-                <app-search-input
+                <m-molecule-search-input
                   [search_excludeAlreadyAdded]="true"
                   (onLoading)="chemblLoading.set($event)"
                   (onResult)="handleResults($event)"
@@ -201,10 +201,10 @@ export type ChipItem = {
 
                 <div class="overflow-y-auto relative">
                   @if (chemblLoading()) {
-                    <app-search-result-skeleton-loader />
+                    <m-search-result-skeleton-loader />
                   } @else if (chemblResults().length) {
                     @for (molecule of chemblResults(); track molecule.id) {
-                      <app-search-result
+                      <m-search-result
                         [molecule]="molecule"
                         [query]="chemblQuery()"
                         [search_excludeAlreadyAdded]="true"
@@ -266,7 +266,7 @@ export type ChipItem = {
           class="absolute inset-0 flex items-center justify-center"
           [class.hidden]="!step_12_loading()"
         >
-          <app-classic-spinner [size]="24"></app-classic-spinner>
+          <m-classic-spinner [size]="24"></m-classic-spinner>
         </span>
       </button>
     </div>

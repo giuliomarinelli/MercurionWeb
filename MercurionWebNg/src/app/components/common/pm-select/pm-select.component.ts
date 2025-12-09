@@ -10,7 +10,7 @@ import {
 import { PmOption } from '../../../Models/pm-option.model';
 
 @Component({
-  selector: 'pm-select',
+  selector: 'm-select',
   standalone: true,
   imports: [PublicPipe, OverlayModule],
   providers: [{
@@ -111,7 +111,7 @@ import { PmOption } from '../../../Models/pm-option.model';
 })
 export class PmSelectComponent implements ControlValueAccessor {
 
-  @Input() id = 'pm-select';
+  @Input() id = 'm-select';
   @Input() label = '';
   @Input() placeholder = 'Seleziona…';
   @Input() options: PmOption[] = [];

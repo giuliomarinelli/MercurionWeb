@@ -11,7 +11,7 @@ import { UserContextService } from '../../services/context/user-context.service'
 import { Helpers } from '../../helpers';
 
 @Component({
-  selector: 'app-password-recovery',
+  selector: 'm-password-recovery',
   standalone: true,
   imports: [
     ReactiveFormsModule,
@@ -34,7 +34,7 @@ import { Helpers } from '../../helpers';
             </span>
           </div>
             <form (ngSubmit)="send()" [formGroup]="form" class="mt-2 max-w-[400px] mx-auto">
-              <app-floating-input class="mb-3 block"
+              <m-floating-input class="mb-3 block"
                 label="Nuova password"
                 type="password"
                 formControlName="password"
@@ -44,7 +44,7 @@ import { Helpers } from '../../helpers';
                 (enter)="send()"
               />
 
-              <app-floating-input
+              <m-floating-input
                 label="Ripeti la nuova password"
                 type="password"
                 formControlName="confirmPassword"
@@ -69,12 +69,12 @@ import { Helpers } from '../../helpers';
                 } @else {
                   <div class="text-slate-200 flex items-center justify-center gap-3">
                     <span>Redirecting...</span>
-                    <app-classic-spinner [size]="24" />
+                    <m-classic-spinner [size]="24" />
                   </div>
                 }
               } @else {
                 <div class="text-slate-200 flex items-center justify-center">
-                  <app-classic-spinner [size]="24" />
+                  <m-classic-spinner [size]="24" />
                 </div>
 
               }

@@ -131,11 +131,18 @@ body {
     @apply text-light-accent-primary dark:text-dark-accent-primary hover:underline;
   }
 
+  .h1-underline {
+    @apply w-full sm:w-auto block text-center sm:text-left mt-0 relative bottom-2 pt-4 xs:pt-0 text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-light-accent-primary dark:text-dark-accent-primary border-b border-slate-300 dark:border-slate-700 pb-6;
+  }
+
+  .h1 {
+    @apply w-full sm:w-auto block text-center sm:text-left mt-0 relative bottom-2 pt-0 text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-light-accent-primary dark:text-dark-accent-primary pb-6;
+  }
+
   .drawer {
     @apply bg-slate-200/50 dark:dark:bg-neutral-900/75 transition-colors;
   }
 
-  /* stile tuo */
   .drawer {
     @apply transition-transform duration-200 ease-in-out;
   }

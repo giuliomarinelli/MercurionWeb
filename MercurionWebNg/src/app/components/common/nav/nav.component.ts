@@ -5,7 +5,7 @@ import { SearchContextService } from '../../../services/context/search-context.s
 import { SidenavComponent } from '../sidenav/sidenav.component';
 
 @Component({
-  selector: 'app-nav',
+  selector: 'm-nav',
   imports: [NgClass],
   templateUrl: './nav.component.html',
   styleUrl: './nav.component.css'

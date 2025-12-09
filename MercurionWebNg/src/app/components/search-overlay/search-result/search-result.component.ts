@@ -15,7 +15,7 @@ import { MoleculeSearchResult } from
 import { ChipItem } from '../../action-components/add-molecules-to-collection/add-molecules-to-collection.component';
 
 @Component({
-  selector: 'app-search-result',
+  selector: 'm-search-result',
   standalone: true,
   host: { class: 'block w-full' },
   imports: [DecimalPipe, RouterLink, MoleculeViewerComponent],
@@ -31,12 +31,12 @@ import { ChipItem } from '../../action-components/add-molecules-to-collection/ad
                         bg-slate-200 dark:bg-slate-700"></div>
           }
 
-          <molecule-viewer
+          <m-molecule-viewer
             class="w-full h-full"
             [structure]="_molecule()?.smiles ?? ''"
             [disablePreview]="disablePreview()"
             (rendered)="viewerReady.set(true)">
-          </molecule-viewer>
+          </m-molecule-viewer>
         </div>
 
 
@@ -70,11 +70,11 @@ import { ChipItem } from '../../action-components/add-molecules-to-collection/ad
           @if (!viewerReady()) {
             <div class="absolute inset-0 z-10 animate-pulse bg-slate-200 dark:bg-slate-700"></div>
           }
-          <molecule-viewer class="w-full h-full"
+          <m-molecule-viewer class="w-full h-full"
             [structure]="_molecule()?.smiles ?? ''"
             [disablePreview]="disablePreview()"
             (rendered)="viewerReady.set(true)">
-          </molecule-viewer>
+          </m-molecule-viewer>
         </div>
 
         <div class="flex-1 min-w-0">

@@ -13,7 +13,7 @@ import { SkeletonCollectionCardComponent } from '../../common/skeleton-card-load
 import { Router } from '@angular/router';
 
 @Component({
-  selector: 'app-bind-collections-to-molecule',
+  selector: 'm-bind-collections-to-molecule',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ClassicSpinnerComponent, PmSearchInputComponent, CollectionSelectCardComponent, SkeletonCollectionCardComponent],
   template: `
@@ -35,7 +35,7 @@ import { Router } from '@angular/router';
         @case (1) {
           <div class="px-3">
             <h2 class="font-semibold mb-3">Scegli le collezioni a cui aggiungere la molecola:</h2>
-            <pm-search-input
+            <m-search-input
               class="block"
               [value]="searchTerm()"
               (valueChange)="doQuery($event)"
@@ -43,14 +43,14 @@ import { Router } from '@angular/router';
               (cleared)="doClear()"
             />
             <div class="mt-6">
-              <app-collection-select-card class="block mb-6"
+              <m-collection-select-card class="block mb-6"
                 [isSelectAll]="true"
                 [value]="isSelectedAll()"
                 [indeterminate]="isPartiallySelected()"
                 (selectedAll)="onSelectAllChange($event)"
               />
               @for (row of multiselectItems(); track row.item.id; let i = $index) {
-                <app-collection-select-card
+                <m-collection-select-card
                   [collection]="row.item"
                   [i]="i"
                   [value]="row.isChecked()"
@@ -62,12 +62,12 @@ import { Router } from '@angular/router';
             @if (loading) {
               @if (page > 1) {
                 <div class="flex justify-center py-4">
-                  <app-classic-spinner [size]="60" />
+                  <m-classic-spinner [size]="60" />
                 </div>
               } @else {
                 <div class="space-y-4">
                   @for (i of [0,1,2,3,4]; track i) {
-                    <app-skeleton-collection-card />
+                    <m-skeleton-collection-card />
                   }
                 </div>
               }
@@ -117,7 +117,7 @@ import { Router } from '@angular/router';
           class="absolute inset-0 flex items-center justify-center"
           [class.hidden]="!step_12_loading() || (step() === 1 && isSelectedNothing())"
         >
-          <app-classic-spinner [size]="24"></app-classic-spinner>
+          <m-classic-spinner [size]="24"></m-classic-spinner>
         </span>
       </button>
     </div>

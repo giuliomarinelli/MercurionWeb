@@ -5,7 +5,7 @@ import { ViewChild } from '@angular/core';
 import { ModalContextService } from '../../../services/context/modal-context.service';
 
 @Component({
-  selector: 'app-modal',
+  selector: 'm-modal',
   standalone: true,
   imports: [PortalModule],
   template: `

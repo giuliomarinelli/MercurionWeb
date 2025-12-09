@@ -5,7 +5,7 @@ import { PublicPipe } from '../../../pipes/public.pipe';
 import { environment } from '../../../../environments/environment.development';
 
 @Component({
-  selector: 'app-footer',
+  selector: 'm-footer',
   imports: [NgOptimizedImage, PublicPipe],
   template: `
     <footer class="px-6 py-4 text-xs sm:text-sm">
@@ -19,8 +19,8 @@ import { environment } from '../../../../environments/environment.development';
             [ngSrc]="logoSrc() | public"
             alt="Mercurion Pictogram"
             priority="true"
-            width="185.647"
-            height="284.182"
+            width="186"
+            height="234"
             class="w-[23px] h-auto contrast-115"
           />
           <span>&copy; {{year}} Mercurion. Tutti i diritti riservati.</span>

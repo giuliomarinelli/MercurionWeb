@@ -6,33 +6,38 @@ import { RouterLink } from '@angular/router';
 import { NgClass } from '@angular/common';
 
 @Component({
-  selector: 'molecule-header',
+  selector: 'm-molecule-header',
   standalone: true,
-  imports: [CustomDetailsComponent, MoleculeBadgeComponent, RouterLink, NgClass],
+  imports: [
+    CustomDetailsComponent,
+    MoleculeBadgeComponent,
+    RouterLink,
+    NgClass
+  ],
   template: `
     <header class="flex flex-wrap gap-3 justify-between" aria-labelledby="molecule-name">
       <div class="space-y-2 ">
         @if (_myMol()) {
-        @if (!_isCustom()) {
-          <div class="flex gap-6 items-center flex-wrap">
-            <h2 id="molecule-name"
-                class="text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary">
-              {{ name() }}
-            </h2>
-            <app-molecule-badge [name]="_badgeName()" class="block relative top-0.5" />
-          </div>
+          @if (!_isCustom()) {
+            <div class="flex gap-6 items-center sm:items-start flex-wrap">
+              <h2 id="molecule-name"
+                  class="text-3xl w-full sm:w-fit md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center text-light-accent-primary dark:text-dark-accent-primary">
+                {{ name() }}
+              </h2>
+              <m-molecule-badge [name]="_badgeName()" class="block relative top-0.5" />
+            </div>
+            } @else {
+              <m-custom-details [type]="'name'" [value]="name()" (onSaving)="doSave($event)" [badgeName]="_badgeName()" [itemId]="_molId()" />
+            }
           } @else {
-            <app-custom-details [type]="'name'" [value]="name()" (onSaving)="doSave($event)" [badgeName]="_badgeName()" [itemId]="_molId()" />
+            <div class="flex gap-6 sm:items-start items-center">
+              <h1 id="molecule-name"
+                  class="text-3xl w-full sm:w-fit md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-left text-light-accent-primary dark:text-dark-accent-primary">
+                {{ name() }}
+              </h1>
+              <m-molecule-badge [name]="'ChEMBL Molecule'" />
+            </div>
           }
-        } @else {
-          <div class="flex gap-6 items-center">
-            <h1 id="molecule-name"
-                class="text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-left text-light-accent-primary dark:text-dark-accent-primary">
-              {{ name() }}
-            </h1>
-            <app-molecule-badge [name]="'ChEMBL Molecule'" />
-          </div>
-        }
         @if (_chemblIdSignal()) {
           <p class="text-xs font-semibold tracking-wide text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary">
             ChEMBL ID:

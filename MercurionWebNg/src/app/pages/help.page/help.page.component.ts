@@ -25,7 +25,7 @@ import { NewTicketContextService } from '../../services/context/action-context/n
   template: `
 
     <section class="main-container">
-      <h1 class="mt-4 xs:mt-0 relative bottom-4 text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary border-b border-slate-300 dark:border-slate-700 pb-6">
+      <h1 class="h1-underline">
         <a class="hover:underline" routerLink="/molecules/all-my-molecules">Supporto</a>
       </h1>
       @if (handleTickets()) {
@@ -67,7 +67,7 @@ import { NewTicketContextService } from '../../services/context/action-context/n
       @if (loading) {
         @if (page > 1 && items.length > 2) {
           <div class="flex justify-center">
-            <app-classic-spinner [size]="60" />
+            <m-classic-spinner [size]="60" />
           </div>
         } @else {
           <div class="relative -top-20">
