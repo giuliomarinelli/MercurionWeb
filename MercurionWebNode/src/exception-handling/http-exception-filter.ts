@@ -58,7 +58,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
             ? {
                 statusCode: status,
                 error: base.error ?? HttpStatusMap.getDescriptionFromHttpStatusCode(status),
-                message: 'Internal server error'
+                message: 'Internal Server Error'
             }
             : base
 

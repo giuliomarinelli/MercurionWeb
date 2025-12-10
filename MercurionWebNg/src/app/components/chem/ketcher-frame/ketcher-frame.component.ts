@@ -8,16 +8,16 @@ import {
   OnInit,
   OnDestroy,
   signal,
-  effect
-} from '@angular/core'
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser'
+  effect,
+  NgZone,
+} from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import {
   Subject,
   EMPTY,
   catchError,
   defer,
   firstValueFrom,
-  finalize,
   filter,
   interval,
   take,
@@ -25,13 +25,15 @@ import {
   tap,
   timeout,
   exhaustMap,
-  of
-} from 'rxjs'
+  of,
+  Subscription,
+  finalize,
+} from 'rxjs';
 
-import { PublicPipe } from '../../../pipes/public.pipe'
-import { RDKitService } from '../../../services/rd-kit.service'
+import { PublicPipe } from '../../../pipes/public.pipe';
+import { RDKitService } from '../../../services/rd-kit.service';
 
-export type KetcherFrameMode = 'create' | 'edit' | 'duplicate'
+export type KetcherFrameMode = 'create' | 'edit' | 'duplicate';
 
 @Component({
   selector: 'm-ketcher-frame',
@@ -67,89 +69,100 @@ export type KetcherFrameMode = 'create' | 'edit' | 'duplicate'
 
       <ng-content></ng-content>
     </div>
-  `
+  `,
 })
 export class KetcherFrameComponent implements OnInit, OnDestroy {
-  ketcherUrl!: SafeResourceUrl
+  ketcherUrl!: SafeResourceUrl;
 
-  private initialSmiles = ''
-  private readonly destroy$ = new Subject<void>()
-  private readonly smilesResponse$ = new Subject<string>()
+  private initialSmiles = '';
+  private readonly destroy$ = new Subject<void>();
+  private readonly smilesResponse$ = new Subject<string>();
 
-  private exporting = signal<boolean>(false)
+  private exporting = signal<boolean>(false);
+  private expSub?: Subscription;
 
-  _smiles = signal<string>('')
-  _triggerReset = signal<boolean>(false)
-  _triggerGetSmiles = signal<boolean>(false)
+  _smiles = signal<string>('');
+  _triggerReset = signal<boolean>(false);
+  _triggerGetSmiles = signal<boolean>(false);
 
-  ketcherReady = signal<boolean>(false)
-  loading = signal<boolean>(true)
-  loaded = signal<boolean>(false)
+  ketcherReady = signal<boolean>(false);
+  loading = signal<boolean>(true);
+  loaded = signal<boolean>(false);
 
-  @Input()
-  mode: KetcherFrameMode = 'create'
+  @Input() mode: KetcherFrameMode = 'create';
 
   @Input()
   set smiles(smiles: string | undefined) {
-    if (!smiles) smiles = ''
-    this._smiles.set(smiles)
-    this.initialSmiles = smiles
+    if (!smiles) smiles = '';
+    this._smiles.set(smiles);
+    this.initialSmiles = smiles;
 
     if (this.ketcherReady()) {
-      this.updateKetcherMolfile(smiles)
+      this.updateKetcherMolfile(smiles);
     }
   }
 
   @Input()
   set triggerReset(trigger: boolean) {
-    this._triggerReset.set(trigger)
+    this._triggerReset.set(trigger);
   }
 
   @Input()
   set triggerGetSmiles(trigger: boolean) {
-    this._triggerGetSmiles.set(trigger)
+    this._triggerGetSmiles.set(trigger);
   }
 
-  @Output() molChange = new EventEmitter<string>()
-  @Output() exportSmiles = new EventEmitter<string>()
-  @Output() exportPolledSmiles = new EventEmitter<string>()
-  @Output() onReset = new EventEmitter<void>()
+  @Output() molChange = new EventEmitter<string>();
+  @Output() exportSmiles = new EventEmitter<string>();
+  @Output() exportPolledSmiles = new EventEmitter<string>();
+  @Output() onReset = new EventEmitter<void>();
 
-  @ViewChild('ketcherIframe') iframeRef!: ElementRef<HTMLIFrameElement>
+  @ViewChild('ketcherIframe') iframeRef!: ElementRef<HTMLIFrameElement>;
 
   constructor(
     private readonly publicPipe: PublicPipe,
     private readonly sanitizer: DomSanitizer,
-    private readonly RDKit: RDKitService
+    private readonly RDKit: RDKitService,
+    private readonly zone: NgZone
   ) {
-    const url = this.publicPipe.transform('ketcher/index.html')
-    this.ketcherUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url)
+    const url = this.publicPipe.transform('ketcher/index.html');
+    this.ketcherUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
 
     // reazioni ai trigger dal parent
     effect(() => {
       if (this._triggerReset()) {
-        this.resetMolecule()
-        this._triggerReset.set(false)
-        this.onReset.emit()
+        this._triggerReset.set(false);
+
+        if (this.ketcherReady()) {
+          this.resetMolecule();
+        }
+
+        // segnala subito al parent che abbiamo fatto il reset
+        this.zone.run(() => this.onReset.emit());
+        return;
       }
 
       if (this._triggerGetSmiles()) {
-        this.exporting.set(true)
-        this.requestExportSmiles$('explicit')
+        this._triggerGetSmiles.set(false);
+        this.exporting.set(true);
+
+        this.expSub = this.requestExportSmiles$('explicit')
           .pipe(
             take(1),
             finalize(() => this.exporting.set(false))
           )
-          .subscribe()
-        this._triggerGetSmiles.set(false)
+          .subscribe();
+
+        return;
       }
-    })
+    });
   }
 
   ngOnInit(): void {
-    window.addEventListener('message', this.onKetcherMessage)
+    window.addEventListener('message', this.onKetcherMessage);
 
-    interval(800)
+    // polling "realtime" leggero
+    interval(250)
       .pipe(
         takeUntil(this.destroy$),
         filter(() => this.ketcherReady()),
@@ -161,102 +174,104 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
           )
         )
       )
-      .subscribe()
+      .subscribe();
   }
 
   ngOnDestroy(): void {
-    window.removeEventListener('message', this.onKetcherMessage)
-    this.destroy$.next()
-    this.destroy$.complete()
+    window.removeEventListener('message', this.onKetcherMessage);
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.expSub?.unsubscribe();
   }
 
   // handler messaggi dal frame Ketcher
   private onKetcherMessage = (event: MessageEvent) => {
-    if (!event.data) return
+    if (!event.data) return;
+    const { type, payload } = event.data;
 
-    const { type, payload } = event.data
+    this.zone.run(() => {
+      if (type === 'ketcherReady') {
+        this.ketcherReady.set(true);
+        this.loading.set(false);
 
-    if (type === 'ketcherReady') {
-      this.ketcherReady.set(true)
-      this.loading.set(false)
+        if (this._smiles()) {
+          this.updateKetcherMolfile(this._smiles());
+          setTimeout(() => this.loaded.set(true), 50);
+        } else {
+          this.loaded.set(true);
+        }
 
-      if (this._smiles()) {
-        this.updateKetcherMolfile(this._smiles())
-        setTimeout(() => this.loaded.set(true), 50)
-      } else {
-        this.loaded.set(true)
+        return;
       }
 
-      return
-    }
-
-    if (type === 'smiles') {
-      const s = typeof payload === 'string' ? payload : ''
-      // unica fonte di verità: qui pushiamo solo sul subject
-      this.smilesResponse$.next(s)
-      return
-    }
-  }
+      if (type === 'smiles') {
+        const s = typeof payload === 'string' ? payload : '';
+        this.smilesResponse$.next(s);
+        return;
+      }
+    });
+  };
 
   // API pubblica di comodo
   requestExportSmiles(): void {
     this.requestExportSmiles$('explicit')
       .pipe(take(1))
-      .subscribe()
+      .subscribe();
   }
 
   // richiesta SMILES a Ketcher
   private requestExportSmiles$(kind: 'explicit' | 'poll') {
     return defer(() => {
-
       if (!this.ketcherReady()) {
-        return of('')
+        return of('');
       }
 
-      this.postToKetcher({ type: 'getSmiles', payload: {} })
+      this.postToKetcher({ type: 'getSmiles', payload: {} });
 
       return this.smilesResponse$.pipe(
         take(1),
         timeout(3000),
-        tap(s => {
-          if (kind === 'explicit') {
-            this.exportSmiles.emit(s)
-          } else {
-            this.exportPolledSmiles.emit(s)
-            this.molChange.emit(s)
-          }
+        tap((s: string) => {
+          this.zone.run(() => {
+            if (kind === 'explicit') {
+              this.exportSmiles.emit(s);
+            } else {
+              this.exportPolledSmiles.emit(s);
+              this.molChange.emit(s);
+            }
+          });
         })
-      )
-    })
+      );
+    });
   }
 
   private async updateKetcherMolfile(smiles: string): Promise<void> {
-    const molfile = await this.smilesToMolfile(smiles)
+    const molfile = await this.smilesToMolfile(smiles);
     if (molfile) {
-      this.postToKetcher({ type: 'setMolecule', payload: molfile })
+      this.postToKetcher({ type: 'setMolecule', payload: molfile });
     }
   }
 
   private postToKetcher(message: any): void {
-    this.iframeRef?.nativeElement?.contentWindow?.postMessage(message, '*')
+    this.iframeRef?.nativeElement?.contentWindow?.postMessage(message, '*');
   }
 
   private async smilesToMolfile(smiles: string): Promise<string | undefined> {
-    const RDKit = await firstValueFrom(this.RDKit.instance$)
-    if (!RDKit) throw new Error('RDKit non inizializzato')
+    const RDKit = await firstValueFrom(this.RDKit.instance$);
+    if (!RDKit) throw new Error('RDKit non inizializzato');
 
-    const mol = RDKit.get_mol(smiles)
-    if (!mol) return undefined
+    const mol = RDKit.get_mol(smiles);
+    if (!mol) return undefined;
 
-    const molfile = mol.get_molblock()
-    mol.delete()
-    return molfile
+    const molfile = mol.get_molblock();
+    mol.delete();
+    return molfile;
   }
 
   resetMolecule(): void {
-    if (!this.initialSmiles) this.initialSmiles = ''
+    if (!this.initialSmiles) this.initialSmiles = '';
     if (this.ketcherReady()) {
-      this.updateKetcherMolfile(this.initialSmiles)
+      this.updateKetcherMolfile(this.initialSmiles);
     }
   }
 }

@@ -35,8 +35,7 @@ export class CustomMoleculeItemResolver {
     async findOneCustomMoleculeByCanonicalSmiles(
         @AuthenticatedUserId() userId: UUID,
         @Args('canonicalSmiles', { type: () => String }) cs: string,
-        @Info() info: GraphQLResolveInfo,
-        @Authorization() accessToken: string
+        @Info() info: GraphQLResolveInfo
     ): Promise<CustomMoleculeItemEntity | null> {
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.service.findOneByCanonicalSmiles(userId, cs, fieldsMap)

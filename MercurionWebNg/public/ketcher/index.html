@@ -21,10 +21,14 @@
   <div id="root"></div>
   <script>
     console.log('KETCHER IFRAME SCRIPT LOADED')
+
     let lastSmiles = ""
     let inFlight = false
     let dirty = true
     let ketcherReadySent = false
+
+    let listenersAttached = false
+    let listenersAbort = null
 
     function markDirty() {
       dirty = true
@@ -44,10 +48,7 @@
           dirty = false
 
           if (changed) {
-            window.parent.postMessage(
-              { type: "smiles", payload: lastSmiles },
-              "*"
-            )
+            window.parent.postMessage({ type: "smiles", payload: lastSmiles }, "*")
             console.log('IFRAME -> PARENT', { type: 'smiles', payload: lastSmiles })
           }
         }
@@ -62,16 +63,41 @@
       setInterval(() => {
         if (!window.ketcher) return
         if (dirty) refreshSmilesIfNeeded()
-      }, 700)
+      }, 80)
     }
 
-    function attachUserInteractionDirtyFlags() {
-      // qualsiasi interazione dell’utente dentro il frame -> dirty
-      document.addEventListener("pointerup", markDirty, true)
-      document.addEventListener("pointerdown", markDirty, true)
-      document.addEventListener("keyup", markDirty, true)
-      document.addEventListener("mouseup", markDirty, true)
-      document.addEventListener("touchend", markDirty, true)
+    function attachDirtyListenersOnce() {
+      if (listenersAttached) return
+      listenersAttached = true
+
+      listenersAbort = new AbortController()
+      const { signal } = listenersAbort
+
+      const handler = () => markDirty()
+
+      // tienili pochi e significativi
+      const events = [
+        "pointerup",
+        "pointerdown",
+        "keyup",
+        "input",
+        "paste",
+        "drop"
+      ]
+
+      events.forEach(ev => {
+        document.addEventListener(ev, handler, {
+          capture: true,
+          passive: true,
+          signal
+        })
+      })
+
+      // se il frame si scarica, abortisci tutto
+      window.addEventListener("beforeunload", () => {
+        listenersAbort.abort()
+        listenersAttached = false
+      }, { once: true })
     }
 
     function waitForKetcher() {
@@ -81,10 +107,8 @@
           ketcherReadySent = true
         }
 
-        attachUserInteractionDirtyFlags()
+        attachDirtyListenersOnce()
         startDirtyPolling()
-
-        // prima lettura iniziale
         refreshSmilesIfNeeded(true)
         return
       }
@@ -117,17 +141,14 @@
       if (type === "getSmiles") {
         try {
           if (dirty) await refreshSmilesIfNeeded(true)
-
-          window.parent.postMessage(
-            { type: "smiles", payload: lastSmiles },
-            "*"
-          )
+          window.parent.postMessage({ type: "smiles", payload: lastSmiles }, "*")
         } catch (err) {
           console.error("Errore in risposta getSmiles:", err)
         }
       }
     })
   </script>
+
 
 
 
