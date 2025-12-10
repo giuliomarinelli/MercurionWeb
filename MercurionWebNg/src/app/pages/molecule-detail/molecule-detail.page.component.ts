@@ -364,7 +364,9 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
             .pipe(
               tap(molregno => {
                 if (molregno) {
-                  this.router.navigateByUrl(`/molecules/detail/${molregno}`)
+                  const url = `/molecules/detail/${molregno}`
+                  sessionStorage.setItem('redirectAfterLogin', url)
+                  this.router.navigateByUrl(url)
                 }
               }),
               mergeMap(molregno => (molregno ? EMPTY : of(molId)))
