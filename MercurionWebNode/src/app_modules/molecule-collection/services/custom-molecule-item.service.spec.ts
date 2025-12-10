@@ -4,6 +4,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { CustomMoleculeItemEntity } from '../Models/entities/custom-molecule-item.entity';
 import { MoleculeCollection } from '../Models/entities/molecule-collection.entity';
 import { MoleculeCollectionItemJoinService } from './molecule-collection-item-join.service';
+import { RDKitService } from 'src/app_modules/mercurion-ai/services/rd-kit.service';
 
 describe('CustomMoleculeItemService', () => {
   let service: CustomMoleculeItemService;
@@ -14,7 +15,20 @@ describe('CustomMoleculeItemService', () => {
         CustomMoleculeItemService,
         {
           provide: MoleculeCollectionItemJoinService,
-          useValue: { add: jest.fn(), remove: jest.fn() },
+          useValue: {
+            add: jest.fn(),
+            remove: jest.fn(),
+            addMoleculeToCollectionWithManager: jest.fn(),
+            removeMoleculeFromCollection: jest.fn(),
+          },
+        },
+        {
+          provide: RDKitService,
+          useValue: {
+            getMoleculeProperties: jest.fn(),
+            toCanonicalSmiles: jest.fn(),
+            areSameStructure: jest.fn(),
+          },
         },
         {
           provide: getRepositoryToken(CustomMoleculeItemEntity),
