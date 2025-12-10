@@ -97,7 +97,7 @@ export type ChipItem = {
                         [molecule]="row.item"
                         [i]="i"
                         [value]="row.isChecked()"
-                        (valueChange)="row.isChecked.set($event)" />
+                        (valueChange)="row.isChecked.set($event); toggleOne(row)" />
                     }
                   </div>
                   <div #sentinel class="h-1 w-full"></div>
@@ -320,7 +320,7 @@ export class AddMoleculesToCollectionComponent extends AbstractPaginatedMultisel
         this.earlyDone = false
         this.empty.set(true)
         this.loading = false
-        this.lastBulkAction.set('none')
+        this.bulkIntent.set('none')
         this.step.set(1)
         this.chemblEmpty.set(true)
         this.chemblError.set(null)

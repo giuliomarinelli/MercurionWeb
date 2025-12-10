@@ -57,7 +57,7 @@ import { Router } from '@angular/router';
                   [collection]="row.item"
                   [i]="i"
                   [value]="row.isChecked()"
-                  (valueChange)="row.isChecked.set($event)"
+                  (valueChange)="row.isChecked.set($event); toggleOne(row)"
                 />
               }
             </div>
