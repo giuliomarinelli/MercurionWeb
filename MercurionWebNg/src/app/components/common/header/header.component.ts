@@ -422,7 +422,7 @@ import { environment } from '../../../../environments/environment.development';
       <div class="z-[999]">
         <!-- Header -->
         <button
-          class="group flex items-center w-full mb-2 pl-1 pr-6 py-4 gap-4 transition-colors duration-300 cursor-default border-b-slate-400/60 dark:border-slate-300 border-b-[0.5px]">
+          class="group flex items-center w-full mb-2 pl-3 pr-6 py-4 gap-4 transition-colors duration-300 cursor-default border-b-slate-400/60 dark:border-slate-300 border-b-[0.5px]">
           <ng-container [ngTemplateOutlet]="providerIcon" [ngTemplateOutletContext]="{ provider: providedEmail()?.provider }" />
           <span class="text-sm text-green-800 dark:text-dark-accent-primary font-medium truncate">
             {{ providedEmail()?.email }}
@@ -430,7 +430,7 @@ import { environment } from '../../../../environments/environment.development';
         </button>
         <!-- Profilo -->
         <a routerLink="/dashboard" (click)="closeAvatarMobileMenu(); closeOffCanvasMenu()"
-          class="group flex items-center w-full pl-1 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
+          class="group flex items-center w-full pl-3 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
           [ngClass]="{ 'bg-slate-200 dark:bg-slate-500': isAvatarMenuItemActive('/dashboard') }">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
             class="fill-current h-5 w-5 text-gray-600 dark:text-slate-200 ">
@@ -443,7 +443,7 @@ import { environment } from '../../../../environments/environment.development';
         </a>
         <!-- Impostazioni -->
         <a (click)="closeAvatarMobileMenu(); closeOffCanvasMenu()" routerLink="/settings"
-          class="group flex items-center w-full pl-1 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
+          class="group flex items-center w-full pl-3 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
           [ngClass]="{ 'bg-slate-200 dark:bg-slate-500': isAvatarMenuItemActive('/settings') }">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
             class="fill-current h-5 w-5 text-gray-600 dark:text-slate-200 ">
@@ -456,7 +456,7 @@ import { environment } from '../../../../environments/environment.development';
         <!-- Assistenza -->
         <a (click)="closeAvatarMobileMenu(); closeOffCanvasMenu()"
           routerLink="/help"
-          class="group flex items-center w-full pl-1 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
+          class="group flex items-center w-full pl-3 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
           [ngClass]="{ 'bg-slate-200 dark:bg-slate-500': isAvatarMenuItemActive('/help') }">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
             class="fill-current h-5 w-5 text-gray-600 dark:text-slate-200 ">
@@ -468,7 +468,7 @@ import { environment } from '../../../../environments/environment.development';
         </a>
         <!-- Feedback -->
         <button (click)="closeAvatarMobileMenu(); closeOffCanvasMenu()"
-          class="group flex items-center w-full mb-2 pl-1 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
+          class="group flex items-center w-full mb-2 pl-3 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
           [ngClass]="{ 'bg-slate-200 dark:bg-slate-500': isAvatarMenuItemActive('/feedback') }">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
             class="fill-current h-5 w-5 text-gray-600 dark:text-slate-200">
@@ -483,7 +483,7 @@ import { environment } from '../../../../environments/environment.development';
         </div>
         <!-- Esci -->
         <button (click)="logout(); closeAvatarMobileMenu(); closeOffCanvasMenu()"
-          class="group flex items-center w-full my-1 pl-1 pr-6 py-3 gap-4 hover:bg-slate-300/50 transition-colors duration-300 dark:hover:bg-slate-300/30">
+          class="group flex items-center w-full my-1 pl-3 pr-6 py-3 gap-4 hover:bg-slate-300/50 transition-colors duration-300 dark:hover:bg-slate-300/30">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
             class="fill-current h-5 w-5 text-gray-600 dark:text-slate-200">
             <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
