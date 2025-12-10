@@ -111,6 +111,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
             case 'UserRegistrationConflict::Email already exists':
             case 'ChangeEmail::NewEmailIsCurrentEmail':
             case 'ChangePhone::NumberAlreadySet':
+            case 'Conflict::Smiles already exist':
                 statusCode = HttpStatus.CONFLICT
                 break
 
