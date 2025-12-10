@@ -135,12 +135,15 @@ export abstract class AbstractPaginatedMultiselectComponent<T> extends AbstractP
       this.done = true
       this.earlyDone = true
       this.loading = false
+      this.cdr.markForCheck()
       return
     }
 
     if (this.empty()) this.empty.set(false)
 
     this.items = [...this.items, ...newPage.items]
+    this.items = Array.from(new Set(this.items))
+    this.cdr.markForCheck()
     this.page++
 
     const wrapped: AbstractMultiselectItem<T>[] = newPage.items.map(item => {
