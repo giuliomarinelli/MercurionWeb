@@ -1,4 +1,4 @@
-import { BASE_PATH } from './../pipes/base-path.token';
+import { BASE_PATH } from '../pipes/base-path.token';
 import { Injectable, inject } from '@angular/core';
 import { defer, firstValueFrom, from, of } from 'rxjs';
 import { shareReplay } from 'rxjs/operators';
@@ -29,16 +29,16 @@ export class RDKitService {
 
   async getMoleculeProperties(smiles: string): Promise<MoleculeProperties> {
     const RDKit = await firstValueFrom(this.instance$);
-    const mol = RDKit.get_mol(smiles, '{"sanitize":true,"removeHs":true}');
-    if (!mol?.is_valid()) throw new Error('SMILES non valida');
+    const mol = RDKit.get_mol(smiles, '{"sanitize":true,"removeHs":true}')
+    if (!mol?.is_valid()) throw new Error('SMILES non valida')
 
     const d = JSON.parse(mol.get_descriptors());
 
     // 🔑  parse numeri da stringa, scartando solo NaN/∞
     const toNum = (v: unknown) => {
       const n = Number(v);
-      return Number.isFinite(n) ? n : null;
-    };
+      return Number.isFinite(n) ? n : null
+    }
 
     const props: MoleculeProperties = {
       mwFreebase: toNum(d.amw ?? d.exactmw),   // peso molecolare
@@ -47,11 +47,10 @@ export class RDKitService {
       hbd: toNum(d.NumHBD),             // H‑bond donors
       psa: toNum(d.tpsa),               // Polar Surface Area
       rtb: toNum(d.NumRotatableBonds)   // rotori liberi
-    };
-    console.log('RDKit props prima del JSON.stringify:', props);
+    }
 
-    mol.delete();
-    return props;
+    mol.delete()
+    return props
   }
 
 

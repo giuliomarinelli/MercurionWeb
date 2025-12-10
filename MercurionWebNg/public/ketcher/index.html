@@ -1,73 +1,136 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Ketcher is a web-based chemical structure editor"
-    />
-    <link rel="shortcut icon" type="image/x-icon" href="./favicon.ico" />
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="32x32"
-      href="./favicon-32x32.png"
-    />
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="16x16"
-      href="./favicon-16x16.png"
-    />
-    <link
-      rel="apple-touch-icon"
-      sizes="180x180"
-      href="./apple-touch-icon.png"
-    />
-    <link rel="manifest" href="./manifest.json" />
-    <title>Ketcher v3.2.0</title>
-    <script defer="defer" src="./static/js/main.7d7d7a03.js"></script>
-    <link href="./static/css/main.aafe9c71.css" rel="stylesheet" />
-  </head>
-  <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
-    <script>
-      function waitForKetcher() {
-        if (window.ketcher) {
-          window.parent.postMessage({ type: "ketcherReady" }, "*");
-        } else {
-          setTimeout(waitForKetcher, 100); // Poll ogni 100ms
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="description" content="Ketcher is a web-based chemical structure editor" />
+  <link rel="shortcut icon" type="image/x-icon" href="./favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png" />
+  <link rel="manifest" href="./manifest.json" />
+  <title>Ketcher v3.2.0</title>
+  <script defer="defer" src="./static/js/main.7d7d7a03.js"></script>
+  <link href="./static/css/main.aafe9c71.css" rel="stylesheet" />
+</head>
+
+<body>
+  <noscript>You need to enable JavaScript to run this app.</noscript>
+  <div id="root"></div>
+  <script>
+    console.log('KETCHER IFRAME SCRIPT LOADED')
+    let lastSmiles = ""
+    let inFlight = false
+    let dirty = true
+    let ketcherReadySent = false
+
+    function markDirty() {
+      dirty = true
+    }
+
+    async function refreshSmilesIfNeeded(force = false) {
+      if (!window.ketcher) return
+      if (inFlight) return
+      if (!force && !dirty) return
+
+      inFlight = true
+      try {
+        const smiles = await window.ketcher.getSmiles()
+        if (typeof smiles === "string") {
+          const changed = smiles !== lastSmiles
+          lastSmiles = smiles
+          dirty = false
+
+          if (changed) {
+            window.parent.postMessage(
+              { type: "smiles", payload: lastSmiles },
+              "*"
+            )
+            console.log('IFRAME -> PARENT', { type: 'smiles', payload: lastSmiles })
+          }
+        }
+      } catch (err) {
+        console.error("Errore ottenendo SMILES:", err)
+      } finally {
+        inFlight = false
+      }
+    }
+
+    function startDirtyPolling() {
+      setInterval(() => {
+        if (!window.ketcher) return
+        if (dirty) refreshSmilesIfNeeded()
+      }, 700)
+    }
+
+    function attachUserInteractionDirtyFlags() {
+      // qualsiasi interazione dell’utente dentro il frame -> dirty
+      document.addEventListener("pointerup", markDirty, true)
+      document.addEventListener("pointerdown", markDirty, true)
+      document.addEventListener("keyup", markDirty, true)
+      document.addEventListener("mouseup", markDirty, true)
+      document.addEventListener("touchend", markDirty, true)
+    }
+
+    function waitForKetcher() {
+      if (window.ketcher) {
+        if (!ketcherReadySent) {
+          window.parent.postMessage({ type: "ketcherReady" }, "*")
+          ketcherReadySent = true
+        }
+
+        attachUserInteractionDirtyFlags()
+        startDirtyPolling()
+
+        // prima lettura iniziale
+        refreshSmilesIfNeeded(true)
+        return
+      }
+
+      setTimeout(waitForKetcher, 100)
+    }
+
+    waitForKetcher()
+
+    window.addEventListener("message", async function (event) {
+      if (!event.data) return
+      const { type, payload } = event.data
+
+      if (!window.ketcher) {
+        console.warn("Ketcher non ancora pronto per ricevere messaggi")
+        return
+      }
+
+      if (type === "setMolecule") {
+        try {
+          await window.ketcher.setMolecule(payload)
+          markDirty()
+          refreshSmilesIfNeeded(true)
+          window.parent.postMessage({ type: "moleculeSet" }, "*")
+        } catch (err) {
+          console.error("Errore caricando la molecola:", err)
         }
       }
-      waitForKetcher();
-      window.addEventListener("message", async function (event) {
-        // console.log("Ketcher RICEVE:", event.data)
-        if (!event.data) return;
-        const { type, payload } = event.data;
-        if (!window.ketcher) {
-          console.warn("Ketcher non ancora pronto per ricevere messaggi");
-          return;
+
+      if (type === "getSmiles") {
+        try {
+          if (dirty) await refreshSmilesIfNeeded(true)
+
+          window.parent.postMessage(
+            { type: "smiles", payload: lastSmiles },
+            "*"
+          )
+        } catch (err) {
+          console.error("Errore in risposta getSmiles:", err)
         }
-        if (type === "setMolecule") {
-          try {
-            await window.ketcher.setMolecule(payload);
-            window.parent.postMessage({ type: "moleculeSet" }, "*");
-          } catch (err) {
-            console.error("Errore caricando la molecola:", err);
-          }
-        }
-        if (type === "getSmiles") {
-          try {
-            const smiles = await window.ketcher.getSmiles();
-            window.parent.postMessage({ type: "smiles", payload: smiles }, "*");
-          } catch (err) {
-            console.error("Errore ottenendo SMILES:", err);
-          }
-        }
-      });
-    </script>
-  </body>
+      }
+    })
+  </script>
+
+
+
+</body>
+
 </html>

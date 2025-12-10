@@ -3,8 +3,8 @@ import { NormalizedMoleculeCollectionBasicData } from './../../Models/graphql/mo
 import { PageModel } from '../../Models/graphql/page.models';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Apollo } from 'apollo-angular';
-import { Observable } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { Observable, of, throwError } from 'rxjs';
+import { catchError, map, tap } from 'rxjs/operators';
 
 import {
   MoleculeCollectionItemClient,
@@ -243,7 +243,7 @@ export class MoleculeCollectionItemService {
       )
   }
 
-  findOneCustomMoleculeByCanonicalSmiles(canonicalSmiles: string): Observable<CustomMoleculeItemEntity | null> {
+  findOneCustomMoleculeByCanonicalSmiles_shortFetch(canonicalSmiles: string): Observable<CustomMoleculeItemEntity | null> {
     return this.apollo
       .watchQuery<{ findOneCustomMoleculeByCanonicalSmiles: CustomMoleculeItemEntity | null }>({
         query: FIND_ONE_CUSTOM_MOLECULE_BY_CS_SHORT_FETCH,
@@ -253,8 +253,16 @@ export class MoleculeCollectionItemService {
         fetchPolicy: 'network-only'
       }).valueChanges.pipe(
         map((res) => extractGqlData(res, 'FIND_ONE_CUSTOM_MOLECULE_BY_CS_SHORT_FETCH', true)),
+        catchError((e) => {
+          if ((e as Error).message === 'GqlError::NoData') {
+            return of(null)
+          }
+          return throwError(() => e)
+        })
       )
   }
+
+
 
   addManyChEMBLItemsToCollection(collectionId: string, input: AddManyChEMBLItemDTO[]): Observable<boolean> {
     return this.apollo

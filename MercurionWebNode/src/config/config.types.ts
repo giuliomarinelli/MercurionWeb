@@ -20,6 +20,7 @@ export interface AppConfiguration {
     version: string
     deviceIdSignatureSecret: string
     supportEmail: string
+    maxNatsPayloadBytes: number
 }
 
 export interface DataConfiguration {

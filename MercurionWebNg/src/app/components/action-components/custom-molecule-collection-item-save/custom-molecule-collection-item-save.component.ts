@@ -6,7 +6,7 @@ import { ActionOverlayContextService } from '../../../services/context/action-co
 import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
 import { MoleculeJoinService } from '../../../services/graphql/molecule-collection-join.service';
 import { ToastService } from '../../../services/toast.service';
-import { RDKitService } from '../../../services/rd-kit-loader.service';
+import { RDKitService } from '../../../services/rd-kit.service';
 import { Router } from '@angular/router';
 import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
 import { FormsModule } from '@angular/forms';

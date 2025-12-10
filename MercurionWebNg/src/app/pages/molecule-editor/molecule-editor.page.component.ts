@@ -2,11 +2,11 @@ import { CustomMoleculeCollectionItemSaveContextService } from './../../services
 import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { KetcherFrameComponent, KetcherFrameMode } from '../../components/chem/ketcher-frame/ketcher-frame.component';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { catchError, debounceTime, defer, distinctUntilChanged, EMPTY, filter, from, of, Subject, Subscription, switchMap, takeUntil } from 'rxjs';
 import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service';
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
 import { ToastService } from '../../services/toast.service';
-import { RDKitService } from '../../services/rd-kit-loader.service';
+import { RDKitService } from '../../services/rd-kit.service';
 
 @Component({
   selector: 'm-molecule-editor',
@@ -59,22 +59,26 @@ import { RDKitService } from '../../services/rd-kit-loader.service';
 export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
 
   // ======================= DEPS =======================
-  private readonly route = inject(ActivatedRoute);
-  private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService);
-  private readonly overlayContext = inject(ActionOverlayContextService);
+  private readonly route = inject(ActivatedRoute)
+  private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService)
+  private readonly overlayContext = inject(ActionOverlayContextService)
   private readonly saveContext = inject(CustomMoleculeCollectionItemSaveContextService)
-  private readonly toast = inject(ToastService);
-  private readonly router = inject(Router);
-  private readonly RDKit = inject(RDKitService);
+  private readonly toast = inject(ToastService)
+  private readonly router = inject(Router)
+  private readonly RDKit = inject(RDKitService)
   // ====================================================
 
-  private routeSub?: Subscription;
-  private smilesByIdSub?: Subscription;
-  private molEdSub?: Subscription;
+  private routeSub?: Subscription
+  private smilesByIdSub?: Subscription
+  private molEdSub?: Subscription
+  private molDupSub?: Subscription
+
+  private polledSmiles$ = new Subject<string>()
+  private destroy$ = new Subject<void>()
 
   mode = signal<KetcherFrameMode>('edit');
   smiles = signal<string>('');
-  checkSmiles = signal<string>('174dd9b9-661a-4231-b7af-57e0109e2af8')
+
   mId = signal<string | undefined>(undefined);
   error = signal<boolean>(false);
   triggerReset = signal<boolean>(false);
@@ -87,24 +91,25 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   }
 
   onSaveAsNew(): void {
-    this.pendingAction.set('saveNew');
-    this.triggerGetSmiles.set(true);
+    this.pendingAction.set('saveNew')
+    this.triggerGetSmiles.set(true)
   }
 
-  onSmilesPollExported(e: string): void {
-    this.checkSmiles.set(e);
-    console.log(e);
-    // qui puoi fare il check live di duplicati/collisioni
+  onSmilesPollExported(smiles: string) {
+    this.polledSmiles$.next(smiles)
   }
 
   // Quando le SMILES sono arrivate su richiesta esplicita (salvataggio)
-  onSmilesExported(e: string) {
-    this.triggerGetSmiles.set(false);
+  async onSmilesExported(smiles: string) {
+
+    this.triggerGetSmiles.set(false)
+
+    smiles = await this.RDKit.toCanonicalSmiles(smiles)
 
     if (this.pendingAction() === 'saveNew') {
-      this.doSaveNew(e);
+      this.doSaveNew(smiles)
     } else if (this.pendingAction() === 'save') {
-      this.doSaveEdit(e);
+      this.doSaveEdit(smiles)
     }
     this.pendingAction.set(null);
   }
@@ -125,12 +130,12 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
     this.molEdSub = this.moleculeCollectionItemService
       .updateItemCanonicalSmiles(this.mId()!, smiles, 'custom', JSON.stringify(await this.RDKit.getMoleculeProperties(smiles)))
       .subscribe({
-        next: res => {
-          this.toast.trigger('Struttura modificata correttamente', 'success', 2000);
+        next: (res) => {
+          this.toast.trigger('Struttura modificata correttamente', 'success', 2000)
           this.router.navigateByUrl(`/molecules/detail/${res!.id}`);
         },
         error: () => this.toast.trigger('Si è verificato un errore', 'success', 2000)
-      });
+      })
   }
 
   onReset(): void {
@@ -168,12 +173,36 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
       } else {
         this.error.set(true);
       }
-    });
+    })
+
+    this.molDupSub = this.polledSmiles$
+      .pipe(
+        takeUntil(this.destroy$),
+        debounceTime(700),
+        distinctUntilChanged(),
+        filter(s => !!s && s.trim().length > 0),
+        switchMap((smiles) =>
+          this.moleculeCollectionItemService
+            .findOneCustomMoleculeByCanonicalSmiles_shortFetch(smiles)
+            .pipe(catchError((e) => {
+              console.error('RDKit canonical error', e)
+              this.toast.trigger('Errore RDKit nella canonicalizzazione', 'error', 2500)
+              return EMPTY
+            }))
+        )
+      )
+      .subscribe(res => {
+        console.log('res', res)
+
+      })
   }
 
   ngOnDestroy(): void {
-    this.routeSub?.unsubscribe();
-    this.smilesByIdSub?.unsubscribe();
-    this.molEdSub?.unsubscribe();
+    this.routeSub?.unsubscribe()
+    this.smilesByIdSub?.unsubscribe()
+    this.molEdSub?.unsubscribe()
+    this.molDupSub?.unsubscribe()
+    this.destroy$.next()
+    this.destroy$.complete()
   }
 }

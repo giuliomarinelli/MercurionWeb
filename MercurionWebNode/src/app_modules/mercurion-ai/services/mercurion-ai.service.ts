@@ -1,7 +1,7 @@
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
-import { MercurionInferReqDTO } from '../Models/DTO/mercurion-infer-req.dto';
-import { MercurionInferDataDTO, MercurionInferResDTO } from '../Models/DTO/mercurion-infer-res.dto';
+import { MercurionInferReqDTO } from '../Models/DTO/mt21/mercurion-infer-req.dto';
+import { MercurionInferDataDTO, MercurionInferResDTO } from '../Models/DTO/mt21/mercurion-infer-res.dto';
 import { catchError, firstValueFrom, throwError, timeout, TimeoutError } from 'rxjs';
 import { ConfigService } from '@nestjs/config';
 import { Environment } from 'src/config/config';
@@ -11,7 +11,7 @@ import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interface
 @Injectable()
 export class MercurionAIService implements OnModuleInit {
 
-    private readonly MAX_NATS_PAYLOAD_BYTES = 4 * 1024
+    private readonly MAX_NATS_PAYLOAD_BYTES: number
 
     private readonly logger: MeiliContextLogger
 
@@ -29,10 +29,11 @@ export class MercurionAIService implements OnModuleInit {
             namespace = `${env}.${namespace}`
         }
         this.namespace = namespace
+        this.MAX_NATS_PAYLOAD_BYTES = this.configService.get<number>('App.maxNatsPayloadBytes')!
     }
 
     onModuleInit(): void {
-        this.logger.log(`MercurionWebNode connected via NATS to MercurionTox21,\n  => NATS namespace = \x1b[36m${this.namespace}`)
+        this.logger.log(`MercurionWebNode connected via NATS to MercurionTox21 > inference,\n  => NATS namespace = \x1b[36m${this.namespace}`)
     }
 
     private isValidInferencePayload(res: MercurionInferResDTO): boolean {

@@ -257,7 +257,6 @@ export const FIND_ONE_CUSTOM_MOLECULE_BY_CS_SHORT_FETCH = gql`
           name
       }
   }
-
 `
 
 export const ADD_MANY_CHEMBL_ITEMS_TO_COLLECTION = gql`

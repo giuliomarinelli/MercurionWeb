@@ -8,6 +8,8 @@ import { AuthModule } from '../auth/auth.module';
 import { UserModule } from '../user/user.module';
 import { RedisModule } from '../redis/redis.module';
 import { MeilisearchModule } from '../meilisearch/meilisearch.module';
+import { RDKitService } from './services/rd-kit.service';
+import { RdKitController } from './controllers/rd-kit.controller';
 
 
 @Module({
@@ -31,7 +33,7 @@ import { MeilisearchModule } from '../meilisearch/meilisearch.module';
         RedisModule,
         MeilisearchModule
     ],
-    providers: [MercurionAIService, JwtToolsService],
-    controllers: [MercurionAIController]
+    providers: [MercurionAIService, JwtToolsService, RDKitService],
+    controllers: [MercurionAIController, RdKitController]
 })
 export class MercurionAIModule { }
