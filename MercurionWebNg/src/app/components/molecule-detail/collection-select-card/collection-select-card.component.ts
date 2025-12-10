@@ -23,13 +23,14 @@ import { CollectionCardComponent } from '../collection-card/collection-card.comp
 
       <div class="min-w-0">
         @if (_isSelectAll()) {
-          <span class="block w-full select-none font-semibold ml-[2px]">SELEZIONA TUTTI</span>
+          <span class="block w-full select-none font-semibold ml-[2px]" (click)="toggleSelectAll()">SELEZIONA TUTTI</span>
         } @else {
           <m-collection-card
             class="block w-full"
             [collection]="_collection()!"
             [i]="_i()"
-            [isReadonly]="true" />
+            [isReadonly]="true"
+            (click)="toggleValue()" />
         }
       </div>
     </div>
@@ -85,6 +86,14 @@ export class CollectionSelectCardComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.coSub?.unsubscribe()
+  }
+
+  toggleSelectAll(): void {
+    this.control.setValue(!this.control.value)
+  }
+
+  toggleValue(): void {
+    this.control.setValue(!this.control.value)
   }
 
 

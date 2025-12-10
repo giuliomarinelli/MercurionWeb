@@ -38,23 +38,26 @@ import { Router } from '@angular/router';
             <m-search-input
               class="block"
               [value]="searchTerm()"
+              [placeholder]="'Cerca una collezione...'"
               (valueChange)="doQuery($event)"
               (submitted)="doQuery($event)"
               (cleared)="doClear()"
             />
             <div class="mt-6">
-              <m-collection-select-card class="block mb-6"
-                [isSelectAll]="true"
-                [value]="isSelectedAll()"
-                [indeterminate]="isPartiallySelected()"
-                (selectedAll)="onSelectAllChange($event)"
-              />
+              @if (multiselectItems().length !== 0) {
+                <m-collection-select-card class="block mb-6"
+                  [isSelectAll]="true"
+                  [value]="isSelectedAll()"
+                  [indeterminate]="isPartiallySelected()"
+                  (selectedAll)="onSelectAllChange($event)"
+                />
+              }
               @for (row of multiselectItems(); track row.item.id; let i = $index) {
                 <m-collection-select-card
                   [collection]="row.item"
                   [i]="i"
                   [value]="row.isChecked()"
-                  (valueChange)="row.isChecked.set($event)"
+                  (valueChange)="row.isChecked.set($event); toggleOne(row)"
                 />
               }
             </div>
@@ -72,7 +75,7 @@ import { Router } from '@angular/router';
                 </div>
               }
             } @else if (empty() && (earlyDone || done)) {
-              <p class="text-slate-700 dark:text-slate-200 py-6">Nessuna molecola.</p>
+              <p class="text-slate-700 dark:text-slate-200 py-6">Nessuna collezione.</p>
             }
           </div>
         }
@@ -89,7 +92,7 @@ import { Router } from '@angular/router';
       @if (step() === 1) {
         <button
           type="button"
-          class="px-4 py-2 rounded bg-slate-200 text-light-on-surface-main dark:bg-slate-100 dark:text-neutral-950 hover:bg-gray-300"
+          class="px-4 py-2 rounded bg-slate-200 text-light-on-surface-main dark:bg-slate-100 dark:text-neutral-950 hover:bg-gray-300 transition-colors duration-300"
           (click)="close()"
         >
           Annulla
@@ -97,7 +100,7 @@ import { Router } from '@angular/router';
       }
       <button
         type="submit"
-        class="relative inline-flex items-center justify-center px-4 py-2 rounded bg-emerald-600 text-white font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed"
+        class="relative inline-flex items-center justify-center px-4 py-2 rounded bg-emerald-600 text-white font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed transition-colors duration-300"
         [disabled]="(isSelectedNothing() || step_12_loading())"
         (click)="step() === 1 ? doSubmit() : close()"
         [attr.aria-busy]="step_12_loading()"
@@ -204,7 +207,7 @@ export class BindCollectionsToMoleculeComponent extends AbstractPaginatedMultise
       if (this.isSelectedAll()) {
         collectionIds = this.multiselectItems().filter(w => !w.isChecked()).map(w => w.item.id)
       } else {
-        collectionIds = this.multiselectItems().filter(w => w.isChecked()).map(w => w.item.id)
+        collectionIds = Array.from(this.selectedIdSet())
       }
       this.suSub = this.moleculeCollectionService
         .bindManyCollectionsToMolecule(this.bindContext.moleculeId()!, collectionIds, this.isSelectedAll())

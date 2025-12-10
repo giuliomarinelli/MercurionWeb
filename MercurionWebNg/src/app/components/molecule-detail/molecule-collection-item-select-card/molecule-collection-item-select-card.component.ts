@@ -32,13 +32,14 @@ import { MoleculeCardItemModel } from '../../../Models/graphql/molecule-collecti
       <!-- colonna 2: card occupa tutto -->
       <div class="min-w-0">
         @if (_isSelectAll()) {
-          <span class="block w-full select-none font-semibold ml-[2px]">SELEZIONA TUTTI</span>
+          <span class="block w-full select-none font-semibold ml-[2px]" (click)="toggleSelectAll()">SELEZIONA TUTTI</span>
         } @else {
           <m-molecule-collection-item-card
             class="block w-full"
             [molecule]="_molecule()!"
             [i]="_i()"
-            [isReadonly]="true" />
+            [isReadonly]="true"
+            (click)="toggleValue()" />
         }
       </div>
     </div>
@@ -46,6 +47,7 @@ import { MoleculeCardItemModel } from '../../../Models/graphql/molecule-collecti
   `
 })
 export class MoleculeCollectionItemSelectCardComponent implements OnInit, OnDestroy {
+
   private coSub?: Subscription;
 
   @Input() indeterminate = false;                // per lo stato parziale
@@ -56,12 +58,11 @@ export class MoleculeCollectionItemSelectCardComponent implements OnInit, OnDest
   @Output() selectedAll = new EventEmitter<boolean>();
 
   control = new FormControl(false, { nonNullable: true });
-  value = model<boolean>(false);                 // model input per [(value)]
+  value = model<boolean>(false)                 // model input per [(value)]
 
   _molecule = signal<MoleculeCardItemModel | null>(null);
   _i = signal<number>(-1);
   _isSelectAll = signal<boolean>(false);
-
 
   // sync IN: padre -> formcontrol (senza loop)
   syncIn = effect(() => {
@@ -75,11 +76,23 @@ export class MoleculeCollectionItemSelectCardComponent implements OnInit, OnDest
     // sync OUT: formcontrol -> model (e, se select-all, notifica il padre)
     this.coSub = this.control.valueChanges.subscribe(val => {
       this.value.set(val);
-      if (this._isSelectAll()) this.selectedAll.emit(val);
-    });
+      if (this._isSelectAll()) {
+        this.selectedAll.emit(val)
+      }
+    })
   }
 
   ngOnDestroy(): void {
     this.coSub?.unsubscribe();
   }
+
+  toggleSelectAll(): void {
+    // Mirror checkbox behaviour when clicking the label text
+    this.control.setValue(!this.control.value);
+  }
+
+  toggleValue(): void {
+    this.control.setValue(!this.control.value);
+  }
+
 }

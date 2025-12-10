@@ -208,7 +208,7 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
   private readonly overlayContext = inject(ActionOverlayContextService)
   private readonly helpService = inject(HelpService)
   protected readonly typeGuards = inject(TypeGuardsService)
-  private readonly cdr = inject(ChangeDetectorRef)
+  protected readonly cdr = inject(ChangeDetectorRef)
   private readonly appCtx = inject(AppContextService)
   private firstMessageSet = signal<boolean>(false)
 
