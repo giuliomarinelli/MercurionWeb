@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, inject, signal, effect, ChangeDetectionStrategy } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, inject, signal, effect, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { AbstractPaginatedMultiselectComponent } from '../../../abstract/abstract-paginated-multiselect-component';
 import { debounceTime, map, Observable } from 'rxjs';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
@@ -18,6 +18,7 @@ import { SearchResultComponent } from '../../search-overlay/search-result/search
 import { AddManyChEMBLItemDTO } from '../../../Models/graphql/add-many-chembl-item.dto';
 import { AddMoleculesToCollectionContextService } from '../../../services/context/action-context/add-molecules-to-collection-context.service';
 import { Subscription } from 'rxjs';
+import { CloseButtonComponent } from '../../common/close-button/close-button.component';
 
 export type ChipItem = {
   id: string
@@ -36,14 +37,15 @@ export type ChipItem = {
     ReactiveFormsModule,
     SearchInputComponent,
     SearchResultSkeletonLoaderComponent,
-    SearchResultComponent
+    SearchResultComponent,
+    CloseButtonComponent
   ],
   template: `
 <div class="flex justify-center items-center min-h-screen px-2">
   <div class="w-full max-w-5xl bg-white dark:bg-dark-surface-main rounded-xl shadow-lg">
     <div class="flex items-center justify-between px-4 py-4 border-b border-b-slate-400 sticky top-0 z-50 rounded-t-xl bg-white dark:bg-dark-surface-main">
       <h2 class="text-lg font-semibold">Aggiungi molecole alla collezione</h2>
-      <button class="text-2xl hover:text-emerald-600" (click)="close()">&times;</button>
+      <m-close-button [action]="close.bind(this)" />
     </div>
     <div class="mx-auto">
       <div class="mt-6 space-y-6 sm:flex sm:items-center sm:space-x-10 sm:space-y-0 px-6 pb-6 border-b border-spacing-y-[0.3px]">
@@ -75,7 +77,6 @@ export type ChipItem = {
               @case (1) {
                 <div class="px-3">
                   <h2 class="font-semibold mb-3">Scegli le molecole da aggiungere alla collezione:</h2>
-
                   <m-search-input
                     class="block"
                     [value]="searchTerm()"
@@ -84,20 +85,19 @@ export type ChipItem = {
                     (cleared)="doClear()"
                   />
                   <div class="mt-6">
-                    <m-molecule-collection-item-select-card class="block mb-6"
-                      [isSelectAll]="true"
-                      [value]="isSelectedAll()"
-                      [indeterminate]="isPartiallySelected()"
-                      (selectedAll)="onSelectAllChange($event)"
-                    />
-
+                    @if (multiselectItems().length !== 0) {
+                      <m-molecule-collection-item-select-card class="block mb-6"
+                        [isSelectAll]="true"
+                        [value]="isSelectedAll()"
+                        [indeterminate]="isPartiallySelected()"
+                        (selectedAll)="onSelectAllChange($event)" />
+                    }
                     @for (row of multiselectItems(); track row.item.id; let i = $index) {
                       <m-molecule-collection-item-select-card
                         [molecule]="row.item"
                         [i]="i"
                         [value]="row.isChecked()"
-                        (valueChange)="row.isChecked.set($event)"
-                      />
+                        (valueChange)="row.isChecked.set($event)" />
                     }
                   </div>
                   <div #sentinel class="h-1 w-full"></div>
@@ -114,7 +114,7 @@ export type ChipItem = {
                       </div>
                     }
                   } @else if (empty() && (earlyDone || done)) {
-                    <p class="text-slate-700 dark:text-slate-200 py-6">Nessuna molecola.</p>
+                    <p class="text-slate-700 dark:text-slate-200 py-6">Nessuna molecola disponibile tra <em>Le mie molecole</em>.</p>
                   }
                 </div>
               }
@@ -309,8 +309,18 @@ export class AddMoleculesToCollectionComponent extends AbstractPaginatedMultisel
           this.resetPagination()
           this.startObserver()
           this.loadMore()
+          this.cdr.markForCheck()
         })
       } else if (this.method() === 'chembl') {
+        this.clearSelections()
+        this.clearChips()
+        this.multiselectItems.set([])
+        this.items = []
+        this.done = false
+        this.earlyDone = false
+        this.empty.set(true)
+        this.loading = false
+        this.lastBulkAction.set('none')
         this.step.set(1)
         this.chemblEmpty.set(true)
         this.chemblError.set(null)
@@ -381,7 +391,7 @@ export class AddMoleculesToCollectionComponent extends AbstractPaginatedMultisel
       if (this.isSelectedAll()) {
         itemIds = this.multiselectItems().filter(w => !w.isChecked()).map(w => w.item.id);
       } else {
-        itemIds = this.multiselectItems().filter(w => w.isChecked()).map(w => w.item.id);
+        itemIds = Array.from(this.selectedIdSet());
       }
 
       this.suSub1 = this.moleculeCollectionItemService

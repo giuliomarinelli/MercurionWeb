@@ -38,17 +38,20 @@ import { Router } from '@angular/router';
             <m-search-input
               class="block"
               [value]="searchTerm()"
+              [placeholder]="'Cerca una collezione...'"
               (valueChange)="doQuery($event)"
               (submitted)="doQuery($event)"
               (cleared)="doClear()"
             />
             <div class="mt-6">
-              <m-collection-select-card class="block mb-6"
-                [isSelectAll]="true"
-                [value]="isSelectedAll()"
-                [indeterminate]="isPartiallySelected()"
-                (selectedAll)="onSelectAllChange($event)"
-              />
+              @if (multiselectItems().length !== 0) {
+                <m-collection-select-card class="block mb-6"
+                  [isSelectAll]="true"
+                  [value]="isSelectedAll()"
+                  [indeterminate]="isPartiallySelected()"
+                  (selectedAll)="onSelectAllChange($event)"
+                />
+              }
               @for (row of multiselectItems(); track row.item.id; let i = $index) {
                 <m-collection-select-card
                   [collection]="row.item"
@@ -72,7 +75,7 @@ import { Router } from '@angular/router';
                 </div>
               }
             } @else if (empty() && (earlyDone || done)) {
-              <p class="text-slate-700 dark:text-slate-200 py-6">Nessuna molecola.</p>
+              <p class="text-slate-700 dark:text-slate-200 py-6">Nessuna collezione.</p>
             }
           </div>
         }
@@ -204,7 +207,7 @@ export class BindCollectionsToMoleculeComponent extends AbstractPaginatedMultise
       if (this.isSelectedAll()) {
         collectionIds = this.multiselectItems().filter(w => !w.isChecked()).map(w => w.item.id)
       } else {
-        collectionIds = this.multiselectItems().filter(w => w.isChecked()).map(w => w.item.id)
+        collectionIds = Array.from(this.selectedIdSet())
       }
       this.suSub = this.moleculeCollectionService
         .bindManyCollectionsToMolecule(this.bindContext.moleculeId()!, collectionIds, this.isSelectedAll())
