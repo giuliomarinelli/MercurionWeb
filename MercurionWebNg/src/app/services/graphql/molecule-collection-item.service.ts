@@ -252,8 +252,9 @@ export class MoleculeCollectionItemService {
         },
         fetchPolicy: 'network-only'
       }).valueChanges.pipe(
-        map((res) => extractGqlData(res, 'FIND_ONE_CUSTOM_MOLECULE_BY_CS_SHORT_FETCH', true)),
+        map((res) => extractGqlData(res, 'findOneCustomMoleculeByCanonicalSmiles', true)),
         catchError((e) => {
+          debugger
           if ((e as Error).message === 'GqlError::NoData') {
             return of(null)
           }

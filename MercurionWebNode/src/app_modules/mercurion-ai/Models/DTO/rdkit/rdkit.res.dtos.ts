@@ -18,3 +18,18 @@ export type RdkitToCanonicalSmilesResponse =
 export type RdkitAreSameStructureResponse =
   | boolean
   | { error: string }
+
+export interface RdkitGetMoleculePropertiesWire {
+  data?: RdkitGetMoleculePropertiesResult
+  error?: string
+}
+
+export interface RdkitCanonicalSmilesWire {
+  data?: string
+  error?: string
+}
+
+export interface RdkitAreSameStructureWire {
+  data?: boolean
+  error?: string
+}

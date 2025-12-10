@@ -1,18 +1,24 @@
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common'
 import { ClientProxy, RpcException } from '@nestjs/microservices'
 import { ConfigService } from '@nestjs/config'
-import { catchError, firstValueFrom, throwError, timeout, TimeoutError } from 'rxjs'
+import { catchError, firstValueFrom, OperatorFunction, throwError, timeout, TimeoutError } from 'rxjs'
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service'
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface'
 import { Environment } from 'src/config/config'
 import { RDKitAPI_NS } from '../Models/interfaces/rdkit-api-ns.interface'
-import { RdkitAreSameStructureResponse, RdkitGetMoleculePropertiesResponse, RdkitGetMoleculePropertiesResult, RdkitToCanonicalSmilesResponse } from '../Models/DTO/rdkit/rdkit.res.dtos'
+import {
+    RdkitGetMoleculePropertiesWire,
+    RdkitCanonicalSmilesWire,
+    RdkitAreSameStructureWire,
+    RdkitGetMoleculePropertiesResult
+} from '../Models/DTO/rdkit/rdkit.res.dtos'
 import { RdkitGetMoleculePropertiesDTO } from '../Models/DTO/rdkit/rdkit-get-molecule-properties.cls.dto'
 import { RdkitToCanonicalSmilesDTO } from '../Models/DTO/rdkit/rdkit-canonical-smiles.dto'
 import { RdkitAreSameStructureDTO } from '../Models/DTO/rdkit/rdkit-are-same-structures.dto'
 
 @Injectable()
 export class RDKitService implements OnModuleInit {
+
     private readonly MAX_NATS_PAYLOAD_BYTES: number
     private readonly logger: MeiliContextLogger
     private readonly namespaces: RDKitAPI_NS
@@ -20,217 +26,160 @@ export class RDKitService implements OnModuleInit {
     constructor(
         @Inject('MERCURION_AI_CLIENT') private readonly mercurionAIClient: ClientProxy,
         private readonly configService: ConfigService,
-        loggerFactory: MeiliLoggerService,
+        loggerFactory: MeiliLoggerService
     ) {
-        this.MAX_NATS_PAYLOAD_BYTES =
-            this.configService.get<number>('App.maxNatsPayloadBytes')!
-
+        this.MAX_NATS_PAYLOAD_BYTES = this.configService.get<number>('App.maxNatsPayloadBytes')!
         this.logger = loggerFactory.forContext(RDKitService.name)
         this.namespaces = this.computeNamespaces()
     }
 
     onModuleInit() {
         this.logger.log(
-            `MercurionWebNode connected via NATS to MercurionTox21 > rdkit_api,\n  => NATS namespaces = \x1b[36m${Object.values(
-                this.namespaces,
-            ).join(', ')}`,
+            `MercurionWebNode connected via NATS to MercurionTox21 > rdkit_api,\n  => NATS namespaces = \x1b[36m${Object.values(this.namespaces).join(', ')}`
         )
     }
 
-    // ==========================================
-    // Namespaces env-aware
-    // production  -> rdkit_api.fn
-    // !production -> env.rdkit_api.fn
-    // ==========================================
+    // =========================
+    // NAMESPACE
+    // =========================
     private computeNamespaces(): RDKitAPI_NS {
-        const env = this.configService.get<Environment>('App.env')!
-        const base = 'rdkit_api'
-        const mk = (fn: string) => env === Environment.Production ? `${base}.${fn}` : `${env}.${base}.${fn}`
-
-        return {
-            get_molecule_properties: mk('get_molecule_properties'),
-            to_canonical_smiles: mk('to_canonical_smiles'),
-            are_same_structure: mk('are_same_structure'),
+        const base: RDKitAPI_NS = {
+            get_molecule_properties: 'rdkit_api.get_molecule_properties',
+            to_canonical_smiles: 'rdkit_api.to_canonical_smiles',
+            are_same_structure: 'rdkit_api.are_same_structure'
         }
+
+        const env = this.configService.get<Environment>('App.env')!
+        if (env !== Environment.Production) {
+            return {
+                get_molecule_properties: `${env}.${base.get_molecule_properties}`,
+                to_canonical_smiles: `${env}.${base.to_canonical_smiles}`,
+                are_same_structure: `${env}.${base.are_same_structure}`
+            }
+        }
+
+        return base
     }
 
-    // ==========================================
-    // Utils
-    // ==========================================
+    // =========================
+    // VALIDAZIONI PAYLOAD
+    // =========================
+
     private ensurePayloadSize(dto: unknown) {
         const size = Buffer.byteLength(JSON.stringify(dto), 'utf8')
         if (size > this.MAX_NATS_PAYLOAD_BYTES) {
-            throw new RpcException('MercurionRdkitClientConnection::PayloadTooLarge')
+            throw new RpcException('MercurionTox21ClientConnection::PayloadTooLarge')
         }
     }
 
-    private hasErrorField(x: any): x is { error: string } {
-        return !!x && typeof x === 'object' && typeof x.error === 'string' && x.error.trim().length > 0
+    private isValidPropsPayload(res: RdkitGetMoleculePropertiesWire): boolean {
+        if (!res) return false
+        if (res.error && res.error.trim().length > 0) return true
+        const d = res.data
+        if (!d) return false
+        // controlli soft, giusto per evitare robe tipo data: "ciao"
+        const keys: (keyof RdkitGetMoleculePropertiesResult)[] = [
+            'mwFreebase', 'alogp', 'hba', 'hbd', 'psa', 'rtb'
+        ]
+        return keys.some(k => d[k] !== undefined)
     }
 
-    private isValidPropsPayload(res: unknown): res is RdkitGetMoleculePropertiesResult {
-        if (!res || typeof res !== 'object') return false
-        const r = res
-        const keys = ['mwFreebase', 'alogp', 'hba', 'hbd', 'psa', 'rtb']
-        for (const k of keys) {
-            const v = (r[k]) as object
-            if (v === null || v === undefined) {
-                continue
-            }
-            if (typeof v !== 'number' || !Number.isFinite(v)) {
-                return false
-            }
-        }
-        return true
+    private isValidCanonicalPayload(res: RdkitCanonicalSmilesWire): boolean {
+        if (!res) return false
+        if (res.error && res.error.trim().length > 0) return true
+        return typeof res.data === 'string' && res.data.trim().length > 0
     }
 
-    private isValidCanonicalPayload(res: unknown): res is string {
-        return typeof res === 'string' && res.trim().length > 0
+    private isValidSameStructPayload(res: RdkitAreSameStructureWire): boolean {
+        if (!res) return false
+        if (res.error && res.error.trim().length > 0) return true
+        return typeof res.data === 'boolean'
     }
 
-    private isValidSameStructurePayload(res: unknown): res is boolean {
-        return typeof res === 'boolean'
-    }
-
-    // ==========================================
-    // API: get_molecule_properties
-    // ==========================================
-    async getMoleculeProperties(
-        dto: RdkitGetMoleculePropertiesDTO,
-    ): Promise<RdkitGetMoleculePropertiesResult> {
-        this.ensurePayloadSize(dto)
-
-        const res: RdkitGetMoleculePropertiesResponse = await firstValueFrom(
-            this.mercurionAIClient
-                .send<RdkitGetMoleculePropertiesResponse>(
-                    this.namespaces.get_molecule_properties,
-                    dto,
+    private mapError<T>(op: string): OperatorFunction<T, T> {
+        return catchError((e: unknown) => {
+            if (e instanceof TimeoutError) {
+                return throwError(() =>
+                    new RpcException(`MercurionTox21ClientConnectionTimeoutNoResponse::${op}`)
                 )
-                .pipe(
-                    timeout(3000),
-                    catchError((e) => {
-                        if (e instanceof TimeoutError) {
-                            return throwError(
-                                () =>
-                                    new RpcException(
-                                        'MercurionRdkitClientConnectionTimeoutNoResponse::get_molecule_properties',
-                                    ),
-                            )
-                        }
-                        return throwError(
-                            () =>
-                                new RpcException(
-                                    'MercurionRdkitClientConnectionUnknownError::get_molecule_properties',
-                                ),
-                        )
-                    }),
-                ),
-        )
-
-        if (this.hasErrorField(res)) {
-            throw new RpcException(`MercurionRdkitClientConnection::${res.error}`)
-        }
-        if (!this.isValidPropsPayload(res)) {
-            throw new RpcException(
-                'MercurionRdkitClientConnection::InvalidPayload::get_molecule_properties',
+            }
+            return throwError(() =>
+                new RpcException(`MercurionTox21ClientConnectionUnknownError::${op}`)
             )
-        }
-
-        return res
+        })
     }
 
-    // ==========================================
-    // API: to_canonical_smiles
-    // ==========================================
-    async toCanonicalSmiles(
-        dto: RdkitToCanonicalSmilesDTO,
-    ): Promise<string> {
+    // =========================
+    // PUBLIC API
+    // =========================
+
+    async getMoleculeProperties(dto: RdkitGetMoleculePropertiesDTO): Promise<RdkitGetMoleculePropertiesResult> {
         this.ensurePayloadSize(dto)
 
-        const res: RdkitToCanonicalSmilesResponse = await firstValueFrom(
+        const res = await firstValueFrom(
             this.mercurionAIClient
-                .send<RdkitToCanonicalSmilesResponse>(
-                    this.namespaces.to_canonical_smiles,
-                    dto,
-                )
+                .send<RdkitGetMoleculePropertiesWire>(this.namespaces.get_molecule_properties, dto)
                 .pipe(
                     timeout(3000),
-                    catchError((e) => {
-                        if (e instanceof TimeoutError) {
-                            return throwError(
-                                () =>
-                                    new RpcException(
-                                        'MercurionRdkitClientConnectionTimeoutNoResponse::to_canonical_smiles',
-                                    ),
-                            )
-                        }
-                        return throwError(
-                            () =>
-                                new RpcException(
-                                    'MercurionRdkitClientConnectionUnknownError::to_canonical_smiles',
-                                ),
-                        )
-                    }),
-                ),
+                    this.mapError('get_molecule_properties')
+                )
         )
 
-        if (this.hasErrorField(res)) {
-            throw new RpcException(`MercurionRdkitClientConnection::${res.error}`)
+        if (!this.isValidPropsPayload(res)) {
+            throw new RpcException('MercurionTox21ClientConnection::InvalidPayload:get_molecule_properties')
         }
+        if (res.error && res.error.trim()) {
+            throw new RpcException(`MercurionTox21ClientConnection::${res.error}`)
+        }
+
+        return res.data!
+    }
+
+    async toCanonicalSmiles(dto: RdkitToCanonicalSmilesDTO): Promise<string> {
+        this.ensurePayloadSize(dto)
+
+        const res = await firstValueFrom(
+            this.mercurionAIClient
+                .send<RdkitCanonicalSmilesWire>(this.namespaces.to_canonical_smiles, dto)
+                .pipe(
+                    timeout(3000),
+                    this.mapError('to_canonical_smiles')
+                )
+        )
+
         if (!this.isValidCanonicalPayload(res)) {
             throw new RpcException(
-                'MercurionRdkitClientConnection::InvalidPayload::to_canonical_smiles',
+                'MercurionTox21ClientConnection::InvalidPayload:to_canonical_smiles',
             )
         }
+        if (res.error && res.error.trim()) {
+            throw new RpcException(`MercurionTox21ClientConnection::${res.error}`)
+        }
 
-        return res
+        return res.data!.trim()
     }
 
-    // ==========================================
-    // API: are_same_structure
-    // (confronto robusto lato py, non qui)
-    // ==========================================
-    async areSameStructure(
-        dto: RdkitAreSameStructureDTO,
-    ): Promise<boolean> {
+    async areSameStructure(dto: RdkitAreSameStructureDTO): Promise<boolean> {
         this.ensurePayloadSize(dto)
 
-        const res: RdkitAreSameStructureResponse = await firstValueFrom(
+        const res = await firstValueFrom(
             this.mercurionAIClient
-                .send<RdkitAreSameStructureResponse>(
-                    this.namespaces.are_same_structure,
-                    dto,
-                )
+                .send<RdkitAreSameStructureWire>(this.namespaces.are_same_structure, dto)
                 .pipe(
                     timeout(3000),
-                    catchError((e) => {
-                        if (e instanceof TimeoutError) {
-                            return throwError(
-                                () =>
-                                    new RpcException(
-                                        'MercurionRdkitClientConnectionTimeoutNoResponse::are_same_structure',
-                                    ),
-                            )
-                        }
-                        return throwError(
-                            () =>
-                                new RpcException(
-                                    'MercurionRdkitClientConnectionUnknownError::are_same_structure',
-                                ),
-                        )
-                    }),
-                ),
+                    this.mapError('are_same_structure')
+                )
         )
 
-        if (this.hasErrorField(res)) {
-            throw new RpcException(`MercurionRdkitClientConnection::${res.error}`)
-        }
-        if (!this.isValidSameStructurePayload(res)) {
+        if (!this.isValidSameStructPayload(res)) {
             throw new RpcException(
-                'MercurionRdkitClientConnection::InvalidPayload::are_same_structure',
+                'MercurionTox21ClientConnection::InvalidPayload:are_same_structure',
             )
         }
+        if (res.error && res.error.trim()) {
+            throw new RpcException(`MercurionTox21ClientConnection::${res.error}`)
+        }
 
-        return res
+        return !!res.data
     }
 }

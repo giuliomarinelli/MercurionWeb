@@ -229,7 +229,7 @@ export class CustomMoleculeCollectionItemSaveComponent {
   async loadProperties() {
     this.properties.set(
       await this.rdkitService.getMoleculeProperties(this.saveCtx.smiles())
-    );
+    )
   }
 
   displayCollection(item: Pick<MoleculeCollection, 'name'>) {
@@ -273,7 +273,7 @@ export class CustomMoleculeCollectionItemSaveComponent {
     this.collectionService.createCollection(name).subscribe(newColl => {
       this.collections.set([newColl, ...this.collections()])
       this.saveCtx.selectedCollectionId.set(newColl.id)
-    });
+    })
   }
 
   onFocus(item: SaveOverlayFormItem): void {
@@ -310,16 +310,16 @@ export class CustomMoleculeCollectionItemSaveComponent {
 
   async onConfirm() {
     if (!this.saveCtx.selectedCollectionId()) {
-      this.toast.trigger('Seleziona una collezione', 'error');
-      return;
+      this.toast.trigger('Seleziona una collezione', 'error')
+      return
     }
     if (!this.nameModel) {
-      this.nameTouched = true;
-      this.toast.trigger('Il nome Ã¨ obbligatorio!', 'error');
-      return;
+      this.nameTouched = true
+      this.toast.trigger('Il nome Ã¨ obbligatorio!', 'error')
+      return
     }
 
-    const propertiesJson = JSON.stringify(this.properties());
+    const propertiesJson = JSON.stringify(this.properties())
 
     this.moleculeJoinService.addCustomMoleculeToCollection({
       collectionId: this.saveCtx.selectedCollectionId()!,

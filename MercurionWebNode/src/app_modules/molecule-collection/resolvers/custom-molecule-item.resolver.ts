@@ -1,7 +1,7 @@
 import { Args, ID, Info, Mutation, Query, Resolver } from "@nestjs/graphql";
 import { CustomMoleculeItemEntity } from "../Models/entities/custom-molecule-item.entity";
 import { CustomMoleculeItemService } from "../services/custom-molecule-item.service";
-import { AuthenticatedUserId } from "src/metadata/metadata";
+import { AuthenticatedUserId, Authorization } from "src/metadata/metadata";
 import { UUID } from "crypto";
 import { CustomMoleculeItemInput } from "../Models/DTO/custom-molecule-item.input";
 import { GraphQLResolveInfo } from "graphql";
@@ -16,9 +16,10 @@ export class CustomMoleculeItemResolver {
     async addCustomMoleculeToCollection(
         @AuthenticatedUserId() userId: UUID,
         @Args('collectionId', { type: () => ID }) collectionId: UUID,
-        @Args('input') input: CustomMoleculeItemInput
+        @Args('input') input: CustomMoleculeItemInput,
+        @Authorization() accessToken: string
     ) {
-        return this.service.addToCollection(userId, collectionId, input);
+        return this.service.addToCollection(userId, collectionId, input, accessToken)
     }
 
     @Mutation(() => Boolean)
@@ -34,7 +35,8 @@ export class CustomMoleculeItemResolver {
     async findOneCustomMoleculeByCanonicalSmiles(
         @AuthenticatedUserId() userId: UUID,
         @Args('canonicalSmiles', { type: () => String }) cs: string,
-        @Info() info: GraphQLResolveInfo
+        @Info() info: GraphQLResolveInfo,
+        @Authorization() accessToken: string
     ): Promise<CustomMoleculeItemEntity | null> {
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.service.findOneByCanonicalSmiles(userId, cs, fieldsMap)

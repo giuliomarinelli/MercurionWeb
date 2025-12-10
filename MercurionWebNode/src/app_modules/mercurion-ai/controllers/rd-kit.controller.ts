@@ -6,7 +6,7 @@ import { RdkitGetMoleculePropertiesDTO } from '../Models/DTO/rdkit/rdkit-get-mol
 import { RdkitToCanonicalSmilesDTO } from '../Models/DTO/rdkit/rdkit-canonical-smiles.dto';
 import { RdkitAreSameStructureDTO } from '../Models/DTO/rdkit/rdkit-are-same-structures.dto';
 
-@Controller('rdkit_api')
+@Controller('rdkit-api')
 export class RdKitController {
 
     constructor(private readonly _RDKitService: RDKitService) { }
