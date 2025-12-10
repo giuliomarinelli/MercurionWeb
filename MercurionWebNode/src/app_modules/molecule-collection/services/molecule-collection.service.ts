@@ -199,7 +199,7 @@ WHERE i.user_id = $2::uuid
         return persisted
       })
     } catch (e) {
-      this.logger.warn(e.message)
+      this.logger.warn(e.message as object)
       throw e
     }
   }

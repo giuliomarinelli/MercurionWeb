@@ -72,11 +72,10 @@ export class ChEMBLMoleculeItemService {
         return row.id
     }
 
-    async existsChEMBLMoleculeByUUIDThenGetMolregno(userId: UUID, _uuid_: UUID): Promise<string | null> {
+    async existsChEMBLMoleculeByUUIDThenGetMolregno(_uuid_: UUID): Promise<string | null> {
         const row = await this.chemblRepo.createQueryBuilder('m')
             .select(['m.chemblMolregno'])
             .where('m.id = :_uuid_', { _uuid_ })
-            .andWhere('m.userId = :userId', { userId })
             .andWhere(`m.type = 'chembl'`)
             .getOne()
         if (!row) {

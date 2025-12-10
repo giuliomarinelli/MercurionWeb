@@ -248,6 +248,16 @@ export const SEARCH_CHEMBL_MOLECULES_EXCLUDE_ALREADY_ADDED = gql`
   }
 `
 
+export const FIND_ONE_CUSTOM_MOLECULE_BY_CS_SHORT_FETCH = gql`
+  query FindOneCustomMoleculeByCanonicalSmiles($canonicalSmiles: String!) {
+    findOneCustomMoleculeByCanonicalSmiles(canonicalSmiles: $canonicalSmiles) {
+        id
+        type
+        canonicalSmiles
+        name
+    }
+  }
+`
 
 export const ADD_MANY_CHEMBL_ITEMS_TO_COLLECTION = gql`
   mutation AddManyChemblItemsToCollection($collectionId: ID!, $input: [AddManyChEMBLItemDTO!]!) {

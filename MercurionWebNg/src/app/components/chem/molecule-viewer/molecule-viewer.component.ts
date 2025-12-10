@@ -13,7 +13,7 @@ import {
   SimpleChanges,
 } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { RDKitService } from '../../../services/rd-kit-loader.service';
+import { RDKitService } from '../../../services/rd-kit.service';
 import type { RDKitModule } from '@rdkit/rdkit';
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
 

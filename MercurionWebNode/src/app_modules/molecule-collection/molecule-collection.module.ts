@@ -17,6 +17,7 @@ import { ChEMBLMoleculeItemService } from './services/chembl-molecule-item.servi
 import { UserModule } from '../user/user.module';
 import { MeilisearchModule } from '../meilisearch/meilisearch.module';
 import { History } from '../history/Models/entities/history.entity';
+import { MercurionAIModule } from '../mercurion-ai/mercurion-ai.module';
 
 @Module({
     imports: [
@@ -29,7 +30,8 @@ import { History } from '../history/Models/entities/history.entity';
             History
         ]),
         forwardRef(() => UserModule),
-        forwardRef(() => MeilisearchModule)
+        forwardRef(() => MeilisearchModule),
+        forwardRef(() => MercurionAIModule)
     ],
     providers: [
         MoleculeCollectionService,

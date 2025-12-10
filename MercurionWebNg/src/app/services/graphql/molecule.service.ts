@@ -1,7 +1,7 @@
 import { MoleculeSearchResult } from './../../Models/graphql/molecule-search/molecule-search-result.interface';
 import { inject, Injectable } from '@angular/core';
 import { Apollo } from 'apollo-angular';
-import { GET_MOLECULE_DETAIL, GET_MOLECULE_PREVIEWS } from './graphql-actions/molecule.gql-queries';
+import { GET_MOLECULE_DETAIL, GET_MOLECULE_PREVIEWS } from './graphql-operations/molecule.gql-queries';
 import { map, Observable, of, switchMap, throwError } from 'rxjs';
 import { MoleculeDetail } from '../../Models/graphql/molecule.detail.models';
 

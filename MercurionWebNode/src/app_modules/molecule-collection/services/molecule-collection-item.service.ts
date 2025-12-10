@@ -53,8 +53,6 @@ export class MoleculeCollectionItemService {
 
     }
 
-
-
     async markAsTouchedWithManager(userId: UUID, itemId: UUID, manager: EntityManager, _flagIds?: string): Promise<boolean> {
         
         if (!GeneralUtils.isValidUUIDv7(itemId)) {

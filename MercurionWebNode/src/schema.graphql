@@ -39,6 +39,8 @@ type ChEMBLMoleculeItemEntity implements MoleculeCollectionItemEntity {
   updatedAt: String!
   touchedAt: String!
   chemblMolregno: Float!
+  name: String
+  nameEn: String
 }
 
 type MoleculeSearchResult {
@@ -319,6 +321,7 @@ type Query {
   findOneChemblMoleculeById(itemId: ID!): ChEMBLMoleculeItemEntity
   hasUserChEMBLMoleculeByMolregnoThenGetUUID(molregno: Int!): String
   existsChEMBLMoleculeByUUIDThenGetMolregno(_uuid_: String!): String
+  findOneCustomMoleculeByCanonicalSmiles(canonicalSmiles: String!): CustomMoleculeItemEntity
   myTicketDetail(ticketId: ID!): TicketDetailDTO!
   myTickets(page: Int!, limit: Int!): PaginatedTicket!
   myTicketMessages(page: Int!, limit: Int!, ticketId: ID!): PaginatedTicketMessage!

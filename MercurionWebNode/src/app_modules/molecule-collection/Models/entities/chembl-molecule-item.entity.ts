@@ -11,10 +11,12 @@ export class ChEMBLMoleculeItemEntity extends MoleculeCollectionItemEntity {
     @Column({ type: 'bigint' })
     chemblMolregno: number
 
+    @Field(() => String, { nullable: true })
     @Column({ type: 'varchar' })
     name: string | null
 
+    @Field(() => String, { nullable: true })
     @Column({ type: 'varchar' })
-    nameEn
+    nameEn: string | null
 
 }

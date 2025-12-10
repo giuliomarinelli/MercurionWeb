@@ -8,6 +8,9 @@ import { CustomMoleculeItemInput } from "../Models/DTO/custom-molecule-item.inpu
 import { MoleculeCollection } from '../Models/entities/molecule-collection.entity';
 import { RpcException } from '@nestjs/microservices';
 import { uuidv7 } from '@kripod/uuidv7';
+import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
+import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils';
+import { RDKitService } from 'src/app_modules/mercurion-ai/services/rd-kit.service';
 
 @Injectable()
 export class CustomMoleculeItemService {
@@ -19,13 +22,15 @@ export class CustomMoleculeItemService {
         private readonly customRepo: Repository<CustomMoleculeItemEntity>,
         @InjectRepository(MoleculeCollection)
         private readonly collectionRepo: Repository<MoleculeCollection>,
-        private readonly joinService: MoleculeCollectionItemJoinService
+        private readonly joinService: MoleculeCollectionItemJoinService,
+        private readonly _RDKitService: RDKitService
     ) { }
 
     async addToCollection(
         userId: UUID,
         collectionId: UUID,
-        input: CustomMoleculeItemInput
+        input: CustomMoleculeItemInput,
+        accessToken: string
     ): Promise<CustomMoleculeItemEntity> {
         // 1️⃣ Cerco se esiste già la molecola per quel user+SMILES
         return this.customRepo.manager.transaction(async manager => {
@@ -39,6 +44,10 @@ export class CustomMoleculeItemService {
                     id: uuidv7() as UUID,
                     ...input,             // ⬅ contiene già propertiesJson numerico ✔
                     userId,
+                    canonicalSmiles: await this._RDKitService.toCanonicalSmiles({
+                        smiles: input.canonicalSmiles,
+                        accessToken
+                    }),
                     type: 'custom',
                     createdAt: Date.now(),
                     updatedAt: Date.now()
@@ -75,6 +84,19 @@ export class CustomMoleculeItemService {
 
     async removeFromCollection(userId: UUID, collectionId: UUID, itemId: UUID): Promise<boolean> {
         return this.joinService.removeMoleculeFromCollection(userId, collectionId, itemId)
+    }
+
+    async findOneByCanonicalSmiles(userId: UUID, cs: string, fieldsMap: GraphQLFieldsMap): Promise<CustomMoleculeItemEntity | null> {
+        const scalarFields = GraphQLUtils.getScalarFields(fieldsMap)
+        const columns = GraphQLUtils.ensureRequiredFields(scalarFields, ['id', 'type', 'canonicalSmiles'])
+        let qb = this.customRepo.createQueryBuilder('m')
+            .select(columns.map((col) => `m.${col}`))
+            .where('m.userId = :userId', { userId })
+            .andWhere('m.canonicalSmiles = :cs', { cs })
+
+        qb = TypeOrmUtils.addJoins(qb, 'm', fieldsMap)
+        const a = await qb.getOne()
+        return a
     }
 
 }

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { MercurionAIService } from './services/mercurion-ai.service';
@@ -6,8 +6,10 @@ import { MercurionAIController } from './controllers/mercurion-ai.controller';
 import { JwtToolsService } from '../auth/services/jwt-tools.service';
 import { AuthModule } from '../auth/auth.module';
 import { UserModule } from '../user/user.module';
-import { RedisModule } from '../redis/redis.module';
 import { MeilisearchModule } from '../meilisearch/meilisearch.module';
+import { RDKitService } from './services/rd-kit.service';
+import { RdKitController } from './controllers/rd-kit.controller';
+import { RedisModule } from '../redis/redis.module';
 
 
 @Module({
@@ -28,10 +30,11 @@ import { MeilisearchModule } from '../meilisearch/meilisearch.module';
         ]),
         AuthModule,
         UserModule,
-        RedisModule,
-        MeilisearchModule
+        forwardRef(() => RedisModule),
+        forwardRef(() => MeilisearchModule)
     ],
-    providers: [MercurionAIService, JwtToolsService],
-    controllers: [MercurionAIController]
+    providers: [MercurionAIService, JwtToolsService, RDKitService],
+    controllers: [MercurionAIController, RdKitController],
+    exports: [RDKitService]
 })
 export class MercurionAIModule { }

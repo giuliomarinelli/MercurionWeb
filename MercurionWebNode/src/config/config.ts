@@ -51,7 +51,8 @@ const AppConfig = registerAs(
         AES_secret: process.env.APP_AES_SECRET!,
         version: process.env.APP_VERSION!,
         deviceIdSignatureSecret: process.env.APP_DEVICE_ID_SIGNATURE_SECRET!,
-        supportEmail: process.env.APP_SUPPORT_EMAIL!
+        supportEmail: process.env.APP_SUPPORT_EMAIL!,
+        maxNatsPayloadBytes: Number(process.env.APP_MAX_NATS_PAYLOAD_BYTES)
     })
 )
 

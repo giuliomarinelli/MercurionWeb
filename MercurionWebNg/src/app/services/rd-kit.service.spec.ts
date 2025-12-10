@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 
-import { RDKitService } from './rd-kit-loader.service';
+import { RDKitService } from './rd-kit.service';
 
 describe('RDKitLoaderService', () => {
   let service: RDKitService;
