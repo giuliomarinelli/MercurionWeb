@@ -8,6 +8,8 @@ import { CustomMoleculeItemInput } from "../Models/DTO/custom-molecule-item.inpu
 import { MoleculeCollection } from '../Models/entities/molecule-collection.entity';
 import { RpcException } from '@nestjs/microservices';
 import { uuidv7 } from '@kripod/uuidv7';
+import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
+import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils';
 
 @Injectable()
 export class CustomMoleculeItemService {
@@ -75,6 +77,17 @@ export class CustomMoleculeItemService {
 
     async removeFromCollection(userId: UUID, collectionId: UUID, itemId: UUID): Promise<boolean> {
         return this.joinService.removeMoleculeFromCollection(userId, collectionId, itemId)
+    }
+
+    async findOneByCanonicalSmiles(userId: UUID, cs: string, fieldsMap: GraphQLFieldsMap): Promise<CustomMoleculeItemEntity | null> {
+        const scalarFields = GraphQLUtils.getScalarFields(fieldsMap)
+        const columns = GraphQLUtils.ensureRequiredFields(scalarFields, ['id', 'type', 'canonicalSmiles'])
+        let qb = this.customRepo.createQueryBuilder('m')
+            .select(columns.map((col) => `m.${col}`))
+            .where('m.userId = :userId', { userId })
+            .andWhere('m.canonicalSmiles = :cs', { cs })
+        qb = TypeOrmUtils.addJoins(qb, 'm', fieldsMap)
+        return qb.getOne()
     }
 
 }

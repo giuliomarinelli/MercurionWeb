@@ -21,7 +21,9 @@ export class TypeOrmUtils {
         prefix = ''
     ): SelectQueryBuilder<T> {
         Object.entries(fields).forEach(([key, value]) => {
-            if (key === '__typename') return
+            if (key === '__typename') {
+                return
+            }
             const path = prefix ? `${prefix}.${key}` : key
             if (typeof value === 'object' && value !== null && Object.keys(value).length > 0) {
                 const alias = path.replace(/\./g, '_')
@@ -41,5 +43,5 @@ export class TypeOrmUtils {
         }
         return filtered;
     }
-    
+
 }
