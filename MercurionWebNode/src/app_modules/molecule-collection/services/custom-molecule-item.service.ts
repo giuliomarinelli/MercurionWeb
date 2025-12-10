@@ -32,29 +32,38 @@ export class CustomMoleculeItemService {
         input: CustomMoleculeItemInput,
         accessToken: string
     ): Promise<CustomMoleculeItemEntity> {
-        // 1️⃣ Cerco se esiste già la molecola per quel user+SMILES
+
         return this.customRepo.manager.transaction(async manager => {
+
+            input.canonicalSmiles = await this._RDKitService.toCanonicalSmiles({
+                smiles: input.canonicalSmiles,
+                accessToken
+            })
+
+            const r = await manager.createQueryBuilder(CustomMoleculeItemEntity, 'm')
+                .select(['m.canonicalSmiles'])
+                .where('m.userId = :userId', { userId })
+                .andWhere('m.canonicalSmiles = :cs', { cs: input.canonicalSmiles })
+                .getOne()
+
+            if (r) {
+                throw new RpcException('Conflict::Smiles already exist')
+            } 
+
             let item = await this.customRepo.findOne({
                 where: { canonicalSmiles: input.canonicalSmiles, userId }
-            });
+            })
 
-            if (!item) {
-                // 2️⃣ Non c'è? La creo da zero
+            if (!item) {                
                 item = this.customRepo.create({
                     id: uuidv7() as UUID,
-                    ...input,             // ⬅ contiene già propertiesJson numerico ✔
+                    ...input,             
                     userId,
-                    canonicalSmiles: await this._RDKitService.toCanonicalSmiles({
-                        smiles: input.canonicalSmiles,
-                        accessToken
-                    }),
                     type: 'custom',
                     createdAt: Date.now(),
                     updatedAt: Date.now()
                 });
             } else {
-                // 3️⃣ Esiste? Aggiorno SOLO i campi arrivati da input
-                //    (nel tuo caso propertiesJson, ma estendibile a label/notes ecc.)
                 if (input.propertiesJson &&
                     input.propertiesJson !== item.propertiesJson) {
                     item.propertiesJson = input.propertiesJson;
@@ -65,17 +74,11 @@ export class CustomMoleculeItemService {
                 if (input.molFormula !== undefined) item.molFormula = input.molFormula;
                 if (input.name !== undefined) item.name = input.name;
             }
-
-            // 4️⃣ Persisto sempre (creazione o update che sia)
             item = await manager.save(item);
-
-            // 5️⃣ Controllo ownership della collection
             const collection = await this.collectionRepo.findOne({
                 where: { id: collectionId, userId }
-            });
+            })
             if (!collection) throw new RpcException('CustomItemAddError::Forbidden');
-
-            // 6️⃣ Link nella join‑table (ignora duplicati all’interno di add)
             await this.joinService.addMoleculeToCollectionWithManager(userId, collectionId, item.id, manager);
 
             return item;
