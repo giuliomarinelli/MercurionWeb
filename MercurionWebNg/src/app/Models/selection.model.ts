@@ -1,4 +1,4 @@
-export interface HeaderSelection {
+export interface ItemSelection {
   name: string
   isSelected: boolean
 }

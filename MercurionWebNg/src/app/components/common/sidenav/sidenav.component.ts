@@ -1,14 +1,15 @@
-import { DatePipe, NgClass } from '@angular/common';
-import { Component, effect, EventEmitter, inject, OnDestroy, OnInit, Output, signal } from '@angular/core';
-import { RouterLink, RouterOutlet } from '@angular/router';
+import { NgClass } from '@angular/common';
+import { Component, EventEmitter, inject, OnDestroy, OnInit, Output, signal } from '@angular/core';
+import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { UserContextService } from '../../../services/context/user-context.service';
 import { HistoryComponent } from '../history/history.component';
-import { Subscription } from 'rxjs';
+import { filter, Subscription } from 'rxjs';
 import { HistoryService } from '../../../services/history.service';
 import { ToastService } from '../../../services/toast.service';
 import { ClassicSpinnerComponent } from "../classic-spinner/classic-spinner.component";
 import { DesignService } from '../../../services/design.service';
 import { SearchContextService } from '../../../services/context/search-context.service';
+import { SelectionService } from '../../../services/selection.service';
 
 @Component({
   selector: 'm-sidenav',
@@ -49,7 +50,9 @@ import { SearchContextService } from '../../../services/context/search-context.s
         <!-- Macro Area Menu -->
         <h6 class="detail">Funzionalità</h6>
         <div>
-          <a class="sidebar-link" routerLink="molecules/all-my-molecules" (click)="handleMenuItemClick()">
+          <a class="sidebar-link" routerLink="molecules/all-my-molecules" (click)="handleMenuItemClick()"
+              [class.bg-slate-300/65]="s.getActiveHeaderSelection('my-molecules')"
+              [class.dark:bg-slate-700/80]="s.getActiveHeaderSelection('my-molecules')">
             <div
               class="flex size-9 shrink-0 items-center justify-center
                      rounded-xl border border-slate-400/70 dark:border-slate-500/60
@@ -63,13 +66,16 @@ import { SearchContextService } from '../../../services/context/search-context.s
             </div>
             <span class="sidebar-item-text">Le mie molecole</span>
           </a>
-          <a class="sidebar-link" routerLink="molecules/collections" (click)="handleMenuItemClick()">
+          <a class="sidebar-link"
+              routerLink="molecules/collections"
+              (click)="handleMenuItemClick()"
+              [class.bg-slate-300/65]="s.getActiveHeaderSelection('my-collections')"
+              [class.dark:bg-slate-700/80]="s.getActiveHeaderSelection('my-collections')">
             <div
               class="flex size-9 shrink-0 items-center justify-center
                      rounded-xl border border-slate-400/70 dark:border-slate-500/60
                      bg-teal-100 dark:bg-emerald-600/30
-                     text-indigo-700 dark:text-indigo-300 text-sm font-semibold"
-              >
+                     text-indigo-700 dark:text-indigo-300 text-sm font-semibold">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto text-slate-900 dark:text-slate-200">
                 <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                 <path d="M336 64L400 128L608 128L608 448L128 448L128 64L336 64zM400 160L386.7 160L377.3 150.6L322.7 96L160 96L160 416L576 416L576 160L400 160zM64 176L64 512L512 512L512 544L32 544L32 160L64 160L64 176z"/>
@@ -94,7 +100,12 @@ import { SearchContextService } from '../../../services/context/search-context.s
           </button>
           <!-- ...altre macro aree -->
         </div>
-        <a class="sidebar-link" [routerLink]="'/molecules/editor'" [queryParams]="{ mode: 'create' }" (click)="handleMenuItemClick()">
+        <a class="sidebar-link"
+           [routerLink]="'/molecules/editor'"
+           [queryParams]="{ mode: 'create' }"
+           (click)="handleMenuItemClick()"
+           [class.bg-slate-300/65]="s.getActiveHeaderSelection('edit-molecule')"
+           [class.dark:bg-slate-700/80]="s.getActiveHeaderSelection('edit-molecule')">
           <div
               class="flex size-9 shrink-0 items-center justify-center
                      rounded-xl border border-slate-400/70 dark:border-slate-500/60
@@ -258,13 +269,15 @@ import { SearchContextService } from '../../../services/context/search-context.s
     }
   `]
 })
-export class SidenavComponent implements OnDestroy {
+export class SidenavComponent implements OnInit, OnDestroy {
 
   private readonly historyService = inject(HistoryService)
   protected readonly userContext = inject(UserContextService)
   private readonly toast = inject(ToastService)
   protected readonly designService = inject(DesignService)
   protected readonly searchOverlayContext = inject(SearchContextService)
+  protected readonly s = inject(SelectionService)
+  private readonly router = inject(Router)
 
   @Output()
   onOpenOffCanvas = new EventEmitter<void>()
@@ -277,9 +290,38 @@ export class SidenavComponent implements OnDestroy {
   triggerEmptyCheck = signal<boolean>(true)
 
   private delSub?: Subscription
+  private routeSub?: Subscription
+
+  ngOnInit(): void {
+    this.routeSub = this.router.events.pipe(
+      filter((e) => e instanceof NavigationEnd)
+    ).subscribe((e) => {
+
+      const currentPath = e.urlAfterRedirects
+      const keys = ['my-molecules', 'my-collections', 'edit-molecule']
+
+      let activeKey: string | null = null
+
+      if (currentPath === '/molecules/all-my-molecules') {
+        activeKey = 'my-molecules'
+      }
+
+      if (currentPath.replace(/(\?|#).*$/, '') === '/molecules/collections') {
+        activeKey = 'my-collections'
+      }
+      if (currentPath.replace(/(\?|#).*$/, '') === '/molecules/editor') {
+        activeKey = 'edit-molecule'
+      }
+
+      this.s.setHeaderSelections(keys.map((k) => this.s.generateHeaderSelection(k, k === activeKey)))
+
+    })
+  }
 
   ngOnDestroy(): void {
     this.delSub?.unsubscribe()
+    this.routeSub?.unsubscribe()
+    this.s.clearHeaderSelections()
   }
 
   doDeleteHistory(): void {
