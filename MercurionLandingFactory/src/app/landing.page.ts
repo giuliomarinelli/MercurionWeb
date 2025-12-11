@@ -24,16 +24,16 @@ import { LandingPageConfig } from './Models/landing-page.config.model';
       <div class="mt-10 flex items-center justify-center gap-x-6">
         <button
           type="button"
-          (click)="goBack()"
-          class="cursor-pointer text-sm font-semibold text-gray-900 dark:text-white"
+          id="go-back-btn"
+          class="landing-btn cursor-pointer text-sm font-semibold text-gray-900 dark:text-white"
         >
           <span aria-hidden="true">&larr;</span>
           Torna indietro
         </button>
         <button
           type="button"
-          (click)="goHome()"
-          class="cursor-pointer rounded-md px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm bg-[#2563eb] hover:bg-blue-500 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:bg-[#0b6de5] dark:hover:bg-blue-400/85 dark:focus-visible:outline-indigo-500 transition-colors duration-300"
+          id="go-home-btn"
+          class="landing-btn cursor-pointer rounded-md px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm bg-[#2563eb] hover:bg-blue-500 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:bg-[#0b6de5] dark:hover:bg-blue-400/85 dark:focus-visible:outline-indigo-500 transition-colors duration-300"
         >
           {{ vm().primaryCtaLabel }}
         </button>
@@ -62,16 +62,4 @@ export class LandingPage {
     }
   })
 
-  goBack(): void {
-    queueMicrotask(() => window?.history.back())
-  }
-
-  goHome(): void {
-    const target = this.vm().primaryCtaHref
-    queueMicrotask(() => {
-      if (window) {
-        location.href = target
-      }
-    })
-  }
 }

@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <title>MercurionLandingFactory</title>
@@ -7,7 +8,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
+<!-- go-back-btn
+go-home-btn -->
 <body>
   <div id="root"></div>
+  <script>
+    document.querySelectorAll('.landing-btn').forEach((node) => node.addEventListener('click', (e) => {
+      switch (e.target.id) {
+        case 'go-back-btn':
+          history.back()
+          break
+        case 'go-home-btn':
+          location.href = '/'
+      }
+    }))
+  </script>
 </body>
+
 </html>

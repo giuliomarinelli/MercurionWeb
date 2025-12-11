@@ -31,7 +31,6 @@ export class Factory implements OnInit {
     const code = Number.isFinite(parsed) ? parsed : 404
 
     const page = this.fetchErrorByCode(code)
-    console.log(page) // debug: qui hai già { code, error, description }
 
     this.config = {
       code: String(page.code),
