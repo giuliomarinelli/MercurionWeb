@@ -13,7 +13,7 @@
   <div id="root"></div>
   <script>
     document.querySelectorAll('.landing-btn').forEach((node) => node.addEventListener('click', (e) => {
-      switch (e.target.id) {
+      switch (e.currentTarget.id) {
         case 'go-back-btn':
           history.back()
           break
