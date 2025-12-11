@@ -17,8 +17,6 @@ import { PathService } from '../../../services/path.service';
 import { ToastService } from '../../../services/toast.service';
 import { ProvidedEmailDTO } from '../../../Models/account/account.models';
 import { environment } from '../../../../environments/environment.development';
-import { ItemSelection } from '../../../Models/selection.model';
-import { SelectionService } from '../../../services/selection.service';
 
 @Component({
   selector: 'm-header',
@@ -294,7 +292,7 @@ import { SelectionService } from '../../../services/selection.service';
     </button>
     <a routerLink="/dashboard" (click)="closeAvatarMenu()"
       class="group flex items-center w-full pl-4 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
-      [ngClass]="{ 'bg-slate-200 dark:bg-slate-500': s.getActiveHeaderSelection('dashboard') }">
+      [ngClass]="{ 'bg-slate-200 dark:bg-slate-500': isAvatarMenuItemActive('/dashboard') }">
 
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
         class="fill-current h-5 w-5 text-gray-600 dark:text-slate-200 ">
@@ -306,7 +304,7 @@ import { SelectionService } from '../../../services/selection.service';
     </a>
     <a (click)="closeAvatarMenu()" routerLink="/settings"
       class="group flex items-center w-full pl-4 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
-      [ngClass]="{ 'bg-slate-200 dark:bg-slate-500': s.getActiveHeaderSelection('settings') }">
+      [ngClass]="{ 'bg-slate-200 dark:bg-slate-500': isAvatarMenuItemActive('/settings') }">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
         class="fill-current h-5 w-5 text-gray-600 dark:text-slate-200 ">
         <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
@@ -318,7 +316,7 @@ import { SelectionService } from '../../../services/selection.service';
     <a (click)="closeAvatarMenu()"
       routerLink="/help"
       class="group flex items-center w-full pl-4 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
-      [ngClass]="{ 'bg-slate-200 dark:bg-slate-500': s.getActiveHeaderSelection('help') }">
+      [ngClass]="{ 'bg-slate-200 dark:bg-slate-500': isAvatarMenuItemActive('/help') }">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
         class="fill-current h-5 w-5 text-gray-600 dark:text-slate-200 ">
         <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
@@ -328,10 +326,11 @@ import { SelectionService } from '../../../services/selection.service';
       <span>Supporto</span>
     </a>
     <button (click)="closeAvatarMenu()"
-      class="group flex items-center w-full mb-2 pl-4 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300">
+      class="group flex items-center w-full mb-2 pl-4 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
+      [ngClass]="{ 'bg-slate-200 dark:bg-slate-500': isAvatarMenuItemActive('/feedback') }">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
         class="fill-current h-5 w-5 text-gray-600 dark:text-slate-200"
-        [ngClass]="{ 'bg-slate-200 dark:bg-slate-500': s.getActiveHeaderSelection('feedback') }">
+        >
         <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
         <path
           d="M416 64L416 144L496 144L496 176L416 176L416 256L384 256L384 176L304 176L304 144L384 144L384 64L416 64zM528 224L528 272L576 272L576 304L528 304L528 352L496 352L496 304L448 304L448 272L496 272L496 224L528 224zM275.3 244.2L317.2 329.2C388.7 339.6 433.3 346.1 450.9 348.6C438.2 361 405.9 392.5 354.2 442.9C366.4 514.1 374 558.5 377 576C361.2 567.7 321.4 546.8 257.4 513.1C193.4 546.7 153.6 567.7 137.8 576C140.8 558.5 148.4 514.1 160.6 442.9C108.9 392.5 76.6 361 63.9 348.6C81.5 346 126.1 339.6 197.6 329.2C229.6 264.4 249.5 224 257.4 208.1L275.2 244.3zM312.6 360.9L296 358.4C295 356.3 282.1 330.3 257.5 280.3C232.8 330.3 220 356.3 219 358.4C216.7 358.7 188 362.9 132.8 370.9C172.7 409.8 193.5 430.1 195.2 431.7C194.8 434 189.9 462.6 180.5 517.5C229.8 491.6 255.5 478.1 257.6 477C259.6 478.1 285.3 491.6 334.7 517.5C325.3 462.6 320.4 434 320 431.7C321.7 430.1 342.4 409.8 382.4 370.9L312.9 360.8z" />
@@ -423,7 +422,7 @@ import { SelectionService } from '../../../services/selection.service';
       <div class="z-[999]">
         <!-- Header -->
         <button
-          class="group flex items-center w-full mb-2 pl-1 pr-6 py-4 gap-4 transition-colors duration-300 cursor-default border-b-slate-400/60 dark:border-slate-300 border-b-[0.5px]">
+          class="group flex items-center w-full mb-2 pl-3 pr-6 py-4 gap-4 transition-colors duration-300 cursor-default border-b-slate-400/60 dark:border-slate-300 border-b-[0.5px]">
           <ng-container [ngTemplateOutlet]="providerIcon" [ngTemplateOutletContext]="{ provider: providedEmail()?.provider }" />
           <span class="text-sm text-green-800 dark:text-dark-accent-primary font-medium truncate">
             {{ providedEmail()?.email }}
@@ -431,7 +430,8 @@ import { SelectionService } from '../../../services/selection.service';
         </button>
         <!-- Profilo -->
         <a routerLink="/dashboard" (click)="closeAvatarMobileMenu(); closeOffCanvasMenu()"
-          class="group flex items-center w-full pl-1 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300">
+          class="group flex items-center w-full pl-3 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
+          [ngClass]="{ 'bg-slate-200 dark:bg-slate-500': isAvatarMenuItemActive('/dashboard') }">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
             class="fill-current h-5 w-5 text-gray-600 dark:text-slate-200 ">
             <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
@@ -443,7 +443,8 @@ import { SelectionService } from '../../../services/selection.service';
         </a>
         <!-- Impostazioni -->
         <a (click)="closeAvatarMobileMenu(); closeOffCanvasMenu()" routerLink="/settings"
-          class="group flex items-center w-full pl-1 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300">
+          class="group flex items-center w-full pl-3 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
+          [ngClass]="{ 'bg-slate-200 dark:bg-slate-500': isAvatarMenuItemActive('/settings') }">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
             class="fill-current h-5 w-5 text-gray-600 dark:text-slate-200 ">
             <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
@@ -455,7 +456,8 @@ import { SelectionService } from '../../../services/selection.service';
         <!-- Assistenza -->
         <a (click)="closeAvatarMobileMenu(); closeOffCanvasMenu()"
           routerLink="/help"
-          class="group flex items-center w-full pl-1 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300">
+          class="group flex items-center w-full pl-3 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
+          [ngClass]="{ 'bg-slate-200 dark:bg-slate-500': isAvatarMenuItemActive('/help') }">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
             class="fill-current h-5 w-5 text-gray-600 dark:text-slate-200 ">
             <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
@@ -466,7 +468,8 @@ import { SelectionService } from '../../../services/selection.service';
         </a>
         <!-- Feedback -->
         <button (click)="closeAvatarMobileMenu(); closeOffCanvasMenu()"
-          class="group flex items-center w-full mb-2 pl-1 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300">
+          class="group flex items-center w-full mb-2 pl-3 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
+          [ngClass]="{ 'bg-slate-200 dark:bg-slate-500': isAvatarMenuItemActive('/feedback') }">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
             class="fill-current h-5 w-5 text-gray-600 dark:text-slate-200">
             <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
@@ -480,7 +483,7 @@ import { SelectionService } from '../../../services/selection.service';
         </div>
         <!-- Esci -->
         <button (click)="logout(); closeAvatarMobileMenu(); closeOffCanvasMenu()"
-          class="group flex items-center w-full my-1 pl-1 pr-6 py-3 gap-4 hover:bg-slate-300/50 transition-colors duration-300 dark:hover:bg-slate-300/30">
+          class="group flex items-center w-full my-1 pl-3 pr-6 py-3 gap-4 hover:bg-slate-300/50 transition-colors duration-300 dark:hover:bg-slate-300/30">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
             class="fill-current h-5 w-5 text-gray-600 dark:text-slate-200">
             <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
@@ -511,7 +514,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
   protected readonly userContext = inject(UserContextService)
   protected readonly pathService = inject(PathService)
   private readonly toast = inject(ToastService)
-  protected readonly s = inject(SelectionService)
 
   @Input()
   set triggerOpenOffCanvas(triggerOpenOffCanvas: boolean) {
@@ -540,7 +542,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
   protected avatarMobileMenuVisible = signal<boolean>(false)
   protected providedEmail = signal<ProvidedEmailDTO | null>(null)
   private _triggerOpenOffCanvas = signal<boolean>(false)
-  protected headerSelections = signal<ItemSelection[]>([])
 
   readonly menuOpenClass: Signal<boolean> = computed(() => this.themeMenuOpen())
   readonly logoSrc = computed(() =>
@@ -635,6 +636,16 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.avatarMobileMenuOpen.set(false)
   }
 
+  protected isAvatarMenuItemActive(pathPrefix: string): boolean {
+    const normalizedPath = this.normalizePath(this.pathService.path())
+    const normalizedPrefix = pathPrefix.startsWith('/') ? pathPrefix : `/${pathPrefix}`
+    return normalizedPath === normalizedPrefix || normalizedPath.startsWith(`${normalizedPrefix}/`)
+  }
+
+  private normalizePath(path: string): string {
+    return (path ?? '').split(/[?#;]/)[0]
+  }
+
   protected noToast(): void {
     this.toast.close()
   }
@@ -726,26 +737,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
         this.isAllowedPath.set(!notAllowedPaths.includes(currentPath))
         this.isLoginPath.set(currentPath === '/login')
         this.isRegisterPath.set(currentPath === '/register')
-        const keys = ['dashboard', 'settings', 'help', 'feedback']
-
-        let activeKey: string | null = null
-
-        if (currentPath.startsWith('/settings')) {
-          activeKey = 'settings'
-        }
-
-        if (currentPath.startsWith('/dashboard')) {
-          activeKey = 'dashboard'
-        }
-
-        if (currentPath.startsWith('/help')) {
-          activeKey = 'help'
-        }
-
-        if (currentPath.startsWith('/feedback')) {
-          activeKey = 'feedback'
-        }
-        this.s.setHeaderSelections(keys.map((k) => this.s.generateHeaderSelection(k, k === activeKey)))
 
       })
 
@@ -757,7 +748,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.routeSub?.unsubscribe()
     this.emailSub?.unsubscribe()
     this.logoutSub?.unsubscribe()
-    this.s.clearHeaderSelections()
   }
 
 }
