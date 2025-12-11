@@ -1,5 +1,5 @@
-import { Component, computed, inject, Input } from '@angular/core';
-import { LandingPageConfig } from './Models/landing-page.config';
+import { Component, computed, Input } from '@angular/core';
+import { LandingPageConfig } from './Models/landing-page.config.model';
 
 @Component({
   selector: 'main',
