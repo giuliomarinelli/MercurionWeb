@@ -4,7 +4,7 @@ import { debounceTime, map, Observable } from 'rxjs';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 import { MoleculeCollectionItemService } from '../../../services/graphql/molecule-collection-item.service';
 import { Helpers } from '../../../helpers';
-import { MoleculeCardItemModel } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
+import { MoleculeCardItemModel, MoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
 import { PageModel } from '../../../Models/graphql/page.models';
 import { PmSearchInputComponent } from '../../common/pm-search-input/pm-search-input.component';
 import { MoleculeCollectionItemSelectCardComponent } from '../../molecule-detail/molecule-collection-item-select-card/molecule-collection-item-select-card.component';
@@ -19,6 +19,8 @@ import { AddManyChEMBLItemDTO } from '../../../Models/graphql/add-many-chembl-it
 import { AddMoleculesToCollectionContextService } from '../../../services/context/action-context/add-molecules-to-collection-context.service';
 import { Subscription } from 'rxjs';
 import { CloseButtonComponent } from '../../common/close-button/close-button.component';
+import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
+import { ToastService } from '../../../services/toast.service';
 
 export type ChipItem = {
   id: string
@@ -44,7 +46,13 @@ export type ChipItem = {
 <div class="flex justify-center items-center min-h-screen px-2">
   <div class="w-full max-w-5xl bg-white dark:bg-dark-surface-main rounded-xl shadow-lg">
     <div class="flex items-center justify-between px-4 py-4 border-b border-b-slate-400 sticky top-0 z-50 rounded-t-xl bg-white dark:bg-dark-surface-main">
-      <h2 class="text-lg font-semibold">Aggiungi molecole alla collezione</h2>
+      <h2 class="flex gap-4 items-center flex-wrap text-lg font-semibold">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current size-8">
+          <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+          <path d="M288 96L352 144L576 144L576 512L64 512L64 96L288 96zM352 176L341.3 176L332.8 169.6L277.3 128L96 128L96 480L544 480L544 176L352 176zM304 408L304 336L232 336L232 304L304 304L304 232L336 232L336 304L408 304L408 336L336 336L336 408L304 408z"/>
+        </svg>
+        <span>Aggiungi nuove molecole alla collezione <strong>{{collection()?.name}}</strong></span>
+      </h2>
       <m-close-button [action]="close.bind(this)" />
     </div>
     <div class="mx-auto">
@@ -278,14 +286,18 @@ export type ChipItem = {
 export class AddMoleculesToCollectionComponent extends AbstractPaginatedMultiselectComponent<MoleculeCardItemModel>
   implements OnInit, AfterViewInit, OnDestroy {
 
-  private readonly actionOverlayContext = inject(ActionOverlayContextService);
-  private readonly addContext = inject(AddMoleculesToCollectionContextService);
-  private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService);
+  private readonly actionOverlayContext = inject(ActionOverlayContextService)
+  private readonly addContext = inject(AddMoleculesToCollectionContextService)
+  private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService)
+  private readonly moleculeCollectionService = inject(MoleculeCollectionService)
+  private readonly toast = inject(ToastService)
 
 
   private ctrlSub?: Subscription
   private suSub1?: Subscription
   private suSub2?: Subscription
+  private metCtrlSub?: Subscription
+  private colSub?: Subscription
 
 
   step = signal<1 | 2>(1)
@@ -293,7 +305,7 @@ export class AddMoleculesToCollectionComponent extends AbstractPaginatedMultisel
   error = signal<boolean>(false)
   methodControl = new FormControl<'my' | 'chembl'>('my', { nonNullable: true })
   method = signal<'my' | 'chembl'>('my')
-
+  collection = signal<MoleculeCollection | null>(null)
 
   @ViewChild('scrollRoot', { static: false }) protected declare root: ElementRef<HTMLDivElement>
 
@@ -340,8 +352,18 @@ export class AddMoleculesToCollectionComponent extends AbstractPaginatedMultisel
   })
 
   ngOnInit(): void {
-    this.methodControl.valueChanges.subscribe(val => this.method.set(val))
-    queueMicrotask(() => this.loadMore())
+    this.metCtrlSub = this.methodControl.valueChanges.subscribe(val => this.method.set(val))
+    queueMicrotask(() => {
+      this.colSub = this.moleculeCollectionService.getCollectionById(this.addContext.collectionId()!).subscribe({
+        next: (col) => this.collection.set(col),
+        error: () => queueMicrotask(() => {
+          this.close()
+          this.addContext.clearCollectionId()
+          this.toast.trigger('Si è verificato un errore. Se si ripete, contatta il supporto', 'error', 3000)
+        })
+      })
+      this.loadMore()
+    })
   }
 
   ngAfterViewInit(): void {
@@ -353,6 +375,8 @@ export class AddMoleculesToCollectionComponent extends AbstractPaginatedMultisel
     this.suSub1?.unsubscribe()
     this.suSub2?.unsubscribe()
     this.observer?.disconnect()
+    this.colSub?.unsubscribe()
+    this.metCtrlSub?.unsubscribe()
   }
 
   // datasource
@@ -464,7 +488,6 @@ export class AddMoleculesToCollectionComponent extends AbstractPaginatedMultisel
     }
     this.chemblResults.set([])
   }
-
 
   handleError(err: unknown): void {
     this.chemblEmpty.set(false)
