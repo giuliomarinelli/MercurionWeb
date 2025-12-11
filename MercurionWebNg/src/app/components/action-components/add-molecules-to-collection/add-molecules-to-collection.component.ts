@@ -21,6 +21,7 @@ import { Subscription } from 'rxjs';
 import { CloseButtonComponent } from '../../common/close-button/close-button.component';
 import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
 import { ToastService } from '../../../services/toast.service';
+import { Router } from '@angular/router';
 
 export type ChipItem = {
   id: string
@@ -51,7 +52,7 @@ export type ChipItem = {
           <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
           <path d="M288 96L352 144L576 144L576 512L64 512L64 96L288 96zM352 176L341.3 176L332.8 169.6L277.3 128L96 128L96 480L544 480L544 176L352 176zM304 408L304 336L232 336L232 304L304 304L304 232L336 232L336 304L408 304L408 336L336 336L336 408L304 408z"/>
         </svg>
-        <span>Aggiungi nuove molecole alla collezione <strong>{{collection()?.name}}</strong></span>
+        <span>Aggiungi nuove molecole alla collezione <em>{{collection()?.name}}</em></span>
       </h2>
       <m-close-button [action]="close.bind(this)" />
     </div>
@@ -291,6 +292,7 @@ export class AddMoleculesToCollectionComponent extends AbstractPaginatedMultisel
   private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService)
   private readonly moleculeCollectionService = inject(MoleculeCollectionService)
   private readonly toast = inject(ToastService)
+  private readonly router = inject(Router)
 
 
   private ctrlSub?: Subscription
@@ -425,7 +427,12 @@ export class AddMoleculesToCollectionComponent extends AbstractPaginatedMultisel
             this.step_12_loading.set(false);
             this.addContext.notifyAdded()
             this.error.set(!ok)
+            const cId = this.addContext.collectionId()
             this.addContext.clearCollectionId()
+            if (this.addContext.redirectToCollectionPath()) {
+              this.addContext.setRedirectToCollectionPath(false)
+              this.router.navigateByUrl(`/molecules/collections/detail/${cId}`)
+            }
             this.actionOverlayContext.close()
           },
           error: () => {
