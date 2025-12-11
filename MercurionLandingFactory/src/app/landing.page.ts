@@ -7,7 +7,7 @@ import { LandingPageConfig } from './Models/landing-page.config';
   template: `
     <div class="text-center">
       <p
-        class="text-5xl font-semibold text-light-accent-primary dark:text-dark-accent-primary-btn"
+        class="text-5xl font-semibold text-[#2563eb] dark:text-[#0b6de5]"
       >
         {{ vm().code }}
       </p>
@@ -33,7 +33,7 @@ import { LandingPageConfig } from './Models/landing-page.config';
         <button
           type="button"
           (click)="goHome()"
-          class="cursor-pointer rounded-md bg-light-accent-primary px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm bg-[#2563eb] dark:bg-[#0b6de5] hover:bg-blue-500 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:bg-dark-accent-primary-btn dark:hover:bg-blue-400/85 dark:focus-visible:outline-indigo-500 transition-colors duration-300"
+          class="cursor-pointer rounded-md px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm bg-[#2563eb] hover:bg-blue-500 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:bg-[#0b6de5] dark:hover:bg-blue-400/85 dark:focus-visible:outline-indigo-500 transition-colors duration-300"
         >
           {{ vm().primaryCtaLabel }}
         </button>
