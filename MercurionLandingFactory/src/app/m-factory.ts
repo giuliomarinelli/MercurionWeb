@@ -7,7 +7,7 @@ import { LandingPageConfig } from './Models/landing-page.config.model'
 
 
 @Component({
-  selector: '#factory',   // ok così, il router non usa l'id come host
+  selector: '#factory',
   standalone: true,
   imports: [LandingPage],
   template: `
