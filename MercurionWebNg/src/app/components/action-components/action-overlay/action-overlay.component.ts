@@ -8,6 +8,7 @@ import { SensitiveDataChangeComponent } from '../sensitive-data-change/sensitive
 import { EssentialProfileRegistryEditComponent } from '../profile-registry-edit/essential-profile-registry-edit.component';
 import { TicketDetailComponent } from '../ticket-detail/ticket-detail.component';
 import { NewTicketComponent } from '../new-ticket/new-ticket.component';
+import { SelectCollectionThenRouteComponent } from '../select-collection-then-route/select-collection-then-route.component';
 
 @Component({
   selector: 'm-action-overlay',
@@ -21,7 +22,8 @@ import { NewTicketComponent } from '../new-ticket/new-ticket.component';
     SensitiveDataChangeComponent,
     EssentialProfileRegistryEditComponent,
     TicketDetailComponent,
-    NewTicketComponent
+    NewTicketComponent,
+    SelectCollectionThenRouteComponent
   ],
   template: `
 
@@ -58,6 +60,10 @@ import { NewTicketComponent } from '../new-ticket/new-ticket.component';
           @case ('NewTicket') {
             <m-new-ticket />
           }
+          @case ('SelectCollectionThenRoute') {
+            <m-select-collection-then-route />
+          }
+
         }
 
       </div>

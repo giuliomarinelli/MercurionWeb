@@ -7,6 +7,7 @@ export type ActionScope =
   | 'EssentialProfileRegistryEdit'
   | 'TicketDetail'
   | 'NewTicket'
+  | 'SelectCollectionThenRoute'
   | ''
 
 export type SaveOverlayFormItem = 'name' | 'label' | 'notes'

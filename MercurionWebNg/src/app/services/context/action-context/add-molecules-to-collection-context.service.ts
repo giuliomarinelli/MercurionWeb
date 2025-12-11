@@ -11,6 +11,9 @@ export class AddMoleculesToCollectionContextService {
   readonly collectionId = this._collectionId.asReadonly()
   readonly addedTick = this._addedTick.asReadonly()
 
+  _redirectToCollectionPath = signal<boolean>(false)
+  readonly redirectToCollectionPath = this._redirectToCollectionPath.asReadonly()
+
   setCollectionId(collectionId: string): void {
     this._collectionId.set(collectionId)
   }
@@ -21,6 +24,10 @@ export class AddMoleculesToCollectionContextService {
 
   notifyAdded(): void {
     this._addedTick.update(x => x + 1)
+  }
+
+  setRedirectToCollectionPath(v: boolean) {
+    this._redirectToCollectionPath.set(v)
   }
 
 }

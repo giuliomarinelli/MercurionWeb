@@ -12,6 +12,7 @@ import { HistoryContextService } from '../../services/context/history-context.se
 import { ToastService } from '../../services/toast.service';
 import { AbstractPaginationComponent } from '../../abstract/abstract-pagination-component';
 import { PmSearchInputComponent } from '../../components/common/pm-search-input/pm-search-input.component';
+import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
 
 @Component({
   selector: 'm-all-my-molecules.page',
@@ -100,6 +101,7 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
   private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService)
   private readonly historyContext = inject(HistoryContextService)
   private readonly toast = inject(ToastService)
+  private readonly actionContext = inject(ActionOverlayContextService)
   // ====================================================
 
   private tick = signal<number>(0)
@@ -213,7 +215,9 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
   }
 
   doAddMolecules(): void {
-
+    queueMicrotask(() => {
+      this.actionContext.open('SelectCollectionThenRoute')
+    })
   }
 
   protected override doQuery(q: string): void {

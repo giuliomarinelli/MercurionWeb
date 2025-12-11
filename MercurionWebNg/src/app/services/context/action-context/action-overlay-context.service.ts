@@ -39,4 +39,10 @@ export class ActionOverlayContextService {
     })
   }
 
+  switchToScope(scope: ActionScope): void {
+    queueMicrotask(() => {
+      this._scope.set(scope)
+    })
+  }
+
 }

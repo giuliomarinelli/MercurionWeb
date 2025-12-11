@@ -147,6 +147,12 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private publicExact = new Set(environment.PUBLIC_EXACT_PATHS)
   private publicPrefixes = environment.PUBLIC_PREFIXES
+  private loggedOutOnlyExact = (() => {
+    const set = new Set(environment.LOGGED_OUT_ONLY_PATHS ?? environment.PUBLIC_EXACT_PATHS)
+    set.delete('/404-not-found')
+    set.delete('/403-forbidden')
+    return set
+  })()
 
   _triggerOpenOffCanvas = signal<boolean>(false)
 
@@ -268,7 +274,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
       const isPublic =
         this.publicExact.has(url) || this.publicPrefixes.some((p) => url.startsWith(p));
-      const isLoggedOutOnly = this.publicExact.has(url);
+      const isLoggedOutOnly = this.loggedOutOnlyExact.has(url);
 
       const safeNavigate = (target: string) => {
         if (target === url) return
