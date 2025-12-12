@@ -18,6 +18,8 @@ import { HistoryContextService } from '../../../services/context/history-context
 import { Subscription } from 'rxjs';
 import { MoleculeCollectionItemService } from '../../../services/graphql/molecule-collection-item.service';
 import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.component';
+import { DesignService } from '../../../services/design.service';
+import { AppContextService } from '../../../services/context/app-context.service';
 
 @Component({
   selector: 'm-molecule-collection-item-card',
@@ -63,7 +65,7 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
           [class.hidden]="_triggerDisappear()"
           [routerLink]="_pathToMolecule()"
           [queryParams]="{ c_id: _collectionId() }"
-          (click)="searchContext.close()"
+          (click)="handleCardClick()"
           aria-label="Apri molecola {{ _molecule()!.name }}"
         ></a>
 
@@ -264,13 +266,15 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
 })
 export class MoleculeCollectionItemCardComponent implements OnDestroy {
   // ======================= DEPS =======================
-  protected readonly searchContext = inject(SearchContextService);
-  private readonly themeManager = inject(ThemeManagerService);
-  private readonly zone = inject(NgZone);
-  private readonly host = inject(ElementRef<HTMLElement>);
+  protected readonly searchContext = inject(SearchContextService)
+  private readonly themeManager = inject(ThemeManagerService)
+  private readonly zone = inject(NgZone)
+  private readonly host = inject(ElementRef<HTMLElement>)
   private readonly typeGuards = inject(TypeGuardsService)
   private readonly historyContext = inject(HistoryContextService)
   private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService)
+  private readonly design = inject(DesignService)
+  private readonly appContext = inject(AppContextService)
   // ====================================================
 
   /* inputs ---------------------------------- */
@@ -346,6 +350,8 @@ export class MoleculeCollectionItemCardComponent implements OnDestroy {
   _collapse = signal<boolean>(false)
   _hideActions = signal<boolean>(false)
 
+  isMobile = computed<boolean>(() => this.design.maxBk('sm')())
+
   private seen = false;
   private io!: IntersectionObserver;
 
@@ -371,10 +377,10 @@ export class MoleculeCollectionItemCardComponent implements OnDestroy {
         if (this.disablePreview() && isInViewport(this.host.nativeElement)) {
           this.zone.run(() => this.disablePreview.set(false));
         }
-      });
+      })
 
       this.io.observe(this.host.nativeElement);
-    });
+    })
   }
 
   doSave(e: CustomDetailSaveModel): void {
@@ -401,6 +407,14 @@ export class MoleculeCollectionItemCardComponent implements OnDestroy {
     this.onRemoveFromCollection.emit(this._molecule()!.id)
   }
 
+  handleCardClick(): void {
+    queueMicrotask(() => {
+      if (this.isMobile()) {
+        this.appContext.notifyAddedTriggerCloseOffCanvasMenu()
+      }
+      this.searchContext.close()
+    })
+  }
 
   ngOnDestroy() {
     this.io?.disconnect();

@@ -25,12 +25,19 @@ export class AppContextService {
   private _headerHeight = signal<number>(0)
   readonly headerHeight = this._headerHeight.asReadonly()
 
+  private _addedTriggerCloseOffCanvasMenu = signal<number>(0)
+  readonly addedTriggerCloseOffCanvasMenu = this._addedTriggerCloseOffCanvasMenu.asReadonly()
+
   notifyAdded(): void {
     this._addedTick.update(x => x + 1)
   }
 
   notifyRequestGlobalScrollRootRefTick(): void {
     this._addedGlobalScrollRootRefTick.update(x => x + 1)
+  }
+
+  notifyAddedTriggerCloseOffCanvasMenu(): void {
+    this._addedTriggerCloseOffCanvasMenu.update((x) => x + 1)
   }
 
   triggerScrollToTopGlobally(): void {

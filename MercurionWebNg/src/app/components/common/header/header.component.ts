@@ -17,6 +17,7 @@ import { PathService } from '../../../services/path.service';
 import { ToastService } from '../../../services/toast.service';
 import { ProvidedEmailDTO } from '../../../Models/account/account.models';
 import { environment } from '../../../../environments/environment.development';
+import { AppContextService } from '../../../services/context/app-context.service';
 
 @Component({
   selector: 'm-header',
@@ -514,6 +515,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   protected readonly userContext = inject(UserContextService)
   protected readonly pathService = inject(PathService)
   private readonly toast = inject(ToastService)
+  private readonly appContext = inject(AppContextService)
 
   @Input()
   set triggerOpenOffCanvas(triggerOpenOffCanvas: boolean) {
@@ -555,6 +557,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
 
   constructor() {
+    effect(() => {
+      const t = this.appContext.addedTriggerCloseOffCanvasMenu()
+      if (t === 0) {
+        return
+      }
+      queueMicrotask(() => this.closeOffCanvasMenu())
+    })
     effect(() => {
       const t = this._triggerOpenOffCanvas()
       if (!t) {
