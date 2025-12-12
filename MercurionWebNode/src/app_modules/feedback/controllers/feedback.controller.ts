@@ -20,9 +20,9 @@ import { Scope } from 'src/app_modules/user/Models/enums/scope.enum'
 import { UpdateFeedbackDTO } from '../Models/DTO/update-feedback.dto'
 import { FeedbackEnv, FeedbackStatus } from '../Models/enums/feedback.enums'
 import { Feedback } from '../Models/entities/feedback.entity'
-import { IPaginationMeta, Pagination } from 'nestjs-typeorm-paginate'
 import { RpcException } from '@nestjs/microservices'
 import { GeneralUtils } from 'src/utils/general-utils/general-utils'
+import { FlatPagination } from 'src/Models/flat-pagination.interface'
 
 
 @Controller('feedback')
@@ -46,15 +46,17 @@ export class FeedbackController {
         @Query('limit') limitRaw?: string,
         @Query('env') env?: FeedbackEnv,
         @Query('status') status?: FeedbackStatus
-    ): Promise<Pagination<Feedback, IPaginationMeta>> {
+    ): Promise<FlatPagination<Feedback>> {
         const page = Math.max(1, Number(pageRaw ?? 1) || 1)
         const limitUnsafe = Math.max(1, Number(limitRaw ?? 25) || 25)
         const limit = Math.min(limitUnsafe, 100)
 
-        return this.feedbackService.listFeedback(
+        const pagination = await this.feedbackService.listFeedback(
             { page, limit },
             { env, status }
         )
+
+        return GeneralUtils.paginationToFlatPaginationConverter(pagination)
     }
 
     @Get(':id')

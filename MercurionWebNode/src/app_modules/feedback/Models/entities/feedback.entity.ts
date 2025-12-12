@@ -61,6 +61,7 @@ export class Feedback {
     })
     kind: FeedbackKind
 
+    @Exclude()
     @Column({ name: 'anon_author_key', type: 'text' })
     anonAuthorKey: string
 
