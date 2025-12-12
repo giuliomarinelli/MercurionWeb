@@ -121,6 +121,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
             case 'ChangePhone::UserNotFound':
             case 'NoSuchUser':
             case 'TicketNotFound':
+            case 'Feedback::NotFound':
                 statusCode = HttpStatus.NOT_FOUND
                 break
 
@@ -173,6 +174,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
             case 'BackupCode::TooManyAttempts':
             case 'BackupCodeRegen::TooManyRequests':
             case 'AccountRecovery::TooManyAttempts':
+            case 'Feedback::TooManyRequests':
                 statusCode = HttpStatus.TOO_MANY_REQUESTS
                 msg = 'Rate limit exceeded.'
                 break

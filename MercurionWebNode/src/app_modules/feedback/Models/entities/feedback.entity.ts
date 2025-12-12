@@ -11,7 +11,8 @@ import {
     FeedbackEnv,
     FeedbackSource,
     FeedbackKind,
-    FeedbackContextKind
+    FeedbackContextKind,
+    FeedbackStatus
 } from '../enums/feedback.enums'
 import { uuidv7 } from '@kripod/uuidv7'
 import { UUID } from 'crypto'
@@ -29,6 +30,8 @@ import { Exclude } from 'class-transformer'
     `"message" IS NOT NULL OR "rating_utility" IS NOT NULL OR "rating_clarity" IS NOT NULL OR "rating_experience" IS NOT NULL`
 )
 @Check('feedback_created_at_ms_positive', `"created_at_ms" > 0`)
+@Index('feedback_status_idx', ['status'])
+@Index('feedback_env_status_created_at_ms_idx', ['env', 'status', 'createdAtMs'])
 export class Feedback {
 
     @PrimaryColumn('uuid')
@@ -36,7 +39,7 @@ export class Feedback {
 
     @Column({ name: 'created_at_ms', type: 'bigint' })
     createdAtMs: string
-    
+
     @Exclude()
     userId: UUID /* SOLO TRANSIENT, NON viene persistito, serve solo per generare il anonAuthorKey direttamente dentro l'entità in onInsert
      senza che l'entità debba dipendere da un contesto di iniezione esterno */
@@ -89,6 +92,19 @@ export class Feedback {
 
     @Column({ name: 'client_version', type: 'text', nullable: true })
     clientVersion: string | null
+
+    @Column({
+        type: 'enum',
+        enum: FeedbackStatus,
+        default: FeedbackStatus.NEW
+    })
+    status: FeedbackStatus
+
+    @Column({ name: 'internal_note', type: 'text', nullable: true })
+    internalNote: string | null
+
+    @Column({ type: 'text', array: true, nullable: true })
+    tags: string[] | null
 
     @BeforeInsert()
     private onInsert(): void {

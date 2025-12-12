@@ -28,3 +28,10 @@ export enum FeedbackContextKind {
   PERFORMANCE = 'performance',
   ERROR = 'error'
 }
+
+export enum FeedbackStatus {
+  NEW = 'new',
+  TRIAGED = 'triaged',
+  RESOLVED = 'resolved',
+  SPAM = 'spam'
+}

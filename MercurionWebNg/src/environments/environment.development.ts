@@ -7,5 +7,8 @@ export const environment = {
   logoSrc: {
     PICTOGRAM_LIGHT: 'logo/pictogram-light-logo.svg',
     PICTOGRAM_DARK: 'logo/pictogram-dark-logo-2.svg'
-  }
+  },
+  production: false,
+  testing: false,
+  feedbackEnv: 'staging'
 }
