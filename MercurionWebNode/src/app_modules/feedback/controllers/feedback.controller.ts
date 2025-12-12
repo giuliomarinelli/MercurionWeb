@@ -8,7 +8,8 @@ import {
     Post,
     UseInterceptors,
     ClassSerializerInterceptor,
-    Query
+    Query,
+    UnauthorizedException
 } from '@nestjs/common'
 import { UUID } from 'crypto'
 import { FeedbackService } from '../services/feedback.service'
@@ -19,6 +20,7 @@ import { UpdateFeedbackDTO } from '../Models/DTO/update-feedback.dto'
 import { FeedbackEnv, FeedbackStatus } from '../Models/enums/feedback.enums'
 import { Feedback } from '../Models/entities/feedback.entity'
 import { IPaginationMeta, Pagination } from 'nestjs-typeorm-paginate'
+import { RpcException } from '@nestjs/microservices'
 
 
 @Controller('feedback')
@@ -53,10 +55,20 @@ export class FeedbackController {
         )
     }
 
+    @Get(':id')
+    @HasScopes(Scope.ReadFeedback)
+    async getById(@Param('id') id: UUID): Promise<Feedback> | never {
+        const f = await this.feedbackService.getFeedbackById(id)
+        if (!f) {
+            throw new UnauthorizedException('Feedback::NotFound')
+        }
+        return f
+    }
+
     @Patch(':id')
     @HasScopes(Scope.UpdateFeedback)
     async moderate(
-        @Param('id') id: string,
+        @Param('id') id: UUID,
         @Body() dto: UpdateFeedbackDTO
     ): Promise<Feedback> {
         return this.feedbackService.moderateFeedback(id, dto)
@@ -64,12 +76,15 @@ export class FeedbackController {
 
     @Delete(':id')
     @HasScopes(Scope.DeleteFeedback)
-    async delete(@Param('id') id: string): Promise<{ ok: boolean }> {
+    async delete(@Param('id') id: UUID): Promise<{ ok: boolean }> {
         try {
             await this.feedbackService.deleteFeedback(id)
             return { ok: true }
-        } catch {
-            return { ok: false }
+        } catch (e) {
+            if (e instanceof RpcException && e.message === 'Feedback::NotFound') {
+                return { ok: false }
+            }
+            throw e
         }
     }
 

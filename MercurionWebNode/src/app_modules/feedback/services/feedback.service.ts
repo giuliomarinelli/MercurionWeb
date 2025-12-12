@@ -91,6 +91,12 @@ export class FeedbackService {
         return saved
     }
 
+    async getFeedbackById(id: UUID): Promise<Feedback | null> {
+        return this.feedbackRepo.findOne({
+            where: { id }
+        })
+    }
+
     async listFeedback(
         options: IPaginationOptions,
         filters?: {
@@ -116,9 +122,9 @@ export class FeedbackService {
         })
     }
 
-    async moderateFeedback(id: string, dto: UpdateFeedbackDTO): Promise<Feedback> {
+    async moderateFeedback(id: UUID, dto: UpdateFeedbackDTO): Promise<Feedback> {
         const feedback = await this.feedbackRepo.findOne({
-            where: { id: id as unknown as UUID }
+            where: { id }
         })
 
         if (!feedback) {
@@ -140,8 +146,8 @@ export class FeedbackService {
         return this.feedbackRepo.save(feedback)
     }
 
-    async deleteFeedback(id: string): Promise<void> {
-        const res = await this.feedbackRepo.delete({ id: id as unknown as UUID })
+    async deleteFeedback(id: UUID): Promise<void> | never {
+        const res = await this.feedbackRepo.delete({ id })
         if (!res.affected) {
             throw new RpcException('Feedback::NotFound')
         }
