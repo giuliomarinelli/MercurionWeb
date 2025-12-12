@@ -22,6 +22,11 @@ import { MeiliLoggerService } from './app_modules/meilisearch/services/meili-log
 
 export async function bootstrap() {
 
+  if (!process.env.UM_FEEDBACK_ANON_AUTHOR_KEY) {
+    console.error(`Fatal: UM_FEEDBACK_ANON_AUTHOR_KEY is not set in evn=${process.env.NODE_ENV ?? 'development'}`)
+    process.exit(1)
+  }
+
   const logLevels = new Set<LogLevel>(['error', 'warn', 'log', 'debug', 'verbose', 'fatal'])
 
   if ((process.env.NODE_ENV ?? 'development') !== 'development') {
