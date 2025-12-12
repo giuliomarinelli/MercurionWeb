@@ -8,8 +8,8 @@ export class SearchContextService {
   isOpenedSearchOverlay = signal(false)
 
   // Stato interno per transizione
-  isMounted = signal(false)
-  isVisible = signal(false)
+  isMounted = signal<boolean>(false)
+  isVisible = signal<boolean>(false)
 
   constructor() {
     effect(() => {

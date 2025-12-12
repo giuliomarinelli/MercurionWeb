@@ -9,7 +9,8 @@ import {
     UseInterceptors,
     ClassSerializerInterceptor,
     Query,
-    UnauthorizedException
+    NotFoundException,
+    BadRequestException
 } from '@nestjs/common'
 import { UUID } from 'crypto'
 import { FeedbackService } from '../services/feedback.service'
@@ -21,6 +22,7 @@ import { FeedbackEnv, FeedbackStatus } from '../Models/enums/feedback.enums'
 import { Feedback } from '../Models/entities/feedback.entity'
 import { IPaginationMeta, Pagination } from 'nestjs-typeorm-paginate'
 import { RpcException } from '@nestjs/microservices'
+import { GeneralUtils } from 'src/utils/general-utils/general-utils'
 
 
 @Controller('feedback')
@@ -58,9 +60,12 @@ export class FeedbackController {
     @Get(':id')
     @HasScopes(Scope.ReadFeedback)
     async getById(@Param('id') id: UUID): Promise<Feedback> | never {
+        if (!GeneralUtils.isValidUUIDv7(id)) {
+            throw new BadRequestException('Invalid id')
+        }
         const f = await this.feedbackService.getFeedbackById(id)
         if (!f) {
-            throw new UnauthorizedException('Feedback::NotFound')
+            throw new NotFoundException('Feedback::NotFound')
         }
         return f
     }
@@ -71,12 +76,18 @@ export class FeedbackController {
         @Param('id') id: UUID,
         @Body() dto: UpdateFeedbackDTO
     ): Promise<Feedback> {
+        if (!GeneralUtils.isValidUUIDv7(id)) {
+            throw new BadRequestException('Invalid id')
+        }
         return this.feedbackService.moderateFeedback(id, dto)
     }
 
     @Delete(':id')
     @HasScopes(Scope.DeleteFeedback)
     async delete(@Param('id') id: UUID): Promise<{ ok: boolean }> {
+        if (!GeneralUtils.isValidUUIDv7(id)) {
+            throw new BadRequestException('Invalid id')
+        }
         try {
             await this.feedbackService.deleteFeedback(id)
             return { ok: true }

@@ -1,8 +1,8 @@
-import { Component, computed, inject, OnDestroy, OnInit, Signal, signal, ViewChild } from '@angular/core';
+import { Component, computed, effect, inject, OnDestroy, OnInit, Signal, signal, ViewChild } from '@angular/core';
 import { FormBuilder, FormControlStatus, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ThemeManagerService } from '../../services/context/theme-manager.service';
 import { PublicPipe } from '../../pipes/public.pipe';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { Subscription, tap } from 'rxjs';
 import { HttpErrorBody } from '../../Models/http-error-body.dto';
@@ -18,7 +18,7 @@ import { ISessionDeviceInfo } from '../../Models/auth/fingerprint.models';
 import { Login_FirstStepWrapper } from '../../Models/auth/login.models';
 import { environment } from '../../../environments/environment.development';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { SSO_AuthProvider } from '../../Models/auth/provider.models';
+
 
 
 
@@ -34,6 +34,8 @@ import { SSO_AuthProvider } from '../../Models/auth/provider.models';
     ClassicSpinnerComponent
   ],
   template: `
+
+  @if (templateIsMounted()) {
 
     <!-- login-placeholder-mercurion.component.html -->
     <div class="min-h-screen flex flex-col items-center px-4 pt-9">
@@ -294,7 +296,7 @@ import { SSO_AuthProvider } from '../../Models/auth/provider.models';
         </div>
       </form>
     </div>
-
+  }
 
   `
 })
@@ -308,6 +310,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
   private readonly fingerprintService = inject(FingerprintService)
   private readonly sessionSync = inject(SessionSyncService)
   private readonly userContext = inject(UserContextService)
+  private readonly route = inject(ActivatedRoute)
   // ====================================================
 
   protected readonly uncorrectEmailMsg = 'L\'e-mail inserita non è corretta'
@@ -330,6 +333,10 @@ export class LoginPageComponent implements OnInit, OnDestroy {
   protected turnstileToken = signal<string | null>(null)
   protected loadingLogin = signal<boolean>(false)
   protected goingToPasswordStep = signal<boolean>(false)
+  protected templateIsRendered = signal<boolean>(false)
+  protected templateIsMounted = signal<boolean>(false)
+  protected templateIsVisible = signal<boolean>(false)
+
 
   private formStatus!: Signal<FormControlStatus>
 
@@ -352,6 +359,15 @@ export class LoginPageComponent implements OnInit, OnDestroy {
   }
 
   constructor() {
+    effect(() => {
+      if (this.templateIsRendered()) {
+        this.templateIsMounted.set(true)
+        setTimeout(() => this.templateIsVisible.set(true), 10)
+      } else {
+        this.templateIsVisible.set(false)
+        setTimeout(() => this.templateIsMounted.set(false), 300)
+      }
+    })
     this.loginForm = this.fb.group({
       email: this.fb.control(null, [Validators.required, Validators.email, Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)]),
       password: this.fb.control(null, [Validators.required]),
@@ -475,6 +491,16 @@ export class LoginPageComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit(): Promise<void> {
+    const raw = this.route.snapshot.queryParamMap.get('redirected') ?? 'false'
+    let r: boolean
+    try {
+      r = JSON.parse(raw)
+    } catch {
+      r = false
+    }
+    if (!r) {
+      this.templateIsRendered.set(true)
+    }
     window.addEventListener('storage', this.storageListener)
     this.pollInterval = setInterval(() => {
       if (localStorage.getItem('login') && (this.router.url === '/login' || this.router.url.startsWith('/login'))) {
@@ -494,7 +520,9 @@ export class LoginPageComponent implements OnInit, OnDestroy {
       }
     })
     this.pswSub = this.loginForm.get('password')?.valueChanges.subscribe(() => this.serverErrorStep.set(0))
-
+    if (!this.templateIsRendered()) {
+      this.templateIsRendered.set(true)
+    }
   }
 
   ngOnDestroy(): void {
