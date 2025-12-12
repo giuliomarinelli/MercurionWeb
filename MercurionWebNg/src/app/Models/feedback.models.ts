@@ -14,7 +14,6 @@ export interface Feedback {
   env: FeedbackEnv
   source: FeedbackSource
   kind: FeedbackKind
-  anonAuthorKey: string
   ratingUtility: number | null
   ratingClarity: number | null
   ratingExperience: number | null
