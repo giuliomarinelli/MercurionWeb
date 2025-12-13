@@ -2,7 +2,6 @@ import { Component, Input, signal } from '@angular/core';
 
 @Component({
   selector: 'm-molecule-synonyms',
-  standalone: true,
   template: `
     <section class="mt-4 mb-8">
       <h2 class="text-xl font-semibold pb-6 text-light-accent-primary dark:text-dark-accent-primary text-center sm:text-left">Sinonimi</h2>

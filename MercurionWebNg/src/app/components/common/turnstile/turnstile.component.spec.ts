@@ -14,6 +14,12 @@ describe('TurnstileComponent', () => {
 
     fixture = TestBed.createComponent(TurnstileComponent);
     component = fixture.componentInstance;
+
+    // Stub external script integration
+    (window as any).turnstile = { render: () => 'id', remove: () => undefined };
+    spyOn(component as any, 'loadTurnstileScript').and.returnValue(Promise.resolve());
+    spyOn(component as any, 'waitForWidgetVisible').and.returnValue(undefined as any);
+
     fixture.detectChanges();
   });
 

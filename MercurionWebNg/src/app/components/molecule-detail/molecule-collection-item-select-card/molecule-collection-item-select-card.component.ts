@@ -7,7 +7,6 @@ import { MoleculeCardItemModel } from '../../../Models/graphql/molecule-collecti
 
 @Component({
   selector: 'm-molecule-collection-item-select-card',
-  standalone: true,
   imports: [
     MoleculeCollectionItemCardComponent,
     ReactiveFormsModule

@@ -1,5 +1,5 @@
 import { NgOptimizedImage } from '@angular/common';
-import { Component, effect, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, OnInit, signal } from '@angular/core';
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
 import { PublicPipe } from '../../../pipes/public.pipe';
 import { environment } from '../../../../environments/environment.development';
@@ -7,6 +7,7 @@ import { environment } from '../../../../environments/environment.development';
 @Component({
   selector: 'm-footer',
   imports: [NgOptimizedImage, PublicPipe],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <footer class="px-6 py-4 text-xs sm:text-sm">
       <!-- classi tw rimosse per passaggio a footer minimalista bg-slate-100 dark:bg-slate-800/50 text-sm text-slate-600 dark:text-slate-200 border-t border-slate-400/40 dark:border-slate-400/65 -->

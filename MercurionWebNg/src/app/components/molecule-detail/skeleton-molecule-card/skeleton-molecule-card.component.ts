@@ -1,10 +1,10 @@
-import { Component, Input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, signal } from '@angular/core';
 import { NgClass, NgStyle } from '@angular/common';
 
 @Component({
   selector: 'm-skeleton-molecule-card',
-  standalone: true,
   imports: [NgClass, NgStyle],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div
       class="

@@ -8,7 +8,6 @@ type AnyMsg = TicketMessage | ClientTicketMessage;
 
 @Component({
   selector: 'm-message-item',
-  standalone: true,
   imports: [NgClass, DatePipe],
   template: `
   @if (_msg()) {

@@ -42,7 +42,6 @@ import { HttpErrorBody as HttpErrorBody } from '../../Models/http-error-body.dto
 
 @Component({
   selector: 'm-molecule-detail',
-  standalone: true,
   imports: [
     AsyncPipe,
     MoleculeHeaderComponent,

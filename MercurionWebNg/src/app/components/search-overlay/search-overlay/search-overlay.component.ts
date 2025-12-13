@@ -29,7 +29,6 @@ import { Maybe } from 'graphql/jsutils/Maybe'
 
 @Component({
   selector: 'm-search-overlay',
-  standalone: true,
   imports: [
     SearchInputComponent,
     SearchResultComponent,

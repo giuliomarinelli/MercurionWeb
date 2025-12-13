@@ -11,7 +11,6 @@ import { PmOption } from '../../../Models/pm-option.model';
 
 @Component({
   selector: 'm-select',
-  standalone: true,
   imports: [PublicPipe, OverlayModule],
   providers: [{
     provide: NG_VALUE_ACCESSOR,

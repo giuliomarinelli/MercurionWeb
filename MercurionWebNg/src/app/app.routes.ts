@@ -103,7 +103,12 @@ export const routes: Routes = [
   },
   {
     path: 'help',
-    loadComponent: () => import('./pages/help.page/help.page.component').then(m => m.HelpPageComponent),
+    loadComponent: () => import('./pages/help/help.page.component').then(m => m.HelpPageComponent),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'feedback',
+    loadComponent: () => import('./pages/feedback/feedback.page.component').then((m) => m.FeedbackPageComponent),
     canActivate: [AuthGuard]
   },
   {

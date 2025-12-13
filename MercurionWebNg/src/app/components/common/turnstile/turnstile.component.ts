@@ -1,4 +1,5 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   EventEmitter,
   OnInit,
@@ -14,10 +15,10 @@ import { ThemeManagerService } from '../../../services/context/theme-manager.ser
 
 @Component({
   selector: 'm-turnstile',
-  standalone: true,
   template: `
     <div [id]="containerId"></div>
   `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TurnstileComponent implements OnInit, OnDestroy {
   // ===== Outputs =====

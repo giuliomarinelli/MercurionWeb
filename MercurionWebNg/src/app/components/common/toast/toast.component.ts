@@ -1,5 +1,5 @@
 // toast.component.ts
-import { Component, effect, Input, OnChanges, OnInit, signal, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, Input, OnChanges, OnInit, signal, SimpleChanges } from '@angular/core';
 import { CommonModule, NgClass } from '@angular/common';
 import { ToastService } from '../../../services/toast.service';
 
@@ -7,8 +7,8 @@ export type ToastContext = 'error' | 'warn' | 'success'
 
 @Component({
   selector: 'm-toast',
-  standalone: true,
   imports: [CommonModule, NgClass],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (toast.show()) {
       <div

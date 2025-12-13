@@ -23,7 +23,6 @@ import { AppContextService } from '../../../services/context/app-context.service
 
 @Component({
   selector: 'm-molecule-collection-item-card',
-  standalone: true,
   imports: [
     DecimalPipe,
     DatePipe,

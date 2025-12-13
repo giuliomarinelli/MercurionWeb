@@ -26,7 +26,6 @@ import { RdKitApiService } from '../../services/rd-kit-api.service';
 
 @Component({
   selector: 'm-molecule-editor',
-  standalone: true,
   imports: [KetcherFrameComponent],
   template: `
     <div class="mt-2 mb-6">

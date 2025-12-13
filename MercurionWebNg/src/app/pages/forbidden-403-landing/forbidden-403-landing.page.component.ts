@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { UserContextService } from '../../services/context/user-context.service';
 import { AppContextService } from '../../services/context/app-context.service';
 import { Router } from '@angular/router';
@@ -7,6 +7,7 @@ import { Location } from '@angular/common';
 @Component({
   selector: 'm-forbidden-403-landing.page',
   imports: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
 
     <main class="absolute inset-0 z-[50] grid min-h-full place-items-center bg-white px-6 py-24 sm:py-32 lg:px-8 dark:bg-gray-950">

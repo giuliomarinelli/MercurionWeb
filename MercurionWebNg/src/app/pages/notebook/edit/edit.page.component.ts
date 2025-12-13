@@ -9,7 +9,6 @@ import { NotebookTocComponent } from '../../../components/notebook/notebook-tree
 
 @Component({
   selector: 'm-lab-notebook-edit-component',
-  standalone: true,
   imports: [LabNotebookEditorComponent, NotebookTocComponent],
   template: `
     @if (notebook()) {

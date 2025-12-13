@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'm-ticket-composer',
-  standalone: true,
   imports: [
     QuillModule,
     FormsModule

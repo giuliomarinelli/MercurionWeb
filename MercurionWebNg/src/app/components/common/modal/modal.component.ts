@@ -6,7 +6,6 @@ import { ModalContextService } from '../../../services/context/modal-context.ser
 
 @Component({
   selector: 'm-modal',
-  standalone: true,
   imports: [PortalModule],
   template: `
   @if (ctx.isMounted()) {

@@ -12,7 +12,6 @@ import { Helpers } from '../../helpers';
 
 @Component({
   selector: 'm-password-recovery',
-  standalone: true,
   imports: [
     ReactiveFormsModule,
     FloatingInputComponent,

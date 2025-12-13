@@ -37,7 +37,6 @@ export type KetcherFrameMode = 'create' | 'edit' | 'duplicate';
 
 @Component({
   selector: 'm-ketcher-frame',
-  standalone: true,
   template: `
     <div class="relative w-full">
       <iframe

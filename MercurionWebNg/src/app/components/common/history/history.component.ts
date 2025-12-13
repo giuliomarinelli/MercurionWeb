@@ -25,7 +25,6 @@ import { AppContextService } from '../../../services/context/app-context.service
 
 @Component({
   selector: 'm-history',
-  standalone: true,
   imports: [HistoryItemComponent, ClassicSpinnerComponent, NgClass],
   styles: `
     .fade-out-ani {

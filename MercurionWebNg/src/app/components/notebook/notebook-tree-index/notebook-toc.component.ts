@@ -6,7 +6,6 @@ type TocMode = 'edit' | 'read';
 
 @Component({
   selector: 'm-notebook-toc',
-  standalone: true,
   imports: [RouterModule],
   template: `
     <ul class="flex flex-wrap gap-3 text-xs px-2 py-2 border-b">

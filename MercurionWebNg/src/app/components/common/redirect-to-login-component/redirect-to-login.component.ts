@@ -1,9 +1,10 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 
 @Component({
   selector: 'm-redirect-to-login-component',
   imports: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
 
     <div class="absolute inset-0">

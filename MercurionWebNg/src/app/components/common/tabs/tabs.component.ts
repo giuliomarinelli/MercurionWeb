@@ -8,7 +8,6 @@ import {
 
 @Component({
   selector: 'm-tabs',
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div

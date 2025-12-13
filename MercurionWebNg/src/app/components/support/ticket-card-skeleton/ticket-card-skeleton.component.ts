@@ -1,10 +1,10 @@
-import { Component, Input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, signal } from '@angular/core';
 import { NgClass } from '@angular/common';
 
 @Component({
   selector: 'm-ticket-card-skeleton',
-  standalone: true,
   imports: [NgClass],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="relative">
       <div

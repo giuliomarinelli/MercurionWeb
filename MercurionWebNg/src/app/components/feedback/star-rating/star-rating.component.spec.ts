@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ComboSelectComponent } from './combo-select.component';
+import { StarRatingComponent } from './star-rating.component';
 
-describe('ComboSelectComponent', () => {
-  let component: ComboSelectComponent<any>;
-  let fixture: ComponentFixture<ComboSelectComponent<any>>;
+describe('StarRatingComponent', () => {
+  let component: StarRatingComponent;
+  let fixture: ComponentFixture<StarRatingComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ComboSelectComponent]
+      imports: [StarRatingComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(ComboSelectComponent);
+    fixture = TestBed.createComponent(StarRatingComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

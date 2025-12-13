@@ -13,7 +13,6 @@ import { SelectionService } from '../../../services/selection.service';
 
 @Component({
   selector: 'm-sidenav',
-  standalone: true,
   imports: [
     RouterLink,
     HistoryComponent,

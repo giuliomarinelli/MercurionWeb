@@ -31,7 +31,6 @@ export type ChipItem = {
 @Component({
   selector: 'm-add-molecules-to-collection',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
   imports: [
     PmSearchInputComponent,
     MoleculeCollectionItemSelectCardComponent,

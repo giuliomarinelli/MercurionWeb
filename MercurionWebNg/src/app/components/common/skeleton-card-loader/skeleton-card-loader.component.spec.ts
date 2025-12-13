@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { SkeletonCardLoaderComponent } from './skeleton-card-loader.component';
+import { SkeletonCollectionCardComponent } from './skeleton-card-loader.component';
 
-describe('SkeletonCardLoaderComponent', () => {
-  let component: SkeletonCardLoaderComponent;
-  let fixture: ComponentFixture<SkeletonCardLoaderComponent>;
+describe('SkeletonCollectionCardComponent', () => {
+  let component: SkeletonCollectionCardComponent;
+  let fixture: ComponentFixture<SkeletonCollectionCardComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SkeletonCardLoaderComponent]
+      imports: [SkeletonCollectionCardComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(SkeletonCardLoaderComponent);
+    fixture = TestBed.createComponent(SkeletonCollectionCardComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

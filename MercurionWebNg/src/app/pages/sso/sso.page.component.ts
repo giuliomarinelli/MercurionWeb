@@ -1,4 +1,4 @@
-import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { EMPTY, of, Subscription, switchMap, defer, from, combineLatest, catchError } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -10,6 +10,7 @@ import { SessionSyncService } from '../../services/session-sync.service';
 @Component({
   selector: 'm-sso-page',
   imports: [ClassicSpinnerComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
 
     <div class="absolute inset-0 flex justify-center items-center">

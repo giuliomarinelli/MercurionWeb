@@ -13,7 +13,6 @@ import { MoleculeSearchResult } from
 
 @Component({
   selector: 'm-similar-item',
-  standalone: true,
   imports: [DecimalPipe, RouterLink, MoleculeViewerComponent, NgClass],
   template: `
     <a [routerLink]="_pathToMolecule()" (click)="searchContext.close()"

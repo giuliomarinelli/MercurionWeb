@@ -116,11 +116,6 @@ html {
   scroll-behavior: smooth;
 }
 
-html,
-body {
-  @apply text-light-on-surface-main dark:text-dark-on-surface-main;
-}
-
 @layer components {
 
   .main-container {

@@ -20,7 +20,6 @@ import { DesignService } from '../../../services/design.service';
 
 @Component({
   selector: 'm-search-result',
-  standalone: true,
   host: { class: 'block w-full' },
   imports: [
     DecimalPipe,

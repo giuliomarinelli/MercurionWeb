@@ -12,7 +12,6 @@ type TicketCardMode = 'user' | 'support';
 
 @Component({
   selector: 'm-ticket-card',
-  standalone: true,
   imports: [DatePipe, NgClass],
   template: `
   @if (_ticket()) {
