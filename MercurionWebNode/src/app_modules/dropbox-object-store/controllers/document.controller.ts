@@ -34,7 +34,7 @@ export class DocumentController {
     }
 
     /** Upload (multipart/form-data) */
-    @Post('upload')
+    @Post()
     async upload(
         @Req() req: FastifyRequest,
         @Res({ passthrough: true }) res: FastifyReply,
@@ -143,7 +143,7 @@ export class DocumentController {
     }
 
     /** Scarica un documento */
-    @Get(':id/download')
+    @Get(':id')
     async download(
         @Param('id') id: string,
         @AuthenticatedUserId() userId: string,
@@ -176,7 +176,7 @@ export class DocumentController {
     }
 
     /** Lista dei documenti dell’utente */
-    @Get('list')
+    @Get()
     async list(@AuthenticatedUserId() userId: string) {
         if (!userId) throw new Error('userId required');
         return this.dropboxService.listDocuments(userId as UUID);
