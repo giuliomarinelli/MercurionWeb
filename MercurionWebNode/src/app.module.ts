@@ -29,6 +29,7 @@ import { LabNotebookModule } from './app_modules/lab-notebook/lab-notebook.modul
 import { AdminModule } from './app_modules/admin/admin.module';
 import { SSO_Module } from './app_modules/sso/sso.module';
 import { HelpModule } from './app_modules/help/help.module';
+import { FeedbackModule } from './app_modules/feedback/feedback.module';
 
 
 const nodeEnv = process.env.NODE_ENV ?? 'development'
@@ -68,7 +69,8 @@ const nodeEnv = process.env.NODE_ENV ?? 'development'
     LabNotebookModule,
     AdminModule,
     SSO_Module,
-    HelpModule
+    HelpModule,
+    FeedbackModule
   ],
   providers: [
     {

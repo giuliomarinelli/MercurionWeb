@@ -28,7 +28,6 @@ import { FormsModule } from '@angular/forms';
  */
 @Component({
   selector: 'm-combo-multiselect',
-  standalone: true,
   imports: [FormsModule, NgClass],
   template: `
     <div class="relative w-full max-w-xl bg-white dark:bg-neutral-800 rounded-xl shadow p-2 border border-slate-200 dark:border-slate-700">

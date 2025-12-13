@@ -15,7 +15,6 @@ import { TicketDetailContextService } from '../../../services/context/action-con
 
 @Component({
   selector: 'm-new-ticket',
-  standalone: true,
   imports: [FormsModule, QuillModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: [

@@ -1,12 +1,12 @@
-import { Component, EventEmitter, inject, Input, Output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, inject, Input, Output, signal } from '@angular/core';
 import { DatePipe, NgClass, UpperCasePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
 
 @Component({
   selector: 'm-collection-card',
-  standalone: true,
   imports: [NgClass, DatePipe, UpperCasePipe],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styles: `
 
     @keyframes slide-out-card {

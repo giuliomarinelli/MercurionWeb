@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 @Component({
   selector: 'm-search-result-skeleton-loader',
   imports: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
 
     <div class="space-y-3">

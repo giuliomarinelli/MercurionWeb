@@ -8,7 +8,6 @@ type ErrorMap = Record<string, string>;
 
 @Component({
   selector: 'm-floating-input',
-  standalone: true,
   imports: [CommonModule, ReactiveFormsModule, ClassicSpinnerComponent],
   host: { class: 'block' },
   template: `

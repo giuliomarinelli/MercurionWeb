@@ -3,8 +3,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ComboSelectComponent } from './combo-select.component';
 
 describe('ComboSelectComponent', () => {
-  let component: ComboSelectComponent;
-  let fixture: ComponentFixture<ComboSelectComponent>;
+  let component: ComboSelectComponent<any>;
+  let fixture: ComponentFixture<ComboSelectComponent<any>>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

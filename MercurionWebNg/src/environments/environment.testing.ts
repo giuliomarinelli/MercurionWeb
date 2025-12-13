@@ -9,5 +9,7 @@ export const environment = {
     PICTOGRAM_DARK: 'logo/pictogram-dark-logo-2.svg'
   },
   production: true,
-  testing: true
+  testing: true,
+  feedbackEnv: 'staging',
+  version: '1.0.0i'
 }

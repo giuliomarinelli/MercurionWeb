@@ -7,7 +7,6 @@ import { NgClass } from '@angular/common';
 
 @Component({
   selector: 'm-molecule-header',
-  standalone: true,
   imports: [
     CustomDetailsComponent,
     MoleculeBadgeComponent,

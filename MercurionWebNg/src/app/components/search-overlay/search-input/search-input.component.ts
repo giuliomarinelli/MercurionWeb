@@ -23,7 +23,6 @@ import { UserContextService } from '../../../services/context/user-context.servi
 
 @Component({
   selector: 'm-molecule-search-input',
-  standalone: true,
   imports: [FormsModule],
   template: `
     <div class="flex gap-2 items-center relative">

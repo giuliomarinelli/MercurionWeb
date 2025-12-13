@@ -40,7 +40,6 @@ import { ThemeManagerService } from '../../../services/context/theme-manager.ser
 
 @Component({
   selector: 'm-molecule-viewer',
-  standalone: true,
   template: `<div class="wrap" [innerHTML]="svg"></div>`,
   styles: [
     `:host{display:block;width:100%;height:100%}`,

@@ -8,7 +8,6 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
 
 @Component({
   selector: 'm-custom-details',
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgClass, MoleculeBadgeComponent],
   // l’host non introduce box extra nel layout del parent

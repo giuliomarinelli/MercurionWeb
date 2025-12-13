@@ -1,8 +1,8 @@
-import { Component, Input, Signal, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, Signal, computed, signal } from '@angular/core';
 
 @Component({
   selector: 'm-molecule-cta-chembl',
-  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="mt-6 flex justify-center sm:justify-start">
       <a

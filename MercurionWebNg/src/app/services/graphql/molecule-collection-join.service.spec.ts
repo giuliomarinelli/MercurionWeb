@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { MoleculeCollectionJoinService } from './molecule-collection-join.service';
+import { MoleculeJoinService } from './molecule-collection-join.service';
 
-describe('MoleculeCollectionJoinService', () => {
-  let service: MoleculeCollectionJoinService;
+describe('MoleculeJoinService', () => {
+  let service: MoleculeJoinService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(MoleculeCollectionJoinService);
+    service = TestBed.inject(MoleculeJoinService);
   });
 
   it('should be created', () => {

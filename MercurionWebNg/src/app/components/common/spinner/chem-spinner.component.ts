@@ -17,7 +17,6 @@ import { Component, Input, ChangeDetectionStrategy, ViewEncapsulation } from '@a
  */
 @Component({
   selector: 'm-chem-spinner',
-  standalone: true,
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `

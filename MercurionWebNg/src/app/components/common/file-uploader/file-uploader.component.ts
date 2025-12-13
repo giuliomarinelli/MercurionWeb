@@ -17,7 +17,6 @@ type FileKind = 'all' | 'images' | 'pdf';
 
 @Component({
   selector: 'm-file-uploader',
-  standalone: true,
   imports: [CommonModule, ClassicSpinnerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `

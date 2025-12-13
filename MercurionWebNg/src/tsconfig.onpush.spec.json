@@ -1,0 +1,14 @@
+{
+  "extends": "../tsconfig.spec.json",
+  "compilerOptions": {
+    "outDir": "../out-tsc/onpush-spec"
+  },
+  "files": [
+    "./test.ts",
+    "./polyfills.ts"
+  ],
+  "include": [
+    "**/*.spec.ts",
+    "**/*.d.ts"
+  ]
+}

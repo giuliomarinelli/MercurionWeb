@@ -41,7 +41,6 @@ type ChartPalette = {
 // ====================== COMPONENT ======================
 @Component({
   selector: 'm-dashboard',
-  standalone: true,
   imports: [ClassicSpinnerComponent],
   template: `
     <section class="main-container py-8 cursor-default">

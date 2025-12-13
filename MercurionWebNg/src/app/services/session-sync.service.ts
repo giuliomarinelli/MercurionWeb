@@ -365,7 +365,11 @@ export class SessionSyncService {
     if (toast) this.toast.trigger(toast, level);
 
     if (navigateIfProtected && !this.isPublicRoute(this.router.url)) {
-      this.router.navigate(['/login']);
+      this.router.navigate(['/login'], {
+        queryParams: {
+          redirected: true
+        }
+      })
     }
   }
 

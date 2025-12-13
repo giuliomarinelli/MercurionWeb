@@ -1,0 +1,2 @@
+- Test ChangeDetectionStrategy.OnPush (447BC61F4076A7A746716939052FA035)
+    $ npm run test:onpush -- --browsers=ChromeHeadless --no-progress --karma-config=karma.conf.js

@@ -34,7 +34,6 @@ import { AppContextService } from '../../../services/context/app-context.service
 
 @Component({
   selector: 'm-ticket-detail',
-  standalone: true,
   imports: [MessageItemComponent, DatePipe, NgClass, TicketComposerComponent],
   styles: [
     `

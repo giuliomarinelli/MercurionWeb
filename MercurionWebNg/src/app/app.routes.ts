@@ -6,7 +6,7 @@ export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    redirectTo: 'login'
+    loadComponent: () => import('./components/common/redirect-to-login-component/redirect-to-login.component').then((m) => m.RedirectToLoginComponent)
   },
   {
     path: 'login',
@@ -103,7 +103,12 @@ export const routes: Routes = [
   },
   {
     path: 'help',
-    loadComponent: () => import('./pages/help.page/help.page.component').then(m => m.HelpPageComponent),
+    loadComponent: () => import('./pages/help/help.page.component').then(m => m.HelpPageComponent),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'feedback',
+    loadComponent: () => import('./pages/feedback/feedback.page.component').then((m) => m.FeedbackPageComponent),
     canActivate: [AuthGuard]
   },
   {

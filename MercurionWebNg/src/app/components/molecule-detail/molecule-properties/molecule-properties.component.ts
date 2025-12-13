@@ -2,7 +2,6 @@ import { Component, Input, computed, signal } from '@angular/core';
 
 @Component({
   selector: 'm-molecule-properties',
-  standalone: true,
   template: `
     <section class="mt-6">
       <h2 class="text-xl font-semibold mb-3 text-light-accent-primary dark:text-dark-accent-primary text-center sm:text-left">

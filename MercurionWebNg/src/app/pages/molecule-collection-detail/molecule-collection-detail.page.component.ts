@@ -52,7 +52,6 @@ import { AddMoleculesToCollectionContextService } from '../../services/context/a
 
 @Component({
   selector: 'm-molecule-collection-detail',
-  standalone: true,
   imports: [
     MyMoleculesHeadingComponent,
     ClassicSpinnerComponent,

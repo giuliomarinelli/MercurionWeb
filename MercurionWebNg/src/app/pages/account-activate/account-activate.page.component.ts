@@ -1,4 +1,4 @@
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { EMPTY, of, Subscription, switchMap, tap } from 'rxjs';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
@@ -9,6 +9,7 @@ import { UserContextService } from '../../services/context/user-context.service'
 @Component({
   selector: 'm-account-activate.page',
   imports: [ClassicSpinnerComponent, RouterLink],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
 
     @if (loading()) {

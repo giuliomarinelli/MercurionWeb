@@ -5,7 +5,6 @@ import { QuillModule } from 'ngx-quill';
 
 @Component({
   selector: 'm-lab-notebook-editor',
-  standalone: true,
   imports: [QuillModule, FormsModule],
   template: `
 

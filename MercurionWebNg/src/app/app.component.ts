@@ -35,7 +35,6 @@ import { AppContextService } from './services/context/app-context.service';
 
 @Component({
   selector: 'm-root',
-  standalone: true,
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   imports: [
     RouterOutlet,

@@ -12,7 +12,6 @@ import { SelectCollectionThenRouteComponent } from '../select-collection-then-ro
 
 @Component({
   selector: 'm-action-overlay',
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CustomMoleculeCollectionItemSaveComponent,

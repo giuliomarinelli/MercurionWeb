@@ -1,8 +1,9 @@
-import { Component, Input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, signal } from '@angular/core';
 
 @Component({
   selector: 'm-molecule-badge',
   imports: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
 
     <button

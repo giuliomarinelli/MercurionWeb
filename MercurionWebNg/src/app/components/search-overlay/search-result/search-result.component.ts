@@ -3,7 +3,9 @@ import {
   ElementRef, OnDestroy,
   NgZone,
   Output,
-  EventEmitter
+  EventEmitter,
+  inject,
+  computed
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
@@ -13,10 +15,11 @@ import { ThemeManagerService } from '../../../services/context/theme-manager.ser
 import { MoleculeSearchResult } from
   '../../../Models/graphql/molecule-search/molecule-search-result.interface';
 import { ChipItem } from '../../action-components/add-molecules-to-collection/add-molecules-to-collection.component';
+import { AppContextService } from '../../../services/context/app-context.service';
+import { DesignService } from '../../../services/design.service';
 
 @Component({
   selector: 'm-search-result',
-  standalone: true,
   host: { class: 'block w-full' },
   imports: [
     DecimalPipe,
@@ -25,7 +28,7 @@ import { ChipItem } from '../../action-components/add-molecules-to-collection/ad
   ],
   template: `
     @if (!_search_excludeAlreadyAdded()) {
-      <a [routerLink]="_pathToMolecule()" (click)="searchContext.close()"
+      <a [routerLink]="_pathToMolecule()" (click)="handleClick()"
          class="flex items-center gap-3 p-3 rounded-lg hover:bg-indigo-50
                 dark:hover:bg-slate-800 cursor-pointer transition">
 
@@ -100,6 +103,13 @@ import { ChipItem } from '../../action-components/add-molecules-to-collection/ad
 })
 export class SearchResultComponent implements OnDestroy {
 
+  protected readonly searchContext = inject(SearchContextService)
+  private readonly themeManager = inject(ThemeManagerService)
+  private readonly zone = inject(NgZone)
+  private host = inject(ElementRef<HTMLElement>)
+  private readonly design = inject(DesignService)
+  private readonly appContext = inject(AppContextService)
+
   /* segnali originali */
   _molecule = signal<MoleculeSearchResult | undefined>(undefined);
   _pathToMolecule = signal<string>('')
@@ -107,46 +117,13 @@ export class SearchResultComponent implements OnDestroy {
   isDarkMode = signal<boolean>(false)
   viewerReady = signal<boolean>(false)
   _search_excludeAlreadyAdded = signal<boolean>(false)
+  isMobile = computed<boolean>(() => this.design.maxBk('sm')())
 
   /** viewer OFF finché true */
   disablePreview = signal<boolean>(true)
 
   private seen: boolean = false
   private io!: IntersectionObserver
-
-  constructor(
-    protected readonly searchContext: SearchContextService,
-    private readonly themeManager: ThemeManagerService,
-    private readonly zone: NgZone,
-    private host: ElementRef<HTMLElement>
-  ) {
-    /* aggiorna dark mode */
-    effect(() => this.isDarkMode.set(this.themeManager.theme() === 'dark'));
-
-    /* Avvia viewer quando card entra nel viewport */
-    this.zone.runOutsideAngular(() => {
-      this.io = new IntersectionObserver(
-        ([entry], observer) => {
-          if (entry.isIntersecting && !this.seen) {
-            this.seen = true;                    // blocca ulteriori reset
-            observer.unobserve(entry.target);    // stacca l’elemento
-            this.zone.run(() => this.disablePreview.set(false));
-          }
-        },
-        { rootMargin: '150px', threshold: 0.01 }
-      );
-      const isInViewport = (el: HTMLElement) =>
-        el.getBoundingClientRect().top < window.innerHeight + 150; // stesso rootMargin
-
-      queueMicrotask(() => {
-        if (this.disablePreview() && isInViewport(host.nativeElement)) {
-          this.zone.run(() => this.disablePreview.set(false));
-        }
-      });
-      this.io.observe(host.nativeElement);
-    });
-  }
-
 
   /* inputs ---------------------------------- */
   @Input({ required: true })
@@ -165,6 +142,43 @@ export class SearchResultComponent implements OnDestroy {
 
   @Input({ required: true })
   set query(q: string) { this._query.set(q); }
+
+  @Input()
+  set search_excludeAlreadyAdded(search_excludeAlreadyAdded: boolean) {
+    this._search_excludeAlreadyAdded.set(search_excludeAlreadyAdded)
+  }
+
+  @Output()
+  onChipItem = new EventEmitter<ChipItem>()
+
+  constructor() {
+
+    /* aggiorna dark mode */
+    effect(() => this.isDarkMode.set(this.themeManager.theme() === 'dark'))
+
+    /* Avvia viewer quando card entra nel viewport */
+    this.zone.runOutsideAngular(() => {
+      this.io = new IntersectionObserver(
+        ([entry], observer) => {
+          if (entry.isIntersecting && !this.seen) {
+            this.seen = true;                    // blocca ulteriori reset
+            observer.unobserve(entry.target)   // stacca l’elemento
+            this.zone.run(() => this.disablePreview.set(false))
+          }
+        },
+        { rootMargin: '150px', threshold: 0.01 }
+      );
+      const isInViewport = (el: HTMLElement) =>
+        el.getBoundingClientRect().top < window.innerHeight + 150; // stesso rootMargin
+
+      queueMicrotask(() => {
+        if (this.disablePreview() && isInViewport(this.host.nativeElement)) {
+          this.zone.run(() => this.disablePreview.set(false));
+        }
+      });
+      this.io.observe(this.host.nativeElement);
+    });
+  }
 
   /* utils ----------------------------------- */
   highlight(text?: string) {
@@ -188,15 +202,16 @@ export class SearchResultComponent implements OnDestroy {
     })
   }
 
-  @Input()
-  set search_excludeAlreadyAdded(search_excludeAlreadyAdded: boolean) {
-    this._search_excludeAlreadyAdded.set(search_excludeAlreadyAdded)
+  handleClick(): void {
+    queueMicrotask(() => {
+      if (this.isMobile()) {
+        this.appContext.notifyAddedTriggerCloseOffCanvasMenu()
+      }
+      this.searchContext.close()
+    })
   }
 
-  @Output()
-  onChipItem = new EventEmitter<ChipItem>()
-
   ngOnDestroy() {
-    this.io.disconnect();
+    this.io.disconnect()
   }
 }

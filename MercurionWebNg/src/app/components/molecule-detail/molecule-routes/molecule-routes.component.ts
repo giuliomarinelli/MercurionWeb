@@ -4,7 +4,6 @@ import { AdministrationRoutes } from '../../../Models/graphql/molecule.detail.mo
 
 @Component({
   selector: 'm-molecule-routes',
-  standalone: true,
   template: `
     <section class="my-4">
       <h2 class="font-semibold text-light-accent-primary dark:text-dark-accent-primary mb-6 text-center sm:text-left text-xl">Vie di somministrazione</h2>

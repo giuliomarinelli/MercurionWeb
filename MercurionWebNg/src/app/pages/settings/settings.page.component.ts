@@ -19,7 +19,6 @@ import { Helpers } from '../../helpers';
 
 @Component({
   selector: 'm-settings.page',
-  standalone: true,
   imports: [
     CdkAccordionModule,
     ClassicSpinnerComponent,
