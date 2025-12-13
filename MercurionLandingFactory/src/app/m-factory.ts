@@ -1,10 +1,10 @@
 import { Component, inject, OnInit } from '@angular/core'
 import { ActivatedRoute } from '@angular/router'
+import { Title, Meta } from '@angular/platform-browser'
 import { LandingPage } from './landing.page'
 import httpErrorPages from './data/http-error-pages.json' assert { type: 'json' }
 import { HttpErrorPage } from './Models/http-error-page.model'
 import { LandingPageConfig } from './Models/landing-page.config.model'
-
 
 @Component({
   selector: '#factory',
@@ -18,8 +18,9 @@ import { LandingPageConfig } from './Models/landing-page.config.model'
   `
 })
 export class Factory implements OnInit {
-
   private readonly route = inject(ActivatedRoute)
+  private readonly title = inject(Title)
+  private readonly meta = inject(Meta)
 
   private readonly httpErrorPages: HttpErrorPage[] = httpErrorPages as HttpErrorPage[]
 
@@ -32,6 +33,7 @@ export class Factory implements OnInit {
 
     const page = this.fetchErrorByCode(code)
 
+    // 1) Config UI
     this.config = {
       code: String(page.code),
       title: page.error,
@@ -39,6 +41,13 @@ export class Factory implements OnInit {
       primaryCtaLabel: 'Vai alla Home',
       primaryCtaHref: '/'
     }
+
+    // 2) Title + meta (SSR/SSG safe: finisce nell'HTML prerenderizzato)
+    const fullTitle = `Mercurion — ${page.code} ${page.error}`
+    this.title.setTitle(fullTitle)
+
+    this.meta.updateTag({ name: 'description', content: page.description })
+    this.meta.updateTag({ name: 'robots', content: 'noindex, nofollow' })
   }
 
   private fetchErrorByCode(code: number): HttpErrorPage {
