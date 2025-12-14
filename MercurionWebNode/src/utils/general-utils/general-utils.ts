@@ -52,8 +52,25 @@ export class GeneralUtils {
             .replace(/\s+/g, ' ')
     }
 
+    public static normalizePersonName(input: string): string {
+        const parts = this.normalizeSpaces(input).split(/\s/).filter(Boolean)
+        return parts
+            .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
+            .join(' ')
+    }
+
+    public static normalizeEmail(input: string): string {
+        return input.trim().toLowerCase()
+    }
+
     public static isValidUUIDv7(uuid: string): boolean {
         return this.uuidV7Re.test(uuid)
+    }
+
+    public static ensureValidUUIDv7(uuid: unknown, errorMessage?: string): asserts uuid is string {
+        if (typeof uuid !== 'string' || !this.isValidUUIDv7(uuid)) {
+            throw new BadRequestException(errorMessage ?? 'Invalid UUID')
+        }
     }
 
     public static paginationToFlatPaginationConverter<T>(pagination: Pagination<T>): FlatPagination<T> {

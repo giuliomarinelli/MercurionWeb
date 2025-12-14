@@ -1,4 +1,4 @@
-import { Controller, Delete, Get, Query } from '@nestjs/common';
+import { BadRequestException, Controller, Delete, Get, Query } from '@nestjs/common';
 import { UUID } from 'crypto';
 import { FlatPagination } from 'src/Models/flat-pagination.interface';
 import { AuthenticatedUserId } from 'src/metadata/metadata';
@@ -26,9 +26,17 @@ export class HistoryController {
         @Query('page') page = 1,
         @Query('limit') limit = 20
     ): Promise<FlatPagination<HistoryDTO>> {
+        const parsedPage = Number(page)
+        const parsedLimit = Number(limit)
+        if (!Number.isInteger(parsedPage) || parsedPage < 1) {
+            throw new BadRequestException('page must be a positive integer')
+        }
+        if (!Number.isInteger(parsedLimit) || parsedLimit < 1) {
+            throw new BadRequestException('limit must be a positive integer')
+        }
         try {
             const pagination = await this.historyService.getPaginatedHistory(userId, {
-                page, limit
+                page: parsedPage, limit: parsedLimit
             })
             return GeneralUtils.paginationToFlatPaginationConverter(pagination)
         } catch (e) {

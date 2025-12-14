@@ -11,6 +11,7 @@ import { MoleculeCollectionItemJoin } from '../Models/entities/molecule-collecti
 import { Repository } from 'typeorm';
 import { MoleculeCollectionItemJoinService } from '../services/molecule-collection-item-join.service';
 import { BindManyCollectionsToMoleculeDTO } from '../Models/DTO/bind-many-collections-to-molecule.dto';
+import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 
 
 @Resolver(() => MoleculeCollection)
@@ -22,6 +23,10 @@ export class MoleculeCollectionResolver {
         @InjectRepository(MoleculeCollectionItemJoin)
         private readonly joinRepo: Repository<MoleculeCollectionItemJoin>,
     ) { }
+
+    private ensureUuid(value: string, field: string): void {
+        GeneralUtils.ensureValidUUIDv7(value, `GraphQLInvalid::Invalid ${field}`)
+    }
 
     @ResolveField(() => Int)
     async itemsCount(
@@ -49,6 +54,7 @@ export class MoleculeCollectionResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ): Promise<MoleculeCollection | null> {
+        this.ensureUuid(id, 'id')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.collectionService.findOne(id, userId, fieldsMap)
     }
@@ -60,8 +66,9 @@ export class MoleculeCollectionResolver {
         @Args('query', { nullable: true }) query?: string,
         @Args('limit', { nullable: true }) limit?: number
     ): Promise<MoleculeCollection[]> {
+        const normalizedQuery = typeof query === 'string' ? query.trim() : query
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
-        return this.collectionService.searchByName(userId, query, limit, fieldsMap)
+        return this.collectionService.searchByName(userId, normalizedQuery, limit, fieldsMap)
     }
 
     @Mutation(() => MoleculeCollection)
@@ -69,7 +76,8 @@ export class MoleculeCollectionResolver {
         @Args('name') name: string,
         @AuthenticatedUserId() userId: UUID
     ): Promise<MoleculeCollection> {
-        return this.collectionService.create(userId, name)
+        const normalizedName = GeneralUtils.normalizeSpaces(name)
+        return this.collectionService.create(userId, normalizedName)
     }
 
     @Mutation(() => Boolean)
@@ -77,7 +85,8 @@ export class MoleculeCollectionResolver {
         @Args('names', { type: () => [String] }) names: string[],
         @AuthenticatedUserId() userId: UUID
     ): Promise<boolean> {
-        return this.collectionService.createMany(userId, names)
+        const normalizedNames = names.map((n) => GeneralUtils.normalizeSpaces(n))
+        return this.collectionService.createMany(userId, normalizedNames)
     }
 
     @Mutation(() => MoleculeCollection)
@@ -87,8 +96,10 @@ export class MoleculeCollectionResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ): Promise<MoleculeCollection | null> {
+        this.ensureUuid(id, 'id')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
-        return this.collectionService.update(id, userId, { name }, fieldsMap)
+        const normalizedName = GeneralUtils.normalizeSpaces(name)
+        return this.collectionService.update(id, userId, { name: normalizedName }, fieldsMap)
     }
 
     @Mutation(() => Boolean)
@@ -96,6 +107,7 @@ export class MoleculeCollectionResolver {
         @Args('id', { type: () => ID }) id: UUID,
         @AuthenticatedUserId() userId: UUID
     ): Promise<boolean> {
+        this.ensureUuid(id, 'id')
         return this.collectionService.delete(id, userId)
     }
 
@@ -104,6 +116,7 @@ export class MoleculeCollectionResolver {
         @Args('id', { type: () => ID }) collectionId: UUID,
         @AuthenticatedUserId() userId: UUID
     ): Promise<boolean> {
+        this.ensureUuid(collectionId, 'id')
         return await this.collectionService.markAsTouched(userId, collectionId)
     }
 
@@ -117,9 +130,13 @@ export class MoleculeCollectionResolver {
         @Info() info: GraphQLResolveInfo,
         @Args('q', { type: () => String }) q: string
     ): Promise<PaginatedMoleculeCollection> {
+        const normalizedQ = typeof q === 'string' ? q.trim() : q
+        if (moleculeId) {
+            this.ensureUuid(moleculeId, 'moleculeId')
+        }
 
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
-        const paginated = await this.collectionService.paginateAllByUser(userId, { page, limit }, q, excludeJoinedToMolecule ?? false, moleculeId, fieldsMap);
+        const paginated = await this.collectionService.paginateAllByUser(userId, { page, limit }, normalizedQ, excludeJoinedToMolecule ?? false, moleculeId, fieldsMap);
 
         return {
             items: paginated.items,
@@ -138,6 +155,8 @@ export class MoleculeCollectionResolver {
         @Args('collectionIds', { type: () => [ID] }) collectionIds: UUID[],
         @Args('selectAll', { type: () => Boolean }) selectAll: boolean
     ): Promise<BindManyCollectionsToMoleculeDTO> {
+        this.ensureUuid(moleculeId, 'moleculeId')
+        collectionIds.forEach((collectionId) => this.ensureUuid(collectionId, 'collectionIds'))
         return this.joinService.bindManyCollectionsToMolecule(userId, moleculeId, collectionIds, selectAll)
     }
 

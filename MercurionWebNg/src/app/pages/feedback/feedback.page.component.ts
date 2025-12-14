@@ -8,6 +8,21 @@ import { environment } from '../../../environments/environment.development'
   selector: 'm-feedback-page',
   imports: [StarRatingComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  styles: `
+
+    @keyframes fade-out {
+      from {
+        opacity: 1
+      } to {
+        opacity: 0;
+      }
+    }
+
+    .fade-out-ani {
+      animation: .3s ease-in-out both 5s fade-out;
+    }
+
+  `,
   template: `
     <section class="main-container">
       <h1 class="h1-underline">Feedback</h1>
@@ -52,7 +67,11 @@ import { environment } from '../../../environments/environment.development'
           }
 
           @if (sent()) {
-            <span class="text-emerald-600 dark:text-dark-accent-secondary text-sm font-semibold">Grazie 💙</span>
+            <p class="text-emerald-600 dark:text-dark-accent-secondary text-sm font-semibold w-fit"
+              [class.fade-out-ani]="sendClicked()"
+              [class.hidden]="hideAck()">
+              Grazie 💙
+            </p>
           }
 
           <button
@@ -93,6 +112,9 @@ export class FeedbackPageComponent {
   submitting = signal(false)
   sent = signal(false)
   error = signal<string | null>(null)
+
+  sendClicked = signal<boolean>(false)
+  hideAck = signal<boolean>(false)
 
   // --- Validazione: replica la policy backend
   hasAtLeastOneValue = computed(() =>

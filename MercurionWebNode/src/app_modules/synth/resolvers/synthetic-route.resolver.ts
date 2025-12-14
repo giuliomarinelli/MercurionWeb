@@ -6,11 +6,16 @@ import { GraphQLUtils } from "src/utils/graphql-utils/graphql-utils";
 import { Synthesis } from "../Models/entities/synthesis.entity";
 import { SynthesisService } from "../services/synthesis.service";
 import { SynthesisInput } from "../Models/DTO/synthesis.input";
+import { GeneralUtils } from "src/utils/general-utils/general-utils";
 
 @Resolver(() => Synthesis)
 export class SyntheticRouteResolver {
 
     constructor(private readonly routeService: SynthesisService) { }
+
+    private ensureUuid(value: string, field: string): void {
+        GeneralUtils.ensureValidUUIDv7(value, `GraphQLInvalid::Invalid ${field}`)
+    }
 
     @Query(() => [Synthesis])
     async mySyntheticRoutes(
@@ -27,6 +32,7 @@ export class SyntheticRouteResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ) {
+        this.ensureUuid(id, 'id')
         const fieldsMap = GraphQLUtils.getFieldsMap(info);
         return this.routeService.findOne(id, userId, fieldsMap);
     }
@@ -46,6 +52,7 @@ export class SyntheticRouteResolver {
         @Args('input') input: SynthesisInput,
         @Info() info: GraphQLResolveInfo
     ) {
+        this.ensureUuid(id, 'id')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.routeService.update(id, userId, input, fieldsMap)
     }
@@ -55,6 +62,7 @@ export class SyntheticRouteResolver {
         @AuthenticatedUserId() userId: UUID,
         @Args('id', { type: () => ID }) id: UUID
     ) {
+        this.ensureUuid(id, 'id')
         return this.routeService.delete(id, userId)
     }
 }

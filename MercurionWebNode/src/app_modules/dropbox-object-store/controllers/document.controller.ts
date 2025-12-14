@@ -20,6 +20,7 @@ import { StorageScope } from '../Models/enums/storage-scope.enum';
 import { TypeGuards } from 'src/utils/type-guards/type-guards';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 
 @Controller('documents')
 export class DocumentController {
@@ -135,7 +136,7 @@ export class DocumentController {
             );
             res.status(HttpStatus.CREATED).send(saved);
         } catch (e) {
-            this.logger.warn('Upload error:', e)
+            this.logger.warn('Upload error:', e as object)
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ error: 'Upload failed' })
         } finally {
             await fs.unlink(file.filepath).catch(() => null)
@@ -149,6 +150,7 @@ export class DocumentController {
         @AuthenticatedUserId() userId: string,
         @Res({ passthrough: true }) res: FastifyReply,
     ) {
+        GeneralUtils.ensureValidUUIDv7(id, 'Invalid id')
         const document = await this.dropboxService.getDocumentById(id as UUID)
         if (!document) {
             res.status(HttpStatus.NOT_FOUND).send({ message: 'File not found' })
@@ -159,8 +161,8 @@ export class DocumentController {
             res.header('Content-Type', document.mimeType)
             res.header('Content-Disposition', `attachment; filename="${document.originalName}"`)
             res.send(buffer)
-        } catch (err) {
-            this.logger.error('Download error:', err)
+        } catch (e) {
+            this.logger.warn('Download error:', e as object)
             throw new InternalServerErrorException('Download failed')
         }
     }
@@ -171,6 +173,7 @@ export class DocumentController {
         @Param('id') id: string,
         @AuthenticatedUserId() userId: string,
     ): Promise<{ success: boolean }> {
+        GeneralUtils.ensureValidUUIDv7(id, 'Invalid id')
         await this.dropboxService.deleteFile(id as UUID, userId as UUID);
         return { success: true };
     }
