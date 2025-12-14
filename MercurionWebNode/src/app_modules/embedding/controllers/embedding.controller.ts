@@ -26,11 +26,12 @@ export class EmbeddingController {
         const onlyMolregnosFlag = typeof only_molregnos === 'string' ? only_molregnos.trim().toLowerCase() : `${only_molregnos}`
         const withNoNameFlag = typeof with_no_name === 'string' ? with_no_name.trim().toLowerCase() : `${with_no_name}`
         const onlyMolregnos = onlyMolregnosFlag === 'true'
-        const withNoName = withNoNameFlag === 'true'
         if (!['true', 'false'].includes(onlyMolregnosFlag) || !['true', 'false'].includes(withNoNameFlag)) {
             throw new BadRequestException('Boolean query params must be either true or false')
         }
-        const result = await this.svc.getSimilarMolregnos(parsedMolregno, parsedN, withNoName);
+        const withNoName = withNoNameFlag === 'true'
+        const withNoNameParam = withNoName ? 'true' : 'false'
+        const result = await this.svc.getSimilarMolregnos(parsedMolregno, parsedN, withNoNameParam);
         if (onlyMolregnos) {
             return result.map(r => r.molregno)
         }

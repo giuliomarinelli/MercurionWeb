@@ -27,14 +27,14 @@ describe('MoleculeSearchResolver', () => {
 
     const result = await resolver.moleculeSearch_excludeAlreadyAdded(
       { query: 'loraz' } as any,
-      'collection-id' as any,
-      'user-id' as any
+      '018ea030-8d12-7d9a-95c7-f6d1fbc28a4b' as any,
+      '018ea030-8d12-7d9a-95c7-f6d1fbc28a4c' as any
     );
 
     expect(service.searchMolecules_excludeAlreadyAdded).toHaveBeenCalledWith(
       { query: 'loraz' },
-      'collection-id',
-      'user-id'
+      '018ea030-8d12-7d9a-95c7-f6d1fbc28a4b',
+      '018ea030-8d12-7d9a-95c7-f6d1fbc28a4c'
     );
     expect(result).toBe(filtered);
   });
