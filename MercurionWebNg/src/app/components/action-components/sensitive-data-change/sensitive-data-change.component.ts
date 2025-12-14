@@ -20,7 +20,7 @@ import { PmSelectComponent } from '../../common/pm-select/pm-select.component';
 import { PmOption } from '../../../Models/pm-option.model';
 
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 @Component({
   selector: 'm-sensitive-data-change',
@@ -85,6 +85,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 <m-mfa-strategy-card
                   [strategy]="s"
                   [activeStrategies]="enabledMfaStrategies()"
+                  [remainingBackupCodes]="remainingBackupCodes()"
                   [showActions]="true"
                   [noPhone]="s === 'SMS_OTP' && obscuredPhone() === null"
                   [config]="true"
@@ -903,6 +904,7 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
   changePasswordStep = signal<'CHANGE_PASSWORD_FORM' | 'OK_OR_ERROR' | ''>('')
 
   enabledMfaStrategies = signal<MfaStrategy[]>([])
+  remainingBackupCodes = signal<number>(-1)
 
   backupCodes = signal<string[]>([])
 
@@ -983,7 +985,10 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
           case 'ConfigMfa':
             this.enableMfaStep.set('CHOOSE_STRATEGY')
             this.disableMfaStep.set('CHOOSE_STRATEGY')
-            return this.accountService.getEnabledMfaStrategies()
+            return combineLatest([
+              this.accountService.getEnabledMfaStrategies(),
+              this.accountService.getRemainingBackupCodes()
+            ])
           case 'AddPhone':
           case 'ChangePhone':
             this.changeOrAddPhoneStep.set('NEW_CONTACT_FORM')
@@ -999,10 +1004,12 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
             return EMPTY
         }
       }),
-      tap(res => {
+      tap((res) => {
         switch (this.innerScope()) {
           case 'ConfigMfa':
-            this.enabledMfaStrategies.set((res as MfaStrategy[]) ?? [])
+            const [mfaStrategies, remainingBackupCodes] = res as [MfaStrategy[], number]
+            this.enabledMfaStrategies.set((mfaStrategies) ?? [])
+            this.remainingBackupCodes.set(remainingBackupCodes)
             break
           case 'EnableMfa':
           case 'ChangeEmail':

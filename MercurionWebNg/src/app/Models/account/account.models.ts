@@ -31,7 +31,7 @@ export interface ProfileDTO {
 export type ProfileRegistryDTO = Pick<ProfileDTO, 'firstName' | 'lastName' | 'gender' | 'job'>
 
 export type ProfileRegistryClientDTO = ProfileRegistryDTO & {
-    initials: string
+  initials: string
 }
 
 export type MfaStrategy = 'EMAIL_OTP' | 'SMS_OTP' | 'APP_TOTP' | 'BACKUP_CODE'
@@ -69,20 +69,26 @@ export interface EmailDTO {
 }
 
 export interface RecoverCredentialsDTO {
-    newEmail: string
-    newPassword: string
+  newEmail: string
+  newPassword: string
 }
 
 export interface RecoveryCodeDTO {
-    code: string
+  code: string
 }
 
 export interface ProvidedEmailDTO {
-    email: string
-    provider: AuthProvider
+  email: string
+  provider: AuthProvider
 }
 
 export interface VersionDTO {
-    version: string
-    versionHash: string
+  version: string
+  versionHash: string
+}
+
+export interface BackupCodeStatusDTO {
+  total: number
+  used: number
+  remaining: number
 }

@@ -123,6 +123,15 @@ import { DesignService } from '../../../services/design.service';
             }
 
         </button>
+      } @else if (_remainingBackupCodes() >= 0) {
+        <p class="text-sm">
+          Rimanenti:&nbsp;
+          @if (!_remainingBackupCodes()) {
+            <span class="text-red-600 dark:text-red-300">Nessuno</span>
+          } @else {
+            <span class="text-emerald-600 dark:text-emerald-300">{{_remainingBackupCodes()}}</span>
+          }
+        </p>
       }
     </div>
   }
@@ -136,6 +145,7 @@ export class MfaStrategyCardComponent {
 
   _activeStrategies = signal<MfaStrategy[]>([])
   _strategy = signal<MfaStrategyDTO | null>(null)
+  _remainingBackupCodes = signal<number>(-1)
   private currentStrategy: MfaStrategy | null = null
 
   @Input({ required: true })
@@ -161,6 +171,11 @@ export class MfaStrategyCardComponent {
 
   @Input()
   config = false
+
+  @Input()
+  set remainingBackupCodes(remainingBackupCodes: number) {
+    this._remainingBackupCodes.set(remainingBackupCodes)
+  }
 
   @Output()
   onEnableMfa = new EventEmitter<MfaStrategy>()
