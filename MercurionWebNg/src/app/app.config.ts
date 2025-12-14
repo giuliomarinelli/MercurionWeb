@@ -1,5 +1,5 @@
 import { ApplicationConfig, importProvidersFrom, inject, provideZoneChangeDetection } from '@angular/core';
-import { provideRouter, withInMemoryScrolling } from '@angular/router';
+import { provideRouter, TitleStrategy, withInMemoryScrolling } from '@angular/router';
 import { routes } from './app.routes';
 import { provideApollo } from 'apollo-angular';
 import { InMemoryCache } from '@apollo/client/core';
@@ -10,6 +10,7 @@ import { provideAnimations } from '@angular/platform-browser/animations'
 import { NgxSpinnerModule } from 'ngx-spinner';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { AuthFallbackInterceptor } from './interceptors/auth-fallback.interceptor';
+import { MercurionTitleStrategy } from './mercurion-title-strategy';
 
 
 export const appConfig: ApplicationConfig = {
@@ -46,6 +47,10 @@ export const appConfig: ApplicationConfig = {
       provide: HTTP_INTERCEPTORS,
       useClass: AuthFallbackInterceptor,
       multi: true
+    },
+    {
+      provide: TitleStrategy,
+      useClass: MercurionTitleStrategy
     }
   ]
 };

@@ -10,6 +10,8 @@ import {
     ValidateIf,
     IsObject
 } from 'class-validator'
+import { Transform } from 'class-transformer'
+import { GeneralUtils } from 'src/utils/general-utils/general-utils'
 
 import {
     FeedbackEnv,
@@ -37,6 +39,7 @@ export class CreateFeedbackDTO {
     @IsOptional()
     @IsString()
     @MaxLength(256)
+    @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
     contextRef?: string
 
     @IsOptional()
@@ -46,6 +49,7 @@ export class CreateFeedbackDTO {
     @IsOptional()
     @IsString()
     @MaxLength(64)
+    @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
     clientVersion?: string
 
     @IsOptional()
@@ -69,6 +73,7 @@ export class CreateFeedbackDTO {
     @IsOptional()
     @IsString()
     @MaxLength(4000)
+    @Transform(({ value }) => typeof value === 'string' ? GeneralUtils.normalizeSpaces(value) : value)
     message?: string
 
     // policy: almeno uno tra message o rating*

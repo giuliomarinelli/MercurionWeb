@@ -49,6 +49,7 @@ import { PmSearchInputComponent } from '../../components/common/pm-search-input/
 import { CustomDetailSaveModel } from '../../Models/custom-detail-save.model';
 import { Observable } from 'rxjs';
 import { AddMoleculesToCollectionContextService } from '../../services/context/action-context/add-molecules-to-collection-context.service';
+import { AppTitleService } from '../../services/app-title.service';
 
 @Component({
   selector: 'm-molecule-collection-detail',
@@ -167,6 +168,7 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
   protected readonly addCtx = inject(AddMoleculesToCollectionContextService)
   private readonly zone = inject(NgZone)
   private readonly historyContext = inject(HistoryContextService)
+  private readonly appTitle = inject(AppTitleService)
 
   @ViewChild('sentinel', { static: true })
   protected declare sentinel: ElementRef | undefined;
@@ -247,17 +249,22 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
       map(pm => pm.get('colId') ?? ''),
       filter(Boolean),
       distinctUntilChanged(),
-      switchMap(id => this.colService.getCollectionById(id)),
-      tap(col => {
-        if (!col) { this.error.set(true); }
-        else { this.colId.set(col.id); }
+      switchMap((id) => this.colService.getCollectionById(id)),
+      tap((col) => {
+        if (!col) {
+          this.error.set(true)
+        }
+        else {
+          this.colId.set(col.id)
+          this.appTitle.setSection('Dettaglio Collezione', col.name)
+        }
       }),
       catchError(() => { this.error.set(true); return of(null); })
     ).subscribe(async col => {
       if (!col) return;
       this.name.set(col.name);
       await this.resetAndRefetch();
-    });
+    })
   }
 
   ngAfterViewInit(): void {

@@ -23,6 +23,10 @@ export class HelpResolver {
 
     constructor(private readonly helpService: HelpService) { }
 
+    private ensureUuid(value: string, field: string): void {
+        GeneralUtils.ensureValidUUIDv7(value, `GraphQLInvalid::Invalid ${field}`)
+    }
+
     // --------------------------------
     // USER QUERIES (owner)
     // --------------------------------
@@ -34,6 +38,7 @@ export class HelpResolver {
         @Info() info: GraphQLResolveInfo,
         @Scopes() scopes: Scope[]
     ): Promise<TicketDetailDTO> {
+        this.ensureUuid(ticketId, 'ticketId')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.helpService.getTicketDetail(
             ticketId,
@@ -75,6 +80,7 @@ export class HelpResolver {
         @Info() info: GraphQLResolveInfo,
         @Scopes() scopes: Scope[]
     ): Promise<PaginatedTicketMessage> {
+        this.ensureUuid(ticketId, 'ticketId')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         const pagination = await this.helpService.listTicketMessages(ticketId, userId, { page, limit }, fieldsMap, true, scopes.includes(Scope.ViewUsers))
         const flat = GeneralUtils.paginationToFlatPaginationConverter(pagination)
@@ -95,7 +101,8 @@ export class HelpResolver {
         @Args('contentHtml') contentHtml: string,
         @Scopes() scopes: Scope[]
     ): Promise<Ticket> {
-        return this.helpService.createTicket({ userId, subject, contentDelta, contentHtml }, scopes.includes(Scope.ViewUsers))
+        const normalizedSubject = GeneralUtils.normalizeSpaces(subject)
+        return this.helpService.createTicket({ userId, subject: normalizedSubject, contentDelta, contentHtml }, scopes.includes(Scope.ViewUsers))
     }
 
     @Mutation(() => Boolean)
@@ -105,6 +112,7 @@ export class HelpResolver {
         @Args('contentDelta', { type: () => GraphQLJSON }) contentDelta: JsonValue,
         @Args('contentHtml') contentHtml: string,
     ): Promise<boolean> {
+        this.ensureUuid(ticketId, 'ticketId')
         await this.helpService.addUserMessage({ ticketId, userId, contentDelta, contentHtml })
         return true
     }
@@ -114,6 +122,7 @@ export class HelpResolver {
         @AuthenticatedUserId() userId: UUID,
         @Args('ticketId', { type: () => ID }) ticketId: UUID,
     ): Promise<boolean> {
+        this.ensureUuid(ticketId, 'ticketId')
         // ownership check implicito: se non è tuo, TicketNotFound
         await this.helpService.getTicketDetail(
             ticketId,
@@ -137,6 +146,7 @@ export class HelpResolver {
         @Info() info: GraphQLResolveInfo,
         @Scopes() scopes: Scope[]
     ): Promise<TicketDetailDTO> {
+        this.ensureUuid(ticketId, 'ticketId')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.helpService.getTicketDetail(
             ticketId,
@@ -182,6 +192,7 @@ export class HelpResolver {
         @Info() info: GraphQLResolveInfo,
         @Scopes() scopes: Scope[]
     ): Promise<PaginatedTicketMessage> {
+        this.ensureUuid(ticketId, 'ticketId')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         const pagination = await this.helpService.listTicketMessages(ticketId, userId, { page, limit }, fieldsMap, false, scopes.includes(Scope.ViewUsers))
         const flat = GeneralUtils.paginationToFlatPaginationConverter(pagination)
@@ -201,6 +212,7 @@ export class HelpResolver {
         @Args('contentDelta', { type: () => GraphQLJSON }) contentDelta: JsonValue,
         @Args('contentHtml') contentHtml: string,
     ): Promise<boolean> {
+        this.ensureUuid(ticketId, 'ticketId')
         await this.helpService.addSupportMessage({ ticketId, contentDelta, contentHtml })
         return true
     }
@@ -210,6 +222,7 @@ export class HelpResolver {
     async closeTicketAsSupport(
         @Args('ticketId', { type: () => ID }) ticketId: UUID,
     ): Promise<boolean> {
+        this.ensureUuid(ticketId, 'ticketId')
         await this.helpService.closeTicket(ticketId)
         return true
     }
@@ -219,6 +232,7 @@ export class HelpResolver {
     async reopenTicketAsSupport(
         @Args('ticketId', { type: () => ID }) ticketId: UUID,
     ): Promise<boolean> {
+        this.ensureUuid(ticketId, 'ticketId')
         await this.helpService.reopenTicket(ticketId)
         return true
     }

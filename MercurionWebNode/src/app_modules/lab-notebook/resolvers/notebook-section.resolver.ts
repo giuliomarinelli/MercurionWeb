@@ -9,6 +9,7 @@ import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap } from 'src/utils/type-orm-utils/type-orm-utils';
 import { CreateSectionInput } from '../Models/DTO/create-section-input';
 import { UpdateSectionInput } from '../Models/DTO/update-section-input';
+import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 
 
 @Resolver(() => NotebookSection)
@@ -16,12 +17,17 @@ export class NotebookSectionResolver {
 
     constructor(private readonly sectionService: NotebookSectionService) { }
 
+    private ensureUuid(value: string, field: string): void {
+        GeneralUtils.ensureValidUUIDv7(value, `GraphQLInvalid::Invalid ${field}`)
+    }
+
     @Query(() => NotebookSection)
     async sectionByChapterId(
         @Args('chapterId', { type: () => ID }) chapterId: string,
         @AuthenticatedUserId() userId: string,
         @Info() info: GraphQLResolveInfo
     ): Promise<NotebookSection> {
+        this.ensureUuid(chapterId, 'chapterId')
         const fieldsMap = GraphQLUtils.getFieldsMap(info) as GraphQLFieldsMap;
         const result: NotebookSection | null = await this.sectionService.getSectionByChapterId(
             userId as UUID,
@@ -38,6 +44,7 @@ export class NotebookSectionResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ): Promise<NotebookSection | null> {
+        this.ensureUuid(id, 'id')
         const fieldsMap = GraphQLUtils.getFieldsMap(info) as GraphQLFieldsMap
         return this.sectionService.getSection(
             id as UUID,
@@ -51,6 +58,7 @@ export class NotebookSectionResolver {
         @Args('input') input: CreateSectionInput,
         @AuthenticatedUserId() userId: string
     ): Promise<NotebookSection> {
+        this.ensureUuid(input.chapterId, 'chapterId')
         return this.sectionService.create(userId as UUID, input.chapterId, input)
     }
 
@@ -60,6 +68,7 @@ export class NotebookSectionResolver {
         @AuthenticatedUserId() userId: string,
         @Info() info: GraphQLResolveInfo
     ): Promise<NotebookSection | null> {
+        this.ensureUuid(id, 'id')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.sectionService.update(userId as UUID, id as UUID, input, fieldsMap)
     }
@@ -69,6 +78,7 @@ export class NotebookSectionResolver {
         @Args('id', { type: () => ID }) id: string,
         @AuthenticatedUserId() userId: string
     ): Promise<boolean> {
+        this.ensureUuid(id, 'id')
         await this.sectionService.delete(userId as UUID, id as UUID)
         return true
     }
@@ -79,6 +89,7 @@ export class NotebookSectionResolver {
         @Args('direction') direction: 'up' | 'down',
         @AuthenticatedUserId() userId: UUID
     ): Promise<boolean> {
+        this.ensureUuid(sectionId, 'sectionId')
         await this.sectionService.move(userId, sectionId as UUID, direction)
         return true
     }
@@ -89,6 +100,8 @@ export class NotebookSectionResolver {
         @Args('orderedIds', { type: () => [ID] }) orderedIds: string[],
         @AuthenticatedUserId() userId: UUID
     ): Promise<boolean> {
+        this.ensureUuid(chapterId, 'chapterId')
+        orderedIds.forEach((orderedId) => this.ensureUuid(orderedId, 'orderedIds'))
         await this.sectionService.reorder(userId, chapterId as UUID, orderedIds as UUID[])
         return true
     }

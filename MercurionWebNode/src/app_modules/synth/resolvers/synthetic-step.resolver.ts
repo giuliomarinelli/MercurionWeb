@@ -6,11 +6,16 @@ import { GraphQLUtils } from "src/utils/graphql-utils/graphql-utils";
 import { SynthStep } from "../Models/entities/synth-step.entity";
 import { SyntheticStepService } from "../services/synthetic-step.service";
 import { SynthStepInput } from "../Models/DTO/synth-step.input";
+import { GeneralUtils } from "src/utils/general-utils/general-utils";
 
 @Resolver(() => SynthStep)
 export class SyntheticStepResolver {
 
     constructor(private readonly service: SyntheticStepService) { }
+
+    private ensureUuid(value: string, field: string): void {
+        GeneralUtils.ensureValidUUIDv7(value, `GraphQLInvalid::Invalid ${field}`)
+    }
 
     @Query(() => [SynthStep])
     async syntheticStepsByRoute(
@@ -18,6 +23,7 @@ export class SyntheticStepResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ) {
+        this.ensureUuid(routeId, 'routeId')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.service.findByRoute(userId, routeId, fieldsMap)
     }
@@ -28,6 +34,7 @@ export class SyntheticStepResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ) {
+        this.ensureUuid(id, 'id')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.service.findOneById(userId, id, fieldsMap)
     }
@@ -47,6 +54,7 @@ export class SyntheticStepResolver {
         @Args('input') input: SynthStepInput,
         @Info() info: GraphQLResolveInfo
     ) {
+        this.ensureUuid(id, 'id')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.service.update(userId, id, input, fieldsMap)
     }
@@ -56,6 +64,7 @@ export class SyntheticStepResolver {
         @AuthenticatedUserId() userId: UUID,
         @Args('id', { type: () => ID }) id: UUID
     ) {
+        this.ensureUuid(id, 'id')
         return this.service.delete(userId, id)
     }
 }

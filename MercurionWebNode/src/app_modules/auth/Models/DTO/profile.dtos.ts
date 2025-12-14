@@ -1,8 +1,10 @@
+import { Transform } from "class-transformer"
 import { IsEnum, IsNotEmpty, IsOptional, IsString } from "class-validator"
 import { UUID } from "node:crypto"
 import { HistoryDTO } from "src/app_modules/history/Models/DTO/history.dto"
 import { UserGender } from "src/app_modules/user/Models/enums/user-gender.enum"
 import { nullish } from "src/Models/nullish.type"
+import { GeneralUtils } from "src/utils/general-utils/general-utils"
 
 
 export interface ProfileDTO {
@@ -24,10 +26,12 @@ export class ProfileRegistryDTO {
    
     @IsString()
     @IsNotEmpty()
+    @Transform(({ value }) => typeof value === 'string' ? GeneralUtils.normalizePersonName(value) : value)
     firstName: string
 
     @IsString()
     @IsNotEmpty()
+    @Transform(({ value }) => typeof value === 'string' ? GeneralUtils.normalizePersonName(value) : value)
     lastName: string
 
     @IsEnum(UserGender)
@@ -36,6 +40,7 @@ export class ProfileRegistryDTO {
     @IsString()
     @IsNotEmpty()
     @IsOptional()
+    @Transform(({ value }) => typeof value === 'string' ? GeneralUtils.normalizeSpaces(value) : value)
     job?: string | null
 
 }

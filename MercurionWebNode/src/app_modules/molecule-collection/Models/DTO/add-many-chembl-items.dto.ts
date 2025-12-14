@@ -1,5 +1,7 @@
 import { Field, ID, InputType } from "@nestjs/graphql";
+import { Transform } from "class-transformer";
 import { IsInt, IsString } from "class-validator";
+import { GeneralUtils } from "src/utils/general-utils/general-utils";
 
 @InputType()
 export class AddManyChEMBLItemDTO {
@@ -10,6 +12,7 @@ export class AddManyChEMBLItemDTO {
 
     @IsString()
     @Field(() => String)
+    @Transform(({ value }) => typeof value === 'string' ? GeneralUtils.normalizeSpaces(value) : value)
     name: string
 
 }

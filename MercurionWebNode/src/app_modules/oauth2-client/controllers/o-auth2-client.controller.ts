@@ -5,6 +5,7 @@ import { UUID } from 'crypto';
 import { Public } from 'src/metadata/metadata';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 
 
 
@@ -27,7 +28,11 @@ export class OAuth2ClientController {
         @Query('userId') userId: string,
         @Res() res: FastifyReply
     ) {
-        const url = this.oauth2ClientService.getAuthorizationUrl(provider, userId)
+        const normalizedUserId = typeof userId === 'string' ? userId.trim() : userId
+        if (normalizedUserId) {
+            GeneralUtils.ensureValidUUIDv7(normalizedUserId, 'Invalid userId')
+        }
+        const url = this.oauth2ClientService.getAuthorizationUrl(provider, normalizedUserId)
         this.logger.log(`Redirect to: ${url}`)
         res.raw.writeHead(302, { Location: url })
         res.raw.end()
@@ -40,7 +45,11 @@ export class OAuth2ClientController {
         @Query('code') code: string,
         @Query('state') state: string // spesso usato come userId o anti-CSRF
     ) {
-        await this.oauth2ClientService.handleCallback(provider, code, state as UUID || undefined)
+        const normalizedState = typeof state === 'string' ? state.trim() : state
+        if (normalizedState) {
+            GeneralUtils.ensureValidUUIDv7(normalizedState, 'Invalid state')
+        }
+        await this.oauth2ClientService.handleCallback(provider, code, normalizedState as UUID || undefined)
         return { detail: 'Login OAuth2 completato! Ora puoi chiudere questa finestra' }
     }
 }
