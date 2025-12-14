@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core'
+import { ChangeDetectionStrategy, Component, computed, inject, OnDestroy, signal } from '@angular/core'
 import { FeedbackService } from '../../services/feedback.service'
 import { FeedbackEnv, FeedbackKind, FeedbackContextKind, CreateFeedbackDTO } from '../../Models/feedback.models'
 import { StarRatingComponent } from '../../components/feedback/star-rating/star-rating.component'
 import { environment } from '../../../environments/environment.development'
+import { Subscription } from 'rxjs'
 
 @Component({
   selector: 'm-feedback-page',
@@ -19,7 +20,7 @@ import { environment } from '../../../environments/environment.development'
     }
 
     .fade-out-ani {
-      animation: .3s ease-in-out both 5s fade-out;
+      animation: .6s ease-in-out 3s both fade-out;
     }
 
   `,
@@ -99,15 +100,18 @@ import { environment } from '../../../environments/environment.development'
     </section>
   `
 })
-export class FeedbackPageComponent {
+export class FeedbackPageComponent implements OnDestroy {
 
   private readonly feedbackService = inject(FeedbackService)
 
+  private timeOutBinding = signal<ReturnType<typeof setTimeout> | null>(null)
   // --- Signal Form state
   ratingUtility = signal<number | null>(null)
   ratingClarity = signal<number | null>(null)
   ratingExperience = signal<number | null>(null)
   message = signal<string>('')
+
+  private sub?: Subscription
 
   submitting = signal(false)
   sent = signal(false)
@@ -136,9 +140,27 @@ export class FeedbackPageComponent {
   }
 
   submit() {
+
     if (!this.canSubmit()) {
       return
     }
+
+    if (this.timeOutBinding()) {
+      queueMicrotask(() => {
+        clearInterval(this.timeOutBinding() as ReturnType<typeof setInterval>)
+        this.timeOutBinding.set(null)
+        this.sendClicked.set(false)
+        this.hideAck.set(true)
+      })
+    }
+
+    this.sendClicked.set(true)
+    setTimeout(() => {
+      queueMicrotask(() => {
+        this.sendClicked.set(false)
+        this.hideAck.set(true)
+      })
+    }, 4000)
 
     this.submitting.set(true)
     this.sent.set(false)
@@ -155,14 +177,16 @@ export class FeedbackPageComponent {
       clientVersion: environment.version
     }
 
-    this.feedbackService.createFeedback(dto).subscribe({
-      next: () => {
+    this.sub = this.feedbackService.createFeedback(dto).subscribe({
+      next: () => queueMicrotask(() => {
+        this.hideAck.set(false)
         this.sent.set(true)
         this.ratingUtility.set(null)
         this.ratingClarity.set(null)
         this.ratingExperience.set(null)
         this.message.set('')
-      },
+      })
+      ,
       error: () => {
         this.error.set('Errore durante l’invio del feedback')
       },
@@ -171,4 +195,9 @@ export class FeedbackPageComponent {
       }
     })
   }
+
+  ngOnDestroy(): void {
+    this.sub?.unsubscribe()
+  }
+
 }
