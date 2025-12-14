@@ -354,6 +354,7 @@ input MoleculeSearchInput {
 }
 
 type Mutation {
+  duplicateCollection(srcCollectionId: ID!): MoleculeCollection
   createMoleculeCollection(name: String!): MoleculeCollection!
   createManyMoleculeCollections(names: [String!]!): Boolean!
   updateMoleculeCollection(id: ID!, name: String!): MoleculeCollection!

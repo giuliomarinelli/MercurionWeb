@@ -182,18 +182,76 @@ WHERE i.user_id = $2::uuid
     return true
   }
 
+  private stripTrailingSuffix(name: string): string {
+    // rimuove solo il pattern " (123)" a fine stringa
+    return name.replace(/ \(\d+\)$/, '')
+  }
+
+  private buildNameWithSuffix(baseName: string, suffixIdx: number): string {
+
+    if (suffixIdx === 0) {
+      return baseName.slice(0, 255)
+    }
+
+    const suffix = ` (${suffixIdx})`
+    const maxBaseLen = Math.max(1, 255 - suffix.length)
+    return baseName.slice(0, maxBaseLen) + suffix
+  }
+
+  private async resolveUniqueCollectionName(
+    manager: EntityManager,
+    userId: UUID,
+    rawName: string
+  ): Promise<string> {
+    const normalized = GeneralUtils.normalizeSpaces(String(rawName))
+    const baseName = this.stripTrailingSuffix(normalized)
+
+    await manager.query(
+      `SELECT pg_advisory_xact_lock(
+        ((hashtextextended($1::text, 17))::bigint << 32)
+        # (hashtextextended($2, 42))::bigint
+     );`,
+      [String(userId), baseName]
+    )
+
+    // stato esistente
+    const rows = await manager.query<MoleculeCollection>(
+      `
+    SELECT
+      BOOL_OR(name = $2) AS has_plain,
+      MAX( (regexp_match(name, ' \\((\\d+)\\)$'))[1]::int ) AS max_suffix_num
+    FROM public.molecule_collections
+    WHERE user_id = $1::uuid
+      AND (name = $2 OR name LIKE $2 || ' (%)');
+    `,
+      [String(userId), baseName]
+    )
+
+    const hasPlain = Boolean(rows?.[0]?.has_plain)
+    const maxSuffixNum = rows?.[0]?.max_suffix_num == null ? null : Number(rows[0].max_suffix_num)
+
+    // stessa logica della query: se non esiste il plain, usa plain (suffix 0) anche se esistono già "(n)"
+    const suffixIdx = hasPlain ? ((maxSuffixNum ?? 0) + 1) : 0
+    return this.buildNameWithSuffix(baseName, suffixIdx)
+  }
+
   async create(userId: UUID, name: string): Promise<MoleculeCollection> {
     try {
       return this.dataSource.manager.transaction(async (manager) => {
+
         const now = Date.now()
+
+        const finalName = await this.resolveUniqueCollectionName(manager, userId, name)
+
         const collection = manager.create(MoleculeCollection, {
           id: uuidv7() as UUID,
-          name,
+          name: finalName,
           userId,
           createdAt: now,
           updatedAt: now,
           touchedAt: now
         })
+
         const persisted = await manager.save(MoleculeCollection, collection)
         await this.markAsTouchedWithManager(userId, persisted.id, manager)
         return persisted
@@ -203,6 +261,64 @@ WHERE i.user_id = $2::uuid
       throw e
     }
   }
+
+  async duplicate(
+    userId: UUID,
+    srcCollectionId: UUID,
+    newName?: string
+  ): Promise<MoleculeCollection | null> {
+    try {
+      
+      return this.dataSource.manager.transaction(async (manager) => {
+
+        const srcCollection = await manager.findOneOrFail(MoleculeCollection, {
+          where: {
+            id: srcCollectionId,
+            userId
+          }
+        })
+
+        const now = Date.now()
+        const uqName = await this.resolveUniqueCollectionName(
+          manager,
+          userId,
+          newName ?? srcCollection.name
+        )
+
+        const newCollection = manager.create(MoleculeCollection, {
+          id: uuidv7() as UUID,
+          name: uqName,
+          userId,
+          createdAt: now,
+          updatedAt: now,
+          touchedAt: now
+        })
+
+        const newCollectionPers = await manager.save(MoleculeCollection, newCollection)
+
+        const srcJoins = await manager.find(MoleculeCollectionItemJoin, {
+          where: { userId, collectionId: srcCollectionId },
+          select: {
+            item: true
+          }
+        })
+
+        const rows = srcJoins.map(j => ({
+          id: uuidv7() as UUID,
+          userId,
+          collectionId: newCollectionPers.id,
+          itemId: j.itemId,
+        }))
+
+        await manager.insert(MoleculeCollectionItemJoin, rows)
+        return newCollectionPers
+
+      })
+    } catch {
+      return null
+    }
+  }
+
 
   async createMany(userId: UUID, names: string[]): Promise<boolean> {
     try {
@@ -317,10 +433,10 @@ WHERE i.user_id = $2::uuid
     moleculeId: UUID | null = null,
     fieldsMap?: GraphQLFieldsMap,
   ): Promise<Pagination<MoleculeCollection>> {
-    
+
     const itemsFields = fieldsMap?.items ? Object.keys(fieldsMap.items).filter(k => k !== '__typename') : [];
     const columns = GraphQLUtils.ensureRequiredFields(itemsFields, this.REQUIRED_FIELDS).filter(c => c !== 'itemsCount')
-    
+
     let qb = this.collectionRepo.createQueryBuilder('collection')
       .select(columns.map(col => `collection.${col}`))
       .where('collection.userId = :userId', { userId })
@@ -359,7 +475,7 @@ WHERE i.user_id = $2::uuid
     }
 
     qb = qb.orderBy('collection.touchedAt', 'DESC')
-    
+
     const paginated = await paginate<MoleculeCollection>(qb, options)
     pruneNullCollectionJoins(paginated.items)
     return paginated

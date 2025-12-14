@@ -16,7 +16,16 @@ export const PAGINATED_MOLECULE_COLLECTIONS = gql`
       currentPage
     }
   }
-    `;
+  `
+
+export const DUPLICATE_COLLECTION = gql`
+  mutation DuplicateCollection($srcCollectionId: ID!) {
+    duplicateCollection(srcCollectionId: $srcCollectionId) {
+        id
+        name
+    }
+  }
+`
 
 export const CREATE_MANY_MOLECULE_COLLECTIONS = gql`
   mutation CreateManyMoleculeCollections($names: [String!]!) {

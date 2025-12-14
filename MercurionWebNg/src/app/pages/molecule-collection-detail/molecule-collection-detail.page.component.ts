@@ -79,7 +79,7 @@ import { AppTitleService } from '../../services/app-title.service';
 
       <div class="flex items-center justify-end gap-3">
         <button
-          (click)="doDuplicateCollection()"
+          (click)="doDuplicateCollection(colId())"
           type="button"
           class="relative p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-150"
           title="Crea una nuova collezione a partire da questa (Duplica)">
@@ -128,6 +128,7 @@ import { AppTitleService } from '../../services/app-title.service';
           [triggerDisappear]="item.triggerDisappear()"
           [collapse]="item.collapse()"
           (onDelete)="doDelete($event)"
+
           (onRemoveFromCollection)="doRemoveMoleculeFromCollection($event)"/>
       }
     </div>
@@ -180,10 +181,11 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
   private reSub?: Subscription;
   private reFrCoSub?: Subscription
   private delColSub?: Subscription
+  private dupColSub?: Subscription
 
-  error = signal<boolean>(false);
-  name = signal<string>('');
-  colId = signal<string>('');
+  error = signal<boolean>(false)
+  name = signal<string>('')
+  colId = signal<string>('')
   triggerRenameRollback = signal<boolean>(false)
   private tick = signal<number>(0)
 
@@ -280,6 +282,7 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
     this.reSub?.unsubscribe()
     this.reFrCoSub?.unsubscribe()
     this.delColSub?.unsubscribe()
+    this.dupColSub?.unsubscribe()
     this.observer?.disconnect()
   }
 
@@ -389,7 +392,18 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
     });
   }
 
-  doDuplicateCollection(): void { /* TODO */ }
+  doDuplicateCollection(collectionId: string): void {
+    this.dupColSub = this.colService.duplicateCollection(collectionId).subscribe({
+      next: (res) => {
+        queueMicrotask(() => {
+          this.router.navigateByUrl('molecules/collections')
+          this.toast.trigger(`Collezione duplicata con successo. Nuova collezione: '${res.name}'`, 'success')
+        })
+      },
+      error: () => queueMicrotask(() => this.toast.trigger('Si è verificato un errore inaspettato. Se si ripete, contatta il supporto.', 'error'))
+    })
+  }
+
 
   doDeleteCollection(): void {
     const onError = () => queueMicrotask(() => this.toast.trigger('Si è verificato un errore.', 'error', 3000))

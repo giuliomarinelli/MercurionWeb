@@ -16,6 +16,7 @@ import { ActionOverlayContextService } from '../../services/context/action-conte
 import { CreateCollectionContextService } from '../../services/context/action-context/create-collection-context.service';
 import { ToastService } from '../../services/toast.service';
 import { AddMoleculesToCollectionContextService } from '../../services/context/action-context/add-molecules-to-collection-context.service';
+import { AppContextService } from '../../services/context/app-context.service';
 
 
 @Component({
@@ -113,9 +114,11 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
   private readonly addCtx = inject(AddMoleculesToCollectionContextService)
   private readonly toast = inject(ToastService)
   private readonly historyContext = inject(HistoryContextService)
+  private readonly appContext = inject(AppContextService)
   // ====================================================
 
   private delColSub?: Subscription
+  private dupColSub?: Subscription
 
   @ViewChild('sentinel', { static: true })
   declare sentinel: ElementRef<HTMLDivElement> | undefined
@@ -158,7 +161,7 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
       if (scope === 'CreateCollection' && !visible && t > 0) {
         this.resetPagination();
       }
-    });
+    })
   }
 
 
@@ -172,6 +175,7 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
 
   ngOnDestroy(): void {
     this.delColSub?.unsubscribe()
+    this.dupColSub?.unsubscribe()
   }
 
   protected override async loadMore(): Promise<void> {
@@ -230,7 +234,16 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
   }
 
   doDuplicateCollection(collectionId: string): void {
-
+    this.dupColSub = this.moleculeCollectionService.duplicateCollection(collectionId).subscribe({
+      next: (res) => {
+        queueMicrotask(() => {
+          this.appContext.smoothToTop()
+          this.resetPagination()
+          this.toast.trigger(`Collezione duplicata con successo. Nuova collezione: '${res.name}'`, 'success')
+        })
+      },
+      error: () => queueMicrotask(() => this.toast.trigger('Si è verificato un errore inaspettato. Se si ripete, contatta il supporto.', 'error'))
+    })
   }
 
   doDeleteCollection(collectionId: string): void {
