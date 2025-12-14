@@ -312,6 +312,7 @@ type Query {
   myMoleculeCollections: [MoleculeCollection!]!
   moleculeCollection(id: ID!): MoleculeCollection
   searchMyCollections(query: String, limit: Float): [MoleculeCollection!]!
+  duplicateCollection(srcCollectionId: ID!): MoleculeCollection
   myMoleculeCollectionsPaginated(page: Int! = 1, limit: Int! = 20, excludeJoinedToMolecule: Boolean, moleculeId: ID, q: String!): PaginatedMoleculeCollection!
   myMoleculeItems: [MoleculeCollectionItemEntity!]!
   moleculeItem(id: ID!): MoleculeCollectionItemUnion
