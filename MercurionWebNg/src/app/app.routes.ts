@@ -6,13 +6,19 @@ export const routes: Routes = [
     path: '',
     pathMatch: 'full',
     title: '',
-    loadComponent: () => import('./components/common/redirect-to-login-component/redirect-to-login.component')
-      .then((m) => m.RedirectToLoginComponent)
+    loadComponent: () =>
+      import('./components/common/redirect-to-login-component/redirect-to-login.component')
+        .then((m) => m.RedirectToLoginComponent)
   },
   {
     path: 'login',
     title: 'Login',
     loadComponent: () => import('./pages/login/login.page.component').then(m => m.LoginPageComponent)
+  },
+  {
+    // redirect per retrocompatibilità
+    path: 'profile',
+    redirectTo: 'dashboard'
   },
   {
     path: 'dashboard',
@@ -30,44 +36,90 @@ export const routes: Routes = [
     title: 'Login · MFA',
     loadComponent: () => import('./pages/login/mfa/mfa.page.component').then(m => m.MfaPageComponent)
   },
+
   {
     path: 'molecules/detail/:molId',
     title: 'Molecole · Dettaglio',
-    data: {
-      titleManagedByComponent: true
-    },
-    loadComponent: () => import('./pages/molecule-detail/molecule-detail.page.component')
-      .then(m => m.MoleculeDetailPageComponent)
+    data: { titleManagedByComponent: true },
+    loadComponent: () =>
+      import('./pages/molecule-detail/molecule-detail.page.component')
+        .then(m => m.MoleculeDetailPageComponent)
   },
   {
     path: 'molecules/editor',
     title: 'Molecole · Editor',
-    loadComponent: () => import('./pages/molecule-editor/molecule-editor.page.component')
-      .then(m => m.MoleculeEditorPageComponent),
+    loadComponent: () =>
+      import('./pages/molecule-editor/molecule-editor.page.component')
+        .then(m => m.MoleculeEditorPageComponent),
     canActivate: [AuthGuard]
   },
+
+  {
+    path: 'forgot-password',
+    title: 'Password · Recupero',
+    loadComponent: () => import('./pages/forgot-password/forgot-password.page.component')
+      .then(m => m.ForgotPasswordPageComponent)
+  },
+  {
+    path: 'password-recovery',
+    title: 'Password · Reset',
+    loadComponent: () => import('./pages/password-recovery/password-recovery.page.component')
+      .then(m => m.PasswordRecoveryPageComponent)
+  },
+
   {
     path: 'molecules/collections',
     title: 'Molecole · Collezioni',
-    loadComponent: () => import('./pages/my-molecule-collections/my-molecule-collections.page.component')
-      .then(m => m.MyMoleculeCollectionsPageComponent),
+    loadComponent: () =>
+      import('./pages/my-molecule-collections/my-molecule-collections.page.component')
+        .then(m => m.MyMoleculeCollectionsPageComponent),
     canActivate: [AuthGuard]
   },
   {
     path: 'molecules/collections/detail/:colId',
     title: 'Molecole · Dettaglio collezione',
-    data: {
-      titleManagedByComponent: true
-    },
-    loadComponent: () => import('./pages/molecule-collection-detail/molecule-collection-detail.page.component')
-      .then(m => m.MoleculeCollectionDetailPageComponent),
+    data: { titleManagedByComponent: true },
+    loadComponent: () =>
+      import('./pages/molecule-collection-detail/molecule-collection-detail.page.component')
+        .then(m => m.MoleculeCollectionDetailPageComponent),
     canActivate: [AuthGuard]
   },
+  {
+    path: 'register',
+    title: 'Registrazione',
+    loadComponent: () => import('./pages/register/register.page.component').then(m => m.RegisterPageComponent)
+  },
+  {
+    path: 'account/activate',
+    title: 'Account · Attivazione',
+    loadComponent: () => import('./pages/account-activate/account-activate.page.component')
+      .then(m => m.AccountActivatePageComponent)
+  },
+
+  {
+    path: 'molecules/all-my-molecules',
+    title: 'Molecole · Tutte le mie molecole',
+    loadComponent: () => import('./pages/all-my-molecules/all-my-molecules.page.component')
+      .then(m => m.AllMyMoleculesPageComponent),
+    canActivate: [AuthGuard]
+  },
+
   {
     path: 'settings',
     title: 'Impostazioni',
     loadComponent: () => import('./pages/settings/settings.page.component').then(m => m.SettingsPageComponent),
     canActivate: [AuthGuard]
+  },
+  {
+    path: 'account-recovery',
+    title: 'Account · Recupero',
+    loadComponent: () => import('./pages/account-recovery/account-recovery.page.component')
+      .then(m => m.AccountRecoveryPageComponent)
+  },
+  {
+    path: 'oauth2/callback',
+    title: 'Login · SSO Callback',
+    loadComponent: () => import('./pages/sso/sso.page.component').then(m => m.SsoPageComponent)
   },
   {
     path: 'help',
@@ -81,17 +133,20 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/feedback/feedback.page.component').then((m) => m.FeedbackPageComponent),
     canActivate: [AuthGuard]
   },
+
   {
     path: '404-not-found',
     title: '404 Pagina non trovata',
-    loadComponent: () => import('./pages/not-found-404-landing/not-found-404-landing.page.component')
-      .then(m => m.NotFound404LandingPageComponent)
+    loadComponent: () =>
+      import('./pages/not-found-404-landing/not-found-404-landing.page.component')
+        .then(m => m.NotFound404LandingPageComponent)
   },
   {
     path: '403-forbidden',
     title: '403 Accesso negato',
-    loadComponent: () => import('./pages/forbidden-403-landing/forbidden-403-landing.page.component')
-      .then(m => m.Forbidden403LandingPageComponent)
+    loadComponent: () =>
+      import('./pages/forbidden-403-landing/forbidden-403-landing.page.component')
+        .then(m => m.Forbidden403LandingPageComponent)
   },
   {
     path: '**',

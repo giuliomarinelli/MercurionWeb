@@ -36,6 +36,7 @@ import { ActionOverlayContextService } from '../../services/context/action-conte
 import { BindCollectionsToMoleculeContextService } from '../../services/context/action-context/bind-collections-to-molecule-context.service'
 import { HttpErrorResponse } from '@angular/common/http'
 import { HttpErrorBody as HttpErrorBody } from '../../Models/http-error-body.dto'
+import { AppTitleService } from '../../services/app-title.service'
 
 
 
@@ -254,6 +255,7 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
   private readonly historyContext = inject(HistoryContextService)
   private readonly actionOverlayContext = inject(ActionOverlayContextService)
   private readonly bindContext = inject(BindCollectionsToMoleculeContextService)
+  private readonly appTitle = inject(AppTitleService)
   // ====================================================
 
   private readonly uuidV7Re = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -435,11 +437,16 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
         let smiles = ''
         if (this.typeGuards.isSystemMolecule(item)) {
           smiles = item.canonicalSmiles
+          this.appTitle.setSection('Molecole', item.preferredNameIt ?? item.preferredName)
         } else if (this.typeGuards.isChemblMolecule(item)) {
           smiles = item.chemblDetails.canonicalSmiles
+          this.appTitle.setSection('Molecole', item.chemblDetails.preferredNameIt ?? item.chemblDetails.preferredName)
         } else if (this.typeGuards.isCustomMolecule(item)) {
-          if (item.propertiesJson) item.properties = JSON.parse(item.propertiesJson)
+          if (item.propertiesJson) {
+            item.properties = JSON.parse(item.propertiesJson)
+          }
           smiles = item.canonicalSmiles
+          this.appTitle.setSection('Molecole', item.name ?? 'Lead sconosciuto')
         }
 
         return this.userContext.isLoggedIn() ? this.mercurionAIService.t1Inference({ smiles }).pipe(
