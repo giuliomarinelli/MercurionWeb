@@ -1,9 +1,10 @@
+import { DuplicateCollectionRes } from './../../Models/graphql/molecule-collection/molecule-collection.types';
 import { Injectable, signal, computed } from '@angular/core';
 import { Apollo, gql } from 'apollo-angular';
 import { Observable, map, tap } from 'rxjs';
 import { BindManyCollectionsToMoleculeDTO, MoleculeCollection } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 import { PageModel } from '../../Models/graphql/page.models';
-import { BIND_MANY_COLLECTIONS_TO_MOLECULE, CREATE_MANY_MOLECULE_COLLECTIONS, MARK_MOLECULE_COLLECTION_AS_TOUCHED, PAGINATED_MOLECULE_COLLECTIONS, UPDATE_MOLECULE_COLLECTION_NAME } from './graphql-operations/molecule-collection.gql-operations';
+import { BIND_MANY_COLLECTIONS_TO_MOLECULE, CREATE_MANY_MOLECULE_COLLECTIONS, DUPLICATE_COLLECTION, MARK_MOLECULE_COLLECTION_AS_TOUCHED, PAGINATED_MOLECULE_COLLECTIONS, UPDATE_MOLECULE_COLLECTION_NAME } from './graphql-operations/molecule-collection.gql-operations';
 import { extractGqlData } from './graphql-helpers/extract-gql-data.gql-helper';
 
 
@@ -175,6 +176,25 @@ export class MoleculeCollectionService {
         }
       }).pipe(
         map(res => extractGqlData(res, 'updateMoleculeCollection'))
+      )
+  }
+
+  duplicateCollection(srcCollectionId: string): Observable<DuplicateCollectionRes> {
+    return this.apollo
+      .mutate<{ duplicateCollection: MoleculeCollection }>({
+        mutation: DUPLICATE_COLLECTION,
+        variables: {
+          srcCollectionId
+        }
+      }).pipe(
+        map((res): MoleculeCollection => extractGqlData(res, 'duplicateCollection')),
+        map((col) => {
+          const { id, name } = col
+          return {
+            id,
+            name
+          }
+        })
       )
   }
 

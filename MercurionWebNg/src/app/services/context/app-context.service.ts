@@ -1,4 +1,5 @@
 import { ElementRef, inject, Injectable, NgZone, signal } from '@angular/core';
+import { Maybe } from 'graphql/jsutils/Maybe';
 
 @Injectable({
   providedIn: 'root'
@@ -56,28 +57,30 @@ export class AppContextService {
     this._headerHeight.set(h)
   }
 
-  smoothToTop(host: ElementRef<HTMLElement>, duration = 240) {
+  smoothToTop(host?: ElementRef<HTMLElement>, duration = 240) {
     this.smoothTo(host, 0, duration)
   }
 
   smoothTo(
-    host: ElementRef<HTMLElement>,
+    host: Maybe<ElementRef<HTMLElement>>,
     targetY: number,
     duration = 240
   ) {
-    const el = host?.nativeElement;
+    // fallback: se host non viene passato, usa quello registrato dall'AppComponent
+    const resolvedHost = host ?? this._globalScollRootRef()
+    const el = resolvedHost?.nativeElement
+
     if (!el) {
-      requestAnimationFrame(() => this.smoothTo(host, targetY, duration));
-      return;
+      // se non è pronto (ViewChild non ancora montato), riprova
+      requestAnimationFrame(() => this.smoothTo(resolvedHost ?? undefined, targetY, duration))
+      return
     }
 
     this.zone.runOutsideAngular(() => {
-
       const start = el.scrollTop
       const delta = targetY - start
-      if (delta === 0) {
-        return
-      }
+      if (delta === 0) return
+
       const startTime = performance.now()
       const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3)
 

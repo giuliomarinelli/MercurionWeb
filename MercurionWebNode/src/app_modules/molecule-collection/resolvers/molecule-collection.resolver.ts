@@ -71,7 +71,7 @@ export class MoleculeCollectionResolver {
         return this.collectionService.searchByName(userId, normalizedQuery, limit, fieldsMap)
     }
 
-    @Query(() => MoleculeCollection, { nullable: true })
+    @Mutation(() => MoleculeCollection, { nullable: true })
     async duplicateCollection(
         @AuthenticatedUserId() userId: UUID,
         @Args('srcCollectionId', { type: () => ID }) srcCollectionId: UUID

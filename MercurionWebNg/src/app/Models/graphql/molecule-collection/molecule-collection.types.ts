@@ -8,6 +8,7 @@ export interface MoleculeCollectionJoin {
   id: string;
   collection: MoleculeCollection
 }
+
 export interface BaseMoleculeItem {
   id: string;
   label?: string | null;
@@ -19,12 +20,14 @@ export interface BaseMoleculeItem {
   touchedAt: string
   t1Inference?: T1PredictionDTO
 }
+
 export interface ChEMBLMoleculeItemEntity extends BaseMoleculeItem {
   type: 'chembl';
   chemblMolregno: number;
   chemblDetails: MoleculeDetail
 
 }
+
 export interface CustomMoleculeItemEntity extends BaseMoleculeItem {
   type: 'custom';
   canonicalSmiles: string;
@@ -33,7 +36,6 @@ export interface CustomMoleculeItemEntity extends BaseMoleculeItem {
   propertiesJson?: string | null;
   properties?: MoleculeProperties
 }
-
 
 export interface MoleculeCollectionItemEntityShort {
   id: string
@@ -72,7 +74,6 @@ export interface AddChemblMoleculeToCollectionInput {
   label?: string;
   notes?: string;
 }
-
 
 export type MoleculeItemDTO =
   | {
@@ -185,3 +186,5 @@ export interface BindManyCollectionsToMoleculeDTO {
   ok: boolean
   moleculeUUID: string | null
 }
+
+export type DuplicateCollectionRes = Pick<MoleculeCollection, 'id' | 'name'>

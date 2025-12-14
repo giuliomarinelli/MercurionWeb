@@ -307,6 +307,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit() {
     queueMicrotask(() => {
+      this.appContext.setGlobalScrollRootRef(this.scrollHostRef)
       const h = this.headerRef?.nativeElement?.offsetHeight ?? 64
       this.appContext.setHeaderHeight(h)
     })
