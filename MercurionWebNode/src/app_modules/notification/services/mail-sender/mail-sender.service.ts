@@ -36,7 +36,6 @@ export class MailSenderService {
         })
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public async notifySupportNewTicket(ticket: Ticket, message: TicketMessage): Promise<void> {
         if (!message.authorId) {
             return
@@ -54,7 +53,6 @@ export class MailSenderService {
             .catch((e) => this.logger.warn('notifySupportNewTicket > Error: ', (e.stack ?? e) as object))
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public async confirmUserTicketOpened(ticket: Ticket, message: TicketMessage): Promise<void> {
         if (!message.authorId) {
             return
@@ -73,7 +71,6 @@ export class MailSenderService {
             .catch((e) => this.logger.warn('confirmUserTicketOpened > Error: ', (e.stack ?? e) as object))
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public async notifySupportNewMessage(ticket: Ticket, message: TicketMessage): Promise<void> {
         if (!message.authorId) {
             return
@@ -91,7 +88,6 @@ export class MailSenderService {
             .catch((e) => this.logger.warn('notifySupportNewMessage > Error: ', (e.stack ?? e) as object))
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public async notifyUserSupportReplied(ticket: Ticket, userId: UUID): Promise<void> {
         if (!userId) {
             return

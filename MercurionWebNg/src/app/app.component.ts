@@ -107,7 +107,7 @@ import { AppContextService } from './services/context/app-context.service';
       @if (searchContextService.isMounted()) {
         <m-search-overlay />
       }
-      @if (saveOverlayContext.isMounted() && userContext.isLoggedIn()) {
+      @if (saveOverlayContext.shouldMount() && userContext.isLoggedIn()) {
         <m-action-overlay />
       }
       <m-toast [context]="toastService.context()" />

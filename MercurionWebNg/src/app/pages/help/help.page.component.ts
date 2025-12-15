@@ -1,19 +1,20 @@
-import { TicketStatus } from './../../Models/graphql/help.models';
-import { AfterViewInit, Component, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild, effect, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
-import { Observable, of, Subscription, switchMap, tap, throwError } from 'rxjs';
-import { AuthService } from '../../services/auth.service';
-import { ClientTicket, Ticket } from '../../Models/graphql/help.models';
-import { AbstractPaginationComponent } from '../../abstract/abstract-pagination-component';
-import { PageModel } from '../../Models/graphql/page.models';
-import { HelpService } from '../../services/graphql/help.service';
-import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
-import { TabsComponent } from '../../components/common/tabs/tabs.component';
-import { TicketCardComponent } from '../../components/support/ticket-card/ticket-card.component';
-import { TypeGuardsService } from '../../services/type-guards.service';
-import { TicketCardSkeletonComponent } from '../../components/support/ticket-card-skeleton/ticket-card-skeleton.component';
-import { TicketDetailContextService } from '../../services/context/action-context/ticket-detail-context.service';
-import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
-import { NewTicketContextService } from '../../services/context/action-context/new-ticket-context.service';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild, effect, inject, signal } from '@angular/core'
+import { ActivatedRoute, Router } from '@angular/router'
+import { Observable, Subscription, of, switchMap, take, tap } from 'rxjs'
+import { AuthService } from '../../services/auth.service'
+import { HelpService } from '../../services/graphql/help.service'
+import { TypeGuardsService } from '../../services/type-guards.service'
+import { AbstractPaginationComponent } from '../../abstract/abstract-pagination-component'
+import { PageModel } from '../../Models/graphql/page.models'
+import { Ticket, ClientTicket } from '../../Models/graphql/help.models'
+import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component'
+import { TabsComponent } from '../../components/common/tabs/tabs.component'
+import { TicketCardComponent } from '../../components/support/ticket-card/ticket-card.component'
+import { TicketCardSkeletonComponent } from '../../components/support/ticket-card-skeleton/ticket-card-skeleton.component'
+import { TicketDetailContextService } from '../../services/context/action-context/ticket-detail-context.service'
+import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service'
+import { NewTicketContextService } from '../../services/context/action-context/new-ticket-context.service'
+import { GqlV2Error } from '../../services/graphql/graphql-helpers/v2/gql-v2.error'
 
 @Component({
   selector: 'm-help-page',
@@ -30,9 +31,11 @@ import { NewTicketContextService } from '../../services/context/action-context/n
       <h1 class="h1-underline">
         <a class="hover:underline" routerLink="/molecules/all-my-molecules">Supporto</a>
       </h1>
+
       @if (handleTickets()) {
         <m-tabs class="block mt-4" [tabs]="tabs" (tabChange)="switchTab($event)" [activeIndex]="activeTab()" />
       }
+
       <div [class.pt-4]="handleTickets()">
         <button
           type="button"
@@ -46,15 +49,17 @@ import { NewTicketContextService } from '../../services/context/action-context/n
           </span>
         </button>
       </div>
+
       <p class="my-4 font-medium">
         @if (handleTickets() && activeTab() === 1) {
-          Gli utenti hanno creato complessivamente&nbsp;<strong class="text-light-accent-primary dark:text-dark-accent-primary">{{totalItems()}}</strong>&nbsp;ticket.
+          Gli utenti hanno creato complessivamente&nbsp;<strong class="text-light-accent-primary dark:text-dark-accent-primary">{{totalItems()}}</strong>&nbsp;ticket
         } @else {
-          Ci sono un totale di&nbsp;<strong class="text-light-accent-primary dark:text-dark-accent-primary">{{totalItems()}}</strong>&nbsp;ticket.
+          Ci sono un totale di&nbsp;<strong class="text-light-accent-primary dark:text-dark-accent-primary">{{totalItems()}}</strong>&nbsp;ticket
         }
       </p>
+
       <div class="mt-px relative -top-8">
-      @for (item of items; track item.id; let i = $index) {
+        @for (item of items; track item.id; let i = $index) {
           <m-ticket-card
             [ticket]="item"
             [i]="i"
@@ -64,10 +69,9 @@ import { NewTicketContextService } from '../../services/context/action-context/n
             (onOpenDetail)="openTicketDetail($event)"
             (close)="onCloseFromCard($event)"
             (reopen)="onReopenFromCard($event)" />
-      }
+        }
       </div>
 
-      <!-- Sentinel con altezza > 0 -->
       <div #sentinel class="h-px w-full"></div>
 
       @if (loading) {
@@ -84,12 +88,12 @@ import { NewTicketContextService } from '../../services/context/action-context/n
         }
       } @else if (empty() && (earlyDone)) {
         <p class="relative -top-8 text-slate-700 dark:text-slate-200">
-          Non sono ancora presenti ticket.&nbsp;<button class="a">Apri adesso il tuo primo ticket</button>.
+          Non sono ancora presenti ticket&nbsp;<button class="a">Apri adesso il tuo primo ticket</button>
         </p>
       }
     </section>
 
-    `
+  `
 })
 export class HelpPageComponent extends AbstractPaginationComponent<Ticket | ClientTicket> implements OnInit, OnDestroy, AfterViewInit {
 
@@ -100,6 +104,8 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
   private readonly overlayContext = inject(ActionOverlayContextService)
   private readonly newTicketContext = inject(NewTicketContextService)
   private readonly cdr = inject(ChangeDetectorRef)
+  private readonly route = inject(ActivatedRoute)
+  private readonly router = inject(Router)
 
   @ViewChild('sentinel')
   protected declare sentinel: ElementRef<HTMLDivElement>
@@ -107,8 +113,6 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
   protected readonly tabs = ['Sezione utente', 'Sezione admin']
   private readonly ITEMS_PER_PAGE = 10
 
-  private userFetchSub?: Subscription
-  private supFetchSub?: Subscription
   private clsSub?: Subscription
   private ropSub?: Subscription
 
@@ -119,34 +123,16 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
   constructor() {
     super()
 
-    // quando viene creato un nuovo ticket lato utente,
-    // resettiamo la paginazione e ricarichiamo la lista
     effect(() => {
       const tick = this.detailContext.addedTick()
-      if (!tick) {
-        return
-      }
+      if (!tick) return
       this.resetAndReload()
     })
+
     effect(() => {
       const t = this.newTicketContext.addedTick()
-      if (t === 0 || this.activeTab() !== 0) {
-        return
-      }
+      if (t === 0 || this.activeTab() !== 0) return
       this.resetAndReload()
-    })
-  }
-
-  switchTab(i: number): void {
-    if (i < 0 || i > 1) {
-      return
-    }
-    if (i === 1 && !this.handleTickets()) {
-      return
-    }
-    queueMicrotask(() => {
-      this.activeTab.set(i as (0 | 1))
-      this.resetPagination()
     })
   }
 
@@ -156,54 +142,94 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
     queueMicrotask(() => this.loadMore())
   }
 
+  ngAfterViewInit(): void {
+    this.route.queryParamMap.pipe(take(1)).subscribe((p) => {
+      const ticketId = p.get('t_id') ?? ''
+      const mode = (p.get('m') ?? 'user').toLowerCase()
+
+      if (!ticketId) {
+        this.startObserver()
+        return
+      }
+
+      const innerScope = mode === 'support' ? 'Support' : 'User'
+
+      this.helpService.existsUserTicketById(ticketId).pipe(take(1)).subscribe({
+        next: (exists) => {
+          if (!exists) {
+            this.router.navigateByUrl('/404-not-found')
+            return
+          }
+
+          setTimeout(() => {
+            this.detailContext.setInnerScope(innerScope)
+            this.detailContext.setTicketId(ticketId)
+            this.overlayContext.open('TicketDetail')
+
+            this.router.navigate([], {
+              relativeTo: this.route,
+              queryParams: { t_id: null, m: null },
+              queryParamsHandling: 'merge',
+              replaceUrl: true
+            })
+          }, 0)
+
+        },
+        error: (e) => {
+          if (e instanceof GqlV2Error && e.kind === 'GraphQL') {
+            const msg = e.gqlErrors[0]?.message
+            const code = e.gqlErrors[0]?.extensions?.code
+            if (msg === 'Unauthenticated' && code === 'UNAUTHENTICATED') {
+              sessionStorage.setItem('redirectAfterLogin', this.router.url)
+              return
+            }
+          }
+          this.router.navigateByUrl('/404-not-found')
+        }
+      })
+    })
+
+    this.startObserver()
+  }
+
   ngOnDestroy(): void {
-    this.userFetchSub?.unsubscribe()
-    this.supFetchSub?.unsubscribe()
     this.clsSub?.unsubscribe()
     this.ropSub?.unsubscribe()
     this.observer?.disconnect()
   }
 
-  ngAfterViewInit(): void {
-    this.startObserver()
+  switchTab(i: number): void {
+    if (i < 0 || i > 1) return
+    if (i === 1 && !this.handleTickets()) return
+
+    queueMicrotask(() => {
+      this.activeTab.set(i as (0 | 1))
+      this.resetPagination()
+    })
   }
 
   protected override fetch$(): Observable<PageModel<Ticket | ClientTicket>> {
     return of(null).pipe(
       switchMap(() => {
         if (this.activeTab() === 1) {
-          if (this.handleTickets()) {
-            return this.helpService.ticketsAsSupport(this.page, this.ITEMS_PER_PAGE)
-          } else {
-            queueMicrotask(() => this.activeTab.set(0))
-          }
+          if (this.handleTickets()) return this.helpService.ticketsAsSupport(this.page, this.ITEMS_PER_PAGE)
+          queueMicrotask(() => this.activeTab.set(0))
         }
         return this.helpService.myTickets(this.page, this.ITEMS_PER_PAGE)
       }),
-      tap((res) => {
-        this.totalItems.set(res.totalItems)
-      })
+      tap((res) => this.totalItems.set(res.totalItems))
     )
   }
 
-  protected override doQuery(q: string): void {
-    // Al momento niente barra di ricerca
-  }
+  protected override doQuery(q: string): void { }
 
-  protected override doClear(): void {
-    // Al momento niente barra di ricerca
-  }
+  protected override doClear(): void { }
 
   private resetAndReload(): void {
-    this.userFetchSub?.unsubscribe()
-    this.supFetchSub?.unsubscribe()
-
     this.resetPagination()
-
     this.totalItems.set(0)
     this.cdr.markForCheck()
   }
-
 
   openTicketDetail(ticketId: string): void {
     queueMicrotask(() => {
@@ -223,17 +249,14 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
 
   onCloseFromCard(ticketId: string): void {
     this.clsSub = of(null).pipe(
-      switchMap(() => this.activeTab() === 0 || !this.handleTickets()
-        ?
-        this.helpService.closeMyTicket(ticketId)
-        :
-        this.helpService.closeTicketAsSupport(ticketId))
+      switchMap(() =>
+        this.activeTab() === 0 || !this.handleTickets()
+          ? this.helpService.closeMyTicket(ticketId)
+          : this.helpService.closeTicketAsSupport(ticketId)
+      )
     ).subscribe({
       next: (ok) => {
-
-        if (!ok) {
-          return
-        }
+        if (!ok) return
 
         this.items = this.items.map(t =>
           t.id === ticketId
@@ -247,15 +270,11 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
   }
 
   onReopenFromCard(ticketId: string): void {
-    if (this.activeTab() !== 1 || !this.handleTickets()) {
-      return
-    }
+    if (this.activeTab() !== 1 || !this.handleTickets()) return
+
     this.ropSub = this.helpService.reopenTicketAsSupport(ticketId).subscribe({
       next: (ok) => {
-
-        if (!ok) {
-          return
-        }
+        if (!ok) return
 
         this.items = this.items.map(t =>
           t.id === ticketId
@@ -265,8 +284,6 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
 
         this.cdr.markForCheck()
       }
-
     })
   }
-
 }

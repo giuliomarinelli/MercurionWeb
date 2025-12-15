@@ -1,71 +1,75 @@
-import { Injectable, signal, effect } from '@angular/core'
+import { Injectable, signal, effect, computed } from '@angular/core'
 import { ActionScope } from '../../../Models/action/action-overlay.models'
 
 @Injectable({ providedIn: 'root' })
 export class ActionOverlayContextService {
 
-  private _isOpened = signal<boolean>(false)
-  private _isMounted = signal<boolean>(false)
-  private _isVisible = signal<boolean>(false)
+  private _isOpened = signal(false)
+  private _isMounted = signal(false)
+  private _isVisible = signal(false)
   private _scope = signal<ActionScope>('')
 
-  private _pendingScope = signal<ActionScope | null>(null)
+  private _pendingScope = signal<ActionScope>('')
 
   readonly isOpened = this._isOpened.asReadonly()
   readonly isVisible = this._isVisible.asReadonly()
   readonly isMounted = this._isMounted.asReadonly()
   readonly scope = this._scope.asReadonly()
+  readonly pendingScope = this._pendingScope.asReadonly()
+
+  readonly shouldMount = computed(() => this._isMounted() || !!this._pendingScope())
+
+  private showTimer: ReturnType<typeof setTimeout> | null = null
+  private unmountTimer: ReturnType<typeof setTimeout> | null = null
+  private clearScopeTimer: ReturnType<typeof setTimeout> | null = null
 
   constructor() {
     effect(() => {
-      if (this.isOpened()) {
+      const opened = this._isOpened()
+
+      if (opened) {
+        if (this.unmountTimer) clearTimeout(this.unmountTimer)
+        if (this.clearScopeTimer) clearTimeout(this.clearScopeTimer)
+
         this._isMounted.set(true)
-        setTimeout(() => this._isVisible.set(true), 10)
+
+        if (this.showTimer) clearTimeout(this.showTimer)
+        this.showTimer = setTimeout(() => this._isVisible.set(true), 10)
       } else {
+        if (this.showTimer) clearTimeout(this.showTimer)
+
         this._isVisible.set(false)
-        setTimeout(() => this._isMounted.set(false), 300)
+
+        if (this.unmountTimer) clearTimeout(this.unmountTimer)
+        this.unmountTimer = setTimeout(() => this._isMounted.set(false), 300)
       }
     })
 
     effect(() => {
-      const mounted = this._isMounted()
       const pending = this._pendingScope()
 
-      if (!mounted || !pending) {
-        return
-      }
+      if (!pending) return
 
-      this._pendingScope.set(null)
-
-      queueMicrotask(() => {
-        this._scope.set(pending)
-        this._isOpened.set(true)
-      })
+      this._pendingScope.set('')
+      this._scope.set(pending)
+      this._isOpened.set(true)
     })
   }
 
   open(scope: ActionScope) {
-    if (!this._isMounted()) {
-      this._pendingScope.set(scope)
-      this._isOpened.set(true)
-      return
-    }
-
-    this._scope.set(scope)
-    this._isOpened.set(true)
+    if (!scope) return
+    this._pendingScope.set(scope)
   }
 
   close() {
-    queueMicrotask(() => {
-      this._pendingScope.set(null)
-      this._isOpened.set(false)
-      setTimeout(() => this._scope.set(''), 500)
-    })
+    this._isOpened.set(false)
+
+    if (this.clearScopeTimer) clearTimeout(this.clearScopeTimer)
+    this.clearScopeTimer = setTimeout(() => this._scope.set(''), 500)
   }
 
   switchToScope(scope: ActionScope) {
-    queueMicrotask(() => {
-      this._scope.set(scope)
-    })
+    if (!scope) return
+    this._scope.set(scope)
   }
 }
