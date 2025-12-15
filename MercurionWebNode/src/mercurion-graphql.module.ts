@@ -68,10 +68,10 @@ export const MercurionGraphQLModule = GraphQLModule.forRootAsync<MercuriusDriver
                     }
 
                     // 🔐 2) Forbidden → FORBIDDEN SEMPRE, anche in prod
-                    if ((original instanceof RpcException && original.message === 'Forbidden::missing permissions') || original instanceof ForbiddenException) {
+                    if ((original instanceof RpcException && ['Forbidden::Cannot publish on a closed ticket', 'Forbidden::missing permissions'].includes(original.message)) || original instanceof ForbiddenException) {
                         ctx.reply.statusCode = 403
 
-                        if (original.message === 'Forbidden::missing permissions') {
+                        if (['Forbidden::Cannot publish on a closed ticket', 'Forbidden::missing permissions'].includes(original.message)) {
                             return {
                                 message: original.message,
                                 path: err.path,

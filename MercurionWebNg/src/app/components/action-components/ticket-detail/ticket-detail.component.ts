@@ -169,6 +169,33 @@ import { AppContextService } from '../../../services/context/app-context.service
                 {{ ticket()!.lastMessageAt | date: 'medium' }}</span
               >
             </div>
+            <div class="mr-auto flex items-center gap-2 pt-2 pb-1">
+              @if (canCloseTicket()) {
+                <button
+                  type="button"
+                  class="px-3 py-1.5 rounded-md border text-xs font-semibold
+                         border-slate-300 dark:border-slate-600
+                         text-slate-700 dark:text-slate-200
+                         hover:bg-slate-200 dark:hover:bg-slate-700 transition"
+                  (click)="closeTicket()"
+                >
+                  Chiudi ticket
+                </button>
+              }
+
+              @if (canReopenTicket()) {
+                <button
+                  type="button"
+                  class="px-3 py-1.5 rounded-md border text-xs font-semibold
+                         border-indigo-300/70 dark:border-indigo-400/60
+                         text-indigo-700 dark:text-indigo-200
+                         hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition"
+                  (click)="reopenTicket()"
+                >
+                  Riapri ticket
+                </button>
+              }
+            </div>
           </div>
         }
 
@@ -195,7 +222,11 @@ import { AppContextService } from '../../../services/context/app-context.service
         </div>
 
         <div class="border-t border-slate-200/70 dark:border-slate-700/60">
-          <m-ticket-composer (send)="onSend($event)"></m-ticket-composer>
+          @if (ticket()?.status !== 'Closed') {
+            <m-ticket-composer (send)="onSend($event)" />
+          } @else {
+            <p class="text-center text-xs py-8 text-slate-500 dark:text-slate-300 cursor-default">Il ticket è chiuso, non è possibile inviare messaggi.</p>
+          }
         </div>
       </div>
     </div>
@@ -209,11 +240,12 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
   protected readonly typeGuards = inject(TypeGuardsService)
   protected readonly cdr = inject(ChangeDetectorRef)
   private readonly appCtx = inject(AppContextService)
+  private readonly ticketDetailContext = inject(TicketDetailContextService)
   private firstMessageSet = signal<boolean>(false)
 
-  private composerSub?: Subscription;
+  private composerSub?: Subscription
 
-  private readonly ITEMS_PER_PAGE = 10;
+  private readonly ITEMS_PER_PAGE = 10
 
   @ViewChild('sentinel')
   protected declare sentinel: ElementRef<HTMLDivElement>
@@ -221,17 +253,36 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
   @ViewChild('scrollRoot')
   protected declare root: ElementRef<HTMLDivElement>
 
-  ticket = signal<Ticket | ClientTicket | null>(null);
+  ticket = signal<Ticket | ClientTicket | null>(null)
   innerScope = computed(
     () => this.detailContext.innerScope() as TicketDetailInnerScope
   )
+
+  canCloseTicket = computed(() => {
+    const t = this.ticket()
+    if (!t) {
+      return false
+    }
+    return t.status !== 'Closed'
+  })
+
+  canReopenTicket = computed(() => {
+    const t = this.ticket()
+    if (!t) {
+      return false
+    }
+    return this.innerScope() === 'Support' && t.status === 'Closed'
+  })
+
+
   /** chiave ticket+scope, per capire quando reset tare tutto */
   private currentKey = '';
   /** true dopo il primo load della key corrente, per gestire lo scroll */
   private firstLoadForKey = false;
 
   constructor() {
-    super();
+
+    super()
 
     // reagisce a (ticketId, innerScope) del context
     effect(() => {
@@ -239,38 +290,39 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
       const scope = this.detailContext.innerScope();
 
       if (!id) {
-        return;
+        return
       }
 
       const key = `${scope}|${id}`;
       if (key === this.currentKey) {
-        return;
+        return
       }
 
       this.currentKey = key;
-      this.resetForNewKey();
-    });
+      this.resetForNewKey()
+    })
   }
 
   private resetForNewKey(): void {
-    this.resetPagination(); // del base class
-    this.ticket.set(null);
-    this.items = [];
-    this.empty.set(true);
-    this.loading = false;
-    this.done = false;
-    this.earlyDone = false;
-    this.firstLoadForKey = false;
+    this.resetPagination() // del base class
+    this.ticket.set(null)
+    this.items = []
+    this.empty.set(true)
+    this.loading = false
+    this.done = false
+    this.earlyDone = false
+    this.firstLoadForKey = false
 
     // piccolo “pre-scroll” di sicurezza (se il root esiste già)
     queueMicrotask(() => {
-      const rootEl = this.root?.nativeElement;
+      const rootEl = this.root?.nativeElement
       if (rootEl) {
-        rootEl.scrollTop = rootEl.scrollHeight;
+        rootEl.scrollTop = rootEl.scrollHeight
       }
-    });
+    })
 
-    queueMicrotask(() => this.loadMore());
+    queueMicrotask(() => this.loadMore())
+
   }
 
   ngOnInit(): void { }
@@ -280,8 +332,8 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
   }
 
   ngOnDestroy(): void {
-    this.composerSub?.unsubscribe();
-    this.observer?.disconnect();
+    this.composerSub?.unsubscribe()
+    this.observer?.disconnect()
   }
 
   private smoothToBottom(duration = 200) {
@@ -298,9 +350,7 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
     });
   }
 
-  protected override fetch$(): Observable<
-    PageModel<TicketMessage | ClientTicketMessage>
-  > {
+  protected override fetch$(): Observable<PageModel<TicketMessage | ClientTicketMessage>> {
     const scope = this.innerScope();
     const tId = this.detailContext.ticketId();
 
@@ -477,6 +527,65 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
     });
   }
 
+  private setTicketStatus(status: 'Open' | 'Closed') {
+    const t = this.ticket()
+    if (!t) {
+      return
+    }
+    this.ticket.set({ ...t, status })
+    this.cdr.markForCheck()
+  }
+
+  closeTicket(): void {
+    const t = this.ticket()
+    const ticketId = t?.id
+    if (!ticketId) {
+      return
+    }
+
+    const close$ = this.innerScope() === 'User'
+      ? this.helpService.closeMyTicket(ticketId)
+      : this.helpService.closeTicketAsSupport(ticketId)
+
+    close$.subscribe({
+      next: (ok) => {
+        if (ok) {
+          this.setTicketStatus('Closed')
+          this.ticketDetailContext.notifyAdded()
+        }
+      },
+      error: () => {
+        // TODO toast
+      }
+    });
+  }
+
+  reopenTicket(): void {
+    const t = this.ticket()
+    const ticketId = t?.id
+    if (!ticketId) return
+
+    if (this.innerScope() !== 'Support') {
+      return
+    }
+
+    this.helpService.reopenTicketAsSupport(ticketId).subscribe({
+      next: (ok) => {
+        if (ok) {
+          this.setTicketStatus('Open')
+          this.ticketDetailContext.notifyAdded()
+        }
+      },
+      error: () => {
+        // TODO toast
+      }
+    });
+  }
+
+
   protected override doQuery(q: string): void { }
   protected override doClear(): void { }
+
+
+
 }

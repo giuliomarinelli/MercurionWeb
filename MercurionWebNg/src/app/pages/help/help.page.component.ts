@@ -1,5 +1,5 @@
 import { TicketStatus } from './../../Models/graphql/help.models';
-import { AfterViewInit, Component, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild, effect, ChangeDetectorRef } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild, effect, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { Observable, of, Subscription, switchMap, tap, throwError } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { ClientTicket, Ticket } from '../../Models/graphql/help.models';
@@ -23,6 +23,7 @@ import { NewTicketContextService } from '../../services/context/action-context/n
     TicketCardComponent,
     TicketCardSkeletonComponent
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
 
     <section class="main-container">
@@ -123,22 +124,14 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
       if (!tick) {
         return
       }
-
-      // ha senso ricaricare solo in sezione utente
-      if (this.activeTab() !== 0) {
-        return
-      }
-
-      this.resetPagination()
-      queueMicrotask(() => this.loadMore())
+      this.resetAndReload()
     })
     effect(() => {
       const t = this.newTicketContext.addedTick()
       if (t === 0 || this.activeTab() !== 0) {
         return
       }
-      this.resetPagination()
-      queueMicrotask(() => this.loadMore())
+      this.resetAndReload()
     })
   }
 
@@ -198,6 +191,17 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
   protected override doClear(): void {
     // Al momento niente barra di ricerca
   }
+
+  private resetAndReload(): void {
+    this.userFetchSub?.unsubscribe()
+    this.supFetchSub?.unsubscribe()
+
+    this.resetPagination()
+
+    this.totalItems.set(0)
+    this.cdr.markForCheck()
+  }
+
 
   openTicketDetail(ticketId: string): void {
     queueMicrotask(() => {
