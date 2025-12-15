@@ -57,7 +57,9 @@ import { NewTicketContextService } from '../../services/context/action-context/n
             [cardMode]="typeGuards.isClientTicket(item) ? 'user' : (typeGuards.isTicket(item) ? 'support' : 'user')"
             [triggerDisappear]="item.triggerDisappear()"
             [collapse]="item.collapse()"
-            (onOpenDetail)="openTicketDetail($event)"  />
+            (onOpenDetail)="openTicketDetail($event)"
+            (close)="onCloseFromCard($event)"
+            (reopen)="onReopenFromCard($event)" />
       }
       </div>
 
@@ -136,7 +138,6 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
     })
   }
 
-
   switchTab(i: number): void {
     if (i < 0 || i > 1) {
       return
@@ -206,6 +207,14 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
       this.detailContext.setInnerScope(this.activeTab() === 0 ? 'User' : 'Support')
       this.overlayContext.open('NewTicket')
     })
+  }
+
+  onCloseFromCard(e: string): void {
+
+  }
+
+  onReopenFromCard(e: string): void {
+
   }
 
 }

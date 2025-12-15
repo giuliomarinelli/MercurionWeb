@@ -293,8 +293,7 @@ export class AccountController {
 
         const codes = await this.mfaService.regenerateBackupCodes(userId)
 
-        // volendo si può anche loggare un evento di sicurezza o mandare email
-        // "Sono stati rigenerati i codici di backup del tuo account"
+        // volendo si può anche loggare un evento di sicurezza tramite il canale del SecurityAuditService
         // TODO maybe
 
         return { codes }
