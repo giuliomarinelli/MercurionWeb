@@ -3,7 +3,7 @@ import { ChapterTree, NotebookTree, PageTree, SectionTree } from "../../Models/g
 import { Apollo, gql } from "apollo-angular";
 import { computed, Injectable, signal } from "@angular/core";
 import { GqlRes } from "../../Models/graphql/res.gql";
-import { extractGqlData } from "./graphql-helpers/extract-gql-data.gql-helper";
+import { extractGqlData } from "./graphql-helpers/v1/extract-gql-data.helper";
 
 
 

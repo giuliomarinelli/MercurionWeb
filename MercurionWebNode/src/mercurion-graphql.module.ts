@@ -44,11 +44,29 @@ export const MercurionGraphQLModule = GraphQLModule.forRootAsync<MercuriusDriver
                 const sanitizedErrors = errors.map((err: GraphQLError) => {
                     const original = err.originalError
 
-                    // 🔐 1) Unauthorized → UNAUTHENTICATED SEMPRE, anche in prod
                     if (original instanceof UnauthorizedException) {
-                        ctx.reply.statusCode = 401
+                        if (original.message !== 'Unauthenticated') {
+                            ctx.reply.statusCode = 401
 
-                        if (['Fatal: unauthenticated', 'Unauthenticated'].includes(original.message)) {
+                            if (original.message === 'Fatal: unauthenticated') {
+                                return {
+                                    message: original.message,
+                                    path: err.path,
+                                    extensions: {
+                                        code: 'UNAUTHENTICATED_FATAL',
+                                    },
+                                }
+                            }
+
+                            return {
+                                message: 'Unauthorized',
+                                path: err.path,
+                                extensions: {
+                                    code: 'UNAUTHORIZED',
+                                },
+                            }
+                        } else {
+                            ctx.reply.statusCode = 200
                             return {
                                 message: original.message,
                                 path: err.path,
@@ -57,17 +75,8 @@ export const MercurionGraphQLModule = GraphQLModule.forRootAsync<MercuriusDriver
                                 },
                             }
                         }
-
-                        return {
-                            message: 'Unauthorized',
-                            path: err.path,
-                            extensions: {
-                                code: 'UNAUTHORIZED',
-                            },
-                        }
                     }
 
-                    // 🔐 2) Forbidden → FORBIDDEN SEMPRE, anche in prod
                     if ((original instanceof RpcException && ['Forbidden::Cannot publish on a closed ticket', 'Forbidden::missing permissions'].includes(original.message)) || original instanceof ForbiddenException) {
                         ctx.reply.statusCode = 403
 

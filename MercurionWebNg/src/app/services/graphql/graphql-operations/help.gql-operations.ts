@@ -1,3 +1,4 @@
+import { EXISTS_CHEMBL_MOLECULE_BY_UUID_THEN_GET_MOLREGNO } from './molecule-collection-item.gql-operations';
 import { gql } from "apollo-angular";
 
 export const MY_TICKET_DETAIL = gql`
@@ -85,6 +86,12 @@ export const ADD_TICKET_MESSAGE = gql`
 export const CLOSE_MY_TICKET = gql`
   mutation CloseMyTicket($ticketId: ID!) {
     closeMyTicket(ticketId: $ticketId)
+  }
+`
+
+export const EXISTS_USER_TICKET_BY_ID = gql`
+  query ExistsUserTicketById($ticketId: ID!) {
+    existsUserTicketById(ticketId: $ticketId)
   }
 `
 

@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Apollo, gql } from 'apollo-angular';
 import { map, Observable } from 'rxjs';
 import { AddChemblMoleculeToCollectionInput, AddCustomMoleculeToCollectionInput, CustomMoleculeItemEntity } from '../../Models/graphql/molecule-collection/molecule-collection.types';
-import { extractGqlData } from './graphql-helpers/extract-gql-data.gql-helper';
+import { extractGqlData } from './graphql-helpers/v1/extract-gql-data.helper';
 
 
 

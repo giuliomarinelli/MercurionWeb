@@ -2,10 +2,11 @@ import { inject, Injectable, signal } from '@angular/core';
 import { Apollo } from 'apollo-angular';
 import { map, Observable } from 'rxjs';
 import { APIClientTicket, APIClientTicketMessage, APITicket, APITicketMessage, ClientTicket, ClientTicketMessage, Ticket, TicketMessage } from '../../Models/graphql/help.models';
-import { ADD_SUPPORT_TICKET_MESSAGE, ADD_TICKET_MESSAGE, CLOSE_MY_TICKET, CLOSE_TICKET_AS_SUPPORT, CREATE_TICKET, MY_TICKET_DETAIL, MY_TICKET_MESSAGES, MY_TICKETS, REOPEN_TICKET_AS_SUPPORT, TICKET_DETAIL_AS_SUPPORT, TICKET_MESSAGES_AS_SUPPORT, TICKETS_AS_SUPPORT } from './graphql-operations/help.gql-operations';
-import { extractGqlData } from './graphql-helpers/extract-gql-data.gql-helper';
+import { ADD_SUPPORT_TICKET_MESSAGE, ADD_TICKET_MESSAGE, CLOSE_MY_TICKET, CLOSE_TICKET_AS_SUPPORT, CREATE_TICKET, MY_TICKET_DETAIL, MY_TICKET_MESSAGES, MY_TICKETS, REOPEN_TICKET_AS_SUPPORT, TICKET_DETAIL_AS_SUPPORT, TICKET_MESSAGES_AS_SUPPORT, TICKETS_AS_SUPPORT, EXISTS_USER_TICKET_BY_ID } from './graphql-operations/help.gql-operations';
+import { extractGqlData } from './graphql-helpers/v1/extract-gql-data.helper';
 import { PageModel } from '../../Models/graphql/page.models';
 import { JsonValue } from '../../Models/json.models';
+import { extractGqlDataV2 } from './graphql-helpers/v2/extract-gql-data-v2.helper';
 
 @Injectable({
   providedIn: 'root'
@@ -78,6 +79,19 @@ export class HelpService {
       )
   }
 
+  public existsUserTicketById(ticketId: string): Observable<boolean> {
+    return this.apollo
+      .watchQuery<{ existsUserTicketById: boolean }>({
+        query: EXISTS_USER_TICKET_BY_ID,
+        variables: {
+          ticketId
+        },
+        fetchPolicy: 'network-only'
+      }).valueChanges.pipe(
+        map((res): boolean => extractGqlDataV2(res, 'existsUserTicketById'))
+      )
+  }
+
   public createTicket(subject: string, contentHtml: string, contentDelta: JsonValue): Observable<ClientTicket> {
     return this.apollo
       .mutate<{ createTicket: APIClientTicket }>({
@@ -125,7 +139,7 @@ export class HelpService {
 
   public ticketDetailAsSupport(ticketId: string): Observable<Ticket> {
     return this.apollo
-      .watchQuery<{ ticketDetailAsSupport: { ticket: APITicket }}>({
+      .watchQuery<{ ticketDetailAsSupport: { ticket: APITicket } }>({
         query: TICKET_DETAIL_AS_SUPPORT,
         variables: {
           ticketId
