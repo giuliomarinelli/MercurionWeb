@@ -14,7 +14,7 @@ import {
   CustomMoleculeItemEntity
 } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 import { CREATE_MOLECULE_ITEM, DELETE_MOLECULE_ITEM, MOLECULE_ITEM, MOLECULE_ITEM_FRAG_SHORT, MY_MOLECULE_ITEMS, UPDATE_MOLECULE_ITEM, UPDATE_MOLECULE_ITEM_LABEL, UPDATE_MOLECULE_ITEM_NOTES, UPDATE_MOLECULE_ITEM_NAME, UPDATE_MOLECULE_ITEM_SMILES, PAGINATED_MOLECULE_ITEMS_FOR_CARD_BY_COLLECTION, MARK_MOLECULE_COLLECTION_ITEM_AS_TOUCHED, HAS_USER_CHEMBL_MOLECULE_BY_MOLREGNO_THEN_GET_UUID, EXISTS_CHEMBL_MOLECULE_BY_UUID_THEN_GET_MOLREGNO, ALL_PAGINATED_MOLECULE_ITEMS_FOR_CARD, ALL_BASIC_DATA, ADD_MANY_MOLECULES_TO_COLLECTION, SEARCH_CHEMBL_MOLECULES_EXCLUDE_ALREADY_ADDED, ADD_MANY_CHEMBL_ITEMS_TO_COLLECTION, REMOVE_MOLECULE_FROM_COLLECTION, FIND_ONE_CUSTOM_MOLECULE_BY_CS_SHORT_FETCH } from './graphql-operations/molecule-collection-item.gql-operations';
-import { extractGqlData } from './graphql-helpers/extract-gql-data.gql-helper';
+import { extractGqlData } from './graphql-helpers/v1/extract-gql-data.helper';
 import { TypeGuardsService } from '../type-guards.service';
 import { MoleculeSearchInput } from '../../Models/graphql/molecule-search/molecule-search-input.interface';
 import { AddManyChEMBLItemDTO } from '../../Models/graphql/add-many-chembl-item.dto';

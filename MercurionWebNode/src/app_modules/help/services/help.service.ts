@@ -394,6 +394,15 @@ export class HelpService {
     return page
   }
 
+  existsUserTicketById(userId: UUID, ticketId: UUID): Promise<boolean> {
+    return this.ticketRepo.exists({
+      where: {
+        id: ticketId,
+        userId
+      }
+    })
+  }
+
   // -----------------------------
   // Private helpers
   // -----------------------------

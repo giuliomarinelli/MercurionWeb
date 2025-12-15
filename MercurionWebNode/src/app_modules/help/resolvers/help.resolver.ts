@@ -10,7 +10,7 @@ import { Scope } from 'src/app_modules/user/Models/enums/scope.enum'
 import { HelpService } from '../services/help.service'
 import { Ticket } from '../Models/entities/ticket.entity'
 import { TicketDetailDTO } from '../Models/DTO/ticket-detail.dto'
-import { AuthenticatedUserId, HasScopes, Scopes } from 'src/metadata/metadata'
+import { AuthenticatedUserId, HasScopes, Scopes, SoftAuthorization } from 'src/metadata/metadata'
 import { JsonValue } from 'src/Models/json.types'
 import GraphQLJSON from 'graphql-type-json'
 import { PaginatedTicket } from '../Models/DTO/paginated-ticket.type.gql'
@@ -23,7 +23,7 @@ export class HelpResolver {
 
     constructor(private readonly helpService: HelpService) { }
 
-    private ensureUuid(value: string, field: string): void {
+    private ensureUuidv7(value: string, field: string): void {
         GeneralUtils.ensureValidUUIDv7(value, `GraphQLInvalid::Invalid ${field}`)
     }
 
@@ -38,7 +38,7 @@ export class HelpResolver {
         @Info() info: GraphQLResolveInfo,
         @Scopes() scopes: Scope[]
     ): Promise<TicketDetailDTO> {
-        this.ensureUuid(ticketId, 'ticketId')
+        this.ensureUuidv7(ticketId, 'ticketId')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.helpService.getTicketDetail(
             ticketId,
@@ -62,7 +62,7 @@ export class HelpResolver {
             userId,
             { page, limit },
             fieldsMap as GraphQLFieldsMap,
-            true, 
+            true,
             scopes.includes(Scope.ViewUsers)
         )
         const flat = GeneralUtils.paginationToFlatPaginationConverter(pagination)
@@ -80,13 +80,23 @@ export class HelpResolver {
         @Info() info: GraphQLResolveInfo,
         @Scopes() scopes: Scope[]
     ): Promise<PaginatedTicketMessage> {
-        this.ensureUuid(ticketId, 'ticketId')
+        this.ensureUuidv7(ticketId, 'ticketId')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         const pagination = await this.helpService.listTicketMessages(ticketId, userId, { page, limit }, fieldsMap, true, scopes.includes(Scope.ViewUsers))
         const flat = GeneralUtils.paginationToFlatPaginationConverter(pagination)
         return {
             ...flat
         }
+    }
+
+    @SoftAuthorization()
+    @Query(() => Boolean)
+    async existsUserTicketById(
+        @AuthenticatedUserId() userId: UUID,
+        @Args('ticketId', { type: () => ID }) ticketId: UUID
+    ): Promise<boolean> {
+        this.ensureUuidv7(ticketId, 'ticketId')
+        return this.helpService.existsUserTicketById(userId, ticketId)
     }
 
     // --------------------------------
@@ -112,7 +122,7 @@ export class HelpResolver {
         @Args('contentDelta', { type: () => GraphQLJSON }) contentDelta: JsonValue,
         @Args('contentHtml') contentHtml: string,
     ): Promise<boolean> {
-        this.ensureUuid(ticketId, 'ticketId')
+        this.ensureUuidv7(ticketId, 'ticketId')
         await this.helpService.addUserMessage({ ticketId, userId, contentDelta, contentHtml })
         return true
     }
@@ -122,7 +132,7 @@ export class HelpResolver {
         @AuthenticatedUserId() userId: UUID,
         @Args('ticketId', { type: () => ID }) ticketId: UUID,
     ): Promise<boolean> {
-        this.ensureUuid(ticketId, 'ticketId')
+        this.ensureUuidv7(ticketId, 'ticketId')
         // ownership check implicito: se non è tuo, TicketNotFound
         await this.helpService.getTicketDetail(
             ticketId,
@@ -142,11 +152,11 @@ export class HelpResolver {
     @Query(() => TicketDetailDTO)
     async ticketDetailAsSupport(
         @Args('ticketId', { type: () => ID }) ticketId: UUID,
-        @AuthenticatedUserId() userId: UUID, 
+        @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo,
         @Scopes() scopes: Scope[]
     ): Promise<TicketDetailDTO> {
-        this.ensureUuid(ticketId, 'ticketId')
+        this.ensureUuidv7(ticketId, 'ticketId')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.helpService.getTicketDetail(
             ticketId,
@@ -192,7 +202,7 @@ export class HelpResolver {
         @Info() info: GraphQLResolveInfo,
         @Scopes() scopes: Scope[]
     ): Promise<PaginatedTicketMessage> {
-        this.ensureUuid(ticketId, 'ticketId')
+        this.ensureUuidv7(ticketId, 'ticketId')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         const pagination = await this.helpService.listTicketMessages(ticketId, userId, { page, limit }, fieldsMap, false, scopes.includes(Scope.ViewUsers))
         const flat = GeneralUtils.paginationToFlatPaginationConverter(pagination)
@@ -212,7 +222,7 @@ export class HelpResolver {
         @Args('contentDelta', { type: () => GraphQLJSON }) contentDelta: JsonValue,
         @Args('contentHtml') contentHtml: string,
     ): Promise<boolean> {
-        this.ensureUuid(ticketId, 'ticketId')
+        this.ensureUuidv7(ticketId, 'ticketId')
         await this.helpService.addSupportMessage({ ticketId, contentDelta, contentHtml })
         return true
     }
@@ -222,7 +232,7 @@ export class HelpResolver {
     async closeTicketAsSupport(
         @Args('ticketId', { type: () => ID }) ticketId: UUID,
     ): Promise<boolean> {
-        this.ensureUuid(ticketId, 'ticketId')
+        this.ensureUuidv7(ticketId, 'ticketId')
         await this.helpService.closeTicket(ticketId)
         return true
     }
@@ -232,7 +242,7 @@ export class HelpResolver {
     async reopenTicketAsSupport(
         @Args('ticketId', { type: () => ID }) ticketId: UUID,
     ): Promise<boolean> {
-        this.ensureUuid(ticketId, 'ticketId')
+        this.ensureUuidv7(ticketId, 'ticketId')
         await this.helpService.reopenTicket(ticketId)
         return true
     }

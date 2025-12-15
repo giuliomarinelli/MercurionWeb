@@ -27,6 +27,11 @@ export class MailSenderService {
         this.logger = loggerFactory.forContext(MailSenderService.name)
     }
 
+    private generateUrl(mode: 'user' | 'support', ticketId: UUID): string {
+        const base = this.configService.get<string>('App.activationOrigin')!
+        return `${base}/help?m=${mode}&t_id=${ticketId}`
+    }
+
     public async sendEmail<T extends { [key: string]: any }>(to: string, subject: string, context: T, templatePath: string): Promise<SentMessageInfo> {
         return await this.mailerService.sendMail({
             to,
@@ -36,7 +41,6 @@ export class MailSenderService {
         })
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public async notifySupportNewTicket(ticket: Ticket, message: TicketMessage): Promise<void> {
         if (!message.authorId) {
             return
@@ -48,13 +52,13 @@ export class MailSenderService {
         const context: SupportContext = {
             ticketPublicId: ticket.publicId,
             ticketMessageBody: message.contentHtml,
-            userFirstName
+            userFirstName,
+            url: this.generateUrl('support', ticket.id)
         }
         this.sendEmail<SupportContext>(this.supportEmail, 'Un nuovo ticket è stato aperto', context, resolve('dist/app_modules/notification/email-templates/support---notify-support-new-ticket.hbs'))
             .catch((e) => this.logger.warn('notifySupportNewTicket > Error: ', (e.stack ?? e) as object))
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public async confirmUserTicketOpened(ticket: Ticket, message: TicketMessage): Promise<void> {
         if (!message.authorId) {
             return
@@ -67,13 +71,13 @@ export class MailSenderService {
         const context: SupportContext = {
             ticketPublicId: ticket.publicId,
             ticketMessageBody: message.contentHtml,
-            userFirstName
+            userFirstName,
+            url: this.generateUrl('user', ticket.id)
         }
         this.sendEmail<SupportContext>(userEmail, 'Supporto Mercurion: un nuovo ticket è stato aperto', context, resolve('dist/app_modules/notification/email-templates/support---confirm-user-ticket-opened.hbs'))
             .catch((e) => this.logger.warn('confirmUserTicketOpened > Error: ', (e.stack ?? e) as object))
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public async notifySupportNewMessage(ticket: Ticket, message: TicketMessage): Promise<void> {
         if (!message.authorId) {
             return
@@ -85,13 +89,13 @@ export class MailSenderService {
         const context: SupportContext = {
             ticketPublicId: ticket.publicId,
             ticketMessageBody: message.contentHtml,
-            userFirstName
+            userFirstName,
+            url: this.generateUrl('support', ticket.id)
         }
         this.sendEmail<SupportContext>(this.supportEmail, `Un nuovo ticket messaggio è stato pubblicato nel ticket #${ticket.publicId}`, context, resolve('dist/app_modules/notification/email-templates/support---notify-support-new-message.hbs'))
             .catch((e) => this.logger.warn('notifySupportNewMessage > Error: ', (e.stack ?? e) as object))
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public async notifyUserSupportReplied(ticket: Ticket, userId: UUID): Promise<void> {
         if (!userId) {
             return
@@ -104,7 +108,8 @@ export class MailSenderService {
         const context: SupportContext = {
             ticketPublicId: ticket.publicId,
             ticketMessageBody: null,
-            userFirstName
+            userFirstName,
+            url: this.generateUrl('user', ticket.id)
         }
         this.sendEmail<SupportContext>(userEmail, `Supporto Mercurion: Il ticket #${ticket.publicId} ha ricevuto una nuova risposta`, context, resolve('dist/app_modules/notification/email-templates/support---notify-user-support-replied.hbs'))
             .catch((e) => this.logger.warn('notifyUserSupportReplied > Error: ', (e.stack ?? e) as object))
