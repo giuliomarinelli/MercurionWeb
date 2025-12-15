@@ -149,6 +149,10 @@ export const routes: Routes = [
         .then(m => m.Forbidden403LandingPageComponent)
   },
   {
+    path: 'go',
+    loadComponent: () => import('./pages/go/go.page.component').then((m) => m.GoPageComponent)
+  },
+  {
     path: '**',
     redirectTo: '/404-not-found'
   }

@@ -48,7 +48,7 @@ export const MercurionGraphQLModule = GraphQLModule.forRootAsync<MercuriusDriver
                     if (original instanceof UnauthorizedException) {
                         ctx.reply.statusCode = 401
 
-                        if (original.message === 'Fatal: unauthenticated') {
+                        if (['Fatal: unauthenticated', 'Unauthenticated'].includes(original.message)) {
                             return {
                                 message: original.message,
                                 path: err.path,

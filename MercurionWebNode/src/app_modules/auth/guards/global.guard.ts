@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtToolsService } from '../services/jwt-tools.service';
 import { SessionService } from '../services/session.service';
-import { IS_PUBLIC_KEY } from 'src/metadata/metadata';
+import { IS_PUBLIC_KEY, IS_SOFT_AUTHORIZATION } from 'src/metadata/metadata';
 import { TokenType } from '../Models/enums/token-type.enum';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { Reflector } from '@nestjs/core';
@@ -24,6 +24,7 @@ export class GlobalGuard implements CanActivate {
    private tokenType: TokenType = TokenType.AccessToken
    // Small grace window before revoking an expired token to avoid race conditions on concurrent refreshes
    private readonly refreshRevocationDelayMs = 1500
+   private isSoftAuth = false
 
    constructor(
       private readonly jwtToolsService: JwtToolsService,
@@ -42,6 +43,8 @@ export class GlobalGuard implements CanActivate {
       if (isPublic) {
          return true // ✅ Permette l'accesso senza autenticazione
       }
+
+      this.isSoftAuth = this.reflector.get<boolean>(IS_SOFT_AUTHORIZATION, context.getHandler())
 
       if (context.getType() === 'http' || context.getType<GqlContextType>() === 'graphql') {
          return this.validateHttpRequest(context)
@@ -71,11 +74,11 @@ export class GlobalGuard implements CanActivate {
          accessToken = this.jwtToolsService.extractAccessTokenFromReq(req)
 
 
-         try {            
+         try {
             payload = await this.jwtToolsService.verifyTokenAndGetPayload(accessToken, TokenType.AccessToken)
             await this.scopeService.scopeVerificationLayer(payload.sub, context, this.reflector, payload.scp)
          } catch (e) {
-            
+
             if (e instanceof RpcException && e.message === 'InvalidOrExpiredAccessToken') {
 
                if (this.tokenType !== TokenType.AccessToken) {
@@ -83,7 +86,7 @@ export class GlobalGuard implements CanActivate {
                }
 
                payload = await this.jwtToolsService.verifyTokenAndGetPayload(accessToken, TokenType.AccessToken, true)
-               
+
                this.logger.debug(`Expired access token, jti=${payload.jti}, trying to refresh`)
 
                await this.scopeService.scopeVerificationLayer(payload.sub, context, this.reflector, payload.scp)
@@ -200,20 +203,26 @@ export class GlobalGuard implements CanActivate {
          if (e instanceof RpcException && e.message === 'Forbidden::missing permissions') {
             throw new ForbiddenException(e.message)
          }
-         const fatal = new UnauthorizedException('Fatal: unauthenticated')
+
+         const unauthorizedException = this.isSoftAuth
+            ?
+            new UnauthorizedException('Unauthenticated')
+            :
+            new UnauthorizedException('Fatal: unauthenticated')
+
          if (e instanceof RpcException && e.message === 'Unauthorized') {
-            throw fatal
+            throw unauthorizedException
          }
          if (e instanceof UnauthorizedException) {
             this.logger.warn(`Thrown generic UnauthorizedException${errorInfo ? ', ' + errorInfo : ''}`)
-            throw fatal
+            throw unauthorizedException
          }
          if (e instanceof RpcException) {
             this.logger.warn(`GlobalGuard internal unknown error as RpcException${errorInfo ? ', ' + errorInfo : ''}`, e.stack ?? e)
-            throw fatal
+            throw unauthorizedException
          }
          this.logger.warn(`GlobalGuard internal unknown error${errorInfo ? ', ' + errorInfo : ''}`, (e.stack ?? e) as object)
-         throw fatal
+         throw unauthorizedException
       }
    }
 

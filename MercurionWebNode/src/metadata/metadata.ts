@@ -10,6 +10,9 @@ import { Scope } from 'src/app_modules/user/Models/enums/scope.enum';
 export const IS_PUBLIC_KEY = 'isPublic'
 export const Public = () => SetMetadata(IS_PUBLIC_KEY, true)
 
+export const IS_SOFT_AUTHORIZATION = 'isSoftAuthorization'
+export const SoftAuthorization = () => SetMetadata(IS_SOFT_AUTHORIZATION, true)
+
 export const RequiresTokenType = (type: TokenType) => SetMetadata('tokenType', type)
 
 export const SCOPES_KEY = 'required_scopes'

@@ -325,6 +325,7 @@ type Query {
   myTicketDetail(ticketId: ID!): TicketDetailDTO!
   myTickets(page: Int!, limit: Int!): PaginatedTicket!
   myTicketMessages(page: Int!, limit: Int!, ticketId: ID!): PaginatedTicketMessage!
+  existsUserTicketById(ticketId: ID!): Boolean!
   ticketDetailAsSupport(ticketId: ID!): TicketDetailDTO!
   ticketsAsSupport(page: Int!, limit: Int!): PaginatedTicket!
   ticketMessagesAsSupport(page: Int!, limit: Int!, ticketId: ID!): PaginatedTicketMessage!
