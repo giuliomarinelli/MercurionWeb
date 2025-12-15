@@ -29,6 +29,8 @@ export type TicketStatus = 'Open' | 'WaitingUser' | 'WaitingSupport' | 'Closed'
 
 export type AuthorType = 'User' | 'Support'
 
+export type TicketCardMode = 'user' | 'support'
+
 export interface TicketMessage {
   id: string
   publicId: string

@@ -2,13 +2,13 @@ import {
   Component, Input, Output, EventEmitter, signal, computed, effect
 } from '@angular/core';
 import { DatePipe, NgClass } from '@angular/common';
-import { APIClientTicket, Ticket } from '../../../Models/graphql/help.models'; // path tuo
+import { APIClientTicket, Ticket, TicketCardMode } from '../../../Models/graphql/help.models'; // path tuo
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
 import { inject } from '@angular/core';
 import { TypeGuardsService } from '../../../services/type-guards.service';
 import { Maybe } from 'graphql/jsutils/Maybe';
 
-type TicketCardMode = 'user' | 'support';
+
 
 @Component({
   selector: 'm-ticket-card',
@@ -257,7 +257,9 @@ export class TicketCardComponent {
 
   showReopenButton = computed(() => {
     const t = this._ticket();
-    if (!t || !this._allowActions()) return false;
+    if (!t || !this._allowActions() || this.mode() !== 'support') {
+      return false
+    }
     return t.status === 'Closed'
   })
 

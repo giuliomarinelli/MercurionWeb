@@ -1,4 +1,5 @@
-import { AfterViewInit, Component, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild, effect } from '@angular/core';
+import { TicketStatus } from './../../Models/graphql/help.models';
+import { AfterViewInit, Component, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild, effect, ChangeDetectorRef } from '@angular/core';
 import { Observable, of, Subscription, switchMap, tap, throwError } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { ClientTicket, Ticket } from '../../Models/graphql/help.models';
@@ -95,6 +96,7 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
   private readonly detailContext = inject(TicketDetailContextService)
   private readonly overlayContext = inject(ActionOverlayContextService)
   private readonly newTicketContext = inject(NewTicketContextService)
+  private readonly cdr = inject(ChangeDetectorRef)
 
   @ViewChild('sentinel')
   protected declare sentinel: ElementRef<HTMLDivElement>
@@ -104,6 +106,8 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
 
   private userFetchSub?: Subscription
   private supFetchSub?: Subscription
+  private clsSub?: Subscription
+  private ropSub?: Subscription
 
   handleTickets = signal<boolean>(false)
   activeTab = signal<0 | 1>(0)
@@ -160,6 +164,8 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
   ngOnDestroy(): void {
     this.userFetchSub?.unsubscribe()
     this.supFetchSub?.unsubscribe()
+    this.clsSub?.unsubscribe()
+    this.ropSub?.unsubscribe()
     this.observer?.disconnect()
   }
 
@@ -209,12 +215,52 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
     })
   }
 
-  onCloseFromCard(e: string): void {
+  onCloseFromCard(ticketId: string): void {
+    this.clsSub = of(null).pipe(
+      switchMap(() => this.activeTab() === 0 || !this.handleTickets()
+        ?
+        this.helpService.closeMyTicket(ticketId)
+        :
+        this.helpService.closeTicketAsSupport(ticketId))
+    ).subscribe({
+      next: (ok) => {
 
+        if (!ok) {
+          return
+        }
+
+        this.items = this.items.map(t =>
+          t.id === ticketId
+            ? { ...t, status: 'Closed' as const }
+            : t
+        )
+
+        this.cdr.markForCheck()
+      }
+    })
   }
 
-  onReopenFromCard(e: string): void {
+  onReopenFromCard(ticketId: string): void {
+    if (this.activeTab() !== 1 || !this.handleTickets()) {
+      return
+    }
+    this.ropSub = this.helpService.reopenTicketAsSupport(ticketId).subscribe({
+      next: (ok) => {
 
+        if (!ok) {
+          return
+        }
+
+        this.items = this.items.map(t =>
+          t.id === ticketId
+            ? { ...t, status: 'Open' as const }
+            : t
+        )
+
+        this.cdr.markForCheck()
+      }
+
+    })
   }
 
 }
