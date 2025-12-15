@@ -235,11 +235,10 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
 
   doDuplicateCollection(collectionId: string): void {
     this.dupColSub = this.moleculeCollectionService.duplicateCollection(collectionId).subscribe({
-      next: (res) => {
+      next: () => {
         queueMicrotask(() => {
           this.appContext.smoothToTop()
           this.resetPagination()
-          this.toast.trigger(`Collezione duplicata con successo. Nuova collezione: '${res.name}'`, 'success')
         })
       },
       error: () => queueMicrotask(() => this.toast.trigger('Si è verificato un errore inaspettato. Se si ripete, contatta il supporto.', 'error'))
