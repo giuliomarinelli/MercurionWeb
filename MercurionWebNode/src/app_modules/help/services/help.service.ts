@@ -109,7 +109,7 @@ export class HelpService {
   }): Promise<{ ok: boolean }> {
 
     let msg: TicketMessage
-    
+
     await this.dataSource.transaction(async (manager) => {
       const now = Date.now()
 
@@ -118,7 +118,13 @@ export class HelpService {
         lock: { mode: 'pessimistic_write' },
       })
 
-      if (!ticket) throw new RpcException('TicketNotFound')
+      if (!ticket) {
+        throw new RpcException('TicketNotFound')
+      }
+
+      if (ticket.status === TicketStatus.Closed) {
+        throw new RpcException('Forbidden::Cannot publish on a closed ticket')
+      }
 
       msg = this.makeUserMessage({
         ticketId: ticket.id,
@@ -130,11 +136,7 @@ export class HelpService {
 
       this.stampTicket(ticket, now)
 
-      if (ticket.status === TicketStatus.Closed) {
-        ticket.status = TicketStatus.Open
-      } else {
-        ticket.status = TicketStatus.WaitingSupport
-      }
+      ticket.status = TicketStatus.WaitingSupport
 
       await manager.save(TicketMessage, msg)
       await manager.save(Ticket, ticket)
@@ -152,9 +154,11 @@ export class HelpService {
     contentDelta: JsonValue
     contentHtml: string
   }): Promise<{ ok: boolean }> {
+
     let ticketUserId: UUID
 
     await this.dataSource.transaction(async (manager) => {
+
       const now = Date.now()
 
       const ticket = await manager.findOne(Ticket, {
@@ -162,7 +166,14 @@ export class HelpService {
         lock: { mode: 'pessimistic_write' }
       })
 
-      if (!ticket) throw new RpcException('TicketNotFound')
+
+      if (!ticket) {
+        throw new RpcException('TicketNotFound')
+      }
+
+      if (ticket.status === TicketStatus.Closed) {
+        throw new RpcException('Forbidden::Cannot publish on a closed ticket')
+      }
 
       ticketUserId = ticket.userId
 
@@ -179,7 +190,7 @@ export class HelpService {
 
       await manager.save(TicketMessage, msg)
       await manager.save(Ticket, ticket)
-  
+
     })
 
     const freshTicket = await this.ticketRepo.findOneByOrFail({ id: input.ticketId })

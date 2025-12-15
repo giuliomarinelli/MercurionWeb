@@ -1,4 +1,5 @@
-import { AfterViewInit, Component, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild, effect } from '@angular/core';
+import { TicketStatus } from './../../Models/graphql/help.models';
+import { AfterViewInit, Component, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild, effect, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { Observable, of, Subscription, switchMap, tap, throwError } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { ClientTicket, Ticket } from '../../Models/graphql/help.models';
@@ -22,6 +23,7 @@ import { NewTicketContextService } from '../../services/context/action-context/n
     TicketCardComponent,
     TicketCardSkeletonComponent
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
 
     <section class="main-container">
@@ -57,7 +59,9 @@ import { NewTicketContextService } from '../../services/context/action-context/n
             [cardMode]="typeGuards.isClientTicket(item) ? 'user' : (typeGuards.isTicket(item) ? 'support' : 'user')"
             [triggerDisappear]="item.triggerDisappear()"
             [collapse]="item.collapse()"
-            (onOpenDetail)="openTicketDetail($event)"  />
+            (onOpenDetail)="openTicketDetail($event)"
+            (close)="onCloseFromCard($event)"
+            (reopen)="onReopenFromCard($event)" />
       }
       </div>
 
@@ -93,6 +97,7 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
   private readonly detailContext = inject(TicketDetailContextService)
   private readonly overlayContext = inject(ActionOverlayContextService)
   private readonly newTicketContext = inject(NewTicketContextService)
+  private readonly cdr = inject(ChangeDetectorRef)
 
   @ViewChild('sentinel')
   protected declare sentinel: ElementRef<HTMLDivElement>
@@ -102,6 +107,8 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
 
   private userFetchSub?: Subscription
   private supFetchSub?: Subscription
+  private clsSub?: Subscription
+  private ropSub?: Subscription
 
   handleTickets = signal<boolean>(false)
   activeTab = signal<0 | 1>(0)
@@ -117,25 +124,16 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
       if (!tick) {
         return
       }
-
-      // ha senso ricaricare solo in sezione utente
-      if (this.activeTab() !== 0) {
-        return
-      }
-
-      this.resetPagination()
-      queueMicrotask(() => this.loadMore())
+      this.resetAndReload()
     })
     effect(() => {
       const t = this.newTicketContext.addedTick()
       if (t === 0 || this.activeTab() !== 0) {
         return
       }
-      this.resetPagination()
-      queueMicrotask(() => this.loadMore())
+      this.resetAndReload()
     })
   }
-
 
   switchTab(i: number): void {
     if (i < 0 || i > 1) {
@@ -159,6 +157,8 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
   ngOnDestroy(): void {
     this.userFetchSub?.unsubscribe()
     this.supFetchSub?.unsubscribe()
+    this.clsSub?.unsubscribe()
+    this.ropSub?.unsubscribe()
     this.observer?.disconnect()
   }
 
@@ -192,6 +192,17 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
     // Al momento niente barra di ricerca
   }
 
+  private resetAndReload(): void {
+    this.userFetchSub?.unsubscribe()
+    this.supFetchSub?.unsubscribe()
+
+    this.resetPagination()
+
+    this.totalItems.set(0)
+    this.cdr.markForCheck()
+  }
+
+
   openTicketDetail(ticketId: string): void {
     queueMicrotask(() => {
       const scope = this.activeTab() === 0 ? 'User' : 'Support'
@@ -205,6 +216,54 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
     queueMicrotask(() => {
       this.detailContext.setInnerScope(this.activeTab() === 0 ? 'User' : 'Support')
       this.overlayContext.open('NewTicket')
+    })
+  }
+
+  onCloseFromCard(ticketId: string): void {
+    this.clsSub = of(null).pipe(
+      switchMap(() => this.activeTab() === 0 || !this.handleTickets()
+        ?
+        this.helpService.closeMyTicket(ticketId)
+        :
+        this.helpService.closeTicketAsSupport(ticketId))
+    ).subscribe({
+      next: (ok) => {
+
+        if (!ok) {
+          return
+        }
+
+        this.items = this.items.map(t =>
+          t.id === ticketId
+            ? { ...t, status: 'Closed' as const }
+            : t
+        )
+
+        this.cdr.markForCheck()
+      }
+    })
+  }
+
+  onReopenFromCard(ticketId: string): void {
+    if (this.activeTab() !== 1 || !this.handleTickets()) {
+      return
+    }
+    this.ropSub = this.helpService.reopenTicketAsSupport(ticketId).subscribe({
+      next: (ok) => {
+
+        if (!ok) {
+          return
+        }
+
+        this.items = this.items.map(t =>
+          t.id === ticketId
+            ? { ...t, status: 'Open' as const }
+            : t
+        )
+
+        this.cdr.markForCheck()
+      }
+
     })
   }
 

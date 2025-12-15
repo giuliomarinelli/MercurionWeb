@@ -2,13 +2,13 @@ import {
   Component, Input, Output, EventEmitter, signal, computed, effect
 } from '@angular/core';
 import { DatePipe, NgClass } from '@angular/common';
-import { APIClientTicket, Ticket } from '../../../Models/graphql/help.models'; // path tuo
+import { APIClientTicket, Ticket, TicketCardMode } from '../../../Models/graphql/help.models'; // path tuo
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
 import { inject } from '@angular/core';
 import { TypeGuardsService } from '../../../services/type-guards.service';
 import { Maybe } from 'graphql/jsutils/Maybe';
 
-type TicketCardMode = 'user' | 'support';
+
 
 @Component({
   selector: 'm-ticket-card',
@@ -41,9 +41,10 @@ type TicketCardMode = 'user' | 'support';
           class="absolute inset-0 rounded-2xl"
           [class.z-10]="true"
           [class.hidden]="_triggerDisappear()"
-          (click)="open.emit(_ticket()!.id)"
+          (click)="onOpenDetail.emit(_ticket()!.id)"
           aria-label="Apri ticket"
         ></button>
+
 
         <!-- COLONNA SINISTRA -->
         <div class="md:col-span-9 min-w-0 relative z-20 pointer-events-none">
@@ -114,7 +115,7 @@ type TicketCardMode = 'user' | 'support';
                 text-slate-700 dark:text-slate-200
                 hover:bg-slate-200 dark:hover:bg-slate-700
               "
-              (click)="close.emit(_ticket()!.id)"
+              (click)="$event.stopPropagation(); close.emit(_ticket()!.id)"
               title="Chiudi ticket"
             >
               Chiudi
@@ -131,7 +132,7 @@ type TicketCardMode = 'user' | 'support';
                 text-indigo-700 dark:text-indigo-200
                 hover:bg-indigo-50 dark:hover:bg-indigo-900/20
               "
-              (click)="reopen.emit(_ticket()!.id)"
+              (click)="$event.stopPropagation(); reopen.emit(_ticket()!.id)"
               title="Riapri ticket"
             >
               Riapri
@@ -183,13 +184,16 @@ export class TicketCardComponent {
 
   /* outputs -------------------------- */
 
-  @Output() open = new EventEmitter<string>()
 
-  @Output() close = new EventEmitter<string>()
 
-  @Output() reopen = new EventEmitter<string>()
+  @Output()
+  close = new EventEmitter<string>()
 
-  @Output() onOpenDetail = new EventEmitter<string>()
+  @Output()
+  reopen = new EventEmitter<string>()
+
+  @Output()
+  onOpenDetail = new EventEmitter<string>()
 
   /* state ---------------------------- */
   _ticket = signal<Ticket | APIClientTicket | undefined>(undefined)
@@ -253,7 +257,9 @@ export class TicketCardComponent {
 
   showReopenButton = computed(() => {
     const t = this._ticket();
-    if (!t || !this._allowActions()) return false;
+    if (!t || !this._allowActions() || this.mode() !== 'support') {
+      return false
+    }
     return t.status === 'Closed'
   })
 

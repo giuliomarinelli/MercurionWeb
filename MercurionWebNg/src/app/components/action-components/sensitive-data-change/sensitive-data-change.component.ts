@@ -18,6 +18,7 @@ import { FloatingInputComponent } from "../../common/floating-input/floating-inp
 import { Router, RouterLink } from '@angular/router';
 import { PmSelectComponent } from '../../common/pm-select/pm-select.component';
 import { PmOption } from '../../../Models/pm-option.model';
+import { Maybe } from 'graphql/jsutils/Maybe';
 
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -987,7 +988,9 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
             this.disableMfaStep.set('CHOOSE_STRATEGY')
             return combineLatest([
               this.accountService.getEnabledMfaStrategies(),
-              this.accountService.getRemainingBackupCodes()
+              this.accountService.getRemainingBackupCodes().pipe(
+                catchError(() => of(null))
+              )
             ])
           case 'AddPhone':
           case 'ChangePhone':
@@ -1007,9 +1010,9 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
       tap((res) => {
         switch (this.innerScope()) {
           case 'ConfigMfa':
-            const [mfaStrategies, remainingBackupCodes] = res as [MfaStrategy[], number]
+            const [mfaStrategies, remainingBackupCodes] = res as [MfaStrategy[], number | null]
             this.enabledMfaStrategies.set((mfaStrategies) ?? [])
-            this.remainingBackupCodes.set(remainingBackupCodes)
+            this.remainingBackupCodes.set(remainingBackupCodes ?? -1)
             break
           case 'EnableMfa':
           case 'ChangeEmail':
@@ -1018,7 +1021,7 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
           case 'AddPhone':
           case 'ChangePhone':
           case 'RemovePhone': {
-            const phone = (res as string | null | undefined)?.trim() ?? ''
+            const phone = (res as Maybe<string>)?.trim() ?? ''
             this.obscuredPhone.set(!!phone ? phone : null)
             break
           }

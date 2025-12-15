@@ -48,7 +48,7 @@ export class TicketComposerComponent {
   contentHtml = ''
   private delta: any = null
 
-  canSend = signal(false)
+  canSend = signal<boolean>(false)
 
   modules = {
     toolbar: [
