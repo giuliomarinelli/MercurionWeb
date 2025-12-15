@@ -13,6 +13,7 @@ import { ToastService } from '../../services/toast.service';
 import { AbstractPaginationComponent } from '../../abstract/abstract-pagination-component';
 import { PmSearchInputComponent } from '../../components/common/pm-search-input/pm-search-input.component';
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
+import { AddMoleculesToCollectionContextService } from '../../services/context/action-context/add-molecules-to-collection-context.service';
 
 @Component({
   selector: 'm-all-my-molecules.page',
@@ -102,6 +103,7 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
   private readonly historyContext = inject(HistoryContextService)
   private readonly toast = inject(ToastService)
   private readonly actionContext = inject(ActionOverlayContextService)
+  private readonly addContext = inject(AddMoleculesToCollectionContextService)
   // ====================================================
 
   private tick = signal<number>(0)
@@ -149,6 +151,15 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
     super()
     effect(() => {
       const t = this.tick()
+      if (t === 0) {
+        return
+      }
+      queueMicrotask(() => {
+        this.resetPagination()
+      })
+    })
+    effect(() => {
+      const t = this.addContext.addedTick()
       if (t === 0) {
         return
       }
