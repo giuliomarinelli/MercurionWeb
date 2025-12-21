@@ -43,14 +43,14 @@ import { SessionDTOExt } from '../../../Models/account/account.models';
         <div>
           <span class="text-slate-500 dark:text-slate-400 block text-xs uppercase mb-1">Creato</span>
           <span class="text-slate-700 dark:text-slate-200">
-            {{ session.createdAt | date:'short' }}
+            {{ session.createdAt | date:'dd/MM/yyyy HH:mm:ss' }}
           </span>
         </div>
 
         <div>
           <span class="text-slate-500 dark:text-slate-400 block text-xs uppercase mb-1">Ultimo accesso</span>
           <span class="text-slate-700 dark:text-slate-200">
-            {{ session.lastAccessedAt | date:'short' }}
+            {{ session.lastAccessedAt | date:'dd/MM/yyyy HH:mm:ss' }}
           </span>
         </div>
 
@@ -71,7 +71,7 @@ import { SessionDTOExt } from '../../../Models/account/account.models';
         <div>
           <span class="text-slate-500 dark:text-slate-400 block text-xs uppercase mb-1">Scadenza</span>
           <span class="text-slate-700 dark:text-slate-200">
-            {{ session.expiresAt | date:'short' }}
+            {{ session.expiresAt | date:'dd/MM/yyyy HH:mm:ss' }}
           </span>
         </div>
 
