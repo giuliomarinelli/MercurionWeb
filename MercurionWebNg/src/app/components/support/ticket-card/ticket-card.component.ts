@@ -80,17 +80,30 @@ import { Maybe } from 'graphql/jsutils/Maybe';
 
           <!-- preview / meta line -->
           <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current size-3.5 inline-block relative -top-px ">
+              <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+              <path d="M320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64zM296 184L296 332.8L306.7 339.9L402.7 403.9L422.7 417.2L449.3 377.3C446.9 375.7 411.8 352.3 344 307.1L344 159.9L296 159.9L296 183.9z"/>
+            </svg>
             <span>
-              Ultimo messaggio:
-              {{ _ticket()!.lastMessageAt | date:'medium' }}
+              {{ _ticket()!.lastMessageAt | date:'dd/MM/yyyy HH:mm:ss' }}
             </span>
 
             <span class="text-slate-300 dark:text-slate-600">•</span>
 
-            <span>
-              Creato:
-              {{ _ticket()!.createdAt | date:'mediumDate' }}
-            </span>
+
+            <svg
+              class="size-3.5 relative -top-px"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden="true"
+              >
+              <path
+              d="M6 2a1 1 0 0 1 1 1v1h6V3a1 1 0 1 1 2 0v1h1a2 2 0 0 1 2 2v1H3V6a2 2 0 0 1 2-2h1V3a1 1 0 0 1 1-1z"
+              />
+              <path d="M3 8h14v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8z" />
+            </svg>
+            {{ _ticket()!.createdAt | date:'dd/MM/yyyy HH:mm' }}
+
 
             @if (mode() === 'support' && typeGuards.isTicket(_ticket())) {
               <span class="text-slate-300 dark:text-slate-600">•</span>

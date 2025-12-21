@@ -16,20 +16,26 @@ type AnyMsg = TicketMessage | ClientTicketMessage;
 
       <div class="max-w-[85%] sm:max-w-[70%] md:max-w-[60%]">
 
-        <!-- optional meta line (name + time) -->
-        <div
-          class="mb-1 text-[11px] sm:text-xs text-slate-500 dark:text-slate-400"
-          [ngClass]="isSent() ? 'text-right' : 'text-left'"
-        >
-          @if (showAuthorName() && authorName()) {
-            <span class="font-medium text-slate-600 dark:text-slate-300">
-              {{ authorName() }}
+          <!-- optional meta line (name + time) -->
+        <div class="mb-1 flex items-center gap-1">
+          <div
+            class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400"
+            [ngClass]="isSent() ? 'text-right' : 'text-left'"
+          >
+            @if (showAuthorName() && authorName()) {
+              <span class="font-medium text-slate-600 dark:text-slate-300">
+                {{ authorName() }}
+              </span>
+              <span class="mx-1 text-slate-300 dark:text-slate-600">•</span>
+            }
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current size-3.5 inline-block -top-[2px] relative mr-[2px]">
+              <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+              <path d="M320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64zM296 184L296 332.8L306.7 339.9L402.7 403.9L422.7 417.2L449.3 377.3C446.9 375.7 411.8 352.3 344 307.1L344 159.9L296 159.9L296 183.9z"/>
+            </svg>
+            <span>
+              {{ _msg()!.createdAt | date :'dd/MM/yyyy HH:mm:ss' }}
             </span>
-            <span class="mx-1 text-slate-300 dark:text-slate-600">•</span>
-          }
-          <span>
-            {{ _msg()!.createdAt | date:'short' }}
-          </span>
+          </div>
         </div>
 
         <!-- bubble -->
