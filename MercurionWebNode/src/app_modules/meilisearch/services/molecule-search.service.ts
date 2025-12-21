@@ -5,6 +5,7 @@ import { MoleculeSearchInput } from '../Models/DTO/molecule-search-input.cls';
 import { SearchParams } from '../Models/interfaces/search-params.interface';
 import { MoleculeSearchResult } from '../Models/DTO/molecule-search-result.cls';
 import { UUID } from 'crypto';
+import { toInt } from 'src/utils/to-int.helper';
 
 
 @Injectable()
@@ -57,12 +58,21 @@ export class MoleculeSearchService {
     }
 
     async searchMolecules_excludeAlreadyAdded(input: MoleculeSearchInput, collectionId: UUID, userId: UUID): Promise<MoleculeSearchResult[]> {
-        if (!input.query) {
-            return []
-        }
+        
+        if (!input.query) return []
+
         const results = await this.searchMolecules(input)
-        const excludedMolregnos = await this.chemblItemService.getChemblMolregnosByCollectionId(userId, collectionId)
-        return results.filter(res => !excludedMolregnos.includes(res.id))
+
+        const excludedMolregnosRaw = await this.chemblItemService.getChemblMolregnosByCollectionId(userId, collectionId)
+
+        const excludedMolregnos = new Set(
+            excludedMolregnosRaw
+                .map((n) => toInt(n))
+                .filter((n) => Number.isFinite(n))
+        )
+
+        return results.filter((res) => !excludedMolregnos.has(res.id))
     }
+
 
 }
