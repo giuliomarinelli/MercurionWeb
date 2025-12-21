@@ -1,6 +1,6 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild, effect, inject, signal } from '@angular/core'
 import { ActivatedRoute, Router } from '@angular/router'
-import { Observable, Subscription, of, switchMap, take, tap } from 'rxjs'
+import { Observable, Subscription, firstValueFrom, of, switchMap, take, tap } from 'rxjs'
 import { AuthService } from '../../services/auth.service'
 import { HelpService } from '../../services/graphql/help.service'
 import { TypeGuardsService } from '../../services/type-guards.service'
@@ -106,6 +106,7 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
   private readonly cdr = inject(ChangeDetectorRef)
   private readonly route = inject(ActivatedRoute)
   private readonly router = inject(Router)
+
 
   @ViewChild('sentinel')
   protected declare sentinel: ElementRef<HTMLDivElement>
@@ -219,6 +220,29 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
       }),
       tap((res) => this.totalItems.set(res.totalItems))
     )
+  }
+
+  protected override async loadMore(): Promise<void> {
+
+    if (this.loading || this.done) return
+    this.loading = true
+
+    const newPage = await firstValueFrom(this.fetch$())
+
+    if (newPage.items.length === 0) {
+      this.done = true
+      if (this.page === 1) {
+        this.earlyDone = true
+      }
+    } else {
+      if (this.empty()) this.empty.set(false)
+      this.items = [...this.items, ...newPage.items]
+      this.page++
+    }
+
+    this.cdr.markForCheck()
+
+    this.loading = false
   }
 
   protected override doQuery(q: string): void { }
