@@ -79,6 +79,7 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
 
   private exporting = signal<boolean>(false);
   private expSub?: Subscription;
+  private intSub?: Subscription
 
   _smiles = signal<string>('');
   _triggerReset = signal<boolean>(false);
@@ -124,6 +125,7 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
     private readonly RDKit: RDKitService,
     private readonly zone: NgZone
   ) {
+    window.addEventListener('message', this.onKetcherMessage)
     const url = this.publicPipe.transform('ketcher/index.html');
     this.ketcherUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
 
@@ -158,10 +160,9 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    window.addEventListener('message', this.onKetcherMessage);
 
     // polling "realtime" leggero
-    interval(250)
+    this.intSub = interval(250)
       .pipe(
         takeUntil(this.destroy$),
         filter(() => this.ketcherReady()),
@@ -181,6 +182,7 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
     this.expSub?.unsubscribe();
+    this.intSub?.unsubscribe()
   }
 
   // handler messaggi dal frame Ketcher
@@ -221,16 +223,26 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
   // richiesta SMILES a Ketcher
   private requestExportSmiles$(kind: 'explicit' | 'poll') {
     return defer(() => {
-      if (!this.ketcherReady()) {
-        return of('');
+      // Se l'iframe non è ancora lì, niente
+      const win = this.iframeRef?.nativeElement?.contentWindow;
+      if (!win) {
+        return of('')
       }
 
+      // ✅ No hard gate sull'assenza di ketcherReady: prova comunque a chiedere gli SMILES.
       this.postToKetcher({ type: 'getSmiles', payload: {} });
 
       return this.smilesResponse$.pipe(
         take(1),
         timeout(3000),
         tap((s: string) => {
+          // ✅ Fallback: se arriva una risposta, consideriamo il frame "ready"
+          if (!this.ketcherReady()) {
+            this.ketcherReady.set(true);
+            this.loading.set(false);
+            this.loaded.set(true);
+          }
+
           this.zone.run(() => {
             if (kind === 'explicit') {
               this.exportSmiles.emit(s);
@@ -243,6 +255,7 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
       );
     });
   }
+
 
   private async updateKetcherMolfile(smiles: string): Promise<void> {
     const molfile = await this.smilesToMolfile(smiles);
