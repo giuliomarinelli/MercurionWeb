@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { EMPTY, of, Subscription, switchMap, tap } from 'rxjs';
+import { combineLatest, EMPTY, filter, of, Subscription, switchMap, take, tap } from 'rxjs';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { Helpers } from '../../helpers';
 import { AccountService } from '../../services/account.service';
@@ -18,9 +18,9 @@ import { UserContextService } from '../../services/context/user-context.service'
       </div>
     } @else if (canView()) {
       <div class="mt-2 flex justify-center items-center flex-wrap gap-4 text-light-accent-secondary dark:text-dark-accent-secondary mb-8">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current text- h-6 w-auto md:h-7 lg:h-9">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current size-7 md:size-8 lg:size-10">
           <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-          <path d="M384 384C472.4 384 544 455.6 544 544L544 576L480 576L480 544C480 491 437 448 384 448L256 448C203 448 160 491 160 544L160 576L96 576L96 544C96 455.6 167.6 384 256 384L384 384zM320 320C249.3 320 192 262.7 192 192C192 121.3 249.3 64 320 64C390.7 64 448 121.3 448 192C448 262.7 390.7 320 320 320zM320 128C284.7 128 256 156.7 256 192C256 227.3 284.7 256 320 256C355.3 256 384 227.3 384 192C384 156.7 355.3 128 320 128z"/>
+          <path d="M240 192C240 147.8 275.8 112 320 112C364.2 112 400 147.8 400 192C400 236.2 364.2 272 320 272C275.8 272 240 236.2 240 192zM146.2 576L195.4 416L444.5 416L493.7 576L543.9 576L479.9 368L159.9 368L95.9 576L146.1 576zM320 320C390.7 320 448 262.7 448 192C448 121.3 390.7 64 320 64C249.3 64 192 121.3 192 192C192 262.7 249.3 320 320 320z" />
         </svg>
         <h1 class="text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center sm:text-left">
           Account attivato!
@@ -62,20 +62,41 @@ export class AccountActivatePageComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.qpSub = this.route.queryParamMap.pipe(
+    this.qpSub = combineLatest([
+      this.route.queryParamMap,
+      this.route.fragment
+    ]).pipe(
       tap(() => {
         this.loading.set(true)
         this.userContext.logout()
       }),
-      switchMap(params => {
-        const t = params.get('t') ?? ''
+      filter(([, frag]) => !!frag),
+      take(1),
+      switchMap(([_, frag]) => {
+
+        const t = frag ? (new URLSearchParams(frag).get('t') ?? '') : ''
+
         if (!t || !Helpers.isValidJwt(t)) {
           this.redirectToRoot()
           return EMPTY
         }
+
+        this.router.navigate([], {
+          relativeTo: this.route,
+          replaceUrl: true,
+          fragment: undefined
+        })
+
+        queueMicrotask(() => {
+          if (location.hash) {
+            history.replaceState({}, '', location.pathname + location.search)
+          }
+        })
+
         return of(t)
+
       }),
-      switchMap(t => this.accountService.activateAccount(t))
+      switchMap((t) => this.accountService.activateAccount(t))
     ).subscribe({
       next: (res) => {
         this.canView.set(true)
@@ -85,7 +106,6 @@ export class AccountActivatePageComponent implements OnInit, OnDestroy {
       error: () => this.redirectToRoot()
     })
   }
-
   ngOnDestroy(): void {
     this.qpSub?.unsubscribe()
   }

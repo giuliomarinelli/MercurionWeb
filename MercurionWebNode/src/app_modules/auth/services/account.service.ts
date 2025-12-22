@@ -326,7 +326,7 @@ export class AccountService {
             gender
         })
         const activationToken: string = await this.jwtTools.generateToken(userId, TokenType.ActivationToken)
-        const url: string = `${this.configService.get<string>("App.activationOrigin")}/account/activate?t=${activationToken}`
+        const url = `${this.configService.get<string>("App.activationOrigin")!}/account/activate#t=${encodeURIComponent(activationToken)}`
         await this.mailService.sendEmail<UserCtaContext>(
             email,
             `${firstName}, completa la tua registrazione a Mercurion`,
