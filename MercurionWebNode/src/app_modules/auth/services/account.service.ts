@@ -862,7 +862,7 @@ export class AccountService {
         await this.throttlePasswordResetSend(userId as UUID, PasswordContext.RESET_SEND)
         const changePasswordToken = await this.jwtTools.generateToken(userId as UUID, TokenType.ChangePasswordToken)
         const firstName = await this.userService.getUserFirstNameById(userId as UUID)
-        const url = `${this.configService.get<string>("App.activationOrigin")}/password-recovery?t=${encodeURIComponent(changePasswordToken)}`
+        const url = `${this.configService.get<string>("App.activationOrigin")}/password-recovery#t=${encodeURIComponent(changePasswordToken)}`
         await this.mailService.sendEmail<UserCtaContext>(
             email,
             'Mercurion: recupero password',
