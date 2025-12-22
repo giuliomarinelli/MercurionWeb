@@ -17,19 +17,15 @@ import { SecureCookieConfiguration } from './config/config.types'
 import { buildRateLimitKey, isValidIp, routeAwareMax } from './config/rate-limit.config'
 import { RedisService } from './app_modules/redis/services/redis.service'
 import { MeiliLoggerService } from './app_modules/meilisearch/services/meili-logger.service'
+import { resolveAppEnv } from './utils/env-helpers'
 
 
 
 export async function bootstrap() {
 
-  if (!process.env.UM_FEEDBACK_ANON_AUTHOR_KEY) {
-    console.error(`Fatal: UM_FEEDBACK_ANON_AUTHOR_KEY is not set in evn=${process.env.NODE_ENV ?? 'development'}`)
-    process.exit(1)
-  }
-
   const logLevels = new Set<LogLevel>(['error', 'warn', 'log', 'debug', 'verbose', 'fatal'])
 
-  if ((process.env.NODE_ENV ?? 'development') !== 'development') {
+  if (resolveAppEnv() !== Environment.Development) {
     logLevels.delete('debug')
     logLevels.delete('verbose')
   } else {
@@ -66,49 +62,39 @@ export async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter(loggerFactory))
   app.setGlobalPrefix('api')
 
+  /**
+  *  NOTE (HTTPS-bound security headers):
+  *  In staging/production these MUST be set at the reverse proxy (nginx / Cloudflare) — not here —
+  *  to avoid conflicts and to keep localhost (HTTP) from breaking.
+   
+  *  This helmet config only keeps HTTP-safe headers that are useful in every environment.
+   
+  *  Move to nginx (staging/prod):
+  *  - Strict-Transport-Security (HSTS)
+  *  - Content-Security-Policy (CSP)
+  *  - HTTP -> HTTPS redirects (and any TLS enforcement)
+  */
   await app.register(helmet, {
-    // CSP: in dev spesso rompe (Playground, HMR, ecc.),
-    // quindi la teniamo solo in produzione.
-    contentSecurityPolicy:
-      [Environment.Production, Environment.Staging].includes(env ?? Environment.Development)
-        ? {
-          useDefaults: true,
-          directives: {
-            defaultSrc: ["'self'"],
-            scriptSrc: ["'self'"],
-            styleSrc: ["'self'", "'unsafe-inline'"],
-            imgSrc: ["'self'", 'data:'],
-            fontSrc: ["'self'", 'data:'],
-            connectSrc: [
-              "'self'",
-              'https:',
-              'wss:',
-            ],
-            objectSrc: ["'none'"],
-            baseUri: ["'none'"],
-            frameAncestors: ["'none'"],
-            formAction: ["'self'"],
-          },
-        }
-        : false,
+    // ✅ CSP spostata su nginx (in locale HTTP spesso rompe e/o crea policy incoerenti)
+    contentSecurityPolicy: false,
 
     // niente referrer
     referrerPolicy: {
-      policy: 'no-referrer'
+      policy: 'no-referrer',
     },
 
     // niente embedding di risorse da altri origin
     crossOriginResourcePolicy: {
-      policy: 'same-origin'
+      policy: 'same-origin',
     },
 
     // isolamento finestra (anti XS-Leaks)
     crossOriginOpenerPolicy: {
-      policy: 'same-origin'
+      policy: 'same-origin',
     },
 
-    // COEP spesso rompe con librerie che non mettono i header giusti:
-    // lo tieni off finché non decidi di fare la combo COEP+COOP+CORP.
+    // COEP spesso rompe con librerie che non mettono gli header giusti:
+    // lo teniamo off finché non facciamo la combo COEP+COOP+CORP.
     crossOriginEmbedderPolicy: false,
 
     // vieta qualsiasi iframe
@@ -117,17 +103,10 @@ export async function bootstrap() {
     // togliere X-Powered-By se dovesse spuntare da qualche parte
     hidePoweredBy: true,
 
-    // HSTS solo in produzione e solo se stai servendo via HTTPS dietro
-    // Cloudflare/Nginx in modo coerente.
-    hsts:
-      [Environment.Production, Environment.Staging].includes(env ?? Environment.Development)
-        ? {
-          maxAge: 31536000, // 1 anno
-          includeSubDomains: true,
-          preload: true,
-        }
-        : false,
+    // ❌ HSTS spostato su nginx (HTTPS-bound)
+    hsts: false
   })
+
 
 
   app.useGlobalPipes(new ValidationPipe({

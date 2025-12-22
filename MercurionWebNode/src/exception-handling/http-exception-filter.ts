@@ -24,7 +24,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
         this.logger = loggerFactory.forContext(HttpExceptionFilter.name)
     }
 
-    private readonly isNotDev = process.env.NODE_ENV !== 'development'
+    private readonly isNotDev = (process.env.APP_ENV ?? 'development') !== 'development'
 
     catch(e: unknown, host: ArgumentsHost) {
 

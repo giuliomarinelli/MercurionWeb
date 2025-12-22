@@ -30,16 +30,26 @@ import { AdminModule } from './app_modules/admin/admin.module';
 import { SSO_Module } from './app_modules/sso/sso.module';
 import { HelpModule } from './app_modules/help/help.module';
 import { FeedbackModule } from './app_modules/feedback/feedback.module';
+import { resolveAppEnv, shouldUseEnvFile } from './utils/env-helpers';
+import { validateEnvOrKillProcess } from './config/env-validation';
 
-
-const nodeEnv = process.env.NODE_ENV ?? 'development'
+const appEnv = resolveAppEnv()
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: join(__dirname, `../env/.env.${nodeEnv}`),
-      load: [...configurations]
+      isGlobal: true,      
+      ignoreEnvFile: !shouldUseEnvFile(appEnv),
+      envFilePath: shouldUseEnvFile(appEnv)
+        ? join(__dirname, `../env/.env.${appEnv}`)
+        : undefined,
+      load: [...configurations],      
+      expandVariables: true,            
+      cache: false,
+      validate: (config) => {
+        validateEnvOrKillProcess(config as NodeJS.ProcessEnv)
+        return config
+      }
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -80,7 +90,7 @@ const nodeEnv = process.env.NODE_ENV ?? 'development'
     JwtToolsService,
     SessionService,
     JwtService,
-    ResponseService    
+    ResponseService
   ],
   controllers: [TestController]
 })

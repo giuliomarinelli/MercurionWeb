@@ -27,8 +27,9 @@ RUN npm install
 # 7) Copia il resto del codice sorgente
 COPY . .
 
-# 8) Variabile d'ambiente per build ramo di integrazione (test)
-ENV NODE_ENV=test
+# 8) Variabili d'ambiente per build ramo di integrazione (test)
+ENV NODE_ENV=production
+ENV APP_ENV=test
 
 # 9) Build e copia file non compilati (chiavi RSA, template per le email)
 RUN npm run build && \

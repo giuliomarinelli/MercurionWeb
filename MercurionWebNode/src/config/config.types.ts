@@ -3,6 +3,7 @@ import { UUID } from "crypto"
 import { Environment } from "./config"
 
 export interface AppConfiguration {
+    nodeEnv: 'development' | 'production',
     env: Environment
     port: number
     natsPort: number

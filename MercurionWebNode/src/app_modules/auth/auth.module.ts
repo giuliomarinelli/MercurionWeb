@@ -27,6 +27,7 @@ import { CountryService } from './services/country.service';
 import { Country } from './Models/entities/country.entity';
 import { CountryController } from './controllers/country.controller';
 import { RecoveryController } from './controllers/recovery.controller';
+import { JwtKeysProvider } from './providers/jwt-keys.provider';
 
 
 
@@ -55,7 +56,8 @@ import { RecoveryController } from './controllers/recovery.controller';
     GeoIpService,
     TurnstileService,
     ScopeService,
-    CountryService
+    CountryService,
+    JwtKeysProvider
   ],
   exports: [
     SecureCookieService,
@@ -65,7 +67,8 @@ import { RecoveryController } from './controllers/recovery.controller';
     PasswordEncoderService,
     SercurityService,
     ScopeService,
-    GeoIpService
+    GeoIpService,
+    JwtKeysProvider
   ],
   controllers: [AccountController, AuthenticationController, CountryController, RecoveryController],
 })

@@ -3,7 +3,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { MercurionAIService } from './services/mercurion-ai.service';
 import { MercurionAIController } from './controllers/mercurion-ai.controller';
-import { JwtToolsService } from '../auth/services/jwt-tools.service';
 import { AuthModule } from '../auth/auth.module';
 import { UserModule } from '../user/user.module';
 import { MeilisearchModule } from '../meilisearch/meilisearch.module';
@@ -33,7 +32,7 @@ import { RedisModule } from '../redis/redis.module';
         forwardRef(() => RedisModule),
         forwardRef(() => MeilisearchModule)
     ],
-    providers: [MercurionAIService, JwtToolsService, RDKitService],
+    providers: [MercurionAIService, RDKitService],
     controllers: [MercurionAIController, RdKitController],
     exports: [RDKitService]
 })

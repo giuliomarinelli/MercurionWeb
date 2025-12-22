@@ -10,13 +10,11 @@ import { Scope } from 'src/app_modules/user/Models/enums/scope.enum';
 import { FastifyRequest } from 'fastify';
 import { RpcException } from '@nestjs/microservices';
 import { AppJwtPayload } from '../Models/interfaces/app-jwt-payload.interface';
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { SessionService } from './session.service';
-import { Environment } from 'src/config/config';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { JwtKeysProvider } from '../providers/jwt-keys.provider';
 
 @Injectable()
 export class JwtToolsService {
@@ -54,75 +52,67 @@ export class JwtToolsService {
         private readonly userService: UserService,
         private readonly redisservice: RedisService,
         private readonly sessionService: SessionService,
-        loggerFactory: MeiliLoggerService
+        loggerFactory: MeiliLoggerService,
+        private readonly jwtKeys: JwtKeysProvider
     ) {
         this.logger = loggerFactory.forContext(JwtToolsService.name)
 
-        this.accessTokenConfig.expiresInMs = this.configService.get<number>("Jwt.accessToken.expiresInMs") as number
-        this.ws_accessTokenConfig.expiresInMs = this.configService.get<number>("Jwt.ws_accessToken.expiresInMs") as number
-        this.preAuthorizationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.preAuthorizationToken") as JwtConfiguration
-        this.activationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.activationToken") as JwtConfiguration
-        this.phoneNumberVerificationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.phoneNumberVerificationToken") as JwtConfiguration
-        this.emailVerificationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.emailVerificationToken") as JwtConfiguration
-        this.emailOtpMfaActivationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.emailOtpMfaActivationToken") as JwtConfiguration
-        this.smsOtpMfaActivationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.smsOtpMfaActivationToken") as JwtConfiguration
-        this.appTotpMfaActivationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.appTotpMfaActivationToken") as JwtConfiguration
-        this.emailOtpMfaInactivationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.emailOtpMfaInactivationToken") as JwtConfiguration
-        this.smsOtpMfaInactivationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.smsOtpMfaInactivationToken") as JwtConfiguration
-        this.appTotpMfaInactivationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.appTotpMfaInactivationToken") as JwtConfiguration
-        this.changePasswordTokenConfig = this.configService.get<JwtConfiguration>("Jwt.changePasswordToken") as JwtConfiguration
-        this.accountRecoveryTokenConfig = this.configService.get<JwtConfiguration>("Jwt.accountRecoveryToken") as JwtConfiguration
-        this.sso_preAuthorizationTokenConfig = this.configService.get<JwtConfiguration>("Jwt.sso_preAuthorizationToken") as JwtConfiguration
+        this.accessTokenConfig.expiresInMs = this.configService.get<number>('Jwt.accessToken.expiresInMs') as number
+        this.ws_accessTokenConfig.expiresInMs = this.configService.get<number>('Jwt.ws_accessToken.expiresInMs') as number
 
-        this.jwtIssuer = this.configService.get<string>("Jwt.issuer") as string
+        this.preAuthorizationTokenConfig = this.configService.get<JwtConfiguration>('Jwt.preAuthorizationToken') as JwtConfiguration
+        this.activationTokenConfig = this.configService.get<JwtConfiguration>('Jwt.activationToken') as JwtConfiguration
+        this.phoneNumberVerificationTokenConfig = this.configService.get<JwtConfiguration>('Jwt.phoneNumberVerificationToken') as JwtConfiguration
+        this.emailVerificationTokenConfig = this.configService.get<JwtConfiguration>('Jwt.emailVerificationToken') as JwtConfiguration
+        this.emailOtpMfaActivationTokenConfig = this.configService.get<JwtConfiguration>('Jwt.emailOtpMfaActivationToken') as JwtConfiguration
+        this.smsOtpMfaActivationTokenConfig = this.configService.get<JwtConfiguration>('Jwt.smsOtpMfaActivationToken') as JwtConfiguration
+        this.appTotpMfaActivationTokenConfig = this.configService.get<JwtConfiguration>('Jwt.appTotpMfaActivationToken') as JwtConfiguration
+        this.emailOtpMfaInactivationTokenConfig = this.configService.get<JwtConfiguration>('Jwt.emailOtpMfaInactivationToken') as JwtConfiguration
+        this.smsOtpMfaInactivationTokenConfig = this.configService.get<JwtConfiguration>('Jwt.smsOtpMfaInactivationToken') as JwtConfiguration
+        this.appTotpMfaInactivationTokenConfig = this.configService.get<JwtConfiguration>('Jwt.appTotpMfaInactivationToken') as JwtConfiguration
+        this.changePasswordTokenConfig = this.configService.get<JwtConfiguration>('Jwt.changePasswordToken') as JwtConfiguration
+        this.accountRecoveryTokenConfig = this.configService.get<JwtConfiguration>('Jwt.accountRecoveryToken') as JwtConfiguration
+        this.sso_preAuthorizationTokenConfig = this.configService.get<JwtConfiguration>('Jwt.sso_preAuthorizationToken') as JwtConfiguration
+
+        this.jwtIssuer = this.configService.get<string>('Jwt.issuer') as string
         this.jwtAudience = this.configService.get<JwtAudience>('Jwt.audience')!
 
-        const minLen = 48; // 384 bit per HS512
-        [
-            this.preAuthorizationTokenConfig,
-            this.activationTokenConfig,
-            this.phoneNumberVerificationTokenConfig,
-            this.emailVerificationTokenConfig,
-            this.emailOtpMfaActivationTokenConfig,
-            this.smsOtpMfaActivationTokenConfig,
-            this.appTotpMfaActivationTokenConfig,
-            this.emailOtpMfaInactivationTokenConfig,
-            this.smsOtpMfaInactivationTokenConfig,
-            this.appTotpMfaInactivationTokenConfig,
-            this.changePasswordTokenConfig,
-            this.accountRecoveryTokenConfig,
-            this.sso_preAuthorizationTokenConfig
-        ].forEach((c) => {
-            if (!c?.secret || c.secret.length < minLen) {
-                throw new Error('Weak JWT secret in config')
-            }
-        })
-
-        const env = this.configService.get<Environment>('App.env')!
-        let privateKeyFileName: string
-        let publicKeyFileName: string
-        let ws_privateKeyFileName: string
-        let ws_publicKeyFileName: string
-
-        if (env !== Environment.Production) {
-            privateKeyFileName = `private.${env}.pem`
-            publicKeyFileName = `public.${env}.pem`
-            ws_privateKeyFileName = `ws_private.${env}.pem`
-            ws_publicKeyFileName = `ws_public.${env}.pem`
-        } else {
-            privateKeyFileName = `private.pem`
-            publicKeyFileName = `public.pem`
-            ws_privateKeyFileName = `ws_private.pem`
-            ws_publicKeyFileName = `ws_public.pem`
+        if (!this.jwtIssuer) {
+            throw new Error('Missing Jwt.issuer in config')
+        }
+        if (!this.jwtAudience?.access || !this.jwtAudience?.ws || !this.jwtAudience?.auth) {
+            throw new Error('Missing Jwt.audience in config')
         }
 
-        this.privateKey = readFileSync(resolve(__dirname, `../../../config/keys/${privateKeyFileName}`), 'utf8')
-        this.publicKey = readFileSync(resolve(__dirname, `../../../config/keys/${publicKeyFileName}`), 'utf8')
-        this.ws_privateKey = readFileSync(resolve(__dirname, `../../../config/keys/${ws_privateKeyFileName}`), 'utf8')
-        this.ws_publicKey = readFileSync(resolve(__dirname, `../../../config/keys/${ws_publicKeyFileName}`), 'utf8')
+        const minLen = 48 // 384 bit per HS512
+            ;[
+                this.preAuthorizationTokenConfig,
+                this.activationTokenConfig,
+                this.phoneNumberVerificationTokenConfig,
+                this.emailVerificationTokenConfig,
+                this.emailOtpMfaActivationTokenConfig,
+                this.smsOtpMfaActivationTokenConfig,
+                this.appTotpMfaActivationTokenConfig,
+                this.emailOtpMfaInactivationTokenConfig,
+                this.smsOtpMfaInactivationTokenConfig,
+                this.appTotpMfaInactivationTokenConfig,
+                this.changePasswordTokenConfig,
+                this.accountRecoveryTokenConfig,
+                this.sso_preAuthorizationTokenConfig
+            ].forEach(c => {
+                if (!c?.secret || c.secret.length < minLen) {
+                    throw new Error('Weak JWT secret in config')
+                }
+            })
 
+        const accessKeys = this.jwtKeys.getAccessKeyPair()
+        this.privateKey = accessKeys.privateKey
+        this.publicKey = accessKeys.publicKey
+
+        const wsKeys = this.jwtKeys.getWsKeyPair()
+        this.ws_privateKey = wsKeys.privateKey
+        this.ws_publicKey = wsKeys.publicKey
     }
-
 
     private getJwtConfigurationFromTokenType(type: TokenType): JwtConfiguration {
         switch (type) {
