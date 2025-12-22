@@ -1,4 +1,3 @@
-// env-helpers.ts
 import { Environment } from 'src/config/config'
 
 export function parseAppEnv(raw: unknown): Environment {
