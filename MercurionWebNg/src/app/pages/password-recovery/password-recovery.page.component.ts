@@ -1,7 +1,7 @@
 import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AccountService } from '../../services/account.service';
-import { distinctUntilChanged, Subscription, take, tap } from 'rxjs';
+import { catchError, distinctUntilChanged, EMPTY, filter, of, Subscription, switchMap, take, tap } from 'rxjs';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FloatingInputComponent } from '../../components/common/floating-input/floating-input.component';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
@@ -26,8 +26,9 @@ import { Helpers } from '../../helpers';
             Recupero password
           </h1>
           <div class="bg-slate-200 dark:bg-slate-800 border my-16 border-slate-300 dark:border-slate-600 relative p-3 mx-auto max-w-[1024px] rounded-md text-sm flex gap-2 xs:gap-4 items-center flex-col xs:flex-row">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5]">
-              <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.--><path d="M320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM320 128C214 128 128 214 128 320C128 426 214 512 320 512C426 512 512 426 512 320C512 214 426 128 320 128zM348 388L380 388L380 444L260 444L260 388L292 388L292 348L260 348L260 292L348 292L348 388zM320 264C297.9 264 280 246.1 280 224C280 201.9 297.9 184 320 184C342.1 184 360 201.9 360 224C360 246.1 342.1 264 320 264z"/>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current size-16 shrink-[0.5]">
+              <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+              <path d="M320 96C443.7 96 544 196.3 544 320C544 443.7 443.7 544 320 544C196.3 544 96 443.7 96 320C96 196.3 196.3 96 320 96zM320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM272 416L256 416L256 448L384 448L384 416L336 416L336 288L256 288L256 320L304 320L304 416L272 416zM344 248L344 200L296 200L296 248L344 248z"/>
             </svg>
             <span>Inserisci la tua nuova password.
             </span>
@@ -82,9 +83,9 @@ import { Helpers } from '../../helpers';
           }
           @case (2) {
             <div class="bg-slate-200 dark:bg-slate-800 border my-16 border-slate-300 dark:border-slate-600 relative p-3 mx-auto max-w-[1024px] rounded-md text-sm flex gap-2 xs:gap-4 items-center flex-col xs:flex-row">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-emerald-800 dark:text-emerald-400">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current size-16 shrink-[0.5] text-emerald-800 dark:text-emerald-400">
                 <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-                <path d="M320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM320 96C196.3 96 96 196.3 96 320C96 443.7 196.3 544 320 544C443.7 544 544 443.7 544 320C544 196.3 443.7 96 320 96zM438.3 236.5L428.9 249.4L300.9 425.4L289.9 440.6L201.3 352L223.9 329.4L286 391.5L403 230.7L412.4 217.8L438.3 236.6z"/>
+                <path d="M320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM320 96C196.3 96 96 196.3 96 320C96 443.7 196.3 544 320 544C443.7 544 544 443.7 544 320C544 196.3 443.7 96 320 96zM438.3 236.5L428.9 249.4L300.9 425.4L289.9 440.6L201.3 352L223.9 329.4L286 391.5L403 230.7L412.4 217.8L438.3 236.6z" />
               </svg>
               <span>La password è stata cambiata con successo! <a class="text-light-accent-primary dark:text-dark-accent-primary hover:underline" routerLink="/login">Vai al login</a>.
               </span>
@@ -103,7 +104,7 @@ export class PasswordRecoveryPageComponent implements OnInit, OnDestroy {
   private readonly userCtx = inject(UserContextService)
 
   private changePasswordToken = signal<string>('');
-  private authSub?: Subscription;
+  private recoverySub?: Subscription;
   private paramSub?: Subscription;
   private sendSub?: Subscription;
   private valChSub?: Subscription
@@ -121,7 +122,6 @@ export class PasswordRecoveryPageComponent implements OnInit, OnDestroy {
   })
 
   private sanitizeToken(raw: string) {
-    // decode + rimuovi spazi, NBSP, zero-width, ecc.
     return decodeURIComponent(raw).replace(/[\s\u00A0\u200B-\u200D\uFEFF]/g, '');
   }
 
@@ -130,25 +130,63 @@ export class PasswordRecoveryPageComponent implements OnInit, OnDestroy {
       this.form.get('confirmPassword')?.updateValueAndValidity({ onlySelf: true });
     })
     this.valChSub2 = this.form.valueChanges.subscribe(() => this.serverError.set(false))
-    const raw = this.route.snapshot.queryParamMap.get('t') ?? '';
-    const t = this.sanitizeToken(raw);
-    if (!t || !Helpers.isValidJwt(t)) {
-      this.router.navigateByUrl('/')
-      return
-    }
-
-    this.changePasswordToken.set(t);
-    this.authSub = this.accountService.isAuthorizedToRecoverPassword(t)
-      .pipe(
-        distinctUntilChanged(),
+    this.recoverySub = of(null).pipe(
+      tap(() => {
+        this.userCtx.logout()
+      }),
+      switchMap(() => this.route.fragment.pipe(
+        filter((frag): frag is string => !!frag),
         take(1),
-        tap(
-          () => this.userCtx.logout()
-        )
-      ).subscribe({
-        next: ok => ok ? this.canView.set(true) : this.router.navigateByUrl('/'),
-        error: () => this.router.navigateByUrl('/')
-      });
+        switchMap((frag) => {
+
+          const raw = new URLSearchParams(frag).get('t') ?? ''
+          const t = this.sanitizeToken(raw)
+
+          if (!t || !Helpers.isValidJwt(t)) {
+            this.router.navigateByUrl('/404-not-found')
+            return EMPTY
+          }
+
+          this.changePasswordToken.set(t)
+
+          this.router.navigate([], {
+            relativeTo: this.route,
+            replaceUrl: true,
+            fragment: undefined
+          })
+
+          queueMicrotask(() => {
+            if (location.hash) {
+              history.replaceState({}, '', location.pathname + location.search)
+            }
+          })
+
+          return of(t)
+
+        })
+      )
+      ),
+      switchMap((t) => this.accountService.isAuthorizedToRecoverPassword(t).pipe(
+        take(1),
+        switchMap((ok) => {
+          if (!ok) {
+            this.router.navigateByUrl('/404-not-found')
+            return EMPTY
+          }
+          this.canView.set(true)
+          return EMPTY
+        }),
+        catchError(() => {
+          this.router.navigateByUrl('/404-not-found')
+          return EMPTY
+        })
+      )
+      ),
+      catchError(() => {
+        this.router.navigateByUrl('/404-not-found')
+        return EMPTY
+      })
+    ).subscribe()
   }
 
   send(): void {
@@ -174,7 +212,7 @@ export class PasswordRecoveryPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.authSub?.unsubscribe()
+    this.recoverySub?.unsubscribe()
     this.paramSub?.unsubscribe()
     this.sendSub?.unsubscribe()
     this.valChSub?.unsubscribe()

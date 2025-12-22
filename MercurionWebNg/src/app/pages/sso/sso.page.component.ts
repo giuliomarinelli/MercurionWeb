@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
-import { EMPTY, of, Subscription, switchMap, defer, from, combineLatest, catchError } from 'rxjs';
+import { EMPTY, of, Subscription, switchMap, defer, from, combineLatest, catchError, take, filter } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TypeGuardsService } from '../../services/type-guards.service';
 import { FingerprintService } from '../../services/fingerprint.service';
@@ -33,28 +33,50 @@ export class SsoPageComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.sub = of(null).pipe(
       switchMap(() => defer(() => from(this.fingerprintService.getSanitizedFingerprint()))),
-      switchMap((fw) => combineLatest([of(fw.fingerprintDataEnc), of(btoa(JSON.stringify(fw.sessionDeviceInfo))), this.route.queryParamMap])),
-      switchMap(([fp_enc, di_enc, p]) => {
-        const sso_pat = p.get('t') ?? ''
+      switchMap((fw) =>
+        combineLatest([
+          of(fw.fingerprintDataEnc),
+          of(btoa(JSON.stringify(fw.sessionDeviceInfo))),
+          this.route.queryParamMap,
+          this.route.fragment,
+        ]).pipe(
+          filter(([, , , frag]) => typeof frag === 'string' && frag.includes('t=')),
+          take(1)
+        )
+      ),
+      switchMap(([fp_enc, di_enc, p, frag]) => {
+
         const provider = p.get('provider') ?? ''
+
+        // fragment atteso: "t=<token>"
+        const sso_pat = frag ? (new URLSearchParams(frag).get('t') ?? '') : ''
+
         if (this.typeGuards.is_SSO_AuthProvider(provider) && /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(sso_pat)) {
-          history.replaceState({}, '', location.pathname + '?provider=' + provider)
+          this.router.navigate([], {
+            relativeTo: this.route,
+            queryParams: { provider },
+            replaceUrl: true,
+            fragment: undefined
+          })
+
+          queueMicrotask(() => {
+            if (location.hash) {
+              history.replaceState({}, '', location.pathname + location.search)
+            }
+          })
+
           localStorage.removeItem('accessToken')
           localStorage.removeItem('ws_accessToken')
           localStorage.removeItem('ws_accessToken_ts')
           localStorage.removeItem('login')
           localStorage.removeItem('scp')
           document.cookie = '__logged_in=; Max-Age=0; path=/'
+
           return this.authService.sso_authorizeFlow(fp_enc, di_enc, sso_pat, provider).pipe(
             catchError(() => {
               queueMicrotask(() => {
                 sessionStorage.removeItem('redirectAfterLogin')
-                this.router.navigate(['/login'], {
-                  queryParams: {
-                    err: 'sso_failed',
-                    provider
-                  }
-                })
+                this.router.navigate(['/login'], { queryParams: { err: 'sso_failed', provider } })
               })
               return EMPTY
             })

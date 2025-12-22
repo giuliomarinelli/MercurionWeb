@@ -46,12 +46,12 @@ export class SocialAuthController {
   ): Promise<void> {
     const normalizedProvider = typeof provider === 'string' ? provider.trim() : provider
     if (!TypeGuards.isAuthProvider(normalizedProvider)) {
-      throw new BadRequestException('Invalid provider')
+      throw new BadRequestException('SSO_BadRequest::Invalid provider')
     }
     const normalizedCode = typeof code === 'string' ? code.trim() : code
     const normalizedState = typeof state === 'string' ? state.trim() : state
     const onError = (code = '') => {
-      let errorRedirectUrl = `${this.base}/login?err=sso_failed&provider=${normalizedProvider}`
+      let errorRedirectUrl = `${this.base}/login?err=sso_failed&provider=${encodeURIComponent(normalizedProvider)}`
       if (code) {
         errorRedirectUrl += `&code=${encodeURIComponent(code)}`
       }
@@ -64,7 +64,8 @@ export class SocialAuthController {
     }
     try {
       const sso_pat = await this.socialAuth.loginWithProvider(normalizedProvider, normalizedCode)
-      const redirectUrl = `${this.base}/oauth2/callback?t=${sso_pat}&provider=${normalizedProvider}`
+      const redirectUrl = `${this.base}/oauth2/callback?provider=${encodeURIComponent(normalizedProvider)}#t=${encodeURIComponent(sso_pat)}`
+
       reply.redirect(redirectUrl, 302)
       return
     } catch (e) {

@@ -326,7 +326,7 @@ export class AccountService {
             gender
         })
         const activationToken: string = await this.jwtTools.generateToken(userId, TokenType.ActivationToken)
-        const url: string = `${this.configService.get<string>("App.activationOrigin")}/account/activate?t=${activationToken}`
+        const url = `${this.configService.get<string>("App.activationOrigin")!}/account/activate#t=${encodeURIComponent(activationToken)}`
         await this.mailService.sendEmail<UserCtaContext>(
             email,
             `${firstName}, completa la tua registrazione a Mercurion`,
@@ -862,7 +862,7 @@ export class AccountService {
         await this.throttlePasswordResetSend(userId as UUID, PasswordContext.RESET_SEND)
         const changePasswordToken = await this.jwtTools.generateToken(userId as UUID, TokenType.ChangePasswordToken)
         const firstName = await this.userService.getUserFirstNameById(userId as UUID)
-        const url = `${this.configService.get<string>("App.activationOrigin")}/password-recovery?t=${encodeURIComponent(changePasswordToken)}`
+        const url = `${this.configService.get<string>("App.activationOrigin")}/password-recovery#t=${encodeURIComponent(changePasswordToken)}`
         await this.mailService.sendEmail<UserCtaContext>(
             email,
             'Mercurion: recupero password',

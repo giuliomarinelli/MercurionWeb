@@ -123,7 +123,7 @@ import { DesignService } from '../../../services/design.service';
             }
 
         </button>
-      } @else if (_remainingBackupCodes() >= 0) {
+      } @else if (_remainingBackupCodes() >= 0 && _strategy()!.strategy !== 'SMS_OTP') {
         <p class="text-sm">
           Rimanenti:&nbsp;
           @if (!_remainingBackupCodes()) {

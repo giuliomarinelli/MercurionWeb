@@ -26,7 +26,7 @@ export class Helpers {
   }
 
   static isValidJwt(t: string) {
-    return /^[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+){2}$/.test(t);
+    return /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(t)
   }
 
   static moleculeClientToCardConverter(mol: MoleculeCollectionItemClient): MoleculeCardItemModel {
