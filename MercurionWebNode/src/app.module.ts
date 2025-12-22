@@ -30,16 +30,24 @@ import { AdminModule } from './app_modules/admin/admin.module';
 import { SSO_Module } from './app_modules/sso/sso.module';
 import { HelpModule } from './app_modules/help/help.module';
 import { FeedbackModule } from './app_modules/feedback/feedback.module';
+import { resolveAppEnv, shouldUseEnvFile } from './utils/env-helpers';
 
-
-const nodeEnv = process.env.NODE_ENV ?? 'development'
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: join(__dirname, `../env/.env.${nodeEnv}`),
-      load: [...configurations]
+      // 👇 chiave: file solo in dev/test
+      ignoreEnvFile: !shouldUseEnvFile(resolveAppEnv()),
+      envFilePath: shouldUseEnvFile(resolveAppEnv())
+        ? join(__dirname, `../env/.env.${resolveAppEnv()}`)
+        : undefined,
+      load: [...configurations],
+      // opzionale ma comodo se in .env si usa ${VAR}
+      expandVariables: true,
+      // IMPORTANT: non fare caching finché si sistema,
+      // poi si può settare a true
+      cache: false
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -80,7 +88,7 @@ const nodeEnv = process.env.NODE_ENV ?? 'development'
     JwtToolsService,
     SessionService,
     JwtService,
-    ResponseService    
+    ResponseService
   ],
   controllers: [TestController]
 })

@@ -35,7 +35,8 @@ export enum ConfigKey {
 const AppConfig = registerAs(
 
     ConfigKey.App, (): AppConfiguration => ({
-        env: GeneralUtils.getEnumValue(Environment, process.env.NODE_ENV ?? Environment.Development) as Environment,
+        nodeEnv: (process.env.NODE_ENV as 'development' | 'production') ?? "development",
+        env: GeneralUtils.getEnumValue(Environment, process.env.APP_ENV ?? Environment.Development) as Environment,
         port: Number(process.env.APP_PORT) || 8099,
         natsPort: Number(process.env.APP_NATS_PORT) || 4223,
         natsHost: process.env.APP_NATS_HOST ?? 'nats://localhost',
