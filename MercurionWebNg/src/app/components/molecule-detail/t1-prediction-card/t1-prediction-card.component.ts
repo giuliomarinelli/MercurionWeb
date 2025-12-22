@@ -13,8 +13,8 @@ import { RouterLink } from '@angular/router';
       <h2 class="font-semibold text-emerald-600 dark:text-emerald-400 xs:text-lg mb-2 text-center sm:text-left text-xl">Predizione Tossicologica</h2>
       <div class="rounded-xl border-2 border-emerald-400/70 bg-emerald-50/60 dark:bg-gray-900/80 shadow p-6 space-y-4">
         <h3 class="flex gap-1 font-bold text-sm text-emerald-600 dark:text-emerald-400 xs:text-lg mb-2">
-          <span>MercurionAI T-1</span>
-            <a routerLink="/mercurion-ai/info/models" [queryParams]="{m: 't1'}" title="T-1 è un modello di predizione tossicologica QSAR basato su fingerprint molecolari e intelligenza artificiale. Clicca qui per approfondire.">
+          <span>MercurionAI MT-21</span>
+            <a routerLink="/mercurion-ai/info/models" [fragment]="'mt-21'" title="T-1 è un modello di predizione tossicologica QSAR basato su fingerprint molecolari e intelligenza artificiale. Clicca qui per approfondire.">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-3.5 h-3.5 relative top-0.5">
                 <!--!Font Awesome Pro v7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                 <path d="M320 112C434.9 112 528 205.1 528 320C528 434.9 434.9 528 320 528C205.1 528 112 434.9 112 320C112 205.1 205.1 112 320 112zM320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM280 400C266.7 400 256 410.7 256 424C256 437.3 266.7 448 280 448L360 448C373.3 448 384 437.3 384 424C384 410.7 373.3 400 360 400L352 400L352 312C352 298.7 341.3 288 328 288L280 288C266.7 288 256 298.7 256 312C256 325.3 266.7 336 280 336L304 336L304 400L280 400zM320 256C337.7 256 352 241.7 352 224C352 206.3 337.7 192 320 192C302.3 192 288 206.3 288 224C288 241.7 302.3 256 320 256z"/>

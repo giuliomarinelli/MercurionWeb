@@ -38,17 +38,13 @@ const appEnv = resolveAppEnv()
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true,
-      // 👇 chiave: file solo in dev/test
+      isGlobal: true,      
       ignoreEnvFile: !shouldUseEnvFile(appEnv),
       envFilePath: shouldUseEnvFile(appEnv)
         ? join(__dirname, `../env/.env.${appEnv}`)
         : undefined,
-      load: [...configurations],
-      // opzionale ma comodo se in .env si usa ${VAR}
-      expandVariables: true,
-      // IMPORTANT: non fare caching finché si sistema,
-      // poi si può settare a true
+      load: [...configurations],      
+      expandVariables: true,            
       cache: false,
       validate: (config) => {
         validateEnvOrKillProcess(config as NodeJS.ProcessEnv)
