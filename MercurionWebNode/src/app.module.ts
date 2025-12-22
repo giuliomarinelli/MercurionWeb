@@ -32,15 +32,16 @@ import { HelpModule } from './app_modules/help/help.module';
 import { FeedbackModule } from './app_modules/feedback/feedback.module';
 import { resolveAppEnv, shouldUseEnvFile } from './utils/env-helpers';
 
+const appEnv = resolveAppEnv()
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       // 👇 chiave: file solo in dev/test
-      ignoreEnvFile: !shouldUseEnvFile(resolveAppEnv()),
-      envFilePath: shouldUseEnvFile(resolveAppEnv())
-        ? join(__dirname, `../env/.env.${resolveAppEnv()}`)
+      ignoreEnvFile: !shouldUseEnvFile(appEnv),
+      envFilePath: shouldUseEnvFile(appEnv)
+        ? join(__dirname, `../env/.env.${appEnv}`)
         : undefined,
       load: [...configurations],
       // opzionale ma comodo se in .env si usa ${VAR}

@@ -3,11 +3,11 @@
 import { registerAs } from "@nestjs/config";
 import { AppConfiguration, CloudflareConfiguration, DataConfiguration, OAuth2ProviderConfiguration, JwtConfigurations, MeilisearchConfiguration, SecureCookieConfiguration, SessionConfiguration, SmsConfiguration, TotpConfiguration, RedisConfiguration, SSO_Configurations } from "./config.types";
 import { UUID } from "crypto";
-import { GeneralUtils } from "src/utils/general-utils/general-utils";
 import { SnakeNamingStrategy } from "typeorm-naming-strategies";
 import { MailerOptions } from "@nestjs-modules/mailer";
 import { join } from "path";
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter'
+import { parseAppEnv } from "src/utils/env-helpers";
 
 export enum Environment {
     Development = 'development',
@@ -36,7 +36,7 @@ const AppConfig = registerAs(
 
     ConfigKey.App, (): AppConfiguration => ({
         nodeEnv: (process.env.NODE_ENV as 'development' | 'production') ?? "development",
-        env: GeneralUtils.getEnumValue(Environment, process.env.APP_ENV ?? Environment.Development) as Environment,
+        env: parseAppEnv(process.env.APP_ENV),
         port: Number(process.env.APP_PORT) || 8099,
         natsPort: Number(process.env.APP_NATS_PORT) || 4223,
         natsHost: process.env.APP_NATS_HOST ?? 'nats://localhost',
