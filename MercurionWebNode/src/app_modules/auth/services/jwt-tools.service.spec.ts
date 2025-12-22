@@ -22,6 +22,17 @@ jest.mock('src/app_modules/user/services/user.service', () => ({
   },
 }));
 
+const jwtKeysMock = {
+  getAccessKeyPair: () => ({
+    privateKey: '-----BEGIN KEY-----\naccess\n-----END KEY-----',
+    publicKey: '-----BEGIN KEY-----\naccess\n-----END KEY-----',
+  }),
+  getWsKeyPair: () => ({
+    privateKey: '-----BEGIN KEY-----\nws\n-----END KEY-----',
+    publicKey: '-----BEGIN KEY-----\nws\n-----END KEY-----',
+  })
+}
+
 describe('JwtToolsService', () => {
   let service: JwtToolsService;
 
@@ -49,6 +60,7 @@ describe('JwtToolsService', () => {
       {
         forContext: jest.fn().mockReturnValue({ log: jest.fn(), warn: jest.fn() }),
       } as unknown as MeiliLoggerService,
+      jwtKeysMock as any
     );
   });
 
