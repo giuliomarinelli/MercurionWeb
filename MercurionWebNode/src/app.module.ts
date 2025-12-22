@@ -31,7 +31,7 @@ import { SSO_Module } from './app_modules/sso/sso.module';
 import { HelpModule } from './app_modules/help/help.module';
 import { FeedbackModule } from './app_modules/feedback/feedback.module';
 import { resolveAppEnv, shouldUseEnvFile } from './utils/env-helpers';
-import { validateEnvOrThrow as validateEnvOrDie } from './config/env-validation';
+import { validateEnvOrKillProcess } from './config/env-validation';
 
 const appEnv = resolveAppEnv()
 
@@ -51,7 +51,7 @@ const appEnv = resolveAppEnv()
       // poi si può settare a true
       cache: false,
       validate: (config) => {
-        validateEnvOrDie(config as NodeJS.ProcessEnv)
+        validateEnvOrKillProcess(config as NodeJS.ProcessEnv)
         return config
       }
     }),

@@ -16,7 +16,7 @@ function toInt(v: unknown): number | undefined {
     return Number.isFinite(n) ? n : undefined
 }
 
-export function validateEnvOrThrow(raw: NodeJS.ProcessEnv): EnvVars {
+export function validateEnvOrKillProcess(raw: NodeJS.ProcessEnv): EnvVars {
     const coerced: Record<string, unknown> = {
         ...raw,
 
