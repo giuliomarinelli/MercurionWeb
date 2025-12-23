@@ -137,14 +137,12 @@ export class MoleculeCollectionResolver {
         @Args('page', { type: () => Int, defaultValue: 1 }) page: number,
         @Args('limit', { type: () => Int, defaultValue: 20 }) limit: number,
         @Args('excludeJoinedToMolecule', { type: () => Boolean, nullable: true }) excludeJoinedToMolecule: boolean | null,
-        @Args('moleculeId', { type: () => ID, nullable: true }) moleculeId: UUID | null,
+        @Args('moleculeId', { type: () => ID, nullable: true }) moleculeId: string | null,
         @Info() info: GraphQLResolveInfo,
         @Args('q', { type: () => String }) q: string
     ): Promise<PaginatedMoleculeCollection> {
         const normalizedQ = typeof q === 'string' ? q.trim() : q
-        if (moleculeId) {
-            this.ensureUuidv7(moleculeId, 'moleculeId')
-        }
+        
 
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         const paginated = await this.collectionService.paginateAllByUser(userId, { page, limit }, normalizedQ, excludeJoinedToMolecule ?? false, moleculeId, fieldsMap);
@@ -166,7 +164,6 @@ export class MoleculeCollectionResolver {
         @Args('collectionIds', { type: () => [ID] }) collectionIds: UUID[],
         @Args('selectAll', { type: () => Boolean }) selectAll: boolean
     ): Promise<BindManyCollectionsToMoleculeDTO> {
-        this.ensureUuidv7(moleculeId, 'moleculeId')
         collectionIds.forEach((collectionId) => this.ensureUuidv7(collectionId, 'collectionIds'))
         return this.joinService.bindManyCollectionsToMolecule(userId, moleculeId, collectionIds, selectAll)
     }

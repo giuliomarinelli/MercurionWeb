@@ -19,22 +19,22 @@ export class EmbeddingController {
         if (!Number.isFinite(parsedMolregno)) {
             throw new BadRequestException('molregno must be a number')
         }
+
         const parsedN = Number(n ?? 10)
         if (!Number.isFinite(parsedN) || parsedN <= 0) {
             throw new BadRequestException('n must be a positive number')
         }
-        const onlyMolregnosFlag = typeof only_molregnos === 'string' ? only_molregnos.trim().toLowerCase() : `${only_molregnos}`
-        const withNoNameFlag = typeof with_no_name === 'string' ? with_no_name.trim().toLowerCase() : `${with_no_name}`
-        const onlyMolregnos = onlyMolregnosFlag === 'true'
+
+        const onlyMolregnosFlag = String(only_molregnos ?? 'true').trim().toLowerCase()
+        const withNoNameFlag = String(with_no_name ?? 'false').trim().toLowerCase()
         if (!['true', 'false'].includes(onlyMolregnosFlag) || !['true', 'false'].includes(withNoNameFlag)) {
             throw new BadRequestException('Boolean query params must be either true or false')
         }
-        const withNoName = withNoNameFlag === 'true'
-        const withNoNameParam = withNoName ? 'true' : 'false'
+
+        const onlyMolregnos = onlyMolregnosFlag === 'true'
+        const withNoNameParam = withNoNameFlag === 'true' ? 'true' : 'false'
         const result = await this.svc.getSimilarMolregnos(parsedMolregno, parsedN, withNoNameParam);
-        if (onlyMolregnos) {
-            return result.map(r => r.molregno)
-        }
-        return result
+
+        return onlyMolregnos ? result.map(r => r.molregno) : result
     }
 }

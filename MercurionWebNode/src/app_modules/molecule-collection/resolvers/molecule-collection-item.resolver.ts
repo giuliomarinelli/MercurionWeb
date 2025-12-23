@@ -58,9 +58,6 @@ export class MoleculeCollectionItemResolver {
     ): Promise<PaginatedMoleculeCollectionItem> {
         const options: IPaginationOptions = { page, limit }
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
-        if (collectionId) {
-            this.ensureUuid(collectionId, 'collectionId')
-        }
         const normalizedQ = typeof q === 'string' ? q.trim() : q
         return this.itemService.paginateAllByUser(userId, options, normalizedQ, excludeJoinedToCollection ?? false, collectionId, fieldsMap)
     }

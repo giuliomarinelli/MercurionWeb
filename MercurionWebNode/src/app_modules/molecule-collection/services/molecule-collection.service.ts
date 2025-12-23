@@ -430,7 +430,7 @@ WHERE i.user_id = $2::uuid
     options: IPaginationOptions,
     searchTerm: string = '',
     excludeJoinedToMolecule: boolean = false,
-    moleculeId: UUID | null = null,
+    moleculeId: string | null = null,
     fieldsMap?: GraphQLFieldsMap,
   ): Promise<Pagination<MoleculeCollection>> {
 

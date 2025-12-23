@@ -50,7 +50,7 @@ export class AccountController {
     @Public()
     @Patch('/activate')
     public async activateAccount(@Query('t') activationToken: string): Promise<ConfirmWithRecoveryCodeDTO> {
-        if (!/^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$/.test(activationToken)) {
+        if (!/^[A-Za-z0-9_-]+=*\.[A-Za-z0-9_-]+=*\.[A-Za-z0-9_-]+=*$/i.test(activationToken)) {
             throw new BadRequestException('Invalid t param pattern')
         }
         return this.accountService.activateUser(activationToken)
