@@ -1,4 +1,4 @@
-import { IsBoolean, IsEnum, IsInt, IsOptional, IsString, IsUUID, Min } from "class-validator"
+import { IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Min } from "class-validator"
 import { Environment } from "./config"
 
 export class EnvVars {
@@ -349,6 +349,10 @@ export class EnvVars {
   @IsInt()
   @Min(1)
   REDIS_PORT: number
+
+  @IsString()
+  @IsNotEmpty()
+  REDIS_PASSWORD: string
 
   // ========================
   // SSO

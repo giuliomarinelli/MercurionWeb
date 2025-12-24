@@ -21,14 +21,14 @@ import { MeiliLoggerService } from '../meilisearch/services/meili-logger.service
             inject: [ConfigService, MeiliLoggerService],
             useFactory: async (configService: ConfigService, loggerFactory: MeiliLoggerService) => {
 
-                const { host, port } = configService.get<RedisConfiguration>('Redis')!;
+                const { host, port, password } = configService.get<RedisConfiguration>('Redis')!;
 
                 const logger = loggerFactory.forContext(RedisModule.name)
 
                 const client = new Redis({
                     host,
                     port,
-                    // opzionale ma spesso utile nei backend con pub/sub ecc.
+                    password,
                     maxRetriesPerRequest: null,
                     enableReadyCheck: true
                 });

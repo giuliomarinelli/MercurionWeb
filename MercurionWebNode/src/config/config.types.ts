@@ -113,6 +113,7 @@ export interface CloudflareConfiguration {
 export interface RedisConfiguration {
     host: string
     port: number
+    password: string
 }
 
 export interface SSO_Configuration {

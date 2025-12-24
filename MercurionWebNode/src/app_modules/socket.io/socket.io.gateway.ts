@@ -37,7 +37,11 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
   }
 
   afterInit(server: Server) {
-    const pubClient = new Redis({ host: this.redisConf.host, port: this.redisConf.port })
+    const pubClient = new Redis({
+      host: this.redisConf.host,
+      port: this.redisConf.port,
+      password: this.redisConf.password
+    })
     const subClient = pubClient.duplicate()
     server.adapter(createAdapter(pubClient, subClient))
     this.pubSubService.setSocketServer(server)
@@ -57,7 +61,7 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
     }
 
     try {
-      
+
       const { sub: userId, sid: sessionId } = await this.jwtTools.verifyTokenAndGetPayload(token, TokenType.ws_AccessToken);
 
       client.data.userId = userId;
