@@ -18,25 +18,25 @@ spec:
           image: redis@sha256:4521b581dbddea6e7d81f8fe95ede93f5648aaa66a9dacd581611bf6fe7527bd
           ports:
             - containerPort: 6379
-          command:
-            - "redis-server"
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-credentials
+                  key: REDIS_PASSWORD
+          command: ["sh", "-c"]
           args:
-            - "--notify-keyspace-events"
-            - "Exg"
-            - "--save"
-            - "900 1"
-            - "--save"
-            - "300 10"
-            - "--save"
-            - "60 10000"
-            - "--dbfilename"
-            - "dump.rdb"
-            - "--dir"
-            - "/data"
-            - "--maxmemory"
-            - "256mb"
-            - "--maxmemory-policy"
-            - "volatile-ttl"
+            - |
+              redis-server \
+                --requirepass "$REDIS_PASSWORD" \
+                --notify-keyspace-events Exg \
+                --save "900 1" \
+                --save "300 10" \
+                --save "60 10000" \
+                --dbfilename dump.rdb \
+                --dir /data \
+                --maxmemory 256mb \
+                --maxmemory-policy volatile-ttl
           volumeMounts:
             - name: redis-data
               mountPath: /data
@@ -85,25 +85,25 @@ spec:
           image: redis@sha256:4521b581dbddea6e7d81f8fe95ede93f5648aaa66a9dacd581611bf6fe7527bd
           ports:
             - containerPort: 6379
-          command:
-            - "redis-server"
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-credentials
+                  key: REDIS_PASSWORD
+          command: ["sh", "-c"]
           args:
-            - "--notify-keyspace-events"
-            - "Exg"
-            - "--save"
-            - "900 1"
-            - "--save"
-            - "300 10"
-            - "--save"
-            - "60 10000"
-            - "--dbfilename"
-            - "dump.rdb"
-            - "--dir"
-            - "/data"
-            - "--maxmemory"
-            - "256mb"
-            - "--maxmemory-policy"
-            - "volatile-ttl"
+            - |
+              redis-server \
+                --requirepass "$REDIS_PASSWORD" \
+                --notify-keyspace-events Exg \
+                --save "900 1" \
+                --save "300 10" \
+                --save "60 10000" \
+                --dbfilename dump.rdb \
+                --dir /data \
+                --maxmemory 256mb \
+                --maxmemory-policy volatile-ttl
           volumeMounts:
             - name: redis-data
               mountPath: /data
