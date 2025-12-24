@@ -1,0 +1,39 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: meili-restore-from-gcs-stream
+  namespace: mercurion-core
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: restore
+          image: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+          command:
+            - /bin/bash
+            - -c
+            - |
+              set -euo pipefail
+
+              echo "[restore] pulizia /meili_data..."
+              rm -rf /meili_data/* /meili_data/.[!.]* /meili_data/..?* || true
+
+              echo "[restore] streaming da GCS dentro tar..."
+              gcloud storage cat \
+                gs://mercurion-volume-bucket/meilisearch/docker_sl_meili_data.tar.gz \
+                | tar xz -C /meili_data
+
+              echo "[restore] lista /meili_data:"
+              ls -lh /meili_data | head
+
+              echo "[restore] dimensione totale PVC:"
+              du -sh /meili_data
+          volumeMounts:
+            - name: meili-data
+              mountPath: /meili_data
+      volumes:
+        - name: meili-data
+          persistentVolumeClaim:
+            claimName: meili-data

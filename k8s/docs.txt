@@ -1,4 +1,0 @@
-Connessione meili in beta e prod:
-
-MEILI_HOST=http://meilisearch-sl.mercurion-core.svc.cluster.local:7700
-MEILI_API_KEY=<key-password-manager>

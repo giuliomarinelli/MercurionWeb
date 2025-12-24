@@ -1,0 +1,35 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: meili-fix-perms
+  namespace: mercurion-core
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: fix
+        image: debian:12-slim
+        command:
+        - /bin/sh
+        - -c
+        - |
+          chown -R 1000:1000 /meili_data
+      volumes:
+      - name: meili-data
+        persistentVolumeClaim:
+          claimName: meili-data
+      # ⬆️ I VOLUMES stanno QUI, non fuori
+      # ⬇️ I VOLUMEMOUNTS stanno DENTRO il container
+      containers:
+      - name: fix
+        image: debian:12-slim
+        command:
+        - /bin/sh
+        - -c
+        - |
+          chown -R 1000:1000 /meili_data
+        volumeMounts:
+        - name: meili-data
+          mountPath: /meili_data
