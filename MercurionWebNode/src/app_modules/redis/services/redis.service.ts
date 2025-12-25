@@ -10,9 +10,9 @@ export class RedisService {
 
   constructor(
     private readonly redisClient: Redis,
-    meiliLogger: MeiliLoggerService
+    loggerFactory: MeiliLoggerService
   ) {
-    this.logger = meiliLogger.forContext(RedisService.name)
+    this.logger = loggerFactory.forContext(RedisService.name)
   }
 
 

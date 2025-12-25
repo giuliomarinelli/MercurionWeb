@@ -1,6 +1,5 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { createHmac, randomUUID, UUID } from 'crypto';
-import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { ISession, ISessionDeviceInfo, ISSO_SessionActivationData } from '../Models/interfaces/i-session.interface';
 import { RpcException } from '@nestjs/microservices';
 import { GeoLocation } from './geo-ip.service';
@@ -11,7 +10,7 @@ import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-l
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 import { AuthProvider } from 'src/app_modules/sso/Models/enums/auth-provider.enum';
 import { TypeGuards } from 'src/utils/type-guards/type-guards';
-
+import { RedisService } from 'src/app_modules/redis/services/redis.service'
 
 @Injectable()
 export class SessionService {
@@ -512,6 +511,10 @@ export class SessionService {
         }
     }
 
+    public async destroySessionAndRevokeAllTokensByPlainSessionId(sessionId: UUID, userId?: UUID): Promise<void> {
+        const signedSessionId = this.signSessionId(sessionId)
+        await this.destroySessionAndRevokeAllTokensBySignedSessionId(signedSessionId, userId)
+    }
 
     public async destroySessionAndRevokeAllTokensBySignedSessionId(signedSessionId: string, userId?: string): Promise<void> {
 
