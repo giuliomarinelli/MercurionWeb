@@ -13,6 +13,7 @@ spec:
       labels:
         app: meilisearch-sl
     spec:
+      terminationGracePeriodSeconds: 60
       containers:
         - name: meilisearch
           image: getmeili/meilisearch@sha256:8cd411ba5d9ec2dfce02e241305208eebacce0fd74a72bece21cadd03dc566ce
@@ -33,6 +34,25 @@ spec:
           volumeMounts:
             - name: meili-data
               mountPath: /meili_data
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 7700
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 6
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 7700
+            initialDelaySeconds: 20
+            periodSeconds: 20
+            timeoutSeconds: 2
+            failureThreshold: 6
+
       volumes:
         - name: meili-data
           persistentVolumeClaim:
