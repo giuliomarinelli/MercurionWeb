@@ -85,7 +85,10 @@ export class GlobalGuard implements CanActivate {
 
          try {
 
-            payload = await this.jwtToolsService.verifyTokenAndGetPayload(accessToken, TokenType.AccessToken)
+            payload = await this.jwtToolsService.verifyTokenAndGetPayload(
+               accessToken,
+               TokenType.AccessToken,
+            )
 
             userId = payload.sub
 
@@ -104,7 +107,7 @@ export class GlobalGuard implements CanActivate {
                payload = await this.jwtToolsService.verifyTokenAndGetPayload(
                   accessToken,
                   TokenType.AccessToken,
-                  true // ignore expiration
+                  true, // ignore expiration (but still verify signature)
                )
 
                userId = payload.sub
@@ -126,7 +129,12 @@ export class GlobalGuard implements CanActivate {
 
                // session id must exist and match token sid (timing-safe)
                const headerSid = (req.headers['x-session-id'] ?? '') as string
-               if (!timingSafeEqual(Buffer.from(headerSid), Buffer.from(payload.sid))) {
+               if (
+                  !headerSid ||
+                  !payload.sid ||
+                  headerSid.length !== payload.sid.length ||
+                  !timingSafeEqual(Buffer.from(headerSid), Buffer.from(payload.sid))
+               ) {
                   this.logger.warn('[Refreshing] Cookie sessionId and old token claim sid mismatch')
                   throw new UnauthorizedException()
                }
@@ -268,11 +276,33 @@ export class GlobalGuard implements CanActivate {
             throw unauthorizedException
          }
 
+         // 🔹 Fallback userId from unsafe decode (solo se il sid combacia col cookie)
+         let fallbackUserId: UUID | undefined
+
+         if (!userId && oldTokenPayload) {
+            const tokenSid = TypeGuards.isThruthyString(oldTokenPayload.sid)
+               ? oldTokenPayload.sid
+               : ''
+            const tokenSub = oldTokenPayload.sub as UUID | undefined
+
+            if (
+               tokenSub &&
+               tokenSid &&
+               cookieSid &&
+               tokenSid.length === cookieSid.length &&
+               timingSafeEqual(Buffer.from(tokenSid), Buffer.from(cookieSid))
+            ) {
+               fallbackUserId = tokenSub
+            }
+         }
+
+         const effectiveUserId: UUID | undefined = userId ?? fallbackUserId
+
          // Decide if we should revoke (hard auth only)
          const shouldRevoke = this.shouldRevokeOnError(e)
 
-         if (shouldRevoke && sessionId && userId) {
-            await this.revokeSessionAndTokensPlain(sessionId, userId)
+         if (shouldRevoke && sessionId && effectiveUserId) {
+            await this.revokeSessionAndTokensPlain(sessionId, effectiveUserId)
          }
 
          // normalize any auth error into our unauthorizedException
@@ -309,7 +339,6 @@ export class GlobalGuard implements CanActivate {
          const m = e.message
 
          // Add here the codes you *know* mean compromised/invalid auth context
-         // Examples (based on your services):
          if (m === 'InvalidSessionSignature') return true
          if (m === 'InvalidSession') return true
          if (m === 'UnauthorizedNoSuchSession') return true
