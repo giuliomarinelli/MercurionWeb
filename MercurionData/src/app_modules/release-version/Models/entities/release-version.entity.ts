@@ -6,6 +6,7 @@ import {
     Index,
 } from 'typeorm';
 import { ReleaseContext } from '../enums/release-context.enum';
+import { ReleaseNote } from '../DTO/release-note.dtos';
 
 @Entity({ name: 'release_versions' })
 @Index('ux_release_versions_version_string', ['versionString'], { unique: true })
@@ -62,6 +63,6 @@ export class ReleaseVersion {
     sourceRef: string
 
     @Column({ name: 'release_notes', type: 'jsonb', nullable: true })
-    releaseNotes: Record<string, unknown> | null
+    releaseNotes: ReleaseNote[] | null
 
 }

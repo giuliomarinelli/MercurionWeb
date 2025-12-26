@@ -71,7 +71,7 @@ export interface ReleaseCompatibility {
     }>
 }
 
-export interface ReleaseNotes extends ReleaseNoteHeader {
+export interface ReleaseNote extends ReleaseNoteHeader {
     changes?: ReleaseChanges
     ops?: ReleaseOpsNotes
     compatibility?: ReleaseCompatibility
