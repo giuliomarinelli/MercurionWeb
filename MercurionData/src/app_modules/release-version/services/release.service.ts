@@ -19,6 +19,7 @@ export class ReleaseService {
     async getAll(
         options: IPaginationOptions
     ): Promise<Pagination<ReleaseVersion>> {
+        
         const qb = this.releaseVersionRepo
             .createQueryBuilder('rv')
             .orderBy('rv.created_at', 'DESC')
