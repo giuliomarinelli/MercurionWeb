@@ -1,0 +1,31 @@
+services:
+  mercurion_web_ng_beta:
+    build:
+      context: ../../../MercurionWebNg
+      dockerfile: Dockerfile.staging
+    container_name: mercurion_web_ng_beta
+    expose:
+      - 3497       
+    networks:
+      - spectralume_network
+    restart: unless-stopped
+
+  mercurion_web_node_beta:
+    container_name: mercurion_web_node_beta
+    expose:
+      - 8098
+    build:
+      context: ../../../MercurionWebNode
+      dockerfile: Dockerfile.staging
+    environment:
+      NODE_ENV: test
+      # qui l’URL che i test usano per colpire l’API
+      API_BASE_URL: http://mercurion_nginx:8880
+    command: ["node", "dist/main.js"]
+    restart: unless-stopped
+
+
+networks:
+  spectralume_network:
+    driver: bridge
+    name: spectralume_network_beta

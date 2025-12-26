@@ -124,7 +124,6 @@ services:
       context: ../MercurionWebNode
       dockerfile: ../MercurionWebNode/Dockerfile.test
     environment:
-      NODE_ENV: test
       # qui l’URL che i test usano per colpire l’API
       API_BASE_URL: http://mercurion_nginx:8880
     command: ["node", "dist/main.js"]
