@@ -6,6 +6,7 @@ import { MeilisearchModule } from './app_modules/meilisearch/meilisearch.module'
 import { EmbeddingsModule } from './app_modules/embeddings/embeddings.module';
 import { ConfigModule } from '@nestjs/config';
 import { join } from 'path';
+import { ReleaseVersionModule } from './app_modules/release-version/release-version.module';
 
 
 
@@ -39,7 +40,8 @@ import { join } from 'path';
     Chembl36Module,
     MeilisearchModule,
     EmbeddingsModule,
-    TranslationModule
+    TranslationModule,
+    ReleaseVersionModule
   ],
   providers: [],
 })
