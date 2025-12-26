@@ -32,6 +32,7 @@ import { HelpModule } from './app_modules/help/help.module';
 import { FeedbackModule } from './app_modules/feedback/feedback.module';
 import { resolveAppEnv, shouldUseEnvFile } from './utils/env-helpers';
 import { validateEnvOrKillProcess } from './config/env-validation';
+import { ReleaseVersionModule } from './app_modules/release-version/release-version.module';
 
 const appEnv = resolveAppEnv()
 
@@ -80,7 +81,8 @@ const appEnv = resolveAppEnv()
     AdminModule,
     SSO_Module,
     HelpModule,
-    FeedbackModule
+    FeedbackModule,
+    ReleaseVersionModule
   ],
   providers: [
     {

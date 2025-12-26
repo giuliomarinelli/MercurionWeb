@@ -61,6 +61,7 @@ export class EnvVars {
   APP_AES_SECRET: string
 
   @IsString()
+  @IsOptional()
   APP_VERSION: string
 
   @IsString()
