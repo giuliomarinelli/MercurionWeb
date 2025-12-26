@@ -498,7 +498,7 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
       }),
 
       switchMap((molregno): Observable<string[]> =>
-        molregno ? this.embeddingService.getSimilarMolregnos(molregno) : of([])
+        molregno ? this.embeddingService.getSimilarMolregnos(molregno, 65) : of([])
       ),
 
       switchMap((ids: string[]) =>
@@ -506,13 +506,13 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
       ),
 
       tap(() => this.similarViewerReady.set(true)),
-      catchError(err => {
-        console.error(err)
+      catchError((e) => {
+        console.error(e)
         this.similarViewerReady.set(false)
         return of([] as MoleculeSearchResult[])
       })
     ).pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(previews => {
+      .subscribe((previews) => {
         this.similarMolsCache.set(previews)
         this.similarMols.set(
           previews.filter(mol => mol.known && this.onlyKnown.value === true)
