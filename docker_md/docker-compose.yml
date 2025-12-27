@@ -15,8 +15,15 @@ services:
       interval: 5s
       timeout: 3s
       retries: 20
+    networks:
+      - md_network
 volumes:
   pg_data:
     external: true
     name: docker_md_pg_data
   
+
+networks:
+  md_network:
+    driver: bridge
+    name: md_network

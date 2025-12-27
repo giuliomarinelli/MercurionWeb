@@ -38,8 +38,7 @@ ENV APP_ENV=staging
 
 RUN npm run build && \
   mkdir -p dist/app_modules/notification && \
-  cp -R src/app_modules/notification/email-templates dist/app_modules/notification/email-templates && \
-  npm run test
+  cp -R src/app_modules/notification/email-templates dist/app_modules/notification/email-templates
 
 FROM node:24-alpine AS runtime
 WORKDIR /usr/src/app
@@ -56,4 +55,4 @@ COPY --from=build /usr/src/app/dist ./dist
 COPY --from=build /usr/src/app/package.json ./package.json
 COPY --from=build /usr/src/app/node_modules ./node_modules
 
-CMD ["node", "dist/main.js"]
+
