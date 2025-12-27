@@ -47,8 +47,7 @@ export class ReleaseController {
 
         if (this.validateContext(context)) {
             try {
-                const releaseAndPath = await this.releaseService.writeLatestVersionToReleaseEnv(context)
-                res.status(HttpStatus.OK)
+                const releaseAndPath = await this.releaseService.writeLatestVersionToReleaseEnv(context)                
                 return {
                     ...releaseAndPath,
                     ok: true
