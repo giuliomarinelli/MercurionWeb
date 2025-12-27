@@ -2,3 +2,4 @@
 *.load
 *.txt
 molecule_embeddings.sql
+.env

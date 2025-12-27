@@ -123,6 +123,7 @@ services:
     build:
       context: ../MercurionWebNode
       dockerfile: ../MercurionWebNode/Dockerfile.test
+    image: mercurion_web_node:latest
     environment:
       # qui l’URL che i test usano per colpire l’API
       API_BASE_URL: http://mercurion_nginx:8880

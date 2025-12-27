@@ -1,0 +1,16 @@
+services:
+  mercurion_web_ng_prod:
+    build:
+      context: ../../../MercurionWebNg
+      dockerfile: Dockerfile
+      args:
+        APP_VERSION: ${APP_VERSION}
+    image: ${REGISTRY_IMAGE_NG}:${APP_VERSION}
+
+  mercurion_web_node_prod:
+    build:
+      context: ../../../MercurionWebNode
+      dockerfile: Dockerfile
+      args:
+        APP_VERSION: ${APP_VERSION}
+    image: ${REGISTRY_IMAGE_NODE}:${APP_VERSION}

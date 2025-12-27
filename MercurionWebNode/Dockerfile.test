@@ -1,41 +1,30 @@
 # Dockerfile.test
 
-# 1) Base image
 FROM node:24-alpine AS test
 
-# 2) Directory di lavoro
 WORKDIR /usr/src/app
 
-# 3) Dipendenze di sistema minime 
 RUN apk add --no-cache \
-    bash \
-    openssl \
-    libc6-compat \
-    python3 \
-    make \
-    g++
+  bash \
+  openssl \
+  libc6-compat \
+  python3 \
+  make \
+  g++
 
-# 4) Abilita corepack 
 RUN corepack enable
 
-# 5) Copia solo i file di dependency per caching più efficiente
 COPY package.json package-lock.json ./
-
-# 6) Installa tutte le dipendenze (dev incluse, servono per i test)
 RUN npm install
 
-# 7) Copia il resto del codice sorgente
 COPY . .
 
-# 8) Variabili d'ambiente per build ramo di integrazione (test)
 ENV NODE_ENV=production
 ENV APP_ENV=test
 
-# 9) Build e copia file non compilati (chiavi RSA, template per le email)
 RUN npm run build && \
-    mkdir -p dist/config && \
-    cp -R src/config/keys dist/config/keys && \
-    mkdir -p dist/app_modules/notification && \
-    cp -R src/app_modules/notification/email-templates dist/app_modules/notification/email-templates && \
-    npm run test
-
+  mkdir -p dist/config && \
+  cp -R src/config/keys dist/config/keys && \
+  mkdir -p dist/app_modules/notification && \
+  cp -R src/app_modules/notification/email-templates dist/app_modules/notification/email-templates && \
+  npm run test
