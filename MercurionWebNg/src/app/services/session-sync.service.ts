@@ -157,13 +157,12 @@ export class SessionSyncService {
   }
 
   logout() {
-    // logout esplicito: togli "login" e degrada WS
-    localStorage.removeItem('login')
-    this.becomeAnonymous({
-      toast: 'Logout eseguito.',
-      level: 'success',
-      navigateIfProtected: true,
-      removeLoginKey: false
+    queueMicrotask(() => {
+      localStorage.removeItem('login')
+      this.becomeAnonymous({
+        navigateIfProtected: true,
+        removeLoginKey: false
+      })
     })
   }
 
