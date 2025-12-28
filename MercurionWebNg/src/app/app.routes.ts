@@ -150,8 +150,13 @@ export const routes: Routes = [
   },
   {
     path: 'privacy',
-    title: 'Privacy Policy',
+    title: 'Informativa sulla Privacy',
     loadComponent: () => import('./pages/privacy/privacy.page.component').then((m) => m.PrivacyPageComponent)
+  },
+  {
+    path: 'terms-and-policies',
+    title: 'Termini di Servizio e Politiche di Utilizzo',
+    loadComponent: () => import('./pages/terms-and-policies/terms-and-policies.page.component').then((m) => m.TermsAndPoliciesPageComponent)
   },
   {
     path: '**',

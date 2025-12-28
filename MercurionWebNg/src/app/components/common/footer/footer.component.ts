@@ -7,6 +7,7 @@ import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'm-footer',
+  standalone: true,
   imports: [
     NgOptimizedImage,
     PublicPipe,
@@ -40,9 +41,9 @@ import { RouterLink } from '@angular/router';
             >Privacy</a
           >
           <a
-            routerLink="/terms-and-use-policy"
+            routerLink="/terms-and-policies"
             class="hover:underline dark:hover:no-underline hover:text-slate-600 dark:hover:text-slate-50/70 transition"
-            >Termini e Condizioni</a
+            >Termini e Policy</a
           >
           <a
             routerLink="/contacts"

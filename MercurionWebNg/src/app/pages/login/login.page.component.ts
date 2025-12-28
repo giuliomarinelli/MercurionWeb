@@ -208,10 +208,19 @@ import { SSO_AuthProvider } from '../../Models/auth/provider.models'
       </div>
 
       <div class="text-xs text-center text-gray-400 mt-4">
-        <a href="#" class="hover:underline">Condizioni d'uso</a> ·
-        <a href="#" class="hover:underline">Informativa sulla privacy</a>
+        <a routerLink="/privacy" class="hover:underline">Informativa sulla Privacy</a>
+        ·
+        <a routerLink="/terms-and-policies" class="hover:underline">Termini e Policy</a>
       </div>
+      <p class="relative -top-2 text-[0.675rem] text-slate-600 dark:text-slate-300 text-center">
+        Cliccando su <strong>Continua con Google / LinkedIn / GitHub / Discord</strong>,
+        dichiari di aver letto e di accettare la
+        <a class="a" routerLink="/privacy">Informativa sulla Privacy</a>,
+        i <a class="a" routerLink="/terms-and-policies">Termini di Servizio</a>
+        e la <a class="a" routerLink="/terms-and-policies" fragment="aup">Politica di Utilizzo Accettabile</a>.
+      </p>
     </form>
+
   </div>
 }
 `

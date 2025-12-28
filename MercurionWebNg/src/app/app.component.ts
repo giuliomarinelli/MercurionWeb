@@ -225,7 +225,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       .subscribe((e: NavigationEnd) => {
         const url = normalize(e.urlAfterRedirects)
 
-        if (url !== '/settings') {
+        if (url !== '/settings' && url !== '/terms-and-policies') {
           this.appContext.smoothToTop(this.scrollHostRef, 400)
         }
 
