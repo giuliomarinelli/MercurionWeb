@@ -245,26 +245,67 @@ export class MfaPageComponent implements OnInit, OnDestroy {
 
   private pollInterval!: ReturnType<typeof setInterval>
 
+  private readonly redirectKey = 'redirectAfterLogin'
+
+  private sanitizeRedirectTo(raw: string | null | undefined): string | null {
+    const v = (raw ?? '').trim()
+    if (!v) return null
+
+    // hardening minimo: accetta solo path interni
+    if (!v.startsWith('/')) return null
+    if (v.startsWith('//')) return null
+
+    return v
+  }
+
+  private getRedirectToQP(): string | null {
+    return this.sanitizeRedirectTo(this.route.snapshot.queryParamMap.get('redirect_to'))
+  }
+
+  private resolveRedirectTarget(): string {
+    // ✅ query param vince SEMPRE
+    const qp = this.getRedirectToQP()
+    if (qp) return qp
+
+    const ss = this.sanitizeRedirectTo(sessionStorage.getItem(this.redirectKey))
+    return ss ?? '/dashboard'
+  }
+
+  private buildRedirectQp(): any {
+    const qp: any = {}
+    const r = this.getRedirectToQP()
+    if (r) qp.redirect_to = r
+    return qp
+  }
+
+  private gotoLoginPreservingRedirect(): void {
+    this.router.navigate(['/login'], { queryParams: this.buildRedirectQp() })
+  }
+
+
   private storageListener = (e: StorageEvent) => {
     if (e.key === 'login' && e.newValue) {
       if (this.router.url.startsWith('/login')) {
-        const redirect = sessionStorage.getItem('redirectAfterLogin') || '/dashboard'
-        this.router.navigateByUrl(redirect)
         this.userContext.setInitials(e.newValue ?? 'U')
+        this.router.navigateByUrl(this.resolveRedirectTarget())
       }
     }
   }
+
 
   async ngOnInit(): Promise<void> {
 
     window.addEventListener('storage', this.storageListener)
 
     this.pollInterval = setInterval(() => {
-      if (localStorage.getItem('login') && this.router.url.startsWith('/login')) {
-        const redirect = sessionStorage.getItem('redirectAfterLogin') || '/dashboard'
-        this.router.navigateByUrl(redirect)
+      if (document.hidden) return
+      if (!this.router.url.startsWith('/login')) return
+
+      if (localStorage.getItem('login')) {
+        this.router.navigateByUrl(this.resolveRedirectTarget())
       }
     }, 1000)
+
 
     // 1) fingerprint
     const { fingerprintDataEnc, sessionDeviceInfo } = await this.fingerprintService.getSanitizedFingerprint()
@@ -317,9 +358,13 @@ export class MfaPageComponent implements OnInit, OnDestroy {
       map(([params, query]) => {
         const view = params.get('view') as MfaView | null
         const trustVerify = (query.get('trust_verify') ?? 'false') === 'true'
-        return { view, trustVerify }
+        const redirectTo = this.sanitizeRedirectTo(query.get('redirect_to'))
+        return { view, trustVerify, redirectTo }
       }),
-      switchMap(({ view, trustVerify }) => {
+      switchMap(({ view, trustVerify, redirectTo }) => {
+        // ✅ se arriva redirect_to in query, lo teniamo anche in sessionStorage (fallback)
+        if (redirectTo) sessionStorage.setItem(this.redirectKey, redirectTo)
+
         if (!view || !this.viewList.includes(view)) {
           this.router.navigateByUrl('/403-forbidden')
           return EMPTY
@@ -382,22 +427,22 @@ export class MfaPageComponent implements OnInit, OnDestroy {
           const he = e as HttpErrorResponse
           if (he.status === 429) {
             this.toast.trigger('Troppi tentativi, riprova tra qualche minuto.', 'error', 3000)
-            this.router.navigateByUrl('/login')
+            this.gotoLoginPreservingRedirect()
             return
           }
           if (he.status === 401) {
             if (he.error?.message === 'ExpiredPreauthorizationToken') {
               this.toast.trigger('Tempo scaduto. Devi ritentare il login.', 'error', 3000)
-              this.router.navigateByUrl('/login')
+              this.gotoLoginPreservingRedirect()
               return
             }
             if (he.error?.message === 'Invalid MFA OTP') {
               this.toast.trigger('Codice errato. Devi ritentare il login.', 'error', 3000)
-              this.router.navigateByUrl('/login')
+              this.gotoLoginPreservingRedirect()
               return
             }
             this.toast.trigger('Si è verificato un errore.', 'error', 3000)
-            this.router.navigateByUrl('/login')
+            this.gotoLoginPreservingRedirect()
             return
           }
         }
@@ -444,8 +489,16 @@ export class MfaPageComponent implements OnInit, OnDestroy {
 
   goTo(target: MfaView): void {
     if (!this.viewList.includes(target)) return
-    this.router.navigateByUrl(`/login/mfa/${target}`)
+
+    const qp: any = this.buildRedirectQp()
+
+    // preserva trust_verify solo se stiamo andando su EMAIL_OTP
+    const trust = this.route.snapshot.queryParamMap.get('trust_verify') === 'true'
+    if (trust && target === 'EMAIL_OTP') qp.trust_verify = true
+
+    this.router.navigate([`/login/mfa/${target}`], { queryParams: qp })
   }
+
 
   // ---- VERIFY
 
@@ -485,8 +538,7 @@ export class MfaPageComponent implements OnInit, OnDestroy {
         localStorage.setItem('login', res.initials ?? 'U')
         this.sessionSyncService.resumeSession(res.initials ?? 'U')
 
-        const redirect = sessionStorage.getItem('redirectAfterLogin') || '/dashboard'
-        this.router.navigateByUrl(redirect)
+        this.router.navigateByUrl(this.resolveRedirectTarget())
       },
       error: (e) => {
         sessionStorage.removeItem('preAuthorizationData')

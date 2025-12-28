@@ -1,4 +1,16 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild, effect, inject, signal } from '@angular/core'
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  effect,
+  inject,
+  signal
+} from '@angular/core'
 import { ActivatedRoute, Router } from '@angular/router'
 import { Observable, Subscription, firstValueFrom, of, switchMap, take, tap } from 'rxjs'
 import { AuthService } from '../../services/auth.service'
@@ -29,7 +41,7 @@ import { GqlV2Error } from '../../services/graphql/graphql-helpers/v2/gql-v2.err
 
     <section class="main-container">
       <h1 class="h1-underline">
-        <a class="hover:underline" routerLink="/molecules/all-my-molecules">Supporto</a>
+        Supporto
       </h1>
 
       @if (handleTickets()) {
@@ -107,7 +119,6 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
   private readonly route = inject(ActivatedRoute)
   private readonly router = inject(Router)
 
-
   @ViewChild('sentinel')
   protected declare sentinel: ElementRef<HTMLDivElement>
 
@@ -138,13 +149,18 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
   }
 
   ngOnInit(): void {
-    const handleTickets = (this.authService.getCachedScopes() ?? this.authService.getUserScopesFromClaims(null, true)).includes('HandleTickets')
+    const handleTickets =
+      (this.authService.getCachedScopes() ?? this.authService.getUserScopesFromClaims(null, true))
+        .includes('HandleTickets')
+
     this.handleTickets.set(handleTickets)
     queueMicrotask(() => this.loadMore())
   }
 
   ngAfterViewInit(): void {
-    this.route.queryParamMap.pipe(take(1)).subscribe((p) => {
+    const initialFullUrl = this.getInitialFullUrl()
+
+    this.route.queryParamMap.pipe(take(1)).subscribe(p => {
       const ticketId = p.get('t_id') ?? ''
       const mode = (p.get('m') ?? 'user').toLowerCase()
 
@@ -156,7 +172,7 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
       const innerScope = mode === 'support' ? 'Support' : 'User'
 
       this.helpService.existsUserTicketById(ticketId).pipe(take(1)).subscribe({
-        next: (exists) => {
+        next: exists => {
           if (!exists) {
             this.router.navigateByUrl('/404-not-found')
             return
@@ -175,22 +191,23 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
             })
           }, 0)
 
+          this.startObserver()
         },
-        error: (e) => {
+        error: e => {
           if (e instanceof GqlV2Error && e.kind === 'GraphQL') {
             const msg = e.gqlErrors[0]?.message
             const code = e.gqlErrors[0]?.extensions?.code
+
             if (msg === 'Unauthenticated' && code === 'UNAUTHENTICATED') {
-              sessionStorage.setItem('redirectAfterLogin', this.router.url)
+              this.redirectToLoginWithRedirectTo(initialFullUrl)
               return
             }
           }
+
           this.router.navigateByUrl('/404-not-found')
         }
       })
     })
-
-    this.startObserver()
   }
 
   ngOnDestroy(): void {
@@ -204,7 +221,7 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
     if (i === 1 && !this.handleTickets()) return
 
     queueMicrotask(() => {
-      this.activeTab.set(i as (0 | 1))
+      this.activeTab.set(i as 0 | 1)
       this.resetPagination()
     })
   }
@@ -218,22 +235,20 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
         }
         return this.helpService.myTickets(this.page, this.ITEMS_PER_PAGE)
       }),
-      tap((res) => this.totalItems.set(res.totalItems))
+      tap(res => this.totalItems.set(res.totalItems))
     )
   }
 
   protected override async loadMore(): Promise<void> {
-
     if (this.loading || this.done) return
+
     this.loading = true
 
     const newPage = await firstValueFrom(this.fetch$())
 
     if (newPage.items.length === 0) {
       this.done = true
-      if (this.page === 1) {
-        this.earlyDone = true
-      }
+      if (this.page === 1) this.earlyDone = true
     } else {
       if (this.empty()) this.empty.set(false)
       this.items = [...this.items, ...newPage.items]
@@ -241,7 +256,6 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
     }
 
     this.cdr.markForCheck()
-
     this.loading = false
   }
 
@@ -279,7 +293,7 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
           : this.helpService.closeTicketAsSupport(ticketId)
       )
     ).subscribe({
-      next: (ok) => {
+      next: ok => {
         if (!ok) return
 
         this.items = this.items.map(t =>
@@ -297,7 +311,7 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
     if (this.activeTab() !== 1 || !this.handleTickets()) return
 
     this.ropSub = this.helpService.reopenTicketAsSupport(ticketId).subscribe({
-      next: (ok) => {
+      next: ok => {
         if (!ok) return
 
         this.items = this.items.map(t =>
@@ -309,5 +323,15 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
         this.cdr.markForCheck()
       }
     })
+  }
+
+  private getInitialFullUrl(): string {
+    const raw = this.router.url || ''
+    return raw.startsWith('/') ? raw : `/${raw}`
+  }
+
+  private redirectToLoginWithRedirectTo(fullUrl: string): void {
+    const encoded = encodeURIComponent(fullUrl)
+    this.router.navigateByUrl(`/login?redirect_to=${encoded}`)
   }
 }

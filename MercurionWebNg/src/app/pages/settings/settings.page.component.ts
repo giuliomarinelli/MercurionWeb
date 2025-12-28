@@ -16,6 +16,7 @@ import { GenderPipe } from '../../pipes/gender.pipe'
 import { ProfileRegistryEditContextService } from '../../services/context/action-context/profile-registry-edit-context.service'
 import { AuthProvider } from '../../Models/auth/provider.models';
 import { Helpers } from '../../helpers';
+import { SessionSyncService } from '../../services/session-sync.service';
 
 @Component({
   selector: 'm-settings.page',
@@ -587,6 +588,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly changeDataContext = inject(SensitiveDataChangeContextService)
   private readonly appContext = inject(AppContextService)
   private readonly registryContext = inject(ProfileRegistryEditContextService)
+  private readonly sessionSync = inject(SessionSyncService)
 
   @ViewChild(CdkAccordion)
   accordion!: CdkAccordion
@@ -851,6 +853,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
           return
         }
         if (s.current) {
+          this.sessionSync.notifyVoluntaryLogout()
           queueMicrotask(() => this.toast.trigger('Logout dalla sessione corrente effettuato con successo.', 'success', 3000))
         }
         queueMicrotask(() => {
@@ -869,6 +872,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
   doLogoutFromAllSessions(): void {
     const onError = () => queueMicrotask(() => this.toast.trigger(`Si è verificato un errore. Le sessioni non sono state eliminate. Contatta il supporto.`, 'error', 3000))
+    this.sessionSync.notifyVoluntaryLogout()
     this.allLoguotSub = this.authService.logoutFromAllSessions().subscribe({
       next: () => queueMicrotask(() => this.toast.trigger('Logout da tutte le sessioni effetttuato con successo.', 'success', 3000)),
       error: () => onError()

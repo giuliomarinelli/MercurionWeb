@@ -30,6 +30,14 @@ export class SsoPageComponent implements OnInit, OnDestroy {
 
   private sub?: Subscription
 
+  private sanitizeRedirectTo(raw: string | null | undefined): string | null {
+    const v = (raw ?? '').trim()
+    if (!v) return null
+    if (!v.startsWith('/')) return null
+    if (v.startsWith('//')) return null
+    return v
+  }
+
   ngOnInit(): void {
     this.sub = of(null).pipe(
       switchMap(() => defer(() => from(this.fingerprintService.getSanitizedFingerprint()))),
@@ -47,6 +55,11 @@ export class SsoPageComponent implements OnInit, OnDestroy {
       switchMap(([fp_enc, di_enc, p, frag]) => {
 
         const provider = p.get('provider') ?? ''
+
+        // redirect_to may be lost by provider; fallback to sessionStorage if needed
+        const redirectTo =
+          this.sanitizeRedirectTo(p.get('redirect_to')) ??
+          this.sanitizeRedirectTo(sessionStorage.getItem('redirectAfterLogin'))
 
         // fragment atteso: "t=<token>"
         const sso_pat = frag ? (new URLSearchParams(frag).get('t') ?? '') : ''

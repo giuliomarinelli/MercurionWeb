@@ -11,27 +11,27 @@ import {
   signal,
   Signal,
   inject
-} from '@angular/core';
-import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
-import { HeaderComponent } from './components/common/header/header.component';
-import { ThemeManagerService } from './services/context/theme-manager.service';
-import { SearchOverlayComponent } from './components/search-overlay/search-overlay/search-overlay.component';
-import { SearchContextService } from './services/context/search-context.service';
-import { FooterComponent } from './components/common/footer/footer.component';
-import { filter, Subscription } from 'rxjs';
-import { ToastComponent } from './components/common/toast/toast.component';
-import { ToastService } from './services/toast.service';
-import { UserContextService } from './services/context/user-context.service';
-import { PathService } from './services/path.service';
-import { SidenavContextService } from './services/context/sidenav-context.service';
-import { DesignService } from './services/design.service';
-import { SidenavComponent } from './components/common/sidenav/sidenav.component';
-import { SessionSyncService } from './services/session-sync.service';
-import { ActionOverlayContextService } from './services/context/action-context/action-overlay-context.service';
-import { environment } from '../environments/environment.development';
-import { AuthService } from './services/auth.service';
-import { ActionOverlayComponent } from './components/action-components/action-overlay/action-overlay.component';
-import { AppContextService } from './services/context/app-context.service';
+} from '@angular/core'
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router'
+import { HeaderComponent } from './components/common/header/header.component'
+import { ThemeManagerService } from './services/context/theme-manager.service'
+import { SearchOverlayComponent } from './components/search-overlay/search-overlay/search-overlay.component'
+import { SearchContextService } from './services/context/search-context.service'
+import { FooterComponent } from './components/common/footer/footer.component'
+import { filter, Subscription } from 'rxjs'
+import { ToastComponent } from './components/common/toast/toast.component'
+import { ToastService } from './services/toast.service'
+import { UserContextService } from './services/context/user-context.service'
+import { PathService } from './services/path.service'
+import { SidenavContextService } from './services/context/sidenav-context.service'
+import { DesignService } from './services/design.service'
+import { SidenavComponent } from './components/common/sidenav/sidenav.component'
+import { SessionSyncService } from './services/session-sync.service'
+import { ActionOverlayContextService } from './services/context/action-context/action-overlay-context.service'
+import { environment } from '../environments/environment.development'
+import { AuthService } from './services/auth.service'
+import { ActionOverlayComponent } from './components/action-components/action-overlay/action-overlay.component'
+import { AppContextService } from './services/context/app-context.service'
 
 @Component({
   selector: 'm-root',
@@ -56,13 +56,11 @@ import { AppContextService } from './services/context/app-context.service';
             <div class="absolute top-4 left-[10px] z-30 group">
               <button class="cursor-pointer hover:transform hover:scale-[1.05] transition-transform duration-300" (click)="sidenavContext.toggle()" aria-label="Sidebar">
                 @if (sidenavContext.isVisible()) {
-                  <!-- icona open -->
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-auto text-light-on-surface-main hover:text-light-on-surface-secondary dark:text-dark-on-surface-main hover:dark:text-dark-on-surface-secondary transition-colors duration-150">
                     <rect width="18" height="18" x="3" y="3" rx="2" />
                     <path d="M9 3v18" />
                   </svg>
                 } @else {
-                  <!-- icona closed -->
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-auto text-light-on-surface-main hover:text-light-on-surface-secondary dark:text-dark-on-surface-main hover:dark:text-dark-on-surface-secondary transition-colors duration-150">
                     <rect width="18" height="18" x="3" y="3" rx="2" />
                     <rect x="3" y="3" width="6" height="18" rx="2" fill="currentColor" stroke="none"/>
@@ -94,8 +92,7 @@ import { AppContextService } from './services/context/app-context.service';
             </aside>
           }
           <section #scrollHost
-            class="content flex flex-col flex-1 overflow-y-auto
-            transition-[margin] duration-500"
+            class="content flex flex-col flex-1 overflow-y-auto transition-[margin] duration-500"
             [class.ml-64]="sidenavContext.isOpen() && userContext.isLoggedIn() && design.minBk('xl')()">
             <main class="flex-1 p-4 block">
               <router-outlet />
@@ -104,20 +101,15 @@ import { AppContextService } from './services/context/app-context.service';
           </section>
         </div>
       </div>
-      @if (searchContextService.isMounted()) {
-        <m-search-overlay />
-      }
-      @if (saveOverlayContext.shouldMount() && userContext.isLoggedIn()) {
-        <m-action-overlay />
-      }
+      @if (searchContextService.isMounted()) { <m-search-overlay /> }
+      @if (saveOverlayContext.shouldMount() && userContext.isLoggedIn()) { <m-action-overlay /> }
       <m-toast [context]="toastService.context()" />
     } @else {
       <router-outlet />
     }
-  `,
+  `
 })
 export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
-
   private readonly themeManagerService = inject(ThemeManagerService)
   protected readonly searchContextService = inject(SearchContextService)
   private readonly router = inject(Router)
@@ -131,16 +123,11 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly authService = inject(AuthService)
   private readonly appContext = inject(AppContextService)
 
-
-  title = 'MercurionWebNg';
-
-  isDarkTheme: Signal<boolean> = computed(() => this.themeManagerService.theme() === 'dark');
-  headerHeight = signal(64);
+  isDarkTheme: Signal<boolean> = computed(() => this.themeManagerService.theme() === 'dark')
   is_not_404_route = signal<boolean>(true)
   is_not_403_route = signal<boolean>(true)
 
-  private routeSub?: Subscription;
-
+  private routeSub?: Subscription
   private currentPath = signal<string>('')
   private firstNavigationDone = signal<boolean>(false)
 
@@ -161,42 +148,11 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild(HeaderComponent, { read: ElementRef })
   headerRef!: ElementRef<HTMLElement>
 
-
   constructor() {
-
     effect(() => {
-      const t = this.appContext.addedGlobalScrollRootRefTick()
-      if (t === 0) {
-        return
-      }
-      if (!this.appContext.globalScollRootRef()) {
-        this.appContext.setGlobalScrollRootRef(this.scrollHostRef)
-      }
-    })
-
-    effect(() => {
-      const t = this.appContext.addedScrollTick()
-      if (t === 0) {
-        return
-      }
-      queueMicrotask(() => this.appContext.smoothToTop(this.scrollHostRef, 400))
-    })
-
-    effect(() => {
-      // Scudo anti race condition per la connessione ws dopo il login e l'emissione dell'evento di handshake
       const t = this.sessionSync.handshakeTick()
-      if (t === 0) {
-        return
-      }
+      if (t === 0) return
       void this.sessionSync.syncSession(true)
-    })
-
-    effect(() => {
-      const t = this.appContext.addedTick()
-      if (t === 0) {
-        return
-      }
-      this.is_not_404_route.set(true)
     })
 
     if (this.userContext.isLoggedIn() && this.authService.getCookieValue('__logged_in') !== 'true') {
@@ -205,92 +161,133 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       this.authService.setWs_accessToken(null)
       localStorage.removeItem('ws_accessToken_ts')
     }
-    // Mantieni la tua sync
-    this.sessionSync.syncSession();
 
-    // Utils
+    void this.sessionSync.syncSession()
+
     const normalize = (raw: string): string => {
-      if (!raw) return '';
-      const qIdx = raw.indexOf('?');
-      if (qIdx >= 0) raw = raw.slice(0, qIdx);
-      const hIdx = raw.indexOf('#');
-      if (hIdx >= 0) raw = raw.slice(0, hIdx);
-      if (raw.startsWith('/m/')) raw = raw.slice(4);
-      else if (raw === '/m') raw = '/';
-      if (raw.length > 1 && raw.endsWith('/')) raw = raw.slice(0, -1);
-      return raw;
-    };
+      if (!raw) return ''
+      const qIdx = raw.indexOf('?')
+      if (qIdx >= 0) raw = raw.slice(0, qIdx)
+      const hIdx = raw.indexOf('#')
+      if (hIdx >= 0) raw = raw.slice(0, hIdx)
+      if (raw.startsWith('/m/')) raw = raw.slice(4)
+      else if (raw === '/m') raw = '/'
+      if (raw.length > 1 && raw.endsWith('/')) raw = raw.slice(0, -1)
+      return raw
+    }
 
-    // Path iniziale
+    // ✅ PUBLIC “hardcoded”: tutta la famiglia /login/*
+    const isLoginFamily = (path: string): boolean => path === '/login' || path.startsWith('/login/')
+
+    const extractRedirectTo = (urlWithQuery: string): string | null => {
+      if (!urlWithQuery) return null
+      try {
+        const u = new URL(urlWithQuery, window.location.origin)
+        const raw = u.searchParams.get('redirect_to')
+        if (!raw) return null
+        const trimmed = raw.trim()
+        if (!trimmed) return null
+        if (!trimmed.startsWith('/')) return null
+        if (trimmed.startsWith('//')) return null
+        return trimmed
+      } catch {
+        return null
+      }
+    }
+
+    const resolveLoginRedirectTarget = (): string | null => {
+      const qp = extractRedirectTo(this.router.url)
+      if (!qp) return null
+      const normalizedTarget = normalize(qp).toLowerCase()
+      // evita loop verso login/mfa o login
+      if (normalizedTarget === '/login' || normalizedTarget.startsWith('/login/')) return null
+      return qp
+    }
+
+    const buildLoginWithRedirectTo = (): string => {
+      // prende l’URL completo attuale, NON normalizzato, così preservi query/hash
+      let full = this.router.url || '/'
+      if (!full.startsWith('/')) full = `/${full}`
+      if (full === '/m') full = '/'
+      else if (full.startsWith('/m/')) full = full.slice(2)
+
+      const clean = normalize(full).toLowerCase()
+      if (clean === '/login' || clean.startsWith('/login/')) return '/login'
+
+      return `/login?redirect_to=${encodeURIComponent(full)}`
+    }
+
     this.currentPath.set(normalize(this.router.url))
     this.pathService.setPath(this.currentPath())
 
-    // Scroll to top su ogni NavigationEnd (animazione sul container)
     this.routeSub = this.router.events
-      .pipe(filter((e) => e instanceof NavigationEnd))
+      .pipe(filter(e => e instanceof NavigationEnd))
       .subscribe((e: NavigationEnd) => {
         const url = normalize(e.urlAfterRedirects)
+
         if (url !== '/settings') {
           this.appContext.smoothToTop(this.scrollHostRef, 400)
         }
-        // Toggle layout wrapper based on 404 route
+
         this.is_not_404_route.set(url !== '/404-not-found')
         this.is_not_403_route.set(url !== '/403-forbidden')
-        this.currentPath.set(url);
-        this.pathService.setPath(url);
-        if (!this.firstNavigationDone()) this.firstNavigationDone.set(true);
-        if (this.userContext.isLoggedIn()) {
-          sessionStorage.setItem(
-            'redirectAfterLogin',
-            window.location.pathname.slice(2) + window.location.search
-          );
-        }
-        if (url === '/login') {
-          this.router.navigateByUrl('/dashboard')
-        }
-      });
+        this.currentPath.set(url)
+        this.pathService.setPath(url)
+        if (!this.firstNavigationDone()) this.firstNavigationDone.set(true)
 
-    // ---- Logica di sicurezza di navigazione (immutata) ----
-    let lastProgrammaticNav: string | undefined;
-    let firstStableReached = false;
+        // ✅ solo se loggato: dentro login-family => redirect_to vince
+        if (this.userContext.isLoggedIn() && isLoginFamily(url)) {
+          const target = resolveLoginRedirectTarget() ?? '/dashboard'
+          if (target !== this.router.url) this.router.navigateByUrl(target)
+        }
+      })
+
+    let lastProgrammaticNav: string | undefined
+    let firstStableReached = false
 
     effect(() => {
-      if (!this.firstNavigationDone()) return;
+      if (!this.firstNavigationDone()) return
 
-      const initials = this.userContext.initials();
-      const logged = !!initials;
-      const status = this.sessionSync.status();
-      const rawUrl = this.currentPath();
-      const url = rawUrl.toLowerCase();
+      const logged = !!this.userContext.initials()
+      const status = this.sessionSync.status()
+      const url = this.currentPath().toLowerCase()
 
       if (!firstStableReached) {
-        if (status === 'loggedIn' || status === 'anonymous') {
-          firstStableReached = true
-        } else {
-          return
-        }
+        if (status === 'loggedIn' || status === 'anonymous') firstStableReached = true
+        else return
       }
 
       const isPublic =
-        this.publicExact.has(url) || this.publicPrefixes.some((p) => url.startsWith(p));
-      const isLoggedOutOnly = this.loggedOutOnlyExact.has(url);
+        isLoginFamily(url) || this.publicExact.has(url) || this.publicPrefixes.some(p => url.startsWith(p))
+
+      const isLoggedOutOnly = this.loggedOutOnlyExact.has(url)
 
       const safeNavigate = (target: string) => {
-        if (target === url) return
+        if (!target) return
         if (lastProgrammaticNav === target) return
         lastProgrammaticNav = target
         queueMicrotask(() => {
-          if (this.router.url.toLowerCase() === url) {
-            this.router.navigateByUrl(target);
-          }
+          const here = normalize(this.router.url).toLowerCase()
+          if (here === url) this.router.navigateByUrl(target)
         })
       }
 
-      if (url === '/') safeNavigate('/login')
+      if (url === '/') {
+        safeNavigate('/login')
+        return
+      }
 
       if (!logged) {
-        if (!isPublic) safeNavigate('/login')
-        return;
+        // ✅ se non sei public, vai a /login?redirect_to=<full_url>
+        if (!isPublic) safeNavigate(buildLoginWithRedirectTo())
+        return
+      }
+
+      // ✅ solo se loggato: dentro login-family => redirect_to vince sempre
+      if (isLoginFamily(url)) {
+        const target = resolveLoginRedirectTarget() ?? '/dashboard'
+        safeNavigate(target)
+        return
       }
 
       if (isLoggedOutOnly) safeNavigate('/dashboard')
@@ -301,9 +298,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     this._triggerOpenOffCanvas.set(true)
   }
 
-  async ngOnInit() {
-
-  }
+  async ngOnInit() { }
 
   ngAfterViewInit() {
     queueMicrotask(() => {
