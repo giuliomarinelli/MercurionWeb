@@ -7,7 +7,7 @@
  *  - No ACK in PRIVATE: degrada a anonimo/public
  *  - Niente autologout da `storage` se il cookie è presente
  * ────────────────────────────────────────────────────────────── */
-import { Injectable, NgZone, signal } from '@angular/core'
+import { effect, Injectable, NgZone, signal } from '@angular/core'
 import { Router } from '@angular/router'
 import { UserContextService } from './context/user-context.service'
 import { ToastService } from './toast.service'
@@ -29,8 +29,11 @@ export class SessionSyncService {
   private unauthorizedRetries = 0
   private readonly MAX_UNAUTH_RETRIES = 2
 
-  private _handshakeTick = signal(0)
+  private _handshakeTick = signal<number>(0)
   public readonly handshakeTick = this._handshakeTick.asReadonly()
+
+  private _voluntaryLogoutTick = signal<number>(0)
+  readonly voluntaryLogoutTick = this._voluntaryLogoutTick.asReadonly()
 
   private _status = signal<SessionSyncStatus>('unknown')
   public readonly status = this._status.asReadonly()
@@ -53,6 +56,10 @@ export class SessionSyncService {
   private readonly publicExact = environment.PUBLIC_EXACT_PATHS
   private readonly publicPrefix = environment.PUBLIC_PREFIXES
 
+  private toastMuteTimer!: ReturnType<typeof setTimeout>
+  private toastMutedUntil = 0
+  private readonly voluntaryLogoutToastSilenceMs = 1000
+
   constructor(
     private readonly socket: RealtimeSocketService,
     private readonly userCtx: UserContextService,
@@ -60,6 +67,15 @@ export class SessionSyncService {
     private readonly router: Router,
     private readonly zone: NgZone
   ) {
+
+    effect(() => {
+      const t = this._voluntaryLogoutTick()
+      if (t === 0) {
+        return
+      }
+      this.startToastMuteWindow()
+    })
+
     // eventi WS
     this.socket.onConnect().subscribe(() =>
       this.zone.run(() => {
@@ -118,6 +134,11 @@ export class SessionSyncService {
         }
       }, 30)
     })
+  }
+
+  notifyVoluntaryLogout(): void {
+    this.startToastMuteWindow()
+    this._voluntaryLogoutTick.update((x) => x + 1)
   }
 
   /* ---------------- Public API ---------------- */
@@ -370,7 +391,7 @@ export class SessionSyncService {
     // Ripristina SUBITO la WS pubblica (senza reload) per eventi pubblici
     void this.socket.reconnectPublicNow()
 
-    if (toast) this.toast.trigger(toast, level)
+    if (toast) this.triggerToast(toast, level)
 
     if (navigateIfProtected && !this.isPublicRoute(this.router.url)) {
       this.redirectToLoginWithRedirectTo()
@@ -393,6 +414,21 @@ export class SessionSyncService {
       this.publicExact.includes(clean) ||
       this.publicPrefix.some(p => clean.startsWith(p))
     )
+  }
+
+  private triggerToast(message: string, level: ToastContext) {
+    if (Date.now() < this.toastMutedUntil) return
+    this.toast.trigger(message, level)
+  }
+
+  private startToastMuteWindow(): void {
+    clearTimeout(this.toastMuteTimer)
+    const delay = this.voluntaryLogoutToastSilenceMs
+    const expiresAt = Date.now() + delay
+    this.toastMutedUntil = expiresAt
+    this.toastMuteTimer = setTimeout(() => {
+      if (this.toastMutedUntil === expiresAt) this.toastMutedUntil = 0
+    }, delay)
   }
 
 
