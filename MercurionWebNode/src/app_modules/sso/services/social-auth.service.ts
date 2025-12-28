@@ -17,6 +17,7 @@ import { RpcException } from "@nestjs/microservices";
 import { ChEMBLMoleculeItemEntity } from "src/app_modules/molecule-collection/Models/entities/chembl-molecule-item.entity";
 import { MoleculeCollection } from "src/app_modules/molecule-collection/Models/entities/molecule-collection.entity";
 import { MoleculeCollectionItemJoin } from "src/app_modules/molecule-collection/Models/entities/molecule-collection-item-join.entity";
+import { SercurityService } from "src/app_modules/auth/services/sercurity.service";
 
 @Injectable()
 export class SocialAuthService {
@@ -32,6 +33,7 @@ export class SocialAuthService {
         private readonly jwtTools: JwtToolsService,
         private readonly configService: ConfigService,
         private readonly redisService: RedisService,
+        private readonly securityService: SercurityService,
         loggerFactory: MeiliLoggerService
     ) {
         this.logger = loggerFactory.forContext(SocialAuthService.name)
@@ -48,15 +50,20 @@ export class SocialAuthService {
         const hashed = this.hmacKey(rawState)
         return `oauth2:state:${provider}:${hashed}`
     }
+    
+    private getRedirectToKey(provider: AuthProvider): string {
+        return `oauth2:redirect_to:${provider}`
+    }
 
     private generateOAuth2CsrfState(): string {
         return randomBytes(32).toString('base64url')
     }
 
-    async getOauth2TempState(provider: AuthProvider): Promise<string> {
+    async getOauth2TempState(provider: AuthProvider, redirectTo: string): Promise<string> {
         const state = this.generateOAuth2CsrfState()
         const key = this.getStateKey(state, provider)
-        await this.redisService.set(key, '1', 240)
+        const val = this.securityService.encrypt_AES256(redirectTo)
+        await this.redisService.set(key, val, 240)
         return state
     }
 
@@ -65,11 +72,18 @@ export class SocialAuthService {
             return false
         }
         const key = this.getStateKey(state, provider)
-        const ok = (await this.redisService.get(key) === '1')
-        if (ok) {
-            await this.redisService.del(key)
-        }
+        const ok = (await this.redisService.get(key)) != null
         return ok
+    }
+
+    async retrieveRedirectTo(state: string, provider: AuthProvider): Promise<string> {
+        const key = this.getStateKey(state, provider)
+        const val = await this.redisService.get(key)
+        let result = ''
+        if (!!val && typeof val === 'string') {
+            result = this.securityService.decrypt_AES256(val)
+        }
+        return result
     }
 
     getAuthorizationUrl(provider: AuthProvider, state: string) {

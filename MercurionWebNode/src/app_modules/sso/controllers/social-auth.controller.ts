@@ -25,13 +25,14 @@ export class SocialAuthController {
   @Get(':provider/login')
   async login(
     @Param('provider') provider: AuthProvider,
+    @Query('redirect_to') redirectTo: string,
     @Res() reply: FastifyReply
   ): Promise<void> {
     const normalizedProvider = typeof provider === 'string' ? provider.trim() : provider
     if (!TypeGuards.isAuthProvider(normalizedProvider)) {
       throw new BadRequestException('Invalid provider')
     }
-    const state = await this.socialAuth.getOauth2TempState(normalizedProvider)
+    const state = await this.socialAuth.getOauth2TempState(normalizedProvider, redirectTo ?? '')
     const url = this.socialAuth.getAuthorizationUrl(normalizedProvider, state)
     reply.redirect(url, 302)
   }
@@ -64,8 +65,12 @@ export class SocialAuthController {
     }
     try {
       const sso_pat = await this.socialAuth.loginWithProvider(normalizedProvider, normalizedCode)
-      const redirectUrl = `${this.base}/oauth2/callback?provider=${encodeURIComponent(normalizedProvider)}#t=${encodeURIComponent(sso_pat)}`
-
+      let redirectUrl = `${this.base}/oauth2/callback?provider=${encodeURIComponent(normalizedProvider)}`
+      const redirectTo = await this.socialAuth.retrieveRedirectTo(state, provider)
+      if (redirectTo) {
+        redirectUrl += `&redirect_to=${encodeURIComponent(redirectTo)}`
+      }
+      redirectUrl += `#t=${encodeURIComponent(sso_pat)}`
       reply.redirect(redirectUrl, 302)
       return
     } catch (e) {
