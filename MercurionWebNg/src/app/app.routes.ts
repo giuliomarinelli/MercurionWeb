@@ -149,6 +149,11 @@ export const routes: Routes = [
         .then(m => m.Forbidden403LandingPageComponent)
   },
   {
+    path: 'privacy',
+    title: 'Privacy Policy',
+    loadComponent: () => import('./pages/privacy/privacy.page.component').then((m) => m.PrivacyPageComponent)
+  },
+  {
     path: '**',
     redirectTo: '/404-not-found'
   }

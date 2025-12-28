@@ -3,10 +3,15 @@ import { ChangeDetectionStrategy, Component, effect, inject, OnInit, signal } fr
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
 import { PublicPipe } from '../../../pipes/public.pipe';
 import { environment } from '../../../../environments/environment.development';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'm-footer',
-  imports: [NgOptimizedImage, PublicPipe],
+  imports: [
+    NgOptimizedImage,
+    PublicPipe,
+    RouterLink
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <footer class="px-6 py-4 text-xs sm:text-sm">
@@ -30,17 +35,17 @@ import { environment } from '../../../../environments/environment.development';
         <!-- Link essenziali -->
         <div class="flex flex-wrap justify-center sm:justify-end gap-x-6 gap-y-2">
           <a
-            href="/privacy"
+            routerLink="/privacy"
             class="hover:underline dark:hover:no-underline hover:text-slate-600 dark:hover:text-slate-50/70 transition"
             >Privacy</a
           >
           <a
-            href="/terms"
+            routerLink="/terms-and-use-policy"
             class="hover:underline dark:hover:no-underline hover:text-slate-600 dark:hover:text-slate-50/70 transition"
-            >Termini</a
+            >Termini e Condizioni</a
           >
           <a
-            href="/contatti"
+            routerLink="/contacts"
             class="hover:underline dark:hover:no-underline hover:text-slate-600 dark:hover:text-slate-50/70 transition"
             >Contatti</a
           >
