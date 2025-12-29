@@ -477,24 +477,27 @@ export class TermsAndPoliciesPageComponent implements AfterViewInit, OnDestroy {
       return
     }
 
+    // due fasi: rAF per layout stabilizzato, setTimeout per lasciare finire lo scroll restoration del router
     requestAnimationFrame(() => {
-      const rootEl = this.scrollRootRef!.nativeElement
-      const headerOffset = Math.max(0, hh) + 10
+      setTimeout(() => {
+        const rootEl = this.scrollRootRef!.nativeElement
+        const headerOffset = Math.max(0, hh) + 10
 
-      let targetEl: HTMLElement | null = null
+        let targetEl: HTMLElement | null = null
 
-      if (!frag || frag === 'terms') {
-        targetEl = this.termsHeaderRef?.nativeElement ?? null
-      } else if (frag === 'aup') {
-        targetEl = this.aupHeaderRef?.nativeElement ?? null
-      } else {
-        targetEl = this.termsHeaderRef?.nativeElement ?? null
-      }
+        if (!frag || frag === 'terms') {
+          targetEl = this.termsHeaderRef?.nativeElement ?? null
+        } else if (frag === 'aup') {
+          targetEl = this.aupHeaderRef?.nativeElement ?? null
+        } else {
+          targetEl = this.termsHeaderRef?.nativeElement ?? null
+        }
 
-      if (!targetEl) return
+        if (!targetEl) return
 
-      const y = Math.max(0, this.appContext.getScrollYRelativeToRoot(targetEl, rootEl) - headerOffset)
-      this.appContext.smoothTo(this.scrollRootRef, y, 240)
+        const y = Math.max(0, this.appContext.getScrollYRelativeToRoot(targetEl, rootEl) - headerOffset)
+        this.appContext.smoothTo(this.scrollRootRef, y, 240)
+      }, 20)
     })
   }
 

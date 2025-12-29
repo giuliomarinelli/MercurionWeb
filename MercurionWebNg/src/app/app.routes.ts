@@ -155,8 +155,13 @@ export const routes: Routes = [
   },
   {
     path: 'terms-and-policies',
-    title: 'Termini di Servizio e Politiche di Utilizzo',
+    title: 'Termini di Servizio e Politica di Utilizzo Accettabile',
     loadComponent: () => import('./pages/terms-and-policies/terms-and-policies.page.component').then((m) => m.TermsAndPoliciesPageComponent)
+  },
+  {
+    path: 'contacts',
+    title: 'Contatti',
+    loadComponent: () => import('./pages/contacts/contacts.page.component').then((m) => m.ContactsPageComponent)
   },
   {
     path: '**',

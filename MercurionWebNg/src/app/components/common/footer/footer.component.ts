@@ -18,10 +18,10 @@ import { RouterLink } from '@angular/router';
     <footer class="px-6 py-4 text-xs sm:text-sm">
       <!-- classi tw rimosse per passaggio a footer minimalista bg-slate-100 dark:bg-slate-800/50 text-sm text-slate-600 dark:text-slate-200 border-t border-slate-400/40 dark:border-slate-400/65 -->
       <div
-        class="max-w-7xl mx-auto flex flex-col sm:flex-row md:flex-col lg:flex-row justify-between items-center gap-4 text-center sm:text-left"
+        class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-center sm:text-left"
       >
         <!-- Brand + copyright -->
-        <p class="tracking-wide flex flex-col sm:flex-row md:flex-col lg:flex-row items-center gap-4">
+        <p class="tracking-wide flex flex-col sm:flex-row md:flex-row items-center gap-4">
           <img
             [ngSrc]="logoSrc() | public"
             alt="Mercurion Pictogram"
