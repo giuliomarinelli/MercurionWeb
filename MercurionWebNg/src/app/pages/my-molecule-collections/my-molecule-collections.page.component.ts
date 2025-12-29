@@ -179,10 +179,7 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
   }
 
   protected override async loadMore(): Promise<void> {
-
-    if (this.loading || this.done) {
-      return
-    }
+    if (this.loading || this.done) return
 
     this.loading = true
 
@@ -190,20 +187,27 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
 
     if (newPage.items.length === 0) {
       this.done = true
-      if (this.page === 1) {
-        this.earlyDone = true
-      }
+      if (this.page === 1) this.earlyDone = true
     } else {
-      if (this.empty()) {
-        this.empty.set(false)
-      }
+      if (this.empty()) this.empty.set(false)
 
       this.items = [...this.items, ...newPage.items]
+
+      const seen = new Set<string>()
+      this.items = this.items.filter(item => {
+        const id = (item as any)?.id as string | undefined
+        if (!id) return true
+        if (seen.has(id)) return false
+        seen.add(id)
+        return true
+      })
+
       this.page++
     }
 
     this.loading = false
   }
+
 
 
   createNewCollection(): void {

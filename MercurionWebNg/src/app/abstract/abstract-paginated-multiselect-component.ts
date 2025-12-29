@@ -142,11 +142,21 @@ export abstract class AbstractPaginatedMultiselectComponent<T> extends AbstractP
     if (this.empty()) this.empty.set(false)
 
     this.items = [...this.items, ...newPage.items]
-    this.items = Array.from(new Set(this.items))
+
+    const seen = new Set<string>()
+    this.items = this.items.filter(item => {
+      const id = this.itemId(item)
+      if (!id) return true
+      if (seen.has(id)) return false
+      seen.add(id)
+      return true
+    })
+
     this.cdr.markForCheck()
     this.page++
 
-    const wrapped: AbstractMultiselectItem<T>[] = newPage.items.map(item => {
+    const wrapped: AbstractMultiselectItem<T>[] = newPage.items.map((item) => {
+
       const id = this.itemId(item)
 
       const checked =
@@ -164,6 +174,7 @@ export abstract class AbstractPaginatedMultiselectComponent<T> extends AbstractP
 
     this.loading = false
   }
+
 
   protected override resetPagination() {
     // reset solo vista/paginazione
