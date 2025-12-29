@@ -4,6 +4,7 @@ import {
   ElementRef,
   ViewChild,
   inject,
+  AfterViewInit,
   OnInit,
   OnDestroy,
   effect,
@@ -21,6 +22,7 @@ import { ProfileDTO } from '../../Models/account/account.models';
 import { ThemeManagerService } from '../../services/context/theme-manager.service';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { AppContextService } from '../../services/context/app-context.service';
+import { SidenavContextService } from '../../services/context/sidenav-context.service';
 
 Chart.register(...registerables);
 
@@ -43,7 +45,7 @@ type ChartPalette = {
   selector: 'm-dashboard',
   imports: [ClassicSpinnerComponent],
   template: `
-    <section class="main-container py-8 cursor-default">
+    <section #mainHost class="main-container py-8 cursor-default">
       @if (profile) {
 
         <!-- HEADER UTENTE -->
@@ -145,26 +147,33 @@ type ChartPalette = {
           </div>
         </section>
       } @else if (loading()) {
-        <div class="absolute inset-0 flex justify-center items-center max-w-5xl mx-auto">
-          <m-classic-spinner [size]="60" />
-        </div>
+          <div class="fixed inset-0 pointer-events-none">
+            <div
+              class="fixed top-1/2 -translate-y-1/2"
+              [style.left.px]="spinnerLeft()"
+            >
+              <m-classic-spinner [size]="60" />
+            </div>
+          </div>
       } @else if (serverError()) {
         <p class="text-light-error dark:text-dark-error">Si è verificato un errore nel caricamento della dashboard.</p>
       }
     </section>
   `,
 })
-export class DashboardPageComponent implements OnInit, OnDestroy {
+export class DashboardPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // ========= DEPS =========
   private readonly accountService = inject(AccountService)
   private readonly themeManager = inject(ThemeManagerService)
   private readonly appContext = inject(AppContextService)
+  private readonly sidenavContext = inject(SidenavContextService)
   // ========================
 
 
   private prSub?: Subscription
   private reSub?: Subscription
+  private resizeObs?: ResizeObserver
 
   private subArg = {
     next: (profile: ProfileDTO) => {
@@ -196,6 +205,10 @@ export class DashboardPageComponent implements OnInit, OnDestroy {
 
   loading = signal<boolean>(true)
   serverError = signal<boolean>(false)
+  spinnerLeft = signal<number>(0)
+
+  @ViewChild('mainHost', { static: true }) mainHost?: ElementRef<HTMLElement>
+  private spinnerFollowRaf?: number
 
   // ViewChild come setter: viene chiamato quando i canvas entrano in DOM
   @ViewChild('overviewChart')
@@ -221,7 +234,15 @@ export class DashboardPageComponent implements OnInit, OnDestroy {
       if (t === 0) {
         return
       }
-      this.reSub = this.accountService.getProfileRegistry().subscribe(this.subArg)
+    this.reSub = this.accountService.getProfileRegistry().subscribe(this.subArg)
+    })
+    effect(() => {
+      // riallinea lo spinner quando la sidebar cambia
+      const _ = this.sidenavContext.isOpen()
+      queueMicrotask(() => {
+        this.updateSpinnerLeft()
+        this.startSpinnerFollow()
+      })
     })
   }
 
@@ -230,11 +251,18 @@ export class DashboardPageComponent implements OnInit, OnDestroy {
     this.prSub = this.accountService.getProfileRegistry().subscribe(this.subArg)
   }
 
+  ngAfterViewInit(): void {
+    this.attachSpinnerTracking()
+  }
+
   ngOnDestroy(): void {
     this.prSub?.unsubscribe()
     this.overviewChart?.destroy()
     this.activityChart?.destroy()
     this.reSub?.unsubscribe()
+    this.resizeObs?.disconnect()
+    window.removeEventListener('resize', this.updateSpinnerLeft)
+    this.stopSpinnerFollow()
   }
 
   // --------- HELPERS TEMA / PALETTE ---------
@@ -408,6 +436,44 @@ export class DashboardPageComponent implements OnInit, OnDestroy {
     }
 
     this.activityChart = new Chart(ctx, config)
+  }
+
+  // --------- SPINNER POSITION ---------
+  private attachSpinnerTracking(): void {
+    const host = this.mainHost?.nativeElement
+    if (!host) return
+
+    this.updateSpinnerLeft()
+    this.resizeObs?.disconnect()
+    this.resizeObs = new ResizeObserver(() => this.updateSpinnerLeft())
+    this.resizeObs.observe(host)
+    window.addEventListener('resize', this.updateSpinnerLeft)
+    this.startSpinnerFollow()
+  }
+
+  private updateSpinnerLeft = () => {
+    const rect = this.mainHost?.nativeElement.getBoundingClientRect()
+    if (!rect) return
+    this.spinnerLeft.set(rect.left + rect.width / 2)
+  }
+
+  private startSpinnerFollow(): void {
+    this.stopSpinnerFollow()
+    const start = performance.now()
+    const step = (now: number) => {
+      this.updateSpinnerLeft()
+      if (now - start < 800) {
+        this.spinnerFollowRaf = requestAnimationFrame(step)
+      }
+    }
+    this.spinnerFollowRaf = requestAnimationFrame(step)
+  }
+
+  private stopSpinnerFollow(): void {
+    if (this.spinnerFollowRaf) {
+      cancelAnimationFrame(this.spinnerFollowRaf)
+      this.spinnerFollowRaf = undefined
+    }
   }
 
   // --------- UTILS ---------

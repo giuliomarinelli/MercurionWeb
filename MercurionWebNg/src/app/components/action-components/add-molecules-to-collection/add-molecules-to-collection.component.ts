@@ -355,6 +355,7 @@ export class AddMoleculesToCollectionComponent extends AbstractPaginatedMultisel
   ngOnInit(): void {
     const ifc = this.addContext.importFromChembl()
     const defaultMethod = ifc ? 'chembl' : 'my'
+    this.method.set(defaultMethod)
     this.methodControl = new FormControl<'my' | 'chembl'>(defaultMethod, { nonNullable: true })
     this.metCtrlSub = this.methodControl.valueChanges.subscribe((val) => this.method.set(val))
     queueMicrotask(() => {
@@ -517,7 +518,13 @@ export class AddMoleculesToCollectionComponent extends AbstractPaginatedMultisel
         this.step_12_loading.set(false);
         this.addContext.notifyAdded()
         this.error.set(!ok);
+        const cId = this.addContext.collectionId()
+        const shouldRedirect = this.addContext.redirectToCollectionPath()
         this.addContext.clearCollectionId()
+        if (shouldRedirect) {
+          this.addContext.setRedirectToCollectionPath(false)
+          this.router.navigateByUrl(`/molecules/collections/detail/${cId}`)
+        }
         this.actionOverlayContext.close()
       },
       error: () => {

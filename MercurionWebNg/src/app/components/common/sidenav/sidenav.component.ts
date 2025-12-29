@@ -358,6 +358,7 @@ export class SidenavComponent implements OnInit, OnDestroy {
   importFromChembl(): void {
     queueMicrotask(() => {
       this.addContext.setImportFromChembl(true)
+      this.addContext.setRedirectToCollectionPath(true)
       this.actionContext.open('SelectCollectionThenRoute')
     })
   }

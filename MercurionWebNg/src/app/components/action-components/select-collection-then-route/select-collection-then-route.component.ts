@@ -191,7 +191,7 @@ export class SelectCollectionThenRouteComponent implements OnInit, OnDestroy {
   private goToAddMoleculesToCollection(): void {
     queueMicrotask(() => {
       this.addToColContext.setCollectionId(this.selectedCollectionId())
-      this.addToColContext.setRedirectToCollectionPath(this.importFromChembl() === false)
+      this.addToColContext.setRedirectToCollectionPath(this.importFromChembl())
       this.actionContext.switchToScope('AddMoleculesToCollection')
     })
   }

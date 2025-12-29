@@ -17,6 +17,7 @@ import { ProfileRegistryEditContextService } from '../../services/context/action
 import { AuthProvider } from '../../Models/auth/provider.models';
 import { Helpers } from '../../helpers';
 import { SessionSyncService } from '../../services/session-sync.service';
+import { SidenavContextService } from '../../services/context/sidenav-context.service';
 
 @Component({
   selector: 'm-settings.page',
@@ -575,9 +576,14 @@ import { SessionSyncService } from '../../services/session-sync.service';
         </div>
       </section>
     } @else {
-      <div class="absolute inset-0">
-        <div class="mx-auto max-w-5xl flex justify-center items-center h-full">
-          <m-classic-spinner [size]="60" />
+      <div #pageTop class="main-container h-full">
+        <div class="fixed inset-0 pointer-events-none">
+          <div
+            class="fixed top-1/2 -translate-y-1/2"
+            [style.left.px]="spinnerLeft()"
+          >
+            <m-classic-spinner [size]="60" />
+          </div>
         </div>
       </div>
     }
@@ -595,6 +601,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly appContext = inject(AppContextService)
   private readonly registryContext = inject(ProfileRegistryEditContextService)
   private readonly sessionSync = inject(SessionSyncService)
+  private readonly sidenavContext = inject(SidenavContextService)
 
   @ViewChild(CdkAccordion)
   accordion!: CdkAccordion
@@ -605,7 +612,12 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChildren(CdkAccordionItem, { read: ElementRef })
   accordionItemHosts!: QueryList<ElementRef<HTMLElement>>
 
+  @ViewChild('pageTop') pageTop?: ElementRef<HTMLElement>
+
   scrollRootRef!: ElementRef<HTMLElement>
+  private resizeObs?: ResizeObserver
+  private spinnerTrackingAttached = false
+  private spinnerFollowRaf?: number
 
   profileFetchError = signal<boolean>(false)
   loading = signal<boolean>(true)
@@ -619,6 +631,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
   is_sso = signal<boolean>(false)
   authProvider = signal<AuthProvider | null>(null)
+  spinnerLeft = signal<number>(0)
 
   items = ['Generali', 'Anagrafica', 'Contatti', 'Sicurezza']
   private readonly accordionAnchors = ['general', 'personal_details', 'contact_details', 'security']
@@ -655,6 +668,16 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
       }
       this.scrollRootRef = rootRef
     })
+    effect(() => {
+      // riallinea lo spinner quando cambia sidebar o stato di loading
+      const _ = this.sidenavContext.isOpen()
+      this.loading()
+      queueMicrotask(() => {
+        this.attachSpinnerTracking()
+        this.updateSpinnerLeft()
+        this.startSpinnerFollow()
+      })
+    })
   }
 
   ngOnInit(): void {
@@ -672,6 +695,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngAfterViewInit(): void {
     this.appContext.notifyRequestGlobalScrollRootRefTick()
+    this.attachSpinnerTracking()
 
     this.viewSub = this.accordionItems.changes
       .pipe(startWith(this.accordionItems))
@@ -699,6 +723,52 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
     this.viewSub?.unsubscribe()
     this.fragmentSub?.unsubscribe()
     this.provSub?.unsubscribe()
+    this.resizeObs?.disconnect()
+    if (this.spinnerTrackingAttached) {
+      window.removeEventListener('resize', this.updateSpinnerLeft)
+    }
+    this.stopSpinnerFollow()
+  }
+
+  private attachSpinnerTracking(): void {
+    const host = this.pageTop?.nativeElement
+    if (!host) return
+
+    this.updateSpinnerLeft()
+    this.resizeObs?.disconnect()
+    this.resizeObs = new ResizeObserver(() => this.updateSpinnerLeft())
+    this.resizeObs.observe(host)
+
+    if (!this.spinnerTrackingAttached) {
+      window.addEventListener('resize', this.updateSpinnerLeft)
+      this.spinnerTrackingAttached = true
+    }
+    this.startSpinnerFollow()
+  }
+
+  private updateSpinnerLeft = () => {
+    const rect = this.pageTop?.nativeElement.getBoundingClientRect()
+    if (!rect) return
+    this.spinnerLeft.set(rect.left + rect.width / 2)
+  }
+
+  private startSpinnerFollow(): void {
+    this.stopSpinnerFollow()
+    const start = performance.now()
+    const step = (now: number) => {
+      this.updateSpinnerLeft()
+      if (now - start < 800) {
+        this.spinnerFollowRaf = requestAnimationFrame(step)
+      }
+    }
+    this.spinnerFollowRaf = requestAnimationFrame(step)
+  }
+
+  private stopSpinnerFollow(): void {
+    if (this.spinnerFollowRaf) {
+      cancelAnimationFrame(this.spinnerFollowRaf)
+      this.spinnerFollowRaf = undefined
+    }
   }
 
   breakHex(str: string): string {
