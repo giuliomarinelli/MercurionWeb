@@ -93,13 +93,11 @@ import { DesignService } from '../../../services/design.service';
       @if (showActions && !(noPhone && _strategy()!.strategy === 'SMS_OTP') && _strategy()!.strategy !== 'BACKUP_CODE') {
         <button
           type="button"
-          [class.bg-emerald-800]="!_strategy()!.enabled || _strategy()!.strategy === 'BACKUP_CODE'"
-          [class.hover:bg-emerald-800/80]="!_strategy()!.enabled || _strategy()!.strategy === 'BACKUP_CODE'"
-          [class.bg-light-error]="_strategy()!.enabled && _strategy()!.strategy !== 'BACKUP_CODE'"
-          [class.hover:bg-light-error/80]="_strategy()!.enabled && _strategy()!.strategy !== 'BACKUP_CODE'"
+          [class.green-btn]="!_strategy()!.enabled || _strategy()!.strategy === 'BACKUP_CODE'"
+          [class.red-btn]="_strategy()!.enabled && _strategy()!.strategy !== 'BACKUP_CODE'"
           class="
             flex items-center gap-1 px-3 py-2 rounded-md
-            text-slate-100 font-medium text-sm
+            font-semibold text-sm
             transition-colors duration-150
           "
           (click)="handleActionClick()"
@@ -129,7 +127,7 @@ import { DesignService } from '../../../services/design.service';
           @if (!_remainingBackupCodes()) {
             <span class="text-red-600 dark:text-red-300">Nessuno</span>
           } @else {
-            <span class="text-emerald-600 dark:text-emerald-300">{{_remainingBackupCodes()}}</span>
+            <span class="text-emerald-600 dark:text-dark-accent-secondary-hc">{{_remainingBackupCodes()}}</span>
           }
         </p>
       }

@@ -1,4 +1,15 @@
-import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  AfterViewInit,
+  inject,
+  signal,
+  effect,
+} from '@angular/core';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { EMPTY, of, Subscription, switchMap, defer, from, combineLatest, catchError, take, filter } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -6,6 +17,7 @@ import { TypeGuardsService } from '../../services/type-guards.service';
 import { FingerprintService } from '../../services/fingerprint.service';
 import { AuthService } from '../../services/auth.service';
 import { SessionSyncService } from '../../services/session-sync.service';
+import { SidenavContextService } from '../../services/context/sidenav-context.service';
 
 @Component({
   selector: 'm-sso-page',
@@ -13,13 +25,20 @@ import { SessionSyncService } from '../../services/session-sync.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
 
-    <div class="absolute inset-0 flex justify-center items-center">
-      <m-classic-spinner [size]="60" />
+    <div #mainHost class="main-container h-full">
+      <div class="fixed inset-0 pointer-events-none">
+        <div
+          class="fixed top-1/2 -translate-y-1/2"
+          [style.left.px]="spinnerLeft()"
+        >
+          <m-classic-spinner [size]="60" />
+        </div>
+      </div>
     </div>
 
   `
 })
-export class SsoPageComponent implements OnInit, OnDestroy {
+export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private readonly route = inject(ActivatedRoute)
   private readonly router = inject(Router)
@@ -27,8 +46,26 @@ export class SsoPageComponent implements OnInit, OnDestroy {
   private readonly fingerprintService = inject(FingerprintService)
   private readonly authService = inject(AuthService)
   private readonly sessionSync = inject(SessionSyncService)
+  private readonly sidenavContext = inject(SidenavContextService)
 
   private sub?: Subscription
+  private resizeObs?: ResizeObserver
+  private spinnerFollowRaf?: number
+
+  spinnerLeft = signal<number>(0)
+
+  @ViewChild('mainHost', { static: true }) mainHost?: ElementRef<HTMLElement>
+
+  constructor() {
+    effect(() => {
+      // riallinea lo spinner quando cambia la sidebar
+      const _ = this.sidenavContext.isOpen()
+      queueMicrotask(() => {
+        this.updateSpinnerLeft()
+        this.startSpinnerFollow()
+      })
+    })
+  }
 
   private sanitizeRedirectTo(raw: string | null | undefined): string | null {
     const v = (raw ?? '').trim()
@@ -110,8 +147,52 @@ export class SsoPageComponent implements OnInit, OnDestroy {
     })
   }
 
+  ngAfterViewInit(): void {
+    this.attachSpinnerTracking()
+  }
+
   ngOnDestroy(): void {
     this.sub?.unsubscribe()
+    this.resizeObs?.disconnect()
+    window.removeEventListener('resize', this.updateSpinnerLeft)
+    this.stopSpinnerFollow()
+  }
+
+  private attachSpinnerTracking(): void {
+    const host = this.mainHost?.nativeElement
+    if (!host) return
+
+    this.updateSpinnerLeft()
+    this.resizeObs?.disconnect()
+    this.resizeObs = new ResizeObserver(() => this.updateSpinnerLeft())
+    this.resizeObs.observe(host)
+    window.addEventListener('resize', this.updateSpinnerLeft)
+    this.startSpinnerFollow()
+  }
+
+  private updateSpinnerLeft = () => {
+    const rect = this.mainHost?.nativeElement.getBoundingClientRect()
+    if (!rect) return
+    this.spinnerLeft.set(rect.left + rect.width / 2)
+  }
+
+  private startSpinnerFollow(): void {
+    this.stopSpinnerFollow()
+    const start = performance.now()
+    const step = (now: number) => {
+      this.updateSpinnerLeft()
+      if (now - start < 800) {
+        this.spinnerFollowRaf = requestAnimationFrame(step)
+      }
+    }
+    this.spinnerFollowRaf = requestAnimationFrame(step)
+  }
+
+  private stopSpinnerFollow(): void {
+    if (this.spinnerFollowRaf) {
+      cancelAnimationFrame(this.spinnerFollowRaf)
+      this.spinnerFollowRaf = undefined
+    }
   }
 
 }

@@ -19,11 +19,19 @@ import { Subscription } from 'rxjs';
   <div class="w-full max-w-4xl bg-white dark:bg-dark-surface-main rounded-xl shadow-lg">
     <div class="flex items-center justify-between px-4 py-4 border-b border-b-slate-400 sticky top-0 z-50 rounded-t-xl bg-white dark:bg-dark-surface-main">
       <h2 class="flex gap-4 items-center flex-wrap text-lg font-semibold">
+      @if (importFromChembl()) {
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current size-5">
+          <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+          <path d="M552.1 320L590.7 320C578.7 308 548 277.3 498.7 228L579.4 147.3L590.7 136L579.4 124.7L515.4 60.7L504.1 49.4L492.8 60.7L412.1 141.4C362.7 92 332.1 61.4 320.1 49.4L320.1 320L49.5 320C61.5 332 92.2 362.7 141.5 412L60.8 492.7L49.5 504L60.8 515.3L124.8 579.3L136.1 590.6L147.4 579.3L228.1 498.6C277.5 548 308.1 578.6 320.1 590.6L320.1 320L552.1 320zM464.8 239.3L513.5 288L352.1 288L352.1 126.6C390.8 165.3 410.8 185.3 412.1 186.6L423.4 175.3L504.1 94.6L545.5 136L464.8 216.7L453.5 228L464.8 239.3zM175.4 400.7L126.7 352L288.1 352L288.1 513.4C249.4 474.7 229.4 454.7 228.1 453.4L216.8 464.7L136.1 545.4L94.7 504L175.4 423.3L186.7 412L175.4 400.7z"/>
+        </svg>
+        <span>Importa da ChEMBL: seleziona la collezione</span>
+      } @else {
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current size-8">
           <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
           <path d="M288 96L352 144L576 144L576 512L64 512L64 96L288 96zM352 176L341.3 176L332.8 169.6L277.3 128L96 128L96 480L544 480L544 176L352 176zM304 408L304 336L232 336L232 304L304 304L304 232L336 232L336 304L408 304L408 336L336 336L336 408L304 408z"/>
         </svg>
         <span>Aggiungi nuove molecole: seleziona la collezione</span>
+        }
       </h2>
       <button class="inline-flex items-center justify-center size-8 rounded-md text-slate-500 hover:text-emerald-600 hover:bg-slate-100 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-transparent transition" (click)="close()">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-5 h-auto">
@@ -106,10 +114,15 @@ export class SelectCollectionThenRouteComponent implements OnInit, OnDestroy {
   selectedCollectionId = signal<string>('')
   page = signal<number>(1)
   searchTerm = signal<string>('')
+  importFromChembl = signal<boolean>(false)
 
 
   ngOnInit(): void {
-    queueMicrotask(() => this.loadCollections(true))
+    queueMicrotask(() => {
+      const ifc = this.addToColContext.importFromChembl()
+      this.importFromChembl.set(ifc)
+      this.loadCollections(true)
+    })
   }
 
   ngOnDestroy(): void {
@@ -129,6 +142,7 @@ export class SelectCollectionThenRouteComponent implements OnInit, OnDestroy {
   }
 
   loadCollections(reset = false) {
+
     if (this.loadingCombo()) {
       return
     }
@@ -177,7 +191,7 @@ export class SelectCollectionThenRouteComponent implements OnInit, OnDestroy {
   private goToAddMoleculesToCollection(): void {
     queueMicrotask(() => {
       this.addToColContext.setCollectionId(this.selectedCollectionId())
-      this.addToColContext.setRedirectToCollectionPath(true)
+      this.addToColContext.setRedirectToCollectionPath(this.importFromChembl())
       this.actionContext.switchToScope('AddMoleculesToCollection')
     })
   }

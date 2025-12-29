@@ -10,6 +10,8 @@ import { ClassicSpinnerComponent } from "../classic-spinner/classic-spinner.comp
 import { DesignService } from '../../../services/design.service';
 import { SearchContextService } from '../../../services/context/search-context.service';
 import { SelectionService } from '../../../services/selection.service';
+import { AddMoleculesToCollectionContextService } from '../../../services/context/action-context/add-molecules-to-collection-context.service';
+import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 
 @Component({
   selector: 'm-sidenav',
@@ -83,7 +85,7 @@ import { SelectionService } from '../../../services/selection.service';
             <span class="sidebar-item-text">Le mie collezioni</span>
           </a>
           <hr class="border-slate-300 dark:border-slate-600 my-2" />
-          <button class="sidebar-link" (click)="handleMenuItemClick()">
+          <button class="sidebar-link" (click)="handleMenuItemClick(); importFromChembl()">
             <div
               class="flex size-9 shrink-0 items-center justify-center
                      rounded-xl border border-slate-400/70 dark:border-slate-500/60
@@ -277,6 +279,8 @@ export class SidenavComponent implements OnInit, OnDestroy {
   protected readonly searchOverlayContext = inject(SearchContextService)
   protected readonly s = inject(SelectionService)
   private readonly router = inject(Router)
+  private readonly addContext = inject(AddMoleculesToCollectionContextService)
+  private readonly actionContext = inject(ActionOverlayContextService)
 
   @Output()
   onOpenOffCanvas = new EventEmitter<void>()
@@ -349,6 +353,14 @@ export class SidenavComponent implements OnInit, OnDestroy {
 
   closeOffCanvasMenu(): void {
     this.onMenuItemClick.emit()
+  }
+
+  importFromChembl(): void {
+    queueMicrotask(() => {
+      this.addContext.setImportFromChembl(true)
+      this.addContext.setRedirectToCollectionPath(true)
+      this.actionContext.open('SelectCollectionThenRoute')
+    })
   }
 
 }

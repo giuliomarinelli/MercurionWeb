@@ -9,6 +9,9 @@ module.exports = {
       fontFamily: {
         spacegrotesk: ['"Space Grotesk"', 'sans-serif'],
       },
+      boxShadow: {
+        'btn-dark': '0 3px 12px #00000059, inset 0 1px 0 #FFFFFF2E',
+      },
       screens: {
         "3xs": "321px",
         "2xs": "376px",
@@ -36,6 +39,7 @@ module.exports = {
           'accent-primary-btn': '#0B6DE5',
           'accent-secondary': '#28B883',
           'accent-secondary-surface': '219C6F',
+          'accent-secondary-hc': '#3FD59E',
           'warning': '#FBBF24',
           'error': '#FF7A7D',
           'border': '#4B5563',

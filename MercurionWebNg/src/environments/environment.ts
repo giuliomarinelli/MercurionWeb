@@ -1,6 +1,6 @@
 export const environment = {
   CLOUDFLARE_SITE_KEY: '0x4AAAAAABdOWnfz_3r4JGDK',
-   PUBLIC_EXACT_PATHS: [
+  PUBLIC_EXACT_PATHS: [
     '/login',
     '/register',
     '/forgot',
@@ -13,7 +13,7 @@ export const environment = {
     '/terms-and-policies',
     '/contacts'
   ],
-  LOGGED_OUT_ONLY_PATHS: ['/login', '/register', '/forgot', '/privacy', '/', '/forgot-password', '/account-recovery'],
+  LOGGED_OUT_ONLY_PATHS: ['/login', '/register', '/forgot', '/', '/forgot-password', '/account-recovery'],
   PUBLIC_PREFIXES: ['/login/mfa', '/molecules/detail', '/password-recovery', '/oauth2/callback', '/account/activate'],
   wsUrl: '/',
   logoSrc: {

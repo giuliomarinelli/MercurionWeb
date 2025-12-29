@@ -17,6 +17,9 @@ import { ProfileRegistryEditContextService } from '../../services/context/action
 import { AuthProvider } from '../../Models/auth/provider.models';
 import { Helpers } from '../../helpers';
 import { SessionSyncService } from '../../services/session-sync.service';
+import { SidenavContextService } from '../../services/context/sidenav-context.service';
+
+
 
 @Component({
   selector: 'm-settings.page',
@@ -49,14 +52,15 @@ import { SessionSyncService } from '../../services/session-sync.service';
         max-height: 0;
       }
       to {
-        transform: translateY(0);
+        transform: none;
         max-height: 999px;
       }
     }
 
+
     @keyframes accordion-up {
       from {
-        transform: translateY(0);
+        transform: none;
         max-height: 999px;
       }
       to {
@@ -64,6 +68,7 @@ import { SessionSyncService } from '../../services/session-sync.service';
         max-height: 0;
       }
     }
+
 
   `,
   template: `
@@ -73,10 +78,17 @@ import { SessionSyncService } from '../../services/session-sync.service';
         <h1 class="h1-underline">
           Impostazioni
         </h1>
-        <div class="flex flex-col justify-between">
+        <div
+          class="flex flex-col justify-between transition-[padding-bottom] duration-200 ease-out"
+          [style.paddingBottom]="bottomSpacerPx()"
+        >
           <cdk-accordion class="flex flex-col w-full border border-slate-300 dark:border-slate-500">
             @for (item of items; track item; let i = $index) {
-              <cdk-accordion-item #accordionItem="cdkAccordionItem" (opened)="onAccordionOpened(i)" (closed)="smoothToTop()">
+              <cdk-accordion-item
+                #accordionItem="cdkAccordionItem"
+                (opened)="onAccordionOpened(i)"
+                (closed)="smoothToTop()"
+              >
                 <div class="border-b border-slate-300 dark:border-slate-500" [class.border-b-0]="i === items.length - 1">
                   <button
                     type="button"
@@ -247,11 +259,13 @@ import { SessionSyncService } from '../../services/session-sync.service';
                                         Autenticazione a più fattori
                                       </span>
                                       <span
-                                        class="px-2 py-[2px] rounded text-xs font-semibold"
+                                        class="px-2 py-[2px] rounded text-xs font-semibold cursor-default"
                                         [class.bg-emerald-200]="isEnabledMfa"
                                         [class.text-emerald-800]="isEnabledMfa"
-                                        [class.bg-amber-200]="!isEnabledMfa || is_sso()"
-                                        [class.text-amber-800]="!isEnabledMfa || is_sso()"
+                                        [class.dark:bg-amber-200]="!isEnabledMfa || is_sso()"
+                                        [class.dark:text-amber-800]="!isEnabledMfa || is_sso()"
+                                        [class.bg-amber-800]="!isEnabledMfa || is_sso()"
+                                        [class.text-amber-200]="!isEnabledMfa || is_sso()"
                                       >
                                         @if (is_sso()) {
                                           In carico al provider
@@ -463,23 +477,17 @@ import { SessionSyncService } from '../../services/session-sync.service';
                                 <button
                                   type="button"
                                   class="
-                                    flex items-center gap-2 px-3 py-2 rounded-md
-                                    dark:bg-emerald-700/90
-                                    dark:hover:bg-emerald-700/65
-                                    bg-emerald-800
-                                    text-slate-100 font-medium text-sm
-                                    hover:bg-emerald-800/80
-                                    transition-colors duration-150
+                                    green-btn
                                   "
                                   (click)="changePassword()"
                                 >
                                   <svg xmlns="http://www.w3.org/2000/svg"
                                        viewBox="0 0 640 640"
-                                       class="fill-current h-6 w-6 relative -left-1">
+                                       class="fill-current h-6 w-6 relative">
                                     <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                                     <path d="M256 240C256 160.5 320.5 96 400 96C479.5 96 544 160.5 544 240C544 319.5 479.5 384 400 384C388.9 384 378 382.7 367.6 380.4L359 378.4L352.7 384.7L321.3 416.1L255.9 416.1L255.9 480.1L191.9 480.1L191.9 544.1L95.9 544.1L95.9 462.7L258.7 299.9L265.6 293L262.7 283.7C258.3 269.9 256 255.3 256 240zM400 64C302.8 64 224 142.8 224 240C224 255.1 225.9 269.8 229.5 283.9L68.7 444.7L64 449.4L64 576L224 576L224 512L288 512L288 448L334.6 448L339.3 443.3L369.3 413.3C379.3 415.1 389.5 416 400 416C497.2 416 576 337.2 576 240C576 142.8 497.2 64 400 64zM432 232C445.3 232 456 221.3 456 208C456 194.7 445.3 184 432 184C418.7 184 408 194.7 408 208C408 221.3 418.7 232 432 232z"/>
                                   </svg>
-                                  <span>Cambia password</span>
+                                  <p class="mr-2">Cambia password</p>
                                 </button>
                               </div>
                             }
@@ -492,11 +500,7 @@ import { SessionSyncService } from '../../services/session-sync.service';
                             <button
                               type="button"
                               class="
-                                flex items-center gap-2 px-3 py-2 rounded-md
-                                bg-light-error dark:bg-red-600/75
-                                text-slate-100 font-medium text-sm
-                                hover:bg-light-error/80 dark:hover:bg-red-600/60
-                                transition-colors duration-150
+                                red-btn
                               "
                               (click)="doLogoutFromAllSessions()"
                             >
@@ -510,30 +514,36 @@ import { SessionSyncService } from '../../services/session-sync.service';
                             </button>
                             @if (!is_sso()) {
                               <hr class="border-[0.5px] border-slate-400 dark:border-slate-500 mt-6" />
-                              <h3 class="font-bold text-lg mt-6 mb-3">Autenticazione a più fattori</h3>
+                              <h3 class="font-bold text-lg mt-6 mb-6 flex gap-6 flex-wrap">
+                                <span>Autenticazione a più fattori</span>
+                                <span
+                                  class="inline-flex items-center rounded px-2 py-[2px] text-sm font-semibold cursor-default"
+                                  [class.bg-emerald-200]="isEnabledMfa"
+                                  [class.text-emerald-800]="isEnabledMfa"
+                                  [class.dark:bg-amber-200]="!isEnabledMfa"
+                                  [class.dark:text-amber-800]="!isEnabledMfa"
+                                  [class.bg-amber-800]="!isEnabledMfa"
+                                  [class.text-amber-200]="!isEnabledMfa"
+                                >
+                                  {{ isEnabledMfa ? 'Attiva' : 'Non attiva' }}
+                                </span>
+                              </h3>
                               <div class="flex gap-8 items-center">
-                                <p class="pl-3">{{isEnabledMfa ? 'Attiva' : 'Non attiva'}}</p>
                                 @if (!isEnabledMfa) {
                                   <button
                                     type="button"
                                     class="
-                                      flex items-center gap-2 px-3 py-2 rounded-md
-                                      dark:bg-emerald-700/90
-                                      dark:hover:bg-emerald-700/65
-                                      bg-emerald-800
-                                      text-slate-100 font-medium text-sm
-                                      hover:bg-emerald-800/80
-                                      transition-colors duration-150
+                                      green-btn
                                     "
                                     (click)="doEnableMfa()"
                                   >
                                     <svg xmlns="http://www.w3.org/2000/svg"
                                          viewBox="0 0 640 640"
-                                         class="fill-current h-6 w-6 relative -left-1">
+                                         class="fill-current h-6 w-6 relative">
                                       <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                                       <path d="M432.2 432L398.5 432L377.2 368L263.3 368L242 432L208.3 432L240.3 336L400.3 336L432.3 432zM320.2 304C284.9 304 256.2 275.3 256.2 240C256.2 204.7 284.9 176 320.2 176C355.5 176 384.2 204.7 384.2 240C384.2 275.3 355.5 304 320.2 304zM320.2 208C302.5 208 288.2 222.3 288.2 240C288.2 257.7 302.5 272 320.2 272C337.9 272 352.2 257.7 352.2 240C352.2 222.3 337.9 208 320.2 208zM320.2 576L307.5 570.5C156.3 505.1 71.4 337.8 80.7 177L81.9 156.5L320.2 64L558.5 156.5L559.6 177C569 337.8 484 505.1 332.9 570.5L320.2 576zM112.7 178.9C105.9 326.2 180.4 480.6 320.2 541.1C460 480.6 534.5 326.2 527.7 178.9L320.2 98.3L112.7 178.9z"/>
                                     </svg>
-                                    <span>Attiva l'autenticazione a più fattori</span>
+                                    <p class="mr-2">Attiva l'autenticazione a più fattori</p>
                                   </button>
                                 }
                               </div>
@@ -565,13 +575,17 @@ import { SessionSyncService } from '../../services/session-sync.service';
               </cdk-accordion-item>
               }
           </cdk-accordion>
-          <div class="h-[50vh]"></div>
         </div>
       </section>
     } @else {
-      <div class="absolute inset-0">
-        <div class="mx-auto max-w-5xl flex justify-center items-center h-full">
-          <m-classic-spinner [size]="60" />
+      <div #pageTop class="main-container h-full">
+        <div class="fixed inset-0 pointer-events-none">
+          <div
+            class="fixed top-1/2 -translate-y-1/2"
+            [style.left.px]="spinnerLeft()"
+          >
+            <m-classic-spinner [size]="60" />
+          </div>
         </div>
       </div>
     }
@@ -589,6 +603,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly appContext = inject(AppContextService)
   private readonly registryContext = inject(ProfileRegistryEditContextService)
   private readonly sessionSync = inject(SessionSyncService)
+  private readonly sidenavContext = inject(SidenavContextService)
 
   @ViewChild(CdkAccordion)
   accordion!: CdkAccordion
@@ -599,10 +614,16 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChildren(CdkAccordionItem, { read: ElementRef })
   accordionItemHosts!: QueryList<ElementRef<HTMLElement>>
 
+  @ViewChild('pageTop') pageTop?: ElementRef<HTMLElement>
+
   scrollRootRef!: ElementRef<HTMLElement>
+  private resizeObs?: ResizeObserver
+  private spinnerTrackingAttached = false
+  private spinnerFollowRaf?: number
 
   profileFetchError = signal<boolean>(false)
   loading = signal<boolean>(true)
+  bottomSpacerPx = signal<string>('0px')
   currentVersion!: VersionDTO
 
   profile!: ProfileDTO
@@ -612,6 +633,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
   is_sso = signal<boolean>(false)
   authProvider = signal<AuthProvider | null>(null)
+  spinnerLeft = signal<number>(0)
 
   items = ['Generali', 'Anagrafica', 'Contatti', 'Sicurezza']
   private readonly accordionAnchors = ['general', 'personal_details', 'contact_details', 'security']
@@ -648,6 +670,16 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
       }
       this.scrollRootRef = rootRef
     })
+    effect(() => {
+      // riallinea lo spinner quando cambia sidebar o stato di loading
+      const _ = this.sidenavContext.isOpen()
+      this.loading()
+      queueMicrotask(() => {
+        this.attachSpinnerTracking()
+        this.updateSpinnerLeft()
+        this.startSpinnerFollow()
+      })
+    })
   }
 
   ngOnInit(): void {
@@ -665,6 +697,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngAfterViewInit(): void {
     this.appContext.notifyRequestGlobalScrollRootRefTick()
+    this.attachSpinnerTracking()
 
     this.viewSub = this.accordionItems.changes
       .pipe(startWith(this.accordionItems))
@@ -676,7 +709,6 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
           const currentFrag = this.route.snapshot.fragment
 
           if (!currentFrag) {
-            // ✅ fallback SOLO all'avvio se non c'è fragment
             this.openAccordionAtIndex(0, { closeOthers: true })
             return
           }
@@ -693,6 +725,67 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
     this.viewSub?.unsubscribe()
     this.fragmentSub?.unsubscribe()
     this.provSub?.unsubscribe()
+    this.resizeObs?.disconnect()
+    if (this.spinnerTrackingAttached) {
+      window.removeEventListener('resize', this.updateSpinnerLeft)
+    }
+    this.stopSpinnerFollow()
+  }
+
+  private attachSpinnerTracking(): void {
+    const host = this.pageTop?.nativeElement
+    if (!host) return
+
+    this.updateSpinnerLeft()
+    this.resizeObs?.disconnect()
+    this.resizeObs = new ResizeObserver(() => this.updateSpinnerLeft())
+    this.resizeObs.observe(host)
+
+    if (!this.spinnerTrackingAttached) {
+      window.addEventListener('resize', this.updateSpinnerLeft)
+      this.spinnerTrackingAttached = true
+    }
+    this.startSpinnerFollow()
+  }
+
+  private updateSpinnerLeft = () => {
+    const rect = this.pageTop?.nativeElement.getBoundingClientRect()
+    if (!rect) return
+    this.spinnerLeft.set(rect.left + rect.width / 2)
+  }
+
+  computeMfaChipStyle(): Record<string, string> {
+    const isDark = document.documentElement.classList.contains('dark')
+    if (this.isEnabledMfa) {
+      return {
+        backgroundColor: '#a7f3d0', // emerald-200
+        color: '#065f46', // emerald-800
+      }
+    }
+
+    return {
+      backgroundColor: isDark ? '#334155' : '#e2e8f0', // slate-700 / slate-200
+      color: isDark ? '#e2e8f0' : '#1e293b', // slate-100 / slate-800
+    }
+  }
+
+  private startSpinnerFollow(): void {
+    this.stopSpinnerFollow()
+    const start = performance.now()
+    const step = (now: number) => {
+      this.updateSpinnerLeft()
+      if (now - start < 800) {
+        this.spinnerFollowRaf = requestAnimationFrame(step)
+      }
+    }
+    this.spinnerFollowRaf = requestAnimationFrame(step)
+  }
+
+  private stopSpinnerFollow(): void {
+    if (this.spinnerFollowRaf) {
+      cancelAnimationFrame(this.spinnerFollowRaf)
+      this.spinnerFollowRaf = undefined
+    }
   }
 
   breakHex(str: string): string {
@@ -798,6 +891,8 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
   onAccordionOpened(i: number): void {
     this.skipSmoothToTopOnClose = false
+    this.updateBottomSpacer()
+
     setTimeout(() => {
       const hosts = this.accordionItemHosts.toArray()
       const itemEl = hosts[i]?.nativeElement
@@ -824,7 +919,6 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
       replaceUrl: true
     })
   }
-
 
   getCurrentSessionBrowser(): string {
     return this.activeSessions.find(s => s.current)?.browser ?? '—'
@@ -966,9 +1060,9 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private applyFragment(frag: string | null | undefined): void {
-    // ✅ se non c'è fragment: chiudi tutto e non riaprire niente
     if (!frag) {
       this.openAccordionAtIndex(null, { closeOthers: true })
+      this.updateBottomSpacer()
       return
     }
 
@@ -981,19 +1075,36 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     this.openAccordionAtIndex(idx, { closeOthers: true })
+    this.updateBottomSpacer()
   }
 
   smoothToTop(): void {
+    this.updateBottomSpacer()
+
     if (this.skipSmoothToTopOnClose) {
       return
     }
-    for (const item of Array.from(this.accordionItems)) {
+
+    const items = this.accordionItems?.toArray() ?? []
+    for (const item of items) {
       if (item.expanded) {
         return
       }
     }
+
     this.appContext.smoothToTop(this.scrollRootRef)
   }
 
+  private updateBottomSpacer(): void {
+    const items = this.accordionItems?.toArray() ?? []
+    const anyOpen = items.some(item => item.expanded)
+
+    if (!anyOpen) {
+      this.bottomSpacerPx.set('0px')
+      return
+    }
+
+    this.bottomSpacerPx.set('clamp(160px, 22vh, 360px)')
+  }
 
 }

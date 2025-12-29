@@ -8,10 +8,15 @@ import {
   ScrollStrategyOptions
 } from '@angular/cdk/overlay';
 import { PmOption } from '../../../Models/pm-option.model';
+import { NgClass } from '@angular/common';
 
 @Component({
   selector: 'm-select',
-  imports: [PublicPipe, OverlayModule],
+  imports: [
+    PublicPipe,
+    OverlayModule,
+    NgClass
+  ],
   providers: [{
     provide: NG_VALUE_ACCESSOR,
     useExisting: PmSelectComponent,
@@ -24,11 +29,12 @@ import { PmOption } from '../../../Models/pm-option.model';
     }
   `],
   template: `
-    <div [attr.class]="containerClass">
+    <div [class]="containerClass">
       <div class="w-full relative" cdkOverlayOrigin #origin="cdkOverlayOrigin">
         @if (label) {
           <label [attr.for]="id + '-btn'"
-            class="block ml-[2px] mb-2 text-base text-light-accent-secondary dark:text-dark-accent-secondary/90">
+            class="block ml-[2px] mb-2 text-base"
+            [ngClass]="[textClass, darkTextClass]">
             {{ label }}
           </label>
         }
@@ -117,6 +123,8 @@ export class PmSelectComponent implements ControlValueAccessor {
   @Input() disabled = false;
   @Input() containerClass = 'flex justify-center mx-auto max-w-[500px]';
   @Input() maxHeight = 250;
+  @Input() textClass = 'text-light-accent-secondary'
+  @Input() darkTextClass = 'dark:text-dark-accent-secondary/90'
 
   opened = false;
   value: any = null;
@@ -140,10 +148,10 @@ export class PmSelectComponent implements ControlValueAccessor {
   private sso = inject(ScrollStrategyOptions);
   scrollStrategy: ScrollStrategy = this.sso.reposition();
 
-  private onChange = (_: any) => {};
-  private onTouched = () => {};
+  private onChange = (_: any) => { };
+  private onTouched = () => { };
 
-  constructor(private el: ElementRef<HTMLElement>) {}
+  constructor(private el: ElementRef<HTMLElement>) { }
 
   private get currentOption() {
     return this.options.find(o => o.value === this.value);
@@ -183,7 +191,7 @@ export class PmSelectComponent implements ControlValueAccessor {
     if (!this.opened) return;
 
     if (e.key === 'ArrowDown') { e.preventDefault(); this.highlighted = Math.min(this.options.length - 1, this.highlighted + 1); }
-    if (e.key === 'ArrowUp')   { e.preventDefault(); this.highlighted = Math.max(0, this.highlighted - 1); }
+    if (e.key === 'ArrowUp') { e.preventDefault(); this.highlighted = Math.max(0, this.highlighted - 1); }
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.choose(this.highlighted); }
     if (e.key === 'Escape') { e.preventDefault(); this.opened = false; }
   }

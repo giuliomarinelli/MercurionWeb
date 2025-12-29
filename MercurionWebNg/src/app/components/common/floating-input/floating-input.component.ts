@@ -35,10 +35,12 @@ type ErrorMap = Record<string, string>;
         [attr.for]="id"
         [ngClass]="[
           activeLabel()
-            ? 'text-light-accent-secondary dark:text-dark-accent-secondary/90 scale-110 -translate-y-6 text-sm'
+            ? 'scale-110 -translate-y-6 text-sm'
             : 'dark:text-slate-400 text-slate-500 text-lg scale-100 translate-y-0 cursor-text',
           bgClass,
-          darkBgClass
+          darkBgClass,
+          labelClass,
+          darkLabelClass
         ]"
         class="absolute transition-all duration-300 px-1 top-[13px] left-4 origin-[0]"
       >
@@ -68,6 +70,9 @@ export class FloatingInputComponent implements ControlValueAccessor, OnDestroy {
   @Input() asyncVerify = false
   @Input() bgClass = 'bg-light-surface-main'
   @Input() darkBgClass = 'dark:bg-neutral-950'
+  @Input() labelClass= 'text-light-accent-secondary'
+  @Input() darkLabelClass= 'dark:text-dark-accent-secondary/90'
+
 
   @Output() enter = new EventEmitter<void>();
 

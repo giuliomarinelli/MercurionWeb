@@ -73,7 +73,7 @@ import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.model
                   for="name"
                   class="peer-focus:font-medium absolute transition-all duration-300 bg-white dark:bg-dark-surface-main px-1 top-[13px] left-4 origin-[0] cursor-text"
                   [ngClass]="{
-                        'text-emerald-700 dark:text-emerald-300 scale-110 -translate-y-6 text-sm': nameFocus() || nameModel,
+                        'text-emerald-700 dark:text-dark-accent-secondary-hc scale-110 -translate-y-6 text-sm': nameFocus() || nameModel,
                         'text-slate-500 dark:text-slate-300 text-lg scale-100 translate-y-0': !nameFocus() && !nameModel
                       }"
                 >
@@ -100,7 +100,7 @@ import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.model
                   for="label"
                   class="peer-focus:font-medium absolute transition-all duration-300 bg-white dark:bg-dark-surface-main px-1 top-[13px] left-4 origin-[0] cursor-text"
                   [ngClass]="{
-                        'text-emerald-700 dark:text-emerald-300 scale-110 -translate-y-6 text-sm': labelFocus() || labelModel,
+                        'text-emerald-700 dark:text-dark-accent-secondary-hc scale-110 -translate-y-6 text-sm': labelFocus() || labelModel,
                         'text-slate-500 dark:text-slate-300 text-lg scale-100 translate-y-0': !labelFocus() && !labelModel
                       }"
                 >
@@ -124,7 +124,7 @@ import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.model
                   for="notes"
                   class="peer-focus:font-medium absolute transition-all duration-300 bg-white dark:bg-dark-surface-main px-1 top-[13px] left-4 origin-[0] cursor-text"
                   [ngClass]="{
-                        'text-emerald-700 dark:text-emerald-400 scale-110 -translate-y-6 text-sm': notesFocus() || notesModel,
+                        'text-emerald-700 dark:text-dark-accent-secondary-hc scale-110 -translate-y-6 text-sm': notesFocus() || notesModel,
                         'text-slate-500 dark:text-slate-300 text-lg scale-100 translate-y-0': !notesFocus() && !notesModel
                       }"
                 >
@@ -165,14 +165,14 @@ import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.model
               <div class="mt-8 flex justify-end gap-2 sticky">
                 <button
                   type="button"
-                  class="px-4 py-2 rounded bg-slate-200 text-light-on-surface-main dark:bg-slate-100 dark:text-neutral-950 hover:bg-gray-300"
+                  class="px-4 py-2 rounded bg-slate-200 text-light-on-surface-main dark:bg-slate-100 dark:text-neutral-950 hover:bg-gray-300 transition-colors duration-300"
                   (click)="close()"
                 >
                   Annulla
                 </button>
                 <button
                   type="submit"
-                  class="px-4 py-2 rounded bg-emerald-600 text-white font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed"
+                  class="px-4 py-2 rounded bg-emerald-600 text-white font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed transition-colors duration-300"
                   [disabled]="!saveCtx.selectedCollectionId() || !nameModel"
                 >
                   Salva
@@ -315,7 +315,7 @@ export class CustomMoleculeCollectionItemSaveComponent {
     }
     if (!this.nameModel) {
       this.nameTouched = true
-      this.toast.trigger('Il nome Ã¨ obbligatorio!', 'error')
+      this.toast.trigger('Il nome è obbligatorio!', 'error')
       return
     }
 

@@ -23,7 +23,7 @@ import { NgClass } from '@angular/common';
                   class="text-3xl w-full sm:w-fit md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center text-light-accent-primary dark:text-dark-accent-primary">
                 {{ name() }}
               </h2>
-              <m-molecule-badge [name]="_badgeName()" class="block relative top-0.5" />
+              <m-molecule-badge [name]="_badgeName()" class="block relative top-1.5" />
             </div>
             } @else {
               <m-custom-details [type]="'name'" [value]="name()" (onSaving)="doSave($event)" [badgeName]="_badgeName()" [itemId]="_molId()" />
@@ -34,7 +34,7 @@ import { NgClass } from '@angular/common';
                   class="text-3xl w-full sm:w-fit md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-left text-light-accent-primary dark:text-dark-accent-primary">
                 {{ name() }}
               </h1>
-              <m-molecule-badge [name]="'ChEMBL Molecule'" />
+              <m-molecule-badge [name]="'ChEMBL'" class="relative top-1.5" />
             </div>
           }
         @if (_chemblIdSignal()) {
@@ -123,7 +123,7 @@ export class MoleculeHeaderComponent {
   protected readonly _chemblIdSignal = signal<string | undefined>('');
   protected readonly _myMol = signal<boolean>(false)
   protected readonly _isCustom = signal<boolean>(false)
-  protected readonly _badgeName = signal<string>('ChEMBL Personal Molecule')
+  protected readonly _badgeName = signal<string>('ChEMBL')
   protected readonly _molId = signal<string>('')
   protected readonly _isSystemMolecule = signal<boolean>(false)
   private readonly _smiles = signal<string>('')
@@ -166,7 +166,7 @@ export class MoleculeHeaderComponent {
   @Input()
   set isCustom(isCustom: boolean) {
     this._isCustom.set(isCustom ?? false)
-    this._badgeName.set(isCustom ? 'Personal Molecule' : 'ChEMBL Personal Molecule')
+    this._badgeName.set(isCustom ? 'Personal' : 'ChEMBL')
   }
 
   @Input({ required: true })

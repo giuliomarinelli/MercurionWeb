@@ -189,8 +189,7 @@ export class AuthenticationController {
                 throw new UnauthorizedException('InvalidPreauthorizationToken')
             }
         }
-        if (!shouldPersistLogin) {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        if (!shouldPersistLogin) {            
             shouldPersistLogin = await this.sessionService.isSessionLongTerm(sessionId, userId)
         }
         const maxAge = shouldPersistLogin ? this.LONG_SESSION_TTL : undefined

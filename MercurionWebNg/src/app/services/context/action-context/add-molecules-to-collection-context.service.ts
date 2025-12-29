@@ -11,8 +11,11 @@ export class AddMoleculesToCollectionContextService {
   readonly collectionId = this._collectionId.asReadonly()
   readonly addedTick = this._addedTick.asReadonly()
 
-  _redirectToCollectionPath = signal<boolean>(false)
+  private _redirectToCollectionPath = signal<boolean>(false)
   readonly redirectToCollectionPath = this._redirectToCollectionPath.asReadonly()
+
+  private _importFromChembl = signal<boolean>(false)
+  readonly importFromChembl = this._importFromChembl.asReadonly()
 
   setCollectionId(collectionId: string): void {
     this._collectionId.set(collectionId)
@@ -28,6 +31,10 @@ export class AddMoleculesToCollectionContextService {
 
   setRedirectToCollectionPath(v: boolean) {
     this._redirectToCollectionPath.set(v)
+  }
+
+  setImportFromChembl(val: boolean): void {
+    this._importFromChembl.set(val)
   }
 
 }

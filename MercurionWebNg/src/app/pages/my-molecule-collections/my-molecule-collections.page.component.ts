@@ -33,28 +33,28 @@ import { AppContextService } from '../../services/context/app-context.service';
 
   <section class="max-w-5xl mx-auto p-0 xs:p-4 sm:p-6 md:p-8 space-y-12">
     <m-my-molecules-heading />
-    <div class="flex flex-wrap gap-y-4 justify-between items-center relative -top-12 pt-2">
-        <h2 class="h1 bg-slate-50 dark:bg-neutral-950 z-10 block sticky top-0 bottom-5" style="margin-block-start: 0">
+    <div class="flex flex-wrap gap-y-4 justify-between items-center relative -top-12 pt-2 gap-x-4">
+        <h2 class="h1 bg-slate-50 dark:bg-neutral-950 z-10 block sticky top-0 bottom-5" style="margin-block-start: 0; align-self: baseline;">
             Le mie collezioni molecolari
         </h2>
-        <div class="flex items-center gap-3">
-          <!-- 🧩 Crea una o più nuove collezioni -->
-          <button
-            type="button"
-            class="flex items-center gap-2 relative px-3 py-1 rounded-md border border-slate-300 dark:border-slate-600
-                   text-slate-600 dark:text-slate-300 text-xs font-medium
-                   hover:bg-slate-200 dark:hover:bg-slate-700
-                   transition-colors duration-150"
-            title="Aggiungi nuove molecole"
-            (click)="createNewCollection()"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto">
-              <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-              <path d="M336 112L336 96L304 96L304 304L96 304L96 336L304 336L304 544L336 544L336 336L544 336L544 304L336 304L336 112z"/>
-            </svg>
-            <span>Crea una o più nuove collezioni</span>
-          </button>
-        </div>
+
+        <!-- 🧩 Crea una o più nuove collezioni -->
+        <button
+          type="button"
+          class="flex items-center gap-2 relative px-3 py-1.5 rounded-md border border-slate-300 dark:border-slate-600
+                 text-slate-600 dark:text-slate-300 text-xs font-medium
+                 hover:bg-slate-200 dark:hover:bg-slate-700
+                 transition-colors duration-150 self-start top-[7px]"
+          title="Aggiungi nuove molecole"
+          (click)="createNewCollection()"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-4 w-auto">
+            <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+            <path d="M336 112L336 96L304 96L304 304L96 304L96 336L304 336L304 544L336 544L336 336L544 336L544 304L336 304L336 112z"/>
+          </svg>
+          <span>Crea una o più nuove collezioni</span>
+        </button>
+
     </div>
     <m-search-input
       class="block relative"
@@ -179,10 +179,7 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
   }
 
   protected override async loadMore(): Promise<void> {
-
-    if (this.loading || this.done) {
-      return
-    }
+    if (this.loading || this.done) return
 
     this.loading = true
 
@@ -190,20 +187,27 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
 
     if (newPage.items.length === 0) {
       this.done = true
-      if (this.page === 1) {
-        this.earlyDone = true
-      }
+      if (this.page === 1) this.earlyDone = true
     } else {
-      if (this.empty()) {
-        this.empty.set(false)
-      }
+      if (this.empty()) this.empty.set(false)
 
       this.items = [...this.items, ...newPage.items]
+
+      const seen = new Set<string>()
+      this.items = this.items.filter(item => {
+        const id = (item as any)?.id as string | undefined
+        if (!id) return true
+        if (seen.has(id)) return false
+        seen.add(id)
+        return true
+      })
+
       this.page++
     }
 
     this.loading = false
   }
+
 
 
   createNewCollection(): void {
