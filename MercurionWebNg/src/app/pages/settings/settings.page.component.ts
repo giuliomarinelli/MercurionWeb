@@ -73,10 +73,17 @@ import { SessionSyncService } from '../../services/session-sync.service';
         <h1 class="h1-underline">
           Impostazioni
         </h1>
-        <div class="flex flex-col justify-between">
+        <div
+          class="flex flex-col justify-between transition-[padding-bottom] duration-200 ease-out"
+          [style.paddingBottom]="bottomSpacerPx()"
+        >
           <cdk-accordion class="flex flex-col w-full border border-slate-300 dark:border-slate-500">
             @for (item of items; track item; let i = $index) {
-              <cdk-accordion-item #accordionItem="cdkAccordionItem" (opened)="onAccordionOpened(i)" (closed)="smoothToTop()">
+              <cdk-accordion-item
+                #accordionItem="cdkAccordionItem"
+                (opened)="onAccordionOpened(i)"
+                (closed)="smoothToTop()"
+              >
                 <div class="border-b border-slate-300 dark:border-slate-500" [class.border-b-0]="i === items.length - 1">
                   <button
                     type="button"
@@ -565,7 +572,6 @@ import { SessionSyncService } from '../../services/session-sync.service';
               </cdk-accordion-item>
               }
           </cdk-accordion>
-          <div class="h-[50vh]"></div>
         </div>
       </section>
     } @else {
@@ -603,6 +609,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
   profileFetchError = signal<boolean>(false)
   loading = signal<boolean>(true)
+  bottomSpacerPx = signal<string>('0px')
   currentVersion!: VersionDTO
 
   profile!: ProfileDTO
@@ -676,7 +683,6 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
           const currentFrag = this.route.snapshot.fragment
 
           if (!currentFrag) {
-            // ✅ fallback SOLO all'avvio se non c'è fragment
             this.openAccordionAtIndex(0, { closeOthers: true })
             return
           }
@@ -798,6 +804,8 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
   onAccordionOpened(i: number): void {
     this.skipSmoothToTopOnClose = false
+    this.updateBottomSpacer()
+
     setTimeout(() => {
       const hosts = this.accordionItemHosts.toArray()
       const itemEl = hosts[i]?.nativeElement
@@ -824,7 +832,6 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
       replaceUrl: true
     })
   }
-
 
   getCurrentSessionBrowser(): string {
     return this.activeSessions.find(s => s.current)?.browser ?? '—'
@@ -966,9 +973,9 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private applyFragment(frag: string | null | undefined): void {
-    // ✅ se non c'è fragment: chiudi tutto e non riaprire niente
     if (!frag) {
       this.openAccordionAtIndex(null, { closeOthers: true })
+      this.updateBottomSpacer()
       return
     }
 
@@ -981,19 +988,36 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     this.openAccordionAtIndex(idx, { closeOthers: true })
+    this.updateBottomSpacer()
   }
 
   smoothToTop(): void {
+    this.updateBottomSpacer()
+
     if (this.skipSmoothToTopOnClose) {
       return
     }
-    for (const item of Array.from(this.accordionItems)) {
+
+    const items = this.accordionItems?.toArray() ?? []
+    for (const item of items) {
       if (item.expanded) {
         return
       }
     }
+
     this.appContext.smoothToTop(this.scrollRootRef)
   }
 
+  private updateBottomSpacer(): void {
+    const items = this.accordionItems?.toArray() ?? []
+    const anyOpen = items.some(item => item.expanded)
+
+    if (!anyOpen) {
+      this.bottomSpacerPx.set('0px')
+      return
+    }
+
+    this.bottomSpacerPx.set('clamp(160px, 22vh, 360px)')
+  }
 
 }
