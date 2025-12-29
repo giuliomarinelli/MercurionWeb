@@ -207,7 +207,7 @@ export class CustomDetailsComponent {
 
   _label = signal<string>('');
   _value = signal<string>('');
-  _badgeName = signal<string>('Personal Molecule');
+  _badgeName = signal<string>('Personal');
   startValue = signal<string>('');
   _type = signal<'label' | 'notes' | 'name' | 'cardName'>('label');
   _itemId = signal<string>('')

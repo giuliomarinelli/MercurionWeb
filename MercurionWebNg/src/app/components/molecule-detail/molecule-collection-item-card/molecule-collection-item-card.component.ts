@@ -77,7 +77,7 @@ import { AppContextService } from '../../../services/context/app-context.service
               >
               <div class="flex items-center gap-4">
                 <span>{{ _molecule()!.name }}</span>
-                <m-molecule-badge [name]="'ChEMBL Personal Molecule'" />
+                <m-molecule-badge [name]="'ChEMBL'" />
               </div>
             </div>
           } @else if (_molecule()!.type === 'custom') {
