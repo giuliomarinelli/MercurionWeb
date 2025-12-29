@@ -304,7 +304,7 @@ export class AddMoleculesToCollectionComponent extends AbstractPaginatedMultisel
   step = signal<1 | 2>(1)
   step_12_loading = signal<boolean>(false)
   error = signal<boolean>(false)
-  methodControl = new FormControl<'my' | 'chembl'>('my', { nonNullable: true })
+  methodControl!: FormControl<'my' | 'chembl'>
   method = signal<'my' | 'chembl'>('my')
   collection = signal<MoleculeCollection | null>(null)
 
@@ -353,7 +353,10 @@ export class AddMoleculesToCollectionComponent extends AbstractPaginatedMultisel
   })
 
   ngOnInit(): void {
-    this.metCtrlSub = this.methodControl.valueChanges.subscribe(val => this.method.set(val))
+    const ifc = this.addContext.importFromChembl()
+    const defaultMethod = ifc ? 'chembl' : 'my'
+    this.methodControl = new FormControl<'my' | 'chembl'>(defaultMethod, { nonNullable: true })
+    this.metCtrlSub = this.methodControl.valueChanges.subscribe((val) => this.method.set(val))
     queueMicrotask(() => {
       this.colSub = this.moleculeCollectionService.getCollectionById(this.addContext.collectionId()!).subscribe({
         next: (col) => this.collection.set(col),
