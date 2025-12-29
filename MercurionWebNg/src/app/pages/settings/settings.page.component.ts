@@ -52,14 +52,15 @@ import { SidenavContextService } from '../../services/context/sidenav-context.se
         max-height: 0;
       }
       to {
-        transform: translateY(0);
+        transform: none;
         max-height: 999px;
       }
     }
 
+
     @keyframes accordion-up {
       from {
-        transform: translateY(0);
+        transform: none;
         max-height: 999px;
       }
       to {
@@ -67,6 +68,7 @@ import { SidenavContextService } from '../../services/context/sidenav-context.se
         max-height: 0;
       }
     }
+
 
   `,
   template: `

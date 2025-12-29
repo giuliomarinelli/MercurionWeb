@@ -164,9 +164,11 @@ html {
 
 
 
+  /* Deprecati */
+
+
   /* Classe base del bottone */
 
-  /* Deprecati */
   .btn {
     @apply inline-flex items-center justify-center rounded-lg font-medium transition-colors duration-300 ease-in-out px-4 py-2 text-sm;
   }
@@ -277,13 +279,22 @@ html {
 
   /* fine sezione classi deprecate */
 
+  .green-btn,
+  .red-btn {
+    @apply flex items-center gap-2 px-3 py-2 rounded-md text-slate-100 font-medium text-sm select-none shadow-sm hover:shadow-md active:translate-y-[1px] active:shadow-sm transition-colors duration-300;
+    transition-property: transform, box-shadow, background-color, color, border-color, text-decoration-color, fill, stroke;
+  }
+
   .green-btn {
-    @apply flex items-center gap-2 px-3 py-2 rounded-md dark:bg-[#00C78F] dark:hover:bg-[rgba(0,199,143,0.8)] dark:text-neutral-950 bg-emerald-800 text-slate-100 font-medium text-sm hover:bg-emerald-800/80 transition-colors duration-150;
+    @apply bg-emerald-800 hover:bg-emerald-800/80 dark:bg-[#00C78F] dark:hover:bg-[#00C78FCC] dark:text-neutral-950 dark:border-[2px] dark:border-emerald-600 dark:shadow-btn-dark;
   }
 
   .red-btn {
-    @apply flex items-center gap-2 px-3 py-2 rounded-md bg-light-error dark:bg-[#FF8F91] text-slate-100 font-medium text-sm hover:bg-light-error/80 dark:hover:bg-[rgba(255,143,145,0.8)] dark:text-neutral-950 transition-colors duration-150;
+    @apply bg-light-error hover:bg-light-error/80 dark:bg-[#FF8F91] dark:hover:bg-[#FF8F91CC] dark:text-neutral-950 dark:border-[2px] dark:border-red-600 dark:shadow-btn-dark;
   }
+
+
+
 
   /* ===================================================
      Menu Offcanvas

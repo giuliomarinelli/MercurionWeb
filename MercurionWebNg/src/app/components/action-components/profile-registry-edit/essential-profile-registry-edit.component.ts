@@ -62,7 +62,8 @@ type RegistryFormValue = {
                   pattern: 'Il formato del nome non è valido.'
                 }"
                 bgClass="bg-white"
-                darkBgClass="dark:bg-dark-surface-main" />
+                darkBgClass="dark:bg-dark-surface-main"
+                darkLabelClass="dark:text-dark-accent-secondary-hc" />
 
               <m-floating-input
                 label="Cognome *"
@@ -74,13 +75,15 @@ type RegistryFormValue = {
                   pattern: 'Il formato del cognome non è valido.'
                 }"
                 bgClass="bg-white"
-                darkBgClass="dark:bg-dark-surface-main" />
+                darkBgClass="dark:bg-dark-surface-main"
+                darkLabelClass="dark:text-dark-accent-secondary-hc" />
 
               <m-select
                 class="relative -top-[30px]"
                 label="Genere *"
                 [options]="options"
-                formControlName="gender" />
+                formControlName="gender"
+                darkTextClass="dark:text-dark-accent-secondary-hc" />
 
               <m-floating-input
                 label="Il tuo lavoro"
@@ -89,7 +92,8 @@ type RegistryFormValue = {
                 formControlName="job"
                 [errors]="{}"
                 bgClass="bg-white"
-                darkBgClass="dark:bg-dark-surface-main" />
+                darkBgClass="dark:bg-dark-surface-main"
+                darkLabelClass="dark:text-dark-accent-secondary-hc" />
             </div>
           }
         } @else if (step() === 2 && error()) {
