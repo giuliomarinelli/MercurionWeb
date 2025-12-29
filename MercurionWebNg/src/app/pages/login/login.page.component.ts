@@ -507,6 +507,10 @@ export class LoginPageComponent implements OnInit, OnDestroy {
       this.redirectTo.set(redirectTo)
     }
 
+    if (redirected) {
+      queueMicrotask(() => this.cleanRedirectedQueryParam())
+    }
+
     this.storeRedirectIfMissing()
 
     if (redirected) queueMicrotask(() => this.templateIsRendered.set(true))
@@ -529,6 +533,15 @@ export class LoginPageComponent implements OnInit, OnDestroy {
 
     this.loginForm.get('password')?.valueChanges.subscribe(() => {
       this.serverErrorStep.set(0)
+    })
+  }
+
+  private cleanRedirectedQueryParam(): void {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      replaceUrl: true,
+      queryParams: { redirected: null },
+      queryParamsHandling: 'merge'
     })
   }
 

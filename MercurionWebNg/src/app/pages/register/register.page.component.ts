@@ -286,7 +286,7 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
           queueMicrotask(() => {
             this.loading.set(false)
             this.step.set(2)
-            this.appContext.triggerScrollToTopGlobally()
+            this.appContext.smoothToTop(undefined, 240)
           })
         },
         error: () => {
