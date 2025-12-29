@@ -19,7 +19,8 @@ import { PercentPipe } from '@angular/common';
           <a
             href="https://github.com/giuliomarinelli/MercurionTox21"
             title="Clicca qui per vedere il codice sorgente."
-            class="a font-semibold text-emerald-600 dark:text-dark-accent-secondary-hc">
+            class="a font-semibold text-emerald-600 dark:text-dark-accent-secondary-hc"
+            target="_blank">
             MT-21
           </a> è un modello di predizione tossicologica basato su fingerprint molecolari e intelligenza artificiale, addestrato sul dataset open-source <em>Tox21</em>.
         </p>
