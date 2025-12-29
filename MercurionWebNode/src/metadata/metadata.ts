@@ -51,20 +51,34 @@ export const DeviceId = createParamDecorator(
 
 export const Authorization = createParamDecorator(
     (data: unknown, ctx: ExecutionContext): string => {
-        const req = ctx.getType() === 'http' ? ctx.switchToHttp().getRequest<FastifyRequest>()
-            :
-            (GqlExecutionContext.create(ctx).getContext().request as FastifyRequest)
+        const req = ctx.getType() === 'http'
+            ? ctx.switchToHttp().getRequest<FastifyRequest>()
+            : (GqlExecutionContext.create(ctx).getContext().request as FastifyRequest)
+
         const authorizationHeader = req.headers['authorization'] as string
+        let isValidAuthHeader = true
+
         if (
             !authorizationHeader ||
             !authorizationHeader.trim() ||
             !new RegExp(/^Bearer\s[\w-]+(?:\.[\w-]+){2}$/).test(authorizationHeader)
         ) {
-            throw new UnauthorizedException()
+            isValidAuthHeader = false
         }
-        return authorizationHeader.split(/\s/)[1]
+
+        const refreshedToken = req.headers['x-new-access-token'] as string | undefined
+        const accessToken =
+            refreshedToken ??
+            (isValidAuthHeader ? authorizationHeader.split(/\s/)[1] : '')
+
+        if (accessToken) {
+            return accessToken
+        }
+
+        throw new UnauthorizedException()
     }
 )
+
 
 export const Fingerprint = createParamDecorator(
     (data: unknown, ctx: ExecutionContext): FingerprintData => {

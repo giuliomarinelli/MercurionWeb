@@ -133,6 +133,7 @@ export async function bootstrap() {
     req.headers['x-client-ip'] = undefined
     req.headers['x-user-id'] = undefined
     req.headers['x-scopes'] = undefined
+    req.headers['x-new-access-token'] = undefined
 
     let deviceId: string | null = null
 

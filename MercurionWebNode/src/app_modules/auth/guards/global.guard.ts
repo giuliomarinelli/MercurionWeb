@@ -153,6 +153,7 @@ export class GlobalGuard implements CanActivate {
                await this.sessionService.updateLastAccessed(payload.sid, payload.sub)
 
                reply.header('X-New-Access-Token', encodeURIComponent(newToken))
+               req.headers['x-new-access-token'] = newToken
 
                // revoke old jti after a small delay (race-safe)
                setTimeout(() => {
