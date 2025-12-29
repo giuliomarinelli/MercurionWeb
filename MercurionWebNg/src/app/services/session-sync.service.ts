@@ -325,6 +325,12 @@ export class SessionSyncService {
   }
 
   private handleSessionExpired(): void {
+    if (this.hasClientLoginCookieTrue()) {
+      this._status.set('checking')
+      void this.syncSession(true)
+      return
+    }
+
     // scadenza certa → rimuovi login locale e vai anonimo
     localStorage.removeItem('login')
     const muted = Date.now() < this.toastMutedUntil

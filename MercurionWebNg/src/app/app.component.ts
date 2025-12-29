@@ -155,11 +155,11 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       void this.sessionSync.syncSession(true)
     })
 
-    if (this.userContext.isLoggedIn() && this.authService.getCookieValue('__logged_in') !== 'true') {
-      this.userContext.clearInitials()
-      this.authService.setAccessToken(null)
-      this.authService.setWs_accessToken(null)
-      localStorage.removeItem('ws_accessToken_ts')
+    const loginCookie =
+      this.authService.getCookieValue('__logged_in') ?? this.authService.getCookieValue('__logged_in_')
+    if (!this.userContext.isLoggedIn() && loginCookie === 'true') {
+      const stored = localStorage.getItem('login') ?? 'U'
+      this.userContext.setInitials(stored)
     }
 
     void this.sessionSync.syncSession()

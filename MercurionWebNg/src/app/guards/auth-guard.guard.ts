@@ -13,7 +13,7 @@ export class AuthGuard implements CanActivate {
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean | UrlTree {
     const login = localStorage.getItem('login')
-    const isValid = !!login && (login.length === 1 || login.length === 2)
+    const isValid = !!login && login.length > 0
 
     if (isValid) return true
 
