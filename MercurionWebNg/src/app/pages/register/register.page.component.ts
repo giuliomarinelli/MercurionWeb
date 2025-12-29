@@ -15,6 +15,7 @@ import { Helpers } from '../../helpers';
 import { ToastService } from '../../services/toast.service';
 import { AppContextService } from '../../services/context/app-context.service';
 import { PmOption } from '../../Models/pm-option.model';
+import { RouterLink } from '@angular/router';
 
 
 @Component({
@@ -24,7 +25,8 @@ import { PmOption } from '../../Models/pm-option.model';
     ReactiveFormsModule,
     FloatingInputComponent,
     PmSelectComponent,
-    ClassicSpinnerComponent
+    ClassicSpinnerComponent,
+    RouterLink
   ],
   template: `
 
@@ -123,10 +125,39 @@ import { PmOption } from '../../Models/pm-option.model';
                   }"
               />
             </div>
+            <div class="flex gap-3 relative top-2 sm:top-4 justify-center sm:justify-start">
+              <div class="flex-col sm:flex-row flex h-6 shrink-0 justify-center gap-y-1 sm:items-center">
+                <!-- wrapper visivo -->
+                <label class="relative inline-flex items-center gap-2 cursor-pointer select-none">
+                  <input id="onlyKnown" type="checkbox" name="onlyKnown" aria-describedby="experimental-compounds-description"
+                    class="peer sr-only" [formControl]="acceptCtrl" />
+
+                  <span class="inline-block size-4 rounded-sm border
+                                     border-gray-300 bg-white
+                                     peer-checked:bg-blue-600/80 peer-checked:blue-600/80
+                                     dark:border-white/10 dark:bg-white/5
+                                     dark:peer-checked:bg-dark-accent-primary-btn dark:peer-checked:border-dark-accbg-dark-accent-primary-btn"
+                    aria-hidden="true"></span>
+
+                  <svg viewBox="0 0 14 14" fill="none" class="pointer-events-none hidden peer-checked:block
+                                     absolute left-[2px] top-1/2 -translate-y-1/2 size-3.5 z-10" aria-hidden="true">
+                    <path d="M3 8L6 11L11 3.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                      class="stroke-white" />
+                  </svg>
+
+                  <span class="inline-block text-sm font-medium text-gray-900 dark:text-white tracking-wider">
+                    Dichiaro di aver letto e di accettare l'
+                    <a class="a" routerLink="/privacy">Informativa sulla Privacy</a>,
+                    i <a class="a" routerLink="/terms-and-policies">Termini di Servizio</a>
+                    e la <a class="a" routerLink="/terms-and-policies" fragment="aup">Politica di Utilizzo Accettabile</a>.
+                  </span>
+                </label>
+              </div>
+            </div>
             <div class="max-w-sm mx-auto mt-20">
               <button
                 type="submit"
-                [disabled]="loading() || settedDisabledBtn()"
+                [disabled]="loading() || settedDisabledBtn() || acceptCtrl.value === false"
                 class="relative bottom-[2px] w-full mt-4 py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary/80 dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary/60 disabled:hover:dark:bg-dark-accent-primary/80"
               >
                 @if (!loading()) {
@@ -138,7 +169,7 @@ import { PmOption } from '../../Models/pm-option.model';
                 }
               </button>
             </div>
-            </form>
+          </form>
           }
           @case (2) {
             <div class="bg-slate-200 dark:bg-slate-800 border my-16 border-slate-300 dark:border-slate-600 relative p-3 mx-auto max-w-[1024px] rounded-md text-sm flex gap-2 xs:gap-4 items-center flex-col xs:flex-row">
@@ -172,7 +203,7 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
 
   private regSub?: Subscription
   private valChSub?: Subscription
-  private fSub?:Subscription
+  private fSub?: Subscription
 
   emailRequired = "L'e-mail è obbligatoria."
   emailMalformed = "Il formato dell'e-mail non è corretto."
@@ -185,6 +216,8 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
     const { PICTOGRAM_LIGHT, PICTOGRAM_DARK } = environment.logoSrc
     return this.themeManager.theme() === 'light' ? PICTOGRAM_LIGHT : PICTOGRAM_DARK
   })
+
+  acceptCtrl = new FormControl(false, { nonNullable: true })
 
   form: FormGroup<UserRegistrationFormControls> = this.fb.group(
     {
@@ -209,7 +242,7 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
       confirmPassword: this.fb.control('', { validators: [Validators.required, matchPassword] }),
     },
     { validators: matchPassword }
-  );
+  )
 
 
   options: PmOption[] = [

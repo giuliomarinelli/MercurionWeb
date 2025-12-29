@@ -16,6 +16,7 @@ import { ClassicSpinnerComponent } from '../../../components/common/classic-spin
 import { HttpErrorResponse } from '@angular/common/http'
 import { MfaStrategy, MfaView } from '../../../Models/account/account.models'
 import { MfaStrategyCardComponent } from '../../../components/common/mfa-strategy-card/mfa-strategy-card.component'
+import { ɵɵRouterLink } from "@angular/router/testing";
 
 @Component({
   selector: 'm-mfa',
@@ -23,8 +24,9 @@ import { MfaStrategyCardComponent } from '../../../components/common/mfa-strateg
     ReactiveFormsModule,
     NgClass,
     ClassicSpinnerComponent,
-    MfaStrategyCardComponent
-  ],
+    MfaStrategyCardComponent,
+    ɵɵRouterLink
+],
   template: `
     @if (canView()) {
       <div class="min-h-screen flex flex-col items-center px-4 py-12 relative top-6">
@@ -190,8 +192,9 @@ import { MfaStrategyCardComponent } from '../../../components/common/mfa-strateg
           </div>
 
           <div class="text-xs text-center text-gray-400 mt-4">
-            <a href="#" class="hover:underline">Condizioni d'uso</a> ·
-            <a href="#" class="hover:underline">Informativa sulla privacy</a>
+            <a routerLink="/privacy" class="hover:underline">Informativa sulla privacy</a>
+             ·
+            <a routerLink="/terms-and-policies" class="hover:underline">Termini e Policy</a>
           </div>
         </form>
       </div>

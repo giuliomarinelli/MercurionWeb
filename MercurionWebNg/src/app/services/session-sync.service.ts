@@ -58,7 +58,7 @@ export class SessionSyncService {
 
   private toastMuteTimer!: ReturnType<typeof setTimeout>
   private toastMutedUntil = 0
-  private readonly voluntaryLogoutToastSilenceMs = 1000
+  private readonly voluntaryLogoutToastSilenceMs = 3000
 
   constructor(
     private readonly socket: RealtimeSocketService,
@@ -327,8 +327,9 @@ export class SessionSyncService {
   private handleSessionExpired(): void {
     // scadenza certa → rimuovi login locale e vai anonimo
     localStorage.removeItem('login')
+    const muted = Date.now() < this.toastMutedUntil
     this.becomeAnonymous({
-      toast: 'Sessione scaduta o invalidata. Effettua di nuovo il login.',
+      toast: muted ? undefined : 'Sessione scaduta o invalidata. Effettua di nuovo il login.',
       level: 'error',
       navigateIfProtected: true,
       removeLoginKey: false

@@ -3,19 +3,25 @@ import { ChangeDetectionStrategy, Component, effect, inject, OnInit, signal } fr
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
 import { PublicPipe } from '../../../pipes/public.pipe';
 import { environment } from '../../../../environments/environment.development';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'm-footer',
-  imports: [NgOptimizedImage, PublicPipe],
+  standalone: true,
+  imports: [
+    NgOptimizedImage,
+    PublicPipe,
+    RouterLink
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <footer class="px-6 py-4 text-xs sm:text-sm">
       <!-- classi tw rimosse per passaggio a footer minimalista bg-slate-100 dark:bg-slate-800/50 text-sm text-slate-600 dark:text-slate-200 border-t border-slate-400/40 dark:border-slate-400/65 -->
       <div
-        class="max-w-7xl mx-auto flex flex-col sm:flex-row md:flex-col lg:flex-row justify-between items-center gap-4 text-center sm:text-left"
+        class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-center sm:text-left"
       >
         <!-- Brand + copyright -->
-        <p class="tracking-wide flex flex-col sm:flex-row md:flex-col lg:flex-row items-center gap-4">
+        <p class="tracking-wide flex flex-col sm:flex-row md:flex-row items-center gap-4">
           <img
             [ngSrc]="logoSrc() | public"
             alt="Mercurion Pictogram"
@@ -30,17 +36,17 @@ import { environment } from '../../../../environments/environment.development';
         <!-- Link essenziali -->
         <div class="flex flex-wrap justify-center sm:justify-end gap-x-6 gap-y-2">
           <a
-            href="/privacy"
+            routerLink="/privacy"
             class="hover:underline dark:hover:no-underline hover:text-slate-600 dark:hover:text-slate-50/70 transition"
             >Privacy</a
           >
           <a
-            href="/terms"
+            routerLink="/terms-and-policies"
             class="hover:underline dark:hover:no-underline hover:text-slate-600 dark:hover:text-slate-50/70 transition"
-            >Termini</a
+            >Termini e Policy</a
           >
           <a
-            href="/contatti"
+            routerLink="/contacts"
             class="hover:underline dark:hover:no-underline hover:text-slate-600 dark:hover:text-slate-50/70 transition"
             >Contatti</a
           >
