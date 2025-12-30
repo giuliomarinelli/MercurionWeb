@@ -127,7 +127,7 @@ html {
   }
 
   .a-hc {
-    @apply  dark:text-dark-accent-primary-btn-hc hover:underline;
+    @apply dark:text-dark-accent-primary-btn-hc hover:underline;
   }
 
   .h1-underline {
@@ -297,6 +297,81 @@ html {
     @apply bg-light-error hover:bg-light-error/80 dark:bg-[#FF8F91] dark:hover:bg-[#FF8F91CC] dark:text-neutral-950 dark:border-[2px] dark:border-red-600 dark:shadow-btn-dark;
   }
 
+  /* Contenitore del campo floating: qui arriva bgClass/darkBgClass */
+  .m-floating-field {
+    @apply relative rounded-md;
+  }
+
+  /* Tutto quello che deve avere il *solito* colore del campo */
+  .m-floating-field-bg,
+  .m-floating-label,
+  .m-floating-label::before {
+    background-color: inherit;
+  }
+
+  /* Strato di background dietro all’input */
+  .m-floating-field-bg {
+    @apply absolute inset-0 rounded-md pointer-events-none;
+    z-index: 0;
+  }
+
+  /* Input sopra allo sfondo */
+  .m-floating-input-element {
+    @apply relative z-10 block w-full rounded-md py-4 px-4 text-sm bg-transparent transition duration-300;
+  }
+
+  /* Label che galleggia */
+  .m-floating-label {
+    @apply absolute px-1 top-[13px] left-4 origin-[0] transition-all duration-300;
+    z-index: 20;
+  }
+
+  /* Patch dietro la label che copre bordo + sfondo */
+  .m-floating-label::before {
+    content: '';
+    position: absolute;
+    inset: -0.15rem -0.25rem;
+    border-radius: 9999px;
+    z-index: -1;
+  }
+
+  /* Stati della label */
+  .m-floating-label--active {
+    @apply scale-110 -translate-y-6 text-sm;
+  }
+
+  .m-floating-label--inactive {
+    @apply text-lg translate-y-0 cursor-text text-slate-500 dark:text-slate-400;
+  }
+
+
+  /* =================================================== */
+  /*                  ACTION OVERLAY                     */
+  /* =================================================== */
+
+  .action-overlay-backdrop {
+    @apply fixed inset-0 z-[999] backdrop-blur-sm bg-slate-300/75 dark:bg-slate-900/90 transition-opacity duration-300;
+  }
+
+  .action-card {
+    @apply w-full max-w-5xl bg-white dark:bg-dark-surface-main rounded-2xl shadow-xl border border-light-border dark:border-dark-border text-light-on-surface-main dark:text-dark-on-surface-main;
+  }
+
+  .action-card-header {
+    @apply flex items-center justify-between px-4 sm:px-6 py-4 border-b border-light-border dark:border-dark-border sticky top-0 z-20 rounded-t-2xl bg-white/60 dark:bg-dark-surface-main/95 backdrop-blur-sm;
+  }
+
+  .action-card-body {
+    @apply py-6 px-4 sm:px-6 overflow-y-auto custom-scrollbar flex flex-col gap-6 min-h-[40vh] max-h-[70vh] relative bg-light-surface-secondary/60 dark:bg-dark-surface-secondary/60;
+  }
+
+  .action-card-footer {
+    @apply px-4 sm:px-6 py-4 border-t border-light-border dark:border-dark-border bg-light-surface-secondary/60 dark:bg-dark-surface-secondary/60 flex justify-end gap-3 rounded-b-2xl;
+  }
+
+  .action-card-close-btn {
+    @apply inline-flex items-center justify-center size-8 rounded-full text-slate-500 dark:text-dark-on-surface-secondary hover:text-light-accent-primary hover:bg-slate-100 dark:hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-dark-surface-main transition-colors duration-200;
+  }
 
 
 

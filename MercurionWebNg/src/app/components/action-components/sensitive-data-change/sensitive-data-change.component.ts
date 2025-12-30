@@ -37,10 +37,10 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 
 <div class="flex justify-center items-center min-h-screen px-2 sm:px-4">
-  <div class="w-full max-w-5xl bg-white dark:bg-dark-surface-main rounded-2xl shadow-xl border border-light-border dark:border-dark-border text-light-on-surface-main dark:text-dark-on-surface-main">
+  <div class="action-card">
 
     <!-- Header sticky fuori dallo scroll -->
-    <div class="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-light-border dark:border-dark-border sticky top-0 z-20 rounded-t-2xl bg-white/59 dark:bg-dark-surface-main/95 backdrop-blur-sm">
+    <div class="action-card-header">
       <h2 class="text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main">
         @switch(innerScope()) {
             @case ('EnableMfa') {
@@ -67,7 +67,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         }
       </h2>
       <button
-        class="inline-flex items-center justify-center size-8 rounded-full text-slate-500 dark:text-dark-on-surface-secondary hover:text-light-accent-primary hover:bg-slate-100 dark:hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-dark-surface-main transition-colors duration-200"
+        class="action-card-close-btn"
         (click)="close()"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-5 h-auto">
@@ -77,7 +77,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
       </button>
     </div>
     <!-- Body -->
-    <div class="py-6 px-4 sm:px-6 overflow-y-auto custom-scrollbar flex flex-col gap-6 min-h-[40vh] max-h-[70vh] relative bg-light-surface-secondary/60 dark:bg-dark-surface-secondary/60">
+    <div class="action-card-body">
     @if (!loading()) {
         @if ((innerScope() === 'EnableMfa' || innerScope() === 'ConfigMfa')) {
           @if ((enableMfaStep() === 'CHOOSE_STRATEGY' || disableMfaStep() === 'CHOOSE_STRATEGY')) {
@@ -811,7 +811,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
       </div>
     }
     </div>
-    <div class="px-4 sm:px-6 py-4 border-t border-light-border dark:border-dark-border bg-light-surface-secondary/60 dark:bg-dark-surface-secondary/60 flex justify-end gap-3 rounded-b-2xl">
+    <div class="action-card-footer">
         <button
           [class.hidden]="
             enableMfaStep() === 'CHOOSE_STRATEGY'
