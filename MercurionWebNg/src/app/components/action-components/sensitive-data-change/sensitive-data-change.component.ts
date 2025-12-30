@@ -36,11 +36,11 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   template: `
 
 
-<div class="flex justify-center items-center min-h-screen px-2 sm:px-4 bg-light-surface-main dark:bg-dark-surface-main/80">
+<div class="flex justify-center items-center min-h-screen px-2 sm:px-4">
   <div class="w-full max-w-5xl bg-white dark:bg-dark-surface-main rounded-2xl shadow-xl border border-light-border dark:border-dark-border text-light-on-surface-main dark:text-dark-on-surface-main">
 
     <!-- Header sticky fuori dallo scroll -->
-    <div class="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-light-border dark:border-dark-border sticky top-0 z-20 rounded-t-2xl bg-white/95 dark:bg-dark-surface-main/95 backdrop-blur-sm">
+    <div class="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-light-border dark:border-dark-border sticky top-0 z-20 rounded-t-2xl bg-white/59 dark:bg-dark-surface-main/95 backdrop-blur-sm">
       <h2 class="text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main">
         @switch(innerScope()) {
             @case ('EnableMfa') {
@@ -77,7 +77,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
       </button>
     </div>
     <!-- Body -->
-    <div class="py-6 px-4 sm:px-6 overflow-y-auto custom-scrollbar flex flex-col gap-6 min-h-fit max-h-[70vh] relative bg-light-surface-secondary/60 dark:bg-dark-surface-secondary/60">
+    <div class="py-6 px-4 sm:px-6 overflow-y-auto custom-scrollbar flex flex-col gap-6 min-h-[40vh] max-h-[70vh] relative bg-light-surface-secondary/60 dark:bg-dark-surface-secondary/60">
     @if (!loading()) {
         @if ((innerScope() === 'EnableMfa' || innerScope() === 'ConfigMfa')) {
           @if ((enableMfaStep() === 'CHOOSE_STRATEGY' || disableMfaStep() === 'CHOOSE_STRATEGY')) {
@@ -785,7 +785,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
           }
       }
     } @else {
-      <div class="absolute inset-0 flex justify-center items-center z-[30] bg-white/60 dark:bg-black/40 backdrop-blur-sm">
+      <div class="absolute inset-0 flex justify-center items-center z-[30] bg-white/60 dark:bg-black/40 backdrop-blur-sm min-h-[40vh]">
         <m-classic-spinner [size]="45" />
       </div>
     }
@@ -803,7 +803,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
             || changePasswordStep() === 'OK_OR_ERROR'
           "
           type="button"
-          class="px-4 py-2 rounded-lg bg-light-surface-secondary text-light-on-surface-main dark:bg-slate-200 dark:text-light-on-surface-main hover:bg-slate-600 dark:hover:bg-slate-300 border border-light-border dark:border-dark-border/80 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary transition-colors duration-200"
+          class="px-4 py-2 rounded-lg bg-light-surface-secondary text-light-on-surface-main dark:bg-slate-200 dark:text-light-on-surface-main hover:bg-white dark:hover:bg-slate-300/80 border border-light-border dark:border-dark-border/80 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary transition-colors duration-200"
           (click)="close()"
         >
           Annulla

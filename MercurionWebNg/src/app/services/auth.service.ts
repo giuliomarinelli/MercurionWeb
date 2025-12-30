@@ -141,9 +141,12 @@ export class AuthService {
 
   /* ───────── Register ───────── */
 
-  registerUser(dto: UserRegisterDTO): Observable<ConfirmWithObsContDTO> {
+  registerUser(dto: UserRegisterDTO, turnstileToken: string): Observable<ConfirmWithObsContDTO> {
     return this.http.post<ConfirmWithObsContDTO>('/api/account/register', dto, {
-      withCredentials: true
+      withCredentials: true,
+      headers: {
+        'X-Challenge-Token': turnstileToken
+      }
     })
   }
 

@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { PublicPipe } from '../../pipes/public.pipe';
 import { ReactiveFormsModule, Validators, FormGroup, FormControl, NonNullableFormBuilder } from '@angular/forms';
 import { ThemeManagerService } from '../../services/context/theme-manager.service';
@@ -16,6 +16,7 @@ import { ToastService } from '../../services/toast.service';
 import { AppContextService } from '../../services/context/app-context.service';
 import { PmOption } from '../../Models/pm-option.model';
 import { RouterLink } from '@angular/router';
+import { TurnstileComponent } from '../../components/common/turnstile/turnstile.component';
 
 
 @Component({
@@ -26,7 +27,8 @@ import { RouterLink } from '@angular/router';
     FloatingInputComponent,
     PmSelectComponent,
     ClassicSpinnerComponent,
-    RouterLink
+    RouterLink,
+    TurnstileComponent
   ],
   template: `
 
@@ -154,10 +156,25 @@ import { RouterLink } from '@angular/router';
                 </label>
               </div>
             </div>
+            <div class="flex justify-center mt-10">
+            @if (loadingTurnstile()) {
+              <div
+                class="w-[300px] h-[71px] overflow-hidden transition-all bg-neutral-200 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 animate-pulse skeleton-pulse"
+              >
+                <span class="sr-only">Loading CAPTCHA…</span>
+              </div>
+            }
+            <m-turnstile
+              (token)="onTurnstileToken($event)"
+              (widgetReady)="onTurnstileRender()"
+              (refresh)="loadingTurnstile.set(true)"
+              class="block h-[71px] relative top-9"
+            />
+          </div>
             <div class="max-w-sm mx-auto mt-20">
               <button
                 type="submit"
-                [disabled]="loading() || settedDisabledBtn() || acceptCtrl.value === false"
+                [disabled]="loading() || settedDisabledBtn() || acceptCtrl.value === false || !turnstileToken()"
                 class="relative bottom-[2px] w-full mt-4 py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary/80 dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary/60 disabled:hover:dark:bg-dark-accent-primary/80"
               >
                 @if (!loading()) {
@@ -201,6 +218,9 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
   private readonly appContext = inject(AppContextService)
   // ====================================================
 
+  @ViewChild(TurnstileComponent)
+  turnstileComponent!: TurnstileComponent
+
   private regSub?: Subscription
   private valChSub?: Subscription
   private fSub?: Subscription
@@ -216,6 +236,9 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
     const { PICTOGRAM_LIGHT, PICTOGRAM_DARK } = environment.logoSrc
     return this.themeManager.theme() === 'light' ? PICTOGRAM_LIGHT : PICTOGRAM_DARK
   })
+  loadingTurnstile = signal<boolean>(true)
+  turnstileToken = signal<string>('')
+
 
   acceptCtrl = new FormControl(false, { nonNullable: true })
 
@@ -275,11 +298,17 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
 
   onSubmit(): void {
     if (this.form.valid) {
+      if (!this.turnstileToken()) {
+        this.turnstileComponent?.reset()
+        this.turnstileToken.set('')
+        this.loadingTurnstile.set(true)
+        this.loading.set(false)
+      }
       this.loading.set(true)
       const { confirmPassword: _omit, ...dto } = this.form.value as UserRegistrationFormValue
       dto.firstName = Helpers.normalizeTitleCase(dto.firstName)
       dto.lastName = Helpers.normalizeTitleCase(dto.lastName)
-      this.regSub = this.authService.registerUser(dto).subscribe({
+      this.regSub = this.authService.registerUser(dto, this.turnstileToken()).subscribe({
         next: res => {
           const { obscuredEmail } = res
           this.obscuredEmail.set(obscuredEmail!)
@@ -291,14 +320,28 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
         },
         error: () => {
           this.toast.trigger('Si è verificato un errore lato server.', 'error', 3000)
+          this.turnstileComponent?.reset()
+          this.turnstileToken.set('')
+          this.loadingTurnstile.set(true)
           this.loading.set(false)
         }
       })
     } else {
+      this.turnstileComponent?.reset()
+      this.turnstileToken.set('')
+      this.loadingTurnstile.set(true)
       this.settedDisabledBtn.set(true)
       this.toast.trigger('Errore: controlla i campi con le scritte in rosso!')
       this.markAll()
     }
+  }
+
+  onTurnstileToken(token: string): void {
+    this.turnstileToken.set(token)
+  }
+
+  onTurnstileRender(): void {
+    this.loadingTurnstile.set(false)
   }
 
   ngOnInit(): void {

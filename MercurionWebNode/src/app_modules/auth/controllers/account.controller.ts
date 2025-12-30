@@ -43,6 +43,7 @@ export class AccountController {
 
     @Public()
     @Post('/register')
+    @UseGuards(TurnstileGuard)
     public async registerUser(@Body(new ValidationPipe({ transform: true })) userRegisterDTO: UserRegisterDTO): Promise<ConfirmWithObsContDTO> {
         return this.accountService.registerUser(userRegisterDTO)
     }

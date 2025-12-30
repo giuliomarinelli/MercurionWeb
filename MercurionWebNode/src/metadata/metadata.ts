@@ -67,9 +67,7 @@ export const Authorization = createParamDecorator(
         }
 
         const refreshedToken = req.headers['x-new-access-token'] as string | undefined
-        const accessToken =
-            refreshedToken ??
-            (isValidAuthHeader ? authorizationHeader.split(/\s/)[1] : '')
+        const accessToken = refreshedToken ?? (isValidAuthHeader ? authorizationHeader.split(/\s/)[1] : '')
 
         if (accessToken) {
             return accessToken

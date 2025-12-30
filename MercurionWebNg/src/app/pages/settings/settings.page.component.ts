@@ -494,7 +494,10 @@ import { SidenavContextService } from '../../services/context/sidenav-context.se
                             <h3 class="font-bold text-lg my-3">Sessioni attive</h3>
                             <div class="flex flex-col gap-y-4 mb-3">
                               @for (s of activeSessions; track s.id) {
-                                <m-session-card [session]="s" (onLoggingOutFromSession)="doLogoutFromSession($event)" />
+                                <m-session-card [session]="s"
+                                (onLoggingOutFromSession)="doLogoutFromSession($event)"
+
+                                />
                               }
                             </div>
                             <button
@@ -813,7 +816,8 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
       switchMap(s => {
         this.activeSessions = s.map(ss => ({
           ...ss,
-          triggerDisappear: signal<boolean>(false)
+          triggerDisappear: signal<boolean>(false),
+          isBeingDeleted: false
         }))
         return this.accountService.getProfileRegistry(false)
       })
@@ -951,7 +955,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
           queueMicrotask(() => this.toast.trigger('Logout dalla sessione corrente effettuato con successo.', 'success', 3000))
         }
         queueMicrotask(() => {
-          s.triggerDisappear.set(true)
+          s.isBeingDeleted = true
           setTimeout(() => {
             const i = this.activeSessions.findIndex(ss => ss.id === ssid)
             if (i !== -1) {
