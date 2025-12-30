@@ -16,8 +16,9 @@ type ErrorMap = Record<string, string>;
       #inp
       [type]="type"
       class="block py-4 px-4 w-full text-sm text-dark dark:text-light bg-transparent border border-slate-400 dark:border-slate-200 rounded-md transition duration-300
-             focus:outline-none focus:ring-2 focus:ring-light-accent-primary dark:focus:ring-dark-accent-primary
-             focus:border-light-accent-primary dark:focus:border-dark-accent-primary"
+             focus:outline-none focus:ring-2 focus:ring-light-accent-primary
+             focus:border-light-accent-primary"
+      [ngClass]="[darkFocusBorderClass, darkFocusRingClass]"
       [attr.id]="id"
       [attr.autocomplete]="autocomplete"
       placeholder=" "
@@ -48,7 +49,7 @@ type ErrorMap = Record<string, string>;
       </label>
 
 
-    <div class="flex items-center gap-3 text-sm text-light-error dark:text-dark-error mt-1 min-h-5">
+    <div class="flex items-center gap-3 text-sm text-light-error mt-1 min-h-5" [ngClass]="[darkTextErrorClass]">
       <span>{{ getCurrentError() }}</span>
       @if (ngControl?.pending) {
         <div class="text-light-on-surface-secondary dark:text-slate-200">
@@ -70,8 +71,12 @@ export class FloatingInputComponent implements ControlValueAccessor, OnDestroy {
   @Input() asyncVerify = false
   @Input() bgClass = 'bg-light-surface-main'
   @Input() darkBgClass = 'dark:bg-neutral-950'
-  @Input() labelClass= 'text-light-accent-secondary'
-  @Input() darkLabelClass= 'dark:text-dark-accent-secondary/90'
+  @Input() labelClass = 'text-light-accent-secondary'
+  @Input() darkLabelClass = 'dark:text-dark-accent-secondary-hc'
+  @Input() darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
+  @Input() darkFocusBorderClass = 'dark:focus:border-dark-accent-primary'
+  @Input() darkTextErrorClass = 'dark:text-dark-error'
+
 
 
   @Output() enter = new EventEmitter<void>();
@@ -88,8 +93,8 @@ export class FloatingInputComponent implements ControlValueAccessor, OnDestroy {
     // registra questo componente come value accessor del control padre
     if (this.ngControl) this.ngControl.valueAccessor = this;
     if (this.asyncVerify) {
-        this.ngControl?.control?.markAsDirty()
-        this.ngControl?.control?.markAsTouched()
+      this.ngControl?.control?.markAsDirty()
+      this.ngControl?.control?.markAsTouched()
     }
   }
 
@@ -134,6 +139,5 @@ export class FloatingInputComponent implements ControlValueAccessor, OnDestroy {
   ngOnDestroy(): void {
     this.sub?.unsubscribe()
   }
-
 
 }

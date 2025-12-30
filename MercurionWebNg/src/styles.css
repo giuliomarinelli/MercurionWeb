@@ -123,7 +123,11 @@ html {
   }
 
   .a {
-    @apply text-light-accent-primary dark:text-dark-accent-primary hover:underline;
+    @apply text-light-accent-primary-hc dark:text-dark-accent-primary-btn-hc hover:underline;
+  }
+
+  .a-hc {
+    @apply  dark:text-dark-accent-primary-btn-hc hover:underline;
   }
 
   .h1-underline {
