@@ -227,6 +227,9 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
 
   doAddMolecules(): void {
     queueMicrotask(() => {
+      // Ensure a clean context when starting from the All My Molecules page
+      this.addContext.setImportFromChembl(false);
+      this.addContext.setRedirectToCollectionPath(false);
       this.actionContext.open('SelectCollectionThenRoute')
     })
   }

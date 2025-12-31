@@ -43,48 +43,163 @@ export type ChipItem = {
     CloseButtonComponent
   ],
   template: `
-<div class="flex justify-center items-center min-h-screen px-2">
-  <div class="w-full max-w-5xl bg-white dark:bg-dark-surface-main rounded-xl shadow-lg">
-    <div class="flex items-center justify-between px-4 py-4 border-b border-b-slate-400 sticky top-0 z-50 rounded-t-xl bg-white dark:bg-dark-surface-main">
-      <h2 class="flex gap-4 items-center flex-wrap text-lg font-semibold">
+<div class="flex justify-center items-center min-h-screen px-2 sm:px-4">
+  <div class="action-card max-w-5xl">
+    <!-- HEADER -->
+    <div class="action-card-header">
+      <h2 class="flex gap-4 items-center flex-wrap text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current size-8">
-          <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-          <path d="M288 96L352 144L576 144L576 512L64 512L64 96L288 96zM352 176L341.3 176L332.8 169.6L277.3 128L96 128L96 480L544 480L544 176L352 176zM304 408L304 336L232 336L232 304L304 304L304 232L336 232L336 304L408 304L408 336L336 336L336 408L304 408z"/>
+          <path
+            d="M288 96L352 144L576 144L576 512L64 512L64 96L288 96zM352 176L341.3 176L332.8 169.6L277.3 128L96 128L96 480L544 480L544 176L352 176zM304 408L304 336L232 336L232 304L304 304L304 232L336 232L336 304L408 304L408 336L336 336L336 408L304 408z"
+          />
         </svg>
-        <span>Aggiungi nuove molecole alla collezione <em>{{collection()?.name}}</em></span>
+        <span>
+          Aggiungi nuove molecole alla collezione
+          <em>{{ collection()?.name }}</em>
+        </span>
       </h2>
+
       <m-close-button [action]="close.bind(this)" />
     </div>
-    <div class="mx-auto">
-      <div class="mt-6 space-y-6 sm:flex sm:items-center sm:space-x-10 sm:space-y-0 px-6 pb-6 border-b border-spacing-y-[0.3px]">
-        @if (step() === 1) {
-          <div class="flex items-center">
-            <input id="my" type="radio" name="method" value="my" [formControl]="methodControl" class="cursor-pointer relative size-4 appearance-none rounded-full border border-gray-300 bg-white before:absolute before:inset-1 before:rounded-full before:bg-white checked:border-indigo-600 checked:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400 dark:border-white/10 dark:bg-white/5 dark:checked:border-indigo-500 dark:checked:bg-indigo-500 dark:focus-visible:outline-indigo-500 dark:disabled:border-white/5 dark:disabled:bg-white/10 dark:disabled:before:bg-white/20 forced-colors:appearance-auto forced-colors:before:hidden [&:not(:checked)]:before:hidden" />
-            <label for="my" class="cursor-pointer ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white">Seleziona da <span class="italic">Le mie molecole</span></label>
-          </div>
-          <div class="flex items-center">
-            <input id="chembl" type="radio" name="method" value="chembl" [formControl]="methodControl" class="cursor-pointer relative size-4 appearance-none rounded-full border border-gray-300 bg-white before:absolute before:inset-1 before:rounded-full before:bg-white checked:border-indigo-600 checked:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400 dark:border-white/10 dark:bg-white/5 dark:checked:border-indigo-500 dark:checked:bg-indigo-500 dark:focus-visible:outline-indigo-500 dark:disabled:border-white/5 dark:disabled:bg-white/10 dark:disabled:before:bg-white/20 forced-colors:appearance-auto forced-colors:before:hidden [&:not(:checked)]:before:hidden" />
-            <label for="chembl" class="cursor-pointer ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white">Cerca e seleziona da ChEMBL DB</label>
-          </div>
-        } @else if (step() === 2) {
+
+    <!-- BODY -->
+    <div class="action-card-body bg-white dark:bg-dark-surface-main">
+      <!-- Scelta metodo -->
+      <div class="mx-auto">
+        <div
+          class="mt-6 space-y-6 sm:flex sm:items-center sm:space-x-10 sm:space-y-0
+                 px-6 pb-6 border-b border-light-border dark:border-dark-border"
+        >
+          @if (step() === 1) {
             <div class="flex items-center">
-              <input [attr.disabled]="true" id="my" type="radio" name="method" value="my" [formControl]="methodControl" class="cursor-not-allowed relative size-4 appearance-none rounded-full border border-gray-300 bg-white before:absolute before:inset-1 before:rounded-full before:bg-white checked:border-indigo-600 checked:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400 dark:border-white/10 dark:bg-white/5 dark:checked:border-indigo-500 dark:checked:bg-indigo-500 dark:focus-visible:outline-indigo-500 dark:disabled:border-white/5 dark:disabled:bg-white/10 dark:disabled:before:bg-white/20 forced-colors:appearance-auto forced-colors:before:hidden [&:not(:checked)]:before:hidden" />
-              <label for="my" class="cursor-not-allowed ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white">Seleziona da <span class="italic">Le mie molecole</span></label>
+              <input
+                id="my"
+                type="radio"
+                name="method"
+                value="my"
+                [formControl]="methodControl"
+                class="cursor-pointer relative size-4 appearance-none rounded-full
+                       border border-gray-300 bg-white
+                       before:absolute before:inset-1 before:rounded-full before:bg-white
+                       checked:border-indigo-600 checked:bg-indigo-600
+                       focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600
+                       disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400
+                       dark:border-white/10 dark:bg-white/5
+                       dark:checked:border-indigo-500 dark:checked:bg-indigo-500
+                       dark:focus-visible:outline-indigo-500
+                       dark:disabled:border-white/5 dark:disabled:bg-white/10 dark:disabled:before:bg-white/20
+                       forced-colors:appearance-auto forced-colors:before:hidden
+                       [&:not(:checked)]:before:hidden"
+              />
+              <label
+                for="my"
+                class="cursor-pointer ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white"
+              >
+                Seleziona da <span class="italic">Le mie molecole</span>
+              </label>
             </div>
             <div class="flex items-center">
-              <input [attr.disabled]="true" id="chembl" type="radio" name="method" value="chembl" [formControl]="methodControl" class="cursor-not-allowed relative size-4 appearance-none rounded-full border border-gray-300 bg-white before:absolute before:inset-1 before:rounded-full before:bg-white checked:border-indigo-600 checked:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400 dark:border-white/10 dark:bg-white/5 dark:checked:border-indigo-500 dark:checked:bg-indigo-500 dark:focus-visible:outline-indigo-500 dark:disabled:border-white/5 dark:disabled:bg-white/10 dark:disabled:before:bg-white/20 forced-colors:appearance-auto forced-colors:before:hidden [&:not(:checked)]:before:hidden" />
-              <label for="chembl" class="cursor-not-allowed ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white">Cerca e seleziona da ChEMBL DB</label>
+              <input
+                id="chembl"
+                type="radio"
+                name="method"
+                value="chembl"
+                [formControl]="methodControl"
+                class="cursor-pointer relative size-4 appearance-none rounded-full
+                       border border-gray-300 bg-white
+                       before:absolute before:inset-1 before:rounded-full before:bg-white
+                       checked:border-indigo-600 checked:bg-indigo-600
+                       focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600
+                       disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400
+                       dark:border-white/10 dark:bg:white/5
+                       dark:checked:border-indigo-500 dark:checked:bg-indigo-500
+                       dark:focus-visible:outline-indigo-500
+                       dark:disabled:border-white/5 dark:disabled:bg-white/10 dark:disabled:before:bg-white/20
+                       forced-colors:appearance-auto forced-colors:before:hidden
+                       [&:not(:checked)]:before:hidden"
+              />
+              <label
+                for="chembl"
+                class="cursor-pointer ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white"
+              >
+                Cerca e seleziona da ChEMBL DB
+              </label>
+            </div>
+          } @else if (step() === 2) {
+            <div class="flex items-center">
+              <input
+                [attr.disabled]="true"
+                id="my"
+                type="radio"
+                name="method"
+                value="my"
+                [formControl]="methodControl"
+                class="cursor-not-allowed relative size-4 appearance-none rounded-full
+                       border border-gray-300 bg-white
+                       before:absolute before:inset-1 before:rounded-full before:bg-white
+                       checked:border-indigo-600 checked:bg-indigo-600
+                       focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600
+                       disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400
+                       dark:border-white/10 dark:bg-white/5
+                       dark:checked:border-indigo-500 dark:checked:bg-indigo-500
+                       dark:focus-visible:outline-indigo-500
+                       dark:disabled:border-white/5 dark:disabled:bg-white/10 dark:disabled:before:bg-white/20
+                       forced-colors:appearance-auto forced-colors:before:hidden
+                       [&:not(:checked)]:before:hidden"
+              />
+              <label
+                for="my"
+                class="cursor-not-allowed ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white"
+              >
+                Seleziona da <span class="italic">Le mie molecole</span>
+              </label>
+            </div>
+            <div class="flex items-center">
+              <input
+                [attr.disabled]="true"
+                id="chembl"
+                type="radio"
+                name="method"
+                value="chembl"
+                [formControl]="methodControl"
+                class="cursor-not-allowed relative size-4 appearance-none rounded-full
+                       border border-gray-300 bg-white
+                       before:absolute before:inset-1 before:rounded-full before:bg-white
+                       checked:border-indigo-600 checked:bg-indigo-600
+                       focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600
+                       disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400
+                       dark:border-white/10 dark:bg-white/5
+                       dark:checked:border-indigo-500 dark:checked:bg-indigo-500
+                       dark:focus-visible:outline-indigo-500
+                       dark:disabled:border-white/5 dark:disabled:bg-white/10 dark:disabled:before:bg-white/20
+                       forced-colors:appearance-auto forced-colors:before:hidden
+                       [&:not(:checked)]:before:hidden"
+              />
+              <label
+                for="chembl"
+                class="cursor-not-allowed ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white"
+              >
+                Cerca e seleziona da ChEMBL DB
+              </label>
             </div>
           }
+        </div>
       </div>
-    </div>
+
+      <!-- CONTENUTO STEP / METODO -->
       @switch (method()) {
         @case ('my') {
-          <div #scrollRoot class="py-6 px-3 overflow-y-auto flex flex-col gap-4 min-h-[60vh] max-h-[60vh]">
+          <div
+            #scrollRoot
+            class="py-6 px-3 overflow-y-auto flex flex-col gap-4 min-h-[60vh] max-h-[60vh]"
+          >
             @switch (step()) {
               @case (1) {
                 <div class="px-3">
-                  <h2 class="font-semibold mb-3">Scegli le molecole da aggiungere alla collezione:</h2>
+                  <h2 class="font-semibold mb-3">
+                    Scegli le molecole da aggiungere alla collezione:
+                  </h2>
+
                   <m-search-input
                     class="block"
                     [value]="searchTerm()"
@@ -92,23 +207,30 @@ export type ChipItem = {
                     (submitted)="doQuery($event)"
                     (cleared)="doClear()"
                   />
+
                   <div class="mt-6">
                     @if (multiselectItems().length !== 0) {
-                      <m-molecule-collection-item-select-card class="block mb-6"
+                      <m-molecule-collection-item-select-card
+                        class="block mb-6"
                         [isSelectAll]="true"
                         [value]="isSelectedAll()"
                         [indeterminate]="isPartiallySelected()"
-                        (selectedAll)="onSelectAllChange($event)" />
+                        (selectedAll)="onSelectAllChange($event)"
+                      />
                     }
+
                     @for (row of multiselectItems(); track row.item.id; let i = $index) {
                       <m-molecule-collection-item-select-card
                         [molecule]="row.item"
                         [i]="i"
                         [value]="row.isChecked()"
-                        (valueChange)="row.isChecked.set($event); toggleOne(row)" />
+                        (valueChange)="row.isChecked.set($event); toggleOne(row)"
+                      />
                     }
                   </div>
+
                   <div #sentinel class="h-1 w-full"></div>
+
                   @if (loading) {
                     @if (page > 1) {
                       <div class="flex justify-center py-4">
@@ -122,15 +244,22 @@ export type ChipItem = {
                       </div>
                     }
                   } @else if (empty() && (earlyDone || done)) {
-                    <p class="text-slate-700 dark:text-slate-200 py-6">Nessuna molecola disponibile tra <em>Le mie molecole</em>.</p>
+                    <p class="text-slate-700 dark:text-slate-200 py-6">
+                      Nessuna molecola disponibile tra
+                      <em>Le mie molecole</em>.
+                    </p>
                   }
                 </div>
               }
               @case (2) {
                 @if (error()) {
-                  <span class="text-light-error dark:text-dark-error">Si è verificato un errore</span>
+                  <span class="text-light-error dark:text-dark-error">
+                    Si è verificato un errore
+                  </span>
                 } @else {
-                  <span class="text-light-accent-secondary dark:text-dark-accent-secondary">Molecole aggiunte con successo!</span>
+                  <span class="text-light-accent-secondary dark:text-dark-accent-secondary">
+                    Molecole aggiunte con successo!
+                  </span>
                 }
               }
             }
@@ -153,13 +282,18 @@ export type ChipItem = {
 
                 <div class="border-b min-h-24 relative">
                   @if (selectedMolecules.length === 0) {
-                    <div class="absolute inset-0 flex justify-center items-center text-sm text-gray-500 dark:text-gray-400">
+                    <div
+                      class="absolute inset-0 flex justify-center items-center text-sm text-gray-500 dark:text-gray-400"
+                    >
                       Qui vedrai le molecole selezionate.
                     </div>
                   }
 
-
-                  <div class="relative flex flex-wrap items-center gap-2 py-3" role="list" aria-label="Molecole selezionate">
+                  <div
+                    class="relative flex flex-wrap items-center gap-2 py-3"
+                    role="list"
+                    aria-label="Molecole selezionate"
+                  >
                     @for (m of selectedMolecules; track m.id) {
                       <span
                         role="listitem"
@@ -170,7 +304,9 @@ export type ChipItem = {
                                shadow-sm"
                         title="{{ m.name }}"
                       >
-                        <span class="truncate max-w-[16rem] text-sm font-medium">{{ m.name }}</span>
+                        <span class="truncate max-w-[16rem] text-sm font-medium">
+                          {{ m.name }}
+                        </span>
 
                         <button
                           type="button"
@@ -182,7 +318,12 @@ export type ChipItem = {
                           aria-label="Rimuovi {{ m.name }}"
                         >
                           <svg viewBox="0 0 20 20" fill="none" class="size-3.5">
-                            <path d="M6 6l8 8M14 6l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                            <path
+                              d="M6 6l8 8M14 6l-8 8"
+                              stroke="currentColor"
+                              stroke-width="1.8"
+                              stroke-linecap="round"
+                            />
                           </svg>
                         </button>
                       </span>
@@ -201,7 +342,12 @@ export type ChipItem = {
                       >
                         Pulisci tutto
                         <svg viewBox="0 0 20 20" fill="none" class="size-3.5">
-                          <path d="M5 10h10M10 5v10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                          <path
+                            d="M5 10h10M10 5v10"
+                            stroke="currentColor"
+                            stroke-width="1.6"
+                            stroke-linecap="round"
+                          />
                         </svg>
                       </button>
                     }
@@ -225,7 +371,9 @@ export type ChipItem = {
                       Nessun risultato trovato.
                     </div>
                   } @else if (chemblError()) {
-                    <div class="text-sm text-red-500 bg-red-50 dark:bg-red-950 rounded px-4 py-2 text-center">
+                    <div
+                      class="text-sm text-red-500 bg-red-50 dark:bg-red-950 rounded px-4 py-2 text-center"
+                    >
                       Errore nella ricerca. Riprova.
                     </div>
                   }
@@ -235,29 +383,52 @@ export type ChipItem = {
             @case (2) {
               <div class="py-6 px-3 flex flex-col gap-4 min-h-[60vh] max-h-[60vh]">
                 @if (error()) {
-                  <span class="text-light-error dark:text-dark-error">Si è verificato un errore</span>
+                  <span class="text-light-error dark:text-dark-error">
+                    Si è verificato un errore
+                  </span>
                 } @else {
-                  <span class="text-light-accent-secondary dark:text-dark-accent-secondary">Molecole aggiunte con successo!</span>
+                  <span class="text-light-accent-secondary dark:text-dark-accent-secondary">
+                    Molecole aggiunte con successo!
+                  </span>
                 }
               </div>
-              }
+            }
           }
         }
       }
+    </div>
 
-    <div class="my-4 mr-8 flex justify-end gap-2">
+    <!-- FOOTER -->
+    <div class="action-card-footer">
       @if (step() === 1) {
         <button
           type="button"
-          class="px-4 py-2 rounded bg-slate-200 text-light-on-surface-main dark:bg-slate-100 dark:text-neutral-950 hover:bg-gray-300 transition-colors duration-300"
+          class="px-4 py-2 rounded-lg bg-light-surface-secondary text-light-on-surface-main
+                 dark:bg-slate-200 dark:text-light-on-surface-main
+                 hover:bg-white dark:hover:bg-slate-300/80
+                 border border-light-border dark:border-dark-border/80
+                 shadow-sm
+                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary
+                 focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary
+                 dark:focus-visible:ring-offset-dark-surface-secondary
+                 transition-colors duration-200"
           (click)="close()"
         >
           Annulla
         </button>
       }
+
       <button
         type="button"
-        class="relative inline-flex items-center justify-center px-4 py-2 rounded bg-emerald-600 text-white font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed transition-colors duration-300"
+        class="relative inline-flex items-center justify-center px-4 py-2 rounded-lg
+               bg-light-accent-primary text-white font-semibold shadow-md
+               hover:bg-light-accent-primary/90
+               dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary
+               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary
+               focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary
+               dark:focus-visible:ring-offset-dark-surface-secondary
+               disabled:bg-light-accent-primary/50 disabled:cursor-not-allowed
+               transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary/50"
         [disabled]="(isSelectedNothing() && this.method() === 'my') || (this.selectedIds.length === 0 && this.method() === 'chembl' || step_12_loading())"
         (click)="step() === 1 ? dispatchSubmit() : close()"
         [attr.aria-busy]="step_12_loading()"
