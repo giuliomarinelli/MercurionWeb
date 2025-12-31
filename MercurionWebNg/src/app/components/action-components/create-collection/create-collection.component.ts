@@ -21,7 +21,7 @@ import { CloseButtonComponent } from '../../common/close-button/close-button.com
 @Component({
   selector: 'm-create-collection',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, CloseButtonComponent],
+  imports: [ReactiveFormsModule],
   styles: [
     `
     /* Scrollbar sottile per i contenitori scrollabili */
