@@ -185,6 +185,12 @@ export class SessionSyncService {
     const initials = localStorage.getItem('login') ?? ''
     const cookieLogged = this.hasClientLoginCookieTrue()
 
+    // login locale senza cookie → stato inconsistente: considera la sessione scaduta
+    if (initials && !cookieLogged) {
+      this.handleSessionExpired()
+      return
+    }
+
     // Regola: senza cookie NON consideriamo loggati → targetIsPrivate = false
     const targetIsPrivate = cookieLogged && initials !== ''
 
@@ -325,22 +331,17 @@ export class SessionSyncService {
   }
 
   private handleSessionExpired(): void {
-    if (this.hasClientLoginCookieTrue()) {
-      this._status.set('checking')
-      void this.syncSession(true)
-      return
-    }
-
-    // scadenza certa → rimuovi login locale e vai anonimo
-    localStorage.removeItem('login')
-    const muted = Date.now() < this.toastMutedUntil
+    // evento di scadenza lato server → consideralo definitivo anche se il cookie esiste ancora
+    const alreadyExpired = this._status() === 'sessionExpired'
+    this.userCtx.logout()
+    const muted = alreadyExpired || Date.now() < this.toastMutedUntil
+    this._status.set('sessionExpired')
     this.becomeAnonymous({
       toast: muted ? undefined : 'Sessione scaduta o invalidata. Effettua di nuovo il login.',
       level: 'error',
       navigateIfProtected: true,
       removeLoginKey: false
     })
-    this._status.set('sessionExpired')
   }
 
   /* ---------------- Cross-tab helpers ---------------- */
