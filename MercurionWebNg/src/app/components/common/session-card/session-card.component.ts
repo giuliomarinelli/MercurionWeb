@@ -20,6 +20,8 @@ import { ClassicSpinnerComponent } from "../classic-spinner/classic-spinner.comp
         transition-all max-h-fit duration-150 ease-linear
         opacity-100
       "
+      role="region"
+      [attr.aria-label]="ariaLabel()"
     >
 
       @if (!session.isBeingDeleted) {
@@ -117,6 +119,8 @@ import { ClassicSpinnerComponent } from "../classic-spinner/classic-spinner.comp
             "
             (click)="logoutFromSession(session.id)"
             [disabled]="session.current === false ? false : false"
+            [attr.aria-disabled]="false"
+            aria-label="Esci da questa sessione"
           >
             <svg xmlns="http://www.w3.org/2000/svg"
                  viewBox="0 0 512 512"
@@ -150,6 +154,13 @@ export class SessionCardComponent {
 
   breakHex(str: string): string {
     return Helpers.breakHex(str)
+  }
+
+  ariaLabel(): string {
+    const s = this.session
+    if (!s) return 'Sessione'
+    const status = s.current ? 'Sessione attuale' : 'Sessione'
+    return `${status}, ultimo accesso ${s.lastAccessedAt}`
   }
 
 }

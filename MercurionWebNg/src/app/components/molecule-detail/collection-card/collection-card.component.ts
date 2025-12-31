@@ -48,6 +48,7 @@ import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/
         [attr.aria-label]="'Apri collezione ' + _collection()!.name"
         [class.disappear-card]="_triggerDisappear()"
         [class.cursor-default]="_isReadonly()"
+        [attr.aria-live]="!_isReadonly() ? 'polite' : 'off'"
       >
         <!-- Wrapper che anima l'altezza -->
         <div class="clip-wrapper">
@@ -138,6 +139,7 @@ import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/
                       class="relative z-20 p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-150"
                       title="Duplica collezione"
                       (click)="onActionClick($event); doDuplicateCollection()"
+                      aria-label="Duplica collezione {{ _collection()!.name }}"
                     >
                       <svg class="size-4 text-slate-600 dark:text-slate-300" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                         <path d="M4 4a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v1h-1V4a1 1 0 0 0-1-1H6a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h1v1H6a2 2 0 0 1-2-2V4z" />
@@ -150,6 +152,7 @@ import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/
                       class="relative z-20 p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-150"
                       title="Elimina collezione"
                       (click)="onActionClick($event); doDeleteCollection()"
+                      aria-label="Elimina collezione {{ _collection()!.name }}"
                     >
                       <svg class="size-4 text-light-error dark:text-dark-error" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                         <path fill-rule="evenodd" d="M6 8a1 1 0 0 1 1 1v7h6V9a1 1 0 1 1 2 0v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V9a1 1 0 0 1 1-1zM4 5a1 1 0 0 1 1-1h2V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1h2a1 1 0 0 1 1 1v1H4V5z" clip-rule="evenodd" />
@@ -161,6 +164,7 @@ import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/
                       class="flex items-center gap-2 relative z-20 px-3 py-1 rounded-md border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 text-xs font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-150"
                       title="Aggiungi molecole"
                       (click)="onActionClick($event); doAddMoleculesToCollection()"
+                      aria-label="Aggiungi molecole a {{ _collection()!.name }}"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto" aria-hidden="true">
                         <path d="M336 112L336 96L304 96L304 304L96 304L96 336L304 336L304 544L336 544L336 336L544 336L544 304L336 304L336 112z"/>

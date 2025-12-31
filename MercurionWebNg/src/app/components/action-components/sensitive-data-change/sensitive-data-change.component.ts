@@ -37,11 +37,19 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 
 <div class="flex justify-center items-center min-h-screen px-2 sm:px-4">
-  <div class="action-card">
+  <div
+    class="action-card"
+    role="region"
+    aria-labelledby="sensitiveDataHeading"
+    [attr.aria-busy]="loading()"
+  >
 
     <!-- Header sticky fuori dallo scroll -->
     <div class="action-card-header">
-      <h2 class="text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main">
+      <h2
+        id="sensitiveDataHeading"
+        class="text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main"
+      >
         @switch(innerScope()) {
             @case ('EnableMfa') {
               Attiva l'autenticazione a più fattori
@@ -69,6 +77,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
       <button
         class="action-card-close-btn"
         (click)="close()"
+        aria-label="Chiudi pannello modifica dati sensibili"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-5 h-auto">
           <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
@@ -99,7 +108,11 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
               }
             </div>
           } @else if (enableMfaStep() === 'OTP_VERIFICATION') {
-            <div class="px-5 sm:px-6 py-4 border border-amber-200 dark:border-dark-border bg-yellow-50 dark:bg-slate-700 flex gap-4 sm:gap-6 items-center rounded-lg">
+            <div
+              class="px-5 sm:px-6 py-4 border border-amber-200 dark:border-dark-border bg-yellow-50 dark:bg-slate-700 flex gap-4 sm:gap-6 items-center rounded-lg"
+              role="status"
+              aria-live="polite"
+            >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-12 w-auto">
                 <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                 <path d="M256 240C256 160.5 320.5 96 400 96C479.5 96 544 160.5 544 240C544 319.5 479.5 384 400 384C388.9 384 378 382.7 367.6 380.4L359 378.4L352.7 384.7L321.3 416.1L255.9 416.1L255.9 480.1L191.9 480.1L191.9 544.1L95.9 544.1L95.9 462.7L258.7 299.9L265.6 293L262.7 283.7C258.3 269.9 256 255.3 256 240zM400 64C302.8 64 224 142.8 224 240C224 255.1 225.9 269.8 229.5 283.9L68.7 444.7L64 449.4L64 576L224 576L224 512L288 512L288 448L334.6 448L339.3 443.3L369.3 413.3C379.3 415.1 389.5 416 400 416C497.2 416 576 337.2 576 240C576 142.8 497.2 64 400 64zM432 232C445.3 232 456 221.3 456 208C456 194.7 445.3 184 432 184C418.7 184 408 194.7 408 208C408 221.3 418.7 232 432 232z"/>
@@ -122,7 +135,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                 }
               }
             </div>
-            <div class="flex flex-col gap-y-6">
+            <div class="flex flex-col gap-y-6" aria-live="polite">
               <div class="relative min-h-[25vh] rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
                 <div class="absolute inset-0 flex justify-center items-center px-6">
                   <m-floating-input
@@ -145,7 +158,11 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                     darkFocusRingClass="dark:focus:ring-dark-accent-primary-btn-hc"  />
                 </div>
               </div>
-              <div class="px-5 sm:px-6 py-4 border border-amber-200 dark:border-dark-border bg-yellow-50 dark:bg-slate-700 flex gap-4 sm:gap-6 items-center rounded-lg">
+              <div
+                class="px-5 sm:px-6 py-4 border border-amber-200 dark:border-dark-border bg-yellow-50 dark:bg-slate-700 flex gap-4 sm:gap-6 items-center rounded-lg"
+                role="status"
+                aria-live="polite"
+              >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-12 w-auto">
                   <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                   <path d="M320 96C443.7 96 544 196.3 544 320C544 443.7 443.7 544 320 544C196.3 544 96 443.7 96 320C96 196.3 196.3 96 320 96zM320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM272 416L256 416L256 448L384 448L384 416L336 416L336 288L256 288L256 320L304 320L304 416L272 416zM344 248L344 200L296 200L296 248L344 248z"/>
@@ -155,7 +172,11 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
             </div>
           } @else if (enableMfaStep() === 'OK_OR_ERROR') {
             <div class="flex flex-col gap-y-4">
-              <div class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-12 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-col xs:flex-row">
+              <div
+                class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-12 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-col xs:flex-row"
+                [attr.role]="serverError() ? 'alert' : 'status'"
+                [attr.aria-live]="serverError() ? 'assertive' : 'polite'"
+              >
                 @if (!serverError()) {
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-emerald-800 dark:text-emerald-400">
                     <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->

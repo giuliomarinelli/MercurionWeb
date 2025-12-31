@@ -43,6 +43,10 @@ import { Maybe } from 'graphql/jsutils/Maybe'
       class="fixed inset-0 z-[999] bg-black/70 backdrop-blur-sm text-light-on-surface-main dark:text-slate-50 transition-all duration-300"
       [class.opacity-0]="!searchContextService.isVisible()"
       [class.opacity-100]="searchContextService.isVisible()"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Ricerca molecolare"
+      [attr.aria-hidden]="!searchContextService.isVisible()"
     >
       <div class="flex justify-center items-center pt-32 sm:pt-40 px-4">
         <div

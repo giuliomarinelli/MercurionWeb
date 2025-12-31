@@ -11,6 +11,13 @@ import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy, OnInit
       class="inline-flex items-center justify-center size-8 rounded-md text-slate-500 hover:text-emerald-600 hover:bg-slate-100 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-transparent transition"
       type="button"
       (click)="onClick()"
+      [attr.aria-label]="ariaLabel"
+      [attr.aria-labelledby]="ariaLabelledby ?? null"
+      [attr.aria-describedby]="ariaDescribedby ?? null"
+      [attr.aria-disabled]="disabled"
+      [attr.tabindex]="disabled ? -1 : 0"
+      [disabled]="disabled"
+      [attr.aria-hidden]="ariaHidden"
     >
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current"
            [ngClass]="[
@@ -29,6 +36,21 @@ export class CloseButtonComponent implements OnInit {
 
   @Input()
   size = 5
+
+  @Input()
+  ariaLabel = 'Chiudi'
+
+  @Input()
+  ariaLabelledby?: string
+
+  @Input()
+  ariaDescribedby?: string
+
+  @Input()
+  ariaHidden = false
+
+  @Input()
+  disabled = false
 
   @Output()
   clicked = new EventEmitter<void>()

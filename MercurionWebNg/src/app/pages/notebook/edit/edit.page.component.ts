@@ -12,12 +12,12 @@ import { NotebookTocComponent } from '../../../components/notebook/notebook-tree
   imports: [LabNotebookEditorComponent, NotebookTocComponent],
   template: `
     @if (notebook()) {
-      <div class="flex flex-col items-center w-full mx-auto mt-1">
+      <main class="flex flex-col items-center w-full mx-auto mt-1" role="main" aria-live="polite" [attr.aria-busy]="!notebook()">
         @if (pageId() && currentPage()) {
           <div class="flex flex-col-reverse lg:flex-row gap-4">
             <div class="flex flex-col items-center">
               @if (level()) {
-                <h1 #h1 class="tracking-wider font-semibold text-6xl pb-3 mb-3">
+                <h1 #h1 id="notebook-edit-heading" class="tracking-wider font-semibold text-6xl pb-3 mb-3">
                   {{title()}}.
                 </h1>
               }
@@ -25,7 +25,9 @@ import { NotebookTocComponent } from '../../../components/notebook/notebook-tree
               class="block"
               [content]="currentPage()?.content || ''"
               [triggerContentEmission]="trigger()"
-              (emitContent)="saveContent($event)" />
+              (emitContent)="saveContent($event)"
+              ariaLabel="Editor del quaderno di laboratorio"
+              />
 
             </div>
             <m-notebook-toc class="basis-64"
@@ -43,11 +45,11 @@ import { NotebookTocComponent } from '../../../components/notebook/notebook-tree
 
         } @else {
           @if (level()) {
-                <h1 class="tracking-wider font-semibold text-6xl pb-3 text-center">
+                <h1 id="notebook-edit-heading" class="tracking-wider font-semibold text-6xl pb-3 text-center">
                   {{title()}}.
                 </h1>
           }
-          <div class="mt-12 text-xl text-center text-slate-400 dark:text-slate-200 italic">
+          <div class="mt-12 text-xl text-center text-slate-400 dark:text-slate-200 italic" role="status" aria-live="polite">
             Seleziona un <b>paragrafo</b> per modificare il contenuto.<br>
             (Ogni paragrafo è una “pagina” del quaderno/esperimento.)
           </div>
@@ -62,7 +64,7 @@ import { NotebookTocComponent } from '../../../components/notebook/notebook-tree
             />
 
         }
-      </div>
+      </main>
     }
 
   `

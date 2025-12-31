@@ -32,13 +32,14 @@ import { AppContextService } from '../../../services/context/app-context.service
   ],
   template: `
 
- <header class="px-6 py-4 bg-light-surface-secondary dark:bg-neutral-950 border-b-[0.5px] border-slate-300/65 dark:border-slate-300/40 header-shadow">
+ <header class="px-6 py-4 bg-light-surface-secondary dark:bg-neutral-950 border-b-[0.5px] border-slate-300/65 dark:border-slate-300/40 header-shadow" role="banner">
   <div class="w-full flex justify-between items-center transition-colors duration-300 ease-out">
     <div class="flex items-center gap-4">
       @if (designService.maxBk("lg")()) {
       <button
         class="inline-flex items-center justify-center size-10 rounded-full hover:bg-slate-200/80 dark:hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400/70 transition-colors"
-        (click)="noToast(); toggleOffCanvasMenu()">
+        (click)="noToast(); toggleOffCanvasMenu()"
+        aria-label="Apri o chiudi menu laterale">
         <svg xmlns="http://www.w3.org/2000/svg"
           class="h-[22px] w-[22px] min-[350px]:h-6 min-[350px]:w-6 fill-current text-light-on-surface-secondary dark:text-slate-100 off-canvas-menu-button"
           viewBox="0 0 448 512">
@@ -50,7 +51,7 @@ import { AppContextService } from '../../../services/context/app-context.service
       }
       @if (designService.minBk("md")()) {
       <div class="flex gap-7 items-center">
-        <a routerLink="/">
+        <a routerLink="/" aria-label="Vai alla home">
           <img [ngSrc]="logoSrc() | public" alt="Mercurion" width="927" height="234" title="Mercurion" priority="true"
             class="w-[145px] h-auto contrast-115" />
         </a>
@@ -67,7 +68,7 @@ import { AppContextService } from '../../../services/context/app-context.service
       }
     </div>
     @if (designService.maxBk("sm")()) {
-    <a routerLink="/">
+    <a routerLink="/" aria-label="Vai alla home">
       <img [ngSrc]="logoSrc() | public" alt="Mercurion" width="927" height="234" priority="true"
         class="w-[128px] min-[350px]:w-[145px] h-auto contrast-115" />
     </a>
@@ -124,7 +125,8 @@ import { AppContextService } from '../../../services/context/app-context.service
           'xl:ml-1': userContext.isLoggedIn() || isLoginPath(),
         }"
         (click)="toggleThemeMenu()"
-        [attr.title]="themeMenuOpen() ? 'Chiudi il menù di selezione del tema' : 'Apri il menu di selezione del tema'">
+        [attr.title]="themeMenuOpen() ? 'Chiudi il menù di selezione del tema' : 'Apri il menu di selezione del tema'"
+        aria-label="Seleziona tema">
         @if (themeManager.theme() === "dark") {
         <svg xmlns="http://www.w3.org/2000/svg"
           class="h-[22px] w-[22px] min-[350px]:h-7 min-[350px]:w-7 fill-current text-slate-100 hover:text-slate-300 transition-colors duration-300"

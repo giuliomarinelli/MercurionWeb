@@ -23,13 +23,18 @@ type FileKind = 'all' | 'images' | 'pdf';
     <div
       class="relative"
       [class.opacity-60]="disabled"
+      role="group"
+      [attr.aria-labelledby]="labelId"
+      [attr.aria-describedby]="hint ? hintId : null"
+      [attr.aria-busy]="loading"
     >
       <!-- Label + hint -->
       <div class="mb-2">
         <label [attr.for]="inputId"
-               class="block text-sm font-medium text-slate-200">{{ label }}</label>
+               class="block text-sm font-medium text-slate-200"
+               [attr.id]="labelId">{{ label }}</label>
         @if (hint) {
-          <p class="text-xs text-slate-400 mt-0.5">{{ hint }}</p>
+          <p class="text-xs text-slate-400 mt-0.5" [attr.id]="hintId">{{ hint }}</p>
         }
       </div>
 
@@ -57,6 +62,8 @@ type FileKind = 'all' | 'images' | 'pdf';
         [class.cursor-not-allowed]="disabled"
         [attr.aria-disabled]="disabled || loading"
         [attr.aria-busy]="loading"
+        role="button"
+        [attr.aria-label]="dropzoneLabel()"
       >
         <!-- Gradient halo (brandable) -->
         <div class="pointer-events-none absolute -inset-px rounded-2xl
@@ -91,7 +98,7 @@ type FileKind = 'all' | 'images' | 'pdf';
         @if (previewUrl) {
           <!-- Preview (opzionale, controllata dal padre) -->
           <div class="mt-3">
-            <img [src]="previewUrl!" alt="" class="max-h-40 rounded-xl ring-1 ring-slate-700/60" />
+            <img [src]="previewUrl!" alt="Anteprima file" class="max-h-40 rounded-xl ring-1 ring-slate-700/60" />
           </div>
         }
         @if (fileName) {
@@ -102,7 +109,7 @@ type FileKind = 'all' | 'images' | 'pdf';
         }
         @if (error) {
           <!-- Errore -->
-          <div *ngIf="error" class="mt-2 text-xs text-rose-400">{{ error }}</div>
+          <div *ngIf="error" class="mt-2 text-xs text-rose-400" role="alert" aria-live="assertive">{{ error }}</div>
         }
         @if (loading) {
           <!-- Spinner overlay -->
@@ -132,6 +139,7 @@ type FileKind = 'all' | 'images' | 'pdf';
         <button type="button"
                 (click)="triggerBrowse()"
                 [disabled]="disabled || loading"
+                [attr.aria-disabled]="disabled || loading"
                 class="px-3 py-1.5 text-sm rounded-xl
                        bg-slate-800/70 hover:bg-slate-800
                        ring-1 ring-slate-700/60 text-slate-200 transition">
@@ -140,6 +148,7 @@ type FileKind = 'all' | 'images' | 'pdf';
         <button type="button"
                 (click)="onClearClicked()"
                 [disabled]="disabled || loading"
+                [attr.aria-disabled]="disabled || loading"
                 class="px-3 py-1.5 text-sm rounded-xl
                        bg-transparent hover:bg-slate-800/60
                        ring-1 ring-slate-700/60 text-slate-300 transition">
@@ -175,6 +184,8 @@ export class FileUploaderComponent {
   @Output() rejected = new EventEmitter<{ reason: string; file?: File }>();
 
   @ViewChild('fileInput', { static: true }) fileInput!: ElementRef<HTMLInputElement>;
+  labelId = `fu-label-${Math.random().toString(36).slice(2)}`;
+  hintId = `fu-hint-${Math.random().toString(36).slice(2)}`;
 
   // solo per evidenziare UI in dragover (non conserva il file: stateless)
   private _isOver = signal(false);
@@ -194,6 +205,12 @@ export class FileUploaderComponent {
       case 'pdf':    return 'È accettato solo un PDF';
       default:       return 'Sono accettati immagini, PDF o altri file';
     }
+  });
+
+  dropzoneLabel = computed(() => {
+    const accept = this.acceptLabel();
+    const size = this.maxSize ? `; dimensione massima ${this.formatBytes(this.maxSize)}` : '';
+    return `${this.label}. ${accept}${size}`;
   });
 
   triggerBrowse() {

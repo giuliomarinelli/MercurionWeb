@@ -19,7 +19,9 @@ import { NgClass } from '@angular/common';
         [ngClass]="{
           'bg-slate-100/50 dark:bg-slate-800/40': _i() % 2 !== 0
         }"
-        aria-hidden="true"
+        role="status"
+        aria-busy="true"
+        aria-label="Caricamento ticket"
       >
         <!-- shimmer overlay -->
         <div class="absolute inset-0 -translate-x-full animate-[shimmer_1.2s_infinite]

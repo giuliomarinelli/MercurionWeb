@@ -30,7 +30,11 @@ import { FormsModule } from '@angular/forms';
   selector: 'm-combo-multiselect',
   imports: [FormsModule, NgClass],
   template: `
-    <div class="relative w-full max-w-xl bg-white dark:bg-neutral-800 rounded-xl shadow p-2 border border-slate-200 dark:border-slate-700">
+    <div
+      class="relative w-full max-w-xl bg-white dark:bg-neutral-800 rounded-xl shadow p-2 border border-slate-200 dark:border-slate-700"
+      role="group"
+      aria-label="Seleziona elementi multipli"
+    >
       <!-- Selected chips / summary -->
       @if (selected.length) {
         <div class="flex flex-wrap items-center gap-1 mb-2 px-1">
@@ -43,7 +47,7 @@ import { FormsModule } from '@angular/forms';
             </span>
           }
           <span class="ml-auto text-[11px] text-slate-500 dark:text-slate-400">Selezionati: {{ selected.length }}</span>
-          <button type="button" (click)="clearSelection()" class="ml-2 text-[11px] px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-neutral-700 text-slate-600 dark:text-slate-300">
+          <button type="button" (click)="clearSelection()" class="ml-2 text-[11px] px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-neutral-700 text-slate-600 dark:text-slate-300" aria-label="Pulisci selezione">
             Pulisci
           </button>
         </div>
@@ -56,16 +60,17 @@ import { FormsModule } from '@angular/forms';
         [placeholder]="searchPlaceholder || 'Cerca...'"
         [(ngModel)]="searchTerm"
         (input)="onInputChange($event)"
-        aria-label="Cerca"
+        aria-label="Cerca elementi nella lista"
       />
 
       <!-- Scrollable area -->
-      <div
-        #scrollContainer
-        class="max-h-64 overflow-auto flex flex-col gap-1 h-56 oveflow-y-auto"
-        (scroll)="onScroll($event)"
-        role="listbox" aria-multiselectable="true"
-      >
+        <div
+          #scrollContainer
+          class="max-h-64 overflow-auto flex flex-col gap-1 h-56 oveflow-y-auto"
+          (scroll)="onScroll($event)"
+          role="listbox" aria-multiselectable="true"
+          [attr.aria-label]="ariaLabelListbox"
+        >
         @if (filteredItems().length > 0) {
           @for (item of filteredItems(); track valueFn(item)) {
             <div
@@ -74,17 +79,17 @@ import { FormsModule } from '@angular/forms';
               (click)="toggleItem(item)"
               role="option" [attr.aria-selected]="isSelected(item)"
             >
-              <input type="checkbox" class="mr-1" [checked]="isSelected(item)" (click)="$event.stopPropagation(); toggleItem(item)" />
+              <input type="checkbox" class="mr-1" [checked]="isSelected(item)" (click)="$event.stopPropagation(); toggleItem(item)" [attr.aria-label]="'Seleziona ' + displayFn(item)" />
               <span class="truncate">{{ displayFn(item) }}</span>
             </div>
           }
         } @else {
-          <div class="text-gray-500 px-3 py-2">Nessun risultato</div>
+          <div class="text-gray-500 px-3 py-2" role="status" aria-live="polite">Nessun risultato</div>
         }
 
         <!-- CREA NUOVA -->
         @if (canCreateNew) {
-          <div class="px-3 py-2 border-t border-slate-100 dark:border-slate-600 mt-2 sticky bottom-0 z-20 bg-gray-200 dark:bg-neutral-800">
+          <div class="px-3 py-2 border-t border-slate-100 dark:border-slate-600 mt-2 sticky bottom-0 z-20 bg-gray-200 dark:bg-neutral-800" aria-live="polite">
             @if (creatingNew) {
               <input
                 class="w-2/3 px-2 py-1 mr-2 rounded border dark:bg-neutral-800 dark:text-white"
@@ -92,11 +97,12 @@ import { FormsModule } from '@angular/forms';
                 [(ngModel)]="newItemName"
                 (keydown.enter)="onCreateNewConfirm()"
                 #newInput
+                aria-label="Nome nuovo elemento"
               />
-              <button (click)="onCreateNewConfirm()" class="bg-emerald-600 text-white px-2 py-1 rounded">Crea</button>
-              <button (click)="creatingNew=false" class="ml-1 px-2 py-1 rounded text-gray-500 hover:bg-gray-200">Annulla</button>
+              <button (click)="onCreateNewConfirm()" class="bg-emerald-600 text-white px-2 py-1 rounded" aria-label="Conferma creazione">Crea</button>
+              <button (click)="creatingNew=false" class="ml-1 px-2 py-1 rounded text-gray-500 hover:bg-gray-200" aria-label="Annulla creazione">Annulla</button>
             } @else {
-              <button (click)="startCreateNew()" class="text-emerald-700 dark:text-emerald-300 font-semibold flex items-center gap-2">
+              <button (click)="startCreateNew()" class="text-emerald-700 dark:text-emerald-300 font-semibold flex items-center gap-2" aria-label="Crea nuovo elemento">
                 <span class="text-xl">+</span> Crea nuova...
               </button>
             }
@@ -116,6 +122,7 @@ export class ComboMultiSelectComponent<T> {
   @Input({ required: true }) displayFn!: (item: T) => string;
   @Input({ required: true }) valueFn!: (item: T) => any;
   @Input() searchPlaceholder?: string;
+  @Input() ariaLabelListbox = 'Elenco elementi';
   @Input() hasMore = false;
   @Input() canCreateNew = false;
 

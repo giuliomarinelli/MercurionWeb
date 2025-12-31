@@ -10,10 +10,10 @@ import { Location } from '@angular/common';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
 
-    <main class="absolute inset-0 z-[50] grid min-h-full place-items-center bg-white px-6 py-24 sm:py-32 lg:px-8 dark:bg-gray-950">
+    <main class="absolute inset-0 z-[50] grid min-h-full place-items-center bg-white px-6 py-24 sm:py-32 lg:px-8 dark:bg-gray-950" aria-labelledby="forbidden-heading">
       <div class="text-center">
         <p class="text-5xl font-semibold text-light-accent-primary dark:text-dark-accent-primary-btn">403</p>
-        <h1 class="mt-4 text-balance text-5xl font-semibold tracking-tight text-gray-900 sm:text-7xl dark:text-white">Accesso non consentito.</h1>
+        <h1 id="forbidden-heading" class="mt-4 text-balance text-5xl font-semibold tracking-tight text-gray-900 sm:text-7xl dark:text-white">Accesso non consentito.</h1>
         <p class="mt-6 text-pretty text-lg font-medium text-gray-500 sm:text-xl/8 dark:text-gray-400">Siamo spiacenti, ma non disponi dei permessi per accedere alla pagina o al contenuto che cercavi.</p>
         <div class="mt-10 flex items-center justify-center gap-x-6">
           <button (click)="goBack()" class="text-sm font-semibold text-gray-900 dark:text-white"><span aria-hidden="true">&larr;</span> Torna indietro</button>

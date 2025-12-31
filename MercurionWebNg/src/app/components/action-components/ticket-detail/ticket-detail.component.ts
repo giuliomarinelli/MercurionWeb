@@ -90,11 +90,14 @@ import { AppContextService } from '../../../services/context/app-context.service
     <div class="flex justify-center items-center min-h-screen px-2">
       <div
         class="w-full max-w-5xl bg-white dark:bg-dark-surface-main rounded-xl shadow-lg"
+        role="region"
+        aria-labelledby="ticketDetailHeading"
+        [attr.aria-busy]="loading"
       >
         <div
           class="flex items-center justify-between px-4 py-4 border-b border-b-slate-400 sticky top-0 z-50 rounded-t-xl bg-white dark:bg-dark-surface-main"
         >
-          <h2 class="text-lg font-semibold">
+          <h2 id="ticketDetailHeading" class="text-lg font-semibold">
             Dettaglio Ticket&nbsp;
             <span
               class="font-semibold text-light-accent-secondary dark:text-dark-accent-secondary"
@@ -105,6 +108,7 @@ import { AppContextService } from '../../../services/context/app-context.service
           <button
             class="inline-flex items-center justify-center size-8 rounded-md text-slate-500 hover:text-emerald-600 hover:bg-slate-100 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-transparent transition"
             (click)="close()"
+            aria-label="Chiudi dettaglio ticket"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -121,6 +125,8 @@ import { AppContextService } from '../../../services/context/app-context.service
         @if (ticket()) {
           <div
             class="px-4 py-3 border-b border-slate-200/70 dark:border-slate-700/60 bg-slate-50/70 dark:bg-slate-800/40 flex flex-col gap-2"
+            role="status"
+            aria-live="polite"
           >
             <div class="flex flex-wrap items-center gap-2">
               <span
@@ -209,6 +215,8 @@ import { AppContextService } from '../../../services/context/app-context.service
                          text-slate-700 dark:text-slate-200
                          hover:bg-slate-200 dark:hover:bg-slate-700 transition"
                   (click)="closeTicket()"
+                  [attr.aria-disabled]="false"
+                  aria-label="Chiudi ticket"
                 >
                   Chiudi ticket
                 </button>
@@ -222,6 +230,8 @@ import { AppContextService } from '../../../services/context/app-context.service
                          text-indigo-700 dark:text-indigo-200
                          hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition"
                   (click)="reopenTicket()"
+                  [attr.aria-disabled]="false"
+                  aria-label="Riapri ticket"
                 >
                   Riapri ticket
                 </button>
@@ -233,6 +243,9 @@ import { AppContextService } from '../../../services/context/app-context.service
         <div
           #scrollRoot
           class="py-6 px-3 overflow-y-auto flex flex-col gap-4 min-h-[30vh] max-h-[40vh]"
+          role="list"
+          aria-label="Messaggi del ticket"
+          aria-live="polite"
         >
           <div #sentinel class="w-full h-px"></div>
 

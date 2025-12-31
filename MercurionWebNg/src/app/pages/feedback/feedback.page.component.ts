@@ -25,8 +25,8 @@ import { Subscription } from 'rxjs'
 
   `,
   template: `
-    <section class="main-container">
-      <h1 class="h1-underline">Feedback</h1>
+    <section class="main-container" role="main" aria-labelledby="feedback-heading">
+      <h1 id="feedback-heading" class="h1-underline">Feedback</h1>
       <div class="flex gap-6 items-center px-6 py-4 bg-slate-100 dark:bg-slate-900 rounded-lg border border-px border-slate-300 dark:border-slate-700">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current size-11 text-gray-600 dark:text-slate-200 shrink-0">
           <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
@@ -60,11 +60,13 @@ import { Subscription } from 'rxjs'
           placeholder="Raccontami cosa ha funzionato e cosa no..."
           [value]="message()"
           (input)="onMessageInput($event)"
+          aria-label="Messaggio di feedback"
+          aria-live="polite"
         ></textarea>
 
         <div class="mt-3 flex items-center justify-end gap-3">
           @if (error()) {
-            <span class="text-red-300 text-sm">{{ error() }}</span>
+            <span class="text-red-300 text-sm" role="alert" aria-live="assertive">{{ error() }}</span>
           }
 
           @if (sent()) {
@@ -84,6 +86,8 @@ import { Subscription } from 'rxjs'
                   "
             [disabled]="!canSubmit()"
             (click)="submit()"
+            [attr.aria-disabled]="!canSubmit()"
+            aria-label="Invia feedback"
           >
             @if (submitting()) { <span>Invio...</span> }
             @else { <span>Invia</span> }

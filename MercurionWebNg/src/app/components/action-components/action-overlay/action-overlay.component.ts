@@ -1,4 +1,4 @@
-import { Component, inject, ChangeDetectionStrategy } from '@angular/core'
+import { Component, inject, ChangeDetectionStrategy, computed } from '@angular/core'
 import { CustomMoleculeCollectionItemSaveComponent } from "../custom-molecule-collection-item-save/custom-molecule-collection-item-save.component";
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 import { AddMoleculesToCollectionComponent } from '../add-molecules-to-collection/add-molecules-to-collection.component';
@@ -33,6 +33,11 @@ import { SelectCollectionThenRouteComponent } from '../select-collection-then-ro
         [class.opacity-100]="ctx.isVisible()"
         role="dialog"
         aria-modal="true"
+        [attr.aria-label]="dialogLabel()"
+        [attr.aria-hidden]="!ctx.isVisible()"
+        [attr.aria-busy]="!ctx.isVisible()"
+        [attr.aria-live]="ctx.isVisible() ? 'assertive' : 'off'"
+        [attr.tabindex]="ctx.isVisible() ? 0 : -1"
       >
         @switch (ctx.scope()) {
           @case ('MoleculeCollectionItemSave') {
@@ -73,5 +78,30 @@ import { SelectCollectionThenRouteComponent } from '../select-collection-then-ro
 export class ActionOverlayComponent {
 
   protected readonly ctx = inject(ActionOverlayContextService)
+  protected readonly dialogLabel = computed(() => {
+    const scope = this.ctx.scope()
+    switch (scope) {
+      case 'MoleculeCollectionItemSave':
+        return 'Salva elemento della collezione'
+      case 'AddMoleculesToCollection':
+        return 'Aggiungi molecole alla collezione'
+      case 'CreateCollection':
+        return 'Crea una nuova collezione'
+      case 'BindCollectionsToMolecule':
+        return 'Associa collezioni alla molecola'
+      case 'SensitiveDataChange':
+        return 'Modifica dati sensibili'
+      case 'EssentialProfileRegistryEdit':
+        return 'Modifica dati profilo'
+      case 'TicketDetail':
+        return 'Dettaglio ticket'
+      case 'NewTicket':
+        return 'Nuovo ticket'
+      case 'SelectCollectionThenRoute':
+        return 'Seleziona collezione'
+      default:
+        return 'Pannello azioni'
+    }
+  })
 
 }

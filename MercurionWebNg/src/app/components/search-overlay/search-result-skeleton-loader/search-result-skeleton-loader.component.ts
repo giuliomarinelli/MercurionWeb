@@ -17,7 +17,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
         </div>
         }
      </div>
-
+    <span class="sr-only">Caricamento risultati della ricerca...</span>
   `
 })
 export class SearchResultSkeletonLoaderComponent {

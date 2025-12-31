@@ -14,6 +14,9 @@ import { ChangeDetectionStrategy, Component, Input, signal } from '@angular/core
         border border-indigo-200/70 dark:border-indigo-700/40
         hover:transform hover:scale-[1.03] transition-transform cursor-default
       "
+      type="button"
+      [attr.aria-label]="'Molecola ' + _name()"
+      aria-live="polite"
     >
       {{_name()}}
 

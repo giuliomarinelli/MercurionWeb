@@ -74,14 +74,22 @@ import { CloseButtonComponent } from '../../common/close-button/close-button.com
   ],
   template: `
 <div class="flex justify-center items-center min-h-screen px-2 sm:px-4">
-  <div class="action-card max-w-5xl">
+  <div
+    class="action-card max-w-5xl"
+    role="region"
+    aria-labelledby="bindCollectionsHeading"
+    [attr.aria-busy]="step_12_loading()"
+  >
     <!-- HEADER -->
     <div class="action-card-header">
-      <h2 class="text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main">
+      <h2
+        id="bindCollectionsHeading"
+        class="text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main"
+      >
         Collega molecola a nuove collezioni
       </h2>
 
-      <m-close-button [action]="close.bind(this)" />
+      <m-close-button [action]="close.bind(this)" ariaLabel="Chiudi pannello collega collezioni" />
     </div>
 
     <!-- BODY -->
@@ -131,18 +139,18 @@ import { CloseButtonComponent } from '../../common/close-button/close-button.com
 
               @if (loading) {
                 @if (page > 1) {
-                  <div class="flex justify-center py-4">
+                  <div class="flex justify-center py-4" role="status" aria-live="polite" aria-busy="true">
                     <m-classic-spinner [size]="60" />
                   </div>
                 } @else {
-                  <div class="space-y-4">
+                  <div class="space-y-4" role="status" aria-live="polite" aria-busy="true">
                     @for (i of [0,1,2,3,4]; track i) {
                       <m-skeleton-collection-card />
                     }
                   </div>
                 }
               } @else if (empty() && (earlyDone || done)) {
-                <p class="text-slate-700 dark:text-slate-200 py-6">
+                <p class="text-slate-700 dark:text-slate-200 py-6" role="status" aria-live="polite">
                   Nessuna collezione.
                 </p>
               }
@@ -150,11 +158,21 @@ import { CloseButtonComponent } from '../../common/close-button/close-button.com
           }
           @case (2) {
             @if (error()) {
-              <span class="text-light-error dark:text-dark-error">
+              <span
+                id="bindCollectionsStatus"
+                class="text-light-error dark:text-dark-error"
+                role="alert"
+                aria-live="assertive"
+              >
                 Si è verificato un errore
               </span>
             } @else {
-              <span class="text-light-accent-secondary dark:text-dark-accent-secondary">
+              <span
+                id="bindCollectionsStatus"
+                class="text-light-accent-secondary dark:text-dark-accent-secondary"
+                role="status"
+                aria-live="polite"
+              >
                 Collezioni collegate con successo!
               </span>
             }
@@ -197,6 +215,9 @@ import { CloseButtonComponent } from '../../common/close-button/close-button.com
         [disabled]="(isSelectedNothing() || step_12_loading())"
         (click)="step() === 1 ? doSubmit() : close()"
         [attr.aria-busy]="step_12_loading()"
+        [attr.aria-disabled]="(isSelectedNothing() || step_12_loading())"
+        [attr.aria-label]="step() === 1 ? 'Aggiungi la molecola alle collezioni selezionate' : 'Chiudi conferma'"
+        [attr.aria-describedby]="step() === 2 ? 'bindCollectionsStatus' : null"
       >
         <span [class.invisible]="step_12_loading()">
           @if (step() === 1) {

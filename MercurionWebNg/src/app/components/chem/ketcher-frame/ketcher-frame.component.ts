@@ -38,21 +38,26 @@ export type KetcherFrameMode = 'create' | 'edit' | 'duplicate';
 @Component({
   selector: 'm-ketcher-frame',
   template: `
-    <div class="relative w-full">
+    <div class="relative w-full" role="region" aria-label="Editor molecolare Ketcher">
       <iframe
         #ketcherIframe
         [src]="ketcherUrl"
         class="w-full lg:px-8 h-[500px] border-none max-w-[1380px] mx-auto hidden sm:block"
+        title="Editor molecolare Ketcher"
+        [attr.aria-busy]="loading()"
       ></iframe>
 
       @if (loading()) {
         <div
           class="absolute inset-0 lg:inset-x-8 h-[500px] max-w-[1380px] mx-auto bg-gray-300 dark:bg-neutral-700 animate-pulse pointer-events-none hidden sm:block"
+          role="status"
+          aria-live="polite"
+          aria-label="Caricamento editor in corso"
         ></div>
       }
 
       <div class="sm:hidden flex flex-col gap-9">
-        <p class="font-semibold text-lg text-center mb-2">
+        <p class="font-semibold text-lg text-center mb-2" role="status" aria-live="polite">
           Ruota il telefono in orizzontale per usare l'editor molecolare
         </p>
         <svg

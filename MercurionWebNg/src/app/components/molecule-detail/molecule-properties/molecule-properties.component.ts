@@ -3,9 +3,9 @@ import { Component, Input, computed, signal } from '@angular/core';
 @Component({
   selector: 'm-molecule-properties',
   template: `
-    <section class="mt-6">
+    <section class="mt-6" aria-labelledby="molecule-properties-heading">
       <h2 class="text-xl font-semibold mb-3 text-light-accent-primary dark:text-dark-accent-primary text-center sm:text-left">
-        Proprietà chimico-fisiche
+        <span id="molecule-properties-heading">Proprietà chimico-fisiche</span>
       </h2>
 
       <div class="rounded-xl border border-border bg-gray-200/40 dark:bg-gray-700/40 p-4 shadow-sm">

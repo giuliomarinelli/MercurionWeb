@@ -15,7 +15,7 @@ import { RouterLink } from '@angular/router';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <footer class="px-6 py-4 text-xs sm:text-sm">
+    <footer class="px-6 py-4 text-xs sm:text-sm" role="contentinfo">
       <!-- classi tw rimosse per passaggio a footer minimalista bg-slate-100 dark:bg-slate-800/50 text-sm text-slate-600 dark:text-slate-200 border-t border-slate-400/40 dark:border-slate-400/65 -->
       <div
         class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-center sm:text-left"

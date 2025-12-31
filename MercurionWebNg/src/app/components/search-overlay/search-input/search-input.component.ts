@@ -40,6 +40,8 @@ import { UserContextService } from '../../../services/context/user-context.servi
         [class.pr-10]="query().trim()"
         [class.pl-4]="query().trim()"
         [class.px-4]="!query().trim()"
+        [attr.aria-label]="ariaLabel || (userContext.isLoggedOut() ? 'Cerca molecola ChEMBL' : 'Cerca molecola')"
+        aria-live="polite"
       />
       @if (query().trim()) {
         <button type="button"
@@ -80,6 +82,8 @@ export class SearchInputComponent implements AfterViewInit, OnDestroy {
   set viewMode(mode: 'my' | 'chembl') {
     this._viewMode.set(mode)
   }
+
+  @Input() ariaLabel?: string
 
   @Output()
   onResult = new EventEmitter<MoleculeSearchResult[] | PageModel<MoleculeCardItemModel>>()

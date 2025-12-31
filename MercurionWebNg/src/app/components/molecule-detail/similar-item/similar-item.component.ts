@@ -20,7 +20,9 @@ import { MoleculeSearchResult } from
           'bg-slate-100 dark:bg-slate-800/80 hover:bg-indigo-50 dark:hover:bg-slate-800': _i() % 2 !== 0,
           'hover:bg-slate-100/40 dark:hover:bg-slate-700': _i() % 2 === 0
           }"
-       class="flex items-center gap-3 p-3 cursor-pointer transition h-[90px]">
+       class="flex items-center gap-3 p-3 cursor-pointer transition h-[90px]"
+       [attr.aria-label]="'Apri molecola simile ' + (_molecule()?.preferredNameIt || '')"
+       role="link">
 
       <div class="w-12 h-12 flex-shrink-0 overflow-hidden relative">
         @if (!viewerReady()) {

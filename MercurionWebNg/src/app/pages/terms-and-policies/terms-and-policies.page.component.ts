@@ -17,10 +17,10 @@ import { AppContextService } from '../../services/context/app-context.service'
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink],
   template: `
-    <section class="main-container leading-7">
+    <main class="main-container leading-7" role="main" aria-labelledby="terms-heading">
       <!-- TERMINI DI SERVIZIO -->
       <header #termsHeader id="terms">
-        <h1 class="h1-underline">Termini di Servizio di Mercurion</h1>
+        <h1 id="terms-heading" class="h1-underline">Termini di Servizio di Mercurion</h1>
         <p><strong>Ultimo aggiornamento:</strong> {{ lastUpdated }}</p>
       </header>
 
@@ -410,7 +410,7 @@ import { AppContextService } from '../../services/context/app-context.service'
           versione aggiornata della presente AUP.
         </p>
       </section>
-    </section>
+    </main>
   `
 })
 export class TermsAndPoliciesPageComponent implements AfterViewInit, OnDestroy {

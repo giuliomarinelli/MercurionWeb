@@ -31,6 +31,8 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
               mode() === 'edit'
           }"
           title="{{ _value() }}"
+          [attr.aria-label]="mode() === 'edit' ? 'Modifica nome molecola' : 'Nome molecola ' + _value()"
+          [attr.aria-live]="mode() === 'edit' ? 'off' : 'polite'"
         >
           {{ _value() }}
         </div>
@@ -155,7 +157,9 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
               'bg-slate-200 dark:bg-slate-700 border-light-on-surface-main dark:border-dark-on-surface-main': mode() === 'edit',
               'border-transparent bg-transparent': mode() === 'view'
             }"
-            [innerHTML]="_value()">
+            [innerHTML]="_value()"
+            [attr.aria-label]="mode() === 'edit' ? 'Modifica ' + _label().replace(':','') : _label().replace(':','') + ' ' + _value()"
+            [attr.aria-live]="mode() === 'edit' ? 'off' : 'polite'">
           </p>
           <div class="flex items-center w-[4.5rem] shrink-0">
             @if (mode() === 'view') {

@@ -49,6 +49,7 @@ type ErrorMap = Record<string, string>;
         (keyup.enter)="enter.emit()"
         [attr.aria-invalid]="isInvalid() ? 'true' : null"
         [attr.aria-required]="isRequired() ? 'true' : null"
+        [attr.aria-describedby]="ariaDescribedby()"
       />
 
       <label
@@ -64,6 +65,8 @@ type ErrorMap = Record<string, string>;
       <div
         class="mt-1 min-h-5 flex items-center gap-3 text-sm text-light-error relative z-10"
         [ngClass]="[darkTextErrorClass]"
+        role="status"
+        aria-live="polite"
       >
         <span>{{ getCurrentError() }}</span>
 
@@ -85,6 +88,7 @@ export class FloatingInputComponent implements ControlValueAccessor, OnInit {
   @Input() errors: ErrorMap = {};             // es: { required: 'Obbligatorio', email: 'Formato non valido' }
   @Input() serverError: string | null = null; // es: "Password errata"
   @Input() asyncVerify = false;
+  @Input() describedById?: string;
 
   @Input() bgClass = 'bg-light-surface-main';
   @Input() darkBgClass = 'dark:bg-neutral-950';
@@ -177,6 +181,12 @@ export class FloatingInputComponent implements ControlValueAccessor, OnInit {
 
     const key = Object.keys(c.errors)[0];
     return this.errors[key] ?? '';
+  }
+
+  ariaDescribedby(): string | null {
+    const err = this.getCurrentError();
+    if (err) return this.describedById ?? `${this.id}-error`;
+    return this.describedById ?? null;
   }
 
   // helper opzionale se vuoi focus programmatico

@@ -28,6 +28,7 @@ import { Component, Input, Output, EventEmitter, ViewChild, ElementRef } from '@
                focus:ring-2 focus:ring-slate-300/60 dark:focus:ring-neutral-600/60"
         autocomplete="off"
         [attr.aria-label]="ariaLabel || placeholder"
+        [attr.aria-disabled]="disabled"
       />
 
       @if (value.length > 0) {

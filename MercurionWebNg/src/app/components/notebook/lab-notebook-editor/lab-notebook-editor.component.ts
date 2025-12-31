@@ -14,7 +14,9 @@ import { QuillModule } from 'ngx-quill';
       [style]="{height: '400px'}"
       [placeholder]="placeholder"
       [ngModel]="_content()"
-      (ngModelChange)="onModelChange($event)">
+      (ngModelChange)="onModelChange($event)"
+      [attr.aria-label]="ariaLabel || placeholder"
+      aria-live="polite">
     </quill-editor>
   `,
   styles: [`
@@ -36,6 +38,8 @@ export class LabNotebookEditorComponent {
   set content(content: string) {
     this._content.set(content)
   }
+
+  @Input() ariaLabel = 'Editor di note di laboratorio'
 
   @Output()
   emitContent = new EventEmitter<string>()

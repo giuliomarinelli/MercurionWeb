@@ -55,6 +55,8 @@ import { AppContextService } from '../../../services/context/app-context.service
           'cursor-default': _isReadonly()
         }"
         aria-label="Card molecola {{ _molecule()!.name }}"
+        role="article"
+        [attr.aria-live]="_isReadonly() ? 'off' : 'polite'"
       >
         <!-- OVERLAY CLICKABLE: copre tutta la card, tranne i bottoni con z-index maggiore -->
         <a
@@ -66,6 +68,7 @@ import { AppContextService } from '../../../services/context/app-context.service
           [queryParams]="{ c_id: _collectionId() }"
           (click)="handleCardClick()"
           aria-label="Apri molecola {{ _molecule()!.name }}"
+          [attr.aria-disabled]="_isReadonly()"
         ></a>
 
         <!-- Colonna sinistra: testo -->
@@ -191,13 +194,14 @@ import { AppContextService } from '../../../services/context/app-context.service
               <!-- Colonna destra: pulsanti -->
               <div class="flex items-center gap-3 relative z-30 pointer-events-auto">
                 <!-- Duplica -->
-                <a
-                  type="button"
-                  class="relative z-30 p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700
-                         transition-colors duration-150"
-                  title="Crea una nuova molecola da questa struttura (Duplica)"
-                  [routerLink]="pathToDuplicate().url"
-                  [queryParams]="pathToDuplicate().queryParams"
+               <a
+                 type="button"
+                 class="relative z-30 p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700
+                        transition-colors duration-150"
+                 title="Crea una nuova molecola da questa struttura (Duplica)"
+                 [routerLink]="pathToDuplicate().url"
+                 [queryParams]="pathToDuplicate().queryParams"
+                  aria-label="Duplica molecola {{ _molecule()!.name }}"
                 >
                   <svg
                     class="size-4 text-slate-600 dark:text-slate-300"
@@ -215,12 +219,13 @@ import { AppContextService } from '../../../services/context/app-context.service
                 </a>
 
                 <!-- Elimina -->
-                <button
-                  type="button"
-                  class="relative z-30 p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700
-                         transition-colors duration-150"
-                  title="Elimina da tutte le collezioni"
-                  (click)="doDelete()"
+               <button
+                 type="button"
+                 class="relative z-30 p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700
+                        transition-colors duration-150"
+                 title="Elimina da tutte le collezioni"
+                 (click)="doDelete()"
+                  aria-label="Elimina molecola {{ _molecule()!.name }}"
                 >
                   <svg
                     class="size-4 text-light-error dark:text-dark-error"
@@ -237,14 +242,15 @@ import { AppContextService } from '../../../services/context/app-context.service
                 </button>
                 @if (_collectionId()) {
                   <!-- 🧩 Rimuovi dalla collezione -->
-                  <button
-                    type="button"
-                    class="flex items-center gap-2 relative z-30 px-3 py-1 rounded-md border border-slate-300 dark:border-slate-600
-                           text-slate-600 dark:text-slate-300 text-xs font-medium
-                           hover:bg-slate-200 dark:hover:bg-slate-700
-                           transition-colors duration-150"
-                    title="Rimuovi dalla collezione"
-                    (click)="doRemoveFromCollection()"
+                 <button
+                   type="button"
+                   class="flex items-center gap-2 relative z-30 px-3 py-1 rounded-md border border-slate-300 dark:border-slate-600
+                          text-slate-600 dark:text-slate-300 text-xs font-medium
+                          hover:bg-slate-200 dark:hover:bg-slate-700
+                          transition-colors duration-150"
+                   title="Rimuovi dalla collezione"
+                   (click)="doRemoveFromCollection()"
+                    aria-label="Rimuovi {{ _molecule()!.name }} da questa collezione"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-4 w-auto">
                       <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->

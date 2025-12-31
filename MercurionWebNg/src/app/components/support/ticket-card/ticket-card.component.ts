@@ -34,6 +34,8 @@ import { Maybe } from 'graphql/jsutils/Maybe';
           'collapse': _collapse()
         }"
         aria-label="Ticket {{ _ticket()!.publicId }}"
+        role="article"
+        aria-live="polite"
       >
         <!-- overlay clickabile -->
         <button
@@ -130,6 +132,7 @@ import { Maybe } from 'graphql/jsutils/Maybe';
               "
               (click)="$event.stopPropagation(); close.emit(_ticket()!.id)"
               title="Chiudi ticket"
+              [attr.aria-label]="'Chiudi ticket ' + _ticket()!.publicId"
             >
               Chiudi
             </button>
@@ -147,6 +150,7 @@ import { Maybe } from 'graphql/jsutils/Maybe';
               "
               (click)="$event.stopPropagation(); reopen.emit(_ticket()!.id)"
               title="Riapri ticket"
+              [attr.aria-label]="'Riapri ticket ' + _ticket()!.publicId"
             >
               Riapri
             </button>

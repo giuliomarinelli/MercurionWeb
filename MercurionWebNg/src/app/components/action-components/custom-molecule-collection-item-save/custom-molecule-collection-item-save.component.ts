@@ -19,17 +19,25 @@ import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.model
   template: `
 
     <div class="flex justify-center items-center min-h-screen px-2 sm:px-4">
-      <div class="action-card max-w-2xl max-h-[80vh] overflow-y-auto">
+      <div
+        class="action-card max-w-2xl max-h-[80vh] overflow-y-auto"
+        role="region"
+        aria-labelledby="saveMoleculeHeading"
+      >
 
         <!-- Header -->
         <div class="action-card-header">
-          <h2 class="text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main">
+          <h2
+            id="saveMoleculeHeading"
+            class="text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main"
+          >
             Salva molecola
           </h2>
           <button
             type="button"
             class="action-card-close-btn"
             (click)="close()"
+            aria-label="Chiudi pannello salva molecola"
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-5 h-auto">
               <path
@@ -59,6 +67,7 @@ import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.model
             (loadMore)="onScrollEnd()"
             (select)="onSelect($event)"
             (createNew)="onCreateNew($event)"
+            [attr.aria-label]="'Seleziona o crea collezione di destinazione'"
           />
 
           <!-- FORM CUSTOM MOLECULE -->
@@ -67,11 +76,14 @@ import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.model
             autocomplete="off"
             (ngSubmit)="onConfirm()"
             novalidate
+            role="form"
+            aria-labelledby="saveMoleculeHeading"
           >
             <!-- NOME MOLECOLA -->
             <div class="relative">
               <input
                 #name
+                id="name"
                 type="text"
                 class="block py-4 px-4 w-full text-sm bg-light-surface-secondary dark:bg-dark-surface-secondary border border-slate-400 dark:border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-light-accent-primary focus:border-light-accent-primary dark:focus:ring-dark-accent-primary-btn-hc dark:focus:border-dark-accent-primary-btn-hc peer text-light-on-surface-main dark:text-dark-on-surface-main"
                 placeholder=" "
@@ -80,6 +92,9 @@ import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.model
                 [(ngModel)]="nameModel"
                 (blur)="onBlur('name')"
                 (focus)="onFocus('name')"
+                [attr.aria-required]="true"
+                [attr.aria-invalid]="!nameModel && nameTouched"
+                [attr.aria-describedby]="!nameModel && nameTouched ? 'nameError' : null"
               />
               <label
                 (click)="onFocus('name')"
@@ -93,7 +108,11 @@ import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.model
                 Nome molecola*
               </label>
               <div class="text-sm text-light-error dark:text-dark-error-hc mt-1 min-h-2">
-                @if (!nameModel && nameTouched) { Il nome è obbligatorio. }
+                @if (!nameModel && nameTouched) {
+                  <span id="nameError" role="alert" aria-live="assertive">
+                    Il nome è obbligatorio.
+                  </span>
+                }
               </div>
             </div>
 
@@ -101,6 +120,7 @@ import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.model
             <div class="relative">
               <input
                 #label
+                id="label"
                 type="text"
                 class="block py-4 px-4 w-full text-sm bg-light-surface-secondary dark:bg-dark-surface-secondary border border-slate-400 dark:border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-light-accent-primary focus:border-light-accent-primary dark:focus:ring-dark-accent-primary-btn-hc dark:focus:border-dark-accent-primary-btn-hc peer text-light-on-surface-main dark:text-dark-on-surface-main"
                 placeholder=" "
@@ -126,6 +146,7 @@ import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.model
             <div class="relative">
               <textarea
                 #notes
+                id="notes"
                 class="block py-4 px-4 w-full text-sm bg-light-surface-secondary dark:bg-dark-surface-secondary border border-slate-400 dark:border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-light-accent-primary focus:border-light-accent-primary dark:focus:ring-dark-accent-primary-btn-hc dark:focus:border-dark-accent-primary-btn-hc peer text-light-on-surface-main dark:text-dark-on-surface-main"
                 placeholder=" "
                 name="notes"
@@ -188,6 +209,7 @@ import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.model
                 type="button"
                 class="px-4 py-2 rounded-lg bg-light-surface-secondary text-light-on-surface-main dark:bg-slate-200 dark:text-light-on-surface-main hover:bg-white dark:hover:bg-slate-300/80 border border-light-border dark:border-dark-border/80 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary transition-colors duration-200"
                 (click)="close()"
+                aria-label="Annulla salvataggio molecola"
               >
                 Annulla
               </button>
@@ -196,6 +218,8 @@ import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.model
                 type="submit"
                 class="relative inline-flex items-center justify-center px-4 py-2 rounded-lg bg-light-accent-primary text-white font-semibold shadow-md hover:bg-light-accent-primary/90 dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary disabled:bg-light-accent-primary/50 disabled:cursor-not-allowed transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary/50"
                 [disabled]="!saveCtx.selectedCollectionId() || !nameModel"
+                [attr.aria-disabled]="!saveCtx.selectedCollectionId() || !nameModel"
+                aria-label="Salva molecola nella collezione selezionata"
               >
                 Salva
               </button>

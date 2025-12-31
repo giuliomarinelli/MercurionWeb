@@ -12,7 +12,8 @@ type AnyMsg = TicketMessage | ClientTicketMessage;
   template: `
   @if (_msg()) {
     <div class="w-full flex"
-         [ngClass]="isSent() ? 'justify-end' : 'justify-start'">
+         [ngClass]="isSent() ? 'justify-end' : 'justify-start'"
+         role="listitem">
 
       <div class="max-w-[85%] sm:max-w-[70%] md:max-w-[60%]">
 
@@ -47,7 +48,10 @@ type AnyMsg = TicketMessage | ClientTicketMessage;
             whitespace-normal break-words
           "
           [ngClass]="bubbleClass()"
-          [attr.aria-label]="isSent() ? 'Messaggio inviato' : 'Messaggio ricevuto'"
+          role="article"
+          tabindex="0"
+          aria-live="polite"
+          [attr.aria-label]="(isSent() ? 'Messaggio inviato' : 'Messaggio ricevuto') + ' da ' + authorName() + ' il ' + (_msg()?.createdAt | date :'dd/MM/yyyy HH:mm:ss')"
         >
           <!-- contenuto HTML da quill -->
           <div class="prose prose-sm dark:prose-invert max-w-none"

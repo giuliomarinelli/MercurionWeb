@@ -9,8 +9,8 @@ import { PercentPipe } from '@angular/common';
   template: `
 
   @if (_inference()) {
-    <section class="mt-6">
-      <h2 class="font-semibold text-emerald-600 dark:text-emerald-400 xs:text-lg mb-2 text-center sm:text-left text-xl">Predizione Tossicologica</h2>
+    <section class="mt-6" aria-labelledby="tox-heading">
+      <h2 id="tox-heading" class="font-semibold text-emerald-600 dark:text-emerald-400 xs:text-lg mb-2 text-center sm:text-left text-xl">Predizione Tossicologica</h2>
       <div class="rounded-xl border-2 border-emerald-400/70 bg-emerald-50/60 dark:bg-gray-900/80 shadow p-6 space-y-4">
         <h3 class="flex gap-1 font-bold text-sm text-emerald-600 dark:text-emerald-400 xs:text-lg mb-2">
           MercurionAI MT-21

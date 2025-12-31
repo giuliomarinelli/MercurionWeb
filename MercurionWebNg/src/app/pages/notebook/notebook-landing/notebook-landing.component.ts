@@ -9,8 +9,10 @@ import { Subscription } from 'rxjs';
   imports: [NotebookTreeComponent],
   template: `
 
-    <h1 class="text-6xl text-center mb-3">Hola</h1>
-    <m-notebook-tree [notebooks]="notebooks()" />
+    <main role="main" aria-live="polite" [attr.aria-busy]="loading()" class="block">
+      <h1 id="notebook-landing-heading" class="text-6xl text-center mb-3">Hola</h1>
+      <m-notebook-tree [notebooks]="notebooks()" aria-labelledby="notebook-landing-heading" />
+    </main>
   `
 })
 export class NotebookLandingComponent implements OnInit, OnDestroy {

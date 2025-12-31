@@ -45,7 +45,7 @@ type ChartPalette = {
   selector: 'm-dashboard',
   imports: [ClassicSpinnerComponent],
   template: `
-    <section #mainHost class="main-container py-8 cursor-default">
+    <section #mainHost class="main-container py-8 cursor-default" role="main" aria-live="polite" [attr.aria-busy]="loading()">
       @if (profile) {
 
         <!-- HEADER UTENTE -->
@@ -53,11 +53,14 @@ type ChartPalette = {
           <div
             class="rounded-full w-20 h-20 text-xl font-semibold
                    flex items-center justify-center
-                   bg-light-accent-secondary dark:bg-dark-accent-primary-btn text-white shadow-md mb-4">
+                   bg-light-accent-secondary dark:bg-dark-accent-primary-btn text-white shadow-md mb-4"
+            role="img"
+            [attr.aria-label]="'Profilo di ' + profile.firstName + ' ' + profile.lastName"
+          >
             {{ initials }}
           </div>
 
-          <h1 class="text-3xl sm:text-4xl lg:text-5xl text-center tracking-wide">
+          <h1 id="dashboard-heading" class="text-3xl sm:text-4xl lg:text-5xl text-center tracking-wide">
             Benvenut{{ ending }} {{ profile.firstName }}.
           </h1>
         </div>
@@ -72,7 +75,10 @@ type ChartPalette = {
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div
               class="rounded-lg border border-slate-300/70 dark:border-slate-700/70
-                     bg-blue-50 dark:bg-[#050816] px-4 py-4 shadow-sm">
+                     bg-blue-50 dark:bg-[#050816] px-4 py-4 shadow-sm"
+              role="group"
+              aria-label="Totale molecole"
+            >
               <p class="text-sm text-neutral-950 dark:text-slate-400 font-semibold">
                 Totale molecole
               </p>
@@ -83,7 +89,10 @@ type ChartPalette = {
 
             <div
               class="rounded-lg border border-slate-300/70 dark:border-slate-700/70
-                     bg-blue-50 dark:bg-[#050816] px-4 py-4 shadow-sm">
+                     bg-blue-50 dark:bg-[#050816] px-4 py-4 shadow-sm"
+              role="group"
+              aria-label="Molecole personali"
+            >
               <p class="text-sm text-neutral-950 dark:text-slate-400 font-semibold">
                 Molecole personali
               </p>
@@ -94,7 +103,10 @@ type ChartPalette = {
 
             <div
               class="rounded-lg border border-slate-300/70 dark:border-slate-700/70
-                     bg-blue-50 dark:bg-[#050816] px-4 py-4 shadow-sm">
+                     bg-blue-50 dark:bg-[#050816] px-4 py-4 shadow-sm"
+              role="group"
+              aria-label="Molecole ChEMBL"
+            >
               <p class="text-sm text-neutral-950 dark:text-slate-400 font-semibold">
                 Molecole ChEMBL
               </p>
@@ -105,7 +117,10 @@ type ChartPalette = {
 
             <div
               class="rounded-lg border border-slate-300/70 dark:border-slate-700/70
-                     bg-blue-50 dark:bg-[#050816] px-4 py-4 shadow-sm">
+                     bg-blue-50 dark:bg-[#050816] px-4 py-4 shadow-sm"
+              role="group"
+              aria-label="Collezioni"
+            >
               <p class="text-sm text-neutral-950 dark:text-slate-400 font-semibold">
                 Collezioni
               </p>
@@ -124,7 +139,7 @@ type ChartPalette = {
               Composizione workspace
             </h2>
             <div class="relative h-[210px] sm:h-[250px]">
-              <canvas #overviewChart></canvas>
+              <canvas #overviewChart role="img" aria-label="Grafico a torta della composizione del workspace tra molecole e collezioni"></canvas>
             </div>
           </div>
         </div>
@@ -142,7 +157,7 @@ type ChartPalette = {
               Molecole e collezioni visitate, create o modificate negli ultimi giorni.
             </p>
             <div class="relative h-[210px] sm:h-[270px]">
-              <canvas #activityChart></canvas>
+              <canvas #activityChart role="img" aria-label="Grafico dell'attività recente su molecole e collezioni"></canvas>
             </div>
           </div>
         </section>
@@ -151,12 +166,14 @@ type ChartPalette = {
             <div
               class="fixed top-1/2 -translate-y-1/2"
               [style.left.px]="spinnerLeft()"
+              role="status"
+              aria-live="polite"
             >
               <m-classic-spinner [size]="60" />
             </div>
           </div>
       } @else if (serverError()) {
-        <p class="text-light-error dark:text-dark-error">Si è verificato un errore nel caricamento della dashboard.</p>
+        <p class="text-light-error dark:text-dark-error" role="alert">Si è verificato un errore nel caricamento della dashboard.</p>
       }
     </section>
   `,

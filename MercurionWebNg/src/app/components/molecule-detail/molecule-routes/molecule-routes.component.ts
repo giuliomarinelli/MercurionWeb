@@ -5,8 +5,8 @@ import { AdministrationRoutes } from '../../../Models/graphql/molecule.detail.mo
 @Component({
   selector: 'm-molecule-routes',
   template: `
-    <section class="my-4">
-      <h2 class="font-semibold text-light-accent-primary dark:text-dark-accent-primary mb-6 text-center sm:text-left text-xl">Vie di somministrazione</h2>
+    <section class="my-4" aria-labelledby="routes-heading">
+      <h2 id="routes-heading" class="font-semibold text-light-accent-primary dark:text-dark-accent-primary mb-6 text-center sm:text-left text-xl">Vie di somministrazione</h2>
       <div class="flex flex-wrap gap-2 text-sm justify-center sm:justify-start">
         @if (adminRoutes().oral) {
           <div class="flex items-center rounded bg-indigo-500 text-blue-100 px-2 py-1 gap-1 cursor-default hover:transform hover:scale-[1.03] transition-transform duration-300">

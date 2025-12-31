@@ -62,7 +62,7 @@ import { AppTitleService } from '../../services/app-title.service';
     CustomDetailsComponent
   ],
   template: `
-  <section class="max-w-5xl mx-auto p-0 xs:p-4 sm:p-6 md:p-8 space-y-12">
+  <main class="max-w-5xl mx-auto p-0 xs:p-4 sm:p-6 md:p-8 space-y-12" role="main" [attr.aria-busy]="loading" aria-live="polite">
     <m-my-molecules-heading [breadcrumb]="breadcrumb" />
 
     <div class="flex flex-wrap justify-between items-center pb-8 pt-2 relative -top-14 gap-y-4">
@@ -82,7 +82,9 @@ import { AppTitleService } from '../../services/app-title.service';
           (click)="doDuplicateCollection(colId())"
           type="button"
           class="relative p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-150"
-          title="Crea una nuova collezione a partire da questa (Duplica)">
+          title="Crea una nuova collezione a partire da questa (Duplica)"
+          aria-label="Duplica collezione"
+        >
           <svg class="size-7 text-slate-600 dark:text-slate-300" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
             <path d="M4 4a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v1h-1V4a1 1 0 0 0-1-1H6a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h1v1H6a2 2 0 0 1-2-2V4z"/>
             <path d="M8 6a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2V6z"/>
@@ -93,7 +95,9 @@ import { AppTitleService } from '../../services/app-title.service';
           type="button"
           class="relative p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-150"
           title="Elimina collezione"
-          (click)="doDeleteCollection()">
+          (click)="doDeleteCollection()"
+          aria-label="Elimina collezione"
+        >
           <svg class="size-7 text-light-error dark:text-dark-error" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
             <path fill-rule="evenodd" d="M6 8a1 1 0 0 1 1 1v7h6V9a1 1 0 1 1 2 0v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V9a1 1 0 0 1 1-1zM4 5a1 1 0 0 1 1-1h2V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1h2a1 1 0 0 1 1 1v1H4V5z" clip-rule="evenodd"/>
           </svg>
@@ -104,8 +108,10 @@ import { AppTitleService } from '../../services/app-title.service';
           class="flex items-center gap-2 relative px-3 py-1 rounded-md border border-slate-300 dark:border-slate-600
                  text-slate-600 dark:text-slate-300 text-xs font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-150"
           title="Aggiungi nuove molecole alla collezione"
-          (click)="doAddToCollection()">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto">
+          (click)="doAddToCollection()"
+          aria-label="Aggiungi nuove molecole alla collezione"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto" aria-hidden="true">
             <path d="M336 112L336 96L304 96L304 304L96 304L96 336L304 336L304 544L336 544L336 336L544 336L544 304L336 304L336 112z"/>
           </svg>
           <span>Aggiungi nuove molecole</span>
@@ -138,7 +144,7 @@ import { AppTitleService } from '../../services/app-title.service';
 
     @if (loading) {
       @if (page > 1 && items.length > 2) {
-        <div class="flex justify-center">
+        <div class="flex justify-center" role="status" aria-live="polite">
           <m-classic-spinner [size]="60" />
         </div>
       } @else {
@@ -149,11 +155,11 @@ import { AppTitleService } from '../../services/app-title.service';
         </div>
       }
     } @else if (empty() && (earlyDone)) {
-      <p class="relative -top-8 text-slate-700 dark:text-slate-200">
+      <p class="relative -top-8 text-slate-700 dark:text-slate-200" role="status" aria-live="polite">
         Nessuna molecola in questa collezione.
       </p>
     }
-  </section>
+  </main>
   `
 })
 export class MoleculeCollectionDetailPageComponent extends AbstractPaginationComponent<MoleculeCardItemModel>

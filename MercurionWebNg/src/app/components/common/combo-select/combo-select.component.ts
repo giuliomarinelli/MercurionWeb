@@ -47,6 +47,8 @@ import { FormsModule } from '@angular/forms';
   template: `
     <div
       class="relative w-full max-w-3xl bg-slate-50 dark:bg-slate-700 rounded-xl shadow p-2 border border-slate-300 dark:border-slate-500"
+      role="group"
+      aria-label="Seleziona un elemento"
     >
       <!-- Input di ricerca -->
       <input
@@ -59,6 +61,7 @@ import { FormsModule } from '@angular/forms';
         [placeholder]="searchPlaceholder || 'Cerca...'"
         [(ngModel)]="searchTerm"
         (input)="onInputChange($event)"
+        aria-label="Cerca elemento"
       />
 
       <!-- Scrollable area -->
@@ -66,6 +69,8 @@ import { FormsModule } from '@angular/forms';
         #scrollContainer
         class="max-h-64 overflow-auto overflow-y-auto flex flex-col gap-1 h-56 text-slate-800 dark:text-slate-50 m-scroll-thin"
         (scroll)="onScroll($event)"
+        role="listbox"
+        [attr.aria-label]="ariaLabelListbox"
       >
         @if (filteredItems().length > 0) {
           @for (item of filteredItems(); track valueFn(item)) {
@@ -77,6 +82,8 @@ import { FormsModule } from '@angular/forms';
                   isSelected(item)
               }"
               (click)="onSelectItem(item)"
+              role="option"
+              [attr.aria-selected]="isSelected(item)"
             >
               {{ displayFn(item) }}
             </div>
@@ -92,6 +99,7 @@ import { FormsModule } from '@angular/forms';
           <div
             class="px-3 py-2 border-t border-slate-200 dark:border-slate-500 mt-2 sticky bottom-0 z-20
                    bg-slate-100 dark:bg-slate-800"
+            aria-live="polite"
           >
             @if (creatingNew) {
               <input
@@ -104,6 +112,7 @@ import { FormsModule } from '@angular/forms';
                 [(ngModel)]="newItemName"
                 (keydown.enter)="onCreateNewConfirm()"
                 #newInput
+                aria-label="Nome nuovo elemento"
               />
               <button
                 (click)="onCreateNewConfirm()"
@@ -113,6 +122,7 @@ import { FormsModule } from '@angular/forms';
                        focus-visible:ring-offset-2 focus-visible:ring-offset-slate-100
                        dark:bg-emerald-900 dark:text-emerald-100 dark:hover:bg-emerald-800
                        dark:focus-visible:ring-emerald-400 dark:focus-visible:ring-offset-slate-800"
+                aria-label="Conferma creazione"
               >
                 Crea
               </button>
@@ -123,6 +133,7 @@ import { FormsModule } from '@angular/forms';
                        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700
                        focus-visible:ring-offset-2 focus-visible:ring-offset-slate-100
                        dark:focus-visible:ring-offset-slate-800"
+                aria-label="Annulla creazione"
               >
                 Annulla
               </button>
@@ -134,6 +145,7 @@ import { FormsModule } from '@angular/forms';
                        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700
                        focus-visible:ring-offset-2 focus-visible:ring-offset-slate-100
                        dark:focus-visible:ring-emerald-400 dark:focus-visible:ring-offset-slate-800"
+                aria-label="Crea nuovo elemento"
               >
                 <span class="text-xl">+</span> Crea nuova...
               </button>
@@ -155,6 +167,7 @@ export class ComboSelectComponent<T> {
   @Input({ required: true }) displayFn!: (item: T) => string;
   @Input({ required: true }) valueFn!: (item: T) => any;
   @Input() searchPlaceholder?: string;
+  @Input() ariaLabelListbox = 'Elenco elementi';
   @Input() hasMore = false;
   @Input() canCreateNew = false;
   @Input() selected?: any;

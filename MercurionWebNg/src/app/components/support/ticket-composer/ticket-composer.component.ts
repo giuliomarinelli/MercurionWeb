@@ -22,7 +22,9 @@ import { FormsModule } from '@angular/forms';
       [modules]="modules"
       [(ngModel)]="contentHtml"
       (onContentChanged)="onChanged($event)"
-      placeholder="Scrivi un messaggio..." />
+      placeholder="Scrivi un messaggio..."
+      aria-label="Componi messaggio"
+      aria-live="polite" />
     <button
       type="button"
       class="
@@ -35,6 +37,8 @@ import { FormsModule } from '@angular/forms';
       [disabled]="!canSend()"
       (click)="sendMsg()"
       title="Invia messaggio"
+      [attr.aria-disabled]="!canSend()"
+      aria-label="Invia messaggio"
     >
       Invia
     </button>

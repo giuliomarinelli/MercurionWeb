@@ -5,9 +5,9 @@ import { ChangeDetectionStrategy, Component } from '@angular/core'
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [],
   template: `
-    <section class="main-container leading-7">
+    <main class="main-container leading-7" role="main" aria-labelledby="privacy-heading">
       <header>
-        <h1 class="h1-underline">Informativa sulla Privacy di Mercurion</h1>
+        <h1 id="privacy-heading" class="h1-underline">Informativa sulla Privacy di Mercurion</h1>
         <p><strong>Ultimo aggiornamento:</strong> {{ lastUpdated }}</p>
       </header>
 
@@ -208,7 +208,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core'
           Le modifiche saranno pubblicate su questa pagina con indicazione della data di aggiornamento.
         </p>
       </section>
-    </section>
+    </main>
   `
 })
 export class PrivacyPageComponent {

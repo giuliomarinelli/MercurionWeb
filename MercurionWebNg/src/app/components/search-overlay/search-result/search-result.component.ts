@@ -72,6 +72,8 @@ import { DesignService } from '../../../services/design.service';
                transition-colors hover:bg-indigo-50 dark:hover:bg-slate-700/80
                focus:outline-none focus:ring-2 focus:ring-indigo-400/60"
         title="Clicca per selezionare la molecola"
+        role="button"
+        [attr.aria-label]="'Seleziona molecola ' + (_molecule()?.preferredNameIt || '')"
       >
         <div class="w-12 h-12 shrink-0 rounded-lg overflow-hidden relative">
           @if (!viewerReady()) {

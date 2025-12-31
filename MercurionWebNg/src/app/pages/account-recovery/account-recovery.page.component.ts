@@ -26,7 +26,7 @@ import { HttpErrorResponse } from '@angular/common/http';
   template: `
 
     <!-- login-placeholder-mercurion.component.html -->
-    <div class="min-h-screen flex flex-col items-center px-4 pt-9">
+    <div class="min-h-screen flex flex-col items-center px-4 pt-9" role="main" aria-labelledby="account-recovery-heading">
       <!-- Logo -->
       <img
         [src]="logoSrc() | public"
@@ -36,11 +36,12 @@ import { HttpErrorResponse } from '@angular/common/http';
 
       <!-- Welcome Message -->
       <h1
+        id="account-recovery-heading"
         class="text-2xl font-semibold text-gray-900 mb-8 tracking-wider dark:text-slate-100 text-center flex items-center gap-4"
       >
         <span>Recupero dell'account.</span>
       </h1>
-      <div class="w-full max-w-sm bg-slate-200 dark:bg-slate-800 border mb-8 border-slate-300 dark:border-slate-600 relative p-3 rounded-md text-sm flex gap-2 xs:gap-4 items-center flex-col xs:flex-row">
+      <div class="w-full max-w-sm bg-slate-200 dark:bg-slate-800 border mb-8 border-slate-300 dark:border-slate-600 relative p-3 rounded-md text-sm flex gap-2 xs:gap-4 items-center flex-col xs:flex-row" aria-live="polite">
         @if ([1, 2].includes(step())) {
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current text-light-warning dark:text-dark-warning size-12 shrink-0">
             <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
@@ -63,7 +64,7 @@ import { HttpErrorResponse } from '@angular/common/http';
               @case (3) {
                 <p class="font-semibold">L'account è stato ripristinato con successo.</p>
                 <p><span>Questo è il codice per recuperare l'account nel caso non riuscissi più ad accedere. Lo puoi visualizzare solo in questo momento. <br />Salvalo in un posto sicuro, come un Password Manager oppure stampalo e custodiscilo in un luogo inaccessibile ad altri:</span>.</p>
-                <p class="text-light-warning dark:text-dark-warning font-semibold">{{recoveryCode()}}</p>
+                <p class="text-light-warning dark:text-dark-warning font-semibold" aria-live="assertive">{{recoveryCode()}}</p>
                 <p><a class="a" routerLink="/login">Vai al login</a></p>
               }
           }
@@ -90,6 +91,7 @@ import { HttpErrorResponse } from '@angular/common/http';
               <button
                 type="submit"
                 [disabled]="loading() || !turnstileToken() || codeCtrl.invalid"
+                [attr.aria-disabled]="loading() || !turnstileToken() || codeCtrl.invalid"
                 (click)="goToSecondStep()"
                 class="relative bottom-[2px] w-full mt-4 py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary/80 dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary/60 disabled:hover:dark:bg-dark-accent-primary/80">
                 @if (!loading()) {
@@ -158,6 +160,7 @@ import { HttpErrorResponse } from '@angular/common/http';
                 <button
                   type="submit"
                   [disabled]="loading() || !turnstileToken() || recoveryGroup.invalid"
+                  [attr.aria-disabled]="loading() || !turnstileToken() || recoveryGroup.invalid"
                   class="relative bottom-[2px] w-full mt-4 py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary/80 dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary/60 disabled:hover:dark:bg-dark-accent-primary/80"
                 >
                   @if (!loading()) {

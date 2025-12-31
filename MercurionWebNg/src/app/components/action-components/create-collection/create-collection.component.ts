@@ -16,7 +16,7 @@ import { Subscription } from 'rxjs';
 import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
 import { ToastService } from '../../../services/toast.service';
 import { CreateCollectionContextService } from '../../../services/context/action-context/create-collection-context.service';
-import { CloseButtonComponent } from '../../common/close-button/close-button.component';
+
 
 @Component({
   selector: 'm-create-collection',
@@ -63,10 +63,18 @@ import { CloseButtonComponent } from '../../common/close-button/close-button.com
   ],
   template: `
   <div class="flex justify-center items-center min-h-screen px-2 sm:px-4">
-    <div class="action-card max-w-2xl">
+    <div
+      class="action-card max-w-2xl"
+      role="region"
+      aria-labelledby="createCollectionHeading"
+      [attr.aria-busy]="selectedChips.length === 0 ? false : null"
+    >
       <!-- HEADER -->
       <div class="action-card-header">
-        <h2 class="text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main">
+        <h2
+          id="createCollectionHeading"
+          class="text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main"
+        >
           Crea una o più collezioni molecolari
         </h2>
 
@@ -74,6 +82,7 @@ import { CloseButtonComponent } from '../../common/close-button/close-button.com
             type="button"
             class="action-card-close-btn"
             (click)="close()"
+            aria-label="Chiudi pannello crea collezioni"
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-5 h-auto">
             <path
@@ -98,6 +107,9 @@ import { CloseButtonComponent } from '../../common/close-button/close-button.com
                 [formControl]="nameControl"
                 type="text"
                 placeholder="Inserisci una nuova collezione..."
+                aria-label="Nome nuova collezione"
+                [attr.aria-required]="true"
+                [attr.aria-describedby]="selectedChips.length ? 'collectionsPreview' : null"
                 class="flex-1 px-4 py-2 rounded-lg bg-white/90 text-black
                        placeholder:text-gray-500 shadow-sm
                        ring-1 ring-slate-300
@@ -138,6 +150,8 @@ import { CloseButtonComponent } from '../../common/close-button/close-button.com
               [disabled]="!name() || alreadyAdded(_trim(name()))"
               (click)="onAddNewName(_trim(name()))"
               [title]="title()"
+              [attr.aria-disabled]="!name() || alreadyAdded(_trim(name()))"
+              [attr.aria-label]="alreadyAdded(_trim(name())) ? 'Collezione già presente' : 'Aggiungi nome collezione'"
             >
               Aggiungi
             </button>
@@ -146,7 +160,12 @@ import { CloseButtonComponent } from '../../common/close-button/close-button.com
 
         <div class="border-t border-light-border dark:border-dark-border">
           @if (selectedChips.length === 0) {
-            <div class="flex items-center justify-center py-10 text-sm text-gray-500 dark:text-gray-400">
+            <div
+              id="collectionsPreview"
+              class="flex items-center justify-center py-10 text-sm text-gray-500 dark:text-gray-400"
+              role="status"
+              aria-live="polite"
+            >
               Qui vedrai l'anteprima dei nomi delle nuove collezioni.
             </div>
           } @else {
@@ -155,6 +174,8 @@ import { CloseButtonComponent } from '../../common/close-button/close-button.com
                 class="flex flex-wrap items-start gap-2 py-3 px-3"
                 role="list"
                 aria-label="Nomi delle nuove collezioni"
+                id="collectionsPreview"
+                aria-live="polite"
               >
                 @for (c of selectedChips; track c) {
                   <span
@@ -201,6 +222,7 @@ import { CloseButtonComponent } from '../../common/close-button/close-button.com
                          dark:ring-indigo-400/40 dark:text-indigo-100 dark:hover:bg-indigo-500/20
                          focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1
                          dark:focus:ring-offset-gray-900"
+                  aria-label="Pulisci tutte le collezioni inserite"
                 >
                   Pulisci tutto
                   <svg viewBox="0 0 20 20" fill="none" class="size-3.5">
@@ -250,6 +272,9 @@ import { CloseButtonComponent } from '../../common/close-button/close-button.com
                  min-w-10"
           [disabled]="selectedChips.length === 0"
           (click)="doSubmit()"
+          [attr.aria-disabled]="selectedChips.length === 0"
+          aria-live="polite"
+          aria-label="Crea le collezioni"
         >
           Crea
         </button>

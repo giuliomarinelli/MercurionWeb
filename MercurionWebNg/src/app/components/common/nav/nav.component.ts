@@ -14,6 +14,7 @@ export class NavComponent {
 
   @Output() onCloseOffCanvasMenu = new EventEmitter<boolean>()
   @Input() header: boolean = false
+  @Input() ariaLabel = 'Navigazione principale'
 
   constructor(
     protected readonly designService: DesignService,

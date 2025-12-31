@@ -11,7 +11,9 @@ import { ModalContextService } from '../../../services/context/modal-context.ser
   @if (ctx.isMounted()) {
     <div class="fixed inset-0 z-[999] bg-black/60 backdrop-blur-sm transition-all duration-300"
          [class.opacity-0]="!ctx.isVisible()" [class.opacity-100]="ctx.isVisible()"
-         role="dialog" aria-modal="true" (click)="overlayClick($event)">
+         role="dialog" aria-modal="true" (click)="overlayClick($event)"
+         [attr.aria-hidden]="!ctx.isVisible()"
+         [attr.tabindex]="ctx.isVisible() ? 0 : -1">
       <div class="min-h-full flex items-center justify-center p-4">
         <div class="w-full max-w-lg rounded-2xl bg-white shadow-xl overflow-hidden"
              (click)="$event.stopPropagation()">

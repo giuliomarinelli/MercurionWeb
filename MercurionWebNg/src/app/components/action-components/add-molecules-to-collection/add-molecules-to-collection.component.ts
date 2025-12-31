@@ -92,10 +92,18 @@ export type ChipItem = {
   ],
   template: `
 <div class="flex justify-center items-center min-h-screen px-2 sm:px-4">
-  <div class="action-card max-w-5xl">
+  <div
+    class="action-card max-w-5xl"
+    role="region"
+    aria-labelledby="addMolHeading"
+    [attr.aria-busy]="step_12_loading()"
+  >
     <!-- HEADER -->
     <div class="action-card-header">
-      <h2 class="flex gap-4 items-center flex-wrap text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main">
+      <h2
+        id="addMolHeading"
+        class="flex gap-4 items-center flex-wrap text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main"
+      >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current size-8">
           <path
             d="M288 96L352 144L576 144L576 512L64 512L64 96L288 96zM352 176L341.3 176L332.8 169.6L277.3 128L96 128L96 480L544 480L544 176L352 176zM304 408L304 336L232 336L232 304L304 304L304 232L336 232L336 304L408 304L408 336L336 336L336 408L304 408z"
@@ -111,6 +119,9 @@ export type ChipItem = {
             type="button"
             class="action-card-close-btn"
             (click)="close()"
+            aria-label="Chiudi pannello aggiungi molecole"
+            [attr.aria-describedby]="step() === 2 ? 'addMolStatus' : null"
+            [attr.aria-disabled]="false"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-5 h-auto">
           <path
@@ -127,6 +138,9 @@ export type ChipItem = {
         <div
           class="mt-6 space-y-6 sm:flex sm:items-center sm:space-x-10 sm:space-y-0
                  px-6 pb-6 border-b border-light-border dark:border-dark-border"
+          role="radiogroup"
+          aria-label="Scegli il metodo per aggiungere molecole"
+          aria-live="polite"
         >
           @if (step() === 1) {
             <div class="flex items-center">
@@ -136,6 +150,8 @@ export type ChipItem = {
                 name="method"
                 value="my"
                 [formControl]="methodControl"
+                aria-label="Usa le mie molecole"
+                [attr.aria-checked]="method() === 'my'"
                 class="cursor-pointer relative size-4 appearance-none rounded-full
                        border border-gray-300 bg-white
                        before:absolute before:inset-1 before:rounded-full before:bg-white
@@ -163,6 +179,8 @@ export type ChipItem = {
                 name="method"
                 value="chembl"
                 [formControl]="methodControl"
+                aria-label="Cerca e seleziona da ChEMBL DB"
+                [attr.aria-checked]="method() === 'chembl'"
                 class="cursor-pointer relative size-4 appearance-none rounded-full
                        border border-gray-300 bg-white
                        before:absolute before:inset-1 before:rounded-full before:bg-white
@@ -192,6 +210,9 @@ export type ChipItem = {
                 name="method"
                 value="my"
                 [formControl]="methodControl"
+                aria-label="Usa le mie molecole"
+                [attr.aria-checked]="method() === 'my'"
+                aria-disabled="true"
                 class="cursor-not-allowed relative size-4 appearance-none rounded-full
                        border border-gray-300 bg-white
                        before:absolute before:inset-1 before:rounded-full before:bg-white
@@ -220,6 +241,9 @@ export type ChipItem = {
                 name="method"
                 value="chembl"
                 [formControl]="methodControl"
+                aria-label="Cerca e seleziona da ChEMBL DB"
+                [attr.aria-checked]="method() === 'chembl'"
+                aria-disabled="true"
                 class="cursor-not-allowed relative size-4 appearance-none rounded-full
                        border border-gray-300 bg-white
                        before:absolute before:inset-1 before:rounded-full before:bg-white
@@ -291,18 +315,18 @@ export type ChipItem = {
 
                   @if (loading) {
                     @if (page > 1) {
-                      <div class="flex justify-center py-4">
+                      <div class="flex justify-center py-4" role="status" aria-live="polite" aria-busy="true">
                         <m-classic-spinner [size]="60" />
                       </div>
                     } @else {
-                      <div class="space-y-4">
+                      <div class="space-y-4" role="status" aria-live="polite" aria-busy="true">
                         @for (i of [0,1,2,3,4]; track i) {
                           <m-skeleton-molecule-card />
                         }
                       </div>
                     }
                   } @else if (empty() && (earlyDone || done)) {
-                    <p class="text-slate-700 dark:text-slate-200 py-6">
+                    <p class="text-slate-700 dark:text-slate-200 py-6" role="status" aria-live="polite">
                       Nessuna molecola disponibile tra
                       <em>Le mie molecole</em>.
                     </p>
@@ -311,11 +335,21 @@ export type ChipItem = {
               }
               @case (2) {
                 @if (error()) {
-                  <span class="text-light-error dark:text-dark-error">
+                  <span
+                    id="addMolStatus"
+                    class="text-light-error dark:text-dark-error"
+                    role="alert"
+                    aria-live="assertive"
+                  >
                     Si è verificato un errore
                   </span>
                 } @else {
-                  <span class="text-light-accent-secondary dark:text-dark-accent-secondary">
+                  <span
+                    id="addMolStatus"
+                    class="text-light-accent-secondary dark:text-dark-accent-secondary"
+                    role="status"
+                    aria-live="polite"
+                  >
                     Molecole aggiunte con successo!
                   </span>
                 }
@@ -342,6 +376,8 @@ export type ChipItem = {
                   @if (selectedMolecules.length === 0) {
                     <div
                       class="absolute inset-0 flex justify-center items-center text-sm text-gray-500 dark:text-gray-400"
+                      role="status"
+                      aria-live="polite"
                     >
                       Qui vedrai le molecole selezionate.
                     </div>
@@ -351,6 +387,7 @@ export type ChipItem = {
                     class="relative flex flex-wrap items-center gap-2 py-3"
                     role="list"
                     aria-label="Molecole selezionate"
+                    aria-live="polite"
                   >
                     @for (m of selectedMolecules; track m.id) {
                       <span
@@ -412,9 +449,17 @@ export type ChipItem = {
                   </div>
                 </div>
 
-                <div class="overflow-y-auto relative m-scroll-thin">
+                <div
+                  class="overflow-y-auto relative m-scroll-thin"
+                  role="region"
+                  aria-label="Risultati ricerca ChEMBL"
+                  [attr.aria-busy]="chemblLoading()"
+                  aria-live="polite"
+                >
                   @if (chemblLoading()) {
-                    <m-search-result-skeleton-loader />
+                    <div role="status" aria-live="polite" aria-busy="true">
+                      <m-search-result-skeleton-loader />
+                    </div>
                   } @else if (chemblResults().length) {
                     @for (molecule of chemblResults(); track molecule.id) {
                       <m-search-result
@@ -425,12 +470,14 @@ export type ChipItem = {
                       />
                     }
                   } @else if (!chemblResults().length && !chemblError() && !chemblEmpty()) {
-                    <div class="text-sm text-gray-400 text-center py-8">
+                    <div class="text-sm text-gray-400 text-center py-8" role="status" aria-live="polite">
                       Nessun risultato trovato.
                     </div>
                   } @else if (chemblError()) {
                     <div
                       class="text-sm text-red-500 bg-red-50 dark:bg-red-950 rounded px-4 py-2 text-center"
+                      role="alert"
+                      aria-live="assertive"
                     >
                       Errore nella ricerca. Riprova.
                     </div>
@@ -441,11 +488,21 @@ export type ChipItem = {
             @case (2) {
               <div class="py-6 px-3 flex flex-col gap-4 min-h-[60vh] max-h-[60vh]">
                 @if (error()) {
-                  <span class="text-light-error dark:text-dark-error">
+                  <span
+                    id="addMolStatus"
+                    class="text-light-error dark:text-dark-error"
+                    role="alert"
+                    aria-live="assertive"
+                  >
                     Si è verificato un errore
                   </span>
                 } @else {
-                  <span class="text-light-accent-secondary dark:text-dark-accent-secondary">
+                  <span
+                    id="addMolStatus"
+                    class="text-light-accent-secondary dark:text-dark-accent-secondary"
+                    role="status"
+                    aria-live="polite"
+                  >
                     Molecole aggiunte con successo!
                   </span>
                 }
@@ -490,6 +547,9 @@ export type ChipItem = {
         [disabled]="(isSelectedNothing() && this.method() === 'my') || (this.selectedIds.length === 0 && this.method() === 'chembl' || step_12_loading())"
         (click)="step() === 1 ? dispatchSubmit() : close()"
         [attr.aria-busy]="step_12_loading()"
+        [attr.aria-disabled]="(isSelectedNothing() && this.method() === 'my') || (this.selectedIds.length === 0 && this.method() === 'chembl' || step_12_loading())"
+        [attr.aria-live]="step_12_loading() ? 'assertive' : 'polite'"
+        [attr.aria-label]="step() === 1 ? 'Aggiungi molecole' : 'Chiudi conferma'"
       >
         <span [class.invisible]="step_12_loading()">
           @if (step() === 1) {

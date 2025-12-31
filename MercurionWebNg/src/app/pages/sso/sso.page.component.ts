@@ -25,11 +25,12 @@ import { SidenavContextService } from '../../services/context/sidenav-context.se
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
 
-    <div #mainHost class="main-container h-full">
+    <div #mainHost class="main-container h-full" role="main" aria-busy="true" aria-live="polite">
       <div class="fixed inset-0 pointer-events-none">
         <div
           class="fixed top-1/2 -translate-y-1/2"
           [style.left.px]="spinnerLeft()"
+          role="status"
         >
           <m-classic-spinner [size]="60" />
         </div>
