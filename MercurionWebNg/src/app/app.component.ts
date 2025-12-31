@@ -45,6 +45,45 @@ import { AppContextService } from './services/context/app-context.service'
     SidenavComponent,
     ActionOverlayComponent
   ],
+  styles: [
+    `
+    /* Scrollbar sottile globale (per l'area scroll principale) */
+
+    .m-scroll-thin {
+      scrollbar-width: thin; /* Firefox */
+      scrollbar-color: #64748b transparent; /* thumb, track */
+    }
+
+    :host-context(.dark) .m-scroll-thin {
+      scrollbar-color: #94a3b8 transparent;
+    }
+
+    .m-scroll-thin::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .m-scroll-thin::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .m-scroll-thin::-webkit-scrollbar-thumb {
+      background-color: #cbd5e1; /* slate-300-ish */
+      border-radius: 9999px;
+    }
+
+    :host-context(.dark) .m-scroll-thin::-webkit-scrollbar-thumb {
+      background-color: #475569; /* slate-600-ish */
+    }
+
+    .m-scroll-thin::-webkit-scrollbar-thumb:hover {
+      background-color: #94a3b8;
+    }
+
+    :host-context(.dark) .m-scroll-thin::-webkit-scrollbar-thumb:hover {
+      background-color: #e2e8f0;
+    }
+    `
+  ],
   template: `
     @if (is_not_404_route() && is_not_403_route()) {
       <div class="flex flex-col h-screen">
@@ -92,7 +131,7 @@ import { AppContextService } from './services/context/app-context.service'
             </aside>
           }
           <section #scrollHost
-            class="content flex flex-col flex-1 overflow-y-auto transition-[margin] duration-500"
+            class="content flex flex-col flex-1 overflow-y-auto transition-[margin] duration-500 m-scroll-thin"
             [class.ml-64]="sidenavContext.isOpen() && userContext.isLoggedIn() && design.minBk('xl')()">
             <main class="flex-1 p-4 block">
               <router-outlet />
@@ -176,7 +215,6 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       return raw
     }
 
-    // ✅ PUBLIC “hardcoded”: tutta la famiglia /login/*
     const isLoginFamily = (path: string): boolean => path === '/login' || path.startsWith('/login/')
 
     const extractRedirectTo = (urlWithQuery: string): string | null => {
@@ -199,13 +237,11 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       const qp = extractRedirectTo(this.router.url)
       if (!qp) return null
       const normalizedTarget = normalize(qp).toLowerCase()
-      // evita loop verso login/mfa o login
       if (normalizedTarget === '/login' || normalizedTarget.startsWith('/login/')) return null
       return qp
     }
 
     const buildLoginWithRedirectTo = (): string => {
-      // prende l’URL completo attuale, NON normalizzato, così preservi query/hash
       let full = this.router.url || '/'
       if (!full.startsWith('/')) full = `/${full}`
       if (full === '/m') full = '/'
@@ -235,7 +271,6 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         this.pathService.setPath(url)
         if (!this.firstNavigationDone()) this.firstNavigationDone.set(true)
 
-        // ✅ solo se loggato: dentro login-family => redirect_to vince
         if (this.userContext.isLoggedIn() && isLoginFamily(url)) {
           const target = resolveLoginRedirectTarget() ?? '/dashboard'
           if (target !== this.router.url) this.router.navigateByUrl(target)
@@ -257,8 +292,9 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         else return
       }
 
+      const isLoginFamilyPath = isLoginFamily(url)
       const isPublic =
-        isLoginFamily(url) || this.publicExact.has(url) || this.publicPrefixes.some(p => url.startsWith(p))
+        isLoginFamilyPath || this.publicExact.has(url) || this.publicPrefixes.some(p => url.startsWith(p))
 
       const isLoggedOutOnly = this.loggedOutOnlyExact.has(url)
 
@@ -278,13 +314,11 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       }
 
       if (!logged) {
-        // ✅ se non sei public, vai a /login?redirect_to=<full_url>
         if (!isPublic) safeNavigate(buildLoginWithRedirectTo())
         return
       }
 
-      // ✅ solo se loggato: dentro login-family => redirect_to vince sempre
-      if (isLoginFamily(url)) {
+      if (isLoginFamilyPath) {
         const target = resolveLoginRedirectTarget() ?? '/dashboard'
         safeNavigate(target)
         return
