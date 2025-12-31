@@ -57,6 +57,7 @@ export interface SessionDTO {
 
 export interface SessionDTOExt extends SessionDTO {
   triggerDisappear: WritableSignal<boolean>
+  isBeingDeleted: boolean
 }
 
 export interface ChangePhoneDTO {

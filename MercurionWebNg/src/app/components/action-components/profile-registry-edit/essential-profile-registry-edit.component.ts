@@ -30,118 +30,130 @@ type RegistryFormValue = {
   ],
   template: `
 
-<div class="flex justify-center items-center min-h-screen px-2">
-  <div class="w-full max-w-5xl bg-white dark:bg-dark-surface-main rounded-xl shadow-lg">
-    <div class="flex items-center justify-between px-4 py-4 border-b border-b-slate-400 sticky top-0 z-50 rounded-t-xl bg-white dark:bg-dark-surface-main">
-      <h2 class="text-lg font-semibold">Modifica l'anagrafica del profilo</h2>
-      <button class="inline-flex items-center justify-center size-8 rounded-md text-slate-500 hover:text-emerald-600 hover:bg-slate-100 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-transparent transition" (click)="close()">
+<div class="flex justify-center items-center min-h-screen px-2 sm:px-4">
+  <div class="action-card">
+    <div class="action-card-header">
+      <h2 class="text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main">
+        Modifica l'anagrafica del profilo
+      </h2>
+      <button
+        type="button"
+        class="action-card-close-btn"
+        (click)="close()"
+      >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-5 h-auto">
-          <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
           <path d="M182.9 137.4L160.3 114.7L115 160L137.6 182.6L275 320L137.6 457.4L115 480L160.3 525.3L182.9 502.6L320.3 365.3L457.6 502.6L480.3 525.3L525.5 480L502.9 457.4L365.5 320L502.9 182.6L525.5 160L480.3 114.7L457.6 137.4L320.3 274.7L182.9 137.4z"/>
         </svg>
       </button>
     </div>
-    <div class="mx-auto relative">
+
+    <div class="action-card-body bg-light-surface-secondary dark:bg-dark-surface-secondary">
       <div
-        class="mt-6 px-6 pb-6 border-b border-spacing-y-[0.3px] min-h-60 transition-[min-height]"
-        [formGroup]="registryGroup">
+        class="relative border-b border-light-border dark:border-dark-border min-h-60 transition-[min-height] bg-light-surface-secondary dark:bg-dark-surface-secondary"
+        [formGroup]="registryGroup"
+      >
         @if (step() === 1) {
           @if (onStart_loading()) {
-            <div class="absolute inset-0 flex justify-center items-center">
+            <div class="absolute inset-0 flex justify-center items-center bg-light-surface-secondary/60 dark:bg-dark-surface-secondary/60">
               <m-classic-spinner [size]="45" />
             </div>
           } @else {
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-12 w-full px-3 pt-9">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-12 w-full pt-9">
               <m-floating-input
                 label="Nome *"
                 type="text"
-                autocomplete="current-name"
+                autocomplete="given-name"
                 formControlName="firstName"
                 [errors]="{
                   required: 'Il nome è obbligatorio.',
                   pattern: 'Il formato del nome non è valido.'
                 }"
-                bgClass="bg-white"
-                darkBgClass="dark:bg-dark-surface-main"
-                darkLabelClass="dark:text-dark-accent-secondary-hc" />
+                [bgClass]="'bg-light-surface-secondary'"
+                [darkBgClass]="'dark:bg-dark-surface-secondary'"
+                darkLabelClass="dark:text-dark-accent-secondary-hc"
+              />
 
               <m-floating-input
                 label="Cognome *"
                 type="text"
-                autocomplete="current-surname"
+                autocomplete="family-name"
                 formControlName="lastName"
                 [errors]="{
                   required: 'Il cognome è obbligatorio.',
                   pattern: 'Il formato del cognome non è valido.'
                 }"
-                bgClass="bg-white"
-                darkBgClass="dark:bg-dark-surface-main"
-                darkLabelClass="dark:text-dark-accent-secondary-hc" />
+                [bgClass]="'bg-light-surface-secondary'"
+                [darkBgClass]="'dark:bg-dark-surface-secondary'"
+                darkLabelClass="dark:text-dark-accent-secondary-hc"
+              />
 
               <m-select
                 class="relative -top-[30px]"
                 label="Genere *"
                 [options]="options"
                 formControlName="gender"
-                darkTextClass="dark:text-dark-accent-secondary-hc" />
+                darkTextClass="dark:text-dark-accent-secondary-hc"
+              />
 
               <m-floating-input
                 label="Il tuo lavoro"
                 type="text"
-                autocomplete="current-job"
+                autocomplete="organization-title"
                 formControlName="job"
                 [errors]="{}"
-                bgClass="bg-white"
-                darkBgClass="dark:bg-dark-surface-main"
-                darkLabelClass="dark:text-dark-accent-secondary-hc" />
+                [bgClass]="'bg-light-surface-secondary'"
+                [darkBgClass]="'dark:bg-dark-surface-secondary'"
+                darkLabelClass="dark:text-dark-accent-secondary-hc"
+              />
             </div>
           }
         } @else if (step() === 2 && error()) {
-          <div class="bg-slate-200 dark:bg-slate-800 border my-16 border-slate-300 dark:border-slate-600 relative p-3 mx-auto max-w-[1024px] rounded-md text-sm flex gap-2 xs:gap-4 items-center flex-col xs:flex-row">
+          <div class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-16 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-col xs:flex-row">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-light-error dark:text-dark-error">
-              <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
               <path d="M320 96C443.7 96 544 196.3 544 320C544 443.7 443.7 544 320 544C196.3 544 96 443.7 96 320C96 196.3 196.3 96 320 96zM320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM419.4 243.2L396.8 220.6L385.5 231.9L320 297.4L254.5 231.9L243.2 220.6L220.6 243.2L231.9 254.5L297.4 320L231.9 385.5L220.6 396.8L243.2 419.4L254.5 408.1L320 342.6L385.5 408.1L396.8 419.4L419.4 396.8L342.6 320L408.1 254.5L419.4 243.2z"/>
             </svg>
-              @switch (error()) {
-                @case (429) {
-                  <span>Hai raggiunto il limite massimo di richieste inoltrate al server.&nbsp;Riprova fra alcuni minuti.</span>
-                }
-                @case (401) {
-                  <span>Non sei in possesso delle autorizzazioni per compiere questa operazione.</span>
-                }
-                @default {
-                  <span>Si è verificato un errore inaspettato. Contatta il supporto se dovesse ripetersi.</span>
-                }
+            @switch (error()) {
+              @case (429) {
+                <span>Hai raggiunto il limite massimo di richieste inoltrate al server.&nbsp;Riprova fra alcuni minuti.</span>
               }
+              @case (401) {
+                <span>Non sei in possesso delle autorizzazioni per compiere questa operazione.</span>
+              }
+              @default {
+                <span>Si è verificato un errore inaspettato. Contatta il supporto se dovesse ripetersi.</span>
+              }
+            }
           </div>
         }
       </div>
     </div>
-    <div class="my-4 mr-8 flex justify-end gap-2">
+
+    <div class="action-card-footer">
       @if (step() === 1) {
         <button
-        type="button"
-        class="px-4 py-2 rounded bg-slate-200 text-light-on-surface-main dark:bg-slate-100 dark:text-neutral-950 hover:bg-gray-300 transition-colors duration-300"
-        (click)="close()"
+          type="button"
+          class="px-4 py-2 rounded-lg bg-light-surface-secondary text-light-on-surface-main dark:bg-slate-200 dark:text-light-on-surface-main hover:bg-white dark:hover:bg-slate-300/80 border border-light-border dark:border-dark-border/80 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary transition-colors duration-200"
+          (click)="close()"
         >
-        Annulla
-      </button>
-      <button
-        type="button"
-        title="Resetta"
-        class="px-4 py-2 rounded bg-slate-200 text-light-on-surface-main disabled:text-slate-200 dark:disabled:text-neutral-400 dark:bg-slate-100 dark:text-neutral-950 disabled:bg-slate-100 dark:disabled:bg-slate-50 disabled:cursor-not-allowed hover:bg-gray-300 transition-colors duration-300"
-        [disabled]="isGroupValueTheSameAsInitialValueSig()"
-        (click)="reset()"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current size-6">
-          <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-          <path d="M544 64L544 183.8L507 144.7C458.5 93.2 390.8 64 320 64C180.3 64 64.1 180.4 64 320C63.9 459.3 180.3 575.9 320 576C420.1 576.1 513.4 515.5 554 424.1L524.8 411.1C489.4 491 407.6 544.1 320.1 544C198 543.9 96 441.6 96.1 320C96.2 198.1 198.1 96 320.1 96C382.1 96 441.3 121.5 483.9 166.6L523 208L400.1 208L400.1 240L576.1 240L576.1 64L544.1 64z"/>
-        </svg>
-      </button>
+          Annulla
+        </button>
+
+        <button
+          type="button"
+          title="Resetta"
+          class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-light-surface-secondary text-light-on-surface-main dark:bg-slate-200 dark:text-light-on-surface-main hover:bg-white dark:hover:bg-slate-300/80 border border-light-border dark:border-dark-border/80 shadow-sm disabled:bg-light-surface-secondary disabled:text-slate-300 dark:disabled:bg-slate-200/60 dark:disabled:text-dark-on-surface-secondary/60 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary transition-colors duration-200"
+          [disabled]="isGroupValueTheSameAsInitialValueSig()"
+          (click)="reset()"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current size-5">
+            <path d="M544 64L544 183.8L507 144.7C458.5 93.2 390.8 64 320 64C180.3 64 64.1 180.4 64 320C63.9 459.3 180.3 575.9 320 576C420.1 576.1 513.4 515.5 554 424.1L524.8 411.1C489.4 491 407.6 544.1 320.1 544C198 543.9 96 441.6 96.1 320C96.2 198.1 198.1 96 320.1 96C382.1 96 441.3 121.5 483.9 166.6L523 208L400.1 208L400.1 240L576.1 240L576.1 64L544.1 64z"/>
+          </svg>
+        </button>
       }
+
       <button
         type="button"
-        class="relative inline-flex items-center justify-center px-4 py-2 rounded bg-emerald-600 text-white font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed transition-colors duration-300"
+        class="relative inline-flex items-center justify-center px-4 py-2 rounded-lg bg-light-accent-primary text-white font-semibold shadow-md hover:bg-light-accent-primary/90 dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary disabled:bg-light-accent-primary/50 disabled:cursor-not-allowed transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary/50"
         [disabled]="isGroupValueTheSameAsInitialValueSig() || step_12_loading()"
         [attr.aria-busy]="step_12_loading()"
         (click)="routeAction()"
@@ -166,7 +178,9 @@ type RegistryFormValue = {
   </div>
 </div>
 
-  `
+`
+
+
 })
 export class EssentialProfileRegistryEditComponent implements OnInit, OnDestroy {
 

@@ -24,6 +24,7 @@ module.exports = {
           'on-surface-main': '#11141D',
           'on-surface-secondary': '#4B5563',
           'accent-primary': '#2563EB',
+          'accent-primary-hc': '#1147BB',
           'accent-secondary': '#006128',
           'warning': '#8F3900',
           'error': '#A80006',
@@ -40,8 +41,10 @@ module.exports = {
           'accent-secondary': '#28B883',
           'accent-secondary-surface': '219C6F',
           'accent-secondary-hc': '#3FD59E',
+          'accent-primary-btn-hc': '#BFD8F8',
           'warning': '#FBBF24',
           'error': '#FF7A7D',
+          'error-hc': '#FFC7CB',
           'border': '#4B5563',
           "custbg-offcanvas": '#1b2333',
           'slate-detail': '#BDC9D6'

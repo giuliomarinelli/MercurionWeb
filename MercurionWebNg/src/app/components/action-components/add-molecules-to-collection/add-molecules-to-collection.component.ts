@@ -1,6 +1,17 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, inject, signal, effect, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  inject,
+  signal,
+  effect,
+  ChangeDetectionStrategy
+} from '@angular/core';
 import { AbstractPaginatedMultiselectComponent } from '../../../abstract/abstract-paginated-multiselect-component';
-import { debounceTime, map, Observable } from 'rxjs';
+import { debounceTime, map, Observable, Subscription } from 'rxjs';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 import { MoleculeCollectionItemService } from '../../../services/graphql/molecule-collection-item.service';
 import { Helpers } from '../../../helpers';
@@ -17,16 +28,15 @@ import { SearchResultSkeletonLoaderComponent } from '../../search-overlay/search
 import { SearchResultComponent } from '../../search-overlay/search-result/search-result.component';
 import { AddManyChEMBLItemDTO } from '../../../Models/graphql/add-many-chembl-item.dto';
 import { AddMoleculesToCollectionContextService } from '../../../services/context/action-context/add-molecules-to-collection-context.service';
-import { Subscription } from 'rxjs';
 import { CloseButtonComponent } from '../../common/close-button/close-button.component';
 import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
 import { ToastService } from '../../../services/toast.service';
 import { Router } from '@angular/router';
 
 export type ChipItem = {
-  id: string
-  name: string
-}
+  id: string;
+  name: string;
+};
 
 @Component({
   selector: 'm-add-molecules-to-collection',
@@ -39,52 +49,215 @@ export type ChipItem = {
     ReactiveFormsModule,
     SearchInputComponent,
     SearchResultSkeletonLoaderComponent,
-    SearchResultComponent,
-    CloseButtonComponent
+    SearchResultComponent
+  ],
+  styles: [
+    `
+    /* Scrollbar sottile cross-browser */
+
+    .m-scroll-thin {
+      scrollbar-width: thin; /* Firefox */
+      scrollbar-color: #64748b transparent; /* thumb, track */
+    }
+
+    :host-context(.dark) .m-scroll-thin {
+      scrollbar-color: #94a3b8 transparent;
+    }
+
+    .m-scroll-thin::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .m-scroll-thin::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .m-scroll-thin::-webkit-scrollbar-thumb {
+      background-color: #cbd5e1; /* slate-300-ish */
+      border-radius: 9999px;
+    }
+
+    :host-context(.dark) .m-scroll-thin::-webkit-scrollbar-thumb {
+      background-color: #475569; /* slate-600-ish */
+    }
+
+    .m-scroll-thin::-webkit-scrollbar-thumb:hover {
+      background-color: #94a3b8;
+    }
+
+    :host-context(.dark) .m-scroll-thin::-webkit-scrollbar-thumb:hover {
+      background-color: #e2e8f0;
+    }
+    `
   ],
   template: `
-<div class="flex justify-center items-center min-h-screen px-2">
-  <div class="w-full max-w-5xl bg-white dark:bg-dark-surface-main rounded-xl shadow-lg">
-    <div class="flex items-center justify-between px-4 py-4 border-b border-b-slate-400 sticky top-0 z-50 rounded-t-xl bg-white dark:bg-dark-surface-main">
-      <h2 class="flex gap-4 items-center flex-wrap text-lg font-semibold">
+<div class="flex justify-center items-center min-h-screen px-2 sm:px-4">
+  <div class="action-card max-w-5xl">
+    <!-- HEADER -->
+    <div class="action-card-header">
+      <h2 class="flex gap-4 items-center flex-wrap text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current size-8">
-          <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-          <path d="M288 96L352 144L576 144L576 512L64 512L64 96L288 96zM352 176L341.3 176L332.8 169.6L277.3 128L96 128L96 480L544 480L544 176L352 176zM304 408L304 336L232 336L232 304L304 304L304 232L336 232L336 304L408 304L408 336L336 336L336 408L304 408z"/>
+          <path
+            d="M288 96L352 144L576 144L576 512L64 512L64 96L288 96zM352 176L341.3 176L332.8 169.6L277.3 128L96 128L96 480L544 480L544 176L352 176zM304 408L304 336L232 336L232 304L304 304L304 232L336 232L336 304L408 304L408 336L336 336L336 408L304 408z"
+          />
         </svg>
-        <span>Aggiungi nuove molecole alla collezione <em>{{collection()?.name}}</em></span>
+        <span>
+          Aggiungi nuove molecole alla collezione
+          <em>{{ collection()?.name }}</em>
+        </span>
       </h2>
-      <m-close-button [action]="close.bind(this)" />
+
+      <button
+            type="button"
+            class="action-card-close-btn"
+            (click)="close()"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-5 h-auto">
+          <path
+            d="M182.9 137.4L160.3 114.7L115 160L137.6 182.6L275 320L137.6 457.4L115 480L160.3 525.3L182.9 502.6L320.3 365.3L457.6 502.6L480.3 525.3L525.5 480L502.9 457.4L365.5 320L502.9 182.6L525.5 160L480.3 114.7L457.6 137.4L320.3 274.7L182.9 137.4z"
+          />
+        </svg>
+      </button>
     </div>
-    <div class="mx-auto">
-      <div class="mt-6 space-y-6 sm:flex sm:items-center sm:space-x-10 sm:space-y-0 px-6 pb-6 border-b border-spacing-y-[0.3px]">
-        @if (step() === 1) {
-          <div class="flex items-center">
-            <input id="my" type="radio" name="method" value="my" [formControl]="methodControl" class="cursor-pointer relative size-4 appearance-none rounded-full border border-gray-300 bg-white before:absolute before:inset-1 before:rounded-full before:bg-white checked:border-indigo-600 checked:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400 dark:border-white/10 dark:bg-white/5 dark:checked:border-indigo-500 dark:checked:bg-indigo-500 dark:focus-visible:outline-indigo-500 dark:disabled:border-white/5 dark:disabled:bg-white/10 dark:disabled:before:bg-white/20 forced-colors:appearance-auto forced-colors:before:hidden [&:not(:checked)]:before:hidden" />
-            <label for="my" class="cursor-pointer ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white">Seleziona da <span class="italic">Le mie molecole</span></label>
-          </div>
-          <div class="flex items-center">
-            <input id="chembl" type="radio" name="method" value="chembl" [formControl]="methodControl" class="cursor-pointer relative size-4 appearance-none rounded-full border border-gray-300 bg-white before:absolute before:inset-1 before:rounded-full before:bg-white checked:border-indigo-600 checked:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400 dark:border-white/10 dark:bg-white/5 dark:checked:border-indigo-500 dark:checked:bg-indigo-500 dark:focus-visible:outline-indigo-500 dark:disabled:border-white/5 dark:disabled:bg-white/10 dark:disabled:before:bg-white/20 forced-colors:appearance-auto forced-colors:before:hidden [&:not(:checked)]:before:hidden" />
-            <label for="chembl" class="cursor-pointer ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white">Cerca e seleziona da ChEMBL DB</label>
-          </div>
-        } @else if (step() === 2) {
+
+    <!-- BODY -->
+    <div class="action-card-body bg-white dark:bg-dark-surface-main">
+      <!-- Scelta metodo -->
+      <div class="mx-auto">
+        <div
+          class="mt-6 space-y-6 sm:flex sm:items-center sm:space-x-10 sm:space-y-0
+                 px-6 pb-6 border-b border-light-border dark:border-dark-border"
+        >
+          @if (step() === 1) {
             <div class="flex items-center">
-              <input [attr.disabled]="true" id="my" type="radio" name="method" value="my" [formControl]="methodControl" class="cursor-not-allowed relative size-4 appearance-none rounded-full border border-gray-300 bg-white before:absolute before:inset-1 before:rounded-full before:bg-white checked:border-indigo-600 checked:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400 dark:border-white/10 dark:bg-white/5 dark:checked:border-indigo-500 dark:checked:bg-indigo-500 dark:focus-visible:outline-indigo-500 dark:disabled:border-white/5 dark:disabled:bg-white/10 dark:disabled:before:bg-white/20 forced-colors:appearance-auto forced-colors:before:hidden [&:not(:checked)]:before:hidden" />
-              <label for="my" class="cursor-not-allowed ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white">Seleziona da <span class="italic">Le mie molecole</span></label>
+              <input
+                id="my"
+                type="radio"
+                name="method"
+                value="my"
+                [formControl]="methodControl"
+                class="cursor-pointer relative size-4 appearance-none rounded-full
+                       border border-gray-300 bg-white
+                       before:absolute before:inset-1 before:rounded-full before:bg-white
+                       checked:border-indigo-600 checked:bg-indigo-600
+                       focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600
+                       disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400
+                       dark:border-white/10 dark:bg-white/5
+                       dark:checked:border-indigo-500 dark:checked:bg-indigo-500
+                       dark:focus-visible:outline-indigo-500
+                       dark:disabled:border-white/5 dark:disabled:bg-white/10 dark:disabled:before:bg-white/20
+                       forced-colors:appearance-auto forced-colors:before:hidden
+                       [&:not(:checked)]:before:hidden"
+              />
+              <label
+                for="my"
+                class="cursor-pointer ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white"
+              >
+                Seleziona da <span class="italic">Le mie molecole</span>
+              </label>
             </div>
             <div class="flex items-center">
-              <input [attr.disabled]="true" id="chembl" type="radio" name="method" value="chembl" [formControl]="methodControl" class="cursor-not-allowed relative size-4 appearance-none rounded-full border border-gray-300 bg-white before:absolute before:inset-1 before:rounded-full before:bg-white checked:border-indigo-600 checked:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400 dark:border-white/10 dark:bg-white/5 dark:checked:border-indigo-500 dark:checked:bg-indigo-500 dark:focus-visible:outline-indigo-500 dark:disabled:border-white/5 dark:disabled:bg-white/10 dark:disabled:before:bg-white/20 forced-colors:appearance-auto forced-colors:before:hidden [&:not(:checked)]:before:hidden" />
-              <label for="chembl" class="cursor-not-allowed ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white">Cerca e seleziona da ChEMBL DB</label>
+              <input
+                id="chembl"
+                type="radio"
+                name="method"
+                value="chembl"
+                [formControl]="methodControl"
+                class="cursor-pointer relative size-4 appearance-none rounded-full
+                       border border-gray-300 bg-white
+                       before:absolute before:inset-1 before:rounded-full before:bg-white
+                       checked:border-indigo-600 checked:bg-indigo-600
+                       focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600
+                       disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400
+                       dark:border-white/10 dark:bg:white/5
+                       dark:checked:border-indigo-500 dark:checked:bg-indigo-500
+                       dark:focus-visible:outline-indigo-500
+                       dark:disabled:border-white/5 dark:disabled:bg-white/10 dark:disabled:before:bg-white/20
+                       forced-colors:appearance-auto forced-colors:before:hidden
+                       [&:not(:checked)]:before:hidden"
+              />
+              <label
+                for="chembl"
+                class="cursor-pointer ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white"
+              >
+                Cerca e seleziona da ChEMBL DB
+              </label>
+            </div>
+          } @else if (step() === 2) {
+            <div class="flex items-center">
+              <input
+                [attr.disabled]="true"
+                id="my"
+                type="radio"
+                name="method"
+                value="my"
+                [formControl]="methodControl"
+                class="cursor-not-allowed relative size-4 appearance-none rounded-full
+                       border border-gray-300 bg-white
+                       before:absolute before:inset-1 before:rounded-full before:bg-white
+                       checked:border-indigo-600 checked:bg-indigo-600
+                       focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600
+                       disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400
+                       dark:border-white/10 dark:bg-white/5
+                       dark:checked:border-indigo-500 dark:checked:bg-indigo-500
+                       dark:focus-visible:outline-indigo-500
+                       dark:disabled:border-white/5 dark:disabled:bg-white/10 dark:disabled:before:bg-white/20
+                       forced-colors:appearance-auto forced-colors:before:hidden
+                       [&:not(:checked)]:before:hidden"
+              />
+              <label
+                for="my"
+                class="cursor-not-allowed ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white"
+              >
+                Seleziona da <span class="italic">Le mie molecole</span>
+              </label>
+            </div>
+            <div class="flex items-center">
+              <input
+                [attr.disabled]="true"
+                id="chembl"
+                type="radio"
+                name="method"
+                value="chembl"
+                [formControl]="methodControl"
+                class="cursor-not-allowed relative size-4 appearance-none rounded-full
+                       border border-gray-300 bg-white
+                       before:absolute before:inset-1 before:rounded-full before:bg-white
+                       checked:border-indigo-600 checked:bg-indigo-600
+                       focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600
+                       disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400
+                       dark:border-white/10 dark:bg-white/5
+                       dark:checked:border-indigo-500 dark:checked:bg-indigo-500
+                       dark:focus-visible:outline-indigo-500
+                       dark:disabled:border-white/5 dark:disabled:bg-white/10 dark:disabled:before:bg-white/20
+                       forced-colors:appearance-auto forced-colors:before:hidden
+                       [&:not(:checked)]:before:hidden"
+              />
+              <label
+                for="chembl"
+                class="cursor-not-allowed ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white"
+              >
+                Cerca e seleziona da ChEMBL DB
+              </label>
             </div>
           }
+        </div>
       </div>
-    </div>
+
+      <!-- CONTENUTO STEP / METODO -->
       @switch (method()) {
         @case ('my') {
-          <div #scrollRoot class="py-6 px-3 overflow-y-auto flex flex-col gap-4 min-h-[60vh] max-h-[60vh]">
+          <div
+            #scrollRoot
+            class="py-6 px-3 overflow-y-auto flex flex-col gap-4 min-h-[40vh] max-h-[60vh] m-scroll-thin"
+          >
             @switch (step()) {
               @case (1) {
                 <div class="px-3">
-                  <h2 class="font-semibold mb-3">Scegli le molecole da aggiungere alla collezione:</h2>
+                  <h2 class="font-semibold mb-3">
+                    Scegli le molecole da aggiungere alla collezione:
+                  </h2>
+
                   <m-search-input
                     class="block"
                     [value]="searchTerm()"
@@ -92,23 +265,30 @@ export type ChipItem = {
                     (submitted)="doQuery($event)"
                     (cleared)="doClear()"
                   />
+
                   <div class="mt-6">
                     @if (multiselectItems().length !== 0) {
-                      <m-molecule-collection-item-select-card class="block mb-6"
+                      <m-molecule-collection-item-select-card
+                        class="block mb-6"
                         [isSelectAll]="true"
                         [value]="isSelectedAll()"
                         [indeterminate]="isPartiallySelected()"
-                        (selectedAll)="onSelectAllChange($event)" />
+                        (selectedAll)="onSelectAllChange($event)"
+                      />
                     }
+
                     @for (row of multiselectItems(); track row.item.id; let i = $index) {
                       <m-molecule-collection-item-select-card
                         [molecule]="row.item"
                         [i]="i"
                         [value]="row.isChecked()"
-                        (valueChange)="row.isChecked.set($event); toggleOne(row)" />
+                        (valueChange)="row.isChecked.set($event); toggleOne(row)"
+                      />
                     }
                   </div>
+
                   <div #sentinel class="h-1 w-full"></div>
+
                   @if (loading) {
                     @if (page > 1) {
                       <div class="flex justify-center py-4">
@@ -122,15 +302,22 @@ export type ChipItem = {
                       </div>
                     }
                   } @else if (empty() && (earlyDone || done)) {
-                    <p class="text-slate-700 dark:text-slate-200 py-6">Nessuna molecola disponibile tra <em>Le mie molecole</em>.</p>
+                    <p class="text-slate-700 dark:text-slate-200 py-6">
+                      Nessuna molecola disponibile tra
+                      <em>Le mie molecole</em>.
+                    </p>
                   }
                 </div>
               }
               @case (2) {
                 @if (error()) {
-                  <span class="text-light-error dark:text-dark-error">Si è verificato un errore</span>
+                  <span class="text-light-error dark:text-dark-error">
+                    Si è verificato un errore
+                  </span>
                 } @else {
-                  <span class="text-light-accent-secondary dark:text-dark-accent-secondary">Molecole aggiunte con successo!</span>
+                  <span class="text-light-accent-secondary dark:text-dark-accent-secondary">
+                    Molecole aggiunte con successo!
+                  </span>
                 }
               }
             }
@@ -139,7 +326,7 @@ export type ChipItem = {
         @case ('chembl') {
           @switch (step()) {
             @case (1) {
-              <div class="py-6 px-3 flex flex-col gap-4 min-h-[60vh] max-h-[60vh]">
+              <div class="py-6 px-3 flex flex-col gap-4 min-h-[50vh] max-h-[60vh] transition duration-150">
                 <div>Cerca su ChEMBL e seleziona:</div>
 
                 <m-molecule-search-input
@@ -153,13 +340,18 @@ export type ChipItem = {
 
                 <div class="border-b min-h-24 relative">
                   @if (selectedMolecules.length === 0) {
-                    <div class="absolute inset-0 flex justify-center items-center text-sm text-gray-500 dark:text-gray-400">
+                    <div
+                      class="absolute inset-0 flex justify-center items-center text-sm text-gray-500 dark:text-gray-400"
+                    >
                       Qui vedrai le molecole selezionate.
                     </div>
                   }
 
-
-                  <div class="relative flex flex-wrap items-center gap-2 py-3" role="list" aria-label="Molecole selezionate">
+                  <div
+                    class="relative flex flex-wrap items-center gap-2 py-3"
+                    role="list"
+                    aria-label="Molecole selezionate"
+                  >
                     @for (m of selectedMolecules; track m.id) {
                       <span
                         role="listitem"
@@ -170,7 +362,9 @@ export type ChipItem = {
                                shadow-sm"
                         title="{{ m.name }}"
                       >
-                        <span class="truncate max-w-[16rem] text-sm font-medium">{{ m.name }}</span>
+                        <span class="truncate max-w-[16rem] text-sm font-medium">
+                          {{ m.name }}
+                        </span>
 
                         <button
                           type="button"
@@ -182,7 +376,12 @@ export type ChipItem = {
                           aria-label="Rimuovi {{ m.name }}"
                         >
                           <svg viewBox="0 0 20 20" fill="none" class="size-3.5">
-                            <path d="M6 6l8 8M14 6l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                            <path
+                              d="M6 6l8 8M14 6l-8 8"
+                              stroke="currentColor"
+                              stroke-width="1.8"
+                              stroke-linecap="round"
+                            />
                           </svg>
                         </button>
                       </span>
@@ -201,14 +400,19 @@ export type ChipItem = {
                       >
                         Pulisci tutto
                         <svg viewBox="0 0 20 20" fill="none" class="size-3.5">
-                          <path d="M5 10h10M10 5v10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                          <path
+                            d="M5 10h10M10 5v10"
+                            stroke="currentColor"
+                            stroke-width="1.6"
+                            stroke-linecap="round"
+                          />
                         </svg>
                       </button>
                     }
                   </div>
                 </div>
 
-                <div class="overflow-y-auto relative">
+                <div class="overflow-y-auto relative m-scroll-thin">
                   @if (chemblLoading()) {
                     <m-search-result-skeleton-loader />
                   } @else if (chemblResults().length) {
@@ -225,7 +429,9 @@ export type ChipItem = {
                       Nessun risultato trovato.
                     </div>
                   } @else if (chemblError()) {
-                    <div class="text-sm text-red-500 bg-red-50 dark:bg-red-950 rounded px-4 py-2 text-center">
+                    <div
+                      class="text-sm text-red-500 bg-red-50 dark:bg-red-950 rounded px-4 py-2 text-center"
+                    >
                       Errore nella ricerca. Riprova.
                     </div>
                   }
@@ -235,29 +441,52 @@ export type ChipItem = {
             @case (2) {
               <div class="py-6 px-3 flex flex-col gap-4 min-h-[60vh] max-h-[60vh]">
                 @if (error()) {
-                  <span class="text-light-error dark:text-dark-error">Si è verificato un errore</span>
+                  <span class="text-light-error dark:text-dark-error">
+                    Si è verificato un errore
+                  </span>
                 } @else {
-                  <span class="text-light-accent-secondary dark:text-dark-accent-secondary">Molecole aggiunte con successo!</span>
+                  <span class="text-light-accent-secondary dark:text-dark-accent-secondary">
+                    Molecole aggiunte con successo!
+                  </span>
                 }
               </div>
-              }
+            }
           }
         }
       }
+    </div>
 
-    <div class="my-4 mr-8 flex justify-end gap-2">
+    <!-- FOOTER -->
+    <div class="action-card-footer">
       @if (step() === 1) {
         <button
           type="button"
-          class="px-4 py-2 rounded bg-slate-200 text-light-on-surface-main dark:bg-slate-100 dark:text-neutral-950 hover:bg-gray-300 transition-colors duration-300"
+          class="px-4 py-2 rounded-lg bg-light-surface-secondary text-light-on-surface-main
+                 dark:bg-slate-200 dark:text-light-on-surface-main
+                 hover:bg-white dark:hover:bg-slate-300/80
+                 border border-light-border dark:border-dark-border/80
+                 shadow-sm
+                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary
+                 focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary
+                 dark:focus-visible:ring-offset-dark-surface-secondary
+                 transition-colors duration-200"
           (click)="close()"
         >
           Annulla
         </button>
       }
+
       <button
         type="button"
-        class="relative inline-flex items-center justify-center px-4 py-2 rounded bg-emerald-600 text-white font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed transition-colors duration-300"
+        class="relative inline-flex items-center justify-center px-4 py-2 rounded-lg
+               bg-light-accent-primary text-white font-semibold shadow-md
+               hover:bg-light-accent-primary/90
+               dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary
+               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary
+               focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary
+               dark:focus-visible:ring-offset-dark-surface-secondary
+               disabled:bg-light-accent-primary/50 disabled:cursor-not-allowed
+               transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary/50"
         [disabled]="(isSelectedNothing() && this.method() === 'my') || (this.selectedIds.length === 0 && this.method() === 'chembl' || step_12_loading())"
         (click)="step() === 1 ? dispatchSubmit() : close()"
         [attr.aria-busy]="step_12_loading()"
@@ -283,109 +512,113 @@ export type ChipItem = {
 </div>
 `
 })
-export class AddMoleculesToCollectionComponent extends AbstractPaginatedMultiselectComponent<MoleculeCardItemModel>
+export class AddMoleculesToCollectionComponent
+  extends AbstractPaginatedMultiselectComponent<MoleculeCardItemModel>
   implements OnInit, AfterViewInit, OnDestroy {
 
-  private readonly actionOverlayContext = inject(ActionOverlayContextService)
-  private readonly addContext = inject(AddMoleculesToCollectionContextService)
-  private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService)
-  private readonly moleculeCollectionService = inject(MoleculeCollectionService)
-  private readonly toast = inject(ToastService)
-  private readonly router = inject(Router)
+  private readonly actionOverlayContext = inject(ActionOverlayContextService);
+  private readonly addContext = inject(AddMoleculesToCollectionContextService);
+  private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService);
+  private readonly moleculeCollectionService = inject(MoleculeCollectionService);
+  private readonly toast = inject(ToastService);
+  private readonly router = inject(Router);
 
+  private ctrlSub?: Subscription;
+  private suSub1?: Subscription;
+  private suSub2?: Subscription;
+  private metCtrlSub?: Subscription;
+  private colSub?: Subscription;
 
-  private ctrlSub?: Subscription
-  private suSub1?: Subscription
-  private suSub2?: Subscription
-  private metCtrlSub?: Subscription
-  private colSub?: Subscription
+  step = signal<1 | 2>(1);
+  step_12_loading = signal<boolean>(false);
+  error = signal<boolean>(false);
+  methodControl!: FormControl<'my' | 'chembl'>;
+  method = signal<'my' | 'chembl'>('my');
+  collection = signal<MoleculeCollection | null>(null);
 
-
-  step = signal<1 | 2>(1)
-  step_12_loading = signal<boolean>(false)
-  error = signal<boolean>(false)
-  methodControl!: FormControl<'my' | 'chembl'>
-  method = signal<'my' | 'chembl'>('my')
-  collection = signal<MoleculeCollection | null>(null)
-
-  @ViewChild('scrollRoot', { static: false }) protected declare root: ElementRef<HTMLDivElement>
-
-  @ViewChild('sentinel', { static: false }) protected declare sentinel: ElementRef<HTMLDivElement>
+  @ViewChild('scrollRoot', { static: false }) protected declare root: ElementRef<HTMLDivElement>;
+  @ViewChild('sentinel', { static: false }) protected declare sentinel: ElementRef<HTMLDivElement>;
 
   constructor() {
-    super()
+    super();
     effect(() => {
       if (this.method() === 'my') {
         queueMicrotask(() => {
-          this.step.set(1)
-          this.clearChips()
-          this.resetPagination()
-          this.startObserver()
-          this.loadMore()
-          this.cdr.markForCheck()
-        })
+          this.step.set(1);
+          this.clearChips();
+          this.resetPagination();
+          this.startObserver();
+          this.loadMore();
+          this.cdr.markForCheck();
+        });
       } else if (this.method() === 'chembl') {
-        this.clearSelections()
-        this.clearChips()
-        this.multiselectItems.set([])
-        this.items = []
-        this.done = false
-        this.earlyDone = false
-        this.empty.set(true)
-        this.loading = false
-        this.bulkIntent.set('none')
-        this.step.set(1)
-        this.chemblEmpty.set(true)
-        this.chemblError.set(null)
-        this.chemblLoading.set(false)
-        this.chemblQuery.set('')
-        this.chemblResults.set([])
+        this.clearSelections();
+        this.clearChips();
+        this.multiselectItems.set([]);
+        this.items = [];
+        this.done = false;
+        this.earlyDone = false;
+        this.empty.set(true);
+        this.loading = false;
+        this.bulkIntent.set('none');
+        this.step.set(1);
+        this.chemblEmpty.set(true);
+        this.chemblError.set(null);
+        this.chemblLoading.set(false);
+        this.chemblQuery.set('');
+        this.chemblResults.set([]);
       }
-    })
+    });
   }
 
   private _rearmOnStep = effect(() => {
     if (this.step() === 1) {
-      queueMicrotask(() => this.startObserver())
+      queueMicrotask(() => this.startObserver());
     } else {
-      this.observer?.disconnect()
+      this.observer?.disconnect();
     }
-  })
+  });
 
   ngOnInit(): void {
-    const ifc = this.addContext.importFromChembl()
-    const defaultMethod = ifc ? 'chembl' : 'my'
-    this.method.set(defaultMethod)
-    this.methodControl = new FormControl<'my' | 'chembl'>(defaultMethod, { nonNullable: true })
-    this.metCtrlSub = this.methodControl.valueChanges.subscribe((val) => this.method.set(val))
+    const ifc = this.addContext.importFromChembl();
+    const defaultMethod = ifc ? 'chembl' : 'my';
+    this.method.set(defaultMethod);
+    this.methodControl = new FormControl<'my' | 'chembl'>(defaultMethod, { nonNullable: true });
+    this.metCtrlSub = this.methodControl.valueChanges.subscribe(val => this.method.set(val));
     queueMicrotask(() => {
       this.colSub = this.moleculeCollectionService.getCollectionById(this.addContext.collectionId()!).subscribe({
-        next: (col) => this.collection.set(col),
-        error: () => queueMicrotask(() => {
-          this.close()
-          this.addContext.clearCollectionId()
-          this.toast.trigger('Si è verificato un errore. Se si ripete, contatta il supporto', 'error', 3000)
-        })
-      })
-      this.loadMore()
-    })
+        next: col => this.collection.set(col),
+        error: () =>
+          queueMicrotask(() => {
+            this.close();
+            this.addContext.clearCollectionId();
+            this.toast.trigger('Si è verificato un errore. Se si ripete, contatta il supporto', 'error', 3000);
+          })
+      });
+      this.loadMore();
+    });
   }
 
   ngAfterViewInit(): void {
-    queueMicrotask(() => this.startObserver())
+    queueMicrotask(() => this.startObserver());
   }
 
   ngOnDestroy(): void {
-    this.ctrlSub?.unsubscribe()
-    this.suSub1?.unsubscribe()
-    this.suSub2?.unsubscribe()
-    this.observer?.disconnect()
-    this.colSub?.unsubscribe()
-    this.metCtrlSub?.unsubscribe()
+    this.ctrlSub?.unsubscribe();
+    this.suSub1?.unsubscribe();
+    this.suSub2?.unsubscribe();
+    this.observer?.disconnect();
+    this.colSub?.unsubscribe();
+    this.metCtrlSub?.unsubscribe();
   }
 
-  // datasource
-  protected override fetch$(page?: number, size?: number, q?: string, excludeJoinedToCollection?: boolean, collectionId?: boolean): Observable<PageModel<MoleculeCardItemModel>> {
+  protected override fetch$(
+    page?: number,
+    size?: number,
+    q?: string,
+    excludeJoinedToCollection?: boolean,
+    collectionId?: boolean
+  ): Observable<PageModel<MoleculeCardItemModel>> {
     return this.moleculeCollectionItemService
       .getAllPaginatedItems(this.page, 8, this.searchTerm(), true, this.addContext.collectionId())
       .pipe(
@@ -398,10 +631,11 @@ export class AddMoleculesToCollectionComponent extends AbstractPaginatedMultisel
   }
 
   protected override doQuery(q: string): void {
-    this.query(q)
+    this.query(q);
   }
+
   protected override doClear(): void {
-    this.clear()
+    this.clear();
   }
 
   close(): void {
@@ -411,14 +645,16 @@ export class AddMoleculesToCollectionComponent extends AbstractPaginatedMultisel
   private doSubmit(): void {
     if (this.step() === 1) {
       if (this.isSelectedNothing()) {
-        return
+        return;
       }
 
-      this.step_12_loading.set(true)
+      this.step_12_loading.set(true);
 
       let itemIds: string[] = [];
       if (this.isSelectedAll()) {
-        itemIds = this.multiselectItems().filter(w => !w.isChecked()).map(w => w.item.id);
+        itemIds = this.multiselectItems()
+          .filter(w => !w.isChecked())
+          .map(w => w.item.id);
       } else {
         itemIds = Array.from(this.selectedIdSet());
       }
@@ -428,51 +664,49 @@ export class AddMoleculesToCollectionComponent extends AbstractPaginatedMultisel
         .subscribe({
           next: ok => {
             this.step_12_loading.set(false);
-            this.addContext.notifyAdded()
-            this.error.set(!ok)
-            const cId = this.addContext.collectionId()
-            this.addContext.clearCollectionId()
+            this.addContext.notifyAdded();
+            this.error.set(!ok);
+            const cId = this.addContext.collectionId();
+            this.addContext.clearCollectionId();
             if (this.addContext.redirectToCollectionPath()) {
-              this.addContext.setRedirectToCollectionPath(false)
-              this.router.navigateByUrl(`/molecules/collections/detail/${cId}`)
+              this.addContext.setRedirectToCollectionPath(false);
+              this.router.navigateByUrl(`/molecules/collections/detail/${cId}`);
             }
-            this.actionOverlayContext.close()
+            this.actionOverlayContext.close();
           },
           error: () => {
-            this.step_12_loading.set(false)
-            this.error.set(true)
-            this.step.set(2)
+            this.step_12_loading.set(false);
+            this.error.set(true);
+            this.step.set(2);
           }
         });
     } else {
-      this.actionOverlayContext.close()
+      this.actionOverlayContext.close();
     }
   }
 
   // ============= ChEMBL search selection
 
-  chemblQuery = signal<string>('')
-  chemblLoading = signal<boolean>(false)
-  chemblResults = signal<MoleculeSearchResult[]>([])
-  chemblError = signal<unknown | null>(null)
-  chemblEmpty = signal<boolean>(true)
+  chemblQuery = signal<string>('');
+  chemblLoading = signal<boolean>(false);
+  chemblResults = signal<MoleculeSearchResult[]>([]);
+  chemblError = signal<unknown | null>(null);
+  chemblEmpty = signal<boolean>(true);
 
-  selectedMolecules: ChipItem[] = []
+  selectedMolecules: ChipItem[] = [];
 
   get selectedIds(): string[] {
-    return this.selectedMolecules.map(c => c.id)
+    return this.selectedMolecules.map(c => c.id);
   }
 
-  // chiamata quando clicchi un risultato di ricerca
   onSearchHit(hit: { id: string; name: string }) {
-    this.addChip(hit)
+    this.addChip(hit);
   }
 
-  // API
   addChip(chip: ChipItem) {
-    if (!chip?.id) return
-    if (this.selectedMolecules.some(c => c.id === chip.id)) return
-    this.selectedMolecules = [...this.selectedMolecules, chip] // OnPush-friendly
+    if (!chip?.id) return;
+    if (this.selectedMolecules.some(c => c.id === chip.id)) return;
+    this.selectedMolecules = [...this.selectedMolecules, chip];
   }
 
   removeChip(id: string) {
@@ -484,25 +718,25 @@ export class AddMoleculesToCollectionComponent extends AbstractPaginatedMultisel
   }
 
   onEmpty(): void {
-    this.chemblEmpty.set(true)
-    this.chemblQuery.set('')
-    this.chemblResults.set([])
+    this.chemblEmpty.set(true);
+    this.chemblQuery.set('');
+    this.chemblResults.set([]);
   }
 
   handleResults(results: MoleculeSearchResult[] | PageModel<MoleculeCardItemModel>): void {
-    this.chemblEmpty.set(false)
-    this.chemblError.set(null)
+    this.chemblEmpty.set(false);
+    this.chemblError.set(null);
     if (Array.isArray(results)) {
-      this.chemblResults.set(results)
-      return
+      this.chemblResults.set(results);
+      return;
     }
-    this.chemblResults.set([])
+    this.chemblResults.set([]);
   }
 
   handleError(err: unknown): void {
-    this.chemblEmpty.set(false)
-    this.chemblError.set(err)
-    this.chemblResults.set([])
+    this.chemblEmpty.set(false);
+    this.chemblError.set(err);
+    this.chemblResults.set([]);
   }
 
   private doSubmitChembl(): void {
@@ -510,37 +744,38 @@ export class AddMoleculesToCollectionComponent extends AbstractPaginatedMultisel
       const dto: AddManyChEMBLItemDTO = {
         chemblMolregno: Number(chip.id),
         name: chip.name
-      }
-      return dto
-    })
-    this.suSub2 = this.moleculeCollectionItemService.addManyChEMBLItemsToCollection(this.addContext.collectionId()!, dtos).subscribe({
-      next: ok => {
-        this.step_12_loading.set(false);
-        this.addContext.notifyAdded()
-        this.error.set(!ok);
-        const cId = this.addContext.collectionId()
-        const shouldRedirect = this.addContext.redirectToCollectionPath()
-        this.addContext.clearCollectionId()
-        if (shouldRedirect) {
-          this.addContext.setRedirectToCollectionPath(false)
-          this.router.navigateByUrl(`/molecules/collections/detail/${cId}`)
+      };
+      return dto;
+    });
+    this.suSub2 = this.moleculeCollectionItemService
+      .addManyChEMBLItemsToCollection(this.addContext.collectionId()!, dtos)
+      .subscribe({
+        next: ok => {
+          this.step_12_loading.set(false);
+          this.addContext.notifyAdded();
+          this.error.set(!ok);
+          const cId = this.addContext.collectionId();
+          const shouldRedirect = this.addContext.redirectToCollectionPath();
+          this.addContext.clearCollectionId();
+          if (shouldRedirect) {
+            this.addContext.setRedirectToCollectionPath(false);
+            this.router.navigateByUrl(`/molecules/collections/detail/${cId}`);
+          }
+          this.actionOverlayContext.close();
+        },
+        error: () => {
+          this.step_12_loading.set(false);
+          this.error.set(true);
+          this.step.set(2);
         }
-        this.actionOverlayContext.close()
-      },
-      error: () => {
-        this.step_12_loading.set(false);
-        this.error.set(true);
-        this.step.set(2);
-      }
-    })
+      });
   }
 
   dispatchSubmit(): void {
     if (this.method() === 'my') {
-      queueMicrotask(() => this.doSubmit())
+      queueMicrotask(() => this.doSubmit());
     } else if (this.method() === 'chembl') {
-      queueMicrotask(() => this.doSubmitChembl())
+      queueMicrotask(() => this.doSubmitChembl());
     }
   }
-
 }

@@ -161,7 +161,7 @@ export class UserService {
                 .where('u.id = :userId', { userId })
                 .andWhere('u.isVerified = true')
                 .andWhere('u.sso = false')
-                .andWhere('u.hashedPassword IS NOT NULL')
+                .andWhere('u.password_hash IS NOT NULL')
                 .getOneOrFail()
             return passwordHash!
         } catch {
@@ -320,7 +320,7 @@ export class UserService {
                     .where('u.id = :userId', { userId })
                     .andWhere('u.isVerified = true')
                     .andWhere('u.sso = false')
-                    .andWhere('u.passwordHash IS NOT NULL')
+                    .andWhere('u.password_hash IS NOT NULL')
                     .setLock('pessimistic_write')
                     .getOneOrFail()
             } catch {
