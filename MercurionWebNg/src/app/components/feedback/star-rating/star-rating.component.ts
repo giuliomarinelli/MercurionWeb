@@ -13,7 +13,7 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div
-      class="inline-flex items-center gap-1 select-none outline-none focus-visible:ring-2 focus-visible:ring-sky-400/50 focus-visible:rounded-xl focus-visible:px-2 focus-visible:py-1"
+      class="inline-flex items-center gap-1 select-none outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq/70 dark:focus-visible:ring-sky-300/60 focus-visible:rounded-xl focus-visible:px-2 focus-visible:py-1"
       role="slider"
       [attr.aria-label]="label()"
       [attr.aria-valuemin]="1"
@@ -33,7 +33,7 @@ import {
           (click)="set($index + 1)"
         >
           <span class="relative inline-block w-[2rem] h-[2rem] text-[2rem]">
-            <span class="absolute inset-0 text-slate-400/45 dark:text-slate-400/40">
+            <span class="absolute inset-0 text-slate-500/60 dark:text-slate-400/40">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current">
                 <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                 <path d="M320.2 11.2L227.6 192.6L26.5 224.6L170.4 368.7L138.7 569.9L320.2 477.6L501.7 569.9L470 368.7L613.9 224.6L412.8 192.6L320.2 11.2z"/>
@@ -41,7 +41,7 @@ import {
             </span>
 
             <span
-              class="absolute inset-0 overflow-hidden text-sky-600 dark:text-sky-300 drop-shadow-[0_0_10px_rgba(56,189,248,0.18)] transition-[width,transform,filter] duration-150 ease-out origin-[50%_60%]"
+              class="absolute inset-0 overflow-hidden text-light-accent-primary-hq dark:text-sky-300 drop-shadow-[0_0_10px_rgba(56,189,248,0.18)] transition-[width,transform,filter] duration-150 ease-out origin-[50%_60%]"
               [style.width.%]="fillPercentFor($index)"
               [class.scale-125]="$index === poppedIndex()"
               [class.drop-shadow-[0_0_18px_rgba(56,189,248,0.38)]]="$index === poppedIndex()"
@@ -58,7 +58,7 @@ import {
       @if (allowClear() && !disabled() && (value() ?? 0) > 0) {
         <button
           type="button"
-          class="ml-3 w-[22px] h-[22px] rounded-lg border border-slate-400 bg-zinc-200/80 text-light-on-surface-main hover:bg-zinc-200/60 dark:border-slate-400/15 dark:bg-zinc-800/80 dark:text-slate-200 dark:hover:bg-zinc-700/80 transform hover:scale-110 leading-none transition-transform"
+          class="ml-3 w-[22px] h-[22px] rounded-lg border border-slate-600 bg-zinc-200/80 text-slate-800 hover:bg-zinc-200/60 dark:border-slate-400/15 dark:bg-zinc-800/80 dark:text-slate-200 dark:hover:bg-zinc-700/80 transform hover:scale-110 leading-none transition-transform"
           aria-label="Clear rating"
           (click)="clear()"
         >

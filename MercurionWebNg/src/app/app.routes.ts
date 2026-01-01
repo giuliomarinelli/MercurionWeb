@@ -129,7 +129,7 @@ export const routes: Routes = [
   {
     path: 'feedback',
     title: 'Feedback',
-    loadComponent: () => import('./pages/feedback/feedback.page.component').then((m) => m.FeedbackPageComponent),
+    loadComponent: () => import('./pages/feedback/feedback.page.component').then((m) => m.FeedbackPageComponent), // ok
     canActivate: [AuthGuard]
   },
   {
@@ -137,14 +137,14 @@ export const routes: Routes = [
     title: '404 Pagina non trovata',
     loadComponent: () =>
       import('./pages/not-found-404-landing/not-found-404-landing.page.component')
-        .then(m => m.NotFound404LandingPageComponent)
+        .then(m => m.NotFound404LandingPageComponent) // ok
   },
   {
     path: '403-forbidden',
     title: '403 Accesso negato',
     loadComponent: () =>
       import('./pages/forbidden-403-landing/forbidden-403-landing.page.component')
-        .then(m => m.Forbidden403LandingPageComponent)
+        .then(m => m.Forbidden403LandingPageComponent) // ok
   },
   {
     path: 'privacy',

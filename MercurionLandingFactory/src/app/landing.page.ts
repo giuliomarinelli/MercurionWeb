@@ -7,7 +7,7 @@ import { LandingPageConfig } from './Models/landing-page.config.model';
   template: `
     <div class="text-center">
       <p
-        class="text-5xl font-semibold text-[#2563eb] dark:text-[#0b6de5]"
+        class="text-5xl font-semibold text-[#0f3b99] dark:text-[#0b6de5]"
       >
         {{ vm().code }}
       </p>
@@ -17,7 +17,7 @@ import { LandingPageConfig } from './Models/landing-page.config.model';
         {{ vm().title }}
       </h1>
       <p
-        class="mt-6 text-pretty text-lg font-medium text-gray-500 sm:text-xl/8 dark:text-gray-400"
+        class="mt-6 text-pretty text-lg font-medium text-gray-700 sm:text-xl/8 dark:text-gray-400"
       >
         {{ vm().description }}
       </p>
@@ -33,7 +33,7 @@ import { LandingPageConfig } from './Models/landing-page.config.model';
         <button
           type="button"
           id="go-home-btn"
-          class="landing-btn cursor-pointer rounded-md px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm bg-[#2563eb] hover:bg-blue-500 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:bg-[#0b6de5] dark:hover:bg-blue-400/85 dark:focus-visible:outline-indigo-500 transition-colors duration-300"
+          class="landing-btn cursor-pointer rounded-md px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm bg-[#0f3b99] hover:bg-[#1147bb] focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-[#0f3b99] dark:bg-[#0b6de5] dark:hover:bg-blue-400/85 dark:focus-visible:outline-indigo-500 transition-colors duration-300"
         >
           {{ vm().primaryCtaLabel }}
         </button>
