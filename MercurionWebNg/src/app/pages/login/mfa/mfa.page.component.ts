@@ -49,11 +49,11 @@ import { ɵɵRouterLink } from "@angular/router/testing";
           @switch (true) {
 
             @case (view() === 'CHOOSE_METHOD') {
-              <p class="text-sm text-center relative bottom-2 mb-8">
+              <p class="text-sm text-center relative bottom-2 mt-4 mb-8">
                 Scegli un metodo di autenticazione a più fattori:
               </p>
 
-              <div class="flex flex-col gap-y-4">
+              <div class="flex flex-col relative top-2 gap-y-6">
                 @for (s of enabledMfaStrategies(); track s) {
                   <button
                     type="button"

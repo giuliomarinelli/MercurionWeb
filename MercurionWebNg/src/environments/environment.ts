@@ -22,6 +22,7 @@ export const environment = {
   },
   production: true,
   testing: false,
+  beta: false,
   feedbackEnv: 'prod',
   version: '1.0.0'
 }
