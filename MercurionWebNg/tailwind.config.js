@@ -42,7 +42,7 @@ module.exports = {
           'accent-secondary-surface': '219C6F',
           'accent-secondary-hc': '#3FD59E',
           'accent-primary-btn-hc': '#BFD8F8',
-          'warning': '#FBBF24',
+          'warning': '#FCCF5F',
           'error': '#FF7A7D',
           'error-hc': '#FFC7CB',
           'border': '#4B5563',

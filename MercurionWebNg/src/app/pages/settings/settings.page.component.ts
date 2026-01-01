@@ -177,7 +177,7 @@ import { SidenavContextService } from '../../services/context/sidenav-context.se
                                 >
                                   <div class="flex items-center justify-between gap-3 mb-1">
                                     <div>
-                                      <div class="text-xs uppercase text-slate-500 dark:text-slate-400">
+                                      <div class="text-xs uppercase text-slate-700 dark:text-slate-200">
                                         Profilo
                                       </div>
                                       <div class="text-base font-semibold text-slate-800 dark:text-slate-100">
@@ -197,38 +197,38 @@ import { SidenavContextService } from '../../services/context/sidenav-context.se
 
                                   <div class="text-sm space-y-1">
                                     <div class="flex justify-between gap-2">
-                                      <span class="text-slate-500 dark:text-slate-400">Ruolo</span>
+                                      <span class="text-slate-700 dark:text-slate-200">Ruolo</span>
                                       <span class="font-medium text-slate-800 dark:text-slate-100">
                                         {{ profile.job ?? 'Non specificato' }}
                                       </span>
                                     </div>
                                     <div class="flex justify-between gap-2">
-                                      <span class="text-slate-500 dark:text-slate-400">Genere</span>
+                                      <span class="text-slate-700 dark:text-slate-200">Genere</span>
                                       <span class="font-medium text-slate-800 dark:text-slate-100">
                                         {{ profile.gender | gender}}
                                       </span>
                                     </div>
                                     <div class="flex justify-between gap-2">
-                                      <span class="text-slate-500 dark:text-slate-400">E-mail</span>
+                                      <span class="text-slate-700 dark:text-slate-200">E-mail</span>
                                       <span class="font-mono text-xs text-slate-700 dark:text-slate-200">
                                         {{ profile.obscuredEmail }}
                                       </span>
                                     </div>
                                     <div class="flex justify-between gap-2">
-                                      <span class="text-slate-500 dark:text-slate-400">Provider di autenticazione</span>
+                                      <span class="text-slate-700 dark:text-slate-200">Provider di autenticazione</span>
                                       <span class="font-mono text-xs text-slate-700 dark:text-slate-200">
                                         {{ authProvider() }}
                                       </span>
                                     </div>
                                     <div class="flex justify-between gap-2">
-                                      <span class="text-slate-500 dark:text-slate-400">Provider di autorizzazione</span>
+                                      <span class="text-slate-700 dark:text-slate-200">Provider di autorizzazione</span>
                                       <span class="font-mono text-xs text-slate-700 dark:text-slate-200">
                                         Mercurion
                                       </span>
                                     </div>
                                       @if (!is_sso()) {
                                         <div class="flex justify-between gap-2">
-                                          <span class="text-slate-500 dark:text-slate-400">Telefono</span>
+                                          <span class="text-slate-700 dark:text-slate-200">Telefono</span>
                                           <span class="font-mono text-xs text-slate-700 dark:text-slate-200">
                                             {{ profile.obscuredPhone ?? '—' }}
                                           </span>
@@ -244,7 +244,7 @@ import { SidenavContextService } from '../../services/context/sidenav-context.se
                                 >
                                   <div class="flex items-center justify-between mb-1">
                                     <div>
-                                      <div class="text-xs uppercase text-slate-500 dark:text-slate-400">
+                                      <div class="text-xs uppercase text-slate-700 dark:text-slate-200">
                                         Sicurezza
                                       </div>
                                       <div class="text-base font-semibold text-slate-800 dark:text-slate-100">
@@ -255,7 +255,7 @@ import { SidenavContextService } from '../../services/context/sidenav-context.se
 
                                   <div class="space-y-2 text-sm">
                                     <div class="flex items-center justify-between gap-2">
-                                      <span class="text-slate-500 dark:text-slate-400">
+                                      <span class="text-slate-700 dark:text-slate-200">
                                         Autenticazione a più fattori
                                       </span>
                                       <span
@@ -276,7 +276,7 @@ import { SidenavContextService } from '../../services/context/sidenav-context.se
                                     </div>
 
                                     <div class="flex items-center justify-between gap-2">
-                                      <span class="text-slate-500 dark:text-slate-400">
+                                      <span class="text-slate-700 dark:text-slate-200">
                                         Sessioni attive
                                       </span>
                                       <span class="font-medium text-slate-800 dark:text-slate-100">
@@ -285,7 +285,7 @@ import { SidenavContextService } from '../../services/context/sidenav-context.se
                                     </div>
                                     @if (activeSessions.length) {
                                       <div class="flex items-center justify-between gap-2">
-                                        <span class="text-slate-500 dark:text-slate-400">
+                                        <span class="text-slate-700 dark:text-slate-200">
                                           Sessione corrente
                                         </span>
                                         <span class="text-xs text-right text-slate-700 dark:text-slate-200">
@@ -329,7 +329,7 @@ import { SidenavContextService } from '../../services/context/sidenav-context.se
                                     class="rounded-md border border-slate-300 dark:border-slate-600
                                            bg-slate-50 dark:bg-slate-800/70 px-4 py-3"
                                   >
-                                    <div class="text-xs uppercase text-slate-500 dark:text-slate-400 mb-1">
+                                    <div class="text-xs uppercase text-slate-700 dark:text-slate-200 mb-1">
                                       Molecole personali
                                     </div>
                                     <div class="text-2xl font-semibold text-slate-800 dark:text-slate-100">
@@ -341,7 +341,7 @@ import { SidenavContextService } from '../../services/context/sidenav-context.se
                                     class="rounded-md border border-slate-300 dark:border-slate-600
                                            bg-slate-50 dark:bg-slate-800/70 px-4 py-3"
                                   >
-                                    <div class="text-xs uppercase text-slate-500 dark:text-slate-400 mb-1">
+                                    <div class="text-xs uppercase text-slate-700 dark:text-slate-200 mb-1">
                                       Molecole da ChEMBL
                                     </div>
                                     <div class="text-2xl font-semibold text-slate-800 dark:text-slate-100">
@@ -353,7 +353,7 @@ import { SidenavContextService } from '../../services/context/sidenav-context.se
                                     class="rounded-md border border-slate-300 dark:border-slate-600
                                            bg-slate-50 dark:bg-slate-800/70 px-4 py-3"
                                   >
-                                    <div class="text-xs uppercase text-slate-500 dark:text-slate-400 mb-1">
+                                    <div class="text-xs uppercase text-slate-700 dark:text-slate-200 mb-1">
                                       Collezioni
                                     </div>
                                     <div class="text-2xl font-semibold text-slate-800 dark:text-slate-100">
