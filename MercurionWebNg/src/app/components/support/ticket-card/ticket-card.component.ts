@@ -54,9 +54,9 @@ import { Maybe } from 'graphql/jsutils/Maybe';
             <!-- publicId -->
             <span
               class="text-xs md:text-sm font-medium
-                     text-slate-600 dark:text-slate-300
+                     text-slate-700 dark:text-slate-200
                      bg-slate-200/70 dark:bg-slate-700/60
-                     border border-slate-300/60 dark:border-slate-600/60
+                     border border-slate-300 dark:border-slate-600/60
                      px-2 py-0.5 rounded-full shrink-0"
               >
               #{{ readablePublicId() }}
@@ -81,7 +81,7 @@ import { Maybe } from 'graphql/jsutils/Maybe';
           </div>
 
           <!-- preview / meta line -->
-          <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+          <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-700 dark:text-slate-200">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current size-3.5 inline-block relative -top-px ">
               <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
               <path d="M320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64zM296 184L296 332.8L306.7 339.9L402.7 403.9L422.7 417.2L449.3 377.3C446.9 375.7 411.8 352.3 344 307.1L344 159.9L296 159.9L296 183.9z"/>
@@ -126,7 +126,7 @@ import { Maybe } from 'graphql/jsutils/Maybe';
               class="
                 flex items-center gap-2 px-3 py-1.5 rounded-md border
                 text-xs font-medium transition-colors duration-150
-                border-slate-300 dark:border-slate-600
+                border-slate-400 dark:border-slate-500
                 text-slate-700 dark:text-slate-200
                 hover:bg-slate-200 dark:hover:bg-slate-700
               "
@@ -144,9 +144,9 @@ import { Maybe } from 'graphql/jsutils/Maybe';
               class="
                 flex items-center gap-2 px-3 py-1.5 rounded-md border
                 text-xs font-medium transition-colors duration-150
-                border-indigo-300/70 dark:border-indigo-400/60
-                text-indigo-700 dark:text-indigo-200
-                hover:bg-indigo-50 dark:hover:bg-indigo-900/20
+                border-light-accent-primary-hq dark:border-indigo-400/60
+                text-light-accent-primary-hq dark:text-indigo-200
+                hover:bg-light-accent-primary-hc/20 dark:hover:bg-indigo-900/20
               "
               (click)="$event.stopPropagation(); reopen.emit(_ticket()!.id)"
               title="Riapri ticket"
@@ -252,15 +252,15 @@ export class TicketCardComponent {
     // palette leggibile anche su dark
     switch (s) {
       case 'Open':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200/70 dark:bg-emerald-900/20 dark:text-emerald-200 dark:border-emerald-700/40'
+        return 'bg-emerald-50 text-emerald-800 border-emerald-200/70 dark:bg-emerald-900/20 dark:text-emerald-200 dark:border-emerald-700/40'
       case 'WaitingSupport':
-        return 'bg-amber-50 text-amber-700 border-amber-200/70 dark:bg-amber-900/20 dark:text-amber-200 dark:border-amber-700/40'
+        return 'bg-amber-50 text-amber-800 border-amber-200/70 dark:bg-amber-900/20 dark:text-amber-200 dark:border-amber-700/40'
       case 'WaitingUser':
-        return 'bg-sky-50 text-sky-700 border-sky-200/70 dark:bg-sky-900/20 dark:text-sky-200 dark:border-sky-700/40'
+        return 'bg-sky-50 text-sky-800 border-sky-200/70 dark:bg-sky-900/20 dark:text-sky-200 dark:border-sky-700/40'
       case 'Closed':
-        return 'bg-slate-200 text-slate-700 border-slate-300/70 dark:bg-slate-700/60 dark:text-slate-200 dark:border-slate-600/60'
+        return 'bg-slate-200 text-slate-800 border-slate-300/70 dark:bg-slate-700/60 dark:text-slate-200 dark:border-slate-600/60'
       default:
-        return 'bg-slate-100 text-slate-700 border-slate-200/70 dark:bg-slate-800/60 dark:text-slate-200 dark:border-slate-700/60'
+        return 'bg-slate-100 text-slate-800 border-slate-200/70 dark:bg-slate-800/60 dark:text-slate-200 dark:border-slate-700/60'
     }
   })
 

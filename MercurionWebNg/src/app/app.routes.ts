@@ -106,24 +106,24 @@ export const routes: Routes = [
   {
     path: 'settings',
     title: 'Impostazioni',
-    loadComponent: () => import('./pages/settings/settings.page.component').then(m => m.SettingsPageComponent),
+    loadComponent: () => import('./pages/settings/settings.page.component').then(m => m.SettingsPageComponent), // ok
     canActivate: [AuthGuard]
   },
   {
     path: 'account-recovery',
     title: 'Account · Recupero',
     loadComponent: () => import('./pages/account-recovery/account-recovery.page.component')
-      .then(m => m.AccountRecoveryPageComponent)
+      .then(m => m.AccountRecoveryPageComponent) // ok
   },
   {
     path: 'oauth2/callback',
     title: 'Login · SSO Callback',
-    loadComponent: () => import('./pages/sso/sso.page.component').then(m => m.SsoPageComponent)
+    loadComponent: () => import('./pages/sso/sso.page.component').then(m => m.SsoPageComponent) // ok
   },
   {
     path: 'help',
     title: 'Help',
-    loadComponent: () => import('./pages/help/help.page.component').then(m => m.HelpPageComponent),
+    loadComponent: () => import('./pages/help/help.page.component').then(m => m.HelpPageComponent), // ok
     canActivate: [AuthGuard]
   },
   {
@@ -132,7 +132,6 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/feedback/feedback.page.component').then((m) => m.FeedbackPageComponent),
     canActivate: [AuthGuard]
   },
-
   {
     path: '404-not-found',
     title: '404 Pagina non trovata',

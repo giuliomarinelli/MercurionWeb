@@ -47,11 +47,11 @@ export class TabsComponent {
       'relative pb-2 text-base font-medium border-b-2',
       'transition-all duration-150',
       'focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
-      'focus-visible:ring-light-accent-primary dark:focus-visible:ring-dark-accent-primary',
+      'focus-visible:ring-light-accent-primary-hq dark:focus-visible:ring-dark-accent-primary',
       // varianti active / inactive
       active
-        ? 'text-light-accent-primary dark:text-dark-accent-primary border-light-accent-primary dark:border-dark-accent-primary'
-        : 'text-slate-400 dark:text-slate-300 border-transparent hover:text-slate-200 dark:hover:text-slate-50',
+        ? 'text-light-accent-primary-hq dark:text-dark-accent-primary border-light-accent-primary-hq dark:border-dark-accent-primary'
+        : 'text-slate-700 dark:text-slate-200 border-transparent hover:text-slate-800 dark:hover:text-slate-50',
     ].join(' ');
   }
 
