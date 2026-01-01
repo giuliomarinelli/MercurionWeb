@@ -57,7 +57,7 @@ import { Maybe } from 'graphql/jsutils/Maybe'
           <!-- HEADER -->
           <div class="flex justify-between items-center mb-3 relative md:-top-2 lg:-top-4">
             <h2 class="text-2xl font-medium tracking-wide">Ricerca molecolare</h2>
-            <m-close-button [size]="8" [action]="close.bind(this)" />
+            <m-close-button [size]="8" [action]="close.bind(this)" variant="input" />
           </div>
 
           <m-molecule-search-input

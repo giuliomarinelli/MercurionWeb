@@ -55,6 +55,9 @@ import { SSO_AuthProvider } from '../../Models/auth/provider.models'
             }"
             [serverError]="serverErrorStep() === 1 ? uncorrectEmailMsg : null"
             (enter)="goToPasswordStep()"
+            darkLabelClass = 'dark:text-dark-accent-secondary-hc'
+            darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
+            darkFocusBorderClass = 'dark:focus:border-dark-accent-primary'
           />
         </div>
         <button
@@ -82,6 +85,9 @@ import { SSO_AuthProvider } from '../../Models/auth/provider.models'
             [disabled]="goingToPasswordStep()"
             [serverError]="serverErrorStep() === 1 ? uncorrectEmailMsg : null"
             (enter)="goToPasswordStep()"
+            darkLabelClass = 'dark:text-dark-accent-secondary-hc'
+            darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
+            darkFocusBorderClass = 'dark:focus:border-dark-accent-primary'
           />
         </div>
 
@@ -98,6 +104,9 @@ import { SSO_AuthProvider } from '../../Models/auth/provider.models'
                 : serverErrorStep() === 2429 ? 'Troppi tentativi, riprova tra qualche minuto.'
                 : null
             "
+            darkLabelClass = 'dark:text-dark-accent-secondary-hc'
+            darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
+            darkFocusBorderClass = 'dark:focus:border-dark-accent-primary'
           />
 
           <button

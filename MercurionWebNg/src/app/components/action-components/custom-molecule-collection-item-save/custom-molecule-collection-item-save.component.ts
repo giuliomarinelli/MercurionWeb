@@ -85,7 +85,7 @@ import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.model
                 #name
                 id="name"
                 type="text"
-                class="block py-4 px-4 w-full text-sm bg-light-surface-secondary dark:bg-dark-surface-secondary border border-slate-400 dark:border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-light-accent-primary focus:border-light-accent-primary dark:focus:ring-dark-accent-primary-btn-hc dark:focus:border-dark-accent-primary-btn-hc peer text-light-on-surface-main dark:text-dark-on-surface-main"
+                class="block py-4 px-4 w-full text-sm bg-light-surface-secondary dark:bg-dark-surface-secondary border border-slate-400 dark:border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-light-accent-primary-hq focus:border-light-accent-primary-hq dark:focus:ring-dark-accent-primary-btn-hc dark:focus:border-dark-accent-primary-btn-hc peer text-light-on-surface-main dark:text-dark-on-surface-main"
                 placeholder=" "
                 required
                 name="name"
@@ -172,8 +172,16 @@ import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.model
             <div
               class="px-5 sm:px-6 py-4 border border-light-border dark:border-dark-border bg-light-surface-main dark:bg-dark-surface-main rounded-lg text-sm text-light-on-surface-secondary dark:text-dark-on-surface-secondary mb-2 mt-2"
             >
-              <div class="font-semibold mb-2 text-light-on-surface-main dark:text-dark-on-surface-main">
-                Proprietà calcolate
+              <div class="font-semibold mb-2 text-light-on-surface-main dark:text-dark-on-surface-main flex items-center justify-between gap-3">
+                <span>Proprietà calcolate</span>
+                <button
+                  type="button"
+                  class="rounded-md text-sm px-3 py-2 bg-light-accent-primary-hq text-white font-semibold shadow-sm hover:bg-light-accent-primary-hc transition-colors focus:outline-none focus:ring-2 focus:ring-light-accent-primary-hq focus:ring-offset-2 focus:ring-offset-light-surface-main dark:focus:ring-offset-dark-surface-main"
+                  (click)="computeProps()"
+                  aria-label="Calcola proprietà"
+                >
+                  Calcola
+                </button>
               </div>
               <div class="grid grid-cols-2 gap-y-1 gap-x-6">
                 <div>
@@ -207,7 +215,7 @@ import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.model
             <div class="mt-8 flex justify-end gap-2">
               <button
                 type="button"
-                class="px-4 py-2 rounded-lg bg-light-surface-secondary text-light-on-surface-main dark:bg-slate-200 dark:text-light-on-surface-main hover:bg-white dark:hover:bg-slate-300/80 border border-light-border dark:border-dark-border/80 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary transition-colors duration-200"
+                class="px-4 py-2 rounded-lg bg-light-surface-secondary text-light-on-surface-main dark:bg-slate-200 dark:text-light-on-surface-main hover:bg-white dark:hover:bg-slate-300/80 border border-light-border dark:border-dark-border/80 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary transition-colors duration-200"
                 (click)="close()"
                 aria-label="Annulla salvataggio molecola"
               >
@@ -216,7 +224,7 @@ import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.model
 
               <button
                 type="submit"
-                class="relative inline-flex items-center justify-center px-4 py-2 rounded-lg bg-light-accent-primary text-white font-semibold shadow-md hover:bg-light-accent-primary/90 dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary disabled:bg-light-accent-primary/50 disabled:cursor-not-allowed transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary/50"
+                class="relative inline-flex items-center justify-center px-4 py-2 rounded-lg bg-light-accent-primary-hq text-white font-semibold shadow-md hover:bg-light-accent-primary-hc dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary disabled:bg-light-accent-primary-hq/50 disabled:cursor-not-allowed transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary-hq/50"
                 [disabled]="!saveCtx.selectedCollectionId() || !nameModel"
                 [attr.aria-disabled]="!saveCtx.selectedCollectionId() || !nameModel"
                 aria-label="Salva molecola nella collezione selezionata"
@@ -274,6 +282,11 @@ export class CustomMoleculeCollectionItemSaveComponent {
     this.properties.set(
       await this.rdkitService.getMoleculeProperties(this.saveCtx.smiles())
     );
+  }
+
+  computeProps(): void {
+    // recompute properties on demand
+    this.loadProperties();
   }
 
   displayCollection(item: Pick<MoleculeCollection, 'name'>) {

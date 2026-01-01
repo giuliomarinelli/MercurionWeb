@@ -109,6 +109,7 @@ import { CloseButtonComponent } from '../../common/close-button/close-button.com
                 class="block"
                 [value]="searchTerm()"
                 [placeholder]="'Cerca una collezione...'"
+                [useAltDarkStyle]="true"
                 (valueChange)="doQuery($event)"
                 (submitted)="doQuery($event)"
                 (cleared)="doClear()"
@@ -169,7 +170,7 @@ import { CloseButtonComponent } from '../../common/close-button/close-button.com
             } @else {
               <span
                 id="bindCollectionsStatus"
-                class="text-light-accent-secondary dark:text-dark-accent-secondary"
+                class="text-light-accent-primary-hq dark:text-dark-accent-secondary"
                 role="status"
                 aria-live="polite"
               >
@@ -191,7 +192,7 @@ import { CloseButtonComponent } from '../../common/close-button/close-button.com
                  hover:bg-white dark:hover:bg-slate-300/80
                  border border-light-border dark:border-dark-border/80
                  shadow-sm
-                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary
+                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq
                  focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary
                  dark:focus-visible:ring-offset-dark-surface-secondary
                  transition-colors duration-200"
@@ -204,14 +205,14 @@ import { CloseButtonComponent } from '../../common/close-button/close-button.com
       <button
         type="button"
         class="relative inline-flex items-center justify-center px-4 py-2 rounded-lg
-               bg-light-accent-primary text-white font-semibold shadow-md
-               hover:bg-light-accent-primary/90
+               bg-light-accent-primary-hq text-white font-semibold shadow-md
+               hover:bg-light-accent-primary-hc
                dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary
-               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary
+               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq
                focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary
                dark:focus-visible:ring-offset-dark-surface-secondary
-               disabled:bg-light-accent-primary/50 disabled:cursor-not-allowed
-               transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary/50"
+               disabled:bg-light-accent-primary-hq/50 disabled:cursor-not-allowed
+               transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary-hq/50"
         [disabled]="(isSelectedNothing() || step_12_loading())"
         (click)="step() === 1 ? doSubmit() : close()"
         [attr.aria-busy]="step_12_loading()"

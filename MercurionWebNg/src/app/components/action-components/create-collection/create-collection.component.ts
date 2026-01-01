@@ -111,9 +111,9 @@ import { CreateCollectionContextService } from '../../../services/context/action
                 [attr.aria-required]="true"
                 [attr.aria-describedby]="selectedChips.length ? 'collectionsPreview' : null"
                 class="flex-1 px-4 py-2 rounded-lg bg-white/90 text-black
-                       placeholder:text-gray-500 shadow-sm
+                       placeholder:text-slate-500 shadow-sm
                        ring-1 ring-slate-300
-                       focus:outline-none focus:ring-2 focus:ring-indigo-500
+                       focus:outline-none focus:ring-2 focus:ring-light-accent-primary-hq/80
                        transition w-full"
                 [class.pr-10]="name().trim()"
                 [class.pl-4]="name().trim()"
@@ -125,7 +125,7 @@ import { CreateCollectionContextService } from '../../../services/context/action
                 <button
                   type="button"
                   (click)="clear()"
-                  class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-indigo-500 transition"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-700 dark:text-slate-200 hover:text-light-accent-primary-hq dark:hover:text-indigo-300 transition"
                   tabindex="-1"
                   aria-label="Cancella input"
                 >
@@ -138,15 +138,16 @@ import { CreateCollectionContextService } from '../../../services/context/action
 
             <button
               type="button"
-              class="col-span-3 px-4 py-2 rounded-lg
-                     bg-light-accent-primary text-white font-semibold shadow-sm
-                     hover:bg-light-accent-primary/90
-                     dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary
-                     disabled:bg-light-accent-primary/50 disabled:cursor-not-allowed
-                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary
-                     focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary
-                     dark:focus-visible:ring-offset-dark-surface-secondary
-                     transition-colors duration-200"
+              class="col-span-3 w-full px-4 py-2.5 rounded-lg
+                 bg-light-accent-primary text-white font-semibold shadow-md
+                 hover:bg-light-accent-primary/90
+                 dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary
+                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary
+                 focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary
+                 dark:focus-visible:ring-offset-dark-surface-secondary
+                 disabled:bg-light-accent-primary/50 disabled:cursor-not-allowed
+                 transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary/50
+                 min-w-10"
               [disabled]="!name() || alreadyAdded(_trim(name()))"
               (click)="onAddNewName(_trim(name()))"
               [title]="title()"
@@ -162,7 +163,7 @@ import { CreateCollectionContextService } from '../../../services/context/action
           @if (selectedChips.length === 0) {
             <div
               id="collectionsPreview"
-              class="flex items-center justify-center py-10 text-sm text-gray-500 dark:text-gray-400"
+              class="flex items-center justify-center py-10 text-sm text-slate-700 dark:text-slate-200"
               role="status"
               aria-live="polite"
             >
@@ -182,7 +183,7 @@ import { CreateCollectionContextService } from '../../../services/context/action
                     role="listitem"
                     class="group inline-flex items-center gap-2 max-w-full
                            rounded-full px-3 py-1.5
-                           bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-300
+                           bg-indigo-50 text-light-accent-primary-hq ring-1 ring-inset ring-light-accent-primary-hq/70
                            dark:bg-indigo-500/20 dark:text-indigo-100 dark:ring-indigo-400/40
                            shadow-sm"
                     title="{{ c }}"

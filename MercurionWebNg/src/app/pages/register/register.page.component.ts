@@ -5,7 +5,7 @@ import { ThemeManagerService } from '../../services/context/theme-manager.servic
 import { AuthService } from '../../services/auth.service';
 import { UserContextService } from '../../services/context/user-context.service';
 import { environment } from '../../../environments/environment.development';
-import { Subscription, switchMap } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { FloatingInputComponent } from '../../components/common/floating-input/floating-input.component';
 import { PmSelectComponent } from '../../components/common/pm-select/pm-select.component';
 import { emailAvailabilityValidator, matchPassword } from '../../custom-validators';
@@ -63,6 +63,9 @@ import { TurnstileComponent } from '../../components/common/turnstile/turnstile.
                     required: 'Il nome è obbligatorio.',
                     pattern: 'Il formato del nome non è valido.'
                   }"
+                  darkLabelClass = 'dark:text-dark-accent-secondary-hc'
+                  darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
+                  darkFocusBorderClass = 'dark:focus:border-dark-accent-primary'
               />
               <m-floating-input
                   label="Cognome *"
@@ -73,6 +76,9 @@ import { TurnstileComponent } from '../../components/common/turnstile/turnstile.
                     required: 'Il cognome è obbligatorio.',
                     pattern: 'Il formato del cognome non è valido.'
                   }"
+                  darkLabelClass = 'dark:text-dark-accent-secondary-hc'
+                  darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
+                  darkFocusBorderClass = 'dark:focus:border-dark-accent-primary'
               />
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-6">
@@ -88,6 +94,9 @@ import { TurnstileComponent } from '../../components/common/turnstile/turnstile.
                     emailTaken: 'E-mail già registrata.'
                   }"
                   [asyncVerify]="true"
+                  darkLabelClass = 'dark:text-dark-accent-secondary-hc'
+                  darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
+                  darkFocusBorderClass = 'dark:focus:border-dark-accent-primary'
               />
               <m-floating-input
                   label="Il tuo lavoro"
@@ -95,11 +104,20 @@ import { TurnstileComponent } from '../../components/common/turnstile/turnstile.
                   autocomplete="current-job"
                   formControlName="job"
                   [errors]="{}"
+                  darkLabelClass = 'dark:text-dark-accent-secondary-hc'
+                  darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
+                  darkFocusBorderClass = 'dark:focus:border-dark-accent-primary'
               />
             </div>
             <m-select label="Genere *"
               [options]="options"
-              formControlName="gender">
+              formControlName="gender"
+              [darkFocusClassList]="[
+                'dark:focus:ring-dark-accent-primary',
+                'dark:focus:border-dark-accent-primary',
+                'dark:focus-visible:outline-dark-accent-primary',
+                'dark:focus-visible:outline-dark-accent-primary'
+              ]">
             </m-select>
             <div class="tflex justify-center mx-auto max-w-[500px] text-sm text-light-error dark:text-dark-error mt-1 min-h-5 mb-8">
               @if (form.controls['gender'].touched && form.controls['gender'].invalid) {
@@ -116,6 +134,9 @@ import { TurnstileComponent } from '../../components/common/turnstile/turnstile.
                     required: 'La password è obbligatoria.',
                     pattern: 'La password deve essere di almeno 8 caratteri: almeno uno minuscolo, uno maiuscolo, un numero e un carattere speciale.'
                   }"
+                  darkLabelClass = 'dark:text-dark-accent-secondary-hc'
+                  darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
+                  darkFocusBorderClass = 'dark:focus:border-dark-accent-primary'
               />
               <m-floating-input
                   label="Inserisci di nuovo la password"
@@ -126,6 +147,9 @@ import { TurnstileComponent } from '../../components/common/turnstile/turnstile.
                     required: 'Il campo di conferma password è obbligatorio.',
                     matchPassword: 'Le due password non corrispondono.'
                   }"
+                  darkLabelClass = 'dark:text-dark-accent-secondary-hc'
+                  darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
+                  darkFocusBorderClass = 'dark:focus:border-dark-accent-primary'
               />
             </div>
             <div class="flex gap-3 relative top-2 sm:top-4 justify-center sm:justify-start">

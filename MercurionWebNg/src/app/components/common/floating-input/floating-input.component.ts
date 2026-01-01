@@ -94,8 +94,8 @@ export class FloatingInputComponent implements ControlValueAccessor, OnInit {
   @Input() darkBgClass = 'dark:bg-neutral-950';
   @Input() labelClass = 'text-light-accent-secondary';
   @Input() darkLabelClass = 'dark:text-dark-accent-secondary-hc';
-  @Input() darkFocusRingClass = 'dark:focus:ring-dark-accent-primary';
-  @Input() darkFocusBorderClass = 'dark:focus:border-dark-accent-primary';
+  @Input() darkFocusRingClass = 'dark:focus:ring-dark-accent-primary-btn-hc';
+  @Input() darkFocusBorderClass = 'dark:focus:border-dark-accent-primary-btn-hc';
   @Input() darkTextErrorClass = 'dark:text-dark-error';
 
   @Output() enter = new EventEmitter<void>();

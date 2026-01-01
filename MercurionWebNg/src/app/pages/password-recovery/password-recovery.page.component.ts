@@ -43,6 +43,9 @@ import { Helpers } from '../../helpers';
                   required: 'Campo obbligatorio.'
                 }"
                 (enter)="send()"
+                darkLabelClass = 'dark:text-dark-accent-secondary-hc'
+                darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
+                darkFocusBorderClass = 'dark:focus:border-dark-accent-primary'
               />
 
               <m-floating-input
@@ -57,6 +60,9 @@ import { Helpers } from '../../helpers';
                   serverError() ? serverErrorMsg() : null
                 "
                 (enter)="send()"
+                darkLabelClass = 'dark:text-dark-accent-secondary-hc'
+                darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
+                darkFocusBorderClass = 'dark:focus:border-dark-accent-primary'
               />
 
               <button

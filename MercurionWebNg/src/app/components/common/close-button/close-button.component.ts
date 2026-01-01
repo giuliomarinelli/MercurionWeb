@@ -8,7 +8,7 @@ import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy, OnInit
   template: `
 
     <button
-      class="inline-flex items-center justify-center size-8 rounded-md text-slate-500 hover:text-emerald-600 hover:bg-slate-100 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-transparent transition"
+      class="inline-flex items-center justify-center size-8 rounded-md text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-transparent transition"
       type="button"
       (click)="onClick()"
       [attr.aria-label]="ariaLabel"
@@ -18,6 +18,7 @@ import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy, OnInit
       [attr.tabindex]="disabled ? -1 : 0"
       [disabled]="disabled"
       [attr.aria-hidden]="ariaHidden"
+      [ngClass]="[sizeClass, accentClass]"
     >
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current"
            [ngClass]="[
@@ -38,6 +39,9 @@ export class CloseButtonComponent implements OnInit {
   size = 5
 
   @Input()
+  variant: 'default' | 'input' = 'default'
+
+  @Input()
   ariaLabel = 'Chiudi'
 
   @Input()
@@ -56,6 +60,13 @@ export class CloseButtonComponent implements OnInit {
   clicked = new EventEmitter<void>()
 
   sizeClass!: string
+
+  get accentClass(): string {
+    if (this.variant === 'input') {
+      return 'hover:text-light-accent-primary-hq dark:hover:text-indigo-300 focus:ring-light-accent-primary-hq dark:focus:ring-indigo-500'
+    }
+    return 'hover:text-light-accent-primary-hq focus:ring-light-accent-primary-hq'
+  }
 
   ngOnInit(): void {
     this.sizeClass = `size-${this.size}`

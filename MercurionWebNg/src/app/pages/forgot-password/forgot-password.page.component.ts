@@ -42,6 +42,9 @@ import { HttpErrorResponse } from '@angular/common/http';
                 serverError() ? this.errMsg() : null
               "
               (enter)="send()"
+              darkLabelClass = 'dark:text-dark-accent-secondary-hc'
+              darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
+              darkFocusBorderClass = 'dark:focus:border-dark-accent-primary'
             />
 
             <button

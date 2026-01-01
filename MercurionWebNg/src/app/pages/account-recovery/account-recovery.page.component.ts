@@ -86,7 +86,10 @@ import { HttpErrorResponse } from '@angular/common/http';
                 }"
                 [disabled]="loading()"
                 [serverError]="computeServerErrorMsg(this.serverErrorStep())"
-                (enter)="goToSecondStep()" />
+                (enter)="goToSecondStep()"
+                darkLabelClass = 'dark:text-dark-accent-secondary-hc'
+                darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
+                darkFocusBorderClass = 'dark:focus:border-dark-accent-primary'/>
             </div>
               <button
                 type="submit"
@@ -131,7 +134,10 @@ import { HttpErrorResponse } from '@angular/common/http';
                     email: 'Formato e-mail non corretto',
                     pattern: 'Formato e-mail non corretto'
                   }"
-                  [disabled]="loading()" />
+                  [disabled]="loading()"
+                  darkLabelClass = 'dark:text-dark-accent-secondary-hc'
+                  darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
+                  darkFocusBorderClass = 'dark:focus:border-dark-accent-primary' />
               </div>
               <div class="relative mb-6 mt-2">
                 <m-floating-input
@@ -142,19 +148,25 @@ import { HttpErrorResponse } from '@angular/common/http';
                 [errors]="{
                     required: 'Password obbligatoria.',
                     pattern: 'La password deve essere di almeno 8 caratteri: almeno uno minuscolo, uno maiuscolo, un numero e un carattere speciale.'
-                  }" />
+                  }"
+                  darkLabelClass = 'dark:text-dark-accent-secondary-hc'
+                  darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
+                  darkFocusBorderClass = 'dark:focus:border-dark-accent-primary' />
               </div>
               <div class="relative mb-6 mt-2">
                 <m-floating-input
-                label="Reinserisci la nuova password"
-                type="password"
-                autocomplete="current-password"
-                formControlName="confirmPassword"
-                [errors]="{
-                    required: 'Il campo di conferma password è obbligatorio.',
-                    matchPassword: 'Le due password non corrispondono.'
-                  }"
-                [serverError]="computeServerErrorMsg(this.serverErrorStep())" />
+                  label="Reinserisci la nuova password"
+                  type="password"
+                  autocomplete="current-password"
+                  formControlName="confirmPassword"
+                  [errors]="{
+                      required: 'Il campo di conferma password è obbligatorio.',
+                      matchPassword: 'Le due password non corrispondono.'
+                    }"
+                  [serverError]="computeServerErrorMsg(this.serverErrorStep())"
+                  darkLabelClass = 'dark:text-dark-accent-secondary-hc'
+                  darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
+                  darkFocusBorderClass = 'dark:focus:border-dark-accent-primary' />
               </div>
               <div class="relative mb-3 mt-2">
                 <button

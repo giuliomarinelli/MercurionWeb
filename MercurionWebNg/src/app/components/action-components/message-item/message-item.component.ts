@@ -20,14 +20,14 @@ type AnyMsg = TicketMessage | ClientTicketMessage;
           <!-- optional meta line (name + time) -->
         <div class="mb-1 flex items-center gap-1">
           <div
-            class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400"
+            class="text-[11px] sm:text-xs text-slate-700 dark:text-slate-200"
             [ngClass]="isSent() ? 'text-right' : 'text-left'"
           >
             @if (showAuthorName() && authorName()) {
-              <span class="font-medium text-slate-600 dark:text-slate-300">
+              <span class="font-medium text-slate-700 dark:text-slate-200">
                 {{ authorName() }}
               </span>
-              <span class="mx-1 text-slate-300 dark:text-slate-600">•</span>
+              <span class="mx-1 text-slate-500 dark:text-slate-500">•</span>
             }
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current size-3.5 inline-block -top-[2px] relative mr-[2px]">
               <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
@@ -128,7 +128,7 @@ export class MessageItemComponent {
     // - received: slate chiaro su white, slate scuro su dark
     if (sent) {
       return `
-        bg-indigo-600 text-white border-indigo-500/70
+        bg-light-accent-primary-hq text-white border-light-accent-primary-hc/70
         dark:bg-indigo-500 dark:text-white dark:border-indigo-400/60
       `;
     }

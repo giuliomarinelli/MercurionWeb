@@ -93,7 +93,7 @@ import { AppContextService } from '../../../services/context/app-context.service
       ) {
       <div class="hidden lg:block">
         <div (click)="openSearchOverlay()"
-          class="flex items-center px-4 py-2 bg-slate-100 border border-slate-500/40 dark:border-none hover:bg-slate-200/30 dark:hover:bg-neutral-700 dark:bg-neutral-800 rounded-full cursor-pointer transition w-[240px] mr-2">
+          class="flex items-center px-4 py-2.5 bg-slate-100 border border-slate-500/40 dark:border-none hover:bg-slate-200/30 dark:hover:bg-neutral-700 dark:bg-neutral-800 rounded-full cursor-pointer transition w-[240px] mr-2">
           <svg class="w-4 h-4 mr-2 fill-current text-slate-700 dark:text-slate-200" xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 512 512">
             <path

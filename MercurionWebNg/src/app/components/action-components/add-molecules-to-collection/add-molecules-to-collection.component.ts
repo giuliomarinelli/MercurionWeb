@@ -285,6 +285,7 @@ export type ChipItem = {
                   <m-search-input
                     class="block"
                     [value]="searchTerm()"
+                    [useAltDarkStyle]="true"
                     (valueChange)="doQuery($event)"
                     (submitted)="doQuery($event)"
                     (cleared)="doClear()"
@@ -346,7 +347,7 @@ export type ChipItem = {
                 } @else {
                   <span
                     id="addMolStatus"
-                    class="text-light-accent-secondary dark:text-dark-accent-secondary"
+                    class="text-light-accent-primary-hq dark:text-dark-accent-secondary"
                     role="status"
                     aria-live="polite"
                   >
@@ -375,7 +376,7 @@ export type ChipItem = {
                 <div class="border-b min-h-24 relative">
                   @if (selectedMolecules.length === 0) {
                     <div
-                      class="absolute inset-0 flex justify-center items-center text-sm text-gray-500 dark:text-gray-400"
+                      class="absolute inset-0 flex justify-center items-center text-sm text-slate-700 dark:text-slate-200"
                       role="status"
                       aria-live="polite"
                     >
@@ -394,7 +395,7 @@ export type ChipItem = {
                         role="listitem"
                         class="group inline-flex items-center gap-2 max-w-full
                                rounded-full px-3 py-1.5
-                               bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-300
+                               bg-indigo-50 text-light-accent-primary-hq ring-1 ring-inset ring-light-accent-primary-hq/70
                                dark:bg-indigo-500/20 dark:text-indigo-100 dark:ring-indigo-400/40
                                shadow-sm"
                         title="{{ m.name }}"
@@ -470,7 +471,7 @@ export type ChipItem = {
                       />
                     }
                   } @else if (!chemblResults().length && !chemblError() && !chemblEmpty()) {
-                    <div class="text-sm text-gray-400 text-center py-8" role="status" aria-live="polite">
+                    <div class="text-sm text-slate-700 dark:text-slate-200 text-center py-8" role="status" aria-live="polite">
                       Nessun risultato trovato.
                     </div>
                   } @else if (chemblError()) {
@@ -499,7 +500,7 @@ export type ChipItem = {
                 } @else {
                   <span
                     id="addMolStatus"
-                    class="text-light-accent-secondary dark:text-dark-accent-secondary"
+                    class="text-light-accent-primary-hq dark:text-dark-accent-secondary"
                     role="status"
                     aria-live="polite"
                   >
@@ -536,14 +537,14 @@ export type ChipItem = {
       <button
         type="button"
         class="relative inline-flex items-center justify-center px-4 py-2 rounded-lg
-               bg-light-accent-primary text-white font-semibold shadow-md
-               hover:bg-light-accent-primary/90
+               bg-light-accent-primary-hq text-white font-semibold shadow-md
+               hover:bg-light-accent-primary-hc
                dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary
-               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary
+               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq
                focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary
                dark:focus-visible:ring-offset-dark-surface-secondary
-               disabled:bg-light-accent-primary/50 disabled:cursor-not-allowed
-               transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary/50"
+               disabled:bg-light-accent-primary-hq/50 disabled:cursor-not-allowed
+               transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary-hq/50"
         [disabled]="(isSelectedNothing() && this.method() === 'my') || (this.selectedIds.length === 0 && this.method() === 'chembl' || step_12_loading())"
         (click)="step() === 1 ? dispatchSubmit() : close()"
         [attr.aria-busy]="step_12_loading()"
