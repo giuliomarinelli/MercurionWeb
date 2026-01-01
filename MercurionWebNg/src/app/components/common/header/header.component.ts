@@ -544,6 +544,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   protected avatarMobileMenuMounted = signal<boolean>(false)
   protected avatarMobileMenuVisible = signal<boolean>(false)
   protected providedEmail = signal<ProvidedEmailDTO | null>(null)
+  protected isBeta = signal<boolean>(false)
   private _triggerOpenOffCanvas = signal<boolean>(false)
 
   readonly menuOpenClass: Signal<boolean> = computed(() => this.themeMenuOpen())
@@ -737,6 +738,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.isBeta.set(environment.beta)
     document.addEventListener('click', this.handleDocumentClick, true)
     document.addEventListener('keydown', this.handleEscape, true)
     this.routeSub = this.router.events
