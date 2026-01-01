@@ -943,6 +943,9 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
           onError()
           return EMPTY
         }
+        if (s.current) {
+          this.sessionSync.notifyVoluntaryLogout()
+        }
         return this.authService.logoutFromSession(ssid, s.current)
       })
     ).subscribe({
@@ -953,7 +956,6 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
           return
         }
         if (s.current) {
-          this.sessionSync.notifyVoluntaryLogout()
           queueMicrotask(() => this.toast.trigger('Logout dalla sessione corrente effettuato con successo.', 'success', 3000))
         }
         queueMicrotask(() => {
@@ -972,9 +974,11 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
   doLogoutFromAllSessions(): void {
     const onError = () => queueMicrotask(() => this.toast.trigger(`Si è verificato un errore. Le sessioni non sono state eliminate. Contatta il supporto.`, 'error', 3000))
-    this.sessionSync.notifyVoluntaryLogout()
     this.allLoguotSub = this.authService.logoutFromAllSessions().subscribe({
-      next: () => queueMicrotask(() => this.toast.trigger('Logout da tutte le sessioni effetttuato con successo.', 'success', 3000)),
+      next: () => {
+        this.sessionSync.notifyVoluntaryLogout()
+        queueMicrotask(() => this.toast.trigger('Logout da tutte le sessioni effetttuato con successo.', 'success', 3000))
+      },
       error: () => onError()
     })
   }
