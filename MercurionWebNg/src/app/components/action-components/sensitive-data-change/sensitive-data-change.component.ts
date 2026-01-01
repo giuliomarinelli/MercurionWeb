@@ -120,12 +120,12 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
               @switch (this.currentMfaStrategy()) {
                 @case ('EMAIL_OTP') {
                   <p class="text-light-warning dark:text-dark-warning font-semibold pr-4">
-                    Abbiamo inviato un codice di sicurezza monouso all'indirizzo e-mail <span class="text-light-accent-primary dark:text-dark-accent-primary">{{obscuredEmail()}}</span>. Per attivare l'autenticazione a più fattori via e-mail, inserisci il codice nel seguente campo di input.
+                    Abbiamo inviato un codice di sicurezza monouso all'indirizzo e-mail <span class="text-light-accent-primary dark:text-dark-accent-primary-btn-hc">{{obscuredEmail()}}</span>. Per attivare l'autenticazione a più fattori via e-mail, inserisci il codice nel seguente campo di input.
                   </p>
                 }
                 @case ('SMS_OTP') {
                   <p class="text-light-warning dark:text-dark-warning font-semibold pr-4">
-                    Abbiamo inviato un codice di sicurezza via SMS monouso al numero <span class="text-light-accent-primary dark:text-dark-accent-primary">{{obscuredPhone() ?? ''}}</span>. Per attivare l'autenticazione a più fattori via SMS, inserisci il codice nel seguente campo di input.
+                    Abbiamo inviato un codice di sicurezza via SMS monouso al numero <span class="text-light-accent-primary dark:text-dark-accent-primary-btn-hc">{{obscuredPhone() ?? ''}}</span>. Per attivare l'autenticazione a più fattori via SMS, inserisci il codice nel seguente campo di input.
                   </p>
                 }
                 @case ('APP_TOTP') {
@@ -194,7 +194,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                     }
                   }
                 } @else {
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-light-error dark:text-dark-error">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-light-error dark:text-dark-error-hc">
                     <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                     <path d="M320 96C443.7 96 544 196.3 544 320C544 443.7 443.7 544 320 544C196.3 544 96 443.7 96 320C96 196.3 196.3 96 320 96zM320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM419.4 243.2L396.8 220.6L385.5 231.9L320 297.4L254.5 231.9L243.2 220.6L220.6 243.2L231.9 254.5L297.4 320L231.9 385.5L220.6 396.8L243.2 419.4L254.5 408.1L320 342.6L385.5 408.1L396.8 419.4L419.4 396.8L342.6 320L408.1 254.5L419.4 243.2z"/>
                   </svg>
@@ -265,12 +265,12 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
               @switch (this.currentMfaStrategy()) {
                 @case ('EMAIL_OTP') {
                   <p class="text-light-warning dark:text-dark-warning font-semibold pr-4">
-                    Abbiamo inviato un codice di sicurezza monouso all'indirizzo e-mail <span class="text-light-accent-primary dark:text-dark-accent-primary">{{obscuredEmail()}}</span>. Per disattivare l'autenticazione a più fattori via e-mail, inserisci il codice nel seguente campo di input.
+                    Abbiamo inviato un codice di sicurezza monouso all'indirizzo e-mail <span class="text-light-accent-primary dark:text-dark-accent-primary-btn-hc">{{obscuredEmail()}}</span>. Per disattivare l'autenticazione a più fattori via e-mail, inserisci il codice nel seguente campo di input.
                   </p>
                 }
                 @case ('SMS_OTP') {
                   <p class="text-light-warning dark:text-dark-warning font-semibold pr-4">
-                  Abbiamo inviato un codice di sicurezza via SMS monouso al numero <span class="text-light-accent-primary dark:text-dark-accent-primary">{{obscuredPhone() ?? ''}}</span>. Per disattivare l'autenticazione a più fattori via SMS, inserisci il codice nel seguente campo di input.
+                  Abbiamo inviato un codice di sicurezza via SMS monouso al numero <span class="text-light-accent-primary dark:text-dark-accent-primary-btn-hc">{{obscuredPhone() ?? ''}}</span>. Per disattivare l'autenticazione a più fattori via SMS, inserisci il codice nel seguente campo di input.
                   </p>
                 }
                 @case ('APP_TOTP') {
@@ -301,7 +301,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                       darkLabelClass="dark:text-dark-accent-secondary-hc"
                       darkTextErrorClass="dark:text-dark-error-hc"
                       darkFocusBorderClass="dark:focus:border-dark-accent-primary-btn-hc"
-                      darkFocusRingClass="dark:focus:ring-dark-accent-primary-btn"
+                      darkFocusRingClass="dark:focus:ring-dark-accent-primary-btn-hc"
                     />
 
                   @if (['SMS_OTP', 'APP_TOTP'].includes(currentMfaStrategy())) {
@@ -368,7 +368,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                       }
                     }
                   } @else {
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-light-error dark:text-dark-error">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-light-error dark:text-dark-error-hc">
                       <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                       <path d="M320 96C443.7 96 544 196.3 544 320C544 443.7 443.7 544 320 544C196.3 544 96 443.7 96 320C96 196.3 196.3 96 320 96zM320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM419.4 243.2L396.8 220.6L385.5 231.9L320 297.4L254.5 231.9L243.2 220.6L220.6 243.2L231.9 254.5L297.4 320L231.9 385.5L220.6 396.8L243.2 419.4L254.5 408.1L320 342.6L385.5 408.1L396.8 419.4L419.4 396.8L342.6 320L408.1 254.5L419.4 243.2z"/>
                     </svg>
@@ -406,7 +406,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                       <path d="M80 128L64 128L64 512L321.4 512C316.7 501.8 312.9 491.1 310 480L96 480L96 239.6L307.6 394.8C309.8 383.5 313 372.6 317.1 362.1L96 199.9L96 160L544 160L544 246C555.1 248.9 565.8 252.7 576 257.4L576 128L80 128zM496 320C557.9 320 608 370.1 608 432C608 493.9 557.9 544 496 544C434.1 544 384 493.9 384 432C384 370.1 434.1 320 496 320zM496 576C575.5 576 640 511.5 640 432C640 352.5 575.5 288 496 288C416.5 288 352 352.5 352 432C352 511.5 416.5 576 496 576zM566.4 380.5L540.5 361.7L531.1 374.6L478.1 447.5C457.7 427 445 414.3 440 409.4L417.4 432C420.2 434.8 437.3 451.9 468.7 483.3L481.9 496.5L492.9 481.4L556.9 393.4L566.3 380.5z"/>
                     </svg>
                     <span class="text-[0.925rem] leading-[1.25rem] text-light-on-surface-secondary dark:text-dark-on-surface-secondary inline-block pr-4">E-mail corrente:&nbsp;
-                      <strong class="text-light-accent-primary dark:text-dark-accent-primary">{{obscuredEmail()}}</strong>
+                      <strong class="text-light-accent-primary dark:text-dark-accent-primary-btn-hc">{{obscuredEmail()}}</strong>
                       .&nbsp; Inserisci nel campo di input la nuova e-mail che vuoi impostare. Una volta confermato il cambio, dovrai accedere a Mercurion con il nuovo indirizzo e tutte le notifiche arriveranno al nuovo indirizzo.
                     </span>
                   </div>
@@ -446,12 +446,12 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                       </svg>
                       <div class="text-[0.925rem] leading-[1.25rem] text-light-on-surface-secondary dark:text-dark-on-surface-secondary pr-4">
                         <ul class="list-disc list-inside mb-2 font-semibold">
-                          <li class="list-item py-2">E-mail corrente:&nbsp;<strong class="text-light-accent-primary dark:text-dark-accent-primary">{{obscuredEmail()}}</strong></li>
-                          <li class="list-item py-2">Nuova e-mail da confermare:&nbsp;<strong class="text-light-error dark:text-dark-error">{{tempObscuredEmail()}}</strong></li>
+                          <li class="list-item py-2">E-mail corrente:&nbsp;<strong class="text-light-accent-primary dark:text-dark-accent-primary-btn-hc">{{obscuredEmail()}}</strong></li>
+                          <li class="list-item py-2">Nuova e-mail da confermare:&nbsp;<strong class="text-light-error dark:text-dark-error-hc">{{tempObscuredEmail()}}</strong></li>
                         </ul>
                       </div>
                     </div>
-                    <span class="text-sm text-light-on-surface-secondary dark:text-dark-on-surface-secondary">Abbiamo inviato un codice monouso a&nbsp;<strong class="text-light-error dark:text-dark-error">{{tempObscuredEmail()}}</strong>. Inserisci il codice monouso nel campo di input seguente per confermare il cambio di indirizzo e-mail.</span>
+                    <span class="text-sm text-light-on-surface-secondary dark:text-dark-on-surface-secondary">Abbiamo inviato un codice monouso a&nbsp;<strong class="text-light-error dark:text-dark-error-hc">{{tempObscuredEmail()}}</strong>. Inserisci il codice monouso nel campo di input seguente per confermare il cambio di indirizzo e-mail.</span>
                   </div>
                   <div class="relative min-h-[25vh] rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
                     <div class="absolute inset-0 flex justify-center items-center px-6">
@@ -484,12 +484,12 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                       <path d="M320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM320 96C196.3 96 96 196.3 96 320C96 443.7 196.3 544 320 544C443.7 544 544 443.7 544 320C544 196.3 443.7 96 320 96zM438.3 236.5L428.9 249.4L300.9 425.4L289.9 440.6L201.3 352L223.9 329.4L286 391.5L403 230.7L412.4 217.8L438.3 236.6z"/>
                     </svg>
                     <span class="inline-block pr-4">L'indirizzo e-mail è stato correttamente cambiato da
-                      &nbsp;<strong class="text-light-error dark:text-dark-error">{{obscuredEmail()}}</strong>
+                      &nbsp;<strong class="text-light-error dark:text-dark-error-hc">{{obscuredEmail()}}</strong>
                       a
-                      &nbsp;<strong class="text-light-accent-primary dark:text-dark-accent-primary">{{tempObscuredEmail()}}</strong>.
+                      &nbsp;<strong class="text-light-accent-primary dark:text-dark-accent-primary-btn-hc">{{tempObscuredEmail()}}</strong>.
                     </span>
                   } @else {
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-light-error dark:text-dark-error">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-light-error dark:text-dark-error-hc">
                       <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                       <path d="M320 96C443.7 96 544 196.3 544 320C544 443.7 443.7 544 320 544C196.3 544 96 443.7 96 320C96 196.3 196.3 96 320 96zM320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM419.4 243.2L396.8 220.6L385.5 231.9L320 297.4L254.5 231.9L243.2 220.6L220.6 243.2L231.9 254.5L297.4 320L231.9 385.5L220.6 396.8L243.2 419.4L254.5 408.1L320 342.6L385.5 408.1L396.8 419.4L419.4 396.8L342.6 320L408.1 254.5L419.4 243.2z"/>
                     </svg>
@@ -501,7 +501,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                             <span class="inline-block pr-4">Hai raggiunto il limite massimo di richieste inoltrate al server.&nbsp;Riprova fra alcuni minuti.</span>
                           }
                           @case (403) {
-                            <span class="inline-block pr-4">Il cambio e-mail verso&nbsp;<strong class="text-light-error dark:text-dark-error">{{tempObscuredEmail()}}</strong>&nbsp;è temporaneamente non disponibile per motivi di sicurezza. Riprova tra 5 minuti.</span>
+                            <span class="inline-block pr-4">Il cambio e-mail verso&nbsp;<strong class="text-light-error dark:text-dark-error-hc">{{tempObscuredEmail()}}</strong>&nbsp;è temporaneamente non disponibile per motivi di sicurezza. Riprova tra 5 minuti.</span>
                           }
                           @default {
                             <span class="inline-block pr-4">Si è verificato un errore inaspettato. Contatta il supporto se dovesse ripetersi.</span>
@@ -522,7 +522,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                   </svg>
                     @if (innerScope() === 'ChangePhone') {
                       <span class="text-[0.925rem] leading-[1.25rem] text-light-on-surface-secondary dark:text-dark-on-surface-secondary inline-block pr-4">Numero di telefono corrente:&nbsp;
-                        <strong class="text-light-accent-primary dark:text-dark-accent-primary">{{obscuredPhone()}}</strong>
+                        <strong class="text-light-accent-primary dark:text-dark-accent-primary-btn-hc">{{obscuredPhone()}}</strong>
                         .&nbsp; Inserisci di seguito il nuovo numero di telefono che vuoi impostare. Una volta confermato il cambio, l'autenticazione a più fattori e le notifiche faranno riferimento al nuovo numero.
                       </span>
                     } @else {
@@ -574,16 +574,16 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                     <div class="text-[0.925rem] leading-[1.25rem] text-light-on-surface-secondary dark:text-dark-on-surface-secondary pr-4">
                       @if (innerScope() === 'ChangePhone') {
                         <ul class="list-disc list-inside mb-2 font-semibold">
-                          <li class="list-item py-2">Telefono corrente:&nbsp;<strong class="text-light-accent-primary dark:text-dark-accent-primary">{{obscuredPhone()}}</strong></li>
-                          <li class="list-item py-2">Nuovo telefono da confermare:&nbsp;<strong class="text-light-error dark:text-dark-error">{{tempObscuredPhone()}}</strong></li>
+                          <li class="list-item py-2">Telefono corrente:&nbsp;<strong class="text-light-accent-primary dark:text-dark-accent-primary-btn-hc">{{obscuredPhone()}}</strong></li>
+                          <li class="list-item py-2">Nuovo telefono da confermare:&nbsp;<strong class="text-light-error dark:text-dark-error-hc">{{tempObscuredPhone()}}</strong></li>
                         </ul>
                       } @else {
-                        <span class="text-sm">Abbiamo inviato via SMS un codice monouso a&nbsp;<strong class="text-light-error dark:text-dark-error">{{tempObscuredPhone()}}</strong>. Inserisci il codice monouso nel campo di input seguente per confermare l'aggiunta del nuovo numero di telefono.</span>
+                        <span class="text-sm">Abbiamo inviato via SMS un codice monouso a&nbsp;<strong class="text-light-error dark:text-dark-error-hc">{{tempObscuredPhone()}}</strong>. Inserisci il codice monouso nel campo di input seguente per confermare l'aggiunta del nuovo numero di telefono.</span>
                       }
                     </div>
                   </div>
                   @if (innerScope() === 'ChangePhone') {
-                    <span class="text-sm text-light-on-surface-secondary dark:text-dark-on-surface-secondary">Abbiamo inviato via SMS un codice monouso a&nbsp;<strong class="text-light-error dark:text-dark-error">{{tempObscuredPhone()}}</strong>. Inserisci il codice monouso nel campo di input seguente per confermare l'aggiunta del nuovo numero di telefono.</span>
+                    <span class="text-sm text-light-on-surface-secondary dark:text-dark-on-surface-secondary">Abbiamo inviato via SMS un codice monouso a&nbsp;<strong class="text-light-error dark:text-dark-error-hc">{{tempObscuredPhone()}}</strong>. Inserisci il codice monouso nel campo di input seguente per confermare l'aggiunta del nuovo numero di telefono.</span>
                   }
                 </div>
                 <div class="relative min-h-[25vh] rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
@@ -618,15 +618,15 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                     </svg>
                     @if (innerScope() === 'ChangePhone') {
                       <span class="inline-block pr-4">Il numero di telefono è stato correttamente cambiato da
-                        &nbsp;<strong class="text-light-error dark:text-dark-error">{{obscuredPhone()}}</strong>
+                        &nbsp;<strong class="text-light-error dark:text-dark-error-hc">{{obscuredPhone()}}</strong>
                         a
-                        &nbsp;<strong class="text-light-accent-primary dark:text-dark-accent-primary">{{tempObscuredPhone()}}</strong>.
+                        &nbsp;<strong class="text-light-accent-primary dark:text-dark-accent-primary-btn-hc">{{tempObscuredPhone()}}</strong>.
                       </span>
                     } @else {
-                      <span class="inline-block pr-4">Nuovo numero di telefono aggiunto con successo:&nbsp;<strong class="text-light-accent-primary dark:text-dark-accent-primary">{{tempObscuredPhone()}}</strong>.</span>
+                      <span class="inline-block pr-4">Nuovo numero di telefono aggiunto con successo:&nbsp;<strong class="text-light-accent-primary dark:text-dark-accent-primary-btn-hc">{{tempObscuredPhone()}}</strong>.</span>
                     }
                   } @else {
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-light-error dark:text-dark-error">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-light-error dark:text-dark-error-hc">
                       <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                       <path d="M320 96C443.7 96 544 196.3 544 320C544 443.7 443.7 544 320 544C196.3 544 96 443.7 96 320C96 196.3 196.3 96 320 96zM320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM419.4 243.2L396.8 220.6L385.5 231.9L320 297.4L254.5 231.9L243.2 220.6L220.6 243.2L231.9 254.5L297.4 320L231.9 385.5L220.6 396.8L243.2 419.4L254.5 408.1L320 342.6L385.5 408.1L396.8 419.4L419.4 396.8L342.6 320L408.1 254.5L419.4 243.2z"/>
                     </svg>
@@ -639,9 +639,9 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                           }
                           @case (403) {
                             @if (innerScope() === 'AddPhone') {
-                              <span class="inline-block pr-4">L'aggiunta del nuovo numero di telefono&nbsp;<strong class="text-light-error dark:text-dark-error">{{tempObscuredPhone()}}</strong>&nbsp;è temporaneamente non disponibile per motivi di sicurezza. Riprova tra 5 minuti.</span>
+                              <span class="inline-block pr-4">L'aggiunta del nuovo numero di telefono&nbsp;<strong class="text-light-error dark:text-dark-error-hc">{{tempObscuredPhone()}}</strong>&nbsp;è temporaneamente non disponibile per motivi di sicurezza. Riprova tra 5 minuti.</span>
                             } @else {
-                              <span class="inline-block pr-4">Il cambio di numero di telefono&nbsp;<strong class="text-light-error dark:text-dark-error">{{tempObscuredPhone()}}</strong>&nbsp;è temporaneamente non disponibile per motivi di sicurezza. Riprova tra 5 minuti.</span>
+                              <span class="inline-block pr-4">Il cambio di numero di telefono&nbsp;<strong class="text-light-error dark:text-dark-error-hc">{{tempObscuredPhone()}}</strong>&nbsp;è temporaneamente non disponibile per motivi di sicurezza. Riprova tra 5 minuti.</span>
                             }
                           }
                           @default {
@@ -663,7 +663,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                       <path d="M144.1 121.3L144.1 64L496.1 64L496.1 473.3L606.7 583.9L584.1 606.5L33.7 56.1L56.3 33.5L144.1 121.3zM176.1 266.5L176.1 544L453.6 544L485.6 576L144.1 576L144.1 234.5L176.1 266.5zM368.1 496L272.1 496L272.1 464L368.1 464L368.1 496zM176.1 153.3L464.1 441.3L464.1 96L176.1 96L176.1 153.3z"/>
                     </svg>
                     <div class="text-[0.925rem] leading-[1.25rem] text-light-on-surface-secondary dark:text-dark-on-surface-secondary pr-4">
-                      <span class="text-sm">Abbiamo inviato via SMS un codice monouso a&nbsp;<strong class="text-light-accent-primary dark:text-dark-accent-primary">{{obscuredPhone()}}</strong>. Inserisci il codice monouso nel campo di input seguente per confermare l'eliminazione del nuovo numero di telefono dal tuo account.</span>
+                      <span class="text-sm">Abbiamo inviato via SMS un codice monouso a&nbsp;<strong class="text-light-accent-primary dark:text-dark-accent-primary-btn-hc">{{obscuredPhone()}}</strong>. Inserisci il codice monouso nel campo di input seguente per confermare l'eliminazione del nuovo numero di telefono dal tuo account.</span>
                     </div>
                   </div>
                 </div>
@@ -700,13 +700,13 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                     <span class="inline-block pr-4">
                       Il numero di telefono è stato correttamente eliminato dall'account.
                       @if (phoneMfaDisabled()) {
-                        &nbsp;<span class="font-semibold text-light-accent-primary dark:text-dark-accent-primary">
+                        &nbsp;<span class="font-semibold text-light-accent-primary dark:text-dark-accent-primary-btn-hc">
                           L'autenticazione a più fattori via SMS è stata disabilitata
                         </span>.
                       }
                     </span>
                   } @else {
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-light-error dark:text-dark-error">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-light-error dark:text-dark-error-hc">
                       <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                       <path d="M320 96C443.7 96 544 196.3 544 320C544 443.7 443.7 544 320 544C196.3 544 96 443.7 96 320C96 196.3 196.3 96 320 96zM320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM419.4 243.2L396.8 220.6L385.5 231.9L320 297.4L254.5 231.9L243.2 220.6L220.6 243.2L231.9 254.5L297.4 320L231.9 385.5L220.6 396.8L243.2 419.4L254.5 408.1L320 342.6L385.5 408.1L396.8 419.4L419.4 396.8L342.6 320L408.1 254.5L419.4 243.2z"/>
                     </svg>
@@ -718,7 +718,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                           <span class="inline-block pr-4">Hai raggiunto il limite massimo di richieste inoltrate al server.&nbsp;Riprova fra alcuni minuti.</span>
                         }
                         @case (403) {
-                          <span class="inline-block pr-4">L'eliminazione del numero di telefono&nbsp;<strong class="text-light-error dark:text-dark-error">{{obscuredPhone()}}</strong>&nbsp;è temporaneamente non disponibile per motivi di sicurezza. Riprova tra 5 minuti.</span>
+                          <span class="inline-block pr-4">L'eliminazione del numero di telefono&nbsp;<strong class="text-light-error dark:text-dark-error-hc">{{obscuredPhone()}}</strong>&nbsp;è temporaneamente non disponibile per motivi di sicurezza. Riprova tra 5 minuti.</span>
                         }
                         @default {
                           <span class="inline-block pr-4">Si è verificato un errore inaspettato. Contatta il supporto se dovesse ripetersi.</span>
@@ -803,7 +803,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                   </svg>
                   <span class="inline-block pr-4">La password è stata modificata con successo</span>
                 } @else {
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-light-error dark:text-dark-error">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-light-error dark:text-dark-error-hc">
                     <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                     <path d="M320 96C443.7 96 544 196.3 544 320C544 443.7 443.7 544 320 544C196.3 544 96 443.7 96 320C96 196.3 196.3 96 320 96zM320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM419.4 243.2L396.8 220.6L385.5 231.9L320 297.4L254.5 231.9L243.2 220.6L220.6 243.2L231.9 254.5L297.4 320L231.9 385.5L220.6 396.8L243.2 419.4L254.5 408.1L320 342.6L385.5 408.1L396.8 419.4L419.4 396.8L342.6 320L408.1 254.5L419.4 243.2z"/>
                   </svg>
@@ -855,7 +855,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         [class.invisible]="enableMfaStep() === 'CHOOSE_STRATEGY' || disableMfaStep() === 'CHOOSE_STRATEGY'"
         (click)="routeAction()"
         type="button"
-        class="relative inline-flex items-center justify-center px-4 py-2 rounded-lg bg-light-accent-primary text-white font-semibold shadow-md hover:bg-light-accent-primary/90 dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary disabled:bg-light-accent-primary/50 disabled:cursor-not-allowed transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary/50"
+        class="relative inline-flex items-center justify-center px-4 py-2 rounded-lg bg-light-accent-primary text-white font-semibold shadow-md hover:bg-light-accent-primary/90 dark:bg-dark-accent-primary-btn-hc dark:hover:bg-dark-accent-primary-btn-hc focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary disabled:bg-light-accent-primary/50 disabled:cursor-not-allowed transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary/50"
         [disabled]="
           loading()
           || (innerScope() === 'ChangeEmail' && changeEmailStep() === 'NEW_CONTACT_FORM' && emailCtrl.invalid)
