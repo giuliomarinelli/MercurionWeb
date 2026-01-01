@@ -59,6 +59,8 @@ export class SessionSyncService {
   private toastMuteTimer!: ReturnType<typeof setTimeout>
   private toastMutedUntil = 0
   private readonly voluntaryLogoutToastSilenceMs = 3000
+  private lastVoluntaryLogoutAt = 0
+  private readonly voluntaryLogoutGraceMs = 12_000
 
   constructor(
     private readonly socket: RealtimeSocketService,
@@ -137,6 +139,7 @@ export class SessionSyncService {
   }
 
   notifyVoluntaryLogout(): void {
+    this.lastVoluntaryLogoutAt = Date.now()
     this.startToastMuteWindow()
     this._voluntaryLogoutTick.update((x) => x + 1)
   }
@@ -331,11 +334,12 @@ export class SessionSyncService {
   }
 
   private handleSessionExpired(): void {
+    const voluntary = this.isVoluntaryLogoutRecent()
     // evento di scadenza lato server → consideralo definitivo anche se il cookie esiste ancora
     const alreadyExpired = this._status() === 'sessionExpired'
     this.userCtx.logout()
-    const muted = alreadyExpired || Date.now() < this.toastMutedUntil
-    this._status.set('sessionExpired')
+    const muted = voluntary || alreadyExpired || Date.now() < this.toastMutedUntil
+    this._status.set(voluntary ? 'anonymous' : 'sessionExpired')
     this.becomeAnonymous({
       toast: muted ? undefined : 'Sessione scaduta o invalidata. Effettua di nuovo il login.',
       level: 'error',
@@ -426,6 +430,10 @@ export class SessionSyncService {
   private triggerToast(message: string, level: ToastContext) {
     if (Date.now() < this.toastMutedUntil) return
     this.toast.trigger(message, level)
+  }
+
+  private isVoluntaryLogoutRecent(): boolean {
+    return Date.now() - this.lastVoluntaryLogoutAt <= this.voluntaryLogoutGraceMs
   }
 
   private startToastMuteWindow(): void {

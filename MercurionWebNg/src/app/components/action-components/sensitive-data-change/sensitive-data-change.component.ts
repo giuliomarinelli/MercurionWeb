@@ -19,6 +19,8 @@ import { Router, RouterLink } from '@angular/router';
 import { PmSelectComponent } from '../../common/pm-select/pm-select.component';
 import { PmOption } from '../../../Models/pm-option.model';
 import { Maybe } from 'graphql/jsutils/Maybe';
+import { CopyService } from '../../../services/copy.service';
+import { CopyUiService } from '../../../services/copy-ui.service';
 
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -214,7 +216,27 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
               @if (backupCodes().length !== 0) {
                 <div class="px-5 sm:px-6 py-4 border border-amber-200 dark:border-dark-border bg-yellow-50 dark:bg-slate-700 flex gap-4 sm:gap-6 items-center rounded-lg">
                   <div class="relative -top-6">
-                    <h4 class="my-3 pt-6 font-semibold text-center">Codici di backup</h4>
+                    <h4 class="flex items-center gap-4 my-3 pt-6 font-semibold justify-center">
+                      <span class="text-center">Codici di backup</span>
+                      <button
+                       type="button"
+                       class="relative p-1.5 rounded-md hover:bg-slate-200 dark:hover:bg-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary transition-colors duration-150"
+                       title="Copia."
+                       (click)="copy('BackupCodes')"
+                     >
+                       <svg
+                         class="shrink-0 size-5 text-slate-600 dark:text-slate-300"
+                         viewBox="0 0 20 20"
+                         fill="currentColor"
+                         aria-hidden="true">
+                           <path
+                             d="M4 4a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v1h-1V4a1 1 0 0 0-1-1H6a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h1v1H6a2 2 0 0 1-2-2V4z"
+                           />
+                           <path
+                             d="M8 6a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2V6z" />
+                       </svg>
+                     </button>
+                    </h4>
                     <p class="text-sm text-center mb-6 text-[#374151] dark:text-dark-on-surface-secondary">Copia questi codici in un password manager o stampali e custodiscili in un posto sicuro. Ti permetteranno di accedere nel caso in cui perdessi l'accesso al tuo dispositivo.</p>
                     <div class="flex gap-4 flex-wrap justify-center">
                       @for (code of backupCodes(); track code) {
@@ -232,7 +254,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                 <path d="M256 240C256 160.5 320.5 96 400 96C479.5 96 544 160.5 544 240C544 319.5 479.5 384 400 384C388.9 384 378 382.7 367.6 380.4L359 378.4L352.7 384.7L321.3 416.1L255.9 416.1L255.9 480.1L191.9 480.1L191.9 544.1L95.9 544.1L95.9 462.7L258.7 299.9L265.6 293L262.7 283.7C258.3 269.9 256 255.3 256 240zM400 64C302.8 64 224 142.8 224 240C224 255.1 225.9 269.8 229.5 283.9L68.7 444.7L64 449.4L64 576L224 576L224 512L288 512L288 448L334.6 448L339.3 443.3L369.3 413.3C379.3 415.1 389.5 416 400 416C497.2 416 576 337.2 576 240C576 142.8 497.2 64 400 64zM432 232C445.3 232 456 221.3 456 208C456 194.7 445.3 184 432 184C418.7 184 408 194.7 408 208C408 221.3 418.7 232 432 232z"/>
               </svg>
               <p class="font-semibold pr-4">
-                Scansiona il QR con la tua app di autenticazione per configurare l'autenticazione a più fattori, oppure copia nella tua app di autenticazione il codice qui riportato.
+                Scansiona il QR Code con la tua app di autenticazione per configurare l'autenticazione a più fattori, oppure copia nella tua app di autenticazione il codice qui riportato.
               </p>
             </div>
             <img class="w-52 mt-5 mx-auto rounded-lg border border-slate-300 dark:border-dark-border/70" [src]="qrCode()" alt="QR Code">
@@ -242,6 +264,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                 type="button"
                 class="relative p-1.5 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary transition-colors duration-150"
                 title="Copia."
+                (click)="copy('AppSecret')"
               >
                 <svg
                   class="shrink-0 size-7 text-slate-600 dark:text-slate-300"
@@ -927,6 +950,7 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService)
   private readonly countryService = inject(CountryService)
   private readonly router = inject(Router)
+  private readonly copyUiService = inject(CopyUiService)
 
   emailCtrl!: FormControl<string>
   phoneForm!: FormGroup
@@ -1529,6 +1553,31 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
         error: (e: HttpErrorResponse) => this.serverError.set(e.status)
       })
     }
+  }
+
+  copy(scope: 'AppSecret' | 'BackupCodes'): void {
+
+    let secret = ''
+
+    switch (scope) {
+      case 'AppSecret':
+        secret = this.appSecret()
+        break
+      case 'BackupCodes':
+        secret = this.backupCodes()?.join(' \n')
+        break
+    }
+
+    this.copyUiService
+      .copy(secret, {
+        successMessage: 'Codice copiato negli appunti ✅',
+        errorMessage: 'Impossibile copiare il codice. Copialo manualmente.',
+        successContext: 'success',
+        errorContext: 'error',
+        durationMs: 2200,
+        forceToast: false,
+      })
+
   }
 
 }

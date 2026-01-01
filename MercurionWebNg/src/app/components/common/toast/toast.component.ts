@@ -12,7 +12,7 @@ export type ToastContext = 'error' | 'warn' | 'success'
   template: `
     @if (toast.show()) {
       <div
-        class="fixed top-8 right-4 z-50 max-w-[250px] 2xs:max-w-[320px] sm:max-w-sm xs:w-full mx-4 px-4 py-6 text-lg rounded-md text-white shadow-lg transition-all duration-700 transform"
+        class="fixed top-8 right-4 z-50 max-w-[250px] 2xs:max-w-[320px] sm:max-w-sm xs:w-full mx-4 px-4 py-6 text-lg rounded-md text-white shadow-lg transition-transform duration-700 transform"
         [ngClass]="className"
         [class.translate-x-full]="!toast.slideIn()"
         [class.translate-x-0]="toast.slideIn()"
