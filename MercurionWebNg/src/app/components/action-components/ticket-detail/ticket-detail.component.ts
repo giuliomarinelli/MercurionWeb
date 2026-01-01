@@ -90,21 +90,25 @@ import { AppContextService } from '../../../services/context/app-context.service
     <div class="flex justify-center items-center min-h-screen px-2">
       <div
         class="w-full max-w-5xl bg-white dark:bg-dark-surface-main rounded-xl shadow-lg"
+        role="region"
+        aria-labelledby="ticketDetailHeading"
+        [attr.aria-busy]="loading"
       >
         <div
           class="flex items-center justify-between px-4 py-4 border-b border-b-slate-400 sticky top-0 z-50 rounded-t-xl bg-white dark:bg-dark-surface-main"
         >
-          <h2 class="text-lg font-semibold">
+          <h2 id="ticketDetailHeading" class="text-lg font-semibold">
             Dettaglio Ticket&nbsp;
             <span
-              class="font-semibold text-light-accent-secondary dark:text-dark-accent-secondary"
+              class="font-semibold text-light-accent-secondary dark:text-dark-accent-secondary-hc"
               [innerText]="ticket()?.publicId ? '#' + ticket()!.publicId : ''"
             >
             </span>
           </h2>
           <button
-            class="inline-flex items-center justify-center size-8 rounded-md text-slate-500 hover:text-emerald-600 hover:bg-slate-100 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-transparent transition"
+            class="inline-flex items-center justify-center size-8 rounded-md text-slate-700 dark:text-slate-200 hover:text-light-accent-primary-hq hover:dark:text-dark-accent-primary-btn-hc hover:bg-slate-100 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-light-accent-primary-hq focus:ring-offset-2 focus:dark:ring-dark-accent-primary-btn-hc focus:ring-offset-white dark:focus:ring-offset-transparent transition"
             (click)="close()"
+            aria-label="Chiudi dettaglio ticket"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -121,6 +125,8 @@ import { AppContextService } from '../../../services/context/app-context.service
         @if (ticket()) {
           <div
             class="px-4 py-3 border-b border-slate-200/70 dark:border-slate-700/60 bg-slate-50/70 dark:bg-slate-800/40 flex flex-col gap-2"
+            role="status"
+            aria-live="polite"
           >
             <div class="flex flex-wrap items-center gap-2">
               <span
@@ -138,7 +144,7 @@ import { AppContextService } from '../../../services/context/app-context.service
 
               @if (innerScope() === 'Support' && typeGuards.isTicket(ticket())) {
                 <span
-                  class="text-xs text-slate-600 dark:text-slate-300"
+                  class="text-xs text-slate-700 dark:text-slate-200"
                 >
                   Utente:
                   <span class="font-medium">
@@ -155,7 +161,7 @@ import { AppContextService } from '../../../services/context/app-context.service
             </div>
 
             <div
-              class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400"
+              class="flex flex-wrap items-center gap-3 text-xs text-slate-700 dark:text-slate-200"
             >
               <div class="inline-flex items-center gap-1.5">
                 <svg
@@ -205,10 +211,12 @@ import { AppContextService } from '../../../services/context/app-context.service
                 <button
                   type="button"
                   class="px-3 py-1.5 rounded-md border text-xs font-semibold
-                         border-slate-300 dark:border-slate-600
+                         border-slate-400 dark:border-slate-500
                          text-slate-700 dark:text-slate-200
                          hover:bg-slate-200 dark:hover:bg-slate-700 transition"
                   (click)="closeTicket()"
+                  [attr.aria-disabled]="false"
+                  aria-label="Chiudi ticket"
                 >
                   Chiudi ticket
                 </button>
@@ -218,10 +226,12 @@ import { AppContextService } from '../../../services/context/app-context.service
                 <button
                   type="button"
                   class="px-3 py-1.5 rounded-md border text-xs font-semibold
-                         border-indigo-300/70 dark:border-indigo-400/60
-                         text-indigo-700 dark:text-indigo-200
-                         hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition"
+                         border-light-accent-primary-hq dark:border-indigo-400/60
+                         text-light-accent-primary-hq dark:text-indigo-200
+                         hover:bg-light-accent-primary-hc/20 dark:hover:bg-indigo-900/20 transition"
                   (click)="reopenTicket()"
+                  [attr.aria-disabled]="false"
+                  aria-label="Riapri ticket"
                 >
                   Riapri ticket
                 </button>
@@ -233,6 +243,9 @@ import { AppContextService } from '../../../services/context/app-context.service
         <div
           #scrollRoot
           class="py-6 px-3 overflow-y-auto flex flex-col gap-4 min-h-[30vh] max-h-[40vh]"
+          role="list"
+          aria-label="Messaggi del ticket"
+          aria-live="polite"
         >
           <div #sentinel class="w-full h-px"></div>
 
@@ -256,7 +269,7 @@ import { AppContextService } from '../../../services/context/app-context.service
           @if (ticket()?.status !== 'Closed') {
             <m-ticket-composer (send)="onSend($event)" />
           } @else {
-            <p class="text-center text-xs py-8 text-slate-500 dark:text-slate-300 cursor-default">Il ticket è chiuso, non è possibile inviare messaggi.</p>
+            <p class="text-center text-xs py-8 text-slate-700 dark:text-slate-200 cursor-default">Il ticket è chiuso, non è possibile inviare messaggi.</p>
           }
         </div>
       </div>
@@ -499,15 +512,15 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
     const s = this.ticket()?.status;
     switch (s) {
       case 'Open':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200/70 dark:bg-emerald-900/20 dark:text-emerald-200 dark:border-emerald-700/40';
+        return 'bg-emerald-50 text-emerald-800 border-emerald-200/70 dark:bg-emerald-900/20 dark:text-emerald-200 dark:border-emerald-700/40';
       case 'WaitingSupport':
-        return 'bg-amber-50 text-amber-700 border-amber-200/70 dark:bg-amber-900/20 dark:text-amber-200 dark:border-amber-700/40';
+        return 'bg-amber-50 text-amber-800 border-amber-200/70 dark:bg-amber-900/20 dark:text-amber-200 dark:border-amber-700/40';
       case 'WaitingUser':
-        return 'bg-sky-50 text-sky-700 border-sky-200/70 dark:bg-sky-900/20 dark:text-sky-200 dark:border-sky-700/40';
+        return 'bg-sky-50 text-sky-800 border-sky-200/70 dark:bg-sky-900/20 dark:text-sky-200 dark:border-sky-700/40';
       case 'Closed':
-        return 'bg-slate-200 text-slate-700 border-slate-300/70 dark:bg-slate-700/60 dark:text-slate-200 dark:border-slate-600/60';
+        return 'bg-slate-200 text-slate-800 border-slate-300/70 dark:bg-slate-700/60 dark:text-slate-200 dark:border-slate-600/60';
       default:
-        return 'bg-slate-100 text-slate-700 border-slate-200/70 dark:bg-slate-800/60 dark:text-slate-200 dark:border-slate-700/60';
+        return 'bg-slate-100 text-slate-800 border-slate-200/70 dark:bg-slate-800/60 dark:text-slate-200 dark:border-slate-700/60';
     }
   });
 

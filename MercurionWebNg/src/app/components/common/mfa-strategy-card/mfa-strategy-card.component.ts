@@ -22,7 +22,11 @@ import { DesignService } from '../../../services/design.service';
       [ngClass]="{
         'cursor-pointer hover:-translate-y-1 hover:shadow-md': choose,
         'cursor-default': !choose
-    }">
+    }"
+      role="group"
+      [attr.aria-label]="ariaLabel()"
+      [attr.aria-live]="choose ? 'polite' : 'off'"
+    >
 
 
       <div class="flex items-center gap-6">
@@ -101,6 +105,8 @@ import { DesignService } from '../../../services/design.service';
             transition-colors duration-150
           "
           (click)="handleActionClick()"
+          [attr.aria-pressed]="_strategy()!.enabled"
+          [attr.aria-label]="actionLabel()"
         >
           @if (!_strategy()!.enabled) {
               <svg xmlns="http://www.w3.org/2000/svg"
@@ -212,6 +218,36 @@ export class MfaStrategyCardComponent {
 
   doAddNewPhone(): void {
     this.onAddNewPhone.emit()
+  }
+
+  ariaLabel(): string {
+    const s = this._strategy()
+    if (!s) return 'Strategia MFA'
+    const enabled = s.enabled ? 'attiva' : 'non attiva'
+    const remaining = this._remainingBackupCodes()
+    const suffix = s.strategy === 'BACKUP_CODE' && remaining >= 0 ? `, codici di backup rimanenti ${remaining}` : ''
+    return `Strategia ${this.labelForStrategy(s.strategy)}, ${enabled}${suffix}`
+  }
+
+  actionLabel(): string {
+    const s = this._strategy()
+    if (!s) return 'Attiva o disattiva strategia'
+    return s.enabled ? `Disattiva ${this.labelForStrategy(s.strategy)}` : `Attiva ${this.labelForStrategy(s.strategy)}`
+  }
+
+  private labelForStrategy(strategy: MfaStrategy): string {
+    switch (strategy) {
+      case 'EMAIL_OTP':
+        return 'codice via email'
+      case 'SMS_OTP':
+        return 'codice via SMS'
+      case 'APP_TOTP':
+        return 'app di autenticazione'
+      case 'BACKUP_CODE':
+        return 'codici di backup'
+      default:
+        return 'strategia MFA'
+    }
   }
 
 }

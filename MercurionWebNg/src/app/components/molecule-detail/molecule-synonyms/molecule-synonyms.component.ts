@@ -3,8 +3,8 @@ import { Component, Input, signal } from '@angular/core';
 @Component({
   selector: 'm-molecule-synonyms',
   template: `
-    <section class="mt-4 mb-8">
-      <h2 class="text-xl font-semibold pb-6 text-light-accent-primary dark:text-dark-accent-primary text-center sm:text-left">Sinonimi</h2>
+    <section class="mt-4 mb-8" aria-labelledby="synonyms-heading">
+      <h2 id="synonyms-heading" class="text-xl font-semibold pb-6 text-light-accent-primary dark:text-dark-accent-primary text-center sm:text-left">Sinonimi</h2>
       @if (synonyms().length > 0) {
         <ul class="flex flex-wrap gap-2 justify-center sm:justify-start">
           @for (syn of synonyms(); track syn) {

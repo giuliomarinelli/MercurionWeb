@@ -26,7 +26,7 @@ import { HttpErrorResponse } from '@angular/common/http';
   template: `
 
     <!-- login-placeholder-mercurion.component.html -->
-    <div class="min-h-screen flex flex-col items-center px-4 pt-9">
+    <div class="min-h-screen flex flex-col items-center px-4 pt-9" role="main" aria-labelledby="account-recovery-heading">
       <!-- Logo -->
       <img
         [src]="logoSrc() | public"
@@ -36,13 +36,14 @@ import { HttpErrorResponse } from '@angular/common/http';
 
       <!-- Welcome Message -->
       <h1
+        id="account-recovery-heading"
         class="text-2xl font-semibold text-gray-900 mb-8 tracking-wider dark:text-slate-100 text-center flex items-center gap-4"
       >
         <span>Recupero dell'account.</span>
       </h1>
-      <div class="w-full max-w-sm bg-slate-200 dark:bg-slate-800 border mb-8 border-slate-300 dark:border-slate-600 relative p-3 rounded-md text-sm flex gap-2 xs:gap-4 items-center flex-col xs:flex-row">
+      <div class="w-full max-w-sm bg-slate-200 dark:bg-slate-800 border mb-8 border-slate-300 dark:border-slate-600 relative p-3 rounded-md text-sm flex gap-2 xs:gap-4 items-center flex-col xs:flex-row" aria-live="polite">
         @if ([1, 2].includes(step())) {
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current text-light-warning dark:text-dark-warning size-12 shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current text-amber-950 dark:text-dark-warning size-12 shrink-0">
             <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
             <path d="M592 544L48 544L320 48L592 544zM292 420L292 476L348 476L348 420L292 420zM288 224L300.8 384L339.2 384L352 224L288 224z"/>
           </svg>
@@ -55,15 +56,15 @@ import { HttpErrorResponse } from '@angular/common/http';
         <div class="flex flex-col gap-y-2 min-w-0 break-words">
           @switch (step()) {
               @case (1) {
-                <span>Inserisci il codice di recupero dell'account che ti abbiamo fornito al momento dell'attivazione e clicca su <span class="font-semibold text-light-accent-secondary dark:text-dark-accent-secondary">Continua</span></span>
+                <span>Inserisci il codice di recupero dell'account che ti abbiamo fornito al momento dell'attivazione e clicca su <span class="font-semibold text-light-accent-primary-hq dark:text-dark-accent-primary-btn-hc">Continua</span></span>
               }
               @case (2) {
-                <span>L'account è stato bloccato e ogni sessione è stata invalidata. Inserisci un indirizzo e-mail a cui hai accesso sicuro e una password complessa per reimpostare il tuo account e sbloccarlo, poi clicca su <span class="font-semibold text-light-accent-secondary dark:text-dark-accent-secondary">Continua</span> per procedere.</span>
+                <span>L'account è stato bloccato e ogni sessione è stata invalidata. Inserisci un indirizzo e-mail a cui hai accesso sicuro e una password complessa per reimpostare il tuo account e sbloccarlo, poi clicca su <span class="font-semibold text-light-accent-primary-hq dark:text-dark-accent-primary-btn-hc">Continua</span> per procedere.</span>
               }
               @case (3) {
                 <p class="font-semibold">L'account è stato ripristinato con successo.</p>
                 <p><span>Questo è il codice per recuperare l'account nel caso non riuscissi più ad accedere. Lo puoi visualizzare solo in questo momento. <br />Salvalo in un posto sicuro, come un Password Manager oppure stampalo e custodiscilo in un luogo inaccessibile ad altri:</span>.</p>
-                <p class="text-light-warning dark:text-dark-warning font-semibold">{{recoveryCode()}}</p>
+                <p class="text-amber-950 dark:text-dark-warning font-semibold" aria-live="assertive">{{recoveryCode()}}</p>
                 <p><a class="a" routerLink="/login">Vai al login</a></p>
               }
           }
@@ -85,13 +86,17 @@ import { HttpErrorResponse } from '@angular/common/http';
                 }"
                 [disabled]="loading()"
                 [serverError]="computeServerErrorMsg(this.serverErrorStep())"
-                (enter)="goToSecondStep()" />
+                (enter)="goToSecondStep()"
+                darkLabelClass = 'dark:text-dark-accent-secondary-hc'
+                darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
+                darkFocusBorderClass = 'dark:focus:border-dark-accent-primary'/>
             </div>
               <button
                 type="submit"
                 [disabled]="loading() || !turnstileToken() || codeCtrl.invalid"
+                [attr.aria-disabled]="loading() || !turnstileToken() || codeCtrl.invalid"
                 (click)="goToSecondStep()"
-                class="relative bottom-[2px] w-full mt-4 py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary/80 dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary/60 disabled:hover:dark:bg-dark-accent-primary/80">
+                class="relative bottom-[2px] w-full mt-4 py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary-hq dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary-hc dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary-hq/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary-hq/60 disabled:hover:dark:bg-dark-accent-primary/80">
                 @if (!loading()) {
                   Continua
                 } @else {
@@ -129,7 +134,10 @@ import { HttpErrorResponse } from '@angular/common/http';
                     email: 'Formato e-mail non corretto',
                     pattern: 'Formato e-mail non corretto'
                   }"
-                  [disabled]="loading()" />
+                  [disabled]="loading()"
+                  darkLabelClass = 'dark:text-dark-accent-secondary-hc'
+                  darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
+                  darkFocusBorderClass = 'dark:focus:border-dark-accent-primary' />
               </div>
               <div class="relative mb-6 mt-2">
                 <m-floating-input
@@ -140,25 +148,32 @@ import { HttpErrorResponse } from '@angular/common/http';
                 [errors]="{
                     required: 'Password obbligatoria.',
                     pattern: 'La password deve essere di almeno 8 caratteri: almeno uno minuscolo, uno maiuscolo, un numero e un carattere speciale.'
-                  }" />
+                  }"
+                  darkLabelClass = 'dark:text-dark-accent-secondary-hc'
+                  darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
+                  darkFocusBorderClass = 'dark:focus:border-dark-accent-primary' />
               </div>
               <div class="relative mb-6 mt-2">
                 <m-floating-input
-                label="Reinserisci la nuova password"
-                type="password"
-                autocomplete="current-password"
-                formControlName="confirmPassword"
-                [errors]="{
-                    required: 'Il campo di conferma password è obbligatorio.',
-                    matchPassword: 'Le due password non corrispondono.'
-                  }"
-                [serverError]="computeServerErrorMsg(this.serverErrorStep())" />
+                  label="Reinserisci la nuova password"
+                  type="password"
+                  autocomplete="current-password"
+                  formControlName="confirmPassword"
+                  [errors]="{
+                      required: 'Il campo di conferma password è obbligatorio.',
+                      matchPassword: 'Le due password non corrispondono.'
+                    }"
+                  [serverError]="computeServerErrorMsg(this.serverErrorStep())"
+                  darkLabelClass = 'dark:text-dark-accent-secondary-hc'
+                  darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
+                  darkFocusBorderClass = 'dark:focus:border-dark-accent-primary' />
               </div>
               <div class="relative mb-3 mt-2">
                 <button
                   type="submit"
                   [disabled]="loading() || !turnstileToken() || recoveryGroup.invalid"
-                  class="relative bottom-[2px] w-full mt-4 py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary/80 dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary/60 disabled:hover:dark:bg-dark-accent-primary/80"
+                  [attr.aria-disabled]="loading() || !turnstileToken() || recoveryGroup.invalid"
+                  class="relative bottom-[2px] w-full mt-4 py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary-hq dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary-hc dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary-hq/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary-hq/60 disabled:hover:dark:bg-dark-accent-primary/80"
                 >
                   @if (!loading()) {
                     Continua
@@ -192,11 +207,11 @@ import { HttpErrorResponse } from '@angular/common/http';
               <div class="w-full border-t"></div>
             </div>
             <div class="relative flex justify-center text-sm">
-              <span class="bg-light-surface-main dark:bg-neutral-950 px-2 text-gray-500 dark:text-slate-300">OPPURE</span>
+              <span class="bg-light-surface-main dark:bg-neutral-950 px-2 text-slate-700 dark:text-slate-200">OPPURE</span>
             </div>
           </div>
           <div class="space-y-3 dark:text-slate-100">
-            <a routerLink="/help"
+            <a href="mailto:mercurion.app@gmail.com"
               class="w-full flex items-center justify-center border rounded-md py-2.5 text-sm dark:hover:bg-slate-100 gap-3 dark:hover:text-neutral-900 hover:bg-slate-200/80 bg-slate-200 dark:bg-transparent transition-colors duration-150">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="h-5 w-auto fill-current">
                 <path d="M544 248l0 3.3 69.7-69.7c21.9-21.9 21.9-57.3 0-79.2L535.6 24.4c-21.9-21.9-57.3-21.9-79.2 0L416.3 64.5c-2.7-.3-5.5-.5-8.3-.5L296 64c-37.1 0-67.6 28-71.6 64l-.4 0 0 120c0 22.1 17.9 40 40 40s40-17.9 40-40l0-72c0 0 0-.1 0-.1l0-15.9 16 0 136 0c0 0 0 0 .1 0l7.9 0c44.2 0 80 35.8 80 80l0 8zM336 192l0 56c0 39.8-32.2 72-72 72s-72-32.2-72-72l0-118.6c-35.9 6.2-65.8 32.3-76 68.2L99.5 255.2 26.3 328.4c-21.9 21.9-21.9 57.3 0 79.2l78.1 78.1c21.9 21.9 57.3 21.9 79.2 0l37.7-37.7c.9 0 1.8 .1 2.7 .1l160 0c26.5 0 48-21.5 48-48c0-5.6-1-11-2.7-16l2.7 0c26.5 0 48-21.5 48-48c0-12.8-5-24.4-13.2-33c25.7-5 45.1-27.6 45.2-54.8l0-.4c-.1-30.8-25.1-55.8-56-55.8c0 0 0 0 0 0l-120 0z" />

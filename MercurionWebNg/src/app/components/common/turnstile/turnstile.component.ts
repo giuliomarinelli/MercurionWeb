@@ -16,7 +16,7 @@ import { ThemeManagerService } from '../../../services/context/theme-manager.ser
 @Component({
   selector: 'm-turnstile',
   template: `
-    <div [id]="containerId"></div>
+    <div [id]="containerId" role="group" aria-label="Verifica di sicurezza"></div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

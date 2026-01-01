@@ -14,7 +14,7 @@ import { NgClass } from '@angular/common';
     NgClass
   ],
   template: `
-    <header class="flex flex-wrap gap-3 justify-between" aria-labelledby="molecule-name">
+    <header class="flex flex-wrap gap-3 justify-between" aria-labelledby="molecule-name" role="banner">
       <div class="space-y-2 ">
         @if (_myMol()) {
           @if (!_isCustom()) {
@@ -56,6 +56,7 @@ import { NgClass } from '@angular/common';
             title="Crea una nuova molecola da questa struttura (Duplica)"
             [routerLink]="pathToDuplicate().url"
             [queryParams]="pathToDuplicate().queryParams"
+            aria-label="Duplica molecola {{ name() }}"
           >
             <svg
               class="size-7 text-slate-600 dark:text-slate-300"
@@ -79,6 +80,7 @@ import { NgClass } from '@angular/common';
                      transition-colors duration-150"
               title="Elimina da tutte le collezioni"
               (click)="doDelete()"
+              aria-label="Elimina molecola {{ name() }}"
             >
               <svg
                 class="size-7 text-light-error dark:text-dark-error"
@@ -103,6 +105,7 @@ import { NgClass } from '@angular/common';
                      transition-colors duration-150"
               title="Aggiungi ad una o più collezioni molecolari"
               (click)="doAddToCollection()"
+              aria-label="Aggiungi molecola {{ name() }} ad una o più collezioni"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto">
                 <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->

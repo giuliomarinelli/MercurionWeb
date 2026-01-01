@@ -40,7 +40,7 @@ import { ThemeManagerService } from '../../../services/context/theme-manager.ser
 
 @Component({
   selector: 'm-molecule-viewer',
-  template: `<div class="wrap" [innerHTML]="svg"></div>`,
+  template: `<div class="wrap" [innerHTML]="svg" role="img" [attr.aria-label]="ariaLabel"></div>`,
   styles: [
     `:host{display:block;width:100%;height:100%}`,
     `.wrap{width:100%;height:100%}`,
@@ -64,6 +64,9 @@ export class MoleculeViewerComponent implements OnInit, OnChanges {
   @Input() mode: 'preview' | 'detail' = 'preview';
   /** Se true mostra solo lo skeleton (no RDKit) */
   @Input() disablePreview = false;
+
+  /** Testo per screen reader che descrive la molecola */
+  @Input() ariaLabel = 'Rappresentazione molecolare';
 
   @Output() rendered = new EventEmitter<void>();
 

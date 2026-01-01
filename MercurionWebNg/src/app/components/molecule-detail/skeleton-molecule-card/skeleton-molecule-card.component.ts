@@ -22,6 +22,7 @@ import { NgClass, NgStyle } from '@angular/common';
       role="status"
       aria-busy="true"
       aria-live="polite"
+      aria-label="Caricamento dati molecola"
     >
       <!-- Colonna sinistra: 8/12 - testo -->
       <div class="md:col-span-8 min-w-0">

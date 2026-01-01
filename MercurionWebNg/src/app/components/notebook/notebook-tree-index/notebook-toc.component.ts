@@ -8,6 +8,7 @@ type TocMode = 'edit' | 'read';
   selector: 'm-notebook-toc',
   imports: [RouterModule],
   template: `
+    <nav aria-label="Indice notebook">
     <ul class="flex flex-wrap gap-3 text-xs px-2 py-2 border-b">
       @if (notebook) {
         <li>
@@ -59,6 +60,7 @@ type TocMode = 'edit' | 'read';
         </li>
       }
     </ul>
+    </nav>
   `,
   styles: [`
     a {

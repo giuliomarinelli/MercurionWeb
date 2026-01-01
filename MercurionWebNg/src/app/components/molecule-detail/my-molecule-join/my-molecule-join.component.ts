@@ -8,7 +8,7 @@ import { SkeletonCollectionCardComponent } from '../../common/skeleton-card-load
   imports: [CollectionCardComponent, SkeletonCollectionCardComponent],
   template: `
     @if (collections().length) {
-      <div class="overflow-y-auto relative max-h-[224px] min-h-[112px] transition-[max-height] duration-300 ease-in-out border">
+      <div class="overflow-y-auto relative max-h-[224px] min-h-[112px] transition-[max-height] duration-300 ease-in-out border" role="list" aria-label="Collezioni associate">
         @for (c of collections(); track c; let i = $index) {
           <m-collection-card [collection]="c" [i]="i" [hideActionButtons]="true" />
         }

@@ -48,6 +48,7 @@ import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/
         [attr.aria-label]="'Apri collezione ' + _collection()!.name"
         [class.disappear-card]="_triggerDisappear()"
         [class.cursor-default]="_isReadonly()"
+        [attr.aria-live]="!_isReadonly() ? 'polite' : 'off'"
       >
         <!-- Wrapper che anima l'altezza -->
         <div class="clip-wrapper">
@@ -85,19 +86,19 @@ import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/
                     {{ _collection()!.name }}
                   </div>
 
-                  <div class="mt-1 flex md:hidden items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                  <div class="mt-1 flex md:hidden items-center gap-2 text-xs text-slate-700 dark:text-slate-200">
                     <span class="inline-flex items-center">
                       <span class="size-1.5 rounded-full bg-slate-300 dark:bg-slate-500 mr-2"></span>
                       {{ _collection()!.createdAt | date :'dd/MM/yyyy HH:mm:ss' }}
                     </span>
-                    <span class="text-slate-300 dark:text-slate-600">&middot;</span>
+                    <span class="text-slate-500 dark:text-slate-400">&middot;</span>
                     <span>{{ _collection()!.updatedAt | date :'dd/MM/yyyy HH:mm:ss' }}</span>
                   </div>
                 </div>
               </div>
 
               <!-- Colonna destra -->
-              <div class="md:col-span-4 flex md:justify-end items-center gap-3 md:gap-4 text-sm text-slate-600 dark:text-slate-300">
+              <div class="md:col-span-4 flex md:justify-end items-center gap-3 md:gap-4 text-sm text-slate-700 dark:text-slate-200">
                 <span
                   class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 border border-indigo-200/70 dark:border-indigo-700/40 group-hover:scale-[1.02] transition-transform"
                 >
@@ -113,7 +114,7 @@ import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/
               </div>
 
               <!-- Footer -->
-              <div class="md:col-span-12 mt-1 md:mt-0 flex items-center text-xs text-slate-500 dark:text-slate-400 justify-between">
+              <div class="md:col-span-12 mt-1 md:mt-0 flex items-center text-xs text-slate-700 dark:text-slate-200 justify-between">
                 <div class="flex items-center gap-3">
                   <span class="inline-flex items-center">
                     <svg class="size-3.5 mr-1.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -122,7 +123,7 @@ import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/
                     </svg>
                     {{ _collection()!.createdAt | date :'dd/MM/yyyy HH:mm:ss' }}
                   </span>
-                  <span class="size-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+                  <span class="size-1 rounded-full bg-slate-400 dark:bg-slate-500"></span>
                   <span class="inline-flex items-center">
                     <svg class="size-3.5 mr-1.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                       <path d="M10 2a8 8 0 1 0 8 8 8.01 8.01 0 0 0-8-8Zm.75 4.75a.75.75 0 0 0-1.5 0v3.69l2.72 2.72a.75.75 0 0 0 1.06-1.06l-2.28-2.28V6.75Z"/>
@@ -138,6 +139,7 @@ import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/
                       class="relative z-20 p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-150"
                       title="Duplica collezione"
                       (click)="onActionClick($event); doDuplicateCollection()"
+                      aria-label="Duplica collezione {{ _collection()!.name }}"
                     >
                       <svg class="size-4 text-slate-600 dark:text-slate-300" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                         <path d="M4 4a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v1h-1V4a1 1 0 0 0-1-1H6a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h1v1H6a2 2 0 0 1-2-2V4z" />
@@ -150,6 +152,7 @@ import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/
                       class="relative z-20 p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-150"
                       title="Elimina collezione"
                       (click)="onActionClick($event); doDeleteCollection()"
+                      aria-label="Elimina collezione {{ _collection()!.name }}"
                     >
                       <svg class="size-4 text-light-error dark:text-dark-error" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                         <path fill-rule="evenodd" d="M6 8a1 1 0 0 1 1 1v7h6V9a1 1 0 1 1 2 0v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V9a1 1 0 0 1 1-1zM4 5a1 1 0 0 1 1-1h2V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1h2a1 1 0 0 1 1 1v1H4V5z" clip-rule="evenodd" />
@@ -161,6 +164,7 @@ import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/
                       class="flex items-center gap-2 relative z-20 px-3 py-1 rounded-md border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 text-xs font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-150"
                       title="Aggiungi molecole"
                       (click)="onActionClick($event); doAddMoleculesToCollection()"
+                      aria-label="Aggiungi molecole a {{ _collection()!.name }}"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto" aria-hidden="true">
                         <path d="M336 112L336 96L304 96L304 304L96 304L96 336L304 336L304 544L336 544L336 336L544 336L544 304L336 304L336 112z"/>

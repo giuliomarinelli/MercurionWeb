@@ -37,11 +37,19 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 
 <div class="flex justify-center items-center min-h-screen px-2 sm:px-4">
-  <div class="action-card">
+  <div
+    class="action-card"
+    role="region"
+    aria-labelledby="sensitiveDataHeading"
+    [attr.aria-busy]="loading()"
+  >
 
     <!-- Header sticky fuori dallo scroll -->
     <div class="action-card-header">
-      <h2 class="text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main">
+      <h2
+        id="sensitiveDataHeading"
+        class="text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main"
+      >
         @switch(innerScope()) {
             @case ('EnableMfa') {
               Attiva l'autenticazione a più fattori
@@ -69,8 +77,9 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
       <button
         class="action-card-close-btn"
         (click)="close()"
+        aria-label="Chiudi pannello modifica dati sensibili"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-5 h-auto">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="shrink-0 fill-current w-5 h-auto">
           <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
           <path d="M182.9 137.4L160.3 114.7L115 160L137.6 182.6L275 320L137.6 457.4L115 480L160.3 525.3L182.9 502.6L320.3 365.3L457.6 502.6L480.3 525.3L525.5 480L502.9 457.4L365.5 320L502.9 182.6L525.5 160L480.3 114.7L457.6 137.4L320.3 274.7L182.9 137.4z"/>
         </svg>
@@ -99,30 +108,34 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
               }
             </div>
           } @else if (enableMfaStep() === 'OTP_VERIFICATION') {
-            <div class="px-5 sm:px-6 py-4 border border-amber-200 dark:border-dark-border bg-yellow-50 dark:bg-slate-700 flex gap-4 sm:gap-6 items-center rounded-lg">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-12 w-auto">
+            <div
+              class="px-5 sm:px-6 py-4 border border-amber-200 dark:border-dark-border bg-yellow-50 dark:bg-slate-700 flex gap-4 sm:gap-6 items-center rounded-lg"
+              role="status"
+              aria-live="polite"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="shrink-0 fill-current h-12 w-auto">
                 <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                 <path d="M256 240C256 160.5 320.5 96 400 96C479.5 96 544 160.5 544 240C544 319.5 479.5 384 400 384C388.9 384 378 382.7 367.6 380.4L359 378.4L352.7 384.7L321.3 416.1L255.9 416.1L255.9 480.1L191.9 480.1L191.9 544.1L95.9 544.1L95.9 462.7L258.7 299.9L265.6 293L262.7 283.7C258.3 269.9 256 255.3 256 240zM400 64C302.8 64 224 142.8 224 240C224 255.1 225.9 269.8 229.5 283.9L68.7 444.7L64 449.4L64 576L224 576L224 512L288 512L288 448L334.6 448L339.3 443.3L369.3 413.3C379.3 415.1 389.5 416 400 416C497.2 416 576 337.2 576 240C576 142.8 497.2 64 400 64zM432 232C445.3 232 456 221.3 456 208C456 194.7 445.3 184 432 184C418.7 184 408 194.7 408 208C408 221.3 418.7 232 432 232z"/>
               </svg>
               @switch (this.currentMfaStrategy()) {
                 @case ('EMAIL_OTP') {
-                  <p class="text-light-warning dark:text-dark-warning font-semibold pr-4">
-                    Abbiamo inviato un codice di sicurezza monouso all'indirizzo e-mail <span class="text-light-accent-primary dark:text-dark-accent-primary">{{obscuredEmail()}}</span>. Per attivare l'autenticazione a più fattori via e-mail, inserisci il codice nel seguente campo di input.
+                  <p class="font-semibold pr-4">
+                    Abbiamo inviato un codice di sicurezza monouso all'indirizzo e-mail <span class="text-[#1147BB] dark:text-dark-accent-primary-btn-hc">{{obscuredEmail()}}</span>. Per attivare l'autenticazione a più fattori via e-mail, inserisci il codice nel seguente campo di input.
                   </p>
                 }
                 @case ('SMS_OTP') {
-                  <p class="text-light-warning dark:text-dark-warning font-semibold pr-4">
-                    Abbiamo inviato un codice di sicurezza via SMS monouso al numero <span class="text-light-accent-primary dark:text-dark-accent-primary">{{obscuredPhone() ?? ''}}</span>. Per attivare l'autenticazione a più fattori via SMS, inserisci il codice nel seguente campo di input.
+                  <p class="font-semibold pr-4">
+                    Abbiamo inviato un codice di sicurezza via SMS monouso al numero <span class="text-[#1147BB] dark:text-dark-accent-primary-btn-hc">{{obscuredPhone() ?? ''}}</span>. Per attivare l'autenticazione a più fattori via SMS, inserisci il codice nel seguente campo di input.
                   </p>
                 }
                 @case ('APP_TOTP') {
-                  <p class="text-light-warning dark:text-dark-warning font-semibold pr-4">
+                  <p class="font-semibold pr-4">
                     Inserisci il codice monouso generato dalla tua app di autenticazione preferita per attivare l'autenticazione a più fattori via app.
                   </p>
                 }
               }
             </div>
-            <div class="flex flex-col gap-y-6">
+            <div class="flex flex-col gap-y-6" aria-live="polite">
               <div class="relative min-h-[25vh] rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
                 <div class="absolute inset-0 flex justify-center items-center px-6">
                   <m-floating-input
@@ -145,19 +158,27 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                     darkFocusRingClass="dark:focus:ring-dark-accent-primary-btn-hc"  />
                 </div>
               </div>
-              <div class="px-5 sm:px-6 py-4 border border-amber-200 dark:border-dark-border bg-yellow-50 dark:bg-slate-700 flex gap-4 sm:gap-6 items-center rounded-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-12 w-auto">
+              <div
+                class="px-5 sm:px-6 py-4 border border-amber-200 dark:border-dark-border bg-yellow-50 dark:bg-slate-700 flex gap-4 sm:gap-6 items-center rounded-lg"
+                role="status"
+                aria-live="polite"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="shrink-0 fill-current h-12 w-auto">
                   <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                   <path d="M320 96C443.7 96 544 196.3 544 320C544 443.7 443.7 544 320 544C196.3 544 96 443.7 96 320C96 196.3 196.3 96 320 96zM320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM272 416L256 416L256 448L384 448L384 416L336 416L336 288L256 288L256 320L304 320L304 416L272 416zM344 248L344 200L296 200L296 248L344 248z"/>
                 </svg>
-                <p class="text-sm text-light-on-surface-secondary dark:text-dark-on-surface-secondary pr-4">L'autenticazione a più fattori aumenta sensibilmente la sicurezza del tuo account e aiuta a prevenire furti di identità.</p>
+                <p class="text-sm text-[#374151] dark:text-dark-on-surface-secondary pr-4">L'autenticazione a più fattori aumenta sensibilmente la sicurezza del tuo account e aiuta a prevenire furti di identità.</p>
               </div>
             </div>
           } @else if (enableMfaStep() === 'OK_OR_ERROR') {
             <div class="flex flex-col gap-y-4">
-              <div class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-12 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-col xs:flex-row">
+              <div
+                class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-12 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-col xs:flex-row"
+                [attr.role]="serverError() ? 'alert' : 'status'"
+                [attr.aria-live]="serverError() ? 'assertive' : 'polite'"
+              >
                 @if (!serverError()) {
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-emerald-800 dark:text-emerald-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="shrink-0 fill-current w-20 h-auto text-[#064e3b] dark:text-[#a7f3d0]">
                     <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                     <path d="M320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM320 96C196.3 96 96 196.3 96 320C96 443.7 196.3 544 320 544C443.7 544 544 443.7 544 320C544 196.3 443.7 96 320 96zM438.3 236.5L428.9 249.4L300.9 425.4L289.9 440.6L201.3 352L223.9 329.4L286 391.5L403 230.7L412.4 217.8L438.3 236.6z"/>
                   </svg>
@@ -173,7 +194,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                     }
                   }
                 } @else {
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-light-error dark:text-dark-error">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="shrink-0 fill-current w-20 h-auto text-light-error dark:text-dark-error-hc">
                     <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                     <path d="M320 96C443.7 96 544 196.3 544 320C544 443.7 443.7 544 320 544C196.3 544 96 443.7 96 320C96 196.3 196.3 96 320 96zM320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM419.4 243.2L396.8 220.6L385.5 231.9L320 297.4L254.5 231.9L243.2 220.6L220.6 243.2L231.9 254.5L297.4 320L231.9 385.5L220.6 396.8L243.2 419.4L254.5 408.1L320 342.6L385.5 408.1L396.8 419.4L419.4 396.8L342.6 320L408.1 254.5L419.4 243.2z"/>
                   </svg>
@@ -194,7 +215,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                 <div class="px-5 sm:px-6 py-4 border border-amber-200 dark:border-dark-border bg-yellow-50 dark:bg-slate-700 flex gap-4 sm:gap-6 items-center rounded-lg">
                   <div class="relative -top-6">
                     <h4 class="my-3 pt-6 font-semibold text-center">Codici di backup</h4>
-                    <p class="text-sm text-center mb-6 text-light-on-surface-secondary dark:text-dark-on-surface-secondary">Copia questi codici in un password manager o stampali e custodiscili in un posto sicuro. Ti permetteranno di accedere nel caso in cui perdessi l'accesso al tuo dispositivo.</p>
+                    <p class="text-sm text-center mb-6 text-[#374151] dark:text-dark-on-surface-secondary">Copia questi codici in un password manager o stampali e custodiscili in un posto sicuro. Ti permetteranno di accedere nel caso in cui perdessi l'accesso al tuo dispositivo.</p>
                     <div class="flex gap-4 flex-wrap justify-center">
                       @for (code of backupCodes(); track code) {
                         <span class="text-light-accent-primary-hc dark:text-dark-accent-primary-btn-hc font-bold">{{code}}</span>
@@ -206,11 +227,11 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
             </div>
           } @else if (enableMfaStep() === 'APP:SCAN_QR_CODE_OR_COPY_SECRET') {
             <div class="px-5 sm:px-6 py-4 border border-amber-200 dark:border-dark-border bg-yellow-50 dark:bg-slate-700 flex gap-4 sm:gap-6 items-center rounded-lg">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-12 w-auto">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="shrink-0 fill-current h-12 w-auto">
                 <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                 <path d="M256 240C256 160.5 320.5 96 400 96C479.5 96 544 160.5 544 240C544 319.5 479.5 384 400 384C388.9 384 378 382.7 367.6 380.4L359 378.4L352.7 384.7L321.3 416.1L255.9 416.1L255.9 480.1L191.9 480.1L191.9 544.1L95.9 544.1L95.9 462.7L258.7 299.9L265.6 293L262.7 283.7C258.3 269.9 256 255.3 256 240zM400 64C302.8 64 224 142.8 224 240C224 255.1 225.9 269.8 229.5 283.9L68.7 444.7L64 449.4L64 576L224 576L224 512L288 512L288 448L334.6 448L339.3 443.3L369.3 413.3C379.3 415.1 389.5 416 400 416C497.2 416 576 337.2 576 240C576 142.8 497.2 64 400 64zM432 232C445.3 232 456 221.3 456 208C456 194.7 445.3 184 432 184C418.7 184 408 194.7 408 208C408 221.3 418.7 232 432 232z"/>
               </svg>
-              <p class="text-light-warning dark:text-dark-warning font-semibold pr-4">
+              <p class="font-semibold pr-4">
                 Scansiona il QR con la tua app di autenticazione per configurare l'autenticazione a più fattori, oppure copia nella tua app di autenticazione il codice qui riportato.
               </p>
             </div>
@@ -219,11 +240,11 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
               <p class="font-bold tracking-[0.08em] text-light-on-surface-main dark:text-dark-on-surface-main">{{appSecret()}}</p>
               <button
                 type="button"
-                class="relative p-1.5 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary transition-colors duration-150"
+                class="relative p-1.5 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary transition-colors duration-150"
                 title="Copia."
               >
                 <svg
-                  class="size-7 text-slate-600 dark:text-slate-300"
+                  class="shrink-0 size-7 text-slate-600 dark:text-slate-300"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                   aria-hidden="true">
@@ -237,23 +258,23 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
             </div>
           } @else if (disableMfaStep() === 'OTP_VERIFICATION') {
             <div class="px-5 sm:px-6 py-4 border border-amber-200 dark:border-dark-border bg-yellow-50 dark:bg-slate-700 flex gap-4 sm:gap-6 items-center rounded-lg">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-12 w-auto">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="shrink-0 fill-current h-12 w-auto">
                 <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                 <path d="M256 240C256 160.5 320.5 96 400 96C479.5 96 544 160.5 544 240C544 319.5 479.5 384 400 384C388.9 384 378 382.7 367.6 380.4L359 378.4L352.7 384.7L321.3 416.1L255.9 416.1L255.9 480.1L191.9 480.1L191.9 544.1L95.9 544.1L95.9 462.7L258.7 299.9L265.6 293L262.7 283.7C258.3 269.9 256 255.3 256 240zM400 64C302.8 64 224 142.8 224 240C224 255.1 225.9 269.8 229.5 283.9L68.7 444.7L64 449.4L64 576L224 576L224 512L288 512L288 448L334.6 448L339.3 443.3L369.3 413.3C379.3 415.1 389.5 416 400 416C497.2 416 576 337.2 576 240C576 142.8 497.2 64 400 64zM432 232C445.3 232 456 221.3 456 208C456 194.7 445.3 184 432 184C418.7 184 408 194.7 408 208C408 221.3 418.7 232 432 232z"/>
               </svg>
               @switch (this.currentMfaStrategy()) {
                 @case ('EMAIL_OTP') {
-                  <p class="text-light-warning dark:text-dark-warning font-semibold pr-4">
-                    Abbiamo inviato un codice di sicurezza monouso all'indirizzo e-mail <span class="text-light-accent-primary dark:text-dark-accent-primary">{{obscuredEmail()}}</span>. Per disattivare l'autenticazione a più fattori via e-mail, inserisci il codice nel seguente campo di input.
+                  <p class="font-semibold pr-4">
+                    Abbiamo inviato un codice di sicurezza monouso all'indirizzo e-mail <span class="text-[#1147BB] dark:text-dark-accent-primary-btn-hc">{{obscuredEmail()}}</span>. Per disattivare l'autenticazione a più fattori via e-mail, inserisci il codice nel seguente campo di input.
                   </p>
                 }
                 @case ('SMS_OTP') {
-                  <p class="text-light-warning dark:text-dark-warning font-semibold pr-4">
-                  Abbiamo inviato un codice di sicurezza via SMS monouso al numero <span class="text-light-accent-primary dark:text-dark-accent-primary">{{obscuredPhone() ?? ''}}</span>. Per disattivare l'autenticazione a più fattori via SMS, inserisci il codice nel seguente campo di input.
+                  <p class="font-semibold pr-4">
+                  Abbiamo inviato un codice di sicurezza via SMS monouso al numero <span class="text-[#1147BB] dark:text-dark-accent-primary-btn-hc">{{obscuredPhone() ?? ''}}</span>. Per disattivare l'autenticazione a più fattori via SMS, inserisci il codice nel seguente campo di input.
                   </p>
                 }
                 @case ('APP_TOTP') {
-                  <p class="text-light-warning dark:text-dark-warning font-semibold pr-4">
+                  <p class="font-semibold pr-4">
                     Inserisci il codice monouso generato dalla tua app di autenticazione preferita per disattivare l'autenticazione a più fattori via app.
                   </p>
                 }
@@ -280,11 +301,11 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                       darkLabelClass="dark:text-dark-accent-secondary-hc"
                       darkTextErrorClass="dark:text-dark-error-hc"
                       darkFocusBorderClass="dark:focus:border-dark-accent-primary-btn-hc"
-                      darkFocusRingClass="dark:focus:ring-dark-accent-primary-btn"
+                      darkFocusRingClass="dark:focus:ring-dark-accent-primary-btn-hc"
                     />
 
                   @if (['SMS_OTP', 'APP_TOTP'].includes(currentMfaStrategy())) {
-                    <div class="flex flex-col gap-y-4 text-sm text-light-on-surface-secondary dark:text-dark-on-surface-secondary">
+                    <div class="flex flex-col gap-y-4 text-sm text-[#374151] dark:text-dark-on-surface-secondary">
                       <div class="flex justify-center">
                         Non hai più accesso
                           <span>
@@ -305,7 +326,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                       </div>
                     </div>
                   } @else if (currentMfaStrategy() === 'EMAIL_OTP') {
-                    <div class="flex flex-col gap-y-4 text-sm text-light-on-surface-secondary dark:text-dark-on-surface-secondary">
+                    <div class="flex flex-col gap-y-4 text-sm text-[#374151] dark:text-dark-on-surface-secondary">
                       <div class="flex flex-wrap gap-4 justify-center">
                         Non hai più accesso alla tua casella e-mail? Segui subito queste istruzioni:&nbsp;
                         <div class="flex justify-center flex-wrap gap-4">
@@ -320,7 +341,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
               </div>
             </div>
             <div class="px-5 sm:px-6 py-4 border border-amber-200 dark:border-dark-border bg-yellow-50 dark:bg-slate-700 flex gap-4 sm:gap-6 items-center rounded-lg">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-12 w-auto text-light-warning dark:text-dark-warning">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="shrink-0 fill-current h-12 w-auto text-light-warning dark:text-dark-warning">
                 <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                 <path d="M338.2 81.3L574.4 512L592 544L48 544L65.6 512L301.8 81.3L320 48L338.2 81.3zM102 512L538 512L320 114.6L102 512zM340 460L300 460L300 420L340 420L340 460zM331.2 384L308.8 384L296 240L344 240L331.2 384z"/>
               </svg>
@@ -331,7 +352,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
               <div class="flex flex-col gap-y-4">
                 <div class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-12 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-col xs:flex-row">
                   @if (!serverError()) {
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-emerald-800 dark:text-emerald-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="shrink-0 fill-current w-20 h-auto text-[#064e3b] dark:text-[#a7f3d0]">
                       <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                       <path d="M320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM320 96C196.3 96 96 196.3 96 320C96 443.7 196.3 544 320 544C443.7 544 544 443.7 544 320C544 196.3 443.7 96 320 96zM438.3 236.5L428.9 249.4L300.9 425.4L289.9 440.6L201.3 352L223.9 329.4L286 391.5L403 230.7L412.4 217.8L438.3 236.6z"/>
                     </svg>
@@ -347,7 +368,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                       }
                     }
                   } @else {
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-light-error dark:text-dark-error">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="shrink-0 fill-current w-20 h-auto text-light-error dark:text-dark-error-hc">
                       <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                       <path d="M320 96C443.7 96 544 196.3 544 320C544 443.7 443.7 544 320 544C196.3 544 96 443.7 96 320C96 196.3 196.3 96 320 96zM320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM419.4 243.2L396.8 220.6L385.5 231.9L320 297.4L254.5 231.9L243.2 220.6L220.6 243.2L231.9 254.5L297.4 320L231.9 385.5L220.6 396.8L243.2 419.4L254.5 408.1L320 342.6L385.5 408.1L396.8 419.4L419.4 396.8L342.6 320L408.1 254.5L419.4 243.2z"/>
                     </svg>
@@ -362,18 +383,18 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                             <span class="inline-block pr-4">Si è verificato un errore inaspettato. Contatta il supporto se dovesse ripetersi.</span>
                           }
                       }
-                  }
-                </div>
-                @if (enabledMfaStrategies().length === 0) {
-                  <div class="px-5 sm:px-6 py-4 border border-amber-200 dark:border-dark-border bg-yellow-50 dark:bg-slate-700 flex gap-4 sm:gap-6 items-center rounded-lg">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-12 w-auto text-light-warning dark:text-dark-warning">
-                      <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-                      <path d="M338.2 81.3L574.4 512L592 544L48 544L65.6 512L301.8 81.3L320 48L338.2 81.3zM102 512L538 512L320 114.6L102 512zM340 460L300 460L300 420L340 420L340 460zM331.2 384L308.8 384L296 240L344 240L331.2 384z"/>
-                    </svg>
-                    <p class="text-light-warning dark:text-dark-warning pr-4">Tutti i metodi di autenticazione a più fattori sono ora disattivi. I codici di backup sono stati invalidati.</p>
-                  </div>
                 }
               </div>
+              @if (enabledMfaStrategies().length === 0) {
+                <div class="px-5 sm:px-6 py-4 border border-amber-200 dark:border-dark-border bg-yellow-50 dark:bg-slate-700 flex gap-4 sm:gap-6 items-center rounded-lg">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="shrink-0 fill-current h-12 w-auto text-light-warning dark:text-dark-warning">
+                    <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                    <path d="M338.2 81.3L574.4 512L592 544L48 544L65.6 512L301.8 81.3L320 48L338.2 81.3zM102 512L538 512L320 114.6L102 512zM340 460L300 460L300 420L340 420L340 460zM331.2 384L308.8 384L296 240L344 240L331.2 384z"/>
+                  </svg>
+                  <p class="text-light-warning dark:text-dark-warning pr-4">Tutti i metodi di autenticazione a più fattori sono ora disattivi. I codici di backup sono stati invalidati.</p>
+                </div>
+              }
+            </div>
         }
       } @else if (innerScope() === 'ChangeEmail') {
           @switch (changeEmailStep()) {
@@ -384,8 +405,8 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                       <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                       <path d="M80 128L64 128L64 512L321.4 512C316.7 501.8 312.9 491.1 310 480L96 480L96 239.6L307.6 394.8C309.8 383.5 313 372.6 317.1 362.1L96 199.9L96 160L544 160L544 246C555.1 248.9 565.8 252.7 576 257.4L576 128L80 128zM496 320C557.9 320 608 370.1 608 432C608 493.9 557.9 544 496 544C434.1 544 384 493.9 384 432C384 370.1 434.1 320 496 320zM496 576C575.5 576 640 511.5 640 432C640 352.5 575.5 288 496 288C416.5 288 352 352.5 352 432C352 511.5 416.5 576 496 576zM566.4 380.5L540.5 361.7L531.1 374.6L478.1 447.5C457.7 427 445 414.3 440 409.4L417.4 432C420.2 434.8 437.3 451.9 468.7 483.3L481.9 496.5L492.9 481.4L556.9 393.4L566.3 380.5z"/>
                     </svg>
-                    <span class="text-[0.925rem] leading-[1.25rem] text-light-on-surface-secondary dark:text-dark-on-surface-secondary inline-block pr-4">E-mail corrente:&nbsp;
-                      <strong class="text-light-accent-primary dark:text-dark-accent-primary">{{obscuredEmail()}}</strong>
+                    <span class="text-[0.925rem] leading-[1.25rem] text-[#374151] dark:text-dark-on-surface-secondary inline-block pr-4">E-mail corrente:&nbsp;
+                      <strong class="text-[#1147BB] dark:text-dark-accent-primary-btn-hc">{{obscuredEmail()}}</strong>
                       .&nbsp; Inserisci nel campo di input la nuova e-mail che vuoi impostare. Una volta confermato il cambio, dovrai accedere a Mercurion con il nuovo indirizzo e tutte le notifiche arriveranno al nuovo indirizzo.
                     </span>
                   </div>
@@ -423,14 +444,14 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                         <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                         <path d="M80 128L64 128L64 512L321.4 512C316.7 501.8 312.9 491.1 310 480L96 480L96 239.6L307.6 394.8C309.8 383.5 313 372.6 317.1 362.1L96 199.9L96 160L544 160L544 246C555.1 248.9 565.8 252.7 576 257.4L576 128L80 128zM496 320C557.9 320 608 370.1 608 432C608 493.9 557.9 544 496 544C434.1 544 384 493.9 384 432C384 370.1 434.1 320 496 320zM496 576C575.5 576 640 511.5 640 432C640 352.5 575.5 288 496 288C416.5 288 352 352.5 352 432C352 511.5 416.5 576 496 576zM566.4 380.5L540.5 361.7L531.1 374.6L478.1 447.5C457.7 427 445 414.3 440 409.4L417.4 432C420.2 434.8 437.3 451.9 468.7 483.3L481.9 496.5L492.9 481.4L556.9 393.4L566.3 380.5z"/>
                       </svg>
-                      <div class="text-[0.925rem] leading-[1.25rem] text-light-on-surface-secondary dark:text-dark-on-surface-secondary pr-4">
+                      <div class="text-[0.925rem] leading-[1.25rem] text-[#374151] dark:text-dark-on-surface-secondary pr-4">
                         <ul class="list-disc list-inside mb-2 font-semibold">
-                          <li class="list-item py-2">E-mail corrente:&nbsp;<strong class="text-light-accent-primary dark:text-dark-accent-primary">{{obscuredEmail()}}</strong></li>
-                          <li class="list-item py-2">Nuova e-mail da confermare:&nbsp;<strong class="text-light-error dark:text-dark-error">{{tempObscuredEmail()}}</strong></li>
+                          <li class="list-item py-2">E-mail corrente:&nbsp;<strong class="text-[#1147BB] dark:text-dark-accent-primary-btn-hc">{{obscuredEmail()}}</strong></li>
+                          <li class="list-item py-2">Nuova e-mail da confermare:&nbsp;<strong class="text-light-error dark:text-dark-error-hc">{{tempObscuredEmail()}}</strong></li>
                         </ul>
                       </div>
                     </div>
-                    <span class="text-sm text-light-on-surface-secondary dark:text-dark-on-surface-secondary">Abbiamo inviato un codice monouso a&nbsp;<strong class="text-light-error dark:text-dark-error">{{tempObscuredEmail()}}</strong>. Inserisci il codice monouso nel campo di input seguente per confermare il cambio di indirizzo e-mail.</span>
+                    <span class="text-sm text-[#374151] dark:text-dark-on-surface-secondary">Abbiamo inviato un codice monouso a&nbsp;<strong class="text-light-error dark:text-dark-error-hc">{{tempObscuredEmail()}}</strong>. Inserisci il codice monouso nel campo di input seguente per confermare il cambio di indirizzo e-mail.</span>
                   </div>
                   <div class="relative min-h-[25vh] rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
                     <div class="absolute inset-0 flex justify-center items-center px-6">
@@ -458,17 +479,17 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
               @case ('OK_OR_ERROR') {
                 <div class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-12 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-col xs:flex-row">
                   @if (!serverError()) {
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-emerald-800 dark:text-emerald-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="shrink-0 fill-current w-20 h-auto text-[#064e3b] dark:text-[#a7f3d0]">
                       <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                       <path d="M320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM320 96C196.3 96 96 196.3 96 320C96 443.7 196.3 544 320 544C443.7 544 544 443.7 544 320C544 196.3 443.7 96 320 96zM438.3 236.5L428.9 249.4L300.9 425.4L289.9 440.6L201.3 352L223.9 329.4L286 391.5L403 230.7L412.4 217.8L438.3 236.6z"/>
                     </svg>
                     <span class="inline-block pr-4">L'indirizzo e-mail è stato correttamente cambiato da
-                      &nbsp;<strong class="text-light-error dark:text-dark-error">{{obscuredEmail()}}</strong>
+                      &nbsp;<strong class="text-light-error dark:text-dark-error-hc">{{obscuredEmail()}}</strong>
                       a
-                      &nbsp;<strong class="text-light-accent-primary dark:text-dark-accent-primary">{{tempObscuredEmail()}}</strong>.
+                      &nbsp;<strong class="text-[#1147BB] dark:text-dark-accent-primary-btn-hc">{{tempObscuredEmail()}}</strong>.
                     </span>
                   } @else {
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-light-error dark:text-dark-error">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="shrink-0 fill-current w-20 h-auto text-light-error dark:text-dark-error-hc">
                       <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                       <path d="M320 96C443.7 96 544 196.3 544 320C544 443.7 443.7 544 320 544C196.3 544 96 443.7 96 320C96 196.3 196.3 96 320 96zM320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM419.4 243.2L396.8 220.6L385.5 231.9L320 297.4L254.5 231.9L243.2 220.6L220.6 243.2L231.9 254.5L297.4 320L231.9 385.5L220.6 396.8L243.2 419.4L254.5 408.1L320 342.6L385.5 408.1L396.8 419.4L419.4 396.8L342.6 320L408.1 254.5L419.4 243.2z"/>
                     </svg>
@@ -480,7 +501,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                             <span class="inline-block pr-4">Hai raggiunto il limite massimo di richieste inoltrate al server.&nbsp;Riprova fra alcuni minuti.</span>
                           }
                           @case (403) {
-                            <span class="inline-block pr-4">Il cambio e-mail verso&nbsp;<strong class="text-light-error dark:text-dark-error">{{tempObscuredEmail()}}</strong>&nbsp;è temporaneamente non disponibile per motivi di sicurezza. Riprova tra 5 minuti.</span>
+                            <span class="inline-block pr-4">Il cambio e-mail verso&nbsp;<strong class="text-light-error dark:text-dark-error-hc">{{tempObscuredEmail()}}</strong>&nbsp;è temporaneamente non disponibile per motivi di sicurezza. Riprova tra 5 minuti.</span>
                           }
                           @default {
                             <span class="inline-block pr-4">Si è verificato un errore inaspettato. Contatta il supporto se dovesse ripetersi.</span>
@@ -500,12 +521,12 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                     <path d="M256 96L256 160L384 160L384 96L464 96L464 544L176 544L176 96L256 96zM256 64L144 64L144 576L496 576L496 64L256 64zM288 96L352 96L352 128L288 128L288 96zM272 464L272 496L368 496L368 464L272 464z"/>
                   </svg>
                     @if (innerScope() === 'ChangePhone') {
-                      <span class="text-[0.925rem] leading-[1.25rem] text-light-on-surface-secondary dark:text-dark-on-surface-secondary inline-block pr-4">Numero di telefono corrente:&nbsp;
-                        <strong class="text-light-accent-primary dark:text-dark-accent-primary">{{obscuredPhone()}}</strong>
+                      <span class="text-[0.925rem] leading-[1.25rem] text-[#374151] dark:text-dark-on-surface-secondary inline-block pr-4">Numero di telefono corrente:&nbsp;
+                        <strong class="text-[#1147BB] dark:text-dark-accent-primary-btn-hc">{{obscuredPhone()}}</strong>
                         .&nbsp; Inserisci di seguito il nuovo numero di telefono che vuoi impostare. Una volta confermato il cambio, l'autenticazione a più fattori e le notifiche faranno riferimento al nuovo numero.
                       </span>
                     } @else {
-                      <span class="text-[0.925rem] leading-[1.25rem] text-light-on-surface-secondary dark:text-dark-on-surface-secondary inline-block pr-4">Inserisci di seguito il nuovo numero di telefono che vuoi impostare. Una volta confermato il numero, l'autenticazione a più fattori via SMS potrà essere attivata per quel numero e le notifiche faranno riferimento al nuovo numero.</span>
+                      <span class="text-[0.925rem] leading-[1.25rem] text-[#374151] dark:text-dark-on-surface-secondary inline-block pr-4">Inserisci di seguito il nuovo numero di telefono che vuoi impostare. Una volta confermato il numero, l'autenticazione a più fattori via SMS potrà essere attivata per quel numero e le notifiche faranno riferimento al nuovo numero.</span>
                     }
                 </div>
                 <div class="relative min-h-[25vh] rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
@@ -550,19 +571,19 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                       <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                       <path d="M256 96L256 160L384 160L384 96L464 96L464 544L176 544L176 96L256 96zM256 64L144 64L144 576L496 576L496 64L256 64zM288 96L352 96L352 128L288 128L288 96zM272 464L272 496L368 496L368 464L272 464z"/>
                     </svg>
-                    <div class="text-[0.925rem] leading-[1.25rem] text-light-on-surface-secondary dark:text-dark-on-surface-secondary pr-4">
+                    <div class="text-[0.925rem] leading-[1.25rem] text-[#374151] dark:text-dark-on-surface-secondary pr-4">
                       @if (innerScope() === 'ChangePhone') {
                         <ul class="list-disc list-inside mb-2 font-semibold">
-                          <li class="list-item py-2">Telefono corrente:&nbsp;<strong class="text-light-accent-primary dark:text-dark-accent-primary">{{obscuredPhone()}}</strong></li>
-                          <li class="list-item py-2">Nuovo telefono da confermare:&nbsp;<strong class="text-light-error dark:text-dark-error">{{tempObscuredPhone()}}</strong></li>
+                          <li class="list-item py-2">Telefono corrente:&nbsp;<strong class="text-[#1147BB] dark:text-dark-accent-primary-btn-hc">{{obscuredPhone()}}</strong></li>
+                          <li class="list-item py-2">Nuovo telefono da confermare:&nbsp;<strong class="text-light-error dark:text-dark-error-hc">{{tempObscuredPhone()}}</strong></li>
                         </ul>
                       } @else {
-                        <span class="text-sm">Abbiamo inviato via SMS un codice monouso a&nbsp;<strong class="text-light-error dark:text-dark-error">{{tempObscuredPhone()}}</strong>. Inserisci il codice monouso nel campo di input seguente per confermare l'aggiunta del nuovo numero di telefono.</span>
+                        <span class="text-sm">Abbiamo inviato via SMS un codice monouso a&nbsp;<strong class="text-light-error dark:text-dark-error-hc">{{tempObscuredPhone()}}</strong>. Inserisci il codice monouso nel campo di input seguente per confermare l'aggiunta del nuovo numero di telefono.</span>
                       }
                     </div>
                   </div>
                   @if (innerScope() === 'ChangePhone') {
-                    <span class="text-sm text-light-on-surface-secondary dark:text-dark-on-surface-secondary">Abbiamo inviato via SMS un codice monouso a&nbsp;<strong class="text-light-error dark:text-dark-error">{{tempObscuredPhone()}}</strong>. Inserisci il codice monouso nel campo di input seguente per confermare l'aggiunta del nuovo numero di telefono.</span>
+                    <span class="text-sm text-[#374151] dark:text-dark-on-surface-secondary">Abbiamo inviato via SMS un codice monouso a&nbsp;<strong class="text-light-error dark:text-dark-error-hc">{{tempObscuredPhone()}}</strong>. Inserisci il codice monouso nel campo di input seguente per confermare l'aggiunta del nuovo numero di telefono.</span>
                   }
                 </div>
                 <div class="relative min-h-[25vh] rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
@@ -591,21 +612,21 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
             @case ('OK_OR_ERROR') {
                 <div class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-12 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-col xs:flex-row">
                   @if (!serverError()) {
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-emerald-800 dark:text-emerald-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="shrink-0 fill-current w-20 h-auto text-[#064e3b] dark:text-[#a7f3d0]">
                       <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                       <path d="M320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM320 96C196.3 96 96 196.3 96 320C96 443.7 196.3 544 320 544C443.7 544 544 443.7 544 320C544 196.3 443.7 96 320 96zM438.3 236.5L428.9 249.4L300.9 425.4L289.9 440.6L201.3 352L223.9 329.4L286 391.5L403 230.7L412.4 217.8L438.3 236.6z"/>
                     </svg>
                     @if (innerScope() === 'ChangePhone') {
                       <span class="inline-block pr-4">Il numero di telefono è stato correttamente cambiato da
-                        &nbsp;<strong class="text-light-error dark:text-dark-error">{{obscuredPhone()}}</strong>
+                        &nbsp;<strong class="text-light-error dark:text-dark-error-hc">{{obscuredPhone()}}</strong>
                         a
-                        &nbsp;<strong class="text-light-accent-primary dark:text-dark-accent-primary">{{tempObscuredPhone()}}</strong>.
+                        &nbsp;<strong class="text-[#1147BB] dark:text-dark-accent-primary-btn-hc">{{tempObscuredPhone()}}</strong>.
                       </span>
                     } @else {
-                      <span class="inline-block pr-4">Nuovo numero di telefono aggiunto con successo:&nbsp;<strong class="text-light-accent-primary dark:text-dark-accent-primary">{{tempObscuredPhone()}}</strong>.</span>
+                      <span class="inline-block pr-4">Nuovo numero di telefono aggiunto con successo:&nbsp;<strong class="text-[#1147BB] dark:text-dark-accent-primary-btn-hc">{{tempObscuredPhone()}}</strong>.</span>
                     }
                   } @else {
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-light-error dark:text-dark-error">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="shrink-0 fill-current w-20 h-auto text-light-error dark:text-dark-error-hc">
                       <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                       <path d="M320 96C443.7 96 544 196.3 544 320C544 443.7 443.7 544 320 544C196.3 544 96 443.7 96 320C96 196.3 196.3 96 320 96zM320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM419.4 243.2L396.8 220.6L385.5 231.9L320 297.4L254.5 231.9L243.2 220.6L220.6 243.2L231.9 254.5L297.4 320L231.9 385.5L220.6 396.8L243.2 419.4L254.5 408.1L320 342.6L385.5 408.1L396.8 419.4L419.4 396.8L342.6 320L408.1 254.5L419.4 243.2z"/>
                     </svg>
@@ -618,9 +639,9 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                           }
                           @case (403) {
                             @if (innerScope() === 'AddPhone') {
-                              <span class="inline-block pr-4">L'aggiunta del nuovo numero di telefono&nbsp;<strong class="text-light-error dark:text-dark-error">{{tempObscuredPhone()}}</strong>&nbsp;è temporaneamente non disponibile per motivi di sicurezza. Riprova tra 5 minuti.</span>
+                              <span class="inline-block pr-4">L'aggiunta del nuovo numero di telefono&nbsp;<strong class="text-light-error dark:text-dark-error-hc">{{tempObscuredPhone()}}</strong>&nbsp;è temporaneamente non disponibile per motivi di sicurezza. Riprova tra 5 minuti.</span>
                             } @else {
-                              <span class="inline-block pr-4">Il cambio di numero di telefono&nbsp;<strong class="text-light-error dark:text-dark-error">{{tempObscuredPhone()}}</strong>&nbsp;è temporaneamente non disponibile per motivi di sicurezza. Riprova tra 5 minuti.</span>
+                              <span class="inline-block pr-4">Il cambio di numero di telefono&nbsp;<strong class="text-light-error dark:text-dark-error-hc">{{tempObscuredPhone()}}</strong>&nbsp;è temporaneamente non disponibile per motivi di sicurezza. Riprova tra 5 minuti.</span>
                             }
                           }
                           @default {
@@ -641,8 +662,8 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                       <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                       <path d="M144.1 121.3L144.1 64L496.1 64L496.1 473.3L606.7 583.9L584.1 606.5L33.7 56.1L56.3 33.5L144.1 121.3zM176.1 266.5L176.1 544L453.6 544L485.6 576L144.1 576L144.1 234.5L176.1 266.5zM368.1 496L272.1 496L272.1 464L368.1 464L368.1 496zM176.1 153.3L464.1 441.3L464.1 96L176.1 96L176.1 153.3z"/>
                     </svg>
-                    <div class="text-[0.925rem] leading-[1.25rem] text-light-on-surface-secondary dark:text-dark-on-surface-secondary pr-4">
-                      <span class="text-sm">Abbiamo inviato via SMS un codice monouso a&nbsp;<strong class="text-light-accent-primary dark:text-dark-accent-primary">{{obscuredPhone()}}</strong>. Inserisci il codice monouso nel campo di input seguente per confermare l'eliminazione del nuovo numero di telefono dal tuo account.</span>
+                    <div class="text-[0.925rem] leading-[1.25rem] text-[#374151] dark:text-dark-on-surface-secondary pr-4">
+                      <span class="text-sm">Abbiamo inviato via SMS un codice monouso a&nbsp;<strong class="text-[#1147BB] dark:text-dark-accent-primary-btn-hc">{{obscuredPhone()}}</strong>. Inserisci il codice monouso nel campo di input seguente per confermare l'eliminazione del nuovo numero di telefono dal tuo account.</span>
                     </div>
                   </div>
                 </div>
@@ -672,20 +693,20 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
               @case ('OK_OR_ERROR') {
                 <div class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-12 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-col xs:flex-row">
                   @if (!serverError()) {
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-emerald-800 dark:text-emerald-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="shrink-0 fill-current w-20 h-auto text-[#064e3b] dark:text-[#a7f3d0]">
                       <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                       <path d="M144.1 121.3L144.1 64L496.1 64L496.1 473.3L606.7 583.9L584.1 606.5L33.7 56.1L56.3 33.5L144.1 121.3zM176.1 266.5L176.1 544L453.6 544L485.6 576L144.1 576L144.1 234.5L176.1 266.5zM368.1 496L272.1 496L272.1 464L368.1 464L368.1 496zM176.1 153.3L464.1 441.3L464.1 96L176.1 96L176.1 153.3z" />
                     </svg>
                     <span class="inline-block pr-4">
                       Il numero di telefono è stato correttamente eliminato dall'account.
                       @if (phoneMfaDisabled()) {
-                        &nbsp;<span class="font-semibold text-light-accent-primary dark:text-dark-accent-primary">
+                        &nbsp;<span class="font-semibold text-[#1147BB] dark:text-dark-accent-primary-btn-hc">
                           L'autenticazione a più fattori via SMS è stata disabilitata
                         </span>.
                       }
                     </span>
                   } @else {
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-light-error dark:text-dark-error">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="shrink-0 fill-current w-20 h-auto text-light-error dark:text-dark-error-hc">
                       <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                       <path d="M320 96C443.7 96 544 196.3 544 320C544 443.7 443.7 544 320 544C196.3 544 96 443.7 96 320C96 196.3 196.3 96 320 96zM320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM419.4 243.2L396.8 220.6L385.5 231.9L320 297.4L254.5 231.9L243.2 220.6L220.6 243.2L231.9 254.5L297.4 320L231.9 385.5L220.6 396.8L243.2 419.4L254.5 408.1L320 342.6L385.5 408.1L396.8 419.4L419.4 396.8L342.6 320L408.1 254.5L419.4 243.2z"/>
                     </svg>
@@ -697,7 +718,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                           <span class="inline-block pr-4">Hai raggiunto il limite massimo di richieste inoltrate al server.&nbsp;Riprova fra alcuni minuti.</span>
                         }
                         @case (403) {
-                          <span class="inline-block pr-4">L'eliminazione del numero di telefono&nbsp;<strong class="text-light-error dark:text-dark-error">{{obscuredPhone()}}</strong>&nbsp;è temporaneamente non disponibile per motivi di sicurezza. Riprova tra 5 minuti.</span>
+                          <span class="inline-block pr-4">L'eliminazione del numero di telefono&nbsp;<strong class="text-light-error dark:text-dark-error-hc">{{obscuredPhone()}}</strong>&nbsp;è temporaneamente non disponibile per motivi di sicurezza. Riprova tra 5 minuti.</span>
                         }
                         @default {
                           <span class="inline-block pr-4">Si è verificato un errore inaspettato. Contatta il supporto se dovesse ripetersi.</span>
@@ -716,7 +737,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                     <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                     <path d="M256 240C256 160.5 320.5 96 400 96C479.5 96 544 160.5 544 240C544 319.5 479.5 384 400 384C388.9 384 378 382.7 367.6 380.4L359 378.4L352.7 384.7L321.3 416.1L255.9 416.1L255.9 480.1L191.9 480.1L191.9 544.1L95.9 544.1L95.9 462.7L258.7 299.9L265.6 293L262.7 283.7C258.3 269.9 256 255.3 256 240zM400 64C302.8 64 224 142.8 224 240C224 255.1 225.9 269.8 229.5 283.9L68.7 444.7L64 449.4L64 576L224 576L224 512L288 512L288 448L334.6 448L339.3 443.3L369.3 413.3C379.3 415.1 389.5 416 400 416C497.2 416 576 337.2 576 240C576 142.8 497.2 64 400 64zM432 232C445.3 232 456 221.3 456 208C456 194.7 445.3 184 432 184C418.7 184 408 194.7 408 208C408 221.3 418.7 232 432 232z"/>
                   </svg>
-                    <span class="text-light-on-surface-secondary dark:text-dark-on-surface-secondary inline-block pr-4">Inserisci di seguito la password corrente e la nuova password che vuoi impostare. Ricordati che non puoi impostare password già usate impassato.</span>
+                    <span class="text-[#374151] dark:text-dark-on-surface-secondary inline-block pr-4">Inserisci di seguito la password corrente e la nuova password che vuoi impostare. Ricordati che non puoi impostare password già usate impassato.</span>
                 </div>
                 <div class="relative min-h-[30vh] rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
                   <div class="flex justify-center items-center px-6 py-6" [formGroup]="passwordForm">
@@ -776,13 +797,13 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
             @case ('OK_OR_ERROR') {
               <div class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-12 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-col xs:flex-row">
                 @if (!serverError()) {
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-emerald-800 dark:text-emerald-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="shrink-0 fill-current w-20 h-auto text-[#064e3b] dark:text-[#a7f3d0]">
                     <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                     <path d="M256 240C256 160.5 320.5 96 400 96C479.5 96 544 160.5 544 240C544 319.5 479.5 384 400 384C388.9 384 378 382.7 367.6 380.4L359 378.4L352.7 384.7L321.3 416.1L255.9 416.1L255.9 480.1L191.9 480.1L191.9 544.1L95.9 544.1L95.9 462.7L258.7 299.9L265.6 293L262.7 283.7C258.3 269.9 256 255.3 256 240zM400 64C302.8 64 224 142.8 224 240C224 255.1 225.9 269.8 229.5 283.9L68.7 444.7L64 449.4L64 576L224 576L224 512L288 512L288 448L334.6 448L339.3 443.3L369.3 413.3C379.3 415.1 389.5 416 400 416C497.2 416 576 337.2 576 240C576 142.8 497.2 64 400 64zM432 232C445.3 232 456 221.3 456 208C456 194.7 445.3 184 432 184C418.7 184 408 194.7 408 208C408 221.3 418.7 232 432 232z"/>
                   </svg>
                   <span class="inline-block pr-4">La password è stata modificata con successo</span>
                 } @else {
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-20 h-auto shrink-[0.5] text-light-error dark:text-dark-error">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="shrink-0 fill-current w-20 h-auto text-light-error dark:text-dark-error-hc">
                     <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                     <path d="M320 96C443.7 96 544 196.3 544 320C544 443.7 443.7 544 320 544C196.3 544 96 443.7 96 320C96 196.3 196.3 96 320 96zM320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM419.4 243.2L396.8 220.6L385.5 231.9L320 297.4L254.5 231.9L243.2 220.6L220.6 243.2L231.9 254.5L297.4 320L231.9 385.5L220.6 396.8L243.2 419.4L254.5 408.1L320 342.6L385.5 408.1L396.8 419.4L419.4 396.8L342.6 320L408.1 254.5L419.4 243.2z"/>
                   </svg>
@@ -824,7 +845,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
             || changePasswordStep() === 'OK_OR_ERROR'
           "
           type="button"
-          class="px-4 py-2 rounded-lg bg-light-surface-secondary text-light-on-surface-main dark:bg-slate-200 dark:text-light-on-surface-main hover:bg-white dark:hover:bg-slate-300/80 border border-light-border dark:border-dark-border/80 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary transition-colors duration-200"
+          class="px-4 py-2 rounded-lg bg-light-surface-secondary text-light-on-surface-main dark:bg-slate-200 dark:text-light-on-surface-main hover:bg-white dark:hover:bg-slate-300/80 border border-light-border dark:border-dark-border/80 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary transition-colors duration-200"
           (click)="close()"
         >
           Annulla
@@ -834,12 +855,15 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         [class.invisible]="enableMfaStep() === 'CHOOSE_STRATEGY' || disableMfaStep() === 'CHOOSE_STRATEGY'"
         (click)="routeAction()"
         type="button"
-        class="relative inline-flex items-center justify-center px-4 py-2 rounded-lg bg-light-accent-primary text-white font-semibold shadow-md hover:bg-light-accent-primary/90 dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary disabled:bg-light-accent-primary/50 disabled:cursor-not-allowed transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary/50"
+        class="relative inline-flex items-center justify-center px-4 py-2 rounded-lg bg-light-accent-primary-hq text-white font-semibold shadow-md hover:bg-light-accent-primary-hc dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary disabled:bg-light-accent-primary-hq/50 disabled:cursor-not-allowed transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary-hq/50"
         [disabled]="
           loading()
+          || (enableMfaStep() === 'OTP_VERIFICATION' && otpCtrl.invalid)
+          || (disableMfaStep() === 'OTP_VERIFICATION' && otpCtrl.invalid)
           || (innerScope() === 'ChangeEmail' && changeEmailStep() === 'NEW_CONTACT_FORM' && emailCtrl.invalid)
           || (innerScope() === 'ChangeEmail' && changeEmailStep() === 'OTP_VERIFICATION' && otpCtrl.invalid)
           || ((innerScope() === 'ChangePhone' || innerScope() === 'AddPhone') && (changeOrAddPhoneStep() === 'OTP_VERIFICATION' || changeOrAddPhoneStep() === 'NEW_CONTACT_FORM') && phoneForm.invalid)
+          || ((innerScope() === 'ChangePhone' || innerScope() === 'AddPhone') && changeOrAddPhoneStep() === 'OTP_VERIFICATION' && otpCtrl.invalid)
           || (innerScope() === 'RemovePhone' && deletePhoneStep() === 'OTP_VERIFICATION' && otpCtrl.invalid)
           || (innerScope() === 'ChangePassword' && changePasswordStep() === 'CHANGE_PASSWORD_FORM' && passwordForm.invalid)
         "

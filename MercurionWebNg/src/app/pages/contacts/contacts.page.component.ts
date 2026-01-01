@@ -7,9 +7,9 @@ import { UserContextService } from '../../services/context/user-context.service'
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink],
   template: `
-    <section class="main-container leading-7">
+    <section class="main-container leading-7" role="main" aria-labelledby="contacts-heading">
       <header>
-        <h1 class="h1-underline">Contatti</h1>
+        <h1 id="contacts-heading" class="h1-underline">Contatti</h1>
         <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
           Per supporto, segnalazioni e richieste relative a privacy o dati personali.
         </p>

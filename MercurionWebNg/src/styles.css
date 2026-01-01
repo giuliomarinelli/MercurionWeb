@@ -122,32 +122,29 @@ html {
     @apply max-w-5xl mx-auto p-0 xs:p-4 sm:p-6 md:p-8 space-y-12;
   }
 
-  .a {
+  .a,
+  .a-hc /* Backward compatibility */ {
     @apply text-light-accent-primary-hc dark:text-dark-accent-primary-btn-hc hover:underline;
   }
 
-  .a-hc {
-    @apply dark:text-dark-accent-primary-btn-hc hover:underline;
-  }
-
   .h1-underline {
-    @apply w-full sm:w-auto block text-center sm:text-left mt-0 relative bottom-2 pt-4 xs:pt-0 text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-light-accent-primary dark:text-dark-accent-primary border-b border-slate-300 dark:border-slate-700 pb-6;
+    @apply w-full sm:w-auto block text-center sm:text-left mt-0 relative bottom-2 pt-4 xs:pt-0 text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-light-accent-primary-hq dark:text-dark-accent-primary border-b border-slate-300 dark:border-slate-700 pb-6;
   }
 
   .h1 {
-    @apply w-full sm:w-auto block text-center sm:text-left mt-0 relative bottom-2 pt-0 text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-light-accent-primary dark:text-dark-accent-primary pb-6;
+    @apply w-full sm:w-auto block text-center sm:text-left mt-0 relative bottom-2 pt-0 text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-light-accent-primary-hq dark:text-dark-accent-primary pb-6;
   }
 
   .h1-sm {
-    @apply w-full sm:w-auto block text-center sm:text-left mt-0 relative bottom-2 pt-0 text-2xl md:text-3xl lg:text-[2.25rem] font-semibold tracking-wider text-light-accent-primary dark:text-dark-accent-primary;
+    @apply w-full sm:w-auto block text-center sm:text-left mt-0 relative bottom-2 pt-0 text-2xl md:text-3xl lg:text-[2.25rem] font-semibold tracking-wider text-light-accent-primary-hq dark:text-dark-accent-primary;
   }
 
   .h2 {
-    @apply w-full sm:w-auto block text-center sm:text-left mt-0 relative bottom-2 pt-0 text-lg md:text-xl lg:text-2xl font-semibold tracking-wider text-light-accent-primary dark:text-dark-accent-primary pb-6;
+    @apply w-full sm:w-auto block text-center sm:text-left mt-0 relative bottom-2 pt-0 text-lg md:text-xl lg:text-2xl font-semibold tracking-wider text-light-accent-primary-hq dark:text-dark-accent-primary pb-6;
   }
 
   .h3 {
-    @apply w-full sm:w-auto block text-center sm:text-left mt-8 mb-4 pb-0 relative bottom-2 pt-0 text-sm md:text-lg lg:text-xl font-semibold tracking-wider text-light-accent-primary dark:text-dark-accent-primary;
+    @apply w-full sm:w-auto block text-center sm:text-left mt-8 mb-4 pb-0 relative bottom-2 pt-0 text-sm md:text-lg lg:text-xl font-semibold tracking-wider text-light-accent-primary-hq dark:text-dark-accent-primary;
   }
 
   .drawer {

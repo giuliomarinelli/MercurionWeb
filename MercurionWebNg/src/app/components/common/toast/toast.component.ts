@@ -17,6 +17,7 @@ export type ToastContext = 'error' | 'warn' | 'success'
         [class.translate-x-full]="!toast.slideIn()"
         [class.translate-x-0]="toast.slideIn()"
         role="alert"
+        aria-live="assertive"
       >
         <div class="flex justify-between items-center gap-4">
           <p class="text-sm font-medium">{{ toast.message() }}</p>

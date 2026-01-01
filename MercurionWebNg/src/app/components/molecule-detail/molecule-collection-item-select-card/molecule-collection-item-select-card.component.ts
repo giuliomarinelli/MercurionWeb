@@ -19,7 +19,10 @@ import { MoleculeCardItemModel } from '../../../Models/graphql/molecule-collecti
       <label class="relative inline-flex h-5 w-5 items-center justify-center cursor-pointer select-none z-30">
         <input #cb type="checkbox" class="peer sr-only"
                [formControl]="control"
-               [indeterminate]="indeterminate" />
+               [indeterminate]="indeterminate"
+               [attr.aria-checked]="indeterminate ? 'mixed' : control.value"
+               [attr.aria-label]="_isSelectAll() ? 'Seleziona tutte le molecole' : 'Seleziona molecola'"
+         />
         <span class="block h-5 w-5 rounded-md border border-slate-300 bg-white dark:bg-slate-800
                      transition-colors peer-checked:bg-emerald-600"></span>
         <svg viewBox="0 0 14 14" fill="none"
@@ -31,13 +34,14 @@ import { MoleculeCardItemModel } from '../../../Models/graphql/molecule-collecti
       <!-- colonna 2: card occupa tutto -->
       <div class="min-w-0">
         @if (_isSelectAll()) {
-          <span class="block w-full select-none font-semibold ml-[2px]" (click)="toggleSelectAll()">SELEZIONA TUTTI</span>
+          <span class="block w-full select-none font-semibold ml-[2px]" (click)="toggleSelectAll()" role="button" tabindex="0" (keydown.enter)="toggleSelectAll()" (keydown.space)="toggleSelectAll(); $event.preventDefault()" aria-label="Seleziona tutte le molecole">SELEZIONA TUTTI</span>
         } @else {
           <m-molecule-collection-item-card
             class="block w-full"
             [molecule]="_molecule()!"
             [i]="_i()"
             [isReadonly]="true"
+            [attr.aria-label]="'Molecola ' + (_molecule()?.name || '')"
             (click)="toggleValue()" />
         }
       </div>

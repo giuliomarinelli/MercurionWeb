@@ -16,7 +16,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
   `,
   template: `
-  <ul>
+  <ul role="tree" aria-label="Struttura notebook">
   @for (nb of _notebooks(); track nb) {
     <li>
       <div class="font-bold flex items-center gap-2">
@@ -27,7 +27,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
         @for (chapter of nb.chapters; track chapter) {
           <li>
             <div class="flex items-center gap-2">
-              <button (click)="toggleChapter(chapter.id)">
+              <button (click)="toggleChapter(chapter.id)" [attr.aria-expanded]="expandedChapters()[chapter.id]">
                 @if (expandedChapters()[chapter.id]) {
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="fill-current w-auto h-5"><path d="M256 429.3l22.6-22.6 192-192L493.3 192 448 146.7l-22.6 22.6L256 338.7 86.6 169.4 64 146.7 18.7 192l22.6 22.6 192 192L256 429.3z"/></svg>
                 } @else {
@@ -45,7 +45,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
                   <li>
                     <div class="flex flex-col ml-4">
                       <div class="flex items-center gap-2">
-                        <button (click)="toggleSection(section.id)">
+                        <button (click)="toggleSection(section.id)" [attr.aria-expanded]="expandedSections()[section.id]">
                           @if (expandedSections()[section.id]) {
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="fill-current w-auto h-5"><path d="M256 429.3l22.6-22.6 192-192L493.3 192 448 146.7l-22.6 22.6L256 338.7 86.6 169.4 64 146.7 18.7 192l22.6 22.6 192 192L256 429.3z"/></svg>
                           } @else {

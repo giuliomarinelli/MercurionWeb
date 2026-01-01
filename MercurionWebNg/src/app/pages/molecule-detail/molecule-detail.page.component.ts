@@ -64,7 +64,7 @@ import { AppTitleService } from '../../services/app-title.service'
 
     @if (molecule$ | async; as molecule) {
 
-      <section class="main-container">
+      <main class="main-container" role="main" [attr.aria-busy]="fetchMolLoading()" aria-live="polite">
 
         @if (!typeGuards.isSystemMolecule(molecule)) {
           @if (collectionId()) {
@@ -91,16 +91,19 @@ import { AppTitleService } from '../../services/app-title.service'
         }
         <section class="relative -top-4">
           <h2
-            class="flex gap-3 items-center font-semibold text-light-accent-primary dark:text-dark-accent-primary mt-6 mb-4 text-center sm:text-left text-xl">
+            class="flex gap-3 items-center font-semibold text-light-accent-primary-hq dark:text-dark-accent-primary mt-6 mb-4 text-center sm:text-left text-xl">
             <span>Struttura</span>
             @if (typeGuards.isCustomMolecule(molecule)) {
             <a class="cursor-pointer transition-colors duration-300 hover:transform hover:scale-[1.05]" title="Modifica Struttura"
               routerLink="/molecules/editor" [queryParams]="{
                       mode: 'edit',
                       m_id: molId
-                    }">
+                    }"
+              aria-label="Modifica struttura"
+            >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
-                class="fill-current h-[22px] w-auto text-slate-800 hover:text-slate-800/75 dark:text-slate-200 dark:hover:text-slate-200/75">
+                class="fill-current h-[22px] w-auto text-slate-800 hover:text-slate-800/75 dark:text-slate-200 dark:hover:text-slate-200/75"
+                aria-hidden="true">
                 <path
                   d="M58.1 555.9L48 592C50.7 591.2 117.4 572.6 248 536L569.4 214.6L592 192C589.6 189.6 549.1 149.1 470.6 70.6L448 48L425.4 70.6L104 392L58.1 555.9zM252.7 486L154 387.3L347.4 193.9L446.1 292.6L252.7 486zM229.4 508L94.2 545.8L132 410.6L229.4 508zM546.7 192L468.6 270.1L369.9 171.4L448 93.3L546.7 192z" />
               </svg>
@@ -124,7 +127,7 @@ import { AppTitleService } from '../../services/app-title.service'
 
               @if (!viewerReady()) {
                 <div class="absolute inset-0 z-10 animate-pulse
-                            bg-slate-200 dark:bg-slate-700"></div>
+                            bg-slate-200 dark:bg-slate-700" role="status" aria-live="polite"></div>
               }
               @if (typeGuards.isSystemMolecule(molecule)) {
                 <m-molecule-viewer [mode]="'detail'" class="w-full h-full" [structure]="molecule.canonicalSmiles"
@@ -157,7 +160,7 @@ import { AppTitleService } from '../../services/app-title.service'
           }
           @if (!typeGuards.isSystemMolecule(molecule) && molecule.joins) {
             <h2
-              class="font-semibold mt-8 mb-3 sm:top-14 text-light-accent-primary dark:text-dark-accent-primary text-center sm:text-left text-xl">
+              class="font-semibold mt-8 mb-3 sm:top-14 text-light-accent-primary-hq dark:text-dark-accent-primary text-center sm:text-left text-xl">
               Questa molecola fa parte delle seguenti collezioni:
             </h2>
             <section class="rounded-md border border-slate-300 dark:border-slate-600">
@@ -167,7 +170,7 @@ import { AppTitleService } from '../../services/app-title.service'
         </section>
         @if (typeGuards.isSystemMolecule(molecule) || typeGuards.isChemblMolecule(molecule)) {
           <h2
-            class="font-semibold relative -top-[28px] sm:top-14 text-light-accent-primary dark:text-dark-accent-primary text-center sm:text-left text-xl"
+            class="font-semibold relative -top-[28px] sm:top-14 text-light-accent-primary-hq dark:text-dark-accent-primary text-center sm:text-left text-xl"
             style="margin-block-start: -38px  ">
             Analoghi suggeriti
           </h2>
@@ -177,7 +180,7 @@ import { AppTitleService } from '../../services/app-title.service'
               <!-- wrapper visivo -->
               <label class="relative inline-flex items-center gap-2 cursor-pointer select-none">
                 <input id="onlyKnown" type="checkbox" name="onlyKnown" aria-describedby="experimental-compounds-description"
-                  class="peer sr-only" [formControl]="onlyKnown" />
+                  class="peer sr-only" [formControl]="onlyKnown" role="switch" aria-label="Mostra solo composti noti" [attr.aria-checked]="onlyKnown.value" />
 
                 <span class="inline-block size-4 rounded-sm border
                                    border-gray-300 bg-white
@@ -194,8 +197,8 @@ import { AppTitleService } from '../../services/app-title.service'
 
                 <span class="text-sm font-medium text-gray-900 dark:text-white">Mostra solo composti noti</span>
               </label>
-              <p id="comments-description"
-                class="text-xs sm:text-[0.625rem] md:text-sm text-gray-500 dark:text-gray-400 ml-2 mb-1 sm:mb-0 text-center sm:text-start">
+              <p id="experimental-compounds-description"
+                class="text-xs sm:text-[0.625rem] md:text-sm text-slate-700 dark:text-slate-200 ml-2 mb-1 sm:mb-0 text-center sm:text-start">
                 <span class="sm:hidden">Deselezionando questa opzione <br /> potrai vedere anche i lead sperimentali</span>
                 <span class="hidden sm:inline">Deselezionando questa opzione potrai vedere anche i lead sperimentali</span>
               </p>
@@ -225,13 +228,13 @@ import { AppTitleService } from '../../services/app-title.service'
           } @else if (typeGuards.isChemblMolecule(molecule)) {
             <m-molecule-cta-chembl [chemblId]="molecule.chemblDetails.cmbId" />
           }
-      </section>
+      </main>
         } @else if (fetchError()) {
-        <section class="max-w-4xl mx-auto p-6">
-          <p class="text-light-error dark:text-dark-error text-sm">Si è verificato un errore nel caricamento della molecola</p>
+        <section class="max-w-4xl mx-auto p-6" role="main" aria-live="assertive">
+          <p class="text-light-error dark:text-dark-error text-sm" role="alert">Si è verificato un errore nel caricamento della molecola</p>
         </section>
         } @else {
-        <section class="w-5xl mx-auto h-full flex justify-center items-center">
+        <section class="w-5xl mx-auto h-full flex justify-center items-center" role="main" aria-busy="true" aria-live="polite">
           <m-classic-spinner [size]="85" />
         </section>
         }

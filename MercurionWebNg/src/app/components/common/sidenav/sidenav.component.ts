@@ -22,7 +22,7 @@ import { ActionOverlayContextService } from '../../../services/context/action-co
     NgClass
   ],
   template: `
-    <nav class="flex flex-col h-full bg-transparent z-50 select-none pt-4 lg:pt-12">
+    <nav class="flex flex-col h-full bg-transparent z-50 select-none pt-4 lg:pt-12" aria-label="Navigazione laterale">
       @if (designService.maxBk('sm')()) {
       <h6 class="detail">Strumenti</h6>
       <div [class.px-2]="userContext.isLoggedOut()">
@@ -143,6 +143,8 @@ import { ActionOverlayContextService } from '../../../services/context/action-co
                 title="Cancella la cronologia"
                 [disabled]="isHistoryEmpty()"
                 (click)="doDeleteHistory()"
+                [attr.aria-disabled]="isHistoryEmpty()"
+                aria-label="Cancella la cronologia"
               >
                 <svg
                   [ngClass]="{

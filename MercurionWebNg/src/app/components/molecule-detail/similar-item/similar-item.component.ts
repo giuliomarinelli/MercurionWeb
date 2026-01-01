@@ -20,7 +20,9 @@ import { MoleculeSearchResult } from
           'bg-slate-100 dark:bg-slate-800/80 hover:bg-indigo-50 dark:hover:bg-slate-800': _i() % 2 !== 0,
           'hover:bg-slate-100/40 dark:hover:bg-slate-700': _i() % 2 === 0
           }"
-       class="flex items-center gap-3 p-3 cursor-pointer transition h-[90px]">
+       class="flex items-center gap-3 p-3 cursor-pointer transition h-[90px]"
+       [attr.aria-label]="'Apri molecola simile ' + (_molecule()?.preferredNameIt || '')"
+       role="link">
 
       <div class="w-12 h-12 flex-shrink-0 overflow-hidden relative">
         @if (!viewerReady()) {
@@ -43,14 +45,14 @@ import { MoleculeSearchResult } from
       <div class="flex-1 min-w-0">
         <div class="text-base font-medium truncate"
              [innerHTML]="_molecule()?.preferredNameIt"></div>
-        <div class="text-xs text-gray-500 truncate"
+        <div class="text-xs text-slate-700 dark:text-slate-200 truncate"
              [innerHTML]="_molecule()?.synonyms?.[0]"></div>
-        <div class="text-xs text-gray-400 mt-1 flex gap-2">
+        <div class="text-xs text-slate-700 dark:text-slate-200 mt-1 flex gap-2">
           @if (_molecule()?.mwFreebase) {
             <span>MW: {{ _molecule()?.mwFreebase | number:'1.0-1' }}</span>
           }
           @if (_molecule()?.maxPhase) {
-            <span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
+            <span class="bg-amber-50 text-amber-800 border border-amber-200/70 dark:bg-amber-900/20 dark:text-amber-200 dark:border-amber-700/40 px-2 py-0.5 rounded">
               Phase {{ _molecule()?.maxPhase }}
             </span>
           }

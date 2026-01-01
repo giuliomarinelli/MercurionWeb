@@ -55,6 +55,8 @@ import { AppContextService } from '../../../services/context/app-context.service
           'cursor-default': _isReadonly()
         }"
         aria-label="Card molecola {{ _molecule()!.name }}"
+        role="article"
+        [attr.aria-live]="_isReadonly() ? 'off' : 'polite'"
       >
         <!-- OVERLAY CLICKABLE: copre tutta la card, tranne i bottoni con z-index maggiore -->
         <a
@@ -66,6 +68,7 @@ import { AppContextService } from '../../../services/context/app-context.service
           [queryParams]="{ c_id: _collectionId() }"
           (click)="handleCardClick()"
           aria-label="Apri molecola {{ _molecule()!.name }}"
+          [attr.aria-disabled]="_isReadonly()"
         ></a>
 
         <!-- Colonna sinistra: testo -->
@@ -93,13 +96,13 @@ import { AppContextService } from '../../../services/context/app-context.service
           }
 
           <div
-            class="mt-0.5 text-xs md:text-sm text-slate-500 dark:text-slate-400 truncate"
+            class="mt-0.5 text-xs md:text-sm text-slate-700 dark:text-slate-200 truncate"
             [innerHTML]="_molecule()!.syn"
             title="{{ _molecule()!.syn }}"
           ></div>
 
           <!-- Meta (mobile) -->
-          <div class="mt-2 flex md:hidden items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+          <div class="mt-2 flex md:hidden items-center gap-2 text-xs text-slate-700 dark:text-slate-200">
             <span class="inline-flex items-center">
               <span class="size-1.5 rounded-full bg-slate-300 dark:bg-slate-500 mr-2"></span>
               {{ _molecule()!.createdAt | date : 'dd/MM/yyyy HH:mm:ss' }}
@@ -112,9 +115,9 @@ import { AppContextService } from '../../../services/context/app-context.service
             @if (_molecule()!.mwFreebase) {
               <span
                 class="inline-flex items-center rounded-full px-2 py-1
-                       bg-slate-100 dark:bg-slate-700/60
+                       bg-slate-50 dark:bg-slate-700/60
                        text-slate-700 dark:text-slate-200 border
-                       border-slate-200/70 dark:border-slate-600/60"
+                       border-slate-300/80 dark:border-slate-600/60"
               >
                 MW:&nbsp;{{ _molecule()!.mwFreebase | number:'1.0-1' }}
               </span>
@@ -122,8 +125,8 @@ import { AppContextService } from '../../../services/context/app-context.service
             @if (_molecule()!.maxPhase) {
               <span
                 class="inline-flex items-center rounded-full px-2 py-1
-                       bg-amber-50 text-amber-700 border border-amber-200/70
-                       dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-700/40"
+                       bg-amber-50 text-amber-800 border border-amber-200/70
+                       dark:bg-amber-900/20 dark:text-amber-200 dark:border-amber-700/40"
               >
                 Phase&nbsp;{{ _molecule()!.maxPhase }}
               </span>
@@ -151,7 +154,7 @@ import { AppContextService } from '../../../services/context/app-context.service
           <!-- Footer meta -->
         @if(!_isReadonly()) {
           <div
-          class="md:col-span-12 mt-1 md:mt-0 flex justify-between items-center text-xs text-slate-500 dark:text-slate-400 relative"
+          class="md:col-span-12 mt-1 md:mt-0 flex justify-between items-center text-xs text-slate-700 dark:text-slate-200 relative"
           >
             <!-- Colonna sinistra: date -->
             <div class="flex items-center gap-3 relative z-30 pointer-events-auto">
@@ -191,16 +194,17 @@ import { AppContextService } from '../../../services/context/app-context.service
               <!-- Colonna destra: pulsanti -->
               <div class="flex items-center gap-3 relative z-30 pointer-events-auto">
                 <!-- Duplica -->
-                <a
-                  type="button"
-                  class="relative z-30 p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700
-                         transition-colors duration-150"
-                  title="Crea una nuova molecola da questa struttura (Duplica)"
-                  [routerLink]="pathToDuplicate().url"
-                  [queryParams]="pathToDuplicate().queryParams"
+               <a
+                 type="button"
+                 class="relative z-30 p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700
+                        transition-colors duration-150"
+                 title="Crea una nuova molecola da questa struttura (Duplica)"
+                 [routerLink]="pathToDuplicate().url"
+                 [queryParams]="pathToDuplicate().queryParams"
+                  aria-label="Duplica molecola {{ _molecule()!.name }}"
                 >
                   <svg
-                    class="size-4 text-slate-600 dark:text-slate-300"
+                    class="size-4 text-slate-700 dark:text-slate-200"
                     viewBox="0 0 20 20"
                     fill="currentColor"
                     aria-hidden="true"
@@ -215,15 +219,16 @@ import { AppContextService } from '../../../services/context/app-context.service
                 </a>
 
                 <!-- Elimina -->
-                <button
-                  type="button"
-                  class="relative z-30 p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700
-                         transition-colors duration-150"
-                  title="Elimina da tutte le collezioni"
-                  (click)="doDelete()"
+               <button
+                 type="button"
+                 class="relative z-30 p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700
+                        transition-colors duration-150"
+                 title="Elimina da tutte le collezioni"
+                 (click)="doDelete()"
+                  aria-label="Elimina molecola {{ _molecule()!.name }}"
                 >
                   <svg
-                    class="size-4 text-light-error dark:text-dark-error"
+                    class="size-4 text-light-error dark:text-dark-error-hc"
                     viewBox="0 0 20 20"
                     fill="currentColor"
                     aria-hidden="true"
@@ -237,14 +242,15 @@ import { AppContextService } from '../../../services/context/app-context.service
                 </button>
                 @if (_collectionId()) {
                   <!-- 🧩 Rimuovi dalla collezione -->
-                  <button
-                    type="button"
-                    class="flex items-center gap-2 relative z-30 px-3 py-1 rounded-md border border-slate-300 dark:border-slate-600
-                           text-slate-600 dark:text-slate-300 text-xs font-medium
-                           hover:bg-slate-200 dark:hover:bg-slate-700
-                           transition-colors duration-150"
-                    title="Rimuovi dalla collezione"
-                    (click)="doRemoveFromCollection()"
+                 <button
+                   type="button"
+                   class="flex items-center gap-2 relative z-30 px-3 py-1 rounded-md border border-slate-400 dark:border-slate-500
+                          text-slate-700 dark:text-slate-200 text-xs font-medium
+                          hover:bg-slate-200 dark:hover:bg-slate-700
+                          transition-colors duration-150"
+                   title="Rimuovi dalla collezione"
+                   (click)="doRemoveFromCollection()"
+                    aria-label="Rimuovi {{ _molecule()!.name }} da questa collezione"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-4 w-auto">
                       <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->

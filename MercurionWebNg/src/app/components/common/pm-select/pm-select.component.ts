@@ -47,15 +47,18 @@ import { NgClass } from '@angular/common';
           [disabled]="disabled"
           (click)="toggle()"
           (keydown)="onKey($event)"
+          [attr.aria-controls]="opened ? id + '-listbox' : null"
+          [attr.aria-label]="label || placeholder"
+          [attr.aria-disabled]="disabled"
           class="relative w-full appearance-none text-lg text-slate-600 outline outline-1 -outline-offset-1
                  focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2
                  focus-visible:outline-light-accent-primary dark:bg-transparent dark:text-slate-400
-                 dark:focus-visible:outline-dark-accent-primary
+                 focus:border-light-accent-primary
                  hover:bg-slate-200/60 dark:hover:bg-neutral-800/50
                  block px-4 py-[10px] border-[2px] border-slate-300 dark:border-slate-200 rounded-md transition duration-300
-                 focus:outline-none focus:ring-2 focus:ring-light-accent-primary dark:focus:ring-dark-accent-primary
-                 focus:border-light-accent-primary dark:focus:border-dark-accent-primary cursor-pointer
-                 text-left pr-10">
+                 focus:outline-none focus:ring-2 focus:ring-light-accent-primary cursor-pointer
+                 text-left pr-10"
+          [ngClass]="darkFocusClassList">
 
           <span class="emoji-font inline-flex items-center gap-2">
             @if (currentIconUrl) {
@@ -86,7 +89,8 @@ import { NgClass } from '@angular/common';
           <ul role="listbox"
               class="z-[200] mt-2 w-full rounded-md border border-slate-400 dark:border-slate-200
                      bg-slate-100 dark:bg-neutral-800 shadow-lg overflow-auto"
-              [style.maxHeight.px]="maxHeight">
+              [style.maxHeight.px]="maxHeight"
+              [attr.id]="id + '-listbox'">
 
             @for (o of options; track o.value; let i = $index) {
               <li role="option"
@@ -125,6 +129,12 @@ export class PmSelectComponent implements ControlValueAccessor {
   @Input() maxHeight = 250;
   @Input() textClass = 'text-light-accent-secondary'
   @Input() darkTextClass = 'dark:text-dark-accent-secondary/90'
+  @Input() darkFocusClassList = [
+    'dark:focus:ring-dark-accent-primary-btn-hc',
+    'dark:focus:border-dark-accent-primary-btn-hc',
+    'dark:focus-visible:outline-dark-accent-primary-btn-hc',
+    'dark:focus-visible:outline-dark-accent-primary-btn-hc'
+  ]
 
   opened = false;
   value: any = null;

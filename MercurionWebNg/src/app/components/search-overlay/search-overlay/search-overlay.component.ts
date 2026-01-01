@@ -43,6 +43,10 @@ import { Maybe } from 'graphql/jsutils/Maybe'
       class="fixed inset-0 z-[999] bg-black/70 backdrop-blur-sm text-light-on-surface-main dark:text-slate-50 transition-all duration-300"
       [class.opacity-0]="!searchContextService.isVisible()"
       [class.opacity-100]="searchContextService.isVisible()"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Ricerca molecolare"
+      [attr.aria-hidden]="!searchContextService.isVisible()"
     >
       <div class="flex justify-center items-center pt-32 sm:pt-40 px-4">
         <div
@@ -53,7 +57,7 @@ import { Maybe } from 'graphql/jsutils/Maybe'
           <!-- HEADER -->
           <div class="flex justify-between items-center mb-3 relative md:-top-2 lg:-top-4">
             <h2 class="text-2xl font-medium tracking-wide">Ricerca molecolare</h2>
-            <m-close-button [size]="8" [action]="close.bind(this)" />
+            <m-close-button [size]="8" [action]="close.bind(this)" variant="input" />
           </div>
 
           <m-molecule-search-input
@@ -84,7 +88,7 @@ import { Maybe } from 'graphql/jsutils/Maybe'
                     <m-search-result [molecule]="molecule" [query]="query()" />
                   }
                 } @else if (showChemblEmptyMessage()) {
-                  <div class="text-sm text-gray-400 text-center py-8">
+                  <div class="text-sm text-slate-700 dark:text-slate-200 text-center py-8">
                     Nessun risultato trovato.
                   </div>
                 } @else if (error()) {
@@ -92,7 +96,7 @@ import { Maybe } from 'graphql/jsutils/Maybe'
                     Errore nella ricerca. Riprova.
                   </div>
                 } @else {
-                  <div class="text-sm text-gray-400 text-center py-8">
+                  <div class="text-sm text-slate-700 dark:text-slate-200 text-center py-8">
                     Qui compariranno i risultati quando digiterai.
                   </div>
                 }
@@ -112,7 +116,7 @@ import { Maybe } from 'graphql/jsutils/Maybe'
                     </div>
                   }
                 } @else if (showMyEmptyMessage()) {
-                  <div class="text-sm text-gray-400 text-center py-8">
+                  <div class="text-sm text-slate-700 dark:text-slate-200 text-center py-8">
                     Nessun risultato trovato.
                   </div>
                 } @else if (error()) {

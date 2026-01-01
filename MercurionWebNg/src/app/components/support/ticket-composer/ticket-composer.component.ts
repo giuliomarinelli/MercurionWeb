@@ -22,19 +22,23 @@ import { FormsModule } from '@angular/forms';
       [modules]="modules"
       [(ngModel)]="contentHtml"
       (onContentChanged)="onChanged($event)"
-      placeholder="Scrivi un messaggio..." />
+      placeholder="Scrivi un messaggio..."
+      aria-label="Componi messaggio"
+      aria-live="polite" />
     <button
       type="button"
       class="
         h-10 rounded-md text-sm px-4 py-2
-        text-white bg-emerald-600 font-semibold shadow hover:bg-emerald-700
-        disabled:bg-emerald-300 disabled:cursor-not-allowed
+        text-white bg-light-accent-primary-hq font-semibold shadow hover:bg-light-accent-primary-hc
+        disabled:bg-light-accent-primary-hq/60 disabled:cursor-not-allowed
         disabled:opacity-60
-        transition-colors
+        transition-colors focus:outline-none focus:ring-2 focus:ring-light-accent-primary-hq focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-dark-surface-main
       "
       [disabled]="!canSend()"
       (click)="sendMsg()"
       title="Invia messaggio"
+      [attr.aria-disabled]="!canSend()"
+      aria-label="Invia messaggio"
     >
       Invia
     </button>

@@ -12,7 +12,10 @@ import { CollectionCardComponent } from '../collection-card/collection-card.comp
       <label class="relative inline-flex h-5 w-5 items-center justify-center cursor-pointer select-none z-30">
         <input #cb type="checkbox" class="peer sr-only"
                [formControl]="control"
-               [indeterminate]="indeterminate" />
+               [indeterminate]="indeterminate"
+               [attr.aria-checked]="indeterminate ? 'mixed' : control.value"
+               [attr.aria-label]="_isSelectAll() ? 'Seleziona tutte le collezioni' : 'Seleziona collezione'"
+        />
         <span class="block h-5 w-5 rounded-md border border-slate-300 bg-white dark:bg-slate-800
                      transition-colors peer-checked:bg-emerald-600"></span>
         <svg viewBox="0 0 14 14" fill="none"
@@ -23,13 +26,14 @@ import { CollectionCardComponent } from '../collection-card/collection-card.comp
 
       <div class="min-w-0">
         @if (_isSelectAll()) {
-          <span class="block w-full select-none font-semibold ml-[2px]" (click)="toggleSelectAll()">SELEZIONA TUTTI</span>
+          <span class="block w-full select-none font-semibold ml-[2px]" (click)="toggleSelectAll()" role="button" tabindex="0" aria-label="Seleziona tutte le collezioni" (keydown.enter)="toggleSelectAll()" (keydown.space)="toggleSelectAll(); $event.preventDefault()">SELEZIONA TUTTI</span>
         } @else {
           <m-collection-card
             class="block w-full"
             [collection]="_collection()!"
             [i]="_i()"
             [isReadonly]="true"
+            [attr.aria-label]="'Collezione ' + (_collection()?.name || '')"
             (click)="toggleValue()" />
         }
       </div>

@@ -27,22 +27,23 @@ import { AddMoleculesToCollectionContextService } from '../../services/context/a
   ],
   template: `
 
-    <section class="max-w-5xl mx-auto p-0 xs:p-4 sm:p-6 md:p-8 space-y-12">
+    <section class="max-w-5xl mx-auto p-0 xs:p-4 sm:p-6 md:p-8 space-y-12" role="main" aria-labelledby="all-my-molecules-heading">
       <m-my-molecules-heading />
       <div class="flex flex-wrap gap-y-4 justify-between items-center relative -top-12 pt-2">
-        <h2 class="h1 bg-slate-50 dark:bg-neutral-950 z-10 block sticky top-0 bottom-5" style="margin-block-start: 0">
+        <h2 id="all-my-molecules-heading" class="h1 bg-slate-50 dark:bg-neutral-950 z-10 block sticky top-0 bottom-5" style="margin-block-start: 0">
             Tutte le mie molecole
         </h2>
         <div class="flex items-center gap-3">
           <!-- 🧩 Aggiungi nuove molecole -->
           <button
             type="button"
-            class="flex items-center gap-2 relative -top-2 px-3 py-1 rounded-md border border-slate-300 dark:border-slate-600
-                   text-slate-600 dark:text-slate-300 text-xs font-medium
+            class="flex items-center gap-2 relative -top-2 px-3 py-1 rounded-md border border-slate-400 dark:border-slate-500
+                   text-slate-700 dark:text-slate-200 text-xs font-medium
                    hover:bg-slate-200 dark:hover:bg-slate-700
                    transition-colors duration-150"
             title="Aggiungi nuove molecole alla collezione"
             (click)="doAddMolecules()"
+            aria-label="Aggiungi nuove molecole alla collezione"
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto">
               <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
