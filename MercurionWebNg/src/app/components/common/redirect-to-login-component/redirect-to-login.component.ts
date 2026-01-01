@@ -7,7 +7,7 @@ import { Router } from '@angular/router';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
 
-    <div class="absolute inset-0" role="status" aria-live="assertive">
+    <div class="absolute inset-0 text-light-on-surface-main dark:text-dark-on-surface-main" role="status" aria-live="assertive">
       Reindirizzamento alla pagina di login in corso.
 
     </div>

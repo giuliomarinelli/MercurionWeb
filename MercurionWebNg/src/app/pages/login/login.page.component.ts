@@ -61,7 +61,7 @@ import { SSO_AuthProvider } from '../../Models/auth/provider.models'
           type="button"
           (click)="goToPasswordStep()"
           [disabled]="loginForm.controls['email'].invalid"
-          class="relative bottom-[10px] w-full mt-1 py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary/80 dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary/60 disabled:hover:dark:bg-dark-accent-primary/80"
+          class="relative bottom-[10px] w-full mt-1 py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary-hq dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary-hc disabled:bg-light-accent-primary-hq/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary-hq/60 disabled:hover:dark:bg-dark-accent-primary/80"
           [attr.aria-disabled]="loginForm.controls['email'].invalid"
           aria-label="Continua con l'e-mail inserita"
         >
@@ -103,7 +103,7 @@ import { SSO_AuthProvider } from '../../Models/auth/provider.models'
           <button
             type="submit"
             [disabled]="!canLogin() || loadingLogin()"
-            class="relative bottom-[2px] w-full mt-4 py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary/80 dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary/60 disabled:hover:dark:bg-dark-accent-primary/80"
+            class="relative bottom-[2px] w-full mt-4 py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary-hq dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary-hc dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary-hq/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary-hq/60 disabled:hover:dark:bg-dark-accent-primary/80"
             [attr.aria-disabled]="!canLogin() || loadingLogin()"
             [attr.aria-busy]="loadingLogin()"
             aria-label="Accedi al tuo account"
@@ -132,8 +132,8 @@ import { SSO_AuthProvider } from '../../Models/auth/provider.models'
       }
 
       <div class="my-3 text-sm flex gap-3 justify-between items-center flex-col 2xs:flex-row">
-        <a routerLink="/forgot-password" class="text-light-accent-primary dark:text-dark-accent-primary hover:underline">Password dimenticata?</a>
-        <a routerLink="/register" class="text-light-accent-primary dark:text-dark-accent-primary hover:underline">Registrati</a>
+        <a routerLink="/forgot-password" class="text-light-accent-primary-hq dark:text-dark-accent-primary hover:underline">Password dimenticata?</a>
+        <a routerLink="/register" class="text-light-accent-primary-hq dark:text-dark-accent-primary hover:underline">Registrati</a>
       </div>
 
       <div class="text-sm text-center text-gray-600 dark:text-gray-300 flex items-center justify-center gap-3">

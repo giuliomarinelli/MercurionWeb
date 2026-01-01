@@ -79,7 +79,7 @@ type ChartPalette = {
               role="group"
               aria-label="Totale molecole"
             >
-              <p class="text-sm text-neutral-950 dark:text-slate-400 font-semibold">
+              <p class="text-sm text-neutral-950 dark:text-slate-200 font-semibold">
                 Totale molecole
               </p>
               <p class="text-3xl font-semibold mt-1">
@@ -93,7 +93,7 @@ type ChartPalette = {
               role="group"
               aria-label="Molecole personali"
             >
-              <p class="text-sm text-neutral-950 dark:text-slate-400 font-semibold">
+              <p class="text-sm text-neutral-950 dark:text-slate-200 font-semibold">
                 Molecole personali
               </p>
               <p class="text-3xl font-semibold mt-1">
@@ -107,7 +107,7 @@ type ChartPalette = {
               role="group"
               aria-label="Molecole ChEMBL"
             >
-              <p class="text-sm text-neutral-950 dark:text-slate-400 font-semibold">
+              <p class="text-sm text-neutral-950 dark:text-slate-200 font-semibold">
                 Molecole ChEMBL
               </p>
               <p class="text-3xl font-semibold mt-1">
@@ -121,7 +121,7 @@ type ChartPalette = {
               role="group"
               aria-label="Collezioni"
             >
-              <p class="text-sm text-neutral-950 dark:text-slate-400 font-semibold">
+              <p class="text-sm text-neutral-950 dark:text-slate-200 font-semibold">
                 Collezioni
               </p>
               <p class="text-3xl font-semibold mt-1">

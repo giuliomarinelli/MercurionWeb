@@ -18,14 +18,14 @@ import { RouterLink } from '@angular/router';
           <a class="hover:underline" routerLink="/molecules/all-my-molecules" aria-label="Vai a Le mie molecole">Le mie molecole</a>
         </h1>
           @if (_breadcrumb().length) {
-            <div class="text-slate-400 dark:text-slate-700 text-3xl md:text-4xl lg:text-[2.65rem] font-light relative top-1">
+            <div class="text-slate-500 dark:text-slate-600 text-3xl md:text-4xl lg:text-[2.65rem] font-light relative top-1">
               >
             </div>
             <div class="flex flex-wrap items-center text-sm md:text-base gap-3">
               @for (link of _breadcrumb(); track link; let i = $index) {
-                <a [routerLink]="link.path" [queryParams]="link.queryParams" class="shrink-0 relative top-1 font-light text-slate-700 dark:text-neutral-400   hover:underline">{{link.label}}</a>
+                <a [routerLink]="link.path" [queryParams]="link.queryParams" class="shrink-0 relative top-1 font-light text-slate-700 dark:text-slate-200 hover:underline">{{link.label}}</a>
                 @if (i !== _breadcrumb().length - 1) {
-                  <div class="text-slate-400 dark:text-slate-700 text-xl font-light relative top-1">
+                  <div class="text-slate-500 dark:text-slate-600 text-xl font-light relative top-1">
                     >
                   </div>
                 }

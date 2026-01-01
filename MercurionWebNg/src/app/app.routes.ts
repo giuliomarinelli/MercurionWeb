@@ -8,12 +8,12 @@ export const routes: Routes = [
     title: '',
     loadComponent: () =>
       import('./components/common/redirect-to-login-component/redirect-to-login.component')
-        .then((m) => m.RedirectToLoginComponent)
+        .then((m) => m.RedirectToLoginComponent) // ok
   },
   {
     path: 'login',
     title: 'Login',
-    loadComponent: () => import('./pages/login/login.page.component').then(m => m.LoginPageComponent)
+    loadComponent: () => import('./pages/login/login.page.component').then(m => m.LoginPageComponent) // ok
   },
   {
     // redirect per retrocompatibilità
@@ -23,18 +23,18 @@ export const routes: Routes = [
   {
     path: 'dashboard',
     title: 'Dashboard',
-    loadComponent: () => import('./pages/profile/dashboard.page.component').then(m => m.DashboardPageComponent),
+    loadComponent: () => import('./pages/profile/dashboard.page.component').then(m => m.DashboardPageComponent), //ok
     canActivate: [AuthGuard]
   },
   {
     path: 'login/mfa',
     title: 'Login · MFA',
-    loadComponent: () => import('./pages/login/mfa/mfa.page.component').then(m => m.MfaPageComponent)
+    loadComponent: () => import('./pages/login/mfa/mfa.page.component').then(m => m.MfaPageComponent) // ok
   },
   {
     path: 'login/mfa/:view',
     title: 'Login · MFA',
-    loadComponent: () => import('./pages/login/mfa/mfa.page.component').then(m => m.MfaPageComponent)
+    loadComponent: () => import('./pages/login/mfa/mfa.page.component').then(m => m.MfaPageComponent) // ok
   },
 
   {
@@ -43,7 +43,7 @@ export const routes: Routes = [
     data: { titleManagedByComponent: true },
     loadComponent: () =>
       import('./pages/molecule-detail/molecule-detail.page.component')
-        .then(m => m.MoleculeDetailPageComponent)
+        .then(m => m.MoleculeDetailPageComponent) // ok
   },
   {
     path: 'molecules/editor',
