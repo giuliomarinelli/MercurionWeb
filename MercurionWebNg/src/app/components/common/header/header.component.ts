@@ -80,7 +80,7 @@ import { AppContextService } from '../../../services/context/app-context.service
         <a routerLink="/login"
           class="hover:text-light-accent-primary hover:dark:text-dark-accent-primary transition-colors duration-300">Accedi</a>
         @if (!isRegisterPath()) {
-        <span class="cursor-default">&middot;</span>
+        <span class="cursor-default text-slate-600 dark:text-slate-300">●</span>
         <a routerLink="/register"
           class="hover:text-light-accent-primary hover:dark:text-dark-accent-primary transition-colors duration-300">Registrati</a>
         }

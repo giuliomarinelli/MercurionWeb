@@ -23,7 +23,7 @@ import { Helpers } from '../../helpers';
       <main role="main" aria-live="polite" [attr.aria-busy]="step_12_loading()">
       @switch (step()) {
         @case (1) {
-          <h1 id="password-recovery-title" class="text-2xl mt-2 2xs:text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center text-light-accent-primary dark:text-dark-accent-primary">
+          <h1 id="password-recovery-title" class="text-2xl mt-2 2xs:text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-center text-light-accent-primary-hq dark:text-dark-accent-primary">
             Recupero password
           </h1>
           <div class="bg-slate-200 dark:bg-slate-800 border my-16 border-slate-300 dark:border-slate-600 relative p-3 mx-auto max-w-[1024px] rounded-md text-sm flex gap-2 xs:gap-4 items-center flex-col xs:flex-row" role="status" aria-live="polite">
@@ -62,7 +62,7 @@ import { Helpers } from '../../helpers';
               <button
                 type="submit"
                 [disabled]="form.invalid || step_12_loading() || serverError()"
-                class="relative top-[10px] w-full py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary/80 dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary/60 disabled:hover:dark:bg-dark-accent-primary/80"
+                class="relative top-[10px] w-full py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary-hq dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary-hc dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary-hq/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary-hq/60 disabled:hover:dark:bg-dark-accent-primary/80"
                 [attr.aria-disabled]="form.invalid || step_12_loading() || serverError()"
                 [attr.aria-busy]="step_12_loading()"
                 aria-label="Conferma nuova password"
@@ -96,7 +96,7 @@ import { Helpers } from '../../helpers';
                 <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                 <path d="M320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM320 96C196.3 96 96 196.3 96 320C96 443.7 196.3 544 320 544C443.7 544 544 443.7 544 320C544 196.3 443.7 96 320 96zM438.3 236.5L428.9 249.4L300.9 425.4L289.9 440.6L201.3 352L223.9 329.4L286 391.5L403 230.7L412.4 217.8L438.3 236.6z" />
               </svg>
-              <span>La password è stata cambiata con successo! <a class="text-light-accent-primary dark:text-dark-accent-primary hover:underline" routerLink="/login">Vai al login</a>.
+              <span>La password è stata cambiata con successo! <a class="text-light-accent-primary-hq dark:text-dark-accent-primary hover:underline" routerLink="/login">Vai al login</a>.
               </span>
             </div>
           }

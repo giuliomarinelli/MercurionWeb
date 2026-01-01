@@ -50,7 +50,7 @@ export const routes: Routes = [
     title: 'Molecole · Editor',
     loadComponent: () =>
       import('./pages/molecule-editor/molecule-editor.page.component')
-        .then(m => m.MoleculeEditorPageComponent),
+        .then(m => m.MoleculeEditorPageComponent), //ok
     canActivate: [AuthGuard]
   },
 
@@ -58,13 +58,13 @@ export const routes: Routes = [
     path: 'forgot-password',
     title: 'Password · Recupero',
     loadComponent: () => import('./pages/forgot-password/forgot-password.page.component')
-      .then(m => m.ForgotPasswordPageComponent)
+      .then(m => m.ForgotPasswordPageComponent) // ok
   },
   {
     path: 'password-recovery',
     title: 'Password · Reset',
     loadComponent: () => import('./pages/password-recovery/password-recovery.page.component')
-      .then(m => m.PasswordRecoveryPageComponent)
+      .then(m => m.PasswordRecoveryPageComponent) // ok
   },
 
   {
@@ -72,7 +72,7 @@ export const routes: Routes = [
     title: 'Molecole · Collezioni',
     loadComponent: () =>
       import('./pages/my-molecule-collections/my-molecule-collections.page.component')
-        .then(m => m.MyMoleculeCollectionsPageComponent),
+        .then(m => m.MyMoleculeCollectionsPageComponent), // ok
     canActivate: [AuthGuard]
   },
   {
@@ -81,7 +81,7 @@ export const routes: Routes = [
     data: { titleManagedByComponent: true },
     loadComponent: () =>
       import('./pages/molecule-collection-detail/molecule-collection-detail.page.component')
-        .then(m => m.MoleculeCollectionDetailPageComponent),
+        .then(m => m.MoleculeCollectionDetailPageComponent), // ok
     canActivate: [AuthGuard]
   },
   {

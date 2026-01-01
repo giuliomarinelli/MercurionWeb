@@ -85,7 +85,7 @@ import { AppTitleService } from '../../services/app-title.service';
           title="Crea una nuova collezione a partire da questa (Duplica)"
           aria-label="Duplica collezione"
         >
-          <svg class="size-7 text-slate-600 dark:text-slate-300" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <svg class="size-7 text-slate-700 dark:text-slate-200" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
             <path d="M4 4a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v1h-1V4a1 1 0 0 0-1-1H6a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h1v1H6a2 2 0 0 1-2-2V4z"/>
             <path d="M8 6a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2V6z"/>
           </svg>
@@ -106,7 +106,7 @@ import { AppTitleService } from '../../services/app-title.service';
         <button
           type="button"
           class="flex items-center gap-2 relative px-3 py-1 rounded-md border border-slate-300 dark:border-slate-600
-                 text-slate-600 dark:text-slate-300 text-xs font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-150"
+                 text-slate-700 dark:text-slate-200 text-xs font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-150"
           title="Aggiungi nuove molecole alla collezione"
           (click)="doAddToCollection()"
           aria-label="Aggiungi nuove molecole alla collezione"

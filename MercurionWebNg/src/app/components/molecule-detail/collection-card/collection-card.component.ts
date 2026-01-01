@@ -86,19 +86,19 @@ import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/
                     {{ _collection()!.name }}
                   </div>
 
-                  <div class="mt-1 flex md:hidden items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                  <div class="mt-1 flex md:hidden items-center gap-2 text-xs text-slate-700 dark:text-slate-200">
                     <span class="inline-flex items-center">
                       <span class="size-1.5 rounded-full bg-slate-300 dark:bg-slate-500 mr-2"></span>
                       {{ _collection()!.createdAt | date :'dd/MM/yyyy HH:mm:ss' }}
                     </span>
-                    <span class="text-slate-300 dark:text-slate-600">&middot;</span>
+                    <span class="text-slate-500 dark:text-slate-400">&middot;</span>
                     <span>{{ _collection()!.updatedAt | date :'dd/MM/yyyy HH:mm:ss' }}</span>
                   </div>
                 </div>
               </div>
 
               <!-- Colonna destra -->
-              <div class="md:col-span-4 flex md:justify-end items-center gap-3 md:gap-4 text-sm text-slate-600 dark:text-slate-300">
+              <div class="md:col-span-4 flex md:justify-end items-center gap-3 md:gap-4 text-sm text-slate-700 dark:text-slate-200">
                 <span
                   class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 border border-indigo-200/70 dark:border-indigo-700/40 group-hover:scale-[1.02] transition-transform"
                 >
@@ -114,7 +114,7 @@ import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/
               </div>
 
               <!-- Footer -->
-              <div class="md:col-span-12 mt-1 md:mt-0 flex items-center text-xs text-slate-500 dark:text-slate-400 justify-between">
+              <div class="md:col-span-12 mt-1 md:mt-0 flex items-center text-xs text-slate-700 dark:text-slate-200 justify-between">
                 <div class="flex items-center gap-3">
                   <span class="inline-flex items-center">
                     <svg class="size-3.5 mr-1.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -123,7 +123,7 @@ import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/
                     </svg>
                     {{ _collection()!.createdAt | date :'dd/MM/yyyy HH:mm:ss' }}
                   </span>
-                  <span class="size-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+                  <span class="size-1 rounded-full bg-slate-400 dark:bg-slate-500"></span>
                   <span class="inline-flex items-center">
                     <svg class="size-3.5 mr-1.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                       <path d="M10 2a8 8 0 1 0 8 8 8.01 8.01 0 0 0-8-8Zm.75 4.75a.75.75 0 0 0-1.5 0v3.69l2.72 2.72a.75.75 0 0 0 1.06-1.06l-2.28-2.28V6.75Z"/>
