@@ -87,20 +87,19 @@ export const routes: Routes = [
   {
     path: 'register',
     title: 'Registrazione',
-    loadComponent: () => import('./pages/register/register.page.component').then(m => m.RegisterPageComponent)
+    loadComponent: () => import('./pages/register/register.page.component').then(m => m.RegisterPageComponent) // ok
   },
   {
     path: 'account/activate',
     title: 'Account · Attivazione',
     loadComponent: () => import('./pages/account-activate/account-activate.page.component')
-      .then(m => m.AccountActivatePageComponent)
+      .then(m => m.AccountActivatePageComponent) // ok
   },
-
   {
     path: 'molecules/all-my-molecules',
     title: 'Molecole · Tutte le mie molecole',
     loadComponent: () => import('./pages/all-my-molecules/all-my-molecules.page.component')
-      .then(m => m.AllMyMoleculesPageComponent),
+      .then(m => m.AllMyMoleculesPageComponent), // ok
     canActivate: [AuthGuard]
   },
 

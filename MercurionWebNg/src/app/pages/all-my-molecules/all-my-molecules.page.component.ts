@@ -37,8 +37,8 @@ import { AddMoleculesToCollectionContextService } from '../../services/context/a
           <!-- 🧩 Aggiungi nuove molecole -->
           <button
             type="button"
-            class="flex items-center gap-2 relative -top-2 px-3 py-1 rounded-md border border-slate-300 dark:border-slate-600
-                   text-slate-600 dark:text-slate-300 text-xs font-medium
+            class="flex items-center gap-2 relative -top-2 px-3 py-1 rounded-md border border-slate-400 dark:border-slate-500
+                   text-slate-700 dark:text-slate-200 text-xs font-medium
                    hover:bg-slate-200 dark:hover:bg-slate-700
                    transition-colors duration-150"
             title="Aggiungi nuove molecole alla collezione"

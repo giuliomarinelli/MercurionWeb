@@ -36,7 +36,7 @@ import { UserContextService } from '../../services/context/user-context.service'
             <p><strong>Il tuo account è stato attivato con successo!</strong>.</p>
             <p><span>Questo è il codice per recuperare l'account nel caso non riuscissi più ad accedere. Lo puoi visualizzare solo in questo momento. <br />Salvalo in un posto sicuro, come un Password Manager oppure stampalo e custodiscilo in un luogo inaccessibile ad altri:</span>.</p>
             <p class="text-light-warning dark:text-dark-warning font-semibold" aria-live="assertive">{{recoveryCode()}}</p>
-            <p><a class="text-center text-light-accent-primary dark:text-dark-accent-primary hover:underline" routerLink="/login">Vai al login</a></p>
+            <p><a class="a-hc" routerLink="/login">Vai al login</a></p>
           </div>
         </div>
       </div>
