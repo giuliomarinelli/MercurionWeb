@@ -149,17 +149,17 @@ export const routes: Routes = [
   {
     path: 'privacy',
     title: 'Informativa sulla Privacy',
-    loadComponent: () => import('./pages/privacy/privacy.page.component').then((m) => m.PrivacyPageComponent)
+    loadComponent: () => import('./pages/privacy/privacy.page.component').then((m) => m.PrivacyPageComponent) // ok
   },
   {
     path: 'terms-and-policies',
     title: 'Termini di Servizio e Politica di Utilizzo Accettabile',
-    loadComponent: () => import('./pages/terms-and-policies/terms-and-policies.page.component').then((m) => m.TermsAndPoliciesPageComponent)
+    loadComponent: () => import('./pages/terms-and-policies/terms-and-policies.page.component').then((m) => m.TermsAndPoliciesPageComponent) // ok
   },
   {
     path: 'contacts',
     title: 'Contatti',
-    loadComponent: () => import('./pages/contacts/contacts.page.component').then((m) => m.ContactsPageComponent)
+    loadComponent: () => import('./pages/contacts/contacts.page.component').then((m) => m.ContactsPageComponent) // ok
   },
   {
     path: '**',

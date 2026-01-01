@@ -37,11 +37,11 @@ import { AppContextService } from '../../../services/context/app-context.service
     <div class="flex items-center gap-4">
       @if (designService.maxBk("lg")()) {
       <button
-        class="inline-flex items-center justify-center size-10 rounded-full hover:bg-slate-200/80 dark:hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400/70 transition-colors"
+        class="inline-flex items-center justify-center size-10 rounded-full hover:bg-slate-200/80 dark:hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-light-accent-primary-hq transition-colors"
         (click)="noToast(); toggleOffCanvasMenu()"
         aria-label="Apri o chiudi menu laterale">
         <svg xmlns="http://www.w3.org/2000/svg"
-          class="h-[22px] w-[22px] min-[350px]:h-6 min-[350px]:w-6 fill-current text-light-on-surface-secondary dark:text-slate-100 off-canvas-menu-button"
+          class="h-[22px] w-[22px] min-[350px]:h-6 min-[350px]:w-6 fill-current text-slate-700 dark:text-slate-100 off-canvas-menu-button"
           viewBox="0 0 448 512">
           <!--!Font Awesome Pro 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
           <path
@@ -57,7 +57,7 @@ import { AppContextService } from '../../../services/context/app-context.service
         </a>
         @if (designService.minBk("lg")()) {
         <h3
-          class="font-semibold font-spacegrotesk tracking-widest text-sm relative top-[3.5px] text-slate-600 dark:text-slate-300 cursor-default">
+          class="font-semibold font-spacegrotesk tracking-widest text-sm relative top-[3.5px] text-slate-700 dark:text-slate-300 cursor-default">
           Next Gen Chemistry.
         </h3>
         }
@@ -80,7 +80,7 @@ import { AppContextService } from '../../../services/context/app-context.service
         <a routerLink="/login"
           class="hover:text-light-accent-primary hover:dark:text-dark-accent-primary transition-colors duration-300">Accedi</a>
         @if (!isRegisterPath()) {
-        <span class="cursor-default text-slate-600 dark:text-slate-300">●</span>
+        <span class="cursor-default text-slate-700 dark:text-slate-300">●</span>
         <a routerLink="/register"
           class="hover:text-light-accent-primary hover:dark:text-dark-accent-primary transition-colors duration-300">Registrati</a>
         }
@@ -94,15 +94,15 @@ import { AppContextService } from '../../../services/context/app-context.service
       <div class="hidden lg:block">
         <div (click)="openSearchOverlay()"
           class="flex items-center px-4 py-2 bg-slate-100 border border-slate-500/40 dark:border-none hover:bg-slate-200/30 dark:hover:bg-neutral-700 dark:bg-neutral-800 rounded-full cursor-pointer transition w-[240px] mr-2">
-          <svg class="w-4 h-4 mr-2 fill-current text-slate-400" xmlns="http://www.w3.org/2000/svg"
+          <svg class="w-4 h-4 mr-2 fill-current text-slate-700 dark:text-slate-200" xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 512 512">
             <path
               d="M505 442.7L405.3 343c28.4-34.9 45.5-79 45.5-127.3C450.8 103.5 347.3 0 225.4 0S0 103.5 0 215.6s103.5 215.6 225.4 215.6c48.3 0 92.4-17.1 127.3-45.5l99.7 99.7c4.6 4.6 10.6 7 16.7 7s12.1-2.3 16.7-7c9.3-9.2 9.3-24.4 0-33.7zM225.4 367c-83.5 0-151.4-67.9-151.4-151.4s67.9-151.4 151.4-151.4 151.4 67.9 151.4 151.4-67.9 151.4-151.4 151.4z" />
           </svg>
           @if (userContext.isLoggedIn()) {
-          <span class="text-sm text-slate-400">Cerca molecola...</span>
+          <span class="text-sm text-slate-700 dark:text-slate-200">Cerca molecola...</span>
           } @else {
-          <span class="text-xs py-[3px] text-slate-400">Cerca molecola ChEMBL...</span>
+          <span class="text-xs py-[3px] text-slate-700 dark:text-slate-200">Cerca molecola ChEMBL...</span>
           }
         </div>
       </div>
@@ -112,8 +112,8 @@ import { AppContextService } from '../../../services/context/app-context.service
         }">
         <button
           (click)="openSearchOverlay()"
-          class="inline-flex items-center justify-center size-10 rounded-full relative left-0.5 text-slate-600 dark:text-gray-200 hover:bg-slate-200/80 dark:hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400/70 transition-colors">
-          <svg class="w-5 h-5 fill-current text-slate-600 dark:text-gray-200" xmlns="http://www.w3.org/2000/svg"
+          class="inline-flex items-center justify-center size-10 rounded-full relative left-0.5 text-slate-700 dark:text-gray-200 hover:bg-slate-200/80 dark:hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-light-accent-primary-hq transition-colors">
+          <svg class="w-5 h-5 fill-current text-slate-700 dark:text-gray-200" xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 512 512">
             <path
               d="M505 442.7L405.3 343c28.4-34.9 45.5-79 45.5-127.3C450.8 103.5 347.3 0 225.4 0S0 103.5 0 215.6s103.5 215.6 225.4 215.6c48.3 0 92.4-17.1 127.3-45.5l99.7 99.7c4.6 4.6 10.6 7 16.7 7s12.1-2.3 16.7-7c9.3-9.2 9.3-24.4 0-33.7zM225.4 367c-83.5 0-151.4-67.9-151.4-151.4s67.9-151.4 151.4-151.4 151.4 67.9 151.4 151.4-67.9 151.4-151.4 151.4z" />
@@ -121,7 +121,7 @@ import { AppContextService } from '../../../services/context/app-context.service
         </button>
       </div>
 
-      <button class="flex items-center justify-center size-10 rounded-full theme-toggle-button mr-0 xs:mr-1 lg:mr-2 transition-all duration-500 hover:bg-slate-200/80 dark:hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400/70" [ngClass]="{
+      <button class="flex items-center justify-center size-10 rounded-full theme-toggle-button mr-0 xs:mr-1 lg:mr-2 transition-all duration-500 hover:bg-slate-200/80 dark:hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-light-accent-primary-hq" [ngClass]="{
           'xl:ml-1': userContext.isLoggedIn() || isLoginPath(),
         }"
         (click)="toggleThemeMenu()"
@@ -151,7 +151,7 @@ import { AppContextService } from '../../../services/context/app-context.service
       ) {
       <button (click)="toggleAvatarMenu()" [innerHTML]="userContext.initials()"
         [attr.title]="avatarMenuOpen() ? 'Chiudi il menù utente' : 'Apri il menu utente'"
-        class="avatar-toggle-button inline-flex items-center justify-center size-10 rounded-full cursor-pointer bg-light-accent-secondary-500/80 text-slate-100 dark:bg-dark-accent-primary-btn bg-light-accent-secondary/85 hover:bg-emerald-900/60 hover:text-slate-100 dark:hover:bg-blue-400/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400/70 text-sm font-semibold transition-colors duration-300">
+        class="avatar-toggle-button inline-flex items-center justify-center size-10 rounded-full cursor-pointer bg-light-accent-secondary-500/80 text-slate-100 dark:bg-dark-accent-primary-btn bg-light-accent-secondary/85 hover:bg-emerald-900/60 hover:text-slate-100 dark:hover:bg-blue-400/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-light-accent-primary-hq text-sm font-semibold transition-colors duration-300">
       </button>
       }
 
@@ -291,7 +291,7 @@ import { AppContextService } from '../../../services/context/app-context.service
     <button
       class="group truncate flex items-center w-full mb-2 pl-4 pr-6 py-4 gap-4 transition-colors duration-300 cursor-default border-slate-400/60 dark:border-slate-300 border-b-[0.5px]">
         <ng-container [ngTemplateOutlet]="providerIcon" [ngTemplateOutletContext]="{ provider: providedEmail()?.provider }" />
-      <span class="text-sm text-green-800 dark:text-dark-accent-primary font-medium truncate">{{ providedEmail()?.email }}</span>
+      <span class="text-sm text-green-900 dark:text-dark-accent-primary font-medium truncate">{{ providedEmail()?.email }}</span>
     </button>
     <a routerLink="/dashboard" (click)="closeAvatarMenu()"
       class="group flex items-center w-full pl-4 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
@@ -376,7 +376,7 @@ import { AppContextService } from '../../../services/context/app-context.service
       <span class="text-lg">Mercurion</span>
     </div>
     <button
-      class="inline-flex items-center justify-center size-8 rounded-md text-slate-500 hover:text-emerald-600 hover:bg-slate-100 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-transparent transition"
+      class="inline-flex items-center justify-center size-8 rounded-md text-slate-700 hover:text-light-accent-primary-hq hover:bg-slate-100 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-light-accent-primary-hq focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-transparent transition"
       (click)="closeOffCanvasMenu()">
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -395,7 +395,7 @@ import { AppContextService } from '../../../services/context/app-context.service
   <div
     class="sticky bottom-0 border-t py-3 px-5 bg-slate-100 dark:bg-neutral-800 border-slate-400 dark:border-dark-border flex gap-3 items-center">
     <button (click)="toggleAvatarMobileMenu()" [innerHTML]="userContext.initials()"
-      class="avatar-toggle-button inline-flex items-center justify-center size-10 rounded-full cursor-pointer bg-emerald-500 text-slate-100 dark:bg-dark-accent-primary-btn hover:bg-emerald-900/60 hover:text-slate-100 dark:hover:bg-blue-400/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400/70 text-sm font-semibold transition-colors duration-300"
+      class="avatar-toggle-button inline-flex items-center justify-center size-10 rounded-full cursor-pointer bg-emerald-500 text-slate-100 dark:bg-dark-accent-primary-btn hover:bg-emerald-900/60 hover:text-slate-100 dark:hover:bg-blue-400/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-light-accent-primary-hq text-sm font-semibold transition-colors duration-300"
       [attr.title]="avatarMobileMenuOpen() ? 'Chiudi il menù utente' : 'Apri il menu utente'">
     </button>
     <button (click)="toggleAvatarMobileMenu()"
@@ -425,7 +425,7 @@ import { AppContextService } from '../../../services/context/app-context.service
         <button
           class="group flex items-center w-full mb-2 pl-3 pr-6 py-4 gap-4 transition-colors duration-300 cursor-default border-b-slate-400/60 dark:border-slate-300 border-b-[0.5px]">
           <ng-container [ngTemplateOutlet]="providerIcon" [ngTemplateOutletContext]="{ provider: providedEmail()?.provider }" />
-          <span class="text-sm text-green-800 dark:text-dark-accent-primary font-medium truncate">
+          <span class="text-sm text-green-900 dark:text-dark-accent-primary font-medium truncate">
             {{ providedEmail()?.email }}
           </span>
         </button>

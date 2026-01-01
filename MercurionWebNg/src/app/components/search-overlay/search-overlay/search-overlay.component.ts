@@ -88,7 +88,7 @@ import { Maybe } from 'graphql/jsutils/Maybe'
                     <m-search-result [molecule]="molecule" [query]="query()" />
                   }
                 } @else if (showChemblEmptyMessage()) {
-                  <div class="text-sm text-gray-400 text-center py-8">
+                  <div class="text-sm text-slate-700 dark:text-slate-200 text-center py-8">
                     Nessun risultato trovato.
                   </div>
                 } @else if (error()) {
@@ -96,7 +96,7 @@ import { Maybe } from 'graphql/jsutils/Maybe'
                     Errore nella ricerca. Riprova.
                   </div>
                 } @else {
-                  <div class="text-sm text-gray-400 text-center py-8">
+                  <div class="text-sm text-slate-700 dark:text-slate-200 text-center py-8">
                     Qui compariranno i risultati quando digiterai.
                   </div>
                 }
@@ -116,7 +116,7 @@ import { Maybe } from 'graphql/jsutils/Maybe'
                     </div>
                   }
                 } @else if (showMyEmptyMessage()) {
-                  <div class="text-sm text-gray-400 text-center py-8">
+                  <div class="text-sm text-slate-700 dark:text-slate-200 text-center py-8">
                     Nessun risultato trovato.
                   </div>
                 } @else if (error()) {

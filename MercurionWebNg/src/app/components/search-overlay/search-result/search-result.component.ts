@@ -50,14 +50,14 @@ import { DesignService } from '../../../services/design.service';
         <div class="flex-1 min-w-0">
           <div class="text-base font-medium truncate"
                [innerHTML]="highlight(_molecule()?.preferredNameIt)"></div>
-          <div class="text-xs text-gray-500 truncate"
+          <div class="text-xs text-slate-700 dark:text-slate-200 truncate"
                [innerHTML]="highlight(_molecule()?.synonyms?.[0])"></div>
-          <div class="text-xs text-gray-400 mt-1 flex gap-2">
+          <div class="text-xs text-slate-700 dark:text-slate-200 mt-1 flex gap-2">
             @if (_molecule()?.mwFreebase) {
               <span>MW: {{ _molecule()?.mwFreebase | number:'1.0-1' }}</span>
             }
             @if (_molecule()?.maxPhase) {
-              <span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
+              <span class="bg-amber-50 text-amber-800 border border-amber-200/70 dark:bg-amber-900/20 dark:text-amber-200 dark:border-amber-700/40 px-2 py-0.5 rounded">
                 Phase {{ _molecule()?.maxPhase }}
               </span>
             }
@@ -89,12 +89,12 @@ import { DesignService } from '../../../services/design.service';
         <div class="flex-1 min-w-0">
           <div class="text-base font-medium truncate"
                [innerHTML]="highlight(_molecule()?.preferredNameIt)"></div>
-          <div class="text-xs text-gray-500 truncate"
+          <div class="text-xs text-slate-700 dark:text-slate-200 truncate"
                [innerHTML]="highlight(_molecule()?.synonyms?.[0])"></div>
-          <div class="text-xs text-gray-400 mt-1 flex gap-2">
+          <div class="text-xs text-slate-700 dark:text-slate-200 mt-1 flex gap-2">
             @if (_molecule()?.mwFreebase) { <span>MW: {{ _molecule()?.mwFreebase | number:'1.0-1' }}</span> }
             @if (_molecule()?.maxPhase) {
-              <span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded">Phase {{ _molecule()?.maxPhase }}</span>
+              <span class="bg-amber-50 text-amber-800 border border-amber-200/70 dark:bg-amber-900/20 dark:text-amber-200 dark:border-amber-700/40 px-2 py-0.5 rounded">Phase {{ _molecule()?.maxPhase }}</span>
             }
           </div>
         </div>
