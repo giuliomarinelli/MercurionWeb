@@ -51,10 +51,16 @@ import { AppContextService } from '../../../services/context/app-context.service
       }
       @if (designService.minBk("md")()) {
       <div class="flex gap-7 items-center">
-        <a routerLink="/" aria-label="Vai alla home">
-          <img [ngSrc]="logoSrc() | public" alt="Mercurion" width="927" height="234" title="Mercurion" priority="true"
-            class="w-[145px] h-auto contrast-115" />
-        </a>
+        <div class="relative inline-block">
+          <a routerLink="/" aria-label="Vai alla home" class="block">
+            <img [ngSrc]="logoSrc() | public" alt="Mercurion" width="927" height="234" title="Mercurion" priority="true"
+              class="w-[145px] h-auto contrast-115" />
+          </a>
+          <span
+            class="absolute -right-2 -bottom-2.5 px-2.5 py-[3px] rounded-full text-[9px] font-semibold uppercase tracking-tight leading-none bg-emerald-100/90 text-emerald-900 shadow-sm ring-1 ring-emerald-900/15 dark:bg-emerald-900/85 dark:text-emerald-50 dark:ring-emerald-200/20">
+            Beta
+          </span>
+        </div>
         @if (designService.minBk("lg")()) {
         <h3
           class="font-semibold font-spacegrotesk tracking-widest text-sm relative top-[3.5px] text-slate-700 dark:text-slate-300 cursor-default">
@@ -68,10 +74,16 @@ import { AppContextService } from '../../../services/context/app-context.service
       }
     </div>
     @if (designService.maxBk("sm")()) {
-    <a routerLink="/" aria-label="Vai alla home">
-      <img [ngSrc]="logoSrc() | public" alt="Mercurion" width="927" height="234" priority="true"
-        class="w-[128px] min-[350px]:w-[145px] h-auto contrast-115" />
-    </a>
+    <div class="relative inline-block">
+      <a routerLink="/" aria-label="Vai alla home" class="block">
+        <img [ngSrc]="logoSrc() | public" alt="Mercurion" width="927" height="234" priority="true"
+          class="w-[128px] min-[350px]:w-[145px] h-auto contrast-115" />
+      </a>
+      <span
+        class="absolute -right-2 -bottom-2 px-2.5 py-[3px] rounded-full text-[10px] font-semibold uppercase tracking-tight leading-none bg-emerald-100/90 text-emerald-900 shadow-sm ring-1 ring-emerald-900/15 dark:bg-emerald-900/85 dark:text-emerald-50 dark:ring-emerald-200/20">
+        Beta
+      </span>
+    </div>
     }
     <div class="theme-menu-container flex gap-2 pr-2">
       @if (!userContext.isLoggedIn() && !isLoginPath()) {
