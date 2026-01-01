@@ -719,9 +719,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   logout(): void {
+    this.sessionSync.notifyVoluntaryLogout()
     this.logoutSub = this.authService.logout().subscribe({
       next: () => {
-        this.sessionSync.notifyVoluntaryLogout()
         queueMicrotask(() => {
           this.sessionSync.logout()
           this.offCanvasMenuOpen.set(false)
@@ -747,7 +747,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
         const currentPath = e.urlAfterRedirects
         const notAllowedPaths: string[] = ['/login', '/', '/test/spinner']
         this.isAllowedPath.set(!notAllowedPaths.includes(currentPath))
-        this.isLoginPath.set(currentPath === '/login')
+        this.isLoginPath.set(currentPath.startsWith('/login'))
         this.isRegisterPath.set(currentPath === '/register')
 
       })
