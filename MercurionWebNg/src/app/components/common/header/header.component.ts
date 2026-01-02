@@ -32,7 +32,7 @@ import { AppContextService } from '../../../services/context/app-context.service
   ],
   template: `
 
- <header class="px-6 py-4 bg-light-surface-secondary dark:bg-neutral-950 border-b-[0.5px] border-slate-300/65 dark:border-slate-300/40 header-shadow" role="banner">
+ <header class="px-2 2xs:px-6 py-4 bg-light-surface-secondary dark:bg-neutral-950 border-b-[0.5px] border-slate-300/65 dark:border-slate-300/40 header-shadow" role="banner">
   <div class="w-full flex justify-between items-center transition-colors duration-300 ease-out">
     <div class="flex items-center gap-4">
       @if (designService.maxBk("lg")()) {
@@ -50,14 +50,14 @@ import { AppContextService } from '../../../services/context/app-context.service
       </button>
       }
       @if (designService.minBk("md")()) {
-      <div class="flex gap-7 items-center">
-        <div class="relative inline-block">
+      <div class="flex items-center gap-3 lg:gap-4">
+        <div class="flex items-center gap-3">
           <a routerLink="/" aria-label="Vai alla home" class="block">
             <img [ngSrc]="logoSrc() | public" alt="Mercurion" width="927" height="234" title="Mercurion" priority="true"
               class="w-[145px] h-auto contrast-115" />
           </a>
           <span
-            class="absolute -right-2 -bottom-2.5 px-2.5 py-[3px] rounded-full text-[9px] font-semibold uppercase tracking-tight leading-none bg-emerald-100/90 text-emerald-900 shadow-sm ring-1 ring-emerald-900/15 dark:bg-emerald-900/85 dark:text-emerald-50 dark:ring-emerald-200/20">
+            class="relative top-1 px-2.5 py-[3px] rounded-full text-[10px] font-semibold uppercase tracking-tight leading-none bg-emerald-100/90 text-emerald-900 shadow-sm ring-1 ring-emerald-900/15 dark:bg-emerald-900/85 dark:text-emerald-50 dark:ring-emerald-200/20">
             Beta
           </span>
         </div>
@@ -74,13 +74,13 @@ import { AppContextService } from '../../../services/context/app-context.service
       }
     </div>
     @if (designService.maxBk("sm")()) {
-    <div class="relative inline-block">
+    <div class="flex items-center gap-3">
       <a routerLink="/" aria-label="Vai alla home" class="block">
         <img [ngSrc]="logoSrc() | public" alt="Mercurion" width="927" height="234" priority="true"
           class="w-[128px] min-[350px]:w-[145px] h-auto contrast-115" />
       </a>
       <span
-        class="absolute -right-2 -bottom-2 px-2.5 py-[3px] rounded-full text-[10px] font-semibold uppercase tracking-tight leading-none bg-emerald-100/90 text-emerald-900 shadow-sm ring-1 ring-emerald-900/15 dark:bg-emerald-900/85 dark:text-emerald-50 dark:ring-emerald-200/20">
+        class="relative top-1 px-2.5 py-[3px] rounded-full text-[10px] font-semibold uppercase tracking-tight leading-none bg-emerald-100/90 text-emerald-900 shadow-sm ring-1 ring-emerald-900/15 dark:bg-emerald-900/85 dark:text-emerald-50 dark:ring-emerald-200/20">
         Beta
       </span>
     </div>

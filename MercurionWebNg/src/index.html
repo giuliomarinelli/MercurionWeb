@@ -1,14 +1,27 @@
 <!doctype html>
 <html lang="it" class="h-full">
+
 <head>
   <meta charset="utf-8">
   <title>Mercurion</title>
   <base href="/m/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <!-- Primary favicon: SVG theme-aware (uses prefers-color-scheme inside the SVG) -->
+  <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
+  <!-- PNG fallback -->
+  <link rel="icon" type="image/png" sizes="96x96" href="/favicon/favicon-96x96-light-theme.png" />
+  <!-- ICO legacy fallback -->
+  <link rel="icon" href="/favicon/favicon-light-theme.ico" sizes="32x32" />
+  <!-- Apple Touch Icon (iOS Home Screen) -->
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+  <!-- Manifest PWA (192x192, 512x512) -->
+  <link rel="manifest" href="/favicon/site.webmanifest" />
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
-<body class="text-light-on-surface-main dark:text-dark-on-surface-main bg-light-surface-main dark:bg-neutral-950 h-screen transition-colors duration-300">
+
+<body
+  class="text-light-on-surface-main dark:text-dark-on-surface-main bg-light-surface-main dark:bg-neutral-950 h-screen transition-colors duration-300">
   <m-root class="flex h-full w-full flex-col"></m-root>
 </body>
+
 </html>

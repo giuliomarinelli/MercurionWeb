@@ -7,8 +7,11 @@
    viewBox="0 0 49.118755 61.960545"
    version="1.1"
    id="svg1"
-   inkscape:version="1.3.2 (091e20e, 2023-11-25, custom)"
+   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
    sodipodi:docname="pictogram-light-logo.svg"
+   inkscape:export-filename="pictogram-light-logo.png"
+   inkscape:export-xdpi="419.78"
+   inkscape:export-ydpi="419.78"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -24,9 +27,9 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
-     inkscape:zoom="0.61647026"
-     inkscape:cx="103.81685"
-     inkscape:cy="176.81307"
+     inkscape:zoom="0.8718206"
+     inkscape:cx="-69.395011"
+     inkscape:cy="136.49597"
      inkscape:window-width="1600"
      inkscape:window-height="930"
      inkscape:window-x="-6"
@@ -50,11 +53,11 @@
        id="linearGradient23"
        inkscape:collect="always">
       <stop
-         style="stop-color:#10b981;stop-opacity:1;"
+         style="stop-color:#006128;stop-opacity:1;"
          offset="0.84463274"
          id="stop23" />
       <stop
-         style="stop-color:#2563eb;stop-opacity:1;"
+         style="stop-color:#1147bb;stop-opacity:1;"
          offset="1"
          id="stop24" />
     </linearGradient>
