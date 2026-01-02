@@ -26,6 +26,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core'
         <p>
           <strong>{{ dataControllerName }}</strong><br />
           <strong>Sede:</strong> {{ dataControllerLocation }}<br />
+          <strong>Partita IVA:</strong> {{dataControllerVatCode}}<br />
           <strong>Email di contatto:</strong>
           <a class="a" [href]="'mailto:' + dataControllerEmail">{{ dataControllerEmail }}</a><br />
           <strong>PEC:</strong> {{ dataControllerPec }}
@@ -183,6 +184,7 @@ export class PrivacyPageComponent {
 
   dataControllerName = 'Giulio Marinelli'
   dataControllerLocation = 'Italia'
+  dataControllerVatCode = '03198070306'
   dataControllerEmail = 'mercurion.app@gmail.com'
   dataControllerPec = 'giuliomarinelli25@pec.it'
 
@@ -191,6 +193,6 @@ export class PrivacyPageComponent {
   backupRetentionDays = 30
 
   hostingProviderName = 'Google Cloud Platform'
-  emailProviderName = 'Gmail'
+  emailProviderName = 'Google'
   smsProviderName = 'Twilio'
 }
