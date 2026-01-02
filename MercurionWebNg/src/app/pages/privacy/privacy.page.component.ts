@@ -25,11 +25,11 @@ import { ChangeDetectionStrategy, Component } from '@angular/core'
         <h2 class="h2">1. Titolare del trattamento</h2>
         <p>
           <strong>{{ dataControllerName }}</strong><br />
-          <strong>Sede:</strong> {{ dataControllerLocation }}<br />
-          <strong>Partita IVA:</strong> {{dataControllerVatCode}}<br />
-          <strong>Email di contatto:</strong>
+          <strong>Sede:</strong>&nbsp;{{ dataControllerLocation }}<br />
+          <strong>Partita IVA:</strong>&nbsp;{{ dataControllerVatCode }}<br />
+          <strong>Email di contatto:</strong>&nbsp;
           <a class="a" [href]="'mailto:' + dataControllerEmail">{{ dataControllerEmail }}</a><br />
-          <strong>PEC:</strong> {{ dataControllerPec }}
+          <strong>PEC:</strong>&nbsp;{{ dataControllerPec }}
         </p>
       </section>
 
@@ -68,6 +68,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core'
             Il numero <strong>non</strong> è utilizzato per marketing, comunicazioni promozionali o profilazione
             e <strong>non</strong> è ceduto a terzi per finalità commerciali.
             Il conferimento è facoltativo e la mancata fornitura non pregiudica l’uso del Servizio.
+            L’utente può rimuovere il numero in qualsiasi momento dal profilo, disabilitando le relative funzionalità.
           </li>
 
           <li>
@@ -153,9 +154,9 @@ import { ChangeDetectionStrategy, Component } from '@angular/core'
         <h2 class="h2">7. Fornitori terzi</h2>
         <ul class="list-disc pl-6 mt-4 mb-4">
           <li><strong>Cloudflare</strong> – CDN e sicurezza</li>
-          <li><strong>Hosting provider:</strong> {{ hostingProviderName }}</li>
-          <li><strong>Provider email transazionali:</strong> {{ emailProviderName }}</li>
-          <li><strong>Provider SMS:</strong> {{ smsProviderName }}</li>
+          <li><strong>Hosting provider:</strong>&nbsp;{{ hostingProviderName }}</li>
+          <li><strong>Provider email di servizio:</strong>&nbsp;{{ emailProviderName }}</li>
+          <li><strong>Provider SMS:</strong>&nbsp;{{ smsProviderName }}</li>
         </ul>
       </section>
 
