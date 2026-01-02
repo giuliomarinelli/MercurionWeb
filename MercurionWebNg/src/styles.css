@@ -397,7 +397,7 @@ html {
 
   .action-card p,
   .action-card li,
-  .action-card label,
+  .action-card label:not(.m-floating-label),
   .action-card .text-base,
   .action-card .text-sm,
   .action-card span {
@@ -425,7 +425,7 @@ html {
     }
     .action-card p,
     .action-card li,
-    .action-card label,
+    .action-card label:not(.m-floating-label),
     .action-card .text-base,
     .action-card .text-sm,
     .action-card span {
@@ -448,7 +448,7 @@ html {
     }
     .action-card p,
     .action-card li,
-    .action-card label,
+    .action-card label:not(.m-floating-label),
     .action-card .text-base,
     .action-card .text-sm,
     .action-card span {
