@@ -52,7 +52,7 @@ import { RouterLink } from '@angular/router';
 
             <m-molecule-badge
               [name]="'ChEMBL'"
-              class="relative sm:top-1.5 shrink-0" />
+              class="relative shrink-0" />
           </div>
         }
 
