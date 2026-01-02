@@ -2,8 +2,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: redis-sl
-  namespace: mercurion-prod
+  namespace: mercurion-beta
 spec:
+  # importantissimo per il PVC RWO: niente rolling, sempre Recreate
+  strategy:
+    type: Recreate
   replicas: 1
   selector:
     matchLabels:
@@ -40,7 +43,6 @@ spec:
           volumeMounts:
             - name: redis-data
               mountPath: /data
-
           resources:
             requests:
               cpu: "100m"
@@ -48,7 +50,6 @@ spec:
             limits:
               cpu: "500m"
               memory: "512Mi"
-
           readinessProbe:
             exec:
               command:
@@ -59,7 +60,6 @@ spec:
             periodSeconds: 5
             timeoutSeconds: 2
             failureThreshold: 6
-
           livenessProbe:
             exec:
               command:
@@ -70,7 +70,6 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 2
             failureThreshold: 6
-
       volumes:
         - name: redis-data
           persistentVolumeClaim:
@@ -80,7 +79,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: redis-sl
-  namespace: mercurion-prod
+  namespace: mercurion-beta
 spec:
   type: ClusterIP
   selector:

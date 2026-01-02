@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nats-config
+  namespace: mercurion-beta
+data:
+  nats.conf: |
+    # Limita la dimensione massima dei messaggi (default = 1MB)
+    max_payload: 262144   
+    # 256 KB
+
+    # (Opzionale ma consigliato) Aumenta la verbosità sugli errori
+    # per debuggare meglio eventuali rifiuti dei client.
+    debug: false
+    trace: false
+
+    # (Opzionale) Limita reconnect spam
+    write_deadline: "2s"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nats-sl
+  namespace: mercurion-beta
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nats-sl
+  template:
+    metadata:
+      labels:
+        app: nats-sl
+    spec:
+      containers:
+        - name: nats
+          image: nats@sha256:77a161c7d888a1791d5a46b50cd87a2f8466ce40a33cbb51238d227ace01e35a
+          ports:
+            - containerPort: 4222   # porta client
+          args: ["-c", "/etc/nats/nats.conf"]
+          volumeMounts:
+            - name: nats-config
+              mountPath: /etc/nats
+              readOnly: true
+      volumes:
+        - name: nats-config
+          configMap:
+            name: nats-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nats-sl
+  namespace: mercurion-beta
+spec:
+  type: ClusterIP
+  selector:
+    app: nats-sl
+  ports:
+    - port: 4222
+      targetPort: 4222
+      protocol: TCP
