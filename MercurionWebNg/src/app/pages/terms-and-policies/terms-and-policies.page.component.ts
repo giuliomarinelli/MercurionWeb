@@ -414,7 +414,7 @@ import { AppContextService } from '../../services/context/app-context.service'
   `
 })
 export class TermsAndPoliciesPageComponent implements AfterViewInit, OnDestroy {
-  lastUpdated = '29/12/2025'
+  lastUpdated = '02/02/2026'
 
   private readonly route = inject(ActivatedRoute)
   private readonly appContext = inject(AppContextService)
