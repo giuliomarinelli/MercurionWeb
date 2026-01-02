@@ -65,7 +65,7 @@ import { AppTitleService } from '../../services/app-title.service';
   <main class="max-w-5xl mx-auto p-0 xs:p-4 sm:p-6 md:p-8 space-y-12" role="main" [attr.aria-busy]="loading" aria-live="polite">
     <m-my-molecules-heading [breadcrumb]="breadcrumb" />
 
-    <div class="flex flex-wrap justify-between items-center pb-8 pt-2 relative -top-14 gap-y-4">
+    <div class="flex flex-col sm:flex-row sm:flex-wrap justify-between items-start sm:items-center pb-8 pt-2 relative -top-14 gap-y-4 sm:gap-y-2">
 
       <m-custom-details
         [itemId]="colId()!"
@@ -77,7 +77,7 @@ import { AppTitleService } from '../../services/app-title.service';
         (onDoingRollback)="triggerRenameRollback.set(false)"
       />
 
-      <div class="flex items-center justify-end gap-3">
+      <div class="flex items-center justify-start sm:justify-end gap-3 w-full sm:w-auto">
         <button
           (click)="doDuplicateCollection(colId())"
           type="button"
@@ -114,7 +114,7 @@ import { AppTitleService } from '../../services/app-title.service';
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto" aria-hidden="true">
             <path d="M336 112L336 96L304 96L304 304L96 304L96 336L304 336L304 544L336 544L336 336L544 336L544 304L336 304L336 112z"/>
           </svg>
-          <span>Aggiungi nuove molecole</span>
+          <span class="hidden 2xs:inline">Aggiungi nuove molecole</span>
         </button>
       </div>
     </div>

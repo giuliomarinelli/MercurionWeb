@@ -34,7 +34,7 @@ import { RouterLink } from '@angular/router';
         </p>
 
         <!-- Link essenziali -->
-        <div class="flex flex-wrap justify-center sm:justify-end gap-x-6 gap-y-2">
+        <div class="flex flex-col xs:flex-row flex-wrap justify-center sm:justify-end items-center gap-y-2 xs:gap-y-2 gap-x-6">
           <a
             routerLink="/privacy"
             class="hover:underline dark:hover:no-underline hover:text-slate-600 dark:hover:text-slate-50/70 transition"

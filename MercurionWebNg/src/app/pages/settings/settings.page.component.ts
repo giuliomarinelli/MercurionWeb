@@ -526,7 +526,7 @@ import { SidenavContextService } from '../../services/context/sidenav-context.se
                             </button>
                             @if (!is_sso()) {
                               <hr class="border-[0.5px] border-slate-400 dark:border-slate-500 mt-6" />
-                              <h3 class="font-bold text-lg mt-6 mb-6 flex gap-6 flex-wrap">
+                              <h3 class="font-bold text-lg mt-6 mb-6 flex flex-col sm:flex-row gap-3 sm:gap-6 items-start sm:items-center">
                                 <span>Autenticazione a più fattori</span>
                                 <span
                                   class="inline-flex items-center rounded px-2 py-[2px] text-sm font-semibold cursor-default"

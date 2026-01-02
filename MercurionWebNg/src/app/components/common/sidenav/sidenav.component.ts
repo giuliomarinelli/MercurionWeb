@@ -288,7 +288,7 @@ export class SidenavComponent implements OnInit, OnDestroy {
   onOpenOffCanvas = new EventEmitter<void>()
 
   @Output()
-  onMenuItemClick = new EventEmitter<void>()
+  menuItemClick = new EventEmitter<void>()
 
   triggerDelete = signal<boolean>(false)
   isHistoryEmpty = signal<boolean>(false)
@@ -350,11 +350,11 @@ export class SidenavComponent implements OnInit, OnDestroy {
   }
 
   handleMenuItemClick(): void {
-    this.onMenuItemClick.emit()
+    this.menuItemClick.emit()
   }
 
   closeOffCanvasMenu(): void {
-    this.onMenuItemClick.emit()
+    this.menuItemClick.emit()
   }
 
   importFromChembl(): void {

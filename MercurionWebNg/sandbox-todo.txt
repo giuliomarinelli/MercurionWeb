@@ -1,0 +1,11 @@
+- Remaining flex-wrap responsiveness to convert (apply mobile flex-col -> sm:flex-row + responsive font where needed):
+- src/app/components/common/session-card/session-card.component.ts (already partially tuned; double-check)
+- src/app/components/action-components/add-molecules-to-collection/add-molecules-to-collection.component.ts (header + chip row)
+- src/app/components/notebook/notebook-tree-index/notebook-toc.component.ts
+- src/app/components/action-components/create-collection/create-collection.component.ts
+- src/app/components/molecule-detail/molecule-routes/molecule-routes.component.ts
+- src/app/components/molecule-detail/my-molecules-heading/my-molecules-heading.component.ts (two spots)
+- src/app/components/molecule-detail/molecule-collection-item-card/molecule-collection-item-card.component.ts (three spots)
+- src/app/components/molecule-detail/molecule-synonyms/molecule-synonyms.component.ts
+- src/app/components/molecule-detail/molecule-header/molecule-header.component.ts (multiple flex-wrap)
+- src/app/components/molecule-detail/collection-card/collection-card.component.ts (two spots)

@@ -15,7 +15,7 @@ import {
       role="tablist"
       aria-orientation="horizontal"
     >
-      <div class="flex flex-wrap gap-x-6 gap-y-2">
+      <div class="flex flex-col sm:flex-row sm:flex-wrap gap-y-2 sm:gap-y-2 gap-x-6">
         @for (t of tabs(); let i = $index; track i) {
           <button
             type="button"

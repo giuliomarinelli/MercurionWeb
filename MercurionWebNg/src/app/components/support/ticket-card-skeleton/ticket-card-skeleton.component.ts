@@ -40,7 +40,7 @@ import { NgClass } from '@angular/common';
           <div class="mt-2 h-6 md:h-7 w-3/4 rounded-md bg-slate-200 dark:bg-slate-700"></div>
 
           <!-- meta line -->
-          <div class="mt-2 flex flex-wrap items-center gap-2">
+          <div class="mt-2 flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-1 sm:gap-2">
             <div class="h-3 w-40 rounded bg-slate-200 dark:bg-slate-700"></div>
             <div class="h-3 w-2 rounded bg-slate-200 dark:bg-slate-700"></div>
             <div class="h-3 w-28 rounded bg-slate-200 dark:bg-slate-700"></div>

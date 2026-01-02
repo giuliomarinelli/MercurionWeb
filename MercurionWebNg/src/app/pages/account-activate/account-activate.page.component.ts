@@ -19,7 +19,7 @@ import { CopyUiService } from '../../services/copy-ui.service';
         <m-classic-spinner [size]="85" />
       </div>
     } @else if (canView()) {
-      <div class="mt-2 flex justify-center items-center flex-wrap gap-4 text-light-accent-secondary dark:text-dark-accent-secondary mb-8" aria-live="polite">
+      <div class="mt-2 flex flex-col xs:flex-row justify-center items-center gap-3 xs:gap-4 text-light-accent-secondary dark:text-dark-accent-secondary mb-8 text-center xs:text-left" aria-live="polite">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current size-7 md:size-8 lg:size-10">
           <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
           <path d="M240 192C240 147.8 275.8 112 320 112C364.2 112 400 147.8 400 192C400 236.2 364.2 272 320 272C275.8 272 240 236.2 240 192zM146.2 576L195.4 416L444.5 416L493.7 576L543.9 576L479.9 368L159.9 368L95.9 576L146.1 576zM320 320C390.7 320 448 262.7 448 192C448 121.3 390.7 64 320 64C249.3 64 192 121.3 192 192C192 262.7 249.3 320 320 320z" />

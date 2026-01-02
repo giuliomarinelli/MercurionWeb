@@ -24,7 +24,7 @@ import { Subscription } from 'rxjs';
   >
     <!-- HEADER -->
     <div class="action-card-header">
-      <div class="flex items-center gap-3 flex-wrap">
+      <div class="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 sm:gap-3">
         @if (importFromChembl()) {
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -78,8 +78,8 @@ import { Subscription } from 'rxjs';
     <div class="action-card-body bg-light-surface-secondary dark:bg-dark-surface-secondary">
       <div class="flex flex-col gap-6 min-h-[50vh]">
         <p
-          class="my-4 px-2 sm:px-4 flex flex-wrap justify-center items-center gap-4 text-sm
-                 text-light-on-surface-secondary dark:text-dark-on-surface-secondary"
+          class="my-4 px-2 sm:px-4 flex flex-col sm:flex-row sm:flex-wrap justify-center items-center gap-3 sm:gap-4 text-sm
+                 text-light-on-surface-secondary dark:text-dark-on-surface-secondary text-center sm:text-left"
           role="status"
           aria-live="polite"
         >

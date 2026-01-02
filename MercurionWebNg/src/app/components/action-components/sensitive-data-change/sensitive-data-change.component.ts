@@ -238,7 +238,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                      </button>
                     </h4>
                     <p class="text-sm text-center mb-6 text-[#374151] dark:text-dark-on-surface-secondary">Copia questi codici in un password manager o stampali e custodiscili in un posto sicuro. Ti permetteranno di accedere nel caso in cui perdessi l'accesso al tuo dispositivo.</p>
-                    <div class="flex gap-4 flex-wrap justify-center">
+                    <div class="flex flex-col sm:flex-row sm:flex-wrap justify-center items-center gap-3 sm:gap-4 text-center sm:text-left">
                       @for (code of backupCodes(); track code) {
                         <span class="text-light-accent-primary-hc dark:text-dark-accent-primary-btn-hc font-bold">{{code}}</span>
                       }
@@ -342,7 +342,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                             }
                           </span>
                       </div>
-                      <div class="flex justify-center flex-wrap gap-4">
+                      <div class="flex flex-col sm:flex-row sm:flex-wrap justify-center items-center gap-3 sm:gap-4 text-center sm:text-left">
                         <a class="a-hc" routerLink="/account-recovery">Disattiva l'MFA ripristiando il tuo account</a>
                         <span>•</span>
                         <a routerLink="/help" (click)="close()" class="a-hc">Contatta il supporto</a>
@@ -350,9 +350,9 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                     </div>
                   } @else if (currentMfaStrategy() === 'EMAIL_OTP') {
                     <div class="flex flex-col gap-y-4 text-sm text-[#374151] dark:text-dark-on-surface-secondary">
-                      <div class="flex flex-wrap gap-4 justify-center">
+                      <div class="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4 justify-center items-center text-center sm:text-left">
                         Non hai più accesso alla tua casella e-mail? Segui subito queste istruzioni:&nbsp;
-                        <div class="flex justify-center flex-wrap gap-4">
+                        <div class="flex flex-col sm:flex-row sm:flex-wrap justify-center items-center gap-3 sm:gap-4">
                           <a class="a-hc" routerLink="/account-recovery">Disattiva l'MFA ripristiando il tuo account</a>
                           <span>•</span>
                           <a routerLink="/help" (click)="close()" class="a-hc">Contatta il supporto</a>
