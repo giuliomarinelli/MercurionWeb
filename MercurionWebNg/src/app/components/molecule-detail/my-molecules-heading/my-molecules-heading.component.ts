@@ -39,15 +39,12 @@ import { RouterLink } from '@angular/router';
 })
 export class MyMoleculesHeadingComponent {
 
-  // ======================= DEPS =======================
-  protected readonly design = inject(DesignService)
-  // ====================================================
+  protected readonly design = inject(DesignService);
 
-  _breadcrumb = signal<LinkModel[]>([])
+  _breadcrumb = signal<LinkModel[]>([]);
 
   @Input()
   set breadcrumb(breadcrumb: LinkModel[]) {
-    this._breadcrumb.set(breadcrumb)
+    this._breadcrumb.set(breadcrumb);
   }
-
 }

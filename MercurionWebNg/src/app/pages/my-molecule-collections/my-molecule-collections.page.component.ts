@@ -45,7 +45,7 @@ import { AppContextService } from '../../services/context/app-context.service';
                  text-slate-700 dark:text-slate-200 text-xs font-medium
                  hover:bg-slate-200 dark:hover:bg-slate-700
                  transition-colors duration-150 self-start top-[7px]"
-          title="Aggiungi nuove molecole"
+          title="Crea nuove collezioni."
           (click)="createNewCollection()"
           aria-label="Crea una o più nuove collezioni"
         >
@@ -53,7 +53,7 @@ import { AppContextService } from '../../services/context/app-context.service';
             <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
             <path d="M336 112L336 96L304 96L304 304L96 304L96 336L304 336L304 544L336 544L336 336L544 336L544 304L336 304L336 112z"/>
           </svg>
-          <span class="hidden 2xs:inline">Crea una o più nuove collezioni</span>
+          <span>Crea una o più nuove collezioni</span>
         </button>
 
     </div>
@@ -68,12 +68,12 @@ import { AppContextService } from '../../services/context/app-context.service';
     @if (empty() && (earlyDone || done)) {
       <p class="mt-5 text-slate-700 dark:text-slate-200" role="status" aria-live="polite">Nessuna collezione molecolare.</p>
     } @else {
-      <div class="flex flex-col xs:flex-row gap-2 items-start xs:items-center xs:flex-wrap relative -top-6">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-8 h-auto relative -top-2" aria-hidden="true">
+      <div class="flex gap-2 items-center relative -top-6">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-8 h-auto relative -top-2 srink-[0.65]" aria-hidden="true">
           <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
           <path d="M296.5 153.7C268.2 123 314.7 79.6 343.4 110.1C395.3 166.7 479.5 256.1 528.4 302C544.6 317.7 544.4 343.6 528.4 359.3C517.9 369.6 499.6 387.7 494.2 394.1C448.6 448.2 388.1 485.8 344.3 536.7C332.8 550.1 312.6 551.7 299.2 540.3C257.6 499.5 349.3 448.3 372.4 421.9C398.9 399.3 423.7 378 444.4 353.8C432 353.5 419.6 353.7 406.7 354C325.8 354.2 244.1 356.1 162.3 355.5C136.2 356.8 94.8 360.6 96 321.8C97.9 289.9 132.6 290.7 157.9 291.6C239.4 292.1 320.7 290.4 403.1 290.1C410 289.9 417.2 289.8 424.8 289.7C376.2 241.2 341.3 201.2 296.4 153.7z"/>
         </svg>
-        <a class="a relative -top-2 text-light-accent-primary-hq dark:text-dark-accent-primary" routerLink="/molecules/all-my-molecules">Mostra tutte le mie molecole in un unico raggruppamento</a>
+        <a class="a relative -top-2 text-light-accent-primary-hq dark:text-dark-accent-primary-btn-hc" routerLink="/molecules/all-my-molecules">Mostra tutte le mie molecole in un unico raggruppamento</a>
       </div>
     }
     <div class="mt-px relative -top-16">

@@ -1,2 +1,0 @@
-- Remaining flex-wrap responsiveness to convert (apply mobile flex-col -> sm:flex-row + responsive font where needed):
-- src/app/components/molecule-detail/molecule-header/molecule-header.component.ts (multiple flex-wrap)
