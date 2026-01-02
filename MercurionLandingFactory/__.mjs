@@ -40,6 +40,11 @@ function fixHtml(filePath) {
     'url(../fonts/'
   );
 
+  html = html.replace(
+    /url\(\s*\/favicon\//g,
+    'url(../favicon/'
+  );
+
   fs.writeFileSync(filePath, html, 'utf8');
   console.log('✔ patched', filePath);
 }
