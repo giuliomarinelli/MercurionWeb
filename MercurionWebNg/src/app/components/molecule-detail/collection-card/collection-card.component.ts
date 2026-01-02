@@ -114,8 +114,8 @@ import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/
               </div>
 
               <!-- Footer -->
-              <div class="md:col-span-12 mt-1 md:mt-0 flex items-center text-xs text-slate-700 dark:text-slate-200 justify-between">
-                <div class="flex items-center gap-3">
+              <div class="md:col-span-12 mt-1 md:mt-0 flex flex-col sm:flex-row gap-2 sm:gap-3 items-start sm:items-center text-xs text-slate-700 dark:text-slate-200 justify-between w-full">
+                <div class="flex flex-wrap items-center gap-2 sm:gap-3">
                   <span class="inline-flex items-center">
                     <svg class="size-3.5 mr-1.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                       <path d="M6 2a1 1 0 0 1 1 1v1h6V3a1 1 0 1 1 2 0v1h1a2 2 0 0 1 2 2v1H3V6a2 2 0 0 1 2-2h1V3a1 1 0 0 1 1-1z"/>
@@ -133,7 +133,7 @@ import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/
                 </div>
 
                 @if (!_isReadonly() && !_hideActionButtons()) {
-                  <div class="flex items-center gap-3">
+                  <div class="flex flex-wrap items-center gap-2 sm:gap-3 justify-start sm:justify-end w-full sm:w-auto">
                     <button
                       type="button"
                       class="relative z-20 p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-150"

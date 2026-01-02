@@ -47,7 +47,7 @@ import { NgClass } from '@angular/common';
         }
       </div>
       @if (_isLoggedIn()) {
-        <div class="flex items-center gap-3 relative" [ngClass]="{'-top-6 mt-6': !_isCustom()}">
+        <div class="flex flex-wrap items-center gap-2 sm:gap-3 relative w-full sm:w-auto justify-end sm:justify-start" [ngClass]="{'-top-6 mt-6': !_isCustom()}">
           <!-- Duplica -->
           <a
             type="button"
@@ -83,7 +83,7 @@ import { NgClass } from '@angular/common';
               aria-label="Elimina molecola {{ name() }}"
             >
               <svg
-                class="size-7 text-light-error dark:text-dark-error"
+              class="size-7 text-light-error dark:text-dark-error"
                 viewBox="0 0 20 20"
                 fill="currentColor"
                 aria-hidden="true"
@@ -99,10 +99,10 @@ import { NgClass } from '@angular/common';
             <!-- 🧩 Aggiungi ad una collezione -->
             <button
               type="button"
-              class="flex items-center gap-2 relative px-3 py-1 rounded-md border border-slate-300 dark:border-slate-600
-                     text-slate-600 dark:text-slate-300 text-xs font-medium
+              class="flex items-center gap-2 flex-wrap sm:flex-nowrap relative px-3 py-1 rounded-md border border-slate-300 dark:border-slate-600
+                     text-slate-600 dark:text-slate-300 text-xs sm:text-sm font-medium
                      hover:bg-slate-200 dark:hover:bg-slate-700
-                     transition-colors duration-150"
+                     transition-colors duration-150 w-full sm:w-auto justify-center sm:justify-start text-left"
               title="Aggiungi ad una o più collezioni molecolari"
               (click)="doAddToCollection()"
               aria-label="Aggiungi molecola {{ name() }} ad una o più collezioni"

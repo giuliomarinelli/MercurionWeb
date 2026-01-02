@@ -118,7 +118,7 @@ import { Maybe } from 'graphql/jsutils/Maybe';
 
         <!-- COLONNA DESTRA -->
         <div
-          class="md:col-span-3 flex md:justify-end items-center gap-2 relative z-30 pointer-events-auto"
+          class="md:col-span-3 flex flex-wrap justify-start md:justify-end items-center gap-2 relative z-30 pointer-events-auto w-full"
         >
           @if (showCloseButton()) {
             <button

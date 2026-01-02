@@ -154,10 +154,10 @@ import { AppContextService } from '../../../services/context/app-context.service
           <!-- Footer meta -->
         @if(!_isReadonly()) {
           <div
-          class="md:col-span-12 mt-1 md:mt-0 flex justify-between items-center text-xs text-slate-700 dark:text-slate-200 relative"
+          class="md:col-span-12 mt-1 md:mt-0 flex flex-col sm:flex-row gap-2 sm:gap-3 justify-between items-start sm:items-center text-xs text-slate-700 dark:text-slate-200 relative w-full"
           >
             <!-- Colonna sinistra: date -->
-            <div class="flex items-center gap-3 relative z-30 pointer-events-auto">
+            <div class="flex flex-wrap items-center gap-2 sm:gap-3 relative z-30 pointer-events-auto w-full sm:w-auto">
               <div class="inline-flex items-center shrink-0">
                 <svg
                   class="size-3.5 mr-1.5"
@@ -192,7 +192,7 @@ import { AppContextService } from '../../../services/context/app-context.service
 
             @if (!_hideActions()) {
               <!-- Colonna destra: pulsanti -->
-              <div class="flex items-center gap-3 relative z-30 pointer-events-auto">
+              <div class="flex flex-wrap items-center gap-2 sm:gap-3 relative z-30 pointer-events-auto w-full sm:w-auto justify-start sm:justify-end">
                 <!-- Duplica -->
                <a
                  type="button"
