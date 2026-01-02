@@ -102,7 +102,7 @@ export type ChipItem = {
     <div class="action-card-header">
       <h2
         id="addMolHeading"
-        class="flex gap-4 items-center flex-wrap text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main"
+        class="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-4 items-start sm:items-center text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current size-8">
           <path
@@ -385,7 +385,7 @@ export type ChipItem = {
                   }
 
                   <div
-                    class="relative flex flex-wrap items-center gap-2 py-3"
+                    class="relative flex flex-col xs:flex-row xs:flex-wrap items-start xs:items-center gap-2 xs:gap-3 py-3"
                     role="list"
                     aria-label="Molecole selezionate"
                     aria-live="polite"

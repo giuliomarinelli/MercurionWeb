@@ -37,7 +37,7 @@ import { FormsModule } from '@angular/forms';
     >
       <!-- Selected chips / summary -->
       @if (selected.length) {
-        <div class="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-1 mb-2 px-1">
+        <div class="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 mb-2 px-1">
           @for (val of selected; track val) {
             <span class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-700 dark:bg-blue-900/50 dark:text-blue-200 border border-blue-200 dark:border-blue-800">
               {{ labelForValue(val) }}

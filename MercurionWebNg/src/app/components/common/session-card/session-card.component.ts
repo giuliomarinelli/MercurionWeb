@@ -26,8 +26,8 @@ import { ClassicSpinnerComponent } from "../classic-spinner/classic-spinner.comp
 
       @if (!session.isBeingDeleted) {
         <!-- header -->
-        <div class="flex items-start justify-between mb-2">
-          <div class="flex flex-wrap items-center gap-2 w-full min-w-0">
+        <div class="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center justify-between gap-2 sm:gap-3 mb-2">
+          <div class="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 w-full min-w-0">
             <span class="text-sm font-semibold text-slate-700 dark:text-slate-200 whitespace-nowrap">
               Sessione {{ session.current ? '(attuale)' : '' }}
             </span>

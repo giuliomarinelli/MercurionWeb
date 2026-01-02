@@ -7,7 +7,7 @@ import { AdministrationRoutes } from '../../../Models/graphql/molecule.detail.mo
   template: `
     <section class="my-4" aria-labelledby="routes-heading">
       <h2 id="routes-heading" class="font-semibold text-light-accent-primary dark:text-dark-accent-primary mb-6 text-center sm:text-left text-xl">Vie di somministrazione</h2>
-      <div class="flex flex-wrap gap-2 text-sm justify-center sm:justify-start">
+      <div class="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-2 text-sm justify-center sm:justify-start">
         @if (adminRoutes().oral) {
           <div class="flex items-center rounded bg-indigo-500 text-blue-100 px-2 py-1 gap-1 cursor-default hover:transform hover:scale-[1.03] transition-transform duration-300">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-6 w-auto">

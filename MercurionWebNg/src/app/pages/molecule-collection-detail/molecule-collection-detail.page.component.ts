@@ -65,7 +65,7 @@ import { AppTitleService } from '../../services/app-title.service';
   <main class="max-w-5xl mx-auto p-0 xs:p-4 sm:p-6 md:p-8 space-y-12" role="main" [attr.aria-busy]="loading" aria-live="polite">
     <m-my-molecules-heading [breadcrumb]="breadcrumb" />
 
-    <div class="flex flex-col sm:flex-row sm:flex-wrap justify-between items-start sm:items-center pb-8 pt-2 relative -top-14 gap-y-4 sm:gap-y-2">
+    <div class="flex flex-col sm:flex-row sm:flex-wrap justify-between items-start sm:items-center pb-8 pt-2 relative -top-14 gap-y-4 sm:gap-y-2 sm:gap-x-4">
 
       <m-custom-details
         [itemId]="colId()!"

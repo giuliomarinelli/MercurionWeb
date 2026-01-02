@@ -89,7 +89,7 @@ import { AppContextService } from '../../../services/context/app-context.service
   template: `
     <div class="flex justify-center items-center min-h-screen px-2">
       <div
-        class="w-full max-w-5xl bg-white dark:bg-dark-surface-main rounded-xl shadow-lg"
+        class="w-full max-w-5xl bg-white dark:bg-dark-surface-main rounded-xl shadow-lg max-h-[80vh] overflow-y-auto custom-scrollbar"
         role="region"
         aria-labelledby="ticketDetailHeading"
         [attr.aria-busy]="loading"

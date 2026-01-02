@@ -33,7 +33,7 @@ import { AppContextService } from '../../services/context/app-context.service';
 
   <main class="max-w-5xl mx-auto p-0 xs:p-4 sm:p-6 md:p-8 space-y-12" role="main" [attr.aria-busy]="loading" aria-live="polite">
     <m-my-molecules-heading />
-    <div class="flex flex-col sm:flex-row sm:flex-wrap gap-y-3 sm:gap-y-4 justify-between items-start sm:items-center relative -top-12 pt-2 gap-x-4">
+    <div class="flex flex-col sm:flex-row sm:flex-wrap gap-y-3 sm:gap-y-3 sm:gap-x-4 justify-between items-start sm:items-center relative -top-12 pt-2">
         <h2 class="h1 bg-slate-50 dark:bg-neutral-950 z-10 block sticky top-0 bottom-5" style="margin-block-start: 0; align-self: baseline;">
             Le mie collezioni molecolari
         </h2>
