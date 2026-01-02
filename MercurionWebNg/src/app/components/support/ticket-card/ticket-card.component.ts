@@ -81,7 +81,7 @@ import { Maybe } from 'graphql/jsutils/Maybe';
           </div>
 
           <!-- preview / meta line -->
-          <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-700 dark:text-slate-200">
+          <div class="mt-1 flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-1 sm:gap-2 text-xs text-slate-700 dark:text-slate-200">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current size-3.5 inline-block relative -top-px ">
               <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
               <path d="M320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64zM296 184L296 332.8L306.7 339.9L402.7 403.9L422.7 417.2L449.3 377.3C446.9 375.7 411.8 352.3 344 307.1L344 159.9L296 159.9L296 183.9z"/>
@@ -118,7 +118,7 @@ import { Maybe } from 'graphql/jsutils/Maybe';
 
         <!-- COLONNA DESTRA -->
         <div
-          class="md:col-span-3 flex md:justify-end items-center gap-2 relative z-30 pointer-events-auto"
+          class="md:col-span-3 flex flex-col sm:flex-row flex-wrap justify-start md:justify-end items-stretch sm:items-center gap-2 relative z-30 pointer-events-auto w-full"
         >
           @if (showCloseButton()) {
             <button

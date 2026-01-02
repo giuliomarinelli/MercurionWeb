@@ -9,7 +9,7 @@ type TocMode = 'edit' | 'read';
   imports: [RouterModule],
   template: `
     <nav aria-label="Indice notebook">
-    <ul class="flex flex-wrap gap-3 text-xs px-2 py-2 border-b">
+    <ul class="flex flex-col xs:flex-row xs:flex-wrap gap-2 xs:gap-3 text-xs px-2 py-2 border-b">
       @if (notebook) {
         <li>
           <a [routerLink]="['/notebook', notebook.id, mode]"

@@ -377,21 +377,29 @@ import { SidenavContextService } from '../../services/context/sidenav-context.se
 
                           }
                           @case (1) {
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
-                              <div class="p-2 sm:p-4">Nome</div>
-                              <div class="p-2 sm:p-4"><strong>{{profile.firstName}}</strong></div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 mb-2 sm:mb-0 sm:gap-4">
+                              <div class="p-1.5 sm:p-4">Nome</div>
+                              <div class="p-1.5 sm:p-4 flex items-center min-w-0">
+                                <strong class="truncate">{{profile.firstName}}</strong>
+                              </div>
                             </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
-                              <div class="p-2 sm:p-4">Cognome</div>
-                              <div class="p-2 sm:p-4"><strong>{{profile.lastName}}</strong></div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 mb-2 sm:mb-0 sm:gap-4">
+                              <div class="p-1.5 sm:p-4">Cognome</div>
+                              <div class="p-1.5 sm:p-4 flex items-center min-w-0">
+                                <strong class="truncate">{{profile.lastName}}</strong>
+                              </div>
                             </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
-                              <div class="p-2 sm:p-4">Genere</div>
-                              <div class="p-2 sm:p-4"><strong>{{profile.gender | gender}}</strong></div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 mb-2 sm:mb-0 sm:gap-4">
+                              <div class="p-1.5 sm:p-4">Genere</div>
+                              <div class="p-1.5 sm:p-4 flex items-center min-w-0">
+                                <strong class="truncate">{{profile.gender | gender}}</strong>
+                              </div>
                             </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
-                              <div class="p-2 sm:p-4">Lavoro</div>
-                              <div class="p-2 sm:p-4"><strong>{{profile.job ?? '―'}}</strong></div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 mb-2 sm:mb-0 sm:gap-4">
+                              <div class="p-1.5 sm:p-4">Lavoro</div>
+                              <div class="p-1.5 sm:p-4 flex items-center min-w-0">
+                                <strong class="truncate">{{profile.job ?? '―'}}</strong>
+                              </div>
                             </div>
                             <button class="absolute right-6 top-6 cursor-pointer transition-[transform,color] duration-300 hover:scale-[1.075]"
                               title="Modifica anagrafica" aria-label="Modifica anagrafica" (click)="editPersonalDetails()">
@@ -402,14 +410,14 @@ import { SidenavContextService } from '../../services/context/sidenav-context.se
                             </button>
                           }
                           @case (2) {
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 relative">
-                              <div class="p-2 sm:p-4 sm:col-span-1">E-mail</div>
-                              <div class="p-2 sm:p-4 sm:col-span-2 flex justify-between items-center">
-                                <strong>{{profile.obscuredEmail}}</strong>
-                                @if (!is_sso()) {
-                                  <button class="cursor-pointer transition-[transform,color] duration-300 hover:scale-[1.075]"
-                                    title="Modifica e-mail" aria-label="Modifica e-mail" (click)="changeEmail()">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-[22px] w-auto fill-current text-slate-800 hover:text-slate-800/75 dark:text-slate-200 dark:hover:text-slate-200/75" aria-hidden="true">
+                              <div class="grid grid-cols-1 sm:grid-cols-3 mb-4 2xs:mb-2 sm:gap-4 relative">
+                                <div class="text-xs 2xs:text-base p-2 sm:p-4 sm:col-span-1">E-mail</div>
+                                <div class="text-xs 2xs:text-base p-2 sm:p-4 sm:col-span-2 flex justify-between items-center gap-2 min-w-0">
+                                  <strong class="truncate">{{profile.obscuredEmail}}</strong>
+                                  @if (!is_sso()) {
+                                    <button class="cursor-pointer transition-[transform,color] duration-300 hover:scale-[1.075]"
+                                      title="Modifica e-mail" aria-label="Modifica e-mail" (click)="changeEmail()">
+                                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="size-[18px] 2xs:size-[22px] fill-current text-slate-800 hover:text-slate-800/75 dark:text-slate-200 dark:hover:text-slate-200/75" aria-hidden="true">
                                       <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                                       <path d="M58.1 555.9L48 592C50.7 591.2 117.4 572.6 248 536L569.4 214.6L592 192C589.6 189.6 549.1 149.1 470.6 70.6L448 48L425.4 70.6L104 392L58.1 555.9zM252.7 486L154 387.3L347.4 193.9L446.1 292.6L252.7 486zM229.4 508L94.2 545.8L132 410.6L229.4 508zM546.7 192L468.6 270.1L369.9 171.4L448 93.3L546.7 192z"/>
                                     </svg>
@@ -418,15 +426,15 @@ import { SidenavContextService } from '../../services/context/sidenav-context.se
                               </div>
                             </div>
                             @if (!is_sso()) {
-                              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
-                                <div class="p-2 sm:p-4 sm:col-span-1">Numero di telefono</div>
-                                <div class="p-2 sm:p-4 sm:col-span-2 flex justify-between items-center">
-                                  <strong>{{profile.obscuredPhone ?? '―'}}</strong>
+                              <div class="grid grid-cols-1 sm:grid-cols-3 mb-4 2xs:mb-2 sm:gap-4 relative">
+                                <div class="text-xs 2xs:text-base p-2 sm:p-4 sm:col-span-1">Numero di telefono</div>
+                                <div class="text-xs 2xs:text-base p-2 sm:p-4 sm:col-span-2 flex justify-between items-center gap-2 min-w-0">
+                                  <strong class="truncate">{{profile.obscuredPhone ?? '―'}}</strong>
                                     @if (profile.obscuredPhone) {
                                   <div class="flex items-center gap-4">
                                     <button class="cursor-pointer transition-[transform,color] duration-300 hover:scale-[1.075]"
                                           title="Modifica numero di telefono" aria-label="Modifica numero di telefono" (click)="changePhone()">
-                                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-[22px] w-auto fill-current text-slate-800 hover:text-slate-800/75 dark:text-slate-200 dark:hover:text-slate-200/75 transition-colors duration-300" aria-hidden="true">
+                                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="size-[18px] 2xs:size-[22px] fill-current text-slate-800 hover:text-slate-800/75 dark:text-slate-200 dark:hover:text-slate-200/75 transition-colors duration-300" aria-hidden="true">
                                             <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                                             <path d="M58.1 555.9L48 592C50.7 591.2 117.4 572.6 248 536L569.4 214.6L592 192C589.6 189.6 549.1 149.1 470.6 70.6L448 48L425.4 70.6L104 392L58.1 555.9zM252.7 486L154 387.3L347.4 193.9L446.1 292.6L252.7 486zM229.4 508L94.2 545.8L132 410.6L229.4 508zM546.7 192L468.6 270.1L369.9 171.4L448 93.3L546.7 192z"/>
                                           </svg>
@@ -440,7 +448,7 @@ import { SidenavContextService } from '../../services/context/sidenav-context.se
                                           aria-label="Elimina numero di telefono"
                                         >
                                           <svg
-                                            class="h-[22px] w-auto text-light-error dark:text-dark-error hover:text-light-error/80 dark:hover:text-dark-error/80 hover:scale-[1.15] transition-all duration-300"
+                                            class="size-[18px] 2xs:size-[22px] text-light-error dark:text-dark-error hover:text-light-error/80 dark:hover:text-dark-error/80 hover:scale-[1.15] transition-all duration-300"
                                             viewBox="0 0 20 20"
                                             fill="currentColor"
                                             aria-hidden="true"
@@ -469,7 +477,7 @@ import { SidenavContextService } from '../../services/context/sidenav-context.se
                           @case (3) {
                             @if (!is_sso()) {
                               <h3 class="font-bold text-lg my-3">Password</h3>
-                              <div class="flex items-center gap-8">
+                              <div class="flex sm:items-center flex-col gap-4 sm:gap-8 sm:flex-row">
                                 <div class="flex items-center gap-1">
                                   @for (x of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]; track x) {
                                     <span>●</span>
@@ -478,7 +486,7 @@ import { SidenavContextService } from '../../services/context/sidenav-context.se
                                 <button
                                   type="button"
                                   class="
-                                    green-btn
+                                    green-btn w-fit
                                   "
                                   (click)="changePassword()"
                                 >
@@ -518,7 +526,7 @@ import { SidenavContextService } from '../../services/context/sidenav-context.se
                             </button>
                             @if (!is_sso()) {
                               <hr class="border-[0.5px] border-slate-400 dark:border-slate-500 mt-6" />
-                              <h3 class="font-bold text-lg mt-6 mb-6 flex gap-6 flex-wrap">
+                              <h3 class="font-bold text-lg mt-6 mb-6 flex flex-col sm:flex-row gap-3 sm:gap-6 items-start sm:items-center">
                                 <span>Autenticazione a più fattori</span>
                                 <span
                                   class="inline-flex items-center rounded px-2 py-[2px] text-sm font-semibold cursor-default"

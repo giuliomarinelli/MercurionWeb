@@ -222,7 +222,7 @@ import { ActionOverlayContextService } from '../../../services/context/action-co
         <hr class="border-slate-300 dark:border-slate-600 my-2" />
         <div class="mb-4" [class.px-2]="userContext.isLoggedOut()">
           <h6 class="detail">Documenti</h6>
-          <a class="sidebar-link" (click)="handleMenuItemClick()" routerLink="/terms-and-conditions">
+          <a class="sidebar-link" (click)="handleMenuItemClick()" routerLink="/terms-and-policies">
             <div
               class="flex size-9 shrink-0 items-center justify-center
                      rounded-xl border border-slate-400/70 dark:border-slate-500/60
@@ -234,7 +234,7 @@ import { ActionOverlayContextService } from '../../../services/context/action-co
                 <path d="M320 96L160 96L160 544L480 544L480 256L320 256L320 96zM466.7 224L352 109.3L352 224L466.7 224zM160 64L352 64L512 224L512 576L128 576L128 64L160 64zM264.3 368L299.9 368L303.3 379.4L323.9 448L448 448L448 480L300.1 480L296.7 468.6L277.1 403.3L220.5 474L210.5 486.5L185.5 466.5L195.5 454L259.5 374L264.3 368zM208 160L288 160L288 192L192 192L192 160L208 160zM208 224L288 224L288 256L192 256L192 224L208 224z"/>
               </svg>
             </div>
-            <span class="sidebar-item-text">Termini e Condizioni</span>
+            <span class="sidebar-item-text">Termini e Policy</span>
           </a>
           <a class="sidebar-link" (click)="handleMenuItemClick()" routerLink="/privacy">
             <div
@@ -288,7 +288,7 @@ export class SidenavComponent implements OnInit, OnDestroy {
   onOpenOffCanvas = new EventEmitter<void>()
 
   @Output()
-  onMenuItemClick = new EventEmitter<void>()
+  menuItemClick = new EventEmitter<void>()
 
   triggerDelete = signal<boolean>(false)
   isHistoryEmpty = signal<boolean>(false)
@@ -350,11 +350,11 @@ export class SidenavComponent implements OnInit, OnDestroy {
   }
 
   handleMenuItemClick(): void {
-    this.onMenuItemClick.emit()
+    this.menuItemClick.emit()
   }
 
   closeOffCanvasMenu(): void {
-    this.onMenuItemClick.emit()
+    this.menuItemClick.emit()
   }
 
   importFromChembl(): void {

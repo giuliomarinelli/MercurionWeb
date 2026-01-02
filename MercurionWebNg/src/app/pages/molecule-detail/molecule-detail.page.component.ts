@@ -64,7 +64,7 @@ import { AppTitleService } from '../../services/app-title.service'
 
     @if (molecule$ | async; as molecule) {
 
-      <main class="main-container" role="main" [attr.aria-busy]="fetchMolLoading()" aria-live="polite">
+      <section class="main-container" role="main" [attr.aria-busy]="fetchMolLoading()" aria-live="polite">
 
         @if (!typeGuards.isSystemMolecule(molecule)) {
           @if (collectionId()) {
@@ -170,8 +170,8 @@ import { AppTitleService } from '../../services/app-title.service'
         </section>
         @if (typeGuards.isSystemMolecule(molecule) || typeGuards.isChemblMolecule(molecule)) {
           <h2
-            class="font-semibold relative -top-[28px] sm:top-14 text-light-accent-primary-hq dark:text-dark-accent-primary text-center sm:text-left text-xl"
-            style="margin-block-start: -38px  ">
+            class="font-semibold relative top-8 sm:top-14 text-light-accent-primary-hq dark:text-dark-accent-primary text-center sm:text-left text-xl"
+            style="margin-block-start: -38px">
             Analoghi suggeriti
           </h2>
 
@@ -228,7 +228,7 @@ import { AppTitleService } from '../../services/app-title.service'
           } @else if (typeGuards.isChemblMolecule(molecule)) {
             <m-molecule-cta-chembl [chemblId]="molecule.chemblDetails.cmbId" />
           }
-      </main>
+      </section>
         } @else if (fetchError()) {
         <section class="max-w-4xl mx-auto p-6" role="main" aria-live="assertive">
           <p class="text-light-error dark:text-dark-error text-sm" role="alert">Si è verificato un errore nel caricamento della molecola</p>

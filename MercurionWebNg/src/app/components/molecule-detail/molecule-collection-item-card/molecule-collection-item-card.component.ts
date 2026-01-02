@@ -101,17 +101,7 @@ import { AppContextService } from '../../../services/context/app-context.service
             title="{{ _molecule()!.syn }}"
           ></div>
 
-          <!-- Meta (mobile) -->
-          <div class="mt-2 flex md:hidden items-center gap-2 text-xs text-slate-700 dark:text-slate-200">
-            <span class="inline-flex items-center">
-              <span class="size-1.5 rounded-full bg-slate-300 dark:bg-slate-500 mr-2"></span>
-              {{ _molecule()!.createdAt | date : 'dd/MM/yyyy HH:mm:ss' }}
-            </span>
-            <span class="text-slate-300 dark:text-slate-600">•</span>
-            <span>{{ _molecule()!.updatedAt | date :'dd/MM/yyyy HH:mm:ss' }}</span>
-          </div>
-
-          <div class="mt-2 flex flex-wrap items-center gap-2 text-xs">
+            <div class="mt-2 flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 text-xs">
             @if (_molecule()!.mwFreebase) {
               <span
                 class="inline-flex items-center rounded-full px-2 py-1
@@ -154,10 +144,10 @@ import { AppContextService } from '../../../services/context/app-context.service
           <!-- Footer meta -->
         @if(!_isReadonly()) {
           <div
-          class="md:col-span-12 mt-1 md:mt-0 flex justify-between items-center text-xs text-slate-700 dark:text-slate-200 relative"
+          class="md:col-span-12 mt-1 md:mt-0 flex flex-col sm:flex-row gap-3 sm:gap-3 justify-between items-start sm:items-center text-xs text-slate-700 dark:text-slate-200 relative w-full"
           >
             <!-- Colonna sinistra: date -->
-            <div class="flex items-center gap-3 relative z-30 pointer-events-auto">
+            <div class="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 sm:gap-3 relative z-30 pointer-events-auto w-full sm:w-auto">
               <div class="inline-flex items-center shrink-0">
                 <svg
                   class="size-3.5 mr-1.5"
@@ -192,7 +182,7 @@ import { AppContextService } from '../../../services/context/app-context.service
 
             @if (!_hideActions()) {
               <!-- Colonna destra: pulsanti -->
-              <div class="flex items-center gap-3 relative z-30 pointer-events-auto">
+              <div class="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 sm:gap-3 relative z-30 pointer-events-auto w-full sm:w-auto justify-start sm:justify-end">
                 <!-- Duplica -->
                <a
                  type="button"

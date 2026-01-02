@@ -89,7 +89,7 @@ import { AppContextService } from '../../../services/context/app-context.service
   template: `
     <div class="flex justify-center items-center min-h-screen px-2">
       <div
-        class="w-full max-w-5xl bg-white dark:bg-dark-surface-main rounded-xl shadow-lg"
+        class="w-full max-w-5xl bg-white dark:bg-dark-surface-main rounded-xl shadow-lg max-h-[80vh] overflow-y-auto custom-scrollbar"
         role="region"
         aria-labelledby="ticketDetailHeading"
         [attr.aria-busy]="loading"
@@ -128,7 +128,7 @@ import { AppContextService } from '../../../services/context/app-context.service
             role="status"
             aria-live="polite"
           >
-            <div class="flex flex-wrap items-center gap-2">
+            <div class="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2">
               <span
                 class="text-xs font-medium text-slate-700 dark:text-slate-200 bg-slate-200/70 dark:bg-slate-700/60 border border-slate-300/60 dark:border-slate-600/60 px-2 py-0.5 rounded-full"
               >
@@ -161,7 +161,7 @@ import { AppContextService } from '../../../services/context/app-context.service
             </div>
 
             <div
-              class="flex flex-wrap items-center gap-3 text-xs text-slate-700 dark:text-slate-200"
+              class="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 sm:gap-3 text-xs text-slate-700 dark:text-slate-200"
             >
               <div class="inline-flex items-center gap-1.5">
                 <svg

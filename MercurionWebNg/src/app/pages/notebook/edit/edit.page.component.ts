@@ -17,7 +17,7 @@ import { NotebookTocComponent } from '../../../components/notebook/notebook-tree
           <div class="flex flex-col-reverse lg:flex-row gap-4">
             <div class="flex flex-col items-center">
               @if (level()) {
-                <h1 #h1 id="notebook-edit-heading" class="tracking-wider font-semibold text-6xl pb-3 mb-3">
+                <h1 #h1 id="notebook-edit-heading" class="tracking-wider font-semibold text-4xl sm:text-5xl lg:text-6xl pb-3 mb-3 text-center lg:text-left">
                   {{title()}}.
                 </h1>
               }
@@ -30,7 +30,7 @@ import { NotebookTocComponent } from '../../../components/notebook/notebook-tree
               />
 
             </div>
-            <m-notebook-toc class="basis-64"
+            <m-notebook-toc class="basis-64 w-full sm:w-auto max-w-full"
                 [style.paddingTop.px]="offsetHeight()"
                 [notebook]="notebook()"
                 [mode]="'edit'"
@@ -45,7 +45,7 @@ import { NotebookTocComponent } from '../../../components/notebook/notebook-tree
 
         } @else {
           @if (level()) {
-                <h1 id="notebook-edit-heading" class="tracking-wider font-semibold text-6xl pb-3 text-center">
+                <h1 id="notebook-edit-heading" class="tracking-wider font-semibold text-4xl sm:text-5xl lg:text-6xl pb-3 text-center">
                   {{title()}}.
                 </h1>
           }
