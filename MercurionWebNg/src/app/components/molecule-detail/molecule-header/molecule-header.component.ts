@@ -31,7 +31,7 @@ import { RouterLink } from '@angular/router';
 
               <m-molecule-badge
                 [name]="_badgeName()"
-                class="relative sm:top-1.5 shrink-0" />
+                class="relative shrink-0" />
             </div>
           } @else {
             <m-custom-details

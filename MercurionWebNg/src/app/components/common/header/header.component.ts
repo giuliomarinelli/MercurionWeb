@@ -57,7 +57,7 @@ import { AppContextService } from '../../../services/context/app-context.service
               class="w-[145px] h-auto contrast-115" />
           </a>
           <span
-            class="relative top-1 px-2.5 py-[3px] rounded-full text-[10px] font-semibold uppercase tracking-tight leading-none bg-emerald-100/90 text-emerald-900 shadow-sm ring-1 ring-emerald-900/15 dark:bg-emerald-900/85 dark:text-emerald-50 dark:ring-emerald-200/20">
+            class="cursor-default relative top-1 px-2.5 py-[3px] rounded-full text-[10px] font-semibold uppercase tracking-tight leading-none bg-emerald-100/90 text-emerald-900 shadow-sm ring-1 ring-emerald-900/15 dark:bg-emerald-900/85 dark:text-emerald-50 dark:ring-emerald-200/20">
             Beta
           </span>
         </div>
