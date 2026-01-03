@@ -212,10 +212,10 @@ export async function bootstrap() {
 
   const port = configService.get<number>('App.port')
   const host = configService.get<string>('App.host') as string
-  const appUrl = `${host}:${port ?? 8099}`
+  const appUrl = `${host}:${port ?? 8098}`
 
-  await app.listen(port ?? 8099, host.replace('http://', ''))
   await app.startAllMicroservices()
+  await app.listen(port ?? 8098, host.replace('http://', ''))
 
   const lastColonIndex = appUrl.lastIndexOf(':')
   const coloredUrl =
