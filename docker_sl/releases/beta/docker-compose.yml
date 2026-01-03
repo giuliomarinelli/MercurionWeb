@@ -14,3 +14,4 @@ services:
       args:
         APP_VERSION: ${APP_VERSION}
     image: ${REGISTRY_IMAGE_NODE}:${APP_VERSION}
+
