@@ -7,11 +7,11 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: mercurion-tox21
+      app: mercurion-tox-21
   template:
     metadata:
       labels:
-        app: mercurion-tox21
+        app: mercurion-tox-21
     spec:
       containers:
         - name: tox21
