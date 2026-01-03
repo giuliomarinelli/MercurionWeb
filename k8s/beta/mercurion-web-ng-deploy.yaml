@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mercurion-web-ng
+  namespace: mercurion-beta
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mercurion-web-ng
+  template:
+    metadata:
+      labels:
+        app: mercurion-web-ng
+    spec:
+      containers:
+        - name: web-ng
+          image: europe-west8-docker.pkg.dev/mercurion-481213/mercurion/mercurion-web-ng:1.0-beta-1c8
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3497
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: APP_ENV
+              value: "staging"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mercurion-web-ng
+  namespace: mercurion-beta
+spec:
+  selector:
+    app: mercurion-web-ng
+  ports:
+    - name: http
+      port: 3497
+      targetPort: 3497
+  type: ClusterIP

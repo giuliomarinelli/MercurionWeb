@@ -14,4 +14,12 @@ services:
       args:
         APP_VERSION: ${APP_VERSION}
     image: ${REGISTRY_IMAGE_NODE}:${APP_VERSION}
+  
+  mercurion_tox_21_beta:
+    build:
+      context: ../../../../MercurionAI/MercurionTox21
+      dockerfile: Dockerfile.staging
+      args:
+        APP_VERSION: ${APP_VERSION}
+    image: ${REGISTRY_IMAGE_MT21}:${MT21_APP_VERSION}
 

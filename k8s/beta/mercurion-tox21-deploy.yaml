@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mercurion-tox-21
+  namespace: mercurion-beta
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mercurion-tox21
+  template:
+    metadata:
+      labels:
+        app: mercurion-tox21
+    spec:
+      containers:
+        - name: tox21
+          image: europe-west8-docker.pkg.dev/mercurion-481213/mercurion/mercurion-tox-21:1.2026.2
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: PY_ENV
+              value: "staging"
+            - name: VERSION
+              value: "1.2026.2"
+            - name: NATS_URL
+              value: "nats://nats-sl.mercurion-beta.svc.cluster.local:4222"
