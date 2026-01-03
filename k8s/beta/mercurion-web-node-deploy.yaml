@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: web-node
-          image: europe-west8-docker.pkg.dev/mercurion-481213/mercurion/mercurion-web-node:1.0-beta-1c3
+          image: europe-west8-docker.pkg.dev/mercurion-481213/mercurion/mercurion-web-node:1.0-beta-1c8
           imagePullPolicy: IfNotPresent
 
           ports:

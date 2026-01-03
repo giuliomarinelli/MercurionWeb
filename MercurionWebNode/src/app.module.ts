@@ -33,6 +33,7 @@ import { FeedbackModule } from './app_modules/feedback/feedback.module';
 import { resolveAppEnv, shouldUseEnvFile } from './utils/env-helpers';
 import { validateEnvOrKillProcess } from './config/env-validation';
 import { ReleaseVersionModule } from './app_modules/release-version/release-version.module';
+import { HealthController } from './health.controller';
 
 const appEnv = resolveAppEnv()
 
@@ -94,6 +95,6 @@ const appEnv = resolveAppEnv()
     JwtService,
     ResponseService
   ],
-  controllers: [TestController]
+  controllers: [TestController, HealthController]
 })
 export class AppModule { }
