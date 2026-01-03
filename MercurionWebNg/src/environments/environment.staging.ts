@@ -1,5 +1,5 @@
 export const environment = {
-  CLOUDFLARE_SITE_KEY: '0x4AAAAAABdOWnfz_3r4JGDK',
+  CLOUDFLARE_SITE_KEY: '0x4AAAAAACKT6W62iJkO8S_f',
   PUBLIC_EXACT_PATHS: [
     '/login',
     '/register',
@@ -22,7 +22,7 @@ export const environment = {
   },
   production: true,
   testing: true,
-beta: true,
+  beta: true,
   feedbackEnv: 'staging',
   version: '1.0-beta-1'
 }
