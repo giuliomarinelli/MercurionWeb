@@ -23,6 +23,14 @@ import { resolveAppEnv } from './utils/env-helpers'
 
 export async function bootstrap() {
 
+  process.on('unhandledRejection', (reason) => {
+    console.error('[UNHANDLED_REJECTION]', reason)
+  })
+
+  process.on('uncaughtException', (err) => {
+    console.error('[UNCAUGHT_EXCEPTION]', err)
+  })
+
   const logLevels = new Set<LogLevel>(['error', 'warn', 'log', 'debug', 'verbose', 'fatal'])
 
   if (resolveAppEnv() !== Environment.Development) {
