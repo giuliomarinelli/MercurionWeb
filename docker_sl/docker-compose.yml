@@ -104,46 +104,46 @@ services:
       - spectralume_network
     restart: unless-stopped
 
-  nginx_sl_test:
-    image: nginx:1.27-alpine
-    container_name: nginx_sl_test
-    ports:
-      - "8880:80"
-    volumes:
-      - ./nginx_test/default.conf:/etc/nginx/conf.d/default.conf:ro
-      - ../MercurionLandingFactory/dist/MercurionLandingFactory/browser:/usr/share/nginx/html/mercurion-errors:ro
-    networks:
-      - spectralume_network
-    restart: unless-stopped
-    command: ["nginx", "-g", "daemon off;"]
+  # nginx_sl_test:
+  #   image: nginx:1.27-alpine
+  #   container_name: nginx_sl_test
+  #   ports:
+  #     - "8880:80"
+  #   volumes:
+  #     - ./nginx_test/default.conf:/etc/nginx/conf.d/default.conf:ro
+  #     - ../MercurionLandingFactory/dist/MercurionLandingFactory/browser:/usr/share/nginx/html/mercurion-errors:ro
+  #   networks:
+  #     - spectralume_network
+  #   restart: unless-stopped
+  #   command: ["nginx", "-g", "daemon off;"]
 
 
-  mercurion_web_node:
-    container_name: mercurion_web_node
-    build:
-      context: ../MercurionWebNode
-      dockerfile: ../MercurionWebNode/Dockerfile.test
-    image: mercurion_web_node:latest
-    environment:
-      # qui l’URL che i test usano per colpire l’API
-      API_BASE_URL: http://mercurion_nginx:8880
-    command: ["node", "dist/main.js"]
-    expose:
-      - 8098
-    networks:
-      - spectralume_network
-    restart: unless-stopped
+  # mercurion_web_node:
+  #   container_name: mercurion_web_node
+  #   build:
+  #     context: ../MercurionWebNode
+  #     dockerfile: ../MercurionWebNode/Dockerfile.test
+  #   image: mercurion_web_node:latest
+  #   environment:
+  #     # qui l’URL che i test usano per colpire l’API
+  #     API_BASE_URL: http://mercurion_nginx:8880
+  #   command: ["node", "dist/main.js"]
+  #   expose:
+  #     - 8098
+  #   networks:
+  #     - spectralume_network
+  #   restart: unless-stopped
     
-  mercurion_web_ng:
-    build:
-      context: ../MercurionWebNg
-      dockerfile: ../MercurionWebNg/Dockerfile.test
-    container_name: mercurion_web_ng
-    expose:
-      - 3497       
-    networks:
-      - spectralume_network
-    restart: unless-stopped
+  # mercurion_web_ng:
+  #   build:
+  #     context: ../MercurionWebNg
+  #     dockerfile: ../MercurionWebNg/Dockerfile.test
+  #   container_name: mercurion_web_ng
+  #   expose:
+  #     - 3497       
+  #   networks:
+  #     - spectralume_network
+  #   restart: unless-stopped
 
 
 
