@@ -20,14 +20,11 @@ data:
     # ============================
 
     # 1 = maintenance ON, 0 = OFF
-    # Quando vuoi aprire al pubblico, cambia "default 1" in "default 0"
-    # e riapplica la ConfigMap.
     map $host $maintenance_mode {
-      default 1;
+      default 0;
     }
 
     # Header segreto per bypass (settato da Cloudflare)
-    # Cambia il token con qualcosa di bello random.
     map $http_x_mercurion_bypass $maintenance_bypass {
       default 0;
       # "MRCN-beta-ONLY-GIULIO" 1;
@@ -43,8 +40,6 @@ data:
 
     # ============================
     # HTTP -> HTTPS redirect
-    # (Cloudflare parla già HTTPS verso di noi,
-    #  ma teniamo comunque 80 che redirige)
     # ============================
     server {
       listen 80 default_server;
@@ -67,35 +62,25 @@ data:
       ssl_prefer_server_ciphers on;
 
       # ============================
-      # GATE "IN COSTRUZIONE" => per adesso Service Unavailable
+      # GATE "IN COSTRUZIONE"
       # ============================
       if ($maintenance_block) {
         return 503;
       }
 
       # ============================
-      # SECURITY HEADERS (HTTPS-bound)
-      # allineati ai TODO in main.ts (helmet)
+      # SECURITY HEADERS
       # ============================
-
-      # HSTS: solo in beta/prod (qui siamo su edge HTTPS)
       add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
-
-      # stesse policy di helmet
       add_header Referrer-Policy "no-referrer" always;
       add_header Cross-Origin-Resource-Policy "same-origin" always;
       add_header Cross-Origin-Opener-Policy "same-origin" always;
-
-      # hardening classico
       add_header X-Content-Type-Options "nosniff" always;
       add_header X-Frame-Options "DENY" always;
-
-      # (CSP completa la definiremo più avanti per evitare di rompere Angular/Ketcher)
 
       # ============================
       # PUBLIC STATIC ASSETS (ERROR PAGES)
       # ============================
-
       location ~* ^/(main-[A-Z0-9]+\.js|styles-[A-Z0-9]+\.css)$ {
         root /usr/share/nginx/html/mercurion-errors;
         access_log off;
@@ -109,11 +94,19 @@ data:
         try_files $uri =404;
       }
 
+      # favicon "directory"
       location ^~ /favicon/ {
         root /usr/share/nginx/html/mercurion-errors;
         access_log off;
         expires 30d;
         try_files $uri =404;
+      }
+
+      # favicon classica /favicon.ico -> cartella favicon della landing
+      location = /favicon.ico {
+        alias /usr/share/nginx/html/mercurion-errors/favicon/favicon.ico;
+        access_log off;
+        expires 30d;
       }
 
       location ^~ /logo/ {
@@ -126,7 +119,6 @@ data:
       # ============================
       # INTERNAL ERROR PAGES
       # ============================
-
       error_page
         400 401 402 403 404 405 406 407 408 409 410
         411 412 413 414 415 416 417 418 421 422 423
@@ -135,7 +127,7 @@ data:
         /errors/$status/;
 
       location ^~ /errors/ {
-        root /usr/share/nginx/html/mercurion-errors;
+        alias /usr/share/nginx/html/mercurion-errors/;
         try_files $uri $uri/ =500;
         internal;
       }
@@ -143,7 +135,6 @@ data:
       # ============================
       # WebSocket NestJS
       # ============================
-
       location /socket.io/ {
         proxy_pass http://mercurion-web-node:8098/socket.io/;
         proxy_http_version 1.1;
@@ -164,7 +155,6 @@ data:
       # ============================
       # API NestJS
       # ============================
-
       location ^~ /api/ {
         proxy_pass http://mercurion-web-node:8098;
         proxy_http_version 1.1;
@@ -183,9 +173,8 @@ data:
       }
 
       # ============================
-      # Angular SPA (Ketcher)
+      # Angular SPA (Ketcher + main)
       # ============================
-
       location ^~ /m/ketcher/ {
         if ($ketcher_allowed = 0) {
           return 403;

@@ -31,9 +31,11 @@ LABEL org.opencontainers.image.version=$APP_VERSION
 WORKDIR /usr/share/nginx/html
 RUN rm -rf ./*
 
+# La SPA vive in /m
 RUN mkdir -p m
 COPY --from=build /app/dist/mercurion-web-ng/browser/ ./m/
 
+# Config dedicata per lo stage "staging"
 COPY nginx.mercurion_web_ng.staging.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 3497

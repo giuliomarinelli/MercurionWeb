@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: web-ng
-          image: europe-west8-docker.pkg.dev/mercurion-481213/mercurion/mercurion-web-ng:1.0-beta-1c9
+          image: europe-west8-docker.pkg.dev/mercurion-481213/mercurion/mercurion-web-ng:1.0-beta-1c11
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3497
@@ -35,6 +35,7 @@ spec:
     app: mercurion-web-ng
   ports:
     - name: http
-      port: 3497
-      targetPort: 3497
+      port: 3497        
+      targetPort: 3497  
+      protocol: TCP
   type: ClusterIP
