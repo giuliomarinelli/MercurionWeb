@@ -21,7 +21,7 @@ data:
 
     # 1 = maintenance ON, 0 = OFF
     map $host $maintenance_mode {
-      default 0;
+      default 1;
     }
 
     # Header segreto per bypass (settato da Cloudflare)
