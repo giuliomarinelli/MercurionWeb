@@ -1,0 +1,15 @@
+{
+  "manifest_version": 2,
+  "name": "Mercurion Maintenance Bypass",
+  "version": "1.0.0",
+  "description": "Aggiunge l'header X-Mercurion-Bypass solo per mercurion.app",
+  "permissions": [
+    "webRequest",
+    "webRequestBlocking",
+    "https://mercurion.app/*",
+    "https://*.mercurion.app/*"
+  ],
+  "background": {
+    "scripts": ["background.js"]
+  }
+}
