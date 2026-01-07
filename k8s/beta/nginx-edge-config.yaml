@@ -5,7 +5,6 @@ metadata:
   namespace: mercurion-beta
 data:
   default.conf: |
-
     map_hash_bucket_size 256;
 
     map $http_upgrade $connection_upgrade {
@@ -25,12 +24,15 @@ data:
     # 1 = maintenance ON, 0 = OFF
     map $host $maintenance_mode {
       default 1;
+      # quando vorrai spegnerla per un host:
+      # mercurion.app 0;
+      # beta.mercurion.app 0;
     }
 
-    # Header segreto per bypass (settato da Cloudflare)
-    map $http_x_mercurion_bypass $maintenance_bypass {
+    # Header segreto per bypass (es. da Cloudflare / estensioni)
+    map $http_x_mercurion_bypass $maintenance_bypass_header {
       default 0;
-      ***REMOVED*** 1;
+      ***REMOVED*** 1;   
     }
 
     # bypass via cookie (settato dal Worker)
@@ -38,24 +40,17 @@ data:
       default 0;
       "1" 1;
     }
-    
-    # unisci header+cookie
-    map "$maintenance_bypass_header$maintenance_bypass_cookie" $maintenance_bypass {
+
+    # unisci header + cookie
+    map "$maintenance_bypass_header$maintenance_bypass_cookie" $maintenance_bypass_effective {
       default 0;
       "10" 1;  # solo header
       "01" 1;  # solo cookie
       "11" 1;  # entrambi
     }
-    
-    # se maintenance_mode=1 e bypass=0 => blocca
-    map $maintenance_mode$maintenance_bypass $maintenance_block {
-      default 0;
-      "10" 1;
-    }
-    
 
-    # Se maintenance_mode=1 e bypass=0 => blocca (1), altrimenti passa (0)
-    map $maintenance_mode$maintenance_bypass $maintenance_block {
+    # se maintenance_mode=1 e niente bypass => blocca
+    map $maintenance_mode$maintenance_bypass_effective $maintenance_block {
       default 0;
       "10" 1;
     }

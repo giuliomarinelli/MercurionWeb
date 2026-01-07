@@ -3,3 +3,4 @@ keys/
 *.env.*
 .env.*
 *.pem
+pg-credentials.yaml

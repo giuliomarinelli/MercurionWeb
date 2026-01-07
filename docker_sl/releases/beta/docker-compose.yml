@@ -32,3 +32,11 @@ services:
     image: ${REGISTRY_IMAGE_NGINX}:${NGINX_TAG}
 
 
+  pg_sl_beta:
+    build:
+      context: .
+      dockerfile: Dockerfile.postgres
+    image: postgres16-pgvector:${PGV_TAG}
+    container_name: pg_sl_beta
+    
+  
