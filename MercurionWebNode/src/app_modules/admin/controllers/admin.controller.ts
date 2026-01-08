@@ -27,7 +27,7 @@ export class AdminController {
     }
 
     @Public()
-    @Get('/maintenance/:t')
+    @Get('/maintenance')
     getAdminMaintenanceCookie(
         @Res({ passthrough: true }) reply: FastifyReply, @Query('t') t: string): { ok: true } {
         // TODO: fare hashing argon2 in db e hardening, adesso importa solo far funzionare il gate. Non esponiamo 
