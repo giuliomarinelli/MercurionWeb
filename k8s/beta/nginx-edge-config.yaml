@@ -30,29 +30,35 @@ data:
     }
 
     # cookie httpOnly admin (settato da /api/admin/maintenance?t=...)
+    # qualunque valore NON VUOTO -> 1 (bypass attivo)
     map $cookie__mercurion_admin_maintenance $maintenance_admin_effective {
       default 0;
-      "SjO62ztQ9MCwfZ2/eL3uDXmLb66vFchAAO6vmlfZDHDcj5FjskTNOGrCsaqgxG0/o0RAEXnqzU7eGUd3toVi8aMpuG1oTfcSbqS+4d5zkau/PsTbdjlUxWTLu3+zJv7IxZHlK5i8FWRpal2Ts7DeY2zIIt5M+oGcZ8M58T6OdWM=" 1;
+      ~.+ 1;
     }
 
     # whitelist di URI che devono restare sempre accessibili
     map $uri $maintenance_whitelist {
       default 0;
 
-      # endpoint che setta il cookie di bypass (/api/admin/maintenance...)
+      # endpoint che setta il cookie di bypass (/api/admin/maintenance?t=...)
       ~^/api/admin/maintenance 1;
 
       # route Angular che fa lo scambio token -> cookie
       ~^/m/admin/maintenance 1;
 
-      # TUTTI GLI ASSET STATICI (path, la querystring non serve qui)      
+      # TUTTI GLI ASSET STATICI (path; la querystring non conta qui)
       ~*\.(js|css|png|jpe?g|svg|ico|webp|gif|woff2?|ttf|eot|map|webmanifest|json)$ 1;
-
 
       # percorsi "nudi" tipici di statici
       ~^/favicon 1;
       ~^/logo/ 1;
       ~^/fonts/ 1;
+    }
+
+    # se maintenance_mode=1, niente cookie admin e non whitelisted => blocca (503)
+    map "$maintenance_mode$maintenance_admin_effective$maintenance_whitelist" $maintenance_block {
+      default 0;
+      "100" 1;
     }
 
     client_max_body_size 100M;
@@ -79,26 +85,6 @@ data:
 
       ssl_protocols TLSv1.2 TLSv1.3;
       ssl_prefer_server_ciphers on;
-
-      # calcolo combinato: maintenance_mode=1, niente cookie, non whitelisted
-           # calcolo combinato: maintenance_mode=1, niente cookie, non whitelisted
-      set $maintenance_block 0;
-
-      # se la maintenance è attiva, di base blocco
-      if ($maintenance_mode = 1) {
-        set $maintenance_block 1;
-      }
-
-      # se ho il cookie admin, non blocco
-      if ($maintenance_admin_effective = 1) {
-        set $maintenance_block 0;
-      }
-
-      # se l'URI è whitelisted (statici, ecc.), non blocco
-      if ($maintenance_whitelist = 1) {
-        set $maintenance_block 0;
-      }
-
 
       add_header X-Debug-Maint-Mode      "$maintenance_mode"             always;
       add_header X-Debug-Maint-Admin     "$maintenance_admin_effective"  always;
