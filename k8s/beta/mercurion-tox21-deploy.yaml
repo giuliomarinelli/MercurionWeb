@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: tox21
-          image: europe-west8-docker.pkg.dev/mercurion-483615/mercurion/mercurion-tox-21:1.2026.2
+          image: europe-west8-docker.pkg.dev/mercurion-483615/mercurion/mercurion-tox-21:1.2026.3
           imagePullPolicy: IfNotPresent
           env:
             - name: PY_ENV
