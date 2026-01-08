@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: nginx
-          image: europe-west8-docker.pkg.dev/mercurion-481213/mercurion/nginx-sl:1.2026.1
+          image: europe-west8-docker.pkg.dev/mercurion-483615/mercurion/nginx-sl:1.2026.1
           ports:
             - containerPort: 80
             - containerPort: 443
@@ -27,6 +27,15 @@ spec:
             - name: tls-cert
               mountPath: /etc/nginx/tls
               readOnly: true
+          resources:
+            requests:
+              cpu: "150m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+
+
       volumes:
         - name: nginx-config
           configMap:

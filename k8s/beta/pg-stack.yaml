@@ -10,7 +10,6 @@ spec:
   resources:
     requests:
       storage: 60Gi   # spazio per ~4 backup di un DB da ~30Gi (dump ~15Gi l'uno)
-
 ---
 apiVersion: batch/v1
 kind: CronJob
@@ -56,6 +55,13 @@ spec:
                   find /backups -type f -mtime +7 -name 'mercurion-*.dump' -delete
 
                   echo ">>> Backup done."
+              resources:
+                requests:
+                  cpu: "3"
+                  memory: "6Gi"                  
+                limits:
+                  cpu: "6"
+                  memory: "6Gi"
           volumes:
             - name: backups
               persistentVolumeClaim:

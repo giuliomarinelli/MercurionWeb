@@ -55,14 +55,13 @@ spec:
                   key: POSTGRES_DB                     
             - name: PGDATA
               value: /var/lib/postgresql/data/pgdata
-
           args:
             - "-c"
-            - "shared_buffers=4GB"
+            - "shared_buffers=1GB"
             - "-c"
-            - "work_mem=128MB"
+            - "work_mem=16MB"
             - "-c"
-            - "maintenance_work_mem=4GB"
+            - "maintenance_work_mem=512MB"
             - "-c"
             - "max_parallel_maintenance_workers=2"
           ports:
@@ -94,12 +93,11 @@ spec:
             periodSeconds: 5
           resources:
             requests:
-              cpu: "2"
-              memory: "6Gi"
+              cpu: "800m"
+              memory: "3Gi"
             limits:
-              cpu: "4"
-              memory: "10Gi"
-
+              cpu: "1.5"
+              memory: "4Gi"
       volumes:
         - name: dshm
           emptyDir:

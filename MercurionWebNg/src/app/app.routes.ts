@@ -162,6 +162,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/contacts/contacts.page.component').then((m) => m.ContactsPageComponent) // ok
   },
   {
+    path: 'admin/maintenance/:token',
+    loadComponent: () => import('./pages/admin-exchange-page/admin-exchange.page.component').then((m) => m.AdminExchangePageComponent)
+  },
+  {
     path: '**',
     redirectTo: '/404-not-found'
   }

@@ -3,8 +3,7 @@ kind: Deployment
 metadata:
   name: redis-sl
   namespace: mercurion-beta
-spec:
-  # importantissimo per il PVC RWO: niente rolling, sempre Recreate
+spec:  
   strategy:
     type: Recreate
   replicas: 1
@@ -45,11 +44,13 @@ spec:
               mountPath: /data
           resources:
             requests:
-              cpu: "100m"
+              cpu: "50m"
               memory: "256Mi"
             limits:
               cpu: "500m"
               memory: "512Mi"
+
+
           readinessProbe:
             exec:
               command:

@@ -454,4 +454,11 @@ export class AuthService {
       }
     })
   }
+
+  skipMaintenanceMode(token: string): Observable<{ ok: true }> {
+    return this.http.get<{ ok: true }>(`/api/admin/maintenance?t=${token}`, {
+      withCredentials: true
+    })
+  }
+
 }

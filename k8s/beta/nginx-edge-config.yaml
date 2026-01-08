@@ -29,30 +29,30 @@ data:
       # beta.mercurion.app 0;
     }
 
-    # Header segreto per bypass (es. da Cloudflare / estensioni)
-    map $http_x_mercurion_bypass $maintenance_bypass_header {
+    # cookie httpOnly admin (settato da /api/admin/maintenance?t=...)
+    map $cookie__mercurion_admin_maintenance $maintenance_admin_effective {
       default 0;
-      ***REMOVED*** 1;   
+      "SjO62ztQ9MCwfZ2/eL3uDXmLb66vFchAAO6vmlfZDHDcj5FjskTNOGrCsaqgxG0/o0RAEXnqzU7eGUd3toVi8aMpuG1oTfcSbqS+4d5zkau/PsTbdjlUxWTLu3+zJv7IxZHlK5i8FWRpal2Ts7DeY2zIIt5M+oGcZ8M58T6OdWM=" 1;
     }
 
-    # bypass via cookie (settato dal Worker)
-    map $cookie_mercurion_bypass $maintenance_bypass_cookie {
+    # whitelist di URI che devono restare sempre accessibili
+    map $uri $maintenance_whitelist {
       default 0;
-      "1" 1;
-    }
 
-    # unisci header + cookie
-    map "$maintenance_bypass_header$maintenance_bypass_cookie" $maintenance_bypass_effective {
-      default 0;
-      "10" 1;  # solo header
-      "01" 1;  # solo cookie
-      "11" 1;  # entrambi
-    }
+      # endpoint che setta il cookie di bypass (/api/admin/maintenance...)
+      ~^/api/admin/maintenance 1;
 
-    # se maintenance_mode=1 e niente bypass => blocca
-    map $maintenance_mode$maintenance_bypass_effective $maintenance_block {
-      default 0;
-      "10" 1;
+      # route Angular che fa lo scambio token -> cookie
+      ~^/m/admin/maintenance 1;
+
+      # TUTTI GLI ASSET STATICI (path, la querystring non serve qui)      
+      ~*\.(js|css|png|jpe?g|svg|ico|webp|gif|woff2?|ttf|eot|map|webmanifest|json)$ 1;
+
+
+      # percorsi "nudi" tipici di statici
+      ~^/favicon 1;
+      ~^/logo/ 1;
+      ~^/fonts/ 1;
     }
 
     client_max_body_size 100M;
@@ -79,6 +79,31 @@ data:
 
       ssl_protocols TLSv1.2 TLSv1.3;
       ssl_prefer_server_ciphers on;
+
+      # calcolo combinato: maintenance_mode=1, niente cookie, non whitelisted
+           # calcolo combinato: maintenance_mode=1, niente cookie, non whitelisted
+      set $maintenance_block 0;
+
+      # se la maintenance è attiva, di base blocco
+      if ($maintenance_mode = 1) {
+        set $maintenance_block 1;
+      }
+
+      # se ho il cookie admin, non blocco
+      if ($maintenance_admin_effective = 1) {
+        set $maintenance_block 0;
+      }
+
+      # se l'URI è whitelisted (statici, ecc.), non blocco
+      if ($maintenance_whitelist = 1) {
+        set $maintenance_block 0;
+      }
+
+
+      add_header X-Debug-Maint-Mode      "$maintenance_mode"             always;
+      add_header X-Debug-Maint-Admin     "$maintenance_admin_effective"  always;
+      add_header X-Debug-Maint-Whitelist "$maintenance_whitelist"        always;
+      add_header X-Debug-Maint-Block     "$maintenance_block"            always;
 
       # ============================
       # GATE "IN COSTRUZIONE"

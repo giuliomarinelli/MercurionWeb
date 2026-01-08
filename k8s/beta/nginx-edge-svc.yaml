@@ -7,6 +7,7 @@ spec:
   type: LoadBalancer
   selector:
     app: mercurion-nginx-edge
+  loadBalancerIP: 34.154.51.15
   ports:
     - name: http
       port: 80

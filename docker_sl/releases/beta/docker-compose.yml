@@ -4,16 +4,16 @@ services:
       context: ../../../MercurionWebNg
       dockerfile: Dockerfile.staging
       args:
-        APP_VERSION: ${APP_VERSION}
-    image: ${REGISTRY_IMAGE_NG}:${APP_VERSION}
+        APP_VERSION: ${APP_NG_VERSION}
+    image: ${REGISTRY_IMAGE_NG}:${APP_NG_VERSION}
 
   mercurion_web_node_beta:
     build:
       context: ../../../MercurionWebNode
       dockerfile: Dockerfile.staging
       args:
-        APP_VERSION: ${APP_VERSION}
-    image: ${REGISTRY_IMAGE_NODE}:${APP_VERSION}
+        APP_VERSION: ${APP_NODE_VERSION}
+    image: ${REGISTRY_IMAGE_NODE}:${APP_NODE_VERSION}
   
   mercurion_tox_21_beta:
     build:

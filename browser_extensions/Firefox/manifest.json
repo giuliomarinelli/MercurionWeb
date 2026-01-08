@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
-  "name": "Mercurion Maintenance Bypass",
+  "name": "Mercurion Maintenance Admin",
   "version": "1.0.0",
-  "description": "Aggiunge l'header X-Mercurion-Bypass solo per mercurion.app",
+  "description": "Aggiunge l'header X-Mercurion-Admin solo per mercurion.app",
   "permissions": [
     "webRequest",
     "webRequestBlocking",
