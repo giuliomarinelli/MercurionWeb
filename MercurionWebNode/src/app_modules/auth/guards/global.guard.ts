@@ -112,7 +112,7 @@ export class GlobalGuard implements CanActivate {
 
                userId = payload.sub
 
-               this.logger.debug(`Expired access token, jti=${payload.jti}, trying to refresh`)
+               this.logger.warn(`Expired access token, jti=${payload.jti}, trying to refresh`)
 
                await this.scopeService.scopeVerificationLayer(
                   payload.sub,
@@ -259,7 +259,7 @@ export class GlobalGuard implements CanActivate {
             })
             .join(', ')
 
-         this.logger.debug(
+         this.logger.warn(
             `Authentication/Authorization error${errorInfo ? ', ' + errorInfo : ''}`,
             (e?.stack ?? e) as object,
          )

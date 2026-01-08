@@ -20,7 +20,7 @@ services:
       context: ../../../../MercurionAI/MercurionTox21
       dockerfile: Dockerfile.staging
       args:
-        APP_VERSION: ${APP_VERSION}
+        APP_VERSION: ${MT21_APP_VERSION}
     image: ${REGISTRY_IMAGE_MT21}:${MT21_APP_VERSION}
   
   nginx_sl_beta:
