@@ -681,7 +681,7 @@ export class AddMoleculesToCollectionComponent
     collectionId?: boolean
   ): Observable<PageModel<MoleculeCardItemModel>> {
     return this.moleculeCollectionItemService
-      .getAllPaginatedItems(this.page, 8, this.searchTerm(), true, this.addContext.collectionId())
+      .getAllPaginatedItems(this.page, 20, this.searchTerm(), true, this.addContext.collectionId())
       .pipe(
         debounceTime(100),
         map(p => ({

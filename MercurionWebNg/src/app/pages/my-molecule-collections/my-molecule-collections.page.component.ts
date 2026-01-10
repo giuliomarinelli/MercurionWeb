@@ -216,7 +216,7 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
   }
 
   protected fetch$(): Observable<PageModel<UiMoleculeCollection>> {
-    return this.moleculeCollectionService.getPaginatedCollections(this.page, 10, this.searchTerm())
+    return this.moleculeCollectionService.getPaginatedCollections(this.page, 25, this.searchTerm())
       .pipe(
         debounceTime(20),
         map(page => ({

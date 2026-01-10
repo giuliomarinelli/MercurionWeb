@@ -291,7 +291,7 @@ export class BindCollectionsToMoleculeComponent
     collectionId?: boolean
   ): Observable<PageModel<UiMoleculeCollection>> {
     return this.moleculeCollectionService
-      .getPaginatedCollections(this.page, 8, this.searchTerm(), true, this.bindContext.moleculeId())
+      .getPaginatedCollections(this.page, 20, this.searchTerm(), true, this.bindContext.moleculeId())
       .pipe(
         debounceTime(100),
         map(page => ({

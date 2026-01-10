@@ -220,7 +220,7 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
   // ========= data fetch =========
   protected override fetch$(
     page: number = this.page,
-    size: number = 7,
+    size: number = 20,
     q?: string,
     excludeJoinedToCollection?: boolean,
     collectionId?: boolean

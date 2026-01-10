@@ -125,7 +125,7 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
   protected declare sentinel: ElementRef<HTMLDivElement>
 
   protected readonly tabs = ['Sezione utente', 'Sezione admin']
-  private readonly ITEMS_PER_PAGE = 10
+  private readonly ITEMS_PER_PAGE = 25
 
   private clsSub?: Subscription
   private ropSub?: Subscription
