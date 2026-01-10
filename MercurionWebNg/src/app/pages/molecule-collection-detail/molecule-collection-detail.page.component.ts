@@ -302,7 +302,7 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
     this.loading = true;
     try {
       const newPage = await firstValueFrom(
-        this.fetch$(this.page, 7).pipe(
+        this.fetch$(this.page, 25).pipe(
           catchError(() => of({
             items: [],
             totalPages: 0,

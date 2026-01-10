@@ -32,6 +32,7 @@ import { environment } from '../environments/environment.development'
 import { AuthService } from './services/auth.service'
 import { ActionOverlayComponent } from './components/action-components/action-overlay/action-overlay.component'
 import { AppContextService } from './services/context/app-context.service'
+import { AccountService } from './services/account.service'
 
 @Component({
   selector: 'm-root',
@@ -149,6 +150,7 @@ import { AppContextService } from './services/context/app-context.service'
   `
 })
 export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
+
   private readonly themeManagerService = inject(ThemeManagerService)
   protected readonly searchContextService = inject(SearchContextService)
   private readonly router = inject(Router)
@@ -161,12 +163,14 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   protected readonly saveOverlayContext = inject(ActionOverlayContextService)
   private readonly authService = inject(AuthService)
   private readonly appContext = inject(AppContextService)
+  private readonly accountService = inject(AccountService)
 
   isDarkTheme: Signal<boolean> = computed(() => this.themeManagerService.theme() === 'dark')
   is_not_404_route = signal<boolean>(true)
   is_not_403_route = signal<boolean>(true)
 
   private routeSub?: Subscription
+  private emailSub?: Subscription
   private currentPath = signal<string>('')
   private firstNavigationDone = signal<boolean>(false)
 
@@ -332,7 +336,9 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     this._triggerOpenOffCanvas.set(true)
   }
 
-  async ngOnInit() { }
+  async ngOnInit() {
+    this.emailSub = this.accountService.getProvidedEmail(true).subscribe()
+  }
 
   ngAfterViewInit() {
     queueMicrotask(() => {
@@ -344,5 +350,6 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     this.routeSub?.unsubscribe()
+    this.emailSub?.unsubscribe()
   }
 }
