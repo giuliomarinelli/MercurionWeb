@@ -5,11 +5,13 @@ metadata:
   name: mercurion-pg-backups
   namespace: mercurion-beta
 spec:
-  accessModes: ["ReadWriteOnce"]
+  accessModes:
+    - ReadWriteOnce
   storageClassName: standard-rwo
   resources:
     requests:
-      storage: 60Gi   # spazio per ~4 backup di un DB da ~30Gi (dump ~15Gi l'uno)
+      storage: 35Gi   
+
 ---
 apiVersion: batch/v1
 kind: CronJob
@@ -18,14 +20,29 @@ metadata:
   namespace: mercurion-beta
 spec:
   # 03:00 UTC ogni 2 giorni
-  schedule: "0 3 */2 * *"
+  schedule: "0 3 */3 * *"
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
   jobTemplate:
     spec:
       template:
+        metadata:
+          labels:
+            app: mercurion-pg-backup
         spec:
           restartPolicy: OnFailure
+
+          # vincolo sul node pool di backup
+          nodeSelector:
+            role: pg-backup
+
+          # permette al pod di schedularsi su nodi taintati pg-backup-only=true:NoSchedule
+          tolerations:
+            - key: "pg-backup-only"
+              operator: "Equal"
+              value: "true"
+              effect: "NoSchedule"
+
           containers:
             - name: pg-backup
               image: europe-west8-docker.pkg.dev/mercurion-481213/mercurion/mercurion-tox-21:1.2026.0
@@ -58,10 +75,11 @@ spec:
               resources:
                 requests:
                   cpu: "3"
-                  memory: "6Gi"                  
+                  memory: "7Gi"
                 limits:
-                  cpu: "6"
-                  memory: "6Gi"
+                  cpu: "4"
+                  memory: "7.5Gi"
+
           volumes:
             - name: backups
               persistentVolumeClaim:
