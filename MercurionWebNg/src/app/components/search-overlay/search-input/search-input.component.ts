@@ -38,6 +38,7 @@ import { MoleculeSearchService } from '../../../services/graphql/molecule-search
          transition w-full"
         [ngModel]="query()"
         (ngModelChange)="query.set($event)"
+        (input)="query.set($any($event.target).value)"
         (focus)="scrollIntoView()"
         [class.pr-10]="query().trim()"
         [class.pl-4]="query().trim()"

@@ -455,6 +455,16 @@ html {
     }
   }
 
+  .keyboard-open .action-card {
+    padding-top: 0.25rem;
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .keyboard-open .action-card-body {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+
   .action-card-close-btn {
     @apply inline-flex items-center justify-center size-8 rounded-full text-slate-500 dark:text-dark-on-surface-secondary hover:text-light-accent-primary hover:bg-slate-100 dark:hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-dark-surface-main transition-colors duration-200;
   }

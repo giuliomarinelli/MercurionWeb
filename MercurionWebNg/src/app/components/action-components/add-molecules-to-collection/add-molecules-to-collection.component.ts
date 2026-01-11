@@ -369,7 +369,7 @@ export type ChipItem = {
                   (onLoading)="chemblLoading.set($event)"
                   (onResult)="handleResults($event)"
                   (onError)="handleError($event)"
-                  (onQuery)="chemblQuery.set($event)"
+                  (onQuery)="onChemblQuery($event)"
                   (onEmpty)="chemblEmpty.set(true)"
                 />
 
@@ -768,6 +768,34 @@ export class AddMoleculesToCollectionComponent
     if (!chip?.id) return;
     if (this.selectedMolecules.some(c => c.id === chip.id)) return;
     this.selectedMolecules = [...this.selectedMolecules, chip];
+  }
+
+  onChemblQuery(raw: string) {
+    this.chemblQuery.set(raw ?? '');
+    const trimmed = this.chemblQuery().trim();
+    if (trimmed.length < 2) {
+      this.chemblResults.set([]);
+      this.chemblEmpty.set(true);
+      this.chemblError.set(null);
+      return;
+    }
+    this.chemblEmpty.set(false);
+    this.chemblError.set(null);
+    // fallback search to keep realtime working even if excludeAlreadyAdded path fails on Safari
+    this.chemblLoading.set(true);
+    this.moleculeCollectionItemService
+      .searchChemblMolecules_excludeAlreadyAdded(trimmed, this.addContext.collectionId() ?? '', 100)
+      .subscribe({
+        next: res => {
+          this.chemblResults.set(res ?? []);
+          this.chemblLoading.set(false);
+        },
+        error: err => {
+          this.chemblError.set(err);
+          this.chemblResults.set([]);
+          this.chemblLoading.set(false);
+        }
+      });
   }
 
   removeChip(id: string) {
