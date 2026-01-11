@@ -32,7 +32,10 @@ import { AppContextService } from '../../../services/context/app-context.service
   ],
   template: `
 
- <header class="px-2 2xs:px-6 py-4 bg-light-surface-secondary dark:bg-neutral-950 border-b-[0.5px] border-slate-300/65 dark:border-slate-300/40 header-shadow" role="banner">
+ <header class="px-2 2xs:px-6 py-4 bg-light-surface-secondary border-b-[0.5px] border-slate-300/65 dark:border-slate-300/40 header-shadow"
+         [class.dark:bg-neutral-950]="!isWelcomePath()"
+         [class.dark:bg-slate-950]="isWelcomePath()"
+         role="banner">
   <div class="w-full flex justify-between items-center transition-colors duration-300 ease-out">
     <div class="flex items-center gap-4">
       @if (designService.maxBk("lg")()) {
