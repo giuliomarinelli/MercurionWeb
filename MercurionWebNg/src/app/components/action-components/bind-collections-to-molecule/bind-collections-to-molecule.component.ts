@@ -96,7 +96,7 @@ import { CloseButtonComponent } from '../../common/close-button/close-button.com
     <div class="action-card-body bg-white dark:bg-dark-surface-main">
       <div
         #scrollRoot
-        class="py-6 px-3 overflow-y-auto flex flex-col gap-4 min-h-[60vh] max-h-[60vh] m-scroll-thin m-overscroll-touch"
+        class="py-6 px-3 overflow-y-auto flex flex-col gap-4 m-scroll-thin m-overscroll-touch m-overlay-body"
       >
         @switch (step()) {
           @case (1) {

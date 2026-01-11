@@ -242,7 +242,7 @@ import { AppContextService } from '../../../services/context/app-context.service
 
         <div
           #scrollRoot
-          class="py-6 px-3 overflow-y-auto flex flex-col gap-4 min-h-[30vh] max-h-[40vh] m-overscroll-touch"
+          class="py-6 px-3 overflow-y-auto flex flex-col gap-4 m-overscroll-touch m-overlay-body"
           role="list"
           aria-label="Messaggi del ticket"
           aria-live="polite"

@@ -273,7 +273,7 @@ export type ChipItem = {
         @case ('my') {
           <div
             #scrollRoot
-            class="py-6 px-3 overflow-y-auto flex flex-col gap-4 min-h-[40vh] max-h-[60vh] m-scroll-thin m-overscroll-touch"
+            class="py-6 px-3 overflow-y-auto flex flex-col gap-4 m-scroll-thin m-overscroll-touch m-overlay-body"
           >
             @switch (step()) {
               @case (1) {
@@ -361,7 +361,7 @@ export type ChipItem = {
         @case ('chembl') {
           @switch (step()) {
             @case (1) {
-              <div class="py-6 px-3 flex flex-col gap-4 min-h-[50vh] max-h-[60vh] transition duration-150">
+              <div class="py-6 px-3 flex flex-col gap-4 transition duration-150 m-overlay-body">
                 <div>Cerca su ChEMBL e seleziona:</div>
 
                 <m-molecule-search-input

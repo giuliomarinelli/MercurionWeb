@@ -355,6 +355,8 @@ html {
     min-height: 100vh;
     min-height: 100dvh;
     min-height: calc(var(--app-vh, 1vh) * 100);
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
   .m-overscroll-touch {
@@ -380,6 +382,13 @@ html {
     height: calc(var(--app-vh, 1vh) * 60);
   }
 
+  .m-overlay-body {
+    max-height: calc(var(--app-vh, 1vh) * 100 - 14rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    min-height: calc(var(--app-vh, 1vh) * 35);
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
   .m-overlay-scroll {
     max-height: 38vh;
     max-height: 38dvh;
@@ -395,6 +404,10 @@ html {
 
   .action-card {
     @apply w-full max-w-5xl bg-white dark:bg-dark-surface-main rounded-2xl shadow-xl border border-light-border dark:border-dark-border text-light-on-surface-main dark:text-dark-on-surface-main;
+    display: flex;
+    flex-direction: column;
+    max-height: calc(var(--app-vh, 1vh) * 100 - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 16px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
     font-size: 0.96rem;
     line-height: 1.45;
     letter-spacing: 0.01em;
@@ -412,19 +425,17 @@ html {
   }
 
   .action-card-body {
-    @apply py-6 px-4 sm:px-6 overflow-y-auto custom-scrollbar flex flex-col gap-6 min-h-[40vh] max-h-[70vh] relative bg-light-surface-secondary/60 dark:bg-dark-surface-secondary/60;
-    min-height: 40vh;
-    min-height: 40dvh;
-    min-height: calc(var(--app-vh, 1vh) * 40);
-    max-height: 70vh;
-    max-height: 70dvh;
-    max-height: calc(var(--app-vh, 1vh) * 70);
+    @apply py-6 px-4 sm:px-6 overflow-y-auto custom-scrollbar flex flex-col gap-6 relative bg-light-surface-secondary/60 dark:bg-dark-surface-secondary/60;
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: calc(var(--app-vh, 1vh) * 100 - 14rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
   }
 
   .action-card-footer {
     @apply px-4 sm:px-6 py-4 border-t border-light-border dark:border-dark-border bg-light-surface-secondary/60 dark:bg-dark-surface-secondary/60 flex justify-end gap-3 rounded-b-2xl;
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
   }
 
   .action-card-close-btn {

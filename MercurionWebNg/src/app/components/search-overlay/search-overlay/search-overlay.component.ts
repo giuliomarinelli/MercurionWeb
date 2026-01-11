@@ -67,7 +67,7 @@ import { Maybe } from 'graphql/jsutils/Maybe'
             (onEmpty)="handleEmpty()" />
 
           <div
-            class="relative bg-light-surface-secondary dark:bg-slate-50/10 h-full rounded-xl text-light-on-surface-main dark:text-sm dark:text-slate-50/90 max-h-[38vh] overflow-y-auto border border-spacing-px border-slate-300/50 m-overlay-scroll"
+          class="relative bg-light-surface-secondary dark:bg-slate-50/10 h-full rounded-xl text-light-on-surface-main dark:text-sm dark:text-slate-50/90 overflow-y-auto border border-spacing-px border-slate-300/50 m-overlay-scroll"
             #scrollRoot>
               @if (userContext.isLoggedIn()) {
                 <div class="sticky top-0 z-30
