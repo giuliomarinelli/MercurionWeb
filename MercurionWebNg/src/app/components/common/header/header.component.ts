@@ -368,7 +368,7 @@ import { AppContextService } from '../../../services/context/app-context.service
 }
 <!-- Offcanvas backdrop -->
 @if (offCanvasMenuOpen()) {
-  <div class="fixed inset-0 z-[9998] bg-black/30 transition-opacity duration-300" (click)="closeOffCanvasMenu()"></div>
+  <div class="fixed inset-0 z-[9998] bg-black/30 transition-opacity duration-300 m-overscroll-touch" (click)="closeOffCanvasMenu()"></div>
 }
 
 <!-- Offcanvas Navigation Sidebar -->
@@ -388,7 +388,7 @@ import { AppContextService } from '../../../services/context/app-context.service
       <span class="text-lg">Mercurion</span>
     </div>
     <button
-      class="inline-flex items-center justify-center size-8 rounded-md text-slate-700 hover:text-light-accent-primary-hq hover:bg-slate-100 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-light-accent-primary-hq focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-transparent transition"
+      class="inline-flex items-center justify-center size-8 rounded-md text-slate-700 dark:text-slate-200 hover:text-light-accent-primary-hq hover:bg-slate-100 kark dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-light-accent-primary-hq focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-transparent transition"
       (click)="closeOffCanvasMenu()">
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -418,13 +418,13 @@ import { AppContextService } from '../../../services/context/app-context.service
   }
   <!-- Modal avatar mobile (solo <= sm) -->
   @if (avatarMobileMenuMounted() && userContext.isLoggedIn()) {
-  <div class="fixed inset-0 z-[10000] bg-black/50 flex items-end sm:hidden transition-opacity duration-300"
+  <div class="fixed inset-0 z-[10000] bg-black/50 flex items-end sm:hidden transition-opacity duration-300 m-overscroll-touch"
        [ngClass]="{
           'opacity-100 pointer-events-auto': avatarMobileMenuVisible(),
           'opacity-0 pointer-events-none': !avatarMobileMenuVisible(),
         }" (click)="closeAvatarMobileMenu()">
     <div
-      class="w-full h-[100dvh] max-h-[100dvh] bg-slate-100 dark:bg-neutral-900 rounded-t-2xl shadow-2xl p-6 pb-10 relative overflow-y-auto transition-transform duration-300"
+      class="w-full h-[100dvh] max-h-[100dvh] bg-slate-100 dark:bg-neutral-900 rounded-t-2xl shadow-2xl p-6 pb-10 relative overflow-y-auto transition-transform duration-300 m-overscroll-touch"
       [ngClass]="{
             'translate-y-0': avatarMobileMenuVisible(),
             'translate-y-full': !avatarMobileMenuVisible(),

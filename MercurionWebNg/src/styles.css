@@ -49,6 +49,11 @@ body {
   font-family: 'Space Grotesk', sans-serif;
 }
 
+:root {
+  /* Updated at runtime (see src/main.ts) to handle iOS Safari viewport quirks */
+  --app-vh: 1vh;
+}
+
 .fade-out {
   opacity: 0;
   transform: scaleY(0.95);
@@ -346,8 +351,46 @@ html {
   /*                  ACTION OVERLAY                     */
   /* =================================================== */
 
+  .m-overlay-screen {
+    min-height: 100vh;
+    min-height: 100dvh;
+    min-height: calc(var(--app-vh, 1vh) * 100);
+  }
+
+  .m-overscroll-touch {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  .m-overlay-max-80 {
+    max-height: 80vh;
+    max-height: 80dvh;
+    max-height: calc(var(--app-vh, 1vh) * 80);
+  }
+
+  .m-overlay-max-60 {
+    max-height: 60vh;
+    max-height: 60dvh;
+    max-height: calc(var(--app-vh, 1vh) * 60);
+  }
+
+  .m-overlay-panel {
+    height: 60vh;
+    height: 60dvh;
+    height: calc(var(--app-vh, 1vh) * 60);
+  }
+
+  .m-overlay-scroll {
+    max-height: 38vh;
+    max-height: 38dvh;
+    max-height: calc(var(--app-vh, 1vh) * 38);
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
   .action-overlay-backdrop {
     @apply fixed inset-0 z-[999] backdrop-blur-sm bg-slate-300/75 dark:bg-slate-900/90 transition-opacity duration-300;
+    overscroll-behavior: contain;
   }
 
   .action-card {
@@ -370,6 +413,14 @@ html {
 
   .action-card-body {
     @apply py-6 px-4 sm:px-6 overflow-y-auto custom-scrollbar flex flex-col gap-6 min-h-[40vh] max-h-[70vh] relative bg-light-surface-secondary/60 dark:bg-dark-surface-secondary/60;
+    min-height: 40vh;
+    min-height: 40dvh;
+    min-height: calc(var(--app-vh, 1vh) * 40);
+    max-height: 70vh;
+    max-height: 70dvh;
+    max-height: calc(var(--app-vh, 1vh) * 70);
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
   }
 
   .action-card-footer {

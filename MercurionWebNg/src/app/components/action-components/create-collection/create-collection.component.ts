@@ -62,7 +62,7 @@ import { CreateCollectionContextService } from '../../../services/context/action
     `
   ],
   template: `
-  <div class="flex justify-center items-center min-h-screen px-2 sm:px-4">
+  <div class="flex justify-center items-center min-h-screen px-2 sm:px-4 m-overlay-screen">
     <div
       class="action-card max-w-2xl"
       role="region"
@@ -99,8 +99,8 @@ import { CreateCollectionContextService } from '../../../services/context/action
             Nome della nuova collezione
           </label>
 
-          <div class="grid grid-cols-12 gap-4">
-            <div class="col-span-9 flex gap-2 items-center relative">
+          <div class="grid grid-cols-12 gap-x-4 gap-y-4 xs:gap-y-6 sm:gap-y-0">
+            <div class="col-span-12 sm:col-span-9 flex gap-2 items-center relative">
               <input
                 id="nameInput"
                 #nameInput
@@ -138,7 +138,7 @@ import { CreateCollectionContextService } from '../../../services/context/action
 
             <button
               type="button"
-              class="col-span-3 w-full px-4 py-2.5 rounded-lg
+              class="col-span-12 xs:col-span-10 xs:col-start-2 sm:col-span-3 w-full px-4 py-2.5 rounded-lg
                  bg-light-accent-primary text-white font-semibold shadow-md
                  hover:bg-light-accent-primary/90
                  dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary
@@ -147,7 +147,7 @@ import { CreateCollectionContextService } from '../../../services/context/action
                  dark:focus-visible:ring-offset-dark-surface-secondary
                  disabled:bg-light-accent-primary/50 disabled:cursor-not-allowed
                  transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary/50
-                 min-w-10"
+                 justify-center"
               [disabled]="!name() || alreadyAdded(_trim(name()))"
               (click)="onAddNewName(_trim(name()))"
               [title]="title()"
@@ -170,7 +170,7 @@ import { CreateCollectionContextService } from '../../../services/context/action
               Qui vedrai l'anteprima dei nomi delle nuove collezioni.
             </div>
           } @else {
-            <div class="h-44 overflow-y-auto m-scroll-thin">
+            <div class="h-44 overflow-y-auto m-scroll-thin m-overscroll-touch">
               <div
                 class="flex flex-wrap items-start gap-2 py-3 px-3"
                 role="list"

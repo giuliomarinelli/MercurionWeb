@@ -28,7 +28,7 @@ import { SelectCollectionThenRouteComponent } from '../select-collection-then-ro
 
     @if (ctx.isMounted() && ctx.scope()) {
       <div
-        class="fixed inset-0 z-[999] backdrop-blur-sm transition-all duration-300 bg-slate-300/75 dark:bg-slate-900/90"
+        class="fixed inset-0 z-[999] backdrop-blur-sm transition-all duration-300 bg-slate-300/75 dark:bg-slate-900/90 action-overlay-backdrop m-overscroll-touch"
         [class.opacity-0]="!ctx.isVisible()"
         [class.opacity-100]="ctx.isVisible()"
         role="dialog"

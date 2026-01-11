@@ -18,9 +18,9 @@ import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.model
   imports: [NgClass, ComboSelectComponent, FormsModule],
   template: `
 
-    <div class="flex justify-center items-center min-h-screen px-2 sm:px-4">
+    <div class="flex justify-center items-center min-h-screen px-2 sm:px-4 m-overlay-screen">
       <div
-        class="action-card max-w-2xl max-h-[80vh] overflow-y-auto"
+        class="action-card max-w-2xl max-h-[80vh] overflow-y-auto m-overlay-max-80 m-overscroll-touch"
         role="region"
         aria-labelledby="saveMoleculeHeading"
       >

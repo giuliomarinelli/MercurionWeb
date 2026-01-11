@@ -87,9 +87,9 @@ import { AppContextService } from '../../../services/context/app-context.service
     `,
   ],
   template: `
-    <div class="flex justify-center items-center min-h-screen px-2">
+    <div class="flex justify-center items-center min-h-screen px-2 m-overlay-screen">
       <div
-        class="w-full max-w-5xl bg-white dark:bg-dark-surface-main rounded-xl shadow-lg max-h-[80vh] overflow-y-auto custom-scrollbar"
+        class="w-full max-w-5xl bg-white dark:bg-dark-surface-main rounded-xl shadow-lg max-h-[80vh] overflow-y-auto custom-scrollbar m-overlay-max-80 m-overscroll-touch"
         role="region"
         aria-labelledby="ticketDetailHeading"
         [attr.aria-busy]="loading"
@@ -242,7 +242,7 @@ import { AppContextService } from '../../../services/context/app-context.service
 
         <div
           #scrollRoot
-          class="py-6 px-3 overflow-y-auto flex flex-col gap-4 min-h-[30vh] max-h-[40vh]"
+          class="py-6 px-3 overflow-y-auto flex flex-col gap-4 min-h-[30vh] max-h-[40vh] m-overscroll-touch"
           role="list"
           aria-label="Messaggi del ticket"
           aria-live="polite"

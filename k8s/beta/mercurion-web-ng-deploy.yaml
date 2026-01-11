@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: web-ng
-          image: europe-west8-docker.pkg.dev/mercurion-483615/mercurion/mercurion-web-ng:1.0-beta-1c25
+          image: europe-west8-docker.pkg.dev/mercurion-483615/mercurion/mercurion-web-ng:1.0-beta-1c26
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3497

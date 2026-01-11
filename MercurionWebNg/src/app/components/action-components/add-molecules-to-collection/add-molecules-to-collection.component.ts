@@ -91,7 +91,7 @@ export type ChipItem = {
     `
   ],
   template: `
-<div class="flex justify-center items-center min-h-screen px-2 sm:px-4">
+<div class="flex justify-center items-center min-h-screen px-2 sm:px-4 m-overlay-screen">
   <div
     class="action-card max-w-5xl"
     role="region"
@@ -273,7 +273,7 @@ export type ChipItem = {
         @case ('my') {
           <div
             #scrollRoot
-            class="py-6 px-3 overflow-y-auto flex flex-col gap-4 min-h-[40vh] max-h-[60vh] m-scroll-thin"
+            class="py-6 px-3 overflow-y-auto flex flex-col gap-4 min-h-[40vh] max-h-[60vh] m-scroll-thin m-overscroll-touch"
           >
             @switch (step()) {
               @case (1) {
@@ -450,8 +450,8 @@ export type ChipItem = {
                   </div>
                 </div>
 
-                <div
-                  class="overflow-y-auto relative m-scroll-thin"
+              <div
+                  class="overflow-y-auto relative m-scroll-thin m-overscroll-touch"
                   role="region"
                   aria-label="Risultati ricerca ChEMBL"
                   [attr.aria-busy]="chemblLoading()"

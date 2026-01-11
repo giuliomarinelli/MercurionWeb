@@ -73,7 +73,7 @@ import { CloseButtonComponent } from '../../common/close-button/close-button.com
     `
   ],
   template: `
-<div class="flex justify-center items-center min-h-screen px-2 sm:px-4">
+<div class="flex justify-center items-center min-h-screen px-2 sm:px-4 m-overlay-screen">
   <div
     class="action-card max-w-5xl"
     role="region"
@@ -96,7 +96,7 @@ import { CloseButtonComponent } from '../../common/close-button/close-button.com
     <div class="action-card-body bg-white dark:bg-dark-surface-main">
       <div
         #scrollRoot
-        class="py-6 px-3 overflow-y-auto flex flex-col gap-4 min-h-[60vh] max-h-[60vh] m-scroll-thin"
+        class="py-6 px-3 overflow-y-auto flex flex-col gap-4 min-h-[60vh] max-h-[60vh] m-scroll-thin m-overscroll-touch"
       >
         @switch (step()) {
           @case (1) {
