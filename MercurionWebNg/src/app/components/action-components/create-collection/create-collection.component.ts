@@ -64,7 +64,7 @@ import { CreateCollectionContextService } from '../../../services/context/action
   template: `
   <div class="flex justify-center items-start md:items-center min-h-screen px-2 sm:px-4 pt-1 md:pt-6 m-overlay-screen">
     <div
-      class="action-card max-w-2xl"
+      class="action-card max-w-2xl h-full md:h-auto"
       role="region"
       aria-labelledby="createCollectionHeading"
       [attr.aria-busy]="selectedChips.length === 0 ? false : null"

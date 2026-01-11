@@ -355,6 +355,7 @@ html {
     min-height: 100vh;
     min-height: 100dvh;
     min-height: calc(var(--app-vh, 1vh) * 100);
+    height: calc(var(--app-vh, 1vh) * 100);
     padding-top: env(safe-area-inset-top, 0px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
@@ -406,6 +407,7 @@ html {
     @apply w-full max-w-5xl bg-white dark:bg-dark-surface-main rounded-2xl shadow-xl border border-light-border dark:border-dark-border text-light-on-surface-main dark:text-dark-on-surface-main;
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
     max-height: calc(var(--app-vh, 1vh) * 100 - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 16px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
     font-size: 0.96rem;
@@ -434,8 +436,23 @@ html {
   }
 
   .action-card-footer {
-    @apply px-4 sm:px-6 py-4 border-t border-light-border dark:border-dark-border bg-light-surface-secondary/60 dark:bg-dark-surface-secondary/60 flex justify-end gap-3 rounded-b-2xl;
+    @apply px-4 sm:px-6 py-4 border-t border-light-border dark:border-dark-border bg-light-surface-secondary/60 dark:bg-dark-surface-secondary/60 flex gap-3 rounded-b-2xl flex-wrap justify-center md:justify-end;
     padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  @media (max-width: 767px) {
+    .action-card {
+      height: calc(var(--app-vh, 1vh) * 100 - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 8px);
+      max-height: calc(var(--app-vh, 1vh) * 100 - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 8px);
+      width: 100%;
+    }
+
+    .action-card-footer {
+      gap: 0.5rem;
+      padding-left: 0.75rem;
+      padding-right: 0.75rem;
+      padding-top: 0.75rem;
+    }
   }
 
   .action-card-close-btn {

@@ -17,7 +17,7 @@ import { Subscription } from 'rxjs';
 
 <div class="flex justify-center items-start md:items-center min-h-screen px-2 sm:px-4 pt-1 md:pt-6 m-overlay-screen">
   <div
-    class="action-card"
+    class="action-card h-full md:h-auto"
     role="region"
     aria-labelledby="selectCollectionHeading"
     [attr.aria-busy]="loadingCombo() || loading()"

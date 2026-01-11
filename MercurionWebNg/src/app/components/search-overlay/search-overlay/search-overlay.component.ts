@@ -48,7 +48,7 @@ import { Maybe } from 'graphql/jsutils/Maybe'
       aria-label="Ricerca molecolare"
       [attr.aria-hidden]="!searchContextService.isVisible()"
     >
-      <div class="flex justify-center md:justify-center items-start md:items-center px-2 sm:px-4 pt-2 md:pt-16 m-overlay-screen">
+      <div class="flex justify-center md:justify-center items-stretch md:items-center px-2 sm:px-4 pt-1 md:pt-16 m-overlay-screen h-full">
         <div
           class="w-full max-w-3xl space-y-6 flex flex-col h-full md:h-[60vh]
           bg-light-surface-main/90 dark:bg-dark-surface-main/90

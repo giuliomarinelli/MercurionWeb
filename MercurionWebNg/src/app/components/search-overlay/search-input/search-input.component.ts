@@ -38,6 +38,7 @@ import { MoleculeSearchService } from '../../../services/graphql/molecule-search
          transition w-full"
         [ngModel]="query()"
         (ngModelChange)="query.set($event)"
+        (focus)="scrollIntoView()"
         [class.pr-10]="query().trim()"
         [class.pl-4]="query().trim()"
         [class.px-4]="!query().trim()"
@@ -189,5 +190,11 @@ export class SearchInputComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.sub?.unsubscribe()
+  }
+
+  scrollIntoView(): void {
+    queueMicrotask(() => {
+      this.searchInputRef?.nativeElement.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    })
   }
 }

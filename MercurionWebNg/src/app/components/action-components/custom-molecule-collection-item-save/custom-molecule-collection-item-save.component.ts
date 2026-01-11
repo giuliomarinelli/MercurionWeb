@@ -20,7 +20,7 @@ import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.model
 
     <div class="flex justify-center items-start md:items-center min-h-screen px-2 sm:px-4 pt-1 md:pt-6 m-overlay-screen">
       <div
-        class="action-card max-w-2xl max-h-[80vh] overflow-y-auto m-overlay-max-80 m-overscroll-touch"
+        class="action-card max-w-2xl h-full md:h-auto overflow-y-auto m-overlay-max-80 m-overscroll-touch"
         role="region"
         aria-labelledby="saveMoleculeHeading"
       >
