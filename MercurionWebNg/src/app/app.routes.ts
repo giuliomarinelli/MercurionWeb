@@ -1,14 +1,17 @@
 import { Routes } from '@angular/router'
-import { AuthGuard } from './guards/auth-guard.guard'
+import { AuthGuard } from './guards/auth.guard'
 
 export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
     title: '',
-    loadComponent: () =>
-      import('./components/common/redirect-to-login-component/redirect-to-login.component')
-        .then((m) => m.RedirectToLoginComponent) // ok
+    redirectTo: '/welcome'
+  },
+  {
+    path: 'welcome',
+    title: 'Next Generation Chemistry Platform',
+    loadComponent: () => import('./pages/welcome/welcome.page.component').then((m) => m.WelcomePageComponent)
   },
   {
     path: 'login',

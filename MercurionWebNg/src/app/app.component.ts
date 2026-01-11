@@ -94,7 +94,7 @@ import { isPlatformBrowser } from '@angular/common'
         <span>Safari mobile può non rispettare gli standard web: se riscontri problemi, prova un browser differente. Allineeremo il supporto a Safari appena possibile.</span>
       </div>
     }
-    @if (is_not_404_route() && is_not_403_route()) {
+    @if (is_not_404_route() && is_not_403_route() && is_not_welcome_route()) {
       <div class="flex flex-col h-screen">
         <m-header class="sticky top-0 z-30"
           [triggerOpenOffCanvas]="_triggerOpenOffCanvas()"
@@ -153,7 +153,12 @@ import { isPlatformBrowser } from '@angular/common'
       @if (saveOverlayContext.shouldMount() && userContext.isLoggedIn()) { <m-action-overlay /> }
       <m-toast [context]="toastService.context()" />
     } @else {
-      <router-outlet />
+      <div class="min-h-screen">
+        @if (!is_not_welcome_route()) {
+          <m-header class="sticky top-0 z-30" />
+        }
+        <router-outlet />
+      </div>
     }
   `
 })
@@ -178,6 +183,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   isDarkTheme: Signal<boolean> = computed(() => this.themeManagerService.theme() === 'dark')
   is_not_404_route = signal<boolean>(true)
   is_not_403_route = signal<boolean>(true)
+  is_not_welcome_route = signal<boolean>(true)
 
   private routeSub?: Subscription
   private emailSub?: Subscription
@@ -258,16 +264,17 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       return qp
     }
 
-    const buildLoginWithRedirectTo = (): string => {
+    const buildWelcomeWithRedirectTo = (): string => {
+
       let full = this.router.url || '/'
       if (!full.startsWith('/')) full = `/${full}`
       if (full === '/m') full = '/'
       else if (full.startsWith('/m/')) full = full.slice(2)
 
       const clean = normalize(full).toLowerCase()
-      if (clean === '/login' || clean.startsWith('/login/')) return '/login'
+      if (clean === '/welcome' || clean.startsWith('/welcome/')) return '/welcome'
 
-      return `/login?redirect_to=${encodeURIComponent(full)}`
+      return `/welcome?redirect_to=${encodeURIComponent(full)}`
     }
 
     this.currentPath.set(normalize(this.router.url))
@@ -284,6 +291,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
         this.is_not_404_route.set(url !== '/404-not-found')
         this.is_not_403_route.set(url !== '/403-forbidden')
+        this.is_not_welcome_route.set(url !== '/welcome')
         this.currentPath.set(url)
         this.pathService.setPath(url)
         if (!this.firstNavigationDone()) this.firstNavigationDone.set(true)
@@ -298,7 +306,10 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     let firstStableReached = false
 
     effect(() => {
-      if (!this.firstNavigationDone()) return
+
+      if (!this.firstNavigationDone()) {
+        return
+      }
 
       const logged = !!this.userContext.initials()
       const status = this.sessionSync.status()
@@ -326,12 +337,12 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       }
 
       if (url === '/') {
-        safeNavigate('/login')
+        safeNavigate('/welcome')
         return
       }
 
       if (!logged) {
-        if (!isPublic) safeNavigate(buildLoginWithRedirectTo())
+        if (!isPublic) safeNavigate(buildWelcomeWithRedirectTo())
         return
       }
 
@@ -350,7 +361,9 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async ngOnInit() {
-    this.emailSub = this.accountService.getProvidedEmail(true).subscribe()
+    if (this.userContext.isLoggedIn()) {
+      this.emailSub = this.accountService.getProvidedEmail(true).subscribe()
+    }
   }
 
   ngAfterViewInit() {

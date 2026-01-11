@@ -120,7 +120,7 @@ import { AppContextService } from '../../../services/context/app-context.service
       </div>
       }
       <div class="hidden sm:block" [ngClass]="{
-          'lg:hidden': userContext.isLoggedIn() || isLoginPath(),
+          'lg:hidden': userContext.isLoggedIn() || isLoginPath() || isWelcomePath(),
         }">
         <button
           (click)="openSearchOverlay()"
@@ -162,7 +162,7 @@ import { AppContextService } from '../../../services/context/app-context.service
       isAllowedPath()
       ) {
       <button (click)="toggleAvatarMenu()" [innerHTML]="userContext.initials()"
-        [attr.title]="avatarMenuOpen() ? 'Chiudi il menù utente' : 'Apri il menu utente'"
+        [attr.title]="avatarMenuOpen() ? 'Chiudi il menu utente' : 'Apri il menu utente'"
         class="avatar-toggle-button inline-flex items-center justify-center size-10 rounded-full cursor-pointer bg-light-accent-secondary-500/80 text-slate-100 dark:bg-dark-accent-primary-btn bg-light-accent-secondary/85 hover:bg-emerald-900/60 hover:text-slate-100 dark:hover:bg-blue-400/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-light-accent-primary-hq text-sm font-semibold transition-colors duration-300">
       </button>
       }
@@ -542,8 +542,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
   private emailSub?: Subscription
   private logoutSub?: Subscription
 
-  protected isLoginPath = signal<boolean>(true)
+  protected isLoginPath = signal<boolean>(false)
   protected isRegisterPath = signal<boolean>(false)
+  protected isWelcomePath = signal<boolean>(true)
   protected isAllowedPath = signal<boolean>(false)
   protected themeMenuOpen = signal<boolean>(false)
   protected themeMenuMounted = signal<boolean>(false)
@@ -759,11 +760,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
       )
       .subscribe((e: NavigationEnd) => {
         const currentPath = e.urlAfterRedirects
-        const notAllowedPaths: string[] = ['/login', '/', '/test/spinner']
+        const notAllowedPaths: string[] = ['/login', '/']
+        console.log(currentPath)
         this.isAllowedPath.set(!notAllowedPaths.includes(currentPath))
         this.isLoginPath.set(currentPath.startsWith('/login'))
         this.isRegisterPath.set(currentPath === '/register')
-
+        this.isWelcomePath.set(currentPath.startsWith('/welcome'))
       })
 
   }
