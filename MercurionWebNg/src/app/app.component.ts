@@ -112,7 +112,6 @@ import { DOCUMENT, isPlatformBrowser } from '@angular/common'
       </div>
       @if (searchContextService.isMounted()) { <m-search-overlay /> }
       @if (saveOverlayContext.shouldMount() && userContext.isLoggedIn()) { <m-action-overlay /> }
-      <m-toast [context]="toastService.context()" />
     } @else {
       <div class="min-h-screen">
         @if (!is_not_welcome_route()) {
@@ -121,6 +120,7 @@ import { DOCUMENT, isPlatformBrowser } from '@angular/common'
         <router-outlet />
       </div>
     }
+    <m-toast [context]="toastService.context()" />
   `
 })
 export class AppComponent implements OnInit, AfterViewInit, OnDestroy {

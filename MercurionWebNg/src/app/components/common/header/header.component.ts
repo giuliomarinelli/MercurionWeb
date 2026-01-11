@@ -533,6 +533,16 @@ export class HeaderComponent implements OnInit, OnDestroy {
   private readonly toast = inject(ToastService)
   private readonly appContext = inject(AppContextService)
 
+  private updatePathFlags(currentPath: string) {
+    const clean = (currentPath || '').split(/[?#]/)[0]
+    const notAllowedPaths: string[] = ['/login', '/']
+
+    this.isAllowedPath.set(!notAllowedPaths.includes(clean))
+    this.isLoginPath.set(clean.startsWith('/login'))
+    this.isRegisterPath.set(clean === '/register')
+    this.isWelcomePath.set(clean.startsWith('/welcome'))
+  }
+
   @Input()
   set triggerOpenOffCanvas(triggerOpenOffCanvas: boolean) {
     this._triggerOpenOffCanvas.set(triggerOpenOffCanvas)
@@ -755,6 +765,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.isBeta.set(environment.beta)
+    this.updatePathFlags(this.router.url)
     document.addEventListener('click', this.handleDocumentClick, true)
     document.addEventListener('keydown', this.handleEscape, true)
     this.routeSub = this.router.events
@@ -762,13 +773,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
         filter(e => e instanceof NavigationEnd)
       )
       .subscribe((e: NavigationEnd) => {
-        const currentPath = e.urlAfterRedirects
-        const notAllowedPaths: string[] = ['/login', '/']
-        console.log(currentPath)
-        this.isAllowedPath.set(!notAllowedPaths.includes(currentPath))
-        this.isLoginPath.set(currentPath.startsWith('/login'))
-        this.isRegisterPath.set(currentPath === '/register')
-        this.isWelcomePath.set(currentPath.startsWith('/welcome'))
+        this.updatePathFlags(e.urlAfterRedirects)
       })
 
   }
