@@ -136,6 +136,7 @@ import { Maybe } from 'graphql/jsutils/Maybe'
 })
 export class SearchOverlayComponent implements AfterViewInit {
 
+  // TODO: Medium priority - align Safari/iOS viewport/keyboard handling here with action overlays if issues reappear.
   protected readonly searchContextService = inject(SearchContextService)
   protected readonly userContext = inject(UserContextService)
   private readonly chemblService = inject(MoleculeSearchService)

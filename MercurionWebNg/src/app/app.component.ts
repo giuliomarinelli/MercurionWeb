@@ -10,7 +10,8 @@ import {
   effect,
   signal,
   Signal,
-  inject
+  inject,
+  PLATFORM_ID
 } from '@angular/core'
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router'
 import { HeaderComponent } from './components/common/header/header.component'
@@ -33,6 +34,7 @@ import { AuthService } from './services/auth.service'
 import { ActionOverlayComponent } from './components/action-components/action-overlay/action-overlay.component'
 import { AppContextService } from './services/context/app-context.service'
 import { AccountService } from './services/account.service'
+import { isPlatformBrowser } from '@angular/common'
 
 @Component({
   selector: 'm-root',
@@ -86,6 +88,12 @@ import { AccountService } from './services/account.service'
     `
   ],
   template: `
+    @if (isSafari) {
+      <div class="bg-amber-200/90 text-amber-900 px-3 py-2 text-sm flex items-center justify-center gap-2">
+        <span class="font-semibold">Avviso Safari</span>
+        <span>Safari mobile può non rispettare gli standard web: se riscontri problemi, prova un browser differente. Allineeremo il supporto a Safari appena possibile.</span>
+      </div>
+    }
     @if (is_not_404_route() && is_not_403_route()) {
       <div class="flex flex-col h-screen">
         <m-header class="sticky top-0 z-30"
@@ -151,6 +159,8 @@ import { AccountService } from './services/account.service'
 })
 export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
+  protected readonly isSafari: boolean
+
   private readonly themeManagerService = inject(ThemeManagerService)
   protected readonly searchContextService = inject(SearchContextService)
   private readonly router = inject(Router)
@@ -192,6 +202,9 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   headerRef!: ElementRef<HTMLElement>
 
   constructor() {
+    const platformId = inject(PLATFORM_ID)
+    const isBrowser = isPlatformBrowser(platformId)
+    this.isSafari = isBrowser && /safari\//i.test(navigator.userAgent) && !/chrome\//i.test(navigator.userAgent)
     effect(() => {
       const t = this.sessionSync.handshakeTick()
       if (t === 0) return

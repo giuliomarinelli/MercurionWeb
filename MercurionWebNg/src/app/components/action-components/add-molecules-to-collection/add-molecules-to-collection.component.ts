@@ -763,6 +763,8 @@ export class AddMoleculesToCollectionComponent
     return this.selectedMolecules.map(c => c.id);
   }
 
+  // TODO: Medium priority - Safari/iOS quirks can break keyboard overlay layout and suppress realtime search.
+  // When time permits, revisit with dedicated viewport/keyboard handling and stricter input event capture.
   onSearchHit(hit: { id: string; name: string }) {
     this.addChip(hit);
   }
