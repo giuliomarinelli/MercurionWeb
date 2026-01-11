@@ -123,6 +123,49 @@ html {
   /* track - DARK */
 }
 
+/* Scrollbar sottile usato per la root e contenitori principali */
+html.m-scroll-thin,
+.m-scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #64748b transparent;
+}
+
+html.dark.m-scroll-thin,
+.dark .m-scroll-thin {
+  scrollbar-color: #94a3b8 transparent;
+}
+
+html.m-scroll-thin::-webkit-scrollbar,
+.m-scroll-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+html.m-scroll-thin::-webkit-scrollbar-track,
+.m-scroll-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+html.m-scroll-thin::-webkit-scrollbar-thumb,
+.m-scroll-thin::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 9999px;
+}
+
+html.dark.m-scroll-thin::-webkit-scrollbar-thumb,
+.dark .m-scroll-thin::-webkit-scrollbar-thumb {
+  background-color: #475569;
+}
+
+html.m-scroll-thin::-webkit-scrollbar-thumb:hover,
+.m-scroll-thin::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8;
+}
+
+html.dark.m-scroll-thin::-webkit-scrollbar-thumb:hover,
+.dark .m-scroll-thin::-webkit-scrollbar-thumb:hover {
+  background-color: #e2e8f0;
+}
+
 
 
 @tailwind base;

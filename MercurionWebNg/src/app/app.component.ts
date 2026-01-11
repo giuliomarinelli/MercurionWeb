@@ -34,7 +34,7 @@ import { AuthService } from './services/auth.service'
 import { ActionOverlayComponent } from './components/action-components/action-overlay/action-overlay.component'
 import { AppContextService } from './services/context/app-context.service'
 import { AccountService } from './services/account.service'
-import { isPlatformBrowser } from '@angular/common'
+import { DOCUMENT, isPlatformBrowser } from '@angular/common'
 
 @Component({
   selector: 'm-root',
@@ -47,45 +47,6 @@ import { isPlatformBrowser } from '@angular/common'
     ToastComponent,
     SidenavComponent,
     ActionOverlayComponent
-  ],
-  styles: [
-    `
-    /* Scrollbar sottile globale (per l'area scroll principale) */
-
-    .m-scroll-thin {
-      scrollbar-width: thin; /* Firefox */
-      scrollbar-color: #64748b transparent; /* thumb, track */
-    }
-
-    :host-context(.dark) .m-scroll-thin {
-      scrollbar-color: #94a3b8 transparent;
-    }
-
-    .m-scroll-thin::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    .m-scroll-thin::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    .m-scroll-thin::-webkit-scrollbar-thumb {
-      background-color: #cbd5e1; /* slate-300-ish */
-      border-radius: 9999px;
-    }
-
-    :host-context(.dark) .m-scroll-thin::-webkit-scrollbar-thumb {
-      background-color: #475569; /* slate-600-ish */
-    }
-
-    .m-scroll-thin::-webkit-scrollbar-thumb:hover {
-      background-color: #94a3b8;
-    }
-
-    :host-context(.dark) .m-scroll-thin::-webkit-scrollbar-thumb:hover {
-      background-color: #e2e8f0;
-    }
-    `
   ],
   template: `
     @if (isSafari) {
@@ -179,6 +140,9 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly authService = inject(AuthService)
   private readonly appContext = inject(AppContextService)
   private readonly accountService = inject(AccountService)
+  private readonly doc = inject(DOCUMENT)
+  private readonly platformId = inject(PLATFORM_ID)
+  private readonly isBrowser = isPlatformBrowser(this.platformId)
 
   isDarkTheme: Signal<boolean> = computed(() => this.themeManagerService.theme() === 'dark')
   is_not_404_route = signal<boolean>(true)
@@ -208,9 +172,11 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   headerRef!: ElementRef<HTMLElement>
 
   constructor() {
-    const platformId = inject(PLATFORM_ID)
-    const isBrowser = isPlatformBrowser(platformId)
+    const isBrowser = this.isBrowser
     this.isSafari = isBrowser && /safari\//i.test(navigator.userAgent) && !/chrome\//i.test(navigator.userAgent)
+    if (isBrowser) {
+      this.doc.documentElement.classList.add('m-scroll-thin')
+    }
     effect(() => {
       const t = this.sessionSync.handshakeTick()
       if (t === 0) return
@@ -377,5 +343,8 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnDestroy() {
     this.routeSub?.unsubscribe()
     this.emailSub?.unsubscribe()
+    if (this.isBrowser) {
+      this.doc.documentElement.classList.remove('m-scroll-thin')
+    }
   }
 }

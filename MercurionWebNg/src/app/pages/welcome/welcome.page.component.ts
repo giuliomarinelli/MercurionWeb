@@ -126,7 +126,7 @@ export class WelcomePageComponent {
 
       const rootEl = document.documentElement
 
-      const y = this.appContext.getScrollYRelativeToRoot(target, rootEl)
+      const y = this.appContext.getScrollYRelativeToRoot(target, rootEl) - 85
       const hostRef = new ElementRef<HTMLElement>(rootEl)
 
       this.appContext.smoothTo(hostRef, y, 240)

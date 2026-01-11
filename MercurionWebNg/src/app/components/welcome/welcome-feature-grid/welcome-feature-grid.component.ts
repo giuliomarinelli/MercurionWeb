@@ -127,7 +127,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
               <li>• Preview interna con soglie configurate per ogni endpoint.</li>
               <li>• Pannello di dettaglio con probabilità per i target selezionati.</li>
             </ul>
-            <p class="mt-2 text-[11px] text-slate-500 dark:text-slate-400">
+            <p class="mt-2 text-[11px] text-slate-600 dark:text-slate-300">
               * Valori indicativi, pensati per uso esplorativo e non clinico.
             </p>
           </article>

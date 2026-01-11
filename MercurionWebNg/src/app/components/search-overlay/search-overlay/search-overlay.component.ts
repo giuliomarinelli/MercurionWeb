@@ -57,7 +57,7 @@ import { Maybe } from 'graphql/jsutils/Maybe'
           <!-- HEADER -->
           <div class="flex justify-between items-center mb-3 relative md:-top-2 lg:-top-4">
             <h2 class="text-2xl font-medium tracking-wide">Ricerca molecolare</h2>
-            <m-close-button [size]="8" [action]="close.bind(this)" variant="input" />
+            <m-close-button [size]="6" [action]="close.bind(this)" variant="input" />
           </div>
 
           <m-molecule-search-input
@@ -67,7 +67,7 @@ import { Maybe } from 'graphql/jsutils/Maybe'
             (onEmpty)="handleEmpty()" />
 
           <div
-          class="relative bg-light-surface-secondary dark:bg-slate-50/10 flex-1 min-h-0 rounded-xl text-light-on-surface-main dark:text-sm dark:text-slate-50/90 overflow-y-auto border border-spacing-px border-slate-300/50 max-h-none md:max-h-[38vh] m-overscroll-touch"
+          class="relative bg-light-surface-secondary dark:bg-slate-50/10 flex-1 min-h-0 rounded-xl text-light-on-surface-main dark:text-sm dark:text-slate-50/90 overflow-y-auto border border-spacing-px border-slate-300/50 max-h-none md:max-h-[38vh] m-overscroll-touch m-scroll-thin"
             #scrollRoot>
               @if (userContext.isLoggedIn()) {
                 <div class="sticky top-0 z-30
@@ -132,7 +132,43 @@ import { Maybe } from 'graphql/jsutils/Maybe'
         </div>
       </div>
     </div>
-  `
+  `,
+  styles: [`
+    /* Scrollbar sottile per l'area dei risultati */
+    .m-scroll-thin {
+      scrollbar-width: thin; /* Firefox */
+      scrollbar-color: #64748b transparent; /* thumb, track */
+    }
+
+    :host-context(.dark) .m-scroll-thin {
+      scrollbar-color: #94a3b8 transparent;
+    }
+
+    .m-scroll-thin::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .m-scroll-thin::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .m-scroll-thin::-webkit-scrollbar-thumb {
+      background-color: #cbd5e1; /* slate-300-ish */
+      border-radius: 9999px;
+    }
+
+    :host-context(.dark) .m-scroll-thin::-webkit-scrollbar-thumb {
+      background-color: #475569; /* slate-600-ish */
+    }
+
+    .m-scroll-thin::-webkit-scrollbar-thumb:hover {
+      background-color: #94a3b8;
+    }
+
+    :host-context(.dark) .m-scroll-thin::-webkit-scrollbar-thumb:hover {
+      background-color: #e2e8f0;
+    }
+  `]
 })
 export class SearchOverlayComponent implements AfterViewInit {
 
