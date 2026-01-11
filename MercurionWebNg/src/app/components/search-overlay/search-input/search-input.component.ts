@@ -20,6 +20,7 @@ import { MoleculeCardItemModel } from '../../../Models/graphql/molecule-collecti
 import { MoleculeCollectionItemService } from '../../../services/graphql/molecule-collection-item.service'
 import { AddMoleculesToCollectionContextService } from '../../../services/context/action-context/add-molecules-to-collection-context.service'
 import { UserContextService } from '../../../services/context/user-context.service'
+import { MoleculeSearchService } from '../../../services/graphql/molecule-search.service'
 
 @Component({
   selector: 'm-molecule-search-input',
@@ -62,6 +63,7 @@ export class SearchInputComponent implements AfterViewInit, OnDestroy {
   private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService)
   private readonly addContext = inject(AddMoleculesToCollectionContextService)
   protected readonly userContext = inject(UserContextService)
+  private readonly moleculeSearchService = inject(MoleculeSearchService)
 
   protected query = signal('')
 
@@ -135,8 +137,7 @@ export class SearchInputComponent implements AfterViewInit, OnDestroy {
 
         const collectionId = this.addContext.collectionId()
         if (!collectionId) {
-          this.onLoading.emit(false)
-          this.onResult.emit([])
+          this.fallbackChemblSearch(trimmed)
           return
         }
 
@@ -155,6 +156,20 @@ export class SearchInputComponent implements AfterViewInit, OnDestroy {
             }
           })
       })
+  }
+
+  private fallbackChemblSearch(term: string) {
+    this.onLoading.emit(true)
+    this.moleculeSearchService.searchMolecule(term, 100).subscribe({
+      next: res => {
+        this.onResult.emit(res ?? [])
+        this.onLoading.emit(false)
+      },
+      error: err => {
+        this.onError.emit(err)
+        this.onLoading.emit(false)
+      }
+    })
   }
 
   clear(): void {

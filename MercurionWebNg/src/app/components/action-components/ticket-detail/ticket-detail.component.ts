@@ -87,7 +87,7 @@ import { AppContextService } from '../../../services/context/app-context.service
     `,
   ],
   template: `
-    <div class="flex justify-center items-center min-h-screen px-2 m-overlay-screen">
+    <div class="flex justify-center items-start md:items-center min-h-screen px-2 pt-1 md:pt-6 m-overlay-screen">
       <div
         class="w-full max-w-5xl bg-white dark:bg-dark-surface-main rounded-xl shadow-lg max-h-[80vh] overflow-y-auto custom-scrollbar m-overlay-max-80 m-overscroll-touch"
         role="region"

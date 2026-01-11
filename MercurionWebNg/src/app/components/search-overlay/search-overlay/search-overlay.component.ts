@@ -48,9 +48,9 @@ import { Maybe } from 'graphql/jsutils/Maybe'
       aria-label="Ricerca molecolare"
       [attr.aria-hidden]="!searchContextService.isVisible()"
     >
-      <div class="flex justify-center items-center pt-0 sm:pt-40 px-4 m-overlay-screen">
+      <div class="flex justify-center md:justify-center items-start md:items-center px-2 sm:px-4 pt-2 md:pt-16 m-overlay-screen">
         <div
-          class="w-full h-[60vh] max-w-3xl space-y-6 m-overlay-panel
+          class="w-full max-w-3xl space-y-6 flex flex-col h-full md:h-[60vh]
           bg-light-surface-main/90 dark:bg-dark-surface-main/90
            p-4 md:p-6 lg:p-10
            rounded-2xl shadow-2xl ring-1 ring-black/5 dark:ring-white/5">
@@ -67,7 +67,7 @@ import { Maybe } from 'graphql/jsutils/Maybe'
             (onEmpty)="handleEmpty()" />
 
           <div
-          class="relative bg-light-surface-secondary dark:bg-slate-50/10 h-full rounded-xl text-light-on-surface-main dark:text-sm dark:text-slate-50/90 overflow-y-auto border border-spacing-px border-slate-300/50 m-overlay-scroll"
+          class="relative bg-light-surface-secondary dark:bg-slate-50/10 flex-1 min-h-0 rounded-xl text-light-on-surface-main dark:text-sm dark:text-slate-50/90 overflow-y-auto border border-spacing-px border-slate-300/50 max-h-none md:max-h-[38vh] m-overscroll-touch"
             #scrollRoot>
               @if (userContext.isLoggedIn()) {
                 <div class="sticky top-0 z-30

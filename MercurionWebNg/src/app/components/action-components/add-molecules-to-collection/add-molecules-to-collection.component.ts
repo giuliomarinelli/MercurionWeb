@@ -91,7 +91,7 @@ export type ChipItem = {
     `
   ],
   template: `
-<div class="flex justify-center items-center min-h-screen px-2 sm:px-4 m-overlay-screen">
+<div class="flex justify-center items-start md:items-center min-h-screen px-2 sm:px-4 pt-1 md:pt-6 m-overlay-screen">
   <div
     class="action-card max-w-5xl"
     role="region"
@@ -450,8 +450,8 @@ export type ChipItem = {
                   </div>
                 </div>
 
-              <div
-                  class="overflow-y-auto relative m-scroll-thin m-overscroll-touch"
+                <div
+                  class="overflow-y-auto relative m-scroll-thin m-overscroll-touch flex-1 min-h-0"
                   role="region"
                   aria-label="Risultati ricerca ChEMBL"
                   [attr.aria-busy]="chemblLoading()"
