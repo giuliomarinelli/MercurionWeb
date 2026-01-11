@@ -32,6 +32,7 @@ import { CloseButtonComponent } from '../../common/close-button/close-button.com
 import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
 import { ToastService } from '../../../services/toast.service';
 import { Router } from '@angular/router';
+import { MoleculeSearchService } from '../../../services/graphql/molecule-search.service';
 
 export type ChipItem = {
   id: string;
@@ -361,17 +362,18 @@ export type ChipItem = {
         @case ('chembl') {
           @switch (step()) {
             @case (1) {
-              <div class="py-6 px-3 flex flex-col gap-4 transition duration-150 m-overlay-body">
-                <div>Cerca su ChEMBL e seleziona:</div>
-
-                <m-molecule-search-input
-                  [search_excludeAlreadyAdded]="true"
-                  (onLoading)="chemblLoading.set($event)"
-                  (onResult)="handleResults($event)"
-                  (onError)="handleError($event)"
-                  (onQuery)="onChemblQuery($event)"
-                  (onEmpty)="chemblEmpty.set(true)"
-                />
+              <div class="py-4 px-3 flex flex-col gap-3 transition duration-150 m-overlay-body">
+                <div class="sticky top-0 z-10 bg-transparent pb-1">
+                  <div>Cerca su ChEMBL e seleziona:</div>
+                  <m-molecule-search-input
+                    [search_excludeAlreadyAdded]="true"
+                    (onLoading)="chemblLoading.set($event)"
+                    (onResult)="handleResults($event)"
+                    (onError)="handleError($event)"
+                    (onQuery)="onChemblQuery($event)"
+                    (onEmpty)="chemblEmpty.set(true)"
+                  />
+                </div>
 
                 <div class="border-b min-h-24 relative">
                   @if (selectedMolecules.length === 0) {
@@ -385,7 +387,7 @@ export type ChipItem = {
                   }
 
                   <div
-                    class="relative flex flex-col xs:flex-row xs:flex-wrap items-start xs:items-center gap-2 xs:gap-3 py-3"
+                    class="relative flex flex-col xs:flex-row xs:flex-wrap items-start xs:items-center gap-2 xs:gap-3 py-3 max-h-32 overflow-y-auto m-scroll-thin m-overscroll-touch"
                     role="list"
                     aria-label="Molecole selezionate"
                     aria-live="polite"
@@ -451,7 +453,7 @@ export type ChipItem = {
                 </div>
 
                 <div
-                  class="overflow-y-auto relative m-scroll-thin m-overscroll-touch flex-1 min-h-0"
+                  class="overflow-y-auto relative m-scroll-thin m-overscroll-touch flex-1 min-h-0 m-overlay-results"
                   role="region"
                   aria-label="Risultati ricerca ChEMBL"
                   [attr.aria-busy]="chemblLoading()"
@@ -583,6 +585,7 @@ export class AddMoleculesToCollectionComponent
   private readonly moleculeCollectionService = inject(MoleculeCollectionService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
+  private readonly moleculeSearchService = inject(MoleculeSearchService);
 
   private ctrlSub?: Subscription;
   private suSub1?: Subscription;
@@ -781,21 +784,24 @@ export class AddMoleculesToCollectionComponent
     }
     this.chemblEmpty.set(false);
     this.chemblError.set(null);
-    // fallback search to keep realtime working even if excludeAlreadyAdded path fails on Safari
     this.chemblLoading.set(true);
-    this.moleculeCollectionItemService
-      .searchChemblMolecules_excludeAlreadyAdded(trimmed, this.addContext.collectionId() ?? '', 100)
-      .subscribe({
-        next: res => {
-          this.chemblResults.set(res ?? []);
-          this.chemblLoading.set(false);
-        },
-        error: err => {
-          this.chemblError.set(err);
-          this.chemblResults.set([]);
-          this.chemblLoading.set(false);
-        }
-      });
+
+    const collectionId = this.addContext.collectionId();
+    const obs = collectionId
+      ? this.moleculeCollectionItemService.searchChemblMolecules_excludeAlreadyAdded(trimmed, collectionId, 100)
+      : this.moleculeSearchService.searchMolecule(trimmed, 100);
+
+    obs.subscribe({
+      next: (res: MoleculeSearchResult[]) => {
+        this.chemblResults.set(res ?? []);
+        this.chemblLoading.set(false);
+      },
+      error: (err: unknown) => {
+        this.chemblError.set(err);
+        this.chemblResults.set([]);
+        this.chemblLoading.set(false);
+      }
+    });
   }
 
   removeChip(id: string) {
