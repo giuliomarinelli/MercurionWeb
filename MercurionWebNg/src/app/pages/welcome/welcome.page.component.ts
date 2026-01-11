@@ -114,16 +114,20 @@ export class WelcomePageComponent {
 
   ngOnInit(): void {
     this.fragSub = this.route.fragment.subscribe((frag) => {
-      if (!frag) return
+
+      if (!frag) {
+        return
+      }
 
       const target = document.getElementById(frag)
-      if (!target) return
+      if (!target) {
+        return
+      }
 
-      const rootRef = this.appContext.globalScollRootRef()
-      const rootEl = rootRef?.nativeElement ?? document.documentElement
+      const rootEl = document.documentElement
 
       const y = this.appContext.getScrollYRelativeToRoot(target, rootEl)
-      const hostRef = rootRef ?? new ElementRef<HTMLElement>(document.documentElement)
+      const hostRef = new ElementRef<HTMLElement>(rootEl)
 
       this.appContext.smoothTo(hostRef, y, 240)
     })
