@@ -37,6 +37,7 @@ import { BindCollectionsToMoleculeContextService } from '../../services/context/
 import { HttpErrorResponse } from '@angular/common/http'
 import { HttpErrorBody as HttpErrorBody } from '../../Models/http-error-body.dto'
 import { AppTitleService } from '../../services/app-title.service'
+import { DesignService } from '../../services/design.service'
 
 
 
@@ -235,7 +236,11 @@ import { AppTitleService } from '../../services/app-title.service'
         </section>
         } @else {
         <section class="w-5xl mx-auto h-full flex justify-center items-center" role="main" aria-busy="true" aria-live="polite">
-          <m-classic-spinner [size]="85" />
+          @if (design.maxBk('md')()) {
+            <m-classic-spinner [size]="30" />
+          } @else if (design.minBk('md')()) {
+            <m-classic-spinner [size]="60" />
+          }
         </section>
         }
   `,
@@ -252,6 +257,7 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
   private readonly embeddingService = inject(EmbeddingService)
   private readonly destroyRef = inject(DestroyRef)
   protected readonly typeGuards = inject(TypeGuardsService)
+  protected readonly design = inject(DesignService)
   private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService)
   private readonly moleculeCollectionService = inject(MoleculeCollectionService)
   private readonly toast = inject(ToastService)

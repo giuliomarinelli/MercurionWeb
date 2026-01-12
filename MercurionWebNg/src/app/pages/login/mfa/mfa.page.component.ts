@@ -17,6 +17,7 @@ import { HttpErrorResponse } from '@angular/common/http'
 import { MfaStrategy, MfaView } from '../../../Models/account/account.models'
 import { MfaStrategyCardComponent } from '../../../components/common/mfa-strategy-card/mfa-strategy-card.component'
 import { ɵɵRouterLink } from "@angular/router/testing";
+import { DesignService } from '../../../services/design.service'
 
 @Component({
   selector: 'm-mfa',
@@ -200,7 +201,11 @@ import { ɵɵRouterLink } from "@angular/router/testing";
       </div>
     } @else {
       <div class="absolute inset-0 flex justify-center items-center">
-        <m-classic-spinner [size]="60" />
+        @if (design.maxBk('md')()) {
+          <m-classic-spinner [size]="30" />
+        } @else if (design.minBk('md')()) {
+          <m-classic-spinner [size]="60" />
+        }
       </div>
     }
   `
@@ -215,6 +220,7 @@ export class MfaPageComponent implements OnInit, OnDestroy {
   private readonly sessionSyncService = inject(SessionSyncService)
   private readonly userContext = inject(UserContextService)
   private readonly toast = inject(ToastService)
+  protected readonly design = inject(DesignService)
 
   @ViewChild('otp')
   private otpRef!: ElementRef<HTMLInputElement>
