@@ -8,6 +8,9 @@ import { WelcomeSecondaryFeaturesComponent } from '../../components/welcome/welc
 import { Subscription } from 'rxjs'
 import { AppContextService } from '../../services/context/app-context.service'
 import { ActivatedRoute } from '@angular/router'
+import { UserContextService } from '../../services/context/user-context.service'
+import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component'
+import { DesignService } from '../../services/design.service'
 
 @Component({
   selector: 'm-welcome-page',
@@ -17,7 +20,8 @@ import { ActivatedRoute } from '@angular/router'
     WelcomeFeatureGridComponent,
     WelcomeScreenshotBandComponent,
     WelcomeSecondaryFeaturesComponent,
-    FooterComponent
+    FooterComponent,
+    ClassicSpinnerComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: [`
@@ -80,27 +84,31 @@ import { ActivatedRoute } from '@angular/router'
       <!-- Background molecolare (dietro a tutto) -->
       <div class="mercurion-bg-layer"></div>
       <div class="mercurion-bg-overlay"></div>
-
+      @if (userContext.isLoggedIn()) {
+        <main class="mercurion-page-shell flex justify-center items-center h-full">
+          @if (design.maxBk('md')()) {
+            <m-classic-spinner [size]="30" />
+          } @else if (design.minBk('md')()) {
+            <m-classic-spinner [size]="60" />
+          }
+        </main>
+      } @else {
       <!-- Contenuto della pagina -->
-      <main class="mercurion-page-shell">
-        <!-- Hero section -->
-        <m-welcome-hero />
-
-        <!-- Logo cloud -->
-        <m-welcome-cloud-logo />
-
-        <!-- Feature section -->
-        <m-welcome-feature-grid />
-
-        <!-- Screenshot section -->
-        <m-welcome-screenshot-band />
-
-        <!-- Feature secondary -->
-        <m-welcome-secondary-features />
-
-        <!-- Footer -->
-        <m-footer />
-      </main>
+        <main class="mercurion-page-shell">
+          <!-- Hero section -->
+          <m-welcome-hero />
+          <!-- Logo cloud -->
+          <m-welcome-cloud-logo />
+          <!-- Feature section -->
+          <m-welcome-feature-grid />
+          <!-- Screenshot section -->
+          <m-welcome-screenshot-band />
+          <!-- Feature secondary -->
+          <m-welcome-secondary-features />
+          <!-- Footer -->
+          <m-footer />
+        </main>
+      }
     </div>
   `,
 
@@ -109,6 +117,8 @@ export class WelcomePageComponent {
 
   private readonly route = inject(ActivatedRoute)
   private readonly appContext = inject(AppContextService)
+  protected readonly userContext = inject(UserContextService)
+  protected readonly design = inject(DesignService)
 
   private fragSub?: Subscription
 

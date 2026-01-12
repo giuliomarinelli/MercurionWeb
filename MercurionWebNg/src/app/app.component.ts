@@ -308,7 +308,9 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       }
 
       if (!logged) {
-        if (!isPublic) safeNavigate(buildWelcomeWithRedirectTo())
+        if (!isPublic) {
+          safeNavigate(buildWelcomeWithRedirectTo())
+        }
         return
       }
 
@@ -318,7 +320,9 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         return
       }
 
-      if (isLoggedOutOnly) safeNavigate('/dashboard')
+      if (isLoggedOutOnly) {
+        safeNavigate('/dashboard')
+      }
     })
   }
 
