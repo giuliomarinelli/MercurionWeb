@@ -427,7 +427,7 @@ import { AppContextService } from '../../../services/context/app-context.service
           'opacity-0 pointer-events-none': !avatarMobileMenuVisible(),
         }" (click)="closeAvatarMobileMenu()">
     <div
-      class="w-full h-[100dvh] max-h-[100dvh] bg-slate-100 dark:bg-neutral-900 rounded-t-2xl shadow-2xl p-6 pb-10 relative overflow-y-auto transition-transform duration-300 m-overscroll-touch"
+      class="w-full h-[100dvh] max-h-[100dvh] bg-slate-100 dark:bg-neutral-900 rounded-t-2xl shadow-2xl p-6 pb-10 relative overflow-y-auto transition-transform duration-300 m-overscroll-touch m-scroll-thin"
       [ngClass]="{
             'translate-y-0': avatarMobileMenuVisible(),
             'translate-y-full': !avatarMobileMenuVisible(),

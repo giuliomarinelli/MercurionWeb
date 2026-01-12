@@ -127,7 +127,7 @@ import { ActionOverlayContextService } from '../../../services/context/action-co
         <hr class="border-slate-300 dark:border-slate-600 mb-2"/>
 
         <!-- Cronologia dinamica -->
-        <div class="flex-1 overflow-y-auto custom-scrollbar">
+        <div class="flex-1 overflow-y-auto custom-scrollbar m-scroll-thin">
           <div class="flex justify-between items-center">
             <h6 class="detail">Cronologia</h6>
             @if (triggerDelete()) {

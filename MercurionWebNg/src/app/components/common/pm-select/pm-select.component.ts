@@ -88,7 +88,7 @@ import { NgClass } from '@angular/common';
 
           <ul role="listbox"
               class="z-[200] mt-2 w-full rounded-md border border-slate-400 dark:border-slate-200
-                     bg-slate-100 dark:bg-neutral-800 shadow-lg overflow-auto"
+                     bg-slate-100 dark:bg-neutral-800 shadow-lg overflow-auto m-scroll-thin"
               [style.maxHeight.px]="maxHeight"
               [attr.id]="id + '-listbox'">
 

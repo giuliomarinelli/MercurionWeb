@@ -8,7 +8,7 @@ import { SkeletonCollectionCardComponent } from '../../common/skeleton-card-load
   imports: [SimilarItemComponent, SkeletonCollectionCardComponent],
   template: `
 
-    <div class="relative overflow-y-auto border-px max-h-[272px] min-h-[90px] transition-[max-height] duration-300 ease-in-out"
+    <div class="relative overflow-y-auto border-px max-h-[272px] min-h-[90px] transition-[max-height] duration-300 ease-in-out m-scroll-thin"
     [class.max-h-[181px]]="_onlyKnown()"
     [class.max-h-[272px]]="!_onlyKnown()"
     role="region"
