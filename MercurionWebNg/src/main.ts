@@ -5,35 +5,30 @@ import { AppComponent } from './app/app.component'
 // Sync a CSS custom property with the current viewport height.
 // Needed for iOS Safari, which reports 100vh including the URL bar unless a dynamic value is used.
 function setAppViewportHeight() {
-  if (typeof window === 'undefined' || typeof document === 'undefined') return
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+  // Solo iOS Safari (se un domani ti servirà davvero)
+  const ua = navigator.userAgent;
+  const isIOS = /iPad|iPhone|iPod/.test(ua) || (ua.includes('Mac') && 'ontouchend' in document);
+  const isSafari = /Safari/.test(ua) && !/Chrome|CriOS|FxiOS|EdgiOS/.test(ua);
+
+  // Standard browsers: NON fare nulla -> --app-vh resta 1vh => 100vh stabile
+  if (!(isIOS && isSafari)) return;
+
+  const root = document.documentElement;
 
   const setVh = () => {
-    const viewportHeight = (window.visualViewport?.height ?? window.innerHeight) * 0.01
-    document.documentElement.style.setProperty('--app-vh', `${viewportHeight}px`)
-  }
+    // su iOS Safari puoi usare vv.height per URL bar, ma NON gestiamo Android qui
+    const h = (window.visualViewport?.height ?? window.innerHeight);
+    root.style.setProperty('--app-vh', `${h * 0.01}px`);
+  };
 
-  const handleKeyboardToggle = () => {
-    const vv = window.visualViewport
-    const root = document.documentElement
-    if (!vv || !root) return
+  setVh();
 
-    // Heuristic: keyboard open when the viewport height shrinks compared to innerHeight.
-    const keyboardOpen = vv.height < window.innerHeight - 80
-    root.classList.toggle('keyboard-open', keyboardOpen)
-  }
-
-  setVh()
-
-  const onResize = () => {
-    queueMicrotask(setVh)
-    handleKeyboardToggle()
-  }
-
-  window.visualViewport?.addEventListener('resize', onResize, { passive: true })
-  window.visualViewport?.addEventListener('scroll', onResize, { passive: true })
-  window.addEventListener('resize', onResize, { passive: true })
-  window.addEventListener('orientationchange', onResize, { passive: true })
+  // Se proprio vuoi, aggiorna SOLO su orientation change (non keyboard)
+  window.addEventListener('orientationchange', () => queueMicrotask(setVh), { passive: true });
 }
+
 
 setAppViewportHeight()
 

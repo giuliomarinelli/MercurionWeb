@@ -536,7 +536,8 @@ export type ChipItem = {
 
                   <!-- RESULTS (unico scroll “vero”) -->
                   <div
-                    class="flex-1 min-h-0 overflow-y-auto relative m-scroll-thin m-overscroll-touch m-overlay-results"
+                    class="relative flex-1 min-h-0 overflow-y-auto overscroll-contain"
+                    style="-webkit-overflow-scrolling: touch;"
                     role="region"
                     aria-label="Risultati ricerca ChEMBL"
                     [attr.aria-busy]="chemblLoading()"
