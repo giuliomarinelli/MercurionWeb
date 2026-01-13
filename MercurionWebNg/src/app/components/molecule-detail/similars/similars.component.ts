@@ -26,9 +26,16 @@ import { SkeletonCollectionCardComponent } from '../../common/skeleton-card-load
             <m-skeleton-collection-card [height]="'45px'" />
           }
       } @else {
-        <div class="absolute inset-0 flex justify-center items-center text-sm">
-          Nessun analogo noto trovato... Deseleziona&nbsp;<strong>Mostra solo composti noti</strong>&nbsp;per vedere i lead sperimentali più simili.
+        <div class="absolute inset-0 flex items-center justify-center p-3">
+          <p class="text-xs xs:text-sm text-center leading-snug whitespace-normal break-words max-w-[32rem]">
+            Nessun analogo noto trovato... Deseleziona
+            <strong class="block sm:inline font-semibold">
+              Mostra solo composti noti
+            </strong>
+            per vedere i lead sperimentali più simili.
+          </p>
         </div>
+
       }
     </div>
   `

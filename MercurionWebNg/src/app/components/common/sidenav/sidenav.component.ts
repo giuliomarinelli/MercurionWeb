@@ -58,7 +58,7 @@ import { ActionOverlayContextService } from '../../../services/context/action-co
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 640 640"
-            class="h-4 w-4 fill-current transition-transform duration-300 xl:hidden"
+            class="h-4 w-4 fill-current transition-transform duration-300 xl:hidden relative -top-0.5"
             [class.rotate-180]="featuresOpen()"
           >
             <path d="M320.1 438.6L331.4 427.3L491.4 267.3L502.7 256L480.1 233.4L468.8 244.7L320.1 393.4L171.4 244.7L160.1 233.4L137.5 256L148.8 267.3L308.8 427.3L320.1 438.6z"/>

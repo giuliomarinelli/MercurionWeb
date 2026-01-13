@@ -114,7 +114,7 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
       }
 
       @default {
-        <div class="flex text-center sm:text-left gap-3 items-start mb-4">
+        <div class="flex justify-center sm:justify-start text-center sm:text-left gap-3 items-start mb-4">
           <h2
             [innerHTML]="_label()"
             class="mt-1 font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary text-xl shrink-0">

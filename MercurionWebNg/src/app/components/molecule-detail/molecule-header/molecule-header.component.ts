@@ -42,11 +42,11 @@ import { RouterLink } from '@angular/router';
               (onSaving)="doSave($event)" />
           }
         } @else {
-          <div class="flex flex-col items-center sm:flex-row sm:items-center justify-center gap-2 sm:gap-4">
+          <div class="flex flex-col items-center sm:flex-row sm:items-center justify-center xs:justify-start gap-2 sm:gap-4">
             <h1
               id="molecule-name"
               class="text-3xl w-full sm:w-auto md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider
-                     text-left text-light-accent-primary-hc dark:text-dark-accent-primary">
+                     text-center sm:text-left text-light-accent-primary-hc dark:text-dark-accent-primary">
               {{ name() }}
             </h1>
 

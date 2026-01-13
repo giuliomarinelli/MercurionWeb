@@ -92,7 +92,7 @@ import { DesignService } from '../../services/design.service'
         }
         <section class="relative -top-4">
           <h2
-            class="flex gap-3 items-center font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary mt-6 mb-4 text-center sm:text-left text-xl">
+            class="flex gap-3 items-center justify-center sm:justify-start font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary mt-6 mb-4 text-center sm:text-left text-xl">
             <span>Struttura</span>
             @if (typeGuards.isCustomMolecule(molecule)) {
             <a class="cursor-pointer transition-colors duration-300 hover:transform hover:scale-[1.05]" title="Modifica Struttura"
