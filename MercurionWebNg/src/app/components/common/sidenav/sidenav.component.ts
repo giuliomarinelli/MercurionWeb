@@ -53,7 +53,7 @@ import { ActionOverlayContextService } from '../../../services/context/action-co
       }
       @if (userContext.isLoggedIn()) {
         <!-- Macro Area Menu -->
-        <div class="flex items-center px-2 xl:px-0 cursor-pointer xl:cursor-default select-none" (click)="toggleFeatures()">
+        <div class="flex items-center xl:px-0 cursor-pointer xl:cursor-default select-none" (click)="toggleFeatures()">
           <h6 class="detail mb-0">Funzionalità</h6>
           <svg
             xmlns="http://www.w3.org/2000/svg"
