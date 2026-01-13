@@ -183,7 +183,12 @@ import { RouterLink } from '@angular/router';
             </div>
 
             <div
-              class="pointer-events-none absolute -bottom-6 right-4 w-52 rounded-2xl border border-slate-200/70 bg-white/80 p-3 text-xs shadow-lg shadow-slate-900/10 backdrop-blur dark:border-slate-700/70 dark:bg-slate-900/90 dark:text-slate-100"
+              class="
+                pointer-events-none relative mx-auto mt-4 w-full max-w-[300px]
+                rounded-2xl border border-slate-200/70 bg-white/80 p-3 text-xs shadow-lg shadow-slate-900/10 backdrop-blur
+                dark:border-slate-700/70 dark:bg-slate-900/90 dark:text-slate-100
+                2xs:absolute 2xs:mx-0 xs:mt-0 2xs:max-w-none 2xs:w-52 2xs:-bottom-6 2xs:right-4
+              "
             >
               <div class="flex items-center justify-between">
                 <span class="font-semibold"

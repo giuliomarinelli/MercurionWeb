@@ -134,7 +134,12 @@ import { PublicPipe } from '../../../pipes/public.pipe';
 
                 <!-- Badge flottante -->
                 <div
-                  class="pointer-events-none absolute -bottom-5 left-4 max-w-[230px] rounded-2xl border border-slate-200/80 bg-white/90 px-3 py-2 text-xs shadow-md shadow-slate-900/10 backdrop-blur dark:border-slate-700/70 dark:bg-slate-900/95 dark:text-slate-100"
+                  class="
+                    pointer-events-none relative mx-auto mt-4 w-full max-w-[300px]
+                    rounded-2xl border border-slate-200/80 bg-white/90 px-3 py-2 text-xs shadow-md shadow-slate-900/10 backdrop-blur
+                    dark:border-slate-700/70 dark:bg-slate-900/95 dark:text-slate-100
+                    sm:absolute sm:mx-0 sm:mt-0 sm:max-w-[230px] sm:-bottom-5 sm:left-4
+                  "
                 >
                   <p class="font-semibold">
                     Mercurion: ricerca molecolare

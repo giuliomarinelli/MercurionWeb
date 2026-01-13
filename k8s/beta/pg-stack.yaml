@@ -34,7 +34,8 @@ spec:
 
           # vincolo sul node pool di backup
           nodeSelector:
-            role: pg-backup
+            cloud.google.com/gke-nodepool: mercurion-pg-backup-pool
+
 
           # permette al pod di schedularsi su nodi taintati pg-backup-only=true:NoSchedule
           tolerations:
