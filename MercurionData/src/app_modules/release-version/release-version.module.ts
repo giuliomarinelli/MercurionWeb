@@ -10,7 +10,7 @@ import { ReleaseController } from './controllers/release.controller';
             [
                 ReleaseVersion
             ],
-            'MercurionConn')
+            'MercurionProdConn')
     ],
     providers: [ReleaseService],
     controllers: [ReleaseController]

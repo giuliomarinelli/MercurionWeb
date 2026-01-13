@@ -37,6 +37,17 @@ import { ReleaseVersionModule } from './app_modules/release-version/release-vers
       autoLoadEntities: true,
       synchronize: false
     }),
+    TypeOrmModule.forRoot({
+      name: 'MercurionProdConn',
+      type: 'postgres',
+      host: 'localhost',
+      port: 15432,
+      database: 'mercurion',
+      password: process.env.PG_PASSWORD,
+      username: 'app',
+      autoLoadEntities: true,
+      synchronize: false
+    }),
     Chembl36Module,
     MeilisearchModule,
     EmbeddingsModule,

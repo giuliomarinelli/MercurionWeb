@@ -15,7 +15,7 @@ import { ReleaseAndPathDTO } from '../Models/DTO/release-and-path.dto';
 export class ReleaseService {
 
     constructor(
-        @InjectRepository(ReleaseVersion, 'MercurionConn')
+        @InjectRepository(ReleaseVersion, 'MercurionProdConn')
         private readonly releaseVersionRepo: Repository<ReleaseVersion>
     ) { }
 

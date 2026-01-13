@@ -1,6 +1,6 @@
 import { WritableSignal } from "@angular/core"
 import { UserGender } from "../auth/user.models"
-import { HistoryDTO } from "../history.models"
+import { TinyHistoryDTO } from "../history.models"
 import { AuthProvider } from "../auth/provider.models"
 
 export interface UserData {
@@ -21,7 +21,7 @@ export interface ProfileDTO {
   obscuredEmail: string
   obscuredPhone: string | null
   avatarId: string | null
-  recentHistory: HistoryDTO[]
+  recentHistory: TinyHistoryDTO[]
   personalMoleculeCount: number
   chemblMoleculeCount: number
   collectionCount: number
