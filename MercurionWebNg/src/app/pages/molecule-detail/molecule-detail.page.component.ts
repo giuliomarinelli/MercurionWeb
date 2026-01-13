@@ -92,7 +92,7 @@ import { DesignService } from '../../services/design.service'
         }
         <section class="relative -top-4">
           <h2
-            class="flex gap-3 items-center font-semibold text-light-accent-primary-hq dark:text-dark-accent-primary mt-6 mb-4 text-center sm:text-left text-xl">
+            class="flex gap-3 items-center font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary mt-6 mb-4 text-center sm:text-left text-xl">
             <span>Struttura</span>
             @if (typeGuards.isCustomMolecule(molecule)) {
             <a class="cursor-pointer transition-colors duration-300 hover:transform hover:scale-[1.05]" title="Modifica Struttura"
@@ -161,7 +161,7 @@ import { DesignService } from '../../services/design.service'
           }
           @if (!typeGuards.isSystemMolecule(molecule) && molecule.joins) {
             <h2
-              class="font-semibold mt-8 mb-3 sm:top-14 text-light-accent-primary-hq dark:text-dark-accent-primary text-center sm:text-left text-xl">
+              class="font-semibold mt-8 mb-3 sm:top-14 text-light-accent-primary-hc dark:text-dark-accent-primary text-center sm:text-left text-xl">
               Questa molecola fa parte delle seguenti collezioni:
             </h2>
             <section class="rounded-md border border-slate-300 dark:border-slate-600">
@@ -171,7 +171,7 @@ import { DesignService } from '../../services/design.service'
         </section>
         @if (typeGuards.isSystemMolecule(molecule) || typeGuards.isChemblMolecule(molecule)) {
           <h2
-            class="font-semibold relative top-8 sm:top-14 text-light-accent-primary-hq dark:text-dark-accent-primary text-center sm:text-left text-xl"
+            class="font-semibold relative top-10 sm:top-14 text-light-accent-primary-hc dark:text-dark-accent-primary text-center sm:text-left text-xl"
             style="margin-block-start: -38px">
             Analoghi suggeriti
           </h2>

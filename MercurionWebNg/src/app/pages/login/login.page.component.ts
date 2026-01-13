@@ -141,8 +141,8 @@ import { SSO_AuthProvider } from '../../Models/auth/provider.models'
       }
 
       <div class="my-3 text-sm flex gap-3 justify-between items-center flex-col 2xs:flex-row">
-        <a routerLink="/forgot-password" class="text-light-accent-primary-hq dark:text-dark-accent-primary hover:underline">Password dimenticata?</a>
-        <a routerLink="/register" class="text-light-accent-primary-hq dark:text-dark-accent-primary hover:underline">Registrati</a>
+        <a routerLink="/forgot-password" class="text-light-accent-primary-hc dark:text-dark-accent-primary hover:underline">Password dimenticata?</a>
+        <a routerLink="/register" class="text-light-accent-primary-hc dark:text-dark-accent-primary hover:underline">Registrati</a>
       </div>
 
       <div class="text-sm text-center text-gray-600 dark:text-gray-300 flex items-center justify-center gap-3">

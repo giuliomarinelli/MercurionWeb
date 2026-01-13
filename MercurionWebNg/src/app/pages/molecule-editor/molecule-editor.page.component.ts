@@ -30,7 +30,7 @@ import { RdKitApiService } from '../../services/rd-kit-api.service';
   template: `
     <main class="mt-2 mb-6" role="main" aria-live="polite" [attr.aria-busy]="pendingAction() !== null">
       <h2
-        class="text-center text-light-accent-primary-hq dark:text-dark-accent-primary font-semibold text-xl 2xs:text-2xl sm:text-4xl mb-6"
+        class="text-center text-light-accent-primary-hc dark:text-dark-accent-primary font-semibold text-xl 2xs:text-2xl sm:text-4xl mb-6"
       >
         @switch (mode()) {
           @case ('create') { Crea una nuova molecola }

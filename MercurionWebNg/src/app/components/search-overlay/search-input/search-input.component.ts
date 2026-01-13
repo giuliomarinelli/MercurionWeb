@@ -49,7 +49,7 @@ import { MoleculeSearchService } from '../../../services/graphql/molecule-search
       @if (query().trim()) {
         <button type="button"
                 (click)="clear()"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-700 dark:text-slate-200 hover:text-light-accent-primary-hq dark:hover:text-indigo-300 transition"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-700 dark:text-slate-200 hover:text-light-accent-primary-hc dark:hover:text-indigo-300 transition"
                 tabindex="-1"
                 aria-label="Cancella ricerca">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 20 20">

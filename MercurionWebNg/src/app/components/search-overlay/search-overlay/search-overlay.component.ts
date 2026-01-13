@@ -5,7 +5,8 @@ import {
   HostListener,
   ViewChild,
   inject,
-  signal
+  signal,
+  effect
 } from '@angular/core'
 
 import { SearchContextService } from '../../../services/context/search-context.service'
@@ -25,7 +26,7 @@ import { MoleculeCollectionItemService } from '../../../services/graphql/molecul
 import { Helpers } from '../../../helpers'
 import { Subscription } from 'rxjs'
 import { map } from 'rxjs/operators'
-import { Maybe } from 'graphql/jsutils/Maybe'
+
 
 @Component({
   selector: 'm-search-overlay',
@@ -50,7 +51,7 @@ import { Maybe } from 'graphql/jsutils/Maybe'
     >
       <div class="flex justify-center md:justify-center items-stretch md:items-center px-2 sm:px-4 pt-1 md:pt-16 m-overlay-screen h-full">
         <div
-          class="w-full max-w-3xl space-y-6 flex flex-col h-full md:h-[60vh]
+          class="w-full max-w-3xl space-y-6 flex flex-col h-full md:h-[75vh]
           bg-light-surface-main/90 dark:bg-dark-surface-main/90
            p-4 md:p-6 lg:p-10
            rounded-2xl shadow-2xl ring-1 ring-black/5 dark:ring-white/5">
@@ -67,7 +68,7 @@ import { Maybe } from 'graphql/jsutils/Maybe'
             (onEmpty)="handleEmpty()" />
 
           <div
-          class="relative bg-light-surface-secondary dark:bg-slate-50/10 flex-1 min-h-0 rounded-xl text-light-on-surface-main dark:text-sm dark:text-slate-50/90 overflow-y-auto border border-spacing-px border-slate-300/50 max-h-none md:max-h-[38vh] m-overscroll-touch m-scroll-thin"
+          class="relative bg-light-surface-secondary dark:bg-slate-50/10 flex-1 min-h-0 rounded-xl text-light-on-surface-main dark:text-sm dark:text-slate-50/90 overflow-y-auto border border-spacing-px border-slate-300/50 max-h-none md:max-h-[70vh] m-overscroll-touch m-scroll-thin"
             #scrollRoot>
               @if (userContext.isLoggedIn()) {
                 <div class="sticky top-0 z-30
@@ -203,6 +204,18 @@ export class SearchOverlayComponent implements AfterViewInit {
   private observer?: IntersectionObserver
 
   constructor() { }
+  ngOnInit(): void {
+    effect(() => {
+      if (this.searchContextService.isOpenedSearchOverlay()) {
+        this._viewMode.set('chembl')
+        this.query.set('')
+        this.loading.set(false)
+        this.error.set(null)
+        this.chemblResults.set([])
+        this.myItems.set([])
+      }
+    })
+  }
 
   close(): void {
     this.searchContextService.isOpenedSearchOverlay.set(false)

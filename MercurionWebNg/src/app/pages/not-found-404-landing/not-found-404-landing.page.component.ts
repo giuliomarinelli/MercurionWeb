@@ -12,7 +12,7 @@ import { AppContextService } from '../../services/context/app-context.service';
 
     <main class="absolute inset-0 z-[50] grid min-h-full place-items-center bg-white px-6 py-24 sm:py-32 lg:px-8 dark:bg-gray-950" role="main" aria-live="polite" aria-labelledby="not-found-heading">
       <div class="text-center">
-        <p class="text-5xl font-semibold text-light-accent-primary-hq dark:text-dark-accent-primary-btn">404</p>
+        <p class="text-5xl font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary-btn">404</p>
         <h1 id="not-found-heading" class="mt-4 text-balance text-5xl font-semibold tracking-tight text-gray-900 sm:text-7xl dark:text-white">Pagina non trovata.</h1>
         <p class="mt-6 text-pretty text-lg font-medium text-gray-700 sm:text-xl/8 dark:text-gray-300">Siamo spiacenti, ma non siamo riusciti a trovare la pagina o il contenuto che cercavi.</p>
         <div class="mt-10 flex items-center justify-center gap-x-6">

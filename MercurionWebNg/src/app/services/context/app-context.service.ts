@@ -101,6 +101,17 @@ export class AppContextService {
   ): number {
     const elRect = el.getBoundingClientRect()
     const rootRect = scrollRoot.getBoundingClientRect()
+
+    // documentElement/body already report a rect top that reflects scrollTop,
+    // so avoid double-counting when they are the scroll root.
+    const doc = scrollRoot.ownerDocument
+    const isDocumentRoot =
+      !!doc && (scrollRoot === doc.documentElement || scrollRoot === doc.body)
+
+    if (isDocumentRoot) {
+      return elRect.top + scrollRoot.scrollTop
+    }
+
     return (elRect.top - rootRect.top) + scrollRoot.scrollTop
   }
 

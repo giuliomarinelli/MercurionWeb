@@ -176,7 +176,7 @@ import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.model
                 <span>Proprietà calcolate</span>
                 <button
                   type="button"
-                  class="rounded-md text-sm px-3 py-2 bg-light-accent-primary-hq text-white font-semibold shadow-sm hover:bg-light-accent-primary-hc transition-colors focus:outline-none focus:ring-2 focus:ring-light-accent-primary-hq focus:ring-offset-2 focus:ring-offset-light-surface-main dark:focus:ring-offset-dark-surface-main"
+                  class="rounded-md text-sm px-3 py-2 bg-light-accent-primary text-white font-semibold shadow-sm hover:bg-light-accent-primary-hc transition-colors focus:outline-none focus:ring-2 focus:ring-light-accent-primary-hq focus:ring-offset-2 focus:ring-offset-light-surface-main dark:focus:ring-offset-dark-surface-main"
                   (click)="computeProps()"
                   aria-label="Calcola proprietà"
                 >
@@ -224,7 +224,7 @@ import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.model
 
               <button
                 type="submit"
-                class="relative inline-flex items-center justify-center px-4 py-2 rounded-lg bg-light-accent-primary-hq text-white font-semibold shadow-md hover:bg-light-accent-primary-hc dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary disabled:bg-light-accent-primary-hq/50 disabled:cursor-not-allowed transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary-hq/50"
+                class="relative inline-flex items-center justify-center px-4 py-2 rounded-lg bg-light-accent-primary text-white font-semibold shadow-md hover:bg-light-accent-primary-hc dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary disabled:bg-light-accent-primary/50 disabled:cursor-not-allowed transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary-hc/50"
                 [disabled]="!saveCtx.selectedCollectionId() || !nameModel"
                 [attr.aria-disabled]="!saveCtx.selectedCollectionId() || !nameModel"
                 aria-label="Salva molecola nella collezione selezionata"

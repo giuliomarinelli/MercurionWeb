@@ -166,7 +166,12 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   _triggerOpenOffCanvas = signal<boolean>(false)
 
   @ViewChild('scrollHost')
-  private scrollHostRef!: ElementRef<HTMLElement>
+  set scrollHost(ref: ElementRef<HTMLElement> | undefined) {
+    this.scrollHostRef = ref ?? undefined
+    // wait a tick so the view is stable before registering the new root
+    queueMicrotask(() => this.ensureScrollRootRef())
+  }
+  private scrollHostRef?: ElementRef<HTMLElement>
 
   @ViewChild(HeaderComponent, { read: ElementRef })
   headerRef!: ElementRef<HTMLElement>
@@ -249,9 +254,14 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     this.routeSub = this.router.events
       .pipe(filter(e => e instanceof NavigationEnd))
       .subscribe((e: NavigationEnd) => {
+        const prevPath = this.currentPath()
         const url = normalize(e.urlAfterRedirects)
 
-        if (url !== '/settings' && url !== '/terms-and-policies') {
+        const pathChanged = prevPath !== url
+        const shouldAutoSmooth =
+          pathChanged && url !== '/settings' && url !== '/terms-and-policies'
+
+        if (shouldAutoSmooth) {
           this.appContext.smoothToTop(this.scrollHostRef, 400)
         }
 
@@ -261,6 +271,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         this.currentPath.set(url)
         this.pathService.setPath(url)
         if (!this.firstNavigationDone()) this.firstNavigationDone.set(true)
+        queueMicrotask(() => this.ensureScrollRootRef())
 
         if (this.userContext.isLoggedIn() && isLoginFamily(url)) {
           const target = resolveLoginRedirectTarget() ?? '/dashboard'
@@ -324,6 +335,12 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         safeNavigate('/dashboard')
       }
     })
+
+    effect(() => {
+      const t = this.appContext.addedGlobalScrollRootRefTick()
+      if (t === 0) return
+      queueMicrotask(() => this.ensureScrollRootRef())
+    })
   }
 
   triggerOpenOffCanvas(): void {
@@ -338,7 +355,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit() {
     queueMicrotask(() => {
-      this.appContext.setGlobalScrollRootRef(this.scrollHostRef)
+      this.ensureScrollRootRef()
       const h = this.headerRef?.nativeElement?.offsetHeight ?? 64
       this.appContext.setHeaderHeight(h)
     })
@@ -349,6 +366,22 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     this.emailSub?.unsubscribe()
     if (this.isBrowser) {
       this.doc.documentElement.classList.remove('m-scroll-thin')
+    }
+  }
+
+  private ensureScrollRootRef(): void {
+    if (!this.isBrowser) return
+
+    const docEl = this.doc?.documentElement as HTMLElement | null
+    const shouldUseScrollHost = this.is_not_welcome_route() && !!this.scrollHostRef
+
+    if (shouldUseScrollHost) {
+      this.appContext.setGlobalScrollRootRef(this.scrollHostRef!)
+      return
+    }
+
+    if (docEl) {
+      this.appContext.setGlobalScrollRootRef(new ElementRef<HTMLElement>(docEl))
     }
   }
 }

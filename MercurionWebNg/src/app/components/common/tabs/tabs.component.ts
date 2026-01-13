@@ -50,7 +50,7 @@ export class TabsComponent {
       'focus-visible:ring-light-accent-primary-hq dark:focus-visible:ring-dark-accent-primary',
       // varianti active / inactive
       active
-        ? 'text-light-accent-primary-hq dark:text-dark-accent-primary border-light-accent-primary-hq dark:border-dark-accent-primary'
+        ? 'text-light-accent-primary-hc dark:text-dark-accent-primary border-light-accent-primary-hq dark:border-dark-accent-primary'
         : 'text-slate-700 dark:text-slate-200 border-transparent hover:text-slate-800 dark:hover:text-slate-50',
     ].join(' ');
   }

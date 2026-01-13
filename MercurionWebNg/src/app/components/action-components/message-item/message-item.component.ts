@@ -128,7 +128,7 @@ export class MessageItemComponent {
     // - received: slate chiaro su white, slate scuro su dark
     if (sent) {
       return `
-        bg-light-accent-primary-hq text-white border-light-accent-primary-hc/70
+        bg-light-accent-primary text-white border-light-accent-primary-hc/70
         dark:bg-indigo-500 dark:text-white dark:border-indigo-400/60
       `;
     }

@@ -77,7 +77,7 @@ import { AppTitleService } from '../../services/app-title.service';
         (onDoingRollback)="triggerRenameRollback.set(false)"
       />
 
-      <div class="flex items-center justify-start sm:justify-end gap-3 w-full sm:w-auto">
+      <div class="flex flex-wrap items-center justify-start sm:justify-end gap-3 w-full sm:w-auto">
         <button
           (click)="doDuplicateCollection(colId())"
           type="button"
@@ -114,7 +114,7 @@ import { AppTitleService } from '../../services/app-title.service';
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto" aria-hidden="true">
             <path d="M336 112L336 96L304 96L304 304L96 304L96 336L304 336L304 544L336 544L336 336L544 336L544 304L336 304L336 112z"/>
           </svg>
-          <span class="hidden 2xs:inline">Aggiungi nuove molecole</span>
+          <span>Aggiungi nuove molecole</span>
         </button>
       </div>
     </div>

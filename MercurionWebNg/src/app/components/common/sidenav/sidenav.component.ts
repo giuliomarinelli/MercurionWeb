@@ -13,6 +13,7 @@ import { SelectionService } from '../../../services/selection.service';
 import { AddMoleculesToCollectionContextService } from '../../../services/context/action-context/add-molecules-to-collection-context.service';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 
+
 @Component({
   selector: 'm-sidenav',
   imports: [
@@ -52,8 +53,26 @@ import { ActionOverlayContextService } from '../../../services/context/action-co
       }
       @if (userContext.isLoggedIn()) {
         <!-- Macro Area Menu -->
-        <h6 class="detail">Funzionalità</h6>
-        <div>
+        <div class="flex items-center px-2 xl:px-0 cursor-pointer xl:cursor-default select-none" (click)="toggleFeatures()">
+          <h6 class="detail mb-0">Funzionalità</h6>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 640 640"
+            class="h-4 w-4 fill-current transition-transform duration-300 xl:hidden"
+            [class.rotate-180]="featuresOpen()"
+          >
+            <path d="M320.1 438.6L331.4 427.3L491.4 267.3L502.7 256L480.1 233.4L468.8 244.7L320.1 393.4L171.4 244.7L160.1 233.4L137.5 256L148.8 267.3L308.8 427.3L320.1 438.6z"/>
+          </svg>
+        </div>
+        <div
+          class="transition-[max-height,opacity] duration-300 ease-in-out overflow-hidden"
+          [class.max-h-0]="!featuresOpen() && designService.maxBk('xl')()"
+          [class.opacity-0]="!featuresOpen() && designService.maxBk('xl')()"
+          [class.max-h-[200vh]]="featuresOpen() || designService.minBk('xl')()"
+          [class.opacity-100]="featuresOpen() || designService.minBk('xl')()"
+          [class.lg:max-h-[200vh]]="true"
+          [class.lg:opacity-100]="true"
+        >
           <a class="sidebar-link" routerLink="molecules/all-my-molecules" (click)="handleMenuItemClick()"
               [class.bg-slate-300/65]="s.getActiveHeaderSelection('my-molecules')"
               [class.dark:bg-slate-700/80]="s.getActiveHeaderSelection('my-molecules')">
@@ -297,6 +316,7 @@ export class SidenavComponent implements OnInit, OnDestroy {
   isHistoryEmpty = signal<boolean>(false)
   triggerEmptyCheck = signal<boolean>(true)
   isWelcomePath = signal<boolean>(false)
+  featuresOpen = signal<boolean>(false)
 
   private delSub?: Subscription
   private routeSub?: Subscription
@@ -337,6 +357,11 @@ export class SidenavComponent implements OnInit, OnDestroy {
     this.delSub?.unsubscribe()
     this.routeSub?.unsubscribe()
     this.s.clearHeaderSelections()
+  }
+
+  toggleFeatures(): void {
+    if (this.designService.minBk('xl')()) return
+    this.featuresOpen.update(v => !v)
   }
 
   doDeleteHistory(): void {

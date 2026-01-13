@@ -32,7 +32,7 @@ import {
           (mouseenter)="onHover($index + 1)"
           (click)="set($index + 1)"
         >
-          <span class="relative inline-block w-[2rem] h-[2rem] text-[2rem]">
+          <span class="relative inline-block max-[348px]:w-[1.5rem] max-[348px]:h-[1.5rem] max-[348px]:text-[1.5rem] w-[2rem] h-[2rem] text-[2rem]">
             <span class="absolute inset-0 text-slate-500/60 dark:text-slate-400/40">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current">
                 <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
@@ -41,7 +41,7 @@ import {
             </span>
 
             <span
-              class="absolute inset-0 overflow-hidden text-light-accent-primary-hq dark:text-sky-300 drop-shadow-[0_0_10px_rgba(56,189,248,0.18)] transition-[width,transform,filter] duration-150 ease-out origin-[50%_60%]"
+              class="absolute inset-0 overflow-hidden text-light-accent-primary-hc dark:text-sky-300 drop-shadow-[0_0_10px_rgba(56,189,248,0.18)] transition-[width,transform,filter] duration-150 ease-out origin-[50%_60%]"
               [style.width.%]="fillPercentFor($index)"
               [class.scale-125]="$index === poppedIndex()"
               [class.drop-shadow-[0_0_18px_rgba(56,189,248,0.38)]]="$index === poppedIndex()"

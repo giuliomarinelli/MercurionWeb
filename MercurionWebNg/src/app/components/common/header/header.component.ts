@@ -93,11 +93,11 @@ import { AppContextService } from '../../../services/context/app-context.service
       <div
         class="hidden lg:flex items-center gap-3 text-sm xl:text-[0.925rem] font-medium text-light-on-surface-main dark:text-slate-100 tracking-wider mr-3 relative top-[1px]">
         <a routerLink="/login"
-          class="hover:text-light-accent-primary hover:dark:text-dark-accent-primary transition-colors duration-300">Accedi</a>
+          class="hover:text-light-accent-primary-hc hover:dark:text-dark-accent-primary transition-colors duration-300">Accedi</a>
         @if (!isRegisterPath()) {
         <span class="cursor-default text-slate-700 dark:text-slate-300">●</span>
         <a routerLink="/register"
-          class="hover:text-light-accent-primary hover:dark:text-dark-accent-primary transition-colors duration-300">Registrati</a>
+          class="hover:text-light-accent-primary-hc hover:dark:text-dark-accent-primary transition-colors duration-300">Registrati</a>
         }
       </div>
       }
@@ -391,7 +391,7 @@ import { AppContextService } from '../../../services/context/app-context.service
       <span class="text-lg">Mercurion</span>
     </div>
     <button
-      class="inline-flex items-center justify-center size-8 rounded-md text-slate-700 dark:text-slate-200 hover:text-light-accent-primary-hq hover:bg-slate-100 kark dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-light-accent-primary-hq focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-transparent transition"
+      class="inline-flex items-center justify-center size-8 rounded-md text-slate-700 dark:text-slate-200 hover:text-light-accent-primary-hc hover:bg-slate-100 kark dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-light-accent-primary-hq focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-transparent transition"
       (click)="closeOffCanvasMenu()">
       <svg
         xmlns="http://www.w3.org/2000/svg"

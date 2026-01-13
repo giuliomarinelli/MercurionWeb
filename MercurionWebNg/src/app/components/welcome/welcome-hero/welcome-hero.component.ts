@@ -6,7 +6,10 @@ import { RouterLink } from '@angular/router';
 @Component({
   selector: 'm-welcome-hero',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [PublicPipe, RouterLink],
+  imports: [
+    PublicPipe,
+    RouterLink
+  ],
   template: `
     <section
       id="top"
@@ -209,4 +212,4 @@ import { RouterLink } from '@angular/router';
     </section>
   `,
 })
-export class WelcomeHeroComponent {}
+export class WelcomeHeroComponent { }

@@ -46,7 +46,7 @@ import { TurnstileComponent } from '../../components/common/turnstile/turnstile.
             id="register-heading"
             class="text-2xl font-semibold text-light-accent-secondary dark:text-dark-accent-secondary text-center tracking-wider"
           >
-            Registrati a <span class="text-light-accent-primary-hq dark:text-dark-accent-primary">Mercurion</span>.
+            Registrati a <span class="text-light-accent-primary-hc dark:text-dark-accent-primary">Mercurion</span>.
           </h1>
         </div>
 
@@ -224,7 +224,7 @@ import { TurnstileComponent } from '../../components/common/turnstile/turnstile.
                 <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                 <path d="M320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM320 96C196.3 96 96 196.3 96 320C96 443.7 196.3 544 320 544C443.7 544 544 443.7 544 320C544 196.3 443.7 96 320 96zM438.3 236.5L428.9 249.4L300.9 425.4L289.9 440.6L201.3 352L223.9 329.4L286 391.5L403 230.7L412.4 217.8L438.3 236.6z"/>
               </svg>
-              <span><strong>La registrazione a Mercurion è avvenuta con successo!</strong> Un'e-mail di conferma è stata inviata a <strong class="text-light-accent-primary-hq dark:text-dark-accent-primary-btn-hc">{{obscuredEmail()}}</strong> con un link per attivare il tuo nuovo account.<br />
+              <span><strong>La registrazione a Mercurion è avvenuta con successo!</strong> Un'e-mail di conferma è stata inviata a <strong class="text-light-accent-primary-hc dark:text-dark-accent-primary-btn-hc">{{obscuredEmail()}}</strong> con un link per attivare il tuo nuovo account.<br />
                     Affrettati, il link vale soltanto 2 ore a partire da adesso, dopodiché il tuo account verrà cancellato automaticamente!
                     Sarà comunque necessario attivare il proprio account prima di poter fare il primo login.
               </span>

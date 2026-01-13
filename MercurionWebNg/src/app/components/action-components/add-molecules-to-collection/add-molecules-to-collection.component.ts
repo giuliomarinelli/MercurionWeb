@@ -89,6 +89,82 @@ export type ChipItem = {
     :host-context(.dark) .m-scroll-thin::-webkit-scrollbar-thumb:hover {
       background-color: #e2e8f0;
     }
+
+    /* Shared layout utilities for action components */
+    .m-ac-pad {
+      padding-left: 0.75rem;
+      padding-right: 0.75rem;
+    }
+    @media (min-width: 640px) {
+      .m-ac-pad {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+      }
+    }
+    .m-search-center {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+    }
+    @media (min-width: 640px) {
+      .m-search-center {
+        justify-content: flex-start;
+      }
+    }
+    .m-chip-stack {
+      height: 2.3rem;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-right: 0.5rem;
+    }
+    @media (min-width: 640px) {
+      .m-chip-stack {
+        height: auto;
+        max-height: 7rem;
+      }
+    }
+    .m-chip {
+      padding: 1px 4px;
+      font-size: 9px;
+      gap: 2px;
+      border-radius: 9999px;
+      line-height: 1.1;
+    }
+    .m-chip button {
+      width: 10px;
+      height: 10px;
+    }
+    @media (min-width: 640px) {
+      .m-chip {
+        padding: 6px 12px;
+        font-size: 14px;
+        gap: 8px;
+      }
+      .m-chip button {
+        width: 20px;
+        height: 20px;
+      }
+    }
+    .m-chip-text {
+      max-width: 6.5rem;
+    }
+    @media (min-width: 640px) {
+      .m-chip-text {
+        max-width: 16rem;
+      }
+    }
+    .m-chip-clear {
+      padding: 1px 5px;
+      font-size: 9px;
+      border-radius: 9999px;
+      line-height: 1.1;
+    }
+    @media (min-width: 640px) {
+      .m-chip-clear {
+        padding: 6px 12px;
+        font-size: 14px;
+      }
+    }
     `
   ],
   template: `
@@ -273,26 +349,28 @@ export type ChipItem = {
       @switch (method()) {
         @case ('my') {
           <div
-            #scrollRoot
-            class="py-6 px-3 overflow-y-auto flex flex-col gap-4 m-scroll-thin m-overscroll-touch m-overlay-body"
+          #scrollRoot
+            class="py-6 m-ac-pad overflow-y-auto flex flex-col gap-4 m-scroll-thin m-overscroll-touch m-overlay-body"
           >
             @switch (step()) {
               @case (1) {
-                <div class="px-3">
-                  <h2 class="font-semibold mb-3">
+                <div class="m-ac-pad space-y-3 sm:space-y-4">
+                  <h2 class="font-semibold text-center sm:text-left">
                     Scegli le molecole da aggiungere alla collezione:
                   </h2>
 
-                  <m-search-input
-                    class="block"
-                    [value]="searchTerm()"
-                    [useAltDarkStyle]="true"
-                    (valueChange)="doQuery($event)"
-                    (submitted)="doQuery($event)"
-                    (cleared)="doClear()"
-                  />
+                  <div class="m-search-center">
+                    <m-search-input
+                      class="block w-full max-w-[20rem] sm:max-w-none"
+                      [value]="searchTerm()"
+                      [useAltDarkStyle]="true"
+                      (valueChange)="doQuery($event)"
+                      (submitted)="doQuery($event)"
+                      (cleared)="doClear()"
+                    />
+                  </div>
 
-                  <div class="mt-6">
+                  <div class="pt-2 sm:pt-4">
                     @if (multiselectItems().length !== 0) {
                       <m-molecule-collection-item-select-card
                         class="block mb-6"
@@ -348,7 +426,7 @@ export type ChipItem = {
                 } @else {
                   <span
                     id="addMolStatus"
-                    class="text-light-accent-primary-hq dark:text-dark-accent-secondary"
+                    class="text-light-accent-primary-hc dark:text-dark-accent-secondary"
                     role="status"
                     aria-live="polite"
                   >
@@ -362,17 +440,20 @@ export type ChipItem = {
         @case ('chembl') {
           @switch (step()) {
             @case (1) {
-              <div class="py-4 px-3 flex flex-col gap-3 transition duration-150 m-overlay-body">
-                <div class="sticky top-0 z-10 bg-transparent pb-1">
-                  <div>Cerca su ChEMBL e seleziona:</div>
-                  <m-molecule-search-input
-                    [search_excludeAlreadyAdded]="true"
-                    (onLoading)="chemblLoading.set($event)"
-                    (onResult)="handleResults($event)"
-                    (onError)="handleError($event)"
-                    (onQuery)="onChemblQuery($event)"
-                    (onEmpty)="chemblEmpty.set(true)"
-                  />
+              <div class="py-4 m-ac-pad flex flex-col gap-3 transition duration-150 m-overlay-body">
+                <div class="sticky top-0 z-10 bg-transparent pb-2 space-y-2 text-center sm:text-left m-ac-pad">
+                  <div class="font-medium">Cerca su ChEMBL e seleziona:</div>
+                  <div class="m-search-center">
+                    <m-molecule-search-input
+                      class="block w-full max-w-[20rem] sm:max-w-none"
+                      [search_excludeAlreadyAdded]="true"
+                      (onLoading)="chemblLoading.set($event)"
+                      (onResult)="handleResults($event)"
+                      (onError)="handleError($event)"
+                      (onQuery)="onChemblQuery($event)"
+                      (onEmpty)="chemblEmpty.set(true)"
+                    />
+                  </div>
                 </div>
 
                 <div class="border-b min-h-24 relative">
@@ -387,7 +468,7 @@ export type ChipItem = {
                   }
 
                   <div
-                    class="relative flex flex-col xs:flex-row xs:flex-wrap items-start xs:items-center gap-2 xs:gap-3 py-3 max-h-32 overflow-y-auto m-scroll-thin m-overscroll-touch"
+                    class="relative flex flex-col xs:flex-row xs:flex-wrap items-start xs:items-center gap-1 sm:gap-3 py-1 sm:py-3 px-1 m-chip-stack m-scroll-thin m-overscroll-touch"
                     role="list"
                     aria-label="Molecole selezionate"
                     aria-live="polite"
@@ -395,21 +476,21 @@ export type ChipItem = {
                     @for (m of selectedMolecules; track m.id) {
                       <span
                         role="listitem"
-                        class="group inline-flex items-center gap-2 max-w-full
-                               rounded-full px-3 py-1.5
-                               bg-indigo-50 text-light-accent-primary-hq ring-1 ring-inset ring-light-accent-primary-hq/70
+                        class="group inline-flex items-center max-w-full m-chip
+                               rounded-full
+                               bg-indigo-50 text-light-accent-primary-hc ring-1 ring-inset ring-light-accent-primary-hq/70
                                dark:bg-indigo-500/20 dark:text-indigo-100 dark:ring-indigo-400/40
                                shadow-sm"
                         title="{{ m.name }}"
                       >
-                        <span class="truncate max-w-[16rem] text-sm font-medium">
+                        <span class="truncate m-chip-text text-[10px] sm:text-sm font-medium">
                           {{ m.name }}
                         </span>
 
                         <button
                           type="button"
                           (click)="removeChip(m.id)"
-                          class="shrink-0 inline-flex size-5 items-center justify-center rounded-full
+                          class="shrink-0 inline-flex items-center justify-center rounded-full
                                  hover:bg-indigo-100 dark:hover:bg-indigo-400/30
                                  focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1
                                  dark:focus:ring-offset-gray-900"
@@ -432,7 +513,7 @@ export type ChipItem = {
                       <button
                         type="button"
                         (click)="clearChips()"
-                        class="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm
+                        class="inline-flex items-center m-chip-clear gap-1 sm:gap-2 rounded-full
                                ring-1 ring-inset ring-indigo-300 text-indigo-700 hover:bg-indigo-50
                                dark:ring-indigo-400/40 dark:text-indigo-100 dark:hover:bg-indigo-500/20
                                focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1
@@ -502,7 +583,7 @@ export type ChipItem = {
                 } @else {
                   <span
                     id="addMolStatus"
-                    class="text-light-accent-primary-hq dark:text-dark-accent-secondary"
+                    class="text-light-accent-primary-hc dark:text-dark-accent-secondary"
                     role="status"
                     aria-live="polite"
                   >
@@ -539,14 +620,14 @@ export type ChipItem = {
       <button
         type="button"
         class="relative inline-flex items-center justify-center px-4 py-2 rounded-lg
-               bg-light-accent-primary-hq text-white font-semibold shadow-md
+               bg-light-accent-primary text-white font-semibold shadow-md
                hover:bg-light-accent-primary-hc
                dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary
                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq
                focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary
                dark:focus-visible:ring-offset-dark-surface-secondary
-               disabled:bg-light-accent-primary-hq/50 disabled:cursor-not-allowed
-               transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary-hq/50"
+               disabled:bg-light-accent-primary/50 disabled:cursor-not-allowed
+               transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary-hc/50"
         [disabled]="(isSelectedNothing() && this.method() === 'my') || (this.selectedIds.length === 0 && this.method() === 'chembl' || step_12_loading())"
         (click)="step() === 1 ? dispatchSubmit() : close()"
         [attr.aria-busy]="step_12_loading()"

@@ -106,7 +106,7 @@ import { AppContextService } from '../../../services/context/app-context.service
             </span>
           </h2>
           <button
-            class="inline-flex items-center justify-center size-8 rounded-md text-slate-700 dark:text-slate-200 hover:text-light-accent-primary-hq hover:dark:text-dark-accent-primary-btn-hc hover:bg-slate-100 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-light-accent-primary-hq focus:ring-offset-2 focus:dark:ring-dark-accent-primary-btn-hc focus:ring-offset-white dark:focus:ring-offset-transparent transition"
+            class="inline-flex items-center justify-center size-8 rounded-md text-slate-700 dark:text-slate-200 hover:text-light-accent-primary-hc hover:dark:text-dark-accent-primary-btn-hc hover:bg-slate-100 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-light-accent-primary-hq focus:ring-offset-2 focus:dark:ring-dark-accent-primary-btn-hc focus:ring-offset-white dark:focus:ring-offset-transparent transition"
             (click)="close()"
             aria-label="Chiudi dettaglio ticket"
           >
@@ -227,7 +227,7 @@ import { AppContextService } from '../../../services/context/app-context.service
                   type="button"
                   class="px-3 py-1.5 rounded-md border text-xs font-semibold
                          border-light-accent-primary-hq dark:border-indigo-400/60
-                         text-light-accent-primary-hq dark:text-indigo-200
+                         text-light-accent-primary-hc dark:text-indigo-200
                          hover:bg-light-accent-primary-hc/20 dark:hover:bg-indigo-900/20 transition"
                   (click)="reopenTicket()"
                   [attr.aria-disabled]="false"
