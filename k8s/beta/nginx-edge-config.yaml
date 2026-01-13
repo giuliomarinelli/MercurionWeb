@@ -23,7 +23,7 @@ data:
 
     # 1 = maintenance ON, 0 = OFF
     map $host $maintenance_mode {
-      default 1;
+      default 0;
       # quando vorrai spegnerla per un host:
       # mercurion.app 0;
       # beta.mercurion.app 0;
