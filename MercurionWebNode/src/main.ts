@@ -68,7 +68,7 @@ export async function bootstrap() {
   })
 
   app.useGlobalFilters(new HttpExceptionFilter(loggerFactory))
-  app.setGlobalPrefix('api', { exclude: ['/health', '/sitemap.xml', '/robots.txt'] })
+  app.setGlobalPrefix('api', { exclude: ['/health', '/sitemap.xml', '/robots.txt', '/og/mercurion-og.png'] })
 
 
   /**

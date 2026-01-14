@@ -1,6 +1,8 @@
 import { Controller, Get, Res } from '@nestjs/common';
 import { FastifyReply } from 'fastify';
+import { join } from 'path';
 import { Public } from 'src/metadata/metadata'
+import { existsSync, createReadStream } from 'fs'
 
 @Controller()
 export class AssetController {
@@ -31,7 +33,7 @@ export class AssetController {
             .header('Cache-Control', 'public, max-age=3600')
             .send(xml)
     }
-    
+
     @Public()
     @Get('/robots.txt')
     serveRobots(@Res() reply: FastifyReply) {
@@ -44,6 +46,31 @@ export class AssetController {
             .type('text/plain; charset=UTF-8')
             .header('Cache-Control', 'public, max-age=3600')
             .send(txt)
+    }
+
+    @Public()
+    @Get('/og/mercurion-og.png')
+    async serveOgImage(@Res() reply: FastifyReply) {
+
+        const filePath = join(
+            process.cwd(),
+            'assets-root',
+            'og',
+            'mercurion-og.png',
+        )
+
+        // opzionale: controllo esistenza
+        if (!existsSync(filePath)) {
+            reply.code(404)
+            return 'Not found'
+        }
+
+        const stream = createReadStream(filePath)
+
+        reply
+            .header('Content-Type', 'image/png')
+            .header('Cache-Control', 'public, max-age=604800')
+        return reply.send(stream)
     }
 
 }
