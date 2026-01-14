@@ -72,6 +72,11 @@ export class AuthService {
     return null
   }
 
+  private clearLoginCookies(): void {
+    ['__logged_in', '__logged_in_'].forEach(name => {
+      document.cookie = `${name}=; Max-Age=0; path=/`
+    })
+  }
 
   /* ───────── Broadcast cross-tab (già esistenti) ───────── */
 
@@ -232,6 +237,7 @@ export class AuthService {
   }
 
   public logout(): Observable<void> {
+    this.clearLoginCookies();
     localStorage?.getItem('login') && localStorage?.removeItem('login');
     this.setAccessToken(null);
     this.setWs_accessToken(null);
