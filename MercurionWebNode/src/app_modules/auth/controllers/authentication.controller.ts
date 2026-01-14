@@ -249,6 +249,7 @@ export class AuthenticationController {
             // pass
         }
         this.secureCookieService.clearCookie(reply, '__node_session_id')
+        this.secureCookieService.clearCookie(reply, '__logged_in')
         reply.clearCookie('__logged_in')
     }
 
@@ -261,6 +262,7 @@ export class AuthenticationController {
     ): Promise<ConfirmDTO> {
         await this.sessionService.destroySessionAndRevokeAllTokensBySignedSessionId(signedSessionId, userId)
         this.secureCookieService.clearCookie(reply, '__node_session_id')
+        this.secureCookieService.clearCookie(reply, '__logged_in')
         return this._r.ok('Action performed successfully')
     }
 
@@ -271,6 +273,7 @@ export class AuthenticationController {
     ): Promise<ConfirmDTO> {
         await this.sessionService.destroyAllSessionsAndRevokeAllTokensByUserId(userId)
         this.secureCookieService.clearCookie(reply, '__node_session_id')
+        this.secureCookieService.clearCookie(reply, '__logged_in')
         return this._r.ok('Action performed successfully')
     }
 
