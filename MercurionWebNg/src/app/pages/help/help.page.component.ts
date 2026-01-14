@@ -102,7 +102,7 @@ import { GqlV2Error } from '../../services/graphql/graphql-helpers/v2/gql-v2.err
         }
       } @else if (empty() && (earlyDone)) {
         <p class="relative -top-8 text-slate-700 dark:text-slate-200" role="status" aria-live="polite">
-          Non sono ancora presenti ticket&nbsp;<button class="a" type="button" aria-label="Apri adesso il tuo primo ticket">Apri adesso il tuo primo ticket</button>
+          Non sono ancora presenti ticket&nbsp;<button class="a" type="button" aria-label="Apri adesso il tuo primo ticket" (click)="newTicket()">Apri adesso il tuo primo ticket</button>
         </p>
       }
     </main>
