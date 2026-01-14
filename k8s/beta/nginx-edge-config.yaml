@@ -117,6 +117,48 @@ data:
         expires 7d;
       }
 
+      # ============================
+      # ROOT PUBLIC (robots + sitemap + health)
+      # ============================
+
+      location = /robots.txt {
+        proxy_pass http://mercurion-web-node:8098/robots.txt;
+        proxy_http_version 1.1;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_read_timeout 15s;
+      }
+
+      location = /sitemap.xml {
+        proxy_pass http://mercurion-web-node:8098/sitemap.xml;
+        proxy_http_version 1.1;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_read_timeout 15s;
+      }
+
+      # opzionale: se vuoi /health al root (tu ora escludi /health dal globalPrefix)
+      location = /health {
+        proxy_pass http://mercurion-web-node:8098/health;
+        proxy_http_version 1.1;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_read_timeout 15s;
+      }
+
+
       location ^~ /fonts/ {
         root /usr/share/nginx/html/mercurion-errors;
         access_log off;
@@ -222,7 +264,7 @@ data:
       }
 
       location = /m {
-        return 302 $scheme://$http_host/m/;
+        return 301 $scheme://$http_host/m/;
       }
 
       location ^~ /m/ {
@@ -235,6 +277,6 @@ data:
       }
 
       location = / {
-        return 302 $scheme://$http_host/m/;
+        return 301 $scheme://$http_host/m/;
       }
     }
