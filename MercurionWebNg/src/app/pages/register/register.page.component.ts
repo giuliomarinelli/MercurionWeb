@@ -173,9 +173,9 @@ import { TurnstileComponent } from '../../components/common/turnstile/turnstile.
                   </svg>
 
                   <span id="accept-terms-description" class="inline-block text-sm font-medium text-gray-900 dark:text-white tracking-wider">
-                    Dichiaro di aver letto e di accettare l'
-                    <a class="a" routerLink="/privacy">Informativa sulla Privacy</a>,
-                    i <a class="a" routerLink="/terms-and-policies">Termini di Servizio</a>
+                    Dichiaro di aver letto e di accettare l'<br />
+                    <a class="a" routerLink="/privacy">Informativa sulla Privacy</a>,<br />
+                    i <a class="a" routerLink="/terms-and-policies">Termini di Servizio</a><br />
                     e la <a class="a" routerLink="/terms-and-policies" fragment="aup">Politica di Utilizzo Accettabile</a>.
                   </span>
                 </label>
