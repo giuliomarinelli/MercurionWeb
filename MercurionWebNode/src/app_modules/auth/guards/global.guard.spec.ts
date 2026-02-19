@@ -5,6 +5,7 @@ import { JwtToolsService } from '../services/jwt-tools.service';
 import { SessionService } from '../services/session.service';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { ScopeService } from '../services/scope.service';
+import { SecureCookieService } from '../services/secure-cookie.service';
 
 describe('GlobalGuard', () => {
   let guard: GlobalGuard;
@@ -17,6 +18,7 @@ describe('GlobalGuard', () => {
         { provide: SessionService, useValue: {} },
         { provide: Reflector, useValue: { get: jest.fn() } },
         { provide: ScopeService, useValue: { scopeVerificationLayer: jest.fn() } },
+        { provide: SecureCookieService, useValue: {} },
         { provide: MeiliLoggerService, useValue: { forContext: jest.fn().mockReturnValue({ log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() }) } },
       ],
     }).compile();
