@@ -258,11 +258,15 @@ export class AuthenticationController {
     public async logoutFromSession(
         @AuthenticatedUserId() userId: UUID,
         @Body(new ValidationPipe({ transform: true })) { signedSessionId }: SignedSessionIdDTO,
+        @SessionId() currentSessionId: UUID,
         @Res({ passthrough: true }) reply: FastifyReply
     ): Promise<ConfirmDTO> {
         await this.sessionService.destroySessionAndRevokeAllTokensBySignedSessionId(signedSessionId, userId)
-        this.secureCookieService.clearCookie(reply, '__node_session_id')
-        this.secureCookieService.clearCookie(reply, '__logged_in')
+        const [targetSessionId] = signedSessionId.split('.')
+        if (targetSessionId === currentSessionId) {
+            this.secureCookieService.clearCookie(reply, '__node_session_id')
+            this.secureCookieService.clearCookie(reply, '__logged_in')
+        }
         return this._r.ok('Action performed successfully')
     }
 
