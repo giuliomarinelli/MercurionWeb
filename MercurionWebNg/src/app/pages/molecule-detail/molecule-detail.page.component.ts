@@ -75,6 +75,19 @@ import { DesignService } from '../../services/design.service'
           }
         }
 
+        <p class="flex gap-4 items-center font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary mt-6 mb-4 text-center sm:text-left text-xl">
+          <span>Canonical smiles</span>
+          <span class="text-sm text-neutral-950 dark:text-slate-200">
+            @if (typeGuards.isSystemMolecule(molecule)) {
+              {{molecule.canonicalSmiles}}
+            } @else if (typeGuards.isChemblMolecule(molecule)) {
+              {{molecule.chemblDetails.canonicalSmiles}}
+            } @else if (typeGuards.isCustomMolecule(molecule)) {
+              {{molecule.canonicalSmiles}}
+            }
+          </span>
+        </p>
+
         @if (typeGuards.isSystemMolecule(molecule)) {
           <m-molecule-header [nameInput]="molecule.preferredNameIt" [chemblIdInput]="molecule.cmbId"
             [molId]="molecule.id.toString()" [isSystemMolecule]="true" [smiles]="molecule.canonicalSmiles" [isLoggedIn]="userContext.isLoggedIn()"
