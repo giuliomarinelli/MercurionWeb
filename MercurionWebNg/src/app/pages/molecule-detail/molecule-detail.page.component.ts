@@ -75,18 +75,7 @@ import { DesignService } from '../../services/design.service'
           }
         }
 
-        <p class="flex gap-4 items-center font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary mt-6 mb-4 text-center sm:text-left text-xl">
-          <span>Canonical smiles</span>
-          <span class="text-sm text-neutral-950 dark:text-slate-200">
-            @if (typeGuards.isSystemMolecule(molecule)) {
-              {{molecule.canonicalSmiles}}
-            } @else if (typeGuards.isChemblMolecule(molecule)) {
-              {{molecule.chemblDetails.canonicalSmiles}}
-            } @else if (typeGuards.isCustomMolecule(molecule)) {
-              {{molecule.canonicalSmiles}}
-            }
-          </span>
-        </p>
+
 
         @if (typeGuards.isSystemMolecule(molecule)) {
           <m-molecule-header [nameInput]="molecule.preferredNameIt" [chemblIdInput]="molecule.cmbId"
@@ -104,6 +93,18 @@ import { DesignService } from '../../services/design.service'
             (onAddToCollection)="doAddToManyCollections()" />
         }
         <section class="relative -top-4">
+           <p class="flex gap-4 items-center font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary mt-6 mb-4 text-center sm:text-left text-xl">
+            <span class="shrink-0">Canonical smiles</span>
+            <span class="shrink-0 text-sm text-neutral-950 dark:text-slate-200">
+              @if (typeGuards.isSystemMolecule(molecule)) {
+                {{molecule.canonicalSmiles}}
+              } @else if (typeGuards.isChemblMolecule(molecule)) {
+                {{molecule.chemblDetails.canonicalSmiles}}
+              } @else if (typeGuards.isCustomMolecule(molecule)) {
+                {{molecule.canonicalSmiles}}
+              }
+            </span>
+          </p>
           <h2
             class="flex gap-3 items-center justify-center sm:justify-start font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary mt-6 mb-4 text-center sm:text-left text-xl">
             <span>Struttura</span>
