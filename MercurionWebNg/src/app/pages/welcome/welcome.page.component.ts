@@ -39,12 +39,12 @@ import { DesignService } from '../../services/design.service'
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
-      background-image: url('/m/welcome/bg-light.jpg');
+      background-image: url('/welcome/bg-light.jpg');
     }
 
     /* Variante dark: cambia solo l'immagine */
     :host-context(.dark) .mercurion-bg-layer {
-      background-image: url('/m/welcome/bg-dark.jpg');
+      background-image: url('/welcome/bg-dark.jpg');
     }
 
     /* Velo leggero per aumentare il contrasto del contenuto */

@@ -5,7 +5,18 @@
   <meta charset="utf-8" />
 
   <title>Mercurion</title>
-  <base href="/m/" />
+  <base href="/" />
+
+  <!-- Compatibilità transitoria per i redirect / -> /m/ già memorizzati dai client. -->
+  <script>
+    (() => {
+      const { pathname, search, hash } = window.location
+      if (pathname === '/m' || pathname.startsWith('/m/')) {
+        const normalizedPath = pathname.slice(2) || '/'
+        window.history.replaceState(window.history.state, '', `${normalizedPath}${search}${hash}`)
+      }
+    })()
+  </script>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 

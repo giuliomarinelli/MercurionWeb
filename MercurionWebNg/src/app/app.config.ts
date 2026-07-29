@@ -34,7 +34,7 @@ export const appConfig: ApplicationConfig = {
     }),
     {
       provide: APP_BASE_HREF,
-      useValue: '/m'
+      useValue: '/'
     },
     provideAnimations(), // @angular/animations è deprecato dalla v20.2, pacchetto legacy che verrà ritirato a novembre 2026 => usare enter/leave + CSS come nuova alternativa
     importProvidersFrom(NgxSpinnerModule),

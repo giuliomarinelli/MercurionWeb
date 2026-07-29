@@ -41,10 +41,19 @@ data:
       default 0;
 
       # endpoint che setta il cookie di bypass (/api/admin/maintenance?t=...)
-      ~^/api/admin/maintenance 1;
+      ~^/api/admin/maintenance(?:/|$) 1;
 
-      # route Angular che fa lo scambio token -> cookie
-      ~^/m/admin/maintenance 1;
+      # route Angular che fa lo scambio token -> cookie. La variante /m resta
+      # durante il rollout per i client con il vecchio redirect in cache.
+      ~^/admin/maintenance(?:/|$) 1;
+      ~^/m/admin/maintenance(?:/|$) 1;
+
+      # Le pagine/risorse di errore devono poter completare una risposta 503
+      # senza rientrare nel gate; well-known resta riservato anche in maintenance.
+      ~^/errors/ 1;
+      ~^/_edge-errors/ 1;
+      ~^/\.well-known(?:/|$) 1;
+      /health 1;
 
       # TUTTI GLI ASSET STATICI (path; la querystring non conta qui)
       ~*\.(js|css|png|jpe?g|svg|ico|webp|gif|woff2?|ttf|eot|map|webmanifest|json)$ 1;
@@ -111,10 +120,36 @@ data:
       # ============================
       # PUBLIC STATIC ASSETS (ERROR PAGES)
       # ============================
-      location ~* ^/(main-[A-Z0-9]+\.js|styles-[A-Z0-9]+\.css)$ {
-        root /usr/share/nginx/html/mercurion-errors;
+      # Gli asset della SPA ora vivono alla root (main/styles/fonts/favicon/logo).
+      # Le pagine di errore usano quindi un namespace separato, così i due build
+      # non possono intercettarsi a vicenda.
+      location ^~ /_edge-errors/ {
+        alias /usr/share/nginx/html/mercurion-errors/;
         access_log off;
         expires 7d;
+
+        sub_filter_once off;
+        sub_filter_types text/css application/manifest+json application/json;
+        sub_filter 'url(/fonts/' 'url(/_edge-errors/fonts/';
+        sub_filter 'url(../fonts/' 'url(/_edge-errors/fonts/';
+        sub_filter 'url(/logo/' 'url(/_edge-errors/logo/';
+        sub_filter 'url(../logo/' 'url(/_edge-errors/logo/';
+        sub_filter '"/favicon/' '"/_edge-errors/favicon/';
+        sub_filter '"/logo/' '"/_edge-errors/logo/';
+        sub_filter 'href="../favicon/' 'href="/_edge-errors/favicon/';
+        sub_filter 'src="../favicon/' 'src="/_edge-errors/favicon/';
+        sub_filter 'href="../logo/' 'href="/_edge-errors/logo/';
+        sub_filter 'src="../logo/' 'src="/_edge-errors/logo/';
+      }
+
+      # Namespace riservato: finché non vengono configurati endpoint well-known
+      # espliciti, non deve mai cadere nel fallback HTML della SPA.
+      location = /.well-known {
+        return 404;
+      }
+
+      location ^~ /.well-known/ {
+        return 404;
       }
 
       # ============================
@@ -170,34 +205,12 @@ data:
         proxy_read_timeout 15s;
       }
 
-
-      location ^~ /fonts/ {
-        root /usr/share/nginx/html/mercurion-errors;
-        access_log off;
-        expires 30d;
-        try_files $uri =404;
-      }
-
-      # favicon "directory"
-      location ^~ /favicon/ {
-        root /usr/share/nginx/html/mercurion-errors;
-        access_log off;
-        expires 30d;
-        try_files $uri =404;
-      }
-
-      # favicon classica /favicon.ico -> cartella favicon della landing
+      # La favicon classica resta una risorsa root esatta; /favicon/ appartiene
+      # invece alla SPA e viene gestita dal catch-all più sotto.
       location = /favicon.ico {
-        alias /usr/share/nginx/html/mercurion-errors/favicon/favicon.ico;
+        alias /usr/share/nginx/html/mercurion-errors/favicon/favicon-light-theme.ico;
         access_log off;
         expires 30d;
-      }
-
-      location ^~ /logo/ {
-        root /usr/share/nginx/html/mercurion-errors;
-        access_log off;
-        expires 30d;
-        try_files $uri =404;
       }
 
       # ============================
@@ -212,14 +225,37 @@ data:
 
       location ^~ /errors/ {
         alias /usr/share/nginx/html/mercurion-errors/;
-        try_files $uri $uri/ =500;
+        try_files $uri $uri/ /_edge-error-fallback.html;
+        internal;
+
+        # Rende assoluti e isolati gli asset del documento servito tramite
+        # error_page, indipendentemente dall'URL originale che ha fallito.
+        sub_filter_once off;
+        sub_filter '<base href="../">' '<base href="/_edge-errors/">';
+        sub_filter 'url(/fonts/' 'url(/_edge-errors/fonts/';
+        sub_filter 'url(../fonts/' 'url(/_edge-errors/fonts/';
+        sub_filter 'url(/logo/' 'url(/_edge-errors/logo/';
+        sub_filter 'url(../logo/' 'url(/_edge-errors/logo/';
+        sub_filter 'href="../favicon/' 'href="/_edge-errors/favicon/';
+        sub_filter 'src="../favicon/' 'src="/_edge-errors/favicon/';
+        sub_filter 'href="../logo/' 'href="/_edge-errors/logo/';
+        sub_filter 'src="../logo/' 'src="/_edge-errors/logo/';
+      }
+
+      # Mantiene lo status originale se la landing di errore non è disponibile.
+      location = /_edge-error-fallback.html {
+        alias /usr/share/nginx/html/50x.html;
         internal;
       }
 
       # ============================
       # WebSocket NestJS
       # ============================
-      location /socket.io/ {
+      location = /socket.io {
+        return 308 /socket.io/$is_args$args;
+      }
+
+      location ^~ /socket.io/ {
         proxy_pass http://mercurion-web-node:8098/socket.io/;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
@@ -239,6 +275,10 @@ data:
       # ============================
       # API NestJS
       # ============================
+      location = /api {
+        return 308 /api/$is_args$args;
+      }
+
       location ^~ /api/ {
         proxy_pass http://mercurion-web-node:8098;
         proxy_http_version 1.1;
@@ -259,7 +299,11 @@ data:
       # ============================
       # Angular SPA (Ketcher + main)
       # ============================
-      location ^~ /m/ketcher/ {
+      location = /ketcher {
+        return 308 /ketcher/$is_args$args;
+      }
+
+      location ^~ /ketcher/ {
         if ($ketcher_allowed = 0) {
           return 403;
         }
@@ -275,12 +319,31 @@ data:
         add_header Referrer-Policy no-referrer always;
       }
 
-      location = /m {
-        return 301 $scheme://$http_host/m/;
+      # Compatibilità di rollout per client che hanno memorizzato il vecchio
+      # 301 "/ -> /m/": nessun redirect HTTP verso la root. Il prefisso viene
+      # tolto solo verso l'upstream; il bootstrap SPA normalizza poi l'URL.
+      location = /m/ketcher {
+        return 308 /m/ketcher/$is_args$args;
       }
 
-      location ^~ /m/ {
-        proxy_pass http://mercurion-web-ng:3497;
+      location ^~ /m/ketcher/ {
+        if ($ketcher_allowed = 0) {
+          return 403;
+        }
+        proxy_pass http://mercurion-web-ng:3497/ketcher/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $http_host;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_redirect off;
+        add_header X-Frame-Options SAMEORIGIN always;
+        add_header Content-Security-Policy "frame-ancestors 'self';" always;
+        add_header X-Content-Type-Options nosniff always;
+        add_header Referrer-Policy no-referrer always;
+      }
+
+      location = /m {
+        proxy_pass http://mercurion-web-ng:3497/;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header Upgrade $http_upgrade;
@@ -288,7 +351,23 @@ data:
         proxy_redirect off;
       }
 
-      location = / {
-        return 301 $scheme://$http_host/m/;
+      location ^~ /m/ {
+        proxy_pass http://mercurion-web-ng:3497/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_redirect off;
+      }
+
+      # Tutto ciò che non appartiene ai namespace riservati sopra è una route
+      # o una risorsa statica della SPA.
+      location / {
+        proxy_pass http://mercurion-web-ng:3497;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_redirect off;
       }
     }

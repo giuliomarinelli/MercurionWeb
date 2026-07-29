@@ -18,8 +18,8 @@ COPY src ./src
 COPY public ./public
 COPY tailwind.config.js ./
 
-# build in configurazione "staging" (baseHref /m/)
-RUN npm run build -- --configuration staging
+# build in configurazione "staging" (baseHref /)
+RUN npx ng build --configuration=staging
 
 # ====== STAGE 2: Nginx statico ======
 FROM nginx:1.27-alpine
@@ -31,9 +31,8 @@ LABEL org.opencontainers.image.version=$APP_VERSION
 WORKDIR /usr/share/nginx/html
 RUN rm -rf ./*
 
-# La SPA vive in /m
-RUN mkdir -p m
-COPY --from=build /app/dist/mercurion-web-ng/browser/ ./m/
+# La SPA vive nella document root
+COPY --from=build /app/dist/mercurion-web-ng/browser/ ./
 
 # Config dedicata per lo stage "staging"
 COPY nginx.mercurion_web_ng.staging.conf /etc/nginx/conf.d/default.conf

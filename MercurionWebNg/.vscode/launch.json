@@ -6,7 +6,7 @@
       "name": "ng serve",
       "type": "chrome",
       "request": "attach",
-      "url": "http://localhost:8888/app/"
+      "url": "http://localhost:8888/"
     },
     {
       "name": "ng test",

@@ -13,19 +13,18 @@ export class AssetController {
         const xml =
             `<?xml version="1.0" encoding="UTF-8"?>` +
             `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">` +
-            `<url><loc>https://mercurion.app</loc></url>` +
-            `<url><loc>https://mercurion.app/m/</loc></url>` +
-            `<url><loc>https://mercurion.app/m/login</loc></url>` +
-            `<url><loc>https://mercurion.app/m/register</loc></url>` +
-            `<url><loc>https://mercurion.app/m/forgot</loc></url>` +
-            `<url><loc>https://mercurion.app/m/forgot-password</loc></url>` +
-            `<url><loc>https://mercurion.app/m/account-recovery</loc></url>` +
-            `<url><loc>https://mercurion.app/m/welcome</loc></url>` +
-            `<url><loc>https://mercurion.app/m/privacy</loc></url>` +
-            `<url><loc>https://mercurion.app/m/terms-and-policies</loc></url>` +
-            `<url><loc>https://mercurion.app/m/contacts</loc></url>` +
-            `<url><loc>https://mercurion.app/m/403-forbidden</loc></url>` +
-            `<url><loc>https://mercurion.app/m/404-not-found</loc></url>` +
+            `<url><loc>https://mercurion.app/</loc></url>` +
+            `<url><loc>https://mercurion.app/login</loc></url>` +
+            `<url><loc>https://mercurion.app/register</loc></url>` +
+            `<url><loc>https://mercurion.app/forgot</loc></url>` +
+            `<url><loc>https://mercurion.app/forgot-password</loc></url>` +
+            `<url><loc>https://mercurion.app/account-recovery</loc></url>` +
+            `<url><loc>https://mercurion.app/welcome</loc></url>` +
+            `<url><loc>https://mercurion.app/privacy</loc></url>` +
+            `<url><loc>https://mercurion.app/terms-and-policies</loc></url>` +
+            `<url><loc>https://mercurion.app/contacts</loc></url>` +
+            `<url><loc>https://mercurion.app/403-forbidden</loc></url>` +
+            `<url><loc>https://mercurion.app/404-not-found</loc></url>` +
             `</urlset>`
 
         return reply

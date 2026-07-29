@@ -23,6 +23,8 @@
             "polyfills": ["zone.js"],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "css",
+            "baseHref": "/",
+            "deployUrl": "/",
             "assets": [
               {
                 "glob": "**/*",
@@ -88,9 +90,7 @@
                   "replace": "src/environments/environment.ts",
                   "with": "src/environments/environment.testing.ts"
                 }
-              ],
-              "baseHref": "/m/",
-              "deployUrl": "/m/"
+              ]
             },
             "staging": {
               "optimization": true,
@@ -101,9 +101,7 @@
                   "replace": "src/environments/environment.ts",
                   "with": "src/environments/environment.staging.ts"
                 }
-              ],
-              "baseHref": "/m/",
-              "deployUrl": "/m/"
+              ]
             }
           },
           "defaultConfiguration": "production"

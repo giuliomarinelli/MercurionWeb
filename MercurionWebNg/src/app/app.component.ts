@@ -197,14 +197,21 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
     void this.sessionSync.syncSession()
 
+    // Compatibilità transitoria per redirect_to salvati quando la SPA viveva sotto /m.
+    const stripLegacyBasePath = (raw: string): string => {
+      if (raw === '/m') return '/'
+      if (raw.startsWith('/m/')) return raw.slice(2)
+      if (raw.startsWith('/m?') || raw.startsWith('/m#')) return `/${raw.slice(2)}`
+      return raw
+    }
+
     const normalize = (raw: string): string => {
       if (!raw) return ''
       const qIdx = raw.indexOf('?')
       if (qIdx >= 0) raw = raw.slice(0, qIdx)
       const hIdx = raw.indexOf('#')
       if (hIdx >= 0) raw = raw.slice(0, hIdx)
-      if (raw.startsWith('/m/')) raw = raw.slice(4)
-      else if (raw === '/m') raw = '/'
+      raw = stripLegacyBasePath(raw)
       if (raw.length > 1 && raw.endsWith('/')) raw = raw.slice(0, -1)
       return raw
     }
@@ -221,7 +228,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         if (!trimmed) return null
         if (!trimmed.startsWith('/')) return null
         if (trimmed.startsWith('//')) return null
-        return trimmed
+        return stripLegacyBasePath(trimmed)
       } catch {
         return null
       }
@@ -239,8 +246,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
       let full = this.router.url || '/'
       if (!full.startsWith('/')) full = `/${full}`
-      if (full === '/m') full = '/'
-      else if (full.startsWith('/m/')) full = full.slice(2)
+      full = stripLegacyBasePath(full)
 
       const clean = normalize(full).toLowerCase()
       if (clean === '/welcome' || clean.startsWith('/welcome/')) return '/welcome'

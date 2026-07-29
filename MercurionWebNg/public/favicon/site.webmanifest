@@ -1,6 +1,8 @@
 {
   "name": "Mercurion",
   "short_name": "Mercurion",
+  "start_url": "/",
+  "scope": "/",
   "icons": [
     {
       "src": "/favicon/web-app-manifest-192x192.png",
