@@ -20,9 +20,62 @@
   <noscript>You need to enable JavaScript to run this app.</noscript>
   <div id="root"></div>
   <script>
+    (function () {
+      const isMobile = matchMedia('(pointer: coarse)').matches;
+      if (!isMobile) return;
+
+      const SEL = 'textarea[class*="cliparea"], textarea[class*="cliparea-module"], textarea[class*="clipArea"]';
+
+      function neuter(el) {
+        if (!(el instanceof HTMLTextAreaElement)) return;
+
+        // disinnesca la tastiera
+        el.setAttribute('readonly', 'true');
+        el.setAttribute('inputmode', 'none');
+        el.setAttribute('tabindex', '-1');
+        el.setAttribute('aria-hidden', 'true');
+        el.style.caretColor = 'transparent';
+
+        // ⚠️ kill-switch: se la lib chiama el.focus(), non succede niente
+        try { el.focus = function () { }; } catch { }
+        el.blur();
+      }
+
+      function patchAll() {
+        document.querySelectorAll(SEL).forEach(neuter);
+      }
+
+      // patch immediata + patch se viene ricreata
+      patchAll();
+      new MutationObserver(patchAll).observe(document.documentElement, { childList: true, subtree: true });
+
+      // se comunque entra focus, lo buttiamo fuori
+      document.addEventListener('focusin', (e) => {
+        const t = e.target;
+        if (t instanceof HTMLTextAreaElement && /cliparea/i.test(t.className)) {
+          e.stopImmediatePropagation();
+          t.blur();
+        }
+      }, true);
+
+      // EXTRA: blocca focus programmatico solo per cliparea (senza rompere altri input eventuali)
+      const orig = HTMLElement.prototype.focus;
+      HTMLElement.prototype.focus = function (...args) {
+        if (this instanceof HTMLTextAreaElement && /cliparea/i.test(this.className)) return;
+        return orig.apply(this, args);
+      };
+    })();
+  </script>
+
+  <script>
+
+    if (matchMedia('(pointer: coarse)').matches) {
+      document.body.removeAttribute('contenteditable');
+      document.documentElement.removeAttribute('contenteditable');
+    }
 
     if (window.top === window.self) {
-      window.location.href = '/m/'
+      window.location.href = '/'
     }
 
     let lastSmiles = ""

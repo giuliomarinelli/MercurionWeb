@@ -20,8 +20,8 @@ export class SocialProviderRegistry {
     ) {
         this.map = {
             [AuthProvider.Google]: google,
-            [AuthProvider.GitHub]: github,                   
-            [AuthProvider.LinkedIn]: linkedIn,
+            [AuthProvider.GitHub]: null,                   
+            [AuthProvider.LinkedIn]: null,
             [AuthProvider.Discord]: discord,
             [AuthProvider.Mercurion]: null
         }

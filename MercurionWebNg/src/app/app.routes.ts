@@ -1,14 +1,17 @@
 import { Routes } from '@angular/router'
-import { AuthGuard } from './guards/auth-guard.guard'
+import { AuthGuard } from './guards/auth.guard'
 
 export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
     title: '',
-    loadComponent: () =>
-      import('./components/common/redirect-to-login-component/redirect-to-login.component')
-        .then((m) => m.RedirectToLoginComponent) // ok
+    redirectTo: '/welcome'
+  },
+  {
+    path: 'welcome',
+    title: 'Next Generation Chemistry Platform',
+    loadComponent: () => import('./pages/welcome/welcome.page.component').then((m) => m.WelcomePageComponent)
   },
   {
     path: 'login',
@@ -160,6 +163,10 @@ export const routes: Routes = [
     path: 'contacts',
     title: 'Contatti',
     loadComponent: () => import('./pages/contacts/contacts.page.component').then((m) => m.ContactsPageComponent) // ok
+  },
+  {
+    path: 'admin/maintenance/:token',
+    loadComponent: () => import('./pages/admin-exchange-page/admin-exchange.page.component').then((m) => m.AdminExchangePageComponent)
   },
   {
     path: '**',

@@ -37,6 +37,7 @@ import { BindCollectionsToMoleculeContextService } from '../../services/context/
 import { HttpErrorResponse } from '@angular/common/http'
 import { HttpErrorBody as HttpErrorBody } from '../../Models/http-error-body.dto'
 import { AppTitleService } from '../../services/app-title.service'
+import { DesignService } from '../../services/design.service'
 
 
 
@@ -74,6 +75,8 @@ import { AppTitleService } from '../../services/app-title.service'
           }
         }
 
+
+
         @if (typeGuards.isSystemMolecule(molecule)) {
           <m-molecule-header [nameInput]="molecule.preferredNameIt" [chemblIdInput]="molecule.cmbId"
             [molId]="molecule.id.toString()" [isSystemMolecule]="true" [smiles]="molecule.canonicalSmiles" [isLoggedIn]="userContext.isLoggedIn()"
@@ -90,8 +93,20 @@ import { AppTitleService } from '../../services/app-title.service'
             (onAddToCollection)="doAddToManyCollections()" />
         }
         <section class="relative -top-4">
+           <p class="flex gap-4 items-center font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary mt-6 mb-4 text-center sm:text-left text-xl">
+            <span class="shrink-0">Canonical smiles</span>
+            <span class="shrink-0 text-sm text-neutral-950 dark:text-slate-200">
+              @if (typeGuards.isSystemMolecule(molecule)) {
+                {{molecule.canonicalSmiles}}
+              } @else if (typeGuards.isChemblMolecule(molecule)) {
+                {{molecule.chemblDetails.canonicalSmiles}}
+              } @else if (typeGuards.isCustomMolecule(molecule)) {
+                {{molecule.canonicalSmiles}}
+              }
+            </span>
+          </p>
           <h2
-            class="flex gap-3 items-center font-semibold text-light-accent-primary-hq dark:text-dark-accent-primary mt-6 mb-4 text-center sm:text-left text-xl">
+            class="flex gap-3 items-center justify-center sm:justify-start font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary mt-6 mb-4 text-center sm:text-left text-xl">
             <span>Struttura</span>
             @if (typeGuards.isCustomMolecule(molecule)) {
             <a class="cursor-pointer transition-colors duration-300 hover:transform hover:scale-[1.05]" title="Modifica Struttura"
@@ -160,7 +175,7 @@ import { AppTitleService } from '../../services/app-title.service'
           }
           @if (!typeGuards.isSystemMolecule(molecule) && molecule.joins) {
             <h2
-              class="font-semibold mt-8 mb-3 sm:top-14 text-light-accent-primary-hq dark:text-dark-accent-primary text-center sm:text-left text-xl">
+              class="font-semibold mt-8 mb-3 sm:top-14 text-light-accent-primary-hc dark:text-dark-accent-primary text-center sm:text-left text-xl">
               Questa molecola fa parte delle seguenti collezioni:
             </h2>
             <section class="rounded-md border border-slate-300 dark:border-slate-600">
@@ -170,7 +185,7 @@ import { AppTitleService } from '../../services/app-title.service'
         </section>
         @if (typeGuards.isSystemMolecule(molecule) || typeGuards.isChemblMolecule(molecule)) {
           <h2
-            class="font-semibold relative top-8 sm:top-14 text-light-accent-primary-hq dark:text-dark-accent-primary text-center sm:text-left text-xl"
+            class="font-semibold relative top-10 sm:top-14 text-light-accent-primary-hc dark:text-dark-accent-primary text-center sm:text-left text-xl"
             style="margin-block-start: -38px">
             Analoghi suggeriti
           </h2>
@@ -235,7 +250,11 @@ import { AppTitleService } from '../../services/app-title.service'
         </section>
         } @else {
         <section class="w-5xl mx-auto h-full flex justify-center items-center" role="main" aria-busy="true" aria-live="polite">
-          <m-classic-spinner [size]="85" />
+          @if (design.maxBk('md')()) {
+            <m-classic-spinner [size]="30" />
+          } @else if (design.minBk('md')()) {
+            <m-classic-spinner [size]="60" />
+          }
         </section>
         }
   `,
@@ -252,6 +271,7 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
   private readonly embeddingService = inject(EmbeddingService)
   private readonly destroyRef = inject(DestroyRef)
   protected readonly typeGuards = inject(TypeGuardsService)
+  protected readonly design = inject(DesignService)
   private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService)
   private readonly moleculeCollectionService = inject(MoleculeCollectionService)
   private readonly toast = inject(ToastService)

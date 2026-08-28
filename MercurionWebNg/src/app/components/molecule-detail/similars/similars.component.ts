@@ -8,7 +8,7 @@ import { SkeletonCollectionCardComponent } from '../../common/skeleton-card-load
   imports: [SimilarItemComponent, SkeletonCollectionCardComponent],
   template: `
 
-    <div class="relative overflow-y-auto border-px max-h-[272px] min-h-[90px] transition-[max-height] duration-300 ease-in-out"
+    <div class="relative overflow-y-auto border-px max-h-[272px] min-h-[90px] transition-[max-height] duration-300 ease-in-out m-scroll-thin"
     [class.max-h-[181px]]="_onlyKnown()"
     [class.max-h-[272px]]="!_onlyKnown()"
     role="region"
@@ -26,9 +26,16 @@ import { SkeletonCollectionCardComponent } from '../../common/skeleton-card-load
             <m-skeleton-collection-card [height]="'45px'" />
           }
       } @else {
-        <div class="absolute inset-0 flex justify-center items-center text-sm">
-          Nessun analogo noto trovato... Deseleziona&nbsp;<strong>Mostra solo composti noti</strong>&nbsp;per vedere i lead sperimentali più simili.
+        <div class="absolute inset-0 flex items-center justify-center p-3">
+          <p class="text-xs xs:text-sm text-center leading-snug whitespace-normal break-words max-w-[32rem]">
+            Nessun analogo noto trovato... Deseleziona
+            <strong class="block sm:inline font-semibold">
+              Mostra solo composti noti
+            </strong>
+            per vedere i lead sperimentali più simili.
+          </p>
         </div>
+
       }
     </div>
   `

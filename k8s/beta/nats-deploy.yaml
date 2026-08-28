@@ -40,11 +40,12 @@ spec:
           args: ["-c", "/etc/nats/nats.conf"]
           resources:
             requests:
-              cpu: "100m"
+              cpu: "50m"
               memory: "256Mi"
             limits:
-              cpu: "500m"
+              cpu: "300m"
               memory: "512Mi"
+
           volumeMounts:
             - name: nats-config
               mountPath: /etc/nats

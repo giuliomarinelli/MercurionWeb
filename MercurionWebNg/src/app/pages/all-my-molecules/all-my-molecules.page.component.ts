@@ -186,7 +186,7 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
     this.delSub?.unsubscribe()
   }
 
-  protected override fetch$(page = this.page, size = 10) {
+  protected override fetch$(page = this.page, size = 25) {
     return this.moleculeCollectionItemService.getAllPaginatedItems(page, size, this.searchTerm()).pipe(
       debounceTime(20),
       map(page => ({

@@ -3,7 +3,7 @@ import { DataSource, EntityManager, Repository } from 'typeorm';
 import { History } from '../Models/entities/history.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate';
-import { HistoryDTO } from '../Models/DTO/history.dto';
+import { HistoryDTO, TinyHistoryDTO } from '../Models/DTO/history.dto';
 import { UUID } from 'crypto';
 import { HistoryItemEntity as HistoryItemEntityEnum } from '../Models/enums/history-item-entity.enum';
 import { MoleculeCollection } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection.entity';
@@ -124,14 +124,14 @@ export class HistoryService {
                             `${HistoryItemEntityEnum.MoleculeCollectionItem}:${r.id}`,
                             r.name ?? 'Lead sconosciuto',
                         )
-                    } 
+                    }
                 }))
             }
         }
 
         // Costruisco i DTO nell’ordine della pagina
         const items: HistoryDTO[] = page.items.map((it) => {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unused-vars
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { userId: _omit, ...rest } = it
             const key = `${it.itemEntity}:${it.itemId}`
             const itemName = nameByKey.get(key) ?? 'N/A'
@@ -140,6 +140,71 @@ export class HistoryService {
 
         return { ...page, items }
     }
+
+    async getRecentHistoryTinyDistinctPerDay(
+        userId: UUID,
+        lookbackDays = 7,
+    ): Promise<TinyHistoryDTO[]> {
+        const days = Math.max(1, lookbackDays)
+        const now = Date.now()
+        const msPerDay = 24 * 60 * 60 * 1000
+        const cutoff = now - days * msPerDay
+
+        // Query minimale, sfrutta idx_history_user_touched_at_desc
+        const rows = await this.historyRepo
+            .createQueryBuilder('h')
+            .select([
+                'h.id',
+                'h.itemEntity',
+                'h.itemId',
+                'h.touchedAt',
+            ])
+            .where('h.userId = :userId', { userId })
+            .andWhere('h.touchedAt >= :cutoff', { cutoff })
+            .orderBy('h.touchedAt', 'DESC')
+            .addOrderBy('h.id', 'DESC')
+            .getMany()
+
+        // Distinct per (giorno, entity, itemId)
+        const seen = new Map<string, TinyHistoryDTO>()
+
+        for (const row of rows) {
+            const ts = Number(row.touchedAt)
+            if (!Number.isFinite(ts)) {
+                continue
+            }
+
+            const d = new Date(ts)
+            d.setHours(0, 0, 0, 0)
+            const dayKey = d.getTime()
+
+            const key = `${dayKey}:${row.itemEntity}:${row.itemId}`
+
+            if (seen.has(key)) {
+                continue
+            }
+
+            seen.set(key, {
+                id: row.id,
+                itemEntity: row.itemEntity,
+                itemId: row.itemId,
+                touchedAt: row.touchedAt,
+            })
+        }
+
+        const result = Array.from(seen.values())
+
+        // Merge dei "gruppi" e ordinamento finale per id DESC (uuidv7 → cronologico)
+        result.sort((a, b) => {
+            const aId = String(a.id)
+            const bId = String(b.id)
+            if (aId === bId) return 0
+            return aId < bId ? 1 : -1
+        })
+
+        return result
+    }
+
 
     async deleteHistory(userId: UUID): Promise<boolean> {
         try {

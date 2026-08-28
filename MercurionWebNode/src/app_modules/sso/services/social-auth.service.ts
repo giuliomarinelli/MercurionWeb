@@ -247,7 +247,7 @@ export class SocialAuthService {
                 return sso_preAuthorizationToken
             })
         } catch (e) {
-            this.logger.warn(' > loginWithProvider > Error: ', (e.stack ?? e) as object)
+            this.logger.warn(' > loginWithProvider > Error: ', (e instanceof Error ? e.stack : e) as object)
             throw new RpcException('SSO_Unauthorized::failed callback flow')
         }
 

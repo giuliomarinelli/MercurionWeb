@@ -62,9 +62,9 @@ import { CreateCollectionContextService } from '../../../services/context/action
     `
   ],
   template: `
-  <div class="flex justify-center items-center min-h-screen px-2 sm:px-4">
+  <div class="flex justify-center items-start md:items-center min-h-screen px-2 sm:px-4 pt-1 md:pt-6 m-overlay-screen">
     <div
-      class="action-card max-w-2xl"
+      class="action-card max-w-2xl h-full md:h-auto"
       role="region"
       aria-labelledby="createCollectionHeading"
       [attr.aria-busy]="selectedChips.length === 0 ? false : null"
@@ -94,13 +94,13 @@ import { CreateCollectionContextService } from '../../../services/context/action
 
       <!-- BODY -->
       <div class="action-card-body bg-white dark:bg-dark-surface-main">
-        <div class="py-6 px-4 flex flex-col gap-4">
+        <div class="py-6 px-3 sm:px-4 flex flex-col gap-3 sm:gap-4">
           <label for="nameInput" class="ml-px text-sm font-semibold block text-light-on-surface-main dark:text-dark-on-surface-main">
             Nome della nuova collezione
           </label>
 
-          <div class="grid grid-cols-12 gap-4">
-            <div class="col-span-9 flex gap-2 items-center relative">
+          <div class="grid grid-cols-12 gap-x-3 sm:gap-x-4 gap-y-3 xs:gap-y-4 sm:gap-y-0 items-start sm:items-center">
+            <div class="col-span-12 sm:col-span-9 flex gap-2 items-center relative">
               <input
                 id="nameInput"
                 #nameInput
@@ -125,7 +125,7 @@ import { CreateCollectionContextService } from '../../../services/context/action
                 <button
                   type="button"
                   (click)="clear()"
-                  class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-700 dark:text-slate-200 hover:text-light-accent-primary-hq dark:hover:text-indigo-300 transition"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-700 dark:text-slate-200 hover:text-light-accent-primary-hc dark:hover:text-indigo-300 transition"
                   tabindex="-1"
                   aria-label="Cancella input"
                 >
@@ -138,16 +138,16 @@ import { CreateCollectionContextService } from '../../../services/context/action
 
             <button
               type="button"
-              class="col-span-3 w-full px-4 py-2.5 rounded-lg
+              class="col-span-12 xs:col-span-10 xs:col-start-2 sm:col-span-3 w-full px-4 py-2.5 rounded-lg
                  bg-light-accent-primary text-white font-semibold shadow-md
-                 hover:bg-light-accent-primary/90
+                 hover:bg-light-accent-primary-hc
                  dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary
                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary
                  focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary
                  dark:focus-visible:ring-offset-dark-surface-secondary
                  disabled:bg-light-accent-primary/50 disabled:cursor-not-allowed
-                 transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary/50
-                 min-w-10"
+                 transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary-hc/50
+                 justify-center"
               [disabled]="!name() || alreadyAdded(_trim(name()))"
               (click)="onAddNewName(_trim(name()))"
               [title]="title()"
@@ -170,9 +170,9 @@ import { CreateCollectionContextService } from '../../../services/context/action
               Qui vedrai l'anteprima dei nomi delle nuove collezioni.
             </div>
           } @else {
-            <div class="h-44 overflow-y-auto m-scroll-thin">
+            <div class="h-32 sm:h-44 overflow-y-auto m-scroll-thin m-overscroll-touch pr-1 sm:pr-2">
               <div
-                class="flex flex-wrap items-start gap-2 py-3 px-3"
+                class="flex flex-wrap items-start gap-1 sm:gap-2 py-3 px-3"
                 role="list"
                 aria-label="Nomi delle nuove collezioni"
                 id="collectionsPreview"
@@ -181,21 +181,21 @@ import { CreateCollectionContextService } from '../../../services/context/action
                 @for (c of selectedChips; track c) {
                   <span
                     role="listitem"
-                    class="group inline-flex items-center gap-2 max-w-full
-                           rounded-full px-3 py-1.5
-                           bg-indigo-50 text-light-accent-primary-hq ring-1 ring-inset ring-light-accent-primary-hq/70
+                    class="group inline-flex items-center gap-1 sm:gap-2 max-w-full
+                           rounded-full px-1.5 sm:px-3 py-0.5 sm:py-1.5
+                           bg-indigo-50 text-light-accent-primary-hc ring-1 ring-inset ring-light-accent-primary-hq/70
                            dark:bg-indigo-500/20 dark:text-indigo-100 dark:ring-indigo-400/40
                            shadow-sm"
                     title="{{ c }}"
                   >
-                    <span class="truncate max-w-[16rem] text-sm font-medium">
+                    <span class="truncate max-w-[10rem] sm:max-w-[16rem] text-[10px] sm:text-sm font-medium">
                       {{ c }}
                     </span>
 
                     <button
                       type="button"
                       (click)="removeChip(c)"
-                      class="shrink-0 inline-flex size-5 items-center justify-center rounded-full
+                      class="shrink-0 inline-flex size-3 sm:size-5 items-center justify-center rounded-full
                              hover:bg-indigo-100 dark:hover:bg-indigo-400/30
                              focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1
                              dark:focus:ring-offset-gray-900"
@@ -218,7 +218,7 @@ import { CreateCollectionContextService } from '../../../services/context/action
                 <button
                   type="button"
                   (click)="clearChips()"
-                  class="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm
+                  class="inline-flex items-center gap-1 sm:gap-2 rounded-full px-1.5 sm:px-3 py-0.5 sm:py-1.5 text-[10px] sm:text-sm
                          ring-1 ring-inset ring-indigo-300 text-indigo-700 hover:bg-indigo-50
                          dark:ring-indigo-400/40 dark:text-indigo-100 dark:hover:bg-indigo-500/20
                          focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1
@@ -263,13 +263,13 @@ import { CreateCollectionContextService } from '../../../services/context/action
           type="button"
           class="px-4 py-2 rounded-lg
                  bg-light-accent-primary text-white font-semibold shadow-md
-                 hover:bg-light-accent-primary/90
+                 hover:bg-light-accent-primary-hc
                  dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary
                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary
                  focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary
                  dark:focus-visible:ring-offset-dark-surface-secondary
                  disabled:bg-light-accent-primary/50 disabled:cursor-not-allowed
-                 transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary/50
+                 transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary-hc/50
                  min-w-10"
           [disabled]="selectedChips.length === 0"
           (click)="doSubmit()"

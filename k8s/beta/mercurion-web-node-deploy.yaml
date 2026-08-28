@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: web-node
-          image: europe-west8-docker.pkg.dev/mercurion-481213/mercurion/mercurion-web-node:1.0-beta-1c8
+          image: europe-west8-docker.pkg.dev/mercurion-483615/mercurion/mercurion-web-node:1.0-beta-1c61
           imagePullPolicy: IfNotPresent
 
           ports:
@@ -40,6 +40,14 @@ spec:
               value: "0.0.0.0"
           
           command: ["node", "dist/main.js"]
+          resources:
+            requests:
+              cpu: "300m"
+              memory: "512Mi"
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+
 
           startupProbe:
             tcpSocket:

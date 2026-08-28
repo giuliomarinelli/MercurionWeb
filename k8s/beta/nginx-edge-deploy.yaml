@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mercurion-nginx-edge
+  namespace: mercurion-beta
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mercurion-nginx-edge
+  template:
+    metadata:
+      labels:
+        app: mercurion-nginx-edge
+    spec:
+      containers:
+        - name: nginx
+          image: europe-west8-docker.pkg.dev/mercurion-483615/mercurion/nginx-sl:1.2026.1
+          ports:
+            - containerPort: 80
+            - containerPort: 443
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: default.conf
+              readOnly: true
+            - name: tls-cert
+              mountPath: /etc/nginx/tls
+              readOnly: true
+          resources:
+            requests:
+              cpu: "150m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+
+
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: mercurion-nginx-edge-config
+        - name: tls-cert
+          secret:
+            secretName: mercurion-origin-tls

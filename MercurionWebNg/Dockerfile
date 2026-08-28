@@ -19,7 +19,7 @@ COPY public ./public
 COPY tailwind.config.js ./
 
 # build in configurazione "production"
-RUN npm run build -- --configuration production
+RUN npx ng build --configuration=production
 
 # ====== STAGE 2: Nginx statico ======
 FROM nginx:1.27-alpine
@@ -31,10 +31,9 @@ LABEL org.opencontainers.image.version=$APP_VERSION
 WORKDIR /usr/share/nginx/html
 RUN rm -rf ./*
 
-RUN mkdir -p m
-COPY --from=build /app/dist/mercurion-web-ng/browser/ ./m/
+COPY --from=build /app/dist/mercurion-web-ng/browser/ ./
 
-COPY nginx.mercurion_web_ng.production.conf /etc/nginx/conf.d/default.conf
+COPY nginx.mercurion_web_ng.prod.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 3497
 CMD ["nginx", "-g", "daemon off;"]

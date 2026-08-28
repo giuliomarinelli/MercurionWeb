@@ -20,6 +20,8 @@ describe('AuthenticationController', () => {
   let controller: AuthenticationController;
   let authService: jest.Mocked<AuthenticationService>;
   let responseService: jest.Mocked<ResponseService>;
+  let sessionService: jest.Mocked<SessionService>;
+  let secureCookieService: jest.Mocked<SecureCookieService>;
 
   beforeEach(async () => {
     const mockLogger = {
@@ -80,7 +82,13 @@ describe('AuthenticationController', () => {
             }),
           },
         },
-        { provide: SessionService, useValue: { revokeToken: jest.fn() } },
+        {
+          provide: SessionService,
+          useValue: {
+            revokeToken: jest.fn(),
+            destroySessionAndRevokeAllTokensBySignedSessionId: jest.fn(),
+          },
+        },
         { provide: RedisService, useValue: { get: jest.fn() } },
         { provide: SercurityService, useValue: { signDeviceId: jest.fn((id) => id) } },
         { provide: MeiliLoggerService, useValue: { forContext: jest.fn().mockReturnValue(mockLogger) } },
@@ -90,6 +98,8 @@ describe('AuthenticationController', () => {
     controller = module.get<AuthenticationController>(AuthenticationController);
     authService = module.get(AuthenticationService);
     responseService = module.get(ResponseService);
+    sessionService = module.get(SessionService);
+    secureCookieService = module.get(SecureCookieService);
   });
 
   it('should be defined', () => {
@@ -111,6 +121,45 @@ describe('AuthenticationController', () => {
     it('throws when email is not recognized', async () => {
       (authService.verifyEmail as jest.Mock).mockResolvedValue(false);
       await expect(controller.login_zeroStep({ email: 'ghost@example.com' })).rejects.toBeInstanceOf(UnauthorizedException);
+    });
+  });
+
+  describe('logoutFromSession', () => {
+    const userId = '8e2ea9d8-d8be-45ce-abf4-02e447627e91';
+    const targetSessionId = '6f56b64c-ae7f-4a54-b45a-44f72a2fe865';
+    const currentSessionId = '9fd8aace-c44f-4cb7-92f6-c6a1bf44c2bb';
+    const signedSessionId = `${targetSessionId}.${'a'.repeat(64)}`;
+
+    it('does not clear current session cookie when logging out another session', async () => {
+      const reply = {};
+
+      await controller.logoutFromSession(
+        userId as never,
+        { signedSessionId },
+        currentSessionId as never,
+        reply as never,
+      );
+
+      expect(sessionService.destroySessionAndRevokeAllTokensBySignedSessionId).toHaveBeenCalledWith(signedSessionId, userId);
+      expect(secureCookieService.clearCookie).not.toHaveBeenCalled();
+      expect(responseService.ok).toHaveBeenCalledWith('Action performed successfully');
+    });
+
+    it('clears cookies when logging out the current session', async () => {
+      const currentSignedSessionId = `${currentSessionId}.${'b'.repeat(64)}`;
+      const reply = {};
+
+      await controller.logoutFromSession(
+        userId as never,
+        { signedSessionId: currentSignedSessionId },
+        currentSessionId as never,
+        reply as never,
+      );
+
+      expect(sessionService.destroySessionAndRevokeAllTokensBySignedSessionId).toHaveBeenCalledWith(currentSignedSessionId, userId);
+      expect(secureCookieService.clearCookie).toHaveBeenCalledTimes(2);
+      expect(secureCookieService.clearCookie).toHaveBeenNthCalledWith(1, reply, '__node_session_id');
+      expect(secureCookieService.clearCookie).toHaveBeenNthCalledWith(2, reply, '__logged_in');
     });
   });
 });

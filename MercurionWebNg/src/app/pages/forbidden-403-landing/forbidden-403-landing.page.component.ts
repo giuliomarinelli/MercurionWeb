@@ -12,7 +12,7 @@ import { Location } from '@angular/common';
 
     <main class="absolute inset-0 z-[50] grid min-h-full place-items-center bg-white px-6 py-24 sm:py-32 lg:px-8 dark:bg-gray-950" aria-labelledby="forbidden-heading">
       <div class="text-center">
-        <p class="text-5xl font-semibold text-light-accent-primary-hq dark:text-dark-accent-primary-btn">403</p>
+        <p class="text-5xl font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary-btn">403</p>
         <h1 id="forbidden-heading" class="mt-4 text-balance text-5xl font-semibold tracking-tight text-gray-900 sm:text-7xl dark:text-white">Accesso non consentito.</h1>
         <p class="mt-6 text-pretty text-lg font-medium text-gray-700 sm:text-xl/8 dark:text-gray-300">Siamo spiacenti, ma non disponi dei permessi per accedere alla pagina o al contenuto che cercavi.</p>
         <div class="mt-10 flex items-center justify-center gap-x-6">

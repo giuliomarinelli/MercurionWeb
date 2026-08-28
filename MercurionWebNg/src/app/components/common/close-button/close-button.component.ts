@@ -63,9 +63,9 @@ export class CloseButtonComponent implements OnInit {
 
   get accentClass(): string {
     if (this.variant === 'input') {
-      return 'hover:text-light-accent-primary-hq dark:hover:text-indigo-300 focus:ring-light-accent-primary-hq dark:focus:ring-indigo-500'
+      return 'hover:text-light-accent-primary-hc dark:hover:text-indigo-300 focus:ring-light-accent-primary-hq dark:focus:ring-indigo-500'
     }
-    return 'hover:text-light-accent-primary-hq focus:ring-light-accent-primary-hq'
+    return 'hover:text-light-accent-primary-hc focus:ring-light-accent-primary-hq'
   }
 
   ngOnInit(): void {

@@ -189,7 +189,7 @@ export class AuthenticationController {
                 throw new UnauthorizedException('InvalidPreauthorizationToken')
             }
         }
-        if (!shouldPersistLogin) {            
+        if (!shouldPersistLogin) {
             shouldPersistLogin = await this.sessionService.isSessionLongTerm(sessionId, userId)
         }
         const maxAge = shouldPersistLogin ? this.LONG_SESSION_TTL : undefined
@@ -249,6 +249,7 @@ export class AuthenticationController {
             // pass
         }
         this.secureCookieService.clearCookie(reply, '__node_session_id')
+        this.secureCookieService.clearCookie(reply, '__logged_in')
         reply.clearCookie('__logged_in')
     }
 
@@ -256,17 +257,27 @@ export class AuthenticationController {
     @Patch('/logout-from-session')
     public async logoutFromSession(
         @AuthenticatedUserId() userId: UUID,
-        @Body(new ValidationPipe({ transform: true })) { signedSessionId }: SignedSessionIdDTO
+        @Body(new ValidationPipe({ transform: true })) { signedSessionId }: SignedSessionIdDTO,
+        @SessionId() currentSessionId: UUID,
+        @Res({ passthrough: true }) reply: FastifyReply
     ): Promise<ConfirmDTO> {
         await this.sessionService.destroySessionAndRevokeAllTokensBySignedSessionId(signedSessionId, userId)
+        const [targetSessionId] = signedSessionId.split('.')
+        if (targetSessionId === currentSessionId) {
+            this.secureCookieService.clearCookie(reply, '__node_session_id')
+            this.secureCookieService.clearCookie(reply, '__logged_in')
+        }
         return this._r.ok('Action performed successfully')
     }
 
     @Patch('/logout-from-all-sessions')
     public async logoutFromAllSessions(
-        @AuthenticatedUserId() userId: UUID
+        @AuthenticatedUserId() userId: UUID,
+        @Res({ passthrough: true }) reply: FastifyReply
     ): Promise<ConfirmDTO> {
         await this.sessionService.destroyAllSessionsAndRevokeAllTokensByUserId(userId)
+        this.secureCookieService.clearCookie(reply, '__node_session_id')
+        this.secureCookieService.clearCookie(reply, '__logged_in')
         return this._r.ok('Action performed successfully')
     }
 

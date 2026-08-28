@@ -19,7 +19,7 @@ import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interface
 import { ScopeService } from 'src/app_modules/auth/services/scope.service';
 import { MoleculeCollectionItemEntity } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection-item.entity';
 import { HistoryService } from 'src/app_modules/history/services/history.service';
-import { HistoryDTO } from 'src/app_modules/history/Models/DTO/history.dto';
+import { TinyHistoryDTO } from 'src/app_modules/history/Models/DTO/history.dto';
 import { AuthIdentity } from 'src/app_modules/sso/Models/entities/auth-identity.entity';
 import { ProvidedEmailDTO } from 'src/app_modules/auth/Models/DTO/provided-email.dto';
 import { AuthProvider } from 'src/app_modules/sso/Models/enums/auth-provider.enum';
@@ -432,17 +432,10 @@ export class UserService {
                     }
                 })
 
-                let recentHistory: HistoryDTO[] = []
+                let recentHistory: TinyHistoryDTO[] = []
 
                 if (getRecentHistory) {
-                    ({ items: recentHistory } = await this.historyService.getPaginatedHistoryWithManager(
-                        id,
-                        {
-                            limit: 200,
-                            page: 1
-                        },
-                        manager
-                    ))
+                    recentHistory = await this.historyService.getRecentHistoryTinyDistinctPerDay(id)
                 }
 
                 const result: ProfileDTO = {
@@ -577,11 +570,13 @@ export class UserService {
                 .getOneOrFail()
             return provider
         } catch {
-            return await this.userRepository.exists({where: {
-                id
-            }})
-            ? AuthProvider.Mercurion
-            : null
+            return await this.userRepository.exists({
+                where: {
+                    id
+                }
+            })
+                ? AuthProvider.Mercurion
+                : null
         }
     }
 

@@ -32,7 +32,10 @@ import { AppContextService } from '../../../services/context/app-context.service
   ],
   template: `
 
- <header class="px-2 2xs:px-6 py-4 bg-light-surface-secondary dark:bg-neutral-950 border-b-[0.5px] border-slate-300/65 dark:border-slate-300/40 header-shadow" role="banner">
+ <header class="px-2 2xs:px-6 py-4 bg-light-surface-secondary border-b-[0.5px] border-slate-300/65 dark:border-slate-300/40 header-shadow"
+         [class.dark:bg-neutral-950]="!isWelcomePath()"
+         [class.dark:bg-slate-950]="isWelcomePath()"
+         role="banner">
   <div class="w-full flex justify-between items-center transition-colors duration-300 ease-out">
     <div class="flex items-center gap-4">
       @if (designService.maxBk("lg")()) {
@@ -90,11 +93,11 @@ import { AppContextService } from '../../../services/context/app-context.service
       <div
         class="hidden lg:flex items-center gap-3 text-sm xl:text-[0.925rem] font-medium text-light-on-surface-main dark:text-slate-100 tracking-wider mr-3 relative top-[1px]">
         <a routerLink="/login"
-          class="hover:text-light-accent-primary hover:dark:text-dark-accent-primary transition-colors duration-300">Accedi</a>
+          class="hover:text-light-accent-primary-hc hover:dark:text-dark-accent-primary transition-colors duration-300">Accedi</a>
         @if (!isRegisterPath()) {
         <span class="cursor-default text-slate-700 dark:text-slate-300">●</span>
         <a routerLink="/register"
-          class="hover:text-light-accent-primary hover:dark:text-dark-accent-primary transition-colors duration-300">Registrati</a>
+          class="hover:text-light-accent-primary-hc hover:dark:text-dark-accent-primary transition-colors duration-300">Registrati</a>
         }
       </div>
       }
@@ -120,7 +123,7 @@ import { AppContextService } from '../../../services/context/app-context.service
       </div>
       }
       <div class="hidden sm:block" [ngClass]="{
-          'lg:hidden': userContext.isLoggedIn() || isLoginPath(),
+          'lg:hidden': userContext.isLoggedIn() || isLoginPath() || isWelcomePath(),
         }">
         <button
           (click)="openSearchOverlay()"
@@ -162,7 +165,7 @@ import { AppContextService } from '../../../services/context/app-context.service
       isAllowedPath()
       ) {
       <button (click)="toggleAvatarMenu()" [innerHTML]="userContext.initials()"
-        [attr.title]="avatarMenuOpen() ? 'Chiudi il menù utente' : 'Apri il menu utente'"
+        [attr.title]="avatarMenuOpen() ? 'Chiudi il menu utente' : 'Apri il menu utente'"
         class="avatar-toggle-button inline-flex items-center justify-center size-10 rounded-full cursor-pointer bg-light-accent-secondary-500/80 text-slate-100 dark:bg-dark-accent-primary-btn bg-light-accent-secondary/85 hover:bg-emerald-900/60 hover:text-slate-100 dark:hover:bg-blue-400/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-light-accent-primary-hq text-sm font-semibold transition-colors duration-300">
       </button>
       }
@@ -368,7 +371,7 @@ import { AppContextService } from '../../../services/context/app-context.service
 }
 <!-- Offcanvas backdrop -->
 @if (offCanvasMenuOpen()) {
-  <div class="fixed inset-0 z-[9998] bg-black/30 transition-opacity duration-300" (click)="closeOffCanvasMenu()"></div>
+  <div class="fixed inset-0 z-[9998] bg-black/30 transition-opacity duration-300 m-overscroll-touch" (click)="closeOffCanvasMenu()"></div>
 }
 
 <!-- Offcanvas Navigation Sidebar -->
@@ -388,7 +391,7 @@ import { AppContextService } from '../../../services/context/app-context.service
       <span class="text-lg">Mercurion</span>
     </div>
     <button
-      class="inline-flex items-center justify-center size-8 rounded-md text-slate-700 hover:text-light-accent-primary-hq hover:bg-slate-100 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-light-accent-primary-hq focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-transparent transition"
+      class="inline-flex items-center justify-center size-8 rounded-md text-slate-700 dark:text-slate-200 hover:text-light-accent-primary-hc hover:bg-slate-100 kark dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-light-accent-primary-hq focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-transparent transition"
       (click)="closeOffCanvasMenu()">
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -418,13 +421,13 @@ import { AppContextService } from '../../../services/context/app-context.service
   }
   <!-- Modal avatar mobile (solo <= sm) -->
   @if (avatarMobileMenuMounted() && userContext.isLoggedIn()) {
-  <div class="fixed inset-0 z-[10000] bg-black/50 flex items-end sm:hidden transition-opacity duration-300"
+  <div class="fixed inset-0 z-[10000] bg-black/50 flex items-end sm:hidden transition-opacity duration-300 m-overscroll-touch"
        [ngClass]="{
           'opacity-100 pointer-events-auto': avatarMobileMenuVisible(),
           'opacity-0 pointer-events-none': !avatarMobileMenuVisible(),
         }" (click)="closeAvatarMobileMenu()">
     <div
-      class="w-full h-[100dvh] max-h-[100dvh] bg-slate-100 dark:bg-neutral-900 rounded-t-2xl shadow-2xl p-6 pb-10 relative overflow-y-auto transition-transform duration-300"
+      class="w-full h-[100dvh] max-h-[100dvh] bg-slate-100 dark:bg-neutral-900 rounded-t-2xl shadow-2xl p-6 pb-10 relative overflow-y-auto transition-transform duration-300 m-overscroll-touch m-scroll-thin"
       [ngClass]="{
             'translate-y-0': avatarMobileMenuVisible(),
             'translate-y-full': !avatarMobileMenuVisible(),
@@ -530,6 +533,16 @@ export class HeaderComponent implements OnInit, OnDestroy {
   private readonly toast = inject(ToastService)
   private readonly appContext = inject(AppContextService)
 
+  private updatePathFlags(currentPath: string) {
+    const clean = (currentPath || '').split(/[?#]/)[0]
+    const notAllowedPaths: string[] = ['/login', '/']
+
+    this.isAllowedPath.set(!notAllowedPaths.includes(clean))
+    this.isLoginPath.set(clean.startsWith('/login'))
+    this.isRegisterPath.set(clean === '/register')
+    this.isWelcomePath.set(clean.startsWith('/welcome'))
+  }
+
   @Input()
   set triggerOpenOffCanvas(triggerOpenOffCanvas: boolean) {
     this._triggerOpenOffCanvas.set(triggerOpenOffCanvas)
@@ -542,8 +555,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
   private emailSub?: Subscription
   private logoutSub?: Subscription
 
-  protected isLoginPath = signal<boolean>(true)
+  protected isLoginPath = signal<boolean>(false)
   protected isRegisterPath = signal<boolean>(false)
+  protected isWelcomePath = signal<boolean>(true)
   protected isAllowedPath = signal<boolean>(false)
   protected themeMenuOpen = signal<boolean>(false)
   protected themeMenuMounted = signal<boolean>(false)
@@ -751,6 +765,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.isBeta.set(environment.beta)
+    this.updatePathFlags(this.router.url)
     document.addEventListener('click', this.handleDocumentClick, true)
     document.addEventListener('keydown', this.handleEscape, true)
     this.routeSub = this.router.events
@@ -758,12 +773,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
         filter(e => e instanceof NavigationEnd)
       )
       .subscribe((e: NavigationEnd) => {
-        const currentPath = e.urlAfterRedirects
-        const notAllowedPaths: string[] = ['/login', '/', '/test/spinner']
-        this.isAllowedPath.set(!notAllowedPaths.includes(currentPath))
-        this.isLoginPath.set(currentPath.startsWith('/login'))
-        this.isRegisterPath.set(currentPath === '/register')
-
+        this.updatePathFlags(e.urlAfterRedirects)
       })
 
   }

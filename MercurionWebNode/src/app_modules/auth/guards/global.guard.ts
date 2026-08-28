@@ -23,6 +23,7 @@ import { AppJwtPayload } from '../Models/interfaces/app-jwt-payload.interface'
 
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service'
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface'
+import { SecureCookieService } from '../services/secure-cookie.service'
 
 @Injectable()
 export class GlobalGuard implements CanActivate {
@@ -37,6 +38,7 @@ export class GlobalGuard implements CanActivate {
       private readonly sessionService: SessionService,
       private readonly reflector: Reflector,
       private readonly scopeService: ScopeService,
+      private readonly secureCookieService: SecureCookieService,
       loggerFactory: MeiliLoggerService,
    ) {
       this.logger = loggerFactory.forContext(GlobalGuard.name)
@@ -112,7 +114,7 @@ export class GlobalGuard implements CanActivate {
 
                userId = payload.sub
 
-               this.logger.debug(`Expired access token, jti=${payload.jti}, trying to refresh`)
+               this.logger.warn(`Expired access token, jti=${payload.jti}, trying to refresh`)
 
                await this.scopeService.scopeVerificationLayer(
                   payload.sub,
@@ -259,7 +261,7 @@ export class GlobalGuard implements CanActivate {
             })
             .join(', ')
 
-         this.logger.debug(
+         this.logger.warn(
             `Authentication/Authorization error${errorInfo ? ', ' + errorInfo : ''}`,
             (e?.stack ?? e) as object,
          )
@@ -306,14 +308,19 @@ export class GlobalGuard implements CanActivate {
             await this.revokeSessionAndTokensPlain(sessionId, effectiveUserId)
          }
 
+         this.secureCookieService.clearCookie(reply, '__node_session_id')
+         this.secureCookieService.clearCookie(reply, '__logged_in')
+
          // normalize any auth error into our unauthorizedException
          if (e instanceof RpcException && e.message === 'Unauthorized') {
             throw unauthorizedException
          }
+
          if (e instanceof UnauthorizedException) {
             this.logger.warn(`Thrown generic UnauthorizedException${errorInfo ? ', ' + errorInfo : ''}`)
             throw unauthorizedException
          }
+
          if (e instanceof RpcException) {
             this.logger.warn(
                `GlobalGuard internal unknown error as RpcException${errorInfo ? ', ' + errorInfo : ''}`,
@@ -326,6 +333,7 @@ export class GlobalGuard implements CanActivate {
             `GlobalGuard internal unknown error${errorInfo ? ', ' + errorInfo : ''}`,
             (e?.stack ?? e) as object,
          )
+         
          throw unauthorizedException
       }
    }

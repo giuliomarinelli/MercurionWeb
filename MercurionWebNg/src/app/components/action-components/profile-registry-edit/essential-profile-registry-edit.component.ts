@@ -30,9 +30,9 @@ type RegistryFormValue = {
   ],
   template: `
 
-<div class="flex justify-center items-center min-h-screen px-2 sm:px-4">
+<div class="flex justify-center items-start md:items-center min-h-screen px-2 sm:px-4 pt-1 md:pt-6 m-overlay-screen">
   <div
-    class="action-card"
+    class="action-card h-full md:h-auto"
     role="region"
     aria-labelledby="profileRegistryHeading"
     [attr.aria-busy]="step_12_loading() || onStart_loading()"
@@ -177,7 +177,7 @@ type RegistryFormValue = {
 
       <button
         type="button"
-        class="relative inline-flex items-center justify-center px-4 py-2 rounded-lg bg-light-accent-primary-hq text-white font-semibold shadow-md hover:bg-light-accent-primary-hc dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary disabled:bg-light-accent-primary-hq/50 disabled:cursor-not-allowed transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary-hq/50"
+        class="relative inline-flex items-center justify-center px-4 py-2 rounded-lg bg-light-accent-primary text-white font-semibold shadow-md hover:bg-light-accent-primary-hc dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary disabled:bg-light-accent-primary/50 disabled:cursor-not-allowed transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary-hc/50"
         [disabled]="isGroupValueTheSameAsInitialValueSig() || step_12_loading()"
         [attr.aria-busy]="step_12_loading()"
         (click)="routeAction()"

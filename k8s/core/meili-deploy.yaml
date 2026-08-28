@@ -20,16 +20,14 @@ spec:
         - name: meilisearch
           image: getmeili/meilisearch@sha256:8cd411ba5d9ec2dfce02e241305208eebacce0fd74a72bece21cadd03dc566ce
           ports:
-            - containerPort: 7700
-
-          resources:
+            - containerPort: 7700   
+          resources:                 
             requests:
-              cpu: "500m"
-              memory: "2Gi"
+              cpu: "300m"
+              memory: "1.5Gi"
             limits:
-              cpu: "2"
-              memory: "4Gi"
-
+              cpu: "1"
+              memory: "3Gi"
           env:
             - name: MEILI_ENV
               value: "production"

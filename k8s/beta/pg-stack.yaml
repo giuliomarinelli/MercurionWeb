@@ -1,0 +1,87 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mercurion-pg-backups
+  namespace: mercurion-beta
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: standard-rwo
+  resources:
+    requests:
+      storage: 35Gi   
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: mercurion-pg-backup
+  namespace: mercurion-beta
+spec:
+  # 03:00 UTC ogni 2 giorni
+  schedule: "0 3 */3 * *"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: mercurion-pg-backup
+        spec:
+          restartPolicy: OnFailure
+
+          # vincolo sul node pool di backup
+          nodeSelector:
+            cloud.google.com/gke-nodepool: mercurion-pg-backup-pool
+
+
+          # permette al pod di schedularsi su nodi taintati pg-backup-only=true:NoSchedule
+          tolerations:
+            - key: "pg-backup-only"
+              operator: "Equal"
+              value: "true"
+              effect: "NoSchedule"
+
+          containers:
+            - name: pg-backup
+              image: europe-west8-docker.pkg.dev/mercurion-481213/mercurion/mercurion-tox-21:1.2026.0
+              envFrom:
+                - secretRef:
+                    name: mercurion-pg-credentials
+              env:
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: mercurion-pg-credentials
+                      key: POSTGRES_PASSWORD
+              volumeMounts:
+                - name: backups
+                  mountPath: /backups
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  set -e
+                  TS=$(date +%Y%m%d-%H%M%S)
+                  FILE="/backups/mercurion-${TS}.dump"
+
+                  echo ">>> Dumping to $FILE"
+                  pg_dump -Fc -h mercurion-pg -U "$POSTGRES_USER" "$POSTGRES_DB" > "$FILE"
+
+                  echo ">>> Removing backups older than 7 days..."
+                  find /backups -type f -mtime +7 -name 'mercurion-*.dump' -delete
+
+                  echo ">>> Backup done."
+              resources:
+                requests:
+                  cpu: "3"
+                  memory: "7Gi"
+                limits:
+                  cpu: "4"
+                  memory: "7.5Gi"
+
+          volumes:
+            - name: backups
+              persistentVolumeClaim:
+                claimName: mercurion-pg-backups

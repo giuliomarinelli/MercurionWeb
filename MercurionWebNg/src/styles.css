@@ -1,7 +1,7 @@
 @font-face {
   font-family: 'Space Grotesk';
-  src: url('/m/fonts/space_grotesk/SpaceGrotesk-Light.woff2') format('woff2'),
-    url('/m/fonts/space_grotesk/SpaceGrotesk-Light.woff') format('woff');
+  src: url('/fonts/space_grotesk/SpaceGrotesk-Light.woff2') format('woff2'),
+    url('/fonts/space_grotesk/SpaceGrotesk-Light.woff') format('woff');
   font-weight: 300;
   font-style: normal;
   font-display: swap;
@@ -9,8 +9,8 @@
 
 @font-face {
   font-family: 'Space Grotesk';
-  src: url('/m/fonts/space_grotesk/SpaceGrotesk-Regular.woff2') format('woff2'),
-    url('/m/fonts/space_grotesk/SpaceGrotesk-Regular.woff') format('woff');
+  src: url('/fonts/space_grotesk/SpaceGrotesk-Regular.woff2') format('woff2'),
+    url('/fonts/space_grotesk/SpaceGrotesk-Regular.woff') format('woff');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -18,8 +18,8 @@
 
 @font-face {
   font-family: 'Space Grotesk';
-  src: url('/m/fonts/space_grotesk/SpaceGrotesk-Medium.woff2') format('woff2'),
-    url('/m/fonts/space_grotesk/SpaceGrotesk-Medium.woff') format('woff');
+  src: url('/fonts/space_grotesk/SpaceGrotesk-Medium.woff2') format('woff2'),
+    url('/fonts/space_grotesk/SpaceGrotesk-Medium.woff') format('woff');
   font-weight: 500;
   font-style: normal;
   font-display: swap;
@@ -27,8 +27,8 @@
 
 @font-face {
   font-family: 'Space Grotesk';
-  src: url('/m/fonts/space_grotesk/SpaceGrotesk-Bold.woff2') format('woff2'),
-    url('/m/fonts/space_grotesk/SpaceGrotesk-Bold.woff') format('woff');
+  src: url('/fonts/space_grotesk/SpaceGrotesk-Bold.woff2') format('woff2'),
+    url('/fonts/space_grotesk/SpaceGrotesk-Bold.woff') format('woff');
   font-weight: bold;
   font-style: normal;
   font-display: swap;
@@ -36,8 +36,8 @@
 
 @font-face {
   font-family: 'Space Grotesk';
-  src: url('/m/fonts/space_grotesk/SpaceGrotesk-SemiBold.woff2') format('woff2'),
-    url('/m/fonts/space_grotesk/SpaceGrotesk-SemiBold.woff') format('woff');
+  src: url('/fonts/space_grotesk/SpaceGrotesk-SemiBold.woff2') format('woff2'),
+    url('/fonts/space_grotesk/SpaceGrotesk-SemiBold.woff') format('woff');
   font-weight: 600;
   font-style: normal;
   font-display: swap;
@@ -47,6 +47,25 @@ html,
 body {
   overflow: initial !important;
   font-family: 'Space Grotesk', sans-serif;
+}
+
+/* Prevent Safari auto-zoom on form fields (font-size < 16px triggers zoom) */
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+@media (max-width: 768px) {
+  input,
+  textarea,
+  select,
+  button {
+    font-size: 16px;
+  }
+}
+
+:root {
+  /* Updated at runtime (see src/main.ts) to handle iOS Safari viewport quirks */
+  --app-vh: 1vh;
 }
 
 .fade-out {
@@ -104,6 +123,49 @@ body {
   /* track - DARK */
 }
 
+/* Scrollbar sottile usato per la root e contenitori principali */
+html.m-scroll-thin,
+.m-scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #64748b transparent;
+}
+
+html.dark.m-scroll-thin,
+.dark .m-scroll-thin {
+  scrollbar-color: #94a3b8 transparent;
+}
+
+html.m-scroll-thin::-webkit-scrollbar,
+.m-scroll-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+html.m-scroll-thin::-webkit-scrollbar-track,
+.m-scroll-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+html.m-scroll-thin::-webkit-scrollbar-thumb,
+.m-scroll-thin::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 9999px;
+}
+
+html.dark.m-scroll-thin::-webkit-scrollbar-thumb,
+.dark .m-scroll-thin::-webkit-scrollbar-thumb {
+  background-color: #475569;
+}
+
+html.m-scroll-thin::-webkit-scrollbar-thumb:hover,
+.m-scroll-thin::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8;
+}
+
+html.dark.m-scroll-thin::-webkit-scrollbar-thumb:hover,
+.dark .m-scroll-thin::-webkit-scrollbar-thumb:hover {
+  background-color: #e2e8f0;
+}
+
 
 
 @tailwind base;
@@ -128,23 +190,23 @@ html {
   }
 
   .h1-underline {
-    @apply w-full sm:w-auto block text-center sm:text-left mt-0 relative bottom-2 pt-4 xs:pt-0 text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-light-accent-primary-hq dark:text-dark-accent-primary border-b border-slate-300 dark:border-slate-700 pb-6;
+    @apply w-full sm:w-auto block text-center sm:text-left mt-0 relative bottom-2 pt-4 xs:pt-0 text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-light-accent-primary-hc dark:text-dark-accent-primary border-b border-slate-300 dark:border-slate-700 pb-6;
   }
 
   .h1 {
-    @apply w-full sm:w-auto block text-center sm:text-left mt-0 relative bottom-2 pt-0 text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-light-accent-primary-hq dark:text-dark-accent-primary pb-6;
+    @apply w-full sm:w-auto block text-center sm:text-left mt-0 relative bottom-2 pt-0 text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider text-light-accent-primary-hc dark:text-dark-accent-primary pb-6;
   }
 
   .h1-sm {
-    @apply w-full sm:w-auto block text-center sm:text-left mt-0 relative bottom-2 pt-0 text-2xl md:text-3xl lg:text-[2.25rem] font-semibold tracking-wider text-light-accent-primary-hq dark:text-dark-accent-primary;
+    @apply w-full sm:w-auto block text-center sm:text-left mt-0 relative bottom-2 pt-0 text-2xl md:text-3xl lg:text-[2.25rem] font-semibold tracking-wider text-light-accent-primary-hc dark:text-dark-accent-primary;
   }
 
   .h2 {
-    @apply w-full sm:w-auto block text-center sm:text-left mt-0 relative bottom-2 pt-0 text-lg md:text-xl lg:text-2xl font-semibold tracking-wider text-light-accent-primary-hq dark:text-dark-accent-primary pb-6;
+    @apply w-full sm:w-auto block text-center sm:text-left mt-0 relative bottom-2 pt-0 text-lg md:text-xl lg:text-2xl font-semibold tracking-wider text-light-accent-primary-hc dark:text-dark-accent-primary pb-6;
   }
 
   .h3 {
-    @apply w-full sm:w-auto block text-center sm:text-left mt-8 mb-4 pb-0 relative bottom-2 pt-0 text-sm md:text-lg lg:text-xl font-semibold tracking-wider text-light-accent-primary-hq dark:text-dark-accent-primary;
+    @apply w-full sm:w-auto block text-center sm:text-left mt-8 mb-4 pb-0 relative bottom-2 pt-0 text-sm md:text-lg lg:text-xl font-semibold tracking-wider text-light-accent-primary-hc dark:text-dark-accent-primary;
   }
 
   .drawer {
@@ -190,7 +252,7 @@ html {
 
   /* Prima: .btn-outline-accent-primary */
   .btn-outline-accent-primary {
-    @apply border border-light-accent-primary dark:bg-dark-accent-primary text-light-accent-primary dark:text-dark-accent-primary;
+    @apply border border-light-accent-primary dark:bg-dark-accent-primary text-light-accent-primary-hc dark:text-dark-accent-primary;
   }
 
   /* Hover spostato in: .btn-outline-accent-primary-hover */
@@ -207,7 +269,7 @@ html {
   }
 
   .btn-outline-accent-secondary {
-    @apply border border-light-accent-secondary dark:bg-dark-accent-secondary text-light-accent-primary dark:text-dark-accent-primary;
+    @apply border border-light-accent-secondary dark:bg-dark-accent-secondary text-light-accent-primary-hc dark:text-dark-accent-primary;
   }
 
   .btn-outline-accent-secondary-hover {
@@ -346,12 +408,74 @@ html {
   /*                  ACTION OVERLAY                     */
   /* =================================================== */
 
+  .m-overlay-screen {
+    min-height: 100vh;
+    min-height: 100dvh;
+    min-height: calc(var(--app-vh, 1vh) * 100);
+    height: calc(var(--app-vh, 1vh) * 100);
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .m-overscroll-touch {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  .m-overlay-results {
+    min-height: 30vh;
+    min-height: 30dvh;
+    min-height: calc(var(--app-vh, 1vh) * 30);
+    max-height: 60vh;
+    max-height: 60dvh;
+    max-height: calc(var(--app-vh, 1vh) * 60);
+  }
+
+  .m-overlay-max-80 {
+    max-height: 80vh;
+    max-height: 80dvh;
+    max-height: calc(var(--app-vh, 1vh) * 80);
+  }
+
+  .m-overlay-max-60 {
+    max-height: 60vh;
+    max-height: 60dvh;
+    max-height: calc(var(--app-vh, 1vh) * 60);
+  }
+
+  .m-overlay-panel {
+    height: 60vh;
+    height: 60dvh;
+    height: calc(var(--app-vh, 1vh) * 60);
+  }
+
+  .m-overlay-body {
+    max-height: calc(var(--app-vh, 1vh) * 100 - 14rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    min-height: calc(var(--app-vh, 1vh) * 35);
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  .m-overlay-scroll {
+    max-height: 38vh;
+    max-height: 38dvh;
+    max-height: calc(var(--app-vh, 1vh) * 38);
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
   .action-overlay-backdrop {
     @apply fixed inset-0 z-[999] backdrop-blur-sm bg-slate-300/75 dark:bg-slate-900/90 transition-opacity duration-300;
+    overscroll-behavior: contain;
   }
 
   .action-card {
     @apply w-full max-w-5xl bg-white dark:bg-dark-surface-main rounded-2xl shadow-xl border border-light-border dark:border-dark-border text-light-on-surface-main dark:text-dark-on-surface-main;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    max-height: calc(var(--app-vh, 1vh) * 100 - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 16px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
     font-size: 0.96rem;
     line-height: 1.45;
     letter-spacing: 0.01em;
@@ -369,15 +493,52 @@ html {
   }
 
   .action-card-body {
-    @apply py-6 px-4 sm:px-6 overflow-y-auto custom-scrollbar flex flex-col gap-6 min-h-[40vh] max-h-[70vh] relative bg-light-surface-secondary/60 dark:bg-dark-surface-secondary/60;
+    @apply py-6 px-4 sm:px-6 overflow-y-auto custom-scrollbar flex flex-col gap-6 relative bg-light-surface-secondary/60 dark:bg-dark-surface-secondary/60;
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: calc(var(--app-vh, 1vh) * 100 - 14rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
   }
 
   .action-card-footer {
-    @apply px-4 sm:px-6 py-4 border-t border-light-border dark:border-dark-border bg-light-surface-secondary/60 dark:bg-dark-surface-secondary/60 flex justify-end gap-3 rounded-b-2xl;
+    @apply px-4 sm:px-6 py-4 border-t border-light-border dark:border-dark-border bg-light-surface-secondary/60 dark:bg-dark-surface-secondary/60 flex gap-3 rounded-b-2xl flex-wrap justify-center md:justify-end;
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  @media (max-width: 767px) {
+    .action-card {
+      height: calc(var(--app-vh, 1vh) * 100 - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 8px);
+      max-height: calc(var(--app-vh, 1vh) * 100 - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 8px);
+      width: 100%;
+    }
+
+    .action-card-footer {
+      gap: 0.5rem;
+      padding-left: 0.75rem;
+      padding-right: 0.75rem;
+      padding-top: 0.75rem;
+    }
+  }
+
+  .keyboard-open .action-card {
+    padding-top: 0.25rem;
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .keyboard-open .action-card-body {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    gap: 0.75rem;
+  }
+
+  .keyboard-open .action-card-header {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
   }
 
   .action-card-close-btn {
-    @apply inline-flex items-center justify-center size-8 rounded-full text-slate-500 dark:text-dark-on-surface-secondary hover:text-light-accent-primary hover:bg-slate-100 dark:hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-dark-surface-main transition-colors duration-200;
+    @apply inline-flex items-center justify-center size-8 rounded-full text-slate-500 dark:text-dark-on-surface-secondary hover:text-light-accent-primary-hc hover:bg-slate-100 dark:hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-dark-surface-main transition-colors duration-200;
   }
 
   /* Responsive typography inside action overlays */

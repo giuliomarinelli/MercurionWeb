@@ -32,6 +32,7 @@ import { CloseButtonComponent } from '../../common/close-button/close-button.com
 import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
 import { ToastService } from '../../../services/toast.service';
 import { Router } from '@angular/router';
+import { MoleculeSearchService } from '../../../services/graphql/molecule-search.service';
 
 export type ChipItem = {
   id: string;
@@ -88,18 +89,94 @@ export type ChipItem = {
     :host-context(.dark) .m-scroll-thin::-webkit-scrollbar-thumb:hover {
       background-color: #e2e8f0;
     }
+
+    /* Shared layout utilities for action components */
+    .m-ac-pad {
+      padding-left: 0.75rem;
+      padding-right: 0.75rem;
+    }
+    @media (min-width: 640px) {
+      .m-ac-pad {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+      }
+    }
+    .m-search-center {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+    }
+    @media (min-width: 640px) {
+      .m-search-center {
+        justify-content: flex-start;
+      }
+    }
+    .m-chip-stack {
+      height: 2.3rem;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-right: 0.5rem;
+    }
+    @media (min-width: 640px) {
+      .m-chip-stack {
+        height: auto;
+        max-height: 7rem;
+      }
+    }
+    .m-chip {
+      padding: 1px 4px;
+      font-size: 9px;
+      gap: 2px;
+      border-radius: 9999px;
+      line-height: 1.1;
+    }
+    .m-chip button {
+      width: 10px;
+      height: 10px;
+    }
+    @media (min-width: 640px) {
+      .m-chip {
+        padding: 6px 12px;
+        font-size: 14px;
+        gap: 8px;
+      }
+      .m-chip button {
+        width: 20px;
+        height: 20px;
+      }
+    }
+    .m-chip-text {
+      max-width: 6.5rem;
+    }
+    @media (min-width: 640px) {
+      .m-chip-text {
+        max-width: 16rem;
+      }
+    }
+    .m-chip-clear {
+      padding: 1px 5px;
+      font-size: 9px;
+      border-radius: 9999px;
+      line-height: 1.1;
+    }
+    @media (min-width: 640px) {
+      .m-chip-clear {
+        padding: 6px 12px;
+        font-size: 14px;
+      }
+    }
     `
   ],
   template: `
-<div class="flex justify-center items-center min-h-screen px-2 sm:px-4">
+<div class="flex justify-center items-stretch md:items-center min-h-dvh h-dvh px-2 sm:px-4 pt-1 md:pt-6 m-overlay-screen">
   <div
-    class="action-card max-w-5xl"
+    class="action-card w-full max-w-5xl flex flex-col h-dvh md:h-auto md:max-h-[calc(100dvh-6rem)] overflow-hidden"
     role="region"
     aria-labelledby="addMolHeading"
     [attr.aria-busy]="step_12_loading()"
   >
     <!-- HEADER -->
-    <div class="action-card-header">
+    <div class="action-card-header shrink-0">
       <h2
         id="addMolHeading"
         class="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-4 items-start sm:items-center text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main"
@@ -116,12 +193,12 @@ export type ChipItem = {
       </h2>
 
       <button
-            type="button"
-            class="action-card-close-btn"
-            (click)="close()"
-            aria-label="Chiudi pannello aggiungi molecole"
-            [attr.aria-describedby]="step() === 2 ? 'addMolStatus' : null"
-            [attr.aria-disabled]="false"
+        type="button"
+        class="action-card-close-btn"
+        (click)="close()"
+        aria-label="Chiudi pannello aggiungi molecole"
+        [attr.aria-describedby]="step() === 2 ? 'addMolStatus' : null"
+        [attr.aria-disabled]="false"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-5 h-auto">
           <path
@@ -132,9 +209,9 @@ export type ChipItem = {
     </div>
 
     <!-- BODY -->
-    <div class="action-card-body bg-white dark:bg-dark-surface-main">
+    <div class="action-card-body bg-white dark:bg-dark-surface-main flex flex-col flex-1 min-h-0 overflow-hidden">
       <!-- Scelta metodo -->
-      <div class="mx-auto">
+      <div class="mx-auto shrink-0 w-full">
         <div
           class="mt-6 space-y-6 sm:flex sm:items-center sm:space-x-10 sm:space-y-0
                  px-6 pb-6 border-b border-light-border dark:border-dark-border"
@@ -165,13 +242,11 @@ export type ChipItem = {
                        forced-colors:appearance-auto forced-colors:before:hidden
                        [&:not(:checked)]:before:hidden"
               />
-              <label
-                for="my"
-                class="cursor-pointer ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white"
-              >
+              <label for="my" class="cursor-pointer ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white">
                 Seleziona da <span class="italic">Le mie molecole</span>
               </label>
             </div>
+
             <div class="flex items-center">
               <input
                 id="chembl"
@@ -187,17 +262,14 @@ export type ChipItem = {
                        checked:border-indigo-600 checked:bg-indigo-600
                        focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600
                        disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400
-                       dark:border-white/10 dark:bg:white/5
+                       dark:border-white/10 dark:bg-white/5
                        dark:checked:border-indigo-500 dark:checked:bg-indigo-500
                        dark:focus-visible:outline-indigo-500
                        dark:disabled:border-white/5 dark:disabled:bg-white/10 dark:disabled:before:bg-white/20
                        forced-colors:appearance-auto forced-colors:before:hidden
                        [&:not(:checked)]:before:hidden"
               />
-              <label
-                for="chembl"
-                class="cursor-pointer ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white"
-              >
+              <label for="chembl" class="cursor-pointer ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white">
                 Cerca e seleziona da ChEMBL DB
               </label>
             </div>
@@ -226,13 +298,11 @@ export type ChipItem = {
                        forced-colors:appearance-auto forced-colors:before:hidden
                        [&:not(:checked)]:before:hidden"
               />
-              <label
-                for="my"
-                class="cursor-not-allowed ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white"
-              >
+              <label for="my" class="cursor-not-allowed ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white">
                 Seleziona da <span class="italic">Le mie molecole</span>
               </label>
             </div>
+
             <div class="flex items-center">
               <input
                 [attr.disabled]="true"
@@ -257,10 +327,7 @@ export type ChipItem = {
                        forced-colors:appearance-auto forced-colors:before:hidden
                        [&:not(:checked)]:before:hidden"
               />
-              <label
-                for="chembl"
-                class="cursor-not-allowed ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white"
-              >
+              <label for="chembl" class="cursor-not-allowed ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white">
                 Cerca e seleziona da ChEMBL DB
               </label>
             </div>
@@ -268,254 +335,277 @@ export type ChipItem = {
         </div>
       </div>
 
-      <!-- CONTENUTO STEP / METODO -->
-      @switch (method()) {
-        @case ('my') {
-          <div
-            #scrollRoot
-            class="py-6 px-3 overflow-y-auto flex flex-col gap-4 min-h-[40vh] max-h-[60vh] m-scroll-thin"
-          >
-            @switch (step()) {
-              @case (1) {
-                <div class="px-3">
-                  <h2 class="font-semibold mb-3">
-                    Scegli le molecole da aggiungere alla collezione:
-                  </h2>
+      <!-- AREA CONTENUTO (deve poter restringersi con tastiera) -->
+      <div class="flex-1 min-h-0 overflow-hidden">
+        @switch (method()) {
 
-                  <m-search-input
-                    class="block"
-                    [value]="searchTerm()"
-                    [useAltDarkStyle]="true"
-                    (valueChange)="doQuery($event)"
-                    (submitted)="doQuery($event)"
-                    (cleared)="doClear()"
-                  />
+          @case ('my') {
+            <div
+              #scrollRoot
+              class="h-full min-h-0 overflow-y-auto py-6 m-ac-pad flex flex-col gap-4 m-scroll-thin m-overscroll-touch m-overlay-body"
+            >
+              @switch (step()) {
 
-                  <div class="mt-6">
-                    @if (multiselectItems().length !== 0) {
-                      <m-molecule-collection-item-select-card
-                        class="block mb-6"
-                        [isSelectAll]="true"
-                        [value]="isSelectedAll()"
-                        [indeterminate]="isPartiallySelected()"
-                        (selectedAll)="onSelectAllChange($event)"
+                @case (1) {
+                  <div class="m-ac-pad space-y-3 sm:space-y-4">
+                    <h2 class="font-semibold text-center sm:text-left">
+                      Scegli le molecole da aggiungere alla collezione:
+                    </h2>
+
+                    <div class="m-search-center">
+                      <m-search-input
+                        class="block w-full max-w-[20rem] sm:max-w-none"
+                        [value]="searchTerm()"
+                        [useAltDarkStyle]="true"
+                        (valueChange)="doQuery($event)"
+                        (submitted)="doQuery($event)"
+                        (cleared)="doClear()"
                       />
-                    }
+                    </div>
 
-                    @for (row of multiselectItems(); track row.item.id; let i = $index) {
-                      <m-molecule-collection-item-select-card
-                        [molecule]="row.item"
-                        [i]="i"
-                        [value]="row.isChecked()"
-                        (valueChange)="row.isChecked.set($event); toggleOne(row)"
-                      />
+                    <div class="pt-2 sm:pt-4">
+                      @if (multiselectItems().length !== 0) {
+                        <m-molecule-collection-item-select-card
+                          class="block mb-6"
+                          [isSelectAll]="true"
+                          [value]="isSelectedAll()"
+                          [indeterminate]="isPartiallySelected()"
+                          (selectedAll)="onSelectAllChange($event)"
+                        />
+                      }
+
+                      @for (row of multiselectItems(); track row.item.id; let i = $index) {
+                        <m-molecule-collection-item-select-card
+                          [molecule]="row.item"
+                          [i]="i"
+                          [value]="row.isChecked()"
+                          (valueChange)="row.isChecked.set($event); toggleOne(row)"
+                        />
+                      }
+                    </div>
+
+                    <div #sentinel class="h-1 w-full"></div>
+
+                    @if (loading) {
+                      @if (page > 1) {
+                        <div class="flex justify-center py-4" role="status" aria-live="polite" aria-busy="true">
+                          <m-classic-spinner [size]="60" />
+                        </div>
+                      } @else {
+                        <div class="space-y-4" role="status" aria-live="polite" aria-busy="true">
+                          @for (i of [0,1,2,3,4]; track i) {
+                            <m-skeleton-molecule-card />
+                          }
+                        </div>
+                      }
+                    } @else if (empty() && (earlyDone || done)) {
+                      <p class="text-slate-700 dark:text-slate-200 py-6" role="status" aria-live="polite">
+                        Nessuna molecola disponibile tra
+                        <em>Le mie molecole</em>.
+                      </p>
                     }
                   </div>
+                }
 
-                  <div #sentinel class="h-1 w-full"></div>
-
-                  @if (loading) {
-                    @if (page > 1) {
-                      <div class="flex justify-center py-4" role="status" aria-live="polite" aria-busy="true">
-                        <m-classic-spinner [size]="60" />
-                      </div>
+                @case (2) {
+                  <div class="px-6 py-6">
+                    @if (error()) {
+                      <span
+                        id="addMolStatus"
+                        class="text-light-error dark:text-dark-error"
+                        role="alert"
+                        aria-live="assertive"
+                      >
+                        Si è verificato un errore
+                      </span>
                     } @else {
-                      <div class="space-y-4" role="status" aria-live="polite" aria-busy="true">
-                        @for (i of [0,1,2,3,4]; track i) {
-                          <m-skeleton-molecule-card />
-                        }
+                      <span
+                        id="addMolStatus"
+                        class="text-light-accent-primary-hc dark:text-dark-accent-secondary"
+                        role="status"
+                        aria-live="polite"
+                      >
+                        Molecole aggiunte con successo!
+                      </span>
+                    }
+                  </div>
+                }
+
+              }
+            </div>
+          }
+
+          @case ('chembl') {
+            @switch (step()) {
+
+              @case (1) {
+                <div class="h-full min-h-0 flex flex-col py-4 m-ac-pad gap-3 transition duration-150 m-overlay-body">
+                  <!-- SEARCH (fuori dallo scroll risultati, così sticky è stabile) -->
+                  <div class="shrink-0 sticky top-0 z-10 bg-white/70 dark:bg-dark-surface-main/70 backdrop-blur pb-2 space-y-2 text-center sm:text-left m-ac-pad">
+                    <div class="font-medium">Cerca su ChEMBL e seleziona:</div>
+                    <div class="m-search-center">
+                      <m-molecule-search-input
+                        class="block w-full max-w-[20rem] sm:max-w-none"
+                        [search_excludeAlreadyAdded]="true"
+                        (onLoading)="chemblLoading.set($event)"
+                        (onResult)="handleResults($event)"
+                        (onError)="handleError($event)"
+                        (onQuery)="onChemblQuery($event)"
+                        (onEmpty)="chemblEmpty.set(true)"
+                      />
+                    </div>
+                  </div>
+
+                  <!-- CHIPS -->
+                  <div class="shrink-0 border-b min-h-24 relative">
+                    @if (selectedMolecules.length === 0) {
+                      <div
+                        class="absolute inset-0 flex justify-center items-center text-sm text-slate-700 dark:text-slate-200"
+                        role="status"
+                        aria-live="polite"
+                      >
+                        Qui vedrai le molecole selezionate.
                       </div>
                     }
-                  } @else if (empty() && (earlyDone || done)) {
-                    <p class="text-slate-700 dark:text-slate-200 py-6" role="status" aria-live="polite">
-                      Nessuna molecola disponibile tra
-                      <em>Le mie molecole</em>.
-                    </p>
-                  }
-                </div>
-              }
-              @case (2) {
-                @if (error()) {
-                  <span
-                    id="addMolStatus"
-                    class="text-light-error dark:text-dark-error"
-                    role="alert"
-                    aria-live="assertive"
-                  >
-                    Si è verificato un errore
-                  </span>
-                } @else {
-                  <span
-                    id="addMolStatus"
-                    class="text-light-accent-primary-hq dark:text-dark-accent-secondary"
-                    role="status"
-                    aria-live="polite"
-                  >
-                    Molecole aggiunte con successo!
-                  </span>
-                }
-              }
-            }
-          </div>
-        }
-        @case ('chembl') {
-          @switch (step()) {
-            @case (1) {
-              <div class="py-6 px-3 flex flex-col gap-4 min-h-[50vh] max-h-[60vh] transition duration-150">
-                <div>Cerca su ChEMBL e seleziona:</div>
 
-                <m-molecule-search-input
-                  [search_excludeAlreadyAdded]="true"
-                  (onLoading)="chemblLoading.set($event)"
-                  (onResult)="handleResults($event)"
-                  (onError)="handleError($event)"
-                  (onQuery)="chemblQuery.set($event)"
-                  (onEmpty)="chemblEmpty.set(true)"
-                />
-
-                <div class="border-b min-h-24 relative">
-                  @if (selectedMolecules.length === 0) {
                     <div
-                      class="absolute inset-0 flex justify-center items-center text-sm text-slate-700 dark:text-slate-200"
-                      role="status"
+                      class="relative flex flex-col xs:flex-row xs:flex-wrap items-start xs:items-center gap-1 sm:gap-3 py-1 sm:py-3 px-1 m-chip-stack m-scroll-thin m-overscroll-touch"
+                      role="list"
+                      aria-label="Molecole selezionate"
                       aria-live="polite"
                     >
-                      Qui vedrai le molecole selezionate.
-                    </div>
-                  }
+                      @for (m of selectedMolecules; track m.id) {
+                        <span
+                          role="listitem"
+                          class="group inline-flex items-center max-w-full m-chip
+                                 rounded-full
+                                 bg-indigo-50 text-light-accent-primary-hc ring-1 ring-inset ring-light-accent-primary-hq/70
+                                 dark:bg-indigo-500/20 dark:text-indigo-100 dark:ring-indigo-400/40
+                                 shadow-sm"
+                          title="{{ m.name }}"
+                        >
+                          <span class="truncate m-chip-text text-[10px] sm:text-sm font-medium">
+                            {{ m.name }}
+                          </span>
 
-                  <div
-                    class="relative flex flex-col xs:flex-row xs:flex-wrap items-start xs:items-center gap-2 xs:gap-3 py-3"
-                    role="list"
-                    aria-label="Molecole selezionate"
-                    aria-live="polite"
-                  >
-                    @for (m of selectedMolecules; track m.id) {
-                      <span
-                        role="listitem"
-                        class="group inline-flex items-center gap-2 max-w-full
-                               rounded-full px-3 py-1.5
-                               bg-indigo-50 text-light-accent-primary-hq ring-1 ring-inset ring-light-accent-primary-hq/70
-                               dark:bg-indigo-500/20 dark:text-indigo-100 dark:ring-indigo-400/40
-                               shadow-sm"
-                        title="{{ m.name }}"
-                      >
-                        <span class="truncate max-w-[16rem] text-sm font-medium">
-                          {{ m.name }}
+                          <button
+                            type="button"
+                            (click)="removeChip(m.id)"
+                            class="shrink-0 inline-flex items-center justify-center rounded-full
+                                   hover:bg-indigo-100 dark:hover:bg-indigo-400/30
+                                   focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1
+                                   dark:focus:ring-offset-gray-900"
+                            aria-label="Rimuovi {{ m.name }}"
+                          >
+                            <svg viewBox="0 0 20 20" fill="none" class="size-3.5">
+                              <path
+                                d="M6 6l8 8M14 6l-8 8"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                                stroke-linecap="round"
+                              />
+                            </svg>
+                          </button>
                         </span>
+                      }
 
+                      @if (selectedMolecules.length > 0) {
+                        <span class="grow"></span>
                         <button
                           type="button"
-                          (click)="removeChip(m.id)"
-                          class="shrink-0 inline-flex size-5 items-center justify-center rounded-full
-                                 hover:bg-indigo-100 dark:hover:bg-indigo-400/30
+                          (click)="clearChips()"
+                          class="inline-flex items-center m-chip-clear gap-1 sm:gap-2 rounded-full
+                                 ring-1 ring-inset ring-indigo-300 text-indigo-700 hover:bg-indigo-50
+                                 dark:ring-indigo-400/40 dark:text-indigo-100 dark:hover:bg-indigo-500/20
                                  focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1
                                  dark:focus:ring-offset-gray-900"
-                          aria-label="Rimuovi {{ m.name }}"
                         >
+                          Pulisci tutto
                           <svg viewBox="0 0 20 20" fill="none" class="size-3.5">
                             <path
-                              d="M6 6l8 8M14 6l-8 8"
+                              d="M5 10h10M10 5v10"
                               stroke="currentColor"
-                              stroke-width="1.8"
+                              stroke-width="1.6"
                               stroke-linecap="round"
                             />
                           </svg>
                         </button>
-                      </span>
-                    }
+                      }
+                    </div>
+                  </div>
 
-                    @if (selectedMolecules.length > 0) {
-                      <span class="grow"></span>
-                      <button
-                        type="button"
-                        (click)="clearChips()"
-                        class="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm
-                               ring-1 ring-inset ring-indigo-300 text-indigo-700 hover:bg-indigo-50
-                               dark:ring-indigo-400/40 dark:text-indigo-100 dark:hover:bg-indigo-500/20
-                               focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1
-                               dark:focus:ring-offset-gray-900"
+                  <!-- RESULTS (unico scroll “vero”) -->
+                  <div
+                    class="relative flex-1 min-h-0 overflow-y-auto overscroll-contain"
+                    style="-webkit-overflow-scrolling: touch;"
+                    role="region"
+                    aria-label="Risultati ricerca ChEMBL"
+                    [attr.aria-busy]="chemblLoading()"
+                    aria-live="polite"
+                  >
+                    @if (chemblLoading()) {
+                      <div role="status" aria-live="polite" aria-busy="true">
+                        <m-search-result-skeleton-loader />
+                      </div>
+                    } @else if (chemblResults().length) {
+                      @for (molecule of chemblResults(); track molecule.id) {
+                        <m-search-result
+                          [molecule]="molecule"
+                          [query]="chemblQuery()"
+                          [search_excludeAlreadyAdded]="true"
+                          (onChipItem)="addChip($event)"
+                        />
+                      }
+                    } @else if (!chemblResults().length && !chemblError() && !chemblEmpty()) {
+                      <div class="text-sm text-slate-700 dark:text-slate-200 text-center py-8" role="status" aria-live="polite">
+                        Nessun risultato trovato.
+                      </div>
+                    } @else if (chemblError()) {
+                      <div
+                        class="text-sm text-red-500 bg-red-50 dark:bg-red-950 rounded px-4 py-2 text-center"
+                        role="alert"
+                        aria-live="assertive"
                       >
-                        Pulisci tutto
-                        <svg viewBox="0 0 20 20" fill="none" class="size-3.5">
-                          <path
-                            d="M5 10h10M10 5v10"
-                            stroke="currentColor"
-                            stroke-width="1.6"
-                            stroke-linecap="round"
-                          />
-                        </svg>
-                      </button>
+                        Errore nella ricerca. Riprova.
+                      </div>
                     }
                   </div>
                 </div>
+              }
 
-                <div
-                  class="overflow-y-auto relative m-scroll-thin"
-                  role="region"
-                  aria-label="Risultati ricerca ChEMBL"
-                  [attr.aria-busy]="chemblLoading()"
-                  aria-live="polite"
-                >
-                  @if (chemblLoading()) {
-                    <div role="status" aria-live="polite" aria-busy="true">
-                      <m-search-result-skeleton-loader />
-                    </div>
-                  } @else if (chemblResults().length) {
-                    @for (molecule of chemblResults(); track molecule.id) {
-                      <m-search-result
-                        [molecule]="molecule"
-                        [query]="chemblQuery()"
-                        [search_excludeAlreadyAdded]="true"
-                        (onChipItem)="addChip($event)"
-                      />
-                    }
-                  } @else if (!chemblResults().length && !chemblError() && !chemblEmpty()) {
-                    <div class="text-sm text-slate-700 dark:text-slate-200 text-center py-8" role="status" aria-live="polite">
-                      Nessun risultato trovato.
-                    </div>
-                  } @else if (chemblError()) {
-                    <div
-                      class="text-sm text-red-500 bg-red-50 dark:bg-red-950 rounded px-4 py-2 text-center"
+              @case (2) {
+                <div class="flex-1 min-h-0 py-6 px-3 flex flex-col gap-4">
+                  @if (error()) {
+                    <span
+                      id="addMolStatus"
+                      class="text-light-error dark:text-dark-error"
                       role="alert"
                       aria-live="assertive"
                     >
-                      Errore nella ricerca. Riprova.
-                    </div>
+                      Si è verificato un errore
+                    </span>
+                  } @else {
+                    <span
+                      id="addMolStatus"
+                      class="text-light-accent-primary-hc dark:text-dark-accent-secondary"
+                      role="status"
+                      aria-live="polite"
+                    >
+                      Molecole aggiunte con successo!
+                    </span>
                   }
                 </div>
-              </div>
-            }
-            @case (2) {
-              <div class="py-6 px-3 flex flex-col gap-4 min-h-[60vh] max-h-[60vh]">
-                @if (error()) {
-                  <span
-                    id="addMolStatus"
-                    class="text-light-error dark:text-dark-error"
-                    role="alert"
-                    aria-live="assertive"
-                  >
-                    Si è verificato un errore
-                  </span>
-                } @else {
-                  <span
-                    id="addMolStatus"
-                    class="text-light-accent-primary-hq dark:text-dark-accent-secondary"
-                    role="status"
-                    aria-live="polite"
-                  >
-                    Molecole aggiunte con successo!
-                  </span>
-                }
-              </div>
+              }
+
             }
           }
+
         }
-      }
+      </div>
     </div>
 
     <!-- FOOTER -->
-    <div class="action-card-footer">
+    <div class="action-card-footer shrink-0">
       @if (step() === 1) {
         <button
           type="button"
@@ -537,14 +627,14 @@ export type ChipItem = {
       <button
         type="button"
         class="relative inline-flex items-center justify-center px-4 py-2 rounded-lg
-               bg-light-accent-primary-hq text-white font-semibold shadow-md
+               bg-light-accent-primary text-white font-semibold shadow-md
                hover:bg-light-accent-primary-hc
                dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary
                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq
                focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary
                dark:focus-visible:ring-offset-dark-surface-secondary
-               disabled:bg-light-accent-primary-hq/50 disabled:cursor-not-allowed
-               transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary-hq/50"
+               disabled:bg-light-accent-primary/50 disabled:cursor-not-allowed
+               transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary-hc/50"
         [disabled]="(isSelectedNothing() && this.method() === 'my') || (this.selectedIds.length === 0 && this.method() === 'chembl' || step_12_loading())"
         (click)="step() === 1 ? dispatchSubmit() : close()"
         [attr.aria-busy]="step_12_loading()"
@@ -572,6 +662,7 @@ export type ChipItem = {
   </div>
 </div>
 `
+
 })
 export class AddMoleculesToCollectionComponent
   extends AbstractPaginatedMultiselectComponent<MoleculeCardItemModel>
@@ -583,6 +674,7 @@ export class AddMoleculesToCollectionComponent
   private readonly moleculeCollectionService = inject(MoleculeCollectionService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
+  private readonly moleculeSearchService = inject(MoleculeSearchService);
 
   private ctrlSub?: Subscription;
   private suSub1?: Subscription;
@@ -681,7 +773,7 @@ export class AddMoleculesToCollectionComponent
     collectionId?: boolean
   ): Observable<PageModel<MoleculeCardItemModel>> {
     return this.moleculeCollectionItemService
-      .getAllPaginatedItems(this.page, 8, this.searchTerm(), true, this.addContext.collectionId())
+      .getAllPaginatedItems(this.page, 20, this.searchTerm(), true, this.addContext.collectionId())
       .pipe(
         debounceTime(100),
         map(p => ({
@@ -760,6 +852,8 @@ export class AddMoleculesToCollectionComponent
     return this.selectedMolecules.map(c => c.id);
   }
 
+  // TODO: Medium priority - Safari/iOS quirks can break keyboard overlay layout and suppress realtime search.
+  // When time permits, revisit with dedicated viewport/keyboard handling and stricter input event capture.
   onSearchHit(hit: { id: string; name: string }) {
     this.addChip(hit);
   }
@@ -768,6 +862,37 @@ export class AddMoleculesToCollectionComponent
     if (!chip?.id) return;
     if (this.selectedMolecules.some(c => c.id === chip.id)) return;
     this.selectedMolecules = [...this.selectedMolecules, chip];
+  }
+
+  onChemblQuery(raw: string) {
+    this.chemblQuery.set(raw ?? '');
+    const trimmed = this.chemblQuery().trim();
+    if (trimmed.length < 2) {
+      this.chemblResults.set([]);
+      this.chemblEmpty.set(true);
+      this.chemblError.set(null);
+      return;
+    }
+    this.chemblEmpty.set(false);
+    this.chemblError.set(null);
+    this.chemblLoading.set(true);
+
+    const collectionId = this.addContext.collectionId();
+    const obs = collectionId
+      ? this.moleculeCollectionItemService.searchChemblMolecules_excludeAlreadyAdded(trimmed, collectionId, 100)
+      : this.moleculeSearchService.searchMolecule(trimmed, 100);
+
+    obs.subscribe({
+      next: (res: MoleculeSearchResult[]) => {
+        this.chemblResults.set(res ?? []);
+        this.chemblLoading.set(false);
+      },
+      error: (err: unknown) => {
+        this.chemblError.set(err);
+        this.chemblResults.set([]);
+        this.chemblLoading.set(false);
+      }
+    });
   }
 
   removeChip(id: string) {

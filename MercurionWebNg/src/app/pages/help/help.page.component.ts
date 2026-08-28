@@ -52,7 +52,7 @@ import { GqlV2Error } from '../../services/graphql/graphql-helpers/v2/gql-v2.err
         <button
           type="button"
           (click)="newTicket()"
-          class="relative bottom-[10px] w-fit mx-auto sm:mx-0 mt-1 py-2.5 px-8 text-white rounded-md transition-colors duration-150 bg-light-accent-primary-hq dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary-hc dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary-hq/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary-hq/60 disabled:hover:dark:bg-dark-accent-primary/80 flex justify-center items-center gap-2"
+          class="relative bottom-[10px] w-fit mx-auto text-xs min-[374px]:text-base sm:mx-0 mt-1 py-2.5 px-8 text-white rounded-md transition-colors duration-150 bg-light-accent-primary-hq dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary-hc dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary-hq/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary-hq/60 disabled:hover:dark:bg-dark-accent-primary/80 flex justify-center items-center gap-2"
           aria-label="Apri un nuovo ticket di supporto"
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current size-7 relative -left-1.5" aria-hidden="true">
@@ -66,9 +66,9 @@ import { GqlV2Error } from '../../services/graphql/graphql-helpers/v2/gql-v2.err
 
       <p class="my-4 font-medium">
         @if (handleTickets() && activeTab() === 1) {
-          Gli utenti hanno creato complessivamente&nbsp;<strong class="text-light-accent-primary-hq dark:text-dark-accent-primary">{{totalItems()}}</strong>&nbsp;ticket
+          Gli utenti hanno creato complessivamente&nbsp;<strong class="text-light-accent-primary-hc dark:text-dark-accent-primary">{{totalItems()}}</strong>&nbsp;ticket
         } @else {
-          Ci sono un totale di&nbsp;<strong class="text-light-accent-primary-hq dark:text-dark-accent-primary">{{totalItems()}}</strong>&nbsp;ticket
+          Ci sono un totale di&nbsp;<strong class="text-light-accent-primary-hc dark:text-dark-accent-primary">{{totalItems()}}</strong>&nbsp;ticket
         }
       </p>
 
@@ -102,7 +102,7 @@ import { GqlV2Error } from '../../services/graphql/graphql-helpers/v2/gql-v2.err
         }
       } @else if (empty() && (earlyDone)) {
         <p class="relative -top-8 text-slate-700 dark:text-slate-200" role="status" aria-live="polite">
-          Non sono ancora presenti ticket&nbsp;<button class="a" type="button" aria-label="Apri adesso il tuo primo ticket">Apri adesso il tuo primo ticket</button>
+          Non sono ancora presenti ticket&nbsp;<button class="a" type="button" aria-label="Apri adesso il tuo primo ticket" (click)="newTicket()">Apri adesso il tuo primo ticket</button>
         </p>
       }
     </main>
@@ -125,7 +125,7 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
   protected declare sentinel: ElementRef<HTMLDivElement>
 
   protected readonly tabs = ['Sezione utente', 'Sezione admin']
-  private readonly ITEMS_PER_PAGE = 10
+  private readonly ITEMS_PER_PAGE = 25
 
   private clsSub?: Subscription
   private ropSub?: Subscription

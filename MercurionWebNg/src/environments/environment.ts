@@ -13,8 +13,8 @@ export const environment = {
     '/terms-and-policies',
     '/contacts'
   ],
-  LOGGED_OUT_ONLY_PATHS: ['/login', '/register', '/forgot', '/', '/forgot-password', '/account-recovery'],
-  PUBLIC_PREFIXES: ['/login/mfa', '/molecules/detail', '/password-recovery', '/oauth2/callback', '/account/activate'],
+  LOGGED_OUT_ONLY_PATHS: ['/login', '/register', '/forgot', '/', '/forgot-password', '/account-recovery', '/welcome'],
+  PUBLIC_PREFIXES: ['/login/mfa', '/molecules/detail', '/password-recovery', '/oauth2/callback', '/account/activate', '/admin/maintenance'],
   wsUrl: '/',
   logoSrc: {
     PICTOGRAM_LIGHT: 'logo/pictogram-light-logo.svg',

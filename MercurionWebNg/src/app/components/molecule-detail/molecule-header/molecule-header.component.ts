@@ -21,17 +21,17 @@ import { RouterLink } from '@angular/router';
       <div class="flex-1 space-y-2 w-full">
         @if (_myMol()) {
           @if (!_isCustom()) {
-            <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+            <div class="flex flex-col items-center sm:flex-row sm:items-center gap-3 sm:gap-4">
               <h2
                 id="molecule-name"
                 class="text-3xl w-full sm:w-auto md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider
-                       text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary">
+                       text-center sm:text-left text-light-accent-primary-hc dark:text-dark-accent-primary">
                 {{ name() }}
               </h2>
 
               <m-molecule-badge
                 [name]="_badgeName()"
-                class="relative shrink-0" />
+                class="relative shrink-0 mx-auto sm:mx-0" />
             </div>
           } @else {
             <m-custom-details
@@ -42,25 +42,25 @@ import { RouterLink } from '@angular/router';
               (onSaving)="doSave($event)" />
           }
         } @else {
-          <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+          <div class="flex flex-col items-center sm:flex-row sm:items-center justify-center xs:justify-start gap-2 sm:gap-4">
             <h1
               id="molecule-name"
               class="text-3xl w-full sm:w-auto md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider
-                     text-left text-light-accent-primary dark:text-dark-accent-primary">
+                     text-center sm:text-left text-light-accent-primary-hc dark:text-dark-accent-primary">
               {{ name() }}
             </h1>
 
             <m-molecule-badge
               [name]="'ChEMBL'"
-              class="relative shrink-0" />
+              class="relative shrink-0 mx-auto sm:mx-0 justify-self-center" />
           </div>
         }
 
         @if (_chemblIdSignal()) {
-          <div class="mt-1 sm:mt-2">
+          <div class="mt-1 sm:mt-2 flex justify-center sm:justify-start">
             <p
-              class="text-xs sm:text-sm font-semibold tracking-wide text-left
-                     text-light-accent-primary dark:text-dark-accent-primary">
+              class="text-xs sm:text-sm font-semibold tracking-wide text-center sm:text-left
+                     text-light-accent-primary-hc dark:text-dark-accent-primary">
               ChEMBL ID:
               <span
                 class="text-muted-foreground font-normal text-light-on-surface-main dark:text-slate-100">

@@ -16,7 +16,7 @@ import { DesignService } from '../../../services/design.service';
         bg-slate-100 dark:bg-slate-800
         border-slate-300 dark:border-slate-600
         max-h-fit opacity-100 flex gap-6 items-start sm:items-center flex-col sm:flex-row
-        text-xs font-semibold gap-y-4 sm:gap-y-4 justify-between
+        text-xs font-semibold gap-y-4 sm:gap-y-4 sm:justify-between
         transition-all duration-150 ease-linear
       "
       [ngClass]="{
@@ -29,7 +29,7 @@ import { DesignService } from '../../../services/design.service';
     >
 
 
-      <div class="flex items-start sm:items-center gap-3 sm:gap-4 flex-1 min-w-0">
+      <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
           @switch (_strategy()!.strategy) {
               @case ('EMAIL_OTP') {
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-7 w-auto shrink-0">

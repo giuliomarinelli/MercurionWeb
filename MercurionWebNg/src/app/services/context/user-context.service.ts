@@ -28,7 +28,9 @@ export class UserContextService {
     localStorage.removeItem('accessToken')
     localStorage.removeItem('ws_accessToken')
     localStorage.removeItem('ws_accessToken_ts')
-    document.cookie = '__logged_in=; Max-Age=0; path=/'
+    for (const name of ['__logged_in', '__logged_in_']) {
+      document.cookie = `${name}=; Max-Age=0; path=/`
+    }
     localStorage.removeItem('scp')
   }
 

@@ -18,6 +18,7 @@ import { AuthProvider } from '../../Models/auth/provider.models';
 import { Helpers } from '../../helpers';
 import { SessionSyncService } from '../../services/session-sync.service';
 import { SidenavContextService } from '../../services/context/sidenav-context.service';
+import { UserContextService } from '../../services/context/user-context.service';
 
 
 
@@ -617,6 +618,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly registryContext = inject(ProfileRegistryEditContextService)
   private readonly sessionSync = inject(SessionSyncService)
   private readonly sidenavContext = inject(SidenavContextService)
+  private readonly userContext = inject(UserContextService)
 
   @ViewChild(CdkAccordion)
   accordion!: CdkAccordion
@@ -964,6 +966,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
           return
         }
         if (s.current) {
+          this.userContext.logout()
           queueMicrotask(() => this.toast.trigger('Logout dalla sessione corrente effettuato con successo.', 'success', 3000))
         }
         queueMicrotask(() => {
@@ -985,6 +988,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
     this.allLoguotSub = this.authService.logoutFromAllSessions().subscribe({
       next: () => {
         this.sessionSync.notifyVoluntaryLogout()
+        this.userContext.logout()
         queueMicrotask(() => this.toast.trigger('Logout da tutte le sessioni effetttuato con successo.', 'success', 3000))
       },
       error: () => onError()

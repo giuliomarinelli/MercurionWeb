@@ -81,34 +81,38 @@ import { Maybe } from 'graphql/jsutils/Maybe';
           </div>
 
           <!-- preview / meta line -->
-          <div class="mt-1 flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-1 sm:gap-2 text-xs text-slate-700 dark:text-slate-200">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current size-3.5 inline-block relative -top-px ">
-              <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-              <path d="M320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64zM296 184L296 332.8L306.7 339.9L402.7 403.9L422.7 417.2L449.3 377.3C446.9 375.7 411.8 352.3 344 307.1L344 159.9L296 159.9L296 183.9z"/>
-            </svg>
-            <span>
-              {{ _ticket()!.lastMessageAt | date:'dd/MM/yyyy HH:mm:ss' }}
-            </span>
+          <div class="mt-2 flex items-center flex-wrap gap-x-2 gap-y-1 md:gap-2 text-xs text-slate-700 dark:text-slate-200 mr-2 md:mr-0">
+            <div class="flex items-center gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current size-3.5 inline-block relative -top-px ">
+                <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                <path d="M320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64zM296 184L296 332.8L306.7 339.9L402.7 403.9L422.7 417.2L449.3 377.3C446.9 375.7 411.8 352.3 344 307.1L344 159.9L296 159.9L296 183.9z"/>
+              </svg>
+              <span>
+                {{ _ticket()!.lastMessageAt | date:'dd/MM/yyyy HH:mm:ss' }}
+              </span>
+            </div>
+            <span class="text-slate-300 dark:text-slate-600 hidden md:inline">•</span>
 
-            <span class="text-slate-300 dark:text-slate-600">•</span>
-
-
-            <svg
-              class="size-3.5 relative -top-px"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              aria-hidden="true"
-              >
-              <path
-              d="M6 2a1 1 0 0 1 1 1v1h6V3a1 1 0 1 1 2 0v1h1a2 2 0 0 1 2 2v1H3V6a2 2 0 0 1 2-2h1V3a1 1 0 0 1 1-1z"
-              />
-              <path d="M3 8h14v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8z" />
-            </svg>
-            {{ _ticket()!.createdAt | date:'dd/MM/yyyy HH:mm' }}
+            <div class="flex items-center gap-1">
+              <svg
+                class="size-3.5 relative -top-px"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+                >
+                <path
+                d="M6 2a1 1 0 0 1 1 1v1h6V3a1 1 0 1 1 2 0v1h1a2 2 0 0 1 2 2v1H3V6a2 2 0 0 1 2-2h1V3a1 1 0 0 1 1-1z"
+                />
+                <path d="M3 8h14v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8z" />
+              </svg>
+              <span>
+                {{ _ticket()!.createdAt | date:'dd/MM/yyyy HH:mm' }}
+              </span>
+            </div>
 
 
             @if (mode() === 'support' && typeGuards.isTicket(_ticket())) {
-              <span class="text-slate-300 dark:text-slate-600">•</span>
+              <span class="text-slate-300 dark:text-slate-600 hidden md:inline">•</span>
               <span class="truncate">
                 Utente: {{ getUserFullNameIfIsTicket(this._ticket()) }}
               </span>
@@ -118,7 +122,7 @@ import { Maybe } from 'graphql/jsutils/Maybe';
 
         <!-- COLONNA DESTRA -->
         <div
-          class="md:col-span-3 flex flex-col sm:flex-row flex-wrap justify-start md:justify-end items-stretch sm:items-center gap-2 relative z-30 pointer-events-auto w-full"
+          class="md:col-span-3 flex flex-col max-w-xs sm:max-w-none sm:flex-row flex-wrap justify-start md:justify-end items-stretch sm:items-center gap-2 relative z-30 pointer-events-auto w-full"
         >
           @if (showCloseButton()) {
             <button
@@ -145,7 +149,7 @@ import { Maybe } from 'graphql/jsutils/Maybe';
                 flex items-center gap-2 px-3 py-1.5 rounded-md border
                 text-xs font-medium transition-colors duration-150
                 border-light-accent-primary-hq dark:border-indigo-400/60
-                text-light-accent-primary-hq dark:text-indigo-200
+                text-light-accent-primary-hc dark:text-indigo-200
                 hover:bg-light-accent-primary-hc/20 dark:hover:bg-indigo-900/20
               "
               (click)="$event.stopPropagation(); reopen.emit(_ticket()!.id)"

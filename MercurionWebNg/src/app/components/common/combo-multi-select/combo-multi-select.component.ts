@@ -63,10 +63,10 @@ import { FormsModule } from '@angular/forms';
         aria-label="Cerca elementi nella lista"
       />
 
-      <!-- Scrollable area -->
+        <!-- Scrollable area -->
         <div
           #scrollContainer
-          class="max-h-64 overflow-auto flex flex-col gap-1 h-56 oveflow-y-auto"
+          class="max-h-64 overflow-auto overflow-y-auto flex flex-col gap-1 h-56 m-scroll-thin"
           (scroll)="onScroll($event)"
           role="listbox" aria-multiselectable="true"
           [attr.aria-label]="ariaLabelListbox"

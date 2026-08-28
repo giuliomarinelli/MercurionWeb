@@ -56,18 +56,18 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
       }
 
       @case ('name') {
-        <div class="flex items-center gap-4 min-w-0 mb-2 sm:mb-3">
+        <div class="flex flex-col items-center sm:flex-row sm:items-center gap-3 sm:gap-4 min-w-0">
           <h2
             id="molecule-name"
             #value
-            class="py-2 outline-none text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider
-                   text-center sm:text-left text-light-accent-primary dark:text-dark-accent-primary
-                   rounded-md border
+            class="outline-none text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider
+                   text-center sm:text-left text-light-accent-primary-hc dark:text-dark-accent-primary
+                   rounded-md border border-transparent
                    transition-[background-color,border-color,color] duration-300"
             [attr.contenteditable]="mode() === 'edit' ? 'true' : null"
             [ngClass]="{
               'bg-slate-300 dark:bg-slate-700 border-light-on-surface-main dark:border-dark-on-surface-main': mode() === 'edit',
-              'border-transparent bg-transparent': mode() === 'view'
+              'bg-transparent': mode() === 'view'
             }">
             {{ _value() }}
           </h2>
@@ -75,7 +75,7 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
           @if (_badgeName()) {
             <m-molecule-badge
               [name]="_badgeName()"
-              class="block relative top-1 shrink-0" />
+              class="block relative shrink-0 mx-auto sm:mx-0" />
           }
 
           <div class="flex items-center w-[4.5rem] shrink-0">
@@ -114,10 +114,10 @@ import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.compone
       }
 
       @default {
-        <div class="flex text-center sm:text-left gap-3 items-start mb-4">
+        <div class="flex justify-center sm:justify-start text-center sm:text-left gap-3 items-start mb-4">
           <h2
             [innerHTML]="_label()"
-            class="mt-1 font-semibold text-light-accent-primary dark:text-dark-accent-primary text-xl shrink-0">
+            class="mt-1 font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary text-xl shrink-0">
           </h2>
 
           <div class="flex items-center gap-3 min-w-0">

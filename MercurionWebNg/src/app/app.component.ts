@@ -10,7 +10,8 @@ import {
   effect,
   signal,
   Signal,
-  inject
+  inject,
+  PLATFORM_ID
 } from '@angular/core'
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router'
 import { HeaderComponent } from './components/common/header/header.component'
@@ -32,6 +33,8 @@ import { environment } from '../environments/environment.development'
 import { AuthService } from './services/auth.service'
 import { ActionOverlayComponent } from './components/action-components/action-overlay/action-overlay.component'
 import { AppContextService } from './services/context/app-context.service'
+import { AccountService } from './services/account.service'
+import { DOCUMENT, isPlatformBrowser } from '@angular/common'
 
 @Component({
   selector: 'm-root',
@@ -45,47 +48,14 @@ import { AppContextService } from './services/context/app-context.service'
     SidenavComponent,
     ActionOverlayComponent
   ],
-  styles: [
-    `
-    /* Scrollbar sottile globale (per l'area scroll principale) */
-
-    .m-scroll-thin {
-      scrollbar-width: thin; /* Firefox */
-      scrollbar-color: #64748b transparent; /* thumb, track */
-    }
-
-    :host-context(.dark) .m-scroll-thin {
-      scrollbar-color: #94a3b8 transparent;
-    }
-
-    .m-scroll-thin::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    .m-scroll-thin::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    .m-scroll-thin::-webkit-scrollbar-thumb {
-      background-color: #cbd5e1; /* slate-300-ish */
-      border-radius: 9999px;
-    }
-
-    :host-context(.dark) .m-scroll-thin::-webkit-scrollbar-thumb {
-      background-color: #475569; /* slate-600-ish */
-    }
-
-    .m-scroll-thin::-webkit-scrollbar-thumb:hover {
-      background-color: #94a3b8;
-    }
-
-    :host-context(.dark) .m-scroll-thin::-webkit-scrollbar-thumb:hover {
-      background-color: #e2e8f0;
-    }
-    `
-  ],
   template: `
-    @if (is_not_404_route() && is_not_403_route()) {
+    @if (isSafari) {
+      <div class="bg-amber-200/90 text-amber-900 px-3 py-2 text-sm flex items-center justify-center gap-2">
+        <span class="font-semibold">Avviso Safari</span>
+        <span>Safari mobile può non rispettare gli standard web: se riscontri problemi, prova un browser differente. Allineeremo il supporto a Safari appena possibile.</span>
+      </div>
+    }
+    @if (is_not_404_route() && is_not_403_route() && is_not_welcome_route()) {
       <div class="flex flex-col h-screen">
         <m-header class="sticky top-0 z-30"
           [triggerOpenOffCanvas]="_triggerOpenOffCanvas()"
@@ -142,13 +112,21 @@ import { AppContextService } from './services/context/app-context.service'
       </div>
       @if (searchContextService.isMounted()) { <m-search-overlay /> }
       @if (saveOverlayContext.shouldMount() && userContext.isLoggedIn()) { <m-action-overlay /> }
-      <m-toast [context]="toastService.context()" />
     } @else {
-      <router-outlet />
+      <div class="min-h-screen">
+        @if (!is_not_welcome_route()) {
+          <m-header class="sticky top-0 z-30" />
+        }
+        <router-outlet />
+      </div>
     }
+    <m-toast [context]="toastService.context()" />
   `
 })
 export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
+
+  protected readonly isSafari: boolean
+
   private readonly themeManagerService = inject(ThemeManagerService)
   protected readonly searchContextService = inject(SearchContextService)
   private readonly router = inject(Router)
@@ -161,12 +139,18 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   protected readonly saveOverlayContext = inject(ActionOverlayContextService)
   private readonly authService = inject(AuthService)
   private readonly appContext = inject(AppContextService)
+  private readonly accountService = inject(AccountService)
+  private readonly doc = inject(DOCUMENT)
+  private readonly platformId = inject(PLATFORM_ID)
+  private readonly isBrowser = isPlatformBrowser(this.platformId)
 
   isDarkTheme: Signal<boolean> = computed(() => this.themeManagerService.theme() === 'dark')
   is_not_404_route = signal<boolean>(true)
   is_not_403_route = signal<boolean>(true)
+  is_not_welcome_route = signal<boolean>(true)
 
   private routeSub?: Subscription
+  private emailSub?: Subscription
   private currentPath = signal<string>('')
   private firstNavigationDone = signal<boolean>(false)
 
@@ -182,12 +166,22 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   _triggerOpenOffCanvas = signal<boolean>(false)
 
   @ViewChild('scrollHost')
-  private scrollHostRef!: ElementRef<HTMLElement>
+  set scrollHost(ref: ElementRef<HTMLElement> | undefined) {
+    this.scrollHostRef = ref ?? undefined
+    // wait a tick so the view is stable before registering the new root
+    queueMicrotask(() => this.ensureScrollRootRef())
+  }
+  private scrollHostRef?: ElementRef<HTMLElement>
 
   @ViewChild(HeaderComponent, { read: ElementRef })
   headerRef!: ElementRef<HTMLElement>
 
   constructor() {
+    const isBrowser = this.isBrowser
+    this.isSafari = isBrowser && /safari\//i.test(navigator.userAgent) && !/chrome\//i.test(navigator.userAgent)
+    if (isBrowser) {
+      this.doc.documentElement.classList.add('m-scroll-thin')
+    }
     effect(() => {
       const t = this.sessionSync.handshakeTick()
       if (t === 0) return
@@ -203,14 +197,21 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
     void this.sessionSync.syncSession()
 
+    // Compatibilità transitoria per redirect_to salvati quando la SPA viveva sotto /m.
+    const stripLegacyBasePath = (raw: string): string => {
+      if (raw === '/m') return '/'
+      if (raw.startsWith('/m/')) return raw.slice(2)
+      if (raw.startsWith('/m?') || raw.startsWith('/m#')) return `/${raw.slice(2)}`
+      return raw
+    }
+
     const normalize = (raw: string): string => {
       if (!raw) return ''
       const qIdx = raw.indexOf('?')
       if (qIdx >= 0) raw = raw.slice(0, qIdx)
       const hIdx = raw.indexOf('#')
       if (hIdx >= 0) raw = raw.slice(0, hIdx)
-      if (raw.startsWith('/m/')) raw = raw.slice(4)
-      else if (raw === '/m') raw = '/'
+      raw = stripLegacyBasePath(raw)
       if (raw.length > 1 && raw.endsWith('/')) raw = raw.slice(0, -1)
       return raw
     }
@@ -227,7 +228,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         if (!trimmed) return null
         if (!trimmed.startsWith('/')) return null
         if (trimmed.startsWith('//')) return null
-        return trimmed
+        return stripLegacyBasePath(trimmed)
       } catch {
         return null
       }
@@ -241,16 +242,16 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       return qp
     }
 
-    const buildLoginWithRedirectTo = (): string => {
+    const buildWelcomeWithRedirectTo = (): string => {
+
       let full = this.router.url || '/'
       if (!full.startsWith('/')) full = `/${full}`
-      if (full === '/m') full = '/'
-      else if (full.startsWith('/m/')) full = full.slice(2)
+      full = stripLegacyBasePath(full)
 
       const clean = normalize(full).toLowerCase()
-      if (clean === '/login' || clean.startsWith('/login/')) return '/login'
+      if (clean === '/welcome' || clean.startsWith('/welcome/')) return '/welcome'
 
-      return `/login?redirect_to=${encodeURIComponent(full)}`
+      return `/welcome?redirect_to=${encodeURIComponent(full)}`
     }
 
     this.currentPath.set(normalize(this.router.url))
@@ -259,17 +260,24 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     this.routeSub = this.router.events
       .pipe(filter(e => e instanceof NavigationEnd))
       .subscribe((e: NavigationEnd) => {
+        const prevPath = this.currentPath()
         const url = normalize(e.urlAfterRedirects)
 
-        if (url !== '/settings' && url !== '/terms-and-policies') {
+        const pathChanged = prevPath !== url
+        const shouldAutoSmooth =
+          pathChanged && url !== '/settings' && url !== '/terms-and-policies'
+
+        if (shouldAutoSmooth) {
           this.appContext.smoothToTop(this.scrollHostRef, 400)
         }
 
         this.is_not_404_route.set(url !== '/404-not-found')
         this.is_not_403_route.set(url !== '/403-forbidden')
+        this.is_not_welcome_route.set(url !== '/welcome')
         this.currentPath.set(url)
         this.pathService.setPath(url)
         if (!this.firstNavigationDone()) this.firstNavigationDone.set(true)
+        queueMicrotask(() => this.ensureScrollRootRef())
 
         if (this.userContext.isLoggedIn() && isLoginFamily(url)) {
           const target = resolveLoginRedirectTarget() ?? '/dashboard'
@@ -281,7 +289,10 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     let firstStableReached = false
 
     effect(() => {
-      if (!this.firstNavigationDone()) return
+
+      if (!this.firstNavigationDone()) {
+        return
+      }
 
       const logged = !!this.userContext.initials()
       const status = this.sessionSync.status()
@@ -309,12 +320,14 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       }
 
       if (url === '/') {
-        safeNavigate('/login')
+        safeNavigate('/welcome')
         return
       }
 
       if (!logged) {
-        if (!isPublic) safeNavigate(buildLoginWithRedirectTo())
+        if (!isPublic) {
+          safeNavigate(buildWelcomeWithRedirectTo())
+        }
         return
       }
 
@@ -324,7 +337,15 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         return
       }
 
-      if (isLoggedOutOnly) safeNavigate('/dashboard')
+      if (isLoggedOutOnly) {
+        safeNavigate('/dashboard')
+      }
+    })
+
+    effect(() => {
+      const t = this.appContext.addedGlobalScrollRootRefTick()
+      if (t === 0) return
+      queueMicrotask(() => this.ensureScrollRootRef())
     })
   }
 
@@ -332,11 +353,15 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     this._triggerOpenOffCanvas.set(true)
   }
 
-  async ngOnInit() { }
+  async ngOnInit() {
+    if (this.userContext.isLoggedIn()) {
+      this.emailSub = this.accountService.getProvidedEmail(true).subscribe()
+    }
+  }
 
   ngAfterViewInit() {
     queueMicrotask(() => {
-      this.appContext.setGlobalScrollRootRef(this.scrollHostRef)
+      this.ensureScrollRootRef()
       const h = this.headerRef?.nativeElement?.offsetHeight ?? 64
       this.appContext.setHeaderHeight(h)
     })
@@ -344,5 +369,25 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     this.routeSub?.unsubscribe()
+    this.emailSub?.unsubscribe()
+    if (this.isBrowser) {
+      this.doc.documentElement.classList.remove('m-scroll-thin')
+    }
+  }
+
+  private ensureScrollRootRef(): void {
+    if (!this.isBrowser) return
+
+    const docEl = this.doc?.documentElement as HTMLElement | null
+    const shouldUseScrollHost = this.is_not_welcome_route() && !!this.scrollHostRef
+
+    if (shouldUseScrollHost) {
+      this.appContext.setGlobalScrollRootRef(this.scrollHostRef!)
+      return
+    }
+
+    if (docEl) {
+      this.appContext.setGlobalScrollRootRef(new ElementRef<HTMLElement>(docEl))
+    }
   }
 }

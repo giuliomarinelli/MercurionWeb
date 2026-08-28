@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: tox21
-          image: europe-west8-docker.pkg.dev/mercurion-481213/mercurion/mercurion-tox-21:1.2026.2
+          image: europe-west8-docker.pkg.dev/mercurion-483615/mercurion/mercurion-tox-21:1.2026.3
           imagePullPolicy: IfNotPresent
           env:
             - name: PY_ENV
@@ -24,3 +24,12 @@ spec:
               value: "1.2026.2"
             - name: NATS_URL
               value: "nats://nats-sl.mercurion-beta.svc.cluster.local:4222"
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "512Mi"
+            limits:
+              cpu: "700m"
+              memory: "2Gi"
+
+

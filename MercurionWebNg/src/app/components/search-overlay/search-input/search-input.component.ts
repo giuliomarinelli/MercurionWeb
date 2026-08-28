@@ -20,6 +20,7 @@ import { MoleculeCardItemModel } from '../../../Models/graphql/molecule-collecti
 import { MoleculeCollectionItemService } from '../../../services/graphql/molecule-collection-item.service'
 import { AddMoleculesToCollectionContextService } from '../../../services/context/action-context/add-molecules-to-collection-context.service'
 import { UserContextService } from '../../../services/context/user-context.service'
+import { MoleculeSearchService } from '../../../services/graphql/molecule-search.service'
 
 @Component({
   selector: 'm-molecule-search-input',
@@ -37,6 +38,8 @@ import { UserContextService } from '../../../services/context/user-context.servi
          transition w-full"
         [ngModel]="query()"
         (ngModelChange)="query.set($event)"
+        (input)="query.set($any($event.target).value)"
+        (focus)="scrollIntoView()"
         [class.pr-10]="query().trim()"
         [class.pl-4]="query().trim()"
         [class.px-4]="!query().trim()"
@@ -46,7 +49,7 @@ import { UserContextService } from '../../../services/context/user-context.servi
       @if (query().trim()) {
         <button type="button"
                 (click)="clear()"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-700 dark:text-slate-200 hover:text-light-accent-primary-hq dark:hover:text-indigo-300 transition"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-700 dark:text-slate-200 hover:text-light-accent-primary-hc dark:hover:text-indigo-300 transition"
                 tabindex="-1"
                 aria-label="Cancella ricerca">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 20 20">
@@ -62,6 +65,7 @@ export class SearchInputComponent implements AfterViewInit, OnDestroy {
   private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService)
   private readonly addContext = inject(AddMoleculesToCollectionContextService)
   protected readonly userContext = inject(UserContextService)
+  private readonly moleculeSearchService = inject(MoleculeSearchService)
 
   protected query = signal('')
 
@@ -135,8 +139,7 @@ export class SearchInputComponent implements AfterViewInit, OnDestroy {
 
         const collectionId = this.addContext.collectionId()
         if (!collectionId) {
-          this.onLoading.emit(false)
-          this.onResult.emit([])
+          this.fallbackChemblSearch(trimmed)
           return
         }
 
@@ -157,6 +160,20 @@ export class SearchInputComponent implements AfterViewInit, OnDestroy {
       })
   }
 
+  private fallbackChemblSearch(term: string) {
+    this.onLoading.emit(true)
+    this.moleculeSearchService.searchMolecule(term, 100).subscribe({
+      next: res => {
+        this.onResult.emit(res ?? [])
+        this.onLoading.emit(false)
+      },
+      error: err => {
+        this.onError.emit(err)
+        this.onLoading.emit(false)
+      }
+    })
+  }
+
   clear(): void {
     this.query.set('')
     this.onEmpty.emit()
@@ -174,5 +191,11 @@ export class SearchInputComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.sub?.unsubscribe()
+  }
+
+  scrollIntoView(): void {
+    queueMicrotask(() => {
+      this.searchInputRef?.nativeElement.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    })
   }
 }

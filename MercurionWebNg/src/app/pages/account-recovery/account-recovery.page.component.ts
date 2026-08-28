@@ -56,10 +56,10 @@ import { HttpErrorResponse } from '@angular/common/http';
         <div class="flex flex-col gap-y-2 min-w-0 break-words">
           @switch (step()) {
               @case (1) {
-                <span>Inserisci il codice di recupero dell'account che ti abbiamo fornito al momento dell'attivazione e clicca su <span class="font-semibold text-light-accent-primary-hq dark:text-dark-accent-primary-btn-hc">Continua</span></span>
+                <span>Inserisci il codice di recupero dell'account che ti abbiamo fornito al momento dell'attivazione e clicca su <span class="font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary-btn-hc">Continua</span></span>
               }
               @case (2) {
-                <span>L'account è stato bloccato e ogni sessione è stata invalidata. Inserisci un indirizzo e-mail a cui hai accesso sicuro e una password complessa per reimpostare il tuo account e sbloccarlo, poi clicca su <span class="font-semibold text-light-accent-primary-hq dark:text-dark-accent-primary-btn-hc">Continua</span> per procedere.</span>
+                <span>L'account è stato bloccato e ogni sessione è stata invalidata. Inserisci un indirizzo e-mail a cui hai accesso sicuro e una password complessa per reimpostare il tuo account e sbloccarlo, poi clicca su <span class="font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary-btn-hc">Continua</span> per procedere.</span>
               }
               @case (3) {
                 <p class="font-semibold">L'account è stato ripristinato con successo.</p>

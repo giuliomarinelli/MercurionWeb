@@ -58,7 +58,7 @@ import { TicketDetailContextService } from '../../../services/context/action-con
       >
         <h2 id="newTicketHeading" class="text-lg font-semibold">Nuovo ticket di supporto</h2>
         <button
-            class="inline-flex items-center justify-center size-8 rounded-md text-slate-700 dark:text-slate-200 hover:text-light-accent-primary-hq hover:bg-slate-100 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-light-accent-primary-hq focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-transparent transition"
+            class="inline-flex items-center justify-center size-8 rounded-md text-slate-700 dark:text-slate-200 hover:text-light-accent-primary-hc hover:bg-slate-100 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-light-accent-primary-hq focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-transparent transition"
             (click)="close()"
             aria-label="Chiudi pannello nuovo ticket"
           >
@@ -109,7 +109,7 @@ import { TicketDetailContextService } from '../../../services/context/action-con
           <button
             type="button"
             class="h-10 px-5 rounded-md text-sm font-semibold text-white
-                   bg-light-accent-primary-hq dark:bg-dark-accent-primary-btn
+                   bg-light-accent-primary dark:bg-dark-accent-primary-btn
                    hover:bg-light-accent-primary-hc dark:hover:bg-dark-accent-primary/80
                    disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
             [disabled]="!canSend() || loading()"

@@ -30,7 +30,7 @@ import { RdKitApiService } from '../../services/rd-kit-api.service';
   template: `
     <main class="mt-2 mb-6" role="main" aria-live="polite" [attr.aria-busy]="pendingAction() !== null">
       <h2
-        class="text-center text-light-accent-primary-hq dark:text-dark-accent-primary font-semibold text-xl 2xs:text-2xl sm:text-4xl mb-6"
+        class="text-center text-light-accent-primary-hc dark:text-dark-accent-primary font-semibold text-xl 2xs:text-2xl sm:text-4xl mb-6"
       >
         @switch (mode()) {
           @case ('create') { Crea una nuova molecola }
@@ -49,7 +49,7 @@ import { RdKitApiService } from '../../services/rd-kit-api.service';
         (exportPolledSmiles)="onSmilesPollExported($event)"
         (onReset)="handleReset()"
       >
-        <div class="sm:flex flex-col 2xs:flex-row gap-3 mt-5 justify-end max-w-2xl mx-auto hidden">
+        <div class="flex flex-col 2xs:flex-row gap-3 mt-5 justify-end max-w-2xl mx-auto">
           <button
             class="relative bottom-[2px] w-full mt-4 py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary-hq dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary-hc dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary-hq/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary-hq/60 disabled:hover:dark:bg-dark-accent-primary/80"
             (click)="onReset()"

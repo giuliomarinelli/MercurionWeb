@@ -161,7 +161,7 @@ export class SessionSyncService {
 
   logout() {
     queueMicrotask(() => {
-      localStorage.removeItem('login')
+      this.userCtx.logout()
       this.becomeAnonymous({
         navigateIfProtected: true,
         removeLoginKey: false

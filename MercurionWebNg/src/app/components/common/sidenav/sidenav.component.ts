@@ -13,6 +13,7 @@ import { SelectionService } from '../../../services/selection.service';
 import { AddMoleculesToCollectionContextService } from '../../../services/context/action-context/add-molecules-to-collection-context.service';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 
+
 @Component({
   selector: 'm-sidenav',
   imports: [
@@ -24,33 +25,54 @@ import { ActionOverlayContextService } from '../../../services/context/action-co
   template: `
     <nav class="flex flex-col h-full bg-transparent z-50 select-none pt-4 lg:pt-12" aria-label="Navigazione laterale">
       @if (designService.maxBk('sm')()) {
+      @if (!isWelcomePath()) {
       <h6 class="detail">Strumenti</h6>
       <div [class.px-2]="userContext.isLoggedOut()">
-        <button type="button" class="sidebar-link" routerLink="molecules/all-my-molecules" (click)="searchOverlayContext.open()">
-          <div
-            class="flex size-9 shrink-0 items-center justify-center
-                   rounded-xl border border-slate-400/70 dark:border-slate-500/60
-                   bg-slate-200 dark:bg-slate-800
-                   text-sm font-semibold">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto text-slate-900 dark:text-slate-200">
-              <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-              <path d="M448.1 272C448.1 174.8 369.3 96 272.1 96C174.9 96 96.1 174.8 96.1 272C96.1 369.2 174.9 448 272.1 448C369.3 448 448.1 369.2 448.1 272zM407.5 430C371.1 461.2 323.8 480 272.2 480C157.3 480 64.2 386.9 64.2 272C64.2 157.1 157.3 64 272.2 64C387.1 64 480.2 157.1 480.2 272C480.2 323.7 461.4 371 430.2 407.3L571.6 548.7L582.9 560L560.3 582.6L549 571.3L407.6 429.9z"/>
-            </svg>
-          </div>
-          <span class="sidebar-item-text">
-            @if (userContext.isLoggedIn()) {
-              <span>Cerca molecola</span>
-            } @else {
-              <span>Cerca molecola ChEMBL</span>
-            }</span>
-        </button>
-      </div>
-      <hr class="border-slate-300 dark:border-slate-600 my-2" />
+          <button type="button" class="sidebar-link" (click)="searchOverlayContext.open()">
+            <div
+              class="flex size-9 shrink-0 items-center justify-center
+                     rounded-xl border border-slate-400/70 dark:border-slate-500/60
+                     bg-slate-200 dark:bg-slate-800
+                     text-sm font-semibold">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto text-slate-900 dark:text-slate-200">
+                <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                <path d="M448.1 272C448.1 174.8 369.3 96 272.1 96C174.9 96 96.1 174.8 96.1 272C96.1 369.2 174.9 448 272.1 448C369.3 448 448.1 369.2 448.1 272zM407.5 430C371.1 461.2 323.8 480 272.2 480C157.3 480 64.2 386.9 64.2 272C64.2 157.1 157.3 64 272.2 64C387.1 64 480.2 157.1 480.2 272C480.2 323.7 461.4 371 430.2 407.3L571.6 548.7L582.9 560L560.3 582.6L549 571.3L407.6 429.9z"/>
+              </svg>
+            </div>
+            <span class="sidebar-item-text">
+              @if (userContext.isLoggedIn()) {
+                <span>Cerca molecola</span>
+              } @else {
+                <span>Cerca molecola ChEMBL</span>
+              }
+            </span>
+          </button>
+        </div>
+        <hr class="border-slate-300 dark:border-slate-600 my-2" />
+        }
       }
       @if (userContext.isLoggedIn()) {
         <!-- Macro Area Menu -->
-        <h6 class="detail">Funzionalità</h6>
-        <div>
+        <div class="flex items-center xl:px-0 cursor-pointer xl:cursor-default select-none" (click)="toggleFeatures()">
+          <h6 class="detail mb-0">Funzionalità</h6>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 640 640"
+            class="h-4 w-4 fill-current transition-transform duration-300 xl:hidden relative -top-0.5"
+            [class.rotate-180]="featuresOpen()"
+          >
+            <path d="M320.1 438.6L331.4 427.3L491.4 267.3L502.7 256L480.1 233.4L468.8 244.7L320.1 393.4L171.4 244.7L160.1 233.4L137.5 256L148.8 267.3L308.8 427.3L320.1 438.6z"/>
+          </svg>
+        </div>
+        <div
+          class="transition-[max-height,opacity] duration-300 ease-in-out overflow-hidden"
+          [class.max-h-0]="!featuresOpen() && designService.maxBk('xl')()"
+          [class.opacity-0]="!featuresOpen() && designService.maxBk('xl')()"
+          [class.max-h-[200vh]]="featuresOpen() || designService.minBk('xl')()"
+          [class.opacity-100]="featuresOpen() || designService.minBk('xl')()"
+          [class.lg:max-h-[200vh]]="true"
+          [class.lg:opacity-100]="true"
+        >
           <a class="sidebar-link" routerLink="molecules/all-my-molecules" (click)="handleMenuItemClick()"
               [class.bg-slate-300/65]="s.getActiveHeaderSelection('my-molecules')"
               [class.dark:bg-slate-700/80]="s.getActiveHeaderSelection('my-molecules')">
@@ -124,7 +146,7 @@ import { ActionOverlayContextService } from '../../../services/context/action-co
         <hr class="border-slate-300 dark:border-slate-600 mb-2"/>
 
         <!-- Cronologia dinamica -->
-        <div class="flex-1 overflow-y-auto custom-scrollbar">
+        <div class="flex-1 overflow-y-auto custom-scrollbar m-scroll-thin">
           <div class="flex justify-between items-center">
             <h6 class="detail">Cronologia</h6>
             @if (triggerDelete()) {
@@ -293,33 +315,41 @@ export class SidenavComponent implements OnInit, OnDestroy {
   triggerDelete = signal<boolean>(false)
   isHistoryEmpty = signal<boolean>(false)
   triggerEmptyCheck = signal<boolean>(true)
+  isWelcomePath = signal<boolean>(false)
+  featuresOpen = signal<boolean>(false)
 
   private delSub?: Subscription
   private routeSub?: Subscription
 
+  private updateFromUrl(rawUrl: string): void {
+    const currentPath = (rawUrl || '').split(/[?#]/)[0]
+    const keys = ['my-molecules', 'my-collections', 'edit-molecule']
+
+    let activeKey: string | null = null
+
+    if (currentPath === '/molecules/all-my-molecules') {
+      activeKey = 'my-molecules'
+    }
+
+    if (currentPath === '/molecules/collections') {
+      activeKey = 'my-collections'
+    }
+
+    if (currentPath === '/molecules/editor') {
+      activeKey = 'edit-molecule'
+    }
+
+    this.isWelcomePath.set(currentPath.startsWith('/welcome'))
+
+    this.s.setHeaderSelections(keys.map((k) => this.s.generateHeaderSelection(k, k === activeKey)))
+  }
+
   ngOnInit(): void {
+    this.updateFromUrl(this.router.url)
     this.routeSub = this.router.events.pipe(
       filter((e) => e instanceof NavigationEnd)
     ).subscribe((e) => {
-
-      const currentPath = e.urlAfterRedirects
-      const keys = ['my-molecules', 'my-collections', 'edit-molecule']
-
-      let activeKey: string | null = null
-
-      if (currentPath === '/molecules/all-my-molecules') {
-        activeKey = 'my-molecules'
-      }
-
-      if (currentPath.replace(/(\?|#).*$/, '') === '/molecules/collections') {
-        activeKey = 'my-collections'
-      }
-      if (currentPath.replace(/(\?|#).*$/, '') === '/molecules/editor') {
-        activeKey = 'edit-molecule'
-      }
-
-      this.s.setHeaderSelections(keys.map((k) => this.s.generateHeaderSelection(k, k === activeKey)))
-
+      this.updateFromUrl(e.urlAfterRedirects)
     })
   }
 
@@ -327,6 +357,11 @@ export class SidenavComponent implements OnInit, OnDestroy {
     this.delSub?.unsubscribe()
     this.routeSub?.unsubscribe()
     this.s.clearHeaderSelections()
+  }
+
+  toggleFeatures(): void {
+    if (this.designService.minBk('xl')()) return
+    this.featuresOpen.update(v => !v)
   }
 
   doDeleteHistory(): void {

@@ -9,6 +9,11 @@ export interface HistoryDTO {
   flagIds: string
 }
 
+export type TinyHistoryDTO = Pick<HistoryDTO,
+  'id' | 'itemEntity' | 'itemId' | 'touchedAt'
+>
+
+
 export interface HistoryDTOExt extends HistoryDTO {
   selected: WritableSignal<boolean>
 }

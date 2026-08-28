@@ -1,0 +1,373 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mercurion-nginx-edge-config
+  namespace: mercurion-beta
+data:
+  default.conf: |
+    map_hash_bucket_size 256;
+
+    map $http_upgrade $connection_upgrade {
+      default upgrade;
+      ''      close;
+    }
+
+    map $http_sec_fetch_dest $ketcher_allowed {
+      default 1;
+      document 0;
+    }
+
+    # ============================
+    # MAINTENANCE MODE + BYPASS
+    # ============================
+
+    # 1 = maintenance ON, 0 = OFF
+    map $host $maintenance_mode {
+      default 0;
+      # quando vorrai spegnerla per un host:
+      # mercurion.app 0;
+      # beta.mercurion.app 0;
+    }
+
+    # cookie httpOnly admin (settato da /api/admin/maintenance?t=...)
+    # qualunque valore NON VUOTO -> 1 (bypass attivo)
+    map $cookie__mercurion_admin_maintenance $maintenance_admin_effective {
+      default 0;
+      ~.+ 1;
+    }
+
+    # whitelist di URI che devono restare sempre accessibili
+    map $uri $maintenance_whitelist {
+      default 0;
+
+      # endpoint che setta il cookie di bypass (/api/admin/maintenance?t=...)
+      ~^/api/admin/maintenance(?:/|$) 1;
+
+      # route Angular che fa lo scambio token -> cookie. La variante /m resta
+      # durante il rollout per i client con il vecchio redirect in cache.
+      ~^/admin/maintenance(?:/|$) 1;
+      ~^/m/admin/maintenance(?:/|$) 1;
+
+      # Le pagine/risorse di errore devono poter completare una risposta 503
+      # senza rientrare nel gate; well-known resta riservato anche in maintenance.
+      ~^/errors/ 1;
+      ~^/_edge-errors/ 1;
+      ~^/\.well-known(?:/|$) 1;
+      /health 1;
+
+      # TUTTI GLI ASSET STATICI (path; la querystring non conta qui)
+      ~*\.(js|css|png|jpe?g|svg|ico|webp|gif|woff2?|ttf|eot|map|webmanifest|json)$ 1;
+
+      # percorsi "nudi" tipici di statici
+      ~^/favicon 1;
+      ~^/logo/ 1;
+      ~^/fonts/ 1;
+    }
+
+    # se maintenance_mode=1, niente cookie admin e non whitelisted => blocca (503)
+    map "$maintenance_mode$maintenance_admin_effective$maintenance_whitelist" $maintenance_block {
+      default 0;
+      "100" 1;
+    }
+
+    client_max_body_size 100M;
+
+    # ============================
+    # HTTP -> HTTPS redirect
+    # ============================
+    server {
+      listen 80 default_server;
+      server_name _;
+
+      return 301 https://$host$request_uri;
+    }
+
+    # ============================
+    # SERVER HTTPS EDGE
+    # ============================
+    server {
+      listen 443 ssl http2;
+      server_name _;
+
+      ssl_certificate     /etc/nginx/tls/tls.crt;
+      ssl_certificate_key /etc/nginx/tls/tls.key;
+
+      ssl_protocols TLSv1.2 TLSv1.3;
+      ssl_prefer_server_ciphers on;
+
+      add_header X-Debug-Maint-Mode      "$maintenance_mode"             always;
+      add_header X-Debug-Maint-Admin     "$maintenance_admin_effective"  always;
+      add_header X-Debug-Maint-Whitelist "$maintenance_whitelist"        always;
+      add_header X-Debug-Maint-Block     "$maintenance_block"            always;
+
+      # ============================
+      # GATE "IN COSTRUZIONE"
+      # ============================
+      if ($maintenance_block) {
+        return 503;
+      }
+
+      # ============================
+      # SECURITY HEADERS
+      # ============================
+      add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
+      add_header Referrer-Policy "no-referrer" always;
+      add_header Cross-Origin-Resource-Policy "same-origin" always;
+      add_header Cross-Origin-Opener-Policy "same-origin" always;
+      add_header X-Content-Type-Options "nosniff" always;
+      add_header X-Frame-Options "DENY" always;
+
+      # ============================
+      # PUBLIC STATIC ASSETS (ERROR PAGES)
+      # ============================
+      # Gli asset della SPA ora vivono alla root (main/styles/fonts/favicon/logo).
+      # Le pagine di errore usano quindi un namespace separato, così i due build
+      # non possono intercettarsi a vicenda.
+      location ^~ /_edge-errors/ {
+        alias /usr/share/nginx/html/mercurion-errors/;
+        access_log off;
+        expires 7d;
+
+        sub_filter_once off;
+        sub_filter_types text/css application/manifest+json application/json;
+        sub_filter 'url(/fonts/' 'url(/_edge-errors/fonts/';
+        sub_filter 'url(../fonts/' 'url(/_edge-errors/fonts/';
+        sub_filter 'url(/logo/' 'url(/_edge-errors/logo/';
+        sub_filter 'url(../logo/' 'url(/_edge-errors/logo/';
+        sub_filter '"/favicon/' '"/_edge-errors/favicon/';
+        sub_filter '"/logo/' '"/_edge-errors/logo/';
+        sub_filter 'href="../favicon/' 'href="/_edge-errors/favicon/';
+        sub_filter 'src="../favicon/' 'src="/_edge-errors/favicon/';
+        sub_filter 'href="../logo/' 'href="/_edge-errors/logo/';
+        sub_filter 'src="../logo/' 'src="/_edge-errors/logo/';
+      }
+
+      # Namespace riservato: finché non vengono configurati endpoint well-known
+      # espliciti, non deve mai cadere nel fallback HTML della SPA.
+      location = /.well-known {
+        return 404;
+      }
+
+      location ^~ /.well-known/ {
+        return 404;
+      }
+
+      # ============================
+      # ROOT PUBLIC (robots + sitemap + health + og)
+      # ============================
+
+      location = /og/mercurion-og.png {
+        proxy_pass http://mercurion-web-node:8098/og/mercurion-og.png;
+        proxy_http_version 1.1;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_read_timeout 15s;
+      }
+
+      location = /robots.txt {
+        proxy_pass http://mercurion-web-node:8098/robots.txt;
+        proxy_http_version 1.1;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_read_timeout 15s;
+      }
+
+      location = /sitemap.xml {
+        proxy_pass http://mercurion-web-node:8098/sitemap.xml;
+        proxy_http_version 1.1;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_read_timeout 15s;
+      }
+
+      # opzionale: se vuoi /health al root (tu ora escludi /health dal globalPrefix)
+      location = /health {
+        proxy_pass http://mercurion-web-node:8098/health;
+        proxy_http_version 1.1;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_read_timeout 15s;
+      }
+
+      # La favicon classica resta una risorsa root esatta; /favicon/ appartiene
+      # invece alla SPA e viene gestita dal catch-all più sotto.
+      location = /favicon.ico {
+        alias /usr/share/nginx/html/mercurion-errors/favicon/favicon-light-theme.ico;
+        access_log off;
+        expires 30d;
+      }
+
+      # ============================
+      # INTERNAL ERROR PAGES
+      # ============================
+      error_page
+        400 401 402 403 404 405 406 407 408 409 410
+        411 412 413 414 415 416 417 418 421 422 423
+        424 425 426 428 429 431 451
+        500 501 502 503 504 505 506 507 508 510 511 599
+        /errors/$status/;
+
+      location ^~ /errors/ {
+        alias /usr/share/nginx/html/mercurion-errors/;
+        try_files $uri $uri/ /_edge-error-fallback.html;
+        internal;
+
+        # Rende assoluti e isolati gli asset del documento servito tramite
+        # error_page, indipendentemente dall'URL originale che ha fallito.
+        sub_filter_once off;
+        sub_filter '<base href="../">' '<base href="/_edge-errors/">';
+        sub_filter 'url(/fonts/' 'url(/_edge-errors/fonts/';
+        sub_filter 'url(../fonts/' 'url(/_edge-errors/fonts/';
+        sub_filter 'url(/logo/' 'url(/_edge-errors/logo/';
+        sub_filter 'url(../logo/' 'url(/_edge-errors/logo/';
+        sub_filter 'href="../favicon/' 'href="/_edge-errors/favicon/';
+        sub_filter 'src="../favicon/' 'src="/_edge-errors/favicon/';
+        sub_filter 'href="../logo/' 'href="/_edge-errors/logo/';
+        sub_filter 'src="../logo/' 'src="/_edge-errors/logo/';
+      }
+
+      # Mantiene lo status originale se la landing di errore non è disponibile.
+      location = /_edge-error-fallback.html {
+        alias /usr/share/nginx/html/50x.html;
+        internal;
+      }
+
+      # ============================
+      # WebSocket NestJS
+      # ============================
+      location = /socket.io {
+        return 308 /socket.io/$is_args$args;
+      }
+
+      location ^~ /socket.io/ {
+        proxy_pass http://mercurion-web-node:8098/socket.io/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_read_timeout 600s;
+        proxy_send_timeout 600s;
+        proxy_connect_timeout 60s;
+        proxy_buffering off;
+      }
+
+      # ============================
+      # API NestJS
+      # ============================
+      location = /api {
+        return 308 /api/$is_args$args;
+      }
+
+      location ^~ /api/ {
+        proxy_pass http://mercurion-web-node:8098;
+        proxy_http_version 1.1;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_read_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_connect_timeout 60s;
+
+        proxy_cookie_path /api/ /;
+        proxy_cookie_path /api /;
+      }
+
+      # ============================
+      # Angular SPA (Ketcher + main)
+      # ============================
+      location = /ketcher {
+        return 308 /ketcher/$is_args$args;
+      }
+
+      location ^~ /ketcher/ {
+        if ($ketcher_allowed = 0) {
+          return 403;
+        }
+        proxy_pass http://mercurion-web-ng:3497;
+        proxy_http_version 1.1;
+        proxy_set_header Host $http_host;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_redirect off;
+        add_header X-Frame-Options SAMEORIGIN always;
+        add_header Content-Security-Policy "frame-ancestors 'self';" always;
+        add_header X-Content-Type-Options nosniff always;
+        add_header Referrer-Policy no-referrer always;
+      }
+
+      # Compatibilità di rollout per client che hanno memorizzato il vecchio
+      # 301 "/ -> /m/": nessun redirect HTTP verso la root. Il prefisso viene
+      # tolto solo verso l'upstream; il bootstrap SPA normalizza poi l'URL.
+      location = /m/ketcher {
+        return 308 /m/ketcher/$is_args$args;
+      }
+
+      location ^~ /m/ketcher/ {
+        if ($ketcher_allowed = 0) {
+          return 403;
+        }
+        proxy_pass http://mercurion-web-ng:3497/ketcher/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $http_host;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_redirect off;
+        add_header X-Frame-Options SAMEORIGIN always;
+        add_header Content-Security-Policy "frame-ancestors 'self';" always;
+        add_header X-Content-Type-Options nosniff always;
+        add_header Referrer-Policy no-referrer always;
+      }
+
+      location = /m {
+        proxy_pass http://mercurion-web-ng:3497/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_redirect off;
+      }
+
+      location ^~ /m/ {
+        proxy_pass http://mercurion-web-ng:3497/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_redirect off;
+      }
+
+      # Tutto ciò che non appartiene ai namespace riservati sopra è una route
+      # o una risorsa statica della SPA.
+      location / {
+        proxy_pass http://mercurion-web-ng:3497;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_redirect off;
+      }
+    }

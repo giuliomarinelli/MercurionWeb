@@ -55,7 +55,7 @@ import { NgClass } from '@angular/common';
                  focus-visible:outline-light-accent-primary dark:bg-transparent dark:text-slate-400
                  focus:border-light-accent-primary
                  hover:bg-slate-200/60 dark:hover:bg-neutral-800/50
-                 block px-4 py-[10px] border-[2px] border-slate-300 dark:border-slate-200 rounded-md transition duration-300
+                 block px-4 py-3 border-[2px] border-slate-300 dark:border-slate-200 rounded-md transition duration-300
                  focus:outline-none focus:ring-2 focus:ring-light-accent-primary cursor-pointer
                  text-left pr-10"
           [ngClass]="darkFocusClassList">
@@ -64,9 +64,9 @@ import { NgClass } from '@angular/common';
             @if (currentIconUrl) {
               <img [src]="currentIconUrl! | public"
                    [alt]="currentIconAlt || ''"
-                   class="w-5 h-5 inline-block rounded-[3px] object-cover mr-3"/>
+                   class="w-6 h-6 inline-block rounded-[3px] object-cover mr-3"/>
             }
-            <span>{{ currentLabel || placeholder }}</span>
+            <span class="leading-tight">{{ currentLabel || placeholder }}</span>
           </span>
 
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
@@ -88,7 +88,7 @@ import { NgClass } from '@angular/common';
 
           <ul role="listbox"
               class="z-[200] mt-2 w-full rounded-md border border-slate-400 dark:border-slate-200
-                     bg-slate-100 dark:bg-neutral-800 shadow-lg overflow-auto"
+                     bg-slate-100 dark:bg-neutral-800 shadow-lg overflow-auto m-scroll-thin"
               [style.maxHeight.px]="maxHeight"
               [attr.id]="id + '-listbox'">
 

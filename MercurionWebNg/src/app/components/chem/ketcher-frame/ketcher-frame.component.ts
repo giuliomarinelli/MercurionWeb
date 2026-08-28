@@ -73,7 +73,9 @@ export type KetcherFrameMode = 'create' | 'edit' | 'duplicate';
         </div>
       }
 
-      <ng-content></ng-content>
+      @if (showIframe()) {
+        <ng-content></ng-content>
+      }
     </div>
   `,
 })
@@ -217,6 +219,8 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
           this.loaded.set(true);
         }
 
+        queueMicrotask(() => this.installMobileKeyboardGuard())
+
         return;
       }
 
@@ -305,10 +309,95 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
     return molfile;
   }
 
+  private mo?: MutationObserver;
+
+  private installMobileKeyboardGuard(): void {
+    const iframe = this.iframeRef?.nativeElement;
+    const doc = iframe?.contentDocument;
+    if (!doc) return;
+
+    // Solo mobile/coarse pointer
+    const isMobile = window.matchMedia?.('(pointer: coarse)').matches;
+    if (!isMobile) return;
+
+    const isTextControl = (el: Element): el is HTMLInputElement | HTMLTextAreaElement =>
+      el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement;
+
+    const isProbablyKeyCatcher = (el: Element) => {
+      if (!isTextControl(el)) return false;
+
+      const style = doc.defaultView?.getComputedStyle(el);
+      const rect = (el as HTMLElement).getBoundingClientRect();
+
+      const invisible =
+        !style ||
+        style.display === 'none' ||
+        style.visibility === 'hidden' ||
+        style.opacity === '0' ||
+        rect.width < 12 ||
+        rect.height < 12;
+
+      const offscreen =
+        rect.bottom < 0 || rect.top > (doc.defaultView?.innerHeight ?? window.innerHeight);
+
+      const cls = (el as HTMLElement).className?.toString() ?? '';
+      const suspiciousClass = /clipboard|hotkey|shortcut|key|hidden|dummy/i.test(cls);
+
+      const typeHidden = (el instanceof HTMLInputElement && el.type === 'hidden');
+
+      return invisible || offscreen || suspiciousClass || typeHidden;
+    };
+
+    const patch = (root: ParentNode) => {
+      root.querySelectorAll('input,textarea').forEach(node => {
+        if (!isTextControl(node)) return
+        if (!isProbablyKeyCatcher(node)) return
+
+        node.setAttribute('inputmode', 'none')
+        node.setAttribute('readonly', 'true')
+        node.setAttribute('autocomplete', 'off');
+        (node as any).enterKeyHint = 'done';
+        (node as HTMLElement).tabIndex = -1;
+        (node as HTMLElement).style.caretColor = 'transparent'
+      })
+    }
+
+    // Patch iniziale
+    patch(doc)
+
+    // Blocca focus “sporco”
+    const onFocusIn = (e: Event) => {
+      const t = e.target as Element | null
+      if (!t) return
+      if (isProbablyKeyCatcher(t)) (t as HTMLElement).blur()
+    }
+
+    doc.addEventListener('focusin', onFocusIn, true)
+
+    // Re-patch se Ketcher ricrea i nodi
+    this.mo = new MutationObserver(muts => {
+      for (const m of muts) {
+        m.addedNodes.forEach(n => {
+          if (n instanceof HTMLElement) patch(n)
+        })
+      }
+    })
+    this.mo.observe(doc.documentElement, { childList: true, subtree: true })
+
+    // Cleanup in destroy
+    this.destroy$.pipe(take(1)).subscribe(() => {
+      doc.removeEventListener('focusin', onFocusIn, true)
+      this.mo?.disconnect()
+      this.mo = undefined
+    })
+  }
+
+
   resetMolecule(): void {
     if (!this.initialSmiles) this.initialSmiles = '';
     if (this.ketcherReady()) {
       this.updateKetcherMolfile(this.initialSmiles);
     }
   }
+
 }

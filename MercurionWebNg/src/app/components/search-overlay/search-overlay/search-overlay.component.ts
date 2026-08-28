@@ -5,7 +5,8 @@ import {
   HostListener,
   ViewChild,
   inject,
-  signal
+  signal,
+  effect
 } from '@angular/core'
 
 import { SearchContextService } from '../../../services/context/search-context.service'
@@ -25,7 +26,7 @@ import { MoleculeCollectionItemService } from '../../../services/graphql/molecul
 import { Helpers } from '../../../helpers'
 import { Subscription } from 'rxjs'
 import { map } from 'rxjs/operators'
-import { Maybe } from 'graphql/jsutils/Maybe'
+
 
 @Component({
   selector: 'm-search-overlay',
@@ -48,16 +49,16 @@ import { Maybe } from 'graphql/jsutils/Maybe'
       aria-label="Ricerca molecolare"
       [attr.aria-hidden]="!searchContextService.isVisible()"
     >
-      <div class="flex justify-center items-center pt-32 sm:pt-40 px-4">
+      <div class="flex justify-center md:justify-center items-stretch md:items-center px-2 sm:px-4 pt-1 md:pt-16 m-overlay-screen h-full">
         <div
-          class="w-full h-[60vh] max-w-3xl space-y-6
+          class="w-full max-w-3xl space-y-6 flex flex-col h-full md:h-[75vh]
           bg-light-surface-main/90 dark:bg-dark-surface-main/90
            p-4 md:p-6 lg:p-10
            rounded-2xl shadow-2xl ring-1 ring-black/5 dark:ring-white/5">
           <!-- HEADER -->
           <div class="flex justify-between items-center mb-3 relative md:-top-2 lg:-top-4">
             <h2 class="text-2xl font-medium tracking-wide">Ricerca molecolare</h2>
-            <m-close-button [size]="8" [action]="close.bind(this)" variant="input" />
+            <m-close-button [size]="6" [action]="close.bind(this)" variant="input" />
           </div>
 
           <m-molecule-search-input
@@ -67,7 +68,7 @@ import { Maybe } from 'graphql/jsutils/Maybe'
             (onEmpty)="handleEmpty()" />
 
           <div
-            class="relative bg-light-surface-secondary dark:bg-slate-50/10 h-full rounded-xl text-light-on-surface-main dark:text-sm dark:text-slate-50/90 max-h-[38vh] overflow-y-auto border border-spacing-px border-slate-300/50"
+          class="relative bg-light-surface-secondary dark:bg-slate-50/10 flex-1 min-h-0 rounded-xl text-light-on-surface-main dark:text-sm dark:text-slate-50/90 overflow-y-auto border border-spacing-px border-slate-300/50 max-h-none md:max-h-[70vh] m-overscroll-touch m-scroll-thin"
             #scrollRoot>
               @if (userContext.isLoggedIn()) {
                 <div class="sticky top-0 z-30
@@ -132,10 +133,47 @@ import { Maybe } from 'graphql/jsutils/Maybe'
         </div>
       </div>
     </div>
-  `
+  `,
+  styles: [`
+    /* Scrollbar sottile per l'area dei risultati */
+    .m-scroll-thin {
+      scrollbar-width: thin; /* Firefox */
+      scrollbar-color: #64748b transparent; /* thumb, track */
+    }
+
+    :host-context(.dark) .m-scroll-thin {
+      scrollbar-color: #94a3b8 transparent;
+    }
+
+    .m-scroll-thin::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .m-scroll-thin::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .m-scroll-thin::-webkit-scrollbar-thumb {
+      background-color: #cbd5e1; /* slate-300-ish */
+      border-radius: 9999px;
+    }
+
+    :host-context(.dark) .m-scroll-thin::-webkit-scrollbar-thumb {
+      background-color: #475569; /* slate-600-ish */
+    }
+
+    .m-scroll-thin::-webkit-scrollbar-thumb:hover {
+      background-color: #94a3b8;
+    }
+
+    :host-context(.dark) .m-scroll-thin::-webkit-scrollbar-thumb:hover {
+      background-color: #e2e8f0;
+    }
+  `]
 })
 export class SearchOverlayComponent implements AfterViewInit {
 
+  // TODO: Medium priority - align Safari/iOS viewport/keyboard handling here with action overlays if issues reappear.
   protected readonly searchContextService = inject(SearchContextService)
   protected readonly userContext = inject(UserContextService)
   private readonly chemblService = inject(MoleculeSearchService)
@@ -166,6 +204,18 @@ export class SearchOverlayComponent implements AfterViewInit {
   private observer?: IntersectionObserver
 
   constructor() { }
+  ngOnInit(): void {
+    effect(() => {
+      if (this.searchContextService.isOpenedSearchOverlay()) {
+        this._viewMode.set('chembl')
+        this.query.set('')
+        this.loading.set(false)
+        this.error.set(null)
+        this.chemblResults.set([])
+        this.myItems.set([])
+      }
+    })
+  }
 
   close(): void {
     this.searchContextService.isOpenedSearchOverlay.set(false)

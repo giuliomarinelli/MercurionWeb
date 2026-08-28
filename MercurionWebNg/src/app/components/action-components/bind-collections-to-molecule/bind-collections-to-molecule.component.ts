@@ -73,9 +73,9 @@ import { CloseButtonComponent } from '../../common/close-button/close-button.com
     `
   ],
   template: `
-<div class="flex justify-center items-center min-h-screen px-2 sm:px-4">
+<div class="flex justify-center items-start md:items-center min-h-screen px-2 sm:px-4 pt-1 md:pt-6 m-overlay-screen">
   <div
-    class="action-card max-w-5xl"
+    class="action-card max-w-5xl h-full md:h-auto"
     role="region"
     aria-labelledby="bindCollectionsHeading"
     [attr.aria-busy]="step_12_loading()"
@@ -92,21 +92,21 @@ import { CloseButtonComponent } from '../../common/close-button/close-button.com
       <m-close-button [action]="close.bind(this)" ariaLabel="Chiudi pannello collega collezioni" />
     </div>
 
-    <!-- BODY -->
-    <div class="action-card-body bg-white dark:bg-dark-surface-main">
+      <!-- BODY -->
+      <div class="action-card-body bg-white dark:bg-dark-surface-main">
       <div
         #scrollRoot
-        class="py-6 px-3 overflow-y-auto flex flex-col gap-4 min-h-[60vh] max-h-[60vh] m-scroll-thin"
+        class="py-6 px-2 sm:px-3 overflow-y-auto flex flex-col gap-4 m-scroll-thin m-overscroll-touch m-overlay-body"
       >
         @switch (step()) {
           @case (1) {
-            <div class="px-3">
-              <h2 class="font-semibold mb-3">
+            <div class="px-2 sm:px-3 space-y-3 sm:space-y-4">
+              <h2 class="font-semibold text-center sm:text-left">
                 Scegli le collezioni a cui aggiungere la molecola:
               </h2>
 
               <m-search-input
-                class="block"
+                class="block w-full max-w-[20rem] sm:max-w-none mx-auto sm:mx-0"
                 [value]="searchTerm()"
                 [placeholder]="'Cerca una collezione...'"
                 [useAltDarkStyle]="true"
@@ -115,7 +115,7 @@ import { CloseButtonComponent } from '../../common/close-button/close-button.com
                 (cleared)="doClear()"
               />
 
-              <div class="mt-6">
+              <div class="pt-2 sm:pt-4">
                 @if (multiselectItems().length !== 0) {
                   <m-collection-select-card
                     class="block mb-6"
@@ -170,7 +170,7 @@ import { CloseButtonComponent } from '../../common/close-button/close-button.com
             } @else {
               <span
                 id="bindCollectionsStatus"
-                class="text-light-accent-primary-hq dark:text-dark-accent-secondary"
+                class="text-light-accent-primary-hc dark:text-dark-accent-secondary"
                 role="status"
                 aria-live="polite"
               >
@@ -205,14 +205,14 @@ import { CloseButtonComponent } from '../../common/close-button/close-button.com
       <button
         type="button"
         class="relative inline-flex items-center justify-center px-4 py-2 rounded-lg
-               bg-light-accent-primary-hq text-white font-semibold shadow-md
+               bg-light-accent-primary text-white font-semibold shadow-md
                hover:bg-light-accent-primary-hc
                dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary
                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq
                focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary
                dark:focus-visible:ring-offset-dark-surface-secondary
-               disabled:bg-light-accent-primary-hq/50 disabled:cursor-not-allowed
-               transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary-hq/50"
+               disabled:bg-light-accent-primary/50 disabled:cursor-not-allowed
+               transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary-hc/50"
         [disabled]="(isSelectedNothing() || step_12_loading())"
         (click)="step() === 1 ? doSubmit() : close()"
         [attr.aria-busy]="step_12_loading()"
@@ -291,7 +291,7 @@ export class BindCollectionsToMoleculeComponent
     collectionId?: boolean
   ): Observable<PageModel<UiMoleculeCollection>> {
     return this.moleculeCollectionService
-      .getPaginatedCollections(this.page, 8, this.searchTerm(), true, this.bindContext.moleculeId())
+      .getPaginatedCollections(this.page, 20, this.searchTerm(), true, this.bindContext.moleculeId())
       .pipe(
         debounceTime(100),
         map(page => ({

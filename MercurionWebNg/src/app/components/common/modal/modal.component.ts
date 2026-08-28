@@ -14,7 +14,7 @@ import { ModalContextService } from '../../../services/context/modal-context.ser
          role="dialog" aria-modal="true" (click)="overlayClick($event)"
          [attr.aria-hidden]="!ctx.isVisible()"
          [attr.tabindex]="ctx.isVisible() ? 0 : -1">
-      <div class="min-h-full flex items-center justify-center p-4">
+      <div class="min-h-full flex items-center justify-center p-4 m-overlay-screen m-overscroll-touch">
         <div class="w-full max-w-lg rounded-2xl bg-white shadow-xl overflow-hidden"
              (click)="$event.stopPropagation()">
           <ng-template cdkPortalOutlet></ng-template>

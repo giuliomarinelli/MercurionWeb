@@ -275,8 +275,7 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
     this.loading = true
 
     const newPage = await firstValueFrom(
-      this.historyService.getHistory(this.page, 15).pipe(
-        // lascio la tua logica di debounce/distinct
+      this.historyService.getHistory(this.page, 25).pipe(
         debounce(() => interval(80)),
         distinctUntilChanged(),
         catchError(() => {
