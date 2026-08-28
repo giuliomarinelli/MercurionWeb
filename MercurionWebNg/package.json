@@ -12,15 +12,15 @@
   },
   "private": true,
   "dependencies": {
-    "@angular/animations": "20.3.26",
+    "@angular/animations": "20.3.30",
     "@angular/cdk": "20.2.14",
-    "@angular/common": "20.3.26",
-    "@angular/compiler": "20.3.26",
-    "@angular/core": "20.3.26",
-    "@angular/forms": "20.3.26",
-    "@angular/platform-browser": "20.3.26",
-    "@angular/platform-browser-dynamic": "20.3.26",
-    "@angular/router": "20.3.26",
+    "@angular/common": "20.3.30",
+    "@angular/compiler": "20.3.30",
+    "@angular/core": "20.3.30",
+    "@angular/forms": "20.3.30",
+    "@angular/platform-browser": "20.3.30",
+    "@angular/platform-browser-dynamic": "20.3.30",
+    "@angular/router": "20.3.30",
     "@apollo/client": "3.13.8",
     "@rdkit/rdkit": "2024.3.5-1.0.0",
     "@thumbmarkjs/thumbmarkjs": "0.20.2",
@@ -43,7 +43,7 @@
   "devDependencies": {
     "@angular/build": "20.3.32",
     "@angular/cli": "20.3.32",
-    "@angular/compiler-cli": "20.3.26",
+    "@angular/compiler-cli": "20.3.30",
     "@types/jasmine": "5.1.0",
     "autoprefixer": "10.4.21",
     "jasmine-core": "5.6.0",
@@ -61,6 +61,6 @@
   },
   "overrides": {
     "@hono/node-server": "2.0.12",
-    "brace-expansion": "5.0.8"
+    "brace-expansion": "5.0.9"
   }
 }
