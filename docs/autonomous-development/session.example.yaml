@@ -10,7 +10,7 @@ session:
   start: "09:00"
 
   # Soft deadline: no new task starts at or after this time.
-  # A task already running may finish according to `deadline_policy`.
+  # A task already running may finish according to `policy`.
   end: "13:00"
 
   # Absolute cutoff after the soft deadline. Optional but recommended for
@@ -31,13 +31,25 @@ agent:
   max_ai_credits_per_task: 100
 
 workload:
-  task_directory: docs/autonomous-development/tasks
+  task_directory: docs/autonomous-development/task
   task_pattern: "[0-9][0-9][0-9][0-9]-*.md"
+  series_directory: docs/autonomous-development/series
+  series_pattern: "[0-9][0-9][0-9][0-9]-*.md"
   order: filename
 
-  # When omitted/empty, discover pending tasks from the directory in filename
-  # order. The runner must always exclude 0000-task-example.md.
+  # Optional planning scope. When set and `tasks` is empty, the runner reads
+  # this series' inclusive `task_range` and discovers pending task recipes whose
+  # numeric prefixes fall inside it. The 0000 template is always excluded.
+  series_file: null
+
+  # Optional explicit workload. When non-empty, execute exactly these task
+  # files in this order. If `series_file` is also set, every listed task must
+  # fall inside that series' declared `task_range` or configuration validation
+  # fails before the session starts.
   tasks: []
+
+  # With both `series_file` and `tasks` omitted/empty, discover all pending task
+  # recipes from the global task directory in filename order.
 
 policy:
   fresh_agent_session_per_task: true
