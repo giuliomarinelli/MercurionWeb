@@ -9,7 +9,7 @@ The model is intentionally strict:
 - one `feature/<Source>` branch;
 - full CI-parity preflight **before** implementation;
 - full CI-parity validation again before integration;
-- one explicit `--no-ff` merge commit into `develop`;
+- one explicit `--no-ff --no-gpg-sign` merge commit into `develop`;
 - wait for GitHub Actions on that exact merge SHA;
 - success => delete the feature branch;
 - post-merge CI non-success => revert the merge, mark `REVERTED`, preserve the feature branch;
@@ -20,7 +20,7 @@ The model is intentionally strict:
 
 See `PROTOCOL.md` for the complete lifecycle and `RUNTIME.md` for browser/runtime topology.
 
-The VS Code runner is implemented as a coordinator/worker pair in `.github/agents/`. The coordinator owns the bounded session and invokes a new `Development Task Worker` subagent for each recipe.
+The GitHub Copilot CLI runner is implemented as a coordinator/worker pair in `.github/agents/`. The coordinator owns the bounded session and invokes the repository agent `development-task-worker` through one synchronous `task` call for each recipe. Before any task branch exists, it performs one separate nonce-correlated, non-mutating handshake with that same agent. The former VS Code Autopilot/advanced-mode route is unsupported for autonomous overnight sessions.
 
 ## Structure
 
@@ -49,6 +49,7 @@ Recipe metadata and cross-references are checked with:
 
 ```text
 node docs/autonomous-development/tools/validate-recipes.mjs
+node docs/autonomous-development/tools/validate-cli-runner.mjs
 ```
 
 The check validates Series ranges/registries, contiguous task identities, Source mappings, state markers, required recipe sections, and exact dependency filenames.
@@ -58,24 +59,26 @@ The check validates Series ranges/registries, contiguous task identities, Source
 ## Model profile
 
 ```yaml
-host: vscode
-model: GPT-5.6 Sol
-reasoning: high
+host: github-copilot-cli
+harness: github-copilot-cli
+mode: autopilot
 context:
-  max_prompt_tokens: 272000
-  native_responses_compaction: true
-  compact_threshold: 244800
+  management:
+    provider: github-copilot-cli
+    strategy: native-compaction-and-checkpoints
 ```
 
-Each task gets a fresh context. VS Code workspace settings enable OpenAI Responses API context management through `github.copilot.chat.responsesApiContextManagement.enabled`. The extension computes the server-side compaction threshold at 90% of the active model prompt window, so a 272K window compacts at approximately 244.8K tokens. The 1M long-context tier is deliberately not part of the normal autonomous workflow.
+Each task gets a fresh worker context. The coordinator uses GitHub Copilot CLI's native automatic context compaction and session checkpoint behavior; `/compact` remains available when an explicit compaction is needed.
 
-Advanced Autopilot is enabled at workspace level. The user still selects the Copilot harness, `Development Session Coordinator`, GPT-5.6 Sol, High reasoning and Autopilot for the launch session; repository settings cannot silently grant that session's destructive tool permissions.
+The agent profiles do not pin a model or reasoning level. The coordinator and workers inherit GPT-5.6 Sol and High reasoning from the parent CLI session. Their explicit tool lists provide the required terminal/edit/search/delegation/browser capabilities without inheriting every unrelated user-scoped tool schema. Launch uses CLI Autopilot with all required permissions; no VS Code advanced-mode setting is required.
 
 ## Agent topology
 
 - `Development Session Coordinator` persists across the bounded run, parses the active YAML, owns time/task selection/Git integration/CI/reporting, and never implements two tasks concurrently.
-- `Development Task Worker` is a stateless `agent/runSubagent` invocation for one prepared `feature/<Source>` branch. It owns preflight, implementation, local validation, task notes and feature-branch commits only.
+- `Development Task Worker` (`development-task-worker` programmatically) is one fresh stateless synchronous CLI `task` invocation for one prepared `feature/<Source>` branch. It owns preflight, implementation, local validation, task notes and feature-branch commits only. Its only non-implementation mode is the startup `capability_probe`, which echoes a nonce without tool use or repository access.
 - The coordinator independently verifies each worker result before merging and remains active through exact-SHA CI, cleanup/revert, the deadline and final report.
+
+The coordinator is manually selectable but cannot be inferred automatically. The worker is neither user-invocable nor inferable and is reached only by the coordinator's explicit `task` call.
 
 ## Series and task identity
 
@@ -100,6 +103,10 @@ The four terminal outcomes are mutually exclusive:
 | `SKIPPED_DEPENDENCY` | Never attempted because a hard dependency is terminal non-`DONE`; no branch exists. |
 
 All unchecked means pending. `CI_PENDING` exists only as transient coordinator state.
+
+Every persistent outcome is terminal for the active session. A later probe or Autopilot continuation cannot reopen or resume it. Only a new direct human instruction in a new or restarted session can authorize re-enablement.
+
+A session-fatal blocker completes the coordinator objective even if pending workload remains: the coordinator finalizes the report, emits the concise final summary and report path, calls `task_complete` as the final Autopilot action, and stops.
 
 and a planning identifier such as:
 
@@ -132,6 +139,10 @@ If preflight is red, the agent repairs repository-controlled defects on `feature
 
 Before `0001`, the same rule applies using package-local bootstrap checks. The current baseline's missing Angular lint gate and Nest check/fix lint asymmetry are treated as bootstrap defects rather than skipped checks.
 
+Before any recipe work, startup also performs a real capability probe in one uniquely named operating-system temporary directory: `npm init -y`, `npm install --ignore-scripts --no-save is-number@7.0.0`, and a Node.js assertion that `require("is-number")(42)` returns `true`. The coordinator deletes exactly that directory and proves the repository is clean and unchanged before and after; dry runs are forbidden.
+
+Startup requires effective repository-local `commit.gpgSign=false`, and every autonomous commit-producing command uses `--no-gpg-sign`. It also proves synchronous custom-agent delegation with an exact `TASK_CAPABILITY_OK <nonce>` handshake before any task branch is created. Any denied install, network, filesystem, cleanup, GitHub, `task`, MCP, signing, or `task_complete` prerequisite stops the session with the exact denial.
+
 ## Integration lifecycle
 
 ```text
@@ -149,7 +160,7 @@ full CI-parity green
     ↓
 commit + push feature branch
     ↓
---no-ff merge to develop
+--no-ff --no-gpg-sign merge to develop
     ↓
 push develop
     ↓
@@ -169,7 +180,7 @@ No rebase, force-push, shared-history reset or CI bypass is part of the autonomo
 
 ## Browser/runtime validation
 
-Chrome DevTools MCP is configured for VS Code in `.vscode/mcp.json`.
+Chrome DevTools MCP is configured for GitHub Copilot CLI in `.github/mcp.json`. The VS Code MCP file remains only for ordinary interactive VS Code use and is not read as the autonomous-session configuration.
 
 The canonical local stack is:
 
@@ -189,6 +200,6 @@ The Angular dev-server port is an internal upstream and must not be used as the 
 
 ## Launch
 
-`LAUNCH.md` contains the pre-launch checks, active-configuration rules and exact starting prompt. The workflow starts only after the bootstrap PR has been merged into `develop` and the local checkout has fast-forwarded to that commit.
+`LAUNCH.md` contains the pre-launch checks, exact CLI command, active-configuration rules and starting prompt. The historical bootstrap PR #25 is already merged; the workflow starts only after the complete current Copilot CLI control plane is merged into `develop` and the local checkout has fast-forwarded to `origin/develop`.
 
-The custom-agent coordinator is the VS Code runner for this workflow. It is intentionally not a background service: VS Code and the Copilot harness must remain running and connected for local terminals, MCP/browser access and task subagents to continue.
+The custom-agent coordinator is the GitHub Copilot CLI runner for this workflow. It is intentionally not a background service: the parent CLI session must remain running and connected for local terminals, MCP/browser access and synchronous task workers to continue.
