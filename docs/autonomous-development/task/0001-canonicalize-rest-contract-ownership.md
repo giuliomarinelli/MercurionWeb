@@ -1,6 +1,6 @@
 # 0001 - Canonicalize REST contract ownership
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -252,35 +252,124 @@ Prefer a non-breaking incremental migration that leaves the covered public REST 
 
 ### Preflight / Phase 0
 
-_Not started._
+Completed on `feature/SYS-001` before any Phase 1 work.
+
+- Verified the clean branch started at the supplied base
+  `c9cccf5b3f63a7e915c897cc01c01264ba6aa702` and repository-local
+  `commit.gpgSign=false`.
+- Initial clean installs:
+  - `cd MercurionWebNg; npm ci` — passed.
+  - `cd MercurionWebNode; npm ci` — failed because the Nest lockfile omitted
+    transitive `chokidar` dependencies required by the manifest.
+- Initial gate diagnostics found the missing Angular lint target, mutating-only
+  Nest lint, 66 failing Angular smoke tests, an Angular production bundle over
+  the configured 1 MB error budget, a missing Nest E2E module mapper, and
+  process-terminating environment validation.
+- Final clean reproducibility run:
+  - `cd MercurionWebNg; npm ci` — passed (794 packages).
+  - `cd MercurionWebNode; npm ci` — passed (1269 packages).
+  - Angular: `npm run lint`, `npm run typecheck`, `npm run test:ci`,
+    `npm run build` — all passed; 157/157 Karma tests passed and the production
+    initial bundle was 963.91 kB, below the configured 1 MB error budget.
+  - Nest: `npm run lint`, `npm run typecheck`, `npm test -- --runInBand`,
+    `npm run test:e2e -- --runInBand`, `npm run build` — all passed; 115/115
+    unit suites (152 tests) and 1/1 E2E suite passed with exit code 0.
+  - `node` plus the installed `yaml` parser loaded
+    `.github/workflows/ci.yml` successfully (`WORKFLOW_YAML_OK`).
+- The bootstrap workflow runs the same clean installs and complete Phase 0 gate
+  set for pushes and pull requests targeting `develop`; it performs no deploy,
+  publish, auto-fix, or credentialed production action.
 
 ### Preflight remediation
 
-_None._
+- Added Angular 20-compatible ESLint tooling with separate check/fix commands,
+  explicit application typecheck, deterministic headless Karma command, shared
+  test providers, and repaired stale generated smoke tests.
+- Added separate Nest lint check/fix and typecheck commands; repaired lockfile
+  integrity, E2E path/ESM mapping, and environment validation so invalid config
+  throws through the bootstrap boundary instead of terminating Jest.
+- Deferred the root search/action overlays so the existing production budget is
+  met without raising or disabling the configured threshold.
+- Preserved legacy lint debt as visible warnings while keeping parser,
+  framework, template, and recommended-rule verification non-mutating and
+  error-producing for active violations.
+- Created `.github/workflows/ci.yml` with one terminal bootstrap quality job.
 
 ### Phase 1 summary
 
-_Not started._
+- Added the root npm workspace for `MercurionWebNg`, `MercurionWebNode`, and
+  `packages/*`, with root `.npmrc`, one root `package-lock.json`, and no
+  per-project lockfiles.
+- Added versioned package `@mercurion/rest-contracts@1.0.0` as the
+  framework-neutral source for the public REST payloads consumed by Angular:
+  authentication/account, recovery, country prefixes, history/pagination,
+  feedback, RDKit, Tox21, embedding, error, and maintenance responses.
+- Replaced Angular wire-shape copies with shared-package type re-exports and
+  direct shared imports in every `HttpClient` service. Angular retains only
+  UI-only extensions such as signal-backed view models and login form/header
+  metadata.
+- Kept Nest `class-validator`/`class-transformer` DTO classes at the HTTP
+  boundary, added shared-contract `implements` constraints, aliased
+  non-decorated response DTOs to canonical contracts, and added
+  `src/contracts/rest-contract-parity.ts` for bidirectional compile-time
+  checks. Enum-backed adapters are checked using their serialized string
+  values, including the distinction between internal MFA UUID values and
+  public MFA strategy keys.
+- Preserved endpoint behaviour while making previously implicit wire facts
+  explicit: login responses include `deviceId`; embedding returns `number[]`
+  for `only_molregnos=true` and neighbor objects otherwise; filtered country
+  prefix responses contain non-null `iso2` and `phonecode`.
+- Migrated `.github/workflows/ci.yml` to one root `npm ci` followed by the root
+  `npm run bootstrap:check` terminal gate.
 
 ### Task-specific validation performed
 
-_Not started._
+- Enumerated Angular `HttpClient` consumers with
+  `git grep -n -E "http\.(get|post|put|patch|delete)" -- MercurionWebNg/src/app/services`
+  and matched the auth, account, country, feedback, history, recovery,
+  embedding, Mercurion AI, and RDKit endpoints to Nest controllers/adapters.
+- Removed root and workspace `node_modules` directories and ran root
+  `npm ci` successfully: 2027 packages installed from the single root lockfile.
+- Ran `npm run contracts:check` twice. Both executions passed the shared
+  package typecheck and Nest adapter parity typecheck and emitted
+  `CONTRACT_CHECK_FIRST_NO_DRIFT` / `CONTRACT_CHECK_SECOND_NO_DRIFT`.
+- `git grep` for `@nestjs`, `class-validator`, and `class-transformer` under
+  `MercurionWebNg` returned no matches (`ANGULAR_FRAMEWORK_BOUNDARY_OK`).
+- Parsed the migrated workflow with the installed JavaScript YAML parser
+  (`WORKFLOW_YAML_OK`).
+- `git diff --check` passed.
 
 ### Full pre-merge CI-parity validation
 
-_Not started._
+- From the clean root install, final `npm run bootstrap:check` passed with exit
+  code 0. It executed, in order, contract parity, both non-mutating lint gates,
+  both application typechecks, all tests, and both builds.
+- Angular: lint passed with 0 errors (265 visible legacy warnings), application
+  typecheck passed, Karma passed 157/157 tests in ChromeHeadless, and the
+  production build passed with a 963.91 kB initial bundle below the configured
+  1 MB error budget.
+- Nest: lint passed with 0 errors (114 visible legacy warnings), typecheck
+  passed, 115/115 unit suites (152 tests) passed with exit code 0, 1/1 E2E
+  suite passed with exit code 0, and `nest build` passed.
+- An earlier aggregate attempt encountered a transient non-zero Angular Karma
+  process exit despite reporting `TOTAL: 157 SUCCESS`; the Angular command was
+  rerun directly to exit 0, then the complete root `bootstrap:check` was rerun
+  and passed. No source exclusion or gate weakening was used.
 
 ### Browser validation performed
 
-_Not applicable._
+Not applicable by recipe; no browser validation was required.
 
 ### Commits
 
-_Not recorded._
+- `e9290446` — `ci: establish green Angular and Nest bootstrap`
+- `feat: canonicalize REST contract ownership` — Phase 1 implementation,
+  validation evidence, and task completion (this commit)
 
 ### Merge / CI
 
-_Not started._
+Coordinator-owned; no integration branch was modified and no post-merge CI was
+polled by this worker.
 
 ### Rollback
 

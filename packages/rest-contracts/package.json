@@ -1,0 +1,19 @@
+{
+  "name": "@mercurion/rest-contracts",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Framework-neutral public REST wire contracts shared by Mercurion Angular and Nest applications.",
+  "license": "UNLICENSED",
+  "types": "src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  }
+}

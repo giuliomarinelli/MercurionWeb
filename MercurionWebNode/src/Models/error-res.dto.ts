@@ -1,12 +1,4 @@
-export interface InternalErrorRes {
-    statusCode: number
-    error: string
-    message?: string
-}
+import type { ErrorRes } from '@mercurion/rest-contracts'
 
-
-export type HttpErrorRes = InternalErrorRes & {
-    timestamp: string
-    requestId: string
-    path: string
-}
+export type InternalErrorRes = Pick<ErrorRes, 'statusCode' | 'error' | 'message'>
+export type HttpErrorRes = ErrorRes

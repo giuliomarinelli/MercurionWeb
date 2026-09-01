@@ -1091,11 +1091,12 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
       }),
       tap((res) => {
         switch (this.innerScope()) {
-          case 'ConfigMfa':
+          case 'ConfigMfa': {
             const [mfaStrategies, remainingBackupCodes] = res as [MfaStrategy[], number | null]
             this.enabledMfaStrategies.set((mfaStrategies) ?? [])
             this.remainingBackupCodes.set(remainingBackupCodes ?? -1)
             break
+          }
           case 'EnableMfa':
           case 'ChangeEmail':
             this.obscuredEmail.set((res as string) ?? '')
@@ -1104,7 +1105,7 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
           case 'ChangePhone':
           case 'RemovePhone': {
             const phone = (res as Maybe<string>)?.trim() ?? ''
-            this.obscuredPhone.set(!!phone ? phone : null)
+            this.obscuredPhone.set(phone ? phone : null)
             break
           }
           case 'ChangePassword':

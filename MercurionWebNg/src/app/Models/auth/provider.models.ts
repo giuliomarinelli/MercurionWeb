@@ -1,3 +1,1 @@
-export type AuthProvider = 'Mercurion' | 'Google' | 'GitHub' | 'LinkedIn' | 'Discord'
-
-export type SSO_AuthProvider = Exclude<AuthProvider, 'Mercurion'>
+export type { AuthProvider, SSO_AuthProvider } from '@mercurion/rest-contracts'

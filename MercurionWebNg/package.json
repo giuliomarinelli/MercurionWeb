@@ -7,11 +7,16 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+    "test:ci": "ng test --watch=false --browsers=ChromeHeadless",
     "test:onpush": "ng test --watch=false --ts-config src/tsconfig.onpush.spec.json",
+    "lint": "eslint \"src/**/*.{ts,html}\"",
+    "lint:fix": "eslint \"src/**/*.{ts,html}\" --fix",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json",
     "postinstall": "patch-package"
   },
   "private": true,
   "dependencies": {
+    "@mercurion/rest-contracts": "1.0.0",
     "@angular/animations": "20.3.30",
     "@angular/cdk": "20.2.14",
     "@angular/common": "20.3.30",
@@ -45,7 +50,9 @@
     "@angular/cli": "20.3.32",
     "@angular/compiler-cli": "20.3.30",
     "@types/jasmine": "5.1.0",
+    "angular-eslint": "20.7.0",
     "autoprefixer": "10.4.21",
+    "eslint": "9.39.5",
     "jasmine-core": "5.6.0",
     "karma": "6.4.0",
     "karma-chrome-launcher": "3.2.0",
@@ -57,7 +64,8 @@
     "postcss-import": "16.1.0",
     "postinstall-postinstall": "2.1.0",
     "tailwindcss": "3.4.1",
-    "typescript": "5.8.3"
+    "typescript": "5.8.3",
+    "typescript-eslint": "8.65.0"
   },
   "overrides": {
     "@hono/node-server": "2.0.12",

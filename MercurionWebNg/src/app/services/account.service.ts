@@ -1,14 +1,29 @@
-import { ConfirmWithPhoneMfaFeedback, ConfirmWithRecoveryCodeDTO } from './../Models/confirm.models';
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
-import { ChangePasswordDTO, MfaStrategy, ChangePhoneDTO, ProfileDTO, SessionDTO, ProfileRegistryDTO, ProfileRegistryClientDTO, ProvidedEmailDTO, VersionDTO, BackupCodeStatusDTO } from '../Models/account/account.models';
 import { map, Observable, of, switchMap, tap, throwError } from 'rxjs';
-import { ConfirmChangeDTO, ConfirmDTO, ConfirmMfaChange } from '../Models/confirm.models';
-import { ConfirmWithObsContDTO } from '../Models/confirm.models';
-import { EmailDTO } from '../Models/auth/login.models';
-import { TotpDTO } from '../Models/auth/totp.models';
-import { AuthProvider } from '../Models/auth/provider.models';
 import { TypeGuardsService } from './type-guards.service';
+import type {
+  AuthProvider,
+  BackupCodesDTO,
+  BackupCodeStatusDTO,
+  ChangePasswordDTO,
+  ChangePhoneDTO,
+  ConfirmChangeDTO,
+  ConfirmDTO,
+  ConfirmMfaChange,
+  ConfirmWithObsContDTO,
+  ConfirmWithPhoneMfaFeedback,
+  ConfirmWithRecoveryCodeDTO,
+  EmailDTO,
+  MfaStrategy,
+  ProfileDTO,
+  ProfileRegistryClientDTO,
+  ProfileRegistryDTO,
+  ProvidedEmailDTO,
+  SessionDTO,
+  TotpDTO,
+  VersionDTO
+} from '@mercurion/rest-contracts'
 
 
 @Injectable({
@@ -64,7 +79,7 @@ export class AccountService {
   }
 
   public sendForgottenPasswordLink(dto: EmailDTO, turnstileToken: string): Observable<ConfirmWithObsContDTO> {
-    return this.http.post<ConfirmDTO>('/api/account/forgotten-password', dto, {
+    return this.http.post<ConfirmWithObsContDTO>('/api/account/forgotten-password', dto, {
       withCredentials: true,
       headers: {
         'X-Challenge-Token': turnstileToken
@@ -192,7 +207,7 @@ export class AccountService {
   }
 
   public getBackupCodes(): Observable<string[]> {
-    return this.http.patch<{ codes: string[] }>('/api/account/mfa/backup/regenerate', null, {
+    return this.http.patch<BackupCodesDTO>('/api/account/mfa/backup/regenerate', null, {
       withCredentials: true
     }).pipe(
       map((res) => res.codes)

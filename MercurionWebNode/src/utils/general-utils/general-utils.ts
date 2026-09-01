@@ -20,7 +20,7 @@ export class GeneralUtils {
         return undefined; // Ritorna undefined se la chiave non è valida
     }
 
-    static getEnumKeyByValue<T extends object>(enumType: T, value: T[keyof T] | string): string | undefined {
+    static getEnumKeyByValue<T extends object>(enumType: T, value: T[keyof T] | string): Extract<keyof T, string> | undefined {
         // Itera attraverso le chiavi dell'enum
         for (const key in enumType) {
             if (enumType[key as keyof T] === value) {
@@ -101,5 +101,3 @@ export class GeneralUtils {
     }
 
 }
-
-

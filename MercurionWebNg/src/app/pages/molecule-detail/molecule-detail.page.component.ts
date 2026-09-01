@@ -520,12 +520,14 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
         return of(null)
       }),
 
-      switchMap((molregno): Observable<string[]> =>
+      switchMap((molregno) =>
         molregno ? this.embeddingService.getSimilarMolregnos(molregno, 65) : of([])
       ),
 
-      switchMap((ids: string[]) =>
-        this.moleculeService.getMoleculePreviewsByMolregnos(ids.map(String))
+      switchMap((results) =>
+        this.moleculeService.getMoleculePreviewsByMolregnos(
+          results.map((item) => typeof item === 'number' ? String(item) : String(item.molregno))
+        )
       ),
 
       tap(() => this.similarViewerReady.set(true)),

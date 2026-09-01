@@ -19,8 +19,9 @@ import {
     FeedbackKind,
     FeedbackContextKind
 } from '../enums/feedback.enums'
+import type { CreateFeedbackDTO as CreateFeedbackContract } from '@mercurion/rest-contracts'
 
-export class CreateFeedbackDTO {
+export class CreateFeedbackDTO implements CreateFeedbackContract {
     @IsEnum(FeedbackEnv)
     env: FeedbackEnv
 

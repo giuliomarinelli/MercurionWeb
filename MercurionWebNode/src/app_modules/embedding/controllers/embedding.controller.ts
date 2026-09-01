@@ -1,7 +1,8 @@
 // embedding/embedding.controller.ts
 import { BadRequestException, Controller, Get, Query } from '@nestjs/common';
-import { EmbeddingService, Neighbor } from '../services/embedding.service';
+import { EmbeddingService } from '../services/embedding.service';
 import { Public } from 'src/metadata/metadata';
+import type { EmbeddingResponse } from '@mercurion/rest-contracts'
 
 @Controller('embedding')
 export class EmbeddingController {
@@ -14,7 +15,7 @@ export class EmbeddingController {
         @Query('n') n: number = 10,
         @Query('only_molregnos') only_molregnos: string = 'true',
         @Query('with_no_name') with_no_name: string = 'false'
-    ): Promise<Neighbor[] | number[]> {
+    ): Promise<EmbeddingResponse> {
         const parsedMolregno = Number(molregno)
         if (!Number.isFinite(parsedMolregno)) {
             throw new BadRequestException('molregno must be a number')

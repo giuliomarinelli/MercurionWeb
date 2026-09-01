@@ -16,7 +16,7 @@ function toInt(v: unknown): number | undefined {
     return Number.isFinite(n) ? n : undefined
 }
 
-export function validateEnvOrKillProcess(raw: NodeJS.ProcessEnv): EnvVars {
+export function validateEnv(raw: NodeJS.ProcessEnv): EnvVars {
     const coerced: Record<string, unknown> = {
         ...raw,
 
@@ -71,9 +71,7 @@ export function validateEnvOrKillProcess(raw: NodeJS.ProcessEnv): EnvVars {
             })
             .join('\n')
 
-        console.error(`Invalid environment configuration:\n${msg}`)
-        console.error('\n\n Fatal error: Nodejs process terminated with exit_code = 1\n')
-        process.exit(1)
+        throw new Error(`Invalid environment configuration:\n${msg}`)
     }
 
     return env

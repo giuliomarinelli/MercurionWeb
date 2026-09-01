@@ -76,7 +76,7 @@ describe('MoleculeCollectionItemService', () => {
     repoMock.save.mockResolvedValue(createdEntity);
     const markSpy = jest.spyOn(service, 'markAsTouched').mockResolvedValue(true);
 
-    const result = await service.create(userId, input as any);
+    const result = await service.create(userId, input);
 
     expect(repoMock.create).toHaveBeenCalledWith({ id: 'mock-uuid-v7', ...input, userId });
     expect(repoMock.save).toHaveBeenCalledWith(createdEntity);

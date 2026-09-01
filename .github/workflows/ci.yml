@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+
+permissions:
+  contents: read
+
+jobs:
+  bootstrap-quality:
+    name: Bootstrap quality gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install workspace dependencies
+        run: npm ci
+
+      - name: Run bootstrap quality gate
+        run: npm run bootstrap:check
