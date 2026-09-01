@@ -77,7 +77,7 @@ Mark `BLOCKED` if the production trusted-proxy chain/origin contract is genuinel
 
 ## Dependencies
 
-- `0130-single-authoritative-nest-config-schema.md`, `0132-fail-closed-on-unknown-app-env-values.md` and `0134-decompose-nest-bootstrap-into-configurators.md` must be `DONE`.
+- `0130-define-every-nest-configuration-property-once.md`, `0132-fail-closed-on-unknown-app-env-values.md` and `0134-decompose-nest-bootstrap-into-configurators.md` must be `DONE`.
 
 ## Execution notes
 

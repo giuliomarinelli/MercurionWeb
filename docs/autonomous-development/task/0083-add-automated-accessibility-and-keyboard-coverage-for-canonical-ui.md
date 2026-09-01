@@ -89,7 +89,7 @@ Mark `BLOCKED` if an accessibility correction requires an unresolved product int
 
 ## Dependencies
 
-- `0059-create-canonical-button-primitive.md` through `0076-move-toast-contracts-to-a-neutral-ui-model.md` must be `DONE` first.
+- `0059-create-the-canonical-button-primitive.md` through `0076-move-toast-contracts-to-a-neutral-ui-model.md` must be `DONE` first.
 - `0082-make-invalid-css-and-tailwind-utilities-fail-ci.md` must be `DONE` first.
 
 ## Implementation notes

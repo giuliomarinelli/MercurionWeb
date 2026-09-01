@@ -77,7 +77,7 @@ Mark `BLOCKED` if a feature requires a materially distinct stale-data/revalidati
 ## Dependencies
 
 - `0059-create-the-canonical-button-primitive.md`
-- `0046-create-a-shared-cancellable-transient-ui-controller.md`
+- `0046-unify-loading-and-search-transition-control.md`
 
 ## Implementation notes
 

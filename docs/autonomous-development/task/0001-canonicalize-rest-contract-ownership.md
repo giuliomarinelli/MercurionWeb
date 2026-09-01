@@ -17,11 +17,11 @@ This is a hard prerequisite, not optional cleanup. No autonomous development may
 
 After Phase 0 is completely green:
 
-- eliminate manually duplicated REST payload definitions between Angular and Nest so every public REST request/response shape is derived from one canonical, versioned contract source when safely possible;
+- eliminate manually duplicated Angular REST wire definitions so every public request/response shape derives from the versioned shared package, while retaining checked Nest validation adapters where required;
 - account for the fact that Nest DTOs are runtime `class-validator` classes while Angular consumes compile-time contract types and does not depend on `class-validator`;
 - create a repository-root npm workspace containing `MercurionWebNg` and `MercurionWebNode`;
 - create root `.npmrc` with `save-exact=true` and `legacy-peer-deps=true`;
-- establish the approved shared/canonical contract package mechanism and common dependency ownership;
+- establish the approved versioned, framework-neutral shared contract package and common dependency ownership;
 - refactor both project `package.json` files for the monorepo/workspace architecture;
 - replace per-project dependency resolution with the root lockfile/install flow and verify a clean root install.
 
@@ -29,7 +29,7 @@ Source: `SYS-001` in Series `0001`.
 
 ## Context
 
-The audit found REST DTOs duplicated between `MercurionWebNg/src/app/Models/**` and Nest DTOs under `MercurionWebNode/src/**/Models/DTO/**`. Angular services using `HttpClient` include auth, account, feedback, history, country, recovery, Mercurion AI and RDKit clients. The repository does not currently expose an established OpenAPI/code-generation pipeline.
+The audit found REST DTOs duplicated between `MercurionWebNg/src/app/Models/**` and Nest DTOs under `MercurionWebNode/src/**/Models/DTO/**`. Angular services using `HttpClient` include auth, account, feedback, history, country, recovery, Mercurion AI and RDKit clients. The approved migration uses a shared package for portable wire contracts while preserving Nest-only runtime validation adapters where necessary.
 
 The audited baseline is not yet suitable for the future CI pipeline: Angular tests/build quality gates and Nest Jest/lint/config behaviour contain known failures or missing deterministic checks. These must be resolved **before** the actual SYS-001 implementation begins.
 
@@ -62,7 +62,8 @@ A later numbered task may describe one of the same baseline defects in more dept
 - `MercurionWebNode/src/app_modules/**/Models/DTO/`
 - `MercurionWebNode/src/app_modules/**/controllers/`
 - root/project package manifests and lockfiles
-- package/configuration files needed by the chosen contract-generation mechanism
+- shared-package exports plus deterministic contract/parity checks
+- `.github/workflows/ci.yml` bootstrap workflow
 
 ## Phase 0 — mandatory green baseline
 
@@ -123,6 +124,8 @@ If a failure cannot be repaired safely without an unresolved product/security/ar
 
 Phase 0 is complete only when all applicable Angular and Nest gates above return success from a clean/reproducible dependency state and the verification commands themselves are deterministic and non-mutating.
 
+Phase 0 must also create a minimum GitHub Actions workflow at `.github/workflows/ci.yml`. It runs the complete established bootstrap gate set on every push to `develop` and on pull requests targeting `develop`, uses deterministic clean installs and non-mutating checks, and exposes one unambiguous result that can be matched to the exact pushed SHA. It must not deploy, publish, auto-fix or require production credentials. This workflow evaluates the merge of task `0001` itself and remains the real post-merge gate for tasks `0002`-`0007`; task `0008` completes it into the canonical root CI interface.
+
 Record the commands and results in `Execution notes / Preflight` before Phase 1 begins.
 
 ## Phase 1 — SYS-001 scope
@@ -130,9 +133,9 @@ Record the commands and results in `Execution notes / Preflight` before Phase 1 
 ### In scope
 
 - Inventory public REST request/response payloads consumed by Angular.
-- Establish one canonical contract source for those payloads.
-- Replace manual client-side copies with generated or directly shared contract types.
-- Add a deterministic generation/check command suitable for CI.
+- Establish one versioned, framework-neutral shared contract package as the canonical source for those payloads.
+- Replace manual client-side wire-shape copies with types imported from that package.
+- Add a deterministic contract/parity check command suitable for CI.
 - Remove obsolete duplicate declarations once consumers use the canonical source.
 - Create the root npm workspace for Angular and Nest and the root dependency/lockfile topology described above.
 - Re-run the complete quality suite after the workspace migration so Phase 0 green status is preserved under the new topology.
@@ -154,21 +157,25 @@ Record the commands and results in `Execution notes / Preflight` before Phase 1 
 - All Angular tests and all Nest Jest unit/E2E tests are mandatory baseline gates.
 - Typecheck and builds are mandatory even when tests compile/transpile successfully.
 - Later task numbering does not defer a known baseline defect that prevents CI viability.
-- Manual duplicated REST DTOs are not an acceptable steady state.
-- The canonical REST solution must be either an OpenAPI-derived contract or a versioned shared contract package, as stated by the Series Definition of Done.
+- Manual duplication of public REST wire shapes is not an acceptable steady state.
+- The approved canonical REST source is a versioned, framework-neutral package in the root npm workspace, consumed by both Angular and Nest.
+- Angular must never import Nest transport classes or depend on `class-validator`, `class-transformer`, or another Nest-only runtime concern.
+- Nest decorated DTO classes may remain at the HTTP boundary when runtime validation/transformation requires them. They are boundary adapters, not an independently evolving canonical contract, and must be kept structurally/behaviourally aligned with the shared wire contract by deterministic checks.
+- Deduplication is incremental and non-breaking: share transport semantics that both applications can consume, but do not force framework-specific implementation classes into the shared package.
 - Existing externally visible REST behaviour must be preserved unless another numbered task explicitly changes it.
 
 ## Phase 1 requirements
 
 1. Enumerate all Angular `HttpClient` calls and the Nest endpoints they consume.
 2. Identify the request/response types currently duplicated across the two applications.
-3. Use one canonical source to define every public REST payload in that inventory.
-4. Ensure Angular consumes generated/shared types rather than maintaining equivalent handwritten DTOs.
-5. Ensure Nest remains the authoritative runtime validator at the HTTP boundary.
-6. Add an automated check that fails when generated/shared contract artifacts drift from the canonical source.
-7. Keep runtime serialization compatible with the current API.
-8. Establish the root workspace/dependency architecture and one reproducible root lockfile/install flow.
-9. After the workspace/contract changes, rerun all Phase 0 gates and preserve a fully green repository baseline.
+3. Classify each payload into framework-neutral wire semantics and any Nest-only validation/transformation adapter concerns.
+4. Define every public REST wire payload in the versioned shared package without Angular or Nest runtime dependencies.
+5. Ensure Angular imports those shared types rather than maintaining equivalent handwritten wire DTOs.
+6. Keep Nest as the authoritative runtime validator at the HTTP boundary. Retain decorated DTO adapters where required, but constrain or map them to the shared contract instead of treating them as a second canonical source.
+7. Add deterministic compile-time and/or contract tests that fail when a Nest boundary adapter, serializer, mapper, or Angular consumer drifts from the shared wire contract.
+8. Preserve current Nest validation, transformation and serialization behaviour as well as the externally visible JSON shape.
+9. Establish the root workspace/dependency architecture and one reproducible root lockfile/install flow.
+10. After the workspace/contract changes, rerun all Phase 0 gates and preserve a fully green repository baseline.
 
 ## Acceptance criteria
 
@@ -185,12 +192,16 @@ Record the commands and results in `Execution notes / Preflight` before Phase 1 
 - [ ] Nest build passes.
 - [ ] No repository-controlled failure remains that would make the planned canonical CI immediately red.
 - [ ] The full Phase 0 suite has been rerun after the final remediation and is green before Phase 1 starts.
+- [ ] A bootstrap `.github/workflows/ci.yml` runs the complete Phase 0 gate set on pushes to `develop` and reports an exact-SHA terminal result without deploying or mutating source.
 
 ### Phase 1
 
-- [ ] Every public REST payload consumed by Angular has exactly one canonical contract definition.
-- [ ] Angular contains no manually maintained duplicate of a Nest REST DTO for the covered endpoints.
-- [ ] Contract generation/checking is deterministic and documented through executable package commands.
+- [ ] Every public REST payload consumed by Angular has exactly one canonical framework-neutral wire-contract definition in the shared package.
+- [ ] Angular imports the shared package and contains no manually maintained duplicate wire DTO for the covered endpoints.
+- [ ] Angular has no dependency on Nest transport classes, `class-validator`, or `class-transformer`.
+- [ ] Any retained Nest decorated DTO is demonstrably a boundary adapter whose public shape and mapping/serialization are checked against the shared contract.
+- [ ] Current Nest validation/transformation behaviour and externally visible JSON remain compatible.
+- [ ] Contract/parity checking is deterministic and documented through executable package commands.
 - [ ] The repository uses the intended root npm workspace/dependency topology with a reproducible root install.
 - [ ] All Phase 0 quality gates remain green after the workspace/contract migration.
 - [ ] Existing behaviour not targeted by this task remains compatible.
@@ -203,11 +214,13 @@ Run the complete bootstrap quality suite using the commands established for the 
 
 The verification sequence must leave the working tree unchanged except for intentionally committed remediation/configuration. Check-only commands themselves must not rewrite source.
 
+Validate the bootstrap Actions workflow syntax and local command parity. After the no-fast-forward task merge is pushed to `develop`, the coordinator must wait for this workflow on the exact merge SHA; absence of a matching run is not success.
+
 ### Phase 1
 
-Run the new root clean-install flow and then the complete quality suite again. Also run the new REST contract generation/check command twice and verify the second execution produces no content drift.
+Run the new root clean-install flow and then the complete quality suite again. Also run the new REST contract/parity check twice and verify the second execution produces no content drift.
 
-Task `0008` will later package these same semantics into the stable root `npm ci && npm run ci:check` GitHub Actions contract; `0001` must leave it a green baseline to work from.
+Task `0008` will later package these same semantics into the stable root `npm ci && npm run ci:check` GitHub Actions contract; `0001` must leave both a green baseline and continuous bootstrap `develop`-push coverage to work from.
 
 ## Browser validation
 
@@ -217,9 +230,7 @@ Not applicable to the REST-contract/quality-bootstrap work itself. Contract corr
 
 Mark `BLOCKED` immediately if Phase 0 cannot produce a fully green baseline without an unresolved product/security/architecture decision. Do not continue into Phase 1 and do not allow later tasks to start on a known-red baseline.
 
-For Phase 1, mark `BLOCKED` if the repository still contains no human-approved choice between OpenAPI generation and a versioned shared contract package. Do not make that architecture decision autonomously.
-
-Also block if adopting the approved mechanism requires changing externally visible REST semantics not authorized by this task.
+For Phase 1, the architecture decision is resolved: use the versioned framework-neutral shared package described above. Mark `BLOCKED` only if a covered payload cannot be moved to that canonical wire contract without an unauthorized externally visible REST change, loss of required Nest runtime validation/transformation, or an unsafe migration that cannot be protected by parity tests.
 
 ## Dependencies
 
@@ -227,9 +238,9 @@ Also block if adopting the approved mechanism requires changing externally visib
 
 ## Implementation notes
 
-Treat Phase 0 as repository bootstrap infrastructure, not incidental cleanup. Its purpose is to ensure that when task `0008` materializes the CI pipeline, CI is enforcing an already-green repository rather than revealing a backlog of known failures in the middle of autonomous development.
+Treat Phase 0 as repository bootstrap infrastructure, not incidental cleanup. Its purpose is to make the very first task merge independently verifiable and to ensure that when task `0008` completes the canonical CI pipeline, CI is enforcing an already-green repository rather than revealing a backlog of known failures in the middle of autonomous development.
 
-Prefer a migration that can be introduced incrementally but leaves the covered public REST surface with a single source of truth by task completion. Avoid a third handwritten mirror layer.
+Prefer a non-breaking incremental migration that leaves the covered public REST wire surface with a single source of truth by task completion. Deduplicate the portable contract, not every framework-specific class: a Nest `class-validator` DTO may remain when needed, but it must be a checked adapter and must never become an Angular dependency or a third independently maintained truth source.
 
 ## Execution notes
 

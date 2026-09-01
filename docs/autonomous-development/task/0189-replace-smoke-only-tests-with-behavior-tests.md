@@ -76,8 +76,8 @@ Mark `BLOCKED` if a public behavior cannot be tested without first resolving an 
 
 ## Dependencies
 
-- `0187` and `0188` must establish green trustworthy test runners first.
-- `0190`–`0193` may satisfy the high-risk portions of this inventory as they become `DONE`.
+- Hard: `0187` and `0188` must establish green trustworthy test runners first.
+- Advisory: `0190`–`0193` may satisfy the high-risk portions of this inventory as they become `DONE`.
 
 ## Implementation notes
 

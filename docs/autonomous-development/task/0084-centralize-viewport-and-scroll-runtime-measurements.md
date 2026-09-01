@@ -93,8 +93,8 @@ Mark `BLOCKED` if a current JS breakpoint encodes an undocumented product behavi
 
 ## Dependencies
 
-- `0050-centralize-browser-resource-ownership-and-cleanup.md` must be `DONE` first.
-- `0074-create-canonical-pagination-and-infinite-load-primitive.md` must be `DONE` first.
+- `0050-own-browser-listeners-timers-and-animation-frames-deterministically.md` must be `DONE` first.
+- `0074-create-the-canonical-pagination-and-infinite-load-primitive.md` must be `DONE` first.
 
 ## Implementation notes
 

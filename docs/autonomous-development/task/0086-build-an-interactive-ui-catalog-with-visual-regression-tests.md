@@ -101,7 +101,7 @@ Mark `BLOCKED` if a primitive's expected public state cannot be determined from 
 
 ## Dependencies
 
-- `0059-create-canonical-button-primitive.md` through `0085-remove-legacy-angular-animations-dependency.md` must be `DONE` first.
+- `0059-create-the-canonical-button-primitive.md` through `0085-remove-legacy-angular-animations-dependency.md` must be `DONE` first.
 
 ## Implementation notes
 

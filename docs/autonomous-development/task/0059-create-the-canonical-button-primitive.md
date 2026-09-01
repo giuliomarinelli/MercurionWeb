@@ -86,7 +86,7 @@ Mark `BLOCKED` if the existing button inventory contains materially different pr
 
 ## Dependencies
 
-- `0051-enforce-onpush-across-production-components.md`
+- `0051-standardize-production-components-on-onpush-change-detection.md`
 - `0052-standardize-modern-angular-component-apis.md`
 
 ## Implementation notes

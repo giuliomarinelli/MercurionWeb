@@ -80,10 +80,10 @@ Mark `BLOCKED` if a remaining legacy class represents a product state not expres
 
 ## Dependencies
 
-- `0059-create-canonical-button-primitive.md` must be `DONE` first.
-- `0060-create-accessible-icon-button-primitive.md` must be `DONE` first.
-- `0061-create-canonical-action-footer-primitive.md` must be `DONE` first.
-- `0069-create-canonical-action-card-shell.md` must be `DONE` first.
+- `0059-create-the-canonical-button-primitive.md` must be `DONE` first.
+- `0060-create-the-accessible-iconbutton-primitive.md` must be `DONE` first.
+- `0061-create-the-canonical-actionfooter-primitive.md` must be `DONE` first.
+- `0069-create-the-canonical-actioncard-shell.md` must be `DONE` first.
 - `0077-establish-semantic-design-tokens-for-the-angular-ui.md` must be `DONE` first.
 
 ## Implementation notes

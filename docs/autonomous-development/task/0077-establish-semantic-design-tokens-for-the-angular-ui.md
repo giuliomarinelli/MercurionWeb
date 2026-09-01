@@ -91,7 +91,7 @@ Mark `BLOCKED` rather than guessing if preserving the current appearance require
 
 ## Dependencies
 
-- `0059-create-canonical-button-primitive.md` through `0076-move-toast-contracts-to-a-neutral-ui-model.md` must be `DONE` first.
+- `0059-create-the-canonical-button-primitive.md` through `0076-move-toast-contracts-to-a-neutral-ui-model.md` must be `DONE` first.
 
 ## Implementation notes
 

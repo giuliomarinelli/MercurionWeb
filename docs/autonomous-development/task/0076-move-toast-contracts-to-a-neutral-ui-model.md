@@ -80,7 +80,7 @@ Mark `BLOCKED` if current callers rely on undocumented toast behaviours whose in
 
 ## Dependencies
 
-- `0050-normalize-browser-resource-lifecycle-cleanup.md`
+- `0050-own-browser-listeners-timers-and-animation-frames-deterministically.md`
 
 ## Implementation notes
 

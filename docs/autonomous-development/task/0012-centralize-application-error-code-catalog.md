@@ -78,7 +78,8 @@ Block if two existing string errors that appear identical semantically are known
 
 ## Dependencies
 
-- None. Coordinate with `0011-unify-cross-transport-error-envelope.md`; do not create two permanent error vocabularies.
+- None.
+- Advisory: coordinate with `0011-unify-cross-transport-error-envelope.md`; do not create two permanent error vocabularies.
 
 ## Implementation notes
 

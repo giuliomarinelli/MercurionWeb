@@ -82,8 +82,8 @@ Mark `BLOCKED` if the current deployed schema cannot be reconciled safely with e
 
 ## Dependencies
 
-- `0008-establish-canonical-ci-pipeline.md` must be `DONE`.
-- `0130-single-authoritative-nest-config-schema.md` and `0132-fail-closed-on-unknown-app-env-values.md` should be `DONE`.
+- `0008-enforce-nest-graphql-schema-drift-check.md` must be `DONE`.
+- `0130-define-every-nest-configuration-property-once.md` and `0132-fail-closed-on-unknown-app-env-values.md` should be `DONE`.
 
 ## Implementation notes
 

@@ -34,6 +34,7 @@ Autonomous-development planning and execution are intentionally separate:
 ## Task execution
 
 - Execute exactly one numbered task file per coding-agent invocation.
+- In VS Code, the `Development Session Coordinator` is the runner and MUST invoke one fresh, stateless `Development Task Worker` subagent per task. The coordinator never delegates two implementation tasks concurrently, and a worker never executes more than one recipe.
 - Executable task files start at `0001` and use globally progressive four-digit numeric prefixes.
 - Read the complete task before changing code.
 - Inspect the relevant existing implementation before editing.
@@ -43,7 +44,9 @@ Autonomous-development planning and execution are intentionally separate:
 
 ## Mandatory CI-parity preflight before every task
 
-Before implementing the actual task scope, the runner/agent MUST establish that the newly created `feature/<Source>` branch starts from a CI-green baseline.
+Before implementing the first task scope, the coordinator MUST establish a clean, fully green repository baseline. Before every later task scope, the runner/agent MUST establish that the newly created `feature/<Source>` branch starts from an exact-SHA CI-green `develop` baseline.
+
+Task `0001` Phase 0 is the one bootstrap exception needed to construct missing deterministic gates or repair known repository-controlled baseline defects. Creating `feature/SYS-001` authorizes Phase 0 only; it does not authorize SYS-001 Phase 1 implementation until the entire bootstrap suite is green. If Phase 0 cannot establish green, stop the session and do not attempt any later task.
 
 The preflight must cover every repository-controlled gate that can fail the canonical CI pipeline, including at minimum:
 
@@ -56,7 +59,9 @@ The preflight must cover every repository-controlled gate that can fail the cano
 7. GraphQL/generated-artifact drift checks once those checks exist;
 8. every additional static or contract check registered in the canonical CI gate set by later tasks.
 
-After task `0008` establishes the canonical CI interface, the task-start preflight MUST use the same root commands used by GitHub Actions, normally `npm ci` followed by `npm run ci:check`.
+Task `0001` Phase 0 MUST also create a minimum bootstrap GitHub Actions workflow that runs the established complete bootstrap gate set on pushes to `develop`. This makes the merge of `0001` and tasks `0002`-`0007` subject to real post-merge CI.
+
+After task `0008` completes the canonical CI interface, the task-start preflight MUST use the same root commands used by GitHub Actions, normally `npm ci` followed by `npm run ci:check`.
 
 Before that canonical interface exists, use the bootstrap checks defined in `PROTOCOL.md`. If a required gate does not yet exist on the initial baseline, the missing gate itself is a preflight defect. The first affected feature branch may establish the minimum deterministic gate as preflight remediation before implementing the task scope.
 
@@ -94,17 +99,21 @@ If post-merge CI succeeds:
 
 If post-merge CI fails:
 
-- do not continue to the next task;
+- stop the current integration progression immediately;
 - revert the merge commit on `develop` with an ordinary revert commit; never reset or rewrite shared history;
 - push the revert and verify the integration branch returns to a green state;
 - update the task on `develop` to `BLOCKED`, recording the failed workflow/merge SHA and the reason;
-- preserve the local and remote `feature/<Source>` branch for diagnosis or later human-approved retry.
+- push the metadata-only status commit and wait for CI on that exact commit;
+- preserve the local and remote `feature/<Source>` branch for diagnosis or later human-approved retry;
+- once its final feature SHA is pushed, freeze that divergent branch: do not merge `develop` into it, commit/amend it, reset/rebase it, advance it, or delete it during the session.
 
-If a task becomes blocked before merge, do not merge partial implementation. Preserve its feature branch and propagate only the task's `BLOCKED` status/diagnostics to `develop`.
+If a task becomes blocked before merge, do not merge partial implementation. Preserve its feature branch, propagate only the task's `BLOCKED` status/diagnostics to `develop`, and wait for CI on that exact metadata commit.
+
+After either blocked path, the runner may continue only when the active session configuration permits it, `develop` is clean and green, and the next task has no hard dependency on the blocked task. Because every task integrates from a proven-green `develop`, a revert that does not restore the pre-merge tree and exact-SHA green CI is a session-fatal baseline/upstream incident. Stop the entire session, report it separately from the blocked task, and do not use a later task to repair or conceal it.
 
 ## Git safety constraints
 
-Allowed task-lifecycle writes include ordinary branch creation, add/commit, push, no-ff merge into `develop`, merge revert after failed CI, branch deletion after successful CI, and metadata-only commits needed to record a blocked task.
+Allowed task/session-lifecycle writes include ordinary branch creation, add/commit, push, no-ff merge into `develop`, merge revert after failed CI, branch deletion after successful CI, metadata-only commits needed to record a blocked task, and the final session-report commit.
 
 Forbidden operations include:
 
@@ -153,4 +162,6 @@ A task may enter the merge/CI phase only when all local checks pass.
 - Never access production credentials or production data.
 - If validation cannot be restored within the task's retry/budget limits, mark the task `BLOCKED` and stop that task.
 - If post-merge CI fails, the merge MUST be reverted before any later task begins.
+- A later independent task may begin after a block only when session policy permits it and every resulting `develop` commit has returned to exact-SHA green CI.
+- At the configured soft deadline, do not start another task. Finish the active task's complete safe lifecycle, write/push the session report, wait for its CI when present, and then stop.
 - If instructions conflict, prefer the narrowest task-specific instruction that does not violate repository-wide safety, branch-isolation, or CI-integrity constraints.

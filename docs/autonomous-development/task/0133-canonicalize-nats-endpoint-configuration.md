@@ -72,7 +72,7 @@ Mark `BLOCKED` if an active deployment has an undocumented endpoint topology tha
 
 ## Dependencies
 
-- `0130-single-authoritative-nest-config-schema.md` and `0132-fail-closed-on-unknown-app-env-values.md` should be `DONE`.
+- `0130-define-every-nest-configuration-property-once.md` and `0132-fail-closed-on-unknown-app-env-values.md` should be `DONE`.
 
 ## Execution notes
 

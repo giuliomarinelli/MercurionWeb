@@ -90,7 +90,7 @@ Mark `BLOCKED` if a required third-party production component truly depends on t
 
 ## Dependencies
 
-- `0071-normalize-progress-indicators-and-skeletons.md` must be `DONE` first.
+- `0071-consolidate-progress-indicators-and-skeletons.md` must be `DONE` first.
 - `0083-add-automated-accessibility-and-keyboard-coverage-for-canonical-ui.md` must be `DONE` first.
 
 ## Implementation notes

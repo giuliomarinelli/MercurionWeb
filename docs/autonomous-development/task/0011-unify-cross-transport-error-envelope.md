@@ -94,8 +94,8 @@ Block if the public exposure policy for `details` or correlation identifiers req
 
 ## Dependencies
 
-- `0009-create-typed-socket-io-event-registry.md`
-- `0012-centralize-application-error-code-catalog.md` may be implemented immediately before or together with this task; if not yet done, this task must not create a competing permanent code catalog.
+- Hard: `0009-create-typed-socket-io-event-registry.md`.
+- Advisory: `0012-centralize-application-error-code-catalog.md` may be implemented immediately afterward; until then, this task must not create a competing permanent code catalog.
 
 ## Implementation notes
 

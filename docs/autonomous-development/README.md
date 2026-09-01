@@ -5,7 +5,7 @@ This directory defines the repository contract for configurable autonomous Devel
 The model is intentionally strict:
 
 - one task recipe;
-- one fresh Copilot/Sol session;
+- one fresh stateless Copilot/Sol task worker;
 - one `feature/<Source>` branch;
 - full CI-parity preflight **before** implementation;
 - full CI-parity validation again before integration;
@@ -18,14 +18,19 @@ The model is intentionally strict:
 
 See `PROTOCOL.md` for the complete lifecycle and `RUNTIME.md` for browser/runtime topology.
 
+The VS Code runner is implemented as a coordinator/worker pair in `.github/agents/`. The coordinator owns the bounded session and invokes a new `Development Task Worker` subagent for each recipe.
+
 ## Structure
 
 ```text
 docs/autonomous-development/
 ├── README.md
+├── LAUNCH.md
 ├── PROTOCOL.md
+├── RECIPE-AUDIT.md
 ├── RUNTIME.md
 ├── session.example.yaml
+├── session.overnight-2026-09-01.yaml
 ├── series/
 │   ├── 0000-series-example.md
 │   ├── 0001-....md
@@ -35,7 +40,18 @@ docs/autonomous-development/
 │   ├── 0001-....md
 │   └── ...
 └── reports/
+    └── 0000-session-report-template.md
 ```
+
+Recipe metadata and cross-references are checked with:
+
+```text
+node docs/autonomous-development/tools/validate-recipes.mjs
+```
+
+The check validates Series ranges/registries, contiguous task identities, Source mappings, state markers, required recipe sections, and exact dependency filenames.
+
+`RECIPE-AUDIT.md` records the reviewed inconsistencies, corrections and the intentional protected-branch lifecycle transition at task `0218`.
 
 ## Model profile
 
@@ -50,6 +66,14 @@ context:
 ```
 
 Each task gets a fresh context. VS Code workspace settings enable OpenAI Responses API context management through `github.copilot.chat.responsesApiContextManagement.enabled`. The extension computes the server-side compaction threshold at 90% of the active model prompt window, so a 272K window compacts at approximately 244.8K tokens. The 1M long-context tier is deliberately not part of the normal autonomous workflow.
+
+Advanced Autopilot is enabled at workspace level. The user still selects the Copilot harness, `Development Session Coordinator`, GPT-5.6 Sol, High reasoning and Autopilot for the launch session; repository settings cannot silently grant that session's destructive tool permissions.
+
+## Agent topology
+
+- `Development Session Coordinator` persists across the bounded run, parses the active YAML, owns time/task selection/Git integration/CI/reporting, and never implements two tasks concurrently.
+- `Development Task Worker` is a stateless `agent/runSubagent` invocation for one prepared `feature/<Source>` branch. It owns preflight, implementation, local validation, task notes and feature-branch commits only.
+- The coordinator independently verifies each worker result before merging and remains active through exact-SHA CI, cleanup/revert, the deadline and final report.
 
 ## Series and task identity
 
@@ -78,7 +102,7 @@ feature/FE-001
 
 ## Mandatory preflight
 
-Quality is not checked only after development. Every task starts by proving its feature branch has a CI-green baseline.
+Quality is not checked only after development. No first task scope starts until the complete repository baseline is green, and every later task starts by proving its feature branch derives from exact-SHA green `develop`.
 
 After task `0008` establishes the canonical interface, the local runner and GitHub Actions share:
 
@@ -89,7 +113,7 @@ npm run ci:check
 
 The aggregate covers all repository-controlled CI failure gates: dependency integrity, Angular/Nest lint, type/template checks, all Angular tests, all Nest Jest unit and E2E tests, both builds, GraphQL/generated-artifact drift and later registered static/contract checks.
 
-If preflight is red, the agent repairs repository-controlled defects on `feature/<Source>` before beginning the requested task. It reruns the complete suite after remediation. If green cannot be restored safely, the task is blocked without merging partial work.
+If preflight is red, the agent repairs repository-controlled defects on `feature/<Source>` before beginning the requested task. It reruns the complete suite after remediation. If green cannot be restored safely, the task is blocked without merging partial work. For `0001`, Phase 0 is bootstrap-only and no SYS-001 feature scope or later task begins until that baseline is completely green.
 
 Before `0001`, the same rule applies using package-local bootstrap checks. The current baseline's missing Angular lint gate and Nest check/fix lint asymmetry are treated as bootstrap defects rather than skipped checks.
 
@@ -121,6 +145,8 @@ PASS                    FAIL
 delete branch      revert merge on develop
 next task          mark task BLOCKED
                    preserve feature branch
+                   continue only if develop is green
+                   and a later task is independent
 ```
 
 No rebase, force-push, shared-history reset or CI bypass is part of the autonomous workflow.
@@ -145,6 +171,8 @@ http://localhost:8888
 
 The Angular dev-server port is an internal upstream and must not be used as the browser validation origin.
 
-## Current scope
+## Launch
 
-This bootstrap defines the contract, task/series recipes, browser tooling and intended Git/CI workflow. The actual Development Session runner/scheduler/process manager/report generator is still to be implemented after the contract and task set are reviewed.
+`LAUNCH.md` contains the pre-launch checks, active-configuration rules and exact starting prompt. The workflow starts only after the bootstrap PR has been merged into `develop` and the local checkout has fast-forwarded to that commit.
+
+The custom-agent coordinator is the VS Code runner for this workflow. It is intentionally not a background service: VS Code and the Copilot harness must remain running and connected for local terminals, MCP/browser access and task subagents to continue.

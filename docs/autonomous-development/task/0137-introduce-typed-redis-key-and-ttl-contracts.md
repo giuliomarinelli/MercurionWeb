@@ -76,7 +76,7 @@ Mark `BLOCKED` if two active domains intentionally share a Redis key namespace/d
 
 ## Dependencies
 
-- `0124-separate-session-domain-from-redis-storage.md` should be `DONE` so repository boundaries are stable.
+- `0124-separate-session-domain-logic-from-redis-persistence.md` should be `DONE` so repository boundaries are stable.
 - canonical config duration values from `0130` must be available.
 
 ## Execution notes

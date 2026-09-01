@@ -88,9 +88,9 @@ Mark `BLOCKED` if GitHub-hosted runner networking cannot reproduce the canonical
 
 ## Dependencies
 
-- `0008-enforce-nest-graphql-schema-drift-check.md` is the authoritative CI contract and must be `DONE`.
-- QA tasks `0187`–`0201` should have registered their executable gates before final pipeline wiring.
-- `0203`/`0204` must be added to the same canonical aggregate when completed.
+- Hard: `0008-enforce-nest-graphql-schema-drift-check.md` is the authoritative CI contract and must be `DONE`.
+- Hard: QA tasks `0187`–`0201` should have registered their executable gates before final pipeline wiring.
+- Advisory: `0203`/`0204` must be added to the same canonical aggregate when they are completed later.
 
 ## Implementation notes
 

@@ -78,7 +78,8 @@ Block removal of any route whose ownership cannot be proven from repository evid
 
 ## Dependencies
 
-- None. Coordinate the final inventory format with `0021-add-rest-contract-compatibility-suite.md`.
+- None.
+- Advisory: coordinate the final inventory format with `0021-add-rest-contract-compatibility-suite.md`.
 
 ## Implementation notes
 

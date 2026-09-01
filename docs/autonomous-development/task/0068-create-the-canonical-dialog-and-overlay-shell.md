@@ -88,7 +88,7 @@ Mark `BLOCKED` if multiple existing overlays intentionally have unresolved incom
 
 ## Dependencies
 
-- `0058-isolate-action-overlay-input-and-result-per-session.md`
+- `0058-isolate-action-context-payloads-per-open-session.md`
 - `0060-create-the-accessible-iconbutton-primitive.md`
 
 ## Implementation notes

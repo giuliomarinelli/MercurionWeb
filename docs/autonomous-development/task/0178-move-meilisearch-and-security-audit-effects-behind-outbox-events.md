@@ -76,7 +76,7 @@ Mark `BLOCKED` if a security/compliance requirement mandates synchronous externa
 
 ## Dependencies
 
-- `0158-add-a-transactional-outbox-for-help-notifications.md` and `0152` Unit of Work must be `DONE`.
+- `0158-add-transactional-outbox-for-help-notifications.md` and `0152` Unit of Work must be `DONE`.
 - `0129` logger abstraction should be `DONE` so domain code is not coupled back to Meilisearch through logging.
 
 ## Implementation notes

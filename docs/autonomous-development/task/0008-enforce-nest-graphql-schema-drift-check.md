@@ -5,7 +5,7 @@
 
 ## Objective
 
-Create the canonical GitHub Actions CI pipeline for MercurionWeb and make the committed `MercurionWebNode/src/schema.graphql` a verified artifact.
+Complete the canonical GitHub Actions CI pipeline for MercurionWeb from the bootstrap workflow created by task `0001`, and make the committed `MercurionWebNode/src/schema.graphql` a verified artifact.
 
 The pipeline must become the single authoritative gate set used both remotely by GitHub Actions and locally by every autonomous task preflight. It must cover dependency integrity, linting, type checking, all Angular tests, all Nest Jest suites, builds, generated-contract/schema drift and later registered static/contract checks.
 
@@ -18,6 +18,8 @@ Source: `SYS-008` in Series `0001`.
 The repository also needs deterministic task isolation: every autonomous task runs on `feature/<Source>`, is merged with an explicit merge commit into `develop`, and GitHub Actions decides whether that integration remains. A failed merge is reverted and the task is marked `BLOCKED`.
 
 Task `0001` establishes the root npm-workspace structure for `MercurionWebNg` and `MercurionWebNode`. This task must build the CI contract on top of that root workspace rather than duplicating unrelated package-install logic in workflow YAML.
+
+Task `0001` also creates the minimum real `develop`-push bootstrap workflow used for tasks `0001`-`0007`. This task upgrades that workflow in place; it must not remove exact-SHA `develop` coverage during the transition.
 
 The current baseline also has lint asymmetry that must not survive this task:
 
@@ -43,7 +45,7 @@ By the end of this task, lint verification is non-mutating and explicit fix comm
 ## In scope
 
 - Establish one root, reproducible CI command interface.
-- Create `.github/workflows/ci.yml` for `develop` integration and normal human PR validation.
+- Complete/upgrade `.github/workflows/ci.yml` for `develop` integration and normal human PR validation.
 - Make Angular and Nest lint checks non-mutating.
 - Run explicit Angular and Nest type checks.
 - Run **all** Angular/Karma tests headlessly.
@@ -188,7 +190,7 @@ Build success is a separate gate from typecheck and tests because it catches Ang
 
 ## GitHub Actions pipeline
 
-Create `.github/workflows/ci.yml` with the following behaviour.
+Complete the existing bootstrap `.github/workflows/ci.yml` with the following behaviour.
 
 ### Triggers
 

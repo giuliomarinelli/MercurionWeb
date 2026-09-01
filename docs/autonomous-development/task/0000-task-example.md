@@ -149,7 +149,10 @@ If the task was merged but GitHub Actions fails, the runner reverts the merge co
 
 or:
 
-- `0001-example-dependency.md` must be `DONE` first.
+- Hard: `0001-example-dependency.md` must be `DONE` first.
+- Advisory: coordinate the public vocabulary with `0002-related-task.md`; this does not block execution.
+
+Use the exact current task filename for a new hard dependency. State explicitly whether a cross-reference is hard or advisory; do not create an apparent forward dependency for work that a later task merely registers or refines.
 
 ## Implementation notes
 

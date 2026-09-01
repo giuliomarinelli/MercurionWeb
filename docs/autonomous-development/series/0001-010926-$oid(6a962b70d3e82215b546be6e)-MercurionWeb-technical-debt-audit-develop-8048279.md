@@ -62,7 +62,7 @@ Il registro seguente contiene **220 task atomici**. Ogni Definition of Done desc
 
 | ID | Problema e perimetro | Definition of Done |
 |---|---|---|
-| SYS-001 | DTO REST replicati e divergenti tra `MercurionWebNg/src/app/Models` e i DTO Nest | Ogni payload REST pubblico è generato da una sola specifica OpenAPI o da un package di contratto versionato; il client non mantiene copie manuali dei DTO server. |
+| SYS-001 | DTO REST replicati e divergenti tra `MercurionWebNg/src/app/Models` e i DTO Nest | Ogni payload REST pubblico deriva da un package condiviso, versionato e framework-neutral; Angular non mantiene copie manuali, mentre gli eventuali DTO Nest decorati restano adapter di validazione non-breaking verificati rispetto al contratto canonico. |
 | SYS-002 | Documenti e tipi GraphQL scritti manualmente nel client | Schema, documenti e tipi Angular sono collegati da GraphQL Code Generator; nessun response type GraphQL è duplicato a mano. |
 | SYS-003 | Sette documenti GraphQL client non validi rispetto a `MercurionWebNode/src/schema.graphql` | Tutti i documenti GraphQL, incluse entrambe le espansioni dei quattro template dinamici, validano senza errori contro lo schema distribuito. |
 | SYS-004 | Quattro query/mutation molecule-item applicano fragment DTO a `MoleculeCollectionItemEntity`, tipo incompatibile | Il modello GraphQL molecule-item espone una shape discriminata coerente e le quattro operazioni usano fragment validi per quella shape. |

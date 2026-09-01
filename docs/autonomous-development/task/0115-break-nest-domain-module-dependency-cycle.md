@@ -85,7 +85,7 @@ Mark `BLOCKED` if breaking an edge requires an unresolved ownership decision bet
 
 ## Dependencies
 
-- `0008-establish-canonical-ci-pipeline.md` must be `DONE` so the architecture gate can join the canonical aggregate.
+- `0008-enforce-nest-graphql-schema-drift-check.md` must be `DONE` so the architecture gate can join the canonical aggregate.
 
 ## Implementation notes
 

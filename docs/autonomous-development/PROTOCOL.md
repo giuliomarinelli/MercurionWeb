@@ -2,7 +2,7 @@
 
 This document defines the execution semantics for configurable autonomous Development Sessions.
 
-A **Development Session** is a bounded period in which an external runner executes an ordered workload of task files by invoking a fresh coding-agent session for each task.
+A **Development Session** is a bounded period in which a session coordinator executes an ordered workload of task files by invoking a fresh, stateless coding worker for each task. In VS Code, the committed `Development Session Coordinator` custom agent is the runner and `Development Task Worker` is the per-task worker.
 
 ## Core concepts
 
@@ -16,7 +16,7 @@ A **Development Session** is a bounded period in which an external runner execut
 - **Preflight**: the complete CI-parity verification run before task implementation begins.
 - **Post-merge CI**: the GitHub Actions workflow associated with the explicit merge commit on `develop`.
 - **Soft deadline**: after this time no new task may start; the task already in progress may finish its complete branch/CI lifecycle.
-- **Hard deadline**: absolute session cutoff; do not start an unsafe merge/revert sequence merely to beat the clock.
+- **Hard deadline**: optional absolute session guardrail; do not start or interrupt an unsafe merge/revert sequence merely to beat the clock.
 - **Capability**: an external tool available to the coding agent, such as Chrome DevTools MCP.
 - **Runtime**: the local processes/infrastructure required for runtime/browser validation.
 - **Report**: the final session summary.
@@ -31,7 +31,28 @@ VS Code workspace-level Copilot configuration is committed in `.vscode/settings.
 
 The canonical local runtime topology is defined by `docs/autonomous-development/RUNTIME.md`.
 
-The runner owns deterministic orchestration: task discovery/order, YAML parsing, time/deadlines, branch lifecycle, preflight execution, merge/revert sequencing, CI waiting, runtime process lifecycle and reporting. The coding agent owns implementation and task-specific validation inside the currently assigned feature branch.
+The coordinator owns deterministic orchestration: task discovery/order, YAML parsing, time/deadlines, branch lifecycle, merge/revert sequencing, exact-SHA CI waiting, runtime process lifecycle and reporting. The fresh task worker owns preflight, implementation and task-specific validation inside the currently assigned feature branch.
+
+## VS Code coordinator/worker topology
+
+The repository provides two workspace custom agents under `.github/agents/`:
+
+- `Development Session Coordinator` remains alive for the complete configured session and is the only owner of task selection, shared-branch Git writes, deadlines, CI observation and final reporting.
+- `Development Task Worker` is invoked once through `agent/runSubagent` for exactly one task. Each invocation is stateless and therefore provides the required fresh task context.
+
+The coordinator creates and pushes the feature branch before invoking the worker. The worker may preflight, implement, validate, commit and push only that feature branch. It never selects a later task, changes `develop`, merges, reverts, deletes a branch or finalizes the session.
+
+Tasks are strictly serialized. The coordinator MUST NOT run multiple implementation workers concurrently against the same checkout. It MUST independently verify the worker result and Git state before any integration write.
+
+The active configuration is a repository contract read by the coordinator; it is not a native VS Code scheduler. Wall-clock enforcement therefore remains an explicit coordinator duty. The coordinator MUST use an absolute timestamp plus the configured IANA timezone and MUST NOT rely on a long-running shell `sleep` to detect the deadline.
+
+## Green-baseline session invariant
+
+No recipe implementation starts until the repository has a clean, complete green baseline. At session startup the coordinator records the exact local/remote `develop` SHA and runs the complete available non-mutating gate set. A previously green workflow is useful evidence but does not replace the local session-start proof.
+
+Task `0001` has one narrowly scoped bootstrap path for a repository whose required checks are missing or currently red: the coordinator may create and push `feature/SYS-001`, but the worker may perform **Phase 0 only** until every mandatory gate passes. Phase 0 is baseline establishment, not SYS-001 feature implementation. If it cannot make the full suite green safely, task `0001` is blocked and the entire session stops; no later recipe may inherit a known-red baseline.
+
+After task `0001` integrates its bootstrap workflow, every `develop` tip used as a later task base must additionally have a successful workflow result tied to that exact SHA. The coordinator records the baseline evidence for every task in its Execution notes and final report.
 
 ## Planning domain: series
 
@@ -86,6 +107,19 @@ Rules:
 5. `- [x] BLOCKED` means the task must be skipped until explicitly re-enabled by a human.
 6. Both unchecked means pending.
 7. The runner must never synthesize a missing task recipe from the series during execution.
+
+### Dependency semantics
+
+The `Dependencies` section contains both executable prerequisites and, in older recipes, advisory coordination links. The coordinator resolves them as follows:
+
+- `None` declares no hard prerequisite even if the same sentence contains an advisory cross-reference.
+- A dependency is **hard** only when the prose says it `must`/`should` be `DONE`, `complete`, `integrated`, `available`, or otherwise required before the task can safely execute.
+- Wording such as `may`, `coordinate with`, `when completed`, `should be considered`, or `not required` is advisory and does not block selection.
+- A four-digit task number, full task filename, Source identifier, inclusive task range, or inclusive Source range resolves through the Series/task registry. The numeric prefix or Source is the identity; a descriptive slug is not authoritative.
+- A range with qualifiers such as `as applicable` requires only the members that actually own code used by the task. The coordinator records the resolved set in Execution notes.
+- A task never depends on itself. A forward reference that describes future registration/refinement is advisory unless the recipe explicitly makes the later task a prerequisite; an explicit forward prerequisite makes the current task unrunnable and must be reported as a recipe defect rather than guessed around.
+
+Hard prerequisites must be `DONE`. A `BLOCKED` hard prerequisite makes the dependent task non-runnable, but it does not prevent later independent tasks from being considered when session policy permits. New or edited recipes SHOULD use exact current filenames and explicitly label non-blocking links as advisory.
 
 ## Branch isolation: one task, one feature branch
 
@@ -163,9 +197,21 @@ No actual SYS-001 contract/workspace implementation begins until Phase 0 is full
 
 After the SYS-001 workspace/contract changes are implemented, the entire Phase 0 quality suite is run again under the new root/workspace topology. Task `0001` may only integrate if the repository remains green.
 
+### Bootstrap post-merge CI created by task 0001
+
+The per-task merge policy requires real GitHub Actions before task `0008`. Therefore Phase 0 of task `0001` MUST create a minimum `.github/workflows/ci.yml` that:
+
+- runs on every push to `develop` and on ordinary pull requests targeting `develop`;
+- performs the complete green bootstrap gate set established by Phase 0 under the current package topology;
+- uses deterministic clean-install semantics and non-mutating checks;
+- has one unambiguous terminal workflow result that the coordinator can associate with the exact pushed SHA;
+- does not deploy, publish, auto-fix or use production credentials.
+
+The merge of task `0001` is the first task merge evaluated by that workflow. Tasks `0002` through `0007` continue to use the same bootstrap workflow and the best available local equivalent. Task `0008` completes that bootstrap into the canonical root `npm ci` plus `npm run ci:check` contract and may restructure the workflow without creating a gap in `develop` push coverage.
+
 ## Canonical CI parity after task 0008
 
-Task `0008` establishes the canonical root CI interface and `.github/workflows/ci.yml`.
+Task `0008` completes the canonical root CI interface and upgrades the bootstrap `.github/workflows/ci.yml` created by task `0001`.
 
 After `0008` is integrated, every task-start and pre-merge preflight MUST execute the same repository-controlled gate set as GitHub Actions:
 
@@ -247,21 +293,28 @@ If the exact merge commit's CI succeeds:
 - verify `develop` remains the active clean integration branch;
 - only then continue to the next task.
 
+A missing remote branch is already clean and is not an error. Other branch-deletion failures are retried within configured limits and then stop the session for manual cleanup without changing the already successful task to `BLOCKED`.
+
 ## Post-merge CI failure
 
 If CI for the merge commit fails:
 
-1. stop task progression immediately;
-2. preserve `feature/<Source>` locally and remotely;
+1. stop the current integration progression immediately;
+2. preserve `feature/<Source>` locally and remotely at its last pushed feature SHA;
 3. on `develop`, create an ordinary revert of the merge commit (mainline parent 1); never reset or rewrite shared history;
 4. push the revert commit;
-5. wait for the integration branch to return to a green CI state;
+5. verify the revert commit's tree matches the pre-merge `develop` tree, then wait for CI on the exact revert SHA and require the integration branch to return to green;
 6. ensure the task's `DONE` state is no longer present on `develop` after the revert;
 7. set `BLOCKED` on the task in `develop` and record the failed merge SHA, CI run/result and diagnostic summary;
 8. commit/push that task-status metadata without reintroducing implementation changes;
-9. keep the failed feature branch for diagnosis or a later human-approved retry.
+9. wait for CI on the exact metadata commit and require it to be green;
+10. keep the failed feature branch for diagnosis or a later human-approved retry, frozen at the preserved SHA; do not check it out to merge `develop`, commit/amend, reset/rebase, advance, or delete it during this session.
 
 A failed merge is never left on `develop` merely because the next task might repair it.
+
+If the merge workflow is cancelled, times out, becomes stale/action-required, or cannot be associated unambiguously with the exact merge SHA within the configured observation limit, treat the integration as unverified and fail closed through the same revert-and-block path. Since the pre-merge parent was proven green, a revert tree mismatch or a revert/status commit that cannot be observed green is a session-fatal **baseline/upstream incident**, not permission to blame or start the next task. Stop the entire session, record both the last known-green SHA and failing recovery SHA/run, and request human recovery.
+
+Once revert plus status metadata are green, the failed **task** is terminal for this session. The coordinator may continue to a later independent task only when `policy.continue_after_blocked_task` is true and its resolved hard dependencies are all `DONE`.
 
 ## Blocking before merge
 
@@ -270,14 +323,15 @@ A task is also `BLOCKED` when safe completion requires missing authority/informa
 If blocked before integration:
 
 - do not merge partial implementation;
-- preserve/push the feature branch for diagnosis;
+- preserve/push the feature branch for diagnosis and freeze it at that last pushed SHA;
 - return to clean `develop`;
 - record only the task's `BLOCKED` metadata/diagnostics on `develop`;
+- push the metadata commit and require CI on that exact SHA to be green when a workflow exists;
 - continue to later independent tasks only when `develop` is green and the task dependency graph allows it.
 
 ## Git safety rules
 
-Allowed lifecycle writes: branch creation/deletion, ordinary add/commit, push, explicit no-ff merge into `develop`, ordinary merge revert after failed CI, and metadata-only task-state commits.
+Allowed lifecycle writes: branch creation/deletion, ordinary add/commit, push, explicit no-ff merge into `develop`, ordinary merge revert after failed CI, metadata-only task-state commits, and the final metadata-only session-report commit.
 
 Forbidden:
 
@@ -315,13 +369,15 @@ If a task requires browser validation and the canonical runtime/Chrome MCP/test 
 
 ## Workload resolution
 
-The runner may resolve an explicit task list, a selected series range, or the global pending queue. Tasks are normally ordered lexicographically by their four-digit prefix. Explicit dependencies override simple numeric readiness: a task whose dependency is not `DONE` must not run.
+The runner may resolve an explicit task list, a selected series range, or the global pending queue. Tasks are normally ordered lexicographically by their four-digit prefix. Resolved hard dependencies override simple numeric readiness: a task whose hard dependency is not `DONE` must not run. Advisory references never create dependency cycles.
 
 ## Deadline semantics
 
-`end` is a soft deadline. No new task starts at or after it. A task already in progress may finish its current implementation/integration/CI lifecycle when safe.
+`start`, `end` and an optional `hard_stop` SHOULD be absolute RFC 3339 timestamps. The configured IANA timezone is authoritative for display/reporting and for resolving any explicitly supported local-time value. The coordinator validates that `end` is after the actual start and records the actual start timestamp in session state/reporting; it does not mutate the active YAML during execution.
 
-`hard_stop` is an absolute session guardrail, but it MUST NOT interrupt Git while a shared-branch merge/revert/push is half-completed. If the hard stop approaches during a critical integration operation, finish restoring a consistent `develop` state, then terminate and report the overrun.
+`end` is a soft deadline. No new task starts at or after it. A task already in progress finishes its complete implementation/integration/CI/status/branch lifecycle when safe and then the session finalizes. Reaching `end` does not abandon a feature branch or leave `develop` in `CI_PENDING`/failed/unverified state.
+
+When configured, `hard_stop` is an absolute session guardrail, but it MUST NOT interrupt Git while a shared-branch merge/revert/push is half-completed. If the hard stop approaches during a critical integration operation, finish restoring a consistent `develop` state, then terminate and report the overrun. A null/omitted `hard_stop` means the user chose the soft-deadline semantics only.
 
 ## Workload exhaustion
 
@@ -346,4 +402,6 @@ At finalization the runner records at least:
 - decisions requiring human attention;
 - usage/credit information when available.
 
-Reports live under `docs/autonomous-development/reports/` unless overridden by configuration.
+Reports live under `docs/autonomous-development/reports/` unless overridden by configuration. `0000-session-report-template.md` is the canonical non-executable report skeleton.
+
+The coordinator writes the report from a clean `develop` after the active task lifecycle is terminal. It commits and pushes the report as session metadata and, when a workflow exists, waits for CI on that exact report commit before declaring final repository health. A report-CI failure is a session-finalization blocker; it does not retroactively change successfully completed task states.

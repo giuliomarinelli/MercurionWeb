@@ -82,7 +82,7 @@ Mark `BLOCKED` if a current command intentionally requires nested/savepoint sema
 
 ## Dependencies
 
-- `0115-break-nest-domain-module-dependency-cycle.md` and `0119-keep-domain-repositories-private.md` should be `DONE`.
+- `0115-break-nest-domain-module-dependency-cycle.md` and `0120-keep-typeorm-repositories-private-to-owning-domains.md` should be `DONE`.
 - `0150-establish-versioned-typeorm-migrations.md` should be `DONE` for real-database integration fixtures.
 
 ## Implementation notes

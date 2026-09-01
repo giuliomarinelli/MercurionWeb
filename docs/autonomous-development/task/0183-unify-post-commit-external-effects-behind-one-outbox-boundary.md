@@ -81,7 +81,7 @@ Mark `BLOCKED` if any effect's product/compliance semantics require synchronous 
 
 ## Dependencies
 
-- `0158-add-a-transactional-outbox-for-help-notifications.md` and `0178-move-meilisearch-and-security-audit-effects-behind-outbox-events.md` must be `DONE`.
+- `0158-add-transactional-outbox-for-help-notifications.md` and `0178-move-meilisearch-and-security-audit-effects-behind-outbox-events.md` must be `DONE`.
 - `0152` Unit of Work and graceful worker shutdown infrastructure must be `DONE`.
 
 ## Implementation notes
