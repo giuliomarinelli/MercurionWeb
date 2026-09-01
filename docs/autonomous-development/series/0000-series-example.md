@@ -1,11 +1,18 @@
-# 0000 - Series example — DO NOT EXECUTE
+---
+series_number: "0000"
+card_id: null
+task_range:
+  start: "<FIRST_TASK>"
+  end: "<LAST_TASK>"
+repository: "owner/repository"
+branch: "develop"
+baseline:
+  commit: null
+  label: null
+  date: null
+---
 
-**series_number:** `0000`  
-**card_id:** `$oid(<trello-card-mongo-id>)`  
-**task_range:** `[<FIRST_TASK> - <LAST_TASK>]`  
-**repository:** `owner/repository`  
-**branch:** `develop`  
-**baseline_commit:** `<git-sha>`  
+# 0000 - Series example — DO NOT EXECUTE
 
 > This file is documentation and the canonical template for humans or models
 > that create autonomous-development series documents. It is never executable.
@@ -26,32 +33,40 @@ The two domains are intentionally decoupled:
 - the series owns planning context and grouping;
 - task files own executable implementation instructions;
 - the series binds to its task files only through the inclusive numeric
-  `task_range` declared in the header;
+  `task_range` declared in YAML frontmatter;
 - task files do not need a backlink to the series;
 - `card_id` binds the series document to the corresponding Trello card and is
   metadata, not an execution dependency.
 
-## Header contract
+## Frontmatter contract
 
-Every executable series document must define the following metadata near the top:
+Every real series document must begin with valid YAML frontmatter delimited by
+`---` and define:
 
-- `series_number`: globally progressive four-digit series number;
+- `series_number`: globally progressive four-digit series number, kept as a
+  quoted string so leading zeroes are preserved;
 - `card_id`: Trello card Mongo identifier using the repository convention
-  `$oid(...)`, or an explicitly documented null/absent value when no card exists;
-- `task_range`: inclusive range of globally progressive task numbers, formatted
-  exactly as `[NNNN - NNNN]`;
+  `$oid(...)`, or YAML `null` when no card exists;
+- `task_range.start` and `task_range.end`: inclusive globally progressive task
+  numbers, both kept as quoted four-digit strings;
 - `repository`: repository the series describes;
 - `branch`: branch/baseline context used when the series was authored;
-- `baseline_commit`: frozen commit used for analysis when applicable.
+- `baseline.commit`: frozen commit used for analysis when applicable;
+- optional `baseline.label` and `baseline.date`: human-facing baseline metadata.
 
 `0000` is reserved for this template and must never represent a real series.
+
+The YAML frontmatter is the machine-readable source of truth. Do not duplicate
+these fields in prose headers solely for parsing convenience.
 
 ## Task-range rules
 
 Example:
 
-```text
-[0001 - 0220]
+```yaml
+task_range:
+  start: "0001"
+  end: "0220"
 ```
 
 means that task recipes `0001` through `0220`, inclusive, belong to this series.
