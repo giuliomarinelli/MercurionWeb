@@ -102,38 +102,64 @@ A pre-existing local or remote `feature/<Source>` is not overwritten automatical
 
 No task develops directly on `develop`. Autonomous tasks never touch `master`.
 
-## Mandatory baseline before task 0001
+## Phase 0 of task 0001 — mandatory CI-capable green baseline
 
-Before the actual implementation scope of `0001` begins, the repository baseline MUST be proven capable of passing all currently applicable quality gates.
+Task `0001` is special: after `feature/SYS-001` is created, its **first executable work is Phase 0**, whose sole purpose is to construct and prove the repository baseline required for the later canonical CI to be green.
 
-At minimum the bootstrap preflight covers:
+Phase 0 is part of task `0001`, but it runs **before the actual SYS-001 contract/monorepo implementation scope**. It is a hard prerequisite for all subsequent autonomous development.
+
+A missing quality gate is itself a baseline defect. If lint/type/test/build verification does not yet exist deterministically, Phase 0 MUST establish the minimum correct non-mutating gate and then make it green. The agent may not interpret an absent command as permission to skip that quality dimension.
+
+At minimum Phase 0 covers:
 
 ### Angular
 
-From `MercurionWebNg`:
+From `MercurionWebNg`, under the package topology that exists before the workspace migration:
 
-- clean dependency installation using the committed lockfile;
-- TypeScript application typecheck (`tsc --noEmit` against the application tsconfig or the canonical equivalent);
-- all Angular/Karma tests in non-watch headless mode;
-- production build;
-- linting.
+- clean dependency/lockfile installation;
+- a supported Angular-compatible non-mutating lint check for TypeScript/templates;
+- a separate explicit lint-fix command for remediation;
+- TypeScript application typecheck (`tsc --noEmit` against the canonical application tsconfig or equivalent);
+- Angular template/AOT type checking as exercised by the production build;
+- **all** Angular/Karma tests in non-watch headless mode;
+- production build, including configured bundle/budget gates;
+- every other deterministic repository-controlled Angular source/static check already applicable.
 
-The current audited baseline does not yet expose an Angular lint target. That absence is a bootstrap defect, not permission to skip linting. The `feature/SYS-001` preflight may establish the minimum compatible, deterministic Angular lint configuration before implementing `SYS-001`, and that remediation must be recorded separately from the actual task work.
+The audited baseline does not yet expose an Angular lint target. Phase 0 **MUST create/finalize one before SYS-001 implementation begins** and make it green. It is not deferred to a later QA task merely because that later task also describes Angular linting.
 
 ### Nest
 
-From `MercurionWebNode`:
+From `MercurionWebNode`, under the package topology that exists before the workspace migration:
 
-- clean dependency installation using the committed lockfile;
-- non-mutating ESLint check;
-- TypeScript typecheck (`tsc --noEmit` against the Nest tsconfig or canonical equivalent);
-- all Jest unit tests;
-- all Jest E2E tests using `test/jest-e2e.json`;
-- Nest build.
+- clean dependency/lockfile installation;
+- non-mutating ESLint check over the intended source/test scope;
+- a separate explicit lint-fix command for remediation;
+- TypeScript typecheck (`tsc --noEmit` against the canonical Nest tsconfig or equivalent);
+- **all** Jest unit/spec tests;
+- **all** Jest E2E tests using `test/jest-e2e.json`;
+- Nest build;
+- every other deterministic repository-controlled Nest source/static check already applicable.
 
-The existing Nest `lint` script currently uses `--fix`; preflight verification MUST NOT rely on a mutating check. Establish separate check/fix commands when necessary and use check-only semantics for gates.
+The existing Nest `lint` script uses `--fix`; verification MUST NOT rely on that mutating behaviour. Phase 0 establishes separate check/fix semantics before SYS-001 development.
 
-No implementation work for `0001` begins until this bootstrap preflight is green. Repository-controlled failures are repaired on `feature/SYS-001`; failures that cannot be repaired safely within the configured limits block `0001`.
+Likewise, a suite printing passing Jest tests but returning a failing process exit status is not green. Phase 0 must fix the repository-controlled testing/bootstrap boundary that causes the failing exit rather than ignoring or masking it.
+
+### Phase 0 remediation precedence
+
+When a Phase 0 gate fails:
+
+1. diagnose the repository-controlled root cause;
+2. repair it on `feature/SYS-001`;
+3. do not weaken, skip or exclude the gate merely to obtain green output;
+4. keep remediation identifiable in commits and Execution notes;
+5. rerun the **complete Phase 0 suite**, not only the command that failed;
+6. repeat until the whole baseline is green.
+
+If a known baseline defect is also scheduled as a later numbered task, **CI viability takes precedence over numeric task ordering**. Fix the minimum correct root cause in Phase 0 if leaving it unresolved would make the future CI immediately fail. The later task then verifies, refines or becomes effectively satisfied; it is not a reason to carry a deliberately red baseline forward.
+
+No actual SYS-001 contract/workspace implementation begins until Phase 0 is fully green. If the baseline cannot be made green safely without an unresolved product/security/architecture decision, task `0001` becomes `BLOCKED`, and no subsequent autonomous development task may start from that known-red baseline.
+
+After the SYS-001 workspace/contract changes are implemented, the entire Phase 0 quality suite is run again under the new root/workspace topology. Task `0001` may only integrate if the repository remains green.
 
 ## Canonical CI parity after task 0008
 
@@ -174,6 +200,8 @@ Immediately after `feature/<Source>` is created and before actual task implement
 4. keep preflight remediation in clearly identified commits/Execution notes when practical;
 5. rerun the entire preflight, not only the previously failing command;
 6. begin task implementation only after every gate is green.
+
+For task `0001`, the specialized Phase 0 rules above define this first preflight/bootstrap and explicitly allow establishment of missing mandatory quality tooling. For tasks before `0008` is integrated, use the best available equivalent gate set established by preceding tasks. From `0008` onward, use the canonical root `npm ci` + `npm run ci:check` interface.
 
 Preflight remediation may fix routine quality drift and missing deterministic quality tooling. It must not silently make unrelated product/security/architecture decisions. If restoring green requires materially unrelated behavioural work, the task becomes `BLOCKED`.
 
