@@ -5,7 +5,7 @@
 
 ## Objective
 
-Ensure the Angular browser never sends the hard-coded `X-Mock-IP: 91.122.12.8` header in non-test authentication traffic. IP simulation must be confined to explicit test fixtures/interceptors and the real browser flow must rely on the trusted server/proxy IP path.
+Ensure the Angular browser never sends the hard-coded `X-Mock-IP: 91.122.12.8` header in non-test authentication traffic. IP simulation must be confined to explicit test fixtures/interceptors and the real browser flow must rely on the trusted server/proxy IP path, except for `development` and `test/testing` environments.
 
 Source: `FE-015` in Series `0001`.
 
