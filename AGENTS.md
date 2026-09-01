@@ -11,6 +11,7 @@ Detailed session semantics and local runtime topology are defined in:
 
 ## Operating contract
 
+- GitHub Copilot CLI is the only approved host for autonomous Development Sessions. The former VS Code Autopilot/advanced-mode route is unsupported for this workflow; `.vscode` configuration remains available only for ordinary interactive VS Code use.
 - The integration branch for autonomous development is `develop`.
 - Every executable task MUST run on its own branch named exactly `feature/<Source>`, where `<Source>` is the task's planning identifier such as `SYS-001` or `FE-001`.
 - Never develop directly on `develop`.
@@ -34,7 +35,7 @@ Autonomous-development planning and execution are intentionally separate:
 ## Task execution
 
 - Execute exactly one numbered task file per coding-agent invocation.
-- In VS Code, the `Development Session Coordinator` is the runner and MUST invoke one fresh, stateless `Development Task Worker` subagent per task. The coordinator never delegates two implementation tasks concurrently, and a worker never executes more than one recipe.
+- In GitHub Copilot CLI, the `Development Session Coordinator` is the runner and MUST invoke exactly one fresh, stateless `Development Task Worker` per task through one synchronous `task` tool call. The coordinator never uses background worker mode, delegates two implementation tasks concurrently, or asks one worker to execute more than one recipe.
 - Executable task files start at `0001` and use globally progressive four-digit numeric prefixes.
 - Read the complete task before changing code.
 - Inspect the relevant existing implementation before editing.
@@ -52,6 +53,16 @@ Every recipe has four mutually exclusive persistent outcomes:
 - `SKIPPED_DEPENDENCY`: never attempted because a hard prerequisite is terminal non-`DONE`; never create a feature branch.
 
 All four unchecked means pending. At most one may be checked. `CI_PENDING` is transient and does not receive a checkbox.
+
+All four persistent outcomes are terminal within the active session. The coordinator MUST NOT reopen or resume a terminal task because a later probe or Autopilot continuation changes its opinion. Only a new direct human instruction in a new or restarted session may authorize re-enablement; an Autopilot continuation is not human authorization.
+
+Reaching a session-fatal blocker is successful completion of the coordinator objective even if pending workload remains. The coordinator finalizes the report, calls `task_complete`, and stops.
+
+## Session startup capabilities
+
+Before recipe work, the coordinator MUST perform the real isolated npm capability probe defined in `PROTOCOL.md`: actual `npm init -y`, actual pinned `npm install --ignore-scripts --no-save is-number@7.0.0`, the Node.js assertion, exact temporary-directory cleanup, and identical clean repository status before and after. A dry run is forbidden.
+
+The coordinator MUST also verify the effective repository-local `commit.gpgSign=false`. Every autonomous commit-producing command uses `--no-gpg-sign`, including ordinary commits, no-fast-forward merges, and reverts. A denied install, network, filesystem, cleanup, GitHub, `task`, MCP, signing, or `task_complete` prerequisite is reported exactly and stops the session.
 
 ## Mandatory CI-parity preflight before every task
 
@@ -99,7 +110,7 @@ For each task:
 6. Commit the task changes on the feature branch. Prefer small, comprehensible commits; do not squash or rewrite history merely for cosmetic reasons.
 7. Run the complete CI-parity gate set again immediately before integration.
 8. Mark the task `DONE` in the feature branch only when implementation and all local gates pass. The runner MUST treat this state as `CI_PENDING` until post-merge CI succeeds.
-9. Switch to `develop`, verify it has not moved unexpectedly, and merge the feature branch using an explicit no-fast-forward merge commit.
+9. Switch to `develop`, verify it has not moved unexpectedly, and merge the feature branch using an explicit `--no-ff --no-gpg-sign` merge commit.
 10. Push `develop` and wait for the GitHub Actions workflow associated with that merge commit.
 
 If post-merge CI succeeds:
@@ -111,7 +122,7 @@ If post-merge CI succeeds:
 If post-merge CI fails:
 
 - stop the current integration progression immediately;
-- revert the merge commit on `develop` with an ordinary revert commit; never reset or rewrite shared history;
+- revert the merge commit on `develop` with an ordinary `--no-gpg-sign` revert commit; never reset or rewrite shared history;
 - push the revert and verify the integration branch returns to a green state;
 - update the task on `develop` to `REVERTED`, recording the failed/unverified workflow, merge/revert SHAs, cause category and reason;
 - push the metadata-only status commit and wait for CI on that exact commit;
@@ -142,7 +153,7 @@ The agent may use `gh` or GitHub read APIs to identify and wait for the workflow
 
 ## Browser and frontend validation
 
-The repository exposes the `chrome-devtools` MCP server to GitHub Copilot Agent in VS Code through `.vscode/mcp.json`.
+The repository exposes the `chrome-devtools` MCP server to GitHub Copilot CLI through `.github/mcp.json`. The separate VS Code MCP configuration is retained only for ordinary interactive VS Code use and is not the autonomous-session control plane.
 
 For frontend or browser-observable work:
 

@@ -1,9 +1,9 @@
 ---
 name: Development Task Worker
 description: Implement and validate exactly one autonomous task on its prepared feature branch.
+tools: ["*"]
 user-invocable: false
-disable-model-invocation: false
-target: vscode
+disable-model-invocation: true
 ---
 
 # Development Task Worker
@@ -19,13 +19,15 @@ Read `AGENTS.md`, `docs/autonomous-development/PROTOCOL.md`, `docs/autonomous-de
 3. Run all task-specific validation and declared browser validation through `http://localhost:8888` when required.
 4. Run the complete CI-parity suite immediately before integration.
 5. Update the task's Execution notes with concrete commands, results, browser evidence, decisions, and commits.
-6. Check only `DONE` if every acceptance criterion and local gate succeeds. Ensure `BLOCKED`, `REVERTED`, and `SKIPPED_DEPENDENCY` are unchecked. Commit and push coherent feature-branch changes, and leave the working tree clean.
+6. Check only `DONE` if every acceptance criterion and local gate succeeds. Ensure `BLOCKED`, `REVERTED`, and `SKIPPED_DEPENDENCY` are unchecked. Commit every coherent feature-branch change with `git commit --no-gpg-sign`, push it, and leave the working tree clean.
 
 Do not select another recipe. Do not switch to, merge into, push, or modify `develop` or `master`. Do not delete branches, poll post-merge CI, revert a merge, deploy, publish, rebase, force-push, or rewrite history. Those actions belong to the coordinator.
 
 ## Blocking
 
-Return `BLOCKED` rather than guessing when a recipe stop condition applies, a required decision or authority is absent, a mandatory capability is unavailable, or validation cannot be restored within configured limits. Check only `BLOCKED`, uncheck `DONE`, `REVERTED`, and `SKIPPED_DEPENDENCY`, record the exact diagnostic in Execution notes, commit/push the diagnostic and any coherent partial work so the attempt is preserved, and leave the feature branch clean.
+Return `BLOCKED` rather than guessing when a recipe stop condition applies, a required decision or authority is absent, a mandatory capability is unavailable, or validation cannot be restored within configured limits. Check only `BLOCKED`, uncheck `DONE`, `REVERTED`, and `SKIPPED_DEPENDENCY`, record the exact diagnostic in Execution notes, commit with `--no-gpg-sign` and push the diagnostic and any coherent partial work so the attempt is preserved, and leave the feature branch clean.
+
+If an install, network, filesystem, cleanup, GitHub, MCP, or signing prerequisite is denied despite the parent session's launch permissions, stop and return the exact denial. Do not substitute a dry run or weaker validation.
 
 The worker never returns or writes `REVERTED` or `SKIPPED_DEPENDENCY`: those outcomes can only be determined by the coordinator after integration CI or dependency resolution.
 

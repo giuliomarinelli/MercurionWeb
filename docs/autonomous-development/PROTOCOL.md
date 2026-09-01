@@ -2,7 +2,7 @@
 
 This document defines the execution semantics for configurable autonomous Development Sessions.
 
-A **Development Session** is a bounded period in which a session coordinator executes an ordered workload of task files by invoking a fresh, stateless coding worker for each task. In VS Code, the committed `Development Session Coordinator` custom agent is the runner and `Development Task Worker` is the per-task worker.
+A **Development Session** is a bounded period in which a session coordinator executes an ordered workload of task files by invoking a fresh, stateless coding worker for each task. GitHub Copilot CLI is the only approved host: the committed `Development Session Coordinator` custom agent is the runner and `Development Task Worker` is the per-task worker. The former VS Code Autopilot/advanced-mode route is unsupported for this workflow.
 
 ## Core concepts
 
@@ -23,28 +23,49 @@ A **Development Session** is a bounded period in which a session coordinator exe
 
 ## Sources of truth
 
-Session timing, workload selection, model/context/reasoning, budgets, runtime configuration and lifecycle policy are defined by the active YAML session configuration.
+Session timing, workload selection, host/context behavior, budgets, runtime configuration and lifecycle policy are defined by the active YAML session configuration. Model and reasoning are intentionally unpinned there and inherit from the parent CLI session.
 
 Series identity, Trello binding, task-range binding, repository/baseline context and optional baseline metadata are defined by each series document's YAML frontmatter.
 
-VS Code workspace-level Copilot configuration is committed in `.vscode/settings.json`; MCP servers used by the VS Code agent are committed in `.vscode/mcp.json`.
+GitHub Copilot CLI agent profiles are committed in `.github/agents/`, and MCP servers used by autonomous sessions are committed in `.github/mcp.json`. VS Code workspace configuration remains separate and applies only to ordinary interactive VS Code use.
 
 The canonical local runtime topology is defined by `docs/autonomous-development/RUNTIME.md`.
 
 The coordinator owns deterministic orchestration: task discovery/order, YAML parsing, time/deadlines, branch lifecycle, merge/revert sequencing, exact-SHA CI waiting, runtime process lifecycle and reporting. The fresh task worker owns preflight, implementation and task-specific validation inside the currently assigned feature branch.
 
-## VS Code coordinator/worker topology
+## GitHub Copilot CLI coordinator/worker topology
 
 The repository provides two workspace custom agents under `.github/agents/`:
 
 - `Development Session Coordinator` remains alive for the complete configured session and is the only owner of task selection, shared-branch Git writes, deadlines, CI observation and final reporting.
-- `Development Task Worker` is invoked once through `agent/runSubagent` for exactly one task. Each invocation is stateless and therefore provides the required fresh task context.
+- `Development Task Worker` is invoked through exactly one synchronous CLI `task` tool call for exactly one task. Each invocation is fresh and stateless and therefore provides the required task context boundary.
 
 The coordinator creates and pushes the feature branch before invoking the worker. The worker may preflight, implement, validate, commit and push only that feature branch. It never selects a later task, changes `develop`, merges, reverts, deletes a branch or finalizes the session.
 
-Tasks are strictly serialized. The coordinator MUST NOT run multiple implementation workers concurrently against the same checkout. It MUST independently verify the worker result and Git state before any integration write.
+Tasks are strictly serialized. The coordinator MUST NOT run implementation workers concurrently, use background worker mode, or invoke another worker before the synchronous result returns. It MUST independently verify the worker result and Git state before any integration write.
 
-The active configuration is a repository contract read by the coordinator; it is not a native VS Code scheduler. Wall-clock enforcement therefore remains an explicit coordinator duty. The coordinator MUST use an absolute timestamp plus the configured IANA timezone and MUST NOT rely on a long-running shell `sleep` to detect the deadline.
+The active configuration is a repository contract read by the coordinator; CLI Autopilot does not replace deterministic orchestration. Wall-clock enforcement therefore remains an explicit coordinator duty. The coordinator MUST use an absolute timestamp plus the configured IANA timezone and MUST NOT rely on a long-running shell `sleep` to detect the deadline.
+
+The custom-agent profiles allow all tools and do not pin a model or reasoning level. They inherit GPT-5.6 Sol and High reasoning from the manually launched parent CLI session. Both profiles disable inferred invocation; the coordinator is manually invocable, while the worker is not user-invocable and can only be called explicitly through `task`.
+
+GitHub Copilot CLI uses its native automatic context compaction and session checkpoint behavior. Autonomous sessions do not depend on VS Code Responses context-management settings.
+
+## Startup capability and signing invariant
+
+Before recipe implementation or task-branch creation, the coordinator:
+
+1. captures a clean `git status --short`;
+2. creates one uniquely named directory under the operating-system temporary directory;
+3. runs actual `npm init -y` in that directory;
+4. runs actual `npm install --ignore-scripts --no-save is-number@7.0.0`;
+5. executes Node.js and asserts `require("is-number")(42) === true`;
+6. returns to the repository and deletes exactly that temporary directory;
+7. proves `git status --short` is still clean and byte-for-byte identical to the initial result;
+8. verifies the effective repository-local value of `commit.gpgSign` is exactly `false`.
+
+A dry run, skipped install, cache-only substitute, broad temporary-directory cleanup, or leftover probe directory is a startup failure. Every autonomous commit-producing command also passes `--no-gpg-sign`: ordinary commits use `git commit --no-gpg-sign`, integrations use `git merge --no-ff --no-gpg-sign`, and rollback commits use `git revert --no-gpg-sign`.
+
+If any install, network, filesystem, cleanup, GitHub, subagent (`task`), MCP, signing, or `task_complete` prerequisite is denied or asks for additional approval despite the launch permissions, the coordinator stops and reports the exact denial. It never substitutes a weaker check.
 
 ## Green-baseline session invariant
 
@@ -123,7 +144,7 @@ Rules:
 
 `SKIPPED_DEPENDENCY` means the task was never attempted because at least one resolved hard prerequisite is terminal as `BLOCKED`, `REVERTED`, or `SKIPPED_DEPENDENCY` rather than `DONE`. It creates no feature branch and invokes no worker. A merely `PENDING`/`CI_PENDING` prerequisite defers selection and does not cause a skip.
 
-Terminal non-`DONE` states persist until a human explicitly re-enables the task. Re-enabling a dependency does not silently clear transitive `SKIPPED_DEPENDENCY` states; those tasks must be reviewed/reset deliberately.
+All four persistent states are terminal within the active session. The coordinator MUST NOT reopen, resume, retry, or change a `DONE`, `BLOCKED`, `REVERTED`, or `SKIPPED_DEPENDENCY` task because a later probe, tool result, or Autopilot continuation changes its opinion. Only a new direct human instruction in a new or restarted session may authorize re-enablement; an Autopilot continuation is not human authorization. Re-enabling a dependency does not silently clear transitive `SKIPPED_DEPENDENCY` states; those tasks must be reviewed/reset deliberately.
 
 ### Dependency semantics
 
@@ -292,7 +313,7 @@ After local completion:
 1. push the completed feature branch;
 2. switch to `develop`;
 3. verify `develop` has not changed unexpectedly since the branch was created; if it has, reconcile safely without rebase/history rewriting and rerun all affected gates before integration, or block if unsafe;
-4. merge `feature/<Source>` into `develop` using `--no-ff` so one explicit merge commit identifies the task integration boundary;
+4. merge `feature/<Source>` into `develop` using `--no-ff --no-gpg-sign` so one explicit merge commit identifies the task integration boundary;
 5. push `develop`;
 6. identify the GitHub Actions run for the exact merge SHA;
 7. wait until the workflow reaches a terminal result.
@@ -318,7 +339,7 @@ If CI for the merge commit fails:
 
 1. stop the current integration progression immediately;
 2. preserve `feature/<Source>` locally and remotely at its last pushed feature SHA;
-3. on `develop`, create an ordinary revert of the merge commit (mainline parent 1); never reset or rewrite shared history;
+3. on `develop`, create an ordinary `--no-gpg-sign` revert of the merge commit (mainline parent 1); never reset or rewrite shared history;
 4. push the revert commit;
 5. verify the revert commit's tree matches the pre-merge `develop` tree, then wait for CI on the exact revert SHA and require the integration branch to return to green;
 6. ensure the task's `DONE` state is no longer present on `develop` after the revert;
@@ -379,7 +400,7 @@ The runner/agent may use read-only `gh` commands/API calls to locate and wait fo
 
 ## Browser capability and local runtime
 
-GitHub Copilot Agent in VS Code loads Chrome DevTools MCP from `.vscode/mcp.json`. Browser/runtime validation uses only the canonical same-origin development edge:
+GitHub Copilot CLI loads Chrome DevTools MCP from `.github/mcp.json`. Browser/runtime validation uses only the canonical same-origin development edge:
 
 ```text
 http://localhost:8888
@@ -438,3 +459,5 @@ At finalization the runner records at least:
 Reports live under `docs/autonomous-development/reports/` unless overridden by configuration. `0000-session-report-template.md` is the canonical non-executable report skeleton.
 
 The coordinator writes the report from a clean `develop` after the active task lifecycle is terminal. It commits and pushes the report as session metadata and, when a workflow exists, waits for CI on that exact report commit before declaring final repository health. A report-CI failure is a session-finalization blocker; it does not retroactively change successfully completed task states.
+
+Reaching a session-fatal blocker is successful completion of the coordinator objective even when pending workload remains. After restoring the safest possible repository state, the coordinator finalizes the report, calls `task_complete`, and stops; it never reopens a terminal task or starts pending work to avoid reporting the blocker.
