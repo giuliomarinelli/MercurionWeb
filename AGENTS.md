@@ -120,7 +120,7 @@ The agent may use `gh` or GitHub read APIs to identify and wait for the workflow
 
 ## Browser and frontend validation
 
-The repository exposes the `chrome-devtools` MCP server to Copilot CLI through `.github/mcp.json`.
+The repository exposes the `chrome-devtools` MCP server to GitHub Copilot Agent in VS Code through `.vscode/mcp.json`.
 
 For frontend or browser-observable work:
 
