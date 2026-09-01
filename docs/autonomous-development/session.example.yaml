@@ -1,0 +1,54 @@
+# Example configuration for one autonomous Development Session.
+# Copy/override this file in the runner configuration rather than editing it
+# for every run once the implementation is automated.
+
+session:
+  name: development-session
+  timezone: Europe/Rome
+
+  # The runner may start immediately or at a scheduled time.
+  start: "09:00"
+
+  # Soft deadline: no new task starts at or after this time.
+  # A task already running may finish according to `deadline_policy`.
+  end: "13:00"
+
+  # Absolute cutoff after the soft deadline. Optional but recommended for
+  # unattended runs so that "finish the current task" cannot become infinite.
+  hard_stop: "14:00"
+
+repository:
+  branch: develop
+
+agent:
+  provider: github-copilot
+  model: GPT-5.6 Sol
+  reasoning: high
+
+  # These values are runner guardrails, not instructions the model should
+  # self-enforce by reading the clock or estimating cost.
+  max_autopilot_continues_per_task: 20
+  max_ai_credits_per_task: 100
+
+workload:
+  task_directory: docs/autonomous-development/tasks
+  task_pattern: "[0-9][0-9][0-9][0-9]-*.md"
+  order: filename
+
+  # When omitted/empty, discover pending tasks from the directory in filename
+  # order. The runner must always exclude 0000-task-example.md.
+  tasks: []
+
+policy:
+  fresh_agent_session_per_task: true
+  finish_current_task_after_deadline: true
+  start_new_tasks_after_deadline: false
+  stop_when_workload_exhausted: true
+
+  # A BLOCKED task does not stop independent later tasks by default.
+  continue_after_blocked_task: true
+
+on_finish:
+  validate_repository: true
+  generate_report: true
+  report_directory: docs/autonomous-development/reports
