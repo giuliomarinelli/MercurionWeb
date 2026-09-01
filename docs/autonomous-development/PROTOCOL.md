@@ -27,6 +27,8 @@ Session timing, workload selection, model/context/reasoning, budgets, runtime co
 
 Series identity, Trello binding, task-range binding, repository/baseline context and optional baseline metadata are defined by each series document's YAML frontmatter.
 
+VS Code workspace-level Copilot configuration is committed in `.vscode/settings.json`; MCP servers used by the VS Code agent are committed in `.vscode/mcp.json`.
+
 The canonical local runtime topology is defined by `docs/autonomous-development/RUNTIME.md`.
 
 The runner owns deterministic orchestration: task discovery/order, YAML parsing, time/deadlines, branch lifecycle, preflight execution, merge/revert sequencing, CI waiting, runtime process lifecycle and reporting. The coding agent owns implementation and task-specific validation inside the currently assigned feature branch.
@@ -291,7 +293,7 @@ The runner/agent may use read-only `gh` commands/API calls to locate and wait fo
 
 ## Browser capability and local runtime
 
-GitHub Copilot CLI loads Chrome DevTools MCP from `.github/mcp.json`. Browser/runtime validation uses only the canonical same-origin development edge:
+GitHub Copilot Agent in VS Code loads Chrome DevTools MCP from `.vscode/mcp.json`. Browser/runtime validation uses only the canonical same-origin development edge:
 
 ```text
 http://localhost:8888
