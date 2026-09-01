@@ -28,8 +28,22 @@ repository:
 agent:
   provider: github-copilot
   model: GPT-5.6 Sol
-  context: default
   reasoning: high
+
+  # Context policy for autonomous runs. This block describes REQUIRED runtime
+  # semantics; it is not pretending that these keys are native Copilot CLI
+  # settings. The runner must verify that the active harness can realize them
+  # before starting work, and fail closed otherwise.
+  context:
+    tier: default
+    max_prompt_tokens: 272000
+    management:
+      required: true
+      provider: openai-responses
+      strategy: server-side-compaction
+      compact_threshold: 244800 # 90% of the 272K prompt window
+      allow_copilot_summary_compaction: false
+      failure_policy: abort-session
 
   # Chrome DevTools MCP is project-level. Built-in GitHub MCP is not required
   # for the task lifecycle; Git/gh CLI can perform the explicitly allowed branch
