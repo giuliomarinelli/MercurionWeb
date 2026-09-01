@@ -4,7 +4,8 @@
     "preToolUse": [
       {
         "type": "command",
-        "command": "node ./scripts/enforce-git-readonly.mjs",
+        "bash": "node ./scripts/enforce-git-readonly.mjs",
+        "powershell": "node ./scripts/enforce-git-readonly.mjs",
         "cwd": ".github/hooks",
         "timeoutSec": 10
       }
