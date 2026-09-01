@@ -5,7 +5,11 @@
 
 ## Objective
 
-Eliminate manually duplicated REST payload definitions between Angular and Nest so every public REST request/response shape is derived from one canonical, versioned contract source.
+Eliminate manually duplicated REST payload definitions between Angular and Nest so every public REST request/response shape is derived from one canonical, versioned contract source, when possible (Nest uses `class-validator` with specific decorators and DTOs are defined as *class*: evaluate if it's safely possible to dedupe - Angular doesn't use and doesn't know `class-validator`).
+Create a repo root monorepo package.json with MercurionWebNg and MercurionWebNode as workspaces. 
+Create .npmrc with rules: save-exact=true, legacy-peer-deps=true.
+Create a package which exports the common dependencies.
+Refactor the package.json of the 2 projects to adapt the architecture to the monorepo structure, delete lockefiles and node_modules and run `npm install` from the root of the repo. 
 
 Source: `SYS-001` in Series `0001`.
 

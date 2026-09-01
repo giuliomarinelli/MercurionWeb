@@ -5,7 +5,7 @@
 
 ## Objective
 
-Make the committed `MercurionWebNode/src/schema.graphql` a verified artifact: CI must regenerate the Nest code-first schema and fail whenever the generated schema differs from the committed file.
+Make the committed `MercurionWebNode/src/schema.graphql` a verified artifact: CI must regenerate the Nest code-first schema and fail whenever the generated schema differs from the committed file. Create .github/workflows/ci.yml with Continuous Integration Pipeline.
 
 Source: `SYS-008` in Series `0001`.
 
