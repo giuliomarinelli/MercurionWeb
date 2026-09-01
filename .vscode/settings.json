@@ -1,5 +1,4 @@
 {
-  "github.copilot.chat.responsesApiContextManagement.enabled": true,
-  "chat.autopilot.enabled": true,
+  "github.copilot.chat.responsesApiContextManagement.enabled": true,  
   "chat.autopilot.advanced.enabled": true
 }
