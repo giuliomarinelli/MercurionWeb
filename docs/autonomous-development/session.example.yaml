@@ -25,10 +25,26 @@ agent:
   model: GPT-5.6 Sol
   reasoning: high
 
+  # Copilot prompt mode cannot display a first-use workspace-MCP trust prompt.
+  # The runner should pass this variable for unattended sessions after the
+  # repository/configuration has been reviewed and intentionally trusted.
+  environment:
+    GITHUB_COPILOT_PROMPT_MODE_WORKSPACE_MCP: "true"
+
   # These values are runner guardrails, not instructions the model should
   # self-enforce by reading the clock or estimating cost.
   max_autopilot_continues_per_task: 20
   max_ai_credits_per_task: 100
+
+capabilities:
+  browser_validation:
+    enabled: true
+    mcp_server: chrome-devtools
+
+    # `.github/mcp.json` defines the actual MCP process. This flag means a task
+    # that explicitly requires browser validation must BLOCK rather than claim
+    # completion if the MCP server cannot be used.
+    required_when_declared_by_task: true
 
 workload:
   task_directory: docs/autonomous-development/task
@@ -37,14 +53,15 @@ workload:
   series_pattern: "[0-9][0-9][0-9][0-9]-*.md"
   order: filename
 
-  # Optional planning scope. When set and `tasks` is empty, the runner reads
-  # this series' inclusive `task_range` and discovers pending task recipes whose
-  # numeric prefixes fall inside it. The 0000 template is always excluded.
+  # Optional planning scope. When set and `tasks` is empty, the runner parses
+  # the selected series YAML frontmatter and uses the inclusive
+  # `task_range.start` / `task_range.end` values to discover pending recipes.
+  # The 0000 template is always excluded.
   series_file: null
 
   # Optional explicit workload. When non-empty, execute exactly these task
   # files in this order. If `series_file` is also set, every listed task must
-  # fall inside that series' declared `task_range` or configuration validation
+  # fall inside that series' declared task range or configuration validation
   # fails before the session starts.
   tasks: []
 
