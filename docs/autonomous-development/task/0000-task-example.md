@@ -128,6 +128,46 @@ Add targeted/manual checks when required:
 
 Do not include commands that are not valid for the affected package/project.
 
+## Browser validation
+
+For backend-only tasks or tasks whose outcome is not browser-observable, write:
+
+```text
+Not applicable.
+```
+
+For frontend/browser-facing tasks, describe the browser evidence required before
+`DONE` may be checked. The agent should use the repository's `chrome-devtools`
+MCP server for this validation.
+
+Specify only what is relevant, for example:
+
+- local application URL or route to open;
+- prerequisite command/service required to make the application reachable;
+- viewport(s) or responsive states that must be checked;
+- user flow/interactions to perform;
+- expected visible/runtime result;
+- console errors that must be absent;
+- network request/response behaviour that must be verified;
+- accessibility/DOM state that must be verified;
+- whether a screenshot or performance trace is useful evidence.
+
+Example:
+
+```text
+Start the Angular development server and open http://localhost:4200/settings.
+Using Chrome DevTools MCP:
+
+1. verify the settings page renders without uncaught console errors;
+2. exercise the changed interaction at desktop and mobile viewport widths;
+3. verify the affected HTTP request returns the expected status/shape;
+4. verify keyboard focus remains visible and follows the specified interaction.
+```
+
+Do not require browser validation merely because a task happens to touch a
+frontend file. Require it when runtime/browser evidence materially establishes
+an acceptance criterion.
+
 ## Stop conditions
 
 Mark the task `BLOCKED` instead of guessing if any of these conditions occurs:
@@ -135,6 +175,9 @@ Mark the task `BLOCKED` instead of guessing if any of these conditions occurs:
 - a required architectural decision is unspecified;
 - a required product/business behaviour is ambiguous;
 - credentials or external infrastructure required by the task are unavailable;
+- required browser validation cannot be performed because the local application,
+  Chrome DevTools MCP, required test data, or another declared prerequisite is
+  unavailable;
 - safe completion requires expanding the scope materially beyond this document;
 - validation reveals an unrelated baseline failure that makes completion
   impossible to establish safely;
@@ -175,6 +218,10 @@ _Not started._
 ### Validation performed
 
 _Not started._
+
+### Browser validation performed
+
+_Not applicable / not started._
 
 ### Commit
 
