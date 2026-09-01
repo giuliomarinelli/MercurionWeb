@@ -2,7 +2,7 @@
 
 - [ ] DONE
 - [ ] BLOCKED
-- [ ] REVERTED
+- [x] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
 ## Objective
@@ -252,23 +252,35 @@ Prefer a non-breaking incremental migration that leaves the covered public REST 
 
 ### Preflight / Phase 0
 
-_Not started._
+Completed locally on `feature/SYS-001` before Phase 1. The worker established
+the required Angular and Nest lint, typecheck, test, E2E, build, contract, and
+bootstrap workflow gates. The coordinator independently reran
+`npm run bootstrap:check` successfully before integration.
 
 ### Preflight remediation
 
-_None._
+Commit `e9290446dc12aadea7153d2875b1ba7d30083549` established the green local
+bootstrap, including deterministic non-mutating checks and the initial
+`.github/workflows/ci.yml`.
 
 ### Phase 1 summary
 
-_Not started._
+Commit `b576281dc4acaf84a1186522b419a10518ca9eea` added the root workspace and
+versioned framework-neutral REST contract package, migrated Angular consumers,
+and retained checked Nest boundary adapters. The final feature branch is
+preserved locally and remotely at that SHA.
 
 ### Task-specific validation performed
 
-_Not started._
+Root clean install and contract checks passed locally. Contract drift checking
+passed twice, Angular had no Nest or validation-framework dependency, and the
+workflow YAML parsed successfully.
 
 ### Full pre-merge CI-parity validation
 
-_Not started._
+The worker and coordinator both completed the full local bootstrap gate. The
+coordinator run passed Angular lint/typecheck, 157 tests and production build,
+plus Nest lint/typecheck, 115 unit suites, one E2E suite and build.
 
 ### Browser validation performed
 
@@ -276,16 +288,35 @@ _Not applicable._
 
 ### Commits
 
-_Not recorded._
+- `e9290446dc12aadea7153d2875b1ba7d30083549` - Phase 0 bootstrap.
+- `b576281dc4acaf84a1186522b419a10518ca9eea` - SYS-001 implementation and
+  local completion evidence.
 
 ### Merge / CI
 
-_Not started._
+The coordinator merged with `--no-ff --no-gpg-sign` as
+`42e12ce8c18bbdefd9334ea4aa62342c84051eb8`. Exact-SHA workflow run
+`33571236825` failed:
+https://github.com/giuliomarinelli/MercurionWeb/actions/runs/33571236825
+
+Cause category: confirmed repository-controlled regression. On the Linux
+runner, 30 Nest suites could not load
+`@css-inline/css-inline-linux-x64-gnu` from the root lockfile generated and
+validated on Windows.
 
 ### Rollback
 
-_Not applicable._
+The merge was reverted with `--no-gpg-sign` as
+`f1ab67e36b2d8d07172a5cb14aca7cea60de6d30`. Its tree
+`a7af14ef327ef574f108db4ae0cc4768005b546e` exactly matches the pre-merge
+`develop` tree. Reverting task 0001 also removed the first bootstrap workflow,
+so no exact-SHA recovery run exists for the revert commit. The feature branch
+remains frozen at `b576281dc4acaf84a1186522b419a10518ca9eea`.
 
 ### Blocker / human decision required
 
-_None._
+Session-fatal initial-baseline incident: task 0001 could not establish a
+cross-platform green CI baseline, and the mandatory recovery SHA cannot be
+observed green because the reverted baseline contains no workflow. Review the
+frozen branch and repair the root lockfile's Linux optional native dependency
+in a new human-authorized session.
