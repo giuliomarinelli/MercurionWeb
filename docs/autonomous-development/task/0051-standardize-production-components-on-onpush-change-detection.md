@@ -5,7 +5,7 @@
 
 ## Objective
 
-Make every Angular production component use `ChangeDetectionStrategy.OnPush` or the repository's explicitly equivalent signal-compatible strategy, eliminating the current mixed change-detection model.
+Make every Angular production component use `ChangeDetectionStrategy.OnPush` or the repository's explicitly equivalent signal-compatible strategy, eliminating the current mixed change-detection model. Ensure, for components which used Deafault strategy, that the state management doesn't lose any case of reactivity. If necessary you can use also the api ChangeDetectorRef.markForCheck() after the dependency injection of the service.
 
 Source: `FE-029` in Series `0001`.
 
