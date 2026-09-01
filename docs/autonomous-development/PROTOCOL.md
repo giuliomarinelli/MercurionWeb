@@ -18,9 +18,12 @@ A **Development Session** is a bounded period in which an external runner execut
 
 Session timing, workload selection, model, branch, budgets, and finish policy are defined by the active YAML session configuration.
 
+Series identity, Trello binding, task-range binding, repository/baseline context, and optional baseline metadata are defined by each series document's YAML frontmatter.
+
 The runner, not the language model, owns:
 
 - task discovery and ordering;
+- parsing and validating series YAML frontmatter;
 - series/task-range resolution when a series is selected;
 - wall-clock time;
 - soft/hard deadline enforcement;
@@ -43,25 +46,39 @@ Series documents live in `docs/autonomous-development/series/` and use globally 
 
 `0000-series-example.md` is the canonical template and MUST NEVER be treated as a real series.
 
-A real series declares these metadata fields near its header:
+Every real series MUST start with valid YAML frontmatter using this shape:
 
-```md
-**series_number:** `0001`
-**card_id:** `$oid(...)`
-**task_range:** `[0001 - 0220]`
+```yaml
+---
+series_number: "0001"
+card_id: "$oid(...)"
+task_range:
+  start: "0001"
+  end: "0220"
+repository: "owner/repository"
+branch: "develop"
+baseline:
+  commit: "<git-sha>"
+  label: null
+  date: null
+---
 ```
 
-The `task_range` is inclusive at both ends and is the only deterministic binding between the series domain and the task domain.
+Four-digit identifiers MUST be represented as quoted strings so leading zeroes survive YAML parsing.
+
+The `task_range` is inclusive at both ends and is the only deterministic binding between the series domain and the task domain. The frontmatter is the machine-readable source of truth; the runner must not depend on equivalent prose metadata.
 
 Series rules for v1:
 
 1. Series documents are planning/context artifacts, not executable recipes.
 2. `card_id` binds the series to the corresponding Trello card; it does not determine task execution.
-3. Task numbers are global and do not restart for each series.
-4. Series task ranges should be contiguous and non-overlapping.
-5. A series may contain local planning identifiers such as `SYS-001`, `FE-001`, or similar; those identifiers do not replace global task numbers.
-6. Task files do not need to contain a backlink to the owning series. Ownership is declared from the series side through `task_range`.
-7. Filenames, `card_id`, prose, or local series identifiers must not be used by the runner to infer series membership when a numeric range is available.
+3. `card_id` may be YAML `null` when no Trello binding exists.
+4. Task numbers are global and do not restart for each series.
+5. Series task ranges should be contiguous and non-overlapping.
+6. `task_range.start` and `task_range.end` must both be valid four-digit identifiers and `start <= end`.
+7. A series may contain local planning identifiers such as `SYS-001`, `FE-001`, or similar; those identifiers do not replace global task numbers.
+8. Task files do not need to contain a backlink to the owning series. Ownership is declared from the series side through `task_range`.
+9. Filenames, `card_id`, prose, or local series identifiers must not be used by the runner to infer series membership when the numeric range is available.
 
 ## Execution domain: tasks
 
@@ -89,10 +106,10 @@ Rules:
 The runner may resolve a workload in three ways:
 
 1. **Explicit task list**: execute exactly the configured task filenames in the configured order.
-2. **Series-selected workload**: read the selected series' inclusive `task_range`, discover task files whose four-digit prefixes fall inside that range, and execute pending tasks in filename order unless an explicit order is configured.
+2. **Series-selected workload**: parse the selected series' YAML `task_range.start` and `task_range.end`, discover task files whose four-digit prefixes fall inside that inclusive range, and execute pending tasks in filename order unless an explicit order is configured.
 3. **Repository task queue**: when neither an explicit list nor a series is selected, discover all pending executable tasks in the task directory in filename order.
 
-When both a series and an explicit task list are configured, every explicit task MUST fall inside the selected series' `task_range`; otherwise configuration validation must fail before starting the session.
+When both a series and an explicit task list are configured, every explicit task MUST fall inside the selected series' task range; otherwise configuration validation must fail before starting the session.
 
 The runner must never infer a missing task recipe from a row in a series document during execution. Materializing task recipes from a series is a separate authoring workflow.
 
@@ -105,7 +122,7 @@ Before starting work, the runner must verify:
 - the configured repository branch is checked out;
 - the working tree is in an acceptable state according to runner policy;
 - the session configuration is valid;
-- a selected series exists and its metadata/range are valid when applicable;
+- a selected series exists and its YAML frontmatter/range are valid when applicable;
 - at least one pending task exists in the resolved workload.
 
 If there are no pending tasks, the session ends immediately and produces a report.
