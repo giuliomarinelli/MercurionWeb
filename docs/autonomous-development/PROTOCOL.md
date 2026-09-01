@@ -103,10 +103,27 @@ Rules:
 1. `0000-task-example.md` is the canonical template and MUST NEVER be executed.
 2. Executable tasks start at `0001` and task numbers are globally unique.
 3. A task contains exactly one `Source:` identifier such as `SYS-001` or `FE-001`; the runner validates it before branch creation.
-4. `- [x] DONE` means successfully integrated and CI-approved.
-5. `- [x] BLOCKED` means the task must be skipped until explicitly re-enabled by a human.
-6. Both unchecked means pending.
+4. Every task contains exactly one checkbox for each persistent terminal state: `DONE`, `BLOCKED`, `REVERTED`, and `SKIPPED_DEPENDENCY`.
+5. At most one terminal-state checkbox may be checked. All four unchecked means `PENDING`.
+6. `CI_PENDING` is transient coordinator state and is never represented by checking an additional box.
 7. The runner must never synthesize a missing task recipe from the series during execution.
+
+### Task outcome semantics
+
+| State | Attempted | Merged | Present on `develop` | Feature branch |
+|---|---:|---:|---:|---|
+| `DONE` | yes | yes | yes, exact merge-SHA CI succeeded | deleted locally/remotely |
+| `BLOCKED` | yes | no | no implementation; metadata only | preserved and frozen |
+| `REVERTED` | yes | yes, then reverted | no implementation; rollback/status metadata only | preserved and frozen |
+| `SKIPPED_DEPENDENCY` | no | no | metadata only | never created |
+
+`BLOCKED` is reserved for a task attempt that cannot reach `READY_FOR_INTEGRATION`: preflight or task validation cannot be made green, a stop condition applies, or required authority/capability/decision is missing.
+
+`REVERTED` means the task reached local success and was merged, but the exact merge-SHA workflow did not succeed or could not be verified, so the merge was safely rolled back. It distinguishes an integrated-then-withdrawn change from a pre-merge task failure. The report records whether the cause was a confirmed regression, infrastructure failure, cancellation/timeout, or an unverified result.
+
+`SKIPPED_DEPENDENCY` means the task was never attempted because at least one resolved hard prerequisite is terminal as `BLOCKED`, `REVERTED`, or `SKIPPED_DEPENDENCY` rather than `DONE`. It creates no feature branch and invokes no worker. A merely `PENDING`/`CI_PENDING` prerequisite defers selection and does not cause a skip.
+
+Terminal non-`DONE` states persist until a human explicitly re-enables the task. Re-enabling a dependency does not silently clear transitive `SKIPPED_DEPENDENCY` states; those tasks must be reviewed/reset deliberately.
 
 ### Dependency semantics
 
@@ -119,7 +136,7 @@ The `Dependencies` section contains both executable prerequisites and, in older 
 - A range with qualifiers such as `as applicable` requires only the members that actually own code used by the task. The coordinator records the resolved set in Execution notes.
 - A task never depends on itself. A forward reference that describes future registration/refinement is advisory unless the recipe explicitly makes the later task a prerequisite; an explicit forward prerequisite makes the current task unrunnable and must be reported as a recipe defect rather than guessed around.
 
-Hard prerequisites must be `DONE`. A `BLOCKED` hard prerequisite makes the dependent task non-runnable, but it does not prevent later independent tasks from being considered when session policy permits. New or edited recipes SHOULD use exact current filenames and explicitly label non-blocking links as advisory.
+Hard prerequisites must be `DONE`. A hard prerequisite in any terminal non-`DONE` state makes the dependent task `SKIPPED_DEPENDENCY`, but it does not prevent later independent tasks from being considered when session policy permits. New or edited recipes SHOULD use exact current filenames and explicitly label non-blocking links as advisory.
 
 ## Branch isolation: one task, one feature branch
 
@@ -295,7 +312,7 @@ If the exact merge commit's CI succeeds:
 
 A missing remote branch is already clean and is not an error. Other branch-deletion failures are retried within configured limits and then stop the session for manual cleanup without changing the already successful task to `BLOCKED`.
 
-## Post-merge CI failure
+## Post-merge CI non-success and REVERTED
 
 If CI for the merge commit fails:
 
@@ -305,16 +322,16 @@ If CI for the merge commit fails:
 4. push the revert commit;
 5. verify the revert commit's tree matches the pre-merge `develop` tree, then wait for CI on the exact revert SHA and require the integration branch to return to green;
 6. ensure the task's `DONE` state is no longer present on `develop` after the revert;
-7. set `BLOCKED` on the task in `develop` and record the failed merge SHA, CI run/result and diagnostic summary;
+7. set only `REVERTED` on the task in `develop` and record the failed/unverified merge SHA, CI run/result, cause category and diagnostic summary;
 8. commit/push that task-status metadata without reintroducing implementation changes;
 9. wait for CI on the exact metadata commit and require it to be green;
-10. keep the failed feature branch for diagnosis or a later human-approved retry, frozen at the preserved SHA; do not check it out to merge `develop`, commit/amend, reset/rebase, advance, or delete it during this session.
+10. keep the `REVERTED` feature branch for diagnosis or a later human-approved retry, frozen at the preserved SHA; do not check it out to merge `develop`, commit/amend, reset/rebase, advance, or delete it during this session.
 
 A failed merge is never left on `develop` merely because the next task might repair it.
 
-If the merge workflow is cancelled, times out, becomes stale/action-required, or cannot be associated unambiguously with the exact merge SHA within the configured observation limit, treat the integration as unverified and fail closed through the same revert-and-block path. Since the pre-merge parent was proven green, a revert tree mismatch or a revert/status commit that cannot be observed green is a session-fatal **baseline/upstream incident**, not permission to blame or start the next task. Stop the entire session, record both the last known-green SHA and failing recovery SHA/run, and request human recovery.
+If the merge workflow is cancelled, times out, becomes stale/action-required, or cannot be associated unambiguously with the exact merge SHA within the configured observation limit, treat the integration as unverified and fail closed through the same revert-and-`REVERTED` path. Since the pre-merge parent was proven green, a revert tree mismatch or a revert/status commit that cannot be observed green is a session-fatal **baseline/upstream incident**, not permission to blame or start the next task. Stop the entire session, record both the last known-green SHA and failing recovery SHA/run, and request human recovery.
 
-Once revert plus status metadata are green, the failed **task** is terminal for this session. The coordinator may continue to a later independent task only when `policy.continue_after_blocked_task` is true and its resolved hard dependencies are all `DONE`.
+Once revert plus `REVERTED` metadata are green, the task is terminal for this session. The coordinator performs dependency-skip propagation and may continue to a later independent task only when `policy.continue_after_terminal_non_done_task` is true and its resolved hard dependencies are all `DONE`.
 
 ## Blocking before merge
 
@@ -329,6 +346,21 @@ If blocked before integration:
 - push the metadata commit and require CI on that exact SHA to be green when a workflow exists;
 - continue to later independent tasks only when `develop` is green and the task dependency graph allows it.
 
+## Dependency propagation and SKIPPED_DEPENDENCY
+
+Before creating any feature branch, and again after a new `BLOCKED` or `REVERTED` status becomes exact-SHA green on `develop`, the coordinator resolves the transitive hard-dependency graph.
+
+For each still-pending task whose hard prerequisite is terminal non-`DONE`:
+
+1. do not create or push `feature/<Source>`;
+2. do not invoke a task worker or run task implementation/preflight;
+3. check only `SKIPPED_DEPENDENCY` on `develop`;
+4. record every direct terminal prerequisite and the transitive dependency chain in Execution notes/reporting;
+5. batch all newly determined skips from the same propagation pass into one metadata-only commit;
+6. push that commit and require exact-SHA green CI when a workflow exists before selecting another task.
+
+A skip-metadata CI failure is a session-fatal integration-health incident; it is not attributed to the unattempted skipped tasks. Independent pending tasks remain eligible after the skip commit is green. Tasks left unattempted solely because the deadline/workload ended remain `PENDING`, not `SKIPPED_DEPENDENCY`.
+
 ## Git safety rules
 
 Allowed lifecycle writes: branch creation/deletion, ordinary add/commit, push, explicit no-ff merge into `develop`, ordinary merge revert after failed CI, metadata-only task-state commits, and the final metadata-only session-report commit.
@@ -340,7 +372,7 @@ Forbidden:
 - autonomous rebase/history rewriting;
 - hard reset of shared branches;
 - bypassing/disabling CI;
-- deleting a failed feature branch before review;
+- deleting a `BLOCKED` or `REVERTED` feature branch before review;
 - amending/replacing a merge commit after its CI evaluation.
 
 The runner/agent may use read-only `gh` commands/API calls to locate and wait for workflow results by merge SHA.
@@ -369,7 +401,7 @@ If a task requires browser validation and the canonical runtime/Chrome MCP/test 
 
 ## Workload resolution
 
-The runner may resolve an explicit task list, a selected series range, or the global pending queue. Tasks are normally ordered lexicographically by their four-digit prefix. Resolved hard dependencies override simple numeric readiness: a task whose hard dependency is not `DONE` must not run. Advisory references never create dependency cycles.
+The runner may resolve an explicit task list, a selected series range, or the global pending queue. Tasks are normally ordered lexicographically by their four-digit prefix. Resolved hard dependencies override simple numeric readiness: a pending/active prerequisite defers the dependent task, while a terminal non-`DONE` prerequisite propagates `SKIPPED_DEPENDENCY`. Advisory references never create dependency cycles.
 
 ## Deadline semantics
 
@@ -390,13 +422,14 @@ At finalization the runner records at least:
 - session identifier and actual times;
 - stop reason;
 - selected series/range;
-- tasks completed/blocked/pending;
+- tasks `DONE`, `BLOCKED`, `REVERTED`, `SKIPPED_DEPENDENCY`, and still pending;
 - feature branch per attempted task;
 - preflight results and any baseline remediation;
 - task commits and merge SHA for successful integrations;
 - CI run/result for each merged task;
-- merge-revert SHA for failed integrations;
-- preserved failed feature branches;
+- merge-revert SHA for `REVERTED` integrations;
+- preserved/frozen `BLOCKED` and `REVERTED` feature branches;
+- direct/transitive dependency chains for `SKIPPED_DEPENDENCY` tasks;
 - final `develop` status and CI health;
 - browser/runtime validation summary;
 - decisions requiring human attention;

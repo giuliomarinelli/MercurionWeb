@@ -42,6 +42,17 @@ Autonomous-development planning and execution are intentionally separate:
 - Prefer existing repository patterns and dependencies over introducing unrelated abstractions or packages.
 - Do not infer executable requirements from a series document when the active task recipe is explicit. A series may be consulted as planning context only when useful or explicitly referenced.
 
+## Persistent task outcomes
+
+Every recipe has four mutually exclusive persistent outcomes:
+
+- `DONE`: merged into `develop` and exact merge-SHA CI succeeded;
+- `BLOCKED`: attempted but stopped before merge; preserve/freeze its feature branch;
+- `REVERTED`: locally completed and merged, then safely reverted after post-merge CI non-success/unverifiable result; preserve/freeze its feature branch;
+- `SKIPPED_DEPENDENCY`: never attempted because a hard prerequisite is terminal non-`DONE`; never create a feature branch.
+
+All four unchecked means pending. At most one may be checked. `CI_PENDING` is transient and does not receive a checkbox.
+
 ## Mandatory CI-parity preflight before every task
 
 Before implementing the first task scope, the coordinator MUST establish a clean, fully green repository baseline. Before every later task scope, the runner/agent MUST establish that the newly created `feature/<Source>` branch starts from an exact-SHA CI-green `develop` baseline.
@@ -102,18 +113,20 @@ If post-merge CI fails:
 - stop the current integration progression immediately;
 - revert the merge commit on `develop` with an ordinary revert commit; never reset or rewrite shared history;
 - push the revert and verify the integration branch returns to a green state;
-- update the task on `develop` to `BLOCKED`, recording the failed workflow/merge SHA and the reason;
+- update the task on `develop` to `REVERTED`, recording the failed/unverified workflow, merge/revert SHAs, cause category and reason;
 - push the metadata-only status commit and wait for CI on that exact commit;
 - preserve the local and remote `feature/<Source>` branch for diagnosis or later human-approved retry;
 - once its final feature SHA is pushed, freeze that divergent branch: do not merge `develop` into it, commit/amend it, reset/rebase it, advance it, or delete it during the session.
 
 If a task becomes blocked before merge, do not merge partial implementation. Preserve its feature branch, propagate only the task's `BLOCKED` status/diagnostics to `develop`, and wait for CI on that exact metadata commit.
 
-After either blocked path, the runner may continue only when the active session configuration permits it, `develop` is clean and green, and the next task has no hard dependency on the blocked task. Because every task integrates from a proven-green `develop`, a revert that does not restore the pre-merge tree and exact-SHA green CI is a session-fatal baseline/upstream incident. Stop the entire session, report it separately from the blocked task, and do not use a later task to repair or conceal it.
+After a new `BLOCKED` or `REVERTED` status is green, propagate `SKIPPED_DEPENDENCY` transitively to pending tasks that depend on any terminal non-`DONE` prerequisite. Skipped tasks receive no branch and no worker. Batch one propagation pass into a metadata-only `develop` commit and wait for its exact CI before continuing to an independent task.
+
+The runner may continue only when active session policy permits it, `develop` is clean/exact-SHA green, and the next task's hard dependencies are all `DONE`. Because every task integrates from a proven-green `develop`, a revert that does not restore the pre-merge tree and exact-SHA green CI is a session-fatal baseline/upstream incident. Stop the entire session, report it separately from the task outcome, and do not use a later task to repair or conceal it.
 
 ## Git safety constraints
 
-Allowed task/session-lifecycle writes include ordinary branch creation, add/commit, push, no-ff merge into `develop`, merge revert after failed CI, branch deletion after successful CI, metadata-only commits needed to record a blocked task, and the final session-report commit.
+Allowed task/session-lifecycle writes include ordinary branch creation, add/commit, push, no-ff merge into `develop`, merge revert after failed CI, branch deletion after successful CI, metadata-only commits needed to record `BLOCKED`, `REVERTED`, or `SKIPPED_DEPENDENCY`, and the final session-report commit.
 
 Forbidden operations include:
 
@@ -121,7 +134,7 @@ Forbidden operations include:
 - force-push;
 - rebase of autonomous task history;
 - `reset --hard` or equivalent history rewriting on shared branches;
-- deleting a failed feature branch before human review;
+- deleting a `BLOCKED` or `REVERTED` feature branch before human review;
 - bypassing or disabling CI to obtain a green result;
 - amending/replacing a pushed merge commit after CI has evaluated it.
 
@@ -161,7 +174,7 @@ A task may enter the merge/CI phase only when all local checks pass.
 - Never deploy or publish as part of an autonomous Development Session unless a future task and runner policy explicitly authorize a non-production deployment action.
 - Never access production credentials or production data.
 - If validation cannot be restored within the task's retry/budget limits, mark the task `BLOCKED` and stop that task.
-- If post-merge CI fails, the merge MUST be reverted before any later task begins.
-- A later independent task may begin after a block only when session policy permits it and every resulting `develop` commit has returned to exact-SHA green CI.
+- If post-merge CI fails or is unverifiable, the merge MUST be reverted and the task marked `REVERTED` before any later task begins.
+- A later independent task may begin after `BLOCKED`/`REVERTED` plus dependency-skip propagation only when session policy permits it and every resulting `develop` commit has returned to exact-SHA green CI.
 - At the configured soft deadline, do not start another task. Finish the active task's complete safe lifecycle, write/push the session report, wait for its CI when present, and then stop.
 - If instructions conflict, prefer the narrowest task-specific instruction that does not violate repository-wide safety, branch-isolation, or CI-integrity constraints.

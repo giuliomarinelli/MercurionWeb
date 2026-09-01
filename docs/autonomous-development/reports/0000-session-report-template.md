@@ -20,6 +20,8 @@ This file is a template only. A session report copies this structure to a dated 
 - Attempted: `<count>`
 - Completed: `<count>`
 - Blocked: `<count>`
+- Reverted: `<count>`
+- Skipped because of dependency: `<count>`
 - Still pending: `<count>`
 - Stop reason: `<reason>`
 - Final `develop`: `<clean/dirty, local SHA, origin SHA, exact-SHA CI>`
@@ -36,11 +38,15 @@ This file is a template only. A session report copies this structure to a dated 
 
 | Task | Source | Result | Feature branch / frozen SHA | Base SHA | Task commits | Merge SHA / CI | Revert SHA / CI | Status SHA / CI |
 |---|---|---|---|---|---|---|---|---|
-| `<0001>` | `<SYS-001>` | `<DONE/BLOCKED>` | `<branch / sha>` | `<sha>` | `<sha(s)>` | `<sha / run>` | `<sha / run or n/a>` | `<sha / run or n/a>` |
+| `<0001>` | `<SYS-001>` | `<DONE/BLOCKED/REVERTED/SKIPPED_DEPENDENCY>` | `<branch / sha or none>` | `<sha or n/a>` | `<sha(s) or n/a>` | `<sha / run or n/a>` | `<sha / run or n/a>` | `<sha / run>` |
 
-## Blocked tasks and preserved branches
+## Blocked and reverted tasks
 
-For every block, record the blocker category, exact diagnostic, required human decision/capability, hard-dependent tasks skipped, and the local/remote frozen branch SHA. Confirm that no blocked branch was advanced, rebased, reset, merged-from-`develop`, amended or deleted.
+For every `BLOCKED` task, record the pre-merge blocker category, exact diagnostic, required human decision/capability, partial work and local/remote frozen branch SHA. For every `REVERTED` task, record merge/revert/status SHAs and CI, cause category, regression evidence and frozen branch SHA. Confirm that neither branch class was advanced, rebased, reset, merged-from-`develop`, amended or deleted.
+
+## Skipped dependency chains
+
+For every `SKIPPED_DEPENDENCY` task, record direct terminal non-`DONE` prerequisites and the transitive root cause. Confirm that no feature branch or worker invocation was created. Distinguish these from tasks left pending only because the deadline/workload ended.
 
 ## Baseline or upstream incidents
 

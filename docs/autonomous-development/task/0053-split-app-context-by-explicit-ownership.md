@@ -2,6 +2,8 @@
 
 - [ ] DONE
 - [ ] BLOCKED
+- [ ] REVERTED
+- [ ] SKIPPED_DEPENDENCY
 
 ## Objective
 

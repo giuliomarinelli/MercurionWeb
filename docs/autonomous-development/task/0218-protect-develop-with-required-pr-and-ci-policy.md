@@ -2,6 +2,8 @@
 
 - [ ] DONE
 - [ ] BLOCKED
+- [ ] REVERTED
+- [ ] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -49,14 +51,14 @@ The Series requires PR, review and all quality gates for `develop`, while the bo
 - A merge requires at least one approval from an eligible reviewer and the canonical aggregate CI status green for the current revision.
 - Autonomous tasks retain one `feature/<Source>` branch and use a GitHub merge commit; rebase/squash/history rewriting remain forbidden.
 - The exact `develop` merge SHA still receives post-merge CI before a task's `DONE` state is final and before its feature branch is deleted.
-- If post-merge CI fails, later work stops and an ordinary revert branch/PR is opened; the failed feature branch remains preserved.
+- If post-merge CI fails, later work stops, an ordinary revert branch/PR is opened, the task becomes `REVERTED` after safe rollback, and its feature branch remains preserved/frozen.
 - No routine actor has a direct-push/failed-check bypass.
 
 ## Requirements
 
 1. Identify the canonical aggregate status/context from `0202`, prove it cannot be green when any mandatory gate is failed/skipped/cancelled and keep its name stable/documented.
 2. Update `AGENTS.md`, `PROTOCOL.md`, the autonomous README, runner/session behavior and reporting to open a task PR from `feature/<Source>` to `develop`, wait for checks/review, merge with a merge commit and then wait for CI on the exact merge SHA.
-3. Define the protected rollback sequence: create a revert branch from current `develop`, commit an ordinary revert of the failed merge, open an urgent PR, wait for required review/checks, merge and verify the revert merge SHA green before any later task.
+3. Define the protected rollback sequence: create a revert branch from current `develop`, commit an ordinary revert of the failed merge, open an urgent PR, wait for required review/checks, merge, verify the revert merge SHA green, record the original task `REVERTED`, propagate `SKIPPED_DEPENDENCY`, and verify that metadata green before any later independent task.
 4. Add pre-merge stale-base handling that updates/recreates validation without rebase, force-push or history rewriting and never merges a revision not checked against current `develop`.
 5. Configure a GitHub ruleset/branch protection for `develop` requiring PR, at least one approval, current required aggregate check and resolved required review state; block direct/force pushes and branch deletion.
 6. Ensure the authenticated automation/service identity has only permissions needed to create branches/PRs and observe/merge approved PRs, not a ruleset bypass.
@@ -70,7 +72,7 @@ The Series requires PR, review and all quality gates for `develop`, while the bo
 - [ ] Direct pushes, force pushes, deletion and merges with pending/failed required checks are rejected.
 - [ ] An approved green feature PR merges with an explicit merge commit and its exact merge SHA receives post-merge CI.
 - [ ] Autonomous-development policies/runner contain no remaining direct-`develop` integration or direct-revert push path.
-- [ ] Post-merge failure blocks later tasks and uses a protected revert PR while preserving the failed feature branch.
+- [ ] Post-merge failure blocks integration, uses a protected revert PR, records `REVERTED`, propagates dependency skips and preserves/freezes the original feature branch.
 - [ ] No runner/bot/admin bypass is configured as part of the normal workflow.
 
 ## Validation

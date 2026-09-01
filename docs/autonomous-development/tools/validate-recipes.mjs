@@ -123,14 +123,18 @@ for (const [number, expected] of expectedTasks) {
     }
   }
 
-  for (const state of ['DONE', 'BLOCKED']) {
+  const persistentStates = ['DONE', 'BLOCKED', 'REVERTED', 'SKIPPED_DEPENDENCY'];
+  for (const state of persistentStates) {
     const markers = [...markdown.matchAll(new RegExp(`^- \\[[ xX]\\] ${state}$`, 'gm'))];
     if (markers.length !== 1) {
       report(filename, `expected exactly one ${state} checkbox, found ${markers.length}`);
     }
   }
-  if (/^- \[[xX]\] DONE$/m.test(markdown) && /^- \[[xX]\] BLOCKED$/m.test(markdown)) {
-    report(filename, 'DONE and BLOCKED cannot both be checked');
+  const checkedStates = persistentStates.filter((state) =>
+    new RegExp(`^- \\[[xX]\\] ${state}$`, 'm').test(markdown),
+  );
+  if (checkedStates.length > 1) {
+    report(filename, `terminal states are mutually exclusive, found ${checkedStates.join(', ')}`);
   }
 
   const requiredHeadings = [
@@ -211,13 +215,17 @@ if (errors.length > 0) {
   console.error(`Recipe validation failed with ${errors.length} error(s).`);
   process.exitCode = 1;
 } else {
-  const doneCount = taskFiles.filter((filename) =>
-    /^- \[[xX]\] DONE$/m.test(fs.readFileSync(path.join(taskDirectory, filename), 'utf8')),
-  ).length;
-  const blockedCount = taskFiles.filter((filename) =>
-    /^- \[[xX]\] BLOCKED$/m.test(fs.readFileSync(path.join(taskDirectory, filename), 'utf8')),
-  ).length;
+  const counts = Object.fromEntries(
+    ['DONE', 'BLOCKED', 'REVERTED', 'SKIPPED_DEPENDENCY'].map((state) => [
+      state,
+      taskFiles.filter((filename) =>
+        new RegExp(`^- \\[[xX]\\] ${state}$`, 'm').test(
+          fs.readFileSync(path.join(taskDirectory, filename), 'utf8'),
+        ),
+      ).length,
+    ]),
+  );
   console.log(
-    `Recipe validation passed: ${seriesFiles.length} series, ${taskFiles.length} tasks, ${registrySources.size} Sources, ${doneCount} DONE, ${blockedCount} BLOCKED, ${warnings.length} warning(s).`,
+    `Recipe validation passed: ${seriesFiles.length} series, ${taskFiles.length} tasks, ${registrySources.size} Sources, ${counts.DONE} DONE, ${counts.BLOCKED} BLOCKED, ${counts.REVERTED} REVERTED, ${counts.SKIPPED_DEPENDENCY} SKIPPED_DEPENDENCY, ${warnings.length} warning(s).`,
   );
 }

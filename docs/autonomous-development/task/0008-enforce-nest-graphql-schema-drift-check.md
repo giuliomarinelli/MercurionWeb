@@ -2,6 +2,8 @@
 
 - [ ] DONE
 - [ ] BLOCKED
+- [ ] REVERTED
+- [ ] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -15,7 +17,7 @@ Source: `SYS-008` in Series `0001`.
 
 `MercurionGraphQLModule` uses `autoSchemaFile: join(process.cwd(), 'src', 'schema.graphql')`, so Nest resolver/type metadata is authoritative for the committed GraphQL schema.
 
-The repository also needs deterministic task isolation: every autonomous task runs on `feature/<Source>`, is merged with an explicit merge commit into `develop`, and GitHub Actions decides whether that integration remains. A failed merge is reverted and the task is marked `BLOCKED`.
+The repository also needs deterministic task isolation: every autonomous task runs on `feature/<Source>`, is merged with an explicit merge commit into `develop`, and GitHub Actions decides whether that integration remains. A merge whose exact-SHA CI does not succeed is reverted and the task is marked `REVERTED`; `BLOCKED` remains reserved for pre-merge failure.
 
 Task `0001` establishes the root npm-workspace structure for `MercurionWebNg` and `MercurionWebNode`. This task must build the CI contract on top of that root workspace rather than duplicating unrelated package-install logic in workflow YAML.
 
@@ -71,7 +73,7 @@ By the end of this task, lint verification is non-mutating and explicit fix comm
 - `develop` is the autonomous integration branch.
 - Each autonomous task merges through an explicit `--no-ff` merge commit.
 - The runner waits for CI belonging to the **exact merge SHA** before another task starts.
-- CI failure causes merge revert + `BLOCKED`; the failed feature branch is preserved.
+- CI non-success/unverifiable result causes merge revert + `REVERTED`; the feature branch is preserved/frozen.
 - `schema.graphql` remains committed.
 - Nest code-first metadata is authoritative; CI fails on uncommitted schema drift.
 - CI lint commands are check-only. Auto-fix commands are separate developer/remediation commands.

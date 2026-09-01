@@ -16,7 +16,7 @@ repository:
     merge_strategy: no-ff
     allow_rebase: false
     allow_force_push: false
-    push_feature_branch: true
+    push_feature_branch_before_work: true
     delete_feature_branch_on_ci_success: true
     preserve_feature_branch_on_failure: true
     freeze_preserved_feature_branch_on_block: true
@@ -24,7 +24,7 @@ repository:
   github:
     allow_remote_git_writes: true
     wait_for_merge_ci: true
-    ci_failure_policy: revert-merge-and-block
+    ci_failure_policy: revert-merge-and-mark-reverted
 
 agent:
   host: vscode
@@ -70,6 +70,13 @@ agent:
   max_ai_credits_per_task: 100
 
 capabilities:
+  terminal_and_git:
+    required: true
+  github_actions_read:
+    required: true
+  subagents:
+    required: true
+    tool: agent/runSubagent
   browser_validation:
     enabled: true
     mcp_server: chrome-devtools
@@ -82,7 +89,7 @@ runtime:
   edge:
     base_url: http://localhost:8888
     managed: false
-    required: true
+    required_when_browser_validation_is_needed: true
     angular_readiness_url: http://localhost:8888/
     nest_readiness_url: http://localhost:8888/health
 
@@ -115,7 +122,9 @@ runtime:
 quality:
   # No task implementation starts before a complete, clean green baseline.
   session_start_preflight: true
+  require_clean_exact_origin_develop: true
   require_green_before_first_task_scope: true
+  require_exact_sha_ci_for_later_develop_bases: true
   allow_task_0001_phase_0_bootstrap_only: true
   stop_session_if_initial_baseline_cannot_be_made_green: true
   before_every_task: true
@@ -147,6 +156,16 @@ workload:
   tasks: []
   pending_only: true
 
+task_outcomes:
+  persistent:
+    - DONE
+    - BLOCKED
+    - REVERTED
+    - SKIPPED_DEPENDENCY
+  mutually_exclusive: true
+  transient:
+    - CI_PENDING
+
 policy:
   fresh_agent_session_per_task: true
 
@@ -154,15 +173,18 @@ policy:
   one_feature_branch_per_task: true
   source_required_for_branch_name: true
 
-  # The runner does not start the next task until merge CI succeeds or the failed
-  # merge has been reverted and the task has been recorded as BLOCKED.
+  # The runner does not start the next task until merge CI succeeds or the merge
+  # has been reverted and the task has been recorded as REVERTED.
   serialize_task_integration: true
 
   finish_current_task_after_deadline: true
   start_new_tasks_after_deadline: false
   stop_when_workload_exhausted: true
 
-  continue_after_blocked_task: true
+  continue_after_terminal_non_done_task: true
+  propagate_skipped_dependency_transitively: true
+  batch_dependency_skip_metadata_commit: true
+  next_task_after_terminal_non_done: next-pending-with-all-hard-dependencies-done
   require_green_develop_before_next_task: true
 
 ci:
@@ -172,11 +194,19 @@ ci:
   wait_for_exact_merge_sha: true
   poll_interval_seconds: 30
   observation_timeout_minutes: 120
+  only_success_conclusion_is_green: true
 
   on_success:
     finalize_done: true
     delete_feature_branch_local: true
-    delete_feature_branch_remote: true
+    delete_feature_branch_remote_if_present: true
+
+  on_pre_merge_block:
+    mark_task_blocked: true
+    wait_for_blocked_metadata_ci_green: true
+    preserve_feature_branch_local: true
+    preserve_feature_branch_remote: true
+    freeze_preserved_feature_branch: true
 
   on_failure:
     stop_current_integration: true
@@ -185,18 +215,27 @@ ci:
     verify_revert_tree_matches_pre_merge_base: true
     stop_session_if_revert_not_green: true
     classify_non_green_revert_as: baseline-or-upstream-incident
-    mark_task_blocked: true
-    wait_for_blocked_metadata_ci_green: true
+    mark_task_reverted: true
+    wait_for_reverted_metadata_ci_green: true
     preserve_feature_branch_local: true
     preserve_feature_branch_remote: true
     freeze_preserved_feature_branch: true
+
+  on_dependency_skip:
+    create_feature_branch: false
+    invoke_worker: false
+    mark_task_skipped_dependency: true
+    record_direct_and_transitive_causes: true
+    wait_for_batched_metadata_ci_green: true
 
 decisions:
   # Required choices that a task forbids the agent from inventing belong here.
   # SYS-001 uses portable wire contracts; Nest-only decorated DTOs may remain as
   # checked validation/transformation adapters and are never imported by Angular.
   sys_001_rest_contract_source: shared-versioned-framework-neutral-package
+  sys_001_angular_nest_runtime_dependency: forbidden
   sys_001_nest_validation_adapters: preserve-when-required-and-prove-contract-parity
+  sys_001_migration_policy: incremental-non-breaking
 
 on_finish:
   validate_repository: true
@@ -205,3 +244,5 @@ on_finish:
   stop_managed_runtime_processes: true
   report_directory: docs/autonomous-development/reports
   report_template: docs/autonomous-development/reports/0000-session-report-template.md
+  commit_and_push_report_to_develop: true
+  wait_for_exact_report_commit_ci: true

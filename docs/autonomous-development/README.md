@@ -12,7 +12,9 @@ The model is intentionally strict:
 - one explicit `--no-ff` merge commit into `develop`;
 - wait for GitHub Actions on that exact merge SHA;
 - success => delete the feature branch;
-- failure => revert the merge, mark the task `BLOCKED`, preserve the feature branch.
+- post-merge CI non-success => revert the merge, mark `REVERTED`, preserve the feature branch;
+- pre-merge failure/stop condition => mark `BLOCKED`, preserve the feature branch;
+- terminal hard dependency => mark `SKIPPED_DEPENDENCY` without creating a branch.
 
 `develop` is therefore never used as a dumping ground for hundreds of unrelated unverified changes.
 
@@ -84,7 +86,20 @@ Every executable task has:
 ```md
 - [ ] DONE
 - [ ] BLOCKED
+- [ ] REVERTED
+- [ ] SKIPPED_DEPENDENCY
 ```
+
+The four terminal outcomes are mutually exclusive:
+
+| Outcome | Meaning |
+|---|---|
+| `DONE` | Integrated into `develop`; exact merge-SHA CI succeeded. |
+| `BLOCKED` | Attempted but could not reach merge; divergent branch is frozen. |
+| `REVERTED` | Locally successful and merged, then rolled back after post-merge CI non-success/unverifiable result; branch is frozen. |
+| `SKIPPED_DEPENDENCY` | Never attempted because a hard dependency is terminal non-`DONE`; no branch exists. |
+
+All unchecked means pending. `CI_PENDING` exists only as transient coordinator state.
 
 and a planning identifier such as:
 
@@ -140,11 +155,12 @@ push develop
     ↓
 wait CI for exact merge SHA
    ↙                     ↘
-PASS                    FAIL
+PASS                 NON-SUCCESS
  ↓                       ↓
 delete branch      revert merge on develop
-next task          mark task BLOCKED
+next task          mark task REVERTED
                    preserve feature branch
+                   propagate SKIPPED_DEPENDENCY
                    continue only if develop is green
                    and a later task is independent
 ```

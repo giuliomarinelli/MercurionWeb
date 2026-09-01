@@ -30,7 +30,7 @@ Do not start a task at or after the soft deadline. Do not signal that the overal
 
 For each selected task, serially:
 
-1. resolve the next pending runnable task according to `PROTOCOL.md` dependency semantics;
+1. propagate and commit any newly determined `SKIPPED_DEPENDENCY` states, wait for exact metadata-commit CI when present, then resolve the next pending runnable task according to `PROTOCOL.md` dependency semantics;
 2. fetch remote state, return to clean `develop`, fast-forward to the exact `origin/develop` tip, and record that base SHA;
 3. create and push exactly `feature/<Source>` from that SHA; never overwrite or reuse an existing local or remote branch automatically;
 4. invoke one fresh `Development Task Worker` subagent with the exact task path, Source, feature branch, base SHA, session-config path, and a reminder that it owns only preflight plus feature-branch implementation/validation;
@@ -44,19 +44,19 @@ Never run two implementation workers concurrently. A fresh worker invocation is 
 
 If a task blocks before merge, preserve and push its feature branch, freeze it at that last pushed SHA, return to clean `develop`, propagate only the task's `BLOCKED` status and diagnostic execution notes, push that metadata commit, and wait for its exact CI result when a workflow exists. If task `0001` blocks before creating the bootstrap workflow, record the missing-CI condition and stop the session under the initial-baseline rule.
 
-If merge CI does not succeed, freeze the failed feature branch locally and remotely at its final pushed SHA, revert the merge with mainline parent 1, verify the revert tree equals the pre-merge `develop` tree, push and wait for the exact revert CI, then record `BLOCKED` in a separate metadata-only commit and wait for that exact CI too. Never merge `develop` into, commit/amend, reset/rebase, advance, or delete the frozen branch.
+If merge CI does not succeed or cannot be verified, freeze the feature branch locally and remotely at its final pushed SHA, revert the merge with mainline parent 1, verify the revert tree equals the pre-merge `develop` tree, push and wait for the exact revert CI, then record only `REVERTED` in a separate metadata-only commit and wait for that exact CI too. Record whether the cause was a confirmed regression, infrastructure failure, cancellation/timeout, or unverified result. Never merge `develop` into, commit/amend, reset/rebase, advance, or delete the frozen branch.
 
-After either blocking path, continue only when the active configuration permits it, `develop` is clean and exact-SHA green, and the next task has no hard dependency on a blocked task. If a revert does not restore the pre-merge tree or green cannot be re-established/observed, classify it as a baseline/upstream incident, stop the whole session, and report both SHAs/runs; never pass uncertain integration health to the next task.
+After a `BLOCKED` or `REVERTED` metadata commit is green, mark every transitively dependent pending task `SKIPPED_DEPENDENCY` without creating a branch or worker, batch the propagation into one metadata-only commit, record direct/transitive causes, and wait for its exact CI. Continue only when the active configuration permits it, `develop` is clean/exact-SHA green, and the next task has every hard dependency `DONE`. If a revert does not restore the pre-merge tree or green cannot be re-established/observed, classify it as a baseline/upstream incident, stop the whole session, and report both SHAs/runs; never pass uncertain integration health to the next task.
 
 ## Deadline and finalization
 
-The configured `end` is a soft deadline. Once it is reached, finish the complete lifecycle of the one already-active task, including merge/revert, exact-SHA CI, status propagation, and branch cleanup/preservation. Then start no new task.
+The configured `end` is a soft deadline. Once it is reached, finish the complete lifecycle of the one already-active task, including merge/revert, exact-SHA CI, status propagation, any dependency-skip propagation caused by its terminal outcome, and branch cleanup/preservation. Then start no new task.
 
 At workload exhaustion, deadline completion, or a session-fatal blocker:
 
 1. stop only runtime processes that this session started;
 2. verify and record the final local/remote `develop` SHA, clean-tree state, and exact CI health;
-3. create the required report under `docs/autonomous-development/reports/` using `0000-session-report-template.md` and the protocol schema;
+3. create the required report under `docs/autonomous-development/reports/` using `0000-session-report-template.md`, with separate counts/evidence for `DONE`, `BLOCKED`, `REVERTED`, `SKIPPED_DEPENDENCY`, and pending tasks;
 4. commit and push the report as a metadata-only `develop` commit and wait for that report commit's exact CI result when a workflow exists;
 5. finish with a concise summary and the report path.
 

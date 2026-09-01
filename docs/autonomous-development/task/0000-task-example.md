@@ -2,6 +2,8 @@
 
 - [ ] DONE
 - [ ] BLOCKED
+- [ ] REVERTED
+- [ ] SKIPPED_DEPENDENCY
 
 > Canonical template for autonomous-development task recipes. Copy it to a new
 > globally progressive four-digit filename. `0000` is never executable.
@@ -141,7 +143,9 @@ A blocked task is never merged merely to let a later task repair it.
 
 If blocked before merge, preserve `feature/<Source>` locally/remotely and propagate only the task's blocked status/diagnostics to `develop`.
 
-If the task was merged but GitHub Actions fails, the runner reverts the merge commit on `develop`, marks the task blocked, and preserves the feature branch.
+If the task was merged but exact merge-SHA GitHub Actions does not succeed or cannot be verified, the runner reverts the merge commit on `develop`, marks the task `REVERTED`, and preserves/freezes the feature branch.
+
+If a hard dependency is terminal as `BLOCKED`, `REVERTED`, or `SKIPPED_DEPENDENCY`, the coordinator marks this task `SKIPPED_DEPENDENCY` without creating a feature branch or invoking a worker.
 
 ## Dependencies
 
@@ -207,5 +211,6 @@ _Not applicable._
 _None._
 
 > `DONE` is finalized only after the exact `develop` merge commit passes GitHub
-> Actions. A CI failure requires merge revert + `BLOCKED`; the failed feature
-> branch remains available for diagnosis.
+> Actions. Post-merge CI non-success requires merge revert + `REVERTED`; the
+> feature branch remains frozen for diagnosis/retry. `BLOCKED` is pre-merge,
+> while `SKIPPED_DEPENDENCY` means no attempt/branch occurred.
