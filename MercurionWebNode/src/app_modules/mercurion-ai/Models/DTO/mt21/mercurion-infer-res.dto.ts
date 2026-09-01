@@ -1,8 +1,15 @@
-import type { Tox21Inference, Tox21Prediction } from '@mercurion/rest-contracts'
-
-export interface MercurionInferResDTO extends Tox21Prediction {
+export interface MercurionInferResDTO {
+    "SR-ATAD5"?: InferenceDTO
+    "NR-AhR"?: InferenceDTO
+    "SR-MMP"?: InferenceDTO
+    "SR-p53"?: InferenceDTO
     error?: string
 }
 
-export type MercurionInferDataDTO = Tox21Prediction
-export type InferenceDTO = Tox21Inference
+export type MercurionInferDataDTO = Omit<MercurionInferResDTO, 'error'>
+
+export interface InferenceDTO {
+    probability: number
+    is_positive: boolean
+    threshold: number
+}

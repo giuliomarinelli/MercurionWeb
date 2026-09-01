@@ -21,7 +21,6 @@ import { TokenPair } from '../Models/interfaces/token-pair.interface';
 import { CompareResult } from '../Models/enums/compare-result.enum';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { AuthProvider } from 'src/app_modules/sso/Models/enums/auth-provider.enum';
-import type { MfaStrategy as WireMfaStrategy } from '@mercurion/rest-contracts'
 
 @Injectable()
 export class AuthenticationService {
@@ -129,9 +128,7 @@ export class AuthenticationService {
         const phone: string | nullish = await this.userService.getPhoneNumberById(auth.userId)
         let obscuredEmail = _enabledMfaStrategies.includes(MfaStrategy.EMAIL_OTP) ? this.securityService.maskEmail(email) : undefined
         const obscuredPhoneNumber = phone && _enabledMfaStrategies.includes(MfaStrategy.SMS_OTP) ? this.securityService.maskEmail(phone) : undefined
-        let enabledMfaStrategies: WireMfaStrategy[] = _enabledMfaStrategies
-            .map(val => GeneralUtils.getEnumKeyByValue(MfaStrategy, val))
-            .filter(val => val !== undefined)
+        let enabledMfaStrategies: string[] = _enabledMfaStrategies.map(val => GeneralUtils.getEnumKeyByValue(MfaStrategy, val)).filter(val => val !== undefined)
         let suspiciousAttempt: boolean = false
         if ((!inWhiteList || !isTrustedCurrentLocation || unknwonDeviceId) && !isMfaEnabledBySettings) {
             enabledMfaStrategies = ['EMAIL_OTP']
@@ -220,8 +217,8 @@ export class AuthenticationService {
     }
 
     public async performLogout(sessionId: UUID, deviceId: UUID): Promise<void> {
-        const jtiList: string[] = await this.sessionService.getJtiListBySessionId(sessionId)
-        await this.sessionService.destroySession(sessionId, deviceId)
+        const jtiList: string[] = await this.sessionService.getJtiListBySessionId(sessionId as string)
+        await this.sessionService.destroySession(sessionId as string, deviceId as string)
         await Promise.all(jtiList.map(jti => this.sessionService.revokeToken(jti)))
     }
 

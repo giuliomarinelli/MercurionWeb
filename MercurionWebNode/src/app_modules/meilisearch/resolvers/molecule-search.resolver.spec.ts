@@ -15,7 +15,7 @@ describe('MoleculeSearchResolver', () => {
     const data = [{ id: 1 }];
     service.searchMolecules.mockResolvedValue(data);
 
-    const result = await resolver.moleculeSearch({ query: 'loraz' });
+    const result = await resolver.moleculeSearch({ query: 'loraz' } as any);
 
     expect(service.searchMolecules).toHaveBeenCalledWith({ query: 'loraz' });
     expect(result).toBe(data);
@@ -26,9 +26,9 @@ describe('MoleculeSearchResolver', () => {
     service.searchMolecules_excludeAlreadyAdded.mockResolvedValue(filtered);
 
     const result = await resolver.moleculeSearch_excludeAlreadyAdded(
-      { query: 'loraz' },
-      '018ea030-8d12-7d9a-95c7-f6d1fbc28a4b',
-      '018ea030-8d12-7d9a-95c7-f6d1fbc28a4c'
+      { query: 'loraz' } as any,
+      '018ea030-8d12-7d9a-95c7-f6d1fbc28a4b' as any,
+      '018ea030-8d12-7d9a-95c7-f6d1fbc28a4c' as any
     );
 
     expect(service.searchMolecules_excludeAlreadyAdded).toHaveBeenCalledWith(

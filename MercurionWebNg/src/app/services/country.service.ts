@@ -1,8 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
-import { PhonePrefixWithEmojiUrlDTO } from '../Models/country.models';
-import type { PhonePrefixDTO } from '@mercurion/rest-contracts'
+import { PhonePrefixDTO, PhonePrefixWithEmojiUrlDTO } from '../Models/country.models';
 
 @Injectable({
   providedIn: 'root'

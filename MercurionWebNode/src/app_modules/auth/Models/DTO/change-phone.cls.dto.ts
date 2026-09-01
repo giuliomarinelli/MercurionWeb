@@ -1,6 +1,5 @@
 import { Transform } from "class-transformer";
 import { IsString, Matches } from "class-validator";
-import type { ChangePhoneDTO as ChangePhoneContract } from '@mercurion/rest-contracts'
 
 export class PhoneDTO {
     @IsString()
@@ -9,7 +8,7 @@ export class PhoneDTO {
     phoneNumber: string
 }
 
-export class ChangePhoneDTO extends PhoneDTO implements ChangePhoneContract {
+export class ChangePhoneDTO extends PhoneDTO {
     @IsString()
     @Matches(/^\+\d{1,3}$/)
     @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)

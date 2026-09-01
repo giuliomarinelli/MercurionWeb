@@ -9,7 +9,7 @@ import { Subscription } from 'rxjs';
 import { FloatingInputComponent } from '../../components/common/floating-input/floating-input.component';
 import { PmSelectComponent } from '../../components/common/pm-select/pm-select.component';
 import { emailAvailabilityValidator, matchPassword } from '../../custom-validators';
-import { UserGenderControl, UserRegisterDTO, UserRegistrationFormControls, UserRegistrationFormValue } from '../../Models/auth/user.models';
+import { UserGenderControl, UserRegistrationFormControls, UserRegistrationFormValue } from '../../Models/auth/user.models';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { Helpers } from '../../helpers';
 import { ToastService } from '../../services/toast.service';
@@ -338,12 +338,7 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
       const { confirmPassword: _omit, ...dto } = this.form.value as UserRegistrationFormValue
       dto.firstName = Helpers.normalizeTitleCase(dto.firstName)
       dto.lastName = Helpers.normalizeTitleCase(dto.lastName)
-      if (dto.gender === '') {
-        this.loading.set(false)
-        return
-      }
-      const request: UserRegisterDTO = { ...dto, gender: dto.gender }
-      this.regSub = this.authService.registerUser(request, this.turnstileToken()).subscribe({
+      this.regSub = this.authService.registerUser(dto, this.turnstileToken()).subscribe({
         next: res => {
           const { obscuredEmail } = res
           this.obscuredEmail.set(obscuredEmail!)

@@ -14,7 +14,6 @@ describe('CollectionSelectCardComponent', () => {
 
     fixture = TestBed.createComponent(CollectionSelectCardComponent);
     component = fixture.componentInstance;
-    fixture.componentRef.setInput('isSelectAll', true)
     fixture.detectChanges();
   });
 

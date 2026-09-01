@@ -135,7 +135,7 @@ export class HistoryService {
             const { userId: _omit, ...rest } = it
             const key = `${it.itemEntity}:${it.itemId}`
             const itemName = nameByKey.get(key) ?? 'N/A'
-            return { ...rest, itemName }
+            return { ...rest, itemName } as HistoryDTO
         }).filter(h => h.itemName !== 'N/A')
 
         return { ...page, items }

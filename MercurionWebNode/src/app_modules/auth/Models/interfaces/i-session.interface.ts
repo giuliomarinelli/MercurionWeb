@@ -1,6 +1,5 @@
 import { UUID } from "crypto";
 import { AuthProvider } from "src/app_modules/sso/Models/enums/auth-provider.enum";
-import type { SessionDeviceInfo } from '@mercurion/rest-contracts'
 
 export interface ISession {
     sessionId: UUID
@@ -11,12 +10,19 @@ export interface ISession {
     lastAccessedAt: number
     IP: string
     valid: boolean
-    sessionDeviceInfo: SessionDeviceInfo
+    sessionDeviceInfo: ISessionDeviceInfo
     fingerprint: string
     location: string
     provider: AuthProvider
 }
 
-export type ISessionDeviceInfo = SessionDeviceInfo
+export interface ISessionDeviceInfo {
+    osPlatform: string
+    useragent: string
+    browser: {
+        name: string,
+        version: string
+    }
+}
 
 export type ISSO_SessionActivationData = Pick<ISession, 'IP' | 'fingerprint' | 'sessionDeviceInfo' | 'location' | 'deviceId'>

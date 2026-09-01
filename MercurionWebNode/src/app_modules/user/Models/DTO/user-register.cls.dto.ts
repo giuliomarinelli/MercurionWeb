@@ -2,9 +2,8 @@ import { Transform } from "class-transformer"
 import { IsEmail, IsEnum, IsOptional, IsString, Matches } from "class-validator"
 import { UserGender } from "../enums/user-gender.enum"
 import { GeneralUtils } from "src/utils/general-utils/general-utils"
-import type { UserRegisterDTO as UserRegisterContract } from '@mercurion/rest-contracts'
 
-export class UserRegisterDTO implements UserRegisterContract {
+export class UserRegisterDTO {
 
     @IsString()
     @IsEmail()

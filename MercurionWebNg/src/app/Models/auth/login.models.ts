@@ -1,13 +1,22 @@
-import type { Login_FirstStepDTO, SessionDeviceInfo } from '@mercurion/rest-contracts'
+import { ISessionDeviceInfo } from "./fingerprint.models"
 
-export type {
-  EmailDTO,
-  Login_FirstStepDTO,
-  SignedSessionIdDTO
-} from '@mercurion/rest-contracts'
+export interface EmailDTO {
+  email: string
+}
+
+export interface Login_FirstStepDTO {
+  email: string
+  password: string
+  remember: boolean
+}
 
 export type Login_FirstStepWrapper = Login_FirstStepDTO & {
   fingerprintBase64: string
-  sessionDeviceInfo: SessionDeviceInfo
+  sessionDeviceInfo: ISessionDeviceInfo
   turnstileToken: string
 }
+
+export interface SignedSessionIdDTO {
+    signedSessionId: string
+}
+

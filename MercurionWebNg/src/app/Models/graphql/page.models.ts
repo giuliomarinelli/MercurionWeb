@@ -1,1 +1,8 @@
-export type { PageModel } from '@mercurion/rest-contracts'
+export interface PageModel<T> {
+  items: T[]
+  itemCount: number
+  totalItems: number
+  itemsPerPage: number
+  totalPages: number
+  currentPage: number
+}

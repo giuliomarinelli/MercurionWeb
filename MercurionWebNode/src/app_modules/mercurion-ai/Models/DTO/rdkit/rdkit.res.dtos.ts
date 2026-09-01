@@ -1,6 +1,11 @@
-import type { RdkitGetMoleculePropertiesResult } from '@mercurion/rest-contracts'
-
-export type { RdkitGetMoleculePropertiesResult }
+export interface RdkitGetMoleculePropertiesResult {
+  mwFreebase: number | null
+  alogp: number | null
+  hba: number | null
+  hbd: number | null
+  psa: number | null
+  rtb: number | null
+}
 
 export type RdkitGetMoleculePropertiesResponse =
   | RdkitGetMoleculePropertiesResult

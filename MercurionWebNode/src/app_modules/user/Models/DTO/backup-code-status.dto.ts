@@ -1,1 +1,5 @@
-export type { BackupCodeStatusDTO } from '@mercurion/rest-contracts'
+export interface BackupCodeStatusDTO {
+    total: number
+    used: number
+    remaining: number
+}

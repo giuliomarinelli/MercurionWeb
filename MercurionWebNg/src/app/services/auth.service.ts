@@ -1,30 +1,21 @@
+import { Confirm_Login_FirstStepDTO, ConfirmWithAccessTokenAndInitialsDTO, ConfirmWithObsContDTO } from '../Models/confirm.models';
 import { inject, Injectable } from '@angular/core';
+import { ConfirmDTO } from '../Models/confirm.models';
 import { finalize, Observable, shareReplay, tap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
+import { ConfirmWithTotpMetaDTO } from '../Models/confirm.models';
 import { JwtHelperService } from './jwt-helper.service';
 import { firstValueFrom } from 'rxjs';
-import { Login_FirstStepWrapper } from '../Models/auth/login.models';
+import { EmailDTO, Login_FirstStepWrapper, SignedSessionIdDTO } from '../Models/auth/login.models';
+import { BackupCodeDTO, TotpBodyDTO, VerifyBodyDTO } from '../Models/auth/totp.models';
+import { ISessionDeviceInfo } from '../Models/auth/fingerprint.models';
+import { UserRegisterDTO } from '../Models/auth/user.models';
 import { TypeGuardsService } from './type-guards.service';
 import { UserContextService } from './context/user-context.service';
 import { Router } from '@angular/router';
+import { MfaStrategy } from '../Models/account/account.models';
+import { SSO_AuthProvider } from '../Models/auth/provider.models';
 import { Maybe } from 'graphql/jsutils/Maybe';
-import type {
-  BackupCodeDTO,
-  Confirm_Login_FirstStepDTO,
-  ConfirmDTO,
-  ConfirmWithAccessTokenAndInitialsDTO,
-  ConfirmWithObsContDTO,
-  ConfirmWithTotpMetaDTO,
-  EmailDTO,
-  MaintenanceBypassResponse,
-  MfaStrategy,
-  SessionDeviceInfo,
-  SignedSessionIdDTO,
-  SSO_AuthProvider,
-  TotpBodyDTO,
-  UserRegisterDTO,
-  VerifyBodyDTO
-} from '@mercurion/rest-contracts'
 
 export type TokenType = 'access_token' | 'ws_accessToken'
 
@@ -215,7 +206,7 @@ export class AuthService {
     dto: TotpBodyDTO | BackupCodeDTO,
     fingerprintData: {
       fingerprintBase64: string
-      sessionDeviceInfo: SessionDeviceInfo
+      sessionDeviceInfo: ISessionDeviceInfo
     },
     preauthorizationToken: string,
     trustVerify: boolean = false
@@ -470,8 +461,8 @@ export class AuthService {
     })
   }
 
-  skipMaintenanceMode(token: string): Observable<MaintenanceBypassResponse> {
-    return this.http.get<MaintenanceBypassResponse>(`/api/admin/maintenance?t=${token}`, {
+  skipMaintenanceMode(token: string): Observable<{ ok: true }> {
+    return this.http.get<{ ok: true }>(`/api/admin/maintenance?t=${token}`, {
       withCredentials: true
     })
   }

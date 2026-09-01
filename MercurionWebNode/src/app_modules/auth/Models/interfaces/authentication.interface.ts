@@ -1,5 +1,4 @@
 import { UUID } from "crypto"
-import type { MfaStrategy } from '@mercurion/rest-contracts'
 
 export interface Authentication {
     userId: UUID
@@ -8,6 +7,6 @@ export interface Authentication {
     obscuredEmail?: string
     obscuredPhoneNumber?: string
     needsMfa: boolean
-    enabledMfaStrategies: MfaStrategy[]
+    enabledMfaStrategies: string[]
     suspiciousAttempt: boolean
 }

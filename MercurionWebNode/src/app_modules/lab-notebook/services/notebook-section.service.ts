@@ -74,7 +74,7 @@ export class NotebookSectionService {
             })
             if (!section) throw new Error('Section not found or not owned')
 
-            const chapterId = (section.chapter).id
+            const chapterId = (section.chapter as unknown as NotebookChapter).id
 
             const neighbor = await manager
                 .createQueryBuilder(NotebookSection, 's')

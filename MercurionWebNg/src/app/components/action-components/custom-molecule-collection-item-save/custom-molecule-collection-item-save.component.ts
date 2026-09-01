@@ -1,6 +1,6 @@
 import { CustomMoleculeCollectionItemSaveContextService } from './../../../services/context/action-context/custom-molecule-collection-item-save-context.service';
 import { NgClass } from '@angular/common';
-import { Component, ElementRef, HostListener, inject, signal, ViewChild, OnInit } from '@angular/core';
+import { Component, ElementRef, HostListener, inject, signal, ViewChild } from '@angular/core';
 import { ComboSelectComponent } from '../../common/combo-select/combo-select.component';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
@@ -238,7 +238,7 @@ import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.model
     </div>
   `
 })
-export class CustomMoleculeCollectionItemSaveComponent implements OnInit {
+export class CustomMoleculeCollectionItemSaveComponent {
   @ViewChild('name')
   private nameRef!: ElementRef<HTMLInputElement>;
 

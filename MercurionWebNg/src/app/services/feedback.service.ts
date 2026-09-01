@@ -1,15 +1,8 @@
+import { CreateFeedbackDTO, Feedback, FeedbackEnv, FeedbackStatus, UpdateFeedbackDTO } from './../Models/feedback.models';
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
-import type {
-  CreateFeedbackDTO,
-  DeleteFeedbackResponse,
-  Feedback,
-  FeedbackEnv,
-  FeedbackStatus,
-  PageModel,
-  UpdateFeedbackDTO
-} from '@mercurion/rest-contracts'
+import { PageModel } from '../Models/graphql/page.models';
 
 @Injectable({
   providedIn: 'root'
@@ -52,7 +45,7 @@ export class FeedbackService {
   }
 
   deleteFeedback(id: string): Observable<boolean> {
-    return this.http.delete<DeleteFeedbackResponse>(`${this.base}/${id}`, {
+    return this.http.delete<{ ok: boolean }>(`${this.base}/${id}`, {
       withCredentials: true
     }).pipe(
       map(({ ok }) => ok)

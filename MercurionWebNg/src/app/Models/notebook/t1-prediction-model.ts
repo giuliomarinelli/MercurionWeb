@@ -1,11 +1,18 @@
-import type { Tox21Inference } from '@mercurion/rest-contracts'
+export interface T1PredictionDTO {
+    "SR-ATAD5"?: InferenceDTO
+    "NR-AhR"?: InferenceDTO
+    "SR-MMP"?: InferenceDTO
+    "SR-p53"?: InferenceDTO
+}
 
 export interface T1PredictionItem {
   label: string;
-  prediction: Tox21Inference;
+  prediction: InferenceDTO;
 }
 
-export type {
-  Tox21Inference as InferenceDTO,
-  Tox21Prediction as T1PredictionDTO
-} from '@mercurion/rest-contracts'
+
+export interface InferenceDTO {
+    probability: number
+    is_positive: boolean
+    threshold: number
+}

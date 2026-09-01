@@ -18,7 +18,6 @@ import { uuidv7 } from '@kripod/uuidv7'
 import { UUID } from 'crypto'
 import { generateAnonAuthorKey } from '../../generate-anon-author-key'
 import { Exclude } from 'class-transformer'
-import type { Feedback as FeedbackContract } from '@mercurion/rest-contracts'
 
 @Entity({ name: 'feedback' })
 @Index('feedback_env_created_at_ms_idx', ['env', 'createdAtMs'])
@@ -33,7 +32,7 @@ import type { Feedback as FeedbackContract } from '@mercurion/rest-contracts'
 @Check('feedback_created_at_ms_positive', `"created_at_ms" > 0`)
 @Index('feedback_status_idx', ['status'])
 @Index('feedback_env_status_created_at_ms_idx', ['env', 'status', 'createdAtMs'])
-export class Feedback implements FeedbackContract {
+export class Feedback {
 
     @PrimaryColumn('uuid')
     id: UUID

@@ -1,9 +1,8 @@
 import { Transform } from "class-transformer";
 import { IsEmail, IsString, Matches } from "class-validator";
 import { GeneralUtils } from "src/utils/general-utils/general-utils";
-import type { RecoverCredentialsDTO as RecoverCredentialsContract } from '@mercurion/rest-contracts'
 
-export class RecoverCredentialsDTO implements RecoverCredentialsContract {
+export class RecoverCredentialsDTO {
     @IsString()
     @IsEmail()
     @Matches(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)

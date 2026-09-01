@@ -86,7 +86,7 @@ export class PubSubService implements OnModuleInit {
     }
 
     try {
-      await this.oauth2_accessTokenRefreshService.refreshAccessToken(provider, userId);
+      await this.oauth2_accessTokenRefreshService.refreshAccessToken(provider, userId as UUID);
       this.logger.log(`Access token refreshed for provider=${provider} userId=${userId ?? '[none]'}`)
     } catch (err) {
       this.logger.error(`Error refreshing access token for provider=${provider} userId=${userId ?? '[none]'}: ${err?.message || err}`)

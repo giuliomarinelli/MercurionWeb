@@ -22,8 +22,8 @@ import { BackupCodeStatusDTO } from 'src/app_modules/user/Models/DTO/backup-code
 import { RpcException } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
 import { ProvidedEmailDTO } from '../Models/DTO/provided-email.dto';
+import { AuthProvider } from 'src/app_modules/sso/Models/enums/auth-provider.enum';
 import { VersionDTO } from '../Models/DTO/version.dto';
-import type { AuthProvider as WireAuthProvider, BackupCodesDTO } from '@mercurion/rest-contracts'
 
 
 
@@ -169,7 +169,7 @@ export class AccountController {
     }
 
     @Get('/auth-provider')
-    public async getAuthProvider(@AuthenticatedUserId() userId: UUID): Promise<WireAuthProvider> {
+    public async getAuthProvider(@AuthenticatedUserId() userId: UUID): Promise<AuthProvider> {
         const p = await this.userService.getAuthProviderByUserId(userId)
         if (!p) {
             throw new NotFoundException()
@@ -285,7 +285,7 @@ export class AccountController {
     @HttpCode(HttpStatus.OK)
     public async regenerateBackupCodes(
         @AuthenticatedUserId() userId: UUID
-    ): Promise<BackupCodesDTO> {
+    ): Promise<{ codes: string[] }> {
 
         const strategies = await this.mfaService.getEnabledMfaStrategies(userId)
         if (!strategies.length) {

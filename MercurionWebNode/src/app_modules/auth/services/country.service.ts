@@ -20,11 +20,14 @@ export class CountryService {
                 phonecode: true
             }
         })
-        return rows.flatMap(({ id, iso2, phonecode }) =>
-            iso2 && phonecode
-                ? [{ id, iso2, phonecode: `+${phonecode}` }]
-                : []
-        )
+        return rows.map((r) => {
+            const { id, iso2, phonecode } = r
+            return ({
+                id,
+                iso2,            
+                phonecode: phonecode ? `+${phonecode}` : null
+            })
+        }).filter((dto) => dto.phonecode != null && dto.iso2 != null)
     }
 
 }

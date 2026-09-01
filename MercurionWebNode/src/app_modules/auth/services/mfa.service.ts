@@ -163,7 +163,7 @@ export class MfaService {
                 hash: await this.passwordEncoderService.encode(plain),
                 used: false,
                 createdAt: Date.now(),
-                user: { id: userId },
+                user: { id: userId } as Pick<User, "id">,
             }))
         )
 

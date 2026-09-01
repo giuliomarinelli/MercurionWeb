@@ -1,1 +1,4 @@
-export type { VersionDTO } from '@mercurion/rest-contracts'
+export interface VersionDTO {
+    version: string
+    versionHash: string
+}

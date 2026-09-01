@@ -1,5 +1,5 @@
 import { WelcomeHeroComponent } from './../../components/welcome/welcome-hero/welcome-hero.component'
-import { ChangeDetectionStrategy, Component, ElementRef, inject, OnInit, OnDestroy } from '@angular/core'
+import { ChangeDetectionStrategy, Component, ElementRef, inject } from '@angular/core'
 import { FooterComponent } from '../../components/common/footer/footer.component'
 import { WelcomeCloudLogoComponent } from '../../components/welcome/welcome-cloud-logo/welcome-cloud-logo.component'
 import { WelcomeFeatureGridComponent } from '../../components/welcome/welcome-feature-grid/welcome-feature-grid.component'
@@ -113,7 +113,7 @@ import { DesignService } from '../../services/design.service'
   `,
 
 })
-export class WelcomePageComponent implements OnInit, OnDestroy {
+export class WelcomePageComponent {
 
   private readonly route = inject(ActivatedRoute)
   private readonly appContext = inject(AppContextService)
