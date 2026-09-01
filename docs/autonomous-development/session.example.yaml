@@ -34,7 +34,6 @@ agent:
   subscription_profile: max
   harness: github-copilot-cli
   mode: autopilot
-  advanced_autopilot_required: false
   inherit_parent_model_and_reasoning: true
 
   coordinator:
@@ -43,6 +42,7 @@ agent:
 
   worker:
     name: Development Task Worker
+    agent_type: development-task-worker
     file: .github/agents/development-task-worker.agent.md
     invocation: task
     mode: sync
@@ -72,6 +72,7 @@ capabilities:
   subagents:
     required: true
     tool: task
+    agent_type: development-task-worker
     mode: sync
   browser_validation:
     enabled: true
@@ -96,6 +97,17 @@ startup:
     require_effective_repository_local_commit_gpg_sign: true
     required_repository_local_commit_gpg_sign_value: false
     require_no_gpg_sign_per_commit_command: true
+  subagent_probe:
+    required: true
+    before_task_branch_creation: true
+    tool: task
+    agent_type: development-task-worker
+    mode: sync
+    request_marker: "capability_probe: true"
+    nonce: fresh-unpredictable-value
+    expected_response: "TASK_CAPABILITY_OK {nonce}"
+    worker_tool_calls_allowed: false
+    repository_access_allowed: false
   denial_policy:
     stop_and_report_exact_denial: true
     prerequisites:
@@ -276,4 +288,6 @@ on_finish:
   commit_and_push_report_to_develop: true
   wait_for_exact_report_commit_ci: true
   session_fatal_blocker_completes_coordinator_objective: true
+  emit_final_summary_and_report_path_before_task_complete: true
+  task_complete_is_final_autopilot_action: true
   call_task_complete: true
