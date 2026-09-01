@@ -519,7 +519,7 @@ export class MfaPageComponent implements OnInit, OnDestroy {
       return
     }
 
-    let dto: TotpBodyDTO | BackupCodeDTO = this.view() !== 'BACKUP_CODE' ? {
+    const dto: TotpBodyDTO | BackupCodeDTO = this.view() !== 'BACKUP_CODE' ? {
       totp: this.codeControl.value
     }
       :

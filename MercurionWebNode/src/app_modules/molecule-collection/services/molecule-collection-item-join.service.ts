@@ -292,7 +292,7 @@ export class MoleculeCollectionItemJoinService {
                 qbAll.andWhere('NOT (c.id = ANY(:excluded))', { excluded: distinct })
             }
             const rows = await qbAll.getRawMany<Pick<MoleculeCollection, 'id'>>()
-            candidateIds = rows.map(r => r.id as UUID)
+            candidateIds = rows.map(r => r.id)
         }
         if (candidateIds.length === 0) {
             return {
@@ -326,7 +326,7 @@ export class MoleculeCollectionItemJoinService {
         }
         await this.itemService.markAsTouchedWithManager(userId, moleculeId as UUID, manager)
         for (const collectionId of toInsert) {
-            await this.collectionService.markAsTouchedWithManager(userId, collectionId as UUID, manager)
+            await this.collectionService.markAsTouchedWithManager(userId, collectionId, manager)
         }
         return {
             ok: true,

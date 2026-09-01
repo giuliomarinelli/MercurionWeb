@@ -110,8 +110,16 @@ import { DOCUMENT, isPlatformBrowser } from '@angular/common'
           </section>
         </div>
       </div>
-      @if (searchContextService.isMounted()) { <m-search-overlay /> }
-      @if (saveOverlayContext.shouldMount() && userContext.isLoggedIn()) { <m-action-overlay /> }
+      @if (searchContextService.isMounted()) {
+        @defer (when searchContextService.isMounted()) {
+          <m-search-overlay />
+        }
+      }
+      @if (saveOverlayContext.shouldMount() && userContext.isLoggedIn()) {
+        @defer (when saveOverlayContext.shouldMount()) {
+          <m-action-overlay />
+        }
+      }
     } @else {
       <div class="min-h-screen">
         @if (!is_not_welcome_route()) {

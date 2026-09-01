@@ -82,7 +82,7 @@ export class SecurityAuditService implements OnModuleInit {
         this.lastMeiliFailure = now
         // qui potresti anche usare console.error o un logger "di base" se vuoi
         // per evitare dipendenze circolari con MeiliLoggerService
-        // eslint-disable-next-line no-console
+
         console.error('[SecurityAudit] Failed to send event to Meili:', err?.message ?? err)
       }
     }

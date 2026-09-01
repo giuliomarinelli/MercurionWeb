@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+
+permissions:
+  contents: read
+
+jobs:
+  bootstrap-quality:
+    name: Bootstrap quality gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+          cache: npm
+          cache-dependency-path: |
+            MercurionWebNg/package-lock.json
+            MercurionWebNode/package-lock.json
+
+      - name: Install Angular dependencies
+        working-directory: MercurionWebNg
+        run: npm ci
+
+      - name: Install Nest dependencies
+        working-directory: MercurionWebNode
+        run: npm ci
+
+      - name: Lint Angular
+        working-directory: MercurionWebNg
+        run: npm run lint
+
+      - name: Lint Nest
+        working-directory: MercurionWebNode
+        run: npm run lint
+
+      - name: Typecheck Angular
+        working-directory: MercurionWebNg
+        run: npm run typecheck
+
+      - name: Typecheck Nest
+        working-directory: MercurionWebNode
+        run: npm run typecheck
+
+      - name: Test Angular
+        working-directory: MercurionWebNg
+        run: npm run test:ci
+
+      - name: Test Nest
+        working-directory: MercurionWebNode
+        run: npm test -- --runInBand
+
+      - name: Test Nest E2E
+        working-directory: MercurionWebNode
+        run: npm run test:e2e -- --runInBand
+
+      - name: Build Angular
+        working-directory: MercurionWebNg
+        run: npm run build
+
+      - name: Build Nest
+        working-directory: MercurionWebNode
+        run: npm run build

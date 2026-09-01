@@ -252,11 +252,48 @@ Prefer a non-breaking incremental migration that leaves the covered public REST 
 
 ### Preflight / Phase 0
 
-_Not started._
+Completed on `feature/SYS-001` before any Phase 1 work.
+
+- Verified the clean branch started at the supplied base
+  `c9cccf5b3f63a7e915c897cc01c01264ba6aa702` and repository-local
+  `commit.gpgSign=false`.
+- Initial clean installs:
+  - `cd MercurionWebNg; npm ci` — passed.
+  - `cd MercurionWebNode; npm ci` — failed because the Nest lockfile omitted
+    transitive `chokidar` dependencies required by the manifest.
+- Initial gate diagnostics found the missing Angular lint target, mutating-only
+  Nest lint, 66 failing Angular smoke tests, an Angular production bundle over
+  the configured 1 MB error budget, a missing Nest E2E module mapper, and
+  process-terminating environment validation.
+- Final clean reproducibility run:
+  - `cd MercurionWebNg; npm ci` — passed (794 packages).
+  - `cd MercurionWebNode; npm ci` — passed (1269 packages).
+  - Angular: `npm run lint`, `npm run typecheck`, `npm run test:ci`,
+    `npm run build` — all passed; 157/157 Karma tests passed and the production
+    initial bundle was 963.91 kB, below the configured 1 MB error budget.
+  - Nest: `npm run lint`, `npm run typecheck`, `npm test -- --runInBand`,
+    `npm run test:e2e -- --runInBand`, `npm run build` — all passed; 115/115
+    unit suites (152 tests) and 1/1 E2E suite passed with exit code 0.
+  - `node` plus the installed `yaml` parser loaded
+    `.github/workflows/ci.yml` successfully (`WORKFLOW_YAML_OK`).
+- The bootstrap workflow runs the same clean installs and complete Phase 0 gate
+  set for pushes and pull requests targeting `develop`; it performs no deploy,
+  publish, auto-fix, or credentialed production action.
 
 ### Preflight remediation
 
-_None._
+- Added Angular 20-compatible ESLint tooling with separate check/fix commands,
+  explicit application typecheck, deterministic headless Karma command, shared
+  test providers, and repaired stale generated smoke tests.
+- Added separate Nest lint check/fix and typecheck commands; repaired lockfile
+  integrity, E2E path/ESM mapping, and environment validation so invalid config
+  throws through the bootstrap boundary instead of terminating Jest.
+- Deferred the root search/action overlays so the existing production budget is
+  met without raising or disabling the configured threshold.
+- Preserved legacy lint debt as visible warnings while keeping parser,
+  framework, template, and recommended-rule verification non-mutating and
+  error-producing for active violations.
+- Created `.github/workflows/ci.yml` with one terminal bootstrap quality job.
 
 ### Phase 1 summary
 

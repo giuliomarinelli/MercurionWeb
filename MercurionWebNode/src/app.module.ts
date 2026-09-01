@@ -31,7 +31,7 @@ import { SSO_Module } from './app_modules/sso/sso.module';
 import { HelpModule } from './app_modules/help/help.module';
 import { FeedbackModule } from './app_modules/feedback/feedback.module';
 import { resolveAppEnv, shouldUseEnvFile } from './utils/env-helpers';
-import { validateEnvOrKillProcess } from './config/env-validation';
+import { validateEnv } from './config/env-validation';
 import { ReleaseVersionModule } from './app_modules/release-version/release-version.module';
 import { HealthController } from './health.controller';
 import { AssetController } from './asset.controller';
@@ -50,7 +50,7 @@ const appEnv = resolveAppEnv()
       expandVariables: true,            
       cache: false,
       validate: (config) => {
-        validateEnvOrKillProcess(config as NodeJS.ProcessEnv)
+        validateEnv(config as NodeJS.ProcessEnv)
         return config
       }
     }),

@@ -134,9 +134,9 @@ describe('AuthenticationController', () => {
       const reply = {};
 
       await controller.logoutFromSession(
-        userId as never,
+        userId,
         { signedSessionId },
-        currentSessionId as never,
+        currentSessionId,
         reply as never,
       );
 
@@ -150,9 +150,9 @@ describe('AuthenticationController', () => {
       const reply = {};
 
       await controller.logoutFromSession(
-        userId as never,
+        userId,
         { signedSessionId: currentSignedSessionId },
-        currentSessionId as never,
+        currentSessionId,
         reply as never,
       );
 
