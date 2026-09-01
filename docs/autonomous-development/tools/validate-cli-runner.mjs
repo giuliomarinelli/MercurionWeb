@@ -156,12 +156,6 @@ for (const [role, profile] of Object.entries({ coordinator, worker })) {
   if (/^tools:\s*\["\*"\]\s*$/m.test(profile.yaml)) {
     fail(target, 'must not inherit every unrelated user-scoped tool schema');
   }
-  requireMatch(
-    target,
-    profile.yaml,
-    /^disable-model-invocation:\s*true\s*$/m,
-    'frontmatter must disable inferred invocation',
-  );
   if (/^(?:target|model|argument-hint|handoffs):/m.test(profile.yaml)) {
     fail(target, 'contains unsupported or pinned frontmatter metadata');
   }
@@ -180,6 +174,12 @@ requireMatch(
   'coordinator must be manually invocable',
 );
 requireMatch(
+  paths.agents.coordinator,
+  coordinator.yaml,
+  /^disable-model-invocation:\s*true\s*$/m,
+  'coordinator must disable inferred invocation',
+);
+requireMatch(
   paths.agents.worker,
   worker.yaml,
   /^name:\s*Development Task Worker\s*$/m,
@@ -190,6 +190,12 @@ requireMatch(
   worker.yaml,
   /^user-invocable:\s*false\s*$/m,
   'worker must not be user-invocable',
+);
+requireMatch(
+  paths.agents.worker,
+  worker.yaml,
+  /^disable-model-invocation:\s*false\s*$/m,
+  'worker must remain available for programmatic task invocation',
 );
 requireMatch(
   paths.agents.coordinator,

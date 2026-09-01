@@ -3,7 +3,7 @@ name: Development Task Worker
 description: Implement and validate exactly one autonomous task on its prepared feature branch.
 tools: ["execute", "read", "edit", "search", "web", "todo", "chrome-devtools/*"]
 user-invocable: false
-disable-model-invocation: true
+disable-model-invocation: false
 ---
 
 # Development Task Worker
