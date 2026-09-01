@@ -56,17 +56,29 @@ Series filenames use four-digit globally progressive prefixes:
 ...
 ```
 
-Each real series declares near its header:
+Every real series starts with valid YAML frontmatter. The canonical shape is:
 
-```md
-**series_number:** `0001`
-**card_id:** `$oid(...)`
-**task_range:** `[0001 - 0220]`
+```yaml
+---
+series_number: "0001"
+card_id: "$oid(6a962b70d3e82215b546be6e)"
+task_range:
+  start: "0001"
+  end: "0220"
+repository: "giuliomarinelli/MercurionWeb"
+branch: "develop"
+baseline:
+  commit: "8048279c1f7cf65b7d46149e19ad039c4e47c5f3"
+  label: "NG | cve fixes"
+  date: "2026-08-28"
+---
 ```
+
+The frontmatter is the machine-readable source of truth. Four-digit identifiers remain quoted strings so YAML parsers preserve leading zeroes.
 
 The inclusive `task_range` is the deterministic binding from the series domain to the task domain. Task files remain independently executable and do not need a backlink to their owning series.
 
-`card_id` binds the series to the corresponding Trello card. It is metadata only and must not be used by the runner to infer task membership.
+`card_id` binds the series to the corresponding Trello card. It is external planning metadata only and must not be used by the runner to infer task membership.
 
 The canonical authoring reference is `series/0000-series-example.md`.
 
@@ -97,7 +109,7 @@ Task numbers do not restart for each series. A future series continues after the
 A session can eventually resolve its workload from:
 
 1. an explicit list of task files;
-2. a selected series, using that series' inclusive `task_range`;
+2. a selected series, parsing that series' YAML `task_range.start` and `task_range.end`;
 3. the global pending task queue when neither is specified.
 
 Task authoring from a series is deliberately separate from task execution: the runner must never synthesize missing task recipes on the fly from a series registry.
