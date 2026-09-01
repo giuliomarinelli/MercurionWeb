@@ -40,12 +40,16 @@ docs/autonomous-development/
 ## Model profile
 
 ```yaml
+host: vscode
 model: GPT-5.6 Sol
-context: default   # 272K tier
 reasoning: high
+context:
+  max_prompt_tokens: 272000
+  native_responses_compaction: true
+  compact_threshold: 244800
 ```
 
-Each task gets a fresh context. The 1M context tier remains an explicit escalation, not the default.
+Each task gets a fresh context. VS Code workspace settings enable OpenAI Responses API context management through `github.copilot.chat.responsesApiContextManagement.enabled`. The extension computes the server-side compaction threshold at 90% of the active model prompt window, so a 272K window compacts at approximately 244.8K tokens. The 1M long-context tier is deliberately not part of the normal autonomous workflow.
 
 ## Series and task identity
 
@@ -123,7 +127,7 @@ No rebase, force-push, shared-history reset or CI bypass is part of the autonomo
 
 ## Browser/runtime validation
 
-Chrome DevTools MCP is configured in `.github/mcp.json`.
+Chrome DevTools MCP is configured for VS Code in `.vscode/mcp.json`.
 
 The canonical local stack is:
 
