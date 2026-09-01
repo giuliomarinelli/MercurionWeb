@@ -26,32 +26,27 @@ repository:
     ci_failure_policy: revert-merge-and-block
 
 agent:
+  host: vscode
   provider: github-copilot
   model: GPT-5.6 Sol
   reasoning: high
 
-  # Context policy for autonomous runs. This block describes REQUIRED runtime
-  # semantics; it is not pretending that these keys are native Copilot CLI
-  # settings. The runner must verify that the active harness can realize them
-  # before starting work, and fail closed otherwise.
+  # Autonomous sessions run through GitHub Copilot Chat/Agent in VS Code.
+  # `.vscode/settings.json` enables the extension's native OpenAI Responses API
+  # context management. For a 272K prompt window the extension computes the
+  # server-side compaction threshold as floor(272000 * 0.9) = 244800 tokens.
   context:
-    tier: default
     max_prompt_tokens: 272000
+    long_context_enabled: false
     management:
       required: true
       provider: openai-responses
       strategy: server-side-compaction
-      compact_threshold: 244800 # 90% of the 272K prompt window
-      allow_copilot_summary_compaction: false
-      failure_policy: abort-session
-
-  # Chrome DevTools MCP is project-level. Built-in GitHub MCP is not required
-  # for the task lifecycle; Git/gh CLI can perform the explicitly allowed branch
-  # and CI operations.
-  disable_builtin_mcps: true
-
-  environment:
-    GITHUB_COPILOT_PROMPT_MODE_WORKSPACE_MCP: "true"
+      workspace_setting: github.copilot.chat.responsesApiContextManagement.enabled
+      workspace_setting_file: .vscode/settings.json
+      required_value: true
+      compact_threshold: 244800
+      compact_threshold_policy: 90-percent-of-model-max-prompt-tokens
 
   max_autopilot_continues_per_task: 20
   max_ai_credits_per_task: 100
@@ -60,6 +55,7 @@ capabilities:
   browser_validation:
     enabled: true
     mcp_server: chrome-devtools
+    mcp_config: .vscode/mcp.json
     required_when_declared_by_task: true
 
 runtime:
