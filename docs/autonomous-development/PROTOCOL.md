@@ -12,11 +12,12 @@ A **Development Session** is a bounded period in which an external runner execut
 - **Task**: one numbered Markdown implementation recipe executed by one fresh agent invocation.
 - **Soft deadline**: after this time no new task may start; the task already in progress may finish.
 - **Hard deadline**: absolute session cutoff. If reached, the current task must stop safely even if incomplete.
+- **Capability**: an external tool available to the coding agent, such as Chrome DevTools MCP for browser validation.
 - **Report**: the final session summary produced after the workload is exhausted or the session stops.
 
 ## Source of truth
 
-Session timing, workload selection, model, branch, budgets, and finish policy are defined by the active YAML session configuration.
+Session timing, workload selection, model, branch, budgets, enabled capabilities, and finish policy are defined by the active YAML session configuration.
 
 Series identity, Trello binding, task-range binding, repository/baseline context, and optional baseline metadata are defined by each series document's YAML frontmatter.
 
@@ -29,9 +30,10 @@ The runner, not the language model, owns:
 - soft/hard deadline enforcement;
 - deciding whether another task may start;
 - process/session creation and termination;
+- enabling required project-level MCP configuration for unattended prompt-mode runs;
 - session-level reporting orchestration.
 
-The coding agent owns only the implementation of the single task recipe it receives.
+The coding agent owns only the implementation and validation of the single task recipe it receives using the capabilities made available by the runner/CLI.
 
 ## Planning domain: series
 
@@ -101,6 +103,23 @@ Rules:
 6. A task whose header contains `- [x] BLOCKED` is blocked and must be skipped unless explicitly re-enabled by a human.
 7. A task is pending when both `DONE` and `BLOCKED` are unchecked.
 
+## Browser capability
+
+GitHub Copilot CLI loads the repository-level Chrome DevTools MCP server from `.github/mcp.json` when project-level MCP configuration is trusted/enabled.
+
+The default repository configuration uses a dedicated headless, isolated Chrome instance. Autonomous sessions must not attach to a human developer's personal browser profile.
+
+Browser validation is task-driven:
+
+1. A frontend/browser-facing task declares required runtime checks in its `Browser validation` section.
+2. When browser validation is declared, the coding agent must use the `chrome-devtools` MCP tools when those tools are needed to establish the stated acceptance criteria.
+3. Successful compile/build/lint output is not a substitute for browser evidence explicitly required by a task.
+4. If the task declares browser validation and the MCP capability, local application, required test data, or another declared prerequisite is unavailable, the task must be marked `BLOCKED`.
+5. Backend-only tasks and frontend tasks fully verified by non-browser tests do not need to invoke Chrome unless the task explicitly requires it.
+6. Autonomous browser validation must not use production credentials or production data.
+
+For unattended Copilot prompt-mode sessions, project-level MCP configuration is enabled by the runner only after explicit repository trust/review, using the GitHub-supported `GITHUB_COPILOT_PROMPT_MODE_WORKSPACE_MCP=true` environment variable.
+
 ## Workload resolution
 
 The runner may resolve a workload in three ways:
@@ -123,6 +142,7 @@ Before starting work, the runner must verify:
 - the working tree is in an acceptable state according to runner policy;
 - the session configuration is valid;
 - a selected series exists and its YAML frontmatter/range are valid when applicable;
+- configured required capabilities are available;
 - at least one pending task exists in the resolved workload.
 
 If there are no pending tasks, the session ends immediately and produces a report.
@@ -146,11 +166,12 @@ The agent must:
 2. inspect relevant repository code and documentation;
 3. formulate an implementation approach;
 4. implement only the requested scope;
-5. validate the result;
-6. repair failures caused by its changes within configured limits;
-7. update the task's execution notes;
-8. mark exactly one terminal state when appropriate;
-9. create one atomic commit for a completed task.
+5. run static/unit/integration validation required by the task;
+6. perform declared browser validation when applicable;
+7. repair failures caused by its changes within configured limits;
+8. update the task's execution notes;
+9. mark exactly one terminal state when appropriate;
+10. create one atomic commit for a completed task.
 
 The runner MUST NOT start the next task until the current agent invocation has terminated.
 
@@ -159,7 +180,7 @@ The runner MUST NOT start the next task until the current agent invocation has t
 A task is `DONE` only when:
 
 - all acceptance criteria are satisfied;
-- all required validation succeeds;
+- all required validation, including browser validation when declared, succeeds;
 - repository state is acceptable;
 - the task has been committed according to repository instructions.
 
@@ -185,6 +206,7 @@ A task must be marked `BLOCKED` when safe completion requires information or aut
 - an unspecified product or business decision;
 - a security-sensitive choice not already documented;
 - unavailable credentials or external resources;
+- unavailable browser/runtime validation explicitly required by the task;
 - a materially larger scope than the task describes;
 - choosing between materially different externally visible behaviours;
 - validation failures that cannot be resolved within configured task limits.
@@ -234,8 +256,9 @@ When a session finishes because of workload exhaustion, soft-deadline completion
 3. collect task states and commits produced during the session;
 4. collect unresolved blockers and warnings;
 5. record the selected series/range when applicable;
-6. generate the session report when enabled;
-7. exit.
+6. record browser/MCP validation failures relevant to completed or blocked tasks;
+7. generate the session report when enabled;
+8. exit.
 
 ## Session report
 
@@ -251,6 +274,7 @@ A report should contain at least:
 - commits created;
 - final repository status;
 - configured validation results;
+- browser validation summary when applicable;
 - decisions requiring human attention;
 - agent/runner errors;
 - usage/credit information when available.
