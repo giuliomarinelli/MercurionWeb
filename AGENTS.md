@@ -18,14 +18,25 @@ Detailed session semantics are defined in:
 - Do not invent architectural, product, security, billing, or business decisions that are not specified by the task or existing repository documentation.
 - When a required decision is missing, mark the task as blocked according to the autonomous-development protocol and stop that task.
 
+## Planning and execution domains
+
+Autonomous-development planning and execution are intentionally separate:
+
+- `docs/autonomous-development/series/` contains non-executable series documents: analysis, planning context, source registries, Trello-card bindings, and task-range bindings.
+- `docs/autonomous-development/task/` contains executable task recipes.
+- Series membership is owned by the series document through its inclusive `task_range`; task files do not need to encode a backlink to their series.
+- `card_id` is series metadata used to bind a series to its Trello card. It is not an execution dependency.
+- `0000-series-example.md` and `0000-task-example.md` are templates only and MUST NEVER be executed.
+
 ## Task execution
 
 - Execute exactly one numbered task file per agent invocation.
-- `0000-task-example.md` is documentation and a template only. It must never be executed as a task.
+- Executable task files start at `0001` and use globally progressive four-digit numeric prefixes.
 - Read the complete task before changing code.
 - Inspect the relevant existing implementation before editing.
 - Keep changes narrowly scoped to the task.
 - Prefer existing repository patterns and dependencies over introducing new abstractions or packages.
+- Do not infer executable requirements from a series document when the active task recipe is explicit. A series may be consulted as planning context only when useful or explicitly referenced.
 
 ## Validation
 
