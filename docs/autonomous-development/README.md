@@ -20,7 +20,7 @@ The model is intentionally strict:
 
 See `PROTOCOL.md` for the complete lifecycle and `RUNTIME.md` for browser/runtime topology.
 
-The GitHub Copilot CLI runner is implemented as a coordinator/worker pair in `.github/agents/`. The coordinator owns the bounded session and invokes a new `Development Task Worker` through one synchronous `task` call for each recipe. The former VS Code Autopilot/advanced-mode route is unsupported for autonomous overnight sessions.
+The GitHub Copilot CLI runner is implemented as a coordinator/worker pair in `.github/agents/`. The coordinator owns the bounded session and invokes the repository agent `development-task-worker` through one synchronous `task` call for each recipe. Before any task branch exists, it performs one separate nonce-correlated, non-mutating handshake with that same agent. The former VS Code Autopilot/advanced-mode route is unsupported for autonomous overnight sessions.
 
 ## Structure
 
@@ -70,12 +70,12 @@ context:
 
 Each task gets a fresh worker context. The coordinator uses GitHub Copilot CLI's native automatic context compaction and session checkpoint behavior; `/compact` remains available when an explicit compaction is needed.
 
-The agent profiles do not pin a model or reasoning level. The coordinator and workers inherit GPT-5.6 Sol and High reasoning from the parent CLI session. Launch uses CLI Autopilot with all required permissions; no VS Code advanced-mode setting is required.
+The agent profiles do not pin a model or reasoning level. The coordinator and workers inherit GPT-5.6 Sol and High reasoning from the parent CLI session. Their explicit tool lists provide the required terminal/edit/search/delegation/browser capabilities without inheriting every unrelated user-scoped tool schema. Launch uses CLI Autopilot with all required permissions; no VS Code advanced-mode setting is required.
 
 ## Agent topology
 
 - `Development Session Coordinator` persists across the bounded run, parses the active YAML, owns time/task selection/Git integration/CI/reporting, and never implements two tasks concurrently.
-- `Development Task Worker` is one fresh stateless synchronous CLI `task` invocation for one prepared `feature/<Source>` branch. It owns preflight, implementation, local validation, task notes and feature-branch commits only.
+- `Development Task Worker` (`development-task-worker` programmatically) is one fresh stateless synchronous CLI `task` invocation for one prepared `feature/<Source>` branch. It owns preflight, implementation, local validation, task notes and feature-branch commits only. Its only non-implementation mode is the startup `capability_probe`, which echoes a nonce without tool use or repository access.
 - The coordinator independently verifies each worker result before merging and remains active through exact-SHA CI, cleanup/revert, the deadline and final report.
 
 The coordinator is manually selectable but cannot be inferred automatically. The worker is neither user-invocable nor inferable and is reached only by the coordinator's explicit `task` call.
@@ -106,7 +106,7 @@ All unchecked means pending. `CI_PENDING` exists only as transient coordinator s
 
 Every persistent outcome is terminal for the active session. A later probe or Autopilot continuation cannot reopen or resume it. Only a new direct human instruction in a new or restarted session can authorize re-enablement.
 
-A session-fatal blocker completes the coordinator objective even if pending workload remains: the coordinator finalizes the report, calls `task_complete`, and stops.
+A session-fatal blocker completes the coordinator objective even if pending workload remains: the coordinator finalizes the report, emits the concise final summary and report path, calls `task_complete` as the final Autopilot action, and stops.
 
 and a planning identifier such as:
 
@@ -141,7 +141,7 @@ Before `0001`, the same rule applies using package-local bootstrap checks. The c
 
 Before any recipe work, startup also performs a real capability probe in one uniquely named operating-system temporary directory: `npm init -y`, `npm install --ignore-scripts --no-save is-number@7.0.0`, and a Node.js assertion that `require("is-number")(42)` returns `true`. The coordinator deletes exactly that directory and proves the repository is clean and unchanged before and after; dry runs are forbidden.
 
-Startup requires effective repository-local `commit.gpgSign=false`, and every autonomous commit-producing command uses `--no-gpg-sign`. Any denied install, network, filesystem, cleanup, GitHub, `task`, MCP, signing, or `task_complete` prerequisite stops the session with the exact denial.
+Startup requires effective repository-local `commit.gpgSign=false`, and every autonomous commit-producing command uses `--no-gpg-sign`. It also proves synchronous custom-agent delegation with an exact `TASK_CAPABILITY_OK <nonce>` handshake before any task branch is created. Any denied install, network, filesystem, cleanup, GitHub, `task`, MCP, signing, or `task_complete` prerequisite stops the session with the exact denial.
 
 ## Integration lifecycle
 
@@ -200,6 +200,6 @@ The Angular dev-server port is an internal upstream and must not be used as the 
 
 ## Launch
 
-`LAUNCH.md` contains the pre-launch checks, active-configuration rules and exact starting prompt. The workflow starts only after the bootstrap PR has been merged into `develop` and the local checkout has fast-forwarded to that commit.
+`LAUNCH.md` contains the pre-launch checks, exact CLI command, active-configuration rules and starting prompt. The historical bootstrap PR #25 is already merged; the workflow starts only after the complete current Copilot CLI control plane is merged into `develop` and the local checkout has fast-forwarded to `origin/develop`.
 
 The custom-agent coordinator is the GitHub Copilot CLI runner for this workflow. It is intentionally not a background service: the parent CLI session must remain running and connected for local terminals, MCP/browser access and synchronous task workers to continue.

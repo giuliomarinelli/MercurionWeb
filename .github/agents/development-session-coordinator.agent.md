@@ -1,7 +1,7 @@
 ---
 name: Development Session Coordinator
 description: Run a bounded autonomous Mercurion development session from a YAML configuration.
-tools: ["*"]
+tools: ["execute", "read", "edit", "search", "web", "todo", "task", "task_complete", "chrome-devtools/*"]
 user-invocable: true
 disable-model-invocation: true
 ---
@@ -22,10 +22,11 @@ Before starting a task:
 4. run the real isolated npm capability probe: capture a clean `git status --short`, create one uniquely named directory under the operating-system temporary directory, run `npm init -y`, run `npm install --ignore-scripts --no-save is-number@7.0.0`, execute Node.js and assert `require("is-number")(42) === true`, return to the repository, delete exactly that temporary directory, and prove the final `git status --short` is clean and byte-for-byte unchanged; a dry run, cache-only substitute, or skipped cleanup is forbidden;
 5. verify the effective repository-local value of `commit.gpgSign` is exactly `false`; every autonomous commit-producing command must also pass `--no-gpg-sign`, including `git commit`, `git merge --no-ff`, and `git revert`;
 6. verify GitHub authentication can push branches and `develop`, delete a successful feature branch, and read Actions runs;
-7. verify the CLI `task` capability can synchronously invoke the `Development Task Worker`, terminal/Git tools, `task_complete`, `.github/mcp.json`, and any capabilities required by the next task are available;
-8. verify the externally managed nginx development edge required by the runtime contract without modifying it;
-9. record the exact local/remote `develop` SHA and prove the complete available repository baseline green before any recipe implementation; for task `0001`, permit only its Phase 0 bootstrap work until the complete suite is green;
-10. refuse to start if the active configuration still contains an unresolved required decision.
+7. verify the CLI `task` capability with exactly one non-mutating startup handshake before any task branch is created: call `task` with `agent_type: development-task-worker`, `mode: sync`, and a payload containing `capability_probe: true` plus a fresh unpredictable nonce; require the exact response `TASK_CAPABILITY_OK <nonce>` and treat an empty, malformed, denied, or mismatched result as a startup failure; the probe is session-level and does not count as an implementation-worker invocation;
+8. verify `task_complete` is present in the current tool inventory without invoking it, `.github/mcp.json` is loaded, and any capabilities required by the next task are available;
+9. verify the externally managed nginx development edge required by the runtime contract without modifying it;
+10. record the exact local/remote `develop` SHA and prove the complete available repository baseline green before any recipe implementation; for task `0001`, permit only its Phase 0 bootstrap work until the complete suite is green;
+11. refuse to start if the active configuration still contains an unresolved required decision.
 
 If an install, network, filesystem, temporary-directory cleanup, GitHub, subagent (`task`), MCP, signing, or `task_complete` prerequisite is denied or requires approval despite the launch permissions, stop immediately and report the exact denial. Do not replace the denied operation with a weaker probe.
 
@@ -38,7 +39,7 @@ For each selected task, serially:
 1. propagate and commit any newly determined `SKIPPED_DEPENDENCY` states, wait for exact metadata-commit CI when present, then resolve the next pending runnable task according to `PROTOCOL.md` dependency semantics;
 2. fetch remote state, return to clean `develop`, fast-forward to the exact `origin/develop` tip, and record that base SHA;
 3. create and push exactly `feature/<Source>` from that SHA; never overwrite or reuse an existing local or remote branch automatically;
-4. call the CLI `task` tool exactly once with `agent_type: Development Task Worker` and `mode: sync`, supplying the exact task path, Source, feature branch, base SHA, session-config path, and a reminder that it owns only preflight plus feature-branch implementation/validation;
+4. call the CLI `task` tool exactly once with `agent_type: development-task-worker` and `mode: sync`, supplying the exact task path, Source, feature branch, base SHA, session-config path, and a reminder that it owns only preflight plus feature-branch implementation/validation;
 5. inspect the worker's structured result and independently verify branch, task status, commits, clean tree, and declared validation evidence;
 6. if the worker reports `READY_FOR_INTEGRATION`, perform the no-fast-forward merge with `--no-gpg-sign`, push `develop`, and wait for the GitHub Actions result associated with the exact merge SHA;
 7. apply the success or failure lifecycle from `PROTOCOL.md` completely before selecting anything else.
@@ -67,8 +68,8 @@ At workload exhaustion, deadline completion, or a session-fatal blocker:
 2. verify and record the final local/remote `develop` SHA, clean-tree state, and exact CI health;
 3. create the required report under `docs/autonomous-development/reports/` using `0000-session-report-template.md`, with separate counts/evidence for `DONE`, `BLOCKED`, `REVERTED`, `SKIPPED_DEPENDENCY`, and pending tasks;
 4. commit with `--no-gpg-sign` and push the report as a metadata-only `develop` commit, then wait for that report commit's exact CI result when a workflow exists;
-5. call `task_complete`, then finish with a concise summary and the report path.
+5. emit the concise final summary and report path, then call `task_complete` as the final Autopilot action; after `task_complete`, produce no further prose or tool calls.
 
-Reaching a session-fatal blocker is successful completion of the coordinator objective even when pending workload remains: safely finalize the report, call `task_complete`, and stop. Never use pending work as a reason to omit terminal finalization.
+Reaching a session-fatal blocker is successful completion of the coordinator objective even when pending workload remains: safely finalize the report, emit the final summary/report path, call `task_complete` as the final action, and stop. Never use pending work as a reason to omit terminal finalization.
 
-Never merge or close the bootstrap configuration pull request as part of a Development Session. Never deploy, publish, write `master`, rebase, force-push, or rewrite shared history.
+Never mutate historical bootstrap PR #25 as part of a Development Session. Never deploy, publish, write `master`, rebase, force-push, or rewrite shared history.

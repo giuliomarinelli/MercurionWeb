@@ -22,6 +22,13 @@ const paths = {
   exampleSession: 'docs/autonomous-development/session.example.yaml',
 };
 
+const expectedAgentTools = {
+  coordinator:
+    'tools: ["execute", "read", "edit", "search", "web", "todo", "task", "task_complete", "chrome-devtools/*"]',
+  worker:
+    'tools: ["execute", "read", "edit", "search", "web", "todo", "chrome-devtools/*"]',
+};
+
 const controlPlaneFiles = [
   'AGENTS.md',
   paths.agents.coordinator,
@@ -118,7 +125,11 @@ for (const relativePath of controlPlaneFiles) {
   const stalePatterns = [
     [/target:\s*vscode/i, 'contains stale target: vscode'],
     [/agent\/runSubagent/i, 'contains stale agent/runSubagent invocation'],
-    [/advanced_autopilot_required:\s*true/i, 'still requires the retired advanced mode'],
+    [
+      /agent_type:\s*Development Task Worker/,
+      'contains display-name agent_type instead of development-task-worker',
+    ],
+    [/advanced_autopilot_required:/i, 'contains the retired advanced-mode key'],
     [/Advanced Autopilot/i, 'contains a stale Advanced Autopilot reference'],
     [/chat\.autopilot\.advanced\.enabled/i, 'contains the removed workspace advanced-mode setting'],
     [/\.vscode\/mcp\.json/i, 'actively references the VS Code MCP file'],
@@ -136,7 +147,15 @@ for (const [role, profile] of Object.entries({ coordinator, worker })) {
   const target = paths.agents[role];
   validateYamlStructure(`${target} frontmatter`, profile.yaml);
   requireMatch(target, profile.yaml, /^description:\s*\S.+$/m, 'frontmatter requires description');
-  requireMatch(target, profile.yaml, /^tools:\s*\["\*"\]\s*$/m, 'frontmatter must allow all tools');
+  const toolsLine = profile.yaml
+    .split(/\r?\n/)
+    .find((line) => line.startsWith('tools:'));
+  if (toolsLine !== expectedAgentTools[role]) {
+    fail(target, `frontmatter tools must equal ${expectedAgentTools[role]}`);
+  }
+  if (/^tools:\s*\["\*"\]\s*$/m.test(profile.yaml)) {
+    fail(target, 'must not inherit every unrelated user-scoped tool schema');
+  }
   requireMatch(
     target,
     profile.yaml,
@@ -175,7 +194,7 @@ requireMatch(
 requireMatch(
   paths.agents.coordinator,
   coordinator.content,
-  /`task` tool exactly once[\s\S]*`agent_type: Development Task Worker`[\s\S]*`mode: sync`/,
+  /`task` tool exactly once[\s\S]*`agent_type: development-task-worker`[\s\S]*`mode: sync`/,
   'coordinator must require one synchronous Development Task Worker task call',
 );
 requireMatch(
@@ -183,6 +202,30 @@ requireMatch(
   coordinator.content,
   /Never run two implementation workers concurrently/,
   'coordinator must prohibit concurrent workers',
+);
+for (const [target, content] of [
+  [paths.agents.coordinator, coordinator.content],
+  [paths.agents.worker, worker.content],
+]) {
+  requireMatch(target, content, /capability_probe: true/, 'missing non-mutating task handshake');
+  requireMatch(
+    target,
+    content,
+    /TASK_CAPABILITY_OK <nonce>/,
+    'missing nonce-correlated task handshake response',
+  );
+}
+requireMatch(
+  paths.agents.worker,
+  worker.content,
+  /do not read repository files, invoke tools, run commands, inspect or modify Git/,
+  'worker capability probe must forbid repository and tool access',
+);
+requireMatch(
+  paths.agents.coordinator,
+  coordinator.content,
+  /emit the concise final summary and report path, then call `task_complete` as the final Autopilot action/,
+  'coordinator must summarize before the final task_complete action',
 );
 
 const activeSession = read(paths.activeSession);
@@ -195,15 +238,15 @@ for (const [target, content] of [
   requireMatch(target, content, /^\s*host:\s*github-copilot-cli\s*$/m, 'missing CLI host');
   requireMatch(target, content, /^\s*harness:\s*github-copilot-cli\s*$/m, 'missing CLI harness');
   requireMatch(target, content, /^\s*mode:\s*autopilot\s*$/m, 'missing Autopilot mode');
-  requireMatch(
-    target,
-    content,
-    /^\s*advanced_autopilot_required:\s*false\s*$/m,
-    'advanced mode must not be required',
-  );
   requireMatch(target, content, /^\s*invocation:\s*task\s*$/m, 'worker must use task');
   requireMatch(target, content, /^\s*tool:\s*task\s*$/m, 'subagent capability must use task');
   requireMatch(target, content, /^\s*mode:\s*sync\s*$/m, 'task invocation must be synchronous');
+  const agentTypeMatches = content.match(
+    /^\s*agent_type:\s*development-task-worker\s*$/gm,
+  );
+  if (agentTypeMatches?.length !== 3) {
+    fail(target, 'must declare development-task-worker for worker, capability, and probe');
+  }
   requireMatch(
     target,
     content,
@@ -222,6 +265,18 @@ for (const [target, content] of [
   requireMatch(
     target,
     content,
+    /emit_final_summary_and_report_path_before_task_complete:\s*true/,
+    'final summary must precede task_complete',
+  );
+  requireMatch(
+    target,
+    content,
+    /task_complete_is_final_autopilot_action:\s*true/,
+    'task_complete must be the final Autopilot action',
+  );
+  requireMatch(
+    target,
+    content,
     /require_effective_repository_local_commit_gpg_sign:\s*true/,
     'missing required repository-local signing check',
   );
@@ -231,9 +286,78 @@ for (const [target, content] of [
     /required_repository_local_commit_gpg_sign_value:\s*false/,
     'repository-local signing value must be false',
   );
+  requireMatch(
+    target,
+    content,
+    /before_task_branch_creation:\s*true/,
+    'task handshake must run before branch creation',
+  );
+  requireMatch(
+    target,
+    content,
+    /expected_response:\s*"TASK_CAPABILITY_OK \{nonce\}"/,
+    'missing exact nonce-correlated handshake response',
+  );
+  requireMatch(
+    target,
+    content,
+    /worker_tool_calls_allowed:\s*false/,
+    'capability probe must forbid worker tool calls',
+  );
+  requireMatch(
+    target,
+    content,
+    /repository_access_allowed:\s*false/,
+    'capability probe must forbid repository access',
+  );
   if (/^\s+(?:model|reasoning):/m.test(content)) {
     fail(target, 'must inherit rather than pin model or reasoning');
   }
+}
+
+requireMatch(
+  paths.activeSession,
+  activeSession,
+  /^\s*historical_configuration_pull_request:\s*25\s*$/m,
+  'PR #25 must be retained as historical provenance',
+);
+requireMatch(
+  paths.activeSession,
+  activeSession,
+  /^\s*historical_configuration_pull_request_state:\s*merged\s*$/m,
+  'PR #25 must be recorded as merged',
+);
+requireMatch(
+  paths.activeSession,
+  activeSession,
+  /^\s*require_current_cli_runner_control_plane_on_integration_branch:\s*true\s*$/m,
+  'current CLI control plane must be required on develop',
+);
+
+const launch = read('docs/autonomous-development/LAUNCH.md');
+for (const [pattern, message] of [
+  [/## Do not launch yet/i, 'contains the obsolete pre-merge launch heading'],
+  [/PR `?#25`?.*remains draft/i, 'still describes PR #25 as draft'],
+  [/Merge PR `?#25`? manually/i, 'still asks the user to merge PR #25'],
+]) {
+  if (pattern.test(launch)) fail('docs/autonomous-development/LAUNCH.md', message);
+}
+requireMatch(
+  'docs/autonomous-development/LAUNCH.md',
+  launch,
+  /copilot --agent development-session-coordinator --allow-all-tools --allow-all-urls --add-dir \.\.\/MercurionTox21 --reasoning-effort high --autopilot/,
+  'missing deterministic Copilot CLI launch command',
+);
+if (/--allow-all-paths/.test(launch)) {
+  fail('docs/autonomous-development/LAUNCH.md', 'must not disable all path verification');
+}
+for (const command of ['/model', '/permissions show', '/mcp list', '/keep-alive on']) {
+  requireMatch(
+    'docs/autonomous-development/LAUNCH.md',
+    launch,
+    new RegExp(command.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+    `missing ${command} pre-launch verification`,
+  );
 }
 
 const deadline = '2026-09-02T10:00:00+02:00';
@@ -371,6 +495,6 @@ if (errors.length > 0) {
   process.exitCode = 1;
 } else {
   console.log(
-    'CLI runner validation passed: JSON, YAML structure, agent frontmatter, task delegation, MCP, deadline, terminal states, startup probe, signing, and change scope are valid.',
+    'CLI runner validation passed: JSON, YAML structure, explicit agent tools, slugged task delegation, non-mutating handshake, MCP, launch command, deadline, terminal states, startup probe, signing, finalization order, and change scope are valid.',
   );
 }

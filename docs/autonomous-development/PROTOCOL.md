@@ -38,7 +38,7 @@ The coordinator owns deterministic orchestration: task discovery/order, YAML par
 The repository provides two workspace custom agents under `.github/agents/`:
 
 - `Development Session Coordinator` remains alive for the complete configured session and is the only owner of task selection, shared-branch Git writes, deadlines, CI observation and final reporting.
-- `Development Task Worker` is invoked through exactly one synchronous CLI `task` tool call for exactly one task. Each invocation is fresh and stateless and therefore provides the required task context boundary.
+- `Development Task Worker` is addressed programmatically as `development-task-worker` (the profile filename without `.agent.md`) and is invoked through exactly one synchronous CLI `task` tool call for exactly one task. Each invocation is fresh and stateless and therefore provides the required task context boundary.
 
 The coordinator creates and pushes the feature branch before invoking the worker. The worker may preflight, implement, validate, commit and push only that feature branch. It never selects a later task, changes `develop`, merges, reverts, deletes a branch or finalizes the session.
 
@@ -46,7 +46,7 @@ Tasks are strictly serialized. The coordinator MUST NOT run implementation worke
 
 The active configuration is a repository contract read by the coordinator; CLI Autopilot does not replace deterministic orchestration. Wall-clock enforcement therefore remains an explicit coordinator duty. The coordinator MUST use an absolute timestamp plus the configured IANA timezone and MUST NOT rely on a long-running shell `sleep` to detect the deadline.
 
-The custom-agent profiles allow all tools and do not pin a model or reasoning level. They inherit GPT-5.6 Sol and High reasoning from the manually launched parent CLI session. Both profiles disable inferred invocation; the coordinator is manually invocable, while the worker is not user-invocable and can only be called explicitly through `task`.
+The custom-agent profiles use explicit required tool lists and do not pin a model or reasoning level. They inherit GPT-5.6 Sol and High reasoning from the manually launched parent CLI session without inheriting every unrelated user-scoped tool schema. Both profiles disable inferred invocation; the coordinator is manually invocable, while the worker is not user-invocable and can only be called explicitly through `task`.
 
 GitHub Copilot CLI uses its native automatic context compaction and session checkpoint behavior. Autonomous sessions do not depend on VS Code Responses context-management settings.
 
@@ -61,9 +61,11 @@ Before recipe implementation or task-branch creation, the coordinator:
 5. executes Node.js and asserts `require("is-number")(42) === true`;
 6. returns to the repository and deletes exactly that temporary directory;
 7. proves `git status --short` is still clean and byte-for-byte identical to the initial result;
-8. verifies the effective repository-local value of `commit.gpgSign` is exactly `false`.
+8. verifies the effective repository-local value of `commit.gpgSign` is exactly `false`;
+9. generates a fresh unpredictable nonce and makes exactly one synchronous `task` call with `agent_type: development-task-worker`, `mode: sync`, and `capability_probe: true` before any task branch exists;
+10. requires the worker to return exactly `TASK_CAPABILITY_OK <nonce>` without invoking tools or accessing the repository, and treats an empty, malformed, denied, or mismatched result as a startup failure.
 
-A dry run, skipped install, cache-only substitute, broad temporary-directory cleanup, or leftover probe directory is a startup failure. Every autonomous commit-producing command also passes `--no-gpg-sign`: ordinary commits use `git commit --no-gpg-sign`, integrations use `git merge --no-ff --no-gpg-sign`, and rollback commits use `git revert --no-gpg-sign`.
+A dry run, skipped install, cache-only substitute, broad temporary-directory cleanup, leftover probe directory, or simulated worker response is a startup failure. The worker capability handshake is session-level and does not count as the exactly-one implementation invocation for a recipe. Every autonomous commit-producing command also passes `--no-gpg-sign`: ordinary commits use `git commit --no-gpg-sign`, integrations use `git merge --no-ff --no-gpg-sign`, and rollback commits use `git revert --no-gpg-sign`.
 
 If any install, network, filesystem, cleanup, GitHub, subagent (`task`), MCP, signing, or `task_complete` prerequisite is denied or asks for additional approval despite the launch permissions, the coordinator stops and reports the exact denial. It never substitutes a weaker check.
 
@@ -460,4 +462,6 @@ Reports live under `docs/autonomous-development/reports/` unless overridden by c
 
 The coordinator writes the report from a clean `develop` after the active task lifecycle is terminal. It commits and pushes the report as session metadata and, when a workflow exists, waits for CI on that exact report commit before declaring final repository health. A report-CI failure is a session-finalization blocker; it does not retroactively change successfully completed task states.
 
-Reaching a session-fatal blocker is successful completion of the coordinator objective even when pending workload remains. After restoring the safest possible repository state, the coordinator finalizes the report, calls `task_complete`, and stops; it never reopens a terminal task or starts pending work to avoid reporting the blocker.
+After final repository health is recorded, the coordinator emits the concise final summary and report path, then calls `task_complete` as the final Autopilot action. It performs no further prose or tool calls after `task_complete`.
+
+Reaching a session-fatal blocker is successful completion of the coordinator objective even when pending workload remains. After restoring the safest possible repository state, the coordinator finalizes the report, emits the concise final summary and report path, calls `task_complete` as the final Autopilot action, and stops; it produces no further prose/tool calls, never reopens a terminal task, and never starts pending work to avoid reporting the blocker.
