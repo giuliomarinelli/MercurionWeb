@@ -52,7 +52,8 @@ Include, when useful:
 - a source/local identifier from the planning document when useful for human
   traceability, without making the task depend on that document at runtime.
 
-Do not duplicate general repository instructions already defined in `AGENTS.md`.
+Do not duplicate general repository instructions already defined in `AGENTS.md`
+or the canonical local-runtime topology in `docs/autonomous-development/RUNTIME.md`.
 
 ## Relevant files and modules
 
@@ -78,6 +79,7 @@ Describe tempting adjacent work that must not be included.
 
 - Do not refactor unrelated modules.
 - Do not change public API behaviour beyond what is specified here.
+- Do not modify `../MercurionTox21`; it is a read-only runtime dependency.
 - ...
 
 ## Decisions already made
@@ -116,7 +118,7 @@ when they are known.
 
 Example:
 
-```bash
+```text
 npm test
 npm run lint
 npm run build
@@ -137,13 +139,12 @@ Not applicable.
 ```
 
 For frontend/browser-facing tasks, describe the browser evidence required before
-`DONE` may be checked. The agent should use the repository's `chrome-devtools`
-MCP server for this validation.
+`DONE` may be checked. The agent uses the repository's `chrome-devtools` MCP
+server and the canonical local runtime defined in `../RUNTIME.md`.
 
-Specify only what is relevant, for example:
+The task should specify only task-specific evidence, for example:
 
-- local application URL or route to open;
-- prerequisite command/service required to make the application reachable;
+- route under the canonical `http://localhost:8888` development edge;
 - viewport(s) or responsive states that must be checked;
 - user flow/interactions to perform;
 - expected visible/runtime result;
@@ -155,14 +156,19 @@ Specify only what is relevant, for example:
 Example:
 
 ```text
-Start the Angular development server and open http://localhost:4200/settings.
-Using Chrome DevTools MCP:
+Using the canonical local runtime and Chrome DevTools MCP, open:
+http://localhost:8888/settings
 
-1. verify the settings page renders without uncaught console errors;
-2. exercise the changed interaction at desktop and mobile viewport widths;
-3. verify the affected HTTP request returns the expected status/shape;
-4. verify keyboard focus remains visible and follows the specified interaction.
+1. Verify the settings page renders without uncaught console errors.
+2. Exercise the changed interaction at desktop and mobile viewport widths.
+3. Verify the affected request through the same-origin nginx edge returns the
+   expected status/shape.
+4. Verify keyboard focus remains visible and follows the specified interaction.
 ```
+
+Do NOT use an Angular development-server URL as the browser validation origin.
+Nest and Angular intentionally sit behind the always-on local nginx reverse proxy,
+which provides the supported same-origin browser topology.
 
 Do not require browser validation merely because a task happens to touch a
 frontend file. Require it when runtime/browser evidence materially establishes
@@ -175,9 +181,9 @@ Mark the task `BLOCKED` instead of guessing if any of these conditions occurs:
 - a required architectural decision is unspecified;
 - a required product/business behaviour is ambiguous;
 - credentials or external infrastructure required by the task are unavailable;
-- required browser validation cannot be performed because the local application,
-  Chrome DevTools MCP, required test data, or another declared prerequisite is
-  unavailable;
+- required browser validation cannot be performed because the canonical local
+  runtime, Chrome DevTools MCP, required test data, or another declared
+  prerequisite is unavailable;
 - safe completion requires expanding the scope materially beyond this document;
 - validation reveals an unrelated baseline failure that makes completion
   impossible to establish safely;
@@ -185,6 +191,12 @@ Mark the task `BLOCKED` instead of guessing if any of these conditions occurs:
 
 When blocked, write exactly what decision or input is required in `Execution
 notes` so a human can resume efficiently.
+
+Do not use Git reset/restore/checkout/stash or any other Git write to clean a
+blocked task. Revert only changes that are unambiguously owned by the current
+task using ordinary file editing. If that cannot be done without risking valid
+changes from earlier tasks, leave a precise dirty-delta note and stop the
+Development Session.
 
 ## Dependencies
 
@@ -223,10 +235,13 @@ _Not started._
 
 _Not applicable / not started._
 
-### Commit
+### Changed files
 
-_Not created._
+_Not recorded._
 
 ### Blocker / human decision required
 
 _None._
+
+> Git commits are intentionally not created by the autonomous agent. Git writes
+> are human-managed after the Development Session report.
