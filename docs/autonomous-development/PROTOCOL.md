@@ -1,6 +1,6 @@
 # Autonomous Development Protocol
 
-This document defines the execution semantics for configurable autonomous development sessions.
+This document defines the execution semantics for configurable autonomous Development Sessions.
 
 A **Development Session** is a bounded period in which an external runner executes an ordered workload of task files by invoking a fresh coding-agent session for each task.
 
@@ -13,13 +13,16 @@ A **Development Session** is a bounded period in which an external runner execut
 - **Soft deadline**: after this time no new task may start; the task already in progress may finish.
 - **Hard deadline**: absolute session cutoff. If reached, the current task must stop safely even if incomplete.
 - **Capability**: an external tool available to the coding agent, such as Chrome DevTools MCP for browser validation.
+- **Runtime**: the local application processes and externally managed infrastructure required to perform runtime/browser validation.
 - **Report**: the final session summary produced after the workload is exhausted or the session stops.
 
-## Source of truth
+## Sources of truth
 
-Session timing, workload selection, model, branch, budgets, enabled capabilities, and finish policy are defined by the active YAML session configuration.
+Session timing, workload selection, model, context tier, reasoning effort, branch, budgets, enabled capabilities, runtime configuration, permissions, and finish policy are defined by the active YAML session configuration.
 
 Series identity, Trello binding, task-range binding, repository/baseline context, and optional baseline metadata are defined by each series document's YAML frontmatter.
+
+The canonical local runtime topology is defined by `docs/autonomous-development/RUNTIME.md`.
 
 The runner, not the language model, owns:
 
@@ -30,7 +33,10 @@ The runner, not the language model, owns:
 - soft/hard deadline enforcement;
 - deciding whether another task may start;
 - process/session creation and termination;
+- managed local-runtime process lifecycle;
 - enabling required project-level MCP configuration for unattended prompt-mode runs;
+- disabling autonomous GitHub remote-write capabilities;
+- recording pre-task and post-task working-tree observations without mutating Git state;
 - session-level reporting orchestration.
 
 The coding agent owns only the implementation and validation of the single task recipe it receives using the capabilities made available by the runner/CLI.
@@ -103,20 +109,57 @@ Rules:
 6. A task whose header contains `- [x] BLOCKED` is blocked and must be skipped unless explicitly re-enabled by a human.
 7. A task is pending when both `DONE` and `BLOCKED` are unchecked.
 
-## Browser capability
+## Git and GitHub write policy
+
+Autonomous coding sessions use Git as an observational interface only.
+
+The coding agent may inspect repository state with read-only commands such as `git status`, `git diff`, `git log`, `git show`, `git grep`, `git rev-parse`, `git ls-files`, `git ls-tree`, and `git cat-file`.
+
+The coding agent MUST NOT stage, commit, stash, restore, checkout, switch, reset, clean, create/delete refs, merge, rebase, cherry-pick, revert, fetch, pull, push, or otherwise mutate Git state or GitHub remote state.
+
+Repository hooks under `.github/hooks/` enforce the read-only Git policy before shell tool execution. The runner should also disable Copilot's built-in GitHub MCP server for autonomous coding sessions so remote mutations are not available as an alternate path.
+
+A task reaching `DONE` therefore means its implementation and validation succeeded in the working tree. It does NOT mean a Git commit was created. Git review, staging, commits, merges, and pushes remain human-managed after the Development Session.
+
+Because several tasks may accumulate as uncommitted changes in one session, the runner should capture a read-only pre-task and post-task working-tree observation so the report can attribute changed files/deltas to each task without creating commits.
+
+## Browser capability and local runtime
 
 GitHub Copilot CLI loads the repository-level Chrome DevTools MCP server from `.github/mcp.json` when project-level MCP configuration is trusted/enabled.
 
 The default repository configuration uses a dedicated headless, isolated Chrome instance. Autonomous sessions must not attach to a human developer's personal browser profile.
 
+Browser/runtime validation uses the canonical topology from `docs/autonomous-development/RUNTIME.md`.
+
+The browser origin is always the nginx development edge:
+
+```text
+http://localhost:8888
+```
+
+The Angular development-server port is an internal upstream and MUST NOT be used as the browser validation origin. The local stack intentionally relies on nginx to expose Angular and Nest through one same-origin edge.
+
+When runtime/browser validation is needed, the runner manages these application processes:
+
+```text
+MercurionWebNode  -> npm run start:dev
+MercurionWebNg    -> npm run start:dev
+../MercurionTox21 -> .venv interpreter -> python -m main
+```
+
+`../MercurionTox21` is a sibling repository and is read-only from MercurionWeb autonomous sessions. The runner invokes its virtual-environment interpreter directly rather than relying on shell-specific virtual-environment activation.
+
+The Docker `nginx_sl_dev` reverse proxy is externally managed and expected to be already running. The runner verifies it but does not start, stop, recreate, or reconfigure it during ordinary development tasks.
+
 Browser validation is task-driven:
 
 1. A frontend/browser-facing task declares required runtime checks in its `Browser validation` section.
-2. When browser validation is declared, the coding agent must use the `chrome-devtools` MCP tools when those tools are needed to establish the stated acceptance criteria.
-3. Successful compile/build/lint output is not a substitute for browser evidence explicitly required by a task.
-4. If the task declares browser validation and the MCP capability, local application, required test data, or another declared prerequisite is unavailable, the task must be marked `BLOCKED`.
-5. Backend-only tasks and frontend tasks fully verified by non-browser tests do not need to invoke Chrome unless the task explicitly requires it.
-6. Autonomous browser validation must not use production credentials or production data.
+2. When browser validation is declared, the runner ensures the canonical runtime is ready before allowing browser validation.
+3. The coding agent uses the `chrome-devtools` MCP tools when those tools are needed to establish the stated acceptance criteria.
+4. Successful compile/build/lint output is not a substitute for browser evidence explicitly required by a task.
+5. If the task declares browser validation and the MCP capability, canonical local runtime, required test data, or another declared prerequisite is unavailable, the task must be marked `BLOCKED`.
+6. Backend-only tasks and frontend tasks fully verified by non-browser tests do not need to invoke Chrome unless the task explicitly requires it.
+7. Autonomous browser validation must not use production credentials or production data.
 
 For unattended Copilot prompt-mode sessions, project-level MCP configuration is enabled by the runner only after explicit repository trust/review, using the GitHub-supported `GITHUB_COPILOT_PROMPT_MODE_WORKSPACE_MCP=true` environment variable.
 
@@ -138,11 +181,13 @@ The runner must never infer a missing task recipe from a row in a series documen
 
 Before starting work, the runner must verify:
 
-- the configured repository branch is checked out;
-- the working tree is in an acceptable state according to runner policy;
+- the configured repository branch is already checked out;
+- no Git write is required to prepare the session;
+- the working-tree baseline is acceptable according to runner policy and is recorded without cleaning/resetting it;
 - the session configuration is valid;
 - a selected series exists and its YAML frontmatter/range are valid when applicable;
 - configured required capabilities are available;
+- the canonical runtime can be started/verified when required;
 - at least one pending task exists in the resolved workload.
 
 If there are no pending tasks, the session ends immediately and produces a report.
@@ -153,7 +198,7 @@ The runner selects the next pending task from the resolved workload.
 
 Before launching it, the runner checks the soft deadline.
 
-- If the soft deadline has not been reached, start the task.
+- If the soft deadline has not been reached, record the task's starting working-tree observation and start the task.
 - If the soft deadline has been reached, do not start another task; proceed to session finalization.
 
 ### 3. Execute task
@@ -171,9 +216,9 @@ The agent must:
 7. repair failures caused by its changes within configured limits;
 8. update the task's execution notes;
 9. mark exactly one terminal state when appropriate;
-10. create one atomic commit for a completed task.
+10. terminate without staging or committing changes.
 
-The runner MUST NOT start the next task until the current agent invocation has terminated.
+The runner MUST NOT start the next task until the current agent invocation has terminated and the post-task working-tree observation has been recorded.
 
 ### 4. Task completion
 
@@ -181,22 +226,11 @@ A task is `DONE` only when:
 
 - all acceptance criteria are satisfied;
 - all required validation, including browser validation when declared, succeeds;
-- repository state is acceptable;
-- the task has been committed according to repository instructions.
+- repository state is safe for later tasks in the same session;
+- `DONE` is checked and `BLOCKED` remains unchecked;
+- the agent has not performed any Git/GitHub write.
 
-The agent then changes:
-
-```md
-- [ ] DONE
-```
-
-to:
-
-```md
-- [x] DONE
-```
-
-`BLOCKED` must remain unchecked.
+Task completion intentionally leaves implementation changes uncommitted for human review.
 
 ### 5. Blocking
 
@@ -214,14 +248,15 @@ A task must be marked `BLOCKED` when safe completion requires information or aut
 When blocked, the agent must:
 
 1. stop guessing;
-2. leave the repository in a safe state;
-3. avoid committing incomplete implementation unless explicitly allowed;
-4. change `- [ ] BLOCKED` to `- [x] BLOCKED`;
-5. leave `DONE` unchecked;
-6. record the blocker, evidence, and concrete human decision required in `Execution notes`;
-7. terminate the task.
+2. leave the repository in the safest achievable state;
+3. leave `DONE` unchecked;
+4. check `BLOCKED`;
+5. record the blocker, evidence, changed files, and concrete human decision required in `Execution notes`;
+6. revert only changes unambiguously owned by the current task using ordinary file editing when safe;
+7. never use Git reset/restore/checkout/stash or another Git write to clean the task;
+8. terminate the task.
 
-A blocked task does not prevent the runner from continuing with later pending tasks unless a later task explicitly declares a dependency on it.
+A blocked task may allow the runner to continue with later independent tasks only if it leaves no unsafe/unattributed working-tree delta. If its partial changes cannot be safely removed without risking valid earlier-session changes, the runner stops the Development Session and reports the dirty delta for human review.
 
 ## Deadline semantics
 
@@ -239,7 +274,7 @@ When the soft deadline is reached:
 
 The optional hard deadline is an absolute cutoff.
 
-If it is reached while a task is still executing, the runner must request/perform a safe stop according to its implementation, preserve diagnostics, and proceed to reporting. The task must not be marked `DONE` unless its acceptance and validation requirements were actually completed.
+If it is reached while a task is still executing, the runner must request/perform a safe process stop, preserve diagnostics and the current working-tree state without using Git writes, and proceed to reporting. The task must not be marked `DONE` unless its acceptance and validation requirements were actually completed.
 
 ## Workload exhaustion
 
@@ -249,16 +284,18 @@ The runner MUST NOT idle until the configured end time. It proceeds immediately 
 
 ## Session finalization
 
-When a session finishes because of workload exhaustion, soft-deadline completion, hard stop, fatal runner error, or explicit cancellation, the runner should:
+When a session finishes because of workload exhaustion, soft-deadline completion, hard stop, fatal runner error, unsafe blocked-task delta, or explicit cancellation, the runner should:
 
-1. inspect repository status;
+1. inspect repository status using read-only Git commands;
 2. run configured session-level validation when enabled;
-3. collect task states and commits produced during the session;
+3. collect task states and per-task working-tree observations;
 4. collect unresolved blockers and warnings;
 5. record the selected series/range when applicable;
-6. record browser/MCP validation failures relevant to completed or blocked tasks;
+6. record browser/MCP/runtime validation failures relevant to completed or blocked tasks;
 7. generate the session report when enabled;
-8. exit.
+8. stop only the application processes started/owned by the session runner;
+9. leave the externally managed Docker nginx proxy untouched;
+10. exit without staging, committing, merging, or pushing.
 
 ## Session report
 
@@ -271,10 +308,10 @@ A report should contain at least:
 - completed tasks;
 - blocked tasks;
 - pending/not-started tasks;
-- commits created;
-- final repository status;
+- per-task changed-file/diff summary when available;
+- final working-tree status;
 - configured validation results;
-- browser validation summary when applicable;
+- browser/runtime validation summary when applicable;
 - decisions requiring human attention;
 - agent/runner errors;
 - usage/credit information when available.
