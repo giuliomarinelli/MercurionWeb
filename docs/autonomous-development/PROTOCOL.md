@@ -7,8 +7,9 @@ A **Development Session** is a bounded period in which an external runner execut
 ## Core concepts
 
 - **Development Session**: one bounded autonomous-development run.
-- **Workload**: the ordered set of task files available to the session.
-- **Task**: one numbered Markdown specification executed by one fresh agent invocation.
+- **Series**: non-executable planning/context document describing a coherent body of work and owning an inclusive range of globally numbered task recipes.
+- **Workload**: the ordered set of task files available to one session.
+- **Task**: one numbered Markdown implementation recipe executed by one fresh agent invocation.
 - **Soft deadline**: after this time no new task may start; the task already in progress may finish.
 - **Hard deadline**: absolute session cutoff. If reached, the current task must stop safely even if incomplete.
 - **Report**: the final session summary produced after the workload is exhausted or the session stops.
@@ -19,18 +20,52 @@ Session timing, workload selection, model, branch, budgets, and finish policy ar
 
 The runner, not the language model, owns:
 
-- task ordering;
+- task discovery and ordering;
+- series/task-range resolution when a series is selected;
 - wall-clock time;
 - soft/hard deadline enforcement;
 - deciding whether another task may start;
 - process/session creation and termination;
 - session-level reporting orchestration.
 
-The coding agent owns only the implementation of the single task it receives.
+The coding agent owns only the implementation of the single task recipe it receives.
 
-## Task discovery and ordering
+## Planning domain: series
 
-Task files live in `docs/autonomous-development/tasks/` and use four-digit numeric prefixes:
+Series documents live in `docs/autonomous-development/series/` and use globally progressive four-digit numeric prefixes:
+
+```text
+0000-series-example.md
+0001-first-series.md
+0002-second-series.md
+...
+```
+
+`0000-series-example.md` is the canonical template and MUST NEVER be treated as a real series.
+
+A real series declares these metadata fields near its header:
+
+```md
+**series_number:** `0001`
+**card_id:** `$oid(...)`
+**task_range:** `[0001 - 0220]`
+```
+
+The `task_range` is inclusive at both ends and is the only deterministic binding between the series domain and the task domain.
+
+Series rules for v1:
+
+1. Series documents are planning/context artifacts, not executable recipes.
+2. `card_id` binds the series to the corresponding Trello card; it does not determine task execution.
+3. Task numbers are global and do not restart for each series.
+4. Series task ranges should be contiguous and non-overlapping.
+5. A series may contain local planning identifiers such as `SYS-001`, `FE-001`, or similar; those identifiers do not replace global task numbers.
+6. Task files do not need to contain a backlink to the owning series. Ownership is declared from the series side through `task_range`.
+7. Filenames, `card_id`, prose, or local series identifiers must not be used by the runner to infer series membership when a numeric range is available.
+
+## Execution domain: tasks
+
+Task files live in `docs/autonomous-development/task/` and use globally progressive four-digit numeric prefixes:
 
 ```text
 0000-task-example.md
@@ -41,12 +76,25 @@ Task files live in `docs/autonomous-development/tasks/` and use four-digit numer
 
 Rules:
 
-1. `0000-task-example.md` is a template and MUST NEVER be executed.
+1. `0000-task-example.md` is the canonical template and MUST NEVER be executed.
 2. Executable task files start at `0001`.
-3. Unless the active session configuration provides an explicit workload list, tasks are ordered lexicographically by filename.
-4. A task whose header contains `- [x] DONE` is complete and must be skipped.
-5. A task whose header contains `- [x] BLOCKED` is blocked and must be skipped unless explicitly re-enabled by a human.
-6. A task is pending when both `DONE` and `BLOCKED` are unchecked.
+3. Task numbers are unique across the autonomous-development domain.
+4. Unless the active session configuration provides an explicit workload list or selects a series, tasks are ordered lexicographically by filename.
+5. A task whose header contains `- [x] DONE` is complete and must be skipped.
+6. A task whose header contains `- [x] BLOCKED` is blocked and must be skipped unless explicitly re-enabled by a human.
+7. A task is pending when both `DONE` and `BLOCKED` are unchecked.
+
+## Workload resolution
+
+The runner may resolve a workload in three ways:
+
+1. **Explicit task list**: execute exactly the configured task filenames in the configured order.
+2. **Series-selected workload**: read the selected series' inclusive `task_range`, discover task files whose four-digit prefixes fall inside that range, and execute pending tasks in filename order unless an explicit order is configured.
+3. **Repository task queue**: when neither an explicit list nor a series is selected, discover all pending executable tasks in the task directory in filename order.
+
+When both a series and an explicit task list are configured, every explicit task MUST fall inside the selected series' `task_range`; otherwise configuration validation must fail before starting the session.
+
+The runner must never infer a missing task recipe from a row in a series document during execution. Materializing task recipes from a series is a separate authoring workflow.
 
 ## Session lifecycle
 
@@ -57,13 +105,14 @@ Before starting work, the runner must verify:
 - the configured repository branch is checked out;
 - the working tree is in an acceptable state according to runner policy;
 - the session configuration is valid;
-- at least one pending task exists.
+- a selected series exists and its metadata/range are valid when applicable;
+- at least one pending task exists in the resolved workload.
 
 If there are no pending tasks, the session ends immediately and produces a report.
 
 ### 2. Select task
 
-The runner selects the next pending task from the configured workload.
+The runner selects the next pending task from the resolved workload.
 
 Before launching it, the runner checks the soft deadline.
 
@@ -133,7 +182,7 @@ When blocked, the agent must:
 6. record the blocker, evidence, and concrete human decision required in `Execution notes`;
 7. terminate the task.
 
-A blocked task does not prevent the runner from continuing with later pending tasks unless the task explicitly declares downstream tasks dependent on it.
+A blocked task does not prevent the runner from continuing with later pending tasks unless a later task explicitly declares a dependency on it.
 
 ## Deadline semantics
 
@@ -155,7 +204,7 @@ If it is reached while a task is still executing, the runner must request/perfor
 
 ## Workload exhaustion
 
-A session ends early when no pending task remains in its workload.
+A session ends early when no pending task remains in its resolved workload.
 
 The runner MUST NOT idle until the configured end time. It proceeds immediately to final validation and report generation.
 
@@ -167,8 +216,9 @@ When a session finishes because of workload exhaustion, soft-deadline completion
 2. run configured session-level validation when enabled;
 3. collect task states and commits produced during the session;
 4. collect unresolved blockers and warnings;
-5. generate the session report when enabled;
-6. exit.
+5. record the selected series/range when applicable;
+6. generate the session report when enabled;
+7. exit.
 
 ## Session report
 
@@ -177,6 +227,7 @@ A report should contain at least:
 - session identifier;
 - configured and actual start/finish times;
 - stop reason;
+- selected series and task range when applicable;
 - completed tasks;
 - blocked tasks;
 - pending/not-started tasks;
