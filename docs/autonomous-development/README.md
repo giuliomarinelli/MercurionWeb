@@ -29,6 +29,8 @@ docs/autonomous-development/
     └── ...
 ```
 
+GitHub Copilot CLI project-level tool configuration lives separately in `.github/mcp.json`.
+
 ## Development Session
 
 A Development Session is a configurable execution window over an ordered workload.
@@ -103,6 +105,23 @@ Each task exposes two machine-readable terminal-state checkboxes near the top:
 The template at `task/0000-task-example.md` is the canonical reference for humans or models that create new task recipes.
 
 Task numbers do not restart for each series. A future series continues after the final task number allocated by the previous series, which keeps series-to-task range bindings simple and independent from Trello/card metadata.
+
+## Browser-capable frontend validation
+
+The repository configures the official Chrome DevTools MCP server for GitHub Copilot CLI in `.github/mcp.json`.
+
+The shared configuration launches a dedicated headless, isolated Chrome instance rather than attaching autonomous development to a developer's personal browser profile. Browser tooling is therefore available for frontend tasks that need runtime evidence such as:
+
+- rendered interaction and layout checks;
+- console/runtime error inspection;
+- network request inspection;
+- DOM/accessibility-state inspection;
+- responsive viewport checks;
+- screenshots and performance diagnostics when useful.
+
+Browser validation is task-driven rather than globally mandatory. The canonical task template contains a `Browser validation` section. When a task declares browser validation as required, failure to make the application or Chrome MCP capability available must result in `BLOCKED`, not a false `DONE`.
+
+For unattended Copilot prompt-mode runs, the session/runner configuration enables project-level MCP loading through `GITHUB_COPILOT_PROMPT_MODE_WORKSPACE_MCP=true`. This should only be done after the repository and `.github/mcp.json` have been intentionally reviewed and trusted.
 
 ## Workload resolution
 
