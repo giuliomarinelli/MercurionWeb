@@ -1,7 +1,12 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { RdkitAreSameStructureDTO, RdkitGetMoleculePropertiesDTO, RdkitGetMoleculePropertiesResult, RdkitToCanonicalSmilesDTO } from '../Models/rdkit-api.models';
 import { Observable } from 'rxjs';
+import type {
+  RdkitAreSameStructureDTO,
+  RdkitGetMoleculePropertiesDTO,
+  RdkitGetMoleculePropertiesResult,
+  RdkitToCanonicalSmilesDTO
+} from '@mercurion/rest-contracts'
 
 @Injectable({
   providedIn: 'root'

@@ -9,7 +9,7 @@ import { FastifyRequest, FastifyReply } from 'fastify';
 import { RpcException } from '@nestjs/microservices';
 import { HttpStatusMap } from './http-status-map';
 import { GqlContextType } from '@nestjs/graphql';
-import { InternalErrorRes } from 'src/Models/error-res.dto';
+import { HttpErrorRes, InternalErrorRes } from 'src/Models/error-res.dto';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 import { randomBytes } from 'node:crypto';
@@ -64,12 +64,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
         const reqIdSuffix = randomBytes(16).toString('hex')
 
-        res.code(status).send({
+        const response: HttpErrorRes = {
             ...safeBase,
             timestamp: new Date().toISOString(),
             path: req.url,
             requestId: `${req.id}-${reqIdSuffix}`
-        })
+        }
+        res.code(status).send(response)
     }
 
     private handleHttpException(e: HttpException): InternalErrorRes {

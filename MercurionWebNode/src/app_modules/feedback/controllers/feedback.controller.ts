@@ -23,6 +23,7 @@ import { Feedback } from '../Models/entities/feedback.entity'
 import { RpcException } from '@nestjs/microservices'
 import { GeneralUtils } from 'src/utils/general-utils/general-utils'
 import { FlatPagination } from 'src/Models/flat-pagination.interface'
+import type { DeleteFeedbackResponse } from '@mercurion/rest-contracts'
 
 
 @Controller('feedback')
@@ -86,7 +87,7 @@ export class FeedbackController {
 
     @Delete(':id')
     @HasScopes(Scope.DeleteFeedback)
-    async delete(@Param('id') id: UUID): Promise<{ ok: boolean }> {
+    async delete(@Param('id') id: UUID): Promise<DeleteFeedbackResponse> {
         if (!GeneralUtils.isValidUUIDv7(id)) {
             throw new BadRequestException('Invalid id')
         }
