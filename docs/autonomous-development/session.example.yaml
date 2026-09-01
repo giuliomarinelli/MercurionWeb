@@ -20,10 +20,26 @@ session:
 repository:
   branch: develop
 
+  # The coding agent may edit working-tree files but Git itself is observational
+  # only. Git/GitHub writes remain human-managed after the session report.
+  git_write: false
+  github_remote_write: false
+
 agent:
   provider: github-copilot
   model: GPT-5.6 Sol
+
+  # GitHub CLI tier name. For Sol this is the normal 272K context window.
+  # Prefer this with one fresh agent session per task; escalate a deliberately
+  # selected run to `long_context` (1M) only when a task genuinely needs it.
+  context: default
+
+  # Repository default for implementation work.
   reasoning: high
+
+  # Disable the built-in GitHub MCP server for autonomous coding runs. The
+  # repository-level Chrome DevTools MCP remains available through .github/mcp.json.
+  disable_builtin_mcps: true
 
   # Copilot prompt mode cannot display a first-use workspace-MCP trust prompt.
   # The runner should pass this variable for unattended sessions after the
@@ -45,6 +61,45 @@ capabilities:
     # that explicitly requires browser validation must BLOCK rather than claim
     # completion if the MCP server cannot be used.
     required_when_declared_by_task: true
+
+runtime:
+  documentation: docs/autonomous-development/RUNTIME.md
+
+  # nginx_sl_dev is externally managed by the always-on Docker development
+  # stack. The autonomous runner verifies it but does not start/stop/recreate it.
+  edge:
+    base_url: http://localhost:8888
+    managed: false
+    required: true
+    angular_readiness_url: http://localhost:8888/
+    nest_readiness_url: http://localhost:8888/health
+
+  managed_processes:
+    tox21:
+      cwd: ../MercurionTox21
+      repository_access: read-only
+      watch: false
+      command:
+        windows: .venv/Scripts/python.exe -m main
+        posix: .venv/bin/python -m main
+
+    nest:
+      cwd: MercurionWebNode
+      repository_access: read-write
+      watch: true
+      command: npm run start:dev
+
+    angular:
+      cwd: MercurionWebNg
+      repository_access: read-write
+      watch: true
+      command: npm run start:dev
+
+  # Start the dependency first, then both watch-mode MercurionWeb applications.
+  start_order:
+    - tox21
+    - nest
+    - angular
 
 workload:
   task_directory: docs/autonomous-development/task
@@ -74,10 +129,13 @@ policy:
   start_new_tasks_after_deadline: false
   stop_when_workload_exhausted: true
 
-  # A BLOCKED task does not stop independent later tasks by default.
+  # A BLOCKED task does not stop independent later tasks by default, provided
+  # the blocked task leaves no unsafe/unattributed working-tree delta.
   continue_after_blocked_task: true
+  stop_if_blocked_task_leaves_unsafe_delta: true
 
 on_finish:
   validate_repository: true
   generate_report: true
+  stop_managed_runtime_processes: true
   report_directory: docs/autonomous-development/reports
