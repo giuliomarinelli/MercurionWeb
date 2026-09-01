@@ -3,101 +3,65 @@
 - [ ] DONE
 - [ ] BLOCKED
 
-> This file is documentation and the canonical template for humans or models
-> that create autonomous-development task recipes. It is never part of an
-> executable workload. Copy it to a new file whose globally progressive,
-> four-digit numeric prefix starts at `0001`.
+> Canonical template for autonomous-development task recipes. Copy it to a new
+> globally progressive four-digit filename. `0000` is never executable.
 
 ## Task identity
-
-The filename is the task's execution identity:
 
 ```text
 NNNN-short-task-name.md
 ```
 
-Rules:
+Every executable task MUST also declare exactly one planning Source identifier:
 
-- `NNNN` is a globally progressive four-digit task number.
-- `0000` is reserved for this template and is never executable.
-- Do not reuse a task number.
-- Do not encode series membership in the task file. Series membership is owned
-  by the series domain through its inclusive `task_range` binding.
+```text
+Source: `FE-001` in Series `0001`.
+```
+
+The runner derives the task branch from that Source:
+
+```text
+feature/FE-001
+```
+
+Do not reuse task numbers or Source identifiers.
 
 ## Objective
 
-State one concrete implementation outcome in a few sentences.
-
-The objective should describe **what must be true when the task is finished**,
-not merely an activity such as "investigate" or "work on" something unless
-investigation itself is the requested deliverable.
-
-Good example:
-
-> Add retry handling to the outbound email queue so transient provider failures
-> are retried with bounded exponential backoff and permanent failures are sent
-> to the existing dead-letter flow.
+State one concrete implementation outcome. Describe what must be true when the task is finished, not a vague activity.
 
 ## Context
 
-Explain only the context needed to execute this task reliably.
+Explain only the context needed to execute the task reliably: current behaviour, relevant architecture, known constraints and useful source paths.
 
-Include, when useful:
-
-- why this change is needed;
-- current behaviour;
-- relevant architecture or existing implementation patterns;
-- known constraints;
-- links/paths to repository documentation that should be consulted;
-- a source/local identifier from the planning document when useful for human
-  traceability, without making the task depend on that document at runtime.
-
-Do not duplicate general repository instructions already defined in `AGENTS.md`
-or the canonical local-runtime topology in `docs/autonomous-development/RUNTIME.md`.
+Do not duplicate repository-wide branch/CI/runtime rules already defined in `AGENTS.md`, `PROTOCOL.md` and `RUNTIME.md`.
 
 ## Relevant files and modules
-
-List likely starting points. This is guidance, not necessarily an exhaustive
-list.
 
 - `path/to/file.ts`
 - `path/to/module/`
 
-The agent should still inspect related code when necessary to understand the
-existing implementation.
+The agent should still inspect related implementation as needed.
 
 ## In scope
-
-Describe explicitly what the task may change.
 
 - ...
 - ...
 
 ## Out of scope
 
-Describe tempting adjacent work that must not be included.
-
 - Do not refactor unrelated modules.
-- Do not change public API behaviour beyond what is specified here.
+- Do not change public behaviour beyond this task.
 - Do not modify `../MercurionTox21`; it is a read-only runtime dependency.
 - ...
 
 ## Decisions already made
 
-Record decisions the autonomous agent must treat as settled rather than reopen.
+Record decisions the autonomous agent must treat as settled.
 
-Examples:
-
-- Use the existing queue infrastructure; do not add another broker.
-- Preserve the current public response shape.
-- Reuse the existing error hierarchy.
-
-If an important architectural/product/security decision is intentionally **not**
-made, do not ask the agent to guess it. Add it to `Stop conditions` instead.
+If an important product/architecture/security decision is intentionally missing, put it in `Stop conditions`; never ask the agent to guess.
 
 ## Requirements
-
-Use precise, testable requirements.
 
 1. ...
 2. ...
@@ -105,102 +69,81 @@ Use precise, testable requirements.
 
 ## Acceptance criteria
 
-Every item must be objectively verifiable before `DONE` may be checked.
-
 - [ ] ...
 - [ ] ...
 - [ ] Existing behaviour not targeted by this task remains compatible.
 
 ## Validation
 
-List commands and checks appropriate to the affected project. Use exact commands
-when they are known.
+List task-specific commands/checks. These do **not** replace the repository-wide CI-parity gates.
 
-Example:
+Every task automatically has two additional mandatory full-suite checkpoints defined by `PROTOCOL.md`:
+
+1. **preflight before task implementation**;
+2. **full CI-parity check immediately before merge**.
+
+After task `0008`, both checkpoints use:
 
 ```text
-npm test
-npm run lint
+npm ci
+npm run ci:check
+```
+
+If preflight is red, the agent must restore the repository-controlled baseline on `feature/<Source>` before implementing this task. If that cannot be done safely, mark `BLOCKED` and do not merge partial work.
+
+Task-specific validation example:
+
+```text
+npm test -- --watch=false
 npm run build
 ```
 
-Add targeted/manual checks when required:
-
-- [ ] ...
-
-Do not include commands that are not valid for the affected package/project.
+Do not invent commands that are invalid for the affected project.
 
 ## Browser validation
 
-For backend-only tasks or tasks whose outcome is not browser-observable, write:
+For non-browser work:
 
 ```text
 Not applicable.
 ```
 
-For frontend/browser-facing tasks, describe the browser evidence required before
-`DONE` may be checked. The agent uses the repository's `chrome-devtools` MCP
-server and the canonical local runtime defined in `../RUNTIME.md`.
-
-The task should specify only task-specific evidence, for example:
-
-- route under the canonical `http://localhost:8888` development edge;
-- viewport(s) or responsive states that must be checked;
-- user flow/interactions to perform;
-- expected visible/runtime result;
-- console errors that must be absent;
-- network request/response behaviour that must be verified;
-- accessibility/DOM state that must be verified;
-- whether a screenshot or performance trace is useful evidence.
-
-Example:
+For frontend/browser-facing work, state the runtime evidence required using Chrome DevTools MCP through the canonical nginx edge:
 
 ```text
-Using the canonical local runtime and Chrome DevTools MCP, open:
-http://localhost:8888/settings
-
-1. Verify the settings page renders without uncaught console errors.
-2. Exercise the changed interaction at desktop and mobile viewport widths.
-3. Verify the affected request through the same-origin nginx edge returns the
-   expected status/shape.
-4. Verify keyboard focus remains visible and follows the specified interaction.
+http://localhost:8888
 ```
 
-Do NOT use an Angular development-server URL as the browser validation origin.
-Nest and Angular intentionally sit behind the always-on local nginx reverse proxy,
-which provides the supported same-origin browser topology.
+Never use the Angular development-server port as the browser origin.
 
-Do not require browser validation merely because a task happens to touch a
-frontend file. Require it when runtime/browser evidence materially establishes
-an acceptance criterion.
+Example evidence:
+
+1. open the affected route through `http://localhost:8888`;
+2. exercise the changed interaction;
+3. verify expected DOM/accessibility state;
+4. inspect the affected network request/response;
+5. verify no relevant uncaught console errors;
+6. test required responsive states.
 
 ## Stop conditions
 
-Mark the task `BLOCKED` instead of guessing if any of these conditions occurs:
+Mark `BLOCKED` rather than guessing when:
 
-- a required architectural decision is unspecified;
-- a required product/business behaviour is ambiguous;
-- credentials or external infrastructure required by the task are unavailable;
-- required browser validation cannot be performed because the canonical local
-  runtime, Chrome DevTools MCP, required test data, or another declared
-  prerequisite is unavailable;
-- safe completion requires expanding the scope materially beyond this document;
-- validation reveals an unrelated baseline failure that makes completion
-  impossible to establish safely;
+- a required architecture/product/security decision is unspecified;
+- required credentials/infrastructure/test data are unavailable;
+- required browser validation cannot run;
+- safe completion requires material out-of-scope behaviour;
+- the mandatory preflight cannot be restored to green;
+- task-specific or full pre-merge CI-parity validation cannot be made green within configured limits;
 - ... task-specific stop condition ...
 
-When blocked, write exactly what decision or input is required in `Execution
-notes` so a human can resume efficiently.
+A blocked task is never merged merely to let a later task repair it.
 
-Do not use Git reset/restore/checkout/stash or any other Git write to clean a
-blocked task. Revert only changes that are unambiguously owned by the current
-task using ordinary file editing. If that cannot be done without risking valid
-changes from earlier tasks, leave a precise dirty-delta note and stop the
-Development Session.
+If blocked before merge, preserve `feature/<Source>` locally/remotely and propagate only the task's blocked status/diagnostics to `develop`.
+
+If the task was merged but GitHub Actions fails, the runner reverts the merge commit on `develop`, marks the task blocked, and preserves the feature branch.
 
 ## Dependencies
-
-List dependencies on other numbered tasks if applicable.
 
 - None
 
@@ -208,26 +151,35 @@ or:
 
 - `0001-example-dependency.md` must be `DONE` first.
 
-Dependencies should be explicit so the runner can eventually enforce them
-deterministically instead of asking the model to infer them.
-
 ## Implementation notes
 
-Optional human/model-authored guidance about an expected approach. Avoid turning
-this section into a second set of requirements.
-
-- ...
+Optional guidance about the expected approach. Avoid creating a second contradictory requirement list.
 
 ## Execution notes
 
-> Filled in by the coding agent during/after execution. Leave this section empty
-> when creating a new task except for useful placeholders.
+> Filled by the coding agent/runner. Leave placeholders in newly authored tasks.
+
+### Feature branch
+
+_Not started._
+
+### Preflight
+
+_Not started._
+
+### Preflight remediation
+
+_None._
 
 ### Summary
 
 _Not started._
 
-### Validation performed
+### Task-specific validation performed
+
+_Not started._
+
+### Full pre-merge CI-parity validation
 
 _Not started._
 
@@ -235,13 +187,22 @@ _Not started._
 
 _Not applicable / not started._
 
-### Changed files
+### Commits
 
 _Not recorded._
+
+### Merge / CI
+
+_Not started._
+
+### Rollback
+
+_Not applicable._
 
 ### Blocker / human decision required
 
 _None._
 
-> Git commits are intentionally not created by the autonomous agent. Git writes
-> are human-managed after the Development Session report.
+> `DONE` is finalized only after the exact `develop` merge commit passes GitHub
+> Actions. A CI failure requires merge revert + `BLOCKED`; the failed feature
+> branch remains available for diagnosis.

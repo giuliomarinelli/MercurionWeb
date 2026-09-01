@@ -1,54 +1,44 @@
 # Example configuration for one autonomous Development Session.
-# Copy/override this file in the runner configuration rather than editing it
-# for every run once the implementation is automated.
 
 session:
   name: development-session
   timezone: Europe/Rome
-
-  # The runner may start immediately or at a scheduled time.
   start: "09:00"
-
-  # Soft deadline: no new task starts at or after this time.
-  # A task already running may finish according to `policy`.
-  end: "13:00"
-
-  # Absolute cutoff after the soft deadline. Optional but recommended for
-  # unattended runs so that "finish the current task" cannot become infinite.
-  hard_stop: "14:00"
+  end: "13:00"       # soft deadline
+  hard_stop: "14:00" # absolute guardrail
 
 repository:
-  branch: develop
+  integration_branch: develop
+  feature_branch_pattern: "feature/{source}"
 
-  # The coding agent may edit working-tree files but Git itself is observational
-  # only. Git/GitHub writes remain human-managed after the session report.
-  git_write: false
-  github_remote_write: false
+  git:
+    allow_writes: true
+    merge_strategy: no-ff
+    allow_rebase: false
+    allow_force_push: false
+    push_feature_branch: true
+    delete_feature_branch_on_ci_success: true
+    preserve_feature_branch_on_failure: true
+
+  github:
+    allow_remote_git_writes: true
+    wait_for_merge_ci: true
+    ci_failure_policy: revert-merge-and-block
 
 agent:
   provider: github-copilot
   model: GPT-5.6 Sol
-
-  # GitHub CLI tier name. For Sol this is the normal 272K context window.
-  # Prefer this with one fresh agent session per task; escalate a deliberately
-  # selected run to `long_context` (1M) only when a task genuinely needs it.
   context: default
-
-  # Repository default for implementation work.
   reasoning: high
 
-  # Disable the built-in GitHub MCP server for autonomous coding runs. The
-  # repository-level Chrome DevTools MCP remains available through .github/mcp.json.
+  # Chrome DevTools MCP is project-level. Built-in GitHub MCP is not required
+  # for the task lifecycle; Git/gh CLI can perform the explicitly allowed branch
+  # and CI operations.
   disable_builtin_mcps: true
 
-  # Copilot prompt mode cannot display a first-use workspace-MCP trust prompt.
-  # The runner should pass this variable for unattended sessions after the
-  # repository/configuration has been reviewed and intentionally trusted.
   environment:
     GITHUB_COPILOT_PROMPT_MODE_WORKSPACE_MCP: "true"
 
-  # These values are runner guardrails, not instructions the model should
-  # self-enforce by reading the clock or estimating cost.
   max_autopilot_continues_per_task: 20
   max_ai_credits_per_task: 100
 
@@ -56,17 +46,11 @@ capabilities:
   browser_validation:
     enabled: true
     mcp_server: chrome-devtools
-
-    # `.github/mcp.json` defines the actual MCP process. This flag means a task
-    # that explicitly requires browser validation must BLOCK rather than claim
-    # completion if the MCP server cannot be used.
     required_when_declared_by_task: true
 
 runtime:
   documentation: docs/autonomous-development/RUNTIME.md
 
-  # nginx_sl_dev is externally managed by the always-on Docker development
-  # stack. The autonomous runner verifies it but does not start/stop/recreate it.
   edge:
     base_url: http://localhost:8888
     managed: false
@@ -95,11 +79,32 @@ runtime:
       watch: true
       command: npm run start:dev
 
-  # Start the dependency first, then both watch-mode MercurionWeb applications.
   start_order:
     - tox21
     - nest
     - angular
+
+quality:
+  # No task implementation starts before a complete baseline check.
+  session_start_preflight: true
+  before_every_task: true
+  before_merge: true
+  repair_repository_controlled_failures: true
+
+  # Canonical interface after task 0008 is integrated. GitHub Actions must use
+  # the same gate set. The clean install is deliberately separate from ci:check.
+  canonical:
+    install: npm ci
+    check: npm run ci:check
+
+  # Before task 0008 creates the root CI interface, PROTOCOL.md defines the
+  # bootstrap package-local checks. Missing required lint/type/test gates are
+  # defects to establish/repair, not permission to skip them.
+  bootstrap_until_task: "0008"
+
+  # After any remediation, rerun the complete suite rather than only the command
+  # that originally failed.
+  rerun_full_suite_after_repair: true
 
 workload:
   task_directory: docs/autonomous-development/task
@@ -107,35 +112,49 @@ workload:
   series_directory: docs/autonomous-development/series
   series_pattern: "[0-9][0-9][0-9][0-9]-*.md"
   order: filename
-
-  # Optional planning scope. When set and `tasks` is empty, the runner parses
-  # the selected series YAML frontmatter and uses the inclusive
-  # `task_range.start` / `task_range.end` values to discover pending recipes.
-  # The 0000 template is always excluded.
   series_file: null
-
-  # Optional explicit workload. When non-empty, execute exactly these task
-  # files in this order. If `series_file` is also set, every listed task must
-  # fall inside that series' declared task range or configuration validation
-  # fails before the session starts.
   tasks: []
-
-  # With both `series_file` and `tasks` omitted/empty, discover all pending task
-  # recipes from the global task directory in filename order.
 
 policy:
   fresh_agent_session_per_task: true
+
+  # Each task owns exactly one feature branch derived from its Source identifier.
+  one_feature_branch_per_task: true
+  source_required_for_branch_name: true
+
+  # The runner does not start the next task until merge CI succeeds or the failed
+  # merge has been reverted and the task has been recorded as BLOCKED.
+  serialize_task_integration: true
+
   finish_current_task_after_deadline: true
   start_new_tasks_after_deadline: false
   stop_when_workload_exhausted: true
 
-  # A BLOCKED task does not stop independent later tasks by default, provided
-  # the blocked task leaves no unsafe/unattributed working-tree delta.
   continue_after_blocked_task: true
-  stop_if_blocked_task_leaves_unsafe_delta: true
+  require_green_develop_before_next_task: true
+
+ci:
+  workflow_file: .github/workflows/ci.yml
+  integration_branch: develop
+  merge_commit_required: true
+  wait_for_exact_merge_sha: true
+
+  on_success:
+    finalize_done: true
+    delete_feature_branch_local: true
+    delete_feature_branch_remote: true
+
+  on_failure:
+    stop_progression: true
+    revert_merge_commit: true
+    wait_for_revert_ci_green: true
+    mark_task_blocked: true
+    preserve_feature_branch_local: true
+    preserve_feature_branch_remote: true
 
 on_finish:
   validate_repository: true
+  require_green_develop: true
   generate_report: true
   stop_managed_runtime_processes: true
   report_directory: docs/autonomous-development/reports

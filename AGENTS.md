@@ -11,13 +11,14 @@ Detailed session semantics and local runtime topology are defined in:
 
 ## Operating contract
 
-- Work only in the repository/worktree already prepared by the Development Session runner.
-- Autonomous development sessions target the already checked-out `develop` branch unless a human explicitly prepares another branch before the run.
-- Do not change Git branches or Git history.
+- The integration branch for autonomous development is `develop`.
+- Every executable task MUST run on its own branch named exactly `feature/<Source>`, where `<Source>` is the task's planning identifier such as `SYS-001` or `FE-001`.
+- Never develop directly on `develop`.
 - Never modify `master` or deploy to production.
+- Never use rebase, force-push, history rewriting, or destructive cleanup to make a task appear successful.
 - Do not expand the scope of an active task without explicit authorization in that task.
 - Do not invent architectural, product, security, billing, or business decisions that are not specified by the task or existing repository documentation.
-- When a required decision is missing, mark the task as blocked according to the autonomous-development protocol and stop that task.
+- When a required decision is missing, mark the task as blocked according to the autonomous-development protocol.
 - Do not modify sibling repositories. `../MercurionTox21` is a read-only runtime dependency for MercurionWeb autonomous sessions.
 
 ## Planning and execution domains
@@ -32,54 +33,90 @@ Autonomous-development planning and execution are intentionally separate:
 
 ## Task execution
 
-- Execute exactly one numbered task file per agent invocation.
+- Execute exactly one numbered task file per coding-agent invocation.
 - Executable task files start at `0001` and use globally progressive four-digit numeric prefixes.
 - Read the complete task before changing code.
 - Inspect the relevant existing implementation before editing.
-- Keep changes narrowly scoped to the task.
-- Prefer existing repository patterns and dependencies over introducing new abstractions or packages.
+- Keep changes narrowly scoped to the task plus any strictly necessary preflight remediation required to restore the canonical CI baseline.
+- Prefer existing repository patterns and dependencies over introducing unrelated abstractions or packages.
 - Do not infer executable requirements from a series document when the active task recipe is explicit. A series may be consulted as planning context only when useful or explicitly referenced.
-- The working tree may already contain valid changes produced by earlier tasks in the same Development Session. Do not revert or overwrite those changes merely because they are uncommitted.
 
-## Git is read-only
+## Mandatory CI-parity preflight before every task
 
-The autonomous coding agent MUST NOT perform any Git operation that changes repository state, refs, the index, the working tree through Git, or a remote repository.
+Before implementing the actual task scope, the runner/agent MUST establish that the newly created `feature/<Source>` branch starts from a CI-green baseline.
 
-Allowed Git usage is observational only. Examples of allowed commands include:
+The preflight must cover every repository-controlled gate that can fail the canonical CI pipeline, including at minimum:
 
-- `git status`
-- `git diff`
-- `git log`
-- `git show`
-- `git grep`
-- `git rev-parse`
-- `git ls-files`
-- `git ls-tree`
-- `git cat-file`
+1. dependency/lockfile integrity using the same clean-install semantics as CI;
+2. non-mutating lint checks for Angular and Nest;
+3. TypeScript/type/template checks for Angular and Nest;
+4. every Angular unit test;
+5. every Nest Jest unit test and every Nest Jest E2E suite;
+6. Angular and Nest builds;
+7. GraphQL/generated-artifact drift checks once those checks exist;
+8. every additional static or contract check registered in the canonical CI gate set by later tasks.
 
-Forbidden Git operations include, but are not limited to:
+After task `0008` establishes the canonical CI interface, the task-start preflight MUST use the same root commands used by GitHub Actions, normally `npm ci` followed by `npm run ci:check`.
 
-- `git add`
-- `git commit`
-- `git stash`
-- `git checkout`
-- `git switch`
-- `git restore`
-- `git reset`
-- `git clean`
-- `git branch`
-- `git tag`
-- `git merge`
-- `git rebase`
-- `git cherry-pick`
-- `git revert`
-- `git fetch`
-- `git pull`
-- `git push`
+Before that canonical interface exists, use the bootstrap checks defined in `PROTOCOL.md`. If a required gate does not yet exist on the initial baseline, the missing gate itself is a preflight defect. The first affected feature branch may establish the minimum deterministic gate as preflight remediation before implementing the task scope.
 
-Do not invoke `gh` or another GitHub client to mutate repository, issue, pull-request, release, workflow, or branch state during an autonomous Development Session.
+If preflight fails because of repository-controlled lint/type/test/build/static defects:
 
-Task completion does NOT create a commit. The human developer reviews the accumulated working-tree changes and performs Git writes after the Development Session.
+- repair those defects on the task feature branch before implementing the task itself;
+- keep preflight remediation clearly separated from the task implementation in commits and execution notes when practical;
+- rerun the complete preflight after remediation;
+- do not begin the task scope until the whole preflight is green.
+
+If the baseline cannot be made green within the configured limits, mark the task `BLOCKED`, preserve the feature branch for diagnosis, and do not merge it into `develop`.
+
+## Git lifecycle for one task
+
+Git writes are REQUIRED for task isolation and CI verification.
+
+For each task:
+
+1. Start from an up-to-date, clean `develop`.
+2. Create `feature/<Source>` from that exact `develop` commit.
+3. Push the feature branch to `origin` so failed work can be preserved remotely.
+4. Run the mandatory CI-parity preflight before task implementation.
+5. Implement and validate the task on the feature branch.
+6. Commit the task changes on the feature branch. Prefer small, comprehensible commits; do not squash or rewrite history merely for cosmetic reasons.
+7. Run the complete CI-parity gate set again immediately before integration.
+8. Mark the task `DONE` in the feature branch only when implementation and all local gates pass. The runner MUST treat this state as `CI_PENDING` until post-merge CI succeeds.
+9. Switch to `develop`, verify it has not moved unexpectedly, and merge the feature branch using an explicit no-fast-forward merge commit.
+10. Push `develop` and wait for the GitHub Actions workflow associated with that merge commit.
+
+If post-merge CI succeeds:
+
+- the task's `DONE` state becomes final;
+- delete `feature/<Source>` locally and remotely;
+- only then may the runner select the next task.
+
+If post-merge CI fails:
+
+- do not continue to the next task;
+- revert the merge commit on `develop` with an ordinary revert commit; never reset or rewrite shared history;
+- push the revert and verify the integration branch returns to a green state;
+- update the task on `develop` to `BLOCKED`, recording the failed workflow/merge SHA and the reason;
+- preserve the local and remote `feature/<Source>` branch for diagnosis or later human-approved retry.
+
+If a task becomes blocked before merge, do not merge partial implementation. Preserve its feature branch and propagate only the task's `BLOCKED` status/diagnostics to `develop`.
+
+## Git safety constraints
+
+Allowed task-lifecycle writes include ordinary branch creation, add/commit, push, no-ff merge into `develop`, merge revert after failed CI, branch deletion after successful CI, and metadata-only commits needed to record a blocked task.
+
+Forbidden operations include:
+
+- any write to `master`;
+- force-push;
+- rebase of autonomous task history;
+- `reset --hard` or equivalent history rewriting on shared branches;
+- deleting a failed feature branch before human review;
+- bypassing or disabling CI to obtain a green result;
+- amending/replacing a pushed merge commit after CI has evaluated it.
+
+The agent may use `gh` or GitHub read APIs to identify and wait for the workflow run belonging to the exact merge SHA. Remote mutation should otherwise occur through the explicit Git lifecycle above unless a task specifically authorizes another GitHub action.
 
 ## Browser and frontend validation
 
@@ -98,24 +135,22 @@ For frontend or browser-observable work:
 
 Browser validation is not mandatory for backend-only tasks or frontend changes whose acceptance criteria are fully established by static/unit tests unless the task explicitly requires it.
 
-## Validation
+## Validation before integration
 
-Before marking a task as done:
+Before a task may be merged:
 
-1. Run every validation command required by the task.
-2. Run relevant tests for the changed area.
-3. Run relevant type checking and linting when available.
-4. Run the relevant project build when applicable.
-5. Perform declared browser validation when applicable.
-6. Verify every acceptance criterion in the task.
-7. Verify that no unrelated pre-existing working-tree changes were reverted or modified accidentally.
+1. Run every task-specific validation command.
+2. Perform declared browser validation when applicable.
+3. Run the complete canonical CI-parity gate set, not merely tests for the changed area.
+4. Verify every acceptance criterion in the task.
+5. Verify the feature branch contains no unrelated changes except documented preflight remediation.
 
-A task may be marked `DONE` only when all applicable validation and acceptance criteria pass.
+A task may enter the merge/CI phase only when all local checks pass.
 
 ## Safety and stopping
 
 - Never deploy or publish as part of an autonomous Development Session unless a future task and runner policy explicitly authorize a non-production deployment action.
 - Never access production credentials or production data.
-- If validation cannot be restored within the task's retry/budget limits, mark the task `BLOCKED` and stop.
-- If a blocked task leaves changes that cannot be safely reverted by ordinary file editing without touching valid earlier-session work, report the dirty task delta and stop the Development Session rather than using Git to restore/reset it.
-- If instructions conflict, prefer the narrowest task-specific instruction that does not violate repository-wide safety constraints.
+- If validation cannot be restored within the task's retry/budget limits, mark the task `BLOCKED` and stop that task.
+- If post-merge CI fails, the merge MUST be reverted before any later task begins.
+- If instructions conflict, prefer the narrowest task-specific instruction that does not violate repository-wide safety, branch-isolation, or CI-integrity constraints.
