@@ -1,11 +1,19 @@
+---
+series_number: "0001"
+card_id: "$oid(6a962b70d3e82215b546be6e)"
+task_range:
+  start: "0001"
+  end: "0220"
+repository: "giuliomarinelli/MercurionWeb"
+branch: "develop"
+baseline:
+  commit: "8048279c1f7cf65b7d46149e19ad039c4e47c5f3"
+  label: "NG | cve fixes"
+  date: "2026-08-28"
+---
+
 # MercurionWeb — diagnosi deterministica del debito tecnico
 
-**series_number:** `0001`  
-**card_id:** `$oid(6a962b70d3e82215b546be6e)`  
-**task_range:** `[0001 - 0220]`  
-**Repository:** `giuliomarinelli/MercurionWeb`  
-**Branch:** `develop`  
-**Commit congelato:** `8048279c1f7cf65b7d46149e19ad039c4e47c5f3` (`NG | cve fixes`, 2026-08-28)  
 **Perimetro primario:** `MercurionWebNg` (Angular 20) e `MercurionWebNode` (Nest 11)  
 **Tipo di analisi:** statica integrale, multi-pass, più build/test/lint reali  
 
@@ -338,7 +346,7 @@ Questi rilievi non sono inferenze basate soltanto sulla dimensione o sulla somig
 | Angular | `auth.service.ts`: 451 righe, 38 metodi | FE-004–FE-018, NG-011 |
 | Angular | `session-sync.service.ts`: 430 righe, 22 metodi | FE-016–FE-018, NG-012 |
 | Nest | `account.service.ts`: 1.047 righe, 43 metodi, 14 dipendenze | BE-007, DATA-005–DATA-007 |
-| Nest | MFA service: 858 righe, 31 metodi, 13 dipendenze | BE-009, DATA-007 |
+| Nest | MFA service: 858 righe, 31 metodi e 13 dipendenze | BE-009, DATA-007 |
 | Nest | `session.service.ts`: 604 righe, 41 metodi | BE-010, BE-023–BE-024, DATA-030 |
 | Nest | User service: 560 righe | BE-002, DATA-003–DATA-004 |
 | Nest | Help service: 541 righe | DATA-008–DATA-011 |
