@@ -96,7 +96,7 @@ services:
     image: nginx:1.27-alpine
     container_name: nginx_sl_dev
     ports:
-      - "8888:80"
+      - "0.0.0.0:8888:80"
     volumes:
       - ./nginx_dev/nginx.conf:/etc/nginx/nginx.conf:ro
       - ../MercurionLandingFactory/dist/MercurionLandingFactory/browser:/usr/share/nginx/html/mercurion-errors:ro

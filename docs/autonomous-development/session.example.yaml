@@ -1,0 +1,248 @@
+# Example configuration for one autonomous Development Session.
+
+session:
+  name: development-session
+  timezone: Europe/Rome
+  start: null # coordinator records actual launch in runtime state/report; YAML stays read-only
+  end: "YYYY-MM-DDTHH:MM:SS+HH:MM" # required soft deadline
+  hard_stop: null # optional absolute RFC 3339 guardrail
+
+repository:
+  integration_branch: develop
+  feature_branch_pattern: "feature/{source}"
+
+  git:
+    allow_writes: true
+    merge_strategy: no-ff
+    allow_rebase: false
+    allow_force_push: false
+    push_feature_branch_before_work: true
+    delete_feature_branch_on_ci_success: true
+    preserve_feature_branch_on_failure: true
+    freeze_preserved_feature_branch_on_block: true
+
+  github:
+    allow_remote_git_writes: true
+    wait_for_merge_ci: true
+    ci_failure_policy: revert-merge-and-mark-reverted
+
+agent:
+  host: vscode
+  provider: github-copilot
+  subscription_profile: max
+  harness: copilot
+  mode: autopilot
+  advanced_autopilot_required: true
+  model: GPT-5.6 Sol
+  reasoning: high
+
+  coordinator:
+    name: Development Session Coordinator
+    file: .github/agents/development-session-coordinator.agent.md
+
+  worker:
+    name: Development Task Worker
+    file: .github/agents/development-task-worker.agent.md
+    invocation: agent/runSubagent
+    stateless: true
+    exactly_one_task: true
+
+  # Autonomous sessions run through GitHub Copilot Chat/Agent in VS Code.
+  # `.vscode/settings.json` enables the extension's native OpenAI Responses API
+  # context management. For a 272K prompt window the extension computes the
+  # server-side compaction threshold as floor(272000 * 0.9) = 244800 tokens.
+  context:
+    max_prompt_tokens: 272000
+    long_context_enabled: false
+    management:
+      required: true
+      provider: openai-responses
+      strategy: server-side-compaction
+      workspace_setting: github.copilot.chat.responsesApiContextManagement.enabled
+      workspace_setting_file: .vscode/settings.json
+      required_value: true
+      compact_threshold: 244800
+      compact_threshold_policy: 90-percent-of-model-max-prompt-tokens
+
+  # Observability/budget hints are enforced only when the active Copilot host
+  # exposes the corresponding counters to the coordinator.
+  max_autopilot_continues_per_task: 20
+  max_ai_credits_per_task: 100
+
+capabilities:
+  terminal_and_git:
+    required: true
+  github_actions_read:
+    required: true
+  subagents:
+    required: true
+    tool: agent/runSubagent
+  browser_validation:
+    enabled: true
+    mcp_server: chrome-devtools
+    mcp_config: .vscode/mcp.json
+    required_when_declared_by_task: true
+
+runtime:
+  documentation: docs/autonomous-development/RUNTIME.md
+
+  edge:
+    base_url: http://localhost:8888
+    managed: false
+    required_when_browser_validation_is_needed: true
+    angular_readiness_url: http://localhost:8888/
+    nest_readiness_url: http://localhost:8888/health
+
+  managed_processes:
+    tox21:
+      cwd: ../MercurionTox21
+      repository_access: read-only
+      watch: false
+      command:
+        windows: .venv/Scripts/python.exe -m main
+        posix: .venv/bin/python -m main
+
+    nest:
+      cwd: MercurionWebNode
+      repository_access: read-write
+      watch: true
+      command: npm run start:dev
+
+    angular:
+      cwd: MercurionWebNg
+      repository_access: read-write
+      watch: true
+      command: npm run start:dev
+
+  start_order:
+    - tox21
+    - nest
+    - angular
+
+quality:
+  # No task implementation starts before a complete, clean green baseline.
+  session_start_preflight: true
+  require_clean_exact_origin_develop: true
+  require_green_before_first_task_scope: true
+  require_exact_sha_ci_for_later_develop_bases: true
+  allow_task_0001_phase_0_bootstrap_only: true
+  stop_session_if_initial_baseline_cannot_be_made_green: true
+  before_every_task: true
+  before_merge: true
+  repair_repository_controlled_failures: true
+
+  # Canonical interface after task 0008 is integrated. GitHub Actions must use
+  # the same gate set. The clean install is deliberately separate from ci:check.
+  canonical:
+    install: npm ci
+    check: npm run ci:check
+
+  # Before task 0008 creates the root CI interface, PROTOCOL.md defines the
+  # bootstrap package-local checks. Missing required lint/type/test gates are
+  # defects to establish/repair, not permission to skip them.
+  bootstrap_until_task: "0008"
+
+  # After any remediation, rerun the complete suite rather than only the command
+  # that originally failed.
+  rerun_full_suite_after_repair: true
+
+workload:
+  task_directory: docs/autonomous-development/task
+  task_pattern: "[0-9][0-9][0-9][0-9]-*.md"
+  series_directory: docs/autonomous-development/series
+  series_pattern: "[0-9][0-9][0-9][0-9]-*.md"
+  order: filename
+  series_file: null
+  tasks: []
+  pending_only: true
+
+task_outcomes:
+  persistent:
+    - DONE
+    - BLOCKED
+    - REVERTED
+    - SKIPPED_DEPENDENCY
+  mutually_exclusive: true
+  transient:
+    - CI_PENDING
+
+policy:
+  fresh_agent_session_per_task: true
+
+  # Each task owns exactly one feature branch derived from its Source identifier.
+  one_feature_branch_per_task: true
+  source_required_for_branch_name: true
+
+  # The runner does not start the next task until merge CI succeeds or the merge
+  # has been reverted and the task has been recorded as REVERTED.
+  serialize_task_integration: true
+
+  finish_current_task_after_deadline: true
+  start_new_tasks_after_deadline: false
+  stop_when_workload_exhausted: true
+
+  continue_after_terminal_non_done_task: true
+  propagate_skipped_dependency_transitively: true
+  batch_dependency_skip_metadata_commit: true
+  next_task_after_terminal_non_done: next-pending-with-all-hard-dependencies-done
+  require_green_develop_before_next_task: true
+
+ci:
+  workflow_file: .github/workflows/ci.yml
+  integration_branch: develop
+  merge_commit_required: true
+  wait_for_exact_merge_sha: true
+  poll_interval_seconds: 30
+  observation_timeout_minutes: 120
+  only_success_conclusion_is_green: true
+
+  on_success:
+    finalize_done: true
+    delete_feature_branch_local: true
+    delete_feature_branch_remote_if_present: true
+
+  on_pre_merge_block:
+    mark_task_blocked: true
+    wait_for_blocked_metadata_ci_green: true
+    preserve_feature_branch_local: true
+    preserve_feature_branch_remote: true
+    freeze_preserved_feature_branch: true
+
+  on_failure:
+    stop_current_integration: true
+    revert_merge_commit: true
+    wait_for_revert_ci_green: true
+    verify_revert_tree_matches_pre_merge_base: true
+    stop_session_if_revert_not_green: true
+    classify_non_green_revert_as: baseline-or-upstream-incident
+    mark_task_reverted: true
+    wait_for_reverted_metadata_ci_green: true
+    preserve_feature_branch_local: true
+    preserve_feature_branch_remote: true
+    freeze_preserved_feature_branch: true
+
+  on_dependency_skip:
+    create_feature_branch: false
+    invoke_worker: false
+    mark_task_skipped_dependency: true
+    record_direct_and_transitive_causes: true
+    wait_for_batched_metadata_ci_green: true
+
+decisions:
+  # Required choices that a task forbids the agent from inventing belong here.
+  # SYS-001 uses portable wire contracts; Nest-only decorated DTOs may remain as
+  # checked validation/transformation adapters and are never imported by Angular.
+  sys_001_rest_contract_source: shared-versioned-framework-neutral-package
+  sys_001_angular_nest_runtime_dependency: forbidden
+  sys_001_nest_validation_adapters: preserve-when-required-and-prove-contract-parity
+  sys_001_migration_policy: incremental-non-breaking
+
+on_finish:
+  validate_repository: true
+  require_green_develop: true
+  generate_report: true
+  stop_managed_runtime_processes: true
+  report_directory: docs/autonomous-development/reports
+  report_template: docs/autonomous-development/reports/0000-session-report-template.md
+  commit_and_push_report_to_develop: true
+  wait_for_exact_report_commit_ci: true
