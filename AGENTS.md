@@ -24,7 +24,7 @@ Autonomous-development planning and execution are intentionally separate:
 
 - `docs/autonomous-development/series/` contains non-executable series documents: analysis, planning context, source registries, Trello-card bindings, and task-range bindings.
 - `docs/autonomous-development/task/` contains executable task recipes.
-- Series membership is owned by the series document through its inclusive `task_range`; task files do not need to encode a backlink to their series.
+- Series membership is owned by the series document through its inclusive YAML `task_range`; task files do not need to encode a backlink to their series.
 - `card_id` is series metadata used to bind a series to its Trello card. It is not an execution dependency.
 - `0000-series-example.md` and `0000-task-example.md` are templates only and MUST NEVER be executed.
 
@@ -38,6 +38,21 @@ Autonomous-development planning and execution are intentionally separate:
 - Prefer existing repository patterns and dependencies over introducing new abstractions or packages.
 - Do not infer executable requirements from a series document when the active task recipe is explicit. A series may be consulted as planning context only when useful or explicitly referenced.
 
+## Browser and frontend validation
+
+The repository exposes the `chrome-devtools` MCP server to Copilot CLI through `.github/mcp.json`.
+
+For frontend or browser-observable work:
+
+- use Chrome DevTools MCP when the active task declares browser validation or when runtime browser behaviour is necessary to establish an acceptance criterion;
+- use the browser to inspect the rendered UI and, when relevant, console errors, network requests, runtime state, accessibility/DOM state, responsive behaviour, and screenshots;
+- do not treat a successful TypeScript compilation or Angular build as sufficient evidence for a browser-facing acceptance criterion;
+- prefer the dedicated MCP-controlled Chrome instance; do not attach to a human developer's personal Chrome profile;
+- never browse production or enter production credentials/data during autonomous validation;
+- if required browser validation cannot be performed because Chrome DevTools MCP, the local application, required test data, or another declared dependency is unavailable, mark the task `BLOCKED` rather than claiming browser validation passed.
+
+Browser validation is not mandatory for backend-only tasks or frontend changes whose acceptance criteria are fully established by static/unit tests unless the task explicitly requires it.
+
 ## Validation
 
 Before marking a task as done:
@@ -46,8 +61,9 @@ Before marking a task as done:
 2. Run relevant tests for the changed area.
 3. Run relevant type checking and linting when available.
 4. Run the relevant project build when applicable.
-5. Verify that the working tree contains only changes related to the active task.
-6. Verify every acceptance criterion in the task.
+5. Perform declared browser validation when applicable.
+6. Verify that the working tree contains only changes related to the active task.
+7. Verify every acceptance criterion in the task.
 
 A task may be marked `DONE` only when all applicable validation and acceptance criteria pass.
 
