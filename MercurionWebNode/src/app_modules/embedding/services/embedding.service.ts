@@ -3,8 +3,9 @@ import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { MoleculeEmbedding } from '../Models/entities/molecule-embedding.entity';
+import type { EmbeddingNeighbor } from '@mercurion/rest-contracts'
 
-export type Neighbor = { molregno: number; distance: number };
+export type Neighbor = EmbeddingNeighbor
 
 @Injectable()
 export class EmbeddingService implements OnModuleInit {

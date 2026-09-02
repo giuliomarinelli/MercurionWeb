@@ -20,6 +20,7 @@
   },
   "private": true,
   "dependencies": {
+    "@mercurion/rest-contracts": "1.0.0",
     "@angular/animations": "20.3.30",
     "@angular/cdk": "20.2.14",
     "@angular/common": "20.3.30",

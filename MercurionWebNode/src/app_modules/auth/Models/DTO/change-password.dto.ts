@@ -1,6 +1,7 @@
 import { IsOptional, IsString, Matches } from "class-validator"
+import type { ChangePasswordDTO as ChangePasswordContract } from '@mercurion/rest-contracts'
 
-export class ChangePasswordDTO {
+export class ChangePasswordDTO implements ChangePasswordContract {
     @IsString()
     @IsOptional()
     oldPassword?: string

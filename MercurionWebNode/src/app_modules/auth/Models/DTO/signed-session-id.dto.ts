@@ -1,7 +1,8 @@
 import { Transform } from "class-transformer";
 import { IsNotEmpty, IsString, Matches } from "class-validator";
+import type { SignedSessionIdDTO as SignedSessionIdContract } from '@mercurion/rest-contracts'
 
-export class SignedSessionIdDTO {
+export class SignedSessionIdDTO implements SignedSessionIdContract {
 
     @IsString()
     @IsNotEmpty()

@@ -1,20 +1,15 @@
 import { FormControl } from '@angular/forms';
+import type { UserGenderControl, UserRegisterDTO } from '@mercurion/rest-contracts'
 
-export type UserGenderControl = 'M' | 'F' | 'Undefined' | '';
+export type {
+  UserGender,
+  UserGenderControl,
+  UserRegisterDTO
+} from '@mercurion/rest-contracts'
 
-export type UserGender = Omit<UserGenderControl, ''>
-
-export interface UserRegisterDTO {
-  firstName: string;
-  lastName: string;
-  email: string;
-  job?: string | null;
-  gender: UserGenderControl;
-  password: string;
-}
-
-export interface UserRegistrationFormValue extends UserRegisterDTO {
-  confirmPassword: string;
+export type UserRegistrationFormValue = Omit<UserRegisterDTO, 'gender'> & {
+  gender: UserGenderControl
+  confirmPassword: string
 }
 
 
@@ -27,4 +22,3 @@ export type UserRegistrationFormControls = {
   password: FormControl<string>
   confirmPassword: FormControl<string>
 }
-

@@ -6,6 +6,7 @@ import { ConfirmNewLogLevelsDTO } from 'src/Models/confirm-responses.dto';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { ResponseService } from 'src/services/response.service';
 import { FastifyReply } from 'fastify';
+import type { MaintenanceBypassResponse } from '@mercurion/rest-contracts'
 
 
 @Controller('admin')
@@ -30,7 +31,7 @@ export class AdminController {
     @Get('/maintenance')
     getAdminMaintenanceCookie(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        @Res({ passthrough: true }) reply: FastifyReply, @Query('t') t: string): { ok: true } {
+        @Res({ passthrough: true }) reply: FastifyReply, @Query('t') t: string): MaintenanceBypassResponse {
         // TODO: fare hashing argon2 in db e hardening, adesso importa solo far funzionare il gate. Non esponiamo 
         // questioni di sicurezza, solo un sito graficamente ancora non pronto, specie per safari
         // if (t === '66b590cef2b899cbd1f72fa7a4424f23ba4ec212c627bf674469ef170e52a4cd7711b126f770280bac9eaa4c3c3dcdda9049e40f345c14c538faefb969b417ff') {

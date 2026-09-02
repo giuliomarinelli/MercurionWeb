@@ -12,6 +12,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
+    "contracts:check": "tsc --noEmit -p tsconfig.contracts.json && jest --runInBand contracts/rest-contract-runtime.spec.ts",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -27,6 +28,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@mercurion/rest-contracts": "1.0.0",
     "@fastify/cookie": "11.0.2",
     "@fastify/helmet": "13.0.2",
     "@fastify/middie": "9.3.3",
