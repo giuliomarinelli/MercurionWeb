@@ -78,12 +78,12 @@ import { DesignService } from '../../services/design.service'
 
 
         @if (typeGuards.isSystemMolecule(molecule)) {
-          <m-molecule-header [nameInput]="molecule.preferredNameIt" [chemblIdInput]="molecule.cmbId"
-            [molId]="molecule.id.toString()" [isSystemMolecule]="true" [smiles]="molecule.canonicalSmiles" [isLoggedIn]="userContext.isLoggedIn()"
+          <m-molecule-header [nameInput]="molecule.preferredNameIt ?? molecule.preferredName ?? ''" [chemblIdInput]="molecule.cmbId"
+            [molId]="molecule.id.toString()" [isSystemMolecule]="true" [smiles]="molecule.canonicalSmiles ?? ''" [isLoggedIn]="userContext.isLoggedIn()"
             (onAddToCollection)="doAddToManyCollections()" />
         } @else if (typeGuards.isChemblMolecule(molecule)) {
-          <m-molecule-header [nameInput]="molecule.chemblDetails.preferredNameIt" [chemblIdInput]="molecule.chemblDetails.cmbId"
-            [myMol]="true" [molId]="molecule.id" [smiles]="molecule.chemblDetails.canonicalSmiles"
+          <m-molecule-header [nameInput]="molecule.chemblDetails.preferredNameIt ?? molecule.chemblDetails.preferredName ?? ''" [chemblIdInput]="molecule.chemblDetails.cmbId"
+            [myMol]="true" [molId]="molecule.id" [smiles]="molecule.chemblDetails.canonicalSmiles ?? ''"
             [isLoggedIn]="userContext.isLoggedIn()" (onDelete)="doDelete($event)"
             (onAddToCollection)="doAddToManyCollections()" />
         } @else if (typeGuards.isCustomMolecule(molecule)) {
@@ -145,10 +145,10 @@ import { DesignService } from '../../services/design.service'
                             bg-slate-200 dark:bg-slate-700" role="status" aria-live="polite"></div>
               }
               @if (typeGuards.isSystemMolecule(molecule)) {
-                <m-molecule-viewer [mode]="'detail'" class="w-full h-full" [structure]="molecule.canonicalSmiles"
+                <m-molecule-viewer [mode]="'detail'" class="w-full h-full" [structure]="molecule.canonicalSmiles ?? ''"
                 (rendered)="viewerReady.set(true)" />
               } @else if (typeGuards.isChemblMolecule(molecule)) {
-                <m-molecule-viewer [mode]="'detail'" class="w-full h-full" [structure]="molecule.chemblDetails.canonicalSmiles"
+                <m-molecule-viewer [mode]="'detail'" class="w-full h-full" [structure]="molecule.chemblDetails.canonicalSmiles ?? ''"
                 (rendered)="viewerReady.set(true)" />
               } @else if (typeGuards.isCustomMolecule(molecule)) {
                 <m-molecule-viewer [mode]="'detail'" class="w-full h-full" [structure]="molecule.canonicalSmiles"
@@ -459,11 +459,11 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
 
         let smiles = ''
         if (this.typeGuards.isSystemMolecule(item)) {
-          smiles = item.canonicalSmiles
-          this.appTitle.setSection('Molecole', item.preferredNameIt ?? item.preferredName)
+          smiles = item.canonicalSmiles ?? ''
+          this.appTitle.setSection('Molecole', item.preferredNameIt ?? item.preferredName ?? undefined)
         } else if (this.typeGuards.isChemblMolecule(item)) {
-          smiles = item.chemblDetails.canonicalSmiles
-          this.appTitle.setSection('Molecole', item.chemblDetails.preferredNameIt ?? item.chemblDetails.preferredName)
+          smiles = item.chemblDetails.canonicalSmiles ?? ''
+          this.appTitle.setSection('Molecole', item.chemblDetails.preferredNameIt ?? item.chemblDetails.preferredName ?? undefined)
         } else if (this.typeGuards.isCustomMolecule(item)) {
           if (item.propertiesJson) {
             item.properties = JSON.parse(item.propertiesJson)

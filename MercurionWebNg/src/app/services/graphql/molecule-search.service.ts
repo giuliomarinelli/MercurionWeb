@@ -4,8 +4,10 @@ import { map, tap } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { MoleculeSearchResult } from '../../Models/graphql/molecule-search/molecule-search-result.interface';
 import { extractGqlData } from './graphql-helpers/v1/extract-gql-data.helper';
-
-
+import {
+  MoleculeSearchQuery,
+  MoleculeSearchQueryVariables
+} from '../../generated/graphql';
 
 
 @Injectable({ providedIn: 'root' })
@@ -23,7 +25,7 @@ export class MoleculeSearchService {
     this._loading.set(true)
 
     return this.apollo
-      .watchQuery<{ moleculeSearch: MoleculeSearchResult[] }>({
+      .watchQuery<MoleculeSearchQuery, MoleculeSearchQueryVariables>({
         query: gql`
           query MoleculeSearch($input: MoleculeSearchInput!) {
             moleculeSearch(input: $input) {
@@ -44,7 +46,7 @@ export class MoleculeSearchService {
         fetchPolicy: 'network-only',
       })
       .valueChanges.pipe(
-        map(res => extractGqlData(res, 'moleculeSearch')),
+        map(res => extractGqlData<MoleculeSearchQuery, 'moleculeSearch'>(res, 'moleculeSearch')),
         tap(results => {
           this._results.set(results)
           this._loading.set(false)

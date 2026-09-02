@@ -1,6 +1,6 @@
 # 0002 - Generate Angular GraphQL documents and types
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -94,20 +94,106 @@ Do not hide invalid operations by excluding broad source directories. Temporary 
 
 ### Summary
 
-_Not started._
+Implemented incremental Angular GraphQL Code Generator coverage against the
+committed Nest schema. The Angular workspace now has pinned Code Generator
+tooling, deterministic generation/check commands, generated schema and
+operation/document artifacts, existing `JsonValue`/`string` scalar mappings,
+and generated-type adoption across every operation admitted by the explicit
+allowlist.
+
+Accepted help, molecule detail/preview, collection, collection-join and
+molecule-search service calls now use generated operation variables/results;
+static operation modules use generated typed document nodes. Equivalent
+handwritten API aliases and schema input/response declarations were replaced
+with aliases derived from generated operation types. Nullability exposed by
+the committed schema is handled at existing UI/domain boundaries without
+changing resolver behaviour.
+
+Task commit:
+
+- `fbefddab` - `feat(angular): generate GraphQL documents and types`
 
 ### Validation performed
 
-_Not started._
+- Task-start preflight at base
+  `3cd6a9300c2869c0052f7d3318c17f9e1ff93554`:
+  - `npm ci` - PASS with Node `v22.16.0` / npm `10.9.2`;
+  - `npm run ci:check` - PASS (complete root CI-parity aggregate);
+  - `git status --short` and `git diff --exit-code` afterward - clean/no task
+    change.
+- GraphQL generation and drift:
+  - `npm run graphql:generate --workspace mercurion_web_ng` - PASS;
+  - `npm run graphql:check --workspace mercurion_web_ng` - PASS;
+  - intentional one-line generated-artifact drift probe followed by
+    `npm run graphql:check --workspace mercurion_web_ng` - expected FAIL,
+    exit `1`, naming `src/app/generated/graphql.ts` as stale;
+  - regeneration restored the artifact and the subsequent check passed;
+  - two consecutive generation runs produced identical SHA-256 content:
+    - `graphql.ts`:
+      `763540371C8ED482940F626AE44D20954F8250CD6137E5BE26AB6D9FC2D95F55`;
+    - `schema.ts`:
+      `353CD1D761F7ED8311A86B275D3F4CD7389722BF428052F0DDFD2B809E66291F`;
+    - result: `IDEMPOTENT=True`.
+- Angular:
+  - `npm run typecheck --workspace mercurion_web_ng` - PASS;
+  - `npm run lint --workspace mercurion_web_ng` - PASS with the existing
+    warning-only migration debt;
+  - from `MercurionWebNg`, `npm run build` - PASS; existing bundle/CommonJS
+    warnings only;
+  - the recipe spelling `npm test -- --watch=false` was attempted, but npm
+    `10.9.2` did not forward the flag to the child `ng test` process and left
+    Karma in watch mode; the owned process tree was stopped after diagnosis;
+  - from `MercurionWebNg`, `npm test -- -- --watch=false` (explicit npm
+    forwarding separator, child command confirmed as `ng test --watch=false`)
+    - PASS, complete Angular suite;
+  - the canonical root CI aggregate independently reran the complete Angular
+    suite through `test:ci`.
+- Pre-integration CI parity after the implementation commit:
+  - root `npm ci` - PASS, `1925` packages installed, `0` vulnerabilities;
+  - root `npm run ci:check` - PASS, including autonomous recipe validation,
+    contracts, Angular/Nest lint, typechecks, all Angular tests, Nest unit/E2E
+    tests and both builds.
+- `git diff --check` - PASS.
 
 ### Browser validation performed
 
-_Not applicable._
+Not applicable per the recipe; this task changes generated contract/type
+artifacts and has no browser acceptance criterion.
 
 ### Changed files
 
-_Not recorded._
+- Added `MercurionWebNg/codegen.yml`,
+  `MercurionWebNg/GRAPHQL_CODEGEN.md`, and generated
+  `src/app/generated/{schema,graphql}.ts`.
+- Added pinned GraphQL Code Generator packages/scripts to
+  `MercurionWebNg/package.json` and regenerated the root `package-lock.json`
+  through npm `10.9.2`.
+- Migrated accepted GraphQL service call sites and related API aliases under
+  `MercurionWebNg/src/app/services/graphql/` and
+  `MercurionWebNg/src/app/Models/graphql/`.
+- Added the two omitted pagination metadata fields to the accepted collection
+  operation so its generated result matches the existing `PageModel`
+  contract.
+- Added narrow null handling at affected Angular consumers where generated
+  schema nullability replaced handwritten non-null assertions.
 
 ### Blocker / human decision required
 
-_None._
+None for this task.
+
+Explicit follow-up boundary:
+
+- `molecule-collection-item.gql-operations.ts` remains excluded because its
+  committed 21-document set contains impossible interface/DTO fragment
+  spreads and duplicate `MyMoleculeItems` / `UpdateMoleculeItemLabel`
+  operation names; task `0003` owns those corrections.
+- `molecule-collection.service.ts` remains excluded because its mixed source
+  contains runtime-interpolated selection sets that static plucking cannot
+  parse; task `0007` owns centralization/normalization.
+- `notebook.service.ts` remains excluded because it has duplicate
+  `GetChapterById` operation names, three `String!` variables used where the
+  schema requires `ID!`, and inline documents; tasks `0003` and `0007` own
+  those corrections.
+- The exact diagnostics and accepted allowlist are documented in
+  `MercurionWebNg/GRAPHQL_CODEGEN.md`. Task `0008` owns adding GraphQL drift to
+  the permanent root CI aggregate.

@@ -1,9 +1,16 @@
 import { MoleculeSearchResult } from './../../Models/graphql/molecule-search/molecule-search-result.interface';
 import { inject, Injectable } from '@angular/core';
 import { Apollo } from 'apollo-angular';
-import { GET_MOLECULE_DETAIL, GET_MOLECULE_PREVIEWS } from './graphql-operations/molecule.gql-queries';
 import { map, Observable, of, switchMap, throwError } from 'rxjs';
 import { MoleculeDetail } from '../../Models/graphql/molecule.detail.models';
+import {
+  GetMoleculeDetailDocument,
+  GetMoleculeDetailQuery,
+  GetMoleculeDetailQueryVariables,
+  MoleculePreviewsByMolregnosDocument,
+  MoleculePreviewsByMolregnosQuery,
+  MoleculePreviewsByMolregnosQueryVariables
+} from '../../generated/graphql';
 
 @Injectable({
   providedIn: 'root'
@@ -14,8 +21,8 @@ export class MoleculeService {
 
   getMoleculeByMolregno(molregno: string): Observable<MoleculeDetail> {
     return this.apollo
-      .watchQuery<{ moleculeByMolregno: MoleculeDetail }>({
-        query: GET_MOLECULE_DETAIL,
+      .watchQuery<GetMoleculeDetailQuery, GetMoleculeDetailQueryVariables>({
+        query: GetMoleculeDetailDocument,
         variables: { molregno },
         fetchPolicy: 'cache-first',
         context: {
@@ -35,8 +42,8 @@ export class MoleculeService {
 
   getMoleculePreviewsByMolregnos(molregnos: string[]): Observable<MoleculeSearchResult[]> {
     return this.apollo
-      .watchQuery<{ moleculePreviewsByMolregnos: MoleculeSearchResult[] }>({
-        query: GET_MOLECULE_PREVIEWS,
+      .watchQuery<MoleculePreviewsByMolregnosQuery, MoleculePreviewsByMolregnosQueryVariables>({
+        query: MoleculePreviewsByMolregnosDocument,
         variables: { molregnos },
         fetchPolicy: 'cache-first',
         context: {

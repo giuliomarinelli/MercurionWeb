@@ -2,6 +2,13 @@ import { WritableSignal } from "@angular/core";
 import { T1PredictionDTO } from "../../notebook/t1-prediction-model";
 import { MoleculeProperties } from "../molecule-properties.model";
 import { MoleculeDetail, MoleculeDetailSystem } from "../molecule.detail.models";
+import type {
+  AddChemblMoleculeToCollectionMutationVariables,
+  AddCustomMoleculeToCollectionMutationVariables,
+  BindManyCollectionsToMoleculeMutation,
+  DuplicateCollectionMutation,
+  PaginatedCollectionsQuery
+} from "../../../generated/graphql";
 
 // --- TYPE DEFINITIONS (semplificate) ---
 export interface MoleculeCollectionJoin {
@@ -54,26 +61,14 @@ export interface CreateMoleculeItemInput {
   notes?: string;
 }
 
-export interface CustomMoleculeItemInput {
-  canonicalSmiles: string;
-  label?: string;
-  notes?: string;
-  molFormula?: string;
-  name?: string;
-  propertiesJson?: string; // da serializzare via JSON.stringify(properties)
-}
+export type CustomMoleculeItemInput =
+  AddCustomMoleculeToCollectionMutationVariables['input']
 
-export interface AddCustomMoleculeToCollectionInput {
-  collectionId: string;
-  input: CustomMoleculeItemInput;
-}
+export type AddCustomMoleculeToCollectionInput =
+  AddCustomMoleculeToCollectionMutationVariables
 
-export interface AddChemblMoleculeToCollectionInput {
-  collectionId: string;
-  chemblMolregno: number;
-  label?: string;
-  notes?: string;
-}
+export type AddChemblMoleculeToCollectionInput =
+  AddChemblMoleculeToCollectionMutationVariables
 
 export type MoleculeItemDTO =
   | {
@@ -153,14 +148,8 @@ export interface MoleculeCollectionItemJoinShort {
 }
 
 
-export interface MoleculeCollection {
-  id: string
-  name: string
-  createdAt: string | number
-  updatedAt: string | number
-  touchedAt: string | number
-  itemsCount: number
-}
+export type MoleculeCollection =
+  PaginatedCollectionsQuery['myMoleculeCollectionsPaginated']['items'][number]
 
 export interface Animatable {
   triggerDisappear: WritableSignal<boolean>
@@ -182,9 +171,8 @@ export interface MoleculeCardItemModel extends Animatable {
   touchedAt: number
 }
 
-export interface BindManyCollectionsToMoleculeDTO {
-  ok: boolean
-  moleculeUUID: string | null
-}
+export type BindManyCollectionsToMoleculeDTO =
+  BindManyCollectionsToMoleculeMutation['bindManyCollectionsToMolecule']
 
-export type DuplicateCollectionRes = Pick<MoleculeCollection, 'id' | 'name'>
+export type DuplicateCollectionRes =
+  NonNullable<DuplicateCollectionMutation['duplicateCollection']>

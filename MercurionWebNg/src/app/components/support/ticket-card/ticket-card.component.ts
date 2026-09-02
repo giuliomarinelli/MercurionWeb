@@ -286,7 +286,7 @@ export class TicketCardComponent {
 
   getUserFullNameIfIsTicket(t: Maybe<Ticket | APIClientTicket>): string {
     if (this.typeGuards.isTicket(t)) {
-      return t.userFullName
+      return t.userFullName ?? ''
     }
     return ''
   }

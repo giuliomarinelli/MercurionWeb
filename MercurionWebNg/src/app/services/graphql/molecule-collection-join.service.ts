@@ -2,8 +2,18 @@ import { Helpers } from './../../helpers';
 import { Injectable } from '@angular/core';
 import { Apollo, gql } from 'apollo-angular';
 import { map, Observable } from 'rxjs';
-import { AddChemblMoleculeToCollectionInput, AddCustomMoleculeToCollectionInput, CustomMoleculeItemEntity } from '../../Models/graphql/molecule-collection/molecule-collection.types';
+import { AddChemblMoleculeToCollectionInput, AddCustomMoleculeToCollectionInput } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 import { extractGqlData } from './graphql-helpers/v1/extract-gql-data.helper';
+import {
+  AddChemblMoleculeToCollectionMutation,
+  AddChemblMoleculeToCollectionMutationVariables,
+  AddCustomMoleculeToCollectionMutation,
+  AddCustomMoleculeToCollectionMutationVariables,
+  RemoveChemblMoleculeFromCollectionMutation,
+  RemoveChemblMoleculeFromCollectionMutationVariables,
+  RemoveCustomMoleculeFromCollectionMutation,
+  RemoveCustomMoleculeFromCollectionMutationVariables
+} from '../../generated/graphql';
 
 
 
@@ -74,24 +84,26 @@ export class MoleculeJoinService {
   constructor(private apollo: Apollo) { }
 
   // Aggiungi Chembl
-  addChemblMoleculeToCollection(params: AddChemblMoleculeToCollectionInput): Observable<any> {
+  addChemblMoleculeToCollection(
+    params: AddChemblMoleculeToCollectionInput
+  ): Observable<AddChemblMoleculeToCollectionMutation['addChemblMoleculeToCollection']> {
     return this.apollo
-      .mutate({
+      .mutate<AddChemblMoleculeToCollectionMutation, AddChemblMoleculeToCollectionMutationVariables>({
         mutation: ADD_CHEMBL_TO_COLLECTION,
         variables: params,
       })
-      .pipe(map(res => extractGqlData(res, 'addChemblMoleculeToCollection')));
+      .pipe(map(res => extractGqlData<AddChemblMoleculeToCollectionMutation, 'addChemblMoleculeToCollection'>(res, 'addChemblMoleculeToCollection')));
   }
 
   // Aggiungi Custom (ritorna già il campo properties parsato)
-  addCustomMoleculeToCollection(params: AddCustomMoleculeToCollectionInput): Observable<CustomMoleculeItemEntity> {
+  addCustomMoleculeToCollection(params: AddCustomMoleculeToCollectionInput) {
     return this.apollo
-      .mutate<{ addCustomMoleculeToCollection: CustomMoleculeItemEntity }>({
+      .mutate<AddCustomMoleculeToCollectionMutation, AddCustomMoleculeToCollectionMutationVariables>({
         mutation: ADD_CUSTOM_TO_COLLECTION,
         variables: params,
       })
       .pipe(
-        map(res => extractGqlData(res, 'addCustomMoleculeToCollection')),
+        map(res => extractGqlData<AddCustomMoleculeToCollectionMutation, 'addCustomMoleculeToCollection'>(res, 'addCustomMoleculeToCollection')),
         map((entity) => ({
           ...entity,
           properties: Helpers.parseMoleculeProperties(entity.propertiesJson)
@@ -102,20 +114,20 @@ export class MoleculeJoinService {
   // Rimuovi Chembl
   removeChemblMoleculeFromCollection(collectionId: string, itemId: string): Observable<boolean> {
     return this.apollo
-      .mutate({
+      .mutate<RemoveChemblMoleculeFromCollectionMutation, RemoveChemblMoleculeFromCollectionMutationVariables>({
         mutation: REMOVE_CHEMBL_FROM_COLLECTION,
         variables: { collectionId, itemId },
       })
-      .pipe(map(res => extractGqlData(res, 'removeChemblMoleculeFromCollection')))
+      .pipe(map(res => extractGqlData<RemoveChemblMoleculeFromCollectionMutation, 'removeChemblMoleculeFromCollection'>(res, 'removeChemblMoleculeFromCollection')))
   }
 
   // Rimuovi Custom
   removeCustomMoleculeFromCollection(collectionId: string, itemId: string): Observable<boolean> {
     return this.apollo
-      .mutate({
+      .mutate<RemoveCustomMoleculeFromCollectionMutation, RemoveCustomMoleculeFromCollectionMutationVariables>({
         mutation: REMOVE_CUSTOM_FROM_COLLECTION,
         variables: { collectionId, itemId },
       })
-      .pipe(map(res => extractGqlData(res, 'removeCustomMoleculeFromCollection')));
+      .pipe(map(res => extractGqlData<RemoveCustomMoleculeFromCollectionMutation, 'removeCustomMoleculeFromCollection'>(res, 'removeCustomMoleculeFromCollection')));
   }
 }
