@@ -16,7 +16,7 @@ launch:
   mutate_historical_configuration_pull_request: false
   configuration_read_only_during_session: true
 
-repository:ckag
+repository:
   name: giuliomarinelli/MercurionWeb
   remote: origin
   integration_branch: develop
@@ -36,10 +36,13 @@ repository:ckag
 
   github:
     allow_remote_git_writes: true
+    wait_for_feature_ci: true
     wait_for_merge_ci: true
+    required_check: Required gate
     ci_failure_policy: revert-merge-and-mark-reverted
     do_not_mutate_pull_requests:
       - 25
+      - 27
 
 agent:
   host: github-copilot-cli
@@ -168,22 +171,22 @@ runtime:
     - angular
 
 quality:
+  # The permanent baseline is established outside all numbered recipes.
+  baseline_document: docs/autonomous-development/CI-BASELINE.md
   session_start_preflight: true
   require_clean_exact_origin_develop: true
   require_green_before_first_task_scope: true
-  require_exact_sha_ci_for_later_develop_bases: true
-  allow_task_0001_phase_0_bootstrap_only: true
-  stop_session_if_initial_baseline_cannot_be_made_green: true
+  require_exact_sha_ci_for_every_develop_base: true
+  stop_before_task_branch_if_initial_baseline_is_not_green: true
+  numbered_tasks_may_repair_baseline: false
   before_every_task: true
   before_merge: true
-  repair_repository_controlled_failures: true
-  rerun_full_suite_after_repair: true
 
+  # Permanent root workspace interface; later tasks only extend ci:check.
   canonical:
+    directory: .
     install: npm ci
     check: npm run ci:check
-
-  bootstrap_until_task: "0008"
 
 workload:
   task_directory: docs/autonomous-development/task
@@ -231,7 +234,12 @@ ci:
   workflow_file: .github/workflows/ci.yml
   integration_branch: develop
   merge_commit_required: true
+  wait_for_exact_feature_sha: true
   wait_for_exact_merge_sha: true
+  required_check: Required gate
+  platforms:
+    - ubuntu-latest
+    - windows-latest
   poll_interval_seconds: 30
   observation_timeout_minutes: 120
   only_success_conclusion_is_green: true
@@ -242,6 +250,7 @@ ci:
     delete_feature_branch_remote_if_present: true
 
   on_pre_merge_block:
+    feature_ci_non_success_marks_blocked: true
     mark_task_blocked: true
     wait_for_blocked_metadata_ci_green: true
     preserve_feature_branch_local: true
@@ -273,6 +282,10 @@ decisions:
   sys_001_angular_nest_runtime_dependency: forbidden
   sys_001_nest_validation_adapters: preserve-when-required-and-prove-contract-parity
   sys_001_migration_policy: incremental-non-breaking
+  sys_001_previous_attempt_branch: archive/SYS-001-attempt-2026-09-01
+  sys_001_previous_attempt_sha: b576281dc4acaf84a1186522b419a10518ca9eea
+  sys_001_retry_branch_policy: fresh-feature-branch-from-green-develop
+  sys_001_previous_attempt_usage: read-only-reference-selective-reimplementation-no-wholesale-cherry-pick
 
 on_finish:
   validate_repository: true

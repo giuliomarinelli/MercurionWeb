@@ -18,7 +18,9 @@ const paths = {
   vscodeMcp: '.vscode/mcp.json',
   vscodeSettings: '.vscode/settings.json',
   historicalSession: 'docs/autonomous-development/session.overnight-2026-09-01.yaml',
+  activeSession: 'docs/autonomous-development/session.overnight-2026-09-02.yaml',
   exampleSession: 'docs/autonomous-development/session.example.yaml',
+  activeLaunch: 'docs/autonomous-development/LAUNCH-2026-09-02.md',
 };
 
 const expectedAgentTools = {
@@ -36,6 +38,8 @@ const controlPlaneFiles = [
   'docs/autonomous-development/CI-BASELINE.md',
   'docs/autonomous-development/PROTOCOL.md',
   'docs/autonomous-development/LAUNCH.md',
+  paths.activeLaunch,
+  paths.activeSession,
   paths.exampleSession,
 ];
 
@@ -227,8 +231,12 @@ requireMatch(
 );
 
 const historicalSession = read(paths.historicalSession);
+const activeSession = read(paths.activeSession);
 const exampleSession = read(paths.exampleSession);
-for (const [target, content] of [[paths.exampleSession, exampleSession]]) {
+for (const [target, content] of [
+  [paths.exampleSession, exampleSession],
+  [paths.activeSession, activeSession],
+]) {
   validateYamlStructure(target, content);
   requireMatch(target, content, /^\s*host:\s*github-copilot-cli\s*$/m, 'missing CLI host');
   requireMatch(target, content, /^\s*harness:\s*github-copilot-cli\s*$/m, 'missing CLI harness');
@@ -355,12 +363,80 @@ for (const command of ['/model', '/permissions show', '/mcp list', '/keep-alive 
   );
 }
 
+const activeLaunch = read(paths.activeLaunch);
+requireMatch(
+  paths.activeLaunch,
+  activeLaunch,
+  /docs\/autonomous-development\/session\.overnight-2026-09-02\.yaml/,
+  'active launch must reference the active dated session configuration',
+);
+requireMatch(
+  paths.activeLaunch,
+  activeLaunch,
+  /copilot --agent development-session-coordinator --allow-all-tools --allow-all-urls --add-dir \.\.\/MercurionTox21 --reasoning-effort high --autopilot/,
+  'active launch is missing the deterministic Copilot CLI command',
+);
+requireMatch(
+  paths.activeLaunch,
+  activeLaunch,
+  /2026-09-03T10:00:00\+02:00/,
+  'active launch is missing the exact soft deadline',
+);
+requireMatch(
+  paths.activeLaunch,
+  activeLaunch,
+  /archive\/SYS-001-attempt-2026-09-01/,
+  'active launch must record the archived SYS-001 attempt',
+);
+for (const command of ['/model', '/permissions show', '/mcp list', '/keep-alive on']) {
+  requireMatch(
+    paths.activeLaunch,
+    activeLaunch,
+    new RegExp(command.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+    `active launch is missing ${command}`,
+  );
+}
+
 const deadline = '2026-09-02T10:00:00+02:00';
 const deadlineMatches = historicalSession.match(
   /^\s*end:\s*"2026-09-02T10:00:00\+02:00"/gm,
 );
 if (deadlineMatches?.length !== 1) {
   fail(paths.historicalSession, `deadline must remain exactly ${deadline}`);
+}
+
+const activeDeadline = '2026-09-03T10:00:00+02:00';
+const activeDeadlineMatches = activeSession.match(
+  /^\s*end:\s*"2026-09-03T10:00:00\+02:00"/gm,
+);
+if (activeDeadlineMatches?.length !== 1) {
+  fail(paths.activeSession, `deadline must remain exactly ${activeDeadline}`);
+}
+
+for (const [pattern, message] of [
+  [/^repository:\s*$/m, 'missing repository mapping'],
+  [/wait_for_feature_ci:\s*true/, 'missing feature CI wait policy'],
+  [/require_exact_sha_ci_for_every_develop_base:\s*true/, 'missing exact-SHA baseline policy'],
+  [/numbered_tasks_may_repair_baseline:\s*false/, 'numbered tasks must not repair baseline debt'],
+  [/wait_for_exact_feature_sha:\s*true/, 'missing exact feature-SHA CI requirement'],
+  [/required_check:\s*Required gate/, 'missing stable Required gate contract'],
+  [/ubuntu-latest[\s\S]*windows-latest/, 'missing Windows/Linux CI platforms'],
+  [/expected_first_task:\s*"0001"/, 'active workload must begin at task 0001'],
+  [/expected_task_count:\s*220/, 'active workload must contain 220 tasks'],
+  [/sys_001_previous_attempt_branch:\s*archive\/SYS-001-attempt-2026-09-01/, 'missing archived retry branch decision'],
+]) {
+  requireMatch(paths.activeSession, activeSession, pattern, message);
+}
+
+for (const stalePattern of [
+  /allow_task_0001_phase_0_bootstrap_only/,
+  /repair_repository_controlled_failures/,
+  /bootstrap_until_task/,
+  /require_exact_sha_ci_for_later_develop_bases/,
+]) {
+  if (stalePattern.test(activeSession)) {
+    fail(paths.activeSession, `contains retired Phase 0 policy ${stalePattern.source}`);
+  }
 }
 
 for (const [pattern, message] of [
@@ -482,6 +558,6 @@ if (errors.length > 0) {
   process.exitCode = 1;
 } else {
   console.log(
-    'CLI runner validation passed: JSON, YAML structure, explicit agent tools, slugged task delegation, non-mutating handshake, MCP, launch record, historical deadline, permanent CI baseline, terminal states, startup probe, signing, and finalization order are valid.',
+    'CLI runner validation passed: JSON, YAML structure, explicit agent tools, slugged task delegation, non-mutating handshake, MCP, historical and active launch records, permanent CI baseline, terminal states, startup probe, signing, and finalization order are valid.',
   );
 }

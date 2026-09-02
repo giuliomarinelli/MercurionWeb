@@ -45,8 +45,10 @@ npm run ci:check
 
 The root aggregate runs non-mutating Angular and Nest lint, both explicit
 typechecks, every Angular unit test, every Nest unit and E2E test, and both
-builds. The workflow uses the same root-owned scripts as local preflight so the
-two gate definitions cannot drift.
+builds. It begins by validating the autonomous runner contract and all 220
+recipes, including every active dated session configuration. The workflow uses
+the same root-owned scripts as local preflight so the two gate definitions
+cannot drift.
 
 The baseline lint policy requires zero errors and keeps existing migration
 debt visible as warnings. It does not silently auto-fix source. Tasks `0199`

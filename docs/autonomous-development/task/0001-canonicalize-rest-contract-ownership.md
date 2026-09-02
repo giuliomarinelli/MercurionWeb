@@ -2,7 +2,7 @@
 
 - [ ] DONE
 - [ ] BLOCKED
-- [x] REVERTED
+- [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
 ## Objective
@@ -174,7 +174,18 @@ evidence remains in the dated 2026-09-01 report under
 
 ### Retry authorization
 
-This recipe remains `REVERTED` until the permanent baseline pull request is
-green and merged. A later direct human instruction must deliberately reset it
-to pending and define how the frozen first-attempt branch is archived or
-reused. The baseline pull request does not advance or rewrite that branch.
+On 2026-09-02, a new direct human instruction authorized this recipe to return
+to pending for a fresh Development Session after the permanent baseline pull
+request is merged and its exact `develop` SHA is green.
+
+The first-attempt commit remains available read-only at
+`archive/SYS-001-attempt-2026-09-01`, exact SHA
+`b576281dc4acaf84a1186522b419a10518ca9eea`. The former remote
+`feature/SYS-001` name was released only after that archive ref was verified.
+The coordinator must create a new `feature/SYS-001` from the proven-green
+current `develop` base.
+
+The archived implementation may be inspected and selectively reimplemented
+when it still satisfies this recipe. It must not be cherry-picked wholesale:
+the old attempt also carries superseded workspace, lockfile, bootstrap, and CI
+assumptions that are now owned by the permanent baseline.
