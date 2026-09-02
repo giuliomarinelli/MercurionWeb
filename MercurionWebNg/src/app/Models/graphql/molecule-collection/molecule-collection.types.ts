@@ -7,6 +7,7 @@ import type {
   AddCustomMoleculeToCollectionMutationVariables,
   BindManyCollectionsToMoleculeMutation,
   DuplicateCollectionMutation,
+  MyMoleculeItemsQuery,
   PaginatedCollectionsQuery
 } from "../../../generated/graphql";
 
@@ -71,34 +72,7 @@ export type AddChemblMoleculeToCollectionInput =
   AddChemblMoleculeToCollectionMutationVariables
 
 export type MoleculeItemDTO =
-  | {
-    __typename: 'ChEMBLMoleculeItemDTO';
-    id: string;
-    label?: string | null;
-    notes?: string | null;
-    type: string;                           // esposto dal backend
-    createdAt: string | number;             // backend @Field(() => String)
-    updatedAt: string | number;             // backend @Field(() => String)
-    touchedAt: string | number
-    joins?: { id: string; collection: MoleculeCollection }[] | null;
-    chemblMolregno: string | number;        // backend lo espone come String
-    chemblDetails?: MoleculeDetail | null;  // dettagli per il rendering
-  }
-  | {
-    __typename: 'CustomMoleculeItemDTO';
-    id: string;
-    label?: string | null;
-    notes?: string | null;
-    type: string;                           // esposto dal backend
-    createdAt: string | number;             // backend @Field(() => String)
-    updatedAt: string | number;             // backend @Field(() => String)
-    touchedAt: string | number
-    joins?: { id: string; collection: MoleculeCollection }[] | null;
-    canonicalSmiles: string;
-    molFormula?: string | null;
-    name?: string | null;
-    propertiesJson?: string | null;
-  };
+  MyMoleculeItemsQuery['myMoleculeItems'][number]
 
 export type MoleculeCollectionItemClient =
   | {
@@ -106,7 +80,7 @@ export type MoleculeCollectionItemClient =
     label?: string | null;
     notes?: string | null;
     type: 'chembl';
-    joins: { id: string; collection: MoleculeCollection }[];
+    joins: MoleculeCollectionJoin[];
     chemblMolregno: number;
     createdAt?: string;
     updatedAt?: string;
@@ -119,10 +93,7 @@ export type MoleculeCollectionItemClient =
     label?: string | null;
     notes?: string | null;
     type: 'custom';
-    joins: {
-      id: string;
-      collection: MoleculeCollection
-    }[];
+    joins: MoleculeCollectionJoin[];
     canonicalSmiles: string;
     molFormula?: string | null;
     name?: string | null;

@@ -1,44 +1,41 @@
-import { Field, ID, ObjectType } from "@nestjs/graphql";
-import { MoleculeCollectionItemJoin } from "../entities/molecule-collection-item-join.entity";
+import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { MoleculeCollectionItemJoin } from '../entities/molecule-collection-item-join.entity';
 
 @ObjectType()
 export class CustomMoleculeItemDTO {
-
   @Field(() => ID)
   id: string
 
   @Field({ nullable: true })
-  label?: string
+  label: string | null
 
   @Field({ nullable: true })
-  notes?: string
+  notes: string | null
 
   @Field()
-  type: string// 'custom'
+  type: 'custom'
 
-  @Field(() => String, { nullable: true })
+  @Field(() => String)
   canonicalSmiles: string
 
   @Field({ nullable: true })
-  molFormula?: string
+  molFormula: string | null
 
   @Field({ nullable: true })
-  name?: string
+  name: string | null
 
   @Field({ nullable: true })
-  propertiesJson?: string
+  propertiesJson: string | null
 
   @Field(() => String)
   createdAt: number
 
   @Field(() => String)
   updatedAt: number
-  
+
   @Field(() => String)
   touchedAt: number
 
   @Field(() => [MoleculeCollectionItemJoin], { nullable: true })
   joins: MoleculeCollectionItemJoin[] | null
-
-
 }

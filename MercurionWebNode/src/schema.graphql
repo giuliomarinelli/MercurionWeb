@@ -131,7 +131,7 @@ type CustomMoleculeItemDTO {
   label: String
   notes: String
   type: String!
-  canonicalSmiles: String
+  canonicalSmiles: String!
   molFormula: String
   name: String
   propertiesJson: String
@@ -363,7 +363,7 @@ type Mutation {
   markMoleculeCollectionAsTouched(id: ID!): Boolean!
   bindManyCollectionsToMolecule(moleculeId: ID!, collectionIds: [ID!]!, selectAll: Boolean!): BindManyCollectionsToMoleculeDTO!
   createMoleculeItem(input: CreateMoleculeItemInput!): MoleculeCollectionItemUnion!
-  updateMoleculeItem(id: ID!, input: CreateMoleculeItemInput!): MoleculeCollectionItemUnion!
+  updateMoleculeItem(id: ID!, input: CreateMoleculeItemInput!): MoleculeCollectionItemUnion
   deleteMoleculeItem(id: ID!): Boolean!
   markMoleculeCollectionItemAsTouched(id: ID!, flagIds: String!): Boolean!
   addManyMoleculesToCollection(collectionId: ID!, itemIds: [ID!]!, selectAll: Boolean!): Boolean!
