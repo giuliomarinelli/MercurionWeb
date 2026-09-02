@@ -16,8 +16,7 @@
     "test:onpush": "ng test --watch=false --ts-config src/tsconfig.onpush.spec.json",
     "lint": "eslint \"src/**/*.{ts,html}\"",
     "lint:fix": "eslint \"src/**/*.{ts,html}\" --fix",
-    "typecheck": "tsc --noEmit -p tsconfig.app.json",
-    "postinstall": "patch-package"
+    "typecheck": "tsc --noEmit -p tsconfig.app.json"
   },
   "private": true,
   "dependencies": {
@@ -63,10 +62,8 @@
     "karma-coverage": "2.2.0",
     "karma-jasmine": "5.1.0",
     "karma-jasmine-html-reporter": "2.1.0",
-    "patch-package": "8.0.1",
     "postcss": "8.5.24",
     "postcss-import": "16.1.0",
-    "postinstall-postinstall": "2.1.0",
     "tailwindcss": "3.4.1",
     "typescript": "5.8.3",
     "typescript-eslint": "8.65.0"

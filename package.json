@@ -12,6 +12,7 @@
     "MercurionWebNode"
   ],
   "scripts": {
+    "postinstall": "patch-package --patch-dir MercurionWebNg/patches",
     "ci:lint:angular": "npm run lint --workspace mercurion_web_ng",
     "ci:lint:nest": "npm run lint --workspace mercurion_web_node",
     "ci:lint": "npm run ci:lint:angular && npm run ci:lint:nest",
@@ -26,6 +27,9 @@
     "ci:build:nest": "npm run build --workspace mercurion_web_node",
     "ci:build": "npm run ci:build:angular && npm run ci:build:nest",
     "ci:check": "npm run ci:lint && npm run ci:typecheck && npm run ci:test && npm run ci:build"
+  },
+  "devDependencies": {
+    "patch-package": "8.0.1"
   },
   "overrides": {
     "@eslint/config-array": {
