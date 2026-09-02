@@ -10,8 +10,6 @@ import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-or
 import { uuidv7 } from '@kripod/uuidv7';
 import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
 import { PaginatedMoleculeCollectionItem } from '../Models/DTO/paginated-molecule-collection-item.dto';
-import { CustomMoleculeItemDTO } from '../Models/DTO/custom-molecule-item.dto';
-import { ChEMBLMoleculeItemDTO } from '../Models/DTO/chembl-molecule-item.dto';
 import { MoleculeDetail } from 'src/app_modules/meilisearch/Models/DTO/molecule-detail.gql.dtos';
 import { RpcException } from '@nestjs/microservices';
 import { CustomMoleculeItemEntity } from '../Models/entities/custom-molecule-item.entity';
@@ -22,6 +20,7 @@ import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 import { pruneNullCollectionJoins } from '../utils/prune-molecule-collection-joins.util';
+import { MoleculeCollectionItemDTO } from '../Models/DTO/molecule-collection-item.union';
 
 
 // TODO: valutare un refactoring per dryificare la duplicazione di logica tra questo service e i service delle entità figlie concrete
@@ -171,7 +170,7 @@ export class MoleculeCollectionItemService {
         itemId: UUID,
         userId: UUID,
         fieldsMap: GraphQLFieldsMap
-    ): Promise<CustomMoleculeItemDTO | ChEMBLMoleculeItemDTO | null> {
+    ): Promise<MoleculeCollectionItemDTO | null> {
         // Delego al metodo già esistente
         const item = await this.findOne(itemId, userId, fieldsMap);
         if (!item) {
@@ -180,8 +179,8 @@ export class MoleculeCollectionItemService {
 
         // Preparo la mappa dettagli solo se è un item ChEMBL
         const detailsMap: Record<string, MoleculeDetail> = {};
-        if (item.type === 'chembl') {
-            const chemblMolregno = String((item as ChEMBLMoleculeItemEntity).chemblMolregno);
+        if (this.isChemblItem(item)) {
+            const chemblMolregno = String(item.chemblMolregno);
             const detailsArr = await this.moleculeService.getDetailsByMolregnos([chemblMolregno]);
             const details = detailsArr?.[0];
             if (details) {
@@ -196,7 +195,7 @@ export class MoleculeCollectionItemService {
     async findAllByUser(
         userId: UUID,
         fieldsMap: GraphQLFieldsMap
-    ): Promise<Array<CustomMoleculeItemDTO | ChEMBLMoleculeItemDTO>> {
+    ): Promise<MoleculeCollectionItemDTO[]> {
         const DB_FIELDS = [
             'id', 'type', 'userId', 'label', 'notes', 'createdAt', 'updatedAt', 'touchedAt',
             'canonicalSmiles', 'molFormula', 'name', 'propertiesJson', 'chemblMolregno'
@@ -222,8 +221,8 @@ export class MoleculeCollectionItemService {
         pruneNullCollectionJoins(entities)
 
         const chemblItems = entities.filter(
-            item => item.type === 'chembl'
-        ) as ChEMBLMoleculeItemEntity[]
+            (item): item is ChEMBLMoleculeItemEntity => this.isChemblItem(item)
+        )
         let detailsMap: Record<string, MoleculeDetail> = {}
         if (fieldsMap.chemblDetails && chemblItems.length > 0) {
             const molregnos = chemblItems.map(item => String(item.chemblMolregno))
@@ -239,44 +238,53 @@ export class MoleculeCollectionItemService {
     private toPolymorphicDto(
         item: MoleculeCollectionItemEntity,
         detailsMap: Record<string, MoleculeDetail>
-    ): CustomMoleculeItemDTO | ChEMBLMoleculeItemDTO {
-        if (item.type === 'custom') {
-            const e = item as CustomMoleculeItemEntity;
+    ): MoleculeCollectionItemDTO {
+        if (this.isCustomItem(item)) {
             return {
-                id: e.id,
-                userId: e.userId,
-                label: e.label,
-                notes: e.notes,
-                type: e.type,
-                canonicalSmiles: e.canonicalSmiles,
-                molFormula: e.molFormula,
-                name: e.name,
-                propertiesJson: e.propertiesJson,
-                createdAt: e.createdAt,
-                updatedAt: e.updatedAt,
-                touchedAt: e.touchedAt,
-                joins: e.joins
-            } as CustomMoleculeItemDTO;
+                id: item.id,
+                label: item.label,
+                notes: item.notes,
+                type: 'custom',
+                canonicalSmiles: item.canonicalSmiles,
+                molFormula: item.molFormula,
+                name: item.name,
+                propertiesJson: item.propertiesJson,
+                createdAt: item.createdAt,
+                updatedAt: item.updatedAt,
+                touchedAt: item.touchedAt,
+                joins: item.joins
+            };
         }
 
-        if (item.type === 'chembl') {
-            const e = item as ChEMBLMoleculeItemEntity;
-            const chemblMolregno = String(e.chemblMolregno);
+        if (this.isChemblItem(item)) {
+            const chemblMolregno = String(item.chemblMolregno);
             return {
-                id: e.id,
-                label: e.label,
-                notes: e.notes,
-                type: e.type,
+                id: item.id,
+                label: item.label,
+                notes: item.notes,
+                type: 'chembl',
                 chemblMolregno,
                 chemblDetails: detailsMap[chemblMolregno] ?? null,
-                createdAt: e.createdAt,
-                updatedAt: e.updatedAt,
-                touchedAt: e.touchedAt,
-                joins: e.joins
-            } as unknown as ChEMBLMoleculeItemDTO;
+                createdAt: item.createdAt,
+                updatedAt: item.updatedAt,
+                touchedAt: item.touchedAt,
+                joins: item.joins
+            };
         }
 
-        throw new RpcException(`UnknownItemType::${(item as any).type}`);
+        throw new RpcException(`UnknownItemType::${item.type}`);
+    }
+
+    private isCustomItem(
+        item: MoleculeCollectionItemEntity
+    ): item is CustomMoleculeItemEntity {
+        return item.type === 'custom'
+    }
+
+    private isChemblItem(
+        item: MoleculeCollectionItemEntity
+    ): item is ChEMBLMoleculeItemEntity {
+        return item.type === 'chembl'
     }
 
     async paginateAllByUser(
@@ -326,7 +334,9 @@ export class MoleculeCollectionItemService {
         pruneNullCollectionJoins(page.items);
 
         // Batch ChEMBL
-        const chemblItems = page.items.filter(i => i.type === 'chembl') as ChEMBLMoleculeItemEntity[];
+        const chemblItems = page.items.filter(
+            (item): item is ChEMBLMoleculeItemEntity => this.isChemblItem(item)
+        );
         let detailsMap: Record<string, MoleculeDetail> = {};
         if (chemblItems.length > 0) {
             const molregnos = chemblItems.map(i => String(i.chemblMolregno));
@@ -398,7 +408,9 @@ export class MoleculeCollectionItemService {
         pruneNullCollectionJoins(page.items);
 
         // Batch ChEMBL enrichment
-        const chemblItems = page.items.filter(i => i.type === 'chembl') as ChEMBLMoleculeItemEntity[];
+        const chemblItems = page.items.filter(
+            (item): item is ChEMBLMoleculeItemEntity => this.isChemblItem(item)
+        );
         let detailsMap: Record<string, MoleculeDetail> = {};
         if (chemblItems.length > 0) {
             const molregnos = chemblItems.map(i => String(i.chemblMolregno));

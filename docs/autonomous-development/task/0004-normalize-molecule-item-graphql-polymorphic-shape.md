@@ -1,6 +1,6 @@
 # 0004 - Normalize molecule-item GraphQL polymorphic shape
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -99,20 +99,86 @@ Prefer aligning the current union/interface model over introducing adapter DTOs 
 
 ### Summary
 
-_Not started._
+- Identified the four audited operations as `MyMoleculeItems`,
+  `MoleculeItemBasicData` (formerly the second `MyMoleculeItems` document),
+  `CreateMoleculeItem`, and `UpdateMoleculeItem`.
+- Kept the existing entity interface for persistence/legacy entity fields and
+  made the existing `MoleculeCollectionItemUnion` the coherent public return
+  shape for molecule-item queries, pagination, create, and update operations.
+- Centralized union runtime discrimination in
+  `resolveMoleculeCollectionItemType`, aligned the DTO TypeScript
+  discriminants with `custom`/`chembl`, made the custom canonical SMILES field
+  non-null to match persistence, and made update nullability agree across the
+  resolver, schema, generated types, and client handling.
+- Consolidated all polymorphic Angular molecule-item documents around the
+  reusable `MoleculeItemFields` fragment. Generated typed document nodes now
+  drive the service, and the handwritten response union plus molecule-variant
+  casts were removed.
+- Preserved both runtime variants and existing client view models while
+  filtering nullable joins at the transport boundary.
+- Implementation commit:
+  `8d7d579a` (`feat(graphql): normalize molecule item polymorphism`).
 
 ### Validation performed
 
-_Not started._
+- Unchanged task-start preflight at
+  `a2e465081d114e49f92aebd9e4a3010b9d23037b`:
+  - `npm ci` — passed; 1,925 packages installed, 0 vulnerabilities.
+  - `npm run ci:check` — passed with exit status 0.
+  - `git status --short` remained empty and `HEAD` remained the supplied base.
+- GraphQL/code generation:
+  - `npm run graphql:generate --workspace mercurion_web_ng` — passed and
+    regenerated `schema.ts` / `graphql.ts`.
+  - `npm run graphql:check --workspace mercurion_web_ng` — passed; all 55
+    static documents and all 8 supported dynamic expansions validated against
+    the committed Nest schema, the negative fixture was rejected, and the
+    generated-artifact drift check was clean.
+- Focused variant coverage:
+  - Angular direct Karma command for
+    `molecule-collection-item.service.spec.ts` — 5/5 tests passed in Chrome
+    Headless, covering custom and ChEMBL mapping, generated `__typename`
+    narrowing, basic-data normalization, and the four audited documents.
+  - Nest direct Jest command for the molecule collection item resolver/service
+    specs — 2 suites, 8 tests passed. The resolver spec executes both variants
+    through the committed schema and verifies union discrimination plus update
+    nullability.
+- Angular:
+  - `npm run typecheck --workspace mercurion_web_ng` — passed.
+  - `npm run lint --workspace mercurion_web_ng` — passed with baseline
+    warnings only and zero errors.
+  - `npm run build --workspace mercurion_web_ng` — passed; only the existing
+    bundle/CommonJS warnings were reported.
+  - `npm run test:ci --workspace mercurion_web_ng` — full suite passed with
+    exit status 0.
+- Nest:
+  - `npm run typecheck --workspace mercurion_web_node` — passed.
+  - `npm run lint --workspace mercurion_web_node` — passed with 61 baseline
+    warnings and zero errors.
+  - `npm run build --workspace mercurion_web_node` — passed.
+  - Direct `jest --runInBand` from `MercurionWebNode` — 117 suites and 159
+    tests passed.
+- Final clean-tree CI parity:
+  - `npm ci` — passed.
+  - `npm run ci:check` — passed.
 
 ### Browser validation performed
 
-_Not applicable / not started._
+Not applicable. The change is schema/document/generated-type plumbing and
+transport mapping; it does not change molecule-card templates, rendering
+branches, interaction behavior, or other browser-observable UI logic.
 
 ### Changed files
 
-_Not recorded._
+- Backend DTO/union/resolver/service/schema files under
+  `MercurionWebNode/src/app_modules/molecule-collection/` and
+  `MercurionWebNode/src/schema.graphql`.
+- New focused backend resolver/schema test:
+  `molecule-collection-item.resolver.spec.ts`.
+- Angular polymorphic operation catalog, codegen allowlist/documentation,
+  generated artifacts, molecule client types/service, and focused service
+  tests.
 
 ### Blocker / human decision required
 
-_None._
+None. No third runtime molecule-item shape was found; the existing service
+rejects unknown discriminants explicitly.

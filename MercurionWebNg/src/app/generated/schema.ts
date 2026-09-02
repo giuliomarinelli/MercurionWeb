@@ -94,7 +94,7 @@ export type CreateSectionInput = {
 
 export type CustomMoleculeItemDto = {
   __typename?: 'CustomMoleculeItemDTO';
-  canonicalSmiles?: Maybe<Scalars['String']['output']>;
+  canonicalSmiles: Scalars['String']['output'];
   createdAt: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   joins?: Maybe<Array<MoleculeCollectionItemJoin>>;
@@ -283,7 +283,7 @@ export type Mutation = {
   updateChapter: NotebookChapter;
   updateLabNotebook: LabNotebook;
   updateMoleculeCollection: MoleculeCollection;
-  updateMoleculeItem: MoleculeCollectionItemUnion;
+  updateMoleculeItem?: Maybe<MoleculeCollectionItemUnion>;
   updatePage?: Maybe<NotebookPage>;
   updateSection: NotebookSection;
   updateStepMoleculeRef: SynthStepMoleculeRef;

@@ -7,31 +7,82 @@ import { Observable, of, throwError } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 
 import {
+  MoleculeCollectionJoin,
   MoleculeCollectionItemClient,
   MoleculeCollectionItemEntityShort,
   CreateMoleculeItemInput,
   MoleculeItemDTO,
   CustomMoleculeItemEntity
 } from '../../Models/graphql/molecule-collection/molecule-collection.types';
-import { CREATE_MOLECULE_ITEM, DELETE_MOLECULE_ITEM, MOLECULE_ITEM, MOLECULE_ITEM_FRAG_SHORT, MY_MOLECULE_ITEMS, UPDATE_MOLECULE_ITEM, UPDATE_MOLECULE_ITEM_LABEL, UPDATE_MOLECULE_ITEM_NOTES, UPDATE_MOLECULE_ITEM_NAME, UPDATE_MOLECULE_ITEM_SMILES, PAGINATED_MOLECULE_ITEMS_FOR_CARD_BY_COLLECTION, MARK_MOLECULE_COLLECTION_ITEM_AS_TOUCHED, HAS_USER_CHEMBL_MOLECULE_BY_MOLREGNO_THEN_GET_UUID, EXISTS_CHEMBL_MOLECULE_BY_UUID_THEN_GET_MOLREGNO, ALL_PAGINATED_MOLECULE_ITEMS_FOR_CARD, ALL_BASIC_DATA, ADD_MANY_MOLECULES_TO_COLLECTION, SEARCH_CHEMBL_MOLECULES_EXCLUDE_ALREADY_ADDED, ADD_MANY_CHEMBL_ITEMS_TO_COLLECTION, REMOVE_MOLECULE_FROM_COLLECTION, FIND_ONE_CUSTOM_MOLECULE_BY_CS_SHORT_FETCH } from './graphql-operations/molecule-collection-item.gql-operations';
+import { DELETE_MOLECULE_ITEM, MARK_MOLECULE_COLLECTION_ITEM_AS_TOUCHED, HAS_USER_CHEMBL_MOLECULE_BY_MOLREGNO_THEN_GET_UUID, EXISTS_CHEMBL_MOLECULE_BY_UUID_THEN_GET_MOLREGNO, ADD_MANY_MOLECULES_TO_COLLECTION, SEARCH_CHEMBL_MOLECULES_EXCLUDE_ALREADY_ADDED, ADD_MANY_CHEMBL_ITEMS_TO_COLLECTION, REMOVE_MOLECULE_FROM_COLLECTION, FIND_ONE_CUSTOM_MOLECULE_BY_CS_SHORT_FETCH } from './graphql-operations/molecule-collection-item.gql-operations';
 import { extractGqlData } from './graphql-helpers/v1/extract-gql-data.helper';
-import { TypeGuardsService } from '../type-guards.service';
 import { MoleculeSearchInput } from '../../Models/graphql/molecule-search/molecule-search-input.interface';
 import { AddManyChEMBLItemDTO } from '../../Models/graphql/add-many-chembl-item.dto';
+import {
+  CreateMoleculeItemDocument,
+  CreateMoleculeItemMutation,
+  CreateMoleculeItemMutationVariables,
+  MoleculeItemBasicDataDocument,
+  MoleculeItemBasicDataQuery,
+  MoleculeItemBasicDataQueryVariables,
+  MoleculeItemDocument,
+  MoleculeItemQuery,
+  MoleculeItemQueryVariables,
+  MoleculeItemShortDocument,
+  MoleculeItemShortQuery,
+  MoleculeItemShortQueryVariables,
+  MyMoleculeItemsDocument,
+  MyMoleculeItemsQuery,
+  MyMoleculeItemsQueryVariables,
+  PaginatedMoleculeCollectionItemsByCollectionDocument,
+  PaginatedMoleculeCollectionItemsByCollectionQuery,
+  PaginatedMoleculeCollectionItemsByCollectionQueryVariables,
+  PaginatedMoleculeCollectionItemsByUserDocument,
+  PaginatedMoleculeCollectionItemsByUserQuery,
+  PaginatedMoleculeCollectionItemsByUserQueryVariables,
+  UpdateMoleculeItemCanonicalSmilesDocument,
+  UpdateMoleculeItemCanonicalSmilesMutation,
+  UpdateMoleculeItemCanonicalSmilesMutationVariables,
+  UpdateMoleculeItemDocument,
+  UpdateMoleculeItemLabelDocument,
+  UpdateMoleculeItemLabelMutation,
+  UpdateMoleculeItemLabelMutationVariables,
+  UpdateMoleculeItemMutation,
+  UpdateMoleculeItemMutationVariables,
+  UpdateMoleculeItemNameDocument,
+  UpdateMoleculeItemNameMutation,
+  UpdateMoleculeItemNameMutationVariables,
+  UpdateMoleculeItemNotesDocument,
+  UpdateMoleculeItemNotesMutation,
+  UpdateMoleculeItemNotesMutationVariables
+} from '../../generated/graphql';
 
 
 function toNum(n: string | number): number {
   return typeof n === 'number' ? n : Number(n);
 }
 
-function mapDtoToClient(node: MoleculeItemDTO): MoleculeCollectionItemClient {
+function mapJoins(
+  joins: MoleculeItemDTO['joins']
+): MoleculeCollectionJoin[] {
+  return (joins ?? []).flatMap((join) => join.collection
+    ? [{
+      id: join.id,
+      collection: join.collection
+    }]
+    : [])
+}
+
+export function mapMoleculeItemDtoToClient(
+  node: MoleculeItemDTO
+): MoleculeCollectionItemClient {
   if (node.__typename === 'ChEMBLMoleculeItemDTO') {
     return {
       id: node.id,
       label: node.label ?? null,
       notes: node.notes ?? null,
       type: 'chembl',
-      joins: node.joins ?? [],
+      joins: mapJoins(node.joins),
       chemblMolregno: toNum(node.chemblMolregno),
       createdAt: String(node.createdAt),
       updatedAt: String(node.updatedAt),
@@ -45,7 +96,7 @@ function mapDtoToClient(node: MoleculeItemDTO): MoleculeCollectionItemClient {
     label: node.label ?? null,
     notes: node.notes ?? null,
     type: 'custom',
-    joins: node.joins ?? [],
+    joins: mapJoins(node.joins),
     canonicalSmiles: node.canonicalSmiles,
     molFormula: node.molFormula ?? null,
     name: node.name ?? null,
@@ -56,7 +107,30 @@ function mapDtoToClient(node: MoleculeItemDTO): MoleculeCollectionItemClient {
   };
 }
 
-function mapDtoToShort(node: MoleculeItemDTO): MoleculeCollectionItemEntityShort {
+export function mapMoleculeItemBasicData(
+  node: MoleculeItemBasicDataQuery['myMoleculeItems'][number]
+): NormalizedMoleculeCollectionBasicData {
+  if (node.__typename === 'ChEMBLMoleculeItemDTO') {
+    return {
+      id: node.id,
+      name: node.chemblDetails?.preferredName
+        ?? node.chemblDetails?.preferredNameIt
+        ?? '',
+      canonicalSmiles: node.chemblDetails?.canonicalSmiles ?? '',
+      type: 'chembl'
+    }
+  }
+  return {
+    id: node.id,
+    name: node.name ?? 'Lead sconosciuto',
+    canonicalSmiles: node.canonicalSmiles,
+    type: 'custom'
+  }
+}
+
+function mapDtoToShort(
+  node: NonNullable<MoleculeItemShortQuery['moleculeItem']>
+): MoleculeCollectionItemEntityShort {
   return {
     id: node.id,
     type: node.__typename === 'ChEMBLMoleculeItemDTO' ? 'chembl' : 'custom',
@@ -73,7 +147,6 @@ export class MoleculeCollectionItemService {
 
   // ======================= DEPS =======================
   private readonly apollo = inject(Apollo)
-  private readonly typeGuards = inject(TypeGuardsService)
   // ====================================================
 
 
@@ -85,33 +158,14 @@ export class MoleculeCollectionItemService {
   readonly loading = computed(() => this._loading());
 
 
-  private normalizeClientItem(item: MoleculeCollectionItemClient): NormalizedMoleculeCollectionBasicData {
-    let name = ''
-    let canonicalSmiles = ''
-    if (this.typeGuards.isChemblMolecule(item)) {
-      name = item.chemblDetails.preferredName ?? item.chemblDetails.preferredNameIt ?? ''
-      canonicalSmiles = item.chemblDetails.canonicalSmiles ?? ''
-    } else if (this.typeGuards.isCustomMolecule(item)) {
-      name = item.name ?? 'Lead sconosciuto'
-      canonicalSmiles = item.canonicalSmiles
-    }
-    return {
-      id: item.id,
-      name,
-      canonicalSmiles,
-      type: item.type
-    }
-  }
-
   getAllNormalizedBasicData(): Observable<NormalizedMoleculeCollectionBasicData[]> {
     return this.apollo
-      .watchQuery<{ myMoleculeItems: MoleculeItemDTO[] }>({
-        query: ALL_BASIC_DATA,
+      .watchQuery<MoleculeItemBasicDataQuery, MoleculeItemBasicDataQueryVariables>({
+        query: MoleculeItemBasicDataDocument,
         fetchPolicy: 'network-only'
       }).valueChanges.pipe(
-        map(res => extractGqlData(res, 'myMoleculeItems') as MoleculeItemDTO[]),
-        map(items => items.map(mapDtoToClient)),
-        map(items => items.map(this.normalizeClientItem))
+        map(res => extractGqlData<MoleculeItemBasicDataQuery, 'myMoleculeItems'>(res, 'myMoleculeItems')),
+        map(items => items.map(mapMoleculeItemBasicData))
       )
   }
 
@@ -119,13 +173,13 @@ export class MoleculeCollectionItemService {
   getAllItems(): Observable<MoleculeCollectionItemClient[]> {
     this._loading.set(true);
     return this.apollo
-      .watchQuery<{ myMoleculeItems: MoleculeItemDTO[] }>({
-        query: MY_MOLECULE_ITEMS,
+      .watchQuery<MyMoleculeItemsQuery, MyMoleculeItemsQueryVariables>({
+        query: MyMoleculeItemsDocument,
         fetchPolicy: 'network-only',
       })
       .valueChanges.pipe(
-        map(res => extractGqlData(res, 'myMoleculeItems') as MoleculeItemDTO[]),
-        map(items => items.map(mapDtoToClient)),
+        map(res => extractGqlData<MyMoleculeItemsQuery, 'myMoleculeItems'>(res, 'myMoleculeItems')),
+        map(items => items.map(mapMoleculeItemDtoToClient)),
         tap(items => {
           this._items.set(items);
           this._loading.set(false);
@@ -137,35 +191,35 @@ export class MoleculeCollectionItemService {
   // GET BY ID (polimorfico, può essere null)
   getItemById(id: string): Observable<MoleculeCollectionItemClient | null> {
     return this.apollo
-      .watchQuery<{ moleculeItem: MoleculeItemDTO | null }>({
-        query: MOLECULE_ITEM,
+      .watchQuery<MoleculeItemQuery, MoleculeItemQueryVariables>({
+        query: MoleculeItemDocument,
         variables: { id },
         fetchPolicy: 'network-only',
       })
       .valueChanges.pipe(
-        map(res => extractGqlData(res, 'moleculeItem', true) as MoleculeItemDTO | null),
-        map(node => (node ? mapDtoToClient(node) : null))
+        map(res => extractGqlData<MoleculeItemQuery, 'moleculeItem'>(res, 'moleculeItem', true)),
+        map(node => (node ? mapMoleculeItemDtoToClient(node) : null))
       );
   }
 
   // GET SHORT BY ID (ridotto, per risolvere molregno dai UUID)
   getItemShortById(id: string): Observable<MoleculeCollectionItemEntityShort | null> {
     return this.apollo
-      .watchQuery<{ moleculeItem: MoleculeItemDTO | null }>({
-        query: MOLECULE_ITEM_FRAG_SHORT,
+      .watchQuery<MoleculeItemShortQuery, MoleculeItemShortQueryVariables>({
+        query: MoleculeItemShortDocument,
         variables: { id },
         fetchPolicy: 'network-only',
       })
       .valueChanges.pipe(
-        map(res => extractGqlData(res, 'moleculeItem', true) as MoleculeItemDTO | null),
+        map(res => extractGqlData<MoleculeItemShortQuery, 'moleculeItem'>(res, 'moleculeItem', true)),
         map(node => (node ? mapDtoToShort(node) : null))
       );
   }
 
   getPaginatedItemsForCollection(collectionId: string, page: number = 1, limit: number = 20, q: string): Observable<PageModel<MoleculeCollectionItemClient>> {
     return this.apollo
-      .watchQuery<{ paginatedMoleculeCollectionItemsByCollection: PageModel<MoleculeItemDTO> }>({
-        query: PAGINATED_MOLECULE_ITEMS_FOR_CARD_BY_COLLECTION,
+      .watchQuery<PaginatedMoleculeCollectionItemsByCollectionQuery, PaginatedMoleculeCollectionItemsByCollectionQueryVariables>({
+        query: PaginatedMoleculeCollectionItemsByCollectionDocument,
         variables: {
           collectionId,
           page,
@@ -175,9 +229,9 @@ export class MoleculeCollectionItemService {
         fetchPolicy: 'network-only'
       })
       .valueChanges.pipe(
-        map(res => extractGqlData(res, 'paginatedMoleculeCollectionItemsByCollection', true) as PageModel<MoleculeItemDTO>),
+        map(res => extractGqlData<PaginatedMoleculeCollectionItemsByCollectionQuery, 'paginatedMoleculeCollectionItemsByCollection'>(res, 'paginatedMoleculeCollectionItemsByCollection')),
         map(node => {
-          const mappedItems = node.items.map(i => mapDtoToClient(i))
+          const mappedItems = node.items.map(i => mapMoleculeItemDtoToClient(i))
           const newNode = {
             ...node,
             items: mappedItems
@@ -189,14 +243,14 @@ export class MoleculeCollectionItemService {
 
   getAllPaginatedItems(page = 1, limit = 20, q: string, excludeJoinedToCollection: boolean | null = null, collectionId: string | null = null): Observable<PageModel<MoleculeCollectionItemClient>> {
     return this.apollo
-      .watchQuery<{ paginatedMoleculeCollectionItemsByUser: PageModel<MoleculeItemDTO> }>({
-        query: ALL_PAGINATED_MOLECULE_ITEMS_FOR_CARD,
+      .watchQuery<PaginatedMoleculeCollectionItemsByUserQuery, PaginatedMoleculeCollectionItemsByUserQueryVariables>({
+        query: PaginatedMoleculeCollectionItemsByUserDocument,
         variables: { page, limit, q, excludeJoinedToCollection, collectionId },
         fetchPolicy: 'network-only'
       }).valueChanges.pipe(
-        map(res => extractGqlData(res, 'paginatedMoleculeCollectionItemsByUser', true) as PageModel<MoleculeItemDTO>),
+        map(res => extractGqlData<PaginatedMoleculeCollectionItemsByUserQuery, 'paginatedMoleculeCollectionItemsByUser'>(res, 'paginatedMoleculeCollectionItemsByUser')),
         map(node => {
-          const mappedItems = node.items.map(i => mapDtoToClient(i))
+          const mappedItems = node.items.map(i => mapMoleculeItemDtoToClient(i))
           const newNode = {
             ...node,
             items: mappedItems
@@ -310,75 +364,75 @@ export class MoleculeCollectionItemService {
   // CREATE
   createItem(input: CreateMoleculeItemInput): Observable<MoleculeCollectionItemClient> {
     return this.apollo
-      .mutate<{ createMoleculeItem: MoleculeItemDTO }>({
-        mutation: CREATE_MOLECULE_ITEM,
+      .mutate<CreateMoleculeItemMutation, CreateMoleculeItemMutationVariables>({
+        mutation: CreateMoleculeItemDocument,
         variables: { input },
       })
       .pipe(
-        map(res => extractGqlData(res, 'createMoleculeItem') as MoleculeItemDTO),
-        map(mapDtoToClient)
+        map(res => extractGqlData<CreateMoleculeItemMutation, 'createMoleculeItem'>(res, 'createMoleculeItem')),
+        map(mapMoleculeItemDtoToClient)
       );
   }
 
   // UPDATE
   updateItem(id: string, input: CreateMoleculeItemInput): Observable<MoleculeCollectionItemClient | null> {
     return this.apollo
-      .mutate<{ updateMoleculeItem: MoleculeItemDTO | null }>({
-        mutation: UPDATE_MOLECULE_ITEM,
+      .mutate<UpdateMoleculeItemMutation, UpdateMoleculeItemMutationVariables>({
+        mutation: UpdateMoleculeItemDocument,
         variables: { id, input },
       })
       .pipe(
-        map(res => extractGqlData(res, 'updateMoleculeItem', true) as MoleculeItemDTO | null),
-        map(node => (node ? mapDtoToClient(node) : null))
+        map(res => extractGqlData<UpdateMoleculeItemMutation, 'updateMoleculeItem'>(res, 'updateMoleculeItem', true)),
+        map(node => (node ? mapMoleculeItemDtoToClient(node) : null))
       );
   }
 
   updateItemLabel(id: string, label: string, type: 'chembl' | 'custom'): Observable<MoleculeCollectionItemClient | null> {
     return this.apollo
-      .mutate<{ updateMoleculeItemLabel: MoleculeItemDTO | null }>({
-        mutation: UPDATE_MOLECULE_ITEM_LABEL,
+      .mutate<UpdateMoleculeItemLabelMutation, UpdateMoleculeItemLabelMutationVariables>({
+        mutation: UpdateMoleculeItemLabelDocument,
         variables: { id, label, type }
       })
       .pipe(
-        map(res => extractGqlData(res, 'updateMoleculeItem', true) as MoleculeItemDTO | null),
-        map(node => node ? mapDtoToClient(node) : null)
+        map(res => extractGqlData<UpdateMoleculeItemLabelMutation, 'updateMoleculeItem'>(res, 'updateMoleculeItem', true)),
+        map(node => node ? mapMoleculeItemDtoToClient(node) : null)
       )
   }
 
   updateItemNotes(id: string, notes: string, type: 'chembl' | 'custom'): Observable<MoleculeCollectionItemClient | null> {
     return this.apollo
-      .mutate<{ updateMoleculeItemNotes: MoleculeItemDTO | null }>({
-        mutation: UPDATE_MOLECULE_ITEM_NOTES,
+      .mutate<UpdateMoleculeItemNotesMutation, UpdateMoleculeItemNotesMutationVariables>({
+        mutation: UpdateMoleculeItemNotesDocument,
         variables: { id, notes, type }
       })
       .pipe(
-        map(res => extractGqlData(res, 'updateMoleculeItem', true) as MoleculeItemDTO | null),
-        map(node => node ? mapDtoToClient(node) : null)
+        map(res => extractGqlData<UpdateMoleculeItemNotesMutation, 'updateMoleculeItem'>(res, 'updateMoleculeItem', true)),
+        map(node => node ? mapMoleculeItemDtoToClient(node) : null)
       )
 
   }
 
   updateItemName(id: string, name: string, type: 'custom'): Observable<MoleculeCollectionItemClient | null> {
     return this.apollo
-      .mutate<{ updateMoleculeItemName: MoleculeItemDTO | null }>({
-        mutation: UPDATE_MOLECULE_ITEM_NAME,
+      .mutate<UpdateMoleculeItemNameMutation, UpdateMoleculeItemNameMutationVariables>({
+        mutation: UpdateMoleculeItemNameDocument,
         variables: { id, name, type }
       })
       .pipe(
-        map(res => extractGqlData(res, 'updateMoleculeItem', true) as MoleculeItemDTO | null),
-        map(node => node ? mapDtoToClient(node) : null)
+        map(res => extractGqlData<UpdateMoleculeItemNameMutation, 'updateMoleculeItem'>(res, 'updateMoleculeItem', true)),
+        map(node => node ? mapMoleculeItemDtoToClient(node) : null)
       )
   }
 
   updateItemCanonicalSmiles(id: string, canonicalSmiles: string, type: 'custom', propertiesJson: string): Observable<MoleculeCollectionItemClient | null> {
     return this.apollo
-      .mutate<{ updateMoleculeItemName: MoleculeItemDTO | null }>({
-        mutation: UPDATE_MOLECULE_ITEM_SMILES,
+      .mutate<UpdateMoleculeItemCanonicalSmilesMutation, UpdateMoleculeItemCanonicalSmilesMutationVariables>({
+        mutation: UpdateMoleculeItemCanonicalSmilesDocument,
         variables: { id, canonicalSmiles, type, propertiesJson }
       })
       .pipe(
-        map(res => extractGqlData(res, 'updateMoleculeItem', true) as MoleculeItemDTO | null),
-        map(node => node ? mapDtoToClient(node) : null)
+        map(res => extractGqlData<UpdateMoleculeItemCanonicalSmilesMutation, 'updateMoleculeItem'>(res, 'updateMoleculeItem', true)),
+        map(node => node ? mapMoleculeItemDtoToClient(node) : null)
       )
   }
 
@@ -406,13 +460,13 @@ export class MoleculeCollectionItemService {
   // Utility: dati essenziali per custom
   getCustomSmilesById(id: string): Observable<{ id: string; canonicalSmiles: string; name: string | null; molFormula: string | null; }> {
     return this.apollo
-      .watchQuery<{ moleculeItem: MoleculeItemDTO | null }>({
-        query: MOLECULE_ITEM,
+      .watchQuery<MoleculeItemQuery, MoleculeItemQueryVariables>({
+        query: MoleculeItemDocument,
         variables: { id },
         fetchPolicy: 'network-only',
       })
       .valueChanges.pipe(
-        map(res => extractGqlData(res, 'moleculeItem', true) as MoleculeItemDTO | null),
+        map(res => extractGqlData<MoleculeItemQuery, 'moleculeItem'>(res, 'moleculeItem', true)),
         map(node => {
           if (!node) throw new Error('Item not found');
           if (node.__typename !== 'CustomMoleculeItemDTO') throw new Error('Not a custom molecule');

@@ -49,6 +49,7 @@ The scalar mappings are:
 The allowlist currently accepts every document in these sources:
 
 - `src/app/services/graphql/graphql-operations/help.gql-operations.ts`;
+- `src/app/services/graphql/graphql-operations/molecule-item-polymorphic.gql-operations.ts`;
 - `src/app/services/graphql/graphql-operations/molecule-collection.gql-operations.ts`;
 - `src/app/services/graphql/graphql-operations/molecule.gql-queries.ts`;
 - `src/app/services/graphql/molecule-collection-join.service.ts`;
@@ -60,16 +61,10 @@ source directory:
 
 ### `graphql-operations/molecule-collection-item.gql-operations.ts`
 
-- `MY_MOLECULE_ITEMS` and `ALL_BASIC_DATA` both declare the operation name
-  `MyMoleculeItems`.
-- `UPDATE_MOLECULE_ITEM_LABEL`, `UPDATE_MOLECULE_ITEM_NAME`,
-  `UPDATE_MOLECULE_ITEM_SMILES`, and `UPDATE_MOLECULE_ITEM_NOTES` all declare
-  the operation name `UpdateMoleculeItemLabel`.
-
-Every document in the file is schema-valid and covered by
-`graphql:validate`. Task `0006` owns the remaining operation-name uniqueness
-cleanup needed before the whole file can join the combined Code Generator
-document set.
+The polymorphic molecule-item operations live in the adjacent generated
+allowlist source. Every remaining document in this legacy file is schema-valid
+and covered by `graphql:validate`; task `0007` owns its later catalog
+normalization.
 
 ### `molecule-collection.service.ts`
 

@@ -2,19 +2,19 @@ import { Resolver, Query, Mutation, Args, ID, Info, Int } from '@nestjs/graphql'
 import { AuthenticatedUserId } from 'src/metadata/metadata';
 import { UUID } from 'crypto';
 import { GraphQLResolveInfo } from 'graphql';
-import { MoleculeCollectionItemEntity } from '../Models/entities/molecule-collection-item.entity';
 import { MoleculeCollectionItemService } from '../services/molecule-collection-item.service';
 import { CreateMoleculeItemInput } from '../Models/DTO/create-molecule-item.input';
 import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { PaginatedMoleculeCollectionItem } from '../Models/DTO/paginated-molecule-collection-item.dto';
 import { IPaginationOptions } from 'nestjs-typeorm-paginate';
-import { CustomMoleculeItemDTO } from '../Models/DTO/custom-molecule-item.dto';
-import { ChEMBLMoleculeItemDTO } from '../Models/DTO/chembl-molecule-item.dto';
-import { MoleculeCollectionItemUnion } from '../Models/DTO/molecule-collection-item.union';
+import {
+    MoleculeCollectionItemDTO,
+    MoleculeCollectionItemUnion
+} from '../Models/DTO/molecule-collection-item.union';
 import { MoleculeCollectionItemJoinService } from '../services/molecule-collection-item-join.service';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 
-@Resolver(() => MoleculeCollectionItemEntity)
+@Resolver()
 export class MoleculeCollectionItemResolver {
 
     constructor(
@@ -30,7 +30,7 @@ export class MoleculeCollectionItemResolver {
     async myMoleculeItems(
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
-    ): Promise<Array<CustomMoleculeItemDTO | ChEMBLMoleculeItemDTO>> {
+    ): Promise<MoleculeCollectionItemDTO[]> {
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.itemService.findAllByUser(userId, fieldsMap)
     }
@@ -40,7 +40,7 @@ export class MoleculeCollectionItemResolver {
         @Args('id', { type: () => ID }) id: UUID,
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
-    ): Promise<CustomMoleculeItemDTO | ChEMBLMoleculeItemDTO | null> {
+    ): Promise<MoleculeCollectionItemDTO | null> {
         this.ensureUuid(id, 'id')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.itemService.findOneDTO(id, userId, fieldsMap)
@@ -84,7 +84,7 @@ export class MoleculeCollectionItemResolver {
         @Args('input') input: CreateMoleculeItemInput,
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
-    ): Promise<CustomMoleculeItemDTO | ChEMBLMoleculeItemDTO> {
+    ): Promise<MoleculeCollectionItemDTO> {
         const created = await this.itemService.create(userId, input)
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         const dto = await this.itemService.findOneDTO(created.id, userId, fieldsMap)
@@ -94,13 +94,13 @@ export class MoleculeCollectionItemResolver {
         return dto
     }
 
-    @Mutation(() => MoleculeCollectionItemUnion)
+    @Mutation(() => MoleculeCollectionItemUnion, { nullable: true })
     async updateMoleculeItem(
         @Args('id', { type: () => ID }) id: UUID,
         @Args('input') input: CreateMoleculeItemInput,
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
-    ): Promise<CustomMoleculeItemDTO | ChEMBLMoleculeItemDTO | null> {
+    ): Promise<MoleculeCollectionItemDTO | null> {
         this.ensureUuid(id, 'id')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         const updated = await this.itemService.update(id, userId, input, fieldsMap)
