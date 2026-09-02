@@ -6,6 +6,14 @@ import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-l
 describe('RedisService', () => {
   let service: RedisService;
   let redisClient: Redis;
+  const setMock = jest.fn();
+  const getMock = jest.fn();
+  const delMock = jest.fn();
+  const hsetMock = jest.fn();
+  const hgetMock = jest.fn();
+  const hdelMock = jest.fn();
+  const hgetallMock = jest.fn();
+  const hkeysMock = jest.fn();
   const mockLogger = {
     debug: jest.fn(),
     log: jest.fn(),
@@ -14,16 +22,17 @@ describe('RedisService', () => {
   };
 
   beforeEach(async () => {
+    jest.clearAllMocks();
     // Mock del client Redis
     redisClient = {
-      set: jest.fn(),
-      get: jest.fn(),
-      del: jest.fn(),
-      hset: jest.fn(),
-      hget: jest.fn(),
-      hdel: jest.fn(),
-      hgetall: jest.fn(),
-      hkeys: jest.fn(),
+      set: setMock,
+      get: getMock,
+      del: delMock,
+      hset: hsetMock,
+      hget: hgetMock,
+      hdel: hdelMock,
+      hgetall: hgetallMock,
+      hkeys: hkeysMock,
     } as unknown as Redis;
 
     const module: TestingModule = await Test.createTestingModule({
@@ -48,67 +57,67 @@ describe('RedisService', () => {
   });
 
   it('should set a cache with expiry', async () => {
-    (redisClient.set as jest.Mock).mockResolvedValue('OK');
+    setMock.mockResolvedValue('OK');
     const result = await service.set('test-key', 'test-value', 60);
     expect(result).toBe('OK');
-    expect(redisClient.set).toHaveBeenCalledWith('test-key', 'test-value', 'EX', 60);
+    expect(setMock).toHaveBeenCalledWith('test-key', 'test-value', 'EX', 60);
   });
 
   it('should set a cache without expiry', async () => {
-    (redisClient.set as jest.Mock).mockResolvedValue('OK');
+    setMock.mockResolvedValue('OK');
     const result = await service.set('test-key', 'test-value');
     expect(result).toBe('OK');
-    expect(redisClient.set).toHaveBeenCalledWith('test-key', 'test-value');
+    expect(setMock).toHaveBeenCalledWith('test-key', 'test-value');
   });
 
   it('should get a cache value', async () => {
-    (redisClient.get as jest.Mock).mockResolvedValue('test-value');
+    getMock.mockResolvedValue('test-value');
     const result = await service.get('test-key');
     expect(result).toBe('test-value');
-    expect(redisClient.get).toHaveBeenCalledWith('test-key');
+    expect(getMock).toHaveBeenCalledWith('test-key');
   });
 
   it('should delete a cache key', async () => {
-    (redisClient.del as jest.Mock).mockResolvedValue(1);
+    delMock.mockResolvedValue(1);
     const result = await service.del('test-key');
     expect(result).toBe(1);
-    expect(redisClient.del).toHaveBeenCalledWith('test-key');
+    expect(delMock).toHaveBeenCalledWith('test-key');
   });
 
   it('should set a hash field', async () => {
-    (redisClient.hset as jest.Mock).mockResolvedValue(1);
+    hsetMock.mockResolvedValue(1);
     const result = await service.hset('test-hash', 'field', 'value');
     expect(result).toBe(1);
-    expect(redisClient.hset).toHaveBeenCalledWith('test-hash', 'field', 'value');
+    expect(hsetMock).toHaveBeenCalledWith('test-hash', 'field', 'value');
   });
 
   it('should get a hash field', async () => {
-    (redisClient.hget as jest.Mock).mockResolvedValue('value');
+    hgetMock.mockResolvedValue('value');
     const result = await service.hget('test-hash', 'field');
     expect(result).toBe('value');
-    expect(redisClient.hget).toHaveBeenCalledWith('test-hash', 'field');
+    expect(hgetMock).toHaveBeenCalledWith('test-hash', 'field');
   });
 
   it('should delete a hash field', async () => {
-    (redisClient.hdel as jest.Mock).mockResolvedValue(1);
+    hdelMock.mockResolvedValue(1);
     const result = await service.hdel('test-hash', 'field');
     expect(result).toBe(1);
-    expect(redisClient.hdel).toHaveBeenCalledWith('test-hash', 'field');
+    expect(hdelMock).toHaveBeenCalledWith('test-hash', 'field');
   });
 
   it('should get all fields and values from a hash', async () => {
     const mockHash = { field1: 'value1', field2: 'value2' };
-    (redisClient.hgetall as jest.Mock).mockResolvedValue(mockHash);
+    hgetallMock.mockResolvedValue(mockHash);
     const result = await service.hgetall('test-hash');
     expect(result).toEqual(mockHash);
-    expect(redisClient.hgetall).toHaveBeenCalledWith('test-hash');
+    expect(hgetallMock).toHaveBeenCalledWith('test-hash');
   });
 
   it('should get all keys from a hash', async () => {
     const mockKeys = ['field1', 'field2'];
-    (redisClient.hkeys as jest.Mock).mockResolvedValue(mockKeys);
+    hkeysMock.mockResolvedValue(mockKeys);
     const result = await service.hkeys('test-hash');
     expect(result).toEqual(mockKeys);
-    expect(redisClient.hkeys).toHaveBeenCalledWith('test-hash');
+    expect(hkeysMock).toHaveBeenCalledWith('test-hash');
   });
 });

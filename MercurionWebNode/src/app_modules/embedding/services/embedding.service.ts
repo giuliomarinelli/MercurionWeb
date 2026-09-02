@@ -41,7 +41,7 @@ export class EmbeddingService implements OnModuleInit {
 
         // 2) normalizza embedding (alcuni driver danno già number[])
         const embedding: number[] = Array.isArray(row.embedding)
-            ? (row.embedding as unknown as number[])
+            ? (row.embedding)
             : String(row.embedding)
                 .replace(/^\[|\]$|^{|}$/g, '')
                 .split(',')

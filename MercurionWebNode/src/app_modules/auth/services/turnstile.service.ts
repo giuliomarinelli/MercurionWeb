@@ -37,7 +37,6 @@ export class TurnstileService {
 
     try {
       const res: AxiosResponse<TurnstileResponse> = await firstValueFrom(
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         this.http.post<TurnstileResponse>(url, new URLSearchParams(data))
       )
 

@@ -60,7 +60,7 @@ export class NotebookChapterService {
             })
             if (!chapter) throw new RpcException('LabNotebook::Chapter not found')
 
-            const notebookId = (chapter.notebook as unknown as LabNotebook).id
+            const notebookId = (chapter.notebook).id
 
             const neighbor = await manager
                 .createQueryBuilder(NotebookChapter, 'c')

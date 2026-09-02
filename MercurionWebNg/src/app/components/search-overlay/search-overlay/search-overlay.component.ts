@@ -203,8 +203,7 @@ export class SearchOverlayComponent implements AfterViewInit {
 
   private observer?: IntersectionObserver
 
-  constructor() { }
-  ngOnInit(): void {
+  constructor() {
     effect(() => {
       if (this.searchContextService.isOpenedSearchOverlay()) {
         this._viewMode.set('chembl')

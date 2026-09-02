@@ -4,42 +4,68 @@ import { LabNotebook } from '../Models/entities/lab-notebook.entity';
 
 // PATCH: fieldsMap è sempre oggetto
 const EMPTY_FIELDS_MAP = {};
+const NOTEBOOK_ID = '00000000-0000-0000-0000-000000000001';
+const USER_ID = '00000000-0000-0000-0000-000000000002';
+
+function createNotebookFixture(title: string): LabNotebook {
+  const notebook = new LabNotebook();
+  notebook.id = NOTEBOOK_ID;
+  notebook.userId = USER_ID;
+  notebook.title = title;
+  notebook.chapters = [];
+  notebook.createdAt = null;
+  notebook.updatedAt = null;
+  return notebook;
+}
 
 describe('LabNotebookService', () => {
   let service: LabNotebookService;
   let repo: jest.Mocked<Repository<LabNotebook>>;
+  let createMock: jest.Mock;
+  let saveMock: jest.Mock;
+  let findOneMock: jest.Mock;
+  let findMock: jest.Mock;
+  let updateMock: jest.Mock;
+  let deleteMock: jest.Mock;
+  let createQueryBuilderMock: jest.Mock;
 
   beforeEach(() => {
+    createMock = jest.fn();
+    saveMock = jest.fn();
+    findOneMock = jest.fn();
+    findMock = jest.fn();
+    updateMock = jest.fn();
+    deleteMock = jest.fn();
+    createQueryBuilderMock = jest.fn(() => ({
+      select: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      getOne: jest.fn().mockResolvedValue(null),
+      getMany: jest.fn().mockResolvedValue([]),
+    }));
     repo = {
-      create: jest.fn(),
-      save: jest.fn(),
-      findOne: jest.fn(),
-      find: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-      createQueryBuilder: jest.fn(() => ({
-        select: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        orderBy: jest.fn().mockReturnThis(),
-        getOne: jest.fn().mockResolvedValue(null),
-        getMany: jest.fn().mockResolvedValue([]),
-        // leftJoinAndSelect: jest.fn().mockReturnThis(), // se serve per le join
-      })),
-    } as any;
+      create: createMock,
+      save: saveMock,
+      findOne: findOneMock,
+      find: findMock,
+      update: updateMock,
+      delete: deleteMock,
+      createQueryBuilder: createQueryBuilderMock,
+    } as unknown as jest.Mocked<Repository<LabNotebook>>;
     service = new LabNotebookService(repo);
   });
 
   describe('create', () => {
     it('creates and returns an empty notebook', async () => {
-      const created = { id: '1' } as any;
-      repo.create.mockReturnValue(created);
-      repo.save.mockResolvedValue({ ...created });
+      const created = createNotebookFixture('title');
+      createMock.mockReturnValue(created);
+      saveMock.mockResolvedValue({ ...created });
 
-      const result = await service.create('user' as any, 'title');
+      const result = await service.create(USER_ID, 'title');
 
-      expect(repo.create).toHaveBeenCalledWith({ userId: 'user', title: 'title' });
-      expect(repo.save).toHaveBeenCalledWith(created);
+      expect(createMock).toHaveBeenCalledWith({ userId: USER_ID, title: 'title' });
+      expect(saveMock).toHaveBeenCalledWith(created);
       expect(result).toEqual({ ...created, chapters: [] });
     });
   });
@@ -53,9 +79,9 @@ describe('LabNotebookService', () => {
         andWhere: jest.fn().mockReturnThis(),
         getOne: jest.fn().mockResolvedValue(null),
       };
-      repo.createQueryBuilder = jest.fn().mockReturnValue(qb);
+      createQueryBuilderMock.mockReturnValue(qb);
 
-      const res = await service.findOne('id' as any, 'user' as any, EMPTY_FIELDS_MAP);
+      const res = await service.findOne(NOTEBOOK_ID, USER_ID, EMPTY_FIELDS_MAP);
       expect(res).toBeNull();
     });
 
@@ -67,51 +93,53 @@ describe('LabNotebookService', () => {
         andWhere: jest.fn().mockReturnThis(),
         getOne: jest.fn().mockResolvedValue(notebook),
       };
-      repo.createQueryBuilder = jest.fn().mockReturnValue(qb);
+      createQueryBuilderMock.mockReturnValue(qb);
 
-      const res = await service.findOne('id' as any, 'user' as any, EMPTY_FIELDS_MAP);
+      const res = await service.findOne(NOTEBOOK_ID, USER_ID, EMPTY_FIELDS_MAP);
       expect(res?.chapters[0].sections[0].pages).toEqual([]);
     });
   });
 
   describe('findAllByUser', () => {
     it('fills missing chapter arrays', async () => {
-      const n = { chapters: undefined } as any;
+      const n = { chapters: undefined } as unknown as LabNotebook;
       const qb: any = {
         select: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
         getMany: jest.fn().mockResolvedValue([n]),
       };
-      repo.createQueryBuilder = jest.fn().mockReturnValue(qb);
+      createQueryBuilderMock.mockReturnValue(qb);
 
-      const res = await service.findAllByUser('user' as any, EMPTY_FIELDS_MAP);
+      const res = await service.findAllByUser(USER_ID, EMPTY_FIELDS_MAP);
       expect(res[0].chapters).toEqual([]);
     });
   });
 
   describe('update', () => {
     it('updates and returns the entity', async () => {
-      repo.update.mockResolvedValue(undefined as any);
-      jest.spyOn(service, 'findOne').mockResolvedValue('note' as any);
-      const res = await service.update('1' as any, 'user' as any, { title: 't' }, EMPTY_FIELDS_MAP);
-      expect(repo.update).toHaveBeenCalledWith(
-        { id: '1', userId: 'user' },
-        expect.objectContaining({ title: 't', updatedAt: expect.any(Number) })
-      );
-      expect(res).toBe('note');
+      const createdNotebook = createNotebookFixture('t');
+      updateMock.mockResolvedValue({ affected: 1, generatedMaps: [], raw: [] });
+      const findOneSpy = jest.spyOn(service, 'findOne').mockResolvedValue(createdNotebook);
+      const res = await service.update(NOTEBOOK_ID, USER_ID, { title: 't' }, EMPTY_FIELDS_MAP);
+      expect(updateMock).toHaveBeenCalledTimes(1);
+      expect(updateMock.mock.calls[0]?.[0]).toEqual({ id: NOTEBOOK_ID, userId: USER_ID });
+      expect(updateMock.mock.calls[0]?.[1]).toEqual(expect.objectContaining({ title: 't' }));
+      expect(updateMock.mock.calls[0]?.[1]?.updatedAt).toEqual(expect.any(Number));
+      expect(findOneSpy).toHaveBeenCalledWith(NOTEBOOK_ID, USER_ID, EMPTY_FIELDS_MAP);
+      expect(res).toBe(createdNotebook);
     });
   });
 
   describe('delete', () => {
     it('returns true on success', async () => {
-      repo.delete.mockResolvedValue(undefined as any);
-      await expect(service.delete('1' as any, 'user' as any)).resolves.toBe(true);
+      deleteMock.mockResolvedValue({ affected: 1, raw: [] });
+      await expect(service.delete(NOTEBOOK_ID, USER_ID)).resolves.toBe(true);
     });
 
     it('returns false on failure', async () => {
-      repo.delete.mockRejectedValue(new Error('fail'));
-      await expect(service.delete('1' as any, 'user' as any)).resolves.toBe(false);
+      deleteMock.mockRejectedValue(new Error('fail'));
+      await expect(service.delete(NOTEBOOK_ID, USER_ID)).resolves.toBe(false);
     });
   });
 });

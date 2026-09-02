@@ -23,6 +23,7 @@
             "polyfills": ["zone.js"],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "css",
+            "externalDependencies": ["fs", "path"],
             "baseHref": "/",
             "deployUrl": "/",
             "assets": [
@@ -32,24 +33,24 @@
               },
               {
                 "glob": "RDKit_minimal.wasm",
-                "input": "node_modules/@rdkit/rdkit/dist/",
+                "input": "../node_modules/@rdkit/rdkit/dist/",
                 "output": "/"
               },
               {
                 "glob": "RDKit_minimal.js",
-                "input": "node_modules/@rdkit/rdkit/dist/",
+                "input": "../node_modules/@rdkit/rdkit/dist/",
                 "output": "/"
               },
               {
                 "glob": "*.svg",
-                "input": "node_modules/svg-country-flags/svg",
+                "input": "../node_modules/svg-country-flags/svg",
                 "output": "flags"
               }
             ],
             "styles": [
-              "node_modules/quill/dist/quill.core.css",
-              "node_modules/quill/dist/quill.bubble.css",
-              "node_modules/quill/dist/quill.snow.css",
+              "quill/dist/quill.core.css",
+              "quill/dist/quill.bubble.css",
+              "quill/dist/quill.snow.css",
               "src/styles.css"
             ],
             "scripts": []
@@ -132,6 +133,7 @@
             "polyfills": ["zone.js", "zone.js/testing"],
             "tsConfig": "tsconfig.spec.json",
             "inlineStyleLanguage": "css",
+            "externalDependencies": ["fs", "path"],
             "assets": [
               {
                 "glob": "**/*",
@@ -139,19 +141,19 @@
               },
               {
                 "glob": "RDKit_minimal.wasm",
-                "input": "node_modules/@rdkit/rdkit/dist/",
+                "input": "../node_modules/@rdkit/rdkit/dist/",
                 "output": "/"
               },
               {
                 "glob": "*.svg",
-                "input": "node_modules/svg-country-flags/svg",
+                "input": "../node_modules/svg-country-flags/svg",
                 "output": "flags"
               }
             ],
             "styles": [
-              "node_modules/quill/dist/quill.core.css",
-              "node_modules/quill/dist/quill.bubble.css",
-              "node_modules/quill/dist/quill.snow.css",
+              "quill/dist/quill.core.css",
+              "quill/dist/quill.bubble.css",
+              "quill/dist/quill.snow.css",
               "src/styles.css"
             ],
             "scripts": []
