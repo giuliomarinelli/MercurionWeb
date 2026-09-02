@@ -1,0 +1,81 @@
+{
+  "name": "mercurion-web-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "npm@10.9.2",
+  "engines": {
+    "node": "22.16.0",
+    "npm": "10.9.2"
+  },
+  "workspaces": [
+    "MercurionWebNg",
+    "MercurionWebNode"
+  ],
+  "scripts": {
+    "postinstall": "patch-package --patch-dir MercurionWebNg/patches",
+    "ci:validate:autonomous": "node docs/autonomous-development/tools/validate-cli-runner.mjs && node docs/autonomous-development/tools/validate-recipes.mjs",
+    "ci:lint:angular": "npm run lint --workspace mercurion_web_ng",
+    "ci:lint:nest": "npm run lint --workspace mercurion_web_node",
+    "ci:lint": "npm run ci:lint:angular && npm run ci:lint:nest",
+    "ci:typecheck:angular": "npm run typecheck --workspace mercurion_web_ng",
+    "ci:typecheck:nest": "npm run typecheck --workspace mercurion_web_node",
+    "ci:typecheck": "npm run ci:typecheck:angular && npm run ci:typecheck:nest",
+    "ci:test:angular": "npm run test:ci --workspace mercurion_web_ng",
+    "ci:test:nest": "npm test --workspace mercurion_web_node -- --runInBand",
+    "ci:test:nest:e2e": "npm run test:e2e --workspace mercurion_web_node -- --runInBand",
+    "ci:test": "npm run ci:test:angular && npm run ci:test:nest && npm run ci:test:nest:e2e",
+    "ci:build:angular": "npm run build --workspace mercurion_web_ng",
+    "ci:build:nest": "npm run build --workspace mercurion_web_node",
+    "ci:build": "npm run ci:build:angular && npm run ci:build:nest",
+    "ci:check": "npm run ci:validate:autonomous && npm run ci:lint && npm run ci:typecheck && npm run ci:test && npm run ci:build"
+  },
+  "devDependencies": {
+    "patch-package": "8.0.1"
+  },
+  "overrides": {
+    "@nestjs/platform-fastify": {
+      "fastify": "5.12.1"
+    },
+    "karma": {
+      "body-parser": {
+        "qs": "6.16.0"
+      }
+    },
+    "@eslint/config-array": {
+      "minimatch": "10.2.4"
+    },
+    "@eslint/eslintrc": {
+      "minimatch": "10.2.4"
+    },
+    "@hono/node-server": "2.0.12",
+    "@nestjs/graphql": {
+      "ws": "8.21.3"
+    },
+    "editorconfig": "3.0.2",
+    "eslint": {
+      "minimatch": "10.2.4"
+    },
+    "fork-ts-checker-webpack-plugin": {
+      "minimatch": "10.2.4"
+    },
+    "graphql-jit": {
+      "fast-json-stringify": {
+        "fast-uri": "3.1.6"
+      }
+    },
+    "mailparser": "3.9.17",
+    "mercurius": {
+      "ws": "8.21.3"
+    },
+    "minimatch@3.1.5": {
+      "brace-expansion": "1.1.18"
+    },
+    "minimatch@>=10": {
+      "brace-expansion": "5.0.9"
+    },
+    "subscriptions-transport-ws": {
+      "ws": "8.21.3"
+    },
+    "test-exclude": "8.0.0"
+  }
+}

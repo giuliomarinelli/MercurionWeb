@@ -256,7 +256,7 @@ export class SessionService {
                 const s: ISession = {
                     sessionId: sd.sessionId as UUID,
                     userId: sd.userId as UUID,
-                    deviceId: sd.deviceId as UUID,
+                    deviceId: sd.deviceId,
                     createdAt: parseInt(sd.createdAt, 10),
                     expiresAt: parseInt(sd.expiresAt, 10),
                     lastAccessedAt: parseInt(sd.lastAccessedAt, 10),
@@ -329,7 +329,7 @@ export class SessionService {
             const session: ISession = {
                 sessionId: sessionData.sessionId as UUID,
                 userId: sessionData.userId as UUID,
-                deviceId: sessionData.deviceId as UUID,
+                deviceId: sessionData.deviceId,
                 createdAt: parseInt(sessionData.createdAt, 10),
                 expiresAt: parseInt(sessionData.expiresAt, 10),
                 lastAccessedAt: parseInt(sessionData.lastAccessedAt, 10),
@@ -409,7 +409,7 @@ export class SessionService {
     }
 
     public async getFingerprintWhiteList(userId: UUID): Promise<string[]> {
-        const key: string = this.getUserFingerprintsWhiteListKey(userId as string)
+        const key: string = this.getUserFingerprintsWhiteListKey(userId)
         const val: string | null = await this.redisService.get(key)
         let whiteList: string[]
         try {
@@ -424,7 +424,7 @@ export class SessionService {
 
     // ✅ distruzione "strict"
     public async destroySession(sessionId: string, deviceId: string, userId?: UUID): Promise<void> {
-        const { key, userId: resolvedUid } = await this.resolveSessionContext(sessionId, userId as string | undefined)
+        const { key, userId: resolvedUid } = await this.resolveSessionContext(sessionId, userId)
         if (!key) {
             return
         }

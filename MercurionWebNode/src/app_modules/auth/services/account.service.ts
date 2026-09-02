@@ -895,7 +895,7 @@ export class AccountService {
         if (locked) {
             throw new RpcException('Forbidden::missing permissions')
         }
-        const sessions = await this.sessionService.getAllSessionsByUserId(userId as string, { onlyValid: false })
+        const sessions = await this.sessionService.getAllSessionsByUserId(userId, { onlyValid: false })
         for (const s of sessions) {
             await this.sessionService.revokeAllTokensBySessionId(s.sessionId)
         }

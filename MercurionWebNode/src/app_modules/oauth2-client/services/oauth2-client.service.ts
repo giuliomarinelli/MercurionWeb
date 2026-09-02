@@ -95,7 +95,7 @@ export class OAuth2ClientService implements IOAuth2ClientService {
         let accessToken = await this.redisService.get(redisKey)
 
         if (!accessToken) {
-            const refreshToken = await this.persistenceService.getRefreshToken(provider, userId as UUID)
+            const refreshToken = await this.persistenceService.getRefreshToken(provider, userId)
             if (!refreshToken) throw new UnauthorizedException('Refresh token not found, user must re-authenticate.')
 
             const config = this.getProviderConfig(provider)

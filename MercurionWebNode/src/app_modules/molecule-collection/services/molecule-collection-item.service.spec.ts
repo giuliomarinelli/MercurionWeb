@@ -7,7 +7,10 @@ import { DataSource } from 'typeorm';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 
-jest.mock('@kripod/uuidv7', () => ({ uuidv7: jest.fn(() => 'mock-uuid-v7') }));
+const MOCK_ITEM_ID = '01900000-0000-7000-8000-000000000000';
+const MOCK_USER_ID = '00000000-0000-0000-0000-000000000001';
+
+jest.mock('@kripod/uuidv7', () => ({ uuidv7: jest.fn(() => '01900000-0000-7000-8000-000000000000') }));
 
 describe('MoleculeCollectionItemService', () => {
   let service: MoleculeCollectionItemService;
@@ -70,15 +73,15 @@ describe('MoleculeCollectionItemService', () => {
 
   it('creates and persists a new item', async () => {
     const input = { type: 'custom', name: 'Test' };
-    const userId = 'user-uuid' as any;
-    const createdEntity = { ...input, userId, id: 'mock-uuid-v7' };
+    const userId = MOCK_USER_ID;
+    const createdEntity = { ...input, userId, id: MOCK_ITEM_ID };
     repoMock.create.mockReturnValue(createdEntity);
     repoMock.save.mockResolvedValue(createdEntity);
     const markSpy = jest.spyOn(service, 'markAsTouched').mockResolvedValue(true);
 
-    const result = await service.create(userId, input as any);
+    const result = await service.create(userId, input);
 
-    expect(repoMock.create).toHaveBeenCalledWith({ id: 'mock-uuid-v7', ...input, userId });
+    expect(repoMock.create).toHaveBeenCalledWith({ id: MOCK_ITEM_ID, ...input, userId });
     expect(repoMock.save).toHaveBeenCalledWith(createdEntity);
     expect(markSpy).toHaveBeenCalledWith(userId, createdEntity.id);
     expect(result).toEqual(createdEntity);
@@ -88,14 +91,13 @@ describe('MoleculeCollectionItemService', () => {
     jest.spyOn(GeneralUtils, 'isValidUUIDv7').mockReturnValue(true);
     managerMock.exists.mockResolvedValue(true);
 
-    const result = await service.markAsTouched('user' as any, 'mock-uuid-v7' as any);
+    const result = await service.markAsTouched(MOCK_USER_ID, MOCK_ITEM_ID);
 
     expect(dataSourceMock.manager.transaction).toHaveBeenCalled();
-    expect(managerMock.update).toHaveBeenCalledWith(
-      MoleculeCollectionItemEntity,
-      { userId: 'user', id: 'mock-uuid-v7' },
-      expect.objectContaining({ touchedAt: expect.any(Number) })
-    );
+    expect(managerMock.update).toHaveBeenCalledTimes(1);
+    expect(managerMock.update.mock.calls[0]?.[0]).toBe(MoleculeCollectionItemEntity);
+    expect(managerMock.update.mock.calls[0]?.[1]).toEqual({ userId: MOCK_USER_ID, id: MOCK_ITEM_ID });
+    expect(managerMock.update.mock.calls[0]?.[2]?.touchedAt).toEqual(expect.any(Number));
     expect(result).toBe(true);
   });
 });

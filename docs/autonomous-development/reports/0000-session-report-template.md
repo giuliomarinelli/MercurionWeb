@@ -29,16 +29,16 @@ This file is a template only. A session report copies this structure to a dated 
 ## Initial green-baseline evidence
 
 - Base SHA: `<sha>`
-- Existing exact-SHA CI evidence: `<run/result or not yet available for task 0001>`
+- Exact `develop`-SHA CI evidence: `<Windows/Linux jobs and Required gate URL/result>`
 - Local clean-install/gate commands: `<commands>`
 - Results: `<results>`
-- Phase 0 remediation: `<commits/summary or none>`
+- Separate baseline remediation: `<PR/commits or none; never charge to a numbered task>`
 
 ## Task ledger
 
-| Task | Source | Result | Feature branch / frozen SHA | Base SHA | Task commits | Merge SHA / CI | Revert SHA / CI | Status SHA / CI |
-|---|---|---|---|---|---|---|---|---|
-| `<0001>` | `<SYS-001>` | `<DONE/BLOCKED/REVERTED/SKIPPED_DEPENDENCY>` | `<branch / sha or none>` | `<sha or n/a>` | `<sha(s) or n/a>` | `<sha / run or n/a>` | `<sha / run or n/a>` | `<sha / run>` |
+| Task | Source | Result | Feature branch / frozen SHA | Base SHA | Task commits | Feature SHA / CI | Merge SHA / CI | Revert SHA / CI | Status SHA / CI |
+|---|---|---|---|---|---|---|---|---|---|
+| `<0001>` | `<SYS-001>` | `<DONE/BLOCKED/REVERTED/SKIPPED_DEPENDENCY>` | `<branch / sha or none>` | `<sha or n/a>` | `<sha(s) or n/a>` | `<sha / Windows+Linux Required gate>` | `<sha / run or n/a>` | `<sha / run or n/a>` | `<sha / run>` |
 
 ## Blocked and reverted tasks
 

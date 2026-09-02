@@ -18,12 +18,13 @@ import { SercurityService } from '../services/sercurity.service';
 
 describe('AuthenticationController', () => {
   let controller: AuthenticationController;
-  let authService: jest.Mocked<AuthenticationService>;
-  let responseService: jest.Mocked<ResponseService>;
-  let sessionService: jest.Mocked<SessionService>;
-  let secureCookieService: jest.Mocked<SecureCookieService>;
+  const verifyEmailMock = jest.fn();
+  const responseOkMock = jest.fn().mockReturnValue({ statusCode: 200, message: 'ok', timestamp: 'now' });
+  const destroySessionMock = jest.fn();
+  const clearCookieMock = jest.fn();
 
   beforeEach(async () => {
+    jest.clearAllMocks();
     const mockLogger = {
       debug: jest.fn(),
       warn: jest.fn(),
@@ -37,7 +38,7 @@ describe('AuthenticationController', () => {
         {
           provide: AuthenticationService,
           useValue: {
-            verifyEmail: jest.fn(),
+            verifyEmail: verifyEmailMock,
             performAuthentication: jest.fn(),
             onlineUsers: jest.fn(),
             performLogout: jest.fn(),
@@ -50,13 +51,13 @@ describe('AuthenticationController', () => {
         { provide: JwtToolsService, useValue: {} },
         {
           provide: ResponseService,
-          useValue: { ok: jest.fn().mockReturnValue({ statusCode: 200, message: 'ok', timestamp: 'now' }) },
+          useValue: { ok: responseOkMock },
         },
         {
           provide: SecureCookieService,
           useValue: {
             setSignedCookie: jest.fn(),
-            clearCookie: jest.fn(),
+            clearCookie: clearCookieMock,
           },
         },
         { provide: UserService, useValue: {} },
@@ -86,7 +87,7 @@ describe('AuthenticationController', () => {
           provide: SessionService,
           useValue: {
             revokeToken: jest.fn(),
-            destroySessionAndRevokeAllTokensBySignedSessionId: jest.fn(),
+            destroySessionAndRevokeAllTokensBySignedSessionId: destroySessionMock,
           },
         },
         { provide: RedisService, useValue: { get: jest.fn() } },
@@ -96,10 +97,6 @@ describe('AuthenticationController', () => {
     }).compile();
 
     controller = module.get<AuthenticationController>(AuthenticationController);
-    authService = module.get(AuthenticationService);
-    responseService = module.get(ResponseService);
-    sessionService = module.get(SessionService);
-    secureCookieService = module.get(SecureCookieService);
   });
 
   it('should be defined', () => {
@@ -108,18 +105,18 @@ describe('AuthenticationController', () => {
 
   describe('login_zeroStep', () => {
     it('returns confirm dto when email is valid', async () => {
-      (authService.verifyEmail as jest.Mock).mockResolvedValue(true);
+      verifyEmailMock.mockResolvedValue(true);
       const dto: EmailDTO = { email: 'user@example.com' };
 
       const result = await controller.login_zeroStep(dto);
 
-      expect(authService.verifyEmail).toHaveBeenCalledWith('user@example.com');
-      expect(responseService.ok).toHaveBeenCalledWith('Email successfully verified');
-      expect(result).toEqual(responseService.ok.mock.results[0].value);
+      expect(verifyEmailMock).toHaveBeenCalledWith('user@example.com');
+      expect(responseOkMock).toHaveBeenCalledWith('Email successfully verified');
+      expect(result).toEqual(responseOkMock.mock.results[0].value);
     });
 
     it('throws when email is not recognized', async () => {
-      (authService.verifyEmail as jest.Mock).mockResolvedValue(false);
+      verifyEmailMock.mockResolvedValue(false);
       await expect(controller.login_zeroStep({ email: 'ghost@example.com' })).rejects.toBeInstanceOf(UnauthorizedException);
     });
   });
@@ -134,15 +131,15 @@ describe('AuthenticationController', () => {
       const reply = {};
 
       await controller.logoutFromSession(
-        userId as never,
+        userId,
         { signedSessionId },
-        currentSessionId as never,
+        currentSessionId,
         reply as never,
       );
 
-      expect(sessionService.destroySessionAndRevokeAllTokensBySignedSessionId).toHaveBeenCalledWith(signedSessionId, userId);
-      expect(secureCookieService.clearCookie).not.toHaveBeenCalled();
-      expect(responseService.ok).toHaveBeenCalledWith('Action performed successfully');
+      expect(destroySessionMock).toHaveBeenCalledWith(signedSessionId, userId);
+      expect(clearCookieMock).not.toHaveBeenCalled();
+      expect(responseOkMock).toHaveBeenCalledWith('Action performed successfully');
     });
 
     it('clears cookies when logging out the current session', async () => {
@@ -150,16 +147,16 @@ describe('AuthenticationController', () => {
       const reply = {};
 
       await controller.logoutFromSession(
-        userId as never,
+        userId,
         { signedSessionId: currentSignedSessionId },
-        currentSessionId as never,
+        currentSessionId,
         reply as never,
       );
 
-      expect(sessionService.destroySessionAndRevokeAllTokensBySignedSessionId).toHaveBeenCalledWith(currentSignedSessionId, userId);
-      expect(secureCookieService.clearCookie).toHaveBeenCalledTimes(2);
-      expect(secureCookieService.clearCookie).toHaveBeenNthCalledWith(1, reply, '__node_session_id');
-      expect(secureCookieService.clearCookie).toHaveBeenNthCalledWith(2, reply, '__logged_in');
+      expect(destroySessionMock).toHaveBeenCalledWith(currentSignedSessionId, userId);
+      expect(clearCookieMock).toHaveBeenCalledTimes(2);
+      expect(clearCookieMock).toHaveBeenNthCalledWith(1, reply, '__node_session_id');
+      expect(clearCookieMock).toHaveBeenNthCalledWith(2, reply, '__logged_in');
     });
   });
 });

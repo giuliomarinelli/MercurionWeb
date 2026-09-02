@@ -71,9 +71,7 @@ export function validateEnvOrKillProcess(raw: NodeJS.ProcessEnv): EnvVars {
             })
             .join('\n')
 
-        console.error(`Invalid environment configuration:\n${msg}`)
-        console.error('\n\n Fatal error: Nodejs process terminated with exit_code = 1\n')
-        process.exit(1)
+        throw new Error(`Invalid environment configuration:\n${msg}`)
     }
 
     return env

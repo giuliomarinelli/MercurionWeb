@@ -13,7 +13,11 @@ Source: `QA-014` in Series `0001`.
 
 ## Context
 
-The audit measured approximately 281 ESLint errors and 269 warnings across 213 Nest files. The current `eslint.config.mjs` disables several high-value TypeScript rules including explicit-any, unsafe argument/assignment/call/member-access/return and floating-promises, while the current package lint script runs ESLint with `--fix`. Phase 0/`0008` already require a non-mutating lint check and separate fix command. This task makes the backend gate genuinely strict rather than green by configuration suppression.
+The audit measured substantial historical Nest ESLint debt. The permanent
+baseline provides a non-mutating check plus a separate fix command and permits
+the explicitly measured migration warnings; task `0008` later exposes the root
+aggregate. This task makes the backend gate genuinely zero-finding rather than
+merely green under the transitional baseline policy.
 
 ## Relevant files and modules
 

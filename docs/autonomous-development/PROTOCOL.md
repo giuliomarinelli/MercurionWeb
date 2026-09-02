@@ -14,6 +14,7 @@ A **Development Session** is a bounded period in which a session coordinator exe
 - **Feature branch**: the isolated Git branch `feature/<Source>` used for exactly one task.
 - **Integration branch**: `develop`.
 - **Preflight**: the complete CI-parity verification run before task implementation begins.
+- **Pre-merge CI**: the GitHub Actions workflow associated with the exact pushed feature-branch SHA.
 - **Post-merge CI**: the GitHub Actions workflow associated with the explicit merge commit on `develop`.
 - **Soft deadline**: after this time no new task may start; the task already in progress may finish its complete branch/CI lifecycle.
 - **Hard deadline**: optional absolute session guardrail; do not start or interrupt an unsafe merge/revert sequence merely to beat the clock.
@@ -31,7 +32,7 @@ GitHub Copilot CLI agent profiles are committed in `.github/agents/`, and MCP se
 
 The canonical local runtime topology is defined by `docs/autonomous-development/RUNTIME.md`.
 
-The coordinator owns deterministic orchestration: task discovery/order, YAML parsing, time/deadlines, branch lifecycle, merge/revert sequencing, exact-SHA CI waiting, runtime process lifecycle and reporting. The fresh task worker owns preflight, implementation and task-specific validation inside the currently assigned feature branch.
+The coordinator owns deterministic orchestration: task discovery/order, YAML parsing, time/deadlines, branch lifecycle, feature-SHA and merge-SHA CI waiting, merge/revert sequencing, runtime process lifecycle and reporting. The fresh task worker owns local preflight, implementation and task-specific validation inside the currently assigned feature branch.
 
 ## GitHub Copilot CLI coordinator/worker topology
 
@@ -71,11 +72,18 @@ If any install, network, filesystem, cleanup, GitHub, subagent (`task`), MCP, si
 
 ## Green-baseline session invariant
 
-No recipe implementation starts until the repository has a clean, complete green baseline. At session startup the coordinator records the exact local/remote `develop` SHA and runs the complete available non-mutating gate set. A previously green workflow is useful evidence but does not replace the local session-start proof.
+No recipe implementation starts until the repository has the permanent baseline
+defined in `docs/autonomous-development/CI-BASELINE.md`. At session startup the
+coordinator records the exact local/remote `develop` SHA, requires a successful
+GitHub Actions run and `Required gate` result tied to that exact SHA, and reruns
+the complete local non-mutating gate set. Neither proof substitutes for the
+other.
 
-Task `0001` has one narrowly scoped bootstrap path for a repository whose required checks are missing or currently red: the coordinator may create and push `feature/SYS-001`, but the worker may perform **Phase 0 only** until every mandatory gate passes. Phase 0 is baseline establishment, not SYS-001 feature implementation. If it cannot make the full suite green safely, task `0001` is blocked and the entire session stops; no later recipe may inherit a known-red baseline.
-
-After task `0001` integrates its bootstrap workflow, every `develop` tip used as a later task base must additionally have a successful workflow result tied to that exact SHA. The coordinator records the baseline evidence for every task in its Execution notes and final report.
+There is no task-level bootstrap exception. If the workflow is absent, the
+exact `develop` SHA is not green, or the local baseline is red, the coordinator
+stops before creating a feature branch, invoking an implementation worker, or
+changing a recipe outcome. Baseline construction/remediation is a separate
+human-authorized activity, not work silently charged to the first pending task.
 
 ## Planning domain: series
 
@@ -140,7 +148,11 @@ Rules:
 | `REVERTED` | yes | yes, then reverted | no implementation; rollback/status metadata only | preserved and frozen |
 | `SKIPPED_DEPENDENCY` | no | no | metadata only | never created |
 
-`BLOCKED` is reserved for a task attempt that cannot reach `READY_FOR_INTEGRATION`: preflight or task validation cannot be made green, a stop condition applies, or required authority/capability/decision is missing.
+`BLOCKED` is reserved for a task attempt that cannot reach
+`READY_FOR_INTEGRATION` because task-caused validation cannot be made green, a
+recipe stop condition applies, or required task authority/capability/decision
+is missing. A red unchanged baseline is a session-level incident, not
+`BLOCKED`.
 
 `REVERTED` means the task reached local success and was merged, but the exact merge-SHA workflow did not succeed or could not be verified, so the merge was safely rolled back. It distinguishes an integrated-then-withdrawn change from a pre-merge task failure. The report records whether the cause was a confirmed regression, infrastructure failure, cancellation/timeout, or an unverified result.
 
@@ -178,89 +190,35 @@ A pre-existing local or remote `feature/<Source>` is not overwritten automatical
 
 No task develops directly on `develop`. Autonomous tasks never touch `master`.
 
-## Phase 0 of task 0001 — mandatory CI-capable green baseline
+## Permanent CI-capable baseline
 
-Task `0001` is special: after `feature/SYS-001` is created, its **first executable work is Phase 0**, whose sole purpose is to construct and prove the repository baseline required for the later canonical CI to be green.
+Baseline construction is completed and reviewed outside the numbered workload.
+The permanent `.github/workflows/ci.yml` runs the documented root workspace
+gate on Windows and Linux for `develop`, `feature/**`, `chore/**`, and pull
+requests targeting `develop`. It exposes one stable `Required gate`, never
+deploys or publishes, and remains present across ordinary task merges and
+reverts.
 
-Phase 0 is part of task `0001`, but it runs **before the actual SYS-001 contract/monorepo implementation scope**. It is a hard prerequisite for all subsequent autonomous development.
+Local preflight and GitHub Actions both use root `npm ci` followed by
+`npm run ci:check`. A task that changes package topology may adapt the workflow,
+but MUST preserve continuous `develop` coverage, both platform jobs,
+feature-SHA validation, and the stable aggregate gate. It must prove the
+adapted workflow on its exact feature SHA before merge.
 
-A missing quality gate is itself a baseline defect. If lint/type/test/build verification does not yet exist deterministically, Phase 0 MUST establish the minimum correct non-mutating gate and then make it green. The agent may not interpret an absent command as permission to skip that quality dimension.
+## Canonical CI parity
 
-At minimum Phase 0 covers:
-
-### Angular
-
-From `MercurionWebNg`, under the package topology that exists before the workspace migration:
-
-- clean dependency/lockfile installation;
-- a supported Angular-compatible non-mutating lint check for TypeScript/templates;
-- a separate explicit lint-fix command for remediation;
-- TypeScript application typecheck (`tsc --noEmit` against the canonical application tsconfig or equivalent);
-- Angular template/AOT type checking as exercised by the production build;
-- **all** Angular/Karma tests in non-watch headless mode;
-- production build, including configured bundle/budget gates;
-- every other deterministic repository-controlled Angular source/static check already applicable.
-
-The audited baseline does not yet expose an Angular lint target. Phase 0 **MUST create/finalize one before SYS-001 implementation begins** and make it green. It is not deferred to a later QA task merely because that later task also describes Angular linting.
-
-### Nest
-
-From `MercurionWebNode`, under the package topology that exists before the workspace migration:
-
-- clean dependency/lockfile installation;
-- non-mutating ESLint check over the intended source/test scope;
-- a separate explicit lint-fix command for remediation;
-- TypeScript typecheck (`tsc --noEmit` against the canonical Nest tsconfig or equivalent);
-- **all** Jest unit/spec tests;
-- **all** Jest E2E tests using `test/jest-e2e.json`;
-- Nest build;
-- every other deterministic repository-controlled Nest source/static check already applicable.
-
-The existing Nest `lint` script uses `--fix`; verification MUST NOT rely on that mutating behaviour. Phase 0 establishes separate check/fix semantics before SYS-001 development.
-
-Likewise, a suite printing passing Jest tests but returning a failing process exit status is not green. Phase 0 must fix the repository-controlled testing/bootstrap boundary that causes the failing exit rather than ignoring or masking it.
-
-### Phase 0 remediation precedence
-
-When a Phase 0 gate fails:
-
-1. diagnose the repository-controlled root cause;
-2. repair it on `feature/SYS-001`;
-3. do not weaken, skip or exclude the gate merely to obtain green output;
-4. keep remediation identifiable in commits and Execution notes;
-5. rerun the **complete Phase 0 suite**, not only the command that failed;
-6. repeat until the whole baseline is green.
-
-If a known baseline defect is also scheduled as a later numbered task, **CI viability takes precedence over numeric task ordering**. Fix the minimum correct root cause in Phase 0 if leaving it unresolved would make the future CI immediately fail. The later task then verifies, refines or becomes effectively satisfied; it is not a reason to carry a deliberately red baseline forward.
-
-No actual SYS-001 contract/workspace implementation begins until Phase 0 is fully green. If the baseline cannot be made green safely without an unresolved product/security/architecture decision, task `0001` becomes `BLOCKED`, and no subsequent autonomous development task may start from that known-red baseline.
-
-After the SYS-001 workspace/contract changes are implemented, the entire Phase 0 quality suite is run again under the new root/workspace topology. Task `0001` may only integrate if the repository remains green.
-
-### Bootstrap post-merge CI created by task 0001
-
-The per-task merge policy requires real GitHub Actions before task `0008`. Therefore Phase 0 of task `0001` MUST create a minimum `.github/workflows/ci.yml` that:
-
-- runs on every push to `develop` and on ordinary pull requests targeting `develop`;
-- performs the complete green bootstrap gate set established by Phase 0 under the current package topology;
-- uses deterministic clean-install semantics and non-mutating checks;
-- has one unambiguous terminal workflow result that the coordinator can associate with the exact pushed SHA;
-- does not deploy, publish, auto-fix or use production credentials.
-
-The merge of task `0001` is the first task merge evaluated by that workflow. Tasks `0002` through `0007` continue to use the same bootstrap workflow and the best available local equivalent. Task `0008` completes that bootstrap into the canonical root `npm ci` plus `npm run ci:check` contract and may restructure the workflow without creating a gap in `develop` push coverage.
-
-## Canonical CI parity after task 0008
-
-Task `0008` completes the canonical root CI interface and upgrades the bootstrap `.github/workflows/ci.yml` created by task `0001`.
-
-After `0008` is integrated, every task-start and pre-merge preflight MUST execute the same repository-controlled gate set as GitHub Actions:
+The baseline provides the canonical root CI interface. Every task-start and
+pre-merge preflight MUST execute the same repository-controlled gate set as
+GitHub Actions:
 
 ```text
 npm ci
 npm run ci:check
 ```
 
-The canonical `ci:check` aggregate MUST cover every repository-controlled source gate that can make CI fail, including:
+The canonical `ci:check` aggregate MUST cover every repository-controlled
+source gate currently available. Task `0008` adds GraphQL/generated-artifact
+drift to the existing aggregate. The complete evolving gate set includes:
 
 - Angular lint check;
 - Nest lint check;
@@ -276,7 +234,9 @@ The canonical `ci:check` aggregate MUST cover every repository-controlled source
 
 A future task that adds a required CI gate MUST also add that gate to the canonical local aggregate. GitHub Actions must not contain hidden source-quality checks that the runner cannot reproduce locally.
 
-Environment/setup failures originating from GitHub infrastructure are still possible, but repository-controlled failures must be reproducible by the local preflight.
+Environment/setup failures originating from GitHub infrastructure are still
+possible. Platform-specific repository failures may exist only on the clean
+remote runner, which is why exact feature-SHA CI is mandatory before merge.
 
 ## Preflight before every task
 
@@ -284,14 +244,13 @@ Immediately after `feature/<Source>` is created and before actual task implement
 
 1. run the complete CI-parity preflight;
 2. if green, record the result and begin the task;
-3. if red due to repository-controlled lint/type/test/build/static failures, repair the baseline on the feature branch before touching task scope;
-4. keep preflight remediation in clearly identified commits/Execution notes when practical;
-5. rerun the entire preflight, not only the previously failing command;
-6. begin task implementation only after every gate is green.
+3. if red before task changes exist, stop the session as a baseline invariant
+   failure rather than assigning the debt to this task;
+4. do not implement, create a task outcome, or use the feature branch to repair
+   unrelated baseline debt.
 
-For task `0001`, the specialized Phase 0 rules above define this first preflight/bootstrap and explicitly allow establishment of missing mandatory quality tooling. For tasks before `0008` is integrated, use the best available equivalent gate set established by preceding tasks. From `0008` onward, use the canonical root `npm ci` + `npm run ci:check` interface.
-
-Preflight remediation may fix routine quality drift and missing deterministic quality tooling. It must not silently make unrelated product/security/architecture decisions. If restoring green requires materially unrelated behavioural work, the task becomes `BLOCKED`.
+Use the canonical root `npm ci` plus `npm run ci:check` interface from the
+permanent baseline onward.
 
 ## Task implementation and local completion
 
@@ -306,19 +265,29 @@ Each task receives a fresh Copilot/Sol session. On its feature branch the agent:
 7. updates Execution notes;
 8. checks `DONE` only when implementation plus every local gate passes.
 
-At this point `DONE` is operationally **CI_PENDING** until the merge commit's GitHub Actions run succeeds. The runner MUST NOT select another task during this interval.
+At this point `DONE` is operationally **CI_PENDING** until both the exact
+feature-SHA and exact merge-SHA GitHub Actions runs succeed. The runner MUST NOT
+select another task during this interval.
 
 ## Integration into develop
 
 After local completion:
 
 1. push the completed feature branch;
-2. switch to `develop`;
-3. verify `develop` has not changed unexpectedly since the branch was created; if it has, reconcile safely without rebase/history rewriting and rerun all affected gates before integration, or block if unsafe;
-4. merge `feature/<Source>` into `develop` using `--no-ff --no-gpg-sign` so one explicit merge commit identifies the task integration boundary;
-5. push `develop`;
-6. identify the GitHub Actions run for the exact merge SHA;
-7. wait until the workflow reaches a terminal result.
+2. identify and wait for the GitHub Actions run associated with the exact
+   pushed feature SHA; require the complete workflow and `Required gate` to
+   succeed;
+3. if feature-SHA CI is non-success or unverifiable, apply the pre-merge
+   `BLOCKED` lifecycle and do not merge;
+4. switch to `develop`;
+5. verify `develop` has not changed unexpectedly since the branch was created;
+   if it has, reconcile safely without rebase/history rewriting and rerun all
+   affected local and remote gates, or block if unsafe;
+6. merge `feature/<Source>` into `develop` using `--no-ff --no-gpg-sign` so one
+   explicit merge commit identifies the task integration boundary;
+7. push `develop`;
+8. identify the GitHub Actions run for the exact merge SHA;
+9. wait until the workflow reaches a terminal result.
 
 Do not begin the next task until the merge CI is terminal and the success/failure policy below has completed.
 
@@ -352,17 +321,29 @@ If CI for the merge commit fails:
 
 A failed merge is never left on `develop` merely because the next task might repair it.
 
-If the merge workflow is cancelled, times out, becomes stale/action-required, or cannot be associated unambiguously with the exact merge SHA within the configured observation limit, treat the integration as unverified and fail closed through the same revert-and-`REVERTED` path. Since the pre-merge parent was proven green, a revert tree mismatch or a revert/status commit that cannot be observed green is a session-fatal **baseline/upstream incident**, not permission to blame or start the next task. Stop the entire session, record both the last known-green SHA and failing recovery SHA/run, and request human recovery.
+If the merge workflow is cancelled, times out, becomes stale/action-required,
+or cannot be associated unambiguously with the exact merge SHA within the
+configured observation limit, treat the integration as unverified and fail
+closed through the same revert-and-`REVERTED` path. Because the permanent
+workflow predates every task and the pre-merge parent was proven green, the
+revert retains CI coverage. A revert tree mismatch or a revert/status commit
+that cannot be observed green is a session-fatal **baseline/upstream
+incident**, not permission to blame or start the next task.
 
 Once revert plus `REVERTED` metadata are green, the task is terminal for this session. The coordinator performs dependency-skip propagation and may continue to a later independent task only when `policy.continue_after_terminal_non_done_task` is true and its resolved hard dependencies are all `DONE`.
 
 ## Blocking before merge
 
-A task is also `BLOCKED` when safe completion requires missing authority/information or when preflight/task validation cannot be restored.
+A task is also `BLOCKED` when safe completion requires missing
+authority/information, task validation cannot be restored, or the exact
+feature-SHA CI is non-success/unverifiable.
 
 If blocked before integration:
 
 - do not merge partial implementation;
+- if the worker had provisionally checked `DONE`, replace it with `BLOCKED` on
+  the feature branch, append the remote CI diagnostic, commit/push that
+  diagnostic, and then freeze the resulting final branch SHA;
 - preserve/push the feature branch for diagnosis and freeze it at that last pushed SHA;
 - return to clean `develop`;
 - record only the task's `BLOCKED` metadata/diagnostics on `develop`;
@@ -398,7 +379,8 @@ Forbidden:
 - deleting a `BLOCKED` or `REVERTED` feature branch before review;
 - amending/replacing a merge commit after its CI evaluation.
 
-The runner/agent may use read-only `gh` commands/API calls to locate and wait for workflow results by merge SHA.
+The runner/agent may use read-only `gh` commands/API calls to locate and wait
+for workflow results by exact feature, merge, revert, and metadata SHAs.
 
 ## Browser capability and local runtime
 
@@ -447,9 +429,9 @@ At finalization the runner records at least:
 - selected series/range;
 - tasks `DONE`, `BLOCKED`, `REVERTED`, `SKIPPED_DEPENDENCY`, and still pending;
 - feature branch per attempted task;
-- preflight results and any baseline remediation;
+- preflight results and references to any separately reviewed baseline remediation;
 - task commits and merge SHA for successful integrations;
-- CI run/result for each merged task;
+- feature-SHA and merge-SHA CI run/results for each attempted integration;
 - merge-revert SHA for `REVERTED` integrations;
 - preserved/frozen `BLOCKED` and `REVERTED` feature branches;
 - direct/transitive dependency chains for `SKIPPED_DEPENDENCY` tasks;

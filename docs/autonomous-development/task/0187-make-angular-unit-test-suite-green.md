@@ -13,7 +13,10 @@ Source: `QA-001` in Series `0001`.
 
 ## Context
 
-The audit found the Angular suite non-green. The current `app.component.spec.ts` still asserts the scaffold-era title `MercurionWebNg`, while the application shell and route/title ownership are being refactored by earlier FE/NG tasks. The audit also identified a redirect-component import problem; the exact failure may already have moved by the time this task runs, so the authority is the full current test run, not a stale list of historical failures. Phase 0 in task `0001` requires a green suite before autonomous development can proceed; this task permanently removes any remaining Angular unit-test debt and stale expectations.
+The audit found historical Angular test debt. The permanent baseline now keeps
+the existing suite green before autonomous development can proceed; this task
+strengthens its assertions and permanently removes any remaining stale or weak
+coverage rather than repairing a broken session baseline.
 
 ## Relevant files and modules
 
@@ -79,7 +82,7 @@ Mark `BLOCKED` if a failing test exposes ambiguous product behavior that cannot 
 
 ## Dependencies
 
-- Phase 0 semantics from `0001` apply.
+- The permanent `CI-BASELINE.md` invariant applies and must already be green.
 - `0008-enforce-nest-graphql-schema-drift-check.md` must provide the canonical CI interface.
 - Relevant FE/UI/NG refactors should be `DONE` before their stale tests are rewritten.
 

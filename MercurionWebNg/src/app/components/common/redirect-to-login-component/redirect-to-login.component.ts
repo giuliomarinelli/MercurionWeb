@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { ClassicSpinnerComponent } from '../classic-spinner/classic-spinner.component';
-import { DesignService } from '../../services/design.service';
+import { DesignService } from '../../../services/design.service';
 
 @Component({
   selector: 'm-redirect-to-login-component',

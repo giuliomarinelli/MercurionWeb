@@ -39,7 +39,8 @@ Autonomous-development planning and execution are intentionally separate:
 - Executable task files start at `0001` and use globally progressive four-digit numeric prefixes.
 - Read the complete task before changing code.
 - Inspect the relevant existing implementation before editing.
-- Keep changes narrowly scoped to the task plus any strictly necessary preflight remediation required to restore the canonical CI baseline.
+- Keep changes narrowly scoped to the active task.
+- Do not use an ordinary task branch to repair unrelated baseline debt. The permanent baseline is established outside the numbered workload and must already be green before a task branch is created.
 - Prefer existing repository patterns and dependencies over introducing unrelated abstractions or packages.
 - Do not infer executable requirements from a series document when the active task recipe is explicit. A series may be consulted as planning context only when useful or explicitly referenced.
 
@@ -68,9 +69,16 @@ The coordinator MUST also verify the effective repository-local `commit.gpgSign=
 
 ## Mandatory CI-parity preflight before every task
 
-Before implementing the first task scope, the coordinator MUST establish a clean, fully green repository baseline. Before every later task scope, the runner/agent MUST establish that the newly created `feature/<Source>` branch starts from an exact-SHA CI-green `develop` baseline.
+Before any task branch exists, the coordinator MUST establish a clean, fully
+green repository baseline according to
+`docs/autonomous-development/CI-BASELINE.md`. Local `develop` must equal
+`origin/develop`; the exact SHA must have a successful GitHub Actions workflow
+and stable `Required gate`; and the complete local non-mutating gate must pass.
 
-Task `0001` Phase 0 is the one bootstrap exception needed to construct missing deterministic gates or repair known repository-controlled baseline defects. Creating `feature/SYS-001` authorizes Phase 0 only; it does not authorize SYS-001 Phase 1 implementation until the entire bootstrap suite is green. If Phase 0 cannot establish green, stop the session and do not attempt any later task.
+There is no task `0001` bootstrap exception. Missing CI, a red exact-SHA run,
+or a red local baseline is a session-level startup failure. Stop before branch
+creation or task outcome mutation and request a separate human-authorized
+baseline repair.
 
 The preflight must cover every repository-controlled gate that can fail the canonical CI pipeline, including at minimum:
 
@@ -83,20 +91,22 @@ The preflight must cover every repository-controlled gate that can fail the cano
 7. GraphQL/generated-artifact drift checks once those checks exist;
 8. every additional static or contract check registered in the canonical CI gate set by later tasks.
 
-Task `0001` Phase 0 MUST also create a minimum bootstrap GitHub Actions workflow that runs the established complete bootstrap gate set on pushes to `develop`. This makes the merge of `0001` and tasks `0002`-`0007` subject to real post-merge CI.
+The permanent GitHub Actions workflow predates every numbered task. It runs on
+feature branches and `develop` on Windows and Linux and must survive ordinary
+task merges and reverts.
 
-After task `0008` completes the canonical CI interface, the task-start preflight MUST use the same root commands used by GitHub Actions, normally `npm ci` followed by `npm run ci:check`.
+The task-start preflight MUST use the same root commands used by GitHub Actions:
+`npm ci` followed by `npm run ci:check`. Task `0008` extends this existing
+aggregate with GraphQL/generated-artifact drift gates; it does not create the
+root workspace or first canonical CI interface.
 
-Before that canonical interface exists, use the bootstrap checks defined in `PROTOCOL.md`. If a required gate does not yet exist on the initial baseline, the missing gate itself is a preflight defect. The first affected feature branch may establish the minimum deterministic gate as preflight remediation before implementing the task scope.
+A missing or red root baseline gate is a session failure that requires a
+separate human-authorized repair; no numbered task or task branch may bootstrap
+or repair it.
 
-If preflight fails because of repository-controlled lint/type/test/build/static defects:
-
-- repair those defects on the task feature branch before implementing the task itself;
-- keep preflight remediation clearly separated from the task implementation in commits and execution notes when practical;
-- rerun the complete preflight after remediation;
-- do not begin the task scope until the whole preflight is green.
-
-If the baseline cannot be made green within the configured limits, mark the task `BLOCKED`, preserve the feature branch for diagnosis, and do not merge it into `develop`.
+If preflight fails before the task has changed code, stop the session as a
+baseline invariant failure. Do not assign the pre-existing defect to the task,
+mark the recipe `BLOCKED`, or use its branch for global remediation.
 
 ## Git lifecycle for one task
 
@@ -111,9 +121,11 @@ For each task:
 5. Implement and validate the task on the feature branch.
 6. Commit the task changes on the feature branch. Prefer small, comprehensible commits; do not squash or rewrite history merely for cosmetic reasons.
 7. Run the complete CI-parity gate set again immediately before integration.
-8. Mark the task `DONE` in the feature branch only when implementation and all local gates pass. The runner MUST treat this state as `CI_PENDING` until post-merge CI succeeds.
-9. Switch to `develop`, verify it has not moved unexpectedly, and merge the feature branch using an explicit `--no-ff --no-gpg-sign` merge commit.
-10. Push `develop` and wait for the GitHub Actions workflow associated with that merge commit.
+8. Mark the task `DONE` in the feature branch only when implementation and all local gates pass. The runner MUST treat this state as `CI_PENDING` until both feature and post-merge CI succeed.
+9. Push the final feature SHA and wait for the exact GitHub Actions `Required gate` on that SHA across the Windows/Linux matrix.
+10. If exact feature-SHA CI fails or is unverifiable, change the provisional outcome to `BLOCKED`, record diagnostics on the preserved feature branch, freeze it, and propagate only the metadata status to `develop`.
+11. Only after exact feature-SHA CI succeeds, switch to `develop`, verify it has not moved unexpectedly, and merge the feature branch using an explicit `--no-ff --no-gpg-sign` merge commit.
+12. Push `develop` and wait for the GitHub Actions workflow associated with that exact merge commit.
 
 If post-merge CI succeeds:
 
@@ -131,7 +143,10 @@ If post-merge CI fails:
 - preserve the local and remote `feature/<Source>` branch for diagnosis or later human-approved retry;
 - once its final feature SHA is pushed, freeze that divergent branch: do not merge `develop` into it, commit/amend it, reset/rebase it, advance it, or delete it during the session.
 
-If a task becomes blocked before merge, do not merge partial implementation. Preserve its feature branch, propagate only the task's `BLOCKED` status/diagnostics to `develop`, and wait for CI on that exact metadata commit.
+If a task becomes blocked before merge, including because exact feature-SHA CI
+fails or cannot be verified, do not merge partial implementation. Preserve and
+freeze its feature branch, propagate only the task's `BLOCKED`
+status/diagnostics to `develop`, and wait for CI on that exact metadata commit.
 
 After a new `BLOCKED` or `REVERTED` status is green, propagate `SKIPPED_DEPENDENCY` transitively to pending tasks that depend on any terminal non-`DONE` prerequisite. Skipped tasks receive no branch and no worker. Batch one propagation pass into a metadata-only `develop` commit and wait for its exact CI before continuing to an independent task.
 
@@ -151,7 +166,10 @@ Forbidden operations include:
 - bypassing or disabling CI to obtain a green result;
 - amending/replacing a pushed merge commit after CI has evaluated it.
 
-The agent may use `gh` or GitHub read APIs to identify and wait for the workflow run belonging to the exact merge SHA. Remote mutation should otherwise occur through the explicit Git lifecycle above unless a task specifically authorizes another GitHub action.
+The agent may use `gh` or GitHub read APIs to identify and wait for workflow
+runs belonging to the exact feature and merge SHAs. Remote mutation should
+otherwise occur through the explicit Git lifecycle above unless a task
+specifically authorizes another GitHub action.
 
 ## Browser and frontend validation
 
@@ -179,6 +197,8 @@ Before a task may be merged:
 3. Run the complete canonical CI-parity gate set, not merely tests for the changed area.
 4. Verify every acceptance criterion in the task.
 5. Verify the feature branch contains no unrelated changes except documented preflight remediation.
+6. Push the exact final feature SHA and require the permanent Windows/Linux
+   GitHub Actions `Required gate` to succeed before merge.
 
 A task may enter the merge/CI phase only when all local checks pass.
 

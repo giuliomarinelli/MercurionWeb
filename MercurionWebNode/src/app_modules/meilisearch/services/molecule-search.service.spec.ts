@@ -75,12 +75,12 @@ describe('MoleculeSearchService', () => {
       { id: 1, preferredName: 'Lorazepam', synonyms: 'syn', known: true },
       { id: 2, preferredName: 'Diazepam', synonyms: '', known: true },
     ];
-    jest.spyOn(service, 'searchMolecules').mockResolvedValue(hits as any);
+    const searchMoleculesSpy = jest.spyOn(service, 'searchMolecules').mockResolvedValue(hits as any);
     chemblItems.getChemblMolregnosByCollectionId.mockResolvedValue([1]);
 
     const filtered = await service.searchMolecules_excludeAlreadyAdded({ query: 'loraz' }, 'collection' as any, 'user' as any);
 
-    expect(service.searchMolecules).toHaveBeenCalledWith({ query: 'loraz' });
+    expect(searchMoleculesSpy).toHaveBeenCalledWith({ query: 'loraz' });
     expect(chemblItems.getChemblMolregnosByCollectionId).toHaveBeenCalledWith('user', 'collection');
     expect(filtered).toEqual([{ id: 2, preferredName: 'Diazepam', synonyms: '', known: true }]);
   });

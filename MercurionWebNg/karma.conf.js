@@ -1,4 +1,4 @@
-// Minimal Karma config override to bind to localhost on a random available port.
+// Keep the CI browser and Karma server on the same explicit IPv4 loopback.
 module.exports = function (config) {
   config.set({
     hostname: '127.0.0.1',

@@ -25,7 +25,7 @@ Before starting a task:
 7. verify the CLI `task` capability with exactly one non-mutating startup handshake before any task branch is created: call `task` with `agent_type: development-task-worker`, `mode: sync`, and a payload containing `capability_probe: true` plus a fresh unpredictable nonce; require the exact response `TASK_CAPABILITY_OK <nonce>` and treat an empty, malformed, denied, or mismatched result as a startup failure; the probe is session-level and does not count as an implementation-worker invocation;
 8. verify `task_complete` is present in the current tool inventory without invoking it, `.github/mcp.json` is loaded, and any capabilities required by the next task are available;
 9. verify the externally managed nginx development edge required by the runtime contract without modifying it;
-10. record the exact local/remote `develop` SHA and prove the complete available repository baseline green before any recipe implementation; for task `0001`, permit only its Phase 0 bootstrap work until the complete suite is green;
+10. record the exact local/remote `develop` SHA, require the permanent GitHub Actions `Required gate` for that exact SHA to be green on Windows and Linux, and prove the complete root `npm ci` plus `npm run ci:check` baseline from `docs/autonomous-development/CI-BASELINE.md` green before any recipe implementation; there is no task-level bootstrap exception;
 11. refuse to start if the active configuration still contains an unresolved required decision.
 
 If an install, network, filesystem, temporary-directory cleanup, GitHub, subagent (`task`), MCP, signing, or `task_complete` prerequisite is denied or requires approval despite the launch permissions, stop immediately and report the exact denial. Do not replace the denied operation with a weaker probe.
@@ -41,8 +41,10 @@ For each selected task, serially:
 3. create and push exactly `feature/<Source>` from that SHA; never overwrite or reuse an existing local or remote branch automatically;
 4. call the CLI `task` tool exactly once with `agent_type: development-task-worker` and `mode: sync`, supplying the exact task path, Source, feature branch, base SHA, session-config path, and a reminder that it owns only preflight plus feature-branch implementation/validation;
 5. inspect the worker's structured result and independently verify branch, task status, commits, clean tree, and declared validation evidence;
-6. if the worker reports `READY_FOR_INTEGRATION`, perform the no-fast-forward merge with `--no-gpg-sign`, push `develop`, and wait for the GitHub Actions result associated with the exact merge SHA;
-7. apply the success or failure lifecycle from `PROTOCOL.md` completely before selecting anything else.
+6. if the worker reports `BASELINE_INVARIANT_FAILURE`, verify that no task change was made, remove only the empty attempt branch when safe, stop the entire session without changing the recipe outcome, and report the baseline/upstream incident;
+7. if the worker reports `READY_FOR_INTEGRATION`, push and wait for the permanent GitHub Actions `Required gate` associated with the exact final feature SHA; if it fails or is unverifiable, apply the pre-merge `BLOCKED` lifecycle and do not merge;
+8. only after exact feature-SHA CI succeeds, perform the no-fast-forward merge with `--no-gpg-sign`, push `develop`, and wait for the GitHub Actions result associated with the exact merge SHA;
+9. apply the success or failure lifecycle from `PROTOCOL.md` completely before selecting anything else.
 
 Never run two implementation workers concurrently, use background mode, or invoke a second worker before the synchronous result returns. A fresh worker invocation is the task-context boundary; do not ask one worker to execute multiple recipes.
 
@@ -52,7 +54,12 @@ Never run two implementation workers concurrently, use background mode, or invok
 
 ## Blocking and CI failure
 
-If a task blocks before merge, preserve and push its feature branch, freeze it at that last pushed SHA, return to clean `develop`, propagate only the task's `BLOCKED` status and diagnostic execution notes, push that metadata commit, and wait for its exact CI result when a workflow exists. If task `0001` blocks before creating the bootstrap workflow, record the missing-CI condition and stop the session under the initial-baseline rule.
+If a task blocks before merge, including because exact feature-SHA CI fails or
+cannot be verified, preserve and push its feature branch, freeze it at that last
+pushed SHA, return to clean `develop`, propagate only the task's `BLOCKED`
+status and diagnostic execution notes, push that metadata commit, and wait for
+its exact CI result. The permanent CI workflow must already exist; its absence
+is a session-fatal baseline failure, not a task outcome.
 
 If merge CI does not succeed or cannot be verified, freeze the feature branch locally and remotely at its final pushed SHA, revert the merge with mainline parent 1 and `--no-gpg-sign`, verify the revert tree equals the pre-merge `develop` tree, push and wait for the exact revert CI, then record only `REVERTED` in a separate metadata-only commit made with `--no-gpg-sign` and wait for that exact CI too. Record whether the cause was a confirmed regression, infrastructure failure, cancellation/timeout, or unverified result. Never merge `develop` into, commit/amend, reset/rebase, advance, or delete the frozen branch.
 

@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 // src/app_modules/common/services/geo-ip.service.ts
 
 import { Injectable } from '@nestjs/common';
@@ -30,7 +30,6 @@ export class GeoIpService {
     }
 
     getLocation(ip: string): GeoLocationInfo {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const lookup = geoip.lookup(ip)
 
         if (!lookup) {
