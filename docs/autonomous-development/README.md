@@ -133,16 +133,19 @@ starts until the permanent repository baseline is green locally and on the
 exact `develop` SHA in GitHub Actions on Windows and Linux. This baseline is
 established outside the 220 numbered recipes.
 
-Until task `0008` establishes a root workspace and canonical root interface,
-the runner uses the two independent package-local lockfiles and command sets in
-`CI-BASELINE.md`. After `0008`, the local runner and GitHub Actions share:
+The permanent baseline establishes the root workspace, single lockfile, and
+canonical root interface before any recipe starts. The local runner and GitHub
+Actions share:
 
 ```text
 npm ci
 npm run ci:check
 ```
 
-The aggregate covers all repository-controlled CI failure gates: dependency integrity, Angular/Nest lint, type/template checks, all Angular tests, all Nest Jest unit and E2E tests, both builds, GraphQL/generated-artifact drift and later registered static/contract checks.
+The aggregate initially covers dependency integrity, Angular/Nest lint,
+type/template checks, all Angular tests, all Nest Jest unit and E2E tests, and
+both builds. Task `0008` adds GraphQL/generated-artifact drift; later tasks
+register further static/contract checks in the same aggregate.
 
 If the unchanged baseline is red, the session stops before task work and reports
 a baseline/upstream incident. It must not repair global debt inside

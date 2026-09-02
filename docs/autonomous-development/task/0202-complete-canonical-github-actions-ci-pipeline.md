@@ -18,7 +18,7 @@ Task `0008` already establishes `npm ci` plus `npm run ci:check` as the canonica
 ## Relevant files and modules
 
 - `.github/workflows/ci.yml`
-- root `package.json`/workspace scripts from `0001`/`0008`
+- root `package.json`/workspace scripts from the permanent baseline and `0008`
 - Angular/Nest package scripts
 - PostgreSQL/Redis/NATS test-service requirements
 - Playwright/system-test configuration

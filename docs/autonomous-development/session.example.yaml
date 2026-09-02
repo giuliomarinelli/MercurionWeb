@@ -171,13 +171,11 @@ quality:
   before_every_task: true
   before_merge: true
 
-  # Task 0008 later replaces this split interface with root workspace commands.
+  # Permanent root workspace interface; later tasks only extend ci:check.
   canonical:
-    angular_directory: MercurionWebNg
-    nest_directory: MercurionWebNode
+    directory: .
     install: npm ci
-    angular_check: npm run lint && npm run typecheck && npm run test:ci && npm run build
-    nest_check: npm run lint && npm run typecheck && npm test -- --runInBand && npm run test:e2e -- --runInBand && npm run build
+    check: npm run ci:check
 
 workload:
   task_directory: docs/autonomous-development/task

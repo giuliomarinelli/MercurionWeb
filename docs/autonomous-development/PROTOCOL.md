@@ -193,30 +193,32 @@ No task develops directly on `develop`. Autonomous tasks never touch `master`.
 ## Permanent CI-capable baseline
 
 Baseline construction is completed and reviewed outside the numbered workload.
-The permanent `.github/workflows/ci.yml` runs the documented package-local gate
-on Windows and Linux for `develop`, `feature/**`, `chore/**`, and pull requests
-targeting `develop`. It exposes one stable `Required gate`, never deploys or
-publishes, and remains present across ordinary task merges and reverts.
+The permanent `.github/workflows/ci.yml` runs the documented root workspace
+gate on Windows and Linux for `develop`, `feature/**`, `chore/**`, and pull
+requests targeting `develop`. It exposes one stable `Required gate`, never
+deploys or publishes, and remains present across ordinary task merges and
+reverts.
 
-Before the root workspace exists, local preflight uses the Angular and Nest
-commands in `CI-BASELINE.md`. A task that changes package topology may adapt the
-workflow, but MUST preserve continuous `develop` coverage, both platform jobs,
+Local preflight and GitHub Actions both use root `npm ci` followed by
+`npm run ci:check`. A task that changes package topology may adapt the workflow,
+but MUST preserve continuous `develop` coverage, both platform jobs,
 feature-SHA validation, and the stable aggregate gate. It must prove the
 adapted workflow on its exact feature SHA before merge.
 
-## Canonical CI parity after task 0008
+## Canonical CI parity
 
-Task `0008` completes the canonical root CI interface and expands the permanent
-workflow without recreating or interrupting the CI control plane.
-
-After `0008` is integrated, every task-start and pre-merge preflight MUST execute the same repository-controlled gate set as GitHub Actions:
+The baseline provides the canonical root CI interface. Every task-start and
+pre-merge preflight MUST execute the same repository-controlled gate set as
+GitHub Actions:
 
 ```text
 npm ci
 npm run ci:check
 ```
 
-The canonical `ci:check` aggregate MUST cover every repository-controlled source gate that can make CI fail, including:
+The canonical `ci:check` aggregate MUST cover every repository-controlled
+source gate currently available. Task `0008` adds GraphQL/generated-artifact
+drift to the existing aggregate. The complete evolving gate set includes:
 
 - Angular lint check;
 - Nest lint check;
@@ -247,9 +249,8 @@ Immediately after `feature/<Source>` is created and before actual task implement
 4. do not implement, create a task outcome, or use the feature branch to repair
    unrelated baseline debt.
 
-Before `0008` is integrated, use the package-local gate in `CI-BASELINE.md`.
-From `0008` onward, use the canonical root `npm ci` plus
-`npm run ci:check` interface.
+Use the canonical root `npm ci` plus `npm run ci:check` interface from the
+permanent baseline onward.
 
 ## Task implementation and local completion
 

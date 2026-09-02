@@ -95,12 +95,14 @@ The permanent GitHub Actions workflow predates every numbered task. It runs on
 feature branches and `develop` on Windows and Linux and must survive ordinary
 task merges and reverts.
 
-After task `0008` completes the canonical root CI interface, the task-start preflight MUST use the same root commands used by GitHub Actions, normally `npm ci` followed by `npm run ci:check`.
+The task-start preflight MUST use the same root commands used by GitHub Actions:
+`npm ci` followed by `npm run ci:check`. Task `0008` extends this existing
+aggregate with GraphQL/generated-artifact drift gates; it does not create the
+root workspace or first canonical CI interface.
 
-Until that root interface exists, use the split-project commands defined in
-`docs/autonomous-development/CI-BASELINE.md`. A missing or red baseline gate is
-a session failure that requires a separate human-authorized repair; no numbered
-task or task branch may bootstrap or repair it.
+A missing or red root baseline gate is a session failure that requires a
+separate human-authorized repair; no numbered task or task branch may bootstrap
+or repair it.
 
 If preflight fails before the task has changed code, stop the session as a
 baseline invariant failure. Do not assign the pre-existing defect to the task,

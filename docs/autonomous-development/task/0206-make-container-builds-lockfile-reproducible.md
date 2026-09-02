@@ -13,7 +13,7 @@ Source: `QA-020` in Series `0001`.
 
 ## Context
 
-The audited Nest Dockerfiles use `npm install` even though committed lockfiles exist. That permits dependency resolution and lockfile mutation to differ between local CI and container builds. Task `0001` establishes the root workspace/lockfile contract and `0008`/`0202` establish `npm ci` as the canonical clean-install interface. Container stages must obey the same contract before their duplicated Dockerfiles are consolidated by `0208`.
+The audited Nest Dockerfiles use `npm install` even though a committed lockfile exists. That permits dependency resolution and lockfile mutation to differ between local CI and container builds. The permanent baseline establishes the root workspace/lockfile and canonical `npm ci` contract; `0008`/`0202` extend the CI interface. Container stages must obey the same contract before their duplicated Dockerfiles are consolidated by `0208`.
 
 ## Relevant files and modules
 

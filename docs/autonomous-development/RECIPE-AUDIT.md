@@ -26,8 +26,8 @@ node docs/autonomous-development/tools/validate-recipes.mjs
 
 1. Corrected renamed/stale dependency filenames in 19 recipes. Numeric identities were preserved; no intended prerequisite was removed. This includes the semantic correction from the obsolete `0119-keep-domain-repositories-private.md` reference to the actual owning task `0120-keep-typeorm-repositories-private-to-owning-domains.md`.
 2. Marked coordination/future-registration references as `Advisory` in `0011`, `0012`, `0018`, `0189` and `0202`. This removes apparent cycles without weakening their real hard prerequisites.
-3. Closed the initial CI bootstrap gap: task `0001` Phase 0 creates the minimum exact-SHA GitHub Actions workflow; task `0008` upgrades it to the canonical root `npm ci` plus `npm run ci:check` interface.
-4. Made the green baseline a session invariant. No SYS-001 Phase 1 or later recipe starts until Phase 0 proves the complete repository gate set green.
+3. Closed the initial CI bootstrap gap outside the numbered workload: the permanent baseline creates the root workspace, canonical root `npm ci` plus `npm run ci:check` interface, and exact-SHA GitHub Actions workflow; task `0008` extends it with GraphQL/generated-artifact drift checks.
+4. Made the green baseline a session invariant. No SYS-001 or later recipe starts until the separate baseline change proves the complete repository gate set green.
 5. Resolved SYS-001 to a versioned framework-neutral shared package. Angular consumes portable wire contracts; necessary Nest `class-validator` DTOs remain non-breaking, parity-checked boundary adapters rather than being forced into Angular or duplicated as another canonical source.
 6. Resolved blocked-task progression: preserve and freeze the divergent feature branch, restore and prove exact-SHA green `develop`, record `BLOCKED`, then continue only with a later task whose hard dependencies are all `DONE`.
 7. Classified a revert that does not restore the pre-merge tree/green CI as a session-fatal baseline or upstream incident. A later task must never inherit or conceal that condition.

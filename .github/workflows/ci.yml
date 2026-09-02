@@ -38,58 +38,42 @@ jobs:
         with:
           node-version: 22.16.0
           cache: npm
-          cache-dependency-path: |
-            MercurionWebNg/package-lock.json
-            MercurionWebNode/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Record toolchain
         run: |
           node --version
           npm --version
 
-      - name: Install Angular dependencies
-        working-directory: MercurionWebNg
-        run: npm ci
-
-      - name: Install Nest dependencies
-        working-directory: MercurionWebNode
+      - name: Install workspace dependencies
         run: npm ci
 
       - name: Lint Angular
-        working-directory: MercurionWebNg
-        run: npm run lint
+        run: npm run ci:lint:angular
 
       - name: Lint Nest
-        working-directory: MercurionWebNode
-        run: npm run lint
+        run: npm run ci:lint:nest
 
       - name: Typecheck Angular
-        working-directory: MercurionWebNg
-        run: npm run typecheck
+        run: npm run ci:typecheck:angular
 
       - name: Typecheck Nest
-        working-directory: MercurionWebNode
-        run: npm run typecheck
+        run: npm run ci:typecheck:nest
 
       - name: Test Angular
-        working-directory: MercurionWebNg
-        run: npm run test:ci
+        run: npm run ci:test:angular
 
       - name: Test Nest
-        working-directory: MercurionWebNode
-        run: npm test -- --runInBand
+        run: npm run ci:test:nest
 
       - name: Test Nest E2E
-        working-directory: MercurionWebNode
-        run: npm run test:e2e -- --runInBand
+        run: npm run ci:test:nest:e2e
 
       - name: Build Angular
-        working-directory: MercurionWebNg
-        run: npm run build
+        run: npm run ci:build:angular
 
       - name: Build Nest
-        working-directory: MercurionWebNode
-        run: npm run build
+        run: npm run ci:build:nest
 
   required:
     name: Required gate

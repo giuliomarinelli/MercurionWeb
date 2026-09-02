@@ -1,0 +1,30 @@
+{
+  "name": "mercurion-web-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "npm@10.9.2",
+  "engines": {
+    "node": "22.16.0",
+    "npm": "10.9.2"
+  },
+  "workspaces": [
+    "MercurionWebNg",
+    "MercurionWebNode"
+  ],
+  "scripts": {
+    "ci:lint:angular": "npm run lint --workspace mercurion_web_ng",
+    "ci:lint:nest": "npm run lint --workspace mercurion_web_node",
+    "ci:lint": "npm run ci:lint:angular && npm run ci:lint:nest",
+    "ci:typecheck:angular": "npm run typecheck --workspace mercurion_web_ng",
+    "ci:typecheck:nest": "npm run typecheck --workspace mercurion_web_node",
+    "ci:typecheck": "npm run ci:typecheck:angular && npm run ci:typecheck:nest",
+    "ci:test:angular": "npm run test:ci --workspace mercurion_web_ng",
+    "ci:test:nest": "npm test --workspace mercurion_web_node -- --runInBand",
+    "ci:test:nest:e2e": "npm run test:e2e --workspace mercurion_web_node -- --runInBand",
+    "ci:test": "npm run ci:test:angular && npm run ci:test:nest && npm run ci:test:nest:e2e",
+    "ci:build:angular": "npm run build --workspace mercurion_web_ng",
+    "ci:build:nest": "npm run build --workspace mercurion_web_node",
+    "ci:build": "npm run ci:build:angular && npm run ci:build:nest",
+    "ci:check": "npm run ci:lint && npm run ci:typecheck && npm run ci:test && npm run ci:build"
+  }
+}

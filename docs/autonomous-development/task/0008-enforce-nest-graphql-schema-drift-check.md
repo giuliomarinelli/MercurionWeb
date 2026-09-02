@@ -1,4 +1,4 @@
-# 0008 - Establish canonical CI and enforce Nest GraphQL schema drift
+# 0008 - Extend canonical CI and enforce Nest GraphQL schema drift
 
 - [ ] DONE
 - [ ] BLOCKED
@@ -7,9 +7,8 @@
 
 ## Objective
 
-Upgrade the permanent split-project GitHub Actions baseline into the canonical
-root-workspace CI pipeline for MercurionWeb, and make the committed
-`MercurionWebNode/src/schema.graphql` a verified artifact.
+Extend the permanent root-workspace GitHub Actions baseline and make the
+committed `MercurionWebNode/src/schema.graphql` a verified artifact.
 
 The pipeline must become the single authoritative gate set used both remotely by GitHub Actions and locally by every autonomous task preflight. It must cover dependency integrity, linting, type checking, all Angular tests, all Nest Jest suites, builds, generated-contract/schema drift and later registered static/contract checks.
 
@@ -21,27 +20,28 @@ Source: `SYS-008` in Series `0001`.
 
 The repository also needs deterministic task isolation: every autonomous task runs on `feature/<Source>`, is merged with an explicit merge commit into `develop`, and GitHub Actions decides whether that integration remains. A merge whose exact-SHA CI does not succeed is reverted and the task is marked `REVERTED`; `BLOCKED` remains reserved for pre-merge failure.
 
-Task `0001` establishes the root npm-workspace structure for `MercurionWebNg` and `MercurionWebNode`. This task must build the CI contract on top of that root workspace rather than duplicating unrelated package-install logic in workflow YAML.
+The separate permanent baseline already establishes the root npm-workspace
+structure, single lockfile, `npm ci` plus `npm run ci:check` interface, and
+non-mutating Angular/Nest gates. Task `0001` only adds the shared REST-contract
+package to that workspace. This task must extend the existing CI contract
+rather than recreating package-install or baseline logic in workflow YAML.
 
 The permanent workflow defined by `CI-BASELINE.md` already protects tasks
 `0001`-`0007` on Windows and Linux. This task upgrades that workflow in place;
 it must preserve exact feature-SHA and `develop`-SHA coverage during the
 transition.
 
-The current baseline also has lint asymmetry that must not survive this task:
-
-- Angular currently has no canonical lint target;
-- Nest's existing `lint` script uses `--fix`, which is inappropriate for a verification gate.
-
-By the end of this task, lint verification is non-mutating and explicit fix commands are separate.
+The current baseline already keeps lint verification non-mutating and explicit
+fix commands separate. This task must preserve those semantics while adding
+generated-artifact gates.
 
 ## Relevant files and modules
 
-- root `package.json` / root lockfile created by `0001`
+- baseline root `package.json` / root lockfile
 - `MercurionWebNg/package.json`
 - `MercurionWebNg/angular.json`
 - Angular TypeScript/test configuration
-- Angular lint configuration introduced by bootstrap/preflight or finalized here
+- Angular lint configuration established by the permanent baseline
 - `MercurionWebNode/package.json`
 - Nest TypeScript/Jest/ESLint configuration
 - `MercurionWebNode/src/mercurion-graphql.module.ts`
@@ -51,7 +51,7 @@ By the end of this task, lint verification is non-mutating and explicit fix comm
 
 ## In scope
 
-- Establish one root, reproducible CI command interface.
+- Extend the existing root, reproducible CI command interface.
 - Upgrade `.github/workflows/ci.yml` without weakening its feature-branch,
   `develop`, Windows/Linux, or stable `Required gate` contract.
 - Make Angular and Nest lint checks non-mutating.
@@ -89,7 +89,9 @@ By the end of this task, lint verification is non-mutating and explicit fix comm
 
 ## Canonical root command contract
 
-Establish root scripts with equivalent semantics to the following names. Exact internal script composition may follow the workspace structure created by `0001`, but these public meanings must remain clear:
+Extend the existing root scripts with equivalent semantics to the following
+names. Exact internal composition may follow the current workspace structure,
+but these public meanings must remain clear:
 
 ```text
 npm run ci:lint
@@ -120,16 +122,16 @@ GitHub Actions MUST use these root scripts rather than reimplementing different 
 
 ### Angular
 
-1. Establish/finalize a supported Angular 20-compatible ESLint setup.
-2. Expose a non-mutating lint check used by `ci:lint`.
-3. Expose a separate explicit fix command for autonomous preflight remediation/developer use.
+1. Preserve the supported Angular 20-compatible ESLint setup.
+2. Preserve the non-mutating lint check used by `ci:lint`.
+3. Preserve the separate explicit fix command for autonomous preflight remediation/developer use.
 4. Lint production Angular TS/templates and other intended sources according to the chosen configuration.
 5. Do not use lint auto-fix inside GitHub Actions.
 
 ### Nest
 
-1. Replace the current verification semantics that rely on `eslint ... --fix`.
-2. Keep a non-mutating lint check for CI.
+1. Preserve the current non-mutating verification semantics.
+2. Keep the non-mutating lint check in CI.
 3. Keep an explicit `lint:fix` (or equivalent) command for remediation.
 4. Cover the intended `{src,apps,libs,test}` TypeScript scope.
 5. CI must fail if lint findings remain after any local remediation.
@@ -345,7 +347,7 @@ Not required for the CI implementation itself. Angular tests use headless Chrome
 
 Mark `BLOCKED` if:
 
-- the root workspace required from `0001` is not available and CI cannot be built without contradicting that established architecture;
+- the permanent baseline root workspace is unavailable or cannot be extended without contradicting its established architecture;
 - a required existing Angular/Nest test cannot be made deterministic in CI without an unresolved product/architecture/infrastructure decision;
 - GraphQL schema generation fundamentally requires unavailable production-only infrastructure and no safe test/bootstrap isolation can be created;
 - choosing the supported Node runtime requires an unresolved repository/toolchain compatibility decision;
