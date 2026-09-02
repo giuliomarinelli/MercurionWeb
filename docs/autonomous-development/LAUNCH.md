@@ -1,4 +1,4 @@
-# Launch the overnight Development Session
+# Historical launch record: overnight Development Session
 
 This run is configured by:
 
@@ -12,7 +12,9 @@ Its soft deadline is **2026-09-02 10:00 CEST** (`2026-09-02T10:00:00+02:00`). At
 
 Pull request `#25` is the historical bootstrap/configuration PR and is already merged. It remains immutable session provenance: the coordinator must not edit or otherwise operate it. Launch only after the complete GitHub Copilot CLI control-plane migration—including the coordinator/worker profiles, `.github/mcp.json`, this guide, and `validate-cli-runner.mjs`—is present on `origin/develop`; otherwise the committed runner contract is not active on the integration branch.
 
-Never reuse this one-time YAML at or after its deadline. Create a new dated configuration instead.
+Never reuse this one-time YAML at or after its deadline. Create a new dated
+configuration instead, and launch it only after the permanent baseline defined
+in `CI-BASELINE.md` is green on the exact `develop` SHA.
 
 ## Pre-launch checklist
 
@@ -52,9 +54,23 @@ Before creating any task branch, make exactly one non-mutating synchronous `task
 
 If any install, network, filesystem, cleanup, GitHub, synchronous `task`, MCP, signing, or `task_complete` prerequisite is denied or requires additional approval despite the launch permissions, stop and report the exact denial.
 
-Before any recipe implementation, prove the exact `develop` baseline clean and green. For task 0001, Phase 0 is bootstrap-only: establish every required deterministic gate and a completely green suite before beginning SYS-001 Phase 1. The approved SYS-001 source is a versioned framework-neutral shared package; Angular must not depend on Nest or class-validator, while necessary Nest decorated DTOs remain checked non-breaking boundary adapters.
+Before any task branch or recipe implementation, prove the exact `develop`
+baseline clean and green using `docs/autonomous-development/CI-BASELINE.md` and
+the permanent Windows/Linux GitHub Actions `Required gate`. If it is absent,
+red, cancelled, or unverifiable, stop as a baseline/upstream incident without
+changing any recipe outcome. There is no task `0001` bootstrap exception. The
+approved SYS-001 source is a versioned framework-neutral shared package;
+Angular must not depend on Nest or class-validator, while necessary Nest
+decorated DTOs remain checked non-breaking boundary adapters.
 
-Then process pending tasks from the configured Series in filename order. For exactly one task at a time, create and push `feature/<Source>` from the proven-green `develop` SHA, call the CLI `task` tool once with `agent_type: development-task-worker` and `mode: sync`, verify its evidence, no-ff/no-GPG-sign merge only locally green work into `develop`, push, and wait for CI associated with the exact merge SHA. Never use background mode or run two workers concurrently.
+Then process pending tasks from the configured Series in filename order. For
+exactly one task at a time, create and push `feature/<Source>` from the
+proven-green `develop` SHA, call the CLI `task` tool once with
+`agent_type: development-task-worker` and `mode: sync`, verify its evidence,
+push the final feature SHA and require its exact Windows/Linux `Required gate`.
+Only then no-ff/no-GPG-sign merge green work into `develop`, push, and wait for
+CI associated with the exact merge SHA. Never use background mode or run two
+workers concurrently.
 
 On success, finalize DONE and delete the feature branch locally and remotely if present. On pre-merge block, preserve/push and freeze the divergent branch, record only BLOCKED on `develop`, and wait for exact metadata-commit CI. On merge CI non-success/unverifiable result, freeze the feature branch at its last pushed SHA, revert the merge, verify the revert tree equals the pre-merge tree, push and require exact revert-SHA green CI, then record only REVERTED in a separate metadata commit and require its exact CI. Never merge develop into, amend, reset, rebase, advance or delete a BLOCKED/REVERTED branch.
 

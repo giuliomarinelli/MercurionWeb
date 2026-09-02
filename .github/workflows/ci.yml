@@ -1,0 +1,105 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - develop
+      - "feature/**"
+      - "chore/**"
+  pull_request:
+    branches:
+      - develop
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/develop' }}
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Quality (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+          cache: npm
+          cache-dependency-path: |
+            MercurionWebNg/package-lock.json
+            MercurionWebNode/package-lock.json
+
+      - name: Record toolchain
+        run: |
+          node --version
+          npm --version
+
+      - name: Install Angular dependencies
+        working-directory: MercurionWebNg
+        run: npm ci
+
+      - name: Install Nest dependencies
+        working-directory: MercurionWebNode
+        run: npm ci
+
+      - name: Lint Angular
+        working-directory: MercurionWebNg
+        run: npm run lint
+
+      - name: Lint Nest
+        working-directory: MercurionWebNode
+        run: npm run lint
+
+      - name: Typecheck Angular
+        working-directory: MercurionWebNg
+        run: npm run typecheck
+
+      - name: Typecheck Nest
+        working-directory: MercurionWebNode
+        run: npm run typecheck
+
+      - name: Test Angular
+        working-directory: MercurionWebNg
+        run: npm run test:ci
+
+      - name: Test Nest
+        working-directory: MercurionWebNode
+        run: npm test -- --runInBand
+
+      - name: Test Nest E2E
+        working-directory: MercurionWebNode
+        run: npm run test:e2e -- --runInBand
+
+      - name: Build Angular
+        working-directory: MercurionWebNg
+        run: npm run build
+
+      - name: Build Nest
+        working-directory: MercurionWebNode
+        run: npm run build
+
+  required:
+    name: Required gate
+    if: ${{ always() }}
+    needs:
+      - quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require every platform gate
+        env:
+          QUALITY_RESULT: ${{ needs.quality.result }}
+        run: test "$QUALITY_RESULT" = "success"

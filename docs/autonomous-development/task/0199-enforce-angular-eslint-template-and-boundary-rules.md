@@ -13,7 +13,11 @@ Source: `QA-013` in Series `0001`.
 
 ## Context
 
-`MercurionWebNg/package.json` currently has no lint script/target. Phase 0 and task `0008` already require lint to exist as a non-mutating CI prerequisite with a separate fix command, so this task completes and hardens the Angular implementation rather than creating a parallel pipeline. Earlier FE/UI/NG tasks establish canonical browser-storage adapters, environment/config boundaries, semantic UI and import-layer rules; ESLint/template rules should now make those architectural decisions mechanically enforceable.
+The permanent baseline provides a non-mutating Angular lint command with a
+separate fix command and permits the explicitly measured migration warnings.
+Task `0008` later exposes the root aggregate. This task hardens the Angular rule
+set to zero findings and enforces template/boundary decisions rather than
+creating a parallel pipeline.
 
 ## Relevant files and modules
 

@@ -20,8 +20,8 @@ Read `AGENTS.md`, `docs/autonomous-development/PROTOCOL.md`, `docs/autonomous-de
 
 ## Required work
 
-1. Run the complete task-start preflight before task scope. For `0001`, execute Phase 0 exactly as written. Restore only repository-controlled baseline defects permitted by the protocol, keep remediation identifiable, and rerun the whole preflight.
-2. Implement only the active recipe and strictly necessary preflight remediation.
+1. Run the complete task-start preflight from `docs/autonomous-development/CI-BASELINE.md` before task scope. If the unchanged task branch is not green, make no task change and return `BASELINE_INVARIANT_FAILURE`; never repair repository-wide baseline debt inside a numbered task.
+2. Implement only the active recipe and changes strictly necessary for that recipe.
 3. Run all task-specific validation and declared browser validation through `http://localhost:8888` when required.
 4. Run the complete CI-parity suite immediately before integration.
 5. Update the task's Execution notes with concrete commands, results, browser evidence, decisions, and commits.
@@ -31,7 +31,13 @@ Do not select another recipe. Do not switch to, merge into, push, or modify `dev
 
 ## Blocking
 
-Return `BLOCKED` rather than guessing when a recipe stop condition applies, a required decision or authority is absent, a mandatory capability is unavailable, or validation cannot be restored within configured limits. Check only `BLOCKED`, uncheck `DONE`, `REVERTED`, and `SKIPPED_DEPENDENCY`, record the exact diagnostic in Execution notes, commit with `--no-gpg-sign` and push the diagnostic and any coherent partial work so the attempt is preserved, and leave the feature branch clean.
+Return `BLOCKED` rather than guessing when a recipe stop condition applies, a required decision or authority is absent, a mandatory capability is unavailable, or validation of task-caused changes cannot be restored within configured limits. Check only `BLOCKED`, uncheck `DONE`, `REVERTED`, and `SKIPPED_DEPENDENCY`, record the exact diagnostic in Execution notes, commit with `--no-gpg-sign` and push the diagnostic and any coherent partial work so the attempt is preserved, and leave the feature branch clean.
+
+If the initial preflight fails before any task change, return
+`BASELINE_INVARIANT_FAILURE` instead. Do not alter the task checkbox, remediate
+the baseline, or charge the incident to the recipe. Include the failing command,
+exit status, concise diagnostics, feature/base SHAs, and proof that no task
+change was made.
 
 If an install, network, filesystem, cleanup, GitHub, MCP, or signing prerequisite is denied despite the parent session's launch permissions, stop and return the exact denial. Do not substitute a dry run or weaker validation.
 
@@ -43,5 +49,8 @@ Return exactly one worker result to the coordinator:
 
 - `READY_FOR_INTEGRATION`: feature branch, Source, task path, base SHA, final feature SHA, commits, preflight result, task-specific validation, full pre-merge CI-parity result, browser result, and concise implementation summary.
 - `BLOCKED`: the same identity fields plus blocker category, diagnostic, preserved feature SHA/branch, partial-work summary, and the precise human decision or capability required.
+- `BASELINE_INVARIANT_FAILURE`: feature branch, Source, task path, base SHA,
+  failing preflight command/result, and proof that the task and branch contain no
+  task change.
 
 Never describe a task as complete merely because code was written. Only `READY_FOR_INTEGRATION` with green local evidence permits the coordinator to merge.

@@ -9,6 +9,7 @@ The model is intentionally strict:
 - one `feature/<Source>` branch;
 - full CI-parity preflight **before** implementation;
 - full CI-parity validation again before integration;
+- wait for GitHub Actions on the exact feature SHA before integration;
 - one explicit `--no-ff --no-gpg-sign` merge commit into `develop`;
 - wait for GitHub Actions on that exact merge SHA;
 - success => delete the feature branch;
@@ -18,7 +19,9 @@ The model is intentionally strict:
 
 `develop` is therefore never used as a dumping ground for hundreds of unrelated unverified changes.
 
-See `PROTOCOL.md` for the complete lifecycle and `RUNTIME.md` for browser/runtime topology.
+See `CI-BASELINE.md` for the permanent cross-platform gate,
+`PROTOCOL.md` for the complete lifecycle and `RUNTIME.md` for browser/runtime
+topology.
 
 The GitHub Copilot CLI runner is implemented as a coordinator/worker pair in `.github/agents/`. The coordinator owns the bounded session and invokes the repository agent `development-task-worker` through one synchronous `task` call for each recipe. Before any task branch exists, it performs one separate nonce-correlated, non-mutating handshake with that same agent. The former VS Code Autopilot/advanced-mode route is unsupported for autonomous overnight sessions.
 
@@ -27,6 +30,7 @@ The GitHub Copilot CLI runner is implemented as a coordinator/worker pair in `.g
 ```text
 docs/autonomous-development/
 ├── README.md
+├── CI-BASELINE.md
 ├── LAUNCH.md
 ├── PROTOCOL.md
 ├── RECIPE-AUDIT.md
@@ -124,9 +128,14 @@ feature/FE-001
 
 ## Mandatory preflight
 
-Quality is not checked only after development. No first task scope starts until the complete repository baseline is green, and every later task starts by proving its feature branch derives from exact-SHA green `develop`.
+Quality is not checked only after development. No first task branch or scope
+starts until the permanent repository baseline is green locally and on the
+exact `develop` SHA in GitHub Actions on Windows and Linux. This baseline is
+established outside the 220 numbered recipes.
 
-After task `0008` establishes the canonical interface, the local runner and GitHub Actions share:
+Until task `0008` establishes a root workspace and canonical root interface,
+the runner uses the two independent package-local lockfiles and command sets in
+`CI-BASELINE.md`. After `0008`, the local runner and GitHub Actions share:
 
 ```text
 npm ci
@@ -135,9 +144,10 @@ npm run ci:check
 
 The aggregate covers all repository-controlled CI failure gates: dependency integrity, Angular/Nest lint, type/template checks, all Angular tests, all Nest Jest unit and E2E tests, both builds, GraphQL/generated-artifact drift and later registered static/contract checks.
 
-If preflight is red, the agent repairs repository-controlled defects on `feature/<Source>` before beginning the requested task. It reruns the complete suite after remediation. If green cannot be restored safely, the task is blocked without merging partial work. For `0001`, Phase 0 is bootstrap-only and no SYS-001 feature scope or later task begins until that baseline is completely green.
-
-Before `0001`, the same rule applies using package-local bootstrap checks. The current baseline's missing Angular lint gate and Nest check/fix lint asymmetry are treated as bootstrap defects rather than skipped checks.
+If the unchanged baseline is red, the session stops before task work and reports
+a baseline/upstream incident. It must not repair global debt inside
+`feature/<Source>` or mark the selected recipe `BLOCKED`. Baseline repair is a
+separate human-authorized change. There is no `0001` Phase 0 exception.
 
 Before any recipe work, startup also performs a real capability probe in one uniquely named operating-system temporary directory: `npm init -y`, `npm install --ignore-scripts --no-save is-number@7.0.0`, and a Node.js assertion that `require("is-number")(42)` returns `true`. The coordinator deletes exactly that directory and proves the repository is clean and unchanged before and after; dry runs are forbidden.
 
@@ -160,7 +170,14 @@ full CI-parity green
     ↓
 commit + push feature branch
     ↓
+wait CI for exact feature SHA (Windows + Linux)
+   ↙                     ↘
+PASS                 NON-SUCCESS
+ ↓                       ↓
 --no-ff --no-gpg-sign merge to develop
+                    mark task BLOCKED
+                    freeze feature branch
+                    never merge it
     ↓
 push develop
     ↓
@@ -200,6 +217,9 @@ The Angular dev-server port is an internal upstream and must not be used as the 
 
 ## Launch
 
-`LAUNCH.md` contains the pre-launch checks, exact CLI command, active-configuration rules and starting prompt. The historical bootstrap PR #25 is already merged; the workflow starts only after the complete current Copilot CLI control plane is merged into `develop` and the local checkout has fast-forwarded to `origin/develop`.
+`LAUNCH.md` records the historical one-time run and the CLI mechanics. Before a
+new run, create a new dated session YAML and starting prompt only after the
+permanent CI baseline has merged green into `develop` and the local checkout has
+fast-forwarded to `origin/develop`.
 
 The custom-agent coordinator is the GitHub Copilot CLI runner for this workflow. It is intentionally not a background service: the parent CLI session must remain running and connected for local terminals, MCP/browser access and synchronous task workers to continue.

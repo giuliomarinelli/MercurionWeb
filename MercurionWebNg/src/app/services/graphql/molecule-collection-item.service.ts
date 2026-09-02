@@ -254,7 +254,6 @@ export class MoleculeCollectionItemService {
       }).valueChanges.pipe(
         map((res) => extractGqlData(res, 'findOneCustomMoleculeByCanonicalSmiles', true)),
         catchError((e) => {
-          debugger
           if ((e as Error).message === 'GqlError::NoData') {
             return of(null)
           }

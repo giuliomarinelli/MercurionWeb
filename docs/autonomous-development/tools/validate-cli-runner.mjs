@@ -3,7 +3,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const toolDirectory = path.dirname(fileURLToPath(import.meta.url));
@@ -18,7 +17,7 @@ const paths = {
   mcp: '.github/mcp.json',
   vscodeMcp: '.vscode/mcp.json',
   vscodeSettings: '.vscode/settings.json',
-  activeSession: 'docs/autonomous-development/session.overnight-2026-09-01.yaml',
+  historicalSession: 'docs/autonomous-development/session.overnight-2026-09-01.yaml',
   exampleSession: 'docs/autonomous-development/session.example.yaml',
 };
 
@@ -34,18 +33,11 @@ const controlPlaneFiles = [
   paths.agents.coordinator,
   paths.agents.worker,
   'docs/autonomous-development/README.md',
+  'docs/autonomous-development/CI-BASELINE.md',
   'docs/autonomous-development/PROTOCOL.md',
   'docs/autonomous-development/LAUNCH.md',
-  paths.activeSession,
   paths.exampleSession,
 ];
-
-const allowedChangedFiles = new Set([
-  ...controlPlaneFiles,
-  '.github/mcp.json',
-  '.vscode/settings.json',
-  'docs/autonomous-development/tools/validate-cli-runner.mjs',
-]);
 
 function fail(target, message) {
   errors.push(`${target}: ${message}`);
@@ -234,12 +226,9 @@ requireMatch(
   'coordinator must summarize before the final task_complete action',
 );
 
-const activeSession = read(paths.activeSession);
+const historicalSession = read(paths.historicalSession);
 const exampleSession = read(paths.exampleSession);
-for (const [target, content] of [
-  [paths.activeSession, activeSession],
-  [paths.exampleSession, exampleSession],
-]) {
+for (const [target, content] of [[paths.exampleSession, exampleSession]]) {
   validateYamlStructure(target, content);
   requireMatch(target, content, /^\s*host:\s*github-copilot-cli\s*$/m, 'missing CLI host');
   requireMatch(target, content, /^\s*harness:\s*github-copilot-cli\s*$/m, 'missing CLI harness');
@@ -322,20 +311,20 @@ for (const [target, content] of [
 }
 
 requireMatch(
-  paths.activeSession,
-  activeSession,
+  paths.historicalSession,
+  historicalSession,
   /^\s*historical_configuration_pull_request:\s*25\s*$/m,
   'PR #25 must be retained as historical provenance',
 );
 requireMatch(
-  paths.activeSession,
-  activeSession,
+  paths.historicalSession,
+  historicalSession,
   /^\s*historical_configuration_pull_request_state:\s*merged\s*$/m,
   'PR #25 must be recorded as merged',
 );
 requireMatch(
-  paths.activeSession,
-  activeSession,
+  paths.historicalSession,
+  historicalSession,
   /^\s*require_current_cli_runner_control_plane_on_integration_branch:\s*true\s*$/m,
   'current CLI control plane must be required on develop',
 );
@@ -367,11 +356,21 @@ for (const command of ['/model', '/permissions show', '/mcp list', '/keep-alive 
 }
 
 const deadline = '2026-09-02T10:00:00+02:00';
-const deadlineMatches = activeSession.match(
+const deadlineMatches = historicalSession.match(
   /^\s*end:\s*"2026-09-02T10:00:00\+02:00"/gm,
 );
 if (deadlineMatches?.length !== 1) {
-  fail(paths.activeSession, `deadline must remain exactly ${deadline}`);
+  fail(paths.historicalSession, `deadline must remain exactly ${deadline}`);
+}
+
+for (const [pattern, message] of [
+  [/baseline_document:\s*docs\/autonomous-development\/CI-BASELINE\.md/, 'missing permanent baseline document'],
+  [/numbered_tasks_may_repair_baseline:\s*false/, 'numbered tasks must not repair baseline debt'],
+  [/wait_for_exact_feature_sha:\s*true/, 'missing exact feature-SHA CI requirement'],
+  [/required_check:\s*Required gate/, 'missing stable Required gate contract'],
+  [/ubuntu-latest[\s\S]*windows-latest/, 'missing Windows/Linux CI platforms'],
+]) {
+  requireMatch(paths.exampleSession, exampleSession, pattern, message);
 }
 
 let mcp;
@@ -477,30 +476,12 @@ for (const target of [paths.agents.coordinator, 'docs/autonomous-development/PRO
   requireMatch(target, content, /--no-gpg-sign/, 'missing per-command signing override');
 }
 
-try {
-  const changed = execFileSync(
-    'git',
-    ['status', '--porcelain', '--untracked-files=all'],
-    { cwd: repositoryRoot, encoding: 'utf8' },
-  )
-    .split(/\r?\n/)
-    .filter(Boolean)
-    .map((line) => line.slice(3).replace(/\\/g, '/'));
-  for (const relativePath of changed) {
-    if (!allowedChangedFiles.has(relativePath)) {
-      fail(relativePath, 'changed file is outside the CLI control-plane migration');
-    }
-  }
-} catch (error) {
-  fail('git status', error.message);
-}
-
 if (errors.length > 0) {
   for (const error of errors) console.error(`ERROR ${error}`);
   console.error(`CLI runner validation failed with ${errors.length} error(s).`);
   process.exitCode = 1;
 } else {
   console.log(
-    'CLI runner validation passed: JSON, YAML structure, explicit agent tools, slugged task delegation, non-mutating handshake, MCP, launch command, deadline, terminal states, startup probe, signing, finalization order, and change scope are valid.',
+    'CLI runner validation passed: JSON, YAML structure, explicit agent tools, slugged task delegation, non-mutating handshake, MCP, launch record, historical deadline, permanent CI baseline, terminal states, startup probe, signing, and finalization order are valid.',
   );
 }

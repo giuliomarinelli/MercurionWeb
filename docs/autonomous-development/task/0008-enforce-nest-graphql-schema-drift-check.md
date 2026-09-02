@@ -7,7 +7,9 @@
 
 ## Objective
 
-Complete the canonical GitHub Actions CI pipeline for MercurionWeb from the bootstrap workflow created by task `0001`, and make the committed `MercurionWebNode/src/schema.graphql` a verified artifact.
+Upgrade the permanent split-project GitHub Actions baseline into the canonical
+root-workspace CI pipeline for MercurionWeb, and make the committed
+`MercurionWebNode/src/schema.graphql` a verified artifact.
 
 The pipeline must become the single authoritative gate set used both remotely by GitHub Actions and locally by every autonomous task preflight. It must cover dependency integrity, linting, type checking, all Angular tests, all Nest Jest suites, builds, generated-contract/schema drift and later registered static/contract checks.
 
@@ -21,7 +23,10 @@ The repository also needs deterministic task isolation: every autonomous task ru
 
 Task `0001` establishes the root npm-workspace structure for `MercurionWebNg` and `MercurionWebNode`. This task must build the CI contract on top of that root workspace rather than duplicating unrelated package-install logic in workflow YAML.
 
-Task `0001` also creates the minimum real `develop`-push bootstrap workflow used for tasks `0001`-`0007`. This task upgrades that workflow in place; it must not remove exact-SHA `develop` coverage during the transition.
+The permanent workflow defined by `CI-BASELINE.md` already protects tasks
+`0001`-`0007` on Windows and Linux. This task upgrades that workflow in place;
+it must preserve exact feature-SHA and `develop`-SHA coverage during the
+transition.
 
 The current baseline also has lint asymmetry that must not survive this task:
 
@@ -47,7 +52,8 @@ By the end of this task, lint verification is non-mutating and explicit fix comm
 ## In scope
 
 - Establish one root, reproducible CI command interface.
-- Complete/upgrade `.github/workflows/ci.yml` for `develop` integration and normal human PR validation.
+- Upgrade `.github/workflows/ci.yml` without weakening its feature-branch,
+  `develop`, Windows/Linux, or stable `Required gate` contract.
 - Make Angular and Nest lint checks non-mutating.
 - Run explicit Angular and Nest type checks.
 - Run **all** Angular/Karma tests headlessly.
@@ -72,7 +78,8 @@ By the end of this task, lint verification is non-mutating and explicit fix comm
 
 - `develop` is the autonomous integration branch.
 - Each autonomous task merges through an explicit `--no-ff` merge commit.
-- The runner waits for CI belonging to the **exact merge SHA** before another task starts.
+- The runner waits for CI belonging to the **exact feature SHA before merge**
+  and the **exact merge SHA after integration** before another task starts.
 - CI non-success/unverifiable result causes merge revert + `REVERTED`; the feature branch is preserved/frozen.
 - `schema.graphql` remains committed.
 - Nest code-first metadata is authoritative; CI fails on uncommitted schema drift.
@@ -192,17 +199,19 @@ Build success is a separate gate from typecheck and tests because it catches Ang
 
 ## GitHub Actions pipeline
 
-Complete the existing bootstrap `.github/workflows/ci.yml` with the following behaviour.
+Complete the existing permanent `.github/workflows/ci.yml` with the following behaviour.
 
 ### Triggers
 
 At minimum:
 
+- `push` to `feature/**` — mandatory before autonomous integration;
 - `push` to `develop` — mandatory for the autonomous merge/revert workflow;
 - `pull_request` targeting `develop` or `master` — normal human integration review;
 - `workflow_dispatch` — manual diagnostics.
 
-The autonomous runner keys success/failure to the workflow run for the exact `develop` merge SHA.
+The autonomous runner keys pre-merge eligibility to the exact feature SHA and
+integration success/failure to the exact `develop` merge SHA.
 
 ### Permissions and safety
 
@@ -259,7 +268,10 @@ npm ci
 npm run ci:check
 ```
 
-If the beginning preflight fails, the agent repairs repository-controlled failures on `feature/<Source>` first, reruns the complete suite, and only then begins task scope. If it cannot restore green, it blocks the task and does not merge it.
+If the beginning preflight fails before task changes, the agent stops the
+session as a baseline/upstream incident without repairing the repository inside
+the task or changing its outcome. Task-caused failures later in the branch may
+still make the task `BLOCKED`.
 
 The end preflight must be green before `DONE` is prepared for integration.
 
@@ -273,7 +285,8 @@ The end preflight must be green before `DONE` is prepared for integration.
 6. Implement Nest schema generation/check/update commands.
 7. Integrate all existing GraphQL/codegen drift checks.
 8. Provide a deterministic `ci:static` extension point and include it in `ci:check`.
-9. Create `.github/workflows/ci.yml` with the required triggers/safety/steps.
+9. Upgrade `.github/workflows/ci.yml` with the required triggers/safety/steps
+   while preserving the permanent baseline throughout the transition.
 10. Prove local `npm ci && npm run ci:check` and GitHub Actions execute equivalent repository-controlled gates.
 11. Ensure no workflow step auto-fixes code or mutates committed generated artifacts.
 12. Ensure the workflow result is unambiguous for polling by merge SHA.
@@ -293,7 +306,8 @@ The end preflight must be green before `DONE` is prepared for integration.
 - [ ] Nest GraphQL schema regeneration matches the committed artifact.
 - [ ] A controlled resolver/type change without schema update makes `ci:graphql` fail with a useful drift diagnostic.
 - [ ] Existing Angular GraphQL/generated-code drift checks run from the aggregate.
-- [ ] `.github/workflows/ci.yml` runs on push to `develop` and required PR targets.
+- [ ] `.github/workflows/ci.yml` runs on pushes to `feature/**` and `develop`,
+      required PR targets, and preserves the Windows/Linux `Required gate`.
 - [ ] A deliberately introduced lint/type/test/build/drift failure makes GitHub Actions fail.
 - [ ] Removing that controlled failure restores a green workflow.
 - [ ] No source file is modified by a CI check step.
@@ -320,7 +334,8 @@ Validate that `git status --short` remains clean after the check-only sequence.
 
 Perform controlled negative tests for at least lint, typecheck/test and GraphQL schema drift; each must fail the expected gate. Restore the controlled edits, rerun the complete `ci:check`, and leave the branch green.
 
-Finally validate the workflow on GitHub through the ordinary feature-branch -> no-ff merge -> exact merge-SHA CI lifecycle defined by `PROTOCOL.md`.
+Finally validate the workflow on GitHub through the ordinary exact feature-SHA
+CI -> no-ff merge -> exact merge-SHA CI lifecycle defined by `PROTOCOL.md`.
 
 ## Browser validation
 

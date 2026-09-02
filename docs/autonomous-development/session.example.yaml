@@ -25,7 +25,9 @@ repository:
 
   github:
     allow_remote_git_writes: true
+    wait_for_feature_ci: true
     wait_for_merge_ci: true
+    required_check: Required gate
     ci_failure_policy: revert-merge-and-mark-reverted
 
 agent:
@@ -158,31 +160,24 @@ runtime:
     - angular
 
 quality:
-  # No task implementation starts before a complete, clean green baseline.
+  # The permanent baseline is established outside all numbered recipes.
+  baseline_document: docs/autonomous-development/CI-BASELINE.md
   session_start_preflight: true
   require_clean_exact_origin_develop: true
   require_green_before_first_task_scope: true
-  require_exact_sha_ci_for_later_develop_bases: true
-  allow_task_0001_phase_0_bootstrap_only: true
-  stop_session_if_initial_baseline_cannot_be_made_green: true
+  require_exact_sha_ci_for_every_develop_base: true
+  stop_before_task_branch_if_initial_baseline_is_not_green: true
+  numbered_tasks_may_repair_baseline: false
   before_every_task: true
   before_merge: true
-  repair_repository_controlled_failures: true
 
-  # Canonical interface after task 0008 is integrated. GitHub Actions must use
-  # the same gate set. The clean install is deliberately separate from ci:check.
+  # Task 0008 later replaces this split interface with root workspace commands.
   canonical:
+    angular_directory: MercurionWebNg
+    nest_directory: MercurionWebNode
     install: npm ci
-    check: npm run ci:check
-
-  # Before task 0008 creates the root CI interface, PROTOCOL.md defines the
-  # bootstrap package-local checks. Missing required lint/type/test gates are
-  # defects to establish/repair, not permission to skip them.
-  bootstrap_until_task: "0008"
-
-  # After any remediation, rerun the complete suite rather than only the command
-  # that originally failed.
-  rerun_full_suite_after_repair: true
+    angular_check: npm run lint && npm run typecheck && npm run test:ci && npm run build
+    nest_check: npm run lint && npm run typecheck && npm test -- --runInBand && npm run test:e2e -- --runInBand && npm run build
 
 workload:
   task_directory: docs/autonomous-development/task
@@ -232,7 +227,12 @@ ci:
   workflow_file: .github/workflows/ci.yml
   integration_branch: develop
   merge_commit_required: true
+  wait_for_exact_feature_sha: true
   wait_for_exact_merge_sha: true
+  required_check: Required gate
+  platforms:
+    - ubuntu-latest
+    - windows-latest
   poll_interval_seconds: 30
   observation_timeout_minutes: 120
   only_success_conclusion_is_green: true
@@ -243,6 +243,7 @@ ci:
     delete_feature_branch_remote_if_present: true
 
   on_pre_merge_block:
+    feature_ci_non_success_marks_blocked: true
     mark_task_blocked: true
     wait_for_blocked_metadata_ci_green: true
     preserve_feature_branch_local: true
