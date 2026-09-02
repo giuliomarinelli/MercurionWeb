@@ -33,6 +33,14 @@
     "patch-package": "8.0.1"
   },
   "overrides": {
+    "@nestjs/platform-fastify": {
+      "fastify": "5.12.1"
+    },
+    "karma": {
+      "body-parser": {
+        "qs": "6.16.0"
+      }
+    },
     "@eslint/config-array": {
       "minimatch": "10.2.4"
     },
