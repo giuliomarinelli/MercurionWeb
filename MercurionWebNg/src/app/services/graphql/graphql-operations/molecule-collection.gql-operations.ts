@@ -11,8 +11,10 @@ export const PAGINATED_MOLECULE_COLLECTIONS = gql`
         touchedAt
         itemsCount
       }
+      itemCount
       totalPages
       totalItems
+      itemsPerPage
       currentPage
     }
   }

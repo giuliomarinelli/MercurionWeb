@@ -528,7 +528,7 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
     const t: Maybe<Ticket | ClientTicket> = this.ticket();
     if (!t) return '';
     if (this.typeGuards.isTicket(t)) {
-      return t.userFullName;
+      return t.userFullName ?? '';
     }
     return '';
   }

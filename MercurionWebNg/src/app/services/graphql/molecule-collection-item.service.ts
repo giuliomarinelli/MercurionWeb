@@ -89,8 +89,8 @@ export class MoleculeCollectionItemService {
     let name = ''
     let canonicalSmiles = ''
     if (this.typeGuards.isChemblMolecule(item)) {
-      name = item.chemblDetails.preferredName
-      canonicalSmiles = item.chemblDetails.canonicalSmiles
+      name = item.chemblDetails.preferredName ?? item.chemblDetails.preferredNameIt ?? ''
+      canonicalSmiles = item.chemblDetails.canonicalSmiles ?? ''
     } else if (this.typeGuards.isCustomMolecule(item)) {
       name = item.name ?? 'Lead sconosciuto'
       canonicalSmiles = item.canonicalSmiles

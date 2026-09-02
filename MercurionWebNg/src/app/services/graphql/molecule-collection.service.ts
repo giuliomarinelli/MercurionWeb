@@ -4,8 +4,27 @@ import { Apollo, gql } from 'apollo-angular';
 import { Observable, map, tap } from 'rxjs';
 import { BindManyCollectionsToMoleculeDTO, MoleculeCollection } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 import { PageModel } from '../../Models/graphql/page.models';
-import { BIND_MANY_COLLECTIONS_TO_MOLECULE, CREATE_MANY_MOLECULE_COLLECTIONS, DUPLICATE_COLLECTION, MARK_MOLECULE_COLLECTION_AS_TOUCHED, PAGINATED_MOLECULE_COLLECTIONS, UPDATE_MOLECULE_COLLECTION_NAME } from './graphql-operations/molecule-collection.gql-operations';
 import { extractGqlData } from './graphql-helpers/v1/extract-gql-data.helper';
+import {
+  BindManyCollectionsToMoleculeDocument,
+  BindManyCollectionsToMoleculeMutation,
+  BindManyCollectionsToMoleculeMutationVariables,
+  CreateManyMoleculeCollectionsDocument,
+  CreateManyMoleculeCollectionsMutation,
+  CreateManyMoleculeCollectionsMutationVariables,
+  DuplicateCollectionDocument,
+  DuplicateCollectionMutation,
+  DuplicateCollectionMutationVariables,
+  MarkMoleculeCollectionAsTouchedDocument,
+  MarkMoleculeCollectionAsTouchedMutation,
+  MarkMoleculeCollectionAsTouchedMutationVariables,
+  PaginatedCollectionsDocument,
+  PaginatedCollectionsQuery,
+  PaginatedCollectionsQueryVariables,
+  UpdateMoleculeCollectionDocument,
+  UpdateMoleculeCollectionMutation,
+  UpdateMoleculeCollectionMutationVariables
+} from '../../generated/graphql';
 
 
 // --- OPTION OBJECT ---
@@ -92,8 +111,8 @@ export class MoleculeCollectionService {
     moleculeId: string | null = null
   ): Observable<PageModel<MoleculeCollection>> {
     return this.apollo
-      .watchQuery<{ myMoleculeCollectionsPaginated: any }>({
-        query: PAGINATED_MOLECULE_COLLECTIONS,
+      .watchQuery<PaginatedCollectionsQuery, PaginatedCollectionsQueryVariables>({
+        query: PaginatedCollectionsDocument,
         variables: {
           page,
           limit,
@@ -104,7 +123,7 @@ export class MoleculeCollectionService {
         fetchPolicy: 'network-only'
       })
       .valueChanges.pipe(
-        map(res => extractGqlData(res, 'myMoleculeCollectionsPaginated'))
+        map(res => extractGqlData<PaginatedCollectionsQuery, 'myMoleculeCollectionsPaginated'>(res, 'myMoleculeCollectionsPaginated'))
       )
   }
 
@@ -129,23 +148,23 @@ export class MoleculeCollectionService {
 
   createManyCollections(names: string[]): Observable<boolean> {
     return this.apollo
-      .mutate<{ createManyMoleculeCollections: boolean }>({
-        mutation: CREATE_MANY_MOLECULE_COLLECTIONS,
+      .mutate<CreateManyMoleculeCollectionsMutation, CreateManyMoleculeCollectionsMutationVariables>({
+        mutation: CreateManyMoleculeCollectionsDocument,
         variables: {
           names
         }
       }).pipe(
-        map(res => extractGqlData(res, 'createManyMoleculeCollections'))
+        map(res => extractGqlData<CreateManyMoleculeCollectionsMutation, 'createManyMoleculeCollections'>(res, 'createManyMoleculeCollections'))
       )
   }
 
   markMoleculeCollectionAsTouched(id: string): Observable<boolean> {
     return this.apollo
-      .mutate<{ markMoleculeCollectionAsTouched: boolean }>({
-        mutation: MARK_MOLECULE_COLLECTION_AS_TOUCHED,
+      .mutate<MarkMoleculeCollectionAsTouchedMutation, MarkMoleculeCollectionAsTouchedMutationVariables>({
+        mutation: MarkMoleculeCollectionAsTouchedDocument,
         variables: { id }
       }).pipe(
-        map(res => extractGqlData(res, 'markMoleculeCollectionAsTouched'))
+        map(res => extractGqlData<MarkMoleculeCollectionAsTouchedMutation, 'markMoleculeCollectionAsTouched'>(res, 'markMoleculeCollectionAsTouched'))
       )
   }
 
@@ -167,27 +186,30 @@ export class MoleculeCollectionService {
       .pipe(map(res => extractGqlData(res, 'updateMoleculeCollection')));
   }
 
-  updateCollectionName(id: string, name: string): Observable<MoleculeCollection | null> {
+  updateCollectionName(
+    id: string,
+    name: string
+  ): Observable<UpdateMoleculeCollectionMutation['updateMoleculeCollection']> {
     return this.apollo
-      .mutate<{ updateMoleculeCollection: MoleculeCollection | null }>({
-        mutation: UPDATE_MOLECULE_COLLECTION_NAME,
+      .mutate<UpdateMoleculeCollectionMutation, UpdateMoleculeCollectionMutationVariables>({
+        mutation: UpdateMoleculeCollectionDocument,
         variables: {
           id, name
         }
       }).pipe(
-        map(res => extractGqlData(res, 'updateMoleculeCollection'))
+        map(res => extractGqlData<UpdateMoleculeCollectionMutation, 'updateMoleculeCollection'>(res, 'updateMoleculeCollection'))
       )
   }
 
   duplicateCollection(srcCollectionId: string): Observable<DuplicateCollectionRes> {
     return this.apollo
-      .mutate<{ duplicateCollection: MoleculeCollection }>({
-        mutation: DUPLICATE_COLLECTION,
+      .mutate<DuplicateCollectionMutation, DuplicateCollectionMutationVariables>({
+        mutation: DuplicateCollectionDocument,
         variables: {
           srcCollectionId
         }
       }).pipe(
-        map((res): MoleculeCollection => extractGqlData(res, 'duplicateCollection')),
+        map((res) => extractGqlData<DuplicateCollectionMutation, 'duplicateCollection'>(res, 'duplicateCollection')),
         map((col) => {
           const { id, name } = col
           return {
@@ -215,15 +237,15 @@ export class MoleculeCollectionService {
 
   bindManyCollectionsToMolecule(moleculeId: string, collectionIds: string[], selectAll: boolean): Observable<BindManyCollectionsToMoleculeDTO> {
     return this.apollo
-      .mutate<{ bindManyCollectionsToMolecule: BindManyCollectionsToMoleculeDTO }>({
-        mutation: BIND_MANY_COLLECTIONS_TO_MOLECULE,
+      .mutate<BindManyCollectionsToMoleculeMutation, BindManyCollectionsToMoleculeMutationVariables>({
+        mutation: BindManyCollectionsToMoleculeDocument,
         variables: {
           moleculeId,
           collectionIds,
           selectAll
         }
       }).pipe(
-        map(res => extractGqlData(res, 'bindManyCollectionsToMolecule'))
+        map(res => extractGqlData<BindManyCollectionsToMoleculeMutation, 'bindManyCollectionsToMolecule'>(res, 'bindManyCollectionsToMolecule'))
       )
   }
 

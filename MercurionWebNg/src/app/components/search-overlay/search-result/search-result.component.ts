@@ -49,7 +49,7 @@ import { DesignService } from '../../../services/design.service';
 
         <div class="flex-1 min-w-0">
           <div class="text-base font-medium truncate"
-               [innerHTML]="highlight(_molecule()?.preferredNameIt)"></div>
+               [innerHTML]="highlight(_molecule()?.preferredNameIt ?? undefined)"></div>
           <div class="text-xs text-slate-700 dark:text-slate-200 truncate"
                [innerHTML]="highlight(_molecule()?.synonyms?.[0])"></div>
           <div class="text-xs text-slate-700 dark:text-slate-200 mt-1 flex gap-2">
@@ -88,7 +88,7 @@ import { DesignService } from '../../../services/design.service';
 
         <div class="flex-1 min-w-0">
           <div class="text-base font-medium truncate"
-               [innerHTML]="highlight(_molecule()?.preferredNameIt)"></div>
+               [innerHTML]="highlight(_molecule()?.preferredNameIt ?? undefined)"></div>
           <div class="text-xs text-slate-700 dark:text-slate-200 truncate"
                [innerHTML]="highlight(_molecule()?.synonyms?.[0])"></div>
           <div class="text-xs text-slate-700 dark:text-slate-200 mt-1 flex gap-2">

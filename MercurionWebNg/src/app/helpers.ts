@@ -61,12 +61,12 @@ export class Helpers {
     const now = Date.now()
     return ({
       id: dto.id.toString(),
-      name: dto.preferredName,
+      name: dto.preferredName ?? dto.preferredNameIt ?? '',
       smiles: dto.smiles!,
       syn: dto.synonyms && dto.synonyms.length !== 0 ? dto.synonyms[0] : '',
       type: 'chembl',
-      mwFreebase: dto.mwFreebase,
-      maxPhase: dto.maxPhase,
+      mwFreebase: dto.mwFreebase ?? undefined,
+      maxPhase: dto.maxPhase ?? undefined,
       createdAt: now,
       touchedAt: now,
       updatedAt: now,
