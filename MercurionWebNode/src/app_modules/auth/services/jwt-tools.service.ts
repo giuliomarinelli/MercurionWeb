@@ -140,7 +140,7 @@ export class JwtToolsService {
         const scopes: string[] = await this.userService.getUserScopesById(userId) ?? []
         const scp = scopes
             .map((s) => GeneralUtils.getEnumKeyByValue(Scope, s))
-            .filter((k): k is string => !!k)
+            .filter((k) => k !== undefined)
             .join(' ')
 
 

@@ -1,6 +1,6 @@
 # 0001 - Canonicalize REST contract ownership
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -189,3 +189,98 @@ The archived implementation may be inspected and selectively reimplemented
 when it still satisfies this recipe. It must not be cherry-picked wholesale:
 the old attempt also carries superseded workspace, lockfile, bootstrap, and CI
 assumptions that are now owned by the permanent baseline.
+
+### 2026-09-02 authorized retry
+
+#### Identity and preflight
+
+- Branch: `feature/SYS-001`.
+- Supplied and verified base:
+  `e884668a4dc0a3e0c5f9dc62a03bfb95265ef4ee`.
+- The branch was clean, matched the supplied base, tracked
+  `origin/feature/SYS-001`, and repository-local `commit.gpgSign` was `false`
+  before task changes.
+- Pinned toolchain: Node.js `22.16.0`, npm `10.9.2`.
+- Mandatory unchanged-baseline preflight:
+  - `npm ci` — passed; 1740 packages installed and 0 vulnerabilities reported.
+  - `npm run ci:check` — passed with exit code 0 before implementation.
+  - `git status --short` remained empty and HEAD remained the supplied base.
+
+#### REST inventory and decisions
+
+- `git grep -n -E
+  'HttpClient|http\.(get|post|put|patch|delete|request)'
+  -- MercurionWebNg/src/app/services` found 58 Angular `HttpClient` calls.
+- The inventory was matched to Nest controllers for account, authentication,
+  recovery, admin maintenance, countries, feedback, history, embedding,
+  Mercurion AI/Tox21, and RDKit.
+- Primitive text/boolean/void responses remain primitives. Every structured
+  request/response, error body, pagination envelope, header payload, and
+  endpoint-specific object consumed by those calls now derives from
+  `@mercurion/rest-contracts`.
+- The archived attempt was used only as a read-only reference. No commit was
+  cherry-picked and none of its superseded workspace bootstrap, dependency
+  overrides, lockfile, or single-platform CI assumptions were restored.
+- The migration remains non-breaking. Two client compile fixes reflect
+  existing server behaviour: embedding results accept either molregno numbers
+  or neighbour objects, and registration narrows the UI-only empty gender
+  choice before constructing the public request.
+
+#### Implementation
+
+- Added private versioned package `@mercurion/rest-contracts@1.0.0` at
+  `packages/rest-contracts`, with no Angular, Nest, validation, transformation,
+  or other framework runtime dependency.
+- Added the package to the existing root workspace and as an exact `1.0.0`
+  dependency of Angular and Nest.
+- Replaced Angular handwritten REST DTOs with shared type exports and imported
+  shared wire types directly in all REST services. Remaining local extensions
+  are UI-only wrappers such as signal-backed history/session models, login
+  header metadata, and country flag URLs.
+- Preserved Nest decorated DTO classes at validation/transformation boundaries
+  and constrained them with shared-contract `implements` declarations plus
+  bidirectional compile-time parity assertions. Non-decorated response DTOs
+  and pagination/error models now alias the canonical package.
+- Typed controller/service mappers and serializers against shared contracts,
+  including authentication strategy keys, backup codes, country prefixes,
+  embedding results, feedback deletion/serialization, maintenance response,
+  Tox21, RDKit, and HTTP errors.
+- Added deterministic runtime parity tests proving exact country-prefix mapping
+  and exclusion of Nest-only feedback identity fields.
+- Registered `npm run ci:contracts` in the root `ci:check` aggregate and as an
+  additive step in the existing Windows/Ubuntu workflow. The feature/develop
+  triggers, matrix, concurrency policy, read-only permissions, and stable
+  `Required gate` remain unchanged.
+- Implementation commit:
+  `411fd785b5b8f9a708aee328431a9f6b4ea63c51`.
+
+#### Lockfile and task-specific validation
+
+- After package-topology edits, removed the root/workspace dependency trees and
+  root lockfile, then ran clean root `npm install` with Node.js `22.16.0` and
+  npm `10.9.2`. The generated root lockfile contains the shared workspace link
+  and the Linux `@css-inline/css-inline-linux-x64-gnu` optional package.
+- `npm run ci:contracts` passed repeatedly. The two required final runs each
+  passed the shared package typecheck, Nest bidirectional adapter parity
+  typecheck, and 2/2 runtime contract tests.
+- Tracked-diff hash before and after both required runs was identical:
+  `312a22876db13df1a5156adbaf7fa5d4652fe637`.
+- `git grep -n -E '@nestjs|class-validator|class-transformer' --
+  MercurionWebNg` returned no matches.
+- Angular and Nest typechecks passed after the two intentional client
+  compatibility narrowings described above.
+- Angular lint passed with the baseline warnings and zero errors. Nest lint
+  passed with 61 baseline warnings and zero errors.
+- `git diff --check` passed.
+
+#### Complete pre-integration CI parity
+
+- An implementation-stage `npm run ci:check` passed with exit code 0.
+- Immediately before readiness, root `npm ci` and `npm run ci:check` were run
+  again after this provisional `DONE` status and these notes were present.
+  Both passed with exit code 0, covering autonomous-control-plane validation,
+  REST contract checks, both lints, both typechecks, all Angular tests, all
+  Nest unit and E2E tests, and both production builds.
+- Browser validation: not applicable for this contract-ownership task.
+- Remote exact-feature-SHA CI and integration remain coordinator-owned;
+  provisional `DONE` is therefore `CI_PENDING`.

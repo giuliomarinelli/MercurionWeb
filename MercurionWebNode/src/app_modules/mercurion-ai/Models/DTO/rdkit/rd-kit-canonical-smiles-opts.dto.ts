@@ -1,6 +1,7 @@
 import { IsBoolean, IsOptional } from "class-validator";
+import type { RdkitToCanonicalSmilesOptsDTO as RdkitOptsContract } from '@mercurion/rest-contracts'
 
-export class RdkitToCanonicalSmilesOptsDTO {
+export class RdkitToCanonicalSmilesOptsDTO implements RdkitOptsContract {
   @IsOptional()
   @IsBoolean()
   isomeric?: boolean // default true lato py

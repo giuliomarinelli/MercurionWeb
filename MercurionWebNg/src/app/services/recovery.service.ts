@@ -1,8 +1,12 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { ConfirmWithRecoveryCodeDTO, ConfirmWithRecoveryTokenDTO } from '../Models/confirm.models';
-import { RecoverCredentialsDTO, RecoveryCodeDTO } from '../Models/account/account.models';
+import type {
+  ConfirmWithRecoveryCodeDTO,
+  ConfirmWithRecoveryTokenDTO,
+  RecoverCredentialsDTO,
+  RecoveryCodeDTO
+} from '@mercurion/rest-contracts'
 
 @Injectable({
   providedIn: 'root'
