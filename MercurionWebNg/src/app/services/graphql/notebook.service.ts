@@ -175,7 +175,7 @@ export class NotebookService {
     return this.apollo
       .mutate<{ deleteLabNotebook: boolean }>({
         mutation: gql`
-          mutation DeleteLabNotebook($id: String!) {
+          mutation DeleteLabNotebook($id: ID!) {
             deleteLabNotebook(id: $id)
           }
         `,
@@ -224,7 +224,7 @@ export class NotebookService {
     return this.apollo
       .mutate<{ deleteChapter: boolean }>({
         mutation: gql`
-          mutation DeleteChapter($id: String!) {
+          mutation DeleteChapter($id: ID!) {
             deleteChapter(id: $id)
           }
         `,
@@ -273,7 +273,7 @@ export class NotebookService {
     return this.apollo
       .mutate<{ deleteSection: boolean }>({
         mutation: gql`
-          mutation DeleteSection($id: String!) {
+          mutation DeleteSection($id: ID!) {
             deleteSection(id: $id)
           }
         `,

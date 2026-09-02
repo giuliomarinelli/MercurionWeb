@@ -313,7 +313,7 @@ type Query {
   moleculeCollection(id: ID!): MoleculeCollection
   searchMyCollections(query: String, limit: Float): [MoleculeCollection!]!
   myMoleculeCollectionsPaginated(page: Int! = 1, limit: Int! = 20, excludeJoinedToMolecule: Boolean, moleculeId: ID, q: String!): PaginatedMoleculeCollection!
-  myMoleculeItems: [MoleculeCollectionItemEntity!]!
+  myMoleculeItems: [MoleculeCollectionItemUnion!]!
   moleculeItem(id: ID!): MoleculeCollectionItemUnion
   paginatedMoleculeCollectionItemsByUser(page: Int!, limit: Int!, q: String!, excludeJoinedToCollection: Boolean, collectionId: ID): PaginatedMoleculeCollectionItem!
   paginatedMoleculeCollectionItemsByCollection(collectionId: String!, page: Int!, limit: Int!, q: String!, excluded: Boolean): PaginatedMoleculeCollectionItem!
@@ -362,8 +362,8 @@ type Mutation {
   deleteMoleculeCollection(id: ID!): Boolean!
   markMoleculeCollectionAsTouched(id: ID!): Boolean!
   bindManyCollectionsToMolecule(moleculeId: ID!, collectionIds: [ID!]!, selectAll: Boolean!): BindManyCollectionsToMoleculeDTO!
-  createMoleculeItem(input: CreateMoleculeItemInput!): MoleculeCollectionItemEntity!
-  updateMoleculeItem(id: ID!, input: CreateMoleculeItemInput!): MoleculeCollectionItemEntity!
+  createMoleculeItem(input: CreateMoleculeItemInput!): MoleculeCollectionItemUnion!
+  updateMoleculeItem(id: ID!, input: CreateMoleculeItemInput!): MoleculeCollectionItemUnion!
   deleteMoleculeItem(id: ID!): Boolean!
   markMoleculeCollectionItemAsTouched(id: ID!, flagIds: String!): Boolean!
   addManyMoleculesToCollection(collectionId: ID!, itemIds: [ID!]!, selectAll: Boolean!): Boolean!

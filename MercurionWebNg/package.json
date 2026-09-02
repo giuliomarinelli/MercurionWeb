@@ -18,7 +18,9 @@
     "lint:fix": "eslint \"src/**/*.{ts,html}\" --fix",
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
     "graphql:generate": "graphql-codegen --config codegen.yml",
-    "graphql:check": "graphql-codegen --config codegen.yml --check"
+    "graphql:validate": "node scripts/validate-graphql-documents.mjs",
+    "graphql:validate:negative": "node scripts/test-graphql-validator-negative.mjs",
+    "graphql:check": "npm run graphql:validate && npm run graphql:validate:negative && graphql-codegen --config codegen.yml --check"
   },
   "private": true,
   "dependencies": {

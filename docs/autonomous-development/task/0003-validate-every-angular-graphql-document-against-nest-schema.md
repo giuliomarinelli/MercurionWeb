@@ -1,6 +1,6 @@
 # 0003 - Validate every Angular GraphQL document against Nest schema
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -98,20 +98,119 @@ Do not reduce validation coverage to make the command green. The audit explicitl
 
 ### Summary
 
-_Not started._
+Implemented full Angular GraphQL source validation against the committed Nest
+schema. The validator recursively discovers standalone GraphQL files and
+TypeScript `gql` templates under `MercurionWebNg/src`, parses each document
+independently so task `0006`'s cross-document operation-name cleanup remains
+out of scope, and fails closed on unsupported template interpolation.
+
+The inventory contains 9 GraphQL source files and 66 static documents. The
+four audited templates in `molecule-collection.service.ts` are asserted by
+operation name and materialized in both supported field variants, producing 8
+validated dynamic expansions:
+
+- `MyMoleculeCollections`: minimal and `withItems`;
+- `MoleculeCollection`: minimal and `withItems`;
+- `CreateMoleculeCollection`: minimal and `withItems`;
+- `UpdateMoleculeCollection`: minimal and `withItems`.
+
+The pre-fix validator reproduced 11 schema errors across the seven audited
+invalid documents:
+
+- `MY_MOLECULE_ITEMS`, `ALL_BASIC_DATA`, `CREATE_MOLECULE_ITEM`, and
+  `UPDATE_MOLECULE_ITEM`: eight impossible DTO fragment-spread diagnostics
+  against the former entity-interface return contract;
+- `DeleteLabNotebook`, `DeleteChapter`, and `DeleteSection`: three `String!`
+  variables used where the schema requires `ID!`.
+
+The molecule-item list/create/update contract now returns the existing
+polymorphic DTO union that those Angular consumers already expect. Nest
+reloads and maps create/update results and enriches list results with batched
+ChEMBL details, preserving the existing client result shape rather than
+discarding requested fields. The four smaller update mutations were adjusted
+to select their existing fields through DTO union fragments. Notebook delete
+variables now use `ID!`.
+
+The validator, an intentional-invalid fixture probe, and Code Generator drift
+checking are composed by `npm run graphql:check`. Broad document relocation
+remains with task `0007`; duplicate operation names remain with task `0006`.
+
+Implementation commit:
+
+- `b2b8d050` - `feat(graphql): validate every Angular document`
 
 ### Validation performed
 
-_Not started._
+- Task-start preflight at base
+  `c845496f1cc70a8b76582a9973242f60667f7e64` on clean
+  `feature/SYS-003`:
+  - root `npm ci` - PASS, 1925 packages installed;
+  - root `npm run ci:check` - PASS, complete unchanged CI-parity aggregate;
+  - branch/SHA proof before scope:
+    `feature/SYS-003` at the exact supplied base with a clean tree.
+- Baseline-invalid reproduction after adding only the validator:
+  - `npm run graphql:validate --workspace mercurion_web_ng` - expected FAIL,
+    exit `1`;
+  - inventory: 9 source files, 66 static documents, 4 dynamic templates and 8
+    dynamic expansions;
+  - result: exactly the seven audited invalid documents reproduced as 11
+    concrete schema diagnostics.
+- GraphQL validation and generation:
+  - `npm run graphql:validate --workspace mercurion_web_ng` - PASS, zero
+    invalid Angular documents across the complete inventory;
+  - `npm run graphql:validate:negative --workspace mercurion_web_ng` - PASS,
+    confirming the committed invalid-field fixture is rejected;
+  - direct
+    `node MercurionWebNg/scripts/validate-graphql-documents.mjs --extra-document scripts/fixtures/invalid-field.graphql`
+    - expected FAIL, exit `1`, with
+    `Cannot query field "definitelyInvalidField" on type "Query"`;
+  - `npm run graphql:generate --workspace mercurion_web_ng` - PASS;
+  - `npm run graphql:check --workspace mercurion_web_ng` - PASS, including
+    full validation, negative probe and generated-artifact drift check;
+  - an in-memory GraphQL execution probe confirmed `graphql-fields` merges
+    both DTO union fragment selections into the field map used by the Nest
+    loader.
+- Angular:
+  - `npm run typecheck --workspace mercurion_web_ng` - PASS;
+  - from `MercurionWebNg`, `npm run build` - PASS; existing bundle budget and
+    CommonJS warnings only;
+  - from `MercurionWebNg`, `npm test -- -- --watch=false` executed all 157
+    tests successfully, but the owned process did not terminate after
+    `TOTAL: 157 SUCCESS` and was stopped;
+  - from `MercurionWebNg`, `npm run test:ci` - PASS with clean exit, 157 tests.
+- Nest:
+  - `npm run typecheck --workspace mercurion_web_node` - PASS;
+  - focused molecule-item service spec - PASS, 4 tests, including polymorphic
+    DTO enrichment coverage;
+  - from `MercurionWebNode`, `npm run build` - PASS;
+  - from `MercurionWebNode`, `npm test -- -- --runInBand` - PASS, 116 suites
+    and 155 tests.
+- Pre-integration CI parity after implementation commit `b2b8d050`:
+  - root `npm ci` - PASS, 1925 packages installed, 0 vulnerabilities;
+  - root `npm run ci:check` - PASS, including autonomous recipe validation,
+    contracts, Angular/Nest lint and typechecks, all Angular tests, all Nest
+    unit/E2E tests, and both builds.
+- `git diff --check` - PASS.
 
 ### Browser validation performed
 
-_Not applicable._
+Not applicable per the recipe. The acceptance criteria are covered by schema
+validation, generated-artifact checks, builds and automated tests.
 
 ### Changed files
 
-_Not recorded._
+- Added
+  `MercurionWebNg/scripts/validate-graphql-documents.mjs`,
+  `scripts/test-graphql-validator-negative.mjs`, and
+  `scripts/fixtures/invalid-field.graphql`.
+- Updated Angular GraphQL scripts/documentation in
+  `MercurionWebNg/package.json` and `GRAPHQL_CODEGEN.md`.
+- Corrected notebook delete variable scalar types and molecule-item union
+  selections in Angular documents.
+- Updated the Nest molecule-item resolver/service contract, enrichment test,
+  and committed schema.
+- Regenerated `MercurionWebNg/src/app/generated/schema.ts`.
 
 ### Blocker / human decision required
 
-_None._
+None.

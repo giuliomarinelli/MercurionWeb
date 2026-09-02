@@ -113,6 +113,9 @@ export class MoleculeCollectionItemService {
         };
 
         const requestedItemCols = Object.keys(fieldsMap ?? {}).filter(k => DB_FIELDS.includes(k));
+        if (wants(fieldsMap, ['chemblDetails']) && !requestedItemCols.includes('chemblMolregno')) {
+            requestedItemCols.push('chemblMolregno')
+        }
         const itemCols = requestedItemCols.length ? requestedItemCols : DB_FIELDS;
 
         let qb = this.itemRepo
@@ -190,15 +193,47 @@ export class MoleculeCollectionItemService {
         return this.toPolymorphicDto(item, detailsMap);
     }
 
-    async findAllByUser(userId: UUID, fieldsMap: GraphQLFieldsMap): Promise<MoleculeCollectionItemEntity[]> {
+    async findAllByUser(
+        userId: UUID,
+        fieldsMap: GraphQLFieldsMap
+    ): Promise<Array<CustomMoleculeItemDTO | ChEMBLMoleculeItemDTO>> {
+        const DB_FIELDS = [
+            'id', 'type', 'userId', 'label', 'notes', 'createdAt', 'updatedAt', 'touchedAt',
+            'canonicalSmiles', 'molFormula', 'name', 'propertiesJson', 'chemblMolregno'
+        ]
         const scalarFields = GraphQLUtils.getScalarFields(fieldsMap)
+            .filter(field => DB_FIELDS.includes(field))
+        if (
+            fieldsMap.chemblDetails
+            && !scalarFields.includes('chemblMolregno')
+        ) {
+            scalarFields.push('chemblMolregno')
+        }
         const columns = GraphQLUtils.ensureRequiredFields(scalarFields, ['id', 'type'])
         let qb = this.itemRepo.createQueryBuilder('item')
             .select(columns.map(col => `item.${col}`))
             .where('item.user_id = :userId', { userId })
-        qb = TypeOrmUtils.addJoins(qb, 'item', fieldsMap)
+        qb = TypeOrmUtils.addJoins(
+            qb,
+            'item',
+            TypeOrmUtils.filterJoinsForEntity(fieldsMap, ['joins'])
+        )
         const entities = await qb.getMany()
-        return pruneNullCollectionJoins(entities)
+        pruneNullCollectionJoins(entities)
+
+        const chemblItems = entities.filter(
+            item => item.type === 'chembl'
+        ) as ChEMBLMoleculeItemEntity[]
+        let detailsMap: Record<string, MoleculeDetail> = {}
+        if (fieldsMap.chemblDetails && chemblItems.length > 0) {
+            const molregnos = chemblItems.map(item => String(item.chemblMolregno))
+            const details = await this.moleculeService.getDetailsByMolregnos(molregnos)
+            detailsMap = Object.fromEntries(
+                details.map(detail => [String(detail.id), detail])
+            )
+        }
+
+        return entities.map(item => this.toPolymorphicDto(item, detailsMap))
     }
 
     private toPolymorphicDto(

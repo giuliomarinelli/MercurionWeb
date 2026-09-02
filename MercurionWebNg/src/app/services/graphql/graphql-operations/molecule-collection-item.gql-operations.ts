@@ -367,9 +367,17 @@ export const UPDATE_MOLECULE_ITEM = gql`
 export const UPDATE_MOLECULE_ITEM_LABEL = gql`
   mutation UpdateMoleculeItemLabel($id: ID!, $label: String!, $type: String!) {
     updateMoleculeItem(id: $id, input: { label: $label, type: $type }) {
-      id
-      type
-      label
+      __typename
+      ... on ChEMBLMoleculeItemDTO {
+        id
+        type
+        label
+      }
+      ... on CustomMoleculeItemDTO {
+        id
+        type
+        label
+      }
     }
   }
 `;
@@ -377,9 +385,10 @@ export const UPDATE_MOLECULE_ITEM_LABEL = gql`
 export const UPDATE_MOLECULE_ITEM_NAME = gql`
   mutation UpdateMoleculeItemLabel($id: ID!, $name: String!, $type: String!) {
     updateMoleculeItem(id: $id, input: { name: $name, type: $type }) {
-      id
-      type
-      ... on CustomMoleculeItemEntity {
+      __typename
+      ... on CustomMoleculeItemDTO {
+        id
+        type
         name
       }
     }
@@ -389,9 +398,10 @@ export const UPDATE_MOLECULE_ITEM_NAME = gql`
 export const UPDATE_MOLECULE_ITEM_SMILES = gql`
   mutation UpdateMoleculeItemLabel($id: ID!, $canonicalSmiles: String!, $type: String!, $propertiesJson: String!) {
     updateMoleculeItem(id: $id, input: { canonicalSmiles: $canonicalSmiles, type: $type, propertiesJson: $propertiesJson }) {
-      id
-      type
-      ... on CustomMoleculeItemEntity {
+      __typename
+      ... on CustomMoleculeItemDTO {
+        id
+        type
         canonicalSmiles
         propertiesJson
       }
@@ -402,9 +412,17 @@ export const UPDATE_MOLECULE_ITEM_SMILES = gql`
 export const UPDATE_MOLECULE_ITEM_NOTES = gql`
   mutation UpdateMoleculeItemLabel($id: ID!, $notes: String!, $type: String!) {
     updateMoleculeItem(id: $id, input: { notes: $notes, type: $type }) {
-      id
-      type
-      notes
+      __typename
+      ... on ChEMBLMoleculeItemDTO {
+        id
+        type
+        notes
+      }
+      ... on CustomMoleculeItemDTO {
+        id
+        type
+        notes
+      }
     }
   }
 `;
