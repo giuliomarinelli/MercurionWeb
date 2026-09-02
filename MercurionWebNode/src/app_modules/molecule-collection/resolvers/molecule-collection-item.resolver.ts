@@ -26,11 +26,11 @@ export class MoleculeCollectionItemResolver {
         GeneralUtils.ensureValidUUIDv7(value, `GraphQLInvalid::Invalid ${field}`)
     }
 
-    @Query(() => [MoleculeCollectionItemEntity])
+    @Query(() => [MoleculeCollectionItemUnion])
     async myMoleculeItems(
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
-    ): Promise<MoleculeCollectionItemEntity[]> {
+    ): Promise<Array<CustomMoleculeItemDTO | ChEMBLMoleculeItemDTO>> {
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.itemService.findAllByUser(userId, fieldsMap)
     }
@@ -79,24 +79,34 @@ export class MoleculeCollectionItemResolver {
         return this.itemService.paginateByCollection(userId, collectionId, options, normalizedQ, excluded ?? false, fieldsMap)
     }
 
-    @Mutation(() => MoleculeCollectionItemEntity)
+    @Mutation(() => MoleculeCollectionItemUnion)
     async createMoleculeItem(
         @Args('input') input: CreateMoleculeItemInput,
-        @AuthenticatedUserId() userId: UUID
-    ): Promise<MoleculeCollectionItemEntity> {
-        return this.itemService.create(userId, input)
+        @AuthenticatedUserId() userId: UUID,
+        @Info() info: GraphQLResolveInfo
+    ): Promise<CustomMoleculeItemDTO | ChEMBLMoleculeItemDTO> {
+        const created = await this.itemService.create(userId, input)
+        const fieldsMap = GraphQLUtils.getFieldsMap(info)
+        const dto = await this.itemService.findOneDTO(created.id, userId, fieldsMap)
+        if (!dto) {
+            throw new Error('Created molecule item could not be reloaded')
+        }
+        return dto
     }
 
-    @Mutation(() => MoleculeCollectionItemEntity)
+    @Mutation(() => MoleculeCollectionItemUnion)
     async updateMoleculeItem(
         @Args('id', { type: () => ID }) id: UUID,
         @Args('input') input: CreateMoleculeItemInput,
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
-    ): Promise<MoleculeCollectionItemEntity | null> {
+    ): Promise<CustomMoleculeItemDTO | ChEMBLMoleculeItemDTO | null> {
         this.ensureUuid(id, 'id')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
-        return this.itemService.update(id, userId, input, fieldsMap)
+        const updated = await this.itemService.update(id, userId, input, fieldsMap)
+        return updated
+            ? this.itemService.findOneDTO(id, userId, fieldsMap)
+            : null
     }
 
     @Mutation(() => Boolean)

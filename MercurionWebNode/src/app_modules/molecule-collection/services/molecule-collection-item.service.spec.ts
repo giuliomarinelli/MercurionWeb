@@ -100,4 +100,75 @@ describe('MoleculeCollectionItemService', () => {
     expect(managerMock.update.mock.calls[0]?.[2]?.touchedAt).toEqual(expect.any(Number));
     expect(result).toBe(true);
   });
+
+  it('returns enriched polymorphic DTOs for the all-items GraphQL query', async () => {
+    const queryBuilderMock = {
+      select: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      leftJoinAndSelect: jest.fn().mockReturnThis(),
+      getMany: jest.fn().mockResolvedValue([
+        {
+          id: MOCK_ITEM_ID,
+          type: 'chembl',
+          chemblMolregno: 42,
+          label: 'Lead',
+          notes: null,
+          createdAt: 1,
+          updatedAt: 2,
+          touchedAt: 3,
+          joins: [],
+        },
+        {
+          id: '01900000-0000-7000-8000-000000000001',
+          type: 'custom',
+          canonicalSmiles: 'CCO',
+          name: 'Ethanol',
+          label: null,
+          notes: null,
+          createdAt: 4,
+          updatedAt: 5,
+          touchedAt: 6,
+          joins: [],
+        },
+      ]),
+    };
+    const chemblDetails = {
+      id: 42,
+      cmbId: 'CHEMBL42',
+      preferredName: 'Example',
+    };
+    repoMock.createQueryBuilder.mockReturnValue(queryBuilderMock);
+    moleculeServiceMock.getDetailsByMolregnos.mockResolvedValue([chemblDetails]);
+
+    const result = await service.findAllByUser(MOCK_USER_ID, {
+      id: {},
+      type: {},
+      label: {},
+      chemblDetails: { id: {}, preferredName: {} },
+      canonicalSmiles: {},
+      name: {},
+      joins: { id: {}, collection: { id: {} } },
+    });
+
+    expect(queryBuilderMock.select).toHaveBeenCalledWith(expect.arrayContaining([
+      'item.id',
+      'item.type',
+      'item.chemblMolregno',
+    ]));
+    expect(queryBuilderMock.leftJoinAndSelect).toHaveBeenCalledWith('item.joins', 'joins');
+    expect(moleculeServiceMock.getDetailsByMolregnos).toHaveBeenCalledWith(['42']);
+    expect(result).toEqual([
+      expect.objectContaining({
+        id: MOCK_ITEM_ID,
+        type: 'chembl',
+        chemblMolregno: '42',
+        chemblDetails,
+      }),
+      expect.objectContaining({
+        type: 'custom',
+        canonicalSmiles: 'CCO',
+        name: 'Ethanol',
+      }),
+    ]);
+  });
 });

@@ -17,12 +17,27 @@ Run from `MercurionWebNg`:
 
 ```text
 npm run graphql:generate
+npm run graphql:validate
 npm run graphql:check
 ```
 
-`graphql:check` exits unsuccessfully when committed generated artifacts differ
-from a fresh generation. Task `0008` owns registering this drift check in the
-root CI aggregate.
+`graphql:validate` recursively inventories every `gql` template and standalone
+GraphQL document under `src`, then validates each document against the
+committed Nest schema. It fails closed on an unsupported template
+interpolation.
+
+The four runtime field-selection templates in
+`molecule-collection.service.ts` are materialized in both supported forms:
+
+- `MyMoleculeCollections` with and without `items`;
+- `MoleculeCollection` with and without `items`;
+- `CreateMoleculeCollection` with and without `items`;
+- `UpdateMoleculeCollection` with and without `items`.
+
+`graphql:validate:negative` proves the validator rejects the committed
+intentional-invalid fixture. `graphql:check` runs full document validation,
+the negative probe, and the generated-artifact drift check. Task `0008` owns
+registering this aggregate in the root CI gate.
 
 The scalar mappings are:
 
@@ -45,38 +60,33 @@ source directory:
 
 ### `graphql-operations/molecule-collection-item.gql-operations.ts`
 
-- `MY_MOLECULE_ITEMS`, `ALL_BASIC_DATA`, `CREATE_MOLECULE_ITEM`, and
-  `UPDATE_MOLECULE_ITEM` spread `ChEMBLMoleculeItemDTO` /
-  `CustomMoleculeItemDTO` on fields whose committed schema type is
-  `MoleculeCollectionItemEntity`; those DTO object types are not possible
-  implementations of that interface.
 - `MY_MOLECULE_ITEMS` and `ALL_BASIC_DATA` both declare the operation name
   `MyMoleculeItems`.
 - `UPDATE_MOLECULE_ITEM_LABEL`, `UPDATE_MOLECULE_ITEM_NAME`,
   `UPDATE_MOLECULE_ITEM_SMILES`, and `UPDATE_MOLECULE_ITEM_NOTES` all declare
   the operation name `UpdateMoleculeItemLabel`.
 
-Task `0003` owns resolving the invalid/duplicate operation set. Until then the
-file remains handwritten and its service types are outside this task's
-migration boundary.
+Every document in the file is schema-valid and covered by
+`graphql:validate`. Task `0006` owns the remaining operation-name uniqueness
+cleanup needed before the whole file can join the combined Code Generator
+document set.
 
 ### `molecule-collection.service.ts`
 
 `MyMoleculeCollections`, `MoleculeCollection`, `CreateMoleculeCollection`, and
 `UpdateMoleculeCollection` interpolate a runtime field string into a `gql`
-template. Static document plucking cannot parse those dynamic selection sets.
-`DeleteMoleculeCollection` is static but shares the same mixed source file.
-Task `0007` owns centralizing/normalizing this dynamic document set.
+template. Static Code Generator document plucking cannot parse those dynamic
+selection sets. The full validator covers both deterministic expansions of
+all four templates. `DeleteMoleculeCollection` is static but shares the same
+mixed source file. Task `0007` owns centralizing/normalizing this document set.
 
 ### `notebook.service.ts`
 
-- the section and page header queries reuse the operation name
+- the chapter, section and page header queries reuse the operation name
   `GetChapterById`;
-- `DeleteLabNotebook`, `DeleteChapter`, and `DeleteSection` declare `String!`
-  variables where the committed schema requires `ID!`;
 - all notebook operations are inline in the service.
 
-Task `0003` owns the invalid operation corrections and task `0007` owns
-document centralization. The existing notebook fragment file is already
-generated so reusable fragment result types are available without changing
-those operation semantics here.
+Every notebook operation is schema-valid and covered by `graphql:validate`.
+Task `0006` owns operation-name uniqueness and task `0007` owns document
+centralization. The existing notebook fragment file is already generated so
+reusable fragment result types remain available.

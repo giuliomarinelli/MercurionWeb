@@ -252,7 +252,7 @@ export type Mutation = {
   createLabNotebook: LabNotebook;
   createManyMoleculeCollections: Scalars['Boolean']['output'];
   createMoleculeCollection: MoleculeCollection;
-  createMoleculeItem: MoleculeCollectionItemEntity;
+  createMoleculeItem: MoleculeCollectionItemUnion;
   createPage: NotebookPage;
   createSection: NotebookSection;
   createSyntheticRoute: Synthesis;
@@ -283,7 +283,7 @@ export type Mutation = {
   updateChapter: NotebookChapter;
   updateLabNotebook: LabNotebook;
   updateMoleculeCollection: MoleculeCollection;
-  updateMoleculeItem: MoleculeCollectionItemEntity;
+  updateMoleculeItem: MoleculeCollectionItemUnion;
   updatePage?: Maybe<NotebookPage>;
   updateSection: NotebookSection;
   updateStepMoleculeRef: SynthStepMoleculeRef;
@@ -674,7 +674,7 @@ export type Query = {
   moleculesByMolregnos: Array<MoleculeDetail>;
   myMoleculeCollections: Array<MoleculeCollection>;
   myMoleculeCollectionsPaginated: PaginatedMoleculeCollection;
-  myMoleculeItems: Array<MoleculeCollectionItemEntity>;
+  myMoleculeItems: Array<MoleculeCollectionItemUnion>;
   mySyntheticRoutes: Array<Synthesis>;
   myTicketDetail: TicketDetailDto;
   myTicketMessages: PaginatedTicketMessage;
