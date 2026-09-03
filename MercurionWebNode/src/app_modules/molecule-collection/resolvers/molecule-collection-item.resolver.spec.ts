@@ -1,5 +1,7 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { LazyMetadataStorage } from '@nestjs/graphql/dist/schema-builder/storages/lazy-metadata.storage';
+import { TypeMetadataStorage } from '@nestjs/graphql/dist/schema-builder/storages/type-metadata.storage';
 import { buildSchema, graphql } from 'graphql';
 import { ChEMBLMoleculeItemDTO } from '../Models/DTO/chembl-molecule-item.dto';
 import { CustomMoleculeItemDTO } from '../Models/DTO/custom-molecule-item.dto';
@@ -45,6 +47,26 @@ describe('MoleculeCollectionItem GraphQL polymorphism', () => {
   it('rejects unrepresented runtime shapes', () => {
     expect(resolveMoleculeCollectionItemType({ type: 'other' })).toBeNull();
     expect(resolveMoleculeCollectionItemType(null)).toBeNull();
+  });
+
+  it('declares explicit GraphQL String metadata for literal and nullable DTO fields', () => {
+    LazyMetadataStorage.load([CustomMoleculeItemDTO, ChEMBLMoleculeItemDTO]);
+    TypeMetadataStorage.compile([CustomMoleculeItemDTO, ChEMBLMoleculeItemDTO]);
+
+    for (const [dto, expectedFields] of [
+      [
+        CustomMoleculeItemDTO,
+        ['label', 'notes', 'type', 'molFormula', 'name', 'propertiesJson'],
+      ],
+      [ChEMBLMoleculeItemDTO, ['type']],
+    ] as const) {
+      const metadata = TypeMetadataStorage.getObjectTypeMetadataByTarget(dto);
+      const fields = new Map(metadata?.properties?.map((field) => [field.name, field]));
+
+      for (const fieldName of expectedFields) {
+        expect(fields.get(fieldName)?.typeFn()).toBe(String);
+      }
+    }
   });
 
   it('serializes and discriminates both variants through the committed schema', async () => {

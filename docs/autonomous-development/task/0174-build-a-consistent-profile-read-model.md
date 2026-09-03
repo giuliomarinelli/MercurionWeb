@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Replace the profile registry's sequential mixed-snapshot reads with one coherent read-model projection that obtains profile fields, SSO identity, collection/molecule counts and optional recent-history data with a constant, bounded number of queries on the same snapshot.
@@ -108,9 +108,3 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
-
-### Dependency skip (2026-09-03 session)
-
-- Direct terminal prerequisite(s): `0143` (BE-029, SKIPPED_DEPENDENCY), `0152` (DATA-003, SKIPPED_DEPENDENCY).
-- Transitive chain: 0008 SYS-008 BLOCKED -> 0143 BE-029 SKIPPED_DEPENDENCY -> 0174 DATA-025 SKIPPED_DEPENDENCY.
-- No feature branch was created and no worker was invoked.

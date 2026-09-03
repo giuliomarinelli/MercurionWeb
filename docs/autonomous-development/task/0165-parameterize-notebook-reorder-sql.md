@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Eliminate SQL text construction from user-provided Notebook IDs so every Chapter/Section/Page reorder uses fully bound parameters or an equivalently parameter-safe bulk-update primitive.
@@ -111,9 +111,3 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
-
-### Dependency skip (2026-09-03 session)
-
-- Direct terminal prerequisite(s): `0150` (DATA-001, SKIPPED_DEPENDENCY), `0164` (DATA-015, SKIPPED_DEPENDENCY).
-- Transitive chain: 0008 SYS-008 BLOCKED -> 0150 DATA-001 SKIPPED_DEPENDENCY -> 0165 DATA-016 SKIPPED_DEPENDENCY.
-- No feature branch was created and no worker was invoked.

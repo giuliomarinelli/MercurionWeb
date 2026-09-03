@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Put provider access/refresh tokens behind one owner-scoped credential boundary that encrypts persisted secrets, minimizes exposure, handles refresh/revocation/deletion explicitly and prevents tokens from appearing in DTOs, logs or generic Redis/database access.
@@ -111,9 +111,3 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
-
-### Dependency skip (2026-09-03 session)
-
-- Direct terminal prerequisite(s): `0144` (BE-030, SKIPPED_DEPENDENCY), `0180` (DATA-031, SKIPPED_DEPENDENCY).
-- Transitive chain: 0008 SYS-008 BLOCKED -> 0115 BE-001 SKIPPED_DEPENDENCY -> 0129 BE-015 SKIPPED_DEPENDENCY -> 0144 BE-030 SKIPPED_DEPENDENCY -> 0181 DATA-032 SKIPPED_DEPENDENCY.
-- No feature branch was created and no worker was invoked.

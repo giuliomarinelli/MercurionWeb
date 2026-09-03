@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Refactor `UserService.updateUser` so update, read-back and failure handling execute entirely through the canonical Unit of Work transaction context, with awaited rollback/lifecycle and no silent persistence failure.
@@ -103,9 +103,3 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
-
-### Dependency skip (2026-09-03 session)
-
-- Direct terminal prerequisite(s): `0152` (DATA-003, SKIPPED_DEPENDENCY).
-- Transitive chain: 0008 SYS-008 BLOCKED -> 0115 BE-001 SKIPPED_DEPENDENCY -> 0152 DATA-003 SKIPPED_DEPENDENCY -> 0153 DATA-004 SKIPPED_DEPENDENCY.
-- No feature branch was created and no worker was invoked.

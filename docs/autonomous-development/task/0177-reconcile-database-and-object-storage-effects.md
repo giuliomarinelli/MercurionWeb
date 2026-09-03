@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Make document upload/delete/profile-image replacement converge after partial Dropbox/database failures through idempotent compensation or outbox work plus an observable reconciler that can detect and repair orphan objects and orphan metadata.
@@ -110,9 +110,3 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
-
-### Dependency skip (2026-09-03 session)
-
-- Direct terminal prerequisite(s): `0150` (DATA-001, SKIPPED_DEPENDENCY), `0158` (DATA-009, SKIPPED_DEPENDENCY), `0176` (DATA-027, SKIPPED_DEPENDENCY).
-- Transitive chain: 0008 SYS-008 BLOCKED -> 0150 DATA-001 SKIPPED_DEPENDENCY -> 0177 DATA-028 SKIPPED_DEPENDENCY.
-- No feature branch was created and no worker was invoked.

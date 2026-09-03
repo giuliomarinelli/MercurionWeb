@@ -18,9 +18,9 @@ const paths = {
   vscodeMcp: '.vscode/mcp.json',
   vscodeSettings: '.vscode/settings.json',
   historicalSession: 'docs/autonomous-development/session.overnight-2026-09-01.yaml',
-  activeSession: 'docs/autonomous-development/session.overnight-2026-09-02.yaml',
+  activeSession: 'docs/autonomous-development/session.24h-2026-09-03.yaml',
   exampleSession: 'docs/autonomous-development/session.example.yaml',
-  activeLaunch: 'docs/autonomous-development/LAUNCH-2026-09-02.md',
+  activeLaunch: 'docs/autonomous-development/LAUNCH-2026-09-03.md',
 };
 
 const expectedAgentTools = {
@@ -313,6 +313,55 @@ for (const [target, content] of [
     /repository_access_allowed:\s*false/,
     'capability probe must forbid repository access',
   );
+  requireMatch(target, content, /task_scoped:\s*true/, 'runtime must be task-scoped');
+  requireMatch(
+    target,
+    content,
+    /start_only_after_task_start_preflight:\s*true/,
+    'runtime must start only after the task-start preflight',
+  );
+  requireMatch(
+    target,
+    content,
+    /start_only_when_browser_validation_required:\s*true/,
+    'runtime must start only when browser validation requires it',
+  );
+  requireMatch(
+    target,
+    content,
+    /stop_before_clean_install:\s*true/,
+    'runtime must stop before a clean install',
+  );
+  requireMatch(
+    target,
+    content,
+    /carry_processes_between_tasks:\s*false/,
+    'runtime processes must not cross task boundaries',
+  );
+  requireMatch(
+    target,
+    content,
+    /dependency_skip_evaluation:\s*lazy-at-normal-selection-point/,
+    'dependency skips must be evaluated lazily',
+  );
+  requireMatch(
+    target,
+    content,
+    /precompute_transitive_dependency_skips:\s*false/,
+    'transitive dependency skips must not be precomputed',
+  );
+  requireMatch(
+    target,
+    content,
+    /maximum_new_skip_outcomes_per_selection:\s*1/,
+    'one selection may materialize at most one dependency skip',
+  );
+  requireMatch(
+    target,
+    content,
+    /batch_dependency_skip_metadata_commit:\s*false/,
+    'dependency skip metadata must not be batched',
+  );
   if (/^\s+(?:model|reasoning):/m.test(content)) {
     fail(target, 'must inherit rather than pin model or reasoning');
   }
@@ -367,7 +416,7 @@ const activeLaunch = read(paths.activeLaunch);
 requireMatch(
   paths.activeLaunch,
   activeLaunch,
-  /docs\/autonomous-development\/session\.overnight-2026-09-02\.yaml/,
+  /docs\/autonomous-development\/session\.24h-2026-09-03\.yaml/,
   'active launch must reference the active dated session configuration',
 );
 requireMatch(
@@ -379,14 +428,14 @@ requireMatch(
 requireMatch(
   paths.activeLaunch,
   activeLaunch,
-  /2026-09-03T10:00:00\+02:00/,
+  /2026-09-04T12:00:00\+02:00/,
   'active launch is missing the exact soft deadline',
 );
 requireMatch(
   paths.activeLaunch,
   activeLaunch,
-  /archive\/SYS-001-attempt-2026-09-01/,
-  'active launch must record the archived SYS-001 attempt',
+  /archive\/SYS-008-attempt-2026-09-03/,
+  'active launch must record the archived SYS-008 attempt',
 );
 for (const command of ['/model', '/permissions show', '/mcp list', '/keep-alive on']) {
   requireMatch(
@@ -405,9 +454,9 @@ if (deadlineMatches?.length !== 1) {
   fail(paths.historicalSession, `deadline must remain exactly ${deadline}`);
 }
 
-const activeDeadline = '2026-09-03T10:00:00+02:00';
+const activeDeadline = '2026-09-04T12:00:00+02:00';
 const activeDeadlineMatches = activeSession.match(
-  /^\s*end:\s*"2026-09-03T10:00:00\+02:00"/gm,
+  /^\s*end:\s*"2026-09-04T12:00:00\+02:00"/gm,
 );
 if (activeDeadlineMatches?.length !== 1) {
   fail(paths.activeSession, `deadline must remain exactly ${activeDeadline}`);
@@ -421,9 +470,14 @@ for (const [pattern, message] of [
   [/wait_for_exact_feature_sha:\s*true/, 'missing exact feature-SHA CI requirement'],
   [/required_check:\s*Required gate/, 'missing stable Required gate contract'],
   [/ubuntu-latest[\s\S]*windows-latest/, 'missing Windows/Linux CI platforms'],
-  [/expected_first_task:\s*"0001"/, 'active workload must begin at task 0001'],
+  [/expected_first_pending_task:\s*"0008"/, 'active workload must resume at task 0008'],
   [/expected_task_count:\s*220/, 'active workload must contain 220 tasks'],
-  [/sys_001_previous_attempt_branch:\s*archive\/SYS-001-attempt-2026-09-01/, 'missing archived retry branch decision'],
+  [/task:\s*"0008"/, 'missing authorized SYS-008 retry task'],
+  [/archived_branch:\s*archive\/SYS-008-attempt-2026-09-03/, 'missing archived SYS-008 retry branch'],
+  [/archived_sha:\s*b99d864ef8c8555fe9f28bfa9152cd6581f78720/, 'missing exact archived SYS-008 SHA'],
+  [/retry_from_exact_green_develop:\s*true/, 'retry must start from exact green develop'],
+  [/allow_wholesale_cherry_pick:\s*false/, 'archived attempt must not be cherry-picked wholesale'],
+  [/reset_transitive_skips_to_pending:\s*108/, 'missing authorized reset of 108 speculative skips'],
 ]) {
   requireMatch(paths.activeSession, activeSession, pattern, message);
 }
@@ -433,6 +487,8 @@ for (const stalePattern of [
   /repair_repository_controlled_failures/,
   /bootstrap_until_task/,
   /require_exact_sha_ci_for_later_develop_bases/,
+  /propagate_skipped_dependency_transitively:\s*true/,
+  /batch_dependency_skip_metadata_commit:\s*true/,
 ]) {
   if (stalePattern.test(activeSession)) {
     fail(paths.activeSession, `contains retired Phase 0 policy ${stalePattern.source}`);
@@ -445,6 +501,8 @@ for (const [pattern, message] of [
   [/wait_for_exact_feature_sha:\s*true/, 'missing exact feature-SHA CI requirement'],
   [/required_check:\s*Required gate/, 'missing stable Required gate contract'],
   [/ubuntu-latest[\s\S]*windows-latest/, 'missing Windows/Linux CI platforms'],
+  [/dependency_skip_evaluation:\s*lazy-at-normal-selection-point/, 'missing lazy dependency-skip policy'],
+  [/precompute_transitive_dependency_skips:\s*false/, 'transitive skips must not be precomputed'],
 ]) {
   requireMatch(paths.exampleSession, exampleSession, pattern, message);
 }
@@ -533,6 +591,22 @@ for (const target of invariantFiles) {
   requireMatch(target, content, /task_complete/, 'missing task_complete finalization');
 }
 
+for (const target of [
+  'AGENTS.md',
+  paths.agents.coordinator,
+  paths.agents.worker,
+  'docs/autonomous-development/PROTOCOL.md',
+  'docs/autonomous-development/RUNTIME.md',
+]) {
+  const content = read(target);
+  requireMatch(
+    target,
+    content,
+    /stop(?:ped)?[\s\S]{0,300}(?:`npm ci`|clean install)|before[\s\S]{0,300}(?:`npm ci`|clean install)[\s\S]{0,300}stop/i,
+    'must require workspace-consuming processes to stop before clean install',
+  );
+}
+
 for (const target of [paths.agents.coordinator, 'docs/autonomous-development/PROTOCOL.md']) {
   const content = read(target);
   requireMatch(target, content, /npm init -y/, 'missing real npm init probe');
@@ -558,6 +632,6 @@ if (errors.length > 0) {
   process.exitCode = 1;
 } else {
   console.log(
-    'CLI runner validation passed: JSON, YAML structure, explicit agent tools, slugged task delegation, non-mutating handshake, MCP, historical and active launch records, permanent CI baseline, terminal states, startup probe, signing, and finalization order are valid.',
+    'CLI runner validation passed: JSON, YAML structure, explicit agent tools, slugged task delegation, non-mutating handshake, MCP, historical and active launch records, permanent CI baseline, task-scoped runtime, lazy dependency skips, authorized SYS-008 retry, terminal states, startup probe, signing, and finalization order are valid.',
   );
 }

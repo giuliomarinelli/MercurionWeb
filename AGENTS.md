@@ -100,6 +100,13 @@ The task-start preflight MUST use the same root commands used by GitHub Actions:
 aggregate with GraphQL/generated-artifact drift gates; it does not create the
 root workspace or first canonical CI interface.
 
+Every session-owned Angular, Nest, Tox21, test watcher, or other process that
+can load files from the workspace MUST be stopped before `npm ci`. The runner
+must not start watch-mode/runtime processes speculatively at session startup or
+before a worker completes its unchanged task-start preflight. Runtime processes
+may start only after implementation reaches a declared browser/runtime
+validation phase, and must stop again before the final clean-install gate.
+
 A missing or red root baseline gate is a session failure that requires a
 separate human-authorized repair; no numbered task or task branch may bootstrap
 or repair it.
@@ -148,7 +155,14 @@ fails or cannot be verified, do not merge partial implementation. Preserve and
 freeze its feature branch, propagate only the task's `BLOCKED`
 status/diagnostics to `develop`, and wait for CI on that exact metadata commit.
 
-After a new `BLOCKED` or `REVERTED` status is green, propagate `SKIPPED_DEPENDENCY` transitively to pending tasks that depend on any terminal non-`DONE` prerequisite. Skipped tasks receive no branch and no worker. Batch one propagation pass into a metadata-only `develop` commit and wait for its exact CI before continuing to an independent task.
+Do not precompute or materialize the transitive dependency closure after a new
+`BLOCKED` or `REVERTED` outcome. Evaluate pending tasks lazily in filename
+order. Only when a task reaches its normal selection point and a resolved hard
+prerequisite is terminal non-`DONE` may that one task become
+`SKIPPED_DEPENDENCY`; record its direct prerequisite and transitive diagnostic
+chain without changing later recipes in advance. A skipped task receives no
+branch and no worker. Commit its metadata and wait for exact CI before
+continuing task selection.
 
 The runner may continue only when active session policy permits it, `develop` is clean/exact-SHA green, and the next task's hard dependencies are all `DONE`. Because every task integrates from a proven-green `develop`, a revert that does not restore the pre-merge tree and exact-SHA green CI is a session-fatal baseline/upstream incident. Stop the entire session, report it separately from the task outcome, and do not use a later task to repair or conceal it.
 
@@ -180,6 +194,11 @@ For frontend or browser-observable work:
 - follow the canonical local runtime in `docs/autonomous-development/RUNTIME.md`;
 - use the nginx development edge at `http://localhost:8888`; never validate the application by browsing the Angular development-server port directly;
 - use Chrome DevTools MCP when the active task declares browser validation or when runtime browser behaviour is necessary to establish an acceptance criterion;
+- start the canonical runtime only after the unchanged task-start `npm ci` plus
+  `npm run ci:check` preflight has succeeded, and only when the active task
+  actually requires runtime/browser evidence;
+- stop every task-owned runtime process before any later `npm ci`, including
+  the final pre-merge clean-install gate;
 - use the browser to inspect the rendered UI and, when relevant, console errors, network requests, runtime state, accessibility/DOM state, responsive behaviour, and screenshots;
 - do not treat a successful TypeScript compilation or Angular build as sufficient evidence for a browser-facing acceptance criterion;
 - prefer the dedicated MCP-controlled Chrome instance; do not attach to a human developer's personal Chrome profile;

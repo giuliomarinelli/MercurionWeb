@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Turn History reads into an explicit paginated projection with stable ordering and batch enrichment so queries/presenters load only required columns and never perform per-row external/entity lookups.
@@ -110,9 +110,3 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
-
-### Dependency skip (2026-09-03 session)
-
-- Direct terminal prerequisite(s): `0174` (DATA-025, SKIPPED_DEPENDENCY).
-- Transitive chain: 0008 SYS-008 BLOCKED -> 0143 BE-029 SKIPPED_DEPENDENCY -> 0174 DATA-025 SKIPPED_DEPENDENCY -> 0182 DATA-033 SKIPPED_DEPENDENCY.
-- No feature branch was created and no worker was invoked.

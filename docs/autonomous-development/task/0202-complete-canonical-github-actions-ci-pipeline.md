@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Complete the canonical `.github/workflows/ci.yml` established by task `0008` into a dependency-aware GitHub Actions pipeline for pull requests and pushes to `develop`, executing the same repository gates used by local autonomous preflight and publishing useful diagnostics/artifacts.
@@ -121,9 +121,3 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
-
-### Dependency skip (2026-09-03 session)
-
-- Direct terminal prerequisite(s): `0008` (SYS-008, BLOCKED), `0187` (QA-001, SKIPPED_DEPENDENCY), `0201` (QA-015, SKIPPED_DEPENDENCY).
-- Transitive chain: 0008 SYS-008 BLOCKED -> 0202 QA-016 SKIPPED_DEPENDENCY.
-- No feature branch was created and no worker was invoked.

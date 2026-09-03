@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Replace stock/stale repository and project READMEs with one verified documentation set that accurately describes the current toolchain, setup, environments, architecture, runtime dependencies and canonical lint/typecheck/test/build workflows.
@@ -119,9 +119,3 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
-
-### Dependency skip (2026-09-03 session)
-
-- Direct terminal prerequisite(s): `0008` (SYS-008, BLOCKED), `0212` (QA-026, SKIPPED_DEPENDENCY).
-- Transitive chain: 0008 SYS-008 BLOCKED -> 0213 QA-027 SKIPPED_DEPENDENCY.
-- No feature branch was created and no worker was invoked.

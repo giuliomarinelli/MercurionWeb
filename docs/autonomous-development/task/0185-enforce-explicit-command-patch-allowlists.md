@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Eliminate repository-wide DTO/`Partial<Entity>` mass assignment by making every mutation command map explicit writable fields, while IDs, ownership, audit columns and relations remain non-assignable unless changed through dedicated domain operations.
@@ -108,9 +108,3 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
-
-### Dependency skip (2026-09-03 session)
-
-- Direct terminal prerequisite(s): `0140` (BE-026, SKIPPED_DEPENDENCY), `0141` (BE-027, SKIPPED_DEPENDENCY), `0169` (DATA-020, SKIPPED_DEPENDENCY).
-- Transitive chain: 0008 SYS-008 BLOCKED -> 0019 SYS-019 SKIPPED_DEPENDENCY -> 0168 DATA-019 SKIPPED_DEPENDENCY -> 0169 DATA-020 SKIPPED_DEPENDENCY -> 0185 DATA-036 SKIPPED_DEPENDENCY.
-- No feature branch was created and no worker was invoked.

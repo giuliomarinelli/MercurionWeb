@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Provide one batch-aware ownership/existence policy for molecule collections, molecule items and joins so every command classifies owner, missing and forbidden cases consistently without repeating ad-hoc repository queries and error messages.
@@ -109,9 +109,3 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
-
-### Dependency skip (2026-09-03 session)
-
-- Direct terminal prerequisite(s): `0127` (BE-013, SKIPPED_DEPENDENCY), `0128` (BE-014, SKIPPED_DEPENDENCY), `0152` (DATA-003, SKIPPED_DEPENDENCY), `0171` (DATA-022, SKIPPED_DEPENDENCY).
-- Transitive chain: 0008 SYS-008 BLOCKED -> 0115 BE-001 SKIPPED_DEPENDENCY -> 0152 DATA-003 SKIPPED_DEPENDENCY -> 0172 DATA-023 SKIPPED_DEPENDENCY.
-- No feature branch was created and no worker was invoked.

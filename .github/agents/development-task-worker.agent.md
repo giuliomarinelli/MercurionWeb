@@ -20,10 +20,10 @@ Read `AGENTS.md`, `docs/autonomous-development/PROTOCOL.md`, `docs/autonomous-de
 
 ## Required work
 
-1. Run the complete task-start preflight from `docs/autonomous-development/CI-BASELINE.md` before task scope. If the unchanged task branch is not green, make no task change and return `BASELINE_INVARIANT_FAILURE`; never repair repository-wide baseline debt inside a numbered task.
+1. Prove that no task/session-owned Angular, Nest, Tox21, test watcher, or other workspace-consuming process is active, then run the complete task-start preflight from `docs/autonomous-development/CI-BASELINE.md` before task scope. If the unchanged task branch is not green, make no task change and return `BASELINE_INVARIANT_FAILURE`; never repair repository-wide baseline debt inside a numbered task.
 2. Implement only the active recipe and changes strictly necessary for that recipe.
-3. Run all task-specific validation and declared browser validation through `http://localhost:8888` when required.
-4. Run the complete CI-parity suite immediately before integration.
+3. Run all task-specific validation. Only after the unchanged preflight and task implementation, start the canonical task-scoped runtime when declared browser validation through `http://localhost:8888` is actually required. Track every process you start and stop it after browser evidence is captured.
+4. Before the complete CI-parity suite, stop every task-owned runtime/watcher and prove no such process can hold a file under `node_modules`; then run the final root `npm ci` and `npm run ci:check` immediately before integration.
 5. Update the task's Execution notes with concrete commands, results, browser evidence, decisions, and commits.
 6. Check only `DONE` if every acceptance criterion and local gate succeeds. Ensure `BLOCKED`, `REVERTED`, and `SKIPPED_DEPENDENCY` are unchecked. Commit every coherent feature-branch change with `git commit --no-gpg-sign`, push it, and leave the working tree clean.
 

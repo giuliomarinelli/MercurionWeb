@@ -1,13 +1,25 @@
-# Example configuration for one autonomous Development Session.
+# Active one-time 24-hour recovery session. Do not reuse after its deadline.
 
 session:
-  name: development-session
+  name: mercurion-code-red-0001-recovery-24h-2026-09-03
   timezone: Europe/Rome
-  start: null # coordinator records actual launch in runtime state/report; YAML stays read-only
-  end: "YYYY-MM-DDTHH:MM:SS+HH:MM" # required soft deadline
-  hard_stop: null # optional absolute RFC 3339 guardrail
+  start: null
+  end: "2026-09-04T12:00:00+02:00"
+  hard_stop: null
+  refuse_launch_at_or_after_end: true
+
+launch:
+  historical_configuration_pull_request: 25
+  permanent_baseline_pull_request: 27
+  recovery_control_plane_pull_request: null
+  require_configuration_on_integration_branch: true
+  require_current_cli_runner_control_plane_on_integration_branch: true
+  mutate_historical_configuration_pull_request: false
+  configuration_read_only_during_session: true
 
 repository:
+  name: giuliomarinelli/MercurionWeb
+  remote: origin
   integration_branch: develop
   feature_branch_pattern: "feature/{source}"
 
@@ -29,6 +41,9 @@ repository:
     wait_for_merge_ci: true
     required_check: Required gate
     ci_failure_policy: revert-merge-and-mark-reverted
+    do_not_mutate_pull_requests:
+      - 25
+      - 27
 
 agent:
   host: github-copilot-cli
@@ -51,8 +66,6 @@ agent:
     stateless: true
     exactly_one_task: true
 
-  # Autonomous sessions use GitHub Copilot CLI native automatic compaction and
-  # checkpoint behavior. Agent profiles inherit the parent model and reasoning.
   context:
     management:
       required: true
@@ -61,8 +74,6 @@ agent:
       automatic_compaction: true
       checkpoint_behavior: native
 
-  # Observability/budget hints are enforced only when the active Copilot host
-  # exposes the corresponding counters to the coordinator.
   max_autopilot_continues_per_task: 20
   max_ai_credits_per_task: 100
 
@@ -167,7 +178,6 @@ runtime:
     carry_processes_between_tasks: false
 
 quality:
-  # The permanent baseline is established outside all numbered recipes.
   baseline_document: docs/autonomous-development/CI-BASELINE.md
   session_start_preflight: true
   require_clean_exact_origin_develop: true
@@ -178,7 +188,6 @@ quality:
   before_every_task: true
   before_merge: true
 
-  # Permanent root workspace interface; later tasks only extend ci:check.
   canonical:
     directory: .
     install: npm ci
@@ -190,9 +199,25 @@ workload:
   series_directory: docs/autonomous-development/series
   series_pattern: "[0-9][0-9][0-9][0-9]-*.md"
   order: filename
-  series_file: null
+  series_file: 'docs/autonomous-development/series/0001-010926-$oid(6a962b70d3e82215b546be6e)-MercurionWeb-technical-debt-audit-develop-8048279.md'
   tasks: []
   pending_only: true
+  expected_task_count: 220
+  expected_first_pending_task: "0008"
+  expected_last_task: "0220"
+
+retry_authorization:
+  direct_human_authorization: true
+  authorized_at: "2026-09-03"
+  task: "0008"
+  source: SYS-008
+  archived_branch: archive/SYS-008-attempt-2026-09-03
+  archived_sha: b99d864ef8c8555fe9f28bfa9152cd6581f78720
+  retry_branch: feature/SYS-008
+  retry_from_exact_green_develop: true
+  archived_attempt_read_only: true
+  allow_wholesale_cherry_pick: false
+  reset_transitive_skips_to_pending: 108
 
 task_outcomes:
   persistent:
@@ -206,19 +231,12 @@ task_outcomes:
 
 policy:
   fresh_agent_session_per_task: true
-
-  # Each task owns exactly one feature branch derived from its Source identifier.
   one_feature_branch_per_task: true
   source_required_for_branch_name: true
-
-  # The runner does not start the next task until merge CI succeeds or the merge
-  # has been reverted and the task has been recorded as REVERTED.
   serialize_task_integration: true
-
   finish_current_task_after_deadline: true
   start_new_tasks_after_deadline: false
   stop_when_workload_exhausted: true
-
   continue_after_terminal_non_done_task: true
   terminal_outcomes_immutable_within_active_session: true
   terminal_task_reenable_authority: new-direct-human-instruction-in-new-or-restarted-session
@@ -259,16 +277,16 @@ ci:
 
   on_failure:
     stop_current_integration: true
+    preserve_feature_branch_local: true
+    preserve_feature_branch_remote: true
+    freeze_preserved_feature_branch: true
     revert_merge_commit: true
-    wait_for_revert_ci_green: true
     verify_revert_tree_matches_pre_merge_base: true
+    wait_for_revert_ci_green: true
     stop_session_if_revert_not_green: true
     classify_non_green_revert_as: baseline-or-upstream-incident
     mark_task_reverted: true
     wait_for_reverted_metadata_ci_green: true
-    preserve_feature_branch_local: true
-    preserve_feature_branch_remote: true
-    freeze_preserved_feature_branch: true
 
   on_dependency_skip:
     create_feature_branch: false
@@ -279,13 +297,14 @@ ci:
     wait_for_metadata_ci_green: true
 
 decisions:
-  # Required choices that a task forbids the agent from inventing belong here.
-  # SYS-001 uses portable wire contracts; Nest-only decorated DTOs may remain as
-  # checked validation/transformation adapters and are never imported by Angular.
   sys_001_rest_contract_source: shared-versioned-framework-neutral-package
   sys_001_angular_nest_runtime_dependency: forbidden
   sys_001_nest_validation_adapters: preserve-when-required-and-prove-contract-parity
   sys_001_migration_policy: incremental-non-breaking
+  sys_008_previous_attempt_branch: archive/SYS-008-attempt-2026-09-03
+  sys_008_previous_attempt_sha: b99d864ef8c8555fe9f28bfa9152cd6581f78720
+  sys_008_retry_branch_policy: fresh-feature-branch-from-green-develop
+  sys_008_previous_attempt_usage: read-only-reference-selective-reimplementation-no-wholesale-cherry-pick
 
 on_finish:
   validate_repository: true

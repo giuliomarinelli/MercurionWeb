@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Add integration tests against a disposable real PostgreSQL instance that prove transaction rollback, database constraints, isolation and concurrency invariants which mocked QueryRunner/EntityManager tests cannot establish.
@@ -114,9 +114,3 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
-
-### Dependency skip (2026-09-03 session)
-
-- Direct terminal prerequisite(s): `0150` (DATA-001, SKIPPED_DEPENDENCY), `0151` (DATA-002, SKIPPED_DEPENDENCY), `0152` (DATA-003, SKIPPED_DEPENDENCY), `0188` (QA-002, SKIPPED_DEPENDENCY).
-- Transitive chain: 0008 SYS-008 BLOCKED -> 0150 DATA-001 SKIPPED_DEPENDENCY -> 0194 QA-008 SKIPPED_DEPENDENCY.
-- No feature branch was created and no worker was invoked.

@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Make every repository-built application image start successfully as a non-root user with an explicit standalone runtime command, correct filesystem/port ownership and a deterministic smoke test.
@@ -116,9 +116,3 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
-
-### Dependency skip (2026-09-03 session)
-
-- Direct terminal prerequisite(s): `0135` (BE-021, SKIPPED_DEPENDENCY), `0206` (QA-020, SKIPPED_DEPENDENCY).
-- Transitive chain: 0008 SYS-008 BLOCKED -> 0206 QA-020 SKIPPED_DEPENDENCY -> 0207 QA-021 SKIPPED_DEPENDENCY.
-- No feature branch was created and no worker was invoked.

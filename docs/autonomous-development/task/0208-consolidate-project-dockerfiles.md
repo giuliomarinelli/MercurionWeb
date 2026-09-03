@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Replace the six near-duplicate Angular and Nest environment Dockerfiles with one reusable multi-stage Dockerfile per project whose explicit targets preserve development, test, staging and production behavior.
@@ -119,9 +119,3 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
-
-### Dependency skip (2026-09-03 session)
-
-- Direct terminal prerequisite(s): `0206` (QA-020, SKIPPED_DEPENDENCY), `0207` (QA-021, SKIPPED_DEPENDENCY).
-- Transitive chain: 0008 SYS-008 BLOCKED -> 0206 QA-020 SKIPPED_DEPENDENCY -> 0208 QA-022 SKIPPED_DEPENDENCY.
-- No feature branch was created and no worker was invoked.

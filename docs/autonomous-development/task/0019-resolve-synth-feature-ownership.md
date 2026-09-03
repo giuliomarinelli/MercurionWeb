@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Resolve the currently server-only Synth domain into one explicit product state: either a supported Mercurion feature with an Angular consumer and contract coverage, or code that is fully removed from runtime/schema so no zombie feature remains.
@@ -181,9 +181,3 @@ _Not recorded._
 ### Blocker / human decision required
 
 _None recorded yet._
-
-### Dependency skip (2026-09-03 session)
-
-- Direct terminal prerequisite(s): `0008` (SYS-008, BLOCKED).
-- Transitive chain: 0008 SYS-008 BLOCKED -> 0019 SYS-019 SKIPPED_DEPENDENCY.
-- No feature branch was created and no worker was invoked.

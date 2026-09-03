@@ -11,7 +11,8 @@ The Series registry and executable queue are structurally coherent:
 - 220 contiguous task numbers;
 - 220 unique Source identifiers;
 - one exact Series-to-task Source mapping per number;
-- one `DONE`, `BLOCKED`, `REVERTED`, and `SKIPPED_DEPENDENCY` marker per recipe, mutually exclusive, with no task currently terminal;
+- one `DONE`, `BLOCKED`, `REVERTED`, and `SKIPPED_DEPENDENCY` marker per recipe, mutually exclusive;
+- tasks `0001` through `0007` are `DONE`; task `0008` and every later non-completed task are pending for the explicitly authorized recovery session;
 - all mandatory recipe sections present;
 - all full task-file references resolve to current filenames;
 - every forward dependency reference is explicitly advisory, so the hard-dependency graph remains acyclic by construction.
@@ -32,6 +33,7 @@ node docs/autonomous-development/tools/validate-recipes.mjs
 6. Resolved blocked-task progression: preserve and freeze the divergent feature branch, restore and prove exact-SHA green `develop`, record `BLOCKED`, then continue only with a later task whose hard dependencies are all `DONE`.
 7. Classified a revert that does not restore the pre-merge tree/green CI as a session-fatal baseline or upstream incident. A later task must never inherit or conceal that condition.
 8. Split terminal outcomes into `BLOCKED` (attempted, stopped before merge), `REVERTED` (merged then rolled back), and `SKIPPED_DEPENDENCY` (never attempted because a hard prerequisite is terminal non-`DONE`) so the final report preserves materially different evidence.
+9. Reset the 108 speculative transitive skips emitted after the first SYS-008 attempt. Dependency skips are now evaluated lazily, one recipe at its normal selection point, so a session deadline cannot rewrite untouched future work.
 
 ## Intentional late-series lifecycle transition
 

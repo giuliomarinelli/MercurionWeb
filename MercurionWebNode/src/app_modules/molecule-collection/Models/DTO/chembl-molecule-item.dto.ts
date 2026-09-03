@@ -17,7 +17,7 @@ export class ChEMBLMoleculeItemDTO {
     @Field(() => String, { nullable: true })
     notes: string | null
 
-    @Field()
+    @Field(() => String)
     type: 'chembl'
 
     @Field(() => String)

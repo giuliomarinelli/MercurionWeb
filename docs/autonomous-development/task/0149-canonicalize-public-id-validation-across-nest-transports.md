@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Make every public Mercurion identifier use one canonical format/version validator and typed boundary contract so REST controllers and GraphQL resolvers accept and reject exactly the same values.
@@ -106,9 +106,3 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
-
-### Dependency skip (2026-09-03 session)
-
-- Direct terminal prerequisite(s): `0127` (BE-013, SKIPPED_DEPENDENCY), `0140` (BE-026, SKIPPED_DEPENDENCY), `0141` (BE-027, SKIPPED_DEPENDENCY).
-- Transitive chain: 0008 SYS-008 BLOCKED -> 0115 BE-001 SKIPPED_DEPENDENCY -> 0121 BE-007 SKIPPED_DEPENDENCY -> 0127 BE-013 SKIPPED_DEPENDENCY -> 0149 BE-035 SKIPPED_DEPENDENCY.
-- No feature branch was created and no worker was invoked.

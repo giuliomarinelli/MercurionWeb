@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Replace the 858-line `MfaService` with separate challenge issuance, delivery, verification, enable/disable and backup-code services coordinated through a typed MFA strategy contract shared by supported MFA methods.
@@ -107,9 +107,3 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
-
-### Dependency skip (2026-09-03 session)
-
-- Direct terminal prerequisite(s): `0120` (BE-006, SKIPPED_DEPENDENCY), `0122` (BE-008, SKIPPED_DEPENDENCY).
-- Transitive chain: 0008 SYS-008 BLOCKED -> 0115 BE-001 SKIPPED_DEPENDENCY -> 0120 BE-006 SKIPPED_DEPENDENCY -> 0123 BE-009 SKIPPED_DEPENDENCY.
-- No feature branch was created and no worker was invoked.
