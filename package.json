@@ -29,7 +29,11 @@
     "ci:build:angular": "npm run build --workspace mercurion_web_ng",
     "ci:build:nest": "npm run build --workspace mercurion_web_node",
     "ci:build": "npm run ci:build:angular && npm run ci:build:nest",
-    "ci:check": "npm run ci:validate:autonomous && npm run ci:contracts && npm run ci:lint && npm run ci:typecheck && npm run ci:test && npm run ci:build"
+    "ci:graphql:nest": "npm run graphql:schema:check --workspace mercurion_web_node",
+    "ci:graphql:angular": "npm run graphql:check --workspace mercurion_web_ng",
+    "ci:graphql": "npm run ci:graphql:nest && npm run ci:graphql:angular",
+    "ci:static": "npm run ci:contracts",
+    "ci:check": "npm run ci:validate:autonomous && npm run ci:lint && npm run ci:typecheck && npm run ci:test && npm run ci:build && npm run ci:graphql && npm run ci:static"
   },
   "devDependencies": {
     "patch-package": "8.0.1"
