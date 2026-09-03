@@ -7,7 +7,6 @@ import { Login_FirstStepWrapper } from '../Models/auth/login.models';
 import { TypeGuardsService } from './type-guards.service';
 import { UserContextService } from './context/user-context.service';
 import { Router } from '@angular/router';
-import { Maybe } from 'graphql/jsutils/Maybe';
 import type {
   BackupCodeDTO,
   Confirm_Login_FirstStepDTO,
@@ -366,8 +365,8 @@ export class AuthService {
     }
   }
 
-  getUserScopesFromClaims(token?: Maybe<string>, setCache = false): string[] {
-    token = token ?? this.getAccessToken() as Maybe<string>
+  getUserScopesFromClaims(token?: string | null, setCache = false): string[] {
+    token = token ?? this.getAccessToken() as string | null
     if (!token) {
       return []
     }

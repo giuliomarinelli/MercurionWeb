@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { DataSource, In, Repository } from 'typeorm'
 import { uuidv7 } from '@kripod/uuidv7'
 import { randomBytes, UUID } from 'crypto'
-import { Maybe } from 'graphql/jsutils/Maybe'
 
 import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate'
 import { Ticket } from '../Models/entities/ticket.entity'
@@ -92,7 +91,7 @@ export class HelpService {
     if (!canViewUsers) {
       Object.entries(ticket).forEach(([key]) => {
         if (['authorId', 'userId', 'messages', 'userFullName'].includes(key)) {
-          (ticket as unknown as Record<string, Maybe<string | object>>)[key] = undefined
+          (ticket as unknown as Record<string, string | object | null | undefined>)[key] = undefined
         }
       })
     }
@@ -498,7 +497,7 @@ export class HelpService {
   }
 
   private stampTicket(ticket: Ticket, now: number): void {
-    ; (ticket as unknown as Record<string, Maybe<string>>).createdAt ??= String(now)
+    ; (ticket as unknown as Record<string, string | null | undefined>).createdAt ??= String(now)
     ticket.updatedAt = String(now)
     ticket.lastMessageAt = String(now)
   }

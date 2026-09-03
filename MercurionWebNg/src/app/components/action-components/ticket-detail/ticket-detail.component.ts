@@ -27,7 +27,6 @@ import { TypeGuardsService } from '../../../services/type-guards.service';
 import { MessageItemComponent } from '../message-item/message-item.component';
 import { TicketDetailInnerScope } from '../../../Models/action/action-overlay.models';
 import { DatePipe, NgClass } from '@angular/common';
-import { Maybe } from 'graphql/jsutils/Maybe';
 import { TicketComposerComponent } from '../../support/ticket-composer/ticket-composer.component';
 import { Subscription } from 'rxjs';
 import { AppContextService } from '../../../services/context/app-context.service';
@@ -525,7 +524,7 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
   });
 
   getUserFullNameFromTicket(): string {
-    const t: Maybe<Ticket | ClientTicket> = this.ticket();
+    const t: Ticket | ClientTicket | null | undefined = this.ticket();
     if (!t) return '';
     if (this.typeGuards.isTicket(t)) {
       return t.userFullName ?? '';

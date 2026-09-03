@@ -18,7 +18,6 @@ import { FloatingInputComponent } from "../../common/floating-input/floating-inp
 import { Router, RouterLink } from '@angular/router';
 import { PmSelectComponent } from '../../common/pm-select/pm-select.component';
 import { PmOption } from '../../../Models/pm-option.model';
-import { Maybe } from 'graphql/jsutils/Maybe';
 import { CopyService } from '../../../services/copy.service';
 import { CopyUiService } from '../../../services/copy-ui.service';
 
@@ -1103,7 +1102,7 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
           case 'AddPhone':
           case 'ChangePhone':
           case 'RemovePhone': {
-            const phone = (res as Maybe<string>)?.trim() ?? ''
+            const phone = (res as string | null | undefined)?.trim() ?? ''
             this.obscuredPhone.set(!!phone ? phone : null)
             break
           }

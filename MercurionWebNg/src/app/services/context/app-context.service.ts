@@ -1,5 +1,4 @@
 import { ElementRef, inject, Injectable, NgZone, signal } from '@angular/core';
-import { Maybe } from 'graphql/jsutils/Maybe';
 
 @Injectable({
   providedIn: 'root'
@@ -62,7 +61,7 @@ export class AppContextService {
   }
 
   smoothTo(
-    host: Maybe<ElementRef<HTMLElement>>,
+    host: ElementRef<HTMLElement> | null | undefined,
     targetY: number,
     duration = 240
   ) {
