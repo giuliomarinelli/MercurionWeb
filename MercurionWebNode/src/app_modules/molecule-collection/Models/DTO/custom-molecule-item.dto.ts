@@ -6,25 +6,25 @@ export class CustomMoleculeItemDTO {
   @Field(() => ID)
   id: string
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   label: string | null
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   notes: string | null
 
-  @Field()
+  @Field(() => String)
   type: 'custom'
 
   @Field(() => String)
   canonicalSmiles: string
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   molFormula: string | null
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   name: string | null
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   propertiesJson: string | null
 
   @Field(() => String)

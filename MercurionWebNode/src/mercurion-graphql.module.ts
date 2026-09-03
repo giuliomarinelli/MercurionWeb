@@ -21,6 +21,10 @@ export const MercurionGraphQLModule = GraphQLModule.forRootAsync<MercuriusDriver
         return {
             driver: MercuriusDriver,
             autoSchemaFile: join(process.cwd(), 'src', 'schema.graphql'),
+            sortSchema: true,
+            buildSchemaOptions: {
+                addNewlineAtEnd: true,
+            },
             path: '/api/graphql',
             graphiql: !isNotDev,
 
