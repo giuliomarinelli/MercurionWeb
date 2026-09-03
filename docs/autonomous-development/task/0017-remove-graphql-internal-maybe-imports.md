@@ -111,6 +111,8 @@ Task-specific validation passed:
 
 Final clean `npm ci` plus `npm run ci:check` passed, including the new static policy and negative probe.
 
+Implementation commit: `3c51001f`.
+
 ### Browser validation performed
 
 _Not applicable._
