@@ -90,14 +90,14 @@ export class SessionSyncService {
     })
 
     // errore applicativo → tentiamo resync (niente logout automatico)
-    this.socket.on<{ detail: string }>('sv.pub.err').subscribe(err =>
+    this.socket.onApplicationError().subscribe(err =>
       this.zone.run(() => {
         if (err?.detail === 'Unauthorized') void this.handleUnauthorized()
       })
     )
 
     // scadenza sessione lato server
-    this.socket.on('sv.pub.session_expired').subscribe(() =>
+    this.socket.onSessionExpired().subscribe(() =>
       this.zone.run(() => this.handleSessionExpired())
     )
 
@@ -254,7 +254,7 @@ export class SessionSyncService {
         return
       }
 
-      const ack: any = await this.socket.emit('so.pub.session_init', undefined, 1200)
+      const ack = await this.socket.emitSessionInit(1200)
 
       if (ack?.detail === 'websocket session init successful') {
         this.unauthorizedRetries = 0

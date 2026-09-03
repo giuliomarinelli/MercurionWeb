@@ -4,23 +4,25 @@
 import { Injectable } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
 import { Observable } from 'rxjs';
+import {
+  socketEventRegistry,
+  type ClientToServerEvents,
+  type ServerToClientEvents,
+  type SocketApplicationError,
+  type SocketSessionExpiredPayload,
+  type SocketSessionInitAcknowledgement,
+} from '@mercurion/socket-contracts';
 import { AuthService } from '../auth.service';
 import { JwtHelperService } from '../jwt-helper.service';
 import { environment } from '../../../environments/environment.development';
 
 export type SocketMode = 'public' | 'private';
 
-interface Listener<T = any> {
-  event: string;
-  handler: (payload: T) => void;
-}
-
 @Injectable({ providedIn: 'root' })
 export class RealtimeSocketService {
 
-  private socket: Socket;
+  private socket: Socket<ServerToClientEvents, ClientToServerEvents>;
   private mode: SocketMode = 'public';
-  private readonly listeners: Listener[] = [];
 
   // evita spam di connect()
   private connectInFlight = false;
@@ -58,13 +60,13 @@ export class RealtimeSocketService {
         : null;
     });
 
-    this.socket.on('disconnect', async (reason: any) => {
+    this.socket.on('disconnect', async (reason) => {
       if (this.mode !== 'private') return;
       if (reason === 'io client disconnect') return;
       await this.ensureFreshToken(); // soft
     });
 
-    this.socket.on('reconnect_attempt', async () => {
+    this.socket.io.on('reconnect_attempt', async () => {
       if (this.mode !== 'private') return;
       await this.ensureFreshToken(); // soft
       const tok = this.auth.getWs_accessToken();
@@ -74,9 +76,10 @@ export class RealtimeSocketService {
       }
     });
 
-    this.socket.on('connect_error', async (err: any) => {
+    this.socket.on('connect_error', async (err) => {
       if (this.mode !== 'private') return;
-      const isAuthErr = (err?.code === 'AUTH_EXPIRED') ||
+      const errorCode = 'code' in err ? err.code : undefined;
+      const isAuthErr = (errorCode === 'AUTH_EXPIRED') ||
         (typeof err?.message === 'string' && /auth|token/i.test(err.message));
       if (!isAuthErr) return;
 
@@ -96,7 +99,7 @@ export class RealtimeSocketService {
       if (latest && !this.jwt.isTokenExpired(latest)) {
         this.socket.auth = { token: latest };
         this.lastAuthTokenSent = latest;
-        this.socket.emit('auth_refresh', latest);
+        this.socket.emit(socketEventRegistry.authRefresh.name, latest);
       }
     });
   }
@@ -129,7 +132,7 @@ export class RealtimeSocketService {
       if (!tok || this.jwt.isTokenExpired(tok)) {
         // token non disponibile → fallback PUBLIC
         this.mode = 'public';
-        delete (this.socket as any).auth;
+        this.socket.auth = {};
         this.lastAuthTokenSent = null;
         if (!this.socket.connected) this.safeConnect();
         return;
@@ -149,7 +152,7 @@ export class RealtimeSocketService {
       // 3) già connesso
       if (wasPrivate && this.lastAuthTokenSent === tok) {
         // stesso token → refresh soft opzionale lato server
-        this.socket.emit('auth_refresh', tok);
+        this.socket.emit(socketEventRegistry.authRefresh.name, tok);
         return;
       }
 
@@ -171,7 +174,7 @@ export class RealtimeSocketService {
       const wasPrivate = (this.mode === 'private');
 
       this.mode = 'public';
-      delete (this.socket as any).auth;
+      this.socket.auth = {};
       this.lastAuthTokenSent = null;
 
       if (!this.socket.connected) {
@@ -182,7 +185,7 @@ export class RealtimeSocketService {
 
       if (wasPrivate) {
         // eri private → de-auth in-place, nessun reconnect
-        this.socket.emit('auth_refresh', '');
+        this.socket.emit(socketEventRegistry.authRefresh.name, '');
         return;
       }
 
@@ -196,7 +199,7 @@ export class RealtimeSocketService {
   async reconnectPublicNow(): Promise<void> {
     this.modeOp = this.modeOp.then(async () => {
       this.mode = 'public';
-      delete (this.socket as any).auth;
+      this.socket.auth = {};
       this.lastAuthTokenSent = null;
       this.reconnectWithCurrentAuth();
     });
@@ -235,12 +238,14 @@ export class RealtimeSocketService {
 
   /* ───────── Emit con ACK ───────── */
 
-  emit<T, R = any>(event: string, payload?: T, timeout = 5000): Promise<R | undefined> {
+  emitSessionInit(
+    timeout = 5000,
+  ): Promise<SocketSessionInitAcknowledgement | undefined> {
     return new Promise((res) => {
       let settled = false;
       const timer = setTimeout(() => { if (!settled) { settled = true; res(undefined); } }, timeout);
       try {
-        this.socket.emit(event, payload as any, (ack: R) => {
+        this.socket.emit(socketEventRegistry.sessionInit.name, undefined, (ack) => {
           if (!settled) { settled = true; clearTimeout(timer); res(ack); }
         });
       } catch {
@@ -251,21 +256,34 @@ export class RealtimeSocketService {
 
   /* ───────── Observable helper ───────── */
 
-  on<T>(event: string): Observable<T> {
-    return new Observable<T>(observer => {
-      const handler = (d: T) => observer.next(d);
-      this.listeners.push({ event, handler });
-      this.socket.on(event, handler);
-
-      return () => {
-        const i = this.listeners.findIndex(l => l.event === event && l.handler === handler);
-        if (i >= 0) this.listeners.splice(i, 1);
-        this.socket.off(event, handler);
-      };
+  onApplicationError(): Observable<SocketApplicationError> {
+    return new Observable<SocketApplicationError>(observer => {
+      const handler = (data: SocketApplicationError) => observer.next(data);
+      this.socket.on(socketEventRegistry.applicationError.name, handler);
+      return () => this.socket.off(socketEventRegistry.applicationError.name, handler);
     });
   }
-  onConnect() { return this.on<void>('connect'); }
-  onDisconnect() { return this.on<string>('disconnect'); }
+  onSessionExpired(): Observable<SocketSessionExpiredPayload> {
+    return new Observable<SocketSessionExpiredPayload>(observer => {
+      const handler = (data: SocketSessionExpiredPayload) => observer.next(data);
+      this.socket.on(socketEventRegistry.sessionExpired.name, handler);
+      return () => this.socket.off(socketEventRegistry.sessionExpired.name, handler);
+    });
+  }
+  onConnect(): Observable<void> {
+    return new Observable<void>(observer => {
+      const handler = () => observer.next();
+      this.socket.on('connect', handler);
+      return () => this.socket.off('connect', handler);
+    });
+  }
+  onDisconnect(): Observable<string> {
+    return new Observable<string>(observer => {
+      const handler = (reason: string) => observer.next(reason);
+      this.socket.on('disconnect', handler);
+      return () => this.socket.off('disconnect', handler);
+    });
+  }
 
   /* ───────── Interni ───────── */
 

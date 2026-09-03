@@ -11,6 +11,13 @@ import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-l
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 import { ScopeService } from 'src/app_modules/auth/services/scope.service';
 import { RpcException } from '@nestjs/microservices';
+import {
+  socketEventRegistry,
+  type ClientToServerEvents,
+  type ServerToClientEvents,
+} from '@mercurion/socket-contracts';
+
+type ApplicationSocket = Socket<ClientToServerEvents, ServerToClientEvents>
 
 @Injectable()
 export class WsGuard implements CanActivate {
@@ -44,7 +51,7 @@ export class WsGuard implements CanActivate {
 
   // 🔹 Validazione per EVENTI WebSocket
   private async validateWebSocketEvent(context: ExecutionContext): Promise<boolean> {
-    const client: Socket = context.switchToWs().getClient()
+    const client: ApplicationSocket = context.switchToWs().getClient()
     const token = client.handshake.auth.token as string
     const rawDeviceId: string | undefined = WebSocketUtils.parseCookie(client.handshake.headers.cookie)['__device_id'] || undefined
     let deviceId: string | undefined
@@ -96,7 +103,7 @@ export class WsGuard implements CanActivate {
       return true
     } catch (e) {
       if (e instanceof RpcException && e.message === 'Forbidden::missing permissions') {
-        client.emit('sv.pub.err', { detail: e.message })
+        client.emit(socketEventRegistry.applicationError.name, { detail: e.message })
         return false
       }
       this.unauthorized(client)
@@ -104,8 +111,8 @@ export class WsGuard implements CanActivate {
     }
   }
 
-  private unauthorized(client: Socket): void {
-    client.emit('sv.pub.err', { detail: 'Unauthorized' })
+  private unauthorized(client: ApplicationSocket): void {
+    client.emit(socketEventRegistry.applicationError.name, { detail: 'Unauthorized' })
     client.disconnect()
   }
 

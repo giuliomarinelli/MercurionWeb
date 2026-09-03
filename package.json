@@ -10,12 +10,14 @@
   "workspaces": [
     "MercurionWebNg",
     "MercurionWebNode",
-    "packages/rest-contracts"
+    "packages/rest-contracts",
+    "packages/socket-contracts"
   ],
   "scripts": {
-    "postinstall": "patch-package --patch-dir MercurionWebNg/patches",
+    "postinstall": "npm run build --workspace @mercurion/socket-contracts && patch-package --patch-dir MercurionWebNg/patches",
     "ci:validate:autonomous": "node docs/autonomous-development/tools/validate-cli-runner.mjs && node docs/autonomous-development/tools/validate-recipes.mjs",
     "ci:contracts": "npm run typecheck --workspace @mercurion/rest-contracts && npm run contracts:check --workspace mercurion_web_node",
+    "ci:socket-contracts": "npm run build --workspace @mercurion/socket-contracts && npm run typecheck --workspace @mercurion/socket-contracts && npm run policy --workspace @mercurion/socket-contracts && npm run policy:negative --workspace @mercurion/socket-contracts",
     "ci:lint:angular": "npm run lint --workspace mercurion_web_ng",
     "ci:lint:nest": "npm run lint --workspace mercurion_web_node",
     "ci:lint": "npm run ci:lint:angular && npm run ci:lint:nest",
@@ -32,7 +34,7 @@
     "ci:graphql:nest": "npm run graphql:schema:check --workspace mercurion_web_node",
     "ci:graphql:angular": "npm run graphql:check --workspace mercurion_web_ng",
     "ci:graphql": "npm run ci:graphql:nest && npm run ci:graphql:angular",
-    "ci:static": "npm run ci:contracts",
+    "ci:static": "npm run ci:contracts && npm run ci:socket-contracts",
     "ci:check": "npm run ci:validate:autonomous && npm run ci:lint && npm run ci:typecheck && npm run ci:test && npm run ci:build && npm run ci:graphql && npm run ci:static"
   },
   "devDependencies": {

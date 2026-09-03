@@ -31,6 +31,7 @@
   },
   "dependencies": {
     "@mercurion/rest-contracts": "1.0.0",
+    "@mercurion/socket-contracts": "1.0.0",
     "@fastify/cookie": "11.0.2",
     "@fastify/helmet": "13.0.2",
     "@fastify/middie": "9.3.3",
@@ -123,7 +124,7 @@
     },
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
+      "^.+\\.ts$": "ts-jest"
     },
     "collectCoverageFrom": [
       "**/*.(t|j)s"
