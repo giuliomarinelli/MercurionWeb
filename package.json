@@ -34,7 +34,8 @@
     "ci:graphql": "npm run ci:graphql:nest && npm run ci:graphql:angular",
     "ci:errors": "node scripts/check-application-error-policy.mjs && node scripts/test-application-error-policy-negative.mjs",
     "ci:graphql:internal-imports": "node scripts/check-graphql-internal-import-policy.mjs && node scripts/test-graphql-internal-import-policy-negative.mjs",
-    "ci:static": "npm run ci:contracts && npm run ci:errors && npm run ci:graphql:internal-imports",
+    "ci:rest-route-ownership": "node scripts/check-rest-route-ownership.mjs",
+    "ci:static": "npm run ci:contracts && npm run ci:errors && npm run ci:graphql:internal-imports && npm run ci:rest-route-ownership",
     "ci:check": "npm run ci:validate:autonomous && npm run ci:lint && npm run ci:typecheck && npm run ci:test && npm run ci:build && npm run ci:graphql && npm run ci:static"
   },
   "devDependencies": {
