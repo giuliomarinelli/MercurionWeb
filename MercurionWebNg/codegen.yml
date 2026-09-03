@@ -1,15 +1,6 @@
 overwrite: true
 schema: ../MercurionWebNode/src/schema.graphql
-# Deliberately incremental exact-source allowlist; see GRAPHQL_CODEGEN.md.
-documents:
-  - src/app/services/graphql/graphql-operations/help.gql-operations.ts
-  - src/app/services/graphql/graphql-operations/molecule-item-polymorphic.gql-operations.ts
-  - src/app/services/graphql/graphql-operations/molecule-collection.gql-operations.ts
-  - src/app/services/graphql/graphql-operations/molecule.gql-queries.ts
-  - src/app/services/graphql/graphql-operations/notebook-delete.gql-operations.ts
-  - src/app/services/graphql/molecule-collection-join.service.ts
-  - src/app/services/graphql/molecule-search.service.ts
-  - src/app/Models/graphql/notebook/fragments.graphql
+documents: src/app/graphql/documents/**/*.graphql
 config:
   enumsAsTypes: true
   useTypeImports: true

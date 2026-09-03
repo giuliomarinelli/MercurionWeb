@@ -1,0 +1,171 @@
+query MyTicketDetail($ticketId: ID!) {
+  myTicketDetail(ticketId: $ticketId) {
+    ticket {
+      id
+      publicId
+      subject
+      status
+      lastMessageAt
+      createdAt
+      updatedAt
+    }
+  }
+}
+
+query MyTickets($page: Int!, $limit: Int!) {
+  myTickets(page: $page, limit: $limit) {
+    itemCount
+    totalItems
+    itemsPerPage
+    totalPages
+    currentPage
+    items {
+      id
+      publicId
+      subject
+      status
+      lastMessageAt
+      createdAt
+      updatedAt
+    }
+  }
+}
+
+query MyTicketMessages($page: Int!, $limit: Int!, $ticketId: ID!) {
+  myTicketMessages(page: $page, limit: $limit, ticketId: $ticketId) {
+    itemCount
+    totalItems
+    itemsPerPage
+    totalPages
+    currentPage
+    items {
+      id
+      publicId
+      ticketId
+      authorType
+      contentDelta
+      contentHtml
+      createdAt
+    }
+  }
+}
+
+mutation CreateTicket(
+  $subject: String!
+  $contentHtml: String!
+  $contentDelta: JSON!
+) {
+  createTicket(
+    subject: $subject
+    contentHtml: $contentHtml
+    contentDelta: $contentDelta
+  ) {
+    id
+    publicId
+    subject
+    status
+    lastMessageAt
+    createdAt
+    updatedAt
+  }
+}
+
+mutation AddTicketMessage(
+  $ticketId: ID!
+  $contentDelta: JSON!
+  $contentHtml: String!
+) {
+  addTicketMessage(
+    ticketId: $ticketId
+    contentDelta: $contentDelta
+    contentHtml: $contentHtml
+  )
+}
+
+mutation CloseMyTicket($ticketId: ID!) {
+  closeMyTicket(ticketId: $ticketId)
+}
+
+query ExistsUserTicketById($ticketId: ID!) {
+  existsUserTicketById(ticketId: $ticketId)
+}
+
+query TicketDetailAsSupport($ticketId: ID!) {
+  ticketDetailAsSupport(ticketId: $ticketId) {
+    ticket {
+      id
+      publicId
+      subject
+      status
+      lastMessageAt
+      createdAt
+      updatedAt
+      userId
+      userFullName
+    }
+  }
+}
+
+query TicketsAsSupport($page: Int!, $limit: Int!) {
+  ticketsAsSupport(page: $page, limit: $limit) {
+    itemCount
+    totalItems
+    itemsPerPage
+    totalPages
+    currentPage
+    items {
+      id
+      publicId
+      subject
+      status
+      lastMessageAt
+      createdAt
+      updatedAt
+      userId
+      userFullName
+    }
+  }
+}
+
+query TicketMessagesAsSupport($page: Int!, $limit: Int!, $ticketId: ID!) {
+  ticketMessagesAsSupport(page: $page, limit: $limit, ticketId: $ticketId) {
+    itemCount
+    totalItems
+    itemsPerPage
+    totalPages
+    currentPage
+    items {
+      id
+      publicId
+      ticketId
+      authorType
+      contentDelta
+      contentHtml
+      createdAt
+      userId
+      authorId
+      userFullName
+      authorFullName
+    }
+  }
+}
+
+mutation AddSupportTicketMessage(
+  $ticketId: ID!
+  $contentDelta: JSON!
+  $contentHtml: String!
+) {
+  addSupportTicketMessage(
+    ticketId: $ticketId
+    contentDelta: $contentDelta
+    contentHtml: $contentHtml
+  )
+}
+
+mutation CloseTicketAsSupport($ticketId: ID!) {
+  closeTicketAsSupport(ticketId: $ticketId)
+}
+
+mutation ReopenTicketAsSupport($ticketId: ID!) {
+  reopenTicketAsSupport(ticketId: $ticketId)
+}

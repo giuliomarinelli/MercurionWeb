@@ -1,10 +1,21 @@
 import { map, Observable, tap } from "rxjs";
 import { ChapterTree, NotebookTree, PageTree, SectionTree } from "../../Models/graphql/notebook/notebook.models";
-import { Apollo, gql } from "apollo-angular";
+import { Apollo } from "apollo-angular";
 import { computed, Injectable, signal } from "@angular/core";
-import { GqlRes } from "../../Models/graphql/res.gql";
 import { extractGqlData } from "./graphql-helpers/v1/extract-gql-data.helper";
 import {
+  CreateChapterDocument,
+  CreateChapterMutation,
+  CreateChapterMutationVariables,
+  CreateLabNotebookDocument,
+  CreateLabNotebookMutation,
+  CreateLabNotebookMutationVariables,
+  CreatePageDocument,
+  CreatePageMutation,
+  CreatePageMutationVariables,
+  CreateSectionDocument,
+  CreateSectionMutation,
+  CreateSectionMutationVariables,
   DeleteChapterDocument,
   DeleteChapterMutation,
   DeleteChapterMutationVariables,
@@ -14,6 +25,36 @@ import {
   DeleteSectionDocument,
   DeleteSectionMutation,
   DeleteSectionMutationVariables,
+  DeletePageDocument,
+  DeletePageMutation,
+  DeletePageMutationVariables,
+  GetAllNotebooksDocument,
+  GetAllNotebooksQuery,
+  GetAllNotebooksQueryVariables,
+  GetChapterByIdDocument,
+  GetChapterByIdQuery,
+  GetChapterByIdQueryVariables,
+  GetNotebookDetailDocument,
+  GetNotebookDetailQuery,
+  GetNotebookDetailQueryVariables,
+  GetPageHeaderByIdDocument,
+  GetPageHeaderByIdQuery,
+  GetPageHeaderByIdQueryVariables,
+  GetSectionByIdDocument,
+  GetSectionByIdQuery,
+  GetSectionByIdQueryVariables,
+  UpdateChapterDocument,
+  UpdateChapterMutation,
+  UpdateChapterMutationVariables,
+  UpdateLabNotebookDocument,
+  UpdateLabNotebookMutation,
+  UpdateLabNotebookMutationVariables,
+  UpdatePageDocument,
+  UpdatePageMutation,
+  UpdatePageMutationVariables,
+  UpdateSectionDocument,
+  UpdateSectionMutation,
+  UpdateSectionMutationVariables,
 } from "../../generated/graphql";
 
 
@@ -33,31 +74,15 @@ export class NotebookService {
   getAllNotebooks(): Observable<NotebookTree[]> {
     this._loading.set(true);
     return this.apollo
-      .watchQuery<{ labNotebooksByUser: NotebookTree[] }>({
-        query: gql`
-          query GetAllNotebooks {
-            labNotebooksByUser {
-              id
-              title
-              chapters {
-                id
-                title
-                sections {
-                  id
-                  title
-                  pages {
-                    id,
-                    title
-                  }
-                }
-              }
-            }
-          }
-        `,
+      .watchQuery<GetAllNotebooksQuery, GetAllNotebooksQueryVariables>({
+        query: GetAllNotebooksDocument,
         fetchPolicy: 'network-only',
       })
       .valueChanges.pipe(
-        map(res => extractGqlData(res, 'labNotebooksByUser')),
+        map(res => extractGqlData<GetAllNotebooksQuery, 'labNotebooksByUser'>(
+          res,
+          'labNotebooksByUser',
+        ) as NotebookTree[]),
         tap(nbs => {
           this._notebooks.set(nbs)
           this._loading.set(false)
@@ -67,119 +92,95 @@ export class NotebookService {
 
   getNotebookById(id: string): Observable<NotebookTree> {
     return this.apollo
-      .watchQuery<{ labNotebook: NotebookTree }>({
-        query: gql`
-          query GetNotebookDetail($id: ID!) {
-            labNotebook(id: $id) {
-              id
-              title
-              chapters {
-                id
-                title
-                sections {
-                  id
-                  title
-                  pages {
-                    id
-                    title
-                    content
-                  }
-                }
-              }
-            }
-          }
-        `,
+      .watchQuery<GetNotebookDetailQuery, GetNotebookDetailQueryVariables>({
+        query: GetNotebookDetailDocument,
         variables: { id },
         fetchPolicy: 'network-only',
       })
-      .valueChanges.pipe(map(res => extractGqlData(res, 'labNotebook')));
+      .valueChanges.pipe(
+        map(res => extractGqlData<GetNotebookDetailQuery, 'labNotebook'>(
+          res,
+          'labNotebook',
+        ) as NotebookTree),
+      );
   }
 
   getChapterById(id: string): Observable<ChapterTree | null> {
     return this.apollo
-      .watchQuery<{ chapterById: ChapterTree | null }>({
-        query: gql`
-          query GetChapterById($id: ID!) {
-            chapterById(id: $id) {
-              id
-              title
-            }
-          }
-        `,
+      .watchQuery<GetChapterByIdQuery, GetChapterByIdQueryVariables>({
+        query: GetChapterByIdDocument,
         variables: { id },
         fetchPolicy: 'network-only',
       })
-      .valueChanges.pipe(map(res => extractGqlData(res, 'chapterById')));
+      .valueChanges.pipe(
+        map(res => extractGqlData<GetChapterByIdQuery, 'chapterById'>(
+          res,
+          'chapterById',
+          true,
+        ) as ChapterTree | null),
+      );
   }
 
   getSectionById(id: string): Observable<SectionTree | null> {
     return this.apollo
-      .watchQuery<{ chapterById: SectionTree | null }>({
-        query: gql`
-          query GetSectionById($id: ID!) {
-            sectionById(id: $id) {
-              id
-              title
-            }
-          }
-        `,
+      .watchQuery<GetSectionByIdQuery, GetSectionByIdQueryVariables>({
+        query: GetSectionByIdDocument,
         variables: { id },
         fetchPolicy: 'network-only',
       })
-      .valueChanges.pipe(map(res => extractGqlData(res, 'sectionById')));
+      .valueChanges.pipe(
+        map(res => extractGqlData<GetSectionByIdQuery, 'sectionById'>(
+          res,
+          'sectionById',
+          true,
+        ) as SectionTree | null),
+      );
   }
 
   getPageByIdHeader(id: string): Observable<PageTree | null> {
     return this.apollo
-      .watchQuery<{ chapterById: PageTree | null }>({
-        query: gql`
-          query GetPageHeaderById($id: ID!) {
-            pageById(id: $id) {
-              id
-              title
-            }
-          }
-        `,
+      .watchQuery<GetPageHeaderByIdQuery, GetPageHeaderByIdQueryVariables>({
+        query: GetPageHeaderByIdDocument,
         variables: { id },
         fetchPolicy: 'network-only',
       })
-      .valueChanges.pipe(map(res => extractGqlData(res, 'pageById')));
+      .valueChanges.pipe(
+        map(res => extractGqlData<GetPageHeaderByIdQuery, 'pageById'>(
+          res,
+          'pageById',
+          true,
+        ) as PageTree | null),
+      );
   }
 
 
 
   createNotebook(title: string): Observable<NotebookTree> {
     return this.apollo
-      .mutate<{ createLabNotebook: NotebookTree }>({
-        mutation: gql`
-          mutation CreateLabNotebook($title: String!) {
-            createLabNotebook(title: $title) {
-              id
-              title
-              chapters { id title sections { id title } }
-            }
-          }
-        `,
+      .mutate<CreateLabNotebookMutation, CreateLabNotebookMutationVariables>({
+        mutation: CreateLabNotebookDocument,
         variables: { title },
       })
-      .pipe(map(res => extractGqlData(res, 'createLabNotebook')));
+      .pipe(
+        map(res => extractGqlData<CreateLabNotebookMutation, 'createLabNotebook'>(
+          res,
+          'createLabNotebook',
+        ) as NotebookTree),
+      );
   }
 
   updateNotebook(id: string, title: string): Observable<NotebookTree> {
     return this.apollo
-      .mutate<{ updateLabNotebook: NotebookTree }>({
-        mutation: gql`
-          mutation UpdateLabNotebook($input: UpdateLabNotebookInput!) {
-            updateLabNotebook(input: $input) {
-              id
-              title
-              chapters { id title sections { id title } }
-            }
-          }
-        `,
+      .mutate<UpdateLabNotebookMutation, UpdateLabNotebookMutationVariables>({
+        mutation: UpdateLabNotebookDocument,
         variables: { input: { id, title } },
       })
-      .pipe(map(res => extractGqlData(res, 'updateLabNotebook')));
+      .pipe(
+        map(res => extractGqlData<UpdateLabNotebookMutation, 'updateLabNotebook'>(
+          res,
+          'updateLabNotebook',
+        ) as NotebookTree),
+      );
   }
 
   deleteNotebook(id: string): Observable<boolean> {
@@ -195,36 +196,30 @@ export class NotebookService {
 
   createChapter(notebookId: string, title: string): Observable<ChapterTree> {
     return this.apollo
-      .mutate<{ createChapter: ChapterTree }>({
-        mutation: gql`
-          mutation CreateChapter($input: CreateChapterInput!) {
-            createChapter(input: $input) {
-              id
-              title
-              sections { id title }
-            }
-          }
-        `,
+      .mutate<CreateChapterMutation, CreateChapterMutationVariables>({
+        mutation: CreateChapterDocument,
         variables: { input: { notebookId, title } },
       })
-      .pipe(map(res => extractGqlData(res, 'createChapter')));
+      .pipe(
+        map(res => extractGqlData<CreateChapterMutation, 'createChapter'>(
+          res,
+          'createChapter',
+        ) as ChapterTree),
+      );
   }
 
   updateChapter(id: string, title: string): Observable<ChapterTree> {
     return this.apollo
-      .mutate<{ updateChapter: ChapterTree }>({
-        mutation: gql`
-          mutation UpdateChapter($input: UpdateChapterInput!) {
-            updateChapter(input: $input) {
-              id
-              title
-              sections { id title }
-            }
-          }
-        `,
+      .mutate<UpdateChapterMutation, UpdateChapterMutationVariables>({
+        mutation: UpdateChapterDocument,
         variables: { input: { id, title } },
       })
-      .pipe(map(res => extractGqlData(res, 'updateChapter')));
+      .pipe(
+        map(res => extractGqlData<UpdateChapterMutation, 'updateChapter'>(
+          res,
+          'updateChapter',
+        ) as ChapterTree),
+      );
   }
 
   deleteChapter(id: string): Observable<boolean> {
@@ -240,36 +235,30 @@ export class NotebookService {
 
   createSection(chapterId: string, title: string): Observable<SectionTree> {
     return this.apollo
-      .mutate<{ createSection: SectionTree }>({
-        mutation: gql`
-          mutation CreateSection($input: CreateSectionInput!) {
-            createSection(input: $input) {
-              id
-              title
-              pages { id title }
-            }
-          }
-        `,
+      .mutate<CreateSectionMutation, CreateSectionMutationVariables>({
+        mutation: CreateSectionDocument,
         variables: { input: { chapterId, title } },
       })
-      .pipe(map(res => extractGqlData(res, 'createSection')));
+      .pipe(
+        map(res => extractGqlData<CreateSectionMutation, 'createSection'>(
+          res,
+          'createSection',
+        ) as SectionTree),
+      );
   }
 
   updateSection(id: string, title: string): Observable<SectionTree> {
     return this.apollo
-      .mutate<{ updateSection: SectionTree }>({
-        mutation: gql`
-          mutation UpdateSection($input: UpdateSectionInput!) {
-            updateSection(input: $input) {
-              id
-              title
-              pages { id title }
-            }
-          }
-        `,
+      .mutate<UpdateSectionMutation, UpdateSectionMutationVariables>({
+        mutation: UpdateSectionDocument,
         variables: { input: { id, title } },
       })
-      .pipe(map(res => extractGqlData(res, 'updateSection')));
+      .pipe(
+        map(res => extractGqlData<UpdateSectionMutation, 'updateSection'>(
+          res,
+          'updateSection',
+        ) as SectionTree),
+      );
   }
 
   deleteSection(id: string): Observable<boolean> {
@@ -285,48 +274,39 @@ export class NotebookService {
 
   createPage(sectionId: string, title: string, content: string): Observable<PageTree> {
     return this.apollo
-      .mutate<{ createPage: PageTree }>({
-        mutation: gql`
-        mutation CreatePage($input: CreatePageInput!) {
-          createPage(input: $input) {
-            id
-            title
-            content
-          }
-        }
-      `,
+      .mutate<CreatePageMutation, CreatePageMutationVariables>({
+        mutation: CreatePageDocument,
         variables: { input: { sectionId, title, content } },
       })
-      .pipe(map(res => extractGqlData(res, 'createPage')));
+      .pipe(
+        map(res => extractGqlData<CreatePageMutation, 'createPage'>(
+          res,
+          'createPage',
+        ) as PageTree),
+      );
   }
 
   updatePage(id: string, title: string, content: string): Observable<PageTree> {
     return this.apollo
-      .mutate<{ updatePage: PageTree }>({
-        mutation: gql`
-          mutation UpdatePage($input: UpdatePageInput!) {
-            updatePage(input: $input) {
-              id
-              title
-            }
-          }
-        `,
+      .mutate<UpdatePageMutation, UpdatePageMutationVariables>({
+        mutation: UpdatePageDocument,
         variables: { input: { id, title, content } },
       })
-      .pipe(map(res => extractGqlData(res, 'updatePage')));
+      .pipe(
+        map(res => extractGqlData<UpdatePageMutation, 'updatePage'>(
+          res,
+          'updatePage',
+        ) as PageTree),
+      );
   }
 
   deletePage(id: string): Observable<boolean> {
     return this.apollo
-      .mutate<{ deletePage: boolean }>({
-        mutation: gql`
-          mutation DeletePage($id: String!) {
-            deletePage(id: $id)
-          }
-        `,
+      .mutate<DeletePageMutation, DeletePageMutationVariables>({
+        mutation: DeletePageDocument,
         variables: { id },
       })
-      .pipe(map(res => extractGqlData(res, 'deletePage')));
+      .pipe(map(res => extractGqlData<DeletePageMutation, 'deletePage'>(res, 'deletePage')));
   }
 
   refreshNotebooks() {

@@ -1,82 +1,23 @@
 import { Helpers } from './../../helpers';
 import { Injectable } from '@angular/core';
-import { Apollo, gql } from 'apollo-angular';
+import { Apollo } from 'apollo-angular';
 import { map, Observable } from 'rxjs';
 import { AddChemblMoleculeToCollectionInput, AddCustomMoleculeToCollectionInput } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 import { extractGqlData } from './graphql-helpers/v1/extract-gql-data.helper';
 import {
+  AddChemblMoleculeToCollectionDocument,
   AddChemblMoleculeToCollectionMutation,
   AddChemblMoleculeToCollectionMutationVariables,
+  AddCustomMoleculeToCollectionDocument,
   AddCustomMoleculeToCollectionMutation,
   AddCustomMoleculeToCollectionMutationVariables,
+  RemoveChemblMoleculeFromCollectionDocument,
   RemoveChemblMoleculeFromCollectionMutation,
   RemoveChemblMoleculeFromCollectionMutationVariables,
+  RemoveCustomMoleculeFromCollectionDocument,
   RemoveCustomMoleculeFromCollectionMutation,
   RemoveCustomMoleculeFromCollectionMutationVariables
 } from '../../generated/graphql';
-
-
-
-
-
-
-
-
-// --- GQL OPERATIONS ---
-const ADD_CHEMBL_TO_COLLECTION = gql`
-  mutation AddChemblMoleculeToCollection(
-    $collectionId: ID!,
-    $chemblMolregno: Float!,
-    $label: String,
-    $notes: String
-  ) {
-    addChemblMoleculeToCollection(
-      collectionId: $collectionId,
-      chemblMolregno: $chemblMolregno,
-      label: $label,
-      notes: $notes
-    ) {
-      id
-      chemblMolregno
-      type
-      label
-      notes
-      joins { id collection { id name } }
-    }
-  }
-`;
-
-const ADD_CUSTOM_TO_COLLECTION = gql`
-  mutation AddCustomMoleculeToCollection(
-    $collectionId: ID!,
-    $input: CustomMoleculeItemInput!
-  ) {
-    addCustomMoleculeToCollection(collectionId: $collectionId, input: $input) {
-      id
-      type
-      label
-      notes
-      canonicalSmiles
-      name
-      propertiesJson
-      molFormula
-      joins { id collection { id name } }
-    }
-  }
-`;
-
-const REMOVE_CHEMBL_FROM_COLLECTION = gql`
-  mutation RemoveChemblMoleculeFromCollection($collectionId: ID!, $itemId: ID!) {
-    removeChemblMoleculeFromCollection(collectionId: $collectionId, itemId: $itemId)
-  }
-`;
-
-const REMOVE_CUSTOM_FROM_COLLECTION = gql`
-  mutation RemoveCustomMoleculeFromCollection($collectionId: ID!, $itemId: ID!) {
-    removeCustomMoleculeFromCollection(collectionId: $collectionId, itemId: $itemId)
-  }
-`;
-
 
 // --- MoleculeJoinService ---
 @Injectable({ providedIn: 'root' })
@@ -89,7 +30,7 @@ export class MoleculeJoinService {
   ): Observable<AddChemblMoleculeToCollectionMutation['addChemblMoleculeToCollection']> {
     return this.apollo
       .mutate<AddChemblMoleculeToCollectionMutation, AddChemblMoleculeToCollectionMutationVariables>({
-        mutation: ADD_CHEMBL_TO_COLLECTION,
+        mutation: AddChemblMoleculeToCollectionDocument,
         variables: params,
       })
       .pipe(map(res => extractGqlData<AddChemblMoleculeToCollectionMutation, 'addChemblMoleculeToCollection'>(res, 'addChemblMoleculeToCollection')));
@@ -99,7 +40,7 @@ export class MoleculeJoinService {
   addCustomMoleculeToCollection(params: AddCustomMoleculeToCollectionInput) {
     return this.apollo
       .mutate<AddCustomMoleculeToCollectionMutation, AddCustomMoleculeToCollectionMutationVariables>({
-        mutation: ADD_CUSTOM_TO_COLLECTION,
+        mutation: AddCustomMoleculeToCollectionDocument,
         variables: params,
       })
       .pipe(
@@ -115,7 +56,7 @@ export class MoleculeJoinService {
   removeChemblMoleculeFromCollection(collectionId: string, itemId: string): Observable<boolean> {
     return this.apollo
       .mutate<RemoveChemblMoleculeFromCollectionMutation, RemoveChemblMoleculeFromCollectionMutationVariables>({
-        mutation: REMOVE_CHEMBL_FROM_COLLECTION,
+        mutation: RemoveChemblMoleculeFromCollectionDocument,
         variables: { collectionId, itemId },
       })
       .pipe(map(res => extractGqlData<RemoveChemblMoleculeFromCollectionMutation, 'removeChemblMoleculeFromCollection'>(res, 'removeChemblMoleculeFromCollection')))
@@ -125,7 +66,7 @@ export class MoleculeJoinService {
   removeCustomMoleculeFromCollection(collectionId: string, itemId: string): Observable<boolean> {
     return this.apollo
       .mutate<RemoveCustomMoleculeFromCollectionMutation, RemoveCustomMoleculeFromCollectionMutationVariables>({
-        mutation: REMOVE_CUSTOM_FROM_COLLECTION,
+        mutation: RemoveCustomMoleculeFromCollectionDocument,
         variables: { collectionId, itemId },
       })
       .pipe(map(res => extractGqlData<RemoveCustomMoleculeFromCollectionMutation, 'removeCustomMoleculeFromCollection'>(res, 'removeCustomMoleculeFromCollection')));

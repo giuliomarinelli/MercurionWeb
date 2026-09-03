@@ -14,14 +14,34 @@ import {
   MoleculeItemDTO,
   CustomMoleculeItemEntity
 } from '../../Models/graphql/molecule-collection/molecule-collection.types';
-import { DELETE_MOLECULE_ITEM, MARK_MOLECULE_COLLECTION_ITEM_AS_TOUCHED, HAS_USER_CHEMBL_MOLECULE_BY_MOLREGNO_THEN_GET_UUID, EXISTS_CHEMBL_MOLECULE_BY_UUID_THEN_GET_MOLREGNO, ADD_MANY_MOLECULES_TO_COLLECTION, SEARCH_CHEMBL_MOLECULES_EXCLUDE_ALREADY_ADDED, ADD_MANY_CHEMBL_ITEMS_TO_COLLECTION, REMOVE_MOLECULE_FROM_COLLECTION, FIND_ONE_CUSTOM_MOLECULE_BY_CS_SHORT_FETCH } from './graphql-operations/molecule-collection-item.gql-operations';
 import { extractGqlData } from './graphql-helpers/v1/extract-gql-data.helper';
 import { MoleculeSearchInput } from '../../Models/graphql/molecule-search/molecule-search-input.interface';
 import { AddManyChEMBLItemDTO } from '../../Models/graphql/add-many-chembl-item.dto';
 import {
+  AddManyChemblItemsToCollectionDocument,
+  AddManyChemblItemsToCollectionMutation,
+  AddManyChemblItemsToCollectionMutationVariables,
+  AddManyMoleculesToCollectionDocument,
+  AddManyMoleculesToCollectionMutation,
+  AddManyMoleculesToCollectionMutationVariables,
   CreateMoleculeItemDocument,
   CreateMoleculeItemMutation,
   CreateMoleculeItemMutationVariables,
+  DeleteMoleculeItemDocument,
+  DeleteMoleculeItemMutation,
+  DeleteMoleculeItemMutationVariables,
+  ExistsChEmblMoleculeByUuidThenGetMolregnoDocument,
+  ExistsChEmblMoleculeByUuidThenGetMolregnoQuery,
+  ExistsChEmblMoleculeByUuidThenGetMolregnoQueryVariables,
+  FindOneCustomMoleculeByCanonicalSmilesDocument,
+  FindOneCustomMoleculeByCanonicalSmilesQuery,
+  FindOneCustomMoleculeByCanonicalSmilesQueryVariables,
+  HasUserChEmblMoleculeByMolregnoThenGetUuidDocument,
+  HasUserChEmblMoleculeByMolregnoThenGetUuidQuery,
+  HasUserChEmblMoleculeByMolregnoThenGetUuidQueryVariables,
+  MarkMoleculeCollectionItemAsTouchedDocument,
+  MarkMoleculeCollectionItemAsTouchedMutation,
+  MarkMoleculeCollectionItemAsTouchedMutationVariables,
   MoleculeItemBasicDataDocument,
   MoleculeItemBasicDataQuery,
   MoleculeItemBasicDataQueryVariables,
@@ -31,6 +51,9 @@ import {
   MoleculeItemShortDocument,
   MoleculeItemShortQuery,
   MoleculeItemShortQueryVariables,
+  MoleculeSearch_ExcludeAlreadyAddedDocument,
+  MoleculeSearch_ExcludeAlreadyAddedQuery,
+  MoleculeSearch_ExcludeAlreadyAddedQueryVariables,
   MyMoleculeItemsDocument,
   MyMoleculeItemsQuery,
   MyMoleculeItemsQueryVariables,
@@ -40,6 +63,9 @@ import {
   PaginatedMoleculeCollectionItemsByUserDocument,
   PaginatedMoleculeCollectionItemsByUserQuery,
   PaginatedMoleculeCollectionItemsByUserQueryVariables,
+  RemoveMoleculeFromCollectionDocument,
+  RemoveMoleculeFromCollectionMutation,
+  RemoveMoleculeFromCollectionMutationVariables,
   UpdateMoleculeItemCanonicalSmilesDocument,
   UpdateMoleculeItemCanonicalSmilesMutation,
   UpdateMoleculeItemCanonicalSmilesMutationVariables,
@@ -262,23 +288,23 @@ export class MoleculeCollectionItemService {
 
   hasUserChEMBLMoleculeByMolregnoThenGetUUID(molregno: number): Observable<string | null> {
     return this.apollo
-      .watchQuery<{ hasUserChEMBLMoleculeByMolregnoThenGetUUID: string | null }>({
-        query: HAS_USER_CHEMBL_MOLECULE_BY_MOLREGNO_THEN_GET_UUID,
+      .watchQuery<HasUserChEmblMoleculeByMolregnoThenGetUuidQuery, HasUserChEmblMoleculeByMolregnoThenGetUuidQueryVariables>({
+        query: HasUserChEmblMoleculeByMolregnoThenGetUuidDocument,
         variables: { molregno },
         fetchPolicy: 'network-only'
       }).valueChanges.pipe(
-        map(res => extractGqlData(res, 'hasUserChEMBLMoleculeByMolregnoThenGetUUID', true))
+        map(res => extractGqlData<HasUserChEmblMoleculeByMolregnoThenGetUuidQuery, 'hasUserChEMBLMoleculeByMolregnoThenGetUUID'>(res, 'hasUserChEMBLMoleculeByMolregnoThenGetUUID', true))
       )
   }
 
   existsChEMBLMoleculeByUUIDThenGetMolregno(_uuid_: string): Observable<string | null> {
     return this.apollo
-      .watchQuery<{ existsChEMBLMoleculeByUUIDThenGetMolregno: string | null }>({
-        query: EXISTS_CHEMBL_MOLECULE_BY_UUID_THEN_GET_MOLREGNO,
+      .watchQuery<ExistsChEmblMoleculeByUuidThenGetMolregnoQuery, ExistsChEmblMoleculeByUuidThenGetMolregnoQueryVariables>({
+        query: ExistsChEmblMoleculeByUuidThenGetMolregnoDocument,
         variables: { _uuid_ },
         fetchPolicy: 'network-only'
       }).valueChanges.pipe(
-        map(res => extractGqlData(res, 'existsChEMBLMoleculeByUUIDThenGetMolregno', true))
+        map(res => extractGqlData<ExistsChEmblMoleculeByUuidThenGetMolregnoQuery, 'existsChEMBLMoleculeByUUIDThenGetMolregno'>(res, 'existsChEMBLMoleculeByUUIDThenGetMolregno', true))
       )
   }
 
@@ -288,25 +314,25 @@ export class MoleculeCollectionItemService {
       limit
     }
     return this.apollo
-      .watchQuery<{ moleculeSearch_excludeAlreadyAdded: MoleculeSearchResult[] }>({
-        query: SEARCH_CHEMBL_MOLECULES_EXCLUDE_ALREADY_ADDED,
+      .watchQuery<MoleculeSearch_ExcludeAlreadyAddedQuery, MoleculeSearch_ExcludeAlreadyAddedQueryVariables>({
+        query: MoleculeSearch_ExcludeAlreadyAddedDocument,
         variables: { input, collectionId },
         fetchPolicy: 'network-only'
       }).valueChanges.pipe(
-        map(res => extractGqlData(res, 'moleculeSearch_excludeAlreadyAdded'))
+        map(res => extractGqlData<MoleculeSearch_ExcludeAlreadyAddedQuery, 'moleculeSearch_excludeAlreadyAdded'>(res, 'moleculeSearch_excludeAlreadyAdded'))
       )
   }
 
   findOneCustomMoleculeByCanonicalSmiles_shortFetch(canonicalSmiles: string): Observable<CustomMoleculeItemEntity | null> {
     return this.apollo
-      .watchQuery<{ findOneCustomMoleculeByCanonicalSmiles: CustomMoleculeItemEntity | null }>({
-        query: FIND_ONE_CUSTOM_MOLECULE_BY_CS_SHORT_FETCH,
+      .watchQuery<FindOneCustomMoleculeByCanonicalSmilesQuery, FindOneCustomMoleculeByCanonicalSmilesQueryVariables>({
+        query: FindOneCustomMoleculeByCanonicalSmilesDocument,
         variables: {
           canonicalSmiles
         },
         fetchPolicy: 'network-only'
       }).valueChanges.pipe(
-        map((res) => extractGqlData(res, 'findOneCustomMoleculeByCanonicalSmiles', true)),
+        map((res) => extractGqlData<FindOneCustomMoleculeByCanonicalSmilesQuery, 'findOneCustomMoleculeByCanonicalSmiles'>(res, 'findOneCustomMoleculeByCanonicalSmiles', true) as CustomMoleculeItemEntity | null),
         catchError((e) => {
           if ((e as Error).message === 'GqlError::NoData') {
             return of(null)
@@ -320,42 +346,45 @@ export class MoleculeCollectionItemService {
 
   addManyChEMBLItemsToCollection(collectionId: string, input: AddManyChEMBLItemDTO[]): Observable<boolean> {
     return this.apollo
-      .mutate<{ addManyChemblItemsToCollection: boolean }>({
-        mutation: ADD_MANY_CHEMBL_ITEMS_TO_COLLECTION,
+      .mutate<AddManyChemblItemsToCollectionMutation, AddManyChemblItemsToCollectionMutationVariables>({
+        mutation: AddManyChemblItemsToCollectionDocument,
         variables: {
           collectionId,
-          input
+          // Preserve the existing numeric ID payload accepted by the server.
+          // The generated ID input mapping is string-only until the client DTO
+          // is normalized in a separate contract migration.
+          input: input as unknown as AddManyChemblItemsToCollectionMutationVariables['input']
         }
       }).pipe(
-        map(res => extractGqlData(res, 'addManyChemblItemsToCollection'))
+        map(res => extractGqlData<AddManyChemblItemsToCollectionMutation, 'addManyChemblItemsToCollection'>(res, 'addManyChemblItemsToCollection'))
       )
   }
 
   addManyMoleculesToCollection(collectionId: string, itemIds: string[], selectAll: boolean): Observable<boolean> {
     return this.apollo
-      .mutate<{ addManyMoleculesToCollection: boolean }>({
-        mutation: ADD_MANY_MOLECULES_TO_COLLECTION,
+      .mutate<AddManyMoleculesToCollectionMutation, AddManyMoleculesToCollectionMutationVariables>({
+        mutation: AddManyMoleculesToCollectionDocument,
         variables: {
           collectionId,
           itemIds,
           selectAll
         }
       }).pipe(
-        map(res => extractGqlData(res, 'addManyMoleculesToCollection'))
+        map(res => extractGqlData<AddManyMoleculesToCollectionMutation, 'addManyMoleculesToCollection'>(res, 'addManyMoleculesToCollection'))
       )
   }
 
   removeMoleculeFromCollection(collectionId: string, itemId: string, deleteCollectionIfEmpty = false): Observable<boolean> {
     return this.apollo
-      .mutate<{ removeMoleculeFromCollection: boolean }>({
-        mutation: REMOVE_MOLECULE_FROM_COLLECTION,
+      .mutate<RemoveMoleculeFromCollectionMutation, RemoveMoleculeFromCollectionMutationVariables>({
+        mutation: RemoveMoleculeFromCollectionDocument,
         variables: {
           collectionId,
           itemId,
           deleteCollectionIfEmpty
         }
       }).pipe(
-        map(res => extractGqlData(res, 'removeMoleculeFromCollection'))
+        map(res => extractGqlData<RemoveMoleculeFromCollectionMutation, 'removeMoleculeFromCollection'>(res, 'removeMoleculeFromCollection'))
       )
   }
 
@@ -438,11 +467,11 @@ export class MoleculeCollectionItemService {
 
   markItemAsTouched(id: string, flagIds: string): Observable<boolean> {
     return this.apollo
-      .mutate<{ markMoleculeCollectionItemAsTouched: boolean }>({
-        mutation: MARK_MOLECULE_COLLECTION_ITEM_AS_TOUCHED,
+      .mutate<MarkMoleculeCollectionItemAsTouchedMutation, MarkMoleculeCollectionItemAsTouchedMutationVariables>({
+        mutation: MarkMoleculeCollectionItemAsTouchedDocument,
         variables: { id, flagIds }
       }).pipe(
-        map(res => extractGqlData(res, 'markMoleculeCollectionItemAsTouched'))
+        map(res => extractGqlData<MarkMoleculeCollectionItemAsTouchedMutation, 'markMoleculeCollectionItemAsTouched'>(res, 'markMoleculeCollectionItemAsTouched'))
       )
   }
 
@@ -450,11 +479,11 @@ export class MoleculeCollectionItemService {
   // DELETE
   deleteItem(id: string): Observable<boolean> {
     return this.apollo
-      .mutate<{ deleteMoleculeItem: boolean }>({
-        mutation: DELETE_MOLECULE_ITEM,
+      .mutate<DeleteMoleculeItemMutation, DeleteMoleculeItemMutationVariables>({
+        mutation: DeleteMoleculeItemDocument,
         variables: { id },
       })
-      .pipe(map(res => extractGqlData(res, 'deleteMoleculeItem')));
+      .pipe(map(res => extractGqlData<DeleteMoleculeItemMutation, 'deleteMoleculeItem'>(res, 'deleteMoleculeItem')));
   }
 
   // Utility: dati essenziali per custom
