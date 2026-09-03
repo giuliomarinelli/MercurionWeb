@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Make the complete Angular unit-test suite compile and pass deterministically with zero stale assertions, disabled/focused tests or obsolete specs, so the canonical CI gate can trust `ng test` as a real prerequisite rather than a known-red signal.
@@ -114,3 +113,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0008` (SYS-008, BLOCKED).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0187 QA-001 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

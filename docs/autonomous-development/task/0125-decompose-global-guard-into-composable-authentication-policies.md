@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Replace the 278-line, complexity-62 `GlobalGuard.canActivate` flow with composable credential extraction, authentication, refresh, session validation and authorization-scope policies that are independently testable and transport-aware.
@@ -111,3 +110,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0116` (BE-002, SKIPPED_DEPENDENCY), `0124` (BE-010, SKIPPED_DEPENDENCY).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0115 BE-001 SKIPPED_DEPENDENCY -> 0116 BE-002 SKIPPED_DEPENDENCY -> 0125 BE-011 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

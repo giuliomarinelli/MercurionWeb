@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Make every maintained Node-based container build install dependencies with immutable lockfile semantics so image builds are reproducible and fail when a package manifest and lockfile diverge.
@@ -118,3 +117,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0008` (SYS-008, BLOCKED), `0202` (QA-016, SKIPPED_DEPENDENCY).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0206 QA-020 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

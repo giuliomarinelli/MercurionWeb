@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Make Help ticket persistence and notification intent atomic by writing a versioned outbox event in the same database transaction as each ticket/message/status command, then delivering email asynchronously with durable retry and logical idempotency.
@@ -117,3 +116,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0150` (DATA-001, SKIPPED_DEPENDENCY), `0152` (DATA-003, SKIPPED_DEPENDENCY), `0157` (DATA-008, SKIPPED_DEPENDENCY).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0150 DATA-001 SKIPPED_DEPENDENCY -> 0158 DATA-009 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

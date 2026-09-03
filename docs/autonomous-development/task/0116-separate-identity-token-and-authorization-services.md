@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Eliminate the `JwtToolsService` ↔ Scope/User service cycle by separating identity lookup, token mechanics and authorization policy behind unidirectional contracts with no service-level `forwardRef()` or circular injection.
@@ -104,3 +103,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0115` (BE-001, SKIPPED_DEPENDENCY).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0115 BE-001 SKIPPED_DEPENDENCY -> 0116 BE-002 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

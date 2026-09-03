@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Replace duplicated Redis attempt/cooldown/lock logic in Account, MFA, Authentication and Feedback with one typed atomic policy engine whose limits, windows, reset semantics and error outcomes cannot drift between comments and runtime behaviour.
@@ -114,3 +113,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0127` (BE-013, SKIPPED_DEPENDENCY), `0155` (DATA-006, SKIPPED_DEPENDENCY).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0115 BE-001 SKIPPED_DEPENDENCY -> 0121 BE-007 SKIPPED_DEPENDENCY -> 0127 BE-013 SKIPPED_DEPENDENCY -> 0156 DATA-007 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

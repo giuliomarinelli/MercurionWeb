@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Reduce `main.ts` to a small application bootstrap that creates the Nest app, applies a canonical ordered set of infrastructure configurators and starts the listener, with each bootstrap concern independently testable.
@@ -104,3 +103,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0133` (BE-019, SKIPPED_DEPENDENCY).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0115 BE-001 SKIPPED_DEPENDENCY -> 0117 BE-003 SKIPPED_DEPENDENCY -> 0130 BE-016 SKIPPED_DEPENDENCY -> 0133 BE-019 SKIPPED_DEPENDENCY -> 0134 BE-020 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

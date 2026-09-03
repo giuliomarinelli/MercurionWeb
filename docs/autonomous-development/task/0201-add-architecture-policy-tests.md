@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Consolidate the architecture rules established throughout the Series into deterministic CI tests that reject dependency cycles, forbidden layer imports, environment-specific Angular imports and direct browser persistence outside canonical adapters.
@@ -116,3 +115,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0008` (SYS-008, BLOCKED), `0199` (QA-013, SKIPPED_DEPENDENCY), `0200` (QA-014, SKIPPED_DEPENDENCY).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0201 QA-015 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

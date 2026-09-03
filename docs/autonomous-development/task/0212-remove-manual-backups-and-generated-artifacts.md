@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Remove committed local backup/result artifacts, classify every retained non-source file explicitly and add a narrow repository-hygiene gate that prevents regenerated snapshots, test outputs and ad hoc backups from returning.
@@ -117,3 +116,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0202` (QA-016, SKIPPED_DEPENDENCY).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0202 QA-016 SKIPPED_DEPENDENCY -> 0212 QA-026 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

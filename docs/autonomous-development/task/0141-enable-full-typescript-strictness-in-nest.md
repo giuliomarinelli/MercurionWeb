@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Compile the Nest production/test codebase with full TypeScript strictness, `unknown` catch variables, safe bind/call/apply semantics and fallthrough protection without global escape hatches.
@@ -102,3 +101,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0127` (BE-013, SKIPPED_DEPENDENCY), `0128` (BE-014, SKIPPED_DEPENDENCY), `0130` (BE-016, SKIPPED_DEPENDENCY), `0140` (BE-026, SKIPPED_DEPENDENCY).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0115 BE-001 SKIPPED_DEPENDENCY -> 0117 BE-003 SKIPPED_DEPENDENCY -> 0130 BE-016 SKIPPED_DEPENDENCY -> 0141 BE-027 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

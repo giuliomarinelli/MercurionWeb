@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Establish a real non-mutating Angular ESLint/template-lint quality gate that covers TypeScript and templates, enforces accessibility and architectural boundaries, and rejects direct browser persistence or environment-specific imports outside their canonical adapters.
@@ -120,3 +119,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0008` (SYS-008, BLOCKED), `0187` (QA-001, SKIPPED_DEPENDENCY).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0199 QA-013 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

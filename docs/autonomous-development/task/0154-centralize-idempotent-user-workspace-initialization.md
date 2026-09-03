@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Extract the initial Mercurion molecule/collection workspace into one idempotent domain initializer used by both native account activation and first-time SSO provisioning.
@@ -112,3 +111,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0151` (DATA-002, SKIPPED_DEPENDENCY), `0152` (DATA-003, SKIPPED_DEPENDENCY).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0115 BE-001 SKIPPED_DEPENDENCY -> 0152 DATA-003 SKIPPED_DEPENDENCY -> 0154 DATA-005 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

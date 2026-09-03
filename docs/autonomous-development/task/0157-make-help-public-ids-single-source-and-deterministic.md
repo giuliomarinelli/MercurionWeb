@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Make Help ticket/message public identifiers deterministic projections of the persisted DB identity so the same logical ID is used exactly once and remains identical across API responses, email content and logs, with no random fallback.
@@ -108,3 +107,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0127` (BE-013, SKIPPED_DEPENDENCY), `0150` (DATA-001, SKIPPED_DEPENDENCY), `0151` (DATA-002, SKIPPED_DEPENDENCY).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0150 DATA-001 SKIPPED_DEPENDENCY -> 0157 DATA-008 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

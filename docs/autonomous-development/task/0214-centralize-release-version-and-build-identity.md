@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Make one canonical release version plus one CI-generated build identity feed Angular, Nest, container labels and deployment metadata so every artifact from the same build reports the same version and commit.
@@ -118,3 +117,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0197` (QA-011, SKIPPED_DEPENDENCY), `0208` (QA-022, SKIPPED_DEPENDENCY), `0213` (QA-027, SKIPPED_DEPENDENCY).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0213 QA-027 SKIPPED_DEPENDENCY -> 0214 QA-028 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

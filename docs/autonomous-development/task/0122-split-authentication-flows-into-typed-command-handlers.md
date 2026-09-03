@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Separate credential login, MFA handoff, SSO completion, token refresh, logout and session-management flows into typed authentication command handlers/use cases so controllers do not orchestrate multi-step domain logic.
@@ -106,3 +105,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0116` (BE-002, SKIPPED_DEPENDENCY), `0118` (BE-004, SKIPPED_DEPENDENCY).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0115 BE-001 SKIPPED_DEPENDENCY -> 0116 BE-002 SKIPPED_DEPENDENCY -> 0122 BE-008 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

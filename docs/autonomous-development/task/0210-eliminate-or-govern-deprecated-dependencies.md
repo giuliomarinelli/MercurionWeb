@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Remove or safely replace every audited deprecated/legacy direct dependency and make any unavoidable residual dependency an explicit time-bounded exception so clean install/build output contains no unaccepted deprecation warning.
@@ -118,3 +117,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0146` (BE-032, SKIPPED_DEPENDENCY), `0147` (BE-033, SKIPPED_DEPENDENCY), `0203` (QA-017, SKIPPED_DEPENDENCY).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0199 QA-013 SKIPPED_DEPENDENCY -> 0203 QA-017 SKIPPED_DEPENDENCY -> 0210 QA-024 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

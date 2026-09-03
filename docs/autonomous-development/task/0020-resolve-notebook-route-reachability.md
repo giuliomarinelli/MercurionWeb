@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Resolve the Lab Notebook feature into a coherent product state: make the existing Angular/Nest Notebook feature reachable and end-to-end covered.
@@ -122,3 +121,9 @@ _Not recorded._
 ### Blocker / human decision required
 
 _None recorded yet._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0008` (SYS-008, BLOCKED).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0020 SYS-020 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Refactor production Nest controllers so each endpoint only extracts/validates transport input, invokes one application use case/query and returns a typed DTO/presenter result, with no domain orchestration or manual Fastify parsing in controllers.
@@ -107,3 +106,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0120` (BE-006, SKIPPED_DEPENDENCY), `0121` (BE-007, SKIPPED_DEPENDENCY), `0122` (BE-008, SKIPPED_DEPENDENCY).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0115 BE-001 SKIPPED_DEPENDENCY -> 0120 BE-006 SKIPPED_DEPENDENCY -> 0126 BE-012 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Make every stateful/core Nest provider owned and declared by exactly one module so the application context contains one intentional provider instance and consumers import that owner instead of redeclaring the class.
@@ -103,3 +102,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0115` (BE-001, SKIPPED_DEPENDENCY), `0116` (BE-002, SKIPPED_DEPENDENCY).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0115 BE-001 SKIPPED_DEPENDENCY -> 0118 BE-004 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

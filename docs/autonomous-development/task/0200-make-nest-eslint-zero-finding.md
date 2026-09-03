@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Turn Nest lint into a strict non-mutating zero-error/zero-warning quality gate, remove the current broad safety-rule disables and remediate production findings so unsafe typing/promise behavior remains only inside bounded explicitly justified adapters.
@@ -119,3 +118,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0008` (SYS-008, BLOCKED), `0188` (QA-002, SKIPPED_DEPENDENCY).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0200 QA-014 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

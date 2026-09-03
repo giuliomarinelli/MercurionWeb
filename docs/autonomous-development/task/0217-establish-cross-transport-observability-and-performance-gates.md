@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Propagate one safe correlation context across HTTP, GraphQL, Socket.IO and NATS, expose low-cardinality request/query/cache/latency/error metrics and make agreed critical-path performance budgets deterministic non-regressing CI gates.
@@ -121,3 +120,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0129` (BE-015, SKIPPED_DEPENDENCY), `0146` (BE-032, SKIPPED_DEPENDENCY), `0197` (QA-011, SKIPPED_DEPENDENCY), `0202` (QA-016, SKIPPED_DEPENDENCY).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0202 QA-016 SKIPPED_DEPENDENCY -> 0217 QA-031 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Redesign Redis session persistence so session lookup uses direct indexes and create/activate/refresh/revoke/destroy update session records, user indexes and token indexes atomically without `SCAN` in request paths.
@@ -110,3 +109,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0124` (BE-010, SKIPPED_DEPENDENCY), `0136` (BE-022, SKIPPED_DEPENDENCY), `0137` (BE-023, SKIPPED_DEPENDENCY), `0138` (BE-024, SKIPPED_DEPENDENCY).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0115 BE-001 SKIPPED_DEPENDENCY -> 0118 BE-004 SKIPPED_DEPENDENCY -> 0124 BE-010 SKIPPED_DEPENDENCY -> 0179 DATA-030 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

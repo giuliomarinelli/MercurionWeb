@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Make Angular production bundle budgets and CommonJS warnings hard non-regressing CI gates, bringing the application under the existing 1 MB initial-bundle maximum without raising the limit merely to obtain green output and eliminating or explicitly isolating legacy CommonJS dependencies.
@@ -115,3 +114,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0199` (QA-013, SKIPPED_DEPENDENCY), `0202` (QA-016, SKIPPED_DEPENDENCY).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0199 QA-013 SKIPPED_DEPENDENCY -> 0203 QA-017 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

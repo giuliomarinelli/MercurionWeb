@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Replace ad-hoc Synth relation alias/path strings with a typed selection planner derived from TypeORM metadata so every requested GraphQL projection generates valid joins consistently.
@@ -101,3 +100,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0115` (BE-001, SKIPPED_DEPENDENCY), `0120` (BE-006, SKIPPED_DEPENDENCY), `0141` (BE-027, SKIPPED_DEPENDENCY).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0115 BE-001 SKIPPED_DEPENDENCY -> 0145 BE-031 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

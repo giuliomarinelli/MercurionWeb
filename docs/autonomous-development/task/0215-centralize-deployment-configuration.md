@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Make Docker Compose, Docker build references and Kubernetes manifests derive from one validated service/deployment schema plus explicit environment overlays so image identity, names, ports, required variables and secret references cannot drift.
@@ -121,3 +120,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0130` (BE-016, SKIPPED_DEPENDENCY), `0131` (BE-017, SKIPPED_DEPENDENCY), `0133` (BE-019, SKIPPED_DEPENDENCY), `0208` (QA-022, SKIPPED_DEPENDENCY), `0214` (QA-028, SKIPPED_DEPENDENCY).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0206 QA-020 SKIPPED_DEPENDENCY -> 0208 QA-022 SKIPPED_DEPENDENCY -> 0215 QA-029 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

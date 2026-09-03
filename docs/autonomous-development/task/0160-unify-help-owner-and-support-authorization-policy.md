@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Make every Help ticket query/command evaluate ownership, `HandleTickets` support authority and `ViewUsers` field visibility through one typed policy so user/support resolver variants cannot drift in permissions or existence-leak behaviour.
@@ -108,3 +107,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0127` (BE-013, SKIPPED_DEPENDENCY), `0152` (DATA-003, SKIPPED_DEPENDENCY), `0159` (DATA-010, SKIPPED_DEPENDENCY).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0022 SYS-022 SKIPPED_DEPENDENCY -> 0159 DATA-010 SKIPPED_DEPENDENCY -> 0160 DATA-011 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Make Notebook reorder/move commands validate duplicate IDs, complete sibling membership, ownership, parent identity and move-neighbor eligibility inside the same transaction as the write so invalid, stale or cross-owner input produces no partial structural change.
@@ -116,3 +115,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0152` (DATA-003, SKIPPED_DEPENDENCY), `0164` (DATA-015, SKIPPED_DEPENDENCY), `0165` (DATA-016, SKIPPED_DEPENDENCY).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0115 BE-001 SKIPPED_DEPENDENCY -> 0152 DATA-003 SKIPPED_DEPENDENCY -> 0166 DATA-017 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

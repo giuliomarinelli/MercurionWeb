@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Turn the Nest application-module graph into a directed acyclic graph by replacing cross-domain implementation imports with explicit public ports/use-case APIs and removing `forwardRef()` as a cycle-resolution mechanism between application domains.
@@ -117,3 +116,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0008` (SYS-008, BLOCKED).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0115 BE-001 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

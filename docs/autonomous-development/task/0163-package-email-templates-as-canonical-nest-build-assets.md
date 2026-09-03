@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Make email templates, layouts and partials first-class Nest build assets copied by one build configuration to one runtime-relative path in development, test, staging and production, eliminating bootstrap/Dockerfile copy choreography.
@@ -109,3 +108,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0162` (DATA-013, SKIPPED_DEPENDENCY).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0150 DATA-001 SKIPPED_DEPENDENCY -> 0158 DATA-009 SKIPPED_DEPENDENCY -> 0162 DATA-013 SKIPPED_DEPENDENCY -> 0163 DATA-014 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Give every human/public-facing identifier a canonical typed value object and persistence/derivation rule so formatting, parsing and validation are deterministic and no service/presenter regenerates fallback IDs while reading data.
@@ -109,3 +108,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0149` (BE-035, SKIPPED_DEPENDENCY), `0150` (DATA-001, SKIPPED_DEPENDENCY), `0151` (DATA-002, SKIPPED_DEPENDENCY), `0157` (DATA-008, SKIPPED_DEPENDENCY).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0150 DATA-001 SKIPPED_DEPENDENCY -> 0184 DATA-035 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

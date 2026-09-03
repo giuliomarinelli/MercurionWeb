@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Replace duplicated GraphQL `page`/`limit` arguments and divergent pagination response shapes with one validated pagination contract that enforces min/max/defaults and stable ordering while preserving approved public schema compatibility.
@@ -101,3 +100,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0008` (SYS-008, BLOCKED), `0126` (BE-012, SKIPPED_DEPENDENCY).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0143 BE-029 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

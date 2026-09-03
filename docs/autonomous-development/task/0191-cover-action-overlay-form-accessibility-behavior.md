@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Add behavior and accessibility tests for the canonical Angular action/overlay/form primitives so open/close, confirm/cancel, loading/error state, focus ownership, keyboard interaction and ARIA semantics are protected as contracts rather than inferred from visual markup.
@@ -113,3 +112,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0187` (QA-001, SKIPPED_DEPENDENCY).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0187 QA-001 SKIPPED_DEPENDENCY -> 0191 QA-005 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

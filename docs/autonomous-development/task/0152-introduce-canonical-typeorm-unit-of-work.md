@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Standardize MercurionWebNode transactional persistence behind one Unit of Work contract so every operation in a transaction uses the same `EntityManager` and transaction lifecycle cannot be partially awaited, nested accidentally or bypassed by injected repositories.
@@ -115,3 +114,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0115` (BE-001, SKIPPED_DEPENDENCY), `0120` (BE-006, SKIPPED_DEPENDENCY), `0150` (DATA-001, SKIPPED_DEPENDENCY).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0115 BE-001 SKIPPED_DEPENDENCY -> 0152 DATA-003 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

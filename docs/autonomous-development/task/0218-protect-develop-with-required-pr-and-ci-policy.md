@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Protect `develop` so changes enter only through an approved pull request whose canonical aggregate quality gate is green, with direct pushes and failed-check merges rejected by GitHub.
@@ -121,3 +120,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0202` (QA-016, SKIPPED_DEPENDENCY), `0217` (QA-031, SKIPPED_DEPENDENCY).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0202 QA-016 SKIPPED_DEPENDENCY -> 0218 QA-032 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Add deterministic system tests that run compatible Angular and Nest artifacts from the same repository revision through the canonical nginx same-origin edge and prove at least one anonymous and one authenticated real frontend→API/GraphQL journey without contract mocks.
@@ -117,3 +116,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0194` (QA-008, SKIPPED_DEPENDENCY), `0195` (QA-009, SKIPPED_DEPENDENCY), `0196` (QA-010, SKIPPED_DEPENDENCY).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0019 SYS-019 SKIPPED_DEPENDENCY -> 0195 QA-009 SKIPPED_DEPENDENCY -> 0197 QA-011 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

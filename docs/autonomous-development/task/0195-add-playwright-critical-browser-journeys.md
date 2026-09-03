@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Introduce Playwright browser E2E tests for Mercurion's critical Angular journeys using accessible locators, deterministic API/test fixtures and the canonical `http://localhost:8888` browser edge, with zero arbitrary sleeps.
@@ -114,3 +113,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0019` (SYS-019, SKIPPED_DEPENDENCY), `0020` (SYS-020, SKIPPED_DEPENDENCY), `0187` (QA-001, SKIPPED_DEPENDENCY).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0019 SYS-019 SKIPPED_DEPENDENCY -> 0195 QA-009 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

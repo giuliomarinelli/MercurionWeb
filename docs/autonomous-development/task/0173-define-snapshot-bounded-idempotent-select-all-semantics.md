@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Give every molecule bulk command using `selectAll` an explicit filter/snapshot, maximum work bound, atomicity and retry contract so a retry is deterministic, does not duplicate joins and does not silently include rows that appeared after the original selection.
@@ -109,3 +108,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0151` (DATA-002, SKIPPED_DEPENDENCY), `0152` (DATA-003, SKIPPED_DEPENDENCY), `0171` (DATA-022, SKIPPED_DEPENDENCY), `0172` (DATA-023, SKIPPED_DEPENDENCY).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0115 BE-001 SKIPPED_DEPENDENCY -> 0152 DATA-003 SKIPPED_DEPENDENCY -> 0173 DATA-024 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

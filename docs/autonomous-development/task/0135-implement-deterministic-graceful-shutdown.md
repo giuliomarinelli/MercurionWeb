@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Make SIGTERM, SIGINT and fatal process errors trigger one idempotent bounded shutdown sequence that stops intake, closes application transports/infrastructure and exits with the correct status instead of only logging the event.
@@ -106,3 +105,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0118` (BE-004, SKIPPED_DEPENDENCY), `0119` (BE-005, SKIPPED_DEPENDENCY), `0134` (BE-020, SKIPPED_DEPENDENCY).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0115 BE-001 SKIPPED_DEPENDENCY -> 0118 BE-004 SKIPPED_DEPENDENCY -> 0135 BE-021 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.

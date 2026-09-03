@@ -3,8 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
-
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Build comprehensive deterministic Nest tests for authentication, MFA and session security branches, including expiry/replay/revocation, concurrent sessions and refresh, scopes, external-provider flows, rate limits and Redis failure modes.
@@ -117,3 +116,9 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Dependency skip (2026-09-03 session)
+
+- Direct terminal prerequisite(s): `0179` (DATA-030, SKIPPED_DEPENDENCY), `0186` (DATA-037, SKIPPED_DEPENDENCY), `0188` (QA-002, SKIPPED_DEPENDENCY).
+- Transitive chain: 0008 SYS-008 BLOCKED -> 0188 QA-002 SKIPPED_DEPENDENCY -> 0192 QA-006 SKIPPED_DEPENDENCY.
+- No feature branch was created and no worker was invoked.
