@@ -20,7 +20,9 @@
     "graphql:generate": "graphql-codegen --config codegen.yml",
     "graphql:validate": "node scripts/validate-graphql-documents.mjs",
     "graphql:validate:negative": "node scripts/test-graphql-validator-negative.mjs",
-    "graphql:check": "npm run graphql:validate && npm run graphql:validate:negative && graphql-codegen --config codegen.yml --check"
+    "graphql:catalog-policy": "node scripts/check-graphql-catalog-policy.mjs",
+    "graphql:catalog-policy:negative": "node scripts/test-graphql-catalog-policy-negative.mjs",
+    "graphql:check": "npm run graphql:catalog-policy && npm run graphql:catalog-policy:negative && npm run graphql:validate && npm run graphql:validate:negative && graphql-codegen --config codegen.yml --check"
   },
   "private": true,
   "dependencies": {

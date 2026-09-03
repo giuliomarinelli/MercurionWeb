@@ -1,0 +1,135 @@
+fragment MoleculeCollectionFields on MoleculeCollection {
+  id
+  name
+}
+
+fragment MoleculeCollectionWithItemsFields on MoleculeCollection {
+  ...MoleculeCollectionFields
+  items {
+    id
+    item {
+      id
+      label
+      type
+    }
+  }
+}
+
+query MyMoleculeCollections {
+  myMoleculeCollections {
+    ...MoleculeCollectionFields
+  }
+}
+
+query MyMoleculeCollectionsWithItems {
+  myMoleculeCollections {
+    ...MoleculeCollectionWithItemsFields
+  }
+}
+
+query MoleculeCollection($id: ID!) {
+  moleculeCollection(id: $id) {
+    ...MoleculeCollectionFields
+  }
+}
+
+query MoleculeCollectionWithItems($id: ID!) {
+  moleculeCollection(id: $id) {
+    ...MoleculeCollectionWithItemsFields
+  }
+}
+
+mutation CreateMoleculeCollection($name: String!) {
+  createMoleculeCollection(name: $name) {
+    ...MoleculeCollectionFields
+  }
+}
+
+mutation CreateMoleculeCollectionWithItems($name: String!) {
+  createMoleculeCollection(name: $name) {
+    ...MoleculeCollectionWithItemsFields
+  }
+}
+
+mutation UpdateMoleculeCollection($id: ID!, $name: String!) {
+  updateMoleculeCollection(id: $id, name: $name) {
+    ...MoleculeCollectionFields
+  }
+}
+
+mutation UpdateMoleculeCollectionWithItems($id: ID!, $name: String!) {
+  updateMoleculeCollection(id: $id, name: $name) {
+    ...MoleculeCollectionWithItemsFields
+  }
+}
+
+mutation DeleteMoleculeCollection($id: ID!) {
+  deleteMoleculeCollection(id: $id)
+}
+
+query PaginatedCollections(
+  $page: Int!
+  $limit: Int!
+  $q: String!
+  $excludeJoinedToMolecule: Boolean
+  $moleculeId: ID
+) {
+  myMoleculeCollectionsPaginated(
+    page: $page
+    limit: $limit
+    q: $q
+    excludeJoinedToMolecule: $excludeJoinedToMolecule
+    moleculeId: $moleculeId
+  ) {
+    items {
+      id
+      name
+      createdAt
+      updatedAt
+      touchedAt
+      itemsCount
+    }
+    itemCount
+    totalPages
+    totalItems
+    itemsPerPage
+    currentPage
+  }
+}
+
+mutation DuplicateCollection($srcCollectionId: ID!) {
+  duplicateCollection(srcCollectionId: $srcCollectionId) {
+    id
+    name
+  }
+}
+
+mutation CreateManyMoleculeCollections($names: [String!]!) {
+  createManyMoleculeCollections(names: $names)
+}
+
+mutation MarkMoleculeCollectionAsTouched($id: ID!) {
+  markMoleculeCollectionAsTouched(id: $id)
+}
+
+mutation UpdateMoleculeCollectionName($id: ID!, $name: String!) {
+  updateMoleculeCollection(id: $id, name: $name) {
+    id
+    name
+  }
+}
+
+mutation BindManyCollectionsToMolecule(
+  $moleculeId: ID!
+  $collectionIds: [ID!]!
+  $selectAll: Boolean!
+) {
+  bindManyCollectionsToMolecule(
+    moleculeId: $moleculeId
+    collectionIds: $collectionIds
+    selectAll: $selectAll
+  ) {
+    ok
+    moleculeUUID
+  }
+}

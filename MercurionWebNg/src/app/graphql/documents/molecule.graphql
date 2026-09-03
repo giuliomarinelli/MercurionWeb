@@ -1,0 +1,55 @@
+query GetMoleculeDetail($molregno: String!) {
+  moleculeByMolregno(molregno: $molregno) {
+    id
+    cmbId
+    preferredName
+    preferredNameIt
+    canonicalSmiles
+    moleculeType
+    maxPhase
+    administrationRoutes {
+      oral
+      parenteral
+      topical
+    }
+    properties {
+      mwFreebase
+      alogp
+      hba
+      hbd
+      psa
+      rtb
+    }
+    naturalProduct
+    prodrug
+    blackBoxWarning
+    synonyms
+  }
+}
+
+query MoleculePreviewsByMolregnos($molregnos: [String!]!) {
+  moleculePreviewsByMolregnos(molregnos: $molregnos) {
+    id
+    preferredName
+    preferredNameIt
+    smiles
+    synonyms
+    mwFreebase
+    alogp
+    maxPhase
+    known
+  }
+}
+
+query MoleculeSearch($input: MoleculeSearchInput!) {
+  moleculeSearch(input: $input) {
+    id
+    preferredName
+    preferredNameIt
+    smiles
+    synonyms
+    mwFreebase
+    alogp
+    maxPhase
+  }
+}

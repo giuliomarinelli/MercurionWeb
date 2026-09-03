@@ -1,7 +1,17 @@
 import { TestBed } from '@angular/core/testing';
-import { Kind, OperationDefinitionNode } from 'graphql';
+import { Kind, OperationDefinitionNode, print } from 'graphql';
 
-import { UpdateMoleculeCollectionNameDocument } from '../../generated/graphql';
+import {
+  CreateMoleculeCollectionDocument,
+  CreateMoleculeCollectionWithItemsDocument,
+  MoleculeCollectionDocument,
+  MoleculeCollectionWithItemsDocument,
+  MyMoleculeCollectionsDocument,
+  MyMoleculeCollectionsWithItemsDocument,
+  UpdateMoleculeCollectionDocument,
+  UpdateMoleculeCollectionNameDocument,
+  UpdateMoleculeCollectionWithItemsDocument,
+} from '../../generated/graphql';
 import { MoleculeCollectionService } from './molecule-collection.service';
 
 describe('MoleculeCollectionService', () => {
@@ -30,5 +40,20 @@ describe('MoleculeCollectionService', () => {
     expect(
       selectedField?.kind === Kind.FIELD ? selectedField.name.value : undefined,
     ).toBe('updateMoleculeCollection');
+  });
+
+  it('represents every former dynamic collection selection as an explicit static document pair', () => {
+    const variants = [
+      [MyMoleculeCollectionsDocument, MyMoleculeCollectionsWithItemsDocument],
+      [MoleculeCollectionDocument, MoleculeCollectionWithItemsDocument],
+      [CreateMoleculeCollectionDocument, CreateMoleculeCollectionWithItemsDocument],
+      [UpdateMoleculeCollectionDocument, UpdateMoleculeCollectionWithItemsDocument],
+    ] as const;
+
+    for (const [minimalDocument, withItemsDocument] of variants) {
+      expect(print(minimalDocument)).not.toContain('items {');
+      expect(print(withItemsDocument)).toContain('items {');
+      expect(print(withItemsDocument)).toContain('item {');
+    }
   });
 });

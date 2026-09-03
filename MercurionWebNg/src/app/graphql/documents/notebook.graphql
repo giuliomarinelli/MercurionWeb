@@ -1,0 +1,164 @@
+query GetAllNotebooks {
+  labNotebooksByUser {
+    id
+    title
+    chapters {
+      id
+      title
+      sections {
+        id
+        title
+        pages {
+          id
+          title
+        }
+      }
+    }
+  }
+}
+
+query GetNotebookDetail($id: ID!) {
+  labNotebook(id: $id) {
+    id
+    title
+    chapters {
+      id
+      title
+      sections {
+        id
+        title
+        pages {
+          id
+          title
+          content
+        }
+      }
+    }
+  }
+}
+
+query GetChapterById($id: ID!) {
+  chapterById(id: $id) {
+    id
+    title
+  }
+}
+
+query GetSectionById($id: ID!) {
+  sectionById(id: $id) {
+    id
+    title
+  }
+}
+
+query GetPageHeaderById($id: ID!) {
+  pageById(id: $id) {
+    id
+    title
+  }
+}
+
+mutation CreateLabNotebook($title: String!) {
+  createLabNotebook(title: $title) {
+    id
+    title
+    chapters {
+      id
+      title
+      sections {
+        id
+        title
+      }
+    }
+  }
+}
+
+mutation UpdateLabNotebook($input: UpdateLabNotebookInput!) {
+  updateLabNotebook(input: $input) {
+    id
+    title
+    chapters {
+      id
+      title
+      sections {
+        id
+        title
+      }
+    }
+  }
+}
+
+mutation DeleteLabNotebook($id: ID!) {
+  deleteLabNotebook(id: $id)
+}
+
+mutation CreateChapter($input: CreateChapterInput!) {
+  createChapter(input: $input) {
+    id
+    title
+    sections {
+      id
+      title
+    }
+  }
+}
+
+mutation UpdateChapter($input: UpdateChapterInput!) {
+  updateChapter(input: $input) {
+    id
+    title
+    sections {
+      id
+      title
+    }
+  }
+}
+
+mutation DeleteChapter($id: ID!) {
+  deleteChapter(id: $id)
+}
+
+mutation CreateSection($input: CreateSectionInput!) {
+  createSection(input: $input) {
+    id
+    title
+    pages {
+      id
+      title
+    }
+  }
+}
+
+mutation UpdateSection($input: UpdateSectionInput!) {
+  updateSection(input: $input) {
+    id
+    title
+    pages {
+      id
+      title
+    }
+  }
+}
+
+mutation DeleteSection($id: ID!) {
+  deleteSection(id: $id)
+}
+
+mutation CreatePage($input: CreatePageInput!) {
+  createPage(input: $input) {
+    id
+    title
+    content
+  }
+}
+
+mutation UpdatePage($input: UpdatePageInput!) {
+  updatePage(input: $input) {
+    id
+    title
+  }
+}
+
+mutation DeletePage($id: String!) {
+  deletePage(id: $id)
+}

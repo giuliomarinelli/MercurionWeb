@@ -1,10 +1,11 @@
 import { Injectable, computed, signal } from '@angular/core';
-import { Apollo, gql } from 'apollo-angular';
+import { Apollo } from 'apollo-angular';
 import { map, tap } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { MoleculeSearchResult } from '../../Models/graphql/molecule-search/molecule-search-result.interface';
 import { extractGqlData } from './graphql-helpers/v1/extract-gql-data.helper';
 import {
+  MoleculeSearchDocument,
   MoleculeSearchQuery,
   MoleculeSearchQueryVariables
 } from '../../generated/graphql';
@@ -26,20 +27,7 @@ export class MoleculeSearchService {
 
     return this.apollo
       .watchQuery<MoleculeSearchQuery, MoleculeSearchQueryVariables>({
-        query: gql`
-          query MoleculeSearch($input: MoleculeSearchInput!) {
-            moleculeSearch(input: $input) {
-              id
-              preferredName
-              preferredNameIt
-              smiles
-              synonyms
-              mwFreebase
-              alogp
-              maxPhase
-            }
-          }
-        `,
+        query: MoleculeSearchDocument,
         variables: {
           input: { query, limit },
         },

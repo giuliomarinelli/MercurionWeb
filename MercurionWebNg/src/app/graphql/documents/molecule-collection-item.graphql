@@ -1,0 +1,369 @@
+fragment MoleculeItemFields on MoleculeCollectionItemUnion {
+  __typename
+  ... on ChEMBLMoleculeItemDTO {
+    id
+    label
+    notes
+    type
+    createdAt
+    updatedAt
+    touchedAt
+    joins {
+      id
+      collection {
+        id
+        name
+        createdAt
+        updatedAt
+        touchedAt
+        itemsCount
+      }
+    }
+    chemblMolregno
+    chemblDetails {
+      id
+      cmbId
+      preferredName
+      preferredNameIt
+      canonicalSmiles
+      moleculeType
+      maxPhase
+      naturalProduct
+      prodrug
+      blackBoxWarning
+      synonyms
+      properties {
+        mwFreebase
+        alogp
+        hba
+        hbd
+        psa
+        rtb
+      }
+      administrationRoutes {
+        oral
+        parenteral
+        topical
+      }
+    }
+  }
+  ... on CustomMoleculeItemDTO {
+    id
+    label
+    notes
+    type
+    createdAt
+    updatedAt
+    touchedAt
+    joins {
+      id
+      collection {
+        id
+        name
+        createdAt
+        updatedAt
+        touchedAt
+        itemsCount
+      }
+    }
+    canonicalSmiles
+    molFormula
+    name
+    propertiesJson
+  }
+}
+
+query MyMoleculeItems {
+  myMoleculeItems {
+    ...MoleculeItemFields
+  }
+}
+
+query MoleculeItemBasicData {
+  myMoleculeItems {
+    __typename
+    ... on ChEMBLMoleculeItemDTO {
+      id
+      type
+      chemblDetails {
+        preferredName
+        preferredNameIt
+        canonicalSmiles
+      }
+    }
+    ... on CustomMoleculeItemDTO {
+      id
+      type
+      name
+      canonicalSmiles
+    }
+  }
+}
+
+query MoleculeItem($id: ID!) {
+  moleculeItem(id: $id) {
+    ...MoleculeItemFields
+  }
+}
+
+query MoleculeItemShort($id: ID!) {
+  moleculeItem(id: $id) {
+    __typename
+    ... on ChEMBLMoleculeItemDTO {
+      id
+      type
+      chemblMolregno
+    }
+    ... on CustomMoleculeItemDTO {
+      id
+      type
+    }
+  }
+}
+
+query PaginatedMoleculeCollectionItemsByCollection(
+  $collectionId: String!
+  $page: Int!
+  $limit: Int!
+  $q: String!
+) {
+  paginatedMoleculeCollectionItemsByCollection(
+    collectionId: $collectionId
+    page: $page
+    limit: $limit
+    q: $q
+  ) {
+    items {
+      ...MoleculeItemFields
+    }
+    itemCount
+    totalItems
+    itemsPerPage
+    totalPages
+    currentPage
+  }
+}
+
+query PaginatedMoleculeCollectionItemsByUser(
+  $page: Int!
+  $limit: Int!
+  $q: String!
+  $excludeJoinedToCollection: Boolean
+  $collectionId: ID
+) {
+  paginatedMoleculeCollectionItemsByUser(
+    page: $page
+    limit: $limit
+    q: $q
+    excludeJoinedToCollection: $excludeJoinedToCollection
+    collectionId: $collectionId
+  ) {
+    items {
+      ...MoleculeItemFields
+    }
+    itemCount
+    totalItems
+    itemsPerPage
+    totalPages
+    currentPage
+  }
+}
+
+mutation CreateMoleculeItem($input: CreateMoleculeItemInput!) {
+  createMoleculeItem(input: $input) {
+    ...MoleculeItemFields
+  }
+}
+
+mutation UpdateMoleculeItem($id: ID!, $input: CreateMoleculeItemInput!) {
+  updateMoleculeItem(id: $id, input: $input) {
+    ...MoleculeItemFields
+  }
+}
+
+mutation UpdateMoleculeItemLabel($id: ID!, $label: String!, $type: String!) {
+  updateMoleculeItem(id: $id, input: { label: $label, type: $type }) {
+    ...MoleculeItemFields
+  }
+}
+
+mutation UpdateMoleculeItemName($id: ID!, $name: String!, $type: String!) {
+  updateMoleculeItem(id: $id, input: { name: $name, type: $type }) {
+    ...MoleculeItemFields
+  }
+}
+
+mutation UpdateMoleculeItemCanonicalSmiles(
+  $id: ID!
+  $canonicalSmiles: String!
+  $type: String!
+  $propertiesJson: String!
+) {
+  updateMoleculeItem(
+    id: $id
+    input: {
+      canonicalSmiles: $canonicalSmiles
+      type: $type
+      propertiesJson: $propertiesJson
+    }
+  ) {
+    ...MoleculeItemFields
+  }
+}
+
+mutation UpdateMoleculeItemNotes($id: ID!, $notes: String!, $type: String!) {
+  updateMoleculeItem(id: $id, input: { notes: $notes, type: $type }) {
+    ...MoleculeItemFields
+  }
+}
+
+query HasUserChEMBLMoleculeByMolregnoThenGetUUID($molregno: Int!) {
+  hasUserChEMBLMoleculeByMolregnoThenGetUUID(molregno: $molregno)
+}
+
+query ExistsChEMBLMoleculeByUUIDThenGetMolregno($_uuid_: String!) {
+  existsChEMBLMoleculeByUUIDThenGetMolregno(_uuid_: $_uuid_)
+}
+
+query MoleculeSearch_excludeAlreadyAdded(
+  $input: MoleculeSearchInput!
+  $collectionId: ID!
+) {
+  moleculeSearch_excludeAlreadyAdded(
+    input: $input
+    collectionId: $collectionId
+  ) {
+    id
+    preferredName
+    preferredNameIt
+    smiles
+    synonyms
+    mwFreebase
+    alogp
+    maxPhase
+    known
+  }
+}
+
+query FindOneCustomMoleculeByCanonicalSmiles($canonicalSmiles: String!) {
+  findOneCustomMoleculeByCanonicalSmiles(
+    canonicalSmiles: $canonicalSmiles
+  ) {
+    id
+    type
+    canonicalSmiles
+    name
+  }
+}
+
+mutation AddManyChemblItemsToCollection(
+  $collectionId: ID!
+  $input: [AddManyChEMBLItemDTO!]!
+) {
+  addManyChemblItemsToCollection(
+    collectionId: $collectionId
+    input: $input
+  )
+}
+
+mutation AddManyMoleculesToCollection(
+  $collectionId: ID!
+  $itemIds: [ID!]!
+  $selectAll: Boolean!
+) {
+  addManyMoleculesToCollection(
+    collectionId: $collectionId
+    itemIds: $itemIds
+    selectAll: $selectAll
+  )
+}
+
+mutation RemoveMoleculeFromCollection(
+  $collectionId: ID!
+  $itemId: ID!
+  $deleteCollectionIfEmpty: Boolean
+) {
+  removeMoleculeFromCollection(
+    collectionId: $collectionId
+    itemId: $itemId
+    deleteCollectionIfEmpty: $deleteCollectionIfEmpty
+  )
+}
+
+mutation MarkMoleculeCollectionItemAsTouched($id: ID!, $flagIds: String!) {
+  markMoleculeCollectionItemAsTouched(id: $id, flagIds: $flagIds)
+}
+
+mutation DeleteMoleculeItem($id: ID!) {
+  deleteMoleculeItem(id: $id)
+}
+
+mutation AddChemblMoleculeToCollection(
+  $collectionId: ID!
+  $chemblMolregno: Float!
+  $label: String
+  $notes: String
+) {
+  addChemblMoleculeToCollection(
+    collectionId: $collectionId
+    chemblMolregno: $chemblMolregno
+    label: $label
+    notes: $notes
+  ) {
+    id
+    chemblMolregno
+    type
+    label
+    notes
+    joins {
+      id
+      collection {
+        id
+        name
+      }
+    }
+  }
+}
+
+mutation AddCustomMoleculeToCollection(
+  $collectionId: ID!
+  $input: CustomMoleculeItemInput!
+) {
+  addCustomMoleculeToCollection(collectionId: $collectionId, input: $input) {
+    id
+    type
+    label
+    notes
+    canonicalSmiles
+    name
+    propertiesJson
+    molFormula
+    joins {
+      id
+      collection {
+        id
+        name
+      }
+    }
+  }
+}
+
+mutation RemoveChemblMoleculeFromCollection(
+  $collectionId: ID!
+  $itemId: ID!
+) {
+  removeChemblMoleculeFromCollection(
+    collectionId: $collectionId
+    itemId: $itemId
+  )
+}
+
+mutation RemoveCustomMoleculeFromCollection(
+  $collectionId: ID!
+  $itemId: ID!
+) {
+  removeCustomMoleculeFromCollection(
+    collectionId: $collectionId
+    itemId: $itemId
+  )
+}
