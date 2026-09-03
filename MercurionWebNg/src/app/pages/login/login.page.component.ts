@@ -17,7 +17,7 @@ import { ClassicSpinnerComponent } from '../../components/common/classic-spinner
 
 import { HttpErrorBody } from '../../Models/http-error-body.dto'
 import { Confirm_Login_FirstStepDTO } from '../../Models/confirm.models'
-import { ISessionDeviceInfo } from '../../Models/auth/fingerprint.models'
+import type { SessionDeviceInfo } from '@mercurion/rest-contracts'
 import { Login_FirstStepWrapper } from '../../Models/auth/login.models'
 import { environment } from '../../../environments/environment.development'
 import { SSO_AuthProvider } from '../../Models/auth/provider.models'
@@ -284,7 +284,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
   private pollInterval?: ReturnType<typeof setInterval>
 
   private fingerprintDataEnc = ''
-  private sessionDeviceInfo: ISessionDeviceInfo = {
+  private sessionDeviceInfo: SessionDeviceInfo = {
     osPlatform: '',
     useragent: '',
     browser: { name: '', version: '' }

@@ -13,6 +13,17 @@ export type {
   ApplicationErrorDefinition,
   ApplicationErrorPayload
 } from './application-errors'
+export {
+  FINGERPRINT_CONTRACT_VERSION,
+  parseFingerprintData,
+  parseSessionDeviceInfo
+} from './fingerprint-contract'
+export type {
+  FingerprintContract,
+  FingerprintContractVersion,
+  FingerprintData,
+  SessionDeviceInfo
+} from './fingerprint-contract'
 
 export interface PageModel<T> {
   items: T[]
@@ -170,55 +181,6 @@ export type VerifyKind = (typeof VerifyKind)[keyof typeof VerifyKind]
 export interface VerifyBodyDTO {
   kind: VerifyKind
   payload: TotpBodyDTO | BackupCodeDTO
-}
-
-export interface SessionDeviceInfo {
-  osPlatform: string
-  useragent: string
-  browser: {
-    name: string
-    version: string
-  }
-}
-
-export interface FingerprintData {
-  audio: {
-    sampleHash: number
-    oscillator: string
-    maxChannels: number
-  }
-  hardware: {
-    videocard: {
-      vendor: string
-      renderer: string
-    }
-  }
-  locales: {
-    languages: string
-  }
-  plugins: {
-    plugins: string[]
-  }
-  screen: {
-    is_touchscreen: boolean
-    colorDepth: number
-  }
-  system: {
-    platform: string
-    productSub: string
-    product: string
-    hardwareConcurrency: number
-  }
-  webgl: {
-    commonImageHash: string
-  }
-  math: {
-    acos: number
-    cos: number
-    log: number
-    pi: number
-    sqrt: number
-  }
 }
 
 export interface UserRegisterDTO {

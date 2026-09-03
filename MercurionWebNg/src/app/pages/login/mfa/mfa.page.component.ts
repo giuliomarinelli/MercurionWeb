@@ -14,7 +14,7 @@ import {
 } from '../../../utils/application-error.util';
 import { UserContextService } from '../../../services/context/user-context.service'
 import { SessionSyncService } from '../../../services/session-sync.service'
-import { ISessionDeviceInfo } from '../../../Models/auth/fingerprint.models'
+import type { SessionDeviceInfo } from '@mercurion/rest-contracts'
 import { BackupCodeDTO, TotpBodyDTO } from '../../../Models/auth/totp.models'
 import { ToastService } from '../../../services/toast.service'
 import { ClassicSpinnerComponent } from '../../../components/common/classic-spinner/classic-spinner.component'
@@ -251,7 +251,7 @@ export class MfaPageComponent implements OnInit, OnDestroy {
   protected loginFirstStepData: Login_FirstStep_Data | null | undefined
 
   private fingerprintDataEnc = ''
-  private sessionDeviceInfo: ISessionDeviceInfo = {
+  private sessionDeviceInfo: SessionDeviceInfo = {
     osPlatform: '',
     useragent: '',
     browser: { name: '', version: '' }

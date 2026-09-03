@@ -17,6 +17,4 @@ export interface ISession {
     provider: AuthProvider
 }
 
-export type ISessionDeviceInfo = SessionDeviceInfo
-
 export type ISSO_SessionActivationData = Pick<ISession, 'IP' | 'fingerprint' | 'sessionDeviceInfo' | 'location' | 'deviceId'>
