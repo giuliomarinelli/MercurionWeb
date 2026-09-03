@@ -1,7 +1,7 @@
 # 0008 - Extend canonical CI and enforce Nest GraphQL schema drift
 
-- [x] DONE
-- [ ] BLOCKED
+- [ ] DONE
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -466,9 +466,20 @@ Angular's headless Karma execution passed through the test gate.
 
 ### Merge / CI
 
-Coordinator-owned. The worker only prepares and pushes the exact feature SHA;
-feature-SHA and merge-SHA GitHub Actions observation, integration, and any
-rollback lifecycle remain pending.
+The coordinator observed exact feature-SHA workflow
+`https://github.com/giuliomarinelli/MercurionWeb/actions/runs/33711148787`
+for `17d57da6c06151f060fef66b896c7c946960e1d1`.
+
+- `Quality (ubuntu-latest)`: success.
+- `Quality (windows-latest)`: failure in
+  `Check GraphQL and generated contracts`.
+- `Required gate`: failure.
+
+The Windows runner completed Nest schema checking and Angular catalog/schema
+validation, but `graphql-codegen --check` reported both
+`src/app/generated/schema.ts` and `src/app/generated/graphql.ts` as stale.
+The exact feature SHA therefore did not satisfy the permanent cross-platform
+gate and was not merged.
 
 ### Rollback
 
@@ -476,4 +487,7 @@ _Not applicable._
 
 ### Blocker / human decision required
 
-None.
+The generated Angular GraphQL artifacts are not byte-stable across the clean
+Linux and Windows CI runners after the schema-ordering changes in this task.
+The preserved branch requires a later human-authorized retry that makes
+codegen output cross-platform deterministic without weakening the drift gate.
