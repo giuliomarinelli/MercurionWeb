@@ -6,7 +6,6 @@ import { APIClientTicket, Ticket, TicketCardMode } from '../../../Models/graphql
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
 import { inject } from '@angular/core';
 import { TypeGuardsService } from '../../../services/type-guards.service';
-import { Maybe } from 'graphql/jsutils/Maybe';
 
 
 
@@ -284,7 +283,7 @@ export class TicketCardComponent {
     return t.status === 'Closed'
   })
 
-  getUserFullNameIfIsTicket(t: Maybe<Ticket | APIClientTicket>): string {
+  getUserFullNameIfIsTicket(t: Ticket | APIClientTicket | null | undefined): string {
     if (this.typeGuards.isTicket(t)) {
       return t.userFullName ?? ''
     }
