@@ -1,6 +1,6 @@
 # 0008 - Extend canonical CI and enforce Nest GraphQL schema drift
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -385,24 +385,129 @@ session. Create a new `feature/SYS-008` from the exact green post-recovery
 attempt.
 
 ### Feature branch
-_Not started for the authorized retry._
+
+`feature/SYS-008`, created by the coordinator from exact base
+`2b7b8e66d8ceae496468488525b70143cda333b1`.
+
 ### Preflight
-_Not started for the authorized retry._
+
+- Verified the clean branch was exactly `feature/SYS-008` at the supplied
+  base, tracking `origin/feature/SYS-008`.
+- Proved no task/session-owned Angular, Nest, Tox21, test watcher, or other
+  repository-consuming runtime was active. The only repository-referencing
+  desktop process was the human-managed VS Code instance; the Copilot and
+  isolated Chrome MCP processes were not workspace runtimes.
+- Confirmed Node.js `22.16.0`, npm `10.9.2`, and repository-local
+  `commit.gpgSign=false`.
+- Unchanged root `npm ci` succeeded with exit 0. The existing `geoip-lite`
+  engine warning and package deprecation warnings were non-fatal.
+- Unchanged root `npm run ci:check` succeeded with exit 0.
+- `git diff --exit-code`, `git diff --cached --exit-code`, and
+  `git status --short` proved no task change existed after preflight.
+
 ### Preflight remediation
-_None._
+
+None. The unchanged task branch was green.
+
 ### Summary
-_Not started for the authorized retry._
+
+- Added a production-service-free Nest code-first schema tool that discovers
+  resolver metadata, initializes only `GraphQLSchemaBuilderModule`, and renders
+  a lexicographically sorted, newline-terminated schema.
+- Added separate `graphql:schema:check` and `graphql:schema:update` commands.
+  The check is non-mutating, compares exact bytes, classifies semantic versus
+  byte-only drift, prints the first differing hunk, and gives the update
+  command.
+- Configured runtime auto-schema generation to use the same sorted,
+  newline-terminated representation and regenerated the committed schema.
+- Added root `ci:graphql` and `ci:static` contracts. `ci:graphql` runs the Nest
+  schema check plus the existing Angular catalog, validation, negative-probe,
+  and unweakened `graphql-codegen --check` gates. `ci:static` retains REST
+  contract checks as the extension point. `ci:check` includes both.
+- Kept GitHub Actions thin and root-script-driven while adding the GraphQL and
+  static steps, `master` pull-request coverage, `workflow_dispatch`, and exact
+  checked-out SHA output. Existing `feature/**` and `develop` push coverage,
+  both quality operating systems, read-only permissions, concurrency policy,
+  and stable `Required gate` remain intact.
+- Addressed the archived Windows-only byte-staleness at its root: the recovery
+  base now forces LF checkout for `MercurionWebNg/src/app/generated/*.ts` in
+  `.gitattributes`. The task preserves that rule and does not bypass or replace
+  GraphQL Code Generator's native `--check`.
+
 ### Task-specific validation performed
-_Not started for the authorized retry._
+
+- All declared named gates succeeded with exit 0:
+  - `npm run ci:lint`
+  - `npm run ci:typecheck`
+  - `npm run ci:test:angular`
+  - `npm run ci:test:nest`
+  - `npm run ci:test:nest:e2e`
+  - `npm run ci:build`
+  - `npm run ci:graphql`
+  - `npm run ci:static` (including 2 REST runtime-parity tests)
+- Windows byte-stability proof:
+  - ran `npm run graphql:schema:update --workspace mercurion_web_node`;
+  - ran `npm run graphql:generate --workspace mercurion_web_ng`;
+  - `schema.ts` remained SHA-256
+    `545BAD15CB8E4064B64027CEE55FC6DD27DF968A1EDF94C7B9EFBCBE58C8E10E`;
+  - `graphql.ts` remained SHA-256
+    `D7307021FB9C22CDA3815DE923FED884BC341AAF3C3D45D522D5D6CF908DE762`;
+  - `schema.graphql` remained SHA-256
+    `A7F07492EFD27E0C496E0D6D5CEB9E08245913654605BFB0ED7A05CA1569016B`;
+  - all three files contained zero CRLF byte pairs after generation.
+- Linux portability evidence: the current generated `schema.ts`, generated
+  `graphql.ts`, `codegen.yml`, and regenerated Nest `schema.graphql` have the
+  exact same Git blob IDs as the read-only archived attempt's Ubuntu-passing
+  workflow. The archived Ubuntu quality job succeeded on
+  `https://github.com/giuliomarinelli/MercurionWeb/actions/runs/33711148787`;
+  the archived Windows failure was solely the generated-TypeScript checkout
+  EOL mismatch now governed by the committed LF attribute. Exact current
+  Windows/Linux feature-SHA CI remains mandatory before integration.
+- Controlled negative lint probe: an unused local made
+  `npm run ci:lint:nest` fail with exit 1 and
+  `@typescript-eslint/no-unused-vars`; the edit was removed exactly.
+- Controlled negative typecheck probe: assigning a number to a string local
+  made `npm run ci:typecheck:nest` fail with exit 2 / `TS2322`; the edit was
+  removed exactly.
+- Controlled schema-drift probe: adding an optional decorated DTO field made
+  `npm run ci:graphql:nest` fail with exit 1, classify `semantic schema
+  change`, print the committed path and first differing hunk, and show the
+  explicit update command; the edit was removed exactly.
+- After every controlled probe and after the complete named check-only
+  sequence, `git diff --exit-code` proved no unstaged/generated mutation.
+
 ### Full pre-merge CI-parity validation
-_Not started for the authorized retry._
+
+- Re-proved no task/session-owned runtime or watcher was active before the
+  clean install.
+- Root `npm ci` succeeded with exit 0.
+- Root `npm run ci:check` succeeded with exit 0 using the extended aggregate:
+  autonomous-control validation, lint, explicit typechecks, all Angular/Nest
+  unit and E2E tests, both builds, Nest and Angular GraphQL/generated-artifact
+  drift, and registered static/REST contract checks.
+- The exact final task-result commit is rechecked with the same clean-install
+  pair before push; its result and SHA are included in the worker handoff.
+
 ### Browser validation performed
-_Not applicable._
+
+Not applicable. The recipe explicitly does not require browser validation.
+No Angular, Nest, Tox21, or other application runtime was started.
+
 ### Commits
-_Not recorded for the authorized retry._
+
+- `e53d86cc` - `feat(ci): enforce GraphQL schema drift checks`
+- Task outcome and execution evidence - this task-result commit.
+
 ### Merge / CI
-_Not started for the authorized retry._
+
+Local completion is provisional `CI_PENDING`. The coordinator must require the
+exact pushed feature SHA's Ubuntu and Windows quality jobs plus stable
+`Required gate` before integration; no merge was performed by the worker.
+
 ### Rollback
-_Not applicable._
+
+Not applicable.
+
 ### Blocker / human decision required
-_None recorded for the authorized retry._
+
+None.
