@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -107,20 +107,32 @@ Keep HTTP status and application code conceptually distinct. GraphQL may return 
 
 ### Summary
 
-_Not started._
+Not attempted. At its normal filename-order selection point, the explicit hard
+prerequisite `0009-create-typed-socket-io-event-registry.md` was terminal
+`BLOCKED`, so this task is `SKIPPED_DEPENDENCY`.
 
 ### Validation performed
 
-_Not started._
+No feature branch, worker invocation, task preflight, implementation, or
+runtime validation was performed. Dependency resolution occurred on clean,
+green `develop`.
 
 ### Browser validation performed
 
-_Not started._
+Not performed because this task was not attempted.
 
 ### Changed files
 
-_Not recorded._
+Only this task recipe's terminal-state metadata and execution notes.
 
 ### Blocker / human decision required
 
-_None._
+Direct terminal prerequisite:
+`0009-create-typed-socket-io-event-registry.md` (`SYS-009`) is `BLOCKED`.
+
+Dependency chain: `0011 (SYS-011) -> 0009 (SYS-009, BLOCKED)`.
+
+Task 0009 remains preserved and frozen on `feature/SYS-009` at
+`2d1df866fdf7befd3b07ad1a4201c682083fc2cf`. Its mandatory browser validation
+requires approved non-production Nest runtime configuration and a UTF-8-capable
+environment for the documented Tox21 command.
