@@ -1,6 +1,6 @@
 # 0008 - Extend canonical CI and enforce Nest GraphQL schema drift
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -367,39 +367,108 @@ Prefer deterministic checks and explicit diagnostics over clever workflow logic.
 
 ### Feature branch
 
-_Not started._
+`feature/SYS-008`, created by the coordinator at base
+`84c1d1f70fc45ed57ad297476becd725e083216a`.
 
 ### Preflight
 
-_Not started._
+- Verified the clean branch was exactly `feature/SYS-008` at
+  `84c1d1f70fc45ed57ad297476becd725e083216a`.
+- `npm ci` succeeded using Node.js `22.16.0` / npm `10.9.2` (the existing
+  `geoip-lite` engine warning and package deprecation warnings were
+  non-fatal).
+- Unchanged `npm run ci:check` succeeded with exit status 0.
+- `git diff --exit-code`, `git diff --cached --exit-code`, and
+  `git status --short` proved the task branch remained unchanged after
+  preflight.
 
 ### Preflight remediation
 
-_None._
+None. The unchanged baseline was green, so no baseline debt was repaired in
+this recipe.
 
 ### Summary
 
-_Not started._
+- Added a production-service-free Nest code-first schema command that
+  discovers resolver metadata, initializes only `GraphQLSchemaBuilderModule`,
+  and renders a lexicographically sorted schema with stable LF bytes.
+- Added separate `graphql:schema:check` and `graphql:schema:update` commands.
+  The check never writes the committed artifact and reports whether drift is
+  semantic, byte-only, or invalid SDL, including the first differing hunk and
+  the update command.
+- Made runtime auto-schema generation use the same sorted, newline-terminated
+  representation and made previously ambiguous nullable/literal DTO scalar
+  metadata explicit without changing public GraphQL semantics.
+- Regenerated `MercurionWebNode/src/schema.graphql` into the deterministic
+  order and enforced LF checkout for GraphQL artifacts.
+- Added root `ci:graphql` and `ci:static` contracts. `ci:graphql` runs both the
+  Nest schema check and all existing Angular catalog/document/codegen drift
+  checks; `ci:static` retains the REST contract checks as the registered
+  extension point. `ci:check` includes every existing gate.
+- Kept the workflow root-script-driven while adding GraphQL/static steps,
+  `master` pull-request coverage, `workflow_dispatch`, and exact checked-out
+  SHA output. Existing `feature/**`/`develop` pushes, both operating systems,
+  read-only permissions, concurrency safety, and the stable `Required gate`
+  remain intact.
 
 ### Task-specific validation performed
 
-_Not started._
+- Clean-install named gates, all exit 0:
+  - `npm run ci:lint`
+  - `npm run ci:typecheck`
+  - `npm run ci:test:angular`
+  - `npm run ci:test:nest` — 117 suites / 159 tests passed.
+  - `npm run ci:test:nest:e2e` — 1 suite / 1 test passed.
+  - `npm run ci:build`
+  - `npm run ci:graphql`
+  - `npm run ci:static` — REST contract typecheck and 2 runtime parity tests
+    passed.
+- Nest schema generation first classified the old committed ordering as
+  byte-only drift; `npm run graphql:schema:update --workspace
+  mercurion_web_node` intentionally regenerated it, after which
+  `npm run ci:graphql:nest` passed.
+- Controlled negative lint probe: an unused local in
+  `mercurion-graphql.module.ts` made `npm run ci:lint:nest` fail with exit 1
+  and `@typescript-eslint/no-unused-vars`; the exact edit was removed.
+- Controlled negative typecheck probe: assigning `8` to a `string` local made
+  `npm run ci:typecheck:nest` fail with exit 2 / `TS2322`; the exact edit was
+  removed.
+- Controlled code-first schema drift probe: an optional decorated DTO field
+  made `npm run ci:graphql:nest` fail with exit 1, category
+  `semantic schema change`, a line-level hunk, the committed schema path, and
+  the explicit update command; the exact edit was removed and the gate
+  returned green.
+- After staging only intended task changes, every controlled edit was proven
+  restored with `git diff --exit-code`. After the complete named check-only
+  sequence, `git diff --exit-code` again proved no source mutation relative
+  to the staged implementation.
 
 ### Full pre-merge CI-parity validation
 
-_Not started._
+- Final clean `npm ci` succeeded with exit 0.
+- `npm run ci:check` succeeded with exit 0 using the extended aggregate:
+  autonomous-control validation, lint, typecheck, all Angular/Nest/E2E tests,
+  both builds, Nest/Angular GraphQL drift checks, and registered static/REST
+  contract checks.
+- A final post-status repeat of `npm ci` and `npm run ci:check` is performed
+  on the exact task-result commit before push; the worker handoff records that
+  exact SHA and result.
 
 ### Browser validation performed
 
-_Not applicable._
+Not applicable. The recipe explicitly does not require browser validation;
+Angular's headless Karma execution passed through the test gate.
 
 ### Commits
 
-_Not recorded._
+- `6bd95f8e` — `feat(ci): enforce GraphQL schema drift checks`
+- Task outcome and execution evidence — this task-result commit.
 
 ### Merge / CI
 
-_Not started._
+Coordinator-owned. The worker only prepares and pushes the exact feature SHA;
+feature-SHA and merge-SHA GitHub Actions observation, integration, and any
+rollback lifecycle remain pending.
 
 ### Rollback
 
@@ -407,4 +476,4 @@ _Not applicable._
 
 ### Blocker / human decision required
 
-_None._
+None.
