@@ -24,6 +24,26 @@ export type {
   FingerprintData,
   SessionDeviceInfo
 } from './fingerprint-contract'
+export {
+  RDKIT_OPERATIONS,
+  RDKIT_SMILES_MAX_LENGTH
+} from './rdkit-contract'
+export type {
+  RdkitAreSameStructureDTO,
+  RdkitAreSameStructureResponse,
+  RdkitAreSameStructureWire,
+  RdkitBaseDTO,
+  RdkitCanonicalSmilesWire,
+  RdkitGetMoleculePropertiesDTO,
+  RdkitGetMoleculePropertiesResponse,
+  RdkitGetMoleculePropertiesResult,
+  RdkitGetMoleculePropertiesWire,
+  RdkitOperation,
+  RdkitToCanonicalSmilesDTO,
+  RdkitToCanonicalSmilesOptsDTO,
+  RdkitToCanonicalSmilesResponse,
+  RdkitUpstreamError
+} from './rdkit-contract'
 
 export interface PageModel<T> {
   items: T[]
@@ -380,38 +400,6 @@ export interface CreateFeedbackDTO {
 
 export interface DeleteFeedbackResponse {
   ok: boolean
-}
-
-export interface RdkitToCanonicalSmilesOptsDTO {
-  isomeric?: boolean
-  kekule?: boolean
-}
-
-export interface RdkitBaseDTO {
-  accessToken?: string
-}
-
-export interface RdkitAreSameStructureDTO extends RdkitBaseDTO {
-  a: string
-  b: string
-}
-
-export interface RdkitToCanonicalSmilesDTO extends RdkitBaseDTO {
-  smiles: string
-  opts?: RdkitToCanonicalSmilesOptsDTO
-}
-
-export interface RdkitGetMoleculePropertiesDTO extends RdkitBaseDTO {
-  smiles: string
-}
-
-export interface RdkitGetMoleculePropertiesResult {
-  mwFreebase: number | null
-  alogp: number | null
-  hba: number | null
-  hbd: number | null
-  psa: number | null
-  rtb: number | null
 }
 
 export interface Tox21Inference {

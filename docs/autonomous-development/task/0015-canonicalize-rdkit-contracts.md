@@ -1,6 +1,6 @@
 # 0015 - Canonicalize RDKit contracts
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -87,19 +87,35 @@ Do not couple the canonical wire contract to Python/Tox21 implementation details
 
 ### Summary
 
-_Not started._
+Created `@mercurion/rest-contracts` RDKit contracts for the three exposed operations:
+`get_molecule_properties`, `to_canonical_smiles`, and `are_same_structure`. The shared
+source now owns operation names, request/option types, nullable molecule-property results,
+the SMILES length constraint, and discriminated upstream success/error wires. Angular
+continues to import these types directly; Nest DTO adapters retain `class-validator` and
+`class-transformer` validation while consuming the shared source. Removed the duplicated
+Nest RDKit response DTO definitions.
 
 ### Validation performed
 
-_Not started._
+- Initial unchanged preflight: `npm ci` and `npm run ci:check` (passed).
+- Focused checks: `npm run build --workspace @mercurion/rest-contracts`,
+  `npm run contracts:check --workspace mercurion_web_node`, and
+  `npm run typecheck --workspace mercurion_web_ng` (passed).
+- Added runtime contract fixtures covering valid request normalization, invalid SMILES and
+  option payloads, every operation's representative result wire, and upstream error wires.
+- Final CI-parity validation: `npm ci` and `npm run ci:check` (passed).
 
 ### Browser validation performed
 
-_Not applicable / not started._
+Not applicable. Angular's HTTP integration continues to use the existing same-origin
+endpoints and only its shared compile-time contract import changed.
 
 ### Changed files
 
-_Not recorded._
+- `packages/rest-contracts/src/rdkit-contract.ts`
+- `packages/rest-contracts/src/index.ts`
+- Nest RDKit DTO adapters, namespace mapping, service, contract checks, and RDKit runtime fixtures
+- `MercurionWebNode/package.json`
 
 ### Blocker / human decision required
 

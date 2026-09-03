@@ -7,11 +7,12 @@ import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interface
 import { Environment } from 'src/config/config'
 import { RDKitAPI_NS } from '../Models/interfaces/rdkit-api-ns.interface'
 import {
-    RdkitGetMoleculePropertiesWire,
-    RdkitCanonicalSmilesWire,
-    RdkitAreSameStructureWire,
-    RdkitGetMoleculePropertiesResult
-} from '../Models/DTO/rdkit/rdkit.res.dtos'
+    RDKIT_OPERATIONS,
+    type RdkitAreSameStructureWire,
+    type RdkitCanonicalSmilesWire,
+    type RdkitGetMoleculePropertiesResult,
+    type RdkitGetMoleculePropertiesWire
+} from '@mercurion/rest-contracts'
 import { RdkitGetMoleculePropertiesDTO } from '../Models/DTO/rdkit/rdkit-get-molecule-properties.cls.dto'
 import { RdkitToCanonicalSmilesDTO } from '../Models/DTO/rdkit/rdkit-canonical-smiles.dto'
 import { RdkitAreSameStructureDTO } from '../Models/DTO/rdkit/rdkit-are-same-structures.dto'
@@ -45,17 +46,17 @@ export class RDKitService implements OnModuleInit {
     // =========================
     private computeNamespaces(): RDKitAPI_NS {
         const base: RDKitAPI_NS = {
-            get_molecule_properties: 'rdkit_api.get_molecule_properties',
-            to_canonical_smiles: 'rdkit_api.to_canonical_smiles',
-            are_same_structure: 'rdkit_api.are_same_structure'
+            [RDKIT_OPERATIONS.getMoleculeProperties]: 'rdkit_api.get_molecule_properties',
+            [RDKIT_OPERATIONS.toCanonicalSmiles]: 'rdkit_api.to_canonical_smiles',
+            [RDKIT_OPERATIONS.areSameStructure]: 'rdkit_api.are_same_structure'
         }
 
         const env = this.configService.get<Environment>('App.env')!
         if (env !== Environment.Production) {
             return {
-                get_molecule_properties: `${env}.${base.get_molecule_properties}`,
-                to_canonical_smiles: `${env}.${base.to_canonical_smiles}`,
-                are_same_structure: `${env}.${base.are_same_structure}`
+                [RDKIT_OPERATIONS.getMoleculeProperties]: `${env}.${base.get_molecule_properties}`,
+                [RDKIT_OPERATIONS.toCanonicalSmiles]: `${env}.${base.to_canonical_smiles}`,
+                [RDKIT_OPERATIONS.areSameStructure]: `${env}.${base.are_same_structure}`
             }
         }
 
@@ -119,7 +120,7 @@ export class RDKitService implements OnModuleInit {
 
         const res = await firstValueFrom(
             this.mercurionAIClient
-                .send<RdkitGetMoleculePropertiesWire>(this.namespaces.get_molecule_properties, dto)
+                .send<RdkitGetMoleculePropertiesWire>(this.namespaces[RDKIT_OPERATIONS.getMoleculeProperties], dto)
                 .pipe(
                     timeout(3000),
                     this.mapError('get_molecule_properties')
@@ -141,7 +142,7 @@ export class RDKitService implements OnModuleInit {
 
         const res = await firstValueFrom(
             this.mercurionAIClient
-                .send<RdkitCanonicalSmilesWire>(this.namespaces.to_canonical_smiles, dto)
+                .send<RdkitCanonicalSmilesWire>(this.namespaces[RDKIT_OPERATIONS.toCanonicalSmiles], dto)
                 .pipe(
                     timeout(3000),
                     this.mapError('to_canonical_smiles')
@@ -163,7 +164,7 @@ export class RDKitService implements OnModuleInit {
 
         const res = await firstValueFrom(
             this.mercurionAIClient
-                .send<RdkitAreSameStructureWire>(this.namespaces.are_same_structure, dto)
+                .send<RdkitAreSameStructureWire>(this.namespaces[RDKIT_OPERATIONS.areSameStructure], dto)
                 .pipe(
                     timeout(3000),
                     this.mapError('are_same_structure')
