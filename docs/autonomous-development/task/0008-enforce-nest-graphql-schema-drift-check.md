@@ -1,7 +1,7 @@
 # 0008 - Extend canonical CI and enforce Nest GraphQL schema drift
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -367,11 +367,13 @@ Prefer deterministic checks and explicit diagnostics over clever workflow logic.
 
 ### Feature branch
 
-_Not started._
+Preserved and frozen at `feature/SYS-008`,
+`b99d864ef8c8555fe9f28bfa9152cd6581f78720`.
 
 ### Preflight
 
-_Not started._
+The worker reported green root `npm ci` and `npm run ci:check` on unchanged
+base `84c1d1f70fc45ed57ad297476becd725e083216a`.
 
 ### Preflight remediation
 
@@ -379,32 +381,56 @@ _None._
 
 ### Summary
 
-_Not started._
+Attempted implementation reached local completion at feature SHA
+`17d57da6c06151f060fef66b896c7c946960e1d1`, but exact feature-SHA CI failed
+on Windows. No implementation was merged into `develop`.
 
 ### Task-specific validation performed
 
-_Not started._
+Worker-reported local named gates and controlled negative probes passed.
+Remote Linux CI passed; remote Windows CI exposed cross-platform generated
+artifact drift not reproduced locally.
 
 ### Full pre-merge CI-parity validation
 
-_Not started._
+Worker-reported local root `npm ci` and `npm run ci:check` passed. The required
+remote cross-platform gate did not pass.
 
 ### Browser validation performed
 
-_Not applicable._
+Not applicable.
 
 ### Commits
 
-_Not recorded._
+- Implementation: `6bd95f8ef1b032068349478209794c7d87c2c8bc`.
+- Feature execution evidence:
+  `17d57da6c06151f060fef66b896c7c946960e1d1`.
+- Feature block diagnostic:
+  `b99d864ef8c8555fe9f28bfa9152cd6581f78720`.
 
 ### Merge / CI
 
-_Not started._
+Exact feature-SHA workflow:
+`https://github.com/giuliomarinelli/MercurionWeb/actions/runs/33711148787`.
+
+- `Quality (ubuntu-latest)`: success.
+- `Quality (windows-latest)`: failure in
+  `Check GraphQL and generated contracts`.
+- `Required gate`: failure.
+
+The Windows runner completed Nest schema checking and Angular document
+validation, then `graphql-codegen --check` reported
+`src/app/generated/schema.ts` and `src/app/generated/graphql.ts` as stale.
+The feature was not merged.
 
 ### Rollback
 
-_Not applicable._
+Not applicable; blocking occurred before merge.
 
 ### Blocker / human decision required
 
-_None._
+The generated Angular GraphQL artifacts are not byte-stable across the clean
+Linux and Windows runners after this task's schema-ordering changes. A later
+human-authorized retry must make codegen output cross-platform deterministic
+without weakening the drift gate. The preserved feature branch must remain
+frozen for diagnosis.
