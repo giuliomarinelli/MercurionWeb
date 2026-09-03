@@ -2,66 +2,9 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-interface MoleculeCollectionItemEntity {
-  id: ID!
-  label: String
-  notes: String
-  type: String!
-  joins: [MoleculeCollectionItemJoin!]
-  createdAt: String!
-  updatedAt: String!
-  touchedAt: String!
-}
-
-type MoleculeCollection {
-  id: ID!
+input AddManyChEMBLItemDTO {
+  chemblMolregno: ID!
   name: String!
-  items: [MoleculeCollectionItemJoin!]
-  createdAt: String!
-  updatedAt: String!
-  touchedAt: String!
-  itemsCount: Int!
-}
-
-type MoleculeCollectionItemJoin {
-  id: ID!
-  collection: MoleculeCollection
-  item: MoleculeCollectionItemEntity
-}
-
-type ChEMBLMoleculeItemEntity implements MoleculeCollectionItemEntity {
-  id: ID!
-  label: String
-  notes: String
-  type: String!
-  joins: [MoleculeCollectionItemJoin!]
-  createdAt: String!
-  updatedAt: String!
-  touchedAt: String!
-  chemblMolregno: Float!
-  name: String
-  nameEn: String
-}
-
-type MoleculeSearchResult {
-  id: Int!
-  preferredName: String
-  preferredNameIt: String
-  smiles: String
-  synonyms: [String!]
-  mwFreebase: Float
-  alogp: Float
-  maxPhase: Int
-  known: Boolean!
-}
-
-type MoleculeProperties {
-  mwFreebase: Float
-  alogp: Float
-  hba: Int
-  hbd: Int
-  psa: Float
-  rtb: Int
 }
 
 type AdministrationRoutes {
@@ -70,366 +13,107 @@ type AdministrationRoutes {
   topical: Boolean!
 }
 
-type MoleculeDetail {
-  id: Int!
-  cmbId: String!
-  preferredName: String
-  preferredNameIt: String
-  canonicalSmiles: String
-  properties: MoleculeProperties!
-  maxPhase: Float
-  moleculeType: String
-  administrationRoutes: AdministrationRoutes!
-  naturalProduct: Boolean!
-  prodrug: Boolean!
-  blackBoxWarning: Boolean!
-  synonyms: [String!]!
-}
-
-type CustomMoleculeItemEntity implements MoleculeCollectionItemEntity {
-  id: ID!
-  label: String
-  notes: String
-  type: String!
-  joins: [MoleculeCollectionItemJoin!]
-  createdAt: String!
-  updatedAt: String!
-  touchedAt: String!
-  canonicalSmiles: String!
-  molFormula: String
-  name: String
-  propertiesJson: String
-}
-
-type PaginatedMoleculeCollection {
-  items: [MoleculeCollection!]!
-  itemCount: Int!
-  totalItems: Int!
-  itemsPerPage: Int!
-  totalPages: Int!
-  currentPage: Int!
+enum AuthorType {
+  Support
+  User
 }
 
 type BindManyCollectionsToMoleculeDTO {
-  ok: Boolean!
   moleculeUUID: ID
-}
-
-type PaginatedMoleculeCollectionItem {
-  items: [MoleculeCollectionItemUnion!]!
-  itemCount: Int!
-  totalItems: Int!
-  itemsPerPage: Int!
-  totalPages: Int!
-  currentPage: Int!
-}
-
-union MoleculeCollectionItemUnion = CustomMoleculeItemDTO | ChEMBLMoleculeItemDTO
-
-type CustomMoleculeItemDTO {
-  id: ID!
-  label: String
-  notes: String
-  type: String!
-  canonicalSmiles: String!
-  molFormula: String
-  name: String
-  propertiesJson: String
-  createdAt: String!
-  updatedAt: String!
-  touchedAt: String!
-  joins: [MoleculeCollectionItemJoin!]
+  ok: Boolean!
 }
 
 type ChEMBLMoleculeItemDTO {
-  id: ID!
+  chemblDetails: MoleculeDetail
   chemblMolregno: String!
+  createdAt: String!
+  id: ID!
+  joins: [MoleculeCollectionItemJoin!]
   label: String
   notes: String
-  type: String!
-  createdAt: String!
-  updatedAt: String!
   touchedAt: String!
-  chemblDetails: MoleculeDetail
-  joins: [MoleculeCollectionItemJoin!]
-}
-
-type TicketMessage {
-  id: ID!
-  publicId: String!
-  ticketId: ID!
-  authorType: AuthorType!
-  authorId: ID
-  authorFullName: String
-  userId: ID
-  userFullName: String
-  contentDelta: String!
-  contentHtml: String!
-  createdAt: String!
-}
-
-enum AuthorType {
-  User
-  Support
-}
-
-type Ticket {
-  id: ID!
-  publicId: String!
-  userId: ID
-  userFullName: String
-  subject: String!
-  status: TicketStatus!
-  lastMessageAt: String!
-  createdAt: String!
+  type: String!
   updatedAt: String!
-  messages: [TicketMessage!]
 }
 
-enum TicketStatus {
-  Open
-  WaitingUser
-  WaitingSupport
-  Closed
-}
-
-type TicketDetailDTO {
-  ticket: Ticket!
-  messages: [TicketMessage!]
-}
-
-type PaginatedTicket {
-  items: [Ticket!]!
-  itemCount: Int!
-  totalItems: Int!
-  itemsPerPage: Int!
-  totalPages: Int!
-  currentPage: Int!
-}
-
-type PaginatedTicketMessage {
-  items: [TicketMessage!]!
-  itemCount: Int!
-  totalItems: Int!
-  itemsPerPage: Int!
-  totalPages: Int!
-  currentPage: Int!
-}
-
-type SynthStepMoleculeRef {
+type ChEMBLMoleculeItemEntity implements MoleculeCollectionItemEntity {
+  chemblMolregno: Float!
+  createdAt: String!
   id: ID!
-  step: SynthStep!
-  stepId: ID!
-  molecule: CustomMoleculeItemEntity
-  moleculeId: ID
-  role: MoleculeRole!
-  showAliasOnTheArrow: Boolean!
-}
-
-"""Ruolo della molecola in una reazione chimica"""
-enum MoleculeRole {
-  Reactant
-  Substrate
-  Product
-  SubProduct
-}
-
-type SynthStep {
-  id: ID!
-  synth: Synthesis!
-  synthId: ID
-  order: Int!
-  moleculeRefs: [SynthStepMoleculeRef!]
-  mainSubstrate: CustomMoleculeItemEntity
-  mainSubstrateId: ID
-  mainProduct: CustomMoleculeItemEntity
-  mainProductId: ID
-  description: String
-  reactionType: String
-  conditions: [String!]!
-}
-
-type Synthesis {
-  id: ID!
-  title: String!
+  joins: [MoleculeCollectionItemJoin!]
+  label: String
+  name: String
+  nameEn: String
   notes: String
-  steps: [SynthStep!]
+  touchedAt: String!
+  type: String!
+  updatedAt: String!
 }
 
-type LabNotebook {
-  id: ID!
+input CreateChapterInput {
+  notebookId: String!
   title: String!
-  chapters: [NotebookChapter!]!
-  createdAt: String
-  updatedAt: String
-}
-
-type NotebookChapter {
-  id: ID!
-  title: String!
-  notebook: LabNotebook!
-  sections: [NotebookSection!]
-  order: Int!
-  createdAt: String
-  updatedAt: String
-}
-
-type NotebookSection {
-  id: ID!
-  title: String!
-  chapter: NotebookChapter!
-  pages: [NotebookPage!]
-  order: Int!
-  description: String
-  createdAt: String
-  updatedAt: String
-}
-
-type LabNotebookLinkType {
-  id: ID!
-  noteId: ID!
-  itemId: ID!
-}
-
-type NotebookPage {
-  id: ID!
-  title: String
-  content: String
-  sanitizedText: String
-  section: NotebookSection!
-  links: [LabNotebookLinkType!]!
-  createdAt: String
-  updatedAt: String
-  order: Int!
-}
-
-type Query {
-  moleculeSearch(input: MoleculeSearchInput!): [MoleculeSearchResult!]!
-  moleculeSearch_excludeAlreadyAdded(input: MoleculeSearchInput!, collectionId: ID!): [MoleculeSearchResult!]!
-  moleculesByMolregnos(molregnos: [String!]!): [MoleculeDetail!]!
-  moleculePreviewsByMolregnos(molregnos: [String!]!): [MoleculeSearchResult!]!
-  moleculeByMolregno(molregno: String): MoleculeDetail!
-  myMoleculeCollections: [MoleculeCollection!]!
-  moleculeCollection(id: ID!): MoleculeCollection
-  searchMyCollections(query: String, limit: Float): [MoleculeCollection!]!
-  myMoleculeCollectionsPaginated(page: Int! = 1, limit: Int! = 20, excludeJoinedToMolecule: Boolean, moleculeId: ID, q: String!): PaginatedMoleculeCollection!
-  myMoleculeItems: [MoleculeCollectionItemUnion!]!
-  moleculeItem(id: ID!): MoleculeCollectionItemUnion
-  paginatedMoleculeCollectionItemsByUser(page: Int!, limit: Int!, q: String!, excludeJoinedToCollection: Boolean, collectionId: ID): PaginatedMoleculeCollectionItem!
-  paginatedMoleculeCollectionItemsByCollection(collectionId: String!, page: Int!, limit: Int!, q: String!, excluded: Boolean): PaginatedMoleculeCollectionItem!
-  chemblMoleculesByCollection(collectionId: ID!): [ChEMBLMoleculeItemEntity!]!
-  findOneChemblMoleculeById(itemId: ID!): ChEMBLMoleculeItemEntity
-  hasUserChEMBLMoleculeByMolregnoThenGetUUID(molregno: Int!): String
-  existsChEMBLMoleculeByUUIDThenGetMolregno(_uuid_: String!): String
-  findOneCustomMoleculeByCanonicalSmiles(canonicalSmiles: String!): CustomMoleculeItemEntity
-  myTicketDetail(ticketId: ID!): TicketDetailDTO!
-  myTickets(page: Int!, limit: Int!): PaginatedTicket!
-  myTicketMessages(page: Int!, limit: Int!, ticketId: ID!): PaginatedTicketMessage!
-  existsUserTicketById(ticketId: ID!): Boolean!
-  ticketDetailAsSupport(ticketId: ID!): TicketDetailDTO!
-  ticketsAsSupport(page: Int!, limit: Int!): PaginatedTicket!
-  ticketMessagesAsSupport(page: Int!, limit: Int!, ticketId: ID!): PaginatedTicketMessage!
-  mySyntheticRoutes: [Synthesis!]!
-  syntheticRoute(id: ID!): Synthesis
-  syntheticStepsByRoute(routeId: ID!): [SynthStep!]!
-  syntheticStepById(id: ID!): SynthStep
-  stepMoleculeRefs(stepId: ID!): [SynthStepMoleculeRef!]!
-  page(id: String!): NotebookPage
-  pagesBySection(sectionId: String!): [NotebookPage!]!
-  pageById(id: ID!): NotebookPage!
-  chaptersByNotebook(notebookId: ID!): [NotebookChapter!]!
-  chapterById(id: ID!): NotebookChapter!
-  sectionByChapterId(chapterId: ID!): NotebookSection!
-  sectionById(id: ID!): NotebookSection!
-  labNotebooksByUser: [LabNotebook!]!
-  labNotebook(id: ID!): LabNotebook
-}
-
-input MoleculeSearchInput {
-  query: String
-  maxPhase: Int
-  moleculeType: String
-  minMw: Float
-  maxMw: Float
-  limit: Int
-}
-
-type Mutation {
-  duplicateCollection(srcCollectionId: ID!): MoleculeCollection
-  createMoleculeCollection(name: String!): MoleculeCollection!
-  createManyMoleculeCollections(names: [String!]!): Boolean!
-  updateMoleculeCollection(id: ID!, name: String!): MoleculeCollection!
-  deleteMoleculeCollection(id: ID!): Boolean!
-  markMoleculeCollectionAsTouched(id: ID!): Boolean!
-  bindManyCollectionsToMolecule(moleculeId: ID!, collectionIds: [ID!]!, selectAll: Boolean!): BindManyCollectionsToMoleculeDTO!
-  createMoleculeItem(input: CreateMoleculeItemInput!): MoleculeCollectionItemUnion!
-  updateMoleculeItem(id: ID!, input: CreateMoleculeItemInput!): MoleculeCollectionItemUnion
-  deleteMoleculeItem(id: ID!): Boolean!
-  markMoleculeCollectionItemAsTouched(id: ID!, flagIds: String!): Boolean!
-  addManyMoleculesToCollection(collectionId: ID!, itemIds: [ID!]!, selectAll: Boolean!): Boolean!
-  removeMoleculeFromCollection(collectionId: ID!, itemId: ID!, deleteCollectionIfEmpty: Boolean): Boolean!
-  addChemblMoleculeToCollection(collectionId: ID!, chemblMolregno: Float!, label: String, notes: String): ChEMBLMoleculeItemEntity!
-  removeChemblMoleculeFromCollection(collectionId: ID!, itemId: ID!): Boolean!
-  addManyChemblItemsToCollection(collectionId: ID!, input: [AddManyChEMBLItemDTO!]!): Boolean!
-  addCustomMoleculeToCollection(collectionId: ID!, input: CustomMoleculeItemInput!): CustomMoleculeItemEntity!
-  removeCustomMoleculeFromCollection(collectionId: ID!, itemId: ID!): Boolean!
-  createTicket(subject: String!, contentDelta: JSON!, contentHtml: String!): Ticket!
-  addTicketMessage(ticketId: ID!, contentDelta: JSON!, contentHtml: String!): Boolean!
-  closeMyTicket(ticketId: ID!): Boolean!
-  addSupportTicketMessage(ticketId: ID!, contentDelta: JSON!, contentHtml: String!): Boolean!
-  closeTicketAsSupport(ticketId: ID!): Boolean!
-  reopenTicketAsSupport(ticketId: ID!): Boolean!
-  createSyntheticRoute(input: SynthesisInput!): Synthesis!
-  updateSyntheticRoute(id: ID!, input: SynthesisInput!): Synthesis!
-  deleteSyntheticRoute(id: ID!): Boolean!
-  createSyntheticStep(input: SynthStepInput!): SynthStep!
-  updateSyntheticStep(id: ID!, input: SynthStepInput!): SynthStep!
-  deleteSyntheticStep(id: ID!): Boolean!
-  addStepMoleculeRef(input: SynthStepMoleculeRefInput!): SynthStepMoleculeRef!
-  updateStepMoleculeRef(id: ID!, input: SynthStepMoleculeRefInput!): SynthStepMoleculeRef!
-  removeStepMoleculeRef(id: ID!): Boolean!
-  createPage(input: CreatePageInput!): NotebookPage!
-  updatePage(input: UpdatePageInput!): NotebookPage
-  deletePage(id: String!): Boolean!
-  movePage(pageId: ID!, direction: String!): Boolean!
-  reorderPages(sectionId: ID!, orderedIds: [ID!]!): Boolean!
-  createChapter(input: CreateChapterInput!): NotebookChapter!
-  updateChapter(input: UpdateChapterInput!): NotebookChapter!
-  deleteChapter(id: ID!): Boolean!
-  moveChapter(chapterId: ID!, direction: String!): Boolean!
-  reorderChapters(notebookId: ID!, orderedIds: [ID!]!): Boolean!
-  createSection(input: CreateSectionInput!): NotebookSection!
-  updateSection(input: UpdateSectionInput!): NotebookSection!
-  deleteSection(id: ID!): Boolean!
-  moveSection(sectionId: ID!, direction: String!): Boolean!
-  reorderSections(chapterId: ID!, orderedIds: [ID!]!): Boolean!
-  createLabNotebook(title: String!): LabNotebook!
-  updateLabNotebook(input: UpdateLabNotebookInput!): LabNotebook!
-  deleteLabNotebook(id: ID!): Boolean!
 }
 
 input CreateMoleculeItemInput {
-  type: String!
   canonicalSmiles: String
-  molFormula: String
-  name: String
-  propertiesJson: String
   chemblMolregno: Float
   label: String
+  molFormula: String
+  name: String
   notes: String
+  propertiesJson: String
+  type: String!
 }
 
-input AddManyChEMBLItemDTO {
-  chemblMolregno: ID!
-  name: String!
+input CreatePageInput {
+  content: String
+  sectionId: ID!
+  title: String
+}
+
+input CreateSectionInput {
+  chapterId: ID!
+  description: String
+  title: String!
+}
+
+type CustomMoleculeItemDTO {
+  canonicalSmiles: String!
+  createdAt: String!
+  id: ID!
+  joins: [MoleculeCollectionItemJoin!]
+  label: String
+  molFormula: String
+  name: String
+  notes: String
+  propertiesJson: String
+  touchedAt: String!
+  type: String!
+  updatedAt: String!
+}
+
+type CustomMoleculeItemEntity implements MoleculeCollectionItemEntity {
+  canonicalSmiles: String!
+  createdAt: String!
+  id: ID!
+  joins: [MoleculeCollectionItemJoin!]
+  label: String
+  molFormula: String
+  name: String
+  notes: String
+  propertiesJson: String
+  touchedAt: String!
+  type: String!
+  updatedAt: String!
 }
 
 input CustomMoleculeItemInput {
   canonicalSmiles: String!
   label: String
-  notes: String
   molFormula: String
   name: String
+  notes: String
   propertiesJson: String
 }
 
@@ -438,65 +122,381 @@ The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://
 """
 scalar JSON
 
-input SynthesisInput {
+type LabNotebook {
+  chapters: [NotebookChapter!]!
+  createdAt: String
+  id: ID!
   title: String!
+  updatedAt: String
+}
+
+type LabNotebookLinkType {
+  id: ID!
+  itemId: ID!
+  noteId: ID!
+}
+
+type MoleculeCollection {
+  createdAt: String!
+  id: ID!
+  items: [MoleculeCollectionItemJoin!]
+  itemsCount: Int!
+  name: String!
+  touchedAt: String!
+  updatedAt: String!
+}
+
+interface MoleculeCollectionItemEntity {
+  createdAt: String!
+  id: ID!
+  joins: [MoleculeCollectionItemJoin!]
+  label: String
   notes: String
+  touchedAt: String!
+  type: String!
+  updatedAt: String!
+}
+
+type MoleculeCollectionItemJoin {
+  collection: MoleculeCollection
+  id: ID!
+  item: MoleculeCollectionItemEntity
+}
+
+union MoleculeCollectionItemUnion = ChEMBLMoleculeItemDTO | CustomMoleculeItemDTO
+
+type MoleculeDetail {
+  administrationRoutes: AdministrationRoutes!
+  blackBoxWarning: Boolean!
+  canonicalSmiles: String
+  cmbId: String!
+  id: Int!
+  maxPhase: Float
+  moleculeType: String
+  naturalProduct: Boolean!
+  preferredName: String
+  preferredNameIt: String
+  prodrug: Boolean!
+  properties: MoleculeProperties!
+  synonyms: [String!]!
+}
+
+type MoleculeProperties {
+  alogp: Float
+  hba: Int
+  hbd: Int
+  mwFreebase: Float
+  psa: Float
+  rtb: Int
+}
+
+"""Ruolo della molecola in una reazione chimica"""
+enum MoleculeRole {
+  Product
+  Reactant
+  SubProduct
+  Substrate
+}
+
+input MoleculeSearchInput {
+  limit: Int
+  maxMw: Float
+  maxPhase: Int
+  minMw: Float
+  moleculeType: String
+  query: String
+}
+
+type MoleculeSearchResult {
+  alogp: Float
+  id: Int!
+  known: Boolean!
+  maxPhase: Int
+  mwFreebase: Float
+  preferredName: String
+  preferredNameIt: String
+  smiles: String
+  synonyms: [String!]
+}
+
+type Mutation {
+  addChemblMoleculeToCollection(chemblMolregno: Float!, collectionId: ID!, label: String, notes: String): ChEMBLMoleculeItemEntity!
+  addCustomMoleculeToCollection(collectionId: ID!, input: CustomMoleculeItemInput!): CustomMoleculeItemEntity!
+  addManyChemblItemsToCollection(collectionId: ID!, input: [AddManyChEMBLItemDTO!]!): Boolean!
+  addManyMoleculesToCollection(collectionId: ID!, itemIds: [ID!]!, selectAll: Boolean!): Boolean!
+  addStepMoleculeRef(input: SynthStepMoleculeRefInput!): SynthStepMoleculeRef!
+  addSupportTicketMessage(contentDelta: JSON!, contentHtml: String!, ticketId: ID!): Boolean!
+  addTicketMessage(contentDelta: JSON!, contentHtml: String!, ticketId: ID!): Boolean!
+  bindManyCollectionsToMolecule(collectionIds: [ID!]!, moleculeId: ID!, selectAll: Boolean!): BindManyCollectionsToMoleculeDTO!
+  closeMyTicket(ticketId: ID!): Boolean!
+  closeTicketAsSupport(ticketId: ID!): Boolean!
+  createChapter(input: CreateChapterInput!): NotebookChapter!
+  createLabNotebook(title: String!): LabNotebook!
+  createManyMoleculeCollections(names: [String!]!): Boolean!
+  createMoleculeCollection(name: String!): MoleculeCollection!
+  createMoleculeItem(input: CreateMoleculeItemInput!): MoleculeCollectionItemUnion!
+  createPage(input: CreatePageInput!): NotebookPage!
+  createSection(input: CreateSectionInput!): NotebookSection!
+  createSyntheticRoute(input: SynthesisInput!): Synthesis!
+  createSyntheticStep(input: SynthStepInput!): SynthStep!
+  createTicket(contentDelta: JSON!, contentHtml: String!, subject: String!): Ticket!
+  deleteChapter(id: ID!): Boolean!
+  deleteLabNotebook(id: ID!): Boolean!
+  deleteMoleculeCollection(id: ID!): Boolean!
+  deleteMoleculeItem(id: ID!): Boolean!
+  deletePage(id: String!): Boolean!
+  deleteSection(id: ID!): Boolean!
+  deleteSyntheticRoute(id: ID!): Boolean!
+  deleteSyntheticStep(id: ID!): Boolean!
+  duplicateCollection(srcCollectionId: ID!): MoleculeCollection
+  markMoleculeCollectionAsTouched(id: ID!): Boolean!
+  markMoleculeCollectionItemAsTouched(flagIds: String!, id: ID!): Boolean!
+  moveChapter(chapterId: ID!, direction: String!): Boolean!
+  movePage(direction: String!, pageId: ID!): Boolean!
+  moveSection(direction: String!, sectionId: ID!): Boolean!
+  removeChemblMoleculeFromCollection(collectionId: ID!, itemId: ID!): Boolean!
+  removeCustomMoleculeFromCollection(collectionId: ID!, itemId: ID!): Boolean!
+  removeMoleculeFromCollection(collectionId: ID!, deleteCollectionIfEmpty: Boolean, itemId: ID!): Boolean!
+  removeStepMoleculeRef(id: ID!): Boolean!
+  reopenTicketAsSupport(ticketId: ID!): Boolean!
+  reorderChapters(notebookId: ID!, orderedIds: [ID!]!): Boolean!
+  reorderPages(orderedIds: [ID!]!, sectionId: ID!): Boolean!
+  reorderSections(chapterId: ID!, orderedIds: [ID!]!): Boolean!
+  updateChapter(input: UpdateChapterInput!): NotebookChapter!
+  updateLabNotebook(input: UpdateLabNotebookInput!): LabNotebook!
+  updateMoleculeCollection(id: ID!, name: String!): MoleculeCollection!
+  updateMoleculeItem(id: ID!, input: CreateMoleculeItemInput!): MoleculeCollectionItemUnion
+  updatePage(input: UpdatePageInput!): NotebookPage
+  updateSection(input: UpdateSectionInput!): NotebookSection!
+  updateStepMoleculeRef(id: ID!, input: SynthStepMoleculeRefInput!): SynthStepMoleculeRef!
+  updateSyntheticRoute(id: ID!, input: SynthesisInput!): Synthesis!
+  updateSyntheticStep(id: ID!, input: SynthStepInput!): SynthStep!
+}
+
+type NotebookChapter {
+  createdAt: String
+  id: ID!
+  notebook: LabNotebook!
+  order: Int!
+  sections: [NotebookSection!]
+  title: String!
+  updatedAt: String
+}
+
+type NotebookPage {
+  content: String
+  createdAt: String
+  id: ID!
+  links: [LabNotebookLinkType!]!
+  order: Int!
+  sanitizedText: String
+  section: NotebookSection!
+  title: String
+  updatedAt: String
+}
+
+type NotebookSection {
+  chapter: NotebookChapter!
+  createdAt: String
+  description: String
+  id: ID!
+  order: Int!
+  pages: [NotebookPage!]
+  title: String!
+  updatedAt: String
+}
+
+type PaginatedMoleculeCollection {
+  currentPage: Int!
+  itemCount: Int!
+  items: [MoleculeCollection!]!
+  itemsPerPage: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
+type PaginatedMoleculeCollectionItem {
+  currentPage: Int!
+  itemCount: Int!
+  items: [MoleculeCollectionItemUnion!]!
+  itemsPerPage: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
+type PaginatedTicket {
+  currentPage: Int!
+  itemCount: Int!
+  items: [Ticket!]!
+  itemsPerPage: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
+type PaginatedTicketMessage {
+  currentPage: Int!
+  itemCount: Int!
+  items: [TicketMessage!]!
+  itemsPerPage: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
+type Query {
+  chapterById(id: ID!): NotebookChapter!
+  chaptersByNotebook(notebookId: ID!): [NotebookChapter!]!
+  chemblMoleculesByCollection(collectionId: ID!): [ChEMBLMoleculeItemEntity!]!
+  existsChEMBLMoleculeByUUIDThenGetMolregno(_uuid_: String!): String
+  existsUserTicketById(ticketId: ID!): Boolean!
+  findOneChemblMoleculeById(itemId: ID!): ChEMBLMoleculeItemEntity
+  findOneCustomMoleculeByCanonicalSmiles(canonicalSmiles: String!): CustomMoleculeItemEntity
+  hasUserChEMBLMoleculeByMolregnoThenGetUUID(molregno: Int!): String
+  labNotebook(id: ID!): LabNotebook
+  labNotebooksByUser: [LabNotebook!]!
+  moleculeByMolregno(molregno: String): MoleculeDetail!
+  moleculeCollection(id: ID!): MoleculeCollection
+  moleculeItem(id: ID!): MoleculeCollectionItemUnion
+  moleculePreviewsByMolregnos(molregnos: [String!]!): [MoleculeSearchResult!]!
+  moleculeSearch(input: MoleculeSearchInput!): [MoleculeSearchResult!]!
+  moleculeSearch_excludeAlreadyAdded(collectionId: ID!, input: MoleculeSearchInput!): [MoleculeSearchResult!]!
+  moleculesByMolregnos(molregnos: [String!]!): [MoleculeDetail!]!
+  myMoleculeCollections: [MoleculeCollection!]!
+  myMoleculeCollectionsPaginated(excludeJoinedToMolecule: Boolean, limit: Int! = 20, moleculeId: ID, page: Int! = 1, q: String!): PaginatedMoleculeCollection!
+  myMoleculeItems: [MoleculeCollectionItemUnion!]!
+  mySyntheticRoutes: [Synthesis!]!
+  myTicketDetail(ticketId: ID!): TicketDetailDTO!
+  myTicketMessages(limit: Int!, page: Int!, ticketId: ID!): PaginatedTicketMessage!
+  myTickets(limit: Int!, page: Int!): PaginatedTicket!
+  page(id: String!): NotebookPage
+  pageById(id: ID!): NotebookPage!
+  pagesBySection(sectionId: String!): [NotebookPage!]!
+  paginatedMoleculeCollectionItemsByCollection(collectionId: String!, excluded: Boolean, limit: Int!, page: Int!, q: String!): PaginatedMoleculeCollectionItem!
+  paginatedMoleculeCollectionItemsByUser(collectionId: ID, excludeJoinedToCollection: Boolean, limit: Int!, page: Int!, q: String!): PaginatedMoleculeCollectionItem!
+  searchMyCollections(limit: Float, query: String): [MoleculeCollection!]!
+  sectionByChapterId(chapterId: ID!): NotebookSection!
+  sectionById(id: ID!): NotebookSection!
+  stepMoleculeRefs(stepId: ID!): [SynthStepMoleculeRef!]!
+  syntheticRoute(id: ID!): Synthesis
+  syntheticStepById(id: ID!): SynthStep
+  syntheticStepsByRoute(routeId: ID!): [SynthStep!]!
+  ticketDetailAsSupport(ticketId: ID!): TicketDetailDTO!
+  ticketMessagesAsSupport(limit: Int!, page: Int!, ticketId: ID!): PaginatedTicketMessage!
+  ticketsAsSupport(limit: Int!, page: Int!): PaginatedTicket!
+}
+
+type SynthStep {
+  conditions: [String!]!
+  description: String
+  id: ID!
+  mainProduct: CustomMoleculeItemEntity
+  mainProductId: ID
+  mainSubstrate: CustomMoleculeItemEntity
+  mainSubstrateId: ID
+  moleculeRefs: [SynthStepMoleculeRef!]
+  order: Int!
+  reactionType: String
+  synth: Synthesis!
+  synthId: ID
 }
 
 input SynthStepInput {
-  synthId: ID!
-  order: Int!
-  mainSubstrateId: ID!
-  mainProductId: ID!
-  description: String
-  reactionType: String
   conditions: [String!]!
+  description: String
+  mainProductId: ID!
+  mainSubstrateId: ID!
+  order: Int!
+  reactionType: String
+  synthId: ID!
+}
+
+type SynthStepMoleculeRef {
+  id: ID!
+  molecule: CustomMoleculeItemEntity
+  moleculeId: ID
+  role: MoleculeRole!
+  showAliasOnTheArrow: Boolean!
+  step: SynthStep!
+  stepId: ID!
 }
 
 input SynthStepMoleculeRefInput {
-  stepId: ID!
   moleculeId: ID!
   role: MoleculeRole!
   showAliasOnTheArrow: Boolean!
+  stepId: ID!
 }
 
-input CreatePageInput {
-  sectionId: ID!
-  title: String
-  content: String
-}
-
-input UpdatePageInput {
+type Synthesis {
   id: ID!
-  title: String
-  content: String
-  order: Int
+  notes: String
+  steps: [SynthStep!]
+  title: String!
 }
 
-input CreateChapterInput {
-  notebookId: String!
+input SynthesisInput {
+  notes: String
   title: String!
+}
+
+type Ticket {
+  createdAt: String!
+  id: ID!
+  lastMessageAt: String!
+  messages: [TicketMessage!]
+  publicId: String!
+  status: TicketStatus!
+  subject: String!
+  updatedAt: String!
+  userFullName: String
+  userId: ID
+}
+
+type TicketDetailDTO {
+  messages: [TicketMessage!]
+  ticket: Ticket!
+}
+
+type TicketMessage {
+  authorFullName: String
+  authorId: ID
+  authorType: AuthorType!
+  contentDelta: String!
+  contentHtml: String!
+  createdAt: String!
+  id: ID!
+  publicId: String!
+  ticketId: ID!
+  userFullName: String
+  userId: ID
+}
+
+enum TicketStatus {
+  Closed
+  Open
+  WaitingSupport
+  WaitingUser
 }
 
 input UpdateChapterInput {
   id: ID!
-  title: String
   order: Int
-}
-
-input CreateSectionInput {
-  chapterId: ID!
-  title: String!
-  description: String
-}
-
-input UpdateSectionInput {
-  id: ID!
   title: String
-  description: String
 }
 
 input UpdateLabNotebookInput {
-  title: String
   id: String!
+  title: String
+}
+
+input UpdatePageInput {
+  content: String
+  id: ID!
+  order: Int
+  title: String
+}
+
+input UpdateSectionInput {
+  description: String
+  id: ID!
+  title: String
 }

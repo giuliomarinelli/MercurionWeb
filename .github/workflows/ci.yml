@@ -9,6 +9,8 @@ on:
   pull_request:
     branches:
       - develop
+      - master
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -40,8 +42,9 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
-      - name: Record toolchain
+      - name: Record exact SHA and toolchain
         run: |
+          git rev-parse HEAD
           node --version
           npm --version
 
@@ -50,9 +53,6 @@ jobs:
 
       - name: Validate autonomous control plane
         run: npm run ci:validate:autonomous
-
-      - name: Check REST contracts
-        run: npm run ci:contracts
 
       - name: Lint Angular
         run: npm run ci:lint:angular
@@ -80,6 +80,12 @@ jobs:
 
       - name: Build Nest
         run: npm run ci:build:nest
+
+      - name: Check GraphQL and generated contracts
+        run: npm run ci:graphql
+
+      - name: Run registered static checks
+        run: npm run ci:static
 
   required:
     name: Required gate
