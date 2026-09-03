@@ -14,6 +14,10 @@ import { ToastService } from './toast.service'
 import { ToastContext } from '../components/common/toast/toast.component'
 import { environment } from '../../environments/environment.development'
 import { RealtimeSocketService } from './socket.IO/realtime-socket.service'
+import {
+  ApplicationErrorCode,
+  hasApplicationErrorCode
+} from '../utils/application-error.util'
 
 export type SessionSyncStatus =
   | 'unknown'
@@ -90,9 +94,14 @@ export class SessionSyncService {
     })
 
     // errore applicativo → tentiamo resync (niente logout automatico)
-    this.socket.on<{ detail: string }>('sv.pub.err').subscribe(err =>
+    this.socket.on<{ code?: string; detail: string }>('sv.pub.err').subscribe(err =>
       this.zone.run(() => {
-        if (err?.detail === 'Unauthorized') void this.handleUnauthorized()
+        if (hasApplicationErrorCode(
+          err,
+          ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED
+        )) {
+          void this.handleUnauthorized()
+        }
       })
     )
 

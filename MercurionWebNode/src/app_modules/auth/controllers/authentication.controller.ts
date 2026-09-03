@@ -1,7 +1,7 @@
 import { SessionService } from 'src/app_modules/auth/services/session.service';
 import { SecureCookieService } from './../services/secure-cookie.service';
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, HttpCode, HttpStatus, Param, Patch, Post, Query, Req, Res, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Query, Req, Res, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
 import { Login_FirstStepDTO } from '../Models/DTO/login-first-step.cls.dto';
 import { MfaService } from '../services/mfa.service';
 import { AuthenticationService } from '../services/authentication.service';
@@ -26,6 +26,10 @@ import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 import { TypeGuards } from 'src/utils/type-guards/type-guards';
+import {
+    ApplicationErrorCode,
+    applicationHttpException
+} from 'src/exception-handling/application-error';
 import { VerifyBodyDTO } from '../Models/DTO/verify-body.cls.dto.';
 import { VerifyBodyPipe } from '../validation-pipes/verify-body.pipe';
 import { VerifyKind } from '../Models/enums/verify-kind.enum';
@@ -183,10 +187,10 @@ export class AuthenticationController {
         } catch {
             try {
                 await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken, true)
-                throw new UnauthorizedException('ExpiredPreauthorizationToken')
+                throw applicationHttpException(ApplicationErrorCode.MFA_PREAUTHORIZATION_EXPIRED)
             } catch (e) {
                 this.logger.warn(` > login_thirdStep > Error: ${e.message || e}`)
-                throw new UnauthorizedException('InvalidPreauthorizationToken')
+                throw applicationHttpException(ApplicationErrorCode.MFA_PREAUTHORIZATION_INVALID)
             }
         }
         if (!shouldPersistLogin) {
@@ -196,7 +200,7 @@ export class AuthenticationController {
         const expectedDev = await this.redisService.get(`mfa:pat:dev:${jti}`)
         if (expectedDev && expectedDev !== actualDeviceId) {
             await this.sessionService.revokeToken(jti)
-            throw new UnauthorizedException('MfaDeviceMismatch')
+            throw applicationHttpException(ApplicationErrorCode.MFA_DEVICE_MISMATCH)
         }
         let code: string
 
@@ -205,7 +209,7 @@ export class AuthenticationController {
         } else if (body.kind === VerifyKind.BACKUP) {
             code = (body.payload as BackupCodeDTO).code
         } else {
-            throw new ForbiddenException('Forbidden::missing permissions')
+            throw applicationHttpException(ApplicationErrorCode.PERMISSION_DENIED)
         }
         const strategy: MfaStrategy | undefined = GeneralUtils.getEnumValueFromStringKey(MfaStrategy, strategyKey)
         if (!TypeGuards.isMfaStrategy(strategy)) {
@@ -217,7 +221,7 @@ export class AuthenticationController {
             :
             await this.mfaService.verifyBackupCode(code, preAuthorizationToken)
         if (!isVerificationOk) {
-            throw new UnauthorizedException('Invalid MFA OTP')
+            throw applicationHttpException(ApplicationErrorCode.MFA_CODE_INVALID)
         }
         const { accessToken, ws_accessToken } = await this.authService.performAuthentication({ userId, sessionId }, fingerprintData, ip, trustVerify)
         reply.setCookie('__logged_in', 'true', {

@@ -11,6 +11,10 @@ import {
   MoleculePreviewsByMolregnosQuery,
   MoleculePreviewsByMolregnosQueryVariables
 } from '../../generated/graphql';
+import {
+  ApplicationClientError,
+  ApplicationErrorCode
+} from '../../utils/application-error.util';
 
 @Injectable({
   providedIn: 'root'
@@ -33,7 +37,9 @@ export class MoleculeService {
         map(result => result.data.moleculeByMolregno),
         switchMap(mol => {
           if (mol == null) {
-            return throwError(() => new Error('MOLECULE_NOT_FOUND'))
+            return throwError(() =>
+              new ApplicationClientError(ApplicationErrorCode.MOLECULE_NOT_FOUND)
+            )
           }
           return of(mol)
         })

@@ -1,11 +1,12 @@
 import { Injectable } from "@nestjs/common";
 import axios from "axios";
-import { RpcException } from "@nestjs/microservices";
+
 import { ISocialProviderClient } from "../Models/interfaces/i-social-provider-client.interface";
 import { ProviderProfile } from "../Models/interfaces/provider-profile.interface";
 import { AuthProvider } from "../Models/enums/auth-provider.enum";
 import { ConfigService } from "@nestjs/config";
 import { SSO_Configuration } from "src/config/config.types";
+import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 
 @Injectable()
 export class DiscordProviderClient implements ISocialProviderClient {
@@ -49,7 +50,7 @@ export class DiscordProviderClient implements ISocialProviderClient {
 
         const accessToken = (tokenRes.data as Record<string, string>).access_token
         if (!accessToken) {
-            throw new RpcException("SSO_Unauthorized::Discord: missing access token")
+            throw applicationError(ApplicationErrorCode.SSO_DISCORD_ACCESS_TOKEN_MISSING)
         }
 
         // 2) /users/@me

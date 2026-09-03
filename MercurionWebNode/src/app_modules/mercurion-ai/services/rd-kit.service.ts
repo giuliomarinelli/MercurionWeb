@@ -1,5 +1,5 @@
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common'
-import { ClientProxy, RpcException } from '@nestjs/microservices'
+import { ClientProxy } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config'
 import { catchError, firstValueFrom, OperatorFunction, throwError, timeout, TimeoutError } from 'rxjs'
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service'
@@ -15,6 +15,7 @@ import {
 import { RdkitGetMoleculePropertiesDTO } from '../Models/DTO/rdkit/rdkit-get-molecule-properties.cls.dto'
 import { RdkitToCanonicalSmilesDTO } from '../Models/DTO/rdkit/rdkit-canonical-smiles.dto'
 import { RdkitAreSameStructureDTO } from '../Models/DTO/rdkit/rdkit-are-same-structures.dto'
+import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 
 @Injectable()
 export class RDKitService implements OnModuleInit {
@@ -68,7 +69,7 @@ export class RDKitService implements OnModuleInit {
     private ensurePayloadSize(dto: unknown) {
         const size = Buffer.byteLength(JSON.stringify(dto), 'utf8')
         if (size > this.MAX_NATS_PAYLOAD_BYTES) {
-            throw new RpcException('MercurionTox21ClientConnection::PayloadTooLarge')
+            throw applicationError(ApplicationErrorCode.TOX21_PAYLOAD_TOO_LARGE)
         }
     }
 
@@ -100,11 +101,11 @@ export class RDKitService implements OnModuleInit {
         return catchError((e: unknown) => {
             if (e instanceof TimeoutError) {
                 return throwError(() =>
-                    new RpcException(`MercurionTox21ClientConnectionTimeoutNoResponse::${op}`)
+                    applicationError(ApplicationErrorCode.TOX21_TIMEOUT, `MercurionTox21ClientConnectionTimeoutNoResponse::${op}`)
                 )
             }
             return throwError(() =>
-                new RpcException(`MercurionTox21ClientConnectionUnknownError::${op}`)
+                applicationError(ApplicationErrorCode.TOX21_UNKNOWN_ERROR, `MercurionTox21ClientConnectionUnknownError::${op}`)
             )
         })
     }
@@ -126,10 +127,10 @@ export class RDKitService implements OnModuleInit {
         )
 
         if (!this.isValidPropsPayload(res)) {
-            throw new RpcException('MercurionTox21ClientConnection::InvalidPayload:get_molecule_properties')
+            throw applicationError(ApplicationErrorCode.TOX21_INVALID_MOLECULE_PROPERTIES_PAYLOAD)
         }
         if (res.error && res.error.trim()) {
-            throw new RpcException(`MercurionTox21ClientConnection::${res.error}`)
+            throw applicationError(ApplicationErrorCode.TOX21_UPSTREAM_ERROR, `MercurionTox21ClientConnection::${res.error}`)
         }
 
         return res.data!
@@ -148,12 +149,10 @@ export class RDKitService implements OnModuleInit {
         )
 
         if (!this.isValidCanonicalPayload(res)) {
-            throw new RpcException(
-                'MercurionTox21ClientConnection::InvalidPayload:to_canonical_smiles',
-            )
+            throw applicationError(ApplicationErrorCode.TOX21_INVALID_CANONICAL_SMILES_PAYLOAD)
         }
         if (res.error && res.error.trim()) {
-            throw new RpcException(`MercurionTox21ClientConnection::${res.error}`)
+            throw applicationError(ApplicationErrorCode.TOX21_UPSTREAM_ERROR, `MercurionTox21ClientConnection::${res.error}`)
         }
 
         return res.data!.trim()
@@ -172,12 +171,10 @@ export class RDKitService implements OnModuleInit {
         )
 
         if (!this.isValidSameStructPayload(res)) {
-            throw new RpcException(
-                'MercurionTox21ClientConnection::InvalidPayload:are_same_structure',
-            )
+            throw applicationError(ApplicationErrorCode.TOX21_INVALID_ARE_SAME_STRUCTURE_PAYLOAD)
         }
         if (res.error && res.error.trim()) {
-            throw new RpcException(`MercurionTox21ClientConnection::${res.error}`)
+            throw applicationError(ApplicationErrorCode.TOX21_UPSTREAM_ERROR, `MercurionTox21ClientConnection::${res.error}`)
         }
 
         return !!res.data

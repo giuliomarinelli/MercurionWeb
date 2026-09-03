@@ -14,6 +14,10 @@ import { ToastService } from '../services/toast.service';
 import { Router } from '@angular/router';
 import { HttpErrorBody } from '../Models/http-error-body.dto';
 import { isFatalUnauthenticatedBody } from './fatal-unauthenticated.util';
+import {
+  ApplicationErrorCode,
+  hasApplicationErrorCode
+} from '../utils/application-error.util';
 
 @Injectable()
 export class AuthFallbackInterceptor implements HttpInterceptor {
@@ -46,7 +50,7 @@ export class AuthFallbackInterceptor implements HttpInterceptor {
       catchError((e: any) => {
         if (e instanceof HttpErrorResponse && e.status === 403) {
           const body = e.error as HttpErrorBody
-          if (body.message === 'Forbidden::missing permissions') {
+          if (hasApplicationErrorCode(body, ApplicationErrorCode.PERMISSION_DENIED)) {
             this.router.navigateByUrl('/403-forbidden')
           }
         }

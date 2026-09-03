@@ -1,11 +1,12 @@
 import { Injectable } from "@nestjs/common";
 import axios from "axios";
-import { RpcException } from "@nestjs/microservices";
+
 import { ISocialProviderClient } from "../Models/interfaces/i-social-provider-client.interface";
 import { ProviderProfile } from "../Models/interfaces/provider-profile.interface";
 import { AuthProvider } from "../Models/enums/auth-provider.enum";
 import { ConfigService } from "@nestjs/config";
 import { SSO_Configuration } from "src/config/config.types";
+import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 
 @Injectable()
 export class LinkedInProviderClient implements ISocialProviderClient {
@@ -48,7 +49,7 @@ export class LinkedInProviderClient implements ISocialProviderClient {
 
         const accessToken = ((tokenRes as unknown as Record<string, string>).data as unknown as Record<string, string>).access_token
         if (!accessToken) {
-            throw new RpcException("LinkedIn: missing access token")
+            throw applicationError(ApplicationErrorCode.SSO_LINKEDIN_ACCESS_TOKEN_MISSING)
         }
 
         // 2) userinfo OIDC

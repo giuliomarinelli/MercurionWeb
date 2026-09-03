@@ -11,8 +11,9 @@ import { UUID } from 'crypto';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 import { Reflector } from '@nestjs/core';
 import { SCOPES_KEY } from 'src/metadata/metadata';
-import { RpcException } from '@nestjs/microservices';
+
 import { JwtToolsService } from './jwt-tools.service';
+import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 
 @Injectable()
 export class ScopeService {
@@ -85,7 +86,7 @@ export class ScopeService {
         const validFromJwt = requiredScopes.every((scp) => jwtScopes.includes(scp))
 
         if (!validFromDB || !validFromJwt) {
-            throw new RpcException('Forbidden::missing permissions')
+            throw applicationError(ApplicationErrorCode.PERMISSION_DENIED)
         }
     }
 
@@ -139,7 +140,7 @@ export class ScopeService {
         if (GeneralUtils.arrayEqualsIgnoreDuplicatesAndSorting(decPersistedScopes, tokenClaimScopes)) {
             return decPersistedScopes
         }
-        throw new RpcException('Forbidden::missing permissions')
+        throw applicationError(ApplicationErrorCode.PERMISSION_DENIED)
     }
 
 }

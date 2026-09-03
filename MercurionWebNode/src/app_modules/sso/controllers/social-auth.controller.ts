@@ -4,7 +4,11 @@ import { Public } from 'src/metadata/metadata';
 import { SocialAuthService } from '../services/social-auth.service';
 import { AuthProvider } from '../Models/enums/auth-provider.enum';
 import { ConfigService } from '@nestjs/config';
-import { RpcException } from '@nestjs/microservices';
+import {
+  ApplicationErrorCode,
+  getApplicationError,
+  isApplicationError
+} from 'src/exception-handling/application-error';
 import { TypeGuards } from 'src/utils/type-guards/type-guards';
 
 
@@ -74,8 +78,8 @@ export class SocialAuthController {
       reply.redirect(redirectUrl, 302)
       return
     } catch (e) {
-      if (e instanceof RpcException && e.message === 'SSO_Unauthorized::failed_callback_flow') {
-        onError(e.message)
+      if (isApplicationError(e, ApplicationErrorCode.SSO_CALLBACK_FAILED)) {
+        onError(getApplicationError(e)?.message)
       }
       onError()
     }

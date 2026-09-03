@@ -8,6 +8,6 @@
     "^jose$": "<rootDir>/../src/test-utils/mocks/jose.ts"
   },
   "transform": {
-    "^.+\\.(t|j)s$": "ts-jest"
+    "^.+\\.ts$": "ts-jest"
   }
 }

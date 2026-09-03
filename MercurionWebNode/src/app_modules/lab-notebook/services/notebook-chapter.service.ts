@@ -3,10 +3,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { NotebookChapter } from '../Models/entities/lab-notebook-chapter.entity';
 import { UUID } from 'crypto';
-import { RpcException } from '@nestjs/microservices';
+
 import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils';
 import { LabNotebook } from '../Models/entities/lab-notebook.entity';
+import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 
 @Injectable()
 export class NotebookChapterService {
@@ -58,7 +59,7 @@ export class NotebookChapterService {
                     notebook: true
                 },
             })
-            if (!chapter) throw new RpcException('LabNotebook::Chapter not found')
+            if (!chapter) throw applicationError(ApplicationErrorCode.LAB_NOTEBOOK_CHAPTER_NOT_FOUND)
 
             const notebookId = (chapter.notebook).id
 

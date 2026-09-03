@@ -1,5 +1,19 @@
 export type RestContractVersion = '1.0.0'
 
+export {
+  APPLICATION_ERROR_CATALOG,
+  ApplicationErrorCode,
+  getApplicationErrorDefinition,
+  isApplicationErrorCode,
+  isApplicationErrorPayload,
+  resolveLegacyApplicationErrorCode
+} from './application-errors'
+export type {
+  ApplicationErrorCode as ApplicationErrorCodeType,
+  ApplicationErrorDefinition,
+  ApplicationErrorPayload
+} from './application-errors'
+
 export interface PageModel<T> {
   items: T[]
   itemCount: number
@@ -18,6 +32,7 @@ export interface ConfirmDTO {
 export interface ErrorRes {
   statusCode: number
   error: string
+  code?: import('./application-errors').ApplicationErrorCode
   message?: string
   timestamp: string
   requestId: string

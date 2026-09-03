@@ -35,9 +35,12 @@ import { HistoryContextService } from '../../services/context/history-context.se
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service'
 import { BindCollectionsToMoleculeContextService } from '../../services/context/action-context/bind-collections-to-molecule-context.service'
 import { HttpErrorResponse } from '@angular/common/http'
-import { HttpErrorBody as HttpErrorBody } from '../../Models/http-error-body.dto'
 import { AppTitleService } from '../../services/app-title.service'
 import { DesignService } from '../../services/design.service'
+import {
+  ApplicationErrorCode,
+  hasApplicationErrorCode
+} from '../../utils/application-error.util'
 
 
 
@@ -430,8 +433,10 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
               return sys as MoleculeDetailItem
             }),
             catchError((e: HttpErrorResponse) => {
-              const body: HttpErrorBody = e.error
-              if (body.message?.startsWith('MoleculeDetailNotFound::')) {
+              if (hasApplicationErrorCode(
+                e,
+                ApplicationErrorCode.MOLECULE_NOT_FOUND
+              )) {
                 this.router.navigateByUrl('/404-not-found')
                 return EMPTY
               }

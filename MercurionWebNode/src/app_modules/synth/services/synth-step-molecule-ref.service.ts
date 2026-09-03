@@ -6,7 +6,8 @@ import { SynthStepMoleculeRef } from "../Models/entities/synth-step-molecule-ref
 import { SynthStepMoleculeRefInput } from "../Models/DTO/synth-step-molecule-ref.input";
 import { MoleculeCollectionItemEntity } from "../../molecule-collection/Models/entities/molecule-collection-item.entity";
 import { SynthStep } from "../Models/entities/synth-step.entity";
-import { RpcException } from "@nestjs/microservices";
+
+import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 
 @Injectable()
 export class SynthStepMoleculeRefService {
@@ -23,11 +24,11 @@ export class SynthStepMoleculeRefService {
     async create(userId: UUID, input: SynthStepMoleculeRefInput): Promise<SynthStepMoleculeRef> {
         // 1. Verifica che lo step sia dell'utente
         const step = await this.stepRepo.findOne({ where: { id: input.stepId, userId } })
-        if (!step) throw new RpcException("SyntheticStepMoleculeRefError::Forbidden")
+        if (!step) throw applicationError(ApplicationErrorCode.SYNTHETIC_STEP_MOLECULE_ACCESS_DENIED)
 
         // 2. Verifica che la molecola sia dell'utente
         const molecule = await this.moleculeRepo.findOne({ where: { id: input.moleculeId, userId } })
-        if (!molecule) throw new RpcException("SyntheticStepMoleculeRefError::Forbidden")
+        if (!molecule) throw applicationError(ApplicationErrorCode.SYNTHETIC_STEP_MOLECULE_ACCESS_DENIED)
 
         // 3. Crea il ref in sicurezza
         const ref = this.refRepo.create({
@@ -48,12 +49,12 @@ export class SynthStepMoleculeRefService {
     async update(id: UUID, userId: UUID, input: SynthStepMoleculeRefInput): Promise<SynthStepMoleculeRef | null> {
         // 1. Recupera il ref e verifica ownership tramite step
         const ref = await this.refRepo.findOne({ where: { id }, relations: ['step'] });
-        if (!ref || ref.step.userId !== userId) throw new RpcException("SyntheticStepMoleculeRefError::Forbidden")
+        if (!ref || ref.step.userId !== userId) throw applicationError(ApplicationErrorCode.SYNTHETIC_STEP_MOLECULE_ACCESS_DENIED)
 
         // 2. verifica anche che la nuova molecola sia dell’utente
         if (input.moleculeId) {
             const molecule = await this.moleculeRepo.findOne({ where: { id: input.moleculeId, userId } })
-            if (!molecule) throw new RpcException("SyntheticStepMoleculeRefError::Forbidden")
+            if (!molecule) throw applicationError(ApplicationErrorCode.SYNTHETIC_STEP_MOLECULE_ACCESS_DENIED)
         }
 
         // 3. Update
@@ -63,7 +64,7 @@ export class SynthStepMoleculeRefService {
 
     async delete(id: UUID, userId: UUID): Promise<boolean> {
         const ref = await this.refRepo.findOne({ where: { id }, relations: ['step'] })
-        if (!ref || ref.step.userId !== userId) throw new RpcException("SyntheticStepMoleculeRefError::Forbidden")
+        if (!ref || ref.step.userId !== userId) throw applicationError(ApplicationErrorCode.SYNTHETIC_STEP_MOLECULE_ACCESS_DENIED)
         await this.refRepo.delete({ id })
         return true
     }

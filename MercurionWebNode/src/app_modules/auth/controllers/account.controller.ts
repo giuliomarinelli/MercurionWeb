@@ -19,11 +19,15 @@ import { ProfileDTO, ProfileRegistryClientDTO, ProfileRegistryDTO } from '../Mod
 import { SessionService } from '../services/session.service';
 import { SessionDTO } from '../Models/DTO/session.dto';
 import { BackupCodeStatusDTO } from 'src/app_modules/user/Models/DTO/backup-code-status.dto';
-import { RpcException } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
 import { ProvidedEmailDTO } from '../Models/DTO/provided-email.dto';
 import { VersionDTO } from '../Models/DTO/version.dto';
 import type { AuthProvider as WireAuthProvider, BackupCodesDTO } from '@mercurion/rest-contracts'
+import {
+    ApplicationErrorCode,
+    applicationError,
+    isApplicationError
+} from 'src/exception-handling/application-error'
 
 
 
@@ -200,7 +204,7 @@ export class AccountController {
         try {
             await this.accountService.sendForgottenPasswordLink(email)
         } catch (e) {
-            if (e instanceof RpcException && e.message === 'PasswordResetSend::TooManyRequests') {
+            if (isApplicationError(e, ApplicationErrorCode.PASSWORD_RESET_SEND_TOO_MANY_REQUESTS)) {
                 throw e
             }
             // pass
@@ -289,7 +293,7 @@ export class AccountController {
 
         const strategies = await this.mfaService.getEnabledMfaStrategies(userId)
         if (!strategies.length) {
-            throw new RpcException('BackupCodes::MfaNotEnabled')
+            throw applicationError(ApplicationErrorCode.MFA_BACKUP_CODES_NOT_ENABLED)
         }
 
         const codes = await this.mfaService.regenerateBackupCodes(userId)

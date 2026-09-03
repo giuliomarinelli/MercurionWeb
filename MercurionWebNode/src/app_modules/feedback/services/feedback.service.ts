@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { RpcException } from '@nestjs/microservices';
+
 import { UUID } from 'node:crypto';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { CreateFeedbackDTO } from '../Models/DTO/create-feedback.dto';
@@ -9,6 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UpdateFeedbackDTO } from '../Models/DTO/update-feedback.dto';
 import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate';
+import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 
 @Injectable()
 export class FeedbackService {
@@ -36,7 +37,7 @@ export class FeedbackService {
         const lockKey = this.getFeedbackLockKey(userId)
         const locked = await this.redisService.exists(lockKey)
         if (locked) {
-            throw new RpcException('Feedback::TooManyRequests')
+            throw applicationError(ApplicationErrorCode.FEEDBACK_TOO_MANY_REQUESTS)
         }
     }
 
@@ -128,7 +129,7 @@ export class FeedbackService {
         })
 
         if (!feedback) {
-            throw new RpcException('Feedback::NotFound')
+            throw applicationError(ApplicationErrorCode.FEEDBACK_NOT_FOUND)
         }
 
         if (dto.status !== undefined) {
@@ -149,7 +150,7 @@ export class FeedbackService {
     async deleteFeedback(id: UUID): Promise<void> | never {
         const res = await this.feedbackRepo.delete({ id })
         if (!res.affected) {
-            throw new RpcException('Feedback::NotFound')
+            throw applicationError(ApplicationErrorCode.FEEDBACK_NOT_FOUND)
         }
     }
 

@@ -10,7 +10,12 @@ import { WebSocketUtils } from 'src/utils/web-socket-utils/web-socket-utils';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 import { ScopeService } from 'src/app_modules/auth/services/scope.service';
-import { RpcException } from '@nestjs/microservices';
+import {
+  ApplicationErrorCode,
+  getApplicationError,
+  isApplicationError
+} from 'src/exception-handling/application-error';
+import { getApplicationErrorDefinition } from '@mercurion/rest-contracts';
 
 @Injectable()
 export class WsGuard implements CanActivate {
@@ -95,8 +100,12 @@ export class WsGuard implements CanActivate {
       this.logger.debug?.(`Socket ${client.id} polling connection state: PRIVATE (Authenticated)`)
       return true
     } catch (e) {
-      if (e instanceof RpcException && e.message === 'Forbidden::missing permissions') {
-        client.emit('sv.pub.err', { detail: e.message })
+      if (isApplicationError(e, ApplicationErrorCode.PERMISSION_DENIED)) {
+        const applicationError = getApplicationError(e)!
+        client.emit('sv.pub.err', {
+          code: applicationError.code,
+          detail: applicationError.message
+        })
         return false
       }
       this.unauthorized(client)
@@ -105,7 +114,10 @@ export class WsGuard implements CanActivate {
   }
 
   private unauthorized(client: Socket): void {
-    client.emit('sv.pub.err', { detail: 'Unauthorized' })
+    client.emit('sv.pub.err', {
+      code: ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED,
+      detail: getApplicationErrorDefinition(ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED).defaultMessage
+    })
     client.disconnect()
   }
 

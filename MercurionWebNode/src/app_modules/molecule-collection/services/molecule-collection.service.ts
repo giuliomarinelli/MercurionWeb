@@ -1,7 +1,7 @@
 /* eslint-disable no-useless-escape */
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, EntityManager, Repository } from 'typeorm';
+import { DataSource, EntityManager, QueryFailedError, Repository } from 'typeorm';
 import { UUID } from 'crypto';
 import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils';
@@ -16,6 +16,10 @@ import { ChEMBLMoleculeItemEntity } from '../Models/entities/chembl-molecule-ite
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 import { pruneNullCollectionJoins } from '../utils/prune-molecule-collection-joins.util';
+import {
+  ApplicationErrorCode,
+  applicationError
+} from 'src/exception-handling/application-error';
 
 @Injectable()
 export class MoleculeCollectionService {
@@ -383,9 +387,29 @@ WHERE i.user_id = $2::uuid
   }
 
   async update(id: UUID, userId: UUID, input: Partial<MoleculeCollection>, fieldsMap: GraphQLFieldsMap): Promise<MoleculeCollection | null> {
-    await this.collectionRepo.update({ id, userId }, { ...input, updatedAt: Date.now() })
+    try {
+      await this.collectionRepo.update({ id, userId }, { ...input, updatedAt: Date.now() })
+    } catch (error) {
+      if (this.isCollectionNameConflict(error)) {
+        throw applicationError(ApplicationErrorCode.MOLECULE_COLLECTION_NAME_CONFLICT)
+      }
+      throw error
+    }
     await this.markAsTouched(userId, id)
     return this.findOne(id, userId, fieldsMap)
+  }
+
+  private isCollectionNameConflict(error: unknown): boolean {
+    if (!(error instanceof QueryFailedError)) {
+      return false
+    }
+
+    const driverError = error.driverError as {
+      code?: unknown
+      constraint?: unknown
+    }
+    return driverError.code === '23505' &&
+      driverError.constraint === 'unique_name_per_user'
   }
 
   async delete(collectionId: UUID, userId: UUID): Promise<boolean> {
