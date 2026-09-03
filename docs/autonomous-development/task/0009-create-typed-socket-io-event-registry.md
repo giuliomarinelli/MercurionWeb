@@ -1,7 +1,7 @@
 # 0009 - Create typed Socket.IO event registry
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -106,20 +106,115 @@ Keep direction explicit. A client-to-server event and server-to-client response 
 
 ### Summary
 
-_Not started._
+- Branch `feature/SYS-009` was verified clean at supplied base
+  `d145a623852125340f3de736e450db468d47220f`; repository-local
+  `commit.gpgSign=false`, Node.js `22.16.0`, and npm `10.9.2`.
+- The unchanged task-start preflight passed: root `npm ci` and
+  `npm run ci:check` both exited `0` before task changes.
+- Inventoried all application Socket.IO boundaries in Angular and Nest. The
+  eight current wire events are `auth_refresh`, `so.pub.public_test`,
+  `sv.pub.public_test`, `so.pub.private_test`, `sv.pub.private_test`,
+  `so.pub.session_init`, `sv.pub.err`, and `sv.pub.session_expired`.
+- Added the framework-neutral `@mercurion/socket-contracts@1.0.0` workspace
+  package. Its single registry records direction, payload, acknowledgement,
+  error semantics, and contract version, and derives the Socket.IO event maps
+  used by both applications.
+- Replaced application boundary literals in the Angular realtime/session
+  wrappers, Nest gateway and guard, and Redis session broadcast. The public,
+  private, session-init, auth-refresh, error, and session-expiration wire names
+  and payload values remain unchanged.
+- Added compile-time negative assertions, representative runtime contract
+  tests, and an AST policy gate that rejects undeclared Socket.IO literals and
+  duplicated declared literals outside the canonical registry. The gate is
+  registered in root `ci:static`.
+- The implementation is preserved as coherent partial work, but the declared
+  browser validation could not start safely because mandatory local runtime
+  prerequisites failed. Per the recipe and browser-validation rule, the task
+  is `BLOCKED`, not complete.
 
 ### Validation performed
 
-_Not started._
+- Process preflight found no task/session-owned Angular, Nest, Tox21, Karma, or
+  Jest runtime before the unchanged clean install.
+- Unchanged baseline:
+  - `npm ci` — passed, exit `0`.
+  - `npm run ci:check` — passed, exit `0`.
+- Socket contract/static validation:
+  - `npm run ci:socket-contracts` — passed repeatedly; dual-format package
+    build, package typecheck, positive policy scan, and negative policy tests
+    all exited `0`.
+  - Policy inventory reported 8 declared application events and selected every
+    Socket.IO-aware boundary file from 770 Angular/Nest TypeScript files.
+  - A repository source scan for raw `so.*`, `sv.*`, and `auth_refresh`
+    string literals outside the contract package returned no matches.
+  - `node -e "require('@mercurion/socket-contracts')..."` loaded the CommonJS
+    export and reported version `1.0.0` with 8 events.
+- Type/lint:
+  - Angular typecheck — passed.
+  - Nest typecheck — passed.
+  - Angular lint — passed with existing warnings and zero errors.
+  - Nest lint — passed with 61 existing warnings and zero errors.
+- Task-specific builds/tests:
+  - `MercurionWebNode: npm run build` — passed.
+  - `MercurionWebNode: npm test -- --runInBand` — 118 suites and 163 tests
+    passed.
+  - Targeted Socket.IO/registry suites — 4 suites and 6 tests passed.
+  - `MercurionWebNg: npm run build` — passed; only the existing bundle,
+    `quill-delta`, and RDKit warnings remained after the package's ESM export
+    was selected.
+  - The literal `MercurionWebNg: npm test -- --watch=false` invocation was
+    observed to launch `ng test` without forwarding the option in this npm
+    workspace context, so its watcher was stopped by its tracked shell. The
+    canonical equivalent `npm run test:ci --workspace mercurion_web_ng`
+    (`ng test --watch=false --karma-config=karma.conf.js`) then passed with
+    exit `0`.
+- All tracked runtime/test processes were stopped after validation; no
+  task-owned watcher remained.
+- Preserved-branch full CI parity after runtime shutdown:
+  - Final root `npm ci` — passed, including the socket-contract package build.
+  - Final root `npm run ci:check` — passed, exit `0`, covering autonomous
+    recipe validation, both lints/typechecks/test suites/builds, GraphQL drift,
+    REST contracts, and the new Socket.IO contract/policy gate.
 
 ### Browser validation performed
 
-_Not started._
+- The externally managed nginx edge initially returned `502` for both
+  `http://localhost:8888/` and `/health`, consistent with intentionally
+  stopped application runtimes.
+- Started only the canonical task-scoped processes and tracked them:
+  - Tox21 Python PID `90544`.
+  - Nest watcher command PID `113280` and application PID `65728`.
+  - Angular watcher command PID `49092`.
+- Angular became reachable through nginx with HTTP `200`, but Nest never
+  became ready and `/health` remained `502`.
+- The canonical Nest command failed environment validation because no
+  non-production runtime configuration was available to the process; required
+  values beginning with `APP_*`, `SQL_DATABASE_*`, `JWT_*`,
+  `SECURE_COOKIE_*`, `REDIS_*`, and other service configuration were absent.
+  No credentials or values were fabricated or sourced from production.
+- The canonical Tox21 command also exited before validation because its startup
+  log contains a check-mark character that the inherited Windows `cp1252`
+  console could not encode (`UnicodeEncodeError`).
+- Because the required backend runtime never reached readiness, Chrome DevTools
+  MCP was not opened against a knowingly broken stack and no `/socket.io/`
+  network, console, or public/session exchange could be claimed. Angular,
+  Nest, and Tox21 processes were stopped; the edge again returned `502`.
 
 ### Changed files
 
-_Not recorded._
+- Root workspace/package lock and CI aggregate scripts.
+- `packages/socket-contracts/**`.
+- Angular realtime socket and session-sync services.
+- Nest Socket.IO gateway/guard and Redis session broadcast.
+- Nest Socket.IO contract runtime tests and Jest TypeScript transform scope.
+- This task recipe.
 
 ### Blocker / human decision required
 
-_None._
+- Provide an approved, non-production local runtime configuration for the
+  canonical Nest `npm run start:dev` process, and an approved UTF-8-capable
+  invocation environment for the documented Tox21 command. Then rerun the
+  canonical three-process stack and capture the mandatory Chrome DevTools MCP
+  evidence through `http://localhost:8888`, including `/socket.io/` activity,
+  console state, and a safe public/session exchange. Production credentials or
+  data must not be used.
