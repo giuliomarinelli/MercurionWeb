@@ -2,7 +2,12 @@ import { createParamDecorator, ExecutionContext, SetMetadata, UnauthorizedExcept
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { UUID } from 'crypto';
 import { FastifyRequest } from 'fastify';
-import { FingerprintData } from 'src/app_modules/auth/Models/DTO/fingerprints.dtos';
+import {
+    parseFingerprintData,
+    parseSessionDeviceInfo,
+    type FingerprintData,
+    type SessionDeviceInfo
+} from '@mercurion/rest-contracts'
 import { TokenType } from 'src/app_modules/auth/Models/enums/token-type.enum';
 import { Scope } from 'src/app_modules/user/Models/enums/scope.enum';
 
@@ -89,12 +94,16 @@ export const Fingerprint = createParamDecorator(
             throw new UnauthorizedException('Missing or invalid fingerprint header')
         }
 
-        return JSON.parse(atob(fingerprint)) as FingerprintData
+        try {
+            return parseFingerprintData(JSON.parse(atob(fingerprint)))
+        } catch {
+            throw new UnauthorizedException('Missing or invalid fingerprint header')
+        }
     }
 )
 
 export const DeviceInfo = createParamDecorator(
-    (data: unknown, ctx: ExecutionContext): InputDeviceInfo => {
+    (data: unknown, ctx: ExecutionContext): SessionDeviceInfo => {
         const req = ctx.getType() === 'http' ? ctx.switchToHttp().getRequest<FastifyRequest>()
             :
             (GqlExecutionContext.create(ctx).getContext().request as FastifyRequest)
@@ -104,7 +113,11 @@ export const DeviceInfo = createParamDecorator(
             throw new UnauthorizedException('Missing or invalid device info header')
         }
 
-        return JSON.parse(atob(deviceInfo)) as InputDeviceInfo
+        try {
+            return parseSessionDeviceInfo(JSON.parse(atob(deviceInfo)))
+        } catch {
+            throw new UnauthorizedException('Missing or invalid device info header')
+        }
     }
 )
 
@@ -137,4 +150,3 @@ export const Scopes = createParamDecorator(
         }
     }
 )
-

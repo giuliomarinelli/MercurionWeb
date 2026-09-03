@@ -1,6 +1,6 @@
 # 0014 - Canonicalize fingerprint contract
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -92,19 +92,36 @@ Keep raw library-specific fingerprint structures separate from the stable public
 
 ### Summary
 
-_Not started._
+Added the versioned `@mercurion/rest-contracts` fingerprint contract. Angular
+collects only its serializable fields and Nest now parses that contract at the
+HTTP boundary, rejecting malformed known values and dropping unknown
+forward-compatible fields before fingerprint data is trusted or stored.
 
 ### Validation performed
 
-_Not started._
+Initial unchanged preflight: `npm ci` and `npm run ci:check` (passed).
+
+Task-specific validation: `npm run build --workspace @mercurion/rest-contracts`;
+Angular and Nest workspace typechecks; Nest fingerprint-contract, controller,
+and authentication-service Jest suites (passed). The direct
+`npm run test:onpush --workspace mercurion_web_ng` invocation is not a viable
+targeted test command because its checked-in TypeScript configuration excludes
+`src/test-setup.ts`; the canonical Angular test command passed in the initial
+preflight.
+
+Final pre-integration validation: `npm ci` and `npm run ci:check` (passed).
 
 ### Browser validation performed
 
-_Not started / not applicable if fixtures fully establish the boundary contract._
+Not run. No intentionally provided local development credentials or state were
+available; the fixture-based contract tests exercise the serialized boundary.
 
 ### Changed files
 
-_Not recorded._
+`packages/rest-contracts/src/fingerprint-contract.ts`,
+`packages/rest-contracts/src/index.ts`, Angular fingerprint consumers, Nest
+authentication/session consumers and metadata decorators, and Nest contract
+fixtures/tests.
 
 ### Blocker / human decision required
 

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { createHmac, randomUUID, UUID } from 'crypto';
-import { ISession, ISessionDeviceInfo, ISSO_SessionActivationData } from '../Models/interfaces/i-session.interface';
+import { ISession, ISSO_SessionActivationData } from '../Models/interfaces/i-session.interface';
+import type { SessionDeviceInfo } from '@mercurion/rest-contracts'
 
 import { GeoLocation } from './geo-ip.service';
 import { SessionFetchOptions } from '../Models/interfaces/session-fetch-options.interface';
@@ -128,7 +129,7 @@ export class SessionService {
             valid: showValid ? session.valid : undefined,
             current,
             location: session.location,
-            browser: session.sessionDeviceInfo.browser.name,
+            browser: session.sessionDeviceInfo.browser.name ?? '',
             provider: session.provider
         })
     }
@@ -267,7 +268,7 @@ export class SessionService {
                     lastAccessedAt: parseInt(sd.lastAccessedAt, 10),
                     IP: sd.IP,
                     valid: JSON.parse(sd.valid) as boolean,
-                    sessionDeviceInfo: JSON.parse(sd.sessionDeviceInfo) as ISessionDeviceInfo,
+                    sessionDeviceInfo: JSON.parse(sd.sessionDeviceInfo) as SessionDeviceInfo,
                     fingerprint: sd.fingerprint,
                     location: sd.location,
                     provider: TypeGuards.isAuthProvider(sd.provider) ? sd.provider : AuthProvider.Mercurion
@@ -340,7 +341,7 @@ export class SessionService {
                 lastAccessedAt: parseInt(sessionData.lastAccessedAt, 10),
                 IP: sessionData.IP,
                 valid: JSON.parse(sessionData.valid) as boolean,
-                sessionDeviceInfo: JSON.parse(sessionData.sessionDeviceInfo) as ISessionDeviceInfo,
+                sessionDeviceInfo: JSON.parse(sessionData.sessionDeviceInfo) as SessionDeviceInfo,
                 fingerprint: sessionData.fingerprint,
                 location: sessionData.location,
                 provider: TypeGuards.isAuthProvider(sessionData.provider) ? sessionData.provider : AuthProvider.Mercurion

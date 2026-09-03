@@ -1,11 +1,10 @@
-import { FingerprintData } from 'src/app_modules/auth/Models/DTO/fingerprints.dtos';
 import { Authentication } from './../Models/interfaces/authentication.interface';
 import { UserService } from 'src/app_modules/user/services/user.service';
 import { Injectable } from '@nestjs/common';
 import { PasswordEncoderService } from './password-encoder.service';
 
 import { SessionService } from './session.service';
-import { ISessionDeviceInfo } from '../Models/interfaces/i-session.interface';
+import type { FingerprintData, SessionDeviceInfo } from '@mercurion/rest-contracts'
 import { MfaService } from './mfa.service';
 import { JwtToolsService } from './jwt-tools.service';
 import { TokenType } from '../Models/enums/token-type.enum';
@@ -71,7 +70,7 @@ export class AuthenticationService {
         remember: boolean,
         IP: string,
         deviceId: string,
-        sessionDeviceInfo: ISessionDeviceInfo,
+        sessionDeviceInfo: SessionDeviceInfo,
         fingerprintData: FingerprintData
     ): Promise<Authentication> {
 
@@ -192,7 +191,7 @@ export class AuthenticationService {
         sso_pat: string,
         IP: string,
         deviceId: string,
-        sessionDeviceInfo: ISessionDeviceInfo,
+        sessionDeviceInfo: SessionDeviceInfo,
         fingerprintData: FingerprintData,
         provider: AuthProvider
     ): Promise<TokenPair & { sessionId: UUID }> {

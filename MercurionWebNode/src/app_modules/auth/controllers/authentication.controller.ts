@@ -15,8 +15,7 @@ import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { JwtToolsService } from '../services/jwt-tools.service';
 import { TokenType } from '../Models/enums/token-type.enum';
 import { EmailDTO } from '../Models/DTO/email.cls.dto';
-import { ISessionDeviceInfo } from '../Models/interfaces/i-session.interface';
-import { FingerprintData } from '../Models/DTO/fingerprints.dtos';
+import type { FingerprintData, SessionDeviceInfo } from '@mercurion/rest-contracts'
 import { UserService } from 'src/app_modules/user/services/user.service';
 import { TurnstileGuard } from '../guards/turnstile.guard';
 import { ConfigService } from '@nestjs/config';
@@ -87,7 +86,7 @@ export class AuthenticationController {
         @Body() dto: Login_FirstStepDTO,
         @ClientIp() ip: string,
         @DeviceId() deviceId: UUID,
-        @DeviceInfo() sessionDeviceInfo: ISessionDeviceInfo,
+        @DeviceInfo() sessionDeviceInfo: SessionDeviceInfo,
         @Fingerprint() fingerprintData: FingerprintData,
         @Res({ passthrough: true }) reply: FastifyReply
     ): Promise<Confirm_Login_FirstStepDTO> {
@@ -299,7 +298,7 @@ export class AuthenticationController {
     public async authorize_sso(
         @ClientIp() IP: string,
         @Fingerprint() fd: FingerprintData,
-        @DeviceInfo() di: ISessionDeviceInfo,
+        @DeviceInfo() di: SessionDeviceInfo,
         @Authorization() sso_pat: string,
         @DeviceId() deviceId: UUID,
         @Param('provider') provider: string,
