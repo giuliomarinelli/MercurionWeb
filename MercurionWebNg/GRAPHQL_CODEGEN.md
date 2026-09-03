@@ -23,8 +23,9 @@ npm run graphql:check
 
 `graphql:validate` recursively inventories every `gql` template and standalone
 GraphQL document under `src`, then validates each document against the
-committed Nest schema. It fails closed on an unsupported template
-interpolation.
+committed Nest schema. It also inventories every named operation and fails
+when a name is duplicated anywhere in the Angular document set. It fails
+closed on anonymous operations and unsupported template interpolation.
 
 The four runtime field-selection templates in
 `molecule-collection.service.ts` are materialized in both supported forms:
@@ -34,10 +35,11 @@ The four runtime field-selection templates in
 - `CreateMoleculeCollection` with and without `items`;
 - `UpdateMoleculeCollection` with and without `items`.
 
-`graphql:validate:negative` proves the validator rejects the committed
-intentional-invalid fixture. `graphql:check` runs full document validation,
-the negative probe, and the generated-artifact drift check. Task `0008` owns
-registering this aggregate in the root CI gate.
+`graphql:validate:negative` proves the validator rejects both committed
+negative fixtures: an invalid schema field and an operation name that
+duplicates a real Angular operation. `graphql:check` runs full document
+validation, both negative probes, and the generated-artifact drift check.
+Task `0008` owns registering this aggregate in the root CI gate.
 
 The scalar mappings are:
 
@@ -78,14 +80,11 @@ mixed source file. Task `0007` owns centralizing/normalizing this document set.
 
 ### `notebook.service.ts`
 
-- the chapter, section and page header queries reuse the operation name
-  `GetChapterById`;
 - the remaining notebook operations are inline in the service.
 
 Every notebook operation is schema-valid and covered by `graphql:validate`.
 The notebook, chapter and section delete operations are accepted separately
 through `notebook-delete.gql-operations.ts`, generating typed documents and
-string-compatible `ID` variables without admitting the duplicate operation
-names. Task `0006` owns operation-name uniqueness and task `0007` owns the
-remaining document centralization. The existing notebook fragment file is
-already generated so reusable fragment result types remain available.
+string-compatible `ID` variables. Task `0007` owns the remaining document
+centralization. The existing notebook fragment file is already generated so
+reusable fragment result types remain available.

@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   buildSchema,
-  getOperationAST,
+  Kind,
   NoUnusedFragmentsRule,
   parse,
   specifiedRules,
@@ -74,11 +74,6 @@ async function collectSourceFiles(directory) {
   }
 
   return files.sort();
-}
-
-function operationName(document) {
-  const operation = getOperationAST(document);
-  return operation?.name?.value ?? '<fragment-only>';
 }
 
 function extractGqlTemplates(filePath, source) {
@@ -212,6 +207,7 @@ async function main() {
 
   const failures = [...extractionErrors];
   const dynamicTemplates = new Map();
+  const operationOccurrences = [];
   let staticDocumentCount = 0;
 
   for (const candidate of documents) {
@@ -223,40 +219,75 @@ async function main() {
       continue;
     }
 
-    const name = operationName(document);
-    if (candidate.dynamicVariant) {
-      const key = `${candidate.label} ${name}`;
-      const variants = dynamicTemplates.get(key) ?? [];
-      variants.push(candidate.dynamicVariant);
-      dynamicTemplates.set(key, variants);
-    } else {
+    const operations = document.definitions.filter(
+      (definition) => definition.kind === Kind.OPERATION_DEFINITION,
+    );
+
+    if (!candidate.dynamicVariant) {
       staticDocumentCount += 1;
     }
+
+    operations.forEach((operation, operationIndex) => {
+      const name = operation.name?.value;
+      if (!name) {
+        failures.push(
+          `${candidate.label}: anonymous ${operation.operation} operations are not supported`,
+        );
+        return;
+      }
+
+      const occurrence = {
+        name,
+        kind: operation.operation,
+        label: candidate.label,
+        operationIndex,
+        dynamicVariant: candidate.dynamicVariant,
+      };
+
+      if (candidate.dynamicVariant) {
+        const key = `${candidate.label}#${operationIndex + 1}`;
+        const existing = dynamicTemplates.get(key);
+        if (existing) {
+          if (existing.name !== name || existing.kind !== operation.operation) {
+            failures.push(
+              `${candidate.label}: dynamic operation ${operationIndex + 1} changes identity between variants (${existing.kind} ${existing.name} vs ${operation.operation} ${name})`,
+            );
+          }
+          existing.variants.add(candidate.dynamicVariant);
+        } else {
+          dynamicTemplates.set(key, {
+            ...occurrence,
+            variants: new Set([candidate.dynamicVariant]),
+          });
+        }
+      } else {
+        operationOccurrences.push(occurrence);
+      }
+    });
 
     for (const error of validate(schema, document, documentValidationRules)) {
       const variant = candidate.dynamicVariant
         ? ` [fields=${candidate.dynamicVariant}]`
         : '';
       failures.push(
-        `${candidate.label} ${name}${variant}: ${error.message}`,
+        `${candidate.label}${variant}: ${error.message}`,
       );
     }
   }
 
   const observedDynamicOperations = new Set();
-  for (const [key, variants] of dynamicTemplates) {
-    const name = key.slice(key.lastIndexOf(' ') + 1);
-    observedDynamicOperations.add(name);
-    const uniqueVariants = new Set(variants);
+  for (const [key, operation] of dynamicTemplates) {
+    observedDynamicOperations.add(operation.name);
     if (
-      uniqueVariants.size !== collectionFieldVariants.length
+      operation.variants.size !== collectionFieldVariants.length
       || !collectionFieldVariants.every(({ name: variantName }) =>
-        uniqueVariants.has(variantName))
+        operation.variants.has(variantName))
     ) {
       failures.push(
-        `${key}: expected dynamic variants minimal and withItems; found ${[...uniqueVariants].join(', ')}`,
+        `${key}: expected dynamic variants minimal and withItems; found ${[...operation.variants].join(', ')}`,
       );
     }
+    operationOccurrences.push(operation);
   }
 
   if (
@@ -270,11 +301,43 @@ async function main() {
     );
   }
 
+  const occurrencesByName = new Map();
+  for (const occurrence of operationOccurrences) {
+    const occurrences = occurrencesByName.get(occurrence.name) ?? [];
+    occurrences.push(occurrence);
+    occurrencesByName.set(occurrence.name, occurrences);
+  }
+
+  for (const [name, occurrences] of occurrencesByName) {
+    if (occurrences.length > 1) {
+      failures.push(
+        `Duplicate GraphQL operation name "${name}": ${occurrences.map((occurrence) =>
+          `${occurrence.kind} at ${occurrence.label} (operation ${occurrence.operationIndex + 1}${occurrence.dynamicVariant ? ', dynamic template' : ''})`
+        ).join('; ')}`,
+      );
+    }
+  }
+
+  const sortedOperationOccurrences = [...operationOccurrences].sort((left, right) =>
+    left.name.localeCompare(right.name)
+    || left.label.localeCompare(right.label)
+    || left.operationIndex - right.operationIndex
+  );
+
   console.log(
-    `GraphQL inventory: ${sourceCounts.size} source files, ${staticDocumentCount} static documents, ${dynamicTemplates.size} dynamic templates, ${[...dynamicTemplates.values()].reduce((total, variants) => total + variants.length, 0)} dynamic expansions.`,
+    `GraphQL inventory: ${sourceCounts.size} source files, ${staticDocumentCount} static documents, ${dynamicTemplates.size} dynamic templates, ${[...dynamicTemplates.values()].reduce((total, operation) => total + operation.variants.size, 0)} dynamic expansions.`,
   );
   for (const [relativePath, count] of sourceCounts) {
     console.log(`- ${relativePath}: ${count}`);
+  }
+  console.log(
+    `GraphQL operation inventory: ${operationOccurrences.length} named operations, ${occurrencesByName.size} distinct names.`,
+  );
+  for (const occurrence of sortedOperationOccurrences) {
+    const dynamic = occurrence.dynamicVariant ? ' [dynamic template]' : '';
+    console.log(
+      `- ${occurrence.name}: ${occurrence.kind} at ${occurrence.label} (operation ${occurrence.operationIndex + 1})${dynamic}`,
+    );
   }
 
   if (failures.length > 0) {

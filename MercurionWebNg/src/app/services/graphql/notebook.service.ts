@@ -116,7 +116,7 @@ export class NotebookService {
     return this.apollo
       .watchQuery<{ chapterById: SectionTree | null }>({
         query: gql`
-          query GetChapterById($id: ID!) {
+          query GetSectionById($id: ID!) {
             sectionById(id: $id) {
               id
               title
@@ -133,7 +133,7 @@ export class NotebookService {
     return this.apollo
       .watchQuery<{ chapterById: PageTree | null }>({
         query: gql`
-          query GetChapterById($id: ID!) {
+          query GetPageHeaderById($id: ID!) {
             pageById(id: $id) {
               id
               title
