@@ -1,6 +1,6 @@
 # 0007 - Centralize static GraphQL document catalog
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -99,20 +99,114 @@ Do not merely relocate TypeScript template strings into another TypeScript file.
 
 ### Summary
 
-_Not started._
+Centralized the complete Angular GraphQL client surface in the canonical
+`MercurionWebNg/src/app/graphql/documents/**/*.graphql` catalog. The five
+feature-oriented catalog files contain all 73 named operations and three
+shared fragments, and Code Generator now discovers only this catalog rather
+than an incremental TypeScript/source allowlist.
+
+Removed every executable `gql` template and obsolete
+`graphql-operations/*.ts` module from Angular source. Help, molecule,
+molecule-search, collection, collection-item, collection-join, and Notebook
+consumers now use generated typed document nodes plus generated
+operation/result/variable types.
+
+Replaced the finite molecule-collection field-string builder with four
+explicit minimal/`WithItems` operation pairs backed by named
+`MoleculeCollectionFields` and `MoleculeCollectionWithItemsFields` fragments.
+The minimal and item-inclusive response selections remain available for list,
+detail, create, and update calls. Resolver fields, data variables, fetch
+policies, result extraction, and public service behavior were preserved. The
+item-inclusive operations have semantic `WithItems` names so the catalog also
+retains the global operation-name uniqueness contract.
+
+Reworked validation to parse the complete catalog without executing
+application code, validate it as one document set against the committed Nest
+schema, reject anonymous operations, and enforce globally unique names. Added
+a fail-closed catalog policy that rejects standalone GraphQL files outside the
+canonical hierarchy and executable `gql` tags/calls in TypeScript, including
+aliased Apollo `gql` imports. A committed negative fixture proves inline
+executable documents are rejected.
+
+One existing request-compatibility bridge remains explicit:
+`AddManyChEMBLItemDTO.chemblMolregno` is a numeric client value while generated
+`ID` input types are string-only. The service uses the generated operation and
+variables type but preserves the existing numeric wire payload through a
+documented type bridge; changing that contract was outside this relocation
+task.
+
+Implementation commit:
+
+- `cb65fae8` - `feat(graphql): centralize Angular document catalog`
 
 ### Validation performed
 
-_Not started._
+- Task-start preflight on clean `feature/SYS-007` at supplied base
+  `9d4d552662db3d19d3266aec4e91bf60a130f125`:
+  - root `npm ci` - PASS, 1925 packages installed, 0 vulnerabilities;
+  - root `npm run ci:check` - PASS, complete unchanged CI-parity aggregate.
+- Catalog inventory and policy:
+  - `npm run graphql:catalog-policy --workspace mercurion_web_ng` - PASS;
+  - `npm run graphql:catalog-policy:negative --workspace mercurion_web_ng` -
+    PASS; the committed inline executable `gql` fixture was rejected;
+  - direct source inventory found five `.graphql` files, all under
+    `src/app/graphql/documents`, and no executable `gql` definitions in
+    Angular TypeScript.
+- GraphQL validation, uniqueness, generation, and drift:
+  - `npm run graphql:generate --workspace mercurion_web_ng` - PASS;
+  - `npm run graphql:check --workspace mercurion_web_ng` - PASS;
+  - inventory: five catalog files, 73 named operations, three fragments;
+  - every catalog document validated against
+    `MercurionWebNode/src/schema.graphql`;
+  - operation names were globally unique;
+  - invalid-field and duplicate-name negative fixtures were rejected;
+  - GraphQL Code Generator `--check` reported no generated-artifact drift.
+- Focused service regressions:
+  - from `MercurionWebNg`,
+    `npx ng test --watch=false --karma-config=karma.conf.js --include src/app/services/graphql/molecule-collection.service.spec.ts --include src/app/services/graphql/molecule-collection-item.service.spec.ts --include src/app/services/graphql/molecule-collection-join.service.spec.ts --include src/app/services/graphql/molecule-search.service.spec.ts --include src/app/services/graphql/notebook.service.spec.ts`
+    - PASS, 18 tests;
+  - collection tests prove all four former dynamic selections have explicit
+    minimal and `WithItems` typed documents.
+- Angular:
+  - `npm run typecheck --workspace mercurion_web_ng` - PASS;
+  - `npm run lint --workspace mercurion_web_ng` - PASS with existing warnings
+    only;
+  - `npm run build --workspace mercurion_web_ng` - PASS with existing
+    bundle-budget and CommonJS warnings only;
+  - `npm run test:ci --workspace mercurion_web_ng` - PASS, all 170 tests.
+- Final pre-integration CI parity on the final task tree:
+  - root `npm ci` - PASS;
+  - root `npm run ci:check` - PASS, including autonomous recipe validation,
+    contracts, Angular/Nest lint and typechecks, all Angular tests, all Nest
+    unit/E2E tests, and both builds.
+- `git diff --check` - PASS.
 
 ### Browser validation performed
 
-_Not applicable / not started._
+Not required. This is a statically equivalent document/type relocation:
+resolver fields, variables, selection contents, fetch policies, and result
+handling are unchanged. The former finite `withItems` branch now selects an
+explicit static typed document with the same response selection; only its
+diagnostic operation name is made uniquely semantic. Static schema/codegen
+validation and service tests fully establish the acceptance criteria without
+requiring application data or a browser flow.
 
 ### Changed files
 
-_Not recorded._
+- Added the canonical feature documents under
+  `MercurionWebNg/src/app/graphql/documents/`.
+- Removed the legacy `graphql-operations/*.ts` executable document modules and
+  the former Notebook fragment file outside the catalog.
+- Updated all affected GraphQL services to generated typed documents and
+  operation types.
+- Updated `MercurionWebNg/codegen.yml`, generated
+  `src/app/generated/graphql.ts`, and `GRAPHQL_CODEGEN.md`.
+- Reworked `scripts/validate-graphql-documents.mjs`; added the catalog-policy
+  checker, its negative proof runner, and its intentional fixture.
+- Updated Angular package scripts and molecule-collection service regression
+  coverage.
+- Updated this recipe with provisional `DONE` status and execution evidence.
 
 ### Blocker / human decision required
 
-_None._
+None.
