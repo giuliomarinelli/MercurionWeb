@@ -472,6 +472,7 @@ for (const [pattern, message] of [
   [/ubuntu-latest[\s\S]*windows-latest/, 'missing Windows/Linux CI platforms'],
   [/expected_first_pending_task:\s*"0008"/, 'active workload must resume at task 0008'],
   [/expected_task_count:\s*220/, 'active workload must contain 220 tasks'],
+  [/recovery_control_plane_pull_request:\s*28/, 'active recovery must record PR #28'],
   [/task:\s*"0008"/, 'missing authorized SYS-008 retry task'],
   [/archived_branch:\s*archive\/SYS-008-attempt-2026-09-03/, 'missing archived SYS-008 retry branch'],
   [/archived_sha:\s*b99d864ef8c8555fe9f28bfa9152cd6581f78720/, 'missing exact archived SYS-008 SHA'],

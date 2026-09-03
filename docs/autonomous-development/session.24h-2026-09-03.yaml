@@ -11,7 +11,7 @@ session:
 launch:
   historical_configuration_pull_request: 25
   permanent_baseline_pull_request: 27
-  recovery_control_plane_pull_request: null
+  recovery_control_plane_pull_request: 28
   require_configuration_on_integration_branch: true
   require_current_cli_runner_control_plane_on_integration_branch: true
   mutate_historical_configuration_pull_request: false
@@ -44,6 +44,7 @@ repository:
     do_not_mutate_pull_requests:
       - 25
       - 27
+      - 28
 
 agent:
   host: github-copilot-cli
