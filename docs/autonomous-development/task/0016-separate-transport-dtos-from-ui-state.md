@@ -1,7 +1,7 @@
 # 0016 - Separate transport DTOs from UI state
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -90,20 +90,44 @@ Prefer pure mapping functions/factories from transport DTO to view model. Keep m
 
 ### Summary
 
-_Not started._
+Separated Help GraphQL transport aliases from Angular view state. Help services now
+return the generated transport shapes without adding signals; Help list/detail
+components explicitly adapt tickets and messages through pure view-model
+factories. The implementation is preserved on `feature/SYS-016`, but the task
+is blocked because the canonical runtime did not provide an authenticated/test
+Help state for the required browser interaction validation.
 
 ### Validation performed
 
-_Not started._
+- Unchanged task-start preflight: `npm ci` and `npm run ci:check` passed.
+- Angular build: `npm run build --workspace mercurion_web_ng` passed.
+- Angular CI tests: `npm run test:ci --workspace mercurion_web_ng` passed
+  (174 tests).
+- Final pre-merge preflight after stopping task-owned runtimes: `npm ci` and
+  `npm run ci:check` passed.
 
 ### Browser validation performed
 
-_Not started._
+Blocked after navigating to `http://localhost:8888/help`: the development
+runtime redirected to `http://localhost:8888/login?redirect_to=%2Fhelp`
+without authenticated/test data, and the browser console reported an
+uncaught WebSocket handshake failure for
+`ws://localhost:8888/socket.io/?EIO=4&transport=websocket` (HTTP 502).
+Therefore Help collapse/animation interactions could not be exercised safely.
+Nest, Angular, and Tox21 processes started for this attempt were stopped before
+the final clean install.
 
 ### Changed files
 
-_Not recorded._
+- `MercurionWebNg/src/app/Models/graphql/help.models.ts`
+- `MercurionWebNg/src/app/Models/graphql/help.view-models.ts`
+- `MercurionWebNg/src/app/Models/graphql/help.models.spec.ts`
+- `MercurionWebNg/src/app/services/graphql/help.service.ts`
+- `MercurionWebNg/src/app/pages/help/help.page.component.ts`
+- `MercurionWebNg/src/app/components/action-components/ticket-detail/ticket-detail.component.ts`
 
 ### Blocker / human decision required
 
-_None._
+Provide safe development/test authentication and a healthy canonical backend
+WebSocket/API runtime so the required Help-route browser validation can be
+completed. No production credentials or data were used.
