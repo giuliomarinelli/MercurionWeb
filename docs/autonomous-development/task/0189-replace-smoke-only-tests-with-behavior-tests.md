@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Replace the repository's predominance of `should be created`-style smoke specs with behavior-oriented tests that exercise public contracts, success paths and meaningful failure paths, while keeping smoke-only specs below ten percent of the maintained unit-test suite.
@@ -108,9 +108,3 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
-
-### Dependency skip (2026-09-03 session)
-
-- Direct terminal prerequisite(s): `0187` (QA-001, SKIPPED_DEPENDENCY), `0188` (QA-002, SKIPPED_DEPENDENCY).
-- Transitive chain: 0008 SYS-008 BLOCKED -> 0187 QA-001 SKIPPED_DEPENDENCY -> 0189 QA-003 SKIPPED_DEPENDENCY.
-- No feature branch was created and no worker was invoked.

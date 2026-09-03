@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Give every incompatible public payload contract an explicit, verifiable versioning and deprecation strategy and make client/server declare the contract version they support.
@@ -114,9 +114,3 @@ _Not recorded._
 ### Blocker / human decision required
 
 _None recorded yet._
-
-### Dependency skip (2026-09-03 session)
-
-- Direct terminal prerequisite(s): `0008` (SYS-008, BLOCKED).
-- Transitive chain: 0008 SYS-008 BLOCKED -> 0022 SYS-022 SKIPPED_DEPENDENCY.
-- No feature branch was created and no worker was invoked.

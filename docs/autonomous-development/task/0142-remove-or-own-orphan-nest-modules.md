@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Resolve every backend production file unreachable from legitimate Nest/runtime entrypoints and add a deterministic CI reachability gate so legacy DTOs/interfaces/modules cannot accumulate as zombie code.
@@ -102,9 +102,3 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
-
-### Dependency skip (2026-09-03 session)
-
-- Direct terminal prerequisite(s): `0115` (BE-001, SKIPPED_DEPENDENCY), `0139` (BE-025, SKIPPED_DEPENDENCY), `0140` (BE-026, SKIPPED_DEPENDENCY), `0141` (BE-027, SKIPPED_DEPENDENCY).
-- Transitive chain: 0008 SYS-008 BLOCKED -> 0115 BE-001 SKIPPED_DEPENDENCY -> 0142 BE-028 SKIPPED_DEPENDENCY.
-- No feature branch was created and no worker was invoked.

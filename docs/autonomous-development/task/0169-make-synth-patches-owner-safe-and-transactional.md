@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Ensure Synth updates accept only explicitly writable fields and perform ownership/existence validation plus persistence in one transaction, without spreading DTO identifiers, owner fields or relation objects directly into TypeORM entities.
@@ -107,9 +107,3 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
-
-### Dependency skip (2026-09-03 session)
-
-- Direct terminal prerequisite(s): `0152` (DATA-003, SKIPPED_DEPENDENCY), `0168` (DATA-019, SKIPPED_DEPENDENCY).
-- Transitive chain: 0008 SYS-008 BLOCKED -> 0019 SYS-019 SKIPPED_DEPENDENCY -> 0168 DATA-019 SKIPPED_DEPENDENCY -> 0169 DATA-020 SKIPPED_DEPENDENCY.
-- No feature branch was created and no worker was invoked.

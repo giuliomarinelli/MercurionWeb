@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Align application health endpoints, Compose/Kubernetes probes and termination settings so readiness means capable of serving, liveness detects only a stuck process, startup covers bounded bootstrap and shutdown drains without losing accepted requests.
@@ -119,9 +119,3 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
-
-### Dependency skip (2026-09-03 session)
-
-- Direct terminal prerequisite(s): `0135` (BE-021, SKIPPED_DEPENDENCY), `0138` (BE-024, SKIPPED_DEPENDENCY), `0147` (BE-033, SKIPPED_DEPENDENCY), `0207` (QA-021, SKIPPED_DEPENDENCY), `0215` (QA-029, SKIPPED_DEPENDENCY).
-- Transitive chain: 0008 SYS-008 BLOCKED -> 0206 QA-020 SKIPPED_DEPENDENCY -> 0207 QA-021 SKIPPED_DEPENDENCY -> 0216 QA-030 SKIPPED_DEPENDENCY.
-- No feature branch was created and no worker was invoked.

@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Make secret, dependency, license, SBOM and final-image vulnerability checks mandatory CI gates and produce verifiable digest-bound signatures/attestations for release-candidate artifacts without deploying them.
@@ -121,9 +121,3 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
-
-### Dependency skip (2026-09-03 session)
-
-- Direct terminal prerequisite(s): `0202` (QA-016, SKIPPED_DEPENDENCY), `0209` (QA-023, SKIPPED_DEPENDENCY), `0214` (QA-028, SKIPPED_DEPENDENCY), `0218` (QA-032, SKIPPED_DEPENDENCY).
-- Transitive chain: 0008 SYS-008 BLOCKED -> 0202 QA-016 SKIPPED_DEPENDENCY -> 0219 QA-033 SKIPPED_DEPENDENCY.
-- No feature branch was created and no worker was invoked.

@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Ensure test-only controllers/providers are absent from the production `AppModule` graph and can be enabled only through an explicit test application module/context.
@@ -96,9 +96,3 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
-
-### Dependency skip (2026-09-03 session)
-
-- Direct terminal prerequisite(s): `0134` (BE-020, SKIPPED_DEPENDENCY).
-- Transitive chain: 0008 SYS-008 BLOCKED -> 0115 BE-001 SKIPPED_DEPENDENCY -> 0117 BE-003 SKIPPED_DEPENDENCY -> 0130 BE-016 SKIPPED_DEPENDENCY -> 0133 BE-019 SKIPPED_DEPENDENCY -> 0134 BE-020 SKIPPED_DEPENDENCY -> 0139 BE-025 SKIPPED_DEPENDENCY.
-- No feature branch was created and no worker was invoked.

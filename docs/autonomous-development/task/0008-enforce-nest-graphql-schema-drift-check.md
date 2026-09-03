@@ -1,7 +1,7 @@
 # 0008 - Extend canonical CI and enforce Nest GraphQL schema drift
 
 - [ ] DONE
-- [x] BLOCKED
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -365,72 +365,44 @@ Prefer deterministic checks and explicit diagnostics over clever workflow logic.
 
 ## Execution notes
 
-### Feature branch
+### Previous attempt provenance
 
-Preserved and frozen at `feature/SYS-008`,
-`b99d864ef8c8555fe9f28bfa9152cd6581f78720`.
-
-### Preflight
-
-The worker reported green root `npm ci` and `npm run ci:check` on unchanged
-base `84c1d1f70fc45ed57ad297476becd725e083216a`.
-
-### Preflight remediation
-
-_None._
-
-### Summary
-
-Attempted implementation reached local completion at feature SHA
-`17d57da6c06151f060fef66b896c7c946960e1d1`, but exact feature-SHA CI failed
-on Windows. No implementation was merged into `develop`.
-
-### Task-specific validation performed
-
-Worker-reported local named gates and controlled negative probes passed.
-Remote Linux CI passed; remote Windows CI exposed cross-platform generated
-artifact drift not reproduced locally.
-
-### Full pre-merge CI-parity validation
-
-Worker-reported local root `npm ci` and `npm run ci:check` passed. The required
-remote cross-platform gate did not pass.
-
-### Browser validation performed
-
-Not applicable.
-
-### Commits
-
-- Implementation: `6bd95f8ef1b032068349478209794c7d87c2c8bc`.
-- Feature execution evidence:
-  `17d57da6c06151f060fef66b896c7c946960e1d1`.
-- Feature block diagnostic:
+- Frozen attempt: `feature/SYS-008` at
   `b99d864ef8c8555fe9f28bfa9152cd6581f78720`.
+- Exact failed feature workflow:
+  `https://github.com/giuliomarinelli/MercurionWeb/actions/runs/33711148787`.
+- Ubuntu passed; Windows reported byte-stale Angular generated TypeScript.
+- No implementation from that attempt was merged into `develop`.
+- The attempt is retained read-only as
+  `archive/SYS-008-attempt-2026-09-03`; inspect or selectively reimplement it,
+  but do not cherry-pick it wholesale.
 
+### Retry authorization
+
+Direct human authorization on 2026-09-03 re-enabled this task for a fresh
+session. Create a new `feature/SYS-008` from the exact green post-recovery
+`develop`; do not advance, rebase, reset, amend, or merge into the archived
+attempt.
+
+### Feature branch
+_Not started for the authorized retry._
+### Preflight
+_Not started for the authorized retry._
+### Preflight remediation
+_None._
+### Summary
+_Not started for the authorized retry._
+### Task-specific validation performed
+_Not started for the authorized retry._
+### Full pre-merge CI-parity validation
+_Not started for the authorized retry._
+### Browser validation performed
+_Not applicable._
+### Commits
+_Not recorded for the authorized retry._
 ### Merge / CI
-
-Exact feature-SHA workflow:
-`https://github.com/giuliomarinelli/MercurionWeb/actions/runs/33711148787`.
-
-- `Quality (ubuntu-latest)`: success.
-- `Quality (windows-latest)`: failure in
-  `Check GraphQL and generated contracts`.
-- `Required gate`: failure.
-
-The Windows runner completed Nest schema checking and Angular document
-validation, then `graphql-codegen --check` reported
-`src/app/generated/schema.ts` and `src/app/generated/graphql.ts` as stale.
-The feature was not merged.
-
+_Not started for the authorized retry._
 ### Rollback
-
-Not applicable; blocking occurred before merge.
-
+_Not applicable._
 ### Blocker / human decision required
-
-The generated Angular GraphQL artifacts are not byte-stable across the clean
-Linux and Windows runners after this task's schema-ordering changes. A later
-human-authorized retry must make codegen output cross-platform deterministic
-without weakening the drift gate. The preserved feature branch must remain
-frozen for diagnosis.
+_None recorded for the authorized retry._

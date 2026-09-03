@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Replace the 1,047-line `AccountService` with focused registration, activation, profile, credential-recovery and sensitive-data-change use cases whose dependencies and public contracts are limited to one responsibility.
@@ -110,9 +110,3 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
-
-### Dependency skip (2026-09-03 session)
-
-- Direct terminal prerequisite(s): `0115` (BE-001, SKIPPED_DEPENDENCY), `0120` (BE-006, SKIPPED_DEPENDENCY).
-- Transitive chain: 0008 SYS-008 BLOCKED -> 0115 BE-001 SKIPPED_DEPENDENCY -> 0121 BE-007 SKIPPED_DEPENDENCY.
-- No feature branch was created and no worker was invoked.

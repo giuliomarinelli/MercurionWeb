@@ -43,6 +43,13 @@ npm ci
 npm run ci:check
 ```
 
+Before `npm ci`, every process started by the autonomous session that can read
+or execute workspace files must be stopped. In particular, Angular/esbuild and
+Nest watch mode must never overlap a clean install. Runtime processes are
+started only after the initial task preflight and only for declared
+browser/runtime validation; they are stopped again before the final
+pre-integration clean install.
+
 The root aggregate runs non-mutating Angular and Nest lint, both explicit
 typechecks, every Angular unit test, every Nest unit and E2E test, and both
 builds. It begins by validating the autonomous runner contract and all 220
@@ -106,7 +113,8 @@ Before any `feature/<Source>` branch is created, the coordinator must prove:
 3. the exact `develop` SHA has a successful `CI` workflow run and successful
    `Required gate` result;
 4. root `npm ci` and `npm run ci:check` also pass locally;
-5. no required capability or decision is missing.
+5. no session-owned runtime/watcher is active during `npm ci`;
+6. no required capability or decision is missing.
 
 Failure of this invariant is a session-level startup failure. It must not mark
 the first pending recipe `BLOCKED` or `REVERTED`, create its feature branch, or

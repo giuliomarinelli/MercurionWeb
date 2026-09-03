@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Make Nest unit and E2E tests bootstrap through explicit test configuration without import-time `process.exit()`, forced termination or hidden open handles, so Jest exits naturally with a truthful status.
@@ -115,9 +115,3 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
-
-### Dependency skip (2026-09-03 session)
-
-- Direct terminal prerequisite(s): `0008` (SYS-008, BLOCKED), `0130` (BE-016, SKIPPED_DEPENDENCY), `0132` (BE-018, SKIPPED_DEPENDENCY).
-- Transitive chain: 0008 SYS-008 BLOCKED -> 0188 QA-002 SKIPPED_DEPENDENCY.
-- No feature branch was created and no worker was invoked.

@@ -15,7 +15,9 @@ The model is intentionally strict:
 - success => delete the feature branch;
 - post-merge CI non-success => revert the merge, mark `REVERTED`, preserve the feature branch;
 - pre-merge failure/stop condition => mark `BLOCKED`, preserve the feature branch;
-- terminal hard dependency => mark `SKIPPED_DEPENDENCY` without creating a branch.
+- terminal hard dependency encountered at a task's normal selection point =>
+  mark only that task `SKIPPED_DEPENDENCY` without creating a branch; never
+  precompute the full transitive closure.
 
 `develop` is therefore never used as a dumping ground for hundreds of unrelated unverified changes.
 
@@ -147,6 +149,11 @@ type/template checks, all Angular tests, all Nest Jest unit and E2E tests, and
 both builds. Task `0008` adds GraphQL/generated-artifact drift; later tasks
 register further static/contract checks in the same aggregate.
 
+Every `npm ci` runs with session/task-owned Angular, Nest, Tox21 and test
+watchers stopped. Runtime is task-scoped: it starts only after the unchanged
+task-start preflight when browser evidence is actually required, and stops
+before the final clean-install gate.
+
 If the unchanged baseline is red, the session stops before task work and reports
 a baseline/upstream incident. It must not repair global debt inside
 `feature/<Source>` or mark the selected recipe `BLOCKED`. Baseline repair is a
@@ -191,7 +198,7 @@ PASS                 NON-SUCCESS
 delete branch      revert merge on develop
 next task          mark task REVERTED
                    preserve feature branch
-                   propagate SKIPPED_DEPENDENCY
+                   lazily evaluate the next task
                    continue only if develop is green
                    and a later task is independent
 ```

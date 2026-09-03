@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Build the final Nest runtime image from compiled application artifacts, declared runtime assets and production-only dependencies instead of copying the builder's complete development `node_modules`, and prove the delivered image inventory through SBOM and vulnerability evidence.
@@ -116,9 +116,3 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
-
-### Dependency skip (2026-09-03 session)
-
-- Direct terminal prerequisite(s): `0163` (DATA-014, SKIPPED_DEPENDENCY), `0206` (QA-020, SKIPPED_DEPENDENCY), `0207` (QA-021, SKIPPED_DEPENDENCY), `0208` (QA-022, SKIPPED_DEPENDENCY).
-- Transitive chain: 0008 SYS-008 BLOCKED -> 0206 QA-020 SKIPPED_DEPENDENCY -> 0209 QA-023 SKIPPED_DEPENDENCY.
-- No feature branch was created and no worker was invoked.

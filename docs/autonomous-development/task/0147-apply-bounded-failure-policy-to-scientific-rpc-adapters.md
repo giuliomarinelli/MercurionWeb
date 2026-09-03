@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Give MercurionAI and RDKit calls one explicit validated policy for input limits, timeouts, concurrency/backpressure and stable failure classification instead of repeating hard-coded `timeout(3000)` and generic error mapping.
@@ -104,9 +104,3 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
-
-### Dependency skip (2026-09-03 session)
-
-- Direct terminal prerequisite(s): `0127` (BE-013, SKIPPED_DEPENDENCY), `0129` (BE-015, SKIPPED_DEPENDENCY), `0130` (BE-016, SKIPPED_DEPENDENCY), `0146` (BE-032, SKIPPED_DEPENDENCY).
-- Transitive chain: 0008 SYS-008 BLOCKED -> 0115 BE-001 SKIPPED_DEPENDENCY -> 0129 BE-015 SKIPPED_DEPENDENCY -> 0147 BE-033 SKIPPED_DEPENDENCY.
-- No feature branch was created and no worker was invoked.

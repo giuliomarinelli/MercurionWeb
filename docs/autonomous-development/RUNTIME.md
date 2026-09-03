@@ -98,9 +98,14 @@ The process is not watch-mode. It only needs to remain alive during the runtime-
 
 ## Startup and readiness
 
-The runner owns process lifecycle. A coding-agent task must not create duplicate application processes when the session runtime is already ready.
+Runtime is task-scoped, never session-persistent across task boundaries. The
+coordinator and worker must not start Angular, Nest, Tox21, test watchers, or
+any other workspace-consuming process before the unchanged task-start `npm ci`
+plus `npm run ci:check` preflight completes. A coding-agent task must not create
+duplicate application processes.
 
-For a session that requires browser/runtime validation, the runner should:
+Only after implementation reaches a task that actually declares
+browser/runtime validation, the worker should:
 
 1. verify that the Docker nginx edge is already reachable or fail/block runtime validation;
 2. start the Tox21 process when not already managed by the current session;
@@ -111,11 +116,19 @@ For a session that requires browser/runtime validation, the runner should:
 7. verify the Angular application through `http://localhost:8888/`;
 8. only then allow browser validation to begin.
 
+After capturing the declared runtime evidence, the worker stops every process
+it started. It MUST do so before the final pre-merge `npm ci` plus
+`npm run ci:check`; on Windows, a live Angular/esbuild watcher can otherwise
+lock native executables under `node_modules` and make the clean install fail
+with `EPERM` or `ENOTEMPTY`.
+
 A task may require a more specific route or application state, but it must still enter through `http://localhost:8888`.
 
 ## Shutdown
 
-At Development Session finalization, the runner should stop only the application processes that it started for that session.
+At task completion and again at Development Session finalization, the runner
+stops only the application processes that it started. No task-owned runtime
+may be carried into the next task's clean-install preflight.
 
 It must not stop the externally managed Docker nginx development proxy.
 

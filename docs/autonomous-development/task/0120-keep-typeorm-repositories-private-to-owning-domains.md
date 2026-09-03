@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Stop exporting `TypeOrmModule` and consuming foreign-domain repositories directly; each Nest domain must keep repository/entity-manager access private and expose only public use cases/query ports required by other domains.
@@ -105,9 +105,3 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
-
-### Dependency skip (2026-09-03 session)
-
-- Direct terminal prerequisite(s): `0115` (BE-001, SKIPPED_DEPENDENCY), `0118` (BE-004, SKIPPED_DEPENDENCY).
-- Transitive chain: 0008 SYS-008 BLOCKED -> 0115 BE-001 SKIPPED_DEPENDENCY -> 0120 BE-006 SKIPPED_DEPENDENCY.
-- No feature branch was created and no worker was invoked.

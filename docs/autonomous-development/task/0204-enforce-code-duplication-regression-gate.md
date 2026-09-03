@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Introduce a deterministic code-clone/duplication gate for maintained Angular and Nest production source, reduce the current meaningful duplication baseline and make the resulting lower threshold non-regressing in canonical CI.
@@ -113,9 +113,3 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
-
-### Dependency skip (2026-09-03 session)
-
-- Direct terminal prerequisite(s): `0202` (QA-016, SKIPPED_DEPENDENCY).
-- Transitive chain: 0008 SYS-008 BLOCKED -> 0202 QA-016 SKIPPED_DEPENDENCY -> 0204 QA-018 SKIPPED_DEPENDENCY.
-- No feature branch was created and no worker was invoked.

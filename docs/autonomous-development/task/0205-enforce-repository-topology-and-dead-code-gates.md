@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Make the complete maintained Angular and Nest dependency topology a deterministic CI artifact and fail on any new orphan production unit, dependency cycle or forbidden dependency edge.
@@ -117,9 +117,3 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
-
-### Dependency skip (2026-09-03 session)
-
-- Direct terminal prerequisite(s): `0114` (NG-028, SKIPPED_DEPENDENCY), `0115` (BE-001, SKIPPED_DEPENDENCY), `0142` (BE-028, SKIPPED_DEPENDENCY), `0201` (QA-015, SKIPPED_DEPENDENCY), `0202` (QA-016, SKIPPED_DEPENDENCY).
-- Transitive chain: 0008 SYS-008 BLOCKED -> 0115 BE-001 SKIPPED_DEPENDENCY -> 0205 QA-019 SKIPPED_DEPENDENCY.
-- No feature branch was created and no worker was invoked.

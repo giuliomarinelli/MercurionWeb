@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Configure one repository-owned dependency-update automation with explicit ecosystem coverage, SemVer/grouping policy, maintainer ownership and security-update windows so compatible updates open fully verified pull requests instead of accumulating reactively.
@@ -120,9 +120,3 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
-
-### Dependency skip (2026-09-03 session)
-
-- Direct terminal prerequisite(s): `0210` (QA-024, SKIPPED_DEPENDENCY), `0211` (QA-025, SKIPPED_DEPENDENCY), `0218` (QA-032, SKIPPED_DEPENDENCY), `0219` (QA-033, SKIPPED_DEPENDENCY).
-- Transitive chain: 0008 SYS-008 BLOCKED -> 0202 QA-016 SKIPPED_DEPENDENCY -> 0218 QA-032 SKIPPED_DEPENDENCY -> 0220 QA-034 SKIPPED_DEPENDENCY.
-- No feature branch was created and no worker was invoked.

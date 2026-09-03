@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Replace locally constructed NATS subject strings and request/response assumptions with one versioned contract registry describing subject, request schema, response schema, timeout and error contract for every MercurionAI/RDKit RPC operation.
@@ -103,9 +103,3 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
-
-### Dependency skip (2026-09-03 session)
-
-- Direct terminal prerequisite(s): `0133` (BE-019, SKIPPED_DEPENDENCY), `0141` (BE-027, SKIPPED_DEPENDENCY).
-- Transitive chain: 0008 SYS-008 BLOCKED -> 0115 BE-001 SKIPPED_DEPENDENCY -> 0117 BE-003 SKIPPED_DEPENDENCY -> 0130 BE-016 SKIPPED_DEPENDENCY -> 0133 BE-019 SKIPPED_DEPENDENCY -> 0146 BE-032 SKIPPED_DEPENDENCY.
-- No feature branch was created and no worker was invoked.

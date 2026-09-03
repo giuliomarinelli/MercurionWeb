@@ -171,7 +171,7 @@ The `Dependencies` section contains both executable prerequisites and, in older 
 - A range with qualifiers such as `as applicable` requires only the members that actually own code used by the task. The coordinator records the resolved set in Execution notes.
 - A task never depends on itself. A forward reference that describes future registration/refinement is advisory unless the recipe explicitly makes the later task a prerequisite; an explicit forward prerequisite makes the current task unrunnable and must be reported as a recipe defect rather than guessed around.
 
-Hard prerequisites must be `DONE`. A hard prerequisite in any terminal non-`DONE` state makes the dependent task `SKIPPED_DEPENDENCY`, but it does not prevent later independent tasks from being considered when session policy permits. New or edited recipes SHOULD use exact current filenames and explicitly label non-blocking links as advisory.
+Hard prerequisites must be `DONE`. A hard prerequisite in any terminal non-`DONE` state makes a dependent task eligible for `SKIPPED_DEPENDENCY` only when that dependent reaches its normal filename-order selection point. The coordinator never materializes the full transitive closure in advance. Later independent tasks remain eligible when session policy permits. New or edited recipes SHOULD use exact current filenames and explicitly label non-blocking links as advisory.
 
 ## Branch isolation: one task, one feature branch
 
@@ -242,11 +242,13 @@ remote runner, which is why exact feature-SHA CI is mandatory before merge.
 
 Immediately after `feature/<Source>` is created and before actual task implementation:
 
-1. run the complete CI-parity preflight;
-2. if green, record the result and begin the task;
-3. if red before task changes exist, stop the session as a baseline invariant
+1. prove every session/task-owned Angular, Nest, Tox21, test watcher, and other
+   workspace-consuming process is stopped;
+2. run the complete CI-parity preflight;
+3. if green, record the result and begin the task;
+4. if red before task changes exist, stop the session as a baseline invariant
    failure rather than assigning the debt to this task;
-4. do not implement, create a task outcome, or use the feature branch to repair
+5. do not implement, create a task outcome, or use the feature branch to repair
    unrelated baseline debt.
 
 Use the canonical root `npm ci` plus `npm run ci:check` interface from the
@@ -259,11 +261,13 @@ Each task receives a fresh Copilot/Sol session. On its feature branch the agent:
 1. reads the complete task;
 2. inspects relevant code/docs;
 3. implements only the specified scope;
-4. performs task-specific tests and declared browser validation;
-5. commits coherent task changes;
-6. runs the complete canonical CI-parity gate set again immediately before integration;
-7. updates Execution notes;
-8. checks `DONE` only when implementation plus every local gate passes.
+4. performs task-specific tests and, only when declared, starts a task-scoped
+   runtime after the initial preflight to collect browser validation;
+5. stops every task-owned runtime/watcher before a clean install;
+6. commits coherent task changes;
+7. runs the complete canonical `npm ci` plus `npm run ci:check` gate set again immediately before integration;
+8. updates Execution notes;
+9. checks `DONE` only when implementation plus every local gate passes.
 
 At this point `DONE` is operationally **CI_PENDING** until both the exact
 feature-SHA and exact merge-SHA GitHub Actions runs succeed. The runner MUST NOT
@@ -330,7 +334,7 @@ revert retains CI coverage. A revert tree mismatch or a revert/status commit
 that cannot be observed green is a session-fatal **baseline/upstream
 incident**, not permission to blame or start the next task.
 
-Once revert plus `REVERTED` metadata are green, the task is terminal for this session. The coordinator performs dependency-skip propagation and may continue to a later independent task only when `policy.continue_after_terminal_non_done_task` is true and its resolved hard dependencies are all `DONE`.
+Once revert plus `REVERTED` metadata are green, the task is terminal for this session. The coordinator resumes lazy filename-order dependency evaluation and may continue to a later independent task only when `policy.continue_after_terminal_non_done_task` is true and its resolved hard dependencies are all `DONE`.
 
 ## Blocking before merge
 
@@ -350,20 +354,24 @@ If blocked before integration:
 - push the metadata commit and require CI on that exact SHA to be green when a workflow exists;
 - continue to later independent tasks only when `develop` is green and the task dependency graph allows it.
 
-## Dependency propagation and SKIPPED_DEPENDENCY
+## Lazy dependency evaluation and SKIPPED_DEPENDENCY
 
-Before creating any feature branch, and again after a new `BLOCKED` or `REVERTED` status becomes exact-SHA green on `develop`, the coordinator resolves the transitive hard-dependency graph.
+Before creating a feature branch, the coordinator considers pending tasks in
+filename order. It may resolve dependency relationships for selection and
+diagnostics, but MUST NOT change every member of a transitive closure merely
+because one prerequisite became `BLOCKED` or `REVERTED`.
 
-For each still-pending task whose hard prerequisite is terminal non-`DONE`:
+When the one pending task currently at its normal selection point has a hard
+prerequisite that is terminal non-`DONE`:
 
 1. do not create or push `feature/<Source>`;
 2. do not invoke a task worker or run task implementation/preflight;
 3. check only `SKIPPED_DEPENDENCY` on `develop`;
 4. record every direct terminal prerequisite and the transitive dependency chain in Execution notes/reporting;
-5. batch all newly determined skips from the same propagation pass into one metadata-only commit;
-6. push that commit and require exact-SHA green CI when a workflow exists before selecting another task.
+5. leave all later recipes unchanged, even when they are transitively dependent;
+6. commit that one task's metadata, push it, and require exact-SHA green CI when a workflow exists before restarting selection.
 
-A skip-metadata CI failure is a session-fatal integration-health incident; it is not attributed to the unattempted skipped tasks. Independent pending tasks remain eligible after the skip commit is green. Tasks left unattempted solely because the deadline/workload ended remain `PENDING`, not `SKIPPED_DEPENDENCY`.
+A skip-metadata CI failure is a session-fatal integration-health incident; it is not attributed to the unattempted skipped task. Independent pending tasks remain eligible after the skip commit is green. Tasks left unattempted solely because the deadline/workload ended remain `PENDING`, not `SKIPPED_DEPENDENCY`. Deadline finalization never performs a speculative skip sweep.
 
 ## Git safety rules
 
