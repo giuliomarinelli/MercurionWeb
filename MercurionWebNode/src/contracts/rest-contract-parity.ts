@@ -1,5 +1,6 @@
 import type {
   BackupCodeDTO as BackupCodeContract,
+  MfaStrategy as MfaStrategyContract,
   ChangePasswordDTO as ChangePasswordContract,
   ChangePhoneDTO as ChangePhoneContract,
   CreateFeedbackDTO as CreateFeedbackContract,
@@ -43,6 +44,7 @@ import type { RdkitToCanonicalSmilesOptsDTO } from '../app_modules/mercurion-ai/
 import type { RdkitToCanonicalSmilesDTO } from '../app_modules/mercurion-ai/Models/DTO/rdkit/rdkit-canonical-smiles.dto'
 import type { RdkitGetMoleculePropertiesDTO } from '../app_modules/mercurion-ai/Models/DTO/rdkit/rdkit-get-molecule-properties.cls.dto'
 import type { UserRegisterDTO } from '../app_modules/user/Models/DTO/user-register.cls.dto'
+import type { MfaStrategy as MfaStrategyDbEnum } from '../app_modules/user/Models/enums/mfa-strategy.enum'
 
 type Equivalent<A, B> =
   [A] extends [B]
@@ -89,7 +91,14 @@ type FeedbackWire = Omit<
   status: EnumValue<Feedback['status']>
 }
 
+// The internal MFA-strategy enum persists opaque DB identifiers as its values, so it cannot
+// share the wire-level rest-contracts MfaStrategy union by value. Its KEYS are still the wire
+// vocabulary returned to clients (see GeneralUtils.getEnumKeyByValue usage), so this assertion
+// guards that the two vocabularies stay in lockstep even though their runtime values differ.
+type MfaStrategyDbKeys = keyof typeof MfaStrategyDbEnum
+
 export type RestContractParity = [
+  Assert<Equivalent<MfaStrategyDbKeys, MfaStrategyContract>>,
   Assert<Equivalent<EmailDTO, EmailContract>>,
   Assert<Equivalent<Login_FirstStepDTO, LoginFirstStepContract>>,
   Assert<Equivalent<TotpBodyDTO, TotpBodyContract>>,
