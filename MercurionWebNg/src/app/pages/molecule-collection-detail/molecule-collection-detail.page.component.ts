@@ -32,6 +32,10 @@ import {
 } from 'rxjs';
 
 import { AbstractPaginationComponent } from '../../abstract/abstract-pagination-component';
+import {
+  ApplicationErrorCode,
+  hasApplicationErrorCode
+} from '../../utils/application-error.util';
 
 import { MoleculeCollectionService } from '../../services/graphql/molecule-collection.service';
 import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service';
@@ -443,7 +447,10 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
     this.reSub = this.colService.updateCollectionName(this.colId(), name).pipe(
       switchMap(() => this.historyContext.pollNewItem()),
       catchError(e => {
-        if (e.message === `duplicate key value violates unique constraint "unique_name_per_user"`) {
+        if (hasApplicationErrorCode(
+          e,
+          ApplicationErrorCode.MOLECULE_COLLECTION_NAME_CONFLICT
+        )) {
           queueMicrotask(() => {
             this.triggerRenameRollback.set(true)
             this.toast.trigger('Questo nome esiiste già. Impossibile rinominare!', 'error', 3000)

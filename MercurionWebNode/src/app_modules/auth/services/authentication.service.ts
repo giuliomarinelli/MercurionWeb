@@ -3,7 +3,7 @@ import { Authentication } from './../Models/interfaces/authentication.interface'
 import { UserService } from 'src/app_modules/user/services/user.service';
 import { Injectable } from '@nestjs/common';
 import { PasswordEncoderService } from './password-encoder.service';
-import { RpcException } from '@nestjs/microservices';
+
 import { SessionService } from './session.service';
 import { ISessionDeviceInfo } from '../Models/interfaces/i-session.interface';
 import { MfaService } from './mfa.service';
@@ -22,6 +22,7 @@ import { CompareResult } from '../Models/enums/compare-result.enum';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { AuthProvider } from 'src/app_modules/sso/Models/enums/auth-provider.enum';
 import type { MfaStrategy as WireMfaStrategy } from '@mercurion/rest-contracts'
+import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 
 @Injectable()
 export class AuthenticationService {
@@ -79,19 +80,19 @@ export class AuthenticationService {
 
         const isLocked = await this.redisService.exists(this.getLockKey(email))
         if (isLocked) {
-            throw new RpcException('Authentication::TooManyAttempts');
+            throw applicationError(ApplicationErrorCode.AUTHENTICATION_TOO_MANY_ATTEMPTS);
         }
 
         const auth: IAuth | nullish = await this.userService.getVerifiedUserAuthByEmail(email)
         if (!auth || !auth.userId || !auth.passwordHash || auth.locked) {
             await this.bumpLoginFailCounter(failKey, lockKey)
-            throw new RpcException('AuthenticationInvalidCredentials')
+            throw applicationError(ApplicationErrorCode.AUTHENTICATION_INVALID_CREDENTIALS)
         }
 
         const cmp = await this.passwordEncoder.compareWithFallback(password, auth.passwordHash, true)
         if (cmp === CompareResult.NoMatch) {
             await this.bumpLoginFailCounter(failKey, lockKey)
-            throw new RpcException('AuthenticationInvalidCredentials')
+            throw applicationError(ApplicationErrorCode.AUTHENTICATION_INVALID_CREDENTIALS)
         }
 
         // Opportunistic upgrade (non-blocking)
@@ -184,7 +185,7 @@ export class AuthenticationService {
                 ws_accessToken
             }
         }
-        throw new RpcException('InvalidSession')
+        throw applicationError(ApplicationErrorCode.SESSION_INVALID)
     }
 
     public async perform_SSO_Authentication(
@@ -198,7 +199,7 @@ export class AuthenticationService {
         const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(sso_pat, TokenType.SSO_PreAuthorizationToken)
         await this.sessionService.revokeToken(jti)
         if (!await this.userService.existsUserById(userId)) {
-            throw new RpcException('Unauthenticated')
+            throw applicationError(ApplicationErrorCode.AUTHENTICATION_UNAUTHENTICATED)
         }
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { latitude: _omit, longitude: __omit, ip: ___omit, city, region, country } = this.geoIpService.getLocation(IP)

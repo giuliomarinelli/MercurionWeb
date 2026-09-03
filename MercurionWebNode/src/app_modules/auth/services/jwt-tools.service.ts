@@ -8,13 +8,14 @@ import { UserService } from 'src/app_modules/user/services/user.service';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { Scope } from 'src/app_modules/user/Models/enums/scope.enum';
 import { FastifyRequest } from 'fastify';
-import { RpcException } from '@nestjs/microservices';
+
 import { AppJwtPayload } from '../Models/interfaces/app-jwt-payload.interface';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { SessionService } from './session.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { JwtKeysProvider } from '../providers/jwt-keys.provider';
+import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 
 @Injectable()
 export class JwtToolsService {
@@ -179,7 +180,7 @@ export class JwtToolsService {
 
         // 🔹 Se è un AccessToken, memorizziamo il JTI tra i token emessi
         if (type === TokenType.AccessToken || type === TokenType.ws_AccessToken || type === TokenType.PreAuthorizationToken) {
-            if (sessionId == undefined) throw new RpcException('NoSuchSessionInAccessTokenSignature')
+            if (sessionId == undefined) throw applicationError(ApplicationErrorCode.ACCESS_TOKEN_SESSION_MISSING)
             const issuedKey = `issued:${sessionId.toString()}:${jti}`
             await this.redisservice.set(issuedKey, '1', jwtConfig.expiresInMs / 1000) // TTL uguale alla durata del token
         } else {
@@ -236,15 +237,15 @@ export class JwtToolsService {
             await this.jwtService.verifyAsync(token, verifyOptions)
             const payload: AppJwtPayload = this.jwtService.decode<AppJwtPayload>(token)
             if (payload.typ !== type) {
-                throw new RpcException(`InvalidToken::Type mismatch`)
+                throw applicationError(ApplicationErrorCode.TOKEN_TYPE_INVALID)
             }
             if (!skipRevocationCheck && await this.sessionService.isTokenRevoked(payload.jti)) {
-                throw new RpcException(`Revoked${type}`)
+                throw applicationError(ApplicationErrorCode.TOKEN_REVOKED, `Revoked${type}`, { tokenType: type })
             }
             return payload
         } catch (e) {
             this.logger.warn(' > verifyTokenAndGetPayload > Error: ', (e.message ?? e) as string | object)
-            throw new RpcException(`InvalidOrExpired${type}`)
+            throw applicationError(type === TokenType.AccessToken ? ApplicationErrorCode.ACCESS_TOKEN_INVALID_OR_EXPIRED : type === TokenType.ChangePasswordToken ? ApplicationErrorCode.PASSWORD_CHANGE_TOKEN_INVALID_OR_EXPIRED : ApplicationErrorCode.TOKEN_INVALID_OR_EXPIRED, `InvalidOrExpired${type}`, { tokenType: type })
         }
     }
 
@@ -256,7 +257,7 @@ export class JwtToolsService {
         const authorizationHeader = String(req.headers['authorization'] ?? '')
         const m = authorizationHeader.match(/^Bearer\s+([A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+)$/i)
         if (!m) {
-            throw new RpcException('NoProvidedAccessToken')
+            throw applicationError(ApplicationErrorCode.ACCESS_TOKEN_MISSING)
         }
         return m[1]
     }

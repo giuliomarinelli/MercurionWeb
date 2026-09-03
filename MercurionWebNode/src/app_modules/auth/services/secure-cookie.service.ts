@@ -4,9 +4,10 @@ import { createHmac } from 'crypto';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { CookieSerializeOptions } from '@fastify/cookie'
 import { SecureCookieConfiguration } from 'src/config/config.types';
-import { RpcException } from '@nestjs/microservices';
+
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 
 @Injectable()
 export class SecureCookieService {
@@ -48,7 +49,7 @@ export class SecureCookieService {
             .update(value)
             .digest('hex')
 
-        if (validSignature !== signature) throw new RpcException('InvalidSecureCookieSignature')
+        if (validSignature !== signature) throw applicationError(ApplicationErrorCode.SECURE_COOKIE_SIGNATURE_INVALID)
         return value
 
     }
@@ -73,7 +74,7 @@ export class SecureCookieService {
         name: string
     ): string | never {
         const signedValue = req.cookies[name];
-        if (!signedValue) throw new RpcException('NoSuchElementForCookieSigning')
+        if (!signedValue) throw applicationError(ApplicationErrorCode.SECURE_COOKIE_VALUE_MISSING)
         return this.verifyAndParseCookie(signedValue)
     }
 

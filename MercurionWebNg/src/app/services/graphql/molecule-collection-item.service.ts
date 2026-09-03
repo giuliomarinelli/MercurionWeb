@@ -14,7 +14,10 @@ import {
   MoleculeItemDTO,
   CustomMoleculeItemEntity
 } from '../../Models/graphql/molecule-collection/molecule-collection.types';
-import { extractGqlData } from './graphql-helpers/v1/extract-gql-data.helper';
+import {
+  extractGqlData,
+  GqlDataError
+} from './graphql-helpers/v1/extract-gql-data.helper';
 import { MoleculeSearchInput } from '../../Models/graphql/molecule-search/molecule-search-input.interface';
 import { AddManyChEMBLItemDTO } from '../../Models/graphql/add-many-chembl-item.dto';
 import {
@@ -334,7 +337,7 @@ export class MoleculeCollectionItemService {
       }).valueChanges.pipe(
         map((res) => extractGqlData<FindOneCustomMoleculeByCanonicalSmilesQuery, 'findOneCustomMoleculeByCanonicalSmiles'>(res, 'findOneCustomMoleculeByCanonicalSmiles', true) as CustomMoleculeItemEntity | null),
         catchError((e) => {
-          if ((e as Error).message === 'GqlError::NoData') {
+          if (e instanceof GqlDataError && e.kind === 'NoData') {
             return of(null)
           }
           return throwError(() => e)

@@ -27,6 +27,10 @@ import { TicketDetailContextService } from '../../services/context/action-contex
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service'
 import { NewTicketContextService } from '../../services/context/action-context/new-ticket-context.service'
 import { GqlV2Error } from '../../services/graphql/graphql-helpers/v2/gql-v2.error'
+import {
+  ApplicationErrorCode,
+  hasApplicationErrorCode
+} from '../../utils/application-error.util'
 
 @Component({
   selector: 'm-help-page',
@@ -197,10 +201,10 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
         },
         error: e => {
           if (e instanceof GqlV2Error && e.kind === 'GraphQL') {
-            const msg = e.gqlErrors[0]?.message
-            const code = e.gqlErrors[0]?.extensions?.code
-
-            if (msg === 'Unauthenticated' && code === 'UNAUTHENTICATED') {
+            if (hasApplicationErrorCode(
+              e,
+              ApplicationErrorCode.AUTHENTICATION_UNAUTHENTICATED_SOFT
+            )) {
               this.redirectToLoginWithRedirectTo(initialFullUrl)
               return
             }

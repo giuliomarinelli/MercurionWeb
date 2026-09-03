@@ -7,6 +7,11 @@ import { Login_FirstStep_Data } from '../../../Models/confirm.models'
 import { AuthService } from '../../../services/auth.service'
 import { FingerprintService } from '../../../services/fingerprint.service'
 import { HttpErrorBody } from '../../../Models/http-error-body.dto'
+import {
+  ApplicationErrorCode,
+  getApplicationErrorCode,
+  hasApplicationErrorCode
+} from '../../../utils/application-error.util';
 import { UserContextService } from '../../../services/context/user-context.service'
 import { SessionSyncService } from '../../../services/session-sync.service'
 import { ISessionDeviceInfo } from '../../../Models/auth/fingerprint.models'
@@ -440,12 +445,12 @@ export class MfaPageComponent implements OnInit, OnDestroy {
             return
           }
           if (he.status === 401) {
-            if (he.error?.message === 'ExpiredPreauthorizationToken') {
+            if (hasApplicationErrorCode(he.error, ApplicationErrorCode.MFA_PREAUTHORIZATION_EXPIRED)) {
               this.toast.trigger('Tempo scaduto. Devi ritentare il login.', 'error', 3000)
               this.gotoLoginPreservingRedirect()
               return
             }
-            if (he.error?.message === 'Invalid MFA OTP') {
+            if (hasApplicationErrorCode(he.error, ApplicationErrorCode.MFA_CODE_INVALID)) {
               this.toast.trigger('Codice errato. Devi ritentare il login.', 'error', 3000)
               this.gotoLoginPreservingRedirect()
               return
@@ -556,14 +561,11 @@ export class MfaPageComponent implements OnInit, OnDestroy {
         if ('error' in e && 'status' in e) {
           const errBody: HttpErrorBody = e.error
           if (e.status === 401) {
-            switch (errBody.message) {
-              case 'Invalid MFA strategy':
-                message = 'Operazione non autorizzata.'
-                break
-              case 'MfaDeviceMismatch':
+            switch (getApplicationErrorCode(errBody)) {
+              case ApplicationErrorCode.MFA_DEVICE_MISMATCH:
                 message = 'Hai inserito il codice da un altro browser o dispositivo. Accesso negato.'
                 break
-              case 'Invalid MFA OTP':
+              case ApplicationErrorCode.MFA_CODE_INVALID:
                 message = 'Il codice inserito non è corretto, devi ripetere il login.'
                 break
               default:

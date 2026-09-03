@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
-import { RpcException } from '@nestjs/microservices';
+
 
 import { ISocialProviderClient } from '../Models/interfaces/i-social-provider-client.interface';
 import { ProviderProfile } from '../Models/interfaces/provider-profile.interface';
 import { AuthProvider } from '../Models/enums/auth-provider.enum';
 import { SSO_Configuration } from 'src/config/config.types';
 import { GitHubEmailResponse, GitHubTokenResponse, GitHubUserResponse } from '../Models/interfaces/github-response.interfaces';
+import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 
 
 @Injectable()
@@ -58,7 +59,7 @@ export class GitHubProviderClient implements ISocialProviderClient {
 
             const accessToken = tokenRes.data.access_token;
             if (!accessToken) {
-                throw new RpcException('SSO_Unauthorized::GitHub: access_token missing')
+                throw applicationError(ApplicationErrorCode.SSO_GITHUB_ACCESS_TOKEN_MISSING)
             }
 
             // 2) /user
@@ -104,7 +105,7 @@ export class GitHubProviderClient implements ISocialProviderClient {
                 e?.message ||
                 'unknown error'
 
-            throw new RpcException(`GitHub: failed to fetch profile (${detail})`)
+            throw applicationError(ApplicationErrorCode.SSO_GITHUB_PROFILE_FETCH_FAILED, `GitHub: failed to fetch profile (${detail})`)
         }
     }
 }

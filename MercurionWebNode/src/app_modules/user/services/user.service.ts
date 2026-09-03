@@ -4,7 +4,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../Models/entities/user.entity';
 import { DataSource, FindOptionsWhere, Repository } from 'typeorm';
-import { RpcException } from '@nestjs/microservices';
+
 import { UUID } from 'crypto';
 import { nullish } from 'src/Models/nullish.type';
 import { MfaStrategy } from '../Models/enums/mfa-strategy.enum';
@@ -23,6 +23,7 @@ import { TinyHistoryDTO } from 'src/app_modules/history/Models/DTO/history.dto';
 import { AuthIdentity } from 'src/app_modules/sso/Models/entities/auth-identity.entity';
 import { ProvidedEmailDTO } from 'src/app_modules/auth/Models/DTO/provided-email.dto';
 import { AuthProvider } from 'src/app_modules/sso/Models/enums/auth-provider.enum';
+import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 
 
 
@@ -123,7 +124,7 @@ export class UserService {
             .getOne()
 
         if (!user) {
-            throw new RpcException('MfaSettings::User not found')
+            throw applicationError(ApplicationErrorCode.MFA_SETTINGS_USER_NOT_FOUND)
         }
 
         if (user.sso || !user.mfaStrategies) {
@@ -165,7 +166,7 @@ export class UserService {
                 .getOneOrFail()
             return passwordHash!
         } catch {
-            throw new RpcException('Unauthanticated')
+            throw applicationError(ApplicationErrorCode.AUTHENTICATION_UNAUTHENTICATED_LEGACY_TYPO)
         }
     }
 
@@ -257,7 +258,7 @@ export class UserService {
             return null
         }
         if (userRow.sso) {
-            throw new RpcException('UnprocessableEntity')
+            throw applicationError(ApplicationErrorCode.UNPROCESSABLE_ENTITY)
         }
         return userRow.completePhoneNumber
     }
@@ -324,7 +325,7 @@ export class UserService {
                     .setLock('pessimistic_write')
                     .getOneOrFail()
             } catch {
-                throw new RpcException('UnprocessableEntity')
+                throw applicationError(ApplicationErrorCode.UNPROCESSABLE_ENTITY)
             }
 
             const oldList: OldPasswordItem[] = Array.isArray(user.oldPasswordHashes)
@@ -339,7 +340,7 @@ export class UserService {
             for (const h of candidates) {
                 const res = await this.passwordEncoder.compareWithFallback(newPassword, h, true)
                 if (res !== CompareResult.NoMatch) {
-                    throw new RpcException('PasswordReused')
+                    throw applicationError(ApplicationErrorCode.PASSWORD_REUSED)
                 }
             }
 
@@ -476,7 +477,7 @@ export class UserService {
             }
         })
         if (!row) {
-            throw new RpcException('Unauthenticated')
+            throw applicationError(ApplicationErrorCode.AUTHENTICATION_UNAUTHENTICATED)
         }
         const { firstName, lastName, gender, job, initials } = row
         return {
@@ -524,7 +525,7 @@ export class UserService {
             await this.userRepository.update({ id: userId }, { passwordHash, updatedAt: Date.now() })
         } catch (e) {
             this.logger.warn('updatePasswordHashByUserId => Error ', e as object)
-            throw new RpcException('PersistenceError')
+            throw applicationError(ApplicationErrorCode.PERSISTENCE_FAILED)
         }
     }
 

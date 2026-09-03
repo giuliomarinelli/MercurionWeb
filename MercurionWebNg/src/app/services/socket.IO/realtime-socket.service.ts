@@ -7,6 +7,10 @@ import { Observable } from 'rxjs';
 import { AuthService } from '../auth.service';
 import { JwtHelperService } from '../jwt-helper.service';
 import { environment } from '../../../environments/environment.development';
+import {
+  ApplicationErrorCode,
+  hasApplicationErrorCode
+} from '../../utils/application-error.util';
 
 export type SocketMode = 'public' | 'private';
 
@@ -76,8 +80,9 @@ export class RealtimeSocketService {
 
     this.socket.on('connect_error', async (err: any) => {
       if (this.mode !== 'private') return;
-      const isAuthErr = (err?.code === 'AUTH_EXPIRED') ||
-        (typeof err?.message === 'string' && /auth|token/i.test(err.message));
+      const isAuthErr =
+        hasApplicationErrorCode(err, ApplicationErrorCode.ACCESS_TOKEN_INVALID_OR_EXPIRED) ||
+        hasApplicationErrorCode(err, ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED)
       if (!isAuthErr) return;
 
       await this.ensureFreshToken(true); // <-- FORZA refresh

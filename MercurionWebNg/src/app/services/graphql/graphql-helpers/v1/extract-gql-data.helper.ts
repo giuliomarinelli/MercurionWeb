@@ -2,6 +2,16 @@ import { Maybe } from "graphql/jsutils/Maybe";
 
 type GraphQLErrorLike = { message?: string };
 
+export class GqlDataError extends Error {
+  constructor(
+    public readonly kind: "GraphQL" | "NoData",
+    message?: string
+  ) {
+    super(message ?? `GqlDataError::${kind}`);
+    this.name = "GqlDataError";
+  }
+}
+
 // forma super-larga che matcha ApolloQueryResult / MutationResult
 export type ApolloLike<T extends Record<string, unknown>> = {
   data?: Maybe<T> | null;
@@ -61,20 +71,20 @@ export function extractGqlData<
         return "Unknown error";
       })
       .join(", ");
-    throw new Error(`GqlError::${messages}`);
+    throw new GqlDataError("GraphQL", messages);
   }
 
   const data = res.data as any;
   const keyStr = String(field);
 
   if (data == null || !(keyStr in data)) {
-    throw new Error("GqlError::NoData");
+    throw new GqlDataError("NoData");
   }
 
   const value = (data as Record<string, unknown>)[keyStr];
 
   if (value == null && !allowNull) {
-    throw new Error("GqlError::NoData");
+    throw new GqlDataError("NoData");
   }
 
   return value ?? null;

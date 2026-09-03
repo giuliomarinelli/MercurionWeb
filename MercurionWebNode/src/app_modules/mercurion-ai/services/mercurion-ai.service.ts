@@ -1,5 +1,5 @@
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
-import { ClientProxy, RpcException } from '@nestjs/microservices';
+import { ClientProxy } from '@nestjs/microservices';
 import { MercurionInferReqDTO } from '../Models/DTO/mt21/mercurion-infer-req.dto';
 import { MercurionInferDataDTO, MercurionInferResDTO } from '../Models/DTO/mt21/mercurion-infer-res.dto';
 import { catchError, firstValueFrom, throwError, timeout, TimeoutError } from 'rxjs';
@@ -7,6 +7,7 @@ import { ConfigService } from '@nestjs/config';
 import { Environment } from 'src/config/config';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 
 @Injectable()
 export class MercurionAIService implements OnModuleInit {
@@ -51,7 +52,7 @@ export class MercurionAIService implements OnModuleInit {
     private ensurePayloadSize(dto: MercurionInferReqDTO) {
         const size = Buffer.byteLength(JSON.stringify(dto), 'utf8')
         if (size > this.MAX_NATS_PAYLOAD_BYTES) {
-            throw new RpcException('MercurionTox21ClientConnection::PayloadTooLarge')
+            throw applicationError(ApplicationErrorCode.TOX21_PAYLOAD_TOO_LARGE)
         }
     }
 
@@ -69,21 +70,21 @@ export class MercurionAIService implements OnModuleInit {
                     catchError((err) => {
                         if (err instanceof TimeoutError) {
                             return throwError(() =>
-                                new RpcException('MercurionTox21ClientConnectionTimeoutNoResponse'),
+                                applicationError(ApplicationErrorCode.TOX21_TIMEOUT),
                             );
                         }
                         return throwError(() =>
-                            new RpcException('MercurionTox21ClientConnectionUnknownError'),
+                            applicationError(ApplicationErrorCode.TOX21_UNKNOWN_ERROR),
                         );
                     }),
                 ),
         )
 
         if (!this.isValidInferencePayload(res)) {
-            throw new RpcException('MercurionTox21ClientConnection::InvalidPayload')
+            throw applicationError(ApplicationErrorCode.TOX21_INVALID_PAYLOAD)
         }
         if (res.error != undefined && res.error.trim()) {
-            throw new RpcException(`MercurionTox21ClientConnection::${res.error}`)
+            throw applicationError(ApplicationErrorCode.TOX21_UPSTREAM_ERROR, `MercurionTox21ClientConnection::${res.error}`)
         }
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { error, ...data } = res

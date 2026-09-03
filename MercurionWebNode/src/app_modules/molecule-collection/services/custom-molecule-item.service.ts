@@ -6,11 +6,12 @@ import { Repository } from "typeorm";
 import { UUID } from "crypto";
 import { CustomMoleculeItemInput } from "../Models/DTO/custom-molecule-item.input";
 import { MoleculeCollection } from '../Models/entities/molecule-collection.entity';
-import { RpcException } from '@nestjs/microservices';
+
 import { uuidv7 } from '@kripod/uuidv7';
 import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils';
 import { RDKitService } from 'src/app_modules/mercurion-ai/services/rd-kit.service';
+import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 
 @Injectable()
 export class CustomMoleculeItemService {
@@ -47,7 +48,7 @@ export class CustomMoleculeItemService {
                 .getOne()
 
             if (r) {
-                throw new RpcException('Conflict::Smiles already exist')
+                throw applicationError(ApplicationErrorCode.MOLECULE_SMILES_CONFLICT)
             } 
 
             let item = await this.customRepo.findOne({
@@ -78,7 +79,7 @@ export class CustomMoleculeItemService {
             const collection = await this.collectionRepo.findOne({
                 where: { id: collectionId, userId }
             })
-            if (!collection) throw new RpcException('CustomItemAddError::Forbidden');
+            if (!collection) throw applicationError(ApplicationErrorCode.CUSTOM_ITEM_ACCESS_DENIED);
             await this.joinService.addMoleculeToCollectionWithManager(userId, collectionId, item.id, manager);
 
             return item;

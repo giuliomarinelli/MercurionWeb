@@ -9,6 +9,10 @@ import { matchPassword } from '../../custom-validators';
 import { ErrorRes } from '../../Models/confirm.models';
 import { UserContextService } from '../../services/context/user-context.service';
 import { Helpers } from '../../helpers';
+import {
+  ApplicationErrorCode,
+  hasApplicationErrorCode
+} from '../../utils/application-error.util';
 
 @Component({
   selector: 'm-password-recovery',
@@ -218,7 +222,8 @@ export class PasswordRecoveryPageComponent implements OnInit, OnDestroy {
             console.log(e)
             this.serverError.set(true)
             this.step_12_loading.set(false)
-            if (e.status === 403 && e.error.message === 'PasswordReused') {
+            if (e.status === 403 &&
+              hasApplicationErrorCode(e.error, ApplicationErrorCode.PASSWORD_REUSED)) {
               this.serverErrorMsg.set('Impossibile salvare una password già utilizzata')
             }
             setTimeout(() => this.router.navigateByUrl('/forgot-password'), 3000)

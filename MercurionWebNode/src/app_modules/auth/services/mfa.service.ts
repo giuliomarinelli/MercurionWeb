@@ -14,7 +14,7 @@ import { SmsSenderService } from 'src/app_modules/notification/services/sms-send
 import { MailSenderService } from 'src/app_modules/notification/services/mail-sender/mail-sender.service';
 import { ConfigService } from '@nestjs/config';
 import { TokenType } from '../Models/enums/token-type.enum';
-import { RpcException } from '@nestjs/microservices';
+
 import { JwtToolsService } from './jwt-tools.service';
 import { EmailTotpContext } from 'src/app_modules/notification/Models/contexts/email-totp.context';
 import { TotpConfiguration } from 'src/config/config.types';
@@ -30,6 +30,7 @@ import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-l
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 import { TypeGuards } from 'src/utils/type-guards/type-guards';
 import { ProvidedEmailDTO } from '../Models/DTO/provided-email.dto';
+import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 
 @Injectable()
 export class MfaService {
@@ -104,7 +105,7 @@ export class MfaService {
         const lockKey = this.getBackupLockKey(userId)
         const locked = await this.redisService.exists(lockKey)
         if (locked) {
-            throw new RpcException('BackupCode::TooManyAttempts')
+            throw applicationError(ApplicationErrorCode.MFA_BACKUP_CODE_TOO_MANY_ATTEMPTS)
         }
     }
 
@@ -137,7 +138,7 @@ export class MfaService {
 
         const locked = await this.redisService.exists(lockKey)
         if (locked) {
-            throw new RpcException('BackupCodeRegen::TooManyRequests')
+            throw applicationError(ApplicationErrorCode.MFA_BACKUP_CODE_REGEN_TOO_MANY_REQUESTS)
         }
 
         const cnt = await this.redisService.getClient().incr(countKey)
@@ -147,7 +148,7 @@ export class MfaService {
 
         if (cnt > this.BACKUP_REGEN_MAX_REQUESTS) {
             await this.redisService.set(lockKey, '1', this.BACKUP_REGEN_WINDOW_SECONDS)
-            throw new RpcException('BackupCodeRegen::TooManyRequests')
+            throw applicationError(ApplicationErrorCode.MFA_BACKUP_CODE_REGEN_TOO_MANY_REQUESTS)
         }
     }
 
@@ -178,11 +179,11 @@ export class MfaService {
         })
 
         if (!row) {
-            throw new RpcException("Unauthenticated")
+            throw applicationError(ApplicationErrorCode.AUTHENTICATION_UNAUTHENTICATED)
         }
 
         if (row.backupCodesGiven) {
-            throw new RpcException('BackupCodesAlreadyGenerated')
+            throw applicationError(ApplicationErrorCode.MFA_BACKUP_CODES_ALREADY_GENERATED)
         }
 
         let deserialized: string[]
@@ -288,7 +289,7 @@ export class MfaService {
             })
 
             if (!row) {
-                throw new RpcException("Unauthenticated")
+                throw applicationError(ApplicationErrorCode.AUTHENTICATION_UNAUTHENTICATED)
             }
 
             let deserialized: string[] = []
@@ -336,7 +337,7 @@ export class MfaService {
             }
         })
         if (ur && ur.sso) {
-            throw new RpcException('UnprocessableEntity')
+            throw applicationError(ApplicationErrorCode.UNPROCESSABLE_ENTITY)
         }
         const codes = await this.backupCodeRepository.find({ where: { user: { id: userId } } })
         const used = codes.filter(c => c.used).length
@@ -371,7 +372,7 @@ export class MfaService {
         const lockKey = this.getMfaLockKey(userId, strategy, context)
         const locked = await this.redisService.exists(lockKey)
         if (locked) {
-            throw new RpcException('Mfa::TooManyAttempts')
+            throw applicationError(ApplicationErrorCode.MFA_TOO_MANY_ATTEMPTS)
         }
     }
 
@@ -406,7 +407,7 @@ export class MfaService {
 
         const locked = await this.redisService.exists(lockKey)
         if (locked) {
-            throw new RpcException('MfaSend::TooManyRequests')
+            throw applicationError(ApplicationErrorCode.MFA_SEND_TOO_MANY_REQUESTS)
         }
 
         const cnt = await this.redisService.getClient().incr(countKey)
@@ -416,7 +417,7 @@ export class MfaService {
 
         if (cnt > this.MFA_MAX_SENDS) {
             await this.redisService.set(lockKey, '1', 10 * 60)
-            throw new RpcException('MfaSend::TooManyRequests')
+            throw applicationError(ApplicationErrorCode.MFA_SEND_TOO_MANY_REQUESTS)
         }
     }
 
@@ -428,14 +429,14 @@ export class MfaService {
         try {
             ({ sub: userId } = await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken))
         } catch {
-            throw new RpcException('InvalidJwtValidation')
+            throw applicationError(ApplicationErrorCode.MFA_JWT_VALIDATION_INVALID)
         }
         await this.throttleMfaSend(userId, strategy, MfaContext.SEND)
         const user = await this.userService.getUserById(userId)
         if (!user) {
-            throw new RpcException('NoSuchUser')
+            throw applicationError(ApplicationErrorCode.USER_NOT_FOUND)
         }
-        if (!user.otpSecret) throw new RpcException('OtpSecretNotFound')
+        if (!user.otpSecret) throw applicationError(ApplicationErrorCode.MFA_OTP_SECRET_NOT_FOUND)
         let strategyError: boolean = true
         if ((await this.userService.getUserEncryptedEnabledMfaStrategies(userId)).map((enc) => this.securityService.decrypt_AES256(enc)).includes(strategy)) {
             strategyError = false
@@ -443,7 +444,7 @@ export class MfaService {
             strategyError = false
         }
         if (strategyError) {
-            throw new RpcException(`InvalidMfaStrategy::${GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy)} strategy for MFA not enabled for this user`)
+            throw applicationError(ApplicationErrorCode.MFA_STRATEGY_NOT_ENABLED, `InvalidMfaStrategy::${GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy)} strategy for MFA not enabled for this user`)
         }
         const { TOTP, ...metadata } = this.securityService.generateTotp(user.otpSecret)
 
@@ -471,7 +472,7 @@ export class MfaService {
                 )
                 break
             default:
-                throw new RpcException(`UnsupportedMfaStrategy::${strategy}`)
+                throw applicationError(ApplicationErrorCode.MFA_STRATEGY_UNSUPPORTED, `UnsupportedMfaStrategy::${strategy}`)
 
         }
 
@@ -485,7 +486,7 @@ export class MfaService {
         const context = MfaContext.VERIFY
         await this.ensureMfaNotLocked(userId, strategy, context)
         if (!await this.userService.existsUserById(userId)) {
-            throw new RpcException('NoSuchUser')
+            throw applicationError(ApplicationErrorCode.USER_NOT_FOUND)
         }
         let otpSecret: string | nullish
         switch (strategy) {
@@ -497,11 +498,11 @@ export class MfaService {
                 otpSecret = await this.userService.getAppTotpSecretByUserId(userId)
                 break
             default:
-                throw new RpcException(`UnsupportedMfaStrategy::${GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy)}`)
+                throw applicationError(ApplicationErrorCode.MFA_STRATEGY_UNSUPPORTED, `UnsupportedMfaStrategy::${GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy)}`)
 
         }
         if (!otpSecret) {
-            throw new RpcException('OtpSecretNotFound')
+            throw applicationError(ApplicationErrorCode.MFA_OTP_SECRET_NOT_FOUND)
         }
         const ok = this.securityService.verifyTotp(totp, otpSecret, strategy === MfaStrategy.APP_TOTP)
         if (!ok) {
@@ -529,7 +530,7 @@ export class MfaService {
         let dto: ProvidedEmailDTO | null = null
 
         if (!await this.userService.existsUserById(userId)) {
-            throw new RpcException('NoSuchUser')
+            throw applicationError(ApplicationErrorCode.USER_NOT_FOUND)
         }
         const ur = await this.dataSource.getRepository(User).findOne({
             where: {
@@ -540,11 +541,11 @@ export class MfaService {
             }
         })
         if (ur!.sso) {
-            throw new RpcException('UnprocessableEntity')
+            throw applicationError(ApplicationErrorCode.UNPROCESSABLE_ENTITY)
         }
         const firstName = await this.userService.getUserFirstNameById(userId) as string
         if ((await this.userService.getUserEncryptedEnabledMfaStrategies(userId)).includes(strategy))
-            throw new RpcException(`InvalidMfaStrategy::${GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy)} strategy for MFA already enabled for this user`)
+            throw applicationError(ApplicationErrorCode.MFA_STRATEGY_ALREADY_ENABLED, `InvalidMfaStrategy::${GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy)} strategy for MFA already enabled for this user`)
 
         switch (strategy) {
             case MfaStrategy.EMAIL_OTP:
@@ -552,7 +553,7 @@ export class MfaService {
                 email = (await this.userService.getUserProvidedEmailById(userId))!.email 
                 totpSecret = await this.userService.getOtpSecretByUserId(userId)
                 if (!totpSecret) {
-                    throw new RpcException('TotpSecretNotFound')
+                    throw applicationError(ApplicationErrorCode.MFA_TOTP_SECRET_NOT_FOUND)
                 }
                 ({ TOTP, ...metadata } = this.securityService.generateTotp(totpSecret))
                 await this.mailService.sendEmail<EmailTotpContext>(
@@ -573,7 +574,7 @@ export class MfaService {
                 completePhoneNumber = await this.userService.getPhoneNumberById(userId) as string
                 totpSecret = await this.userService.getOtpSecretByUserId(userId)
                 if (!totpSecret) {
-                    throw new RpcException('TotpSecretNotFound')
+                    throw applicationError(ApplicationErrorCode.MFA_TOTP_SECRET_NOT_FOUND)
                 }
                 ({ TOTP, ...metadata } = this.securityService.generateTotp(totpSecret))
                 await this.smsService.sendSms(completePhoneNumber,
@@ -585,7 +586,7 @@ export class MfaService {
 
                 dto = await this.userService.getUserProvidedEmailById(userId)
                 if (!dto) {
-                    throw new RpcException('NoSuchUser')
+                    throw applicationError(ApplicationErrorCode.USER_NOT_FOUND)
                 }               
                 ({ totpSecret, otpauth_url } = this.securityService.generateAppTotpSecret(dto.email))
                 metadata = {
@@ -635,14 +636,14 @@ export class MfaService {
                 tokenType = TokenType.AppTotpMfaActivationToken
                 break
             default:
-                throw new RpcException(`UnsupportedMfaStrategy::${GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy)}`)
+                throw applicationError(ApplicationErrorCode.MFA_STRATEGY_UNSUPPORTED, `UnsupportedMfaStrategy::${GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy)}`)
         }
 
         const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(secureToken, tokenType)
         await this.sessionService.revokeToken(jti.toString())
 
         if (!await this.userService.existsUserById(userId)) {
-            throw new RpcException('NoSuchUser')
+            throw applicationError(ApplicationErrorCode.USER_NOT_FOUND)
         }
 
         const context = MfaContext.ENABLE_VERIFY
@@ -652,7 +653,7 @@ export class MfaService {
 
         if (strategy === MfaStrategy.APP_TOTP) {
             otpSecret = await this.redisService.get(`mfa:temp:app-secret:${userId}`)
-            if (!otpSecret) throw new RpcException('TemporaryAppTotpSecretNotFound')
+            if (!otpSecret) throw applicationError(ApplicationErrorCode.MFA_TEMPORARY_APP_TOTP_SECRET_NOT_FOUND)
 
             const isValid = this.securityService.verifyTotp(totp, otpSecret, true)
             if (!isValid) {
@@ -664,7 +665,7 @@ export class MfaService {
             await this.redisService.del(`mfa:temp:app-secret:${userId}`)
         } else {
             otpSecret = await this.userService.getOtpSecretByUserId(userId)
-            if (!otpSecret) throw new RpcException('OtpSecretNotFound')
+            if (!otpSecret) throw applicationError(ApplicationErrorCode.MFA_OTP_SECRET_NOT_FOUND)
 
             const isValid = this.securityService.verifyTotp(totp, otpSecret)
             if (!isValid) {
@@ -699,7 +700,7 @@ export class MfaService {
         now.setMilliseconds(0)
 
         if (!await this.userService.existsUserById(userId)) {
-            throw new RpcException('NoSuchUser')
+            throw applicationError(ApplicationErrorCode.USER_NOT_FOUND)
         }
 
         const ur = await this.dataSource.getRepository(User).findOne({
@@ -712,13 +713,13 @@ export class MfaService {
         })
 
         if (ur!.sso) {
-            throw new RpcException('UnprocessableEntity')
+            throw applicationError(ApplicationErrorCode.UNPROCESSABLE_ENTITY)
         }
 
         const encStrategies = await this.userService.getUserEncryptedEnabledMfaStrategies(userId)
         const strategies = encStrategies.map((s) => this.securityService.decrypt_AES256(s) as MfaStrategy)
         if (!strategies.includes(strategy)) {
-            throw new RpcException(`InvalidMfaStrategy::${strategy} strategy not currently active`)
+            throw applicationError(ApplicationErrorCode.MFA_STRATEGY_NOT_ACTIVE, `InvalidMfaStrategy::${strategy} strategy not currently active`)
         }
 
         const firstName = await this.userService.getUserFirstNameById(userId) as string
@@ -728,7 +729,7 @@ export class MfaService {
                 email = (await this.userService.getUserProvidedEmailById(userId))!.email 
                 totpSecret = await this.userService.getOtpSecretByUserId(userId)
                 if (!totpSecret) {
-                    throw new RpcException('TotpSecretNotFound')
+                    throw applicationError(ApplicationErrorCode.MFA_TOTP_SECRET_NOT_FOUND)
                 }
                 ({ TOTP, ...metadata } = this.securityService.generateTotp(totpSecret))
 
@@ -745,7 +746,7 @@ export class MfaService {
                 completePhoneNumber = await this.userService.getPhoneNumberById(userId) as string
                 totpSecret = await this.userService.getOtpSecretByUserId(userId)
                 if (!totpSecret) {
-                    throw new RpcException('TotpSecretNotFound')
+                    throw applicationError(ApplicationErrorCode.MFA_TOTP_SECRET_NOT_FOUND)
                 }
                 ({ TOTP, ...metadata } = this.securityService.generateTotp(totpSecret))
 
@@ -759,7 +760,7 @@ export class MfaService {
             case MfaStrategy.APP_TOTP:
                 // Nessun codice inviato. Basta generare il token di disattivazione.
                 totpSecret = await this.userService.getAppTotpSecretByUserId(userId)
-                if (!totpSecret) throw new RpcException('TotpSecretNotFound')
+                if (!totpSecret) throw applicationError(ApplicationErrorCode.MFA_TOTP_SECRET_NOT_FOUND)
                 metadata = {
                     generatedAt: now.getTime(),
                     expiresAt: now.getTime() + this.totpConfig.period * 1000
@@ -768,7 +769,7 @@ export class MfaService {
                 break
 
             default:
-                throw new RpcException(`UnsupportedMfaStrategy::${GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy)}`)
+                throw applicationError(ApplicationErrorCode.MFA_STRATEGY_UNSUPPORTED, `UnsupportedMfaStrategy::${GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy)}`)
         }
 
         await this.clearMfaFailures(userId, strategy, MfaContext.DISABLE_SEND)
@@ -797,7 +798,7 @@ export class MfaService {
                 tokenType = TokenType.AppTotpMfaInactivationToken
                 break
             default:
-                throw new RpcException(`UnsupportedMfaStrategy::${GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy)}`)
+                throw applicationError(ApplicationErrorCode.MFA_STRATEGY_UNSUPPORTED, `UnsupportedMfaStrategy::${GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy)}`)
         }
 
         const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(secureToken, tokenType)
@@ -807,7 +808,7 @@ export class MfaService {
         await this.ensureMfaNotLocked(userId, strategy, context)
 
         if (!await this.userService.existsUserById(userId)) {
-            throw new RpcException('NoSuchUser')
+            throw applicationError(ApplicationErrorCode.USER_NOT_FOUND)
         }
 
         let otpSecret: string | nullish
@@ -818,7 +819,7 @@ export class MfaService {
         }
 
         if (!otpSecret) {
-            throw new RpcException('OtpSecretNotFound')
+            throw applicationError(ApplicationErrorCode.MFA_OTP_SECRET_NOT_FOUND)
         }
 
         const isValid = this.securityService.verifyTotp(totp, otpSecret, strategy === MfaStrategy.APP_TOTP)
