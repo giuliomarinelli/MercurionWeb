@@ -87,12 +87,35 @@ export interface ConfirmWithPhoneMfaFeedback extends ConfirmDTO {
   phoneMfaDisabled: boolean
 }
 
-export type AuthProvider = 'Mercurion' | 'Google' | 'GitHub' | 'LinkedIn' | 'Discord'
+// Canonical enum/union contracts. Each value set below is the single source of truth
+// consumed by both Angular and Nest; local per-project enum files must re-export these
+// symbols rather than redeclaring their own literal values (SYS-013).
+export const AuthProvider = Object.freeze({
+  Mercurion: 'Mercurion',
+  Google: 'Google',
+  GitHub: 'GitHub',
+  LinkedIn: 'LinkedIn',
+  Discord: 'Discord'
+} as const)
+export type AuthProvider = (typeof AuthProvider)[keyof typeof AuthProvider]
 export type SSO_AuthProvider = Exclude<AuthProvider, 'Mercurion'>
-export type MfaStrategy = 'EMAIL_OTP' | 'SMS_OTP' | 'APP_TOTP' | 'BACKUP_CODE'
+
+export const MfaStrategy = Object.freeze({
+  EMAIL_OTP: 'EMAIL_OTP',
+  SMS_OTP: 'SMS_OTP',
+  APP_TOTP: 'APP_TOTP',
+  BACKUP_CODE: 'BACKUP_CODE'
+} as const)
+export type MfaStrategy = (typeof MfaStrategy)[keyof typeof MfaStrategy]
 export type MfaView = 'CHOOSE_METHOD' | '' | MfaStrategy
-export type UserGenderControl = 'M' | 'F' | 'Undefined' | ''
-export type UserGender = Exclude<UserGenderControl, ''>
+
+export const UserGender = Object.freeze({
+  M: 'M',
+  F: 'F',
+  Undefined: 'Undefined'
+} as const)
+export type UserGender = (typeof UserGender)[keyof typeof UserGender]
+export type UserGenderControl = UserGender | ''
 
 export interface AuthenticationData {
   obscuredEmail?: string
@@ -138,7 +161,11 @@ export interface BackupCodeDTO {
   code: string
 }
 
-export type VerifyKind = 'totp' | 'backup'
+export const VerifyKind = Object.freeze({
+  TOTP: 'totp',
+  BACKUP: 'backup'
+} as const)
+export type VerifyKind = (typeof VerifyKind)[keyof typeof VerifyKind]
 
 export interface VerifyBodyDTO {
   kind: VerifyKind
@@ -231,7 +258,11 @@ export interface HistoryDTO {
   flagIds: string
 }
 
-export type HistoryItemEntity = 'molecule_collections' | 'molecule_collection_items'
+export const HistoryItemEntity = Object.freeze({
+  MoleculeCollection: 'molecule_collections',
+  MoleculeCollectionItem: 'molecule_collection_items'
+} as const)
+export type HistoryItemEntity = (typeof HistoryItemEntity)[keyof typeof HistoryItemEntity]
 export type TinyHistoryDTO = Pick<HistoryDTO, 'id' | 'itemEntity' | 'itemId' | 'touchedAt'>
 
 export interface ProfileDTO {
@@ -303,21 +334,48 @@ export interface PhonePrefixDTO {
   phonecode: string
 }
 
-export type FeedbackEnv = 'staging' | 'prod'
-export type FeedbackSource = 'manual_page' | 'prompted'
-export type FeedbackKind = 'bug' | 'ux' | 'idea' | 'question' | 'other'
-export type FeedbackContextKind =
-  | 'global'
-  | 'navigation'
-  | 'search'
-  | 'prediction'
-  | 'editor'
-  | 'collection'
-  | 'export'
-  | 'auth'
-  | 'performance'
-  | 'error'
-export type FeedbackStatus = 'new' | 'triaged' | 'resolved' | 'spam'
+export const FeedbackEnv = Object.freeze({
+  STAGING: 'staging',
+  PROD: 'prod'
+} as const)
+export type FeedbackEnv = (typeof FeedbackEnv)[keyof typeof FeedbackEnv]
+
+export const FeedbackSource = Object.freeze({
+  MANUAL_PAGE: 'manual_page',
+  PROMPTED: 'prompted'
+} as const)
+export type FeedbackSource = (typeof FeedbackSource)[keyof typeof FeedbackSource]
+
+export const FeedbackKind = Object.freeze({
+  BUG: 'bug',
+  UX: 'ux',
+  IDEA: 'idea',
+  QUESTION: 'question',
+  OTHER: 'other'
+} as const)
+export type FeedbackKind = (typeof FeedbackKind)[keyof typeof FeedbackKind]
+
+export const FeedbackContextKind = Object.freeze({
+  GLOBAL: 'global',
+  NAVIGATION: 'navigation',
+  SEARCH: 'search',
+  PREDICTION: 'prediction',
+  EDITOR: 'editor',
+  COLLECTION: 'collection',
+  EXPORT: 'export',
+  AUTH: 'auth',
+  PERFORMANCE: 'performance',
+  ERROR: 'error'
+} as const)
+export type FeedbackContextKind = (typeof FeedbackContextKind)[keyof typeof FeedbackContextKind]
+
+export const FeedbackStatus = Object.freeze({
+  NEW: 'new',
+  TRIAGED: 'triaged',
+  RESOLVED: 'resolved',
+  SPAM: 'spam'
+} as const)
+export type FeedbackStatus = (typeof FeedbackStatus)[keyof typeof FeedbackStatus]
 
 export interface Feedback {
   id: string

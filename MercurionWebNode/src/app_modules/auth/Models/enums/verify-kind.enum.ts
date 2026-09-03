@@ -1,4 +1,1 @@
-export enum VerifyKind {
-  TOTP = 'totp',
-  BACKUP = 'backup'
-}
+export { VerifyKind } from '@mercurion/rest-contracts'
