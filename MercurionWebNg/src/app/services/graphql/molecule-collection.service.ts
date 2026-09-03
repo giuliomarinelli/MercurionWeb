@@ -21,9 +21,9 @@ import {
   PaginatedCollectionsDocument,
   PaginatedCollectionsQuery,
   PaginatedCollectionsQueryVariables,
-  UpdateMoleculeCollectionDocument,
-  UpdateMoleculeCollectionMutation,
-  UpdateMoleculeCollectionMutationVariables
+  UpdateMoleculeCollectionNameDocument,
+  UpdateMoleculeCollectionNameMutation,
+  UpdateMoleculeCollectionNameMutationVariables
 } from '../../generated/graphql';
 
 
@@ -189,15 +189,15 @@ export class MoleculeCollectionService {
   updateCollectionName(
     id: string,
     name: string
-  ): Observable<UpdateMoleculeCollectionMutation['updateMoleculeCollection']> {
+  ): Observable<UpdateMoleculeCollectionNameMutation['updateMoleculeCollection']> {
     return this.apollo
-      .mutate<UpdateMoleculeCollectionMutation, UpdateMoleculeCollectionMutationVariables>({
-        mutation: UpdateMoleculeCollectionDocument,
+      .mutate<UpdateMoleculeCollectionNameMutation, UpdateMoleculeCollectionNameMutationVariables>({
+        mutation: UpdateMoleculeCollectionNameDocument,
         variables: {
           id, name
         }
       }).pipe(
-        map(res => extractGqlData<UpdateMoleculeCollectionMutation, 'updateMoleculeCollection'>(res, 'updateMoleculeCollection'))
+        map(res => extractGqlData<UpdateMoleculeCollectionNameMutation, 'updateMoleculeCollection'>(res, 'updateMoleculeCollection'))
       )
   }
 

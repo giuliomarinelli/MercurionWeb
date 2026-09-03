@@ -42,7 +42,7 @@ export const MARK_MOLECULE_COLLECTION_AS_TOUCHED = gql`
 `
 
 export const UPDATE_MOLECULE_COLLECTION_NAME = gql`
-  mutation UpdateMoleculeCollection($id: ID!, $name: String!) {
+  mutation UpdateMoleculeCollectionName($id: ID!, $name: String!) {
     updateMoleculeCollection(id: $id, name: $name) {
         id
         name

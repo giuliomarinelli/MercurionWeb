@@ -27,6 +27,62 @@ describe('NotebookService', () => {
     expect(service).toBeTruthy();
   });
 
+  const headerQueryCases: ReadonlyArray<{
+    label: string;
+    operationName: string;
+    fieldName: string;
+    execute: (notebookService: NotebookService, id: string) => Observable<unknown>;
+  }> = [
+    {
+      label: 'chapter',
+      operationName: 'GetChapterById',
+      fieldName: 'chapterById',
+      execute: (notebookService, id) => notebookService.getChapterById(id),
+    },
+    {
+      label: 'section',
+      operationName: 'GetSectionById',
+      fieldName: 'sectionById',
+      execute: (notebookService, id) => notebookService.getSectionById(id),
+    },
+    {
+      label: 'page header',
+      operationName: 'GetPageHeaderById',
+      fieldName: 'pageById',
+      execute: (notebookService, id) => notebookService.getPageByIdHeader(id),
+    },
+  ];
+
+  for (const queryCase of headerQueryCases) {
+    it(`uses a semantic operation name for the ${queryCase.label} query`, () => {
+      const watchQuerySpy = jasmine.createSpy('watchQuery').and.returnValue({
+        valueChanges: of({}),
+      });
+      const queryService = new NotebookService({
+        watchQuery: watchQuerySpy,
+      } as unknown as Apollo);
+      const id = '01990f17-0ff8-7b75-83d7-2c995ae7e2b1';
+
+      queryCase.execute(queryService, id);
+
+      expect(watchQuerySpy).toHaveBeenCalledOnceWith(jasmine.objectContaining({
+        variables: { id },
+      }));
+
+      const query = watchQuerySpy.calls.mostRecent().args[0].query as DocumentNode;
+      const operation = query.definitions.find(
+        (definition): definition is OperationDefinitionNode =>
+          definition.kind === Kind.OPERATION_DEFINITION,
+      );
+      const selectedField = operation?.selectionSet.selections[0];
+
+      expect(operation?.name?.value).toBe(queryCase.operationName);
+      expect(
+        selectedField?.kind === Kind.FIELD ? selectedField.name.value : undefined,
+      ).toBe(queryCase.fieldName);
+    });
+  }
+
   const deleteCases: ReadonlyArray<{
     label: string;
     operationName: string;
