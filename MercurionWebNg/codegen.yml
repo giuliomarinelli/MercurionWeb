@@ -6,6 +6,7 @@ documents:
   - src/app/services/graphql/graphql-operations/molecule-item-polymorphic.gql-operations.ts
   - src/app/services/graphql/graphql-operations/molecule-collection.gql-operations.ts
   - src/app/services/graphql/graphql-operations/molecule.gql-queries.ts
+  - src/app/services/graphql/graphql-operations/notebook-delete.gql-operations.ts
   - src/app/services/graphql/molecule-collection-join.service.ts
   - src/app/services/graphql/molecule-search.service.ts
   - src/app/Models/graphql/notebook/fragments.graphql

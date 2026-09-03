@@ -4,6 +4,17 @@ import { Apollo, gql } from "apollo-angular";
 import { computed, Injectable, signal } from "@angular/core";
 import { GqlRes } from "../../Models/graphql/res.gql";
 import { extractGqlData } from "./graphql-helpers/v1/extract-gql-data.helper";
+import {
+  DeleteChapterDocument,
+  DeleteChapterMutation,
+  DeleteChapterMutationVariables,
+  DeleteLabNotebookDocument,
+  DeleteLabNotebookMutation,
+  DeleteLabNotebookMutationVariables,
+  DeleteSectionDocument,
+  DeleteSectionMutation,
+  DeleteSectionMutationVariables,
+} from "../../generated/graphql";
 
 
 
@@ -173,15 +184,11 @@ export class NotebookService {
 
   deleteNotebook(id: string): Observable<boolean> {
     return this.apollo
-      .mutate<{ deleteLabNotebook: boolean }>({
-        mutation: gql`
-          mutation DeleteLabNotebook($id: ID!) {
-            deleteLabNotebook(id: $id)
-          }
-        `,
+      .mutate<DeleteLabNotebookMutation, DeleteLabNotebookMutationVariables>({
+        mutation: DeleteLabNotebookDocument,
         variables: { id },
       })
-      .pipe(map(res => extractGqlData(res, 'deleteLabNotebook')));
+      .pipe(map(res => extractGqlData<DeleteLabNotebookMutation, 'deleteLabNotebook'>(res, 'deleteLabNotebook')));
   }
 
   // CAPITOLO CRUD
@@ -222,15 +229,11 @@ export class NotebookService {
 
   deleteChapter(id: string): Observable<boolean> {
     return this.apollo
-      .mutate<{ deleteChapter: boolean }>({
-        mutation: gql`
-          mutation DeleteChapter($id: ID!) {
-            deleteChapter(id: $id)
-          }
-        `,
+      .mutate<DeleteChapterMutation, DeleteChapterMutationVariables>({
+        mutation: DeleteChapterDocument,
         variables: { id },
       })
-      .pipe(map(res => extractGqlData(res, 'deleteChapter')));
+      .pipe(map(res => extractGqlData<DeleteChapterMutation, 'deleteChapter'>(res, 'deleteChapter')));
   }
 
   // SEZIONE CRUD
@@ -271,15 +274,11 @@ export class NotebookService {
 
   deleteSection(id: string): Observable<boolean> {
     return this.apollo
-      .mutate<{ deleteSection: boolean }>({
-        mutation: gql`
-          mutation DeleteSection($id: ID!) {
-            deleteSection(id: $id)
-          }
-        `,
+      .mutate<DeleteSectionMutation, DeleteSectionMutationVariables>({
+        mutation: DeleteSectionDocument,
         variables: { id },
       })
-      .pipe(map(res => extractGqlData(res, 'deleteSection')));
+      .pipe(map(res => extractGqlData<DeleteSectionMutation, 'deleteSection'>(res, 'deleteSection')));
   }
 
   // PAGINA CRUD

@@ -52,6 +52,7 @@ The allowlist currently accepts every document in these sources:
 - `src/app/services/graphql/graphql-operations/molecule-item-polymorphic.gql-operations.ts`;
 - `src/app/services/graphql/graphql-operations/molecule-collection.gql-operations.ts`;
 - `src/app/services/graphql/graphql-operations/molecule.gql-queries.ts`;
+- `src/app/services/graphql/graphql-operations/notebook-delete.gql-operations.ts`;
 - `src/app/services/graphql/molecule-collection-join.service.ts`;
 - `src/app/services/graphql/molecule-search.service.ts`;
 - `src/app/Models/graphql/notebook/fragments.graphql`.
@@ -79,9 +80,12 @@ mixed source file. Task `0007` owns centralizing/normalizing this document set.
 
 - the chapter, section and page header queries reuse the operation name
   `GetChapterById`;
-- all notebook operations are inline in the service.
+- the remaining notebook operations are inline in the service.
 
 Every notebook operation is schema-valid and covered by `graphql:validate`.
-Task `0006` owns operation-name uniqueness and task `0007` owns document
-centralization. The existing notebook fragment file is already generated so
-reusable fragment result types remain available.
+The notebook, chapter and section delete operations are accepted separately
+through `notebook-delete.gql-operations.ts`, generating typed documents and
+string-compatible `ID` variables without admitting the duplicate operation
+names. Task `0006` owns operation-name uniqueness and task `0007` owns the
+remaining document centralization. The existing notebook fragment file is
+already generated so reusable fragment result types remain available.
