@@ -18,9 +18,9 @@ const paths = {
   vscodeMcp: '.vscode/mcp.json',
   vscodeSettings: '.vscode/settings.json',
   historicalSession: 'docs/autonomous-development/session.overnight-2026-09-01.yaml',
-  activeSession: 'docs/autonomous-development/session.24h-2026-09-03.yaml',
+  activeSession: 'docs/autonomous-development/session.48h-2026-09-03.yaml',
   exampleSession: 'docs/autonomous-development/session.example.yaml',
-  activeLaunch: 'docs/autonomous-development/LAUNCH-2026-09-03.md',
+  activeLaunch: 'docs/autonomous-development/LAUNCH-2026-09-03-v2.md',
 };
 
 const expectedAgentTools = {
@@ -416,7 +416,7 @@ const activeLaunch = read(paths.activeLaunch);
 requireMatch(
   paths.activeLaunch,
   activeLaunch,
-  /docs\/autonomous-development\/session\.24h-2026-09-03\.yaml/,
+  /docs\/autonomous-development\/session\.48h-2026-09-03\.yaml/,
   'active launch must reference the active dated session configuration',
 );
 requireMatch(
@@ -428,14 +428,20 @@ requireMatch(
 requireMatch(
   paths.activeLaunch,
   activeLaunch,
-  /2026-09-04T12:00:00\+02:00/,
+  /2026-09-05T17:00:00\+02:00/,
   'active launch is missing the exact soft deadline',
 );
 requireMatch(
   paths.activeLaunch,
   activeLaunch,
-  /archive\/SYS-008-attempt-2026-09-03/,
-  'active launch must record the archived SYS-008 attempt',
+  /feature\/SYS-013/,
+  'active launch must address the pre-existing empty SYS-013 feature branch',
+);
+requireMatch(
+  paths.activeLaunch,
+  activeLaunch,
+  /Do not reopen terminal tasks `0008` through `0012`/,
+  'active launch must forbid reopening terminal tasks before 0013',
 );
 for (const command of ['/model', '/permissions show', '/mcp list', '/keep-alive on']) {
   requireMatch(
@@ -454,9 +460,9 @@ if (deadlineMatches?.length !== 1) {
   fail(paths.historicalSession, `deadline must remain exactly ${deadline}`);
 }
 
-const activeDeadline = '2026-09-04T12:00:00+02:00';
+const activeDeadline = '2026-09-05T17:00:00+02:00';
 const activeDeadlineMatches = activeSession.match(
-  /^\s*end:\s*"2026-09-04T12:00:00\+02:00"/gm,
+  /^\s*end:\s*"2026-09-05T17:00:00\+02:00"/gm,
 );
 if (activeDeadlineMatches?.length !== 1) {
   fail(paths.activeSession, `deadline must remain exactly ${activeDeadline}`);
@@ -470,7 +476,7 @@ for (const [pattern, message] of [
   [/wait_for_exact_feature_sha:\s*true/, 'missing exact feature-SHA CI requirement'],
   [/required_check:\s*Required gate/, 'missing stable Required gate contract'],
   [/ubuntu-latest[\s\S]*windows-latest/, 'missing Windows/Linux CI platforms'],
-  [/expected_first_pending_task:\s*"0008"/, 'active workload must resume at task 0008'],
+  [/expected_first_pending_task:\s*"0013"/, 'active workload must resume at task 0013'],
   [/expected_task_count:\s*220/, 'active workload must contain 220 tasks'],
   [/recovery_control_plane_pull_request:\s*28/, 'active recovery must record PR #28'],
   [/task:\s*"0008"/, 'missing authorized SYS-008 retry task'],
@@ -633,6 +639,6 @@ if (errors.length > 0) {
   process.exitCode = 1;
 } else {
   console.log(
-    'CLI runner validation passed: JSON, YAML structure, explicit agent tools, slugged task delegation, non-mutating handshake, MCP, historical and active launch records, permanent CI baseline, task-scoped runtime, lazy dependency skips, authorized SYS-008 retry, terminal states, startup probe, signing, and finalization order are valid.',
+    'CLI runner validation passed: JSON, YAML structure, explicit agent tools, slugged task delegation, non-mutating handshake, MCP, historical and active launch records, permanent CI baseline, task-scoped runtime, lazy dependency skips, task 0013 continuation, terminal states, startup probe, signing, and finalization order are valid.',
   );
 }
