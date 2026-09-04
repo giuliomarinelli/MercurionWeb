@@ -9,7 +9,7 @@ import {
   effect,
   NgZone,
 } from '@angular/core';
-import { environment } from '../../../../environments/environment.development';
+import { environment } from '../../../../environments/environment';
 import { Theme } from '../../../Models/theme.models';
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
 

@@ -12,7 +12,7 @@ import { Router } from '@angular/router'
 import { UserContextService } from './context/user-context.service'
 import { ToastService } from './toast.service'
 import { ToastContext } from '../components/common/toast/toast.component'
-import { environment } from '../../environments/environment.development'
+import { environment } from '../../environments/environment'
 import { RealtimeSocketService } from './socket.IO/realtime-socket.service'
 import {
   ApplicationErrorCode,

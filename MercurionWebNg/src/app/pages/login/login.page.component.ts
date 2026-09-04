@@ -19,7 +19,7 @@ import { HttpErrorBody } from '../../Models/http-error-body.dto'
 import { Confirm_Login_FirstStepDTO } from '../../Models/confirm.models'
 import type { SessionDeviceInfo } from '@mercurion/rest-contracts'
 import { Login_FirstStepWrapper } from '../../Models/auth/login.models'
-import { environment } from '../../../environments/environment.development'
+import { environment } from '../../../environments/environment'
 import { SSO_AuthProvider } from '../../Models/auth/provider.models'
 
 @Component({

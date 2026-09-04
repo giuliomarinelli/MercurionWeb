@@ -16,7 +16,7 @@ import { SessionSyncService } from '../../../services/session-sync.service';
 import { PathService } from '../../../services/path.service';
 import { ToastService } from '../../../services/toast.service';
 import { ProvidedEmailDTO } from '../../../Models/account/account.models';
-import { environment } from '../../../../environments/environment.development';
+import { environment } from '../../../../environments/environment';
 import { AppContextService } from '../../../services/context/app-context.service';
 
 @Component({

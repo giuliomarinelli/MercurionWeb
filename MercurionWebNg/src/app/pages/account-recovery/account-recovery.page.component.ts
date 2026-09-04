@@ -7,7 +7,7 @@ import { RecoveryService } from '../../services/recovery.service';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { PublicPipe } from '../../pipes/public.pipe';
 import { ThemeManagerService } from '../../services/context/theme-manager.service';
-import { environment } from '../../../environments/environment.development';
+import { environment } from '../../../environments/environment';
 import { emailAvailabilityValidator, matchPassword } from '../../custom-validators';
 import { AuthService } from '../../services/auth.service';
 import { Router, RouterLink } from '@angular/router';
