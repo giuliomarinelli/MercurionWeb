@@ -9,7 +9,7 @@ import {
 import { inject, Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
-import { UserContextService } from '../services/context/user-context.service';
+import { AuthStateStore } from '../services/auth-state.store';
 import { ToastService } from '../services/toast.service';
 import { Router } from '@angular/router';
 import { HttpErrorBody } from '../Models/http-error-body.dto';
@@ -22,7 +22,7 @@ import {
 @Injectable()
 export class AuthFallbackInterceptor implements HttpInterceptor {
 
-  private readonly userContext = inject(UserContextService)
+  private readonly authState = inject(AuthStateStore)
   private readonly toast = inject(ToastService)
   private readonly router = inject(Router)
 
@@ -30,7 +30,7 @@ export class AuthFallbackInterceptor implements HttpInterceptor {
 
     const forceLogout = () => {
       this.toast.trigger('Sessione scaduta o invalidata. Effettua di nuovo il login.', 'error')
-      this.userContext.logout()
+      this.authState.invalidate('http-401')
       this.router.navigateByUrl('/login')
     }
 
@@ -39,7 +39,7 @@ export class AuthFallbackInterceptor implements HttpInterceptor {
       tap((event) => {
         if (event instanceof HttpResponse) {
           if (isFatalUnauthenticatedBody(event.body)) {
-            if (this.userContext.isLoggedIn()) {
+            if (this.authState.isAuthenticated()) {
               forceLogout()
             }
           }
@@ -57,7 +57,7 @@ export class AuthFallbackInterceptor implements HttpInterceptor {
         if (e instanceof HttpErrorResponse && e.status === 401) {
           const body = e.error
           if (isFatalUnauthenticatedBody(body)) {
-            if (this.userContext.isLoggedIn()) {
+            if (this.authState.isAuthenticated()) {
               forceLogout()
             }
           }

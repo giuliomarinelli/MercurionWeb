@@ -9,7 +9,7 @@
  * ────────────────────────────────────────────────────────────── */
 import { effect, Injectable, NgZone, signal } from '@angular/core'
 import { Router } from '@angular/router'
-import { UserContextService } from './context/user-context.service'
+import { AuthStateStore } from './auth-state.store'
 import { ToastService } from './toast.service'
 import { ToastContext } from '../components/common/toast/toast.component'
 import { environment } from '../../environments/environment'
@@ -68,7 +68,7 @@ export class SessionSyncService {
 
   constructor(
     private readonly socket: RealtimeSocketService,
-    private readonly userCtx: UserContextService,
+    private readonly authState: AuthStateStore,
     private readonly toast: ToastService,
     private readonly router: Router,
     private readonly zone: NgZone
@@ -122,8 +122,8 @@ export class SessionSyncService {
 
       clearTimeout(storageDebounce)
       storageDebounce = setTimeout(() => {
-        const initials = localStorage.getItem('login')
-        const wsTok = localStorage.getItem('ws_accessToken')
+        const initials = this.authState.getPersistedInitials()
+        const wsTok = this.authState.getWsAccessToken()
 
         // logout cross-tab SOLO se manca anche il cookie "logged_in"
         if (e.key === 'login' && !initials) {
@@ -170,7 +170,7 @@ export class SessionSyncService {
 
   logout() {
     queueMicrotask(() => {
-      this.userCtx.logout()
+      this.authState.logout()
       this.becomeAnonymous({
         navigateIfProtected: true,
         removeLoginKey: false
@@ -194,7 +194,7 @@ export class SessionSyncService {
     }
 
     const now = Date.now()
-    const initials = localStorage.getItem('login') ?? ''
+    const initials = this.authState.getPersistedInitials() ?? ''
     const cookieLogged = this.hasClientLoginCookieTrue()
 
     // login locale senza cookie → stato inconsistente: considera la sessione scaduta
@@ -269,8 +269,8 @@ export class SessionSyncService {
         this.unauthorizedRetries = 0
 
         // ACK riuscito: setta iniziali se le abbiamo, e valida cookie
-        const initials = localStorage.getItem('login') ?? 'U'
-        this.userCtx.setInitials(initials)
+        const initials = this.authState.getPersistedInitials() ?? 'U'
+        this.authState.resumeFromServer(initials)
 
         // login “valido” solo con cookie = true
         if (this.hasClientLoginCookieTrue()) {
@@ -307,7 +307,7 @@ export class SessionSyncService {
     // === 15 tentativi falliti ===
     // Se eravamo in PRIVATE e nel frattempo il cookie è sparito → degrada a anonimo
     if (targetIsPrivate && !this.verifiedOnce && !this.hasClientLoginCookieTrue()) {
-      this.userCtx.clearInitials()
+      this.authState.logout()
       this._status.set('anonymous')
       this.lastAnonHS = Date.now()
       await this.socket.reconnectPublicNow()
@@ -317,7 +317,7 @@ export class SessionSyncService {
   /* ---------------- Eventi server ---------------- */
 
   private async handleUnauthorized(): Promise<void> {
-    const initials = localStorage.getItem('login') ?? ''
+    const initials = this.authState.getPersistedInitials() ?? ''
     const cookieLogged = this.hasClientLoginCookieTrue()
 
     // Se non risultiamo loggati, non tentiamo nemmeno il private
@@ -346,7 +346,7 @@ export class SessionSyncService {
     const voluntary = this.isVoluntaryLogoutRecent()
     // evento di scadenza lato server → consideralo definitivo anche se il cookie esiste ancora
     const alreadyExpired = this._status() === 'sessionExpired'
-    this.userCtx.logout()
+    this.authState.invalidate('server-invalidated')
     const muted = voluntary || alreadyExpired || Date.now() < this.toastMutedUntil
     this._status.set(voluntary ? 'anonymous' : 'sessionExpired')
     this.becomeAnonymous({
@@ -360,8 +360,8 @@ export class SessionSyncService {
   /* ---------------- Cross-tab helpers ---------------- */
 
   private onExternalLogin(initials: string) {
-    this.userCtx.setInitials(initials)
-    localStorage.setItem('login', initials)
+    this.authState.beginAuthentication()
+    this.authState.setPersistedInitials(initials)
     this._status.set('checking')
     void this.syncSession(true)
   }
@@ -403,9 +403,7 @@ export class SessionSyncService {
   ) {
     const { toast, level = 'warn', navigateIfProtected, removeLoginKey } = opts
 
-    if (removeLoginKey) localStorage.removeItem('login')
-
-    this.userCtx.clearInitials()
+    this.authState.logout()
     this._status.set('anonymous')
 
     // Ripristina SUBITO la WS pubblica (senza reload) per eventi pubblici
