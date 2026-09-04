@@ -1,7 +1,10 @@
 import { InjectionToken } from '@angular/core'
 import type { FeedbackEnv } from '@mercurion/rest-contracts'
 import { environment } from '../../environments/environment'
-import type { EnvironmentConfig, EnvironmentName } from '../../environments/environment.config'
+
+/** Canonical environment contract, taken from the single allowed environment entry point. */
+export type EnvironmentConfig = typeof environment
+export type EnvironmentName = EnvironmentConfig['name']
 
 /**
  * Single source of truth for the released client version. Environment variants
@@ -83,3 +86,4 @@ export const APP_CONFIG = new InjectionToken<AppConfig>('APP_CONFIG', {
   providedIn: 'root',
   factory: () => createAppConfig(environment)
 })
+
