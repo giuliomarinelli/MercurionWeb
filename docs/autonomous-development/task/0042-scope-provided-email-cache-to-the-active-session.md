@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -92,34 +92,40 @@ The exact TTL is an internal cache parameter, not a security boundary. Choose an
 ## Execution notes
 
 ### Feature branch
-_Not started._
+No task branch or worker was created because hard prerequisite
+`0038-create-one-atomic-client-session-entity.md` (`FE-016`) is
+`SKIPPED_DEPENDENCY`.
 
 ### Preflight
-_Not started._
+Not applicable; the task was skipped before implementation.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-_Not started._
+Skipped at the normal filename-order selection point. `FE-016` is terminal
+`SKIPPED_DEPENDENCY` and transitively depends on blocked
+`0010-unify-session-state-protocol.md` (`SYS-010`) and
+`0026-create-canonical-angular-auth-state-store.md` (`FE-004`).
 
 ### Task-specific validation performed
-_Not started._
+No implementation or validation was performed.
 
 ### Full pre-merge CI-parity validation
-_Not started._
+Not applicable; no feature branch was created.
 
 ### Browser validation performed
-_Not started / fixture-dependent._
+Not applicable; the task was skipped before implementation.
 
 ### Commits
-_Not recorded._
+Only this task metadata was updated on `develop`.
 
 ### Merge / CI
-_Not started._
+No feature merge; skip metadata CI is required before continuing.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-_None._
+No implementation blocker. Re-enable only after the hard dependency chain is
+deliberately resolved in a new authorized session.
