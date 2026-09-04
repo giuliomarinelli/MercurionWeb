@@ -132,7 +132,8 @@ application errors; the only error was the runtime limitation
 WebSocket upstream was unavailable. The nginx edge served the SPA (200).
 
 ### Commits
-Pending commit; will be recorded after this note update.
+`d6a8ccb341a810d30e9438a248da26272aac83d7` implementation commit; the
+following metadata-only commit records these execution notes.
 
 ### Merge / CI
 _Not started._
