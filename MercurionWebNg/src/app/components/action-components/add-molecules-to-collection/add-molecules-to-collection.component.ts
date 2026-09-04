@@ -28,6 +28,7 @@ import { SearchResultSkeletonLoaderComponent } from '../../search-overlay/search
 import { SearchResultComponent } from '../../search-overlay/search-result/search-result.component';
 import { AddManyChEMBLItemDTO } from '../../../Models/graphql/add-many-chembl-item.dto';
 import { AddMoleculesToCollectionContextService } from '../../../services/context/action-context/add-molecules-to-collection-context.service';
+import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
 import { CloseButtonComponent } from '../../common/close-button/close-button.component';
 import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
 import { ToastService } from '../../../services/toast.service';
@@ -670,6 +671,7 @@ export class AddMoleculesToCollectionComponent
 
   private readonly actionOverlayContext = inject(ActionOverlayContextService);
   private readonly addContext = inject(AddMoleculesToCollectionContextService);
+  private readonly invalidation = inject(DomainInvalidationService);
   private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService);
   private readonly moleculeCollectionService = inject(MoleculeCollectionService);
   private readonly toast = inject(ToastService);
@@ -817,7 +819,13 @@ export class AddMoleculesToCollectionComponent
         .subscribe({
           next: ok => {
             this.step_12_loading.set(false);
-            this.addContext.notifyAdded();
+            if (ok) {
+              this.invalidation.publish({
+                domain: 'molecule-collection',
+                action: 'molecules-added',
+                collectionId: this.addContext.collectionId()!
+              });
+            }
             this.error.set(!ok);
             const cId = this.addContext.collectionId();
             this.addContext.clearCollectionId();
@@ -938,7 +946,13 @@ export class AddMoleculesToCollectionComponent
       .subscribe({
         next: ok => {
           this.step_12_loading.set(false);
-          this.addContext.notifyAdded();
+          if (ok) {
+            this.invalidation.publish({
+              domain: 'molecule-collection',
+              action: 'molecules-added',
+              collectionId: this.addContext.collectionId()!
+            });
+          }
           this.error.set(!ok);
           const cId = this.addContext.collectionId();
           const shouldRedirect = this.addContext.redirectToCollectionPath();

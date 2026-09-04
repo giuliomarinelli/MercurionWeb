@@ -19,6 +19,7 @@ import { Helpers } from '../../helpers';
 import { SessionSyncService } from '../../services/session-sync.service';
 import { SidenavContextService } from '../../services/context/sidenav-context.service';
 import { UserContextService } from '../../services/context/user-context.service';
+import { DomainInvalidationService } from '../../services/domain-invalidation.service';
 
 
 
@@ -614,6 +615,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly authService = inject(AuthService)
   private readonly actionContext = inject(ActionOverlayContextService)
   private readonly changeDataContext = inject(SensitiveDataChangeContextService)
+  private readonly invalidations = inject(DomainInvalidationService)
   private readonly appContext = inject(AppContextService)
   private readonly registryContext = inject(ProfileRegistryEditContextService)
   private readonly sessionSync = inject(SessionSyncService)
@@ -665,18 +667,13 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
   constructor() {
     effect(() => {
-      const t = this.changeDataContext.addedTick()
-      if (t === 0) {
+      const event = this.invalidations.last()
+      if (event?.domain !== 'profile' || event.action !== 'changed') {
         return
       }
       this.fetch()
     })
     effect(() => {
-      const t = this.registryContext.addedTick()
-      if (t === 0) {
-        return
-      }
-      this.fetch()
     })
     effect(() => {
       const rootRef = this.appContext.globalScollRootRef()

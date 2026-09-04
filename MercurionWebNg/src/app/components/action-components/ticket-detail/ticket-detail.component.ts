@@ -30,6 +30,7 @@ import { DatePipe, NgClass } from '@angular/common';
 import { TicketComposerComponent } from '../../support/ticket-composer/ticket-composer.component';
 import { Subscription } from 'rxjs';
 import { AppContextService } from '../../../services/context/app-context.service';
+import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
 
 @Component({
   selector: 'm-ticket-detail',
@@ -284,6 +285,7 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
   protected readonly cdr = inject(ChangeDetectorRef)
   private readonly appCtx = inject(AppContextService)
   private readonly ticketDetailContext = inject(TicketDetailContextService)
+  private readonly invalidation = inject(DomainInvalidationService)
   private firstMessageSet = signal<boolean>(false)
 
   private composerSub?: Subscription
@@ -594,7 +596,7 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
       next: (ok) => {
         if (ok) {
           this.setTicketStatus('Closed')
-          this.ticketDetailContext.notifyAdded()
+          this.invalidation.publish({ domain: 'ticket', action: 'changed', ticketId: this.detailContext.ticketId(), scope: this.detailContext.innerScope() })
         }
       },
       error: () => {
@@ -616,7 +618,7 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
       next: (ok) => {
         if (ok) {
           this.setTicketStatus('Open')
-          this.ticketDetailContext.notifyAdded()
+          this.invalidation.publish({ domain: 'ticket', action: 'changed', ticketId: this.detailContext.ticketId(), scope: this.detailContext.innerScope() })
         }
       },
       error: () => {

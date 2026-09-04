@@ -22,6 +22,7 @@ import { ClassicSpinnerComponent } from '../classic-spinner/classic-spinner.comp
 import { HistoryContextService } from '../../../services/context/history-context.service';
 import { NgClass } from '@angular/common';
 import { AppContextService } from '../../../services/context/app-context.service';
+import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
 
 @Component({
   selector: 'm-history',
@@ -81,6 +82,7 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly zone = inject(NgZone)
   private readonly hostRef = inject(ElementRef<HTMLElement>)
   private readonly appContext = inject(AppContextService)
+  private readonly invalidation = inject(DomainInvalidationService)
   // ====================================================
 
   @ViewChild('sentinel', { static: true })
@@ -158,7 +160,7 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
       if (this._triggerDelete()) {
         queueMicrotask(() => {
           this._triggerDelete.set(false)
-          this.appContext.triggerDashboardRefetch()
+          this.invalidation.publish({ domain: 'dashboard', action: 'profile-changed' })
           this.fadeOut.set('fade-out-ani')
         })
         setTimeout(() => {

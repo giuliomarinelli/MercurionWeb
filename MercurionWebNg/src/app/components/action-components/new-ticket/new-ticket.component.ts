@@ -12,6 +12,7 @@ import { ActionOverlayContextService } from '../../../services/context/action-co
 import { ToastService } from '../../../services/toast.service';
 import { Subscription } from 'rxjs';
 import { TicketDetailContextService } from '../../../services/context/action-context/ticket-detail-context.service';
+import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
 
 @Component({
   selector: 'm-new-ticket',
@@ -131,6 +132,7 @@ export class NewTicketComponent implements OnDestroy {
   private readonly helpService = inject(HelpService)
   private readonly overlayContext = inject(ActionOverlayContextService)
   private readonly detailContext = inject(TicketDetailContextService)
+  private readonly invalidation = inject(DomainInvalidationService)
   private readonly toast = inject(ToastService)
 
   private sub?: Subscription;
@@ -184,7 +186,7 @@ export class NewTicketComponent implements OnDestroy {
 
           this.detailContext.setInnerScope('User')
           this.detailContext.setTicketId(id)
-          this.detailContext.notifyAdded()
+          this.invalidation.publish({ domain: 'ticket', action: 'changed', ticketId: id, scope: 'User' })
 
           this.overlayContext.open('TicketDetail')
         },

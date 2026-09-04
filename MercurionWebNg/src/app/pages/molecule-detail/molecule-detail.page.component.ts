@@ -36,6 +36,7 @@ import { ActionOverlayContextService } from '../../services/context/action-conte
 import { BindCollectionsToMoleculeContextService } from '../../services/context/action-context/bind-collections-to-molecule-context.service'
 import { HttpErrorResponse } from '@angular/common/http'
 import { AppTitleService } from '../../services/app-title.service'
+import { DomainInvalidationService } from '../../services/domain-invalidation.service'
 import { DesignService } from '../../services/design.service'
 import {
   ApplicationErrorCode,
@@ -282,6 +283,7 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
   private readonly actionOverlayContext = inject(ActionOverlayContextService)
   private readonly bindContext = inject(BindCollectionsToMoleculeContextService)
   private readonly appTitle = inject(AppTitleService)
+  private readonly invalidations = inject(DomainInvalidationService)
   // ====================================================
 
   private readonly uuidV7Re = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -330,8 +332,9 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
       }
     })
     effect(() => {
-      const t = this.bindContext.addedTick()
-      if (t === 0) {
+      const event = this.invalidations.last()
+      if (event?.domain !== 'molecule' || event.action !== 'collections-bound' ||
+          event.moleculeId !== this.molId.toString()) {
         return
       }
       queueMicrotask(() => this.fetchData())

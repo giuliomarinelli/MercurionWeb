@@ -5,17 +5,10 @@ import { Router } from '@angular/router';
 
 import { Forbidden403LandingPageComponent } from './forbidden-403-landing.page.component';
 import { UserContextService } from '../../services/context/user-context.service';
-import { AppContextService } from '../../services/context/app-context.service';
 
 class UserContextStub {
   isLoggedIn(): boolean {
     return false;
-  }
-}
-
-class AppContextStub {
-  notifyAdded(): void {
-    // no-op for test
   }
 }
 
@@ -40,7 +33,6 @@ describe('Forbidden403LandingPageComponent', () => {
       imports: [RouterTestingModule, Forbidden403LandingPageComponent],
       providers: [
         { provide: UserContextService, useClass: UserContextStub },
-        { provide: AppContextService, useClass: AppContextStub },
         { provide: Location, useClass: LocationStub },
         { provide: Router, useClass: RouterStub }
       ]

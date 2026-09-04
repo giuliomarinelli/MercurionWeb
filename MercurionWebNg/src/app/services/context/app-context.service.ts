@@ -7,17 +7,12 @@ export class AppContextService {
 
   private readonly zone = inject(NgZone)
 
-  private _addedTick = signal<number>(0)
-  readonly addedTick = this._addedTick.asReadonly()
-
   private _addedScrollTick = signal<number>(0)
   readonly addedScrollTick = this._addedScrollTick.asReadonly()
 
   private _addedGlobalScrollRootRefTick = signal<number>(0)
   readonly addedGlobalScrollRootRefTick = this._addedGlobalScrollRootRefTick.asReadonly()
 
-  private _refetchDashboardaddedTick = signal<number>(0)
-  readonly refetchDashboardAddedTick = this._refetchDashboardaddedTick.asReadonly()
 
   private _globalScollRootRef = signal<ElementRef<HTMLElement> | null>(null)
   readonly globalScollRootRef = this._globalScollRootRef.asReadonly()
@@ -27,10 +22,6 @@ export class AppContextService {
 
   private _addedTriggerCloseOffCanvasMenu = signal<number>(0)
   readonly addedTriggerCloseOffCanvasMenu = this._addedTriggerCloseOffCanvasMenu.asReadonly()
-
-  notifyAdded(): void {
-    this._addedTick.update(x => x + 1)
-  }
 
   notifyRequestGlobalScrollRootRefTick(): void {
     this._addedGlobalScrollRootRefTick.update(x => x + 1)
@@ -42,10 +33,6 @@ export class AppContextService {
 
   triggerScrollToTopGlobally(): void {
     this._addedScrollTick.update(x => x + 1)
-  }
-
-  triggerDashboardRefetch(): void {
-    this._refetchDashboardaddedTick.update(x => x + 1)
   }
 
   setGlobalScrollRootRef(r: ElementRef<HTMLElement>): void {

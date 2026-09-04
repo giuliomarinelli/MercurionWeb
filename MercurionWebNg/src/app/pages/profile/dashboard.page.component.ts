@@ -23,6 +23,7 @@ import { ThemeManagerService } from '../../services/context/theme-manager.servic
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { AppContextService } from '../../services/context/app-context.service';
 import { SidenavContextService } from '../../services/context/sidenav-context.service';
+import { DomainInvalidationService } from '../../services/domain-invalidation.service';
 
 Chart.register(...registerables);
 
@@ -185,6 +186,7 @@ export class DashboardPageComponent implements OnInit, OnDestroy, AfterViewInit 
   private readonly themeManager = inject(ThemeManagerService)
   private readonly appContext = inject(AppContextService)
   private readonly sidenavContext = inject(SidenavContextService)
+  private readonly invalidations = inject(DomainInvalidationService)
   // ========================
 
 
@@ -247,8 +249,8 @@ export class DashboardPageComponent implements OnInit, OnDestroy, AfterViewInit 
       this.tryBuildCharts()
     })
     effect(() => {
-      const t = this.appContext.refetchDashboardAddedTick()
-      if (t === 0) {
+      const event = this.invalidations.last()
+      if (event?.domain !== 'dashboard' || event.action !== 'profile-changed') {
         return
       }
     this.reSub = this.accountService.getProfileRegistry().subscribe(this.subArg)

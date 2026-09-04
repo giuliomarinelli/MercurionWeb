@@ -12,6 +12,7 @@ import { FloatingInputComponent } from '../../common/floating-input/floating-inp
 import { PmSelectComponent } from '../../common/pm-select/pm-select.component';
 import { PmOption } from '../../../Models/pm-option.model';
 import { ProfileRegistryEditContextService } from '../../../services/context/action-context/profile-registry-edit-context.service';
+import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
 
 type RegistryFormValue = {
   firstName: string
@@ -215,6 +216,7 @@ export class EssentialProfileRegistryEditComponent implements OnInit, OnDestroy 
   private readonly fb = inject(NonNullableFormBuilder)
   private readonly accountService = inject(AccountService)
   private readonly registryContext = inject(ProfileRegistryEditContextService)
+  private readonly invalidation = inject(DomainInvalidationService)
 
   private readonly registryKeys: (keyof RegistryFormValue)[] = [
     'firstName',
@@ -336,7 +338,7 @@ export class EssentialProfileRegistryEditComponent implements OnInit, OnDestroy 
         }))
       ).subscribe({
         next: () => queueMicrotask(() => {
-          this.registryContext.notifyAdded()
+          this.invalidation.publish({ domain: 'profile', action: 'changed' })
           this.close()
         }),
         error: (e: HttpErrorResponse) => {
