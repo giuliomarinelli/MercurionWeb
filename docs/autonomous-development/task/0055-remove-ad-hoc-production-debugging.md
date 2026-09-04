@@ -1,6 +1,6 @@
 # 0055 - Remove ad-hoc production debugging
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -59,12 +59,12 @@ The audit found production debug output and a concrete `debugger` in `molecule-c
 
 ## Acceptance criteria
 
-- [ ] Production Angular source contains no `debugger` statement.
-- [ ] No ad-hoc production `console.*` call remains outside approved logger infrastructure.
-- [ ] Retained diagnostics are leveled and redact sensitive values.
-- [ ] Static CI validation blocks reintroduction.
-- [ ] Existing error flows remain functionally compatible.
-- [ ] Angular tests/build and canonical CI gates pass.
+- [x] Production Angular source contains no `debugger` statement.
+- [x] No ad-hoc production `console.*` call remains outside approved logger infrastructure.
+- [x] Retained diagnostics are leveled and redact sensitive values.
+- [x] Static CI validation blocks reintroduction.
+- [x] Existing error flows remain functionally compatible.
+- [x] Angular tests/build and canonical CI gates pass.
 
 ## Validation
 
@@ -89,34 +89,38 @@ Keep the logger small. This task is primarily about removing uncontrolled diagno
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/FE-033`
 
 ### Preflight
-_Not started._
+Passed cleanly (`npm ci` and `npm run ci:check` at base SHA `4e78fc2264d64f55b834c62cbd75f54a397d904a`).
 
 ### Preflight remediation
-_None._
+None.
 
 ### Summary
-_Not started._
+Introduced typed `LoggerService` with environment level gating (`debug`, `info`, `warn`, `error`, `off`) and recursive sensitive field redaction (tokens, passwords, secrets, sessions, credentials, JWTs, Bearer headers). Removed all direct console statements and ad-hoc debug output across production Angular code. Added ESLint rules (`no-debugger`, `no-console`) and static policy check script (`check-angular-console-debugger-policy.mjs`) with negative test suite.
 
 ### Task-specific validation performed
-_Not started._
+- Ran console/debugger static policy check script and negative test suite (`node scripts/check-angular-console-debugger-policy.mjs && node scripts/test-angular-console-debugger-policy-negative.mjs`).
+- Focused `LoggerService` unit tests (`logger.service.spec.ts`) for level gating, sensitive key redaction, JWT/Bearer redaction, circular object reference handling, error property preservation, and fault tolerance.
+- Angular unit test suite (`npm run ci:test:angular` - 250/250 SUCCESS).
+- Angular linting (`npm run ci:lint:angular`).
+- Workspace typechecking (`npm run ci:typecheck`).
 
 ### Full pre-merge CI-parity validation
-_Not started._
+Passed cleanly (`npm ci` and `npm run ci:check` exited with status 0).
 
 ### Browser validation performed
-_Not started._
+Exercised routes on `http://localhost:8888` (`/password-recovery`, `/login`) using Chrome DevTools MCP. Verified browser console messages contain only permitted vite/websocket status, normal error UI functions correctly, and no tokens or sensitive payloads are leaked.
 
 ### Commits
-_Not recorded._
+_Pending commit creation._
 
 ### Merge / CI
-_Not started._
+Managed by coordinator.
 
 ### Rollback
-_Not applicable._
+Not applicable.
 
 ### Blocker / human decision required
-_None._
+None.

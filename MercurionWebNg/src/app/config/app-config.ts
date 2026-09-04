@@ -2,9 +2,11 @@ import { InjectionToken } from '@angular/core'
 import type { FeedbackEnv } from '@mercurion/rest-contracts'
 import { environment } from '../../environments/environment'
 
+
 /** Canonical environment contract, taken from the single allowed environment entry point. */
 export type EnvironmentConfig = typeof environment
 export type EnvironmentName = EnvironmentConfig['name']
+export type LogLevel = EnvironmentConfig['minLogLevel']
 
 /**
  * Single source of truth for the released client version. Environment variants
@@ -42,6 +44,10 @@ export interface AppPublicIntegrationsConfig {
   readonly turnstileSiteKey: string
 }
 
+export interface AppLoggingConfig {
+  readonly minLevel: LogLevel
+}
+
 export interface AppConfig {
   readonly environment: EnvironmentName
   readonly production: boolean
@@ -50,6 +56,7 @@ export interface AppConfig {
   readonly capabilities: AppCapabilitiesConfig
   readonly release: AppReleaseConfig
   readonly integrations: AppPublicIntegrationsConfig
+  readonly logging: AppLoggingConfig
 }
 
 export function releaseVersionFor(name: EnvironmentName): string {
@@ -78,6 +85,9 @@ export function createAppConfig(config: EnvironmentConfig): AppConfig {
     }),
     integrations: Object.freeze({
       turnstileSiteKey: config.CLOUDFLARE_SITE_KEY
+    }),
+    logging: Object.freeze({
+      minLevel: config.minLogLevel
     })
   } satisfies AppConfig)
 }

@@ -635,7 +635,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
   protected onThemeChange(theme: ThemeChoice): void {
     queueMicrotask(() => {
       this.themeManager.chooseTheme(theme)
-      console.log(this.themeManager.theme())
     })
   }
 
@@ -793,3 +792,4 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
 }
+

@@ -1,3 +1,4 @@
+import { LoggerService } from '../../services/logger.service';
 import { CustomDetailSaveModel } from '../../Models/custom-detail-save.model'
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop'
 import { EmbeddingService } from '../../services/embedding.service'
@@ -284,6 +285,7 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
   private readonly bindContext = inject(BindCollectionsToMoleculeContextService)
   private readonly appTitle = inject(AppTitleService)
   private readonly invalidations = inject(DomainInvalidationService)
+  private readonly logger = inject(LoggerService)
   // ====================================================
 
   private readonly uuidV7Re = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -540,7 +542,7 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
 
       tap(() => this.similarViewerReady.set(true)),
       catchError((e) => {
-        console.error(e)
+        this.logger.error('Failed to load similar molecules', e)
         this.similarViewerReady.set(false)
         return of([] as MoleculeSearchResult[])
       })
@@ -664,3 +666,4 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
   }
 
 }
+
