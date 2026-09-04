@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -121,20 +121,28 @@ Keep this a domain model/facade invariant, not necessarily one serialized blob. 
 
 ### Summary
 
-_Not started._
+Skipped without implementation because hard prerequisites
+`0010-unify-session-state-protocol.md` (`SYS-010`) and
+`0026-create-canonical-angular-auth-state-store.md` (`FE-004`) are
+`BLOCKED`, while `0028` (`FE-006`), `0029` (`FE-007`), `0030` (`FE-008`),
+`0031` (`FE-009`), and `0035` (`FE-013`) are `SKIPPED_DEPENDENCY`.
 
 ### Validation performed
 
-_Not started._
+No task branch or worker was created. Direct prerequisites include blocked
+`SYS-010`/`FE-004` and skipped `FE-006`/`FE-007`/`FE-008`/`FE-009`/`FE-013`;
+the transitive chain terminates at the blocked session protocol and canonical
+auth-store tasks.
 
 ### Browser validation performed
 
-_Not started._
+Not applicable; the task was skipped before implementation.
 
 ### Changed files
 
-_Not recorded._
+No files changed; only this task metadata was updated.
 
 ### Blocker / human decision required
 
-_None._
+No implementation blocker. The task may be re-enabled only after its hard
+dependency chain is deliberately resolved in a new authorized session.
