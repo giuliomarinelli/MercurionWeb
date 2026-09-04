@@ -1,7 +1,7 @@
 # 0052 - Standardize modern Angular component APIs
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -90,34 +90,39 @@ Prefer Angular-provided migrations where safe, followed by manual review. Do not
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/FE-030`, created from
+`7cbe65e00a5dd35187c0897819c5d083689a8547` and preserved for diagnosis.
 
 ### Preflight
-_Not started._
+Passed unchanged: no task-owned workspace processes were active; `npm ci` and
+`npm run ci:check` both succeeded.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-_Not started._
+Blocked before implementation because the task worker was denied filesystem
+write capability. The required component/API migration, task metadata update,
+commit, and push could not be performed. No source files changed.
 
 ### Task-specific validation performed
-_Not started._
+Not run; the required implementation could not begin.
 
 ### Full pre-merge CI-parity validation
-_Not started._
+Not applicable; no implementation changes exist.
 
 ### Browser validation performed
-_Not started._
+Not applicable; the task was blocked before implementation.
 
 ### Commits
-_Not recorded._
+Blocked-status metadata only.
 
 ### Merge / CI
-_Not started._
+No feature merge. The preserved branch is frozen after its status commit.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-_None._
+Required capability: permit repository file writes and Git commit/push
+operations for this task in a new authorized session.
