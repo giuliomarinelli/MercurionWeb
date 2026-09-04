@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnDestroy, signal } from '@angular/core'
 import { FeedbackService } from '../../services/feedback.service'
-import { FeedbackEnv, FeedbackKind, FeedbackContextKind, CreateFeedbackDTO } from '../../Models/feedback.models'
+import { FeedbackKind, FeedbackContextKind, CreateFeedbackDTO } from '../../Models/feedback.models'
 import { StarRatingComponent } from '../../components/feedback/star-rating/star-rating.component'
 import { environment } from '../../../environments/environment'
 import { Subscription } from 'rxjs'
@@ -171,7 +171,7 @@ export class FeedbackPageComponent implements OnDestroy {
     this.error.set(null)
 
     const dto: CreateFeedbackDTO = {
-      env: environment.feedbackEnv as FeedbackEnv,
+      env: environment.feedbackEnv,
       kind: 'ux' as FeedbackKind,             // poi si può rendere select volendo
       contextKind: 'global' as FeedbackContextKind,
       ratingUtility: this.ratingUtility() ?? undefined,

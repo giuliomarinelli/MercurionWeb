@@ -1,4 +1,7 @@
-export const environment = {
+import { createEnvironmentConfig } from './environment.config'
+
+export const environment = createEnvironmentConfig({
+  name: 'production',
   CLOUDFLARE_SITE_KEY: '0x4AAAAAABdOWnfz_3r4JGDK',
   PUBLIC_EXACT_PATHS: [
     '/login',
@@ -20,9 +23,7 @@ export const environment = {
     PICTOGRAM_LIGHT: 'logo/pictogram-light-logo.svg',
     PICTOGRAM_DARK: 'logo/pictogram-dark-logo-2.svg'
   },
-  production: true,
-  testing: false,
   beta: false,
   feedbackEnv: 'prod',
   version: '1.0.0'
-}
+})
