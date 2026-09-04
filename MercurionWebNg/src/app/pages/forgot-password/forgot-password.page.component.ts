@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FloatingInputComponent } from '../../components/common/floating-input/floating-input.component';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -10,6 +10,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'm-forgot-password',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FloatingInputComponent, ReactiveFormsModule, TurnstileComponent, ClassicSpinnerComponent],
   template: `
 
@@ -37,8 +38,7 @@ import { HttpErrorResponse } from '@angular/common/http';
               [formControl]="email"
               [errors]="{
                 required: 'E-mail obbligatoria.',
-                email: 'Formato e-mail non corretto',
-              }"
+                email: 'Formato e-mail non corretto' }"
               [serverError]="
                 serverError() ? this.errMsg() : null
               "

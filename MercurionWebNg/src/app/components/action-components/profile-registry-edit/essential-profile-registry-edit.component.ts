@@ -1,5 +1,5 @@
 import { UserGender, UserGenderControl } from './../../../Models/auth/user.models';
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ClassicSpinnerComponent } from '../../common/classic-spinner/classic-spinner.component';
 import { FormControl, FormGroup, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { catchError, finalize, of, Subscription, switchMap } from 'rxjs';
@@ -23,6 +23,7 @@ type RegistryFormValue = {
 
 @Component({
   selector: 'm-essential-profile-registry-edit',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ClassicSpinnerComponent,
     ReactiveFormsModule,

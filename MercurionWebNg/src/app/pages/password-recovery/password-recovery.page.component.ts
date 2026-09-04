@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AccountService } from '../../services/account.service';
@@ -17,6 +17,7 @@ import {
 
 @Component({
   selector: 'm-password-recovery',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     FloatingInputComponent,
@@ -141,8 +142,7 @@ export class PasswordRecoveryPageComponent implements OnInit, OnDestroy {
 
   form = this.fb.group({
     password: [null, [Validators.required, Validators.minLength(8)]],
-    confirmPassword: [null, [Validators.required, matchPassword]],
-  })
+    confirmPassword: [null, [Validators.required, matchPassword]] })
 
   private sanitizeToken(raw: string) {
     return decodeURIComponent(raw).replace(/[\s\u00A0\u200B-\u200D\uFEFF]/g, '');

@@ -2,6 +2,7 @@ import {
   AfterViewInit,
   OnDestroy,
   Component,
+  ChangeDetectionStrategy,
   ElementRef,
   HostListener,
   ViewChild,
@@ -31,6 +32,7 @@ import { map } from 'rxjs/operators'
 
 @Component({
   selector: 'm-search-overlay',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     SearchInputComponent,
     SearchResultComponent,

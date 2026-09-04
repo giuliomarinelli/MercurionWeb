@@ -3,6 +3,7 @@ import { CustomDetailsComponent } from '../../components/molecule-detail/my-mole
 import {
   AfterViewInit,
   Component,
+ ChangeDetectionStrategy,
   ElementRef,
   ViewChild,
   inject,
@@ -58,6 +59,7 @@ import { DomainInvalidationService } from '../../services/domain-invalidation.se
 
 @Component({
   selector: 'm-molecule-collection-detail',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MyMoleculesHeadingComponent,
     ClassicSpinnerComponent,

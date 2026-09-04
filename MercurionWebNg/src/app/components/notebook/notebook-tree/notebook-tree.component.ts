@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, Input, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, DestroyRef, inject, Input, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NotebookTree, SectionTree, PageTree } from '../../../Models/graphql/notebook/notebook.models';
 import { NotebookService } from '../../../services/graphql/notebook.service';
@@ -6,6 +6,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 @Component({
   selector: 'm-notebook-tree',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink],
   styles: `
     .selectable {

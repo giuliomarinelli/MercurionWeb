@@ -1,4 +1,4 @@
-import { Component, computed, DestroyRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, DestroyRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PublicPipe } from '../../pipes/public.pipe';
 import { ReactiveFormsModule, Validators, FormGroup, FormControl, NonNullableFormBuilder } from '@angular/forms';
@@ -22,6 +22,7 @@ import { TurnstileComponent } from '../../components/common/turnstile/turnstile.
 
 @Component({
   selector: 'm-register.page',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     PublicPipe,
     ReactiveFormsModule,
@@ -277,25 +278,19 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
   form: FormGroup<UserRegistrationFormControls> = this.fb.group(
     {
       firstName: this.fb.control('', {
-        validators: [Validators.required, Validators.pattern(/^[A-ZÀ-Ýa-zà-ÿ\s]+$/)],
-      }),
+        validators: [Validators.required, Validators.pattern(/^[A-ZÀ-Ýa-zà-ÿ\s]+$/)] }),
       lastName: this.fb.control('', {
-        validators: [Validators.required, Validators.pattern(/^[A-ZÀ-Ýa-zà-ÿ\s]+$/)],
-      }),
+        validators: [Validators.required, Validators.pattern(/^[A-ZÀ-Ýa-zà-ÿ\s]+$/)] }),
       email: this.fb.control('', {
         validators: [Validators.required, Validators.email, Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)],
-        asyncValidators: [emailAvailabilityValidator(this.authService)],
-      }),
+        asyncValidators: [emailAvailabilityValidator(this.authService)] }),
       job: new FormControl<string | null>(null, {
         nonNullable: false,
-        validators: [Validators.pattern(/^(?:[A-Za-zÀ-Ýà-ÿ]+(?:\s+[A-Za-zÀ-Ýà-ÿ]+)*)?$/)],
-      }),
+        validators: [Validators.pattern(/^(?:[A-Za-zÀ-Ýà-ÿ]+(?:\s+[A-Za-zÀ-Ýà-ÿ]+)*)?$/)] }),
       gender: this.fb.control<UserGenderControl>('', { validators: [Validators.required] }),
       password: this.fb.control('', {
-        validators: [Validators.required, Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/)],
-      }),
-      confirmPassword: this.fb.control('', { validators: [Validators.required, matchPassword] }),
-    },
+        validators: [Validators.required, Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8 }$/)] }),
+      confirmPassword: this.fb.control('', { validators: [Validators.required, matchPassword] }) },
     { validators: matchPassword }
   )
 
@@ -303,20 +298,16 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
   options: PmOption[] = [
     {
       label: '',
-      value: '',
-    },
+      value: '' },
     {
       label: 'Maschile',
-      value: 'M',
-    },
+      value: 'M' },
     {
       label: 'Femminile',
-      value: 'F',
-    },
+      value: 'F' },
     {
       label: 'Non specificato',
-      value: 'Undefined',
-    }
+      value: 'Undefined' }
   ]
 
   private markAll(): void {

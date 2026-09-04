@@ -1,10 +1,11 @@
-import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, EventEmitter, Input, Output, signal } from '@angular/core';
 import { HistoryDTO, HistoryItemEntity } from '../../../Models/history.models';
 import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'm-history-item',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink, DatePipe],
   template: `
     @if (_historyDTO()) {

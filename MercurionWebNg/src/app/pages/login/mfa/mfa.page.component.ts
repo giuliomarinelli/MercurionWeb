@@ -1,5 +1,5 @@
 import { NgClass } from '@angular/common'
-import { Component, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core'
+import { Component, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild, ChangeDetectionStrategy } from '@angular/core'
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms'
 import { ActivatedRoute, Router, RouterLink } from '@angular/router'
 import { combineLatest, debounceTime, distinctUntilChanged, EMPTY, filter, map, Subscription, switchMap, throwError } from 'rxjs'
@@ -26,6 +26,7 @@ import { DesignService } from '../../../services/design.service'
 
 @Component({
   selector: 'm-mfa',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     NgClass,
@@ -539,8 +540,7 @@ export class MfaPageComponent implements OnInit, OnDestroy {
       dto,
       {
         fingerprintBase64: this.fingerprintDataEnc,
-        sessionDeviceInfo: this.sessionDeviceInfo,
-      },
+        sessionDeviceInfo: this.sessionDeviceInfo },
       this.loginFirstStepData?.preAuthorizationToken ?? '',
       this.unTrusted()
     ).subscribe({

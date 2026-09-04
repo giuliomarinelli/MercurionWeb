@@ -1,4 +1,4 @@
-import { Component, computed, DestroyRef, effect, inject, OnDestroy, OnInit, Signal, signal, ViewChild } from '@angular/core'
+import { Component, ChangeDetectionStrategy, computed, DestroyRef, effect, inject, OnDestroy, OnInit, Signal, signal, ViewChild } from '@angular/core'
 import { FormBuilder, FormControlStatus, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms'
 import { ActivatedRoute, Router, RouterLink } from '@angular/router'
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop'
@@ -24,6 +24,7 @@ import { SSO_AuthProvider } from '../../Models/auth/provider.models'
 
 @Component({
   selector: 'm-login',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     PublicPipe,

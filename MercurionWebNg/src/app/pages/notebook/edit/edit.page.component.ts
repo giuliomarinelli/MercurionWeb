@@ -1,4 +1,4 @@
-import { AfterViewChecked, AfterViewInit, Component, DestroyRef, ElementRef, OnDestroy, OnInit, ViewChild, computed, effect, inject, signal } from '@angular/core';
+import { AfterViewChecked, AfterViewInit, Component, ChangeDetectionStrategy, DestroyRef, ElementRef, OnDestroy, OnInit, ViewChild, computed, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LabNotebookEditorComponent } from '../../../components/notebook/lab-notebook-editor/lab-notebook-editor.component';
 import { ActivatedRoute } from '@angular/router';
@@ -10,6 +10,7 @@ import { NotebookTocComponent } from '../../../components/notebook/notebook-tree
 
 @Component({
   selector: 'm-lab-notebook-edit-component',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [LabNotebookEditorComponent, NotebookTocComponent],
   template: `
     @if (notebook()) {

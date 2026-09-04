@@ -1,6 +1,7 @@
 import {
   AfterViewInit,
   Component,
+  ChangeDetectionStrategy,
   ElementRef,
   EventEmitter,
   Input,
@@ -24,6 +25,7 @@ import { MoleculeSearchService } from '../../../services/graphql/molecule-search
 
 @Component({
   selector: 'm-molecule-search-input',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule],
   template: `
     <div class="flex gap-2 items-center relative">

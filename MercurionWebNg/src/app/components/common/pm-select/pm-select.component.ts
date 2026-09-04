@@ -1,4 +1,4 @@
-import { Component, Input, HostListener, ElementRef, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, Input, HostListener, ElementRef, inject } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { PublicPipe } from '../../../pipes/public.pipe';
 import {
@@ -12,6 +12,7 @@ import { NgClass } from '@angular/common';
 
 @Component({
   selector: 'm-select',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     PublicPipe,
     OverlayModule,

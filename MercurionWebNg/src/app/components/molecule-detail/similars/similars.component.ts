@@ -1,10 +1,11 @@
-import { Component, computed, Input, OnInit, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, Input, OnInit, signal } from '@angular/core';
 import { MoleculeSearchResult } from '../../../Models/graphql/molecule-search/molecule-search-result.interface';
 import { SimilarItemComponent } from '../similar-item/similar-item.component';
 import { SkeletonCollectionCardComponent } from '../../common/skeleton-card-loader/skeleton-card-loader.component';
 
 @Component({
   selector: 'm-similars',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [SimilarItemComponent, SkeletonCollectionCardComponent],
   template: `
 

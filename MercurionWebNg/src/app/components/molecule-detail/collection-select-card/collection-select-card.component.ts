@@ -1,4 +1,4 @@
-import { Component, DestroyRef, effect, EventEmitter, inject, Input, model, OnDestroy, OnInit, Output, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, DestroyRef, effect, EventEmitter, inject, Input, model, OnDestroy, OnInit, Output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
@@ -7,6 +7,7 @@ import { CollectionCardComponent } from '../collection-card/collection-card.comp
 
 @Component({
   selector: 'm-collection-select-card',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, CollectionCardComponent],
   template: `
     <div class="grid grid-cols-[28px_1fr] gap-3 items-center w-full">
