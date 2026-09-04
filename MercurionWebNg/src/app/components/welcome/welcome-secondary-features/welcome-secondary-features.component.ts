@@ -149,5 +149,6 @@ import { RouterLink } from '@angular/router';
         </div>
       </div>
     </section>
-  ` })
+  `,
+})
 export class WelcomeSecondaryFeaturesComponent { }

@@ -3,7 +3,8 @@ import {
   Component,
   OnDestroy,
   inject,
-  signal } from '@angular/core';
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { QuillModule } from 'ngx-quill';
 import { HelpService } from '../../../services/graphql/help.service';
@@ -124,7 +125,8 @@ import { DomainInvalidationService } from '../../../services/domain-invalidation
         </div>
       </div>
     </div>
-  ` })
+  `,
+})
 export class NewTicketComponent implements OnDestroy {
 
   private readonly helpService = inject(HelpService)
@@ -148,7 +150,8 @@ export class NewTicketComponent implements OnDestroy {
       ['bold', 'italic', 'underline', 'strike'],
       [{ list: 'ordered' }, { list: 'bullet' }],
       ['link', 'clean'],
-    ] };
+    ],
+  };
 
   ngOnDestroy(): void {
     this.sub?.unsubscribe()
@@ -190,7 +193,8 @@ export class NewTicketComponent implements OnDestroy {
         error: () => {
           this.loading.set(false)
           this.toast.trigger('Si è verificato un errore.', 'error', 3000)
-        } });
+        },
+      });
   }
 
   close() {

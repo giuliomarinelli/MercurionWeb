@@ -161,7 +161,8 @@ export class AccountActivatePageComponent implements OnInit, OnDestroy {
         successContext: 'success',
         errorContext: 'error',
         durationMs: 2200,
-        forceToast: true })
+        forceToast: true,
+      })
       .catch(() => {
         this.toast.trigger(
           'Impossibile copiare il codice. Copialo manualmente.',

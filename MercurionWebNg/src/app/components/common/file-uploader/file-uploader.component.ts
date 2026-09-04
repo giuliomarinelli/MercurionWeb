@@ -7,7 +7,8 @@ import {
   ViewChild,
   ElementRef,
   signal,
-  computed } from '@angular/core';
+  computed,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ClassicSpinnerComponent } from '../classic-spinner/classic-spinner.component';
 
