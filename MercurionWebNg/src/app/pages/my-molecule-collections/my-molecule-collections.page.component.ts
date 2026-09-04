@@ -17,6 +17,7 @@ import { CreateCollectionContextService } from '../../services/context/action-co
 import { ToastService } from '../../services/toast.service';
 import { AddMoleculesToCollectionContextService } from '../../services/context/action-context/add-molecules-to-collection-context.service';
 import { AppContextService } from '../../services/context/app-context.service';
+import { DomainInvalidationService } from '../../services/domain-invalidation.service';
 
 
 @Component({
@@ -116,6 +117,7 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
   private readonly toast = inject(ToastService)
   private readonly historyContext = inject(HistoryContextService)
   private readonly appContext = inject(AppContextService)
+  private readonly invalidations = inject(DomainInvalidationService)
   // ====================================================
 
   private delColSub?: Subscription
@@ -131,16 +133,17 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
     super();
 
     effect(() => {
-      const t = this.createCtx.addedTick()
-      if (t === 0) {
+      const event = this.invalidations.last()
+      if (event?.domain !== 'molecule-collection' ||
+          (event.action !== 'created' && event.action !== 'deleted')) {
         return
       }
       queueMicrotask(() => this.resetPagination())
     });
 
     effect(() => {
-      const t = this.addCtx.addedTick()
-      if (t === 0) {
+      const event = this.invalidations.last()
+      if (event?.domain !== 'molecule-collection' || event.action !== 'molecules-added') {
         return
       }
       queueMicrotask(() => this.resetPagination())
@@ -154,15 +157,6 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
       queueMicrotask(() => this.resetPagination())
     })
 
-    // Fallback: if the CreateCollection overlay just closed and a tick occurred, refresh
-    effect(() => {
-      const scope = this.actionOverlayContext.scope();
-      const visible = this.actionOverlayContext.isVisible();
-      const t = this.createCtx.addedTick();
-      if (scope === 'CreateCollection' && !visible && t > 0) {
-        this.resetPagination();
-      }
-    })
   }
 
 

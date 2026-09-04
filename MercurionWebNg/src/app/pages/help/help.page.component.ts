@@ -24,8 +24,8 @@ import { TabsComponent } from '../../components/common/tabs/tabs.component'
 import { TicketCardComponent } from '../../components/support/ticket-card/ticket-card.component'
 import { TicketCardSkeletonComponent } from '../../components/support/ticket-card-skeleton/ticket-card-skeleton.component'
 import { TicketDetailContextService } from '../../services/context/action-context/ticket-detail-context.service'
+import { DomainInvalidationService } from '../../services/domain-invalidation.service'
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service'
-import { NewTicketContextService } from '../../services/context/action-context/new-ticket-context.service'
 import { GqlV2Error } from '../../services/graphql/graphql-helpers/v2/gql-v2.error'
 import {
   ApplicationErrorCode,
@@ -119,8 +119,8 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
   private readonly helpService = inject(HelpService)
   protected readonly typeGuards = inject(TypeGuardsService)
   private readonly detailContext = inject(TicketDetailContextService)
+  private readonly invalidations = inject(DomainInvalidationService)
   private readonly overlayContext = inject(ActionOverlayContextService)
-  private readonly newTicketContext = inject(NewTicketContextService)
   private readonly cdr = inject(ChangeDetectorRef)
   private readonly route = inject(ActivatedRoute)
   private readonly router = inject(Router)
@@ -142,14 +142,15 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
     super()
 
     effect(() => {
-      const tick = this.detailContext.addedTick()
-      if (!tick) return
+      const event = this.invalidations.last()
+      if (event?.domain !== 'ticket' || event.action !== 'changed') return
       this.resetAndReload()
     })
 
     effect(() => {
-      const t = this.newTicketContext.addedTick()
-      if (t === 0 || this.activeTab() !== 0) return
+      const event = this.invalidations.last()
+      if (event?.domain !== 'ticket' || event.action !== 'changed' ||
+          event.scope !== 'User' || this.activeTab() !== 0) return
       this.resetAndReload()
     })
   }

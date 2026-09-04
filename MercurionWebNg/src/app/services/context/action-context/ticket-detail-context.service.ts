@@ -9,8 +9,6 @@ export class TicketDetailContextService {
   private _ticketId = signal<string>('')
   readonly ticketId = this._ticketId.asReadonly()
 
-  private _addedTick = signal<number>(0)
-  readonly addedTick = this._addedTick.asReadonly()
 
   private _innerScope = signal<TicketDetailInnerScope>('User')
   readonly innerScope = this._innerScope.asReadonly()
@@ -38,10 +36,6 @@ export class TicketDetailContextService {
 
   resetInnerScope(): void {
     this._innerScope.set('User')
-  }
-
-  notifyAdded(): void {
-    this._addedTick.update((x) => x + 1)
   }
 
 }

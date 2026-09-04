@@ -16,6 +16,7 @@ import { Subscription } from 'rxjs';
 import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
 import { ToastService } from '../../../services/toast.service';
 import { CreateCollectionContextService } from '../../../services/context/action-context/create-collection-context.service';
+import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
 
 
 @Component({
@@ -289,6 +290,7 @@ export class CreateCollectionComponent implements OnInit, AfterViewInit, OnDestr
   private readonly moleculeCollectionService = inject(MoleculeCollectionService);
   private readonly toast = inject(ToastService);
   private readonly createContext = inject(CreateCollectionContextService);
+  private readonly invalidation = inject(DomainInvalidationService);
 
   private naSub?: Subscription;
   private addSub?: Subscription;
@@ -358,7 +360,7 @@ export class CreateCollectionComponent implements OnInit, AfterViewInit, OnDestr
 
     this.addSub = this.moleculeCollectionService.createManyCollections(this.selectedChips).subscribe({
       next: () => {
-        this.createContext.notifyAdded();
+        this.invalidation.publish({ domain: 'molecule-collection', action: 'created' });
         this.overlayContext.close();
       },
       error: () => {

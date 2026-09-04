@@ -1,6 +1,7 @@
 import { ChangePasswordDTO, MfaStrategy } from './../../../Models/account/account.models';
 import { SensitiveDataChangeInnerScope } from './../../../Models/action/action-overlay.models';
 import { SensitiveDataChangeContextService } from './../../../services/context/action-context/sensitive-data-change-context.service';
+import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
 import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { ClassicSpinnerComponent } from '../../common/classic-spinner/classic-spinner.component';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
@@ -943,6 +944,7 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
 
   private readonly actionContext = inject(ActionOverlayContextService)
   private readonly dataChangeContext = inject(SensitiveDataChangeContextService)
+  private readonly invalidation = inject(DomainInvalidationService)
   private readonly accountService = inject(AccountService)
   private readonly toast = inject(ToastService)
   private readonly fb = inject(NonNullableFormBuilder)
@@ -1192,7 +1194,7 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
     if (fragment) {
       this.router.navigate(['/settings'], { fragment })
     }
-    this.dataChangeContext.notifyAdded()
+    this.invalidation.publish({ domain: 'profile', action: 'changed' })
     this.actionContext.close()
   }
 

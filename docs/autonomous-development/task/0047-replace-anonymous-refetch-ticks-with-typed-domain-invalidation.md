@@ -1,6 +1,6 @@
 # 0047 - Replace anonymous refetch ticks with typed domain invalidation
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -89,28 +89,52 @@ Do not create a single untyped `AppEventBus<any>` as a renamed tick system. Pref
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/FE-025` (base `8bede88f1dadbf79b3b5549f21467d1e82af9dfb`)
 
 ### Preflight
-_Not started._
+Unchanged branch verified clean at the supplied base SHA. No MercurionWeb
+Angular/Nest/Tox21/watch process was active (the observed node processes were
+Chrome DevTools MCP watchdogs). `npm ci` passed with the repository's existing
+engine/deprecation warnings. `npm run ci:check` passed before implementation.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-_Not started._
+Replaced anonymous domain refresh counters with
+`DomainInvalidationService` and a discriminated `DomainInvalidation` union.
+Collection, molecule, dashboard, ticket, and profile consumers now filter
+explicit domain/action/payload events. Mutation publishers emit only from
+successful responses; collection and molecule invalidations carry the affected
+ID. Removed obsolete tick fields and notify/refetch APIs, including orphaned
+action-context counters.
 
 ### Task-specific validation performed
-_Not started._
+`npm run typecheck --workspace mercurion_web_ng` passed.
+`npm run lint --workspace mercurion_web_ng` passed (pre-existing warnings only).
+Angular focused test invocation completed successfully; the configured
+`test:ci` runner executed with the supplied include options.
+`npm run build --workspace mercurion_web_ng` passed (pre-existing bundle,
+CommonJS, and budget warnings).
+Repository search confirms no production `addedTick`,
+`refetchDashboardAddedTick`, `triggerDashboardRefetch`, or `notifyAdded()` tick
+API remains; only no-op test stubs were removed as well.
 
 ### Full pre-merge CI-parity validation
-_Not started._
+With all task-owned processes absent, final `npm ci` passed (npm emitted only
+existing engine/deprecation and Windows cleanup warnings), followed
+immediately by `npm run ci:check`, which passed.
 
 ### Browser validation performed
-_Not started._
+Not performed: Chrome DevTools MCP reached only unauthenticated login pages
+(`http://localhost:8888/login` and `/login?redirect_to=%2Fhelp`). No safe,
+deterministic authenticated mutation data or credentials were available, so
+the required collection mutation could not be exercised without inventing
+user data. Automated typed-routing, success-only emission, typecheck, test,
+build, and full CI validation provide the available evidence.
 
 ### Commits
-_Not recorded._
+Pending commit creation; final SHA is recorded in the worker result.
 
 ### Merge / CI
 _Not started._

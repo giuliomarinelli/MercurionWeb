@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { UserContextService } from '../../services/context/user-context.service';
-import { AppContextService } from '../../services/context/app-context.service';
 import { Router } from '@angular/router';
 import { Location } from '@angular/common';
 
@@ -32,7 +31,6 @@ export class Forbidden403LandingPageComponent {
 
   private readonly userContext = inject(UserContextService)
   private readonly location = inject(Location)
-  private readonly appContext = inject(AppContextService)
   private readonly router = inject(Router)
 
   protected homeContent = computed<string>(() => this.userContext.isLoggedIn() ? 'Vai alla Dashboard' : 'Vai alla Home')
@@ -44,7 +42,6 @@ export class Forbidden403LandingPageComponent {
 
   goHome(): void {
     queueMicrotask(() => {
-      this.appContext.notifyAdded()
       this.router.navigateByUrl(this.homePath())
     })
   }

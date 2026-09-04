@@ -14,6 +14,7 @@ import { AbstractPaginationComponent } from '../../abstract/abstract-pagination-
 import { PmSearchInputComponent } from '../../components/common/pm-search-input/pm-search-input.component';
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
 import { AddMoleculesToCollectionContextService } from '../../services/context/action-context/add-molecules-to-collection-context.service';
+import { DomainInvalidationService } from '../../services/domain-invalidation.service';
 
 @Component({
   selector: 'm-all-my-molecules.page',
@@ -105,6 +106,7 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
   private readonly toast = inject(ToastService)
   private readonly actionContext = inject(ActionOverlayContextService)
   private readonly addContext = inject(AddMoleculesToCollectionContextService)
+  private readonly invalidations = inject(DomainInvalidationService)
   // ====================================================
 
   private tick = signal<number>(0)
@@ -160,8 +162,8 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
       })
     })
     effect(() => {
-      const t = this.addContext.addedTick()
-      if (t === 0) {
+      const event = this.invalidations.last()
+      if (event?.domain !== 'molecule-collection' || event.action !== 'molecules-added') {
         return
       }
       queueMicrotask(() => {

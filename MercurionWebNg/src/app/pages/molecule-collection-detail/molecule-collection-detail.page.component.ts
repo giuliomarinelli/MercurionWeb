@@ -54,6 +54,7 @@ import { CustomDetailSaveModel } from '../../Models/custom-detail-save.model';
 import { Observable } from 'rxjs';
 import { AddMoleculesToCollectionContextService } from '../../services/context/action-context/add-molecules-to-collection-context.service';
 import { AppTitleService } from '../../services/app-title.service';
+import { DomainInvalidationService } from '../../services/domain-invalidation.service';
 
 @Component({
   selector: 'm-molecule-collection-detail',
@@ -180,6 +181,7 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
   private readonly zone = inject(NgZone)
   private readonly historyContext = inject(HistoryContextService)
   private readonly appTitle = inject(AppTitleService)
+  private readonly invalidations = inject(DomainInvalidationService)
 
   @ViewChild('sentinel', { static: true })
   protected declare sentinel: ElementRef | undefined;
@@ -206,8 +208,9 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
   constructor() {
     super()
     effect(() => {
-      const t = this.addCtx.addedTick()
-      if (t === 0) {
+      const event = this.invalidations.last()
+      if (event?.domain !== 'molecule-collection' || event.action !== 'molecules-added' ||
+          event.collectionId !== this.colId()) {
         return
       }
       this.resetAndRefetch()

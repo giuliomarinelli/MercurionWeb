@@ -6,10 +6,7 @@ import { Injectable, signal } from '@angular/core';
 export class AddMoleculesToCollectionContextService {
 
   private _collectionId = signal<string | null>(null)
-  private _addedTick = signal<number>(0)
-
   readonly collectionId = this._collectionId.asReadonly()
-  readonly addedTick = this._addedTick.asReadonly()
 
   private _redirectToCollectionPath = signal<boolean>(false)
   readonly redirectToCollectionPath = this._redirectToCollectionPath.asReadonly()
@@ -23,10 +20,6 @@ export class AddMoleculesToCollectionContextService {
 
   clearCollectionId(): void {
     this._collectionId.set(null)
-  }
-
-  notifyAdded(): void {
-    this._addedTick.update(x => x + 1)
   }
 
   setRedirectToCollectionPath(v: boolean) {
