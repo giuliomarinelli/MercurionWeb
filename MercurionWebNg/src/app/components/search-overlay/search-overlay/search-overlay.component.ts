@@ -217,7 +217,7 @@ export class SearchOverlayComponent implements AfterViewInit {
   }
 
   close(): void {
-    this.searchContextService.isOpenedSearchOverlay.set(false)
+    this.searchContextService.close()
   }
 
   @HostListener('document:keydown.escape')

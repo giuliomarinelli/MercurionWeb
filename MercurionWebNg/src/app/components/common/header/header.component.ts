@@ -734,7 +734,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   openSearchOverlay(): void {
-    this.searchContextService.isOpenedSearchOverlay.set(true)
+    this.searchContextService.open()
   }
 
   getProvidedEmail(): void {
@@ -789,4 +789,3 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
 }
-

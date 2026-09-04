@@ -26,7 +26,7 @@ export class NavComponent {
   }
 
   openSearchOverlay(): void {
-    this.searchContextService.isOpenedSearchOverlay.set(true)
+    this.searchContextService.open()
   }
 
 }
