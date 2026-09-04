@@ -8,8 +8,9 @@ import {
   EffectRef,
   effect,
   NgZone,
+  inject,
 } from '@angular/core';
-import { environment } from '../../../../environments/environment';
+import { APP_CONFIG } from '../../../config/app-config';
 import { Theme } from '../../../Models/theme.models';
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
 
@@ -27,7 +28,7 @@ export class TurnstileComponent implements OnInit, OnDestroy {
   @Output() refresh = new EventEmitter<void>();
 
   // ===== Config =====
-  private readonly SITE_KEY = environment.CLOUDFLARE_SITE_KEY;
+  private readonly SITE_KEY = inject(APP_CONFIG).integrations.turnstileSiteKey;
   containerId = 'turnstile-container-' + Math.random().toString(36).substring(2);
   private widgetId: any = null;
   private destroyed = false;
@@ -178,3 +179,4 @@ export class TurnstileComponent implements OnInit, OnDestroy {
     poll();
   }
 }
+
