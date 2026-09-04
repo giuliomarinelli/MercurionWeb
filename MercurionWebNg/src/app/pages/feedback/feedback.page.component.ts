@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, OnDestroy, signal
 import { FeedbackService } from '../../services/feedback.service'
 import { FeedbackEnv, FeedbackKind, FeedbackContextKind, CreateFeedbackDTO } from '../../Models/feedback.models'
 import { StarRatingComponent } from '../../components/feedback/star-rating/star-rating.component'
-import { environment } from '../../../environments/environment.development'
+import { environment } from '../../../environments/environment'
 import { Subscription } from 'rxjs'
 
 @Component({

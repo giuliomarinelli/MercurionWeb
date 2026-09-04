@@ -4,7 +4,7 @@ import { ReactiveFormsModule, Validators, FormGroup, FormControl, NonNullableFor
 import { ThemeManagerService } from '../../services/context/theme-manager.service';
 import { AuthService } from '../../services/auth.service';
 import { UserContextService } from '../../services/context/user-context.service';
-import { environment } from '../../../environments/environment.development';
+import { environment } from '../../../environments/environment';
 import { Subscription } from 'rxjs';
 import { FloatingInputComponent } from '../../components/common/floating-input/floating-input.component';
 import { PmSelectComponent } from '../../components/common/pm-select/pm-select.component';

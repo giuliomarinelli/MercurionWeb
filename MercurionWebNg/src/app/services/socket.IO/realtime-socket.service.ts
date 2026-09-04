@@ -6,7 +6,7 @@ import { io, Socket } from 'socket.io-client';
 import { Observable } from 'rxjs';
 import { AuthService } from '../auth.service';
 import { JwtHelperService } from '../jwt-helper.service';
-import { environment } from '../../../environments/environment.development';
+import { environment } from '../../../environments/environment';
 import {
   ApplicationErrorCode,
   hasApplicationErrorCode
