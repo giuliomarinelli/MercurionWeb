@@ -134,7 +134,8 @@ user data. Automated typed-routing, success-only emission, typecheck, test,
 build, and full CI validation provide the available evidence.
 
 ### Commits
-Pending commit creation; final SHA is recorded in the worker result.
+`7b8cd67980fccc5262b986e08c5204ea37299485` — implementation, tests, and
+execution notes. Pushed to `origin/feature/FE-025`.
 
 ### Merge / CI
 _Not started._
