@@ -12,7 +12,7 @@ import {
   signal
 } from '@angular/core'
 import { ActivatedRoute, Router } from '@angular/router'
-import { Observable, Subscription, firstValueFrom, of, switchMap, take, tap } from 'rxjs'
+import { Observable, Subscription, firstValueFrom, map, of, switchMap, take, tap } from 'rxjs'
 import { AuthService } from '../../services/auth.service'
 import { HelpService } from '../../services/graphql/help.service'
 import { TypeGuardsService } from '../../services/type-guards.service'
@@ -167,53 +167,62 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
   ngAfterViewInit(): void {
     const initialFullUrl = this.getInitialFullUrl()
 
-    this.route.queryParamMap.pipe(take(1)).subscribe(p => {
-      const ticketId = p.get('t_id') ?? ''
-      const mode = (p.get('m') ?? 'user').toLowerCase()
+    this.route.queryParamMap.pipe(
+      take(1),
+      switchMap(p => {
+        const ticketId = p.get('t_id') ?? ''
+        const mode = (p.get('m') ?? 'user').toLowerCase()
 
-      if (!ticketId) {
+        if (!ticketId) {
+          return of({ ticketId, innerScope: 'User' as const, exists: true })
+        }
+
+        const innerScope = mode === 'support' ? 'Support' as const : 'User' as const
+        return this.helpService.existsUserTicketById(ticketId).pipe(
+          take(1),
+          map(exists => ({ ticketId, innerScope, exists }))
+        )
+      })
+    ).subscribe({
+      next: ({ ticketId, innerScope, exists }) => {
+        if (!ticketId) {
+          this.startObserver()
+          return
+        }
+
+        if (!exists) {
+          this.router.navigateByUrl('/404-not-found')
+          return
+        }
+
+        setTimeout(() => {
+          this.detailContext.setInnerScope(innerScope)
+          this.detailContext.setTicketId(ticketId)
+          this.overlayContext.open('TicketDetail')
+
+          this.router.navigate([], {
+            relativeTo: this.route,
+            queryParams: { t_id: null, m: null },
+            queryParamsHandling: 'merge',
+            replaceUrl: true
+          })
+        }, 0)
+
         this.startObserver()
-        return
-      }
-
-      const innerScope = mode === 'support' ? 'Support' : 'User'
-
-      this.helpService.existsUserTicketById(ticketId).pipe(take(1)).subscribe({
-        next: exists => {
-          if (!exists) {
-            this.router.navigateByUrl('/404-not-found')
+      },
+      error: e => {
+        if (e instanceof GqlV2Error && e.kind === 'GraphQL') {
+          if (hasApplicationErrorCode(
+            e,
+            ApplicationErrorCode.AUTHENTICATION_UNAUTHENTICATED_SOFT
+          )) {
+            this.redirectToLoginWithRedirectTo(initialFullUrl)
             return
           }
-
-          setTimeout(() => {
-            this.detailContext.setInnerScope(innerScope)
-            this.detailContext.setTicketId(ticketId)
-            this.overlayContext.open('TicketDetail')
-
-            this.router.navigate([], {
-              relativeTo: this.route,
-              queryParams: { t_id: null, m: null },
-              queryParamsHandling: 'merge',
-              replaceUrl: true
-            })
-          }, 0)
-
-          this.startObserver()
-        },
-        error: e => {
-          if (e instanceof GqlV2Error && e.kind === 'GraphQL') {
-            if (hasApplicationErrorCode(
-              e,
-              ApplicationErrorCode.AUTHENTICATION_UNAUTHENTICATED_SOFT
-            )) {
-              this.redirectToLoginWithRedirectTo(initialFullUrl)
-              return
-            }
-          }
-
-          this.router.navigateByUrl('/404-not-found')
         }
-      })
+
+        this.router.navigateByUrl('/404-not-found')
+      }
     })
   }
 

@@ -272,63 +272,68 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   // lifecycle
   ngOnInit(): void {
     // routing / init
-    this.routeSub = this.route.queryParams.subscribe(qp => {
-      const mode = qp['mode'] as KetcherFrameMode;
-      const mId = qp['m_id'] as string | undefined;
-      const smiles = qp['smiles'] as string | undefined;
+    this.routeSub = this.route.queryParams.pipe(
+      switchMap(qp => {
+        const mode = qp['mode'] as KetcherFrameMode;
+        const mId = qp['m_id'] as string | undefined;
+        const smiles = qp['smiles'] as string | undefined;
 
-      if (!['edit', 'create', 'duplicate'].includes(mode)) {
+        if (!['edit', 'create', 'duplicate'].includes(mode)) {
+          this.error.set(true);
+          return EMPTY;
+        }
+
+        if (mode === 'edit' && mId) {
+          this.mode.set('edit');
+          this.lock.set(true);
+          this.untouched.set(true);
+          this.firstCheck.set(false);
+
+          return this.moleculeCollectionItemService.getCustomSmilesById(mId).pipe(
+            switchMap(mol => combineLatest([
+              of(mol),
+              this.RDKitAPI.toCanonicalSmiles({ smiles: mol!.canonicalSmiles }).pipe(
+                catchError(e => {
+                  console.error('RDKitAPI canonicalizzazione init error', e);
+                  return of(mol!.canonicalSmiles);
+                })
+              ),
+            ])),
+            map(([mol, canon]) => ({ mId, mol, canon }))
+          );
+        }
+
+        if (mode === 'duplicate' && smiles) {
+          this.mode.set('duplicate');
+          this.smiles.set(smiles);
+          this.lock.set(true);
+          this.untouched.set(true);
+          this.firstCheck.set(false);
+          return EMPTY;
+        }
+
+        if (mode === 'create') {
+          this.mode.set('create');
+          this.smiles.set('');
+          this.lock.set(true);
+          this.untouched.set(true);
+          this.firstCheck.set(true);
+          return EMPTY;
+        }
+
         this.error.set(true);
-        return;
-      }
-
-      if (mode === 'edit' && mId) {
-        this.mode.set('edit');
-        this.lock.set(true);
-        this.untouched.set(true);
-        this.firstCheck.set(false);
-
-        this.smilesByIdSub = of(null)
-          .pipe(
-            switchMap(() => this.moleculeCollectionItemService.getCustomSmilesById(mId)),
-            switchMap(mol =>
-              combineLatest([
-                of(mol),
-                this.RDKitAPI.toCanonicalSmiles({ smiles: mol!.canonicalSmiles }).pipe(
-                  catchError(e => {
-                    console.error('RDKitAPI canonicalizzazione init error', e);
-                    return of(mol!.canonicalSmiles);
-                  })
-                ),
-              ])
-            )
-          )
-          .subscribe({
-            next: ([mol, canon]) => {
-              if (!mol) {
-                this.error.set(true);
-                return;
-              }
-              this.smiles.set(canon);
-              this.mId.set(mId);
-            },
-            error: () => this.error.set(true),
-          });
-      } else if (mode === 'duplicate' && smiles) {
-        this.mode.set('duplicate');
-        this.smiles.set(smiles);
-        this.lock.set(true);
-        this.untouched.set(true);
-        this.firstCheck.set(false);
-      } else if (mode === 'create') {
-        this.mode.set('create');
-        this.smiles.set('');
-        this.lock.set(true);
-        this.untouched.set(true);
-        this.firstCheck.set(true);
-      } else {
-        this.error.set(true);
-      }
+        return EMPTY;
+      })
+    ).subscribe({
+      next: ({ mId, mol, canon }) => {
+        if (!mol) {
+          this.error.set(true);
+          return;
+        }
+        this.smiles.set(canon);
+        this.mId.set(mId);
+      },
+      error: () => this.error.set(true),
     });
 
     // dup-check stream (no HTTP raffiche, dedup su SMILES + canon)

@@ -1,6 +1,6 @@
 # 0048 - Eliminate nested subscriptions and declare async concurrency policy
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -89,28 +89,35 @@ Choose operators from semantics, not style. `switchMap` is not a universal repla
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/FE-026` from `26b142834f2a868daf8441b9926d09055c09fe96`.
 
 ### Preflight
-_Not started._
+Passed unchanged: `npm ci` followed by `npm run ci:check`.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-_Not started._
+Replaced nested request subscriptions with composed `switchMap` pipelines. Search input,
+route-driven molecule editing, ticket deep-link resolution, and notebook title/autosave
+flows now make latest-wins cancellation explicit. Added a root CI static gate that rejects
+lexically nested production Angular subscriptions.
 
 ### Task-specific validation performed
-_Not started._
+`npm run ci:angular:nested-subscriptions`, Angular typecheck, and `npm run test:ci
+--workspace mercurion_web_ng` passed. The search-input race test issues two requests,
+completes the older response first, and proves only the current result is emitted.
 
 ### Full pre-merge CI-parity validation
-_Not started._
+Passed: `npm ci` followed by `npm run ci:check`.
 
 ### Browser validation performed
-_Not started._
+Unavailable: `http://localhost:8888/health` returned nginx `502 Bad Gateway`, so the
+canonical same-origin runtime was not safe to exercise. Automated race and full CI
+validation were used instead.
 
 ### Commits
-_Not recorded._
+Recorded in feature-branch history.
 
 ### Merge / CI
 _Not started._
