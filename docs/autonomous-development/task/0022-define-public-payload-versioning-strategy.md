@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Give every incompatible public payload contract an explicit, verifiable versioning and deprecation strategy and make client/server declare the contract version they support.
@@ -97,20 +97,23 @@ Treat GraphQL deprecation/directive/schema evolution according to GraphQL semant
 
 ### Summary
 
-_Not started._
+Skipped without implementation because hard prerequisite `0021-add-rest-contract-compatibility-suite.md` (`SYS-021`) is terminal `SKIPPED_DEPENDENCY`. That skip is caused by `SYS-018` (`BLOCKED`), whose route inventory is unavailable on `develop`; the dependency chain prevents this versioning strategy task from starting in the current session.
 
 ### Validation performed
 
-_Not started._
+- No task branch or worker was created.
+- Direct prerequisite: `SYS-021` is `SKIPPED_DEPENDENCY`.
+- Transitive dependency chain: `SYS-022` -> `SYS-021` (`SKIPPED_DEPENDENCY`) -> `SYS-018` (`BLOCKED`).
 
 ### Browser validation performed
 
-_Not applicable / not started._
+Not applicable; the task was skipped before implementation.
 
 ### Changed files
 
-_Not recorded._
+No files changed; only this task metadata was updated.
 
 ### Blocker / human decision required
 
-_None recorded yet._
+No implementation blocker. The task may be re-enabled only after its hard
+dependency chain is deliberately resolved in a new authorized session.
