@@ -571,6 +571,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
   protected avatarMobileMenuOpen = signal<boolean>(false)
   protected avatarMobileMenuMounted = signal<boolean>(false)
   protected avatarMobileMenuVisible = signal<boolean>(false)
+
+  // Timer id per ciascuna transizione mount/visible: tracciati cosi' un
+  // toggle rapido puo' annullare deterministicamente il timer residuo del
+  // toggle precedente invece di lasciarlo scattare in una race condition.
+  private themeMenuTimeoutId: ReturnType<typeof setTimeout> | undefined
+  private avatarMenuTimeoutId: ReturnType<typeof setTimeout> | undefined
+  private avatarMobileMenuTimeoutId: ReturnType<typeof setTimeout> | undefined
   protected providedEmail = signal<ProvidedEmailDTO | null>(null)
   protected isBeta = signal<boolean>(false)
   private _triggerOpenOffCanvas = signal<boolean>(false)
@@ -603,30 +610,33 @@ export class HeaderComponent implements OnInit, OnDestroy {
       this.onOffCanvasMenuOpen.emit(true)
     })
     effect(() => {
+      clearTimeout(this.themeMenuTimeoutId)
       if (this.themeMenuOpen()) {
         this.themeMenuMounted.set(true)
-        setTimeout(() => this.themeMenuVisible.set(true))
+        this.themeMenuTimeoutId = setTimeout(() => this.themeMenuVisible.set(true))
       } else {
         this.themeMenuVisible.set(false)
-        setTimeout(() => this.themeMenuMounted.set(false), 200)
+        this.themeMenuTimeoutId = setTimeout(() => this.themeMenuMounted.set(false), 200)
       }
     })
     effect(() => {
+      clearTimeout(this.avatarMenuTimeoutId)
       if (this.avatarMenuOpen()) {
         this.avatarMenuMounted.set(true)
-        setTimeout(() => this.avatarMenuVisible.set(true))
+        this.avatarMenuTimeoutId = setTimeout(() => this.avatarMenuVisible.set(true))
       } else {
         this.avatarMenuVisible.set(false)
-        setTimeout(() => this.avatarMenuMounted.set(false), 200)
+        this.avatarMenuTimeoutId = setTimeout(() => this.avatarMenuMounted.set(false), 200)
       }
     })
     effect(() => {
+      clearTimeout(this.avatarMobileMenuTimeoutId)
       if (this.avatarMobileMenuOpen()) {
         this.avatarMobileMenuMounted.set(true)
-        setTimeout(() => this.avatarMobileMenuVisible.set(true))
+        this.avatarMobileMenuTimeoutId = setTimeout(() => this.avatarMobileMenuVisible.set(true))
       } else {
         this.avatarMobileMenuVisible.set(false)
-        setTimeout(() => this.avatarMobileMenuMounted.set(false), 200)
+        this.avatarMobileMenuTimeoutId = setTimeout(() => this.avatarMobileMenuMounted.set(false), 200)
       }
     })
   }
@@ -786,6 +796,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.routeSub?.unsubscribe()
     this.emailSub?.unsubscribe()
     this.logoutSub?.unsubscribe()
+    clearTimeout(this.themeMenuTimeoutId)
+    clearTimeout(this.avatarMenuTimeoutId)
+    clearTimeout(this.avatarMobileMenuTimeoutId)
   }
 
 }

@@ -2,6 +2,7 @@
 import { ElementRef, signal } from "@angular/core";
 import { firstValueFrom, Observable } from "rxjs";
 import { PageModel } from "../Models/graphql/page.models";
+import { BrowserResourceOwner, injectBrowserResourceOwner } from "../utils/browser-resource-owner.util";
 
 export abstract class AbstractPaginationComponent<T> {
   protected sentinel: ElementRef<HTMLDivElement> | undefined;
@@ -15,11 +16,30 @@ export abstract class AbstractPaginationComponent<T> {
   protected searchTerm = signal<string>('');
   protected root: ElementRef | null = null;
 
+  /**
+   * Owns every RAF this base class schedules and is disposed automatically
+   * on the owning component/directive's destruction (via `DestroyRef`), so a
+   * destroyed pagination component can never receive a later scheduled
+   * callback (e.g. a "prime fetch" RAF firing after teardown).
+   */
+  protected readonly resources: BrowserResourceOwner = injectBrowserResourceOwner();
+
   protected abstract fetch$(): Observable<PageModel<T>>
   protected abstract fetch$(page?: number, size?: number, q?: string, excludeJoinedToCollection?: boolean, collectionId?: boolean): Observable<PageModel<T>>;
 
   protected abstract doQuery(q: string): void;
   protected abstract doClear(): void;
+
+  /**
+   * Disconnects the shared IntersectionObserver. This is intentionally NOT
+   * named `ngOnDestroy` so it is never mistaken by the Angular compiler for a
+   * lifecycle hook on this undecorated abstract base class (NG2007). Subclasses
+   * that declare their own ngOnDestroy must call super.disposePaginationResources()
+   * to inherit this cleanup (Angular does not chain lifecycle hooks automatically).
+   */
+  protected disposePaginationResources(): void {
+    this.observer?.disconnect();
+  }
 
   protected async loadMore(): Promise<void> {
     if (this.loading || this.done) return;
@@ -86,13 +106,13 @@ export abstract class AbstractPaginationComponent<T> {
     }, opts);
 
     // Osserva quando il DOM è misurabile
-    requestAnimationFrame(() => {
+    this.resources.requestAnimationFrame(() => {
       if (!this.sentinel) return;
       this.observer!.observe(this.sentinel.nativeElement);
     });
 
     // Prime fetch se il contenuto non riempie il container (niente scroll -> niente intersect)
-    requestAnimationFrame(() => {
+    this.resources.requestAnimationFrame(() => {
       if (this.loading || this.done) return;
 
       if (rootEl instanceof HTMLElement) {

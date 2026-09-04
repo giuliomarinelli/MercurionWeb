@@ -200,6 +200,8 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
     this.expSub?.unsubscribe();
     this.intSub?.unsubscribe()
+    this.teardownMobileKeyboardGuard()
+    clearTimeout(this.loadedTimeoutId)
   }
 
   // handler messaggi dal frame Ketcher
@@ -214,7 +216,7 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
 
         if (this._smiles()) {
           this.updateKetcherMolfile(this._smiles());
-          setTimeout(() => this.loaded.set(true), 50);
+          this.loadedTimeoutId = setTimeout(() => this.loaded.set(true), 50);
         } else {
           this.loaded.set(true);
         }
@@ -310,8 +312,25 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
   }
 
   private mo?: MutationObserver;
+  private mobileKeyboardGuardDoc?: Document;
+  private mobileKeyboardGuardFocusInHandler?: (e: Event) => void;
+  private loadedTimeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  private teardownMobileKeyboardGuard(): void {
+    if (this.mobileKeyboardGuardDoc && this.mobileKeyboardGuardFocusInHandler) {
+      this.mobileKeyboardGuardDoc.removeEventListener('focusin', this.mobileKeyboardGuardFocusInHandler, true)
+    }
+    this.mo?.disconnect()
+    this.mo = undefined
+    this.mobileKeyboardGuardDoc = undefined
+    this.mobileKeyboardGuardFocusInHandler = undefined
+  }
 
   private installMobileKeyboardGuard(): void {
+    // Idempotente: un remount (nuovo "ketcherReady") non deve accumulare
+    // MutationObserver/listener "focusin" duplicati sopra quelli gia' attivi.
+    this.teardownMobileKeyboardGuard()
+
     const iframe = this.iframeRef?.nativeElement;
     const doc = iframe?.contentDocument;
     if (!doc) return;
@@ -373,6 +392,8 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
     }
 
     doc.addEventListener('focusin', onFocusIn, true)
+    this.mobileKeyboardGuardDoc = doc
+    this.mobileKeyboardGuardFocusInHandler = onFocusIn
 
     // Re-patch se Ketcher ricrea i nodi
     this.mo = new MutationObserver(muts => {
@@ -383,13 +404,8 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
       }
     })
     this.mo.observe(doc.documentElement, { childList: true, subtree: true })
-
-    // Cleanup in destroy
-    this.destroy$.pipe(take(1)).subscribe(() => {
-      doc.removeEventListener('focusin', onFocusIn, true)
-      this.mo?.disconnect()
-      this.mo = undefined
-    })
+    // Il cleanup finale avviene in ngOnDestroy() via teardownMobileKeyboardGuard();
+    // un remount lo richiama gia' idempotentemente in cima a questo metodo.
   }
 
 

@@ -113,6 +113,7 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
   _triggerDelete = signal<boolean>(false)
   _triggerEmptyCheck = signal<boolean>(false)
   fadeOut = signal<string>('')
+  private deleteTimeoutId: ReturnType<typeof setTimeout> | undefined
   selectedItemId = signal<string>('')
 
   items = signal<HistoryDTOExt[]>([])
@@ -163,7 +164,8 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
           this.invalidation.publish({ domain: 'dashboard', action: 'profile-changed' })
           this.fadeOut.set('fade-out-ani')
         })
-        setTimeout(() => {
+        clearTimeout(this.deleteTimeoutId)
+        this.deleteTimeoutId = setTimeout(() => {
           this.items.set([])
           this.fadeOut.set('')
           this.emptyChange.emit(true)
@@ -230,6 +232,7 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnDestroy(): void {
     this.rSub?.unsubscribe();
     if (this.observer) this.observer.disconnect()
+    clearTimeout(this.deleteTimeoutId)
   }
 
   handleItemClick(): void {

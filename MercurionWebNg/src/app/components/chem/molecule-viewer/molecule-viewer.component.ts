@@ -9,6 +9,7 @@ import {
   inject,
   NgZone,
   OnChanges,
+  OnDestroy,
   OnInit,
   Output,
   signal,
@@ -58,7 +59,7 @@ import { ThemeManagerService } from '../../../services/context/theme-manager.ser
     '[class.detail]': 'mode === "detail"',
   },
 })
-export class MoleculeViewerComponent implements OnInit, OnChanges {
+export class MoleculeViewerComponent implements OnInit, OnChanges, OnDestroy {
   /* ────── API pubblica ───────────────────────────────────────── */
   /** SMILES / MolBlock ecc. */
   @Input({ required: true }) structure = '';
@@ -135,11 +136,45 @@ export class MoleculeViewerComponent implements OnInit, OnChanges {
     });
   }
 
+  // Traccia l'unico job di render pianificato cosi' un nuovo scheduling
+  // (cambio tema/struttura) annulla deterministicamente quello precedente
+  // invece di lasciarli accumulare, e un componente distrutto non riceve
+  // mai piu' un render idle-callback/timeout schedulato prima del destroy.
+  private pendingRenderHandle: number | ReturnType<typeof setTimeout> | undefined;
+  private pendingRenderIsIdleCallback = false;
+  private destroyed = false;
+
   private scheduleRender(): void {
-    const job = () => this.renderSvg();
-    (window as any).requestIdleCallback
-      ? (window as any).requestIdleCallback(job, { timeout: 120 })
-      : setTimeout(job, 0);
+    this.cancelScheduledRender();
+
+    const job = () => {
+      this.pendingRenderHandle = undefined;
+      if (this.destroyed) return;
+      this.renderSvg();
+    };
+
+    if ((window as any).requestIdleCallback) {
+      this.pendingRenderIsIdleCallback = true;
+      this.pendingRenderHandle = (window as any).requestIdleCallback(job, { timeout: 120 });
+    } else {
+      this.pendingRenderIsIdleCallback = false;
+      this.pendingRenderHandle = setTimeout(job, 0);
+    }
+  }
+
+  private cancelScheduledRender(): void {
+    if (this.pendingRenderHandle === undefined) return;
+    if (this.pendingRenderIsIdleCallback && (window as any).cancelIdleCallback) {
+      (window as any).cancelIdleCallback(this.pendingRenderHandle);
+    } else {
+      clearTimeout(this.pendingRenderHandle as ReturnType<typeof setTimeout>);
+    }
+    this.pendingRenderHandle = undefined;
+  }
+
+  ngOnDestroy(): void {
+    this.destroyed = true;
+    this.cancelScheduledRender();
   }
 
   private rgb(hex: string): [number, number, number] {

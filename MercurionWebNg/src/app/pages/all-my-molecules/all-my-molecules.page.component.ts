@@ -141,7 +141,7 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
       }
     };
 
-    requestAnimationFrame(check);
+    this.resources.requestAnimationFrame(check);
   }
 
   @ViewChild('sentinel', { static: true })
@@ -185,6 +185,7 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
   }
 
   ngOnDestroy(): void {
+    super.disposePaginationResources()
     this.delSub?.unsubscribe()
   }
 
@@ -210,8 +211,8 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
             queueMicrotask(() => {
               this.historyContext.triggerRemoveItemFromHistoryView(id)
               this.items[i].triggerDisappear.set(true)
-              setTimeout(() => this.items[i].collapse.set(true), 120)
-              setTimeout(() => {
+              this.resources.setTimeout(() => this.items[i].collapse.set(true), 120)
+              this.resources.setTimeout(() => {
                 this.items.splice(i, 1)
                 if (this.items.length === 0) {
                   this.tick.update(x => x + 1)

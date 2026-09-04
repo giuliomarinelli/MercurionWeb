@@ -169,6 +169,7 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
   }
 
   ngOnDestroy(): void {
+    super.disposePaginationResources()
     this.delColSub?.unsubscribe()
     this.dupColSub?.unsubscribe()
   }
@@ -265,8 +266,8 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
             queueMicrotask(() => {
               this.historyContext.triggerRemoveItemFromHistoryView(collectionId)
               this.items[i].triggerDisappear.set(true)
-              setTimeout(() => this.items[i].collapse.set(true), 120)
-              setTimeout(() => {
+              this.resources.setTimeout(() => this.items[i].collapse.set(true), 120)
+              this.resources.setTimeout(() => {
                 this.items.splice(i, 1)
                 if (this.items.length === 0) {
                   this.tick.update(x => x + 1)
