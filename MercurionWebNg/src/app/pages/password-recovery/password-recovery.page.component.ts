@@ -1,4 +1,5 @@
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AccountService } from '../../services/account.service';
 import { catchError, distinctUntilChanged, EMPTY, filter, of, Subscription, switchMap, take, tap } from 'rxjs';
@@ -122,6 +123,7 @@ export class PasswordRecoveryPageComponent implements OnInit, OnDestroy {
   private readonly accountService = inject(AccountService);
   private readonly fb = inject(FormBuilder)
   private readonly userCtx = inject(UserContextService)
+  private readonly destroyRef = inject(DestroyRef)
 
   private changePasswordToken = signal<string>('');
   private recoverySub?: Subscription;
@@ -146,10 +148,14 @@ export class PasswordRecoveryPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.valChSub = this.form.get('password')?.valueChanges.subscribe(() => {
+    this.valChSub = this.form.get('password')?.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.form.get('confirmPassword')?.updateValueAndValidity({ onlySelf: true });
     })
-    this.valChSub2 = this.form.valueChanges.subscribe(() => this.serverError.set(false))
+    this.valChSub2 = this.form.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => this.serverError.set(false))
     this.recoverySub = of(null).pipe(
       tap(() => {
         this.userCtx.logout()
@@ -206,13 +212,14 @@ export class PasswordRecoveryPageComponent implements OnInit, OnDestroy {
         this.router.navigateByUrl('/404-not-found')
         return EMPTY
       })
-    ).subscribe()
+    ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe()
   }
 
   send(): void {
     if (this.form.valid) {
       this.step_12_loading.set(true)
       this.sendSub = this.accountService.recoverPassword({ newPassword: this.form.controls['password'].value! }, this.changePasswordToken())
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: () => {
             this.step.set(2)

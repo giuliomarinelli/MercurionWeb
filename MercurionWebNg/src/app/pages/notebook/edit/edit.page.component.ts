@@ -1,7 +1,8 @@
-import { AfterViewChecked, AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, computed, effect, signal } from '@angular/core';
+import { AfterViewChecked, AfterViewInit, Component, DestroyRef, ElementRef, OnDestroy, OnInit, ViewChild, computed, effect, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LabNotebookEditorComponent } from '../../../components/notebook/lab-notebook-editor/lab-notebook-editor.component';
 import { ActivatedRoute } from '@angular/router';
-import { catchError, debounceTime, distinctUntilChanged, EMPTY, map, of, Subject, Subscription, switchMap, tap } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, EMPTY, map, of, Subject, switchMap, tap } from 'rxjs';
 import { NotebookService } from '../../../services/graphql/notebook.service';
 import { NotebookTree } from '../../../Models/graphql/notebook/notebook.models';
 import { NotebookTocComponent } from '../../../components/notebook/notebook-tree-index/notebook-toc.component';
@@ -77,11 +78,7 @@ export class NotebookEditPageComponent implements OnInit, OnDestroy, AfterViewCh
   private autosave$ = new Subject<string>()
 
   protected offsetHeight = signal<number>(0)
-  private notebookSub?: Subscription
-  private querySub?: Subscription
-  private chapterSub?: Subscription
-  private sectionSub?: Subscription
-  private pageSub?: Subscription
+  private readonly destroyRef = inject(DestroyRef)
   protected title = signal<string>('')
   protected level = signal<'notebook' | 'chapter' | 'section' | 'page' | undefined>(undefined)
   trigger = signal<boolean>(false)
@@ -97,13 +94,14 @@ export class NotebookEditPageComponent implements OnInit, OnDestroy, AfterViewCh
   ) { }
 
   ngOnInit(): void {
-    this.notebookSub = this.route.params.pipe(
+    this.route.params.pipe(
       map(params => params['notebookId'] as string),
       tap(notebookId => this.notebookId.set(notebookId)),
-      switchMap(notebookId => this.notebookService.getNotebookById(notebookId))
+      switchMap(notebookId => this.notebookService.getNotebookById(notebookId)),
+      takeUntilDestroyed(this.destroyRef)
     ).subscribe(nb => this.notebook.set(nb))
 
-    this.querySub = this.route.queryParams.pipe(
+    this.route.queryParams.pipe(
       tap(query => {
         this.chapterId.set(query['c_id'] ?? '')
         this.sectionId.set(query['s_id'] ?? '')
@@ -132,10 +130,11 @@ export class NotebookEditPageComponent implements OnInit, OnDestroy, AfterViewCh
           default:
             return EMPTY
         }
-      })
+      }),
+      takeUntilDestroyed(this.destroyRef)
     ).subscribe(res => this.title.set(res?.title ?? ''))
 
-    this.pageSub = this.autosave$.pipe(
+    this.autosave$.pipe(
       debounceTime(800),
       distinctUntilChanged(),
       switchMap(content => {
@@ -148,7 +147,8 @@ export class NotebookEditPageComponent implements OnInit, OnDestroy, AfterViewCh
           })
         )
       }),
-      switchMap(res => res ? this.notebookService.getNotebookById(this.notebookId()) : of(null))
+      switchMap(res => res ? this.notebookService.getNotebookById(this.notebookId()) : of(null)),
+      takeUntilDestroyed(this.destroyRef)
     ).subscribe(nb => {
       if (nb) this.notebook.set(nb)
     })
@@ -168,12 +168,7 @@ export class NotebookEditPageComponent implements OnInit, OnDestroy, AfterViewCh
   }
 
   ngOnDestroy(): void {
-    this.notebookSub?.unsubscribe()
-    this.querySub?.unsubscribe()
-    this.chapterSub?.unsubscribe()
-    this.sectionSub?.unsubscribe()
-    this.pageSub?.unsubscribe()
-    this.autosave$.unsubscribe()
+    this.autosave$.complete()
   }
 
   triggerContentEmission(): void {

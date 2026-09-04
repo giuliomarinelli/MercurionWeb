@@ -1,7 +1,7 @@
-import { Component, computed, effect, inject, OnDestroy, OnInit, Signal, signal, ViewChild } from '@angular/core'
+import { Component, computed, DestroyRef, effect, inject, OnDestroy, OnInit, Signal, signal, ViewChild } from '@angular/core'
 import { FormBuilder, FormControlStatus, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms'
 import { ActivatedRoute, Router, RouterLink } from '@angular/router'
-import { toSignal } from '@angular/core/rxjs-interop'
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop'
 import { Subscription, tap } from 'rxjs'
 
 import { ThemeManagerService } from '../../services/context/theme-manager.service'
@@ -250,6 +250,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
   private readonly sessionSync = inject(SessionSyncService)
   private readonly userContext = inject(UserContextService)
   private readonly route = inject(ActivatedRoute)
+  private readonly destroyRef = inject(DestroyRef)
 
   protected readonly uncorrectEmailMsg = "L'e-mail inserita non è corretta"
 
@@ -338,7 +339,10 @@ export class LoginPageComponent implements OnInit, OnDestroy {
     this.firstStepSubscription?.unsubscribe()
     this.firstStepSubscription = this.authService
       .login_stepZero({ email: this.loginForm.value['email'] })
-      .pipe(tap(() => this.goingToPasswordStep.set(true)))
+      .pipe(
+        tap(() => this.goingToPasswordStep.set(true)),
+        takeUntilDestroyed(this.destroyRef)
+      )
       .subscribe({
         next: () => {
           this.serverErrorStep.set(0)
@@ -375,7 +379,9 @@ export class LoginPageComponent implements OnInit, OnDestroy {
     }
 
     this.secondStepSubscription?.unsubscribe()
-    this.secondStepSubscription = this.authService.login_firstStep(dto).subscribe({
+    this.secondStepSubscription = this.authService.login_firstStep(dto).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
       next: (res: Confirm_Login_FirstStepDTO) => {
         // ✅ redirect_to “indistruttibile”: queryParam OR sessionStorage fallback
         const redirectTo = this.getRedirectTo()
@@ -539,7 +545,9 @@ export class LoginPageComponent implements OnInit, OnDestroy {
     this.fingerprintDataEnc = fingerprintDataEnc
     this.sessionDeviceInfo = sessionDeviceInfo
 
-    this.loginForm.get('email')?.valueChanges.subscribe(() => {
+    this.loginForm.get('email')?.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.serverErrorStep.set(0)
       if (this.step() === 2) {
         this.step.set(1)
@@ -547,7 +555,9 @@ export class LoginPageComponent implements OnInit, OnDestroy {
       }
     })
 
-    this.loginForm.get('password')?.valueChanges.subscribe(() => {
+    this.loginForm.get('password')?.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.serverErrorStep.set(0)
     })
   }

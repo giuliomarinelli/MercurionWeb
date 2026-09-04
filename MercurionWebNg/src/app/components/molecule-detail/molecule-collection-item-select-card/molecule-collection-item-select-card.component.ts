@@ -1,5 +1,6 @@
 // ============ MoleculeCollectionItemSelectCardComponent =============
-import { Component, effect, EventEmitter, Input, model, OnDestroy, OnInit, Output, signal, ViewChild, ElementRef } from '@angular/core';
+import { Component, DestroyRef, effect, EventEmitter, inject, Input, model, OnDestroy, OnInit, Output, signal, ViewChild, ElementRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MoleculeCollectionItemCardComponent } from '../molecule-collection-item-card/molecule-collection-item-card.component';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
@@ -52,6 +53,7 @@ import { MoleculeCardItemModel } from '../../../Models/graphql/molecule-collecti
 export class MoleculeCollectionItemSelectCardComponent implements OnInit, OnDestroy {
 
   private coSub?: Subscription;
+  private readonly destroyRef = inject(DestroyRef);
 
   @Input() indeterminate = false;                // per lo stato parziale
   @Input() set molecule(m: MoleculeCardItemModel) { this._molecule.set(m); }
@@ -77,7 +79,9 @@ export class MoleculeCollectionItemSelectCardComponent implements OnInit, OnDest
 
   ngOnInit(): void {
     // sync OUT: formcontrol -> model (e, se select-all, notifica il padre)
-    this.coSub = this.control.valueChanges.subscribe(val => {
+    this.coSub = this.control.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(val => {
       this.value.set(val);
       if (this._isSelectAll()) {
         this.selectedAll.emit(val)

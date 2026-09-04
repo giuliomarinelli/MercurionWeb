@@ -1,6 +1,7 @@
 import {
   AfterViewInit,
   Component,
+  DestroyRef,
   ElementRef,
   OnDestroy,
   OnInit,
@@ -10,6 +11,7 @@ import {
   effect,
   ChangeDetectionStrategy
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractPaginatedMultiselectComponent } from '../../../abstract/abstract-paginated-multiselect-component';
 import { debounceTime, map, Observable, Subscription } from 'rxjs';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
@@ -677,6 +679,7 @@ export class AddMoleculesToCollectionComponent
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
   private readonly moleculeSearchService = inject(MoleculeSearchService);
+  private readonly destroyRef = inject(DestroyRef);
 
   private ctrlSub?: Subscription;
   private suSub1?: Subscription;
@@ -739,9 +742,13 @@ export class AddMoleculesToCollectionComponent
     const defaultMethod = ifc ? 'chembl' : 'my';
     this.method.set(defaultMethod);
     this.methodControl = new FormControl<'my' | 'chembl'>(defaultMethod, { nonNullable: true });
-    this.metCtrlSub = this.methodControl.valueChanges.subscribe(val => this.method.set(val));
+    this.metCtrlSub = this.methodControl.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(val => this.method.set(val));
     queueMicrotask(() => {
-      this.colSub = this.moleculeCollectionService.getCollectionById(this.addContext.collectionId()!).subscribe({
+      this.colSub = this.moleculeCollectionService.getCollectionById(this.addContext.collectionId()!).pipe(
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe({
         next: col => this.collection.set(col),
         error: () =>
           queueMicrotask(() => {
@@ -816,6 +823,7 @@ export class AddMoleculesToCollectionComponent
 
       this.suSub1 = this.moleculeCollectionItemService
         .addManyMoleculesToCollection(this.addContext.collectionId()!, itemIds, this.isSelectedAll())
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: ok => {
             this.step_12_loading.set(false);
@@ -890,7 +898,7 @@ export class AddMoleculesToCollectionComponent
       ? this.moleculeCollectionItemService.searchChemblMolecules_excludeAlreadyAdded(trimmed, collectionId, 100)
       : this.moleculeSearchService.searchMolecule(trimmed, 100);
 
-    obs.subscribe({
+    obs.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res: MoleculeSearchResult[]) => {
         this.chemblResults.set(res ?? []);
         this.chemblLoading.set(false);
@@ -943,6 +951,7 @@ export class AddMoleculesToCollectionComponent
     });
     this.suSub2 = this.moleculeCollectionItemService
       .addManyChEMBLItemsToCollection(this.addContext.collectionId()!, dtos)
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: ok => {
           this.step_12_loading.set(false);

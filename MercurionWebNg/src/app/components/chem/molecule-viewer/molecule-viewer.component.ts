@@ -1,10 +1,12 @@
 import {
   ApplicationRef,
   Component,
+  DestroyRef,
   effect,
   EventEmitter,
   HostBinding,
   Input,
+  inject,
   NgZone,
   OnChanges,
   OnInit,
@@ -12,6 +14,7 @@ import {
   signal,
   SimpleChanges,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { RDKitService } from '../../../services/rd-kit.service';
 import type { RDKitModule } from '@rdkit/rdkit';
@@ -76,6 +79,7 @@ export class MoleculeViewerComponent implements OnInit, OnChanges {
   svg: SafeHtml | null = null;
   private ready = false;
   private RDK!: RDKitModule;
+  private readonly destroyRef = inject(DestroyRef);
 
   /* ────── Palette WCAG‑AAA ──────────────────────────────────── */
   private static readonly WCAG = {
@@ -124,7 +128,7 @@ export class MoleculeViewerComponent implements OnInit, OnChanges {
 
   /* ────── Helpers ────────────────────────────────────────────── */
   private initRdkit(): void {
-    this.rdkit.instance$.subscribe((rdk) => {
+    this.rdkit.instance$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((rdk) => {
       this.RDK = rdk;
       this.ready = true;
       if (!this.disablePreview) this.scheduleRender();
