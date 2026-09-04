@@ -213,6 +213,7 @@ type RegistryFormValue = {
 export class EssentialProfileRegistryEditComponent implements OnInit, OnDestroy {
 
   private readonly actionContext = inject(ActionOverlayContextService)
+  private readonly sessionId = this.actionContext.session('EssentialProfileRegistryEdit')?.id ?? -1
   private readonly router = inject(Router)
   private readonly fb = inject(NonNullableFormBuilder)
   private readonly accountService = inject(AccountService)
@@ -300,7 +301,7 @@ export class EssentialProfileRegistryEditComponent implements OnInit, OnDestroy 
 
   close(): void {
     this.router.navigate(['/settings'], { fragment: 'personal_details' })
-    this.actionContext.close()
+    this.actionContext.close(this.sessionId)
   }
 
   reset(): void {
@@ -399,3 +400,4 @@ export class EssentialProfileRegistryEditComponent implements OnInit, OnDestroy 
   }
 
 }
+

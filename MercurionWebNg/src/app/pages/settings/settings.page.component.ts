@@ -9,7 +9,6 @@ import { ClassicSpinnerComponent } from '../../components/common/classic-spinner
 import { SessionCardComponent } from '../../components/common/session-card/session-card.component'
 import { MfaStrategyCardComponent } from '../../components/common/mfa-strategy-card/mfa-strategy-card.component'
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service'
-import { SensitiveDataChangeContextService } from '../../services/context/action-context/sensitive-data-change-context.service'
 import { AppContextService } from '../../services/context/app-context.service'
 import { ActivatedRoute, Router } from '@angular/router'
 import { GenderPipe } from '../../pipes/gender.pipe'
@@ -615,7 +614,6 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly route = inject(ActivatedRoute)
   private readonly authService = inject(AuthService)
   private readonly actionContext = inject(ActionOverlayContextService)
-  private readonly changeDataContext = inject(SensitiveDataChangeContextService)
   private readonly invalidations = inject(DomainInvalidationService)
   private readonly appContext = inject(AppContextService)
   private readonly registryContext = inject(ProfileRegistryEditContextService)
@@ -995,15 +993,13 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
   doEnableMfa(): void {
     queueMicrotask(() => {
-      this.changeDataContext.setInnerScope('EnableMfa')
-      this.actionContext.open('SensitiveDataChange')
+      this.actionContext.open('SensitiveDataChange', { innerScope: 'EnableMfa' })
     })
   }
 
   doConfigMfa(): void {
     queueMicrotask(() => {
-      this.changeDataContext.setInnerScope('ConfigMfa')
-      this.actionContext.open('SensitiveDataChange')
+      this.actionContext.open('SensitiveDataChange', { innerScope: 'ConfigMfa' })
     })
   }
 
@@ -1013,36 +1009,31 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
   changePassword(): void {
     queueMicrotask(() => {
-      this.changeDataContext.setInnerScope('ChangePassword')
-      this.actionContext.open('SensitiveDataChange')
+      this.actionContext.open('SensitiveDataChange', { innerScope: 'ChangePassword' })
     })
   }
 
   changeEmail(): void {
     queueMicrotask(() => {
-      this.changeDataContext.setInnerScope('ChangeEmail')
-      this.actionContext.open('SensitiveDataChange')
+      this.actionContext.open('SensitiveDataChange', { innerScope: 'ChangeEmail' })
     })
   }
 
   changePhone(): void {
     queueMicrotask(() => {
-      this.changeDataContext.setInnerScope('ChangePhone')
-      this.actionContext.open('SensitiveDataChange')
+      this.actionContext.open('SensitiveDataChange', { innerScope: 'ChangePhone' })
     })
   }
 
   addPhone(): void {
     queueMicrotask(() => {
-      this.changeDataContext.setInnerScope('AddPhone')
-      this.actionContext.open('SensitiveDataChange')
+      this.actionContext.open('SensitiveDataChange', { innerScope: 'AddPhone' })
     })
   }
 
   deletePhone(): void {
     queueMicrotask(() => {
-      this.changeDataContext.setInnerScope('RemovePhone')
-      this.actionContext.open('SensitiveDataChange')
+      this.actionContext.open('SensitiveDataChange', { innerScope: 'RemovePhone' })
     })
   }
 

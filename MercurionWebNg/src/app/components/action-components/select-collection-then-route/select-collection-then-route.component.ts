@@ -1,7 +1,6 @@
 import { Component, ChangeDetectionStrategy, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { ClassicSpinnerComponent } from '../../common/classic-spinner/classic-spinner.component';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
-import { AddMoleculesToCollectionContextService } from '../../../services/context/action-context/add-molecules-to-collection-context.service';
 import { ComboSelectComponent } from '../../common/combo-select/combo-select.component';
 import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
 import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
@@ -171,7 +170,7 @@ import { Subscription } from 'rxjs';
 export class SelectCollectionThenRouteComponent implements OnInit, OnDestroy {
 
   private readonly actionContext = inject(ActionOverlayContextService);
-  private readonly addToColContext = inject(AddMoleculesToCollectionContextService);
+  private readonly sessionId = this.actionContext.session('SelectCollectionThenRoute')?.id ?? -1;
   private readonly collectionService = inject(MoleculeCollectionService);
 
   private colFetchSub?: Subscription;
@@ -187,7 +186,7 @@ export class SelectCollectionThenRouteComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     queueMicrotask(() => {
-      const ifc = this.addToColContext.importFromChembl();
+      const ifc = this.actionContext.session('SelectCollectionThenRoute')?.input.importFromChembl ?? false;
       this.importFromChembl.set(ifc);
       this.loadCollections(true);
     });
@@ -198,7 +197,7 @@ export class SelectCollectionThenRouteComponent implements OnInit, OnDestroy {
   }
 
   close(): void {
-    this.actionContext.close();
+    this.actionContext.close(this.sessionId);
   }
 
   displayCollection(item: Pick<MoleculeCollection, 'name'>) {
@@ -258,9 +257,12 @@ export class SelectCollectionThenRouteComponent implements OnInit, OnDestroy {
 
   private goToAddMoleculesToCollection(): void {
     queueMicrotask(() => {
-      this.addToColContext.setCollectionId(this.selectedCollectionId());
-      this.addToColContext.setRedirectToCollectionPath(this.importFromChembl());
-      this.actionContext.switchToScope('AddMoleculesToCollection');
+      const importFromChembl = this.importFromChembl();
+      this.actionContext.switchToScope('AddMoleculesToCollection', {
+        collectionId: this.selectedCollectionId(),
+        redirectToCollectionPath: importFromChembl,
+        importFromChembl
+      });
     });
   }
 }

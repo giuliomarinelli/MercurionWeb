@@ -15,7 +15,6 @@ import { PageModel } from '../../Models/graphql/page.models';
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
 import { CreateCollectionContextService } from '../../services/context/action-context/create-collection-context.service';
 import { ToastService } from '../../services/toast.service';
-import { AddMoleculesToCollectionContextService } from '../../services/context/action-context/add-molecules-to-collection-context.service';
 import { AppContextService } from '../../services/context/app-context.service';
 import { DomainInvalidationService } from '../../services/domain-invalidation.service';
 
@@ -114,7 +113,6 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
   private readonly moleculeCollectionService = inject(MoleculeCollectionService)
   private readonly actionOverlayContext = inject(ActionOverlayContextService)
   private readonly createCtx = inject(CreateCollectionContextService)
-  private readonly addCtx = inject(AddMoleculesToCollectionContextService)
   private readonly toast = inject(ToastService)
   private readonly historyContext = inject(HistoryContextService)
   private readonly appContext = inject(AppContextService)
@@ -283,8 +281,7 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
   }
 
   doAddMoleculesToCollection(collectionId: string): void {
-    this.addCtx.setCollectionId(collectionId)
-    this.actionOverlayContext.open('AddMoleculesToCollection')
+    this.actionOverlayContext.open('AddMoleculesToCollection', { collectionId, redirectToCollectionPath: false, importFromChembl: false })
   }
 
 }

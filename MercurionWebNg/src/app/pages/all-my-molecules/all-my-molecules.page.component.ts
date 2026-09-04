@@ -13,7 +13,6 @@ import { ToastService } from '../../services/toast.service';
 import { AbstractPaginationComponent } from '../../abstract/abstract-pagination-component';
 import { PmSearchInputComponent } from '../../components/common/pm-search-input/pm-search-input.component';
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
-import { AddMoleculesToCollectionContextService } from '../../services/context/action-context/add-molecules-to-collection-context.service';
 import { DomainInvalidationService } from '../../services/domain-invalidation.service';
 
 @Component({
@@ -106,7 +105,6 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
   private readonly historyContext = inject(HistoryContextService)
   private readonly toast = inject(ToastService)
   private readonly actionContext = inject(ActionOverlayContextService)
-  private readonly addContext = inject(AddMoleculesToCollectionContextService)
   private readonly invalidations = inject(DomainInvalidationService)
   // ====================================================
 
@@ -233,9 +231,7 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
   doAddMolecules(): void {
     queueMicrotask(() => {
       // Ensure a clean context when starting from the All My Molecules page
-      this.addContext.setImportFromChembl(false);
-      this.addContext.setRedirectToCollectionPath(false);
-      this.actionContext.open('SelectCollectionThenRoute')
+      this.actionContext.open('SelectCollectionThenRoute', { importFromChembl: false })
     })
   }
 

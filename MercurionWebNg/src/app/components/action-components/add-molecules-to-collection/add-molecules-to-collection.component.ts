@@ -673,6 +673,7 @@ export class AddMoleculesToCollectionComponent
 
   private readonly actionOverlayContext = inject(ActionOverlayContextService);
   private readonly addContext = inject(AddMoleculesToCollectionContextService);
+  private readonly sessionId = this.actionOverlayContext.session('AddMoleculesToCollection')?.id ?? -1;
   private readonly invalidation = inject(DomainInvalidationService);
   private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService);
   private readonly moleculeCollectionService = inject(MoleculeCollectionService);
@@ -753,7 +754,6 @@ export class AddMoleculesToCollectionComponent
         error: () =>
           queueMicrotask(() => {
             this.close();
-            this.addContext.clearCollectionId();
             this.toast.trigger('Si è verificato un errore. Se si ripete, contatta il supporto', 'error', 3000);
           })
       });
@@ -801,7 +801,7 @@ export class AddMoleculesToCollectionComponent
   }
 
   close(): void {
-    this.actionOverlayContext.close();
+    this.actionOverlayContext.close(this.sessionId);
   }
 
   private doSubmit(): void {
@@ -836,12 +836,10 @@ export class AddMoleculesToCollectionComponent
             }
             this.error.set(!ok);
             const cId = this.addContext.collectionId();
-            this.addContext.clearCollectionId();
             if (this.addContext.redirectToCollectionPath()) {
-              this.addContext.setRedirectToCollectionPath(false);
               this.router.navigateByUrl(`/molecules/collections/detail/${cId}`);
             }
-            this.actionOverlayContext.close();
+            this.actionOverlayContext.close(this.sessionId);
           },
           error: () => {
             this.step_12_loading.set(false);
@@ -850,7 +848,7 @@ export class AddMoleculesToCollectionComponent
           }
         });
     } else {
-      this.actionOverlayContext.close();
+      this.actionOverlayContext.close(this.sessionId);
     }
   }
 
@@ -965,12 +963,10 @@ export class AddMoleculesToCollectionComponent
           this.error.set(!ok);
           const cId = this.addContext.collectionId();
           const shouldRedirect = this.addContext.redirectToCollectionPath();
-          this.addContext.clearCollectionId();
           if (shouldRedirect) {
-            this.addContext.setRedirectToCollectionPath(false);
             this.router.navigateByUrl(`/molecules/collections/detail/${cId}`);
           }
-          this.actionOverlayContext.close();
+          this.actionOverlayContext.close(this.sessionId);
         },
         error: () => {
           this.step_12_loading.set(false);
@@ -988,3 +984,5 @@ export class AddMoleculesToCollectionComponent
     }
   }
 }
+
+

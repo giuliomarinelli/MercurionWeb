@@ -3,12 +3,21 @@ import {
   ActionOverlayEvent,
   ActionOverlayState,
   ActionScope,
+  ActionSession,
+  ActionSessionInputMap,
   ActiveActionScope
 } from '../../../Models/action/action-overlay.models'
 
 const OPEN_DELAY_MS = 10
 const UNMOUNT_DELAY_MS = 300
 const CLEAR_SCOPE_DELAY_MS = 500
+
+/**
+ * `void`-input scopes may be opened without a second argument; every other scope
+ * requires its typed immutable input at open/switch time.
+ */
+export type ActionSessionInputArgs<S extends ActiveActionScope> =
+  ActionSessionInputMap[S] extends void ? [input?: undefined] : [input: ActionSessionInputMap[S]]
 
 export function transitionActionOverlay(
   state: ActionOverlayState,
@@ -19,32 +28,32 @@ export function transitionActionOverlay(
   switch (event.type) {
     case 'OPEN':
       return state.phase === 'active'
-        ? { phase: state.phase, scope: event.scope, generation: nextGeneration }
-        : { phase: 'opening', scope: event.scope, generation: nextGeneration }
+        ? { phase: state.phase, scope: event.scope, generation: nextGeneration, input: event.input }
+        : { phase: 'opening', scope: event.scope, generation: nextGeneration, input: event.input }
     case 'ACTIVATE':
       return state.phase === 'opening' && state.generation === event.generation
-        ? { phase: 'active', scope: state.scope, generation: state.generation }
+        ? { phase: 'active', scope: state.scope, generation: state.generation, input: state.input }
         : state
     case 'SUBMIT':
-      return state.phase === 'active' || state.phase === 'failed'
-        ? { phase: 'submitting', scope: state.scope, generation: state.generation }
+      return (state.phase === 'active' || state.phase === 'failed') && state.generation === event.sessionId
+        ? { phase: 'submitting', scope: state.scope, generation: state.generation, input: state.input }
         : state
     case 'SUBMIT_SUCCEEDED':
-      return state.phase === 'submitting'
-        ? { phase: 'succeeded', scope: state.scope, generation: state.generation }
+      return state.phase === 'submitting' && state.generation === event.sessionId
+        ? { phase: 'succeeded', scope: state.scope, generation: state.generation, input: state.input }
         : state
     case 'SUBMIT_FAILED':
-      return state.phase === 'submitting'
-        ? { phase: 'failed', scope: state.scope, generation: state.generation }
+      return state.phase === 'submitting' && state.generation === event.sessionId
+        ? { phase: 'failed', scope: state.scope, generation: state.generation, input: state.input }
         : state
     case 'CANCEL':
     case 'CLOSE':
-      return state.phase === 'closed' || state.phase === 'closing' || state.phase === 'settling'
-        ? state
-        : { phase: 'closing', scope: state.scope, generation: nextGeneration }
+      if (state.phase === 'closed' || state.phase === 'closing' || state.phase === 'settling') return state
+      if (event.sessionId !== undefined && event.sessionId !== state.generation) return state
+      return { phase: 'closing', scope: state.scope, generation: nextGeneration, input: state.input }
     case 'UNMOUNT':
       return state.phase === 'closing' && state.generation === event.generation
-        ? { phase: 'settling', scope: state.scope, generation: state.generation }
+        ? { phase: 'settling', scope: state.scope, generation: state.generation, input: state.input }
         : state
     case 'CLEAR':
       return state.phase === 'settling' && state.generation === event.generation
@@ -72,34 +81,53 @@ export class ActionOverlayContextService {
   })
   readonly shouldMount = this.isMounted
 
-  open(scope: ActionScope): void {
-    if (!scope) return
-    this.dispatch({ type: 'OPEN', scope })
+  /**
+   * Returns the active session for `scope`, or `null` when no session is currently
+   * open for that scope. `session.id` is the generation token that must be threaded
+   * back into `close`/`beginSubmit`/`submitSucceeded`/`submitFailed` to guarantee a
+   * stale/late async completion from a previous session cannot mutate a newer one.
+   */
+  session<S extends ActiveActionScope>(scope: S): ActionSession<S> | null {
+    const state = this._state()
+    if (state.phase === 'closed' || state.scope !== scope) return null
+    return { id: state.generation, scope: state.scope as S, input: state.input as ActionSessionInputMap[S] }
   }
 
-  close(): void {
-    this.dispatch({ type: 'CLOSE' })
+  open<S extends ActiveActionScope>(scope: S, ...args: ActionSessionInputArgs<S>): number {
+    if (!scope) return this._state().generation
+    this.dispatch({ type: 'OPEN', scope, input: args[0] })
+    return this._state().generation
   }
 
-  cancel(): void {
-    this.dispatch({ type: 'CANCEL' })
+  switchToScope<S extends ActiveActionScope>(scope: S, ...args: ActionSessionInputArgs<S>): number {
+    if (!scope) return this._state().generation
+    this.dispatch({ type: 'OPEN', scope, input: args[0] })
+    return this._state().generation
   }
 
-  beginSubmit(): void {
-    this.dispatch({ type: 'SUBMIT' })
+  /**
+   * Closes the overlay. When `sessionId` is provided, the close is ignored unless it
+   * still targets the current session, which prevents a late async completion from a
+   * previous/stale session from closing a newer one.
+   */
+  close(sessionId?: number): void {
+    this.dispatch({ type: 'CLOSE', sessionId })
   }
 
-  submitSucceeded(): void {
-    this.dispatch({ type: 'SUBMIT_SUCCEEDED' })
+  cancel(sessionId?: number): void {
+    this.dispatch({ type: 'CANCEL', sessionId })
   }
 
-  submitFailed(): void {
-    this.dispatch({ type: 'SUBMIT_FAILED' })
+  beginSubmit(sessionId: number): void {
+    this.dispatch({ type: 'SUBMIT', sessionId })
   }
 
-  switchToScope(scope: ActionScope): void {
-    if (!scope) return
-    this.dispatch({ type: 'OPEN', scope })
+  submitSucceeded(sessionId: number): void {
+    this.dispatch({ type: 'SUBMIT_SUCCEEDED', sessionId })
+  }
+
+  submitFailed(sessionId: number): void {
+    this.dispatch({ type: 'SUBMIT_FAILED', sessionId })
   }
 
   private dispatch(event: ActionOverlayEvent): void {

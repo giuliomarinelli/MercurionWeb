@@ -11,7 +11,6 @@ import { HelpService } from '../../../services/graphql/help.service';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 import { ToastService } from '../../../services/toast.service';
 import { Subscription } from 'rxjs';
-import { TicketDetailContextService } from '../../../services/context/action-context/ticket-detail-context.service';
 import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
 
 @Component({
@@ -131,7 +130,7 @@ export class NewTicketComponent implements OnDestroy {
 
   private readonly helpService = inject(HelpService)
   private readonly overlayContext = inject(ActionOverlayContextService)
-  private readonly detailContext = inject(TicketDetailContextService)
+  private readonly sessionId = this.overlayContext.session('NewTicket')?.id ?? -1
   private readonly invalidation = inject(DomainInvalidationService)
   private readonly toast = inject(ToastService)
 
@@ -184,11 +183,9 @@ export class NewTicketComponent implements OnDestroy {
           const id = res?.id
           if (!id) { this.close(); return; }
 
-          this.detailContext.setInnerScope('User')
-          this.detailContext.setTicketId(id)
           this.invalidation.publish({ domain: 'ticket', action: 'changed', ticketId: id, scope: 'User' })
 
-          this.overlayContext.open('TicketDetail')
+          this.overlayContext.open('TicketDetail', { ticketId: id, innerScope: 'User' })
         },
         error: () => {
           this.loading.set(false)
@@ -198,6 +195,6 @@ export class NewTicketComponent implements OnDestroy {
   }
 
   close() {
-    this.overlayContext.close()
+    this.overlayContext.close(this.sessionId)
   }
 }

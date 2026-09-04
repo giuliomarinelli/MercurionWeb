@@ -53,7 +53,6 @@ import { SkeletonMoleculeCardComponent } from '../../components/molecule-detail/
 import { PmSearchInputComponent } from '../../components/common/pm-search-input/pm-search-input.component';
 import { CustomDetailSaveModel } from '../../Models/custom-detail-save.model';
 import { Observable } from 'rxjs';
-import { AddMoleculesToCollectionContextService } from '../../services/context/action-context/add-molecules-to-collection-context.service';
 import { AppTitleService } from '../../services/app-title.service';
 import { DomainInvalidationService } from '../../services/domain-invalidation.service';
 
@@ -179,7 +178,6 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
   private readonly history = inject(HistoryContextService)
   private readonly toast = inject(ToastService)
   private readonly overlay = inject(ActionOverlayContextService)
-  protected readonly addCtx = inject(AddMoleculesToCollectionContextService)
   private readonly zone = inject(NgZone)
   private readonly historyContext = inject(HistoryContextService)
   private readonly appTitle = inject(AppTitleService)
@@ -471,8 +469,7 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
 
   doAddToCollection(): void {
     queueMicrotask(() => {
-      this.addCtx.setCollectionId(this.colId());
-      this.overlay.open('AddMoleculesToCollection');
+      this.overlay.open('AddMoleculesToCollection', { collectionId: this.colId(), redirectToCollectionPath: false, importFromChembl: false });
     });
   }
 

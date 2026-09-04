@@ -250,6 +250,7 @@ export class CustomMoleculeCollectionItemSaveComponent implements OnInit {
   private notesRef!: ElementRef<HTMLTextAreaElement>;
 
   protected readonly overlayCtx = inject(ActionOverlayContextService);
+  private readonly sessionId = this.overlayCtx.session('MoleculeCollectionItemSave')?.id ?? -1;
   protected readonly saveCtx = inject(CustomMoleculeCollectionItemSaveContextService);
   private readonly collectionService = inject(MoleculeCollectionService);
   private readonly moleculeJoinService = inject(MoleculeJoinService);
@@ -400,14 +401,14 @@ export class CustomMoleculeCollectionItemSaveComponent implements OnInit {
               c_id: this.saveCtx.selectedCollectionId()
             }
           });
-          this.overlayCtx.close();
+          this.overlayCtx.close(this.sessionId);
         },
         error: () => this.toast.trigger('Si è verificato un errore!', 'error')
       });
   }
 
   close() {
-    this.overlayCtx.close();
+    this.overlayCtx.close(this.sessionId);
   }
 
   @HostListener('document:keydown.escape')
@@ -415,3 +416,4 @@ export class CustomMoleculeCollectionItemSaveComponent implements OnInit {
     if (this.overlayCtx.isOpened()) this.close();
   }
 }
+
