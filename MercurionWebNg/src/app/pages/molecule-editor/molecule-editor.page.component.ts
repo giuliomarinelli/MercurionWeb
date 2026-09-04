@@ -20,7 +20,6 @@ import {
 import { KetcherFrameComponent, KetcherFrameMode } from '../../components/chem/ketcher-frame/ketcher-frame.component';
 import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service';
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
-import { CustomMoleculeCollectionItemSaveContextService } from '../../services/context/action-context/custom-molecule-collection-item-save-context.service';
 import { ToastService } from '../../services/toast.service';
 import { RdKitApiService } from '../../services/rd-kit-api.service';
 
@@ -97,7 +96,6 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService);
   private readonly overlayContext = inject(ActionOverlayContextService);
-  private readonly saveContext = inject(CustomMoleculeCollectionItemSaveContextService);
   private readonly toast = inject(ToastService);
   private readonly RDKitAPI = inject(RdKitApiService);
   private readonly logger = inject(LoggerService);
@@ -236,10 +234,7 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.saveContext.setSmiles(smiles);
-    this.saveContext.setMode(this.mode());
-    this.saveContext.reset();
-    this.overlayContext.open('MoleculeCollectionItemSave');
+    this.overlayContext.open('MoleculeCollectionItemSave', { mode: this.mode(), smiles });
   }
 
   // salvataggio in edit

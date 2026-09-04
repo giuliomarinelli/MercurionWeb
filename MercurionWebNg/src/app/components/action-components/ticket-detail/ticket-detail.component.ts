@@ -279,6 +279,7 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
 
   private readonly detailContext = inject(TicketDetailContextService)
   private readonly overlayContext = inject(ActionOverlayContextService)
+  private readonly sessionId = this.overlayContext.session('TicketDetail')?.id ?? -1
   private readonly helpService = inject(HelpService)
   protected readonly typeGuards = inject(TypeGuardsService)
   protected readonly cdr = inject(ChangeDetectorRef)
@@ -389,8 +390,7 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
 
   close(): void {
     queueMicrotask(() => {
-      this.overlayContext.close();
-      this.detailContext.clearTicketId();
+      this.overlayContext.close(this.sessionId);
     });
   }
 
@@ -631,3 +631,4 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
 
 
 }
+

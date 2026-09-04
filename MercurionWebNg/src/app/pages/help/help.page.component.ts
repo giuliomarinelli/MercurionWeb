@@ -23,7 +23,6 @@ import { ClassicSpinnerComponent } from '../../components/common/classic-spinner
 import { TabsComponent } from '../../components/common/tabs/tabs.component'
 import { TicketCardComponent } from '../../components/support/ticket-card/ticket-card.component'
 import { TicketCardSkeletonComponent } from '../../components/support/ticket-card-skeleton/ticket-card-skeleton.component'
-import { TicketDetailContextService } from '../../services/context/action-context/ticket-detail-context.service'
 import { DomainInvalidationService } from '../../services/domain-invalidation.service'
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service'
 import { GqlV2Error } from '../../services/graphql/graphql-helpers/v2/gql-v2.error'
@@ -118,7 +117,6 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
   private readonly authService = inject(AuthService)
   private readonly helpService = inject(HelpService)
   protected readonly typeGuards = inject(TypeGuardsService)
-  private readonly detailContext = inject(TicketDetailContextService)
   private readonly invalidations = inject(DomainInvalidationService)
   private readonly overlayContext = inject(ActionOverlayContextService)
   private readonly cdr = inject(ChangeDetectorRef)
@@ -196,9 +194,7 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
         }
 
         setTimeout(() => {
-          this.detailContext.setInnerScope(innerScope)
-          this.detailContext.setTicketId(ticketId)
-          this.overlayContext.open('TicketDetail')
+          this.overlayContext.open('TicketDetail', { ticketId, innerScope })
 
           this.router.navigate([], {
             relativeTo: this.route,
@@ -288,16 +284,14 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
   openTicketDetail(ticketId: string): void {
     queueMicrotask(() => {
       const scope = this.activeTab() === 0 ? 'User' : 'Support'
-      this.detailContext.setInnerScope(scope)
-      this.detailContext.setTicketId(ticketId)
-      this.overlayContext.open('TicketDetail')
+      this.overlayContext.open('TicketDetail', { ticketId, innerScope: scope })
     })
   }
 
   newTicket(): void {
     queueMicrotask(() => {
-      this.detailContext.setInnerScope(this.activeTab() === 0 ? 'User' : 'Support')
-      this.overlayContext.open('NewTicket')
+      const innerScope = this.activeTab() === 0 ? 'User' : 'Support'
+      this.overlayContext.open('NewTicket', { innerScope })
     })
   }
 

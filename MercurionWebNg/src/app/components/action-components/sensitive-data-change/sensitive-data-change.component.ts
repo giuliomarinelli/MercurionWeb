@@ -944,6 +944,7 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
 
   private readonly actionContext = inject(ActionOverlayContextService)
   private readonly dataChangeContext = inject(SensitiveDataChangeContextService)
+  private readonly sessionId = this.actionContext.session('SensitiveDataChange')?.id ?? -1
   private readonly invalidation = inject(DomainInvalidationService)
   private readonly accountService = inject(AccountService)
   private readonly toast = inject(ToastService)
@@ -1190,12 +1191,11 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
   }
 
   close(fragment?: 'general' | 'personal_details' | 'contact_details' | 'security'): void {
-    this.dataChangeContext.clearInnerScope()
     if (fragment) {
       this.router.navigate(['/settings'], { fragment })
     }
     this.invalidation.publish({ domain: 'profile', action: 'changed' })
-    this.actionContext.close()
+    this.actionContext.close(this.sessionId)
   }
 
   computePrefixValues(): PmOption[] {
@@ -1285,7 +1285,6 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
 
   switchToAddNewPhone(): void {
     queueMicrotask(() => {
-      this.dataChangeContext.setInnerScope('AddPhone')
       this.innerScope.set('AddPhone')
       this.serverError.set(0)
       this.deletePhoneStep.set('')

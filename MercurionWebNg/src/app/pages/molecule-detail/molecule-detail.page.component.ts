@@ -34,7 +34,6 @@ import { LinkModel } from '../../Models/link.model'
 import { MoleculeCollectionService } from '../../services/graphql/molecule-collection.service'
 import { HistoryContextService } from '../../services/context/history-context.service'
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service'
-import { BindCollectionsToMoleculeContextService } from '../../services/context/action-context/bind-collections-to-molecule-context.service'
 import { HttpErrorResponse } from '@angular/common/http'
 import { AppTitleService } from '../../services/app-title.service'
 import { DomainInvalidationService } from '../../services/domain-invalidation.service'
@@ -282,7 +281,6 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
   private readonly toast = inject(ToastService)
   private readonly historyContext = inject(HistoryContextService)
   private readonly actionOverlayContext = inject(ActionOverlayContextService)
-  private readonly bindContext = inject(BindCollectionsToMoleculeContextService)
   private readonly appTitle = inject(AppTitleService)
   private readonly invalidations = inject(DomainInvalidationService)
   private readonly logger = inject(LoggerService)
@@ -611,8 +609,7 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
 
   doAddToManyCollections(): void {
     queueMicrotask(() => {
-      this.bindContext.setMoleculeId(this.molId.toString())
-      this.actionOverlayContext.open('BindCollectionsToMolecule')
+      this.actionOverlayContext.open('BindCollectionsToMolecule', { moleculeId: this.molId.toString() })
     })
   }
 
