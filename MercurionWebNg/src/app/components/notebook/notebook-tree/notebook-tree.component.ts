@@ -1,4 +1,5 @@
-import { Component, Input, signal } from '@angular/core';
+import { Component, DestroyRef, inject, Input, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NotebookTree, SectionTree, PageTree } from '../../../Models/graphql/notebook/notebook.models';
 import { NotebookService } from '../../../services/graphql/notebook.service';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -91,6 +92,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
   `
 })
 export class NotebookTreeComponent {
+  private readonly destroyRef = inject(DestroyRef);
   _notebooks = signal<NotebookTree[]>([]);
 
   @Input()
@@ -117,34 +119,34 @@ export class NotebookTreeComponent {
   // === CRUD CHAPTER
   addChapter(notebookId: string) {
     const title = prompt('Nome nuovo capitolo?');
-    if (title) this.notebookService.createChapter(notebookId, title).subscribe();
+    if (title) this.notebookService.createChapter(notebookId, title).pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
   }
   renameChapter(id: string, oldTitle: string) {
     const title = prompt('Nuovo nome capitolo:', oldTitle);
     if (title && title.trim() && title !== oldTitle) {
-      this.notebookService.updateChapter(id, title.trim()).subscribe();
+      this.notebookService.updateChapter(id, title.trim()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
     }
   }
   deleteChapter(id: string) {
     if (confirm('Eliminare capitolo?')) {
-      this.notebookService.deleteChapter(id).subscribe();
+      this.notebookService.deleteChapter(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
     }
   }
 
   // === CRUD SECTION
   addSection(chapterId: string) {
     const title = prompt('Nome nuova sezione?');
-    if (title) this.notebookService.createSection(chapterId, title).subscribe();
+    if (title) this.notebookService.createSection(chapterId, title).pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
   }
   renameSection(id: string, oldTitle: string) {
     const title = prompt('Nuovo nome sezione:', oldTitle);
     if (title && title.trim() && title !== oldTitle) {
-      this.notebookService.updateSection(id, title.trim()).subscribe();
+      this.notebookService.updateSection(id, title.trim()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
     }
   }
   deleteSection(id: string) {
     if (confirm('Eliminare sezione?')) {
-      this.notebookService.deleteSection(id).subscribe();
+      this.notebookService.deleteSection(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
     }
   }
 
@@ -153,17 +155,17 @@ export class NotebookTreeComponent {
     const title = prompt('Titolo pagina?');
     if (!title) return;
     const content = prompt('Contenuto (opzionale)?') ?? '';
-    this.notebookService.createPage(section.id, title, content).subscribe();
+    this.notebookService.createPage(section.id, title, content).pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
   }
   renamePage(page: PageTree, section: SectionTree) {
     const newTitle = prompt('Nuovo titolo pagina:', page.title) ?? page.title;
     if (!newTitle || newTitle === page.title) return;
     // Qui potresti volere anche edit del contenuto (non solo titolo)
-    this.notebookService.updatePage(page.id, newTitle, page.title ?? '').subscribe()
+    this.notebookService.updatePage(page.id, newTitle, page.title ?? '').pipe(takeUntilDestroyed(this.destroyRef)).subscribe()
   }
   deletePage(pageId: string, section: SectionTree) {
     if (confirm('Eliminare pagina?')) {
-      this.notebookService.deletePage(pageId).subscribe()
+      this.notebookService.deletePage(pageId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe()
     }
   }
 

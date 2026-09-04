@@ -1,4 +1,5 @@
-import { Component, computed, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FloatingInputComponent } from '../../components/common/floating-input/floating-input.component';
 import { TurnstileComponent } from '../../components/common/turnstile/turnstile.component';
 import { FormControl, FormGroup, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -243,6 +244,7 @@ export class AccountRecoveryPageComponent implements OnInit, OnDestroy {
   private readonly themeManager = inject(ThemeManagerService)
   private readonly fb = inject(NonNullableFormBuilder)
   private readonly router = inject(Router)
+  private readonly destroyRef = inject(DestroyRef)
 
   private firstStepSub?: Subscription
   private secondStepSub?: Subscription
@@ -283,18 +285,24 @@ export class AccountRecoveryPageComponent implements OnInit, OnDestroy {
         confirmPassword: this.fb.control('', [Validators.required, matchPassword])
       },
       { validators: matchPassword })
-    this.codeCtrlSub = this.codeCtrl.valueChanges.subscribe(() => {
+    this.codeCtrlSub = this.codeCtrl.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.serverErrorStep.set({ code: 0, step: 0 })
       this.codeCtrl.updateValueAndValidity()
     })
-    this.recoveryGroupSub = this.recoveryGroup.valueChanges.subscribe(() => {
+    this.recoveryGroupSub = this.recoveryGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.serverErrorStep.set({ code: 0, step: 0 })
       this.recoveryGroup.updateValueAndValidity()
     })
     const passwordCtrl = this.recoveryGroup.get('password')
     const confirmPasswordCtrl = this.recoveryGroup.get('confirmPassword')
     if (passwordCtrl && confirmPasswordCtrl) {
-      this.passwordValueChangesSub = passwordCtrl.valueChanges.subscribe(() => {
+      this.passwordValueChangesSub = passwordCtrl.valueChanges.pipe(
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe(() => {
         confirmPasswordCtrl.updateValueAndValidity({ onlySelf: true })
       })
     }
@@ -317,7 +325,8 @@ export class AccountRecoveryPageComponent implements OnInit, OnDestroy {
           this.turnstileToken.set('')
           this.loading.set(false)
           queueMicrotask(() => this.resetTurnstileWidget())
-        })
+        }),
+        takeUntilDestroyed(this.destroyRef)
       ).subscribe({
         next: (res) => {
           this.recoveryToken.set(res.recoveryToken)
@@ -343,7 +352,8 @@ export class AccountRecoveryPageComponent implements OnInit, OnDestroy {
           this.turnstileToken.set('')
           this.loading.set(false)
           queueMicrotask(() => this.resetTurnstileWidget())
-        })
+        }),
+        takeUntilDestroyed(this.destroyRef)
       ).subscribe({
         next: (res) => {
           this.recoveryCode.set(res.recoveryCode)

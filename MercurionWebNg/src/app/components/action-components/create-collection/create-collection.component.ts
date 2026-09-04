@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  DestroyRef,
   ElementRef,
   inject,
   OnDestroy,
@@ -10,6 +11,7 @@ import {
   signal,
   ViewChild
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
@@ -291,6 +293,7 @@ export class CreateCollectionComponent implements OnInit, AfterViewInit, OnDestr
   private readonly toast = inject(ToastService);
   private readonly createContext = inject(CreateCollectionContextService);
   private readonly invalidation = inject(DomainInvalidationService);
+  private readonly destroyRef = inject(DestroyRef);
 
   private naSub?: Subscription;
   private addSub?: Subscription;
@@ -305,7 +308,9 @@ export class CreateCollectionComponent implements OnInit, AfterViewInit, OnDestr
   selectedChips: string[] = [];
 
   ngOnInit(): void {
-    this.naSub = this.nameControl.valueChanges.subscribe(val => this.name.set(val));
+    this.naSub = this.nameControl.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(val => this.name.set(val));
   }
 
   ngAfterViewInit(): void {
@@ -358,7 +363,9 @@ export class CreateCollectionComponent implements OnInit, AfterViewInit, OnDestr
   doSubmit(): void {
     if (!this.selectedChips.length) return;
 
-    this.addSub = this.moleculeCollectionService.createManyCollections(this.selectedChips).subscribe({
+    this.addSub = this.moleculeCollectionService.createManyCollections(this.selectedChips).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
       next: () => {
         this.invalidation.publish({ domain: 'molecule-collection', action: 'created' });
         this.overlayContext.close();

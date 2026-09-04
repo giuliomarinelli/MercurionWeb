@@ -1,4 +1,5 @@
-import { Component, computed, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PublicPipe } from '../../pipes/public.pipe';
 import { ReactiveFormsModule, Validators, FormGroup, FormControl, NonNullableFormBuilder } from '@angular/forms';
 import { ThemeManagerService } from '../../services/context/theme-manager.service';
@@ -246,6 +247,7 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
   protected readonly userContext = inject(UserContextService)
   private readonly toast = inject(ToastService)
   private readonly appContext = inject(AppContextService)
+  private readonly destroyRef = inject(DestroyRef)
   // ====================================================
 
   @ViewChild(TurnstileComponent)
@@ -343,7 +345,9 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
         return
       }
       const request: UserRegisterDTO = { ...dto, gender: dto.gender }
-      this.regSub = this.authService.registerUser(request, this.turnstileToken()).subscribe({
+      this.regSub = this.authService.registerUser(request, this.turnstileToken()).pipe(
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe({
         next: res => {
           const { obscuredEmail } = res
           this.obscuredEmail.set(obscuredEmail!)
@@ -380,10 +384,14 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.valChSub = this.form.get('password')?.valueChanges.subscribe(() => {
+    this.valChSub = this.form.get('password')?.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.form.get('confirmPassword')?.updateValueAndValidity({ onlySelf: true });
     })
-    this.form.valueChanges.subscribe(() => {
+    this.form.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       if (this.settedDisabledBtn()) {
         this.settedDisabledBtn.set(false)
       }
