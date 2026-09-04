@@ -2,8 +2,11 @@ export const environmentNames = ['development', 'testing', 'staging', 'productio
 
 export type EnvironmentName = typeof environmentNames[number]
 
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'off'
+
 export interface EnvironmentConfig {
   readonly name: EnvironmentName
+  readonly minLogLevel: LogLevel
   readonly CLOUDFLARE_SITE_KEY: string
   readonly PUBLIC_EXACT_PATHS: readonly string[]
   readonly LOGGED_OUT_ONLY_PATHS: readonly string[]
@@ -54,4 +57,3 @@ export function assertValidEnvironmentConfig(config: EnvironmentConfig): void {
 function freezeList<T>(values: readonly T[]): readonly T[] {
   return Object.freeze([...values])
 }
-

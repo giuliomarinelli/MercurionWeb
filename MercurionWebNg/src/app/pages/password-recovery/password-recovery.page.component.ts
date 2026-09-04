@@ -1,3 +1,4 @@
+import { LoggerService } from '../../services/logger.service';
 import { Component, ChangeDetectionStrategy, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -125,6 +126,7 @@ export class PasswordRecoveryPageComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder)
   private readonly userCtx = inject(UserContextService)
   private readonly destroyRef = inject(DestroyRef)
+  private readonly logger = inject(LoggerService);
 
   private changePasswordToken = signal<string>('');
   private recoverySub?: Subscription;
@@ -227,7 +229,7 @@ export class PasswordRecoveryPageComponent implements OnInit, OnDestroy {
             this.step_12_loading.set(false)
           },
           error: (e: { error: ErrorRes, status: number }) => {
-            console.log(e)
+            this.logger.error('Password recovery error', e)
             this.serverError.set(true)
             this.step_12_loading.set(false)
             if (e.status === 403 &&
@@ -250,3 +252,4 @@ export class PasswordRecoveryPageComponent implements OnInit, OnDestroy {
     this.valChSub2?.unsubscribe()
   }
 }
+

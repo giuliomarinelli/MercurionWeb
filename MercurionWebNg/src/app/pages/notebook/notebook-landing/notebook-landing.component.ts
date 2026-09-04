@@ -30,7 +30,7 @@ export class NotebookLandingComponent implements OnInit {
     ).subscribe({
       next: res => {
         this.notebooks.set(res)
-        console.log(res)
+        
       },
       error: err => {
         this.loading.set(false);
@@ -49,3 +49,4 @@ export class NotebookLandingComponent implements OnInit {
   }
 
 }
+

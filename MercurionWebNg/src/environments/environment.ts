@@ -2,6 +2,7 @@ import { createEnvironmentConfig } from './environment.config'
 
 export const environment = createEnvironmentConfig({
   name: 'production',
+  minLogLevel: 'warn',
   CLOUDFLARE_SITE_KEY: '0x4AAAAAABdOWnfz_3r4JGDK',
   PUBLIC_EXACT_PATHS: [
     '/login',
@@ -23,4 +24,3 @@ export const environment = createEnvironmentConfig({
     PICTOGRAM_DARK: 'logo/pictogram-dark-logo-2.svg'
   }
 })
-
