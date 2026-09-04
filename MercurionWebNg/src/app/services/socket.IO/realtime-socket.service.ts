@@ -54,7 +54,8 @@ export class RealtimeSocketService {
       reconnectionAttempts: Infinity,
       reconnectionDelay: 2000,
       reconnectionDelayMax: 8000,
-      autoConnect: false });
+      autoConnect: false,
+    });
 
     // ——— Core listeners ———
     this.socket.on('connect', () => {

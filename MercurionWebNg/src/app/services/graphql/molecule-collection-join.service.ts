@@ -31,7 +31,8 @@ export class MoleculeJoinService {
     return this.apollo
       .mutate<AddChemblMoleculeToCollectionMutation, AddChemblMoleculeToCollectionMutationVariables>({
         mutation: AddChemblMoleculeToCollectionDocument,
-        variables: params })
+        variables: params,
+      })
       .pipe(map(res => extractGqlData<AddChemblMoleculeToCollectionMutation, 'addChemblMoleculeToCollection'>(res, 'addChemblMoleculeToCollection')));
   }
 
@@ -40,7 +41,8 @@ export class MoleculeJoinService {
     return this.apollo
       .mutate<AddCustomMoleculeToCollectionMutation, AddCustomMoleculeToCollectionMutationVariables>({
         mutation: AddCustomMoleculeToCollectionDocument,
-        variables: params })
+        variables: params,
+      })
       .pipe(
         map(res => extractGqlData<AddCustomMoleculeToCollectionMutation, 'addCustomMoleculeToCollection'>(res, 'addCustomMoleculeToCollection')),
         map((entity) => ({
@@ -55,7 +57,8 @@ export class MoleculeJoinService {
     return this.apollo
       .mutate<RemoveChemblMoleculeFromCollectionMutation, RemoveChemblMoleculeFromCollectionMutationVariables>({
         mutation: RemoveChemblMoleculeFromCollectionDocument,
-        variables: { collectionId, itemId } })
+        variables: { collectionId, itemId },
+      })
       .pipe(map(res => extractGqlData<RemoveChemblMoleculeFromCollectionMutation, 'removeChemblMoleculeFromCollection'>(res, 'removeChemblMoleculeFromCollection')))
   }
 
@@ -64,7 +67,8 @@ export class MoleculeJoinService {
     return this.apollo
       .mutate<RemoveCustomMoleculeFromCollectionMutation, RemoveCustomMoleculeFromCollectionMutationVariables>({
         mutation: RemoveCustomMoleculeFromCollectionDocument,
-        variables: { collectionId, itemId } })
+        variables: { collectionId, itemId },
+      })
       .pipe(map(res => extractGqlData<RemoveCustomMoleculeFromCollectionMutation, 'removeCustomMoleculeFromCollection'>(res, 'removeCustomMoleculeFromCollection')));
   }
 }

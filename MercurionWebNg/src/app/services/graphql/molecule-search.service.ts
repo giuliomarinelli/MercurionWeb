@@ -29,8 +29,10 @@ export class MoleculeSearchService {
       .watchQuery<MoleculeSearchQuery, MoleculeSearchQueryVariables>({
         query: MoleculeSearchDocument,
         variables: {
-          input: { query, limit } },
-        fetchPolicy: 'network-only' })
+          input: { query, limit },
+        },
+        fetchPolicy: 'network-only',
+      })
       .valueChanges.pipe(
         map(res => extractGqlData<MoleculeSearchQuery, 'moleculeSearch'>(res, 'moleculeSearch')),
         tap(results => {

@@ -3,7 +3,8 @@ import { BrowserResourceOwner, injectBrowserResourceOwner } from '../utils/brows
 
 @Directive({
   selector: '[appCollapseMaxH]',
-  standalone: true })
+  standalone: true,
+})
 export class CollapseMaxHeightDirective implements OnChanges, AfterViewInit, OnDestroy {
   /** true = espanso, false = collassato */
   @Input('appCollapseMaxH') expanded = false;
