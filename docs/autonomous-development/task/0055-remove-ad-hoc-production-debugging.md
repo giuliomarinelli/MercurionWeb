@@ -114,7 +114,7 @@ Passed cleanly (`npm ci` and `npm run ci:check` exited with status 0).
 Exercised routes on `http://localhost:8888` (`/password-recovery`, `/login`) using Chrome DevTools MCP. Verified browser console messages contain only permitted vite/websocket status, normal error UI functions correctly, and no tokens or sensitive payloads are leaked.
 
 ### Commits
-_Pending commit creation._
+6a4862576f64045c4bbf6481ac042bc4abc69462
 
 ### Merge / CI
 Managed by coordinator.
@@ -124,3 +124,4 @@ Not applicable.
 
 ### Blocker / human decision required
 None.
+
