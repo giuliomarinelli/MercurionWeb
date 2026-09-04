@@ -1,12 +1,12 @@
 /* ──────────────────────────────────────────────────────────────
  * RealtimeSocketService – public stabile, upgrade/downgrade safe
  * ────────────────────────────────────────────────────────────── */
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
 import { Observable } from 'rxjs';
 import { AuthService } from '../auth.service';
 import { JwtHelperService } from '../jwt-helper.service';
-import { environment } from '../../../environments/environment';
+import { APP_CONFIG } from '../../config/app-config';
 import {
   ApplicationErrorCode,
   hasApplicationErrorCode
@@ -26,6 +26,8 @@ export class RealtimeSocketService {
   private mode: SocketMode = 'public';
   private readonly listeners: Listener[] = [];
 
+  private readonly appConfig = inject(APP_CONFIG);
+
   // evita spam di connect()
   private connectInFlight = false;
   private lastConnectAt = 0;
@@ -44,8 +46,8 @@ export class RealtimeSocketService {
     private readonly jwt: JwtHelperService,
   ) {
 
-    this.socket = io(environment.wsUrl, {
-      path: '/socket.io',
+    this.socket = io(this.appConfig.endpoints.realtimeUrl, {
+      path: this.appConfig.endpoints.realtimePath,
       transports: ['websocket'],
       withCredentials: true,
       reconnection: true,
@@ -299,3 +301,4 @@ export class RealtimeSocketService {
   }
 
 }
+

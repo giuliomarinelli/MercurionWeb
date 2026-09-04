@@ -18,6 +18,7 @@ import { ToastService } from '../../../services/toast.service';
 import { ProvidedEmailDTO } from '../../../Models/account/account.models';
 import { environment } from '../../../../environments/environment';
 import { AppContextService } from '../../../services/context/app-context.service';
+import { APP_CONFIG } from '../../../config/app-config';
 
 @Component({
   selector: 'm-header',
@@ -532,6 +533,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   protected readonly pathService = inject(PathService)
   private readonly toast = inject(ToastService)
   private readonly appContext = inject(AppContextService)
+  private readonly appConfig = inject(APP_CONFIG)
 
   private updatePathFlags(currentPath: string) {
     const clean = (currentPath || '').split(/[?#]/)[0]
@@ -764,7 +766,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.isBeta.set(environment.beta)
+    this.isBeta.set(this.appConfig.capabilities.beta)
     this.updatePathFlags(this.router.url)
     document.addEventListener('click', this.handleDocumentClick, true)
     document.addEventListener('keydown', this.handleEscape, true)
@@ -787,3 +789,4 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
 }
+

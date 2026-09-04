@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, OnDestroy, signal
 import { FeedbackService } from '../../services/feedback.service'
 import { FeedbackKind, FeedbackContextKind, CreateFeedbackDTO } from '../../Models/feedback.models'
 import { StarRatingComponent } from '../../components/feedback/star-rating/star-rating.component'
-import { environment } from '../../../environments/environment'
+import { APP_CONFIG } from '../../config/app-config'
 import { Subscription } from 'rxjs'
 
 @Component({
@@ -107,6 +107,7 @@ import { Subscription } from 'rxjs'
 export class FeedbackPageComponent implements OnDestroy {
 
   private readonly feedbackService = inject(FeedbackService)
+  private readonly appConfig = inject(APP_CONFIG)
 
   private timeOutBinding = signal<ReturnType<typeof setTimeout> | null>(null)
   // --- Signal Form state
@@ -171,14 +172,14 @@ export class FeedbackPageComponent implements OnDestroy {
     this.error.set(null)
 
     const dto: CreateFeedbackDTO = {
-      env: environment.feedbackEnv,
+      env: this.appConfig.capabilities.feedbackEnv,
       kind: 'ux' as FeedbackKind,             // poi si può rendere select volendo
       contextKind: 'global' as FeedbackContextKind,
       ratingUtility: this.ratingUtility() ?? undefined,
       ratingClarity: this.ratingClarity() ?? undefined,
       ratingExperience: this.ratingExperience() ?? undefined,
       message: this.message().trim() || undefined,
-      clientVersion: environment.version
+      clientVersion: this.appConfig.release.version
     }
 
     this.sub = this.feedbackService.createFeedback(dto).subscribe({
@@ -205,3 +206,4 @@ export class FeedbackPageComponent implements OnDestroy {
   }
 
 }
+

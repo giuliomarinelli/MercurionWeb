@@ -1,5 +1,3 @@
-import type { FeedbackEnv } from '@mercurion/rest-contracts'
-
 export const environmentNames = ['development', 'testing', 'staging', 'production'] as const
 
 export type EnvironmentName = typeof environmentNames[number]
@@ -10,16 +8,12 @@ export interface EnvironmentConfig {
   readonly PUBLIC_EXACT_PATHS: readonly string[]
   readonly LOGGED_OUT_ONLY_PATHS: readonly string[]
   readonly PUBLIC_PREFIXES: readonly string[]
-  readonly wsUrl: string
   readonly logoSrc: Readonly<{
     readonly PICTOGRAM_LIGHT: string
     readonly PICTOGRAM_DARK: string
   }>
   readonly production: boolean
   readonly testing: boolean
-  readonly beta: boolean
-  readonly feedbackEnv: FeedbackEnv
-  readonly version: string
 }
 
 type EnvironmentConfigDefinition = Omit<EnvironmentConfig, 'production' | 'testing'>
@@ -60,3 +54,4 @@ export function assertValidEnvironmentConfig(config: EnvironmentConfig): void {
 function freezeList<T>(values: readonly T[]): readonly T[] {
   return Object.freeze([...values])
 }
+
