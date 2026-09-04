@@ -1,4 +1,5 @@
 import { Directive, ElementRef, Input, OnChanges, SimpleChanges, Renderer2, AfterViewInit, OnDestroy } from '@angular/core';
+import { BrowserResourceOwner, injectBrowserResourceOwner } from '../utils/browser-resource-owner.util';
 
 @Directive({
   selector: '[appCollapseMaxH]',
@@ -21,6 +22,7 @@ export class CollapseMaxHeightDirective implements OnChanges, AfterViewInit, OnD
   private el: HTMLElement;
   private ro?: ResizeObserver;
   private onEnd?: () => void;
+  private readonly resources: BrowserResourceOwner = injectBrowserResourceOwner();
 
   constructor(ref: ElementRef<HTMLElement>, private r: Renderer2) {
     this.el = ref.nativeElement;
@@ -38,7 +40,7 @@ export class CollapseMaxHeightDirective implements OnChanges, AfterViewInit, OnD
         const h = this.el.scrollHeight;
         this.r.setStyle(this.el, 'maxHeight', `${h}px`);
         // libero a none dopo un tick per non sporcare layout
-        requestAnimationFrame(() => this.r.setStyle(this.el, 'maxHeight', 'none'));
+        this.resources.requestAnimationFrame(() => this.r.setStyle(this.el, 'maxHeight', 'none'));
       } else {
         this.r.setStyle(this.el, 'maxHeight', `${this.maxPx}px`);
       }
@@ -80,7 +82,7 @@ export class CollapseMaxHeightDirective implements OnChanges, AfterViewInit, OnD
     this.r.setStyle(this.el, 'maxHeight', `${from}px`);
 
     // 2) doppio rAF: abilito la transition e poi vado al target
-    requestAnimationFrame(() => {
+    this.resources.requestAnimationFrame(() => {
       // forza reflow
       void this.el.offsetHeight;
       this.r.setStyle(this.el, 'transition', `max-height ${this.duration}ms ${this.easing}`);
@@ -95,7 +97,7 @@ export class CollapseMaxHeightDirective implements OnChanges, AfterViewInit, OnD
           this.r.setStyle(this.el, 'transition', 'none');
           this.r.setStyle(this.el, 'maxHeight', 'none');
           // ripristina transition per i toggle successivi
-          requestAnimationFrame(() =>
+          this.resources.requestAnimationFrame(() =>
             this.r.setStyle(this.el, 'transition', `max-height ${this.duration}ms ${this.easing}`)
           );
         }
@@ -114,5 +116,6 @@ export class CollapseMaxHeightDirective implements OnChanges, AfterViewInit, OnD
   ngOnDestroy() {
     this.detachEnd();
     this.ro?.disconnect();
+    this.resources.dispose();
   }
 }

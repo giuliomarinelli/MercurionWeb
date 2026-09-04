@@ -131,6 +131,7 @@ export class PasswordRecoveryPageComponent implements OnInit, OnDestroy {
   private sendSub?: Subscription;
   private valChSub?: Subscription
   private valChSub2?: Subscription
+  private redirectTimeoutId?: ReturnType<typeof setTimeout>
 
   step = signal<1 | 2>(1)
   canView = signal(false)
@@ -233,13 +234,15 @@ export class PasswordRecoveryPageComponent implements OnInit, OnDestroy {
               hasApplicationErrorCode(e.error, ApplicationErrorCode.PASSWORD_REUSED)) {
               this.serverErrorMsg.set('Impossibile salvare una password già utilizzata')
             }
-            setTimeout(() => this.router.navigateByUrl('/forgot-password'), 3000)
+            clearTimeout(this.redirectTimeoutId)
+            this.redirectTimeoutId = setTimeout(() => this.router.navigateByUrl('/forgot-password'), 3000)
           }
         })
     }
   }
 
   ngOnDestroy(): void {
+    clearTimeout(this.redirectTimeoutId)
     this.recoverySub?.unsubscribe()
     this.paramSub?.unsubscribe()
     this.sendSub?.unsubscribe()

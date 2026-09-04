@@ -151,21 +151,25 @@ export class FeedbackPageComponent implements OnDestroy {
     }
 
     if (this.timeOutBinding()) {
+      clearTimeout(this.timeOutBinding() as ReturnType<typeof setTimeout>)
+      this.timeOutBinding.set(null)
       queueMicrotask(() => {
-        clearInterval(this.timeOutBinding() as ReturnType<typeof setInterval>)
-        this.timeOutBinding.set(null)
         this.sendClicked.set(false)
         this.hideAck.set(true)
       })
     }
 
     this.sendClicked.set(true)
-    setTimeout(() => {
+    // Il timer viene tracciato in timeOutBinding cosi' un submit successivo
+    // (o ngOnDestroy) puo' annullarlo deterministicamente invece di lasciarlo
+    // libero di scattare su un componente gia' distrutto/reinviato.
+    this.timeOutBinding.set(setTimeout(() => {
+      this.timeOutBinding.set(null)
       queueMicrotask(() => {
         this.sendClicked.set(false)
         this.hideAck.set(true)
       })
-    }, 4000)
+    }, 4000))
 
     this.submitting.set(true)
     this.sent.set(false)
@@ -203,6 +207,10 @@ export class FeedbackPageComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     this.sub?.unsubscribe()
+    if (this.timeOutBinding()) {
+      clearTimeout(this.timeOutBinding() as ReturnType<typeof setTimeout>)
+      this.timeOutBinding.set(null)
+    }
   }
 
 }

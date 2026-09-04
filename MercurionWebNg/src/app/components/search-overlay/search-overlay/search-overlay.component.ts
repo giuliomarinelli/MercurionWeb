@@ -1,5 +1,6 @@
 import {
   AfterViewInit,
+  OnDestroy,
   Component,
   ElementRef,
   HostListener,
@@ -171,7 +172,7 @@ import { map } from 'rxjs/operators'
     }
   `]
 })
-export class SearchOverlayComponent implements AfterViewInit {
+export class SearchOverlayComponent implements AfterViewInit, OnDestroy {
 
   // TODO: Medium priority - align Safari/iOS viewport/keyboard handling here with action overlays if issues reappear.
   protected readonly searchContextService = inject(SearchContextService)
@@ -225,6 +226,12 @@ export class SearchOverlayComponent implements AfterViewInit {
     if (this.searchContextService.isOpenedSearchOverlay()) {
       this.close()
     }
+  }
+
+  ngOnDestroy(): void {
+    this.observer?.disconnect()
+    this.chemblSub?.unsubscribe()
+    this.mySub?.unsubscribe()
   }
 
   ngAfterViewInit(): void {
