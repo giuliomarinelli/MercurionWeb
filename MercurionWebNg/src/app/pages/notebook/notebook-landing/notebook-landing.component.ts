@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnInit, signal, Signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, DestroyRef, inject, OnInit, signal, Signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NotebookService } from '../../../services/graphql/notebook.service';
 import { NotebookTree } from '../../../Models/graphql/notebook/notebook.models';
@@ -6,6 +6,7 @@ import { NotebookTreeComponent } from '../../../components/notebook/notebook-tre
 
 @Component({
   selector: 'm-notebook-landing',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NotebookTreeComponent],
   template: `
 

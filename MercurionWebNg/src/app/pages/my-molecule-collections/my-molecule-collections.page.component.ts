@@ -2,7 +2,7 @@ import { HistoryContextService } from './../../services/context/history-context.
 import { UiMoleculeCollection } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 import { catchError, debounceTime, EMPTY, firstValueFrom, map, of, Subscription, switchMap, tap } from 'rxjs';
 import { MyMoleculesHeadingComponent } from '../../components/molecule-detail/my-molecules-heading/my-molecules-heading.component';
-import { AfterViewInit, Component, ElementRef, inject, OnInit, ViewChild, effect, OnDestroy, signal } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, inject, OnInit, ViewChild, effect, OnDestroy, signal, ChangeDetectionStrategy } from '@angular/core';
 import { MoleculeCollectionService } from '../../services/graphql/molecule-collection.service';
 import { CollectionCardComponent } from '../../components/molecule-detail/collection-card/collection-card.component';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
@@ -22,6 +22,7 @@ import { DomainInvalidationService } from '../../services/domain-invalidation.se
 
 @Component({
   selector: 'm-my-molecule-collections',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MyMoleculesHeadingComponent,
     CollectionCardComponent,

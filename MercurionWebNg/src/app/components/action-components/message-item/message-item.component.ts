@@ -1,4 +1,4 @@
-import { Component, Input, signal, computed, effect, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, Input, signal, computed, effect, inject } from '@angular/core';
 import { DatePipe, NgClass } from '@angular/common';
 import { TicketMessage, ClientTicketMessage, AuthorType } from '../../../Models/graphql/help.models';
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
@@ -8,6 +8,7 @@ type AnyMsg = TicketMessage | ClientTicketMessage;
 
 @Component({
   selector: 'm-message-item',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgClass, DatePipe],
   template: `
   @if (_msg()) {

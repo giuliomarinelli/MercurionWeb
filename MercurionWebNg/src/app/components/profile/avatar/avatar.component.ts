@@ -1,7 +1,8 @@
-import { Component, Input, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, Input, signal } from '@angular/core';
 
 @Component({
   selector: 'm-avatar',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [],
   template: `
 

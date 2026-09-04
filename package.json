@@ -38,7 +38,8 @@
     "ci:angular:environment-configs": "node scripts/check-angular-environment-configs.mjs",
     "ci:angular:mock-ip": "node scripts/check-angular-mock-ip-policy.mjs",
     "ci:angular:nested-subscriptions": "node scripts/check-angular-nested-subscriptions.mjs",
-    "ci:static": "npm run ci:contracts && npm run ci:errors && npm run ci:graphql:internal-imports && npm run ci:angular:environment-imports && npm run ci:angular:environment-configs && npm run ci:angular:mock-ip && npm run ci:angular:nested-subscriptions",
+    "ci:angular:onpush-components": "node scripts/check-angular-component-change-detection.mjs",
+    "ci:static": "npm run ci:contracts && npm run ci:errors && npm run ci:graphql:internal-imports && npm run ci:angular:environment-imports && npm run ci:angular:environment-configs && npm run ci:angular:mock-ip && npm run ci:angular:nested-subscriptions && npm run ci:angular:onpush-components",
     "ci:check": "npm run ci:validate:autonomous && npm run ci:lint && npm run ci:typecheck && npm run ci:test && npm run ci:build && npm run ci:graphql && npm run ci:static"
   },
   "devDependencies": {

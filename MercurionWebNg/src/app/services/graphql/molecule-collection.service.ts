@@ -85,8 +85,7 @@ export class MoleculeCollectionService {
     return this.apollo
       .watchQuery<CollectionListQuery>({
         query,
-        fetchPolicy: 'network-only',
-      })
+        fetchPolicy: 'network-only' })
       .valueChanges.pipe(
         map(res => extractGqlData<CollectionListQuery, 'myMoleculeCollections'>(
           res,
@@ -108,8 +107,7 @@ export class MoleculeCollectionService {
       .watchQuery<CollectionDetailQuery, MoleculeCollectionQueryVariables>({
         query,
         variables: { id },
-        fetchPolicy: 'network-only',
-      })
+        fetchPolicy: 'network-only' })
       .valueChanges.pipe(
         map(res => extractGqlData<CollectionDetailQuery, 'moleculeCollection'>(
           res,
@@ -152,8 +150,7 @@ export class MoleculeCollectionService {
     return this.apollo
       .mutate<CreateCollectionMutation, CreateMoleculeCollectionMutationVariables>({
         mutation,
-        variables: { name },
-      })
+        variables: { name } })
       .pipe(
         map(res => extractGqlData<CreateCollectionMutation, 'createMoleculeCollection'>(
           res,
@@ -192,8 +189,7 @@ export class MoleculeCollectionService {
     return this.apollo
       .mutate<UpdateCollectionMutation, UpdateMoleculeCollectionMutationVariables>({
         mutation,
-        variables: { id, name },
-      })
+        variables: { id, name } })
       .pipe(
         map(res => extractGqlData<UpdateCollectionMutation, 'updateMoleculeCollection'>(
           res,
@@ -242,8 +238,7 @@ export class MoleculeCollectionService {
     return this.apollo
       .mutate<DeleteMoleculeCollectionMutation, DeleteMoleculeCollectionMutationVariables>({
         mutation: DeleteMoleculeCollectionDocument,
-        variables: { id },
-      })
+        variables: { id } })
       .pipe(map(res => extractGqlData<DeleteMoleculeCollectionMutation, 'deleteMoleculeCollection'>(res, 'deleteMoleculeCollection')));
   }
 

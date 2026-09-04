@@ -1,8 +1,7 @@
 import {
   ApplicationErrorCode,
   type ApplicationErrorCodeType,
-  isApplicationErrorCode,
-} from '@mercurion/rest-contracts';
+  isApplicationErrorCode } from '@mercurion/rest-contracts';
 
 export { ApplicationErrorCode };
 

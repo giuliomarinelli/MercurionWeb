@@ -1,4 +1,4 @@
-import { Component, computed, DestroyRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, DestroyRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FloatingInputComponent } from '../../components/common/floating-input/floating-input.component';
 import { TurnstileComponent } from '../../components/common/turnstile/turnstile.component';
@@ -16,6 +16,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'm-account-recovery.page',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FloatingInputComponent,
     TurnstileComponent,
@@ -281,7 +282,7 @@ export class AccountRecoveryPageComponent implements OnInit, OnDestroy {
           [Validators.required, Validators.email, Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)],
           emailAvailabilityValidator(this.authService)
         ),
-        password: this.fb.control('', [Validators.required, Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/)]),
+        password: this.fb.control('', [Validators.required, Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8 }$/)]),
         confirmPassword: this.fb.control('', [Validators.required, matchPassword])
       },
       { validators: matchPassword })

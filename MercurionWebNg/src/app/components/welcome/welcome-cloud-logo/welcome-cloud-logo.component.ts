@@ -161,6 +161,5 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
         </div>
       </div>
     </section>
-  `,
-})
+  ` })
 export class WelcomeCloudLogoComponent { }

@@ -1,5 +1,5 @@
 import { AuthService } from './../../services/auth.service';
-import { AfterViewInit, Component, effect, ElementRef, inject, OnDestroy, OnInit, QueryList, signal, ViewChild, ViewChildren } from '@angular/core'
+import { AfterViewInit, Component, effect, ElementRef, inject, OnDestroy, OnInit, QueryList, signal, ViewChild, ViewChildren, ChangeDetectionStrategy } from '@angular/core'
 import { CdkAccordion, CdkAccordionItem, CdkAccordionModule } from '@angular/cdk/accordion'
 import { EMPTY, map, of, startWith, Subscription, switchMap } from 'rxjs'
 import { AccountService } from '../../services/account.service'
@@ -25,6 +25,7 @@ import { DomainInvalidationService } from '../../services/domain-invalidation.se
 
 @Component({
   selector: 'm-settings.page',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CdkAccordionModule,
     ClassicSpinnerComponent,

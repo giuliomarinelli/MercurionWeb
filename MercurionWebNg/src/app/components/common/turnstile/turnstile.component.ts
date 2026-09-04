@@ -8,8 +8,7 @@ import {
   EffectRef,
   effect,
   NgZone,
-  inject,
-} from '@angular/core';
+  inject } from '@angular/core';
 import { APP_CONFIG } from '../../../config/app-config';
 import { Theme } from '../../../Models/theme.models';
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
@@ -19,8 +18,7 @@ import { ThemeManagerService } from '../../../services/context/theme-manager.ser
   template: `
     <div [id]="containerId" role="group" aria-label="Verifica di sicurezza"></div>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
-})
+  changeDetection: ChangeDetectionStrategy.OnPush })
 export class TurnstileComponent implements OnInit, OnDestroy {
   // ===== Outputs =====
   @Output() token = new EventEmitter<string>();
@@ -61,8 +59,7 @@ export class TurnstileComponent implements OnInit, OnDestroy {
       this.widgetId = (window as any).turnstile.render(`#${this.containerId}`, {
         sitekey: this.SITE_KEY,
         callback: (token: string) => (window as any).onTurnstileSuccess(token),
-        theme: this.themeManager.theme(),
-      });
+        theme: this.themeManager.theme() });
 
       this.waitForWidgetVisible();
     });
@@ -113,8 +110,7 @@ export class TurnstileComponent implements OnInit, OnDestroy {
       this.widgetId = (window as any).turnstile.render(`#${this.containerId}`, {
         sitekey: this.SITE_KEY,
         callback: (token: string) => (window as any).onTurnstileSuccess(token),
-        theme,
-      });
+        theme });
 
       this.waitForWidgetVisible();
     });

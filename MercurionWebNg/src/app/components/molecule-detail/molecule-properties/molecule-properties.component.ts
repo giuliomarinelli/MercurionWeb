@@ -1,7 +1,8 @@
-import { Component, Input, computed, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, Input, computed, signal } from '@angular/core';
 
 @Component({
   selector: 'm-molecule-properties',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="mt-6" aria-labelledby="molecule-properties-heading">
       <h2 class="text-xl font-semibold mb-3 text-light-accent-primary-hc dark:text-dark-accent-primary text-center sm:text-left">
@@ -19,8 +20,7 @@ import { Component, Input, computed, signal } from '@angular/core';
         </div>
       </div>
     </section>
-  `,
-})
+  ` })
 export class MoleculePropertiesComponent {
   private readonly propsSignal = signal({
     mwFreebase: null,
@@ -28,8 +28,7 @@ export class MoleculePropertiesComponent {
     hba: null,
     hbd: null,
     psa: null,
-    rtb: null,
-  });
+    rtb: null });
 
   @Input()
   set properties(value: any) {

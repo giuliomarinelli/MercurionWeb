@@ -3,8 +3,7 @@ import {
   Component,
   EventEmitter,
   Output,
-  input,
-} from '@angular/core';
+  input } from '@angular/core';
 
 @Component({
   selector: 'm-tabs',
@@ -30,8 +29,7 @@ import {
         }
       </div>
     </div>
-  `,
-})
+  ` })
 export class TabsComponent {
   // inputs signal-based
   tabs = input<string[]>([]);

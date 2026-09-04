@@ -54,8 +54,7 @@ import {
   UpdatePageMutationVariables,
   UpdateSectionDocument,
   UpdateSectionMutation,
-  UpdateSectionMutationVariables,
-} from "../../generated/graphql";
+  UpdateSectionMutationVariables } from "../../generated/graphql";
 
 
 
@@ -76,8 +75,7 @@ export class NotebookService {
     return this.apollo
       .watchQuery<GetAllNotebooksQuery, GetAllNotebooksQueryVariables>({
         query: GetAllNotebooksDocument,
-        fetchPolicy: 'network-only',
-      })
+        fetchPolicy: 'network-only' })
       .valueChanges.pipe(
         map(res => extractGqlData<GetAllNotebooksQuery, 'labNotebooksByUser'>(
           res,
@@ -95,8 +93,7 @@ export class NotebookService {
       .watchQuery<GetNotebookDetailQuery, GetNotebookDetailQueryVariables>({
         query: GetNotebookDetailDocument,
         variables: { id },
-        fetchPolicy: 'network-only',
-      })
+        fetchPolicy: 'network-only' })
       .valueChanges.pipe(
         map(res => extractGqlData<GetNotebookDetailQuery, 'labNotebook'>(
           res,
@@ -110,8 +107,7 @@ export class NotebookService {
       .watchQuery<GetChapterByIdQuery, GetChapterByIdQueryVariables>({
         query: GetChapterByIdDocument,
         variables: { id },
-        fetchPolicy: 'network-only',
-      })
+        fetchPolicy: 'network-only' })
       .valueChanges.pipe(
         map(res => extractGqlData<GetChapterByIdQuery, 'chapterById'>(
           res,
@@ -126,8 +122,7 @@ export class NotebookService {
       .watchQuery<GetSectionByIdQuery, GetSectionByIdQueryVariables>({
         query: GetSectionByIdDocument,
         variables: { id },
-        fetchPolicy: 'network-only',
-      })
+        fetchPolicy: 'network-only' })
       .valueChanges.pipe(
         map(res => extractGqlData<GetSectionByIdQuery, 'sectionById'>(
           res,
@@ -142,8 +137,7 @@ export class NotebookService {
       .watchQuery<GetPageHeaderByIdQuery, GetPageHeaderByIdQueryVariables>({
         query: GetPageHeaderByIdDocument,
         variables: { id },
-        fetchPolicy: 'network-only',
-      })
+        fetchPolicy: 'network-only' })
       .valueChanges.pipe(
         map(res => extractGqlData<GetPageHeaderByIdQuery, 'pageById'>(
           res,
@@ -159,8 +153,7 @@ export class NotebookService {
     return this.apollo
       .mutate<CreateLabNotebookMutation, CreateLabNotebookMutationVariables>({
         mutation: CreateLabNotebookDocument,
-        variables: { title },
-      })
+        variables: { title } })
       .pipe(
         map(res => extractGqlData<CreateLabNotebookMutation, 'createLabNotebook'>(
           res,
@@ -173,8 +166,7 @@ export class NotebookService {
     return this.apollo
       .mutate<UpdateLabNotebookMutation, UpdateLabNotebookMutationVariables>({
         mutation: UpdateLabNotebookDocument,
-        variables: { input: { id, title } },
-      })
+        variables: { input: { id, title } } })
       .pipe(
         map(res => extractGqlData<UpdateLabNotebookMutation, 'updateLabNotebook'>(
           res,
@@ -187,8 +179,7 @@ export class NotebookService {
     return this.apollo
       .mutate<DeleteLabNotebookMutation, DeleteLabNotebookMutationVariables>({
         mutation: DeleteLabNotebookDocument,
-        variables: { id },
-      })
+        variables: { id } })
       .pipe(map(res => extractGqlData<DeleteLabNotebookMutation, 'deleteLabNotebook'>(res, 'deleteLabNotebook')));
   }
 
@@ -198,8 +189,7 @@ export class NotebookService {
     return this.apollo
       .mutate<CreateChapterMutation, CreateChapterMutationVariables>({
         mutation: CreateChapterDocument,
-        variables: { input: { notebookId, title } },
-      })
+        variables: { input: { notebookId, title } } })
       .pipe(
         map(res => extractGqlData<CreateChapterMutation, 'createChapter'>(
           res,
@@ -212,8 +202,7 @@ export class NotebookService {
     return this.apollo
       .mutate<UpdateChapterMutation, UpdateChapterMutationVariables>({
         mutation: UpdateChapterDocument,
-        variables: { input: { id, title } },
-      })
+        variables: { input: { id, title } } })
       .pipe(
         map(res => extractGqlData<UpdateChapterMutation, 'updateChapter'>(
           res,
@@ -226,8 +215,7 @@ export class NotebookService {
     return this.apollo
       .mutate<DeleteChapterMutation, DeleteChapterMutationVariables>({
         mutation: DeleteChapterDocument,
-        variables: { id },
-      })
+        variables: { id } })
       .pipe(map(res => extractGqlData<DeleteChapterMutation, 'deleteChapter'>(res, 'deleteChapter')));
   }
 
@@ -237,8 +225,7 @@ export class NotebookService {
     return this.apollo
       .mutate<CreateSectionMutation, CreateSectionMutationVariables>({
         mutation: CreateSectionDocument,
-        variables: { input: { chapterId, title } },
-      })
+        variables: { input: { chapterId, title } } })
       .pipe(
         map(res => extractGqlData<CreateSectionMutation, 'createSection'>(
           res,
@@ -251,8 +238,7 @@ export class NotebookService {
     return this.apollo
       .mutate<UpdateSectionMutation, UpdateSectionMutationVariables>({
         mutation: UpdateSectionDocument,
-        variables: { input: { id, title } },
-      })
+        variables: { input: { id, title } } })
       .pipe(
         map(res => extractGqlData<UpdateSectionMutation, 'updateSection'>(
           res,
@@ -265,8 +251,7 @@ export class NotebookService {
     return this.apollo
       .mutate<DeleteSectionMutation, DeleteSectionMutationVariables>({
         mutation: DeleteSectionDocument,
-        variables: { id },
-      })
+        variables: { id } })
       .pipe(map(res => extractGqlData<DeleteSectionMutation, 'deleteSection'>(res, 'deleteSection')));
   }
 
@@ -276,8 +261,7 @@ export class NotebookService {
     return this.apollo
       .mutate<CreatePageMutation, CreatePageMutationVariables>({
         mutation: CreatePageDocument,
-        variables: { input: { sectionId, title, content } },
-      })
+        variables: { input: { sectionId, title, content } } })
       .pipe(
         map(res => extractGqlData<CreatePageMutation, 'createPage'>(
           res,
@@ -290,8 +274,7 @@ export class NotebookService {
     return this.apollo
       .mutate<UpdatePageMutation, UpdatePageMutationVariables>({
         mutation: UpdatePageDocument,
-        variables: { input: { id, title, content } },
-      })
+        variables: { input: { id, title, content } } })
       .pipe(
         map(res => extractGqlData<UpdatePageMutation, 'updatePage'>(
           res,
@@ -304,8 +287,7 @@ export class NotebookService {
     return this.apollo
       .mutate<DeletePageMutation, DeletePageMutationVariables>({
         mutation: DeletePageDocument,
-        variables: { id },
-      })
+        variables: { id } })
       .pipe(map(res => extractGqlData<DeletePageMutation, 'deletePage'>(res, 'deletePage')));
   }
 

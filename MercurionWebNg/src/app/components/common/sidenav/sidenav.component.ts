@@ -1,5 +1,5 @@
 import { NgClass } from '@angular/common';
-import { Component, EventEmitter, inject, OnDestroy, OnInit, Output, signal } from '@angular/core';
+import { Component, EventEmitter, inject, OnDestroy, OnInit, Output, signal, ChangeDetectionStrategy } from '@angular/core';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { UserContextService } from '../../../services/context/user-context.service';
 import { HistoryComponent } from '../history/history.component';
@@ -16,6 +16,7 @@ import { ActionOverlayContextService } from '../../../services/context/action-co
 
 @Component({
   selector: 'm-sidenav',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RouterLink,
     HistoryComponent,

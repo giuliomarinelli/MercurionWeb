@@ -1,6 +1,6 @@
 # 0051 - Standardize production components on OnPush change detection
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -88,31 +88,50 @@ Use this migration to expose hidden mutation assumptions, not to paper over them
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/FE-029` from base `3f985df6570b38092166b9f6611be651381c0520`.
 
 ### Preflight
-_Not started._
+Passed unchanged task-start preflight after confirming no task-owned Angular, Nest, Tox21, Karma/Jest, or watch-mode process was active:
+
+- `npm ci`
+- `npm run ci:check`
 
 ### Preflight remediation
 _None._
 
 ### Summary
-_Not started._
+Inventoried 98 production Angular components and migrated the 60 components without explicit change detection to `ChangeDetectionStrategy.OnPush`, leaving zero production component exceptions. Added `scripts/check-angular-component-change-detection.mjs` and wired `npm run ci:angular:onpush-components` into the root `ci:static` aggregate so new production components without the canonical strategy fail CI.
 
 ### Task-specific validation performed
-_Not started._
+Passed:
+
+- `npm run ci:angular:onpush-components`
+- component inventory script: `components 98 missing-onpush 0`
+- `npm run ci:typecheck:angular`
+- `npm run ci:lint:angular` (0 errors; existing warnings only)
+- `npm run test:onpush --workspace mercurion_web_ng`
+- `npm run ci:test:angular`
+- `npm run ci:build:angular`
 
 ### Full pre-merge CI-parity validation
-_Not started._
+Passed final clean gate after stopping task-owned runtime processes and rechecking no Angular/Nest/Tox21/watch process remained:
+
+- `npm ci`
+- `npm run ci:check`
 
 ### Browser validation performed
-_Not started._
+Chrome DevTools MCP smoke validation through `http://localhost:8888`:
+
+- `http://localhost:8888/welcome` rendered the public welcome shell, feature sections, footer links, and theme menu after opening the theme selector.
+- `http://localhost:8888/login` rendered the auth shell; invalid email input remained disabled/invalid and valid `user@example.com` input enabled the continue button without manual refresh.
+
+Limitation: backend-dependent settings, molecule detail/collections, action overlay, and search flows could not be safely exercised because `npm run start:dev` in `MercurionWebNode` failed local environment validation for missing development environment variables. The canonical nginx edge and Angular upstream were reachable; the only browser console error observed was the expected Socket.IO websocket 502 while Nest was unavailable.
 
 ### Commits
-_Not recorded._
+Feature commit recorded in the worker result.
 
 ### Merge / CI
-_Not started._
+Not started by worker; coordinator owns feature-SHA CI observation and integration.
 
 ### Rollback
 _Not applicable._

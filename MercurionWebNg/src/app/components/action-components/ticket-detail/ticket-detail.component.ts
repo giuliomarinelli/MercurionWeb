@@ -2,6 +2,7 @@ import {
   AfterViewInit,
   ChangeDetectorRef,
   Component,
+  ChangeDetectionStrategy,
   ElementRef,
   OnDestroy,
   OnInit,
@@ -9,16 +10,14 @@ import {
   computed,
   effect,
   inject,
-  signal,
-} from '@angular/core';
+  signal } from '@angular/core';
 import { TicketDetailContextService } from '../../../services/context/action-context/ticket-detail-context.service';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 import {
   ClientTicket,
   ClientTicketMessage,
   Ticket,
-  TicketMessage,
-} from '../../../Models/graphql/help.models';
+  TicketMessage } from '../../../Models/graphql/help.models';
 import { AbstractPaginationComponent } from '../../../abstract/abstract-pagination-component';
 import { distinctUntilChanged, filter, firstValueFrom, Observable, of, switchMap } from 'rxjs';
 import { PageModel } from '../../../Models/graphql/page.models';
@@ -34,6 +33,7 @@ import { DomainInvalidationService } from '../../../services/domain-invalidation
 
 @Component({
   selector: 'm-ticket-detail',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MessageItemComponent, DatePipe, NgClass, TicketComposerComponent],
   styles: [
     `
@@ -274,8 +274,7 @@ import { DomainInvalidationService } from '../../../services/domain-invalidation
         </div>
       </div>
     </div>
-  `,
-})
+  ` })
 export class TicketDetailComponent extends AbstractPaginationComponent<TicketMessage | ClientTicketMessage> implements OnInit, OnDestroy, AfterViewInit {
 
   private readonly detailContext = inject(TicketDetailContextService)
@@ -549,8 +548,7 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
       contentHtml: e.html,
       createdAt: nowIso,
       triggerDisappear: signal(false),
-      collapse: signal(false),
-    };
+      collapse: signal(false) };
 
     this.items = [...this.items, optimistic];
 
@@ -568,8 +566,7 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
       error: () => {
         this.items = this.items.filter((m) => m.id !== optimistic.id);
         // TODO: toast
-      },
-    });
+      } });
   }
 
   private setTicketStatus(status: 'Open' | 'Closed') {

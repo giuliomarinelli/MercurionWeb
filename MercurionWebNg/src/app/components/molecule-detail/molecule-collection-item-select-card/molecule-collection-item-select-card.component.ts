@@ -1,5 +1,5 @@
 // ============ MoleculeCollectionItemSelectCardComponent =============
-import { Component, DestroyRef, effect, EventEmitter, inject, Input, model, OnDestroy, OnInit, Output, signal, ViewChild, ElementRef } from '@angular/core';
+import { Component, ChangeDetectionStrategy, DestroyRef, effect, EventEmitter, inject, Input, model, OnDestroy, OnInit, Output, signal, ViewChild, ElementRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MoleculeCollectionItemCardComponent } from '../molecule-collection-item-card/molecule-collection-item-card.component';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -8,6 +8,7 @@ import { MoleculeCardItemModel } from '../../../Models/graphql/molecule-collecti
 
 @Component({
   selector: 'm-molecule-collection-item-select-card',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MoleculeCollectionItemCardComponent,
     ReactiveFormsModule

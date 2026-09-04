@@ -8,8 +8,7 @@ import {
   AfterViewInit,
   inject,
   signal,
-  effect,
-} from '@angular/core';
+  effect } from '@angular/core';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { EMPTY, of, Subscription, switchMap, defer, from, combineLatest, catchError, take, filter } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';

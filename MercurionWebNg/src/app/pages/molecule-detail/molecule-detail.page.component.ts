@@ -2,7 +2,7 @@ import { CustomDetailSaveModel } from '../../Models/custom-detail-save.model'
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop'
 import { EmbeddingService } from '../../services/embedding.service'
 import { SimilarsComponent } from '../../components/molecule-detail/similars/similars.component'
-import { Component, DestroyRef, effect, inject, OnDestroy, OnInit, Signal, signal } from '@angular/core'
+import { Component, DestroyRef, effect, inject, OnDestroy, OnInit, Signal, signal, ChangeDetectionStrategy } from '@angular/core'
 import { ActivatedRoute, Router, RouterLink } from '@angular/router'
 import { MoleculeService } from '../../services/graphql/molecule.service'
 import { switchMap, Observable, catchError, of, Subscription, tap, distinctUntilChanged, throwError, EMPTY, fromEvent, defer } from 'rxjs'
@@ -48,6 +48,7 @@ import {
 
 @Component({
   selector: 'm-molecule-detail',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     AsyncPipe,
     MoleculeHeaderComponent,
@@ -261,8 +262,7 @@ import {
           }
         </section>
         }
-  `,
-})
+  ` })
 export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
 
   // ======================= DEPS =======================

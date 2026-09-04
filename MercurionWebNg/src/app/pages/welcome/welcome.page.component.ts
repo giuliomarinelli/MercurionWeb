@@ -110,9 +110,7 @@ import { DesignService } from '../../services/design.service'
         </main>
       }
     </div>
-  `,
-
-})
+  ` })
 export class WelcomePageComponent {
 
   private readonly route = inject(ActivatedRoute)

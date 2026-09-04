@@ -1,6 +1,7 @@
 import {
   ApplicationRef,
   Component,
+  ChangeDetectionStrategy,
   DestroyRef,
   effect,
   EventEmitter,
@@ -13,8 +14,7 @@ import {
   OnInit,
   Output,
   signal,
-  SimpleChanges,
-} from '@angular/core';
+  SimpleChanges } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { RDKitService } from '../../../services/rd-kit.service';
@@ -44,6 +44,7 @@ import { ThemeManagerService } from '../../../services/context/theme-manager.ser
 
 @Component({
   selector: 'm-molecule-viewer',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `<div class="wrap" [innerHTML]="svg" role="img" [attr.aria-label]="ariaLabel"></div>`,
   styles: [
     `:host{display:block;width:100%;height:100%}`,
@@ -56,9 +57,7 @@ import { ThemeManagerService } from '../../../services/context/theme-manager.ser
     `:host(:not(.detail)) .wrap svg{height:100%;width:100%}`,
   ],
   host: {
-    '[class.detail]': 'mode === "detail"',
-  },
-})
+    '[class.detail]': 'mode === "detail"' } })
 export class MoleculeViewerComponent implements OnInit, OnChanges, OnDestroy {
   /* ────── API pubblica ───────────────────────────────────────── */
   /** SMILES / MolBlock ecc. */
@@ -87,14 +86,11 @@ export class MoleculeViewerComponent implements OnInit, OnChanges, OnDestroy {
     light: {
       bg: '#F9FAFB', bond: '#0F172A', default: '#0F172A',
       C: '#1F2937', H: '#374151', N: '#1E40AF', O: '#991B1B', S: '#6B2C00', P: '#581C87',
-      F: '#14532D', Cl: '#065F46', Br: '#7C2D12', I: '#5B21B6',
-    },
+      F: '#14532D', Cl: '#065F46', Br: '#7C2D12', I: '#5B21B6' },
     dark: {
       bg: '#0A0A0A', bond: '#E5E7EB', default: '#E5E7EB',
       C: '#F3F4F6', H: '#D1D5DB', N: '#BFDBFE', O: '#FCA5A5', S: '#FCD34D', P: '#E9D5FF',
-      F: '#A7F3D0', Cl: '#6EE7B7', Br: '#FCD34D', I: '#DDD6FE',
-    },
-  } as const;
+      F: '#A7F3D0', Cl: '#6EE7B7', Br: '#FCD34D', I: '#DDD6FE' } } as const;
 
   constructor(
     private readonly rdkit: RDKitService,
@@ -186,8 +182,7 @@ export class MoleculeViewerComponent implements OnInit, OnChanges, OnDestroy {
     const mode = this.darkMode() ? 'dark' : 'light';
     const p = MoleculeViewerComponent.WCAG[mode];
     const Z: Record<string, number> = {
-      H: 1, C: 6, N: 7, O: 8, F: 9, P: 15, S: 16, Cl: 17, Br: 35, I: 53,
-    };
+      H: 1, C: 6, N: 7, O: 8, F: 9, P: 15, S: 16, Cl: 17, Br: 35, I: 53 };
     const def = this.rgb(p.default);
     const palette: Record<number, [number, number, number]> = {} as any;
     for (let i = 1; i <= 118; i++) palette[i] = def;
@@ -220,8 +215,7 @@ export class MoleculeViewerComponent implements OnInit, OnChanges, OnDestroy {
       clearBackground: false,
       backgroundColour: this.rgb(palette.bg),
       bondLineColour: this.rgb(palette.bond),
-      atomColourPalette: this.buildAtomPalette(),
-    } as const;
+      atomColourPalette: this.buildAtomPalette() } as const;
 
     let raw = mol.get_svg_with_highlights(JSON.stringify(rdkitOpts));
     mol.delete();

@@ -1,6 +1,7 @@
 import {
   AfterViewInit,
   Component,
+  ChangeDetectionStrategy,
   CUSTOM_ELEMENTS_SCHEMA,
   ElementRef,
   OnDestroy,
@@ -38,6 +39,7 @@ import { DOCUMENT, isPlatformBrowser } from '@angular/common'
 
 @Component({
   selector: 'm-root',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   imports: [
     RouterOutlet,

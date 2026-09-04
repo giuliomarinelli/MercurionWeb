@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import {
   Component,
+ ChangeDetectionStrategy,
   Input,
   Output,
   EventEmitter,
@@ -23,6 +24,7 @@ type ErrorMap = Record<string, string>;
 
 @Component({
   selector: 'm-floating-input',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, ReactiveFormsModule, ClassicSpinnerComponent],
   host: { class: 'block' },
   template: `

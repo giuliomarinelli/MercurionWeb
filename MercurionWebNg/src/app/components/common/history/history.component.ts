@@ -1,6 +1,7 @@
 import {
   AfterViewInit,
   Component,
+  ChangeDetectionStrategy,
   ElementRef,
   OnDestroy,
   OnInit,
@@ -11,8 +12,7 @@ import {
   signal,
   Input,
   Output,
-  EventEmitter,
-} from '@angular/core';
+  EventEmitter } from '@angular/core';
 import { HistoryService } from '../../../services/history.service';
 import { catchError, debounce, distinctUntilChanged, EMPTY, filter, firstValueFrom, interval, Subscription } from 'rxjs';
 import { HistoryDTOExt } from '../../../Models/history.models';
@@ -26,6 +26,7 @@ import { DomainInvalidationService } from '../../../services/domain-invalidation
 
 @Component({
   selector: 'm-history',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [HistoryItemComponent, ClassicSpinnerComponent, NgClass],
   styles: `
     .fade-out-ani {

@@ -230,8 +230,7 @@ export class AuthService {
       headers: {
         'X-Fingerprint': fingerprintBase64,
         'X-Device-Info': btoa(JSON.stringify(sessionDeviceInfo)),
-        'Authorization': `Bearer ${preauthorizationToken}`,
-      }
+        'Authorization': `Bearer ${preauthorizationToken}` }
     }).pipe(tap((res) => {
       if (this.typeGuards.isNotNullish(res.accessToken)) {
         const scp = this.getUserScopesFromClaims(res.accessToken)

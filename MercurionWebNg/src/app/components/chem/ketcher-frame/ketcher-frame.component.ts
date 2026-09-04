@@ -1,5 +1,6 @@
 import {
   Component,
+  ChangeDetectionStrategy,
   Input,
   Output,
   EventEmitter,
@@ -9,8 +10,7 @@ import {
   OnDestroy,
   signal,
   effect,
-  NgZone,
-} from '@angular/core';
+  NgZone } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import {
   Subject,
@@ -27,8 +27,7 @@ import {
   exhaustMap,
   of,
   Subscription,
-  finalize,
-} from 'rxjs';
+  finalize } from 'rxjs';
 
 import { PublicPipe } from '../../../pipes/public.pipe';
 import { RDKitService } from '../../../services/rd-kit.service';
@@ -37,6 +36,7 @@ export type KetcherFrameMode = 'create' | 'edit' | 'duplicate';
 
 @Component({
   selector: 'm-ketcher-frame',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="relative w-full" role="region" aria-label="Editor molecolare Ketcher">
       @if (showIframe()) {
@@ -77,8 +77,7 @@ export type KetcherFrameMode = 'create' | 'edit' | 'duplicate';
         <ng-content></ng-content>
       }
     </div>
-  `,
-})
+  ` })
 export class KetcherFrameComponent implements OnInit, OnDestroy {
   ketcherUrl!: SafeResourceUrl;
 

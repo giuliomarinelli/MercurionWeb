@@ -56,8 +56,7 @@ import { Component, Input, ChangeDetectionStrategy, ViewEncapsulation } from '@a
         </svg>
       </div>
     }
-  `,
-})
+  ` })
 export class ChemSpinnerComponent {
   /** Dimensione fallback (px) quando non si usano utilità w‑* / h‑* */
   @Input() size = 64;

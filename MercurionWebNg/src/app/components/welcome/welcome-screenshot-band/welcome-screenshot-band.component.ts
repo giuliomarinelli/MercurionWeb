@@ -156,6 +156,5 @@ import { PublicPipe } from '../../../pipes/public.pipe';
         </div>
       </div>
     </section>
-  `,
-})
+  ` })
 export class WelcomeScreenshotBandComponent { }

@@ -1,10 +1,11 @@
-import { Component, inject, Input, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, Input, signal } from '@angular/core';
 import { LinkModel } from '../../../Models/link.model';
 import { DesignService } from '../../../services/design.service';
 import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'm-my-molecules-heading',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink],
   template: `
 

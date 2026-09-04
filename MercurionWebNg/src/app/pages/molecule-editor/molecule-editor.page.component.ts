@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   Subject,
@@ -14,8 +14,7 @@ import {
   map,
   auditTime,
   take,
-  combineLatest,
-} from 'rxjs';
+  combineLatest } from 'rxjs';
 
 import { KetcherFrameComponent, KetcherFrameMode } from '../../components/chem/ketcher-frame/ketcher-frame.component';
 import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service';
@@ -26,6 +25,7 @@ import { RdKitApiService } from '../../services/rd-kit-api.service';
 
 @Component({
   selector: 'm-molecule-editor',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [KetcherFrameComponent],
   template: `
     <main class="mt-2 mb-6" role="main" aria-live="polite" [attr.aria-busy]="pendingAction() !== null">
@@ -89,8 +89,7 @@ import { RdKitApiService } from '../../services/rd-kit-api.service';
       </h3>
     }
     </main>
-  `,
-})
+  ` })
 export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   // deps
   private readonly route = inject(ActivatedRoute);
@@ -265,8 +264,7 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
           this.toast.trigger('Struttura modificata correttamente.', 'success', 2000);
           this.router.navigateByUrl(`/molecules/detail/${res!.id}`);
         },
-        error: () => this.toast.trigger('Si è verificato un errore.', 'error', 2000),
-      });
+        error: () => this.toast.trigger('Si è verificato un errore.', 'error', 2000) });
   }
 
   // lifecycle
@@ -333,8 +331,7 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
         this.smiles.set(canon);
         this.mId.set(mId);
       },
-      error: () => this.error.set(true),
-    });
+      error: () => this.error.set(true) });
 
     // dup-check stream (no HTTP raffiche, dedup su SMILES + canon)
     this.molDupSub = this.polledSmiles$
@@ -413,8 +410,7 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
               `Errore nella validazione unicità struttura. Se si ripresenta, contatta il supporto.`,
               'error'
             )
-          ),
-      });
+          ) });
   }
 
   ngOnDestroy(): void {

@@ -1,5 +1,6 @@
 import {
   Component, Input, signal, effect, ElementRef, OnDestroy, NgZone, inject,
+  ChangeDetectionStrategy,
   computed,
   Output,
   EventEmitter
@@ -23,6 +24,7 @@ import { AppContextService } from '../../../services/context/app-context.service
 
 @Component({
   selector: 'm-molecule-collection-item-card',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     DecimalPipe,
     DatePipe,

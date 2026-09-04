@@ -1,9 +1,10 @@
 import { NgClass } from '@angular/common';
-import { Component, Input, Output, EventEmitter, ElementRef, ViewChild, signal } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ElementRef, ViewChild, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'm-combo-select',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, NgClass],
   styles: [
     `
@@ -160,8 +161,7 @@ import { FormsModule } from '@angular/forms';
         }
       </div>
     </div>
-  `,
-})
+  ` })
 export class ComboSelectComponent<T> {
   @Input({ required: true }) items: T[] = [];
   @Input({ required: true }) displayFn!: (item: T) => string;

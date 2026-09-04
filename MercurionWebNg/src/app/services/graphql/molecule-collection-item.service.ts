@@ -116,8 +116,7 @@ export function mapMoleculeItemDtoToClient(
       createdAt: String(node.createdAt),
       updatedAt: String(node.updatedAt),
       touchedAt: String(node.touchedAt),
-      chemblDetails: node.chemblDetails,
-    };
+      chemblDetails: node.chemblDetails };
   }
   // Custom
   return {
@@ -164,8 +163,7 @@ function mapDtoToShort(
     id: node.id,
     type: node.__typename === 'ChEMBLMoleculeItemDTO' ? 'chembl' : 'custom',
     chemblMolregno:
-      node.__typename === 'ChEMBLMoleculeItemDTO' ? toNum(node.chemblMolregno) : undefined,
-  };
+      node.__typename === 'ChEMBLMoleculeItemDTO' ? toNum(node.chemblMolregno) : undefined };
 }
 
 
@@ -204,8 +202,7 @@ export class MoleculeCollectionItemService {
     return this.apollo
       .watchQuery<MyMoleculeItemsQuery, MyMoleculeItemsQueryVariables>({
         query: MyMoleculeItemsDocument,
-        fetchPolicy: 'network-only',
-      })
+        fetchPolicy: 'network-only' })
       .valueChanges.pipe(
         map(res => extractGqlData<MyMoleculeItemsQuery, 'myMoleculeItems'>(res, 'myMoleculeItems')),
         map(items => items.map(mapMoleculeItemDtoToClient)),
@@ -223,8 +220,7 @@ export class MoleculeCollectionItemService {
       .watchQuery<MoleculeItemQuery, MoleculeItemQueryVariables>({
         query: MoleculeItemDocument,
         variables: { id },
-        fetchPolicy: 'network-only',
-      })
+        fetchPolicy: 'network-only' })
       .valueChanges.pipe(
         map(res => extractGqlData<MoleculeItemQuery, 'moleculeItem'>(res, 'moleculeItem', true)),
         map(node => (node ? mapMoleculeItemDtoToClient(node) : null))
@@ -237,8 +233,7 @@ export class MoleculeCollectionItemService {
       .watchQuery<MoleculeItemShortQuery, MoleculeItemShortQueryVariables>({
         query: MoleculeItemShortDocument,
         variables: { id },
-        fetchPolicy: 'network-only',
-      })
+        fetchPolicy: 'network-only' })
       .valueChanges.pipe(
         map(res => extractGqlData<MoleculeItemShortQuery, 'moleculeItem'>(res, 'moleculeItem', true)),
         map(node => (node ? mapDtoToShort(node) : null))
@@ -398,8 +393,7 @@ export class MoleculeCollectionItemService {
     return this.apollo
       .mutate<CreateMoleculeItemMutation, CreateMoleculeItemMutationVariables>({
         mutation: CreateMoleculeItemDocument,
-        variables: { input },
-      })
+        variables: { input } })
       .pipe(
         map(res => extractGqlData<CreateMoleculeItemMutation, 'createMoleculeItem'>(res, 'createMoleculeItem')),
         map(mapMoleculeItemDtoToClient)
@@ -411,8 +405,7 @@ export class MoleculeCollectionItemService {
     return this.apollo
       .mutate<UpdateMoleculeItemMutation, UpdateMoleculeItemMutationVariables>({
         mutation: UpdateMoleculeItemDocument,
-        variables: { id, input },
-      })
+        variables: { id, input } })
       .pipe(
         map(res => extractGqlData<UpdateMoleculeItemMutation, 'updateMoleculeItem'>(res, 'updateMoleculeItem', true)),
         map(node => (node ? mapMoleculeItemDtoToClient(node) : null))
@@ -484,8 +477,7 @@ export class MoleculeCollectionItemService {
     return this.apollo
       .mutate<DeleteMoleculeItemMutation, DeleteMoleculeItemMutationVariables>({
         mutation: DeleteMoleculeItemDocument,
-        variables: { id },
-      })
+        variables: { id } })
       .pipe(map(res => extractGqlData<DeleteMoleculeItemMutation, 'deleteMoleculeItem'>(res, 'deleteMoleculeItem')));
   }
 
@@ -495,8 +487,7 @@ export class MoleculeCollectionItemService {
       .watchQuery<MoleculeItemQuery, MoleculeItemQueryVariables>({
         query: MoleculeItemDocument,
         variables: { id },
-        fetchPolicy: 'network-only',
-      })
+        fetchPolicy: 'network-only' })
       .valueChanges.pipe(
         map(res => extractGqlData<MoleculeItemQuery, 'moleculeItem'>(res, 'moleculeItem', true)),
         map(node => {
@@ -506,8 +497,7 @@ export class MoleculeCollectionItemService {
             id: node.id,
             canonicalSmiles: node.canonicalSmiles,
             name: node.name ?? null,
-            molFormula: node.molFormula ?? null,
-          };
+            molFormula: node.molFormula ?? null };
         })
       );
   }
