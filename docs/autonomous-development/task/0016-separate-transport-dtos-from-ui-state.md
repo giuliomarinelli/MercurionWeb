@@ -1,6 +1,6 @@
 # 0016 - Separate transport DTOs from UI state
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
