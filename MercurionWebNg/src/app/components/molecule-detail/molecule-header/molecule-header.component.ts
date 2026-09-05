@@ -1,5 +1,5 @@
 import { CustomDetailSaveModel } from '../../../Models/custom-detail-save.model';
-import { Component, computed, EventEmitter, Input, Output, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, input, ChangeDetectionStrategy, output } from '@angular/core';
 import { CustomDetailsComponent } from '../my-molecule-custom-details/custom-details.component';
 import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.component';
 import { RouterLink } from '@angular/router';
@@ -148,14 +148,23 @@ import { RouterLink } from '@angular/router';
 })
 export class MoleculeHeaderComponent {
 
-  private readonly _nameSignal = signal<string>('');
-  protected readonly _chemblIdSignal = signal<string | undefined>('');
-  protected readonly _myMol = signal<boolean>(false);
-  protected readonly _isCustom = signal<boolean>(false);
-  protected readonly _badgeName = signal<string>('ChEMBL');
-  protected readonly _molId = signal<string>('');
-  protected readonly _isSystemMolecule = signal<boolean>(false);
-  private readonly _smiles = signal<string>('');
+  readonly nameInput = input('')
+  readonly chemblIdInput = input<string | undefined>(undefined)
+  readonly myMol = input(false)
+  readonly smiles = input.required<string>()
+  readonly molId = input.required<string>()
+  readonly isCustom = input(false)
+  readonly isLoggedIn = input.required<boolean>()
+  readonly isSystemMolecule = input(false)
+
+  readonly name = computed(() => this.nameInput());
+  protected readonly _chemblIdSignal = computed(() => this.chemblIdInput());
+  protected readonly _myMol = computed(() => this.myMol());
+  protected readonly _isCustom = computed(() => this.isCustom());
+  protected readonly _badgeName = computed(() => this.isCustom() ? 'Personal' : 'ChEMBL');
+  protected readonly _molId = computed(() => this.molId());
+  protected readonly _isSystemMolecule = computed(() => this.isSystemMolecule());
+  private readonly _smiles = computed(() => this.smiles());
   protected pathToDuplicate = computed(() => ({
     url: `/molecules/editor`,
     queryParams: {
@@ -163,65 +172,21 @@ export class MoleculeHeaderComponent {
       smiles: this._smiles()
     }
   }));
-  protected readonly _isLoggedIn = signal<boolean>(false);
+  readonly chemblId = this._chemblIdSignal;
+  protected readonly _isLoggedIn = computed(() => this.isLoggedIn());
 
-  @Input()
-  set nameInput(value: string) {
-    this._nameSignal.set(value);
-  }
-  readonly name = this._nameSignal.asReadonly();
+  readonly onSave = output<CustomDetailSaveModel>();
 
-  @Input()
-  set chemblIdInput(value: string | undefined) {
-    this._chemblIdSignal.set(value);
-  }
-  readonly chemblId = this._chemblIdSignal.asReadonly();
+  readonly onDelete = output<string>();
 
-  @Input()
-  set myMol(myMol: boolean) {
-    this._myMol.set(myMol);
-  }
-
-  @Input({ required: true })
-  set smiles(smiles: string) {
-    this._smiles.set(smiles);
-  }
-
-  @Input({ required: true })
-  set molId(molId: string) {
-    this._molId.set(molId);
-  }
-
-  @Input()
-  set isCustom(isCustom: boolean) {
-    this._isCustom.set(isCustom ?? false);
-    this._badgeName.set(isCustom ? 'Personal' : 'ChEMBL');
-  }
-
-  @Input({ required: true })
-  set isLoggedIn(isLoggedIn: boolean) {
-    this._isLoggedIn.set(isLoggedIn);
-  }
-
-  @Input()
-  set isSystemMolecule(isSystemMolecule: boolean) {
-    this._isSystemMolecule.set(isSystemMolecule);
-  }
-
-  @Output()
-  onSave = new EventEmitter<CustomDetailSaveModel>();
-
-  @Output()
-  onDelete = new EventEmitter<string>();
-
-  @Output()
-  onAddToCollection = new EventEmitter<void>();
+  readonly onAddToCollection = output<void>();
 
   doSave(e: CustomDetailSaveModel): void {
     this.onSave.emit(e);
   }
 
   doAddToCollection(): void {
+    // TODO: The 'emit' function requires a mandatory void argument
     this.onAddToCollection.emit();
   }
 

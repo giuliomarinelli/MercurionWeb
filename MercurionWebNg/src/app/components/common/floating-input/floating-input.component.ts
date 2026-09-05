@@ -1,16 +1,15 @@
 import { CommonModule } from '@angular/common';
 import {
   Component,
- ChangeDetectionStrategy,
-  Input,
-  Output,
-  EventEmitter,
-  ViewChild,
+  ChangeDetectionStrategy,
   ElementRef,
   inject,
   signal,
   computed,
-  OnInit
+  OnInit,
+  input,
+  output,
+  viewChild
 } from '@angular/core';
 import {
   ControlValueAccessor,
@@ -28,20 +27,20 @@ type ErrorMap = Record<string, string>;
   imports: [CommonModule, ReactiveFormsModule, ClassicSpinnerComponent],
   host: { class: 'block' },
   template: `
-    <div class="m-floating-field" [ngClass]="[bgClass, darkBgClass]">
+    <div class="m-floating-field" [ngClass]="[bgClass(), darkBgClass()]">
       <div class="m-floating-field-bg"></div>
 
       <input
         #inp
-        [type]="type"
+        [type]="type()"
         class="m-floating-input-element
                text-dark dark:text-light
                border border-slate-400 dark:border-slate-200
                focus:outline-none focus:ring-2 focus:ring-light-accent-primary
                focus:border-light-accent-primary"
-        [ngClass]="[darkFocusBorderClass, darkFocusRingClass]"
-        [attr.id]="id"
-        [attr.autocomplete]="autocomplete"
+        [ngClass]="[darkFocusBorderClass(), darkFocusRingClass()]"
+        [attr.id]="id()"
+        [attr.autocomplete]="autocomplete()"
         placeholder=" "
         [disabled]="disabled"
         [value]="value()"
@@ -55,18 +54,18 @@ type ErrorMap = Record<string, string>;
       />
 
       <label
-        [attr.for]="id"
+        [attr.for]="id()"
         [ngClass]="activeLabel()
-          ? ['m-floating-label--active', labelClass, darkLabelClass]
+          ? ['m-floating-label--active', labelClass(), darkLabelClass()]
           : ['m-floating-label--inactive']"
         class="m-floating-label m-floating-label-blocker"
       >
-        {{ label }}
+        {{ label() }}
       </label>
 
       <div
         class="mt-1 min-h-5 flex items-center gap-3 text-sm text-light-error relative z-10"
-        [ngClass]="[darkTextErrorClass]"
+        [ngClass]="[darkTextErrorClass()]"
         role="status"
         aria-live="polite"
       >
@@ -83,26 +82,26 @@ type ErrorMap = Record<string, string>;
 })
 export class FloatingInputComponent implements ControlValueAccessor, OnInit {
   // ===== Inputs / Outputs
-  @Input() label!: string;
-  @Input() id = `fi-${Math.random().toString(36).slice(2)}`;
-  @Input() type: 'text' | 'email' | 'password' | 'tel' = 'text';
-  @Input() autocomplete?: string;
-  @Input() errors: ErrorMap = {};             // es: { required: 'Obbligatorio', email: 'Formato non valido' }
-  @Input() serverError: string | null = null; // es: "Password errata"
-  @Input() asyncVerify = false;
-  @Input() describedById?: string;
+  readonly label = input.required<string>();
+  readonly id = input(`fi-${Math.random().toString(36).slice(2)}`);
+  readonly type = input<'text' | 'email' | 'password' | 'tel'>('text');
+  readonly autocomplete = input<string>();
+  readonly errors = input<ErrorMap>({});             // es: { required: 'Obbligatorio', email: 'Formato non valido' }
+  readonly serverError = input<string | null>(null); // es: "Password errata"
+  readonly asyncVerify = input(false);
+  readonly describedById = input<string>();
 
-  @Input() bgClass = 'bg-light-surface-main';
-  @Input() darkBgClass = 'dark:bg-neutral-950';
-  @Input() labelClass = 'text-light-accent-secondary';
-  @Input() darkLabelClass = 'dark:text-dark-accent-secondary-hc';
-  @Input() darkFocusRingClass = 'dark:focus:ring-dark-accent-primary-btn-hc';
-  @Input() darkFocusBorderClass = 'dark:focus:border-dark-accent-primary-btn-hc';
-  @Input() darkTextErrorClass = 'dark:text-dark-error';
+  readonly bgClass = input('bg-light-surface-main');
+  readonly darkBgClass = input('dark:bg-neutral-950');
+  readonly labelClass = input('text-light-accent-secondary');
+  readonly darkLabelClass = input('dark:text-dark-accent-secondary-hc');
+  readonly darkFocusRingClass = input('dark:focus:ring-dark-accent-primary-btn-hc');
+  readonly darkFocusBorderClass = input('dark:focus:border-dark-accent-primary-btn-hc');
+  readonly darkTextErrorClass = input('dark:text-dark-error');
 
-  @Output() enter = new EventEmitter<void>();
+  readonly enter = output<void>();
 
-  @ViewChild('inp') inp!: ElementRef<HTMLInputElement>;
+  readonly inp = viewChild.required<ElementRef<HTMLInputElement>>('inp');
 
   // ===== NgControl binding
   protected readonly ngControl = inject(NgControl, { self: true, optional: true });
@@ -176,23 +175,24 @@ export class FloatingInputComponent implements ControlValueAccessor, OnInit {
   }
 
   getCurrentError(): string {
-    if (this.serverError) return this.serverError;
+    const serverError = this.serverError();
+    if (serverError) return serverError;
 
     const c = this.control;
     if (!c || !c.touched || !c.errors) return '';
 
     const key = Object.keys(c.errors)[0];
-    return this.errors[key] ?? '';
+    return this.errors()[key] ?? '';
   }
 
   ariaDescribedby(): string | null {
     const err = this.getCurrentError();
-    if (err) return this.describedById ?? `${this.id}-error`;
-    return this.describedById ?? null;
+    if (err) return this.describedById() ?? `${this.id()}-error`;
+    return this.describedById() ?? null;
   }
 
   // helper opzionale se vuoi focus programmatico
   focus(): void {
-    this.inp?.nativeElement?.focus();
+    this.inp()?.nativeElement?.focus();
   }
 }

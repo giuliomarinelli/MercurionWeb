@@ -3,13 +3,13 @@ import {
   Component,
   ChangeDetectionStrategy,
   ElementRef,
-  EventEmitter,
-  Input,
+  effect,
   OnDestroy,
-  Output,
-  ViewChild,
   inject,
-  signal
+  signal,
+  input,
+  output,
+  viewChild
 } from '@angular/core'
 import { FormsModule } from '@angular/forms'
 import { toObservable } from '@angular/core/rxjs-interop'
@@ -45,7 +45,7 @@ import { MoleculeSearchService } from '../../../services/graphql/molecule-search
         [class.pr-10]="query().trim()"
         [class.pl-4]="query().trim()"
         [class.px-4]="!query().trim()"
-        [attr.aria-label]="ariaLabel || (userContext.isLoggedOut() ? 'Cerca molecola ChEMBL' : 'Cerca molecola')"
+        [attr.aria-label]="ariaLabel() || (userContext.isLoggedOut() ? 'Cerca molecola ChEMBL' : 'Cerca molecola')"
         aria-live="polite"
       />
       @if (query().trim()) {
@@ -76,37 +76,29 @@ export class SearchInputComponent implements AfterViewInit, OnDestroy {
 
   private sub?: Subscription
 
-  @ViewChild('searchInput')
-  private searchInputRef!: ElementRef<HTMLInputElement>
+  private readonly searchInputRef = viewChild.required<ElementRef<HTMLInputElement>
+// TODO: Skipped for migration because:
+//  Accessor inputs cannot be migrated as they are too complex.
+>('searchInput');
 
-  @Input()
-  set search_excludeAlreadyAdded(v: boolean) {
-    this._search_excludeAlreadyAdded.set(v)
-  }
+  readonly search_excludeAlreadyAdded = input(false)
+  readonly viewMode = input<'my' | 'chembl'>('chembl')
 
-  @Input()
-  set viewMode(mode: 'my' | 'chembl') {
-    this._viewMode.set(mode)
-  }
+  readonly ariaLabel = input<string>();
 
-  @Input() ariaLabel?: string
+  readonly onResult = output<MoleculeSearchResult[] | PageModel<MoleculeCardItemModel>>();
 
-  @Output()
-  onResult = new EventEmitter<MoleculeSearchResult[] | PageModel<MoleculeCardItemModel>>()
+  readonly onLoading = output<boolean>();
 
-  @Output()
-  onLoading = new EventEmitter<boolean>()
+  readonly onError = output<unknown>();
 
-  @Output()
-  onError = new EventEmitter<unknown>()
+  readonly onQuery = output<string>();
 
-  @Output()
-  onQuery = new EventEmitter<string>()
-
-  @Output()
-  onEmpty = new EventEmitter<void>()
+  readonly onEmpty = output<void>();
 
   constructor() {
+    effect(() => this._search_excludeAlreadyAdded.set(this.search_excludeAlreadyAdded()))
+    effect(() => this._viewMode.set(this.viewMode()))
     const query$ = toObservable(this.query)
 
     this.sub = query$
@@ -123,6 +115,7 @@ export class SearchInputComponent implements AfterViewInit, OnDestroy {
           // The input is a latest-wins flow: changing the query cancels its request.
           if (!exclude) {
             if (mode === 'chembl' && trimmed.length < 2) {
+              // TODO: The 'emit' function requires a mandatory void argument
               this.onEmpty.emit()
             }
             return EMPTY
@@ -131,6 +124,7 @@ export class SearchInputComponent implements AfterViewInit, OnDestroy {
           if (trimmed.length < 2) {
             this.onLoading.emit(false)
             this.onResult.emit([])
+            // TODO: The 'emit' function requires a mandatory void argument
             this.onEmpty.emit()
             return EMPTY
           }
@@ -157,16 +151,18 @@ export class SearchInputComponent implements AfterViewInit, OnDestroy {
 
   clear(): void {
     this.query.set('')
+    // TODO: The 'emit' function requires a mandatory void argument
     this.onEmpty.emit()
-    queueMicrotask(() => this.searchInputRef.nativeElement.focus())
+    queueMicrotask(() => this.searchInputRef().nativeElement.focus())
   }
 
   ngAfterViewInit(): void {
     queueMicrotask(() => {
       if (!this.query().trim()) {
+        // TODO: The 'emit' function requires a mandatory void argument
         this.onEmpty.emit()
       }
-      this.searchInputRef.nativeElement.focus()
+      this.searchInputRef().nativeElement.focus()
     })
   }
 
@@ -176,7 +172,7 @@ export class SearchInputComponent implements AfterViewInit, OnDestroy {
 
   scrollIntoView(): void {
     queueMicrotask(() => {
-      this.searchInputRef?.nativeElement.scrollIntoView({ block: 'center', behavior: 'smooth' })
+      this.searchInputRef()?.nativeElement.scrollIntoView({ block: 'center', behavior: 'smooth' })
     })
   }
 }

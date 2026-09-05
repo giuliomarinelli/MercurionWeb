@@ -13,6 +13,7 @@ describe('FloatingInputComponent', () => {
     .compileComponents();
 
     fixture = TestBed.createComponent(FloatingInputComponent);
+    fixture.componentRef.setInput('label', 'Test input');
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

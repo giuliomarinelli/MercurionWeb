@@ -12,7 +12,8 @@ import {
   signal,
   Signal,
   inject,
-  PLATFORM_ID
+  PLATFORM_ID,
+  viewChild
 } from '@angular/core'
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router'
 import { HeaderComponent } from './components/common/header/header.component'
@@ -173,16 +174,10 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
   _triggerOpenOffCanvas = signal<boolean>(false)
 
-  @ViewChild('scrollHost')
-  set scrollHost(ref: ElementRef<HTMLElement> | undefined) {
-    this.scrollHostRef = ref ?? undefined
-    // wait a tick so the view is stable before registering the new root
-    queueMicrotask(() => this.ensureScrollRootRef())
-  }
+  readonly scrollHost = viewChild<ElementRef<HTMLElement>>('scrollHost')
   private scrollHostRef?: ElementRef<HTMLElement>
 
-  @ViewChild(HeaderComponent, { read: ElementRef })
-  headerRef!: ElementRef<HTMLElement>
+  readonly headerRef = viewChild.required(HeaderComponent, { read: ElementRef });
 
   constructor() {
     const isBrowser = this.isBrowser
@@ -194,6 +189,11 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       const t = this.sessionSync.handshakeTick()
       if (t === 0) return
       void this.sessionSync.syncSession(true)
+    })
+    effect(() => {
+      this.scrollHostRef = this.scrollHost()
+      // wait a tick so the view is stable before registering the new root
+      queueMicrotask(() => this.ensureScrollRootRef())
     })
 
     this.authState.bootstrap()
@@ -365,7 +365,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   ngAfterViewInit() {
     queueMicrotask(() => {
       this.ensureScrollRootRef()
-      const h = this.headerRef?.nativeElement?.offsetHeight ?? 64
+      const h = this.headerRef()?.nativeElement?.offsetHeight ?? 64
       this.appContext.setHeaderHeight(h)
     })
   }

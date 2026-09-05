@@ -1,5 +1,5 @@
 import { NgClass } from '@angular/common';
-import { Component, EventEmitter, inject, OnDestroy, OnInit, Output, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy, output } from '@angular/core';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { UserContextService } from '../../../services/context/user-context.service';
 import { HistoryComponent } from '../history/history.component';
@@ -305,11 +305,9 @@ export class SidenavComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router)
   private readonly actionContext = inject(ActionOverlayContextService)
 
-  @Output()
-  onOpenOffCanvas = new EventEmitter<void>()
+  readonly onOpenOffCanvas = output<void>();
 
-  @Output()
-  menuItemClick = new EventEmitter<void>()
+  readonly menuItemClick = output<void>();
 
   triggerDelete = signal<boolean>(false)
   isHistoryEmpty = signal<boolean>(false)
@@ -384,10 +382,12 @@ export class SidenavComponent implements OnInit, OnDestroy {
   }
 
   handleMenuItemClick(): void {
+    // TODO: The 'emit' function requires a mandatory void argument
     this.menuItemClick.emit()
   }
 
   closeOffCanvasMenu(): void {
+    // TODO: The 'emit' function requires a mandatory void argument
     this.menuItemClick.emit()
   }
 

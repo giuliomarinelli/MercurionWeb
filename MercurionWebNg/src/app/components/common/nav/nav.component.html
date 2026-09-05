@@ -1,8 +1,8 @@
 @if (false) {
-<nav class="flex md:flex-row md:justify-between" [ngClass]="{'flex-col': header}" [attr.aria-label]="ariaLabel">
+<nav class="flex md:flex-row md:justify-between" [ngClass]="{'flex-col': header()}" [attr.aria-label]="ariaLabel()">
   <ul
     class="flex flex-col md:flex-row gap-2 md:gap-6 px-5 py-4 sm:py-0 text-light-on-surface-secondary dark:text-slate-200">
-    @if (!header) {
+    @if (!header()) {
     <li class="offcanvas-menu-item">
       <svg xmlns="http://www.w3.org/2000/svg" class="offcanvas-menu-icon" viewBox="0 0 512 512">
         <path class="fill-current text-light-on-surface-main dark:text-dark-on-surface-main"
@@ -33,7 +33,7 @@
       </svg>
       <a routerLink="/predict" (click)="closeOffCanvasMenu()" class="offcanvas-menu-link">Predizione</a>
     </li>
-    @if (designService.maxBk('md')() || (designService.minBk('2xl')() && header)) {
+    @if (designService.maxBk('md')() || (designService.minBk('2xl')() && header())) {
     <li class="offcanvas-menu-item">
       <svg xmlns="http://www.w3.org/2000/svg" class="offcanvas-menu-icon"
         viewBox="0 0 512 512"><!--!Font Awesome Pro 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->

@@ -4,11 +4,11 @@ import {
   ElementRef,
   OnDestroy,
   OnInit,
-  ViewChild,
   AfterViewInit,
   inject,
   signal,
   effect,
+  viewChild
 } from '@angular/core';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { EMPTY, of, Subscription, switchMap, defer, from, combineLatest, catchError, take, filter } from 'rxjs';
@@ -57,7 +57,7 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
   spinnerLeft = signal<number>(0)
 
-  @ViewChild('mainHost', { static: true }) mainHost?: ElementRef<HTMLElement>
+  readonly mainHost = viewChild<ElementRef<HTMLElement>>('mainHost');
 
   constructor() {
     effect(() => {
@@ -160,7 +160,7 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private attachSpinnerTracking(): void {
-    const host = this.mainHost?.nativeElement
+    const host = this.mainHost()?.nativeElement
     if (!host) return
 
     this.updateSpinnerLeft()
@@ -172,7 +172,7 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private updateSpinnerLeft = () => {
-    const rect = this.mainHost?.nativeElement.getBoundingClientRect()
+    const rect = this.mainHost()?.nativeElement.getBoundingClientRect()
     if (!rect) return
     this.spinnerLeft.set(rect.left + rect.width / 2)
   }

@@ -1,5 +1,5 @@
 // ============ MoleculeCollectionItemSelectCardComponent =============
-import { Component, ChangeDetectionStrategy, DestroyRef, effect, EventEmitter, inject, Input, model, OnDestroy, OnInit, Output, signal, ViewChild, ElementRef } from '@angular/core';
+import { Component, ChangeDetectionStrategy, DestroyRef, effect, inject, model, OnDestroy, OnInit, signal, ElementRef, input, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MoleculeCollectionItemCardComponent } from '../molecule-collection-item-card/molecule-collection-item-card.component';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -21,8 +21,8 @@ import { MoleculeCardItemModel } from '../../../Models/graphql/molecule-collecti
       <label class="relative inline-flex h-5 w-5 items-center justify-center cursor-pointer select-none z-30">
         <input #cb type="checkbox" class="peer sr-only"
                [formControl]="control"
-               [indeterminate]="indeterminate"
-               [attr.aria-checked]="indeterminate ? 'mixed' : control.value"
+               [indeterminate]="indeterminate()"
+               [attr.aria-checked]="indeterminate() ? 'mixed' : control.value"
                [attr.aria-label]="_isSelectAll() ? 'Seleziona tutte le molecole' : 'Seleziona molecola'"
          />
         <span class="block h-5 w-5 rounded-md border border-slate-300 bg-white dark:bg-slate-800
@@ -56,12 +56,12 @@ export class MoleculeCollectionItemSelectCardComponent implements OnInit, OnDest
   private coSub?: Subscription;
   private readonly destroyRef = inject(DestroyRef);
 
-  @Input() indeterminate = false;                // per lo stato parziale
-  @Input() set molecule(m: MoleculeCardItemModel) { this._molecule.set(m); }
-  @Input() set i(i: number) { this._i.set(i); }
-  @Input() set isSelectAll(isSelectAll: boolean) { this._isSelectAll.set(isSelectAll); }
+  readonly indeterminate = input(false);                // per lo stato parziale
+  readonly molecule = input<MoleculeCardItemModel | null>(null)
+  readonly i = input(-1)
+  readonly isSelectAll = input(false)
 
-  @Output() selectedAll = new EventEmitter<boolean>();
+  readonly selectedAll = output<boolean>();
 
   control = new FormControl(false, { nonNullable: true });
   value = model<boolean>(false)                 // model input per [(value)]
@@ -77,6 +77,12 @@ export class MoleculeCollectionItemSelectCardComponent implements OnInit, OnDest
       this.control.setValue(v, { emitEvent: false });
     }
   });
+
+  private readonly syncInputs = effect(() => {
+    this._molecule.set(this.molecule())
+    this._i.set(this.i())
+    this._isSelectAll.set(this.isSelectAll())
+  })
 
   ngOnInit(): void {
     // sync OUT: formcontrol -> model (e, se select-all, notifica il padre)

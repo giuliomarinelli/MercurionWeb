@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { NgClass } from '@angular/common';
 
 @Component({
@@ -17,7 +17,7 @@ import { NgClass } from '@angular/common';
           overflow-hidden
         "
         [ngClass]="{
-          'bg-slate-100/50 dark:bg-slate-800/40': _i() % 2 !== 0
+          'bg-slate-100/50 dark:bg-slate-800/40': i() % 2 !== 0
         }"
         role="status"
         aria-busy="true"
@@ -66,11 +66,6 @@ import { NgClass } from '@angular/common';
 })
 export class TicketCardSkeletonComponent {
 
-  _i = signal(0)
-
-  @Input()
-  set i(v: number) {
-    this._i.set(v ?? 0)
-  }
+  readonly i = input(0)
 
 }

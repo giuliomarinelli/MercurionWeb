@@ -1,9 +1,4 @@
-import {
-  Component, Input, signal, effect,
-  ChangeDetectionStrategy,
-  ElementRef, OnDestroy,
-  NgZone
-} from '@angular/core';
+import { Component, input, signal, effect, ChangeDetectionStrategy, ElementRef, OnDestroy, NgZone, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DecimalPipe, NgClass } from '@angular/common';
 import { MoleculeViewerComponent } from '../../chem/molecule-viewer/molecule-viewer.component';
@@ -64,6 +59,11 @@ import { MoleculeSearchResult } from
   `
 })
 export class SimilarItemComponent implements OnDestroy {
+  protected readonly searchContext = inject(SearchContextService);
+  private readonly themeManager = inject(ThemeManagerService);
+  private readonly zone = inject(NgZone);
+  private host = inject<ElementRef<HTMLElement>>(ElementRef);
+
 
   /* segnali originali */
   _molecule = signal<MoleculeSearchResult | undefined>(undefined);
@@ -79,12 +79,9 @@ export class SimilarItemComponent implements OnDestroy {
   private seen: boolean = false
   private io!: IntersectionObserver
 
-  constructor(
-    protected readonly searchContext: SearchContextService,
-    private readonly themeManager: ThemeManagerService,
-    private readonly zone: NgZone,
-    private host: ElementRef<HTMLElement>
-  ) {
+  constructor() {
+    const host = this.host;
+
     /* aggiorna dark mode */
     effect(() => this.isDarkMode.set(this.themeManager.theme() === 'dark'))
     /* Avvia viewer quando card entra nel viewport */
@@ -112,24 +109,19 @@ export class SimilarItemComponent implements OnDestroy {
   }
 
 
-  /* inputs ---------------------------------- */
-  @Input({ required: true })
-  set molecule(m: MoleculeSearchResult) {
-    this.seen = false;                // <— nuova molecola = nuovo lazy load
-    this.viewerReady.set(false);
-    this.disablePreview.set(true);
+  readonly molecule = input.required<MoleculeSearchResult>()
+  readonly i = input.required<number>()
 
-    this._molecule.set(m);
-    this._pathToMolecule.set(`/molecules/detail/${m.id}`);
-
-    // nel caso l’IO fosse stato detachato:
-    this.zone.runOutsideAngular(() => this.io.observe(this.host.nativeElement));
-  }
-
-  @Input({ required: true })
-  set i(i: number) {
-    this._i.set(i)
-  }
+  private readonly syncInputs = effect(() => {
+    const molecule = this.molecule()
+    this.seen = false
+    this.viewerReady.set(false)
+    this.disablePreview.set(true)
+    this._molecule.set(molecule)
+    this._pathToMolecule.set(`/molecules/detail/${molecule.id}`)
+    this._i.set(this.i())
+    if (this.io) this.zone.runOutsideAngular(() => this.io.observe(this.host.nativeElement))
+  })
 
   ngOnDestroy() {
     this.io.disconnect();

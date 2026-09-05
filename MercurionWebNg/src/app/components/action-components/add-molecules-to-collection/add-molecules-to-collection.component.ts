@@ -5,11 +5,11 @@ import {
   ElementRef,
   OnDestroy,
   OnInit,
-  ViewChild,
   inject,
   signal,
   effect,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
+  viewChild
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractPaginatedMultiselectComponent } from '../../../abstract/abstract-paginated-multiselect-component';
@@ -695,8 +695,8 @@ export class AddMoleculesToCollectionComponent
   method = signal<'my' | 'chembl'>('my');
   collection = signal<MoleculeCollection | null>(null);
 
-  @ViewChild('scrollRoot', { static: false }) protected declare root: ElementRef<HTMLDivElement>;
-  @ViewChild('sentinel', { static: false }) protected declare sentinel: ElementRef<HTMLDivElement>;
+  protected override readonly root = viewChild<ElementRef<HTMLDivElement>>('scrollRoot');
+  protected override readonly sentinel = viewChild<ElementRef<HTMLDivElement>>('sentinel');
 
   constructor() {
     super();

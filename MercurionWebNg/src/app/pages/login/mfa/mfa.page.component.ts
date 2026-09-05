@@ -1,5 +1,5 @@
 import { NgClass } from '@angular/common'
-import { Component, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild, ChangeDetectionStrategy } from '@angular/core'
+import { Component, ElementRef, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy, viewChild } from '@angular/core'
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms'
 import { ActivatedRoute, Router, RouterLink } from '@angular/router'
 import { combineLatest, debounceTime, distinctUntilChanged, EMPTY, filter, map, Subscription, switchMap, throwError } from 'rxjs'
@@ -228,8 +228,7 @@ export class MfaPageComponent implements OnInit, OnDestroy {
   private readonly toast = inject(ToastService)
   protected readonly design = inject(DesignService)
 
-  @ViewChild('otp')
-  private otpRef!: ElementRef<HTMLInputElement>
+  private readonly otpRef = viewChild.required<ElementRef<HTMLInputElement>>('otp');
 
   private paramsSub?: Subscription
   private otpStateSub?: Subscription
@@ -466,16 +465,16 @@ export class MfaPageComponent implements OnInit, OnDestroy {
   // ---- UI helpers
 
   forceFocusOnOtp(): void {
-    this.otpRef.nativeElement.focus()
+    this.otpRef().nativeElement.focus()
   }
 
   onOtpInput(): void {
-    const value = this.otpRef?.nativeElement?.value ?? ''
+    const value = this.otpRef()?.nativeElement?.value ?? ''
     this.isOtpEmpty.set(value.trim() === '')
   }
 
   onOtpBlur(): void {
-    const value = this.otpRef?.nativeElement?.value ?? ''
+    const value = this.otpRef()?.nativeElement?.value ?? ''
     this.isOtpEmpty.set(value.trim() === '')
     this.isOtpFocused.set(false)
   }

@@ -1,13 +1,12 @@
 import { NgClass } from '@angular/common';
 import {
   Component,
- ChangeDetectionStrategy,
-  Input,
-  Output,
-  EventEmitter,
-  ViewChild,
+  ChangeDetectionStrategy,
   ElementRef,
-  OnDestroy
+  OnDestroy,
+  input,
+  output,
+  viewChild
 } from '@angular/core';
 
 @Component({
@@ -26,12 +25,12 @@ import {
       <input
         #inputEl
         type="text"
-        [value]="value"
+        [value]="value()"
         (input)="onInput($event)"
         (keydown)="onKeydown($event)"
         (focus)="openRequested.emit()"
-        [placeholder]="placeholder"
-        [disabled]="disabled"
+        [placeholder]="placeholder()"
+        [disabled]="disabled()"
         class="pl-10 pr-8 py-[10px] w-full text-sm text-slate-800 dark:text-slate-200
                bg-slate-100
                border border-slate-500/40
@@ -40,11 +39,11 @@ import {
                focus:ring-2 focus:ring-slate-300/60"
         [ngClass]="darkInputClasses"
         autocomplete="off"
-        [attr.aria-label]="ariaLabel || placeholder"
-        [attr.aria-disabled]="disabled"
+        [attr.aria-label]="ariaLabel() || placeholder()"
+        [attr.aria-disabled]="disabled()"
       />
 
-      @if (value.length > 0) {
+      @if (value().length > 0) {
         <button
           type="button"
           (click)="clear()"
@@ -61,22 +60,22 @@ import {
   `
 })
 export class PmSearchInputComponent implements OnDestroy {
-  @Input() value = '';
-  @Input() placeholder = 'Cerca molecola...';
-  @Input() ariaLabel?: string;
-  @Input() disabled = false;
-  @Input() borderDark = true;
-  @Input() useAltDarkStyle = false;
+  readonly value = input('');
+  readonly placeholder = input('Cerca molecola...');
+  readonly ariaLabel = input<string>();
+  readonly disabled = input(false);
+  readonly borderDark = input(true);
+  readonly useAltDarkStyle = input(false);
 
   /** durata debounce in ms (analogo a debounceTime) */
-  @Input() debounceMs = 200;
+  readonly debounceMs = input(200);
 
-  @Output() valueChange = new EventEmitter<string>();
-  @Output() submitted = new EventEmitter<string>();
-  @Output() cleared = new EventEmitter<void>();
-  @Output() openRequested = new EventEmitter<void>();
+  readonly valueChange = output<string>();
+  readonly submitted = output<string>();
+  readonly cleared = output<void>();
+  readonly openRequested = output<void>();
 
-  @ViewChild('inputEl') inputEl!: ElementRef<HTMLInputElement>;
+  readonly inputEl = viewChild.required<ElementRef<HTMLInputElement>>('inputEl');
 
   private debounceId: number | null = null;
   private lastEmittedValue = '';
@@ -93,7 +92,7 @@ export class PmSearchInputComponent implements OnDestroy {
   }
 
   onKeydown(event: KeyboardEvent) {
-    if (this.disabled) return;
+    if (this.disabled()) return;
 
     // sempre: annulla il timer in corso
     this.clearDebounce();
@@ -105,24 +104,24 @@ export class PmSearchInputComponent implements OnDestroy {
   }
 
   onInput(e: Event) {
-    if (this.disabled) return;
+    if (this.disabled()) return;
     const v = (e.target as HTMLInputElement)?.value ?? '';
 
     // nuovo valore ⇒ riparti con il debounce
     this.clearDebounce();
     this.debounceId = window.setTimeout(() => {
-      if (this.disabled) return;
+      if (this.disabled()) return;
       if (v === this.lastEmittedValue) return;
       this.lastEmittedValue = v;
       this.valueChange.emit(v);
-    }, this.debounceMs);
+    }, this.debounceMs());
   }
 
   onEnter() {
-    if (this.disabled) return;
+    if (this.disabled()) return;
     this.clearDebounce();
 
-    const current = this.inputEl?.nativeElement?.value ?? this.value ?? '';
+    const current = this.inputEl()?.nativeElement?.value ?? this.value() ?? '';
     this.lastEmittedValue = current;
 
     // come una search "forzata": invio immediato
@@ -131,37 +130,38 @@ export class PmSearchInputComponent implements OnDestroy {
   }
 
   clear() {
-    if (this.disabled) return;
+    if (this.disabled()) return;
     this.clearDebounce();
 
     this.lastEmittedValue = '';
     this.valueChange.emit('');
+    // TODO: The 'emit' function requires a mandatory void argument
     this.cleared.emit();
 
-    queueMicrotask(() => this.inputEl?.nativeElement?.focus());
+    queueMicrotask(() => this.inputEl()?.nativeElement?.focus());
   }
 
   get darkInputClasses() {
-    if (this.useAltDarkStyle) {
+    if (this.useAltDarkStyle()) {
       return {
         'dark:bg-dark-surface-secondary': true,
         'dark:text-slate-200': true,
         'dark:hover:bg-dark-surface-secondary/80': true,
         'dark:focus:ring-slate-400/70': true,
-        'dark:border-dark-border/80': this.borderDark,
-        'dark:border-none': !this.borderDark };
+        'dark:border-dark-border/80': this.borderDark(),
+        'dark:border-none': !this.borderDark() };
     }
     return {
       'dark:bg-neutral-800': true,
       'dark:text-slate-200': true,
       'dark:hover:bg-neutral-700': true,
       'dark:focus:ring-neutral-600/60': true,
-      'dark:border-none': !this.borderDark,
-      'dark:border-neutral-600/60': !this.borderDark };
+      'dark:border-none': !this.borderDark(),
+      'dark:border-neutral-600/60': !this.borderDark() };
   }
 
   get clearButtonDarkClasses() {
-    return this.useAltDarkStyle
+    return this.useAltDarkStyle()
       ? 'dark:hover:bg-dark-surface-secondary/70'
       : 'dark:hover:bg-neutral-700';
   }

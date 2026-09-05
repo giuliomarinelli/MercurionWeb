@@ -1,11 +1,11 @@
 // ================== AbstractPaginationComponent ==================
-import { ElementRef, signal } from "@angular/core";
+import { ChangeDetectorRef, ElementRef, inject, Signal, signal } from "@angular/core";
 import { firstValueFrom, Observable } from "rxjs";
 import { PageModel } from "../Models/graphql/page.models";
 import { BrowserResourceOwner, injectBrowserResourceOwner } from "../utils/browser-resource-owner.util";
 
 export abstract class AbstractPaginationComponent<T> {
-  protected sentinel: ElementRef<HTMLDivElement> | undefined;
+  protected sentinel?: Signal<ElementRef<HTMLElement> | undefined>;
   protected items: T[] = [];
   protected loading = false;
   protected done = false;
@@ -14,7 +14,8 @@ export abstract class AbstractPaginationComponent<T> {
   protected page = 1;
   protected empty = signal<boolean>(true);
   protected searchTerm = signal<string>('');
-  protected root: ElementRef | null = null;
+  protected root?: Signal<ElementRef<HTMLElement> | undefined>;
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
   /**
    * Owns every RAF this base class schedules and is disposed automatically
@@ -43,7 +44,7 @@ export abstract class AbstractPaginationComponent<T> {
 
   protected async loadMore(): Promise<void> {
     if (this.loading || this.done) return;
-    this.loading = true;
+    this.setLoading(true);
 
     const newPage = await firstValueFrom(this.fetch$());
 
@@ -58,7 +59,7 @@ export abstract class AbstractPaginationComponent<T> {
       this.page++;
     }
 
-    this.loading = false;
+    this.setLoading(false);
   }
 
   protected resetPagination(): void {
@@ -67,7 +68,7 @@ export abstract class AbstractPaginationComponent<T> {
     this.done = false;
     this.earlyDone = false;
     this.empty.set(true);
-    this.loading = false;
+    this.setLoading(false);
     void this.loadMore();
 
 
@@ -85,11 +86,17 @@ export abstract class AbstractPaginationComponent<T> {
     this.resetPagination();
   }
 
+  protected setLoading(loading: boolean): void {
+    this.loading = loading;
+    this.changeDetectorRef.markForCheck();
+  }
+
   /** Idempotente e robusto a layout dinamici (switch di step, skeleton, ecc.) */
   protected startObserver(bottomPx: number = 500): void {
-    if (!this.sentinel) return;
+    const sentinel = this.sentinel?.();
+    if (!sentinel) return;
 
-    const rootEl = this.root?.nativeElement ?? null;
+    const rootEl = this.root?.()?.nativeElement ?? null;
 
     // Stacca l'eventuale precedente
     this.observer?.disconnect();
@@ -107,8 +114,9 @@ export abstract class AbstractPaginationComponent<T> {
 
     // Osserva quando il DOM è misurabile
     this.resources.requestAnimationFrame(() => {
-      if (!this.sentinel) return;
-      this.observer!.observe(this.sentinel.nativeElement);
+      const currentSentinel = this.sentinel?.();
+      if (!currentSentinel) return;
+      this.observer!.observe(currentSentinel.nativeElement);
     });
 
     // Prime fetch se il contenuto non riempie il container (niente scroll -> niente intersect)

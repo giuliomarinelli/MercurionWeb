@@ -1,5 +1,5 @@
 import { NgClass, NgOptimizedImage, NgTemplateOutlet } from '@angular/common';
-import { Component, computed, effect, EventEmitter, inject, Input, OnDestroy, OnInit, Output, Signal, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, effect, inject, input, OnDestroy, OnInit, Signal, signal, ChangeDetectionStrategy, output } from '@angular/core';
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
 import { ThemeChoice } from '../../../Models/theme.models';
 import { DesignService } from '../../../services/design.service';
@@ -536,13 +536,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.isWelcomePath.set(clean.startsWith('/welcome'))
   }
 
-  @Input()
-  set triggerOpenOffCanvas(triggerOpenOffCanvas: boolean) {
-    this._triggerOpenOffCanvas.set(triggerOpenOffCanvas)
-  }
+  readonly triggerOpenOffCanvas = input(false)
 
-  @Output()
-  onOffCanvasMenuOpen = new EventEmitter<boolean>()
+  readonly onOffCanvasMenuOpen = output<boolean>();
 
   private routeSub?: Subscription
   private emailSub?: Subscription
@@ -585,6 +581,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
 
   constructor() {
+    effect(() => this._triggerOpenOffCanvas.set(this.triggerOpenOffCanvas()))
     effect(() => {
       const t = this.appContext.addedTriggerCloseOffCanvasMenu()
       if (t === 0) {

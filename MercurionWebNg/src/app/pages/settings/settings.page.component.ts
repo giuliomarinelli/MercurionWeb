@@ -1,5 +1,5 @@
 import { AuthService } from './../../services/auth.service';
-import { AfterViewInit, Component, effect, ElementRef, inject, OnDestroy, OnInit, QueryList, signal, ViewChild, ViewChildren, ChangeDetectionStrategy } from '@angular/core'
+import { AfterViewInit, Component, effect, ElementRef, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy, viewChild, viewChildren } from '@angular/core'
 import { CdkAccordion, CdkAccordionItem, CdkAccordionModule } from '@angular/cdk/accordion'
 import { EMPTY, map, of, startWith, Subscription, switchMap } from 'rxjs'
 import { AccountService } from '../../services/account.service'
@@ -621,16 +621,13 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly sidenavContext = inject(SidenavContextService)
   private readonly userContext = inject(UserContextService)
 
-  @ViewChild(CdkAccordion)
-  accordion!: CdkAccordion
+  readonly accordion = viewChild.required(CdkAccordion);
 
-  @ViewChildren(CdkAccordionItem)
-  accordionItems!: QueryList<CdkAccordionItem>
+  readonly accordionItems = viewChildren(CdkAccordionItem);
 
-  @ViewChildren(CdkAccordionItem, { read: ElementRef })
-  accordionItemHosts!: QueryList<ElementRef<HTMLElement>>
+  readonly accordionItemHosts = viewChildren(CdkAccordionItem, { read: ElementRef });
 
-  @ViewChild('pageTop') pageTop?: ElementRef<HTMLElement>
+  readonly pageTop = viewChild<ElementRef<HTMLElement>>('pageTop');
 
   scrollRootRef!: ElementRef<HTMLElement>
   private resizeObs?: ResizeObserver
@@ -673,6 +670,18 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
       this.fetch()
     })
     effect(() => {
+      const items = this.accordionItems()
+      if (!items.length) return
+
+      queueMicrotask(() => {
+        const currentFrag = this.route.snapshot.fragment
+        if (!currentFrag) {
+          this.openAccordionAtIndex(0, { closeOthers: true })
+          return
+        }
+
+        this.applyFragment(currentFrag)
+      })
     })
     effect(() => {
       const rootRef = this.appContext.globalScollRootRef()
@@ -709,24 +718,6 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   ngAfterViewInit(): void {
     this.appContext.notifyRequestGlobalScrollRootRefTick()
     this.attachSpinnerTracking()
-
-    this.viewSub = this.accordionItems.changes
-      .pipe(startWith(this.accordionItems))
-      .subscribe(items => {
-        const arr = items.toArray()
-        if (!arr.length) return
-
-        queueMicrotask(() => {
-          const currentFrag = this.route.snapshot.fragment
-
-          if (!currentFrag) {
-            this.openAccordionAtIndex(0, { closeOthers: true })
-            return
-          }
-
-          this.applyFragment(currentFrag)
-        })
-      })
   }
 
   ngOnDestroy(): void {
@@ -744,7 +735,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private attachSpinnerTracking(): void {
-    const host = this.pageTop?.nativeElement
+    const host = this.pageTop()?.nativeElement
     if (!host) return
 
     this.updateSpinnerLeft()
@@ -760,7 +751,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private updateSpinnerLeft = () => {
-    const rect = this.pageTop?.nativeElement.getBoundingClientRect()
+    const rect = this.pageTop()?.nativeElement.getBoundingClientRect()
     if (!rect) return
     this.spinnerLeft.set(rect.left + rect.width / 2)
   }
@@ -843,14 +834,14 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private openAccordionAtIndex(index: number | null, opts?: { closeOthers?: boolean }): void {
-    const items = this.accordionItems?.toArray() ?? []
+    const items = this.accordionItems()
     if (!items.length) {
       return
     }
 
     const closeOthers = opts?.closeOthers ?? true
     const hasValidIndex = index !== null && index >= 0 && index < items.length
-    const isMultiAccordion = this.accordion?.multi ?? false
+    const isMultiAccordion = this.accordion()?.multi ?? false
     const switchingBetweenItems =
       closeOthers
       && hasValidIndex
@@ -878,7 +869,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   handleAccordionClick(i: number): void {
-    const items = this.accordionItems?.toArray() ?? []
+    const items = this.accordionItems()
     const item = items[i]
     if (!item) return
 
@@ -906,7 +897,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
     this.updateBottomSpacer()
 
     setTimeout(() => {
-      const hosts = this.accordionItemHosts.toArray()
+      const hosts = this.accordionItemHosts()
       const itemEl = hosts[i]?.nativeElement
       const scrollRoot = this.scrollRootRef?.nativeElement
       if (!itemEl || !scrollRoot) {
@@ -1042,7 +1033,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   smoothToAccordionItem(i: number): void {
-    const hostRef = this.accordionItemHosts.get(i)
+    const hostRef = this.accordionItemHosts().at(i)
     if (!hostRef || !this.scrollRootRef) return
 
     const hostEl = hostRef.nativeElement
@@ -1080,7 +1071,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
     const idx = this.indexFromFragment(frag)
     this.pendingIndex = idx
 
-    const itemsArr = this.accordionItems?.toArray() ?? []
+    const itemsArr = this.accordionItems()
     if (!itemsArr.length) {
       return
     }
@@ -1096,7 +1087,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
       return
     }
 
-    const items = this.accordionItems?.toArray() ?? []
+    const items = this.accordionItems()
     for (const item of items) {
       if (item.expanded) {
         return
@@ -1107,7 +1098,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private updateBottomSpacer(): void {
-    const items = this.accordionItems?.toArray() ?? []
+    const items = this.accordionItems()
     const anyOpen = items.some(item => item.expanded)
 
     if (!anyOpen) {
