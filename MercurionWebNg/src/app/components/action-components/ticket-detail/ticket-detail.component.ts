@@ -15,11 +15,16 @@ import { TicketDetailContextService } from '../../../services/context/action-con
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 import {
   ClientTicket,
-  ClientTicketMessage,
   Ticket,
-  TicketMessage } from '../../../Models/graphql/help.models';
+} from '../../../Models/graphql/help.models';
+import {
+  TicketMessageViewModel,
+  TicketViewModel,
+  toTicketMessageViewModel,
+  toTicketViewModel,
+} from '../../../Models/graphql/help.view-models';
 import { AbstractPaginationComponent } from '../../../abstract/abstract-pagination-component';
-import { distinctUntilChanged, filter, firstValueFrom, Observable, of, switchMap } from 'rxjs';
+import { distinctUntilChanged, filter, firstValueFrom, map, Observable, of, switchMap } from 'rxjs';
 import { PageModel } from '../../../Models/graphql/page.models';
 import { HelpService } from '../../../services/graphql/help.service';
 import { TypeGuardsService } from '../../../services/type-guards.service';
@@ -274,8 +279,9 @@ import { DomainInvalidationService } from '../../../services/domain-invalidation
         </div>
       </div>
     </div>
-  ` })
-export class TicketDetailComponent extends AbstractPaginationComponent<TicketMessage | ClientTicketMessage> implements OnInit, OnDestroy, AfterViewInit {
+  `,
+})
+export class TicketDetailComponent extends AbstractPaginationComponent<TicketMessageViewModel> implements OnInit, OnDestroy, AfterViewInit {
 
   private readonly detailContext = inject(TicketDetailContextService)
   private readonly overlayContext = inject(ActionOverlayContextService)
@@ -298,7 +304,7 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
   @ViewChild('scrollRoot')
   protected declare root: ElementRef<HTMLDivElement>
 
-  ticket = signal<Ticket | ClientTicket | null>(null)
+  ticket = signal<TicketViewModel | null>(null)
   innerScope = computed(
     () => this.detailContext.innerScope() as TicketDetailInnerScope
   )
@@ -394,7 +400,7 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
     });
   }
 
-  protected override fetch$(): Observable<PageModel<TicketMessage | ClientTicketMessage>> {
+  protected override fetch$(): Observable<PageModel<TicketMessageViewModel>> {
     const scope = this.innerScope();
     const tId = this.detailContext.ticketId();
 
@@ -408,7 +414,7 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
         return of(null);
       }),
       switchMap((t: ClientTicket | Ticket | null) => {
-        if (t) this.ticket.set(t);
+        if (t) this.ticket.set(t ? toTicketViewModel(t) : null);
 
         return scope === 'User'
           ? this.helpService.myTicketMessages(
@@ -422,6 +428,10 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
             tId,
           );
       }),
+      map(res => ({
+        ...res,
+        items: res.items.map(toTicketMessageViewModel)
+      })),
       filter(Boolean),
       distinctUntilChanged()
     );
@@ -539,16 +549,15 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
 
     const nowIso = new Date().toISOString();
 
-    const optimistic: any = {
+    const optimistic = toTicketMessageViewModel({
       id: 'optimistic-' + crypto.randomUUID(),
       publicId: '',
       ticketId,
       authorType: this.innerScope(), // User o Support
       contentDelta: e.delta,
       contentHtml: e.html,
-      createdAt: nowIso,
-      triggerDisappear: signal(false),
-      collapse: signal(false) };
+      createdAt: nowIso
+    });
 
     this.items = [...this.items, optimistic];
 
