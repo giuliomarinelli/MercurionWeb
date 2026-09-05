@@ -1,22 +1,28 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Synthesis } from './Models/entities/synthesis.entity';
-import { SynthStepMoleculeRef } from './Models/entities/synth-step-molecule-ref.entity';
+import { SynthStepItem } from './Models/entities/synth-step-item.entity';
 import { SynthStep } from './Models/entities/synth-step.entity';
 import { SynthesisService } from './services/synthesis.service';
 import { SyntheticRouteResolver } from './resolvers/synthetic-route.resolver';
 import { SyntheticStepService } from './services/synthetic-step.service';
 import { SyntheticStepResolver } from './resolvers/synthetic-step.resolver';
-import { SynthStepMoleculeRefService } from './services/synth-step-molecule-ref.service';
-import { SyntheticStepMoleculeRefResolver } from './resolvers/synthetic-step-molecule-ref.resolver';
+import { SynthStepItemService } from './services/synth-step-item.service';
+import { SynthStepItemResolver } from './resolvers/synth-step-item.resolver';
 import { MoleculeCollectionModule } from '../molecule-collection/molecule-collection.module';
+import { SynthesisPoolCollection } from './Models/entities/synthesis-pool-collection.entity';
+import { SynthesisPoolMolecule } from './Models/entities/synthesis-pool-molecule.entity';
+import { SynthesisPoolService } from './services/synthesis-pool.service';
+import { SynthesisPoolResolver } from './resolvers/synthesis-pool.resolver';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([
             Synthesis,
-            SynthStepMoleculeRef,
-            SynthStep
+            SynthStepItem,
+            SynthStep,
+            SynthesisPoolCollection,
+            SynthesisPoolMolecule
         ]),
         MoleculeCollectionModule
     ],
@@ -25,8 +31,10 @@ import { MoleculeCollectionModule } from '../molecule-collection/molecule-collec
         SyntheticRouteResolver,
         SyntheticStepService,
         SyntheticStepResolver,
-        SynthStepMoleculeRefService,
-        SyntheticStepMoleculeRefResolver
+        SynthStepItemService,
+        SynthStepItemResolver,
+        SynthesisPoolService,
+        SynthesisPoolResolver
     ]
 })
 export class SynthModule { }

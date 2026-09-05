@@ -11,11 +11,18 @@ import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-l
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 import { ScopeService } from 'src/app_modules/auth/services/scope.service';
 import {
+  socketEventRegistry,
+  type ClientToServerEvents,
+  type ServerToClientEvents,
+} from '@mercurion/socket-contracts';
+import {
   ApplicationErrorCode,
   getApplicationError,
   isApplicationError
 } from 'src/exception-handling/application-error';
 import { getApplicationErrorDefinition } from '@mercurion/rest-contracts';
+
+type ApplicationSocket = Socket<ClientToServerEvents, ServerToClientEvents>
 
 @Injectable()
 export class WsGuard implements CanActivate {
@@ -49,7 +56,7 @@ export class WsGuard implements CanActivate {
 
   // 🔹 Validazione per EVENTI WebSocket
   private async validateWebSocketEvent(context: ExecutionContext): Promise<boolean> {
-    const client: Socket = context.switchToWs().getClient()
+    const client: ApplicationSocket = context.switchToWs().getClient()
     const token = client.handshake.auth.token as string
     const rawDeviceId: string | undefined = WebSocketUtils.parseCookie(client.handshake.headers.cookie)['__device_id'] || undefined
     let deviceId: string | undefined
@@ -102,7 +109,7 @@ export class WsGuard implements CanActivate {
     } catch (e) {
       if (isApplicationError(e, ApplicationErrorCode.PERMISSION_DENIED)) {
         const applicationError = getApplicationError(e)!
-        client.emit('sv.pub.err', {
+        client.emit(socketEventRegistry.applicationError.name, {
           code: applicationError.code,
           detail: applicationError.message
         })
@@ -113,10 +120,10 @@ export class WsGuard implements CanActivate {
     }
   }
 
-  private unauthorized(client: Socket): void {
-    client.emit('sv.pub.err', {
+  private unauthorized(client: ApplicationSocket): void {
+    client.emit(socketEventRegistry.applicationError.name, {
       code: ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED,
-      detail: getApplicationErrorDefinition(ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED).defaultMessage
+      detail: getApplicationErrorDefinition(ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED).defaultMessage ?? 'Unauthorized'
     })
     client.disconnect()
   }

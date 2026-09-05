@@ -6,16 +6,15 @@ import {
   RouterStateSnapshot,
   UrlTree
 } from '@angular/router'
+import { AuthStateStore } from '../services/auth-state.store'
 
 @Injectable({ providedIn: 'root' })
 export class AuthGuard implements CanActivate {
   private readonly router = inject(Router)
+  private readonly authState = inject(AuthStateStore)
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean | UrlTree {
-    const login = localStorage.getItem('login')
-    const isValid = !!login && login.length > 0
-
-    if (isValid) {
+    if (this.authState.isAuthenticated()) {
       return true
     }
 

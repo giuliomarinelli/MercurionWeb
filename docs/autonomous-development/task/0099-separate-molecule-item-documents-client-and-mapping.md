@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -93,25 +93,29 @@ _Not started._
 _None._
 
 ### Summary
-_Not started._
+Not attempted because required molecule transport/view-model separation task
+0016 (SYS-016) is `BLOCKED`. SYS GraphQL tasks 0002 through 0007 are `DONE`.
 
 ### Task-specific validation performed
-_Not started._
+Not applicable; no feature branch or implementation worker was created.
 
 ### Full pre-merge CI-parity validation
-_Not started._
+Not applicable; dependency-skip metadata only.
 
 ### Browser validation performed
-_Not started._
+Not applicable; the task was not attempted.
 
 ### Commits
-_Not recorded._
+Pending metadata commit on `develop`.
 
 ### Merge / CI
-_Not started._
+No feature branch or merge. Exact-SHA CI is required for the metadata commit.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-_None._
+Direct terminal prerequisite: task 0016 (SYS-016), `BLOCKED` because
+mandatory browser validation could not complete with the available
+authentication/runtime state. A test-safe canonical local auth/backend runtime
+and approved deterministic test state are required in a new session.

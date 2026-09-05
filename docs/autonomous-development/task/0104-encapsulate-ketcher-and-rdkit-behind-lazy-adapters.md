@@ -1,6 +1,6 @@
 # 0104 - Encapsulate Ketcher and RDKit behind lazy chemistry adapters
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -88,31 +88,52 @@ Mark `BLOCKED` if vendor initialization requires undocumented global state/patch
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/NG-018`, based at `8d721325c2c2ea21220b70248ace25f34109a95e`.
 
 ### Preflight
-_Not started._
+Proved no Angular, Nest, Tox21, Karma/test watcher or other workspace-consuming process was active. From the unchanged task branch:
+
+- `npm ci` - passed (1,925 packages installed; RDKit patch applied; 0 vulnerabilities).
+- `npm run ci:check` - passed with exit status 0.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-_Not started._
+- Added application-owned editor/renderer contracts, canonical chemistry errors and explicit disposable sessions.
+- Replaced direct feature dependencies on `@rdkit/rdkit`, `RDKitService` and Ketcher postMessage details with lazy `ChemistryRendererService` / `ChemistryEditorService` boundaries.
+- Added shared, retryable RDKit initialization; serialized Ketcher exports; readiness/operation timeouts; error translation; and controlled retry UI for editor/viewer failures.
+- Preserved the RDKit patch and current SMILES, MolBlock, SVG and molecular-property behavior.
+- Added a production chunk policy that rejects vendor signatures in the eager main entry and confirms the RDKit/Ketcher adapters are emitted lazily.
 
 ### Task-specific validation performed
-_Not started._
+- `npm run typecheck --workspace mercurion_web_ng` - passed.
+- `npm run lint --workspace mercurion_web_ng` - passed with the repository's existing warning baseline and zero errors.
+- `npx ng test --watch=false --karma-config=karma.conf.js --include='src/app/chemistry/**/*.spec.ts' --include='src/app/components/chem/**/*.spec.ts'` - 18/18 passed.
+- `npm run ci:build:angular` - passed; production build emitted `RDKit_minimal` and `rdkit-renderer-adapter` as lazy chunks, and `chemistry:check-lazy` confirmed the eager `main-MD3CC2AM.js` excludes RDKit/Ketcher adapter signatures.
 
 ### Full pre-merge CI-parity validation
-_Not started._
+After stopping all managed runtimes and proving no workspace-consuming process remained:
+
+- Candidate `npm ci` - passed.
+- Candidate `npm run ci:check` - passed with exit status 0.
+- The final clean install and complete CI-parity rerun after this execution-note commit are recorded in the worker result.
 
 ### Browser validation performed
-_Not started._
+Chrome DevTools MCP through `http://localhost:8888` with the canonical Angular, Nest and Tox21 runtime:
+
+- `/welcome` loaded first with no RDKit adapter, RDKit WASM or Ketcher asset request and no console errors.
+- `/molecules/detail/25` then loaded `rdkit-renderer-adapter`, `@rdkit/rdkit` and `/RDKit_minimal.wasm` on demand; the molecular SVG rendered and repeated welcome/detail mount cycles rendered again without chemistry console errors.
+- Forced an invalid viewer structure through the live Angular component: the typed unavailable state rendered, retry recovered to `ready`, and the SVG returned.
+- `/molecules/editor?mode=create` was exercised using a browser-only local session-state stub (no credential or backend-data mutation). Ketcher loaded only after route activation; the live application adapter reached `ready`, set `CCO`, exported `CCO`, and remained `ready` after an editor unmount/remount.
+- A separate same-origin iframe protocol probe confirmed Ketcher readiness/export and a clean remount. The only editor-route console findings were unrelated history API `429`/`EmptyError` messages caused by the intentionally unauthenticated browser-state stub; there were no Ketcher/RDKit adapter errors.
 
 ### Commits
-_Not recorded._
+- `16f159b3` - `feat(chemistry): add lazy vendor adapters`
+- Execution-note/final-status commit recorded in the worker result.
 
 ### Merge / CI
-_Not started._
+Ready for coordinator feature-SHA CI and integration. No merge performed by the worker.
 
 ### Rollback
 _Not applicable._

@@ -18,12 +18,15 @@ import { HelpService } from '../../services/graphql/help.service'
 import { TypeGuardsService } from '../../services/type-guards.service'
 import { AbstractPaginationComponent } from '../../abstract/abstract-pagination-component'
 import { PageModel } from '../../Models/graphql/page.models'
-import { Ticket, ClientTicket } from '../../Models/graphql/help.models'
+import {
+  ClientTicket,
+  Ticket,
+} from '../../Models/graphql/help.models'
+import { TicketViewModel, toTicketViewModel } from '../../Models/graphql/help.view-models'
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component'
 import { TabsComponent } from '../../components/common/tabs/tabs.component'
 import { TicketCardComponent } from '../../components/support/ticket-card/ticket-card.component'
 import { TicketCardSkeletonComponent } from '../../components/support/ticket-card-skeleton/ticket-card-skeleton.component'
-import { TicketDetailContextService } from '../../services/context/action-context/ticket-detail-context.service'
 import { DomainInvalidationService } from '../../services/domain-invalidation.service'
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service'
 import { GqlV2Error } from '../../services/graphql/graphql-helpers/v2/gql-v2.error'
@@ -113,12 +116,11 @@ import {
 
   `
 })
-export class HelpPageComponent extends AbstractPaginationComponent<Ticket | ClientTicket> implements OnInit, OnDestroy, AfterViewInit {
+export class HelpPageComponent extends AbstractPaginationComponent<TicketViewModel> implements OnInit, OnDestroy, AfterViewInit {
 
   private readonly authService = inject(AuthService)
   private readonly helpService = inject(HelpService)
   protected readonly typeGuards = inject(TypeGuardsService)
-  private readonly detailContext = inject(TicketDetailContextService)
   private readonly invalidations = inject(DomainInvalidationService)
   private readonly overlayContext = inject(ActionOverlayContextService)
   private readonly cdr = inject(ChangeDetectorRef)
@@ -196,9 +198,7 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
         }
 
         setTimeout(() => {
-          this.detailContext.setInnerScope(innerScope)
-          this.detailContext.setTicketId(ticketId)
-          this.overlayContext.open('TicketDetail')
+          this.overlayContext.open('TicketDetail', { ticketId, innerScope })
 
           this.router.navigate([], {
             relativeTo: this.route,
@@ -242,7 +242,7 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
     })
   }
 
-  protected override fetch$(): Observable<PageModel<Ticket | ClientTicket>> {
+  protected override fetch$(): Observable<PageModel<TicketViewModel>> {
     return of(null).pipe(
       switchMap(() => {
         if (this.activeTab() === 1) {
@@ -251,6 +251,10 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
         }
         return this.helpService.myTickets(this.page, this.ITEMS_PER_PAGE)
       }),
+      map(res => ({
+        ...res,
+        items: res.items.map(toTicketViewModel)
+      })),
       tap(res => this.totalItems.set(res.totalItems))
     )
   }
@@ -288,16 +292,14 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
   openTicketDetail(ticketId: string): void {
     queueMicrotask(() => {
       const scope = this.activeTab() === 0 ? 'User' : 'Support'
-      this.detailContext.setInnerScope(scope)
-      this.detailContext.setTicketId(ticketId)
-      this.overlayContext.open('TicketDetail')
+      this.overlayContext.open('TicketDetail', { ticketId, innerScope: scope })
     })
   }
 
   newTicket(): void {
     queueMicrotask(() => {
-      this.detailContext.setInnerScope(this.activeTab() === 0 ? 'User' : 'Support')
-      this.overlayContext.open('NewTicket')
+      const innerScope = this.activeTab() === 0 ? 'User' : 'Support'
+      this.overlayContext.open('NewTicket', { innerScope })
     })
   }
 

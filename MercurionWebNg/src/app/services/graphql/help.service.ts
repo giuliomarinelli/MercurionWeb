@@ -1,4 +1,4 @@
-import { inject, Injectable, signal } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Apollo } from 'apollo-angular';
 import { map, Observable } from 'rxjs';
 import { ClientTicket, ClientTicketMessage, Ticket, TicketMessage } from '../../Models/graphql/help.models';
@@ -65,12 +65,7 @@ export class HelpService {
         fetchPolicy: 'network-only'
       }).valueChanges.pipe(
         map((res) => extractGqlData<MyTicketDetailQuery, 'myTicketDetail'>(res, 'myTicketDetail')),
-        map((res) => res.ticket),
-        map((res) => ({
-          ...res,
-          triggerDisappear: signal<boolean>(false),
-          collapse: signal<boolean>(false)
-        }))
+        map((res) => res.ticket)
       )
   }
 
@@ -85,14 +80,7 @@ export class HelpService {
         fetchPolicy: 'network-only'
       }).valueChanges.pipe(
         map((res) => extractGqlData<MyTicketsQuery, 'myTickets'>(res, 'myTickets')),
-        map((res) => ({
-          ...res,
-          items: res.items.map((i) => ({
-            ...i,
-            triggerDisappear: signal<boolean>(false),
-            collapse: signal<boolean>(false)
-          }))
-        }))
+        map((res) => res)
       )
   }
 
@@ -108,14 +96,7 @@ export class HelpService {
         fetchPolicy: 'network-only'
       }).valueChanges.pipe(
         map((res) => extractGqlData<MyTicketMessagesQuery, 'myTicketMessages'>(res, 'myTicketMessages')),
-        map((p) => ({
-          ...p,
-          items: p.items.map((m) => ({
-            ...m,
-            triggerDisappear: signal<boolean>(false),
-            collapse: signal<boolean>(false)
-          }))
-        }))
+        map((res) => res)
       )
   }
 
@@ -143,11 +124,7 @@ export class HelpService {
         }
       }).pipe(
         map((res) => extractGqlData<CreateTicketMutation, 'createTicket'>(res, 'createTicket')),
-        map((res) => ({
-          ...res,
-          triggerDisappear: signal<boolean>(false),
-          collapse: signal<boolean>(false)
-        }))
+        map((res) => res)
       )
   }
 
@@ -188,11 +165,7 @@ export class HelpService {
       }).valueChanges.pipe(
         map((res) => extractGqlData<TicketDetailAsSupportQuery, 'ticketDetailAsSupport'>(res, 'ticketDetailAsSupport')),
         map((res) => res.ticket),
-        map((res) => ({
-          ...res,
-          triggerDisappear: signal<boolean>(false),
-          collapse: signal<boolean>(false)
-        }))
+        map((res) => res)
       )
   }
 
@@ -207,14 +180,7 @@ export class HelpService {
         fetchPolicy: 'network-only'
       }).valueChanges.pipe(
         map((res) => extractGqlData<TicketsAsSupportQuery, 'ticketsAsSupport'>(res, 'ticketsAsSupport')),
-        map((res) => ({
-          ...res,
-          items: res.items.map((i) => ({
-            ...i,
-            collapse: signal<boolean>(false),
-            triggerDisappear: signal<boolean>(false)
-          }))
-        }))
+        map((res) => res)
       )
   }
 
@@ -230,14 +196,7 @@ export class HelpService {
         fetchPolicy: 'network-only'
       }).valueChanges.pipe(
         map((res) => extractGqlData<TicketMessagesAsSupportQuery, 'ticketMessagesAsSupport'>(res, 'ticketMessagesAsSupport')),
-        map((res) => ({
-          ...res,
-          items: res.items.map((i) => ({
-            ...i,
-            triggerDisappear: signal<boolean>(false),
-            collapse: signal<boolean>(false)
-          }))
-        }))
+        map((res) => res)
       )
   }
 

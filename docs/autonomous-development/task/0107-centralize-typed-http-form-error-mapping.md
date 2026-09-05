@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -90,18 +90,22 @@ _Not started._
 ### Preflight remediation
 _None._
 ### Summary
-_Not started._
+Not attempted because required SYS-011 is `SKIPPED_DEPENDENCY`. SYS-012 is
+`DONE`.
 ### Task-specific validation performed
-_Not started._
+Not applicable; no feature branch or implementation worker was created.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not applicable; dependency-skip metadata only.
 ### Browser validation performed
-_Not started._
+Not applicable; the task was not attempted.
 ### Commits
-_Not recorded._
+Pending metadata commit on `develop`.
 ### Merge / CI
-_Not started._
+No feature branch or merge. Exact-SHA CI is required for the metadata commit.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-_None._
+Direct terminal prerequisite: SYS-011, `SKIPPED_DEPENDENCY`. Its dependency
+chain is recorded in the SYS-011 recipe; existing auth/form facade work also
+includes the terminal FE-004 blocker requiring a test-safe local auth/backend
+runtime and approved deterministic test state.

@@ -90,8 +90,8 @@ Prefer Angular-provided migrations where safe, followed by manual review. Do not
 ## Execution notes
 
 ### Feature branch
-`feature/FE-030`, created from
-`7cbe65e00a5dd35187c0897819c5d083689a8547` and preserved for diagnosis.
+`feature/FE-030`, preserved and frozen at
+`4d5a2fdc74b37e82613e3567ca35a7b1bec9a6ff`.
 
 ### Preflight
 Passed unchanged: no task-owned workspace processes were active; `npm ci` and
@@ -102,8 +102,7 @@ _None._
 
 ### Summary
 Blocked before implementation because the task worker was denied filesystem
-write capability. The required component/API migration, task metadata update,
-commit, and push could not be performed. No source files changed.
+write capability. No source files changed.
 
 ### Task-specific validation performed
 Not run; the required implementation could not begin.
@@ -115,7 +114,8 @@ Not applicable; no implementation changes exist.
 Not applicable; the task was blocked before implementation.
 
 ### Commits
-Blocked-status metadata only.
+Feature status commit `4d5a2fdc74b37e82613e3567ca35a7b1bec9a6ff`;
+this `develop` metadata commit records the terminal outcome.
 
 ### Merge / CI
 No feature merge. The preserved branch is frozen after its status commit.

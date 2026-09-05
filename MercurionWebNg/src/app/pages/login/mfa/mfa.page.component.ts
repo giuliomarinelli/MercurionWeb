@@ -12,7 +12,7 @@ import {
   getApplicationErrorCode,
   hasApplicationErrorCode
 } from '../../../utils/application-error.util';
-import { UserContextService } from '../../../services/context/user-context.service'
+import { AuthStateStore } from '../../../services/auth-state.store'
 import { SessionSyncService } from '../../../services/session-sync.service'
 import type { SessionDeviceInfo } from '@mercurion/rest-contracts'
 import { BackupCodeDTO, TotpBodyDTO } from '../../../Models/auth/totp.models'
@@ -224,7 +224,7 @@ export class MfaPageComponent implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService)
   private readonly fingerprintService = inject(FingerprintService)
   private readonly sessionSyncService = inject(SessionSyncService)
-  private readonly userContext = inject(UserContextService)
+  private readonly authState = inject(AuthStateStore)
   private readonly toast = inject(ToastService)
   protected readonly design = inject(DesignService)
 
@@ -301,7 +301,7 @@ export class MfaPageComponent implements OnInit, OnDestroy {
   private storageListener = (e: StorageEvent) => {
     if (e.key === 'login' && e.newValue) {
       if (this.router.url.startsWith('/login')) {
-        this.userContext.setInitials(e.newValue ?? 'U')
+        this.authState.syncExternalState()
         this.router.navigateByUrl(this.resolveRedirectTarget())
       }
     }
@@ -345,6 +345,8 @@ export class MfaPageComponent implements OnInit, OnDestroy {
       return
     }
 
+    this.authState.enterPreAuthentication(this.loginFirstStepData?.preAuthorizationToken)
+
     // 4) auto-verify otp a 6 cifre
     this.otpStateSub = this.codeControl.valueChanges.pipe(
       filter(val => !!val),
@@ -360,12 +362,7 @@ export class MfaPageComponent implements OnInit, OnDestroy {
       }
     })
 
-    // 5) pulizia token
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('ws_accessToken')
-    localStorage.removeItem('ws_accessToken_ts')
-
-    // 6) parametri route
+    // 5) parametri route
     this.paramsSub = combineLatest([
       this.route.paramMap,
       this.route.queryParamMap
@@ -533,8 +530,6 @@ export class MfaPageComponent implements OnInit, OnDestroy {
         code: this.codeControl.value
       }
 
-    localStorage.removeItem('scp')
-
     this.otpVerifySub = this.authService.login_thirdStep(
       currentView as MfaStrategy,
       dto,
@@ -545,11 +540,14 @@ export class MfaPageComponent implements OnInit, OnDestroy {
       this.unTrusted()
     ).subscribe({
       next: (res) => {
-        this.authService.setAccessToken(res.accessToken ?? null)
-        this.authService.setWs_accessToken(res.ws_accessToken ?? null)
+        this.authState.completeAuthentication({
+          initials: res.initials ?? 'U',
+          accessToken: res.accessToken,
+          wsAccessToken: res.ws_accessToken,
+          scopes: res.accessToken ? this.authService.getUserScopesFromClaims(res.accessToken) : []
+        })
         sessionStorage.removeItem('preAuthorizationData')
 
-        localStorage.setItem('login', res.initials ?? 'U')
         this.sessionSyncService.resumeSession(res.initials ?? 'U')
 
         this.router.navigateByUrl(this.resolveRedirectTarget())

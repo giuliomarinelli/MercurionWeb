@@ -294,6 +294,7 @@ export class CreateCollectionComponent implements OnInit, AfterViewInit, OnDestr
   private readonly createContext = inject(CreateCollectionContextService);
   private readonly invalidation = inject(DomainInvalidationService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly sessionId = this.overlayContext.session('CreateCollection')?.id ?? -1;
 
   private naSub?: Subscription;
   private addSub?: Subscription;
@@ -330,7 +331,7 @@ export class CreateCollectionComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   close(): void {
-    this.overlayContext.close();
+    this.overlayContext.close(this.sessionId);
   }
 
   _trim(s: string): string {
@@ -368,12 +369,13 @@ export class CreateCollectionComponent implements OnInit, AfterViewInit, OnDestr
     ).subscribe({
       next: () => {
         this.invalidation.publish({ domain: 'molecule-collection', action: 'created' });
-        this.overlayContext.close();
+        this.overlayContext.close(this.sessionId);
       },
       error: () => {
         this.toast.trigger('Si è verificato un errore.', 'error', 3000);
-        this.overlayContext.close();
+        this.overlayContext.close(this.sessionId);
       }
     });
   }
 }
+

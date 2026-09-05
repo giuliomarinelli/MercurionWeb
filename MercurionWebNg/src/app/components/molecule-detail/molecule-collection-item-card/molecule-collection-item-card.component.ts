@@ -388,7 +388,6 @@ export class MoleculeCollectionItemCardComponent implements OnDestroy {
   }
 
   private updateName(id: string, name: string, type: 'chembl' | 'custom'): void {
-    console.log(id, name, type)
     if (this.typeGuards.isString(id) && this.typeGuards.isCustomMoleculeType(type)) {
       this.upNaSub = this.moleculeCollectionItemService.updateItemName(id, name, type).pipe(
         switchMap(() => this.historyContext.pollNewItem())
@@ -418,3 +417,4 @@ export class MoleculeCollectionItemCardComponent implements OnDestroy {
     this.upNaSub?.unsubscribe()
   }
 }
+

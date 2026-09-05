@@ -251,6 +251,7 @@ export class BindCollectionsToMoleculeComponent
   private readonly invalidation = inject(DomainInvalidationService);
   private readonly moleculeCollectionService = inject(MoleculeCollectionService);
   private readonly router = inject(Router);
+  private readonly sessionId = this.actionOverlayContext.session('BindCollectionsToMolecule')?.id ?? -1;
 
   private suSub?: Subscription;
 
@@ -316,7 +317,7 @@ export class BindCollectionsToMoleculeComponent
   }
 
   close(): void {
-    this.actionOverlayContext.close();
+    this.actionOverlayContext.close(this.sessionId);
   }
 
   doSubmit(): void {
@@ -346,9 +347,8 @@ export class BindCollectionsToMoleculeComponent
               });
             }
             this.error.set(!ok);
-            this.bindContext.clearMoleculeId();
             queueMicrotask(() => {
-              this.actionOverlayContext.close();
+              this.actionOverlayContext.close(this.sessionId);
               if (moleculeUUID) {
                 this.router.navigateByUrl(`/molecules/detail/${moleculeUUID}`);
               }
@@ -363,3 +363,4 @@ export class BindCollectionsToMoleculeComponent
     }
   }
 }
+

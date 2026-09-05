@@ -8,7 +8,7 @@ import { ThemeManagerService } from '../../services/context/theme-manager.servic
 import { PublicPipe } from '../../pipes/public.pipe'
 import { AuthService } from '../../services/auth.service'
 import { FingerprintService } from '../../services/fingerprint.service'
-import { UserContextService } from '../../services/context/user-context.service'
+import { AuthStateStore } from '../../services/auth-state.store'
 import { SessionSyncService } from '../../services/session-sync.service'
 
 import { TurnstileComponent } from '../../components/common/turnstile/turnstile.component'
@@ -249,7 +249,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService)
   private readonly fingerprintService = inject(FingerprintService)
   private readonly sessionSync = inject(SessionSyncService)
-  private readonly userContext = inject(UserContextService)
+  private readonly authState = inject(AuthStateStore)
   private readonly route = inject(ActivatedRoute)
   private readonly destroyRef = inject(DestroyRef)
 
@@ -315,7 +315,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
     if (!e.newValue) return
     if (!this.router.url.startsWith('/login')) return
 
-    this.userContext.setInitials(e.newValue ?? 'U')
+    this.authState.syncExternalState()
     this.redirectAfterLogin()
   }
 
@@ -368,7 +368,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
     if (!this.turnstileToken()) return
 
     this.loadingLogin.set(true)
-    localStorage.removeItem('scp')
+    this.authState.beginAuthentication('password')
 
     const dto: Login_FirstStepWrapper = {
       email: this.loginForm.value['email'],
@@ -390,6 +390,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
         if (redirectTo) qp.redirect_to = redirectTo
 
         if (res.needsMfa) {
+          this.authState.enterPreAuthentication(res.preAuthorizationToken)
           const { statusCode, timestamp, message, ...loginFirstStepData } = res
           sessionStorage?.setItem('preAuthorizationData', btoa(JSON.stringify(loginFirstStepData ?? '')))
 
@@ -405,10 +406,12 @@ export class LoginPageComponent implements OnInit, OnDestroy {
           return
         }
 
-        this.authService.setAccessToken(res.accessToken ?? null)
-        this.authService.setWs_accessToken(res.ws_accessToken ?? null)
-
-        localStorage.setItem(this.loginKey, res.initials ?? 'U')
+        this.authState.completeAuthentication({
+          initials: res.initials ?? 'U',
+          accessToken: res.accessToken,
+          wsAccessToken: res.ws_accessToken,
+          scopes: res.accessToken ? this.authService.getUserScopesFromClaims(res.accessToken) : []
+        })
         this.sessionSync.resumeSession(res.initials ?? 'U')
 
         this.loadingLogin.set(false)
@@ -514,7 +517,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
 
       const hasLogin = !!localStorage.getItem(this.loginKey)
       if (!hasLogin) return
-      if (!this.userContext.isLoggedIn()) return
+      if (!this.authState.isAuthenticated()) return
 
       this.redirectAfterLogin()
     }, 1500)

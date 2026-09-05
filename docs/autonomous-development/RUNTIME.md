@@ -40,16 +40,16 @@ Before browser-facing validation, the session runner must ensure these three app
 
 ### 1. MercurionWebNode
 
-Working directory, relative to the `MercurionWeb` Git root:
+Working directory:
 
 ```text
-MercurionWebNode
+MercurionWeb Git root
 ```
 
 Command:
 
 ```text
-npm run start:dev
+npm run start:dev --workspace mercurion_web_node
 ```
 
 This is a watch-mode process and must remain alive for the validation workload.

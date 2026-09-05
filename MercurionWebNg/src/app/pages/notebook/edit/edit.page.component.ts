@@ -1,3 +1,4 @@
+import { LoggerService } from '../../../services/logger.service';
 import { AfterViewChecked, AfterViewInit, Component, ChangeDetectionStrategy, DestroyRef, ElementRef, OnDestroy, OnInit, ViewChild, computed, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LabNotebookEditorComponent } from '../../../components/notebook/lab-notebook-editor/lab-notebook-editor.component';
@@ -80,6 +81,7 @@ export class NotebookEditPageComponent implements OnInit, OnDestroy, AfterViewCh
 
   protected offsetHeight = signal<number>(0)
   private readonly destroyRef = inject(DestroyRef)
+  private readonly logger = inject(LoggerService)
   protected title = signal<string>('')
   protected level = signal<'notebook' | 'chapter' | 'section' | 'page' | undefined>(undefined)
   trigger = signal<boolean>(false)
@@ -143,7 +145,7 @@ export class NotebookEditPageComponent implements OnInit, OnDestroy, AfterViewCh
         if (!page) return of(null)
         return this.notebookService.updatePage(page.id, page.title, content).pipe(
           catchError(err => {
-            console.error('Errore nel salvataggio: ' + err.message)
+            this.logger.error('Error saving notebook page', err)
             return of(null)
           })
         )
@@ -162,7 +164,7 @@ export class NotebookEditPageComponent implements OnInit, OnDestroy, AfterViewCh
       const height = this.h1Ref.nativeElement.clientHeight;
       if (this.offsetHeight() !== height) {
         this.offsetHeight.set(height + 12);
-        console.log('offsetHeight aggiornato a', height);
+        
       }
 
     }
@@ -197,3 +199,4 @@ export class NotebookEditPageComponent implements OnInit, OnDestroy, AfterViewCh
   }
 
 }
+
