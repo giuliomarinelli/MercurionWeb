@@ -32,6 +32,7 @@ describe('Help transport adapters', () => {
 
     const viewModel = toTicketViewModel(ticket)
 
+    expect(viewModel.id).toBe(ticket.id)
     expect(viewModel.triggerDisappear()).toBeFalse()
     expect(viewModel.collapse()).toBeFalse()
     expect(JSON.stringify(ticket)).not.toContain('triggerDisappear')
@@ -46,5 +47,19 @@ describe('Help transport adapters', () => {
 
     expect(viewModel.triggerDisappear()).toBeFalse()
     expect(viewModel.collapse()).toBeFalse()
+  })
+
+  it('creates independent view state without mutating either transport object', () => {
+    const first = toTicketViewModel(ticket)
+    const second = toTicketViewModel({ ...ticket, id: 'ticket-2' })
+
+    first.collapse.set(true)
+    first.triggerDisappear.set(true)
+
+    expect(first.collapse()).toBeTrue()
+    expect(first.triggerDisappear()).toBeTrue()
+    expect(second.collapse()).toBeFalse()
+    expect(second.triggerDisappear()).toBeFalse()
+    expect(JSON.parse(JSON.stringify(ticket))).toEqual(ticket)
   })
 })
