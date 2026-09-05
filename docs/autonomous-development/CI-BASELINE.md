@@ -64,8 +64,10 @@ and `0200` later ratchet Angular and Nest lint to zero findings.
 ## GitHub Actions contract
 
 `.github/workflows/ci.yml` is a permanent exact-SHA integration control
-plane. It runs on pushes to `develop`, `feature/**`, and `chore/**`, on
-pull requests targeting `develop` or `master`, and on manual dispatch. Every
+plane. It runs on pushes to `develop` and `feature/**`, on pull requests targeting
+`develop` or `master`, and on manual dispatch. Review-oriented `chore/**`
+branches use the pull-request trigger only, avoiding a duplicate full matrix
+for the same proposed change. Every
 run exposes the stable aggregate check `Required gate`, but a classifier picks
 the least expensive path that preserves the evidence invariant:
 
