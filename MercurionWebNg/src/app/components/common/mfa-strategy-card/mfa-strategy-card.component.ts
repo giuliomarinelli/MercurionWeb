@@ -1,11 +1,12 @@
 import { MfaStrategyDTO } from './../../../Models/account/account.models';
-import { Component, EventEmitter, inject, Input, Output, signal } from '@angular/core';
+import { Component, EventEmitter, inject, Input, Output, signal, ChangeDetectionStrategy } from '@angular/core';
 import { MfaStrategy } from '../../../Models/account/account.models';
 import { NgClass } from '@angular/common';
 import { DesignService } from '../../../services/design.service';
 
 @Component({
   selector: 'm-mfa-strategy-card',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgClass],
   template: `
 

@@ -1,10 +1,11 @@
-import { Component, effect, Input, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, effect, Input, signal } from '@angular/core';
 import { T1PredictionDTO, T1PredictionItem } from '../../../Models/notebook/t1-prediction-model';
 import { PercentPipe } from '@angular/common';
 
 
 @Component({
   selector: 'm-t1-prediction-card',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [PercentPipe],
   template: `
 

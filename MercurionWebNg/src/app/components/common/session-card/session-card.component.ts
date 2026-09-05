@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, EventEmitter, Input, Output, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { Helpers } from '../../../helpers'
 import { SessionDTOExt } from '../../../Models/account/account.models';
@@ -6,6 +6,7 @@ import { ClassicSpinnerComponent } from "../classic-spinner/classic-spinner.comp
 
 @Component({
   selector: 'm-session-card',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     DatePipe,
     ClassicSpinnerComponent

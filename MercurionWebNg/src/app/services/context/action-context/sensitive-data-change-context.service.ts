@@ -1,27 +1,18 @@
-import { Injectable, signal } from '@angular/core';
-import { SensitiveDataChangeInnerScope } from '../../../Models/action/action-overlay.models';
+import { Injectable, computed, inject } from '@angular/core';
+import { ActionOverlayContextService } from './action-overlay-context.service';
 
+/**
+ * Read-only view over the active `SensitiveDataChange` session input.
+ */
 @Injectable({
   providedIn: 'root'
 })
 export class SensitiveDataChangeContextService {
 
-  private _addedTick = signal<number>(0)
-  readonly addedTick = this._addedTick.asReadonly()
+  private readonly overlay = inject(ActionOverlayContextService)
 
-  private _innerScope = signal<SensitiveDataChangeInnerScope>('')
-  readonly innerScope = this._innerScope.asReadonly()
-
-  setInnerScope(scope: Omit<SensitiveDataChangeInnerScope, ''>): void {
-    this._innerScope.set(scope as SensitiveDataChangeInnerScope)
-  }
-
-  clearInnerScope(): void {
-    this._innerScope.set('')
-  }
-
-  notifyAdded(): void {
-    this._addedTick.update(x => x + 1)
-  }
+  readonly innerScope = computed(() =>
+    this.overlay.session('SensitiveDataChange')?.input.innerScope ?? ''
+  )
 
 }

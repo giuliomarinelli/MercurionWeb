@@ -16,6 +16,10 @@ export default tseslint.config(
     ],
     processor: angular.processInlineTemplates,
     rules: {
+      // Production debugging safeguards
+      'no-debugger': 'error',
+      'no-console': 'error',
+
       // Existing migration debt remains visible without making the bootstrap
       // lint gate mutating or unusable. New code is still checked by the full
       // Angular/TypeScript parser and recommended rule set.

@@ -12,7 +12,7 @@ import { Router } from '@angular/router'
 import { UserContextService } from './context/user-context.service'
 import { ToastService } from './toast.service'
 import { ToastContext } from '../components/common/toast/toast.component'
-import { environment } from '../../environments/environment.development'
+import { environment } from '../../environments/environment'
 import { RealtimeSocketService } from './socket.IO/realtime-socket.service'
 import {
   ApplicationErrorCode,
@@ -94,7 +94,7 @@ export class SessionSyncService {
     })
 
     // errore applicativo → tentiamo resync (niente logout automatico)
-    this.socket.on<{ code?: string; detail: string }>('sv.pub.err').subscribe(err =>
+    this.socket.onApplicationError().subscribe(err =>
       this.zone.run(() => {
         if (hasApplicationErrorCode(
           err,
@@ -106,7 +106,7 @@ export class SessionSyncService {
     )
 
     // scadenza sessione lato server
-    this.socket.on('sv.pub.session_expired').subscribe(() =>
+    this.socket.onSessionExpired().subscribe(() =>
       this.zone.run(() => this.handleSessionExpired())
     )
 
@@ -263,7 +263,7 @@ export class SessionSyncService {
         return
       }
 
-      const ack: any = await this.socket.emit('so.pub.session_init', undefined, 1200)
+      const ack = await this.socket.emitSessionInit(1200)
 
       if (ack?.detail === 'websocket session init successful') {
         this.unauthorizedRetries = 0

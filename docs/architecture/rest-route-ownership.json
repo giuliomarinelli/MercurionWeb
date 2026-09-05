@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "generatedBy": "node scripts/check-rest-route-ownership.mjs --write",
   "globalPrefix": "/api",
   "prefixExceptions": [
@@ -10,11 +10,11 @@
   ],
   "routes": [
     {
-      "method": "PATCH",
-      "path": "/api/account/activate",
+      "method": "DELETE",
+      "path": "/api/account/phone/1",
       "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
-      "handler": "activateAccount",
-      "line": 56,
+      "handler": "deletePhoneNumber_firstStep",
+      "line": 82,
       "classification": "active product feature",
       "owner": "Mercurion Angular application",
       "evidence": [
@@ -24,11 +24,137 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "line": 115
+          "line": 255,
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "line": 271,
+          "kind": "angular-source"
         },
         {
           "file": "MercurionWebNode/src/config/rate-limit.config.ts",
-          "line": 73
+          "line": 77,
+          "kind": "server-source"
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/authentication/logout",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
+      "handler": "logout",
+      "line": 243,
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/auth.service.ts",
+          "line": 255,
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNg/src/app/services/auth.service.ts",
+          "line": 439,
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNg/src/app/services/auth.service.ts",
+          "line": 450,
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
+          "line": 67,
+          "kind": "server-source"
+        },
+        {
+          "file": "docs/autonomous-development/task/0031-make-logout-a-deterministic-session-transition.md",
+          "line": 16,
+          "kind": "documentation"
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/documents/:id",
+      "controller": "MercurionWebNode/src/app_modules/dropbox-object-store/controllers/document.controller.ts",
+      "handler": "delete",
+      "line": 171,
+      "classification": "needs-human-classification",
+      "owner": "Unassigned",
+      "evidence": [
+        "No Angular HttpClient call or documented external consumer was found for the document API; decide retain with an owner or remove it."
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
+          "line": 104,
+          "kind": "server-source"
+        },
+        {
+          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
+          "line": 152,
+          "kind": "documentation"
+        },
+        {
+          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
+          "line": 158,
+          "kind": "documentation"
+        },
+        {
+          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
+          "line": 159,
+          "kind": "documentation"
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/feedback/:id",
+      "controller": "MercurionWebNode/src/app_modules/feedback/controllers/feedback.controller.ts",
+      "handler": "delete",
+      "line": 91,
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/feedback.service.ts",
+          "line": 21,
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/history",
+      "controller": "MercurionWebNode/src/app_modules/history/controllers/history.controller.ts",
+      "handler": "deleteHistory",
+      "line": 55,
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/history.service.ts",
+          "line": 16,
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNg/src/app/services/history.service.ts",
+          "line": 31,
+          "kind": "angular-source"
         }
       ]
     },
@@ -47,11 +173,13 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "line": 152
+          "line": 152,
+          "kind": "angular-source"
         },
         {
           "file": "MercurionWebNode/src/config/rate-limit.config.ts",
-          "line": 96
+          "line": 96,
+          "kind": "server-source"
         }
       ]
     },
@@ -70,7 +198,8 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "line": 68
+          "line": 68,
+          "kind": "angular-source"
         }
       ]
     },
@@ -89,7 +218,8 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "line": 158
+          "line": 158,
+          "kind": "angular-source"
         }
       ]
     },
@@ -108,96 +238,33 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "line": 59
+          "line": 59,
+          "kind": "angular-source"
         },
         {
           "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "line": 235
+          "line": 235,
+          "kind": "angular-source"
         },
         {
           "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "line": 245
+          "line": 245,
+          "kind": "angular-source"
         },
         {
           "file": "MercurionWebNode/src/config/rate-limit.config.ts",
-          "line": 75
+          "line": 75,
+          "kind": "server-source"
         },
         {
           "file": "MercurionWebNode/src/config/rate-limit.config.ts",
-          "line": 76
+          "line": 76,
+          "kind": "server-source"
         },
         {
           "file": "MercurionWebNode/src/config/rate-limit.config.ts",
-          "line": 94
-        }
-      ]
-    },
-    {
-      "method": "PATCH",
-      "path": "/api/account/email/1",
-      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
-      "handler": "changeEmail_firstStep",
-      "line": 64,
-      "classification": "active product feature",
-      "owner": "Mercurion Angular application",
-      "evidence": [
-        "MercurionWebNg/src/app/services/",
-        "MercurionWebNode/src/app_modules/"
-      ],
-      "references": [
-        {
-          "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "line": 235
-        },
-        {
-          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
-          "line": 75
-        }
-      ]
-    },
-    {
-      "method": "PATCH",
-      "path": "/api/account/email/2",
-      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
-      "handler": "changeEmail_secondStep",
-      "line": 72,
-      "classification": "active product feature",
-      "owner": "Mercurion Angular application",
-      "evidence": [
-        "MercurionWebNg/src/app/services/",
-        "MercurionWebNode/src/app_modules/"
-      ],
-      "references": [
-        {
-          "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "line": 245
-        },
-        {
-          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
-          "line": 76
-        }
-      ]
-    },
-    {
-      "method": "POST",
-      "path": "/api/account/forgotten-password",
-      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
-      "handler": "forgottenPassword",
-      "line": 201,
-      "classification": "active product feature",
-      "owner": "Mercurion Angular application",
-      "evidence": [
-        "MercurionWebNg/src/app/services/",
-        "MercurionWebNode/src/app_modules/"
-      ],
-      "references": [
-        {
-          "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "line": 82
-        },
-        {
-          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
-          "line": 88
+          "line": 94,
+          "kind": "server-source"
         }
       ]
     },
@@ -216,34 +283,13 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "line": 91
+          "line": 91,
+          "kind": "angular-source"
         },
         {
           "file": "MercurionWebNode/src/config/rate-limit.config.ts",
-          "line": 90
-        }
-      ]
-    },
-    {
-      "method": "POST",
-      "path": "/api/account/is-email-available",
-      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
-      "handler": "isEmailAvailable",
-      "line": 268,
-      "classification": "active product feature",
-      "owner": "Mercurion Angular application",
-      "evidence": [
-        "MercurionWebNg/src/app/services/",
-        "MercurionWebNode/src/app_modules/"
-      ],
-      "references": [
-        {
-          "file": "MercurionWebNg/src/app/services/auth.service.ts",
-          "line": 168
-        },
-        {
-          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
-          "line": 92
+          "line": 90,
+          "kind": "server-source"
         }
       ]
     },
@@ -262,45 +308,8 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "line": 140
-        }
-      ]
-    },
-    {
-      "method": "POST",
-      "path": "/api/account/mask-email",
-      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
-      "handler": "maskEmail",
-      "line": 350,
-      "classification": "active product feature",
-      "owner": "Mercurion Angular application",
-      "evidence": [
-        "MercurionWebNg/src/app/services/",
-        "MercurionWebNode/src/app_modules/"
-      ],
-      "references": [
-        {
-          "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "line": 290
-        }
-      ]
-    },
-    {
-      "method": "POST",
-      "path": "/api/account/mask-phone",
-      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
-      "handler": "maskPhone",
-      "line": 356,
-      "classification": "active product feature",
-      "owner": "Mercurion Angular application",
-      "evidence": [
-        "MercurionWebNg/src/app/services/",
-        "MercurionWebNode/src/app_modules/"
-      ],
-      "references": [
-        {
-          "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "line": 301
+          "line": 140,
+          "kind": "angular-source"
         }
       ]
     },
@@ -319,7 +328,8 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "line": 164
+          "line": 164,
+          "kind": "angular-source"
         }
       ]
     },
@@ -338,7 +348,8 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "line": 171
+          "line": 171,
+          "kind": "angular-source"
         }
       ]
     },
@@ -357,30 +368,8 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "line": 146
-        }
-      ]
-    },
-    {
-      "method": "PATCH",
-      "path": "/api/account/mfa/backup/regenerate",
-      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
-      "handler": "regenerateBackupCodes",
-      "line": 288,
-      "classification": "active product feature",
-      "owner": "Mercurion Angular application",
-      "evidence": [
-        "MercurionWebNg/src/app/services/",
-        "MercurionWebNode/src/app_modules/"
-      ],
-      "references": [
-        {
-          "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "line": 210
-        },
-        {
-          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
-          "line": 101
+          "line": 146,
+          "kind": "angular-source"
         }
       ]
     },
@@ -399,15 +388,777 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "line": 218
+          "line": 218,
+          "kind": "angular-source"
         },
         {
           "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "line": 224
+          "line": 224,
+          "kind": "angular-source"
         },
         {
           "file": "MercurionWebNode/src/config/rate-limit.config.ts",
-          "line": 98
+          "line": 98,
+          "kind": "server-source"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/account/profile-registry",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "getProfileRegistry",
+      "line": 237,
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "line": 122,
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "line": 128,
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "line": 134,
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/account/profile-registry/essential",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "getEssentialProfileRegistry",
+      "line": 249,
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "line": 128,
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/maintenance",
+      "controller": "MercurionWebNode/src/app_modules/admin/controllers/admin.controller.ts",
+      "handler": "getAdminMaintenanceCookie",
+      "line": 31,
+      "classification": "documented external consumer",
+      "owner": "Privileged administration client",
+      "evidence": [
+        "MercurionWebNode/src/app_modules/admin/controllers/admin.controller.ts",
+        "MercurionWebNode/src/app_modules/auth/guards/scope.guard.ts"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/auth.service.ts",
+          "line": 470,
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/authentication/ws-refresh",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
+      "handler": "refreshWs_accessToken",
+      "line": 287,
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/auth.service.ts",
+          "line": 264,
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
+          "line": 62,
+          "kind": "server-source"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/countries/phone-prefixes",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/country.controller.ts",
+      "handler": "getAllPhonePrefixes",
+      "line": 10,
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/country.service.ts",
+          "line": 18,
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/documents",
+      "controller": "MercurionWebNode/src/app_modules/dropbox-object-store/controllers/document.controller.ts",
+      "handler": "list",
+      "line": 182,
+      "classification": "needs-human-classification",
+      "owner": "Unassigned",
+      "evidence": [
+        "No Angular HttpClient call or documented external consumer was found for the document API; decide retain with an owner or remove it."
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
+          "line": 104,
+          "kind": "server-source"
+        },
+        {
+          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
+          "line": 152,
+          "kind": "documentation"
+        },
+        {
+          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
+          "line": 158,
+          "kind": "documentation"
+        },
+        {
+          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
+          "line": 159,
+          "kind": "documentation"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/documents/:id",
+      "controller": "MercurionWebNode/src/app_modules/dropbox-object-store/controllers/document.controller.ts",
+      "handler": "download",
+      "line": 147,
+      "classification": "needs-human-classification",
+      "owner": "Unassigned",
+      "evidence": [
+        "No Angular HttpClient call or documented external consumer was found for the document API; decide retain with an owner or remove it."
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
+          "line": 104,
+          "kind": "server-source"
+        },
+        {
+          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
+          "line": 152,
+          "kind": "documentation"
+        },
+        {
+          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
+          "line": 158,
+          "kind": "documentation"
+        },
+        {
+          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
+          "line": 159,
+          "kind": "documentation"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/embedding/get-similar-molregnos",
+      "controller": "MercurionWebNode/src/app_modules/embedding/controllers/embedding.controller.ts",
+      "handler": "getSimilarMolregnos",
+      "line": 12,
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/embedding.service.ts",
+          "line": 14,
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/feedback",
+      "controller": "MercurionWebNode/src/app_modules/feedback/controllers/feedback.controller.ts",
+      "handler": "list",
+      "line": 46,
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/feedback.service.ts",
+          "line": 21,
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/feedback/:id",
+      "controller": "MercurionWebNode/src/app_modules/feedback/controllers/feedback.controller.ts",
+      "handler": "getById",
+      "line": 66,
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/feedback.service.ts",
+          "line": 21,
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/history",
+      "controller": "MercurionWebNode/src/app_modules/history/controllers/history.controller.ts",
+      "handler": "getHistory",
+      "line": 23,
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/history.service.ts",
+          "line": 16,
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNg/src/app/services/history.service.ts",
+          "line": 31,
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/oauth2/:provider/callback",
+      "controller": "MercurionWebNode/src/app_modules/oauth2-client/controllers/o-auth2-client.controller.ts",
+      "handler": "callback",
+      "line": 40,
+      "classification": "browser/system API",
+      "owner": "OAuth provider redirect and callback flow",
+      "evidence": [
+        "MercurionWebNode/src/app_modules/oauth2-client/controllers/o-auth2-client.controller.ts",
+        "MercurionWebNode/src/app_modules/sso/controllers/social-auth.controller.ts"
+      ],
+      "references": []
+    },
+    {
+      "method": "GET",
+      "path": "/api/oauth2/:provider/login",
+      "controller": "MercurionWebNode/src/app_modules/oauth2-client/controllers/o-auth2-client.controller.ts",
+      "handler": "login",
+      "line": 25,
+      "classification": "browser/system API",
+      "owner": "OAuth provider redirect and callback flow",
+      "evidence": [
+        "MercurionWebNode/src/app_modules/oauth2-client/controllers/o-auth2-client.controller.ts",
+        "MercurionWebNode/src/app_modules/sso/controllers/social-auth.controller.ts"
+      ],
+      "references": []
+    },
+    {
+      "method": "GET",
+      "path": "/api/oauth2/sso/:provider/callback",
+      "controller": "MercurionWebNode/src/app_modules/sso/controllers/social-auth.controller.ts",
+      "handler": "callback",
+      "line": 45,
+      "classification": "browser/system API",
+      "owner": "OAuth provider redirect and callback flow",
+      "evidence": [
+        "MercurionWebNode/src/app_modules/oauth2-client/controllers/o-auth2-client.controller.ts",
+        "MercurionWebNode/src/app_modules/sso/controllers/social-auth.controller.ts"
+      ],
+      "references": []
+    },
+    {
+      "method": "GET",
+      "path": "/api/oauth2/sso/:provider/login",
+      "controller": "MercurionWebNode/src/app_modules/sso/controllers/social-auth.controller.ts",
+      "handler": "login",
+      "line": 29,
+      "classification": "browser/system API",
+      "owner": "OAuth provider redirect and callback flow",
+      "evidence": [
+        "MercurionWebNode/src/app_modules/oauth2-client/controllers/o-auth2-client.controller.ts",
+        "MercurionWebNode/src/app_modules/sso/controllers/social-auth.controller.ts"
+      ],
+      "references": []
+    },
+    {
+      "method": "GET",
+      "path": "/api/test",
+      "controller": "MercurionWebNode/src/test.controller.ts",
+      "handler": "test",
+      "line": 11,
+      "classification": "test/dev-only endpoint",
+      "owner": "Nest diagnostic and E2E test support",
+      "evidence": [
+        "MercurionWebNode/src/test.controller.spec.ts",
+        "MercurionWebNode/src/test.controller.ts"
+      ],
+      "references": [
+        {
+          "file": "docs/autonomous-development/task/0139-remove-test-only-routes-from-production-nest-graph.md",
+          "line": 15,
+          "kind": "documentation"
+        },
+        {
+          "file": "docs/autonomous-development/task/0139-remove-test-only-routes-from-production-nest-graph.md",
+          "line": 47,
+          "kind": "documentation"
+        },
+        {
+          "file": "docs/autonomous-development/task/0139-remove-test-only-routes-from-production-nest-graph.md",
+          "line": 48,
+          "kind": "documentation"
+        },
+        {
+          "file": "docs/autonomous-development/task/0139-remove-test-only-routes-from-production-nest-graph.md",
+          "line": 69,
+          "kind": "documentation"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/health",
+      "controller": "MercurionWebNode/src/health.controller.ts",
+      "handler": "health",
+      "line": 11,
+      "classification": "browser/system API",
+      "owner": "Operations health monitoring",
+      "evidence": [
+        "MercurionWebNode/src/main.ts:setGlobalPrefix exclusion",
+        "docs/autonomous-development/RUNTIME.md: nginx health readiness check"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNode/src/app.module.ts",
+          "line": 36,
+          "kind": "server-source"
+        },
+        {
+          "file": "MercurionWebNode/src/health.controller.spec.ts",
+          "line": 2,
+          "kind": "server-source"
+        },
+        {
+          "file": "MercurionWebNode/src/main.ts",
+          "line": 71,
+          "kind": "server-source"
+        },
+        {
+          "file": "docker_sl/nginx_dev/nginx.conf",
+          "line": 57,
+          "kind": "nginx"
+        },
+        {
+          "file": "docker_sl/nginx_dev/nginx.conf",
+          "line": 58,
+          "kind": "nginx"
+        },
+        {
+          "file": "docker_sl/nginx_dev/nginx.conf",
+          "line": 59,
+          "kind": "nginx"
+        },
+        {
+          "file": "docker_sl/nginx_test/default.conf",
+          "line": 52,
+          "kind": "nginx"
+        },
+        {
+          "file": "docker_sl/nginx_test/default.conf",
+          "line": 53,
+          "kind": "nginx"
+        },
+        {
+          "file": "docs/autonomous-development/RUNTIME.md",
+          "line": 115,
+          "kind": "documentation"
+        },
+        {
+          "file": "docs/autonomous-development/reports/2026-09-03-mercurion-code-red-0001-overnight-2026-09-02.md",
+          "line": 199,
+          "kind": "documentation"
+        },
+        {
+          "file": "docs/autonomous-development/reports/2026-09-03-mercurion-code-red-0001-overnight-2026-09-02.md",
+          "line": 205,
+          "kind": "documentation"
+        },
+        {
+          "file": "docs/autonomous-development/task/0009-create-typed-socket-io-event-registry.md",
+          "line": 182,
+          "kind": "documentation"
+        },
+        {
+          "file": "docs/autonomous-development/task/0009-create-typed-socket-io-event-registry.md",
+          "line": 189,
+          "kind": "documentation"
+        },
+        {
+          "file": "docs/autonomous-development/task/0009-create-typed-socket-io-event-registry.md",
+          "line": 240,
+          "kind": "documentation"
+        },
+        {
+          "file": "docs/autonomous-development/task/0016-separate-transport-dtos-from-ui-state.md",
+          "line": 115,
+          "kind": "documentation"
+        },
+        {
+          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
+          "line": 16,
+          "kind": "documentation"
+        },
+        {
+          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
+          "line": 109,
+          "kind": "documentation"
+        },
+        {
+          "file": "docs/autonomous-development/task/0026-create-canonical-angular-auth-state-store.md",
+          "line": 129,
+          "kind": "documentation"
+        },
+        {
+          "file": "docs/autonomous-development/task/0045-model-the-action-overlay-as-an-exhaustive-state-machine.md",
+          "line": 110,
+          "kind": "documentation"
+        },
+        {
+          "file": "docs/autonomous-development/task/0048-eliminate-nested-subscriptions-and-declare-async-concurrency-policy.md",
+          "line": 115,
+          "kind": "documentation"
+        },
+        {
+          "file": "docs/autonomous-development/task/0076-move-toast-contracts-to-a-neutral-ui-model.md",
+          "line": 123,
+          "kind": "documentation"
+        },
+        {
+          "file": "docs/autonomous-development/task/0076-move-toast-contracts-to-a-neutral-ui-model.md",
+          "line": 140,
+          "kind": "documentation"
+        },
+        {
+          "file": "docs/autonomous-development/task/0105-own-rdkit-viewer-lifecycle-deterministically.md",
+          "line": 142,
+          "kind": "documentation"
+        },
+        {
+          "file": "docs/autonomous-development/task/0109-normalize-apollo-query-lifecycles-and-fetch-policies.md",
+          "line": 109,
+          "kind": "documentation"
+        },
+        {
+          "file": "docs/autonomous-development/task/0134-decompose-nest-bootstrap-into-configurators.md",
+          "line": 72,
+          "kind": "documentation"
+        },
+        {
+          "file": "docs/autonomous-development/task/0139-remove-test-only-routes-from-production-nest-graph.md",
+          "line": 30,
+          "kind": "documentation"
+        },
+        {
+          "file": "docs/autonomous-development/task/0139-remove-test-only-routes-from-production-nest-graph.md",
+          "line": 47,
+          "kind": "documentation"
+        },
+        {
+          "file": "docs/autonomous-development/task/0139-remove-test-only-routes-from-production-nest-graph.md",
+          "line": 56,
+          "kind": "documentation"
+        },
+        {
+          "file": "docs/autonomous-development/task/0158-add-transactional-outbox-for-help-notifications.md",
+          "line": 59,
+          "kind": "documentation"
+        },
+        {
+          "file": "docs/autonomous-development/task/0207-harden-container-runtime-contracts.md",
+          "line": 76,
+          "kind": "documentation"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/og/mercurion-og.png",
+      "controller": "MercurionWebNode/src/asset.controller.ts",
+      "handler": "serveOgImage",
+      "line": 51,
+      "classification": "browser/system API",
+      "owner": "Public web crawlers and social-preview clients",
+      "evidence": [
+        "MercurionWebNode/src/asset.controller.ts",
+        "MercurionWebNode/src/main.ts:setGlobalPrefix exclusion"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/index.html",
+          "line": 49,
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNg/src/index.html",
+          "line": 58,
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNode/src/main.ts",
+          "line": 71,
+          "kind": "server-source"
+        },
+        {
+          "file": "docker_sl/nginx_dev/nginx.conf",
+          "line": 21,
+          "kind": "nginx"
+        },
+        {
+          "file": "docker_sl/nginx_dev/nginx.conf",
+          "line": 22,
+          "kind": "nginx"
+        },
+        {
+          "file": "docker_sl/nginx_test/default.conf",
+          "line": 22,
+          "kind": "nginx"
+        },
+        {
+          "file": "docker_sl/nginx_test/default.conf",
+          "line": 23,
+          "kind": "nginx"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/robots.txt",
+      "controller": "MercurionWebNode/src/asset.controller.ts",
+      "handler": "serveRobots",
+      "line": 37,
+      "classification": "browser/system API",
+      "owner": "Public web crawlers and social-preview clients",
+      "evidence": [
+        "MercurionWebNode/src/asset.controller.ts",
+        "MercurionWebNode/src/main.ts:setGlobalPrefix exclusion"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNode/src/main.ts",
+          "line": 71,
+          "kind": "server-source"
+        },
+        {
+          "file": "docker_sl/nginx_dev/nginx.conf",
+          "line": 33,
+          "kind": "nginx"
+        },
+        {
+          "file": "docker_sl/nginx_dev/nginx.conf",
+          "line": 34,
+          "kind": "nginx"
+        },
+        {
+          "file": "docker_sl/nginx_test/default.conf",
+          "line": 32,
+          "kind": "nginx"
+        },
+        {
+          "file": "docker_sl/nginx_test/default.conf",
+          "line": 33,
+          "kind": "nginx"
+        },
+        {
+          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
+          "line": 109,
+          "kind": "documentation"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/sitemap.xml",
+      "controller": "MercurionWebNode/src/asset.controller.ts",
+      "handler": "serveSiteMap",
+      "line": 11,
+      "classification": "browser/system API",
+      "owner": "Public web crawlers and social-preview clients",
+      "evidence": [
+        "MercurionWebNode/src/asset.controller.ts",
+        "MercurionWebNode/src/main.ts:setGlobalPrefix exclusion"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNode/src/main.ts",
+          "line": 71,
+          "kind": "server-source"
+        },
+        {
+          "file": "docker_sl/nginx_dev/nginx.conf",
+          "line": 45,
+          "kind": "nginx"
+        },
+        {
+          "file": "docker_sl/nginx_dev/nginx.conf",
+          "line": 46,
+          "kind": "nginx"
+        },
+        {
+          "file": "docker_sl/nginx_test/default.conf",
+          "line": 42,
+          "kind": "nginx"
+        },
+        {
+          "file": "docker_sl/nginx_test/default.conf",
+          "line": 43,
+          "kind": "nginx"
+        }
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/account/activate",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "activateAccount",
+      "line": 56,
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "line": 115,
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
+          "line": 73,
+          "kind": "server-source"
+        }
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/account/email/1",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "changeEmail_firstStep",
+      "line": 64,
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "line": 235,
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
+          "line": 75,
+          "kind": "server-source"
+        }
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/account/email/2",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "changeEmail_secondStep",
+      "line": 72,
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "line": 245,
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
+          "line": 76,
+          "kind": "server-source"
+        }
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/account/mfa/backup/regenerate",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "regenerateBackupCodes",
+      "line": 288,
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "line": 210,
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
+          "line": 101,
+          "kind": "server-source"
         }
       ]
     },
@@ -482,19 +1233,23 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "line": 100
+          "line": 100,
+          "kind": "angular-source"
         },
         {
           "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "line": 109
+          "line": 109,
+          "kind": "angular-source"
         },
         {
           "file": "MercurionWebNode/src/config/rate-limit.config.ts",
-          "line": 86
+          "line": 86,
+          "kind": "server-source"
         },
         {
           "file": "MercurionWebNode/src/config/rate-limit.config.ts",
-          "line": 89
+          "line": 89,
+          "kind": "server-source"
         }
       ]
     },
@@ -513,38 +1268,13 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "line": 100
+          "line": 100,
+          "kind": "angular-source"
         },
         {
           "file": "MercurionWebNode/src/config/rate-limit.config.ts",
-          "line": 89
-        }
-      ]
-    },
-    {
-      "method": "DELETE",
-      "path": "/api/account/phone/1",
-      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
-      "handler": "deletePhoneNumber_firstStep",
-      "line": 82,
-      "classification": "active product feature",
-      "owner": "Mercurion Angular application",
-      "evidence": [
-        "MercurionWebNg/src/app/services/",
-        "MercurionWebNode/src/app_modules/"
-      ],
-      "references": [
-        {
-          "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "line": 255
-        },
-        {
-          "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "line": 271
-        },
-        {
-          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
-          "line": 77
+          "line": 89,
+          "kind": "server-source"
         }
       ]
     },
@@ -563,15 +1293,18 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "line": 255
+          "line": 255,
+          "kind": "angular-source"
         },
         {
           "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "line": 271
+          "line": 271,
+          "kind": "angular-source"
         },
         {
           "file": "MercurionWebNode/src/config/rate-limit.config.ts",
-          "line": 77
+          "line": 77,
+          "kind": "server-source"
         }
       ]
     },
@@ -590,11 +1323,13 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "line": 265
+          "line": 265,
+          "kind": "angular-source"
         },
         {
           "file": "MercurionWebNode/src/config/rate-limit.config.ts",
-          "line": 78
+          "line": 78,
+          "kind": "server-source"
         }
       ]
     },
@@ -613,34 +1348,8 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "line": 281
-        }
-      ]
-    },
-    {
-      "method": "GET",
-      "path": "/api/account/profile-registry",
-      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
-      "handler": "getProfileRegistry",
-      "line": 237,
-      "classification": "active product feature",
-      "owner": "Mercurion Angular application",
-      "evidence": [
-        "MercurionWebNg/src/app/services/",
-        "MercurionWebNode/src/app_modules/"
-      ],
-      "references": [
-        {
-          "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "line": 122
-        },
-        {
-          "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "line": 128
-        },
-        {
-          "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "line": 134
+          "line": 281,
+          "kind": "angular-source"
         }
       ]
     },
@@ -659,24 +1368,87 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "line": 122
+          "line": 122,
+          "kind": "angular-source"
         },
         {
           "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "line": 128
+          "line": 128,
+          "kind": "angular-source"
         },
         {
           "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "line": 134
+          "line": 134,
+          "kind": "angular-source"
         }
       ]
     },
     {
-      "method": "GET",
-      "path": "/api/account/profile-registry/essential",
+      "method": "PATCH",
+      "path": "/api/authentication/logout-from-all-sessions",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
+      "handler": "logoutFromAllSessions",
+      "line": 276,
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/auth.service.ts",
+          "line": 450,
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/authentication/logout-from-session",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
+      "handler": "logoutFromSession",
+      "line": 260,
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/auth.service.ts",
+          "line": 439,
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/feedback/:id",
+      "controller": "MercurionWebNode/src/app_modules/feedback/controllers/feedback.controller.ts",
+      "handler": "moderate",
+      "line": 79,
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/feedback.service.ts",
+          "line": 21,
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/account/forgotten-password",
       "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
-      "handler": "getEssentialProfileRegistry",
-      "line": 249,
+      "handler": "forgottenPassword",
+      "line": 201,
       "classification": "active product feature",
       "owner": "Mercurion Angular application",
       "evidence": [
@@ -686,7 +1458,78 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "line": 128
+          "line": 82,
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
+          "line": 88,
+          "kind": "server-source"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/account/is-email-available",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "isEmailAvailable",
+      "line": 268,
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/auth.service.ts",
+          "line": 168,
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
+          "line": 92,
+          "kind": "server-source"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/account/mask-email",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "maskEmail",
+      "line": 350,
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "line": 290,
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/account/mask-phone",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "maskPhone",
+      "line": 356,
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "line": 301,
+          "kind": "angular-source"
         }
       ]
     },
@@ -705,44 +1548,63 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/auth.service.ts",
-          "line": 158
+          "line": 158,
+          "kind": "angular-source"
         },
         {
           "file": "MercurionWebNode/src/config/rate-limit.config.ts",
-          "line": 72
+          "line": 72,
+          "kind": "server-source"
         }
       ]
     },
     {
-      "method": "PUT",
-      "path": "/api/admin/change-log-levels",
-      "controller": "MercurionWebNode/src/app_modules/admin/controllers/admin.controller.ts",
-      "handler": "changeLogLevels",
-      "line": 20,
-      "classification": "documented external consumer",
-      "owner": "Privileged administration client",
+      "method": "POST",
+      "path": "/api/authentication/login/0",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
+      "handler": "login_zeroStep",
+      "line": 72,
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
       "evidence": [
-        "MercurionWebNode/src/app_modules/admin/controllers/admin.controller.ts",
-        "MercurionWebNode/src/app_modules/auth/guards/scope.guard.ts"
-      ],
-      "references": []
-    },
-    {
-      "method": "GET",
-      "path": "/api/admin/maintenance",
-      "controller": "MercurionWebNode/src/app_modules/admin/controllers/admin.controller.ts",
-      "handler": "getAdminMaintenanceCookie",
-      "line": 31,
-      "classification": "documented external consumer",
-      "owner": "Privileged administration client",
-      "evidence": [
-        "MercurionWebNode/src/app_modules/admin/controllers/admin.controller.ts",
-        "MercurionWebNode/src/app_modules/auth/guards/scope.guard.ts"
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
       ],
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/auth.service.ts",
-          "line": 473
+          "line": 176,
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/authentication/login/1",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
+      "handler": "login_firstStep",
+      "line": 82,
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/auth.service.spec.ts",
+          "line": 53,
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNg/src/app/services/auth.service.ts",
+          "line": 183,
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
+          "line": 45,
+          "kind": "server-source"
         }
       ]
     },
@@ -776,121 +1638,6 @@
     },
     {
       "method": "POST",
-      "path": "/api/authentication/login/0",
-      "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
-      "handler": "login_zeroStep",
-      "line": 72,
-      "classification": "active product feature",
-      "owner": "Mercurion Angular application",
-      "evidence": [
-        "MercurionWebNg/src/app/services/",
-        "MercurionWebNode/src/app_modules/"
-      ],
-      "references": [
-        {
-          "file": "MercurionWebNg/src/app/services/auth.service.ts",
-          "line": 176
-        }
-      ]
-    },
-    {
-      "method": "POST",
-      "path": "/api/authentication/login/1",
-      "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
-      "handler": "login_firstStep",
-      "line": 82,
-      "classification": "active product feature",
-      "owner": "Mercurion Angular application",
-      "evidence": [
-        "MercurionWebNg/src/app/services/",
-        "MercurionWebNode/src/app_modules/"
-      ],
-      "references": [
-        {
-          "file": "MercurionWebNg/src/app/services/auth.service.ts",
-          "line": 183
-        },
-        {
-          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
-          "line": 45
-        }
-      ]
-    },
-    {
-      "method": "DELETE",
-      "path": "/api/authentication/logout",
-      "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
-      "handler": "logout",
-      "line": 243,
-      "classification": "active product feature",
-      "owner": "Mercurion Angular application",
-      "evidence": [
-        "MercurionWebNg/src/app/services/",
-        "MercurionWebNode/src/app_modules/"
-      ],
-      "references": [
-        {
-          "file": "MercurionWebNg/src/app/services/auth.service.ts",
-          "line": 257
-        },
-        {
-          "file": "MercurionWebNg/src/app/services/auth.service.ts",
-          "line": 441
-        },
-        {
-          "file": "MercurionWebNg/src/app/services/auth.service.ts",
-          "line": 452
-        },
-        {
-          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
-          "line": 67
-        },
-        {
-          "file": "docs/autonomous-development/task/0031-make-logout-a-deterministic-session-transition.md",
-          "line": 16
-        }
-      ]
-    },
-    {
-      "method": "PATCH",
-      "path": "/api/authentication/logout-from-all-sessions",
-      "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
-      "handler": "logoutFromAllSessions",
-      "line": 276,
-      "classification": "active product feature",
-      "owner": "Mercurion Angular application",
-      "evidence": [
-        "MercurionWebNg/src/app/services/",
-        "MercurionWebNode/src/app_modules/"
-      ],
-      "references": [
-        {
-          "file": "MercurionWebNg/src/app/services/auth.service.ts",
-          "line": 452
-        }
-      ]
-    },
-    {
-      "method": "PATCH",
-      "path": "/api/authentication/logout-from-session",
-      "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
-      "handler": "logoutFromSession",
-      "line": 260,
-      "classification": "active product feature",
-      "owner": "Mercurion Angular application",
-      "evidence": [
-        "MercurionWebNg/src/app/services/",
-        "MercurionWebNode/src/app_modules/"
-      ],
-      "references": [
-        {
-          "file": "MercurionWebNg/src/app/services/auth.service.ts",
-          "line": 441
-        }
-      ]
-    },
-    {
-      "method": "POST",
       "path": "/api/authentication/sso/:provider/authorize-flow",
       "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
       "handler": "authorize_sso",
@@ -904,158 +1651,36 @@
       "references": []
     },
     {
-      "method": "GET",
-      "path": "/api/authentication/ws-refresh",
-      "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
-      "handler": "refreshWs_accessToken",
-      "line": 287,
-      "classification": "active product feature",
-      "owner": "Mercurion Angular application",
-      "evidence": [
-        "MercurionWebNg/src/app/services/",
-        "MercurionWebNode/src/app_modules/"
-      ],
-      "references": [
-        {
-          "file": "MercurionWebNg/src/app/services/auth.service.ts",
-          "line": 266
-        },
-        {
-          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
-          "line": 62
-        }
-      ]
-    },
-    {
-      "method": "GET",
-      "path": "/api/countries/phone-prefixes",
-      "controller": "MercurionWebNode/src/app_modules/auth/controllers/country.controller.ts",
-      "handler": "getAllPhonePrefixes",
-      "line": 10,
-      "classification": "active product feature",
-      "owner": "Mercurion Angular application",
-      "evidence": [
-        "MercurionWebNg/src/app/services/",
-        "MercurionWebNode/src/app_modules/"
-      ],
-      "references": [
-        {
-          "file": "MercurionWebNg/src/app/services/country.service.ts",
-          "line": 18
-        }
-      ]
-    },
-    {
-      "method": "GET",
-      "path": "/api/documents",
-      "controller": "MercurionWebNode/src/app_modules/dropbox-object-store/controllers/document.controller.ts",
-      "handler": "list",
-      "line": 182,
-      "classification": "active product feature",
-      "owner": "Mercurion Angular application",
-      "evidence": [
-        "MercurionWebNg/src/app/services/",
-        "MercurionWebNode/src/app_modules/"
-      ],
-      "references": [
-        {
-          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
-          "line": 104
-        }
-      ]
-    },
-    {
       "method": "POST",
       "path": "/api/documents",
       "controller": "MercurionWebNode/src/app_modules/dropbox-object-store/controllers/document.controller.ts",
       "handler": "upload",
       "line": 38,
-      "classification": "active product feature",
-      "owner": "Mercurion Angular application",
+      "classification": "needs-human-classification",
+      "owner": "Unassigned",
       "evidence": [
-        "MercurionWebNg/src/app/services/",
-        "MercurionWebNode/src/app_modules/"
+        "No Angular HttpClient call or documented external consumer was found for the document API; decide retain with an owner or remove it."
       ],
       "references": [
         {
           "file": "MercurionWebNode/src/config/rate-limit.config.ts",
-          "line": 104
-        }
-      ]
-    },
-    {
-      "method": "DELETE",
-      "path": "/api/documents/:id",
-      "controller": "MercurionWebNode/src/app_modules/dropbox-object-store/controllers/document.controller.ts",
-      "handler": "delete",
-      "line": 171,
-      "classification": "active product feature",
-      "owner": "Mercurion Angular application",
-      "evidence": [
-        "MercurionWebNg/src/app/services/",
-        "MercurionWebNode/src/app_modules/"
-      ],
-      "references": [
+          "line": 104,
+          "kind": "server-source"
+        },
         {
-          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
-          "line": 104
-        }
-      ]
-    },
-    {
-      "method": "GET",
-      "path": "/api/documents/:id",
-      "controller": "MercurionWebNode/src/app_modules/dropbox-object-store/controllers/document.controller.ts",
-      "handler": "download",
-      "line": 147,
-      "classification": "active product feature",
-      "owner": "Mercurion Angular application",
-      "evidence": [
-        "MercurionWebNg/src/app/services/",
-        "MercurionWebNode/src/app_modules/"
-      ],
-      "references": [
+          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
+          "line": 152,
+          "kind": "documentation"
+        },
         {
-          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
-          "line": 104
-        }
-      ]
-    },
-    {
-      "method": "GET",
-      "path": "/api/embedding/get-similar-molregnos",
-      "controller": "MercurionWebNode/src/app_modules/embedding/controllers/embedding.controller.ts",
-      "handler": "getSimilarMolregnos",
-      "line": 12,
-      "classification": "active product feature",
-      "owner": "Mercurion Angular application",
-      "evidence": [
-        "MercurionWebNg/src/app/services/",
-        "MercurionWebNode/src/app_modules/"
-      ],
-      "references": [
+          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
+          "line": 158,
+          "kind": "documentation"
+        },
         {
-          "file": "MercurionWebNg/src/app/services/embedding.service.ts",
-          "line": 14
-        }
-      ]
-    },
-    {
-      "method": "GET",
-      "path": "/api/feedback",
-      "controller": "MercurionWebNode/src/app_modules/feedback/controllers/feedback.controller.ts",
-      "handler": "list",
-      "line": 46,
-      "classification": "active product feature",
-      "owner": "Mercurion Angular application",
-      "evidence": [
-        "MercurionWebNg/src/app/services/",
-        "MercurionWebNode/src/app_modules/"
-      ],
-      "references": [
-        {
-          "file": "MercurionWebNg/src/app/services/feedback.service.ts",
-          "line": 21
+          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
+          "line": 159,
+          "kind": "documentation"
         }
       ]
     },
@@ -1074,110 +1699,8 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/feedback.service.ts",
-          "line": 21
-        }
-      ]
-    },
-    {
-      "method": "DELETE",
-      "path": "/api/feedback/:id",
-      "controller": "MercurionWebNode/src/app_modules/feedback/controllers/feedback.controller.ts",
-      "handler": "delete",
-      "line": 91,
-      "classification": "active product feature",
-      "owner": "Mercurion Angular application",
-      "evidence": [
-        "MercurionWebNg/src/app/services/",
-        "MercurionWebNode/src/app_modules/"
-      ],
-      "references": [
-        {
-          "file": "MercurionWebNg/src/app/services/feedback.service.ts",
-          "line": 21
-        }
-      ]
-    },
-    {
-      "method": "GET",
-      "path": "/api/feedback/:id",
-      "controller": "MercurionWebNode/src/app_modules/feedback/controllers/feedback.controller.ts",
-      "handler": "getById",
-      "line": 66,
-      "classification": "active product feature",
-      "owner": "Mercurion Angular application",
-      "evidence": [
-        "MercurionWebNg/src/app/services/",
-        "MercurionWebNode/src/app_modules/"
-      ],
-      "references": [
-        {
-          "file": "MercurionWebNg/src/app/services/feedback.service.ts",
-          "line": 21
-        }
-      ]
-    },
-    {
-      "method": "PATCH",
-      "path": "/api/feedback/:id",
-      "controller": "MercurionWebNode/src/app_modules/feedback/controllers/feedback.controller.ts",
-      "handler": "moderate",
-      "line": 79,
-      "classification": "active product feature",
-      "owner": "Mercurion Angular application",
-      "evidence": [
-        "MercurionWebNg/src/app/services/",
-        "MercurionWebNode/src/app_modules/"
-      ],
-      "references": [
-        {
-          "file": "MercurionWebNg/src/app/services/feedback.service.ts",
-          "line": 21
-        }
-      ]
-    },
-    {
-      "method": "DELETE",
-      "path": "/api/history",
-      "controller": "MercurionWebNode/src/app_modules/history/controllers/history.controller.ts",
-      "handler": "deleteHistory",
-      "line": 55,
-      "classification": "active product feature",
-      "owner": "Mercurion Angular application",
-      "evidence": [
-        "MercurionWebNg/src/app/services/",
-        "MercurionWebNode/src/app_modules/"
-      ],
-      "references": [
-        {
-          "file": "MercurionWebNg/src/app/services/history.service.ts",
-          "line": 16
-        },
-        {
-          "file": "MercurionWebNg/src/app/services/history.service.ts",
-          "line": 31
-        }
-      ]
-    },
-    {
-      "method": "GET",
-      "path": "/api/history",
-      "controller": "MercurionWebNode/src/app_modules/history/controllers/history.controller.ts",
-      "handler": "getHistory",
-      "line": 23,
-      "classification": "active product feature",
-      "owner": "Mercurion Angular application",
-      "evidence": [
-        "MercurionWebNg/src/app/services/",
-        "MercurionWebNode/src/app_modules/"
-      ],
-      "references": [
-        {
-          "file": "MercurionWebNg/src/app/services/history.service.ts",
-          "line": 16
-        },
-        {
-          "file": "MercurionWebNg/src/app/services/history.service.ts",
-          "line": 31
+          "line": 21,
+          "kind": "angular-source"
         }
       ]
     },
@@ -1196,65 +1719,10 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/mercurion-ai.service.ts",
-          "line": 14
+          "line": 14,
+          "kind": "angular-source"
         }
       ]
-    },
-    {
-      "method": "GET",
-      "path": "/api/oauth2/:provider/callback",
-      "controller": "MercurionWebNode/src/app_modules/oauth2-client/controllers/o-auth2-client.controller.ts",
-      "handler": "callback",
-      "line": 40,
-      "classification": "browser/system API",
-      "owner": "OAuth provider redirect and callback flow",
-      "evidence": [
-        "MercurionWebNode/src/app_modules/oauth2-client/controllers/o-auth2-client.controller.ts",
-        "MercurionWebNode/src/app_modules/sso/controllers/social-auth.controller.ts"
-      ],
-      "references": []
-    },
-    {
-      "method": "GET",
-      "path": "/api/oauth2/:provider/login",
-      "controller": "MercurionWebNode/src/app_modules/oauth2-client/controllers/o-auth2-client.controller.ts",
-      "handler": "login",
-      "line": 25,
-      "classification": "browser/system API",
-      "owner": "OAuth provider redirect and callback flow",
-      "evidence": [
-        "MercurionWebNode/src/app_modules/oauth2-client/controllers/o-auth2-client.controller.ts",
-        "MercurionWebNode/src/app_modules/sso/controllers/social-auth.controller.ts"
-      ],
-      "references": []
-    },
-    {
-      "method": "GET",
-      "path": "/api/oauth2/sso/:provider/callback",
-      "controller": "MercurionWebNode/src/app_modules/sso/controllers/social-auth.controller.ts",
-      "handler": "callback",
-      "line": 45,
-      "classification": "browser/system API",
-      "owner": "OAuth provider redirect and callback flow",
-      "evidence": [
-        "MercurionWebNode/src/app_modules/oauth2-client/controllers/o-auth2-client.controller.ts",
-        "MercurionWebNode/src/app_modules/sso/controllers/social-auth.controller.ts"
-      ],
-      "references": []
-    },
-    {
-      "method": "GET",
-      "path": "/api/oauth2/sso/:provider/login",
-      "controller": "MercurionWebNode/src/app_modules/sso/controllers/social-auth.controller.ts",
-      "handler": "login",
-      "line": 29,
-      "classification": "browser/system API",
-      "owner": "OAuth provider redirect and callback flow",
-      "evidence": [
-        "MercurionWebNode/src/app_modules/oauth2-client/controllers/o-auth2-client.controller.ts",
-        "MercurionWebNode/src/app_modules/sso/controllers/social-auth.controller.ts"
-      ],
-      "references": []
     },
     {
       "method": "POST",
@@ -1271,7 +1739,8 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/rd-kit-api.service.ts",
-          "line": 32
+          "line": 32,
+          "kind": "angular-source"
         }
       ]
     },
@@ -1290,7 +1759,8 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/rd-kit-api.service.ts",
-          "line": 19
+          "line": 19,
+          "kind": "angular-source"
         }
       ]
     },
@@ -1309,7 +1779,8 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/rd-kit-api.service.ts",
-          "line": 25
+          "line": 25,
+          "kind": "angular-source"
         }
       ]
     },
@@ -1328,7 +1799,8 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/recovery.service.ts",
-          "line": 28
+          "line": 28,
+          "kind": "angular-source"
         }
       ]
     },
@@ -1347,270 +1819,28 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/recovery.service.ts",
-          "line": 42
+          "line": 42,
+          "kind": "angular-source"
         }
       ]
     },
     {
-      "method": "GET",
-      "path": "/api/test",
-      "controller": "MercurionWebNode/src/test.controller.ts",
-      "handler": "test",
-      "line": 11,
-      "classification": "test/dev-only endpoint",
-      "owner": "Nest diagnostic and E2E test support",
+      "method": "PUT",
+      "path": "/api/admin/change-log-levels",
+      "controller": "MercurionWebNode/src/app_modules/admin/controllers/admin.controller.ts",
+      "handler": "changeLogLevels",
+      "line": 20,
+      "classification": "documented external consumer",
+      "owner": "Administrative operators granted Scope.ChangeLogLevels",
       "evidence": [
-        "MercurionWebNode/src/test.controller.ts",
-        "MercurionWebNode/src/test.controller.spec.ts"
+        "MercurionWebNode/src/app_modules/admin/controllers/admin.controller.ts:@HasScopes(Scope.ChangeLogLevels)",
+        "MercurionWebNode/src/app_modules/user/Models/enums/scope.enum.ts:Scope.ChangeLogLevels"
       ],
       "references": [
-        {
-          "file": "docs/autonomous-development/task/0139-remove-test-only-routes-from-production-nest-graph.md",
-          "line": 15
-        },
-        {
-          "file": "docs/autonomous-development/task/0139-remove-test-only-routes-from-production-nest-graph.md",
-          "line": 47
-        },
-        {
-          "file": "docs/autonomous-development/task/0139-remove-test-only-routes-from-production-nest-graph.md",
-          "line": 48
-        },
-        {
-          "file": "docs/autonomous-development/task/0139-remove-test-only-routes-from-production-nest-graph.md",
-          "line": 69
-        }
-      ]
-    },
-    {
-      "method": "GET",
-      "path": "/health",
-      "controller": "MercurionWebNode/src/health.controller.ts",
-      "handler": "health",
-      "line": 11,
-      "classification": "browser/system API",
-      "owner": "Operations health monitoring",
-      "evidence": [
-        "MercurionWebNode/src/main.ts:setGlobalPrefix exclusion",
-        "docs/autonomous-development/RUNTIME.md: nginx health readiness check"
-      ],
-      "references": [
-        {
-          "file": "MercurionWebNode/src/app.module.ts",
-          "line": 36
-        },
-        {
-          "file": "MercurionWebNode/src/health.controller.spec.ts",
-          "line": 2
-        },
-        {
-          "file": "MercurionWebNode/src/main.ts",
-          "line": 71
-        },
-        {
-          "file": "docs/autonomous-development/reports/2026-09-03-mercurion-code-red-0001-overnight-2026-09-02.md",
-          "line": 199
-        },
-        {
-          "file": "docs/autonomous-development/reports/2026-09-03-mercurion-code-red-0001-overnight-2026-09-02.md",
-          "line": 205
-        },
-        {
-          "file": "docs/autonomous-development/RUNTIME.md",
-          "line": 115
-        },
-        {
-          "file": "docs/autonomous-development/task/0009-create-typed-socket-io-event-registry.md",
-          "line": 182
-        },
-        {
-          "file": "docs/autonomous-development/task/0009-create-typed-socket-io-event-registry.md",
-          "line": 189
-        },
         {
           "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
-          "line": 16
-        },
-        {
-          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
-          "line": 109
-        },
-        {
-          "file": "docs/autonomous-development/task/0134-decompose-nest-bootstrap-into-configurators.md",
-          "line": 72
-        },
-        {
-          "file": "docs/autonomous-development/task/0139-remove-test-only-routes-from-production-nest-graph.md",
-          "line": 30
-        },
-        {
-          "file": "docs/autonomous-development/task/0139-remove-test-only-routes-from-production-nest-graph.md",
-          "line": 47
-        },
-        {
-          "file": "docs/autonomous-development/task/0139-remove-test-only-routes-from-production-nest-graph.md",
-          "line": 56
-        },
-        {
-          "file": "docs/autonomous-development/task/0158-add-transactional-outbox-for-help-notifications.md",
-          "line": 59
-        },
-        {
-          "file": "docs/autonomous-development/task/0207-harden-container-runtime-contracts.md",
-          "line": 76
-        },
-        {
-          "file": "docker_sl/nginx_dev/nginx.conf",
-          "line": 57
-        },
-        {
-          "file": "docker_sl/nginx_dev/nginx.conf",
-          "line": 58
-        },
-        {
-          "file": "docker_sl/nginx_dev/nginx.conf",
-          "line": 59
-        },
-        {
-          "file": "docker_sl/nginx_test/default.conf",
-          "line": 52
-        },
-        {
-          "file": "docker_sl/nginx_test/default.conf",
-          "line": 53
-        }
-      ]
-    },
-    {
-      "method": "GET",
-      "path": "/og/mercurion-og.png",
-      "controller": "MercurionWebNode/src/asset.controller.ts",
-      "handler": "serveOgImage",
-      "line": 51,
-      "classification": "browser/system API",
-      "owner": "Public web crawlers and social-preview clients",
-      "evidence": [
-        "MercurionWebNode/src/main.ts:setGlobalPrefix exclusion",
-        "MercurionWebNode/src/asset.controller.ts"
-      ],
-      "references": [
-        {
-          "file": "MercurionWebNg/src/index.html",
-          "line": 49
-        },
-        {
-          "file": "MercurionWebNg/src/index.html",
-          "line": 58
-        },
-        {
-          "file": "MercurionWebNode/src/asset.controller.ts",
-          "line": 51
-        },
-        {
-          "file": "MercurionWebNode/src/main.ts",
-          "line": 71
-        },
-        {
-          "file": "docker_sl/nginx_dev/nginx.conf",
-          "line": 21
-        },
-        {
-          "file": "docker_sl/nginx_dev/nginx.conf",
-          "line": 22
-        },
-        {
-          "file": "docker_sl/nginx_test/default.conf",
-          "line": 22
-        },
-        {
-          "file": "docker_sl/nginx_test/default.conf",
-          "line": 23
-        }
-      ]
-    },
-    {
-      "method": "GET",
-      "path": "/robots.txt",
-      "controller": "MercurionWebNode/src/asset.controller.ts",
-      "handler": "serveRobots",
-      "line": 37,
-      "classification": "browser/system API",
-      "owner": "Public web crawlers and social-preview clients",
-      "evidence": [
-        "MercurionWebNode/src/main.ts:setGlobalPrefix exclusion",
-        "MercurionWebNode/src/asset.controller.ts"
-      ],
-      "references": [
-        {
-          "file": "MercurionWebNode/src/asset.controller.ts",
-          "line": 37
-        },
-        {
-          "file": "MercurionWebNode/src/main.ts",
-          "line": 71
-        },
-        {
-          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
-          "line": 109
-        },
-        {
-          "file": "docker_sl/nginx_dev/nginx.conf",
-          "line": 33
-        },
-        {
-          "file": "docker_sl/nginx_dev/nginx.conf",
-          "line": 34
-        },
-        {
-          "file": "docker_sl/nginx_test/default.conf",
-          "line": 32
-        },
-        {
-          "file": "docker_sl/nginx_test/default.conf",
-          "line": 33
-        }
-      ]
-    },
-    {
-      "method": "GET",
-      "path": "/sitemap.xml",
-      "controller": "MercurionWebNode/src/asset.controller.ts",
-      "handler": "serveSiteMap",
-      "line": 11,
-      "classification": "browser/system API",
-      "owner": "Public web crawlers and social-preview clients",
-      "evidence": [
-        "MercurionWebNode/src/main.ts:setGlobalPrefix exclusion",
-        "MercurionWebNode/src/asset.controller.ts"
-      ],
-      "references": [
-        {
-          "file": "MercurionWebNode/src/asset.controller.ts",
-          "line": 11
-        },
-        {
-          "file": "MercurionWebNode/src/asset.controller.ts",
-          "line": 42
-        },
-        {
-          "file": "MercurionWebNode/src/main.ts",
-          "line": 71
-        },
-        {
-          "file": "docker_sl/nginx_dev/nginx.conf",
-          "line": 45
-        },
-        {
-          "file": "docker_sl/nginx_dev/nginx.conf",
-          "line": 46
-        },
-        {
-          "file": "docker_sl/nginx_test/default.conf",
-          "line": 42
-        },
-        {
-          "file": "docker_sl/nginx_test/default.conf",
-          "line": 43
+          "line": 140,
+          "kind": "documentation"
         }
       ]
     }

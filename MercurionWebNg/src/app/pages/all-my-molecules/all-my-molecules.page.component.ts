@@ -1,5 +1,5 @@
 import { MoleculeCardItemModel } from './../../Models/graphql/molecule-collection/molecule-collection.types';
-import { AfterViewInit, Component, effect, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, effect, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { MoleculeCollectionItemCardComponent } from '../../components/molecule-detail/molecule-collection-item-card/molecule-collection-item-card.component';
 import { debounceTime, map, Subscription } from 'rxjs';
@@ -13,10 +13,11 @@ import { ToastService } from '../../services/toast.service';
 import { AbstractPaginationComponent } from '../../abstract/abstract-pagination-component';
 import { PmSearchInputComponent } from '../../components/common/pm-search-input/pm-search-input.component';
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
-import { AddMoleculesToCollectionContextService } from '../../services/context/action-context/add-molecules-to-collection-context.service';
+import { DomainInvalidationService } from '../../services/domain-invalidation.service';
 
 @Component({
   selector: 'm-all-my-molecules.page',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ClassicSpinnerComponent,
     MoleculeCollectionItemCardComponent,
@@ -104,7 +105,7 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
   private readonly historyContext = inject(HistoryContextService)
   private readonly toast = inject(ToastService)
   private readonly actionContext = inject(ActionOverlayContextService)
-  private readonly addContext = inject(AddMoleculesToCollectionContextService)
+  private readonly invalidations = inject(DomainInvalidationService)
   // ====================================================
 
   private tick = signal<number>(0)
@@ -139,7 +140,7 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
       }
     };
 
-    requestAnimationFrame(check);
+    this.resources.requestAnimationFrame(check);
   }
 
   @ViewChild('sentinel', { static: true })
@@ -160,8 +161,8 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
       })
     })
     effect(() => {
-      const t = this.addContext.addedTick()
-      if (t === 0) {
+      const event = this.invalidations.last()
+      if (event?.domain !== 'molecule-collection' || event.action !== 'molecules-added') {
         return
       }
       queueMicrotask(() => {
@@ -183,6 +184,7 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
   }
 
   ngOnDestroy(): void {
+    super.disposePaginationResources()
     this.delSub?.unsubscribe()
   }
 
@@ -208,8 +210,8 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
             queueMicrotask(() => {
               this.historyContext.triggerRemoveItemFromHistoryView(id)
               this.items[i].triggerDisappear.set(true)
-              setTimeout(() => this.items[i].collapse.set(true), 120)
-              setTimeout(() => {
+              this.resources.setTimeout(() => this.items[i].collapse.set(true), 120)
+              this.resources.setTimeout(() => {
                 this.items.splice(i, 1)
                 if (this.items.length === 0) {
                   this.tick.update(x => x + 1)
@@ -229,9 +231,7 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
   doAddMolecules(): void {
     queueMicrotask(() => {
       // Ensure a clean context when starting from the All My Molecules page
-      this.addContext.setImportFromChembl(false);
-      this.addContext.setRedirectToCollectionPath(false);
-      this.actionContext.open('SelectCollectionThenRoute')
+      this.actionContext.open('SelectCollectionThenRoute', { importFromChembl: false })
     })
   }
 

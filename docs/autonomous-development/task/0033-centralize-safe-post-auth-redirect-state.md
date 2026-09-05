@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -114,20 +114,26 @@ Prefer storing a normalized internal application URL/`UrlTree` representation, n
 
 ### Summary
 
-_Not started._
+Skipped without implementation because hard prerequisites
+`0028-encapsulate-auth-session-browser-persistence.md` (`FE-006`) and
+`0027-unify-authenticated-session-selector.md` (`FE-005`) are both
+`SKIPPED_DEPENDENCY`.
 
 ### Validation performed
 
-_Not started._
+No task branch or worker was created. Direct prerequisites: `FE-006` and
+`FE-005` are `SKIPPED_DEPENDENCY`; both trace transitively to blocked
+`0026-create-canonical-angular-auth-state-store.md` (`FE-004`).
 
 ### Browser validation performed
 
-_Not started._
+Not applicable; the task was skipped before implementation.
 
 ### Changed files
 
-_Not recorded._
+No files changed; only this task metadata was updated.
 
 ### Blocker / human decision required
 
-_None._
+No implementation blocker. The task may be re-enabled only after its hard
+dependency chain is deliberately resolved in a new authorized session.

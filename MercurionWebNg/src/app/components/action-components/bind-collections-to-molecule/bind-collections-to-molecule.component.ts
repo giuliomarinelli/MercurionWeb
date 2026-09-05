@@ -23,6 +23,7 @@ import { CollectionSelectCardComponent } from '../../molecule-detail/collection-
 import { SkeletonCollectionCardComponent } from '../../common/skeleton-card-loader/skeleton-card-loader.component';
 import { Router } from '@angular/router';
 import { CloseButtonComponent } from '../../common/close-button/close-button.component';
+import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
 
 @Component({
   selector: 'm-bind-collections-to-molecule',
@@ -247,8 +248,10 @@ export class BindCollectionsToMoleculeComponent
 
   private readonly actionOverlayContext = inject(ActionOverlayContextService);
   private readonly bindContext = inject(BindCollectionsToMoleculeContextService);
+  private readonly invalidation = inject(DomainInvalidationService);
   private readonly moleculeCollectionService = inject(MoleculeCollectionService);
   private readonly router = inject(Router);
+  private readonly sessionId = this.actionOverlayContext.session('BindCollectionsToMolecule')?.id ?? -1;
 
   private suSub?: Subscription;
 
@@ -314,7 +317,7 @@ export class BindCollectionsToMoleculeComponent
   }
 
   close(): void {
-    this.actionOverlayContext.close();
+    this.actionOverlayContext.close(this.sessionId);
   }
 
   doSubmit(): void {
@@ -336,11 +339,16 @@ export class BindCollectionsToMoleculeComponent
         .subscribe({
           next: ({ ok, moleculeUUID }) => {
             this.step_12_loading.set(false);
-            this.bindContext.notifyAdded();
+            if (ok) {
+              this.invalidation.publish({
+                domain: 'molecule',
+                action: 'collections-bound',
+                moleculeId: this.bindContext.moleculeId()!
+              });
+            }
             this.error.set(!ok);
-            this.bindContext.clearMoleculeId();
             queueMicrotask(() => {
-              this.actionOverlayContext.close();
+              this.actionOverlayContext.close(this.sessionId);
               if (moleculeUUID) {
                 this.router.navigateByUrl(`/molecules/detail/${moleculeUUID}`);
               }
@@ -355,3 +363,4 @@ export class BindCollectionsToMoleculeComponent
     }
   }
 }
+

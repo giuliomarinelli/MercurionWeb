@@ -1,9 +1,10 @@
-import { Component, EventEmitter, Output, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, EventEmitter, Output, signal } from '@angular/core';
 import { QuillModule } from 'ngx-quill';
 import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'm-ticket-composer',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     QuillModule,
     FormsModule

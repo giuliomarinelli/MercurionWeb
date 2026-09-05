@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -96,34 +96,40 @@ Avoid a manifest that is only a bag of strings. The value is typed identity plus
 ## Execution notes
 
 ### Feature branch
-_Not started._
+No task branch or worker was created because hard prerequisites
+`0041-derive-route-access-and-layout-policy-from-route-data.md` (`FE-019`) and
+`0044-make-programmatic-navigation-suppression-transaction-scoped.md`
+(`FE-022`) are `SKIPPED_DEPENDENCY`.
 
 ### Preflight
-_Not started._
+Not applicable; the task was skipped before implementation.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-_Not started._
+Skipped at the normal filename-order selection point. Direct prerequisites
+`FE-019` and `FE-022` are terminal `SKIPPED_DEPENDENCY`; both transitively
+depend on the blocked canonical auth/session and route-policy chain.
 
 ### Task-specific validation performed
-_Not started._
+No implementation or validation was performed.
 
 ### Full pre-merge CI-parity validation
-_Not started._
+Not applicable; no feature branch was created.
 
 ### Browser validation performed
-_Not started._
+Not applicable; the task was skipped before implementation.
 
 ### Commits
-_Not recorded._
+Only this task metadata was updated on `develop`.
 
 ### Merge / CI
-_Not started._
+No feature merge; skip metadata CI is required before continuing.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-_None._
+No implementation blocker. Re-enable only after the hard dependency chain is
+deliberately resolved in a new authorized session.

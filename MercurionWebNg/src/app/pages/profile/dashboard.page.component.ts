@@ -1,6 +1,7 @@
 // ====================== IMPORTS ======================
 import {
   Component,
+  ChangeDetectionStrategy,
   ElementRef,
   ViewChild,
   inject,
@@ -8,14 +9,12 @@ import {
   OnInit,
   OnDestroy,
   effect,
-  signal,
-} from '@angular/core';
+  signal } from '@angular/core';
 import { Subscription } from 'rxjs';
 import {
   Chart,
   ChartConfiguration,
-  registerables,
-} from 'chart.js';
+  registerables } from 'chart.js';
 
 import { AccountService } from '../../services/account.service';
 import { ProfileDTO } from '../../Models/account/account.models';
@@ -23,6 +22,7 @@ import { ThemeManagerService } from '../../services/context/theme-manager.servic
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { AppContextService } from '../../services/context/app-context.service';
 import { SidenavContextService } from '../../services/context/sidenav-context.service';
+import { DomainInvalidationService } from '../../services/domain-invalidation.service';
 
 Chart.register(...registerables);
 
@@ -43,6 +43,7 @@ type ChartPalette = {
 // ====================== COMPONENT ======================
 @Component({
   selector: 'm-dashboard',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ClassicSpinnerComponent],
   template: `
     <section #mainHost class="main-container py-8 cursor-default" role="main" aria-live="polite" [attr.aria-busy]="loading()">
@@ -176,8 +177,7 @@ type ChartPalette = {
         <p class="text-light-error dark:text-dark-error" role="alert">Si è verificato un errore nel caricamento della dashboard.</p>
       }
     </section>
-  `,
-})
+  ` })
 export class DashboardPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // ========= DEPS =========
@@ -185,6 +185,7 @@ export class DashboardPageComponent implements OnInit, OnDestroy, AfterViewInit 
   private readonly themeManager = inject(ThemeManagerService)
   private readonly appContext = inject(AppContextService)
   private readonly sidenavContext = inject(SidenavContextService)
+  private readonly invalidations = inject(DomainInvalidationService)
   // ========================
 
 
@@ -247,8 +248,8 @@ export class DashboardPageComponent implements OnInit, OnDestroy, AfterViewInit 
       this.tryBuildCharts()
     })
     effect(() => {
-      const t = this.appContext.refetchDashboardAddedTick()
-      if (t === 0) {
+      const event = this.invalidations.last()
+      if (event?.domain !== 'dashboard' || event.action !== 'profile-changed') {
         return
       }
     this.reSub = this.accountService.getProfileRegistry().subscribe(this.subArg)
@@ -294,8 +295,7 @@ export class DashboardPageComponent implements OnInit, OnDestroy, AfterViewInit 
         grid: '#47556955',
         bgMolecules: '#38bdf8',
         bgCollections: '#a855f7',
-        doughnut: ['#22c55e', '#0ea5e9', '#a855f7'],
-      }
+        doughnut: ['#22c55e', '#0ea5e9', '#a855f7'] }
     }
 
     return {
@@ -303,8 +303,7 @@ export class DashboardPageComponent implements OnInit, OnDestroy, AfterViewInit 
       grid: '#cad5e2',
       bgMolecules: '#0956FB',
       bgCollections: '#B200C2',
-      doughnut: ['#7A33FF', '#00754E', '#D10038'],
-    }
+      doughnut: ['#7A33FF', '#00754E', '#D10038'] }
   }
 
   // --------- BUILD ENTRYPOINT ---------
@@ -349,29 +348,21 @@ export class DashboardPageComponent implements OnInit, OnDestroy, AfterViewInit 
             data: initialData,
             backgroundColor: palette.doughnut,
             borderColor: 'transparent',
-            hoverOffset: 6,
-          },
-        ],
-      },
+            hoverOffset: 6 },
+        ] },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         cutout: '60%',
         animation: {
           duration: 700,
-          easing: 'easeOutCubic',
-        },
+          easing: 'easeOutCubic' },
         plugins: {
           legend: {
             position: 'bottom',
             labels: {
               color: palette.text,
-              boxWidth: 14,
-            },
-          },
-        },
-      },
-    })
+              boxWidth: 14 } } } } })
 
     // 🔥 step 2: set dei valori reali → parte l’animazione
     queueMicrotask(() => {
@@ -414,16 +405,13 @@ export class DashboardPageComponent implements OnInit, OnDestroy, AfterViewInit 
             label: 'Molecole',
             data: molecules,
             backgroundColor: palette.bgMolecules,
-            borderRadius: 4,
-          },
+            borderRadius: 4 },
           {
             label: 'Collezioni',
             data: collections,
             backgroundColor: palette.bgCollections,
-            borderRadius: 4,
-          },
-        ],
-      },
+            borderRadius: 4 },
+        ] },
       options: {
         responsive: true,
         maintainAspectRatio: false,
@@ -431,26 +419,18 @@ export class DashboardPageComponent implements OnInit, OnDestroy, AfterViewInit 
           x: {
             stacked: true,
             ticks: { color: palette.text },
-            grid: { color: palette.grid },
-          },
+            grid: { color: palette.grid } },
           y: {
             stacked: true,
             beginAtZero: true,
             ticks: { color: palette.text, precision: 0 },
-            grid: { color: palette.grid },
-          },
-        },
+            grid: { color: palette.grid } } },
         plugins: {
           colors: {
-            enabled: false,
-          } as any,
+            enabled: false } as any,
           legend: {
             position: 'bottom',
-            labels: { color: palette.text },
-          },
-        },
-      },
-    }
+            labels: { color: palette.text } } } } }
 
     this.activityChart = new Chart(ctx, config)
   }
@@ -534,11 +514,9 @@ export class DashboardPageComponent implements OnInit, OnDestroy, AfterViewInit 
       result.push({
         dayLabel: d.toLocaleDateString('it-IT', {
           day: '2-digit',
-          month: '2-digit',
-        }),
+          month: '2-digit' }),
         molecules: bucket.molecules,
-        collections: bucket.collections,
-      })
+        collections: bucket.collections })
     }
 
     return result

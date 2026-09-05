@@ -1,7 +1,7 @@
 # 0026 - Create the canonical Angular auth state store
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -116,20 +116,33 @@ Favor a small discriminated union plus signals/computed selectors. The store may
 
 ### Summary
 
-_Not started._
+Implemented `AuthStateStore` as the sole signal-backed, discriminated auth-state owner. It centralizes bootstrap, pre-authentication, authenticated completion, invalidation, logout, token/scope persistence seams, and cross-tab synchronization. `UserContextService` is now a compatibility adapter, while the app shell, guard, interceptors, session sync, login, MFA, and SSO boundaries consume or command the store.
 
 ### Validation performed
 
-_Not started._
+Unchanged task-start baseline: `npm ci` and `npm run ci:check` passed on `feature/FE-004` at base `f3c435e610bbc890a7a6a8d0dcf702b3d45f1c4a`.
+
+Task validation: Angular `typecheck` passed; Angular production `build` passed; Angular `test:ci` passed with 190 tests. Auth-store tests cover anonymous/persisted bootstrap, pre-auth, login completion, invalidation, logout, cross-tab state convergence, and illegal transitions.
 
 ### Browser validation performed
 
-_Not started._
+Used Chrome DevTools MCP through `http://localhost:8888`. Anonymous `/` settled on the public welcome shell and `/login` rendered the available login paths (Mercurion classic plus Google/GitHub/Discord). Static asset requests returned successfully. The managed Angular runtime started on port 3498; NestJS could not start because the local environment configuration is unavailable, producing 502 responses for `/health` and Socket.IO handshake requests. Console evidence therefore contains the expected backend-unavailable WebSocket 502 errors. No deterministic local test account or approved credentials were available, so authenticated login/protected navigation/logout convergence could not be exercised and browser-auth validation is blocked without human-provided local test credentials and server environment configuration.
 
 ### Changed files
 
-_Not recorded._
+`MercurionWebNg/src/app/services/auth-state.store.ts`
+`MercurionWebNg/src/app/services/auth-state.store.spec.ts`
+`MercurionWebNg/src/app/services/context/user-context.service.ts`
+`MercurionWebNg/src/app/services/auth.service.ts`
+`MercurionWebNg/src/app/services/session-sync.service.ts`
+`MercurionWebNg/src/app/app.component.ts`
+`MercurionWebNg/src/app/guards/auth.guard.ts`
+`MercurionWebNg/src/app/interceptors/auth.interceptor.ts`
+`MercurionWebNg/src/app/interceptors/auth-fallback.interceptor.ts`
+`MercurionWebNg/src/app/pages/login/login.page.component.ts`
+`MercurionWebNg/src/app/pages/login/mfa/mfa.page.component.ts`
+`MercurionWebNg/src/app/pages/sso/sso.page.component.ts`
 
 ### Blocker / human decision required
 
-_None._
+Browser-auth validation requires the canonical Nest/Tox21 runtime environment to be configured and a deterministic local test account or approved credentials. Do not invent credentials. Feature branch remains preserved at its final implementation commit for human review.

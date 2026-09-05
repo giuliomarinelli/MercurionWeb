@@ -121,6 +121,43 @@ were used.
 
 ### Blocker / human decision required
 
-Browser validation required by this recipe cannot be completed until a safe local
-development environment configuration allows Nest to bind behind the canonical nginx
-edge, and the local Tox21 runtime can start without the console encoding failure.
+### Human-authorized recovery attempt (2026-09-05)
+
+- A direct human instruction re-enabled the frozen `feature/SYS-018` branch for
+  diagnosis and correction without rebasing. The branch was reconciled with the
+  current `origin/develop`; the only merge conflict was the root static-check
+  registration, resolved by preserving all current gates and adding the REST
+  route ownership gate.
+- The historical exact feature-SHA CI failure was reproduced from its GitHub
+  diagnostic: Ubuntu rejected the generated inventory as stale while Windows
+  accepted it. The checker now sorts traversal, routes and references with a
+  platform-neutral comparator, derives the global prefix/exclusions from
+  `MercurionWebNode/src/main.ts`, and records typed reference kinds.
+- Ownership is no longer inferred from a default Angular label. A new or missing
+  route record becomes `needs-human-classification`, which fails the gate. The
+  negative check proves both that an unclassified record and a missing ownership
+  record are rejected.
+- `PUT /api/admin/change-log-levels` is classified as a documented privileged
+  administrative consumer: its allowed operators must hold
+  `Scope.ChangeLogLevels`, as declared by `@HasScopes` on the controller.
+- The four document endpoints have no Angular `HttpClient` call or documented
+  external consumer in repository evidence. They are therefore explicitly
+  marked `needs-human-classification` rather than incorrectly attributed to the
+  Angular application.
+
+### Validation performed during recovery
+
+- `node scripts/test-rest-route-ownership-policy-negative.mjs` — passed.
+- `node scripts/check-rest-route-ownership.mjs` — intentionally fails only for
+  `GET`, `POST` and `DELETE` `/api/documents` ownership records, which are now
+  accurately awaiting a product/consumer decision.
+- `git diff --check` — passed.
+
+### Blocker / human decision required
+
+For `GET /api/documents`, `POST /api/documents`, `GET /api/documents/:id` and
+`DELETE /api/documents/:id`, provide one of: a documented external consumer and
+owner, confirmation of an active retained product feature with its entry point,
+or authorization to remove the route and its code/tests/docs. Until then the
+task remains `BLOCKED`; full CI and browser validation cannot honestly be
+claimed as complete.
