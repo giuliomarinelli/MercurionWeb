@@ -5,8 +5,8 @@ import { JwtHelperService } from './jwt-helper.service';
 import { firstValueFrom } from 'rxjs';
 import { Login_FirstStepWrapper } from '../Models/auth/login.models';
 import { TypeGuardsService } from './type-guards.service';
-import { UserContextService } from './context/user-context.service';
 import { Router } from '@angular/router';
+import { AuthStateStore } from './auth-state.store';
 import type {
   BackupCodeDTO,
   Confirm_Login_FirstStepDTO,
@@ -36,7 +36,7 @@ export class AuthService {
   private readonly jwtHelper = inject(JwtHelperService)
   private readonly http = inject(HttpClient)
   private readonly typeGuards = inject(TypeGuardsService)
-  private readonly userContext = inject(UserContextService)
+  private readonly authState = inject(AuthStateStore)
   private readonly router = inject(Router)
   // ====================================================
 
@@ -49,7 +49,6 @@ export class AuthService {
   private authBC = new BroadcastChannel('mercurion-auth');
 
   private readonly WS_AT_KEY = 'ws_accessToken';
-  private readonly WS_AT_TS_KEY = 'ws_accessToken_ts';
   private readonly WS_REFRESH_LOCK = 'ws_refresh_lock'; // JSON { owner: string, expiresAt: number }
   private readonly lockTtlMs = 5000;
 
@@ -80,12 +79,6 @@ export class AuthService {
     return null
   }
 
-  private clearLoginCookies(): void {
-    ['__logged_in', '__logged_in_'].forEach(name => {
-      document.cookie = `${name}=; Max-Age=0; path=/`
-    })
-  }
-
   /* ───────── Broadcast cross-tab (già esistenti) ───────── */
 
   broadcastLogin(initials: string, wsToken: string) {
@@ -99,31 +92,21 @@ export class AuthService {
   /* ───────── Access Token (HTTP) ───────── */
 
   getAccessToken(): string | null {
-    return localStorage.getItem('accessToken');
+    return this.authState.getAccessToken();
   }
 
   setAccessToken(token: string | null) {
-    if (token) {
-      localStorage.setItem('accessToken', token);
-    } else {
-      localStorage.removeItem('accessToken');
-    }
+    this.authState.updateAccessToken(token);
   }
 
   /* ───────── WS Access Token (WebSocket) ───────── */
 
   getWs_accessToken(): string | null {
-    return localStorage.getItem(this.WS_AT_KEY);
+    return this.authState.getWsAccessToken();
   }
 
   setWs_accessToken(token: string | null): void {
-    if (token) {
-      localStorage.setItem(this.WS_AT_KEY, token);
-      localStorage.setItem(this.WS_AT_TS_KEY, String(Date.now()));
-    } else {
-      localStorage.removeItem(this.WS_AT_KEY);
-      localStorage.removeItem(this.WS_AT_TS_KEY);
-    }
+    this.authState.updateWsAccessToken(token);
   }
 
   /** true se il token WS è assente o scaduto */
@@ -194,7 +177,6 @@ export class AuthService {
           this.setCachedScopes(scp)
         }
       }
-      this.userContext.logout()
     }))
   }
 
@@ -243,10 +225,7 @@ export class AuthService {
   }
 
   public logout(): Observable<void> {
-    this.clearLoginCookies();
-    localStorage?.getItem('login') && localStorage?.removeItem('login');
-    this.setAccessToken(null);
-    this.setWs_accessToken(null);
+    this.authState.logout()
     // pulisci eventuale lock pendente
     const lock = this.readLock();
     if (lock?.owner === this.tabId) {
@@ -391,6 +370,10 @@ export class AuthService {
   }
 
   setCachedScopes(scp: string[] | null, context: TokenType = 'access_token'): void {
+    if (context === 'access_token') {
+      this.authState.setCachedScopes(scp)
+      return
+    }
 
     const key = this.generateScopesStorageKey(context)
 
@@ -408,6 +391,9 @@ export class AuthService {
   }
 
   getCachedScopes(context: TokenType = 'access_token'): string[] | null {
+    if (context === 'access_token') {
+      return this.authState.getCachedScopes()
+    }
 
     const key = this.generateScopesStorageKey(context)
 
@@ -426,6 +412,10 @@ export class AuthService {
   }
 
   clearCachedScopes(context: TokenType): void {
+    if (context === 'access_token') {
+      this.authState.setCachedScopes(null)
+      return
+    }
     const key = this.generateScopesStorageKey(context)
     if (this.typeGuards.isNotNullish(key) && !!localStorage.getItem(key)) {
       localStorage.removeItem(key)
@@ -440,7 +430,7 @@ export class AuthService {
       withCredentials: true
     }).pipe(tap(() => {
       if (current) {
-        this.userContext.logout()
+        this.authState.logout()
         this.router.navigateByUrl('/login')
       }
     }))
@@ -450,7 +440,7 @@ export class AuthService {
     return this.http.patch<ConfirmDTO>('/api/authentication/logout-from-all-sessions', null, {
       withCredentials: true
     }).pipe(tap(() => {
-      this.userContext.logout()
+      this.authState.logout()
       this.router.navigateByUrl('/login')
     }))
   }
