@@ -1,7 +1,7 @@
 # 0114 - Remove or explicitly own every orphan Angular module
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -87,24 +87,76 @@ Mark `BLOCKED` if an orphan's product ownership is still genuinely unresolved af
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/NG-028`, created from and initially verified at
+`851592c3c878bb2bf670a531f17e306d262aa9f9`.
 ### Preflight
-_Not started._
+- Proved no task/session-owned Angular, Nest, Tox21, test watcher or other
+  repository workspace runtime was active before the clean install.
+- Verified the required toolchain: Node.js `v22.16.0`, npm `10.9.2`.
+- Ran unchanged root `npm ci` (exit 0).
+- Ran unchanged root `npm run ci:check` (exit 0; complete canonical aggregate
+  passed).
+- Verified the working tree still had no tracked changes after preflight.
 ### Preflight remediation
 _None._
 ### Summary
-_Not started._
+Stopped at the recipe's mandatory ownership-decision gate without changing
+implementation. Task `0113` is advisory for this attempt and is currently
+`SKIPPED_DEPENDENCY`; that status was not used as the blocker.
+
+The required SYS ownership state is not available. `SYS-019` and `SYS-020`
+remain terminal `BLOCKED` records because no human/product decision selected
+retain versus remove for Synth or Notebook. Current source confirms the
+ambiguous retained state still exists: the Nest `SynthModule` remains
+registered, the Angular Notebook component/page/service tree remains present,
+and `app.routes.ts` has no Notebook or Synth route. Classifying or deleting
+those files in this task would therefore invent or bypass the decisions that
+this recipe explicitly requires it to honor.
 ### Task-specific validation performed
-_Not started._
+Decision-gate inspection only:
+
+- Read the complete `SYS-018`, `SYS-019` and `SYS-020` terminal task records.
+- Confirmed `SYS-018` produced a route ownership inventory but is itself
+  `BLOCKED` on its declared runtime evidence; it does not supply Synth or
+  Notebook retain/remove authority.
+- Confirmed `SYS-019` requires an explicit Synth `retain` or `remove` decision
+  and, if retained, an approved Angular entry point, UX scope and
+  route/navigation placement.
+- Confirmed `SYS-020` requires an explicit Notebook `retain` or `remove`
+  decision and, if retained, an approved route path, navigation placement and
+  access policy/guard audience.
+- Inspected current Angular routes/navigation and the retained Notebook source
+  tree, plus current Nest Synth module registration.
+
+No orphan checker, deletion or reachability implementation was started because
+the stop condition applies before those choices can be made safely.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run after task scope because the task blocked immediately after the green
+unchanged preflight and made no implementation change. The complete unchanged
+task-start `npm ci` plus `npm run ci:check` both passed.
 ### Browser validation performed
-_Not started._
+Not performed. Starting the runtime or inventing routes would not resolve the
+missing product authority, and no implementation change was made to validate.
 ### Commits
-_Not recorded._
+Metadata-only BLOCKED commit on `feature/NG-028`:
+`docs(task-0114): block pending orphan ownership decisions`.
 ### Merge / CI
-_Not started._
+No merge. Preserve and freeze `feature/NG-028` after the metadata commit is
+pushed.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-_None._
+Product authority must supply all of the following before orphan
+classification/removal can safely continue:
+
+1. Synth: choose `retain` or `remove`. If retained, approve its Angular entry
+   point, UX scope and route/navigation placement; if removed, authorize
+   complete runtime/schema removal.
+2. Notebook: choose `retain` or `remove`. If retained, approve its canonical
+   Angular route path, navigation exposure/placement and access policy/guard
+   audience; if removed, authorize complete client/schema/server removal.
+
+Without those decisions, this task cannot determine whether retained
+Synth/Notebook code is product code requiring a legitimate reachability edge
+or dead code requiring deletion. The recipe forbids choosing based on code
+volume or making code artificially reachable.
