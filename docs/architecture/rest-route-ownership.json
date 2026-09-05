@@ -84,11 +84,11 @@
       "path": "/api/documents/:id",
       "controller": "MercurionWebNode/src/app_modules/dropbox-object-store/controllers/document.controller.ts",
       "handler": "delete",
-      "line": 171,
-      "classification": "needs-human-classification",
-      "owner": "Unassigned",
+      "line": 24,
+      "classification": "temporarily disabled endpoint",
+      "owner": "Document API implementation backlog",
       "evidence": [
-        "No Angular HttpClient call or documented external consumer was found for the document API; decide retain with an owner or remove it."
+        "Human decision 2026-09-05: currently unused; the controller returns an empty HTTP 403 response until implementation."
       ],
       "references": [
         {
@@ -109,6 +109,11 @@
         {
           "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
           "line": 159,
+          "kind": "documentation"
+        },
+        {
+          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
+          "line": 167,
           "kind": "documentation"
         }
       ]
@@ -523,11 +528,11 @@
       "path": "/api/documents",
       "controller": "MercurionWebNode/src/app_modules/dropbox-object-store/controllers/document.controller.ts",
       "handler": "list",
-      "line": 182,
-      "classification": "needs-human-classification",
-      "owner": "Unassigned",
+      "line": 30,
+      "classification": "temporarily disabled endpoint",
+      "owner": "Document API implementation backlog",
       "evidence": [
-        "No Angular HttpClient call or documented external consumer was found for the document API; decide retain with an owner or remove it."
+        "Human decision 2026-09-05: currently unused; the controller returns an empty HTTP 403 response until implementation."
       ],
       "references": [
         {
@@ -548,6 +553,11 @@
         {
           "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
           "line": 159,
+          "kind": "documentation"
+        },
+        {
+          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
+          "line": 167,
           "kind": "documentation"
         }
       ]
@@ -557,11 +567,11 @@
       "path": "/api/documents/:id",
       "controller": "MercurionWebNode/src/app_modules/dropbox-object-store/controllers/document.controller.ts",
       "handler": "download",
-      "line": 147,
-      "classification": "needs-human-classification",
-      "owner": "Unassigned",
+      "line": 18,
+      "classification": "temporarily disabled endpoint",
+      "owner": "Document API implementation backlog",
       "evidence": [
-        "No Angular HttpClient call or documented external consumer was found for the document API; decide retain with an owner or remove it."
+        "Human decision 2026-09-05: currently unused; the controller returns an empty HTTP 403 response until implementation."
       ],
       "references": [
         {
@@ -582,6 +592,11 @@
         {
           "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
           "line": 159,
+          "kind": "documentation"
+        },
+        {
+          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
+          "line": 167,
           "kind": "documentation"
         }
       ]
@@ -1655,11 +1670,11 @@
       "path": "/api/documents",
       "controller": "MercurionWebNode/src/app_modules/dropbox-object-store/controllers/document.controller.ts",
       "handler": "upload",
-      "line": 38,
-      "classification": "needs-human-classification",
-      "owner": "Unassigned",
+      "line": 12,
+      "classification": "temporarily disabled endpoint",
+      "owner": "Document API implementation backlog",
       "evidence": [
-        "No Angular HttpClient call or documented external consumer was found for the document API; decide retain with an owner or remove it."
+        "Human decision 2026-09-05: currently unused; the controller returns an empty HTTP 403 response until implementation."
       ],
       "references": [
         {
@@ -1680,6 +1695,11 @@
         {
           "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
           "line": 159,
+          "kind": "documentation"
+        },
+        {
+          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
+          "line": 167,
           "kind": "documentation"
         }
       ]

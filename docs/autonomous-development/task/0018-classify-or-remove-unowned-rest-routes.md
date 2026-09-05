@@ -1,7 +1,7 @@
 # 0018 - Classify or remove unowned REST routes
 
 - [ ] DONE
-- [x] BLOCKED
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -161,3 +161,14 @@ owner, confirmation of an active retained product feature with its entry point,
 or authorization to remove the route and its code/tests/docs. Until then the
 task remains `BLOCKED`; full CI and browser validation cannot honestly be
 claimed as complete.
+
+### Human decision implemented (2026-09-05)
+
+- The four `/api/documents` routes are currently unused, but their controller is
+  intentionally retained for the future document API. Each handler now returns
+  an empty `403 Forbidden` response and carries a `TODO(SYS-018)` comment that
+  must be removed when that API is implemented.
+- They are classified in the ownership inventory as `temporarily disabled
+  endpoint`, owned by the document API implementation backlog. This is neither
+  an active product consumer nor an orphan implicitly permitted to expose the
+  dormant Dropbox storage service.

@@ -26,6 +26,7 @@ const classifications = new Set([
     'documented external consumer',
     'removable orphan',
     'test/dev-only endpoint',
+    'temporarily disabled endpoint',
     'needs-human-classification',
 ]);
 
