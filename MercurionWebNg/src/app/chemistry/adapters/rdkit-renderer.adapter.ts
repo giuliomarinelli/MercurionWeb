@@ -8,7 +8,7 @@ import {
 } from '../chemistry-adapter.models'
 import { MoleculeProperties } from '../../Models/graphql/molecule-properties.model'
 
-interface RdKitMolecule {
+export interface RdKitMolecule {
   delete(): void
   get_descriptors(): string
   get_molblock(): string
@@ -16,11 +16,11 @@ interface RdKitMolecule {
   is_valid(): boolean
 }
 
-interface RdKitApplicationModule {
+export interface RdKitApplicationModule {
   get_mol(structure: string, options?: string): RdKitMolecule | null
 }
 
-class RdKitRendererSession implements ChemistryRendererSession {
+export class RdKitRendererSession implements ChemistryRendererSession {
   private disposed = false
 
   constructor(private readonly rdkit: RdKitApplicationModule) {}
@@ -106,8 +106,13 @@ class RdKitRendererSession implements ChemistryRendererSession {
       throw new ChemistryAdapterError('invalid-structure', 'La struttura molecolare non è valida.')
     }
 
-    if (!mol.is_valid()) {
+    try {
+      if (!mol.is_valid()) {
+        throw new ChemistryAdapterError('invalid-structure', 'La struttura molecolare non è valida.')
+      }
+    } catch (error) {
       mol.delete()
+      if (error instanceof ChemistryAdapterError) throw error
       throw new ChemistryAdapterError('invalid-structure', 'La struttura molecolare non è valida.')
     }
 

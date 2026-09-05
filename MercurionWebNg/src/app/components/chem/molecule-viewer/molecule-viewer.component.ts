@@ -2,12 +2,12 @@ import {
   ApplicationRef,
   Component,
   ChangeDetectionStrategy,
+  DestroyRef,
   effect,
   EventEmitter,
   Input,
   NgZone,
   OnChanges,
-  OnDestroy,
   OnInit,
   Output,
   signal,
@@ -72,7 +72,7 @@ import { ThemeManagerService } from '../../../services/context/theme-manager.ser
   ],
   host: {
     '[class.detail]': 'mode === "detail"' } })
-export class MoleculeViewerComponent implements OnInit, OnChanges, OnDestroy {
+export class MoleculeViewerComponent implements OnInit, OnChanges {
   /* ────── API pubblica ───────────────────────────────────────── */
   /** SMILES / MolBlock ecc. */
   @Input({ required: true }) structure = '';
@@ -95,7 +95,11 @@ export class MoleculeViewerComponent implements OnInit, OnChanges, OnDestroy {
   svg: SafeHtml | null = null;
   private ready = false;
   private rendererSession?: ChemistryRendererSession;
-  private rendererGeneration = 0;
+  private sessionGeneration = 0;
+  private renderGeneration = 0;
+  private pendingRenderHandle: number | ReturnType<typeof setTimeout> | undefined;
+  private pendingRenderIsIdleCallback = false;
+  private destroyed = false;
 
   /* ────── Palette WCAG‑AAA ──────────────────────────────────── */
   private static readonly WCAG = {
@@ -113,13 +117,15 @@ export class MoleculeViewerComponent implements OnInit, OnChanges, OnDestroy {
     private readonly sanitizer: DomSanitizer,
     private readonly appRef: ApplicationRef,
     private readonly themeManager: ThemeManagerService,
-    private readonly zone: NgZone
+    private readonly zone: NgZone,
+    destroyRef: DestroyRef
   ) {
-    effect(() => this.darkMode.set(this.themeManager.theme() === 'dark'))
+    destroyRef.onDestroy(() => this.destroyViewer());
+
     effect(() => {
-      const dm = this.darkMode()
-      this.scheduleRender()
-    })
+      this.darkMode.set(this.themeManager.theme() === 'dark');
+      if (this.ready && !this.disablePreview) this.scheduleRender();
+    });
   }
 
   /* ────── Lifecycle ─────────────────────────────────────────── */
@@ -132,23 +138,34 @@ export class MoleculeViewerComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnChanges(ch: SimpleChanges): void {
-    if ('disablePreview' in ch && !this.disablePreview && !this.ready) {
-      this.initRdkit();
-    } else if (!this.disablePreview && this.ready && (ch['structure'])) {
+    if ('disablePreview' in ch) {
+      if (this.disablePreview) {
+        this.stopRenderer();
+        this.svg = null;
+        return;
+      }
+
+      if (!this.ready) {
+        this.initRdkit();
+        return;
+      }
+    }
+
+    if (!this.disablePreview && this.ready && (ch['structure'] || ch['mode'])) {
       this.scheduleRender();
     }
   }
 
   /* ────── Helpers ────────────────────────────────────────────── */
   private initRdkit(): void {
-    const generation = ++this.rendererGeneration;
+    const generation = ++this.sessionGeneration;
     this.ready = false;
     this.renderState.set('loading');
-    this.rendererSession?.dispose();
-    this.rendererSession = undefined;
+    this.invalidatePendingRender();
+    this.disposeRendererSession();
 
     void this.renderer.createSession().then(session => {
-      if (this.destroyed || generation !== this.rendererGeneration) {
+      if (this.destroyed || this.disablePreview || generation !== this.sessionGeneration) {
         session.dispose();
         return;
       }
@@ -157,25 +174,18 @@ export class MoleculeViewerComponent implements OnInit, OnChanges, OnDestroy {
       this.ready = true;
       if (!this.disablePreview) this.scheduleRender();
     }).catch(error => {
-      if (generation === this.rendererGeneration) this.showRenderError(error);
+      if (!this.destroyed && generation === this.sessionGeneration) this.showRenderError(error);
     });
   }
 
-  // Traccia l'unico job di render pianificato cosi' un nuovo scheduling
-  // (cambio tema/struttura) annulla deterministicamente quello precedente
-  // invece di lasciarli accumulare, e un componente distrutto non riceve
-  // mai piu' un render idle-callback/timeout schedulato prima del destroy.
-  private pendingRenderHandle: number | ReturnType<typeof setTimeout> | undefined;
-  private pendingRenderIsIdleCallback = false;
-  private destroyed = false;
-
   private scheduleRender(): void {
     this.cancelScheduledRender();
+    const generation = ++this.renderGeneration;
 
     const job = () => {
       this.pendingRenderHandle = undefined;
-      if (this.destroyed) return;
-      void this.renderSvg();
+      if (!this.isCurrentRender(generation)) return;
+      void this.renderSvg(generation);
     };
 
     if ((window as any).requestIdleCallback) {
@@ -197,12 +207,38 @@ export class MoleculeViewerComponent implements OnInit, OnChanges, OnDestroy {
     this.pendingRenderHandle = undefined;
   }
 
-  ngOnDestroy(): void {
+  private destroyViewer(): void {
+    if (this.destroyed) return;
     this.destroyed = true;
-    this.rendererGeneration += 1;
+    this.stopRenderer();
+  }
+
+  private stopRenderer(): void {
+    this.ready = false;
+    this.sessionGeneration += 1;
+    this.invalidatePendingRender();
+    this.disposeRendererSession();
+  }
+
+  private invalidatePendingRender(): void {
+    this.renderGeneration += 1;
     this.cancelScheduledRender();
-    this.rendererSession?.dispose();
+  }
+
+  private disposeRendererSession(): void {
+    const session = this.rendererSession;
     this.rendererSession = undefined;
+    session?.dispose();
+  }
+
+  private isCurrentRender(
+    generation: number,
+    session: ChemistryRendererSession | undefined = this.rendererSession
+  ): boolean {
+    return !this.destroyed
+      && !this.disablePreview
+      && generation === this.renderGeneration
+      && session === this.rendererSession;
   }
 
   private rgb(hex: string): [number, number, number] {
@@ -226,32 +262,35 @@ export class MoleculeViewerComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   /* ────── Core rendering ─────────────────────────────────────── */
-  private async renderSvg(): Promise<void> {
+  private async renderSvg(generation: number): Promise<void> {
     const session = this.rendererSession;
     if (!this.structure || !session) return;
+    const structure = this.structure;
+    const mode = this.mode;
     const palette = MoleculeViewerComponent.WCAG[this.darkMode() ? 'dark' : 'light'];
     let raw: string;
 
     try {
       raw = await session.renderSvg({
-        structure: this.structure,
+        structure,
         options: {
           background: this.rgb(palette.bg),
           bond: this.rgb(palette.bond),
           atomPalette: this.buildAtomPalette(),
-          fixedBondLength: this.structure.length < 40 ? 50 : 30
+          fixedBondLength: structure.length < 40 ? 50 : 30
         }
       });
     } catch (error) {
-      this.showRenderError(error);
+      if (this.isCurrentRender(generation, session)) this.showRenderError(error);
       return;
     }
 
-    if (this.destroyed || session !== this.rendererSession) return;
+    if (!this.isCurrentRender(generation, session)) return;
 
     /* 2. Mount off‑screen to compute exact bbox */
+    let tmp: HTMLDivElement | undefined;
     try {
-      const tmp = document.createElement('div');
+      tmp = document.createElement('div');
       tmp.style.cssText = 'position:absolute;visibility:hidden;top:-9999px;left:-9999px';
       tmp.innerHTML = raw;
       document.body.appendChild(tmp);
@@ -262,12 +301,12 @@ export class MoleculeViewerComponent implements OnInit, OnChanges, OnDestroy {
         const padX = w * 0.04;
         const padY = h * 0.04;
         svgEl.setAttribute('viewBox', `${x - padX} ${y - padY} ${w + 2 * padX} ${h + 2 * padY}`);
-        svgEl.setAttribute('preserveAspectRatio', `xMidYMid ${this.mode === 'preview' ? 'slice' : 'meet'}`);
+        svgEl.setAttribute('preserveAspectRatio', `xMidYMid ${mode === 'preview' ? 'slice' : 'meet'}`);
 
         /* Dimensioni responsive a seconda della variante */
         svgEl.removeAttribute('width');
         svgEl.removeAttribute('height');
-        if (this.mode === 'preview') {
+        if (mode === 'preview') {
           svgEl.setAttribute('width', '100%');
           svgEl.setAttribute('height', '100%');
         } else {
@@ -275,8 +314,12 @@ export class MoleculeViewerComponent implements OnInit, OnChanges, OnDestroy {
         }
         raw = svgEl.outerHTML;
       }
-      document.body.removeChild(tmp);
     } catch {/* fallback: keep raw as‑is */ }
+    finally {
+      tmp?.remove();
+    }
+
+    if (!this.isCurrentRender(generation, session)) return;
 
     /* 3. Fallback palette (nero / bianco RDKit) */
     raw = raw
@@ -286,10 +329,11 @@ export class MoleculeViewerComponent implements OnInit, OnChanges, OnDestroy {
 
     /* 4. Bind al template */
     this.zone.run(() => {
+      if (!this.isCurrentRender(generation, session)) return;
       this.svg = this.sanitizer.bypassSecurityTrustHtml(raw);
       this.renderState.set('ready');
       this.rendered.emit();
-    })
+    });
   }
 
   retry(): void {
