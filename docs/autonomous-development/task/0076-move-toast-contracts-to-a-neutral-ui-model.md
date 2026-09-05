@@ -146,7 +146,8 @@ All three task-owned runtime processes were stopped after this diagnostic. No
 weaker Angular-direct or frontend-only browser result is claimed.
 
 ### Commits
-Recorded in the final branch history after these notes.
+`34a10cc836efc5c41ebd24b83005c50206ad55f8` -
+`refactor(UI-018): decouple toast contracts`.
 
 ### Merge / CI
 No merge attempted. The coordinator must preserve and freeze the pushed
