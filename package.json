@@ -10,12 +10,14 @@
   "workspaces": [
     "MercurionWebNg",
     "MercurionWebNode",
-    "packages/rest-contracts"
+    "packages/rest-contracts",
+    "packages/socket-contracts"
   ],
   "scripts": {
-    "postinstall": "patch-package --patch-dir MercurionWebNg/patches && npm run build --workspace @mercurion/rest-contracts",
+    "postinstall": "npm run build --workspace @mercurion/rest-contracts && npm run build --workspace @mercurion/socket-contracts && patch-package --patch-dir MercurionWebNg/patches",
     "ci:validate:autonomous": "node docs/autonomous-development/tools/validate-cli-runner.mjs && node docs/autonomous-development/tools/validate-recipes.mjs",
     "ci:contracts": "npm run typecheck --workspace @mercurion/rest-contracts && npm run contracts:check --workspace mercurion_web_node",
+    "ci:socket-contracts": "npm run build --workspace @mercurion/socket-contracts && npm run typecheck --workspace @mercurion/socket-contracts && npm run policy --workspace @mercurion/socket-contracts && npm run policy:negative --workspace @mercurion/socket-contracts",
     "ci:lint:angular": "npm run lint --workspace mercurion_web_ng",
     "ci:lint:nest": "npm run lint --workspace mercurion_web_node",
     "ci:lint": "npm run ci:lint:angular && npm run ci:lint:nest",
@@ -39,7 +41,7 @@
     "ci:angular:mock-ip": "node scripts/check-angular-mock-ip-policy.mjs",
     "ci:angular:nested-subscriptions": "node scripts/check-angular-nested-subscriptions.mjs",
     "ci:angular:onpush-components": "node scripts/check-angular-component-change-detection.mjs",
-    "ci:static": "npm run ci:contracts && npm run ci:errors && npm run ci:graphql:internal-imports && npm run ci:angular:environment-imports && npm run ci:angular:environment-configs && npm run ci:angular:mock-ip && npm run ci:angular:nested-subscriptions && npm run ci:angular:onpush-components && npm run ci:angular:console-debugger",
+    "ci:static": "npm run ci:contracts && npm run ci:socket-contracts && npm run ci:errors && npm run ci:graphql:internal-imports && npm run ci:angular:environment-imports && npm run ci:angular:environment-configs && npm run ci:angular:mock-ip && npm run ci:angular:nested-subscriptions && npm run ci:angular:onpush-components && npm run ci:angular:console-debugger",
     "ci:check": "npm run ci:validate:autonomous && npm run ci:lint && npm run ci:typecheck && npm run ci:test && npm run ci:build && npm run ci:graphql && npm run ci:static",
     "ci:angular:console-debugger": "node scripts/check-angular-console-debugger-policy.mjs && node scripts/test-angular-console-debugger-policy-negative.mjs"
   },

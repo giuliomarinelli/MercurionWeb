@@ -1,7 +1,7 @@
 # 0009 - Create typed Socket.IO event registry
 
-- [ ] DONE
-- [x] BLOCKED
+- [x] DONE
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -247,3 +247,22 @@ Keep direction explicit. A client-to-server event and server-to-client response 
   claimed. Per the task and runtime protocol, the recipe remains `BLOCKED` and
   must not be merged until a human-assisted Chrome DevTools validation records
   the nginx `/socket.io/` request and clean browser console.
+
+### Human-authorized browser completion (2026-09-05)
+
+- A direct human instruction re-enabled this previously blocked recipe solely
+  to obtain the missing browser evidence. Chrome was controlled through the
+  ChatGPT extension; no credentials were entered and no production system was
+  accessed.
+- With the non-production stack running behind `http://localhost:8888`, the
+  application completed its normal navigation from `/welcome` to `/dashboard`.
+  The rendered dashboard was available through the nginx edge and the browser
+  console contained no warnings or errors.
+- The same runtime then completed the registry public-event exchange through
+  the nginx Socket.IO edge: `so.pub.public_test("SYS-009") ->
+  sv.pub.public_test("SYS-009 RESP")`. Angular, Nest and Tox21 were stopped
+  before this status update and the feature worktree is clean.
+- This supersedes the browser-availability blocker above. The exact final
+  feature SHA must still pass the required GitHub Actions gate before the
+  no-fast-forward merge into `develop`; post-merge CI remains subject to the
+  mandatory revert protocol.
