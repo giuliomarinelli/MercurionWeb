@@ -1,6 +1,6 @@
 # 0018 - Classify or remove unowned REST routes
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -172,3 +172,11 @@ claimed as complete.
   endpoint`, owned by the document API implementation backlog. This is neither
   an active product consumer nor an orphan implicitly permitted to expose the
   dormant Dropbox storage service.
+
+### Final integration (2026-09-05)
+
+- Feature SHA `7b680f38ef815134956ec43bf2e5c38124286d33` passed the Windows/Linux
+  `Required gate` in GitHub Actions run `33973605964`.
+- It was merged without fast-forward into `develop` as
+  `d871cd1df8d2b935020ccaa52ab5d34dc0ffe4a5`; the exact merge SHA passed the
+  Windows/Linux `Required gate` in run `33973934510`.
