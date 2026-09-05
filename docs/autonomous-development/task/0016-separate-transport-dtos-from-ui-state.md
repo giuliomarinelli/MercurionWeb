@@ -1,7 +1,7 @@
 # 0016 - Separate transport DTOs from UI state
 
 - [ ] DONE
-- [x] BLOCKED
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -93,29 +93,32 @@ Prefer pure mapping functions/factories from transport DTO to view model. Keep m
 Separated Help GraphQL transport aliases from Angular view state. Help services now
 return the generated transport shapes without adding signals; Help list/detail
 components explicitly adapt tickets and messages through pure view-model
-factories. The implementation is preserved on `feature/SYS-016`, but the task
-is blocked because the canonical runtime did not provide an authenticated/test
-Help state for the required browser interaction validation.
+factories. A direct human-authorized recovery supplied an authenticated local
+test state and resumed the preserved branch. The task is now `CI_PENDING`:
+its local implementation and browser validation are complete, while the exact
+feature-SHA and post-merge GitHub Actions gates are still required before the
+`DONE` outcome can be recorded.
 
 ### Validation performed
 
 - Unchanged task-start preflight: `npm ci` and `npm run ci:check` passed.
 - Angular build: `npm run build --workspace mercurion_web_ng` passed.
 - Angular CI tests: `npm run test:ci --workspace mercurion_web_ng` passed
-  (174 tests).
-- Final pre-merge preflight after stopping task-owned runtimes: `npm ci` and
-  `npm run ci:check` passed.
+  (287 tests).
+- Nest build: `npm run build --workspace mercurion_web_node` passed.
+- The final clean-install CI-parity preflight remains pending until the
+  task-owned runtime processes are stopped.
 
 ### Browser validation performed
 
-Blocked after navigating to `http://localhost:8888/help`: the development
-runtime redirected to `http://localhost:8888/login?redirect_to=%2Fhelp`
-without authenticated/test data, and the browser console reported an
-uncaught WebSocket handshake failure for
-`ws://localhost:8888/socket.io/?EIO=4&transport=websocket` (HTTP 502).
-Therefore Help collapse/animation interactions could not be exercised safely.
-Nest, Angular, and Tox21 processes started for this attempt were stopped before
-the final clean install.
+The human completed local test authentication in the browser. With the
+canonical nginx edge responding `200` for both the frontend and `/health`,
+`http://localhost:8888/help` rendered two open test tickets. Opening
+`MTCK-000000082` loaded its detail and existing message; closing the detail
+returned cleanly to the Help ticket list. No browser console errors were
+reported during the interaction. This exercises the UI state now produced by
+the explicit ticket and ticket-message view models without mutating the
+transport DTOs.
 
 ### Changed files
 
@@ -126,8 +129,13 @@ the final clean install.
 - `MercurionWebNg/src/app/pages/help/help.page.component.ts`
 - `MercurionWebNg/src/app/components/action-components/ticket-detail/ticket-detail.component.ts`
 
-### Blocker / human decision required
+### Recovery notes
 
-Provide safe development/test authentication and a healthy canonical backend
-WebSocket/API runtime so the required Help-route browser validation can be
-completed. No production credentials or data were used.
+- Reconciled the preserved branch with current `develop` through merge commit
+  `f71517e9`; the Help/Ticket conflict retains the current overlay,
+  invalidation, and session semantics while preserving the SYS-016 adapters.
+- Corrected the Nest development runtime paths for the current TypeScript
+  output layout (`dist/src/**`) and documented root-workspace launch commands.
+  The fixes are verified by a successful Nest watch bootstrap and bootstrap-file
+  copy; they are intentionally separate from local `env.vars.ts` and VS Code
+  launch configuration changes.
