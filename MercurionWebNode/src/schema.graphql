@@ -190,14 +190,6 @@ type MoleculeProperties {
   rtb: Int
 }
 
-"""Ruolo della molecola in una reazione chimica"""
-enum MoleculeRole {
-  Product
-  Reactant
-  SubProduct
-  Substrate
-}
-
 input MoleculeSearchInput {
   limit: Int
   maxMw: Float
@@ -224,12 +216,13 @@ type Mutation {
   addCustomMoleculeToCollection(collectionId: ID!, input: CustomMoleculeItemInput!): CustomMoleculeItemEntity!
   addManyChemblItemsToCollection(collectionId: ID!, input: [AddManyChEMBLItemDTO!]!): Boolean!
   addManyMoleculesToCollection(collectionId: ID!, itemIds: [ID!]!, selectAll: Boolean!): Boolean!
-  addStepMoleculeRef(input: SynthStepMoleculeRefInput!): SynthStepMoleculeRef!
   addSupportTicketMessage(contentDelta: JSON!, contentHtml: String!, ticketId: ID!): Boolean!
+  addSynthStepItem(input: SynthStepItemInput!): SynthStepItem!
   addTicketMessage(contentDelta: JSON!, contentHtml: String!, ticketId: ID!): Boolean!
   bindManyCollectionsToMolecule(collectionIds: [ID!]!, moleculeId: ID!, selectAll: Boolean!): BindManyCollectionsToMoleculeDTO!
   closeMyTicket(ticketId: ID!): Boolean!
   closeTicketAsSupport(ticketId: ID!): Boolean!
+  configureSynthesisPool(input: SynthesisPoolInput!): Synthesis!
   createChapter(input: CreateChapterInput!): NotebookChapter!
   createLabNotebook(title: String!): LabNotebook!
   createManyMoleculeCollections(names: [String!]!): Boolean!
@@ -257,7 +250,7 @@ type Mutation {
   removeChemblMoleculeFromCollection(collectionId: ID!, itemId: ID!): Boolean!
   removeCustomMoleculeFromCollection(collectionId: ID!, itemId: ID!): Boolean!
   removeMoleculeFromCollection(collectionId: ID!, deleteCollectionIfEmpty: Boolean, itemId: ID!): Boolean!
-  removeStepMoleculeRef(id: ID!): Boolean!
+  removeSynthStepItem(id: ID!): Boolean!
   reopenTicketAsSupport(ticketId: ID!): Boolean!
   reorderChapters(notebookId: ID!, orderedIds: [ID!]!): Boolean!
   reorderPages(orderedIds: [ID!]!, sectionId: ID!): Boolean!
@@ -268,7 +261,7 @@ type Mutation {
   updateMoleculeItem(id: ID!, input: CreateMoleculeItemInput!): MoleculeCollectionItemUnion
   updatePage(input: UpdatePageInput!): NotebookPage
   updateSection(input: UpdateSectionInput!): NotebookSection!
-  updateStepMoleculeRef(id: ID!, input: SynthStepMoleculeRefInput!): SynthStepMoleculeRef!
+  updateSynthStepItem(id: ID!, input: SynthStepItemInput!): SynthStepItem!
   updateSyntheticRoute(id: ID!, input: SynthesisInput!): Synthesis!
   updateSyntheticStep(id: ID!, input: SynthStepInput!): SynthStep!
 }
@@ -375,7 +368,7 @@ type Query {
   searchMyCollections(limit: Float, query: String): [MoleculeCollection!]!
   sectionByChapterId(chapterId: ID!): NotebookSection!
   sectionById(id: ID!): NotebookSection!
-  stepMoleculeRefs(stepId: ID!): [SynthStepMoleculeRef!]!
+  synthStepItems(stepId: ID!): [SynthStepItem!]!
   syntheticRoute(id: ID!): Synthesis
   syntheticStepById(id: ID!): SynthStep
   syntheticStepsByRoute(routeId: ID!): [SynthStep!]!
@@ -385,50 +378,67 @@ type Query {
 }
 
 type SynthStep {
-  conditions: [String!]!
   description: String
   id: ID!
-  mainProduct: CustomMoleculeItemEntity
-  mainProductId: ID
-  mainSubstrate: CustomMoleculeItemEntity
-  mainSubstrateId: ID
-  moleculeRefs: [SynthStepMoleculeRef!]
+  items: [SynthStepItem!]
   order: Int!
   reactionType: String
   synth: Synthesis!
-  synthId: ID
+  synthId: ID!
 }
 
 input SynthStepInput {
-  conditions: [String!]!
   description: String
-  mainProductId: ID!
-  mainSubstrateId: ID!
   order: Int!
   reactionType: String
   synthId: ID!
 }
 
-type SynthStepMoleculeRef {
+type SynthStepItem {
   id: ID!
-  molecule: CustomMoleculeItemEntity
-  moleculeId: ID
-  role: MoleculeRole!
-  showAliasOnTheArrow: Boolean!
+  kind: SynthStepItemKind!
+  order: Int!
+  poolMolecule: SynthesisPoolMolecule
+  poolMoleculeId: ID
+  position: SynthStepItemPosition!
   step: SynthStep!
   stepId: ID!
+  text: String
 }
 
-input SynthStepMoleculeRefInput {
-  moleculeId: ID!
-  role: MoleculeRole!
-  showAliasOnTheArrow: Boolean!
+input SynthStepItemInput {
+  kind: SynthStepItemKind!
+  order: Int!
+  poolMoleculeId: ID
+  position: SynthStepItemPosition!
   stepId: ID!
+  text: String
+}
+
+"""Chemical or textual role of an item in a synthetic step"""
+enum SynthStepItemKind {
+  Byproduct
+  Catalyst
+  Condition
+  Other
+  Product
+  Reactant
+  Reagent
+  Solvent
+}
+
+"""Visual placement of an item relative to the reaction arrow"""
+enum SynthStepItemPosition {
+  AfterArrow
+  BeforeArrow
+  OnArrow
 }
 
 type Synthesis {
   id: ID!
   notes: String
+  poolCollections: [SynthesisPoolCollection!]
+  poolMolecules: [SynthesisPoolMolecule!]
   steps: [SynthStep!]
   title: String!
 }
@@ -436,6 +446,26 @@ type Synthesis {
 input SynthesisInput {
   notes: String
   title: String!
+}
+
+type SynthesisPoolCollection {
+  collection: MoleculeCollection!
+  collectionId: ID!
+  id: ID!
+  synthesisId: ID!
+}
+
+input SynthesisPoolInput {
+  collectionIds: [ID!]!
+  moleculeIds: [ID!]!
+  synthesisId: ID!
+}
+
+type SynthesisPoolMolecule {
+  id: ID!
+  molecule: CustomMoleculeItemEntity!
+  moleculeId: ID!
+  synthesisId: ID!
 }
 
 type Ticket {
