@@ -54,17 +54,17 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/auth.service.ts",
-          "line": 255,
+          "line": 234,
           "kind": "angular-source"
         },
         {
           "file": "MercurionWebNg/src/app/services/auth.service.ts",
-          "line": 439,
+          "line": 429,
           "kind": "angular-source"
         },
         {
           "file": "MercurionWebNg/src/app/services/auth.service.ts",
-          "line": 450,
+          "line": 440,
           "kind": "angular-source"
         },
         {
@@ -473,7 +473,7 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/auth.service.ts",
-          "line": 470,
+          "line": 460,
           "kind": "angular-source"
         }
       ]
@@ -493,7 +493,7 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/auth.service.ts",
-          "line": 264,
+          "line": 243,
           "kind": "angular-source"
         },
         {
@@ -873,11 +873,6 @@
         {
           "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
           "line": 109,
-          "kind": "documentation"
-        },
-        {
-          "file": "docs/autonomous-development/task/0026-create-canonical-angular-auth-state-store.md",
-          "line": 129,
           "kind": "documentation"
         },
         {
@@ -1413,7 +1408,7 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/auth.service.ts",
-          "line": 450,
+          "line": 440,
           "kind": "angular-source"
         }
       ]
@@ -1433,7 +1428,7 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/auth.service.ts",
-          "line": 439,
+          "line": 429,
           "kind": "angular-source"
         }
       ]
@@ -1498,7 +1493,7 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/auth.service.ts",
-          "line": 168,
+          "line": 151,
           "kind": "angular-source"
         },
         {
@@ -1563,7 +1558,7 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/auth.service.ts",
-          "line": 158,
+          "line": 141,
           "kind": "angular-source"
         },
         {
@@ -1588,7 +1583,7 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/auth.service.ts",
-          "line": 176,
+          "line": 159,
           "kind": "angular-source"
         }
       ]
@@ -1613,7 +1608,7 @@
         },
         {
           "file": "MercurionWebNg/src/app/services/auth.service.ts",
-          "line": 183,
+          "line": 166,
           "kind": "angular-source"
         },
         {
