@@ -1,17 +1,16 @@
 import {
-  Component, Input, Output, EventEmitter, signal, computed, effect
-} from '@angular/core';
+  Component, Input, Output, EventEmitter, signal, computed, effect, ChangeDetectionStrategy } from '@angular/core';
 import { DatePipe, NgClass } from '@angular/common';
 import { APIClientTicket, Ticket, TicketCardMode } from '../../../Models/graphql/help.models'; // path tuo
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
 import { inject } from '@angular/core';
 import { TypeGuardsService } from '../../../services/type-guards.service';
-import { Maybe } from 'graphql/jsutils/Maybe';
 
 
 
 @Component({
   selector: 'm-ticket-card',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DatePipe, NgClass],
   template: `
   @if (_ticket()) {
@@ -284,7 +283,7 @@ export class TicketCardComponent {
     return t.status === 'Closed'
   })
 
-  getUserFullNameIfIsTicket(t: Maybe<Ticket | APIClientTicket>): string {
+  getUserFullNameIfIsTicket(t: Ticket | APIClientTicket | null | undefined): string {
     if (this.typeGuards.isTicket(t)) {
       return t.userFullName ?? ''
     }

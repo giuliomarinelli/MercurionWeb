@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -98,34 +98,37 @@ Prefer a small semantic API over a utility-class passthrough. The point is to re
 ## Execution notes
 
 ### Feature branch
-_Not started._
+No task branch or worker was created because hard prerequisite
+`0052-standardize-modern-angular-component-apis.md` (`FE-030`) is `BLOCKED`.
 
 ### Preflight
-_Not started._
+Not applicable; the task was skipped before implementation.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-_Not started._
+Skipped at the normal filename-order selection point. Direct prerequisite
+`FE-030` is terminal `BLOCKED` due missing worker filesystem write capability.
 
 ### Task-specific validation performed
-_Not started._
+No implementation or validation was performed.
 
 ### Full pre-merge CI-parity validation
-_Not started._
+Not applicable; no feature branch was created.
 
 ### Browser validation performed
-_Not started._
+Not applicable; the task was skipped before implementation.
 
 ### Commits
-_Not recorded._
+Only this task metadata was updated on `develop`.
 
 ### Merge / CI
-_Not started._
+No feature merge; skip metadata CI is required before continuing.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-_None._
+No implementation blocker. Re-enable only after FE-030 is deliberately
+resolved in a new authorized session.

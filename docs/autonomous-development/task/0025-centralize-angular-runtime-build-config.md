@@ -1,6 +1,6 @@
 # 0025 - Centralize Angular runtime and build configuration
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -62,13 +62,13 @@ This task specifically owns endpoint/capability/version configuration. Route acc
 
 ## Acceptance criteria
 
-- [ ] Endpoint/capability/release consumers use one typed config API.
-- [ ] `wsUrl`, beta/feedback state and release version are not independently hard-coded across feature consumers.
-- [ ] All supported environments produce a valid application config.
-- [ ] Config mapping is covered by tests.
-- [ ] Angular builds succeed for development, testing, staging and production.
-- [ ] No browser bundle receives secret values through the new configuration path.
-- [ ] Existing route/access behaviour remains unchanged.
+- [x] Endpoint/capability/release consumers use one typed config API.
+- [x] `wsUrl`, beta/feedback state and release version are not independently hard-coded across feature consumers.
+- [x] All supported environments produce a valid application config.
+- [x] Config mapping is covered by tests.
+- [x] Angular builds succeed for development, testing, staging and production.
+- [x] No browser bundle receives secret values through the new configuration path.
+- [x] Existing route/access behaviour remains unchanged.
 
 ## Validation
 
@@ -112,20 +112,112 @@ Keep the boundary intentionally small. This task should reduce configuration cou
 
 ### Summary
 
-_Not started._
+Introduced `MercurionWebNg/src/app/config/app-config.ts`, a minimal typed Angular DI
+configuration boundary (`AppConfig` + `APP_CONFIG` injection token with a tree-shakable
+root factory). `createAppConfig(environment)` derives four responsibility groups from the
+selected build environment:
+
+- `endpoints`: same-origin realtime URL `/` and Socket.IO path `/socket.io`;
+- `capabilities`: `beta` (true for every non-production environment) and `feedbackEnv`
+  (`prod` for production, `staging` otherwise);
+- `release`: one version derived from the single `RELEASE_BASE_VERSION` source;
+- `integrations`: the public Turnstile site key taken from the environment.
+
+`wsUrl`, `beta`, `feedbackEnv` and `version` were removed from `EnvironmentConfig` and from
+all four environment variants, so no duplicated endpoint/capability/version constants remain
+in the environment files. Environment identity (`name`, `production`, `testing`), route
+arrays, `CLOUDFLARE_SITE_KEY` and `logoSrc` are unchanged; route/access metadata was
+deliberately left to `FE-019`/`FE-035`.
+
+Migrated consumers:
+
+- `RealtimeSocketService` now reads `endpoints.realtimeUrl` / `endpoints.realtimePath`
+  (the socket path was previously hard-coded in the service);
+- `HeaderComponent` reads `capabilities.beta`;
+- `FeedbackPageComponent` reads `capabilities.feedbackEnv` and `release.version`;
+- `TurnstileComponent` reads `integrations.turnstileSiteKey`.
+
+Release-version decision: `MercurionWebNg/package.json` (`1.0.0`) is the only version
+manifest in the repository and is now the single source. Environment variants no longer
+carry independent strings; the channel qualifier is derived from the environment name
+(`development` -> `1.0.0d`, `testing` -> `1.0.0i`, `staging` -> `1.0.0-beta`,
+`production` -> `1.0.0`). Development, testing and production keep their previous displayed
+values; only staging changes from the unrelated hard-coded `1.0-beta-1` to the derived
+`1.0.0-beta`, which is exactly the duplicated-version debt this recipe removes. No
+product/release-process decision beyond repository code was required, so the stop condition
+did not apply.
+
+`resolveJsonModule` was enabled in `MercurionWebNg/tsconfig.json` so the unit test can assert
+that `RELEASE_BASE_VERSION` equals the package manifest version. The manifest is imported by
+the spec only; the production bundle contains no manifest content (`devDependencies` absent
+from `dist`).
 
 ### Validation performed
 
-_Not started._
+Task-start preflight (unchanged branch, no workspace-consuming process running):
+
+- `npm ci` (repository root) - success;
+- `npm run ci:check` (repository root) - success.
+
+Task-specific validation:
+
+- `npx tsc --noEmit -p tsconfig.app.json` (MercurionWebNg) - success;
+- `npx eslint` on all changed Angular files - 0 errors (pre-existing warnings only);
+- `npm run test:ci` (MercurionWebNg) - 185 of 185 specs pass, including the new
+  `src/app/config/app-config.spec.ts` (environment-to-app-config mapping for all four
+  environments, release-version single-source parity with `package.json`, frozen config
+  groups, DI provision, absence of secret-looking values, and a `RealtimeSocketService`
+  consumer test asserting the configured Socket.IO path);
+- `npx ng build --configuration production|development|testing|staging` - all four succeed;
+- repository-wide search for `environment.wsUrl|beta|feedbackEnv|version|CLOUDFLARE_SITE_KEY`
+  under `src/app` returns no matches.
+
+Final pre-integration CI-parity gate (all task-owned runtime processes stopped first):
+
+- `npm ci` (repository root) - success;
+- `npm run ci:check` (repository root) - success.
 
 ### Browser validation performed
 
-_Not started._
+Canonical runtime started after the initial preflight: Tox21
+(`.venv\Scripts\python.exe -m main`), Nest (`npm run start:dev`), Angular
+(`npm run start:dev`). Browser origin: `http://localhost:8888` (nginx development edge),
+Chrome DevTools MCP, no production credentials or data.
+
+- `http://localhost:8888/` loads through nginx and the SPA boots (redirect to
+  `/welcome`, HTTP 200 from the edge).
+- Console contains no uncaught configuration errors; the only entries are a lazy-image
+  sizing hint and the Socket.IO handshake failure described below.
+- Socket.IO targets the same-origin path exactly as configured:
+  `ws://localhost:8888/socket.io/?EIO=4&transport=websocket`.
+- The development beta capability is visible in the header (`Beta` badge), consistent with
+  `capabilities.beta === true` for the development configuration. The release version is not
+  rendered in the UI; it is sent as `clientVersion` in the feedback DTO and is covered by
+  unit tests.
+
+Known local limitation, not caused by this task: `MercurionWebNode` cannot boot on this
+host because no `.env` is present, so the Nest upstream returns 502 through nginx. The
+Socket.IO handshake therefore fails at the upstream, which does not affect the evidence
+required here: the client endpoint/path configuration is observable in the request URL and
+is produced by the new configuration boundary. No credentials were invented or supplied.
 
 ### Changed files
 
-_Not recorded._
+- `MercurionWebNg/src/app/config/app-config.ts` (new)
+- `MercurionWebNg/src/app/config/app-config.spec.ts` (new)
+- `MercurionWebNg/src/environments/environment.config.ts`
+- `MercurionWebNg/src/environments/environment.ts`
+- `MercurionWebNg/src/environments/environment.development.ts`
+- `MercurionWebNg/src/environments/environment.testing.ts`
+- `MercurionWebNg/src/environments/environment.staging.ts`
+- `MercurionWebNg/src/app/services/socket.IO/realtime-socket.service.ts`
+- `MercurionWebNg/src/app/components/common/header/header.component.ts`
+- `MercurionWebNg/src/app/components/common/turnstile/turnstile.component.ts`
+- `MercurionWebNg/src/app/pages/feedback/feedback.page.component.ts`
+- `MercurionWebNg/tsconfig.json`
+- `docs/autonomous-development/task/0025-centralize-angular-runtime-build-config.md`
 
 ### Blocker / human decision required
 
 _None._
+

@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, ChangeDetectionStrategy, Input } from '@angular/core';
 import { NotebookTree, ChapterTree, SectionTree, PageTree } from '../../../Models/graphql/notebook/notebook.models';
 import { RouterModule } from '@angular/router';
 
@@ -6,6 +6,7 @@ type TocMode = 'edit' | 'read';
 
 @Component({
   selector: 'm-notebook-toc',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterModule],
   template: `
     <nav aria-label="Indice notebook">

@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -89,34 +89,40 @@ Keep feature conditionals inside projected content. The shell should not learn a
 ## Execution notes
 
 ### Feature branch
-_Not started._
+No task branch or worker was created because hard prerequisites `0060`
+(`UI-002`), `0061` (`UI-003`), and `0068` (`UI-010`) are terminal
+`SKIPPED_DEPENDENCY`.
 
 ### Preflight
-_Not started._
+Not applicable; the task was skipped before implementation.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-_Not started._
+Skipped at the normal filename-order selection point. All direct UI primitive
+and dialog-shell prerequisites are `SKIPPED_DEPENDENCY`, with transitive
+blocked root cause `0052-standardize-modern-angular-component-apis.md`
+(`FE-030`).
 
 ### Task-specific validation performed
-_Not started._
+No implementation or validation was performed.
 
 ### Full pre-merge CI-parity validation
-_Not started._
+Not applicable; no feature branch was created.
 
 ### Browser validation performed
-_Not started._
+Not applicable; the task was skipped before implementation.
 
 ### Commits
-_Not recorded._
+Only this task metadata was updated on `develop`.
 
 ### Merge / CI
-_Not started._
+No feature merge; skip metadata CI is required before continuing.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-_None._
+No implementation blocker. Re-enable only after the direct prerequisite chains
+are deliberately resolved in a new authorized session.

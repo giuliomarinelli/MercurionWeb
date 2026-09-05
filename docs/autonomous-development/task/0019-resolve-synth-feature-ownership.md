@@ -1,7 +1,7 @@
 # 0019 - Resolve Synth feature ownership
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -164,20 +164,24 @@ This task is intentionally a decision gate. A high-quality autonomous outcome ma
 
 ### Summary
 
-_Not started._
+Executed the mandatory decision gate for Synth feature ownership: searched repository documentation, series planning files, configuration, and codebase for an explicit human/product ownership decision (`retain` vs `remove`). No explicit decision exists in the repository. Per task stop conditions and repository operating contract (AGENTS.md / PROTOCOL.md), autonomous inference of product scope is prohibited and the task is immediately marked BLOCKED to await human decision.
 
 ### Validation performed
 
-_Not started._
+- Unchanged task-start CI-parity preflight: `npm ci` (exit 0) and `npm run ci:check` (exit 0, all gates passed).
+- Autonomous runner and recipe metadata validation: `node docs/autonomous-development/tools/validate-recipes.mjs` (exit 0).
 
 ### Browser validation performed
 
-_Not started / branch-dependent._
+_Not required for blocked decision gate._
 
 ### Changed files
 
-_Not recorded._
+- `docs/autonomous-development/task/0019-resolve-synth-feature-ownership.md`
 
 ### Blocker / human decision required
 
-_None recorded yet._
+Explicit human/product ownership decision required:
+1. Choose either `retain` or `remove` for the Synth domain.
+2. If `retain`: specify the intended Angular entry point, UX scope, and route/navigation placement.
+3. If `remove`: authorize complete removal of Synth module, resolvers, services, entities, DTOs, and schema exposure.

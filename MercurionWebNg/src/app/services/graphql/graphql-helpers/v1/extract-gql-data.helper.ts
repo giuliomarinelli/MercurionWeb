@@ -1,5 +1,3 @@
-import { Maybe } from "graphql/jsutils/Maybe";
-
 type GraphQLErrorLike = { message?: string };
 
 export class GqlDataError extends Error {
@@ -14,7 +12,7 @@ export class GqlDataError extends Error {
 
 // forma super-larga che matcha ApolloQueryResult / MutationResult
 export type ApolloLike<T extends Record<string, unknown>> = {
-  data?: Maybe<T> | null;
+  data?: T | null;
   errors?: ReadonlyArray<unknown> | null;
   // Apollo spesso ha anche 'loading', 'extensions', ecc. ma non ci interessa
 };
@@ -57,7 +55,7 @@ export function extractGqlData<
   T extends Record<string, unknown>,
   K extends keyof T
 >(
-  res: { data?: Maybe<T> | null; errors?: ReadonlyArray<unknown> | null },
+  res: { data?: T | null; errors?: ReadonlyArray<unknown> | null },
   field: K | string,
   allowNull: boolean = false
 ): any {

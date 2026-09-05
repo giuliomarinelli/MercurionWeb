@@ -1,6 +1,7 @@
 import {
   AfterViewInit,
   Component,
+  DestroyRef,
   ElementRef,
   OnDestroy,
   OnInit,
@@ -10,6 +11,7 @@ import {
   effect,
   ChangeDetectionStrategy
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractPaginatedMultiselectComponent } from '../../../abstract/abstract-paginated-multiselect-component';
 import { debounceTime, map, Observable, Subscription } from 'rxjs';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
@@ -28,6 +30,7 @@ import { SearchResultSkeletonLoaderComponent } from '../../search-overlay/search
 import { SearchResultComponent } from '../../search-overlay/search-result/search-result.component';
 import { AddManyChEMBLItemDTO } from '../../../Models/graphql/add-many-chembl-item.dto';
 import { AddMoleculesToCollectionContextService } from '../../../services/context/action-context/add-molecules-to-collection-context.service';
+import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
 import { CloseButtonComponent } from '../../common/close-button/close-button.component';
 import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
 import { ToastService } from '../../../services/toast.service';
@@ -670,11 +673,14 @@ export class AddMoleculesToCollectionComponent
 
   private readonly actionOverlayContext = inject(ActionOverlayContextService);
   private readonly addContext = inject(AddMoleculesToCollectionContextService);
+  private readonly sessionId = this.actionOverlayContext.session('AddMoleculesToCollection')?.id ?? -1;
+  private readonly invalidation = inject(DomainInvalidationService);
   private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService);
   private readonly moleculeCollectionService = inject(MoleculeCollectionService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
   private readonly moleculeSearchService = inject(MoleculeSearchService);
+  private readonly destroyRef = inject(DestroyRef);
 
   private ctrlSub?: Subscription;
   private suSub1?: Subscription;
@@ -737,14 +743,17 @@ export class AddMoleculesToCollectionComponent
     const defaultMethod = ifc ? 'chembl' : 'my';
     this.method.set(defaultMethod);
     this.methodControl = new FormControl<'my' | 'chembl'>(defaultMethod, { nonNullable: true });
-    this.metCtrlSub = this.methodControl.valueChanges.subscribe(val => this.method.set(val));
+    this.metCtrlSub = this.methodControl.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(val => this.method.set(val));
     queueMicrotask(() => {
-      this.colSub = this.moleculeCollectionService.getCollectionById(this.addContext.collectionId()!).subscribe({
+      this.colSub = this.moleculeCollectionService.getCollectionById(this.addContext.collectionId()!).pipe(
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe({
         next: col => this.collection.set(col),
         error: () =>
           queueMicrotask(() => {
             this.close();
-            this.addContext.clearCollectionId();
             this.toast.trigger('Si è verificato un errore. Se si ripete, contatta il supporto', 'error', 3000);
           })
       });
@@ -792,7 +801,7 @@ export class AddMoleculesToCollectionComponent
   }
 
   close(): void {
-    this.actionOverlayContext.close();
+    this.actionOverlayContext.close(this.sessionId);
   }
 
   private doSubmit(): void {
@@ -814,18 +823,23 @@ export class AddMoleculesToCollectionComponent
 
       this.suSub1 = this.moleculeCollectionItemService
         .addManyMoleculesToCollection(this.addContext.collectionId()!, itemIds, this.isSelectedAll())
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: ok => {
             this.step_12_loading.set(false);
-            this.addContext.notifyAdded();
+            if (ok) {
+              this.invalidation.publish({
+                domain: 'molecule-collection',
+                action: 'molecules-added',
+                collectionId: this.addContext.collectionId()!
+              });
+            }
             this.error.set(!ok);
             const cId = this.addContext.collectionId();
-            this.addContext.clearCollectionId();
             if (this.addContext.redirectToCollectionPath()) {
-              this.addContext.setRedirectToCollectionPath(false);
               this.router.navigateByUrl(`/molecules/collections/detail/${cId}`);
             }
-            this.actionOverlayContext.close();
+            this.actionOverlayContext.close(this.sessionId);
           },
           error: () => {
             this.step_12_loading.set(false);
@@ -834,7 +848,7 @@ export class AddMoleculesToCollectionComponent
           }
         });
     } else {
-      this.actionOverlayContext.close();
+      this.actionOverlayContext.close(this.sessionId);
     }
   }
 
@@ -882,7 +896,7 @@ export class AddMoleculesToCollectionComponent
       ? this.moleculeCollectionItemService.searchChemblMolecules_excludeAlreadyAdded(trimmed, collectionId, 100)
       : this.moleculeSearchService.searchMolecule(trimmed, 100);
 
-    obs.subscribe({
+    obs.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res: MoleculeSearchResult[]) => {
         this.chemblResults.set(res ?? []);
         this.chemblLoading.set(false);
@@ -935,19 +949,24 @@ export class AddMoleculesToCollectionComponent
     });
     this.suSub2 = this.moleculeCollectionItemService
       .addManyChEMBLItemsToCollection(this.addContext.collectionId()!, dtos)
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: ok => {
           this.step_12_loading.set(false);
-          this.addContext.notifyAdded();
+          if (ok) {
+            this.invalidation.publish({
+              domain: 'molecule-collection',
+              action: 'molecules-added',
+              collectionId: this.addContext.collectionId()!
+            });
+          }
           this.error.set(!ok);
           const cId = this.addContext.collectionId();
           const shouldRedirect = this.addContext.redirectToCollectionPath();
-          this.addContext.clearCollectionId();
           if (shouldRedirect) {
-            this.addContext.setRedirectToCollectionPath(false);
             this.router.navigateByUrl(`/molecules/collections/detail/${cId}`);
           }
-          this.actionOverlayContext.close();
+          this.actionOverlayContext.close(this.sessionId);
         },
         error: () => {
           this.step_12_loading.set(false);
@@ -965,3 +984,5 @@ export class AddMoleculesToCollectionComponent
     }
   }
 }
+
+

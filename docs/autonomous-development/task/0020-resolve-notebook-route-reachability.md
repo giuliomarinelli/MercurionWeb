@@ -1,7 +1,7 @@
 # 0020 - Resolve Notebook route reachability
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -104,20 +104,40 @@ The current absence from `app.routes.ts` is evidence of unreachability, not evid
 
 ### Summary
 
-_Not started._
+Blocked on 2026-09-04 during the mandatory product decision gate. The feature
+cannot be retained, routed, exposed in navigation, or removed without an
+explicit human/product decision.
 
 ### Validation performed
 
-_Not started._
+- Verified branch identity: `feature/SYS-020` at base SHA
+  `1b07c761c29c58c6c466c631fec46665b4470ca3`.
+- Verified effective repository signing config: `commit.gpgSign=false`.
+- Proved no session/task-owned Angular, Nest, Tox21, test watcher, or
+  workspace-consuming watch process was detected before clean install.
+- Ran unchanged canonical preflight from the repository root:
+  `npm ci` followed by `npm run ci:check`; both completed successfully.
+- Searched repository documentation/configuration and relevant source for an
+  explicit Notebook retain/remove decision, including `AGENTS.md`, `.github`,
+  `docs`, `MercurionWebNg/src`, and `MercurionWebNode/src`. Findings only
+  restate that Notebook must become reachable/supported or be removed; they do
+  not choose retain vs. remove and do not approve a route path, navigation
+  placement, or access policy.
 
 ### Browser validation performed
 
-_Not started / branch-dependent._
+Not performed. Browser validation is not needed for this blocked decision gate,
+and no Notebook route should be invented before the product decision exists.
 
 ### Changed files
 
-_Not recorded._
+- `docs/autonomous-development/task/0020-resolve-notebook-route-reachability.md`
 
 ### Blocker / human decision required
 
-_None recorded yet._
+Required explicit human/product decision:
+
+1. Retain Notebook as a supported product feature, or remove it completely from
+   client, schema, and server.
+2. If retained, explicitly approve the canonical Angular route path, navigation
+   exposure/placement, and access policy/guard audience before implementation.

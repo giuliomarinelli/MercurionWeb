@@ -1,4 +1,5 @@
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FloatingInputComponent } from '../../components/common/floating-input/floating-input.component';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AccountService } from '../../services/account.service';
@@ -9,6 +10,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'm-forgot-password',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FloatingInputComponent, ReactiveFormsModule, TurnstileComponent, ClassicSpinnerComponent],
   template: `
 
@@ -36,8 +38,7 @@ import { HttpErrorResponse } from '@angular/common/http';
               [formControl]="email"
               [errors]="{
                 required: 'E-mail obbligatoria.',
-                email: 'Formato e-mail non corretto',
-              }"
+                email: 'Formato e-mail non corretto' }"
               [serverError]="
                 serverError() ? this.errMsg() : null
               "
@@ -109,6 +110,7 @@ export class ForgotPasswordPageComponent implements OnInit, OnDestroy {
 
 
   private readonly accountService = inject(AccountService)
+  private readonly destroyRef = inject(DestroyRef)
 
 
 
@@ -132,6 +134,7 @@ export class ForgotPasswordPageComponent implements OnInit, OnDestroy {
     if (this.email.valid && this.turnstileToken()) {
       this.step_12_loading.set(true)
       this.recoverSub = this.accountService.sendForgottenPasswordLink({ email: this.email.value! }, this.turnstileToken()!)
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: ({ obscuredEmail }) => {
             this.step.set(2)
@@ -159,7 +162,9 @@ export class ForgotPasswordPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.emailCtrlSub = this.email.valueChanges.subscribe(() => {
+    this.emailCtrlSub = this.email.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.serverError.set(false)
       this.errMsg.set('Si è verificato un errore.')
     })

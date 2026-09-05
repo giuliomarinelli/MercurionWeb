@@ -7,7 +7,6 @@ import { Login_FirstStepWrapper } from '../Models/auth/login.models';
 import { TypeGuardsService } from './type-guards.service';
 import { UserContextService } from './context/user-context.service';
 import { Router } from '@angular/router';
-import { Maybe } from 'graphql/jsutils/Maybe';
 import type {
   BackupCodeDTO,
   Confirm_Login_FirstStepDTO,
@@ -186,7 +185,6 @@ export class AuthService {
       headers: {
         'X-Fingerprint': fingerprintBase64,
         'X-Device-Info': btoa(JSON.stringify(sessionDeviceInfo)),
-        'X-Mock-IP': '91.122.12.8',
         'X-Challenge-Token': turnstileToken
       }
     }).pipe(tap((res) => {
@@ -233,7 +231,6 @@ export class AuthService {
         'X-Fingerprint': fingerprintBase64,
         'X-Device-Info': btoa(JSON.stringify(sessionDeviceInfo)),
         'Authorization': `Bearer ${preauthorizationToken}`,
-        'X-Mock-IP': '91.122.12.8'
       }
     }).pipe(tap((res) => {
       if (this.typeGuards.isNotNullish(res.accessToken)) {
@@ -366,8 +363,8 @@ export class AuthService {
     }
   }
 
-  getUserScopesFromClaims(token?: Maybe<string>, setCache = false): string[] {
-    token = token ?? this.getAccessToken() as Maybe<string>
+  getUserScopesFromClaims(token?: string | null, setCache = false): string[] {
+    token = token ?? this.getAccessToken() as string | null
     if (!token) {
       return []
     }
@@ -464,7 +461,6 @@ export class AuthService {
       headers: {
         'X-Fingerprint': fingerprintBase64,
         'X-Device-Info': sessionDeviceInfoBase64,
-        'X-Mock-IP': '91.122.12.8',
         'Authorization': `Bearer ${sso_preAuthorizationToken}`
       }
     })

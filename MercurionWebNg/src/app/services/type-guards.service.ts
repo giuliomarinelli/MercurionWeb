@@ -4,7 +4,6 @@ import { MoleculeDetailSystem } from "../Models/graphql/molecule.detail.models";
 import { ChEMBLMoleculeItemEntity, CustomMoleculeItemEntity, MoleculeCollectionItemClient, MoleculeCollectionItemEntityShort, MoleculeDetailItem } from "../Models/graphql/molecule-collection/molecule-collection.types";
 import { SSO_AuthProvider } from "../Models/auth/provider.models";
 import { Ticket } from "../Models/graphql/help.models";
-import { Maybe } from 'graphql/jsutils/Maybe';
 import { MoleculeSearchResult } from '../Models/graphql/molecule-search/molecule-search-result.interface';
 import { PageModel } from '../Models/graphql/page.models';
 import { JsonValue } from '../Models/json.models';
@@ -83,7 +82,7 @@ export class TypeGuardsService {
   // --- TICKET guards ---
 
   isTicket(
-    item: Maybe<Ticket | APIClientTicket>
+    item: Ticket | APIClientTicket | null | undefined
   ): item is Ticket {
     if (!item) return false
 
@@ -95,7 +94,7 @@ export class TypeGuardsService {
   }
 
   isClientTicket(
-    item: Maybe<APIClientTicket | Ticket>
+    item: APIClientTicket | Ticket | null | undefined
   ): item is APIClientTicket {
     if (!item) return false
 
@@ -109,7 +108,7 @@ export class TypeGuardsService {
   // --- MESSAGE guards ---
 
   isTicketMessage(
-    item: Maybe<TicketMessage | ClientTicketMessage>
+    item: TicketMessage | ClientTicketMessage | null | undefined
   ): item is TicketMessage {
     if (!item) return false
 
@@ -121,7 +120,7 @@ export class TypeGuardsService {
   }
 
   isClientTicketMessage(
-    item: Maybe<ClientTicketMessage | TicketMessage>
+    item: ClientTicketMessage | TicketMessage | null | undefined
   ): item is ClientTicketMessage {
     if (!item) return false
 

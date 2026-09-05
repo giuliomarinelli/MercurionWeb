@@ -1,6 +1,6 @@
 # 0024 - Enforce a typed Angular environment schema
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -102,11 +102,29 @@ Prefer one positive environment discriminant over multiple independent booleans.
 
 ### Summary
 
-_Not started._
+Added a canonical Angular `EnvironmentConfig` schema with explicit
+`development`, `testing`, `staging` and `production` identities. Environment
+variants now use a shared typed factory that derives the legacy `production`
+and `testing` booleans from the identity, preventing contradictory flag
+combinations while preserving existing non-identity configuration values.
+
+Added focused environment tests for all four variants, invalid contradictory
+flags and runtime immutability. Added a static CI check that verifies
+`angular.json` maps each build configuration to the intended environment file.
 
 ### Validation performed
 
-_Not started._
+- Preflight `npm ci && npm run ci:check` - passed before implementation.
+- `npm run typecheck --workspace mercurion_web_ng` - passed.
+- `npm run lint --workspace mercurion_web_ng` - passed with existing warnings.
+- `npm run test:ci --workspace mercurion_web_ng -- --include src/environments/environment.config.spec.ts` - passed.
+- `npm run ci:angular:environment-configs` - passed.
+- From `MercurionWebNg`, `npm run build` - passed.
+- From `MercurionWebNg`, `npx ng build --configuration development` - passed.
+- From `MercurionWebNg`, `npx ng build --configuration testing` - passed.
+- From `MercurionWebNg`, `npx ng build --configuration staging` - passed.
+- From `MercurionWebNg`, `npx ng test --watch=false` - passed.
+- Final `npm ci && npm run ci:check` - passed.
 
 ### Browser validation performed
 
@@ -114,7 +132,15 @@ _Not applicable._
 
 ### Changed files
 
-_Not recorded._
+- `MercurionWebNg/src/environments/environment.config.ts`
+- `MercurionWebNg/src/environments/environment.config.spec.ts`
+- `MercurionWebNg/src/environments/environment.ts`
+- `MercurionWebNg/src/environments/environment.development.ts`
+- `MercurionWebNg/src/environments/environment.testing.ts`
+- `MercurionWebNg/src/environments/environment.staging.ts`
+- `MercurionWebNg/src/app/pages/feedback/feedback.page.component.ts`
+- `scripts/check-angular-environment-configs.mjs`
+- `package.json`
 
 ### Blocker / human decision required
 

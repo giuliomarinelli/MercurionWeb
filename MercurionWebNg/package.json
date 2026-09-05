@@ -22,7 +22,8 @@
     "graphql:validate:negative": "node scripts/test-graphql-validator-negative.mjs",
     "graphql:catalog-policy": "node scripts/check-graphql-catalog-policy.mjs",
     "graphql:catalog-policy:negative": "node scripts/test-graphql-catalog-policy-negative.mjs",
-    "graphql:check": "npm run graphql:catalog-policy && npm run graphql:catalog-policy:negative && npm run graphql:validate && npm run graphql:validate:negative && graphql-codegen --config codegen.yml --check"
+    "graphql:check": "npm run graphql:catalog-policy && npm run graphql:catalog-policy:negative && npm run graphql:validate && npm run graphql:validate:negative && graphql-codegen --config codegen.yml --check",
+    "chemistry:check-lazy": "node scripts/check-chemistry-lazy-chunks.mjs"
   },
   "private": true,
   "dependencies": {
@@ -37,6 +38,7 @@
     "@angular/router": "20.3.30",
     "@apollo/client": "3.13.8",
     "@mercurion/rest-contracts": "1.0.0",
+    "@mercurion/socket-contracts": "1.0.0",
     "@rdkit/rdkit": "2024.3.5-1.0.0",
     "@thumbmarkjs/thumbmarkjs": "0.20.2",
     "apollo-angular": "10.0.3",

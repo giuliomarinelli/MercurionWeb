@@ -1,7 +1,8 @@
-import { Component, Input, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, Input, signal } from '@angular/core';
 
 @Component({
   selector: 'm-molecule-synonyms',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="mt-4 mb-8" aria-labelledby="synonyms-heading">
       <h2 id="synonyms-heading" class="text-xl font-semibold pb-4 text-light-accent-primary-hc dark:text-dark-accent-primary text-center sm:text-left">Sinonimi</h2>

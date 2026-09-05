@@ -1,5 +1,12 @@
-import { ElementRef, inject, Injectable, NgZone, signal } from '@angular/core';
-import { Maybe } from 'graphql/jsutils/Maybe';
+import { ElementRef, Injectable, NgZone, inject, signal } from '@angular/core';
+import { BrowserResourceOwner, injectBrowserResourceOwner } from '../../utils/browser-resource-owner.util';
+
+/**
+ * Bounded number of animation frames `smoothTo` waits for a scroll target to
+ * become available before giving up safely. A target that never mounts can
+ * therefore never keep this service polling indefinitely.
+ */
+const SCROLL_TARGET_MAX_WAIT_FRAMES = 60;
 
 @Injectable({
   providedIn: 'root'
@@ -8,8 +15,20 @@ export class AppContextService {
 
   private readonly zone = inject(NgZone)
 
-  private _addedTick = signal<number>(0)
-  readonly addedTick = this._addedTick.asReadonly()
+  /**
+   * Owns every RAF scheduled by this service so it can be cancelled
+   * deterministically; also disposed automatically if this root service's
+   * injector is ever torn down (e.g. between tests).
+   */
+  private readonly resources: BrowserResourceOwner = injectBrowserResourceOwner()
+
+  /**
+   * Per-element animation generation. A new `smoothTo` call targeting the
+   * same element supersedes (and cancels) any in-flight animation for that
+   * element, so a stale animation frame can never mutate `scrollTop` after
+   * being superseded by a newer scroll intent.
+   */
+  private readonly scrollGenerations = new WeakMap<HTMLElement, number>()
 
   private _addedScrollTick = signal<number>(0)
   readonly addedScrollTick = this._addedScrollTick.asReadonly()
@@ -17,8 +36,6 @@ export class AppContextService {
   private _addedGlobalScrollRootRefTick = signal<number>(0)
   readonly addedGlobalScrollRootRefTick = this._addedGlobalScrollRootRefTick.asReadonly()
 
-  private _refetchDashboardaddedTick = signal<number>(0)
-  readonly refetchDashboardAddedTick = this._refetchDashboardaddedTick.asReadonly()
 
   private _globalScollRootRef = signal<ElementRef<HTMLElement> | null>(null)
   readonly globalScollRootRef = this._globalScollRootRef.asReadonly()
@@ -28,10 +45,6 @@ export class AppContextService {
 
   private _addedTriggerCloseOffCanvasMenu = signal<number>(0)
   readonly addedTriggerCloseOffCanvasMenu = this._addedTriggerCloseOffCanvasMenu.asReadonly()
-
-  notifyAdded(): void {
-    this._addedTick.update(x => x + 1)
-  }
 
   notifyRequestGlobalScrollRootRefTick(): void {
     this._addedGlobalScrollRootRefTick.update(x => x + 1)
@@ -43,10 +56,6 @@ export class AppContextService {
 
   triggerScrollToTopGlobally(): void {
     this._addedScrollTick.update(x => x + 1)
-  }
-
-  triggerDashboardRefetch(): void {
-    this._refetchDashboardaddedTick.update(x => x + 1)
   }
 
   setGlobalScrollRootRef(r: ElementRef<HTMLElement>): void {
@@ -62,19 +71,49 @@ export class AppContextService {
   }
 
   smoothTo(
-    host: Maybe<ElementRef<HTMLElement>>,
+    host: ElementRef<HTMLElement> | null | undefined,
     targetY: number,
     duration = 240
-  ) {
+  ): void {
+    this.resolveScrollHostThenAnimate(host, targetY, duration, 0)
+  }
+
+  /**
+   * Resolves the scroll host with a bounded/cancellable RAF wait instead of
+   * an unconditional recursive retry: if the target never becomes available
+   * within `SCROLL_TARGET_MAX_WAIT_FRAMES` frames, it stops safely without
+   * ever polling forever.
+   */
+  private resolveScrollHostThenAnimate(
+    host: ElementRef<HTMLElement> | null | undefined,
+    targetY: number,
+    duration: number,
+    attempt: number
+  ): void {
     // fallback: se host non viene passato, usa quello registrato dall'AppComponent
     const resolvedHost = host ?? this._globalScollRootRef()
     const el = resolvedHost?.nativeElement
 
     if (!el) {
-      // se non è pronto (ViewChild non ancora montato), riprova
-      requestAnimationFrame(() => this.smoothTo(resolvedHost ?? undefined, targetY, duration))
+      if (attempt >= SCROLL_TARGET_MAX_WAIT_FRAMES) {
+        // Safe terminal result: the target never mounted, so we stop instead
+        // of retrying indefinitely.
+        return
+      }
+
+      this.resources.requestAnimationFrame(() =>
+        this.resolveScrollHostThenAnimate(resolvedHost ?? undefined, targetY, duration, attempt + 1)
+      )
       return
     }
+
+    this.animateScrollTo(el, targetY, duration)
+  }
+
+  private animateScrollTo(el: HTMLElement, targetY: number, duration: number): void {
+    // A newer smoothTo() call for this same element supersedes this run.
+    const generation = (this.scrollGenerations.get(el) ?? 0) + 1
+    this.scrollGenerations.set(el, generation)
 
     this.zone.runOutsideAngular(() => {
       const start = el.scrollTop
@@ -85,13 +124,17 @@ export class AppContextService {
       const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3)
 
       const step = (now: number) => {
+        // Stale frame from a superseded/older animation: never mutate
+        // scrollTop once a newer intent has taken over this element.
+        if (this.scrollGenerations.get(el) !== generation) return
+
         const elapsed = now - startTime
         const progress = Math.min(1, elapsed / duration)
         el.scrollTop = start + delta * easeOutCubic(progress)
-        if (progress < 1) requestAnimationFrame(step)
+        if (progress < 1) this.resources.requestAnimationFrame(step)
       }
 
-      requestAnimationFrame(step)
+      this.resources.requestAnimationFrame(step)
     })
   }
 
@@ -119,3 +162,4 @@ export class AppContextService {
 
 
 }
+

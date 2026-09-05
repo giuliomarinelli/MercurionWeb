@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -114,20 +114,26 @@ Prefer APIs that naturally bind lifetime, e.g. typed observable event streams pl
 
 ### Summary
 
-_Not started._
+Skipped without implementation because hard prerequisite
+`0039-refactor-realtime-connection-into-a-cancellable-state-machine.md`
+(`FE-017`) is `SKIPPED_DEPENDENCY`; its prerequisite `SYS-010` is
+`BLOCKED`.
 
 ### Validation performed
 
-_Not started._
+No task branch or worker was created. Direct prerequisite `FE-017` is
+`SKIPPED_DEPENDENCY`, with a transitive dependency on blocked
+`0010-unify-session-state-protocol.md` (`SYS-010`).
 
 ### Browser validation performed
 
-_Not started / event-fixture-dependent._
+Not applicable; the task was skipped before implementation.
 
 ### Changed files
 
-_Not recorded._
+No files changed; only this task metadata was updated.
 
 ### Blocker / human decision required
 
-_None._
+No implementation blocker. The task may be re-enabled only after its hard
+dependency chain is deliberately resolved in a new authorized session.
