@@ -1,58 +1,67 @@
-// toast.service.ts
-import { Injectable, OnDestroy, signal } from '@angular/core';
-import { ToastContext } from '../components/common/toast/toast.component';
+import { computed, Injectable, OnDestroy, signal } from '@angular/core'
+import { ToastContext, ToastNotification, ToastState } from '../Models/toast.models'
+
+const HIDDEN_TOAST_STATE: ToastState = {
+  phase: 'hidden',
+  notification: null
+}
 
 @Injectable({ providedIn: 'root' })
 export class ToastService implements OnDestroy {
-  private _show = signal(false)
-  private _slideIn = signal(false)
-  private _message = signal<string>('')
-  private _context = signal<ToastContext>('error')
+  private readonly _state = signal<ToastState>(HIDDEN_TOAST_STATE)
 
   private _slideInTimeoutId: ReturnType<typeof setTimeout> | undefined
   private _autoDismissTimeoutId: ReturnType<typeof setTimeout> | undefined
   private _hideTimeoutId: ReturnType<typeof setTimeout> | undefined
 
-  readonly show = this._show.asReadonly()
-  readonly slideIn = this._slideIn.asReadonly()
-  readonly message = this._message.asReadonly()
-  readonly context = this._context.asReadonly()
+  readonly state = this._state.asReadonly()
+  readonly show = computed(() => this._state().phase !== 'hidden')
+  readonly slideIn = computed(() => this._state().phase === 'visible')
+  readonly message = computed(() => this._state().notification?.message ?? '')
+  readonly context = computed(() => this._state().notification?.context ?? 'error')
 
   trigger(message: string, context: ToastContext = 'error', duration = 5000): void {
-    if (this._show()) return; // ignora se già visibile
+    if (this._state().phase !== 'hidden') return
 
-    // Un nuovo trigger deve sempre annullare ogni timer residuo del ciclo
-    // precedente: altrimenti un vecchio timer di slide-in/hide/auto-dismiss
-    // può richiudere o far lampeggiare un toast appena aperto.
     this.clearTimers()
 
-    this._context.set(context)
-    this._message.set(message)
-    this._show.set(true)
+    const notification: ToastNotification = { message, context }
+    this._state.set({ phase: 'entering', notification })
 
-    // animazione slide-in
-    this._slideInTimeoutId = setTimeout(() => this._slideIn.set(true), 30)
+    this._slideInTimeoutId = setTimeout(() => {
+      this._slideInTimeoutId = undefined
+      const currentState = this._state()
+      if (currentState.phase === 'entering' && currentState.notification === notification) {
+        this._state.set({ phase: 'visible', notification })
+      }
+    }, 30)
 
-    // auto-dismiss
     this._autoDismissTimeoutId = setTimeout(() => {
+      this._autoDismissTimeoutId = undefined
       this.close()
-      this._context.set('error')
     }, duration)
   }
 
   close(): void {
-    // Annulla lo slide-in/auto-dismiss/hide pendenti: una close() manuale non
-    // deve lasciare un vecchio timer in grado di riaprire/richiudere lo stato.
+    const currentState = this._state()
     this.clearTimers()
 
-    this._slideIn.set(false)
-    this._hideTimeoutId = setTimeout(() => this._show.set(false), 300) // lascia finire animazione
+    if (currentState.phase === 'hidden') return
+
+    this._state.set({
+      phase: 'leaving',
+      notification: currentState.notification
+    })
+    this._hideTimeoutId = setTimeout(() => {
+      this._hideTimeoutId = undefined
+      this._state.set(HIDDEN_TOAST_STATE)
+    }, 300)
   }
 
   private clearTimers(): void {
-    clearTimeout(this._slideInTimeoutId)
-    clearTimeout(this._autoDismissTimeoutId)
-    clearTimeout(this._hideTimeoutId)
+    if (this._slideInTimeoutId !== undefined) clearTimeout(this._slideInTimeoutId)
+    if (this._autoDismissTimeoutId !== undefined) clearTimeout(this._autoDismissTimeoutId)
+    if (this._hideTimeoutId !== undefined) clearTimeout(this._hideTimeoutId)
     this._slideInTimeoutId = undefined
     this._autoDismissTimeoutId = undefined
     this._hideTimeoutId = undefined

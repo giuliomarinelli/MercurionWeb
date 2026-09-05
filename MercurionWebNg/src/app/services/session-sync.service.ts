@@ -11,7 +11,7 @@ import { effect, Injectable, NgZone, signal } from '@angular/core'
 import { Router } from '@angular/router'
 import { UserContextService } from './context/user-context.service'
 import { ToastService } from './toast.service'
-import { ToastContext } from '../components/common/toast/toast.component'
+import { ToastContext } from '../Models/toast.models'
 import { environment } from '../../environments/environment'
 import { RealtimeSocketService } from './socket.IO/realtime-socket.service'
 import {

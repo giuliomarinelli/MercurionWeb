@@ -1,7 +1,7 @@
 # 0076 - Move toast contracts to a neutral UI model
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -91,34 +91,75 @@ A path such as `src/app/ui/toast/toast.model.ts` or the repository's canonical n
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/UI-018`, based on
+`353ec33621b22763546633fa822cb9a858b9d305`.
 
 ### Preflight
-_Not started._
+Passed unchanged on 2026-09-05. No task-owned Angular, Nest, Tox21 or test
+watcher was active. Root `npm ci` completed successfully (1,925 packages,
+zero vulnerabilities), followed by successful root `npm run ci:check`.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-_Not started._
+Implemented the cycle fix as coherent partial work: added the neutral
+`Models/toast.models.ts` contract, migrated every `ToastContext` consumer away
+from the renderer, consolidated the service's four independently mutable
+signals into one discriminated immutable `ToastState`, retained the public
+`show`, `slideIn`, `message`, `context`, `trigger` and `close` API, and made all
+three lifecycle timers explicitly owned and cleared. Added a canonical static
+gate that rejects direct component imports and indirect service-to-renderer
+dependency paths.
+
+The branch is blocked solely because mandatory browser validation could not
+run against the complete canonical runtime. The implementation remains
+preserved for review.
 
 ### Task-specific validation performed
-_Not started._
+- `npm run ci:angular:toast-imports`: passed, including the synthetic indirect
+  cycle regression check.
+- Angular workspace `npm run typecheck`: passed.
+- Focused ESLint over changed Angular files: zero errors (nine pre-existing
+  warning-policy findings in touched legacy files).
+- Focused Karma command for the toast service and component specs: 13 tests
+  passed in Chrome Headless. Coverage includes success/warn/error rendering,
+  active-toast replacement policy, manual close, timeout lifecycle and timer
+  destruction.
 
 ### Full pre-merge CI-parity validation
-_Not started._
+Run after every task-owned runtime was stopped: root `npm ci` and
+`npm run ci:check` passed.
 
 ### Browser validation performed
-_Not started._
+Blocked before Chrome DevTools MCP interaction because the canonical runtime
+readiness prerequisite failed. The nginx edge was reachable and served the
+Angular application at `http://localhost:8888/` with HTTP 200. Angular started
+successfully on its configured internal port, and Tox21 remained running after
+restarting it with UTF-8 console mode. Nest compiled with zero TypeScript
+errors but rejected startup because no local runtime environment was
+configured: required `APP_*`, SQL, JWT, cookie, email, TOTP, Redis, SSO and
+related variables were absent. Consequently
+`http://localhost:8888/health` returned nginx HTTP 502.
+
+All three task-owned runtime processes were stopped after this diagnostic. No
+weaker Angular-direct or frontend-only browser result is claimed.
 
 ### Commits
-_Not recorded._
+Recorded in the final branch history after these notes.
 
 ### Merge / CI
-_Not started._
+No merge attempted. The coordinator must preserve and freeze the pushed
+feature branch.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-_None._
+Provision a test-safe canonical local Nest runtime environment (and its local
+service dependencies) so `npm run start:dev` can pass environment validation
+and `http://localhost:8888/health` can become ready. Then authorize a new
+session to perform the mandatory Chrome DevTools MCP checks for representative
+success, warning and error toasts, replacement/dismiss/timeout behaviour,
+keyboard/accessibility behaviour and light/dark appearance. Production
+credentials are neither required nor permitted.

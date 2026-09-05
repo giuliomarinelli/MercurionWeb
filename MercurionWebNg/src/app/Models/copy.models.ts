@@ -1,4 +1,4 @@
-import { ToastContext } from "../components/common/toast/toast.component"
+import { ToastContext } from './toast.models'
 
 export type CopyPayload =
   | string

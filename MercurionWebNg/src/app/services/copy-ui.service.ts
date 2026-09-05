@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core'
-import { ToastContext } from '../components/common/toast/toast.component'
+import { ToastContext } from '../Models/toast.models'
 import { CopyService } from './copy.service'
 import { ToastService } from './toast.service'
 import { CopyPayload, CopyUiOptions } from '../Models/copy.models'

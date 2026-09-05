@@ -1,9 +1,7 @@
-// toast.component.ts
-import { ChangeDetectionStrategy, Component, effect, Input, signal } from '@angular/core'
+import { ChangeDetectionStrategy, Component, computed, Input, signal } from '@angular/core'
 import { CommonModule, NgClass } from '@angular/common'
+import { ToastContext } from '../../../Models/toast.models'
 import { ToastService } from '../../../services/toast.service'
-
-export type ToastContext = 'error' | 'warn' | 'success'
 
 @Component({
   selector: 'm-toast',
@@ -13,7 +11,7 @@ export type ToastContext = 'error' | 'warn' | 'success'
     @if (toast.show()) {
       <div
         class="fixed top-8 right-4 z-50 max-w-[250px] 2xs:max-w-[320px] sm:max-w-sm xs:w-full mx-4 px-4 py-5 rounded-lg shadow-2xl transition-transform duration-700 transform text-[0.95rem] leading-snug ring-1 ring-black/10 dark:ring-white/10"
-        [ngClass]="contextClass"
+        [ngClass]="contextClass()"
         [class.translate-x-full]="!toast.slideIn()"
         [class.translate-x-0]="toast.slideIn()"
         role="alert"
@@ -43,18 +41,13 @@ export class ToastComponent {
     this._context.set(context)
   }
 
-  protected contextClass = ''
-
   private readonly contextClassMap: Record<ToastContext, string> = {
     error: 'bg-[#7f1d1d] text-white dark:bg-[#fee2e2] dark:text-[#3b0d0c]',
     success: 'bg-[#065f46] text-white dark:bg-[#d1fae5] dark:text-[#064e3b]',
     warn: 'bg-[#78350f] text-white dark:bg-[#fef3c7] dark:text-[#2a1502]'
   }
 
-  constructor(protected readonly toast: ToastService) {
-    effect(() => {
-      this.contextClass = this.contextClassMap[this._context()]
-    })
-  }
+  protected readonly contextClass = computed(() => this.contextClassMap[this._context()])
 
+  constructor(protected readonly toast: ToastService) {}
 }
