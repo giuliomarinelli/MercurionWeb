@@ -218,3 +218,32 @@ Keep direction explicit. A client-to-server event and server-to-client response 
   evidence through `http://localhost:8888`, including `/socket.io/` activity,
   console state, and a safe public/session exchange. Production credentials or
   data must not be used.
+
+### Human-assisted recovery attempt (2026-09-05)
+
+- Reconciled `feature/SYS-009` with the current `develop` without rebasing.
+  The resolved boundary retains the current `APP_CONFIG` runtime endpoint
+  mapping and canonical application-error catalog while keeping all eight
+  existing Socket.IO wire names stable.
+- `SocketApplicationError` now derives its `code` from
+  `@mercurion/rest-contracts`; `WsGuard`, Angular session synchronisation and
+  the registry assertions use the same typed `{ code, detail }` envelope.
+  The socket package declares its REST-contract dependency and root
+  post-install builds the REST package before the socket package.
+- Final local validation after a clean install completed: socket-contract
+  build/type/policy checks, Angular and Nest type checks, the four targeted
+  Socket.IO suites, and the full root `npm run ci:check` gate. The final gate
+  ran with no task-owned runtime process active.
+- A non-production runtime was brought up only for validation: Tox21 ran with
+  process-scoped UTF-8 settings; Nest read the already ignored local
+  development env through a process-scoped dotenv preload; Angular, Nest and
+  Tox21 were stopped afterwards. Through `http://localhost:8888`, `/health`
+  returned `200` and a fresh Socket.IO client completed the public exchange
+  `so.pub.public_test("SYS-009") -> sv.pub.public_test("SYS-009 RESP")`.
+- The required Chrome DevTools browser evidence is still unavailable in this
+  agent session: the exposed computer-use inventory has no browser and each
+  available Playwright navigation, snapshot and tab query remained unresolved
+  until cancelled. No console, DOM, or browser-network result is therefore
+  claimed. Per the task and runtime protocol, the recipe remains `BLOCKED` and
+  must not be merged until a human-assisted Chrome DevTools validation records
+  the nginx `/socket.io/` request and clean browser console.
