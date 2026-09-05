@@ -1,5 +1,6 @@
 import {
   Component, Input, signal, effect,
+  ChangeDetectionStrategy,
   ElementRef, OnDestroy,
   NgZone
 } from '@angular/core';
@@ -13,6 +14,7 @@ import { MoleculeSearchResult } from
 
 @Component({
   selector: 'm-similar-item',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DecimalPipe, RouterLink, MoleculeViewerComponent, NgClass],
   template: `
     <a [routerLink]="_pathToMolecule()" (click)="searchContext.close()"

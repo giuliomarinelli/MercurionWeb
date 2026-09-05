@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -121,20 +121,26 @@ Do not simply wrap the existing flags in a class named state machine. The result
 
 ### Summary
 
-_Not started._
+Skipped without implementation because hard prerequisites
+`0010-unify-session-state-protocol.md` (`SYS-010`) is `BLOCKED` and
+`0038-create-one-atomic-client-session-entity.md` (`FE-016`) is
+`SKIPPED_DEPENDENCY`.
 
 ### Validation performed
 
-_Not started._
+No task branch or worker was created. Direct prerequisites: `SYS-010` is
+`BLOCKED` and `FE-016` is `SKIPPED_DEPENDENCY`; the latter transitively
+depends on the blocked session protocol and canonical auth/session chain.
 
 ### Browser validation performed
 
-_Not started._
+Not applicable; the task was skipped before implementation.
 
 ### Changed files
 
-_Not recorded._
+No files changed; only this task metadata was updated.
 
 ### Blocker / human decision required
 
-_None._
+No implementation blocker. The task may be re-enabled only after its hard
+dependency chain is deliberately resolved in a new authorized session.

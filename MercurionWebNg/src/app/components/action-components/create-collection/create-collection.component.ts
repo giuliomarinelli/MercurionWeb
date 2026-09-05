@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  DestroyRef,
   ElementRef,
   inject,
   OnDestroy,
@@ -10,12 +11,14 @@ import {
   signal,
   ViewChild
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
 import { ToastService } from '../../../services/toast.service';
 import { CreateCollectionContextService } from '../../../services/context/action-context/create-collection-context.service';
+import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
 
 
 @Component({
@@ -289,6 +292,9 @@ export class CreateCollectionComponent implements OnInit, AfterViewInit, OnDestr
   private readonly moleculeCollectionService = inject(MoleculeCollectionService);
   private readonly toast = inject(ToastService);
   private readonly createContext = inject(CreateCollectionContextService);
+  private readonly invalidation = inject(DomainInvalidationService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly sessionId = this.overlayContext.session('CreateCollection')?.id ?? -1;
 
   private naSub?: Subscription;
   private addSub?: Subscription;
@@ -303,7 +309,9 @@ export class CreateCollectionComponent implements OnInit, AfterViewInit, OnDestr
   selectedChips: string[] = [];
 
   ngOnInit(): void {
-    this.naSub = this.nameControl.valueChanges.subscribe(val => this.name.set(val));
+    this.naSub = this.nameControl.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(val => this.name.set(val));
   }
 
   ngAfterViewInit(): void {
@@ -323,7 +331,7 @@ export class CreateCollectionComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   close(): void {
-    this.overlayContext.close();
+    this.overlayContext.close(this.sessionId);
   }
 
   _trim(s: string): string {
@@ -356,15 +364,18 @@ export class CreateCollectionComponent implements OnInit, AfterViewInit, OnDestr
   doSubmit(): void {
     if (!this.selectedChips.length) return;
 
-    this.addSub = this.moleculeCollectionService.createManyCollections(this.selectedChips).subscribe({
+    this.addSub = this.moleculeCollectionService.createManyCollections(this.selectedChips).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
       next: () => {
-        this.createContext.notifyAdded();
-        this.overlayContext.close();
+        this.invalidation.publish({ domain: 'molecule-collection', action: 'created' });
+        this.overlayContext.close(this.sessionId);
       },
       error: () => {
         this.toast.trigger('Si è verificato un errore.', 'error', 3000);
-        this.overlayContext.close();
+        this.overlayContext.close(this.sessionId);
       }
     });
   }
 }
+

@@ -1,5 +1,6 @@
 import {
   Component, Input, signal, effect,
+  ChangeDetectionStrategy,
   ElementRef, OnDestroy,
   NgZone,
   Output,
@@ -20,6 +21,7 @@ import { DesignService } from '../../../services/design.service';
 
 @Component({
   selector: 'm-search-result',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block w-full' },
   imports: [
     DecimalPipe,

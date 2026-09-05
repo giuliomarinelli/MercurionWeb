@@ -1,26 +1,18 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, computed, inject } from '@angular/core';
+import { ActionOverlayContextService } from './action-overlay-context.service';
 
+/**
+ * Read-only view over the active `BindCollectionsToMolecule` session input.
+ */
 @Injectable({
   providedIn: 'root'
 })
 export class BindCollectionsToMoleculeContextService {
 
-  private _moleculeId = signal<string  | null>(null)
-  private _addedTick = signal<number>(0)
+  private readonly overlay = inject(ActionOverlayContextService)
 
-  readonly moleculeId = this._moleculeId.asReadonly()
-  readonly addedTick = this._addedTick.asReadonly()
-
-  setMoleculeId(moleculeId: string): void {
-    this._moleculeId.set(moleculeId)
-  }
-
-  clearMoleculeId(): void {
-    this._moleculeId.set(null)
-  }
-
-  notifyAdded(): void {
-    this._addedTick.update(x => x + 1)
-  }
+  readonly moleculeId = computed<string | null>(() =>
+    this.overlay.session('BindCollectionsToMolecule')?.input.moleculeId ?? null
+  )
 
 }

@@ -1,4 +1,5 @@
-import { Component, effect, EventEmitter, Input, model, OnDestroy, OnInit, Output, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, DestroyRef, effect, EventEmitter, inject, Input, model, OnDestroy, OnInit, Output, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { UiMoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
@@ -6,6 +7,7 @@ import { CollectionCardComponent } from '../collection-card/collection-card.comp
 
 @Component({
   selector: 'm-collection-select-card',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, CollectionCardComponent],
   template: `
     <div class="grid grid-cols-[28px_1fr] gap-3 items-center w-full">
@@ -45,6 +47,7 @@ import { CollectionCardComponent } from '../collection-card/collection-card.comp
 export class CollectionSelectCardComponent implements OnInit, OnDestroy {
 
   private coSub?: Subscription
+  private readonly destroyRef = inject(DestroyRef)
 
   control = new FormControl(false, { nonNullable: true })
   value = model<boolean>(false)
@@ -80,7 +83,9 @@ export class CollectionSelectCardComponent implements OnInit, OnDestroy {
   })
 
   ngOnInit(): void {
-    this.coSub = this.control.valueChanges.subscribe(val => {
+    this.coSub = this.control.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(val => {
       this.value.set(val)
       if (this._isSelectAll()) {
         this.selectedAll.emit(val)

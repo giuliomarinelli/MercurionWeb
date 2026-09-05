@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -115,20 +115,31 @@ Keep error state separate from the authenticated-session union where possible: t
 
 ### Summary
 
-_Not started._
+Skipped without implementation because hard prerequisites
+`0012-centralize-application-error-code-catalog.md` (`SYS-012`) and
+`0026-create-canonical-angular-auth-state-store.md` (`FE-004`) are
+`BLOCKED`, while `0028-encapsulate-auth-session-browser-persistence.md`
+(`FE-006`), `0034-type-validate-and-expire-pre-auth-mfa-state.md` (`FE-012`),
+and `0035-unify-auth-error-invalidation-in-one-interceptor-path.md` (`FE-013`)
+are `SKIPPED_DEPENDENCY`.
 
 ### Validation performed
 
-_Not started._
+No task branch or worker was created. Direct prerequisites are `SYS-012`,
+`FE-004`, `FE-006`, `FE-012`, and `FE-013`; their terminal states are
+`BLOCKED`, `BLOCKED`, `SKIPPED_DEPENDENCY`, `SKIPPED_DEPENDENCY`, and
+`SKIPPED_DEPENDENCY`. The dependency chain includes the blocked canonical
+auth store and application error catalog.
 
 ### Browser validation performed
 
-_Not started / scenario-dependent._
+Not applicable; the task was skipped before implementation.
 
 ### Changed files
 
-_Not recorded._
+No files changed; only this task metadata was updated.
 
 ### Blocker / human decision required
 
-_None._
+No implementation blocker. The task may be re-enabled only after its hard
+dependency chain is deliberately resolved in a new authorized session.

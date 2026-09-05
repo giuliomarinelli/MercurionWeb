@@ -1,6 +1,7 @@
 import {
   AfterViewInit,
   Component,
+  ChangeDetectionStrategy,
   ElementRef,
   EventEmitter,
   Input,
@@ -13,7 +14,7 @@ import {
 import { FormsModule } from '@angular/forms'
 import { toObservable } from '@angular/core/rxjs-interop'
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators'
-import { Subscription } from 'rxjs'
+import { EMPTY, Subscription, catchError, finalize, switchMap, tap } from 'rxjs'
 import { MoleculeSearchResult } from '../../../Models/graphql/molecule-search/molecule-search-result.interface'
 import { PageModel } from '../../../Models/graphql/page.models'
 import { MoleculeCardItemModel } from '../../../Models/graphql/molecule-collection/molecule-collection.types'
@@ -24,6 +25,7 @@ import { MoleculeSearchService } from '../../../services/graphql/molecule-search
 
 @Component({
   selector: 'm-molecule-search-input',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule],
   template: `
     <div class="flex gap-2 items-center relative">
@@ -110,68 +112,47 @@ export class SearchInputComponent implements AfterViewInit, OnDestroy {
     this.sub = query$
       .pipe(
         debounceTime(300),
-        distinctUntilChanged()
-      )
-      .subscribe(raw => {
-        const value = raw ?? ''
-        const trimmed = value.trim()
-        const mode = this._viewMode()
-        const exclude = this._search_excludeAlreadyAdded()
+        distinctUntilChanged(),
+        tap(raw => this.onQuery.emit(raw ?? '')),
+        switchMap(raw => {
+          const value = raw ?? ''
+          const trimmed = value.trim()
+          const mode = this._viewMode()
+          const exclude = this._search_excludeAlreadyAdded()
 
-        // Sempre notifico la query corrente
-        this.onQuery.emit(value)
-
-        // Caso overlay "normale": niente HTTP qui, pensa il padre
-        if (!exclude) {
-          if (mode === 'chembl' && trimmed.length < 2) {
-            this.onEmpty.emit()
-          }
-          return
-        }
-
-        // Caso legacy: search_excludeAlreadyAdded = true
-        if (trimmed.length < 2) {
-          this.onLoading.emit(false)
-          this.onResult.emit([])
-          this.onEmpty.emit()
-          return
-        }
-
-        const collectionId = this.addContext.collectionId()
-        if (!collectionId) {
-          this.fallbackChemblSearch(trimmed)
-          return
-        }
-
-        this.onLoading.emit(true)
-
-        this.moleculeCollectionItemService
-          .searchChemblMolecules_excludeAlreadyAdded(trimmed, collectionId)
-          .subscribe({
-            next: res => {
-              this.onResult.emit(res)
-              this.onLoading.emit(false)
-            },
-            error: err => {
-              this.onError.emit(err)
-              this.onLoading.emit(false)
+          // The input is a latest-wins flow: changing the query cancels its request.
+          if (!exclude) {
+            if (mode === 'chembl' && trimmed.length < 2) {
+              this.onEmpty.emit()
             }
-          })
-      })
-  }
+            return EMPTY
+          }
 
-  private fallbackChemblSearch(term: string) {
-    this.onLoading.emit(true)
-    this.moleculeSearchService.searchMolecule(term, 100).subscribe({
-      next: res => {
-        this.onResult.emit(res ?? [])
-        this.onLoading.emit(false)
-      },
-      error: err => {
-        this.onError.emit(err)
-        this.onLoading.emit(false)
-      }
-    })
+          if (trimmed.length < 2) {
+            this.onLoading.emit(false)
+            this.onResult.emit([])
+            this.onEmpty.emit()
+            return EMPTY
+          }
+
+          const collectionId = this.addContext.collectionId()
+          this.onLoading.emit(true)
+
+          const request$ = collectionId
+            ? this.moleculeCollectionItemService
+              .searchChemblMolecules_excludeAlreadyAdded(trimmed, collectionId)
+            : this.moleculeSearchService.searchMolecule(trimmed, 100)
+
+          return request$.pipe(
+            catchError(err => {
+              this.onError.emit(err)
+              return EMPTY
+            }),
+            finalize(() => this.onLoading.emit(false))
+          )
+        })
+      )
+      .subscribe(res => this.onResult.emit(res ?? []))
   }
 
   clear(): void {

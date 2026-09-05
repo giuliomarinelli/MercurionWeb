@@ -1,13 +1,13 @@
 import { UUID } from 'crypto';
 import { uuidv7 } from '@kripod/uuidv7';
-import { BeforeInsert, Column, Entity, ManyToOne, PrimaryColumn, OneToMany, JoinColumn, Index, OneToOne } from 'typeorm';
+import { BeforeInsert, Column, Entity, ManyToOne, PrimaryColumn, OneToMany, JoinColumn, Index, Unique } from 'typeorm';
 import { Synthesis } from './synthesis.entity';
-import { SynthStepMoleculeRef } from './synth-step-molecule-ref.entity';
+import { SynthStepItem } from './synth-step-item.entity';
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
-import { CustomMoleculeItemEntity } from 'src/app_modules/molecule-collection/Models/entities/custom-molecule-item.entity';
 
 @ObjectType()
 @Entity('synth_steps')
+@Unique('uq_synth_step_order', ['synthId', 'order'])
 export class SynthStep {
 
     @Field(() => ID)
@@ -23,7 +23,8 @@ export class SynthStep {
     @JoinColumn({ name: 'synth_id' })
     synth: Synthesis
 
-    @Field(() => ID, { nullable: true })
+    @Field(() => ID)
+    @Index()
     @Column({ name: 'synth_id', type: 'uuid' })
     synthId: UUID
 
@@ -31,27 +32,9 @@ export class SynthStep {
     @Column({ type: 'int', name: 'step_order' })
     order: number
 
-    @Field(() => [SynthStepMoleculeRef], { nullable: true })
-    @OneToMany(() => SynthStepMoleculeRef, ref => ref.step, { cascade: true })
-    moleculeRefs: SynthStepMoleculeRef[] | null
-
-    @Field(() => CustomMoleculeItemEntity, { nullable: true })
-    @OneToOne(() => CustomMoleculeItemEntity, mol => mol.id, { cascade: true, onDelete: 'SET NULL' })
-    @JoinColumn()
-    mainSubstrate: CustomMoleculeItemEntity | null
-
-    @Field(() => ID, { nullable: true })
-    @Column({ type: 'uuid' })
-    mainSubstrateId: UUID | null
-
-    @Field(() => CustomMoleculeItemEntity, { nullable: true })
-    @OneToOne(() => CustomMoleculeItemEntity, mol => mol.id, { cascade: true, onDelete: 'SET NULL' })
-    @JoinColumn()
-    mainProduct: CustomMoleculeItemEntity | null
-
-    @Field(() => ID, { nullable: true })
-    @Column({ type: 'uuid' })
-    mainProductId: UUID | null
+    @Field(() => [SynthStepItem], { nullable: true })
+    @OneToMany(() => SynthStepItem, item => item.step, { cascade: true })
+    items: SynthStepItem[] | null
 
     @Field(() => String, { nullable: true })
     @Column({ type: 'text', nullable: true })
@@ -60,10 +43,6 @@ export class SynthStep {
     @Field(() => String, { nullable: true })
     @Column({ type: 'varchar', nullable: true })
     reactionType: string | null // es. "ossidazione", "alchilazione"
-
-    @Field(() => [String])
-    @Column({ type: 'jsonb', default: () => `'[]'::jsonb` })
-    conditions: string[] // condizioni di reazione (sulla freccia, es: "HCl, 60°C")
 
     @BeforeInsert()
     private generateId() {

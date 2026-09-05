@@ -1,24 +1,25 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { HttpStatus } from '@nestjs/common';
+import { FastifyReply } from 'fastify';
 import { DocumentController } from './document.controller';
-import { DropboxObjectStoreService } from '../services/dropbox-object-store.service';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 
 describe('DocumentController', () => {
-  let controller: DocumentController;
+  const createReply = () => {
+    const send = jest.fn();
+    const status = jest.fn().mockReturnValue({ send });
+    return { reply: { status } as unknown as FastifyReply, status, send };
+  };
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [DocumentController],
-      providers: [
-        { provide: DropboxObjectStoreService, useValue: {} },
-        { provide: MeiliLoggerService, useValue: { forContext: jest.fn().mockReturnValue({ log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() }) } },
-      ],
-    }).compile();
+  it.each([
+    ['upload', (controller: DocumentController, reply: FastifyReply) => controller.upload(reply)],
+    ['download', (controller: DocumentController, reply: FastifyReply) => controller.download(reply)],
+    ['delete', (controller: DocumentController, reply: FastifyReply) => controller.delete(reply)],
+    ['list', (controller: DocumentController, reply: FastifyReply) => controller.list(reply)],
+  ])('returns an empty 403 response while %s is disabled', (_name, invoke) => {
+    const { reply, status, send } = createReply();
 
-    controller = module.get<DocumentController>(DocumentController);
-  });
+    invoke(new DocumentController(), reply);
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
+    expect(status).toHaveBeenCalledWith(HttpStatus.FORBIDDEN);
+    expect(send).toHaveBeenCalledWith();
   });
 });

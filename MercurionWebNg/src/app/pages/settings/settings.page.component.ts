@@ -1,5 +1,5 @@
 import { AuthService } from './../../services/auth.service';
-import { AfterViewInit, Component, effect, ElementRef, inject, OnDestroy, OnInit, QueryList, signal, ViewChild, ViewChildren } from '@angular/core'
+import { AfterViewInit, Component, effect, ElementRef, inject, OnDestroy, OnInit, QueryList, signal, ViewChild, ViewChildren, ChangeDetectionStrategy } from '@angular/core'
 import { CdkAccordion, CdkAccordionItem, CdkAccordionModule } from '@angular/cdk/accordion'
 import { EMPTY, map, of, startWith, Subscription, switchMap } from 'rxjs'
 import { AccountService } from '../../services/account.service'
@@ -9,7 +9,6 @@ import { ClassicSpinnerComponent } from '../../components/common/classic-spinner
 import { SessionCardComponent } from '../../components/common/session-card/session-card.component'
 import { MfaStrategyCardComponent } from '../../components/common/mfa-strategy-card/mfa-strategy-card.component'
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service'
-import { SensitiveDataChangeContextService } from '../../services/context/action-context/sensitive-data-change-context.service'
 import { AppContextService } from '../../services/context/app-context.service'
 import { ActivatedRoute, Router } from '@angular/router'
 import { GenderPipe } from '../../pipes/gender.pipe'
@@ -19,11 +18,13 @@ import { Helpers } from '../../helpers';
 import { SessionSyncService } from '../../services/session-sync.service';
 import { SidenavContextService } from '../../services/context/sidenav-context.service';
 import { UserContextService } from '../../services/context/user-context.service';
+import { DomainInvalidationService } from '../../services/domain-invalidation.service';
 
 
 
 @Component({
   selector: 'm-settings.page',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CdkAccordionModule,
     ClassicSpinnerComponent,
@@ -613,7 +614,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly route = inject(ActivatedRoute)
   private readonly authService = inject(AuthService)
   private readonly actionContext = inject(ActionOverlayContextService)
-  private readonly changeDataContext = inject(SensitiveDataChangeContextService)
+  private readonly invalidations = inject(DomainInvalidationService)
   private readonly appContext = inject(AppContextService)
   private readonly registryContext = inject(ProfileRegistryEditContextService)
   private readonly sessionSync = inject(SessionSyncService)
@@ -665,18 +666,13 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
   constructor() {
     effect(() => {
-      const t = this.changeDataContext.addedTick()
-      if (t === 0) {
+      const event = this.invalidations.last()
+      if (event?.domain !== 'profile' || event.action !== 'changed') {
         return
       }
       this.fetch()
     })
     effect(() => {
-      const t = this.registryContext.addedTick()
-      if (t === 0) {
-        return
-      }
-      this.fetch()
     })
     effect(() => {
       const rootRef = this.appContext.globalScollRootRef()
@@ -997,15 +993,13 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
   doEnableMfa(): void {
     queueMicrotask(() => {
-      this.changeDataContext.setInnerScope('EnableMfa')
-      this.actionContext.open('SensitiveDataChange')
+      this.actionContext.open('SensitiveDataChange', { innerScope: 'EnableMfa' })
     })
   }
 
   doConfigMfa(): void {
     queueMicrotask(() => {
-      this.changeDataContext.setInnerScope('ConfigMfa')
-      this.actionContext.open('SensitiveDataChange')
+      this.actionContext.open('SensitiveDataChange', { innerScope: 'ConfigMfa' })
     })
   }
 
@@ -1015,36 +1009,31 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
   changePassword(): void {
     queueMicrotask(() => {
-      this.changeDataContext.setInnerScope('ChangePassword')
-      this.actionContext.open('SensitiveDataChange')
+      this.actionContext.open('SensitiveDataChange', { innerScope: 'ChangePassword' })
     })
   }
 
   changeEmail(): void {
     queueMicrotask(() => {
-      this.changeDataContext.setInnerScope('ChangeEmail')
-      this.actionContext.open('SensitiveDataChange')
+      this.actionContext.open('SensitiveDataChange', { innerScope: 'ChangeEmail' })
     })
   }
 
   changePhone(): void {
     queueMicrotask(() => {
-      this.changeDataContext.setInnerScope('ChangePhone')
-      this.actionContext.open('SensitiveDataChange')
+      this.actionContext.open('SensitiveDataChange', { innerScope: 'ChangePhone' })
     })
   }
 
   addPhone(): void {
     queueMicrotask(() => {
-      this.changeDataContext.setInnerScope('AddPhone')
-      this.actionContext.open('SensitiveDataChange')
+      this.actionContext.open('SensitiveDataChange', { innerScope: 'AddPhone' })
     })
   }
 
   deletePhone(): void {
     queueMicrotask(() => {
-      this.changeDataContext.setInnerScope('RemovePhone')
-      this.actionContext.open('SensitiveDataChange')
+      this.actionContext.open('SensitiveDataChange', { innerScope: 'RemovePhone' })
     })
   }
 

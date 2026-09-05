@@ -43,6 +43,7 @@ describe('Application configuration', () => {
       expect(appConfig.endpoints.realtimeUrl).toBe('/')
       expect(appConfig.endpoints.realtimePath).toBe('/socket.io')
       expect(appConfig.integrations.turnstileSiteKey).toBe(config.CLOUDFLARE_SITE_KEY)
+      expect(appConfig.logging.minLevel).toBe(config.minLogLevel)
     }
   })
 
@@ -54,6 +55,7 @@ describe('Application configuration', () => {
     expect(Object.isFrozen(appConfig.capabilities)).toBeTrue()
     expect(Object.isFrozen(appConfig.release)).toBeTrue()
     expect(Object.isFrozen(appConfig.integrations)).toBeTrue()
+    expect(Object.isFrozen(appConfig.logging)).toBeTrue()
   })
 
   it('provides the configuration of the selected build environment through DI', () => {

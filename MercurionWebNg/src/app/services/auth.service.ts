@@ -168,7 +168,6 @@ export class AuthService {
       headers: {
         'X-Fingerprint': fingerprintBase64,
         'X-Device-Info': btoa(JSON.stringify(sessionDeviceInfo)),
-        'X-Mock-IP': '91.122.12.8',
         'X-Challenge-Token': turnstileToken
       }
     }).pipe(tap((res) => {
@@ -214,7 +213,6 @@ export class AuthService {
         'X-Fingerprint': fingerprintBase64,
         'X-Device-Info': btoa(JSON.stringify(sessionDeviceInfo)),
         'Authorization': `Bearer ${preauthorizationToken}`,
-        'X-Mock-IP': '91.122.12.8'
       }
     }).pipe(tap((res) => {
       if (this.typeGuards.isNotNullish(res.accessToken)) {
@@ -453,7 +451,6 @@ export class AuthService {
       headers: {
         'X-Fingerprint': fingerprintBase64,
         'X-Device-Info': sessionDeviceInfoBase64,
-        'X-Mock-IP': '91.122.12.8',
         'Authorization': `Bearer ${sso_preAuthorizationToken}`
       }
     })

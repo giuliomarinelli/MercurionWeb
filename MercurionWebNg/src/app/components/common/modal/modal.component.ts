@@ -1,11 +1,12 @@
 // modal.component.ts
-import { Component, HostListener, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, HostListener, inject } from '@angular/core';
 import { PortalModule, CdkPortalOutlet } from '@angular/cdk/portal';
 import { ViewChild } from '@angular/core';
 import { ModalContextService } from '../../../services/context/modal-context.service';
 
 @Component({
   selector: 'm-modal',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [PortalModule],
   template: `
   @if (ctx.isMounted()) {

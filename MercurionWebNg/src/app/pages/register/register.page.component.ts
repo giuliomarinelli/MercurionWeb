@@ -1,4 +1,5 @@
-import { Component, computed, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, DestroyRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PublicPipe } from '../../pipes/public.pipe';
 import { ReactiveFormsModule, Validators, FormGroup, FormControl, NonNullableFormBuilder } from '@angular/forms';
 import { ThemeManagerService } from '../../services/context/theme-manager.service';
@@ -21,6 +22,7 @@ import { TurnstileComponent } from '../../components/common/turnstile/turnstile.
 
 @Component({
   selector: 'm-register.page',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     PublicPipe,
     ReactiveFormsModule,
@@ -246,6 +248,7 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
   protected readonly userContext = inject(UserContextService)
   private readonly toast = inject(ToastService)
   private readonly appContext = inject(AppContextService)
+  private readonly destroyRef = inject(DestroyRef)
   // ====================================================
 
   @ViewChild(TurnstileComponent)
@@ -275,25 +278,19 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
   form: FormGroup<UserRegistrationFormControls> = this.fb.group(
     {
       firstName: this.fb.control('', {
-        validators: [Validators.required, Validators.pattern(/^[A-ZÀ-Ýa-zà-ÿ\s]+$/)],
-      }),
+        validators: [Validators.required, Validators.pattern(/^[A-ZÀ-Ýa-zà-ÿ\s]+$/)] }),
       lastName: this.fb.control('', {
-        validators: [Validators.required, Validators.pattern(/^[A-ZÀ-Ýa-zà-ÿ\s]+$/)],
-      }),
+        validators: [Validators.required, Validators.pattern(/^[A-ZÀ-Ýa-zà-ÿ\s]+$/)] }),
       email: this.fb.control('', {
         validators: [Validators.required, Validators.email, Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)],
-        asyncValidators: [emailAvailabilityValidator(this.authService)],
-      }),
+        asyncValidators: [emailAvailabilityValidator(this.authService)] }),
       job: new FormControl<string | null>(null, {
         nonNullable: false,
-        validators: [Validators.pattern(/^(?:[A-Za-zÀ-Ýà-ÿ]+(?:\s+[A-Za-zÀ-Ýà-ÿ]+)*)?$/)],
-      }),
+        validators: [Validators.pattern(/^(?:[A-Za-zÀ-Ýà-ÿ]+(?:\s+[A-Za-zÀ-Ýà-ÿ]+)*)?$/)] }),
       gender: this.fb.control<UserGenderControl>('', { validators: [Validators.required] }),
       password: this.fb.control('', {
-        validators: [Validators.required, Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/)],
-      }),
-      confirmPassword: this.fb.control('', { validators: [Validators.required, matchPassword] }),
-    },
+        validators: [Validators.required, Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8 }$/)] }),
+      confirmPassword: this.fb.control('', { validators: [Validators.required, matchPassword] }) },
     { validators: matchPassword }
   )
 
@@ -301,20 +298,16 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
   options: PmOption[] = [
     {
       label: '',
-      value: '',
-    },
+      value: '' },
     {
       label: 'Maschile',
-      value: 'M',
-    },
+      value: 'M' },
     {
       label: 'Femminile',
-      value: 'F',
-    },
+      value: 'F' },
     {
       label: 'Non specificato',
-      value: 'Undefined',
-    }
+      value: 'Undefined' }
   ]
 
   private markAll(): void {
@@ -343,7 +336,9 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
         return
       }
       const request: UserRegisterDTO = { ...dto, gender: dto.gender }
-      this.regSub = this.authService.registerUser(request, this.turnstileToken()).subscribe({
+      this.regSub = this.authService.registerUser(request, this.turnstileToken()).pipe(
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe({
         next: res => {
           const { obscuredEmail } = res
           this.obscuredEmail.set(obscuredEmail!)
@@ -380,10 +375,14 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.valChSub = this.form.get('password')?.valueChanges.subscribe(() => {
+    this.valChSub = this.form.get('password')?.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.form.get('confirmPassword')?.updateValueAndValidity({ onlySelf: true });
     })
-    this.form.valueChanges.subscribe(() => {
+    this.form.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       if (this.settedDisabledBtn()) {
         this.settedDisabledBtn.set(false)
       }

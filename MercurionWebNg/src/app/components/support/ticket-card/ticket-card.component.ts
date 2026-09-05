@@ -1,6 +1,5 @@
 import {
-  Component, Input, Output, EventEmitter, signal, computed, effect
-} from '@angular/core';
+  Component, Input, Output, EventEmitter, signal, computed, effect, ChangeDetectionStrategy } from '@angular/core';
 import { DatePipe, NgClass } from '@angular/common';
 import { APIClientTicket, Ticket, TicketCardMode } from '../../../Models/graphql/help.models'; // path tuo
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
@@ -11,6 +10,7 @@ import { TypeGuardsService } from '../../../services/type-guards.service';
 
 @Component({
   selector: 'm-ticket-card',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DatePipe, NgClass],
   template: `
   @if (_ticket()) {
