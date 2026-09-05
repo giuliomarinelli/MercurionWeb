@@ -6,7 +6,7 @@ import { ActionOverlayContextService } from '../../../services/context/action-co
 import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
 import { MoleculeJoinService } from '../../../services/graphql/molecule-collection-join.service';
 import { ToastService } from '../../../services/toast.service';
-import { RDKitService } from '../../../services/rd-kit.service';
+import { ChemistryRendererService } from '../../../chemistry/chemistry-renderer.service';
 import { Router } from '@angular/router';
 import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
 import { FormsModule } from '@angular/forms';
@@ -255,7 +255,7 @@ export class CustomMoleculeCollectionItemSaveComponent implements OnInit {
   private readonly collectionService = inject(MoleculeCollectionService);
   private readonly moleculeJoinService = inject(MoleculeJoinService);
   private readonly toast = inject(ToastService);
-  private readonly rdkitService = inject(RDKitService);
+  private readonly chemistryRenderer = inject(ChemistryRendererService);
   private readonly router = inject(Router);
 
   nameFocus = signal<boolean>(false);
@@ -281,9 +281,14 @@ export class CustomMoleculeCollectionItemSaveComponent implements OnInit {
   }
 
   async loadProperties() {
-    this.properties.set(
-      await this.rdkitService.getMoleculeProperties(this.saveCtx.smiles())
-    );
+    try {
+      this.properties.set(
+        await this.chemistryRenderer.getMoleculeProperties(this.saveCtx.smiles())
+      );
+    } catch {
+      this.properties.set(null);
+      this.toast.trigger('Proprietà molecolari temporaneamente non disponibili.', 'error', 2500);
+    }
   }
 
   computeProps(): void {
@@ -416,4 +421,3 @@ export class CustomMoleculeCollectionItemSaveComponent implements OnInit {
     if (this.overlayCtx.isOpened()) this.close();
   }
 }
-

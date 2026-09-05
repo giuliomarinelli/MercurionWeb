@@ -1,4 +1,4 @@
-import type { KetcherFrameMode } from '../../components/chem/ketcher-frame/ketcher-frame.component'
+import type { ChemistryEditorMode } from '../../chemistry/chemistry-adapter.models'
 
 export type ActionScope =
   'MoleculeCollectionItemSave'
@@ -35,7 +35,7 @@ export type TicketDetailInnerScope = 'User' | 'Support'
  * Scopes that need no caller-provided input use `void` rather than an untyped optional field.
  */
 export interface ActionSessionInputMap {
-  MoleculeCollectionItemSave: { readonly mode: KetcherFrameMode; readonly smiles: string }
+  MoleculeCollectionItemSave: { readonly mode: ChemistryEditorMode; readonly smiles: string }
   AddMoleculesToCollection: {
     readonly collectionId: string
     readonly redirectToCollectionPath: boolean

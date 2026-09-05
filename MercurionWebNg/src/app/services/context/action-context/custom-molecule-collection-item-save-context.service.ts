@@ -1,5 +1,5 @@
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
-import { KetcherFrameMode } from '../../../components/chem/ketcher-frame/ketcher-frame.component';
+import { ChemistryEditorMode } from '../../../chemistry/chemistry-adapter.models';
 import { ActionOverlayContextService } from './action-overlay-context.service';
 
 /**
@@ -16,7 +16,7 @@ export class CustomMoleculeCollectionItemSaveContextService {
 
   private readonly overlay = inject(ActionOverlayContextService)
 
-  readonly mode = computed<KetcherFrameMode>(() =>
+  readonly mode = computed<ChemistryEditorMode>(() =>
     this.overlay.session('MoleculeCollectionItemSave')?.input.mode ?? 'edit'
   )
 

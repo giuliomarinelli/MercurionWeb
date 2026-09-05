@@ -17,7 +17,8 @@ import {
   take,
   combineLatest } from 'rxjs';
 
-import { KetcherFrameComponent, KetcherFrameMode } from '../../components/chem/ketcher-frame/ketcher-frame.component';
+import { ChemistryEditorMode } from '../../chemistry/chemistry-adapter.models';
+import { KetcherFrameComponent } from '../../components/chem/ketcher-frame/ketcher-frame.component';
 import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service';
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
 import { ToastService } from '../../services/toast.service';
@@ -110,7 +111,7 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   private readonly polledSmiles$ = new Subject<string>();
 
   // state
-  mode = signal<KetcherFrameMode>('edit');
+  mode = signal<ChemistryEditorMode>('edit');
   smiles = signal<string>('');
   mId = signal<string | undefined>(undefined);
   error = signal<boolean>(false);
@@ -269,7 +270,7 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
     // routing / init
     this.routeSub = this.route.queryParams.pipe(
       switchMap(qp => {
-        const mode = qp['mode'] as KetcherFrameMode;
+        const mode = qp['mode'] as ChemistryEditorMode;
         const mId = qp['m_id'] as string | undefined;
         const smiles = qp['smiles'] as string | undefined;
 
@@ -419,4 +420,3 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 }
-
