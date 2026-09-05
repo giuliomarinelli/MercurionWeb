@@ -207,13 +207,6 @@ export type MoleculeProperties = {
   rtb?: Maybe<Scalars['Int']['output']>;
 };
 
-/** Ruolo della molecola in una reazione chimica */
-export type MoleculeRole =
-  | 'Product'
-  | 'Reactant'
-  | 'SubProduct'
-  | 'Substrate';
-
 export type MoleculeSearchInput = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   maxMw?: InputMaybe<Scalars['Float']['input']>;
@@ -242,12 +235,13 @@ export type Mutation = {
   addCustomMoleculeToCollection: CustomMoleculeItemEntity;
   addManyChemblItemsToCollection: Scalars['Boolean']['output'];
   addManyMoleculesToCollection: Scalars['Boolean']['output'];
-  addStepMoleculeRef: SynthStepMoleculeRef;
   addSupportTicketMessage: Scalars['Boolean']['output'];
+  addSynthStepItem: SynthStepItem;
   addTicketMessage: Scalars['Boolean']['output'];
   bindManyCollectionsToMolecule: BindManyCollectionsToMoleculeDto;
   closeMyTicket: Scalars['Boolean']['output'];
   closeTicketAsSupport: Scalars['Boolean']['output'];
+  configureSynthesisPool: Synthesis;
   createChapter: NotebookChapter;
   createLabNotebook: LabNotebook;
   createManyMoleculeCollections: Scalars['Boolean']['output'];
@@ -275,7 +269,7 @@ export type Mutation = {
   removeChemblMoleculeFromCollection: Scalars['Boolean']['output'];
   removeCustomMoleculeFromCollection: Scalars['Boolean']['output'];
   removeMoleculeFromCollection: Scalars['Boolean']['output'];
-  removeStepMoleculeRef: Scalars['Boolean']['output'];
+  removeSynthStepItem: Scalars['Boolean']['output'];
   reopenTicketAsSupport: Scalars['Boolean']['output'];
   reorderChapters: Scalars['Boolean']['output'];
   reorderPages: Scalars['Boolean']['output'];
@@ -286,7 +280,7 @@ export type Mutation = {
   updateMoleculeItem?: Maybe<MoleculeCollectionItemUnion>;
   updatePage?: Maybe<NotebookPage>;
   updateSection: NotebookSection;
-  updateStepMoleculeRef: SynthStepMoleculeRef;
+  updateSynthStepItem: SynthStepItem;
   updateSyntheticRoute: Synthesis;
   updateSyntheticStep: SynthStep;
 };
@@ -319,15 +313,15 @@ export type MutationAddManyMoleculesToCollectionArgs = {
 };
 
 
-export type MutationAddStepMoleculeRefArgs = {
-  input: SynthStepMoleculeRefInput;
-};
-
-
 export type MutationAddSupportTicketMessageArgs = {
   contentDelta: Scalars['JSON']['input'];
   contentHtml: Scalars['String']['input'];
   ticketId: Scalars['ID']['input'];
+};
+
+
+export type MutationAddSynthStepItemArgs = {
+  input: SynthStepItemInput;
 };
 
 
@@ -352,6 +346,11 @@ export type MutationCloseMyTicketArgs = {
 
 export type MutationCloseTicketAsSupportArgs = {
   ticketId: Scalars['ID']['input'];
+};
+
+
+export type MutationConfigureSynthesisPoolArgs = {
+  input: SynthesisPoolInput;
 };
 
 
@@ -500,7 +499,7 @@ export type MutationRemoveMoleculeFromCollectionArgs = {
 };
 
 
-export type MutationRemoveStepMoleculeRefArgs = {
+export type MutationRemoveSynthStepItemArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -560,9 +559,9 @@ export type MutationUpdateSectionArgs = {
 };
 
 
-export type MutationUpdateStepMoleculeRefArgs = {
+export type MutationUpdateSynthStepItemArgs = {
   id: Scalars['ID']['input'];
-  input: SynthStepMoleculeRefInput;
+  input: SynthStepItemInput;
 };
 
 
@@ -687,7 +686,7 @@ export type Query = {
   searchMyCollections: Array<MoleculeCollection>;
   sectionByChapterId: NotebookSection;
   sectionById: NotebookSection;
-  stepMoleculeRefs: Array<SynthStepMoleculeRef>;
+  synthStepItems: Array<SynthStepItem>;
   syntheticRoute?: Maybe<Synthesis>;
   syntheticStepById?: Maybe<SynthStep>;
   syntheticStepsByRoute: Array<SynthStep>;
@@ -854,7 +853,7 @@ export type QuerySectionByIdArgs = {
 };
 
 
-export type QueryStepMoleculeRefsArgs = {
+export type QuerySynthStepItemsArgs = {
   stepId: Scalars['ID']['input'];
 };
 
@@ -893,52 +892,67 @@ export type QueryTicketsAsSupportArgs = {
 
 export type SynthStep = {
   __typename?: 'SynthStep';
-  conditions: Array<Scalars['String']['output']>;
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
-  mainProduct?: Maybe<CustomMoleculeItemEntity>;
-  mainProductId?: Maybe<Scalars['ID']['output']>;
-  mainSubstrate?: Maybe<CustomMoleculeItemEntity>;
-  mainSubstrateId?: Maybe<Scalars['ID']['output']>;
-  moleculeRefs?: Maybe<Array<SynthStepMoleculeRef>>;
+  items?: Maybe<Array<SynthStepItem>>;
   order: Scalars['Int']['output'];
   reactionType?: Maybe<Scalars['String']['output']>;
   synth: Synthesis;
-  synthId?: Maybe<Scalars['ID']['output']>;
+  synthId: Scalars['ID']['output'];
 };
 
 export type SynthStepInput = {
-  conditions: Array<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
-  mainProductId: Scalars['ID']['input'];
-  mainSubstrateId: Scalars['ID']['input'];
   order: Scalars['Int']['input'];
   reactionType?: InputMaybe<Scalars['String']['input']>;
   synthId: Scalars['ID']['input'];
 };
 
-export type SynthStepMoleculeRef = {
-  __typename?: 'SynthStepMoleculeRef';
+export type SynthStepItem = {
+  __typename?: 'SynthStepItem';
   id: Scalars['ID']['output'];
-  molecule?: Maybe<CustomMoleculeItemEntity>;
-  moleculeId?: Maybe<Scalars['ID']['output']>;
-  role: MoleculeRole;
-  showAliasOnTheArrow: Scalars['Boolean']['output'];
+  kind: SynthStepItemKind;
+  order: Scalars['Int']['output'];
+  poolMolecule?: Maybe<SynthesisPoolMolecule>;
+  poolMoleculeId?: Maybe<Scalars['ID']['output']>;
+  position: SynthStepItemPosition;
   step: SynthStep;
   stepId: Scalars['ID']['output'];
+  text?: Maybe<Scalars['String']['output']>;
 };
 
-export type SynthStepMoleculeRefInput = {
-  moleculeId: Scalars['ID']['input'];
-  role: MoleculeRole;
-  showAliasOnTheArrow: Scalars['Boolean']['input'];
+export type SynthStepItemInput = {
+  kind: SynthStepItemKind;
+  order: Scalars['Int']['input'];
+  poolMoleculeId?: InputMaybe<Scalars['ID']['input']>;
+  position: SynthStepItemPosition;
   stepId: Scalars['ID']['input'];
+  text?: InputMaybe<Scalars['String']['input']>;
 };
+
+/** Chemical or textual role of an item in a synthetic step */
+export type SynthStepItemKind =
+  | 'Byproduct'
+  | 'Catalyst'
+  | 'Condition'
+  | 'Other'
+  | 'Product'
+  | 'Reactant'
+  | 'Reagent'
+  | 'Solvent';
+
+/** Visual placement of an item relative to the reaction arrow */
+export type SynthStepItemPosition =
+  | 'AfterArrow'
+  | 'BeforeArrow'
+  | 'OnArrow';
 
 export type Synthesis = {
   __typename?: 'Synthesis';
   id: Scalars['ID']['output'];
   notes?: Maybe<Scalars['String']['output']>;
+  poolCollections?: Maybe<Array<SynthesisPoolCollection>>;
+  poolMolecules?: Maybe<Array<SynthesisPoolMolecule>>;
   steps?: Maybe<Array<SynthStep>>;
   title: Scalars['String']['output'];
 };
@@ -946,6 +960,28 @@ export type Synthesis = {
 export type SynthesisInput = {
   notes?: InputMaybe<Scalars['String']['input']>;
   title: Scalars['String']['input'];
+};
+
+export type SynthesisPoolCollection = {
+  __typename?: 'SynthesisPoolCollection';
+  collection: MoleculeCollection;
+  collectionId: Scalars['ID']['output'];
+  id: Scalars['ID']['output'];
+  synthesisId: Scalars['ID']['output'];
+};
+
+export type SynthesisPoolInput = {
+  collectionIds: Array<Scalars['ID']['input']>;
+  moleculeIds: Array<Scalars['ID']['input']>;
+  synthesisId: Scalars['ID']['input'];
+};
+
+export type SynthesisPoolMolecule = {
+  __typename?: 'SynthesisPoolMolecule';
+  id: Scalars['ID']['output'];
+  molecule: CustomMoleculeItemEntity;
+  moleculeId: Scalars['ID']['output'];
+  synthesisId: Scalars['ID']['output'];
 };
 
 export type Ticket = {

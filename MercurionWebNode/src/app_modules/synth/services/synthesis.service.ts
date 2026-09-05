@@ -16,12 +16,19 @@ export class SynthesisService {
     ) { }
 
     async create(userId: UUID, input: SynthesisInput): Promise<Synthesis> {
-        const route = this.routeRepo.create({ ...input, userId })
+        const route = this.routeRepo.create({
+            userId,
+            title: input.title,
+            notes: input.notes ?? null
+        })
         return this.routeRepo.save(route)
     }
 
     async update(id: UUID, userId: UUID, input: SynthesisInput, fieldsMap: GraphQLFieldsMap): Promise<Synthesis | null> {
-        await this.routeRepo.update({ id, userId }, { ...input })
+        await this.routeRepo.update({ id, userId }, {
+            title: input.title,
+            notes: input.notes ?? null
+        })
         return this.findOne(id, userId, fieldsMap)
     }
 
