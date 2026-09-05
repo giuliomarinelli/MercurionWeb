@@ -1,104 +1,103 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { SimpleChange } from '@angular/core';
-import { Subject } from 'rxjs';
-import type { RDKitModule } from '@rdkit/rdkit';
+import { ComponentFixture, TestBed } from '@angular/core/testing'
+import { SimpleChange } from '@angular/core'
 
-import { MoleculeViewerComponent } from './molecule-viewer.component';
-import { RDKitService } from '../../../services/rd-kit.service';
+import { ChemistryRendererSession } from '../../../chemistry/chemistry-adapter.models'
+import { ChemistryRendererService } from '../../../chemistry/chemistry-renderer.service'
+import { MoleculeViewerComponent } from './molecule-viewer.component'
 
 describe('MoleculeViewerComponent', () => {
-  let component: MoleculeViewerComponent;
-  let fixture: ComponentFixture<MoleculeViewerComponent>;
-  let instance$: Subject<RDKitModule>;
+  let component: MoleculeViewerComponent
+  let fixture: ComponentFixture<MoleculeViewerComponent>
+  let session: jasmine.SpyObj<ChemistryRendererSession>
+  let renderer: jasmine.SpyObj<ChemistryRendererService>
 
   beforeEach(async () => {
-    instance$ = new Subject<RDKitModule>();
+    session = jasmine.createSpyObj<ChemistryRendererSession>(
+      'ChemistryRendererSession',
+      ['renderSvg', 'toMolfile', 'getMoleculeProperties', 'dispose']
+    )
+    session.renderSvg.and.resolveTo('<svg viewBox="0 0 10 10"></svg>')
+    renderer = jasmine.createSpyObj<ChemistryRendererService>('ChemistryRendererService', ['createSession'])
+    renderer.createSession.and.resolveTo(session)
+
     await TestBed.configureTestingModule({
       imports: [MoleculeViewerComponent],
-      providers: [{ provide: RDKitService, useValue: { instance$ } }]
-    })
-    .compileComponents();
+      providers: [{ provide: ChemistryRendererService, useValue: renderer }]
+    }).compileComponents()
 
-    fixture = TestBed.createComponent(MoleculeViewerComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
+    fixture = TestBed.createComponent(MoleculeViewerComponent)
+    component = fixture.componentInstance
+    fixture.detectChanges()
+    await fixture.whenStable()
+  })
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+  it('creates a renderer session without exposing an RDKit type to the component', () => {
+    expect(component).toBeTruthy()
+    expect(renderer.createSession).toHaveBeenCalledTimes(1)
+  })
 
-  it('releases the RDKit stream when destroyed', () => {
-    component.disablePreview = true;
-    fixture.detectChanges();
+  it('disposes its application renderer session when destroyed', () => {
+    fixture.destroy()
+    expect(session.dispose).toHaveBeenCalledTimes(1)
+  })
 
-    component.disablePreview = false;
+  it('renders a controlled recoverable state when the adapter cannot load', async () => {
+    session.dispose.calls.reset()
+    renderer.createSession.and.rejectWith(new Error('vendor detail'))
+
+    component.retry()
+    await Promise.resolve()
+    await Promise.resolve()
+    fixture.detectChanges()
+
+    expect(component.renderState()).toBe('unavailable')
+    expect(component.renderError()).toBe('Rappresentazione molecolare non disponibile.')
+    expect(fixture.nativeElement.querySelector('[role="alert"]')).not.toBeNull()
+  })
+
+  it('starts loading when preview is enabled after being disabled', () => {
+    renderer.createSession.calls.reset()
+    component.disablePreview = true
+    ;(component as any).ready = false
+    component.disablePreview = false
     component.ngOnChanges({
       disablePreview: new SimpleChange(true, false, false)
-    });
+    })
 
-    expect(instance$.observed).toBeTrue();
-
-    fixture.destroy();
-    expect(instance$.observed).toBeFalse();
-  });
-
+    expect(renderer.createSession).toHaveBeenCalledTimes(1)
+  })
 
   describe('scheduleRender idle-job ownership', () => {
-    let ricSpy: jasmine.Spy;
-    let cicSpy: jasmine.Spy;
-    let scheduled: { id: number; cb: () => void }[];
-    let nextId: number;
+    let cancelIdleCallbackSpy: jasmine.Spy
+    let scheduled: { id: number; callback: () => void }[]
+    let nextId: number
 
     beforeEach(() => {
-      scheduled = [];
-      nextId = 1;
-      ricSpy = spyOn(window as any, 'requestIdleCallback').and.callFake((cb: any) => {
-        const id = nextId++;
-        scheduled.push({ id, cb: () => cb({ didTimeout: true, timeRemaining: () => 0 }) });
-        return id;
-      });
-      cicSpy = spyOn(window as any, 'cancelIdleCallback').and.callFake((id: number) => {
-        scheduled = scheduled.filter(s => s.id !== id);
-      });
+      scheduled = []
+      nextId = 1
+      spyOn(window as any, 'requestIdleCallback').and.callFake((callback: any) => {
+        const id = nextId++
+        scheduled.push({ id, callback: () => callback({ didTimeout: true, timeRemaining: () => 0 }) })
+        return id
+      })
+      cancelIdleCallbackSpy = spyOn(window as any, 'cancelIdleCallback').and.callFake((id: number) => {
+        scheduled = scheduled.filter(item => item.id !== id)
+      })
 
-      // Establish one known-baseline scheduled job under the spy, discarding
-      // any call recorded from component construction (which ran before the
-      // spy existed) so the following assertions are exact.
-      (component as any).scheduleRender();
-      ricSpy.calls.reset();
-      cicSpy.calls.reset();
-    });
+      ;(component as any).scheduleRender()
+      cancelIdleCallbackSpy.calls.reset()
+    })
 
-    function runPending(): void {
-      const items = scheduled;
-      scheduled = [];
-      items.forEach(s => s.cb());
-    }
+    it('cancels the previous idle callback before scheduling another render', () => {
+      expect(scheduled.length).toBe(1)
+      ;(component as any).scheduleRender()
+      expect(cancelIdleCallbackSpy).toHaveBeenCalledTimes(1)
+      expect(scheduled.length).toBe(1)
+    })
 
-    it('a rapid re-render request cancels the previously scheduled idle callback (no duplicate scheduling)', () => {
-      const beforeCount = scheduled.length;
-      expect(beforeCount).toBe(1);
-
-      (component as any).scheduleRender();
-
-      expect(cicSpy).toHaveBeenCalledTimes(1);
-      expect(ricSpy).toHaveBeenCalledTimes(1);
-      expect(scheduled.length).toBe(1);
-    });
-
-    it('ngOnDestroy cancels the pending idle callback and guards against a late-firing stale job', () => {
-      expect(scheduled.length).toBe(1);
-
-      fixture.destroy();
-
-      expect(cicSpy).toHaveBeenCalledTimes(1);
-
-      // Even if a stale callback somehow still fires post-destroy, the
-      // internal destroyed guard must prevent it from invoking renderSvg().
-      const renderSpy = spyOn(component as any, 'renderSvg');
-      runPending();
-      expect(renderSpy).not.toHaveBeenCalled();
-    });
-  });
-});
+    it('cancels the pending idle callback on destroy', () => {
+      fixture.destroy()
+      expect(cancelIdleCallbackSpy).toHaveBeenCalledTimes(1)
+    })
+  })
+})

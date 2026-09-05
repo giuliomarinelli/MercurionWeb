@@ -2,12 +2,9 @@ import {
   ApplicationRef,
   Component,
   ChangeDetectionStrategy,
-  DestroyRef,
   effect,
   EventEmitter,
-  HostBinding,
   Input,
-  inject,
   NgZone,
   OnChanges,
   OnDestroy,
@@ -15,10 +12,12 @@ import {
   Output,
   signal,
   SimpleChanges } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { RDKitService } from '../../../services/rd-kit.service';
-import type { RDKitModule } from '@rdkit/rdkit';
+import {
+  ChemistryAdapterError,
+  ChemistryRendererSession
+} from '../../../chemistry/chemistry-adapter.models';
+import { ChemistryRendererService } from '../../../chemistry/chemistry-renderer.service';
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
 
 /**
@@ -45,7 +44,22 @@ import { ThemeManagerService } from '../../../services/context/theme-manager.ser
 @Component({
   selector: 'm-molecule-viewer',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `<div class="wrap" [innerHTML]="svg" role="img" [attr.aria-label]="ariaLabel"></div>`,
+  template: `
+    @if (renderState() === 'unavailable') {
+      <div class="wrap flex flex-col items-center justify-center gap-2 text-center" role="alert">
+        <span>{{ renderError() }}</span>
+        <button type="button" class="underline" (click)="retry()">Riprova</button>
+      </div>
+    } @else {
+      <div
+        class="wrap"
+        [innerHTML]="svg"
+        role="img"
+        [attr.aria-label]="ariaLabel"
+        [attr.aria-busy]="renderState() === 'loading'"
+      ></div>
+    }
+  `,
   styles: [
     `:host{display:block;width:100%;height:100%}`,
     `.wrap{width:100%;height:100%}`,
@@ -74,12 +88,14 @@ export class MoleculeViewerComponent implements OnInit, OnChanges, OnDestroy {
   @Output() rendered = new EventEmitter<void>();
 
   darkMode = signal<boolean>(false);
+  renderState = signal<'loading' | 'ready' | 'unavailable'>('loading');
+  renderError = signal('Rappresentazione molecolare non disponibile.');
 
   /* ────── Stato interno ─────────────────────────────────────── */
   svg: SafeHtml | null = null;
   private ready = false;
-  private RDK!: RDKitModule;
-  private readonly destroyRef = inject(DestroyRef);
+  private rendererSession?: ChemistryRendererSession;
+  private rendererGeneration = 0;
 
   /* ────── Palette WCAG‑AAA ──────────────────────────────────── */
   private static readonly WCAG = {
@@ -93,7 +109,7 @@ export class MoleculeViewerComponent implements OnInit, OnChanges, OnDestroy {
       F: '#A7F3D0', Cl: '#6EE7B7', Br: '#FCD34D', I: '#DDD6FE' } } as const;
 
   constructor(
-    private readonly rdkit: RDKitService,
+    private readonly renderer: ChemistryRendererService,
     private readonly sanitizer: DomSanitizer,
     private readonly appRef: ApplicationRef,
     private readonly themeManager: ThemeManagerService,
@@ -125,10 +141,23 @@ export class MoleculeViewerComponent implements OnInit, OnChanges, OnDestroy {
 
   /* ────── Helpers ────────────────────────────────────────────── */
   private initRdkit(): void {
-    this.rdkit.instance$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((rdk) => {
-      this.RDK = rdk;
+    const generation = ++this.rendererGeneration;
+    this.ready = false;
+    this.renderState.set('loading');
+    this.rendererSession?.dispose();
+    this.rendererSession = undefined;
+
+    void this.renderer.createSession().then(session => {
+      if (this.destroyed || generation !== this.rendererGeneration) {
+        session.dispose();
+        return;
+      }
+
+      this.rendererSession = session;
       this.ready = true;
       if (!this.disablePreview) this.scheduleRender();
+    }).catch(error => {
+      if (generation === this.rendererGeneration) this.showRenderError(error);
     });
   }
 
@@ -146,7 +175,7 @@ export class MoleculeViewerComponent implements OnInit, OnChanges, OnDestroy {
     const job = () => {
       this.pendingRenderHandle = undefined;
       if (this.destroyed) return;
-      this.renderSvg();
+      void this.renderSvg();
     };
 
     if ((window as any).requestIdleCallback) {
@@ -170,7 +199,10 @@ export class MoleculeViewerComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnDestroy(): void {
     this.destroyed = true;
+    this.rendererGeneration += 1;
     this.cancelScheduledRender();
+    this.rendererSession?.dispose();
+    this.rendererSession = undefined;
   }
 
   private rgb(hex: string): [number, number, number] {
@@ -194,31 +226,28 @@ export class MoleculeViewerComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   /* ────── Core rendering ─────────────────────────────────────── */
-  private renderSvg(): void {
-    if (!this.structure || !this.RDK) return;
-
-    /* 1. RDKit produce lo SVG grezzo */
-    const mol = this.RDK.get_mol(this.structure.split('$$$$')[0])
-    if (!mol) {
-      return
-    }
-    if (!mol?.is_valid()) {
-      mol?.delete?.()
-      return
-    }
-
+  private async renderSvg(): Promise<void> {
+    const session = this.rendererSession;
+    if (!this.structure || !session) return;
     const palette = MoleculeViewerComponent.WCAG[this.darkMode() ? 'dark' : 'light'];
-    const rdkitOpts = {
-      bondLineWidth: 1.6,
-      fixedBondLength: this.structure.length < 40 ? 50 : 30,
-      padding: 0.02,
-      clearBackground: false,
-      backgroundColour: this.rgb(palette.bg),
-      bondLineColour: this.rgb(palette.bond),
-      atomColourPalette: this.buildAtomPalette() } as const;
+    let raw: string;
 
-    let raw = mol.get_svg_with_highlights(JSON.stringify(rdkitOpts));
-    mol.delete();
+    try {
+      raw = await session.renderSvg({
+        structure: this.structure,
+        options: {
+          background: this.rgb(palette.bg),
+          bond: this.rgb(palette.bond),
+          atomPalette: this.buildAtomPalette(),
+          fixedBondLength: this.structure.length < 40 ? 50 : 30
+        }
+      });
+    } catch (error) {
+      this.showRenderError(error);
+      return;
+    }
+
+    if (this.destroyed || session !== this.rendererSession) return;
 
     /* 2. Mount off‑screen to compute exact bbox */
     try {
@@ -258,7 +287,23 @@ export class MoleculeViewerComponent implements OnInit, OnChanges, OnDestroy {
     /* 4. Bind al template */
     this.zone.run(() => {
       this.svg = this.sanitizer.bypassSecurityTrustHtml(raw);
+      this.renderState.set('ready');
       this.rendered.emit();
     })
+  }
+
+  retry(): void {
+    this.svg = null;
+    this.initRdkit();
+  }
+
+  private showRenderError(error: unknown): void {
+    const message = error instanceof ChemistryAdapterError
+      ? error.message
+      : 'Rappresentazione molecolare non disponibile.';
+    this.zone.run(() => {
+      this.renderError.set(message);
+      this.renderState.set('unavailable');
+    });
   }
 }
