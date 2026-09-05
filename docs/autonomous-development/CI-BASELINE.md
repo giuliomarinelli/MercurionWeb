@@ -83,11 +83,11 @@ another. If no older run succeeds, the newer run performs its own validation.
 The metadata allowlist is intentionally narrow:
 
 ```text
-docs/autonomous-development/task/[0-9][0-9][0-9][0-9]-*.md
-docs/autonomous-development/reports/*.md
+docs/autonomous-development/task/(?!0000-)[0-9]{4}-[^/]+\.md
+docs/autonomous-development/reports/[0-9]{4}-[0-9]{2}-[0-9]{2}-[^/]+\.md
 ```
 
-A metadata run is never accepted merely because filenames look harmless: its
+The `0000-*` task/report templates are deliberately excluded. A metadata run is never accepted merely because filenames look harmless: its
 exact comparison base must already have successful CI. Any GitHub API,
 history, classification, or validation error fails closed. The workflow does
 not use trigger-level `paths-ignore`, because that could omit the stable

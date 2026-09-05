@@ -258,8 +258,8 @@ ci:
     duplicate_wait_timeout_seconds: 900
     metadata_requires_green_exact_base_sha: true
     metadata_allowlist:
-      - docs/autonomous-development/task/[0-9][0-9][0-9][0-9]-*.md
-      - docs/autonomous-development/reports/*.md
+      - 'docs/autonomous-development/task/(?!0000-)[0-9]{4}-[^/]+\.md'
+      - 'docs/autonomous-development/reports/[0-9]{4}-[0-9]{2}-[0-9]{2}-[^/]+\.md'
     unknown_or_ambiguous_fallback: full
     stable_required_gate_for_every_mode: true
 

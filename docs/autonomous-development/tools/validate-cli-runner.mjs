@@ -541,11 +541,21 @@ for (const [pattern, message] of [
   [/Number\(run\.id\) < currentRunId/, 'duplicate waiting must only consider older runs'],
   [/isMetadataOnly\(files\)[\s\S]*hasSuccessfulRun\(baseSha\)/, 'metadata mode must require a green base'],
   [/docs\\\/autonomous-development\\\/task/, 'missing task metadata allowlist'],
-  [/docs\\\/autonomous-development\\\/reports/, 'missing report metadata allowlist'],
   [/finish\(\s*'full'/, 'uncertain classifications must retain the full path'],
   [/--self-test/, 'classifier must expose its deterministic self-test'],
 ]) {
   requireMatch(paths.classifier, classifier, pattern, message);
+}
+
+if (!classifier.includes('(?!0000-)')) {
+  fail(paths.classifier, 'task metadata allowlist must exclude templates');
+}
+if (
+  !classifier.includes(
+    'reports\\/[0-9]{4}-[0-9]{2}-[0-9]{2}-',
+  )
+) {
+  fail(paths.classifier, 'report metadata allowlist must require a dated report');
 }
 
 if (

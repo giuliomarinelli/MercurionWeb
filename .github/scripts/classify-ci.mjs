@@ -7,8 +7,8 @@ import process from 'node:process';
 
 const ZERO_SHA = /^0+$/;
 const METADATA_PATHS = [
-  /^docs\/autonomous-development\/task\/[0-9]{4}-[^/]+\.md$/,
-  /^docs\/autonomous-development\/reports\/[^/]+\.md$/,
+  /^docs\/autonomous-development\/task\/(?!0000-)[0-9]{4}-[^/]+\.md$/,
+  /^docs\/autonomous-development\/reports\/[0-9]{4}-[0-9]{2}-[0-9]{2}-[^/]+\.md$/,
 ];
 
 export function isMetadataPath(file) {
@@ -175,6 +175,11 @@ function selfTest() {
   assert.equal(
     isMetadataPath('docs/autonomous-development/reports/2026-09-05-final.md'),
     true,
+  );
+  assert.equal(isMetadataPath('docs/autonomous-development/task/0000-task-example.md'), false);
+  assert.equal(
+    isMetadataPath('docs/autonomous-development/reports/0000-session-report-template.md'),
+    false,
   );
   assert.equal(isMetadataPath('docs/autonomous-development/PROTOCOL.md'), false);
   assert.equal(isMetadataPath('.github/workflows/ci.yml'), false);
