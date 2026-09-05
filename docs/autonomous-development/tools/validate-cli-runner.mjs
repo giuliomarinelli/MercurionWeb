@@ -18,9 +18,12 @@ const paths = {
   vscodeMcp: '.vscode/mcp.json',
   vscodeSettings: '.vscode/settings.json',
   historicalSession: 'docs/autonomous-development/session.overnight-2026-09-01.yaml',
-  activeSession: 'docs/autonomous-development/session.48h-2026-09-03.yaml',
+  completedSession: 'docs/autonomous-development/session.48h-2026-09-03.yaml',
   exampleSession: 'docs/autonomous-development/session.example.yaml',
-  activeLaunch: 'docs/autonomous-development/LAUNCH-2026-09-03-v2.md',
+  completedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-03-v2.md',
+  workflow: '.github/workflows/ci.yml',
+  classifier: '.github/scripts/classify-ci.mjs',
+  reportTemplate: 'docs/autonomous-development/reports/0000-session-report-template.md',
 };
 
 const expectedAgentTools = {
@@ -38,9 +41,12 @@ const controlPlaneFiles = [
   'docs/autonomous-development/CI-BASELINE.md',
   'docs/autonomous-development/PROTOCOL.md',
   'docs/autonomous-development/LAUNCH.md',
-  paths.activeLaunch,
-  paths.activeSession,
+  paths.completedLaunch,
+  paths.completedSession,
   paths.exampleSession,
+  paths.workflow,
+  paths.classifier,
+  paths.reportTemplate,
 ];
 
 function fail(target, message) {
@@ -205,6 +211,18 @@ requireMatch(
   /Never run two implementation workers concurrently/,
   'coordinator must prohibit concurrent workers',
 );
+requireMatch(
+  paths.agents.coordinator,
+  coordinator.content,
+  /do not push an[\s\S]*unchanged branch whose head still equals[\s\S]*develop/,
+  'coordinator must delay the first feature push until task-specific work exists',
+);
+requireMatch(
+  paths.agents.coordinator,
+  coordinator.content,
+  /entire affected[\s\S]*transitive closure[\s\S]*one aggregate metadata-only commit/,
+  'coordinator must batch terminal dependency skips',
+);
 for (const [target, content] of [
   [paths.agents.coordinator, coordinator.content],
   [paths.agents.worker, worker.content],
@@ -231,11 +249,11 @@ requireMatch(
 );
 
 const historicalSession = read(paths.historicalSession);
-const activeSession = read(paths.activeSession);
+const completedSession = read(paths.completedSession);
 const exampleSession = read(paths.exampleSession);
 for (const [target, content] of [
   [paths.exampleSession, exampleSession],
-  [paths.activeSession, activeSession],
+  [paths.completedSession, completedSession],
 ]) {
   validateYamlStructure(target, content);
   requireMatch(target, content, /^\s*host:\s*github-copilot-cli\s*$/m, 'missing CLI host');
@@ -338,30 +356,6 @@ for (const [target, content] of [
     /carry_processes_between_tasks:\s*false/,
     'runtime processes must not cross task boundaries',
   );
-  requireMatch(
-    target,
-    content,
-    /dependency_skip_evaluation:\s*lazy-at-normal-selection-point/,
-    'dependency skips must be evaluated lazily',
-  );
-  requireMatch(
-    target,
-    content,
-    /precompute_transitive_dependency_skips:\s*false/,
-    'transitive dependency skips must not be precomputed',
-  );
-  requireMatch(
-    target,
-    content,
-    /maximum_new_skip_outcomes_per_selection:\s*1/,
-    'one selection may materialize at most one dependency skip',
-  );
-  requireMatch(
-    target,
-    content,
-    /batch_dependency_skip_metadata_commit:\s*false/,
-    'dependency skip metadata must not be batched',
-  );
   if (/^\s+(?:model|reasoning):/m.test(content)) {
     fail(target, 'must inherit rather than pin model or reasoning');
   }
@@ -412,43 +406,43 @@ for (const command of ['/model', '/permissions show', '/mcp list', '/keep-alive 
   );
 }
 
-const activeLaunch = read(paths.activeLaunch);
+const completedLaunch = read(paths.completedLaunch);
 requireMatch(
-  paths.activeLaunch,
-  activeLaunch,
+  paths.completedLaunch,
+  completedLaunch,
   /docs\/autonomous-development\/session\.48h-2026-09-03\.yaml/,
-  'active launch must reference the active dated session configuration',
+  'completed launch must reference the active dated session configuration',
 );
 requireMatch(
-  paths.activeLaunch,
-  activeLaunch,
+  paths.completedLaunch,
+  completedLaunch,
   /copilot --agent development-session-coordinator --allow-all-tools --allow-all-urls --add-dir \.\.\/MercurionTox21 --reasoning-effort high --autopilot/,
-  'active launch is missing the deterministic Copilot CLI command',
+  'completed launch is missing the deterministic Copilot CLI command',
 );
 requireMatch(
-  paths.activeLaunch,
-  activeLaunch,
+  paths.completedLaunch,
+  completedLaunch,
   /2026-09-05T17:00:00\+02:00/,
-  'active launch is missing the exact soft deadline',
+  'completed launch is missing the exact soft deadline',
 );
 requireMatch(
-  paths.activeLaunch,
-  activeLaunch,
+  paths.completedLaunch,
+  completedLaunch,
   /feature\/SYS-013/,
-  'active launch must address the pre-existing empty SYS-013 feature branch',
+  'completed launch must address the pre-existing empty SYS-013 feature branch',
 );
 requireMatch(
-  paths.activeLaunch,
-  activeLaunch,
+  paths.completedLaunch,
+  completedLaunch,
   /Do not reopen terminal tasks `0008` through `0012`/,
-  'active launch must forbid reopening terminal tasks before 0013',
+  'completed launch must forbid reopening terminal tasks before 0013',
 );
 for (const command of ['/model', '/permissions show', '/mcp list', '/keep-alive on']) {
   requireMatch(
-    paths.activeLaunch,
-    activeLaunch,
+    paths.completedLaunch,
+    completedLaunch,
     new RegExp(command.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
-    `active launch is missing ${command}`,
+    `completed launch is missing ${command}`,
   );
 }
 
@@ -461,11 +455,11 @@ if (deadlineMatches?.length !== 1) {
 }
 
 const activeDeadline = '2026-09-05T17:00:00+02:00';
-const activeDeadlineMatches = activeSession.match(
+const activeDeadlineMatches = completedSession.match(
   /^\s*end:\s*"2026-09-05T17:00:00\+02:00"/gm,
 );
 if (activeDeadlineMatches?.length !== 1) {
-  fail(paths.activeSession, `deadline must remain exactly ${activeDeadline}`);
+  fail(paths.completedSession, `deadline must remain exactly ${activeDeadline}`);
 }
 
 for (const [pattern, message] of [
@@ -476,9 +470,9 @@ for (const [pattern, message] of [
   [/wait_for_exact_feature_sha:\s*true/, 'missing exact feature-SHA CI requirement'],
   [/required_check:\s*Required gate/, 'missing stable Required gate contract'],
   [/ubuntu-latest[\s\S]*windows-latest/, 'missing Windows/Linux CI platforms'],
-  [/expected_first_pending_task:\s*"0013"/, 'active workload must resume at task 0013'],
-  [/expected_task_count:\s*220/, 'active workload must contain 220 tasks'],
-  [/recovery_control_plane_pull_request:\s*28/, 'active recovery must record PR #28'],
+  [/expected_first_pending_task:\s*"0013"/, 'completed workload must resume at task 0013'],
+  [/expected_task_count:\s*220/, 'completed workload must contain 220 tasks'],
+  [/recovery_control_plane_pull_request:\s*28/, 'completed recovery must record PR #28'],
   [/task:\s*"0008"/, 'missing authorized SYS-008 retry task'],
   [/archived_branch:\s*archive\/SYS-008-attempt-2026-09-03/, 'missing archived SYS-008 retry branch'],
   [/archived_sha:\s*b99d864ef8c8555fe9f28bfa9152cd6581f78720/, 'missing exact archived SYS-008 SHA'],
@@ -486,7 +480,7 @@ for (const [pattern, message] of [
   [/allow_wholesale_cherry_pick:\s*false/, 'archived attempt must not be cherry-picked wholesale'],
   [/reset_transitive_skips_to_pending:\s*108/, 'missing authorized reset of 108 speculative skips'],
 ]) {
-  requireMatch(paths.activeSession, activeSession, pattern, message);
+  requireMatch(paths.completedSession, completedSession, pattern, message);
 }
 
 for (const stalePattern of [
@@ -497,8 +491,8 @@ for (const stalePattern of [
   /propagate_skipped_dependency_transitively:\s*true/,
   /batch_dependency_skip_metadata_commit:\s*true/,
 ]) {
-  if (stalePattern.test(activeSession)) {
-    fail(paths.activeSession, `contains retired Phase 0 policy ${stalePattern.source}`);
+  if (stalePattern.test(completedSession)) {
+    fail(paths.completedSession, `contains retired Phase 0 policy ${stalePattern.source}`);
   }
 }
 
@@ -508,10 +502,67 @@ for (const [pattern, message] of [
   [/wait_for_exact_feature_sha:\s*true/, 'missing exact feature-SHA CI requirement'],
   [/required_check:\s*Required gate/, 'missing stable Required gate contract'],
   [/ubuntu-latest[\s\S]*windows-latest/, 'missing Windows/Linux CI platforms'],
-  [/dependency_skip_evaluation:\s*lazy-at-normal-selection-point/, 'missing lazy dependency-skip policy'],
-  [/precompute_transitive_dependency_skips:\s*false/, 'transitive skips must not be precomputed'],
+  [/push_feature_branch_before_work:\s*false/, 'feature branch must not be pushed before task work'],
+  [/push_feature_branch_after_first_task_commit:\s*true/, 'first feature push must follow a task commit'],
+  [/forbid_remote_feature_ref_equal_to_base_sha:\s*true/, 'duplicate base-SHA feature refs must be forbidden'],
+  [/dependency_selection:\s*graph-snapshot/, 'missing graph snapshot scheduler'],
+  [/waiting_dependency_is_transient:\s*true/, 'WAITING_DEPENDENCY must remain transient'],
+  [/dependency_skip_evaluation:\s*batched-terminal-transitive-closure/, 'missing batched terminal skip policy'],
+  [/precompute_transitive_dependency_skips:\s*true/, 'terminal skip closure must be precomputed'],
+  [/batch_dependency_skip_metadata_commit:\s*true/, 'dependency skip metadata must be batched'],
+  [/single_metadata_commit_per_skip_closure:\s*true/, 'skip closure must use one metadata commit'],
+  [/duplicate_requires_prior_successful_exact_sha:\s*true/, 'duplicate CI requires prior exact-SHA success'],
+  [/metadata_requires_green_exact_base_sha:\s*true/, 'metadata CI requires an exact green base'],
+  [/unknown_or_ambiguous_fallback:\s*full/, 'ambiguous CI classification must fall back to full'],
+  [/stable_required_gate_for_every_mode:\s*true/, 'every CI mode must publish Required gate'],
 ]) {
   requireMatch(paths.exampleSession, exampleSession, pattern, message);
+}
+
+const workflow = read(paths.workflow);
+const classifier = read(paths.classifier);
+const reportTemplate = read(paths.reportTemplate);
+const packageJson = JSON.parse(read('package.json'));
+
+for (const [pattern, message] of [
+  [/^\s*plan:\s*$/m, 'missing CI classification job'],
+  [/needs\.plan\.outputs\.mode == 'metadata'/, 'missing metadata CI path'],
+  [/needs\.plan\.outputs\.mode == 'full'/, 'missing full CI path'],
+  [/name:\s*Required gate/, 'missing stable Required gate'],
+  [/needs:[\s\S]*- plan[\s\S]*- metadata[\s\S]*- quality/, 'Required gate must observe every CI path'],
+  [/actions:\s*read/, 'classifier requires read-only Actions access'],
+  [/fetch-depth:\s*0/, 'classifier requires complete comparison history'],
+]) {
+  requireMatch(paths.workflow, workflow, pattern, message);
+}
+
+for (const [pattern, message] of [
+  [/waitForOlderSuccessfulRun/, 'missing duplicate-SHA reuse'],
+  [/Number\(run\.id\) < currentRunId/, 'duplicate waiting must only consider older runs'],
+  [/isMetadataOnly\(files\)[\s\S]*hasSuccessfulRun\(baseSha\)/, 'metadata mode must require a green base'],
+  [/docs\\\/autonomous-development\\\/task/, 'missing task metadata allowlist'],
+  [/docs\\\/autonomous-development\\\/reports/, 'missing report metadata allowlist'],
+  [/finish\(\s*'full'/, 'uncertain classifications must retain the full path'],
+  [/--self-test/, 'classifier must expose its deterministic self-test'],
+]) {
+  requireMatch(paths.classifier, classifier, pattern, message);
+}
+
+if (
+  !packageJson.scripts?.['ci:validate:autonomous']?.includes(
+    'node .github/scripts/classify-ci.mjs --self-test',
+  )
+) {
+  fail('package.json', 'ci:validate:autonomous must run the classifier self-test');
+}
+
+for (const [pattern, message] of [
+  [/## CI and execution efficiency/, 'missing CI efficiency reporting section'],
+  [/CI classifications:/, 'missing CI classification counters'],
+  [/Platform jobs:/, 'missing platform-runner counters'],
+  [/Dependency scheduling:/, 'missing dependency scheduling metrics'],
+]) {
+  requireMatch(paths.reportTemplate, reportTemplate, pattern, message);
 }
 
 let mcp;
@@ -639,6 +690,6 @@ if (errors.length > 0) {
   process.exitCode = 1;
 } else {
   console.log(
-    'CLI runner validation passed: JSON, YAML structure, explicit agent tools, slugged task delegation, non-mutating handshake, MCP, historical and active launch records, permanent CI baseline, task-scoped runtime, lazy dependency skips, task 0013 continuation, terminal states, startup probe, signing, and finalization order are valid.',
+    'CLI runner validation passed: JSON, YAML structure, explicit agent tools, slugged task delegation, non-mutating handshake, MCP, historical session provenance, adaptive exact-SHA CI, delayed feature publication, batched dependency skips, telemetry, terminal states, startup probe, signing, and finalization order are valid.',
   );
 }

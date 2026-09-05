@@ -18,7 +18,9 @@ repository:
     require_no_gpg_sign_per_commit_command: true
     allow_rebase: false
     allow_force_push: false
-    push_feature_branch_before_work: true
+    push_feature_branch_before_work: false
+    push_feature_branch_after_first_task_commit: true
+    forbid_remote_feature_ref_equal_to_base_sha: true
     delete_feature_branch_on_ci_success: true
     preserve_feature_branch_on_failure: true
     freeze_preserved_feature_branch_on_block: true
@@ -223,11 +225,13 @@ policy:
   terminal_outcomes_immutable_within_active_session: true
   terminal_task_reenable_authority: new-direct-human-instruction-in-new-or-restarted-session
   autopilot_continuation_is_human_authorization: false
-  dependency_skip_evaluation: lazy-at-normal-selection-point
-  precompute_transitive_dependency_skips: false
-  maximum_new_skip_outcomes_per_selection: 1
-  batch_dependency_skip_metadata_commit: false
-  next_task_after_terminal_non_done: next-pending-with-all-hard-dependencies-done
+  dependency_selection: graph-snapshot
+  waiting_dependency_is_transient: true
+  dependency_skip_evaluation: batched-terminal-transitive-closure
+  precompute_transitive_dependency_skips: true
+  batch_dependency_skip_metadata_commit: true
+  single_metadata_commit_per_skip_closure: true
+  next_task_after_terminal_non_done: earliest-ready-task
   require_green_develop_before_next_task: true
 
 ci:
@@ -243,6 +247,21 @@ ci:
   poll_interval_seconds: 30
   observation_timeout_minutes: 120
   only_success_conclusion_is_green: true
+
+  classification:
+    modes:
+      - duplicate
+      - metadata
+      - full
+    duplicate_requires_prior_successful_exact_sha: true
+    duplicate_waits_only_for_older_run_ids: true
+    duplicate_wait_timeout_seconds: 900
+    metadata_requires_green_exact_base_sha: true
+    metadata_allowlist:
+      - docs/autonomous-development/task/[0-9][0-9][0-9][0-9]-*.md
+      - docs/autonomous-development/reports/*.md
+    unknown_or_ambiguous_fallback: full
+    stable_required_gate_for_every_mode: true
 
   on_success:
     finalize_done: true
@@ -275,7 +294,8 @@ ci:
     invoke_worker: false
     mark_task_skipped_dependency: true
     record_direct_and_transitive_causes: true
-    leave_later_recipes_unchanged: true
+    materialize_entire_terminal_closure: true
+    aggregate_in_one_metadata_commit: true
     wait_for_metadata_ci_green: true
 
 decisions:
@@ -286,6 +306,15 @@ decisions:
   sys_001_angular_nest_runtime_dependency: forbidden
   sys_001_nest_validation_adapters: preserve-when-required-and-prove-contract-parity
   sys_001_migration_policy: incremental-non-breaking
+
+telemetry:
+  record_ci_classification_counts: true
+  record_platform_jobs_started_and_avoided: true
+  record_ci_wait_seconds: true
+  record_task_wall_seconds: true
+  record_worker_invocations: true
+  record_pushes_and_retries: true
+  unavailable_metrics_must_be_reported_as_unavailable: true
 
 on_finish:
   validate_repository: true

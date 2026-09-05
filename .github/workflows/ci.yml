@@ -17,11 +17,68 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/develop' }}
 
 permissions:
+  actions: read
   contents: read
 
 jobs:
+  plan:
+    name: Classify validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      mode: ${{ steps.classify.outputs.mode }}
+      reason: ${{ steps.classify.outputs.reason }}
+      base_sha: ${{ steps.classify.outputs.base_sha }}
+      change_count: ${{ steps.classify.outputs.change_count }}
+    steps:
+      - name: Check out repository history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+
+      - name: Classify exact SHA
+        id: classify
+        env:
+          CI_DUPLICATE_WAIT_SECONDS: 900
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node .github/scripts/classify-ci.mjs
+
+  metadata:
+    name: Autonomous metadata
+    if: ${{ needs.plan.outputs.mode == 'metadata' }}
+    needs:
+      - plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+
+      - name: Validate autonomous control plane
+        run: npm run ci:validate:autonomous
+
+      - name: Check metadata diff
+        env:
+          BASE_SHA: ${{ needs.plan.outputs.base_sha }}
+        run: git diff --check "$BASE_SHA" "$GITHUB_SHA"
+
   quality:
     name: Quality (${{ matrix.os }})
+    if: ${{ needs.plan.outputs.mode == 'full' }}
+    needs:
+      - plan
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     strategy:
@@ -91,11 +148,32 @@ jobs:
     name: Required gate
     if: ${{ always() }}
     needs:
+      - plan
+      - metadata
       - quality
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Require every platform gate
+      - name: Require the selected validation path
         env:
+          METADATA_RESULT: ${{ needs.metadata.result }}
+          MODE: ${{ needs.plan.outputs.mode }}
+          PLAN_RESULT: ${{ needs.plan.result }}
           QUALITY_RESULT: ${{ needs.quality.result }}
-        run: test "$QUALITY_RESULT" = "success"
+        shell: bash
+        run: |
+          test "$PLAN_RESULT" = "success"
+          case "$MODE" in
+            duplicate)
+              ;;
+            metadata)
+              test "$METADATA_RESULT" = "success"
+              ;;
+            full)
+              test "$QUALITY_RESULT" = "success"
+              ;;
+            *)
+              echo "Unknown CI mode: $MODE" >&2
+              exit 1
+              ;;
+          esac
