@@ -39,7 +39,8 @@
     "ci:angular:mock-ip": "node scripts/check-angular-mock-ip-policy.mjs",
     "ci:angular:nested-subscriptions": "node scripts/check-angular-nested-subscriptions.mjs",
     "ci:angular:onpush-components": "node scripts/check-angular-component-change-detection.mjs",
-    "ci:static": "npm run ci:contracts && npm run ci:errors && npm run ci:graphql:internal-imports && npm run ci:angular:environment-imports && npm run ci:angular:environment-configs && npm run ci:angular:mock-ip && npm run ci:angular:nested-subscriptions && npm run ci:angular:onpush-components && npm run ci:angular:console-debugger",
+    "ci:angular:graphql-query-policy": "node scripts/check-angular-graphql-query-policy.mjs && node scripts/test-angular-graphql-query-policy-negative.mjs",
+    "ci:static": "npm run ci:contracts && npm run ci:errors && npm run ci:graphql:internal-imports && npm run ci:angular:environment-imports && npm run ci:angular:environment-configs && npm run ci:angular:mock-ip && npm run ci:angular:nested-subscriptions && npm run ci:angular:onpush-components && npm run ci:angular:graphql-query-policy && npm run ci:angular:console-debugger",
     "ci:check": "npm run ci:validate:autonomous && npm run ci:lint && npm run ci:typecheck && npm run ci:test && npm run ci:build && npm run ci:graphql && npm run ci:static",
     "ci:angular:console-debugger": "node scripts/check-angular-console-debugger-policy.mjs && node scripts/test-angular-console-debugger-policy-negative.mjs"
   },

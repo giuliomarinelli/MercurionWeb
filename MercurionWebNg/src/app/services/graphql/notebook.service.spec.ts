@@ -55,21 +55,19 @@ describe('NotebookService', () => {
 
   for (const queryCase of headerQueryCases) {
     it(`uses a semantic operation name for the ${queryCase.label} query`, () => {
-      const watchQuerySpy = jasmine.createSpy('watchQuery').and.returnValue({
-        valueChanges: of({}),
-      });
+      const querySpy = jasmine.createSpy('query').and.returnValue(of({}));
       const queryService = new NotebookService({
-        watchQuery: watchQuerySpy,
+        query: querySpy,
       } as unknown as Apollo);
       const id = '01990f17-0ff8-7b75-83d7-2c995ae7e2b1';
 
       queryCase.execute(queryService, id);
 
-      expect(watchQuerySpy).toHaveBeenCalledOnceWith(jasmine.objectContaining({
+      expect(querySpy).toHaveBeenCalledOnceWith(jasmine.objectContaining({
         variables: { id },
       }));
 
-      const query = watchQuerySpy.calls.mostRecent().args[0].query as DocumentNode;
+      const query = querySpy.calls.mostRecent().args[0].query as DocumentNode;
       const operation = query.definitions.find(
         (definition): definition is OperationDefinitionNode =>
           definition.kind === Kind.OPERATION_DEFINITION,

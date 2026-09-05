@@ -11,6 +11,7 @@ import { NgxSpinnerModule } from 'ngx-spinner';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { AuthFallbackInterceptor } from './interceptors/auth-fallback.interceptor';
 import { MercurionTitleStrategy } from './mercurion-title-strategy';
+import { GRAPHQL_QUERY_FETCH_POLICY } from './services/graphql/graphql-query-policy';
 
 
 export const appConfig: ApplicationConfig = {
@@ -29,6 +30,16 @@ export const appConfig: ApplicationConfig = {
       return {
         link: httpLink.create({ uri: '/api/graphql' }),
         cache: new InMemoryCache(),
+        defaultOptions: {
+          query: {
+            fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.stableReference,
+            errorPolicy: 'none'
+          },
+          watchQuery: {
+            fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.ownedReactive,
+            errorPolicy: 'none'
+          }
+        },
         uri: '/api/graphql'
       };
     }),

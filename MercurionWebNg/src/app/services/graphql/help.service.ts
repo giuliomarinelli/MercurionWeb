@@ -47,6 +47,7 @@ import {
   TicketsAsSupportQuery,
   TicketsAsSupportQueryVariables
 } from '../../generated/graphql';
+import { GRAPHQL_QUERY_FETCH_POLICY } from './graphql-query-policy';
 
 @Injectable({
   providedIn: 'root'
@@ -57,13 +58,13 @@ export class HelpService {
 
   public myTicketDetail(ticketId: string): Observable<ClientTicket> {
     return this.apollo
-      .watchQuery<MyTicketDetailQuery, MyTicketDetailQueryVariables>({
+      .query<MyTicketDetailQuery, MyTicketDetailQueryVariables>({
         query: MyTicketDetailDocument,
         variables: {
           ticketId
         },
-        fetchPolicy: 'network-only'
-      }).valueChanges.pipe(
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot
+      }).pipe(
         map((res) => extractGqlData<MyTicketDetailQuery, 'myTicketDetail'>(res, 'myTicketDetail')),
         map((res) => res.ticket),
         map((res) => ({
@@ -76,14 +77,14 @@ export class HelpService {
 
   public myTickets(page: number, limit: number): Observable<PageModel<ClientTicket>> {
     return this.apollo
-      .watchQuery<MyTicketsQuery, MyTicketsQueryVariables>({
+      .query<MyTicketsQuery, MyTicketsQueryVariables>({
         query: MyTicketsDocument,
         variables: {
           page,
           limit
         },
-        fetchPolicy: 'network-only'
-      }).valueChanges.pipe(
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot
+      }).pipe(
         map((res) => extractGqlData<MyTicketsQuery, 'myTickets'>(res, 'myTickets')),
         map((res) => ({
           ...res,
@@ -98,15 +99,15 @@ export class HelpService {
 
   public myTicketMessages(page: number, limit: number, ticketId: string): Observable<PageModel<ClientTicketMessage>> {
     return this.apollo
-      .watchQuery<MyTicketMessagesQuery, MyTicketMessagesQueryVariables>({
+      .query<MyTicketMessagesQuery, MyTicketMessagesQueryVariables>({
         query: MyTicketMessagesDocument,
         variables: {
           page,
           limit,
           ticketId
         },
-        fetchPolicy: 'network-only'
-      }).valueChanges.pipe(
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot
+      }).pipe(
         map((res) => extractGqlData<MyTicketMessagesQuery, 'myTicketMessages'>(res, 'myTicketMessages')),
         map((p) => ({
           ...p,
@@ -121,13 +122,13 @@ export class HelpService {
 
   public existsUserTicketById(ticketId: string): Observable<boolean> {
     return this.apollo
-      .watchQuery<ExistsUserTicketByIdQuery, ExistsUserTicketByIdQueryVariables>({
+      .query<ExistsUserTicketByIdQuery, ExistsUserTicketByIdQueryVariables>({
         query: ExistsUserTicketByIdDocument,
         variables: {
           ticketId
         },
-        fetchPolicy: 'network-only'
-      }).valueChanges.pipe(
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot
+      }).pipe(
         map((res): boolean => extractGqlDataV2(res, 'existsUserTicketById'))
       )
   }
@@ -179,13 +180,13 @@ export class HelpService {
 
   public ticketDetailAsSupport(ticketId: string): Observable<Ticket> {
     return this.apollo
-      .watchQuery<TicketDetailAsSupportQuery, TicketDetailAsSupportQueryVariables>({
+      .query<TicketDetailAsSupportQuery, TicketDetailAsSupportQueryVariables>({
         query: TicketDetailAsSupportDocument,
         variables: {
           ticketId
         },
-        fetchPolicy: 'network-only'
-      }).valueChanges.pipe(
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot
+      }).pipe(
         map((res) => extractGqlData<TicketDetailAsSupportQuery, 'ticketDetailAsSupport'>(res, 'ticketDetailAsSupport')),
         map((res) => res.ticket),
         map((res) => ({
@@ -198,14 +199,14 @@ export class HelpService {
 
   public ticketsAsSupport(page: number, limit: number): Observable<PageModel<Ticket>> {
     return this.apollo
-      .watchQuery<TicketsAsSupportQuery, TicketsAsSupportQueryVariables>({
+      .query<TicketsAsSupportQuery, TicketsAsSupportQueryVariables>({
         query: TicketsAsSupportDocument,
         variables: {
           page,
           limit
         },
-        fetchPolicy: 'network-only'
-      }).valueChanges.pipe(
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot
+      }).pipe(
         map((res) => extractGqlData<TicketsAsSupportQuery, 'ticketsAsSupport'>(res, 'ticketsAsSupport')),
         map((res) => ({
           ...res,
@@ -220,15 +221,15 @@ export class HelpService {
 
   public ticketMessagesAsSupport(page: number, limit: number, ticketId: string): Observable<PageModel<TicketMessage>> {
     return this.apollo
-      .watchQuery<TicketMessagesAsSupportQuery, TicketMessagesAsSupportQueryVariables>({
+      .query<TicketMessagesAsSupportQuery, TicketMessagesAsSupportQueryVariables>({
         query: TicketMessagesAsSupportDocument,
         variables: {
           page,
           limit,
           ticketId
         },
-        fetchPolicy: 'network-only'
-      }).valueChanges.pipe(
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot
+      }).pipe(
         map((res) => extractGqlData<TicketMessagesAsSupportQuery, 'ticketMessagesAsSupport'>(res, 'ticketMessagesAsSupport')),
         map((res) => ({
           ...res,

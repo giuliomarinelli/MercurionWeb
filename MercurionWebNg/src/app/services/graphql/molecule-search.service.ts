@@ -9,6 +9,7 @@ import {
   MoleculeSearchQuery,
   MoleculeSearchQueryVariables
 } from '../../generated/graphql';
+import { GRAPHQL_QUERY_FETCH_POLICY } from './graphql-query-policy';
 
 
 @Injectable({ providedIn: 'root' })
@@ -26,14 +27,14 @@ export class MoleculeSearchService {
     this._loading.set(true)
 
     return this.apollo
-      .watchQuery<MoleculeSearchQuery, MoleculeSearchQueryVariables>({
+      .query<MoleculeSearchQuery, MoleculeSearchQueryVariables>({
         query: MoleculeSearchDocument,
         variables: {
           input: { query, limit },
         },
-        fetchPolicy: 'network-only',
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot,
       })
-      .valueChanges.pipe(
+      .pipe(
         map(res => extractGqlData<MoleculeSearchQuery, 'moleculeSearch'>(res, 'moleculeSearch')),
         tap(results => {
           this._results.set(results)

@@ -85,6 +85,7 @@ import {
   UpdateMoleculeItemNotesMutation,
   UpdateMoleculeItemNotesMutationVariables
 } from '../../generated/graphql';
+import { GRAPHQL_QUERY_FETCH_POLICY } from './graphql-query-policy';
 
 
 function toNum(n: string | number): number {
@@ -189,10 +190,10 @@ export class MoleculeCollectionItemService {
 
   getAllNormalizedBasicData(): Observable<NormalizedMoleculeCollectionBasicData[]> {
     return this.apollo
-      .watchQuery<MoleculeItemBasicDataQuery, MoleculeItemBasicDataQueryVariables>({
+      .query<MoleculeItemBasicDataQuery, MoleculeItemBasicDataQueryVariables>({
         query: MoleculeItemBasicDataDocument,
-        fetchPolicy: 'network-only'
-      }).valueChanges.pipe(
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot
+      }).pipe(
         map(res => extractGqlData<MoleculeItemBasicDataQuery, 'myMoleculeItems'>(res, 'myMoleculeItems')),
         map(items => items.map(mapMoleculeItemBasicData))
       )
@@ -202,11 +203,11 @@ export class MoleculeCollectionItemService {
   getAllItems(): Observable<MoleculeCollectionItemClient[]> {
     this._loading.set(true);
     return this.apollo
-      .watchQuery<MyMoleculeItemsQuery, MyMoleculeItemsQueryVariables>({
+      .query<MyMoleculeItemsQuery, MyMoleculeItemsQueryVariables>({
         query: MyMoleculeItemsDocument,
-        fetchPolicy: 'network-only',
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot,
       })
-      .valueChanges.pipe(
+      .pipe(
         map(res => extractGqlData<MyMoleculeItemsQuery, 'myMoleculeItems'>(res, 'myMoleculeItems')),
         map(items => items.map(mapMoleculeItemDtoToClient)),
         tap(items => {
@@ -220,12 +221,12 @@ export class MoleculeCollectionItemService {
   // GET BY ID (polimorfico, può essere null)
   getItemById(id: string): Observable<MoleculeCollectionItemClient | null> {
     return this.apollo
-      .watchQuery<MoleculeItemQuery, MoleculeItemQueryVariables>({
+      .query<MoleculeItemQuery, MoleculeItemQueryVariables>({
         query: MoleculeItemDocument,
         variables: { id },
-        fetchPolicy: 'network-only',
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot,
       })
-      .valueChanges.pipe(
+      .pipe(
         map(res => extractGqlData<MoleculeItemQuery, 'moleculeItem'>(res, 'moleculeItem', true)),
         map(node => (node ? mapMoleculeItemDtoToClient(node) : null))
       );
@@ -234,12 +235,12 @@ export class MoleculeCollectionItemService {
   // GET SHORT BY ID (ridotto, per risolvere molregno dai UUID)
   getItemShortById(id: string): Observable<MoleculeCollectionItemEntityShort | null> {
     return this.apollo
-      .watchQuery<MoleculeItemShortQuery, MoleculeItemShortQueryVariables>({
+      .query<MoleculeItemShortQuery, MoleculeItemShortQueryVariables>({
         query: MoleculeItemShortDocument,
         variables: { id },
-        fetchPolicy: 'network-only',
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot,
       })
-      .valueChanges.pipe(
+      .pipe(
         map(res => extractGqlData<MoleculeItemShortQuery, 'moleculeItem'>(res, 'moleculeItem', true)),
         map(node => (node ? mapDtoToShort(node) : null))
       );
@@ -247,7 +248,7 @@ export class MoleculeCollectionItemService {
 
   getPaginatedItemsForCollection(collectionId: string, page: number = 1, limit: number = 20, q: string): Observable<PageModel<MoleculeCollectionItemClient>> {
     return this.apollo
-      .watchQuery<PaginatedMoleculeCollectionItemsByCollectionQuery, PaginatedMoleculeCollectionItemsByCollectionQueryVariables>({
+      .query<PaginatedMoleculeCollectionItemsByCollectionQuery, PaginatedMoleculeCollectionItemsByCollectionQueryVariables>({
         query: PaginatedMoleculeCollectionItemsByCollectionDocument,
         variables: {
           collectionId,
@@ -255,9 +256,9 @@ export class MoleculeCollectionItemService {
           limit,
           q
         },
-        fetchPolicy: 'network-only'
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot
       })
-      .valueChanges.pipe(
+      .pipe(
         map(res => extractGqlData<PaginatedMoleculeCollectionItemsByCollectionQuery, 'paginatedMoleculeCollectionItemsByCollection'>(res, 'paginatedMoleculeCollectionItemsByCollection')),
         map(node => {
           const mappedItems = node.items.map(i => mapMoleculeItemDtoToClient(i))
@@ -272,11 +273,11 @@ export class MoleculeCollectionItemService {
 
   getAllPaginatedItems(page = 1, limit = 20, q: string, excludeJoinedToCollection: boolean | null = null, collectionId: string | null = null): Observable<PageModel<MoleculeCollectionItemClient>> {
     return this.apollo
-      .watchQuery<PaginatedMoleculeCollectionItemsByUserQuery, PaginatedMoleculeCollectionItemsByUserQueryVariables>({
+      .query<PaginatedMoleculeCollectionItemsByUserQuery, PaginatedMoleculeCollectionItemsByUserQueryVariables>({
         query: PaginatedMoleculeCollectionItemsByUserDocument,
         variables: { page, limit, q, excludeJoinedToCollection, collectionId },
-        fetchPolicy: 'network-only'
-      }).valueChanges.pipe(
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot
+      }).pipe(
         map(res => extractGqlData<PaginatedMoleculeCollectionItemsByUserQuery, 'paginatedMoleculeCollectionItemsByUser'>(res, 'paginatedMoleculeCollectionItemsByUser')),
         map(node => {
           const mappedItems = node.items.map(i => mapMoleculeItemDtoToClient(i))
@@ -291,22 +292,22 @@ export class MoleculeCollectionItemService {
 
   hasUserChEMBLMoleculeByMolregnoThenGetUUID(molregno: number): Observable<string | null> {
     return this.apollo
-      .watchQuery<HasUserChEmblMoleculeByMolregnoThenGetUuidQuery, HasUserChEmblMoleculeByMolregnoThenGetUuidQueryVariables>({
+      .query<HasUserChEmblMoleculeByMolregnoThenGetUuidQuery, HasUserChEmblMoleculeByMolregnoThenGetUuidQueryVariables>({
         query: HasUserChEmblMoleculeByMolregnoThenGetUuidDocument,
         variables: { molregno },
-        fetchPolicy: 'network-only'
-      }).valueChanges.pipe(
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot
+      }).pipe(
         map(res => extractGqlData<HasUserChEmblMoleculeByMolregnoThenGetUuidQuery, 'hasUserChEMBLMoleculeByMolregnoThenGetUUID'>(res, 'hasUserChEMBLMoleculeByMolregnoThenGetUUID', true))
       )
   }
 
   existsChEMBLMoleculeByUUIDThenGetMolregno(_uuid_: string): Observable<string | null> {
     return this.apollo
-      .watchQuery<ExistsChEmblMoleculeByUuidThenGetMolregnoQuery, ExistsChEmblMoleculeByUuidThenGetMolregnoQueryVariables>({
+      .query<ExistsChEmblMoleculeByUuidThenGetMolregnoQuery, ExistsChEmblMoleculeByUuidThenGetMolregnoQueryVariables>({
         query: ExistsChEmblMoleculeByUuidThenGetMolregnoDocument,
         variables: { _uuid_ },
-        fetchPolicy: 'network-only'
-      }).valueChanges.pipe(
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot
+      }).pipe(
         map(res => extractGqlData<ExistsChEmblMoleculeByUuidThenGetMolregnoQuery, 'existsChEMBLMoleculeByUUIDThenGetMolregno'>(res, 'existsChEMBLMoleculeByUUIDThenGetMolregno', true))
       )
   }
@@ -317,24 +318,24 @@ export class MoleculeCollectionItemService {
       limit
     }
     return this.apollo
-      .watchQuery<MoleculeSearch_ExcludeAlreadyAddedQuery, MoleculeSearch_ExcludeAlreadyAddedQueryVariables>({
+      .query<MoleculeSearch_ExcludeAlreadyAddedQuery, MoleculeSearch_ExcludeAlreadyAddedQueryVariables>({
         query: MoleculeSearch_ExcludeAlreadyAddedDocument,
         variables: { input, collectionId },
-        fetchPolicy: 'network-only'
-      }).valueChanges.pipe(
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot
+      }).pipe(
         map(res => extractGqlData<MoleculeSearch_ExcludeAlreadyAddedQuery, 'moleculeSearch_excludeAlreadyAdded'>(res, 'moleculeSearch_excludeAlreadyAdded'))
       )
   }
 
   findOneCustomMoleculeByCanonicalSmiles_shortFetch(canonicalSmiles: string): Observable<CustomMoleculeItemEntity | null> {
     return this.apollo
-      .watchQuery<FindOneCustomMoleculeByCanonicalSmilesQuery, FindOneCustomMoleculeByCanonicalSmilesQueryVariables>({
+      .query<FindOneCustomMoleculeByCanonicalSmilesQuery, FindOneCustomMoleculeByCanonicalSmilesQueryVariables>({
         query: FindOneCustomMoleculeByCanonicalSmilesDocument,
         variables: {
           canonicalSmiles
         },
-        fetchPolicy: 'network-only'
-      }).valueChanges.pipe(
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot
+      }).pipe(
         map((res) => extractGqlData<FindOneCustomMoleculeByCanonicalSmilesQuery, 'findOneCustomMoleculeByCanonicalSmiles'>(res, 'findOneCustomMoleculeByCanonicalSmiles', true) as CustomMoleculeItemEntity | null),
         catchError((e) => {
           if (e instanceof GqlDataError && e.kind === 'NoData') {
@@ -492,12 +493,12 @@ export class MoleculeCollectionItemService {
   // Utility: dati essenziali per custom
   getCustomSmilesById(id: string): Observable<{ id: string; canonicalSmiles: string; name: string | null; molFormula: string | null; }> {
     return this.apollo
-      .watchQuery<MoleculeItemQuery, MoleculeItemQueryVariables>({
+      .query<MoleculeItemQuery, MoleculeItemQueryVariables>({
         query: MoleculeItemDocument,
         variables: { id },
-        fetchPolicy: 'network-only',
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot,
       })
-      .valueChanges.pipe(
+      .pipe(
         map(res => extractGqlData<MoleculeItemQuery, 'moleculeItem'>(res, 'moleculeItem', true)),
         map(node => {
           if (!node) throw new Error('Item not found');
