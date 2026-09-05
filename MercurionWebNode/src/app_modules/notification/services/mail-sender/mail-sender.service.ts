@@ -55,7 +55,7 @@ export class MailSenderService {
             userFirstName,
             url: this.generateUrl('support', ticket.id)
         }
-        this.sendEmail<SupportContext>(this.supportEmail, 'Un nuovo ticket è stato aperto', context, resolve('dist/app_modules/notification/email-templates/support---notify-support-new-ticket.hbs'))
+        this.sendEmail<SupportContext>(this.supportEmail, 'Un nuovo ticket è stato aperto', context, resolve('dist/src/app_modules/notification/email-templates/support---notify-support-new-ticket.hbs'))
             .catch((e) => this.logger.warn('notifySupportNewTicket > Error: ', (e.stack ?? e) as object))
     }
 
@@ -74,7 +74,7 @@ export class MailSenderService {
             userFirstName,
             url: this.generateUrl('user', ticket.id)
         }
-        this.sendEmail<SupportContext>(userEmail, 'Supporto Mercurion: un nuovo ticket è stato aperto', context, resolve('dist/app_modules/notification/email-templates/support---confirm-user-ticket-opened.hbs'))
+        this.sendEmail<SupportContext>(userEmail, 'Supporto Mercurion: un nuovo ticket è stato aperto', context, resolve('dist/src/app_modules/notification/email-templates/support---confirm-user-ticket-opened.hbs'))
             .catch((e) => this.logger.warn('confirmUserTicketOpened > Error: ', (e.stack ?? e) as object))
     }
 
@@ -92,7 +92,7 @@ export class MailSenderService {
             userFirstName,
             url: this.generateUrl('support', ticket.id)
         }
-        this.sendEmail<SupportContext>(this.supportEmail, `Un nuovo ticket messaggio è stato pubblicato nel ticket #${ticket.publicId}`, context, resolve('dist/app_modules/notification/email-templates/support---notify-support-new-message.hbs'))
+        this.sendEmail<SupportContext>(this.supportEmail, `Un nuovo ticket messaggio è stato pubblicato nel ticket #${ticket.publicId}`, context, resolve('dist/src/app_modules/notification/email-templates/support---notify-support-new-message.hbs'))
             .catch((e) => this.logger.warn('notifySupportNewMessage > Error: ', (e.stack ?? e) as object))
     }
 
@@ -111,7 +111,7 @@ export class MailSenderService {
             userFirstName,
             url: this.generateUrl('user', ticket.id)
         }
-        this.sendEmail<SupportContext>(userEmail, `Supporto Mercurion: Il ticket #${ticket.publicId} ha ricevuto una nuova risposta`, context, resolve('dist/app_modules/notification/email-templates/support---notify-user-support-replied.hbs'))
+        this.sendEmail<SupportContext>(userEmail, `Supporto Mercurion: Il ticket #${ticket.publicId} ha ricevuto una nuova risposta`, context, resolve('dist/src/app_modules/notification/email-templates/support---notify-user-support-replied.hbs'))
             .catch((e) => this.logger.warn('notifyUserSupportReplied > Error: ', (e.stack ?? e) as object))
     }
 

@@ -1,5 +1,5 @@
 import { NgClass } from '@angular/common';
-import { Component, Input, Output, EventEmitter, ElementRef, ViewChild, signal } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ElementRef, ViewChild, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 /**
@@ -28,6 +28,7 @@ import { FormsModule } from '@angular/forms';
  */
 @Component({
   selector: 'm-combo-multiselect',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, NgClass],
   template: `
     <div
@@ -114,8 +115,7 @@ import { FormsModule } from '@angular/forms';
         }
       </div>
     </div>
-  `,
-})
+  ` })
 export class ComboMultiSelectComponent<T> {
   // Dati & configurazione
   @Input({ required: true }) items: T[] = [];

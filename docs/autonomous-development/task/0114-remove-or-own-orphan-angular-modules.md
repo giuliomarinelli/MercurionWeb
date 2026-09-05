@@ -1,7 +1,7 @@
 # 0114 - Remove or explicitly own every orphan Angular module
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -87,24 +87,38 @@ Mark `BLOCKED` if an orphan's product ownership is still genuinely unresolved af
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/NG-028`, based on `851592c3c878bb2bf670a531f17e306d262aa9f9`,
+is preserved and frozen at `63783d675f263ab5146f1a584896149050ce2560`.
 ### Preflight
-_Not started._
+Passed unchanged: root `npm ci` followed by `npm run ci:check`.
 ### Preflight remediation
 _None._
 ### Summary
-_Not started._
+No implementation was attempted. The recipe requires existing Synth and
+Notebook ownership decisions to classify or remove currently unreachable
+modules; those decisions remain unresolved.
 ### Task-specific validation performed
-_Not started._
+Decision-gate inspection and recipe validation completed. The task recipe
+validator passed for 220 tasks with zero warnings.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not applicable after immediate authority block; the unchanged root preflight
+passed before task scope and no implementation change was made.
 ### Browser validation performed
-_Not started._
+Not performed. Runtime evidence cannot resolve missing product authority, and
+the task made no implementation change.
 ### Commits
-_Not recorded._
+Preserved feature metadata commit:
+`63783d675f263ab5146f1a584896149050ce2560`
+(`docs(task-0114): block pending orphan ownership decisions`).
 ### Merge / CI
-_Not started._
+No merge attempted. The feature branch is frozen at its final pushed SHA.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-_None._
+Provide a Synth retain/remove decision; retaining Synth additionally requires
+its approved Angular entry point, UX scope, and route/navigation placement.
+Provide a Notebook retain/remove decision; retaining Notebook additionally
+requires its route path, navigation placement, and access policy/guard
+audience. The current source retains both implementations without Angular
+routes, so removing or making either reachable would invent or bypass these
+decisions.

@@ -1,5 +1,28 @@
 # Repository Agent Instructions
 
+## MercurionWebNode development runtime
+
+Use these commands only when the active task has reached its declared
+runtime/browser-validation phase. They do not override the task-scoped runtime
+rules in `docs/autonomous-development/RUNTIME.md`.
+
+**Working directory**: the `MercurionWeb` repository root.
+
+1. **Start**
+```bash
+npm run start --workspace mercurion_web_node
+```
+
+2. **Start in *watch mode***
+```bash
+npm run start:dev --workspace mercurion_web_node
+```
+
+3. **Start in *watch mode* with *attachable debugger***
+```bash
+npm run start:debug --workspace mercurion_web_node
+```
+
 ## Purpose
 
 These instructions define the repository-wide operating contract for autonomous development agents.

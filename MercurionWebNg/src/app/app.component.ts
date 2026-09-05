@@ -1,6 +1,7 @@
 import {
   AfterViewInit,
   Component,
+  ChangeDetectionStrategy,
   CUSTOM_ELEMENTS_SCHEMA,
   ElementRef,
   OnDestroy,
@@ -29,7 +30,7 @@ import { DesignService } from './services/design.service'
 import { SidenavComponent } from './components/common/sidenav/sidenav.component'
 import { SessionSyncService } from './services/session-sync.service'
 import { ActionOverlayContextService } from './services/context/action-context/action-overlay-context.service'
-import { environment } from '../environments/environment.development'
+import { environment } from '../environments/environment'
 import { AuthService } from './services/auth.service'
 import { ActionOverlayComponent } from './components/action-components/action-overlay/action-overlay.component'
 import { AppContextService } from './services/context/app-context.service'
@@ -38,6 +39,7 @@ import { DOCUMENT, isPlatformBrowser } from '@angular/common'
 
 @Component({
   selector: 'm-root',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   imports: [
     RouterOutlet,

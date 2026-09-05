@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -110,20 +110,23 @@ Prefer an operation such as `activateAuthenticatedSession(result)` owned by the 
 
 ### Summary
 
-_Not started._
+Skipped without implementation because hard prerequisites `0026-create-canonical-angular-auth-state-store.md` (`FE-004`) is terminal `BLOCKED` and `0028-encapsulate-auth-session-browser-persistence.md` (`FE-006`) is terminal `SKIPPED_DEPENDENCY`. The canonical auth owner and persistence adapter are not available on `develop`.
 
 ### Validation performed
 
-_Not started._
+- No task branch or worker was created.
+- Direct prerequisites: `FE-004` is `BLOCKED`; `FE-006` is `SKIPPED_DEPENDENCY`.
+- Transitive dependency chain: `FE-007` -> `FE-004` (`BLOCKED`) and `FE-006` (`SKIPPED_DEPENDENCY`) -> `FE-004` (`BLOCKED`).
 
 ### Browser validation performed
 
-_Not started / credentials permitting._
+Not applicable; the task was skipped before implementation.
 
 ### Changed files
 
-_Not recorded._
+No files changed; only this task metadata was updated.
 
 ### Blocker / human decision required
 
-_None._
+No implementation blocker. The task may be re-enabled only after its hard
+dependency chain is deliberately resolved in a new authorized session.

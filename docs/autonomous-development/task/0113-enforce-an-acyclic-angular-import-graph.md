@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -90,18 +90,21 @@ _Not started._
 ### Preflight remediation
 _None._
 ### Summary
-_Not started._
+Not attempted because required UI-018 is `BLOCKED`. The collection-picker and
+search-decomposition references are advisory.
 ### Task-specific validation performed
-_Not started._
+Not applicable; no feature branch or implementation worker was created.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not applicable; dependency-skip metadata only.
 ### Browser validation performed
-_Not started._
+Not applicable; the task was not attempted.
 ### Commits
-_Not recorded._
+Pending metadata commit on `develop`.
 ### Merge / CI
-_Not started._
+No feature branch or merge. Exact-SHA CI is required for the metadata commit.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-_None._
+Direct terminal prerequisite: UI-018, `BLOCKED` because mandatory browser
+validation could not complete without a test-safe local Nest runtime and its
+local dependencies.

@@ -1,5 +1,5 @@
 import { CustomDetailSaveModel } from '../../../Models/custom-detail-save.model';
-import { Component, computed, EventEmitter, Input, Output, signal } from '@angular/core';
+import { Component, computed, EventEmitter, Input, Output, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CustomDetailsComponent } from '../my-molecule-custom-details/custom-details.component';
 import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.component';
 import { RouterLink } from '@angular/router';
@@ -7,6 +7,7 @@ import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'm-molecule-header',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CustomDetailsComponent,
     MoleculeBadgeComponent,

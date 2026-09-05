@@ -11,6 +11,7 @@ import {
 import { RouterLink, ActivatedRoute } from '@angular/router'
 import { Subscription, startWith } from 'rxjs'
 import { AppContextService } from '../../services/context/app-context.service'
+import { injectBrowserResourceOwner } from '../../utils/browser-resource-owner.util'
 
 @Component({
   selector: 'm-terms-and-policies-page',
@@ -418,6 +419,7 @@ export class TermsAndPoliciesPageComponent implements AfterViewInit, OnDestroy {
 
   private readonly route = inject(ActivatedRoute)
   private readonly appContext = inject(AppContextService)
+  private readonly resources = injectBrowserResourceOwner()
 
   @ViewChild('termsHeader') termsHeaderRef!: ElementRef<HTMLElement>
   @ViewChild('aupHeader') aupHeaderRef!: ElementRef<HTMLElement>
@@ -470,35 +472,38 @@ export class TermsAndPoliciesPageComponent implements AfterViewInit, OnDestroy {
   private applyFragment(frag: string | null | undefined): void {
     if (!this.scrollRootRef) return
 
-    // aspetta che l'altezza dell'header sia disponibile per evitare offset errati
-    const hh = this.appContext.headerHeight()
-    if (hh <= 0) {
-      requestAnimationFrame(() => this.applyFragment(frag))
-      return
-    }
+    // aspetta che l'altezza dell'header sia disponibile per evitare offset errati (bounded: mai polling infinito)
+    this.resources.waitForCondition(
+      () => {
+        const hh = this.appContext.headerHeight()
+        return hh > 0 ? hh : null
+      },
+      (hh) => {
+        // due fasi: rAF per layout stabilizzato, setTimeout per lasciare finire lo scroll restoration del router
+        this.resources.requestAnimationFrame(() => {
+          this.resources.setTimeout(() => {
+            if (!this.scrollRootRef) return
+            const rootEl = this.scrollRootRef.nativeElement
+            const headerOffset = Math.max(0, hh) + 10
 
-    // due fasi: rAF per layout stabilizzato, setTimeout per lasciare finire lo scroll restoration del router
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        const rootEl = this.scrollRootRef!.nativeElement
-        const headerOffset = Math.max(0, hh) + 10
+            let targetEl: HTMLElement | null = null
 
-        let targetEl: HTMLElement | null = null
+            if (!frag || frag === 'terms') {
+              targetEl = this.termsHeaderRef?.nativeElement ?? null
+            } else if (frag === 'aup') {
+              targetEl = this.aupHeaderRef?.nativeElement ?? null
+            } else {
+              targetEl = this.termsHeaderRef?.nativeElement ?? null
+            }
 
-        if (!frag || frag === 'terms') {
-          targetEl = this.termsHeaderRef?.nativeElement ?? null
-        } else if (frag === 'aup') {
-          targetEl = this.aupHeaderRef?.nativeElement ?? null
-        } else {
-          targetEl = this.termsHeaderRef?.nativeElement ?? null
-        }
+            if (!targetEl) return
 
-        if (!targetEl) return
-
-        const y = Math.max(0, this.appContext.getScrollYRelativeToRoot(targetEl, rootEl) - headerOffset)
-        this.appContext.smoothTo(this.scrollRootRef, y, 240)
-      }, 20)
-    })
+            const y = Math.max(0, this.appContext.getScrollYRelativeToRoot(targetEl, rootEl) - headerOffset)
+            this.appContext.smoothTo(this.scrollRootRef, y, 240)
+          }, 20)
+        })
+      }
+    )
   }
 
 }

@@ -13,7 +13,16 @@ import { ConfigService } from '@nestjs/config';
 import { RedisConfiguration } from 'src/config/config.types';
 import { JwtToolsService } from '../auth/services/jwt-tools.service';
 import { TokenType } from '../auth/Models/enums/token-type.enum';
+import {
+  socketEventRegistry,
+  type ClientToServerEvents,
+  type ServerToClientEvents,
+  type SocketEventPayload,
+  type SocketSessionInitAcknowledgement,
+} from '@mercurion/socket-contracts';
 
+type ApplicationServer = Server<ClientToServerEvents, ServerToClientEvents>
+type ApplicationSocket = Socket<ClientToServerEvents, ServerToClientEvents>
 
 
 @WebSocketGateway()
@@ -24,7 +33,7 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
   private readonly redisConf: RedisConfiguration
 
   @WebSocketServer()
-  private readonly server: Server
+  private readonly server: ApplicationServer
 
   constructor(
     private readonly configService: ConfigService,
@@ -36,7 +45,7 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
     this.redisConf = this.configService.get<RedisConfiguration>('Redis')!
   }
 
-  afterInit(server: Server) {
+  afterInit(server: ApplicationServer) {
     const pubClient = new Redis({
       host: this.redisConf.host,
       port: this.redisConf.port,
@@ -49,7 +58,7 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
   }
 
 
-  async handleConnection(client: Socket) {
+  async handleConnection(client: ApplicationSocket) {
     this.logger.log(`🔗 Connected socket ${client.id}`);
 
     const token = client.handshake.auth?.token as string | undefined;
@@ -78,15 +87,15 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
     }
   }
 
-  handleDisconnect(client: Socket): void {
+  handleDisconnect(client: ApplicationSocket): void {
     this.logger.log(`🔗 Disconnected socket ${client.id}`)
   }
 
-  private getUserId(client: Socket): UUID | undefined {
+  private getUserId(client: ApplicationSocket): UUID | undefined {
     return client.data?.userId as (UUID | undefined)
   }
 
-  private joinUserRooms(client: Socket): void {
+  private joinUserRooms(client: ApplicationSocket): void {
 
     const sessionId = client.data?.sessionId as string | undefined
     const userId = client.data?.userId?.toString() as string | undefined
@@ -108,23 +117,31 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
 
 
   @Public()
-  @SubscribeMessage('so.pub.public_test')
-  handlePublicTest(@MessageBody() data: string, @ConnectedSocket() client: Socket): void {
-    client.emit('sv.pub.public_test', (data ?? '') + ' RESP')
+  @SubscribeMessage(socketEventRegistry.publicTestRequest.name)
+  handlePublicTest(
+    @MessageBody() data: SocketEventPayload<typeof socketEventRegistry.publicTestRequest.name>,
+    @ConnectedSocket() client: ApplicationSocket
+  ): void {
+    client.emit(socketEventRegistry.publicTestResponse.name, (data ?? '') + ' RESP')
   }
 
-  @SubscribeMessage('so.pub.private_test')
-  handlePrivateTest(@MessageBody() data: string, @ConnectedSocket() client: Socket): void {
+  @SubscribeMessage(socketEventRegistry.privateTestRequest.name)
+  handlePrivateTest(
+    @MessageBody() data: SocketEventPayload<typeof socketEventRegistry.privateTestRequest.name>,
+    @ConnectedSocket() client: ApplicationSocket
+  ): void {
     this.joinUserRooms(client)
-    this.server.to(`ws_user:${this.getUserId(client)!}`).emit('sv.pub.private_test', (data ?? '') + ' PRIVATE RESP')
+    this.server
+      .to(`ws_user:${this.getUserId(client)!}`)
+      .emit(socketEventRegistry.privateTestResponse.name, (data ?? '') + ' PRIVATE RESP')
   }
 
-  @SubscribeMessage('so.pub.session_init')
-  handleSessionInit(@ConnectedSocket() client: Socket): { detail: string } {
+  @SubscribeMessage(socketEventRegistry.sessionInit.name)
+  handleSessionInit(
+    @ConnectedSocket() client: ApplicationSocket
+  ): SocketSessionInitAcknowledgement {
     this.joinUserRooms(client)
     return { detail: 'websocket session init successful' }
   }
 
 }
-
-

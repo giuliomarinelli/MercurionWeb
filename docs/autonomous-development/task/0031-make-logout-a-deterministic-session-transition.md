@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -114,20 +114,23 @@ Do not solve server-failure ambiguity by silently swallowing errors while leavin
 
 ### Summary
 
-_Not started._
+Skipped without implementation because hard prerequisites `0026-create-canonical-angular-auth-state-store.md` (`FE-004`) is `BLOCKED`, while `0028-encapsulate-auth-session-browser-persistence.md` (`FE-006`) and `0030-complete-cross-tab-authentication-synchronization.md` (`FE-008`) are `SKIPPED_DEPENDENCY`.
 
 ### Validation performed
 
-_Not started._
+- No task branch or worker was created.
+- Direct prerequisites: `FE-004` is `BLOCKED`; `FE-006` and `FE-008` are `SKIPPED_DEPENDENCY`.
+- Transitive dependency chain: `FE-009` -> `FE-004` (`BLOCKED`), `FE-006` (`SKIPPED_DEPENDENCY`) -> `FE-004` (`BLOCKED`), and `FE-008` (`SKIPPED_DEPENDENCY`) -> `FE-004` (`BLOCKED`) plus `FE-006` (`SKIPPED_DEPENDENCY`).
 
 ### Browser validation performed
 
-_Not started._
+Not applicable; the task was skipped before implementation.
 
 ### Changed files
 
-_Not recorded._
+No files changed; only this task metadata was updated.
 
 ### Blocker / human decision required
 
-_None recorded yet._
+No implementation blocker. The task may be re-enabled only after its hard
+dependency chain is deliberately resolved in a new authorized session.

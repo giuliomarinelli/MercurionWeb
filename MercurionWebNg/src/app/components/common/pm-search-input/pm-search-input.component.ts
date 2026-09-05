@@ -1,6 +1,7 @@
 import { NgClass } from '@angular/common';
 import {
   Component,
+ ChangeDetectionStrategy,
   Input,
   Output,
   EventEmitter,
@@ -11,6 +12,7 @@ import {
 
 @Component({
   selector: 'm-search-input',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgClass],
   template: `
     <div class="relative w-[240px] mr-2">
@@ -147,8 +149,7 @@ export class PmSearchInputComponent implements OnDestroy {
         'dark:hover:bg-dark-surface-secondary/80': true,
         'dark:focus:ring-slate-400/70': true,
         'dark:border-dark-border/80': this.borderDark,
-        'dark:border-none': !this.borderDark,
-      };
+        'dark:border-none': !this.borderDark };
     }
     return {
       'dark:bg-neutral-800': true,
@@ -156,8 +157,7 @@ export class PmSearchInputComponent implements OnDestroy {
       'dark:hover:bg-neutral-700': true,
       'dark:focus:ring-neutral-600/60': true,
       'dark:border-none': !this.borderDark,
-      'dark:border-neutral-600/60': !this.borderDark,
-    };
+      'dark:border-neutral-600/60': !this.borderDark };
   }
 
   get clearButtonDarkClasses() {

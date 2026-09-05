@@ -1,5 +1,5 @@
 import { NgClass, NgOptimizedImage, NgTemplateOutlet } from '@angular/common';
-import { Component, computed, effect, EventEmitter, inject, Input, OnDestroy, OnInit, Output, Signal, signal } from '@angular/core';
+import { Component, computed, effect, EventEmitter, inject, Input, OnDestroy, OnInit, Output, Signal, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
 import { ThemeChoice } from '../../../Models/theme.models';
 import { DesignService } from '../../../services/design.service';
@@ -16,11 +16,13 @@ import { SessionSyncService } from '../../../services/session-sync.service';
 import { PathService } from '../../../services/path.service';
 import { ToastService } from '../../../services/toast.service';
 import { ProvidedEmailDTO } from '../../../Models/account/account.models';
-import { environment } from '../../../../environments/environment.development';
+import { environment } from '../../../../environments/environment';
 import { AppContextService } from '../../../services/context/app-context.service';
+import { APP_CONFIG } from '../../../config/app-config';
 
 @Component({
   selector: 'm-header',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     NgOptimizedImage,
     NgClass,
@@ -123,8 +125,7 @@ import { AppContextService } from '../../../services/context/app-context.service
       </div>
       }
       <div class="hidden sm:block" [ngClass]="{
-          'lg:hidden': userContext.isLoggedIn() || isLoginPath() || isWelcomePath(),
-        }">
+          'lg:hidden': userContext.isLoggedIn() || isLoginPath() || isWelcomePath() }">
         <button
           (click)="openSearchOverlay()"
           class="inline-flex items-center justify-center size-10 rounded-full relative left-0.5 text-slate-700 dark:text-gray-200 hover:bg-slate-200/80 dark:hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-light-accent-primary-hq transition-colors">
@@ -137,8 +138,7 @@ import { AppContextService } from '../../../services/context/app-context.service
       </div>
 
       <button class="flex items-center justify-center size-10 rounded-full theme-toggle-button mr-0 xs:mr-1 lg:mr-2 transition-all duration-500 hover:bg-slate-200/80 dark:hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-light-accent-primary-hq" [ngClass]="{
-          'xl:ml-1': userContext.isLoggedIn() || isLoginPath(),
-        }"
+          'xl:ml-1': userContext.isLoggedIn() || isLoginPath() }"
         (click)="toggleThemeMenu()"
         [attr.title]="themeMenuOpen() ? 'Chiudi il menù di selezione del tema' : 'Apri il menu di selezione del tema'"
         aria-label="Seleziona tema">
@@ -180,14 +180,12 @@ import { AppContextService } from '../../../services/context/app-context.service
   [ngClass]="{
       'opacity-100 translate-x-0 translate-y-0': themeMenuVisible(),
       'opacity-0 pointer-events-none translate-x-2 -translate-y-2':
-        !themeMenuVisible(),
-    }">
+        !themeMenuVisible() }">
   <div class="py-2 z-[999]">
     <button (click)="onThemeChange('light'); closeThemeMenu()"
       class="group flex items-center w-full px-4 py-4 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-200/40 transition-colors duration-300"
       [ngClass]="{
-          'bg-slate-200 dark:bg-slate-500': themeManager.chosenTheme() === 'light',
-        }">
+          'bg-slate-200 dark:bg-slate-500': themeManager.chosenTheme() === 'light' }">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 512 512">
         <!--!Font Awesome Pro 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
         <path class="fill-current text-light-accent-secondary dark:text-dark-accent-secondary"
@@ -209,8 +207,7 @@ import { AppContextService } from '../../../services/context/app-context.service
     <button (click)="onThemeChange('dark'); closeThemeMenu()"
       class="group flex items-center w-full px-4 py-4 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-200/40 transition-colors duration-300"
       [ngClass]="{
-          'bg-slate-200 dark:bg-slate-500': themeManager.chosenTheme() === 'dark',
-        }">
+          'bg-slate-200 dark:bg-slate-500': themeManager.chosenTheme() === 'dark' }">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-current text-slate-400 dark:text-slate-100"
         viewBox="0 0 384 512">
         <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
@@ -231,8 +228,7 @@ import { AppContextService } from '../../../services/context/app-context.service
     <button (click)="onThemeChange('OS'); closeThemeMenu()"
       class="group flex items-center w-full px-4 py-4 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-200/40 transition-colors duration-300"
       [ngClass]="{
-          'bg-slate-200 dark:bg-slate-500': themeManager.chosenTheme() === 'OS',
-        }">
+          'bg-slate-200 dark:bg-slate-500': themeManager.chosenTheme() === 'OS' }">
       @if (themeManager.isSystemDark) {
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-current text-slate-400 dark:text-slate-100"
         viewBox="0 0 384 512">
@@ -300,8 +296,7 @@ import { AppContextService } from '../../../services/context/app-context.service
   [ngClass]="{
       'opacity-100 translate-x-0 translate-y-0': avatarMenuVisible(),
       'opacity-0 pointer-events-none translate-x-2 -translate-y-2':
-        !avatarMenuVisible(),
-    }">
+        !avatarMenuVisible() }">
   <div class="z-[999]">
     <button
       class="group truncate flex items-center w-full mb-2 pl-4 pr-6 py-4 gap-4 transition-colors duration-300 cursor-default border-slate-400/60 dark:border-slate-300 border-b-[0.5px]">
@@ -380,8 +375,7 @@ import { AppContextService } from '../../../services/context/app-context.service
   class="off-canvas-menu-container offcanvas-menu-container fixed top-0 left-0 h-full z-[9999] bg-slate-200 dark:bg-neutral-900 shadow-lg transform transition-transform duration-300 ease-in-out w-full 2xs:w-[74%] xs:w-[64%] sm:w-[50%] md:w-[40%] lg:w-[40%] xl:w-[30%] -translate-x-full"
   [ngClass]="{
       'translate-x-0': offCanvasMenuOpen(),
-      '-translate-x-full': !offCanvasMenuOpen(),
-    }">
+      '-translate-x-full': !offCanvasMenuOpen() }">
   <!-- Header of the offcanvas -->
   <div class="flex justify-between items-center px-4 border-b py-[18px] border-slate-300 dark:border-dark-border">
     <div class="flex items-center gap-4">
@@ -424,14 +418,12 @@ import { AppContextService } from '../../../services/context/app-context.service
   <div class="fixed inset-0 z-[10000] bg-black/50 flex items-end sm:hidden transition-opacity duration-300 m-overscroll-touch"
        [ngClass]="{
           'opacity-100 pointer-events-auto': avatarMobileMenuVisible(),
-          'opacity-0 pointer-events-none': !avatarMobileMenuVisible(),
-        }" (click)="closeAvatarMobileMenu()">
+          'opacity-0 pointer-events-none': !avatarMobileMenuVisible() }" (click)="closeAvatarMobileMenu()">
     <div
       class="w-full h-[100dvh] max-h-[100dvh] bg-slate-100 dark:bg-neutral-900 rounded-t-2xl shadow-2xl p-6 pb-10 relative overflow-y-auto transition-transform duration-300 m-overscroll-touch m-scroll-thin"
       [ngClass]="{
             'translate-y-0': avatarMobileMenuVisible(),
-            'translate-y-full': !avatarMobileMenuVisible(),
-          }" (click)="$event.stopPropagation()">
+            'translate-y-full': !avatarMobileMenuVisible() }" (click)="$event.stopPropagation()">
       <button class="absolute top-3 right-6 text-2xl" (click)="closeAvatarMobileMenu()">
         ✕
       </button>
@@ -532,6 +524,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   protected readonly pathService = inject(PathService)
   private readonly toast = inject(ToastService)
   private readonly appContext = inject(AppContextService)
+  private readonly appConfig = inject(APP_CONFIG)
 
   private updatePathFlags(currentPath: string) {
     const clean = (currentPath || '').split(/[?#]/)[0]
@@ -569,6 +562,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
   protected avatarMobileMenuOpen = signal<boolean>(false)
   protected avatarMobileMenuMounted = signal<boolean>(false)
   protected avatarMobileMenuVisible = signal<boolean>(false)
+
+  // Timer id per ciascuna transizione mount/visible: tracciati cosi' un
+  // toggle rapido puo' annullare deterministicamente il timer residuo del
+  // toggle precedente invece di lasciarlo scattare in una race condition.
+  private themeMenuTimeoutId: ReturnType<typeof setTimeout> | undefined
+  private avatarMenuTimeoutId: ReturnType<typeof setTimeout> | undefined
+  private avatarMobileMenuTimeoutId: ReturnType<typeof setTimeout> | undefined
   protected providedEmail = signal<ProvidedEmailDTO | null>(null)
   protected isBeta = signal<boolean>(false)
   private _triggerOpenOffCanvas = signal<boolean>(false)
@@ -601,30 +601,33 @@ export class HeaderComponent implements OnInit, OnDestroy {
       this.onOffCanvasMenuOpen.emit(true)
     })
     effect(() => {
+      clearTimeout(this.themeMenuTimeoutId)
       if (this.themeMenuOpen()) {
         this.themeMenuMounted.set(true)
-        setTimeout(() => this.themeMenuVisible.set(true))
+        this.themeMenuTimeoutId = setTimeout(() => this.themeMenuVisible.set(true))
       } else {
         this.themeMenuVisible.set(false)
-        setTimeout(() => this.themeMenuMounted.set(false), 200)
+        this.themeMenuTimeoutId = setTimeout(() => this.themeMenuMounted.set(false), 200)
       }
     })
     effect(() => {
+      clearTimeout(this.avatarMenuTimeoutId)
       if (this.avatarMenuOpen()) {
         this.avatarMenuMounted.set(true)
-        setTimeout(() => this.avatarMenuVisible.set(true))
+        this.avatarMenuTimeoutId = setTimeout(() => this.avatarMenuVisible.set(true))
       } else {
         this.avatarMenuVisible.set(false)
-        setTimeout(() => this.avatarMenuMounted.set(false), 200)
+        this.avatarMenuTimeoutId = setTimeout(() => this.avatarMenuMounted.set(false), 200)
       }
     })
     effect(() => {
+      clearTimeout(this.avatarMobileMenuTimeoutId)
       if (this.avatarMobileMenuOpen()) {
         this.avatarMobileMenuMounted.set(true)
-        setTimeout(() => this.avatarMobileMenuVisible.set(true))
+        this.avatarMobileMenuTimeoutId = setTimeout(() => this.avatarMobileMenuVisible.set(true))
       } else {
         this.avatarMobileMenuVisible.set(false)
-        setTimeout(() => this.avatarMobileMenuMounted.set(false), 200)
+        this.avatarMobileMenuTimeoutId = setTimeout(() => this.avatarMobileMenuMounted.set(false), 200)
       }
     })
   }
@@ -632,7 +635,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
   protected onThemeChange(theme: ThemeChoice): void {
     queueMicrotask(() => {
       this.themeManager.chooseTheme(theme)
-      console.log(this.themeManager.theme())
     })
   }
 
@@ -732,7 +734,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   openSearchOverlay(): void {
-    this.searchContextService.isOpenedSearchOverlay.set(true)
+    this.searchContextService.open()
   }
 
   getProvidedEmail(): void {
@@ -764,7 +766,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.isBeta.set(environment.beta)
+    this.isBeta.set(this.appConfig.capabilities.beta)
     this.updatePathFlags(this.router.url)
     document.addEventListener('click', this.handleDocumentClick, true)
     document.addEventListener('keydown', this.handleEscape, true)
@@ -784,6 +786,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.routeSub?.unsubscribe()
     this.emailSub?.unsubscribe()
     this.logoutSub?.unsubscribe()
+    clearTimeout(this.themeMenuTimeoutId)
+    clearTimeout(this.avatarMenuTimeoutId)
+    clearTimeout(this.avatarMobileMenuTimeoutId)
   }
 
 }
+

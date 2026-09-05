@@ -1,10 +1,11 @@
-import { Component, signal, effect, Input, Output, EventEmitter } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, effect, Input, Output, EventEmitter } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { QuillModule } from 'ngx-quill';
 
 
 @Component({
   selector: 'm-lab-notebook-editor',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [QuillModule, FormsModule],
   template: `
 
