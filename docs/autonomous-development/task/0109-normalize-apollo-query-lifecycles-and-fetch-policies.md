@@ -1,7 +1,7 @@
 # 0109 - Normalize Apollo query lifecycles and fetch policies
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -85,24 +85,42 @@ Mark `BLOCKED` if a query's freshness requirement cannot be inferred from existi
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/NG-023`, based on `fdfc8e83f841d4b99bc0b0a9c16d4533f80bf7ce`,
+is preserved and frozen at `a321fc44678f9f6298ddd460a35b2ddc9034d7f1`.
 ### Preflight
-_Not started._
+Passed unchanged: root `npm ci` followed by `npm run ci:check`.
 ### Preflight remediation
 _None._
 ### Summary
-_Not started._
+The preserved branch migrates production one-shot GraphQL reads to explicit
+Apollo query lifecycles, documents fetch-policy decisions, and adds
+query-policy regression coverage. Mandatory authenticated browser validation
+could not be completed with the available local runtime and test state.
 ### Task-specific validation performed
-_Not started._
+On the preserved feature branch: the GraphQL query-policy gate, Angular
+typecheck, lint with baseline warnings only, and 13 focused GraphQL service
+tests passed.
 ### Full pre-merge CI-parity validation
-_Not started._
+On the preserved feature branch after task-owned runtimes stopped: root
+`npm ci` followed by `npm run ci:check` passed.
 ### Browser validation performed
-_Not started._
+Blocked before required authenticated flow coverage. Angular was available at
+`http://localhost:8888/`, but Nest could not start without required local
+runtime configuration, so `/health` returned HTTP 502. No approved
+non-production account/session was available to validate dashboard, search,
+molecule detail, collections, Help/ticket, mutation refresh, or GraphQL
+network behavior.
 ### Commits
-_Not recorded._
+Preserved feature commits: `2250b2364cfab73bd21cc91f1dc99d755e151531`
+(`refactor(angular): normalize Apollo query lifecycles`) and
+`a321fc44678f9f6298ddd460a35b2ddc9034d7f1`
+(`docs(task): record NG-023 runtime blocker`).
 ### Merge / CI
-_Not started._
+No merge attempted. The feature branch is frozen at its final pushed SHA.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-_None._
+Provide a test-safe canonical local Nest environment and approved
+non-production browser credentials/session, then authorize a new session to
+perform the mandatory authenticated GraphQL lifecycle/browser validation.
+Production credentials are neither required nor permitted.
