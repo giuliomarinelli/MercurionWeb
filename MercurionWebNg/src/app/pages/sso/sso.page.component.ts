@@ -118,7 +118,7 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
             }
           })
 
-          this.authState.logout()
+          this.authState.beginAuthentication('sso')
 
           return this.authService.sso_authorizeFlow(fp_enc, di_enc, sso_pat, provider).pipe(
             catchError(() => {

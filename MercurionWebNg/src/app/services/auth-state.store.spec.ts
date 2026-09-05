@@ -16,16 +16,17 @@ describe('AuthStateStore', () => {
     expect(store.isAuthenticated()).toBeFalse()
   })
 
-  it('enters pre-auth when persisted markers exist without trusting them as authenticated', () => {
+  it('restores persisted markers as authentication-in-progress without trusting them as authenticated', () => {
     localStorage.setItem('login', 'AB')
-    expect(store.bootstrap()).toEqual({ kind: 'pre-auth' })
+    expect(store.bootstrap()).toEqual({ kind: 'authenticating', flow: 'restore' })
     expect(store.isAuthenticated()).toBeFalse()
-    expect(store.isPreAuth()).toBeTrue()
+    expect(store.isAuthenticating()).toBeTrue()
   })
 
   it('completes login and exposes derived authenticated state', () => {
     store.bootstrap()
-    store.beginAuthentication('pre-auth-token')
+    store.beginAuthentication('password')
+    store.enterPreAuthentication('pre-auth-token')
     store.completeAuthentication({
       initials: 'AB',
       accessToken: 'access',
@@ -45,7 +46,8 @@ describe('AuthStateStore', () => {
 
   it('supports MFA/pre-auth, invalidation, logout, and external state convergence', () => {
     store.bootstrap()
-    store.beginAuthentication()
+    store.beginAuthentication('password')
+    store.enterPreAuthentication()
     expect(store.isPreAuth()).toBeTrue()
 
     store.completeAuthentication({ initials: 'AB', accessToken: 'a', wsAccessToken: 'w' })
@@ -58,7 +60,7 @@ describe('AuthStateStore', () => {
 
     localStorage.setItem('login', 'CD')
     store.syncExternalState()
-    expect(store.state().kind).toBe('pre-auth')
+    expect(store.state()).toEqual({ kind: 'authenticating', flow: 'restore' })
     localStorage.removeItem('login')
     store.syncExternalState()
     expect(store.state()).toEqual({ kind: 'anonymous' })
@@ -67,5 +69,40 @@ describe('AuthStateStore', () => {
   it('rejects illegal transitions', () => {
     expect(() => store.completeAuthentication({ initials: 'AB' }))
       .toThrowError('Illegal auth transition: bootstrap -> authenticated')
+    expect(localStorage.getItem('login')).toBeNull()
+    expect(localStorage.getItem('accessToken')).toBeNull()
+  })
+
+  it('does not restore credentials from a stale completion after invalidation', () => {
+    store.bootstrap()
+    store.beginAuthentication('password')
+    store.invalidate('server-invalidated')
+
+    expect(() => store.completeAuthentication({
+      initials: 'AB',
+      accessToken: 'stale-access',
+      wsAccessToken: 'stale-ws'
+    })).toThrowError('Illegal auth transition: session-expired -> authenticated')
+
+    expect(store.state()).toEqual({ kind: 'session-expired', reason: 'server-invalidated' })
+    expect(localStorage.getItem('login')).toBeNull()
+    expect(localStorage.getItem('accessToken')).toBeNull()
+    expect(localStorage.getItem('ws_accessToken')).toBeNull()
+  })
+
+  it('keeps the pending MFA cookie while clearing old client credentials', () => {
+    document.cookie = '__logged_in=pending_long; path=/'
+    localStorage.setItem('accessToken', 'old-access')
+    localStorage.setItem('ws_accessToken', 'old-ws')
+    localStorage.setItem('login', 'OLD')
+
+    store.bootstrap()
+    store.enterPreAuthentication('mfa-token')
+
+    expect(store.state()).toEqual({ kind: 'pre-auth', preAuthorizationToken: 'mfa-token' })
+    expect(document.cookie).toContain('__logged_in=pending_long')
+    expect(localStorage.getItem('accessToken')).toBeNull()
+    expect(localStorage.getItem('ws_accessToken')).toBeNull()
+    expect(localStorage.getItem('login')).toBeNull()
   })
 })

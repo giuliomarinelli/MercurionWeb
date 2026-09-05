@@ -3,6 +3,7 @@ import { computed, Injectable, signal } from '@angular/core'
 export type AuthState =
   | { kind: 'bootstrap' }
   | { kind: 'anonymous' }
+  | { kind: 'authenticating'; flow: 'password' | 'sso' | 'restore' }
   | { kind: 'pre-auth'; preAuthorizationToken?: string }
   | {
     kind: 'authenticated'
@@ -31,6 +32,7 @@ export class AuthStateStore {
   readonly kind = computed(() => this.state().kind)
   readonly isAuthenticated = computed(() => this.state().kind === 'authenticated')
   readonly isAnonymous = computed(() => this.state().kind === 'anonymous')
+  readonly isAuthenticating = computed(() => this.state().kind === 'authenticating')
   readonly isPreAuth = computed(() => this.state().kind === 'pre-auth')
   readonly initials = computed(() => {
     const state = this.state()
@@ -44,13 +46,23 @@ export class AuthStateStore {
       this.getPersistedInitials() ||
       this.hasClientLoginCookie()
     )
-    const next: AuthState = hasPersistedSession ? { kind: 'pre-auth' } : { kind: 'anonymous' }
+    const next: AuthState = hasPersistedSession
+      ? { kind: 'authenticating', flow: 'restore' }
+      : { kind: 'anonymous' }
     this.transition(next)
     return next
   }
 
-  beginAuthentication(preAuthorizationToken?: string): void {
-    this.transition({ kind: 'pre-auth', preAuthorizationToken })
+  beginAuthentication(flow: 'password' | 'sso' | 'restore' = 'password'): void {
+    this.assertAllowed(this.state().kind, 'authenticating')
+    if (flow !== 'restore') this.clearPersistence()
+    this.stateSignal.set({ kind: 'authenticating', flow })
+  }
+
+  enterPreAuthentication(preAuthorizationToken?: string): void {
+    this.assertAllowed(this.state().kind, 'pre-auth')
+    this.clearClientCredentialsForPreAuth()
+    this.stateSignal.set({ kind: 'pre-auth', preAuthorizationToken })
   }
 
   completeAuthentication(completion: AuthCompletion): void {
@@ -58,54 +70,56 @@ export class AuthStateStore {
     const wsAccessToken = completion.wsAccessToken ?? null
     const scopes = completion.scopes ?? this.getCachedScopes() ?? []
 
-    this.setAccessToken(accessToken)
-    this.setWsAccessToken(wsAccessToken)
-    this.setPersistedInitials(completion.initials)
-    this.setCachedScopes(scopes)
-    this.transition({
+    const next: AuthState = {
       kind: 'authenticated',
       initials: completion.initials,
       accessToken,
       wsAccessToken,
       scopes
-    })
+    }
+    this.assertAllowed(this.state().kind, next.kind)
+    this.setAccessToken(accessToken)
+    this.setWsAccessToken(wsAccessToken)
+    this.setPersistedInitials(completion.initials)
+    this.setCachedScopes(scopes)
+    this.stateSignal.set(next)
   }
 
   updateAccessToken(token: string | null): void {
-    this.setAccessToken(token)
     const state = this.state()
-    if (state.kind === 'authenticated') {
-      this.transition({ ...state, accessToken: token })
-    }
+    if (state.kind !== 'authenticated') return
+    this.setAccessToken(token)
+    this.transition({ ...state, accessToken: token })
   }
 
   updateWsAccessToken(token: string | null): void {
-    this.setWsAccessToken(token)
     const state = this.state()
-    if (state.kind === 'authenticated') {
-      this.transition({ ...state, wsAccessToken: token })
-    }
+    if (state.kind !== 'authenticated') return
+    this.setWsAccessToken(token)
+    this.transition({ ...state, wsAccessToken: token })
   }
 
   resumeFromServer(initials: string): void {
     if (this.state().kind === 'bootstrap') {
-      this.transition({ kind: 'pre-auth' })
+      this.transition({ kind: 'authenticating', flow: 'restore' })
     }
     const accessToken = this.getAccessToken()
     const wsAccessToken = this.getWsAccessToken()
-    this.setPersistedInitials(initials)
-    this.transition({
+    const next: AuthState = {
       kind: 'authenticated',
       initials,
       accessToken,
       wsAccessToken,
       scopes: this.getCachedScopes() ?? []
-    })
+    }
+    this.assertAllowed(this.state().kind, next.kind)
+    this.setPersistedInitials(initials)
+    this.stateSignal.set(next)
   }
 
   syncExternalState(): void {
     if (this.getPersistedInitials() || this.getWsAccessToken() || this.hasClientLoginCookie()) {
-      this.transition({ kind: 'pre-auth' })
+      this.transition({ kind: 'authenticating', flow: 'restore' })
       return
     }
     this.clearPersistence()
@@ -182,6 +196,13 @@ export class AuthStateStore {
     }
   }
 
+  private clearClientCredentialsForPreAuth(): void {
+    this.setAccessToken(null)
+    this.setWsAccessToken(null)
+    localStorage.removeItem('login')
+    this.setCachedScopes(null)
+  }
+
   private hasClientLoginCookie(): boolean {
     return document.cookie.split('; ').some(cookie =>
       ['__logged_in=true', '__logged_in_=true'].includes(cookie)
@@ -190,21 +211,26 @@ export class AuthStateStore {
 
   private transition(next: AuthState): void {
     const current = this.state()
-    if (!this.isAllowed(current.kind, next.kind)) {
-      throw new Error(`Illegal auth transition: ${current.kind} -> ${next.kind}`)
-    }
+    this.assertAllowed(current.kind, next.kind)
     this.stateSignal.set(next)
+  }
+
+  private assertAllowed(from: AuthState['kind'], to: AuthState['kind']): void {
+    if (!this.isAllowed(from, to)) {
+      throw new Error(`Illegal auth transition: ${from} -> ${to}`)
+    }
   }
 
   private isAllowed(from: AuthState['kind'], to: AuthState['kind']): boolean {
     if (from === to) return true
     if (to === 'session-expired' || to === 'logging-out') return true
     if (from === 'logging-out') return to === 'anonymous'
-    if (from === 'session-expired') return to === 'anonymous' || to === 'pre-auth'
-    if (from === 'bootstrap') return to === 'anonymous' || to === 'pre-auth'
-    if (from === 'anonymous') return to === 'pre-auth' || to === 'authenticated'
+    if (from === 'session-expired') return to === 'anonymous' || to === 'authenticating' || to === 'pre-auth'
+    if (from === 'bootstrap') return to === 'anonymous' || to === 'authenticating' || to === 'pre-auth'
+    if (from === 'anonymous') return to === 'authenticating' || to === 'pre-auth'
+    if (from === 'authenticating') return to === 'authenticated' || to === 'pre-auth' || to === 'anonymous'
     if (from === 'pre-auth') return to === 'authenticated' || to === 'anonymous'
-    if (from === 'authenticated') return to === 'pre-auth' || to === 'anonymous'
+    if (from === 'authenticated') return to === 'authenticating' || to === 'pre-auth' || to === 'anonymous'
     return false
   }
 }

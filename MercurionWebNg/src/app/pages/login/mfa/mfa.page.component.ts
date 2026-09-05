@@ -345,6 +345,8 @@ export class MfaPageComponent implements OnInit, OnDestroy {
       return
     }
 
+    this.authState.enterPreAuthentication(this.loginFirstStepData?.preAuthorizationToken)
+
     // 4) auto-verify otp a 6 cifre
     this.otpStateSub = this.codeControl.valueChanges.pipe(
       filter(val => !!val),
@@ -360,10 +362,7 @@ export class MfaPageComponent implements OnInit, OnDestroy {
       }
     })
 
-    // 5) pulizia token
-    this.authState.logout()
-
-    // 6) parametri route
+    // 5) parametri route
     this.paramsSub = combineLatest([
       this.route.paramMap,
       this.route.queryParamMap
@@ -530,8 +529,6 @@ export class MfaPageComponent implements OnInit, OnDestroy {
       {
         code: this.codeControl.value
       }
-
-    this.authState.setCachedScopes(null)
 
     this.otpVerifySub = this.authService.login_thirdStep(
       currentView as MfaStrategy,

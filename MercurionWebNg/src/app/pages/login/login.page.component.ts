@@ -368,7 +368,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
     if (!this.turnstileToken()) return
 
     this.loadingLogin.set(true)
-    this.authState.setCachedScopes(null)
+    this.authState.beginAuthentication('password')
 
     const dto: Login_FirstStepWrapper = {
       email: this.loginForm.value['email'],
@@ -390,7 +390,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
         if (redirectTo) qp.redirect_to = redirectTo
 
         if (res.needsMfa) {
-          this.authState.beginAuthentication(res.preAuthorizationToken)
+          this.authState.enterPreAuthentication(res.preAuthorizationToken)
           const { statusCode, timestamp, message, ...loginFirstStepData } = res
           sessionStorage?.setItem('preAuthorizationData', btoa(JSON.stringify(loginFirstStepData ?? '')))
 

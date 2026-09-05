@@ -360,7 +360,7 @@ export class SessionSyncService {
   /* ---------------- Cross-tab helpers ---------------- */
 
   private onExternalLogin(initials: string) {
-    this.authState.beginAuthentication()
+    this.authState.beginAuthentication('restore')
     this.authState.setPersistedInitials(initials)
     this._status.set('checking')
     void this.syncSession(true)
