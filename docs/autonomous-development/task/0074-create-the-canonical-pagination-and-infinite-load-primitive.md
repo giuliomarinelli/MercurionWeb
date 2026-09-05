@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -94,34 +94,40 @@ Prefer a small headless state contract plus presentational controls if both numb
 ## Execution notes
 
 ### Feature branch
-_Not started._
+No task branch or worker was created because hard prerequisites
+`0059-create-the-canonical-button-primitive.md` (`UI-001`) and
+`0070-create-the-canonical-page-and-section-state-primitive.md` (`UI-012`)
+are `SKIPPED_DEPENDENCY`.
 
 ### Preflight
-_Not started._
+Not applicable; the task was skipped before implementation.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-_Not started._
+Skipped at the normal filename-order selection point. Both direct UI
+prerequisites are terminal `SKIPPED_DEPENDENCY`, with transitive blocked root
+cause `0052-standardize-modern-angular-component-apis.md` (`FE-030`).
 
 ### Task-specific validation performed
-_Not started._
+No implementation or validation was performed.
 
 ### Full pre-merge CI-parity validation
-_Not started._
+Not applicable; no feature branch was created.
 
 ### Browser validation performed
-_Not started._
+Not applicable; the task was skipped before implementation.
 
 ### Commits
-_Not recorded._
+Only this task metadata was updated on `develop`.
 
 ### Merge / CI
-_Not started._
+No feature merge; skip metadata CI is required before continuing.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-_None._
+No implementation blocker. Re-enable only after the direct prerequisite chains
+are deliberately resolved in a new authorized session.

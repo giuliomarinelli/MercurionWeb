@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -116,20 +116,32 @@ A single interceptor is not mandatory if two narrowly scoped interceptors are cl
 
 ### Summary
 
-_Not started._
+Skipped without implementation because hard prerequisites
+`0011-unify-cross-transport-error-envelope.md` (`SYS-011`),
+`0012-centralize-application-error-code-catalog.md` (`SYS-012`),
+`0026-create-canonical-angular-auth-state-store.md` (`FE-004`),
+`0029-preserve-authorization-scopes-through-every-login-flow.md` (`FE-007`),
+and `0031-make-logout-a-deterministic-session-transition.md` (`FE-009`) are
+terminal non-DONE: `SYS-011`/`SYS-012`/`FE-004` are `BLOCKED`, and
+`FE-007`/`FE-009` are `SKIPPED_DEPENDENCY`.
 
 ### Validation performed
 
-_Not started._
+No task branch or worker was created. Direct prerequisites are `SYS-011`,
+`SYS-012`, `FE-004`, `FE-007`, and `FE-009`; their terminal states are
+`BLOCKED`, `BLOCKED`, `BLOCKED`, `SKIPPED_DEPENDENCY`, and
+`SKIPPED_DEPENDENCY`. The dependency chain includes the blocked canonical auth
+store and the skipped scope/logout tasks.
 
 ### Browser validation performed
 
-_Not started / scenario-dependent._
+Not applicable; the task was skipped before implementation.
 
 ### Changed files
 
-_Not recorded._
+No files changed; only this task metadata was updated.
 
 ### Blocker / human decision required
 
-_None._
+No implementation blocker. The task may be re-enabled only after its hard
+dependency chain is deliberately resolved in a new authorized session.

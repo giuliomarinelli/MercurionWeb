@@ -1,6 +1,6 @@
 import { Body, Controller, HttpCode, HttpStatus, Post, ValidationPipe } from '@nestjs/common';
 import { RDKitService } from '../services/rd-kit.service';
-import { RdkitGetMoleculePropertiesResult } from '../Models/DTO/rdkit/rdkit.res.dtos';
+import type { RdkitGetMoleculePropertiesResult } from '@mercurion/rest-contracts';
 import { Authorization } from 'src/metadata/metadata';
 import { RdkitGetMoleculePropertiesDTO } from '../Models/DTO/rdkit/rdkit-get-molecule-properties.cls.dto';
 import { RdkitToCanonicalSmilesDTO } from '../Models/DTO/rdkit/rdkit-canonical-smiles.dto';

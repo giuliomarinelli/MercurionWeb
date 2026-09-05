@@ -1,60 +1,78 @@
 import {
+  ChangeDetectionStrategy,
   Component,
-  Input,
-  Output,
-  EventEmitter,
-  ViewChild,
-  ElementRef,
-  OnInit,
-  OnDestroy,
-  signal,
   effect,
+  ElementRef,
+  EventEmitter,
+  Input,
   NgZone,
-} from '@angular/core';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+  OnDestroy,
+  OnInit,
+  Output,
+  signal,
+  ViewChild
+} from '@angular/core'
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser'
 import {
-  Subject,
-  EMPTY,
   catchError,
   defer,
-  firstValueFrom,
+  EMPTY,
+  exhaustMap,
   filter,
+  finalize,
+  from,
   interval,
+  Subject,
+  Subscription,
   take,
   takeUntil,
-  tap,
-  timeout,
-  exhaustMap,
-  of,
-  Subscription,
-  finalize,
-} from 'rxjs';
+  tap
+} from 'rxjs'
 
-import { PublicPipe } from '../../../pipes/public.pipe';
-import { RDKitService } from '../../../services/rd-kit.service';
-
-export type KetcherFrameMode = 'create' | 'edit' | 'duplicate';
+import {
+  ChemistryAdapterError,
+  ChemistryEditorMode,
+  ChemistryEditorSession
+} from '../../../chemistry/chemistry-adapter.models'
+import { ChemistryEditorService } from '../../../chemistry/chemistry-editor.service'
+import { PublicPipe } from '../../../pipes/public.pipe'
 
 @Component({
   selector: 'm-ketcher-frame',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="relative w-full" role="region" aria-label="Editor molecolare Ketcher">
+    <div class="relative w-full" role="region" aria-label="Editor molecolare">
       @if (showIframe()) {
-        <iframe
-          #ketcherIframe
-          [src]="ketcherUrl"
-          class="w-full lg:px-8 h-[70vh] min-h-[320px] max-h-[540px] sm:h-[500px] border-none max-w-[1380px] mx-auto"
-          title="Editor molecolare Ketcher"
-          [attr.aria-busy]="loading()"
-        ></iframe>
+        @if (editorState() === 'unavailable') {
+          <div class="flex min-h-[320px] flex-col items-center justify-center gap-4 px-4 text-center" role="alert">
+            <p class="font-semibold text-light-error dark:text-dark-error">{{ editorError() }}</p>
+            <button
+              type="button"
+              class="rounded-md bg-light-accent-primary-hq px-4 py-2 text-white dark:bg-dark-accent-primary-btn"
+              (click)="retry()"
+            >
+              Riprova
+            </button>
+          </div>
+        } @else {
+          @if (ketcherUrl()) {
+            <iframe
+              #ketcherIframe
+              [src]="ketcherUrl()"
+              class="w-full lg:px-8 h-[70vh] min-h-[320px] max-h-[540px] sm:h-[500px] border-none max-w-[1380px] mx-auto"
+              title="Editor molecolare"
+              [attr.aria-busy]="editorState() === 'loading'"
+            ></iframe>
+          }
 
-        @if (loading()) {
-          <div
-            class="absolute inset-0 lg:inset-x-8 h-[70vh] min-h-[320px] max-h-[540px] sm:h-[500px] max-w-[1380px] mx-auto bg-gray-300 dark:bg-neutral-700 animate-pulse pointer-events-none"
-            role="status"
-            aria-live="polite"
-            aria-label="Caricamento editor in corso"
-          ></div>
+          @if (editorState() === 'loading') {
+            <div
+              class="absolute inset-0 lg:inset-x-8 h-[70vh] min-h-[320px] max-h-[540px] sm:h-[500px] max-w-[1380px] mx-auto bg-gray-300 dark:bg-neutral-700 animate-pulse pointer-events-none"
+              role="status"
+              aria-live="polite"
+              aria-label="Caricamento editor in corso"
+            ></div>
+          }
         }
       } @else {
         <div class="flex flex-col gap-9">
@@ -73,331 +91,297 @@ export type KetcherFrameMode = 'create' | 'edit' | 'duplicate';
         </div>
       }
 
-      @if (showIframe()) {
+      @if (showIframe() && editorState() !== 'unavailable') {
         <ng-content></ng-content>
       }
     </div>
-  `,
+  `
 })
 export class KetcherFrameComponent implements OnInit, OnDestroy {
-  ketcherUrl!: SafeResourceUrl;
+  readonly ketcherUrl = signal<SafeResourceUrl | null>(null)
+  readonly showIframe = signal(true)
+  readonly editorState = signal<'loading' | 'ready' | 'unavailable'>('loading')
+  readonly editorError = signal('L’editor molecolare non è disponibile.')
 
-  private initialSmiles = '';
-  private readonly destroy$ = new Subject<void>();
-  private readonly smilesResponse$ = new Subject<string>();
+  private initialSmiles = ''
+  private readonly destroy$ = new Subject<void>()
+  private readonly exporting = signal(false)
+  private readonly structureValue = signal('')
+  private readonly triggerResetSignal = signal(false)
+  private readonly triggerGetSmilesSignal = signal(false)
+  private session?: ChemistryEditorSession
+  private iframe?: HTMLIFrameElement
+  private unsubscribeState?: () => void
+  private exportSubscription?: Subscription
+  private pollSubscription?: Subscription
+  private sessionGeneration = 0
+  private destroyed = false
 
-  private exporting = signal<boolean>(false);
-  private expSub?: Subscription;
-  private intSub?: Subscription
-  showIframe = signal<boolean>(true);
-
-  _smiles = signal<string>('');
-  _triggerReset = signal<boolean>(false);
-  _triggerGetSmiles = signal<boolean>(false);
-
-  ketcherReady = signal<boolean>(false);
-  loading = signal<boolean>(true);
-  loaded = signal<boolean>(false);
-
-  @Input() mode: KetcherFrameMode = 'create';
+  @Input() mode: ChemistryEditorMode = 'create'
 
   @Input()
   set smiles(smiles: string | undefined) {
-    if (!smiles) smiles = '';
-    this._smiles.set(smiles);
-    this.initialSmiles = smiles;
-
-    if (this.ketcherReady()) {
-      this.updateKetcherMolfile(smiles);
-    }
+    const nextSmiles = smiles ?? ''
+    this.structureValue.set(nextSmiles)
+    this.initialSmiles = nextSmiles
+    if (this.editorState() === 'ready') void this.updateEditorStructure(nextSmiles)
   }
 
   @Input()
   set triggerReset(trigger: boolean) {
-    this._triggerReset.set(trigger);
+    this.triggerResetSignal.set(trigger)
   }
 
   @Input()
   set triggerGetSmiles(trigger: boolean) {
-    this._triggerGetSmiles.set(trigger);
+    this.triggerGetSmilesSignal.set(trigger)
   }
 
-  @Output() molChange = new EventEmitter<string>();
-  @Output() exportSmiles = new EventEmitter<string>();
-  @Output() exportPolledSmiles = new EventEmitter<string>();
-  @Output() onReset = new EventEmitter<void>();
+  @Output() molChange = new EventEmitter<string>()
+  @Output() exportSmiles = new EventEmitter<string>()
+  @Output() exportPolledSmiles = new EventEmitter<string>()
+  @Output() onReset = new EventEmitter<void>()
 
-  @ViewChild('ketcherIframe') iframeRef!: ElementRef<HTMLIFrameElement>;
+  @ViewChild('ketcherIframe')
+  set iframeRef(ref: ElementRef<HTMLIFrameElement> | undefined) {
+    this.iframe = ref?.nativeElement
+    if (this.iframe) this.session?.attach(this.iframe)
+  }
 
   constructor(
     private readonly publicPipe: PublicPipe,
     private readonly sanitizer: DomSanitizer,
-    private readonly RDKit: RDKitService,
+    private readonly editor: ChemistryEditorService,
     private readonly zone: NgZone
   ) {
-    window.addEventListener('message', this.onKetcherMessage)
-    const url = this.publicPipe.transform('ketcher/index.html');
-    this.ketcherUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
-
-    // reazioni ai trigger dal parent
     effect(() => {
-      if (this._triggerReset()) {
-        this._triggerReset.set(false);
-
-        if (this.ketcherReady()) {
-          this.resetMolecule();
-        }
-
-        // segnala subito al parent che abbiamo fatto il reset
-        this.zone.run(() => this.onReset.emit());
-        return;
+      if (this.triggerResetSignal()) {
+        this.triggerResetSignal.set(false)
+        this.resetMolecule()
+        this.zone.run(() => this.onReset.emit())
+        return
       }
 
-      if (this._triggerGetSmiles()) {
-        this._triggerGetSmiles.set(false);
-        this.exporting.set(true);
-
-        this.expSub = this.requestExportSmiles$('explicit')
+      if (this.triggerGetSmilesSignal()) {
+        this.triggerGetSmilesSignal.set(false)
+        this.exporting.set(true)
+        this.exportSubscription = this.requestExportSmiles$('explicit')
           .pipe(
             take(1),
             finalize(() => this.exporting.set(false))
           )
-          .subscribe();
-
-        return;
+          .subscribe({ error: error => this.showError(error) })
       }
-    });
+    })
 
-    this.viewportListener = () => this.zone.run(() => this.updateViewportFlags());
+    this.viewportListener = () => this.zone.run(() => this.updateViewportFlags())
   }
 
   ngOnInit(): void {
-    this.updateViewportFlags();
-    window.addEventListener('resize', this.viewportListener);
-    window.addEventListener('orientationchange', this.viewportListener);
+    this.updateViewportFlags()
+    window.addEventListener('resize', this.viewportListener)
+    window.addEventListener('orientationchange', this.viewportListener)
+    void this.startSession()
 
-    // polling "realtime" leggero
-    this.intSub = interval(250)
+    this.pollSubscription = interval(250)
       .pipe(
         takeUntil(this.destroy$),
-        filter(() => this.ketcherReady()),
-        filter(() => this.loaded()),
+        filter(() => this.editorState() === 'ready'),
         filter(() => !this.exporting()),
-        exhaustMap(() =>
-          this.requestExportSmiles$('poll').pipe(
-            catchError(() => EMPTY)
-          )
-        )
+        exhaustMap(() => this.requestExportSmiles$('poll').pipe(catchError(() => EMPTY)))
       )
-      .subscribe();
+      .subscribe()
   }
 
   ngOnDestroy(): void {
-    window.removeEventListener('message', this.onKetcherMessage);
-    window.removeEventListener('resize', this.viewportListener);
-    window.removeEventListener('orientationchange', this.viewportListener);
-    this.destroy$.next();
-    this.destroy$.complete();
-    this.expSub?.unsubscribe();
-    this.intSub?.unsubscribe()
+    this.destroyed = true
+    this.sessionGeneration += 1
+    window.removeEventListener('resize', this.viewportListener)
+    window.removeEventListener('orientationchange', this.viewportListener)
+    this.destroy$.next()
+    this.destroy$.complete()
+    this.exportSubscription?.unsubscribe()
+    this.pollSubscription?.unsubscribe()
+    this.disposeSession()
+    this.teardownMobileKeyboardGuard()
+    clearTimeout(this.loadedTimeoutId)
   }
 
-  // handler messaggi dal frame Ketcher
-  private onKetcherMessage = (event: MessageEvent) => {
-    if (!event.data) return;
-    const { type, payload } = event.data;
+  retry(): void {
+    void this.startSession()
+  }
 
-    this.zone.run(() => {
-      if (type === 'ketcherReady') {
-        this.ketcherReady.set(true);
-        this.loading.set(false);
-
-        if (this._smiles()) {
-          this.updateKetcherMolfile(this._smiles());
-          setTimeout(() => this.loaded.set(true), 50);
-        } else {
-          this.loaded.set(true);
-        }
-
-        queueMicrotask(() => this.installMobileKeyboardGuard())
-
-        return;
-      }
-
-      if (type === 'smiles') {
-        const s = typeof payload === 'string' ? payload : '';
-        this.smilesResponse$.next(s);
-        return;
-      }
-    });
-  };
-
-  // API pubblica di comodo
   requestExportSmiles(): void {
     this.requestExportSmiles$('explicit')
       .pipe(take(1))
-      .subscribe();
+      .subscribe({ error: error => this.showError(error) })
   }
 
-  private viewportListener: () => void = () => { };
-
-  private updateViewportFlags(): void {
-    const w = window.innerWidth || 0;
-    const h = window.innerHeight || 0;
-    const landscape = h > 0 ? w >= h : false;
-    const roomy = w >= 600 || (w >= 480 && h >= 360);
-    this.showIframe.set(landscape || roomy);
+  resetMolecule(): void {
+    if (this.editorState() === 'ready') void this.updateEditorStructure(this.initialSmiles)
   }
 
-  // richiesta SMILES a Ketcher
-  private requestExportSmiles$(kind: 'explicit' | 'poll') {
-    return defer(() => {
-      // Se l'iframe non è ancora lì, niente
-      const win = this.iframeRef?.nativeElement?.contentWindow;
-      if (!win) {
-        return of('')
+  private viewportListener: () => void = () => undefined
+
+  private async startSession(): Promise<void> {
+    const generation = ++this.sessionGeneration
+    this.disposeSession()
+    this.ketcherUrl.set(null)
+    this.editorState.set('loading')
+
+    try {
+      const resourceUrl = this.publicPipe.transform('ketcher/index.html')
+      const session = await this.editor.createSession(resourceUrl)
+
+      if (this.destroyed || generation !== this.sessionGeneration) {
+        session.dispose()
+        return
       }
 
-      // ✅ No hard gate sull'assenza di ketcherReady: prova comunque a chiedere gli SMILES.
-      this.postToKetcher({ type: 'getSmiles', payload: {} });
-
-      return this.smilesResponse$.pipe(
-        take(1),
-        timeout(3000),
-        tap((s: string) => {
-          // ✅ Fallback: se arriva una risposta, consideriamo il frame "ready"
-          if (!this.ketcherReady()) {
-            this.ketcherReady.set(true);
-            this.loading.set(false);
-            this.loaded.set(true);
+      this.session = session
+      this.unsubscribeState = session.onStateChange(state => {
+        this.zone.run(() => {
+          this.editorState.set(state.status)
+          if (state.error) this.editorError.set(state.error.message)
+          if (state.status === 'ready') {
+            void this.updateEditorStructure(this.structureValue())
+            this.loadedTimeoutId = setTimeout(() => this.installMobileKeyboardGuard(), 50)
           }
-
-          this.zone.run(() => {
-            if (kind === 'explicit') {
-              this.exportSmiles.emit(s);
-            } else {
-              this.exportPolledSmiles.emit(s);
-              this.molChange.emit(s);
-            }
-          });
         })
-      );
-    });
-  }
-
-
-  private async updateKetcherMolfile(smiles: string): Promise<void> {
-    const molfile = await this.smilesToMolfile(smiles);
-    if (molfile) {
-      this.postToKetcher({ type: 'setMolecule', payload: molfile });
+      })
+      this.ketcherUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(session.resourceUrl))
+      if (this.iframe) session.attach(this.iframe)
+    } catch (error) {
+      if (generation === this.sessionGeneration) this.showError(error)
     }
   }
 
-  private postToKetcher(message: any): void {
-    this.iframeRef?.nativeElement?.contentWindow?.postMessage(message, '*');
+  private disposeSession(): void {
+    this.unsubscribeState?.()
+    this.unsubscribeState = undefined
+    this.session?.dispose()
+    this.session = undefined
+    this.iframe = undefined
   }
 
-  private async smilesToMolfile(smiles: string): Promise<string | undefined> {
-    const RDKit = await firstValueFrom(this.RDKit.instance$);
-    if (!RDKit) throw new Error('RDKit non inizializzato');
-
-    const mol = RDKit.get_mol(smiles);
-    if (!mol) return undefined;
-
-    const molfile = mol.get_molblock();
-    mol.delete();
-    return molfile;
+  private updateViewportFlags(): void {
+    const width = window.innerWidth || 0
+    const height = window.innerHeight || 0
+    const landscape = height > 0 ? width >= height : false
+    const roomy = width >= 600 || (width >= 480 && height >= 360)
+    this.showIframe.set(landscape || roomy)
   }
 
-  private mo?: MutationObserver;
+  private requestExportSmiles$(kind: 'explicit' | 'poll') {
+    return defer(() => {
+      const session = this.session
+      if (!session) {
+        throw new ChemistryAdapterError('unavailable', 'L’editor molecolare non è disponibile.')
+      }
+
+      return from(session.exportStructure()).pipe(
+        tap(smiles => {
+          this.zone.run(() => {
+            if (kind === 'explicit') {
+              this.exportSmiles.emit(smiles)
+            } else {
+              this.exportPolledSmiles.emit(smiles)
+              this.molChange.emit(smiles)
+            }
+          })
+        })
+      )
+    })
+  }
+
+  private async updateEditorStructure(smiles: string): Promise<void> {
+    try {
+      await this.session?.setStructure(smiles)
+    } catch (error) {
+      this.showError(error)
+    }
+  }
+
+  private showError(error: unknown): void {
+    const message = error instanceof ChemistryAdapterError
+      ? error.message
+      : 'L’editor molecolare non è disponibile.'
+    this.zone.run(() => {
+      this.editorError.set(message)
+      this.editorState.set('unavailable')
+    })
+  }
+
+  private mutationObserver?: MutationObserver
+  private mobileKeyboardGuardDoc?: Document
+  private mobileKeyboardGuardFocusInHandler?: (event: Event) => void
+  private loadedTimeoutId?: ReturnType<typeof setTimeout>
+
+  private teardownMobileKeyboardGuard(): void {
+    if (this.mobileKeyboardGuardDoc && this.mobileKeyboardGuardFocusInHandler) {
+      this.mobileKeyboardGuardDoc.removeEventListener('focusin', this.mobileKeyboardGuardFocusInHandler, true)
+    }
+    this.mutationObserver?.disconnect()
+    this.mutationObserver = undefined
+    this.mobileKeyboardGuardDoc = undefined
+    this.mobileKeyboardGuardFocusInHandler = undefined
+  }
 
   private installMobileKeyboardGuard(): void {
-    const iframe = this.iframeRef?.nativeElement;
-    const doc = iframe?.contentDocument;
-    if (!doc) return;
+    this.teardownMobileKeyboardGuard()
 
-    // Solo mobile/coarse pointer
-    const isMobile = window.matchMedia?.('(pointer: coarse)').matches;
-    if (!isMobile) return;
+    const doc = this.iframe?.contentDocument
+    if (!doc || !window.matchMedia?.('(pointer: coarse)').matches) return
 
-    const isTextControl = (el: Element): el is HTMLInputElement | HTMLTextAreaElement =>
-      el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement;
+    const isTextControl = (element: Element): element is HTMLInputElement | HTMLTextAreaElement =>
+      element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement
 
-    const isProbablyKeyCatcher = (el: Element) => {
-      if (!isTextControl(el)) return false;
+    const isProbablyKeyCatcher = (element: Element): boolean => {
+      if (!isTextControl(element)) return false
 
-      const style = doc.defaultView?.getComputedStyle(el);
-      const rect = (el as HTMLElement).getBoundingClientRect();
-
-      const invisible =
-        !style ||
+      const style = doc.defaultView?.getComputedStyle(element)
+      const rect = element.getBoundingClientRect()
+      const invisible = !style ||
         style.display === 'none' ||
         style.visibility === 'hidden' ||
         style.opacity === '0' ||
         rect.width < 12 ||
-        rect.height < 12;
+        rect.height < 12
+      const offscreen = rect.bottom < 0 || rect.top > (doc.defaultView?.innerHeight ?? window.innerHeight)
+      const suspiciousClass = /clipboard|hotkey|shortcut|key|hidden|dummy/i.test(element.className?.toString() ?? '')
+      const typeHidden = element instanceof HTMLInputElement && element.type === 'hidden'
 
-      const offscreen =
-        rect.bottom < 0 || rect.top > (doc.defaultView?.innerHeight ?? window.innerHeight);
+      return invisible || offscreen || suspiciousClass || typeHidden
+    }
 
-      const cls = (el as HTMLElement).className?.toString() ?? '';
-      const suspiciousClass = /clipboard|hotkey|shortcut|key|hidden|dummy/i.test(cls);
-
-      const typeHidden = (el instanceof HTMLInputElement && el.type === 'hidden');
-
-      return invisible || offscreen || suspiciousClass || typeHidden;
-    };
-
-    const patch = (root: ParentNode) => {
+    const patch = (root: ParentNode): void => {
       root.querySelectorAll('input,textarea').forEach(node => {
-        if (!isTextControl(node)) return
-        if (!isProbablyKeyCatcher(node)) return
-
+        if (!isTextControl(node) || !isProbablyKeyCatcher(node)) return
         node.setAttribute('inputmode', 'none')
         node.setAttribute('readonly', 'true')
-        node.setAttribute('autocomplete', 'off');
-        (node as any).enterKeyHint = 'done';
-        (node as HTMLElement).tabIndex = -1;
-        (node as HTMLElement).style.caretColor = 'transparent'
+        node.setAttribute('autocomplete', 'off')
+        node.enterKeyHint = 'done'
+        node.tabIndex = -1
+        node.style.caretColor = 'transparent'
       })
     }
 
-    // Patch iniziale
     patch(doc)
-
-    // Blocca focus “sporco”
-    const onFocusIn = (e: Event) => {
-      const t = e.target as Element | null
-      if (!t) return
-      if (isProbablyKeyCatcher(t)) (t as HTMLElement).blur()
+    const onFocusIn = (event: Event): void => {
+      const target = event.target as Element | null
+      if (target && isProbablyKeyCatcher(target)) (target as HTMLElement).blur()
     }
 
     doc.addEventListener('focusin', onFocusIn, true)
-
-    // Re-patch se Ketcher ricrea i nodi
-    this.mo = new MutationObserver(muts => {
-      for (const m of muts) {
-        m.addedNodes.forEach(n => {
-          if (n instanceof HTMLElement) patch(n)
+    this.mobileKeyboardGuardDoc = doc
+    this.mobileKeyboardGuardFocusInHandler = onFocusIn
+    this.mutationObserver = new MutationObserver(mutations => {
+      for (const mutation of mutations) {
+        mutation.addedNodes.forEach(node => {
+          if (node instanceof HTMLElement) patch(node)
         })
       }
     })
-    this.mo.observe(doc.documentElement, { childList: true, subtree: true })
-
-    // Cleanup in destroy
-    this.destroy$.pipe(take(1)).subscribe(() => {
-      doc.removeEventListener('focusin', onFocusIn, true)
-      this.mo?.disconnect()
-      this.mo = undefined
-    })
+    this.mutationObserver.observe(doc.documentElement, { childList: true, subtree: true })
   }
-
-
-  resetMolecule(): void {
-    if (!this.initialSmiles) this.initialSmiles = '';
-    if (this.ketcherReady()) {
-      this.updateKetcherMolfile(this.initialSmiles);
-    }
-  }
-
 }

@@ -9,7 +9,6 @@ import {
     UseInterceptors,
     ClassSerializerInterceptor,
     Query,
-    NotFoundException,
     BadRequestException
 } from '@nestjs/common'
 import { UUID } from 'crypto'
@@ -20,7 +19,11 @@ import { Scope } from 'src/app_modules/user/Models/enums/scope.enum'
 import { UpdateFeedbackDTO } from '../Models/DTO/update-feedback.dto'
 import { FeedbackEnv, FeedbackStatus } from '../Models/enums/feedback.enums'
 import { Feedback } from '../Models/entities/feedback.entity'
-import { RpcException } from '@nestjs/microservices'
+import {
+    ApplicationErrorCode,
+    applicationHttpException,
+    isApplicationError
+} from 'src/exception-handling/application-error'
 import { GeneralUtils } from 'src/utils/general-utils/general-utils'
 import { FlatPagination } from 'src/Models/flat-pagination.interface'
 import type { DeleteFeedbackResponse } from '@mercurion/rest-contracts'
@@ -68,7 +71,7 @@ export class FeedbackController {
         }
         const f = await this.feedbackService.getFeedbackById(id)
         if (!f) {
-            throw new NotFoundException('Feedback::NotFound')
+            throw applicationHttpException(ApplicationErrorCode.FEEDBACK_NOT_FOUND)
         }
         return f
     }
@@ -95,7 +98,7 @@ export class FeedbackController {
             await this.feedbackService.deleteFeedback(id)
             return { ok: true }
         } catch (e) {
-            if (e instanceof RpcException && e.message === 'Feedback::NotFound') {
+            if (isApplicationError(e, ApplicationErrorCode.FEEDBACK_NOT_FOUND)) {
                 return { ok: false }
             }
             throw e

@@ -1,6 +1,10 @@
 import { Injectable } from '@angular/core';
 import { getFingerprintData } from '@thumbmarkjs/thumbmarkjs'
-import { FingerprintData, FingerprintDataWrapper, ISessionDeviceInfo } from '../Models/auth/fingerprint.models';
+import type {
+  FingerprintData,
+  SessionDeviceInfo
+} from '@mercurion/rest-contracts'
+import { FingerprintDataWrapper } from '../Models/auth/fingerprint.models';
 import { RawFingerprintData } from '../Models/auth/fingerprint-raw.models';
 
 
@@ -55,7 +59,7 @@ export class FingerprintService {
       }
     }
 
-    const sessionDeviceInfo: ISessionDeviceInfo = {
+    const sessionDeviceInfo: SessionDeviceInfo = {
       osPlatform: raw.system?.platform,
       useragent: raw.system?.useragent,
       browser: {

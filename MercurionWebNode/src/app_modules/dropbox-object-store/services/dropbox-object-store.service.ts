@@ -7,13 +7,14 @@ import { OAuth2ClientService } from 'src/app_modules/oauth2-client/services/oaut
 import { StorageType } from '../Models/enums/storage-type.enum';
 import { UUID } from 'crypto';
 import { DropboxUploadResponse } from '../Models/interfaces/dropbox-upload-response.interface';
-import { RpcException } from '@nestjs/microservices';
+
 import { uuidv7 } from '@kripod/uuidv7';
 import { StorageScope } from '../Models/enums/storage-scope.enum';
 import { StorageAction } from '../Models/enums/storage-action.type';
 import { User } from 'src/app_modules/user/Models/entities/user.entity';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 
 @Injectable()
 export class DropboxObjectStoreService {
@@ -51,7 +52,7 @@ export class DropboxObjectStoreService {
      */
     private async getDropboxAccessToken(): Promise<string> {
         const token = await this.oauth2ClientService.getAccessToken(StorageType.Dropbox)
-        if (!token) throw new RpcException('Unauthorized::Dropbox access token not available')
+        if (!token) throw applicationError(ApplicationErrorCode.DROPBOX_ACCESS_TOKEN_MISSING)
         return token
     }
 
@@ -115,7 +116,7 @@ export class DropboxObjectStoreService {
             );
         } catch (e) {
             this.logger.warn('Dropbox upload failed', e as string | object);
-            throw new RpcException('UploadFailed::Dropbox error');
+            throw applicationError(ApplicationErrorCode.DROPBOX_UPLOAD_FAILED);
         }
 
         const file = uploadRes.data as DropboxUploadResponse;
@@ -125,7 +126,7 @@ export class DropboxObjectStoreService {
         if (!storagePath) {
             // caso estremamente raro, ma meglio difensivo
             this.logger.warn('Dropbox response missing id/path_lower', file);
-            throw new RpcException('UploadFailed::Invalid Dropbox response');
+            throw applicationError(ApplicationErrorCode.DROPBOX_UPLOAD_RESPONSE_INVALID);
         }
 
         // 2) Prepara il DocumentEntity
@@ -157,7 +158,7 @@ export class DropboxObjectStoreService {
                         where: { id: ownerUserId },
                         relations: { avatar: true },
                     });
-                    if (!user) throw new RpcException('NotFound::User');
+                    if (!user) throw applicationError(ApplicationErrorCode.DROPBOX_USER_NOT_FOUND);
 
                     const oldAvatar = user.avatar ?? null;
 
@@ -224,9 +225,9 @@ export class DropboxObjectStoreService {
     async downloadFile(documentId: UUID, requestingUserId: UUID): Promise<Buffer> {
 
         const document = await this.documentRepo.findOne({ where: { id: documentId } })
-        if (!document) throw new RpcException('NotFound::Dropbox document not found')
+        if (!document) throw applicationError(ApplicationErrorCode.DROPBOX_DOCUMENT_NOT_FOUND)
         if (!document.isPublic && document.userId !== requestingUserId)
-            throw new RpcException('Unauthorized::Missing permissions to access this file')
+            throw applicationError(ApplicationErrorCode.DROPBOX_DOCUMENT_ACCESS_DENIED)
 
         const accessToken = await this.getDropboxAccessToken()
 
@@ -251,7 +252,7 @@ export class DropboxObjectStoreService {
                     `Dropbox download error ${err.response.status}: ${JSON.stringify(err.response.data)}`,
                 );
             }
-            throw new RpcException('DownloadFailed::Dropbox error');
+            throw applicationError(ApplicationErrorCode.DROPBOX_DOWNLOAD_FAILED);
         }
         return Buffer.from(res.data)
     }
@@ -261,9 +262,9 @@ export class DropboxObjectStoreService {
      */
     async deleteFile(documentId: UUID, requestingUserId: UUID): Promise<void> {
         const document = await this.documentRepo.findOneBy({ id: documentId })
-        if (!document) throw new RpcException('NotFound::Dropbox document not found')
+        if (!document) throw applicationError(ApplicationErrorCode.DROPBOX_DOCUMENT_NOT_FOUND)
         if (!document.isPublic && document.userId !== requestingUserId)
-            throw new RpcException('Unauthorized::Missing permissions to access this file')
+            throw applicationError(ApplicationErrorCode.DROPBOX_DOCUMENT_ACCESS_DENIED)
 
         const accessToken = await this.getDropboxAccessToken()
 
@@ -281,7 +282,7 @@ export class DropboxObjectStoreService {
             );
         } catch (err) {
             this.logger.warn(`Failed to delete Dropbox file: ${document.storagePath}`, err as string | object)
-            throw new RpcException('DeleteFailed::Could not remove file from Dropbox')
+            throw applicationError(ApplicationErrorCode.DROPBOX_DELETE_FAILED)
         }
 
         // 2. Elimina da DB (rollback non possibile, log su failure)
@@ -289,7 +290,7 @@ export class DropboxObjectStoreService {
             await this.documentRepo.delete({ id: documentId });
         } catch (err) {
             this.logger.warn(`File deleted from Dropbox but not from DB! DocumentId: ${documentId}`, err as string | object)
-            throw new RpcException('DeleteFailed::File removed from Dropbox but not from DB')
+            throw applicationError(ApplicationErrorCode.DROPBOX_DELETE_DATABASE_SYNC_FAILED)
         }
     }
 

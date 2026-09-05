@@ -12,8 +12,12 @@ import { Router } from '@angular/router'
 import { UserContextService } from './context/user-context.service'
 import { ToastService } from './toast.service'
 import { ToastContext } from '../components/common/toast/toast.component'
-import { environment } from '../../environments/environment.development'
+import { environment } from '../../environments/environment'
 import { RealtimeSocketService } from './socket.IO/realtime-socket.service'
+import {
+  ApplicationErrorCode,
+  hasApplicationErrorCode
+} from '../utils/application-error.util'
 
 export type SessionSyncStatus =
   | 'unknown'
@@ -92,7 +96,12 @@ export class SessionSyncService {
     // errore applicativo → tentiamo resync (niente logout automatico)
     this.socket.onApplicationError().subscribe(err =>
       this.zone.run(() => {
-        if (err?.detail === 'Unauthorized') void this.handleUnauthorized()
+        if (hasApplicationErrorCode(
+          err,
+          ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED
+        )) {
+          void this.handleUnauthorized()
+        }
       })
     )
 

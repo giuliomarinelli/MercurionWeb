@@ -12,7 +12,7 @@ import { join } from 'path';
 import { MailSenderService } from 'src/app_modules/notification/services/mail-sender/mail-sender.service';
 import { UserCtaContext } from 'src/app_modules/notification/Models/contexts/user-cta.context';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
-import { RpcException } from '@nestjs/microservices';
+
 import { User } from 'src/app_modules/user/Models/entities/user.entity';
 import { createHmac, UUID } from 'crypto';
 import { EmailTotpContext } from 'src/app_modules/notification/Models/contexts/email-totp.context';
@@ -37,6 +37,7 @@ import { RecoverCredentialsDTO } from '../Models/DTO/recover-cretentials.cls.dto
 import { TypeGuards } from 'src/utils/type-guards/type-guards';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum';
+import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 
 
 
@@ -138,7 +139,7 @@ export class AccountService {
 
     private async ensureRecoverySecondNotLocked(userId: UUID) {
         if (await this.redisService.exists(this.getRecoverySecondLockKey(userId))) {
-            throw new RpcException('AccountRecoverySecond::TooManyAttempts')
+            throw applicationError(ApplicationErrorCode.ACCOUNT_RECOVERY_SECOND_TOO_MANY_ATTEMPTS)
         }
     }
 
@@ -164,7 +165,7 @@ export class AccountService {
 
     private async ensureRecoveryNotLocked(code: string) {
         if (await this.redisService.exists(this.getRecoveryLockKey(code))) {
-            throw new RpcException('AccountRecovery::TooManyAttempts')
+            throw applicationError(ApplicationErrorCode.ACCOUNT_RECOVERY_TOO_MANY_ATTEMPTS)
         }
     }
 
@@ -185,7 +186,7 @@ export class AccountService {
         const lockKey = this.getChangeLockKey(userId, kind)
         const locked = await this.redisService.exists(lockKey)
         if (locked) {
-            throw new RpcException(`Change${kind.charAt(0).toUpperCase()}${kind.slice(1)}::TooManyAttempts`)
+            throw applicationError(ApplicationErrorCode.ACCOUNT_CONTACT_CHANGE_TOO_MANY_ATTEMPTS, `Change${kind.charAt(0).toUpperCase()}${kind.slice(1)}::TooManyAttempts`)
         }
     }
 
@@ -219,7 +220,7 @@ export class AccountService {
 
         const locked = await this.redisService.exists(lockKey)
         if (locked) {
-            throw new RpcException(`Change${kind.charAt(0).toUpperCase()}${kind.slice(1)}Send::TooManyRequests`)
+            throw applicationError(ApplicationErrorCode.ACCOUNT_CONTACT_CHANGE_SEND_TOO_MANY_REQUESTS, `Change${kind.charAt(0).toUpperCase()}${kind.slice(1)}Send::TooManyRequests`)
         }
 
         const cnt = await this.redisService.getClient().incr(countKey)
@@ -229,7 +230,7 @@ export class AccountService {
 
         if (cnt > this.CHANGE_CONTACT_MAX_SENDS) {
             await this.redisService.set(lockKey, '1', this.CHANGE_CONTACT_LOCK_SECONDS)
-            throw new RpcException(`Change${kind.charAt(0).toUpperCase()}${kind.slice(1)}Send::TooManyRequests`)
+            throw applicationError(ApplicationErrorCode.ACCOUNT_CONTACT_CHANGE_SEND_TOO_MANY_REQUESTS, `Change${kind.charAt(0).toUpperCase()}${kind.slice(1)}Send::TooManyRequests`)
         }
     }
 
@@ -253,7 +254,7 @@ export class AccountService {
         const lockKey = this.getPasswordLockKey(userId, context)
         const locked = await this.redisService.exists(lockKey)
         if (locked) {
-            throw new RpcException('Password::TooManyAttempts')
+            throw applicationError(ApplicationErrorCode.PASSWORD_TOO_MANY_ATTEMPTS)
         }
     }
 
@@ -287,7 +288,7 @@ export class AccountService {
 
         const locked = await this.redisService.exists(lockKey)
         if (locked) {
-            throw new RpcException('PasswordResetSend::TooManyRequests')
+            throw applicationError(ApplicationErrorCode.PASSWORD_RESET_SEND_TOO_MANY_REQUESTS)
         }
 
         const cnt = await this.redisService.getClient().incr(countKey)
@@ -297,7 +298,7 @@ export class AccountService {
 
         if (cnt > this.PASSWORD_RESET_MAX_SENDS) {
             await this.redisService.set(lockKey, '1', this.PASSWORD_LOCK_SECONDS)
-            throw new RpcException('PasswordResetSend::TooManyRequests')
+            throw applicationError(ApplicationErrorCode.PASSWORD_RESET_SEND_TOO_MANY_REQUESTS)
         }
     }
 
@@ -308,7 +309,7 @@ export class AccountService {
         const ttlSeconds = 2 * 60 * 60; // 2 ore
         const alreadyExists = await this.redisService.exists(emailKey) || await this.userService.existsUserByEmail(email)
         if (alreadyExists) {
-            throw new RpcException('UserRegistrationConflict::Email already exists')
+            throw applicationError(ApplicationErrorCode.USER_REGISTRATION_EMAIL_CONFLICT)
         }
         await this.redisService.set(emailKey, 'locked', ttlSeconds)
         const passwordHash = await this.passwordEncoder.encode(password)
@@ -347,7 +348,7 @@ export class AccountService {
             await this.sessionService.revokeToken(jti)
             const user = await manager.findOne(User, { where: { id: userId } })
             if (user == null) {
-                throw new RpcException('AccountActivation::User not found')
+                throw applicationError(ApplicationErrorCode.ACCOUNT_ACTIVATION_USER_NOT_FOUND)
             }
             let { isVerified, email, unconfirmedEmail, updatedAt } = user
             const recoveryCode = this.securityService.generateAccountRecoveryReadableCode()
@@ -460,16 +461,16 @@ export class AccountService {
 
         const user = await this.userService.getUserById(userId)
         if (!user) {
-            throw new RpcException('ChangeEmail::UserNotFound')
+            throw applicationError(ApplicationErrorCode.CHANGE_EMAIL_USER_NOT_FOUND)
         }
 
         if (user.sso) {
-            throw new RpcException('UnprocessableEntity')
+            throw applicationError(ApplicationErrorCode.UNPROCESSABLE_ENTITY)
         }
 
-        if (!newEmail || newEmail.trim() === '') throw new RpcException('ChangeEmail::EmptyEmail')
+        if (!newEmail || newEmail.trim() === '') throw applicationError(ApplicationErrorCode.CHANGE_EMAIL_EMPTY)
         if (newEmail.toLowerCase() === user.email?.toLowerCase()) {
-            throw new RpcException('ChangeEmail::NewEmailIsCurrentEmail')
+            throw applicationError(ApplicationErrorCode.CHANGE_EMAIL_IS_CURRENT)
         }
 
         await this.throttleContactChangeSend(userId, ContactChangeKind.EMAIL)
@@ -478,7 +479,7 @@ export class AccountService {
         const lockKey = `email_change_lock:${this.hmacKey(newEmail.toLowerCase())}`
         const exists = await this.redisService.exists(lockKey)
         if (exists) {
-            throw new RpcException('ChangeEmail::EmailAlreadyInUseOrPending')
+            throw applicationError(ApplicationErrorCode.CHANGE_EMAIL_IN_USE_OR_PENDING)
         }
         await this.redisService.set(lockKey, 'locked', 300)
 
@@ -519,13 +520,13 @@ export class AccountService {
         await this.ensureContactChangeNotLocked(userId, ContactChangeKind.EMAIL)
 
         const user = await this.userService.getUserById(userId)
-        if (!user) throw new RpcException('ChangeEmailConfirm::UserNotFound')
-        if (!user.unconfirmedEmail) throw new RpcException('ChangeEmailConfirm::NoUnconfirmedEmail')
+        if (!user) throw applicationError(ApplicationErrorCode.CHANGE_EMAIL_CONFIRM_USER_NOT_FOUND)
+        if (!user.unconfirmedEmail) throw applicationError(ApplicationErrorCode.CHANGE_EMAIL_CONFIRM_NO_UNCONFIRMED_EMAIL)
 
         const isTotpValid = this.securityService.verifyTotp(totp, user.otpSecret)
         if (!isTotpValid) {
             await this.registerContactChangeFailure(userId, ContactChangeKind.EMAIL)
-            throw new RpcException('ChangeEmailConfirm::InvalidTotp')
+            throw applicationError(ApplicationErrorCode.CHANGE_EMAIL_CONFIRM_INVALID_TOTP)
         }
 
         await this.clearContactChangeFailures(userId, ContactChangeKind.EMAIL)
@@ -573,19 +574,19 @@ export class AccountService {
 
         const user = await this.userService.getUserById(userId)
         if (!user) {
-            throw new RpcException('DeletePhone::UserNotFound')
+            throw applicationError(ApplicationErrorCode.DELETE_PHONE_USER_NOT_FOUND)
         }
         if (user.sso) {
-            throw new RpcException('UnprocessableEntity')
+            throw applicationError(ApplicationErrorCode.UNPROCESSABLE_ENTITY)
         }
         const currentNumber = user.completePhoneNumber
         if (!currentNumber) {
-            throw new RpcException('DeletePhone::NoPhoneNumber')
+            throw applicationError(ApplicationErrorCode.DELETE_PHONE_NO_NUMBER)
         }
         const lockKey = `phone_change_lock:${this.hmacKey(userId)}:${this.hmacKey(currentNumber)}`
         const existsLock = await this.redisService.exists(lockKey)
         if (existsLock) {
-            throw new RpcException('DeletePhone::NumberAlreadyUsedOrPending')
+            throw applicationError(ApplicationErrorCode.DELETE_PHONE_IN_USE_OR_PENDING)
         }
         await this.redisService.set(lockKey, 'locked', 300)
         await this.userService.updateUser(userId, {
@@ -623,17 +624,17 @@ export class AccountService {
 
             const user = await manager.findOne(User, { where: { id: userId } })
             if (!user) {
-                throw new RpcException('DeletePhone::UserNotFound')
+                throw applicationError(ApplicationErrorCode.DELETE_PHONE_USER_NOT_FOUND)
             }
 
             if (user.unconfirmedPhoneNumber || Number(user.unconfirmedPhoneNumberPrefixLength)) {
-                throw new RpcException('DeletePhone::NoPendingDeletion')
+                throw applicationError(ApplicationErrorCode.DELETE_PHONE_NO_PENDING_DELETION)
             }
 
             const isTotpValid = this.securityService.verifyTotp(totp, user.otpSecret)
             if (!isTotpValid) {
                 await this.registerContactChangeFailure(userId, ContactChangeKind.PHONE)
-                throw new RpcException('ChangePhone::InvalidTOTP')
+                throw applicationError(ApplicationErrorCode.CHANGE_PHONE_INVALID_TOTP)
             }
             const maskedOldPhone = this.securityService.maskPhone(user.completePhoneNumber ?? '') || null
             const oldCompletePhoneNumber = user.completePhoneNumber
@@ -696,10 +697,10 @@ export class AccountService {
         const { internationalPrefix, phoneNumber } = dto
         const user = await this.userService.getUserById(userId)
         if (!user) {
-            throw new RpcException('ChangePhone::UserNotFound')
+            throw applicationError(ApplicationErrorCode.CHANGE_PHONE_USER_NOT_FOUND)
         }
         if (user.sso) {
-            throw new RpcException('UnprocessableEntity')
+            throw applicationError(ApplicationErrorCode.UNPROCESSABLE_ENTITY)
         }
         await this.throttleContactChangeSend(userId, ContactChangeKind.PHONE)
 
@@ -707,14 +708,14 @@ export class AccountService {
         const currentNumber = user.completePhoneNumber
 
         if (fullNumber === currentNumber) {
-            throw new RpcException('ChangePhone::NumberAlreadySet')
+            throw applicationError(ApplicationErrorCode.CHANGE_PHONE_ALREADY_SET)
         }
 
         // lock per evitare abusi e race condition
         const lockKey = `phone_change_lock:${this.hmacKey(fullNumber)}`
         const existsLock = await this.redisService.exists(lockKey)
         if (existsLock) {
-            throw new RpcException('ChangePhone::NumberAlreadyUsedOrPending')
+            throw applicationError(ApplicationErrorCode.CHANGE_PHONE_IN_USE_OR_PENDING)
         }
 
         await this.redisService.set(lockKey, 'locked', 300)
@@ -751,15 +752,15 @@ export class AccountService {
         await this.ensureContactChangeNotLocked(userId, ContactChangeKind.PHONE)
 
         const user = await this.userService.getUserById(userId)
-        if (!user) throw new RpcException('ChangePhone::UserNotFound')
+        if (!user) throw applicationError(ApplicationErrorCode.CHANGE_PHONE_USER_NOT_FOUND)
 
         if (!user.unconfirmedPhoneNumber || !user.unconfirmedPhoneNumberPrefixLength)
-            throw new RpcException('ChangePhone::NoPendingChange')
+            throw applicationError(ApplicationErrorCode.CHANGE_PHONE_NO_PENDING_CHANGE)
 
         const isTotpValid = this.securityService.verifyTotp(totp, user.otpSecret)
         if (!isTotpValid) {
             await this.registerContactChangeFailure(userId, ContactChangeKind.PHONE)
-            throw new RpcException('ChangePhone::InvalidTOTP')
+            throw applicationError(ApplicationErrorCode.CHANGE_PHONE_INVALID_TOTP)
         }
         const maskedOldPhone = this.securityService.maskPhone(user.completePhoneNumber ?? '') || null
         const maskedNewPhone = this.securityService.maskPhone(user.unconfirmedPhoneNumber ?? '')
@@ -808,13 +809,13 @@ export class AccountService {
             }
         })
         if ((ur && ur.sso) || !ur) {
-            throw new RpcException('UnprocessableEntity')
+            throw applicationError(ApplicationErrorCode.UNPROCESSABLE_ENTITY)
         }
         await this.ensurePasswordNotLocked(userId, PasswordContext.CHANGE)
         const oldPasswordHash = await this.userService.getVerifiedUserPasswordHashById(userId)
         if (oldPasswordHash && await this.passwordEncoder.compareWithFallback(oldPassword, oldPasswordHash) === CompareResult.NoMatch) {
             await this.registerPasswordFailure(userId, PasswordContext.CHANGE)
-            throw new RpcException('ChangePassword::Invalid Credentials')
+            throw applicationError(ApplicationErrorCode.PASSWORD_CHANGE_CREDENTIALS_INVALID)
         }
         await this.clearPasswordFailures(userId, PasswordContext.CHANGE)
         await this.userService.changePassword(userId, newPassword)
@@ -836,7 +837,7 @@ export class AccountService {
     public async sendForgottenPasswordLink(email: string): Promise<void> | never {
         const userId = await this.userService.getUserIdByEmail(email)
         if (!userId) {
-            throw new RpcException('Unauthenticated')
+            throw applicationError(ApplicationErrorCode.AUTHENTICATION_UNAUTHENTICATED)
         }
         let locked: boolean
         let sso: boolean = false
@@ -851,13 +852,13 @@ export class AccountService {
                 }
             }))
             if (sso) {
-                throw new RpcException('UnprocessableEntity')
+                throw applicationError(ApplicationErrorCode.UNPROCESSABLE_ENTITY)
             }
         } catch {
-            throw new RpcException('Forbidden::missing permissions')
+            throw applicationError(ApplicationErrorCode.PERMISSION_DENIED)
         }
         if (locked) {
-            throw new RpcException('Forbidden::missing permissions')
+            throw applicationError(ApplicationErrorCode.PERMISSION_DENIED)
         }
         await this.throttlePasswordResetSend(userId as UUID, PasswordContext.RESET_SEND)
         const changePasswordToken = await this.jwtTools.generateToken(userId as UUID, TokenType.ChangePasswordToken)
@@ -890,10 +891,10 @@ export class AccountService {
                 }
             }))
         } catch {
-            throw new RpcException('Forbidden::missing permissions')
+            throw applicationError(ApplicationErrorCode.PERMISSION_DENIED)
         }
         if (locked) {
-            throw new RpcException('Forbidden::missing permissions')
+            throw applicationError(ApplicationErrorCode.PERMISSION_DENIED)
         }
         const sessions = await this.sessionService.getAllSessionsByUserId(userId, { onlyValid: false })
         for (const s of sessions) {
@@ -1000,13 +1001,13 @@ export class AccountService {
 
             if (!userId) {
                 await this.registerRecoveryFailure(code)
-                throw new RpcException('AccountRecovery::wrong recovery code')
+                throw applicationError(ApplicationErrorCode.ACCOUNT_RECOVERY_CODE_INVALID)
             }
 
             const user = await manager.findOne(User, { where: { id: userId } })
             if (!user) {
                 await this.registerRecoveryFailure(code)
-                throw new RpcException('AccountRecovery::wrong recovery code')
+                throw applicationError(ApplicationErrorCode.ACCOUNT_RECOVERY_CODE_INVALID)
             }
 
             await this.redisService.del(this.getRecoveryFailKey(code))
@@ -1041,7 +1042,7 @@ export class AccountService {
                 ({ sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(secureToken, TokenType.AccountRecoveryToken))
             } catch (e) {
                 this.logger.debug(`recoverAccount_secondStep > error in secure_token validation: `, (e.stack ?? e) as object)
-                throw new RpcException('Unauthenticated')
+                throw applicationError(ApplicationErrorCode.AUTHENTICATION_UNAUTHENTICATED)
             }
             await this.sessionService.revokeToken(jti)
             const user = await manager.findOne(User, {
@@ -1052,7 +1053,7 @@ export class AccountService {
             await this.ensureRecoverySecondNotLocked(userId)
             if (!user || !user.accountRecoveryCodeHash) {
                 await this.registerRecoverySecondFailure(userId)
-                throw new RpcException('Unauthenticated')
+                throw applicationError(ApplicationErrorCode.AUTHENTICATION_UNAUTHENTICATED)
             }
             const newRecoveryCode = this.securityService.generateAccountRecoveryReadableCode()
             const newAccountRecoveryCodeHash = await this.passwordEncoder.encode(newRecoveryCode)

@@ -32,4 +32,6 @@ function setAppViewportHeight() {
 
 setAppViewportHeight()
 
+// eslint-disable-next-line no-console
 bootstrapApplication(AppComponent, appConfig).catch(err => console.error(err))
+

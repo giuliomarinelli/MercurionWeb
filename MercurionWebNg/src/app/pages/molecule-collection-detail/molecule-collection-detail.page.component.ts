@@ -3,6 +3,7 @@ import { CustomDetailsComponent } from '../../components/molecule-detail/my-mole
 import {
   AfterViewInit,
   Component,
+ ChangeDetectionStrategy,
   ElementRef,
   ViewChild,
   inject,
@@ -32,6 +33,10 @@ import {
 } from 'rxjs';
 
 import { AbstractPaginationComponent } from '../../abstract/abstract-pagination-component';
+import {
+  ApplicationErrorCode,
+  hasApplicationErrorCode
+} from '../../utils/application-error.util';
 
 import { MoleculeCollectionService } from '../../services/graphql/molecule-collection.service';
 import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service';
@@ -48,11 +53,12 @@ import { SkeletonMoleculeCardComponent } from '../../components/molecule-detail/
 import { PmSearchInputComponent } from '../../components/common/pm-search-input/pm-search-input.component';
 import { CustomDetailSaveModel } from '../../Models/custom-detail-save.model';
 import { Observable } from 'rxjs';
-import { AddMoleculesToCollectionContextService } from '../../services/context/action-context/add-molecules-to-collection-context.service';
 import { AppTitleService } from '../../services/app-title.service';
+import { DomainInvalidationService } from '../../services/domain-invalidation.service';
 
 @Component({
   selector: 'm-molecule-collection-detail',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MyMoleculesHeadingComponent,
     ClassicSpinnerComponent,
@@ -172,10 +178,10 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
   private readonly history = inject(HistoryContextService)
   private readonly toast = inject(ToastService)
   private readonly overlay = inject(ActionOverlayContextService)
-  protected readonly addCtx = inject(AddMoleculesToCollectionContextService)
   private readonly zone = inject(NgZone)
   private readonly historyContext = inject(HistoryContextService)
   private readonly appTitle = inject(AppTitleService)
+  private readonly invalidations = inject(DomainInvalidationService)
 
   @ViewChild('sentinel', { static: true })
   protected declare sentinel: ElementRef | undefined;
@@ -202,8 +208,9 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
   constructor() {
     super()
     effect(() => {
-      const t = this.addCtx.addedTick()
-      if (t === 0) {
+      const event = this.invalidations.last()
+      if (event?.domain !== 'molecule-collection' || event.action !== 'molecules-added' ||
+          event.collectionId !== this.colId()) {
         return
       }
       this.resetAndRefetch()
@@ -281,6 +288,7 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
   }
 
   ngOnDestroy(): void {
+    super.disposePaginationResources()
     this.colIdSub?.unsubscribe()
     this.touchSub?.unsubscribe()
     this.delSub?.unsubscribe()
@@ -384,8 +392,8 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
           queueMicrotask(() => {
             this.history.triggerRemoveItemFromHistoryView(id)
             this.items[i].triggerDisappear.set(true)
-            setTimeout(() => this.items[i].collapse.set(true), 120)
-            setTimeout(() => {
+            this.resources.setTimeout(() => this.items[i].collapse.set(true), 120)
+            this.resources.setTimeout(() => {
               this.items.splice(i, 1)
               if (this.items.length === 0) {
                 this.tick.update(x => x + 1)
@@ -443,7 +451,10 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
     this.reSub = this.colService.updateCollectionName(this.colId(), name).pipe(
       switchMap(() => this.historyContext.pollNewItem()),
       catchError(e => {
-        if (e.message === `duplicate key value violates unique constraint "unique_name_per_user"`) {
+        if (hasApplicationErrorCode(
+          e,
+          ApplicationErrorCode.MOLECULE_COLLECTION_NAME_CONFLICT
+        )) {
           queueMicrotask(() => {
             this.triggerRenameRollback.set(true)
             this.toast.trigger('Questo nome esiiste già. Impossibile rinominare!', 'error', 3000)
@@ -458,8 +469,7 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
 
   doAddToCollection(): void {
     queueMicrotask(() => {
-      this.addCtx.setCollectionId(this.colId());
-      this.overlay.open('AddMoleculesToCollection');
+      this.overlay.open('AddMoleculesToCollection', { collectionId: this.colId(), redirectToCollectionPath: false, importFromChembl: false });
     });
   }
 
@@ -473,8 +483,8 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
             queueMicrotask(() => {
               this.history.triggerRemoveItemFromHistoryView(moleculeId)
               this.items[i].triggerDisappear.set(true)
-              setTimeout(() => this.items[i].collapse.set(true), 120)
-              setTimeout(() => {
+              this.resources.setTimeout(() => this.items[i].collapse.set(true), 120)
+              this.resources.setTimeout(() => {
                 this.items.splice(i, 1)
                 if (this.items.length === 0) {
                   this.tick.update(x => x + 1)

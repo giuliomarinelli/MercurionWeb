@@ -2,10 +2,11 @@ import { Injectable } from "@nestjs/common";
 import { AuthProvider } from "../Models/enums/auth-provider.enum";
 import { ISocialProviderClient } from "../Models/interfaces/i-social-provider-client.interface";
 import { GoogleProviderClient } from "../providers/google-provider-client";
-import { RpcException } from "@nestjs/microservices";
+
 import { GitHubProviderClient } from "../providers/github-provider-client";
 import { LinkedInProviderClient } from "../providers/linkedin-provider-client";
 import { DiscordProviderClient } from "../providers/discord-provider-client";
+import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 
 @Injectable()
 export class SocialProviderRegistry {
@@ -30,7 +31,7 @@ export class SocialProviderRegistry {
     get(provider: AuthProvider): ISocialProviderClient {
         const c = this.map[provider]
         if (!c) {
-            throw new RpcException(`Provider not supported: ${provider}`)
+            throw applicationError(ApplicationErrorCode.SSO_PROVIDER_UNSUPPORTED, `SSO_BadRequest::Provider not supported: ${provider}`)
         }
         return c
     }

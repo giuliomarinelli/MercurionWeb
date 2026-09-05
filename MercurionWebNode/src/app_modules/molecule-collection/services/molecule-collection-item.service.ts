@@ -11,7 +11,7 @@ import { uuidv7 } from '@kripod/uuidv7';
 import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
 import { PaginatedMoleculeCollectionItem } from '../Models/DTO/paginated-molecule-collection-item.dto';
 import { MoleculeDetail } from 'src/app_modules/meilisearch/Models/DTO/molecule-detail.gql.dtos';
-import { RpcException } from '@nestjs/microservices';
+
 import { CustomMoleculeItemEntity } from '../Models/entities/custom-molecule-item.entity';
 import { ChEMBLMoleculeItemEntity } from '../Models/entities/chembl-molecule-item.entity';
 import { History } from 'src/app_modules/history/Models/entities/history.entity';
@@ -21,6 +21,7 @@ import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-l
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 import { pruneNullCollectionJoins } from '../utils/prune-molecule-collection-joins.util';
 import { MoleculeCollectionItemDTO } from '../Models/DTO/molecule-collection-item.union';
+import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 
 
 // TODO: valutare un refactoring per dryificare la duplicazione di logica tra questo service e i service delle entità figlie concrete
@@ -272,7 +273,7 @@ export class MoleculeCollectionItemService {
             };
         }
 
-        throw new RpcException(`UnknownItemType::${item.type}`);
+        throw applicationError(ApplicationErrorCode.MOLECULE_COLLECTION_ITEM_TYPE_UNKNOWN, `UnknownItemType::${item.type}`);
     }
 
     private isCustomItem(

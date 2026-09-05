@@ -1,6 +1,6 @@
 # 0017 - Remove GraphQL internal Maybe imports
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -95,11 +95,23 @@ Avoid creating an application `Maybe<T>` alias merely to preserve the old spelli
 
 ### Summary
 
-_Not started._
+Replaced all nine application imports from `graphql/jsutils/Maybe` with explicit TypeScript nullish unions. Added a repository-wide static policy rejecting `graphql/*` subpath imports from application TypeScript, including a deliberate negative probe, and wired both checks into `ci:static`.
 
 ### Validation performed
 
-_Not started._
+Initial unchanged baseline: `npm ci` and `npm run ci:check` passed.
+
+Task-specific validation passed:
+
+- `npm run ci:graphql:internal-imports`
+- `npm run build --workspace mercurion_web_ng`
+- `npm test --workspace mercurion_web_ng -- --watch=false`
+- `npm run build --workspace mercurion_web_node`
+- `npm test --workspace mercurion_web_node -- --runInBand`
+
+Final clean `npm ci` plus `npm run ci:check` passed, including the new static policy and negative probe.
+
+Implementation commit: `3c51001f`.
 
 ### Browser validation performed
 
@@ -107,8 +119,8 @@ _Not applicable._
 
 ### Changed files
 
-_Not recorded._
+Updated nine Angular/Nest source files, root `package.json`, the two root GraphQL import-policy scripts, and this task recipe.
 
 ### Blocker / human decision required
 
-_None._
+None.

@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -114,20 +114,23 @@ The current `storage`-event path is already materially implemented while Broadca
 
 ### Summary
 
-_Not started._
+Skipped without implementation because hard prerequisites `0026-create-canonical-angular-auth-state-store.md` (`FE-004`), `0028-encapsulate-auth-session-browser-persistence.md` (`FE-006`), and `0029-preserve-authorization-scopes-through-every-login-flow.md` (`FE-007`) are terminal non-DONE (`BLOCKED` or `SKIPPED_DEPENDENCY`). The canonical auth owner, persistence adapter, and scope lifecycle are unavailable on `develop`.
 
 ### Validation performed
 
-_Not started._
+- No task branch or worker was created.
+- Direct prerequisites: `FE-004` is `BLOCKED`; `FE-006` and `FE-007` are `SKIPPED_DEPENDENCY`.
+- Transitive dependency chain: `FE-008` -> `FE-004` (`BLOCKED`), `FE-006` (`SKIPPED_DEPENDENCY`) -> `FE-004` (`BLOCKED`), and `FE-007` (`SKIPPED_DEPENDENCY`) -> `FE-004` (`BLOCKED`).
 
 ### Browser validation performed
 
-_Not started._
+Not applicable; the task was skipped before implementation.
 
 ### Changed files
 
-_Not recorded._
+No files changed; only this task metadata was updated.
 
 ### Blocker / human decision required
 
-_None._
+No implementation blocker. The task may be re-enabled only after its hard
+dependency chain is deliberately resolved in a new authorized session.

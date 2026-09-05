@@ -1,7 +1,9 @@
-import { AfterViewChecked, AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, computed, effect, signal } from '@angular/core';
+import { LoggerService } from '../../../services/logger.service';
+import { AfterViewChecked, AfterViewInit, Component, ChangeDetectionStrategy, DestroyRef, ElementRef, OnDestroy, OnInit, ViewChild, computed, effect, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LabNotebookEditorComponent } from '../../../components/notebook/lab-notebook-editor/lab-notebook-editor.component';
 import { ActivatedRoute } from '@angular/router';
-import { catchError, debounceTime, distinctUntilChanged, of, Subject, Subscription, switchMap } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, EMPTY, map, of, Subject, switchMap, tap } from 'rxjs';
 import { NotebookService } from '../../../services/graphql/notebook.service';
 import { NotebookTree } from '../../../Models/graphql/notebook/notebook.models';
 import { NotebookTocComponent } from '../../../components/notebook/notebook-tree-index/notebook-toc.component';
@@ -9,6 +11,7 @@ import { NotebookTocComponent } from '../../../components/notebook/notebook-tree
 
 @Component({
   selector: 'm-lab-notebook-edit-component',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [LabNotebookEditorComponent, NotebookTocComponent],
   template: `
     @if (notebook()) {
@@ -77,11 +80,8 @@ export class NotebookEditPageComponent implements OnInit, OnDestroy, AfterViewCh
   private autosave$ = new Subject<string>()
 
   protected offsetHeight = signal<number>(0)
-  private notebookSub?: Subscription
-  private querySub?: Subscription
-  private chapterSub?: Subscription
-  private sectionSub?: Subscription
-  private pageSub?: Subscription
+  private readonly destroyRef = inject(DestroyRef)
+  private readonly logger = inject(LoggerService)
   protected title = signal<string>('')
   protected level = signal<'notebook' | 'chapter' | 'section' | 'page' | undefined>(undefined)
   trigger = signal<boolean>(false)
@@ -97,11 +97,15 @@ export class NotebookEditPageComponent implements OnInit, OnDestroy, AfterViewCh
   ) { }
 
   ngOnInit(): void {
-    this.route.params.subscribe(params => {
-      this.notebookId.set(params['notebookId'])
-      this.notebookSub = this.notebookService.getNotebookById(params['notebookId'])
-        .subscribe(nb => this.notebook.set(nb))
-      this.querySub = this.route.queryParams.subscribe(query => {
+    this.route.params.pipe(
+      map(params => params['notebookId'] as string),
+      tap(notebookId => this.notebookId.set(notebookId)),
+      switchMap(notebookId => this.notebookService.getNotebookById(notebookId)),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(nb => this.notebook.set(nb))
+
+    this.route.queryParams.pipe(
+      tap(query => {
         this.chapterId.set(query['c_id'] ?? '')
         this.sectionId.set(query['s_id'] ?? '')
         this.pageId.set(query['p_id'] ?? '')
@@ -114,48 +118,42 @@ export class NotebookEditPageComponent implements OnInit, OnDestroy, AfterViewCh
         } else if (this.notebookId()) {
           this.level.set('notebook')
         }
+      }),
+      switchMap(() => {
         switch (this.level()) {
           case 'notebook':
             this.title.set(this.notebook()?.title ?? '')
-            break
+            return EMPTY
           case 'chapter':
-            this.chapterSub = this.notebookService.getChapterById(this.chapterId())
-              .subscribe(res => this.title.set(res?.title ?? ''))
-            break
+            return this.notebookService.getChapterById(this.chapterId())
           case 'section':
-            this.chapterSub = this.notebookService.getSectionById(this.sectionId())
-              .subscribe(res => this.title.set(res?.title ?? ''))
-            break
+            return this.notebookService.getSectionById(this.sectionId())
           case 'page':
-            this.chapterSub = this.notebookService.getPageByIdHeader(this.pageId())
-              .subscribe(res => {
-                this.title.set(res?.title ?? '')
-                this.autosave$
-                  .pipe(
-                    debounceTime(800),
-                    distinctUntilChanged(),
-                    switchMap(content => {
-                      const page = this.currentPage()
-                      if (!page) return of(null)
-                      // salvataggio in corso"
-                      return this.notebookService.updatePage(page.id, page.title, content).pipe(
-                        catchError(err => {
-                          console.error('Errore nel salvataggio: ' + err.message)
-                          return of(null)
-                        })
-                      )
-                    })
-                  )
-                  .subscribe(res => {
-                    if (res) {
-                      // Aggiorna stato localmente o mostra "Salvato"
-                      this.notebookSub = this.notebookService.getNotebookById(this.notebookId()).subscribe(nb => this.notebook.set(nb));
-                    }
-                    // "status: salvato!"
-                  })
-              })
+            return this.notebookService.getPageByIdHeader(this.pageId())
+          default:
+            return EMPTY
         }
-      })
+      }),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(res => this.title.set(res?.title ?? ''))
+
+    this.autosave$.pipe(
+      debounceTime(800),
+      distinctUntilChanged(),
+      switchMap(content => {
+        const page = this.currentPage()
+        if (!page) return of(null)
+        return this.notebookService.updatePage(page.id, page.title, content).pipe(
+          catchError(err => {
+            this.logger.error('Error saving notebook page', err)
+            return of(null)
+          })
+        )
+      }),
+      switchMap(res => res ? this.notebookService.getNotebookById(this.notebookId()) : of(null)),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(nb => {
+      if (nb) this.notebook.set(nb)
     })
   }
 
@@ -166,19 +164,14 @@ export class NotebookEditPageComponent implements OnInit, OnDestroy, AfterViewCh
       const height = this.h1Ref.nativeElement.clientHeight;
       if (this.offsetHeight() !== height) {
         this.offsetHeight.set(height + 12);
-        console.log('offsetHeight aggiornato a', height);
+        
       }
 
     }
   }
 
   ngOnDestroy(): void {
-    this.notebookSub?.unsubscribe()
-    this.querySub?.unsubscribe()
-    this.chapterSub?.unsubscribe()
-    this.sectionSub?.unsubscribe()
-    this.pageSub?.unsubscribe()
-    this.autosave$.unsubscribe()
+    this.autosave$.complete()
   }
 
   triggerContentEmission(): void {
@@ -205,17 +198,5 @@ export class NotebookEditPageComponent implements OnInit, OnDestroy, AfterViewCh
     this.autosave$.next(content)
   }
 
-  private doAutosave(content: string): void {
-    const page = this.currentPage()
-    if (!page) return
-    this.notebookService.updatePage(page.id, page.title, content).subscribe({
-      next: (res) => {
-        // Aggiorna anche localmente (reload notebook dopo salvataggio, per ora)
-        this.notebookSub = this.notebookService.getNotebookById(this.notebookId()).subscribe(nb => this.notebook.set(nb))
-        // Mostra feedback, es. toast o status “salvato!”
-      },
-      error: err => console.error('Errore nel salvataggio: ' + err.message)
-    })
-  }
-
 }
+

@@ -1,7 +1,6 @@
 import {
    CanActivate,
    ExecutionContext,
-   ForbiddenException,
    Injectable,
    UnauthorizedException,
 } from '@nestjs/common'
@@ -24,6 +23,12 @@ import { AppJwtPayload } from '../Models/interfaces/app-jwt-payload.interface'
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service'
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface'
 import { SecureCookieService } from '../services/secure-cookie.service'
+import {
+   ApplicationErrorCode,
+   applicationHttpException,
+   getApplicationError,
+   isApplicationError
+} from 'src/exception-handling/application-error'
 
 @Injectable()
 export class GlobalGuard implements CanActivate {
@@ -103,7 +108,7 @@ export class GlobalGuard implements CanActivate {
 
          } catch (e) {
             // refresh flow: only for expired/invalid access token
-            if (e instanceof RpcException && e.message === 'InvalidOrExpiredAccessToken') {
+            if (isApplicationError(e, ApplicationErrorCode.ACCESS_TOKEN_INVALID_OR_EXPIRED)) {
                if (this.tokenType !== TokenType.AccessToken) throw e
 
                payload = await this.jwtToolsService.verifyTokenAndGetPayload(
@@ -266,13 +271,13 @@ export class GlobalGuard implements CanActivate {
             (e?.stack ?? e) as object,
          )
 
-         if (e instanceof RpcException && e.message === 'Forbidden::missing permissions') {
-            throw new ForbiddenException(e.message)
+         if (isApplicationError(e, ApplicationErrorCode.PERMISSION_DENIED)) {
+            throw applicationHttpException(ApplicationErrorCode.PERMISSION_DENIED)
          }
 
          const unauthorizedException = isSoftAuth
-            ? new UnauthorizedException('Unauthenticated')
-            : new UnauthorizedException('Fatal: unauthenticated')
+            ? applicationHttpException(ApplicationErrorCode.AUTHENTICATION_UNAUTHENTICATED_SOFT)
+            : applicationHttpException(ApplicationErrorCode.AUTHENTICATION_UNAUTHENTICATED_FATAL)
 
          // SOFT AUTH => never revoke anything
          if (isSoftAuth) {
@@ -312,7 +317,7 @@ export class GlobalGuard implements CanActivate {
          this.secureCookieService.clearCookie(reply, '__logged_in')
 
          // normalize any auth error into our unauthorizedException
-         if (e instanceof RpcException && e.message === 'Unauthorized') {
+         if (isApplicationError(e, ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED)) {
             throw unauthorizedException
          }
 
@@ -342,17 +347,18 @@ export class GlobalGuard implements CanActivate {
     * Revoke ONLY for auth-relevant failures (avoid nuking sessions on infra glitches).
     */
    private shouldRevokeOnError(e: unknown): boolean {
-      // Explicit unauthorized coming from auth/session layers
-      if (e instanceof RpcException && e.message === 'Unauthorized') return true
-      if (e instanceof RpcException && typeof e.message === 'string') {
-         const m = e.message
-
-         // Add here the codes you *know* mean compromised/invalid auth context
-         if (m === 'InvalidSessionSignature') return true
-         if (m === 'InvalidSession') return true
-         if (m === 'UnauthorizedNoSuchSession') return true
-         if (m === 'InvalidOrExpiredAccessToken') return true
-         // If you have "TokenRevoked"/"InvalidToken"/"InvalidJwtSignature", include them too
+      const applicationError = getApplicationError(e)
+      if (applicationError) {
+         switch (applicationError.code) {
+            case ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED:
+            case ApplicationErrorCode.SESSION_SIGNATURE_INVALID:
+            case ApplicationErrorCode.SESSION_INVALID:
+            case ApplicationErrorCode.SESSION_NOT_FOUND:
+            case ApplicationErrorCode.ACCESS_TOKEN_INVALID_OR_EXPIRED:
+               return true
+            default:
+               return false
+         }
       }
 
       // Plain UnauthorizedException thrown inside guard for mismatches

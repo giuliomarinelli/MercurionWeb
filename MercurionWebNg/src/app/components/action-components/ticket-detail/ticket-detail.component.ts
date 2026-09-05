@@ -2,6 +2,7 @@ import {
   AfterViewInit,
   ChangeDetectorRef,
   Component,
+  ChangeDetectionStrategy,
   ElementRef,
   OnDestroy,
   OnInit,
@@ -9,16 +10,14 @@ import {
   computed,
   effect,
   inject,
-  signal,
-} from '@angular/core';
+  signal } from '@angular/core';
 import { TicketDetailContextService } from '../../../services/context/action-context/ticket-detail-context.service';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 import {
   ClientTicket,
   ClientTicketMessage,
   Ticket,
-  TicketMessage,
-} from '../../../Models/graphql/help.models';
+  TicketMessage } from '../../../Models/graphql/help.models';
 import { AbstractPaginationComponent } from '../../../abstract/abstract-pagination-component';
 import { distinctUntilChanged, filter, firstValueFrom, Observable, of, switchMap } from 'rxjs';
 import { PageModel } from '../../../Models/graphql/page.models';
@@ -27,13 +26,14 @@ import { TypeGuardsService } from '../../../services/type-guards.service';
 import { MessageItemComponent } from '../message-item/message-item.component';
 import { TicketDetailInnerScope } from '../../../Models/action/action-overlay.models';
 import { DatePipe, NgClass } from '@angular/common';
-import { Maybe } from 'graphql/jsutils/Maybe';
 import { TicketComposerComponent } from '../../support/ticket-composer/ticket-composer.component';
 import { Subscription } from 'rxjs';
 import { AppContextService } from '../../../services/context/app-context.service';
+import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
 
 @Component({
   selector: 'm-ticket-detail',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MessageItemComponent, DatePipe, NgClass, TicketComposerComponent],
   styles: [
     `
@@ -274,17 +274,18 @@ import { AppContextService } from '../../../services/context/app-context.service
         </div>
       </div>
     </div>
-  `,
-})
+  ` })
 export class TicketDetailComponent extends AbstractPaginationComponent<TicketMessage | ClientTicketMessage> implements OnInit, OnDestroy, AfterViewInit {
 
   private readonly detailContext = inject(TicketDetailContextService)
   private readonly overlayContext = inject(ActionOverlayContextService)
+  private readonly sessionId = this.overlayContext.session('TicketDetail')?.id ?? -1
   private readonly helpService = inject(HelpService)
   protected readonly typeGuards = inject(TypeGuardsService)
   protected readonly cdr = inject(ChangeDetectorRef)
   private readonly appCtx = inject(AppContextService)
   private readonly ticketDetailContext = inject(TicketDetailContextService)
+  private readonly invalidation = inject(DomainInvalidationService)
   private firstMessageSet = signal<boolean>(false)
 
   private composerSub?: Subscription
@@ -389,8 +390,7 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
 
   close(): void {
     queueMicrotask(() => {
-      this.overlayContext.close();
-      this.detailContext.clearTicketId();
+      this.overlayContext.close(this.sessionId);
     });
   }
 
@@ -525,7 +525,7 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
   });
 
   getUserFullNameFromTicket(): string {
-    const t: Maybe<Ticket | ClientTicket> = this.ticket();
+    const t: Ticket | ClientTicket | null | undefined = this.ticket();
     if (!t) return '';
     if (this.typeGuards.isTicket(t)) {
       return t.userFullName ?? '';
@@ -548,8 +548,7 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
       contentHtml: e.html,
       createdAt: nowIso,
       triggerDisappear: signal(false),
-      collapse: signal(false),
-    };
+      collapse: signal(false) };
 
     this.items = [...this.items, optimistic];
 
@@ -567,8 +566,7 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
       error: () => {
         this.items = this.items.filter((m) => m.id !== optimistic.id);
         // TODO: toast
-      },
-    });
+      } });
   }
 
   private setTicketStatus(status: 'Open' | 'Closed') {
@@ -595,7 +593,7 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
       next: (ok) => {
         if (ok) {
           this.setTicketStatus('Closed')
-          this.ticketDetailContext.notifyAdded()
+          this.invalidation.publish({ domain: 'ticket', action: 'changed', ticketId: this.detailContext.ticketId(), scope: this.detailContext.innerScope() })
         }
       },
       error: () => {
@@ -617,7 +615,7 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
       next: (ok) => {
         if (ok) {
           this.setTicketStatus('Open')
-          this.ticketDetailContext.notifyAdded()
+          this.invalidation.publish({ domain: 'ticket', action: 'changed', ticketId: this.detailContext.ticketId(), scope: this.detailContext.innerScope() })
         }
       },
       error: () => {
@@ -633,3 +631,4 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
 
 
 }
+

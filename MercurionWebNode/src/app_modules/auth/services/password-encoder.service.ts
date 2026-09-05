@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common'
 import { PasswordEncoder } from '../Models/interfaces/password-encoder.interface'
 import * as argon2 from 'argon2'
-import { RpcException } from '@nestjs/microservices'
+
 import { createHmac } from 'crypto'
 import { ConfigService } from '@nestjs/config'
 import { CompareResult } from '../Models/enums/compare-result.enum'
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service'
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface'
+import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 
 @Injectable()
 export class PasswordEncoderService implements PasswordEncoder {
@@ -54,7 +55,7 @@ export class PasswordEncoderService implements PasswordEncoder {
         } catch (e) {
             const message = e.message as string || 'Unknown error'
             this.logger.warn(`Error during password encoding: ${message}`)
-            throw new RpcException('PasswordEncodingException')
+            throw applicationError(ApplicationErrorCode.PASSWORD_ENCODING_FAILED)
         }
     }
 
@@ -67,7 +68,7 @@ export class PasswordEncoderService implements PasswordEncoder {
         } catch (e) {
             const message = e.message as string || 'Unknown error'
             this.logger.warn(`Error during password comparison: ${message}`)
-            throw new RpcException('PasswordComparingException')
+            throw applicationError(ApplicationErrorCode.PASSWORD_COMPARISON_FAILED)
         }
     }
 
@@ -101,7 +102,7 @@ export class PasswordEncoderService implements PasswordEncoder {
         } catch (e) {
             const message = e?.message as string ?? 'Unknown error'
             this.logger.warn(`Error during password comparison (fallback): ${message}`)
-            throw new RpcException('PasswordComparingException')
+            throw applicationError(ApplicationErrorCode.PASSWORD_COMPARISON_FAILED)
         }
     }
 

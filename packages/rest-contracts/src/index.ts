@@ -1,5 +1,50 @@
 export type RestContractVersion = '1.0.0'
 
+export {
+  APPLICATION_ERROR_CATALOG,
+  ApplicationErrorCode,
+  getApplicationErrorDefinition,
+  isApplicationErrorCode,
+  isApplicationErrorPayload,
+  resolveLegacyApplicationErrorCode
+} from './application-errors'
+export type {
+  ApplicationErrorCode as ApplicationErrorCodeType,
+  ApplicationErrorDefinition,
+  ApplicationErrorPayload
+} from './application-errors'
+export {
+  FINGERPRINT_CONTRACT_VERSION,
+  parseFingerprintData,
+  parseSessionDeviceInfo
+} from './fingerprint-contract'
+export type {
+  FingerprintContract,
+  FingerprintContractVersion,
+  FingerprintData,
+  SessionDeviceInfo
+} from './fingerprint-contract'
+export {
+  RDKIT_OPERATIONS,
+  RDKIT_SMILES_MAX_LENGTH
+} from './rdkit-contract'
+export type {
+  RdkitAreSameStructureDTO,
+  RdkitAreSameStructureResponse,
+  RdkitAreSameStructureWire,
+  RdkitBaseDTO,
+  RdkitCanonicalSmilesWire,
+  RdkitGetMoleculePropertiesDTO,
+  RdkitGetMoleculePropertiesResponse,
+  RdkitGetMoleculePropertiesResult,
+  RdkitGetMoleculePropertiesWire,
+  RdkitOperation,
+  RdkitToCanonicalSmilesDTO,
+  RdkitToCanonicalSmilesOptsDTO,
+  RdkitToCanonicalSmilesResponse,
+  RdkitUpstreamError
+} from './rdkit-contract'
+
 export interface PageModel<T> {
   items: T[]
   itemCount: number
@@ -18,6 +63,7 @@ export interface ConfirmDTO {
 export interface ErrorRes {
   statusCode: number
   error: string
+  code?: import('./application-errors').ApplicationErrorCode
   message?: string
   timestamp: string
   requestId: string
@@ -72,12 +118,35 @@ export interface ConfirmWithPhoneMfaFeedback extends ConfirmDTO {
   phoneMfaDisabled: boolean
 }
 
-export type AuthProvider = 'Mercurion' | 'Google' | 'GitHub' | 'LinkedIn' | 'Discord'
+// Canonical enum/union contracts. Each value set below is the single source of truth
+// consumed by both Angular and Nest; local per-project enum files must re-export these
+// symbols rather than redeclaring their own literal values (SYS-013).
+export const AuthProvider = Object.freeze({
+  Mercurion: 'Mercurion',
+  Google: 'Google',
+  GitHub: 'GitHub',
+  LinkedIn: 'LinkedIn',
+  Discord: 'Discord'
+} as const)
+export type AuthProvider = (typeof AuthProvider)[keyof typeof AuthProvider]
 export type SSO_AuthProvider = Exclude<AuthProvider, 'Mercurion'>
-export type MfaStrategy = 'EMAIL_OTP' | 'SMS_OTP' | 'APP_TOTP' | 'BACKUP_CODE'
+
+export const MfaStrategy = Object.freeze({
+  EMAIL_OTP: 'EMAIL_OTP',
+  SMS_OTP: 'SMS_OTP',
+  APP_TOTP: 'APP_TOTP',
+  BACKUP_CODE: 'BACKUP_CODE'
+} as const)
+export type MfaStrategy = (typeof MfaStrategy)[keyof typeof MfaStrategy]
 export type MfaView = 'CHOOSE_METHOD' | '' | MfaStrategy
-export type UserGenderControl = 'M' | 'F' | 'Undefined' | ''
-export type UserGender = Exclude<UserGenderControl, ''>
+
+export const UserGender = Object.freeze({
+  M: 'M',
+  F: 'F',
+  Undefined: 'Undefined'
+} as const)
+export type UserGender = (typeof UserGender)[keyof typeof UserGender]
+export type UserGenderControl = UserGender | ''
 
 export interface AuthenticationData {
   obscuredEmail?: string
@@ -123,60 +192,15 @@ export interface BackupCodeDTO {
   code: string
 }
 
-export type VerifyKind = 'totp' | 'backup'
+export const VerifyKind = Object.freeze({
+  TOTP: 'totp',
+  BACKUP: 'backup'
+} as const)
+export type VerifyKind = (typeof VerifyKind)[keyof typeof VerifyKind]
 
 export interface VerifyBodyDTO {
   kind: VerifyKind
   payload: TotpBodyDTO | BackupCodeDTO
-}
-
-export interface SessionDeviceInfo {
-  osPlatform: string
-  useragent: string
-  browser: {
-    name: string
-    version: string
-  }
-}
-
-export interface FingerprintData {
-  audio: {
-    sampleHash: number
-    oscillator: string
-    maxChannels: number
-  }
-  hardware: {
-    videocard: {
-      vendor: string
-      renderer: string
-    }
-  }
-  locales: {
-    languages: string
-  }
-  plugins: {
-    plugins: string[]
-  }
-  screen: {
-    is_touchscreen: boolean
-    colorDepth: number
-  }
-  system: {
-    platform: string
-    productSub: string
-    product: string
-    hardwareConcurrency: number
-  }
-  webgl: {
-    commonImageHash: string
-  }
-  math: {
-    acos: number
-    cos: number
-    log: number
-    pi: number
-    sqrt: number
-  }
 }
 
 export interface UserRegisterDTO {
@@ -216,7 +240,11 @@ export interface HistoryDTO {
   flagIds: string
 }
 
-export type HistoryItemEntity = 'molecule_collections' | 'molecule_collection_items'
+export const HistoryItemEntity = Object.freeze({
+  MoleculeCollection: 'molecule_collections',
+  MoleculeCollectionItem: 'molecule_collection_items'
+} as const)
+export type HistoryItemEntity = (typeof HistoryItemEntity)[keyof typeof HistoryItemEntity]
 export type TinyHistoryDTO = Pick<HistoryDTO, 'id' | 'itemEntity' | 'itemId' | 'touchedAt'>
 
 export interface ProfileDTO {
@@ -288,21 +316,48 @@ export interface PhonePrefixDTO {
   phonecode: string
 }
 
-export type FeedbackEnv = 'staging' | 'prod'
-export type FeedbackSource = 'manual_page' | 'prompted'
-export type FeedbackKind = 'bug' | 'ux' | 'idea' | 'question' | 'other'
-export type FeedbackContextKind =
-  | 'global'
-  | 'navigation'
-  | 'search'
-  | 'prediction'
-  | 'editor'
-  | 'collection'
-  | 'export'
-  | 'auth'
-  | 'performance'
-  | 'error'
-export type FeedbackStatus = 'new' | 'triaged' | 'resolved' | 'spam'
+export const FeedbackEnv = Object.freeze({
+  STAGING: 'staging',
+  PROD: 'prod'
+} as const)
+export type FeedbackEnv = (typeof FeedbackEnv)[keyof typeof FeedbackEnv]
+
+export const FeedbackSource = Object.freeze({
+  MANUAL_PAGE: 'manual_page',
+  PROMPTED: 'prompted'
+} as const)
+export type FeedbackSource = (typeof FeedbackSource)[keyof typeof FeedbackSource]
+
+export const FeedbackKind = Object.freeze({
+  BUG: 'bug',
+  UX: 'ux',
+  IDEA: 'idea',
+  QUESTION: 'question',
+  OTHER: 'other'
+} as const)
+export type FeedbackKind = (typeof FeedbackKind)[keyof typeof FeedbackKind]
+
+export const FeedbackContextKind = Object.freeze({
+  GLOBAL: 'global',
+  NAVIGATION: 'navigation',
+  SEARCH: 'search',
+  PREDICTION: 'prediction',
+  EDITOR: 'editor',
+  COLLECTION: 'collection',
+  EXPORT: 'export',
+  AUTH: 'auth',
+  PERFORMANCE: 'performance',
+  ERROR: 'error'
+} as const)
+export type FeedbackContextKind = (typeof FeedbackContextKind)[keyof typeof FeedbackContextKind]
+
+export const FeedbackStatus = Object.freeze({
+  NEW: 'new',
+  TRIAGED: 'triaged',
+  RESOLVED: 'resolved',
+  SPAM: 'spam'
+} as const)
+export type FeedbackStatus = (typeof FeedbackStatus)[keyof typeof FeedbackStatus]
 
 export interface Feedback {
   id: string
@@ -345,38 +400,6 @@ export interface CreateFeedbackDTO {
 
 export interface DeleteFeedbackResponse {
   ok: boolean
-}
-
-export interface RdkitToCanonicalSmilesOptsDTO {
-  isomeric?: boolean
-  kekule?: boolean
-}
-
-export interface RdkitBaseDTO {
-  accessToken?: string
-}
-
-export interface RdkitAreSameStructureDTO extends RdkitBaseDTO {
-  a: string
-  b: string
-}
-
-export interface RdkitToCanonicalSmilesDTO extends RdkitBaseDTO {
-  smiles: string
-  opts?: RdkitToCanonicalSmilesOptsDTO
-}
-
-export interface RdkitGetMoleculePropertiesDTO extends RdkitBaseDTO {
-  smiles: string
-}
-
-export interface RdkitGetMoleculePropertiesResult {
-  mwFreebase: number | null
-  alogp: number | null
-  hba: number | null
-  hbd: number | null
-  psa: number | null
-  rtb: number | null
 }
 
 export interface Tox21Inference {

@@ -1,11 +1,12 @@
-import { Component, OnDestroy, OnInit, signal, Signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, DestroyRef, inject, OnInit, signal, Signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NotebookService } from '../../../services/graphql/notebook.service';
 import { NotebookTree } from '../../../Models/graphql/notebook/notebook.models';
 import { NotebookTreeComponent } from '../../../components/notebook/notebook-tree/notebook-tree.component';
-import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'm-notebook-landing',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NotebookTreeComponent],
   template: `
 
@@ -15,19 +16,21 @@ import { Subscription } from 'rxjs';
     </main>
   `
 })
-export class NotebookLandingComponent implements OnInit, OnDestroy {
+export class NotebookLandingComponent implements OnInit {
 
   protected notebooks = signal<NotebookTree[]>([])
   protected loading = signal<boolean>(false)
-  private notebookSub: Subscription | undefined
+  private readonly destroyRef = inject(DestroyRef)
 
   constructor(private notebookService: NotebookService) { }
 
   ngOnInit() {
-    this.notebookSub = this.notebookService.getAllNotebooks().subscribe({
+    this.notebookService.getAllNotebooks().pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
       next: res => {
         this.notebooks.set(res)
-        console.log(res)
+        
       },
       error: err => {
         this.loading.set(false);
@@ -37,14 +40,13 @@ export class NotebookLandingComponent implements OnInit, OnDestroy {
   }
 
   createNotebook(title: string) {
-    this.notebookService.createNotebook(title).subscribe({
+    this.notebookService.createNotebook(title).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
       next: () => this.notebookService.refreshNotebooks(),
       error: err => alert(err.message)
     });
   }
 
-  ngOnDestroy(): void {
-    this.notebookSub?.unsubscribe()
-  }
-
 }
+

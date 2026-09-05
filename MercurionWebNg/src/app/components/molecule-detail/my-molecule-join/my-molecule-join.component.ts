@@ -1,10 +1,11 @@
-import { Component, Input, OnInit, computed, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, Input, OnInit, computed, signal } from '@angular/core';
 import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
 import { CollectionCardComponent } from '../collection-card/collection-card.component';
 import { SkeletonCollectionCardComponent } from '../../common/skeleton-card-loader/skeleton-card-loader.component';
 
 @Component({
   selector: 'm-my-molecule-join',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CollectionCardComponent, SkeletonCollectionCardComponent],
   template: `
     @if (collections().length) {

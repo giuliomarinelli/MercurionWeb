@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -92,20 +92,23 @@ Prefer extracting contract facts from canonical schemas/controller metadata over
 
 ### Summary
 
-_Not started._
+Skipped without implementation because hard prerequisite `0018-classify-or-remove-unowned-rest-routes.md` (`SYS-018`) is terminal `BLOCKED`. Its route ownership inventory remains preserved on `feature/SYS-018` and is not available on `develop`; the dependency chain therefore prevents this compatibility suite from starting in the current session.
 
 ### Validation performed
 
-_Not started._
+- No task branch or worker was created.
+- Direct prerequisite: `SYS-018` is `BLOCKED` pending canonical runtime configuration and Tox21 browser-validation recovery.
+- Transitive dependency chain: `SYS-021` -> `SYS-018` (`BLOCKED`).
 
 ### Browser validation performed
 
-_Not applicable / not started._
+Not applicable; the task was skipped before implementation.
 
 ### Changed files
 
-_Not recorded._
+No files changed; only this task metadata was updated.
 
 ### Blocker / human decision required
 
-_None._
+No implementation blocker. The task may be re-enabled only after the `SYS-018`
+dependency is deliberately resolved in a new authorized session.

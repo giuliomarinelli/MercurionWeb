@@ -7,10 +7,11 @@ import { UUID } from "crypto";
 import { GraphQLFieldsMap } from "src/utils/type-orm-utils/type-orm-utils";
 import { GraphQLUtils } from "src/utils/graphql-utils/graphql-utils";
 import { MoleculeCollectionItemJoinService } from "./molecule-collection-item-join.service";
-import { RpcException } from "@nestjs/microservices";
+
 import { MoleculeCollection } from "../Models/entities/molecule-collection.entity";
 import { uuidv7 } from '@kripod/uuidv7';
 import { AddManyChEMBLItemDTO } from "../Models/DTO/add-many-chembl-items.dto";
+import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 
 @Injectable()
 export class ChEMBLMoleculeItemService {
@@ -110,7 +111,7 @@ export class ChEMBLMoleculeItemService {
 
             // 2. Trova la collection (usa il manager)
             const collection = await manager.findOne(MoleculeCollection, { where: { id: collectionId, userId } });
-            if (!collection) throw new RpcException("ChEMBLItemAddError::Forbidden");
+            if (!collection) throw applicationError(ApplicationErrorCode.CHEMBL_ITEM_ACCESS_DENIED);
 
             // 3. Crea la join (se il joinService usa repository, passagli manager.queryRunner.manager oppure implementa la logica qui)
             await this.joinService.addMoleculeToCollectionWithManager(userId, collectionId, item.id, manager);

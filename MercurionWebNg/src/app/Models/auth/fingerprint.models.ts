@@ -1,11 +1,13 @@
-import type { SessionDeviceInfo } from '@mercurion/rest-contracts'
-
-export type {
+import type {
   FingerprintData,
-  SessionDeviceInfo as ISessionDeviceInfo
+  SessionDeviceInfo
 } from '@mercurion/rest-contracts'
 
-export interface FingerprintDataWrapper {
+export type {
+  FingerprintData
+} from '@mercurion/rest-contracts'
+
+export type FingerprintDataWrapper = {
   fingerprintDataEnc: string
   sessionDeviceInfo: SessionDeviceInfo
 }

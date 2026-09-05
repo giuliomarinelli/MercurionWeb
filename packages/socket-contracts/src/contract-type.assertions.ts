@@ -17,7 +17,10 @@ clientToServer[socketEventRegistry.sessionInit.name](undefined, (acknowledgement
 
 serverToClient[socketEventRegistry.publicTestResponse.name]('PING RESP')
 serverToClient[socketEventRegistry.privateTestResponse.name]('PING PRIVATE RESP')
-serverToClient[socketEventRegistry.applicationError.name]({ detail: 'Unauthorized' })
+serverToClient[socketEventRegistry.applicationError.name]({
+  code: 'AUTHENTICATION_UNAUTHORIZED',
+  detail: 'Unauthorized'
+})
 serverToClient[socketEventRegistry.sessionExpired.name]({
   detail: 'session expired',
   reason: 'expired'
@@ -32,5 +35,5 @@ clientToServer[socketEventRegistry.sessionInit.name](undefined, (acknowledgement
 // @ts-expect-error Undeclared client events are not part of the event map.
 clientToServer['so.pub.undeclared']('payload')
 
-// @ts-expect-error Application errors use the declared transport error shape.
-serverToClient[socketEventRegistry.applicationError.name]({ message: 'Unauthorized' })
+// @ts-expect-error Application errors require the canonical application error code.
+serverToClient[socketEventRegistry.applicationError.name]({ detail: 'Unauthorized' })

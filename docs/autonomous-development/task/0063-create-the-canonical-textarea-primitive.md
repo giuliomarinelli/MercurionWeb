@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -86,34 +86,39 @@ If a reusable field-shell was introduced in `0062`, use it rather than reimpleme
 ## Execution notes
 
 ### Feature branch
-_Not started._
+No task branch or worker was created because hard prerequisite
+`0062-create-the-canonical-textfield-primitive.md` (`UI-004`) is
+`SKIPPED_DEPENDENCY`.
 
 ### Preflight
-_Not started._
+Not applicable; the task was skipped before implementation.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-_Not started._
+Skipped at the normal filename-order selection point. `UI-004` is terminal
+`SKIPPED_DEPENDENCY`, with transitive blocked root cause
+`0052-standardize-modern-angular-component-apis.md` (`FE-030`).
 
 ### Task-specific validation performed
-_Not started._
+No implementation or validation was performed.
 
 ### Full pre-merge CI-parity validation
-_Not started._
+Not applicable; no feature branch was created.
 
 ### Browser validation performed
-_Not started._
+Not applicable; the task was skipped before implementation.
 
 ### Commits
-_Not recorded._
+Only this task metadata was updated on `develop`.
 
 ### Merge / CI
-_Not started._
+No feature merge; skip metadata CI is required before continuing.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-_None._
+No implementation blocker. Re-enable only after the dependency chain through
+FE-030 is deliberately resolved in a new authorized session.

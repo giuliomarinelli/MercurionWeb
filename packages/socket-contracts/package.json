@@ -22,6 +22,9 @@
     "policy": "node scripts/check-socket-event-policy.mjs",
     "policy:negative": "node scripts/test-socket-event-policy-negative.mjs"
   },
+  "dependencies": {
+    "@mercurion/rest-contracts": "1.0.0"
+  },
   "devDependencies": {
     "typescript": "5.9.3"
   }

@@ -7,8 +7,9 @@ import { ProviderProfile } from '../Models/interfaces/provider-profile.interface
 import { AuthProvider } from '../Models/enums/auth-provider.enum';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
-import { RpcException } from '@nestjs/microservices';
+
 import { SSO_Configuration } from 'src/config/config.types';
+import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 
 /**
  * Google OIDC:
@@ -82,7 +83,7 @@ export class GoogleProviderClient implements ISocialProviderClient {
         )
 
         const { id_token } = (tokenRes as unknown as Record<string, string>).data as unknown as Record<string, string>
-        if (!id_token) throw new RpcException('SSO_Unauthorized::No id_token from Google')
+        if (!id_token) throw applicationError(ApplicationErrorCode.SSO_GOOGLE_ID_TOKEN_MISSING)
 
         const claims = await this.verifyIdToken(id_token, (discovery as Record<string, string>).jwks_uri) as Record<string, string | undefined>
 
@@ -123,7 +124,7 @@ export class GoogleProviderClient implements ISocialProviderClient {
             return payload
         } catch (e) {
             this.logger.warn('verifyIdToken > error: ', (e.stack ?? e) as object)
-            throw new RpcException('SSO_Unauthorized::Invalid Google id_token')
+            throw applicationError(ApplicationErrorCode.SSO_GOOGLE_ID_TOKEN_INVALID)
         }
     }
 }

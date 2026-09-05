@@ -39,7 +39,10 @@ describe('Socket.IO contract registry', () => {
   })
 
   it('defines application errors and session expiration as server events', () => {
-    const error: SocketApplicationError = { detail: 'Unauthorized' }
+    const error: SocketApplicationError = {
+      code: 'AUTHENTICATION_UNAUTHORIZED',
+      detail: 'Unauthorized'
+    }
     const expired: SocketSessionExpiredPayload = {
       detail: 'session expired',
       reason: 'expired'

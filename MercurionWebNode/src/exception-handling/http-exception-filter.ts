@@ -13,6 +13,11 @@ import { HttpErrorRes, InternalErrorRes } from 'src/Models/error-res.dto';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 import { randomBytes } from 'node:crypto';
+import {
+    getApplicationError,
+    getApplicationErrorMessage
+} from './application-error';
+import { getApplicationErrorDefinition, isApplicationErrorPayload } from '@mercurion/rest-contracts';
 
 
 @Catch()
@@ -58,6 +63,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
             ? {
                 statusCode: status,
                 error: base.error ?? HttpStatusMap.getDescriptionFromHttpStatusCode(status),
+                code: base.code,
                 message: 'Internal Server Error'
             }
             : base
@@ -77,6 +83,16 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
         const status = e.getStatus()
         const resp = e.getResponse()
+
+        if (isApplicationErrorPayload(resp)) {
+            const definition = getApplicationErrorDefinition(resp.code)
+            return {
+                statusCode: definition.httpStatus,
+                error: HttpStatusMap.getDescriptionFromHttpStatusCode(definition.httpStatus),
+                code: resp.code,
+                message: getApplicationErrorMessage(resp, this.isNotDev)
+            }
+        }
 
         if (typeof resp === 'string') {
             return {
@@ -99,103 +115,25 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     private handleRpcException(e: RpcException): InternalErrorRes {
 
+        const applicationError = getApplicationError(e)
+        if (applicationError) {
+            const definition = getApplicationErrorDefinition(applicationError.code)
+            return {
+                statusCode: definition.httpStatus,
+                error: HttpStatusMap.getDescriptionFromHttpStatusCode(definition.httpStatus),
+                code: applicationError.code,
+                message: getApplicationErrorMessage(applicationError, this.isNotDev)
+            }
+        }
+
         const raw = e.getError();
-        let msg = (typeof raw === 'string' ? raw : (raw as any)?.message ?? e.message) as string
-
-        let statusCode = HttpStatus.INTERNAL_SERVER_ERROR
-
-
-        switch (msg) {
-            case 'UnprocessableEntity':
-                statusCode = HttpStatus.UNPROCESSABLE_ENTITY
-                break
-            case 'UserRegistrationConflict::Email already exists':
-            case 'ChangeEmail::NewEmailIsCurrentEmail':
-            case 'ChangePhone::NumberAlreadySet':
-            case 'Conflict::Smiles already exist':
-                statusCode = HttpStatus.CONFLICT
-                break
-
-            case 'AccountActivation::User not found':
-            case 'ChangeEmail::UserNotFound':
-            case 'ChangeEmailConfirm::UserNotFound':
-            case 'ChangePhone::UserNotFound':
-            case 'NoSuchUser':
-            case 'TicketNotFound':
-            case 'Feedback::NotFound':
-                statusCode = HttpStatus.NOT_FOUND
-                break
-
-            case 'ChangeEmail::EmailAlreadyInUseOrPending':
-            case 'ChangePhone::NumberAlreadyUsedOrPending':
-            case 'NotAllowedAction':
-            case 'InvalidOrExpiredChangePasswordToken':
-            case 'PasswordReused':
-            case 'ChEMBLItemAddError::Forbidden':
-            case 'CustomItemAddError::Forbidden':
-            case 'InvalidSessionSignature':
-            case 'InvalidSession':
-            case 'MfaTemporarilyLocked':
-            case 'Forbidden::missing permissions':
-            case 'BackupCodesAlreadyGenerated':
-            case 'DeletePhone::NumberAlreadyUsedOrPending':
-            case 'DeletePhone::NoPendingDeletion':
-                statusCode = HttpStatus.FORBIDDEN
-                break
-
-            case 'ChangeEmailConfirm::NoUnconfirmedEmail':
-            case 'DeletePhone::UserNotFound':
-            case 'DeletePhone::NoPhoneNumber':
-                statusCode = HttpStatus.BAD_REQUEST
-                break
-
-            case 'ChangeEmailConfirm::InvalidTotp':
-            case 'ChangePhone::InvalidTOTP':
-            case 'InvalidJwtValidation':
-            case 'AuthenticationInvalidCredentials':
-            case 'Unauthanticated':
-            case 'AccountRecovery::wrong recovery code':
-            case 'ChangePassword::Invalid Credentials':
-            case 'SSO_Unauthorized::No id_token from Google':
-            case 'SSO_Unauthorized::Invalid Google id_token':
-            case 'SSO_Unauthorized::GitHub: access_token missing':
-            case 'SSO_Unauthorized::Discord: missing access token':
-                statusCode = HttpStatus.UNAUTHORIZED
-                break
-
-            case 'Authentication::TooManyAttempts':
-            case 'Mfa::TooManyAttempts':
-            case 'MfaSend::TooManyRequests':
-            case 'ChangeEmail::TooManyAttempts':
-            case 'ChangePhone::TooManyAttempts':
-            case 'ChangeEmailSend::TooManyRequests':
-            case 'ChangePhoneSend::TooManyRequests':
-            case 'Password::TooManyAttempts':
-            case 'PasswordResetSend::TooManyRequests':
-            case 'BackupCode::TooManyAttempts':
-            case 'BackupCodeRegen::TooManyRequests':
-            case 'AccountRecovery::TooManyAttempts':
-            case 'Feedback::TooManyRequests':
-                statusCode = HttpStatus.TOO_MANY_REQUESTS
-                msg = 'Rate limit exceeded.'
-                break
-            case 'MercurionTox21ClientConnection::PayloadTooLarge':
-                statusCode = HttpStatus.PAYLOAD_TOO_LARGE
-                break
-            case 'MercurionTox21ClientConnectionTimeoutNoResponse':
-                statusCode = HttpStatus.GATEWAY_TIMEOUT
-                break
-        }
-
-        if (e.message.startsWith('Provider not supported')) {
-            msg = `SSO_BadRequest::${e.message}`
-            statusCode = HttpStatus.BAD_REQUEST
-        }
+        const message = (typeof raw === 'string' ? raw : (raw as any)?.message ?? e.message) as string
+        const statusCode = HttpStatus.INTERNAL_SERVER_ERROR
 
         return {
             statusCode,
             error: HttpStatusMap.getDescriptionFromHttpStatusCode(statusCode),
-            message: msg
+            message
         }
     }
 }

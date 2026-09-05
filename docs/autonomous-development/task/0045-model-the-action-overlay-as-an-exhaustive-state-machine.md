@@ -1,6 +1,6 @@
 # 0045 - Model the action overlay as an exhaustive state machine
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -89,28 +89,28 @@ A reducer-like pure transition function plus a small controller for timers/side 
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/FE-023` from `6195ab303756247c5c54fe5a18ad8cca6e2560d5`.
 
 ### Preflight
-_Not started._
+Passed unchanged: `npm ci` followed by `npm run ci:check`.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-_Not started._
+Replaced independent overlay visibility, mount, scope and pending-scope signals with a discriminated lifecycle state machine. The state model makes opening, active, submitting, succeeded, failed, closing, settling and closed states explicit. The controller owns cancellable, generation-bound animation timers, so stale callbacks cannot affect a newer action scope. Readonly derived selectors retain the overlay template's mount, visibility and scope contract; semantic submit-result and cancellation commands are available to action sessions.
 
 ### Task-specific validation performed
-_Not started._
+`npx ng test --watch=false --karma-config=karma.conf.js --include='src/app/services/context/action-context/action-overlay-context.service.spec.ts'` passed: 4 fake-timer lifecycle/state-machine specs covering opening/closing timing, rapid close-to-open scope replacement, repeated submit and result handling, and cancelling a pending submission.
 
 ### Full pre-merge CI-parity validation
-_Not started._
+Passed: `npm ci` followed by `npm run ci:check`, including Angular lint/type/template checks, all Angular tests, Angular production build, Nest lint/typecheck/unit/E2E/build, contracts, GraphQL generated-artifact checks, and registered static policy gates.
 
 ### Browser validation performed
-_Not started._
+Automated validation used because no safe overlay could be exercised through the required development edge. Angular started successfully on its internal port, but `http://localhost:8888/` and `/health` remained `502`; Nest could not start because the local environment is missing all required runtime configuration values, and the read-only Tox21 runtime could not load its `main` module. No production or unsafe action was attempted.
 
 ### Commits
-_Not recorded._
+- `ca977a8d` `feat(overlay): model action lifecycle state`
 
 ### Merge / CI
 _Not started._

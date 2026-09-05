@@ -1,7 +1,8 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { createHmac, randomUUID, UUID } from 'crypto';
-import { ISession, ISessionDeviceInfo, ISSO_SessionActivationData } from '../Models/interfaces/i-session.interface';
-import { RpcException } from '@nestjs/microservices';
+import { ISession, ISSO_SessionActivationData } from '../Models/interfaces/i-session.interface';
+import type { SessionDeviceInfo } from '@mercurion/rest-contracts'
+
 import { GeoLocation } from './geo-ip.service';
 import { SessionFetchOptions } from '../Models/interfaces/session-fetch-options.interface';
 import { SessionDTO } from '../Models/DTO/session.dto';
@@ -11,6 +12,11 @@ import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interface
 import { AuthProvider } from 'src/app_modules/sso/Models/enums/auth-provider.enum';
 import { TypeGuards } from 'src/utils/type-guards/type-guards';
 import { RedisService } from 'src/app_modules/redis/services/redis.service'
+import {
+    ApplicationErrorCode,
+    applicationError,
+    applicationHttpException
+} from 'src/exception-handling/application-error'
 
 @Injectable()
 export class SessionService {
@@ -100,7 +106,7 @@ export class SessionService {
     }
 
     private verifyAndParseSignedSessionId(signed: string): UUID | never {
-        const e = new RpcException('InvalidSessionSignature')
+        const e = applicationError(ApplicationErrorCode.SESSION_SIGNATURE_INVALID)
         if (signed.split('.').length !== 2) {
             throw e
         }
@@ -123,7 +129,7 @@ export class SessionService {
             valid: showValid ? session.valid : undefined,
             current,
             location: session.location,
-            browser: session.sessionDeviceInfo.browser.name,
+            browser: session.sessionDeviceInfo.browser.name ?? '',
             provider: session.provider
         })
     }
@@ -212,7 +218,7 @@ export class SessionService {
     public async activateSession(sessionId: string, userId: string, sso_data?: ISSO_SessionActivationData): Promise<void> | never {
         const session = await this.getSession(sessionId, userId)
         if (!session) {
-            throw new RpcException('UnauthorizedNoSuchSession')
+            throw applicationError(ApplicationErrorCode.SESSION_NOT_FOUND)
         }
         const key = this.getSessionKeyOrPattern(sessionId, userId)
         await this.redisService.hset(key, 'valid', 'true')
@@ -262,7 +268,7 @@ export class SessionService {
                     lastAccessedAt: parseInt(sd.lastAccessedAt, 10),
                     IP: sd.IP,
                     valid: JSON.parse(sd.valid) as boolean,
-                    sessionDeviceInfo: JSON.parse(sd.sessionDeviceInfo) as ISessionDeviceInfo,
+                    sessionDeviceInfo: JSON.parse(sd.sessionDeviceInfo) as SessionDeviceInfo,
                     fingerprint: sd.fingerprint,
                     location: sd.location,
                     provider: TypeGuards.isAuthProvider(sd.provider) ? sd.provider : AuthProvider.Mercurion
@@ -335,7 +341,7 @@ export class SessionService {
                 lastAccessedAt: parseInt(sessionData.lastAccessedAt, 10),
                 IP: sessionData.IP,
                 valid: JSON.parse(sessionData.valid) as boolean,
-                sessionDeviceInfo: JSON.parse(sessionData.sessionDeviceInfo) as ISessionDeviceInfo,
+                sessionDeviceInfo: JSON.parse(sessionData.sessionDeviceInfo) as SessionDeviceInfo,
                 fingerprint: sessionData.fingerprint,
                 location: sessionData.location,
                 provider: TypeGuards.isAuthProvider(sessionData.provider) ? sessionData.provider : AuthProvider.Mercurion
@@ -431,7 +437,7 @@ export class SessionService {
 
         const expectedDeviceId = await this.redisService.hget(key, 'deviceId')
         if (expectedDeviceId && expectedDeviceId !== deviceId) {
-            throw new ForbiddenException('NotAllowedAction')
+            throw applicationHttpException(ApplicationErrorCode.ACTION_NOT_ALLOWED)
         }
 
         const uid = resolvedUid ?? this.getUserIdFromSessionKey(key)
@@ -521,7 +527,7 @@ export class SessionService {
         const sessionId = this.verifyAndParseSignedSessionId(signedSessionId)
 
         const { key, userId: uid } = await this.resolveSessionContext(sessionId, userId)
-        if (!uid || !key) throw new RpcException('InvalidSession')
+        if (!uid || !key) throw applicationError(ApplicationErrorCode.SESSION_INVALID)
 
         const exists = await this.redisService.hget(key, 'sessionId')
 

@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -110,20 +110,23 @@ Keep the selector semantic, e.g. `authenticated`, rather than exposing its imple
 
 ### Summary
 
-_Not started._
+Skipped without implementation because hard prerequisite `0026-create-canonical-angular-auth-state-store.md` (`FE-004`) is terminal `BLOCKED` pending authenticated browser validation. The canonical auth store required by this selector is preserved only on the frozen feature branch and is not available on `develop`.
 
 ### Validation performed
 
-_Not started._
+- No task branch or worker was created.
+- Direct prerequisite: `FE-004` is `BLOCKED`.
+- Transitive dependency chain: `FE-005` -> `FE-004` (`BLOCKED`); `0010` is already `DONE`.
 
 ### Browser validation performed
 
-_Not started._
+Not applicable; the task was skipped before implementation.
 
 ### Changed files
 
-_Not recorded._
+No files changed; only this task metadata was updated.
 
 ### Blocker / human decision required
 
-_None._
+No implementation blocker. The task may be re-enabled only after its hard
+dependency is deliberately resolved in a new authorized session.

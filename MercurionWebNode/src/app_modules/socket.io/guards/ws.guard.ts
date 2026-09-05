@@ -10,12 +10,17 @@ import { WebSocketUtils } from 'src/utils/web-socket-utils/web-socket-utils';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 import { ScopeService } from 'src/app_modules/auth/services/scope.service';
-import { RpcException } from '@nestjs/microservices';
 import {
   socketEventRegistry,
   type ClientToServerEvents,
   type ServerToClientEvents,
 } from '@mercurion/socket-contracts';
+import {
+  ApplicationErrorCode,
+  getApplicationError,
+  isApplicationError
+} from 'src/exception-handling/application-error';
+import { getApplicationErrorDefinition } from '@mercurion/rest-contracts';
 
 type ApplicationSocket = Socket<ClientToServerEvents, ServerToClientEvents>
 
@@ -102,8 +107,12 @@ export class WsGuard implements CanActivate {
       this.logger.debug?.(`Socket ${client.id} polling connection state: PRIVATE (Authenticated)`)
       return true
     } catch (e) {
-      if (e instanceof RpcException && e.message === 'Forbidden::missing permissions') {
-        client.emit(socketEventRegistry.applicationError.name, { detail: e.message })
+      if (isApplicationError(e, ApplicationErrorCode.PERMISSION_DENIED)) {
+        const applicationError = getApplicationError(e)!
+        client.emit(socketEventRegistry.applicationError.name, {
+          code: applicationError.code,
+          detail: applicationError.message
+        })
         return false
       }
       this.unauthorized(client)
@@ -112,7 +121,10 @@ export class WsGuard implements CanActivate {
   }
 
   private unauthorized(client: ApplicationSocket): void {
-    client.emit(socketEventRegistry.applicationError.name, { detail: 'Unauthorized' })
+    client.emit(socketEventRegistry.applicationError.name, {
+      code: ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED,
+      detail: getApplicationErrorDefinition(ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED).defaultMessage ?? 'Unauthorized'
+    })
     client.disconnect()
   }
 

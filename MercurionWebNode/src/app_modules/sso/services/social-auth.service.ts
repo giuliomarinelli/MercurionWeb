@@ -13,11 +13,12 @@ import { TokenType } from 'src/app_modules/auth/Models/enums/token-type.enum';
 import { ScopeService } from "src/app_modules/auth/services/scope.service";
 import { ConfigService } from "@nestjs/config";
 import { RedisService } from "src/app_modules/redis/services/redis.service";
-import { RpcException } from "@nestjs/microservices";
+
 import { ChEMBLMoleculeItemEntity } from "src/app_modules/molecule-collection/Models/entities/chembl-molecule-item.entity";
 import { MoleculeCollection } from "src/app_modules/molecule-collection/Models/entities/molecule-collection.entity";
 import { MoleculeCollectionItemJoin } from "src/app_modules/molecule-collection/Models/entities/molecule-collection-item-join.entity";
 import { SercurityService } from "src/app_modules/auth/services/sercurity.service";
+import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 
 @Injectable()
 export class SocialAuthService {
@@ -248,7 +249,7 @@ export class SocialAuthService {
             })
         } catch (e) {
             this.logger.warn(' > loginWithProvider > Error: ', (e instanceof Error ? e.stack : e) as object)
-            throw new RpcException('SSO_Unauthorized::failed callback flow')
+            throw applicationError(ApplicationErrorCode.SSO_CALLBACK_FAILED)
         }
 
     }

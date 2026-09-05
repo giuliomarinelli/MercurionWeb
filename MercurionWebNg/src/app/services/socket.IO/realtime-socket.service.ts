@@ -1,7 +1,7 @@
 /* ──────────────────────────────────────────────────────────────
  * RealtimeSocketService – public stabile, upgrade/downgrade safe
  * ────────────────────────────────────────────────────────────── */
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
 import { Observable } from 'rxjs';
 import {
@@ -14,7 +14,11 @@ import {
 } from '@mercurion/socket-contracts';
 import { AuthService } from '../auth.service';
 import { JwtHelperService } from '../jwt-helper.service';
-import { environment } from '../../../environments/environment.development';
+import { APP_CONFIG } from '../../config/app-config';
+import {
+  ApplicationErrorCode,
+  hasApplicationErrorCode
+} from '../../utils/application-error.util';
 
 export type SocketMode = 'public' | 'private';
 
@@ -23,6 +27,8 @@ export class RealtimeSocketService {
 
   private socket: Socket<ServerToClientEvents, ClientToServerEvents>;
   private mode: SocketMode = 'public';
+
+  private readonly appConfig = inject(APP_CONFIG);
 
   // evita spam di connect()
   private connectInFlight = false;
@@ -42,8 +48,8 @@ export class RealtimeSocketService {
     private readonly jwt: JwtHelperService,
   ) {
 
-    this.socket = io(environment.wsUrl, {
-      path: '/socket.io',
+    this.socket = io(this.appConfig.endpoints.realtimeUrl, {
+      path: this.appConfig.endpoints.realtimePath,
       transports: ['websocket'],
       withCredentials: true,
       reconnection: true,
@@ -78,9 +84,9 @@ export class RealtimeSocketService {
 
     this.socket.on('connect_error', async (err) => {
       if (this.mode !== 'private') return;
-      const errorCode = 'code' in err ? err.code : undefined;
-      const isAuthErr = (errorCode === 'AUTH_EXPIRED') ||
-        (typeof err?.message === 'string' && /auth|token/i.test(err.message));
+      const isAuthErr =
+        hasApplicationErrorCode(err, ApplicationErrorCode.ACCESS_TOKEN_INVALID_OR_EXPIRED) ||
+        hasApplicationErrorCode(err, ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED)
       if (!isAuthErr) return;
 
       await this.ensureFreshToken(true); // <-- FORZA refresh
@@ -312,3 +318,4 @@ export class RealtimeSocketService {
   }
 
 }
+

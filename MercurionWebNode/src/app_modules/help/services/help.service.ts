@@ -3,8 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { DataSource, In, Repository } from 'typeorm'
 import { uuidv7 } from '@kripod/uuidv7'
 import { randomBytes, UUID } from 'crypto'
-import { Maybe } from 'graphql/jsutils/Maybe'
-import { RpcException } from '@nestjs/microservices'
+
 import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate'
 import { Ticket } from '../Models/entities/ticket.entity'
 import { TicketMessage } from '../Models/entities/ticket-message.entity'
@@ -17,6 +16,7 @@ import { TicketDetailDTO } from '../Models/DTO/ticket-detail.dto'
 import { JsonValue } from 'src/Models/json.types'
 import { TypeGuards } from 'src/utils/type-guards/type-guards'
 import { User } from 'src/app_modules/user/Models/entities/user.entity'
+import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 
 @Injectable()
 export class HelpService {
@@ -76,7 +76,7 @@ export class HelpService {
     })
 
     if (!firstMsg) {
-      throw new RpcException('Failed to create first ticket message')
+      throw applicationError(ApplicationErrorCode.TICKET_INITIAL_MESSAGE_CREATE_FAILED)
     }
 
     if (canViewUsers) {
@@ -91,7 +91,7 @@ export class HelpService {
     if (!canViewUsers) {
       Object.entries(ticket).forEach(([key]) => {
         if (['authorId', 'userId', 'messages', 'userFullName'].includes(key)) {
-          (ticket as unknown as Record<string, Maybe<string | object>>)[key] = undefined
+          (ticket as unknown as Record<string, string | object | null | undefined>)[key] = undefined
         }
       })
     }
@@ -119,11 +119,11 @@ export class HelpService {
       })
 
       if (!ticket) {
-        throw new RpcException('TicketNotFound')
+        throw applicationError(ApplicationErrorCode.TICKET_NOT_FOUND)
       }
 
       if (ticket.status === TicketStatus.Closed) {
-        throw new RpcException('Forbidden::Cannot publish on a closed ticket')
+        throw applicationError(ApplicationErrorCode.TICKET_CLOSED_FOR_PUBLISHING)
       }
 
       msg = this.makeUserMessage({
@@ -168,11 +168,11 @@ export class HelpService {
 
 
       if (!ticket) {
-        throw new RpcException('TicketNotFound')
+        throw applicationError(ApplicationErrorCode.TICKET_NOT_FOUND)
       }
 
       if (ticket.status === TicketStatus.Closed) {
-        throw new RpcException('Forbidden::Cannot publish on a closed ticket')
+        throw applicationError(ApplicationErrorCode.TICKET_CLOSED_FOR_PUBLISHING)
       }
 
       ticketUserId = ticket.userId
@@ -317,7 +317,7 @@ export class HelpService {
     }
 
     const ticket = await qb.getOne()
-    if (!ticket) throw new RpcException('TicketNotFound')
+    if (!ticket) throw applicationError(ApplicationErrorCode.TICKET_NOT_FOUND)
 
     if (canViewUsers && wantsUserFullName) {
       await this.attachTicketUserFullNames([ticket])
@@ -345,7 +345,7 @@ export class HelpService {
         where: { id: ticketId, userId }
       })
       if (!owns) {
-        throw new RpcException('TicketNotFound')
+        throw applicationError(ApplicationErrorCode.TICKET_NOT_FOUND)
       }
     }
 
@@ -497,7 +497,7 @@ export class HelpService {
   }
 
   private stampTicket(ticket: Ticket, now: number): void {
-    ; (ticket as unknown as Record<string, Maybe<string>>).createdAt ??= String(now)
+    ; (ticket as unknown as Record<string, string | null | undefined>).createdAt ??= String(now)
     ticket.updatedAt = String(now)
     ticket.lastMessageAt = String(now)
   }

@@ -6,8 +6,12 @@ import { GraphQLModule } from '@nestjs/graphql'
 import { MercuriusDriver, MercuriusDriverConfig } from '@nestjs/mercurius'
 import { join } from 'path'
 import { FastifyReply, FastifyRequest } from 'fastify'
-import { RpcException } from '@nestjs/microservices'
 import GraphQLJSON from 'graphql-type-json'
+import {
+    getApplicationError,
+    getApplicationErrorMessage
+} from './exception-handling/application-error'
+import { getApplicationErrorDefinition } from '@mercurion/rest-contracts'
 
 export const MercurionGraphQLModule = GraphQLModule.forRootAsync<MercuriusDriverConfig>({
     driver: MercuriusDriver,
@@ -48,51 +52,32 @@ export const MercurionGraphQLModule = GraphQLModule.forRootAsync<MercuriusDriver
                 const sanitizedErrors = errors.map((err: GraphQLError) => {
                     const original = err.originalError
 
-                    if (original instanceof UnauthorizedException) {
-                        if (original.message !== 'Unauthenticated') {
-                            ctx.reply.statusCode = 401
-
-                            if (original.message === 'Fatal: unauthenticated') {
-                                return {
-                                    message: original.message,
-                                    path: err.path,
-                                    extensions: {
-                                        code: 'UNAUTHENTICATED_FATAL',
-                                    },
-                                }
-                            }
-
-                            return {
-                                message: 'Unauthorized',
-                                path: err.path,
-                                extensions: {
-                                    code: 'UNAUTHORIZED',
-                                },
-                            }
-                        } else {
-                            ctx.reply.statusCode = 200
-                            return {
-                                message: original.message,
-                                path: err.path,
-                                extensions: {
-                                    code: 'UNAUTHENTICATED',
-                                },
-                            }
+                    const applicationError = getApplicationError(original)
+                    if (applicationError) {
+                        const definition = getApplicationErrorDefinition(applicationError.code)
+                        ctx.reply.statusCode = definition.graphQlStatus ?? definition.httpStatus
+                        return {
+                            message: getApplicationErrorMessage(applicationError, isNotDev),
+                            path: err.path,
+                            extensions: {
+                                code: applicationError.code,
+                            },
                         }
                     }
 
-                    if ((original instanceof RpcException && ['Forbidden::Cannot publish on a closed ticket', 'Forbidden::missing permissions'].includes(original.message)) || original instanceof ForbiddenException) {
-                        ctx.reply.statusCode = 403
-
-                        if (['Forbidden::Cannot publish on a closed ticket', 'Forbidden::missing permissions'].includes(original.message)) {
-                            return {
-                                message: original.message,
-                                path: err.path,
-                                extensions: {
-                                    code: 'FORBIDDEN',
-                                },
-                            }
+                    if (original instanceof UnauthorizedException) {
+                        ctx.reply.statusCode = 401
+                        return {
+                            message: 'Unauthorized',
+                            path: err.path,
+                            extensions: {
+                                code: 'UNAUTHORIZED',
+                            },
                         }
+                    }
+
+                    if (original instanceof ForbiddenException) {
+                        ctx.reply.statusCode = 403
 
                         return {
                             message: 'Forbidden',

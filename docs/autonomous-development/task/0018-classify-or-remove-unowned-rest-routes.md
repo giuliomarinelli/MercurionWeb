@@ -1,7 +1,7 @@
 # 0018 - Classify or remove unowned REST routes
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -91,20 +91,36 @@ The useful deliverable is not just deletion; it is an auditable map explaining w
 
 ### Summary
 
-_Not started._
+Added a committed, deterministic inventory of all 71 Nest controller routes, including
+verb, effective path, global-prefix exception, handler source location, repository
+references, and explicit ownership classification. The inventory identifies the
+browser/system, OAuth, administration, and test-only routes that are not ordinary
+Angular HTTP APIs; no route was removed because none has positive obsolete evidence.
 
 ### Validation performed
 
-_Not started._
+- `node scripts/check-rest-route-ownership.mjs --write` generated the 71-route inventory.
+- `node scripts/check-rest-route-ownership.mjs` verified the inventory before final CI.
+- Initial unchanged `npm ci` and `npm run ci:check` passed before implementation.
 
 ### Browser validation performed
 
-_Not started / not applicable per route._
+Attempted the canonical runtime after the unchanged preflight. `http://localhost:8888`
+was reachable, but `/health` and `/robots.txt` both returned `502 Bad Gateway`.
+Nest rejected the missing local development environment configuration before binding
+to its nginx upstream, and the read-only Tox21 process stopped on a Windows
+`UnicodeEncodeError` while printing its startup message. No production credentials
+were used.
 
 ### Changed files
 
-_Not recorded._
+- `docs/architecture/rest-route-ownership.json`
+- `scripts/check-rest-route-ownership.mjs`
+- `package.json`
+- `docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md`
 
 ### Blocker / human decision required
 
-_None._
+Browser validation required by this recipe cannot be completed until a safe local
+development environment configuration allows Nest to bind behind the canonical nginx
+edge, and the local Tox21 runtime can start without the console encoding failure.

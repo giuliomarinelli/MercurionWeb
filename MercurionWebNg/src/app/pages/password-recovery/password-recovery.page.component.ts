@@ -1,4 +1,6 @@
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { LoggerService } from '../../services/logger.service';
+import { Component, ChangeDetectionStrategy, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AccountService } from '../../services/account.service';
 import { catchError, distinctUntilChanged, EMPTY, filter, of, Subscription, switchMap, take, tap } from 'rxjs';
@@ -9,9 +11,14 @@ import { matchPassword } from '../../custom-validators';
 import { ErrorRes } from '../../Models/confirm.models';
 import { UserContextService } from '../../services/context/user-context.service';
 import { Helpers } from '../../helpers';
+import {
+  ApplicationErrorCode,
+  hasApplicationErrorCode
+} from '../../utils/application-error.util';
 
 @Component({
   selector: 'm-password-recovery',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     FloatingInputComponent,
@@ -118,6 +125,8 @@ export class PasswordRecoveryPageComponent implements OnInit, OnDestroy {
   private readonly accountService = inject(AccountService);
   private readonly fb = inject(FormBuilder)
   private readonly userCtx = inject(UserContextService)
+  private readonly destroyRef = inject(DestroyRef)
+  private readonly logger = inject(LoggerService);
 
   private changePasswordToken = signal<string>('');
   private recoverySub?: Subscription;
@@ -125,6 +134,7 @@ export class PasswordRecoveryPageComponent implements OnInit, OnDestroy {
   private sendSub?: Subscription;
   private valChSub?: Subscription
   private valChSub2?: Subscription
+  private redirectTimeoutId?: ReturnType<typeof setTimeout>
 
   step = signal<1 | 2>(1)
   canView = signal(false)
@@ -134,18 +144,21 @@ export class PasswordRecoveryPageComponent implements OnInit, OnDestroy {
 
   form = this.fb.group({
     password: [null, [Validators.required, Validators.minLength(8)]],
-    confirmPassword: [null, [Validators.required, matchPassword]],
-  })
+    confirmPassword: [null, [Validators.required, matchPassword]] })
 
   private sanitizeToken(raw: string) {
     return decodeURIComponent(raw).replace(/[\s\u00A0\u200B-\u200D\uFEFF]/g, '');
   }
 
   ngOnInit(): void {
-    this.valChSub = this.form.get('password')?.valueChanges.subscribe(() => {
+    this.valChSub = this.form.get('password')?.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.form.get('confirmPassword')?.updateValueAndValidity({ onlySelf: true });
     })
-    this.valChSub2 = this.form.valueChanges.subscribe(() => this.serverError.set(false))
+    this.valChSub2 = this.form.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => this.serverError.set(false))
     this.recoverySub = of(null).pipe(
       tap(() => {
         this.userCtx.logout()
@@ -202,32 +215,36 @@ export class PasswordRecoveryPageComponent implements OnInit, OnDestroy {
         this.router.navigateByUrl('/404-not-found')
         return EMPTY
       })
-    ).subscribe()
+    ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe()
   }
 
   send(): void {
     if (this.form.valid) {
       this.step_12_loading.set(true)
       this.sendSub = this.accountService.recoverPassword({ newPassword: this.form.controls['password'].value! }, this.changePasswordToken())
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: () => {
             this.step.set(2)
             this.step_12_loading.set(false)
           },
           error: (e: { error: ErrorRes, status: number }) => {
-            console.log(e)
+            this.logger.error('Password recovery error', e)
             this.serverError.set(true)
             this.step_12_loading.set(false)
-            if (e.status === 403 && e.error.message === 'PasswordReused') {
+            if (e.status === 403 &&
+              hasApplicationErrorCode(e.error, ApplicationErrorCode.PASSWORD_REUSED)) {
               this.serverErrorMsg.set('Impossibile salvare una password già utilizzata')
             }
-            setTimeout(() => this.router.navigateByUrl('/forgot-password'), 3000)
+            clearTimeout(this.redirectTimeoutId)
+            this.redirectTimeoutId = setTimeout(() => this.router.navigateByUrl('/forgot-password'), 3000)
           }
         })
     }
   }
 
   ngOnDestroy(): void {
+    clearTimeout(this.redirectTimeoutId)
     this.recoverySub?.unsubscribe()
     this.paramSub?.unsubscribe()
     this.sendSub?.unsubscribe()
@@ -235,3 +252,4 @@ export class PasswordRecoveryPageComponent implements OnInit, OnDestroy {
     this.valChSub2?.unsubscribe()
   }
 }
+

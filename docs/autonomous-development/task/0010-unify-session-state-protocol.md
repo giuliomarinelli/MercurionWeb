@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -102,20 +102,33 @@ Prefer a small explicit state machine over distributed booleans. Do not conflate
 
 ### Summary
 
-_Not started._
+Not attempted. At its normal filename-order selection point, this task's hard
+prerequisite `0009-create-typed-socket-io-event-registry.md` was terminal
+`BLOCKED`, so the protocol requires `SKIPPED_DEPENDENCY` without a feature
+branch or worker invocation.
 
 ### Validation performed
 
-_Not started._
+No implementation or task preflight was run. Dependency resolution was
+performed on clean `develop` after the exact blocked-metadata CI for task 0009
+succeeded.
 
 ### Browser validation performed
 
-_Not started._
+Not performed because this task was not attempted.
 
 ### Changed files
 
-_Not recorded._
+Only this task recipe's terminal-state metadata and execution notes.
 
 ### Blocker / human decision required
 
-_None._
+Direct terminal prerequisite:
+`0009-create-typed-socket-io-event-registry.md` (`SYS-009`) is `BLOCKED`.
+
+Dependency chain: `0010 (SYS-010) -> 0009 (SYS-009, BLOCKED)`.
+
+Task 0009 is preserved and frozen on `feature/SYS-009` at
+`2d1df866fdf7befd3b07ad1a4201c682083fc2cf`. Its mandatory browser validation
+requires approved non-production Nest runtime configuration and a UTF-8-capable
+environment for the documented Tox21 command.
