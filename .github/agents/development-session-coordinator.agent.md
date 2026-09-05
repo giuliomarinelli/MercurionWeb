@@ -34,17 +34,53 @@ Do not start a task at or after the soft deadline. Do not signal that the overal
 
 ## One-task loop
 
-For each selected task, serially:
+Before each task selection, build one read-only dependency snapshot for the
+configured workload:
 
-1. resolve pending tasks lazily in filename order according to `PROTOCOL.md`; do not precompute a transitive dependency-skip closure, and mark at most the one task currently at its normal selection point `SKIPPED_DEPENDENCY` before restarting selection;
-2. fetch remote state, return to clean `develop`, fast-forward to the exact `origin/develop` tip, and record that base SHA;
-3. create and push exactly `feature/<Source>` from that SHA; never overwrite or reuse an existing local or remote branch automatically;
-4. prove that every session-owned Angular, Nest, Tox21, test watcher, and other workspace-consuming process is stopped, then call the CLI `task` tool exactly once with `agent_type: development-task-worker` and `mode: sync`, supplying the exact task path, Source, feature branch, base SHA, session-config path, and a reminder that it must complete the unchanged clean-install preflight before starting any task-owned runtime;
-5. inspect the worker's structured result and independently verify branch, task status, commits, clean tree, and declared validation evidence;
-6. if the worker reports `BASELINE_INVARIANT_FAILURE`, verify that no task change was made, remove only the empty attempt branch when safe, stop the entire session without changing the recipe outcome, and report the baseline/upstream incident;
-7. if the worker reports `READY_FOR_INTEGRATION`, push and wait for the permanent GitHub Actions `Required gate` associated with the exact final feature SHA; if it fails or is unverifiable, apply the pre-merge `BLOCKED` lifecycle and do not merge;
-8. only after exact feature-SHA CI succeeds, perform the no-fast-forward merge with `--no-gpg-sign`, push `develop`, and wait for the GitHub Actions result associated with the exact merge SHA;
-9. apply the success or failure lifecycle from `PROTOCOL.md` completely before selecting anything else.
+1. classify every pending recipe as `READY` when all hard dependencies are
+   `DONE`, `WAITING_DEPENDENCY` when at least one hard dependency is still
+   pending/active, or `SKIPPED_DEPENDENCY` when any hard dependency is
+   terminal non-`DONE`;
+2. when new terminal skips are discovered, materialize the entire affected
+   transitive closure in one aggregate metadata-only commit on `develop`;
+   create no feature branch and invoke no worker for those recipes;
+3. push that one commit, wait for its exact adaptive `Required gate`, rebuild
+   the snapshot, and select the earliest filename-ordered `READY` task;
+4. if no task is `READY`, finalize rather than emitting one skip commit per
+   recipe or idling until the deadline.
+
+`WAITING_DEPENDENCY` is an in-memory scheduling classification, never a
+persistent recipe checkbox. Existing terminal outcomes remain immutable in the
+active session.
+
+For each selected `READY` task, serially:
+
+1. fetch remote state, return to clean `develop`, fast-forward to the exact
+   `origin/develop` tip, and record that base SHA;
+2. create exactly `feature/<Source>` locally from that SHA, but do not push an
+   unchanged branch whose head still equals the already-green `develop` base;
+   never overwrite or reuse an existing local or remote branch automatically;
+3. prove that every session-owned Angular, Nest, Tox21, test watcher, and other
+   workspace-consuming process is stopped, then call the `task` tool exactly once with `agent_type: development-task-worker` and `mode: sync`,
+   supplying the exact task path, Source, feature branch, base SHA,
+   session-config path, and a reminder that it must complete the unchanged
+   clean-install preflight before starting any task-owned runtime;
+4. inspect the worker's structured result and independently verify branch, task
+   status, commits, clean tree, declared validation evidence, and that the first
+   remote feature ref was created only after a task-specific commit existed;
+5. if the worker reports `BASELINE_INVARIANT_FAILURE`, verify that no task
+   change was made, remove only the unpushed empty local attempt branch when
+   safe, stop the entire session without changing the recipe outcome, and
+   report the baseline/upstream incident;
+6. if the worker reports `READY_FOR_INTEGRATION`, wait for the permanent
+   GitHub Actions `Required gate` associated with the exact final feature SHA;
+   if it fails or is unverifiable, apply the pre-merge `BLOCKED` lifecycle and
+   do not merge;
+7. only after exact feature-SHA CI succeeds, perform the no-fast-forward merge
+   with `--no-gpg-sign`, push `develop`, and wait for the GitHub Actions
+   result associated with the exact merge SHA;
+8. apply the success or failure lifecycle from `PROTOCOL.md` completely
+   before selecting anything else.
 
 Never run two implementation workers concurrently, use background mode, or invoke a second worker before the synchronous result returns. A fresh worker invocation is the task-context boundary; do not ask one worker to execute multiple recipes.
 
@@ -68,17 +104,19 @@ is a session-fatal baseline failure, not a task outcome.
 
 If merge CI does not succeed or cannot be verified, freeze the feature branch locally and remotely at its final pushed SHA, revert the merge with mainline parent 1 and `--no-gpg-sign`, verify the revert tree equals the pre-merge `develop` tree, push and wait for the exact revert CI, then record only `REVERTED` in a separate metadata-only commit made with `--no-gpg-sign` and wait for that exact CI too. Record whether the cause was a confirmed regression, infrastructure failure, cancellation/timeout, or unverified result. Never merge `develop` into, commit/amend, reset/rebase, advance, or delete the frozen branch.
 
-After a `BLOCKED` or `REVERTED` metadata commit is green, continue lazy
-filename-order selection without modifying its full transitive dependency
-closure. If the one task currently at its normal selection point has a
-terminal non-`DONE` hard prerequisite, mark only that task
-`SKIPPED_DEPENDENCY`, record its direct and transitive diagnostic chain, commit
-the metadata, wait for exact CI, and restart selection. Continue only when the
-active configuration permits it, `develop` is clean/exact-SHA green, and a
-selected runnable task has every hard dependency `DONE`. If a revert does not
-restore the pre-merge tree or green cannot be re-established/observed,
-classify it as a baseline/upstream incident, stop the whole session, and report
-both SHAs/runs; never pass uncertain integration health to the next task.
+After a `BLOCKED` or `REVERTED` metadata commit is green, rebuild the
+dependency snapshot. Materialize every newly affected pending descendant as
+`SKIPPED_DEPENDENCY` in one aggregate metadata-only commit, recording the
+direct terminal prerequisite and transitive diagnostic chain for each recipe.
+Push once and wait for the exact adaptive `Required gate`; never create a
+feature branch, invoke a worker, or launch a full Windows/Linux matrix solely
+for a skip when the classifier confirms the allowlisted metadata-only change.
+Continue only when the active configuration permits it, `develop` is
+clean/exact-SHA green, and the selected `READY` task has every hard dependency
+`DONE`. If a revert does not restore the pre-merge tree or green cannot be
+re-established/observed, classify it as a baseline/upstream incident, stop the
+whole session, and report both SHAs/runs; never pass uncertain integration
+health to the next task.
 
 ## Deadline and finalization
 
@@ -88,7 +126,7 @@ At workload exhaustion, deadline completion, or a session-fatal blocker:
 
 1. stop only runtime processes that this session started;
 2. verify and record the final local/remote `develop` SHA, clean-tree state, and exact CI health;
-3. create the required report under `docs/autonomous-development/reports/` using `0000-session-report-template.md`, with separate counts/evidence for `DONE`, `BLOCKED`, `REVERTED`, `SKIPPED_DEPENDENCY`, and pending tasks;
+3. create the required report under `docs/autonomous-development/reports/` using `0000-session-report-template.md`, with separate counts/evidence for `DONE`, `BLOCKED`, `REVERTED`, `SKIPPED_DEPENDENCY`, and pending tasks, plus CI classification counts, runner jobs started/avoided, CI wait time, task wall time, pushes, and retries when observable;
 4. commit with `--no-gpg-sign` and push the report as a metadata-only `develop` commit, then wait for that report commit's exact CI result when a workflow exists;
 5. emit the concise final summary and report path, then call `task_complete` as the final Autopilot action; after `task_complete`, produce no further prose or tool calls.
 

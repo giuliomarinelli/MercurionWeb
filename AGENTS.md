@@ -76,7 +76,7 @@ Every recipe has four mutually exclusive persistent outcomes:
 - `REVERTED`: locally completed and merged, then safely reverted after post-merge CI non-success/unverifiable result; preserve/freeze its feature branch;
 - `SKIPPED_DEPENDENCY`: never attempted because a hard prerequisite is terminal non-`DONE`; never create a feature branch.
 
-All four unchecked means pending. At most one may be checked. `CI_PENDING` is transient and does not receive a checkbox.
+All four unchecked means pending. At most one may be checked. `CI_PENDING` and `WAITING_DEPENDENCY` are transient coordinator states and do not receive checkboxes.
 
 All four persistent outcomes are terminal within the active session. The coordinator MUST NOT reopen or resume a terminal task because a later probe or Autopilot continuation changes its opinion. Only a new direct human instruction in a new or restarted session may authorize re-enablement; an Autopilot continuation is not human authorization.
 
@@ -145,17 +145,16 @@ Git writes are REQUIRED for task isolation and CI verification.
 For each task:
 
 1. Start from an up-to-date, clean `develop`.
-2. Create `feature/<Source>` from that exact `develop` commit.
-3. Push the feature branch to `origin` so failed work can be preserved remotely.
-4. Run the mandatory CI-parity preflight before task implementation.
-5. Implement and validate the task on the feature branch.
-6. Commit the task changes on the feature branch. Prefer small, comprehensible commits; do not squash or rewrite history merely for cosmetic reasons.
-7. Run the complete CI-parity gate set again immediately before integration.
-8. Mark the task `DONE` in the feature branch only when implementation and all local gates pass. The runner MUST treat this state as `CI_PENDING` until both feature and post-merge CI succeed.
-9. Push the final feature SHA and wait for the exact GitHub Actions `Required gate` on that SHA across the Windows/Linux matrix.
-10. If exact feature-SHA CI fails or is unverifiable, change the provisional outcome to `BLOCKED`, record diagnostics on the preserved feature branch, freeze it, and propagate only the metadata status to `develop`.
-11. Only after exact feature-SHA CI succeeds, switch to `develop`, verify it has not moved unexpectedly, and merge the feature branch using an explicit `--no-ff --no-gpg-sign` merge commit.
-12. Push `develop` and wait for the GitHub Actions workflow associated with that exact merge commit.
+2. Create `feature/<Source>` locally from that exact `develop` commit; do not push while its HEAD still equals the already-green base SHA.
+3. Run the mandatory CI-parity preflight before task implementation.
+4. Implement and validate the task on the feature branch.
+5. Commit the task changes on the feature branch. Prefer small, comprehensible commits; do not squash or rewrite history merely for cosmetic reasons.
+6. Run the complete CI-parity gate set again immediately before integration.
+7. Mark the task `DONE` in the feature branch only when implementation and all local gates pass. The runner MUST treat this state as `CI_PENDING` until both feature and post-merge CI succeed.
+8. Create the remote feature ref only after a task-specific commit exists, push the final feature SHA, and wait for its exact GitHub Actions `Required gate`.
+9. If exact feature-SHA CI fails or is unverifiable, change the provisional outcome to `BLOCKED`, record diagnostics on the preserved feature branch, freeze it, and propagate only the metadata status to `develop`.
+10. Only after exact feature-SHA CI succeeds, switch to `develop`, verify it has not moved unexpectedly, and merge the feature branch using an explicit `--no-ff --no-gpg-sign` merge commit.
+11. Push `develop` and wait for the GitHub Actions workflow associated with that exact merge commit.
 
 If post-merge CI succeeds:
 
@@ -178,14 +177,23 @@ fails or cannot be verified, do not merge partial implementation. Preserve and
 freeze its feature branch, propagate only the task's `BLOCKED`
 status/diagnostics to `develop`, and wait for CI on that exact metadata commit.
 
-Do not precompute or materialize the transitive dependency closure after a new
-`BLOCKED` or `REVERTED` outcome. Evaluate pending tasks lazily in filename
-order. Only when a task reaches its normal selection point and a resolved hard
-prerequisite is terminal non-`DONE` may that one task become
-`SKIPPED_DEPENDENCY`; record its direct prerequisite and transitive diagnostic
-chain without changing later recipes in advance. A skipped task receives no
-branch and no worker. Commit its metadata and wait for exact CI before
-continuing task selection.
+The permanent CI always publishes the stable `Required gate`, using exactly
+one fail-closed path: `duplicate` only after an older successful run for the
+identical SHA; `metadata` only for allowlisted autonomous task/report
+Markdown changes from an exact green base; otherwise `full` Windows/Linux
+validation. Workflow, source, test, dependency, agent, protocol,
+configuration, unknown, and ambiguous changes always use `full`.
+
+Before selection, build one dependency snapshot across the pending workload.
+A recipe with pending/active hard prerequisites is transient
+`WAITING_DEPENDENCY`; a recipe whose hard-prerequisite chain contains a
+terminal non-`DONE` outcome belongs to the terminal skip closure. Materialize
+all newly affected descendants as `SKIPPED_DEPENDENCY` in one aggregate
+metadata-only `develop` commit, with direct and transitive diagnostics for
+each. Skipped recipes receive no branch, worker, implementation preflight, or
+individual commit/push. Wait for the aggregate commit's exact adaptive
+`Required gate`, then select the earliest filename-ordered recipe whose hard
+dependencies are all `DONE`.
 
 The runner may continue only when active session policy permits it, `develop` is clean/exact-SHA green, and the next task's hard dependencies are all `DONE`. Because every task integrates from a proven-green `develop`, a revert that does not restore the pre-merge tree and exact-SHA green CI is a session-fatal baseline/upstream incident. Stop the entire session, report it separately from the task outcome, and do not use a later task to repair or conceal it.
 

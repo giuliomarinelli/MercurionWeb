@@ -15,7 +15,7 @@
   ],
   "scripts": {
     "postinstall": "npm run build --workspace @mercurion/rest-contracts && npm run build --workspace @mercurion/socket-contracts && patch-package --patch-dir MercurionWebNg/patches",
-    "ci:validate:autonomous": "node docs/autonomous-development/tools/validate-cli-runner.mjs && node docs/autonomous-development/tools/validate-recipes.mjs",
+    "ci:validate:autonomous": "node .github/scripts/classify-ci.mjs --self-test && node docs/autonomous-development/tools/validate-cli-runner.mjs && node docs/autonomous-development/tools/validate-recipes.mjs",
     "ci:contracts": "npm run typecheck --workspace @mercurion/rest-contracts && npm run contracts:check --workspace mercurion_web_node",
     "ci:socket-contracts": "npm run build --workspace @mercurion/socket-contracts && npm run typecheck --workspace @mercurion/socket-contracts && npm run policy --workspace @mercurion/socket-contracts && npm run policy:negative --workspace @mercurion/socket-contracts",
     "ci:lint:angular": "npm run lint --workspace mercurion_web_ng",

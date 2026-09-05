@@ -63,25 +63,54 @@ and `0200` later ratchet Angular and Nest lint to zero findings.
 
 ## GitHub Actions contract
 
-`.github/workflows/ci.yml` is a permanent integration control plane. It:
+`.github/workflows/ci.yml` is a permanent exact-SHA integration control
+plane. It runs on pushes to `develop` and `feature/**`, on pull requests targeting
+`develop` or `master`, and on manual dispatch. Review-oriented `chore/**`
+branches use the pull-request trigger only, avoiding a duplicate full matrix
+for the same proposed change. Every
+run exposes the stable aggregate check `Required gate`, but a classifier picks
+the least expensive path that preserves the evidence invariant:
 
-- runs on pushes to `develop`, `feature/**`, and `chore/**`;
-- runs on pull requests targeting `develop`;
-- executes the complete gate independently on `ubuntu-latest` and
-  `windows-latest`;
-- exposes the stable aggregate check `Required gate`;
-- cancels superseded branch runs but never cancels a `develop` run;
-- has read-only repository permissions;
-- never deploys, publishes, auto-fixes, or accesses production credentials.
+| Mode | Preconditions | Validation |
+|---|---|---|
+| `duplicate` | An older CI run already succeeded for the identical SHA. | Reuse that exact-tree evidence; do not start the platform matrix. |
+| `metadata` | The comparison base is exact-SHA green and every changed file is an allowlisted task/report Markdown file. | Classifier self-test, autonomous validators, and `git diff --check` on Ubuntu. |
+| `full` | Any source, test, manifest, lockfile, workflow, agent, protocol, configuration, unknown path, missing base, or ambiguity. | Clean `npm ci` and the complete gate independently on Ubuntu and Windows. |
 
-An autonomous task must pass the exact feature-SHA workflow before merge and
-the exact merge-SHA workflow after integration. A local Windows preflight is
-necessary but is not a substitute for the clean Linux runner.
+The duplicate check considers only older workflow run IDs. A newer run may wait
+for an older in-progress run of the same SHA for at most 900 seconds, which
+avoids duplicate Windows/Linux work without allowing two runs to wait on one
+another. If no older run succeeds, the newer run performs its own validation.
+
+The metadata allowlist is intentionally narrow:
+
+```text
+docs/autonomous-development/task/(?!0000-)[0-9]{4}-[^/]+\.md
+docs/autonomous-development/reports/[0-9]{4}-[0-9]{2}-[0-9]{2}-[^/]+\.md
+```
+
+The `0000-*` task/report templates are deliberately excluded. A metadata run is never accepted merely because filenames look harmless: its
+exact comparison base must already have successful CI. Any GitHub API,
+history, classification, or validation error fails closed. The workflow does
+not use trigger-level `paths-ignore`, because that could omit the stable
+required check for an exact SHA.
+
+Superseded branch runs may be cancelled, but `develop` runs are never
+cancelled. Repository permissions remain read-only apart from `actions: read`
+needed to locate prior runs. The workflow never deploys, publishes, auto-fixes,
+or accesses production credentials.
+
+An autonomous implementation must still pass the exact final feature-SHA
+`Required gate` before merge and the exact merge-SHA gate after integration.
+Local Windows validation remains necessary but is not a substitute for the
+clean Linux runner. Creating a local feature branch does not itself publish an
+unchanged ref; the first remote feature ref is created only after a
+task-specific commit exists.
 
 When a task changes package topology or CI itself, it must preserve continuous
-`develop` coverage, both platform jobs, feature-branch validation, and the
-stable aggregate gate. The task branch's exact remote CI result is required
-before its workflow change can be integrated.
+`develop` coverage, the full two-platform path, feature-branch validation,
+and the stable aggregate gate. The task branch's exact remote CI result is
+required before its workflow change can be integrated.
 
 ## Lockfile regeneration policy
 

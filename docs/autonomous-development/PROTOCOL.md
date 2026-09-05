@@ -21,6 +21,8 @@ A **Development Session** is a bounded period in which a session coordinator exe
 - **Capability**: an external tool available to the coding agent, such as Chrome DevTools MCP.
 - **Runtime**: the local processes/infrastructure required for runtime/browser validation.
 - **Report**: the final session summary.
+- **CI mode**: the exact-SHA validation path selected by the permanent workflow: `duplicate`, `metadata`, or `full`.
+- **WAITING_DEPENDENCY**: a transient in-memory scheduler classification for a pending task whose hard prerequisite is still pending/active; it is not a recipe outcome.
 
 ## Sources of truth
 
@@ -41,7 +43,7 @@ The repository provides two workspace custom agents under `.github/agents/`:
 - `Development Session Coordinator` remains alive for the complete configured session and is the only owner of task selection, shared-branch Git writes, deadlines, CI observation and final reporting.
 - `Development Task Worker` is addressed programmatically as `development-task-worker` (the profile filename without `.agent.md`) and is invoked through exactly one synchronous CLI `task` tool call for exactly one task. Each invocation is fresh and stateless and therefore provides the required task context boundary.
 
-The coordinator creates and pushes the feature branch before invoking the worker. The worker may preflight, implement, validate, commit and push only that feature branch. It never selects a later task, changes `develop`, merges, reverts, deletes a branch or finalizes the session.
+The coordinator creates the feature branch locally before invoking the worker but does not push a ref that still points to the unchanged, already-green `develop` SHA. The worker may preflight, implement, validate, commit and push only that feature branch, and creates its first remote ref only after a task-specific commit exists. It never selects a later task, changes `develop`, merges, reverts, deletes a branch or finalizes the session.
 
 Tasks are strictly serialized. The coordinator MUST NOT run implementation workers concurrently, use background worker mode, or invoke another worker before the synchronous result returns. It MUST independently verify the worker result and Git state before any integration write.
 
@@ -354,24 +356,73 @@ If blocked before integration:
 - push the metadata commit and require CI on that exact SHA to be green when a workflow exists;
 - continue to later independent tasks only when `develop` is green and the task dependency graph allows it.
 
-## Lazy dependency evaluation and SKIPPED_DEPENDENCY
+## Dependency snapshot and batched SKIPPED_DEPENDENCY
 
-Before creating a feature branch, the coordinator considers pending tasks in
-filename order. It may resolve dependency relationships for selection and
-diagnostics, but MUST NOT change every member of a transitive closure merely
-because one prerequisite became `BLOCKED` or `REVERTED`.
+Before creating a feature branch, the coordinator resolves one read-only
+dependency snapshot for every pending recipe in the configured workload:
 
-When the one pending task currently at its normal selection point has a hard
-prerequisite that is terminal non-`DONE`:
+- `READY`: every resolved hard prerequisite is `DONE`;
+- `WAITING_DEPENDENCY`: at least one hard prerequisite is pending or active
+  and none is terminal non-`DONE`;
+- terminal skip: at least one hard prerequisite is `BLOCKED`, `REVERTED`,
+  or `SKIPPED_DEPENDENCY`.
 
-1. do not create or push `feature/<Source>`;
-2. do not invoke a task worker or run task implementation/preflight;
-3. check only `SKIPPED_DEPENDENCY` on `develop`;
-4. record every direct terminal prerequisite and the transitive dependency chain in Execution notes/reporting;
-5. leave all later recipes unchanged, even when they are transitively dependent;
-6. commit that one task's metadata, push it, and require exact-SHA green CI when a workflow exists before restarting selection.
+`WAITING_DEPENDENCY` exists only in coordinator memory and reporting. It does
+not add a fifth checkbox and never mutates a recipe.
 
-A skip-metadata CI failure is a session-fatal integration-health incident; it is not attributed to the unattempted skipped task. Independent pending tasks remain eligible after the skip commit is green. Tasks left unattempted solely because the deadline/workload ended remain `PENDING`, not `SKIPPED_DEPENDENCY`. Deadline finalization never performs a speculative skip sweep.
+When terminal skips are discovered, the coordinator computes their complete
+affected transitive closure before selecting a worker. For every newly affected
+recipe it checks only `SKIPPED_DEPENDENCY`, records the direct terminal
+prerequisite and transitive root cause, and changes no implementation file. It
+then creates one aggregate metadata-only commit on `develop`, pushes once,
+waits for the exact adaptive `Required gate`, and rebuilds the dependency
+snapshot.
+
+For the whole aggregate operation:
+
+1. create no `feature/<Source>` branch;
+2. invoke no task worker and run no task implementation/preflight;
+3. preserve all existing terminal outcomes unchanged;
+4. never classify a task skipped merely because the deadline or workload
+   ended;
+5. fail closed if dependency resolution is ambiguous or cyclic;
+6. use the CI metadata path only when the workflow classifier proves both an
+   already-green exact base SHA and an allowlisted task/report-only diff.
+
+A skip-metadata CI failure is a session-fatal integration-health incident; it
+is not attributed to any unattempted task. Independent `READY` tasks remain
+eligible after the aggregate commit is green. A later human-assisted recovery
+may re-enable an affected terminal closure only through an explicit,
+human-reviewed administrative change in a new/restarted session. A deliberately
+retained blocker and its descendants remain terminal.
+
+
+
+## Adaptive exact-SHA CI
+
+The permanent GitHub Actions workflow always emits the stable `Required gate`
+for the exact commit under evaluation, but it selects one of three validation
+paths:
+
+- `duplicate`: an older run of the same workflow has already completed
+  successfully for the identical commit SHA; no platform matrix is repeated;
+- `metadata`: the comparison base has a successful exact-SHA run and every
+  changed path belongs to the narrow autonomous task/report Markdown allowlist;
+  run the autonomous validators and `git diff --check` on Ubuntu only;
+- `full`: run clean `npm ci` and the complete quality gate independently on
+  Windows and Linux.
+
+The classifier may wait for an older in-progress run of the same SHA, but only
+the newer run waits; this prevents two runs from waiting on each other.
+Unknown paths, missing history, API errors, an ungreen/unverifiable base, an
+empty allowlist match, or any classifier ambiguity fail closed to `full` (or
+fail the gate if classification itself cannot complete). Workflow, agent,
+protocol, manifest, lockfile, test, configuration, and source changes are never
+metadata-only.
+
+The stable aggregate gate succeeds only when the selected path succeeds. Path
+filtering at the workflow trigger level is forbidden because it could omit the
+required exact-SHA check entirely.
 
 ## Git safety rules
 
@@ -414,7 +465,7 @@ If a task requires browser validation and the canonical runtime/Chrome MCP/test 
 
 ## Workload resolution
 
-The runner may resolve an explicit task list, a selected series range, or the global pending queue. Tasks are normally ordered lexicographically by their four-digit prefix. Resolved hard dependencies override simple numeric readiness: a pending/active prerequisite defers the dependent task, while a terminal non-`DONE` prerequisite propagates `SKIPPED_DEPENDENCY`. Advisory references never create dependency cycles.
+The runner may resolve an explicit task list, a selected series range, or the global pending queue. It builds the dependency snapshot first, then selects the lexicographically earliest `READY` recipe by four-digit prefix. A pending/active prerequisite produces transient `WAITING_DEPENDENCY`; a terminal non-`DONE` prerequisite enters the next batched `SKIPPED_DEPENDENCY` closure. Advisory references do not constrain readiness and never create dependency cycles. If pending recipes remain but none is `READY` and no new terminal closure exists, the coordinator reports the unresolved/cyclic graph and finalizes rather than idling or fabricating progress.
 
 ## Deadline semantics
 
@@ -446,7 +497,9 @@ At finalization the runner records at least:
 - final `develop` status and CI health;
 - browser/runtime validation summary;
 - decisions requiring human attention;
-- usage/credit information when available.
+- usage/credit information when available;
+- count of `duplicate`, `metadata`, and `full` CI classifications;
+- Windows/Linux runner jobs started and avoided, CI wait time, task wall time, pushes, retries, and superseded runs when observable.
 
 Reports live under `docs/autonomous-development/reports/` unless overridden by configuration. `0000-session-report-template.md` is the canonical non-executable report skeleton.
 
