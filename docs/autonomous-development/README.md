@@ -184,6 +184,12 @@ The classifier fails closed and is self-tested by
 `npm run ci:validate:autonomous`. Trigger-level path skipping is not used, so
 `Required gate` never disappears.
 
+Before a new autonomous session, manually dispatch `CI` for `develop` with
+`validation_mode=full`. Manual dispatch defaults to this mode and does not
+reuse an older duplicate result. Task/report metadata is deliberately excluded
+from application inventory inputs, so quoted routes in execution evidence
+cannot invalidate the application baseline.
+
 ## Integration lifecycle
 
 ```text
@@ -235,7 +241,7 @@ The canonical local stack is:
 ```text
 MercurionWebNode  -> npm run start:dev
 MercurionWebNg    -> npm run start:dev
-../MercurionTox21 -> .venv Python -> python -m main
+../MercurionTox21 (cwd) -> UTF-8 .venv Python -> python -m main
 ```
 
 The externally managed nginx development reverse proxy is the only browser edge:

@@ -25,7 +25,7 @@ Before starting a task:
 7. verify the CLI `task` capability with exactly one non-mutating startup handshake before any task branch is created: call `task` with `agent_type: development-task-worker`, `mode: sync`, and a payload containing `capability_probe: true` plus a fresh unpredictable nonce; require the exact response `TASK_CAPABILITY_OK <nonce>` and treat an empty, malformed, denied, or mismatched result as a startup failure; the probe is session-level and does not count as an implementation-worker invocation;
 8. verify `task_complete` is present in the current tool inventory without invoking it, `.github/mcp.json` is loaded, and any capabilities required by the next task are available;
 9. verify the externally managed nginx development edge only when the next task declares browser/runtime validation; do not start Angular, Nest, Tox21, or any watcher during session startup;
-10. record the exact local/remote `develop` SHA, require the permanent GitHub Actions `Required gate` for that exact SHA to be green on Windows and Linux, and prove the complete root `npm ci` plus `npm run ci:check` baseline from `docs/autonomous-development/CI-BASELINE.md` green before any recipe implementation; there is no task-level bootstrap exception;
+10. record the exact local/remote `develop` SHA, require a fresh permanent GitHub Actions `full` run for that exact SHA with the `Required gate` and both Windows/Linux quality jobs green, and prove the complete root `npm ci` plus `npm run ci:check` baseline from `docs/autonomous-development/CI-BASELINE.md` green before any recipe implementation; a metadata/duplicate-only result is insufficient and there is no task-level bootstrap exception;
 11. refuse to start if the active configuration still contains an unresolved required decision.
 
 If an install, network, filesystem, temporary-directory cleanup, GitHub, subagent (`task`), MCP, signing, or `task_complete` prerequisite is denied or requires approval despite the launch permissions, stop immediately and report the exact denial. Do not replace the denied operation with a weaker probe.
@@ -94,6 +94,9 @@ Never start Angular, Nest, Tox21, or another workspace-consuming runtime on
 behalf of a task before invoking its worker. Runtime is task-scoped rather than
 session-persistent: the worker starts it only after the initial preflight when
 required for declared validation, and stops it before its final `npm ci`.
+For Tox21, execute the configured `.venv` command with the current working
+directory set exactly to `../MercurionTox21` and UTF-8 console I/O enabled;
+never prefix the interpreter path while retaining the MercurionWeb root cwd.
 
 ## Terminal-state invariant
 

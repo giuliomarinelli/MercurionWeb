@@ -23,10 +23,13 @@ const paths = {
   activeSession: 'docs/autonomous-development/session.until-2026-09-10.yaml',
   completedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-03-v2.md',
   activeLaunch: 'docs/autonomous-development/LAUNCH-2026-09-06.md',
+  runtime: 'docs/autonomous-development/RUNTIME.md',
   workflow: '.github/workflows/ci.yml',
   classifier: '.github/scripts/classify-ci.mjs',
   planner: 'docs/autonomous-development/tools/plan-dependency-graph.mjs',
   reportTemplate: 'docs/autonomous-development/reports/0000-session-report-template.md',
+  routeOwnership: 'scripts/check-rest-route-ownership.mjs',
+  routeOwnershipNegative: 'scripts/test-rest-route-ownership-policy-negative.mjs',
 };
 
 const expectedAgentTools = {
@@ -43,6 +46,7 @@ const controlPlaneFiles = [
   'docs/autonomous-development/README.md',
   'docs/autonomous-development/CI-BASELINE.md',
   'docs/autonomous-development/PROTOCOL.md',
+  paths.runtime,
   'docs/autonomous-development/LAUNCH.md',
   paths.completedLaunch,
   paths.activeLaunch,
@@ -416,6 +420,7 @@ for (const command of ['/model', '/permissions show', '/mcp list', '/keep-alive 
 
 const completedLaunch = read(paths.completedLaunch);
 const activeLaunch = read(paths.activeLaunch);
+const runtime = read(paths.runtime);
 requireMatch(
   paths.activeLaunch,
   activeLaunch,
@@ -459,6 +464,15 @@ for (const command of ['/model', '/permissions show', '/mcp list', '/keep-alive 
     new RegExp(command.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
     `active launch is missing ${command}`,
   );
+}
+
+for (const [pattern, message] of [
+  [/Working directory:[\s\S]*\.\.\/MercurionTox21/, 'missing explicit Tox21 working directory'],
+  [/PYTHONUTF8\s*=\s*"1"/, 'missing Windows UTF-8 Tox21 environment'],
+  [/\.\\\.venv\\Scripts\\python\.exe -m main/, 'missing cwd-relative Windows Tox21 command'],
+  [/must not make an application inventory stale|cannot invalidate the application baseline/i, 'missing metadata isolation rule'],
+]) {
+  requireMatch(paths.runtime, runtime, pattern, message);
 }
 
 requireMatch(
@@ -560,6 +574,11 @@ for (const [pattern, message] of [
   [/fail_on_cycles:\s*true/, 'active session must fail on dependency cycles'],
   [/fail_on_stale_skips:\s*true/, 'active session must fail on stale skips'],
   [/multi_task_bundles:\s*false/, 'active session must prohibit task bundles'],
+  [/require_fresh_full_remote_ci_at_session_start:\s*true/, 'active session must require fresh full startup CI'],
+  [/metadata_must_not_feed_application_inventories:\s*true/, 'active metadata must be isolated from application inventories'],
+  [/manual_dispatch_default:\s*full/, 'active CI manual dispatch must default to full'],
+  [/manual_full_bypasses_duplicate_reuse:\s*true/, 'active manual full CI must bypass duplicate reuse'],
+  [/PYTHONUTF8:\s*"1"/, 'active Tox21 runtime must force UTF-8'],
   [/preserve_blocked:[\s\S]*- "0020"[\s\S]*- "0076"[\s\S]*- "0109"[\s\S]*- "0114"/, 'active session must preserve all four blockers'],
 ]) {
   requireMatch(paths.activeSession, activeSession, pattern, message);
@@ -597,6 +616,11 @@ for (const [pattern, message] of [
   [/metadata_requires_green_exact_base_sha:\s*true/, 'metadata CI requires an exact green base'],
   [/unknown_or_ambiguous_fallback:\s*full/, 'ambiguous CI classification must fall back to full'],
   [/stable_required_gate_for_every_mode:\s*true/, 'every CI mode must publish Required gate'],
+  [/require_fresh_full_remote_ci_at_session_start:\s*true/, 'session startup must require fresh full remote CI'],
+  [/metadata_must_not_feed_application_inventories:\s*true/, 'metadata must be isolated from application inventories'],
+  [/manual_dispatch_default:\s*full/, 'manual CI dispatch must default to full'],
+  [/manual_full_bypasses_duplicate_reuse:\s*true/, 'manual full CI must bypass duplicate reuse'],
+  [/PYTHONUTF8:\s*"1"/, 'Tox21 runtime must force UTF-8'],
   [/dependency_planner:[\s\S]*command:\s*npm run autonomous:plan/, 'missing deterministic planner command'],
   [/authoritative:\s*true/, 'planner output must be authoritative'],
   [/fail_on_cycles:\s*true/, 'planner must fail on cycles'],
@@ -614,6 +638,7 @@ const packageJson = JSON.parse(read('package.json'));
 
 for (const [pattern, message] of [
   [/^\s*plan:\s*$/m, 'missing CI classification job'],
+  [/validation_mode:[\s\S]*default:\s*full[\s\S]*- full[\s\S]*- auto/, 'manual CI dispatch must expose full-by-default validation'],
   [/needs\.plan\.outputs\.mode == 'metadata'/, 'missing metadata CI path'],
   [/needs\.plan\.outputs\.mode == 'full'/, 'missing full CI path'],
   [/name:\s*Required gate/, 'missing stable Required gate'],
@@ -625,6 +650,8 @@ for (const [pattern, message] of [
 }
 
 for (const [pattern, message] of [
+  [/isForcedFullRun/, 'missing manual full-run override'],
+  [/manual dispatch requested a fresh full baseline/, 'manual full-run reason is not observable'],
   [/waitForOlderSuccessfulRun/, 'missing duplicate-SHA reuse'],
   [/Number\(run\.id\) < currentRunId/, 'duplicate waiting must only consider older runs'],
   [/isMetadataOnly\(files\)[\s\S]*hasSuccessfulRun\(baseSha\)/, 'metadata mode must require a green base'],
@@ -633,6 +660,31 @@ for (const [pattern, message] of [
   [/--self-test/, 'classifier must expose its deterministic self-test'],
 ]) {
   requireMatch(paths.classifier, classifier, pattern, message);
+}
+
+const routeOwnership = read(paths.routeOwnership);
+const routeOwnershipNegative = read(paths.routeOwnershipNegative);
+requireMatch(
+  paths.routeOwnership,
+  routeOwnership,
+  /path\.join\(root, 'docs', 'architecture'\)/,
+  'route evidence must use the product architecture documentation root',
+);
+if (/path\.join\(root, 'docs'\),/.test(routeOwnership)) {
+  fail(paths.routeOwnership, 'must not scan all docs including autonomous metadata');
+}
+requireMatch(
+  paths.routeOwnership,
+  routeOwnership,
+  /summarizeInventoryDrift/,
+  'stale route inventory must emit actionable drift diagnostics',
+);
+for (const [pattern, message] of [
+  [/rest-route-ownership-metadata-probe/, 'missing autonomous metadata isolation probe'],
+  [/docs\/autonomous-development\//, 'metadata isolation test must reject autonomous references'],
+  [/must not change the application inventory/, 'metadata isolation regression assertion is missing'],
+]) {
+  requireMatch(paths.routeOwnershipNegative, routeOwnershipNegative, pattern, message);
 }
 
 if (!classifier.includes('(?!0000-)')) {

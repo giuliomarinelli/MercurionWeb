@@ -77,6 +77,11 @@ the least expensive path that preserves the evidence invariant:
 | `metadata` | The comparison base is exact-SHA green and every changed file is an allowlisted task/report Markdown file. | Classifier self-test, autonomous validators, and `git diff --check` on Ubuntu. |
 | `full` | Any source, test, manifest, lockfile, workflow, agent, protocol, configuration, unknown path, missing base, or ambiguity. | Clean `npm ci` and the complete gate independently on Ubuntu and Windows. |
 
+Manual `workflow_dispatch` defaults to `full` and deliberately bypasses
+duplicate reuse. This is the canonical way to certify the current exact
+`develop` SHA before starting a new autonomous session. An optional `auto`
+dispatch exists only to exercise the adaptive classifier.
+
 The duplicate check considers only older workflow run IDs. A newer run may wait
 for an older in-progress run of the same SHA for at most 900 seconds, which
 avoids duplicate Windows/Linux work without allowing two runs to wait on one
@@ -94,6 +99,12 @@ exact comparison base must already have successful CI. Any GitHub API,
 history, classification, or validation error fails closed. The workflow does
 not use trigger-level `paths-ignore`, because that could omit the stable
 required check for an exact SHA.
+
+Allowlisted metadata must also be semantically inert for application gates.
+In particular, `docs/autonomous-development/**` is not a source of REST route
+consumer evidence even when an execution note quotes `/health`, `/api/`, or
+another route. Product-facing architectural documentation remains eligible as
+evidence outside that control-plane directory.
 
 Superseded branch runs may be cancelled, but `develop` runs are never
 cancelled. Repository permissions remain read-only apart from `actions: read`
@@ -139,8 +150,9 @@ Before any `feature/<Source>` branch is created, the coordinator must prove:
 
 1. local `develop` is clean and exactly equals `origin/develop`;
 2. `.github/workflows/ci.yml` exists at that SHA;
-3. the exact `develop` SHA has a successful `CI` workflow run and successful
-   `Required gate` result;
+3. the exact `develop` SHA has a fresh successful `full` CI run, both Windows
+   and Ubuntu quality jobs, and a successful `Required gate`; metadata or
+   duplicate mode alone is insufficient;
 4. root `npm ci` and `npm run ci:check` also pass locally;
 5. no session-owned runtime/watcher is active during `npm ci`;
 6. no required capability or decision is missing.
