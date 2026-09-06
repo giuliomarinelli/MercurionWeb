@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Give every incompatible public payload contract an explicit, verifiable versioning and deprecation strategy and make client/server declare the contract version they support.
