@@ -93,6 +93,21 @@ describe('AuthStateStore', () => {
     localStorage.removeItem('login')
     store.syncExternalState()
     expect(store.state()).toEqual({ kind: 'anonymous' })
+    expect(store.sessionProtocol()).toEqual({
+      state: SessionState.Public,
+      connection: SessionConnectionState.Disconnected
+    })
+  })
+
+  it('records credential refreshes in the canonical protocol', () => {
+    store.bootstrap()
+    store.beginAuthentication('password')
+    store.completeAuthentication({ initials: 'AB', accessToken: 'old' })
+
+    store.updateAccessToken('new')
+
+    expect(store.state()).toMatchObject({ kind: 'authenticated', accessToken: 'new' })
+    expect(store.sessionProtocol().state).toBe(SessionState.Authenticated)
   })
 
   it('rejects illegal transitions', () => {

@@ -108,6 +108,7 @@ export class AuthStateStore {
     if (state.kind !== 'authenticated') return
     this.setAccessToken(token)
     this.transition({ ...state, accessToken: token })
+    this.applyProtocol(SessionTransition.CredentialsRefreshed)
   }
 
   updateWsAccessToken(token: string | null): void {
@@ -115,6 +116,7 @@ export class AuthStateStore {
     if (state.kind !== 'authenticated') return
     this.setWsAccessToken(token)
     this.transition({ ...state, wsAccessToken: token })
+    this.applyProtocol(SessionTransition.CredentialsRefreshed)
   }
 
   resumeFromServer(initials: string): void {
@@ -147,6 +149,7 @@ export class AuthStateStore {
     }
     this.clearPersistence()
     this.transition({ kind: 'anonymous' })
+    this.applyProtocol(SessionTransition.Logout)
   }
 
   invalidate(reason: SessionInvalidationCauseType = SessionInvalidationCause.InvalidSession): void {

@@ -20,7 +20,10 @@ import {
   getApplicationError,
   isApplicationError
 } from 'src/exception-handling/application-error';
-import { getApplicationErrorDefinition } from '@mercurion/rest-contracts';
+import {
+  getApplicationErrorDefinition,
+  sessionInvalidationCauseForApplicationError
+} from '@mercurion/rest-contracts';
 import {
   SessionInvalidationCause,
   SessionState,
@@ -85,7 +88,12 @@ export class WsGuard implements CanActivate {
     }
 
     if (!token || !deviceId || !sessionId) {
-      this.unauthorized(client, SessionInvalidationCause.InvalidCredentials)
+      this.unauthorized(
+        client,
+        isApplicationError(e)
+          ? sessionInvalidationCauseForApplicationError(e.code)
+          : SessionInvalidationCause.InvalidCredentials
+      )
       return false
     }
 
