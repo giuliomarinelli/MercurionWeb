@@ -969,6 +969,8 @@ if (mcp) {
   }
   const chrome = mcp.mcpServers?.['chrome-devtools'];
   const expectedArgs = [
+    '/c',
+    'npx',
     '-y',
     'chrome-devtools-mcp@1.8.0',
     '--headless',
@@ -976,10 +978,10 @@ if (mcp) {
   if (
     !chrome ||
     chrome.type !== 'local' ||
-    chrome.command !== 'npx' ||
+    chrome.command !== 'cmd' ||
     JSON.stringify(chrome.args) !== JSON.stringify(expectedArgs)
   ) {
-    fail(paths.mcp, 'chrome-devtools must use the pinned CLI local command and arguments');
+    fail(paths.mcp, 'chrome-devtools must use the pinned Windows cmd /c npx command and arguments');
   }
   if (chrome?.args?.includes('--isolated')) {
     fail(paths.mcp, 'autonomous Chrome must reuse its dedicated persistent profile');
