@@ -2,7 +2,7 @@ import { Component, ChangeDetectionStrategy, computed, DestroyRef, effect, injec
 import { FormBuilder, FormControlStatus, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms'
 import { ActivatedRoute, Router, RouterLink } from '@angular/router'
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop'
-import { Subscription, tap } from 'rxjs'
+import { finalize, Subscription, tap, switchMap, of } from 'rxjs'
 
 import { ThemeManagerService } from '../../services/context/theme-manager.service'
 import { PublicPipe } from '../../pipes/public.pipe'
@@ -22,6 +22,7 @@ import { Login_FirstStepWrapper } from '../../Models/auth/login.models'
 import { environment } from '../../../environments/environment'
 import { SSO_AuthProvider } from '../../Models/auth/provider.models'
 import { UserContextService } from '../../services/context/user-context.service'
+import { HttpErrorResponse } from '@angular/common/http'
 
 @Component({
   selector: 'm-login',
@@ -35,7 +36,7 @@ import { UserContextService } from '../../services/context/user-context.service'
     ClassicSpinnerComponent
   ],
   template: `
-@if (!isLoggedIn()) {
+@if (!isLoggedIn() && !pageLoading()) {
   @if (templateIsMounted()) {
     <main class="min-h-screen flex flex-col items-center px-4 pt-9" role="main" aria-live="polite" [attr.aria-busy]="loadingLogin()">
       <img [src]="logoSrc() | public" alt="Mercurion Logo" class="w-16 h-auto mb-6" />
@@ -260,6 +261,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
 
   readonly turnstileComponent = viewChild.required(TurnstileComponent);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   protected loginForm: FormGroup<any>
   protected step = signal<1 | 2>(1)
   protected serverErrorStep = signal<0 | 1 | 2 | 2429>(0)
@@ -275,6 +277,8 @@ export class LoginPageComponent implements OnInit, OnDestroy {
   protected redirectTo = signal<string | null>(null)
 
   protected isLoggedIn = computed(() => this.userContext.isLoggedIn())
+
+  protected pageLoading = signal<boolean>(false)
 
   protected logoSrc = computed(() => {
     const { PICTOGRAM_LIGHT, PICTOGRAM_DARK } = environment.logoSrc
@@ -381,17 +385,27 @@ export class LoginPageComponent implements OnInit, OnDestroy {
     }
 
     this.secondStepSubscription?.unsubscribe()
-    this.secondStepSubscription = this.authService.login_firstStep(dto).pipe(
-      takeUntilDestroyed(this.destroyRef)
+    this.secondStepSubscription = of(null).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      switchMap(() => {
+        this.authService.logout()
+        document.cookie = 'name=__logged_in; value=null; path=/; max-age=0'
+        return of(null)
+      }),
+      switchMap(() => this.authService.login_firstStep(dto)),
+      finalize(() => this.loadingLogin.set(false))
     ).subscribe({
       next: (res: Confirm_Login_FirstStepDTO) => {
         // ✅ redirect_to “indistruttibile”: queryParam OR sessionStorage fallback
         const redirectTo = this.getRedirectTo()
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const qp: any = {}
         if (redirectTo) qp.redirect_to = redirectTo
 
         if (res.needsMfa) {
+          this.pageLoading.set(true)
           this.authState.enterPreAuthentication(res.preAuthorizationToken)
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { statusCode, timestamp, message, ...loginFirstStepData } = res
           sessionStorage?.setItem('preAuthorizationData', btoa(JSON.stringify(loginFirstStepData ?? '')))
 
@@ -402,8 +416,6 @@ export class LoginPageComponent implements OnInit, OnDestroy {
           } else {
             this.router.navigate([`/login/mfa/CHOOSE_METHOD`], { queryParams: qp })
           }
-
-          this.loadingLogin.set(false)
           return
         }
 
@@ -414,11 +426,9 @@ export class LoginPageComponent implements OnInit, OnDestroy {
           scopes: res.accessToken ? this.authService.getUserScopesFromClaims(res.accessToken) : []
         })
         this.sessionSync.resumeSession(res.initials ?? 'U')
-
-        this.loadingLogin.set(false)
         this.redirectAfterLogin()
       },
-      error: err => {
+      error: (err: HttpErrorResponse) => {
         const body = err.error as HttpErrorBody
         this.turnstileComponent()?.reset()
         this.turnstileToken.set(null)
@@ -525,6 +535,8 @@ export class LoginPageComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
+
+    this.pageLoading.set(false)
 
     const redirected = this.parseBool(this.route.snapshot.queryParamMap.get('redirected'))
 

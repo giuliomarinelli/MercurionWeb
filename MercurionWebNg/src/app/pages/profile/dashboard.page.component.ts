@@ -23,7 +23,6 @@ import { ThemeManagerService } from '../../services/context/theme-manager.servic
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { SidenavContextService } from '../../services/context/sidenav-context.service';
 import { DomainInvalidationService } from '../../services/domain-invalidation.service';
-import { ToastService } from '../../services/toast.service';
 
 Chart.register(...registerables);
 
@@ -186,7 +185,6 @@ export class DashboardPageComponent implements OnInit, OnDestroy, AfterViewInit 
   private readonly themeManager = inject(ThemeManagerService)
   private readonly sidenavContext = inject(SidenavContextService)
   private readonly invalidations = inject(DomainInvalidationService)
-  private readonly toastService = inject(ToastService)
 
   // ========================
 

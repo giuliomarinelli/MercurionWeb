@@ -1,4 +1,5 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   afterNextRender,
@@ -13,6 +14,7 @@ import { ToastService } from '../../../services/toast.service'
 
 @Component({
   selector: 'm-toast',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="toast-host" aria-live="polite" aria-relevant="additions removals">
       @for (toast of visibleMessages(); track toast.id) {
