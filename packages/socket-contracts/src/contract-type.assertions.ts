@@ -12,7 +12,9 @@ clientToServer[socketEventRegistry.publicTestRequest.name]('PING')
 clientToServer[socketEventRegistry.privateTestRequest.name]('PING')
 clientToServer[socketEventRegistry.sessionInit.name](undefined, (acknowledgement) => {
   const detail: 'websocket session init successful' = acknowledgement.detail
+  const state: 'authenticated' = acknowledgement.state
   void detail
+  void state
 })
 
 serverToClient[socketEventRegistry.publicTestResponse.name]('PING RESP')
@@ -23,7 +25,8 @@ serverToClient[socketEventRegistry.applicationError.name]({
 })
 serverToClient[socketEventRegistry.sessionExpired.name]({
   detail: 'session expired',
-  reason: 'expired'
+  state: 'invalid',
+  cause: 'session-expired'
 })
 
 // @ts-expect-error Public test requests require string payloads.

@@ -6,7 +6,6 @@ import {
   ElementRef,
   OnDestroy,
   OnInit,
-  ViewChild,
   computed,
   effect,
   signal,
@@ -22,7 +21,6 @@ import { SearchOverlayComponent } from './components/search-overlay/search-overl
 import { SearchContextService } from './services/context/search-context.service'
 import { FooterComponent } from './components/common/footer/footer.component'
 import { filter, Subscription } from 'rxjs'
-import { ToastComponent } from './components/common/toast/toast.component'
 import { ToastService } from './services/toast.service'
 import { AuthStateStore } from './services/auth-state.store'
 import { PathService } from './services/path.service'
@@ -36,6 +34,7 @@ import { ActionOverlayComponent } from './components/action-components/action-ov
 import { AppContextService } from './services/context/app-context.service'
 import { AccountService } from './services/account.service'
 import { DOCUMENT, isPlatformBrowser } from '@angular/common'
+import { ToastComponent } from './components/common/toast/toast.component'
 
 @Component({
   selector: 'm-root',
@@ -130,7 +129,7 @@ import { DOCUMENT, isPlatformBrowser } from '@angular/common'
         <router-outlet />
       </div>
     }
-    <m-toast [context]="toastService.context()" />
+    <m-toast />
   `
 })
 export class AppComponent implements OnInit, AfterViewInit, OnDestroy {

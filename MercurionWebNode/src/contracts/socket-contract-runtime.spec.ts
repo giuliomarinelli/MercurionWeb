@@ -26,7 +26,8 @@ describe('Socket.IO contract registry', () => {
 
   it('defines the session-init acknowledgement without changing its wire value', () => {
     const acknowledgement: SocketSessionInitAcknowledgement = {
-      detail: 'websocket session init successful'
+      detail: 'websocket session init successful',
+      state: 'authenticated'
     }
 
     expect(socketEventRegistry.sessionInit).toMatchObject({
@@ -45,7 +46,8 @@ describe('Socket.IO contract registry', () => {
     }
     const expired: SocketSessionExpiredPayload = {
       detail: 'session expired',
-      reason: 'expired'
+      state: 'invalid',
+      cause: 'session-expired'
     }
 
     expect(socketEventRegistry.applicationError.payload(error)).toEqual(error)

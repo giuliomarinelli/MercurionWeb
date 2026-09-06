@@ -7,17 +7,22 @@
  *  - No ACK in PRIVATE: degrada a anonimo/public
  *  - Niente autologout da `storage` se il cookie è presente
  * ────────────────────────────────────────────────────────────── */
-import { effect, Injectable, NgZone, signal } from '@angular/core'
+import { effect, inject, Injectable, NgZone, signal } from '@angular/core'
 import { Router } from '@angular/router'
 import { AuthStateStore } from './auth-state.store'
 import { ToastService } from './toast.service'
-import { ToastContext } from '../components/common/toast/toast.component'
 import { environment } from '../../environments/environment'
 import { RealtimeSocketService } from './socket.IO/realtime-socket.service'
 import {
   ApplicationErrorCode,
   hasApplicationErrorCode
 } from '../utils/application-error.util'
+import {
+  SessionConnectionState,
+  SessionInvalidationCause,
+  type SessionInvalidationCauseType
+} from '@mercurion/rest-contracts'
+import { ToastVariant } from '../Models/toast.models'
 
 export type SessionSyncStatus =
   | 'unknown'
@@ -30,6 +35,15 @@ export type SessionSyncStatus =
 
 @Injectable({ providedIn: 'root' })
 export class SessionSyncService {
+
+  private readonly socket = inject(RealtimeSocketService)
+  private readonly authState = inject(AuthStateStore)
+  private readonly toast = inject(ToastService)
+  private readonly router = inject(Router)
+  private readonly zone = inject(NgZone)
+
+
+
   private unauthorizedRetries = 0
   private readonly MAX_UNAUTH_RETRIES = 2
 
@@ -66,13 +80,7 @@ export class SessionSyncService {
   private lastVoluntaryLogoutAt = 0
   private readonly voluntaryLogoutGraceMs = 12_000
 
-  constructor(
-    private readonly socket: RealtimeSocketService,
-    private readonly authState: AuthStateStore,
-    private readonly toast: ToastService,
-    private readonly router: Router,
-    private readonly zone: NgZone
-  ) {
+  constructor() {
 
     effect(() => {
       const t = this._voluntaryLogoutTick()
@@ -85,12 +93,16 @@ export class SessionSyncService {
     // eventi WS
     this.socket.onConnect().subscribe(() =>
       this.zone.run(() => {
+        this.authState.setConnectionState(SessionConnectionState.Connected)
         void this.syncSession()
       })
     )
 
     this.socket.onDisconnect().subscribe(r => {
-      if (r !== 'io client disconnect') this._status.set('disconnected')
+      if (r !== 'io client disconnect') {
+        this.authState.requireReconnect()
+        this._status.set('disconnected')
+      }
     })
 
     // errore applicativo → tentiamo resync (niente logout automatico)
@@ -106,8 +118,8 @@ export class SessionSyncService {
     )
 
     // scadenza sessione lato server
-    this.socket.onSessionExpired().subscribe(() =>
-      this.zone.run(() => this.handleSessionExpired())
+    this.socket.onSessionExpired().subscribe(payload =>
+      this.zone.run(() => this.handleSessionExpired(payload.cause))
     )
 
     // bootstrap: parte PUBLIC, poi decide se uppare a PRIVATE
@@ -115,7 +127,7 @@ export class SessionSyncService {
     void this.syncSession()
 
     // cross-tab con guardia cookie (evita falsi "logout da un’altra scheda")
-    let storageDebounce: any
+    let storageDebounce: ReturnType<typeof setTimeout>
     window.addEventListener('storage', (e: StorageEvent) => {
       if (e.storageArea !== localStorage) return
       if (e.key !== 'login' && e.key !== 'ws_accessToken') return
@@ -199,7 +211,7 @@ export class SessionSyncService {
 
     // login locale senza cookie → stato inconsistente: considera la sessione scaduta
     if (initials && !cookieLogged) {
-      this.handleSessionExpired()
+      this.handleSessionExpired(SessionInvalidationCause.InvalidSession)
       return
     }
 
@@ -342,11 +354,13 @@ export class SessionSyncService {
     await this.syncSession(true)
   }
 
-  private handleSessionExpired(): void {
+  private handleSessionExpired(
+    cause: SessionInvalidationCauseType = SessionInvalidationCause.InvalidSession
+  ): void {
     const voluntary = this.isVoluntaryLogoutRecent()
     // evento di scadenza lato server → consideralo definitivo anche se il cookie esiste ancora
     const alreadyExpired = this._status() === 'sessionExpired'
-    this.authState.invalidate('server-invalidated')
+    this.authState.invalidate(cause)
     const muted = voluntary || alreadyExpired || Date.now() < this.toastMutedUntil
     this._status.set(voluntary ? 'anonymous' : 'sessionExpired')
     this.becomeAnonymous({
@@ -379,7 +393,6 @@ export class SessionSyncService {
 
   /** true se esiste __logged_in o __logged_in_ con valore 'true' (non httpOnly). */
   private hasClientLoginCookieTrue(): boolean {
-    const ck = document.cookie || ''
     const v1 = this.readCookie('__logged_in')
     const v2 = this.readCookie('__logged_in_')
     return v1 === 'true' || v2 === 'true'
@@ -395,13 +408,13 @@ export class SessionSyncService {
   private becomeAnonymous(
     opts: {
       toast?: string
-      level?: ToastContext
+      level?: ToastVariant
       navigateIfProtected?: boolean
       /** se true rimuove anche la chiave 'login' */
       removeLoginKey?: boolean
     } = {}
   ) {
-    const { toast, level = 'warn', navigateIfProtected, removeLoginKey } = opts
+    const { toast, level = 'warn', navigateIfProtected } = opts
 
     this.authState.logout()
     this._status.set('anonymous')
@@ -434,7 +447,7 @@ export class SessionSyncService {
     )
   }
 
-  private triggerToast(message: string, level: ToastContext) {
+  private triggerToast(message: string, level: ToastVariant) {
     if (Date.now() < this.toastMutedUntil) return
     this.toast.trigger(message, level)
   }

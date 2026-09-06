@@ -1,7 +1,7 @@
 # 0010 - Unify session state protocol
 
-- [ ] DONE
-- [x] BLOCKED
+- [x] DONE
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -102,9 +102,10 @@ Prefer a small explicit state machine over distributed booleans. Do not conflate
 
 ### Summary
 
-Implemented and validated locally on preserved `feature/SYS-010`, but not
-integrated because mandatory browser validation could not start the canonical
-Tox21 runtime.
+Implemented and validated on `feature/SYS-010`. The prior runtime blocker was
+an unavailable local Tox21 entry point; the approved local entry point was
+subsequently restored and the complete browser flow was exercised through the
+nginx development edge.
 
 ### Validation performed
 
@@ -122,30 +123,24 @@ regenerated through its repository-owned checker before the final green gate.
 
 ### Browser validation performed
 
-Required browser validation was blocked. Before task-owned startup, the nginx
-edge returned `502 Bad Gateway` for `/` and `/health`. The canonical Tox21
-command then failed with `No module named main`:
-
-```text
-../MercurionTox21/.venv/Scripts/python.exe -m main
-```
-
-Chrome DevTools MCP opened only `http://localhost:8888/`, which showed the
-nginx unavailable page. No credentials were used and no session-flow evidence
-was claimed. Task-owned Nest and Angular watchers were stopped by recorded
-PIDs before the final clean install.
+With the canonical local runtime behind `http://localhost:8888`, browser
+validation covered public load, manual test-account authentication, reload
+restore to the authenticated dashboard, logout, and Socket.IO reconnection.
+For the reconnect check, the task-owned Nest process was stopped long enough
+to force the client disconnect/reconnect cycle and then restarted; the browser
+remained on the authenticated dashboard and did not enter a login loop.
+No production credentials or data were used.
 
 ### Changed files
 
-Only this task recipe's terminal-state metadata and execution notes are on
-`develop`. The implementation remains solely on the preserved feature branch.
+The task implementation remains on `feature/SYS-010` until feature-SHA CI and
+post-merge CI have both succeeded.
 
-### Blocker / human decision required
+### Integration status
 
-Restore or document the approved non-production Tox21 entry point so the
-canonical command can start. A new human-authorized attempt must then validate
-public load, authenticated transition, refresh/reconnect, logout, `/api/`, and
-`/socket.io/` through the nginx edge with Chrome DevTools MCP.
-
-The preserved and frozen `feature/SYS-010` branch is
-`ec5b900bb4f858b15e78916313003c3d193e93fb`.
+The task's final feature SHA `627709307d4b1fa60fc2df1376843048daca956a`
+passed GitHub Actions run `34030149605`; the no-fast-forward merge SHA
+`2b1f222b631604c723228a083ee9eb3dd98234b7` passed run `34030435004`.
+Both runs completed the Windows/Linux `Required gate` successfully. The former
+dependency-closure metadata was reverted so the now-unblocked descendants
+return to the planner's normal pending state.

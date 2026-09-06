@@ -538,7 +538,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   readonly triggerOpenOffCanvas = input(false)
 
-  readonly onOffCanvasMenuOpen = output<boolean>();
+  readonly offCanvasMenuOpened = output<boolean>();
 
   private routeSub?: Subscription
   private emailSub?: Subscription
@@ -595,7 +595,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
         return
       }
       this.offCanvasMenuOpen.set(true)
-      this.onOffCanvasMenuOpen.emit(true)
+      this.offCanvasMenuOpened.emit(true)
     })
     effect(() => {
       clearTimeout(this.themeMenuTimeoutId)
@@ -645,14 +645,22 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   protected toggleAvatarMenu(): void {
-    !this.avatarMenuOpen() && this.getProvidedEmail()
-    this.themeMenuOpen() && this.toggleThemeMenu()
+    if (!this.avatarMenuOpen()) {
+      this.getProvidedEmail()
+    }
+    if (this.themeMenuOpen()) {
+      this.toggleThemeMenu()
+    }
     this.avatarMenuOpen.update(open => !open)
   }
 
   protected toggleAvatarMobileMenu(): void {
-    !this.avatarMobileMenuOpen() && this.getProvidedEmail()
-    this.themeMenuOpen() && this.toggleThemeMenu()
+    if (!this.avatarMobileMenuOpen()) {
+      this.getProvidedEmail()
+    }
+    if (this.themeMenuOpen()) {
+      this.toggleThemeMenu()
+    }
     this.avatarMobileMenuOpen.update(open => !open)
   }
 
