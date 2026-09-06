@@ -2,8 +2,10 @@
   "mcpServers": {
     "chrome-devtools": {
       "type": "local",
-      "command": "npx",
+      "command": "cmd",
       "args": [
+        "/c",
+        "npx",
         "-y",
         "chrome-devtools-mcp@1.8.0",
         "--headless"
