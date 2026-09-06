@@ -106,7 +106,7 @@ describe('AuthStateStore', () => {
 
     store.updateAccessToken('new')
 
-    expect(store.state()).toMatchObject({ kind: 'authenticated', accessToken: 'new' })
+    expect(store.state()).toEqual(jasmine.objectContaining({ kind: 'authenticated', accessToken: 'new' }))
     expect(store.sessionProtocol().state).toBe(SessionState.Authenticated)
   })
 
