@@ -1,7 +1,7 @@
 # 0010 - Unify session state protocol
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -102,33 +102,50 @@ Prefer a small explicit state machine over distributed booleans. Do not conflate
 
 ### Summary
 
-Not attempted. At its normal filename-order selection point, this task's hard
-prerequisite `0009-create-typed-socket-io-event-registry.md` was terminal
-`BLOCKED`, so the protocol requires `SKIPPED_DEPENDENCY` without a feature
-branch or worker invocation.
+Implemented and validated locally on preserved `feature/SYS-010`, but not
+integrated because mandatory browser validation could not start the canonical
+Tox21 runtime.
 
 ### Validation performed
 
-No implementation or task preflight was run. Dependency resolution was
-performed on clean `develop` after the exact blocked-metadata CI for task 0009
-succeeded.
+The unchanged task-start preflight and final root CI-parity gate both passed:
+
+```text
+npm ci
+npm run ci:check
+```
+
+The feature branch also passed rest/socket-contract builds, Angular and Nest
+typechecks/builds, Nest tests (125 suites / 208 tests), and Angular tests
+(301 successful). `docs/architecture/rest-route-ownership.json` was
+regenerated through its repository-owned checker before the final green gate.
 
 ### Browser validation performed
 
-Not performed because this task was not attempted.
+Required browser validation was blocked. Before task-owned startup, the nginx
+edge returned `502 Bad Gateway` for `/` and `/health`. The canonical Tox21
+command then failed with `No module named main`:
+
+```text
+../MercurionTox21/.venv/Scripts/python.exe -m main
+```
+
+Chrome DevTools MCP opened only `http://localhost:8888/`, which showed the
+nginx unavailable page. No credentials were used and no session-flow evidence
+was claimed. Task-owned Nest and Angular watchers were stopped by recorded
+PIDs before the final clean install.
 
 ### Changed files
 
-Only this task recipe's terminal-state metadata and execution notes.
+Only this task recipe's terminal-state metadata and execution notes are on
+`develop`. The implementation remains solely on the preserved feature branch.
 
 ### Blocker / human decision required
 
-Direct terminal prerequisite:
-`0009-create-typed-socket-io-event-registry.md` (`SYS-009`) is `BLOCKED`.
+Restore or document the approved non-production Tox21 entry point so the
+canonical command can start. A new human-authorized attempt must then validate
+public load, authenticated transition, refresh/reconnect, logout, `/api/`, and
+`/socket.io/` through the nginx edge with Chrome DevTools MCP.
 
-Dependency chain: `0010 (SYS-010) -> 0009 (SYS-009, BLOCKED)`.
-
-Task 0009 is preserved and frozen on `feature/SYS-009` at
-`2d1df866fdf7befd3b07ad1a4201c682083fc2cf`. Its mandatory browser validation
-requires approved non-production Nest runtime configuration and a UTF-8-capable
-environment for the documented Tox21 command.
+The preserved and frozen `feature/SYS-010` branch is
+`ec5b900bb4f858b15e78916313003c3d193e93fb`.
