@@ -138,7 +138,9 @@ post-merge CI have both succeeded.
 
 ### Integration status
 
-This `DONE` marker is provisional until the task's exact feature SHA and the
-subsequent no-fast-forward merge SHA both pass the required GitHub Actions
-gate. The former dependency-closure metadata was reverted on this branch so
-the now-unblocked descendants return to the planner's normal pending state.
+The task's final feature SHA `627709307d4b1fa60fc2df1376843048daca956a`
+passed GitHub Actions run `34030149605`; the no-fast-forward merge SHA
+`2b1f222b631604c723228a083ee9eb3dd98234b7` passed run `34030435004`.
+Both runs completed the Windows/Linux `Required gate` successfully. The former
+dependency-closure metadata was reverted so the now-unblocked descendants
+return to the planner's normal pending state.
