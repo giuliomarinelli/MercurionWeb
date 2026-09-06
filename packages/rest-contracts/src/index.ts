@@ -14,6 +14,23 @@ export type {
   ApplicationErrorPayload
 } from './application-errors'
 export {
+  INITIAL_SESSION_PROTOCOL,
+  SessionConnectionState,
+  SessionInvalidationCause,
+  SessionState,
+  SessionTransition,
+  isSessionTransitionAllowed,
+  sessionInvalidationCauseForApplicationError,
+  transitionSessionProtocol
+} from './session-protocol'
+export type {
+  SessionConnectionState as SessionConnectionStateType,
+  SessionInvalidationCause as SessionInvalidationCauseType,
+  SessionProtocolSnapshot,
+  SessionState as SessionStateType,
+  SessionTransition as SessionTransitionType
+} from './session-protocol'
+export {
   FINGERPRINT_CONTRACT_VERSION,
   parseFingerprintData,
   parseSessionDeviceInfo

@@ -1,4 +1,8 @@
-import type { ApplicationErrorCodeType } from '@mercurion/rest-contracts'
+import type {
+  ApplicationErrorCodeType,
+  SessionInvalidationCauseType,
+  SessionStateType
+} from '@mercurion/rest-contracts'
 
 export const SOCKET_CONTRACT_VERSION = '1.0.0' as const
 
@@ -12,11 +16,13 @@ export interface SocketApplicationError {
 
 export interface SocketSessionInitAcknowledgement {
   detail: 'websocket session init successful'
+  state: Extract<SessionStateType, 'authenticated'>
 }
 
 export interface SocketSessionExpiredPayload {
   detail: 'session expired'
-  reason: 'expired' | 'del'
+  state: Extract<SessionStateType, 'invalid'>
+  cause: SessionInvalidationCauseType
 }
 
 type TypeMarker<T> = (value: T) => T

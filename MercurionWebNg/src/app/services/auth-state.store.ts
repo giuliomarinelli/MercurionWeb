@@ -1,4 +1,13 @@
 import { computed, Injectable, signal } from '@angular/core'
+import {
+  INITIAL_SESSION_PROTOCOL,
+  SessionConnectionState,
+  SessionInvalidationCause,
+  SessionTransition,
+  transitionSessionProtocol,
+  type SessionInvalidationCauseType,
+  type SessionProtocolSnapshot
+} from '@mercurion/rest-contracts'
 
 export type AuthState =
   | { kind: 'bootstrap' }
@@ -12,7 +21,7 @@ export type AuthState =
     wsAccessToken: string | null
     scopes: string[]
   }
-  | { kind: 'session-expired'; reason?: string }
+  | { kind: 'session-expired'; reason?: SessionInvalidationCauseType }
   | { kind: 'logging-out' }
 
 export type AuthStateSnapshot = AuthState
@@ -27,8 +36,11 @@ export interface AuthCompletion {
 @Injectable({ providedIn: 'root' })
 export class AuthStateStore {
   private readonly stateSignal = signal<AuthState>({ kind: 'bootstrap' })
+  private readonly protocolSignal = signal<SessionProtocolSnapshot>(INITIAL_SESSION_PROTOCOL)
 
   readonly state = this.stateSignal.asReadonly()
+  /** Canonical validity/connection state shared with Nest. */
+  readonly sessionProtocol = this.protocolSignal.asReadonly()
   readonly kind = computed(() => this.state().kind)
   readonly isAuthenticated = computed(() => this.state().kind === 'authenticated')
   readonly isAnonymous = computed(() => this.state().kind === 'anonymous')
@@ -50,6 +62,7 @@ export class AuthStateStore {
       ? { kind: 'authenticating', flow: 'restore' }
       : { kind: 'anonymous' }
     this.transition(next)
+    if (hasPersistedSession) this.applyProtocol(SessionTransition.BeginAuthentication)
     return next
   }
 
@@ -57,12 +70,16 @@ export class AuthStateStore {
     this.assertAllowed(this.state().kind, 'authenticating')
     if (flow !== 'restore') this.clearPersistence()
     this.stateSignal.set({ kind: 'authenticating', flow })
+    this.applyProtocol(SessionTransition.BeginAuthentication)
   }
 
   enterPreAuthentication(preAuthorizationToken?: string): void {
     this.assertAllowed(this.state().kind, 'pre-auth')
     this.clearClientCredentialsForPreAuth()
     this.stateSignal.set({ kind: 'pre-auth', preAuthorizationToken })
+    if (this.sessionProtocol().state !== 'authenticating') {
+      this.applyProtocol(SessionTransition.BeginAuthentication)
+    }
   }
 
   completeAuthentication(completion: AuthCompletion): void {
@@ -83,6 +100,7 @@ export class AuthStateStore {
     this.setPersistedInitials(completion.initials)
     this.setCachedScopes(scopes)
     this.stateSignal.set(next)
+    this.applyProtocol(SessionTransition.AuthenticationSucceeded)
   }
 
   updateAccessToken(token: string | null): void {
@@ -113,28 +131,50 @@ export class AuthStateStore {
       scopes: this.getCachedScopes() ?? []
     }
     this.assertAllowed(this.state().kind, next.kind)
+    if (this.sessionProtocol().state !== 'authenticating') {
+      this.applyProtocol(SessionTransition.BeginAuthentication)
+    }
     this.setPersistedInitials(initials)
     this.stateSignal.set(next)
+    this.applyProtocol(SessionTransition.AuthenticationSucceeded)
   }
 
   syncExternalState(): void {
     if (this.getPersistedInitials() || this.getWsAccessToken() || this.hasClientLoginCookie()) {
       this.transition({ kind: 'authenticating', flow: 'restore' })
+      this.applyProtocol(SessionTransition.BeginAuthentication)
       return
     }
     this.clearPersistence()
     this.transition({ kind: 'anonymous' })
   }
 
-  invalidate(reason = 'server-invalidated'): void {
+  invalidate(reason: SessionInvalidationCauseType = SessionInvalidationCause.InvalidSession): void {
     this.clearPersistence()
     this.transition({ kind: 'session-expired', reason })
+    this.applyProtocol(this.transitionForInvalidationCause(reason))
   }
 
   logout(): void {
     this.transition({ kind: 'logging-out' })
     this.clearPersistence()
     this.transition({ kind: 'anonymous' })
+    this.applyProtocol(SessionTransition.Logout)
+  }
+
+  requireReconnect(): void {
+    this.applyProtocol(SessionTransition.ReconnectRequired)
+  }
+
+  setConnectionState(connection: SessionConnectionState): void {
+    this.protocolSignal.update(snapshot => ({
+      ...snapshot,
+      connection,
+      cause: connection === SessionConnectionState.Connected &&
+        snapshot.cause === SessionInvalidationCause.ReconnectRequired
+        ? undefined
+        : snapshot.cause
+    }))
   }
 
   getAccessToken(): string | null {
@@ -213,6 +253,27 @@ export class AuthStateStore {
     const current = this.state()
     this.assertAllowed(current.kind, next.kind)
     this.stateSignal.set(next)
+  }
+
+  private applyProtocol(transition: SessionTransition): void {
+    this.protocolSignal.update(snapshot => transitionSessionProtocol(snapshot, transition))
+  }
+
+  private transitionForInvalidationCause(cause: SessionInvalidationCauseType): SessionTransition {
+    switch (cause) {
+      case SessionInvalidationCause.SessionExpired:
+        return SessionTransition.SessionExpired
+      case SessionInvalidationCause.SessionRevoked:
+        return SessionTransition.SessionRevoked
+      case SessionInvalidationCause.InvalidSignature:
+        return SessionTransition.InvalidSignature
+      case SessionInvalidationCause.InvalidCredentials:
+        return SessionTransition.InvalidCredentials
+      case SessionInvalidationCause.ReconnectRequired:
+        return SessionTransition.ReconnectRequired
+      case SessionInvalidationCause.InvalidSession:
+        return SessionTransition.InvalidSession
+    }
   }
 
   private assertAllowed(from: AuthState['kind'], to: AuthState['kind']): void {

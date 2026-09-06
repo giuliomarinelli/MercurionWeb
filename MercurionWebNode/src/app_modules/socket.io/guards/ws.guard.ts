@@ -21,6 +21,11 @@ import {
   isApplicationError
 } from 'src/exception-handling/application-error';
 import { getApplicationErrorDefinition } from '@mercurion/rest-contracts';
+import {
+  SessionInvalidationCause,
+  SessionState,
+  type SessionInvalidationCauseType
+} from '@mercurion/rest-contracts';
 
 type ApplicationSocket = Socket<ClientToServerEvents, ServerToClientEvents>
 
@@ -64,7 +69,7 @@ export class WsGuard implements CanActivate {
       try {
         deviceId = this.secureCookieService.verifyAndParseCookie(rawDeviceId)
       } catch {
-        this.unauthorized(client)
+        this.unauthorized(client, SessionInvalidationCause.InvalidSignature)
         return false
       }
     }
@@ -74,13 +79,13 @@ export class WsGuard implements CanActivate {
       try {
         sessionId = this.secureCookieService.verifyAndParseCookie(rawSessionId)
       } catch {
-        this.unauthorized(client)
+        this.unauthorized(client, SessionInvalidationCause.InvalidSignature)
         return false
       }
     }
 
     if (!token || !deviceId || !sessionId) {
-      this.unauthorized(client)
+      this.unauthorized(client, SessionInvalidationCause.InvalidCredentials)
       return false
     }
 
@@ -91,12 +96,12 @@ export class WsGuard implements CanActivate {
       await this.scopeService.scopeVerificationLayer(payload.sub, context, this.reflector, payload.scp)
 
       if (sessionId !== payload.sid) {
-        this.unauthorized(client)
+        this.unauthorized(client, SessionInvalidationCause.InvalidSession)
         return false
       }
 
       if (!await this.sessionService.validateSession(payload.sid, deviceId, payload.sub)) {
-        this.unauthorized(client)
+        this.unauthorized(client, SessionInvalidationCause.InvalidSession)
         return false
       }
 
@@ -115,12 +120,20 @@ export class WsGuard implements CanActivate {
         })
         return false
       }
-      this.unauthorized(client)
+      this.unauthorized(client, SessionInvalidationCause.InvalidCredentials)
       return false
     }
   }
 
-  private unauthorized(client: ApplicationSocket): void {
+  private unauthorized(
+    client: ApplicationSocket,
+    cause: SessionInvalidationCauseType = SessionInvalidationCause.InvalidSession
+  ): void {
+    client.emit(socketEventRegistry.sessionExpired.name, {
+      detail: 'session expired',
+      state: SessionState.Invalid,
+      cause
+    })
     client.emit(socketEventRegistry.applicationError.name, {
       code: ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED,
       detail: getApplicationErrorDefinition(ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED).defaultMessage ?? 'Unauthorized'

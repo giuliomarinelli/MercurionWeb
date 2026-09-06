@@ -1,7 +1,7 @@
 # 0010 - Unify session state protocol
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -102,33 +102,76 @@ Prefer a small explicit state machine over distributed booleans. Do not conflate
 
 ### Summary
 
-Not attempted. At its normal filename-order selection point, this task's hard
-prerequisite `0009-create-typed-socket-io-event-registry.md` was terminal
-`BLOCKED`, so the protocol requires `SKIPPED_DEPENDENCY` without a feature
-branch or worker invocation.
+Implemented the shared typed session protocol and its REST/Socket.IO mappings,
+but the mandatory browser-validation runtime cannot be started safely. The
+canonical Tox21 command fails before it can serve the required stack, so this
+feature branch is preserved as `BLOCKED`.
 
 ### Validation performed
 
-No implementation or task preflight was run. Dependency resolution was
-performed on clean `develop` after the exact blocked-metadata CI for task 0009
-succeeded.
+Unchanged task-start preflight passed on `feature/SYS-010` at
+`313f443bd1335ba01ac5cf93e2de93489c92a00c`:
+
+```text
+npm ci
+npm run ci:check
+```
+
+Task-specific validation passed:
+
+```text
+npm run build --workspace @mercurion/rest-contracts
+npm run build --workspace @mercurion/socket-contracts
+npm run typecheck --workspace mercurion_web_ng
+npm run typecheck --workspace mercurion_web_node
+npm run build --workspace mercurion_web_ng
+npm run build --workspace mercurion_web_node
+npm test --workspace mercurion_web_node -- --runInBand
+```
+
+Nest unit tests: 125 suites / 208 tests passed. Angular tests reported
+`TOTAL: 301 SUCCESS`; the Angular CLI left its completed Karma process alive,
+so the task-owned process tree was stopped by explicit PID before runtime and
+before the final clean-install gate. The final root `npm ci` passed. Its first
+`npm run ci:check` exposed an updated documentation reference in the
+repository-owned REST route inventory; after reviewing and regenerating
+`docs/architecture/rest-route-ownership.json` with
+`node scripts/check-rest-route-ownership.mjs --write`, the second final
+`npm run ci:check` passed completely.
 
 ### Browser validation performed
 
-Not performed because this task was not attempted.
+The externally managed nginx edge was reachable but returned `502 Bad Gateway`
+for both `http://localhost:8888/health` and `http://localhost:8888/` before
+the task-owned application processes started. The worker then followed the
+canonical start order. Tox21 failed immediately:
+
+```text
+../MercurionTox21/.venv/Scripts/python.exe -m main
+No module named main
+```
+
+Nest and Angular watch processes that had been started after that failure were
+stopped by their recorded PIDs. No browser was opened, no credentials were
+used, and no session-flow evidence was fabricated. Chrome DevTools MCP opened
+only `http://localhost:8888/`; its accessibility snapshot was nginx's
+`"An error occurred."` / `"currently unavailable"` 502 page, confirming that
+the declared public/session flows were unavailable through the required edge.
 
 ### Changed files
 
-Only this task recipe's terminal-state metadata and execution notes.
+`packages/rest-contracts/src/session-protocol.ts` and
+`packages/rest-contracts/SESSION-PROTOCOL.md` define the documented canonical
+state machine, transition/cause vocabulary, HTTP error mapping, and transport
+inventory. Angular derives a `sessionProtocol` signal from that contract;
+Nest Socket.IO acknowledgements and invalidation notifications use its typed
+states/causes. Contract tests cover refresh, expiry, revocation, reconnect,
+logout, socket acknowledgements, and HTTP error mapping.
 
 ### Blocker / human decision required
 
-Direct terminal prerequisite:
-`0009-create-typed-socket-io-event-registry.md` (`SYS-009`) is `BLOCKED`.
-
-Dependency chain: `0010 (SYS-010) -> 0009 (SYS-009, BLOCKED)`.
-
-Task 0009 is preserved and frozen on `feature/SYS-009` at
-`2d1df866fdf7befd3b07ad1a4201c682083fc2cf`. Its mandatory browser validation
-requires approved non-production Nest runtime configuration and a UTF-8-capable
-environment for the documented Tox21 command.
+Restore or document the approved canonical non-production Tox21 entry point so
+`../MercurionTox21/.venv/Scripts/python.exe -m main` starts successfully. Then
+a new human-authorized task attempt must validate public load, authenticated
+transition, refresh/reconnect, logout, `/api/`, and `/socket.io/` through the
+nginx edge with Chrome DevTools MCP.

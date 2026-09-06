@@ -13,6 +13,7 @@ import {
   type ServerToClientEvents,
   type SocketSessionExpiredPayload,
 } from '@mercurion/socket-contracts';
+import { SessionInvalidationCause } from '@mercurion/rest-contracts';
 
 type ApplicationServer = Server<ClientToServerEvents, ServerToClientEvents>
 
@@ -136,7 +137,10 @@ export class PubSubService implements OnModuleInit {
       try {
         const payload: SocketSessionExpiredPayload = {
           detail: 'session expired',
-          reason: event,
+          state: 'invalid',
+          cause: event === 'expired'
+            ? SessionInvalidationCause.SessionExpired
+            : SessionInvalidationCause.SessionRevoked,
         }
         this.socketServer
           .to(`ws_session:${sessionId}`)

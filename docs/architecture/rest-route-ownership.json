@@ -861,6 +861,11 @@
           "kind": "documentation"
         },
         {
+          "file": "docs/autonomous-development/task/0010-unify-session-state-protocol.md",
+          "line": 145,
+          "kind": "documentation"
+        },
+        {
           "file": "docs/autonomous-development/task/0016-separate-transport-dtos-from-ui-state.md",
           "line": 115,
           "kind": "documentation"

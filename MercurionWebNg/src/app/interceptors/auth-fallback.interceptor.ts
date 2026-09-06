@@ -18,6 +18,7 @@ import {
   ApplicationErrorCode,
   hasApplicationErrorCode
 } from '../utils/application-error.util';
+import { SessionInvalidationCause } from '@mercurion/rest-contracts'
 
 @Injectable()
 export class AuthFallbackInterceptor implements HttpInterceptor {
@@ -30,7 +31,7 @@ export class AuthFallbackInterceptor implements HttpInterceptor {
 
     const forceLogout = () => {
       this.toast.trigger('Sessione scaduta o invalidata. Effettua di nuovo il login.', 'error')
-      this.authState.invalidate('http-401')
+      this.authState.invalidate(SessionInvalidationCause.InvalidSession)
       this.router.navigateByUrl('/login')
     }
 

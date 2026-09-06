@@ -1,5 +1,10 @@
 import { TestBed } from '@angular/core/testing'
 import { AuthStateStore } from './auth-state.store'
+import {
+  SessionConnectionState,
+  SessionInvalidationCause,
+  SessionState
+} from '@mercurion/rest-contracts'
 
 describe('AuthStateStore', () => {
   let store: AuthStateStore
@@ -42,6 +47,30 @@ describe('AuthStateStore', () => {
       scopes: ['read']
     })
     expect(store.initials()).toBe('AB')
+    expect(store.sessionProtocol()).toEqual({
+      state: SessionState.Authenticated,
+      connection: SessionConnectionState.Disconnected
+    })
+  })
+
+  it('uses typed invalidation and reconnect protocol transitions', () => {
+    store.bootstrap()
+    store.beginAuthentication('password')
+    store.completeAuthentication({ initials: 'AB' })
+    store.requireReconnect()
+
+    expect(store.sessionProtocol()).toEqual({
+      state: SessionState.Authenticated,
+      connection: SessionConnectionState.ReconnectRequired,
+      cause: SessionInvalidationCause.ReconnectRequired
+    })
+
+    store.invalidate(SessionInvalidationCause.SessionRevoked)
+    expect(store.sessionProtocol()).toEqual({
+      state: SessionState.Invalid,
+      connection: SessionConnectionState.ReconnectRequired,
+      cause: SessionInvalidationCause.SessionRevoked
+    })
   })
 
   it('supports MFA/pre-auth, invalidation, logout, and external state convergence', () => {
@@ -51,7 +80,7 @@ describe('AuthStateStore', () => {
     expect(store.isPreAuth()).toBeTrue()
 
     store.completeAuthentication({ initials: 'AB', accessToken: 'a', wsAccessToken: 'w' })
-    store.invalidate('expired')
+    store.invalidate(SessionInvalidationCause.SessionExpired)
     expect(store.isAuthenticated()).toBeFalse()
     expect(store.state().kind).toBe('session-expired')
 
@@ -76,7 +105,7 @@ describe('AuthStateStore', () => {
   it('does not restore credentials from a stale completion after invalidation', () => {
     store.bootstrap()
     store.beginAuthentication('password')
-    store.invalidate('server-invalidated')
+    store.invalidate(SessionInvalidationCause.InvalidSession)
 
     expect(() => store.completeAuthentication({
       initials: 'AB',
@@ -84,7 +113,7 @@ describe('AuthStateStore', () => {
       wsAccessToken: 'stale-ws'
     })).toThrowError('Illegal auth transition: session-expired -> authenticated')
 
-    expect(store.state()).toEqual({ kind: 'session-expired', reason: 'server-invalidated' })
+    expect(store.state()).toEqual({ kind: 'session-expired', reason: SessionInvalidationCause.InvalidSession })
     expect(localStorage.getItem('login')).toBeNull()
     expect(localStorage.getItem('accessToken')).toBeNull()
     expect(localStorage.getItem('ws_accessToken')).toBeNull()
