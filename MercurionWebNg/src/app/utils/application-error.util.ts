@@ -1,13 +1,14 @@
 import {
   ApplicationErrorCode,
-  type ApplicationErrorCodeType,
-  isApplicationErrorCode,
+  isApplicationErrorEnvelope,
+  isApplicationErrorEnvelopeCode,
+  type ApplicationErrorEnvelopeCode,
 } from '@mercurion/rest-contracts';
 
 export { ApplicationErrorCode };
 
 export class ApplicationClientError extends Error {
-  constructor(public readonly code: ApplicationErrorCodeType) {
+  constructor(public readonly code: ApplicationErrorEnvelopeCode) {
     super(code);
     this.name = 'ApplicationClientError';
   }
@@ -15,13 +16,13 @@ export class ApplicationClientError extends Error {
 
 export function getApplicationErrorCode(
   value: unknown,
-): ApplicationErrorCodeType | undefined {
+): ApplicationErrorEnvelopeCode | undefined {
   return findApplicationErrorCode(value, new Set<unknown>());
 }
 
 export function hasApplicationErrorCode(
   value: unknown,
-  code: ApplicationErrorCodeType,
+  code: ApplicationErrorEnvelopeCode,
 ): boolean {
   return getApplicationErrorCode(value) === code;
 }
@@ -29,8 +30,8 @@ export function hasApplicationErrorCode(
 function findApplicationErrorCode(
   value: unknown,
   visited: Set<unknown>,
-): ApplicationErrorCodeType | undefined {
-  if (isApplicationErrorCode(value)) {
+): ApplicationErrorEnvelopeCode | undefined {
+  if (isApplicationErrorEnvelopeCode(value)) {
     return value;
   }
 
@@ -40,13 +41,18 @@ function findApplicationErrorCode(
   visited.add(value);
 
   const candidate = value as Record<string, unknown>;
-  if (isApplicationErrorCode(candidate['code'])) {
+  if (isApplicationErrorEnvelope(candidate)) {
+    return candidate.code;
+  }
+
+  if (isApplicationErrorEnvelopeCode(candidate['code'])) {
     return candidate['code'];
   }
 
   const nestedValues = [
     candidate['error'],
     candidate['extensions'],
+    candidate['applicationError'],
     candidate['errors'],
     candidate['gqlErrors'],
     candidate['graphQLErrors'],
