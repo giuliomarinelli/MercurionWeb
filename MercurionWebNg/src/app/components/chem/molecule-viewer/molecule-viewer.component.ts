@@ -1,17 +1,4 @@
-import {
-  ApplicationRef,
-  Component,
-  ChangeDetectionStrategy,
-  DestroyRef,
-  effect,
-  EventEmitter,
-  Input,
-  NgZone,
-  OnChanges,
-  OnInit,
-  Output,
-  signal,
-  SimpleChanges } from '@angular/core';
+import { ApplicationRef, Component, ChangeDetectionStrategy, DestroyRef, effect, NgZone, OnChanges, OnInit, signal, SimpleChanges, input, output, inject } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import {
   ChemistryAdapterError,
@@ -55,7 +42,7 @@ import { ThemeManagerService } from '../../../services/context/theme-manager.ser
         class="wrap"
         [innerHTML]="svg"
         role="img"
-        [attr.aria-label]="ariaLabel"
+        [attr.aria-label]="ariaLabel()"
         [attr.aria-busy]="renderState() === 'loading'"
       ></div>
     }
@@ -71,21 +58,27 @@ import { ThemeManagerService } from '../../../services/context/theme-manager.ser
     `:host(:not(.detail)) .wrap svg{height:100%;width:100%}`,
   ],
   host: {
-    '[class.detail]': 'mode === "detail"' } })
+    '[class.detail]': 'mode() === "detail"' } })
 export class MoleculeViewerComponent implements OnInit, OnChanges {
+  private readonly renderer = inject(ChemistryRendererService);
+  private readonly sanitizer = inject(DomSanitizer);
+  private readonly appRef = inject(ApplicationRef);
+  private readonly themeManager = inject(ThemeManagerService);
+  private readonly zone = inject(NgZone);
+
   /* ────── API pubblica ───────────────────────────────────────── */
   /** SMILES / MolBlock ecc. */
-  @Input({ required: true }) structure = '';
+  readonly structure = input.required<string>();
   /** Palette light/dark */
   /** "preview" (default) | "detail" */
-  @Input() mode: 'preview' | 'detail' = 'preview';
+  readonly mode = input<'preview' | 'detail'>('preview');
   /** Se true mostra solo lo skeleton (no RDKit) */
-  @Input() disablePreview = false;
+  readonly disablePreview = input(false);
 
   /** Testo per screen reader che descrive la molecola */
-  @Input() ariaLabel = 'Rappresentazione molecolare';
+  readonly ariaLabel = input('Rappresentazione molecolare');
 
-  @Output() rendered = new EventEmitter<void>();
+  readonly rendered = output<void>();
 
   darkMode = signal<boolean>(false);
   renderState = signal<'loading' | 'ready' | 'unavailable'>('loading');
@@ -112,25 +105,20 @@ export class MoleculeViewerComponent implements OnInit, OnChanges {
       C: '#F3F4F6', H: '#D1D5DB', N: '#BFDBFE', O: '#FCA5A5', S: '#FCD34D', P: '#E9D5FF',
       F: '#A7F3D0', Cl: '#6EE7B7', Br: '#FCD34D', I: '#DDD6FE' } } as const;
 
-  constructor(
-    private readonly renderer: ChemistryRendererService,
-    private readonly sanitizer: DomSanitizer,
-    private readonly appRef: ApplicationRef,
-    private readonly themeManager: ThemeManagerService,
-    private readonly zone: NgZone,
-    destroyRef: DestroyRef
-  ) {
+  constructor() {
+    const destroyRef = inject(DestroyRef);
+
     destroyRef.onDestroy(() => this.destroyViewer());
 
     effect(() => {
       this.darkMode.set(this.themeManager.theme() === 'dark');
-      if (this.ready && !this.disablePreview) this.scheduleRender();
+      if (this.ready && !this.disablePreview()) this.scheduleRender();
     });
   }
 
   /* ────── Lifecycle ─────────────────────────────────────────── */
   ngOnInit(): void {
-    if (!this.disablePreview) this.initRdkit();
+    if (!this.disablePreview()) this.initRdkit();
   }
 
   forceReRendering(): void {
@@ -138,8 +126,9 @@ export class MoleculeViewerComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(ch: SimpleChanges): void {
+    const disablePreview = this.disablePreview();
     if ('disablePreview' in ch) {
-      if (this.disablePreview) {
+      if (disablePreview) {
         this.stopRenderer();
         this.svg = null;
         return;
@@ -151,7 +140,7 @@ export class MoleculeViewerComponent implements OnInit, OnChanges {
       }
     }
 
-    if (!this.disablePreview && this.ready && (ch['structure'] || ch['mode'])) {
+    if (!disablePreview && this.ready && (ch['structure'] || ch['mode'])) {
       this.scheduleRender();
     }
   }
@@ -165,14 +154,15 @@ export class MoleculeViewerComponent implements OnInit, OnChanges {
     this.disposeRendererSession();
 
     void this.renderer.createSession().then(session => {
-      if (this.destroyed || this.disablePreview || generation !== this.sessionGeneration) {
+      const disablePreview = this.disablePreview();
+      if (this.destroyed || disablePreview || generation !== this.sessionGeneration) {
         session.dispose();
         return;
       }
 
       this.rendererSession = session;
       this.ready = true;
-      if (!this.disablePreview) this.scheduleRender();
+      if (!disablePreview) this.scheduleRender();
     }).catch(error => {
       if (!this.destroyed && generation === this.sessionGeneration) this.showRenderError(error);
     });
@@ -236,7 +226,7 @@ export class MoleculeViewerComponent implements OnInit, OnChanges {
     session: ChemistryRendererSession | undefined = this.rendererSession
   ): boolean {
     return !this.destroyed
-      && !this.disablePreview
+      && !this.disablePreview()
       && generation === this.renderGeneration
       && session === this.rendererSession;
   }
@@ -264,9 +254,10 @@ export class MoleculeViewerComponent implements OnInit, OnChanges {
   /* ────── Core rendering ─────────────────────────────────────── */
   private async renderSvg(generation: number): Promise<void> {
     const session = this.rendererSession;
-    if (!this.structure || !session) return;
-    const structure = this.structure;
-    const mode = this.mode;
+    const structureValue = this.structure();
+    if (!structureValue || !session) return;
+    const structure = structureValue;
+    const mode = this.mode();
     const palette = MoleculeViewerComponent.WCAG[this.darkMode() ? 'dark' : 'light'];
     let raw: string;
 
@@ -332,6 +323,7 @@ export class MoleculeViewerComponent implements OnInit, OnChanges {
       if (!this.isCurrentRender(generation, session)) return;
       this.svg = this.sanitizer.bypassSecurityTrustHtml(raw);
       this.renderState.set('ready');
+      // TODO: The 'emit' function requires a mandatory void argument
       this.rendered.emit();
     });
   }

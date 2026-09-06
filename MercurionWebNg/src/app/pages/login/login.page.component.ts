@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, computed, DestroyRef, effect, inject, OnDestroy, OnInit, Signal, signal, ViewChild } from '@angular/core'
+import { Component, ChangeDetectionStrategy, computed, DestroyRef, effect, inject, OnDestroy, OnInit, Signal, signal, viewChild } from '@angular/core'
 import { FormBuilder, FormControlStatus, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms'
 import { ActivatedRoute, Router, RouterLink } from '@angular/router'
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop'
@@ -258,8 +258,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
   private readonly redirectKey = 'redirectAfterLogin'
   private readonly loginKey = 'login'
 
-  @ViewChild(TurnstileComponent)
-  turnstileComponent!: TurnstileComponent
+  readonly turnstileComponent = viewChild.required(TurnstileComponent);
 
   protected loginForm: FormGroup<any>
   protected step = signal<1 | 2>(1)
@@ -419,7 +418,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
       },
       error: err => {
         const body = err.error as HttpErrorBody
-        this.turnstileComponent?.reset()
+        this.turnstileComponent()?.reset()
         this.turnstileToken.set(null)
         this.loadingLogin.set(false)
 

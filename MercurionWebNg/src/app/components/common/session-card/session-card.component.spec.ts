@@ -15,7 +15,7 @@ describe('SessionCardComponent', () => {
 
     fixture = TestBed.createComponent(SessionCardComponent);
     component = fixture.componentInstance;
-    component.session = {
+    fixture.componentRef.setInput('session', {
       id: 'session-id.0123456789abcdef',
       createdAt: 0,
       expiresAt: 0,
@@ -27,7 +27,7 @@ describe('SessionCardComponent', () => {
       provider: 'Mercurion',
       triggerDisappear: signal(false),
       isBeingDeleted: false
-    }
+    })
     fixture.detectChanges();
   });
 

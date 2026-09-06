@@ -1,6 +1,6 @@
 import { CustomMoleculeCollectionItemSaveContextService } from './../../../services/context/action-context/custom-molecule-collection-item-save-context.service';
 import { NgClass } from '@angular/common';
-import { Component, ElementRef, HostListener, inject, signal, ViewChild, ChangeDetectionStrategy, OnInit } from '@angular/core';
+import { Component, ElementRef, HostListener, inject, signal, ChangeDetectionStrategy, OnInit, viewChild } from '@angular/core';
 import { ComboSelectComponent } from '../../common/combo-select/combo-select.component';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
@@ -240,14 +240,11 @@ import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.model
   `
 })
 export class CustomMoleculeCollectionItemSaveComponent implements OnInit {
-  @ViewChild('name')
-  private nameRef!: ElementRef<HTMLInputElement>;
+  private readonly nameRef = viewChild.required<ElementRef<HTMLInputElement>>('name');
 
-  @ViewChild('label')
-  private labelRef!: ElementRef<HTMLInputElement>;
+  private readonly labelRef = viewChild.required<ElementRef<HTMLInputElement>>('label');
 
-  @ViewChild('notes')
-  private notesRef!: ElementRef<HTMLTextAreaElement>;
+  private readonly notesRef = viewChild.required<ElementRef<HTMLTextAreaElement>>('notes');
 
   protected readonly overlayCtx = inject(ActionOverlayContextService);
   private readonly sessionId = this.overlayCtx.session('MoleculeCollectionItemSave')?.id ?? -1;
@@ -343,17 +340,20 @@ export class CustomMoleculeCollectionItemSaveComponent implements OnInit {
   }
 
   onFocus(item: SaveOverlayFormItem): void {
+    const labelRef = this.labelRef();
+    const nameRef = this.nameRef();
+    const notesRef = this.notesRef();
     switch (item) {
       case 'label':
-        document.activeElement !== this.labelRef.nativeElement && this.labelRef.nativeElement.focus();
+        document.activeElement !== labelRef.nativeElement && labelRef.nativeElement.focus();
         this.labelFocus.set(true);
         break;
       case 'name':
-        document.activeElement !== this.nameRef.nativeElement && this.nameRef.nativeElement.focus();
+        document.activeElement !== nameRef.nativeElement && nameRef.nativeElement.focus();
         this.nameFocus.set(true);
         break;
       case 'notes':
-        document.activeElement !== this.notesRef.nativeElement && this.notesRef.nativeElement.focus();
+        document.activeElement !== notesRef.nativeElement && notesRef.nativeElement.focus();
         this.notesFocus.set(true);
     }
   }

@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, EventEmitter, Input, Output, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, input, output } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { Helpers } from '../../../helpers'
 import { SessionDTOExt } from '../../../Models/account/account.models';
@@ -25,17 +25,17 @@ import { ClassicSpinnerComponent } from "../classic-spinner/classic-spinner.comp
       [attr.aria-label]="ariaLabel()"
     >
 
-      @if (!session.isBeingDeleted) {
+      @if (!session().isBeingDeleted) {
         <!-- header -->
         <div class="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center justify-between gap-2 sm:gap-3 mb-2">
           <div class="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 w-full min-w-0">
             <span class="text-sm font-semibold text-slate-700 dark:text-slate-200 whitespace-nowrap">
-              Sessione {{ session.current ? '(attuale)' : '' }}
+              Sessione {{ session().current ? '(attuale)' : '' }}
             </span>
             <button
               class="text-xs leading-snug text-slate-500 dark:text-slate-400 cursor-default select-all break-all min-w-0 max-w-full text-left px-2 py-1 rounded border border-transparent bg-transparent"
-              [attr.title]="'ID: ' + session.id">
-              ID: {{ breakHex(session.id) }}
+              [attr.title]="'ID: ' + session().id">
+              ID: {{ breakHex(session().id) }}
             </button>
           </div>
         </div>
@@ -46,21 +46,21 @@ import { ClassicSpinnerComponent } from "../classic-spinner/classic-spinner.comp
           <div>
             <span class="text-slate-500 dark:text-slate-400 block text-xs uppercase mb-1">Creato</span>
             <span class="text-slate-700 dark:text-slate-200">
-              {{ session.createdAt | date:'dd/MM/yyyy HH:mm:ss' }}
+              {{ session().createdAt | date:'dd/MM/yyyy HH:mm:ss' }}
             </span>
           </div>
 
           <div>
             <span class="text-slate-500 dark:text-slate-400 block text-xs uppercase mb-1">Ultimo accesso</span>
             <span class="text-slate-700 dark:text-slate-200">
-              {{ session.lastAccessedAt | date:'dd/MM/yyyy HH:mm:ss' }}
+              {{ session().lastAccessedAt | date:'dd/MM/yyyy HH:mm:ss' }}
             </span>
           </div>
 
           <div>
             <span class="text-slate-500 dark:text-slate-400 block text-xs uppercase mb-1">Provider di autenticazione</span>
             <span class="text-slate-700 dark:text-slate-200">
-              {{ session.provider }}
+              {{ session().provider }}
             </span>
           </div>
 
@@ -74,7 +74,7 @@ import { ClassicSpinnerComponent } from "../classic-spinner/classic-spinner.comp
           <div>
             <span class="text-slate-500 dark:text-slate-400 block text-xs uppercase mb-1">Scadenza</span>
             <span class="text-slate-700 dark:text-slate-200">
-              {{ session.expiresAt | date:'dd/MM/yyyy HH:mm:ss' }}
+              {{ session().expiresAt | date:'dd/MM/yyyy HH:mm:ss' }}
             </span>
           </div>
 
@@ -82,26 +82,26 @@ import { ClassicSpinnerComponent } from "../classic-spinner/classic-spinner.comp
             <span class="text-slate-500 dark:text-slate-400 block text-xs uppercase mb-1">Valida</span>
             <span
               class="px-2 py-[2px] rounded text-xs font-semibold"
-              [class.bg-emerald-200]="session.valid"
-              [class.text-emerald-800]="session.valid"
-              [class.bg-rose-200]="!session.valid"
-              [class.text-rose-800]="!session.valid"
+              [class.bg-emerald-200]="session().valid"
+              [class.text-emerald-800]="session().valid"
+              [class.bg-rose-200]="!session().valid"
+              [class.text-rose-800]="!session().valid"
             >
-              {{ session.valid ? 'Sì' : 'No' }}
+              {{ session().valid ? 'Sì' : 'No' }}
             </span>
           </div>
 
           <div>
             <span class="text-slate-500 dark:text-slate-400 block text-xs uppercase mb-1">Luogo</span>
             <span class="text-slate-700 dark:text-slate-200">
-              {{ session.location }}
+              {{ session().location }}
             </span>
           </div>
 
           <div>
             <span class="text-slate-500 dark:text-slate-400 block text-xs uppercase mb-1">Browser</span>
             <span class="text-slate-700 dark:text-slate-200">
-              {{ session.browser }}
+              {{ session().browser }}
             </span>
           </div>
 
@@ -118,8 +118,8 @@ import { ClassicSpinnerComponent } from "../classic-spinner/classic-spinner.comp
               hover:bg-slate-200 dark:hover:bg-slate-700
               transition-colors duration-150
             "
-            (click)="logoutFromSession(session.id)"
-            [disabled]="session.current === false ? false : false"
+            (click)="logoutFromSession(session().id)"
+            [disabled]="session().current === false ? false : false"
             [attr.aria-disabled]="false"
             aria-label="Esci da questa sessione"
           >
@@ -143,11 +143,9 @@ import { ClassicSpinnerComponent } from "../classic-spinner/classic-spinner.comp
 })
 export class SessionCardComponent {
 
-  @Input({ required: true })
-  session!: SessionDTOExt
+  readonly session = input.required<SessionDTOExt>();
 
-  @Output()
-  onLoggingOutFromSession = new EventEmitter<string>()
+  readonly onLoggingOutFromSession = output<string>();
 
   logoutFromSession(sid: string): void {
     this.onLoggingOutFromSession.emit(sid)
@@ -158,7 +156,7 @@ export class SessionCardComponent {
   }
 
   ariaLabel(): string {
-    const s = this.session
+    const s = this.session()
     if (!s) return 'Sessione'
     const status = s.current ? 'Sessione attuale' : 'Sessione'
     return `${status}, ultimo accesso ${s.lastAccessedAt}`

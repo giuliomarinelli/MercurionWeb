@@ -9,7 +9,7 @@ import {
   OnDestroy,
   OnInit,
   signal,
-  ViewChild
+  viewChild
 } from '@angular/core';
 import { AbstractPaginatedMultiselectComponent } from '../../../abstract/abstract-paginated-multiselect-component';
 import { UiMoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
@@ -259,11 +259,9 @@ export class BindCollectionsToMoleculeComponent
   step_12_loading = signal<boolean>(false);
   error = signal<boolean>(false);
 
-  @ViewChild('scrollRoot', { static: false })
-  protected declare root: ElementRef<HTMLDivElement>;
+  protected override readonly root = viewChild<ElementRef<HTMLDivElement>>('scrollRoot');
 
-  @ViewChild('sentinel', { static: false })
-  protected declare sentinel: ElementRef<HTMLDivElement>;
+  protected override readonly sentinel = viewChild<ElementRef<HTMLDivElement>>('sentinel');
 
   ngOnInit(): void {
     queueMicrotask(() => this.loadMore());

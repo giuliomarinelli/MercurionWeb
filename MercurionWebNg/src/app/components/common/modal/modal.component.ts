@@ -1,7 +1,6 @@
 // modal.component.ts
-import { Component, ChangeDetectionStrategy, HostListener, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, effect, HostListener, inject, viewChild } from '@angular/core';
 import { PortalModule, CdkPortalOutlet } from '@angular/cdk/portal';
-import { ViewChild } from '@angular/core';
 import { ModalContextService } from '../../../services/context/modal-context.service';
 
 @Component({
@@ -30,13 +29,17 @@ export class ModalComponent {
 
   private _outlet?: CdkPortalOutlet;
 
-  // 👉 si attiva ogni volta che l’outlet compare (quando @if diventa true)
-  @ViewChild(CdkPortalOutlet)
-  set outlet(o: CdkPortalOutlet | undefined) {
-    if (o && o !== this._outlet) {
-      this._outlet = o;
-      this.ctx.registerOutlet(o);
-    }
+  // Si aggiorna ogni volta che l’outlet compare (quando @if diventa true).
+  readonly outlet = viewChild(CdkPortalOutlet)
+
+  constructor() {
+    effect(() => {
+      const outlet = this.outlet()
+      if (outlet && outlet !== this._outlet) {
+        this._outlet = outlet
+        this.ctx.registerOutlet(outlet)
+      }
+    })
   }
 
   overlayClick(_: MouseEvent) {

@@ -13,6 +13,7 @@ describe('MessageItemComponent', () => {
     .compileComponents();
 
     fixture = TestBed.createComponent(MessageItemComponent);
+    fixture.componentRef.setInput('message', null as never);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

@@ -3,20 +3,20 @@ import { CustomDetailsComponent } from '../../components/molecule-detail/my-mole
 import {
   AfterViewInit,
   Component,
- ChangeDetectionStrategy,
+  ChangeDetectionStrategy,
   ElementRef,
-  ViewChild,
   inject,
   signal,
   effect,
   OnInit,
   OnDestroy,
-  NgZone
+  NgZone,
+  viewChild
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   catchError,
-  debounceTime,
+  delay,
   distinctUntilChanged,
   filter,
   firstValueFrom,
@@ -183,8 +183,7 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
   private readonly appTitle = inject(AppTitleService)
   private readonly invalidations = inject(DomainInvalidationService)
 
-  @ViewChild('sentinel', { static: true })
-  protected declare sentinel: ElementRef | undefined;
+  protected override readonly sentinel = viewChild<ElementRef<HTMLElement>>('sentinel');
 
   private scrollFallbackSub?: Subscription;
   private colIdSub?: Subscription;
@@ -236,7 +235,9 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
     return this.itemService
       .getPaginatedItemsForCollection(id, page, size, this.searchTerm())
       .pipe(
-        debounceTime(20),
+        // Apollo's one-shot query completes immediately; keep the first-page
+        // loading state visible long enough for the skeleton to render.
+        delay(page === 1 ? 120 : 0),
         map(p => ({
           ...p,
           items: p.items.map(mol => Helpers.moleculeClientToCardConverter(mol))
@@ -307,7 +308,7 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
     const id = this.colId() || _id;
     if (!id) return;
 
-    this.loading = true;
+    this.setLoading(true);
     try {
       const newPage = await firstValueFrom(
         this.fetch$(this.page, 25).pipe(
@@ -324,11 +325,12 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
         this.done = true;
         if (this.page === 1) this.earlyDone = true;
       } else {
+        if (this.empty()) this.empty.set(false);
         this.items = [...this.items, ...newPage.items];
         this.page++;
       }
     } finally {
-      this.loading = false;
+      this.setLoading(false);
     }
   }
 
@@ -349,8 +351,9 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
         { root: null, rootMargin: `0px 0px ${bottomPx}px 0px`, threshold: 0.01 }
       );
 
-      if (this.sentinel?.nativeElement) {
-        this.observer.observe(this.sentinel.nativeElement);
+      const sentinel = this.sentinel();
+      if (sentinel?.nativeElement) {
+        this.observer.observe(sentinel.nativeElement);
       }
     });
   }

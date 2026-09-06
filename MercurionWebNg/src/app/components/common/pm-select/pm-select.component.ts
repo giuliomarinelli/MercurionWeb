@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, Input, HostListener, ElementRef, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, HostListener, ElementRef, inject, input, signal } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { PublicPipe } from '../../../pipes/public.pipe';
 import {
@@ -23,34 +23,34 @@ import { NgClass } from '@angular/common';
     useExisting: PmSelectComponent,
     multi: true
   }],
-  host: { '[attr.id]': 'id' },
+  host: { '[attr.id]': 'id()' },
   styles: [`
     .emoji-font {
       font-family: 'Noto Color Emoji','Twemoji Country Flags','Segoe UI Emoji','Apple Color Emoji',system-ui,sans-serif !important;
     }
   `],
   template: `
-    <div [class]="containerClass">
+    <div [class]="containerClass()">
       <div class="w-full relative" cdkOverlayOrigin #origin="cdkOverlayOrigin">
-        @if (label) {
-          <label [attr.for]="id + '-btn'"
+        @if (label()) {
+          <label [attr.for]="id() + '-btn'"
             class="block ml-[2px] mb-2 text-base"
-            [ngClass]="[textClass, darkTextClass]">
-            {{ label }}
+            [ngClass]="[textClass(), darkTextClass()]">
+            {{ label() }}
           </label>
         }
 
         <button
-          [id]="id + '-btn'"
+          [id]="id() + '-btn'"
           type="button"
           [attr.aria-haspopup]="'listbox'"
           [attr.aria-expanded]="opened"
-          [disabled]="disabled"
+          [disabled]="isDisabled()"
           (click)="toggle()"
           (keydown)="onKey($event)"
-          [attr.aria-controls]="opened ? id + '-listbox' : null"
-          [attr.aria-label]="label || placeholder"
-          [attr.aria-disabled]="disabled"
+          [attr.aria-controls]="opened ? id() + '-listbox' : null"
+          [attr.aria-label]="label() || placeholder()"
+          [attr.aria-disabled]="isDisabled()"
           class="relative w-full appearance-none text-lg text-slate-600 outline outline-1 -outline-offset-1
                  focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2
                  focus-visible:outline-light-accent-primary dark:bg-transparent dark:text-slate-400
@@ -59,7 +59,7 @@ import { NgClass } from '@angular/common';
                  block px-4 py-3 border-[2px] border-slate-300 dark:border-slate-200 rounded-md transition duration-300
                  focus:outline-none focus:ring-2 focus:ring-light-accent-primary cursor-pointer
                  text-left pr-10"
-          [ngClass]="darkFocusClassList">
+          [ngClass]="darkFocusClassList()">
 
           <span class="emoji-font inline-flex items-center gap-2">
             @if (currentIconUrl) {
@@ -67,7 +67,7 @@ import { NgClass } from '@angular/common';
                    [alt]="currentIconAlt || ''"
                    class="w-6 h-6 inline-block rounded-[3px] object-cover mr-3"/>
             }
-            <span class="leading-tight">{{ currentLabel || placeholder }}</span>
+            <span class="leading-tight">{{ currentLabel || placeholder() }}</span>
           </span>
 
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
@@ -90,10 +90,10 @@ import { NgClass } from '@angular/common';
           <ul role="listbox"
               class="z-[200] mt-2 w-full rounded-md border border-slate-400 dark:border-slate-200
                      bg-slate-100 dark:bg-neutral-800 shadow-lg overflow-auto m-scroll-thin"
-              [style.maxHeight.px]="maxHeight"
-              [attr.id]="id + '-listbox'">
+              [style.maxHeight.px]="maxHeight()"
+              [attr.id]="id() + '-listbox'">
 
-            @for (o of options; track o.value; let i = $index) {
+            @for (o of options(); track o.value; let i = $index) {
               <li role="option"
                   [attr.aria-selected]="o.value === value"
                   (click)="choose(i)"
@@ -120,22 +120,26 @@ import { NgClass } from '@angular/common';
   `
 })
 export class PmSelectComponent implements ControlValueAccessor {
+  private el = inject<ElementRef<HTMLElement>>(ElementRef);
 
-  @Input() id = 'm-select';
-  @Input() label = '';
-  @Input() placeholder = 'Seleziona…';
-  @Input() options: PmOption[] = [];
-  @Input() disabled = false;
-  @Input() containerClass = 'flex justify-center mx-auto max-w-[500px]';
-  @Input() maxHeight = 250;
-  @Input() textClass = 'text-light-accent-secondary'
-  @Input() darkTextClass = 'dark:text-dark-accent-secondary/90'
-  @Input() darkFocusClassList = [
+
+  readonly id = input('m-select');
+  readonly label = input('');
+  readonly placeholder = input('Seleziona…');
+  readonly options = input<PmOption[]>([]);
+  readonly disabled = input(false);
+  private readonly formDisabled = signal(false);
+  readonly isDisabled = computed(() => this.disabled() || this.formDisabled());
+  readonly containerClass = input('flex justify-center mx-auto max-w-[500px]');
+  readonly maxHeight = input(250);
+  readonly textClass = input('text-light-accent-secondary');
+  readonly darkTextClass = input('dark:text-dark-accent-secondary/90');
+  readonly darkFocusClassList = input([
     'dark:focus:ring-dark-accent-primary-btn-hc',
     'dark:focus:border-dark-accent-primary-btn-hc',
     'dark:focus-visible:outline-dark-accent-primary-btn-hc',
     'dark:focus-visible:outline-dark-accent-primary-btn-hc'
-  ]
+]);
 
   opened = false;
   value: any = null;
@@ -162,10 +166,8 @@ export class PmSelectComponent implements ControlValueAccessor {
   private onChange = (_: any) => { };
   private onTouched = () => { };
 
-  constructor(private el: ElementRef<HTMLElement>) { }
-
   private get currentOption() {
-    return this.options.find(o => o.value === this.value);
+    return this.options().find(o => o.value === this.value);
   }
 
   get currentLabel() { return this.currentOption?.label ?? ''; }
@@ -175,19 +177,19 @@ export class PmSelectComponent implements ControlValueAccessor {
   writeValue(v: any) { this.value = v; }
   registerOnChange(fn: any) { this.onChange = fn; }
   registerOnTouched(fn: any) { this.onTouched = fn; }
-  setDisabledState(d: boolean) { this.disabled = d; }
+  setDisabledState(d: boolean) { this.formDisabled.set(d); }
 
   toggle() {
-    if (this.disabled) return;
+    if (this.isDisabled()) return;
     this.opened = !this.opened;
     if (this.opened) {
-      const idx = this.options.findIndex(o => o.value === this.value);
+      const idx = this.options().findIndex(o => o.value === this.value);
       this.highlighted = idx >= 0 ? idx : 0;
     }
   }
 
   choose(i: number) {
-    const opt = this.options[i];
+    const opt = this.options()[i];
     if (!opt) return;
     this.value = opt.value;
     this.onChange(this.value);
@@ -201,7 +203,7 @@ export class PmSelectComponent implements ControlValueAccessor {
     }
     if (!this.opened) return;
 
-    if (e.key === 'ArrowDown') { e.preventDefault(); this.highlighted = Math.min(this.options.length - 1, this.highlighted + 1); }
+    if (e.key === 'ArrowDown') { e.preventDefault(); this.highlighted = Math.min(this.options().length - 1, this.highlighted + 1); }
     if (e.key === 'ArrowUp') { e.preventDefault(); this.highlighted = Math.max(0, this.highlighted - 1); }
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.choose(this.highlighted); }
     if (e.key === 'Escape') { e.preventDefault(); this.opened = false; }

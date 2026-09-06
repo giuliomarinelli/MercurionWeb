@@ -1,5 +1,5 @@
 import { NgClass } from '@angular/common';
-import { Component, Input, Output, EventEmitter, ElementRef, ViewChild, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, effect, ElementRef, signal, ChangeDetectionStrategy, input, output, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 @Component({
@@ -59,7 +59,7 @@ import { FormsModule } from '@angular/forms';
                focus:outline-none focus:ring-2 focus:ring-emerald-700 focus:border-emerald-700
                dark:bg-slate-800 dark:text-slate-50 dark:border-slate-400 dark:placeholder-slate-200
                dark:focus:ring-emerald-400 dark:focus:border-emerald-400"
-        [placeholder]="searchPlaceholder || 'Cerca...'"
+        [placeholder]="searchPlaceholder() || 'Cerca...'"
         [(ngModel)]="searchTerm"
         (input)="onInputChange($event)"
         aria-label="Cerca elemento"
@@ -71,10 +71,10 @@ import { FormsModule } from '@angular/forms';
         class="max-h-64 overflow-auto overflow-y-auto flex flex-col gap-1 h-56 text-slate-800 dark:text-slate-50 m-scroll-thin"
         (scroll)="onScroll($event)"
         role="listbox"
-        [attr.aria-label]="ariaLabelListbox"
+        [attr.aria-label]="ariaLabelListbox()"
       >
         @if (filteredItems().length > 0) {
-          @for (item of filteredItems(); track valueFn(item)) {
+          @for (item of filteredItems(); track valueFn()(item)) {
             <div
               class="px-3 py-2 cursor-pointer rounded-md transition-colors duration-150
                      hover:bg-emerald-100 dark:hover:bg-emerald-800"
@@ -86,7 +86,7 @@ import { FormsModule } from '@angular/forms';
               role="option"
               [attr.aria-selected]="isSelected(item)"
             >
-              {{ displayFn(item) }}
+              {{ displayFn()(item) }}
             </div>
           }
         } @else {
@@ -96,7 +96,7 @@ import { FormsModule } from '@angular/forms';
         }
 
         <!-- CREA NUOVA -->
-        @if (canCreateNew) {
+        @if (canCreateNew()) {
           <div
             class="px-3 py-2 border-t border-slate-200 dark:border-slate-500 mt-2 sticky bottom-0 z-20
                    bg-slate-100 dark:bg-slate-800"
@@ -163,32 +163,37 @@ import { FormsModule } from '@angular/forms';
     </div>
   ` })
 export class ComboSelectComponent<T> {
-  @Input({ required: true }) items: T[] = [];
-  @Input({ required: true }) displayFn!: (item: T) => string;
-  @Input({ required: true }) valueFn!: (item: T) => any;
-  @Input() searchPlaceholder?: string;
-  @Input() ariaLabelListbox = 'Elenco elementi';
-  @Input() hasMore = false;
-  @Input() canCreateNew = false;
-  @Input() selected?: any;
+  readonly items = input.required<T[]>();
+  readonly displayFn = input.required<(item: T) => string>();
+  readonly valueFn = input.required<(item: T) => any>();
+  readonly searchPlaceholder = input<string>();
+  readonly ariaLabelListbox = input('Elenco elementi');
+  readonly hasMore = input(false);
+  readonly canCreateNew = input(false);
+  readonly selected = input<any>();
+  private readonly selectedValue = signal<any>(undefined);
 
-  @Output() searchChange = new EventEmitter<string>();
-  @Output() loadMore = new EventEmitter<void>();
-  @Output() select = new EventEmitter<T>();
-  @Output() createNew = new EventEmitter<string>();
+  readonly searchChange = output<string>();
+  readonly loadMore = output<void>();
+  readonly select = output<T>();
+  readonly createNew = output<string>();
 
   searchTerm = '';
   creatingNew = false;
   newItemName = '';
   loadingMore = signal(false);
 
-  @ViewChild('scrollContainer') scrollContainer?: ElementRef<HTMLDivElement>;
-  @ViewChild('newInput') newInput?: ElementRef<HTMLInputElement>;
+  readonly scrollContainer = viewChild<ElementRef<HTMLDivElement>>('scrollContainer');
+  readonly newInput = viewChild<ElementRef<HTMLInputElement>>('newInput');
+
+  constructor() {
+    effect(() => this.selectedValue.set(this.selected()));
+  }
 
   filteredItems() {
     const t = this.searchTerm.trim().toLowerCase();
-    if (!t) return this.items;
-    return this.items.filter(item => this.displayFn(item).toLowerCase().includes(t));
+    if (!t) return this.items();
+    return this.items().filter(item => this.displayFn()(item).toLowerCase().includes(t));
   }
 
   onInputChange(event: Event) {
@@ -199,9 +204,10 @@ export class ComboSelectComponent<T> {
 
   onScroll(event: Event) {
     const target = event.target as HTMLElement;
-    if (this.hasMore && target.scrollTop + target.clientHeight >= target.scrollHeight - 10) {
+    if (this.hasMore() && target.scrollTop + target.clientHeight >= target.scrollHeight - 10) {
       if (!this.loadingMore()) {
         this.loadingMore.set(true);
+        // TODO: The 'emit' function requires a mandatory void argument
         this.loadMore.emit();
         setTimeout(() => this.loadingMore.set(false), 800);
       }
@@ -209,18 +215,18 @@ export class ComboSelectComponent<T> {
   }
 
   onSelectItem(item: T) {
-    this.selected = this.valueFn(item);
+    this.selectedValue.set(this.valueFn()(item));
     this.select.emit(item);
     this.creatingNew = false;
   }
 
   isSelected(item: T) {
-    return this.valueFn(item) === this.selected;
+    return this.valueFn()(item) === this.selectedValue();
   }
 
   startCreateNew() {
     this.creatingNew = true;
-    setTimeout(() => this.newInput?.nativeElement?.focus(), 100);
+    setTimeout(() => this.newInput()?.nativeElement?.focus(), 100);
   }
 
   onCreateNewConfirm() {

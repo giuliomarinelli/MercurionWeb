@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, computed, DestroyRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, DestroyRef, inject, OnDestroy, OnInit, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FloatingInputComponent } from '../../components/common/floating-input/floating-input.component';
 import { TurnstileComponent } from '../../components/common/turnstile/turnstile.component';
@@ -237,8 +237,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 })
 export class AccountRecoveryPageComponent implements OnInit, OnDestroy {
 
-  @ViewChild(TurnstileComponent)
-  private turnstileComponent?: TurnstileComponent
+  private readonly turnstileComponent = viewChild(TurnstileComponent);
 
   private readonly recoveryService = inject(RecoveryService)
   private readonly authService = inject(AuthService)
@@ -404,12 +403,13 @@ export class AccountRecoveryPageComponent implements OnInit, OnDestroy {
   }
 
   private resetTurnstileWidget(): void {
-    if (!this.turnstileComponent) {
+    const turnstileComponent = this.turnstileComponent();
+    if (!turnstileComponent) {
       this.loadingTurnstile.set(false)
       return
     }
     this.loadingTurnstile.set(true)
-    this.turnstileComponent.reset()
+    turnstileComponent.reset()
   }
 
   private resetServerError(): void {

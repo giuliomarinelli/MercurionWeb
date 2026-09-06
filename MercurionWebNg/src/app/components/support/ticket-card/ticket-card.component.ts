@@ -1,5 +1,7 @@
 import {
-  Component, Input, Output, EventEmitter, signal, computed, effect, ChangeDetectionStrategy } from '@angular/core';
+  Component, input, signal, computed, effect, ChangeDetectionStrategy,
+  output
+} from '@angular/core';
 import { DatePipe, NgClass } from '@angular/common';
 import { APIClientTicket, Ticket, TicketCardMode } from '../../../Models/graphql/help.models'; // path tuo
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
@@ -170,50 +172,22 @@ export class TicketCardComponent {
   protected readonly typeGuards = inject(TypeGuardsService)
 
   /* inputs --------------------------- */
-  @Input({ required: true })
-  set ticket(t: Ticket | APIClientTicket) {
-    this._ticket.set(t)
-  }
-
-  @Input()
-  set i(i: number) {
-    this._i.set(i)
-  }
-
-  /** user | support (default user) */
-  @Input()
-  set cardMode(m: TicketCardMode) {
-    this.mode.set(m)
-  }
-
-  @Input()
-  set triggerDisappear(v: boolean) {
-    this._triggerDisappear.set(v)
-  }
-
-  @Input()
-  set collapse(v: boolean) {
-    this._collapse.set(v)
-  }
-
-  /** abilita/disabilita i bottoni (default true) */
-  @Input()
-  set allowActions(v: boolean) {
-    this._allowActions.set(v)
-  }
+  readonly ticket = input.required<Ticket | APIClientTicket>()
+  readonly i = input(0)
+  readonly cardMode = input<TicketCardMode>('user')
+  readonly triggerDisappear = input(false)
+  readonly collapse = input(false)
+  readonly allowActions = input(true)
 
   /* outputs -------------------------- */
 
 
 
-  @Output()
-  close = new EventEmitter<string>()
+  readonly close = output<string>();
 
-  @Output()
-  reopen = new EventEmitter<string>()
+  readonly reopen = output<string>();
 
-  @Output()
-  onOpenDetail = new EventEmitter<string>()
+  readonly onOpenDetail = output<string>();
 
   /* state ---------------------------- */
   _ticket = signal<Ticket | APIClientTicket | undefined>(undefined)
@@ -225,6 +199,12 @@ export class TicketCardComponent {
   isDarkMode = signal<boolean>(false)
 
   constructor() {
+    effect(() => this._ticket.set(this.ticket()))
+    effect(() => this._i.set(this.i()))
+    effect(() => this.mode.set(this.cardMode()))
+    effect(() => this._triggerDisappear.set(this.triggerDisappear()))
+    effect(() => this._collapse.set(this.collapse()))
+    effect(() => this._allowActions.set(this.allowActions()))
     effect(() => this.isDarkMode.set(this.themeManager.theme() === 'dark'))
   }
 

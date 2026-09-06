@@ -74,11 +74,11 @@ export class NotebookService {
   getAllNotebooks(): Observable<NotebookTree[]> {
     this._loading.set(true);
     return this.apollo
-      .watchQuery<GetAllNotebooksQuery, GetAllNotebooksQueryVariables>({
+      .query<GetAllNotebooksQuery, GetAllNotebooksQueryVariables>({
         query: GetAllNotebooksDocument,
-        fetchPolicy: 'network-only',
+        fetchPolicy: 'no-cache',
       })
-      .valueChanges.pipe(
+      .pipe(
         map(res => extractGqlData<GetAllNotebooksQuery, 'labNotebooksByUser'>(
           res,
           'labNotebooksByUser',
@@ -92,12 +92,12 @@ export class NotebookService {
 
   getNotebookById(id: string): Observable<NotebookTree> {
     return this.apollo
-      .watchQuery<GetNotebookDetailQuery, GetNotebookDetailQueryVariables>({
+      .query<GetNotebookDetailQuery, GetNotebookDetailQueryVariables>({
         query: GetNotebookDetailDocument,
         variables: { id },
-        fetchPolicy: 'network-only',
+        fetchPolicy: 'no-cache',
       })
-      .valueChanges.pipe(
+      .pipe(
         map(res => extractGqlData<GetNotebookDetailQuery, 'labNotebook'>(
           res,
           'labNotebook',
@@ -107,12 +107,12 @@ export class NotebookService {
 
   getChapterById(id: string): Observable<ChapterTree | null> {
     return this.apollo
-      .watchQuery<GetChapterByIdQuery, GetChapterByIdQueryVariables>({
+      .query<GetChapterByIdQuery, GetChapterByIdQueryVariables>({
         query: GetChapterByIdDocument,
         variables: { id },
-        fetchPolicy: 'network-only',
+        fetchPolicy: 'no-cache',
       })
-      .valueChanges.pipe(
+      .pipe(
         map(res => extractGqlData<GetChapterByIdQuery, 'chapterById'>(
           res,
           'chapterById',
@@ -123,12 +123,12 @@ export class NotebookService {
 
   getSectionById(id: string): Observable<SectionTree | null> {
     return this.apollo
-      .watchQuery<GetSectionByIdQuery, GetSectionByIdQueryVariables>({
+      .query<GetSectionByIdQuery, GetSectionByIdQueryVariables>({
         query: GetSectionByIdDocument,
         variables: { id },
-        fetchPolicy: 'network-only',
+        fetchPolicy: 'no-cache',
       })
-      .valueChanges.pipe(
+      .pipe(
         map(res => extractGqlData<GetSectionByIdQuery, 'sectionById'>(
           res,
           'sectionById',
@@ -139,12 +139,12 @@ export class NotebookService {
 
   getPageByIdHeader(id: string): Observable<PageTree | null> {
     return this.apollo
-      .watchQuery<GetPageHeaderByIdQuery, GetPageHeaderByIdQueryVariables>({
+      .query<GetPageHeaderByIdQuery, GetPageHeaderByIdQueryVariables>({
         query: GetPageHeaderByIdDocument,
         variables: { id },
-        fetchPolicy: 'network-only',
+        fetchPolicy: 'no-cache',
       })
-      .valueChanges.pipe(
+      .pipe(
         map(res => extractGqlData<GetPageHeaderByIdQuery, 'pageById'>(
           res,
           'pageById',

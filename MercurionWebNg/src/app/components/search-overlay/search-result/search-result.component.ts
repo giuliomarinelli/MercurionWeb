@@ -1,12 +1,11 @@
 import {
-  Component, Input, signal, effect,
+  Component, input, signal, effect,
   ChangeDetectionStrategy,
   ElementRef, OnDestroy,
   NgZone,
-  Output,
-  EventEmitter,
   inject,
-  computed
+  computed,
+  output
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
@@ -129,33 +128,25 @@ export class SearchResultComponent implements OnDestroy {
   private seen: boolean = false
   private io!: IntersectionObserver
 
-  /* inputs ---------------------------------- */
-  @Input({ required: true })
-  set molecule(m: MoleculeSearchResult) {
-    this.seen = false;                // <— nuova molecola = nuovo lazy load
-    this.viewerReady.set(false);
-    this.disablePreview.set(true);
+  readonly molecule = input.required<MoleculeSearchResult>()
+  readonly query = input.required<string>()
+  readonly search_excludeAlreadyAdded = input(false)
 
-    this._molecule.set(m);
-    this._pathToMolecule.set(`molecules/detail/${m.id}`);
-
-    // nel caso l’IO fosse stato detachato:
-    this.zone.runOutsideAngular(() => this.io.observe(this.host.nativeElement));
-  }
-
-
-  @Input({ required: true })
-  set query(q: string) { this._query.set(q); }
-
-  @Input()
-  set search_excludeAlreadyAdded(search_excludeAlreadyAdded: boolean) {
-    this._search_excludeAlreadyAdded.set(search_excludeAlreadyAdded)
-  }
-
-  @Output()
-  onChipItem = new EventEmitter<ChipItem>()
+  readonly onChipItem = output<ChipItem>();
 
   constructor() {
+
+    effect(() => {
+      const molecule = this.molecule()
+      this.seen = false
+      this.viewerReady.set(false)
+      this.disablePreview.set(true)
+      this._molecule.set(molecule)
+      this._pathToMolecule.set(`molecules/detail/${molecule.id}`)
+      if (this.io) this.zone.runOutsideAngular(() => this.io.observe(this.host.nativeElement))
+    })
+    effect(() => this._query.set(this.query()))
+    effect(() => this._search_excludeAlreadyAdded.set(this.search_excludeAlreadyAdded()))
 
     /* aggiorna dark mode */
     effect(() => this.isDarkMode.set(this.themeManager.theme() === 'dark'))

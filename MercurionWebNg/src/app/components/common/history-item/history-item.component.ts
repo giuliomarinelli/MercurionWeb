@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, EventEmitter, Input, Output, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, effect, input, signal, output } from '@angular/core';
 import { HistoryDTO, HistoryItemEntity } from '../../../Models/history.models';
 import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
@@ -86,23 +86,20 @@ export class HistoryItemComponent {
   pathToItem = signal<string>('')
   queryParams = signal<Record<string, string>>({})
 
-  @Input({ required: true })
-  set historyDTO(historyDTO: HistoryDTO) {
+  readonly historyDTO = input.required<HistoryDTO>()
+  readonly selected = input(false)
+  private readonly syncInputs = effect(() => {
+    const historyDTO = this.historyDTO()
     this._historyDTO.set(historyDTO)
-    this.pathToItem.set(
-      this.computePathToItem(historyDTO.itemEntity, historyDTO.itemId)
-    )
+    this.pathToItem.set(this.computePathToItem(historyDTO.itemEntity, historyDTO.itemId))
     this.queryParams.set(JSON.parse(historyDTO.flagIds))
-  }
+    this._selected.set(this.selected())
+  })
 
-  @Input()
-  set selected(selected: boolean) {
-    this._selected.set(selected)
-  }
-
-  @Output() itemClick = new EventEmitter<void>()
+  readonly itemClick = output<void>();
 
   notifyClick(): void {
+    // TODO: The 'emit' function requires a mandatory void argument
     this.itemClick.emit()
   }
 

@@ -9,7 +9,7 @@ import {
   OnDestroy,
   OnInit,
   signal,
-  ViewChild
+  viewChild
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
@@ -299,8 +299,7 @@ export class CreateCollectionComponent implements OnInit, AfterViewInit, OnDestr
   private naSub?: Subscription;
   private addSub?: Subscription;
 
-  @ViewChild('nameInput')
-  private nameInputRef!: ElementRef<HTMLInputElement>;
+  private readonly nameInputRef = viewChild.required<ElementRef<HTMLInputElement>>('nameInput');
 
   nameControl = new FormControl('', { nonNullable: true });
   name = signal<string>('');
@@ -315,7 +314,7 @@ export class CreateCollectionComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   ngAfterViewInit(): void {
-    queueMicrotask(() => this.nameInputRef.nativeElement.focus());
+    queueMicrotask(() => this.nameInputRef().nativeElement.focus());
   }
 
   ngOnDestroy(): void {
@@ -326,7 +325,7 @@ export class CreateCollectionComponent implements OnInit, AfterViewInit, OnDestr
   clear(): void {
     queueMicrotask(() => {
       this.nameControl.setValue('');
-      this.nameInputRef.nativeElement.focus();
+      this.nameInputRef().nativeElement.focus();
     });
   }
 
