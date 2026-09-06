@@ -61,6 +61,8 @@ export class ToastService implements OnDestroy {
     clearTimeout(this._slideInTimeoutId)
     clearTimeout(this._autoDismissTimeoutId)
     clearTimeout(this._hideTimeoutId)
+    this._timers.forEach((timer) => clearTimeout(timer))
+    this._timers.clear()
     this._slideInTimeoutId = undefined
     this._autoDismissTimeoutId = undefined
     this._hideTimeoutId = undefined
