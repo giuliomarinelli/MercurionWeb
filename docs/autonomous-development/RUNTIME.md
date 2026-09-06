@@ -182,6 +182,20 @@ Before enabling unattended reuse, prove profile persistence once with two
 fresh sequential worker invocations: the first writes an unpredictable probe
 nonce to local storage at the canonical origin; the second reads the same
 nonce and proves the approved authenticated state. Remove the nonce afterward.
+Use the worker's explicit `browser_profile_probe` mode, outside an active
+Development Session and while the canonical runtime is already running. Send
+`browser_profile_probe: write`, the nonce and canonical origin to the first
+synchronous `development-task-worker`; after it returns, send
+`browser_profile_probe: read` with the same values to a second fresh
+synchronous worker. Require, respectively:
+
+```text
+BROWSER_PROFILE_PROBE_WRITTEN <nonce>
+BROWSER_PROFILE_PROBE_OK <nonce>
+```
+
+A failure, unexpected response, leaked secret, profile-lock error, or missing
+authenticated marker keeps the hardening pull request in draft.
 
 ### One-time Windows profile bootstrap
 

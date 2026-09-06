@@ -289,6 +289,15 @@ requireMatch(
   /do not use Incognito\/Guest\/isolated mode/,
   'worker must preserve the dedicated browser profile',
 );
+for (const [pattern, message] of [
+  [/browser_profile_probe: write/, 'missing persistent-profile write probe'],
+  [/browser_profile_probe: read/, 'missing persistent-profile read probe'],
+  [/BROWSER_PROFILE_PROBE_WRITTEN <nonce>/, 'missing exact browser write-probe response'],
+  [/BROWSER_PROFILE_PROBE_OK <nonce>/, 'missing exact browser read-probe response'],
+  [/mercurion-autonomous-profile-probe/, 'missing bounded browser probe storage key'],
+]) {
+  requireMatch(paths.agents.worker, worker.content, pattern, message);
+}
 
 const historicalSession = read(paths.historicalSession);
 const completedSession = read(paths.completedSession);
@@ -676,6 +685,10 @@ for (const [pattern, message] of [
   [/recovery_failure_signal:\s*BROWSER_PROFILE_RECOVERY_REQUIRED/, 'missing browser profile recovery signal'],
   [/stop_before_next_task_on_recovery_failure:\s*true/, 'dirty browser profile must stop later task selection'],
   [/secrets_in_reports:\s*false/, 'browser secrets must be excluded from reports'],
+  [/required_once_before_enabling_unattended_reuse:\s*true/, 'missing one-time persistent-profile acceptance test'],
+  [/fresh_sequential_workers:\s*2/, 'persistent profile must be proven across two fresh workers'],
+  [/storage_key:\s*mercurion-autonomous-profile-probe/, 'missing bounded browser acceptance-probe key'],
+  [/remove_probe_state:\s*true/, 'browser acceptance probe must clean up its state'],
 ]) {
   requireMatch(paths.exampleSession, exampleSession, pattern, message);
 }

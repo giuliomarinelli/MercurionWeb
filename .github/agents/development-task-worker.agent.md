@@ -16,6 +16,29 @@ If and only if the parent payload contains `capability_probe: true` and a nonce,
 
 All instructions below apply only to a normal implementation invocation. A capability probe never creates or changes a task outcome.
 
+## Browser-profile acceptance probe mode
+
+This mode exists only for the one-time human-supervised acceptance test of the
+dedicated persistent Chrome profile. If the parent payload contains
+`browser_profile_probe: write` or `browser_profile_probe: read`, an
+unpredictable nonce, and the exact canonical origin `http://localhost:8888`:
+
+- do not edit repository files, inspect or modify Git, select a recipe, change a
+  task outcome, commit, push, or access another origin;
+- require the externally started canonical runtime and Chrome DevTools MCP to
+  be available; do not substitute a personal profile or production account;
+- for `write`, open the canonical origin, set local-storage key
+  `mercurion-autonomous-profile-probe` to the exact nonce, and return exactly
+  `BROWSER_PROFILE_PROBE_WRITTEN <nonce>`;
+- for `read`, use a fresh worker invocation, read and compare that key, prove
+  the approved authenticated state through a non-sensitive UI identity marker,
+  remove the key, and return exactly `BROWSER_PROFILE_PROBE_OK <nonce>`;
+- on any mismatch or unavailable capability, remove the key when possible and
+  return `BROWSER_PROFILE_PROBE_FAILED <nonce> <non-sensitive-reason>`.
+
+Perform no normal implementation work in this mode. Never return or expose
+cookie values, tokens, passwords, backup codes, or Redis session contents.
+
 Read `AGENTS.md`, `docs/autonomous-development/PROTOCOL.md`, `docs/autonomous-development/RUNTIME.md`, the complete active task, and the relevant implementation before editing. Verify that the current clean local branch exactly matches the supplied feature branch. The branch may intentionally have no remote ref while its HEAD still equals the green `develop` base; do not publish that unchanged SHA. If the local branch identity is wrong, return `BLOCKED` without trying to repair Git topology.
 
 ## Required work

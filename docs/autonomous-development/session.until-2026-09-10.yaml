@@ -123,6 +123,13 @@ capabilities:
       recovery_failure_signal: BROWSER_PROFILE_RECOVERY_REQUIRED
       stop_before_next_task_on_recovery_failure: true
       secrets_in_reports: false
+    acceptance_probe:
+      required_once_before_enabling_unattended_reuse: true
+      outside_active_development_session: true
+      fresh_sequential_workers: 2
+      request_marker: browser_profile_probe
+      storage_key: mercurion-autonomous-profile-probe
+      remove_probe_state: true
   task_completion:
     required: true
     tool: task_complete
