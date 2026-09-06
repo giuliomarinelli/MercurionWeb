@@ -16,7 +16,7 @@ If and only if the parent payload contains `capability_probe: true` and a nonce,
 
 All instructions below apply only to a normal implementation invocation. A capability probe never creates or changes a task outcome.
 
-Read `AGENTS.md`, `docs/autonomous-development/PROTOCOL.md`, `docs/autonomous-development/RUNTIME.md`, the complete active task, and the relevant implementation before editing. Verify that the current clean branch exactly matches the supplied feature branch. If it does not, return `BLOCKED` without trying to repair Git topology.
+Read `AGENTS.md`, `docs/autonomous-development/PROTOCOL.md`, `docs/autonomous-development/RUNTIME.md`, the complete active task, and the relevant implementation before editing. Verify that the current clean local branch exactly matches the supplied feature branch. The branch may intentionally have no remote ref while its HEAD still equals the green `develop` base; do not publish that unchanged SHA. If the local branch identity is wrong, return `BLOCKED` without trying to repair Git topology.
 
 ## Required work
 
@@ -25,13 +25,13 @@ Read `AGENTS.md`, `docs/autonomous-development/PROTOCOL.md`, `docs/autonomous-de
 3. Run all task-specific validation. Only after the unchanged preflight and task implementation, start the canonical task-scoped runtime when declared browser validation through `http://localhost:8888` is actually required. Track every process you start and stop it after browser evidence is captured.
 4. Before the complete CI-parity suite, stop every task-owned runtime/watcher and prove no such process can hold a file under `node_modules`; then run the final root `npm ci` and `npm run ci:check` immediately before integration.
 5. Update the task's Execution notes with concrete commands, results, browser evidence, decisions, and commits.
-6. Check only `DONE` if every acceptance criterion and local gate succeeds. Ensure `BLOCKED`, `REVERTED`, and `SKIPPED_DEPENDENCY` are unchecked. Commit every coherent feature-branch change with `git commit --no-gpg-sign`, push it, and leave the working tree clean.
+6. Check only `DONE` if every acceptance criterion and local gate succeeds. Ensure `BLOCKED`, `REVERTED`, and `SKIPPED_DEPENDENCY` are unchecked. Commit every coherent feature-branch change with `git commit --no-gpg-sign`; create the remote `feature/<Source>` ref only after at least one task-specific commit exists, push the final feature SHA, and leave the working tree clean.
 
 Do not select another recipe. Do not switch to, merge into, push, or modify `develop` or `master`. Do not delete branches, poll post-merge CI, revert a merge, deploy, publish, rebase, force-push, or rewrite history. Those actions belong to the coordinator.
 
 ## Blocking
 
-Return `BLOCKED` rather than guessing when a recipe stop condition applies, a required decision or authority is absent, a mandatory capability is unavailable, or validation of task-caused changes cannot be restored within configured limits. Check only `BLOCKED`, uncheck `DONE`, `REVERTED`, and `SKIPPED_DEPENDENCY`, record the exact diagnostic in Execution notes, commit with `--no-gpg-sign` and push the diagnostic and any coherent partial work so the attempt is preserved, and leave the feature branch clean.
+Return `BLOCKED` rather than guessing when a recipe stop condition applies, a required decision or authority is absent, a mandatory capability is unavailable, or validation of task-caused changes cannot be restored within configured limits. Check only `BLOCKED`, uncheck `DONE`, `REVERTED`, and `SKIPPED_DEPENDENCY`, record the exact diagnostic in Execution notes, commit with `--no-gpg-sign` and push the diagnostic and any coherent partial work so the attempt is preserved, creating the remote branch only after that diagnostic/task commit exists, and leave the feature branch clean.
 
 If the initial preflight fails before any task change, return
 `BASELINE_INVARIANT_FAILURE` instead. Do not alter the task checkbox, remediate

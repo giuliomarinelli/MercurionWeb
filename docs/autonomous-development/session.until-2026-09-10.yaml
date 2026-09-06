@@ -1,13 +1,30 @@
-# Example configuration for one autonomous Development Session.
+# One-time autonomous continuation session. Do not reuse after its deadline.
 
 session:
-  name: development-session
+  name: mercurion-code-red-0001-efficiency-2026-09-06
   timezone: Europe/Rome
   start: null # coordinator records actual launch in runtime state/report; YAML stays read-only
-  end: "YYYY-MM-DDTHH:MM:SS+HH:MM" # required soft deadline
-  hard_stop: null # optional absolute RFC 3339 guardrail
+  end: "2026-09-10T10:00:00+02:00"
+  hard_stop: null
+  refuse_launch_at_or_after_end: true
+
+launch:
+  historical_configuration_pull_request: 25
+  permanent_baseline_pull_request: 27
+  recovery_control_plane_pull_request: 28
+  workflow_hardening_pull_request: 29
+  require_configuration_on_integration_branch: true
+  require_current_cli_runner_control_plane_on_integration_branch: true
+  configuration_read_only_during_session: true
+  do_not_mutate_pull_requests:
+    - 25
+    - 27
+    - 28
+    - 29
 
 repository:
+  name: giuliomarinelli/MercurionWeb
+  remote: origin
   integration_branch: develop
   feature_branch_pattern: "feature/{source}"
 
@@ -192,9 +209,19 @@ workload:
   series_directory: docs/autonomous-development/series
   series_pattern: "[0-9][0-9][0-9][0-9]-*.md"
   order: filename
-  series_file: null
+  series_file: 'docs/autonomous-development/series/0001-010926-$oid(6a962b70d3e82215b546be6e)-MercurionWeb-technical-debt-audit-develop-8048279.md'
   tasks: []
   pending_only: true
+  expected_task_count: 220
+  expected_current_done: 34
+  expected_current_blocked: 4
+  expected_current_skipped_dependency: 12
+  expected_current_pending: 170
+  expected_first_ready_task: "0010"
+  expected_planner_ready: 18
+  expected_planner_waiting_dependency: 138
+  expected_planner_terminal_closure: 26
+  expected_new_skipped_dependency: 14
 
   dependency_planner:
     command: npm run autonomous:plan
@@ -205,6 +232,32 @@ workload:
     fail_on_cycles: true
     fail_on_stale_skips: true
     model_inference_fallback: false
+
+reenablement_authorization:
+  direct_human_authorization: true
+  authorized_at: "2026-09-06"
+  recovered_blockers_now_done:
+    - "0009"
+    - "0016"
+    - "0018"
+    - "0019"
+    - "0026"
+    - "0052"
+  reset_skipped_dependency_to_pending: 64
+  preserve_blocked:
+    - "0020"
+    - "0076"
+    - "0109"
+    - "0114"
+
+blocked_branch_policy:
+  preserve_existing_frozen_branches: true
+  do_not_resume_without_new_direct_human_authorization: true
+  branches:
+    - feature/SYS-020
+    - feature/UI-018
+    - feature/NG-023
+    - feature/NG-028
 
 task_outcomes:
   persistent:
@@ -317,6 +370,11 @@ decisions:
   sys_001_angular_nest_runtime_dependency: forbidden
   sys_001_nest_validation_adapters: preserve-when-required-and-prove-contract-parity
   sys_001_migration_policy: incremental-non-breaking
+  sys_020_notebook: remain-blocked
+  ui_018: remain-blocked
+  ng_023: remain-blocked
+  ng_028: remain-blocked
+  task_batching: disabled
 
 telemetry:
   record_ci_classification_counts: true

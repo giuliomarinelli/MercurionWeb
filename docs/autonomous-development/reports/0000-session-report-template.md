@@ -68,11 +68,21 @@ _None._
 - Report commit SHA: `<sha>`
 - Report commit exact-SHA CI: `<run/result or unavailable with reason>`
 
+## CI and execution efficiency
+
+- CI classifications: `<duplicate count / metadata count / full count>`
+- Platform jobs: `<Windows started/avoided; Linux started/avoided>`
+- CI wait time: `<total and per lifecycle phase, or unavailable>`
+- Task timing: `<wall time and worker time per attempted task, or unavailable>`
+- Git operations: `<commits / pushes / retries / superseded runs, or unavailable>`
+- Dependency scheduling: `<READY selected / WAITING observed / skips materialized per aggregate commit>`
+
 ## Host usage
 
 - Model/reasoning: `<model/profile>`
 - Autopilot/task-session information: `<available counters or unavailable>`
 - Credit/token/context information: `<available counters or unavailable>`
+- Unavailable metrics: `<explicit list; never estimate unavailable counters>`
 
 ## Human follow-up
 
