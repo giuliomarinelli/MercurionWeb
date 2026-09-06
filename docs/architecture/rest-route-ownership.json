@@ -71,11 +71,6 @@
           "file": "MercurionWebNode/src/config/rate-limit.config.ts",
           "line": 67,
           "kind": "server-source"
-        },
-        {
-          "file": "docs/autonomous-development/task/0031-make-logout-a-deterministic-session-transition.md",
-          "line": 16,
-          "kind": "documentation"
         }
       ]
     },
@@ -95,26 +90,6 @@
           "file": "MercurionWebNode/src/config/rate-limit.config.ts",
           "line": 104,
           "kind": "server-source"
-        },
-        {
-          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
-          "line": 152,
-          "kind": "documentation"
-        },
-        {
-          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
-          "line": 158,
-          "kind": "documentation"
-        },
-        {
-          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
-          "line": 159,
-          "kind": "documentation"
-        },
-        {
-          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
-          "line": 167,
-          "kind": "documentation"
         }
       ]
     },
@@ -539,26 +514,6 @@
           "file": "MercurionWebNode/src/config/rate-limit.config.ts",
           "line": 104,
           "kind": "server-source"
-        },
-        {
-          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
-          "line": 152,
-          "kind": "documentation"
-        },
-        {
-          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
-          "line": 158,
-          "kind": "documentation"
-        },
-        {
-          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
-          "line": 159,
-          "kind": "documentation"
-        },
-        {
-          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
-          "line": 167,
-          "kind": "documentation"
         }
       ]
     },
@@ -578,26 +533,6 @@
           "file": "MercurionWebNode/src/config/rate-limit.config.ts",
           "line": 104,
           "kind": "server-source"
-        },
-        {
-          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
-          "line": 152,
-          "kind": "documentation"
-        },
-        {
-          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
-          "line": 158,
-          "kind": "documentation"
-        },
-        {
-          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
-          "line": 159,
-          "kind": "documentation"
-        },
-        {
-          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
-          "line": 167,
-          "kind": "documentation"
         }
       ]
     },
@@ -754,28 +689,7 @@
         "MercurionWebNode/src/test.controller.spec.ts",
         "MercurionWebNode/src/test.controller.ts"
       ],
-      "references": [
-        {
-          "file": "docs/autonomous-development/task/0139-remove-test-only-routes-from-production-nest-graph.md",
-          "line": 15,
-          "kind": "documentation"
-        },
-        {
-          "file": "docs/autonomous-development/task/0139-remove-test-only-routes-from-production-nest-graph.md",
-          "line": 47,
-          "kind": "documentation"
-        },
-        {
-          "file": "docs/autonomous-development/task/0139-remove-test-only-routes-from-production-nest-graph.md",
-          "line": 48,
-          "kind": "documentation"
-        },
-        {
-          "file": "docs/autonomous-development/task/0139-remove-test-only-routes-from-production-nest-graph.md",
-          "line": 69,
-          "kind": "documentation"
-        }
-      ]
+      "references": []
     },
     {
       "method": "GET",
@@ -829,111 +743,6 @@
           "file": "docker_sl/nginx_test/default.conf",
           "line": 53,
           "kind": "nginx"
-        },
-        {
-          "file": "docs/autonomous-development/RUNTIME.md",
-          "line": 115,
-          "kind": "documentation"
-        },
-        {
-          "file": "docs/autonomous-development/reports/2026-09-03-mercurion-code-red-0001-overnight-2026-09-02.md",
-          "line": 199,
-          "kind": "documentation"
-        },
-        {
-          "file": "docs/autonomous-development/reports/2026-09-03-mercurion-code-red-0001-overnight-2026-09-02.md",
-          "line": 205,
-          "kind": "documentation"
-        },
-        {
-          "file": "docs/autonomous-development/task/0009-create-typed-socket-io-event-registry.md",
-          "line": 182,
-          "kind": "documentation"
-        },
-        {
-          "file": "docs/autonomous-development/task/0009-create-typed-socket-io-event-registry.md",
-          "line": 189,
-          "kind": "documentation"
-        },
-        {
-          "file": "docs/autonomous-development/task/0009-create-typed-socket-io-event-registry.md",
-          "line": 240,
-          "kind": "documentation"
-        },
-        {
-          "file": "docs/autonomous-development/task/0016-separate-transport-dtos-from-ui-state.md",
-          "line": 115,
-          "kind": "documentation"
-        },
-        {
-          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
-          "line": 16,
-          "kind": "documentation"
-        },
-        {
-          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
-          "line": 109,
-          "kind": "documentation"
-        },
-        {
-          "file": "docs/autonomous-development/task/0045-model-the-action-overlay-as-an-exhaustive-state-machine.md",
-          "line": 110,
-          "kind": "documentation"
-        },
-        {
-          "file": "docs/autonomous-development/task/0048-eliminate-nested-subscriptions-and-declare-async-concurrency-policy.md",
-          "line": 115,
-          "kind": "documentation"
-        },
-        {
-          "file": "docs/autonomous-development/task/0076-move-toast-contracts-to-a-neutral-ui-model.md",
-          "line": 123,
-          "kind": "documentation"
-        },
-        {
-          "file": "docs/autonomous-development/task/0076-move-toast-contracts-to-a-neutral-ui-model.md",
-          "line": 140,
-          "kind": "documentation"
-        },
-        {
-          "file": "docs/autonomous-development/task/0105-own-rdkit-viewer-lifecycle-deterministically.md",
-          "line": 142,
-          "kind": "documentation"
-        },
-        {
-          "file": "docs/autonomous-development/task/0109-normalize-apollo-query-lifecycles-and-fetch-policies.md",
-          "line": 109,
-          "kind": "documentation"
-        },
-        {
-          "file": "docs/autonomous-development/task/0134-decompose-nest-bootstrap-into-configurators.md",
-          "line": 72,
-          "kind": "documentation"
-        },
-        {
-          "file": "docs/autonomous-development/task/0139-remove-test-only-routes-from-production-nest-graph.md",
-          "line": 30,
-          "kind": "documentation"
-        },
-        {
-          "file": "docs/autonomous-development/task/0139-remove-test-only-routes-from-production-nest-graph.md",
-          "line": 47,
-          "kind": "documentation"
-        },
-        {
-          "file": "docs/autonomous-development/task/0139-remove-test-only-routes-from-production-nest-graph.md",
-          "line": 56,
-          "kind": "documentation"
-        },
-        {
-          "file": "docs/autonomous-development/task/0158-add-transactional-outbox-for-help-notifications.md",
-          "line": 59,
-          "kind": "documentation"
-        },
-        {
-          "file": "docs/autonomous-development/task/0207-harden-container-runtime-contracts.md",
-          "line": 76,
-          "kind": "documentation"
         }
       ]
     },
@@ -1024,11 +833,6 @@
           "file": "docker_sl/nginx_test/default.conf",
           "line": 33,
           "kind": "nginx"
-        },
-        {
-          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
-          "line": 109,
-          "kind": "documentation"
         }
       ]
     },
@@ -1676,26 +1480,6 @@
           "file": "MercurionWebNode/src/config/rate-limit.config.ts",
           "line": 104,
           "kind": "server-source"
-        },
-        {
-          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
-          "line": 152,
-          "kind": "documentation"
-        },
-        {
-          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
-          "line": 158,
-          "kind": "documentation"
-        },
-        {
-          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
-          "line": 159,
-          "kind": "documentation"
-        },
-        {
-          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
-          "line": 167,
-          "kind": "documentation"
         }
       ]
     },
@@ -1851,13 +1635,7 @@
         "MercurionWebNode/src/app_modules/admin/controllers/admin.controller.ts:@HasScopes(Scope.ChangeLogLevels)",
         "MercurionWebNode/src/app_modules/user/Models/enums/scope.enum.ts:Scope.ChangeLogLevels"
       ],
-      "references": [
-        {
-          "file": "docs/autonomous-development/task/0018-classify-or-remove-unowned-rest-routes.md",
-          "line": 140,
-          "kind": "documentation"
-        }
-      ]
+      "references": []
     }
   ]
 }

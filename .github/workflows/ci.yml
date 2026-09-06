@@ -10,6 +10,15 @@ on:
       - develop
       - master
   workflow_dispatch:
+    inputs:
+      validation_mode:
+        description: Validation path for an explicit baseline certification
+        required: true
+        default: full
+        type: choice
+        options:
+          - full
+          - auto
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}

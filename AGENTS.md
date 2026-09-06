@@ -95,8 +95,10 @@ The coordinator MUST also verify the effective repository-local `commit.gpgSign=
 Before any task branch exists, the coordinator MUST establish a clean, fully
 green repository baseline according to
 `docs/autonomous-development/CI-BASELINE.md`. Local `develop` must equal
-`origin/develop`; the exact SHA must have a successful GitHub Actions workflow
-and stable `Required gate`; and the complete local non-mutating gate must pass.
+`origin/develop`; the exact SHA must have a fresh successful GitHub Actions
+`full` run with both platform jobs and the stable `Required gate`; and the
+complete local non-mutating gate must pass. A `metadata` or `duplicate` result
+alone is insufficient to start a new session.
 
 There is no task `0001` bootstrap exception. Missing CI, a red exact-SHA run,
 or a red local baseline is a session-level startup failure. Stop before branch
@@ -183,6 +185,8 @@ identical SHA; `metadata` only for allowlisted autonomous task/report
 Markdown changes from an exact green base; otherwise `full` Windows/Linux
 validation. Workflow, source, test, dependency, agent, protocol,
 configuration, unknown, and ambiguous changes always use `full`.
+Autonomous task/report metadata is forbidden from acting as input evidence for
+application inventories or generated application artifacts.
 
 Before selection, run `npm run autonomous:plan` and consume its versioned JSON
 as the sole authoritative dependency snapshot. Never reconstruct the graph by

@@ -29,6 +29,12 @@ Read `AGENTS.md`, `docs/autonomous-development/PROTOCOL.md`, `docs/autonomous-de
 
 Do not select another recipe. Do not switch to, merge into, push, or modify `develop` or `master`. Do not delete branches, poll post-merge CI, revert a merge, deploy, publish, rebase, force-push, or rewrite history. Those actions belong to the coordinator.
 
+When starting Tox21, honor the active configuration literally: use
+`../MercurionTox21` as the process working directory, invoke the `.venv`
+interpreter from that directory, and enable UTF-8 console I/O. Do not transform
+the command into a MercurionWeb-root-relative interpreter path; `python -m
+main` resolves against its current working directory.
+
 ## Blocking
 
 Return `BLOCKED` rather than guessing when a recipe stop condition applies, a required decision or authority is absent, a mandatory capability is unavailable, or validation of task-caused changes cannot be restored within configured limits. Check only `BLOCKED`, uncheck `DONE`, `REVERTED`, and `SKIPPED_DEPENDENCY`, record the exact diagnostic in Execution notes, commit with `--no-gpg-sign` and push the diagnostic and any coherent partial work so the attempt is preserved, creating the remote branch only after that diagnostic/task commit exists, and leave the feature branch clean.

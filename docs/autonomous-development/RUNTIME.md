@@ -3,6 +3,9 @@
 This document defines the canonical local runtime used by autonomous development sessions when browser/runtime validation is required.
 
 It is imported by `AGENTS.md` and must be treated as repository-wide runtime context. Individual task files should describe the route and evidence they need, but should not invent alternate local ports or bypass the reverse proxy.
+Routes quoted here or in task/report execution evidence are control-plane
+metadata: they must not make an application inventory stale or count as proof
+of an actual product consumer.
 
 ## Runtime topology
 
@@ -80,21 +83,36 @@ This is a watch-mode process and must remain alive for the validation workload.
 
 It is a runtime dependency for the local Mercurion stack and is READ-ONLY from MercurionWeb autonomous sessions. The agent must not edit files in that repository.
 
-Do not rely on shell-specific virtual-environment activation. Invoke the virtual environment's Python interpreter directly.
-
-Windows / PowerShell / cmd / Git Bash on the Windows development host:
+Working directory:
 
 ```text
-../MercurionTox21/.venv/Scripts/python.exe -m main
+../MercurionTox21
+```
+
+Changing to that directory is mandatory: `python -m main` resolves the module
+from the current working directory. Do not rewrite the command as a
+MercurionWeb-root-relative interpreter invocation. Do not rely on shell-specific
+virtual-environment activation; invoke the virtual environment's Python
+interpreter directly and force UTF-8 console I/O on Windows.
+
+Windows / PowerShell on the Windows development host:
+
+```powershell
+$env:PYTHONUTF8 = "1"
+& .\.venv\Scripts\python.exe -m main
 ```
 
 POSIX fallback when the same repositories are run on Linux/macOS:
 
-```text
-../MercurionTox21/.venv/bin/python -m main
+```bash
+PYTHONUTF8=1 .venv/bin/python -m main
 ```
 
-The process is not watch-mode. It only needs to remain alive during the runtime-validation portion of the Development Session; MercurionWeb tasks must not modify it.
+The process is not watch-mode. It only needs to remain alive during the
+runtime-validation portion of the Development Session; MercurionWeb tasks must
+not modify it. If it exits, capture its exit code and first actionable stderr
+diagnostic before classifying runtime readiness. Do not retry it from a
+different working directory or silently substitute another entry point.
 
 ## Startup and readiness
 

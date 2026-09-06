@@ -76,10 +76,11 @@ If any install, network, filesystem, cleanup, GitHub, subagent (`task`), MCP, si
 
 No recipe implementation starts until the repository has the permanent baseline
 defined in `docs/autonomous-development/CI-BASELINE.md`. At session startup the
-coordinator records the exact local/remote `develop` SHA, requires a successful
-GitHub Actions run and `Required gate` result tied to that exact SHA, and reruns
-the complete local non-mutating gate set. Neither proof substitutes for the
-other.
+coordinator records the exact local/remote `develop` SHA, requires a fresh
+successful GitHub Actions `full` run tied to that exact SHA with both platform
+jobs and `Required gate` green, and reruns the complete local non-mutating gate
+set. A metadata/duplicate-only result cannot certify session startup. Neither
+remote proof nor the local gate substitutes for the other.
 
 There is no task-level bootstrap exception. If the workflow is absent, the
 exact `develop` SHA is not green, or the local baseline is red, the coordinator
@@ -421,6 +422,14 @@ paths:
 - `full`: run clean `npm ci` and the complete quality gate independently on
   Windows and Linux.
 
+An explicit `workflow_dispatch` defaults to `full` and bypasses duplicate
+reuse so an operator can certify the current exact SHA before a new session.
+`auto` may be selected manually only for diagnostic exercise of the adaptive
+classifier. Metadata-allowlisted files must be semantically isolated from
+application inventory and generated-artifact inputs; otherwise they are not
+safe metadata and the coupling must be removed or the path removed from the
+allowlist.
+
 The classifier may wait for an older in-progress run of the same SHA, but only
 the newer run waits; this prevents two runs from waiting on each other.
 Unknown paths, missing history, API errors, an ungreen/unverifiable base, an
@@ -468,7 +477,10 @@ MercurionWebNg    -> npm run start:dev
 ../MercurionTox21 -> .venv interpreter -> python -m main
 ```
 
-`../MercurionTox21` remains read-only. The externally managed Docker nginx development proxy remains untouched.
+The Tox21 process working directory is exactly `../MercurionTox21`; Windows
+console I/O is forced to UTF-8 before `.venv/Scripts/python.exe -m main` is
+invoked. `../MercurionTox21` remains read-only. The externally managed Docker
+nginx development proxy remains untouched.
 
 If a task requires browser validation and the canonical runtime/Chrome MCP/test data are unavailable, the task is `BLOCKED`.
 
