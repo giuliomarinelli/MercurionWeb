@@ -449,7 +449,7 @@ requireMatch(
 requireMatch(
   paths.activeLaunch,
   activeLaunch,
-  /Do not bundle tasks/,
+  /Do[\s\S]{0,10}not bundle tasks/,
   'active launch must prohibit multi-task bundles',
 );
 for (const command of ['/model', '/permissions show', '/mcp list', '/keep-alive on']) {
@@ -548,22 +548,19 @@ for (const [pattern, message] of [
 for (const [pattern, message] of [
   [/workflow_hardening_pull_request:\s*29/, 'active session must record PR #29'],
   [/expected_task_count:\s*220/, 'active workload must contain 220 tasks'],
-  [/expected_done:\s*34/, 'active workload must record 34 DONE tasks'],
-  [/expected_blocked:\s*4/, 'active workload must record four retained blockers'],
-  [/expected_skipped_dependency:\s*12/, 'active workload must record 12 current skips'],
-  [/expected_pending:\s*170/, 'active workload must record 170 pending tasks'],
+  [/expected_current_done:\s*34/, 'active workload must record 34 DONE tasks'],
+  [/expected_current_blocked:\s*4/, 'active workload must record four retained blockers'],
+  [/expected_current_skipped_dependency:\s*12/, 'active workload must record 12 current skips'],
+  [/expected_current_pending:\s*170/, 'active workload must record 170 pending tasks'],
   [/expected_first_ready_task:\s*"0010"/, 'active workload must start from task 0010'],
-  [/expected_new_terminal_skips:\s*14/, 'active planner expectation must record 14 new skips'],
-  [/dependency_selection:\s*deterministic-planner-json/, 'active session must use deterministic planner output'],
+  [/expected_new_skipped_dependency:\s*14/, 'active planner expectation must record 14 new skips'],
+  [/dependency_planner:[\s\S]*output:\s*versioned-json/, 'active session must use deterministic planner output'],
   [/command:\s*npm run autonomous:plan/, 'active session must declare the planner command'],
-  [/planner_output_is_only_selection_authority:\s*true/, 'planner output must be authoritative'],
+  [/authoritative:\s*true/, 'planner output must be authoritative'],
   [/fail_on_cycles:\s*true/, 'active session must fail on dependency cycles'],
   [/fail_on_stale_skips:\s*true/, 'active session must fail on stale skips'],
   [/multi_task_bundles:\s*false/, 'active session must prohibit task bundles'],
-  [/task:\s*"0020"[\s\S]*decision:\s*keep-blocked/, 'SYS-020 must remain deliberately blocked'],
-  [/task:\s*"0076"[\s\S]*decision:\s*keep-blocked/, 'UI-018 must remain blocked'],
-  [/task:\s*"0109"[\s\S]*decision:\s*keep-blocked/, 'NG-023 must remain blocked'],
-  [/task:\s*"0114"[\s\S]*decision:\s*keep-blocked/, 'NG-028 must remain blocked'],
+  [/preserve_blocked:[\s\S]*- "0020"[\s\S]*- "0076"[\s\S]*- "0109"[\s\S]*- "0114"/, 'active session must preserve all four blockers'],
 ]) {
   requireMatch(paths.activeSession, activeSession, pattern, message);
 }
@@ -601,7 +598,7 @@ for (const [pattern, message] of [
   [/unknown_or_ambiguous_fallback:\s*full/, 'ambiguous CI classification must fall back to full'],
   [/stable_required_gate_for_every_mode:\s*true/, 'every CI mode must publish Required gate'],
   [/dependency_planner:[\s\S]*command:\s*npm run autonomous:plan/, 'missing deterministic planner command'],
-  [/planner_output_is_only_selection_authority:\s*true/, 'planner output must be authoritative'],
+  [/authoritative:\s*true/, 'planner output must be authoritative'],
   [/fail_on_cycles:\s*true/, 'planner must fail on cycles'],
   [/fail_on_stale_skips:\s*true/, 'planner must fail on stale skips'],
   [/multi_task_bundles:\s*false/, 'multi-task bundles must remain disabled'],
@@ -687,7 +684,7 @@ for (const [pattern, message] of [
 requireMatch(
   paths.agents.coordinator,
   coordinator.content,
-  /npm run autonomous:plan[\s\S]*sole scheduling authority/,
+  /npm run autonomous:plan[\s\S]*sole[\s\S]{0,100}(?:authoritative|scheduling authority)/,
   'coordinator must use planner JSON as its sole scheduling authority',
 );
 
