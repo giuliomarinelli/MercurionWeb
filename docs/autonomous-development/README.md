@@ -236,6 +236,14 @@ No rebase, force-push, shared-history reset or CI bypass is part of the autonomo
 
 Chrome DevTools MCP is configured for GitHub Copilot CLI in `.github/mcp.json`. The VS Code MCP file remains only for ordinary interactive VS Code use and is not read as the autonomous-session configuration.
 
+The CLI configuration reuses Chrome DevTools MCP's dedicated persistent
+profile across serial task workers and later sessions. It does not use
+`--isolated`, Incognito, Guest, or a developer's personal profile. The browser
+may retain approved non-production cookies and storage while Angular, Nest and
+Tox21 continue to start and stop per task. A mandatory runtime/authentication
+probe runs before implementation; failure pauses the session without changing
+the task to `BLOCKED` or propagating dependency skips.
+
 The canonical local stack is:
 
 ```text

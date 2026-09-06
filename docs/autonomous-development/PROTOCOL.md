@@ -20,6 +20,9 @@ A **Development Session** is a bounded period in which a session coordinator exe
 - **Hard deadline**: optional absolute session guardrail; do not start or interrupt an unsafe merge/revert sequence merely to beat the clock.
 - **Capability**: an external tool available to the coding agent, such as Chrome DevTools MCP.
 - **Runtime**: the local processes/infrastructure required for runtime/browser validation.
+- **Persistent browser profile**: the dedicated, non-production Chrome DevTools MCP user-data directory reused by serial workers and separate from task-scoped application processes.
+- **SESSION_CAPABILITY_PAUSE**: a transient session stop before task changes when mandatory runtime or browser authentication is unavailable; it is not a recipe outcome and creates no dependency skips.
+- **BROWSER_PROFILE_RECOVERY_REQUIRED**: a post-validation session stop requested when a task deliberately changed browser authentication/storage and could not restore the canonical non-production profile; the active task finishes its safe lifecycle, but no next task starts.
 - **Report**: the final session summary.
 - **CI mode**: the exact-SHA validation path selected by the permanent workflow: `duplicate`, `metadata`, or `full`.
 - **WAITING_DEPENDENCY**: a transient in-memory scheduler classification for a pending task whose hard prerequisite is still pending/active; it is not a recipe outcome.
@@ -34,7 +37,7 @@ GitHub Copilot CLI agent profiles are committed in `.github/agents/`, and MCP se
 
 The canonical local runtime topology is defined by `docs/autonomous-development/RUNTIME.md`.
 
-The coordinator owns deterministic orchestration: task discovery/order, YAML parsing, time/deadlines, branch lifecycle, feature-SHA and merge-SHA CI waiting, merge/revert sequencing, runtime process lifecycle and reporting. The fresh task worker owns local preflight, implementation and task-specific validation inside the currently assigned feature branch.
+The coordinator owns deterministic orchestration: task discovery/order, YAML parsing, time/deadlines, branch lifecycle, feature-SHA and merge-SHA CI waiting, merge/revert sequencing and reporting. The fresh task worker owns local preflight, task-scoped runtime processes, exclusive browser control, implementation and task-specific validation inside the currently assigned feature branch.
 
 ## GitHub Copilot CLI coordinator/worker topology
 
@@ -240,6 +243,37 @@ A future task that adds a required CI gate MUST also add that gate to the canoni
 Environment/setup failures originating from GitHub infrastructure are still
 possible. Platform-specific repository failures may exist only on the clean
 remote runner, which is why exact feature-SHA CI is mandatory before merge.
+
+## Browser/runtime capability preflight
+
+The Chrome profile is dedicated and persistent, while Angular, Nest and Tox21
+remain task-scoped. The worker is the only browser owner; the coordinator must
+not invoke Chrome tools and no two workers run concurrently. Fresh worker
+context never implies a fresh Incognito, Guest, isolated, or personal browser
+profile.
+
+After the unchanged task-start baseline and before editing a recipe that
+requires browser/runtime evidence, the worker starts the required runtime and
+proves the nginx edge, required services, and any declared authenticated
+non-production state. It then stops task-owned application processes before
+implementation without clearing the browser profile. A later browser phase
+restarts the runtime and reuses that profile.
+
+If the capability probe fails before task changes, the worker returns
+`SESSION_CAPABILITY_PAUSE`. It leaves every recipe checkbox untouched, creates
+no commit or remote feature ref, and records exact probe and cleanup evidence.
+The coordinator removes only the empty unpublished attempt branch when safe,
+finalizes the report, and stops. It MUST NOT mark the task `BLOCKED`, propagate
+`SKIPPED_DEPENDENCY`, or treat an expired login as a task defect.
+
+The persistent profile is leased to one worker at a time. A task that
+explicitly exercises logout or browser-storage cleanup must restore the
+canonical authenticated state and close surplus tabs before returning. If its
+implementation and validation succeeded but restoration is impossible, the
+worker reports `BROWSER_PROFILE_RECOVERY_REQUIRED`. The coordinator completes
+the active task's normal CI/integration outcome and then finalizes without
+selecting another task. Reports include no cookie, token, password, backup-code
+or Redis-session value.
 
 ## Preflight before every task
 
@@ -469,6 +503,13 @@ http://localhost:8888
 
 The Angular development-server port is an internal nginx upstream and MUST NOT be used as the browser origin.
 
+The MCP server uses its dedicated persistent default Chrome profile. The
+repository configuration must not pass `--isolated`, and agents must not use
+Incognito, Guest, a personal Chrome profile, production credentials, or
+production data. Only the serial task worker controls the browser. Approved
+non-production cookies and storage may survive worker and CLI-session
+boundaries; Angular, Nest and Tox21 processes do not.
+
 When required, the runner manages:
 
 ```text
@@ -482,7 +523,12 @@ console I/O is forced to UTF-8 before `.venv/Scripts/python.exe -m main` is
 invoked. `../MercurionTox21` remains read-only. The externally managed Docker
 nginx development proxy remains untouched.
 
-If a task requires browser validation and the canonical runtime/Chrome MCP/test data are unavailable, the task is `BLOCKED`.
+Before implementation of a task requiring browser/runtime evidence, the worker
+proves the canonical runtime and any required authenticated state. Failure at
+that point returns transient `SESSION_CAPABILITY_PAUSE`, leaves the task
+pending, and produces no dependency skips. A runtime or browser failure that is
+caused by task changes after implementation still follows the task's ordinary
+`BLOCKED` rules.
 
 ## Workload resolution
 

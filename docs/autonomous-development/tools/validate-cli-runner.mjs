@@ -34,7 +34,7 @@ const paths = {
 
 const expectedAgentTools = {
   coordinator:
-    'tools: ["execute", "read", "edit", "search", "web", "todo", "task", "task_complete", "chrome-devtools/*"]',
+    'tools: ["execute", "read", "edit", "search", "web", "todo", "task", "task_complete"]',
   worker:
     'tools: ["execute", "read", "edit", "search", "web", "todo", "chrome-devtools/*"]',
 };
@@ -257,6 +257,38 @@ requireMatch(
   /emit the concise final summary and report path, then call `task_complete` as the final Autopilot action/,
   'coordinator must summarize before the final task_complete action',
 );
+if (/chrome-devtools\/\*/.test(coordinator.yaml)) {
+  fail(paths.agents.coordinator, 'coordinator must not own the persistent browser');
+}
+for (const [target, content] of [
+  [paths.agents.coordinator, coordinator.content],
+  [paths.agents.worker, worker.content],
+]) {
+  requireMatch(
+    target,
+    content,
+    /SESSION_CAPABILITY_PAUSE/,
+    'missing transient browser/runtime capability pause contract',
+  );
+  requireMatch(
+    target,
+    content,
+    /BROWSER_PROFILE_RECOVERY_REQUIRED/,
+    'missing dirty persistent-profile recovery contract',
+  );
+}
+requireMatch(
+  paths.agents.worker,
+  worker.content,
+  /before editing[\s\S]*dedicated persistent Chrome profile/,
+  'worker must probe the persistent browser before implementation',
+);
+requireMatch(
+  paths.agents.worker,
+  worker.content,
+  /do not use Incognito\/Guest\/isolated mode/,
+  'worker must preserve the dedicated browser profile',
+);
 
 const historicalSession = read(paths.historicalSession);
 const completedSession = read(paths.completedSession);
@@ -471,6 +503,10 @@ for (const [pattern, message] of [
   [/PYTHONUTF8\s*=\s*"1"/, 'missing Windows UTF-8 Tox21 environment'],
   [/\.\\\.venv\\Scripts\\python\.exe -m main/, 'missing cwd-relative Windows Tox21 command'],
   [/must not make an application inventory stale|cannot invalidate the application baseline/i, 'missing metadata isolation rule'],
+  [/\.cache\\chrome-devtools-mcp\\chrome-profile/, 'missing dedicated persistent Chrome profile path'],
+  [/SESSION_CAPABILITY_PAUSE/, 'missing pre-implementation browser capability pause'],
+  [/BROWSER_PROFILE_RECOVERY_REQUIRED/, 'missing browser state-lease recovery rule'],
+  [/Never record cookie values, tokens, passwords/, 'missing browser-secret reporting prohibition'],
 ]) {
   requireMatch(paths.runtime, runtime, pattern, message);
 }
@@ -579,6 +615,11 @@ for (const [pattern, message] of [
   [/manual_dispatch_default:\s*full/, 'active CI manual dispatch must default to full'],
   [/manual_full_bypasses_duplicate_reuse:\s*true/, 'active manual full CI must bypass duplicate reuse'],
   [/PYTHONUTF8:\s*"1"/, 'active Tox21 runtime must force UTF-8'],
+  [/owner:\s*development-task-worker/, 'active persistent browser must belong to the task worker'],
+  [/mode:\s*dedicated-persistent/, 'active session must use the dedicated persistent browser'],
+  [/isolated:\s*false/, 'active browser profile must disable isolation'],
+  [/failure_result:\s*SESSION_CAPABILITY_PAUSE/, 'active session must pause before task mutation when browser capability is missing'],
+  [/recovery_failure_signal:\s*BROWSER_PROFILE_RECOVERY_REQUIRED/, 'active session must stop before a later task when browser state cannot be restored'],
   [/preserve_blocked:[\s\S]*- "0020"[\s\S]*- "0076"[\s\S]*- "0109"[\s\S]*- "0114"/, 'active session must preserve all four blockers'],
 ]) {
   requireMatch(paths.activeSession, activeSession, pattern, message);
@@ -626,6 +667,15 @@ for (const [pattern, message] of [
   [/fail_on_cycles:\s*true/, 'planner must fail on cycles'],
   [/fail_on_stale_skips:\s*true/, 'planner must fail on stale skips'],
   [/multi_task_bundles:\s*false/, 'multi-task bundles must remain disabled'],
+  [/owner:\s*development-task-worker/, 'persistent browser must belong to the task worker'],
+  [/mode:\s*dedicated-persistent/, 'missing dedicated persistent browser profile'],
+  [/isolated:\s*false/, 'persistent browser profile must disable isolation'],
+  [/reuse_across_serial_workers:\s*true/, 'browser profile must be reused across serial workers'],
+  [/failure_result:\s*SESSION_CAPABILITY_PAUSE/, 'missing browser capability pause result'],
+  [/propagate_dependency_skips:\s*false/, 'browser capability pause must not propagate dependency skips'],
+  [/recovery_failure_signal:\s*BROWSER_PROFILE_RECOVERY_REQUIRED/, 'missing browser profile recovery signal'],
+  [/stop_before_next_task_on_recovery_failure:\s*true/, 'dirty browser profile must stop later task selection'],
+  [/secrets_in_reports:\s*false/, 'browser secrets must be excluded from reports'],
 ]) {
   requireMatch(paths.exampleSession, exampleSession, pattern, message);
 }
@@ -745,6 +795,8 @@ for (const [pattern, message] of [
   [/CI classifications:/, 'missing CI classification counters'],
   [/Platform jobs:/, 'missing platform-runner counters'],
   [/Dependency scheduling:/, 'missing dependency scheduling metrics'],
+  [/Persistent browser profile:/, 'missing persistent browser reporting'],
+  [/Session capability pauses:/, 'missing browser capability-pause reporting'],
 ]) {
   requireMatch(paths.reportTemplate, reportTemplate, pattern, message);
 }
@@ -764,7 +816,6 @@ if (mcp) {
     '-y',
     'chrome-devtools-mcp@1.8.0',
     '--headless',
-    '--isolated',
   ];
   if (
     !chrome ||
@@ -773,6 +824,9 @@ if (mcp) {
     JSON.stringify(chrome.args) !== JSON.stringify(expectedArgs)
   ) {
     fail(paths.mcp, 'chrome-devtools must use the pinned CLI local command and arguments');
+  }
+  if (chrome?.args?.includes('--isolated')) {
+    fail(paths.mcp, 'autonomous Chrome must reuse its dedicated persistent profile');
   }
 }
 

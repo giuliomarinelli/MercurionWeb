@@ -59,6 +59,8 @@ _None._
 - Task-specific checks: `<summary>`
 - Full CI-parity preflights: `<summary>`
 - Browser/runtime routes and evidence: `<summary without secrets>`
+- Persistent browser profile: `<reuse proven / unavailable / not exercised; never include cookies or credentials>`
+- Session capability pauses: `<count, task and non-sensitive diagnostic>`
 - Managed processes stopped: `<yes/no/details>`
 
 ## Deadline and finalization

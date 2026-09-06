@@ -76,7 +76,12 @@ Every recipe has four mutually exclusive persistent outcomes:
 - `REVERTED`: locally completed and merged, then safely reverted after post-merge CI non-success/unverifiable result; preserve/freeze its feature branch;
 - `SKIPPED_DEPENDENCY`: never attempted because a hard prerequisite is terminal non-`DONE`; never create a feature branch.
 
-All four unchecked means pending. At most one may be checked. `CI_PENDING` and `WAITING_DEPENDENCY` are transient coordinator states and do not receive checkboxes.
+All four unchecked means pending. At most one may be checked. `CI_PENDING`,
+`WAITING_DEPENDENCY`, and `SESSION_CAPABILITY_PAUSE` are transient coordinator
+states and do not receive checkboxes. A capability pause occurs before
+implementation when required local runtime or non-production browser
+authentication is unavailable; it stops the session without changing the
+recipe or propagating dependency skips.
 
 All four persistent outcomes are terminal within the active session. The coordinator MUST NOT reopen or resume a terminal task because a later probe or Autopilot continuation changes its opinion. Only a new direct human instruction in a new or restarted session may authorize re-enablement; an Autopilot continuation is not human authorization.
 
@@ -225,7 +230,13 @@ specifically authorizes another GitHub action.
 
 ## Browser and frontend validation
 
-The repository exposes the `chrome-devtools` MCP server to GitHub Copilot CLI through `.github/mcp.json`. The separate VS Code MCP configuration is retained only for ordinary interactive VS Code use and is not the autonomous-session control plane.
+The repository exposes the `chrome-devtools` MCP server to GitHub Copilot CLI
+through `.github/mcp.json`. The separate VS Code MCP configuration is retained
+only for ordinary interactive VS Code use and is not the autonomous-session
+control plane. Autonomous Chrome uses the MCP server's dedicated persistent
+default profile, never `--isolated`, Incognito, Guest, or the developer's
+personal Chrome profile. Browser profile lifetime is session-independent;
+application runtime lifetime remains task-scoped.
 
 For frontend or browser-observable work:
 
@@ -240,8 +251,12 @@ For frontend or browser-observable work:
 - use the browser to inspect the rendered UI and, when relevant, console errors, network requests, runtime state, accessibility/DOM state, responsive behaviour, and screenshots;
 - do not treat a successful TypeScript compilation or Angular build as sufficient evidence for a browser-facing acceptance criterion;
 - prefer the dedicated MCP-controlled Chrome instance; do not attach to a human developer's personal Chrome profile;
+- the task worker is the sole browser owner; the coordinator and another worker must not control the profile concurrently;
+- reuse the dedicated profile's non-production cookies and storage across serial workers and sessions; do not clear or log out shared authentication state unless the active task explicitly tests that transition;
+- after the unchanged task-start baseline and before implementation, a task requiring browser/runtime evidence must prove runtime readiness and any required authenticated state; failure returns `SESSION_CAPABILITY_PAUSE` with no task mutation rather than `BLOCKED` or dependency skips;
+- a task that explicitly tests logout or storage mutation must restore the canonical authenticated profile state before returning; otherwise it reports `BROWSER_PROFILE_RECOVERY_REQUIRED` and the coordinator finishes that task lifecycle but starts no later task;
 - never browse production or enter production credentials/data during autonomous validation;
-- if required browser validation cannot be performed because Chrome DevTools MCP, the canonical local runtime, required test data, or another declared dependency is unavailable, mark the task `BLOCKED` rather than claiming browser validation passed.
+- if browser/runtime capability is unavailable before implementation, return `SESSION_CAPABILITY_PAUSE`; if task-caused changes or an acceptance-specific post-implementation problem prevent required validation, mark the task `BLOCKED` rather than claiming browser validation passed.
 
 Browser validation is not mandatory for backend-only tasks or frontend changes whose acceptance criteria are fully established by static/unit tests unless the task explicitly requires it.
 
