@@ -1,8 +1,8 @@
 import { inject, Injectable } from '@angular/core'
-import { ToastContext } from '../components/common/toast/toast.component'
 import { CopyService } from './copy.service'
 import { ToastService } from './toast.service'
 import { CopyPayload, CopyUiOptions } from '../Models/copy.models'
+import { ToastVariant } from '../Models/toast.models'
 
 @Injectable({ providedIn: 'root' })
 export class CopyUiService {
@@ -27,33 +27,25 @@ export class CopyUiService {
     if (ok) {
       this.safeToast(
         opts.successMessage ?? 'Copiato negli appunti ✅',
-        opts.successContext ?? ('success' as ToastContext),
+        opts.successContext ?? ('success' as ToastVariant),
         duration,
-        opts.forceToast ?? false
       )
       return true
     }
 
     this.safeToast(
       opts.errorMessage ?? 'Copia non riuscita 😤',
-      opts.errorContext ?? ('error' as ToastContext),
+      opts.errorContext ?? ('error' as ToastVariant),
       duration,
-      opts.forceToast ?? false
     )
     return false
   }
 
   private safeToast(
     message: string,
-    context: ToastContext,
-    duration: number,
-    force: boolean
+    context: ToastVariant,
+    duration: number
   ) {
-    if (force && this.toast.show()) {
-      this.toast.close()
-      setTimeout(() => this.toast.trigger(message, context, duration), 310)
-      return
-    }
     this.toast.trigger(message, context, duration)
   }
 }

@@ -3,7 +3,6 @@ import {
   Component,
   ChangeDetectionStrategy,
   ElementRef,
-  ViewChild,
   inject,
   AfterViewInit,
   OnInit,
@@ -16,15 +15,15 @@ import { Subscription } from 'rxjs';
 import {
   Chart,
   ChartConfiguration,
-  registerables } from 'chart.js';
-
+  registerables
+} from 'chart.js';
 import { AccountService } from '../../services/account.service';
 import { ProfileDTO } from '../../Models/account/account.models';
 import { ThemeManagerService } from '../../services/context/theme-manager.service';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
-import { AppContextService } from '../../services/context/app-context.service';
 import { SidenavContextService } from '../../services/context/sidenav-context.service';
 import { DomainInvalidationService } from '../../services/domain-invalidation.service';
+import { ToastService } from '../../services/toast.service';
 
 Chart.register(...registerables);
 
@@ -185,9 +184,10 @@ export class DashboardPageComponent implements OnInit, OnDestroy, AfterViewInit 
   // ========= DEPS =========
   private readonly accountService = inject(AccountService)
   private readonly themeManager = inject(ThemeManagerService)
-  private readonly appContext = inject(AppContextService)
   private readonly sidenavContext = inject(SidenavContextService)
   private readonly invalidations = inject(DomainInvalidationService)
+  private readonly toastService = inject(ToastService)
+
   // ========================
 
 
@@ -241,7 +241,6 @@ export class DashboardPageComponent implements OnInit, OnDestroy, AfterViewInit 
     })
     // reagisci al cambio tema: ricostruisco i grafici con la palette corretta
     effect(() => {
-      const _mode = this.currentTheme() // dipendenza reattiva
       this.tryBuildCharts()
     })
     effect(() => {
@@ -249,10 +248,11 @@ export class DashboardPageComponent implements OnInit, OnDestroy, AfterViewInit 
       if (event?.domain !== 'dashboard' || event.action !== 'profile-changed') {
         return
       }
-    this.reSub = this.accountService.getProfileRegistry().subscribe(this.subArg)
+      this.reSub = this.accountService.getProfileRegistry().subscribe(this.subArg)
     })
     effect(() => {
       // riallinea lo spinner quando la sidebar cambia
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const _ = this.sidenavContext.isOpen()
       queueMicrotask(() => {
         this.updateSpinnerLeft()
@@ -264,6 +264,12 @@ export class DashboardPageComponent implements OnInit, OnDestroy, AfterViewInit 
   // --------- LIFECYCLE ---------
   ngOnInit(): void {
     this.prSub = this.accountService.getProfileRegistry().subscribe(this.subArg)
+    for (const i of Array.from({ length: 6 }, (_, i) => i)) {
+      setTimeout(() => this.toastService.trigger('Profile loaded successfully', 'success'), i * 1000 * 0.4)
+    }
+    for (const i of Array.from({ length: 6 }, (_, i) => i)) {
+      setTimeout(() => this.toastService.trigger('Profile loaded successfully', 'error'), i * 1000 * 0.4)
+    }
   }
 
   ngAfterViewInit(): void {
@@ -292,7 +298,8 @@ export class DashboardPageComponent implements OnInit, OnDestroy, AfterViewInit 
         grid: '#47556955',
         bgMolecules: '#38bdf8',
         bgCollections: '#a855f7',
-        doughnut: ['#22c55e', '#0ea5e9', '#a855f7'] }
+        doughnut: ['#22c55e', '#0ea5e9', '#a855f7']
+      }
     }
 
     return {
@@ -300,7 +307,8 @@ export class DashboardPageComponent implements OnInit, OnDestroy, AfterViewInit 
       grid: '#cad5e2',
       bgMolecules: '#0956FB',
       bgCollections: '#B200C2',
-      doughnut: ['#7A33FF', '#00754E', '#D10038'] }
+      doughnut: ['#7A33FF', '#00754E', '#D10038']
+    }
   }
 
   // --------- BUILD ENTRYPOINT ---------
@@ -345,26 +353,34 @@ export class DashboardPageComponent implements OnInit, OnDestroy, AfterViewInit 
             data: initialData,
             backgroundColor: palette.doughnut,
             borderColor: 'transparent',
-            hoverOffset: 6 },
-        ] },
+            hoverOffset: 6
+          },
+        ]
+      },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         cutout: '60%',
         animation: {
           duration: 700,
-          easing: 'easeOutCubic' },
+          easing: 'easeOutCubic'
+        },
         plugins: {
           legend: {
             position: 'bottom',
             labels: {
               color: palette.text,
-              boxWidth: 14 } } } } })
+              boxWidth: 14
+            }
+          }
+        }
+      }
+    })
 
     // 🔥 step 2: set dei valori reali → parte l’animazione
     queueMicrotask(() => {
       if (!this.overviewChart) return
-      const ds = this.overviewChart.data.datasets[0] as any
+      const ds = this.overviewChart.data.datasets[0]
       ds.data = realData
       this.overviewChart.update()
     })
@@ -402,13 +418,16 @@ export class DashboardPageComponent implements OnInit, OnDestroy, AfterViewInit 
             label: 'Molecole',
             data: molecules,
             backgroundColor: palette.bgMolecules,
-            borderRadius: 4 },
+            borderRadius: 4
+          },
           {
             label: 'Collezioni',
             data: collections,
             backgroundColor: palette.bgCollections,
-            borderRadius: 4 },
-        ] },
+            borderRadius: 4
+          },
+        ]
+      },
       options: {
         responsive: true,
         maintainAspectRatio: false,
@@ -416,18 +435,26 @@ export class DashboardPageComponent implements OnInit, OnDestroy, AfterViewInit 
           x: {
             stacked: true,
             ticks: { color: palette.text },
-            grid: { color: palette.grid } },
+            grid: { color: palette.grid }
+          },
           y: {
             stacked: true,
             beginAtZero: true,
             ticks: { color: palette.text, precision: 0 },
-            grid: { color: palette.grid } } },
+            grid: { color: palette.grid }
+          }
+        },
         plugins: {
           colors: {
-            enabled: false } as any,
+            enabled: false
+          },
           legend: {
             position: 'bottom',
-            labels: { color: palette.text } } } } }
+            labels: { color: palette.text }
+          }
+        }
+      }
+    }
 
     this.activityChart = new Chart(ctx, config)
   }
@@ -511,9 +538,11 @@ export class DashboardPageComponent implements OnInit, OnDestroy, AfterViewInit 
       result.push({
         dayLabel: d.toLocaleDateString('it-IT', {
           day: '2-digit',
-          month: '2-digit' }),
+          month: '2-digit'
+        }),
         molecules: bucket.molecules,
-        collections: bucket.collections })
+        collections: bucket.collections
+      })
     }
 
     return result

@@ -19,67 +19,60 @@ describe('ToastService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('slides in after 30ms and auto-dismisses after the requested duration', () => {
-    service.trigger('hello', 'success', 1000);
-    expect(service.show()).toBeTrue();
-    expect(service.slideIn()).toBeFalse();
+  it('adds a toast with its message, variant, duration, and generated id', () => {
+    const id = service.trigger('hello', 'success', 1000);
 
-    jasmine.clock().tick(30);
-    expect(service.slideIn()).toBeTrue();
+    expect(service.messages()).toEqual([
+      jasmine.objectContaining({
+        id,
+        message: 'hello',
+        variant: 'success',
+        durationMs: 1000,
+      }),
+    ]);
+  });
 
+  it('prepends newer toasts to the current messages', () => {
+    service.trigger('first', 'error', 0);
+    service.trigger('second', 'warn', 0);
+
+    expect(service.messages().map(({ message }) => message)).toEqual(['second', 'first']);
+  });
+
+  it('auto-dismisses a toast after its requested duration', () => {
+    const id = service.trigger('hello', 'error', 1000);
+
+    jasmine.clock().tick(999);
+    expect(service.messages().some((toast) => toast.id === id)).toBeTrue();
+
+    jasmine.clock().tick(1);
+    expect(service.messages()).toEqual([]);
+  });
+
+  it('close(id) removes only the requested toast and cancels its timer', () => {
+    const firstId = service.trigger('first', 'error', 1000);
+    const secondId = service.trigger('second', 'success', 2000);
+
+    service.close(firstId);
     jasmine.clock().tick(1000);
-    // auto-dismiss triggers close(): slideIn goes false immediately, show stays true until the hide timer fires
-    expect(service.slideIn()).toBeFalse();
-    expect(service.show()).toBeTrue();
 
-    jasmine.clock().tick(300);
-    expect(service.show()).toBeFalse();
+    expect(service.messages().map(({ id }) => id)).toEqual([secondId]);
   });
 
-  it('a manual close() cancels the pending slide-in timer so it cannot re-open the toast', () => {
-    service.trigger('hello', 'error', 5000);
-    // close before the 30ms slide-in timer has fired
-    service.close();
+  it('does not schedule an auto-dismiss timer for a non-positive duration', () => {
+    service.trigger('hello', 'warn', 0);
 
-    jasmine.clock().tick(30);
-    // the stale slide-in timer must NOT flip slideIn back to true
-    expect(service.slideIn()).toBeFalse();
+    jasmine.clock().tick(5000);
 
-    jasmine.clock().tick(300);
-    expect(service.show()).toBeFalse();
+    expect(service.messages()).toHaveSize(1);
   });
 
-  it('a manual close() cancels the pending auto-dismiss timer', () => {
-    service.trigger('hello', 'error', 5000);
-    service.close();
-    jasmine.clock().tick(300);
-    expect(service.show()).toBeFalse();
-
-    // trigger a new toast right away; the stale auto-dismiss timer from the
-    // previous cycle must not fire and force-close this new toast early
-    service.trigger('again', 'success', 5000);
-    jasmine.clock().tick(5000 - 300);
-    expect(service.show()).toBeTrue();
-  });
-
-  it('triggering while already shown is a no-op and does not reset timers', () => {
-    service.trigger('first', 'error', 1000);
-    jasmine.clock().tick(30);
-    expect(service.message()).toBe('first');
-
-    service.trigger('second', 'success', 1000);
-    expect(service.message()).toBe('first');
-  });
-
-  it('ngOnDestroy clears every pending timer', () => {
+  it('ngOnDestroy clears pending timers', () => {
     service.trigger('hello', 'error', 5000);
     service.ngOnDestroy();
 
-    jasmine.clock().tick(30);
-    expect(service.slideIn()).toBeFalse();
-
     jasmine.clock().tick(5000);
-    // show remains true forever: no timer survives destruction to flip it
-    expect(service.show()).toBeTrue();
+
+    expect(service.messages()).toHaveSize(1);
   });
 });

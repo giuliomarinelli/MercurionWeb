@@ -1,52 +1,60 @@
-// toast.service.ts
 import { Injectable, OnDestroy, signal } from '@angular/core';
-import { ToastContext } from '../components/common/toast/toast.component';
+import { ToastMessage, ToastVariant } from '../Models/toast.models';
+
 
 @Injectable({ providedIn: 'root' })
 export class ToastService implements OnDestroy {
-  private _show = signal(false)
-  private _slideIn = signal(false)
-  private _message = signal<string>('')
-  private _context = signal<ToastContext>('error')
+
+  private readonly _defaultDurationMs = 4500
+  private readonly _timers = new Map<string, ReturnType<typeof setTimeout>>()
+  private readonly _messagesState = signal<ToastMessage[]>([])
+  readonly messages = this._messagesState.asReadonly()
 
   private _slideInTimeoutId: ReturnType<typeof setTimeout> | undefined
   private _autoDismissTimeoutId: ReturnType<typeof setTimeout> | undefined
   private _hideTimeoutId: ReturnType<typeof setTimeout> | undefined
 
-  readonly show = this._show.asReadonly()
-  readonly slideIn = this._slideIn.asReadonly()
-  readonly message = this._message.asReadonly()
-  readonly context = this._context.asReadonly()
 
-  trigger(message: string, context: ToastContext = 'error', duration = 5000): void {
-    if (this._show()) return; // ignora se già visibile
+  trigger(message: string, variant: ToastVariant = 'error', duration = this._defaultDurationMs): string {
 
-    // Un nuovo trigger deve sempre annullare ogni timer residuo del ciclo
-    // precedente: altrimenti un vecchio timer di slide-in/hide/auto-dismiss
-    // può richiudere o far lampeggiare un toast appena aperto.
-    this.clearTimers()
+    const toast: ToastMessage = {
+      id: this.createId(),
+      message,
+      variant,
+      durationMs: duration,
+      createdAt: Date.now(),
+    }
 
-    this._context.set(context)
-    this._message.set(message)
-    this._show.set(true)
+    this._messagesState.update((current) => [toast, ...current])
 
-    // animazione slide-in
-    this._slideInTimeoutId = setTimeout(() => this._slideIn.set(true), 30)
+    if (toast.durationMs > 0) {
+      const timer = setTimeout(() => {
+        this.close(toast.id)
+      }, toast.durationMs)
 
-    // auto-dismiss
-    this._autoDismissTimeoutId = setTimeout(() => {
-      this.close()
-      this._context.set('error')
-    }, duration)
+      this._timers.set(toast.id, timer)
+    }
+
+    return toast.id
+
   }
 
-  close(): void {
-    // Annulla lo slide-in/auto-dismiss/hide pendenti: una close() manuale non
-    // deve lasciare un vecchio timer in grado di riaprire/richiudere lo stato.
-    this.clearTimers()
+  close(id?: string): void {
 
-    this._slideIn.set(false)
-    this._hideTimeoutId = setTimeout(() => this._show.set(false), 300) // lascia finire animazione
+    if (id) {
+      const timer = this._timers.get(id)
+      if (timer) {
+        clearTimeout(timer)
+        this._timers.delete(id)
+      }
+      this._messagesState.update((current) => current.filter((toast) => toast.id !== id))
+      return
+    }
+
+    const timers = Array.from(this._timers.values())
+    timers.forEach(clearTimeout)
+    this._timers.clear()
+
   }
 
   private clearTimers(): void {
@@ -61,4 +69,13 @@ export class ToastService implements OnDestroy {
   ngOnDestroy(): void {
     this.clearTimers()
   }
+
+  private createId(): string {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID()
+    }
+
+    return `${Date.now()}-${Math.random().toString(16).slice(2)}`
+  }
+
 }
