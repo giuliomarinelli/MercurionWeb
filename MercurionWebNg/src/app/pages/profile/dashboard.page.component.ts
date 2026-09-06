@@ -9,7 +9,9 @@ import {
   OnInit,
   OnDestroy,
   effect,
-  signal } from '@angular/core';
+  signal,
+  viewChild
+} from '@angular/core';
 import { Subscription } from 'rxjs';
 import {
   Chart,
@@ -225,23 +227,18 @@ export class DashboardPageComponent implements OnInit, OnDestroy, AfterViewInit 
   serverError = signal<boolean>(false)
   spinnerLeft = signal<number>(0)
 
-  @ViewChild('mainHost', { static: true }) mainHost?: ElementRef<HTMLElement>
+  readonly mainHost = viewChild<ElementRef<HTMLElement>>('mainHost');
   private spinnerFollowRaf?: number
 
-  // ViewChild come setter: viene chiamato quando i canvas entrano in DOM
-  @ViewChild('overviewChart')
-  set overviewChartSetter(ref: ElementRef<HTMLCanvasElement> | undefined) {
-    this.overviewCanvas = ref?.nativeElement
-    this.tryBuildCharts()
-  }
-
-  @ViewChild('activityChart')
-  set activityChartSetter(ref: ElementRef<HTMLCanvasElement> | undefined) {
-    this.activityCanvas = ref?.nativeElement
-    this.tryBuildCharts()
-  }
+  readonly overviewChartRef = viewChild<ElementRef<HTMLCanvasElement>>('overviewChart')
+  readonly activityChartRef = viewChild<ElementRef<HTMLCanvasElement>>('activityChart')
 
   constructor() {
+    effect(() => {
+      this.overviewCanvas = this.overviewChartRef()?.nativeElement
+      this.activityCanvas = this.activityChartRef()?.nativeElement
+      this.tryBuildCharts()
+    })
     // reagisci al cambio tema: ricostruisco i grafici con la palette corretta
     effect(() => {
       const _mode = this.currentTheme() // dipendenza reattiva
@@ -437,7 +434,7 @@ export class DashboardPageComponent implements OnInit, OnDestroy, AfterViewInit 
 
   // --------- SPINNER POSITION ---------
   private attachSpinnerTracking(): void {
-    const host = this.mainHost?.nativeElement
+    const host = this.mainHost()?.nativeElement
     if (!host) return
 
     this.updateSpinnerLeft()
@@ -449,7 +446,7 @@ export class DashboardPageComponent implements OnInit, OnDestroy, AfterViewInit 
   }
 
   private updateSpinnerLeft = () => {
-    const rect = this.mainHost?.nativeElement.getBoundingClientRect()
+    const rect = this.mainHost()?.nativeElement.getBoundingClientRect()
     if (!rect) return
     this.spinnerLeft.set(rect.left + rect.width / 2)
   }

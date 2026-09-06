@@ -57,7 +57,6 @@ describe('TermsAndPoliciesPageComponent', () => {
     const c = component as any;
     const fakeRoot = new ElementRef(document.createElement('div'));
     c.scrollRootRef = fakeRoot;
-    c.termsHeaderRef = new ElementRef(document.createElement('div'));
 
     appContext.setHeaderHeight(0);
     const smoothToSpy = spyOn(appContext, 'smoothTo');
@@ -83,7 +82,6 @@ describe('TermsAndPoliciesPageComponent', () => {
     const c = component as any;
     const fakeRoot = new ElementRef(document.createElement('div'));
     c.scrollRootRef = fakeRoot;
-    c.termsHeaderRef = new ElementRef(document.createElement('div'));
 
     appContext.setHeaderHeight(0);
     const smoothToSpy = spyOn(appContext, 'smoothTo');

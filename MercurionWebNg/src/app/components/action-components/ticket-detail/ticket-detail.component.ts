@@ -6,11 +6,12 @@ import {
   ElementRef,
   OnDestroy,
   OnInit,
-  ViewChild,
   computed,
   effect,
   inject,
-  signal } from '@angular/core';
+  signal,
+  viewChild
+} from '@angular/core';
 import { TicketDetailContextService } from '../../../services/context/action-context/ticket-detail-context.service';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 import {
@@ -298,11 +299,9 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
 
   private readonly ITEMS_PER_PAGE = 10
 
-  @ViewChild('sentinel')
-  protected declare sentinel: ElementRef<HTMLDivElement>
+  protected override readonly sentinel = viewChild<ElementRef<HTMLDivElement>>('sentinel');
 
-  @ViewChild('scrollRoot')
-  protected declare root: ElementRef<HTMLDivElement>
+  protected override readonly root = viewChild<ElementRef<HTMLDivElement>>('scrollRoot');
 
   ticket = signal<TicketViewModel | null>(null)
   innerScope = computed(
@@ -366,7 +365,7 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
 
     // piccolo “pre-scroll” di sicurezza (se il root esiste già)
     queueMicrotask(() => {
-      const rootEl = this.root?.nativeElement
+      const rootEl = this.root()?.nativeElement
       if (rootEl) {
         rootEl.scrollTop = rootEl.scrollHeight
       }
@@ -388,10 +387,11 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
   }
 
   private smoothToBottom(duration = 200) {
-    const rootEl = this.root?.nativeElement;
+    const root = this.root();
+    const rootEl = root?.nativeElement;
     if (!rootEl) return;
     const target = rootEl.scrollHeight;
-    this.appCtx.smoothTo(this.root, target, duration);
+    this.appCtx.smoothTo(root, target, duration);
   }
 
   close(): void {
@@ -439,7 +439,7 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
 
   protected override async loadMore(): Promise<void> {
     // se non ho root ancora, non faccio nulla
-    const rootEl = this.root?.nativeElement;
+    const rootEl = this.root()?.nativeElement;
     if (!rootEl) return;
 
     // guardia top: consideriamo "in alto" quando scrollTop è quasi zero

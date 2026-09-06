@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, computed, DestroyRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, DestroyRef, inject, OnDestroy, OnInit, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PublicPipe } from '../../pipes/public.pipe';
 import { ReactiveFormsModule, Validators, FormGroup, FormControl, NonNullableFormBuilder } from '@angular/forms';
@@ -251,8 +251,7 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
   private readonly destroyRef = inject(DestroyRef)
   // ====================================================
 
-  @ViewChild(TurnstileComponent)
-  turnstileComponent!: TurnstileComponent
+  readonly turnstileComponent = viewChild.required(TurnstileComponent);
 
   private regSub?: Subscription
   private valChSub?: Subscription
@@ -322,7 +321,7 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
   onSubmit(): void {
     if (this.form.valid) {
       if (!this.turnstileToken()) {
-        this.turnstileComponent?.reset()
+        this.turnstileComponent()?.reset()
         this.turnstileToken.set('')
         this.loadingTurnstile.set(true)
         this.loading.set(false)
@@ -350,14 +349,14 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
         },
         error: () => {
           this.toast.trigger('Si è verificato un errore lato server.', 'error', 3000)
-          this.turnstileComponent?.reset()
+          this.turnstileComponent()?.reset()
           this.turnstileToken.set('')
           this.loadingTurnstile.set(true)
           this.loading.set(false)
         }
       })
     } else {
-      this.turnstileComponent?.reset()
+      this.turnstileComponent()?.reset()
       this.turnstileToken.set('')
       this.loadingTurnstile.set(true)
       this.settedDisabledBtn.set(true)

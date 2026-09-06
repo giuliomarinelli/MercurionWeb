@@ -1,5 +1,5 @@
 import { MfaStrategyDTO } from './../../../Models/account/account.models';
-import { Component, EventEmitter, inject, Input, Output, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, effect, inject, signal, ChangeDetectionStrategy, input, output } from '@angular/core';
 import { MfaStrategy } from '../../../Models/account/account.models';
 import { NgClass } from '@angular/common';
 import { DesignService } from '../../../services/design.service';
@@ -21,12 +21,12 @@ import { DesignService } from '../../../services/design.service';
         transition-all duration-150 ease-linear
       "
       [ngClass]="{
-        'cursor-pointer hover:-translate-y-1 hover:shadow-md': choose,
-        'cursor-default': !choose
+        'cursor-pointer hover:-translate-y-1 hover:shadow-md': choose(),
+        'cursor-default': !choose()
     }"
       role="group"
       [attr.aria-label]="ariaLabel()"
-      [attr.aria-live]="choose ? 'polite' : 'off'"
+      [attr.aria-live]="choose() ? 'polite' : 'off'"
     >
 
 
@@ -51,7 +51,7 @@ import { DesignService } from '../../../services/design.service';
                   <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                   <path d="M256 128L256 256L128 256L128 128L256 128zM128 96L96 96L96 288L288 288L288 96L128 96zM256 384L256 512L128 512L128 384L256 384zM128 352L96 352L96 544L288 544L288 352L128 352zM384 128L512 128L512 256L384 256L384 128zM352 96L352 288L544 288L544 96L352 96zM472 424L424 424L424 472L472 472L472 424zM216 168L168 168L168 216L216 216L216 168zM168 424L168 472L216 472L216 424L168 424zM472 168L424 168L424 216L472 216L472 168zM360 360L360 408L408 408L408 360L360 360zM360 488L360 536L408 536L408 488L360 488zM536 488L488 488L488 536L536 536L536 488zM488 360L488 408L536 408L536 360L488 360z"/>
                 </svg>
-                  @if (choose || design.maxBk('sm')()) {
+                  @if (choose() || design.maxBk('sm')()) {
                     <span>Utilizza l'app di autenticazione.</span>
                   } @else {
                     <span>Utilizza un'app di autenticazione come Google Authenticator, Microsoft Authenticator o Authy.</span>
@@ -62,7 +62,7 @@ import { DesignService } from '../../../services/design.service';
                   <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                   <path d="M112.6 178.9L320 98.3L527.6 178.9C532.9 270 498.8 463.8 320 541.1C141.3 463.8 107.2 270 112.6 178.9zM559.6 177L558.3 156.5L539.1 149L331.6 68.5L320 64L308.5 68.5L101 149L81.8 156.5L80.6 177C77.7 226.9 85.5 303.3 117.9 377.9C150.6 453.2 208.9 527.9 307.3 570.5L320 576L332.7 570.5C431.1 527.9 489.4 453.2 522.1 377.9C554.5 303.2 562.3 226.9 559.4 177zM320 248C333.3 248 344 258.7 344 272C344 285.3 333.3 296 320 296C306.7 296 296 285.3 296 272C296 258.7 306.7 248 320 248zM376 272C376 241.1 350.9 216 320 216C289.1 216 264 241.1 264 272C264 297.4 280.9 318.8 304 325.7L304 416L336 416L336 325.7C359.1 318.8 376 297.4 376 272z"/>
                 </svg>
-                  @if (choose) {
+                  @if (choose()) {
                     <span>Utilizza un codice di backup.</span>
                   } @else {
                     <p class="flex flex-col gap-y-2 sm:gap-y-[2px]">
@@ -73,7 +73,7 @@ import { DesignService } from '../../../services/design.service';
                 }
           }
 
-        @if (choose || config) {
+        @if (choose() || config()) {
           <span
             class="px-2 py-[2px] rounded text-[0.7rem] sm:text-xs font-semibold shrink-0"
             [class.bg-emerald-200]="_strategy()!.enabled"
@@ -83,7 +83,7 @@ import { DesignService } from '../../../services/design.service';
           >
             {{ _strategy()!.enabled ? 'Attiva' : 'Non attiva' }}
           </span>
-          @if (_strategy()!.strategy === 'SMS_OTP' && noPhone) {
+          @if (_strategy()!.strategy === 'SMS_OTP' && noPhone()) {
               <div class="flex items-center gap-4 flex-wrap text-sm">
                 <span >Per attivare questa strategia</span>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto">
@@ -95,7 +95,7 @@ import { DesignService } from '../../../services/design.service';
             }
         }
       </div>
-      @if (showActions && !(noPhone && _strategy()!.strategy === 'SMS_OTP') && _strategy()!.strategy !== 'BACKUP_CODE') {
+      @if (showActions() && !(noPhone() && _strategy()!.strategy === 'SMS_OTP') && _strategy()!.strategy !== 'BACKUP_CODE') {
         <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto items-stretch sm:items-center justify-end sm:justify-start">
           <button
             type="button"
@@ -155,43 +155,24 @@ export class MfaStrategyCardComponent {
   _remainingBackupCodes = signal<number>(-1)
   private currentStrategy: MfaStrategy | null = null
 
-  @Input({ required: true })
-  set strategy(strategy: MfaStrategy) {
-    this.currentStrategy = strategy
-    this.updateStrategyState()
-  }
+  readonly strategy = input.required<MfaStrategy>()
+  readonly activeStrategies = input.required<MfaStrategy[]>()
 
-  @Input({ required: true })
-  set activeStrategies(activeStrategies: MfaStrategy[]) {
-    this._activeStrategies.set(activeStrategies ?? [])
-    this.updateStrategyState()
-  }
+  readonly showActions = input(false);
 
-  @Input()
-  showActions = false
+  readonly noPhone = input(false);
 
-  @Input()
-  noPhone = false
+  readonly choose = input(false);
 
-  @Input()
-  choose = false
+  readonly config = input(false);
 
-  @Input()
-  config = false
+  readonly remainingBackupCodes = input(-1)
 
-  @Input()
-  set remainingBackupCodes(remainingBackupCodes: number) {
-    this._remainingBackupCodes.set(remainingBackupCodes)
-  }
+  readonly onEnableMfa = output<MfaStrategy>();
 
-  @Output()
-  onEnableMfa = new EventEmitter<MfaStrategy>()
+  readonly onDisableMfa = output<MfaStrategy>();
 
-  @Output()
-  onDisableMfa = new EventEmitter<MfaStrategy>()
-
-  @Output()
-  onAddNewPhone = new EventEmitter<void>()
+  readonly onAddNewPhone = output<void>();
 
   private updateStrategyState(): void {
     if (!this.currentStrategy) {
@@ -204,12 +185,21 @@ export class MfaStrategyCardComponent {
     })
   }
 
+  constructor() {
+    effect(() => {
+      this.currentStrategy = this.strategy()
+      this._activeStrategies.set(this.activeStrategies())
+      this.updateStrategyState()
+    })
+    effect(() => this._remainingBackupCodes.set(this.remainingBackupCodes()))
+  }
+
   handleActionClick(): void {
     const state = this._strategy()
     if (!state) {
       return
     }
-    if (state.strategy === 'SMS_OTP' && this.noPhone && !state.enabled) {
+    if (state.strategy === 'SMS_OTP' && this.noPhone() && !state.enabled) {
       return
     }
     if (state.enabled) {
@@ -220,6 +210,7 @@ export class MfaStrategyCardComponent {
   }
 
   doAddNewPhone(): void {
+    // TODO: The 'emit' function requires a mandatory void argument
     this.onAddNewPhone.emit()
   }
 

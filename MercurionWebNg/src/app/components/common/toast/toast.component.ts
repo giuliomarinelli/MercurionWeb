@@ -1,5 +1,5 @@
 // toast.component.ts
-import { ChangeDetectionStrategy, Component, effect, Input, signal } from '@angular/core'
+import { ChangeDetectionStrategy, Component, effect, input, signal, inject } from '@angular/core'
 import { CommonModule, NgClass } from '@angular/common'
 import { ToastService } from '../../../services/toast.service'
 
@@ -35,13 +35,12 @@ export type ToastContext = 'error' | 'warn' | 'success'
   `
 })
 export class ToastComponent {
+  protected readonly toast = inject(ToastService);
+
 
   private _context = signal<ToastContext>('error')
 
-  @Input()
-  public set context(context: ToastContext) {
-    this._context.set(context)
-  }
+  readonly context = input<ToastContext>('success')
 
   protected contextClass = ''
 
@@ -51,7 +50,8 @@ export class ToastComponent {
     warn: 'bg-[#78350f] text-white dark:bg-[#fef3c7] dark:text-[#2a1502]'
   }
 
-  constructor(protected readonly toast: ToastService) {
+  constructor() {
+    effect(() => this._context.set(this.context()))
     effect(() => {
       this.contextClass = this.contextClassMap[this._context()]
     })

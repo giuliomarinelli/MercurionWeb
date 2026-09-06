@@ -1,8 +1,8 @@
 import { MoleculeCardItemModel } from './../../Models/graphql/molecule-collection/molecule-collection.types';
-import { AfterViewInit, Component, effect, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { AfterViewInit, Component, effect, ElementRef, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy, viewChild } from '@angular/core';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { MoleculeCollectionItemCardComponent } from '../../components/molecule-detail/molecule-collection-item-card/molecule-collection-item-card.component';
-import { debounceTime, map, Subscription } from 'rxjs';
+import { delay, map, Subscription } from 'rxjs';
 import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service';
 import { Helpers } from '../../helpers';
 import { SkeletonMoleculeCardComponent } from '../../components/molecule-detail/skeleton-molecule-card/skeleton-molecule-card.component';
@@ -117,7 +117,7 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
     const check = () => {
       if (this.loading || this.done) return;
 
-      const rootEl = this.root?.nativeElement as HTMLElement | null | undefined;
+      const rootEl = this.root?.()?.nativeElement as HTMLElement | null | undefined;
 
       if (rootEl instanceof HTMLElement) {
         const notEnough = rootEl.scrollHeight <= rootEl.clientHeight + 1;
@@ -143,8 +143,7 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
     this.resources.requestAnimationFrame(check);
   }
 
-  @ViewChild('sentinel', { static: true })
-  declare sentinel: ElementRef<HTMLDivElement> | undefined
+  protected override readonly sentinel = viewChild<ElementRef<HTMLDivElement>>('sentinel');
 
 
   private delSub?: Subscription
@@ -190,7 +189,9 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
 
   protected override fetch$(page = this.page, size = 25) {
     return this.moleculeCollectionItemService.getAllPaginatedItems(page, size, this.searchTerm()).pipe(
-      debounceTime(20),
+      // `query()` completes after one value, so debounceTime would flush it immediately.
+      // Preserve a perceptible initial loading state without delaying later pages.
+      delay(page === 1 ? 120 : 0),
       map(page => ({
         ...page,
         items: page.items.map(mol => Helpers.moleculeClientToCardConverter(mol))

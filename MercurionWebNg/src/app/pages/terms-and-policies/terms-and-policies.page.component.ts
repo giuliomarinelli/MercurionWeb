@@ -4,9 +4,9 @@ import {
   Component,
   ElementRef,
   OnDestroy,
-  ViewChild,
   effect,
-  inject
+  inject,
+  viewChild
 } from '@angular/core'
 import { RouterLink, ActivatedRoute } from '@angular/router'
 import { Subscription, startWith } from 'rxjs'
@@ -421,8 +421,8 @@ export class TermsAndPoliciesPageComponent implements AfterViewInit, OnDestroy {
   private readonly appContext = inject(AppContextService)
   private readonly resources = injectBrowserResourceOwner()
 
-  @ViewChild('termsHeader') termsHeaderRef!: ElementRef<HTMLElement>
-  @ViewChild('aupHeader') aupHeaderRef!: ElementRef<HTMLElement>
+  readonly termsHeaderRef = viewChild<ElementRef<HTMLElement>>('termsHeader');
+  readonly aupHeaderRef = viewChild<ElementRef<HTMLElement>>('aupHeader');
 
   private scrollRootRef?: ElementRef<HTMLElement>
   private fragmentSub?: Subscription
@@ -489,11 +489,11 @@ export class TermsAndPoliciesPageComponent implements AfterViewInit, OnDestroy {
             let targetEl: HTMLElement | null = null
 
             if (!frag || frag === 'terms') {
-              targetEl = this.termsHeaderRef?.nativeElement ?? null
+              targetEl = this.termsHeaderRef()?.nativeElement ?? null
             } else if (frag === 'aup') {
-              targetEl = this.aupHeaderRef?.nativeElement ?? null
+              targetEl = this.aupHeaderRef()?.nativeElement ?? null
             } else {
-              targetEl = this.termsHeaderRef?.nativeElement ?? null
+              targetEl = this.termsHeaderRef()?.nativeElement ?? null
             }
 
             if (!targetEl) return

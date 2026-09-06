@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, EventEmitter, Output, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, output } from '@angular/core';
 import { QuillModule } from 'ngx-quill';
 import { FormsModule } from '@angular/forms';
 
@@ -48,7 +48,10 @@ import { FormsModule } from '@angular/forms';
 })
 export class TicketComposerComponent {
 
-  @Output() send = new EventEmitter<{ html: string, delta: any }>()
+  readonly send = output<{
+    html: string;
+    delta: any;
+}>();
 
   contentHtml = ''
   private delta: any = null

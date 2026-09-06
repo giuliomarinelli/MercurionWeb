@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, inject, Input, Output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, input, signal, output } from '@angular/core';
 import { DatePipe, NgClass, UpperCasePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
@@ -192,43 +192,28 @@ export class CollectionCardComponent {
   _hideActionButtons = signal<boolean>(false)
 
 
-  @Input({ required: true })
-  set collection(collection: MoleculeCollection) {
-    this._collection.set(collection);
-    this.pathToCollection.set(`/molecules/collections/detail/${collection.id}`);
-  }
+  readonly collection = input.required<MoleculeCollection>()
+  readonly i = input(0)
+  readonly isReadonly = input(false)
+  readonly triggerDisappear = input(false)
+  readonly collapse = input(false)
+  readonly hideActionButtons = input(false)
+  private readonly syncInputs = effect(() => {
+    const collection = this.collection()
+    this._collection.set(collection)
+    this.pathToCollection.set(`/molecules/collections/detail/${collection.id}`)
+    this._i.set(this.i())
+    this._isReadonly.set(this.isReadonly())
+    this._triggerDisappear.set(this.triggerDisappear())
+    this._collapse.set(this.collapse())
+    this._hideActionButtons.set(this.hideActionButtons())
+  })
 
-  @Input() set i(i: number) {
-    this._i.set(i)
-  }
+  readonly onDuplicate = output<string>();
 
-  @Input() set isReadonly(isReadonly: boolean) {
-    this._isReadonly.set(isReadonly)
-  }
+  readonly onDelete = output<string>();
 
-  @Input()
-  set triggerDisappear(triggerDisappear: boolean) {
-    this._triggerDisappear.set(triggerDisappear)
-  }
-
-  @Input()
-  set collapse(collapse: boolean) {
-    this._collapse.set(collapse)
-  }
-
-  @Input()
-  set hideActionButtons(hideActionButtons: boolean) {
-    this._hideActionButtons.set(hideActionButtons)
-  }
-
-  @Output()
-  onDuplicate = new EventEmitter<string>()
-
-  @Output()
-  onDelete = new EventEmitter<string>()
-
-  @Output()
-  onAddMolecules = new EventEmitter<string>()
+  readonly onAddMolecules = output<string>();
 
   goToCollection(evt?: Event): void {
     if (this._isReadonly()) return;

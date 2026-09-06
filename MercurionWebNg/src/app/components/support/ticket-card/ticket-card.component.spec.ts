@@ -13,6 +13,7 @@ describe('TicketCardComponent', () => {
     .compileComponents();
 
     fixture = TestBed.createComponent(TicketCardComponent);
+    fixture.componentRef.setInput('ticket', null as never);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

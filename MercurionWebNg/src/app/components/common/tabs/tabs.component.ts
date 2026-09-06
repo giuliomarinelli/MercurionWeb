@@ -1,9 +1,8 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  EventEmitter,
-  Output,
   input,
+  output
 } from '@angular/core';
 
 @Component({
@@ -37,7 +36,7 @@ export class TabsComponent {
   tabs = input<string[]>([]);
   activeIndex = input<number>(0);
 
-  @Output() tabChange = new EventEmitter<number>();
+  readonly tabChange = output<number>();
 
   tabClass(i: number): string {
     const active = i === this.activeIndex();

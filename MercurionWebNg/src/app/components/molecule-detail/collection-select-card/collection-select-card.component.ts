@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, DestroyRef, effect, EventEmitter, inject, Input, model, OnDestroy, OnInit, Output, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, DestroyRef, effect, inject, model, OnDestroy, OnInit, signal, input, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
@@ -14,8 +14,8 @@ import { CollectionCardComponent } from '../collection-card/collection-card.comp
       <label class="relative inline-flex h-5 w-5 items-center justify-center cursor-pointer select-none z-30">
         <input #cb type="checkbox" class="peer sr-only"
                [formControl]="control"
-               [indeterminate]="indeterminate"
-               [attr.aria-checked]="indeterminate ? 'mixed' : control.value"
+               [indeterminate]="indeterminate()"
+               [attr.aria-checked]="indeterminate() ? 'mixed' : control.value"
                [attr.aria-label]="_isSelectAll() ? 'Seleziona tutte le collezioni' : 'Seleziona collezione'"
         />
         <span class="block h-5 w-5 rounded-md border border-slate-300 bg-white dark:bg-slate-800
@@ -55,31 +55,25 @@ export class CollectionSelectCardComponent implements OnInit, OnDestroy {
   _i = signal<number>(-1)
   _isSelectAll = signal<boolean>(false)
 
-  @Input()
-  indeterminate = false
+  readonly indeterminate = input(false);
 
-  @Input() set collection(c: UiMoleculeCollection) {
-    this._collection.set(c)
-  }
+  readonly collection = input<UiMoleculeCollection | null>(null)
+  readonly i = input(-1)
+  readonly isSelectAll = input(false)
 
-  @Input()
-  set i(i: number) {
-    this._i.set(i);
-  }
-
-  @Input()
-  set isSelectAll(isSelectAll: boolean) {
-    this._isSelectAll.set(isSelectAll)
-  }
-
-  @Output()
-  selectedAll = new EventEmitter<boolean>()
+  readonly selectedAll = output<boolean>();
 
   syncIn = effect(() => {
     const v = this.value()
     if (this.control.value !== v) {
       this.control.setValue(v, { emitEvent: false })
     }
+  })
+
+  private readonly syncInputs = effect(() => {
+    this._collection.set(this.collection())
+    this._i.set(this.i())
+    this._isSelectAll.set(this.isSelectAll())
   })
 
   ngOnInit(): void {

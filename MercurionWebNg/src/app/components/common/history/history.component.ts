@@ -5,14 +5,14 @@ import {
   ElementRef,
   OnDestroy,
   OnInit,
-  ViewChild,
   inject,
   effect,
   NgZone,
   signal,
-  Input,
-  Output,
-  EventEmitter } from '@angular/core';
+  input,
+  output,
+  viewChild
+} from '@angular/core';
 import { HistoryService } from '../../../services/history.service';
 import { catchError, debounce, distinctUntilChanged, EMPTY, filter, firstValueFrom, interval, Subscription } from 'rxjs';
 import { HistoryDTOExt } from '../../../Models/history.models';
@@ -86,23 +86,16 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly invalidation = inject(DomainInvalidationService)
   // ====================================================
 
-  @ViewChild('sentinel', { static: true })
-  sentinel!: ElementRef<HTMLElement>
+  readonly sentinel = viewChild.required<ElementRef<HTMLElement>
+// TODO: Skipped for migration because:
+//  Accessor inputs cannot be migrated as they are too complex.
+>('sentinel');
 
-  @Input()
-  set triggerDelete(triggerDelete: boolean) {
-    this._triggerDelete.set(triggerDelete)
-  }
+  readonly triggerDelete = input(false)
+  readonly triggerEmptyCheck = input(false)
 
-  @Input()
-  set triggerEmptyCheck(triggerEmptyCheck: boolean) {
-    this._triggerEmptyCheck.set(triggerEmptyCheck)
-  }
-
-  @Output()
-  emptyChange = new EventEmitter<boolean>()
-  @Output()
-  itemClick = new EventEmitter<void>()
+  readonly emptyChange = output<boolean>();
+  readonly itemClick = output<void>();
 
   private rSub?: Subscription
 
@@ -123,6 +116,9 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
   protected page = 1
 
   constructor() {
+
+    effect(() => this._triggerDelete.set(this.triggerDelete()))
+    effect(() => this._triggerEmptyCheck.set(this.triggerEmptyCheck()))
 
     effect(() => {
       const selectedItemId = this.selectedItemId()
@@ -237,6 +233,7 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   handleItemClick(): void {
+    // TODO: The 'emit' function requires a mandatory void argument
     this.itemClick.emit()
   }
 
@@ -271,7 +268,7 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     )
 
-    this.observer.observe(this.sentinel.nativeElement)
+    this.observer.observe(this.sentinel().nativeElement)
   }
 
   async loadMore() {

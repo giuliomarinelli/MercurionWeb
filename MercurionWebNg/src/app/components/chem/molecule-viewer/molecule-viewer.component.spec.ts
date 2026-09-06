@@ -181,7 +181,7 @@ describe('MoleculeViewerComponent', () => {
 
   it('stops and disposes renderer work while preview rendering is disabled', async () => {
     await createViewer('CC')
-    component.disablePreview = true
+    fixture.componentRef.setInput('disablePreview', true)
     component.ngOnChanges({
       disablePreview: new SimpleChange(false, true, false)
     })
@@ -234,7 +234,7 @@ describe('MoleculeViewerComponent', () => {
   function createViewerWithoutWaiting(structure = ''): void {
     fixture = TestBed.createComponent(MoleculeViewerComponent)
     component = fixture.componentInstance
-    component.structure = structure
+    fixture.componentRef.setInput('structure', structure)
     fixture.detectChanges()
   }
 
@@ -244,8 +244,8 @@ describe('MoleculeViewerComponent', () => {
   }
 
   function changeStructure(structure: string): void {
-    const previous = component.structure
-    component.structure = structure
+    const previous = component.structure()
+    fixture.componentRef.setInput('structure', structure)
     component.ngOnChanges({
       structure: new SimpleChange(previous, structure, false)
     })

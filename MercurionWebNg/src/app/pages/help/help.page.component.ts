@@ -6,10 +6,10 @@ import {
   ElementRef,
   OnDestroy,
   OnInit,
-  ViewChild,
   effect,
   inject,
-  signal
+  signal,
+  viewChild
 } from '@angular/core'
 import { ActivatedRoute, Router } from '@angular/router'
 import { Observable, Subscription, firstValueFrom, map, of, switchMap, take, tap } from 'rxjs'
@@ -127,8 +127,7 @@ export class HelpPageComponent extends AbstractPaginationComponent<TicketViewMod
   private readonly route = inject(ActivatedRoute)
   private readonly router = inject(Router)
 
-  @ViewChild('sentinel')
-  protected declare sentinel: ElementRef<HTMLDivElement>
+  protected override readonly sentinel = viewChild<ElementRef<HTMLDivElement>>('sentinel');
 
   protected readonly tabs = ['Sezione utente', 'Sezione admin']
   private readonly ITEMS_PER_PAGE = 25
