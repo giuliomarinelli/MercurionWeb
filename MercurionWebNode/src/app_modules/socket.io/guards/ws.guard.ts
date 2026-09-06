@@ -88,12 +88,7 @@ export class WsGuard implements CanActivate {
     }
 
     if (!token || !deviceId || !sessionId) {
-      this.unauthorized(
-        client,
-        isApplicationError(e)
-          ? sessionInvalidationCauseForApplicationError(e.code)
-          : SessionInvalidationCause.InvalidCredentials
-      )
+      this.unauthorized(client, SessionInvalidationCause.InvalidCredentials)
       return false
     }
 
@@ -128,7 +123,13 @@ export class WsGuard implements CanActivate {
         })
         return false
       }
-      this.unauthorized(client, SessionInvalidationCause.InvalidCredentials)
+      const applicationError = getApplicationError(e)
+      this.unauthorized(
+        client,
+        applicationError
+          ? sessionInvalidationCauseForApplicationError(applicationError.code)
+          : SessionInvalidationCause.InvalidCredentials
+      )
       return false
     }
   }
