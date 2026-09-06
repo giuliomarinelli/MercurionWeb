@@ -3,7 +3,8 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
+> **Dependency skip:** Direct terminal prerequisite: `0040` (`FE-018`, SKIPPED_DEPENDENCY). Transitive root: `0010` (`SYS-010`, BLOCKED).
 ## Objective
 
 Build deterministic Angular tests for the complete client authentication/session state machine, covering login, MFA, refresh, logout, cross-tab synchronization and realtime reconnection including race and failure scenarios.
