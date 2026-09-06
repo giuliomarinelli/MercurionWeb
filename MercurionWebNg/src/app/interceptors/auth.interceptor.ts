@@ -15,6 +15,7 @@ import { tap, catchError } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service'; // Assumendo che sia il service dove gestisci il token
 import { AuthStateStore } from '../services/auth-state.store';
 import { isFatalUnauthenticatedBody } from './fatal-unauthenticated.util';
+import { SessionInvalidationCause } from '@mercurion/rest-contracts'
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
@@ -48,7 +49,7 @@ export class AuthInterceptor implements HttpInterceptor {
       }),
       catchError(err => {
         if (err instanceof HttpErrorResponse && err.status === 401 && isFatalUnauthenticatedBody(err.error)) {
-          this.zone.run(() => this.authState.invalidate('http-401'))
+          this.zone.run(() => this.authState.invalidate(SessionInvalidationCause.InvalidSession))
         }
         return throwError(() => err)
       })

@@ -1,5 +1,6 @@
 import { computed, inject, Injectable } from '@angular/core'
 import { AuthStateStore } from '../auth-state.store'
+import { SessionInvalidationCause } from '@mercurion/rest-contracts'
 
 @Injectable({ providedIn: 'root' })
 export class UserContextService {
@@ -13,7 +14,7 @@ export class UserContextService {
   }
 
   clearInitials(): void {
-    this.authState.invalidate('client-cleared')
+    this.authState.invalidate(SessionInvalidationCause.InvalidSession)
   }
 
   logout(): void {

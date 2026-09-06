@@ -141,7 +141,7 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
     @ConnectedSocket() client: ApplicationSocket
   ): SocketSessionInitAcknowledgement {
     this.joinUserRooms(client)
-    return { detail: 'websocket session init successful' }
+    return { detail: 'websocket session init successful', state: 'authenticated' }
   }
 
 }
