@@ -3,7 +3,8 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
+> **Dependency skip:** Direct terminal prerequisite: `0027` (`FE-005`, SKIPPED_DEPENDENCY). Transitive root: `0010` (`SYS-010`, BLOCKED).
 
 ## Objective
 

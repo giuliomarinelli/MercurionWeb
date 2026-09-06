@@ -102,76 +102,50 @@ Prefer a small explicit state machine over distributed booleans. Do not conflate
 
 ### Summary
 
-Implemented the shared typed session protocol and its REST/Socket.IO mappings,
-but the mandatory browser-validation runtime cannot be started safely. The
-canonical Tox21 command fails before it can serve the required stack, so this
-feature branch is preserved as `BLOCKED`.
+Implemented and validated locally on preserved `feature/SYS-010`, but not
+integrated because mandatory browser validation could not start the canonical
+Tox21 runtime.
 
 ### Validation performed
 
-Unchanged task-start preflight passed on `feature/SYS-010` at
-`313f443bd1335ba01ac5cf93e2de93489c92a00c`:
+The unchanged task-start preflight and final root CI-parity gate both passed:
 
 ```text
 npm ci
 npm run ci:check
 ```
 
-Task-specific validation passed:
-
-```text
-npm run build --workspace @mercurion/rest-contracts
-npm run build --workspace @mercurion/socket-contracts
-npm run typecheck --workspace mercurion_web_ng
-npm run typecheck --workspace mercurion_web_node
-npm run build --workspace mercurion_web_ng
-npm run build --workspace mercurion_web_node
-npm test --workspace mercurion_web_node -- --runInBand
-```
-
-Nest unit tests: 125 suites / 208 tests passed. Angular tests reported
-`TOTAL: 301 SUCCESS`; the Angular CLI left its completed Karma process alive,
-so the task-owned process tree was stopped by explicit PID before runtime and
-before the final clean-install gate. The final root `npm ci` passed. Its first
-`npm run ci:check` exposed an updated documentation reference in the
-repository-owned REST route inventory; after reviewing and regenerating
-`docs/architecture/rest-route-ownership.json` with
-`node scripts/check-rest-route-ownership.mjs --write`, the second final
-`npm run ci:check` passed completely.
+The feature branch also passed rest/socket-contract builds, Angular and Nest
+typechecks/builds, Nest tests (125 suites / 208 tests), and Angular tests
+(301 successful). `docs/architecture/rest-route-ownership.json` was
+regenerated through its repository-owned checker before the final green gate.
 
 ### Browser validation performed
 
-The externally managed nginx edge was reachable but returned `502 Bad Gateway`
-for both `http://localhost:8888/health` and `http://localhost:8888/` before
-the task-owned application processes started. The worker then followed the
-canonical start order. Tox21 failed immediately:
+Required browser validation was blocked. Before task-owned startup, the nginx
+edge returned `502 Bad Gateway` for `/` and `/health`. The canonical Tox21
+command then failed with `No module named main`:
 
 ```text
 ../MercurionTox21/.venv/Scripts/python.exe -m main
-No module named main
 ```
 
-Nest and Angular watch processes that had been started after that failure were
-stopped by their recorded PIDs. No browser was opened, no credentials were
-used, and no session-flow evidence was fabricated. Chrome DevTools MCP opened
-only `http://localhost:8888/`; its accessibility snapshot was nginx's
-`"An error occurred."` / `"currently unavailable"` 502 page, confirming that
-the declared public/session flows were unavailable through the required edge.
+Chrome DevTools MCP opened only `http://localhost:8888/`, which showed the
+nginx unavailable page. No credentials were used and no session-flow evidence
+was claimed. Task-owned Nest and Angular watchers were stopped by recorded
+PIDs before the final clean install.
 
 ### Changed files
 
-`packages/rest-contracts/src/session-protocol.ts` and
-`packages/rest-contracts/SESSION-PROTOCOL.md` define the documented canonical
-state machine, transition/cause vocabulary, HTTP error mapping, and transport
-inventory. Angular derives a `sessionProtocol` signal from that contract;
-Nest Socket.IO acknowledgements and invalidation notifications use its typed
-states/causes. Contract tests cover refresh, expiry, revocation, reconnect,
-logout, socket acknowledgements, and HTTP error mapping.
+Only this task recipe's terminal-state metadata and execution notes are on
+`develop`. The implementation remains solely on the preserved feature branch.
 
 ### Blocker / human decision required
 
-Restore or document the approved canonical non-production Tox21 entry point so
-`../MercurionTox21/.venv/Scripts/python.exe -m main` starts successfully. Then
-a new human-authorized task attempt must validate public load, authenticated
-transition, refresh/reconnect, logout, `/api/`, and `/socket.io/` through the
-nginx edge with Chrome DevTools MCP.
+Restore or document the approved non-production Tox21 entry point so the
+canonical command can start. A new human-authorized attempt must then validate
+public load, authenticated transition, refresh/reconnect, logout, `/api/`, and
+`/socket.io/` through the nginx edge with Chrome DevTools MCP.
+
+The preserved and frozen `feature/SYS-010` branch is
+`ec5b900bb4f858b15e78916313003c3d193e93fb`.

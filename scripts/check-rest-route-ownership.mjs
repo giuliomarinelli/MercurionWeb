@@ -10,11 +10,14 @@ const inventoryPath = process.env.REST_ROUTE_OWNERSHIP_INVENTORY_PATH
     : defaultInventoryPath;
 const controllerRoot = path.join(root, 'MercurionWebNode', 'src');
 const mainPath = path.join(root, 'MercurionWebNode', 'src', 'main.ts');
+// Autonomous task recipes and session reports are control-plane metadata. They
+// may quote routes while recording validation evidence, but they are not
+// product consumers and must never make this application inventory stale.
 const referenceRoots = [
     path.join(root, 'MercurionWebNg', 'src'),
     path.join(root, 'MercurionWebNode', 'src'),
     path.join(root, 'MercurionWebNode', 'test'),
-    path.join(root, 'docs'),
+    path.join(root, 'docs', 'architecture'),
     path.join(root, 'docker_sl'),
     path.join(root, 'scripts'),
 ];
@@ -222,6 +225,40 @@ function validateOwnership(inventory) {
     }
 }
 
+function summarizeInventoryDrift(actual, expected) {
+    const differences = [];
+    for (const field of ['schemaVersion', 'generatedBy', 'globalPrefix', 'prefixExceptions']) {
+        if (JSON.stringify(actual?.[field]) !== JSON.stringify(expected[field])) {
+            differences.push(`- inventory ${field} changed`);
+        }
+    }
+
+    const actualByKey = new Map((actual?.routes ?? []).map((route) => [routeKey(route), route]));
+    const expectedByKey = new Map(expected.routes.map((route) => [routeKey(route), route]));
+
+    for (const [key, expectedRoute] of expectedByKey) {
+        const actualRoute = actualByKey.get(key);
+        if (!actualRoute) {
+            differences.push(`- ${key}: missing route inventory entry`);
+            continue;
+        }
+        for (const field of ['path', 'controller', 'handler', 'line', 'classification', 'owner', 'evidence', 'references']) {
+            if (JSON.stringify(actualRoute[field]) !== JSON.stringify(expectedRoute[field])) {
+                differences.push(`- ${key}: ${field} changed`);
+            }
+        }
+    }
+
+    for (const key of actualByKey.keys()) {
+        if (!expectedByKey.has(key)) differences.push(`- ${key}: route no longer exists`);
+    }
+
+    const limit = 20;
+    const visible = differences.slice(0, limit);
+    if (differences.length > limit) visible.push(`- ...and ${differences.length - limit} more difference(s)`);
+    return visible.join('\n') || '- serialized inventory differs';
+}
+
 const actual = fs.existsSync(inventoryPath) ? JSON.parse(fs.readFileSync(inventoryPath, 'utf8')) : undefined;
 const expected = buildExpectedInventory(actual);
 
@@ -237,7 +274,7 @@ if (!actual) {
 }
 
 if (JSON.stringify(actual) !== JSON.stringify(expected)) {
-    throw new Error(`REST route ownership inventory is stale. Run "node scripts/check-rest-route-ownership.mjs --write" and review the changes.`);
+    throw new Error(`REST route ownership inventory is stale:\n${summarizeInventoryDrift(actual, expected)}\nRun "node scripts/check-rest-route-ownership.mjs --write" and review the changes.`);
 }
 
 validateOwnership(actual);

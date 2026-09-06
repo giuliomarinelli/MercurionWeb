@@ -19,6 +19,10 @@ export function isMetadataOnly(files) {
   return files.length > 0 && files.every(isMetadataPath);
 }
 
+export function isForcedFullRun(event, eventName) {
+  return eventName === 'workflow_dispatch' && event.inputs?.validation_mode !== 'auto';
+}
+
 function output(name, value) {
   fs.appendFileSync(process.env.GITHUB_OUTPUT, name + '=' + String(value) + '\n');
 }
@@ -135,6 +139,11 @@ async function main() {
   const event = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
   const headSha = process.env.GITHUB_SHA;
 
+  if (isForcedFullRun(event, process.env.GITHUB_EVENT_NAME)) {
+    finish('full', 'manual dispatch requested a fresh full baseline', null, []);
+    return;
+  }
+
   if (await waitForOlderSuccessfulRun(headSha)) {
     finish('duplicate', 'an older CI run already succeeded for the exact SHA', null, []);
     return;
@@ -192,6 +201,10 @@ function selfTest() {
     true,
   );
   assert.equal(isMetadataOnly([]), false);
+  assert.equal(isForcedFullRun({ inputs: { validation_mode: 'full' } }, 'workflow_dispatch'), true);
+  assert.equal(isForcedFullRun({ inputs: {} }, 'workflow_dispatch'), true);
+  assert.equal(isForcedFullRun({ inputs: { validation_mode: 'auto' } }, 'workflow_dispatch'), false);
+  assert.equal(isForcedFullRun({ inputs: { validation_mode: 'full' } }, 'push'), false);
   console.log('CI classifier self-test passed.');
 }
 
