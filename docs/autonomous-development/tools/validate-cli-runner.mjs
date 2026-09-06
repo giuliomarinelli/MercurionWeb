@@ -21,8 +21,10 @@ const paths = {
   completedSession: 'docs/autonomous-development/session.48h-2026-09-03.yaml',
   exampleSession: 'docs/autonomous-development/session.example.yaml',
   closedSession: 'docs/autonomous-development/session.until-2026-09-10.yaml',
+  preparedSession: 'docs/autonomous-development/session.until-2026-09-12.yaml',
   completedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-03-v2.md',
   closedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-06.md',
+  preparedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-06-autonomous-allowlist.md',
   runtime: 'docs/autonomous-development/RUNTIME.md',
   workflow: '.github/workflows/ci.yml',
   classifier: '.github/scripts/classify-ci.mjs',
@@ -50,9 +52,11 @@ const controlPlaneFiles = [
   'docs/autonomous-development/LAUNCH.md',
   paths.completedLaunch,
   paths.closedLaunch,
+  paths.preparedLaunch,
   paths.completedSession,
   paths.exampleSession,
   paths.closedSession,
+  paths.preparedSession,
   paths.workflow,
   paths.classifier,
   paths.planner,
@@ -363,10 +367,12 @@ const historicalSession = read(paths.historicalSession);
 const completedSession = read(paths.completedSession);
 const exampleSession = read(paths.exampleSession);
 const closedSession = read(paths.closedSession);
+const preparedSession = read(paths.preparedSession);
 for (const [target, content] of [
   [paths.exampleSession, exampleSession],
   [paths.completedSession, completedSession],
   [paths.closedSession, closedSession],
+  [paths.preparedSession, preparedSession],
 ]) {
   validateYamlStructure(target, content);
   validateWorkloadAllowlist(target, content);
@@ -522,6 +528,7 @@ for (const command of ['/model', '/permissions show', '/mcp list', '/keep-alive 
 
 const completedLaunch = read(paths.completedLaunch);
 const closedLaunch = read(paths.closedLaunch);
+const preparedLaunch = read(paths.preparedLaunch);
 const runtime = read(paths.runtime);
 requireMatch(
   paths.closedLaunch,
@@ -565,6 +572,28 @@ for (const command of ['/model', '/permissions show', '/mcp list', '/keep-alive 
     closedLaunch,
     new RegExp(command.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
     `closed launch must retain ${command}`,
+  );
+}
+
+for (const [pattern, message] of [
+  [/docs\/autonomous-development\/session\.until-2026-09-12\.yaml/, 'prepared launch must reference its dated session configuration'],
+  [/2026-09-12T10:00:00\+02:00/, 'prepared launch must retain the exact soft deadline'],
+  [/pull request #31 is merged into `develop`/i, 'prepared launch must require merged browser hardening'],
+  [/browser-profile acceptance probe/i, 'prepared launch must require persistent-profile acceptance'],
+  [/exact five-task autonomous allowlist:\s*0021, 0059, 0090,\s*0107 and 0161/i, 'prepared launch must state the exact autonomous workload'],
+  [/do not create branches\/workers for them, change their outcomes, or propagate[\s\S]{0,100}exclusion/i, 'prepared launch must preserve out-of-workload pending tasks'],
+  [/Do[\s\S]{0,10}not bundle tasks/, 'prepared launch must prohibit multi-task bundles'],
+  [/npm run autonomous:plan/, 'prepared launch must execute the deterministic planner'],
+  [/copilot --agent development-session-coordinator --allow-all-tools --allow-all-urls --add-dir \.\.\/MercurionTox21 --reasoning-effort high --autopilot/, 'prepared launch is missing the deterministic Copilot CLI command'],
+]) {
+  requireMatch(paths.preparedLaunch, preparedLaunch, pattern, message);
+}
+for (const command of ['/model', '/permissions show', '/mcp list', '/keep-alive on']) {
+  requireMatch(
+    paths.preparedLaunch,
+    preparedLaunch,
+    new RegExp(command.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+    `prepared launch is missing ${command}`,
   );
 }
 
@@ -644,6 +673,14 @@ if (closedDeadlineMatches?.length !== 1) {
   fail(paths.closedSession, `deadline must remain exactly ${closedDeadline}`);
 }
 
+const preparedDeadline = '2026-09-12T10:00:00+02:00';
+const preparedDeadlineMatches = preparedSession.match(
+  /^\s*end:\s*"2026-09-12T10:00:00\+02:00"/gm,
+);
+if (preparedDeadlineMatches?.length !== 1) {
+  fail(paths.preparedSession, `deadline must remain exactly ${preparedDeadline}`);
+}
+
 for (const [pattern, message] of [
   [/^repository:\s*$/m, 'missing repository mapping'],
   [/wait_for_feature_ci:\s*true/, 'missing feature CI wait policy'],
@@ -688,6 +725,32 @@ for (const [pattern, message] of [
   [/preserve_blocked:[\s\S]*- "0020"[\s\S]*- "0076"[\s\S]*- "0109"[\s\S]*- "0114"/, 'closed session must retain all four blockers'],
 ]) {
   requireMatch(paths.closedSession, closedSession, pattern, message);
+}
+
+for (const [pattern, message] of [
+  [/browser_and_allowlist_hardening_pull_request:\s*31/, 'prepared session must record PR #31 provenance'],
+  [/expected_task_count:\s*220/, 'prepared workload must contain 220 tasks'],
+  [/expected_current_done:\s*35/, 'prepared workload must record 35 DONE tasks'],
+  [/expected_current_blocked:\s*4/, 'prepared workload must record four retained blockers'],
+  [/expected_current_skipped_dependency:\s*26/, 'prepared workload must record 26 terminal skips'],
+  [/expected_current_pending:\s*155/, 'prepared workload must record 155 pending tasks'],
+  [/expected_first_ready_task:\s*"0021"/, 'prepared workload must start from task 0021'],
+  [/expected_autonomous_pending:\s*5/, 'prepared workload must record five autonomous tasks'],
+  [/expected_human_led_pending:\s*150/, 'prepared workload must record 150 human-led pending tasks'],
+  [/tasks:[\s\S]*- "0021"[\s\S]*- "0059"[\s\S]*- "0090"[\s\S]*- "0107"[\s\S]*- "0161"/, 'prepared workload must retain the exact allowlist'],
+  [/dependency_planner:[\s\S]*output:\s*versioned-json/, 'prepared session must use deterministic planner output'],
+  [/command:\s*npm run autonomous:plan/, 'prepared session must declare the planner command'],
+  [/fail_on_cycles:\s*true/, 'prepared session must fail on dependency cycles'],
+  [/fail_on_stale_skips:\s*true/, 'prepared session must fail on stale skips'],
+  [/multi_task_bundles:\s*false/, 'prepared session must prohibit task bundles'],
+  [/require_fresh_full_remote_ci_at_session_start:\s*true/, 'prepared session must require fresh full startup CI'],
+  [/metadata_must_not_feed_application_inventories:\s*true/, 'prepared metadata must be isolated from application inventories'],
+  [/owner:\s*development-task-worker/, 'prepared persistent browser must belong to the task worker'],
+  [/mode:\s*dedicated-persistent/, 'prepared session must use the dedicated persistent browser'],
+  [/failure_result:\s*SESSION_CAPABILITY_PAUSE/, 'prepared session must pause before task mutation when browser capability is missing'],
+  [/preserve_existing_frozen_branches:\s*true/, 'prepared session must preserve frozen blocked branches'],
+]) {
+  requireMatch(paths.preparedSession, preparedSession, pattern, message);
 }
 
 for (const stalePattern of [
