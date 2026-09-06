@@ -1,7 +1,7 @@
 ---
 name: Development Session Coordinator
 description: Run a bounded autonomous Mercurion development session from a YAML configuration.
-tools: ["execute", "read", "edit", "search", "web", "todo", "task", "task_complete", "chrome-devtools/*"]
+tools: ["execute", "read", "edit", "search", "web", "todo", "task", "task_complete"]
 user-invocable: true
 disable-model-invocation: true
 ---
@@ -23,8 +23,8 @@ Before starting a task:
 5. verify the effective repository-local value of `commit.gpgSign` is exactly `false`; every autonomous commit-producing command must also pass `--no-gpg-sign`, including `git commit`, `git merge --no-ff`, and `git revert`;
 6. verify GitHub authentication can push branches and `develop`, delete a successful feature branch, and read Actions runs;
 7. verify the CLI `task` capability with exactly one non-mutating startup handshake before any task branch is created: call `task` with `agent_type: development-task-worker`, `mode: sync`, and a payload containing `capability_probe: true` plus a fresh unpredictable nonce; require the exact response `TASK_CAPABILITY_OK <nonce>` and treat an empty, malformed, denied, or mismatched result as a startup failure; the probe is session-level and does not count as an implementation-worker invocation;
-8. verify `task_complete` is present in the current tool inventory without invoking it, `.github/mcp.json` is loaded, and any capabilities required by the next task are available;
-9. verify the externally managed nginx development edge only when the next task declares browser/runtime validation; do not start Angular, Nest, Tox21, or any watcher during session startup;
+8. verify `task_complete` is present in the current tool inventory without invoking it and `.github/mcp.json` is loaded; Chrome DevTools belongs exclusively to the serial task worker and the coordinator must never open or attach to the persistent browser profile;
+9. do not start Angular, Nest, Tox21, Chrome, or any watcher during session startup; browser/runtime readiness is checked by the selected worker after its unchanged task-start baseline and before implementation when the recipe requires runtime evidence;
 10. record the exact local/remote `develop` SHA, require a fresh permanent GitHub Actions `full` run for that exact SHA with the `Required gate` and both Windows/Linux quality jobs green, and prove the complete root `npm ci` plus `npm run ci:check` baseline from `docs/autonomous-development/CI-BASELINE.md` green before any recipe implementation; a metadata/duplicate-only result is insufficient and there is no task-level bootstrap exception;
 11. refuse to start if the active configuration still contains an unresolved required decision.
 
@@ -36,24 +36,35 @@ Do not start a task at or after the soft deadline. Do not signal that the overal
 
 Before each task selection, run `npm run autonomous:plan` from the repository
 root and parse its versioned JSON output. This read-only planner is the sole
-authoritative dependency snapshot: do not reconstruct the graph from memory or
-LLM inference. Stop as a configuration incident if the command fails, returns
-malformed JSON, reports a cycle/error/stale skip, or references a task outside
-the configured workload.
+authoritative dependency snapshot for the complete configured Series: do not
+reconstruct the graph from memory or LLM inference. Stop as a configuration
+incident if the command fails, returns malformed JSON, reports a
+cycle/error/stale skip, or references an unknown task. Resolve the session
+execution set from `workload.tasks`: an empty list selects every task in the
+Series, while a non-empty list is an exact allowlist of four-digit task IDs.
+Reject duplicate, unknown, out-of-Series, or malformed allowlist entries.
 
 Use the planner output as follows:
 
-1. classify every pending recipe as `READY` when all hard dependencies are
+1. classify every configured pending recipe as `READY` when all hard dependencies are
    `DONE`, `WAITING_DEPENDENCY` when at least one hard dependency is still
    pending/active, or `SKIPPED_DEPENDENCY` when any hard dependency is
    terminal non-`DONE`;
 2. when new terminal skips are discovered, materialize the entire affected
-   transitive closure in one aggregate metadata-only commit on `develop`;
+   transitive closure within the configured execution set in one aggregate
+   metadata-only commit on `develop`;
    create no feature branch and invoke no worker for those recipes;
 3. push that one commit, wait for its exact adaptive `Required gate`, rebuild
-   the snapshot, and select the earliest filename-ordered `READY` task;
-4. if no task is `READY`, finalize rather than emitting one skip commit per
-   recipe or idling until the deadline.
+   the snapshot, and select the earliest filename-ordered configured `READY`
+   task;
+4. if no configured task is `READY`, finalize rather than selecting or
+   mutating a task outside the allowlist, emitting one skip commit per recipe,
+   or idling until the deadline.
+
+A pending recipe omitted from a non-empty `workload.tasks` allowlist is merely
+outside this autonomous session. Leave it `PENDING`: do not create its branch,
+invoke a worker, mark it `BLOCKED`, or propagate dependency skips from its
+exclusion. Workload membership is scheduling metadata, not a recipe outcome.
 
 `WAITING_DEPENDENCY` is an in-memory scheduling classification, never a
 persistent recipe checkbox. Existing terminal outcomes remain immutable in the
@@ -74,19 +85,29 @@ For each selected `READY` task, serially:
 4. inspect the worker's structured result and independently verify branch, task
    status, commits, clean tree, declared validation evidence, and that the first
    remote feature ref was created only after a task-specific commit existed;
-5. if the worker reports `BASELINE_INVARIANT_FAILURE`, verify that no task
+5. if the worker reports `SESSION_CAPABILITY_PAUSE`, verify that it made no task
+   change or commit, stopped every runtime it started, left the recipe pending,
+   remove only the unpublished empty local attempt branch when safe, finalize
+   the session as an environmental pause, and do not propagate dependency skips;
+6. if the worker reports `BASELINE_INVARIANT_FAILURE`, verify that no task
    change was made, remove only the unpushed empty local attempt branch when
    safe, stop the entire session without changing the recipe outcome, and
    report the baseline/upstream incident;
-6. if the worker reports `READY_FOR_INTEGRATION`, wait for the permanent
+7. if the worker reports `READY_FOR_INTEGRATION`, wait for the permanent
    GitHub Actions `Required gate` associated with the exact final feature SHA;
    if it fails or is unverifiable, apply the pre-merge `BLOCKED` lifecycle and
    do not merge;
-7. only after exact feature-SHA CI succeeds, perform the no-fast-forward merge
+8. only after exact feature-SHA CI succeeds, perform the no-fast-forward merge
    with `--no-gpg-sign`, push `develop`, and wait for the GitHub Actions
    result associated with the exact merge SHA;
-8. apply the success or failure lifecycle from `PROTOCOL.md` completely
+9. apply the success or failure lifecycle from `PROTOCOL.md` completely
    before selecting anything else.
+
+If an otherwise successful worker result contains
+`BROWSER_PROFILE_RECOVERY_REQUIRED`, complete that task's ordinary feature-CI,
+merge/revert and status lifecycle, then finalize the session before selecting
+another task. Do not expose credentials in the report; request human repair of
+the dedicated non-production profile.
 
 Never run two implementation workers concurrently, use background mode, or invoke a second worker before the synchronous result returns. A fresh worker invocation is the task-context boundary; do not ask one worker to execute multiple recipes.
 
@@ -94,6 +115,10 @@ Never start Angular, Nest, Tox21, or another workspace-consuming runtime on
 behalf of a task before invoking its worker. Runtime is task-scoped rather than
 session-persistent: the worker starts it only after the initial preflight when
 required for declared validation, and stops it before its final `npm ci`.
+The MCP browser profile is different: it is a dedicated non-production profile
+persisted outside the repository and reused sequentially across fresh workers.
+The coordinator never controls it, and workers must neither launch isolated
+profiles nor clear its authentication state between tasks.
 For Tox21, execute the configured `.venv` command with the current working
 directory set exactly to `../MercurionTox21` and UTF-8 console I/O enabled;
 never prefix the interpreter path while retaining the MercurionWeb root cwd.
@@ -114,9 +139,11 @@ is a session-fatal baseline failure, not a task outcome.
 If merge CI does not succeed or cannot be verified, freeze the feature branch locally and remotely at its final pushed SHA, revert the merge with mainline parent 1 and `--no-gpg-sign`, verify the revert tree equals the pre-merge `develop` tree, push and wait for the exact revert CI, then record only `REVERTED` in a separate metadata-only commit made with `--no-gpg-sign` and wait for that exact CI too. Record whether the cause was a confirmed regression, infrastructure failure, cancellation/timeout, or unverified result. Never merge `develop` into, commit/amend, reset/rebase, advance, or delete the frozen branch.
 
 After a `BLOCKED` or `REVERTED` metadata commit is green, rebuild the
-dependency snapshot. Materialize every newly affected pending descendant as
-`SKIPPED_DEPENDENCY` in one aggregate metadata-only commit, recording the
-direct terminal prerequisite and transitive diagnostic chain for each recipe.
+dependency snapshot. Materialize every newly affected configured pending
+descendant as `SKIPPED_DEPENDENCY` in one aggregate metadata-only commit,
+recording the direct terminal prerequisite and transitive diagnostic chain for
+each recipe. Leave descendants outside a non-empty workload allowlist
+unchanged and pending.
 Push once and wait for the exact adaptive `Required gate`; never create a
 feature branch, invoke a worker, or launch a full Windows/Linux matrix solely
 for a skip when the classifier confirms the allowlisted metadata-only change.

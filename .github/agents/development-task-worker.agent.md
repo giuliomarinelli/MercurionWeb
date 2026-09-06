@@ -16,16 +16,40 @@ If and only if the parent payload contains `capability_probe: true` and a nonce,
 
 All instructions below apply only to a normal implementation invocation. A capability probe never creates or changes a task outcome.
 
+## Browser-profile acceptance probe mode
+
+This mode exists only for the one-time human-supervised acceptance test of the
+dedicated persistent Chrome profile. If the parent payload contains
+`browser_profile_probe: write` or `browser_profile_probe: read`, an
+unpredictable nonce, and the exact canonical origin `http://localhost:8888`:
+
+- do not edit repository files, inspect or modify Git, select a recipe, change a
+  task outcome, commit, push, or access another origin;
+- require the externally started canonical runtime and Chrome DevTools MCP to
+  be available; do not substitute a personal profile or production account;
+- for `write`, open the canonical origin, set local-storage key
+  `mercurion-autonomous-profile-probe` to the exact nonce, and return exactly
+  `BROWSER_PROFILE_PROBE_WRITTEN <nonce>`;
+- for `read`, use a fresh worker invocation, read and compare that key, prove
+  the approved authenticated state through a non-sensitive UI identity marker,
+  remove the key, and return exactly `BROWSER_PROFILE_PROBE_OK <nonce>`;
+- on any mismatch or unavailable capability, remove the key when possible and
+  return `BROWSER_PROFILE_PROBE_FAILED <nonce> <non-sensitive-reason>`.
+
+Perform no normal implementation work in this mode. Never return or expose
+cookie values, tokens, passwords, backup codes, or Redis session contents.
+
 Read `AGENTS.md`, `docs/autonomous-development/PROTOCOL.md`, `docs/autonomous-development/RUNTIME.md`, the complete active task, and the relevant implementation before editing. Verify that the current clean local branch exactly matches the supplied feature branch. The branch may intentionally have no remote ref while its HEAD still equals the green `develop` base; do not publish that unchanged SHA. If the local branch identity is wrong, return `BLOCKED` without trying to repair Git topology.
 
 ## Required work
 
 1. Prove that no task/session-owned Angular, Nest, Tox21, test watcher, or other workspace-consuming process is active, then run the complete task-start preflight from `docs/autonomous-development/CI-BASELINE.md` before task scope. If the unchanged task branch is not green, make no task change and return `BASELINE_INVARIANT_FAILURE`; never repair repository-wide baseline debt inside a numbered task.
-2. Implement only the active recipe and changes strictly necessary for that recipe.
-3. Run all task-specific validation. Only after the unchanged preflight and task implementation, start the canonical task-scoped runtime when declared browser validation through `http://localhost:8888` is actually required. Track every process you start and stop it after browser evidence is captured.
-4. Before the complete CI-parity suite, stop every task-owned runtime/watcher and prove no such process can hold a file under `node_modules`; then run the final root `npm ci` and `npm run ci:check` immediately before integration.
-5. Update the task's Execution notes with concrete commands, results, browser evidence, decisions, and commits.
-6. Check only `DONE` if every acceptance criterion and local gate succeeds. Ensure `BLOCKED`, `REVERTED`, and `SKIPPED_DEPENDENCY` are unchecked. Commit every coherent feature-branch change with `git commit --no-gpg-sign`; create the remote `feature/<Source>` ref only after at least one task-specific commit exists, push the final feature SHA, and leave the working tree clean.
+2. If the recipe requires browser/runtime evidence, perform the capability preflight from `RUNTIME.md` before editing: start the task-scoped runtime, prove the nginx edge and required public/authenticated state are usable through the dedicated persistent Chrome profile, then stop every runtime process you started. If readiness or required non-production authentication is unavailable, make no task change, leave all outcome checkboxes untouched, and return `SESSION_CAPABILITY_PAUSE`.
+3. Implement only the active recipe and changes strictly necessary for that recipe.
+4. Run all task-specific validation. After implementation, restart the canonical task-scoped runtime when declared browser validation through `http://localhost:8888` is required. Reuse the persistent profile; do not use Incognito/Guest/isolated mode, clear cookies or browser storage, log out, or open a personal Chrome profile unless the task explicitly owns that state transition. Track every process you start and stop it after browser evidence is captured. Restore the canonical authenticated profile state before returning; if a required logout/storage scenario prevents restoration after otherwise successful validation, include `BROWSER_PROFILE_RECOVERY_REQUIRED` in the result so the coordinator stops after the task lifecycle.
+5. Before the complete CI-parity suite, stop every task-owned runtime/watcher and prove no such process can hold a file under `node_modules`; then run the final root `npm ci` and `npm run ci:check` immediately before integration.
+6. Update the task's Execution notes with concrete commands, results, browser evidence, decisions, and commits.
+7. Check only `DONE` if every acceptance criterion and local gate succeeds. Ensure `BLOCKED`, `REVERTED`, and `SKIPPED_DEPENDENCY` are unchecked. Commit every coherent feature-branch change with `git commit --no-gpg-sign`; create the remote `feature/<Source>` ref only after at least one task-specific commit exists, push the final feature SHA, and leave the working tree clean.
 
 Do not select another recipe. Do not switch to, merge into, push, or modify `develop` or `master`. Do not delete branches, poll post-merge CI, revert a merge, deploy, publish, rebase, force-push, or rewrite history. Those actions belong to the coordinator.
 
@@ -45,6 +69,13 @@ the baseline, or charge the incident to the recipe. Include the failing command,
 exit status, concise diagnostics, feature/base SHAs, and proof that no task
 change was made.
 
+If the mandatory pre-implementation browser/runtime capability preflight fails,
+return `SESSION_CAPABILITY_PAUSE` instead of `BLOCKED`. This result is valid
+only before edits, commits, task-status changes, or remote feature publication.
+Include the unavailable runtime/authentication capability, commands and URLs
+checked, and proof that all processes were stopped and the task remained
+untouched. An environmental pause is not a terminal task outcome.
+
 If an install, network, filesystem, cleanup, GitHub, MCP, or signing prerequisite is denied despite the parent session's launch permissions, stop and return the exact denial. Do not substitute a dry run or weaker validation.
 
 The worker never returns or writes `REVERTED` or `SKIPPED_DEPENDENCY`: those outcomes can only be determined by the coordinator after integration CI or dependency resolution.
@@ -58,5 +89,9 @@ Return exactly one worker result to the coordinator:
 - `BASELINE_INVARIANT_FAILURE`: feature branch, Source, task path, base SHA,
   failing preflight command/result, and proof that the task and branch contain no
   task change.
+- `SESSION_CAPABILITY_PAUSE`: feature branch, Source, task path, base SHA,
+  unavailable browser/runtime/authentication capability, exact probe evidence,
+  process-cleanup result, and proof that no task change, commit, outcome, or
+  remote feature ref exists.
 
 Never describe a task as complete merely because code was written. Only `READY_FOR_INTEGRATION` with green local evidence permits the coordinator to merge.

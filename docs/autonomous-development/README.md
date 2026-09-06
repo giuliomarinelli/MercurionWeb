@@ -116,6 +116,11 @@ The four terminal outcomes are mutually exclusive:
 
 All unchecked means pending. `CI_PENDING` and `WAITING_DEPENDENCY` exist only as transient coordinator states.
 
+Execution ownership is not a fifth outcome. In a session configuration,
+`workload.tasks: []` selects the complete Series; a non-empty list is an exact
+autonomous allowlist. Recipes omitted from it remain untouched and `PENDING`
+for human-led work or a later session.
+
 Every persistent outcome is terminal for the active session. A later probe or Autopilot continuation cannot reopen or resume it. Only a new direct human instruction in a new or restarted session can authorize re-enablement.
 
 A session-fatal blocker completes the coordinator objective even if pending workload remains: the coordinator finalizes the report, emits the concise final summary and report path, calls `task_complete` as the final Autopilot action, and stops.
@@ -235,6 +240,14 @@ No rebase, force-push, shared-history reset or CI bypass is part of the autonomo
 ## Browser/runtime validation
 
 Chrome DevTools MCP is configured for GitHub Copilot CLI in `.github/mcp.json`. The VS Code MCP file remains only for ordinary interactive VS Code use and is not read as the autonomous-session configuration.
+
+The CLI configuration reuses Chrome DevTools MCP's dedicated persistent
+profile across serial task workers and later sessions. It does not use
+`--isolated`, Incognito, Guest, or a developer's personal profile. The browser
+may retain approved non-production cookies and storage while Angular, Nest and
+Tox21 continue to start and stop per task. A mandatory runtime/authentication
+probe runs before implementation; failure pauses the session without changing
+the task to `BLOCKED` or propagating dependency skips.
 
 The canonical local stack is:
 

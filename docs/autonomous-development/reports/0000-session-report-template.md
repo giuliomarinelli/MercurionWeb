@@ -17,6 +17,8 @@ This file is a template only. A session report copies this structure to a dated 
 
 ## Executive summary
 
+- Configured autonomous workload: `<all Series tasks / explicit task IDs>`
+- Pending tasks outside explicit workload: `<count / n/a>`
 - Attempted: `<count>`
 - Completed: `<count>`
 - Blocked: `<count>`
@@ -59,6 +61,8 @@ _None._
 - Task-specific checks: `<summary>`
 - Full CI-parity preflights: `<summary>`
 - Browser/runtime routes and evidence: `<summary without secrets>`
+- Persistent browser profile: `<reuse proven / unavailable / not exercised; never include cookies or credentials>`
+- Session capability pauses: `<count, task and non-sensitive diagnostic>`
 - Managed processes stopped: `<yes/no/details>`
 
 ## Deadline and finalization
