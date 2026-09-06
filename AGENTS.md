@@ -83,6 +83,11 @@ implementation when required local runtime or non-production browser
 authentication is unavailable; it stops the session without changing the
 recipe or propagating dependency skips.
 
+Autonomous eligibility is orthogonal to these outcomes. A non-empty
+`workload.tasks` list is an exact session allowlist; an omitted recipe remains
+`PENDING` for human-led or later-session work. Never mark a recipe `BLOCKED` or
+`SKIPPED_DEPENDENCY` merely because it was excluded from autonomous execution.
+
 All four persistent outcomes are terminal within the active session. The coordinator MUST NOT reopen or resume a terminal task because a later probe or Autopilot continuation changes its opinion. Only a new direct human instruction in a new or restarted session may authorize re-enablement; an Autopilot continuation is not human authorization.
 
 Reaching a session-fatal blocker is successful completion of the coordinator objective even if pending workload remains. The coordinator finalizes the report, emits its concise final summary and report path, calls `task_complete` as the final Autopilot action, and stops.

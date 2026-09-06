@@ -20,9 +20,9 @@ const paths = {
   historicalSession: 'docs/autonomous-development/session.overnight-2026-09-01.yaml',
   completedSession: 'docs/autonomous-development/session.48h-2026-09-03.yaml',
   exampleSession: 'docs/autonomous-development/session.example.yaml',
-  activeSession: 'docs/autonomous-development/session.until-2026-09-10.yaml',
+  closedSession: 'docs/autonomous-development/session.until-2026-09-10.yaml',
   completedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-03-v2.md',
-  activeLaunch: 'docs/autonomous-development/LAUNCH-2026-09-06.md',
+  closedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-06.md',
   runtime: 'docs/autonomous-development/RUNTIME.md',
   workflow: '.github/workflows/ci.yml',
   classifier: '.github/scripts/classify-ci.mjs',
@@ -49,10 +49,10 @@ const controlPlaneFiles = [
   paths.runtime,
   'docs/autonomous-development/LAUNCH.md',
   paths.completedLaunch,
-  paths.activeLaunch,
+  paths.closedLaunch,
   paths.completedSession,
   paths.exampleSession,
-  paths.activeSession,
+  paths.closedSession,
   paths.workflow,
   paths.classifier,
   paths.planner,
@@ -129,6 +129,66 @@ function validateYamlStructure(target, content) {
     if (value === undefined || value === '') {
       stack.push({ indent, keys: new Set() });
     }
+  }
+}
+
+function validateWorkloadAllowlist(target, content) {
+  const lines = content.split(/\r?\n/);
+  const workloadIndex = lines.findIndex((line) => line === 'workload:');
+  if (workloadIndex < 0) {
+    fail(target, 'missing workload mapping');
+    return;
+  }
+
+  let tasksIndex = -1;
+  for (let index = workloadIndex + 1; index < lines.length; index += 1) {
+    if (/^[A-Za-z0-9_-]+:/.test(lines[index])) break;
+    if (/^  tasks:/.test(lines[index])) {
+      tasksIndex = index;
+      break;
+    }
+  }
+  if (tasksIndex < 0) {
+    fail(target, 'missing workload.tasks selection');
+    return;
+  }
+
+  const tasksValue = lines[tasksIndex].replace(/^  tasks:\s*/, '');
+  if (tasksValue === '[]') return;
+  if (tasksValue !== '') {
+    fail(target, 'workload.tasks must be [] or a YAML list of quoted four-digit IDs');
+    return;
+  }
+
+  const taskIds = [];
+  for (let index = tasksIndex + 1; index < lines.length; index += 1) {
+    const line = lines[index];
+    if (!line.trim() || line.trimStart().startsWith('#')) continue;
+    if (/^  [A-Za-z0-9_-]+:/.test(line)) break;
+    const item = line.match(/^    - "([0-9]{4})"\s*$/);
+    if (!item) {
+      fail(target, `workload.tasks line ${index + 1} must be a quoted four-digit ID`);
+      continue;
+    }
+    taskIds.push(item[1]);
+  }
+
+  if (taskIds.length === 0) {
+    fail(target, 'expanded workload.tasks must contain at least one task ID');
+  }
+  const duplicates = taskIds.filter((id, index) => taskIds.indexOf(id) !== index);
+  if (duplicates.length > 0) {
+    fail(target, `workload.tasks contains duplicate IDs: ${[...new Set(duplicates)].join(', ')}`);
+  }
+
+  const taskDirectory = path.join(repositoryRoot, 'docs/autonomous-development/task');
+  const knownTaskIds = new Set(
+    fs.readdirSync(taskDirectory)
+      .map((name) => name.match(/^([0-9]{4})-.*\.md$/)?.[1])
+      .filter((id) => id && id !== '0000'),
+  );
+  for (const id of taskIds) {
+    if (!knownTaskIds.has(id)) fail(target, `workload.tasks references unknown task ${id}`);
   }
 }
 
@@ -302,13 +362,14 @@ for (const [pattern, message] of [
 const historicalSession = read(paths.historicalSession);
 const completedSession = read(paths.completedSession);
 const exampleSession = read(paths.exampleSession);
-const activeSession = read(paths.activeSession);
+const closedSession = read(paths.closedSession);
 for (const [target, content] of [
   [paths.exampleSession, exampleSession],
   [paths.completedSession, completedSession],
-  [paths.activeSession, activeSession],
+  [paths.closedSession, closedSession],
 ]) {
   validateYamlStructure(target, content);
+  validateWorkloadAllowlist(target, content);
   requireMatch(target, content, /^\s*host:\s*github-copilot-cli\s*$/m, 'missing CLI host');
   requireMatch(target, content, /^\s*harness:\s*github-copilot-cli\s*$/m, 'missing CLI harness');
   requireMatch(target, content, /^\s*mode:\s*autopilot\s*$/m, 'missing Autopilot mode');
@@ -460,50 +521,50 @@ for (const command of ['/model', '/permissions show', '/mcp list', '/keep-alive 
 }
 
 const completedLaunch = read(paths.completedLaunch);
-const activeLaunch = read(paths.activeLaunch);
+const closedLaunch = read(paths.closedLaunch);
 const runtime = read(paths.runtime);
 requireMatch(
-  paths.activeLaunch,
-  activeLaunch,
+  paths.closedLaunch,
+  closedLaunch,
   /docs\/autonomous-development\/session\.until-2026-09-10\.yaml/,
-  'active launch must reference the active dated session configuration',
+  'closed launch must retain its dated session configuration reference',
 );
 requireMatch(
-  paths.activeLaunch,
-  activeLaunch,
+  paths.closedLaunch,
+  closedLaunch,
   /copilot --agent development-session-coordinator --allow-all-tools --allow-all-urls --add-dir \.\.\/MercurionTox21 --reasoning-effort high --autopilot/,
-  'active launch is missing the deterministic Copilot CLI command',
+  'closed launch must retain the deterministic Copilot CLI command',
 );
 requireMatch(
-  paths.activeLaunch,
-  activeLaunch,
+  paths.closedLaunch,
+  closedLaunch,
   /2026-09-10T10:00:00\+02:00/,
-  'active launch is missing the exact soft deadline',
+  'closed launch must retain the exact soft deadline',
 );
 requireMatch(
-  paths.activeLaunch,
-  activeLaunch,
+  paths.closedLaunch,
+  closedLaunch,
   /npm run autonomous:plan/,
-  'active launch must execute the deterministic dependency planner',
+  'closed launch must retain the deterministic dependency planner',
 );
 requireMatch(
-  paths.activeLaunch,
-  activeLaunch,
+  paths.closedLaunch,
+  closedLaunch,
   /expected first task: 0010/,
-  'active launch must record the expected first ready task',
+  'closed launch must retain its expected first ready task',
 );
 requireMatch(
-  paths.activeLaunch,
-  activeLaunch,
+  paths.closedLaunch,
+  closedLaunch,
   /Do[\s\S]{0,10}not bundle tasks/,
-  'active launch must prohibit multi-task bundles',
+  'closed launch must retain its multi-task bundle prohibition',
 );
 for (const command of ['/model', '/permissions show', '/mcp list', '/keep-alive on']) {
   requireMatch(
-    paths.activeLaunch,
-    activeLaunch,
+    paths.closedLaunch,
+    closedLaunch,
     new RegExp(command.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
-    `active launch is missing ${command}`,
+    `closed launch must retain ${command}`,
   );
 }
 
@@ -575,12 +636,12 @@ if (activeDeadlineMatches?.length !== 1) {
   fail(paths.completedSession, `deadline must remain exactly ${activeDeadline}`);
 }
 
-const nextDeadline = '2026-09-10T10:00:00+02:00';
-const nextDeadlineMatches = activeSession.match(
+const closedDeadline = '2026-09-10T10:00:00+02:00';
+const closedDeadlineMatches = closedSession.match(
   /^\s*end:\s*"2026-09-10T10:00:00\+02:00"/gm,
 );
-if (nextDeadlineMatches?.length !== 1) {
-  fail(paths.activeSession, `deadline must remain exactly ${nextDeadline}`);
+if (closedDeadlineMatches?.length !== 1) {
+  fail(paths.closedSession, `deadline must remain exactly ${closedDeadline}`);
 }
 
 for (const [pattern, message] of [
@@ -605,33 +666,28 @@ for (const [pattern, message] of [
 }
 
 for (const [pattern, message] of [
-  [/workflow_hardening_pull_request:\s*29/, 'active session must record PR #29'],
-  [/expected_task_count:\s*220/, 'active workload must contain 220 tasks'],
-  [/expected_current_done:\s*34/, 'active workload must record 34 DONE tasks'],
-  [/expected_current_blocked:\s*4/, 'active workload must record four retained blockers'],
-  [/expected_current_skipped_dependency:\s*12/, 'active workload must record 12 current skips'],
-  [/expected_current_pending:\s*170/, 'active workload must record 170 pending tasks'],
-  [/expected_first_ready_task:\s*"0010"/, 'active workload must start from task 0010'],
-  [/expected_new_skipped_dependency:\s*14/, 'active planner expectation must record 14 new skips'],
-  [/dependency_planner:[\s\S]*output:\s*versioned-json/, 'active session must use deterministic planner output'],
-  [/command:\s*npm run autonomous:plan/, 'active session must declare the planner command'],
+  [/workflow_hardening_pull_request:\s*29/, 'closed session must retain PR #29 provenance'],
+  [/expected_task_count:\s*220/, 'closed workload must retain 220 tasks'],
+  [/expected_current_done:\s*34/, 'closed workload must retain 34 initial DONE tasks'],
+  [/expected_current_blocked:\s*4/, 'closed workload must retain four initial blockers'],
+  [/expected_current_skipped_dependency:\s*12/, 'closed workload must retain 12 initial skips'],
+  [/expected_current_pending:\s*170/, 'closed workload must retain 170 initial pending tasks'],
+  [/expected_first_ready_task:\s*"0010"/, 'closed workload must retain task 0010 as its first ready task'],
+  [/expected_new_skipped_dependency:\s*14/, 'closed planner expectation must retain 14 new skips'],
+  [/dependency_planner:[\s\S]*output:\s*versioned-json/, 'closed session must retain deterministic planner output'],
+  [/command:\s*npm run autonomous:plan/, 'closed session must retain the planner command'],
   [/authoritative:\s*true/, 'planner output must be authoritative'],
-  [/fail_on_cycles:\s*true/, 'active session must fail on dependency cycles'],
-  [/fail_on_stale_skips:\s*true/, 'active session must fail on stale skips'],
-  [/multi_task_bundles:\s*false/, 'active session must prohibit task bundles'],
-  [/require_fresh_full_remote_ci_at_session_start:\s*true/, 'active session must require fresh full startup CI'],
-  [/metadata_must_not_feed_application_inventories:\s*true/, 'active metadata must be isolated from application inventories'],
-  [/manual_dispatch_default:\s*full/, 'active CI manual dispatch must default to full'],
-  [/manual_full_bypasses_duplicate_reuse:\s*true/, 'active manual full CI must bypass duplicate reuse'],
-  [/PYTHONUTF8:\s*"1"/, 'active Tox21 runtime must force UTF-8'],
-  [/owner:\s*development-task-worker/, 'active persistent browser must belong to the task worker'],
-  [/mode:\s*dedicated-persistent/, 'active session must use the dedicated persistent browser'],
-  [/isolated:\s*false/, 'active browser profile must disable isolation'],
-  [/failure_result:\s*SESSION_CAPABILITY_PAUSE/, 'active session must pause before task mutation when browser capability is missing'],
-  [/recovery_failure_signal:\s*BROWSER_PROFILE_RECOVERY_REQUIRED/, 'active session must stop before a later task when browser state cannot be restored'],
-  [/preserve_blocked:[\s\S]*- "0020"[\s\S]*- "0076"[\s\S]*- "0109"[\s\S]*- "0114"/, 'active session must preserve all four blockers'],
+  [/fail_on_cycles:\s*true/, 'closed session must retain cycle failure policy'],
+  [/fail_on_stale_skips:\s*true/, 'closed session must retain stale-skip failure policy'],
+  [/multi_task_bundles:\s*false/, 'closed session must retain its task-bundle policy'],
+  [/require_fresh_full_remote_ci_at_session_start:\s*true/, 'closed session must retain full startup CI policy'],
+  [/metadata_must_not_feed_application_inventories:\s*true/, 'closed session must retain metadata isolation'],
+  [/manual_dispatch_default:\s*full/, 'closed session must retain full manual CI default'],
+  [/manual_full_bypasses_duplicate_reuse:\s*true/, 'closed session must retain manual duplicate bypass'],
+  [/PYTHONUTF8:\s*"1"/, 'closed session must retain Tox21 UTF-8 policy'],
+  [/preserve_blocked:[\s\S]*- "0020"[\s\S]*- "0076"[\s\S]*- "0109"[\s\S]*- "0114"/, 'closed session must retain all four blockers'],
 ]) {
-  requireMatch(paths.activeSession, activeSession, pattern, message);
+  requireMatch(paths.closedSession, closedSession, pattern, message);
 }
 
 for (const stalePattern of [
@@ -691,6 +747,30 @@ for (const [pattern, message] of [
   [/remove_probe_state:\s*true/, 'browser acceptance probe must clean up its state'],
 ]) {
   requireMatch(paths.exampleSession, exampleSession, pattern, message);
+}
+
+for (const [target, content] of [
+  [paths.agents.coordinator, coordinator.content],
+  ['docs/autonomous-development/PROTOCOL.md', read('docs/autonomous-development/PROTOCOL.md')],
+]) {
+  requireMatch(
+    target,
+    content,
+    /workload\.tasks[\s\S]{0,500}(?:exact allowlist|exact session allowlist)/i,
+    'missing exact autonomous workload allowlist contract',
+  );
+  requireMatch(
+    target,
+    content,
+    /(?:omitted|outside)[\s\S]{0,300}`PENDING`/i,
+    'out-of-workload recipes must remain pending',
+  );
+  requireMatch(
+    target,
+    content,
+    /(?:do not|never)[\s\S]{0,200}(?:mark it `BLOCKED`|`BLOCKED`)/i,
+    'workload exclusion must not become BLOCKED',
+  );
 }
 
 const workflow = read(paths.workflow);

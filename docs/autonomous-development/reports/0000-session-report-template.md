@@ -17,6 +17,8 @@ This file is a template only. A session report copies this structure to a dated 
 
 ## Executive summary
 
+- Configured autonomous workload: `<all Series tasks / explicit task IDs>`
+- Pending tasks outside explicit workload: `<count / n/a>`
 - Attempted: `<count>`
 - Completed: `<count>`
 - Blocked: `<count>`

@@ -116,6 +116,11 @@ The four terminal outcomes are mutually exclusive:
 
 All unchecked means pending. `CI_PENDING` and `WAITING_DEPENDENCY` exist only as transient coordinator states.
 
+Execution ownership is not a fifth outcome. In a session configuration,
+`workload.tasks: []` selects the complete Series; a non-empty list is an exact
+autonomous allowlist. Recipes omitted from it remain untouched and `PENDING`
+for human-led work or a later session.
+
 Every persistent outcome is terminal for the active session. A later probe or Autopilot continuation cannot reopen or resume it. Only a new direct human instruction in a new or restarted session can authorize re-enablement.
 
 A session-fatal blocker completes the coordinator objective even if pending workload remains: the coordinator finalizes the report, emits the concise final summary and report path, calls `task_complete` as the final Autopilot action, and stops.

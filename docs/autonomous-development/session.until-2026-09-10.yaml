@@ -100,36 +100,6 @@ capabilities:
     mcp_server: chrome-devtools
     mcp_config: .github/mcp.json
     required_when_declared_by_task: true
-    owner: development-task-worker
-    concurrent_owners_allowed: false
-    profile:
-      mode: dedicated-persistent
-      isolated: false
-      incognito_or_guest: false
-      personal_profile_allowed: false
-      reuse_across_serial_workers: true
-      reuse_across_sessions: true
-      production_credentials_allowed: false
-    capability_preflight:
-      required_before_implementation_when_browser_runtime_declared: true
-      verify_runtime_readiness: true
-      verify_authenticated_state_when_required: true
-      failure_result: SESSION_CAPABILITY_PAUSE
-      mutate_task_outcome: false
-      propagate_dependency_skips: false
-    state_lease:
-      preserve_non_production_authentication: true
-      restore_after_explicit_logout_or_storage_test: true
-      recovery_failure_signal: BROWSER_PROFILE_RECOVERY_REQUIRED
-      stop_before_next_task_on_recovery_failure: true
-      secrets_in_reports: false
-    acceptance_probe:
-      required_once_before_enabling_unattended_reuse: true
-      outside_active_development_session: true
-      fresh_sequential_workers: 2
-      request_marker: browser_profile_probe
-      storage_key: mercurion-autonomous-profile-probe
-      remove_probe_state: true
   task_completion:
     required: true
     tool: task_complete
@@ -301,9 +271,6 @@ task_outcomes:
   mutually_exclusive: true
   transient:
     - CI_PENDING
-    - WAITING_DEPENDENCY
-    - SESSION_CAPABILITY_PAUSE
-    - BROWSER_PROFILE_RECOVERY_REQUIRED
 
 policy:
   fresh_agent_session_per_task: true

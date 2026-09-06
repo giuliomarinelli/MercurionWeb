@@ -36,24 +36,35 @@ Do not start a task at or after the soft deadline. Do not signal that the overal
 
 Before each task selection, run `npm run autonomous:plan` from the repository
 root and parse its versioned JSON output. This read-only planner is the sole
-authoritative dependency snapshot: do not reconstruct the graph from memory or
-LLM inference. Stop as a configuration incident if the command fails, returns
-malformed JSON, reports a cycle/error/stale skip, or references a task outside
-the configured workload.
+authoritative dependency snapshot for the complete configured Series: do not
+reconstruct the graph from memory or LLM inference. Stop as a configuration
+incident if the command fails, returns malformed JSON, reports a
+cycle/error/stale skip, or references an unknown task. Resolve the session
+execution set from `workload.tasks`: an empty list selects every task in the
+Series, while a non-empty list is an exact allowlist of four-digit task IDs.
+Reject duplicate, unknown, out-of-Series, or malformed allowlist entries.
 
 Use the planner output as follows:
 
-1. classify every pending recipe as `READY` when all hard dependencies are
+1. classify every configured pending recipe as `READY` when all hard dependencies are
    `DONE`, `WAITING_DEPENDENCY` when at least one hard dependency is still
    pending/active, or `SKIPPED_DEPENDENCY` when any hard dependency is
    terminal non-`DONE`;
 2. when new terminal skips are discovered, materialize the entire affected
-   transitive closure in one aggregate metadata-only commit on `develop`;
+   transitive closure within the configured execution set in one aggregate
+   metadata-only commit on `develop`;
    create no feature branch and invoke no worker for those recipes;
 3. push that one commit, wait for its exact adaptive `Required gate`, rebuild
-   the snapshot, and select the earliest filename-ordered `READY` task;
-4. if no task is `READY`, finalize rather than emitting one skip commit per
-   recipe or idling until the deadline.
+   the snapshot, and select the earliest filename-ordered configured `READY`
+   task;
+4. if no configured task is `READY`, finalize rather than selecting or
+   mutating a task outside the allowlist, emitting one skip commit per recipe,
+   or idling until the deadline.
+
+A pending recipe omitted from a non-empty `workload.tasks` allowlist is merely
+outside this autonomous session. Leave it `PENDING`: do not create its branch,
+invoke a worker, mark it `BLOCKED`, or propagate dependency skips from its
+exclusion. Workload membership is scheduling metadata, not a recipe outcome.
 
 `WAITING_DEPENDENCY` is an in-memory scheduling classification, never a
 persistent recipe checkbox. Existing terminal outcomes remain immutable in the
@@ -128,9 +139,11 @@ is a session-fatal baseline failure, not a task outcome.
 If merge CI does not succeed or cannot be verified, freeze the feature branch locally and remotely at its final pushed SHA, revert the merge with mainline parent 1 and `--no-gpg-sign`, verify the revert tree equals the pre-merge `develop` tree, push and wait for the exact revert CI, then record only `REVERTED` in a separate metadata-only commit made with `--no-gpg-sign` and wait for that exact CI too. Record whether the cause was a confirmed regression, infrastructure failure, cancellation/timeout, or unverified result. Never merge `develop` into, commit/amend, reset/rebase, advance, or delete the frozen branch.
 
 After a `BLOCKED` or `REVERTED` metadata commit is green, rebuild the
-dependency snapshot. Materialize every newly affected pending descendant as
-`SKIPPED_DEPENDENCY` in one aggregate metadata-only commit, recording the
-direct terminal prerequisite and transitive diagnostic chain for each recipe.
+dependency snapshot. Materialize every newly affected configured pending
+descendant as `SKIPPED_DEPENDENCY` in one aggregate metadata-only commit,
+recording the direct terminal prerequisite and transitive diagnostic chain for
+each recipe. Leave descendants outside a non-empty workload allowlist
+unchanged and pending.
 Push once and wait for the exact adaptive `Required gate`; never create a
 feature branch, invoke a worker, or launch a full Windows/Linux matrix solely
 for a skip when the classifier confirms the allowlisted metadata-only change.

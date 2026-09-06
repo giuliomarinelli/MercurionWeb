@@ -26,10 +26,11 @@ A **Development Session** is a bounded period in which a session coordinator exe
 - **Report**: the final session summary.
 - **CI mode**: the exact-SHA validation path selected by the permanent workflow: `duplicate`, `metadata`, or `full`.
 - **WAITING_DEPENDENCY**: a transient in-memory scheduler classification for a pending task whose hard prerequisite is still pending/active; it is not a recipe outcome.
+- **Workload allowlist**: a non-empty `workload.tasks` list that limits which pending recipes an autonomous session may select or mutate; omission from it is not a task outcome.
 
 ## Sources of truth
 
-Session timing, workload selection, host/context behavior, budgets, runtime configuration and lifecycle policy are defined by the active YAML session configuration. Model and reasoning are intentionally unpinned there and inherit from the parent CLI session.
+Session timing, workload selection, host/context behavior, budgets, runtime configuration and lifecycle policy are defined by the active YAML session configuration. An empty `workload.tasks` list selects the complete Series; a non-empty list is an exact allowlist of quoted four-digit task IDs. Model and reasoning are intentionally unpinned there and inherit from the parent CLI session.
 
 Series identity, Trello binding, task-range binding, repository/baseline context and optional baseline metadata are defined by each series document's YAML frontmatter.
 
@@ -400,10 +401,11 @@ numbered task recipes, ignores dependency lines explicitly prefixed
 skips, and emits versioned JSON. The coordinator must consume that output
 instead of reconstructing the graph through language-model inference. A failed
 command, malformed result, non-empty `errors`/`cycles`/`staleSkips`, or an
-out-of-workload result stops selection as a configuration incident.
+unknown task result stops selection as a configuration incident.
 
 Before creating a feature branch, the coordinator resolves one read-only
-dependency snapshot for every pending recipe in the configured workload:
+dependency snapshot for every recipe in the complete configured Series, then
+applies any non-empty `workload.tasks` allowlist to selection and mutation:
 
 - `READY`: every resolved hard prerequisite is `DONE`;
 - `WAITING_DEPENDENCY`: at least one hard prerequisite is pending or active
@@ -411,13 +413,20 @@ dependency snapshot for every pending recipe in the configured workload:
 - terminal skip: at least one hard prerequisite is `BLOCKED`, `REVERTED`,
   or `SKIPPED_DEPENDENCY`.
 
+The full-Series snapshot is necessary to resolve prerequisites correctly, but
+only configured workload members may be selected or newly mutated. A pending
+recipe omitted from a non-empty allowlist remains `PENDING`; it receives no
+branch, worker, status commit, CI run, or dependency propagation merely because
+the current autonomous session delegates it to human-led development.
+
 `WAITING_DEPENDENCY` exists only in coordinator memory and reporting. It does
 not add a fifth checkbox and never mutates a recipe.
 
 When terminal skips are discovered, the coordinator computes their complete
-affected transitive closure before selecting a worker. For every newly affected
-recipe it checks only `SKIPPED_DEPENDENCY`, records the direct terminal
-prerequisite and transitive root cause, and changes no implementation file. It
+affected transitive closure within the configured workload before selecting a
+worker. For every newly affected configured recipe it checks only
+`SKIPPED_DEPENDENCY`, records the direct terminal prerequisite and transitive
+root cause, and changes no implementation file. It
 then creates one aggregate metadata-only commit on `develop`, pushes once,
 waits for the exact adaptive `Required gate`, and rebuilds the dependency
 snapshot.
@@ -429,8 +438,10 @@ For the whole aggregate operation:
 3. preserve all existing terminal outcomes unchanged;
 4. never classify a task skipped merely because the deadline or workload
    ended;
-5. fail closed if dependency resolution is ambiguous or cyclic;
-6. use the CI metadata path only when the workflow classifier proves both an
+5. never classify an out-of-workload task as `BLOCKED` or
+   `SKIPPED_DEPENDENCY` merely because it was not selected for autonomous work;
+6. fail closed if dependency resolution is ambiguous or cyclic;
+7. use the CI metadata path only when the workflow classifier proves both an
    already-green exact base SHA and an allowlisted task/report-only diff.
 
 A skip-metadata CI failure is a session-fatal integration-health incident; it

@@ -226,6 +226,9 @@ workload:
   series_pattern: "[0-9][0-9][0-9][0-9]-*.md"
   order: filename
   series_file: null
+  # Empty selects the complete Series. A non-empty list is the exact set the
+  # autonomous coordinator may select or mutate; omitted tasks remain PENDING
+  # for human-led or later-session work.
   tasks: []
   pending_only: true
 
