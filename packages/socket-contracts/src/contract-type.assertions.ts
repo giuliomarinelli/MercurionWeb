@@ -21,7 +21,10 @@ serverToClient[socketEventRegistry.publicTestResponse.name]('PING RESP')
 serverToClient[socketEventRegistry.privateTestResponse.name]('PING PRIVATE RESP')
 serverToClient[socketEventRegistry.applicationError.name]({
   code: 'AUTHENTICATION_UNAUTHORIZED',
-  detail: 'Unauthorized'
+  status: 500,
+  message: 'Unauthorized',
+  detail: 'Unauthorized',
+  correlationId: 'socket-correlation-id'
 })
 serverToClient[socketEventRegistry.sessionExpired.name]({
   detail: 'session expired',

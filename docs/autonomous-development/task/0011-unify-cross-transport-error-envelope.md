@@ -1,6 +1,6 @@
 # 0011 - Unify cross-transport error envelope
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -107,32 +107,42 @@ Keep HTTP status and application code conceptually distinct. GraphQL may return 
 
 ### Summary
 
-Not attempted. At its normal filename-order selection point, the explicit hard
-prerequisite `0009-create-typed-socket-io-event-registry.md` was terminal
-`BLOCKED`, so this task is `SKIPPED_DEPENDENCY`.
+Implemented a canonical application error envelope shared by REST, GraphQL and Socket.IO. The shared contract now defines `ApplicationErrorEnvelope` with stable `code`, `status`, safe public `message`, optional permitted `details`, and public `correlationId`. REST responses keep transport metadata (`statusCode`, `error`, `timestamp`, `path`, `requestId`) while exposing the canonical fields at the same top-level; `requestId` is the transport alias for the canonical `correlationId`.
+
+GraphQL errors now expose the canonical envelope through `extensions.applicationError` and duplicate the stable `code`, `status`, `correlationId`, and optional `details` in GraphQL-compliant extensions. Socket.IO `sv.pub.err` payloads now extend the same envelope and keep the existing `detail` alias for compatibility.
+
+Angular error utilities now parse canonical REST, GraphQL and Socket.IO envelope shapes, including nested `extensions.applicationError`, instead of depending on transport-specific ad-hoc strings.
 
 ### Validation performed
 
-No feature branch, worker invocation, task preflight, implementation, or
-runtime validation was performed. Dependency resolution occurred on clean,
-green `develop`.
+- Verified `feature/SYS-011` was checked out at base SHA `28da04f8b36b2e7980fe3cb5a6b197999eeefde7` before changes.
+- Initial unchanged preflight: `npm ci`; `npm run ci:check` passed.
+- Targeted validation: `npm run build --workspace @mercurion/rest-contracts`; `npm run build --workspace @mercurion/socket-contracts`; Nest targeted Jest specs for `application-error-envelope`, `http-exception-filter`, `socket-contract-runtime`, and `ws.guard`; Angular `application-error.util` spec passed. The targeted Angular Karma wrapper did not terminate on its own after reporting `TOTAL: 303 SUCCESS`, so it was stopped after success output was captured.
+- Full aggregate before metadata update: `npm run ci:check` passed.
 
 ### Browser validation performed
 
-Not performed because this task was not attempted.
+Started task-scoped Tox21, Nest and Angular runtimes, validated the app through the canonical nginx origin `http://localhost:8888`, and stopped all task-owned runtimes before clean-install validation.
+
+Using Chrome DevTools MCP on `http://localhost:8888/welcome`, triggered a safe development-only malformed GraphQL request to `/api/graphql` with `x-correlation-id: browser-sys-011`. The network response was HTTP 200 with GraphQL error extensions carrying canonical fields: `code`, `status`, `correlationId`, and `applicationError` containing the same canonical envelope. The returned correlation ID propagated the safe public seed as `browser-sys-011-...`. Chrome console inspection reported no error messages after Angular parsed the response.
 
 ### Changed files
 
-Only this task recipe's terminal-state metadata and execution notes.
+- `packages/rest-contracts/src/application-error-envelope.ts`
+- `packages/rest-contracts/src/index.ts`
+- `packages/socket-contracts/src/index.ts`
+- `packages/socket-contracts/src/contract-type.assertions.ts`
+- `MercurionWebNode/src/Models/error-res.dto.ts`
+- `MercurionWebNode/src/exception-handling/application-error-envelope.ts`
+- `MercurionWebNode/src/exception-handling/application-error-envelope.spec.ts`
+- `MercurionWebNode/src/exception-handling/http-exception-filter.ts`
+- `MercurionWebNode/src/exception-handling/http-exception-filter.spec.ts`
+- `MercurionWebNode/src/mercurion-graphql.module.ts`
+- `MercurionWebNode/src/app_modules/socket.io/guards/ws.guard.ts`
+- `MercurionWebNode/src/contracts/socket-contract-runtime.spec.ts`
+- `MercurionWebNg/src/app/utils/application-error.util.ts`
+- `MercurionWebNg/src/app/utils/application-error.util.spec.ts`
 
 ### Blocker / human decision required
 
-Direct terminal prerequisite:
-`0009-create-typed-socket-io-event-registry.md` (`SYS-009`) is `BLOCKED`.
-
-Dependency chain: `0011 (SYS-011) -> 0009 (SYS-009, BLOCKED)`.
-
-Task 0009 remains preserved and frozen on `feature/SYS-009` at
-`2d1df866fdf7befd3b07ad1a4201c682083fc2cf`. Its mandatory browser validation
-requires approved non-production Nest runtime configuration and a UTF-8-capable
-environment for the documented Tox21 command.
+None.

@@ -11,7 +11,12 @@ import {
     getApplicationError,
     getApplicationErrorMessage
 } from './exception-handling/application-error'
-import { getApplicationErrorDefinition } from '@mercurion/rest-contracts'
+import { getApplicationErrorDefinition, isApplicationErrorEnvelopeCode } from '@mercurion/rest-contracts'
+import {
+    createApplicationErrorEnvelope,
+    createCorrelationId,
+    createGraphQLErrorExtensions
+} from './exception-handling/application-error-envelope'
 
 export const MercurionGraphQLModule = GraphQLModule.forRootAsync<MercuriusDriverConfig>({
     driver: MercuriusDriver,
@@ -48,6 +53,10 @@ export const MercurionGraphQLModule = GraphQLModule.forRootAsync<MercuriusDriver
                         response: { data },
                     }
                 }
+                const request = ctx.reply.request as FastifyRequest | undefined
+                const headers = request?.headers ?? {}
+                const correlationId = createCorrelationId(headers['x-correlation-id'] ?? headers['x-request-id'] ?? request?.id)
+
 
                 const sanitizedErrors = errors.map((err: GraphQLError) => {
                     const original = err.originalError
@@ -55,36 +64,52 @@ export const MercurionGraphQLModule = GraphQLModule.forRootAsync<MercuriusDriver
                     const applicationError = getApplicationError(original)
                     if (applicationError) {
                         const definition = getApplicationErrorDefinition(applicationError.code)
+                        const envelope = createApplicationErrorEnvelope({
+                            status: definition.httpStatus,
+                            code: applicationError.code,
+                            message: getApplicationErrorMessage(applicationError, isNotDev),
+                            details: applicationError.details,
+                            correlationId,
+                            isProduction: isNotDev
+                        })
                         ctx.reply.statusCode = definition.graphQlStatus ?? definition.httpStatus
                         return {
-                            message: getApplicationErrorMessage(applicationError, isNotDev),
+                            message: envelope.message,
                             path: err.path,
-                            extensions: {
-                                code: applicationError.code,
-                            },
+                            extensions: createGraphQLErrorExtensions(envelope),
                         }
                     }
 
                     if (original instanceof UnauthorizedException) {
-                        ctx.reply.statusCode = 401
-                        return {
+                        const envelope = createApplicationErrorEnvelope({
+                            status: 401,
+                            code: 'UNAUTHORIZED',
                             message: 'Unauthorized',
+                            correlationId,
+                            isProduction: isNotDev
+                        })
+                        ctx.reply.statusCode = envelope.status
+                        return {
+                            message: envelope.message,
                             path: err.path,
-                            extensions: {
-                                code: 'UNAUTHORIZED',
-                            },
+                            extensions: createGraphQLErrorExtensions(envelope),
                         }
                     }
 
                     if (original instanceof ForbiddenException) {
-                        ctx.reply.statusCode = 403
+                        const envelope = createApplicationErrorEnvelope({
+                            status: 403,
+                            code: 'FORBIDDEN',
+                            message: 'Forbidden',
+                            correlationId,
+                            isProduction: isNotDev
+                        })
+                        ctx.reply.statusCode = envelope.status
 
                         return {
-                            message: 'Forbidden',
+                            message: envelope.message,
                             path: err.path,
-                            extensions: {
-                                code: 'FORBIDDEN',
-                            },
+                            extensions: createGraphQLErrorExtensions(envelope),
                         }
                     }
 
@@ -105,52 +130,57 @@ export const MercurionGraphQLModule = GraphQLModule.forRootAsync<MercuriusDriver
                             message = response.message ?? err.message
                         }
 
-                        // qui puoi decidere tu le tue "code"
                         const code =
-                            status === 400
+                            status === 400 || status === 422
                                 ? 'BAD_USER_INPUT'
-                                : status === 403
-                                    ? 'FORBIDDEN'
-                                    : 'INTERNAL_SERVER_ERROR'
+                                : status === 401
+                                    ? 'UNAUTHORIZED'
+                                    : status === 403
+                                        ? 'FORBIDDEN'
+                                        : status === 404
+                                            ? 'NOT_FOUND'
+                                            : status === 429
+                                                ? 'RATE_LIMITED'
+                                                : 'INTERNAL_SERVER_ERROR'
+                        const details = typeof response === 'object' && !Array.isArray(response)
+                            ? response.details as Readonly<Record<string, unknown>> | undefined
+                            : undefined
+                        const envelope = createApplicationErrorEnvelope({
+                            status,
+                            code,
+                            message,
+                            details,
+                            correlationId,
+                            isProduction: isNotDev
+                        })
 
-                        ctx.reply.statusCode = status
-
-                        // in prod magari nascondi il messaggio tranne per BAD_USER_INPUT
-                        const exposedMessage =
-                            isNotDev && code !== 'BAD_USER_INPUT'
-                                ? 'Internal server error'
-                                : message
+                        ctx.reply.statusCode = envelope.status
 
                         return {
-                            message: exposedMessage,
+                            message: envelope.message,
                             path: err.path,
-                            extensions: { code },
+                            extensions: createGraphQLErrorExtensions(envelope),
                         }
                     }
 
-                    // 🔹 3) fallback sul tuo comportamento attuale
-                    const code = (err.extensions?.code as string) ?? 'INTERNAL_SERVER_ERROR'
-
-                    const isUserFacingCode =
-                        code === 'BAD_USER_INPUT' ||
-                        code === 'GRAPHQL_VALIDATION_FAILED'
-
-                    if (isUserFacingCode) {
-                        return {
-                            message: err.message,
-                            path: err.path,
-                            extensions: { code },
-                        }
-                    }
-
-                    const message = isNotDev ? 'Internal server error' : err.message
+                    const rawCode = err.extensions?.code
+                    const code = isApplicationErrorEnvelopeCode(rawCode)
+                        ? rawCode
+                        : err.path
+                            ? 'INTERNAL_SERVER_ERROR'
+                            : 'GRAPHQL_VALIDATION_FAILED'
+                    const envelope = createApplicationErrorEnvelope({
+                        status: code === 'BAD_USER_INPUT' || code === 'GRAPHQL_VALIDATION_FAILED' ? 400 : 500,
+                        code,
+                        message: err.message,
+                        correlationId,
+                        isProduction: isNotDev
+                    })
 
                     return {
-                        message,
+                        message: envelope.message,
                         path: err.path,
-                        extensions: {
-                            code: isNotDev ? 'INTERNAL_SERVER_ERROR' : code,
-                        },
+                        extensions: createGraphQLErrorExtensions(envelope),
                     }
                 })
 

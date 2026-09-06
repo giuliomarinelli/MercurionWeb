@@ -22,13 +22,15 @@ import {
 } from 'src/exception-handling/application-error';
 import {
   getApplicationErrorDefinition,
-  sessionInvalidationCauseForApplicationError
-} from '@mercurion/rest-contracts';
-import {
+  sessionInvalidationCauseForApplicationError,
   SessionInvalidationCause,
   SessionState,
   type SessionInvalidationCauseType
 } from '@mercurion/rest-contracts';
+import {
+  createCorrelationId,
+  createSocketApplicationError
+} from 'src/exception-handling/application-error-envelope';
 
 type ApplicationSocket = Socket<ClientToServerEvents, ServerToClientEvents>
 
@@ -117,10 +119,14 @@ export class WsGuard implements CanActivate {
     } catch (e) {
       if (isApplicationError(e, ApplicationErrorCode.PERMISSION_DENIED)) {
         const applicationError = getApplicationError(e)!
-        client.emit(socketEventRegistry.applicationError.name, {
+        client.emit(socketEventRegistry.applicationError.name, createSocketApplicationError({
+          status: getApplicationErrorDefinition(applicationError.code).httpStatus,
           code: applicationError.code,
-          detail: applicationError.message
-        })
+          message: applicationError.message,
+          details: applicationError.details,
+          correlationId: createCorrelationId(client.id),
+          isProduction: (process.env.APP_ENV ?? 'development') !== 'development'
+        }))
         return false
       }
       const applicationError = getApplicationError(e)
@@ -143,10 +149,13 @@ export class WsGuard implements CanActivate {
       state: SessionState.Invalid,
       cause
     })
-    client.emit(socketEventRegistry.applicationError.name, {
+    client.emit(socketEventRegistry.applicationError.name, createSocketApplicationError({
+      status: getApplicationErrorDefinition(ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED).httpStatus,
       code: ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED,
-      detail: getApplicationErrorDefinition(ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED).defaultMessage ?? 'Unauthorized'
-    })
+      message: getApplicationErrorDefinition(ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED).defaultMessage ?? 'Unauthorized',
+      correlationId: createCorrelationId(client.id),
+      isProduction: (process.env.APP_ENV ?? 'development') !== 'development'
+    }))
     client.disconnect()
   }
 

@@ -1,5 +1,5 @@
 import type {
-  ApplicationErrorCodeType,
+  ApplicationErrorEnvelope,
   SessionInvalidationCauseType,
   SessionStateType
 } from '@mercurion/rest-contracts'
@@ -9,8 +9,8 @@ export const SOCKET_CONTRACT_VERSION = '1.0.0' as const
 export type SocketContractVersion = typeof SOCKET_CONTRACT_VERSION
 export type SocketEventDirection = 'client-to-server' | 'server-to-client'
 
-export interface SocketApplicationError {
-  code: ApplicationErrorCodeType
+export interface SocketApplicationError extends ApplicationErrorEnvelope {
+  /** @deprecated Use message from the canonical application error envelope. */
   detail: string
 }
 
