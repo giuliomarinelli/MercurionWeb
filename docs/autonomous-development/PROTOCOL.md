@@ -358,6 +358,15 @@ If blocked before integration:
 
 ## Dependency snapshot and batched SKIPPED_DEPENDENCY
 
+The repository command `npm run autonomous:plan` is the deterministic and
+read-only source of truth for dependency scheduling. It parses only the
+numbered task recipes, ignores dependency lines explicitly prefixed
+`Advisory:`, validates missing references and cycles, detects stale historical
+skips, and emits versioned JSON. The coordinator must consume that output
+instead of reconstructing the graph through language-model inference. A failed
+command, malformed result, non-empty `errors`/`cycles`/`staleSkips`, or an
+out-of-workload result stops selection as a configuration incident.
+
 Before creating a feature branch, the coordinator resolves one read-only
 dependency snapshot for every pending recipe in the configured workload:
 

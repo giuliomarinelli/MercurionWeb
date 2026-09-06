@@ -18,7 +18,9 @@ The model is intentionally strict:
 - one dependency snapshot before selection: pending prerequisites are transient
   `WAITING_DEPENDENCY`, while every descendant of a terminal hard blocker is
   marked `SKIPPED_DEPENDENCY` in one aggregate metadata-only commit without
-  creating branches or workers.
+  creating branches or workers;
+- deterministic dependency selection through the read-only
+  `npm run autonomous:plan` JSON planner rather than model inference.
 
 `develop` is therefore never used as a dumping ground for hundreds of unrelated unverified changes.
 
@@ -40,6 +42,8 @@ docs/autonomous-development/
 ├── RUNTIME.md
 ├── session.example.yaml
 ├── session.overnight-2026-09-01.yaml
+├── tools/
+│   └── plan-dependency-graph.mjs
 ├── series/
 │   ├── 0000-series-example.md
 │   ├── 0001-....md
@@ -55,6 +59,7 @@ docs/autonomous-development/
 Recipe metadata and cross-references are checked with:
 
 ```text
+npm run autonomous:plan
 node docs/autonomous-development/tools/validate-recipes.mjs
 node docs/autonomous-development/tools/validate-cli-runner.mjs
 ```

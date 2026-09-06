@@ -184,7 +184,10 @@ Markdown changes from an exact green base; otherwise `full` Windows/Linux
 validation. Workflow, source, test, dependency, agent, protocol,
 configuration, unknown, and ambiguous changes always use `full`.
 
-Before selection, build one dependency snapshot across the pending workload.
+Before selection, run `npm run autonomous:plan` and consume its versioned JSON
+as the sole authoritative dependency snapshot. Never reconstruct the graph by
+memory or LLM inference; a planner failure, malformed output, cycle, missing
+hard dependency, or stale terminal skip is a configuration incident.
 A recipe with pending/active hard prerequisites is transient
 `WAITING_DEPENDENCY`; a recipe whose hard-prerequisite chain contains a
 terminal non-`DONE` outcome belongs to the terminal skip closure. Materialize

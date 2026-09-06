@@ -34,8 +34,14 @@ Do not start a task at or after the soft deadline. Do not signal that the overal
 
 ## One-task loop
 
-Before each task selection, build one read-only dependency snapshot for the
-configured workload:
+Before each task selection, run `npm run autonomous:plan` from the repository
+root and parse its versioned JSON output. This read-only planner is the sole
+authoritative dependency snapshot: do not reconstruct the graph from memory or
+LLM inference. Stop as a configuration incident if the command fails, returns
+malformed JSON, reports a cycle/error/stale skip, or references a task outside
+the configured workload.
+
+Use the planner output as follows:
 
 1. classify every pending recipe as `READY` when all hard dependencies are
    `DONE`, `WAITING_DEPENDENCY` when at least one hard dependency is still

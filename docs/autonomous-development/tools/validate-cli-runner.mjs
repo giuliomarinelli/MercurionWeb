@@ -20,9 +20,12 @@ const paths = {
   historicalSession: 'docs/autonomous-development/session.overnight-2026-09-01.yaml',
   completedSession: 'docs/autonomous-development/session.48h-2026-09-03.yaml',
   exampleSession: 'docs/autonomous-development/session.example.yaml',
+  activeSession: 'docs/autonomous-development/session.until-2026-09-10.yaml',
   completedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-03-v2.md',
+  activeLaunch: 'docs/autonomous-development/LAUNCH-2026-09-06.md',
   workflow: '.github/workflows/ci.yml',
   classifier: '.github/scripts/classify-ci.mjs',
+  planner: 'docs/autonomous-development/tools/plan-dependency-graph.mjs',
   reportTemplate: 'docs/autonomous-development/reports/0000-session-report-template.md',
 };
 
@@ -42,10 +45,13 @@ const controlPlaneFiles = [
   'docs/autonomous-development/PROTOCOL.md',
   'docs/autonomous-development/LAUNCH.md',
   paths.completedLaunch,
+  paths.activeLaunch,
   paths.completedSession,
   paths.exampleSession,
+  paths.activeSession,
   paths.workflow,
   paths.classifier,
+  paths.planner,
   paths.reportTemplate,
 ];
 
@@ -251,9 +257,11 @@ requireMatch(
 const historicalSession = read(paths.historicalSession);
 const completedSession = read(paths.completedSession);
 const exampleSession = read(paths.exampleSession);
+const activeSession = read(paths.activeSession);
 for (const [target, content] of [
   [paths.exampleSession, exampleSession],
   [paths.completedSession, completedSession],
+  [paths.activeSession, activeSession],
 ]) {
   validateYamlStructure(target, content);
   requireMatch(target, content, /^\s*host:\s*github-copilot-cli\s*$/m, 'missing CLI host');
@@ -407,6 +415,52 @@ for (const command of ['/model', '/permissions show', '/mcp list', '/keep-alive 
 }
 
 const completedLaunch = read(paths.completedLaunch);
+const activeLaunch = read(paths.activeLaunch);
+requireMatch(
+  paths.activeLaunch,
+  activeLaunch,
+  /docs\/autonomous-development\/session\.until-2026-09-10\.yaml/,
+  'active launch must reference the active dated session configuration',
+);
+requireMatch(
+  paths.activeLaunch,
+  activeLaunch,
+  /copilot --agent development-session-coordinator --allow-all-tools --allow-all-urls --add-dir \.\.\/MercurionTox21 --reasoning-effort high --autopilot/,
+  'active launch is missing the deterministic Copilot CLI command',
+);
+requireMatch(
+  paths.activeLaunch,
+  activeLaunch,
+  /2026-09-10T10:00:00\+02:00/,
+  'active launch is missing the exact soft deadline',
+);
+requireMatch(
+  paths.activeLaunch,
+  activeLaunch,
+  /npm run autonomous:plan/,
+  'active launch must execute the deterministic dependency planner',
+);
+requireMatch(
+  paths.activeLaunch,
+  activeLaunch,
+  /expected first task: 0010/,
+  'active launch must record the expected first ready task',
+);
+requireMatch(
+  paths.activeLaunch,
+  activeLaunch,
+  /Do not bundle tasks/,
+  'active launch must prohibit multi-task bundles',
+);
+for (const command of ['/model', '/permissions show', '/mcp list', '/keep-alive on']) {
+  requireMatch(
+    paths.activeLaunch,
+    activeLaunch,
+    new RegExp(command.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+    `active launch is missing ${command}`,
+  );
+}
+
 requireMatch(
   paths.completedLaunch,
   completedLaunch,
@@ -462,6 +516,14 @@ if (activeDeadlineMatches?.length !== 1) {
   fail(paths.completedSession, `deadline must remain exactly ${activeDeadline}`);
 }
 
+const nextDeadline = '2026-09-10T10:00:00+02:00';
+const nextDeadlineMatches = activeSession.match(
+  /^\s*end:\s*"2026-09-10T10:00:00\+02:00"/gm,
+);
+if (nextDeadlineMatches?.length !== 1) {
+  fail(paths.activeSession, `deadline must remain exactly ${nextDeadline}`);
+}
+
 for (const [pattern, message] of [
   [/^repository:\s*$/m, 'missing repository mapping'],
   [/wait_for_feature_ci:\s*true/, 'missing feature CI wait policy'],
@@ -481,6 +543,29 @@ for (const [pattern, message] of [
   [/reset_transitive_skips_to_pending:\s*108/, 'missing authorized reset of 108 speculative skips'],
 ]) {
   requireMatch(paths.completedSession, completedSession, pattern, message);
+}
+
+for (const [pattern, message] of [
+  [/workflow_hardening_pull_request:\s*29/, 'active session must record PR #29'],
+  [/expected_task_count:\s*220/, 'active workload must contain 220 tasks'],
+  [/expected_done:\s*34/, 'active workload must record 34 DONE tasks'],
+  [/expected_blocked:\s*4/, 'active workload must record four retained blockers'],
+  [/expected_skipped_dependency:\s*12/, 'active workload must record 12 current skips'],
+  [/expected_pending:\s*170/, 'active workload must record 170 pending tasks'],
+  [/expected_first_ready_task:\s*"0010"/, 'active workload must start from task 0010'],
+  [/expected_new_terminal_skips:\s*14/, 'active planner expectation must record 14 new skips'],
+  [/dependency_selection:\s*deterministic-planner-json/, 'active session must use deterministic planner output'],
+  [/command:\s*npm run autonomous:plan/, 'active session must declare the planner command'],
+  [/planner_output_is_only_selection_authority:\s*true/, 'planner output must be authoritative'],
+  [/fail_on_cycles:\s*true/, 'active session must fail on dependency cycles'],
+  [/fail_on_stale_skips:\s*true/, 'active session must fail on stale skips'],
+  [/multi_task_bundles:\s*false/, 'active session must prohibit task bundles'],
+  [/task:\s*"0020"[\s\S]*decision:\s*keep-blocked/, 'SYS-020 must remain deliberately blocked'],
+  [/task:\s*"0076"[\s\S]*decision:\s*keep-blocked/, 'UI-018 must remain blocked'],
+  [/task:\s*"0109"[\s\S]*decision:\s*keep-blocked/, 'NG-023 must remain blocked'],
+  [/task:\s*"0114"[\s\S]*decision:\s*keep-blocked/, 'NG-028 must remain blocked'],
+]) {
+  requireMatch(paths.activeSession, activeSession, pattern, message);
 }
 
 for (const stalePattern of [
@@ -515,12 +600,18 @@ for (const [pattern, message] of [
   [/metadata_requires_green_exact_base_sha:\s*true/, 'metadata CI requires an exact green base'],
   [/unknown_or_ambiguous_fallback:\s*full/, 'ambiguous CI classification must fall back to full'],
   [/stable_required_gate_for_every_mode:\s*true/, 'every CI mode must publish Required gate'],
+  [/dependency_planner:[\s\S]*command:\s*npm run autonomous:plan/, 'missing deterministic planner command'],
+  [/planner_output_is_only_selection_authority:\s*true/, 'planner output must be authoritative'],
+  [/fail_on_cycles:\s*true/, 'planner must fail on cycles'],
+  [/fail_on_stale_skips:\s*true/, 'planner must fail on stale skips'],
+  [/multi_task_bundles:\s*false/, 'multi-task bundles must remain disabled'],
 ]) {
   requireMatch(paths.exampleSession, exampleSession, pattern, message);
 }
 
 const workflow = read(paths.workflow);
 const classifier = read(paths.classifier);
+const planner = read(paths.planner);
 const reportTemplate = read(paths.reportTemplate);
 const packageJson = JSON.parse(read('package.json'));
 
@@ -565,6 +656,40 @@ if (
 ) {
   fail('package.json', 'ci:validate:autonomous must run the classifier self-test');
 }
+if (
+  packageJson.scripts?.['autonomous:plan'] !==
+  'node docs/autonomous-development/tools/plan-dependency-graph.mjs --json'
+) {
+  fail('package.json', 'autonomous:plan must emit the deterministic JSON snapshot');
+}
+for (const requiredCommand of [
+  'node docs/autonomous-development/tools/plan-dependency-graph.mjs --self-test',
+  'node docs/autonomous-development/tools/plan-dependency-graph.mjs --check',
+]) {
+  if (!packageJson.scripts?.['ci:validate:autonomous']?.includes(requiredCommand)) {
+    fail('package.json', `ci:validate:autonomous must run ${requiredCommand}`);
+  }
+}
+
+for (const [pattern, message] of [
+  [/export function parseRecipe/, 'planner must expose deterministic recipe parsing'],
+  [/export function planRecipes/, 'planner must expose deterministic graph planning'],
+  [/detectCycles/, 'planner must detect dependency cycles'],
+  [/Advisory:/, 'planner must distinguish advisory dependencies'],
+  [/SKIPPED_DEPENDENCY/, 'planner must propagate terminal dependency skips'],
+  [/staleSkips/, 'planner must detect stale skip outcomes'],
+  [/--self-test/, 'planner must expose a deterministic self-test'],
+  [/--check/, 'planner must expose a fail-closed validation mode'],
+  [/version:\s*1/, 'planner output must be versioned'],
+]) {
+  requireMatch(paths.planner, planner, pattern, message);
+}
+requireMatch(
+  paths.agents.coordinator,
+  coordinator.content,
+  /npm run autonomous:plan[\s\S]*sole scheduling authority/,
+  'coordinator must use planner JSON as its sole scheduling authority',
+);
 
 for (const [pattern, message] of [
   [/## CI and execution efficiency/, 'missing CI efficiency reporting section'],
@@ -700,6 +825,6 @@ if (errors.length > 0) {
   process.exitCode = 1;
 } else {
   console.log(
-    'CLI runner validation passed: JSON, YAML structure, explicit agent tools, slugged task delegation, non-mutating handshake, MCP, historical session provenance, adaptive exact-SHA CI, delayed feature publication, batched dependency skips, telemetry, terminal states, startup probe, signing, and finalization order are valid.',
+    'CLI runner validation passed: JSON, YAML structure, explicit agent tools, slugged task delegation, non-mutating handshake, MCP, historical session provenance, adaptive exact-SHA CI, delayed feature publication, deterministic dependency planning, dated launch/session policy, batched dependency skips, telemetry, terminal states, startup probe, signing, and finalization order are valid.',
   );
 }
