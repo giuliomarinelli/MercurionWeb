@@ -264,12 +264,6 @@ export class DashboardPageComponent implements OnInit, OnDestroy, AfterViewInit 
   // --------- LIFECYCLE ---------
   ngOnInit(): void {
     this.prSub = this.accountService.getProfileRegistry().subscribe(this.subArg)
-    for (const i of Array.from({ length: 6 }, (_, i) => i)) {
-      setTimeout(() => this.toastService.trigger('Profile loaded successfully', 'success'), i * 1000 * 0.4)
-    }
-    for (const i of Array.from({ length: 6 }, (_, i) => i)) {
-      setTimeout(() => this.toastService.trigger('Profile loaded successfully', 'error'), i * 1000 * 0.4)
-    }
   }
 
   ngAfterViewInit(): void {
