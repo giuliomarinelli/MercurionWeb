@@ -1,46 +1,27 @@
 #!/usr/bin/env node
-import fs from 'node:fs';
-import path from 'node:path';
-import process from 'node:process';
+import { buildInventory, validateCompatibility } from './check-rest-compatibility.mjs';
 
-const root = process.cwd();
-const compatibilityPath = path.join(root, 'docs', 'architecture', 'rest-contract-compatibility.json');
+const baseline = buildInventory();
+const cases = [
+    ['wrong verb', (entry) => { entry.consumer.verb = entry.consumer.verb === 'GET' ? 'POST' : 'GET'; }],
+    ['wrong path', (entry) => { entry.consumer.path = `${entry.consumer.path}/wrong`; }],
+    ['wrong query parameter', (entry) => { entry.consumer.queryParameters = [{ name: 'wrong_query', type: 'string', optional: false }]; }],
+    ['incompatible request body', (entry) => { entry.consumer.body = { expression: 'body', type: 'IncompatibleBodyDTO' }; }],
+    ['wrong success status', (entry) => { entry.server.successStatus = entry.server.successStatus === 200 ? 201 : 200; }],
+    ['incompatible response shape', (entry) => { entry.consumer.response.type = 'IncompatibleResponseDTO'; }],
+];
 
-// Leggi l'inventario
-const inventory = JSON.parse(fs.readFileSync(compatibilityPath, 'utf8'));
-
-// Test 1: Introduci un verbo errato
-console.log('Testing negative case: wrong verb...');
-let testInventory = JSON.parse(JSON.stringify(inventory));
-if (testInventory.entries.length > 0) {
-    const firstEntry = testInventory.entries[0];
-    if (firstEntry.server && firstEntry.status === 'matched') {
-        testInventory.entries[0] = {
-            ...firstEntry,
-            client: {
-                ...firstEntry.client,
-                method: firstEntry.client.method === 'GET' ? 'POST' : 'GET',
-            },
-        };
+for (const [name, mutate] of cases) {
+    const mutation = structuredClone(baseline);
+    const entry = mutation.entries.find((candidate) => candidate.server && candidate.consumer.response.type);
+    if (!entry) throw new Error(`${name}: no structured entry available for mutation`);
+    mutate(entry);
+    let rejected = false;
+    try {
+        validateCompatibility(mutation, baseline);
+    } catch (error) {
+        rejected = String(error).includes(entry.id) && String(error).includes(entry.server.handler);
     }
+    if (!rejected) throw new Error(`${name}: validator accepted mutation or omitted consumer/server diagnostics`);
+    console.log(`negative check passed: ${name}`);
 }
-
-// Scrivi in un file temporaneo e prova a validare
-const testFile = path.join(path.dirname(compatibilityPath), 'test-rest-compat-negative.json');
-fs.writeFileSync(testFile, JSON.stringify(testInventory, null, 2) + '\n');
-
-// Simula una validazione che dovrebbe fallire
-const original = JSON.stringify(inventory);
-const modified = JSON.stringify(testInventory);
-if (original === modified) {
-    console.log('✓ Test 1 PASSED: No matched entries to mutate');
-} else if (testInventory.entries[0].client.method !== inventory.entries[0].client.method) {
-    console.log('✓ Test 1 PASSED: Wrong verb mutation detected');
-} else {
-    console.error('✗ Test 1 FAILED: Mutation should have been detected');
-    process.exit(1);
-}
-
-// Cleanup
-fs.unlinkSync(testFile);
-console.log('✓ All negative test cases passed');

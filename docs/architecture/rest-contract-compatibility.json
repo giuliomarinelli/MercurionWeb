@@ -1,859 +1,4775 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "generatedBy": "node scripts/check-rest-compatibility.mjs --write",
-  "totalClientCalls": 55,
-  "matchedRoutes": 41,
+  "totalClientCalls": 58,
+  "matchedRoutes": 58,
   "entries": [
     {
-      "id": "MercurionWebNg/src/app/services/account.service.ts:59:0",
-      "client": {
+      "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.activateAccount#0",
+      "consumer": {
         "file": "MercurionWebNg/src/app/services/account.service.ts",
-        "line": 59,
-        "method": "GET",
-        "path": "/api/account/email"
-      },
-      "server": {
-        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
-        "handler": "getProvidedEmail",
-        "line": 166,
-        "method": "GET",
-        "path": "/api/account/email"
-      },
-      "status": "matched"
-    },
-    {
-      "id": "MercurionWebNg/src/app/services/account.service.ts:68:1",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/account.service.ts",
-        "line": 68,
-        "method": "GET",
-        "path": "/api/account/auth-provider"
-      },
-      "server": {
-        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
-        "handler": "getAuthProvider",
-        "line": 175,
-        "method": "GET",
-        "path": "/api/account/auth-provider"
-      },
-      "status": "matched"
-    },
-    {
-      "id": "MercurionWebNg/src/app/services/account.service.ts:82:2",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/account.service.ts",
-        "line": 82,
-        "method": "POST",
-        "path": "/api/account/forgotten-password"
-      },
-      "server": {
-        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
-        "handler": "forgottenPassword",
-        "line": 201,
-        "method": "POST",
-        "path": "/api/account/forgotten-password"
-      },
-      "status": "matched"
-    },
-    {
-      "id": "MercurionWebNg/src/app/services/account.service.ts:91:3",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/account.service.ts",
-        "line": 91,
-        "method": "GET",
-        "path": "/api/account/is-authorized-to-recover-password"
-      },
-      "server": {
-        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
-        "handler": "isAuthorizedToRecoverPassword",
-        "line": 230,
-        "method": "GET",
-        "path": "/api/account/is-authorized-to-recover-password"
-      },
-      "status": "matched"
-    },
-    {
-      "id": "MercurionWebNg/src/app/services/account.service.ts:100:4",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/account.service.ts",
-        "line": 100,
-        "method": "PATCH",
-        "path": "/api/account/password-recovery"
-      },
-      "server": {
-        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
-        "handler": "passwordRecovery",
-        "line": 219,
-        "method": "PATCH",
-        "path": "/api/account/password-recovery"
-      },
-      "status": "matched"
-    },
-    {
-      "id": "MercurionWebNg/src/app/services/account.service.ts:109:5",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/account.service.ts",
-        "line": 109,
-        "method": "PATCH",
-        "path": "/api/account/password"
-      },
-      "server": {
-        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
-        "handler": "changePassword",
-        "line": 184,
-        "method": "PATCH",
-        "path": "/api/account/password"
-      },
-      "status": "matched"
-    },
-    {
-      "id": "MercurionWebNg/src/app/services/account.service.ts:115:6",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "class": "AccountService",
+        "method": "activateAccount",
+        "ordinal": 0,
         "line": 115,
-        "method": "PATCH",
-        "path": "/api/account/activate?t={param}"
-      },
-      "server": null,
-      "status": "unmatched"
-    },
-    {
-      "id": "MercurionWebNg/src/app/services/account.service.ts:122:7",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/account.service.ts",
-        "line": 122,
-        "method": "GET",
-        "path": "/api/account/profile-registry{param}"
-      },
-      "server": null,
-      "status": "unmatched"
-    },
-    {
-      "id": "MercurionWebNg/src/app/services/account.service.ts:128:8",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/account.service.ts",
-        "line": 128,
-        "method": "GET",
-        "path": "/api/account/profile-registry/essential"
-      },
-      "server": {
-        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
-        "handler": "getEssentialProfileRegistry",
-        "line": 249,
-        "method": "GET",
-        "path": "/api/account/profile-registry/essential"
-      },
-      "status": "matched"
-    },
-    {
-      "id": "MercurionWebNg/src/app/services/account.service.ts:134:9",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/account.service.ts",
-        "line": 134,
-        "method": "PATCH",
-        "path": "/api/account/profile-registry"
+        "verb": "PATCH",
+        "path": "/api/account/activate?t=:token",
+        "pathParameters": [],
+        "queryParameters": [
+          {
+            "name": "t",
+            "type": "string",
+            "optional": true
+          }
+        ],
+        "body": {
+          "expression": "null",
+          "type": "null",
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": "null"
+          }
+        },
+        "response": {
+          "type": "ConfirmWithRecoveryCodeDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmWithRecoveryCodeDTO",
+            "unknownNames": []
+          }
+        }
       },
       "server": {
-        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
-        "handler": "updateProfileRegistry",
-        "line": 254,
-        "method": "PATCH",
-        "path": "/api/account/profile-registry"
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "activateAccount",
+        "line": 56,
+        "verb": "PATCH",
+        "path": "/api/account/activate",
+        "parameters": [
+          {
+            "source": "query",
+            "name": "t",
+            "type": "string",
+            "optional": false
+          }
+        ],
+        "returnType": "ConfirmWithRecoveryCodeDTO",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [],
+          "authentication": []
+        },
+        "authentication": {
+          "public": true,
+          "guards": [],
+          "scopes": []
+        }
       },
-      "status": "matched"
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": false,
+            "compatible": true,
+            "type": "null"
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmWithRecoveryCodeDTO",
+            "unknownNames": []
+          }
+        }
+      }
     },
     {
-      "id": "MercurionWebNg/src/app/services/account.service.ts:140:10",
-      "client": {
+      "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.changeEmail_firstStep#0",
+      "consumer": {
         "file": "MercurionWebNg/src/app/services/account.service.ts",
-        "line": 140,
-        "method": "GET",
-        "path": "/api/account/is-mfa-enabled"
-      },
-      "server": {
-        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
-        "handler": "isMfaEnabled",
-        "line": 307,
-        "method": "GET",
-        "path": "/api/account/is-mfa-enabled"
-      },
-      "status": "matched"
-    },
-    {
-      "id": "MercurionWebNg/src/app/services/account.service.ts:146:11",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/account.service.ts",
-        "line": 146,
-        "method": "GET",
-        "path": "/api/account/mfa-active-strategies"
-      },
-      "server": {
-        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
-        "handler": "getMfaActiveStrategies",
-        "line": 312,
-        "method": "GET",
-        "path": "/api/account/mfa-active-strategies"
-      },
-      "status": "matched"
-    },
-    {
-      "id": "MercurionWebNg/src/app/services/account.service.ts:152:12",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/account.service.ts",
-        "line": 152,
-        "method": "GET",
-        "path": "/api/account/active-sessions"
-      },
-      "server": {
-        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
-        "handler": "getActiveSessions",
-        "line": 273,
-        "method": "GET",
-        "path": "/api/account/active-sessions"
-      },
-      "status": "matched"
-    },
-    {
-      "id": "MercurionWebNg/src/app/services/account.service.ts:158:13",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/account.service.ts",
-        "line": 158,
-        "method": "GET",
-        "path": "/api/account/current-version"
-      },
-      "server": {
-        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
-        "handler": "getCurrentVersion",
-        "line": 319,
-        "method": "GET",
-        "path": "/api/account/current-version"
-      },
-      "status": "matched"
-    },
-    {
-      "id": "MercurionWebNg/src/app/services/account.service.ts:164:14",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/account.service.ts",
-        "line": 164,
-        "method": "GET",
-        "path": "/api/account/masked-email"
-      },
-      "server": {
-        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
-        "handler": "getMaskedEmail",
-        "line": 331,
-        "method": "GET",
-        "path": "/api/account/masked-email"
-      },
-      "status": "matched"
-    },
-    {
-      "id": "MercurionWebNg/src/app/services/account.service.ts:171:15",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/account.service.ts",
-        "line": 171,
-        "method": "GET",
-        "path": "/api/account/masked-phone"
-      },
-      "server": {
-        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
-        "handler": "getMaskedPhone",
-        "line": 340,
-        "method": "GET",
-        "path": "/api/account/masked-phone"
-      },
-      "status": "matched"
-    },
-    {
-      "id": "MercurionWebNg/src/app/services/account.service.ts:178:16",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/account.service.ts",
-        "line": 178,
-        "method": "PATCH",
-        "path": "/api/account/mfa/enable/{param}/1"
-      },
-      "server": null,
-      "status": "unmatched"
-    },
-    {
-      "id": "MercurionWebNg/src/app/services/account.service.ts:188:17",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/account.service.ts",
-        "line": 188,
-        "method": "PATCH",
-        "path": "/api/account/mfa/enable/{param}/2"
-      },
-      "server": null,
-      "status": "unmatched"
-    },
-    {
-      "id": "MercurionWebNg/src/app/services/account.service.ts:194:18",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/account.service.ts",
-        "line": 194,
-        "method": "PATCH",
-        "path": "/api/account/mfa/disable/{param}/1"
-      },
-      "server": null,
-      "status": "unmatched"
-    },
-    {
-      "id": "MercurionWebNg/src/app/services/account.service.ts:204:19",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/account.service.ts",
-        "line": 204,
-        "method": "PATCH",
-        "path": "/api/account/mfa/disable/{param}/2"
-      },
-      "server": null,
-      "status": "unmatched"
-    },
-    {
-      "id": "MercurionWebNg/src/app/services/account.service.ts:210:20",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/account.service.ts",
-        "line": 210,
-        "method": "PATCH",
-        "path": "/api/account/mfa/backup/regenerate"
-      },
-      "server": {
-        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
-        "handler": "regenerateBackupCodes",
-        "line": 288,
-        "method": "PATCH",
-        "path": "/api/account/mfa/backup/regenerate"
-      },
-      "status": "matched"
-    },
-    {
-      "id": "MercurionWebNg/src/app/services/account.service.ts:218:21",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/account.service.ts",
-        "line": 218,
-        "method": "GET",
-        "path": "/api/account/mfa/backup/status"
-      },
-      "server": {
-        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
-        "handler": "getBackupCodesStatus",
-        "line": 281,
-        "method": "GET",
-        "path": "/api/account/mfa/backup/status"
-      },
-      "status": "matched"
-    },
-    {
-      "id": "MercurionWebNg/src/app/services/account.service.ts:224:22",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/account.service.ts",
-        "line": 224,
-        "method": "GET",
-        "path": "/api/account/mfa/backup/status"
-      },
-      "server": {
-        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
-        "handler": "getBackupCodesStatus",
-        "line": 281,
-        "method": "GET",
-        "path": "/api/account/mfa/backup/status"
-      },
-      "status": "matched"
-    },
-    {
-      "id": "MercurionWebNg/src/app/services/account.service.ts:235:23",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "class": "AccountService",
+        "method": "changeEmail_firstStep",
+        "ordinal": 0,
         "line": 235,
-        "method": "PATCH",
-        "path": "/api/account/email/1"
+        "verb": "PATCH",
+        "path": "/api/account/email/1",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "expression": "body",
+          "type": "EmailDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "EmailDTO",
+            "unknownNames": []
+          }
+        },
+        "response": {
+          "type": "ConfirmChangeDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmChangeDTO",
+            "unknownNames": []
+          }
+        }
       },
       "server": {
-        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "changeEmail_firstStep",
         "line": 64,
-        "method": "PATCH",
-        "path": "/api/account/email/1"
+        "verb": "PATCH",
+        "path": "/api/account/email/1",
+        "parameters": [
+          {
+            "source": "body",
+            "type": "EmailDTO",
+            "optional": false
+          }
+        ],
+        "returnType": "ConfirmChangeDTO",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
       },
-      "status": "matched"
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": true,
+            "compatible": true,
+            "type": "EmailDTO",
+            "unknownNames": []
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmChangeDTO",
+            "unknownNames": []
+          }
+        }
+      }
     },
     {
-      "id": "MercurionWebNg/src/app/services/account.service.ts:245:24",
-      "client": {
+      "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.changeEmail_secondStep#0",
+      "consumer": {
         "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "class": "AccountService",
+        "method": "changeEmail_secondStep",
+        "ordinal": 0,
         "line": 245,
-        "method": "PATCH",
-        "path": "/api/account/email/2"
+        "verb": "PATCH",
+        "path": "/api/account/email/2",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "expression": "body",
+          "type": "TotpDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "TotpDTO",
+            "unknownNames": []
+          }
+        },
+        "response": {
+          "type": "ConfirmDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmDTO",
+            "unknownNames": []
+          }
+        }
       },
       "server": {
-        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "changeEmail_secondStep",
         "line": 72,
-        "method": "PATCH",
-        "path": "/api/account/email/2"
+        "verb": "PATCH",
+        "path": "/api/account/email/2",
+        "parameters": [
+          {
+            "source": "body",
+            "type": "TotpDTO",
+            "optional": false
+          }
+        ],
+        "returnType": "ConfirmDTO",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
       },
-      "status": "matched"
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": true,
+            "compatible": true,
+            "type": "TotpDTO",
+            "unknownNames": []
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmDTO",
+            "unknownNames": []
+          }
+        }
+      }
     },
     {
-      "id": "MercurionWebNg/src/app/services/account.service.ts:255:25",
-      "client": {
+      "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.changePassword#0",
+      "consumer": {
         "file": "MercurionWebNg/src/app/services/account.service.ts",
-        "line": 255,
-        "method": "PATCH",
-        "path": "/api/account/phone/1"
+        "class": "AccountService",
+        "method": "changePassword",
+        "ordinal": 0,
+        "line": 109,
+        "verb": "PATCH",
+        "path": "/api/account/password",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "expression": "dto",
+          "type": "ChangePasswordDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ChangePasswordDTO",
+            "unknownNames": []
+          }
+        },
+        "response": {
+          "type": "ConfirmDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmDTO",
+            "unknownNames": []
+          }
+        }
       },
       "server": {
-        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "changePassword",
+        "line": 184,
+        "verb": "PATCH",
+        "path": "/api/account/password",
+        "parameters": [
+          {
+            "source": "body",
+            "type": "ChangePasswordDTO",
+            "optional": false
+          }
+        ],
+        "returnType": "ConfirmDTO",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ChangePasswordDTO",
+            "unknownNames": []
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmDTO",
+            "unknownNames": []
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.changePhoneNumber_firstStep#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "class": "AccountService",
+        "method": "changePhoneNumber_firstStep",
+        "ordinal": 0,
+        "line": 255,
+        "verb": "PATCH",
+        "path": "/api/account/phone/1",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "expression": "body",
+          "type": "ChangePhoneDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ChangePhoneDTO",
+            "unknownNames": []
+          }
+        },
+        "response": {
+          "type": "ConfirmChangeDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmChangeDTO",
+            "unknownNames": []
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "changePhoneNumber_firstStep",
         "line": 94,
-        "method": "PATCH",
-        "path": "/api/account/phone/1"
+        "verb": "PATCH",
+        "path": "/api/account/phone/1",
+        "parameters": [
+          {
+            "source": "body",
+            "type": "ChangePhoneDTO",
+            "optional": false
+          }
+        ],
+        "returnType": "ConfirmChangeDTO",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
       },
-      "status": "matched"
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ChangePhoneDTO",
+            "unknownNames": []
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmChangeDTO",
+            "unknownNames": []
+          }
+        }
+      }
     },
     {
-      "id": "MercurionWebNg/src/app/services/account.service.ts:265:26",
-      "client": {
+      "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.changePhoneNumber_secondStep#0",
+      "consumer": {
         "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "class": "AccountService",
+        "method": "changePhoneNumber_secondStep",
+        "ordinal": 0,
         "line": 265,
-        "method": "PATCH",
-        "path": "/api/account/phone/2"
+        "verb": "PATCH",
+        "path": "/api/account/phone/2",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "expression": "body",
+          "type": "TotpDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "TotpDTO",
+            "unknownNames": []
+          }
+        },
+        "response": {
+          "type": "ConfirmDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmDTO",
+            "unknownNames": []
+          }
+        }
       },
       "server": {
-        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "changePhoneNumber_secondStep",
         "line": 102,
-        "method": "PATCH",
-        "path": "/api/account/phone/2"
+        "verb": "PATCH",
+        "path": "/api/account/phone/2",
+        "parameters": [
+          {
+            "source": "body",
+            "type": "TotpDTO",
+            "optional": false
+          }
+        ],
+        "returnType": "ConfirmDTO",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
       },
-      "status": "matched"
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": true,
+            "compatible": true,
+            "type": "TotpDTO",
+            "unknownNames": []
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmDTO",
+            "unknownNames": []
+          }
+        }
+      }
     },
     {
-      "id": "MercurionWebNg/src/app/services/account.service.ts:271:27",
-      "client": {
+      "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.deletePhoneNumber_firstStep#0",
+      "consumer": {
         "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "class": "AccountService",
+        "method": "deletePhoneNumber_firstStep",
+        "ordinal": 0,
         "line": 271,
-        "method": "DELETE",
-        "path": "/api/account/phone/1"
+        "verb": "DELETE",
+        "path": "/api/account/phone/1",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        },
+        "response": {
+          "type": "ConfirmChangeDTO",
+          "options": {
+            "withCredentials": "true"
+          },
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmChangeDTO",
+            "unknownNames": []
+          }
+        }
       },
       "server": {
-        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "deletePhoneNumber_firstStep",
         "line": 82,
-        "method": "DELETE",
-        "path": "/api/account/phone/1"
+        "verb": "DELETE",
+        "path": "/api/account/phone/1",
+        "parameters": [],
+        "returnType": "ConfirmChangeDTO",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
       },
-      "status": "matched"
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmChangeDTO",
+            "unknownNames": []
+          }
+        }
+      }
     },
     {
-      "id": "MercurionWebNg/src/app/services/account.service.ts:281:28",
-      "client": {
+      "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.deletePhoneNumber_secondStep#0",
+      "consumer": {
         "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "class": "AccountService",
+        "method": "deletePhoneNumber_secondStep",
+        "ordinal": 0,
         "line": 281,
-        "method": "PATCH",
-        "path": "/api/account/phone/del/2"
+        "verb": "PATCH",
+        "path": "/api/account/phone/del/2",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "expression": "body",
+          "type": "TotpDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "TotpDTO",
+            "unknownNames": []
+          }
+        },
+        "response": {
+          "type": "ConfirmWithPhoneMfaFeedback",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmWithPhoneMfaFeedback",
+            "unknownNames": []
+          }
+        }
       },
       "server": {
-        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "deletePhoneNumber_secondStep",
         "line": 87,
-        "method": "PATCH",
-        "path": "/api/account/phone/del/2"
+        "verb": "PATCH",
+        "path": "/api/account/phone/del/2",
+        "parameters": [
+          {
+            "source": "body",
+            "type": "TotpDTO",
+            "optional": false
+          }
+        ],
+        "returnType": "ConfirmWithPhoneMfaFeedback",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
       },
-      "status": "matched"
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": true,
+            "compatible": true,
+            "type": "TotpDTO",
+            "unknownNames": []
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmWithPhoneMfaFeedback",
+            "unknownNames": []
+          }
+        }
+      }
     },
     {
-      "id": "MercurionWebNg/src/app/services/account.service.ts:290:29",
-      "client": {
+      "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.disableMfa_firstStep#0",
+      "consumer": {
         "file": "MercurionWebNg/src/app/services/account.service.ts",
-        "line": 290,
-        "method": "POST",
-        "path": "/api/account/mask-email"
+        "class": "AccountService",
+        "method": "disableMfa_firstStep",
+        "ordinal": 0,
+        "line": 194,
+        "verb": "PATCH",
+        "path": "/api/account/mfa/disable/:strategy/1",
+        "pathParameters": [
+          {
+            "name": "strategy"
+          }
+        ],
+        "queryParameters": [],
+        "body": {
+          "expression": "null",
+          "type": "null",
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": "null"
+          }
+        },
+        "response": {
+          "type": "ConfirmMfaChange",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmMfaChange",
+            "unknownNames": []
+          }
+        }
       },
       "server": {
-        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "disableMfa_firstStep",
+        "line": 140,
+        "verb": "PATCH",
+        "path": "/api/account/mfa/disable/:strategy/1",
+        "parameters": [
+          {
+            "source": "param",
+            "name": "strategy",
+            "type": "string | undefined",
+            "optional": false
+          }
+        ],
+        "returnType": "ConfirmMfaChange",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": false,
+            "compatible": true,
+            "type": "null"
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmMfaChange",
+            "unknownNames": []
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.disableMfa_secondStep#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "class": "AccountService",
+        "method": "disableMfa_secondStep",
+        "ordinal": 0,
+        "line": 204,
+        "verb": "PATCH",
+        "path": "/api/account/mfa/disable/:strategy/2",
+        "pathParameters": [
+          {
+            "name": "strategy"
+          }
+        ],
+        "queryParameters": [],
+        "body": {
+          "expression": "body",
+          "type": "TotpDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "TotpDTO",
+            "unknownNames": []
+          }
+        },
+        "response": {
+          "type": "ConfirmDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmDTO",
+            "unknownNames": []
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "disableMfa_secondStep",
+        "line": 152,
+        "verb": "PATCH",
+        "path": "/api/account/mfa/disable/:strategy/2",
+        "parameters": [
+          {
+            "source": "param",
+            "name": "strategy",
+            "type": "string | undefined",
+            "optional": false
+          },
+          {
+            "source": "body",
+            "type": "TotpDTO",
+            "optional": false
+          }
+        ],
+        "returnType": "ConfirmDTO",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": true,
+            "compatible": true,
+            "type": "TotpDTO",
+            "unknownNames": []
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmDTO",
+            "unknownNames": []
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.enableMfa_firstStep#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "class": "AccountService",
+        "method": "enableMfa_firstStep",
+        "ordinal": 0,
+        "line": 178,
+        "verb": "PATCH",
+        "path": "/api/account/mfa/enable/:strategy/1",
+        "pathParameters": [
+          {
+            "name": "strategy"
+          }
+        ],
+        "queryParameters": [],
+        "body": {
+          "expression": "null",
+          "type": "null",
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": "null"
+          }
+        },
+        "response": {
+          "type": "ConfirmMfaChange",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmMfaChange",
+            "unknownNames": []
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "enableMfa_firstStep",
+        "line": 114,
+        "verb": "PATCH",
+        "path": "/api/account/mfa/enable/:strategy/1",
+        "parameters": [
+          {
+            "source": "param",
+            "name": "strategy",
+            "type": "string | undefined",
+            "optional": false
+          }
+        ],
+        "returnType": "ConfirmMfaChange",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": false,
+            "compatible": true,
+            "type": "null"
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmMfaChange",
+            "unknownNames": []
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.enableMfa_secondStep#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "class": "AccountService",
+        "method": "enableMfa_secondStep",
+        "ordinal": 0,
+        "line": 188,
+        "verb": "PATCH",
+        "path": "/api/account/mfa/enable/:strategy/2",
+        "pathParameters": [
+          {
+            "name": "strategy"
+          }
+        ],
+        "queryParameters": [],
+        "body": {
+          "expression": "body",
+          "type": "TotpDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "TotpDTO",
+            "unknownNames": []
+          }
+        },
+        "response": {
+          "type": "ConfirmDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmDTO",
+            "unknownNames": []
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "enableMfa_secondStep",
+        "line": 126,
+        "verb": "PATCH",
+        "path": "/api/account/mfa/enable/:strategy/2",
+        "parameters": [
+          {
+            "source": "param",
+            "name": "strategy",
+            "type": "string | undefined",
+            "optional": false
+          },
+          {
+            "source": "body",
+            "type": "TotpDTO",
+            "optional": false
+          }
+        ],
+        "returnType": "ConfirmDTO",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": true,
+            "compatible": true,
+            "type": "TotpDTO",
+            "unknownNames": []
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmDTO",
+            "unknownNames": []
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.getActiveSessions#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "class": "AccountService",
+        "method": "getActiveSessions",
+        "ordinal": 0,
+        "line": 152,
+        "verb": "GET",
+        "path": "/api/account/active-sessions",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        },
+        "response": {
+          "type": "SessionDTO[]",
+          "options": {
+            "withCredentials": "true"
+          },
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "SessionDTO[]",
+            "unknownNames": []
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "getActiveSessions",
+        "line": 273,
+        "verb": "GET",
+        "path": "/api/account/active-sessions",
+        "parameters": [],
+        "returnType": "SessionDTO[]",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "SessionDTO[]",
+            "unknownNames": []
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.getAuthProvider#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "class": "AccountService",
+        "method": "getAuthProvider",
+        "ordinal": 0,
+        "line": 68,
+        "verb": "GET",
+        "path": "/api/account/auth-provider",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        },
+        "response": {
+          "mode": "text",
+          "options": {
+            "withCredentials": "true",
+            "responseType": "text"
+          },
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "getAuthProvider",
+        "line": 175,
+        "verb": "GET",
+        "path": "/api/account/auth-provider",
+        "parameters": [],
+        "returnType": "WireAuthProvider",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          },
+          "response": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.getBackupCodes#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "class": "AccountService",
+        "method": "getBackupCodes",
+        "ordinal": 0,
+        "line": 210,
+        "verb": "PATCH",
+        "path": "/api/account/mfa/backup/regenerate",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "expression": "null",
+          "type": "null",
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": "null"
+          }
+        },
+        "response": {
+          "type": "BackupCodesDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "BackupCodesDTO",
+            "unknownNames": []
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "regenerateBackupCodes",
+        "line": 288,
+        "verb": "PATCH",
+        "path": "/api/account/mfa/backup/regenerate",
+        "parameters": [],
+        "returnType": "BackupCodesDTO",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": false,
+            "compatible": true,
+            "type": "null"
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "BackupCodesDTO",
+            "unknownNames": []
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.getBackupCodesStatus#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "class": "AccountService",
+        "method": "getBackupCodesStatus",
+        "ordinal": 0,
+        "line": 218,
+        "verb": "GET",
+        "path": "/api/account/mfa/backup/status",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        },
+        "response": {
+          "type": "BackupCodeStatusDTO",
+          "options": {
+            "withCredentials": "true"
+          },
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "BackupCodeStatusDTO",
+            "unknownNames": []
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "getBackupCodesStatus",
+        "line": 281,
+        "verb": "GET",
+        "path": "/api/account/mfa/backup/status",
+        "parameters": [],
+        "returnType": "BackupCodeStatusDTO",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "BackupCodeStatusDTO",
+            "unknownNames": []
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.getCurrentVersion#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "class": "AccountService",
+        "method": "getCurrentVersion",
+        "ordinal": 0,
+        "line": 158,
+        "verb": "GET",
+        "path": "/api/account/current-version",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        },
+        "response": {
+          "type": "VersionDTO",
+          "options": {
+            "withCredentials": "true"
+          },
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "VersionDTO",
+            "unknownNames": []
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "getCurrentVersion",
+        "line": 319,
+        "verb": "GET",
+        "path": "/api/account/current-version",
+        "parameters": [],
+        "returnType": "VersionDTO",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "VersionDTO",
+            "unknownNames": []
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.getEnabledMfaStrategies#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "class": "AccountService",
+        "method": "getEnabledMfaStrategies",
+        "ordinal": 0,
+        "line": 146,
+        "verb": "GET",
+        "path": "/api/account/mfa-active-strategies",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        },
+        "response": {
+          "type": "MfaStrategy[]",
+          "options": {
+            "withCredentials": "true"
+          },
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "MfaStrategy[]",
+            "unknownNames": []
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "getMfaActiveStrategies",
+        "line": 312,
+        "verb": "GET",
+        "path": "/api/account/mfa-active-strategies",
+        "parameters": [],
+        "returnType": "string[]",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "MfaStrategy[]",
+            "unknownNames": []
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.getEssentialProfileRegistry#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "class": "AccountService",
+        "method": "getEssentialProfileRegistry",
+        "ordinal": 0,
+        "line": 128,
+        "verb": "GET",
+        "path": "/api/account/profile-registry/essential",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        },
+        "response": {
+          "type": "ProfileRegistryClientDTO",
+          "options": {
+            "withCredentials": "true"
+          },
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ProfileRegistryClientDTO",
+            "unknownNames": []
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "getEssentialProfileRegistry",
+        "line": 249,
+        "verb": "GET",
+        "path": "/api/account/profile-registry/essential",
+        "parameters": [],
+        "returnType": "ProfileRegistryClientDTO",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ProfileRegistryClientDTO",
+            "unknownNames": []
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.getMaskedEmail#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "class": "AccountService",
+        "method": "getMaskedEmail",
+        "ordinal": 0,
+        "line": 164,
+        "verb": "GET",
+        "path": "/api/account/masked-email",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        },
+        "response": {
+          "mode": "text",
+          "options": {
+            "responseType": "text",
+            "withCredentials": "true"
+          },
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "getMaskedEmail",
+        "line": 331,
+        "verb": "GET",
+        "path": "/api/account/masked-email",
+        "parameters": [],
+        "returnType": "string",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          },
+          "response": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.getMaskedPhone#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "class": "AccountService",
+        "method": "getMaskedPhone",
+        "ordinal": 0,
+        "line": 171,
+        "verb": "GET",
+        "path": "/api/account/masked-phone",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        },
+        "response": {
+          "mode": "text",
+          "options": {
+            "responseType": "text",
+            "withCredentials": "true"
+          },
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "getMaskedPhone",
+        "line": 340,
+        "verb": "GET",
+        "path": "/api/account/masked-phone",
+        "parameters": [],
+        "returnType": "string | null",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          },
+          "response": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.getProfileRegistry#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "class": "AccountService",
+        "method": "getProfileRegistry",
+        "ordinal": 0,
+        "line": 122,
+        "verb": "GET",
+        "path": "/api/account/profile-registry?get_recent_history=false",
+        "pathParameters": [],
+        "queryParameters": [
+          {
+            "name": "get_recent_history",
+            "type": "string",
+            "optional": false
+          }
+        ],
+        "body": {
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        },
+        "response": {
+          "type": "ProfileDTO",
+          "options": {
+            "withCredentials": "true"
+          },
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ProfileDTO",
+            "unknownNames": []
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "getProfileRegistry",
+        "line": 237,
+        "verb": "GET",
+        "path": "/api/account/profile-registry",
+        "parameters": [
+          {
+            "source": "query",
+            "name": "get_recent_history",
+            "optional": false,
+            "defaultValue": "'true'"
+          }
+        ],
+        "returnType": "ProfileDTO",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ProfileDTO",
+            "unknownNames": []
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.getProvidedEmail#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "class": "AccountService",
+        "method": "getProvidedEmail",
+        "ordinal": 0,
+        "line": 59,
+        "verb": "GET",
+        "path": "/api/account/email",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        },
+        "response": {
+          "type": "ProvidedEmailDTO",
+          "options": {
+            "withCredentials": "true"
+          },
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ProvidedEmailDTO",
+            "unknownNames": []
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "getProvidedEmail",
+        "line": 166,
+        "verb": "GET",
+        "path": "/api/account/email",
+        "parameters": [],
+        "returnType": "ProvidedEmailDTO",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ProvidedEmailDTO",
+            "unknownNames": []
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.getRemainingBackupCodes#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "class": "AccountService",
+        "method": "getRemainingBackupCodes",
+        "ordinal": 0,
+        "line": 224,
+        "verb": "GET",
+        "path": "/api/account/mfa/backup/status",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        },
+        "response": {
+          "type": "BackupCodeStatusDTO",
+          "options": {
+            "withCredentials": "true"
+          },
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "BackupCodeStatusDTO",
+            "unknownNames": []
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "getBackupCodesStatus",
+        "line": 281,
+        "verb": "GET",
+        "path": "/api/account/mfa/backup/status",
+        "parameters": [],
+        "returnType": "BackupCodeStatusDTO",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "BackupCodeStatusDTO",
+            "unknownNames": []
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.isAuthorizedToRecoverPassword#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "class": "AccountService",
+        "method": "isAuthorizedToRecoverPassword",
+        "ordinal": 0,
+        "line": 91,
+        "verb": "GET",
+        "path": "/api/account/is-authorized-to-recover-password",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        },
+        "response": {
+          "type": "boolean",
+          "options": {
+            "withCredentials": "true",
+            "headers": "{\r\n        'Authorization': `Bearer ${changePasswordToken}`\r\n      }"
+          },
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "boolean",
+            "unknownNames": []
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "isAuthorizedToRecoverPassword",
+        "line": 230,
+        "verb": "GET",
+        "path": "/api/account/is-authorized-to-recover-password",
+        "parameters": [],
+        "returnType": "boolean",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [],
+          "authentication": []
+        },
+        "authentication": {
+          "public": true,
+          "guards": [],
+          "scopes": []
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "boolean",
+            "unknownNames": []
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.isMfaEnabled#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "class": "AccountService",
+        "method": "isMfaEnabled",
+        "ordinal": 0,
+        "line": 140,
+        "verb": "GET",
+        "path": "/api/account/is-mfa-enabled",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        },
+        "response": {
+          "type": "boolean",
+          "options": {
+            "withCredentials": "true"
+          },
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "boolean",
+            "unknownNames": []
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "isMfaEnabled",
+        "line": 307,
+        "verb": "GET",
+        "path": "/api/account/is-mfa-enabled",
+        "parameters": [],
+        "returnType": "boolean",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "boolean",
+            "unknownNames": []
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.maskEmail#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "class": "AccountService",
+        "method": "maskEmail",
+        "ordinal": 0,
+        "line": 290,
+        "verb": "POST",
+        "path": "/api/account/mask-email",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "expression": "body",
+          "type": "EmailDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "EmailDTO",
+            "unknownNames": []
+          }
+        },
+        "response": {
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "maskEmail",
         "line": 350,
-        "method": "POST",
-        "path": "/api/account/mask-email"
+        "verb": "POST",
+        "path": "/api/account/mask-email",
+        "parameters": [
+          {
+            "source": "body",
+            "type": "EmailDTO",
+            "optional": false
+          }
+        ],
+        "returnType": "string",
+        "successStatus": 201,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
       },
-      "status": "matched"
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": true,
+            "compatible": true,
+            "type": "EmailDTO",
+            "unknownNames": []
+          },
+          "response": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        }
+      }
     },
     {
-      "id": "MercurionWebNg/src/app/services/account.service.ts:301:30",
-      "client": {
+      "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.maskPhone#0",
+      "consumer": {
         "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "class": "AccountService",
+        "method": "maskPhone",
+        "ordinal": 0,
         "line": 301,
-        "method": "POST",
-        "path": "/api/account/mask-phone"
+        "verb": "POST",
+        "path": "/api/account/mask-phone",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "expression": "body",
+          "type": "ChangePhoneDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ChangePhoneDTO",
+            "unknownNames": []
+          }
+        },
+        "response": {
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        }
       },
       "server": {
-        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "maskPhone",
         "line": 356,
-        "method": "POST",
-        "path": "/api/account/mask-phone"
+        "verb": "POST",
+        "path": "/api/account/mask-phone",
+        "parameters": [
+          {
+            "source": "body",
+            "type": "ChangePhoneDTO",
+            "optional": false
+          }
+        ],
+        "returnType": "string",
+        "successStatus": 201,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
       },
-      "status": "matched"
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ChangePhoneDTO",
+            "unknownNames": []
+          },
+          "response": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        }
+      }
     },
     {
-      "id": "MercurionWebNg/src/app/services/auth.service.ts:141:31",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/auth.service.ts",
-        "line": 141,
-        "method": "POST",
-        "path": "/api/account/register"
+      "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.recoverPassword#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "class": "AccountService",
+        "method": "recoverPassword",
+        "ordinal": 0,
+        "line": 100,
+        "verb": "PATCH",
+        "path": "/api/account/password-recovery",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "expression": "dto",
+          "type": "ChangePasswordDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ChangePasswordDTO",
+            "unknownNames": []
+          }
+        },
+        "response": {
+          "type": "ConfirmDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmDTO",
+            "unknownNames": []
+          }
+        }
       },
       "server": {
-        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
-        "handler": "registerUser",
-        "line": 49,
-        "method": "POST",
-        "path": "/api/account/register"
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "passwordRecovery",
+        "line": 219,
+        "verb": "PATCH",
+        "path": "/api/account/password-recovery",
+        "parameters": [
+          {
+            "source": "body",
+            "type": "ChangePasswordDTO",
+            "optional": false
+          }
+        ],
+        "returnType": "ConfirmDTO",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": []
+        },
+        "authentication": {
+          "public": true,
+          "guards": [],
+          "scopes": []
+        }
       },
-      "status": "matched"
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ChangePasswordDTO",
+            "unknownNames": []
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmDTO",
+            "unknownNames": []
+          }
+        }
+      }
     },
     {
-      "id": "MercurionWebNg/src/app/services/auth.service.ts:151:32",
-      "client": {
+      "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.sendForgottenPasswordLink#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "class": "AccountService",
+        "method": "sendForgottenPasswordLink",
+        "ordinal": 0,
+        "line": 82,
+        "verb": "POST",
+        "path": "/api/account/forgotten-password",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "expression": "dto",
+          "type": "EmailDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "EmailDTO",
+            "unknownNames": []
+          }
+        },
+        "response": {
+          "type": "ConfirmWithObsContDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmWithObsContDTO",
+            "unknownNames": []
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "forgottenPassword",
+        "line": 201,
+        "verb": "POST",
+        "path": "/api/account/forgotten-password",
+        "parameters": [
+          {
+            "source": "body",
+            "type": "EmailDTO",
+            "optional": false
+          }
+        ],
+        "returnType": "ConfirmWithObsContDTO",
+        "successStatus": 201,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": []
+        },
+        "authentication": {
+          "public": true,
+          "guards": [
+            "UseGuards(TurnstileGuard)"
+          ],
+          "scopes": []
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": true,
+            "compatible": true,
+            "type": "EmailDTO",
+            "unknownNames": []
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmWithObsContDTO",
+            "unknownNames": []
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.updateProfileRegistry#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "class": "AccountService",
+        "method": "updateProfileRegistry",
+        "ordinal": 0,
+        "line": 134,
+        "verb": "PATCH",
+        "path": "/api/account/profile-registry",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "expression": "dto",
+          "type": "ProfileRegistryDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ProfileRegistryDTO",
+            "unknownNames": []
+          }
+        },
+        "response": {
+          "type": "ProfileRegistryClientDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ProfileRegistryClientDTO",
+            "unknownNames": []
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "updateProfileRegistry",
+        "line": 254,
+        "verb": "PATCH",
+        "path": "/api/account/profile-registry",
+        "parameters": [
+          {
+            "source": "body",
+            "type": "ProfileRegistryDTO",
+            "optional": false
+          }
+        ],
+        "returnType": "ProfileRegistryClientDTO",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ProfileRegistryDTO",
+            "unknownNames": []
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ProfileRegistryClientDTO",
+            "unknownNames": []
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/auth.service.ts#AuthService.isUserAvailableByEmail#0",
+      "consumer": {
         "file": "MercurionWebNg/src/app/services/auth.service.ts",
+        "class": "AuthService",
+        "method": "isUserAvailableByEmail",
+        "ordinal": 0,
         "line": 151,
-        "method": "POST",
-        "path": "/api/account/is-email-available"
+        "verb": "POST",
+        "path": "/api/account/is-email-available",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "expression": "dto",
+          "type": "EmailDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "EmailDTO",
+            "unknownNames": []
+          }
+        },
+        "response": {
+          "type": "boolean",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "boolean",
+            "unknownNames": []
+          }
+        }
       },
       "server": {
-        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "isEmailAvailable",
         "line": 268,
-        "method": "POST",
-        "path": "/api/account/is-email-available"
+        "verb": "POST",
+        "path": "/api/account/is-email-available",
+        "parameters": [
+          {
+            "source": "body",
+            "type": "EmailDTO",
+            "optional": false
+          }
+        ],
+        "returnType": "boolean",
+        "successStatus": 201,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": []
+        },
+        "authentication": {
+          "public": true,
+          "guards": [],
+          "scopes": []
+        }
       },
-      "status": "matched"
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": true,
+            "compatible": true,
+            "type": "EmailDTO",
+            "unknownNames": []
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "boolean",
+            "unknownNames": []
+          }
+        }
+      }
     },
     {
-      "id": "MercurionWebNg/src/app/services/auth.service.ts:159:33",
-      "client": {
+      "id": "MercurionWebNg/src/app/services/auth.service.ts#AuthService.login_firstStep#0",
+      "consumer": {
         "file": "MercurionWebNg/src/app/services/auth.service.ts",
-        "line": 159,
-        "method": "POST",
-        "path": "/api/authentication/login/0"
-      },
-      "server": {
-        "file": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
-        "handler": "login_zeroStep",
-        "line": 72,
-        "method": "POST",
-        "path": "/api/authentication/login/0"
-      },
-      "status": "matched"
-    },
-    {
-      "id": "MercurionWebNg/src/app/services/auth.service.ts:166:34",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/auth.service.ts",
+        "class": "AuthService",
+        "method": "login_firstStep",
+        "ordinal": 0,
         "line": 166,
-        "method": "POST",
-        "path": "/api/authentication/login/1"
+        "verb": "POST",
+        "path": "/api/authentication/login/1",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "expression": "loginDTO",
+          "type": "{ email: string; password: string; remember: boolean; }",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "{ email: string; password: string; remember: boolean; }",
+            "unknownNames": []
+          }
+        },
+        "response": {
+          "type": "Confirm_Login_FirstStepDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "Confirm_Login_FirstStepDTO",
+            "unknownNames": []
+          }
+        }
       },
       "server": {
-        "file": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
         "handler": "login_firstStep",
         "line": 82,
-        "method": "POST",
-        "path": "/api/authentication/login/1"
+        "verb": "POST",
+        "path": "/api/authentication/login/1",
+        "parameters": [
+          {
+            "source": "body",
+            "type": "Login_FirstStepDTO",
+            "optional": false
+          }
+        ],
+        "returnType": "Confirm_Login_FirstStepDTO",
+        "successStatus": 201,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": []
+        },
+        "authentication": {
+          "public": true,
+          "guards": [
+            "UseGuards(TurnstileGuard)"
+          ],
+          "scopes": []
+        }
       },
-      "status": "matched"
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": true,
+            "compatible": true,
+            "type": "{ email: string; password: string; remember: boolean; }",
+            "unknownNames": []
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "Confirm_Login_FirstStepDTO",
+            "unknownNames": []
+          }
+        }
+      }
     },
     {
-      "id": "MercurionWebNg/src/app/services/auth.service.ts:185:35",
-      "client": {
+      "id": "MercurionWebNg/src/app/services/auth.service.ts#AuthService.login_secondStep#0",
+      "consumer": {
         "file": "MercurionWebNg/src/app/services/auth.service.ts",
+        "class": "AuthService",
+        "method": "login_secondStep",
+        "ordinal": 0,
         "line": 185,
-        "method": "POST",
-        "path": "/api/authentication/login/{param}/2{param}"
-      },
-      "server": null,
-      "status": "unmatched"
-    },
-    {
-      "id": "MercurionWebNg/src/app/services/auth.service.ts:210:36",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/auth.service.ts",
-        "line": 210,
-        "method": "POST",
-        "path": "/api/authentication/login/{param}/3{param}"
-      },
-      "server": null,
-      "status": "unmatched"
-    },
-    {
-      "id": "MercurionWebNg/src/app/services/auth.service.ts:234:37",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/auth.service.ts",
-        "line": 234,
-        "method": "DELETE",
-        "path": "/api/authentication/logout"
+        "verb": "POST",
+        "path": "/api/authentication/login/:strategy/2?trust_verify=:trustVerify",
+        "pathParameters": [
+          {
+            "name": "strategy"
+          }
+        ],
+        "queryParameters": [
+          {
+            "name": "trust_verify",
+            "type": "string",
+            "optional": true
+          }
+        ],
+        "body": {
+          "expression": "null",
+          "type": "null",
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": "null"
+          }
+        },
+        "response": {
+          "type": "ConfirmWithTotpMetaDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmWithTotpMetaDTO",
+            "unknownNames": []
+          }
+        }
       },
       "server": {
-        "file": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
+        "handler": "login_secondStep",
+        "line": 139,
+        "verb": "POST",
+        "path": "/api/authentication/login/:strategy/2",
+        "parameters": [
+          {
+            "source": "query",
+            "name": "trust_verify",
+            "type": "boolean",
+            "optional": false,
+            "defaultValue": "false"
+          },
+          {
+            "source": "param",
+            "name": "strategy",
+            "type": "string",
+            "optional": false
+          }
+        ],
+        "returnType": "ConfirmWithTotpMetaDTO",
+        "successStatus": 201,
+        "errorStatuses": {
+          "validation": [],
+          "authentication": []
+        },
+        "authentication": {
+          "public": true,
+          "guards": [],
+          "scopes": []
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": false,
+            "compatible": true,
+            "type": "null"
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmWithTotpMetaDTO",
+            "unknownNames": []
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/auth.service.ts#AuthService.login_stepZero#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/auth.service.ts",
+        "class": "AuthService",
+        "method": "login_stepZero",
+        "ordinal": 0,
+        "line": 159,
+        "verb": "POST",
+        "path": "/api/authentication/login/0",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "expression": "emailDTO",
+          "type": "EmailDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "EmailDTO",
+            "unknownNames": []
+          }
+        },
+        "response": {
+          "type": "ConfirmDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmDTO",
+            "unknownNames": []
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
+        "handler": "login_zeroStep",
+        "line": 72,
+        "verb": "POST",
+        "path": "/api/authentication/login/0",
+        "parameters": [
+          {
+            "source": "body",
+            "type": "EmailDTO",
+            "optional": false
+          }
+        ],
+        "returnType": "ConfirmDTO",
+        "successStatus": 201,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": []
+        },
+        "authentication": {
+          "public": true,
+          "guards": [],
+          "scopes": []
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": true,
+            "compatible": true,
+            "type": "EmailDTO",
+            "unknownNames": []
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmDTO",
+            "unknownNames": []
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/auth.service.ts#AuthService.login_thirdStep#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/auth.service.ts",
+        "class": "AuthService",
+        "method": "login_thirdStep",
+        "ordinal": 0,
+        "line": 210,
+        "verb": "POST",
+        "path": "/api/authentication/login/:strategy/3?trust_verify=:trustVerify",
+        "pathParameters": [
+          {
+            "name": "strategy"
+          }
+        ],
+        "queryParameters": [
+          {
+            "name": "trust_verify",
+            "type": "string",
+            "optional": true
+          }
+        ],
+        "body": {
+          "expression": "body",
+          "type": "VerifyBodyDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "VerifyBodyDTO",
+            "unknownNames": []
+          }
+        },
+        "response": {
+          "type": "ConfirmWithAccessTokenAndInitialsDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmWithAccessTokenAndInitialsDTO",
+            "unknownNames": []
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
+        "handler": "login_thirdStep",
+        "line": 164,
+        "verb": "POST",
+        "path": "/api/authentication/login/:strategy/3",
+        "parameters": [
+          {
+            "source": "query",
+            "name": "trust_verify",
+            "type": "boolean",
+            "optional": false,
+            "defaultValue": "false"
+          },
+          {
+            "source": "param",
+            "name": "strategy",
+            "type": "string",
+            "optional": false
+          },
+          {
+            "source": "body",
+            "type": "VerifyBodyDTO",
+            "optional": false
+          }
+        ],
+        "returnType": "ConfirmWithTokenPairAndInitialsDTO",
+        "successStatus": 201,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": []
+        },
+        "authentication": {
+          "public": true,
+          "guards": [],
+          "scopes": []
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": true,
+            "compatible": true,
+            "type": "VerifyBodyDTO",
+            "unknownNames": []
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmWithAccessTokenAndInitialsDTO",
+            "unknownNames": []
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/auth.service.ts#AuthService.logout#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/auth.service.ts",
+        "class": "AuthService",
+        "method": "logout",
+        "ordinal": 0,
+        "line": 234,
+        "verb": "DELETE",
+        "path": "/api/authentication/logout",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        },
+        "response": {
+          "type": "void",
+          "mode": "void",
+          "options": {
+            "withCredentials": "true"
+          },
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "void",
+            "unknownNames": []
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
         "handler": "logout",
         "line": 243,
-        "method": "DELETE",
-        "path": "/api/authentication/logout"
+        "verb": "DELETE",
+        "path": "/api/authentication/logout",
+        "parameters": [],
+        "returnType": "void",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [],
+          "authentication": []
+        },
+        "authentication": {
+          "public": true,
+          "guards": [],
+          "scopes": []
+        }
       },
-      "status": "matched"
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "void",
+            "unknownNames": []
+          }
+        }
+      }
     },
     {
-      "id": "MercurionWebNg/src/app/services/auth.service.ts:243:38",
-      "client": {
+      "id": "MercurionWebNg/src/app/services/auth.service.ts#AuthService.logoutFromAllSessions#0",
+      "consumer": {
         "file": "MercurionWebNg/src/app/services/auth.service.ts",
-        "line": 243,
-        "method": "GET",
-        "path": "/api/authentication/ws-refresh"
-      },
-      "server": {
-        "file": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
-        "handler": "refreshWs_accessToken",
-        "line": 287,
-        "method": "GET",
-        "path": "/api/authentication/ws-refresh"
-      },
-      "status": "matched"
-    },
-    {
-      "id": "MercurionWebNg/src/app/services/auth.service.ts:429:39",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/auth.service.ts",
-        "line": 429,
-        "method": "PATCH",
-        "path": "/api/authentication/logout-from-session"
-      },
-      "server": {
-        "file": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
-        "handler": "logoutFromSession",
-        "line": 260,
-        "method": "PATCH",
-        "path": "/api/authentication/logout-from-session"
-      },
-      "status": "matched"
-    },
-    {
-      "id": "MercurionWebNg/src/app/services/auth.service.ts:440:40",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/auth.service.ts",
+        "class": "AuthService",
+        "method": "logoutFromAllSessions",
+        "ordinal": 0,
         "line": 440,
-        "method": "PATCH",
-        "path": "/api/authentication/logout-from-all-sessions"
+        "verb": "PATCH",
+        "path": "/api/authentication/logout-from-all-sessions",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "expression": "null",
+          "type": "null",
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": "null"
+          }
+        },
+        "response": {
+          "type": "ConfirmDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmDTO",
+            "unknownNames": []
+          }
+        }
       },
       "server": {
-        "file": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
         "handler": "logoutFromAllSessions",
         "line": 276,
-        "method": "PATCH",
-        "path": "/api/authentication/logout-from-all-sessions"
+        "verb": "PATCH",
+        "path": "/api/authentication/logout-from-all-sessions",
+        "parameters": [],
+        "returnType": "ConfirmDTO",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
       },
-      "status": "matched"
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": false,
+            "compatible": true,
+            "type": "null"
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmDTO",
+            "unknownNames": []
+          }
+        }
+      }
     },
     {
-      "id": "MercurionWebNg/src/app/services/auth.service.ts:449:41",
-      "client": {
+      "id": "MercurionWebNg/src/app/services/auth.service.ts#AuthService.logoutFromSession#0",
+      "consumer": {
         "file": "MercurionWebNg/src/app/services/auth.service.ts",
-        "line": 449,
-        "method": "POST",
-        "path": "/api/authentication/sso/{param}/authorize-flow"
-      },
-      "server": null,
-      "status": "unmatched"
-    },
-    {
-      "id": "MercurionWebNg/src/app/services/auth.service.ts:460:42",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/auth.service.ts",
-        "line": 460,
-        "method": "GET",
-        "path": "/api/admin/maintenance?t={param}"
-      },
-      "server": null,
-      "status": "unmatched"
-    },
-    {
-      "id": "MercurionWebNg/src/app/services/country.service.ts:18:43",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/country.service.ts",
-        "line": 18,
-        "method": "GET",
-        "path": "/api/countries/phone-prefixes"
+        "class": "AuthService",
+        "method": "logoutFromSession",
+        "ordinal": 0,
+        "line": 429,
+        "verb": "PATCH",
+        "path": "/api/authentication/logout-from-session",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "expression": "body",
+          "type": "SignedSessionIdDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "SignedSessionIdDTO",
+            "unknownNames": []
+          }
+        },
+        "response": {
+          "type": "ConfirmDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmDTO",
+            "unknownNames": []
+          }
+        }
       },
       "server": {
-        "file": "MercurionWebNode/src/app_modules/auth/controllers/country.controller.ts",
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
+        "handler": "logoutFromSession",
+        "line": 260,
+        "verb": "PATCH",
+        "path": "/api/authentication/logout-from-session",
+        "parameters": [
+          {
+            "source": "body",
+            "type": "SignedSessionIdDTO",
+            "optional": false
+          }
+        ],
+        "returnType": "ConfirmDTO",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": true,
+            "compatible": true,
+            "type": "SignedSessionIdDTO",
+            "unknownNames": []
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmDTO",
+            "unknownNames": []
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/auth.service.ts#AuthService.refreshWs_accessToken#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/auth.service.ts",
+        "class": "AuthService",
+        "method": "refreshWs_accessToken",
+        "ordinal": 0,
+        "line": 243,
+        "verb": "GET",
+        "path": "/api/authentication/ws-refresh",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        },
+        "response": {
+          "mode": "text",
+          "options": {
+            "withCredentials": "true",
+            "responseType": "text"
+          },
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
+        "handler": "refreshWs_accessToken",
+        "line": 287,
+        "verb": "GET",
+        "path": "/api/authentication/ws-refresh",
+        "parameters": [],
+        "returnType": "string",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          },
+          "response": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/auth.service.ts#AuthService.registerUser#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/auth.service.ts",
+        "class": "AuthService",
+        "method": "registerUser",
+        "ordinal": 0,
+        "line": 141,
+        "verb": "POST",
+        "path": "/api/account/register",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "expression": "dto",
+          "type": "UserRegisterDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "UserRegisterDTO",
+            "unknownNames": []
+          }
+        },
+        "response": {
+          "type": "ConfirmWithObsContDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmWithObsContDTO",
+            "unknownNames": []
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "registerUser",
+        "line": 49,
+        "verb": "POST",
+        "path": "/api/account/register",
+        "parameters": [
+          {
+            "source": "body",
+            "type": "UserRegisterDTO",
+            "optional": false
+          }
+        ],
+        "returnType": "ConfirmWithObsContDTO",
+        "successStatus": 201,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": []
+        },
+        "authentication": {
+          "public": true,
+          "guards": [
+            "UseGuards(TurnstileGuard)"
+          ],
+          "scopes": []
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": true,
+            "compatible": true,
+            "type": "UserRegisterDTO",
+            "unknownNames": []
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmWithObsContDTO",
+            "unknownNames": []
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/auth.service.ts#AuthService.skipMaintenanceMode#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/auth.service.ts",
+        "class": "AuthService",
+        "method": "skipMaintenanceMode",
+        "ordinal": 0,
+        "line": 460,
+        "verb": "GET",
+        "path": "/api/admin/maintenance?t=:token",
+        "pathParameters": [],
+        "queryParameters": [
+          {
+            "name": "t",
+            "type": "string",
+            "optional": true
+          }
+        ],
+        "body": {
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        },
+        "response": {
+          "type": "MaintenanceBypassResponse",
+          "options": {
+            "withCredentials": "true"
+          },
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "MaintenanceBypassResponse",
+            "unknownNames": []
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/admin/controllers/admin.controller.ts",
+        "handler": "getAdminMaintenanceCookie",
+        "line": 31,
+        "verb": "GET",
+        "path": "/api/admin/maintenance",
+        "parameters": [
+          {
+            "source": "query",
+            "name": "t",
+            "type": "string",
+            "optional": false
+          }
+        ],
+        "returnType": "MaintenanceBypassResponse",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [],
+          "authentication": []
+        },
+        "authentication": {
+          "public": true,
+          "guards": [],
+          "scopes": []
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "MaintenanceBypassResponse",
+            "unknownNames": []
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/auth.service.ts#AuthService.sso_authorizeFlow#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/auth.service.ts",
+        "class": "AuthService",
+        "method": "sso_authorizeFlow",
+        "ordinal": 0,
+        "line": 449,
+        "verb": "POST",
+        "path": "/api/authentication/sso/:provider/authorize-flow",
+        "pathParameters": [
+          {
+            "name": "provider"
+          }
+        ],
+        "queryParameters": [],
+        "body": {
+          "expression": "null",
+          "type": "null",
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": "null"
+          }
+        },
+        "response": {
+          "type": "ConfirmWithAccessTokenAndInitialsDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmWithAccessTokenAndInitialsDTO",
+            "unknownNames": []
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
+        "handler": "authorize_sso",
+        "line": 296,
+        "verb": "POST",
+        "path": "/api/authentication/sso/:provider/authorize-flow",
+        "parameters": [
+          {
+            "source": "param",
+            "name": "provider",
+            "type": "string",
+            "optional": false
+          }
+        ],
+        "returnType": "ConfirmWithTokenPairAndInitialsDTO",
+        "successStatus": 201,
+        "errorStatuses": {
+          "validation": [],
+          "authentication": []
+        },
+        "authentication": {
+          "public": true,
+          "guards": [],
+          "scopes": []
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": false,
+            "compatible": true,
+            "type": "null"
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmWithAccessTokenAndInitialsDTO",
+            "unknownNames": []
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/country.service.ts#CountryService.getAllPhonePrefixes#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/country.service.ts",
+        "class": "CountryService",
+        "method": "getAllPhonePrefixes",
+        "ordinal": 0,
+        "line": 18,
+        "verb": "GET",
+        "path": "/api/countries/phone-prefixes",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        },
+        "response": {
+          "type": "PhonePrefixDTO[]",
+          "options": {
+            "withCredentials": "true"
+          },
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "PhonePrefixDTO[]",
+            "unknownNames": []
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/country.controller.ts",
         "handler": "getAllPhonePrefixes",
         "line": 10,
-        "method": "GET",
-        "path": "/api/countries/phone-prefixes"
+        "verb": "GET",
+        "path": "/api/countries/phone-prefixes",
+        "parameters": [],
+        "returnType": "PhonePrefixDTO[]",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
       },
-      "status": "matched"
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "PhonePrefixDTO[]",
+            "unknownNames": []
+          }
+        }
+      }
     },
     {
-      "id": "MercurionWebNg/src/app/services/embedding.service.ts:14:44",
-      "client": {
+      "id": "MercurionWebNg/src/app/services/embedding.service.ts#EmbeddingService.getSimilarMolregnos#0",
+      "consumer": {
         "file": "MercurionWebNg/src/app/services/embedding.service.ts",
+        "class": "EmbeddingService",
+        "method": "getSimilarMolregnos",
+        "ordinal": 0,
         "line": 14,
-        "method": "GET",
-        "path": "/api/embedding/get-similar-molregnos?molregno={param}&n={param}&with_no_name={param}&only_molregnos={param}"
-      },
-      "server": null,
-      "status": "unmatched"
-    },
-    {
-      "id": "MercurionWebNg/src/app/services/feedback.service.ts:43:45",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/feedback.service.ts",
-        "line": 43,
-        "method": "GET",
-        "path": "{param}/{param}"
-      },
-      "server": null,
-      "status": "unmatched"
-    },
-    {
-      "id": "MercurionWebNg/src/app/services/feedback.service.ts:49:46",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/feedback.service.ts",
-        "line": 49,
-        "method": "PATCH",
-        "path": "{param}/{param}"
-      },
-      "server": null,
-      "status": "unmatched"
-    },
-    {
-      "id": "MercurionWebNg/src/app/services/feedback.service.ts:55:47",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/feedback.service.ts",
-        "line": 55,
-        "method": "DELETE",
-        "path": "{param}/{param}"
-      },
-      "server": null,
-      "status": "unmatched"
-    },
-    {
-      "id": "MercurionWebNg/src/app/services/history.service.ts:31:48",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/history.service.ts",
-        "line": 31,
-        "method": "DELETE",
-        "path": "/api/history"
+        "verb": "GET",
+        "path": "/api/embedding/get-similar-molregnos?molregno=:molregno&n=:n&with_no_name=:with_no_name&only_molregnos=:only_molregnos",
+        "pathParameters": [],
+        "queryParameters": [
+          {
+            "name": "molregno",
+            "type": "string",
+            "optional": true
+          },
+          {
+            "name": "n",
+            "type": "string",
+            "optional": true
+          },
+          {
+            "name": "only_molregnos",
+            "type": "string",
+            "optional": true
+          },
+          {
+            "name": "with_no_name",
+            "type": "string",
+            "optional": true
+          }
+        ],
+        "body": {
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        },
+        "response": {
+          "type": "EmbeddingResponse",
+          "options": {
+            "withCredentials": "true"
+          },
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "EmbeddingResponse",
+            "unknownNames": []
+          }
+        }
       },
       "server": {
-        "file": "MercurionWebNode/src/app_modules/history/controllers/history.controller.ts",
+        "controller": "MercurionWebNode/src/app_modules/embedding/controllers/embedding.controller.ts",
+        "handler": "getSimilarMolregnos",
+        "line": 12,
+        "verb": "GET",
+        "path": "/api/embedding/get-similar-molregnos",
+        "parameters": [
+          {
+            "source": "query",
+            "name": "molregno",
+            "type": "number",
+            "optional": false
+          },
+          {
+            "source": "query",
+            "name": "n",
+            "type": "number",
+            "optional": false,
+            "defaultValue": "10"
+          },
+          {
+            "source": "query",
+            "name": "only_molregnos",
+            "type": "string",
+            "optional": false,
+            "defaultValue": "'true'"
+          },
+          {
+            "source": "query",
+            "name": "with_no_name",
+            "type": "string",
+            "optional": false,
+            "defaultValue": "'false'"
+          }
+        ],
+        "returnType": "EmbeddingResponse",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [],
+          "authentication": []
+        },
+        "authentication": {
+          "public": true,
+          "guards": [],
+          "scopes": []
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "EmbeddingResponse",
+            "unknownNames": []
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/feedback.service.ts#FeedbackService.createFeedback#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/feedback.service.ts",
+        "class": "FeedbackService",
+        "method": "createFeedback",
+        "ordinal": 0,
+        "line": 24,
+        "verb": "POST",
+        "path": "/api/feedback",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "expression": "dto",
+          "type": "CreateFeedbackDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "CreateFeedbackDTO",
+            "unknownNames": []
+          }
+        },
+        "response": {
+          "type": "Feedback",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "Feedback",
+            "unknownNames": []
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/feedback/controllers/feedback.controller.ts",
+        "handler": "create",
+        "line": 38,
+        "verb": "POST",
+        "path": "/api/feedback",
+        "parameters": [
+          {
+            "source": "body",
+            "type": "CreateFeedbackDTO",
+            "optional": false
+          }
+        ],
+        "returnType": "Feedback",
+        "successStatus": 201,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": true,
+            "compatible": true,
+            "type": "CreateFeedbackDTO",
+            "unknownNames": []
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "Feedback",
+            "unknownNames": []
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/feedback.service.ts#FeedbackService.deleteFeedback#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/feedback.service.ts",
+        "class": "FeedbackService",
+        "method": "deleteFeedback",
+        "ordinal": 0,
+        "line": 55,
+        "verb": "DELETE",
+        "path": "/api/feedback/:id",
+        "pathParameters": [
+          {
+            "name": "id"
+          }
+        ],
+        "queryParameters": [],
+        "body": {
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        },
+        "response": {
+          "type": "DeleteFeedbackResponse",
+          "options": {
+            "withCredentials": "true"
+          },
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "DeleteFeedbackResponse",
+            "unknownNames": []
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/feedback/controllers/feedback.controller.ts",
+        "handler": "delete",
+        "line": 91,
+        "verb": "DELETE",
+        "path": "/api/feedback/:id",
+        "parameters": [
+          {
+            "source": "param",
+            "name": "id",
+            "type": "UUID",
+            "optional": false
+          }
+        ],
+        "returnType": "DeleteFeedbackResponse",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": [
+            "HasScopes(Scope.DeleteFeedback)"
+          ]
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "DeleteFeedbackResponse",
+            "unknownNames": []
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/feedback.service.ts#FeedbackService.getFeedbackById#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/feedback.service.ts",
+        "class": "FeedbackService",
+        "method": "getFeedbackById",
+        "ordinal": 0,
+        "line": 43,
+        "verb": "GET",
+        "path": "/api/feedback/:id",
+        "pathParameters": [
+          {
+            "name": "id"
+          }
+        ],
+        "queryParameters": [],
+        "body": {
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        },
+        "response": {
+          "type": "Feedback",
+          "options": {
+            "withCredentials": "true"
+          },
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "Feedback",
+            "unknownNames": []
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/feedback/controllers/feedback.controller.ts",
+        "handler": "getById",
+        "line": 66,
+        "verb": "GET",
+        "path": "/api/feedback/:id",
+        "parameters": [
+          {
+            "source": "param",
+            "name": "id",
+            "type": "UUID",
+            "optional": false
+          }
+        ],
+        "returnType": "Promise<Feedback> | never",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": [
+            "HasScopes(Scope.ReadFeedback)"
+          ]
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "Feedback",
+            "unknownNames": []
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/feedback.service.ts#FeedbackService.listFeedbacks#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/feedback.service.ts",
+        "class": "FeedbackService",
+        "method": "listFeedbacks",
+        "ordinal": 0,
+        "line": 37,
+        "verb": "GET",
+        "path": "/api/feedback?page=:page&limit=:limit",
+        "pathParameters": [],
+        "queryParameters": [
+          {
+            "name": "limit",
+            "type": "string",
+            "optional": true
+          },
+          {
+            "name": "page",
+            "type": "string",
+            "optional": true
+          }
+        ],
+        "body": {
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        },
+        "response": {
+          "type": "PageModel<Feedback>",
+          "options": {
+            "withCredentials": "true"
+          },
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "PageModel<Feedback>",
+            "unknownNames": []
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/feedback/controllers/feedback.controller.ts",
+        "handler": "list",
+        "line": 46,
+        "verb": "GET",
+        "path": "/api/feedback",
+        "parameters": [
+          {
+            "source": "query",
+            "name": "page",
+            "type": "string",
+            "optional": true
+          },
+          {
+            "source": "query",
+            "name": "limit",
+            "type": "string",
+            "optional": true
+          },
+          {
+            "source": "query",
+            "name": "env",
+            "type": "FeedbackEnv",
+            "optional": true
+          },
+          {
+            "source": "query",
+            "name": "status",
+            "type": "FeedbackStatus",
+            "optional": true
+          }
+        ],
+        "returnType": "FlatPagination<Feedback>",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": [
+            "HasScopes(Scope.ReadFeedback)"
+          ]
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "PageModel<Feedback>",
+            "unknownNames": []
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/feedback.service.ts#FeedbackService.moderateFeedback#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/feedback.service.ts",
+        "class": "FeedbackService",
+        "method": "moderateFeedback",
+        "ordinal": 0,
+        "line": 49,
+        "verb": "PATCH",
+        "path": "/api/feedback/:id",
+        "pathParameters": [
+          {
+            "name": "id"
+          }
+        ],
+        "queryParameters": [],
+        "body": {
+          "expression": "dto",
+          "type": "UpdateFeedbackDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "UpdateFeedbackDTO",
+            "unknownNames": []
+          }
+        },
+        "response": {
+          "type": "Feedback",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "Feedback",
+            "unknownNames": []
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/feedback/controllers/feedback.controller.ts",
+        "handler": "moderate",
+        "line": 79,
+        "verb": "PATCH",
+        "path": "/api/feedback/:id",
+        "parameters": [
+          {
+            "source": "param",
+            "name": "id",
+            "type": "UUID",
+            "optional": false
+          },
+          {
+            "source": "body",
+            "type": "UpdateFeedbackDTO",
+            "optional": false
+          }
+        ],
+        "returnType": "Feedback",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": [
+            "HasScopes(Scope.UpdateFeedback)"
+          ]
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": true,
+            "compatible": true,
+            "type": "UpdateFeedbackDTO",
+            "unknownNames": []
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "Feedback",
+            "unknownNames": []
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/history.service.ts#HistoryService.deleteHistory#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/history.service.ts",
+        "class": "HistoryService",
+        "method": "deleteHistory",
+        "ordinal": 0,
+        "line": 31,
+        "verb": "DELETE",
+        "path": "/api/history",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        },
+        "response": {
+          "type": "boolean",
+          "options": {
+            "withCredentials": "true"
+          },
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "boolean",
+            "unknownNames": []
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/history/controllers/history.controller.ts",
         "handler": "deleteHistory",
         "line": 55,
-        "method": "DELETE",
-        "path": "/api/history"
+        "verb": "DELETE",
+        "path": "/api/history",
+        "parameters": [],
+        "returnType": "boolean",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
       },
-      "status": "matched"
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "boolean",
+            "unknownNames": []
+          }
+        }
+      }
     },
     {
-      "id": "MercurionWebNg/src/app/services/mercurion-ai.service.ts:14:49",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/mercurion-ai.service.ts",
-        "line": 14,
-        "method": "POST",
-        "path": "/api/mercurion-ai/tox-21/infer"
+      "id": "MercurionWebNg/src/app/services/history.service.ts#HistoryService.getHistory#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/history.service.ts",
+        "class": "HistoryService",
+        "method": "getHistory",
+        "ordinal": 0,
+        "line": 16,
+        "verb": "GET",
+        "path": "/api/history?page=:page&limit=:limit",
+        "pathParameters": [],
+        "queryParameters": [
+          {
+            "name": "limit",
+            "type": "string",
+            "optional": true
+          },
+          {
+            "name": "page",
+            "type": "string",
+            "optional": true
+          }
+        ],
+        "body": {
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        },
+        "response": {
+          "type": "PageModel<HistoryDTO>",
+          "options": {
+            "withCredentials": "true"
+          },
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "PageModel<HistoryDTO>",
+            "unknownNames": []
+          }
+        }
       },
       "server": {
-        "file": "MercurionWebNode/src/app_modules/mercurion-ai/controllers/mercurion-ai.controller.ts",
+        "controller": "MercurionWebNode/src/app_modules/history/controllers/history.controller.ts",
+        "handler": "getHistory",
+        "line": 23,
+        "verb": "GET",
+        "path": "/api/history",
+        "parameters": [
+          {
+            "source": "query",
+            "name": "page",
+            "optional": false,
+            "defaultValue": "1"
+          },
+          {
+            "source": "query",
+            "name": "limit",
+            "optional": false,
+            "defaultValue": "20"
+          }
+        ],
+        "returnType": "FlatPagination<HistoryDTO>",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "PageModel<HistoryDTO>",
+            "unknownNames": []
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/mercurion-ai.service.ts#MercurionAiService.t1Inference#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/mercurion-ai.service.ts",
+        "class": "MercurionAiService",
+        "method": "t1Inference",
+        "ordinal": 0,
+        "line": 14,
+        "verb": "POST",
+        "path": "/api/mercurion-ai/tox-21/infer",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "expression": "smilesDTO",
+          "type": "SmilesDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "SmilesDTO",
+            "unknownNames": []
+          }
+        },
+        "response": {
+          "type": "Tox21Prediction",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "Tox21Prediction",
+            "unknownNames": []
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/mercurion-ai/controllers/mercurion-ai.controller.ts",
         "handler": "inferTox21Top4Smiles",
         "line": 15,
-        "method": "POST",
-        "path": "/api/mercurion-ai/tox-21/infer"
+        "verb": "POST",
+        "path": "/api/mercurion-ai/tox-21/infer",
+        "parameters": [
+          {
+            "source": "body",
+            "type": "SmilesDTO",
+            "optional": false
+          }
+        ],
+        "returnType": "MercurionInferDataDTO",
+        "successStatus": 201,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
       },
-      "status": "matched"
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": true,
+            "compatible": true,
+            "type": "SmilesDTO",
+            "unknownNames": []
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "Tox21Prediction",
+            "unknownNames": []
+          }
+        }
+      }
     },
     {
-      "id": "MercurionWebNg/src/app/services/rd-kit-api.service.ts:19:50",
-      "client": {
+      "id": "MercurionWebNg/src/app/services/rd-kit-api.service.ts#RdKitApiService.areSameStructure#0",
+      "consumer": {
         "file": "MercurionWebNg/src/app/services/rd-kit-api.service.ts",
-        "line": 19,
-        "method": "POST",
-        "path": "/api/rdkit-api/get-molecule-properties"
-      },
-      "server": {
-        "file": "MercurionWebNode/src/app_modules/mercurion-ai/controllers/rd-kit.controller.ts",
-        "handler": "getMoleculeProperties",
-        "line": 15,
-        "method": "POST",
-        "path": "/api/rdkit-api/get-molecule-properties"
-      },
-      "status": "matched"
-    },
-    {
-      "id": "MercurionWebNg/src/app/services/rd-kit-api.service.ts:25:51",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/rd-kit-api.service.ts",
-        "line": 25,
-        "method": "POST",
-        "path": "/api/rdkit-api/to-canonical-smiles"
-      },
-      "server": {
-        "file": "MercurionWebNode/src/app_modules/mercurion-ai/controllers/rd-kit.controller.ts",
-        "handler": "toCanonicalSmiles",
-        "line": 25,
-        "method": "POST",
-        "path": "/api/rdkit-api/to-canonical-smiles"
-      },
-      "status": "matched"
-    },
-    {
-      "id": "MercurionWebNg/src/app/services/rd-kit-api.service.ts:32:52",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/rd-kit-api.service.ts",
+        "class": "RdKitApiService",
+        "method": "areSameStructure",
+        "ordinal": 0,
         "line": 32,
-        "method": "POST",
-        "path": "/api/rdkit-api/are-same-structure"
+        "verb": "POST",
+        "path": "/api/rdkit-api/are-same-structure",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "expression": "dto",
+          "type": "RdkitAreSameStructureDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "RdkitAreSameStructureDTO",
+            "unknownNames": []
+          }
+        },
+        "response": {
+          "type": "boolean",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "boolean",
+            "unknownNames": []
+          }
+        }
       },
       "server": {
-        "file": "MercurionWebNode/src/app_modules/mercurion-ai/controllers/rd-kit.controller.ts",
+        "controller": "MercurionWebNode/src/app_modules/mercurion-ai/controllers/rd-kit.controller.ts",
         "handler": "areSameStructure",
         "line": 35,
-        "method": "POST",
-        "path": "/api/rdkit-api/are-same-structure"
+        "verb": "POST",
+        "path": "/api/rdkit-api/are-same-structure",
+        "parameters": [
+          {
+            "source": "body",
+            "type": "RdkitAreSameStructureDTO",
+            "optional": false
+          }
+        ],
+        "returnType": "boolean",
+        "successStatus": 201,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
       },
-      "status": "matched"
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": true,
+            "compatible": true,
+            "type": "RdkitAreSameStructureDTO",
+            "unknownNames": []
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "boolean",
+            "unknownNames": []
+          }
+        }
+      }
     },
     {
-      "id": "MercurionWebNg/src/app/services/recovery.service.ts:28:53",
-      "client": {
-        "file": "MercurionWebNg/src/app/services/recovery.service.ts",
-        "line": 28,
-        "method": "POST",
-        "path": "/api/recovery/1"
+      "id": "MercurionWebNg/src/app/services/rd-kit-api.service.ts#RdKitApiService.getMoleculeProperties#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/rd-kit-api.service.ts",
+        "class": "RdKitApiService",
+        "method": "getMoleculeProperties",
+        "ordinal": 0,
+        "line": 19,
+        "verb": "POST",
+        "path": "/api/rdkit-api/get-molecule-properties",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "expression": "dto",
+          "type": "RdkitGetMoleculePropertiesDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "RdkitGetMoleculePropertiesDTO",
+            "unknownNames": []
+          }
+        },
+        "response": {
+          "type": "RdkitGetMoleculePropertiesResult",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "RdkitGetMoleculePropertiesResult",
+            "unknownNames": []
+          }
+        }
       },
       "server": {
-        "file": "MercurionWebNode/src/app_modules/auth/controllers/recovery.controller.ts",
+        "controller": "MercurionWebNode/src/app_modules/mercurion-ai/controllers/rd-kit.controller.ts",
+        "handler": "getMoleculeProperties",
+        "line": 15,
+        "verb": "POST",
+        "path": "/api/rdkit-api/get-molecule-properties",
+        "parameters": [
+          {
+            "source": "body",
+            "type": "RdkitGetMoleculePropertiesDTO",
+            "optional": false
+          }
+        ],
+        "returnType": "RdkitGetMoleculePropertiesResult",
+        "successStatus": 201,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": true,
+            "compatible": true,
+            "type": "RdkitGetMoleculePropertiesDTO",
+            "unknownNames": []
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "RdkitGetMoleculePropertiesResult",
+            "unknownNames": []
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/rd-kit-api.service.ts#RdKitApiService.toCanonicalSmiles#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/rd-kit-api.service.ts",
+        "class": "RdKitApiService",
+        "method": "toCanonicalSmiles",
+        "ordinal": 0,
+        "line": 25,
+        "verb": "POST",
+        "path": "/api/rdkit-api/to-canonical-smiles",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "expression": "dto",
+          "type": "RdkitToCanonicalSmilesDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "RdkitToCanonicalSmilesDTO",
+            "unknownNames": []
+          }
+        },
+        "response": {
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/mercurion-ai/controllers/rd-kit.controller.ts",
+        "handler": "toCanonicalSmiles",
+        "line": 25,
+        "verb": "POST",
+        "path": "/api/rdkit-api/to-canonical-smiles",
+        "parameters": [
+          {
+            "source": "body",
+            "type": "RdkitToCanonicalSmilesDTO",
+            "optional": false
+          }
+        ],
+        "returnType": "string",
+        "successStatus": 201,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": [
+            401,
+            403
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": true,
+            "compatible": true,
+            "type": "RdkitToCanonicalSmilesDTO",
+            "unknownNames": []
+          },
+          "response": {
+            "applicable": false,
+            "compatible": true,
+            "type": null
+          }
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/recovery.service.ts#RecoveryService.accountRecovery_firstStep#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/recovery.service.ts",
+        "class": "RecoveryService",
+        "method": "accountRecovery_firstStep",
+        "ordinal": 0,
+        "line": 28,
+        "verb": "POST",
+        "path": "/api/recovery/1",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "expression": "body",
+          "type": "RecoveryCodeDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "RecoveryCodeDTO",
+            "unknownNames": []
+          }
+        },
+        "response": {
+          "type": "ConfirmWithRecoveryTokenDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmWithRecoveryTokenDTO",
+            "unknownNames": []
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/recovery.controller.ts",
         "handler": "accountRecovery_firstStep",
         "line": 33,
-        "method": "POST",
-        "path": "/api/recovery/1"
+        "verb": "POST",
+        "path": "/api/recovery/1",
+        "parameters": [
+          {
+            "source": "body",
+            "type": "RecoveryCodeDTO",
+            "optional": false
+          }
+        ],
+        "returnType": "ConfirmWithRecoveryTokenDTO",
+        "successStatus": 201,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": []
+        },
+        "authentication": {
+          "public": true,
+          "guards": [
+            "UseGuards(TurnstileGuard)"
+          ],
+          "scopes": []
+        }
       },
-      "status": "matched"
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": true,
+            "compatible": true,
+            "type": "RecoveryCodeDTO",
+            "unknownNames": []
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmWithRecoveryTokenDTO",
+            "unknownNames": []
+          }
+        }
+      }
     },
     {
-      "id": "MercurionWebNg/src/app/services/recovery.service.ts:42:54",
-      "client": {
+      "id": "MercurionWebNg/src/app/services/recovery.service.ts#RecoveryService.accountRecovery_secondStep#0",
+      "consumer": {
         "file": "MercurionWebNg/src/app/services/recovery.service.ts",
+        "class": "RecoveryService",
+        "method": "accountRecovery_secondStep",
+        "ordinal": 0,
         "line": 42,
-        "method": "POST",
-        "path": "/api/recovery/2"
+        "verb": "POST",
+        "path": "/api/recovery/2",
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "expression": "body",
+          "type": "RecoverCredentialsDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "RecoverCredentialsDTO",
+            "unknownNames": []
+          }
+        },
+        "response": {
+          "type": "ConfirmWithRecoveryCodeDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmWithRecoveryCodeDTO",
+            "unknownNames": []
+          }
+        }
       },
       "server": {
-        "file": "MercurionWebNode/src/app_modules/auth/controllers/recovery.controller.ts",
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/recovery.controller.ts",
         "handler": "accountRecovery_second",
         "line": 46,
-        "method": "POST",
-        "path": "/api/recovery/2"
+        "verb": "POST",
+        "path": "/api/recovery/2",
+        "parameters": [
+          {
+            "source": "body",
+            "type": "RecoverCredentialsDTO",
+            "optional": false
+          }
+        ],
+        "returnType": "ConfirmWithRecoveryCodeDTO",
+        "successStatus": 201,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": []
+        },
+        "authentication": {
+          "public": true,
+          "guards": [
+            "UseGuards(TurnstileGuard)"
+          ],
+          "scopes": []
+        }
       },
-      "status": "matched"
+      "matching": {
+        "status": "matched",
+        "path": true,
+        "query": true,
+        "body": true,
+        "canonicalContract": {
+          "request": {
+            "applicable": true,
+            "compatible": true,
+            "type": "RecoverCredentialsDTO",
+            "unknownNames": []
+          },
+          "response": {
+            "applicable": true,
+            "compatible": true,
+            "type": "ConfirmWithRecoveryCodeDTO",
+            "unknownNames": []
+          }
+        }
+      }
     }
   ]
 }

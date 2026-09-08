@@ -20,6 +20,9 @@ const referenceRoots = [
     path.join(root, 'scripts'),
 ];
 const referenceExtension = /\.(ts|html|md|json|conf|mjs)$/;
+const derivedReferenceFiles = new Set([
+    path.join(root, 'docs', 'architecture', 'rest-contract-compatibility.json'),
+]);
 const classifications = new Set([
     'active product feature',
     'browser/system API',
@@ -43,7 +46,7 @@ function referenceKind(file) {
 function createReferenceIndex() {
     return referenceRoots
         .flatMap((referenceRoot) => walk(referenceRoot, (file) => referenceExtension.test(file)))
-        .filter((file) => file !== inventoryPath)
+        .filter((file) => file !== inventoryPath && !derivedReferenceFiles.has(file))
         .sort((left, right) => compareText(relative(left), relative(right)))
         .map((file) => ({ file, relative: relative(file), lines: fs.readFileSync(file, 'utf8').split(/\r?\n/) }));
 }
@@ -87,11 +90,20 @@ function buildExpectedInventory(actual) {
     const prefixConfiguration = readPrefixConfiguration();
     const referenceIndex = createReferenceIndex();
     const existingByKey = new Map((actual?.routes ?? []).map((route) => [routeKey(route), route]));
-    const routes = readRoutes(prefixConfiguration).map((route) => ({
-        ...route,
-        ...ownershipFields(route, existingByKey.get(routeKey(route))),
-        references: routeReferences(route, referenceIndex),
-    }));
+    const routes = readRoutes(prefixConfiguration).map((route) => {
+        const ownershipRoute = {
+            method: route.method,
+            path: route.path,
+            controller: route.controller,
+            handler: route.handler,
+            line: route.line,
+        };
+        return {
+            ...ownershipRoute,
+            ...ownershipFields(ownershipRoute, existingByKey.get(routeKey(route))),
+            references: routeReferences(ownershipRoute, referenceIndex),
+        };
+    });
     return {
         schemaVersion: 2,
         generatedBy: 'node scripts/check-rest-route-ownership.mjs --write',

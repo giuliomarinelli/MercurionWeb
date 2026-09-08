@@ -65,6 +65,59 @@ export function effectivePath(controllerPath, methodPath, prefixConfiguration) {
         : joinPath(prefixConfiguration.prefix, endpointPath);
 }
 
+function typeText(typeNode) {
+    return typeNode ? typeNode.getText() : undefined;
+}
+
+function returnTypeText(typeNode) {
+    if (!typeNode) return undefined;
+    if (ts.isTypeReferenceNode(typeNode) && ts.isIdentifier(typeNode.typeName)
+        && typeNode.typeName.text === 'Promise' && typeNode.typeArguments?.length === 1) {
+        return returnTypeText(typeNode.typeArguments[0]);
+    }
+    return typeNode.getText();
+}
+
+function parameterMetadata(parameter) {
+    const decorators = ts.getDecorators(parameter) ?? [];
+    const metadata = [];
+    for (const decorator of decorators) {
+        const name = decoratorName(decorator);
+        if (!name || !['Param', 'Query', 'Body'].includes(name)) continue;
+        const expression = decorator.expression;
+        const argument = ts.isCallExpression(expression) ? expression.arguments[0] : undefined;
+        metadata.push({
+            source: name.toLowerCase(),
+            name: argument && ts.isStringLiteralLike(argument) ? argument.text : undefined,
+            type: typeText(parameter.type),
+            optional: Boolean(parameter.questionToken),
+            defaultValue: parameter.initializer ? parameter.initializer.getText() : undefined,
+        });
+    }
+    return metadata;
+}
+
+function handlerMetadata(member) {
+    const decorators = ts.getDecorators(member) ?? [];
+    const httpCode = decorators.find((decorator) => decoratorName(decorator) === 'HttpCode');
+    const httpCodeExpression = httpCode?.expression;
+    const httpCodeArgument = httpCodeExpression && ts.isCallExpression(httpCodeExpression)
+        ? httpCodeExpression.arguments[0]
+        : undefined;
+    const guards = decorators.filter((decorator) => decoratorName(decorator) === 'UseGuards')
+        .map((decorator) => decorator.expression.getText());
+    const scopes = decorators.filter((decorator) => decoratorName(decorator) === 'HasScopes')
+        .map((decorator) => decorator.expression.getText());
+    return {
+        returnType: returnTypeText(member.type),
+        successStatus: httpCodeArgument && ts.isNumericLiteral(httpCodeArgument) ? Number(httpCodeArgument.text) : undefined,
+        public: decorators.some((decorator) => decoratorName(decorator) === 'Public'),
+        guards,
+        scopes,
+        parameters: member.parameters.flatMap(parameterMetadata),
+    };
+}
+
 export function readRoutes(prefixConfiguration) {
     return walk(controllerRoot, (file) => file.endsWith('.controller.ts')).flatMap((file) => {
         const sourceText = fs.readFileSync(file, 'utf8');
@@ -97,6 +150,7 @@ export function readRoutes(prefixConfiguration) {
                         controller: relative(file),
                         handler: member.name.text,
                         line: location.line + 1,
+                        ...handlerMetadata(member),
                     });
                 }
             }
