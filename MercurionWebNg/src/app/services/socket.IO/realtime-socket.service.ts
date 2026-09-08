@@ -93,7 +93,7 @@ export class RealtimeSocketService {
       await this.ensureFreshToken(true); // <-- FORZA refresh
       const tok = this.auth.getWs_accessToken();
       if (tok && !this.jwt.isTokenExpired(tok)) {
-        this.socket.auth = { token: tok };
+        this.socket.auth = { token: tok, contractMajor: SOCKET_CONTRACT_MAJOR };
         this.lastAuthTokenSent = tok;
       }
     });

@@ -11,49 +11,70 @@ import {
     getApplicationError,
     getApplicationErrorMessage
 } from './exception-handling/application-error'
-import { getApplicationErrorDefinition, isApplicationErrorEnvelopeCode, negotiateContractMajor, contractVersionDetails, CONTRACT_VERSION_HEADER } from '@mercurion/rest-contracts'
+import {
+    CONTRACT_VERSION_HEADER,
+    PUBLIC_CONTRACT_VERSION_METADATA,
+    contractVersionDetails,
+    contractVersionWarning,
+    getApplicationErrorDefinition,
+    isApplicationErrorEnvelopeCode,
+    negotiateContractMajor,
+    type ContractVersionSelection
+} from '@mercurion/rest-contracts'
 import {
     createApplicationErrorEnvelope,
     createCorrelationId,
     createGraphQLErrorExtensions
 } from './exception-handling/application-error-envelope'
+import { applyContractVersionResponseHeaders } from './contracts/contract-versioning-http'
 
-export const MercurionGraphQLModule = GraphQLModule.forRootAsync<MercuriusDriverConfig>({
-    driver: MercuriusDriver,
-    imports: [ConfigModule],
-    inject: [ConfigService],
-    useFactory: (config: ConfigService): MercuriusDriverConfig => {
+interface MercurionGraphQLContext {
+    request: FastifyRequest
+    reply: FastifyReply
+    contractVersion: ContractVersionSelection
+}
 
-        const env = config.get<Environment>('App.env')!
-        const isNotDev = env !== Environment.Development
+export function createContractVersionGraphQLError(
+    selection: ContractVersionSelection
+): GraphQLError | undefined {
+    if (selection.kind !== 'invalid' && selection.kind !== 'unsupported') return undefined
 
-        return {
+    return new GraphQLError(
+        selection.kind === 'invalid'
+            ? 'Invalid contract major version'
+            : 'Unsupported contract major version',
+        { extensions: { code: selection.code, details: contractVersionDetails(selection) } }
+    )
+}
+
+export function createMercurionGraphQLConfig(config: ConfigService): MercuriusDriverConfig {
+    const env = config.get<Environment>('App.env')!
+    const isNotDev = env !== Environment.Development
+
+    return {
             driver: MercuriusDriver,
             autoSchemaFile: join(process.cwd(), 'src', 'schema.graphql'),
             sortSchema: true,
             buildSchemaOptions: {
                 addNewlineAtEnd: true,
             },
-            path: '/api/graphql',
+            path: PUBLIC_CONTRACT_VERSION_METADATA.graphql.endpoint,
             graphiql: !isNotDev,
 
             context: (request: FastifyRequest, reply: FastifyReply) => {
                 const selection = negotiateContractMajor(request.headers[CONTRACT_VERSION_HEADER])
-                const details = selection.kind === 'invalid'
-                    ? { currentMajor: 1, supportedMajorRange: { minimum: 1, maximum: 1 } }
-                    : contractVersionDetails(selection)
-                reply.header('X-Mercurion-Contract-Current-Major', '1')
-                reply.header('X-Mercurion-Contract-Supported-Range', '1-1')
-                if (selection.kind === 'legacy-unversioned') {
-                    reply.header('Warning', '299 - "legacy-unversioned contract; explicit major required"')
-                }
-                if (selection.kind === 'invalid' || selection.kind === 'unsupported') {
-                    throw new GraphQLError(
-                        selection.code === 'CONTRACT_VERSION_INVALID' ? 'Invalid contract major version' : 'Unsupported contract major version',
-                        { extensions: { code: selection.code, details } }
-                    )
-                }
+                applyContractVersionResponseHeaders(reply)
+                const warning = contractVersionWarning(selection)
+                if (warning) reply.header('Warning', warning)
                 return { request, reply, contractVersion: selection }
+            },
+
+            hooks: {
+                preExecution: (_schema, _document, context) => {
+                    const selection = (context as unknown as MercurionGraphQLContext).contractVersion
+                    const error = createContractVersionGraphQLError(selection)
+                    if (error) throw error
+                }
             },
 
             resolvers: { JSON: GraphQLJSON },
@@ -192,6 +213,10 @@ export const MercurionGraphQLModule = GraphQLModule.forRootAsync<MercuriusDriver
                         isProduction: isNotDev
                     })
 
+                    if (code === 'CONTRACT_VERSION_INVALID' || code === 'CONTRACT_VERSION_UNSUPPORTED') {
+                        ctx.reply.statusCode = 200
+                    }
+
                     return {
                         message: envelope.message,
                         path: err.path,
@@ -207,6 +232,12 @@ export const MercurionGraphQLModule = GraphQLModule.forRootAsync<MercuriusDriver
                     },
                 }
             },
-        }
-    },
+    }
+}
+
+export const MercurionGraphQLModule = GraphQLModule.forRootAsync<MercuriusDriverConfig>({
+    driver: MercuriusDriver,
+    imports: [ConfigModule],
+    inject: [ConfigService],
+    useFactory: createMercurionGraphQLConfig,
 })

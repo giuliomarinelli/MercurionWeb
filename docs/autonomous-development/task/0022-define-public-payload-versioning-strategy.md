@@ -1,7 +1,7 @@
 # 0022 - Define public payload versioning strategy
 
-- [ ] DONE
-- [x] BLOCKED
+- [x] DONE
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -59,12 +59,12 @@ After a human-approved compatibility policy is available:
 
 ## Acceptance criteria
 
-- [ ] A versioning/deprecation policy is explicit, version-controlled and covers REST, GraphQL and Socket.IO.
-- [ ] Every incompatible public contract change has a deterministic migration/version path under that policy.
-- [ ] Client/server supported compatibility is machine-verifiable where required by the chosen mechanism.
-- [ ] Representative unsupported/deprecated-version behaviour is tested.
-- [ ] Canonical contract tooling exposes/validates version metadata without a separate drifting source of truth.
-- [ ] Angular/Nest builds and affected tests pass.
+- [x] A versioning/deprecation policy is explicit, version-controlled and covers REST, GraphQL and Socket.IO.
+- [x] Every incompatible public contract change has a deterministic migration/version path under that policy.
+- [x] Client/server supported compatibility is machine-verifiable where required by the chosen mechanism.
+- [x] Representative unsupported/deprecated-version behaviour is tested.
+- [x] Canonical contract tooling exposes/validates version metadata without a separate drifting source of truth.
+- [x] Angular/Nest builds and affected tests pass.
 
 ## Validation
 
@@ -97,11 +97,25 @@ Treat GraphQL deprecation/directive/schema evolution according to GraphQL semant
 
 ### Summary
 
-Implemented the human-approved SYS-022 policy on the previously empty,
-up-to-date `feature/SYS-022` branch. The policy uses positive integer wire
-majors, current major 1, and supported range 1-1. REST keeps existing `/api`
-paths as major 1; GraphQL remains `/api/graphql` and uses a central Apollo
+Implemented and remediated the human-approved SYS-022 policy on
+`feature/SYS-022`. The policy uses positive integer wire majors, current major
+1, and supported range 1-1. REST keeps existing URL-and-method contracts under
+`/api/...` as major 1; GraphQL remains `/api/graphql` and uses a central Apollo
 header link; Socket.IO uses a central typed `contractMajor` handshake field.
+
+The rollout rule is now explicit and reversible: compatibility, observation,
+migration-complete approval, and required-declaration phases. Enforcement may
+advance only after all known maintained consumers declare a supported major,
+their owners acknowledge migration, tests are green, and Giulio Marinelli or a
+recorded delegate approves the version-controlled change. Unknown or
+unversioned consumers block advancement; rollback restores fallback plus safe
+warnings without reinterpreting the legacy REST path.
+
+The remediation also excludes GraphQL from the global REST hook, centralizes
+response header names/range formatting/warnings in the canonical package,
+formats unsupported GraphQL majors as GraphQL errors instead of generic HTTP
+500 responses, exercises a real deprecation fixture, and preserves
+`contractMajor` during Socket.IO authentication retry.
 
 ### Validation performed
 
@@ -114,31 +128,47 @@ header link; Socket.IO uses a central typed `contractMajor` handshake field.
   source. Package, REST, GraphQL, and Socket.IO sources were inspected.
 - `npm run build --workspace @mercurion/rest-contracts` passed.
 - `npm run build --workspace @mercurion/socket-contracts` passed.
-- Targeted contract tests passed: 2 suites, 7 tests.
-- `npm run ci:contracts` passed: 7 suites, 34 tests.
+- Targeted remediation tests passed: 4 suites, 15 tests.
+- `npm run ci:contracts` passed: 8 suites, 38 tests.
 - `npm run ci:graphql` passed.
 - `npm run ci:socket-contracts` passed, including policy negatives.
 - `npm run ci:rest-compatibility` passed: 58/58 matches and all six negative
   probes.
 - Final clean-install `npm ci` passed with 0 vulnerabilities, followed by a
-  complete `npm run ci:check` pass (Angular/Nest tests and builds, E2E,
-  GraphQL, and all static/contract gates).
+  complete `npm run ci:check` pass: 303 Angular tests, 130 Nest suites/230
+  tests, Nest E2E, Angular/Nest builds, GraphQL, and all static/contract gates.
 - `git diff --check` passed after ordinary whitespace correction.
 
-The runtime negotiation tests cover current, legacy-unversioned, malformed,
-ambiguous, and unsupported selections. Socket.IO connection middleware emits
-machine-readable `connect_error.data`; REST emits the canonical 400 envelope
-for versioned path errors and safe response metadata; GraphQL emits the
-canonical error code through `extensions.code` and response metadata.
+The tests cover current, legacy-unversioned, malformed, ambiguous, unsupported,
+and deprecated selections. Transport-level tests verify the REST hook,
+GraphQL context/hook/formatter, and Socket.IO connection middleware.
 
 ### Browser validation performed
 
-Not available. The task's acceptance evidence is deterministic package/runtime,
-static contract, GraphQL, Socket.IO, REST, compiler, and negative-probe
-validation, but the approved header/path/handshake strategy additionally
-requires Chrome DevTools evidence through `http://localhost:8888`. This
-session exposes no browser to the worker (`cua.getState()` returned
-`browsers: []`), so no browser result is claimed.
+Completed through the existing authenticated non-production Chrome extension
+session at `http://localhost:8888`; the protected dashboard displayed the
+identity marker `Profilo di Giulio Marinelli`, `Benvenuto Giulio`, and live
+workspace counts, with no browser console errors.
+
+- REST legacy traffic disclosed current major `1`, range `1-1`, and the `299`
+  migration warning; `/api/v2/account/current-version` returned HTTP 400 with
+  `CONTRACT_VERSION_UNSUPPORTED` and the canonical envelope.
+- GraphQL with header major `1` returned HTTP 200, current major `1`, range
+  `1-1`, no warning, and `{ __typename: "Query" }`. A missing header returned
+  the compatibility warning. Major `2` returned HTTP 200 with a GraphQL error
+  whose extensions contain `CONTRACT_VERSION_UNSUPPORTED`, application status
+  400, selected major, current major, and supported range; it did not receive
+  the REST legacy warning.
+- Socket.IO with handshake `contractMajor: 1` connected. Major `2` was rejected
+  with `connect_error.data` containing the canonical unsupported-version code,
+  status, and details. The authenticated Angular socket connected without a
+  legacy-version warning, confirming that the maintained client declares its
+  major.
+
+No separate Playwright browser or profile was used: the Chrome extension
+attached to the existing authenticated session supplied the browser evidence,
+while deterministic same-origin protocol probes captured the raw response
+metadata and Socket.IO handshake result.
 
 ### Changed files
 
@@ -149,9 +179,13 @@ session exposes no browser to the worker (`cua.getState()` returned
 - `MercurionWebNg/src/app/app.config.ts`
 - `MercurionWebNg/src/app/services/socket.IO/realtime-socket.service.ts`
 - `MercurionWebNode/src/mercurion-graphql.module.ts`
+- `MercurionWebNode/src/mercurion-graphql.module.spec.ts`
 - `MercurionWebNode/src/app_modules/socket.io/socket.io.gateway.ts`
+- `MercurionWebNode/src/app_modules/socket.io/socket.io.gateway.spec.ts`
 - `MercurionWebNode/src/main.ts`
 - `MercurionWebNode/src/contracts/contract-versioning-runtime.spec.ts`
+- `MercurionWebNode/src/contracts/contract-versioning-http.ts`
+- `MercurionWebNode/src/contracts/contract-versioning-http.spec.ts`
 - `docs/architecture/public-payload-versioning-policy.md`
 - `docs/architecture/rest-route-ownership.json` (deterministic line-reference
   regeneration for the changed Nest bootstrap)
@@ -159,18 +193,8 @@ session exposes no browser to the worker (`cua.getState()` returned
 
 ### Rollback / residual risk
 
-Rollback is an ordinary revert of the task commit; no history rewrite is
+Rollback is an ordinary revert of the task merge; no history rewrite is
 required. The implementation does not introduce a future major, deprecate
-major 1, deploy, or remove the legacy fallback. Exact feature-SHA CI and
-post-merge CI remain coordinator-owned. The implementation branch is preserved
-and frozen pending human-assisted browser validation.
-
-### Blocker / next human action
-
-The browser capability was unavailable after implementation had started, so
-the task is `BLOCKED` under the ordinary validation rule. Run the canonical
-non-production runtime and capture representative REST, GraphQL, and
-Socket.IO traffic plus response metadata through Chrome DevTools at
-`http://localhost:8888`, then re-enable this recipe in a new authorized
-session. Do not merge this branch before that evidence and exact feature-SHA
-CI are available.
+major 1, deploy, enable required declarations, or remove the compatibility
+fallback. Exact feature-SHA and post-merge CI remain mandatory before the
+`DONE` outcome becomes final.

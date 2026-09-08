@@ -1,5 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { SocketIOGateway } from './socket.io.gateway';
+import {
+  SocketIOGateway,
+  createSocketContractVersionMiddleware
+} from './socket.io.gateway';
 import { PubSubService } from '../redis/services/pub-sub.service';
 import { WsGuard } from './guards/ws.guard';
 import { JwtToolsService } from 'src/app_modules/auth/services/jwt-tools.service';
@@ -35,4 +38,57 @@ describe('SocketGateway', () => {
   it('should create the gateway with required services', () => {
     expect(gateway).toBeInstanceOf(SocketIOGateway);
   });
+
+  it('accepts and records the declared Socket.IO contract major', () => {
+    const logger = { warn: jest.fn() }
+    const middleware = createSocketContractVersionMiddleware(logger)
+    const client = {
+      id: 'socket-supported',
+      handshake: { auth: { contractMajor: 1 } },
+      data: {}
+    }
+    const next = jest.fn()
+
+    middleware(client as never, next)
+
+    expect(client.data).toEqual({ contractMajor: 1 })
+    expect(next).toHaveBeenCalledWith()
+    expect(logger.warn).not.toHaveBeenCalled()
+  })
+
+  it('rejects an unsupported Socket.IO contract major with connect-error data', () => {
+    const middleware = createSocketContractVersionMiddleware({ warn: jest.fn() })
+    let receivedError: (Error & { data?: unknown }) | undefined
+    const next = (error?: Error) => {
+      receivedError = error
+    }
+
+    middleware({
+      id: 'socket-unsupported',
+      handshake: { auth: { contractMajor: 2 } },
+      data: {}
+    } as never, next)
+
+    expect(receivedError?.message).toBe('Unsupported contract major version')
+    expect(receivedError?.data).toMatchObject({
+      code: 'CONTRACT_VERSION_UNSUPPORTED',
+      status: 400,
+      details: { selectedMajor: 2, currentMajor: 1 }
+    })
+  })
+
+  it('warns while accepting a missing Socket.IO contract declaration during rollout', () => {
+    const logger = { warn: jest.fn() }
+    const middleware = createSocketContractVersionMiddleware(logger)
+    const next = jest.fn()
+
+    middleware({
+      id: 'socket-legacy',
+      handshake: { auth: {} },
+      data: {}
+    } as never, next)
+
+    expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('legacy-unversioned'))
+    expect(next).toHaveBeenCalledWith()
+  })
 });

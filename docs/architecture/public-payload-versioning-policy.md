@@ -38,6 +38,50 @@ canonical response headers where the transport permits it. Version errors
 include the selected major when available and never include credentials,
 tokens, or application data.
 
+## Rollout for already-distributed clients
+
+Rollout is phased and fail-safe; publishing a new build alone never advances a
+phase.
+
+1. **Compatibility phase.** Existing `/api/...` URL-and-method pairs continue
+   to select major 1. Missing GraphQL headers and Socket.IO handshake fields
+   temporarily fall back to major 1 and emit a `299` diagnostic warning. New
+   maintained Angular builds must declare major 1 in the Apollo header and
+   Socket.IO handshake immediately.
+2. **Observation phase.** Operators measure only the transport, selected major,
+   known consumer identifier where already available, and warning count. They
+   do not log tokens or payloads. The known-consumer register and migration
+   documentation are updated from that evidence; an unknown or still-unversioned
+   consumer prevents enforcement from advancing.
+3. **Migration-complete decision.** Every known maintained client must declare a
+   supported major, representative compatibility and negative tests must be
+   green, and its owner must acknowledge the migration. Giulio Marinelli or an
+   explicitly recorded delegate then approves a version-controlled enforcement
+   change. CI success or elapsed time is not approval.
+4. **Required-declaration phase.** After that approval, a missing GraphQL header
+   or Socket.IO handshake field returns `CONTRACT_VERSION_REQUIRED` through the
+   transport-specific error mechanism. The historical REST `/api/...`
+   URL-and-method contract remains an explicit major-1 selection while major 1
+   is supported; it is never reinterpreted as the current major.
+
+The enforcement change must be independently reversible to the compatibility
+phase without changing any payload schema or reinterpreting a REST path. A
+rollback restores fallback-plus-warning while consumer evidence is corrected.
+
+## Consumers and disclosure obligations
+
+The repository currently confirms the maintained Angular application as the
+only application consumer. No separately owned external consumer is documented.
+This absence is not evidence that none exists: discovery of one adds it to the
+known-consumer register and blocks removal or required-declaration enforcement
+until its owner and guarantees are recorded.
+
+Canonical machine-readable metadata is exported from
+`@mercurion/rest-contracts` and extended by `@mercurion/socket-contracts`.
+HTTP responses disclose the current major and supported inclusive range through
+the canonical response-header names. Documentation and tests consume those same
+exports; they must not maintain another numeric version table.
+
 ## Evolution and removal
 
 Additive endpoints, operations, events, optional request fields, ignorable
@@ -50,6 +94,10 @@ automatically compatible if it changes supported consumer semantics.
 Deprecation metadata belongs beside the canonical transport contract and
 contains `deprecatedInMajor`, `reason`, `deprecatedAt` (ISO 8601 UTC), optional
 `replacement`, `removeNoEarlierThanMajor`, and `approvalAuthority`.
+REST and GraphQL return a `299` warning containing the selected deprecated major
+and safe reason. Socket.IO accepts the connection and records the equivalent
+server diagnostic warning; unsupported majors remain connection errors rather
+than deprecation warnings.
 
 Major N remains supported for the entire life of N+1 and cannot be removed
 before N+2 is introduced. Removal additionally requires consumer verification,
@@ -70,6 +118,6 @@ or a new build does not authorize removal.
 5. Deprecate the old major with all required metadata; do not silently alter
    its payloads.
 6. Remove the old major only after the N+2 rule and explicit approval are met.
-   At that point absent GraphQL/Socket.IO declarations return
-   `CONTRACT_VERSION_REQUIRED`; the historical `/api/...` path is not
-   reinterpreted as another major.
+   Required declarations may be enabled only through the separately approved
+   rollout phase above; the historical `/api/...` path is not reinterpreted as
+   another major.
