@@ -137,11 +137,10 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
       })
     ).subscribe({
       next: (res) => {
-        this.authState.completeAuthentication({
+        this.authState.activateAuthenticatedSession({
           initials: res.initials ?? 'U',
           accessToken: res.accessToken,
-          wsAccessToken: res.ws_accessToken,
-          scopes: res.accessToken ? this.authService.getUserScopesFromClaims(res.accessToken) : []
+          wsAccessToken: res.ws_accessToken
         })
         this.sessionSync.resumeSession(res.initials ?? 'U')
         const redirect = this.persistence.getRedirectState() || '/dashboard'

@@ -4125,7 +4125,7 @@
         "class": "AuthService",
         "method": "isUserAvailableByEmail",
         "ordinal": 0,
-        "line": 143,
+        "line": 141,
         "verb": "POST",
         "path": "/api/account/is-email-available",
         "urlVariants": [
@@ -4260,7 +4260,7 @@
         "class": "AuthService",
         "method": "login_firstStep",
         "ordinal": 0,
-        "line": 159,
+        "line": 157,
         "verb": "POST",
         "path": "/api/authentication/login/1",
         "urlVariants": [
@@ -4429,7 +4429,7 @@
         "class": "AuthService",
         "method": "login_secondStep",
         "ordinal": 0,
-        "line": 178,
+        "line": 169,
         "verb": "POST",
         "path": "/api/authentication/login/:strategy/2",
         "urlVariants": [
@@ -4580,7 +4580,7 @@
         "class": "AuthService",
         "method": "login_stepZero",
         "ordinal": 0,
-        "line": 151,
+        "line": 149,
         "verb": "POST",
         "path": "/api/authentication/login/0",
         "urlVariants": [
@@ -4723,7 +4723,7 @@
         "class": "AuthService",
         "method": "login_thirdStep",
         "ordinal": 0,
-        "line": 203,
+        "line": 194,
         "verb": "POST",
         "path": "/api/authentication/login/:strategy/3",
         "urlVariants": [
@@ -4903,7 +4903,7 @@
         "class": "AuthService",
         "method": "logout",
         "ordinal": 0,
-        "line": 227,
+        "line": 211,
         "verb": "DELETE",
         "path": "/api/authentication/logout",
         "urlVariants": [
@@ -5004,7 +5004,7 @@
         "class": "AuthService",
         "method": "logoutFromAllSessions",
         "ordinal": 0,
-        "line": 405,
+        "line": 389,
         "verb": "PATCH",
         "path": "/api/authentication/logout-from-all-sessions",
         "urlVariants": [
@@ -5115,7 +5115,7 @@
         "class": "AuthService",
         "method": "logoutFromSession",
         "ordinal": 0,
-        "line": 394,
+        "line": 378,
         "verb": "PATCH",
         "path": "/api/authentication/logout-from-session",
         "urlVariants": [
@@ -5258,7 +5258,7 @@
         "class": "AuthService",
         "method": "refreshWs_accessToken",
         "ordinal": 0,
-        "line": 236,
+        "line": 220,
         "verb": "GET",
         "path": "/api/authentication/ws-refresh",
         "urlVariants": [
@@ -5362,7 +5362,7 @@
         "class": "AuthService",
         "method": "registerUser",
         "ordinal": 0,
-        "line": 133,
+        "line": 131,
         "verb": "POST",
         "path": "/api/account/register",
         "urlVariants": [
@@ -5552,7 +5552,7 @@
         "class": "AuthService",
         "method": "skipMaintenanceMode",
         "ordinal": 0,
-        "line": 425,
+        "line": 409,
         "verb": "GET",
         "path": "/api/admin/maintenance",
         "urlVariants": [
@@ -5679,7 +5679,7 @@
         "class": "AuthService",
         "method": "sso_authorizeFlow",
         "ordinal": 0,
-        "line": 414,
+        "line": 398,
         "verb": "POST",
         "path": "/api/authentication/sso/:provider/authorize-flow",
         "urlVariants": [

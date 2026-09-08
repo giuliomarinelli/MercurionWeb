@@ -389,11 +389,6 @@ export class LoginPageComponent implements OnInit, OnDestroy {
     this.secondStepSubscription?.unsubscribe()
     this.secondStepSubscription = of(null).pipe(
       takeUntilDestroyed(this.destroyRef),
-      switchMap(() => {
-        this.authService.logout()
-        this.persistence.removeLoginMarkers()
-        return of(null)
-      }),
       switchMap(() => this.authService.login_firstStep(dto)),
       finalize(() => this.loadingLogin.set(false))
     ).subscribe({
@@ -421,11 +416,10 @@ export class LoginPageComponent implements OnInit, OnDestroy {
           return
         }
 
-        this.authState.completeAuthentication({
+        this.authState.activateAuthenticatedSession({
           initials: res.initials ?? 'U',
           accessToken: res.accessToken,
-          wsAccessToken: res.ws_accessToken,
-          scopes: res.accessToken ? this.authService.getUserScopesFromClaims(res.accessToken) : []
+          wsAccessToken: res.ws_accessToken
         })
         this.sessionSync.resumeSession(res.initials ?? 'U')
         this.redirectAfterLogin()

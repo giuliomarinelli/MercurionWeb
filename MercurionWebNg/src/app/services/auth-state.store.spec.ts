@@ -8,6 +8,10 @@ import {
 
 describe('AuthStateStore', () => {
   let store: AuthStateStore
+  const tokenWithScopes = (scopes?: string) => {
+    const payload = btoa(JSON.stringify(scopes === undefined ? {} : { scp: scopes }))
+    return `header.${payload}.signature`
+  }
 
   beforeEach(() => {
     localStorage.clear()
@@ -43,17 +47,16 @@ describe('AuthStateStore', () => {
     store.enterPreAuthentication('pre-auth-token')
     store.completeAuthentication({
       initials: 'AB',
-      accessToken: 'access',
-      wsAccessToken: 'ws',
-      scopes: ['read']
+      accessToken: tokenWithScopes('read write'),
+      wsAccessToken: 'ws'
     })
 
     expect(store.state()).toEqual({
       kind: 'authenticated',
       initials: 'AB',
-      accessToken: 'access',
+      accessToken: tokenWithScopes('read write'),
       wsAccessToken: 'ws',
-      scopes: ['read']
+      scopes: ['read', 'write']
     })
     expect(store.initials()).toBe('AB')
     expect(store.sessionProtocol()).toEqual({
@@ -138,6 +141,38 @@ describe('AuthStateStore', () => {
     store.invalidate(SessionInvalidationCause.SessionRevoked)
 
     expect(store.authenticated()).toBeFalse()
+  })
+
+  it('derives scopes once from each accepted access token and replaces an old user scope set', () => {
+    store.bootstrap()
+    store.beginAuthentication('password')
+    store.activateAuthenticatedSession({
+      initials: 'AB',
+      accessToken: tokenWithScopes('read write')
+    })
+    expect(store.state()).toEqual(jasmine.objectContaining({ scopes: ['read', 'write'] }))
+
+    store.beginAuthentication('password')
+    store.activateAuthenticatedSession({
+      initials: 'CD',
+      accessToken: tokenWithScopes()
+    })
+    expect(store.state()).toEqual(jasmine.objectContaining({ initials: 'CD', scopes: [] }))
+    expect(store.getCachedScopes()).toEqual([])
+  })
+
+  it('clears scopes on logout after a completed login', () => {
+    store.bootstrap()
+    store.beginAuthentication('password')
+    store.activateAuthenticatedSession({
+      initials: 'AB',
+      accessToken: tokenWithScopes('admin')
+    })
+
+    store.logout()
+
+    expect(store.state()).toEqual({ kind: 'anonymous' })
+    expect(store.getCachedScopes()).toBeNull()
   })
 
   it('rejects illegal transitions', () => {
