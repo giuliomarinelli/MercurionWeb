@@ -28,6 +28,15 @@ describe('AuthStateStore', () => {
     expect(store.isAuthenticating()).toBeTrue()
   })
 
+  it('does not authenticate from initials, cookie, or token in isolation', () => {
+    localStorage.setItem('login', 'AB')
+    document.cookie = '__logged_in=true; path=/'
+    localStorage.setItem('accessToken', 'token-only')
+
+    expect(store.bootstrap()).toEqual({ kind: 'authenticating', flow: 'restore' })
+    expect(store.authenticated()).toBeFalse()
+  })
+
   it('completes login and exposes derived authenticated state', () => {
     store.bootstrap()
     store.beginAuthentication('password')
@@ -81,7 +90,7 @@ describe('AuthStateStore', () => {
 
     store.completeAuthentication({ initials: 'AB', accessToken: 'a', wsAccessToken: 'w' })
     store.invalidate(SessionInvalidationCause.SessionExpired)
-    expect(store.isAuthenticated()).toBeFalse()
+    expect(store.authenticated()).toBeFalse()
     expect(store.state().kind).toBe('session-expired')
 
     store.logout()
@@ -108,6 +117,27 @@ describe('AuthStateStore', () => {
 
     expect(store.state()).toEqual(jasmine.objectContaining({ kind: 'authenticated', accessToken: 'new' }))
     expect(store.sessionProtocol().state).toBe(SessionState.Authenticated)
+  })
+
+  it('rejects an expired access token from the authenticated selector', () => {
+    store.bootstrap()
+    store.beginAuthentication('password')
+    const payload = btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) - 1 }))
+    store.completeAuthentication({
+      initials: 'AB',
+      accessToken: `header.${payload}.signature`
+    })
+
+    expect(store.authenticated()).toBeFalse()
+  })
+
+  it('rejects authenticated state after explicit protocol invalidation', () => {
+    store.bootstrap()
+    store.beginAuthentication('password')
+    store.completeAuthentication({ initials: 'AB' })
+    store.invalidate(SessionInvalidationCause.SessionRevoked)
+
+    expect(store.authenticated()).toBeFalse()
   })
 
   it('rejects illegal transitions', () => {

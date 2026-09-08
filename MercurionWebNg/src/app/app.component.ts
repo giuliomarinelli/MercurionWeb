@@ -62,7 +62,7 @@ import { ToastComponent } from './components/common/toast/toast.component'
           [triggerOpenOffCanvas]="_triggerOpenOffCanvas()"
           (onOffCanvasMenuOpen)="triggerOpenOffCanvas()" />
         <div class="drawer-container relative flex flex-1 overflow-hidden custom-scrollbar">
-          @if (authState.isAuthenticated() && design.minBk('xl')()) {
+          @if (authState.authenticated() && design.minBk('xl')()) {
             <div class="absolute top-4 left-[10px] z-30 group">
               <button class="cursor-pointer hover:transform hover:scale-[1.05] transition-transform duration-300" (click)="sidenavContext.toggle()" aria-label="Sidebar">
                 @if (sidenavContext.isVisible()) {
@@ -91,7 +91,7 @@ import { ToastComponent } from './components/common/toast/toast.component'
               </span>
             </div>
           }
-          @if (sidenavContext.isMounted() && authState.isAuthenticated() && design.minBk('xl')()) {
+          @if (sidenavContext.isMounted() && authState.authenticated() && design.minBk('xl')()) {
             <aside
               class="drawer absolute inset-y-0 left-0 w-64
                 transition-transform duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]
@@ -103,7 +103,7 @@ import { ToastComponent } from './components/common/toast/toast.component'
           }
           <section #scrollHost
             class="content flex flex-col flex-1 overflow-y-auto transition-[margin] duration-500 m-scroll-thin"
-            [class.ml-64]="sidenavContext.isOpen() && authState.isAuthenticated() && design.minBk('xl')()">
+            [class.ml-64]="sidenavContext.isOpen() && authState.authenticated() && design.minBk('xl')()">
             <main class="flex-1 p-4 block">
               <router-outlet />
             </main>
@@ -116,7 +116,7 @@ import { ToastComponent } from './components/common/toast/toast.component'
           <m-search-overlay />
         }
       }
-      @if (saveOverlayContext.shouldMount() && authState.isAuthenticated()) {
+      @if (saveOverlayContext.shouldMount() && authState.authenticated()) {
         @defer (when saveOverlayContext.shouldMount()) {
           <m-action-overlay />
         }
@@ -281,7 +281,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         if (!this.firstNavigationDone()) this.firstNavigationDone.set(true)
         queueMicrotask(() => this.ensureScrollRootRef())
 
-        if (this.authState.isAuthenticated() && isLoginFamily(url)) {
+        if (this.authState.authenticated() && isLoginFamily(url)) {
           const target = resolveLoginRedirectTarget() ?? '/dashboard'
           if (target !== this.router.url) this.router.navigateByUrl(target)
         }
@@ -296,7 +296,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         return
       }
 
-      const logged = this.authState.isAuthenticated()
+      const logged = this.authState.authenticated()
       const status = this.sessionSync.status()
       const url = this.currentPath().toLowerCase()
 
@@ -356,7 +356,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async ngOnInit() {
-    if (this.authState.isAuthenticated()) {
+    if (this.authState.authenticated()) {
       this.emailSub = this.accountService.getProvidedEmail(true).subscribe()
     }
   }

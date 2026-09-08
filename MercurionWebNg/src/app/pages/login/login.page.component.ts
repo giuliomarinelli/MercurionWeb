@@ -528,7 +528,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
 
       const hasLogin = !!localStorage.getItem(this.loginKey)
       if (!hasLogin) return
-      if (!this.authState.isAuthenticated()) return
+      if (!this.authState.authenticated()) return
 
       this.redirectAfterLogin()
     }, 1500)

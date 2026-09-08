@@ -37,12 +37,27 @@ export interface AuthCompletion {
 export class AuthStateStore {
   private readonly stateSignal = signal<AuthState>({ kind: 'bootstrap' })
   private readonly protocolSignal = signal<SessionProtocolSnapshot>(INITIAL_SESSION_PROTOCOL)
+  private readonly expiryTick = signal(0)
+  private expiryTimer?: ReturnType<typeof setTimeout>
 
   readonly state = this.stateSignal.asReadonly()
   /** Canonical validity/connection state shared with Nest. */
   readonly sessionProtocol = this.protocolSignal.asReadonly()
   readonly kind = computed(() => this.state().kind)
-  readonly isAuthenticated = computed(() => this.state().kind === 'authenticated')
+  /**
+   * The only semantic authentication predicate exposed to Angular consumers.
+   * Persistence markers are restore hints; only an authenticated state backed
+   * by the canonical session protocol can satisfy this selector.
+   */
+  readonly authenticated = computed(() => {
+    this.expiryTick()
+    const state = this.state()
+    return state.kind === 'authenticated' &&
+      this.sessionProtocol().state === 'authenticated' &&
+      !this.isExpired(state.accessToken)
+  })
+  /** Compatibility name for code that has not yet migrated to `authenticated`. */
+  readonly isAuthenticated = this.authenticated
   readonly isAnonymous = computed(() => this.state().kind === 'anonymous')
   readonly isAuthenticating = computed(() => this.state().kind === 'authenticating')
   readonly isPreAuth = computed(() => this.state().kind === 'pre-auth')
@@ -101,6 +116,7 @@ export class AuthStateStore {
     this.setCachedScopes(scopes)
     this.stateSignal.set(next)
     this.applyProtocol(SessionTransition.AuthenticationSucceeded)
+    this.scheduleExpiry(accessToken)
   }
 
   updateAccessToken(token: string | null): void {
@@ -109,6 +125,7 @@ export class AuthStateStore {
     this.setAccessToken(token)
     this.transition({ ...state, accessToken: token })
     this.applyProtocol(SessionTransition.CredentialsRefreshed)
+    this.scheduleExpiry(token)
   }
 
   updateWsAccessToken(token: string | null): void {
@@ -139,6 +156,7 @@ export class AuthStateStore {
     this.setPersistedInitials(initials)
     this.stateSignal.set(next)
     this.applyProtocol(SessionTransition.AuthenticationSucceeded)
+    this.scheduleExpiry(accessToken)
   }
 
   syncExternalState(): void {
@@ -153,12 +171,14 @@ export class AuthStateStore {
   }
 
   invalidate(reason: SessionInvalidationCauseType = SessionInvalidationCause.InvalidSession): void {
+    this.clearExpiryTimer()
     this.clearPersistence()
     this.transition({ kind: 'session-expired', reason })
     this.applyProtocol(this.transitionForInvalidationCause(reason))
   }
 
   logout(): void {
+    this.clearExpiryTimer()
     this.transition({ kind: 'logging-out' })
     this.clearPersistence()
     this.transition({ kind: 'anonymous' })
@@ -260,6 +280,44 @@ export class AuthStateStore {
 
   private applyProtocol(transition: SessionTransition): void {
     this.protocolSignal.update(snapshot => transitionSessionProtocol(snapshot, transition))
+  }
+
+  private scheduleExpiry(token: string | null): void {
+    this.clearExpiryTimer()
+    const expiresAt = this.tokenExpiry(token)
+    if (expiresAt === null) return
+    const delay = Math.max(0, expiresAt - Date.now())
+    this.expiryTimer = setTimeout(() => {
+      this.expiryTick.update(value => value + 1)
+      const state = this.state()
+      if (state.kind === 'authenticated' && this.isExpired(state.accessToken)) {
+        this.invalidate(SessionInvalidationCause.SessionExpired)
+      }
+    }, delay)
+  }
+
+  private clearExpiryTimer(): void {
+    if (this.expiryTimer !== undefined) {
+      clearTimeout(this.expiryTimer)
+      this.expiryTimer = undefined
+    }
+  }
+
+  private isExpired(token: string | null): boolean {
+    const expiresAt = this.tokenExpiry(token)
+    return expiresAt !== null && expiresAt <= Date.now()
+  }
+
+  private tokenExpiry(token: string | null): number | null {
+    if (!token) return null
+    const parts = token.split('.')
+    if (parts.length !== 3) return null
+    try {
+      const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')))
+      return typeof payload.exp === 'number' ? payload.exp * 1000 : null
+    } catch {
+      return null
+    }
   }
 
   private transitionForInvalidationCause(cause: SessionInvalidationCauseType): SessionTransition {
