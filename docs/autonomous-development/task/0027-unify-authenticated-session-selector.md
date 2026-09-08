@@ -134,6 +134,8 @@ selector; persistence markers remain restore hints only.
   `Set-Location MercurionWebNg; npm run test:ci`.
 - Added coverage for initials/cookie/token-only evidence, expired JWTs and
   explicit protocol invalidation.
+- Final pre-integration clean-install gate passed after all task-owned
+  processes were stopped: `npm ci`; `npm run ci:check`.
 
 ### Browser validation performed
 
