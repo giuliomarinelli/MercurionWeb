@@ -19,6 +19,16 @@ export {
   isApplicationErrorEnvelope,
   isApplicationErrorEnvelopeCode
 } from './application-error-envelope'
+export {
+  CONTRACT_VERSION_HEADER,
+  CURRENT_CONTRACT_MAJOR,
+  PUBLIC_CONTRACT_VERSION_METADATA,
+  SUPPORTED_CONTRACT_MAJOR_RANGE,
+  contractVersionDetails,
+  negotiateContractMajor,
+  restMajorFromPath
+} from './contract-versioning'
+export type { ContractMajor, ContractVersionSelection, DeprecationMetadata, SupportedMajorRange } from './contract-versioning'
 export type {
   ApplicationErrorEnvelope,
   ApplicationErrorEnvelopeCode,

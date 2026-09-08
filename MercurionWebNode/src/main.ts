@@ -19,6 +19,11 @@ import { RedisService } from './app_modules/redis/services/redis.service'
 import { MeiliLoggerService } from './app_modules/meilisearch/services/meili-logger.service'
 import { resolveAppEnv } from './utils/env-helpers'
 import { createGlobalValidationPipe } from './config/validation-pipe'
+import {
+  contractVersionDetails,
+  restMajorFromPath
+} from '@mercurion/rest-contracts'
+import { createRestErrorResponse } from './exception-handling/application-error-envelope'
 
 
 
@@ -70,6 +75,34 @@ export async function bootstrap() {
 
   app.useGlobalFilters(new HttpExceptionFilter(loggerFactory))
   app.setGlobalPrefix('api', { exclude: ['/health', '/sitemap.xml', '/robots.txt', '/og/mercurion-og.png'] })
+
+  const fastify = app.getHttpAdapter().getInstance()
+  fastify.addHook('onRequest', (req, reply, done) => {
+    const selection = restMajorFromPath(req.url.split('?')[0])
+    reply.header('X-Mercurion-Contract-Current-Major', '1')
+    reply.header('X-Mercurion-Contract-Supported-Range', '1-1')
+    if (selection.kind === 'legacy-unversioned' && req.url.startsWith('/api/')) {
+      reply.header('Warning', '299 - "legacy-unversioned contract; explicit major required"')
+      logger.warn(`REST request ${req.method} ${req.url.split('?')[0]} uses legacy-unversioned contract major`)
+      done()
+      return
+    }
+    if (selection.kind === 'invalid' || selection.kind === 'unsupported') {
+      reply.status(400).send(createRestErrorResponse({
+        status: 400,
+        code: selection.code,
+        message: selection.code === 'CONTRACT_VERSION_INVALID' ? 'Invalid contract major version' : 'Unsupported contract major version',
+        details: selection.kind === 'invalid'
+          ? { currentMajor: 1, supportedMajorRange: { minimum: 1, maximum: 1 } }
+          : contractVersionDetails(selection),
+        correlationId: req.id,
+        isProduction: env !== Environment.Development,
+        path: req.url.split('?')[0]
+      }))
+      return
+    }
+    done()
+  })
 
 
   /**
@@ -123,7 +156,7 @@ export async function bootstrap() {
 
   await app.register(fastifyCookie)
 
-  const fastify = app.getHttpAdapter().getInstance()
+  // REST selection is URL-based; these response headers disclose shared metadata.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { secret, ...cookieConf } = configService.get<SecureCookieConfiguration>('SecureCookie')!
 

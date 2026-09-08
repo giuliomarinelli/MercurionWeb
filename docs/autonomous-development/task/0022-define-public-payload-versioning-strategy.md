@@ -1,6 +1,6 @@
 # 0022 - Define public payload versioning strategy
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -97,23 +97,68 @@ Treat GraphQL deprecation/directive/schema evolution according to GraphQL semant
 
 ### Summary
 
-Skipped without implementation because hard prerequisite `0021-add-rest-contract-compatibility-suite.md` (`SYS-021`) is terminal `SKIPPED_DEPENDENCY`. That skip is caused by `SYS-018` (`BLOCKED`), whose route inventory is unavailable on `develop`; the dependency chain prevents this versioning strategy task from starting in the current session.
+Implemented the human-approved SYS-022 policy on the previously empty,
+up-to-date `feature/SYS-022` branch. The policy uses positive integer wire
+majors, current major 1, and supported range 1-1. REST keeps existing `/api`
+paths as major 1; GraphQL remains `/api/graphql` and uses a central Apollo
+header link; Socket.IO uses a central typed `contractMajor` handshake field.
 
 ### Validation performed
 
-- No task branch or worker was created.
-- Direct prerequisite: `SYS-021` is `SKIPPED_DEPENDENCY`.
-- Transitive dependency chain: `SYS-022` -> `SYS-021` (`SKIPPED_DEPENDENCY`) -> `SYS-018` (`BLOCKED`).
+- Startup recheck: `feature/SYS-022`, `develop`, and `origin/develop` all
+  pointed to `d2bffef3`; worktree was clean and local `commit.gpgSign=false`.
+- `npm run autonomous:plan`: SYS-022 `READY`; no errors, cycles, or stale
+  skips; dependencies 0001, 0008, 0009, and 0021 are DONE.
+- Repository inventory found Angular as the only confirmed application
+  consumer; no separate external consumer is documented in application
+  source. Package, REST, GraphQL, and Socket.IO sources were inspected.
+- `npm run build --workspace @mercurion/rest-contracts` passed.
+- `npm run build --workspace @mercurion/socket-contracts` passed.
+- Targeted contract tests passed: 2 suites, 7 tests.
+- `npm run ci:contracts` passed: 7 suites, 34 tests.
+- `npm run ci:graphql` passed.
+- `npm run ci:socket-contracts` passed, including policy negatives.
+- `npm run ci:rest-compatibility` passed: 58/58 matches and all six negative
+  probes.
+- Final clean-install `npm ci` passed with 0 vulnerabilities, followed by a
+  complete `npm run ci:check` pass (Angular/Nest tests and builds, E2E,
+  GraphQL, and all static/contract gates).
+- `git diff --check` passed after ordinary whitespace correction.
+
+The runtime negotiation tests cover current, legacy-unversioned, malformed,
+ambiguous, and unsupported selections. Socket.IO connection middleware emits
+machine-readable `connect_error.data`; REST emits the canonical 400 envelope
+for versioned path errors and safe response metadata; GraphQL emits the
+canonical error code through `extensions.code` and response metadata.
 
 ### Browser validation performed
 
-Not applicable; the task was skipped before implementation.
+Not run. The task's acceptance evidence is deterministic package/runtime,
+static contract, GraphQL, Socket.IO, REST, compiler, and negative-probe
+validation; browser traffic is not needed to establish the central metadata
+and negotiation logic.
 
 ### Changed files
 
-No files changed; only this task metadata was updated.
+- `packages/rest-contracts/src/contract-versioning.ts`
+- `packages/rest-contracts/src/index.ts`
+- `packages/rest-contracts/src/application-errors.ts`
+- `packages/socket-contracts/src/index.ts`
+- `MercurionWebNg/src/app/app.config.ts`
+- `MercurionWebNg/src/app/services/socket.IO/realtime-socket.service.ts`
+- `MercurionWebNode/src/mercurion-graphql.module.ts`
+- `MercurionWebNode/src/app_modules/socket.io/socket.io.gateway.ts`
+- `MercurionWebNode/src/main.ts`
+- `MercurionWebNode/src/contracts/contract-versioning-runtime.spec.ts`
+- `docs/architecture/public-payload-versioning-policy.md`
+- `docs/architecture/rest-route-ownership.json` (deterministic line-reference
+  regeneration for the changed Nest bootstrap)
+- This recipe's execution notes.
 
-### Blocker / human decision required
+### Rollback / residual risk
 
-No implementation blocker. The task may be re-enabled only after its hard
-dependency chain is deliberately resolved in a new authorized session.
+Rollback is an ordinary revert of the task commit; no history rewrite is
+required. The implementation does not introduce a future major, deprecate
+major 1, deploy, or remove the legacy fallback. Exact feature-SHA CI and
+post-merge CI remain coordinator-owned; provisional status is `DONE` and
+`CI_PENDING` until those gates succeed.

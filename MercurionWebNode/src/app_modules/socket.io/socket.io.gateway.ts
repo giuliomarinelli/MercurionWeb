@@ -15,11 +15,13 @@ import { JwtToolsService } from '../auth/services/jwt-tools.service';
 import { TokenType } from '../auth/Models/enums/token-type.enum';
 import {
   socketEventRegistry,
+  SOCKET_CONTRACT_MAJOR,
   type ClientToServerEvents,
   type ServerToClientEvents,
   type SocketEventPayload,
   type SocketSessionInitAcknowledgement,
 } from '@mercurion/socket-contracts';
+import { contractVersionDetails, negotiateContractMajor } from '@mercurion/rest-contracts';
 
 type ApplicationServer = Server<ClientToServerEvents, ServerToClientEvents>
 type ApplicationSocket = Socket<ClientToServerEvents, ServerToClientEvents>
@@ -46,6 +48,31 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
   }
 
   afterInit(server: ApplicationServer) {
+    server.use((client, next) => {
+      const selection = negotiateContractMajor(client.handshake.auth?.contractMajor)
+      if (selection.kind === 'legacy-unversioned') {
+        this.logger.warn(`Socket ${client.id} uses legacy-unversioned contract major`)
+        client.data.contractMajor = SOCKET_CONTRACT_MAJOR
+        next()
+        return
+      }
+      if (selection.kind === 'invalid' || selection.kind === 'unsupported') {
+        const error = new Error(selection.code === 'CONTRACT_VERSION_INVALID'
+          ? 'Invalid contract major version'
+          : 'Unsupported contract major version') as Error & { data?: unknown }
+        error.data = {
+          code: selection.code,
+          status: 400,
+          message: error.message,
+          correlationId: client.id,
+          details: contractVersionDetails(selection)
+        }
+        next(error)
+        return
+      }
+      client.data.contractMajor = selection.selectedMajor
+      next()
+    })
     const pubClient = new Redis({
       host: this.redisConf.host,
       port: this.redisConf.port,

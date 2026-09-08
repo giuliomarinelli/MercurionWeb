@@ -11,7 +11,7 @@ import {
     getApplicationError,
     getApplicationErrorMessage
 } from './exception-handling/application-error'
-import { getApplicationErrorDefinition, isApplicationErrorEnvelopeCode } from '@mercurion/rest-contracts'
+import { getApplicationErrorDefinition, isApplicationErrorEnvelopeCode, negotiateContractMajor, contractVersionDetails, CONTRACT_VERSION_HEADER } from '@mercurion/rest-contracts'
 import {
     createApplicationErrorEnvelope,
     createCorrelationId,
@@ -37,10 +37,24 @@ export const MercurionGraphQLModule = GraphQLModule.forRootAsync<MercuriusDriver
             path: '/api/graphql',
             graphiql: !isNotDev,
 
-            context: (request: FastifyRequest, reply: FastifyReply) => ({
-                request,
-                reply
-            }),
+            context: (request: FastifyRequest, reply: FastifyReply) => {
+                const selection = negotiateContractMajor(request.headers[CONTRACT_VERSION_HEADER])
+                const details = selection.kind === 'invalid'
+                    ? { currentMajor: 1, supportedMajorRange: { minimum: 1, maximum: 1 } }
+                    : contractVersionDetails(selection)
+                reply.header('X-Mercurion-Contract-Current-Major', '1')
+                reply.header('X-Mercurion-Contract-Supported-Range', '1-1')
+                if (selection.kind === 'legacy-unversioned') {
+                    reply.header('Warning', '299 - "legacy-unversioned contract; explicit major required"')
+                }
+                if (selection.kind === 'invalid' || selection.kind === 'unsupported') {
+                    throw new GraphQLError(
+                        selection.code === 'CONTRACT_VERSION_INVALID' ? 'Invalid contract major version' : 'Unsupported contract major version',
+                        { extensions: { code: selection.code, details } }
+                    )
+                }
+                return { request, reply, contractVersion: selection }
+            },
 
             resolvers: { JSON: GraphQLJSON },
 
@@ -170,9 +184,10 @@ export const MercurionGraphQLModule = GraphQLModule.forRootAsync<MercuriusDriver
                             ? 'INTERNAL_SERVER_ERROR'
                             : 'GRAPHQL_VALIDATION_FAILED'
                     const envelope = createApplicationErrorEnvelope({
-                        status: code === 'BAD_USER_INPUT' || code === 'GRAPHQL_VALIDATION_FAILED' ? 400 : 500,
+                        status: code === 'BAD_USER_INPUT' || code === 'GRAPHQL_VALIDATION_FAILED' || code === 'CONTRACT_VERSION_INVALID' || code === 'CONTRACT_VERSION_UNSUPPORTED' ? 400 : 500,
                         code,
                         message: err.message,
+                        details: err.extensions?.details as Readonly<Record<string, unknown>> | undefined,
                         correlationId,
                         isProduction: isNotDev
                     })
