@@ -27,7 +27,7 @@ export class AuthFallbackInterceptor implements HttpInterceptor {
   private readonly toast = inject(ToastService)
   private readonly router = inject(Router)
 
-  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+  intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
 
     const forceLogout = () => {
       this.toast.trigger('Sessione scaduta o invalidata. Effettua di nuovo il login.', 'error')
@@ -48,7 +48,7 @@ export class AuthFallbackInterceptor implements HttpInterceptor {
       }),
 
       // 2) caso classico: 401, REST o GraphQL
-      catchError((e: any) => {
+      catchError((e: unknown) => {
         if (e instanceof HttpErrorResponse && e.status === 403) {
           const body = e.error as HttpErrorBody
           if (hasApplicationErrorCode(body, ApplicationErrorCode.PERMISSION_DENIED)) {

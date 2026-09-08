@@ -111,7 +111,8 @@
           "builder": "@angular/build:dev-server",
           "options": {
             "port": 3498,
-            "host": "0.0.0.0"
+            "host": "0.0.0.0",
+            "prebundle": false
           },
           "configurations": {
             "production": {
