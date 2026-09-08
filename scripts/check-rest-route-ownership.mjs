@@ -1,15 +1,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import ts from 'typescript';
+import { compareText, relative, walk, readPrefixConfiguration, readRoutes, routeKey } from './rest-route-extraction.mjs';
 
 const root = process.cwd();
 const defaultInventoryPath = path.join(root, 'docs', 'architecture', 'rest-route-ownership.json');
 const inventoryPath = process.env.REST_ROUTE_OWNERSHIP_INVENTORY_PATH
     ? path.resolve(process.env.REST_ROUTE_OWNERSHIP_INVENTORY_PATH)
     : defaultInventoryPath;
-const controllerRoot = path.join(root, 'MercurionWebNode', 'src');
-const mainPath = path.join(root, 'MercurionWebNode', 'src', 'main.ts');
 // Autonomous task recipes and session reports are control-plane metadata. They
 // may quote routes while recording validation evidence, but they are not
 // product consumers and must never make this application inventory stale.
@@ -22,7 +20,6 @@ const referenceRoots = [
     path.join(root, 'scripts'),
 ];
 const referenceExtension = /\.(ts|html|md|json|conf|mjs)$/;
-const verbs = new Set(['Get', 'Post', 'Put', 'Patch', 'Delete', 'All', 'Head', 'Options']);
 const classifications = new Set([
     'active product feature',
     'browser/system API',
@@ -33,63 +30,6 @@ const classifications = new Set([
     'needs-human-classification',
 ]);
 
-function compareText(left, right) {
-    return left < right ? -1 : left > right ? 1 : 0;
-}
-
-function relative(file) {
-    return path.relative(root, file).split(path.sep).join('/');
-}
-
-function walk(directory, predicate) {
-    return fs.readdirSync(directory, { withFileTypes: true })
-        .sort((left, right) => compareText(left.name, right.name))
-        .flatMap((entry) => {
-            const entryPath = path.join(directory, entry.name);
-            if (entry.isDirectory()) {
-                return walk(entryPath, predicate);
-            }
-            return predicate(entryPath) ? [entryPath] : [];
-        });
-}
-
-function decoratorName(decorator) {
-    const expression = decorator.expression;
-    if (!ts.isCallExpression(expression) || !ts.isIdentifier(expression.expression)) {
-        return undefined;
-    }
-    return expression.expression.text;
-}
-
-function decoratorPath(decorator) {
-    const expression = decorator.expression;
-    const argument = ts.isCallExpression(expression) ? expression.arguments[0] : undefined;
-    return argument && ts.isStringLiteralLike(argument) ? argument.text : '';
-}
-
-function joinPath(...segments) {
-    return `/${segments.join('/').split('/').filter(Boolean).join('/')}`;
-}
-
-function readPrefixConfiguration() {
-    const source = fs.readFileSync(mainPath, 'utf8');
-    const match = source.match(/setGlobalPrefix\(\s*['\"]([^'\"]+)['\"]\s*,\s*\{\s*exclude:\s*\[([^\]]*)\]/s);
-    if (!match) {
-        throw new Error(`Cannot read setGlobalPrefix configuration from ${relative(mainPath)}.`);
-    }
-    const prefix = `/${match[1].replace(/^\/+|\/+$/g, '')}`;
-    const prefixExceptions = [...match[2].matchAll(/['\"]([^'\"]+)['\"]/g)]
-        .map((entry) => joinPath(entry[1]))
-        .sort(compareText);
-    return { prefix, prefixExceptions };
-}
-
-function effectivePath(controllerPath, methodPath, prefixConfiguration) {
-    const endpointPath = joinPath(controllerPath, methodPath);
-    return prefixConfiguration.prefixExceptions.includes(endpointPath)
-        ? endpointPath
-        : joinPath(prefixConfiguration.prefix, endpointPath);
-}
 
 function referenceKind(file) {
     if (file.startsWith('MercurionWebNg/src/')) return 'angular-source';
@@ -121,52 +61,6 @@ function routeReferences(route, referenceIndex) {
         .sort((left, right) => compareText(`${left.file}:${String(left.line).padStart(8, '0')}`, `${right.file}:${String(right.line).padStart(8, '0')}`));
 }
 
-function routeKey(route) {
-    return `${route.method} ${route.path}`;
-}
-
-function readRoutes(prefixConfiguration, referenceIndex) {
-    return walk(controllerRoot, (file) => file.endsWith('.controller.ts')).flatMap((file) => {
-        const sourceText = fs.readFileSync(file, 'utf8');
-        const sourceFile = ts.createSourceFile(file, sourceText, ts.ScriptTarget.Latest, true);
-        const routes = [];
-
-        function visit(node) {
-            if (!ts.isClassDeclaration(node)) {
-                ts.forEachChild(node, visit);
-                return;
-            }
-            const controllerDecorator = ts.getDecorators(node)?.find((decorator) => decoratorName(decorator) === 'Controller');
-            if (!controllerDecorator) {
-                return;
-            }
-            const controllerPath = decoratorPath(controllerDecorator);
-            for (const member of node.members) {
-                if (!ts.isMethodDeclaration(member) || !member.name || !ts.isIdentifier(member.name)) {
-                    continue;
-                }
-                for (const decorator of ts.getDecorators(member) ?? []) {
-                    const verb = decoratorName(decorator);
-                    if (!verb || !verbs.has(verb)) {
-                        continue;
-                    }
-                    const location = sourceFile.getLineAndCharacterOfPosition(decorator.getStart(sourceFile));
-                    routes.push({
-                        method: verb.toUpperCase(),
-                        path: effectivePath(controllerPath, decoratorPath(decorator), prefixConfiguration),
-                        controller: relative(file),
-                        handler: member.name.text,
-                        line: location.line + 1,
-                    });
-                }
-            }
-        }
-
-        visit(sourceFile);
-        return routes;
-    }).sort((left, right) => compareText(routeKey(left), routeKey(right)) || compareText(left.controller, right.controller) || compareText(left.handler, right.handler));
-}
-
 function defaultOwnership(route) {
     return {
         classification: 'needs-human-classification',
@@ -193,7 +87,7 @@ function buildExpectedInventory(actual) {
     const prefixConfiguration = readPrefixConfiguration();
     const referenceIndex = createReferenceIndex();
     const existingByKey = new Map((actual?.routes ?? []).map((route) => [routeKey(route), route]));
-    const routes = readRoutes(prefixConfiguration, referenceIndex).map((route) => ({
+    const routes = readRoutes(prefixConfiguration).map((route) => ({
         ...route,
         ...ownershipFields(route, existingByKey.get(routeKey(route))),
         references: routeReferences(route, referenceIndex),

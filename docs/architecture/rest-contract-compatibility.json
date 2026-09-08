@@ -1,0 +1,859 @@
+{
+  "schemaVersion": 1,
+  "generatedBy": "node scripts/check-rest-compatibility.mjs --write",
+  "totalClientCalls": 55,
+  "matchedRoutes": 41,
+  "entries": [
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts:59:0",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "line": 59,
+        "method": "GET",
+        "path": "/api/account/email"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "getProvidedEmail",
+        "line": 166,
+        "method": "GET",
+        "path": "/api/account/email"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts:68:1",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "line": 68,
+        "method": "GET",
+        "path": "/api/account/auth-provider"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "getAuthProvider",
+        "line": 175,
+        "method": "GET",
+        "path": "/api/account/auth-provider"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts:82:2",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "line": 82,
+        "method": "POST",
+        "path": "/api/account/forgotten-password"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "forgottenPassword",
+        "line": 201,
+        "method": "POST",
+        "path": "/api/account/forgotten-password"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts:91:3",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "line": 91,
+        "method": "GET",
+        "path": "/api/account/is-authorized-to-recover-password"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "isAuthorizedToRecoverPassword",
+        "line": 230,
+        "method": "GET",
+        "path": "/api/account/is-authorized-to-recover-password"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts:100:4",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "line": 100,
+        "method": "PATCH",
+        "path": "/api/account/password-recovery"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "passwordRecovery",
+        "line": 219,
+        "method": "PATCH",
+        "path": "/api/account/password-recovery"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts:109:5",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "line": 109,
+        "method": "PATCH",
+        "path": "/api/account/password"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "changePassword",
+        "line": 184,
+        "method": "PATCH",
+        "path": "/api/account/password"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts:115:6",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "line": 115,
+        "method": "PATCH",
+        "path": "/api/account/activate?t={param}"
+      },
+      "server": null,
+      "status": "unmatched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts:122:7",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "line": 122,
+        "method": "GET",
+        "path": "/api/account/profile-registry{param}"
+      },
+      "server": null,
+      "status": "unmatched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts:128:8",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "line": 128,
+        "method": "GET",
+        "path": "/api/account/profile-registry/essential"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "getEssentialProfileRegistry",
+        "line": 249,
+        "method": "GET",
+        "path": "/api/account/profile-registry/essential"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts:134:9",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "line": 134,
+        "method": "PATCH",
+        "path": "/api/account/profile-registry"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "updateProfileRegistry",
+        "line": 254,
+        "method": "PATCH",
+        "path": "/api/account/profile-registry"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts:140:10",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "line": 140,
+        "method": "GET",
+        "path": "/api/account/is-mfa-enabled"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "isMfaEnabled",
+        "line": 307,
+        "method": "GET",
+        "path": "/api/account/is-mfa-enabled"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts:146:11",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "line": 146,
+        "method": "GET",
+        "path": "/api/account/mfa-active-strategies"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "getMfaActiveStrategies",
+        "line": 312,
+        "method": "GET",
+        "path": "/api/account/mfa-active-strategies"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts:152:12",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "line": 152,
+        "method": "GET",
+        "path": "/api/account/active-sessions"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "getActiveSessions",
+        "line": 273,
+        "method": "GET",
+        "path": "/api/account/active-sessions"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts:158:13",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "line": 158,
+        "method": "GET",
+        "path": "/api/account/current-version"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "getCurrentVersion",
+        "line": 319,
+        "method": "GET",
+        "path": "/api/account/current-version"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts:164:14",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "line": 164,
+        "method": "GET",
+        "path": "/api/account/masked-email"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "getMaskedEmail",
+        "line": 331,
+        "method": "GET",
+        "path": "/api/account/masked-email"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts:171:15",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "line": 171,
+        "method": "GET",
+        "path": "/api/account/masked-phone"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "getMaskedPhone",
+        "line": 340,
+        "method": "GET",
+        "path": "/api/account/masked-phone"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts:178:16",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "line": 178,
+        "method": "PATCH",
+        "path": "/api/account/mfa/enable/{param}/1"
+      },
+      "server": null,
+      "status": "unmatched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts:188:17",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "line": 188,
+        "method": "PATCH",
+        "path": "/api/account/mfa/enable/{param}/2"
+      },
+      "server": null,
+      "status": "unmatched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts:194:18",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "line": 194,
+        "method": "PATCH",
+        "path": "/api/account/mfa/disable/{param}/1"
+      },
+      "server": null,
+      "status": "unmatched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts:204:19",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "line": 204,
+        "method": "PATCH",
+        "path": "/api/account/mfa/disable/{param}/2"
+      },
+      "server": null,
+      "status": "unmatched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts:210:20",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "line": 210,
+        "method": "PATCH",
+        "path": "/api/account/mfa/backup/regenerate"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "regenerateBackupCodes",
+        "line": 288,
+        "method": "PATCH",
+        "path": "/api/account/mfa/backup/regenerate"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts:218:21",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "line": 218,
+        "method": "GET",
+        "path": "/api/account/mfa/backup/status"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "getBackupCodesStatus",
+        "line": 281,
+        "method": "GET",
+        "path": "/api/account/mfa/backup/status"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts:224:22",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "line": 224,
+        "method": "GET",
+        "path": "/api/account/mfa/backup/status"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "getBackupCodesStatus",
+        "line": 281,
+        "method": "GET",
+        "path": "/api/account/mfa/backup/status"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts:235:23",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "line": 235,
+        "method": "PATCH",
+        "path": "/api/account/email/1"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "changeEmail_firstStep",
+        "line": 64,
+        "method": "PATCH",
+        "path": "/api/account/email/1"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts:245:24",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "line": 245,
+        "method": "PATCH",
+        "path": "/api/account/email/2"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "changeEmail_secondStep",
+        "line": 72,
+        "method": "PATCH",
+        "path": "/api/account/email/2"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts:255:25",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "line": 255,
+        "method": "PATCH",
+        "path": "/api/account/phone/1"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "changePhoneNumber_firstStep",
+        "line": 94,
+        "method": "PATCH",
+        "path": "/api/account/phone/1"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts:265:26",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "line": 265,
+        "method": "PATCH",
+        "path": "/api/account/phone/2"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "changePhoneNumber_secondStep",
+        "line": 102,
+        "method": "PATCH",
+        "path": "/api/account/phone/2"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts:271:27",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "line": 271,
+        "method": "DELETE",
+        "path": "/api/account/phone/1"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "deletePhoneNumber_firstStep",
+        "line": 82,
+        "method": "DELETE",
+        "path": "/api/account/phone/1"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts:281:28",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "line": 281,
+        "method": "PATCH",
+        "path": "/api/account/phone/del/2"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "deletePhoneNumber_secondStep",
+        "line": 87,
+        "method": "PATCH",
+        "path": "/api/account/phone/del/2"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts:290:29",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "line": 290,
+        "method": "POST",
+        "path": "/api/account/mask-email"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "maskEmail",
+        "line": 350,
+        "method": "POST",
+        "path": "/api/account/mask-email"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/account.service.ts:301:30",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/account.service.ts",
+        "line": 301,
+        "method": "POST",
+        "path": "/api/account/mask-phone"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "maskPhone",
+        "line": 356,
+        "method": "POST",
+        "path": "/api/account/mask-phone"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/auth.service.ts:141:31",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/auth.service.ts",
+        "line": 141,
+        "method": "POST",
+        "path": "/api/account/register"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "registerUser",
+        "line": 49,
+        "method": "POST",
+        "path": "/api/account/register"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/auth.service.ts:151:32",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/auth.service.ts",
+        "line": 151,
+        "method": "POST",
+        "path": "/api/account/is-email-available"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+        "handler": "isEmailAvailable",
+        "line": 268,
+        "method": "POST",
+        "path": "/api/account/is-email-available"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/auth.service.ts:159:33",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/auth.service.ts",
+        "line": 159,
+        "method": "POST",
+        "path": "/api/authentication/login/0"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
+        "handler": "login_zeroStep",
+        "line": 72,
+        "method": "POST",
+        "path": "/api/authentication/login/0"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/auth.service.ts:166:34",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/auth.service.ts",
+        "line": 166,
+        "method": "POST",
+        "path": "/api/authentication/login/1"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
+        "handler": "login_firstStep",
+        "line": 82,
+        "method": "POST",
+        "path": "/api/authentication/login/1"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/auth.service.ts:185:35",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/auth.service.ts",
+        "line": 185,
+        "method": "POST",
+        "path": "/api/authentication/login/{param}/2{param}"
+      },
+      "server": null,
+      "status": "unmatched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/auth.service.ts:210:36",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/auth.service.ts",
+        "line": 210,
+        "method": "POST",
+        "path": "/api/authentication/login/{param}/3{param}"
+      },
+      "server": null,
+      "status": "unmatched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/auth.service.ts:234:37",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/auth.service.ts",
+        "line": 234,
+        "method": "DELETE",
+        "path": "/api/authentication/logout"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
+        "handler": "logout",
+        "line": 243,
+        "method": "DELETE",
+        "path": "/api/authentication/logout"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/auth.service.ts:243:38",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/auth.service.ts",
+        "line": 243,
+        "method": "GET",
+        "path": "/api/authentication/ws-refresh"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
+        "handler": "refreshWs_accessToken",
+        "line": 287,
+        "method": "GET",
+        "path": "/api/authentication/ws-refresh"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/auth.service.ts:429:39",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/auth.service.ts",
+        "line": 429,
+        "method": "PATCH",
+        "path": "/api/authentication/logout-from-session"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
+        "handler": "logoutFromSession",
+        "line": 260,
+        "method": "PATCH",
+        "path": "/api/authentication/logout-from-session"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/auth.service.ts:440:40",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/auth.service.ts",
+        "line": 440,
+        "method": "PATCH",
+        "path": "/api/authentication/logout-from-all-sessions"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
+        "handler": "logoutFromAllSessions",
+        "line": 276,
+        "method": "PATCH",
+        "path": "/api/authentication/logout-from-all-sessions"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/auth.service.ts:449:41",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/auth.service.ts",
+        "line": 449,
+        "method": "POST",
+        "path": "/api/authentication/sso/{param}/authorize-flow"
+      },
+      "server": null,
+      "status": "unmatched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/auth.service.ts:460:42",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/auth.service.ts",
+        "line": 460,
+        "method": "GET",
+        "path": "/api/admin/maintenance?t={param}"
+      },
+      "server": null,
+      "status": "unmatched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/country.service.ts:18:43",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/country.service.ts",
+        "line": 18,
+        "method": "GET",
+        "path": "/api/countries/phone-prefixes"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/auth/controllers/country.controller.ts",
+        "handler": "getAllPhonePrefixes",
+        "line": 10,
+        "method": "GET",
+        "path": "/api/countries/phone-prefixes"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/embedding.service.ts:14:44",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/embedding.service.ts",
+        "line": 14,
+        "method": "GET",
+        "path": "/api/embedding/get-similar-molregnos?molregno={param}&n={param}&with_no_name={param}&only_molregnos={param}"
+      },
+      "server": null,
+      "status": "unmatched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/feedback.service.ts:43:45",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/feedback.service.ts",
+        "line": 43,
+        "method": "GET",
+        "path": "{param}/{param}"
+      },
+      "server": null,
+      "status": "unmatched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/feedback.service.ts:49:46",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/feedback.service.ts",
+        "line": 49,
+        "method": "PATCH",
+        "path": "{param}/{param}"
+      },
+      "server": null,
+      "status": "unmatched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/feedback.service.ts:55:47",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/feedback.service.ts",
+        "line": 55,
+        "method": "DELETE",
+        "path": "{param}/{param}"
+      },
+      "server": null,
+      "status": "unmatched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/history.service.ts:31:48",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/history.service.ts",
+        "line": 31,
+        "method": "DELETE",
+        "path": "/api/history"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/history/controllers/history.controller.ts",
+        "handler": "deleteHistory",
+        "line": 55,
+        "method": "DELETE",
+        "path": "/api/history"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/mercurion-ai.service.ts:14:49",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/mercurion-ai.service.ts",
+        "line": 14,
+        "method": "POST",
+        "path": "/api/mercurion-ai/tox-21/infer"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/mercurion-ai/controllers/mercurion-ai.controller.ts",
+        "handler": "inferTox21Top4Smiles",
+        "line": 15,
+        "method": "POST",
+        "path": "/api/mercurion-ai/tox-21/infer"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/rd-kit-api.service.ts:19:50",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/rd-kit-api.service.ts",
+        "line": 19,
+        "method": "POST",
+        "path": "/api/rdkit-api/get-molecule-properties"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/mercurion-ai/controllers/rd-kit.controller.ts",
+        "handler": "getMoleculeProperties",
+        "line": 15,
+        "method": "POST",
+        "path": "/api/rdkit-api/get-molecule-properties"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/rd-kit-api.service.ts:25:51",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/rd-kit-api.service.ts",
+        "line": 25,
+        "method": "POST",
+        "path": "/api/rdkit-api/to-canonical-smiles"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/mercurion-ai/controllers/rd-kit.controller.ts",
+        "handler": "toCanonicalSmiles",
+        "line": 25,
+        "method": "POST",
+        "path": "/api/rdkit-api/to-canonical-smiles"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/rd-kit-api.service.ts:32:52",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/rd-kit-api.service.ts",
+        "line": 32,
+        "method": "POST",
+        "path": "/api/rdkit-api/are-same-structure"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/mercurion-ai/controllers/rd-kit.controller.ts",
+        "handler": "areSameStructure",
+        "line": 35,
+        "method": "POST",
+        "path": "/api/rdkit-api/are-same-structure"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/recovery.service.ts:28:53",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/recovery.service.ts",
+        "line": 28,
+        "method": "POST",
+        "path": "/api/recovery/1"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/auth/controllers/recovery.controller.ts",
+        "handler": "accountRecovery_firstStep",
+        "line": 33,
+        "method": "POST",
+        "path": "/api/recovery/1"
+      },
+      "status": "matched"
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/recovery.service.ts:42:54",
+      "client": {
+        "file": "MercurionWebNg/src/app/services/recovery.service.ts",
+        "line": 42,
+        "method": "POST",
+        "path": "/api/recovery/2"
+      },
+      "server": {
+        "file": "MercurionWebNode/src/app_modules/auth/controllers/recovery.controller.ts",
+        "handler": "accountRecovery_second",
+        "line": 46,
+        "method": "POST",
+        "path": "/api/recovery/2"
+      },
+      "status": "matched"
+    }
+  ]
+}
