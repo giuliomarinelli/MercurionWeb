@@ -6,6 +6,7 @@ import { io, Socket } from 'socket.io-client';
 import { Observable } from 'rxjs';
 import {
   socketEventRegistry,
+  SOCKET_CONTRACT_MAJOR,
   type ClientToServerEvents,
   type ServerToClientEvents,
   type SocketApplicationError,
@@ -77,7 +78,7 @@ export class RealtimeSocketService {
       await this.ensureFreshToken(); // soft
       const tok = this.auth.getWs_accessToken();
       if (tok && !this.jwt.isTokenExpired(tok)) {
-        this.socket.auth = { token: tok };
+        this.socket.auth = { token: tok, contractMajor: SOCKET_CONTRACT_MAJOR };
         this.lastAuthTokenSent = tok;
       }
     });
@@ -92,7 +93,7 @@ export class RealtimeSocketService {
       await this.ensureFreshToken(true); // <-- FORZA refresh
       const tok = this.auth.getWs_accessToken();
       if (tok && !this.jwt.isTokenExpired(tok)) {
-        this.socket.auth = { token: tok };
+        this.socket.auth = { token: tok, contractMajor: SOCKET_CONTRACT_MAJOR };
         this.lastAuthTokenSent = tok;
       }
     });
@@ -103,7 +104,7 @@ export class RealtimeSocketService {
       if (this.mode !== 'private' || !this.socket.connected) return;
       const latest = this.auth.getWs_accessToken();
       if (latest && !this.jwt.isTokenExpired(latest)) {
-        this.socket.auth = { token: latest };
+        this.socket.auth = { token: latest, contractMajor: SOCKET_CONTRACT_MAJOR };
         this.lastAuthTokenSent = latest;
         this.socket.emit(socketEventRegistry.authRefresh.name, latest);
       }
@@ -138,7 +139,7 @@ export class RealtimeSocketService {
       if (!tok || this.jwt.isTokenExpired(tok)) {
         // token non disponibile → fallback PUBLIC
         this.mode = 'public';
-        this.socket.auth = {};
+        this.socket.auth = { contractMajor: SOCKET_CONTRACT_MAJOR };
         this.lastAuthTokenSent = null;
         if (!this.socket.connected) this.safeConnect();
         return;
@@ -146,7 +147,7 @@ export class RealtimeSocketService {
 
       // 2) abbiamo un token valido → configuriamo auth per handshake
       this.mode = 'private';
-      this.socket.auth = { token: tok };
+      this.socket.auth = { token: tok, contractMajor: SOCKET_CONTRACT_MAJOR };
 
       if (!this.socket.connected) {
         // non connesso → connettiti con auth
@@ -180,7 +181,7 @@ export class RealtimeSocketService {
       const wasPrivate = (this.mode === 'private');
 
       this.mode = 'public';
-      this.socket.auth = {};
+      this.socket.auth = { contractMajor: SOCKET_CONTRACT_MAJOR };
       this.lastAuthTokenSent = null;
 
       if (!this.socket.connected) {
@@ -205,7 +206,7 @@ export class RealtimeSocketService {
   async reconnectPublicNow(): Promise<void> {
     this.modeOp = this.modeOp.then(async () => {
       this.mode = 'public';
-      this.socket.auth = {};
+      this.socket.auth = { contractMajor: SOCKET_CONTRACT_MAJOR };
       this.lastAuthTokenSent = null;
       this.reconnectWithCurrentAuth();
     });

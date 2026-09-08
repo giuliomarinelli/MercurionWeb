@@ -19,6 +19,7 @@ import { RedisService } from './app_modules/redis/services/redis.service'
 import { MeiliLoggerService } from './app_modules/meilisearch/services/meili-logger.service'
 import { resolveAppEnv } from './utils/env-helpers'
 import { createGlobalValidationPipe } from './config/validation-pipe'
+import { registerRestContractVersioningHook } from './contracts/contract-versioning-http'
 
 
 
@@ -70,6 +71,12 @@ export async function bootstrap() {
 
   app.useGlobalFilters(new HttpExceptionFilter(loggerFactory))
   app.setGlobalPrefix('api', { exclude: ['/health', '/sitemap.xml', '/robots.txt', '/og/mercurion-og.png'] })
+
+  const fastify = app.getHttpAdapter().getInstance()
+  registerRestContractVersioningHook(fastify, {
+    isProduction: env !== Environment.Development,
+    logger
+  })
 
 
   /**
@@ -123,7 +130,7 @@ export async function bootstrap() {
 
   await app.register(fastifyCookie)
 
-  const fastify = app.getHttpAdapter().getInstance()
+  // REST selection is URL-based; these response headers disclose shared metadata.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { secret, ...cookieConf } = configService.get<SecureCookieConfiguration>('SecureCookie')!
 

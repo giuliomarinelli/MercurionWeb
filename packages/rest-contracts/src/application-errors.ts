@@ -7,6 +7,16 @@ export interface ApplicationErrorDefinition {
 }
 
 export const APPLICATION_ERROR_CATALOG = {
+  CONTRACT_VERSION_INVALID: {
+    httpStatus: 400,
+    defaultMessage: 'Invalid contract major version',
+    exposeInProduction: true,
+  },
+  CONTRACT_VERSION_UNSUPPORTED: {
+    httpStatus: 400,
+    defaultMessage: 'Unsupported contract major version',
+    exposeInProduction: true,
+  },
   ACCOUNT_ACTIVATION_USER_NOT_FOUND: {
     httpStatus: 404,
     defaultMessage: "AccountActivation::User not found",

@@ -17,12 +17,47 @@ import {
   socketEventRegistry,
   type ClientToServerEvents,
   type ServerToClientEvents,
+  type SocketHandshakeAuth,
   type SocketEventPayload,
   type SocketSessionInitAcknowledgement,
 } from '@mercurion/socket-contracts';
+import {
+  contractVersionDetails,
+  contractVersionWarning,
+  negotiateContractMajor
+} from '@mercurion/rest-contracts';
 
 type ApplicationServer = Server<ClientToServerEvents, ServerToClientEvents>
 type ApplicationSocket = Socket<ClientToServerEvents, ServerToClientEvents>
+type ApplicationSocketMiddleware = Parameters<ApplicationServer['use']>[0]
+
+export function createSocketContractVersionMiddleware(
+  logger: Pick<MeiliContextLogger, 'warn'>
+): ApplicationSocketMiddleware {
+  return (client, next) => {
+    const handshakeAuth = client.handshake.auth as SocketHandshakeAuth
+    const selection = negotiateContractMajor(handshakeAuth.contractMajor)
+    if (selection.kind === 'invalid' || selection.kind === 'unsupported') {
+      const error = new Error(selection.code === 'CONTRACT_VERSION_INVALID'
+        ? 'Invalid contract major version'
+        : 'Unsupported contract major version') as Error & { data?: unknown }
+      error.data = {
+        code: selection.code,
+        status: 400,
+        message: error.message,
+        correlationId: client.id,
+        details: contractVersionDetails(selection)
+      }
+      next(error)
+      return
+    }
+
+    const warning = contractVersionWarning(selection)
+    if (warning) logger.warn(`Socket ${client.id}: ${warning}`)
+    client.data.contractMajor = selection.selectedMajor
+    next()
+  }
+}
 
 
 @WebSocketGateway()
@@ -46,6 +81,7 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
   }
 
   afterInit(server: ApplicationServer) {
+    server.use(createSocketContractVersionMiddleware(this.logger))
     const pubClient = new Redis({
       host: this.redisConf.host,
       port: this.redisConf.port,

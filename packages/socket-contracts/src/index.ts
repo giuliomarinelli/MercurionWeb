@@ -3,10 +3,22 @@ import type {
   SessionInvalidationCauseType,
   SessionStateType
 } from '@mercurion/rest-contracts'
+import {
+  CURRENT_CONTRACT_MAJOR,
+  PUBLIC_CONTRACT_VERSION_METADATA,
+  type ContractMajor
+} from '@mercurion/rest-contracts'
 
+export const SOCKET_CONTRACT_MAJOR = CURRENT_CONTRACT_MAJOR
 export const SOCKET_CONTRACT_VERSION = '1.0.0' as const
+export const SOCKET_CONTRACT_METADATA = PUBLIC_CONTRACT_VERSION_METADATA.socketIo
 
 export type SocketContractVersion = typeof SOCKET_CONTRACT_VERSION
+export type SocketContractMajor = ContractMajor
+export interface SocketHandshakeAuth {
+  readonly token?: string
+  readonly contractMajor?: SocketContractMajor
+}
 export type SocketEventDirection = 'client-to-server' | 'server-to-client'
 
 export interface SocketApplicationError extends ApplicationErrorEnvelope {

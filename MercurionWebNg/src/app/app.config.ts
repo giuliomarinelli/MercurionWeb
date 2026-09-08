@@ -2,7 +2,7 @@ import { ApplicationConfig, importProvidersFrom, inject, provideZoneChangeDetect
 import { provideRouter, TitleStrategy, withInMemoryScrolling } from '@angular/router';
 import { routes } from './app.routes';
 import { provideApollo } from 'apollo-angular';
-import { InMemoryCache } from '@apollo/client/core';
+import { ApolloLink, InMemoryCache } from '@apollo/client/core';
 import { HttpLink } from 'apollo-angular/http';
 import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { APP_BASE_HREF } from '@angular/common';
@@ -11,6 +11,7 @@ import { NgxSpinnerModule } from 'ngx-spinner';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { AuthFallbackInterceptor } from './interceptors/auth-fallback.interceptor';
 import { MercurionTitleStrategy } from './mercurion-title-strategy';
+import { CONTRACT_VERSION_HEADER, CURRENT_CONTRACT_MAJOR } from '@mercurion/rest-contracts';
 
 
 export const appConfig: ApplicationConfig = {
@@ -26,8 +27,14 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptorsFromDi()),
     provideApollo(() => {
       const httpLink = inject(HttpLink);
+      const contractVersionLink = new ApolloLink((operation, forward) => {
+        operation.setContext(({ headers = {} }) => ({
+          headers: { ...headers, [CONTRACT_VERSION_HEADER]: String(CURRENT_CONTRACT_MAJOR) }
+        }));
+        return forward(operation);
+      });
       return {
-        link: httpLink.create({ uri: '/api/graphql' }),
+        link: contractVersionLink.concat(httpLink.create({ uri: '/api/graphql' })),
         cache: new InMemoryCache(),
         uri: '/api/graphql'
       };
