@@ -7,6 +7,7 @@ import { Login_FirstStepWrapper } from '../Models/auth/login.models';
 import { TypeGuardsService } from './type-guards.service';
 import { Router } from '@angular/router';
 import { AuthStateStore } from './auth-state.store';
+import { AuthSessionPersistenceService } from './auth-session-persistence.service';
 import type {
   BackupCodeDTO,
   Confirm_Login_FirstStepDTO,
@@ -38,6 +39,7 @@ export class AuthService {
   private readonly http = inject(HttpClient)
   private readonly typeGuards = inject(TypeGuardsService)
   private readonly authState = inject(AuthStateStore)
+  private readonly persistence = inject(AuthSessionPersistenceService)
   private readonly router = inject(Router)
   // ====================================================
 
@@ -50,15 +52,11 @@ export class AuthService {
   private authBC = new BroadcastChannel('mercurion-auth');
 
   private readonly WS_AT_KEY = 'ws_accessToken';
-  private readonly WS_REFRESH_LOCK = 'ws_refresh_lock'; // JSON { owner: string, expiresAt: number }
+  private readonly WS_REFRESH_LOCK = 'ws_refresh_lock';
   private readonly lockTtlMs = 5000;
 
   constructor() {
-    // id di tab per il lock cross-tab
-    if (!sessionStorage.getItem('tab_id')) {
-      const id = (crypto as any)?.randomUUID?.() ?? Math.random().toString(36).slice(2);
-      sessionStorage.setItem('tab_id', id);
-    }
+    this.persistence.getTabId()
   }
 
   getMfaStrategiesDescrMap(): Map<MfaStrategy, string> {
@@ -70,14 +68,7 @@ export class AuthService {
   }
 
   getCookieValue(key: string): string | null {
-    const cookies = document.cookie.split('; ')
-    for (const cookie of cookies) {
-      const [name, value] = cookie.split('=')
-      if (name.trim() === key) {
-        return decodeURIComponent(value)
-      }
-    }
-    return null
+    return this.persistence.getCookieValue(key)
   }
 
   /* ───────── Broadcast cross-tab (già esistenti) ───────── */
@@ -231,7 +222,7 @@ export class AuthService {
     // pulisci eventuale lock pendente
     const lock = this.readLock();
     if (lock?.owner === this.tabId) {
-      localStorage.removeItem(this.WS_REFRESH_LOCK);
+      this.persistence.removeWsRefreshLock();
     }
     return this.http.delete<void>('/api/authentication/logout', {
       withCredentials: true
@@ -281,7 +272,7 @@ export class AuthService {
   /* ───────── Interni: lock cross-tab ───────── */
 
   private get tabId(): string {
-    return sessionStorage.getItem('tab_id')!;
+    return this.persistence.getTabId();
   }
 
   private now() { return Date.now(); }
@@ -292,19 +283,15 @@ export class AuthService {
 
   private readLock(): { owner: string; expiresAt: number } | null {
     try {
-      const raw = localStorage.getItem(this.WS_REFRESH_LOCK);
-      return raw ? JSON.parse(raw) : null;
-    } catch {
-      return null;
-    }
+      return this.persistence.getWsRefreshLock()
+    } catch { return null }
   }
 
   private tryAcquireLock(): boolean {
     const lock = this.readLock();
     const expiredOrMine = !lock || lock.expiresAt <= this.now() || lock.owner === this.tabId;
     if (expiredOrMine) {
-      const payload = JSON.stringify({ owner: this.tabId, expiresAt: this.now() + this.lockTtlMs });
-      localStorage.setItem(this.WS_REFRESH_LOCK, payload);
+      this.persistence.setWsRefreshLock({ owner: this.tabId, expiresAt: this.now() + this.lockTtlMs })
       const confirm = this.readLock();
       return !!confirm && confirm.owner === this.tabId;
     }
@@ -314,7 +301,7 @@ export class AuthService {
   private releaseLock(): void {
     const lock = this.readLock();
     if (lock?.owner === this.tabId) {
-      localStorage.removeItem(this.WS_REFRESH_LOCK);
+      this.persistence.removeWsRefreshLock()
     }
   }
 
@@ -377,19 +364,11 @@ export class AuthService {
       return
     }
 
-    const key = this.generateScopesStorageKey(context)
-
     if (scp === null) {
       this.clearCachedScopes(context)
       return
     }
-
-    if (!this.typeGuards.isNotNullish(key)) {
-      return
-    }
-
-    const encVal = btoa(JSON.stringify(scp))
-    localStorage.setItem(key, encVal)
+    this.persistence.setScopes(scp, 'ws')
   }
 
   getCachedScopes(context: TokenType = 'access_token'): string[] | null {
@@ -397,20 +376,7 @@ export class AuthService {
       return this.authState.getCachedScopes()
     }
 
-    const key = this.generateScopesStorageKey(context)
-
-    if (!this.typeGuards.isNotNullish(key)) return null
-
-    const raw = localStorage.getItem(key)
-    if (!raw) return null
-
-    try {
-      const decoded = atob(raw)
-      const parsed = JSON.parse(decoded) as string[]
-      return parsed
-    } catch {
-      return null
-    }
+    return this.persistence.getScopes('ws')
   }
 
   clearCachedScopes(context: TokenType): void {
@@ -418,10 +384,7 @@ export class AuthService {
       this.authState.setCachedScopes(null)
       return
     }
-    const key = this.generateScopesStorageKey(context)
-    if (this.typeGuards.isNotNullish(key) && !!localStorage.getItem(key)) {
-      localStorage.removeItem(key)
-    }
+    this.persistence.setScopes(null, 'ws')
   }
 
   logoutFromSession(ssid: string, current = false): Observable<ConfirmDTO> {

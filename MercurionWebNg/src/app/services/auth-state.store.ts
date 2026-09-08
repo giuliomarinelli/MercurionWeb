@@ -1,4 +1,5 @@
-import { computed, Injectable, signal } from '@angular/core'
+import { computed, inject, Injectable, signal } from '@angular/core'
+import { AuthSessionPersistenceService } from './auth-session-persistence.service'
 import {
   INITIAL_SESSION_PROTOCOL,
   SessionConnectionState,
@@ -35,6 +36,7 @@ export interface AuthCompletion {
 
 @Injectable({ providedIn: 'root' })
 export class AuthStateStore {
+  private readonly persistence = inject(AuthSessionPersistenceService)
   private readonly stateSignal = signal<AuthState>({ kind: 'bootstrap' })
   private readonly protocolSignal = signal<SessionProtocolSnapshot>(INITIAL_SESSION_PROTOCOL)
   private readonly expiryTick = signal(0)
@@ -201,75 +203,47 @@ export class AuthStateStore {
   }
 
   getAccessToken(): string | null {
-    return localStorage.getItem('accessToken')
+    return this.persistence.getAccessToken()
   }
 
   setAccessToken(token: string | null): void {
-    if (token) localStorage.setItem('accessToken', token)
-    else localStorage.removeItem('accessToken')
+    this.persistence.setAccessToken(token)
   }
 
   getWsAccessToken(): string | null {
-    return localStorage.getItem('ws_accessToken')
+    return this.persistence.getWsAccessToken()
   }
 
   setWsAccessToken(token: string | null): void {
-    if (token) {
-      localStorage.setItem('ws_accessToken', token)
-      localStorage.setItem('ws_accessToken_ts', String(Date.now()))
-    } else {
-      localStorage.removeItem('ws_accessToken')
-      localStorage.removeItem('ws_accessToken_ts')
-    }
+    this.persistence.setWsAccessToken(token)
   }
 
   getPersistedInitials(): string | null {
-    return localStorage.getItem('login')
+    return this.persistence.getInitials()
   }
 
   setPersistedInitials(initials: string): void {
-    localStorage.setItem('login', initials)
+    this.persistence.setInitials(initials)
   }
 
   getCachedScopes(): string[] | null {
-    const raw = localStorage.getItem('scp')
-    if (!raw) return null
-    try {
-      return JSON.parse(atob(raw)) as string[]
-    } catch {
-      return null
-    }
+    return this.persistence.getScopes()
   }
 
   setCachedScopes(scopes: string[] | null): void {
-    if (scopes === null) {
-      localStorage.removeItem('scp')
-      return
-    }
-    localStorage.setItem('scp', btoa(JSON.stringify(scopes)))
+    this.persistence.setScopes(scopes)
   }
 
   clearPersistence(): void {
-    this.setAccessToken(null)
-    this.setWsAccessToken(null)
-    localStorage.removeItem('login')
-    this.setCachedScopes(null)
-    for (const name of ['__logged_in', '__logged_in_']) {
-      document.cookie = `${name}=; Max-Age=0; path=/`
-    }
+    this.persistence.clearAuthenticatedSession()
   }
 
   private clearClientCredentialsForPreAuth(): void {
-    this.setAccessToken(null)
-    this.setWsAccessToken(null)
-    localStorage.removeItem('login')
-    this.setCachedScopes(null)
+    this.persistence.clearClientCredentialsForPreAuth()
   }
 
   private hasClientLoginCookie(): boolean {
-    return document.cookie.split('; ').some(cookie =>
-      ['__logged_in=true', '__logged_in_=true'].includes(cookie)
-    )
+    return this.persistence.hasLoginMarker()
   }
 
   private transition(next: AuthState): void {

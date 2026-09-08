@@ -1,11 +1,13 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
+import { AuthSessionPersistenceService } from './auth-session-persistence.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthRedirectService {
 
   constructor(
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly persistence: AuthSessionPersistenceService
 
   ) { }
 
@@ -16,14 +18,14 @@ export class AuthRedirectService {
   async redirectToLogin(reason?: string): Promise<void> {
 
     if (reason) {
-      sessionStorage?.setItem('mfaError', reason);
+      this.persistence.setTransientAuthError(reason);
 
       // Attendi per sicurezza
       await new Promise(resolve => setTimeout(resolve, 0));
     }
 
 
-    sessionStorage?.removeItem('preAuthorizationData')
+    this.persistence.clearPreAuthData()
 
 
     // Forza navigazione fuori da /login/...

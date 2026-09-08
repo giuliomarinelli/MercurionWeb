@@ -9,6 +9,7 @@ import { PublicPipe } from '../../pipes/public.pipe'
 import { AuthService } from '../../services/auth.service'
 import { FingerprintService } from '../../services/fingerprint.service'
 import { AuthStateStore } from '../../services/auth-state.store'
+import { AuthSessionPersistenceService } from '../../services/auth-session-persistence.service'
 import { SessionSyncService } from '../../services/session-sync.service'
 
 import { TurnstileComponent } from '../../components/common/turnstile/turnstile.component'
@@ -243,6 +244,7 @@ import { HttpErrorResponse } from '@angular/common/http'
 `
 })
 export class LoginPageComponent implements OnInit, OnDestroy {
+  private readonly persistence = inject(AuthSessionPersistenceService)
   private readonly fb = inject(FormBuilder)
   private readonly themeManager = inject(ThemeManagerService)
   private readonly router = inject(Router)
@@ -389,7 +391,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
       takeUntilDestroyed(this.destroyRef),
       switchMap(() => {
         this.authService.logout()
-        document.cookie = 'name=__logged_in; value=null; path=/; max-age=0'
+        this.persistence.removeLoginMarkers()
         return of(null)
       }),
       switchMap(() => this.authService.login_firstStep(dto)),
@@ -407,7 +409,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
           this.authState.enterPreAuthentication(res.preAuthorizationToken)
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { statusCode, timestamp, message, ...loginFirstStepData } = res
-          sessionStorage?.setItem('preAuthorizationData', btoa(JSON.stringify(loginFirstStepData ?? '')))
+          this.persistence.setPreAuthorizationData(btoa(JSON.stringify(loginFirstStepData ?? '')))
 
           if (res.suspiciousAttempt) {
             this.router.navigate([`/login/mfa/EMAIL_OTP`], { queryParams: { ...qp, trust_verify: true } })
@@ -462,18 +464,18 @@ export class LoginPageComponent implements OnInit, OnDestroy {
       const s = String(v).trim()
       if (s.length) return s
     }
-    const stored = sessionStorage.getItem(this.redirectKey)
+    const stored = this.persistence.getRedirectState()
     return stored?.trim()?.length ? stored.trim() : null
   }
 
   private storeRedirectIfMissing() {
     const qpRedirectTo = this.route.snapshot.queryParamMap.get('redirect_to')
     if (qpRedirectTo) {
-      sessionStorage.setItem(this.redirectKey, String(qpRedirectTo))
+      this.persistence.setRedirectState(String(qpRedirectTo))
       return
     }
 
-    const existing = sessionStorage.getItem(this.redirectKey)
+    const existing = this.persistence.getRedirectState()
     if (existing) return
 
     const qpRedirect =
@@ -482,7 +484,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
       this.route.snapshot.queryParamMap.get('r')
 
     if (qpRedirect) {
-      sessionStorage.setItem(this.redirectKey, String(qpRedirect))
+      this.persistence.setRedirectState(String(qpRedirect))
       return
     }
 
@@ -494,7 +496,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
       try {
         const u = new URL(ref)
         const path = `${u.pathname}${u.search}${u.hash}`
-        sessionStorage.setItem(this.redirectKey, path)
+        this.persistence.setRedirectState(path)
       } catch {
         // pass
       }
@@ -502,15 +504,15 @@ export class LoginPageComponent implements OnInit, OnDestroy {
   }
 
   private popRedirect() {
-    const url = sessionStorage.getItem(this.redirectKey)
-    if (url) sessionStorage.removeItem(this.redirectKey)
+    const url = this.persistence.getRedirectState()
+    if (url) this.persistence.removeRedirectState()
     return url
   }
 
   private redirectAfterLogin() {
     const redirectTo = this.getRedirectTo()
     if (redirectTo) {
-      sessionStorage.removeItem(this.redirectKey)
+      this.persistence.removeRedirectState()
       this.router.navigateByUrl(redirectTo)
       return
     }
@@ -526,7 +528,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
       if (document.hidden) return
       if (!this.router.url.startsWith('/login')) return
 
-      const hasLogin = !!localStorage.getItem(this.loginKey)
+      const hasLogin = !!this.persistence.getInitials()
       if (!hasLogin) return
       if (!this.authState.authenticated()) return
 

@@ -1,6 +1,6 @@
 # 0028 - Encapsulate auth and session browser persistence
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -104,21 +104,41 @@ This task may introduce a domain-specific storage registry for auth now, but do 
 
 ### Summary
 
-Skipped without implementation because hard prerequisite `0026-create-canonical-angular-auth-state-store.md` (`FE-004`) is terminal `BLOCKED` pending authenticated browser validation. The canonical auth-state owner required beneath this adapter is preserved only on the frozen feature branch and is not available on `develop`.
+Implemented the typed auth/session persistence boundary beneath the canonical
+auth-state store. Browser validation was not required by the adapter recipe.
+The adapter owns auth credentials, WS refresh metadata, scopes, initials,
+client-readable login markers, tab/lock state, pre-auth data, redirect state
+and transient MFA errors. Theme preferences and unrelated application cache
+remain intentionally outside this adapter for the later `FE-032` registry.
 
 ### Validation performed
 
-- No task branch or worker was created.
-- Direct prerequisite: `FE-004` is `BLOCKED`.
-- Transitive dependency chain: `FE-006` -> `FE-004` (`BLOCKED`).
+- Initial unchanged preflight: `npm ci` and `npm run ci:check` from the
+  repository root, both passed on base `5cab79d5e76bca4fc3f3782420b628d68fbdbed3`.
+- `cd MercurionWebNg; npx ng test --watch=false --no-progress
+  --browsers=ChromeHeadless`: passed, 306/306.
+- `cd MercurionWebNg; npm run build`: passed; existing bundle-budget and
+  CommonJS warnings only.
+- Production-source persistence audit: no direct `localStorage`,
+  `sessionStorage`, or `document.cookie` access remains outside the adapter;
+  `theme-manager.service.ts` is unrelated application preference storage.
+- `git diff --check`: passed.
 
 ### Browser validation performed
 
-Not applicable; the task was skipped before implementation.
+Not required for this adapter task; no runtime processes or browser profile
+state were changed.
 
 ### Changed files
 
-No files changed; only this task metadata was updated.
+- `MercurionWebNg/src/app/services/auth-session-persistence.service.ts`
+- `MercurionWebNg/src/app/services/auth-session-persistence.service.spec.ts`
+- `MercurionWebNg/src/app/services/auth-state.store.ts`
+- `MercurionWebNg/src/app/services/auth.service.ts`
+- `MercurionWebNg/src/app/services/session-sync.service.ts`
+- `MercurionWebNg/src/app/services/auth-redirect.service.ts`
+- `MercurionWebNg/src/app/services/recovery.service.ts`
+- Auth/MFA/SSO login and redirect consumers migrated to the adapter.
 
 ### Blocker / human decision required
 

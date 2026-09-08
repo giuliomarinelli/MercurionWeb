@@ -13,6 +13,7 @@ import {
   hasApplicationErrorCode
 } from '../../../utils/application-error.util';
 import { AuthStateStore } from '../../../services/auth-state.store'
+import { AuthSessionPersistenceService } from '../../../services/auth-session-persistence.service'
 import { SessionSyncService } from '../../../services/session-sync.service'
 import type { SessionDeviceInfo } from '@mercurion/rest-contracts'
 import { BackupCodeDTO, TotpBodyDTO } from '../../../Models/auth/totp.models'
@@ -217,6 +218,7 @@ import { DesignService } from '../../../services/design.service'
   `
 })
 export class MfaPageComponent implements OnInit, OnDestroy {
+  private readonly persistence = inject(AuthSessionPersistenceService)
 
   private readonly route = inject(ActivatedRoute)
   private readonly router = inject(Router)
@@ -281,7 +283,7 @@ export class MfaPageComponent implements OnInit, OnDestroy {
     const qp = this.getRedirectToQP()
     if (qp) return qp
 
-    const ss = this.sanitizeRedirectTo(sessionStorage.getItem(this.redirectKey))
+    const ss = this.sanitizeRedirectTo(this.persistence.getRedirectState())
     return ss ?? '/dashboard'
   }
 
@@ -315,7 +317,7 @@ export class MfaPageComponent implements OnInit, OnDestroy {
       if (document.hidden) return
       if (!this.router.url.startsWith('/login')) return
 
-      if (localStorage.getItem('login')) {
+      if (this.persistence.getInitials()) {
         this.router.navigateByUrl(this.resolveRedirectTarget())
       }
     }, 1000)
@@ -331,7 +333,7 @@ export class MfaPageComponent implements OnInit, OnDestroy {
     this.phoneControl = this.fb.control(null, [Validators.required])
 
     // 3) preAuthorizationData
-    const raw = sessionStorage.getItem('preAuthorizationData')
+    const raw = this.persistence.getPreAuthorizationData()
     if (!raw) {
       this.router.navigateByUrl('/403-forbidden')
       return
@@ -374,7 +376,7 @@ export class MfaPageComponent implements OnInit, OnDestroy {
       }),
       switchMap(({ view, trustVerify, redirectTo }) => {
         // ✅ se arriva redirect_to in query, lo teniamo anche in sessionStorage (fallback)
-        if (redirectTo) sessionStorage.setItem(this.redirectKey, redirectTo)
+        if (redirectTo) this.persistence.setRedirectState(redirectTo)
 
         if (!view || !this.viewList.includes(view)) {
           this.router.navigateByUrl('/403-forbidden')
@@ -388,7 +390,7 @@ export class MfaPageComponent implements OnInit, OnDestroy {
           this.loading.set(false)
           this.canView.set(true)
 
-          const pdRaw = sessionStorage.getItem('preAuthorizationData')
+          const pdRaw = this.persistence.getPreAuthorizationData()
           if (!pdRaw) {
             this.router.navigateByUrl('/403-forbidden')
             return EMPTY
@@ -545,14 +547,14 @@ export class MfaPageComponent implements OnInit, OnDestroy {
           wsAccessToken: res.ws_accessToken,
           scopes: res.accessToken ? this.authService.getUserScopesFromClaims(res.accessToken) : []
         })
-        sessionStorage.removeItem('preAuthorizationData')
+        this.persistence.removePreAuthorizationData()
 
         this.sessionSyncService.resumeSession(res.initials ?? 'U')
 
         this.router.navigateByUrl(this.resolveRedirectTarget())
       },
       error: (e) => {
-        sessionStorage.removeItem('preAuthorizationData')
+        this.persistence.removePreAuthorizationData()
 
         let message = 'Si è verificato un errore.'
         if ('error' in e && 'status' in e) {

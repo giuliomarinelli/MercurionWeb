@@ -38,6 +38,7 @@ import { HttpErrorResponse } from '@angular/common/http'
 import { AppTitleService } from '../../services/app-title.service'
 import { DomainInvalidationService } from '../../services/domain-invalidation.service'
 import { DesignService } from '../../services/design.service'
+import { AuthSessionPersistenceService } from '../../services/auth-session-persistence.service'
 import {
   ApplicationErrorCode,
   hasApplicationErrorCode
@@ -264,6 +265,7 @@ import {
         }
   ` })
 export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
+  private readonly persistence = inject(AuthSessionPersistenceService)
 
   // ======================= DEPS =======================
   private readonly route = inject(ActivatedRoute)
@@ -395,7 +397,7 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
               tap(molregno => {
                 if (molregno) {
                   const url = `/molecules/detail/${molregno}`
-                  sessionStorage.setItem('redirectAfterLogin', url)
+                  this.persistence.setRedirectState(url)
                   this.router.navigateByUrl(url)
                 }
               }),
@@ -663,4 +665,3 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
   }
 
 }
-
