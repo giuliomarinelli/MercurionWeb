@@ -1,6 +1,6 @@
 # 0030 - Complete cross-tab authentication synchronization
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -114,23 +114,59 @@ The current `storage`-event path is already materially implemented while Broadca
 
 ### Summary
 
-Skipped without implementation because hard prerequisites `0026-create-canonical-angular-auth-state-store.md` (`FE-004`), `0028-encapsulate-auth-session-browser-persistence.md` (`FE-006`), and `0029-preserve-authorization-scopes-through-every-login-flow.md` (`FE-007`) are terminal non-DONE (`BLOCKED` or `SKIPPED_DEPENDENCY`). The canonical auth owner, persistence adapter, and scope lifecycle are unavailable on `develop`.
+Implemented FE-008 on `feature/FE-008` from base
+`5614402d32db835b66110994f4e67c8bb00da44c`. Prerequisites FE-004, FE-006
+and FE-007 were verified DONE at execution time.
+
+The inventory confirmed that `AuthService`'s `BroadcastChannel` was
+send-only and had no callers or receiver. Storage events remain the sole
+cross-tab transport. `login` changes are typed session restore/logout hints
+and always trigger the existing server websocket handshake before session
+promotion; `ws_accessToken` changes remain credential-refresh hints owned by
+the realtime socket and no longer trigger an auth handshake. Duplicate
+logout events are idempotent, cookie guards prevent treating a stale client
+marker as proof of server logout, and `SessionSyncService` removes its
+listener and debounce timer in `ngOnDestroy`.
 
 ### Validation performed
 
-- No task branch or worker was created.
-- Direct prerequisites: `FE-004` is `BLOCKED`; `FE-006` and `FE-007` are `SKIPPED_DEPENDENCY`.
-- Transitive dependency chain: `FE-008` -> `FE-004` (`BLOCKED`), `FE-006` (`SKIPPED_DEPENDENCY`) -> `FE-004` (`BLOCKED`), and `FE-007` (`SKIPPED_DEPENDENCY`) -> `FE-004` (`BLOCKED`).
+- Initial unchanged baseline: `npm ci` passed (Node 22.16.0/npm 10.9.2);
+  `npm run ci:check` passed.
+- Focused protocol tests cover login marker ordering, logout marker ordering,
+  websocket token refresh classification, and unrelated keys/storage areas.
+- `npm run test:ci --workspace mercurion_web_ng` passed: 314 tests.
+- `npm run build --workspace mercurion_web_ng` passed. Existing Angular
+  bundle/CommonJS budget warnings remained non-fatal.
+- `git diff --check` passed and repository search confirmed no
+  `BroadcastChannel`, `broadcastLogin`, or `broadcastLogout` references remain.
+- Final clean-install `npm ci` and complete `npm run ci:check` are run after
+  this note and task commit, immediately before integration.
 
 ### Browser validation performed
 
-Not applicable; the task was skipped before implementation.
+Runtime capability was started with the canonical commands. Nest reached
+`http://localhost:8888/health` with HTTP 200 and Angular reached
+`http://localhost:8888/` with HTTP 200. Tox21 started from
+`../MercurionTox21` using `.venv\Scripts\python.exe -m main` with
+`PYTHONUTF8=1`. All three task-started processes were stopped before final
+validation.
+
+Chrome DevTools MCP opened two same-origin pages at `http://localhost:8888/`.
+Both pages reached the public `/welcome` UI and exposed the `Accedi` marker;
+the dedicated profile had no authenticated non-production identity marker.
+No credentials were available, so login/logout actions and protected-state
+evidence were not attempted. The two-page capability and unauthenticated
+profile result were recorded without changing browser storage or auth state.
 
 ### Changed files
 
-No files changed; only this task metadata was updated.
+- `MercurionWebNg/src/app/services/auth.service.ts`
+- `MercurionWebNg/src/app/services/session-sync.service.ts`
+- `MercurionWebNg/src/app/services/session-sync.service.spec.ts`
+- This task recipe's execution notes and DONE status.
 
-### Blocker / human decision required
+### Decisions
 
-No implementation blocker. The task may be re-enabled only after its hard
-dependency chain is deliberately resolved in a new authorized session.
+No blocker or human decision is required. The task uses the existing storage
+event mechanism and does not treat peer-provided initials or tokens as
+authentication proof.
