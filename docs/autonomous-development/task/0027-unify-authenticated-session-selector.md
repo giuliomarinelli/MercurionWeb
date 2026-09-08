@@ -1,6 +1,6 @@
 # 0027 - Unify the authenticated-session selector
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -110,23 +110,49 @@ Keep the selector semantic, e.g. `authenticated`, rather than exposing its imple
 
 ### Summary
 
-Skipped without implementation because hard prerequisite `0026-create-canonical-angular-auth-state-store.md` (`FE-004`) is terminal `BLOCKED` pending authenticated browser validation. The canonical auth store required by this selector is preserved only on the frozen feature branch and is not available on `develop`.
+Implemented the canonical `authenticated` selector on `AuthStateStore`. It
+requires the explicit authenticated state and the shared session protocol to
+be authenticated, rejects bootstrap/anonymous/pre-auth/expired/invalidated
+states, and schedules deterministic JWT-expiry invalidation. Auth guard,
+application shell, interceptor and compatibility UI consumers now use this
+selector; persistence markers remain restore hints only.
 
 ### Validation performed
 
-- No task branch or worker was created.
-- Direct prerequisite: `FE-004` is `BLOCKED`.
-- Transitive dependency chain: `FE-005` -> `FE-004` (`BLOCKED`); `0010` is already `DONE`.
+- Task-start process proof: no task-owned Angular, Nest, Tox21 or watcher
+  process was active before validation.
+- Unchanged task-start preflight passed on `feature/FE-005` at
+  `a7e76d11e46d7dc01f1c4d4d5107f21f30bdf7be`:
+  `npm ci`; `npm run ci:check`.
+- Focused selector tests passed:
+  `Set-Location MercurionWebNg; npx ng test --watch=false --include
+  src/app/services/auth-state.store.spec.ts` (12 tests).
+- Angular build passed:
+  `Set-Location MercurionWebNg; npm run build` (warnings only: existing
+  bundle budget/CommonJS warnings).
+- Full Angular CI tests passed:
+  `Set-Location MercurionWebNg; npm run test:ci`.
+- Added coverage for initials/cookie/token-only evidence, expired JWTs and
+  explicit protocol invalidation.
 
 ### Browser validation performed
 
-Not applicable; the task was skipped before implementation.
+No deterministic local authenticated fixture/account was available. Anonymous
+browser validation was not required by the conditional browser clause, and no
+credentials were fabricated or used.
 
 ### Changed files
 
-No files changed; only this task metadata was updated.
+`MercurionWebNg/src/app/services/auth-state.store.ts`
+`MercurionWebNg/src/app/services/auth-state.store.spec.ts`
+`MercurionWebNg/src/app/services/context/user-context.service.ts`
+`MercurionWebNg/src/app/guards/auth.guard.ts`
+`MercurionWebNg/src/app/app.component.ts`
+`MercurionWebNg/src/app/interceptors/auth-fallback.interceptor.ts`
+`MercurionWebNg/src/app/pages/login/login.page.component.ts`
+`MercurionWebNg/src/app/services/session-sync.service.ts`
 
 ### Blocker / human decision required
 
-No implementation blocker. The task may be re-enabled only after its hard
-dependency is deliberately resolved in a new authorized session.
+None. Dependency `0026` is `DONE` and protocol authority is defined by
+`0010`.

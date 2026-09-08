@@ -284,7 +284,8 @@ export class SessionSyncService {
         const initials = this.authState.getPersistedInitials() ?? 'U'
         this.authState.resumeFromServer(initials)
 
-        // login “valido” solo con cookie = true
+        // The server handshake is authoritative; the cookie only selects the
+        // transport mode and is never an authentication predicate.
         if (this.hasClientLoginCookieTrue()) {
           this.verifiedOnce = true
 

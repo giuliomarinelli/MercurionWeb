@@ -6,8 +6,8 @@ import { SessionInvalidationCause } from '@mercurion/rest-contracts'
 export class UserContextService {
   private readonly authState = inject(AuthStateStore)
   readonly initials = this.authState.initials
-  readonly isLoggedIn = this.authState.isAuthenticated
-  readonly isLoggedOut = computed(() => !this.authState.isAuthenticated())
+  readonly isLoggedIn = this.authState.authenticated
+  readonly isLoggedOut = computed(() => !this.authState.authenticated())
 
   setInitials(initials: string): void {
     this.authState.resumeFromServer(initials)

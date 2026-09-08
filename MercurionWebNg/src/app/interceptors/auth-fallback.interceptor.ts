@@ -40,7 +40,7 @@ export class AuthFallbackInterceptor implements HttpInterceptor {
       tap((event) => {
         if (event instanceof HttpResponse) {
           if (isFatalUnauthenticatedBody(event.body)) {
-            if (this.authState.isAuthenticated()) {
+            if (this.authState.authenticated()) {
               forceLogout()
             }
           }
@@ -58,7 +58,7 @@ export class AuthFallbackInterceptor implements HttpInterceptor {
         if (e instanceof HttpErrorResponse && e.status === 401) {
           const body = e.error
           if (isFatalUnauthenticatedBody(body)) {
-            if (this.authState.isAuthenticated()) {
+            if (this.authState.authenticated()) {
               forceLogout()
             }
           }

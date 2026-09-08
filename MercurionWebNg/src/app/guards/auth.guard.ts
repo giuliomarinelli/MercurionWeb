@@ -14,7 +14,7 @@ export class AuthGuard implements CanActivate {
   private readonly authState = inject(AuthStateStore)
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean | UrlTree {
-    if (this.authState.isAuthenticated()) {
+    if (this.authState.authenticated()) {
       return true
     }
 
