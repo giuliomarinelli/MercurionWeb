@@ -7,17 +7,22 @@
  *  - No ACK in PRIVATE: degrada a anonimo/public
  *  - Niente autologout da `storage` se il cookie è presente
  * ────────────────────────────────────────────────────────────── */
-import { effect, Injectable, NgZone, signal } from '@angular/core'
+import { effect, inject, Injectable, NgZone, signal } from '@angular/core'
 import { Router } from '@angular/router'
-import { UserContextService } from './context/user-context.service'
+import { AuthStateStore } from './auth-state.store'
 import { ToastService } from './toast.service'
-import { ToastContext } from '../components/common/toast/toast.component'
-import { environment } from '../../environments/environment.development'
+import { environment } from '../../environments/environment'
 import { RealtimeSocketService } from './socket.IO/realtime-socket.service'
 import {
   ApplicationErrorCode,
   hasApplicationErrorCode
 } from '../utils/application-error.util'
+import {
+  SessionConnectionState,
+  SessionInvalidationCause,
+  type SessionInvalidationCauseType
+} from '@mercurion/rest-contracts'
+import { ToastVariant } from '../Models/toast.models'
 
 export type SessionSyncStatus =
   | 'unknown'
@@ -30,6 +35,15 @@ export type SessionSyncStatus =
 
 @Injectable({ providedIn: 'root' })
 export class SessionSyncService {
+
+  private readonly socket = inject(RealtimeSocketService)
+  private readonly authState = inject(AuthStateStore)
+  private readonly toast = inject(ToastService)
+  private readonly router = inject(Router)
+  private readonly zone = inject(NgZone)
+
+
+
   private unauthorizedRetries = 0
   private readonly MAX_UNAUTH_RETRIES = 2
 
@@ -66,13 +80,7 @@ export class SessionSyncService {
   private lastVoluntaryLogoutAt = 0
   private readonly voluntaryLogoutGraceMs = 12_000
 
-  constructor(
-    private readonly socket: RealtimeSocketService,
-    private readonly userCtx: UserContextService,
-    private readonly toast: ToastService,
-    private readonly router: Router,
-    private readonly zone: NgZone
-  ) {
+  constructor() {
 
     effect(() => {
       const t = this._voluntaryLogoutTick()
@@ -85,16 +93,20 @@ export class SessionSyncService {
     // eventi WS
     this.socket.onConnect().subscribe(() =>
       this.zone.run(() => {
+        this.authState.setConnectionState(SessionConnectionState.Connected)
         void this.syncSession()
       })
     )
 
     this.socket.onDisconnect().subscribe(r => {
-      if (r !== 'io client disconnect') this._status.set('disconnected')
+      if (r !== 'io client disconnect') {
+        this.authState.requireReconnect()
+        this._status.set('disconnected')
+      }
     })
 
     // errore applicativo → tentiamo resync (niente logout automatico)
-    this.socket.on<{ code?: string; detail: string }>('sv.pub.err').subscribe(err =>
+    this.socket.onApplicationError().subscribe(err =>
       this.zone.run(() => {
         if (hasApplicationErrorCode(
           err,
@@ -106,8 +118,8 @@ export class SessionSyncService {
     )
 
     // scadenza sessione lato server
-    this.socket.on('sv.pub.session_expired').subscribe(() =>
-      this.zone.run(() => this.handleSessionExpired())
+    this.socket.onSessionExpired().subscribe(payload =>
+      this.zone.run(() => this.handleSessionExpired(payload.cause))
     )
 
     // bootstrap: parte PUBLIC, poi decide se uppare a PRIVATE
@@ -115,15 +127,15 @@ export class SessionSyncService {
     void this.syncSession()
 
     // cross-tab con guardia cookie (evita falsi "logout da un’altra scheda")
-    let storageDebounce: any
+    let storageDebounce: ReturnType<typeof setTimeout>
     window.addEventListener('storage', (e: StorageEvent) => {
       if (e.storageArea !== localStorage) return
       if (e.key !== 'login' && e.key !== 'ws_accessToken') return
 
       clearTimeout(storageDebounce)
       storageDebounce = setTimeout(() => {
-        const initials = localStorage.getItem('login')
-        const wsTok = localStorage.getItem('ws_accessToken')
+        const initials = this.authState.getPersistedInitials()
+        const wsTok = this.authState.getWsAccessToken()
 
         // logout cross-tab SOLO se manca anche il cookie "logged_in"
         if (e.key === 'login' && !initials) {
@@ -170,7 +182,7 @@ export class SessionSyncService {
 
   logout() {
     queueMicrotask(() => {
-      this.userCtx.logout()
+      this.authState.logout()
       this.becomeAnonymous({
         navigateIfProtected: true,
         removeLoginKey: false
@@ -194,12 +206,12 @@ export class SessionSyncService {
     }
 
     const now = Date.now()
-    const initials = localStorage.getItem('login') ?? ''
+    const initials = this.authState.getPersistedInitials() ?? ''
     const cookieLogged = this.hasClientLoginCookieTrue()
 
     // login locale senza cookie → stato inconsistente: considera la sessione scaduta
     if (initials && !cookieLogged) {
-      this.handleSessionExpired()
+      this.handleSessionExpired(SessionInvalidationCause.InvalidSession)
       return
     }
 
@@ -263,14 +275,14 @@ export class SessionSyncService {
         return
       }
 
-      const ack: any = await this.socket.emit('so.pub.session_init', undefined, 1200)
+      const ack = await this.socket.emitSessionInit(1200)
 
       if (ack?.detail === 'websocket session init successful') {
         this.unauthorizedRetries = 0
 
         // ACK riuscito: setta iniziali se le abbiamo, e valida cookie
-        const initials = localStorage.getItem('login') ?? 'U'
-        this.userCtx.setInitials(initials)
+        const initials = this.authState.getPersistedInitials() ?? 'U'
+        this.authState.resumeFromServer(initials)
 
         // login “valido” solo con cookie = true
         if (this.hasClientLoginCookieTrue()) {
@@ -307,7 +319,7 @@ export class SessionSyncService {
     // === 15 tentativi falliti ===
     // Se eravamo in PRIVATE e nel frattempo il cookie è sparito → degrada a anonimo
     if (targetIsPrivate && !this.verifiedOnce && !this.hasClientLoginCookieTrue()) {
-      this.userCtx.clearInitials()
+      this.authState.logout()
       this._status.set('anonymous')
       this.lastAnonHS = Date.now()
       await this.socket.reconnectPublicNow()
@@ -317,7 +329,7 @@ export class SessionSyncService {
   /* ---------------- Eventi server ---------------- */
 
   private async handleUnauthorized(): Promise<void> {
-    const initials = localStorage.getItem('login') ?? ''
+    const initials = this.authState.getPersistedInitials() ?? ''
     const cookieLogged = this.hasClientLoginCookieTrue()
 
     // Se non risultiamo loggati, non tentiamo nemmeno il private
@@ -342,11 +354,13 @@ export class SessionSyncService {
     await this.syncSession(true)
   }
 
-  private handleSessionExpired(): void {
+  private handleSessionExpired(
+    cause: SessionInvalidationCauseType = SessionInvalidationCause.InvalidSession
+  ): void {
     const voluntary = this.isVoluntaryLogoutRecent()
     // evento di scadenza lato server → consideralo definitivo anche se il cookie esiste ancora
     const alreadyExpired = this._status() === 'sessionExpired'
-    this.userCtx.logout()
+    this.authState.invalidate(cause)
     const muted = voluntary || alreadyExpired || Date.now() < this.toastMutedUntil
     this._status.set(voluntary ? 'anonymous' : 'sessionExpired')
     this.becomeAnonymous({
@@ -360,8 +374,8 @@ export class SessionSyncService {
   /* ---------------- Cross-tab helpers ---------------- */
 
   private onExternalLogin(initials: string) {
-    this.userCtx.setInitials(initials)
-    localStorage.setItem('login', initials)
+    this.authState.beginAuthentication('restore')
+    this.authState.setPersistedInitials(initials)
     this._status.set('checking')
     void this.syncSession(true)
   }
@@ -379,7 +393,6 @@ export class SessionSyncService {
 
   /** true se esiste __logged_in o __logged_in_ con valore 'true' (non httpOnly). */
   private hasClientLoginCookieTrue(): boolean {
-    const ck = document.cookie || ''
     const v1 = this.readCookie('__logged_in')
     const v2 = this.readCookie('__logged_in_')
     return v1 === 'true' || v2 === 'true'
@@ -395,17 +408,15 @@ export class SessionSyncService {
   private becomeAnonymous(
     opts: {
       toast?: string
-      level?: ToastContext
+      level?: ToastVariant
       navigateIfProtected?: boolean
       /** se true rimuove anche la chiave 'login' */
       removeLoginKey?: boolean
     } = {}
   ) {
-    const { toast, level = 'warn', navigateIfProtected, removeLoginKey } = opts
+    const { toast, level = 'warn', navigateIfProtected } = opts
 
-    if (removeLoginKey) localStorage.removeItem('login')
-
-    this.userCtx.clearInitials()
+    this.authState.logout()
     this._status.set('anonymous')
 
     // Ripristina SUBITO la WS pubblica (senza reload) per eventi pubblici
@@ -436,7 +447,7 @@ export class SessionSyncService {
     )
   }
 
-  private triggerToast(message: string, level: ToastContext) {
+  private triggerToast(message: string, level: ToastVariant) {
     if (Date.now() < this.toastMutedUntil) return
     this.toast.trigger(message, level)
   }

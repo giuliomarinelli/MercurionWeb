@@ -13,6 +13,9 @@ describe('ComboMultiSelectComponent', () => {
     .compileComponents();
 
     fixture = TestBed.createComponent(ComboMultiSelectComponent);
+    fixture.componentRef.setInput('items', []);
+    fixture.componentRef.setInput('displayFn', (item: unknown) => String(item));
+    fixture.componentRef.setInput('valueFn', (item: unknown) => item);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

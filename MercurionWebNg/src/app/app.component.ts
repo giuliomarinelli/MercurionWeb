@@ -1,17 +1,18 @@
 import {
   AfterViewInit,
   Component,
+  ChangeDetectionStrategy,
   CUSTOM_ELEMENTS_SCHEMA,
   ElementRef,
   OnDestroy,
   OnInit,
-  ViewChild,
   computed,
   effect,
   signal,
   Signal,
   inject,
-  PLATFORM_ID
+  PLATFORM_ID,
+  viewChild
 } from '@angular/core'
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router'
 import { HeaderComponent } from './components/common/header/header.component'
@@ -20,24 +21,24 @@ import { SearchOverlayComponent } from './components/search-overlay/search-overl
 import { SearchContextService } from './services/context/search-context.service'
 import { FooterComponent } from './components/common/footer/footer.component'
 import { filter, Subscription } from 'rxjs'
-import { ToastComponent } from './components/common/toast/toast.component'
 import { ToastService } from './services/toast.service'
-import { UserContextService } from './services/context/user-context.service'
+import { AuthStateStore } from './services/auth-state.store'
 import { PathService } from './services/path.service'
 import { SidenavContextService } from './services/context/sidenav-context.service'
 import { DesignService } from './services/design.service'
 import { SidenavComponent } from './components/common/sidenav/sidenav.component'
 import { SessionSyncService } from './services/session-sync.service'
 import { ActionOverlayContextService } from './services/context/action-context/action-overlay-context.service'
-import { environment } from '../environments/environment.development'
-import { AuthService } from './services/auth.service'
+import { environment } from '../environments/environment'
 import { ActionOverlayComponent } from './components/action-components/action-overlay/action-overlay.component'
 import { AppContextService } from './services/context/app-context.service'
 import { AccountService } from './services/account.service'
 import { DOCUMENT, isPlatformBrowser } from '@angular/common'
+import { ToastComponent } from './components/common/toast/toast.component'
 
 @Component({
   selector: 'm-root',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   imports: [
     RouterOutlet,
@@ -61,7 +62,7 @@ import { DOCUMENT, isPlatformBrowser } from '@angular/common'
           [triggerOpenOffCanvas]="_triggerOpenOffCanvas()"
           (onOffCanvasMenuOpen)="triggerOpenOffCanvas()" />
         <div class="drawer-container relative flex flex-1 overflow-hidden custom-scrollbar">
-          @if (userContext.isLoggedIn() && design.minBk('xl')()) {
+          @if (authState.isAuthenticated() && design.minBk('xl')()) {
             <div class="absolute top-4 left-[10px] z-30 group">
               <button class="cursor-pointer hover:transform hover:scale-[1.05] transition-transform duration-300" (click)="sidenavContext.toggle()" aria-label="Sidebar">
                 @if (sidenavContext.isVisible()) {
@@ -90,7 +91,7 @@ import { DOCUMENT, isPlatformBrowser } from '@angular/common'
               </span>
             </div>
           }
-          @if (sidenavContext.isMounted() && userContext.isLoggedIn() && design.minBk('xl')()) {
+          @if (sidenavContext.isMounted() && authState.isAuthenticated() && design.minBk('xl')()) {
             <aside
               class="drawer absolute inset-y-0 left-0 w-64
                 transition-transform duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]
@@ -102,7 +103,7 @@ import { DOCUMENT, isPlatformBrowser } from '@angular/common'
           }
           <section #scrollHost
             class="content flex flex-col flex-1 overflow-y-auto transition-[margin] duration-500 m-scroll-thin"
-            [class.ml-64]="sidenavContext.isOpen() && userContext.isLoggedIn() && design.minBk('xl')()">
+            [class.ml-64]="sidenavContext.isOpen() && authState.isAuthenticated() && design.minBk('xl')()">
             <main class="flex-1 p-4 block">
               <router-outlet />
             </main>
@@ -115,7 +116,7 @@ import { DOCUMENT, isPlatformBrowser } from '@angular/common'
           <m-search-overlay />
         }
       }
-      @if (saveOverlayContext.shouldMount() && userContext.isLoggedIn()) {
+      @if (saveOverlayContext.shouldMount() && authState.isAuthenticated()) {
         @defer (when saveOverlayContext.shouldMount()) {
           <m-action-overlay />
         }
@@ -128,7 +129,7 @@ import { DOCUMENT, isPlatformBrowser } from '@angular/common'
         <router-outlet />
       </div>
     }
-    <m-toast [context]="toastService.context()" />
+    <m-toast />
   `
 })
 export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -139,13 +140,12 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   protected readonly searchContextService = inject(SearchContextService)
   private readonly router = inject(Router)
   protected readonly toastService = inject(ToastService)
-  protected readonly userContext = inject(UserContextService)
+  protected readonly authState = inject(AuthStateStore)
   private readonly pathService = inject(PathService)
   protected readonly sidenavContext = inject(SidenavContextService)
   protected readonly design = inject(DesignService)
   private readonly sessionSync = inject(SessionSyncService)
   protected readonly saveOverlayContext = inject(ActionOverlayContextService)
-  private readonly authService = inject(AuthService)
   private readonly appContext = inject(AppContextService)
   private readonly accountService = inject(AccountService)
   private readonly doc = inject(DOCUMENT)
@@ -173,16 +173,10 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
   _triggerOpenOffCanvas = signal<boolean>(false)
 
-  @ViewChild('scrollHost')
-  set scrollHost(ref: ElementRef<HTMLElement> | undefined) {
-    this.scrollHostRef = ref ?? undefined
-    // wait a tick so the view is stable before registering the new root
-    queueMicrotask(() => this.ensureScrollRootRef())
-  }
+  readonly scrollHost = viewChild<ElementRef<HTMLElement>>('scrollHost')
   private scrollHostRef?: ElementRef<HTMLElement>
 
-  @ViewChild(HeaderComponent, { read: ElementRef })
-  headerRef!: ElementRef<HTMLElement>
+  readonly headerRef = viewChild.required(HeaderComponent, { read: ElementRef });
 
   constructor() {
     const isBrowser = this.isBrowser
@@ -195,13 +189,13 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       if (t === 0) return
       void this.sessionSync.syncSession(true)
     })
+    effect(() => {
+      this.scrollHostRef = this.scrollHost()
+      // wait a tick so the view is stable before registering the new root
+      queueMicrotask(() => this.ensureScrollRootRef())
+    })
 
-    const loginCookie =
-      this.authService.getCookieValue('__logged_in') ?? this.authService.getCookieValue('__logged_in_')
-    if (!this.userContext.isLoggedIn() && loginCookie === 'true') {
-      const stored = localStorage.getItem('login') ?? 'U'
-      this.userContext.setInitials(stored)
-    }
+    this.authState.bootstrap()
 
     void this.sessionSync.syncSession()
 
@@ -287,7 +281,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         if (!this.firstNavigationDone()) this.firstNavigationDone.set(true)
         queueMicrotask(() => this.ensureScrollRootRef())
 
-        if (this.userContext.isLoggedIn() && isLoginFamily(url)) {
+        if (this.authState.isAuthenticated() && isLoginFamily(url)) {
           const target = resolveLoginRedirectTarget() ?? '/dashboard'
           if (target !== this.router.url) this.router.navigateByUrl(target)
         }
@@ -302,7 +296,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         return
       }
 
-      const logged = !!this.userContext.initials()
+      const logged = this.authState.isAuthenticated()
       const status = this.sessionSync.status()
       const url = this.currentPath().toLowerCase()
 
@@ -362,7 +356,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async ngOnInit() {
-    if (this.userContext.isLoggedIn()) {
+    if (this.authState.isAuthenticated()) {
       this.emailSub = this.accountService.getProvidedEmail(true).subscribe()
     }
   }
@@ -370,7 +364,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   ngAfterViewInit() {
     queueMicrotask(() => {
       this.ensureScrollRootRef()
-      const h = this.headerRef?.nativeElement?.offsetHeight ?? 64
+      const h = this.headerRef()?.nativeElement?.offsetHeight ?? 64
       this.appContext.setHeaderHeight(h)
     })
   }

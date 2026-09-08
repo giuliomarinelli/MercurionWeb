@@ -1,6 +1,6 @@
 # 0046 - Unify loading and search transition control
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -87,28 +87,53 @@ Share the state-transition mechanism, not the domain service. A tiny controller/
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/FE-024` at base `f1bd8d2724ae913251cbae85dadb504e4ebe7114`.
 
 ### Preflight
-_Not started._
+Stopped task-owned runtimes/watchers before install. Unchanged `npm ci` passed
+(Node 22.16.0 / npm 10.9.2), followed by unchanged `npm run ci:check` passing
+all autonomous validation, lint, typecheck, Angular/Nest unit and E2E tests,
+builds, GraphQL, contract, and static policy gates.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-_Not started._
+Added `MountedVisibleTransitionController`, which centralizes the 10 ms show
+and 300 ms unmount timings, cancels both pending timers on every newer intent,
+guards callbacks with a generation, enforces visible-implies-mounted, and
+clears timers on teardown. Loading and search retain their `start`/`stop` and
+`open`/`close` APIs and expose readonly signals. Direct search signal mutations
+were migrated to those domain APIs.
 
 ### Task-specific validation performed
-_Not started._
+`npm run test:ci --workspace mercurion_web_ng -- --include=src/app/services/context/loading-context.service.spec.ts --include=src/app/services/context/search-context.service.spec.ts`
+passed (194 specs; Angular CLI still compiled the complete configured suite).
+The added Jasmine fake-clock coverage verifies open-to-close before show,
+close-to-open before unmount, repeated intents, invariant preservation, and
+teardown timer cancellation. Also passed Angular lint (existing warnings only),
+Angular typecheck, and Angular build.
 
 ### Full pre-merge CI-parity validation
-_Not started._
+After stopping all runtime descendants, the first final `npm ci` encountered
+EPERM on `node_modules/@esbuild/win32-x64/esbuild.exe`; process inspection
+identified lingering Angular/esbuild descendants from the browser runtime.
+They were stopped by PID, no MercurionWeb/Tox21 workspace process remained,
+and the retry `npm ci` passed. The subsequent complete `npm run ci:check`
+passed (exit 0), including all repository-controlled gates.
 
 ### Browser validation performed
-_Not started._
+Using Chrome DevTools MCP through `http://localhost:8888/login`, clicked the
+search trigger, observed the molecular-search dialog, clicked close, observed
+the dialog remain mounted during its intended transition, then after 400 ms
+observed it unmounted with no stale remount. Console inspection found no
+application errors; the only error was the runtime limitation
+`ws://localhost:8888/socket.io` returning 502 because the local Nest health/
+WebSocket upstream was unavailable. The nginx edge served the SPA (200).
 
 ### Commits
-_Not recorded._
+`d6a8ccb341a810d30e9438a248da26272aac83d7` implementation commit; the
+following metadata-only commit records these execution notes.
 
 ### Merge / CI
 _Not started._

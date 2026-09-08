@@ -1,35 +1,28 @@
-import { effect, Injectable, signal } from '@angular/core';
+import { DestroyRef, Injectable, signal } from '@angular/core';
+import { MountedVisibleTransitionController } from './mounted-visible-transition.controller';
 
 @Injectable({
   providedIn: 'root'
 })
 export class LoadingContextService {
+  private readonly transition = new MountedVisibleTransitionController();
 
-  // Stato principale pubblico
-  isAppLoading = signal(false)
+  private readonly appLoadingState = signal(false);
+  readonly isAppLoading = this.appLoadingState.asReadonly();
+  readonly isMounted = this.transition.isMounted;
+  readonly isVisible = this.transition.isVisible;
 
-  // Stato interno per transizione
-  isMounted = signal(false)
-  isVisible = signal(false)
-
-  constructor() {
-    effect(() => {
-      if (this.isAppLoading()) {
-        this.isMounted.set(true)
-        setTimeout(() => this.isVisible.set(true), 10)
-      } else {
-        this.isVisible.set(false)
-        setTimeout(() => this.isMounted.set(false), 300)
-      }
-    })
+  constructor(destroyRef: DestroyRef) {
+    destroyRef.onDestroy(() => this.transition.destroy());
   }
 
-  start() {
-    this.isAppLoading.set(true)
+  start(): void {
+    this.appLoadingState.set(true);
+    this.transition.open();
   }
 
-  stop() {
-    this.isAppLoading.set(false)
+  stop(): void {
+    this.appLoadingState.set(false);
+    this.transition.close();
   }
-
 }

@@ -9,7 +9,7 @@ import {
 import { inject, Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
-import { UserContextService } from '../services/context/user-context.service';
+import { AuthStateStore } from '../services/auth-state.store';
 import { ToastService } from '../services/toast.service';
 import { Router } from '@angular/router';
 import { HttpErrorBody } from '../Models/http-error-body.dto';
@@ -18,19 +18,20 @@ import {
   ApplicationErrorCode,
   hasApplicationErrorCode
 } from '../utils/application-error.util';
+import { SessionInvalidationCause } from '@mercurion/rest-contracts'
 
 @Injectable()
 export class AuthFallbackInterceptor implements HttpInterceptor {
 
-  private readonly userContext = inject(UserContextService)
+  private readonly authState = inject(AuthStateStore)
   private readonly toast = inject(ToastService)
   private readonly router = inject(Router)
 
-  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+  intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
 
     const forceLogout = () => {
       this.toast.trigger('Sessione scaduta o invalidata. Effettua di nuovo il login.', 'error')
-      this.userContext.logout()
+      this.authState.invalidate(SessionInvalidationCause.InvalidSession)
       this.router.navigateByUrl('/login')
     }
 
@@ -39,7 +40,7 @@ export class AuthFallbackInterceptor implements HttpInterceptor {
       tap((event) => {
         if (event instanceof HttpResponse) {
           if (isFatalUnauthenticatedBody(event.body)) {
-            if (this.userContext.isLoggedIn()) {
+            if (this.authState.isAuthenticated()) {
               forceLogout()
             }
           }
@@ -47,7 +48,7 @@ export class AuthFallbackInterceptor implements HttpInterceptor {
       }),
 
       // 2) caso classico: 401, REST o GraphQL
-      catchError((e: any) => {
+      catchError((e: unknown) => {
         if (e instanceof HttpErrorResponse && e.status === 403) {
           const body = e.error as HttpErrorBody
           if (hasApplicationErrorCode(body, ApplicationErrorCode.PERMISSION_DENIED)) {
@@ -57,7 +58,7 @@ export class AuthFallbackInterceptor implements HttpInterceptor {
         if (e instanceof HttpErrorResponse && e.status === 401) {
           const body = e.error
           if (isFatalUnauthenticatedBody(body)) {
-            if (this.userContext.isLoggedIn()) {
+            if (this.authState.isAuthenticated()) {
               forceLogout()
             }
           }

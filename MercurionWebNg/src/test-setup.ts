@@ -25,11 +25,7 @@ beforeEach(() => {
         provide: Apollo,
         useValue: {
           mutate: jasmine.createSpy('Apollo.mutate').and.returnValue(NEVER),
-          query: jasmine.createSpy('Apollo.query').and.returnValue(NEVER),
-          watchQuery: jasmine.createSpy('Apollo.watchQuery').and.returnValue({
-            valueChanges: NEVER,
-            refetch: jasmine.createSpy('Apollo.watchQuery.refetch')
-          })
+          query: jasmine.createSpy('Apollo.query').and.returnValue(NEVER)
         }
       }
     ]

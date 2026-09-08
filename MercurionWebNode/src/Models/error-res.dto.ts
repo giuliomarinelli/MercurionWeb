@@ -1,4 +1,10 @@
 import type { ErrorRes } from '@mercurion/rest-contracts'
 
-export type InternalErrorRes = Pick<ErrorRes, 'statusCode' | 'error' | 'code' | 'message'>
+export interface InternalErrorRes {
+  statusCode: number
+  error: string
+  code?: ErrorRes['code']
+  message?: string
+  details?: ErrorRes['details']
+}
 export type HttpErrorRes = ErrorRes

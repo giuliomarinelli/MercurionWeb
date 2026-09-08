@@ -1,6 +1,6 @@
 # 0023 - Enforce Angular environment import boundaries
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -105,11 +105,22 @@ Prefer a small deterministic import-boundary check that fits the existing toolch
 
 ### Summary
 
-_Not started._
+Replaced all production Angular direct imports of environment-specific variants
+with the canonical `environment` module. Added a TypeScript AST-based static
+boundary check that excludes environment declarations and test files while
+rejecting direct variant imports in production source.
 
 ### Validation performed
 
-_Not started._
+- `npm run ci:angular:environment-imports` - passed, including the negative
+  fixture that confirms a direct `environment.development` import fails.
+- `npm run build --workspace mercurion_web_ng` - passed.
+- `npm run build --workspace mercurion_web_ng -- --configuration development` - passed.
+- `npm run build --workspace mercurion_web_ng -- --configuration testing` - passed.
+- `npm run build --workspace mercurion_web_ng -- --configuration staging` - passed.
+- `npm run test:ci --workspace mercurion_web_ng` - passed.
+- `npm ci && npm run ci:check` - passed before implementation and after the
+  completed changes.
 
 ### Browser validation performed
 
@@ -117,7 +128,11 @@ _Not applicable._
 
 ### Changed files
 
-_Not recorded._
+- Angular application consumers that previously imported
+  `environment.development`.
+- `scripts/check-angular-environment-import-boundaries.mjs`
+- `scripts/test-angular-environment-import-boundaries-negative.mjs`
+- `package.json`
 
 ### Blocker / human decision required
 

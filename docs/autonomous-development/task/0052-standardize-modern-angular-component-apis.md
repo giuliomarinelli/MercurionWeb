@@ -1,6 +1,6 @@
 # 0052 - Standardize modern Angular component APIs
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -60,12 +60,12 @@ The audited codebase mixes `@Input`, `@Output` + `EventEmitter`, `@ViewChild` an
 
 ## Acceptance criteria
 
-- [ ] Standalone production components follow the canonical modern input/output/query/injection convention.
-- [ ] `EventEmitter` is absent from migrated application component output contracts.
-- [ ] Legacy query decorators are removed where signal-query APIs provide equivalent supported semantics.
-- [ ] Input requiredness/default/alias behaviour remains compatible.
-- [ ] Static validation prevents convention drift.
-- [ ] Angular tests/build and canonical CI gates pass.
+- [x] Standalone production components follow the canonical modern input/output/query/injection convention.
+- [x] `EventEmitter` is absent from migrated application component output contracts.
+- [x] Legacy query decorators are removed where signal-query APIs provide equivalent supported semantics.
+- [x] Input requiredness/default/alias behaviour remains compatible.
+- [x] Static validation prevents convention drift.
+- [x] Angular tests/build and canonical CI gates pass.
 
 ## Validation
 
@@ -89,35 +89,50 @@ Prefer Angular-provided migrations where safe, followed by manual review. Do not
 
 ## Execution notes
 
-### Feature branch
-_Not started._
-
-### Preflight
-_Not started._
-
-### Preflight remediation
-_None._
+### Re-authorized execution
+The prior `BLOCKED` outcome was explicitly re-enabled by human instruction.
+`feature/FE-030` was reconciled with `origin/develop` using the ordinary merge
+commit `6bbe3317`; no rebase or history rewrite was used.
 
 ### Summary
-_Not started._
+Migrated the audited standalone production component contracts to Angular's
+functional APIs (`input`, `output`, signal queries and `inject`) and added the
+modern-component-API static/negative gate.
+
+Browser discovery exposed stale/partial Apollo materialization after the
+component migration. Per explicit human direction, all Angular `watchQuery`
+reads were converted to one-shot `query(..., { fetchPolicy: 'no-cache' })`.
+Pagination consumers now explicitly mark `OnPush` views on loading state
+transitions and retain the first-page skeleton long enough to render. This
+restored card names, molecular-weight values, personal badges, collection
+cards, molecule detail loading, and Ketcher edit-structure hydration.
 
 ### Task-specific validation performed
-_Not started._
-
-### Full pre-merge CI-parity validation
-_Not started._
+- Targeted Angular suites: 19 passing tests for pagination, collection detail,
+  Ketcher/editor, and GraphQL service behaviour.
+- `npm run ci:typecheck:angular` passed.
+- `npm run ci:static` passed.
 
 ### Browser validation performed
-_Not started._
+Through `http://localhost:8888` in the authenticated local Chrome extension:
+- molecule and collection lists render populated cards with correct ChEMBL and
+  Personal badges;
+- collection detail transitions from skeleton cards to rendered items;
+- ChEMBL and custom molecule details fully render;
+- Ketcher edit mode receives and draws the selected custom molecule structure;
+- the add-to-collection overlay opens with populated selectable collections and
+  closes without a persistent action.
 
-### Commits
-_Not recorded._
+### Full pre-merge CI-parity validation
+After stopping all task-owned runtime/test processes, `npm ci` and
+`npm run ci:check` passed:
+- Angular: 300/300;
+- Nest: 204/204;
+- Nest E2E: 1/1;
+- Angular/Nest builds, GraphQL drift, contracts, and all static policy gates.
 
-### Merge / CI
-_Not started._
-
-### Rollback
-_Not applicable._
-
-### Blocker / human decision required
-_None._
+### Current integration state
+`DONE` is provisional (`CI_PENDING`) on the feature branch. The exact feature
+SHA must pass the GitHub Actions Required gate before the required no-ff merge
+to `develop`; the exact merge SHA must then pass. A non-success/unverifiable
+post-merge CI result requires an ordinary revert of that merge commit.

@@ -1,10 +1,11 @@
-import { Component, inject, Input, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, effect, inject, input, signal } from '@angular/core';
 import { LinkModel } from '../../../Models/link.model';
 import { DesignService } from '../../../services/design.service';
 import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'm-my-molecules-heading',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink],
   template: `
 
@@ -43,8 +44,6 @@ export class MyMoleculesHeadingComponent {
 
   _breadcrumb = signal<LinkModel[]>([]);
 
-  @Input()
-  set breadcrumb(breadcrumb: LinkModel[]) {
-    this._breadcrumb.set(breadcrumb);
-  }
+  readonly breadcrumb = input<LinkModel[]>([])
+  private readonly syncBreadcrumb = effect(() => this._breadcrumb.set(this.breadcrumb()))
 }

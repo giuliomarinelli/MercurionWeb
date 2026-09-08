@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Make every repository-maintained `patch-package` patch reproducible, behavior-tested, traceable to an upstream issue and governed by an explicit owner/removal condition so stale or silently ineffective patches fail CI.
@@ -101,7 +101,8 @@ _Not started._
 ### Preflight remediation
 _None._
 ### Summary
-_Not started._
+Not attempted because direct terminal prerequisite 0210 (QA-024) is
+`SKIPPED_DEPENDENCY`.
 ### Task-specific validation performed
 _Not started._
 ### Full pre-merge CI-parity validation
@@ -115,4 +116,6 @@ _Not started._
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-_None._
+Direct terminal prerequisite: 0210 (QA-024), `SKIPPED_DEPENDENCY`.
+Transitive root: 0076 (UI-018), `BLOCKED`; its preserved feature branch
+remains deliberately frozen.

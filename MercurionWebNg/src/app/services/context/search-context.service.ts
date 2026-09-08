@@ -1,33 +1,28 @@
-import { Injectable, signal, computed, effect } from '@angular/core';
+import { DestroyRef, Injectable, signal } from '@angular/core';
+import { MountedVisibleTransitionController } from './mounted-visible-transition.controller';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SearchContextService {
-  // Stato principale pubblico
-  isOpenedSearchOverlay = signal(false)
+  private readonly transition = new MountedVisibleTransitionController();
 
-  // Stato interno per transizione
-  isMounted = signal<boolean>(false)
-  isVisible = signal<boolean>(false)
+  private readonly openedSearchOverlayState = signal(false);
+  readonly isOpenedSearchOverlay = this.openedSearchOverlayState.asReadonly();
+  readonly isMounted = this.transition.isMounted;
+  readonly isVisible = this.transition.isVisible;
 
-  constructor() {
-    effect(() => {
-      if (this.isOpenedSearchOverlay()) {
-        this.isMounted.set(true)
-        setTimeout(() => this.isVisible.set(true), 10)
-      } else {
-        this.isVisible.set(false)
-        setTimeout(() => this.isMounted.set(false), 300)
-      }
-    })
+  constructor(destroyRef: DestroyRef) {
+    destroyRef.onDestroy(() => this.transition.destroy());
   }
 
-  open() {
-    this.isOpenedSearchOverlay.set(true);
+  open(): void {
+    this.openedSearchOverlayState.set(true);
+    this.transition.open();
   }
 
-  close() {
-    this.isOpenedSearchOverlay.set(false);
+  close(): void {
+    this.openedSearchOverlayState.set(false);
+    this.transition.close();
   }
 }

@@ -1,5 +1,5 @@
 import { NgClass } from '@angular/common';
-import { Component, EventEmitter, inject, OnDestroy, OnInit, Output, signal } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy, output } from '@angular/core';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { UserContextService } from '../../../services/context/user-context.service';
 import { HistoryComponent } from '../history/history.component';
@@ -10,12 +10,12 @@ import { ClassicSpinnerComponent } from "../classic-spinner/classic-spinner.comp
 import { DesignService } from '../../../services/design.service';
 import { SearchContextService } from '../../../services/context/search-context.service';
 import { SelectionService } from '../../../services/selection.service';
-import { AddMoleculesToCollectionContextService } from '../../../services/context/action-context/add-molecules-to-collection-context.service';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 
 
 @Component({
   selector: 'm-sidenav',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RouterLink,
     HistoryComponent,
@@ -303,14 +303,11 @@ export class SidenavComponent implements OnInit, OnDestroy {
   protected readonly searchOverlayContext = inject(SearchContextService)
   protected readonly s = inject(SelectionService)
   private readonly router = inject(Router)
-  private readonly addContext = inject(AddMoleculesToCollectionContextService)
   private readonly actionContext = inject(ActionOverlayContextService)
 
-  @Output()
-  onOpenOffCanvas = new EventEmitter<void>()
+  readonly onOpenOffCanvas = output<void>();
 
-  @Output()
-  menuItemClick = new EventEmitter<void>()
+  readonly menuItemClick = output<void>();
 
   triggerDelete = signal<boolean>(false)
   isHistoryEmpty = signal<boolean>(false)
@@ -385,18 +382,18 @@ export class SidenavComponent implements OnInit, OnDestroy {
   }
 
   handleMenuItemClick(): void {
+    // TODO: The 'emit' function requires a mandatory void argument
     this.menuItemClick.emit()
   }
 
   closeOffCanvasMenu(): void {
+    // TODO: The 'emit' function requires a mandatory void argument
     this.menuItemClick.emit()
   }
 
   importFromChembl(): void {
     queueMicrotask(() => {
-      this.addContext.setImportFromChembl(true)
-      this.addContext.setRedirectToCollectionPath(true)
-      this.actionContext.open('SelectCollectionThenRoute')
+      this.actionContext.open('SelectCollectionThenRoute', { importFromChembl: true })
     })
   }
 

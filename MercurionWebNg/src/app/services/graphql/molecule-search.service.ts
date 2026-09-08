@@ -26,14 +26,14 @@ export class MoleculeSearchService {
     this._loading.set(true)
 
     return this.apollo
-      .watchQuery<MoleculeSearchQuery, MoleculeSearchQueryVariables>({
+      .query<MoleculeSearchQuery, MoleculeSearchQueryVariables>({
         query: MoleculeSearchDocument,
         variables: {
           input: { query, limit },
         },
-        fetchPolicy: 'network-only',
+        fetchPolicy: 'no-cache',
       })
-      .valueChanges.pipe(
+      .pipe(
         map(res => extractGqlData<MoleculeSearchQuery, 'moleculeSearch'>(res, 'moleculeSearch')),
         tap(results => {
           this._results.set(results)

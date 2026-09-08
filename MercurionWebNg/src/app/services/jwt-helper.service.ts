@@ -1,6 +1,7 @@
 // src/app/services/jwt-helper.service.ts
 
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { LoggerService } from './logger.service';
 import { jwtDecode, JwtPayload } from 'jwt-decode';
 
 @Injectable({
@@ -8,7 +9,7 @@ import { jwtDecode, JwtPayload } from 'jwt-decode';
 })
 export class JwtHelperService {
 
-  constructor() {}
+  private readonly logger = inject(LoggerService);
 
   /**
    * Decodifica un access token JWT e ritorna i claim come oggetto.
@@ -19,7 +20,7 @@ export class JwtHelperService {
     try {
       return jwtDecode<JwtPayload>(token)
     } catch (error) {
-      console.error('Errore nella decodifica del token:', error)
+      this.logger.error('Error decoding token', error)
       return null
     }
   }
@@ -47,3 +48,4 @@ export class JwtHelperService {
     return decoded.exp < now
   }
 }
+

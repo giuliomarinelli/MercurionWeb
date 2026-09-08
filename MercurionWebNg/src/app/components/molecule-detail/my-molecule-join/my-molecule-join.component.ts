@@ -1,10 +1,11 @@
-import { Component, Input, OnInit, computed, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, effect, input, OnInit, computed, signal } from '@angular/core';
 import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
 import { CollectionCardComponent } from '../collection-card/collection-card.component';
 import { SkeletonCollectionCardComponent } from '../../common/skeleton-card-loader/skeleton-card-loader.component';
 
 @Component({
   selector: 'm-my-molecule-join',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CollectionCardComponent, SkeletonCollectionCardComponent],
   template: `
     @if (collections().length) {
@@ -31,11 +32,11 @@ export class MyMoleculeJoinComponent implements OnInit {
   loaded = computed(() => this.collections().length > 0);
   notFound = signal<boolean>(false);
 
-  @Input({ required: true })
-  set joins(joins: { id: string; collection: MoleculeCollection }[] | null) {
-    if (!joins) return;
-    this.collections.set(joins.map(j => j.collection));
-  }
+  readonly joins = input.required<{ id: string; collection: MoleculeCollection }[] | null>()
+  private readonly syncJoins = effect(() => {
+    const joins = this.joins()
+    if (joins) this.collections.set(joins.map(join => join.collection))
+  })
 
   ngOnInit(): void {
     // Finestra di “loading” di 2s: se allo scadere non c’è nulla, mostra empty state

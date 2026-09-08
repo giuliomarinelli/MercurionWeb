@@ -1,5 +1,5 @@
 {
-  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "$schema": "../node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
@@ -111,7 +111,8 @@
           "builder": "@angular/build:dev-server",
           "options": {
             "port": 3498,
-            "host": "0.0.0.0"
+            "host": "0.0.0.0",
+            "prebundle": false
           },
           "configurations": {
             "production": {

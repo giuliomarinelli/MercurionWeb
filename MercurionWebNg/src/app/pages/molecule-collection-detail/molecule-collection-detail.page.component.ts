@@ -3,19 +3,20 @@ import { CustomDetailsComponent } from '../../components/molecule-detail/my-mole
 import {
   AfterViewInit,
   Component,
+  ChangeDetectionStrategy,
   ElementRef,
-  ViewChild,
   inject,
   signal,
   effect,
   OnInit,
   OnDestroy,
-  NgZone
+  NgZone,
+  viewChild
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   catchError,
-  debounceTime,
+  delay,
   distinctUntilChanged,
   filter,
   firstValueFrom,
@@ -52,11 +53,12 @@ import { SkeletonMoleculeCardComponent } from '../../components/molecule-detail/
 import { PmSearchInputComponent } from '../../components/common/pm-search-input/pm-search-input.component';
 import { CustomDetailSaveModel } from '../../Models/custom-detail-save.model';
 import { Observable } from 'rxjs';
-import { AddMoleculesToCollectionContextService } from '../../services/context/action-context/add-molecules-to-collection-context.service';
 import { AppTitleService } from '../../services/app-title.service';
+import { DomainInvalidationService } from '../../services/domain-invalidation.service';
 
 @Component({
   selector: 'm-molecule-collection-detail',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MyMoleculesHeadingComponent,
     ClassicSpinnerComponent,
@@ -176,13 +178,12 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
   private readonly history = inject(HistoryContextService)
   private readonly toast = inject(ToastService)
   private readonly overlay = inject(ActionOverlayContextService)
-  protected readonly addCtx = inject(AddMoleculesToCollectionContextService)
   private readonly zone = inject(NgZone)
   private readonly historyContext = inject(HistoryContextService)
   private readonly appTitle = inject(AppTitleService)
+  private readonly invalidations = inject(DomainInvalidationService)
 
-  @ViewChild('sentinel', { static: true })
-  protected declare sentinel: ElementRef | undefined;
+  protected override readonly sentinel = viewChild<ElementRef<HTMLElement>>('sentinel');
 
   private scrollFallbackSub?: Subscription;
   private colIdSub?: Subscription;
@@ -206,8 +207,9 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
   constructor() {
     super()
     effect(() => {
-      const t = this.addCtx.addedTick()
-      if (t === 0) {
+      const event = this.invalidations.last()
+      if (event?.domain !== 'molecule-collection' || event.action !== 'molecules-added' ||
+          event.collectionId !== this.colId()) {
         return
       }
       this.resetAndRefetch()
@@ -233,7 +235,9 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
     return this.itemService
       .getPaginatedItemsForCollection(id, page, size, this.searchTerm())
       .pipe(
-        debounceTime(20),
+        // Apollo's one-shot query completes immediately; keep the first-page
+        // loading state visible long enough for the skeleton to render.
+        delay(page === 1 ? 120 : 0),
         map(p => ({
           ...p,
           items: p.items.map(mol => Helpers.moleculeClientToCardConverter(mol))
@@ -285,6 +289,7 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
   }
 
   ngOnDestroy(): void {
+    super.disposePaginationResources()
     this.colIdSub?.unsubscribe()
     this.touchSub?.unsubscribe()
     this.delSub?.unsubscribe()
@@ -303,7 +308,7 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
     const id = this.colId() || _id;
     if (!id) return;
 
-    this.loading = true;
+    this.setLoading(true);
     try {
       const newPage = await firstValueFrom(
         this.fetch$(this.page, 25).pipe(
@@ -320,11 +325,12 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
         this.done = true;
         if (this.page === 1) this.earlyDone = true;
       } else {
+        if (this.empty()) this.empty.set(false);
         this.items = [...this.items, ...newPage.items];
         this.page++;
       }
     } finally {
-      this.loading = false;
+      this.setLoading(false);
     }
   }
 
@@ -345,8 +351,9 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
         { root: null, rootMargin: `0px 0px ${bottomPx}px 0px`, threshold: 0.01 }
       );
 
-      if (this.sentinel?.nativeElement) {
-        this.observer.observe(this.sentinel.nativeElement);
+      const sentinel = this.sentinel();
+      if (sentinel?.nativeElement) {
+        this.observer.observe(sentinel.nativeElement);
       }
     });
   }
@@ -388,8 +395,8 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
           queueMicrotask(() => {
             this.history.triggerRemoveItemFromHistoryView(id)
             this.items[i].triggerDisappear.set(true)
-            setTimeout(() => this.items[i].collapse.set(true), 120)
-            setTimeout(() => {
+            this.resources.setTimeout(() => this.items[i].collapse.set(true), 120)
+            this.resources.setTimeout(() => {
               this.items.splice(i, 1)
               if (this.items.length === 0) {
                 this.tick.update(x => x + 1)
@@ -465,8 +472,7 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
 
   doAddToCollection(): void {
     queueMicrotask(() => {
-      this.addCtx.setCollectionId(this.colId());
-      this.overlay.open('AddMoleculesToCollection');
+      this.overlay.open('AddMoleculesToCollection', { collectionId: this.colId(), redirectToCollectionPath: false, importFromChembl: false });
     });
   }
 
@@ -480,8 +486,8 @@ export class MoleculeCollectionDetailPageComponent extends AbstractPaginationCom
             queueMicrotask(() => {
               this.history.triggerRemoveItemFromHistoryView(moleculeId)
               this.items[i].triggerDisappear.set(true)
-              setTimeout(() => this.items[i].collapse.set(true), 120)
-              setTimeout(() => {
+              this.resources.setTimeout(() => this.items[i].collapse.set(true), 120)
+              this.resources.setTimeout(() => {
                 this.items.splice(i, 1)
                 if (this.items.length === 0) {
                   this.tick.update(x => x + 1)

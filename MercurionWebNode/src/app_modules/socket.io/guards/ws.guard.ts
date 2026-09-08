@@ -11,11 +11,28 @@ import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-l
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 import { ScopeService } from 'src/app_modules/auth/services/scope.service';
 import {
+  socketEventRegistry,
+  type ClientToServerEvents,
+  type ServerToClientEvents,
+} from '@mercurion/socket-contracts';
+import {
   ApplicationErrorCode,
   getApplicationError,
   isApplicationError
 } from 'src/exception-handling/application-error';
-import { getApplicationErrorDefinition } from '@mercurion/rest-contracts';
+import {
+  getApplicationErrorDefinition,
+  sessionInvalidationCauseForApplicationError,
+  SessionInvalidationCause,
+  SessionState,
+  type SessionInvalidationCauseType
+} from '@mercurion/rest-contracts';
+import {
+  createCorrelationId,
+  createSocketApplicationError
+} from 'src/exception-handling/application-error-envelope';
+
+type ApplicationSocket = Socket<ClientToServerEvents, ServerToClientEvents>
 
 @Injectable()
 export class WsGuard implements CanActivate {
@@ -49,7 +66,7 @@ export class WsGuard implements CanActivate {
 
   // 🔹 Validazione per EVENTI WebSocket
   private async validateWebSocketEvent(context: ExecutionContext): Promise<boolean> {
-    const client: Socket = context.switchToWs().getClient()
+    const client: ApplicationSocket = context.switchToWs().getClient()
     const token = client.handshake.auth.token as string
     const rawDeviceId: string | undefined = WebSocketUtils.parseCookie(client.handshake.headers.cookie)['__device_id'] || undefined
     let deviceId: string | undefined
@@ -57,7 +74,7 @@ export class WsGuard implements CanActivate {
       try {
         deviceId = this.secureCookieService.verifyAndParseCookie(rawDeviceId)
       } catch {
-        this.unauthorized(client)
+        this.unauthorized(client, SessionInvalidationCause.InvalidSignature)
         return false
       }
     }
@@ -67,13 +84,13 @@ export class WsGuard implements CanActivate {
       try {
         sessionId = this.secureCookieService.verifyAndParseCookie(rawSessionId)
       } catch {
-        this.unauthorized(client)
+        this.unauthorized(client, SessionInvalidationCause.InvalidSignature)
         return false
       }
     }
 
     if (!token || !deviceId || !sessionId) {
-      this.unauthorized(client)
+      this.unauthorized(client, SessionInvalidationCause.InvalidCredentials)
       return false
     }
 
@@ -84,12 +101,12 @@ export class WsGuard implements CanActivate {
       await this.scopeService.scopeVerificationLayer(payload.sub, context, this.reflector, payload.scp)
 
       if (sessionId !== payload.sid) {
-        this.unauthorized(client)
+        this.unauthorized(client, SessionInvalidationCause.InvalidSession)
         return false
       }
 
       if (!await this.sessionService.validateSession(payload.sid, deviceId, payload.sub)) {
-        this.unauthorized(client)
+        this.unauthorized(client, SessionInvalidationCause.InvalidSession)
         return false
       }
 
@@ -102,22 +119,43 @@ export class WsGuard implements CanActivate {
     } catch (e) {
       if (isApplicationError(e, ApplicationErrorCode.PERMISSION_DENIED)) {
         const applicationError = getApplicationError(e)!
-        client.emit('sv.pub.err', {
+        client.emit(socketEventRegistry.applicationError.name, createSocketApplicationError({
+          status: getApplicationErrorDefinition(applicationError.code).httpStatus,
           code: applicationError.code,
-          detail: applicationError.message
-        })
+          message: applicationError.message,
+          details: applicationError.details,
+          correlationId: createCorrelationId(client.id),
+          isProduction: (process.env.APP_ENV ?? 'development') !== 'development'
+        }))
         return false
       }
-      this.unauthorized(client)
+      const applicationError = getApplicationError(e)
+      this.unauthorized(
+        client,
+        applicationError
+          ? sessionInvalidationCauseForApplicationError(applicationError.code)
+          : SessionInvalidationCause.InvalidCredentials
+      )
       return false
     }
   }
 
-  private unauthorized(client: Socket): void {
-    client.emit('sv.pub.err', {
-      code: ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED,
-      detail: getApplicationErrorDefinition(ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED).defaultMessage
+  private unauthorized(
+    client: ApplicationSocket,
+    cause: SessionInvalidationCauseType = SessionInvalidationCause.InvalidSession
+  ): void {
+    client.emit(socketEventRegistry.sessionExpired.name, {
+      detail: 'session expired',
+      state: SessionState.Invalid,
+      cause
     })
+    client.emit(socketEventRegistry.applicationError.name, createSocketApplicationError({
+      status: getApplicationErrorDefinition(ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED).httpStatus,
+      code: ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED,
+      message: getApplicationErrorDefinition(ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED).defaultMessage ?? 'Unauthorized',
+      correlationId: createCorrelationId(client.id),
+      isProduction: (process.env.APP_ENV ?? 'development') !== 'development'
+    }))
     client.disconnect()
   }
 

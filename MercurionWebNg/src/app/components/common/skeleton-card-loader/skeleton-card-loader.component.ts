@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, input, signal } from '@angular/core';
 import { NgClass, NgStyle } from '@angular/common';
 
 @Component({
@@ -106,13 +106,12 @@ export class SkeletonCollectionCardComponent {
   _height = signal<string>('auto');
   _isReadonly = signal<boolean>(false);
 
-  @Input()
-  set i(value: number) { this._index.set(value ?? 0); }
-
-  @Input()
-  set height(value: string) { this._height.set(value || 'auto'); }
-
-  /** Se true, nasconde i placeholder dei pulsanti d'azione. */
-  @Input()
-  set isReadonly(value: boolean) { this._isReadonly.set(!!value); }
+  readonly i = input(0)
+  readonly height = input('auto')
+  readonly isReadonly = input(false)
+  private readonly syncInputs = effect(() => {
+    this._index.set(this.i())
+    this._height.set(this.height() || 'auto')
+    this._isReadonly.set(this.isReadonly())
+  })
 }

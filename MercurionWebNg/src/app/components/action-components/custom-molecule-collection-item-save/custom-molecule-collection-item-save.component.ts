@@ -1,12 +1,12 @@
 import { CustomMoleculeCollectionItemSaveContextService } from './../../../services/context/action-context/custom-molecule-collection-item-save-context.service';
 import { NgClass } from '@angular/common';
-import { Component, ElementRef, HostListener, inject, signal, ViewChild } from '@angular/core';
+import { Component, ElementRef, HostListener, inject, signal, ChangeDetectionStrategy, OnInit, viewChild } from '@angular/core';
 import { ComboSelectComponent } from '../../common/combo-select/combo-select.component';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
 import { MoleculeJoinService } from '../../../services/graphql/molecule-collection-join.service';
 import { ToastService } from '../../../services/toast.service';
-import { RDKitService } from '../../../services/rd-kit.service';
+import { ChemistryRendererService } from '../../../chemistry/chemistry-renderer.service';
 import { Router } from '@angular/router';
 import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
 import { FormsModule } from '@angular/forms';
@@ -15,6 +15,7 @@ import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.model
 
 @Component({
   selector: 'm-custom-molecule-collection-item-save',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgClass, ComboSelectComponent, FormsModule],
   template: `
 
@@ -238,22 +239,20 @@ import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.model
     </div>
   `
 })
-export class CustomMoleculeCollectionItemSaveComponent {
-  @ViewChild('name')
-  private nameRef!: ElementRef<HTMLInputElement>;
+export class CustomMoleculeCollectionItemSaveComponent implements OnInit {
+  private readonly nameRef = viewChild.required<ElementRef<HTMLInputElement>>('name');
 
-  @ViewChild('label')
-  private labelRef!: ElementRef<HTMLInputElement>;
+  private readonly labelRef = viewChild.required<ElementRef<HTMLInputElement>>('label');
 
-  @ViewChild('notes')
-  private notesRef!: ElementRef<HTMLTextAreaElement>;
+  private readonly notesRef = viewChild.required<ElementRef<HTMLTextAreaElement>>('notes');
 
   protected readonly overlayCtx = inject(ActionOverlayContextService);
+  private readonly sessionId = this.overlayCtx.session('MoleculeCollectionItemSave')?.id ?? -1;
   protected readonly saveCtx = inject(CustomMoleculeCollectionItemSaveContextService);
   private readonly collectionService = inject(MoleculeCollectionService);
   private readonly moleculeJoinService = inject(MoleculeJoinService);
   private readonly toast = inject(ToastService);
-  private readonly rdkitService = inject(RDKitService);
+  private readonly chemistryRenderer = inject(ChemistryRendererService);
   private readonly router = inject(Router);
 
   nameFocus = signal<boolean>(false);
@@ -279,9 +278,14 @@ export class CustomMoleculeCollectionItemSaveComponent {
   }
 
   async loadProperties() {
-    this.properties.set(
-      await this.rdkitService.getMoleculeProperties(this.saveCtx.smiles())
-    );
+    try {
+      this.properties.set(
+        await this.chemistryRenderer.getMoleculeProperties(this.saveCtx.smiles())
+      );
+    } catch {
+      this.properties.set(null);
+      this.toast.trigger('Proprietà molecolari temporaneamente non disponibili.', 'error', 2500);
+    }
   }
 
   computeProps(): void {
@@ -336,17 +340,20 @@ export class CustomMoleculeCollectionItemSaveComponent {
   }
 
   onFocus(item: SaveOverlayFormItem): void {
+    const labelRef = this.labelRef();
+    const nameRef = this.nameRef();
+    const notesRef = this.notesRef();
     switch (item) {
       case 'label':
-        document.activeElement !== this.labelRef.nativeElement && this.labelRef.nativeElement.focus();
+        document.activeElement !== labelRef.nativeElement && labelRef.nativeElement.focus();
         this.labelFocus.set(true);
         break;
       case 'name':
-        document.activeElement !== this.nameRef.nativeElement && this.nameRef.nativeElement.focus();
+        document.activeElement !== nameRef.nativeElement && nameRef.nativeElement.focus();
         this.nameFocus.set(true);
         break;
       case 'notes':
-        document.activeElement !== this.notesRef.nativeElement && this.notesRef.nativeElement.focus();
+        document.activeElement !== notesRef.nativeElement && notesRef.nativeElement.focus();
         this.notesFocus.set(true);
     }
   }
@@ -399,14 +406,14 @@ export class CustomMoleculeCollectionItemSaveComponent {
               c_id: this.saveCtx.selectedCollectionId()
             }
           });
-          this.overlayCtx.close();
+          this.overlayCtx.close(this.sessionId);
         },
         error: () => this.toast.trigger('Si è verificato un errore!', 'error')
       });
   }
 
   close() {
-    this.overlayCtx.close();
+    this.overlayCtx.close(this.sessionId);
   }
 
   @HostListener('document:keydown.escape')

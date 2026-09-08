@@ -4,11 +4,11 @@ import {
   ElementRef,
   OnDestroy,
   OnInit,
-  ViewChild,
   AfterViewInit,
   inject,
   signal,
   effect,
+  viewChild
 } from '@angular/core';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { EMPTY, of, Subscription, switchMap, defer, from, combineLatest, catchError, take, filter } from 'rxjs';
@@ -17,6 +17,7 @@ import { TypeGuardsService } from '../../services/type-guards.service';
 import { FingerprintService } from '../../services/fingerprint.service';
 import { AuthService } from '../../services/auth.service';
 import { SessionSyncService } from '../../services/session-sync.service';
+import { AuthStateStore } from '../../services/auth-state.store'
 import { SidenavContextService } from '../../services/context/sidenav-context.service';
 
 @Component({
@@ -47,6 +48,7 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly fingerprintService = inject(FingerprintService)
   private readonly authService = inject(AuthService)
   private readonly sessionSync = inject(SessionSyncService)
+  private readonly authState = inject(AuthStateStore)
   private readonly sidenavContext = inject(SidenavContextService)
 
   private sub?: Subscription
@@ -55,7 +57,7 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
   spinnerLeft = signal<number>(0)
 
-  @ViewChild('mainHost', { static: true }) mainHost?: ElementRef<HTMLElement>
+  readonly mainHost = viewChild<ElementRef<HTMLElement>>('mainHost');
 
   constructor() {
     effect(() => {
@@ -116,12 +118,7 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
             }
           })
 
-          localStorage.removeItem('accessToken')
-          localStorage.removeItem('ws_accessToken')
-          localStorage.removeItem('ws_accessToken_ts')
-          localStorage.removeItem('login')
-          localStorage.removeItem('scp')
-          document.cookie = '__logged_in=; Max-Age=0; path=/'
+          this.authState.beginAuthentication('sso')
 
           return this.authService.sso_authorizeFlow(fp_enc, di_enc, sso_pat, provider).pipe(
             catchError(() => {
@@ -138,9 +135,12 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
       })
     ).subscribe({
       next: (res) => {
-        this.authService.setAccessToken(res.accessToken)
-        this.authService.setWs_accessToken(res.ws_accessToken)
-        localStorage.setItem('login', res.initials ?? 'U')
+        this.authState.completeAuthentication({
+          initials: res.initials ?? 'U',
+          accessToken: res.accessToken,
+          wsAccessToken: res.ws_accessToken,
+          scopes: res.accessToken ? this.authService.getUserScopesFromClaims(res.accessToken) : []
+        })
         this.sessionSync.resumeSession(res.initials ?? 'U')
         const redirect = sessionStorage.getItem('redirectAfterLogin') || '/dashboard'
         this.router.navigateByUrl(redirect)
@@ -160,7 +160,7 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private attachSpinnerTracking(): void {
-    const host = this.mainHost?.nativeElement
+    const host = this.mainHost()?.nativeElement
     if (!host) return
 
     this.updateSpinnerLeft()
@@ -172,7 +172,7 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private updateSpinnerLeft = () => {
-    const rect = this.mainHost?.nativeElement.getBoundingClientRect()
+    const rect = this.mainHost()?.nativeElement.getBoundingClientRect()
     if (!rect) return
     this.spinnerLeft.set(rect.left + rect.width / 2)
   }

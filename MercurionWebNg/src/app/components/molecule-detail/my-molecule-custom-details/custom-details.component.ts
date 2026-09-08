@@ -3,15 +3,15 @@ import { NgClass } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   ElementRef,
-  EventEmitter,
-  Input,
-  Output,
   Renderer2,
-  ViewChild,
   effect,
   inject,
-  signal
+  input,
+  signal,
+  output,
+  viewChild
 } from '@angular/core';
 import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.component';
 
@@ -182,7 +182,7 @@ export class CustomDetailsComponent {
 
   _label = signal<string>('');
   _value = signal<string>('');
-  _badgeName = signal<string>('Personal');
+  readonly _badgeName = computed(() => this.badgeName());
   startValue = signal<string>('');
   _type = signal<'label' | 'notes' | 'name' | 'cardName'>('label');
   _itemId = signal<string>('');
@@ -192,52 +192,33 @@ export class CustomDetailsComponent {
   _triggerRollback = signal<boolean>(false);
   _hideActions = signal<boolean>(false);
 
-  @ViewChild('value') valueRef!: ElementRef<HTMLElement>;
+  readonly valueRef = viewChild.required<ElementRef<HTMLElement>>('value');
 
-  @Input({ required: true })
-  set type(type: 'label' | 'notes' | 'name' | 'cardName') {
-    this._type.set(type);
-    this._label.set(type === 'label' ? 'Etichetta:' : type === 'notes' ? 'Note:' : '');
-  }
+  readonly type = input.required<'label' | 'notes' | 'name' | 'cardName'>()
+  readonly value = input.required<string>()
+  readonly itemId = input.required<string>()
+  readonly badgeName = input('Personal')
+  readonly isReadonly = input(false)
+  readonly triggerRollback = input(false)
+  readonly hideActions = input(false)
 
-  @Input({ required: true })
-  set value(value: string) {
-    this._value.set(value);
-    this.startValue.set(value);
-  }
+  readonly onSaving = output<CustomDetailSaveModel>();
 
-  @Input({ required: true })
-  set itemId(itemId: string) {
-    this._itemId.set(itemId);
-  }
-
-  @Input()
-  set badgeName(badgeName: string) {
-    this._badgeName.set(badgeName);
-  }
-
-  @Input()
-  set isReadonly(isReadonly: boolean) {
-    this._isReadonly.set(isReadonly);
-  }
-
-  @Input()
-  set triggerRollback(triggerRollback: boolean) {
-    this._triggerRollback.set(triggerRollback);
-  }
-
-  @Input()
-  set hideActions(hideActions: boolean) {
-    this._hideActions.set(hideActions);
-  }
-
-  @Output()
-  onSaving = new EventEmitter<CustomDetailSaveModel>();
-
-  @Output()
-  onDoingRollback = new EventEmitter<void>();
+  readonly onDoingRollback = output<void>();
 
   constructor() {
+    effect(() => {
+      const type = this.type()
+      const value = this.value()
+      this._type.set(type)
+      this._label.set(type === 'label' ? 'Etichetta:' : type === 'notes' ? 'Note:' : '')
+      this._value.set(value)
+      this.startValue.set(value)
+      this._itemId.set(this.itemId())
+      this._isReadonly.set(this.isReadonly())
+      this._triggerRollback.set(this.triggerRollback())
+      this._hideActions.set(this.hideActions())
+    })
     effect(() => {
       if (this._triggerRollback() && this.lastValue()) {
         queueMicrotask(() => {
@@ -245,9 +226,10 @@ export class CustomDetailsComponent {
           const restore = this.lastValue()!;
           this._value.set(restore);
           this.startValue.set(restore);
-          const el = this.valueRef.nativeElement;
+          const el = this.valueRef().nativeElement;
           el.textContent = restore;
           this.mode.set('view');
+          // TODO: The 'emit' function requires a mandatory void argument
           this.onDoingRollback.emit();
         });
       }
@@ -256,7 +238,7 @@ export class CustomDetailsComponent {
 
   doEdit(): void {
     this.mode.set('edit');
-    const el = this.valueRef.nativeElement;
+    const el = this.valueRef().nativeElement;
     this.r.setAttribute(el, 'contenteditable', 'true');
     this.r.setAttribute(el, 'tabindex', '0');
     el.textContent = this._value();
@@ -273,7 +255,7 @@ export class CustomDetailsComponent {
   }
 
   doCancel(): void {
-    const el = this.valueRef.nativeElement;
+    const el = this.valueRef().nativeElement;
     el.textContent = this.startValue();
     this._value.set(this.lastValue() ?? this.startValue());
     this.mode.set('view');
@@ -282,7 +264,7 @@ export class CustomDetailsComponent {
   }
 
   doSave(): void {
-    const el = this.valueRef.nativeElement;
+    const el = this.valueRef().nativeElement;
     const newValue = el.innerText;
     this.startValue.set(newValue);
     this.lastValue.set(this._value());

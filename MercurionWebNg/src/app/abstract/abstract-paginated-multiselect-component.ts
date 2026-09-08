@@ -127,15 +127,14 @@ export abstract class AbstractPaginatedMultiselectComponent<T> extends AbstractP
 
   protected override async loadMore() {
     if (this.loading || this.done) return
-    this.loading = true
+    this.setLoading(true)
 
     const newPage: PageModel<T> = await firstValueFrom(this.fetch$())
 
     if (newPage.items.length === 0) {
       this.done = true
       this.earlyDone = true
-      this.loading = false
-      this.cdr.markForCheck()
+      this.setLoading(false)
       return
     }
 
@@ -172,7 +171,7 @@ export abstract class AbstractPaginatedMultiselectComponent<T> extends AbstractP
 
     this.multiselectItems.update(curr => [...curr, ...wrapped])
 
-    this.loading = false
+    this.setLoading(false)
   }
 
 
@@ -184,7 +183,7 @@ export abstract class AbstractPaginatedMultiselectComponent<T> extends AbstractP
     this.done = false
     this.earlyDone = false
     this.empty.set(true)
-    this.loading = false
+    this.setLoading(false)
 
     // il filtro cambia => il bulk sui visibili perde senso
     // ma le selezioni globali restano

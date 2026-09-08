@@ -1,8 +1,9 @@
+import { LoggerService } from '../../services/logger.service';
 import { CustomDetailSaveModel } from '../../Models/custom-detail-save.model'
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop'
 import { EmbeddingService } from '../../services/embedding.service'
 import { SimilarsComponent } from '../../components/molecule-detail/similars/similars.component'
-import { Component, DestroyRef, effect, inject, OnDestroy, OnInit, Signal, signal } from '@angular/core'
+import { Component, DestroyRef, effect, inject, OnDestroy, OnInit, Signal, signal, ChangeDetectionStrategy } from '@angular/core'
 import { ActivatedRoute, Router, RouterLink } from '@angular/router'
 import { MoleculeService } from '../../services/graphql/molecule.service'
 import { switchMap, Observable, catchError, of, Subscription, tap, distinctUntilChanged, throwError, EMPTY, fromEvent, defer } from 'rxjs'
@@ -33,9 +34,9 @@ import { LinkModel } from '../../Models/link.model'
 import { MoleculeCollectionService } from '../../services/graphql/molecule-collection.service'
 import { HistoryContextService } from '../../services/context/history-context.service'
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service'
-import { BindCollectionsToMoleculeContextService } from '../../services/context/action-context/bind-collections-to-molecule-context.service'
 import { HttpErrorResponse } from '@angular/common/http'
 import { AppTitleService } from '../../services/app-title.service'
+import { DomainInvalidationService } from '../../services/domain-invalidation.service'
 import { DesignService } from '../../services/design.service'
 import {
   ApplicationErrorCode,
@@ -47,6 +48,7 @@ import {
 
 @Component({
   selector: 'm-molecule-detail',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     AsyncPipe,
     MoleculeHeaderComponent,
@@ -260,8 +262,7 @@ import {
           }
         </section>
         }
-  `,
-})
+  ` })
 export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
 
   // ======================= DEPS =======================
@@ -280,8 +281,9 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
   private readonly toast = inject(ToastService)
   private readonly historyContext = inject(HistoryContextService)
   private readonly actionOverlayContext = inject(ActionOverlayContextService)
-  private readonly bindContext = inject(BindCollectionsToMoleculeContextService)
   private readonly appTitle = inject(AppTitleService)
+  private readonly invalidations = inject(DomainInvalidationService)
+  private readonly logger = inject(LoggerService)
   // ====================================================
 
   private readonly uuidV7Re = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -330,8 +332,9 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
       }
     })
     effect(() => {
-      const t = this.bindContext.addedTick()
-      if (t === 0) {
+      const event = this.invalidations.last()
+      if (event?.domain !== 'molecule' || event.action !== 'collections-bound' ||
+          event.moleculeId !== this.molId.toString()) {
         return
       }
       queueMicrotask(() => this.fetchData())
@@ -537,7 +540,7 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
 
       tap(() => this.similarViewerReady.set(true)),
       catchError((e) => {
-        console.error(e)
+        this.logger.error('Failed to load similar molecules', e)
         this.similarViewerReady.set(false)
         return of([] as MoleculeSearchResult[])
       })
@@ -606,8 +609,7 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
 
   doAddToManyCollections(): void {
     queueMicrotask(() => {
-      this.bindContext.setMoleculeId(this.molId.toString())
-      this.actionOverlayContext.open('BindCollectionsToMolecule')
+      this.actionOverlayContext.open('BindCollectionsToMolecule', { moleculeId: this.molId.toString() })
     })
   }
 
@@ -661,3 +663,4 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
   }
 
 }
+

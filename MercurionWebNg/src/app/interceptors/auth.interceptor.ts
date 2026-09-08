@@ -12,16 +12,17 @@ import {
 } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
-import { UserContextService } from '../services/context/user-context.service';
 import { AuthService } from '../services/auth.service'; // Assumendo che sia il service dove gestisci il token
+import { AuthStateStore } from '../services/auth-state.store';
 import { isFatalUnauthenticatedBody } from './fatal-unauthenticated.util';
+import { SessionInvalidationCause } from '@mercurion/rest-contracts'
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
 
   constructor(
-    private readonly userContext: UserContextService,
     private readonly authService: AuthService,
+    private readonly authState: AuthStateStore,
     private zone: NgZone
   ) { }
 
@@ -48,7 +49,7 @@ export class AuthInterceptor implements HttpInterceptor {
       }),
       catchError(err => {
         if (err instanceof HttpErrorResponse && err.status === 401 && isFatalUnauthenticatedBody(err.error)) {
-          this.zone.run(() => this.userContext.clearInitials())
+          this.zone.run(() => this.authState.invalidate(SessionInvalidationCause.InvalidSession))
         }
         return throwError(() => err)
       })

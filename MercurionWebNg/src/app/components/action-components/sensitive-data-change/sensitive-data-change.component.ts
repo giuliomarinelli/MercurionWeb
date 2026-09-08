@@ -1,7 +1,8 @@
 import { ChangePasswordDTO, MfaStrategy } from './../../../Models/account/account.models';
 import { SensitiveDataChangeInnerScope } from './../../../Models/action/action-overlay.models';
 import { SensitiveDataChangeContextService } from './../../../services/context/action-context/sensitive-data-change-context.service';
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
+import { Component, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ClassicSpinnerComponent } from '../../common/classic-spinner/classic-spinner.component';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 import { combineLatest, EMPTY, Observable, of, Subscription, switchMap, tap, finalize, filter, pipe, catchError, throwError, take, mergeMap } from 'rxjs';
@@ -26,6 +27,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 @Component({
   selector: 'm-sensitive-data-change',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ClassicSpinnerComponent,
     ReactiveFormsModule,
@@ -570,8 +572,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                         formControlName="phone"
                         [errors]="{
                             required: 'Il nuovo numero di telefono è obbligatorio.',
-                            pattern: 'Il formato del numero di telefono non è corretto.',
-                          }"
+                            pattern: 'Il formato del numero di telefono non è corretto.' }"
                         [asyncVerify]="true"
                         [serverError]="serverErrorMsg"
                         [bgClass]="'bg-light-surface-secondary'"
@@ -943,6 +944,8 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
 
   private readonly actionContext = inject(ActionOverlayContextService)
   private readonly dataChangeContext = inject(SensitiveDataChangeContextService)
+  private readonly sessionId = this.actionContext.session('SensitiveDataChange')?.id ?? -1
+  private readonly invalidation = inject(DomainInvalidationService)
   private readonly accountService = inject(AccountService)
   private readonly toast = inject(ToastService)
   private readonly fb = inject(NonNullableFormBuilder)
@@ -1034,7 +1037,7 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
         this.otpCtrl = this.fb.control('', [Validators.required, Validators.pattern(/^\d{6}$/)])
         this.passwordForm = this.fb.group({
           oldPassword: this.fb.control('', Validators.required),
-          password: this.fb.control('', [Validators.required, Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/)]),
+          password: this.fb.control('', [Validators.required, Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8, }$/)]),
           confirmPassword: this.fb.control('', [Validators.required, matchPassword])
         }, { validators: matchPassword })
       }),
@@ -1188,12 +1191,11 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
   }
 
   close(fragment?: 'general' | 'personal_details' | 'contact_details' | 'security'): void {
-    this.dataChangeContext.clearInnerScope()
     if (fragment) {
       this.router.navigate(['/settings'], { fragment })
     }
-    this.dataChangeContext.notifyAdded()
-    this.actionContext.close()
+    this.invalidation.publish({ domain: 'profile', action: 'changed' })
+    this.actionContext.close(this.sessionId)
   }
 
   computePrefixValues(): PmOption[] {
@@ -1283,7 +1285,6 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
 
   switchToAddNewPhone(): void {
     queueMicrotask(() => {
-      this.dataChangeContext.setInnerScope('AddPhone')
       this.innerScope.set('AddPhone')
       this.serverError.set(0)
       this.deletePhoneStep.set('')
@@ -1574,8 +1575,7 @@ export class SensitiveDataChangeComponent implements OnInit, OnDestroy {
         successContext: 'success',
         errorContext: 'error',
         durationMs: 2200,
-        forceToast: false,
-      })
+        forceToast: false })
 
   }
 

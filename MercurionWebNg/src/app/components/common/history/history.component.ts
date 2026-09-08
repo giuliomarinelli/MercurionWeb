@@ -1,17 +1,17 @@
 import {
   AfterViewInit,
   Component,
+  ChangeDetectionStrategy,
   ElementRef,
   OnDestroy,
   OnInit,
-  ViewChild,
   inject,
   effect,
   NgZone,
   signal,
-  Input,
-  Output,
-  EventEmitter,
+  input,
+  output,
+  viewChild
 } from '@angular/core';
 import { HistoryService } from '../../../services/history.service';
 import { catchError, debounce, distinctUntilChanged, EMPTY, filter, firstValueFrom, interval, Subscription } from 'rxjs';
@@ -22,9 +22,11 @@ import { ClassicSpinnerComponent } from '../classic-spinner/classic-spinner.comp
 import { HistoryContextService } from '../../../services/context/history-context.service';
 import { NgClass } from '@angular/common';
 import { AppContextService } from '../../../services/context/app-context.service';
+import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
 
 @Component({
   selector: 'm-history',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [HistoryItemComponent, ClassicSpinnerComponent, NgClass],
   styles: `
     .fade-out-ani {
@@ -81,25 +83,19 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly zone = inject(NgZone)
   private readonly hostRef = inject(ElementRef<HTMLElement>)
   private readonly appContext = inject(AppContextService)
+  private readonly invalidation = inject(DomainInvalidationService)
   // ====================================================
 
-  @ViewChild('sentinel', { static: true })
-  sentinel!: ElementRef<HTMLElement>
+  readonly sentinel = viewChild.required<ElementRef<HTMLElement>
+// TODO: Skipped for migration because:
+//  Accessor inputs cannot be migrated as they are too complex.
+>('sentinel');
 
-  @Input()
-  set triggerDelete(triggerDelete: boolean) {
-    this._triggerDelete.set(triggerDelete)
-  }
+  readonly triggerDelete = input(false)
+  readonly triggerEmptyCheck = input(false)
 
-  @Input()
-  set triggerEmptyCheck(triggerEmptyCheck: boolean) {
-    this._triggerEmptyCheck.set(triggerEmptyCheck)
-  }
-
-  @Output()
-  emptyChange = new EventEmitter<boolean>()
-  @Output()
-  itemClick = new EventEmitter<void>()
+  readonly emptyChange = output<boolean>();
+  readonly itemClick = output<void>();
 
   private rSub?: Subscription
 
@@ -111,6 +107,7 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
   _triggerDelete = signal<boolean>(false)
   _triggerEmptyCheck = signal<boolean>(false)
   fadeOut = signal<string>('')
+  private deleteTimeoutId: ReturnType<typeof setTimeout> | undefined
   selectedItemId = signal<string>('')
 
   items = signal<HistoryDTOExt[]>([])
@@ -119,6 +116,9 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
   protected page = 1
 
   constructor() {
+
+    effect(() => this._triggerDelete.set(this.triggerDelete()))
+    effect(() => this._triggerEmptyCheck.set(this.triggerEmptyCheck()))
 
     effect(() => {
       const selectedItemId = this.selectedItemId()
@@ -158,10 +158,11 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
       if (this._triggerDelete()) {
         queueMicrotask(() => {
           this._triggerDelete.set(false)
-          this.appContext.triggerDashboardRefetch()
+          this.invalidation.publish({ domain: 'dashboard', action: 'profile-changed' })
           this.fadeOut.set('fade-out-ani')
         })
-        setTimeout(() => {
+        clearTimeout(this.deleteTimeoutId)
+        this.deleteTimeoutId = setTimeout(() => {
           this.items.set([])
           this.fadeOut.set('')
           this.emptyChange.emit(true)
@@ -228,9 +229,11 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnDestroy(): void {
     this.rSub?.unsubscribe();
     if (this.observer) this.observer.disconnect()
+    clearTimeout(this.deleteTimeoutId)
   }
 
   handleItemClick(): void {
+    // TODO: The 'emit' function requires a mandatory void argument
     this.itemClick.emit()
   }
 
@@ -265,7 +268,7 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     )
 
-    this.observer.observe(this.sentinel.nativeElement)
+    this.observer.observe(this.sentinel().nativeElement)
   }
 
   async loadMore() {

@@ -1,8 +1,9 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, ChangeDetectionStrategy, output } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
 @Component({
   selector: 'm-search-type-selector',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule],
   template: `
 
@@ -21,8 +22,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 })
 export class SearchTypeSelectorComponent {
 
-  @Output()
-  onViewClick = new EventEmitter<'my' | 'chembl'>()
+  readonly onViewClick = output<'my' | 'chembl'>();
 
   viewCtrl = new FormControl<'my' | 'chembl'>('chembl', { nonNullable: true })
 

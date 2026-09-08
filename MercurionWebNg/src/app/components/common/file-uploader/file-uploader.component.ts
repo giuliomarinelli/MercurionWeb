@@ -1,13 +1,12 @@
 import {
   Component,
   ChangeDetectionStrategy,
-  EventEmitter,
-  Output,
-  Input,
-  ViewChild,
   ElementRef,
   signal,
   computed,
+  input,
+  output,
+  viewChild
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ClassicSpinnerComponent } from '../classic-spinner/classic-spinner.component';
@@ -22,19 +21,19 @@ type FileKind = 'all' | 'images' | 'pdf';
   template: `
     <div
       class="relative"
-      [class.opacity-60]="disabled"
+      [class.opacity-60]="disabled()"
       role="group"
       [attr.aria-labelledby]="labelId"
-      [attr.aria-describedby]="hint ? hintId : null"
-      [attr.aria-busy]="loading"
+      [attr.aria-describedby]="hint() ? hintId : null"
+      [attr.aria-busy]="loading()"
     >
       <!-- Label + hint -->
       <div class="mb-2">
-        <label [attr.for]="inputId"
+        <label [attr.for]="inputId()"
                class="block text-sm font-medium text-slate-200"
-               [attr.id]="labelId">{{ label }}</label>
-        @if (hint) {
-          <p class="text-xs text-slate-400 mt-0.5" [attr.id]="hintId">{{ hint }}</p>
+               [attr.id]="labelId">{{ label() }}</label>
+        @if (hint()) {
+          <p class="text-xs text-slate-400 mt-0.5" [attr.id]="hintId">{{ hint() }}</p>
         }
       </div>
 
@@ -59,9 +58,9 @@ type FileKind = 'all' | 'images' | 'pdf';
                "
         [class.ring-indigo-400]="isOver()"
         [class.border-indigo-400]="isOver()"
-        [class.cursor-not-allowed]="disabled"
-        [attr.aria-disabled]="disabled || loading"
-        [attr.aria-busy]="loading"
+        [class.cursor-not-allowed]="disabled()"
+        [attr.aria-disabled]="disabled() || loading()"
+        [attr.aria-busy]="loading()"
         role="button"
         [attr.aria-label]="dropzoneLabel()"
       >
@@ -83,38 +82,38 @@ type FileKind = 'all' | 'images' | 'pdf';
           <p class="text-sm text-slate-200">
             <span class="font-medium underline decoration-dotted">Sfoglia</span>
             o <span class="font-medium">trascina qui</span>
-            @if (mode === 'images') {
+            @if (mode() === 'images') {
               — oppure <span class="font-medium">incolla</span>
             }
           </p>
           <p class="text-xs mt-1 text-slate-400">
             {{ acceptLabel() }}
-            @if (maxSize) {
-              · max {{ formatBytes(maxSize) }}
+            @if (maxSize()) {
+              · max {{ formatBytes(maxSize()!) }}
             }
           </p>
         </div>
 
-        @if (previewUrl) {
+        @if (previewUrl()) {
           <!-- Preview (opzionale, controllata dal padre) -->
           <div class="mt-3">
-            <img [src]="previewUrl!" alt="Anteprima file" class="max-h-40 rounded-xl ring-1 ring-slate-700/60" />
+            <img [src]="previewUrl()!" alt="Anteprima file" class="max-h-40 rounded-xl ring-1 ring-slate-700/60" />
           </div>
         }
-        @if (fileName) {
+        @if (fileName()) {
           <!-- Filename (opzionale) -->
           <div class="text-xs text-slate-300 mt-2 line-clamp-1">
-            {{ fileName }}
+            {{ fileName() }}
           </div>
         }
-        @if (error) {
+        @if (error()) {
           <!-- Errore -->
-          <div *ngIf="error" class="mt-2 text-xs text-rose-400" role="alert" aria-live="assertive">{{ error }}</div>
+          <div *ngIf="error()" class="mt-2 text-xs text-rose-400" role="alert" aria-live="assertive">{{ error() }}</div>
         }
-        @if (loading) {
+        @if (loading()) {
           <!-- Spinner overlay -->
           <m-classic-spinner
-            *ngIf="loading"
+            *ngIf="loading()"
             [overlay]="true"
             [size]="56"
             ariaLabel="Caricamento in corso"
@@ -128,18 +127,18 @@ type FileKind = 'all' | 'images' | 'pdf';
         #fileInput
         type="file"
         class="sr-only"
-        [attr.id]="inputId"
+        [attr.id]="inputId()"
         [attr.accept]="acceptAttr() || null"
-        [disabled]="disabled || loading"
+        [disabled]="disabled() || loading()"
         (change)="onBrowseChange($event)"
       />
 
       <!-- Action row controllata dal padre -->
-      <div class="flex items-center gap-3 mt-3" *ngIf="fileName || previewUrl">
+      <div class="flex items-center gap-3 mt-3" *ngIf="fileName() || previewUrl()">
         <button type="button"
                 (click)="triggerBrowse()"
-                [disabled]="disabled || loading"
-                [attr.aria-disabled]="disabled || loading"
+                [disabled]="disabled() || loading()"
+                [attr.aria-disabled]="disabled() || loading()"
                 class="px-3 py-1.5 text-sm rounded-xl
                        bg-slate-800/70 hover:bg-slate-800
                        ring-1 ring-slate-700/60 text-slate-200 transition">
@@ -147,8 +146,8 @@ type FileKind = 'all' | 'images' | 'pdf';
         </button>
         <button type="button"
                 (click)="onClearClicked()"
-                [disabled]="disabled || loading"
-                [attr.aria-disabled]="disabled || loading"
+                [disabled]="disabled() || loading()"
+                [attr.aria-disabled]="disabled() || loading()"
                 class="px-3 py-1.5 text-sm rounded-xl
                        bg-transparent hover:bg-slate-800/60
                        ring-1 ring-slate-700/60 text-slate-300 transition">
@@ -166,24 +165,27 @@ type FileKind = 'all' | 'images' | 'pdf';
   `]
 })
 export class FileUploaderComponent {
-  @Input({ required: false }) mode: FileKind = 'all';          // 'images' | 'pdf' | 'all'
-  @Input({ required: false }) loading = false;                  // overlay spinner
-  @Input({ required: false }) disabled = false;                 // disabilita interazioni
-  @Input({ required: false }) label = 'Carica file';
-  @Input({ required: false }) hint: string | null = null;
-  @Input({ required: false }) error: string | null = null;      // messaggio gestito dal padre
-  @Input({ required: false }) maxSize?: number;                 // es. 10*1024*1024
-  @Input({ required: false }) previewUrl?: string | null = null;// preview (immagine) dal padre
-  @Input({ required: false }) fileName?: string | null = null;  // nome file mostrato
+  readonly mode = input<FileKind>('all');          // 'images' | 'pdf' | 'all'
+  readonly loading = input(false);                  // overlay spinner
+  readonly disabled = input(false);                 // disabilita interazioni
+  readonly label = input('Carica file');
+  readonly hint = input<string | null>(null);
+  readonly error = input<string | null>(null);      // messaggio gestito dal padre
+  readonly maxSize = input<number>();                 // es. 10*1024*1024
+  readonly previewUrl = input<(string | null) | undefined>(null);// preview (immagine) dal padre
+  readonly fileName = input<(string | null) | undefined>(null);  // nome file mostrato
 
   // Personalizzazione rapida di classi/tema (se vuoi sovrascrivere da fuori)
-  @Input({ required: false }) inputId = 'fu-' + Math.random().toString(36).slice(2);
+  readonly inputId = input('fu-' + Math.random().toString(36).slice(2));
 
-  @Output() fileSelected = new EventEmitter<File>();            // ogni volta che scegli/trascini/incolli
-  @Output() cleared = new EventEmitter<void>();                 // click su rimuovi
-  @Output() rejected = new EventEmitter<{ reason: string; file?: File }>();
+  readonly fileSelected = output<File>();            // ogni volta che scegli/trascini/incolli
+  readonly cleared = output<void>();                 // click su rimuovi
+  readonly rejected = output<{
+    reason: string;
+    file?: File;
+}>();
 
-  @ViewChild('fileInput', { static: true }) fileInput!: ElementRef<HTMLInputElement>;
+  readonly fileInput = viewChild.required<ElementRef<HTMLInputElement>>('fileInput');
   labelId = `fu-label-${Math.random().toString(36).slice(2)}`;
   hintId = `fu-hint-${Math.random().toString(36).slice(2)}`;
 
@@ -192,7 +194,7 @@ export class FileUploaderComponent {
   isOver = this._isOver.asReadonly();
 
   acceptAttr = computed(() => {
-    switch (this.mode) {
+    switch (this.mode()) {
       case 'images': return 'image/*';
       case 'pdf':    return 'application/pdf';
       default:       return ''; // all
@@ -200,7 +202,7 @@ export class FileUploaderComponent {
   });
 
   acceptLabel = computed(() => {
-    switch (this.mode) {
+    switch (this.mode()) {
       case 'images': return 'Sono accettate solo immagini (PNG, JPG, WEBP, SVG…)';
       case 'pdf':    return 'È accettato solo un PDF';
       default:       return 'Sono accettati immagini, PDF o altri file';
@@ -209,13 +211,14 @@ export class FileUploaderComponent {
 
   dropzoneLabel = computed(() => {
     const accept = this.acceptLabel();
-    const size = this.maxSize ? `; dimensione massima ${this.formatBytes(this.maxSize)}` : '';
-    return `${this.label}. ${accept}${size}`;
+    const maxSize = this.maxSize();
+    const size = maxSize ? `; dimensione massima ${this.formatBytes(maxSize)}` : '';
+    return `${this.label()}. ${accept}${size}`;
   });
 
   triggerBrowse() {
-    if (this.disabled || this.loading) return;
-    this.fileInput.nativeElement.click();
+    if (this.disabled() || this.loading()) return;
+    this.fileInput().nativeElement.click();
   }
 
   onBrowseChange(evt: Event) {
@@ -228,12 +231,13 @@ export class FileUploaderComponent {
   }
 
   onClearClicked() {
-    if (this.disabled || this.loading) return;
+    if (this.disabled() || this.loading()) return;
+    // TODO: The 'emit' function requires a mandatory void argument
     this.cleared.emit();
   }
 
   onDragOver(e: DragEvent) {
-    if (this.disabled || this.loading) return;
+    if (this.disabled() || this.loading()) return;
     e.preventDefault();
     e.stopPropagation();
     e.dataTransfer!.dropEffect = 'copy';
@@ -247,7 +251,7 @@ export class FileUploaderComponent {
   }
 
   onDrop(e: DragEvent) {
-    if (this.disabled || this.loading) return;
+    if (this.disabled() || this.loading()) return;
     e.preventDefault();
     e.stopPropagation();
     this._isOver.set(false);
@@ -260,8 +264,8 @@ export class FileUploaderComponent {
 
   onPaste(e: ClipboardEvent) {
     // Paste valido solo per immagini (richiesta)
-    if (this.disabled || this.loading) return;
-    if (this.mode !== 'images') return;
+    if (this.disabled() || this.loading()) return;
+    if (this.mode() !== 'images') return;
 
     const items = e.clipboardData?.items;
     if (!items || !items.length) return;
@@ -283,7 +287,8 @@ export class FileUploaderComponent {
       this.rejected.emit({ reason: 'type', file });
       return;
     }
-    if (this.maxSize && file.size > this.maxSize) {
+    const maxSize = this.maxSize();
+    if (maxSize && file.size > maxSize) {
       this.rejected.emit({ reason: 'size', file });
       return;
     }

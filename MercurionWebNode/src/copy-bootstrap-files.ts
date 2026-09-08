@@ -4,10 +4,10 @@ import * as path from 'path'
 export function copyBootstrapFiles() {
 
   const keysSourcePath = path.join(process.cwd(), 'src/config/keys')
-  const keysDistPath = path.join(process.cwd(), 'dist/config/keys')
+  const keysDistPath = path.join(process.cwd(), 'dist/src/config/keys')
 
   const templatesSourcePath = path.join(process.cwd(), 'src/app_modules/notification/email-templates')
-  const templatesDistPath = path.join(process.cwd(), 'dist/app_modules/notification/email-templates')
+  const templatesDistPath = path.join(process.cwd(), 'dist/src/app_modules/notification/email-templates')
 
   copyDir(keysSourcePath, keysDistPath)
   copyDir(templatesSourcePath, templatesDistPath)

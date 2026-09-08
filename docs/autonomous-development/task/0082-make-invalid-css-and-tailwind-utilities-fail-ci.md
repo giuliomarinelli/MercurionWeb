@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -104,25 +104,29 @@ _Not started._
 _None._
 
 ### Summary
-_Not started._
+Not attempted because required tasks 0080 (UI-022) and 0081 (UI-023) are
+`SKIPPED_DEPENDENCY`.
 
 ### Task-specific validation performed
-_Not started._
+Not applicable; no feature branch or implementation worker was created.
 
 ### Full pre-merge CI-parity validation
-_Not started._
+Not applicable; dependency-skip metadata only.
 
 ### Browser validation performed
-_Not applicable / smoke only._
+Not applicable; the task was not attempted.
 
 ### Commits
-_Not recorded._
+Pending metadata commit on `develop`.
 
 ### Merge / CI
-_Not started._
+No feature branch or merge. Exact-SHA CI is required for the metadata commit.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-_None._
+Direct terminal prerequisites: 0080 (UI-022) and 0081 (UI-023), both
+`SKIPPED_DEPENDENCY`. Their transitive chain includes UI-018 (BLOCKED), which
+requires a test-safe local Nest runtime and dependencies for mandatory browser
+validation.

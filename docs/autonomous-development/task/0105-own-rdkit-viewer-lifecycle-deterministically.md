@@ -1,6 +1,6 @@
 # 0105 - Own MoleculeViewer RDKit lifecycle deterministically
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -83,31 +83,84 @@ Mark `BLOCKED` if the vendor adapter from `0104` cannot provide deterministic ca
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/NG-019`, based at `0d99ceee8ab3703cd532a480ac4a639c8318e099`.
 
 ### Preflight
-_Not started._
+Proved no Angular, Nest, Tox21, Karma/Jest watcher or other workspace-consuming
+process was active, then ran the unchanged root baseline:
+
+- `npm ci` - passed; 1,925 packages installed, RDKit patch applied, 0 vulnerabilities.
+- `npm run ci:check` - passed; Angular 276/276, Nest unit 187/187, Nest E2E
+  1/1, builds, GraphQL/generated-artifact checks and all registered static
+  policies were green.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-_Not started._
+- Bound viewer teardown to `DestroyRef`, centralized idempotent session
+  disposal and invalidated all initialization/render generations on disable or
+  destroy.
+- Added latest-request-wins render generations for structure, mode and theme
+  changes, with cancellation of pending idle callbacks/timeouts and guards
+  against stale success/error publication.
+- Ensured temporary off-screen SVG measurement nodes are removed in a
+  `finally` path.
+- Hardened the RDKit adapter so molecules are deleted exactly once when vendor
+  validation returns false or throws, in addition to existing success and
+  operation-failure cleanup.
+- Added destroy-before-ready, destroy-during-render, rapid structure/theme
+  supersession, disable and repeated mount/unmount coverage.
 
 ### Task-specific validation performed
-_Not started._
+- `npx ng test --watch=false --karma-config=karma.conf.js
+  --include='src/app/components/chem/molecule-viewer/molecule-viewer.component.spec.ts'
+  --include='src/app/chemistry/adapters/rdkit-renderer.adapter.spec.ts'
+  --include='src/app/chemistry/chemistry-renderer.service.spec.ts'` - 18/18 passed.
+- `npm run typecheck --workspace mercurion_web_ng` - passed.
+- `npm run lint --workspace mercurion_web_ng` - passed with the repository's
+  existing warning baseline and zero errors.
 
 ### Full pre-merge CI-parity validation
-_Not started._
+After stopping every task-owned runtime and proving ports 3498/8099 and all
+workspace-consuming process probes were clear:
+
+- Final `npm ci` - passed; 1,925 packages installed, RDKit patch applied,
+  0 vulnerabilities.
+- Final `npm run ci:check` - passed; Angular 284/284, Nest unit 187/187, Nest
+  E2E 1/1, Angular/Nest builds, chemistry lazy-boundary validation,
+  GraphQL/generated-artifact checks and every registered static policy were
+  green.
 
 ### Browser validation performed
-_Not started._
+Chrome DevTools MCP validation used only `http://localhost:8888` with the
+task-scoped Angular, Nest and read-only Tox21 runtimes. The existing local
+development environment file was preloaded for Nest, and Tox21 was started
+with UTF-8 console mode after its first Windows cp1252 launch attempt rejected
+the status glyph.
+
+- `/health` returned 200 and `/molecules/detail/1` rendered `Lead 1` with one
+  ready molecule SVG.
+- Rapid in-app route changes through molecule IDs 2, 3, 4 and 5 settled on
+  `Lead 5`; the final page had two ready SVG viewers (detail plus similar
+  molecule) and no unavailable state.
+- Navigated away to `/welcome` and back to `/molecules/detail/36269`;
+  `TIAZURIL` rendered successfully after remount.
+- Switched the live viewer from dark to light theme; it remained one ready SVG
+  with no render alert or stale replacement.
+- The final page loaded RDKit JavaScript and WASM once each. Console inspection
+  found no errors or warnings from chemistry/viewer lifecycle work (one
+  unrelated image-dimension browser issue was reported).
+- All task-owned runtime process trees were stopped before the final clean
+  install.
 
 ### Commits
-_Not recorded._
+- `89a66a25` - `fix(chemistry): own molecule viewer lifecycle`
+- Execution-note/final-status commit recorded in the worker result.
 
 ### Merge / CI
-_Not started._
+Ready for coordinator feature-SHA CI and integration. No merge performed by
+the worker.
 
 ### Rollback
 _Not applicable._

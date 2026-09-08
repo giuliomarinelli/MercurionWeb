@@ -1,4 +1,4 @@
-import { Component, Input, signal, computed, effect, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, signal, computed, effect, inject } from '@angular/core';
 import { DatePipe, NgClass } from '@angular/common';
 import { TicketMessage, ClientTicketMessage, AuthorType } from '../../../Models/graphql/help.models';
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
@@ -8,6 +8,7 @@ type AnyMsg = TicketMessage | ClientTicketMessage;
 
 @Component({
   selector: 'm-message-item',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgClass, DatePipe],
   template: `
   @if (_msg()) {
@@ -69,22 +70,9 @@ export class MessageItemComponent {
   protected readonly typeGuards = inject(TypeGuardsService)
 
   // ---------------- inputs ----------------
-  @Input({ required: true })
-  set message(m: AnyMsg) {
-    this._msg.set(m)
-  }
-
-  /** chi sono io in questa vista? default: User */
-  @Input()
-  set selfAuthorType(t: AuthorType) {
-    this._selfAuthorType.set(t ?? 'User')
-  }
-
-  /** mostra nome autore (utile per support view) */
-  @Input()
-  set showAuthor(v: boolean) {
-    this._showAuthor.set(!!v)
-  }
+  readonly message = input.required<AnyMsg>()
+  readonly selfAuthorType = input<AuthorType>('User')
+  readonly showAuthor = input(false)
 
   // ---------------- state ----------------
   _msg = signal<AnyMsg | undefined>(undefined)
@@ -93,6 +81,9 @@ export class MessageItemComponent {
   isDarkMode = signal<boolean>(false)
 
   constructor() {
+    effect(() => this._msg.set(this.message()))
+    effect(() => this._selfAuthorType.set(this.selfAuthorType()))
+    effect(() => this._showAuthor.set(this.showAuthor()))
     effect(() => this.isDarkMode.set(this.themeManager.theme() === 'dark'))
   }
 

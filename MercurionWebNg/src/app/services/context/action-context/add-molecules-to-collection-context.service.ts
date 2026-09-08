@@ -1,40 +1,28 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, computed, inject } from '@angular/core';
+import { ActionOverlayContextService } from './action-overlay-context.service';
 
+/**
+ * Read-only view over the active `AddMoleculesToCollection` session input.
+ * The overlay's session is the sole owner of this payload; there is no
+ * settable root-singleton mailbox to leak state between openings.
+ */
 @Injectable({
   providedIn: 'root'
 })
 export class AddMoleculesToCollectionContextService {
 
-  private _collectionId = signal<string | null>(null)
-  private _addedTick = signal<number>(0)
+  private readonly overlay = inject(ActionOverlayContextService)
 
-  readonly collectionId = this._collectionId.asReadonly()
-  readonly addedTick = this._addedTick.asReadonly()
+  readonly collectionId = computed<string | null>(() =>
+    this.overlay.session('AddMoleculesToCollection')?.input.collectionId ?? null
+  )
 
-  private _redirectToCollectionPath = signal<boolean>(false)
-  readonly redirectToCollectionPath = this._redirectToCollectionPath.asReadonly()
+  readonly redirectToCollectionPath = computed<boolean>(() =>
+    this.overlay.session('AddMoleculesToCollection')?.input.redirectToCollectionPath ?? false
+  )
 
-  private _importFromChembl = signal<boolean>(false)
-  readonly importFromChembl = this._importFromChembl.asReadonly()
-
-  setCollectionId(collectionId: string): void {
-    this._collectionId.set(collectionId)
-  }
-
-  clearCollectionId(): void {
-    this._collectionId.set(null)
-  }
-
-  notifyAdded(): void {
-    this._addedTick.update(x => x + 1)
-  }
-
-  setRedirectToCollectionPath(v: boolean) {
-    this._redirectToCollectionPath.set(v)
-  }
-
-  setImportFromChembl(val: boolean): void {
-    this._importFromChembl.set(val)
-  }
+  readonly importFromChembl = computed<boolean>(() =>
+    this.overlay.session('AddMoleculesToCollection')?.input.importFromChembl ?? false
+  )
 
 }

@@ -1,47 +1,22 @@
-import { Injectable, signal } from '@angular/core';
-import { TicketDetailInnerScope } from '../../../Models/action/action-overlay.models';
+import { Injectable, computed, inject } from '@angular/core';
+import { ActionOverlayContextService } from './action-overlay-context.service';
 
+/**
+ * Read-only view over the active `TicketDetail` session input.
+ */
 @Injectable({
   providedIn: 'root'
 })
 export class TicketDetailContextService {
 
-  private _ticketId = signal<string>('')
-  readonly ticketId = this._ticketId.asReadonly()
+  private readonly overlay = inject(ActionOverlayContextService)
 
-  private _addedTick = signal<number>(0)
-  readonly addedTick = this._addedTick.asReadonly()
-
-  private _innerScope = signal<TicketDetailInnerScope>('User')
-  readonly innerScope = this._innerScope.asReadonly()
-
-  setTicketId(ticketId: string): void {
-    if (!ticketId) {
-      return
-    }
-    this._ticketId.set(ticketId)
-  }
-
-  clearTicketId(): void {
-    this._ticketId.set('')
-  }
-
-  setInnerScope(innerScope: TicketDetailInnerScope) {
-    const prev = this._innerScope()
-    console.log(
-    '[TicketDetailContext] setInnerScope',
-    prev, '→', innerScope,
-    new Error().stack
+  readonly ticketId = computed<string>(() =>
+    this.overlay.session('TicketDetail')?.input.ticketId ?? ''
   )
-    this._innerScope.set(innerScope)
-  }
 
-  resetInnerScope(): void {
-    this._innerScope.set('User')
-  }
-
-  notifyAdded(): void {
-    this._addedTick.update((x) => x + 1)
-  }
+  readonly innerScope = computed(() =>
+    this.overlay.session('TicketDetail')?.input.innerScope ?? 'User'
+  )
 
 }

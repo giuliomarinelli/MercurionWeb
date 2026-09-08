@@ -1,5 +1,28 @@
 # Repository Agent Instructions
 
+## MercurionWebNode development runtime
+
+Use these commands only when the active task has reached its declared
+runtime/browser-validation phase. They do not override the task-scoped runtime
+rules in `docs/autonomous-development/RUNTIME.md`.
+
+**Working directory**: the `MercurionWeb` repository root.
+
+1. **Start**
+```bash
+npm run start --workspace mercurion_web_node
+```
+
+2. **Start in *watch mode***
+```bash
+npm run start:dev --workspace mercurion_web_node
+```
+
+3. **Start in *watch mode* with *attachable debugger***
+```bash
+npm run start:debug --workspace mercurion_web_node
+```
+
 ## Purpose
 
 These instructions define the repository-wide operating contract for autonomous development agents.
@@ -53,7 +76,17 @@ Every recipe has four mutually exclusive persistent outcomes:
 - `REVERTED`: locally completed and merged, then safely reverted after post-merge CI non-success/unverifiable result; preserve/freeze its feature branch;
 - `SKIPPED_DEPENDENCY`: never attempted because a hard prerequisite is terminal non-`DONE`; never create a feature branch.
 
-All four unchecked means pending. At most one may be checked. `CI_PENDING` is transient and does not receive a checkbox.
+All four unchecked means pending. At most one may be checked. `CI_PENDING`,
+`WAITING_DEPENDENCY`, and `SESSION_CAPABILITY_PAUSE` are transient coordinator
+states and do not receive checkboxes. A capability pause occurs before
+implementation when required local runtime or non-production browser
+authentication is unavailable; it stops the session without changing the
+recipe or propagating dependency skips.
+
+Autonomous eligibility is orthogonal to these outcomes. A non-empty
+`workload.tasks` list is an exact session allowlist; an omitted recipe remains
+`PENDING` for human-led or later-session work. Never mark a recipe `BLOCKED` or
+`SKIPPED_DEPENDENCY` merely because it was excluded from autonomous execution.
 
 All four persistent outcomes are terminal within the active session. The coordinator MUST NOT reopen or resume a terminal task because a later probe or Autopilot continuation changes its opinion. Only a new direct human instruction in a new or restarted session may authorize re-enablement; an Autopilot continuation is not human authorization.
 
@@ -72,8 +105,10 @@ The coordinator MUST also verify the effective repository-local `commit.gpgSign=
 Before any task branch exists, the coordinator MUST establish a clean, fully
 green repository baseline according to
 `docs/autonomous-development/CI-BASELINE.md`. Local `develop` must equal
-`origin/develop`; the exact SHA must have a successful GitHub Actions workflow
-and stable `Required gate`; and the complete local non-mutating gate must pass.
+`origin/develop`; the exact SHA must have a fresh successful GitHub Actions
+`full` run with both platform jobs and the stable `Required gate`; and the
+complete local non-mutating gate must pass. A `metadata` or `duplicate` result
+alone is insufficient to start a new session.
 
 There is no task `0001` bootstrap exception. Missing CI, a red exact-SHA run,
 or a red local baseline is a session-level startup failure. Stop before branch
@@ -122,17 +157,16 @@ Git writes are REQUIRED for task isolation and CI verification.
 For each task:
 
 1. Start from an up-to-date, clean `develop`.
-2. Create `feature/<Source>` from that exact `develop` commit.
-3. Push the feature branch to `origin` so failed work can be preserved remotely.
-4. Run the mandatory CI-parity preflight before task implementation.
-5. Implement and validate the task on the feature branch.
-6. Commit the task changes on the feature branch. Prefer small, comprehensible commits; do not squash or rewrite history merely for cosmetic reasons.
-7. Run the complete CI-parity gate set again immediately before integration.
-8. Mark the task `DONE` in the feature branch only when implementation and all local gates pass. The runner MUST treat this state as `CI_PENDING` until both feature and post-merge CI succeed.
-9. Push the final feature SHA and wait for the exact GitHub Actions `Required gate` on that SHA across the Windows/Linux matrix.
-10. If exact feature-SHA CI fails or is unverifiable, change the provisional outcome to `BLOCKED`, record diagnostics on the preserved feature branch, freeze it, and propagate only the metadata status to `develop`.
-11. Only after exact feature-SHA CI succeeds, switch to `develop`, verify it has not moved unexpectedly, and merge the feature branch using an explicit `--no-ff --no-gpg-sign` merge commit.
-12. Push `develop` and wait for the GitHub Actions workflow associated with that exact merge commit.
+2. Create `feature/<Source>` locally from that exact `develop` commit; do not push while its HEAD still equals the already-green base SHA.
+3. Run the mandatory CI-parity preflight before task implementation.
+4. Implement and validate the task on the feature branch.
+5. Commit the task changes on the feature branch. Prefer small, comprehensible commits; do not squash or rewrite history merely for cosmetic reasons.
+6. Run the complete CI-parity gate set again immediately before integration.
+7. Mark the task `DONE` in the feature branch only when implementation and all local gates pass. The runner MUST treat this state as `CI_PENDING` until both feature and post-merge CI succeed.
+8. Create the remote feature ref only after a task-specific commit exists, push the final feature SHA, and wait for its exact GitHub Actions `Required gate`.
+9. If exact feature-SHA CI fails or is unverifiable, change the provisional outcome to `BLOCKED`, record diagnostics on the preserved feature branch, freeze it, and propagate only the metadata status to `develop`.
+10. Only after exact feature-SHA CI succeeds, switch to `develop`, verify it has not moved unexpectedly, and merge the feature branch using an explicit `--no-ff --no-gpg-sign` merge commit.
+11. Push `develop` and wait for the GitHub Actions workflow associated with that exact merge commit.
 
 If post-merge CI succeeds:
 
@@ -155,14 +189,28 @@ fails or cannot be verified, do not merge partial implementation. Preserve and
 freeze its feature branch, propagate only the task's `BLOCKED`
 status/diagnostics to `develop`, and wait for CI on that exact metadata commit.
 
-Do not precompute or materialize the transitive dependency closure after a new
-`BLOCKED` or `REVERTED` outcome. Evaluate pending tasks lazily in filename
-order. Only when a task reaches its normal selection point and a resolved hard
-prerequisite is terminal non-`DONE` may that one task become
-`SKIPPED_DEPENDENCY`; record its direct prerequisite and transitive diagnostic
-chain without changing later recipes in advance. A skipped task receives no
-branch and no worker. Commit its metadata and wait for exact CI before
-continuing task selection.
+The permanent CI always publishes the stable `Required gate`, using exactly
+one fail-closed path: `duplicate` only after an older successful run for the
+identical SHA; `metadata` only for allowlisted autonomous task/report
+Markdown changes from an exact green base; otherwise `full` Windows/Linux
+validation. Workflow, source, test, dependency, agent, protocol,
+configuration, unknown, and ambiguous changes always use `full`.
+Autonomous task/report metadata is forbidden from acting as input evidence for
+application inventories or generated application artifacts.
+
+Before selection, run `npm run autonomous:plan` and consume its versioned JSON
+as the sole authoritative dependency snapshot. Never reconstruct the graph by
+memory or LLM inference; a planner failure, malformed output, cycle, missing
+hard dependency, or stale terminal skip is a configuration incident.
+A recipe with pending/active hard prerequisites is transient
+`WAITING_DEPENDENCY`; a recipe whose hard-prerequisite chain contains a
+terminal non-`DONE` outcome belongs to the terminal skip closure. Materialize
+all newly affected descendants as `SKIPPED_DEPENDENCY` in one aggregate
+metadata-only `develop` commit, with direct and transitive diagnostics for
+each. Skipped recipes receive no branch, worker, implementation preflight, or
+individual commit/push. Wait for the aggregate commit's exact adaptive
+`Required gate`, then select the earliest filename-ordered recipe whose hard
+dependencies are all `DONE`.
 
 The runner may continue only when active session policy permits it, `develop` is clean/exact-SHA green, and the next task's hard dependencies are all `DONE`. Because every task integrates from a proven-green `develop`, a revert that does not restore the pre-merge tree and exact-SHA green CI is a session-fatal baseline/upstream incident. Stop the entire session, report it separately from the task outcome, and do not use a later task to repair or conceal it.
 
@@ -187,7 +235,13 @@ specifically authorizes another GitHub action.
 
 ## Browser and frontend validation
 
-The repository exposes the `chrome-devtools` MCP server to GitHub Copilot CLI through `.github/mcp.json`. The separate VS Code MCP configuration is retained only for ordinary interactive VS Code use and is not the autonomous-session control plane.
+The repository exposes the `chrome-devtools` MCP server to GitHub Copilot CLI
+through `.github/mcp.json`. The separate VS Code MCP configuration is retained
+only for ordinary interactive VS Code use and is not the autonomous-session
+control plane. Autonomous Chrome uses the MCP server's dedicated persistent
+default profile, never `--isolated`, Incognito, Guest, or the developer's
+personal Chrome profile. Browser profile lifetime is session-independent;
+application runtime lifetime remains task-scoped.
 
 For frontend or browser-observable work:
 
@@ -202,8 +256,12 @@ For frontend or browser-observable work:
 - use the browser to inspect the rendered UI and, when relevant, console errors, network requests, runtime state, accessibility/DOM state, responsive behaviour, and screenshots;
 - do not treat a successful TypeScript compilation or Angular build as sufficient evidence for a browser-facing acceptance criterion;
 - prefer the dedicated MCP-controlled Chrome instance; do not attach to a human developer's personal Chrome profile;
+- the task worker is the sole browser owner; the coordinator and another worker must not control the profile concurrently;
+- reuse the dedicated profile's non-production cookies and storage across serial workers and sessions; do not clear or log out shared authentication state unless the active task explicitly tests that transition;
+- after the unchanged task-start baseline and before implementation, a task requiring browser/runtime evidence must prove runtime readiness and any required authenticated state; failure returns `SESSION_CAPABILITY_PAUSE` with no task mutation rather than `BLOCKED` or dependency skips;
+- a task that explicitly tests logout or storage mutation must restore the canonical authenticated profile state before returning; otherwise it reports `BROWSER_PROFILE_RECOVERY_REQUIRED` and the coordinator finishes that task lifecycle but starts no later task;
 - never browse production or enter production credentials/data during autonomous validation;
-- if required browser validation cannot be performed because Chrome DevTools MCP, the canonical local runtime, required test data, or another declared dependency is unavailable, mark the task `BLOCKED` rather than claiming browser validation passed.
+- if browser/runtime capability is unavailable before implementation, return `SESSION_CAPABILITY_PAUSE`; if task-caused changes or an acceptance-specific post-implementation problem prevent required validation, mark the task `BLOCKED` rather than claiming browser validation passed.
 
 Browser validation is not mandatory for backend-only tasks or frontend changes whose acceptance criteria are fully established by static/unit tests unless the task explicitly requires it.
 

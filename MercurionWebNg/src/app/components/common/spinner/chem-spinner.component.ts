@@ -1,4 +1,4 @@
-import { Component, Input, ChangeDetectionStrategy, ViewEncapsulation } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ViewEncapsulation, input } from '@angular/core';
 
 /**
  * ChemSpinnerComponent – v6.2 (Angular 19)
@@ -20,21 +20,21 @@ import { Component, Input, ChangeDetectionStrategy, ViewEncapsulation } from '@a
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    @if (overlay) {
-      <div [class]="'fixed inset-0 z-50 grid place-items-center bg-white/60 dark:bg-black/60 ' + overlayClass"
+    @if (overlay()) {
+      <div [class]="'fixed inset-0 z-50 grid place-items-center bg-white/60 dark:bg-black/60 ' + overlayClass()"
            role="presentation" aria-hidden="true">
         <div role="status" aria-live="polite"
              class="inline-block animate-spin"
-             [class]="spinnerClass"
-             [style.width.px]="size" [style.height.px]="size">
+             [class]="spinnerClass()"
+             [style.width.px]="size()" [style.height.px]="size()">
           <svg class="w-full h-full" viewBox="0 0 100 100"
                xmlns="http://www.w3.org/2000/svg">
             <polygon points="50,10 86.6,30 86.6,70 50,90 13.4,70 13.4,30"
-                     fill="none" stroke="currentColor" [class]="bondClass"
-                     [attr.stroke-width]="strokeWidth" stroke-linejoin="round" />
+                     fill="none" stroke="currentColor" [class]="bondClass()"
+                     [attr.stroke-width]="strokeWidth()" stroke-linejoin="round" />
             @for (p of points; track p) {
-              <circle [attr.cx]="p.x" [attr.cy]="p.y" [attr.r]="atomRadius"
-                      fill="currentColor" [class]="atomClass" />
+              <circle [attr.cx]="p.x" [attr.cy]="p.y" [attr.r]="atomRadius()"
+                      fill="currentColor" [class]="atomClass()" />
             }
           </svg>
         </div>
@@ -42,16 +42,16 @@ import { Component, Input, ChangeDetectionStrategy, ViewEncapsulation } from '@a
     } @else {
       <div role="status" aria-live="polite"
            class="inline-block animate-spin"
-           [class]="spinnerClass"
-           [style.width.px]="size" [style.height.px]="size">
+           [class]="spinnerClass()"
+           [style.width.px]="size()" [style.height.px]="size()">
         <svg class="w-full h-full" viewBox="0 0 100 100"
              xmlns="http://www.w3.org/2000/svg">
           <polygon points="50,10 86.6,30 86.6,70 50,90 13.4,70 13.4,30"
-                   fill="none" stroke="currentColor" [class]="bondClass"
-                   [attr.stroke-width]="strokeWidth" stroke-linejoin="round" />
+                   fill="none" stroke="currentColor" [class]="bondClass()"
+                   [attr.stroke-width]="strokeWidth()" stroke-linejoin="round" />
           @for (p of points; track p) {
-            <circle [attr.cx]="p.x" [attr.cy]="p.y" [attr.r]="atomRadius"
-                    fill="currentColor" [class]="atomClass" />
+            <circle [attr.cx]="p.x" [attr.cy]="p.y" [attr.r]="atomRadius()"
+                    fill="currentColor" [class]="atomClass()" />
           }
         </svg>
       </div>
@@ -60,24 +60,36 @@ import { Component, Input, ChangeDetectionStrategy, ViewEncapsulation } from '@a
 })
 export class ChemSpinnerComponent {
   /** Dimensione fallback (px) quando non si usano utilità w‑* / h‑* */
-  @Input() size = 64;
+  readonly size = input(64);
   /** Classi Tailwind extra per il wrapper spinner (es. 'duration-700') */
-  @Input() spinnerClass = ''
+  readonly spinnerClass = input(''
+/** Abilita overlay full‑screen */
+);
 
   /** Abilita overlay full‑screen */
-  @Input() overlay = false;
+  readonly overlay = input(false);
   /** Classi Tailwind extra per l'overlay (bg‑color, blur, ecc.) */
-  @Input() overlayClass = ''
+  readonly overlayClass = input(''
+/** Spessore dei legami (px) */
+);
 
   /** Spessore dei legami (px) */
-  @Input() strokeWidth = 6
+  readonly strokeWidth = input(6
+/** Raggio degli atomi (px) */
+);
   /** Raggio degli atomi (px) */
-  @Input() atomRadius = 6
+  readonly atomRadius = input(6
+/** Tailwind stroke‑* per colorare i legami */
+);
 
   /** Tailwind stroke‑* per colorare i legami */
-  @Input() bondClass = ''
+  readonly bondClass = input(''
+/** Tailwind fill‑* per colorare gli atomi */
+);
   /** Tailwind fill‑* per colorare gli atomi */
-  @Input() atomClass = ''
+  readonly atomClass = input(''
+/** Coordinate dei vertici dell'esagono benzene */
+);
 
   /** Coordinate dei vertici dell'esagono benzene */
   readonly points = [

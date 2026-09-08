@@ -1,5 +1,5 @@
 import { UserGender, UserGenderControl } from './../../../Models/auth/user.models';
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ClassicSpinnerComponent } from '../../common/classic-spinner/classic-spinner.component';
 import { FormControl, FormGroup, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { catchError, finalize, of, Subscription, switchMap } from 'rxjs';
@@ -12,6 +12,7 @@ import { FloatingInputComponent } from '../../common/floating-input/floating-inp
 import { PmSelectComponent } from '../../common/pm-select/pm-select.component';
 import { PmOption } from '../../../Models/pm-option.model';
 import { ProfileRegistryEditContextService } from '../../../services/context/action-context/profile-registry-edit-context.service';
+import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
 
 type RegistryFormValue = {
   firstName: string
@@ -22,6 +23,7 @@ type RegistryFormValue = {
 
 @Component({
   selector: 'm-essential-profile-registry-edit',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ClassicSpinnerComponent,
     ReactiveFormsModule,
@@ -211,10 +213,12 @@ type RegistryFormValue = {
 export class EssentialProfileRegistryEditComponent implements OnInit, OnDestroy {
 
   private readonly actionContext = inject(ActionOverlayContextService)
+  private readonly sessionId = this.actionContext.session('EssentialProfileRegistryEdit')?.id ?? -1
   private readonly router = inject(Router)
   private readonly fb = inject(NonNullableFormBuilder)
   private readonly accountService = inject(AccountService)
   private readonly registryContext = inject(ProfileRegistryEditContextService)
+  private readonly invalidation = inject(DomainInvalidationService)
 
   private readonly registryKeys: (keyof RegistryFormValue)[] = [
     'firstName',
@@ -297,7 +301,7 @@ export class EssentialProfileRegistryEditComponent implements OnInit, OnDestroy 
 
   close(): void {
     this.router.navigate(['/settings'], { fragment: 'personal_details' })
-    this.actionContext.close()
+    this.actionContext.close(this.sessionId)
   }
 
   reset(): void {
@@ -336,7 +340,7 @@ export class EssentialProfileRegistryEditComponent implements OnInit, OnDestroy 
         }))
       ).subscribe({
         next: () => queueMicrotask(() => {
-          this.registryContext.notifyAdded()
+          this.invalidation.publish({ domain: 'profile', action: 'changed' })
           this.close()
         }),
         error: (e: HttpErrorResponse) => {
@@ -396,3 +400,4 @@ export class EssentialProfileRegistryEditComponent implements OnInit, OnDestroy 
   }
 
 }
+

@@ -18,7 +18,9 @@ repository:
     require_no_gpg_sign_per_commit_command: true
     allow_rebase: false
     allow_force_push: false
-    push_feature_branch_before_work: true
+    push_feature_branch_before_work: false
+    push_feature_branch_after_first_task_commit: true
+    forbid_remote_feature_ref_equal_to_base_sha: true
     delete_feature_branch_on_ci_success: true
     preserve_feature_branch_on_failure: true
     freeze_preserved_feature_branch_on_block: true
@@ -81,6 +83,36 @@ capabilities:
     mcp_server: chrome-devtools
     mcp_config: .github/mcp.json
     required_when_declared_by_task: true
+    owner: development-task-worker
+    concurrent_owners_allowed: false
+    profile:
+      mode: dedicated-persistent
+      isolated: false
+      incognito_or_guest: false
+      personal_profile_allowed: false
+      reuse_across_serial_workers: true
+      reuse_across_sessions: true
+      production_credentials_allowed: false
+    capability_preflight:
+      required_before_implementation_when_browser_runtime_declared: true
+      verify_runtime_readiness: true
+      verify_authenticated_state_when_required: true
+      failure_result: SESSION_CAPABILITY_PAUSE
+      mutate_task_outcome: false
+      propagate_dependency_skips: false
+    state_lease:
+      preserve_non_production_authentication: true
+      restore_after_explicit_logout_or_storage_test: true
+      recovery_failure_signal: BROWSER_PROFILE_RECOVERY_REQUIRED
+      stop_before_next_task_on_recovery_failure: true
+      secrets_in_reports: false
+    acceptance_probe:
+      required_once_before_enabling_unattended_reuse: true
+      outside_active_development_session: true
+      fresh_sequential_workers: 2
+      request_marker: browser_profile_probe
+      storage_key: mercurion-autonomous-profile-probe
+      remove_probe_state: true
   task_completion:
     required: true
     tool: task_complete
@@ -138,6 +170,8 @@ runtime:
       cwd: ../MercurionTox21
       repository_access: read-only
       watch: false
+      environment:
+        PYTHONUTF8: "1"
       command:
         windows: .venv/Scripts/python.exe -m main
         posix: .venv/bin/python -m main
@@ -173,6 +207,7 @@ quality:
   require_clean_exact_origin_develop: true
   require_green_before_first_task_scope: true
   require_exact_sha_ci_for_every_develop_base: true
+  require_fresh_full_remote_ci_at_session_start: true
   stop_before_task_branch_if_initial_baseline_is_not_green: true
   numbered_tasks_may_repair_baseline: false
   before_every_task: true
@@ -191,8 +226,21 @@ workload:
   series_pattern: "[0-9][0-9][0-9][0-9]-*.md"
   order: filename
   series_file: null
+  # Empty selects the complete Series. A non-empty list is the exact set the
+  # autonomous coordinator may select or mutate; omitted tasks remain PENDING
+  # for human-led or later-session work.
   tasks: []
   pending_only: true
+
+  dependency_planner:
+    command: npm run autonomous:plan
+    output: versioned-json
+    authoritative: true
+    read_only: true
+    fail_on_errors: true
+    fail_on_cycles: true
+    fail_on_stale_skips: true
+    model_inference_fallback: false
 
 task_outcomes:
   persistent:
@@ -203,9 +251,13 @@ task_outcomes:
   mutually_exclusive: true
   transient:
     - CI_PENDING
+    - WAITING_DEPENDENCY
+    - SESSION_CAPABILITY_PAUSE
+    - BROWSER_PROFILE_RECOVERY_REQUIRED
 
 policy:
   fresh_agent_session_per_task: true
+  multi_task_bundles: false
 
   # Each task owns exactly one feature branch derived from its Source identifier.
   one_feature_branch_per_task: true
@@ -223,11 +275,13 @@ policy:
   terminal_outcomes_immutable_within_active_session: true
   terminal_task_reenable_authority: new-direct-human-instruction-in-new-or-restarted-session
   autopilot_continuation_is_human_authorization: false
-  dependency_skip_evaluation: lazy-at-normal-selection-point
-  precompute_transitive_dependency_skips: false
-  maximum_new_skip_outcomes_per_selection: 1
-  batch_dependency_skip_metadata_commit: false
-  next_task_after_terminal_non_done: next-pending-with-all-hard-dependencies-done
+  dependency_selection: graph-snapshot
+  waiting_dependency_is_transient: true
+  dependency_skip_evaluation: batched-terminal-transitive-closure
+  precompute_transitive_dependency_skips: true
+  batch_dependency_skip_metadata_commit: true
+  single_metadata_commit_per_skip_closure: true
+  next_task_after_terminal_non_done: earliest-ready-task
   require_green_develop_before_next_task: true
 
 ci:
@@ -243,6 +297,24 @@ ci:
   poll_interval_seconds: 30
   observation_timeout_minutes: 120
   only_success_conclusion_is_green: true
+
+  classification:
+    modes:
+      - duplicate
+      - metadata
+      - full
+    duplicate_requires_prior_successful_exact_sha: true
+    duplicate_waits_only_for_older_run_ids: true
+    duplicate_wait_timeout_seconds: 900
+    metadata_requires_green_exact_base_sha: true
+    metadata_allowlist:
+      - 'docs/autonomous-development/task/(?!0000-)[0-9]{4}-[^/]+\.md'
+      - 'docs/autonomous-development/reports/[0-9]{4}-[0-9]{2}-[0-9]{2}-[^/]+\.md'
+    metadata_must_not_feed_application_inventories: true
+    manual_dispatch_default: full
+    manual_full_bypasses_duplicate_reuse: true
+    unknown_or_ambiguous_fallback: full
+    stable_required_gate_for_every_mode: true
 
   on_success:
     finalize_done: true
@@ -275,7 +347,8 @@ ci:
     invoke_worker: false
     mark_task_skipped_dependency: true
     record_direct_and_transitive_causes: true
-    leave_later_recipes_unchanged: true
+    materialize_entire_terminal_closure: true
+    aggregate_in_one_metadata_commit: true
     wait_for_metadata_ci_green: true
 
 decisions:
@@ -286,6 +359,15 @@ decisions:
   sys_001_angular_nest_runtime_dependency: forbidden
   sys_001_nest_validation_adapters: preserve-when-required-and-prove-contract-parity
   sys_001_migration_policy: incremental-non-breaking
+
+telemetry:
+  record_ci_classification_counts: true
+  record_platform_jobs_started_and_avoided: true
+  record_ci_wait_seconds: true
+  record_task_wall_seconds: true
+  record_worker_invocations: true
+  record_pushes_and_retries: true
+  unavailable_metrics_must_be_reported_as_unavailable: true
 
 on_finish:
   validate_repository: true

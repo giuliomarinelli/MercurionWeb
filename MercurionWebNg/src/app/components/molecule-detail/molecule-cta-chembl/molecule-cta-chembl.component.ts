@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input, Signal, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, input, Signal, computed, signal } from '@angular/core';
 
 @Component({
   selector: 'm-molecule-cta-chembl',
@@ -14,7 +14,7 @@ import { ChangeDetectionStrategy, Component, Input, Signal, computed, signal } f
          hover:bg-dark-accent-primary/90 dark:hover:bg-dark-accent-primary/90
          disabled:bg-dark-accent-primary/65 disabled:dark:bg-dark-accent-primary/65
          disabled:cursor-not-allowed disabled:hover:bg-dark-accent-primary/80 disabled:hover:dark:bg-dark-accent-primary/80"
-        [attr.aria-label]="'Apri scheda ChEMBL per ' + (chemblId || 'molecola')"
+        [attr.aria-label]="'Apri scheda ChEMBL per ' + (chemblId() || 'molecola')"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="h-5 w-auto">
           <!--!Font Awesome Pro 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
@@ -30,10 +30,8 @@ export class MoleculeCtaChemblComponent {
 
   private readonly idSignal = signal<string>('')
 
-  @Input()
-  set chemblId(value: string) {
-    this.idSignal.set(value)
-  }
+  readonly chemblId = input('')
+  private readonly syncChemblId = effect(() => this.idSignal.set(this.chemblId()))
 
   readonly url: Signal<string> = computed(() =>
     `https://www.ebi.ac.uk/chembl/compound_report_card/${this.idSignal()}/`

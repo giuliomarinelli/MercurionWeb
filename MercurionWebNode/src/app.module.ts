@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { join } from 'path';
+import { join } from 'node:path';
 import { configurations } from './config/config';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { MailerModule, MailerOptions } from '@nestjs-modules/mailer';
@@ -44,7 +44,7 @@ const appEnv = resolveAppEnv()
       isGlobal: true,      
       ignoreEnvFile: !shouldUseEnvFile(appEnv),
       envFilePath: shouldUseEnvFile(appEnv)
-        ? join(__dirname, `../env/.env.${appEnv}`)
+        ? join(process.cwd(), 'env', `.env.${appEnv}`)
         : undefined,
       load: [...configurations],      
       expandVariables: true,            

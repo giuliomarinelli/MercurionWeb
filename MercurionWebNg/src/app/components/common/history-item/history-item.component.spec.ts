@@ -13,6 +13,13 @@ describe('HistoryItemComponent', () => {
     .compileComponents();
 
     fixture = TestBed.createComponent(HistoryItemComponent);
+    fixture.componentRef.setInput('historyDTO', {
+      itemEntity: 'molecule_collection_items',
+      itemId: 'molecule-1',
+      itemName: 'Test molecule',
+      flagIds: '{}',
+      touchedAt: new Date().toISOString()
+    } as never);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

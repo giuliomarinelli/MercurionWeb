@@ -1,38 +1,83 @@
-// toast.service.ts
-import { Injectable, signal } from '@angular/core';
-import { ToastContext } from '../components/common/toast/toast.component';
+import { Injectable, OnDestroy, signal } from '@angular/core';
+import { ToastMessage, ToastVariant } from '../Models/toast.models';
+
 
 @Injectable({ providedIn: 'root' })
-export class ToastService {
-  private _show = signal(false)
-  private _slideIn = signal(false)
-  private _message = signal<string>('')
-  private _timeoutId: any
-  private _context = signal<ToastContext>('error')
+export class ToastService implements OnDestroy {
 
-  readonly show = this._show.asReadonly()
-  readonly slideIn = this._slideIn.asReadonly()
-  readonly message = this._message.asReadonly()
-  readonly context = this._context.asReadonly()
+  private readonly _defaultDurationMs = 4500
+  private readonly _timers = new Map<string, ReturnType<typeof setTimeout>>()
+  private readonly _messagesState = signal<ToastMessage[]>([])
+  readonly messages = this._messagesState.asReadonly()
 
-  trigger(message: string, context: ToastContext = 'error', duration = 5000): void {
-    if (this._show()) return; // ignora se già visibile
-    this._context.set(context)
-    this._message.set(message)
-    this._show.set(true)
-    // animazione slide-in
-    setTimeout(() => this._slideIn.set(true), 30)
+  private _slideInTimeoutId: ReturnType<typeof setTimeout> | undefined
+  private _autoDismissTimeoutId: ReturnType<typeof setTimeout> | undefined
+  private _hideTimeoutId: ReturnType<typeof setTimeout> | undefined
 
-    // auto-dismiss
-    clearTimeout(this._timeoutId);
-    this._timeoutId = setTimeout(() => {
-      this.close()
-      this._context.set('error')
-    }, duration)
+
+  trigger(message: string, variant: ToastVariant = 'error', duration = this._defaultDurationMs): string {
+
+    const toast: ToastMessage = {
+      id: this.createId(),
+      message,
+      variant,
+      durationMs: duration,
+      createdAt: Date.now(),
+    }
+
+    this._messagesState.update((current) => [toast, ...current])
+
+    if (toast.durationMs > 0) {
+      const timer = setTimeout(() => {
+        this.close(toast.id)
+      }, toast.durationMs)
+
+      this._timers.set(toast.id, timer)
+    }
+
+    return toast.id
+
   }
 
-  close(): void {
-    this._slideIn.set(false)
-    setTimeout(() => this._show.set(false), 300) // lascia finire animazione
+  close(id?: string): void {
+
+    if (id) {
+      const timer = this._timers.get(id)
+      if (timer) {
+        clearTimeout(timer)
+        this._timers.delete(id)
+      }
+      this._messagesState.update((current) => current.filter((toast) => toast.id !== id))
+      return
+    }
+
+    const timers = Array.from(this._timers.values())
+    timers.forEach(clearTimeout)
+    this._timers.clear()
+
   }
+
+  private clearTimers(): void {
+    clearTimeout(this._slideInTimeoutId)
+    clearTimeout(this._autoDismissTimeoutId)
+    clearTimeout(this._hideTimeoutId)
+    this._timers.forEach((timer) => clearTimeout(timer))
+    this._timers.clear()
+    this._slideInTimeoutId = undefined
+    this._autoDismissTimeoutId = undefined
+    this._hideTimeoutId = undefined
+  }
+
+  ngOnDestroy(): void {
+    this.clearTimers()
+  }
+
+  private createId(): string {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID()
+    }
+
+    return `${Date.now()}-${Math.random().toString(16).slice(2)}`
+  }
+
 }

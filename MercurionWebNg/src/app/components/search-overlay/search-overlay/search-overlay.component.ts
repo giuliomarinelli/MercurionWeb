@@ -1,12 +1,14 @@
 import {
   AfterViewInit,
+  OnDestroy,
   Component,
+  ChangeDetectionStrategy,
   ElementRef,
   HostListener,
-  ViewChild,
   inject,
   signal,
-  effect
+  effect,
+  viewChild
 } from '@angular/core'
 
 import { SearchContextService } from '../../../services/context/search-context.service'
@@ -30,6 +32,7 @@ import { map } from 'rxjs/operators'
 
 @Component({
   selector: 'm-search-overlay',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     SearchInputComponent,
     SearchResultComponent,
@@ -171,7 +174,7 @@ import { map } from 'rxjs/operators'
     }
   `]
 })
-export class SearchOverlayComponent implements AfterViewInit {
+export class SearchOverlayComponent implements AfterViewInit, OnDestroy {
 
   // TODO: Medium priority - align Safari/iOS viewport/keyboard handling here with action overlays if issues reappear.
   protected readonly searchContextService = inject(SearchContextService)
@@ -179,11 +182,9 @@ export class SearchOverlayComponent implements AfterViewInit {
   private readonly chemblService = inject(MoleculeSearchService)
   private readonly collectionService = inject(MoleculeCollectionItemService)
 
-  @ViewChild('scrollRoot')
-  private scrollRoot!: ElementRef<HTMLElement>
+  private readonly scrollRoot = viewChild.required<ElementRef<HTMLElement>>('scrollRoot');
 
-  @ViewChild('sentinel')
-  private sentinel!: ElementRef<HTMLDivElement>
+  private readonly sentinel = viewChild.required<ElementRef<HTMLDivElement>>('sentinel');
 
   query = signal<string>('')
 
@@ -217,7 +218,7 @@ export class SearchOverlayComponent implements AfterViewInit {
   }
 
   close(): void {
-    this.searchContextService.isOpenedSearchOverlay.set(false)
+    this.searchContextService.close()
   }
 
   @HostListener('document:keydown.escape')
@@ -227,9 +228,15 @@ export class SearchOverlayComponent implements AfterViewInit {
     }
   }
 
+  ngOnDestroy(): void {
+    this.observer?.disconnect()
+    this.chemblSub?.unsubscribe()
+    this.mySub?.unsubscribe()
+  }
+
   ngAfterViewInit(): void {
-    const rootEl = this.scrollRoot?.nativeElement ?? null
-    const sentinelEl = this.sentinel?.nativeElement
+    const rootEl = this.scrollRoot()?.nativeElement ?? null
+    const sentinelEl = this.sentinel()?.nativeElement
     if (!sentinelEl) return
 
     this.observer = new IntersectionObserver(entries => {
@@ -385,7 +392,7 @@ export class SearchOverlayComponent implements AfterViewInit {
 
           // riattacco dopo che Angular ha renderizzato i nuovi items
           queueMicrotask(() => {
-            const sentinelEl = this.sentinel?.nativeElement
+            const sentinelEl = this.sentinel()?.nativeElement
             if (sentinelEl) this.observer?.observe(sentinelEl)
           })
         },
@@ -394,7 +401,7 @@ export class SearchOverlayComponent implements AfterViewInit {
           this.loading.set(false)
 
           queueMicrotask(() => {
-            const sentinelEl = this.sentinel?.nativeElement
+            const sentinelEl = this.sentinel()?.nativeElement
             if (sentinelEl) this.observer?.observe(sentinelEl)
           })
         }

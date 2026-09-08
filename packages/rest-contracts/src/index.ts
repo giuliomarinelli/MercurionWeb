@@ -1,3 +1,5 @@
+import type { ApplicationErrorEnvelope } from './application-error-envelope'
+
 export type RestContractVersion = '1.0.0'
 
 export {
@@ -13,6 +15,32 @@ export type {
   ApplicationErrorDefinition,
   ApplicationErrorPayload
 } from './application-errors'
+export {
+  isApplicationErrorEnvelope,
+  isApplicationErrorEnvelopeCode
+} from './application-error-envelope'
+export type {
+  ApplicationErrorEnvelope,
+  ApplicationErrorEnvelopeCode,
+  TransportApplicationErrorCode
+} from './application-error-envelope'
+export {
+  INITIAL_SESSION_PROTOCOL,
+  SessionConnectionState,
+  SessionInvalidationCause,
+  SessionState,
+  SessionTransition,
+  isSessionTransitionAllowed,
+  sessionInvalidationCauseForApplicationError,
+  transitionSessionProtocol
+} from './session-protocol'
+export type {
+  SessionConnectionState as SessionConnectionStateType,
+  SessionInvalidationCause as SessionInvalidationCauseType,
+  SessionProtocolSnapshot,
+  SessionState as SessionStateType,
+  SessionTransition as SessionTransitionType
+} from './session-protocol'
 export {
   FINGERPRINT_CONTRACT_VERSION,
   parseFingerprintData,
@@ -60,11 +88,14 @@ export interface ConfirmDTO {
   message: string
 }
 
-export interface ErrorRes {
+export interface ErrorRes extends ApplicationErrorEnvelope {
   statusCode: number
   error: string
-  code?: import('./application-errors').ApplicationErrorCode
-  message?: string
+  code: ApplicationErrorEnvelope['code']
+  status: ApplicationErrorEnvelope['status']
+  message: ApplicationErrorEnvelope['message']
+  details?: ApplicationErrorEnvelope['details']
+  correlationId: ApplicationErrorEnvelope['correlationId']
   timestamp: string
   requestId: string
   path: string

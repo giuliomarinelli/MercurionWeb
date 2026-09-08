@@ -1,4 +1,4 @@
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -8,6 +8,7 @@ import { HttpErrorBody } from '../../Models/http-error-body.dto';
 
 @Component({
   selector: 'm-admin-exchange-page',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [JsonPipe],
   template: `{{res() | json}}`
 })

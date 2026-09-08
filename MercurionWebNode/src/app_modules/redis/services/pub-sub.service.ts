@@ -7,13 +7,22 @@ import { Server } from 'socket.io';
 import { SessionService } from 'src/app_modules/auth/services/session.service';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import {
+  socketEventRegistry,
+  type ClientToServerEvents,
+  type ServerToClientEvents,
+  type SocketSessionExpiredPayload,
+} from '@mercurion/socket-contracts';
+import { SessionInvalidationCause } from '@mercurion/rest-contracts';
+
+type ApplicationServer = Server<ClientToServerEvents, ServerToClientEvents>
 
 @Injectable()
 export class PubSubService implements OnModuleInit {
 
   private readonly subscriber: Redis
   private readonly logger: MeiliContextLogger
-  private socketServer: Server | undefined
+  private socketServer: ApplicationServer | undefined
 
   constructor(
     private readonly redisService: RedisService,
@@ -31,7 +40,7 @@ export class PubSubService implements OnModuleInit {
     await this.subscribeToKeyspaceEvents() // psubscribe
   }
 
-  public setSocketServer(server: Server): void {
+  public setSocketServer(server: ApplicationServer): void {
     this.socketServer = server
   }
 
@@ -126,10 +135,16 @@ export class PubSubService implements OnModuleInit {
 
     if (this.socketServer) {
       try {
-        this.socketServer.to(`ws_session:${sessionId}`).emit('sv.pub.session_expired', {
+        const payload: SocketSessionExpiredPayload = {
           detail: 'session expired',
-          reason: event,
-        })
+          state: 'invalid',
+          cause: event === 'expired'
+            ? SessionInvalidationCause.SessionExpired
+            : SessionInvalidationCause.SessionRevoked,
+        }
+        this.socketServer
+          .to(`ws_session:${sessionId}`)
+          .emit(socketEventRegistry.sessionExpired.name, payload)
         this.socketServer.in(`ws_session:${sessionId}`).socketsLeave(`ws_session:${sessionId}`)
       } catch (e) {
         this.logger.warn(`Failed WS notify/leave for session ${sessionId}: ${e?.message || e}`)

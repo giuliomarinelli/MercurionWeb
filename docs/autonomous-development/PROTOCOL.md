@@ -20,11 +20,17 @@ A **Development Session** is a bounded period in which a session coordinator exe
 - **Hard deadline**: optional absolute session guardrail; do not start or interrupt an unsafe merge/revert sequence merely to beat the clock.
 - **Capability**: an external tool available to the coding agent, such as Chrome DevTools MCP.
 - **Runtime**: the local processes/infrastructure required for runtime/browser validation.
+- **Persistent browser profile**: the dedicated, non-production Chrome DevTools MCP user-data directory reused by serial workers and separate from task-scoped application processes.
+- **SESSION_CAPABILITY_PAUSE**: a transient session stop before task changes when mandatory runtime or browser authentication is unavailable; it is not a recipe outcome and creates no dependency skips.
+- **BROWSER_PROFILE_RECOVERY_REQUIRED**: a post-validation session stop requested when a task deliberately changed browser authentication/storage and could not restore the canonical non-production profile; the active task finishes its safe lifecycle, but no next task starts.
 - **Report**: the final session summary.
+- **CI mode**: the exact-SHA validation path selected by the permanent workflow: `duplicate`, `metadata`, or `full`.
+- **WAITING_DEPENDENCY**: a transient in-memory scheduler classification for a pending task whose hard prerequisite is still pending/active; it is not a recipe outcome.
+- **Workload allowlist**: a non-empty `workload.tasks` list that limits which pending recipes an autonomous session may select or mutate; omission from it is not a task outcome.
 
 ## Sources of truth
 
-Session timing, workload selection, host/context behavior, budgets, runtime configuration and lifecycle policy are defined by the active YAML session configuration. Model and reasoning are intentionally unpinned there and inherit from the parent CLI session.
+Session timing, workload selection, host/context behavior, budgets, runtime configuration and lifecycle policy are defined by the active YAML session configuration. An empty `workload.tasks` list selects the complete Series; a non-empty list is an exact allowlist of quoted four-digit task IDs. Model and reasoning are intentionally unpinned there and inherit from the parent CLI session.
 
 Series identity, Trello binding, task-range binding, repository/baseline context and optional baseline metadata are defined by each series document's YAML frontmatter.
 
@@ -32,7 +38,7 @@ GitHub Copilot CLI agent profiles are committed in `.github/agents/`, and MCP se
 
 The canonical local runtime topology is defined by `docs/autonomous-development/RUNTIME.md`.
 
-The coordinator owns deterministic orchestration: task discovery/order, YAML parsing, time/deadlines, branch lifecycle, feature-SHA and merge-SHA CI waiting, merge/revert sequencing, runtime process lifecycle and reporting. The fresh task worker owns local preflight, implementation and task-specific validation inside the currently assigned feature branch.
+The coordinator owns deterministic orchestration: task discovery/order, YAML parsing, time/deadlines, branch lifecycle, feature-SHA and merge-SHA CI waiting, merge/revert sequencing and reporting. The fresh task worker owns local preflight, task-scoped runtime processes, exclusive browser control, implementation and task-specific validation inside the currently assigned feature branch.
 
 ## GitHub Copilot CLI coordinator/worker topology
 
@@ -41,7 +47,7 @@ The repository provides two workspace custom agents under `.github/agents/`:
 - `Development Session Coordinator` remains alive for the complete configured session and is the only owner of task selection, shared-branch Git writes, deadlines, CI observation and final reporting.
 - `Development Task Worker` is addressed programmatically as `development-task-worker` (the profile filename without `.agent.md`) and is invoked through exactly one synchronous CLI `task` tool call for exactly one task. Each invocation is fresh and stateless and therefore provides the required task context boundary.
 
-The coordinator creates and pushes the feature branch before invoking the worker. The worker may preflight, implement, validate, commit and push only that feature branch. It never selects a later task, changes `develop`, merges, reverts, deletes a branch or finalizes the session.
+The coordinator creates the feature branch locally before invoking the worker but does not push a ref that still points to the unchanged, already-green `develop` SHA. The worker may preflight, implement, validate, commit and push only that feature branch, and creates its first remote ref only after a task-specific commit exists. It never selects a later task, changes `develop`, merges, reverts, deletes a branch or finalizes the session.
 
 Tasks are strictly serialized. The coordinator MUST NOT run implementation workers concurrently, use background worker mode, or invoke another worker before the synchronous result returns. It MUST independently verify the worker result and Git state before any integration write.
 
@@ -74,10 +80,11 @@ If any install, network, filesystem, cleanup, GitHub, subagent (`task`), MCP, si
 
 No recipe implementation starts until the repository has the permanent baseline
 defined in `docs/autonomous-development/CI-BASELINE.md`. At session startup the
-coordinator records the exact local/remote `develop` SHA, requires a successful
-GitHub Actions run and `Required gate` result tied to that exact SHA, and reruns
-the complete local non-mutating gate set. Neither proof substitutes for the
-other.
+coordinator records the exact local/remote `develop` SHA, requires a fresh
+successful GitHub Actions `full` run tied to that exact SHA with both platform
+jobs and `Required gate` green, and reruns the complete local non-mutating gate
+set. A metadata/duplicate-only result cannot certify session startup. Neither
+remote proof nor the local gate substitutes for the other.
 
 There is no task-level bootstrap exception. If the workflow is absent, the
 exact `develop` SHA is not green, or the local baseline is red, the coordinator
@@ -238,6 +245,37 @@ Environment/setup failures originating from GitHub infrastructure are still
 possible. Platform-specific repository failures may exist only on the clean
 remote runner, which is why exact feature-SHA CI is mandatory before merge.
 
+## Browser/runtime capability preflight
+
+The Chrome profile is dedicated and persistent, while Angular, Nest and Tox21
+remain task-scoped. The worker is the only browser owner; the coordinator must
+not invoke Chrome tools and no two workers run concurrently. Fresh worker
+context never implies a fresh Incognito, Guest, isolated, or personal browser
+profile.
+
+After the unchanged task-start baseline and before editing a recipe that
+requires browser/runtime evidence, the worker starts the required runtime and
+proves the nginx edge, required services, and any declared authenticated
+non-production state. It then stops task-owned application processes before
+implementation without clearing the browser profile. A later browser phase
+restarts the runtime and reuses that profile.
+
+If the capability probe fails before task changes, the worker returns
+`SESSION_CAPABILITY_PAUSE`. It leaves every recipe checkbox untouched, creates
+no commit or remote feature ref, and records exact probe and cleanup evidence.
+The coordinator removes only the empty unpublished attempt branch when safe,
+finalizes the report, and stops. It MUST NOT mark the task `BLOCKED`, propagate
+`SKIPPED_DEPENDENCY`, or treat an expired login as a task defect.
+
+The persistent profile is leased to one worker at a time. A task that
+explicitly exercises logout or browser-storage cleanup must restore the
+canonical authenticated state and close surplus tabs before returning. If its
+implementation and validation succeeded but restoration is impossible, the
+worker reports `BROWSER_PROFILE_RECOVERY_REQUIRED`. The coordinator completes
+the active task's normal CI/integration outcome and then finalizes without
+selecting another task. Reports include no cookie, token, password, backup-code
+or Redis-session value.
+
 ## Preflight before every task
 
 Immediately after `feature/<Source>` is created and before actual task implementation:
@@ -354,24 +392,100 @@ If blocked before integration:
 - push the metadata commit and require CI on that exact SHA to be green when a workflow exists;
 - continue to later independent tasks only when `develop` is green and the task dependency graph allows it.
 
-## Lazy dependency evaluation and SKIPPED_DEPENDENCY
+## Dependency snapshot and batched SKIPPED_DEPENDENCY
 
-Before creating a feature branch, the coordinator considers pending tasks in
-filename order. It may resolve dependency relationships for selection and
-diagnostics, but MUST NOT change every member of a transitive closure merely
-because one prerequisite became `BLOCKED` or `REVERTED`.
+The repository command `npm run autonomous:plan` is the deterministic and
+read-only source of truth for dependency scheduling. It parses only the
+numbered task recipes, ignores dependency lines explicitly prefixed
+`Advisory:`, validates missing references and cycles, detects stale historical
+skips, and emits versioned JSON. The coordinator must consume that output
+instead of reconstructing the graph through language-model inference. A failed
+command, malformed result, non-empty `errors`/`cycles`/`staleSkips`, or an
+unknown task result stops selection as a configuration incident.
 
-When the one pending task currently at its normal selection point has a hard
-prerequisite that is terminal non-`DONE`:
+Before creating a feature branch, the coordinator resolves one read-only
+dependency snapshot for every recipe in the complete configured Series, then
+applies any non-empty `workload.tasks` allowlist to selection and mutation:
 
-1. do not create or push `feature/<Source>`;
-2. do not invoke a task worker or run task implementation/preflight;
-3. check only `SKIPPED_DEPENDENCY` on `develop`;
-4. record every direct terminal prerequisite and the transitive dependency chain in Execution notes/reporting;
-5. leave all later recipes unchanged, even when they are transitively dependent;
-6. commit that one task's metadata, push it, and require exact-SHA green CI when a workflow exists before restarting selection.
+- `READY`: every resolved hard prerequisite is `DONE`;
+- `WAITING_DEPENDENCY`: at least one hard prerequisite is pending or active
+  and none is terminal non-`DONE`;
+- terminal skip: at least one hard prerequisite is `BLOCKED`, `REVERTED`,
+  or `SKIPPED_DEPENDENCY`.
 
-A skip-metadata CI failure is a session-fatal integration-health incident; it is not attributed to the unattempted skipped task. Independent pending tasks remain eligible after the skip commit is green. Tasks left unattempted solely because the deadline/workload ended remain `PENDING`, not `SKIPPED_DEPENDENCY`. Deadline finalization never performs a speculative skip sweep.
+The full-Series snapshot is necessary to resolve prerequisites correctly, but
+only configured workload members may be selected or newly mutated. A pending
+recipe omitted from a non-empty allowlist remains `PENDING`; it receives no
+branch, worker, status commit, CI run, or dependency propagation merely because
+the current autonomous session delegates it to human-led development.
+
+`WAITING_DEPENDENCY` exists only in coordinator memory and reporting. It does
+not add a fifth checkbox and never mutates a recipe.
+
+When terminal skips are discovered, the coordinator computes their complete
+affected transitive closure within the configured workload before selecting a
+worker. For every newly affected configured recipe it checks only
+`SKIPPED_DEPENDENCY`, records the direct terminal prerequisite and transitive
+root cause, and changes no implementation file. It
+then creates one aggregate metadata-only commit on `develop`, pushes once,
+waits for the exact adaptive `Required gate`, and rebuilds the dependency
+snapshot.
+
+For the whole aggregate operation:
+
+1. create no `feature/<Source>` branch;
+2. invoke no task worker and run no task implementation/preflight;
+3. preserve all existing terminal outcomes unchanged;
+4. never classify a task skipped merely because the deadline or workload
+   ended;
+5. never classify an out-of-workload task as `BLOCKED` or
+   `SKIPPED_DEPENDENCY` merely because it was not selected for autonomous work;
+6. fail closed if dependency resolution is ambiguous or cyclic;
+7. use the CI metadata path only when the workflow classifier proves both an
+   already-green exact base SHA and an allowlisted task/report-only diff.
+
+A skip-metadata CI failure is a session-fatal integration-health incident; it
+is not attributed to any unattempted task. Independent `READY` tasks remain
+eligible after the aggregate commit is green. A later human-assisted recovery
+may re-enable an affected terminal closure only through an explicit,
+human-reviewed administrative change in a new/restarted session. A deliberately
+retained blocker and its descendants remain terminal.
+
+
+
+## Adaptive exact-SHA CI
+
+The permanent GitHub Actions workflow always emits the stable `Required gate`
+for the exact commit under evaluation, but it selects one of three validation
+paths:
+
+- `duplicate`: an older run of the same workflow has already completed
+  successfully for the identical commit SHA; no platform matrix is repeated;
+- `metadata`: the comparison base has a successful exact-SHA run and every
+  changed path belongs to the narrow autonomous task/report Markdown allowlist;
+  run the autonomous validators and `git diff --check` on Ubuntu only;
+- `full`: run clean `npm ci` and the complete quality gate independently on
+  Windows and Linux.
+
+An explicit `workflow_dispatch` defaults to `full` and bypasses duplicate
+reuse so an operator can certify the current exact SHA before a new session.
+`auto` may be selected manually only for diagnostic exercise of the adaptive
+classifier. Metadata-allowlisted files must be semantically isolated from
+application inventory and generated-artifact inputs; otherwise they are not
+safe metadata and the coupling must be removed or the path removed from the
+allowlist.
+
+The classifier may wait for an older in-progress run of the same SHA, but only
+the newer run waits; this prevents two runs from waiting on each other.
+Unknown paths, missing history, API errors, an ungreen/unverifiable base, an
+empty allowlist match, or any classifier ambiguity fail closed to `full` (or
+fail the gate if classification itself cannot complete). Workflow, agent,
+protocol, manifest, lockfile, test, configuration, and source changes are never
+metadata-only.
+
+The stable aggregate gate succeeds only when the selected path succeeds. Path
+filtering at the workflow trigger level is forbidden because it could omit the
+required exact-SHA check entirely.
 
 ## Git safety rules
 
@@ -400,6 +514,13 @@ http://localhost:8888
 
 The Angular development-server port is an internal nginx upstream and MUST NOT be used as the browser origin.
 
+The MCP server uses its dedicated persistent default Chrome profile. The
+repository configuration must not pass `--isolated`, and agents must not use
+Incognito, Guest, a personal Chrome profile, production credentials, or
+production data. Only the serial task worker controls the browser. Approved
+non-production cookies and storage may survive worker and CLI-session
+boundaries; Angular, Nest and Tox21 processes do not.
+
 When required, the runner manages:
 
 ```text
@@ -408,13 +529,21 @@ MercurionWebNg    -> npm run start:dev
 ../MercurionTox21 -> .venv interpreter -> python -m main
 ```
 
-`../MercurionTox21` remains read-only. The externally managed Docker nginx development proxy remains untouched.
+The Tox21 process working directory is exactly `../MercurionTox21`; Windows
+console I/O is forced to UTF-8 before `.venv/Scripts/python.exe -m main` is
+invoked. `../MercurionTox21` remains read-only. The externally managed Docker
+nginx development proxy remains untouched.
 
-If a task requires browser validation and the canonical runtime/Chrome MCP/test data are unavailable, the task is `BLOCKED`.
+Before implementation of a task requiring browser/runtime evidence, the worker
+proves the canonical runtime and any required authenticated state. Failure at
+that point returns transient `SESSION_CAPABILITY_PAUSE`, leaves the task
+pending, and produces no dependency skips. A runtime or browser failure that is
+caused by task changes after implementation still follows the task's ordinary
+`BLOCKED` rules.
 
 ## Workload resolution
 
-The runner may resolve an explicit task list, a selected series range, or the global pending queue. Tasks are normally ordered lexicographically by their four-digit prefix. Resolved hard dependencies override simple numeric readiness: a pending/active prerequisite defers the dependent task, while a terminal non-`DONE` prerequisite propagates `SKIPPED_DEPENDENCY`. Advisory references never create dependency cycles.
+The runner may resolve an explicit task list, a selected series range, or the global pending queue. It builds the dependency snapshot first, then selects the lexicographically earliest `READY` recipe by four-digit prefix. A pending/active prerequisite produces transient `WAITING_DEPENDENCY`; a terminal non-`DONE` prerequisite enters the next batched `SKIPPED_DEPENDENCY` closure. Advisory references do not constrain readiness and never create dependency cycles. If pending recipes remain but none is `READY` and no new terminal closure exists, the coordinator reports the unresolved/cyclic graph and finalizes rather than idling or fabricating progress.
 
 ## Deadline semantics
 
@@ -446,7 +575,9 @@ At finalization the runner records at least:
 - final `develop` status and CI health;
 - browser/runtime validation summary;
 - decisions requiring human attention;
-- usage/credit information when available.
+- usage/credit information when available;
+- count of `duplicate`, `metadata`, and `full` CI classifications;
+- Windows/Linux runner jobs started and avoided, CI wait time, task wall time, pushes, retries, and superseded runs when observable.
 
 Reports live under `docs/autonomous-development/reports/` unless overridden by configuration. `0000-session-report-template.md` is the canonical non-executable report skeleton.
 

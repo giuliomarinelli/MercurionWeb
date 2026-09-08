@@ -17,6 +17,8 @@ This file is a template only. A session report copies this structure to a dated 
 
 ## Executive summary
 
+- Configured autonomous workload: `<all Series tasks / explicit task IDs>`
+- Pending tasks outside explicit workload: `<count / n/a>`
 - Attempted: `<count>`
 - Completed: `<count>`
 - Blocked: `<count>`
@@ -59,6 +61,8 @@ _None._
 - Task-specific checks: `<summary>`
 - Full CI-parity preflights: `<summary>`
 - Browser/runtime routes and evidence: `<summary without secrets>`
+- Persistent browser profile: `<reuse proven / unavailable / not exercised; never include cookies or credentials>`
+- Session capability pauses: `<count, task and non-sensitive diagnostic>`
 - Managed processes stopped: `<yes/no/details>`
 
 ## Deadline and finalization
@@ -68,11 +72,21 @@ _None._
 - Report commit SHA: `<sha>`
 - Report commit exact-SHA CI: `<run/result or unavailable with reason>`
 
+## CI and execution efficiency
+
+- CI classifications: `<duplicate count / metadata count / full count>`
+- Platform jobs: `<Windows started/avoided; Linux started/avoided>`
+- CI wait time: `<total and per lifecycle phase, or unavailable>`
+- Task timing: `<wall time and worker time per attempted task, or unavailable>`
+- Git operations: `<commits / pushes / retries / superseded runs, or unavailable>`
+- Dependency scheduling: `<READY selected / WAITING observed / skips materialized per aggregate commit>`
+
 ## Host usage
 
 - Model/reasoning: `<model/profile>`
 - Autopilot/task-session information: `<available counters or unavailable>`
 - Credit/token/context information: `<available counters or unavailable>`
+- Unavailable metrics: `<explicit list; never estimate unavailable counters>`
 
 ## Human follow-up
 

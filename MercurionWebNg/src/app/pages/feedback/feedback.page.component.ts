@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnDestroy, signal } from '@angular/core'
 import { FeedbackService } from '../../services/feedback.service'
-import { FeedbackEnv, FeedbackKind, FeedbackContextKind, CreateFeedbackDTO } from '../../Models/feedback.models'
+import { FeedbackKind, FeedbackContextKind, CreateFeedbackDTO } from '../../Models/feedback.models'
 import { StarRatingComponent } from '../../components/feedback/star-rating/star-rating.component'
-import { environment } from '../../../environments/environment.development'
+import { APP_CONFIG } from '../../config/app-config'
 import { Subscription } from 'rxjs'
 
 @Component({
@@ -107,6 +107,7 @@ import { Subscription } from 'rxjs'
 export class FeedbackPageComponent implements OnDestroy {
 
   private readonly feedbackService = inject(FeedbackService)
+  private readonly appConfig = inject(APP_CONFIG)
 
   private timeOutBinding = signal<ReturnType<typeof setTimeout> | null>(null)
   // --- Signal Form state
@@ -150,35 +151,39 @@ export class FeedbackPageComponent implements OnDestroy {
     }
 
     if (this.timeOutBinding()) {
+      clearTimeout(this.timeOutBinding() as ReturnType<typeof setTimeout>)
+      this.timeOutBinding.set(null)
       queueMicrotask(() => {
-        clearInterval(this.timeOutBinding() as ReturnType<typeof setInterval>)
-        this.timeOutBinding.set(null)
         this.sendClicked.set(false)
         this.hideAck.set(true)
       })
     }
 
     this.sendClicked.set(true)
-    setTimeout(() => {
+    // Il timer viene tracciato in timeOutBinding cosi' un submit successivo
+    // (o ngOnDestroy) puo' annullarlo deterministicamente invece di lasciarlo
+    // libero di scattare su un componente gia' distrutto/reinviato.
+    this.timeOutBinding.set(setTimeout(() => {
+      this.timeOutBinding.set(null)
       queueMicrotask(() => {
         this.sendClicked.set(false)
         this.hideAck.set(true)
       })
-    }, 4000)
+    }, 4000))
 
     this.submitting.set(true)
     this.sent.set(false)
     this.error.set(null)
 
     const dto: CreateFeedbackDTO = {
-      env: environment.feedbackEnv as FeedbackEnv,
+      env: this.appConfig.capabilities.feedbackEnv,
       kind: 'ux' as FeedbackKind,             // poi si può rendere select volendo
       contextKind: 'global' as FeedbackContextKind,
       ratingUtility: this.ratingUtility() ?? undefined,
       ratingClarity: this.ratingClarity() ?? undefined,
       ratingExperience: this.ratingExperience() ?? undefined,
       message: this.message().trim() || undefined,
-      clientVersion: environment.version
+      clientVersion: this.appConfig.release.version
     }
 
     this.sub = this.feedbackService.createFeedback(dto).subscribe({
@@ -202,6 +207,11 @@ export class FeedbackPageComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     this.sub?.unsubscribe()
+    if (this.timeOutBinding()) {
+      clearTimeout(this.timeOutBinding() as ReturnType<typeof setTimeout>)
+      this.timeOutBinding.set(null)
+    }
   }
 
 }
+

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, input, signal } from '@angular/core';
 import { NgClass, NgStyle } from '@angular/common';
 
 @Component({
@@ -50,14 +50,12 @@ export class SkeletonMoleculeCardComponent {
   private _index = signal(0);
   private _heightSig = signal<string>('auto');
 
-  @Input()
-  set i(value: number) { this._index.set(value ?? 0); }
+  readonly i = input(0)
+  private readonly syncIndex = effect(() => this._index.set(this.i()))
   _i = this._index;
 
   /** E.g. "180px", "12rem", "20vh", ecc. */
-  @Input()
-  set height(value: string | null) {
-    this._heightSig.set(value || 'auto');
-  }
+  readonly height = input<string | null>('auto')
+  private readonly syncHeight = effect(() => this._heightSig.set(this.height() || 'auto'))
   _height = this._heightSig;
 }

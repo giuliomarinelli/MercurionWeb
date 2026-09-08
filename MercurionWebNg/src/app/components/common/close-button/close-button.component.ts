@@ -1,5 +1,5 @@
 import { NgClass } from '@angular/common';
-import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit, input, output } from '@angular/core';
 
 @Component({
   selector: 'm-close-button',
@@ -11,13 +11,13 @@ import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy, OnInit
       class="inline-flex items-center justify-center size-8 rounded-md text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-transparent transition"
       type="button"
       (click)="onClick()"
-      [attr.aria-label]="ariaLabel"
-      [attr.aria-labelledby]="ariaLabelledby ?? null"
-      [attr.aria-describedby]="ariaDescribedby ?? null"
-      [attr.aria-disabled]="disabled"
-      [attr.tabindex]="disabled ? -1 : 0"
-      [disabled]="disabled"
-      [attr.aria-hidden]="ariaHidden"
+      [attr.aria-label]="ariaLabel()"
+      [attr.aria-labelledby]="ariaLabelledby() ?? null"
+      [attr.aria-describedby]="ariaDescribedby() ?? null"
+      [attr.aria-disabled]="disabled()"
+      [attr.tabindex]="disabled() ? -1 : 0"
+      [disabled]="disabled()"
+      [attr.aria-hidden]="ariaHidden()"
       [ngClass]="[sizeClass, accentClass]"
     >
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current"
@@ -32,48 +32,40 @@ import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy, OnInit
 })
 export class CloseButtonComponent implements OnInit {
 
-  @Input({ required: true })
-  action?: () => void
+  readonly action = input.required<(() => void) | undefined>();
 
-  @Input()
-  size = 5
+  readonly size = input(5);
 
-  @Input()
-  variant: 'default' | 'input' = 'default'
+  readonly variant = input<'default' | 'input'>('default');
 
-  @Input()
-  ariaLabel = 'Chiudi'
+  readonly ariaLabel = input('Chiudi');
 
-  @Input()
-  ariaLabelledby?: string
+  readonly ariaLabelledby = input<string>();
 
-  @Input()
-  ariaDescribedby?: string
+  readonly ariaDescribedby = input<string>();
 
-  @Input()
-  ariaHidden = false
+  readonly ariaHidden = input(false);
 
-  @Input()
-  disabled = false
+  readonly disabled = input(false);
 
-  @Output()
-  clicked = new EventEmitter<void>()
+  readonly clicked = output<void>();
 
   sizeClass!: string
 
   get accentClass(): string {
-    if (this.variant === 'input') {
+    if (this.variant() === 'input') {
       return 'hover:text-light-accent-primary-hc dark:hover:text-indigo-300 focus:ring-light-accent-primary-hq dark:focus:ring-indigo-500'
     }
     return 'hover:text-light-accent-primary-hc focus:ring-light-accent-primary-hq'
   }
 
   ngOnInit(): void {
-    this.sizeClass = `size-${this.size}`
+    this.sizeClass = `size-${this.size()}`
   }
 
   onClick(): void {
-    this.action?.()
+    this.action()?.()
+    // TODO: The 'emit' function requires a mandatory void argument
     this.clicked.emit()
   }
 }

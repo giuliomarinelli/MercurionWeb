@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -90,18 +90,24 @@ _Not started._
 ### Preflight remediation
 _None._
 ### Summary
-_Not started._
+Not attempted because required SYS/FE contract, error, session, and socket
+foundation tasks are terminally non-`DONE`. References to tasks 0099, 0107,
+0109, and 0110 are advisory.
 ### Task-specific validation performed
-_Not started._
+Not applicable; no feature branch or implementation worker was created.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not applicable; dependency-skip metadata only.
 ### Browser validation performed
-_Not started._
+Not applicable; the task was not attempted.
 ### Commits
-_Not recorded._
+Pending metadata commit on `develop`.
 ### Merge / CI
-_Not started._
+No feature branch or merge. Exact-SHA CI is required for the metadata commit.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-_None._
+The required foundation includes SYS-011 (`SKIPPED_DEPENDENCY`) and FE-004
+(`BLOCKED` because mandatory authenticated browser validation was unavailable),
+with terminal dependent session/socket tasks. FE-004 requires a test-safe
+canonical local auth/backend runtime and approved deterministic test state in a
+new session.

@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Configure one repository-owned dependency-update automation with explicit ecosystem coverage, SemVer/grouping policy, maintainer ownership and security-update windows so compatible updates open fully verified pull requests instead of accumulating reactively.
@@ -105,7 +105,8 @@ _Not started._
 ### Preflight remediation
 _None._
 ### Summary
-_Not started._
+Not attempted because direct terminal prerequisites 0210 (QA-024), 0211
+(QA-025), 0218 (QA-032), and 0219 (QA-033) are `SKIPPED_DEPENDENCY`.
 ### Task-specific validation performed
 _Not started._
 ### Full pre-merge CI-parity validation
@@ -119,4 +120,7 @@ _Not started._
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-_None._
+Direct terminal prerequisites: 0210 (QA-024), 0211 (QA-025), 0218
+(QA-032), and 0219 (QA-033), all `SKIPPED_DEPENDENCY`. Transitive roots:
+0020 (SYS-020) and 0076 (UI-018), both `BLOCKED`; their preserved feature
+branches remain deliberately frozen.

@@ -9,7 +9,7 @@ import {
   OnDestroy,
   OnInit,
   signal,
-  ViewChild
+  viewChild
 } from '@angular/core';
 import { AbstractPaginatedMultiselectComponent } from '../../../abstract/abstract-paginated-multiselect-component';
 import { UiMoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
@@ -23,6 +23,7 @@ import { CollectionSelectCardComponent } from '../../molecule-detail/collection-
 import { SkeletonCollectionCardComponent } from '../../common/skeleton-card-loader/skeleton-card-loader.component';
 import { Router } from '@angular/router';
 import { CloseButtonComponent } from '../../common/close-button/close-button.component';
+import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
 
 @Component({
   selector: 'm-bind-collections-to-molecule',
@@ -247,8 +248,10 @@ export class BindCollectionsToMoleculeComponent
 
   private readonly actionOverlayContext = inject(ActionOverlayContextService);
   private readonly bindContext = inject(BindCollectionsToMoleculeContextService);
+  private readonly invalidation = inject(DomainInvalidationService);
   private readonly moleculeCollectionService = inject(MoleculeCollectionService);
   private readonly router = inject(Router);
+  private readonly sessionId = this.actionOverlayContext.session('BindCollectionsToMolecule')?.id ?? -1;
 
   private suSub?: Subscription;
 
@@ -256,11 +259,9 @@ export class BindCollectionsToMoleculeComponent
   step_12_loading = signal<boolean>(false);
   error = signal<boolean>(false);
 
-  @ViewChild('scrollRoot', { static: false })
-  protected declare root: ElementRef<HTMLDivElement>;
+  protected override readonly root = viewChild<ElementRef<HTMLDivElement>>('scrollRoot');
 
-  @ViewChild('sentinel', { static: false })
-  protected declare sentinel: ElementRef<HTMLDivElement>;
+  protected override readonly sentinel = viewChild<ElementRef<HTMLDivElement>>('sentinel');
 
   ngOnInit(): void {
     queueMicrotask(() => this.loadMore());
@@ -314,7 +315,7 @@ export class BindCollectionsToMoleculeComponent
   }
 
   close(): void {
-    this.actionOverlayContext.close();
+    this.actionOverlayContext.close(this.sessionId);
   }
 
   doSubmit(): void {
@@ -336,11 +337,16 @@ export class BindCollectionsToMoleculeComponent
         .subscribe({
           next: ({ ok, moleculeUUID }) => {
             this.step_12_loading.set(false);
-            this.bindContext.notifyAdded();
+            if (ok) {
+              this.invalidation.publish({
+                domain: 'molecule',
+                action: 'collections-bound',
+                moleculeId: this.bindContext.moleculeId()!
+              });
+            }
             this.error.set(!ok);
-            this.bindContext.clearMoleculeId();
             queueMicrotask(() => {
-              this.actionOverlayContext.close();
+              this.actionOverlayContext.close(this.sessionId);
               if (moleculeUUID) {
                 this.router.navigateByUrl(`/molecules/detail/${moleculeUUID}`);
               }
@@ -355,3 +361,4 @@ export class BindCollectionsToMoleculeComponent
     }
   }
 }
+

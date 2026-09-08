@@ -4,6 +4,7 @@
     "outDir": "../out-tsc/onpush-spec"
   },
   "files": [
+    "./test-setup.ts",
     "./test.ts",
     "./polyfills.ts"
   ],

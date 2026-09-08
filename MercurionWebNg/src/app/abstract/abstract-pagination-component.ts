@@ -1,10 +1,11 @@
 // ================== AbstractPaginationComponent ==================
-import { ElementRef, signal } from "@angular/core";
+import { ChangeDetectorRef, ElementRef, inject, Signal, signal } from "@angular/core";
 import { firstValueFrom, Observable } from "rxjs";
 import { PageModel } from "../Models/graphql/page.models";
+import { BrowserResourceOwner, injectBrowserResourceOwner } from "../utils/browser-resource-owner.util";
 
 export abstract class AbstractPaginationComponent<T> {
-  protected sentinel: ElementRef<HTMLDivElement> | undefined;
+  protected sentinel?: Signal<ElementRef<HTMLElement> | undefined>;
   protected items: T[] = [];
   protected loading = false;
   protected done = false;
@@ -13,7 +14,16 @@ export abstract class AbstractPaginationComponent<T> {
   protected page = 1;
   protected empty = signal<boolean>(true);
   protected searchTerm = signal<string>('');
-  protected root: ElementRef | null = null;
+  protected root?: Signal<ElementRef<HTMLElement> | undefined>;
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
+
+  /**
+   * Owns every RAF this base class schedules and is disposed automatically
+   * on the owning component/directive's destruction (via `DestroyRef`), so a
+   * destroyed pagination component can never receive a later scheduled
+   * callback (e.g. a "prime fetch" RAF firing after teardown).
+   */
+  protected readonly resources: BrowserResourceOwner = injectBrowserResourceOwner();
 
   protected abstract fetch$(): Observable<PageModel<T>>
   protected abstract fetch$(page?: number, size?: number, q?: string, excludeJoinedToCollection?: boolean, collectionId?: boolean): Observable<PageModel<T>>;
@@ -21,9 +31,20 @@ export abstract class AbstractPaginationComponent<T> {
   protected abstract doQuery(q: string): void;
   protected abstract doClear(): void;
 
+  /**
+   * Disconnects the shared IntersectionObserver. This is intentionally NOT
+   * named `ngOnDestroy` so it is never mistaken by the Angular compiler for a
+   * lifecycle hook on this undecorated abstract base class (NG2007). Subclasses
+   * that declare their own ngOnDestroy must call super.disposePaginationResources()
+   * to inherit this cleanup (Angular does not chain lifecycle hooks automatically).
+   */
+  protected disposePaginationResources(): void {
+    this.observer?.disconnect();
+  }
+
   protected async loadMore(): Promise<void> {
     if (this.loading || this.done) return;
-    this.loading = true;
+    this.setLoading(true);
 
     const newPage = await firstValueFrom(this.fetch$());
 
@@ -38,7 +59,7 @@ export abstract class AbstractPaginationComponent<T> {
       this.page++;
     }
 
-    this.loading = false;
+    this.setLoading(false);
   }
 
   protected resetPagination(): void {
@@ -47,7 +68,7 @@ export abstract class AbstractPaginationComponent<T> {
     this.done = false;
     this.earlyDone = false;
     this.empty.set(true);
-    this.loading = false;
+    this.setLoading(false);
     void this.loadMore();
 
 
@@ -65,11 +86,17 @@ export abstract class AbstractPaginationComponent<T> {
     this.resetPagination();
   }
 
+  protected setLoading(loading: boolean): void {
+    this.loading = loading;
+    this.changeDetectorRef.markForCheck();
+  }
+
   /** Idempotente e robusto a layout dinamici (switch di step, skeleton, ecc.) */
   protected startObserver(bottomPx: number = 500): void {
-    if (!this.sentinel) return;
+    const sentinel = this.sentinel?.();
+    if (!sentinel) return;
 
-    const rootEl = this.root?.nativeElement ?? null;
+    const rootEl = this.root?.()?.nativeElement ?? null;
 
     // Stacca l'eventuale precedente
     this.observer?.disconnect();
@@ -86,13 +113,14 @@ export abstract class AbstractPaginationComponent<T> {
     }, opts);
 
     // Osserva quando il DOM è misurabile
-    requestAnimationFrame(() => {
-      if (!this.sentinel) return;
-      this.observer!.observe(this.sentinel.nativeElement);
+    this.resources.requestAnimationFrame(() => {
+      const currentSentinel = this.sentinel?.();
+      if (!currentSentinel) return;
+      this.observer!.observe(currentSentinel.nativeElement);
     });
 
     // Prime fetch se il contenuto non riempie il container (niente scroll -> niente intersect)
-    requestAnimationFrame(() => {
+    this.resources.requestAnimationFrame(() => {
       if (this.loading || this.done) return;
 
       if (rootEl instanceof HTMLElement) {

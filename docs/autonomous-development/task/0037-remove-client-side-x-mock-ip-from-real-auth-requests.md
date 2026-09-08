@@ -1,6 +1,6 @@
 # 0037 - Remove client-side X-Mock-IP from real auth requests
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -59,12 +59,12 @@ This is both contract hygiene and security hardening: test-only network identity
 
 ## Acceptance criteria
 
-- [ ] No non-test Angular request sends `X-Mock-IP`.
-- [ ] Login/MFA auth-service tests assert the header is absent in real request construction.
-- [ ] Any remaining mock-IP facility is explicitly test-only.
-- [ ] Production/staging builds cannot enable mock IP through runtime application configuration.
-- [ ] Auth flows still work through the canonical local nginx edge without the header.
-- [ ] Angular tests/build pass; affected Nest tests remain green.
+- [x] No non-test Angular request sends `X-Mock-IP`.
+- [x] Login/MFA auth-service tests assert the header is absent in real request construction.
+- [x] Any remaining mock-IP facility is explicitly test-only.
+- [x] Production/staging builds cannot enable mock IP through runtime application configuration.
+- [x] Auth flows still work through the canonical local nginx edge without the header.
+- [x] Angular tests/build pass; affected Nest tests remain green.
 
 ## Validation
 
@@ -106,20 +106,53 @@ This task should remove the production behaviour, not merely guard it with `if (
 
 ### Summary
 
-_Not started._
+Removed `X-Mock-IP` from the first-login, final MFA, and SSO authorization
+requests in `AuthService`. The backend's existing `main.ts` branch still
+honors `x-mock-ip` only when `App.env` is `development` or `test`, and real
+requests continue through `cf-connecting-ip` or Fastify's trusted `req.ip`.
+Added a CI static policy that rejects the header anywhere in non-test Angular
+source.
 
 ### Validation performed
 
-_Not started._
+Initial unchanged preflight passed: `npm ci` followed by `npm run ci:check`.
+
+Focused auth-service test passed: `npx ng test --watch=false
+--include=src/app/services/auth.service.spec.ts` (3 Jasmine specs). The tests
+assert the first-login and final MFA requests preserve their auth,
+fingerprint/device, and challenge headers as applicable while omitting
+`X-Mock-IP`.
+
+`npm run ci:angular:mock-ip`, `npm run ci:typecheck:angular`, and
+`npm run ci:lint:angular` passed. `npx ng build --configuration staging`
+passed. The static policy and an additional source search found no
+`X-Mock-IP`, `x-mock-ip`, or former mock address in non-test Angular source.
+
+The final `npm ci` and `npm run ci:check` pre-integration gate passed.
 
 ### Browser validation performed
 
-_Not started._
+Attempted the canonical task-scoped runtime after the unchanged preflight.
+The nginx edge at `http://localhost:8888` returned HTTP 502. Angular started
+on its internal port, but Nest could not start because the local environment
+lacks the required `APP_*`, database, JWT, SMTP, and third-party configuration
+values; Tox21 also exited because its Windows console encoding could not emit
+its startup checkmark. No safe login request could therefore be generated.
+All task-owned processes were stopped before the final clean install.
+
+Browser network inspection was consequently not possible. The focused
+HttpTestingController assertions provide the automated request-header evidence
+without requiring credentials or a runnable local backend.
 
 ### Changed files
 
-_Not recorded._
+- `MercurionWebNg/src/app/services/auth.service.ts`
+- `MercurionWebNg/src/app/services/auth.service.spec.ts`
+- `scripts/check-angular-mock-ip-policy.mjs`
+- `package.json`
+- `docs/autonomous-development/task/0037-remove-client-side-x-mock-ip-from-real-auth-requests.md`
 
 ### Blocker / human decision required
 
-_None._
+No blocker. Browser validation was unavailable because the canonical local
+backend configuration is absent, so no safe login request could be generated.

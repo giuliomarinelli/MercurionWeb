@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 
 @Component({
   selector: 'm-molecule-badge',
@@ -26,11 +26,7 @@ import { ChangeDetectionStrategy, Component, Input, signal } from '@angular/core
 })
 export class MoleculeBadgeComponent {
 
-  _name = signal<string>('')
-
-  @Input({ required: true })
-  set name(name: string) {
-    this._name.set(name)
-  }
+  readonly name = input.required<string>()
+  readonly _name = computed(() => this.name())
 
 }

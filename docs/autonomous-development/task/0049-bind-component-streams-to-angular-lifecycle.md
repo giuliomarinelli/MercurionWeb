@@ -1,6 +1,6 @@
 # 0049 - Bind component streams to Angular lifecycle
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -91,28 +91,28 @@ Do not mechanically wrap every service subscription in `takeUntilDestroyed` if t
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/FE-027` from base `30e46d05085ad36db75ae8886c8e5e2d5fdfa4bb`.
 
 ### Preflight
-_Not started._
+Passed unchanged: `npm ci` followed by `npm run ci:check`.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-_Not started._
+Audited production Angular subscriptions. Long-lived form `valueChanges`, RDKit readiness, Notebook data/mutation, collection-selection, and collection-action streams now use `takeUntilDestroyed(DestroyRef)`. Notebook edit and landing pages no longer retain manual `Subscription` fields solely for lifecycle cleanup; the autosave subject is completed during destruction. Existing manually managed action/request subscriptions were retained where they preserve explicit cancellation/replacement semantics.
 
 ### Task-specific validation performed
-_Not started._
+Passed `npm run typecheck --workspace mercurion_web_ng`. Passed focused lifecycle tests with `npx ng test --watch=false --include='src/app/components/chem/molecule-viewer/molecule-viewer.component.spec.ts' --include='src/app/pages/notebook/notebook-landing/notebook-landing.component.spec.ts' --include='src/app/pages/account-recovery/account-recovery.page.component.spec.ts'` (6 specs). The tests prove form callbacks do not update state after fixture destruction and RDKit/Notebook observer counts become zero when fixtures are destroyed. Production review found no remaining direct `valueChanges.subscribe` or `instance$.subscribe` calls.
 
 ### Full pre-merge CI-parity validation
-_Not started._
+Passed: `npm ci` followed by `npm run ci:check`.
 
 ### Browser validation performed
-_Not started._
+Automated lifecycle validation used because the canonical nginx edge was unavailable: Chrome DevTools opening `http://localhost:8888/login` returned nginx's "An error occurred" / "currently unavailable" page. No task-owned runtime was started before the required preflight, and the externally managed proxy was left untouched.
 
 ### Commits
-_Not recorded._
+`820fab793352f1e2274fe6c42dde2f740bd2b506` - Bind component streams to Angular lifecycle.
 
 ### Merge / CI
 _Not started._

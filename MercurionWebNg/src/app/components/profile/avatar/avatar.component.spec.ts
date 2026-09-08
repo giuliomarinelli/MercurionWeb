@@ -13,6 +13,8 @@ describe('AvatarComponent', () => {
     .compileComponents();
 
     fixture = TestBed.createComponent(AvatarComponent);
+    fixture.componentRef.setInput('initials', 'TM');
+    fixture.componentRef.setInput('type', 'header');
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

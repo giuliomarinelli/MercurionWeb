@@ -1,8 +1,8 @@
 import { MoleculeCardItemModel } from './../../Models/graphql/molecule-collection/molecule-collection.types';
-import { AfterViewInit, Component, effect, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, effect, ElementRef, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy, viewChild } from '@angular/core';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { MoleculeCollectionItemCardComponent } from '../../components/molecule-detail/molecule-collection-item-card/molecule-collection-item-card.component';
-import { debounceTime, map, Subscription } from 'rxjs';
+import { delay, map, Subscription } from 'rxjs';
 import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service';
 import { Helpers } from '../../helpers';
 import { SkeletonMoleculeCardComponent } from '../../components/molecule-detail/skeleton-molecule-card/skeleton-molecule-card.component';
@@ -13,10 +13,11 @@ import { ToastService } from '../../services/toast.service';
 import { AbstractPaginationComponent } from '../../abstract/abstract-pagination-component';
 import { PmSearchInputComponent } from '../../components/common/pm-search-input/pm-search-input.component';
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
-import { AddMoleculesToCollectionContextService } from '../../services/context/action-context/add-molecules-to-collection-context.service';
+import { DomainInvalidationService } from '../../services/domain-invalidation.service';
 
 @Component({
   selector: 'm-all-my-molecules.page',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ClassicSpinnerComponent,
     MoleculeCollectionItemCardComponent,
@@ -104,7 +105,7 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
   private readonly historyContext = inject(HistoryContextService)
   private readonly toast = inject(ToastService)
   private readonly actionContext = inject(ActionOverlayContextService)
-  private readonly addContext = inject(AddMoleculesToCollectionContextService)
+  private readonly invalidations = inject(DomainInvalidationService)
   // ====================================================
 
   private tick = signal<number>(0)
@@ -116,7 +117,7 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
     const check = () => {
       if (this.loading || this.done) return;
 
-      const rootEl = this.root?.nativeElement as HTMLElement | null | undefined;
+      const rootEl = this.root?.()?.nativeElement as HTMLElement | null | undefined;
 
       if (rootEl instanceof HTMLElement) {
         const notEnough = rootEl.scrollHeight <= rootEl.clientHeight + 1;
@@ -139,11 +140,10 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
       }
     };
 
-    requestAnimationFrame(check);
+    this.resources.requestAnimationFrame(check);
   }
 
-  @ViewChild('sentinel', { static: true })
-  declare sentinel: ElementRef<HTMLDivElement> | undefined
+  protected override readonly sentinel = viewChild<ElementRef<HTMLDivElement>>('sentinel');
 
 
   private delSub?: Subscription
@@ -160,8 +160,8 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
       })
     })
     effect(() => {
-      const t = this.addContext.addedTick()
-      if (t === 0) {
+      const event = this.invalidations.last()
+      if (event?.domain !== 'molecule-collection' || event.action !== 'molecules-added') {
         return
       }
       queueMicrotask(() => {
@@ -183,12 +183,15 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
   }
 
   ngOnDestroy(): void {
+    super.disposePaginationResources()
     this.delSub?.unsubscribe()
   }
 
   protected override fetch$(page = this.page, size = 25) {
     return this.moleculeCollectionItemService.getAllPaginatedItems(page, size, this.searchTerm()).pipe(
-      debounceTime(20),
+      // `query()` completes after one value, so debounceTime would flush it immediately.
+      // Preserve a perceptible initial loading state without delaying later pages.
+      delay(page === 1 ? 120 : 0),
       map(page => ({
         ...page,
         items: page.items.map(mol => Helpers.moleculeClientToCardConverter(mol))
@@ -208,8 +211,8 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
             queueMicrotask(() => {
               this.historyContext.triggerRemoveItemFromHistoryView(id)
               this.items[i].triggerDisappear.set(true)
-              setTimeout(() => this.items[i].collapse.set(true), 120)
-              setTimeout(() => {
+              this.resources.setTimeout(() => this.items[i].collapse.set(true), 120)
+              this.resources.setTimeout(() => {
                 this.items.splice(i, 1)
                 if (this.items.length === 0) {
                   this.tick.update(x => x + 1)
@@ -229,9 +232,7 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
   doAddMolecules(): void {
     queueMicrotask(() => {
       // Ensure a clean context when starting from the All My Molecules page
-      this.addContext.setImportFromChembl(false);
-      this.addContext.setRedirectToCollectionPath(false);
-      this.actionContext.open('SelectCollectionThenRoute')
+      this.actionContext.open('SelectCollectionThenRoute', { importFromChembl: false })
     })
   }
 

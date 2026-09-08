@@ -1,9 +1,10 @@
-import { Component, computed, Input, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, effect, input, signal } from '@angular/core';
 import { AdministrationRoutes } from '../../../Models/graphql/molecule.detail.models';
 
 
 @Component({
   selector: 'm-molecule-routes',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="my-4" aria-labelledby="routes-heading">
       <h2 id="routes-heading" class="font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary mb-6 text-center sm:text-left text-xl">Vie di somministrazione</h2>
@@ -40,8 +41,7 @@ import { AdministrationRoutes } from '../../../Models/graphql/molecule.detail.mo
         }
       </div>
     </section>
-  `,
-})
+  ` })
 export class MoleculeRoutesComponent {
   private readonly routeSignal = signal<AdministrationRoutes>({
     oral: false,
@@ -49,10 +49,8 @@ export class MoleculeRoutesComponent {
     topical: false
   })
 
-  @Input()
-  set adminRoutesInput(value: AdministrationRoutes) {
-    this.routeSignal.set(value);
-  }
+  readonly adminRoutesInput = input<AdministrationRoutes>({} as AdministrationRoutes)
+  private readonly syncAdminRoutes = effect(() => this.routeSignal.set(this.adminRoutesInput()))
 
   readonly adminRoutes = this.routeSignal.asReadonly()
 

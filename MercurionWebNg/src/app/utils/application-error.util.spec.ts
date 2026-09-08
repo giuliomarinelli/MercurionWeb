@@ -29,8 +29,24 @@ describe('application error utilities', () => {
       getApplicationErrorCode({
         detail: 'legacy text',
         code: ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED,
+        status: 500,
+        message: 'Internal Server Error',
+        correlationId: 'socket-correlation-id',
       }),
     ).toBe(ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED);
+
+    expect(
+      getApplicationErrorCode({
+        extensions: {
+          applicationError: {
+            code: 'GRAPHQL_VALIDATION_FAILED',
+            status: 400,
+            message: 'Invalid input',
+            correlationId: 'graphql-correlation-id',
+          },
+        },
+      }),
+    ).toBe('GRAPHQL_VALIDATION_FAILED');
   });
 
   it('supports client-originated application failures without message branching', () => {

@@ -58,7 +58,7 @@ export function extractGqlDataV2<
       const code = e.gqlErrors[0]?.extensions?.code;    // "UNAUTHENTICATED"
       const path = e.gqlErrors[0]?.path?.join('.');     // "existsUserTicketById"
 
-      console.log(firstMsg, code, path);
+      // logger.info(firstMsg, code, path);
       return;
     }
 
@@ -69,3 +69,4 @@ export function extractGqlDataV2<
  *
  *
  */
+
