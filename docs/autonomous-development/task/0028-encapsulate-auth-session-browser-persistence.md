@@ -123,6 +123,10 @@ remain intentionally outside this adapter for the later `FE-032` registry.
   `sessionStorage`, or `document.cookie` access remains outside the adapter;
   `theme-manager.service.ts` is unrelated application preference storage.
 - `git diff --check`: passed.
+- Final clean-install gate after stopping all Angular/esbuild processes:
+  `npm ci` passed, followed immediately by `npm run ci:check` passed. The
+  aggregate included lint, typecheck, Angular/Nest tests and builds, policy
+  checks, GraphQL checks, and generated REST inventories.
 
 ### Browser validation performed
 
@@ -139,6 +143,8 @@ state were changed.
 - `MercurionWebNg/src/app/services/auth-redirect.service.ts`
 - `MercurionWebNg/src/app/services/recovery.service.ts`
 - Auth/MFA/SSO login and redirect consumers migrated to the adapter.
+- Commits: `5419e57b` implementation, `b0ccdfcd` REST route ownership
+  inventory refresh, `2e5466df` REST compatibility inventory refresh.
 
 ### Blocker / human decision required
 
