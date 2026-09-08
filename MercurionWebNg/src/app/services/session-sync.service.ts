@@ -7,7 +7,7 @@
  *  - No ACK in PRIVATE: degrada a anonimo/public
  *  - Niente autologout da `storage` se il cookie è presente
  * ────────────────────────────────────────────────────────────── */
-import { effect, inject, Injectable, NgZone, signal } from '@angular/core'
+import { effect, inject, Injectable, NgZone, OnDestroy, signal } from '@angular/core'
 import { Router } from '@angular/router'
 import { AuthStateStore } from './auth-state.store'
 import { AuthSessionPersistenceService } from './auth-session-persistence.service'
@@ -25,6 +25,26 @@ import {
 } from '@mercurion/rest-contracts'
 import { ToastVariant } from '../Models/toast.models'
 
+/**
+ * Storage is the single cross-tab transport for auth state.  The websocket
+ * token is deliberately classified separately: it is a credential refresh
+ * hint for RealtimeSocketService, not an authentication transition.
+ */
+export type CrossTabAuthStorageEvent =
+  | { kind: 'session-changed'; key: 'login'; authenticated: boolean }
+  | { kind: 'ws-credential-changed'; key: 'ws_accessToken' }
+
+export function classifyCrossTabAuthStorageEvent(event: StorageEvent): CrossTabAuthStorageEvent | null {
+  if (event.storageArea !== localStorage) return null
+  if (event.key === 'login') {
+    return { kind: 'session-changed', key: 'login', authenticated: event.newValue !== null }
+  }
+  if (event.key === 'ws_accessToken') {
+    return { kind: 'ws-credential-changed', key: 'ws_accessToken' }
+  }
+  return null
+}
+
 export type SessionSyncStatus =
   | 'unknown'
   | 'checking'
@@ -35,7 +55,7 @@ export type SessionSyncStatus =
   | 'error'
 
 @Injectable({ providedIn: 'root' })
-export class SessionSyncService {
+export class SessionSyncService implements OnDestroy {
 
   private readonly socket = inject(RealtimeSocketService)
   private readonly authState = inject(AuthStateStore)
@@ -128,37 +148,41 @@ export class SessionSyncService {
     this.socket.connect()
     void this.syncSession()
 
-    // cross-tab con guardia cookie (evita falsi "logout da un’altra scheda")
-    let storageDebounce: ReturnType<typeof setTimeout>
-    window.addEventListener('storage', (e: StorageEvent) => {
-      if (e.storageArea !== localStorage) return
-      if (e.key !== 'login' && e.key !== 'ws_accessToken') return
+    window.addEventListener('storage', this.onStorage)
+  }
 
-      clearTimeout(storageDebounce)
-      storageDebounce = setTimeout(() => {
-        const initials = this.authState.getPersistedInitials()
-        const wsTok = this.authState.getWsAccessToken()
+  private storageDebounce?: ReturnType<typeof setTimeout>
 
-        // logout cross-tab SOLO se manca anche il cookie "logged_in"
-        if (e.key === 'login' && !initials) {
-          if (!this.hasClientLoginCookieTrue()) this.onExternalLogout()
-          return
-        }
+  private readonly onStorage = (event: StorageEvent): void => {
+    const change = classifyCrossTabAuthStorageEvent(event)
+    if (!change) return
 
-        // login presente + token presente → tenta PRIVATE e sync
-        if (initials && wsTok) {
-          void this.socket.ensurePrivate(wsTok)
-          void this.syncSession(true)
-          return
-        }
+    clearTimeout(this.storageDebounce)
+    this.storageDebounce = setTimeout(() => {
+      if (change.kind === 'ws-credential-changed') {
+        // RealtimeSocketService owns this credential hint.  Do not run the
+        // session handshake here: doing so turns token refresh into an
+        // artificial login/logout transition.
+        return
+      }
 
-        // login presente ma token assente → sync (ci penserà il socket a refreshare se può)
-        if (initials && !wsTok) {
-          void this.syncSession(true)
-          return
-        }
-      }, 30)
-    })
+      if (change.authenticated) {
+        // `login` is only a restore hint.  The following websocket handshake
+        // validates the server session before the store becomes authenticated.
+        this.onExternalLogin()
+        return
+      }
+
+      // A removed marker is not by itself proof that the server cookie was
+      // cleared.  Wait for the cookie guard before applying anonymous state.
+      if (!this.hasClientLoginCookieTrue()) this.onExternalLogout()
+    }, 30)
+  }
+
+  ngOnDestroy(): void {
+    clearTimeout(this.storageDebounce)
+    window.removeEventListener('storage', this.onStorage)
+    clearTimeout(this.toastMuteTimer)
   }
 
   notifyVoluntaryLogout(): void {
@@ -376,14 +400,18 @@ export class SessionSyncService {
 
   /* ---------------- Cross-tab helpers ---------------- */
 
-  private onExternalLogin(initials: string) {
-    this.authState.beginAuthentication('restore')
-    this.authState.setPersistedInitials(initials)
+  private onExternalLogin(initials?: string) {
+    const kind = this.authState.state().kind
+    if (kind === 'anonymous' || kind === 'bootstrap' || kind === 'session-expired') {
+      this.authState.beginAuthentication('restore')
+    }
+    if (initials) this.authState.setPersistedInitials(initials)
     this._status.set('checking')
     void this.syncSession(true)
   }
 
   private onExternalLogout() {
+    if (this._status() === 'anonymous' && this.authState.state().kind === 'anonymous') return
     this.becomeAnonymous({
       toast: 'Logout da un’altra scheda.',
       level: 'success',

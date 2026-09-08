@@ -47,8 +47,6 @@ export class AuthService {
 
   private inflight$?: Observable<string>;
 
-  private authBC = new BroadcastChannel('mercurion-auth');
-
   private readonly WS_AT_KEY = 'ws_accessToken';
   private readonly WS_REFRESH_LOCK = 'ws_refresh_lock';
   private readonly lockTtlMs = 5000;
@@ -67,16 +65,6 @@ export class AuthService {
 
   getCookieValue(key: string): string | null {
     return this.persistence.getCookieValue(key)
-  }
-
-  /* ───────── Broadcast cross-tab (già esistenti) ───────── */
-
-  broadcastLogin(initials: string, wsToken: string) {
-    this.authBC.postMessage({ type: 'logged-in', initials, wsToken });
-  }
-
-  broadcastLogout() {
-    this.authBC.postMessage({ type: 'logged-out' });
   }
 
   /* ───────── Access Token (HTTP) ───────── */
