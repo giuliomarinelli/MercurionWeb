@@ -69,12 +69,12 @@ None.
 
 - Soft deadline reached: not reached; finalized at `2026-09-09T01:05:00+02:00`
 - Active task completed after deadline: none
-- Report commit SHA: pending
-- Report commit exact-SHA CI: pending
+- Report commit SHA: `80f97905ec914fffd7310070b879f471291d36be` (report payload commit)
+- Report commit exact-SHA CI: run 34292278841, metadata path, `Required gate` green
 
 ## CI and execution efficiency
 
-- CI classifications: `0 duplicate / 0 metadata / 9 full` before this report commit
+- CI classifications: `0 duplicate / 1 metadata / 9 full`
 - Platform jobs: Windows started 9/avoided 0; Linux started 9/avoided 0
 - CI wait time: exact remote waits required for baseline, four feature SHAs, and four merge SHAs; precise aggregate unavailable
 - Task timing: precise wall times unavailable
