@@ -153,10 +153,22 @@ changed.
 - `MercurionWebNg/src/app/pages/login/login.page.component.ts`
 - `MercurionWebNg/src/app/pages/login/mfa/mfa.page.component.ts`
 - `MercurionWebNg/src/app/pages/sso/sso.page.component.ts`
-- Implementation commit: `4ec45c1f`.
+- `docs/architecture/rest-route-ownership.json`
+- `docs/architecture/rest-contract-compatibility.json`
+- Commits: `4ec45c1f` implementation, `f666bc5f` task completion notes,
+  `64ba4a07` REST route inventory refresh, `28d406f3` REST compatibility
+  inventory refresh.
 
 ### Blocker / human decision required
 
 No implementation blocker. The authenticated browser portion remains
 unavailable without approved deterministic credentials; unit, typecheck, build,
 and canonical CI validation remain mandatory and are being performed.
+
+### Final gate
+
+- After stopping all task-owned processes, final `npm ci` passed.
+- Final `npm run ci:check` passed on the feature branch after refreshing the
+  two required generated REST inventories. The aggregate covered autonomous
+  recipe/runner validation, lint, typecheck, Angular and Nest tests/builds,
+  GraphQL checks, contract checks, and static policy checks.
