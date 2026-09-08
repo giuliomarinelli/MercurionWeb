@@ -21,10 +21,10 @@ const paths = {
   completedSession: 'docs/autonomous-development/session.48h-2026-09-03.yaml',
   exampleSession: 'docs/autonomous-development/session.example.yaml',
   closedSession: 'docs/autonomous-development/session.until-2026-09-10.yaml',
-  preparedSession: 'docs/autonomous-development/session.overnight-2026-09-08.yaml',
+  preparedSession: 'docs/autonomous-development/session.overnight-2026-09-08-v2.yaml',
   completedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-03-v2.md',
   closedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-06.md',
-  preparedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-08-overnight-allowlist.md',
+  preparedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-08-overnight-v2.md',
   runtime: 'docs/autonomous-development/RUNTIME.md',
   workflow: '.github/workflows/ci.yml',
   classifier: '.github/scripts/classify-ci.mjs',
@@ -576,17 +576,31 @@ for (const command of ['/model', '/permissions show', '/mcp list', '/keep-alive 
 }
 
 for (const [pattern, message] of [
-  [/docs\/autonomous-development\/session\.overnight-2026-09-08\.yaml/, 'prepared launch must reference its dated session configuration'],
+  [/docs\/autonomous-development\/session\.overnight-2026-09-08-v2\.yaml/, 'prepared launch must reference its dated session configuration'],
   [/2026-09-09T10:00:00\+02:00/, 'prepared launch must retain the exact soft deadline'],
   [/pull request #31 is merged into `develop`/i, 'prepared launch must require merged browser hardening'],
   [/browser-profile acceptance probe/i, 'prepared launch must require persistent-profile acceptance'],
-  [/exact fourteen-task autonomous allowlist:\s*0027, 0059,\s*0087, 0089, 0090, 0091, 0092, 0095, 0096, 0099, 0107, 0108, 0161 and\s*0187/i, 'prepared launch must state the exact autonomous workload'],
-  [/do not create branches\/workers for them, change their outcomes, or propagate[\s\S]{0,100}exclusion/i, 'prepared launch must preserve out-of-workload pending tasks'],
+  [/workload\.tasks` list is empty[\s\S]{0,120}complete Series is in\s*scope/i, 'prepared launch must select the complete Series'],
+  [/there is no autonomous allowlist/i, 'prepared launch must explicitly disable workload restriction'],
+  [/expected first READY task[\s\S]{0,20}(?:is\s*)?0027/i, 'prepared launch must state the expected first ready task'],
   [/Do[\s\S]{0,10}not bundle tasks/, 'prepared launch must prohibit multi-task bundles'],
   [/npm run autonomous:plan/, 'prepared launch must execute the deterministic planner'],
   [/copilot --agent development-session-coordinator --allow-all-tools --allow-all-urls --add-dir \.\.\/MercurionTox21 --reasoning-effort high --autopilot/, 'prepared launch is missing the deterministic Copilot CLI command'],
 ]) {
   requireMatch(paths.preparedLaunch, preparedLaunch, pattern, message);
+}
+for (const staleSessionReference of [
+  'docs/autonomous-development/session.until-2026-09-12.yaml',
+  'docs/autonomous-development/session.overnight-2026-09-08.yaml',
+]) {
+  if (preparedLaunch.includes(staleSessionReference)) {
+    fail(paths.preparedLaunch, `contains stale session reference ${staleSessionReference}`);
+  }
+}
+const preparedSessionReference =
+  'docs/autonomous-development/session.overnight-2026-09-08-v2.yaml';
+if (preparedLaunch.split(preparedSessionReference).length - 1 !== 2) {
+  fail(paths.preparedLaunch, 'must reference the active session exactly twice');
 }
 for (const command of ['/model', '/permissions show', '/mcp list', '/keep-alive on']) {
   requireMatch(
@@ -737,9 +751,10 @@ for (const [pattern, message] of [
   [/expected_first_ready_task:\s*"0027"/, 'prepared workload must start from task 0027'],
   [/expected_planner_ready:\s*16/, 'prepared workload must record 16 ready tasks'],
   [/expected_planner_waiting_dependency:\s*136/, 'prepared workload must record 136 waiting tasks'],
-  [/expected_autonomous_pending:\s*14/, 'prepared workload must record fourteen autonomous tasks'],
-  [/expected_human_led_pending:\s*138/, 'prepared workload must record 138 human-led pending tasks'],
-  [/tasks:[\s\S]*- "0027"[\s\S]*- "0059"[\s\S]*- "0087"[\s\S]*- "0089"[\s\S]*- "0090"[\s\S]*- "0091"[\s\S]*- "0092"[\s\S]*- "0095"[\s\S]*- "0096"[\s\S]*- "0099"[\s\S]*- "0107"[\s\S]*- "0108"[\s\S]*- "0161"[\s\S]*- "0187"/, 'prepared workload must retain the exact allowlist'],
+  [/tasks:\s*\[\]/, 'prepared workload must select the complete Series'],
+  [/expected_autonomous_pending:\s*152/, 'prepared workload must record all 152 pending tasks in scope'],
+  [/expected_human_led_pending:\s*0/, 'prepared workload must not exclude pending tasks'],
+  [/autonomous_execution_scope:\s*complete-series/, 'prepared workload must declare complete-Series execution'],
   [/dependency_planner:[\s\S]*output:\s*versioned-json/, 'prepared session must use deterministic planner output'],
   [/command:\s*npm run autonomous:plan/, 'prepared session must declare the planner command'],
   [/fail_on_cycles:\s*true/, 'prepared session must fail on dependency cycles'],

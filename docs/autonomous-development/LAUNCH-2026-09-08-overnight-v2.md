@@ -125,8 +125,8 @@ no-GPG-sign merge, then require exact merge-SHA CI before continuing.
 
 Do not mutate pull requests 25, 27, 28, 29, or 31. Do not resume, advance,
 rebase, merge, reset, or delete feature/SYS-020, feature/UI-018,
-feature/NG-023, or feature/NG-028. No status is created solely because a task
-is outside the allowlist.
+feature/NG-023, or feature/NG-028. Apply task selection and dependency-status
+propagation to the complete Series strictly from the planner snapshot.
 
 Respect the soft deadline and finalization protocol. The report must include
 the complete-Series workload, remaining pending count, CI classification/platform
