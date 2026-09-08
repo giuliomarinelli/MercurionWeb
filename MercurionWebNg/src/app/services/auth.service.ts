@@ -4,7 +4,6 @@ import { HttpClient } from '@angular/common/http';
 import { JwtHelperService } from './jwt-helper.service';
 import { firstValueFrom } from 'rxjs';
 import { Login_FirstStepWrapper } from '../Models/auth/login.models';
-import { TypeGuardsService } from './type-guards.service';
 import { Router } from '@angular/router';
 import { AuthStateStore } from './auth-state.store';
 import { AuthSessionPersistenceService } from './auth-session-persistence.service';
@@ -37,7 +36,6 @@ export class AuthService {
   // ======================= DEPS =======================
   private readonly jwtHelper = inject(JwtHelperService)
   private readonly http = inject(HttpClient)
-  private readonly typeGuards = inject(TypeGuardsService)
   private readonly authState = inject(AuthStateStore)
   private readonly persistence = inject(AuthSessionPersistenceService)
   private readonly router = inject(Router)
@@ -163,14 +161,7 @@ export class AuthService {
         'X-Device-Info': btoa(JSON.stringify(sessionDeviceInfo)),
         'X-Challenge-Token': turnstileToken
       }
-    }).pipe(tap((res) => {
-      if (this.typeGuards.isNotNullish(res.accessToken)) {
-        const scp = this.getUserScopesFromClaims(res.accessToken)
-        if (scp && scp.length) {
-          this.setCachedScopes(scp)
-        }
-      }
-    }))
+    })
   }
 
   public login_secondStep(strategy: 'EMAIL_OTP' | 'SMS_OTP', preAuthorizationToken: string, trustVerify: boolean = false): Observable<ConfirmWithTotpMetaDTO> {
@@ -207,14 +198,7 @@ export class AuthService {
         'X-Device-Info': btoa(JSON.stringify(sessionDeviceInfo)),
         'Authorization': `Bearer ${preauthorizationToken}`,
       }
-    }).pipe(tap((res) => {
-      if (this.typeGuards.isNotNullish(res.accessToken)) {
-        const scp = this.getUserScopesFromClaims(res.accessToken)
-        if (scp && scp.length) {
-          this.setCachedScopes(scp)
-        }
-      }
-    }))
+    })
   }
 
   public logout(): Observable<void> {

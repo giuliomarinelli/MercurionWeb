@@ -31,7 +31,6 @@ export interface AuthCompletion {
   initials: string
   accessToken?: string | null
   wsAccessToken?: string | null
-  scopes?: string[]
 }
 
 @Injectable({ providedIn: 'root' })
@@ -100,9 +99,18 @@ export class AuthStateStore {
   }
 
   completeAuthentication(completion: AuthCompletion): void {
+    this.activateAuthenticatedSession(completion)
+  }
+
+  /**
+   * Install the final server-accepted session.  This is the only normal
+   * authentication completion boundary: scopes are always replaced from the
+   * accepted access token, including when the token has no scp claim.
+   */
+  activateAuthenticatedSession(completion: AuthCompletion): void {
     const accessToken = completion.accessToken ?? null
     const wsAccessToken = completion.wsAccessToken ?? null
-    const scopes = completion.scopes ?? this.getCachedScopes() ?? []
+    const scopes = this.scopesFromAccessToken(accessToken)
 
     const next: AuthState = {
       kind: 'authenticated',
@@ -124,8 +132,10 @@ export class AuthStateStore {
   updateAccessToken(token: string | null): void {
     const state = this.state()
     if (state.kind !== 'authenticated') return
+    const scopes = this.scopesFromAccessToken(token)
     this.setAccessToken(token)
-    this.transition({ ...state, accessToken: token })
+    this.setCachedScopes(scopes)
+    this.transition({ ...state, accessToken: token, scopes })
     this.applyProtocol(SessionTransition.CredentialsRefreshed)
     this.scheduleExpiry(token)
   }
@@ -291,6 +301,22 @@ export class AuthStateStore {
       return typeof payload.exp === 'number' ? payload.exp * 1000 : null
     } catch {
       return null
+    }
+  }
+
+  private scopesFromAccessToken(token: string | null): string[] {
+    if (!token) return []
+    const parts = token.split('.')
+    if (parts.length !== 3) return []
+    try {
+      const encoded = parts[1].replace(/-/g, '+').replace(/_/g, '/')
+      const payload = JSON.parse(atob(encoded.padEnd(Math.ceil(encoded.length / 4) * 4, '=')))
+      const claim = payload?.scp
+      return typeof claim === 'string'
+        ? claim.split(/\s+/).filter((scope: string) => scope.length > 0)
+        : []
+    } catch {
+      return []
     }
   }
 
