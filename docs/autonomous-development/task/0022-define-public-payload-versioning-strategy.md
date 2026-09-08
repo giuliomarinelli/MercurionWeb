@@ -1,7 +1,7 @@
 # 0022 - Define public payload versioning strategy
 
-- [x] DONE
-- [ ] BLOCKED
+- [ ] DONE
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -133,10 +133,12 @@ canonical error code through `extensions.code` and response metadata.
 
 ### Browser validation performed
 
-Not run. The task's acceptance evidence is deterministic package/runtime,
+Not available. The task's acceptance evidence is deterministic package/runtime,
 static contract, GraphQL, Socket.IO, REST, compiler, and negative-probe
-validation; browser traffic is not needed to establish the central metadata
-and negotiation logic.
+validation, but the approved header/path/handshake strategy additionally
+requires Chrome DevTools evidence through `http://localhost:8888`. This
+session exposes no browser to the worker (`cua.getState()` returned
+`browsers: []`), so no browser result is claimed.
 
 ### Changed files
 
@@ -160,5 +162,15 @@ and negotiation logic.
 Rollback is an ordinary revert of the task commit; no history rewrite is
 required. The implementation does not introduce a future major, deprecate
 major 1, deploy, or remove the legacy fallback. Exact feature-SHA CI and
-post-merge CI remain coordinator-owned; provisional status is `DONE` and
-`CI_PENDING` until those gates succeed.
+post-merge CI remain coordinator-owned. The implementation branch is preserved
+and frozen pending human-assisted browser validation.
+
+### Blocker / next human action
+
+The browser capability was unavailable after implementation had started, so
+the task is `BLOCKED` under the ordinary validation rule. Run the canonical
+non-production runtime and capture representative REST, GraphQL, and
+Socket.IO traffic plus response metadata through Chrome DevTools at
+`http://localhost:8888`, then re-enable this recipe in a new authorized
+session. Do not merge this branch before that evidence and exact feature-SHA
+CI are available.
