@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
+import { AuthSessionPersistenceService } from './auth-session-persistence.service';
 import { Observable } from 'rxjs';
 import type {
   ConfirmWithRecoveryCodeDTO,
@@ -14,10 +15,12 @@ import type {
 export class RecoveryService {
 
   private readonly http = inject(HttpClient)
+  private readonly persistence = inject(AuthSessionPersistenceService)
 
   private clearBrowserCache(): void {
-    localStorage.clear()
-    sessionStorage.clear()
+    this.persistence.clearAuthenticatedSession()
+    this.persistence.clearPreAuthData()
+    this.persistence.clearEphemeralAuthData()
   }
 
   public accountRecovery_firstStep(code: string, turnstileToken: string): Observable<ConfirmWithRecoveryTokenDTO> {

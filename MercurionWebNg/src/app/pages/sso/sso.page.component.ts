@@ -18,6 +18,7 @@ import { FingerprintService } from '../../services/fingerprint.service';
 import { AuthService } from '../../services/auth.service';
 import { SessionSyncService } from '../../services/session-sync.service';
 import { AuthStateStore } from '../../services/auth-state.store'
+import { AuthSessionPersistenceService } from '../../services/auth-session-persistence.service'
 import { SidenavContextService } from '../../services/context/sidenav-context.service';
 
 @Component({
@@ -41,6 +42,7 @@ import { SidenavContextService } from '../../services/context/sidenav-context.se
   `
 })
 export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
+  private readonly persistence = inject(AuthSessionPersistenceService)
 
   private readonly route = inject(ActivatedRoute)
   private readonly router = inject(Router)
@@ -99,7 +101,7 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
         // redirect_to may be lost by provider; fallback to sessionStorage if needed
         const redirectTo =
           this.sanitizeRedirectTo(p.get('redirect_to')) ??
-          this.sanitizeRedirectTo(sessionStorage.getItem('redirectAfterLogin'))
+          this.sanitizeRedirectTo(this.persistence.getRedirectState())
 
         // fragment atteso: "t=<token>"
         const sso_pat = frag ? (new URLSearchParams(frag).get('t') ?? '') : ''
@@ -123,7 +125,7 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
           return this.authService.sso_authorizeFlow(fp_enc, di_enc, sso_pat, provider).pipe(
             catchError(() => {
               queueMicrotask(() => {
-                sessionStorage.removeItem('redirectAfterLogin')
+                this.persistence.removeRedirectState()
                 this.router.navigate(['/login'], { queryParams: { err: 'sso_failed', provider } })
               })
               return EMPTY
@@ -142,7 +144,7 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
           scopes: res.accessToken ? this.authService.getUserScopesFromClaims(res.accessToken) : []
         })
         this.sessionSync.resumeSession(res.initials ?? 'U')
-        const redirect = sessionStorage.getItem('redirectAfterLogin') || '/dashboard'
+        const redirect = this.persistence.getRedirectState() || '/dashboard'
         this.router.navigateByUrl(redirect)
       }
     })

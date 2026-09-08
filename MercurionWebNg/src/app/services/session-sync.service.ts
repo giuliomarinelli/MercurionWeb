@@ -10,6 +10,7 @@
 import { effect, inject, Injectable, NgZone, signal } from '@angular/core'
 import { Router } from '@angular/router'
 import { AuthStateStore } from './auth-state.store'
+import { AuthSessionPersistenceService } from './auth-session-persistence.service'
 import { ToastService } from './toast.service'
 import { environment } from '../../environments/environment'
 import { RealtimeSocketService } from './socket.IO/realtime-socket.service'
@@ -38,6 +39,7 @@ export class SessionSyncService {
 
   private readonly socket = inject(RealtimeSocketService)
   private readonly authState = inject(AuthStateStore)
+  private readonly persistence = inject(AuthSessionPersistenceService)
   private readonly toast = inject(ToastService)
   private readonly router = inject(Router)
   private readonly zone = inject(NgZone)
@@ -399,12 +401,7 @@ export class SessionSyncService {
     return v1 === 'true' || v2 === 'true'
   }
 
-  private readCookie(name: string): string | null {
-    const m = (document.cookie || '').match(
-      new RegExp('(?:^|;\\s*)' + name.replace(/[-[\]/{}()*+?.\\^$|]/g, '\\$&') + '=([^;]*)')
-    )
-    return m ? decodeURIComponent(m[1]) : null
-  }
+  private readCookie(name: string): string | null { return this.persistence.getCookieValue(name) }
 
   private becomeAnonymous(
     opts: {
