@@ -54,17 +54,17 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/auth.service.ts",
-          "line": 234,
+          "line": 236,
           "kind": "angular-source"
         },
         {
           "file": "MercurionWebNg/src/app/services/auth.service.ts",
-          "line": 429,
+          "line": 431,
           "kind": "angular-source"
         },
         {
           "file": "MercurionWebNg/src/app/services/auth.service.ts",
-          "line": 440,
+          "line": 442,
           "kind": "angular-source"
         },
         {
@@ -448,7 +448,7 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/auth.service.ts",
-          "line": 460,
+          "line": 462,
           "kind": "angular-source"
         }
       ]
@@ -468,7 +468,7 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/auth.service.ts",
-          "line": 243,
+          "line": 245,
           "kind": "angular-source"
         },
         {
@@ -1212,7 +1212,7 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/auth.service.ts",
-          "line": 440,
+          "line": 442,
           "kind": "angular-source"
         }
       ]
@@ -1232,7 +1232,7 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/auth.service.ts",
-          "line": 429,
+          "line": 431,
           "kind": "angular-source"
         }
       ]
@@ -1297,7 +1297,7 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/auth.service.ts",
-          "line": 151,
+          "line": 152,
           "kind": "angular-source"
         },
         {
@@ -1362,7 +1362,7 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/auth.service.ts",
-          "line": 141,
+          "line": 142,
           "kind": "angular-source"
         },
         {
@@ -1387,7 +1387,7 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/auth.service.ts",
-          "line": 159,
+          "line": 160,
           "kind": "angular-source"
         }
       ]
@@ -1412,7 +1412,7 @@
         },
         {
           "file": "MercurionWebNg/src/app/services/auth.service.ts",
-          "line": 166,
+          "line": 168,
           "kind": "angular-source"
         },
         {

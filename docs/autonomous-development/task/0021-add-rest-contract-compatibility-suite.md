@@ -58,12 +58,12 @@ The Series baseline counted 58 Angular REST calls and 71 Nest routes, with no An
 
 ## Acceptance criteria
 
-- [ ] Every current Angular REST call is represented in the compatibility suite.
-- [ ] The suite fails on deliberate mismatches of verb, path, query, body, status and response shape.
-- [ ] The baseline 58 calls are accounted for or count changes are traceable to committed preceding tasks.
-- [ ] No production service or credential is required.
-- [ ] Suite, Angular build/tests and Nest build/tests pass.
-- [ ] Existing behaviour not targeted by this task remains compatible.
+- [x] Every current Angular REST call is represented in the compatibility suite.
+- [x] The suite fails on deliberate mismatches of verb, path, query, body, status and response shape.
+- [x] The baseline 58 calls are accounted for or count changes are traceable to committed preceding tasks.
+- [x] No production service or credential is required.
+- [ ] Suite, Angular build/tests and Nest build/tests pass on the exact final feature SHA in canonical CI.
+- [x] Existing behaviour not targeted by this task remains compatible.
 
 ## Validation
 
@@ -92,46 +92,59 @@ Prefer extracting contract facts from canonical schemas/controller metadata over
 
 ### Summary
 
-Corrected the previous incomplete implementation on `feature/SYS-021`. The suite now extracts all 58 Angular `HttpClient` call sites with the TypeScript AST, matches all 58 to Nest handlers, and fails closed on any unmatched or contract-drifted entry. The recipe remains `DONE` unchecked until the coordinator completes feature-SHA and merge-SHA CI.
+Corrected the previous incomplete implementation on `feature/SYS-021`. The suite now extracts all 58 Angular `HttpClient` call sites with the TypeScript compiler API, matches all 58 to Nest handlers, and fails closed on unmatched routes or semantic contract drift. The recipe remains `DONE` unchecked until the coordinator completes exact feature-SHA and merge-SHA CI.
 
 ### Implementation
 
-- **Module** `scripts/rest-route-extraction.mjs`: Shared extraction logic for Nest routes using TypeScript AST parsing. Reads global prefix configuration from `main.ts`, enumerates controller routes, and exports `readRoutes()` and related utilities.
+- **Module** `scripts/rest-route-extraction.mjs`: Shared Nest route extraction using TypeScript AST parsing. It resolves `HttpStatus` constants, default-valued optional parameters, controller/method authorization metadata, thrown HTTP statuses, and return contracts after unwrapping `Promise` and removing `never` branches.
+
+- **Module** `scripts/rest-contract-type-analysis.mjs`: Builds deterministic structural representations of TypeScript contracts, including primitives, literals, unions, intersections, arrays, tuples, object properties, recursive references, and class serialization exclusions. It also tracks whether non-primitive client/server types derive directly from the canonical `@mercurion/rest-contracts` package.
 
 - **Checker** `scripts/check-rest-route-ownership.mjs`: Updated to use the extraction module while preserving the 71-route ownership output. The derived compatibility inventory is explicitly excluded from ownership references.
 
 - **Checker** `scripts/check-rest-compatibility.mjs`: New gate that:
-  - Extracts `get/post/put/patch/delete/request` calls from TypeScript AST
-  - Resolves string literals, template expressions, concatenation, local query variables, and class constants
-  - Uses stable `file#Class.method#ordinal` identifiers
-  - Records path/query parameters, body/response types, response mode, Nest DTO parameters, status, guards and scopes
-  - Generates a deterministic 58-entry inventory and rejects every unmatched call
-  - Checks named path parameters, query compatibility, body presence, canonical type names and response contracts
+  - discovers production Angular calls by their actual `HttpClient` type instead of a hard-coded receiver name or service filename convention;
+  - resolves literals, templates, concatenations, local variables and conditional URL/query construction;
+  - records stable call-site identifiers, path/query parameters, request options/body, response mode, status, guards and scopes;
+  - compares request and response contracts structurally and verifies their direct relationship to canonical contracts;
+  - validates query names, types and optionality, path parameters, success status, response mode and Nest runtime validation metadata;
+  - verifies the same-origin Angular client setup, interceptor URL immutability, nginx `/api/` proxy mapping, Nest global prefix and global validation-pipe options;
+  - generates a deterministic schema-v3 inventory and rejects all unmatched or incompatible calls.
 
-- **Test** `scripts/test-rest-compatibility-negative.mjs`: Imports the same validator and rejects six in-memory mutations: verb, path, query, body, success status and response shape. Each diagnostic includes the Angular call-site id and Nest handler.
+- **Test** `scripts/test-rest-compatibility-negative.mjs`: Applies six realistic, selected in-memory mutations covering verb, path, query, body, success status and response shape. Every expected failure must identify both the Angular call-site and the matched Nest handler.
+
+- **Contract alignment**: The Angular login payload is explicitly typed with the canonical `Login_FirstStepDTO`; the MFA-strategy controller response is narrowed to the canonical wire union without changing runtime behaviour.
 
 - **Gate** `npm run ci:rest-compatibility`: Registered in `package.json` under `ci:static`, running check + negative test.
 
 ### Baseline
 
 - **Client calls extracted**: 58 AST call sites
-- **Routes matched**: 58/58
+- **Routes matched**: 58/58 Angular calls against 57 unique Nest endpoints
 - **Unmatched entries**: 0
 - **Nest routes preserved**: 71
+- **Success statuses**: 55 x `200`, 2 x `201`, 1 x `204`
 
 ### Validation performed
 
-- ✅ `node scripts/check-rest-compatibility.mjs --write` passes with 58/58 matched
-- ✅ `node scripts/test-rest-compatibility-negative.mjs` passes all six validator probes
-- ✅ `npm test --workspace mercurion_web_node -- --runInBand src/config/validation-pipe.spec.ts` passes the isolated ValidationPipe runtime tests
-- ✅ `npm run ci:rest-route-ownership` passes with 71 routes
-- ✅ `npm run ci:contracts` passes (30 tests)
-- ✅ Two generator runs produced identical SHA-256 `ff8c9bc4c3fcaba5611d1cfd8fbb9408814feae157137231447e95d9757d7e66`
-- ✅ No production services, credentials, browser or external runtime used
+- ✅ `npm run ci:rest-compatibility` passes: 58/58 matches, all six negative probes, and both ValidationPipe tests.
+- ✅ `npm run ci:rest-route-ownership` passes with all 71 routes and its negative test.
+- ✅ `npm run ci:contracts` passes all 6 suites and 30 tests.
+- ✅ Angular and Nest type checks pass.
+- ✅ Angular unit tests pass 303/303; Nest E2E passes 1/1; Angular and Nest builds pass.
+- ✅ All GraphQL/generated-artifact checks and the complete static gate pass.
+- ✅ Repeated Windows generation and isolated Linux generation are byte-identical with SHA-256 `ba4271dd1c6cc8e69001ea8017b0ecc04ab6178195b317758fba555e178275a7`.
+- ✅ The isolated Linux target gate passes after a clean install, including the compatibility checker, all negative probes and ValidationPipe tests.
+- ✅ No production services, credentials, browser or external application runtime were used.
+
+The canonical local `npm ci` completed with zero vulnerabilities. The subsequent full Windows `npm run ci:check` reached Nest Jest after protocol, lint, type checks and all 303 Angular tests had passed. Of 127 Nest suites, 126 passed and all 215 runnable tests passed; the remaining suite could not load the transitive native binary `@css-inline/css-inline-win32-x64-msvc@0.20.0` because Windows Application Control rejected its unverifiable provenance. This is an environment policy result rather than a test assertion or task-code failure; no security control, dependency or unrelated test was changed to bypass it. The remaining canonical gates were run separately and passed. A full run in the minimal Linux container progressed through lint and type checks, then stopped because that image contains no Chrome binary; the task-specific Linux gate and deterministic inventory check passed there.
+
+The earlier exact-SHA GitHub Actions run for commit `75cdb587` failed only on Ubuntu static validation because the previous generator used platform-dependent ordering. The structural generator now uses platform-neutral lexical ordering, and the Windows/Linux inventory hashes match. A new exact-feature-SHA CI run is still required.
 
 ### Changed files
 
 - `scripts/rest-route-extraction.mjs` - new shared module
+- `scripts/rest-contract-type-analysis.mjs` - structural TypeScript contract analysis
 - `scripts/check-rest-route-ownership.mjs` - refactored to use extraction module
 - `scripts/check-rest-compatibility.mjs` - new compatibility checker
 - `scripts/test-rest-compatibility-negative.mjs` - new negative test
@@ -140,6 +153,8 @@ Corrected the previous incomplete implementation on `feature/SYS-021`. The suite
 - `MercurionWebNode/src/config/validation-pipe.ts` - shared global ValidationPipe factory
 - `MercurionWebNode/src/config/validation-pipe.spec.ts` - isolated runtime validation tests
 - `docs/architecture/rest-route-ownership.json` - regenerated only for legitimate source line changes
+- `MercurionWebNg/src/app/services/auth.service.ts` - canonical login request typing
+- `MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts` - canonical MFA response typing
 
 ### Browser validation performed
 
@@ -147,4 +162,4 @@ Not required for this task; validation is static/compiler/runtime-unit based.
 
 ### CI status
 
-No remote feature-SHA CI was run because push is coordinator-owned. No push, merge, deploy or production access was performed in this attempt.
+Implementation and local/isolated validation are complete. The outcome remains transient `CI_PENDING`: no new remote exact-feature-SHA CI was run because push and integration are coordinator-owned. No push, merge, deploy or production access was performed in this correction attempt.

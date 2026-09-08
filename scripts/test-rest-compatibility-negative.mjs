@@ -3,18 +3,57 @@ import { buildInventory, validateCompatibility } from './check-rest-compatibilit
 
 const baseline = buildInventory();
 const cases = [
-    ['wrong verb', (entry) => { entry.consumer.verb = entry.consumer.verb === 'GET' ? 'POST' : 'GET'; }],
-    ['wrong path', (entry) => { entry.consumer.path = `${entry.consumer.path}/wrong`; }],
-    ['wrong query parameter', (entry) => { entry.consumer.queryParameters = [{ name: 'wrong_query', type: 'string', optional: false }]; }],
-    ['incompatible request body', (entry) => { entry.consumer.body = { expression: 'body', type: 'IncompatibleBodyDTO' }; }],
-    ['wrong success status', (entry) => { entry.server.successStatus = entry.server.successStatus === 200 ? 201 : 200; }],
-    ['incompatible response shape', (entry) => { entry.consumer.response.type = 'IncompatibleResponseDTO'; }],
+    {
+        name: 'wrong verb',
+        select: (entry) => Boolean(entry.server),
+        mutate: (entry) => { entry.consumer.verb = entry.consumer.verb === 'GET' ? 'POST' : 'GET'; },
+    },
+    {
+        name: 'wrong path',
+        select: (entry) => Boolean(entry.server),
+        mutate: (entry) => { entry.consumer.path = `${entry.consumer.path}/wrong`; },
+    },
+    {
+        name: 'wrong query parameter',
+        select: (entry) => entry.consumer.queryParameters.length > 0,
+        mutate: (entry) => {
+            entry.consumer.queryParameters = [{
+                name: 'wrong_query',
+                wireType: 'string',
+                sourceTypes: ['string'],
+                optional: false,
+            }];
+        },
+    },
+    {
+        name: 'incompatible request body',
+        select: (entry) => entry.consumer.body.contract.applicable,
+        mutate: (entry) => {
+            entry.consumer.body.type = 'IncompatibleBodyDTO';
+            entry.consumer.body.contract.canonicalNames = ['IncompatibleBodyDTO'];
+            entry.consumer.body.contract.shapeHash = 'incompatible-request-shape';
+        },
+    },
+    {
+        name: 'wrong success status',
+        select: (entry) => Number.isInteger(entry.server?.successStatus),
+        mutate: (entry) => { entry.server.successStatus = entry.server.successStatus === 200 ? 201 : 200; },
+    },
+    {
+        name: 'incompatible response shape',
+        select: (entry) => entry.consumer.response.contract.applicable,
+        mutate: (entry) => {
+            entry.consumer.response.type = 'IncompatibleResponseDTO';
+            entry.consumer.response.contract.canonicalNames = ['IncompatibleResponseDTO'];
+            entry.consumer.response.contract.shapeHash = 'incompatible-response-shape';
+        },
+    },
 ];
 
-for (const [name, mutate] of cases) {
+for (const { name, select, mutate } of cases) {
     const mutation = structuredClone(baseline);
-    const entry = mutation.entries.find((candidate) => candidate.server && candidate.consumer.response.type);
-    if (!entry) throw new Error(`${name}: no structured entry available for mutation`);
+    const entry = mutation.entries.find(select);
+    if (!entry) throw new Error(`${name}: no applicable entry available for mutation`);
     mutate(entry);
     let rejected = false;
     try {

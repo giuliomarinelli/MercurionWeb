@@ -71,6 +71,10 @@ function typeText(typeNode) {
 
 function returnTypeText(typeNode) {
     if (!typeNode) return undefined;
+    if (ts.isUnionTypeNode(typeNode)) {
+        const members = typeNode.types.filter((member) => member.kind !== ts.SyntaxKind.NeverKeyword);
+        return members.length === 1 ? returnTypeText(members[0]) : members.map(returnTypeText).join(' | ');
+    }
     if (ts.isTypeReferenceNode(typeNode) && ts.isIdentifier(typeNode.typeName)
         && typeNode.typeName.text === 'Promise' && typeNode.typeArguments?.length === 1) {
         return returnTypeText(typeNode.typeArguments[0]);
@@ -90,15 +94,55 @@ function parameterMetadata(parameter) {
             source: name.toLowerCase(),
             name: argument && ts.isStringLiteralLike(argument) ? argument.text : undefined,
             type: typeText(parameter.type),
-            optional: Boolean(parameter.questionToken),
+            optional: Boolean(parameter.questionToken || parameter.initializer),
             defaultValue: parameter.initializer ? parameter.initializer.getText() : undefined,
         });
     }
     return metadata;
 }
 
-function handlerMetadata(member) {
-    const decorators = ts.getDecorators(member) ?? [];
+function httpStatusValue(argument) {
+    if (!argument) return undefined;
+    if (ts.isNumericLiteral(argument)) return Number(argument.text);
+    if (ts.isPropertyAccessExpression(argument) && ts.isIdentifier(argument.expression)
+        && argument.expression.text === 'HttpStatus') {
+        const statuses = {
+            OK: 200,
+            CREATED: 201,
+            ACCEPTED: 202,
+            NO_CONTENT: 204,
+            BAD_REQUEST: 400,
+            UNAUTHORIZED: 401,
+            FORBIDDEN: 403,
+            NOT_FOUND: 404,
+        };
+        return statuses[argument.name.text];
+    }
+    return undefined;
+}
+
+function thrownStatuses(member) {
+    const statuses = new Set();
+    const exceptionStatuses = new Map([
+        ['BadRequestException', 400],
+        ['UnauthorizedException', 401],
+        ['ForbiddenException', 403],
+        ['NotFoundException', 404],
+    ]);
+    function visit(node) {
+        if (ts.isNewExpression(node) && ts.isIdentifier(node.expression)) {
+            const status = exceptionStatuses.get(node.expression.text);
+            if (status) statuses.add(status);
+        }
+        ts.forEachChild(node, visit);
+    }
+    if (member.body) visit(member.body);
+    return [...statuses].sort((left, right) => left - right);
+}
+
+function handlerMetadata(member, classNode) {
+    const classDecorators = ts.getDecorators(classNode) ?? [];
+    const decorators = [...classDecorators, ...(ts.getDecorators(member) ?? [])];
     const httpCode = decorators.find((decorator) => decoratorName(decorator) === 'HttpCode');
     const httpCodeExpression = httpCode?.expression;
     const httpCodeArgument = httpCodeExpression && ts.isCallExpression(httpCodeExpression)
@@ -110,11 +154,12 @@ function handlerMetadata(member) {
         .map((decorator) => decorator.expression.getText());
     return {
         returnType: returnTypeText(member.type),
-        successStatus: httpCodeArgument && ts.isNumericLiteral(httpCodeArgument) ? Number(httpCodeArgument.text) : undefined,
+        successStatus: httpStatusValue(httpCodeArgument),
         public: decorators.some((decorator) => decoratorName(decorator) === 'Public'),
         guards,
         scopes,
         parameters: member.parameters.flatMap(parameterMetadata),
+        declaredErrorStatuses: thrownStatuses(member),
     };
 }
 
@@ -150,7 +195,7 @@ export function readRoutes(prefixConfiguration) {
                         controller: relative(file),
                         handler: member.name.text,
                         line: location.line + 1,
-                        ...handlerMetadata(member),
+                        ...handlerMetadata(member, node),
                     });
                 }
             }
