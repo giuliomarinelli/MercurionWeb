@@ -22,7 +22,7 @@ import { BackupCodeStatusDTO } from 'src/app_modules/user/Models/DTO/backup-code
 import { ConfigService } from '@nestjs/config';
 import { ProvidedEmailDTO } from '../Models/DTO/provided-email.dto';
 import { VersionDTO } from '../Models/DTO/version.dto';
-import type { AuthProvider as WireAuthProvider, BackupCodesDTO } from '@mercurion/rest-contracts'
+import type { AuthProvider as WireAuthProvider, BackupCodesDTO, MfaStrategy as WireMfaStrategy } from '@mercurion/rest-contracts'
 import {
     ApplicationErrorCode,
     applicationError,
@@ -310,10 +310,10 @@ export class AccountController {
     }
 
     @Get('/mfa-active-strategies')
-    public async getMfaActiveStrategies(@AuthenticatedUserId() userId: UUID): Promise<string[]> {
+    public async getMfaActiveStrategies(@AuthenticatedUserId() userId: UUID): Promise<WireMfaStrategy[]> {
         return (await this.mfaService.getEnabledMfaStrategies(userId))
             .map((val) => GeneralUtils.getEnumKeyByValue(MfaStrategy, val))
-            .filter((key) => key != undefined)
+            .filter((key): key is WireMfaStrategy => key != undefined)
     }
 
     @Get('/current-version')

@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module'
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify'
-import { LogLevel, ValidationPipe } from '@nestjs/common'
+import { LogLevel } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { MicroserviceOptions, Transport } from '@nestjs/microservices'
 import { HttpExceptionFilter } from './exception-handling/http-exception-filter'
@@ -18,6 +18,7 @@ import { buildRateLimitKey, isValidIp, routeAwareMax } from './config/rate-limit
 import { RedisService } from './app_modules/redis/services/redis.service'
 import { MeiliLoggerService } from './app_modules/meilisearch/services/meili-logger.service'
 import { resolveAppEnv } from './utils/env-helpers'
+import { createGlobalValidationPipe } from './config/validation-pipe'
 
 
 
@@ -118,13 +119,7 @@ export async function bootstrap() {
 
 
 
-  app.useGlobalPipes(new ValidationPipe({
-    transform: true,
-    whitelist: true,             // rimuove campi extra
-    forbidNonWhitelisted: true,  // 400 se arrivano campi sconosciuti
-    forbidUnknownValues: true,
-    transformOptions: { enableImplicitConversion: true }
-  }))
+  app.useGlobalPipes(createGlobalValidationPipe())
 
   await app.register(fastifyCookie)
 
