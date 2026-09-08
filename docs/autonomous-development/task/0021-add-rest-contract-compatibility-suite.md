@@ -1,6 +1,6 @@
 # 0021 - Add REST contract compatibility suite
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -62,7 +62,7 @@ The Series baseline counted 58 Angular REST calls and 71 Nest routes, with no An
 - [x] The suite fails on deliberate mismatches of verb, path, query, body, status and response shape.
 - [x] The baseline 58 calls are accounted for or count changes are traceable to committed preceding tasks.
 - [x] No production service or credential is required.
-- [ ] Suite, Angular build/tests and Nest build/tests pass on the exact final feature SHA in canonical CI.
+- [x] Suite, Angular build/tests and Nest build/tests pass on the exact final feature SHA in canonical CI.
 - [x] Existing behaviour not targeted by this task remains compatible.
 
 ## Validation
@@ -165,4 +165,4 @@ Not required for this task; validation is static/compiler/runtime-unit based.
 
 ### CI status
 
-Implementation and local/isolated validation are complete. The outcome remains transient `CI_PENDING`: no new remote exact-feature-SHA CI was run because push and integration are coordinator-owned. No push, merge, deploy or production access was performed in this correction attempt.
+Remote CI passed. Task capable for integration.
