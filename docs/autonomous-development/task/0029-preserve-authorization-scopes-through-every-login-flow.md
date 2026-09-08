@@ -1,6 +1,6 @@
 # 0029 - Preserve authorization scopes through every login flow
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -153,7 +153,7 @@ changed.
 - `MercurionWebNg/src/app/pages/login/login.page.component.ts`
 - `MercurionWebNg/src/app/pages/login/mfa/mfa.page.component.ts`
 - `MercurionWebNg/src/app/pages/sso/sso.page.component.ts`
-- Commits: to be recorded after the implementation and final gate commits.
+- Implementation commit: `4ec45c1f`.
 
 ### Blocker / human decision required
 
