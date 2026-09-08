@@ -139,8 +139,9 @@ listener and debounce timer in `ngOnDestroy`.
   bundle/CommonJS budget warnings remained non-fatal.
 - `git diff --check` passed and repository search confirmed no
   `BroadcastChannel`, `broadcastLogin`, or `broadcastLogout` references remain.
-- Final clean-install `npm ci` and complete `npm run ci:check` are run after
-  this note and task commit, immediately before integration.
+- Final clean-install `npm ci` passed after all source/generated updates.
+  Final complete `npm run ci:check` passed, including REST route ownership and
+  REST compatibility inventory checks.
 
 ### Browser validation performed
 
@@ -164,9 +165,18 @@ profile result were recorded without changing browser storage or auth state.
 - `MercurionWebNg/src/app/services/session-sync.service.ts`
 - `MercurionWebNg/src/app/services/session-sync.service.spec.ts`
 - This task recipe's execution notes and DONE status.
+- Generated inventories were refreshed because the source reference locations
+  changed: `docs/architecture/rest-route-ownership.json` and
+  `docs/architecture/rest-contract-compatibility.json`.
 
 ### Decisions
 
 No blocker or human decision is required. The task uses the existing storage
 event mechanism and does not treat peer-provided initials or tokens as
 authentication proof.
+
+### Commits
+
+- `5e8013a1` — cross-tab auth implementation and tests.
+- `9c11e5ac` — generated REST route ownership references.
+- `fe696145` — generated REST compatibility references.
