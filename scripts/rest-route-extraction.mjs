@@ -11,6 +11,10 @@ export function compareText(left, right) {
     return left < right ? -1 : left > right ? 1 : 0;
 }
 
+export function normalizeSourceText(text) {
+    return text.replace(/\r\n?/g, '\n');
+}
+
 export function relative(file) {
     return path.relative(root, file).split(path.sep).join('/');
 }
@@ -66,7 +70,7 @@ export function effectivePath(controllerPath, methodPath, prefixConfiguration) {
 }
 
 function typeText(typeNode) {
-    return typeNode ? typeNode.getText() : undefined;
+    return typeNode ? normalizeSourceText(typeNode.getText()) : undefined;
 }
 
 function returnTypeText(typeNode) {
@@ -79,7 +83,7 @@ function returnTypeText(typeNode) {
         && typeNode.typeName.text === 'Promise' && typeNode.typeArguments?.length === 1) {
         return returnTypeText(typeNode.typeArguments[0]);
     }
-    return typeNode.getText();
+    return normalizeSourceText(typeNode.getText());
 }
 
 function parameterMetadata(parameter) {
@@ -95,7 +99,7 @@ function parameterMetadata(parameter) {
             name: argument && ts.isStringLiteralLike(argument) ? argument.text : undefined,
             type: typeText(parameter.type),
             optional: Boolean(parameter.questionToken || parameter.initializer),
-            defaultValue: parameter.initializer ? parameter.initializer.getText() : undefined,
+            defaultValue: parameter.initializer ? normalizeSourceText(parameter.initializer.getText()) : undefined,
         });
     }
     return metadata;
@@ -149,9 +153,9 @@ function handlerMetadata(member, classNode) {
         ? httpCodeExpression.arguments[0]
         : undefined;
     const guards = decorators.filter((decorator) => decoratorName(decorator) === 'UseGuards')
-        .map((decorator) => decorator.expression.getText());
+        .map((decorator) => normalizeSourceText(decorator.expression.getText()));
     const scopes = decorators.filter((decorator) => decoratorName(decorator) === 'HasScopes')
-        .map((decorator) => decorator.expression.getText());
+        .map((decorator) => normalizeSourceText(decorator.expression.getText()));
     return {
         returnType: returnTypeText(member.type),
         successStatus: httpStatusValue(httpCodeArgument),

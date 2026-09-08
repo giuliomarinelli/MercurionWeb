@@ -1,5 +1,13 @@
 #!/usr/bin/env node
 import { buildInventory, validateCompatibility } from './check-rest-compatibility.mjs';
+import { normalizeSourceText } from './rest-route-extraction.mjs';
+
+const windowsSourceText = "{\r\n  'X-Test': token\r\n}";
+const linuxSourceText = "{\n  'X-Test': token\n}";
+if (normalizeSourceText(windowsSourceText) !== normalizeSourceText(linuxSourceText)) {
+    throw new Error('source-text normalization differs between CRLF and LF');
+}
+console.log('determinism check passed: CRLF and LF source text normalize identically');
 
 const baseline = buildInventory();
 const cases = [

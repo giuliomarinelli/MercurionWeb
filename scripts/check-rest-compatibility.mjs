@@ -4,7 +4,14 @@ import path from 'node:path';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 import ts from 'typescript';
-import { compareText, relative, walk, readPrefixConfiguration, readRoutes } from './rest-route-extraction.mjs';
+import {
+    compareText,
+    normalizeSourceText,
+    relative,
+    walk,
+    readPrefixConfiguration,
+    readRoutes,
+} from './rest-route-extraction.mjs';
 import {
     buildCanonicalCatalog,
     contractMetadata,
@@ -284,7 +291,7 @@ function optionMetadata(node, sourceFile) {
         if (name === 'responseType' || name === 'withCredentials') {
             metadata[name] = property.initializer.getText(sourceFile).replace(/["']/g, '');
         } else if (name === 'headers') {
-            metadata.headers = property.initializer.getText(sourceFile);
+            metadata.headers = normalizeSourceText(property.initializer.getText(sourceFile));
         }
     }
     return Object.keys(metadata).length > 0 ? metadata : undefined;
@@ -404,12 +411,12 @@ function extractCalls() {
                         ordinal,
                         line: location.line + 1,
                         verb: name === 'request' ? evaluateExpression(node.arguments[0], evaluationContext)?.toUpperCase() : name.toUpperCase(),
-                        urlExpression: urlExpression.getText(sourceFile),
+                        urlExpression: normalizeSourceText(urlExpression.getText(sourceFile)),
                         urlVariants,
                         path: paths[0],
                         pathParameters: pathParameters(paths[0], placeholderTypes),
                         queryParameters: queryParameters(urlVariants, placeholderTypes),
-                        bodyExpression: bodyNode?.getText(sourceFile),
+                        bodyExpression: bodyNode ? normalizeSourceText(bodyNode.getText(sourceFile)) : undefined,
                         bodyType: bodyNode ? typeText(checker, bodyNode) : undefined,
                         bodyTypeObject: bodyNode ? checker.getTypeAtLocation(bodyNode) : undefined,
                         responseType: responseType ? checker.typeToString(responseType, undefined, ts.TypeFormatFlags.NoTruncation) : undefined,

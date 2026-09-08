@@ -135,11 +135,14 @@ Corrected the previous incomplete implementation on `feature/SYS-021`. The suite
 - ✅ All GraphQL/generated-artifact checks and the complete static gate pass.
 - ✅ Repeated Windows generation and isolated Linux generation are byte-identical with SHA-256 `ba4271dd1c6cc8e69001ea8017b0ecc04ab6178195b317758fba555e178275a7`.
 - ✅ The isolated Linux target gate passes after a clean install, including the compatibility checker, all negative probes and ValidationPipe tests.
+- ✅ Persisted AST source fragments use platform-neutral LF normalization; the negative suite proves CRLF and LF inputs normalize identically.
 - ✅ No production services, credentials, browser or external application runtime were used.
 
 The canonical local `npm ci` completed with zero vulnerabilities. The subsequent full Windows `npm run ci:check` reached Nest Jest after protocol, lint, type checks and all 303 Angular tests had passed. Of 127 Nest suites, 126 passed and all 215 runnable tests passed; the remaining suite could not load the transitive native binary `@css-inline/css-inline-win32-x64-msvc@0.20.0` because Windows Application Control rejected its unverifiable provenance. This is an environment policy result rather than a test assertion or task-code failure; no security control, dependency or unrelated test was changed to bypass it. The remaining canonical gates were run separately and passed. A full run in the minimal Linux container progressed through lint and type checks, then stopped because that image contains no Chrome binary; the task-specific Linux gate and deterministic inventory check passed there.
 
 The earlier exact-SHA GitHub Actions run for commit `75cdb587` failed only on Ubuntu static validation because the previous generator used platform-dependent ordering. The structural generator now uses platform-neutral lexical ordering, and the Windows/Linux inventory hashes match. A new exact-feature-SHA CI run is still required.
+
+Exact-SHA run `34224085554` for commit `7f511fd0` subsequently exposed a second Windows/Linux determinism defect: ten persisted Angular `headers` expressions contained raw CRLF on Windows and LF on Ubuntu. All Windows gates and every Ubuntu gate before `ci:rest-compatibility` passed. The generator now normalizes every persisted multiline AST fragment, including headers, URL expressions, request bodies, Nest defaults, guards, scopes and type text, before inventory comparison. A new exact-feature-SHA CI run is required for this correction.
 
 ### Changed files
 

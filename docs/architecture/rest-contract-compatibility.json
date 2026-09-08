@@ -3189,7 +3189,7 @@
           "mode": "json",
           "options": {
             "withCredentials": "true",
-            "headers": "{\r\n        'Authorization': `Bearer ${changePasswordToken}`\r\n      }"
+            "headers": "{\n        'Authorization': `Bearer ${changePasswordToken}`\n      }"
           },
           "contract": {
             "applicable": false,
@@ -3682,7 +3682,7 @@
           "mode": "json",
           "options": {
             "withCredentials": "true",
-            "headers": "{\r\n        'Authorization': `Bearer ${changePasswordToken}`\r\n      }"
+            "headers": "{\n        'Authorization': `Bearer ${changePasswordToken}`\n      }"
           },
           "contract": {
             "applicable": true,
@@ -3830,7 +3830,7 @@
           "mode": "json",
           "options": {
             "withCredentials": "true",
-            "headers": "{\r\n        'X-Challenge-Token': turnstileToken\r\n      }"
+            "headers": "{\n        'X-Challenge-Token': turnstileToken\n      }"
           },
           "contract": {
             "applicable": true,
@@ -4285,7 +4285,7 @@
           "mode": "json",
           "options": {
             "withCredentials": "true",
-            "headers": "{\r\n        'X-Fingerprint': fingerprintBase64,\r\n        'X-Device-Info': btoa(JSON.stringify(sessionDeviceInfo)),\r\n        'X-Challenge-Token': turnstileToken\r\n      }"
+            "headers": "{\n        'X-Fingerprint': fingerprintBase64,\n        'X-Device-Info': btoa(JSON.stringify(sessionDeviceInfo)),\n        'X-Challenge-Token': turnstileToken\n      }"
           },
           "contract": {
             "applicable": true,
@@ -4468,7 +4468,7 @@
           "mode": "json",
           "options": {
             "withCredentials": "true",
-            "headers": "{\r\n        'Authorization': `Bearer ${preAuthorizationToken}`\r\n      }"
+            "headers": "{\n        'Authorization': `Bearer ${preAuthorizationToken}`\n      }"
           },
           "contract": {
             "applicable": true,
@@ -4764,7 +4764,7 @@
           "mode": "json",
           "options": {
             "withCredentials": "true",
-            "headers": "{\r\n        'X-Fingerprint': fingerprintBase64,\r\n        'X-Device-Info': btoa(JSON.stringify(sessionDeviceInfo)),\r\n        'Authorization': `Bearer ${preauthorizationToken}`,\r\n      }"
+            "headers": "{\n        'X-Fingerprint': fingerprintBase64,\n        'X-Device-Info': btoa(JSON.stringify(sessionDeviceInfo)),\n        'Authorization': `Bearer ${preauthorizationToken}`,\n      }"
           },
           "contract": {
             "applicable": true,
@@ -5387,7 +5387,7 @@
           "mode": "json",
           "options": {
             "withCredentials": "true",
-            "headers": "{\r\n        'X-Challenge-Token': turnstileToken\r\n      }"
+            "headers": "{\n        'X-Challenge-Token': turnstileToken\n      }"
           },
           "contract": {
             "applicable": true,
@@ -5708,7 +5708,7 @@
           "mode": "json",
           "options": {
             "withCredentials": "true",
-            "headers": "{\r\n        'X-Fingerprint': fingerprintBase64,\r\n        'X-Device-Info': sessionDeviceInfoBase64,\r\n        'Authorization': `Bearer ${sso_preAuthorizationToken}`\r\n      }"
+            "headers": "{\n        'X-Fingerprint': fingerprintBase64,\n        'X-Device-Info': sessionDeviceInfoBase64,\n        'Authorization': `Bearer ${sso_preAuthorizationToken}`\n      }"
           },
           "contract": {
             "applicable": true,
@@ -7837,7 +7837,7 @@
           "mode": "json",
           "options": {
             "withCredentials": "true",
-            "headers": "{\r\n        'X-Challenge-Token': turnstileToken\r\n      }"
+            "headers": "{\n        'X-Challenge-Token': turnstileToken\n      }"
           },
           "contract": {
             "applicable": true,
@@ -7984,7 +7984,7 @@
           "mode": "json",
           "options": {
             "withCredentials": "true",
-            "headers": "{\r\n        'X-Challenge-Token': turnstileToken,\r\n        'Authorization': `Bearer ${secureToken}`\r\n      }"
+            "headers": "{\n        'X-Challenge-Token': turnstileToken,\n        'Authorization': `Bearer ${secureToken}`\n      }"
           },
           "contract": {
             "applicable": true,
