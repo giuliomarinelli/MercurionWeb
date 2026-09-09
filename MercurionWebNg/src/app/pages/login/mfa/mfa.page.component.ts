@@ -3,7 +3,7 @@ import { Component, ElementRef, inject, OnDestroy, OnInit, signal, ChangeDetecti
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms'
 import { ActivatedRoute, Router, RouterLink } from '@angular/router'
 import { combineLatest, debounceTime, distinctUntilChanged, EMPTY, filter, map, Subscription, switchMap, throwError } from 'rxjs'
-import { Login_FirstStep_Data } from '../../../Models/confirm.models'
+import type { PersistedPreAuthState } from '../../../Models/auth/pre-auth.models'
 import { AuthService } from '../../../services/auth.service'
 import { FingerprintService } from '../../../services/fingerprint.service'
 import { HttpErrorBody } from '../../../Models/http-error-body.dto'
@@ -252,7 +252,7 @@ export class MfaPageComponent implements OnInit, OnDestroy {
   protected loading = signal<boolean>(false)
   protected canView = signal<boolean>(false)
 
-  protected loginFirstStepData: Login_FirstStep_Data | null | undefined
+  protected loginFirstStepData: PersistedPreAuthState | null | undefined
 
   private fingerprintDataEnc = ''
   private sessionDeviceInfo: SessionDeviceInfo = {
@@ -306,19 +306,12 @@ export class MfaPageComponent implements OnInit, OnDestroy {
     this.phoneControl = this.fb.control(null, [Validators.required])
 
     // 3) preAuthorizationData
-    const raw = this.persistence.getPreAuthorizationData()
-    if (!raw) {
+    const preAuth = this.persistence.readPreAuthState()
+    if (preAuth.status !== 'valid') {
       this.router.navigateByUrl('/403-forbidden')
       return
     }
-
-    try {
-      this.loginFirstStepData = JSON.parse(atob(raw)) as Login_FirstStep_Data
-    } catch {
-      this.router.navigateByUrl('/403-forbidden')
-      return
-    }
-
+    this.loginFirstStepData = preAuth.state
     this.authState.enterPreAuthentication(this.loginFirstStepData?.preAuthorizationToken)
 
     // 4) auto-verify otp a 6 cifre
@@ -361,20 +354,13 @@ export class MfaPageComponent implements OnInit, OnDestroy {
           this.loading.set(false)
           this.canView.set(true)
 
-          const pdRaw = this.persistence.getPreAuthorizationData()
-          if (!pdRaw) {
+          const pd = this.persistence.readPreAuthState()
+          if (pd.status !== 'valid') {
             this.router.navigateByUrl('/403-forbidden')
             return EMPTY
           }
-
-          try {
-            const pd: Login_FirstStep_Data = JSON.parse(atob(pdRaw))
-            this.enabledMfaStrategies.set(pd.enabledMfaStrategies as MfaStrategy[])
-            return EMPTY
-          } catch {
-            this.router.navigateByUrl('/403-forbidden')
-            return EMPTY
-          }
+          this.enabledMfaStrategies.set(pd.state.enabledMfaStrategies)
+          return EMPTY
         }
 
         // APP_TOTP: mostra input ma NON invia OTP
@@ -517,14 +503,14 @@ export class MfaPageComponent implements OnInit, OnDestroy {
           accessToken: res.accessToken,
           wsAccessToken: res.ws_accessToken
         })
-        this.persistence.removePreAuthorizationData()
+        this.persistence.consumePreAuthState()
 
         this.sessionSyncService.resumeSession(res.initials ?? 'U')
 
         this.router.navigateByUrl(this.resolveRedirectTarget())
       },
       error: (e) => {
-        this.persistence.removePreAuthorizationData()
+        this.persistence.consumePreAuthState()
 
         let message = 'Si è verificato un errore.'
         if ('error' in e && 'status' in e) {
