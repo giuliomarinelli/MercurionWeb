@@ -127,7 +127,7 @@ import { APP_CONFIG } from '../../config/app-config'
               }
             </button>
           </div>
-          @if (!turnstileDisabled) {
+          @if (!turnstileDisabled()) {
             <div class="flex justify-center">
               @if (loadingTurnstile()) {
                 <div class="w-[300px] h-[71px] overflow-hidden transition-all bg-neutral-200 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 animate-pulse skeleton-pulse" role="status" aria-live="polite">
