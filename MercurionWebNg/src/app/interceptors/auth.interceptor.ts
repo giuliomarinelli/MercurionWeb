@@ -46,7 +46,7 @@ export class AuthInterceptor implements HttpInterceptor {
   private handleAuthEvent(event: HttpEvent<unknown> | HttpErrorResponse): void {
     const authEvent = classifyAuthResponse(event)
     if (authEvent.kind === 'token-rotated') {
-      this.authService.setAccessToken(authEvent.token)
+      this.authState.rotateAccessToken(authEvent.token)
     } else if (authEvent.kind === 'session-invalidated') {
       this.zone.run(() => this.authState.invalidate(authEvent.cause))
     }

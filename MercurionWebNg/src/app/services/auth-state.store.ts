@@ -29,10 +29,23 @@ export type AuthState =
 
 export type AuthStateSnapshot = AuthState
 
+export interface ClientSessionIdentity {
+  readonly userId: string
+  readonly sessionId: string
+}
+
+export interface AuthenticatedClientSession extends ClientSessionIdentity {
+  readonly initials: string
+  readonly scopes: readonly string[]
+  readonly accessToken: string
+  readonly wsAccessToken: string
+  readonly wsTokenIssuedAt: number
+}
+
 export interface AuthCompletion {
   initials: string
-  accessToken?: string | null
-  wsAccessToken?: string | null
+  accessToken: string
+  wsAccessToken: string
 }
 
 @Injectable({ providedIn: 'root' })
@@ -68,6 +81,21 @@ export class AuthStateStore {
   readonly initials = computed(() => {
     const state = this.state()
     return state.kind === 'authenticated' ? state.initials : ''
+  })
+  /** The complete, internally consistent credential set, or no session. */
+  readonly clientSession = computed<AuthenticatedClientSession | null>(() => {
+    const state = this.state()
+    if (state.kind !== 'authenticated') return null
+    const identity = this.identityFromTokenPair(state.accessToken, state.wsAccessToken)
+    if (!identity) return null
+    return {
+      ...identity,
+      initials: state.initials,
+      scopes: state.scopes,
+      accessToken: state.accessToken!,
+      wsAccessToken: state.wsAccessToken!,
+      wsTokenIssuedAt: this.persistence.getWsAccessTokenTimestamp()
+    }
   })
 
   bootstrap(): AuthStateSnapshot {
@@ -116,13 +144,16 @@ export class AuthStateStore {
    */
   activateAuthenticatedSession(completion: AuthCompletion): void {
     this.authErrors.clear()
-    const accessToken = completion.accessToken ?? null
-    const wsAccessToken = completion.wsAccessToken ?? null
+    const accessToken = completion.accessToken
+    const wsAccessToken = completion.wsAccessToken
     const scopes = this.scopesFromAccessToken(accessToken)
     const currentKind = this.state().kind
-    const hasServerAcceptedSession = Boolean(
-      accessToken && wsAccessToken && this.hasClientLoginCookie()
-    )
+    const identity = this.identityFromTokenPair(accessToken, wsAccessToken)
+    const hasServerAcceptedSession = Boolean(identity && this.hasClientLoginCookie())
+    if (!identity) {
+      this.clearPersistence()
+      throw new Error('Cannot install an authenticated session without matching user/session claims')
+    }
     const canRecoverLoginRace =
       (currentKind === 'anonymous' || currentKind === 'session-expired') &&
       hasServerAcceptedSession
@@ -138,8 +169,12 @@ export class AuthStateStore {
     if (canRecoverLoginRace && this.sessionProtocol().state !== 'authenticating') {
       this.applyProtocol(SessionTransition.BeginAuthentication)
     }
-    this.setAccessToken(accessToken)
-    this.setWsAccessToken(wsAccessToken)
+    this.persistence.commitAuthenticatedSession({
+      accessToken,
+      wsAccessToken,
+      initials: completion.initials,
+      scopes
+    })
     this.setPersistedInitials(completion.initials)
     this.setCachedScopes(scopes)
     this.stateSignal.set(next)
@@ -147,23 +182,28 @@ export class AuthStateStore {
     this.scheduleExpiry(accessToken)
   }
 
-  updateAccessToken(token: string | null): void {
+  rotateAccessToken(token: string, expectedSessionId?: string): boolean {
     const state = this.state()
-    if (state.kind !== 'authenticated') return
+    if (state.kind !== 'authenticated' || !state.accessToken || !state.wsAccessToken) return false
+    const identity = this.identityFromTokenPair(token, state.wsAccessToken)
+    if (!identity || (expectedSessionId && identity.sessionId !== expectedSessionId)) return false
     const scopes = this.scopesFromAccessToken(token)
-    this.setAccessToken(token)
-    this.setCachedScopes(scopes)
+    this.persistence.commitRotatedAccessToken(token, scopes)
     this.transition({ ...state, accessToken: token, scopes })
     this.applyProtocol(SessionTransition.CredentialsRefreshed)
     this.scheduleExpiry(token)
+    return true
   }
 
-  updateWsAccessToken(token: string | null): void {
+  rotateWsAccessToken(token: string, expectedSessionId?: string): boolean {
     const state = this.state()
-    if (state.kind !== 'authenticated') return
-    this.setWsAccessToken(token)
+    if (state.kind !== 'authenticated' || !state.accessToken || !state.wsAccessToken) return false
+    const identity = this.identityFromTokenPair(state.accessToken, token)
+    if (!identity || (expectedSessionId && identity.sessionId !== expectedSessionId)) return false
+    this.persistence.setWsAccessToken(token)
     this.transition({ ...state, wsAccessToken: token })
     this.applyProtocol(SessionTransition.CredentialsRefreshed)
+    return true
   }
 
   resumeFromServer(initials: string): void {
@@ -172,6 +212,12 @@ export class AuthStateStore {
     }
     const accessToken = this.getAccessToken()
     const wsAccessToken = this.getWsAccessToken()
+    if (!accessToken || !wsAccessToken ||
+      !this.identityFromTokenPair(accessToken, wsAccessToken) ||
+      !this.hasClientLoginCookie()) {
+      this.invalidate(SessionInvalidationCause.InvalidSession)
+      return
+    }
     const next: AuthState = {
       kind: 'authenticated',
       initials,
@@ -274,6 +320,28 @@ export class AuthStateStore {
 
   getCachedScopes(): string[] | null {
     return this.persistence.getScopes()
+  }
+
+  private identityFromTokenPair(accessToken: string | null, wsAccessToken: string | null): ClientSessionIdentity | null {
+    const access = this.readIdentity(accessToken)
+    const ws = this.readIdentity(wsAccessToken)
+    return access && ws && access.userId === ws.userId && access.sessionId === ws.sessionId
+      ? access
+      : null
+  }
+
+  private readIdentity(token: string | null): ClientSessionIdentity | null {
+    if (!token) return null
+    try {
+      const encoded = token.split('.')[1]
+      if (!encoded) return null
+      const payload = JSON.parse(atob(encoded.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(encoded.length / 4) * 4, '=')))
+      return typeof payload.sub === 'string' && typeof payload.sid === 'string'
+        ? { userId: payload.sub, sessionId: payload.sid }
+        : null
+    } catch {
+      return null
+    }
   }
 
   setCachedScopes(scopes: string[] | null): void {

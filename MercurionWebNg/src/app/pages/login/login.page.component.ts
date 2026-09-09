@@ -420,6 +420,10 @@ export class LoginPageComponent implements OnInit, OnDestroy {
           return
         }
 
+        if (!res.accessToken || !res.ws_accessToken) {
+          this.authState.invalidate()
+          return
+        }
         this.authState.activateAuthenticatedSession({
           initials: res.initials ?? 'U',
           accessToken: res.accessToken,

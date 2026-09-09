@@ -12,11 +12,11 @@ import { AuthInterceptor } from './auth.interceptor'
 describe('AuthInterceptor', () => {
   function createInterceptor() {
     const authService = {
-      getAccessToken: () => 'synthetic-token',
-      setAccessToken: jasmine.createSpy('setAccessToken')
+      getAccessToken: () => 'synthetic-token'
     }
     const authState = {
-      invalidate: jasmine.createSpy('invalidate')
+      invalidate: jasmine.createSpy('invalidate'),
+      rotateAccessToken: jasmine.createSpy('rotateAccessToken')
     }
     const interceptor = new AuthInterceptor(
       authService as never,
@@ -75,7 +75,7 @@ describe('AuthInterceptor', () => {
   })
 
   it('rotates the canonical access token exactly once', () => {
-    const { interceptor, authService, authState } = createInterceptor()
+    const { interceptor, authState } = createInterceptor()
     const response = new HttpResponse({
       headers: new HttpHeaders({ 'X-New-Access-Token': 'rotated-token' })
     })
@@ -85,7 +85,7 @@ describe('AuthInterceptor', () => {
       { handle: () => of(response) }
     ).subscribe()
 
-    expect(authService.setAccessToken).toHaveBeenCalledOnceWith('rotated-token')
+    expect(authState.rotateAccessToken).toHaveBeenCalledOnceWith('rotated-token')
     expect(authState.invalidate).not.toHaveBeenCalled()
   })
 
