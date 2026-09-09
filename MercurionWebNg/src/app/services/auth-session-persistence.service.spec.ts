@@ -2,8 +2,20 @@ import {
   AuthSessionPersistenceService,
   InMemoryAuthSessionPersistence
 } from './auth-session-persistence.service'
+import { type Login_FirstStep_Data } from '../Models/confirm.models'
 
 describe('InMemoryAuthSessionPersistence', () => {
+  const token = (expiresAt: number) => `eyJhbGciOiJub25lIn0.${btoa(JSON.stringify({ exp: Math.floor(expiresAt / 1000) }))}.signature`
+  const data = (expiresAt = Date.now() + 60_000): Login_FirstStep_Data => ({
+    needsMfa: true,
+    enabledMfaStrategies: ['EMAIL_OTP', 'APP_TOTP'],
+    suspiciousAttempt: false,
+    preAuthorizationToken: token(expiresAt),
+    obscuredEmail: 'a***@example.test',
+    initials: '',
+    deviceId: ''
+  })
+
   it('round-trips tokens, scopes, tab and lock state', () => {
     const persistence = new InMemoryAuthSessionPersistence()
     persistence.setAccessToken('http-token')
@@ -48,6 +60,30 @@ describe('InMemoryAuthSessionPersistence', () => {
     expect(persistence.getPreAuthorizationData()).toBeNull()
     expect(persistence.getRedirectState()).toBeNull()
     expect(persistence.getWsRefreshLock()).toBeNull()
+  })
+
+  it('validates, expires and consumes versioned pre-auth state without replay', () => {
+    const persistence = new InMemoryAuthSessionPersistence()
+    expect(persistence.savePreAuthState(data())).toBeTrue()
+    const valid = persistence.readPreAuthState()
+    expect(valid.status).toBe('valid')
+    if (valid.status === 'valid') {
+      expect(valid.state.version).toBe(1)
+      expect(valid.state.kind).toBe('mfa')
+      expect(valid.state.preAuthorizationToken).toContain('.')
+    }
+    expect(persistence.consumePreAuthState().status).toBe('valid')
+    expect(persistence.readPreAuthState().status).toBe('missing')
+
+    expect(persistence.savePreAuthState(data(Date.now() - 1))).toBeFalse()
+    expect(persistence.readPreAuthState().status).toBe('missing')
+
+    persistence.setPreAuthorizationData(btoa(JSON.stringify({
+      version: 1, kind: 'mfa', preAuthorizationToken: 'bad',
+      expiresAt: Date.now() + 60_000, enabledMfaStrategies: ['UNSUPPORTED'], suspiciousAttempt: false
+    })))
+    expect(persistence.readPreAuthState().status).toBe('invalid')
+    expect(persistence.getPreAuthorizationData()).toBeNull()
   })
 })
 

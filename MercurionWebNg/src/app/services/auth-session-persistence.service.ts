@@ -1,4 +1,13 @@
 import { Injectable } from '@angular/core'
+import { jwtDecode, type JwtPayload } from 'jwt-decode'
+import { type Login_FirstStep_Data } from '../Models/confirm.models'
+import { MfaStrategy } from '@mercurion/rest-contracts'
+import {
+  PRE_AUTH_STATE_KIND,
+  PRE_AUTH_STATE_VERSION,
+  type PersistedPreAuthState,
+  type PreAuthReadResult
+} from '../Models/auth/pre-auth.models'
 
 export interface AuthSessionPersistencePort {
   getAccessToken(): string | null
@@ -19,6 +28,9 @@ export interface AuthSessionPersistencePort {
   getPreAuthorizationData(): string | null
   setPreAuthorizationData(value: string): void
   removePreAuthorizationData(): void
+  savePreAuthState(data: Login_FirstStep_Data): boolean
+  readPreAuthState(): PreAuthReadResult
+  consumePreAuthState(): PreAuthReadResult
   getRedirectState(): string | null
   setRedirectState(value: string): void
   removeRedirectState(): void
@@ -61,6 +73,18 @@ export class InMemoryAuthSessionPersistence implements AuthSessionPersistencePor
   getPreAuthorizationData() { return this.session.get('preAuthorizationData') ?? null }
   setPreAuthorizationData(value: string) { this.session.set('preAuthorizationData', value) }
   removePreAuthorizationData() { this.session.delete('preAuthorizationData') }
+  savePreAuthState(data: Login_FirstStep_Data) {
+    const state = buildPreAuthState(data)
+    if (!state) { this.removePreAuthorizationData(); return false }
+    this.setPreAuthorizationData(btoa(JSON.stringify(state)))
+    return true
+  }
+  readPreAuthState() { return decodePreAuthState(this.getPreAuthorizationData(), () => this.removePreAuthorizationData()) }
+  consumePreAuthState() {
+    const result = this.readPreAuthState()
+    this.removePreAuthorizationData()
+    return result
+  }
   getRedirectState() { return this.session.get('authRedirectIntent') ?? null }
   setRedirectState(value: string) { this.session.set('authRedirectIntent', value) }
   removeRedirectState() { this.session.delete('authRedirectIntent') }
@@ -104,6 +128,18 @@ export class AuthSessionPersistenceService implements AuthSessionPersistencePort
   getPreAuthorizationData() { return this.getItem(this.session, 'preAuthorizationData') }
   setPreAuthorizationData(value: string) { this.setItem(this.session, 'preAuthorizationData', value) }
   removePreAuthorizationData() { this.removeItem(this.session, 'preAuthorizationData') }
+  savePreAuthState(data: Login_FirstStep_Data) {
+    const state = buildPreAuthState(data)
+    if (!state) { this.removePreAuthorizationData(); return false }
+    this.setPreAuthorizationData(btoa(JSON.stringify(state)))
+    return true
+  }
+  readPreAuthState() { return decodePreAuthState(this.getPreAuthorizationData(), () => this.removePreAuthorizationData()) }
+  consumePreAuthState() {
+    const result = this.readPreAuthState()
+    this.removePreAuthorizationData()
+    return result
+  }
   getRedirectState() { return this.getItem(this.session, 'authRedirectIntent') }
   setRedirectState(value: string) { this.setItem(this.session, 'authRedirectIntent', value) }
   removeRedirectState() { this.removeItem(this.session, 'authRedirectIntent') }
@@ -113,4 +149,72 @@ export class AuthSessionPersistenceService implements AuthSessionPersistencePort
   clearClientCredentialsForPreAuth() { for (const key of ['accessToken', 'ws_accessToken', 'ws_accessToken_ts', 'login', 'scp', 'ws_scp']) this.removeItem(this.local, key) }
   clearPreAuthData() { this.removePreAuthorizationData() }
   clearEphemeralAuthData() { this.removeWsRefreshLock(); this.removeItem(this.session, 'tab_id'); this.removeRedirectState(); this.removeTransientAuthError() }
+}
+
+const supportedStrategies = new Set<string>(Object.values(MfaStrategy))
+
+function buildPreAuthState(data: Login_FirstStep_Data): PersistedPreAuthState | null {
+  const token = data.preAuthorizationToken
+  if (typeof token !== 'string' || token.length === 0) return null
+  if (!Array.isArray(data.enabledMfaStrategies) ||
+    data.enabledMfaStrategies.length === 0 ||
+    data.enabledMfaStrategies.some(strategy => typeof strategy !== 'string' || !supportedStrategies.has(strategy))) return null
+
+  let claims: JwtPayload
+  try {
+    claims = jwtDecode<JwtPayload>(token)
+  } catch {
+    return null
+  }
+  const exp = claims.exp
+  if (typeof exp !== 'number' || !Number.isFinite(exp)) return null
+  const expiresAt = exp * 1000
+  if (expiresAt <= Date.now()) return null
+
+  const optionalString = (value: unknown) => value === undefined ? undefined : typeof value === 'string' ? value : null
+  const obscuredEmail = optionalString(data.obscuredEmail)
+  const obscuredPhoneNumber = optionalString(data.obscuredPhoneNumber)
+  if (obscuredEmail === null || obscuredPhoneNumber === null || typeof data.suspiciousAttempt !== 'boolean') return null
+
+  return {
+    version: PRE_AUTH_STATE_VERSION,
+    kind: PRE_AUTH_STATE_KIND,
+    preAuthorizationToken: token,
+    expiresAt,
+    enabledMfaStrategies: [...data.enabledMfaStrategies],
+    suspiciousAttempt: data.suspiciousAttempt,
+    ...(obscuredEmail === undefined ? {} : { obscuredEmail }),
+    ...(obscuredPhoneNumber === undefined ? {} : { obscuredPhoneNumber })
+  }
+}
+
+function decodePreAuthState(raw: string | null, remove: () => void): PreAuthReadResult {
+  if (!raw) return { status: 'missing' }
+  try {
+    const decoded = JSON.parse(atob(raw)) as Partial<PersistedPreAuthState>
+    if (decoded.version !== PRE_AUTH_STATE_VERSION ||
+      decoded.kind !== PRE_AUTH_STATE_KIND ||
+      typeof decoded.preAuthorizationToken !== 'string' ||
+      !decoded.preAuthorizationToken ||
+      typeof decoded.expiresAt !== 'number' ||
+      !Number.isFinite(decoded.expiresAt) ||
+      !Array.isArray(decoded.enabledMfaStrategies) ||
+      decoded.enabledMfaStrategies.length === 0 ||
+      decoded.enabledMfaStrategies.some(strategy => typeof strategy !== 'string' || !supportedStrategies.has(strategy)) ||
+      typeof decoded.suspiciousAttempt !== 'boolean' ||
+      (decoded.obscuredEmail !== undefined && typeof decoded.obscuredEmail !== 'string') ||
+      (decoded.obscuredPhoneNumber !== undefined && typeof decoded.obscuredPhoneNumber !== 'string')) {
+      remove()
+      return { status: 'invalid' }
+    }
+    const expiresAt = decoded.expiresAt
+    if (expiresAt <= Date.now()) {
+      remove()
+      return { status: 'expired' }
+    }
+    return { status: 'valid', state: decoded as PersistedPreAuthState }
+  } catch {
+    remove()
+    return { status: 'invalid' }
+  }
 }

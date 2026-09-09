@@ -401,10 +401,14 @@ export class LoginPageComponent implements OnInit, OnDestroy {
       next: (res: Confirm_Login_FirstStepDTO) => {
         if (res.needsMfa) {
           this.pageLoading.set(true)
-          this.authState.enterPreAuthentication(res.preAuthorizationToken)
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { statusCode, timestamp, message, ...loginFirstStepData } = res
-          this.persistence.setPreAuthorizationData(btoa(JSON.stringify(loginFirstStepData ?? '')))
+          if (!this.persistence.savePreAuthState(loginFirstStepData)) {
+            this.authState.beginAuthentication('password')
+            this.router.navigate(['/login'])
+            return
+          }
+          this.authState.enterPreAuthentication(res.preAuthorizationToken)
 
           if (res.suspiciousAttempt) {
             this.router.navigate([`/login/mfa/EMAIL_OTP`], { queryParams: { trust_verify: true } })
