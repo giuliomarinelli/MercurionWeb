@@ -1,6 +1,6 @@
 # 0031 - Make logout a deterministic session transition
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -114,26 +114,63 @@ Do not solve server-failure ambiguity by silently swallowing errors while leavin
 
 ### Summary
 
-Skipped without implementation because hard prerequisites `0026-create-canonical-angular-auth-state-store.md` (`FE-004`) is `BLOCKED`, while `0028-encapsulate-auth-session-browser-persistence.md` (`FE-006`) and `0030-complete-cross-tab-authentication-synchronization.md` (`FE-008`) are `SKIPPED_DEPENDENCY`.
+Implemented FE-009 as a canonical, single-flight logout command owned by
+`AuthService`. Local authenticated-session cleanup now happens exactly once
+before the DELETE request, and concurrent callers share that request. Network
+failures and non-success server responses keep the client anonymous rather than
+restoring stale credentials; the UI reports that server revocation could not
+be confirmed. Realtime/session navigation is finalized separately without a
+second auth cleanup transition. Late cross-tab login hints during the voluntary
+logout grace period are ignored, while a subsequent real login that has
+entered `authenticating` remains allowed.
 
 ### Validation performed
 
-- No task branch or worker was created.
-- Direct prerequisites: `FE-004` is `BLOCKED`; `FE-006` and `FE-008` are `SKIPPED_DEPENDENCY`.
-- Transitive dependency chain: `FE-009` -> `FE-004` (`BLOCKED`), `FE-006` (`SKIPPED_DEPENDENCY`) -> `FE-004` (`BLOCKED`), and `FE-008` (`SKIPPED_DEPENDENCY`) -> `FE-004` (`BLOCKED`) plus `FE-006` (`SKIPPED_DEPENDENCY`).
+- Initial unchanged preflight on `feature/FE-009` at base
+  `014f8acca12bd5a42bdacae1394246038b02bcfb`: `npm ci` passed with the
+  pinned Node 22.16.0/npm 10.9.2 toolchain, followed by
+  `npm run ci:check` passing.
+- Focused logout/session tests passed through
+  `npm run test:ci --workspace mercurion_web_ng`; coverage includes one
+  request for concurrent logout calls, local cleanup on network failure,
+  idempotence after a rejected response, cross-tab event classification, and
+  late voluntary-logout event suppression.
+- Angular production build passed with existing non-fatal bundle-budget and
+  CommonJS warnings. `git diff --check` passed.
+- Final clean-install gate was run after stopping every task-owned runtime:
+  `npm ci` followed immediately by `npm run ci:check`; both passed.
 
 ### Browser validation performed
 
-Not applicable; the task was skipped before implementation.
+Capability preflight started Tox21 from `../MercurionTox21` with
+`PYTHONUTF8=1` and `.venv\Scripts\python.exe -m main`, Nest watch mode, and
+Angular watch mode. The nginx edge returned HTTP 200 for
+`http://localhost:8888/health` and `/`. A fresh ordinary login through
+`http://localhost:8888/login` reached the protected Dashboard and displayed
+the authenticated test identity; no credentials or token values are recorded.
+
+After implementation, the persistent Chrome DevTools MCP profile reached the
+protected Dashboard, one user-menu logout produced exactly one
+`DELETE /api/authentication/logout` request with HTTP 204, navigated to the
+anonymous login route with the redirect target, and left no protected
+dashboard identity visible. The browser console had no error messages. All
+three processes started for final browser evidence were stopped afterward.
 
 ### Changed files
 
-No files changed; only this task metadata was updated.
+- `MercurionWebNg/src/app/services/auth.service.ts`
+- `MercurionWebNg/src/app/services/auth.service.spec.ts`
+- `MercurionWebNg/src/app/services/session-sync.service.ts`
+- `MercurionWebNg/src/app/components/common/header/header.component.ts`
+- `docs/architecture/rest-route-ownership.json` (generated reference refresh)
+- This task execution notes and outcome
 
 ### Blocker / human decision required
 
-No implementation blocker. The task may be re-enabled only after its hard
-dependency chain is deliberately resolved in a new authorized session.
+No blocker. The server contract attempts revocation and always clears its
+session cookies; the client policy is therefore fail-closed locally on any
+transport/rejection outcome and does not restore credentials when remote
+revocation is uncertain.
 
 ### Re-enablement authorization (2026-09-09)
 
@@ -144,3 +181,10 @@ this recipe as `READY`. Browser preflight must perform a fresh ordinary login
 with the shared real test account and establish a session accepted by the
 server before implementation; failure remains a
 `SESSION_CAPABILITY_PAUSE` and must not mutate this task outcome.
+
+### Commits
+
+Recorded below after the final clean-install gate.
+
+- `894b54fb74eec60d5fcad0090ceaa251632f9d66` — implementation, focused
+  tests, generated inventory refresh, and task evidence

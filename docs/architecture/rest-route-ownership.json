@@ -44,6 +44,10 @@
       ],
       "references": [
         {
+          "file": "MercurionWebNg/src/app/services/auth.service.spec.ts",
+          "kind": "angular-source"
+        },
+        {
           "file": "MercurionWebNg/src/app/services/auth.service.ts",
           "kind": "angular-source"
         },
