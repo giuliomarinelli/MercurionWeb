@@ -757,15 +757,16 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.logoutSub = this.authService.logout().subscribe({
       next: () => {
         queueMicrotask(() => {
-          this.sessionSync.logout()
+          this.sessionSync.completeVoluntaryLogout()
           this.offCanvasMenuOpen.set(false)
           this.toast.trigger('Logout eseguito.', 'success', 3000)
         })
       },
       error: () => {
         sessionStorage?.removeItem('RouteError')
-        this.sessionSync.logout()
+        this.sessionSync.completeVoluntaryLogout()
         this.offCanvasMenuOpen.set(false)
+        this.toast.trigger('Logout locale completato; revoca server non confermata.', 'warn', 5000)
       }
     })
   }
@@ -797,4 +798,3 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
 }
-

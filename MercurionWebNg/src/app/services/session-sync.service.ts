@@ -208,12 +208,17 @@ export class SessionSyncService implements OnDestroy {
 
   logout() {
     queueMicrotask(() => {
-      this.authState.logout()
-      this.becomeAnonymous({
-        navigateIfProtected: true,
-        removeLoginKey: false
-      })
+      this.completeVoluntaryLogout()
     })
+  }
+
+  /** Finish navigation/realtime downgrade after AuthService owns the command. */
+  completeVoluntaryLogout(): void {
+    this._status.set('anonymous')
+    void this.socket.reconnectPublicNow()
+    if (!this.isPublicRoute(this.router.url)) {
+      this.redirectToLoginWithRedirectTo()
+    }
   }
 
   get currentStatus() {
@@ -402,6 +407,10 @@ export class SessionSyncService implements OnDestroy {
 
   private onExternalLogin(initials?: string) {
     const kind = this.authState.state().kind
+    // A storage event queued before voluntary logout must not resurrect the
+    // private session.  A real subsequent login enters `authenticating`
+    // first, so it is still allowed through this guard.
+    if (kind === 'anonymous' && this.isVoluntaryLogoutRecent()) return
     if (kind === 'anonymous' || kind === 'bootstrap' || kind === 'session-expired') {
       this.authState.beginAuthentication('restore')
     }

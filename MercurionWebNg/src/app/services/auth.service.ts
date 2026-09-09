@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { finalize, Observable, shareReplay, tap } from 'rxjs';
+import { finalize, Observable, of, shareReplay, tap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { JwtHelperService } from './jwt-helper.service';
 import { firstValueFrom } from 'rxjs';
@@ -46,6 +46,7 @@ export class AuthService {
 
 
   private inflight$?: Observable<string>;
+  private logoutInFlight$?: Observable<void>;
 
   private readonly WS_AT_KEY = 'ws_accessToken';
   private readonly WS_REFRESH_LOCK = 'ws_refresh_lock';
@@ -190,15 +191,32 @@ export class AuthService {
   }
 
   public logout(): Observable<void> {
+    // Logout is a single-flight command.  Local cleanup happens before the
+    // request so a network failure can never leave the UI partly private.
+    // The server endpoint is deliberately best-effort (it clears its
+    // cookies even when revocation itself fails), therefore we never restore
+    // credentials after an error.
+    if (this.logoutInFlight$) return this.logoutInFlight$;
+    const currentKind = this.authState.state().kind;
+    if (currentKind === 'anonymous' || currentKind === 'session-expired') {
+      return of(undefined);
+    }
+
     this.authState.logout()
     // pulisci eventuale lock pendente
     const lock = this.readLock();
     if (lock?.owner === this.tabId) {
       this.persistence.removeWsRefreshLock();
     }
-    return this.http.delete<void>('/api/authentication/logout', {
+    this.logoutInFlight$ = this.http.delete<void>('/api/authentication/logout', {
       withCredentials: true
-    })
+    }).pipe(
+      // Keep the source alive for concurrent subscribers, but clear the
+      // single-flight slot exactly once when the HTTP operation settles.
+      finalize(() => { this.logoutInFlight$ = undefined }),
+      shareReplay({ bufferSize: 1, refCount: false })
+    )
+    return this.logoutInFlight$
   }
 
   /* ───────── WS refresh HTTP (single-flight per tab) ───────── */
