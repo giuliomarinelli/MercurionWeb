@@ -232,4 +232,29 @@ describe('AuthStateStore', () => {
     expect(localStorage.getItem('ws_accessToken')).toBeNull()
     expect(localStorage.getItem('login')).toBeNull()
   })
+
+  it('enters recovery anonymously and preserves unrelated local/session storage', () => {
+    store.bootstrap()
+    store.beginAuthentication('password')
+    store.activateAuthenticatedSession({
+      initials: 'AB',
+      accessToken: 'access-token',
+      wsAccessToken: 'ws-token'
+    })
+    localStorage.setItem('theme', 'dark')
+    sessionStorage.setItem('preference', 'compact')
+    sessionStorage.setItem('preAuthorizationData', 'pre-auth')
+    localStorage.setItem('ws_refresh_lock', '{"owner":"tab","expiresAt":123}')
+
+    store.beginRecovery()
+
+    expect(store.state()).toEqual({ kind: 'anonymous' })
+    expect(store.authenticated()).toBeFalse()
+    expect(localStorage.getItem('accessToken')).toBeNull()
+    expect(localStorage.getItem('ws_accessToken')).toBeNull()
+    expect(localStorage.getItem('ws_refresh_lock')).toBeNull()
+    expect(sessionStorage.getItem('preAuthorizationData')).toBeNull()
+    expect(localStorage.getItem('theme')).toBe('dark')
+    expect(sessionStorage.getItem('preference')).toBe('compact')
+  })
 })
