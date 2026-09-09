@@ -1,6 +1,6 @@
 # 0036 - Centralize ephemeral authentication errors
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -115,31 +115,45 @@ Keep error state separate from the authenticated-session union where possible: t
 
 ### Summary
 
-Skipped without implementation because hard prerequisites
-`0012-centralize-application-error-code-catalog.md` (`SYS-012`) and
-`0026-create-canonical-angular-auth-state-store.md` (`FE-004`) are
-`BLOCKED`, while `0028-encapsulate-auth-session-browser-persistence.md`
-(`FE-006`), `0034-type-validate-and-expire-pre-auth-mfa-state.md` (`FE-012`),
-and `0035-unify-auth-error-invalidation-in-one-interceptor-path.md` (`FE-013`)
-are `SKIPPED_DEPENDENCY`.
+Implemented `AuthErrorService` as the single typed, in-memory ephemeral
+authentication-error lifecycle. Stable application error codes are mapped once
+to safe flow/category/message values; unrelated HTTP failures are ignored.
+Login and MFA now use the service instead of `lastHttpErr` or component-local
+status/message mapping. Authentication attempts, successful authentication and
+logout clear the state, while MFA consumes it after displaying the message.
+Legacy `mfaError` cleanup remains defensive in the canonical persistence
+adapter, but no production code writes either legacy message-bus key.
 
 ### Validation performed
 
-No task branch or worker was created. Direct prerequisites are `SYS-012`,
-`FE-004`, `FE-006`, `FE-012`, and `FE-013`; their terminal states are
-`BLOCKED`, `BLOCKED`, `SKIPPED_DEPENDENCY`, `SKIPPED_DEPENDENCY`, and
-`SKIPPED_DEPENDENCY`. The dependency chain includes the blocked canonical
-auth store and application error catalog.
+- `npm ci` (repository root, unchanged preflight): passed.
+- `npm run ci:check` (repository root, unchanged preflight): passed.
+- `npx ng test --watch=false --include='src/app/services/auth-error.service.spec.ts'`:
+  4 tests passed.
+- `npx ng test --watch=false` from `MercurionWebNg`: 338 tests passed.
+- `npm run build` from `MercurionWebNg`: passed; existing bundle/CommonJS
+  warnings only.
+- Final runtimes/watchers were stopped/absent, then final root `npm ci` and
+  `npm run ci:check` were run and passed.
 
 ### Browser validation performed
 
-Not applicable; the task was skipped before implementation.
+Not run. No safe deterministic invalid-credential/MFA browser scenario was
+available without risking the shared local account; deterministic lifecycle
+tests were used as the task-authorized substitute. The tests cover stale
+attempt clearing, one-shot MFA consumption, successful-auth clearing,
+unrelated-error isolation, and malformed legacy storage safety.
 
 ### Changed files
 
-No files changed; only this task metadata was updated.
+- `MercurionWebNg/src/app/services/auth-error.service.ts`
+- `MercurionWebNg/src/app/services/auth-error.service.spec.ts`
+- `MercurionWebNg/src/app/services/auth-state.store.ts`
+- `MercurionWebNg/src/app/services/auth-session-persistence.service.ts`
+- `MercurionWebNg/src/app/services/auth-redirect.service.ts`
+- Login and MFA page components
+- This task's execution metadata
 
-### Blocker / human decision required
+### Commit
 
-No implementation blocker. The task may be re-enabled only after its hard
-dependency chain is deliberately resolved in a new authorized session.
+Pending task-specific commit on `feature/FE-014`.

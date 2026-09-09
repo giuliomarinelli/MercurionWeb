@@ -34,8 +34,6 @@ export interface AuthSessionPersistencePort {
   getRedirectState(): string | null
   setRedirectState(value: string): void
   removeRedirectState(): void
-  setTransientAuthError(value: string): void
-  removeTransientAuthError(): void
   clearAuthenticatedSession(): void
   clearClientCredentialsForPreAuth(): void
   clearPreAuthData(): void
@@ -88,12 +86,10 @@ export class InMemoryAuthSessionPersistence implements AuthSessionPersistencePor
   getRedirectState() { return this.session.get('authRedirectIntent') ?? null }
   setRedirectState(value: string) { this.session.set('authRedirectIntent', value) }
   removeRedirectState() { this.session.delete('authRedirectIntent') }
-  setTransientAuthError(value: string) { this.session.set('mfaError', value) }
-  removeTransientAuthError() { this.session.delete('mfaError') }
   clearAuthenticatedSession() { for (const key of ['accessToken', 'ws_accessToken', 'ws_accessToken_ts', 'login', 'scp', 'ws_scp']) this.local.delete(key); this.removeLoginMarkers() }
   clearClientCredentialsForPreAuth() { for (const key of ['accessToken', 'ws_accessToken', 'ws_accessToken_ts', 'login', 'scp', 'ws_scp']) this.local.delete(key) }
   clearPreAuthData() { this.removePreAuthorizationData() }
-  clearEphemeralAuthData() { this.removeWsRefreshLock(); this.session.delete('tab_id'); this.removeRedirectState(); this.removeTransientAuthError() }
+  clearEphemeralAuthData() { this.removeWsRefreshLock(); this.session.delete('tab_id'); this.removeRedirectState(); this.session.delete('mfaError'); this.session.delete('authError') }
   private set(map: Map<string, string>, key: string, value: string | null) { if (value === null) map.delete(key); else map.set(key, value) }
   private encode(value: unknown) { return btoa(JSON.stringify(value)) }
   private decode(value: string | undefined, key: string) { if (!value) return null; try { const parsed = JSON.parse(atob(value)); return Array.isArray(parsed) && parsed.every(item => typeof item === 'string') ? parsed : null } catch { this.local.delete(key); return null } }
@@ -143,12 +139,10 @@ export class AuthSessionPersistenceService implements AuthSessionPersistencePort
   getRedirectState() { return this.getItem(this.session, 'authRedirectIntent') }
   setRedirectState(value: string) { this.setItem(this.session, 'authRedirectIntent', value) }
   removeRedirectState() { this.removeItem(this.session, 'authRedirectIntent') }
-  setTransientAuthError(value: string) { this.setItem(this.session, 'mfaError', value) }
-  removeTransientAuthError() { this.removeItem(this.session, 'mfaError') }
   clearAuthenticatedSession() { for (const key of ['accessToken', 'ws_accessToken', 'ws_accessToken_ts', 'login', 'scp', 'ws_scp']) this.removeItem(this.local, key); this.removeLoginMarkers() }
   clearClientCredentialsForPreAuth() { for (const key of ['accessToken', 'ws_accessToken', 'ws_accessToken_ts', 'login', 'scp', 'ws_scp']) this.removeItem(this.local, key) }
   clearPreAuthData() { this.removePreAuthorizationData() }
-  clearEphemeralAuthData() { this.removeWsRefreshLock(); this.removeItem(this.session, 'tab_id'); this.removeRedirectState(); this.removeTransientAuthError() }
+  clearEphemeralAuthData() { this.removeWsRefreshLock(); this.removeItem(this.session, 'tab_id'); this.removeRedirectState(); this.removeItem(this.session, 'mfaError'); this.removeItem(this.session, 'authError') }
 }
 
 const supportedStrategies = new Set<string>(Object.values(MfaStrategy))

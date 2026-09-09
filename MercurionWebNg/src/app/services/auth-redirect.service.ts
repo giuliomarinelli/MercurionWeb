@@ -81,16 +81,7 @@ export class AuthRedirectService {
    * Forza il redirect verso `/login`, anche se sei già su una sotto-route
    * come `/login/mfa/...`. Pulisce anche lo stato sessionStorage opzionalmente.
    */
-  async redirectToLogin(reason?: string): Promise<void> {
-
-    if (reason) {
-      this.persistence.setTransientAuthError(reason);
-
-      // Attendi per sicurezza
-      await new Promise(resolve => setTimeout(resolve, 0));
-    }
-
-
+  async redirectToLogin(): Promise<void> {
     this.persistence.clearPreAuthData()
 
 
