@@ -101,8 +101,8 @@ repository-local `commit.gpgSign=false`, and the exact worker handshake
 - Soft deadline reached: not reached; launch refusal threshold is
   `2026-09-16T10:00:00+02:00`
 - Active task completed after deadline: none
-- Report commit SHA: recorded after commit
-- Report commit exact-SHA CI: recorded after push
+- Report commit SHA: `11533a7f07b4b1df346a96d6829205def336395f`
+- Report commit exact-SHA CI: [run 34363082663](https://github.com/giuliomarinelli/MercurionWeb/actions/runs/34363082663) succeeded via metadata path with `Required gate`
 
 ## CI and execution efficiency
 
