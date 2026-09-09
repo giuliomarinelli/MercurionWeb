@@ -115,6 +115,13 @@ export class AuthStateStore {
     const accessToken = completion.accessToken ?? null
     const wsAccessToken = completion.wsAccessToken ?? null
     const scopes = this.scopesFromAccessToken(accessToken)
+    const currentKind = this.state().kind
+    const hasServerAcceptedSession = Boolean(
+      accessToken && wsAccessToken && this.hasClientLoginCookie()
+    )
+    const canRecoverLoginRace =
+      (currentKind === 'anonymous' || currentKind === 'session-expired') &&
+      hasServerAcceptedSession
 
     const next: AuthState = {
       kind: 'authenticated',
@@ -123,7 +130,10 @@ export class AuthStateStore {
       wsAccessToken,
       scopes
     }
-    this.assertAllowed(this.state().kind, next.kind)
+    if (!canRecoverLoginRace) this.assertAllowed(currentKind, next.kind)
+    if (canRecoverLoginRace && this.sessionProtocol().state !== 'authenticating') {
+      this.applyProtocol(SessionTransition.BeginAuthentication)
+    }
     this.setAccessToken(accessToken)
     this.setWsAccessToken(wsAccessToken)
     this.setPersistedInitials(completion.initials)

@@ -144,7 +144,7 @@ export class AuthenticationController {
 
         const initials = await this.userService.getUserInitialsByUserId(userId)
 
-        if (await this.mfaService.isMfaEnabled(auth.userId) || auth.suspiciousAttempt) {
+        if (auth.needsMfa || auth.suspiciousAttempt) {
             reply.setCookie('__logged_in', remember ? 'pending_long' : 'pending_short', {
                 ...this.cookieConf,
                 maxAge: remember ? this.LONG_SESSION_TTL : undefined,

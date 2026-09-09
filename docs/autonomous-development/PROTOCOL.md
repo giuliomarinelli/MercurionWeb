@@ -267,13 +267,12 @@ The coordinator removes only the empty unpublished attempt branch when safe,
 finalizes the report, and stops. It MUST NOT mark the task `BLOCKED`, propagate
 `SKIPPED_DEPENDENCY`, or treat an expired login as a task defect.
 
-The persistent profile is leased to one worker at a time. A task that
-explicitly exercises logout or browser-storage cleanup must restore the
-canonical authenticated state and close surplus tabs before returning. If its
-implementation and validation succeeded but restoration is impossible, the
-worker reports `BROWSER_PROFILE_RECOVERY_REQUIRED`. The coordinator completes
-the active task's normal CI/integration outcome and then finalizes without
-selecting another task. Reports include no cookie, token, password, backup-code
+The persistent profile is leased to one worker at a time, but authentication is
+not leased across workers. Every worker requiring protected state performs a
+fresh ordinary login with the shared local test account. A task that explicitly
+exercises logout may leave the profile anonymous; the next worker logs in again,
+so this state alone is not `BROWSER_PROFILE_RECOVERY_REQUIRED` and does not stop
+later task selection. Reports include no cookie, token, password, backup-code
 or Redis-session value.
 
 ## Preflight before every task
@@ -517,9 +516,11 @@ The Angular development-server port is an internal nginx upstream and MUST NOT b
 The MCP server uses its dedicated persistent default Chrome profile. The
 repository configuration must not pass `--isolated`, and agents must not use
 Incognito, Guest, a personal Chrome profile, production credentials, or
-production data. Only the serial task worker controls the browser. Approved
-non-production cookies and storage may survive worker and CLI-session
-boundaries; Angular, Nest and Tox21 processes do not.
+production data. Only the serial task worker controls the browser. Browser
+storage may survive worker and CLI-session boundaries, but authentication is
+never assumed: every worker that needs protected state performs a fresh
+ordinary login with the shared real test account. Angular, Nest and Tox21
+processes do not survive task boundaries.
 
 When required, the runner manages:
 

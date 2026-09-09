@@ -140,6 +140,7 @@ dependency chain is deliberately resolved in a new authorized session.
 Direct human instruction authorizes `FE-009` for execution in the new overweek
 session after the prior transient `SESSION_CAPABILITY_PAUSE`. Hard dependencies
 `0026`, `0028`, and `0030` are now `DONE`, and the dependency planner reports
-this recipe as `READY`. Browser preflight must establish a real local dummy-auth
-session accepted by the server before implementation; failure remains a
+this recipe as `READY`. Browser preflight must perform a fresh ordinary login
+with the shared real test account and establish a session accepted by the
+server before implementation; failure remains a
 `SESSION_CAPABILITY_PAUSE` and must not mutate this task outcome.

@@ -1,16 +1,16 @@
-# Mercurion Code Red — overweek autonomous full-Series launch
+# Mercurion Code Red — overweek autonomous full-Series launch v2
 
 Use this file only after this launch manifest, its session configuration, and
 the dedicated real test-account login policy are integrated into `develop`; the
 exact resulting `develop` SHA must have a successful fresh full GitHub Actions
-`Required gate`. The dedicated non-production browser-profile storage
-probe documented in `RUNTIME.md` must also have succeeded across two fresh
-sequential workers.
+`Required gate`. The dedicated non-production browser profile must be available, but no
+profile-persistence or pre-authenticated-state probe is a launch prerequisite:
+every worker establishes its own fresh real-account login.
 
 The immutable session configuration is:
 
 ```text
-docs/autonomous-development/session.overweek-2026-09-16.yaml
+docs/autonomous-development/session.overweek-2026-09-16-v2.yaml
 ```
 
 The coordinator must refuse a new launch at or after
@@ -108,7 +108,7 @@ nel profilo Chrome.
 
 ```text
 Run the bounded autonomous Mercurion development session defined by
-docs/autonomous-development/session.overweek-2026-09-16.yaml.
+docs/autonomous-development/session.overweek-2026-09-16-v2.yaml.
 
 Read the complete active configuration, AGENTS.md,
 docs/autonomous-development/PROTOCOL.md,
@@ -160,3 +160,5 @@ the complete-Series workload, remaining pending count, CI classification/platfor
 telemetry, and every capability pause. After task_complete, produce no
 additional prose or tool calls.
 ```
+
+

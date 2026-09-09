@@ -199,6 +199,24 @@ describe('AuthStateStore', () => {
     expect(localStorage.getItem('ws_accessToken')).toBeNull()
   })
 
+  it('accepts a server-confirmed login after an anonymous session-sync race', () => {
+    store.bootstrap()
+    document.cookie = '__logged_in=true; path=/'
+
+    store.completeAuthentication({
+      initials: 'AB',
+      accessToken: tokenWithScopes('read'),
+      wsAccessToken: 'server-ws-token'
+    })
+
+    expect(store.state()).toEqual(jasmine.objectContaining({
+      kind: 'authenticated',
+      initials: 'AB',
+      scopes: ['read']
+    }))
+    expect(store.sessionProtocol().state).toBe(SessionState.Authenticated)
+  })
+
   it('keeps the pending MFA cookie while clearing old client credentials', () => {
     document.cookie = '__logged_in=pending_long; path=/'
     localStorage.setItem('accessToken', 'old-access')

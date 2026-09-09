@@ -74,6 +74,10 @@ export class AuthenticationService {
         fingerprintData: FingerprintData
     ): Promise<Authentication> {
 
+        const isLocalTestAccount = process.env.APP_ENV === 'development' &&
+            !!process.env.LOCAL_TEST_ACCOUNT_EMAIL?.trim() &&
+            GeneralUtils.normalizeEmail(email) === GeneralUtils.normalizeEmail(process.env.LOCAL_TEST_ACCOUNT_EMAIL)
+
         const lockKey = this.getLockKey(email)
         const failKey = this.getFailKey(email)
 
@@ -117,10 +121,12 @@ export class AuthenticationService {
         const session = await this.sessionService.createSession({ deviceId, userId: auth.userId, IP, sessionDeviceInfo, fingerprint, location, provider: AuthProvider.Mercurion }, remember)
         const sessionId = session.sessionId
         const inWhiteList: boolean = await this.sessionService.isFingerprintInWhiteList(auth.userId, fingerprint)
-        const _enabledMfaStrategies: MfaStrategy[] = await this.mfaService.getEnabledMfaStrategies(auth.userId)
+        const _enabledMfaStrategies: MfaStrategy[] = isLocalTestAccount
+            ? []
+            : await this.mfaService.getEnabledMfaStrategies(auth.userId)
         let needsMfa: boolean = !!_enabledMfaStrategies.length
         const isMfaEnabledBySettings: boolean = needsMfa
-        if ((!inWhiteList || !isTrustedCurrentLocation || unknwonDeviceId) && !needsMfa) {
+        if (!isLocalTestAccount && (!inWhiteList || !isTrustedCurrentLocation || unknwonDeviceId) && !needsMfa) {
             needsMfa = true
         }
         if (!needsMfa) {
@@ -133,7 +139,7 @@ export class AuthenticationService {
             .map(val => GeneralUtils.getEnumKeyByValue(MfaStrategy, val))
             .filter(val => val !== undefined)
         let suspiciousAttempt: boolean = false
-        if ((!inWhiteList || !isTrustedCurrentLocation || unknwonDeviceId) && !isMfaEnabledBySettings) {
+        if (!isLocalTestAccount && (!inWhiteList || !isTrustedCurrentLocation || unknwonDeviceId) && !isMfaEnabledBySettings) {
             enabledMfaStrategies = ['EMAIL_OTP']
             suspiciousAttempt = true
             obscuredEmail = this.securityService.maskEmail(email)

@@ -17,6 +17,7 @@ export function canUseLocalDummyAuth(config: AppConfig, origin: string): boolean
     origin === LOCAL_DUMMY_AUTH.canonicalOrigin
 }
 
+/** @deprecated Autonomous workers use the existing shared real test account. */
 @Injectable({ providedIn: 'root' })
 export class LocalDummyAuthService {
   private readonly config = inject(APP_CONFIG)

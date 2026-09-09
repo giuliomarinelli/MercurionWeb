@@ -105,9 +105,9 @@ For each selected `READY` task, serially:
 
 If an otherwise successful worker result contains
 `BROWSER_PROFILE_RECOVERY_REQUIRED`, complete that task's ordinary feature-CI,
-merge/revert and status lifecycle, then finalize the session before selecting
-another task. Do not expose credentials in the report; request human repair of
-the dedicated non-production profile.
+merge/revert and status lifecycle, then finalize only when the browser profile
+itself is corrupted or inaccessible. An anonymous profile after a task-owned
+logout is valid because the next worker performs a fresh ordinary login.
 
 Never run two implementation workers concurrently, use background mode, or invoke a second worker before the synchronous result returns. A fresh worker invocation is the task-context boundary; do not ask one worker to execute multiple recipes.
 
@@ -118,7 +118,8 @@ required for declared validation, and stops it before its final `npm ci`.
 The MCP browser profile is different: it is a dedicated non-production profile
 persisted outside the repository and reused sequentially across fresh workers.
 The coordinator never controls it, and workers must neither launch isolated
-profiles nor clear its authentication state between tasks.
+profiles nor assume authentication persists; each worker logs in again when
+protected state is required.
 For Tox21, execute the configured `.venv` command with the current working
 directory set exactly to `../MercurionTox21` and UTF-8 console I/O enabled;
 never prefix the interpreter path while retaining the MercurionWeb root cwd.

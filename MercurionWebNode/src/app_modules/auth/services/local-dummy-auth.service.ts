@@ -18,6 +18,7 @@ import { JwtToolsService } from './jwt-tools.service'
 import { ScopeService } from './scope.service'
 import { SessionService } from './session.service'
 
+/** @deprecated Autonomous workers use the existing shared real test account. */
 @Injectable()
 export class LocalDummyAuthService implements OnApplicationBootstrap {
   constructor(

@@ -53,14 +53,14 @@ PowerShell command:
 
 ```powershell
 $env:APP_ENV = "development"
-$env:LOCAL_DUMMY_AUTH = "true"
+$env:LOCAL_DUMMY_AUTH = "false"
 npm run start:dev --workspace mercurion_web_node
 ```
 
 POSIX command:
 
 ```bash
-APP_ENV=development LOCAL_DUMMY_AUTH=true npm run start:dev --workspace mercurion_web_node
+APP_ENV=development LOCAL_DUMMY_AUTH=false npm run start:dev --workspace mercurion_web_node
 ```
 
 This is a watch-mode process and must remain alive for the validation workload.
@@ -142,26 +142,30 @@ browser/runtime validation, the worker should:
 7. verify the Angular application through `http://localhost:8888/`;
 8. only then allow browser validation to begin.
 
-## Deterministic local dummy authentication
+## Dedicated local test account
 
-Autonomous workers do not depend on a human account or a previously authenticated browser profile. When a task requires an authenticated state, after the runtime readiness checks the worker opens:
+The deterministic dummy-auth route is deprecated and MUST NOT be used by
+autonomous workers. The shared testing identity is an existing real account;
+the application does not provision, replace, or reset it.
 
-```text
-http://localhost:8888/__local/dummy-auth
-```
+Its credentials are stored in the git-ignored file
+`MercurionWebNode/env/.env.development` as
+`LOCAL_TEST_ACCOUNT_EMAIL` and `LOCAL_TEST_ACCOUNT_PASSWORD`. Every fresh
+worker that needs authenticated browser state reads those local values and
+performs the ordinary login flow through `http://localhost:8888/login`, even
+when the persistent browser profile already contains an older session.
 
-The route authenticates a deterministic standard-user identity backed by a dedicated persistent `users` fixture. The activation request creates a normal Redis-backed session, returns signed access and Socket.IO JWTs, and installs the same signed HttpOnly `__node_session_id` cookie used by password/SSO authentication before redirecting to `/dashboard` (or to the safe relative `redirect_to` query value). Nest creates the verified fixture on startup when it is absent and leaves an existing fixture untouched so that account edits and task-created data survive runtime restarts. The worker must then prove the protected state through an observable protected response or UI identity marker; route navigation alone is not proof.
+For the exact configured email, and only while `APP_ENV=development`, the
+first-factor login bypasses adaptive `suspiciousAttempt` escalation and all MFA
+selection. It still uses the real account row, password verification, session
+creation, signed cookies, JWTs, Redis validation, scopes, guards, controllers,
+and protected APIs. The worker must prove success through a protected response
+or protected UI state; navigation or cookie presence alone is insufficient.
 
-The fixture is fail-closed at independent boundaries:
-
-- Angular exposes it only in the `development` build and only at the exact canonical origin `http://localhost:8888`;
-- Nest accepts it only when both `APP_ENV=development` and `LOCAL_DUMMY_AUTH=true` are explicitly present;
-- only the one-shot activation request accepts the explicit local marker and it must come from the canonical host/origin;
-- every subsequent HTTP, GraphQL, and Socket.IO request passes through the normal signed-JWT, signed-cookie, Redis-session, device, and scope validation path;
-- the identity has standard-user scopes only; admin scopes are rejected;
-- logout, invalidation, or a real password/SSO login removes the client-side activation marker.
-
-Never set `LOCAL_DUMMY_AUTH=true` in staging or production configuration. Even if it is accidentally set there, the exact `APP_ENV=development` check keeps the fixture disabled.
+The shared credentials are intentionally available to local autonomous agents.
+Agents must use them when authentication is required, must not substitute the
+deprecated dummy route, and must not copy them into Git-tracked files or
+session reports.
 
 After capturing the declared runtime evidence, the worker stops every process
 it started. It MUST do so before the final pre-merge `npm ci` plus
@@ -193,24 +197,25 @@ this capability preflight after its unchanged baseline and before any edit:
 1. start the required application processes with the canonical commands;
 2. prove the nginx edge and configured health surface are ready;
 3. open the task's safe route through `http://localhost:8888`;
-4. when the task needs an authenticated state, open the local dummy-auth route
-   and prove it through an observable protected response or UI identity marker
-   rather than cookie presence alone;
+4. when the task needs an authenticated state, perform a fresh ordinary login
+   with the shared local test account and prove it through an observable
+   protected response or UI identity marker rather than cookie presence alone;
 5. close extra task tabs and stop every application process started by the
    probe, while leaving the dedicated profile and its auth storage intact;
 6. only then begin implementation.
 
-If this pre-implementation probe cannot establish required runtime or activate
-the local dummy fixture, the worker returns `SESSION_CAPABILITY_PAUSE`.
+If this pre-implementation probe cannot establish required runtime or complete
+the real test-account login, the worker returns `SESSION_CAPABILITY_PAUSE`.
 It makes no edit, commit, task-status change, or remote branch publication. The
 coordinator removes only the empty unpublished local attempt branch when safe,
 finalizes the session, and propagates no dependency skips. A human may restore
 the environment or authenticate the dedicated profile and start a new session.
 
-Before enabling unattended reuse, prove profile persistence once with two
+Profile persistence may be tested independently with two
 fresh sequential worker invocations: the first writes an unpredictable probe
 nonce to local storage at the canonical origin; the second reads the same
-nonce and proves the approved authenticated state. Remove the nonce afterward.
+nonce. Authentication is deliberately excluded because every worker logs in
+again. Remove the nonce afterward.
 Use the worker's explicit `browser_profile_probe` mode, outside an active
 Development Session and while the canonical runtime is already running. Send
 `browser_profile_probe: write`, the nonce and canonical origin to the first
@@ -223,10 +228,10 @@ BROWSER_PROFILE_PROBE_WRITTEN <nonce>
 BROWSER_PROFILE_PROBE_OK <nonce>
 ```
 
-A failure, unexpected response, leaked secret, profile-lock error, or missing
-authenticated marker keeps the hardening pull request in draft.
+A failure, unexpected response, leaked secret, or profile-lock error keeps the
+hardening pull request in draft.
 
-### One-time Windows profile bootstrap
+### Optional Windows profile inspection
 
 Because the committed autonomous configuration remains headless, initialize
 or repair its dedicated profile outside an active Copilot CLI session. Ensure
@@ -240,25 +245,20 @@ $Profile = Join-Path $env:USERPROFILE ".cache\chrome-devtools-mcp\chrome-profile
 & $Chrome "--user-data-dir=$Profile" "http://localhost:8888"
 ```
 
-Authenticate only with the approved non-production account, verify a protected
-page, and close that dedicated Chrome window before launching Copilot CLI. Do
-not copy an existing personal profile into this directory. The profile is host
-state, not repository content, and must never be added to Git.
+Close that dedicated Chrome window before launching Copilot CLI. Do not copy an
+existing personal profile into this directory. The profile is host state, not
+repository content, and must never be added to Git. Authentication does not
+need to be preserved because each worker performs a fresh login.
 
 ### Browser state lease
 
-At capability-preflight entry, record the non-sensitive identity/state marker
-that proves the canonical profile is authenticated. A task may alter auth or
-storage only when its recipe explicitly requires that transition. Before the
-worker returns, close surplus tabs, remove any probe nonce, and restore the
-canonical authenticated state. Never record cookie values, tokens, passwords,
-backup codes, or Redis session contents in a task file or report.
-
-If the task itself completed and passed validation but its explicit logout or
-storage scenario leaves the shared profile unauthenticated, report
-`BROWSER_PROFILE_RECOVERY_REQUIRED` to the coordinator. The task may finish its
-ordinary integration lifecycle, but the coordinator starts no later task and
-finalizes the session after integration until a human restores the profile.
+At capability-preflight entry, perform the fresh test-account login when the
+task needs authentication. A task may alter auth or storage when its recipe
+requires that transition. Before returning, close surplus tabs and remove any
+probe nonce. An anonymous profile after logout is valid because the next worker
+logs in again; it is not `BROWSER_PROFILE_RECOVERY_REQUIRED`.
+Never record cookie values, tokens, passwords, backup codes, or Redis session
+contents in a task file or report.
 
 ## Shutdown
 

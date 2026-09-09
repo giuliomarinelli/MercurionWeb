@@ -17,6 +17,14 @@ export class EnvVars {
 
   @IsString()
   @IsOptional()
+  LOCAL_TEST_ACCOUNT_EMAIL?: string
+
+  @IsString()
+  @IsOptional()
+  LOCAL_TEST_ACCOUNT_PASSWORD?: string
+
+  @IsString()
+  @IsOptional()
   NODE_ENV?: 'development' | 'production'
 
   // ========================

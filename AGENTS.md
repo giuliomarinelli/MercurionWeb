@@ -257,9 +257,9 @@ For frontend or browser-observable work:
 - do not treat a successful TypeScript compilation or Angular build as sufficient evidence for a browser-facing acceptance criterion;
 - prefer the dedicated MCP-controlled Chrome instance; do not attach to a human developer's personal Chrome profile;
 - the task worker is the sole browser owner; the coordinator and another worker must not control the profile concurrently;
-- reuse the dedicated profile's non-production cookies and storage across serial workers and sessions; do not clear or log out shared authentication state unless the active task explicitly tests that transition;
+- reuse the dedicated profile for browser isolation, but never rely on its stored authentication; every worker requiring protected state performs a fresh ordinary login with the shared account configured in the git-ignored development environment;
 - after the unchanged task-start baseline and before implementation, a task requiring browser/runtime evidence must prove runtime readiness and any required authenticated state; failure returns `SESSION_CAPABILITY_PAUSE` with no task mutation rather than `BLOCKED` or dependency skips;
-- a task that explicitly tests logout or storage mutation must restore the canonical authenticated profile state before returning; otherwise it reports `BROWSER_PROFILE_RECOVERY_REQUIRED` and the coordinator finishes that task lifecycle but starts no later task;
+- a task that explicitly tests logout may leave the dedicated profile anonymous; the next worker logs in again, so this state alone never emits `BROWSER_PROFILE_RECOVERY_REQUIRED` or stops later task selection;
 - never browse production or enter production credentials/data during autonomous validation;
 - if browser/runtime capability is unavailable before implementation, return `SESSION_CAPABILITY_PAUSE`; if task-caused changes or an acceptance-specific post-implementation problem prevent required validation, mark the task `BLOCKED` rather than claiming browser validation passed.
 

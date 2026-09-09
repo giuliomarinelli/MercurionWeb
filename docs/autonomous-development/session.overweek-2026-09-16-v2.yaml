@@ -1,13 +1,32 @@
-# Example configuration for one autonomous Development Session.
+# Fresh bounded overweek autonomous full-Series session. Do not reuse after its deadline.
 
 session:
-  name: development-session
+  name: mercurion-code-red-0001-overweek-full-series-2026-09-09-v2
   timezone: Europe/Rome
   start: null # coordinator records actual launch in runtime state/report; YAML stays read-only
-  end: "YYYY-MM-DDTHH:MM:SS+HH:MM" # required soft deadline
-  hard_stop: null # optional absolute RFC 3339 guardrail
+  end: "2026-09-16T10:00:00+02:00"
+  hard_stop: null
+  refuse_launch_at_or_after_end: true
+
+launch:
+  permanent_baseline_pull_request: 27
+  recovery_control_plane_pull_request: 28
+  workflow_hardening_pull_request: 29
+  browser_and_allowlist_hardening_pull_request: 31
+  require_configuration_on_integration_branch: true
+  require_current_cli_runner_control_plane_on_integration_branch: true
+  require_local_test_account_policy_on_integration_branch: true
+  configuration_read_only_during_session: true
+  do_not_mutate_pull_requests:
+    - 25
+    - 27
+    - 28
+    - 29
+    - 31
 
 repository:
+  name: giuliomarinelli/MercurionWeb
+  remote: origin
   integration_branch: develop
   feature_branch_pattern: "feature/{source}"
 
@@ -53,8 +72,6 @@ agent:
     stateless: true
     exactly_one_task: true
 
-  # Autonomous sessions use GitHub Copilot CLI native automatic compaction and
-  # checkpoint behavior. Agent profiles inherit the parent model and reasoning.
   context:
     management:
       required: true
@@ -63,8 +80,6 @@ agent:
       automatic_compaction: true
       checkpoint_behavior: native
 
-  # Observability/budget hints are enforced only when the active Copilot host
-  # exposes the corresponding counters to the coordinator.
   max_autopilot_continues_per_task: 20
   max_ai_credits_per_task: 100
 
@@ -103,6 +118,7 @@ capabilities:
       required_credential_variables:
         - LOCAL_TEST_ACCOUNT_EMAIL
         - LOCAL_TEST_ACCOUNT_PASSWORD
+      require_server_accepted_protected_session: true
       failure_result: SESSION_CAPABILITY_PAUSE
       mutate_task_outcome: false
       propagate_dependency_skips: false
@@ -113,7 +129,7 @@ capabilities:
       stop_before_next_task_on_recovery_failure: false
       secrets_in_reports: false
     acceptance_probe:
-      required_once_before_enabling_unattended_reuse: true
+      required_once_before_enabling_unattended_reuse: false
       outside_active_development_session: true
       fresh_sequential_workers: 2
       request_marker: browser_profile_probe
@@ -163,14 +179,12 @@ startup:
 
 runtime:
   documentation: docs/autonomous-development/RUNTIME.md
-
   edge:
     base_url: http://localhost:8888
     managed: false
     required_when_browser_validation_is_needed: true
     angular_readiness_url: http://localhost:8888/
     nest_readiness_url: http://localhost:8888/health
-
   managed_processes:
     tox21:
       cwd: ../MercurionTox21
@@ -181,7 +195,6 @@ runtime:
       command:
         windows: .venv/Scripts/python.exe -m main
         posix: .venv/bin/python -m main
-
     nest:
       cwd: MercurionWebNode
       repository_access: read-write
@@ -190,18 +203,15 @@ runtime:
         APP_ENV: development
         LOCAL_DUMMY_AUTH: "false"
       command: npm run start:dev
-
     angular:
       cwd: MercurionWebNg
       repository_access: read-write
       watch: true
       command: npm run start:dev
-
   start_order:
     - tox21
     - nest
     - angular
-
   lifecycle:
     task_scoped: true
     start_only_after_task_start_preflight: true
@@ -210,7 +220,6 @@ runtime:
     carry_processes_between_tasks: false
 
 quality:
-  # The permanent baseline is established outside all numbered recipes.
   baseline_document: docs/autonomous-development/CI-BASELINE.md
   session_start_preflight: true
   require_clean_exact_origin_develop: true
@@ -221,8 +230,6 @@ quality:
   numbered_tasks_may_repair_baseline: false
   before_every_task: true
   before_merge: true
-
-  # Permanent root workspace interface; later tasks only extend ci:check.
   canonical:
     directory: .
     install: npm ci
@@ -234,13 +241,22 @@ workload:
   series_directory: docs/autonomous-development/series
   series_pattern: "[0-9][0-9][0-9][0-9]-*.md"
   order: filename
-  series_file: null
-  # Empty selects the complete Series. A non-empty list is the exact set the
-  # autonomous coordinator may select or mutate; omitted tasks remain PENDING
-  # for human-led or later-session work.
+  series_file: 'docs/autonomous-development/series/0001-010926-$oid(6a962b70d3e82215b546be6e)-MercurionWeb-technical-debt-audit-develop-8048279.md'
+  # Empty selects every pending task in the complete Series.
   tasks: []
   pending_only: true
-
+  expected_task_count: 220
+  expected_current_done: 42
+  expected_current_blocked: 4
+  expected_current_skipped_dependency: 26
+  expected_current_pending: 148
+  expected_first_ready_task: "0031"
+  expected_planner_ready: 17
+  expected_planner_waiting_dependency: 131
+  expected_planner_terminal_closure: 26
+  expected_new_skipped_dependency: 0
+  expected_autonomous_pending: 148
+  expected_human_led_pending: 0
   dependency_planner:
     command: npm run autonomous:plan
     output: versioned-json
@@ -250,6 +266,15 @@ workload:
     fail_on_cycles: true
     fail_on_stale_skips: true
     model_inference_fallback: false
+
+blocked_branch_policy:
+  preserve_existing_frozen_branches: true
+  do_not_resume_without_new_direct_human_authorization: true
+  branches:
+    - feature/SYS-020
+    - feature/UI-018
+    - feature/NG-023
+    - feature/NG-028
 
 task_outcomes:
   persistent:
@@ -267,19 +292,12 @@ task_outcomes:
 policy:
   fresh_agent_session_per_task: true
   multi_task_bundles: false
-
-  # Each task owns exactly one feature branch derived from its Source identifier.
   one_feature_branch_per_task: true
   source_required_for_branch_name: true
-
-  # The runner does not start the next task until merge CI succeeds or the merge
-  # has been reverted and the task has been recorded as REVERTED.
   serialize_task_integration: true
-
   finish_current_task_after_deadline: true
   start_new_tasks_after_deadline: false
   stop_when_workload_exhausted: true
-
   continue_after_terminal_non_done_task: true
   terminal_outcomes_immutable_within_active_session: true
   terminal_task_reenable_authority: new-direct-human-instruction-in-new-or-restarted-session
@@ -306,7 +324,6 @@ ci:
   poll_interval_seconds: 30
   observation_timeout_minutes: 120
   only_success_conclusion_is_green: true
-
   classification:
     modes:
       - duplicate
@@ -324,12 +341,10 @@ ci:
     manual_full_bypasses_duplicate_reuse: true
     unknown_or_ambiguous_fallback: full
     stable_required_gate_for_every_mode: true
-
   on_success:
     finalize_done: true
     delete_feature_branch_local: true
     delete_feature_branch_remote_if_present: true
-
   on_pre_merge_block:
     feature_ci_non_success_marks_blocked: true
     mark_task_blocked: true
@@ -337,7 +352,6 @@ ci:
     preserve_feature_branch_local: true
     preserve_feature_branch_remote: true
     freeze_preserved_feature_branch: true
-
   on_failure:
     stop_current_integration: true
     revert_merge_commit: true
@@ -350,7 +364,6 @@ ci:
     preserve_feature_branch_local: true
     preserve_feature_branch_remote: true
     freeze_preserved_feature_branch: true
-
   on_dependency_skip:
     create_feature_branch: false
     invoke_worker: false
@@ -361,13 +374,20 @@ ci:
     wait_for_metadata_ci_green: true
 
 decisions:
-  # Required choices that a task forbids the agent from inventing belong here.
-  # SYS-001 uses portable wire contracts; Nest-only decorated DTOs may remain as
-  # checked validation/transformation adapters and are never imported by Angular.
-  sys_001_rest_contract_source: shared-versioned-framework-neutral-package
-  sys_001_angular_nest_runtime_dependency: forbidden
-  sys_001_nest_validation_adapters: preserve-when-required-and-prove-contract-parity
-  sys_001_migration_policy: incremental-non-breaking
+  sys_020_notebook: remain-blocked
+  ui_018: remain-blocked
+  ng_023: remain-blocked
+  ng_028: remain-blocked
+  task_batching: disabled
+  autonomous_execution_scope: complete-series
+  fe_009:
+    task: "0031"
+    source: FE-009
+    prior_session_state: SESSION_CAPABILITY_PAUSE
+    direct_human_reenable_authorization: true
+    authorize_pending_execution_in_this_session: true
+    require_fresh_shared_test_account_login: true
+    protected_session_must_be_accepted_by_server: true
 
 telemetry:
   record_ci_classification_counts: true
@@ -376,6 +396,7 @@ telemetry:
   record_task_wall_seconds: true
   record_worker_invocations: true
   record_pushes_and_retries: true
+  record_workload_allowlist_counts: true
   unavailable_metrics_must_be_reported_as_unavailable: true
 
 on_finish:
@@ -391,3 +412,6 @@ on_finish:
   emit_final_summary_and_report_path_before_task_complete: true
   task_complete_is_final_autopilot_action: true
   call_task_complete: true
+
+
+

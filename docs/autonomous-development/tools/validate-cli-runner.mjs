@@ -21,10 +21,10 @@ const paths = {
   completedSession: 'docs/autonomous-development/session.48h-2026-09-03.yaml',
   exampleSession: 'docs/autonomous-development/session.example.yaml',
   closedSession: 'docs/autonomous-development/session.until-2026-09-10.yaml',
-  preparedSession: 'docs/autonomous-development/session.overweek-2026-09-16.yaml',
+  preparedSession: 'docs/autonomous-development/session.overweek-2026-09-16-v2.yaml',
   completedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-03-v2.md',
   closedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-06.md',
-  preparedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-09-overweek.md',
+  preparedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-09-overweek-v2.md',
   runtime: 'docs/autonomous-development/RUNTIME.md',
   workflow: '.github/workflows/ci.yml',
   classifier: '.github/scripts/classify-ci.mjs',
@@ -576,15 +576,15 @@ for (const command of ['/model', '/permissions show', '/mcp list', '/keep-alive 
 }
 
 for (const [pattern, message] of [
-  [/docs\/autonomous-development\/session\.overweek-2026-09-16\.yaml/, 'prepared launch must reference its dated session configuration'],
+  [/docs\/autonomous-development\/session\.overweek-2026-09-16-v2\.yaml/, 'prepared launch must reference its dated session configuration'],
   [/2026-09-16T10:00:00\+02:00/, 'prepared launch must retain the exact soft deadline'],
-  [/dummy-auth implementation are integrated into `develop`/i, 'prepared launch must require integrated local dummy auth'],
-  [/browser-profile acceptance\s+probe/i, 'prepared launch must require persistent-profile acceptance'],
+  [/test-account login policy are integrated into `develop`/i, 'prepared launch must require the shared real test-account policy'],
+  [/no\s+profile-persistence or pre-authenticated-state probe is a launch prerequisite/i, 'prepared launch must not depend on persisted profile authentication'],
   [/workload\.tasks` list is empty[\s\S]{0,120}complete Series is in\s*scope/i, 'prepared launch must select the complete Series'],
   [/there is no autonomous allowlist/i, 'prepared launch must explicitly disable workload restriction'],
   [/expected first READY task[\s\S]{0,20}(?:is\s*)?0031/i, 'prepared launch must state the expected first ready task'],
   [/direct human authorization[\s\S]{0,120}(?:0031|FE-009)/i, 'prepared launch must explicitly re-enable FE-009'],
-  [/__local\/dummy-auth[\s\S]{0,240}server/i, 'prepared launch must require a server-accepted dummy-auth session'],
+  [/env\/\.env\.development[\s\S]{0,260}ordinary login[\s\S]{0,260}server/i, 'prepared launch must require a fresh server-accepted real-account login'],
   [/Do[\s\S]{0,10}not bundle tasks/, 'prepared launch must prohibit multi-task bundles'],
   [/npm run autonomous:plan/, 'prepared launch must execute the deterministic planner'],
   [/copilot --agent development-session-coordinator --allow-all-tools --allow-all-urls --add-dir \.\.\/MercurionTox21 --reasoning-effort high --autopilot/, 'prepared launch is missing the deterministic Copilot CLI command'],
@@ -594,13 +594,14 @@ for (const [pattern, message] of [
 for (const staleSessionReference of [
   'docs/autonomous-development/session.until-2026-09-12.yaml',
   'docs/autonomous-development/session.overnight-2026-09-08.yaml',
+  'docs/autonomous-development/session.overweek-2026-09-16.yaml',
 ]) {
   if (preparedLaunch.includes(staleSessionReference)) {
     fail(paths.preparedLaunch, `contains stale session reference ${staleSessionReference}`);
   }
 }
 const preparedSessionReference =
-  'docs/autonomous-development/session.overweek-2026-09-16.yaml';
+  'docs/autonomous-development/session.overweek-2026-09-16-v2.yaml';
 if (preparedLaunch.split(preparedSessionReference).length - 1 !== 2) {
   fail(paths.preparedLaunch, 'must reference the active session exactly twice');
 }
@@ -745,6 +746,7 @@ for (const [pattern, message] of [
 
 for (const [pattern, message] of [
   [/browser_and_allowlist_hardening_pull_request:\s*31/, 'prepared session must record PR #31 provenance'],
+  [/name:\s*mercurion-code-red-0001-overweek-full-series-2026-09-09-v2/, 'prepared session must use a fresh session identity'],
   [/expected_task_count:\s*220/, 'prepared workload must contain 220 tasks'],
   [/expected_current_done:\s*42/, 'prepared workload must record 42 DONE tasks'],
   [/expected_current_blocked:\s*4/, 'prepared workload must record four retained blockers'],
@@ -767,8 +769,12 @@ for (const [pattern, message] of [
   [/owner:\s*development-task-worker/, 'prepared persistent browser must belong to the task worker'],
   [/mode:\s*dedicated-persistent/, 'prepared session must use the dedicated persistent browser'],
   [/failure_result:\s*SESSION_CAPABILITY_PAUSE/, 'prepared session must pause before task mutation when browser capability is missing'],
-  [/authenticated_entrypoint:\s*http:\/\/localhost:8888\/__local\/dummy-auth/, 'prepared session must declare the local dummy-auth entrypoint'],
-  [/LOCAL_DUMMY_AUTH:\s*"true"/, 'prepared session must enable local dummy auth for Nest runtime'],
+  [/authenticated_entrypoint:\s*http:\/\/localhost:8888\/login/, 'prepared session must declare the ordinary login entrypoint'],
+  [/authentication_mode:\s*fresh-shared-real-test-account-login/, 'prepared session must require fresh real-account login per worker'],
+  [/credential_file:\s*MercurionWebNode\/env\/\.env\.development/, 'prepared session must declare the git-ignored credential file'],
+  [/LOCAL_TEST_ACCOUNT_EMAIL[\s\S]*LOCAL_TEST_ACCOUNT_PASSWORD/, 'prepared session must require both shared credential variables'],
+  [/LOCAL_DUMMY_AUTH:\s*"false"/, 'prepared session must disable deprecated local dummy auth'],
+  [/required_once_before_enabling_unattended_reuse:\s*false/, 'prepared session must not gate launch on profile persistence'],
   [/direct_human_reenable_authorization:\s*true/, 'prepared session must carry direct human FE-009 re-enable authorization'],
   [/preserve_existing_frozen_branches:\s*true/, 'prepared session must preserve frozen blocked branches'],
 ]) {
@@ -824,7 +830,8 @@ for (const [pattern, message] of [
   [/failure_result:\s*SESSION_CAPABILITY_PAUSE/, 'missing browser capability pause result'],
   [/propagate_dependency_skips:\s*false/, 'browser capability pause must not propagate dependency skips'],
   [/recovery_failure_signal:\s*BROWSER_PROFILE_RECOVERY_REQUIRED/, 'missing browser profile recovery signal'],
-  [/stop_before_next_task_on_recovery_failure:\s*true/, 'dirty browser profile must stop later task selection'],
+  [/restore_after_explicit_logout_or_storage_test:\s*false/, 'ordinary worker logout must not require auth restoration'],
+  [/stop_before_next_task_on_recovery_failure:\s*false/, 'anonymous profile state must not stop later task selection'],
   [/secrets_in_reports:\s*false/, 'browser secrets must be excluded from reports'],
   [/required_once_before_enabling_unattended_reuse:\s*true/, 'missing one-time persistent-profile acceptance test'],
   [/fresh_sequential_workers:\s*2/, 'persistent profile must be proven across two fresh workers'],
