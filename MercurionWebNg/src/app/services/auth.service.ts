@@ -74,18 +74,10 @@ export class AuthService {
     return this.authState.getAccessToken();
   }
 
-  setAccessToken(token: string | null) {
-    this.authState.updateAccessToken(token);
-  }
-
   /* ───────── WS Access Token (WebSocket) ───────── */
 
   getWs_accessToken(): string | null {
     return this.authState.getWsAccessToken();
-  }
-
-  setWs_accessToken(token: string | null): void {
-    this.authState.updateWsAccessToken(token);
   }
 
   /** true se il token WS è assente o scaduto */
@@ -223,11 +215,15 @@ export class AuthService {
 
   refreshWs_accessToken(): Observable<string> {
     if (!this.inflight$) {
+      const sessionId = this.authState.clientSession()?.sessionId
       this.inflight$ = this.http.get('/api/authentication/ws-refresh', {
         withCredentials: true,
         responseType: 'text'
       }).pipe(
-        tap(tok => this.setWs_accessToken(tok)),
+        tap(tok => {
+          // A refresh is allowed to update only the session that initiated it.
+          if (sessionId) this.authState.rotateWsAccessToken(tok, sessionId)
+        }),
         shareReplay(1),
         finalize(() => { this.inflight$ = undefined; })
       );

@@ -14,10 +14,13 @@ export interface AuthSessionPersistencePort {
   setAccessToken(value: string | null): void
   getWsAccessToken(): string | null
   setWsAccessToken(value: string | null): void
+  getWsAccessTokenTimestamp(): number
   getInitials(): string | null
   setInitials(value: string): void
   getScopes(context?: 'http' | 'ws'): string[] | null
   setScopes(value: string[] | null, context?: 'http' | 'ws'): void
+  commitAuthenticatedSession(value: { accessToken: string; wsAccessToken: string; initials: string; scopes: string[] }): void
+  commitRotatedAccessToken(value: string, scopes: string[]): void
   getWsRefreshLock(): { owner: string; expiresAt: number } | null
   setWsRefreshLock(value: { owner: string; expiresAt: number }): void
   removeWsRefreshLock(): void
@@ -54,12 +57,23 @@ export class InMemoryAuthSessionPersistence implements AuthSessionPersistencePor
     if (value) this.local.set('ws_accessToken_ts', String(Date.now()))
     else this.local.delete('ws_accessToken_ts')
   }
+  getWsAccessTokenTimestamp() { return Number(this.local.get('ws_accessToken_ts') ?? 0) }
   getInitials() { return this.local.get('login') ?? null }
   setInitials(value: string) { this.local.set('login', value) }
   getScopes(context: 'http' | 'ws' = 'http') { return this.decode(this.local.get(context === 'http' ? 'scp' : 'ws_scp'), context === 'http' ? 'scp' : 'ws_scp') }
   setScopes(value: string[] | null, context: 'http' | 'ws' = 'http') {
     const key = context === 'http' ? 'scp' : 'ws_scp'
     this.set(this.local, key, value === null ? null : this.encode(value))
+  }
+  commitAuthenticatedSession(value: { accessToken: string; wsAccessToken: string; initials: string; scopes: string[] }) {
+    this.setAccessToken(value.accessToken)
+    this.setWsAccessToken(value.wsAccessToken)
+    this.setInitials(value.initials)
+    this.setScopes(value.scopes)
+  }
+  commitRotatedAccessToken(value: string, scopes: string[]) {
+    this.setAccessToken(value)
+    this.setScopes(scopes)
   }
   getWsRefreshLock() { return this.decodeJson<{ owner: string; expiresAt: number }>(this.local.get('ws_refresh_lock'), 'ws_refresh_lock') }
   setWsRefreshLock(value: { owner: string; expiresAt: number }) { this.local.set('ws_refresh_lock', JSON.stringify(value)) }
@@ -110,10 +124,21 @@ export class AuthSessionPersistenceService implements AuthSessionPersistencePort
   setAccessToken(value: string | null) { value ? this.setItem(this.local, 'accessToken', value) : this.removeItem(this.local, 'accessToken') }
   getWsAccessToken() { return this.getItem(this.local, 'ws_accessToken') }
   setWsAccessToken(value: string | null) { if (value) { this.setItem(this.local, 'ws_accessToken', value); this.setItem(this.local, 'ws_accessToken_ts', String(Date.now())) } else { this.removeItem(this.local, 'ws_accessToken'); this.removeItem(this.local, 'ws_accessToken_ts') } }
+  getWsAccessTokenTimestamp() { return Number(this.getItem(this.local, 'ws_accessToken_ts') ?? 0) }
   getInitials() { return this.getItem(this.local, 'login') }
   setInitials(value: string) { this.setItem(this.local, 'login', value) }
   getScopes(context: 'http' | 'ws' = 'http') { const key = context === 'http' ? 'scp' : 'ws_scp'; const raw = this.getItem(this.local, key); if (!raw) return null; try { const value = JSON.parse(atob(raw)); if (!Array.isArray(value) || value.some(item => typeof item !== 'string')) throw new Error('invalid scopes'); return value as string[] } catch { this.removeItem(this.local, key); return null } }
   setScopes(value: string[] | null, context: 'http' | 'ws' = 'http') { const key = context === 'http' ? 'scp' : 'ws_scp'; value === null ? this.removeItem(this.local, key) : this.setItem(this.local, key, btoa(JSON.stringify(value))) }
+  commitAuthenticatedSession(value: { accessToken: string; wsAccessToken: string; initials: string; scopes: string[] }) {
+    this.setAccessToken(value.accessToken)
+    this.setWsAccessToken(value.wsAccessToken)
+    this.setInitials(value.initials)
+    this.setScopes(value.scopes)
+  }
+  commitRotatedAccessToken(value: string, scopes: string[]) {
+    this.setAccessToken(value)
+    this.setScopes(scopes)
+  }
   getWsRefreshLock() { const raw = this.getItem(this.local, 'ws_refresh_lock'); if (!raw) return null; try { const value = JSON.parse(raw); if (typeof value.owner !== 'string' || !Number.isFinite(value.expiresAt)) throw new Error('invalid lock'); return value as { owner: string; expiresAt: number } } catch { this.removeWsRefreshLock(); return null } }
   setWsRefreshLock(value: { owner: string; expiresAt: number }) { this.setItem(this.local, 'ws_refresh_lock', JSON.stringify(value)) }
   removeWsRefreshLock() { this.removeItem(this.local, 'ws_refresh_lock') }

@@ -8,9 +8,20 @@ import {
 
 describe('AuthStateStore', () => {
   let store: AuthStateStore
-  const tokenWithScopes = (scopes?: string) => {
-    const payload = btoa(JSON.stringify(scopes === undefined ? {} : { scp: scopes }))
+  const tokenWithScopes = (scopes?: string, sub = 'user-a', sid = 'session-a') => {
+    const payload = btoa(JSON.stringify({
+      sub, sid, ...(scopes === undefined ? {} : { scp: scopes }),
+      exp: Math.floor(Date.now() / 1000) + 3600
+    }))
     return `header.${payload}.signature`
+  }
+  const session = (initials = 'AB', scopes?: string, sub = 'user-a', sid = 'session-a') => {
+    document.cookie = '__logged_in=true; path=/'
+    return {
+      initials,
+      accessToken: tokenWithScopes(scopes, sub, sid),
+      wsAccessToken: tokenWithScopes(scopes, sub, sid)
+    }
   }
 
   beforeEach(() => {
@@ -45,17 +56,13 @@ describe('AuthStateStore', () => {
     store.bootstrap()
     store.beginAuthentication('password')
     store.enterPreAuthentication('pre-auth-token')
-    store.completeAuthentication({
-      initials: 'AB',
-      accessToken: tokenWithScopes('read write'),
-      wsAccessToken: 'ws'
-    })
+    store.completeAuthentication(session('AB', 'read write'))
 
     expect(store.state()).toEqual({
       kind: 'authenticated',
       initials: 'AB',
       accessToken: tokenWithScopes('read write'),
-      wsAccessToken: 'ws',
+      wsAccessToken: tokenWithScopes('read write'),
       scopes: ['read', 'write']
     })
     expect(store.initials()).toBe('AB')
@@ -68,7 +75,7 @@ describe('AuthStateStore', () => {
   it('uses typed invalidation and reconnect protocol transitions', () => {
     store.bootstrap()
     store.beginAuthentication('password')
-    store.completeAuthentication({ initials: 'AB' })
+    store.completeAuthentication(session())
     store.requireReconnect()
 
     expect(store.sessionProtocol()).toEqual({
@@ -91,7 +98,7 @@ describe('AuthStateStore', () => {
     store.enterPreAuthentication()
     expect(store.isPreAuth()).toBeTrue()
 
-    store.completeAuthentication({ initials: 'AB', accessToken: 'a', wsAccessToken: 'w' })
+    store.completeAuthentication(session())
     store.invalidate(SessionInvalidationCause.SessionExpired)
     expect(store.authenticated()).toBeFalse()
     expect(store.state().kind).toBe('session-expired')
@@ -114,20 +121,22 @@ describe('AuthStateStore', () => {
   it('records credential refreshes in the canonical protocol', () => {
     store.bootstrap()
     store.beginAuthentication('password')
-    store.completeAuthentication({ initials: 'AB', accessToken: 'old' })
+    store.completeAuthentication(session('AB'))
 
-    store.updateAccessToken('new')
+    store.rotateAccessToken(tokenWithScopes(undefined, 'user-a', 'session-a'))
 
-    expect(store.state()).toEqual(jasmine.objectContaining({ kind: 'authenticated', accessToken: 'new' }))
+    expect(store.state()).toEqual(jasmine.objectContaining({ kind: 'authenticated', accessToken: tokenWithScopes(undefined) }))
     expect(store.sessionProtocol().state).toBe(SessionState.Authenticated)
   })
 
   it('rejects an expired access token from the authenticated selector', () => {
     store.bootstrap()
     store.beginAuthentication('password')
-    const payload = btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) - 1 }))
+    const payload = btoa(JSON.stringify({
+      sub: 'user-a', sid: 'session-a', exp: Math.floor(Date.now() / 1000) - 1
+    }))
     store.completeAuthentication({
-      initials: 'AB',
+      ...session('AB'),
       accessToken: `header.${payload}.signature`
     })
 
@@ -137,7 +146,7 @@ describe('AuthStateStore', () => {
   it('rejects authenticated state after explicit protocol invalidation', () => {
     store.bootstrap()
     store.beginAuthentication('password')
-    store.completeAuthentication({ initials: 'AB' })
+    store.completeAuthentication(session())
     store.invalidate(SessionInvalidationCause.SessionRevoked)
 
     expect(store.authenticated()).toBeFalse()
@@ -146,17 +155,11 @@ describe('AuthStateStore', () => {
   it('derives scopes once from each accepted access token and replaces an old user scope set', () => {
     store.bootstrap()
     store.beginAuthentication('password')
-    store.activateAuthenticatedSession({
-      initials: 'AB',
-      accessToken: tokenWithScopes('read write')
-    })
+    store.activateAuthenticatedSession(session('AB', 'read write'))
     expect(store.state()).toEqual(jasmine.objectContaining({ scopes: ['read', 'write'] }))
 
     store.beginAuthentication('password')
-    store.activateAuthenticatedSession({
-      initials: 'CD',
-      accessToken: tokenWithScopes()
-    })
+    store.activateAuthenticatedSession(session('CD'))
     expect(store.state()).toEqual(jasmine.objectContaining({ initials: 'CD', scopes: [] }))
     expect(store.getCachedScopes()).toEqual([])
   })
@@ -164,10 +167,7 @@ describe('AuthStateStore', () => {
   it('clears scopes on logout after a completed login', () => {
     store.bootstrap()
     store.beginAuthentication('password')
-    store.activateAuthenticatedSession({
-      initials: 'AB',
-      accessToken: tokenWithScopes('admin')
-    })
+    store.activateAuthenticatedSession(session('AB', 'admin'))
 
     store.logout()
 
@@ -176,7 +176,7 @@ describe('AuthStateStore', () => {
   })
 
   it('rejects illegal transitions', () => {
-    expect(() => store.completeAuthentication({ initials: 'AB' }))
+    expect(() => store.completeAuthentication(session()))
       .toThrowError('Illegal auth transition: bootstrap -> authenticated')
     expect(localStorage.getItem('login')).toBeNull()
     expect(localStorage.getItem('accessToken')).toBeNull()
@@ -189,8 +189,8 @@ describe('AuthStateStore', () => {
 
     expect(() => store.completeAuthentication({
       initials: 'AB',
-      accessToken: 'stale-access',
-      wsAccessToken: 'stale-ws'
+      accessToken: tokenWithScopes(undefined, 'user-a', 'stale-session'),
+      wsAccessToken: tokenWithScopes(undefined, 'user-a', 'stale-session')
     })).toThrowError('Illegal auth transition: session-expired -> authenticated')
 
     expect(store.state()).toEqual({ kind: 'session-expired', reason: SessionInvalidationCause.InvalidSession })
@@ -206,7 +206,7 @@ describe('AuthStateStore', () => {
     store.completeAuthentication({
       initials: 'AB',
       accessToken: tokenWithScopes('read'),
-      wsAccessToken: 'server-ws-token'
+      wsAccessToken: tokenWithScopes(undefined, 'user-a', 'session-a')
     })
 
     expect(store.state()).toEqual(jasmine.objectContaining({
@@ -236,11 +236,7 @@ describe('AuthStateStore', () => {
   it('enters recovery anonymously and preserves unrelated local/session storage', () => {
     store.bootstrap()
     store.beginAuthentication('password')
-    store.activateAuthenticatedSession({
-      initials: 'AB',
-      accessToken: 'access-token',
-      wsAccessToken: 'ws-token'
-    })
+    store.activateAuthenticatedSession(session())
     localStorage.setItem('theme', 'dark')
     sessionStorage.setItem('preference', 'compact')
     sessionStorage.setItem('preAuthorizationData', 'pre-auth')
@@ -256,5 +252,34 @@ describe('AuthStateStore', () => {
     expect(sessionStorage.getItem('preAuthorizationData')).toBeNull()
     expect(localStorage.getItem('theme')).toBe('dark')
     expect(sessionStorage.getItem('preference')).toBe('compact')
+  })
+
+  it('rejects tokens from another user or server session', () => {
+    store.bootstrap()
+    store.beginAuthentication('password')
+    store.activateAuthenticatedSession(session('AB', 'read'))
+
+    expect(store.rotateAccessToken(tokenWithScopes('write', 'user-b', 'session-b'))).toBeFalse()
+    expect(store.rotateWsAccessToken(tokenWithScopes(undefined, 'user-a', 'session-b'))).toBeFalse()
+    expect(store.clientSession()?.sessionId).toBe('session-a')
+    expect(store.state()).toEqual(jasmine.objectContaining({ scopes: ['read'] }))
+  })
+
+  it('does not let a late refresh overwrite a replacement session', () => {
+    store.bootstrap()
+    store.beginAuthentication('password')
+    store.activateAuthenticatedSession(session('AB', 'read', 'user-a', 'session-a'))
+    const oldRefresh = tokenWithScopes(undefined, 'user-a', 'session-a')
+
+    store.logout()
+    store.beginAuthentication('password')
+    store.activateAuthenticatedSession(session('CD', 'write', 'user-b', 'session-b'))
+
+    expect(store.rotateWsAccessToken(oldRefresh, 'session-a')).toBeFalse()
+    expect(store.clientSession()).toEqual(jasmine.objectContaining({
+      userId: 'user-b',
+      sessionId: 'session-b',
+      initials: 'CD'
+    }))
   })
 })
