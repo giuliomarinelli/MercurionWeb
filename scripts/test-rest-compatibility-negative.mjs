@@ -10,6 +10,12 @@ if (normalizeSourceText(windowsSourceText) !== normalizeSourceText(linuxSourceTe
 console.log('determinism check passed: CRLF and LF source text normalize identically');
 
 const baseline = buildInventory();
+if (baseline.schemaVersion !== 4) {
+    throw new Error(`expected line-independent schemaVersion 4, found ${baseline.schemaVersion}`);
+}
+if (baseline.entries.some((entry) => Object.hasOwn(entry.consumer, 'line') || Object.hasOwn(entry.server ?? {}, 'line'))) {
+    throw new Error('REST compatibility inventory must not persist source line numbers');
+}
 const cases = [
     {
         name: 'wrong verb',

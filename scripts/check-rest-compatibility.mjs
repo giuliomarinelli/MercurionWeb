@@ -680,14 +680,14 @@ export function buildInventory() {
         return {
             id: call.id,
             consumer: {
-                file: call.file, class: call.className, method: call.methodName, ordinal: call.ordinal, line: call.line,
+                file: call.file, class: call.className, method: call.methodName, ordinal: call.ordinal,
                 verb: call.verb, path: call.path, urlVariants: call.urlVariants,
                 pathParameters: call.pathParameters, queryParameters: call.queryParameters,
                 body: { expression: call.bodyExpression, type: call.bodyType, contract: withoutShape(bodyContract) },
                 response: { type: call.responseType, mode: call.responseMode, options: call.responseOptions, contract: withoutShape(responseContract) },
             },
             server: server ? {
-                controller: server.controller, handler: server.handler, line: server.line, verb: server.method, path: server.path,
+                controller: server.controller, handler: server.handler, verb: server.method, path: server.path,
                 parameters: server.parameters, returnType: server.returnType,
                 successStatus: server.successStatus ?? (server.method === 'POST' ? 201 : 200),
                 errorStatuses: {
@@ -712,7 +712,7 @@ export function buildInventory() {
         };
     });
     return {
-        schemaVersion: 3,
+        schemaVersion: 4,
         generatedBy: 'node scripts/check-rest-compatibility.mjs --write',
         runtime,
         totalClientCalls: entries.length,
@@ -724,7 +724,7 @@ export function buildInventory() {
 
 export function validateCompatibility(inventory, expected = inventory) {
     const failures = [];
-    if (inventory.schemaVersion !== 3) failures.push(`expected schemaVersion 3, found ${inventory.schemaVersion}`);
+    if (inventory.schemaVersion !== 4) failures.push(`expected schemaVersion 4, found ${inventory.schemaVersion}`);
     if (JSON.stringify(inventory.runtime) !== JSON.stringify(expected.runtime)) failures.push('effective Angular/nginx/Nest runtime configuration drifted');
     if (inventory.runtime?.angular?.requestOrigin !== 'same-origin') failures.push('Angular REST requests must remain same-origin');
     if (inventory.runtime?.angular?.interceptorUrlMutations?.length !== 0) failures.push('Angular interceptors must not rewrite REST paths without explicit compatibility support');

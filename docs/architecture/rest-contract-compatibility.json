@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "generatedBy": "node scripts/check-rest-compatibility.mjs --write",
   "runtime": {
     "angular": {
@@ -45,7 +45,6 @@
         "class": "AccountService",
         "method": "activateAccount",
         "ordinal": 0,
-        "line": 115,
         "verb": "PATCH",
         "path": "/api/account/activate",
         "urlVariants": [
@@ -92,7 +91,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "activateAccount",
-        "line": 56,
         "verb": "PATCH",
         "path": "/api/account/activate",
         "parameters": [
@@ -177,7 +175,6 @@
         "class": "AccountService",
         "method": "changeEmail_firstStep",
         "ordinal": 0,
-        "line": 235,
         "verb": "PATCH",
         "path": "/api/account/email/1",
         "urlVariants": [
@@ -219,7 +216,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "changeEmail_firstStep",
-        "line": 64,
         "verb": "PATCH",
         "path": "/api/account/email/1",
         "parameters": [
@@ -329,7 +325,6 @@
         "class": "AccountService",
         "method": "changeEmail_secondStep",
         "ordinal": 0,
-        "line": 245,
         "verb": "PATCH",
         "path": "/api/account/email/2",
         "urlVariants": [
@@ -369,7 +364,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "changeEmail_secondStep",
-        "line": 72,
         "verb": "PATCH",
         "path": "/api/account/email/2",
         "parameters": [
@@ -485,7 +479,6 @@
         "class": "AccountService",
         "method": "changePassword",
         "ordinal": 0,
-        "line": 109,
         "verb": "PATCH",
         "path": "/api/account/password",
         "urlVariants": [
@@ -524,7 +517,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "changePassword",
-        "line": 184,
         "verb": "PATCH",
         "path": "/api/account/password",
         "parameters": [
@@ -634,7 +626,6 @@
         "class": "AccountService",
         "method": "changePhoneNumber_firstStep",
         "ordinal": 0,
-        "line": 255,
         "verb": "PATCH",
         "path": "/api/account/phone/1",
         "urlVariants": [
@@ -676,7 +667,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "changePhoneNumber_firstStep",
-        "line": 94,
         "verb": "PATCH",
         "path": "/api/account/phone/1",
         "parameters": [
@@ -794,7 +784,6 @@
         "class": "AccountService",
         "method": "changePhoneNumber_secondStep",
         "ordinal": 0,
-        "line": 265,
         "verb": "PATCH",
         "path": "/api/account/phone/2",
         "urlVariants": [
@@ -834,7 +823,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "changePhoneNumber_secondStep",
-        "line": 102,
         "verb": "PATCH",
         "path": "/api/account/phone/2",
         "parameters": [
@@ -950,7 +938,6 @@
         "class": "AccountService",
         "method": "deletePhoneNumber_firstStep",
         "ordinal": 0,
-        "line": 271,
         "verb": "DELETE",
         "path": "/api/account/phone/1",
         "urlVariants": [
@@ -988,7 +975,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "deletePhoneNumber_firstStep",
-        "line": 82,
         "verb": "DELETE",
         "path": "/api/account/phone/1",
         "parameters": [],
@@ -1068,7 +1054,6 @@
         "class": "AccountService",
         "method": "deletePhoneNumber_secondStep",
         "ordinal": 0,
-        "line": 281,
         "verb": "PATCH",
         "path": "/api/account/phone/del/2",
         "urlVariants": [
@@ -1109,7 +1094,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "deletePhoneNumber_secondStep",
-        "line": 87,
         "verb": "PATCH",
         "path": "/api/account/phone/del/2",
         "parameters": [
@@ -1225,7 +1209,6 @@
         "class": "AccountService",
         "method": "disableMfa_firstStep",
         "ordinal": 0,
-        "line": 194,
         "verb": "PATCH",
         "path": "/api/account/mfa/disable/:strategy/1",
         "urlVariants": [
@@ -1272,7 +1255,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "disableMfa_firstStep",
-        "line": 140,
         "verb": "PATCH",
         "path": "/api/account/mfa/disable/:strategy/1",
         "parameters": [
@@ -1363,7 +1345,6 @@
         "class": "AccountService",
         "method": "disableMfa_secondStep",
         "ordinal": 0,
-        "line": 204,
         "verb": "PATCH",
         "path": "/api/account/mfa/disable/:strategy/2",
         "urlVariants": [
@@ -1409,7 +1390,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "disableMfa_secondStep",
-        "line": 152,
         "verb": "PATCH",
         "path": "/api/account/mfa/disable/:strategy/2",
         "parameters": [
@@ -1531,7 +1511,6 @@
         "class": "AccountService",
         "method": "enableMfa_firstStep",
         "ordinal": 0,
-        "line": 178,
         "verb": "PATCH",
         "path": "/api/account/mfa/enable/:strategy/1",
         "urlVariants": [
@@ -1578,7 +1557,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "enableMfa_firstStep",
-        "line": 114,
         "verb": "PATCH",
         "path": "/api/account/mfa/enable/:strategy/1",
         "parameters": [
@@ -1669,7 +1647,6 @@
         "class": "AccountService",
         "method": "enableMfa_secondStep",
         "ordinal": 0,
-        "line": 188,
         "verb": "PATCH",
         "path": "/api/account/mfa/enable/:strategy/2",
         "urlVariants": [
@@ -1715,7 +1692,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "enableMfa_secondStep",
-        "line": 126,
         "verb": "PATCH",
         "path": "/api/account/mfa/enable/:strategy/2",
         "parameters": [
@@ -1837,7 +1813,6 @@
         "class": "AccountService",
         "method": "getActiveSessions",
         "ordinal": 0,
-        "line": 152,
         "verb": "GET",
         "path": "/api/account/active-sessions",
         "urlVariants": [
@@ -1872,7 +1847,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "getActiveSessions",
-        "line": 273,
         "verb": "GET",
         "path": "/api/account/active-sessions",
         "parameters": [],
@@ -1946,7 +1920,6 @@
         "class": "AccountService",
         "method": "getAuthProvider",
         "ordinal": 0,
-        "line": 68,
         "verb": "GET",
         "path": "/api/account/auth-provider",
         "urlVariants": [
@@ -1982,7 +1955,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "getAuthProvider",
-        "line": 175,
         "verb": "GET",
         "path": "/api/account/auth-provider",
         "parameters": [],
@@ -2058,7 +2030,6 @@
         "class": "AccountService",
         "method": "getBackupCodes",
         "ordinal": 0,
-        "line": 210,
         "verb": "PATCH",
         "path": "/api/account/mfa/backup/regenerate",
         "urlVariants": [
@@ -2095,7 +2066,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "regenerateBackupCodes",
-        "line": 288,
         "verb": "PATCH",
         "path": "/api/account/mfa/backup/regenerate",
         "parameters": [],
@@ -2169,7 +2139,6 @@
         "class": "AccountService",
         "method": "getBackupCodesStatus",
         "ordinal": 0,
-        "line": 218,
         "verb": "GET",
         "path": "/api/account/mfa/backup/status",
         "urlVariants": [
@@ -2204,7 +2173,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "getBackupCodesStatus",
-        "line": 281,
         "verb": "GET",
         "path": "/api/account/mfa/backup/status",
         "parameters": [],
@@ -2278,7 +2246,6 @@
         "class": "AccountService",
         "method": "getCurrentVersion",
         "ordinal": 0,
-        "line": 158,
         "verb": "GET",
         "path": "/api/account/current-version",
         "urlVariants": [
@@ -2313,7 +2280,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "getCurrentVersion",
-        "line": 319,
         "verb": "GET",
         "path": "/api/account/current-version",
         "parameters": [],
@@ -2387,7 +2353,6 @@
         "class": "AccountService",
         "method": "getEnabledMfaStrategies",
         "ordinal": 0,
-        "line": 146,
         "verb": "GET",
         "path": "/api/account/mfa-active-strategies",
         "urlVariants": [
@@ -2422,7 +2387,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "getMfaActiveStrategies",
-        "line": 312,
         "verb": "GET",
         "path": "/api/account/mfa-active-strategies",
         "parameters": [],
@@ -2496,7 +2460,6 @@
         "class": "AccountService",
         "method": "getEssentialProfileRegistry",
         "ordinal": 0,
-        "line": 128,
         "verb": "GET",
         "path": "/api/account/profile-registry/essential",
         "urlVariants": [
@@ -2532,7 +2495,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "getEssentialProfileRegistry",
-        "line": 249,
         "verb": "GET",
         "path": "/api/account/profile-registry/essential",
         "parameters": [],
@@ -2608,7 +2570,6 @@
         "class": "AccountService",
         "method": "getMaskedEmail",
         "ordinal": 0,
-        "line": 164,
         "verb": "GET",
         "path": "/api/account/masked-email",
         "urlVariants": [
@@ -2642,7 +2603,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "getMaskedEmail",
-        "line": 331,
         "verb": "GET",
         "path": "/api/account/masked-email",
         "parameters": [],
@@ -2714,7 +2674,6 @@
         "class": "AccountService",
         "method": "getMaskedPhone",
         "ordinal": 0,
-        "line": 171,
         "verb": "GET",
         "path": "/api/account/masked-phone",
         "urlVariants": [
@@ -2748,7 +2707,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "getMaskedPhone",
-        "line": 340,
         "verb": "GET",
         "path": "/api/account/masked-phone",
         "parameters": [],
@@ -2818,7 +2776,6 @@
         "class": "AccountService",
         "method": "getProfileRegistry",
         "ordinal": 0,
-        "line": 122,
         "verb": "GET",
         "path": "/api/account/profile-registry",
         "urlVariants": [
@@ -2863,7 +2820,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "getProfileRegistry",
-        "line": 237,
         "verb": "GET",
         "path": "/api/account/profile-registry",
         "parameters": [
@@ -2948,7 +2904,6 @@
         "class": "AccountService",
         "method": "getProvidedEmail",
         "ordinal": 0,
-        "line": 59,
         "verb": "GET",
         "path": "/api/account/email",
         "urlVariants": [
@@ -2983,7 +2938,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "getProvidedEmail",
-        "line": 166,
         "verb": "GET",
         "path": "/api/account/email",
         "parameters": [],
@@ -3059,7 +3013,6 @@
         "class": "AccountService",
         "method": "getRemainingBackupCodes",
         "ordinal": 0,
-        "line": 224,
         "verb": "GET",
         "path": "/api/account/mfa/backup/status",
         "urlVariants": [
@@ -3094,7 +3047,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "getBackupCodesStatus",
-        "line": 281,
         "verb": "GET",
         "path": "/api/account/mfa/backup/status",
         "parameters": [],
@@ -3168,7 +3120,6 @@
         "class": "AccountService",
         "method": "isAuthorizedToRecoverPassword",
         "ordinal": 0,
-        "line": 91,
         "verb": "GET",
         "path": "/api/account/is-authorized-to-recover-password",
         "urlVariants": [
@@ -3202,7 +3153,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "isAuthorizedToRecoverPassword",
-        "line": 230,
         "verb": "GET",
         "path": "/api/account/is-authorized-to-recover-password",
         "parameters": [],
@@ -3270,7 +3220,6 @@
         "class": "AccountService",
         "method": "isMfaEnabled",
         "ordinal": 0,
-        "line": 140,
         "verb": "GET",
         "path": "/api/account/is-mfa-enabled",
         "urlVariants": [
@@ -3303,7 +3252,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "isMfaEnabled",
-        "line": 307,
         "verb": "GET",
         "path": "/api/account/is-mfa-enabled",
         "parameters": [],
@@ -3373,7 +3321,6 @@
         "class": "AccountService",
         "method": "maskEmail",
         "ordinal": 0,
-        "line": 290,
         "verb": "POST",
         "path": "/api/account/mask-email",
         "urlVariants": [
@@ -3411,7 +3358,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "maskEmail",
-        "line": 350,
         "verb": "POST",
         "path": "/api/account/mask-email",
         "parameters": [
@@ -3511,7 +3457,6 @@
         "class": "AccountService",
         "method": "maskPhone",
         "ordinal": 0,
-        "line": 301,
         "verb": "POST",
         "path": "/api/account/mask-phone",
         "urlVariants": [
@@ -3549,7 +3494,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "maskPhone",
-        "line": 356,
         "verb": "POST",
         "path": "/api/account/mask-phone",
         "parameters": [
@@ -3657,7 +3601,6 @@
         "class": "AccountService",
         "method": "recoverPassword",
         "ordinal": 0,
-        "line": 100,
         "verb": "PATCH",
         "path": "/api/account/password-recovery",
         "urlVariants": [
@@ -3697,7 +3640,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "passwordRecovery",
-        "line": 219,
         "verb": "PATCH",
         "path": "/api/account/password-recovery",
         "parameters": [
@@ -3805,7 +3747,6 @@
         "class": "AccountService",
         "method": "sendForgottenPasswordLink",
         "ordinal": 0,
-        "line": 82,
         "verb": "POST",
         "path": "/api/account/forgotten-password",
         "urlVariants": [
@@ -3846,7 +3787,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "forgottenPassword",
-        "line": 201,
         "verb": "POST",
         "path": "/api/account/forgotten-password",
         "parameters": [
@@ -3952,7 +3892,6 @@
         "class": "AccountService",
         "method": "updateProfileRegistry",
         "ordinal": 0,
-        "line": 134,
         "verb": "PATCH",
         "path": "/api/account/profile-registry",
         "urlVariants": [
@@ -3992,7 +3931,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "updateProfileRegistry",
-        "line": 254,
         "verb": "PATCH",
         "path": "/api/account/profile-registry",
         "parameters": [
@@ -4125,7 +4063,6 @@
         "class": "AuthService",
         "method": "isUserAvailableByEmail",
         "ordinal": 0,
-        "line": 129,
         "verb": "POST",
         "path": "/api/account/is-email-available",
         "urlVariants": [
@@ -4162,7 +4099,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "isEmailAvailable",
-        "line": 268,
         "verb": "POST",
         "path": "/api/account/is-email-available",
         "parameters": [
@@ -4260,7 +4196,6 @@
         "class": "AuthService",
         "method": "login_firstStep",
         "ordinal": 0,
-        "line": 145,
         "verb": "POST",
         "path": "/api/authentication/login/1",
         "urlVariants": [
@@ -4303,7 +4238,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
         "handler": "login_firstStep",
-        "line": 121,
         "verb": "POST",
         "path": "/api/authentication/login/1",
         "parameters": [
@@ -4429,7 +4363,6 @@
         "class": "AuthService",
         "method": "login_secondStep",
         "ordinal": 0,
-        "line": 157,
         "verb": "POST",
         "path": "/api/authentication/login/:strategy/2",
         "urlVariants": [
@@ -4485,7 +4418,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
         "handler": "login_secondStep",
-        "line": 178,
         "verb": "POST",
         "path": "/api/authentication/login/:strategy/2",
         "parameters": [
@@ -4580,7 +4512,6 @@
         "class": "AuthService",
         "method": "login_stepZero",
         "ordinal": 0,
-        "line": 137,
         "verb": "POST",
         "path": "/api/authentication/login/0",
         "urlVariants": [
@@ -4619,7 +4550,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
         "handler": "login_zeroStep",
-        "line": 111,
         "verb": "POST",
         "path": "/api/authentication/login/0",
         "parameters": [
@@ -4723,7 +4653,6 @@
         "class": "AuthService",
         "method": "login_thirdStep",
         "ordinal": 0,
-        "line": 182,
         "verb": "POST",
         "path": "/api/authentication/login/:strategy/3",
         "urlVariants": [
@@ -4780,7 +4709,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
         "handler": "login_thirdStep",
-        "line": 203,
         "verb": "POST",
         "path": "/api/authentication/login/:strategy/3",
         "parameters": [
@@ -4903,7 +4831,6 @@
         "class": "AuthService",
         "method": "logout",
         "ordinal": 0,
-        "line": 199,
         "verb": "DELETE",
         "path": "/api/authentication/logout",
         "urlVariants": [
@@ -4936,7 +4863,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
         "handler": "logout",
-        "line": 282,
         "verb": "DELETE",
         "path": "/api/authentication/logout",
         "parameters": [],
@@ -5004,7 +4930,6 @@
         "class": "AuthService",
         "method": "logoutFromAllSessions",
         "ordinal": 0,
-        "line": 377,
         "verb": "PATCH",
         "path": "/api/authentication/logout-from-all-sessions",
         "urlVariants": [
@@ -5041,7 +4966,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
         "handler": "logoutFromAllSessions",
-        "line": 315,
         "verb": "PATCH",
         "path": "/api/authentication/logout-from-all-sessions",
         "parameters": [],
@@ -5115,7 +5039,6 @@
         "class": "AuthService",
         "method": "logoutFromSession",
         "ordinal": 0,
-        "line": 366,
         "verb": "PATCH",
         "path": "/api/authentication/logout-from-session",
         "urlVariants": [
@@ -5154,7 +5077,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
         "handler": "logoutFromSession",
-        "line": 299,
         "verb": "PATCH",
         "path": "/api/authentication/logout-from-session",
         "parameters": [
@@ -5258,7 +5180,6 @@
         "class": "AuthService",
         "method": "refreshWs_accessToken",
         "ordinal": 0,
-        "line": 208,
         "verb": "GET",
         "path": "/api/authentication/ws-refresh",
         "urlVariants": [
@@ -5292,7 +5213,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
         "handler": "refreshWs_accessToken",
-        "line": 326,
         "verb": "GET",
         "path": "/api/authentication/ws-refresh",
         "parameters": [],
@@ -5362,7 +5282,6 @@
         "class": "AuthService",
         "method": "registerUser",
         "ordinal": 0,
-        "line": 119,
         "verb": "POST",
         "path": "/api/account/register",
         "urlVariants": [
@@ -5403,7 +5322,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "registerUser",
-        "line": 49,
         "verb": "POST",
         "path": "/api/account/register",
         "parameters": [
@@ -5552,7 +5470,6 @@
         "class": "AuthService",
         "method": "skipMaintenanceMode",
         "ordinal": 0,
-        "line": 397,
         "verb": "GET",
         "path": "/api/admin/maintenance",
         "urlVariants": [
@@ -5596,7 +5513,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/admin/controllers/admin.controller.ts",
         "handler": "getAdminMaintenanceCookie",
-        "line": 31,
         "verb": "GET",
         "path": "/api/admin/maintenance",
         "parameters": [
@@ -5679,7 +5595,6 @@
         "class": "AuthService",
         "method": "sso_authorizeFlow",
         "ordinal": 0,
-        "line": 386,
         "verb": "POST",
         "path": "/api/authentication/sso/:provider/authorize-flow",
         "urlVariants": [
@@ -5724,7 +5639,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
         "handler": "authorize_sso",
-        "line": 335,
         "verb": "POST",
         "path": "/api/authentication/sso/:provider/authorize-flow",
         "parameters": [
@@ -5810,7 +5724,6 @@
         "class": "CountryService",
         "method": "getAllPhonePrefixes",
         "ordinal": 0,
-        "line": 18,
         "verb": "GET",
         "path": "/api/countries/phone-prefixes",
         "urlVariants": [
@@ -5845,7 +5758,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/country.controller.ts",
         "handler": "getAllPhonePrefixes",
-        "line": 10,
         "verb": "GET",
         "path": "/api/countries/phone-prefixes",
         "parameters": [],
@@ -5919,7 +5831,6 @@
         "class": "EmbeddingService",
         "method": "getSimilarMolregnos",
         "ordinal": 0,
-        "line": 14,
         "verb": "GET",
         "path": "/api/embedding/get-similar-molregnos",
         "urlVariants": [
@@ -5988,7 +5899,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/embedding/controllers/embedding.controller.ts",
         "handler": "getSimilarMolregnos",
-        "line": 12,
         "verb": "GET",
         "path": "/api/embedding/get-similar-molregnos",
         "parameters": [
@@ -6094,7 +6004,6 @@
         "class": "FeedbackService",
         "method": "createFeedback",
         "ordinal": 0,
-        "line": 24,
         "verb": "POST",
         "path": "/api/feedback",
         "urlVariants": [
@@ -6133,7 +6042,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/feedback/controllers/feedback.controller.ts",
         "handler": "create",
-        "line": 38,
         "verb": "POST",
         "path": "/api/feedback",
         "parameters": [
@@ -6334,7 +6242,6 @@
         "class": "FeedbackService",
         "method": "deleteFeedback",
         "ordinal": 0,
-        "line": 55,
         "verb": "DELETE",
         "path": "/api/feedback/:id",
         "urlVariants": [
@@ -6375,7 +6282,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/feedback/controllers/feedback.controller.ts",
         "handler": "delete",
-        "line": 91,
         "verb": "DELETE",
         "path": "/api/feedback/:id",
         "parameters": [
@@ -6464,7 +6370,6 @@
         "class": "FeedbackService",
         "method": "getFeedbackById",
         "ordinal": 0,
-        "line": 43,
         "verb": "GET",
         "path": "/api/feedback/:id",
         "urlVariants": [
@@ -6505,7 +6410,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/feedback/controllers/feedback.controller.ts",
         "handler": "getById",
-        "line": 66,
         "verb": "GET",
         "path": "/api/feedback/:id",
         "parameters": [
@@ -6594,7 +6498,6 @@
         "class": "FeedbackService",
         "method": "listFeedbacks",
         "ordinal": 0,
-        "line": 37,
         "verb": "GET",
         "path": "/api/feedback",
         "urlVariants": [
@@ -6666,7 +6569,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/feedback/controllers/feedback.controller.ts",
         "handler": "list",
-        "line": 46,
         "verb": "GET",
         "path": "/api/feedback",
         "parameters": [
@@ -6773,7 +6675,6 @@
         "class": "FeedbackService",
         "method": "moderateFeedback",
         "ordinal": 0,
-        "line": 49,
         "verb": "PATCH",
         "path": "/api/feedback/:id",
         "urlVariants": [
@@ -6818,7 +6719,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/feedback/controllers/feedback.controller.ts",
         "handler": "moderate",
-        "line": 79,
         "verb": "PATCH",
         "path": "/api/feedback/:id",
         "parameters": [
@@ -6953,7 +6853,6 @@
         "class": "HistoryService",
         "method": "deleteHistory",
         "ordinal": 0,
-        "line": 31,
         "verb": "DELETE",
         "path": "/api/history",
         "urlVariants": [
@@ -6986,7 +6885,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/history/controllers/history.controller.ts",
         "handler": "deleteHistory",
-        "line": 55,
         "verb": "DELETE",
         "path": "/api/history",
         "parameters": [],
@@ -7056,7 +6954,6 @@
         "class": "HistoryService",
         "method": "getHistory",
         "ordinal": 0,
-        "line": 16,
         "verb": "GET",
         "path": "/api/history",
         "urlVariants": [
@@ -7109,7 +7006,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/history/controllers/history.controller.ts",
         "handler": "getHistory",
-        "line": 23,
         "verb": "GET",
         "path": "/api/history",
         "parameters": [
@@ -7202,7 +7098,6 @@
         "class": "LocalDummyAuthService",
         "method": "activate",
         "ordinal": 0,
-        "line": 46,
         "verb": "POST",
         "path": "/api/authentication/local-dummy",
         "urlVariants": [
@@ -7241,7 +7136,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
         "handler": "localDummyLogin",
-        "line": 74,
         "verb": "POST",
         "path": "/api/authentication/local-dummy",
         "parameters": [],
@@ -7317,7 +7211,6 @@
         "class": "MercurionAiService",
         "method": "t1Inference",
         "ordinal": 0,
-        "line": 14,
         "verb": "POST",
         "path": "/api/mercurion-ai/tox-21/infer",
         "urlVariants": [
@@ -7356,7 +7249,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/mercurion-ai/controllers/mercurion-ai.controller.ts",
         "handler": "inferTox21Top4Smiles",
-        "line": 15,
         "verb": "POST",
         "path": "/api/mercurion-ai/tox-21/infer",
         "parameters": [
@@ -7460,7 +7352,6 @@
         "class": "RdKitApiService",
         "method": "areSameStructure",
         "ordinal": 0,
-        "line": 32,
         "verb": "POST",
         "path": "/api/rdkit-api/are-same-structure",
         "urlVariants": [
@@ -7498,7 +7389,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/mercurion-ai/controllers/rd-kit.controller.ts",
         "handler": "areSameStructure",
-        "line": 35,
         "verb": "POST",
         "path": "/api/rdkit-api/are-same-structure",
         "parameters": [
@@ -7617,7 +7507,6 @@
         "class": "RdKitApiService",
         "method": "getMoleculeProperties",
         "ordinal": 0,
-        "line": 19,
         "verb": "POST",
         "path": "/api/rdkit-api/get-molecule-properties",
         "urlVariants": [
@@ -7657,7 +7546,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/mercurion-ai/controllers/rd-kit.controller.ts",
         "handler": "getMoleculeProperties",
-        "line": 15,
         "verb": "POST",
         "path": "/api/rdkit-api/get-molecule-properties",
         "parameters": [
@@ -7770,7 +7658,6 @@
         "class": "RdKitApiService",
         "method": "toCanonicalSmiles",
         "ordinal": 0,
-        "line": 25,
         "verb": "POST",
         "path": "/api/rdkit-api/to-canonical-smiles",
         "urlVariants": [
@@ -7809,7 +7696,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/mercurion-ai/controllers/rd-kit.controller.ts",
         "handler": "toCanonicalSmiles",
-        "line": 25,
         "verb": "POST",
         "path": "/api/rdkit-api/to-canonical-smiles",
         "parameters": [
@@ -7927,7 +7813,6 @@
         "class": "RecoveryService",
         "method": "accountRecovery_firstStep",
         "ordinal": 0,
-        "line": 31,
         "verb": "POST",
         "path": "/api/recovery/1",
         "urlVariants": [
@@ -7968,7 +7853,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/recovery.controller.ts",
         "handler": "accountRecovery_firstStep",
-        "line": 33,
         "verb": "POST",
         "path": "/api/recovery/1",
         "parameters": [
@@ -8074,7 +7958,6 @@
         "class": "RecoveryService",
         "method": "accountRecovery_secondStep",
         "ordinal": 0,
-        "line": 45,
         "verb": "POST",
         "path": "/api/recovery/2",
         "urlVariants": [
@@ -8115,7 +7998,6 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/recovery.controller.ts",
         "handler": "accountRecovery_second",
-        "line": 46,
         "verb": "POST",
         "path": "/api/recovery/2",
         "parameters": [
