@@ -6,12 +6,6 @@ import { combineLatest, debounceTime, distinctUntilChanged, EMPTY, filter, map, 
 import type { PersistedPreAuthState } from '../../../Models/auth/pre-auth.models'
 import { AuthService } from '../../../services/auth.service'
 import { FingerprintService } from '../../../services/fingerprint.service'
-import { HttpErrorBody } from '../../../Models/http-error-body.dto'
-import {
-  ApplicationErrorCode,
-  getApplicationErrorCode,
-  hasApplicationErrorCode
-} from '../../../utils/application-error.util';
 import { AuthStateStore } from '../../../services/auth-state.store'
 import { AuthSessionPersistenceService } from '../../../services/auth-session-persistence.service'
 import { SessionSyncService } from '../../../services/session-sync.service'
@@ -25,6 +19,7 @@ import { MfaStrategyCardComponent } from '../../../components/common/mfa-strateg
 import { ɵɵRouterLink } from "@angular/router/testing";
 import { DesignService } from '../../../services/design.service'
 import { AuthRedirectService } from '../../../services/auth-redirect.service'
+import { AuthErrorService } from '../../../services/auth-error.service'
 
 @Component({
   selector: 'm-mfa',
@@ -221,6 +216,7 @@ import { AuthRedirectService } from '../../../services/auth-redirect.service'
 export class MfaPageComponent implements OnInit, OnDestroy {
   private readonly persistence = inject(AuthSessionPersistenceService)
   private readonly redirects = inject(AuthRedirectService)
+  private readonly authErrors = inject(AuthErrorService)
 
   private readonly route = inject(ActivatedRoute)
   private readonly router = inject(Router)
@@ -396,17 +392,19 @@ export class MfaPageComponent implements OnInit, OnDestroy {
         if ('error' in e && 'status' in e) {
           const he = e as HttpErrorResponse
           if (he.status === 429) {
+            this.authErrors.setFromHttp(he, 'mfa')
             this.toast.trigger('Troppi tentativi, riprova tra qualche minuto.', 'error', 3000)
             this.gotoLoginPreservingRedirect()
             return
           }
           if (he.status === 401) {
-            if (hasApplicationErrorCode(he.error, ApplicationErrorCode.MFA_PREAUTHORIZATION_EXPIRED)) {
+            const authError = this.authErrors.setFromHttp(he, 'mfa')
+            if (authError?.category === 'mfa-expired') {
               this.toast.trigger('Tempo scaduto. Devi ritentare il login.', 'error', 3000)
               this.gotoLoginPreservingRedirect()
               return
             }
-            if (hasApplicationErrorCode(he.error, ApplicationErrorCode.MFA_CODE_INVALID)) {
+            if (authError?.category === 'mfa-code-invalid') {
               this.toast.trigger('Codice errato. Devi ritentare il login.', 'error', 3000)
               this.gotoLoginPreservingRedirect()
               return
@@ -498,6 +496,7 @@ export class MfaPageComponent implements OnInit, OnDestroy {
       this.unTrusted()
     ).subscribe({
       next: (res) => {
+        this.authErrors.clear()
         this.authState.activateAuthenticatedSession({
           initials: res.initials ?? 'U',
           accessToken: res.accessToken,
@@ -511,27 +510,9 @@ export class MfaPageComponent implements OnInit, OnDestroy {
       },
       error: (e) => {
         this.persistence.consumePreAuthState()
-
-        let message = 'Si è verificato un errore.'
-        if ('error' in e && 'status' in e) {
-          const errBody: HttpErrorBody = e.error
-          if (e.status === 401) {
-            switch (getApplicationErrorCode(errBody)) {
-              case ApplicationErrorCode.MFA_DEVICE_MISMATCH:
-                message = 'Hai inserito il codice da un altro browser o dispositivo. Accesso negato.'
-                break
-              case ApplicationErrorCode.MFA_CODE_INVALID:
-                message = 'Il codice inserito non è corretto, devi ripetere il login.'
-                break
-              default:
-                message = 'Si è verificato un errore.'
-            }
-          } else if (e.status === 429) {
-            message = 'Troppi tentativi, riprova tra qualche minuto.'
-          }
-        }
-
-        this.toast.trigger(message, 'error', 3000)
+        const authError = this.authErrors.setFromHttp(e, 'mfa')
+        this.toast.trigger(authError?.message ?? 'Si è verificato un errore.', 'error', 3000)
+        this.authErrors.consume()
         this.router.navigateByUrl('/login')
       }
     })

@@ -16,7 +16,6 @@ import { TurnstileComponent } from '../../components/common/turnstile/turnstile.
 import { FloatingInputComponent } from '../../components/common/floating-input/floating-input.component'
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component'
 
-import { HttpErrorBody } from '../../Models/http-error-body.dto'
 import { Confirm_Login_FirstStepDTO } from '../../Models/confirm.models'
 import type { SessionDeviceInfo } from '@mercurion/rest-contracts'
 import { Login_FirstStepWrapper } from '../../Models/auth/login.models'
@@ -26,6 +25,7 @@ import { UserContextService } from '../../services/context/user-context.service'
 import { HttpErrorResponse } from '@angular/common/http'
 import { APP_CONFIG } from '../../config/app-config'
 import { AuthRedirectService } from '../../services/auth-redirect.service'
+import { AuthErrorService } from '../../services/auth-error.service'
 
 @Component({
   selector: 'm-login',
@@ -261,6 +261,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
   private readonly userContext = inject(UserContextService)
   private readonly appConfig = inject(APP_CONFIG)
   private readonly redirects = inject(AuthRedirectService)
+  private readonly authErrors = inject(AuthErrorService)
 
   protected readonly uncorrectEmailMsg = "L'e-mail inserita non è corretta"
 
@@ -365,12 +366,11 @@ export class LoginPageComponent implements OnInit, OnDestroy {
         },
         error: err => {
           this.goingToPasswordStep.set(false)
-          const body = err.error as HttpErrorBody
-          if (body?.statusCode === 401) {
+          const authError = this.authErrors.setFromHttp(err, 'login')
+          if (authError?.category === 'invalid-credentials') {
             this.serverErrorStep.set(1)
             return
           }
-          localStorage?.setItem('lastHttpErr', btoa(JSON.stringify(body)))
           this.router.navigate(['/'])
         }
       })
@@ -429,22 +429,21 @@ export class LoginPageComponent implements OnInit, OnDestroy {
         this.redirectAfterLogin()
       },
       error: (err: HttpErrorResponse) => {
-        const body = err.error as HttpErrorBody
         this.turnstileComponent()?.reset()
         this.turnstileToken.set(null)
         this.loadingLogin.set(false)
 
-        if (body?.statusCode === 401) {
-          this.serverErrorStep.set(2)
-          return
+        const authError = this.authErrors.setFromHttp(err, 'login')
+        if (authError?.category === 'invalid-credentials') {
+        this.serverErrorStep.set(2)
+        return
         }
 
-        if (body?.statusCode === 429) {
-          this.serverErrorStep.set(2429)
-          return
+        if (authError?.category === 'rate-limited') {
+        this.serverErrorStep.set(2429)
+        return
         }
 
-        sessionStorage?.setItem('lastHttpErr', btoa(JSON.stringify(body)))
         this.router.navigate(['/'])
       }
     })

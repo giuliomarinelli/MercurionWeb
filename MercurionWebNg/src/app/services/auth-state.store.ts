@@ -1,5 +1,6 @@
 import { computed, inject, Injectable, signal } from '@angular/core'
 import { AuthSessionPersistenceService } from './auth-session-persistence.service'
+import { AuthErrorService } from './auth-error.service'
 import {
   INITIAL_SESSION_PROTOCOL,
   LOCAL_DUMMY_AUTH,
@@ -37,6 +38,7 @@ export interface AuthCompletion {
 @Injectable({ providedIn: 'root' })
 export class AuthStateStore {
   private readonly persistence = inject(AuthSessionPersistenceService)
+  private readonly authErrors = inject(AuthErrorService)
   private readonly stateSignal = signal<AuthState>({ kind: 'bootstrap' })
   private readonly protocolSignal = signal<SessionProtocolSnapshot>(INITIAL_SESSION_PROTOCOL)
   private readonly expiryTick = signal(0)
@@ -86,6 +88,7 @@ export class AuthStateStore {
   beginAuthentication(flow: 'password' | 'sso' | 'restore' = 'password'): void {
     this.assertAllowed(this.state().kind, 'authenticating')
     if (flow !== 'restore') {
+      this.authErrors.beginAttempt()
       this.clearLocalDummyMarker()
       this.clearPersistence()
     }
@@ -112,6 +115,7 @@ export class AuthStateStore {
    * accepted access token, including when the token has no scp claim.
    */
   activateAuthenticatedSession(completion: AuthCompletion): void {
+    this.authErrors.clear()
     const accessToken = completion.accessToken ?? null
     const wsAccessToken = completion.wsAccessToken ?? null
     const scopes = this.scopesFromAccessToken(accessToken)
@@ -205,6 +209,7 @@ export class AuthStateStore {
   }
 
   logout(): void {
+    this.authErrors.clear()
     this.clearExpiryTimer()
     this.transition({ kind: 'logging-out' })
     this.clearLocalDummyMarker()
