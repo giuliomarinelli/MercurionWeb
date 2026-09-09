@@ -186,4 +186,5 @@ server before implementation; failure remains a
 
 Recorded below after the final clean-install gate.
 
-- Implementation and tests: pending final task commit
+- `894b54fb74eec60d5fcad0090ceaa251632f9d66` — implementation, focused
+  tests, generated inventory refresh, and task evidence
