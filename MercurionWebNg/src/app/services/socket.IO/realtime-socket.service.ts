@@ -62,7 +62,7 @@ export class RealtimeSocketService {
 
     // ——— Core listeners ———
     this.socket.on('connect', () => {
-      this.lastAuthTokenSent = (this.mode === 'private')
+      this.lastAuthTokenSent = this.mode === 'private'
         ? (this.auth.getWs_accessToken() ?? null)
         : null;
     });

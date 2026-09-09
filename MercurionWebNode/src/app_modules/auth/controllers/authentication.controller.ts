@@ -1,7 +1,7 @@
 import { SessionService } from 'src/app_modules/auth/services/session.service';
 import { SecureCookieService } from './../services/secure-cookie.service';
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Query, Req, Res, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpStatus, NotFoundException, Param, Patch, Post, Query, Req, Res, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
 import { Login_FirstStepDTO } from '../Models/DTO/login-first-step.cls.dto';
 import { MfaService } from '../services/mfa.service';
 import { AuthenticationService } from '../services/authentication.service';
@@ -15,7 +15,7 @@ import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { JwtToolsService } from '../services/jwt-tools.service';
 import { TokenType } from '../Models/enums/token-type.enum';
 import { EmailDTO } from '../Models/DTO/email.cls.dto';
-import type { FingerprintData, SessionDeviceInfo } from '@mercurion/rest-contracts'
+import { LOCAL_DUMMY_AUTH, type FingerprintData, type SessionDeviceInfo } from '@mercurion/rest-contracts'
 import { UserService } from 'src/app_modules/user/services/user.service';
 import { TurnstileGuard } from '../guards/turnstile.guard';
 import { ConfigService } from '@nestjs/config';
@@ -36,6 +36,7 @@ import { BackupCodeDTO } from '../Models/DTO/backup-code.cls.dto';
 import { TotpBodyDTO } from '../Models/DTO/totp.cls.dto';
 import { SercurityService } from '../services/sercurity.service';
 import { AuthProvider } from 'src/app_modules/sso/Models/enums/auth-provider.enum';
+import { LocalDummyAuthService } from '../services/local-dummy-auth.service';
 
 
 
@@ -59,6 +60,7 @@ export class AuthenticationController {
         private readonly sessionService: SessionService,
         private readonly redisService: RedisService,
         private readonly securityService: SercurityService,
+        private readonly localDummyAuth: LocalDummyAuthService,
         loggerFactory: MeiliLoggerService
     ) {
         this.logger = loggerFactory.forContext(AuthenticationController.name)
@@ -66,6 +68,43 @@ export class AuthenticationController {
         const { secret, ...cookieConf } = this.configService.get<SecureCookieConfiguration>('SecureCookie')!
         this.cookieConf = cookieConf
         this.LONG_SESSION_TTL = this.configService.get<number>('Session.persistentSessionLasting')!
+    }
+
+    @Public()
+    @Post('local-dummy')
+    @HttpCode(HttpStatus.OK)
+    public async localDummyLogin(
+        @Req() req: FastifyRequest,
+        @ClientIp() IP: string,
+        @DeviceId() deviceId: UUID,
+        @DeviceInfo() sessionDeviceInfo: SessionDeviceInfo,
+        @Fingerprint() fingerprintData: FingerprintData,
+        @Res({ passthrough: true }) reply: FastifyReply
+    ): Promise<ConfirmWithTokenPairAndInitialsDTO> {
+        if (!this.localDummyAuth.acceptsActivationRequest(req)) {
+            throw new NotFoundException()
+        }
+
+        const { accessToken, ws_accessToken, sessionId } =
+            await this.localDummyAuth.createAuthenticatedSession(deviceId, IP, sessionDeviceInfo, fingerprintData)
+
+        this.secureCookieService.setSignedCookie(reply, '__node_session_id', sessionId, {
+            ...this.cookieConf,
+            maxAge: this.LONG_SESSION_TTL
+        })
+        reply.setCookie('__logged_in', 'true', {
+            ...this.cookieConf,
+            maxAge: this.LONG_SESSION_TTL,
+            httpOnly: false
+        })
+
+        return {
+            ...this._r.ok('Local dummy authenticated successfully'),
+            accessToken,
+            ws_accessToken,
+            initials: LOCAL_DUMMY_AUTH.initials,
+            deviceId: this.securityService.signDeviceId(deviceId)
+        }
     }
 
     @Public()

@@ -11,15 +11,16 @@ import { APP_CONFIG, AppConfig, RELEASE_BASE_VERSION, createAppConfig, releaseVe
 
 describe('Application configuration', () => {
   const environments = [
-    { config: developmentEnvironment, name: 'development', beta: true, feedbackEnv: 'staging', version: '1.0.0d' },
-    { config: testingEnvironment, name: 'testing', beta: true, feedbackEnv: 'staging', version: '1.0.0i' },
-    { config: stagingEnvironment, name: 'staging', beta: true, feedbackEnv: 'staging', version: '1.0.0-beta' },
-    { config: productionEnvironment, name: 'production', beta: false, feedbackEnv: 'prod', version: '1.0.0' }
+    { config: developmentEnvironment, name: 'development', beta: true, feedbackEnv: 'staging', localDummyAuth: true, version: '1.0.0d' },
+    { config: testingEnvironment, name: 'testing', beta: true, feedbackEnv: 'staging', localDummyAuth: false, version: '1.0.0i' },
+    { config: stagingEnvironment, name: 'staging', beta: true, feedbackEnv: 'staging', localDummyAuth: false, version: '1.0.0-beta' },
+    { config: productionEnvironment, name: 'production', beta: false, feedbackEnv: 'prod', localDummyAuth: false, version: '1.0.0' }
   ] satisfies readonly {
     readonly config: EnvironmentConfig
     readonly name: EnvironmentName
     readonly beta: boolean
     readonly feedbackEnv: 'staging' | 'prod'
+    readonly localDummyAuth: boolean
     readonly version: string
   }[]
 
@@ -30,7 +31,7 @@ describe('Application configuration', () => {
   it('maps every supported environment to a valid application config', () => {
     expect(environments.map(({ name }) => name)).toEqual([...environmentNames])
 
-    for (const { config, name, beta, feedbackEnv, version } of environments) {
+    for (const { config, name, beta, feedbackEnv, localDummyAuth, version } of environments) {
       const appConfig = createAppConfig(config)
 
       expect(appConfig.environment).toBe(name)
@@ -38,6 +39,7 @@ describe('Application configuration', () => {
       expect(appConfig.testing).toBe(config.testing)
       expect(appConfig.capabilities.beta).toBe(beta)
       expect(appConfig.capabilities.feedbackEnv).toBe(feedbackEnv)
+      expect(appConfig.capabilities.localDummyAuth).toBe(localDummyAuth)
       expect(appConfig.release.version).toBe(version)
       expect(appConfig.release.version).toBe(releaseVersionFor(name))
       expect(appConfig.endpoints.realtimeUrl).toBe('/')

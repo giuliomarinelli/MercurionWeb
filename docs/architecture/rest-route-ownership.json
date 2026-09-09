@@ -44,7 +44,7 @@
       "path": "/api/authentication/logout",
       "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
       "handler": "logout",
-      "line": 243,
+      "line": 282,
       "classification": "active product feature",
       "owner": "Mercurion Angular application",
       "evidence": [
@@ -126,6 +126,11 @@
         "MercurionWebNode/src/app_modules/"
       ],
       "references": [
+        {
+          "file": "MercurionWebNg/src/app/interceptors/auth.interceptor.spec.ts",
+          "line": 29,
+          "kind": "angular-source"
+        },
         {
           "file": "MercurionWebNg/src/app/services/history.service.ts",
           "line": 16,
@@ -458,7 +463,7 @@
       "path": "/api/authentication/ws-refresh",
       "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
       "handler": "refreshWs_accessToken",
-      "line": 287,
+      "line": 326,
       "classification": "active product feature",
       "owner": "Mercurion Angular application",
       "evidence": [
@@ -609,6 +614,11 @@
         "MercurionWebNode/src/app_modules/"
       ],
       "references": [
+        {
+          "file": "MercurionWebNg/src/app/interceptors/auth.interceptor.spec.ts",
+          "line": 29,
+          "kind": "angular-source"
+        },
         {
           "file": "MercurionWebNg/src/app/services/history.service.ts",
           "line": 16,
@@ -1202,7 +1212,7 @@
       "path": "/api/authentication/logout-from-all-sessions",
       "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
       "handler": "logoutFromAllSessions",
-      "line": 276,
+      "line": 315,
       "classification": "active product feature",
       "owner": "Mercurion Angular application",
       "evidence": [
@@ -1222,7 +1232,7 @@
       "path": "/api/authentication/logout-from-session",
       "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
       "handler": "logoutFromSession",
-      "line": 260,
+      "line": 299,
       "classification": "active product feature",
       "owner": "Mercurion Angular application",
       "evidence": [
@@ -1374,10 +1384,30 @@
     },
     {
       "method": "POST",
+      "path": "/api/authentication/local-dummy",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
+      "handler": "localDummyLogin",
+      "line": 74,
+      "classification": "test/dev-only endpoint",
+      "owner": "Local development authentication fixture",
+      "evidence": [
+        "MercurionWebNg/src/app/services/local-dummy-auth.service.ts",
+        "docs/autonomous-development/RUNTIME.md"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/local-dummy-auth.service.ts",
+          "line": 47,
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "POST",
       "path": "/api/authentication/login/0",
       "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
       "handler": "login_zeroStep",
-      "line": 72,
+      "line": 111,
       "classification": "active product feature",
       "owner": "Mercurion Angular application",
       "evidence": [
@@ -1397,7 +1427,7 @@
       "path": "/api/authentication/login/1",
       "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
       "handler": "login_firstStep",
-      "line": 82,
+      "line": 121,
       "classification": "active product feature",
       "owner": "Mercurion Angular application",
       "evidence": [
@@ -1427,7 +1457,7 @@
       "path": "/api/authentication/login/:strategy/2",
       "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
       "handler": "login_secondStep",
-      "line": 139,
+      "line": 178,
       "classification": "active product feature",
       "owner": "Mercurion Angular application",
       "evidence": [
@@ -1441,7 +1471,7 @@
       "path": "/api/authentication/login/:strategy/3",
       "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
       "handler": "login_thirdStep",
-      "line": 164,
+      "line": 203,
       "classification": "active product feature",
       "owner": "Mercurion Angular application",
       "evidence": [
@@ -1455,7 +1485,7 @@
       "path": "/api/authentication/sso/:provider/authorize-flow",
       "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
       "handler": "authorize_sso",
-      "line": 296,
+      "line": 335,
       "classification": "browser/system API",
       "owner": "OAuth provider redirect and callback flow",
       "evidence": [

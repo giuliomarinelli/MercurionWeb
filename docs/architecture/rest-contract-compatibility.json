@@ -34,9 +34,9 @@
       }
     }
   },
-  "totalClientCalls": 58,
-  "matchedClientCalls": 58,
-  "uniqueNestRoutes": 57,
+  "totalClientCalls": 59,
+  "matchedClientCalls": 59,
+  "uniqueNestRoutes": 58,
   "entries": [
     {
       "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.activateAccount#0",
@@ -4303,7 +4303,7 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
         "handler": "login_firstStep",
-        "line": 82,
+        "line": 121,
         "verb": "POST",
         "path": "/api/authentication/login/1",
         "parameters": [
@@ -4485,7 +4485,7 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
         "handler": "login_secondStep",
-        "line": 139,
+        "line": 178,
         "verb": "POST",
         "path": "/api/authentication/login/:strategy/2",
         "parameters": [
@@ -4619,7 +4619,7 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
         "handler": "login_zeroStep",
-        "line": 72,
+        "line": 111,
         "verb": "POST",
         "path": "/api/authentication/login/0",
         "parameters": [
@@ -4780,7 +4780,7 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
         "handler": "login_thirdStep",
-        "line": 164,
+        "line": 203,
         "verb": "POST",
         "path": "/api/authentication/login/:strategy/3",
         "parameters": [
@@ -4936,7 +4936,7 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
         "handler": "logout",
-        "line": 243,
+        "line": 282,
         "verb": "DELETE",
         "path": "/api/authentication/logout",
         "parameters": [],
@@ -5041,7 +5041,7 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
         "handler": "logoutFromAllSessions",
-        "line": 276,
+        "line": 315,
         "verb": "PATCH",
         "path": "/api/authentication/logout-from-all-sessions",
         "parameters": [],
@@ -5154,7 +5154,7 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
         "handler": "logoutFromSession",
-        "line": 260,
+        "line": 299,
         "verb": "PATCH",
         "path": "/api/authentication/logout-from-session",
         "parameters": [
@@ -5292,7 +5292,7 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
         "handler": "refreshWs_accessToken",
-        "line": 287,
+        "line": 326,
         "verb": "GET",
         "path": "/api/authentication/ws-refresh",
         "parameters": [],
@@ -5724,7 +5724,7 @@
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
         "handler": "authorize_sso",
-        "line": 296,
+        "line": 335,
         "verb": "POST",
         "path": "/api/authentication/sso/:provider/authorize-flow",
         "parameters": [
@@ -7192,6 +7192,121 @@
           ],
           "clientShapeHash": "9d1071754d0219e7042e74dc8ec6c04ca7e84dd66fa285d76ab97ad42fc14b56",
           "serverShapeHash": "9d1071754d0219e7042e74dc8ec6c04ca7e84dd66fa285d76ab97ad42fc14b56"
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/local-dummy-auth.service.ts#LocalDummyAuthService.activate#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/local-dummy-auth.service.ts",
+        "class": "LocalDummyAuthService",
+        "method": "activate",
+        "ordinal": 0,
+        "line": 46,
+        "verb": "POST",
+        "path": "/api/authentication/local-dummy",
+        "urlVariants": [
+          "/api/authentication/local-dummy"
+        ],
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "expression": "null",
+          "type": "null",
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "canonicalNames": [],
+            "shapeHash": "0f20c2d059cc475b0ca98783d4e910be28ab108e9bd367286716d663e1134cbc"
+          }
+        },
+        "response": {
+          "type": "ConfirmWithAccessTokenAndInitialsDTO",
+          "mode": "json",
+          "options": {
+            "withCredentials": "true",
+            "headers": "{\n          [LOCAL_DUMMY_AUTH.headerName]: LOCAL_DUMMY_AUTH.marker,\n          'X-Fingerprint': fingerprintDataEnc,\n          'X-Device-Info': btoa(JSON.stringify(sessionDeviceInfo))\n        }"
+          },
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "canonicalNames": [
+              "ConfirmDTO",
+              "ConfirmWithAccessTokenAndInitialsDTO"
+            ],
+            "shapeHash": "456a258ed7986cf8171226ea3a978ecd49eadbb9c2aa5f738fad2ae3c70f44cf"
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
+        "handler": "localDummyLogin",
+        "line": 74,
+        "verb": "POST",
+        "path": "/api/authentication/local-dummy",
+        "parameters": [],
+        "returnType": "ConfirmWithTokenPairAndInitialsDTO",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [],
+          "authentication": [],
+          "authorization": [],
+          "declared": [
+            404
+          ]
+        },
+        "authentication": {
+          "public": true,
+          "guards": [],
+          "scopes": []
+        },
+        "responseContract": {
+          "displayType": "ConfirmWithAccessTokenAndInitialsDTO",
+          "shapeHash": "456a258ed7986cf8171226ea3a978ecd49eadbb9c2aa5f738fad2ae3c70f44cf",
+          "canonicalNames": [
+            "ConfirmDTO",
+            "ConfirmWithAccessTokenAndInitialsDTO"
+          ],
+          "applicable": true,
+          "canonical": true
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": {
+          "compatible": true,
+          "failures": []
+        },
+        "pathParameters": {
+          "compatible": true,
+          "failures": []
+        },
+        "query": {
+          "compatible": true,
+          "failures": []
+        },
+        "request": {
+          "compatible": true,
+          "canonical": true,
+          "canonicalNames": [],
+          "clientShapeHash": null,
+          "serverShapeHash": null
+        },
+        "validation": {
+          "compatible": true,
+          "policy": "not-applicable",
+          "properties": [],
+          "failures": []
+        },
+        "response": {
+          "compatible": true,
+          "canonical": true,
+          "canonicalNames": [
+            "ConfirmDTO",
+            "ConfirmWithAccessTokenAndInitialsDTO"
+          ],
+          "clientShapeHash": "456a258ed7986cf8171226ea3a978ecd49eadbb9c2aa5f738fad2ae3c70f44cf",
+          "serverShapeHash": "456a258ed7986cf8171226ea3a978ecd49eadbb9c2aa5f738fad2ae3c70f44cf"
         }
       }
     },

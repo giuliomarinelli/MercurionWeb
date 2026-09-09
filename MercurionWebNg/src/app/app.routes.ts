@@ -19,6 +19,12 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/login/login.page.component').then(m => m.LoginPageComponent) // ok
   },
   {
+    path: '__local/dummy-auth',
+    title: 'Autenticazione dummy locale',
+    loadComponent: () => import('./pages/local-dummy-auth/local-dummy-auth.page.component')
+      .then(m => m.LocalDummyAuthPageComponent)
+  },
+  {
     // redirect per retrocompatibilità
     path: 'profile',
     redirectTo: 'dashboard'

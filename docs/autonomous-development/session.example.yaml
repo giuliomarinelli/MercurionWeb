@@ -180,6 +180,9 @@ runtime:
       cwd: MercurionWebNode
       repository_access: read-write
       watch: true
+      environment:
+        APP_ENV: development
+        LOCAL_DUMMY_AUTH: "true"
       command: npm run start:dev
 
     angular:

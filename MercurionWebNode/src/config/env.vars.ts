@@ -11,6 +11,10 @@ export class EnvVars {
   @IsOptional()
   APP_ENV?: Environment
 
+  @IsBoolean()
+  @IsOptional()
+  LOCAL_DUMMY_AUTH?: boolean
+
   @IsString()
   @IsOptional()
   NODE_ENV?: 'development' | 'production'

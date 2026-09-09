@@ -15,6 +15,7 @@ import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-l
 import { UnauthorizedException } from '@nestjs/common';
 import { EmailDTO } from '../Models/DTO/email.cls.dto';
 import { SercurityService } from '../services/sercurity.service';
+import { LocalDummyAuthService } from '../services/local-dummy-auth.service';
 
 describe('AuthenticationController', () => {
   let controller: AuthenticationController;
@@ -22,6 +23,8 @@ describe('AuthenticationController', () => {
   const responseOkMock = jest.fn().mockReturnValue({ statusCode: 200, message: 'ok', timestamp: 'now' });
   const destroySessionMock = jest.fn();
   const clearCookieMock = jest.fn();
+  const setSignedCookieMock = jest.fn();
+  const createLocalSessionMock = jest.fn();
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -56,7 +59,7 @@ describe('AuthenticationController', () => {
         {
           provide: SecureCookieService,
           useValue: {
-            setSignedCookie: jest.fn(),
+            setSignedCookie: setSignedCookieMock,
             clearCookie: clearCookieMock,
           },
         },
@@ -92,6 +95,13 @@ describe('AuthenticationController', () => {
         },
         { provide: RedisService, useValue: { get: jest.fn() } },
         { provide: SercurityService, useValue: { signDeviceId: jest.fn((id) => id) } },
+        {
+          provide: LocalDummyAuthService,
+          useValue: {
+            acceptsActivationRequest: jest.fn().mockReturnValue(true),
+            createAuthenticatedSession: createLocalSessionMock,
+          },
+        },
         { provide: MeiliLoggerService, useValue: { forContext: jest.fn().mockReturnValue(mockLogger) } },
       ],
     }).compile();
@@ -101,6 +111,49 @@ describe('AuthenticationController', () => {
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
+  });
+
+  it('creates the real local session and writes the signed HttpOnly session cookie', async () => {
+    const sessionId = '00000000-0000-4000-8000-000000000102';
+    const deviceId = '00000000-0000-4000-8000-000000000103';
+    createLocalSessionMock.mockResolvedValue({
+      sessionId,
+      accessToken: 'signed-access-token',
+      ws_accessToken: 'signed-ws-token',
+    });
+    const reply = { setCookie: jest.fn() };
+
+    const result = await controller.localDummyLogin(
+      { headers: {} } as never,
+      '127.0.0.1',
+      deviceId,
+      { browser: { name: 'Chrome' } },
+      { system: { platform: 'Windows' } } as never,
+      reply as never,
+    );
+
+    expect(createLocalSessionMock).toHaveBeenCalledWith(
+      deviceId,
+      '127.0.0.1',
+      expect.any(Object),
+      expect.any(Object),
+    );
+    expect(setSignedCookieMock).toHaveBeenCalledWith(
+      reply,
+      '__node_session_id',
+      sessionId,
+      expect.objectContaining({ httpOnly: true, maxAge: 3600 }),
+    );
+    expect(reply.setCookie).toHaveBeenCalledWith(
+      '__logged_in',
+      'true',
+      expect.objectContaining({ httpOnly: false, maxAge: 3600 }),
+    );
+    expect(result).toEqual(expect.objectContaining({
+      accessToken: 'signed-access-token',
+      ws_accessToken: 'signed-ws-token',
+      initials: 'LD',
+    }));
   });
 
   describe('login_zeroStep', () => {

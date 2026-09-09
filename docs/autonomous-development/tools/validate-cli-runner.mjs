@@ -21,10 +21,10 @@ const paths = {
   completedSession: 'docs/autonomous-development/session.48h-2026-09-03.yaml',
   exampleSession: 'docs/autonomous-development/session.example.yaml',
   closedSession: 'docs/autonomous-development/session.until-2026-09-10.yaml',
-  preparedSession: 'docs/autonomous-development/session.overnight-2026-09-08-v2.yaml',
+  preparedSession: 'docs/autonomous-development/session.overweek-2026-09-16.yaml',
   completedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-03-v2.md',
   closedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-06.md',
-  preparedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-08-overnight-v2.md',
+  preparedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-09-overweek.md',
   runtime: 'docs/autonomous-development/RUNTIME.md',
   workflow: '.github/workflows/ci.yml',
   classifier: '.github/scripts/classify-ci.mjs',
@@ -576,13 +576,15 @@ for (const command of ['/model', '/permissions show', '/mcp list', '/keep-alive 
 }
 
 for (const [pattern, message] of [
-  [/docs\/autonomous-development\/session\.overnight-2026-09-08-v2\.yaml/, 'prepared launch must reference its dated session configuration'],
-  [/2026-09-09T10:00:00\+02:00/, 'prepared launch must retain the exact soft deadline'],
-  [/pull request #31 is merged into `develop`/i, 'prepared launch must require merged browser hardening'],
-  [/browser-profile acceptance probe/i, 'prepared launch must require persistent-profile acceptance'],
+  [/docs\/autonomous-development\/session\.overweek-2026-09-16\.yaml/, 'prepared launch must reference its dated session configuration'],
+  [/2026-09-16T10:00:00\+02:00/, 'prepared launch must retain the exact soft deadline'],
+  [/dummy-auth implementation are integrated into `develop`/i, 'prepared launch must require integrated local dummy auth'],
+  [/browser-profile acceptance\s+probe/i, 'prepared launch must require persistent-profile acceptance'],
   [/workload\.tasks` list is empty[\s\S]{0,120}complete Series is in\s*scope/i, 'prepared launch must select the complete Series'],
   [/there is no autonomous allowlist/i, 'prepared launch must explicitly disable workload restriction'],
-  [/expected first READY task[\s\S]{0,20}(?:is\s*)?0027/i, 'prepared launch must state the expected first ready task'],
+  [/expected first READY task[\s\S]{0,20}(?:is\s*)?0031/i, 'prepared launch must state the expected first ready task'],
+  [/direct human authorization[\s\S]{0,120}(?:0031|FE-009)/i, 'prepared launch must explicitly re-enable FE-009'],
+  [/__local\/dummy-auth[\s\S]{0,240}server/i, 'prepared launch must require a server-accepted dummy-auth session'],
   [/Do[\s\S]{0,10}not bundle tasks/, 'prepared launch must prohibit multi-task bundles'],
   [/npm run autonomous:plan/, 'prepared launch must execute the deterministic planner'],
   [/copilot --agent development-session-coordinator --allow-all-tools --allow-all-urls --add-dir \.\.\/MercurionTox21 --reasoning-effort high --autopilot/, 'prepared launch is missing the deterministic Copilot CLI command'],
@@ -598,7 +600,7 @@ for (const staleSessionReference of [
   }
 }
 const preparedSessionReference =
-  'docs/autonomous-development/session.overnight-2026-09-08-v2.yaml';
+  'docs/autonomous-development/session.overweek-2026-09-16.yaml';
 if (preparedLaunch.split(preparedSessionReference).length - 1 !== 2) {
   fail(paths.preparedLaunch, 'must reference the active session exactly twice');
 }
@@ -687,9 +689,9 @@ if (closedDeadlineMatches?.length !== 1) {
   fail(paths.closedSession, `deadline must remain exactly ${closedDeadline}`);
 }
 
-const preparedDeadline = '2026-09-09T10:00:00+02:00';
+const preparedDeadline = '2026-09-16T10:00:00+02:00';
 const preparedDeadlineMatches = preparedSession.match(
-  /^\s*end:\s*"2026-09-09T10:00:00\+02:00"/gm,
+  /^\s*end:\s*"2026-09-16T10:00:00\+02:00"/gm,
 );
 if (preparedDeadlineMatches?.length !== 1) {
   fail(paths.preparedSession, `deadline must remain exactly ${preparedDeadline}`);
@@ -744,15 +746,15 @@ for (const [pattern, message] of [
 for (const [pattern, message] of [
   [/browser_and_allowlist_hardening_pull_request:\s*31/, 'prepared session must record PR #31 provenance'],
   [/expected_task_count:\s*220/, 'prepared workload must contain 220 tasks'],
-  [/expected_current_done:\s*38/, 'prepared workload must record 38 DONE tasks'],
+  [/expected_current_done:\s*42/, 'prepared workload must record 42 DONE tasks'],
   [/expected_current_blocked:\s*4/, 'prepared workload must record four retained blockers'],
   [/expected_current_skipped_dependency:\s*26/, 'prepared workload must record 26 terminal skips'],
-  [/expected_current_pending:\s*152/, 'prepared workload must record 152 pending tasks'],
-  [/expected_first_ready_task:\s*"0027"/, 'prepared workload must start from task 0027'],
-  [/expected_planner_ready:\s*16/, 'prepared workload must record 16 ready tasks'],
-  [/expected_planner_waiting_dependency:\s*136/, 'prepared workload must record 136 waiting tasks'],
+  [/expected_current_pending:\s*148/, 'prepared workload must record 148 pending tasks'],
+  [/expected_first_ready_task:\s*"0031"/, 'prepared workload must start from task 0031'],
+  [/expected_planner_ready:\s*17/, 'prepared workload must record 17 ready tasks'],
+  [/expected_planner_waiting_dependency:\s*131/, 'prepared workload must record 131 waiting tasks'],
   [/tasks:\s*\[\]/, 'prepared workload must select the complete Series'],
-  [/expected_autonomous_pending:\s*152/, 'prepared workload must record all 152 pending tasks in scope'],
+  [/expected_autonomous_pending:\s*148/, 'prepared workload must record all 148 pending tasks in scope'],
   [/expected_human_led_pending:\s*0/, 'prepared workload must not exclude pending tasks'],
   [/autonomous_execution_scope:\s*complete-series/, 'prepared workload must declare complete-Series execution'],
   [/dependency_planner:[\s\S]*output:\s*versioned-json/, 'prepared session must use deterministic planner output'],
@@ -765,6 +767,9 @@ for (const [pattern, message] of [
   [/owner:\s*development-task-worker/, 'prepared persistent browser must belong to the task worker'],
   [/mode:\s*dedicated-persistent/, 'prepared session must use the dedicated persistent browser'],
   [/failure_result:\s*SESSION_CAPABILITY_PAUSE/, 'prepared session must pause before task mutation when browser capability is missing'],
+  [/authenticated_entrypoint:\s*http:\/\/localhost:8888\/__local\/dummy-auth/, 'prepared session must declare the local dummy-auth entrypoint'],
+  [/LOCAL_DUMMY_AUTH:\s*"true"/, 'prepared session must enable local dummy auth for Nest runtime'],
+  [/direct_human_reenable_authorization:\s*true/, 'prepared session must carry direct human FE-009 re-enable authorization'],
   [/preserve_existing_frozen_branches:\s*true/, 'prepared session must preserve frozen blocked branches'],
 ]) {
   requireMatch(paths.preparedSession, preparedSession, pattern, message);

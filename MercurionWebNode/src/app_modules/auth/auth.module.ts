@@ -28,6 +28,7 @@ import { Country } from './Models/entities/country.entity';
 import { CountryController } from './controllers/country.controller';
 import { RecoveryController } from './controllers/recovery.controller';
 import { JwtKeysProvider } from './providers/jwt-keys.provider';
+import { LocalDummyAuthService } from './services/local-dummy-auth.service';
 
 
 
@@ -57,7 +58,8 @@ import { JwtKeysProvider } from './providers/jwt-keys.provider';
     TurnstileService,
     ScopeService,
     CountryService,
-    JwtKeysProvider
+    JwtKeysProvider,
+    LocalDummyAuthService
   ],
   exports: [
     SecureCookieService,
@@ -68,7 +70,8 @@ import { JwtKeysProvider } from './providers/jwt-keys.provider';
     SercurityService,
     ScopeService,
     GeoIpService,
-    JwtKeysProvider
+    JwtKeysProvider,
+    LocalDummyAuthService
   ],
   controllers: [AccountController, AuthenticationController, CountryController, RecoveryController],
 })

@@ -49,10 +49,18 @@ Working directory:
 MercurionWeb Git root
 ```
 
-Command:
+PowerShell command:
 
-```text
+```powershell
+$env:APP_ENV = "development"
+$env:LOCAL_DUMMY_AUTH = "true"
 npm run start:dev --workspace mercurion_web_node
+```
+
+POSIX command:
+
+```bash
+APP_ENV=development LOCAL_DUMMY_AUTH=true npm run start:dev --workspace mercurion_web_node
 ```
 
 This is a watch-mode process and must remain alive for the validation workload.
@@ -134,6 +142,27 @@ browser/runtime validation, the worker should:
 7. verify the Angular application through `http://localhost:8888/`;
 8. only then allow browser validation to begin.
 
+## Deterministic local dummy authentication
+
+Autonomous workers do not depend on a human account or a previously authenticated browser profile. When a task requires an authenticated state, after the runtime readiness checks the worker opens:
+
+```text
+http://localhost:8888/__local/dummy-auth
+```
+
+The route authenticates a deterministic standard-user identity backed by a dedicated persistent `users` fixture. The activation request creates a normal Redis-backed session, returns signed access and Socket.IO JWTs, and installs the same signed HttpOnly `__node_session_id` cookie used by password/SSO authentication before redirecting to `/dashboard` (or to the safe relative `redirect_to` query value). Nest creates the verified fixture on startup when it is absent and leaves an existing fixture untouched so that account edits and task-created data survive runtime restarts. The worker must then prove the protected state through an observable protected response or UI identity marker; route navigation alone is not proof.
+
+The fixture is fail-closed at independent boundaries:
+
+- Angular exposes it only in the `development` build and only at the exact canonical origin `http://localhost:8888`;
+- Nest accepts it only when both `APP_ENV=development` and `LOCAL_DUMMY_AUTH=true` are explicitly present;
+- only the one-shot activation request accepts the explicit local marker and it must come from the canonical host/origin;
+- every subsequent HTTP, GraphQL, and Socket.IO request passes through the normal signed-JWT, signed-cookie, Redis-session, device, and scope validation path;
+- the identity has standard-user scopes only; admin scopes are rejected;
+- logout, invalidation, or a real password/SSO login removes the client-side activation marker.
+
+Never set `LOCAL_DUMMY_AUTH=true` in staging or production configuration. Even if it is accidentally set there, the exact `APP_ENV=development` check keeps the fixture disabled.
+
 After capturing the declared runtime evidence, the worker stops every process
 it started. It MUST do so before the final pre-merge `npm ci` plus
 `npm run ci:check`; on Windows, a live Angular/esbuild watcher can otherwise
@@ -157,22 +186,22 @@ the developer's personal Chrome profile, use Incognito or Guest mode, browse
 production, store production credentials, or commit/copy the user-data
 directory into the repository.
 
-The persistent profile is an optimization, not proof of authentication. A
-cookie may be expired, its Redis record may be absent, or a backend secret may
-have changed. Therefore a task that declares browser/runtime evidence performs
+The persistent profile is an optimization for ordinary browser state, not an
+authentication prerequisite. Therefore a task that declares browser/runtime evidence performs
 this capability preflight after its unchanged baseline and before any edit:
 
 1. start the required application processes with the canonical commands;
 2. prove the nginx edge and configured health surface are ready;
 3. open the task's safe route through `http://localhost:8888`;
-4. when the task needs an authenticated state, prove it through an observable
-   protected response or UI identity marker rather than cookie presence alone;
+4. when the task needs an authenticated state, open the local dummy-auth route
+   and prove it through an observable protected response or UI identity marker
+   rather than cookie presence alone;
 5. close extra task tabs and stop every application process started by the
    probe, while leaving the dedicated profile and its auth storage intact;
 6. only then begin implementation.
 
-If this pre-implementation probe cannot establish required runtime or
-non-production authentication, the worker returns `SESSION_CAPABILITY_PAUSE`.
+If this pre-implementation probe cannot establish required runtime or activate
+the local dummy fixture, the worker returns `SESSION_CAPABILITY_PAUSE`.
 It makes no edit, commit, task-status change, or remote branch publication. The
 coordinator removes only the empty unpublished local attempt branch when safe,
 finalizes the session, and propagates no dependency skips. A human may restore

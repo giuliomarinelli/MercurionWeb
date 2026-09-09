@@ -2,6 +2,7 @@ import { computed, inject, Injectable, signal } from '@angular/core'
 import { AuthSessionPersistenceService } from './auth-session-persistence.service'
 import {
   INITIAL_SESSION_PROTOCOL,
+  LOCAL_DUMMY_AUTH,
   SessionConnectionState,
   SessionInvalidationCause,
   SessionTransition,
@@ -84,7 +85,10 @@ export class AuthStateStore {
 
   beginAuthentication(flow: 'password' | 'sso' | 'restore' = 'password'): void {
     this.assertAllowed(this.state().kind, 'authenticating')
-    if (flow !== 'restore') this.clearPersistence()
+    if (flow !== 'restore') {
+      this.clearLocalDummyMarker()
+      this.clearPersistence()
+    }
     this.stateSignal.set({ kind: 'authenticating', flow })
     this.applyProtocol(SessionTransition.BeginAuthentication)
   }
@@ -184,6 +188,7 @@ export class AuthStateStore {
 
   invalidate(reason: SessionInvalidationCauseType = SessionInvalidationCause.InvalidSession): void {
     this.clearExpiryTimer()
+    this.clearLocalDummyMarker()
     this.clearPersistence()
     this.transition({ kind: 'session-expired', reason })
     this.applyProtocol(this.transitionForInvalidationCause(reason))
@@ -192,6 +197,7 @@ export class AuthStateStore {
   logout(): void {
     this.clearExpiryTimer()
     this.transition({ kind: 'logging-out' })
+    this.clearLocalDummyMarker()
     this.clearPersistence()
     this.transition({ kind: 'anonymous' })
     this.applyProtocol(SessionTransition.Logout)
@@ -284,6 +290,18 @@ export class AuthStateStore {
     if (this.expiryTimer !== undefined) {
       clearTimeout(this.expiryTimer)
       this.expiryTimer = undefined
+    }
+  }
+
+  private clearLocalDummyMarker(): void {
+    try {
+      localStorage.removeItem(LOCAL_DUMMY_AUTH.storageKey)
+    } catch {
+      // Storage failure is already a fail-closed inactive state.
+    }
+    if (typeof document !== 'undefined') {
+      document.cookie = '__logged_in=; Max-Age=0; path=/'
+      document.cookie = '__logged_in_=; Max-Age=0; path=/'
     }
   }
 

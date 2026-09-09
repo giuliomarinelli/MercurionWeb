@@ -1,5 +1,8 @@
 import type { ApplicationErrorEnvelope } from './application-error-envelope'
 
+export { LOCAL_DUMMY_AUTH } from './local-dummy-auth'
+export type { LocalDummyAuthMarker } from './local-dummy-auth'
+
 export type RestContractVersion = '1.0.0'
 
 export {

@@ -12,6 +12,7 @@ export const environment = createEnvironmentConfig({
     '/',
     '/forgot-password',
     '/account-recovery',
+    '/__local/dummy-auth',
     '/404-not-found',
     '/403-forbidden',
     '/terms-and-policies',

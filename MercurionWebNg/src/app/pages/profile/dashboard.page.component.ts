@@ -206,7 +206,10 @@ export class DashboardPageComponent implements OnInit, OnDestroy, AfterViewInit 
 
       this.tryBuildCharts()
     },
-    error: () => this.serverError.set(true)
+    error: () => {
+      this.serverError.set(true)
+      this.loading.set(false)
+    }
   }
 
   // ========= STATE =========
