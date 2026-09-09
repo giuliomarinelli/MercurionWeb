@@ -1,6 +1,6 @@
 # 0035 - Unify auth-error invalidation in one interceptor path
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -65,13 +65,13 @@ SYS error tasks establish stable application-error classification. The Angular a
 
 ## Acceptance criteria
 
-- [ ] No auth failure is independently handled by two interceptors.
-- [ ] A fatal/session-invalidating response emits exactly one canonical store event.
-- [ ] Forbidden/permission denial preserves valid authentication and follows the forbidden UX.
-- [ ] Token rotation updates canonical token/scope state exactly once.
-- [ ] No interceptor directly performs duplicate storage cleanup + navigation + toast for the same failure.
-- [ ] REST and GraphQL representative auth errors are covered by tests.
-- [ ] Angular tests/build pass.
+- [x] No auth failure is independently handled by two interceptors.
+- [x] A fatal/session-invalidating response emits exactly one canonical store event.
+- [x] Forbidden/permission denial preserves valid authentication and follows the forbidden UX.
+- [x] Token rotation updates canonical token/scope state exactly once.
+- [x] No interceptor directly performs duplicate storage cleanup + navigation + toast for the same failure.
+- [x] REST and GraphQL representative auth errors are covered by tests.
+- [x] Angular tests/build pass.
 
 ## Validation
 
@@ -116,32 +116,48 @@ A single interceptor is not mandatory if two narrowly scoped interceptors are cl
 
 ### Summary
 
-Skipped without implementation because hard prerequisites
-`0011-unify-cross-transport-error-envelope.md` (`SYS-011`),
-`0012-centralize-application-error-code-catalog.md` (`SYS-012`),
-`0026-create-canonical-angular-auth-state-store.md` (`FE-004`),
-`0029-preserve-authorization-scopes-through-every-login-flow.md` (`FE-007`),
-and `0031-make-logout-a-deterministic-session-transition.md` (`FE-009`) are
-terminal non-DONE: `SYS-011`/`SYS-012`/`FE-004` are `BLOCKED`, and
-`FE-007`/`FE-009` are `SKIPPED_DEPENDENCY`.
+Implemented one shared auth-response classifier. `AuthInterceptor` now owns
+token attachment, accepted access-token rotation, and session invalidation for
+REST 401 and GraphQL-200 fatal envelopes. `AuthFallbackInterceptor` is limited
+to permission-denial navigation, so it cannot duplicate invalidation, logout,
+toast, or login navigation. The active dependency tasks were already DONE on
+this branch; the old skipped note was stale.
 
 ### Validation performed
 
-No task branch or worker was created. Direct prerequisites are `SYS-011`,
-`SYS-012`, `FE-004`, `FE-007`, and `FE-009`; their terminal states are
-`BLOCKED`, `BLOCKED`, `BLOCKED`, `SKIPPED_DEPENDENCY`, and
-`SKIPPED_DEPENDENCY`. The dependency chain includes the blocked canonical auth
-store and the skipped scope/logout tasks.
+- Confirmed branch `feature/FE-013` was clean at base
+  `cf9065e06e1d17974f79f3c3b70a0047ace4235e`.
+- Confirmed no Angular/Nest/Tox21/test watcher process was active before the
+  unchanged preflight.
+- `npm ci` passed.
+- `npm run ci:check` passed unchanged before edits.
+- `npm run test:ci --workspace mercurion_web_ng` passed: 334 tests.
+- `npm run build --workspace mercurion_web_ng` passed; only existing bundle and
+  CommonJS warnings were reported.
+- Focused interceptor coverage is included in the complete Angular suite:
+  REST fatal 401, GraphQL-200 fatal response, permission-only 403, token
+  rotation, ordinary errors, and single-side-effect assertions.
+- Final runtime processes were stopped/absent before the final clean install.
+- Final `npm ci` and `npm run ci:check` passed after implementation.
 
 ### Browser validation performed
 
-Not applicable; the task was skipped before implementation.
+Not run. No deterministic local expired-session or permission fixture was
+available, and the task explicitly permits automated coverage in that case.
+The canonical `http://localhost:8888` runtime was not started.
 
 ### Changed files
 
-No files changed; only this task metadata was updated.
+- `MercurionWebNg/src/app/interceptors/auth-error.util.ts`
+- `MercurionWebNg/src/app/interceptors/auth.interceptor.ts`
+- `MercurionWebNg/src/app/interceptors/auth-fallback.interceptor.ts`
+- `MercurionWebNg/src/app/interceptors/auth.interceptor.spec.ts`
+- `MercurionWebNg/src/app/interceptors/auth-fallback.interceptor.spec.ts`
+- This task execution record.
 
-### Blocker / human decision required
+### Commits
 
-No implementation blocker. The task may be re-enabled only after its hard
-dependency chain is deliberately resolved in a new authorized session.
+Implementation and task record committed with `git commit --no-gpg-sign` and
+the required Copilot co-author trailer:
+
+The final SHA is recorded in the worker result and branch history.
