@@ -56,12 +56,15 @@ function routeReferences(route, referenceIndex) {
     if (staticPath.length < 2) {
         return [];
     }
-    return referenceIndex
+    const referencesByFile = new Map(referenceIndex
         .filter((entry) => entry.relative !== route.controller)
-        .flatMap((entry) => entry.lines.flatMap((line, index) => line.includes(staticPath)
-            ? [{ file: entry.relative, line: index + 1, kind: referenceKind(entry.relative) }]
-            : []))
-        .sort((left, right) => compareText(`${left.file}:${String(left.line).padStart(8, '0')}`, `${right.file}:${String(right.line).padStart(8, '0')}`));
+        .filter((entry) => entry.lines.some((line) => line.includes(staticPath)))
+        .map((entry) => {
+            const reference = { file: entry.relative, kind: referenceKind(entry.relative) };
+            return [`${reference.file}\u0000${reference.kind}`, reference];
+        }));
+    return [...referencesByFile.values()]
+        .sort((left, right) => compareText(`${left.file}:${left.kind}`, `${right.file}:${right.kind}`));
 }
 
 function defaultOwnership(route) {
@@ -96,7 +99,6 @@ function buildExpectedInventory(actual) {
             path: route.path,
             controller: route.controller,
             handler: route.handler,
-            line: route.line,
         };
         return {
             ...ownershipRoute,
@@ -105,7 +107,7 @@ function buildExpectedInventory(actual) {
         };
     });
     return {
-        schemaVersion: 2,
+        schemaVersion: 3,
         generatedBy: 'node scripts/check-rest-route-ownership.mjs --write',
         globalPrefix: prefixConfiguration.prefix,
         prefixExceptions: prefixConfiguration.prefixExceptions,
@@ -148,7 +150,7 @@ function summarizeInventoryDrift(actual, expected) {
             differences.push(`- ${key}: missing route inventory entry`);
             continue;
         }
-        for (const field of ['path', 'controller', 'handler', 'line', 'classification', 'owner', 'evidence', 'references']) {
+        for (const field of ['path', 'controller', 'handler', 'classification', 'owner', 'evidence', 'references']) {
             if (JSON.stringify(actualRoute[field]) !== JSON.stringify(expectedRoute[field])) {
                 differences.push(`- ${key}: ${field} changed`);
             }

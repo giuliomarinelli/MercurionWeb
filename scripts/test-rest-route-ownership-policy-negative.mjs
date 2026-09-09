@@ -34,6 +34,27 @@ try {
     assert.equal(fs.readFileSync(temporaryInventory, 'utf8'), firstOutput, 'inventory output must be deterministic');
 
     const deterministicInventory = JSON.parse(firstOutput);
+    assert.equal(deterministicInventory.schemaVersion, 3, 'line-independent ownership inventory schema must be active');
+    assert.equal(
+        deterministicInventory.routes.some((route) => Object.hasOwn(route, 'line')),
+        false,
+        'route ownership records must not persist source line numbers',
+    );
+    assert.equal(
+        deterministicInventory.routes.some((route) => route.references.some(
+            (reference) => Object.hasOwn(reference, 'line'),
+        )),
+        false,
+        'route ownership references must not persist source line numbers',
+    );
+    for (const route of deterministicInventory.routes) {
+        const referenceKeys = route.references.map((reference) => `${reference.file}\u0000${reference.kind}`);
+        assert.equal(
+            new Set(referenceKeys).size,
+            referenceKeys.length,
+            `${route.method} ${route.path} references must be unique by file and kind`,
+        );
+    }
     assert.equal(
         deterministicInventory.routes.some((route) => route.references.some(
             (reference) => reference.file.startsWith('docs/autonomous-development/'),
