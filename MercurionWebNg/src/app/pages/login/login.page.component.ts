@@ -24,6 +24,7 @@ import { environment } from '../../../environments/environment'
 import { SSO_AuthProvider } from '../../Models/auth/provider.models'
 import { UserContextService } from '../../services/context/user-context.service'
 import { HttpErrorResponse } from '@angular/common/http'
+import { APP_CONFIG } from '../../config/app-config'
 
 @Component({
   selector: 'm-login',
@@ -126,19 +127,21 @@ import { HttpErrorResponse } from '@angular/common/http'
               }
             </button>
           </div>
-          <div class="flex justify-center">
-            @if (loadingTurnstile()) {
-              <div class="w-[300px] h-[71px] overflow-hidden transition-all bg-neutral-200 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 animate-pulse skeleton-pulse" role="status" aria-live="polite">
-                <span class="sr-only">Loading CAPTCHA…</span>
-              </div>
-            }
-            <m-turnstile
-              (token)="onTurnstileToken($event)"
-              (widgetReady)="onTurnstileRender()"
-              (refresh)="loadingTurnstile.set(true)"
-              class="block h-[71px] mt-1"
-            />
-          </div>
+          @if (!turnstileDisabled) {
+            <div class="flex justify-center">
+              @if (loadingTurnstile()) {
+                <div class="w-[300px] h-[71px] overflow-hidden transition-all bg-neutral-200 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 animate-pulse skeleton-pulse" role="status" aria-live="polite">
+                  <span class="sr-only">Loading CAPTCHA…</span>
+                </div>
+              }
+              <m-turnstile
+                (token)="onTurnstileToken($event)"
+                (widgetReady)="onTurnstileRender()"
+                (refresh)="loadingTurnstile.set(true)"
+                class="block h-[71px] mt-1"
+              />
+            </div>
+          }
         }
         <div class="my-3 text-sm flex gap-3 justify-between items-center flex-col 2xs:flex-row">
           <a routerLink="/forgot-password" class="text-light-accent-primary-hc dark:text-dark-accent-primary hover:underline">Password dimenticata?</a>
@@ -255,20 +258,22 @@ export class LoginPageComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute)
   private readonly destroyRef = inject(DestroyRef)
   private readonly userContext = inject(UserContextService)
+  private readonly appConfig = inject(APP_CONFIG)
 
   protected readonly uncorrectEmailMsg = "L'e-mail inserita non è corretta"
 
   private readonly redirectKey = 'redirectAfterLogin'
   private readonly loginKey = 'login'
 
-  readonly turnstileComponent = viewChild.required(TurnstileComponent);
+  readonly turnstileComponent = viewChild(TurnstileComponent)
+  protected readonly turnstileDisabled = signal(this.appConfig.capabilities.disableTurnstile)
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   protected loginForm: FormGroup<any>
   protected step = signal<1 | 2>(1)
   protected serverErrorStep = signal<0 | 1 | 2 | 2429>(0)
 
-  protected loadingTurnstile = signal<boolean>(true)
+  protected loadingTurnstile = signal<boolean>(!this.turnstileDisabled)
   protected turnstileToken = signal<string | null>(null)
   protected loadingLogin = signal<boolean>(false)
   protected goingToPasswordStep = signal<boolean>(false)
@@ -327,7 +332,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
   }
 
   canLogin = computed(() => {
-    const hasToken = !!this.turnstileToken()
+    const hasToken = this.turnstileDisabled() || !!this.turnstileToken()
     const isValid = this.formStatus() === 'VALID'
     return hasToken && isValid
   })
@@ -372,7 +377,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
 
   onSubmit() {
     if (!this.loginForm.valid) return
-    if (!this.turnstileToken()) return
+    if (!this.turnstileDisabled && !this.turnstileToken()) return
 
     this.loadingLogin.set(true)
     this.authState.beginAuthentication('password')
@@ -383,7 +388,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
       remember: this.loginForm.value['remember'],
       fingerprintBase64: this.fingerprintDataEnc,
       sessionDeviceInfo: this.sessionDeviceInfo,
-      turnstileToken: this.turnstileToken()!
+      turnstileToken: this.turnstileToken() ?? ''
     }
 
     this.secondStepSubscription?.unsubscribe()

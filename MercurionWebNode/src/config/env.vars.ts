@@ -15,6 +15,10 @@ export class EnvVars {
   @IsOptional()
   LOCAL_DUMMY_AUTH?: boolean
 
+  @IsBoolean()
+  @IsOptional()
+  DISABLE_TURNSTILE?: boolean
+
   @IsString()
   @IsOptional()
   LOCAL_TEST_ACCOUNT_EMAIL?: string

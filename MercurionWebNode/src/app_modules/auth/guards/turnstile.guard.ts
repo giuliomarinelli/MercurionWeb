@@ -14,6 +14,10 @@ export class TurnstileGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
 
+    const turnstileDisabled = process.env.APP_ENV === 'development' &&
+      process.env.DISABLE_TURNSTILE?.trim().toLowerCase() === 'true'
+    if (turnstileDisabled) return true
+
     const req = context.switchToHttp().getRequest<FastifyRequest>()
 
     const token = req.headers['x-challenge-token'] as string

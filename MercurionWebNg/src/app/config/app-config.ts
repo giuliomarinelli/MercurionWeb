@@ -35,6 +35,7 @@ export interface AppCapabilitiesConfig {
   readonly beta: boolean
   readonly feedbackEnv: FeedbackEnv
   readonly localDummyAuth: boolean
+  readonly disableTurnstile: boolean
 }
 
 export interface AppReleaseConfig {
@@ -80,7 +81,8 @@ export function createAppConfig(config: EnvironmentConfig): AppConfig {
     capabilities: Object.freeze({
       beta: !config.production,
       feedbackEnv: (config.production ? 'prod' : 'staging') satisfies FeedbackEnv,
-      localDummyAuth: config.name === 'development'
+      localDummyAuth: config.name === 'development',
+      disableTurnstile: config.name === 'development' && config.DISABLE_TURNSTILE
     }),
     release: Object.freeze({
       version: releaseVersionFor(config.name)

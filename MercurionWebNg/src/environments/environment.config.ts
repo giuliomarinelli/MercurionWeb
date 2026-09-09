@@ -8,6 +8,7 @@ export interface EnvironmentConfig {
   readonly name: EnvironmentName
   readonly minLogLevel: LogLevel
   readonly CLOUDFLARE_SITE_KEY: string
+  readonly DISABLE_TURNSTILE: boolean
   readonly PUBLIC_EXACT_PATHS: readonly string[]
   readonly LOGGED_OUT_ONLY_PATHS: readonly string[]
   readonly PUBLIC_PREFIXES: readonly string[]

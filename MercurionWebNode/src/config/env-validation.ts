@@ -21,6 +21,7 @@ export function validateEnvOrKillProcess(raw: NodeJS.ProcessEnv): EnvVars {
         ...raw,
 
         LOCAL_DUMMY_AUTH: toBool(raw.LOCAL_DUMMY_AUTH),
+        DISABLE_TURNSTILE: toBool(raw.DISABLE_TURNSTILE),
 
         APP_PORT: toInt(raw.APP_PORT),
         APP_NATS_PORT: toInt(raw.APP_NATS_PORT),
