@@ -24,6 +24,7 @@ import { MfaStrategy, MfaView } from '../../../Models/account/account.models'
 import { MfaStrategyCardComponent } from '../../../components/common/mfa-strategy-card/mfa-strategy-card.component'
 import { ɵɵRouterLink } from "@angular/router/testing";
 import { DesignService } from '../../../services/design.service'
+import { AuthRedirectService } from '../../../services/auth-redirect.service'
 
 @Component({
   selector: 'm-mfa',
@@ -219,6 +220,7 @@ import { DesignService } from '../../../services/design.service'
 })
 export class MfaPageComponent implements OnInit, OnDestroy {
   private readonly persistence = inject(AuthSessionPersistenceService)
+  private readonly redirects = inject(AuthRedirectService)
 
   private readonly route = inject(ActivatedRoute)
   private readonly router = inject(Router)
@@ -261,41 +263,12 @@ export class MfaPageComponent implements OnInit, OnDestroy {
 
   private pollInterval!: ReturnType<typeof setInterval>
 
-  private readonly redirectKey = 'redirectAfterLogin'
-
-  private sanitizeRedirectTo(raw: string | null | undefined): string | null {
-    const v = (raw ?? '').trim()
-    if (!v) return null
-
-    // hardening minimo: accetta solo path interni
-    if (!v.startsWith('/')) return null
-    if (v.startsWith('//')) return null
-
-    return v
-  }
-
-  private getRedirectToQP(): string | null {
-    return this.sanitizeRedirectTo(this.route.snapshot.queryParamMap.get('redirect_to'))
-  }
-
   private resolveRedirectTarget(): string {
-    // ✅ query param vince SEMPRE
-    const qp = this.getRedirectToQP()
-    if (qp) return qp
-
-    const ss = this.sanitizeRedirectTo(this.persistence.getRedirectState())
-    return ss ?? '/dashboard'
-  }
-
-  private buildRedirectQp(): any {
-    const qp: any = {}
-    const r = this.getRedirectToQP()
-    if (r) qp.redirect_to = r
-    return qp
+    return this.redirects.consume()
   }
 
   private gotoLoginPreservingRedirect(): void {
-    this.router.navigate(['/login'], { queryParams: this.buildRedirectQp() })
+    this.router.navigate(['/login'])
   }
 
 
@@ -303,7 +276,7 @@ export class MfaPageComponent implements OnInit, OnDestroy {
     if (e.key === 'login' && e.newValue) {
       if (this.router.url.startsWith('/login')) {
         this.authState.syncExternalState()
-        this.router.navigateByUrl(this.resolveRedirectTarget())
+        window.location.assign(this.resolveRedirectTarget())
       }
     }
   }
@@ -371,12 +344,10 @@ export class MfaPageComponent implements OnInit, OnDestroy {
       map(([params, query]) => {
         const view = params.get('view') as MfaView | null
         const trustVerify = (query.get('trust_verify') ?? 'false') === 'true'
-        const redirectTo = this.sanitizeRedirectTo(query.get('redirect_to'))
-        return { view, trustVerify, redirectTo }
+        return { view, trustVerify }
       }),
-      switchMap(({ view, trustVerify, redirectTo }) => {
-        // ✅ se arriva redirect_to in query, lo teniamo anche in sessionStorage (fallback)
-        if (redirectTo) this.persistence.setRedirectState(redirectTo)
+      switchMap(({ view, trustVerify }) => {
+        this.redirects.captureQueryParam(this.route.snapshot.queryParamMap.get('redirect_to'))
 
         if (!view || !this.viewList.includes(view)) {
           this.router.navigateByUrl('/403-forbidden')
@@ -503,11 +474,11 @@ export class MfaPageComponent implements OnInit, OnDestroy {
   goTo(target: MfaView): void {
     if (!this.viewList.includes(target)) return
 
-    const qp: any = this.buildRedirectQp()
+    const qp: Record<string, boolean> = {}
 
     // preserva trust_verify solo se stiamo andando su EMAIL_OTP
     const trust = this.route.snapshot.queryParamMap.get('trust_verify') === 'true'
-    if (trust && target === 'EMAIL_OTP') qp.trust_verify = true
+    if (trust && target === 'EMAIL_OTP') qp['trust_verify'] = true
 
     this.router.navigate([`/login/mfa/${target}`], { queryParams: qp })
   }

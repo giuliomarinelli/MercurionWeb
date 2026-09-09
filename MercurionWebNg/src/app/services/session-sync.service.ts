@@ -11,6 +11,7 @@ import { effect, inject, Injectable, NgZone, OnDestroy, signal } from '@angular/
 import { Router } from '@angular/router'
 import { AuthStateStore } from './auth-state.store'
 import { AuthSessionPersistenceService } from './auth-session-persistence.service'
+import { AuthRedirectService } from './auth-redirect.service'
 import { ToastService } from './toast.service'
 import { environment } from '../../environments/environment'
 import { RealtimeSocketService } from './socket.IO/realtime-socket.service'
@@ -60,6 +61,7 @@ export class SessionSyncService implements OnDestroy {
   private readonly socket = inject(RealtimeSocketService)
   private readonly authState = inject(AuthStateStore)
   private readonly persistence = inject(AuthSessionPersistenceService)
+  private readonly redirects = inject(AuthRedirectService)
   private readonly toast = inject(ToastService)
   private readonly router = inject(Router)
   private readonly zone = inject(NgZone)
@@ -465,9 +467,10 @@ export class SessionSyncService implements OnDestroy {
   }
 
   private redirectToLoginWithRedirectTo(): void {
-    const fullUrl = this.router.url.startsWith('/') ? this.router.url : `/${this.router.url}`
-    const encoded = encodeURIComponent(fullUrl)
-    this.router.navigateByUrl(`/login?redirect_to=${encoded}`)
+    const target = this.redirects.capture(this.router.url)
+    void this.router.navigate(['/login'], {
+      queryParams: target ? { redirect_to: target } : undefined
+    })
   }
 
   private isPublicRoute(url: string): boolean {

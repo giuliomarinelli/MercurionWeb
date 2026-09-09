@@ -25,6 +25,7 @@ import { SSO_AuthProvider } from '../../Models/auth/provider.models'
 import { UserContextService } from '../../services/context/user-context.service'
 import { HttpErrorResponse } from '@angular/common/http'
 import { APP_CONFIG } from '../../config/app-config'
+import { AuthRedirectService } from '../../services/auth-redirect.service'
 
 @Component({
   selector: 'm-login',
@@ -259,10 +260,10 @@ export class LoginPageComponent implements OnInit, OnDestroy {
   private readonly destroyRef = inject(DestroyRef)
   private readonly userContext = inject(UserContextService)
   private readonly appConfig = inject(APP_CONFIG)
+  private readonly redirects = inject(AuthRedirectService)
 
   protected readonly uncorrectEmailMsg = "L'e-mail inserita non è corretta"
 
-  private readonly redirectKey = 'redirectAfterLogin'
   private readonly loginKey = 'login'
 
   readonly turnstileComponent = viewChild(TurnstileComponent)
@@ -398,12 +399,6 @@ export class LoginPageComponent implements OnInit, OnDestroy {
       finalize(() => this.loadingLogin.set(false))
     ).subscribe({
       next: (res: Confirm_Login_FirstStepDTO) => {
-        // ✅ redirect_to “indistruttibile”: queryParam OR sessionStorage fallback
-        const redirectTo = this.getRedirectTo()
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const qp: any = {}
-        if (redirectTo) qp.redirect_to = redirectTo
-
         if (res.needsMfa) {
           this.pageLoading.set(true)
           this.authState.enterPreAuthentication(res.preAuthorizationToken)
@@ -412,11 +407,11 @@ export class LoginPageComponent implements OnInit, OnDestroy {
           this.persistence.setPreAuthorizationData(btoa(JSON.stringify(loginFirstStepData ?? '')))
 
           if (res.suspiciousAttempt) {
-            this.router.navigate([`/login/mfa/EMAIL_OTP`], { queryParams: { ...qp, trust_verify: true } })
+            this.router.navigate([`/login/mfa/EMAIL_OTP`], { queryParams: { trust_verify: true } })
           } else if ((res.enabledMfaStrategies?.length ?? 0) === 1) {
-            this.router.navigate([`/login/mfa/${res.enabledMfaStrategies[0]}`], { queryParams: qp })
+            this.router.navigate([`/login/mfa/${res.enabledMfaStrategies[0]}`])
           } else {
-            this.router.navigate([`/login/mfa/CHOOSE_METHOD`], { queryParams: qp })
+            this.router.navigate([`/login/mfa/CHOOSE_METHOD`])
           }
           return
         }
@@ -456,68 +451,17 @@ export class LoginPageComponent implements OnInit, OnDestroy {
     try { return !!JSON.parse(raw) } catch { return false }
   }
 
-  /** prende redirect_to da queryParam; se sparisce, fallback su sessionStorage */
-  private getRedirectTo(): string | null {
-    const v = this.route.snapshot.queryParamMap.get('redirect_to')
-    if (v != null) {
-      const s = String(v).trim()
-      if (s.length) return s
-    }
-    const stored = this.persistence.getRedirectState()
-    return stored?.trim()?.length ? stored.trim() : null
-  }
-
   private storeRedirectIfMissing() {
-    const qpRedirectTo = this.route.snapshot.queryParamMap.get('redirect_to')
-    if (qpRedirectTo) {
-      this.persistence.setRedirectState(String(qpRedirectTo))
-      return
-    }
-
-    const existing = this.persistence.getRedirectState()
-    if (existing) return
-
-    const qpRedirect =
-      this.route.snapshot.queryParamMap.get('redirect') ||
-      this.route.snapshot.queryParamMap.get('returnUrl') ||
-      this.route.snapshot.queryParamMap.get('r')
-
-    if (qpRedirect) {
-      this.persistence.setRedirectState(String(qpRedirect))
-      return
-    }
-
-    const ref = document.referrer || ''
-    const sameOrigin = ref.startsWith(window.location.origin)
-    const looksLikeLogin = ref.includes('/login')
-
-    if (sameOrigin && !looksLikeLogin) {
-      try {
-        const u = new URL(ref)
-        const path = `${u.pathname}${u.search}${u.hash}`
-        this.persistence.setRedirectState(path)
-      } catch {
-        // pass
-      }
-    }
-  }
-
-  private popRedirect() {
-    const url = this.persistence.getRedirectState()
-    if (url) this.persistence.removeRedirectState()
-    return url
+    const query = this.route.snapshot.queryParamMap.get('redirect_to')
+    if (query != null) this.redirects.captureQueryParam(query)
   }
 
   private redirectAfterLogin() {
-    const redirectTo = this.getRedirectTo()
-    if (redirectTo) {
-      this.persistence.removeRedirectState()
-      this.router.navigateByUrl(redirectTo)
-      return
-    }
-
-    const redirect = this.popRedirect() || '/dashboard'
-    this.router.navigateByUrl(redirect)
+    const target = this.redirectTo() || this.redirects.consume()
+    this.redirects.clear()
+    // A hard navigation preserves the canonical query/fragment even when a
+    // concurrent cross-tab session event also fires during login.
+    window.location.assign(target)
   }
 
   private startPolling() {
@@ -541,7 +485,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
 
     const redirected = this.parseBool(this.route.snapshot.queryParamMap.get('redirected'))
 
-    const redirectTo = this.route.snapshot.queryParamMap.get('redirect_to') ?? ''
+    const redirectTo = this.redirects.peek() ?? ''
 
     if (redirectTo) {
       this.redirectTo.set(redirectTo)

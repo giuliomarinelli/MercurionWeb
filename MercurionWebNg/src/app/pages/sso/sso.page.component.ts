@@ -20,6 +20,7 @@ import { SessionSyncService } from '../../services/session-sync.service';
 import { AuthStateStore } from '../../services/auth-state.store'
 import { AuthSessionPersistenceService } from '../../services/auth-session-persistence.service'
 import { SidenavContextService } from '../../services/context/sidenav-context.service';
+import { AuthRedirectService } from '../../services/auth-redirect.service'
 
 @Component({
   selector: 'm-sso-page',
@@ -43,6 +44,7 @@ import { SidenavContextService } from '../../services/context/sidenav-context.se
 })
 export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly persistence = inject(AuthSessionPersistenceService)
+  private readonly redirects = inject(AuthRedirectService)
 
   private readonly route = inject(ActivatedRoute)
   private readonly router = inject(Router)
@@ -72,14 +74,6 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
     })
   }
 
-  private sanitizeRedirectTo(raw: string | null | undefined): string | null {
-    const v = (raw ?? '').trim()
-    if (!v) return null
-    if (!v.startsWith('/')) return null
-    if (v.startsWith('//')) return null
-    return v
-  }
-
   ngOnInit(): void {
     this.sub = of(null).pipe(
       switchMap(() => defer(() => from(this.fingerprintService.getSanitizedFingerprint()))),
@@ -99,9 +93,7 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
         const provider = p.get('provider') ?? ''
 
         // redirect_to may be lost by provider; fallback to sessionStorage if needed
-        const redirectTo =
-          this.sanitizeRedirectTo(p.get('redirect_to')) ??
-          this.sanitizeRedirectTo(this.persistence.getRedirectState())
+        const redirectTo = this.redirects.captureQueryParam(p.get('redirect_to')) ?? this.redirects.peek()
 
         // fragment atteso: "t=<token>"
         const sso_pat = frag ? (new URLSearchParams(frag).get('t') ?? '') : ''
@@ -125,7 +117,7 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
           return this.authService.sso_authorizeFlow(fp_enc, di_enc, sso_pat, provider).pipe(
             catchError(() => {
               queueMicrotask(() => {
-                this.persistence.removeRedirectState()
+                this.redirects.clear()
                 this.router.navigate(['/login'], { queryParams: { err: 'sso_failed', provider } })
               })
               return EMPTY
@@ -143,8 +135,7 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
           wsAccessToken: res.ws_accessToken
         })
         this.sessionSync.resumeSession(res.initials ?? 'U')
-        const redirect = this.persistence.getRedirectState() || '/dashboard'
-        this.router.navigateByUrl(redirect)
+        window.location.assign(this.redirects.consume())
       }
     })
   }

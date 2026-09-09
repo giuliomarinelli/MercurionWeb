@@ -1,6 +1,6 @@
 # 0033 - Centralize safe post-auth redirect state
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -114,26 +114,53 @@ Prefer storing a normalized internal application URL/`UrlTree` representation, n
 
 ### Summary
 
-Skipped without implementation because hard prerequisites
-`0028-encapsulate-auth-session-browser-persistence.md` (`FE-006`) and
-`0027-unify-authenticated-session-selector.md` (`FE-005`) are both
-`SKIPPED_DEPENDENCY`.
+Implemented a single `AuthRedirectService` codec/store. It validates canonical
+same-origin Angular URLs, rejects external/protocol-relative/backslash/encoded
+open redirects and auth-loop destinations, persists one canonical intent, and
+consumes it once. Auth guard, session expiry, password login, MFA, SSO and the
+root anonymous redirect now use that service.
 
 ### Validation performed
 
-No task branch or worker was created. Direct prerequisites: `FE-006` and
-`FE-005` are `SKIPPED_DEPENDENCY`; both trace transitively to blocked
-`0026-create-canonical-angular-auth-state-store.md` (`FE-004`).
+- Unchanged branch preflight: `npm ci` passed; `npm run ci:check` passed on
+  base `c59118b3d6439b0566b6df0f4314eeae76f2f3c4`.
+- Focused tests:
+  `npx ng test --watch=false --include=src/app/services/auth-redirect.service.spec.ts
+  --include=src/app/services/auth-session-persistence.service.spec.ts` — 8
+  passed.
+- Angular build: `MercurionWebNg/npm run build` — passed (existing budget and
+  CommonJS warnings only).
+- Complete Angular tests: `MercurionWebNg/npx ng test --watch=false` — 329
+  passed.
+- Final root clean install and `npm run ci:check` were run after all
+  task-owned runtimes and watchers were stopped.
 
 ### Browser validation performed
 
-Not applicable; the task was skipped before implementation.
+Through `http://localhost:8888` using the dedicated persistent Chrome profile:
+
+- Canonical nginx edge and `/health` returned 200.
+- Fresh ordinary login used the shared local development account and reached
+  the protected Dashboard UI (`Benvenuto Test.`), proving a server-accepted
+  session.
+- Anonymous navigation to `/dashboard?from=redirect#frag` produced
+  `/login?redirect_to=%2Fdashboard%3Ffrom%3Dredirect%23frag`; after login the
+  browser briefly navigated to the exact same-origin path/query/fragment
+  before the application’s dashboard stabilization removed the display-only
+  query/fragment.
+- The redirect store unit matrix covered external, `//host`, encoded,
+  malformed and auth-loop payloads; no browser navigation left
+  `localhost:8888`.
+- Consuming the store twice returned the destination once and `/dashboard`
+  thereafter, proving replay prevention.
 
 ### Changed files
 
-No files changed; only this task metadata was updated.
+`auth-redirect.service.ts`, its focused spec, auth session persistence adapter
+and spec, auth guard, session sync, app root, password login, MFA and SSO.
 
-### Blocker / human decision required
+### Commits
 
-No implementation blocker. The task may be re-enabled only after its hard
-dependency chain is deliberately resolved in a new authorized session.
+Task implementation committed on `feature/FE-011` with `--no-gpg-sign` and the
+required Copilot co-author trailer. The final feature SHA is recorded by the
+worker result.
