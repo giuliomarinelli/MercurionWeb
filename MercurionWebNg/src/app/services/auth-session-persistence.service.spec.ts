@@ -1,4 +1,7 @@
-import { InMemoryAuthSessionPersistence } from './auth-session-persistence.service'
+import {
+  AuthSessionPersistenceService,
+  InMemoryAuthSessionPersistence
+} from './auth-session-persistence.service'
 
 describe('InMemoryAuthSessionPersistence', () => {
   it('round-trips tokens, scopes, tab and lock state', () => {
@@ -45,5 +48,64 @@ describe('InMemoryAuthSessionPersistence', () => {
     expect(persistence.getPreAuthorizationData()).toBeNull()
     expect(persistence.getRedirectState()).toBeNull()
     expect(persistence.getWsRefreshLock()).toBeNull()
+  })
+})
+
+describe('AuthSessionPersistenceService browser cleanup', () => {
+  let persistence: AuthSessionPersistenceService
+
+  beforeEach(() => {
+    localStorage.clear()
+    sessionStorage.clear()
+    persistence = new AuthSessionPersistenceService()
+  })
+
+  afterEach(() => {
+    localStorage.clear()
+    sessionStorage.clear()
+  })
+
+  it('removes owned auth/session and pre-auth keys while preserving unrelated storage', () => {
+    localStorage.setItem('accessToken', 'http-token')
+    localStorage.setItem('ws_accessToken', 'ws-token')
+    localStorage.setItem('ws_accessToken_ts', '123')
+    localStorage.setItem('login', 'AB')
+    localStorage.setItem('scp', 'scopes')
+    localStorage.setItem('ws_scp', 'ws-scopes')
+    localStorage.setItem('ws_refresh_lock', '{"owner":"tab","expiresAt":123}')
+    localStorage.setItem('theme', 'dark')
+    localStorage.setItem('app-preference', 'compact')
+    sessionStorage.setItem('preAuthorizationData', 'pre-auth')
+    sessionStorage.setItem('redirectAfterLogin', '/dashboard')
+    sessionStorage.setItem('mfaError', 'retry')
+    sessionStorage.setItem('tab_id', 'tab')
+    sessionStorage.setItem('checkout-draft', 'keep')
+
+    persistence.clearAuthenticatedSession()
+    persistence.clearPreAuthData()
+    persistence.clearEphemeralAuthData()
+
+    for (const key of [
+      'accessToken',
+      'ws_accessToken',
+      'ws_accessToken_ts',
+      'login',
+      'scp',
+      'ws_scp',
+      'ws_refresh_lock'
+    ]) {
+      expect(localStorage.getItem(key)).toBeNull()
+    }
+    for (const key of [
+      'preAuthorizationData',
+      'redirectAfterLogin',
+      'mfaError',
+      'tab_id'
+    ]) {
+      expect(sessionStorage.getItem(key)).toBeNull()
+    }
+    expect(localStorage.getItem('theme')).toBe('dark')
+    expect(localStorage.getItem('app-preference')).toBe('compact')
+    expect(sessionStorage.getItem('checkout-draft')).toBe('keep')
   })
 })

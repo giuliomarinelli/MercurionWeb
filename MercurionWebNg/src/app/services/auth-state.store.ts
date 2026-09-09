@@ -213,6 +213,21 @@ export class AuthStateStore {
     this.applyProtocol(SessionTransition.Logout)
   }
 
+  /**
+   * Enter the recovery flow from a safe anonymous state.  The state transition
+   * happens before persistence cleanup so guards and consumers cannot keep
+   * observing an authenticated session while recovery invalidates credentials.
+   */
+  beginRecovery(): void {
+    this.clearExpiryTimer()
+    this.transition({ kind: 'anonymous' })
+    this.clearLocalDummyMarker()
+    this.persistence.clearAuthenticatedSession()
+    this.persistence.clearPreAuthData()
+    this.persistence.clearEphemeralAuthData()
+    this.applyProtocol(SessionTransition.Logout)
+  }
+
   requireReconnect(): void {
     this.applyProtocol(SessionTransition.ReconnectRequired)
   }
