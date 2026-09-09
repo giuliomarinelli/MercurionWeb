@@ -61,9 +61,9 @@ export class InMemoryAuthSessionPersistence implements AuthSessionPersistencePor
   getPreAuthorizationData() { return this.session.get('preAuthorizationData') ?? null }
   setPreAuthorizationData(value: string) { this.session.set('preAuthorizationData', value) }
   removePreAuthorizationData() { this.session.delete('preAuthorizationData') }
-  getRedirectState() { return this.session.get('redirectAfterLogin') ?? null }
-  setRedirectState(value: string) { this.session.set('redirectAfterLogin', value) }
-  removeRedirectState() { this.session.delete('redirectAfterLogin') }
+  getRedirectState() { return this.session.get('authRedirectIntent') ?? null }
+  setRedirectState(value: string) { this.session.set('authRedirectIntent', value) }
+  removeRedirectState() { this.session.delete('authRedirectIntent') }
   setTransientAuthError(value: string) { this.session.set('mfaError', value) }
   removeTransientAuthError() { this.session.delete('mfaError') }
   clearAuthenticatedSession() { for (const key of ['accessToken', 'ws_accessToken', 'ws_accessToken_ts', 'login', 'scp', 'ws_scp']) this.local.delete(key); this.removeLoginMarkers() }
@@ -104,9 +104,9 @@ export class AuthSessionPersistenceService implements AuthSessionPersistencePort
   getPreAuthorizationData() { return this.getItem(this.session, 'preAuthorizationData') }
   setPreAuthorizationData(value: string) { this.setItem(this.session, 'preAuthorizationData', value) }
   removePreAuthorizationData() { this.removeItem(this.session, 'preAuthorizationData') }
-  getRedirectState() { return this.getItem(this.session, 'redirectAfterLogin') }
-  setRedirectState(value: string) { this.setItem(this.session, 'redirectAfterLogin', value) }
-  removeRedirectState() { this.removeItem(this.session, 'redirectAfterLogin') }
+  getRedirectState() { return this.getItem(this.session, 'authRedirectIntent') }
+  setRedirectState(value: string) { this.setItem(this.session, 'authRedirectIntent', value) }
+  removeRedirectState() { this.removeItem(this.session, 'authRedirectIntent') }
   setTransientAuthError(value: string) { this.setItem(this.session, 'mfaError', value) }
   removeTransientAuthError() { this.removeItem(this.session, 'mfaError') }
   clearAuthenticatedSession() { for (const key of ['accessToken', 'ws_accessToken', 'ws_accessToken_ts', 'login', 'scp', 'ws_scp']) this.removeItem(this.local, key); this.removeLoginMarkers() }

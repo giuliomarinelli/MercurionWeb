@@ -35,6 +35,7 @@ import { AppContextService } from './services/context/app-context.service'
 import { AccountService } from './services/account.service'
 import { DOCUMENT, isPlatformBrowser } from '@angular/common'
 import { ToastComponent } from './components/common/toast/toast.component'
+import { AuthRedirectService } from './services/auth-redirect.service'
 
 @Component({
   selector: 'm-root',
@@ -145,6 +146,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   protected readonly sidenavContext = inject(SidenavContextService)
   protected readonly design = inject(DesignService)
   private readonly sessionSync = inject(SessionSyncService)
+  private readonly redirects = inject(AuthRedirectService)
   protected readonly saveOverlayContext = inject(ActionOverlayContextService)
   private readonly appContext = inject(AppContextService)
   private readonly accountService = inject(AccountService)
@@ -220,42 +222,6 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const isLoginFamily = (path: string): boolean => path === '/login' || path.startsWith('/login/')
 
-    const extractRedirectTo = (urlWithQuery: string): string | null => {
-      if (!urlWithQuery) return null
-      try {
-        const u = new URL(urlWithQuery, window.location.origin)
-        const raw = u.searchParams.get('redirect_to')
-        if (!raw) return null
-        const trimmed = raw.trim()
-        if (!trimmed) return null
-        if (!trimmed.startsWith('/')) return null
-        if (trimmed.startsWith('//')) return null
-        return stripLegacyBasePath(trimmed)
-      } catch {
-        return null
-      }
-    }
-
-    const resolveLoginRedirectTarget = (): string | null => {
-      const qp = extractRedirectTo(this.router.url)
-      if (!qp) return null
-      const normalizedTarget = normalize(qp).toLowerCase()
-      if (normalizedTarget === '/login' || normalizedTarget.startsWith('/login/')) return null
-      return qp
-    }
-
-    const buildWelcomeWithRedirectTo = (): string => {
-
-      let full = this.router.url || '/'
-      if (!full.startsWith('/')) full = `/${full}`
-      full = stripLegacyBasePath(full)
-
-      const clean = normalize(full).toLowerCase()
-      if (clean === '/welcome' || clean.startsWith('/welcome/')) return '/welcome'
-
-      return `/welcome?redirect_to=${encodeURIComponent(full)}`
-    }
-
     this.currentPath.set(normalize(this.router.url))
     this.pathService.setPath(this.currentPath())
 
@@ -281,10 +247,6 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         if (!this.firstNavigationDone()) this.firstNavigationDone.set(true)
         queueMicrotask(() => this.ensureScrollRootRef())
 
-        if (this.authState.authenticated() && isLoginFamily(url)) {
-          const target = resolveLoginRedirectTarget() ?? '/dashboard'
-          if (target !== this.router.url) this.router.navigateByUrl(target)
-        }
       })
 
     let lastProgrammaticNav: string | undefined
@@ -328,16 +290,12 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
       if (!logged) {
         if (!isPublic) {
-          safeNavigate(buildWelcomeWithRedirectTo())
+          this.redirects.capture(this.router.url)
+          safeNavigate('/welcome')
         }
         return
       }
 
-      if (isLoginFamilyPath) {
-        const target = resolveLoginRedirectTarget() ?? '/dashboard'
-        safeNavigate(target)
-        return
-      }
 
       if (isLoggedOutOnly) {
         safeNavigate('/dashboard')

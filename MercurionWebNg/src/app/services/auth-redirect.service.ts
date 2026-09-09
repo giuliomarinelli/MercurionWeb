@@ -11,6 +11,72 @@ export class AuthRedirectService {
 
   ) { }
 
+  private readonly fallback = '/dashboard'
+
+  /**
+   * Store only canonical, same-origin application URLs.  URL is deliberately
+   * resolved against the current origin so protocol-relative and encoded
+   * open-redirect tricks cannot become valid internal paths.
+   */
+  capture(raw: string | null | undefined): string | null {
+    const value = this.normalize(raw)
+    if (!value) {
+      if (raw != null && String(raw).trim()) this.clear()
+      return null
+    }
+    this.persistence.setRedirectState(value)
+    return value
+  }
+
+  peek(): string | null {
+    const stored = this.persistence.getRedirectState()
+    const normalized = this.normalize(stored)
+    if (!normalized) {
+      if (stored) this.clear()
+      return null
+    }
+    if (stored !== normalized) this.persistence.setRedirectState(normalized)
+    return normalized
+  }
+
+  consume(): string {
+    const target = this.peek() ?? this.fallback
+    this.clear()
+    return target
+  }
+
+  clear(): void {
+    this.persistence.removeRedirectState()
+  }
+
+  captureQueryParam(raw: string | null | undefined): string | null {
+    return this.capture(raw)
+  }
+
+  private normalize(raw: string | null | undefined): string | null {
+    const value = (raw ?? '').trim()
+    if (!value || value.includes('\\') || value.startsWith('//')) return null
+    let decoded: string
+    try {
+      decoded = decodeURIComponent(value)
+    } catch {
+      return null
+    }
+    if (decoded.includes('\\') || decoded.startsWith('//') || !decoded.startsWith('/')) return null
+
+    try {
+      const url = new URL(value, window.location.origin)
+      if (url.origin !== window.location.origin || url.username || url.password) return null
+      const path = `${url.pathname}${url.search}${url.hash}`
+      if (!path.startsWith('/') || path.startsWith('//')) return null
+      const route = path.split(/[?#]/, 1)[0].toLowerCase()
+      if (route === '/login' || route.startsWith('/login/')) return null
+      return this.router.serializeUrl(this.router.parseUrl(path))
+    } catch {
+      return null
+    }
+  }
+
   /**
    * Forza il redirect verso `/login`, anche se sei già su una sotto-route
    * come `/login/mfa/...`. Pulisce anche lo stato sessionStorage opzionalmente.

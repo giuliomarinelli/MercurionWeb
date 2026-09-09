@@ -76,7 +76,7 @@ describe('AuthSessionPersistenceService browser cleanup', () => {
     localStorage.setItem('theme', 'dark')
     localStorage.setItem('app-preference', 'compact')
     sessionStorage.setItem('preAuthorizationData', 'pre-auth')
-    sessionStorage.setItem('redirectAfterLogin', '/dashboard')
+    sessionStorage.setItem('authRedirectIntent', '/dashboard')
     sessionStorage.setItem('mfaError', 'retry')
     sessionStorage.setItem('tab_id', 'tab')
     sessionStorage.setItem('checkout-draft', 'keep')
@@ -98,7 +98,7 @@ describe('AuthSessionPersistenceService browser cleanup', () => {
     }
     for (const key of [
       'preAuthorizationData',
-      'redirectAfterLogin',
+      'authRedirectIntent',
       'mfaError',
       'tab_id'
     ]) {
