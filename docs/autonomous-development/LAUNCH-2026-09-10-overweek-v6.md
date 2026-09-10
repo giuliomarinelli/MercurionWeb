@@ -123,8 +123,13 @@ the dedicated persistent non-production browser profile is available for
 browser isolation. Treat any HTTP response from http://localhost:8888 as proof
 that nginx itself is reachable: its default 502 means a stopped/unreachable
 task-scoped upstream, while ECONNREFUSED on port 8888 means the edge is down.
-Start the required Angular/Nest upstreams before demanding HTTP 200. For every
-task requiring the reserved area, read the shared
+Start Tox21, Nest and Angular in that order and record all three long-running
+execution sessions before the first HTTP request. Never use `require.resolve`,
+dynamic imports or package-manifest resolution as a dependency-readiness gate.
+A 502/503 after startup is retryable for the full five-minute build window
+while the processes remain alive; it is not a capability pause. Require two
+consecutive complete successful readiness rounds. For every task requiring the
+reserved area, read the shared
 credentials from the git-ignored MercurionWebNode/env/.env.development file,
 perform a fresh ordinary login through http://localhost:8888/login, and prove
 that a protected server endpoint accepts the resulting real session before

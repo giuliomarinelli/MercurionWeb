@@ -134,35 +134,34 @@ duplicate application processes.
 For a task that actually declares browser/runtime validation, and only after
 its unchanged task-start baseline passes, the worker should:
 
-1. probe `http://localhost:8888` at the transport and HTTP layers before
-   classifying the edge: any HTTP response proves that nginx is listening; the
-   current development proxy normally returns nginx `502 Bad Gateway` when a
-   deliberately stopped task-scoped Angular or Nest upstream cannot be reached,
-   and that response MUST be classified as edge-live/upstream-unavailable, not
-   nginx-unavailable. A future explicit `503 Service Unavailable` mapping would
-   have the same liveness meaning. Only a transport-level failure on port
-   `8888`, such as `ECONNREFUSED` because the container is stopped or unable to
-   listen, establishes nginx unavailability and justifies inspecting Docker;
-2. start the Tox21 process when not already managed by the current session;
-3. start NestJS in watch mode;
-4. start Angular in watch mode;
-5. keep each command attached to its own long-running execution session and
+1. start the Tox21 process in its declared working directory;
+2. start NestJS in watch mode with the exact canonical command above;
+3. start Angular in watch mode with the exact canonical command above;
+4. keep each command attached to its own long-running execution session and
    poll its output; do not treat the initial tool yield/timeout as process
    completion and do not replace these commands with a repository PowerShell
    supervisor;
-6. wait for up to five minutes for the first builds to finish while proving
+5. prove that all three managed commands were issued and remain alive. Never
+   run `require.resolve`, import probes, package-manifest probes, or another
+   invented dependency-tree gate before these starts. The canonical start
+   commands and their real stderr are the runtime authority;
+6. only after all three starts, probe `http://localhost:8888`. HTTP `502 Bad
+   Gateway` or 503 means edge-live/upstream-unavailable and MUST NOT end or
+   pause the task. Only a transport error such as `ECONNREFUSED` establishes
+   nginx unavailability;
+7. wait for up to five minutes for the first builds to finish while proving
    that all three managed processes remain alive. `nest` or another local npm
    executable being unrecognized is an install/baseline invariant failure,
    not nginx unavailability and not a runtime capability pause: stop the other
    task-owned processes and return `BASELINE_INVARIANT_FAILURE` with the first
    actionable stderr diagnostic;
-7. during that wait, poll Nest through the nginx edge using
+8. during that wait, poll Nest through the nginx edge using
    `http://localhost:8888/health` when that endpoint is available for the
    current baseline. HTTP 502 means the edge is live and the upstream is not
    ready yet; keep waiting while the processes are alive;
-8. poll the Angular application through `http://localhost:8888/` (or the safe
+9. poll the Angular application through `http://localhost:8888/` (or the safe
    route required by the task) until the application shell is returned;
-9. require two consecutive successful complete probe rounds before allowing
+10. require two consecutive successful complete probe rounds before allowing
    browser validation to begin.
 
 The worker must capture the first actionable stderr output when a managed

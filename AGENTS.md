@@ -117,8 +117,9 @@ clean install and complete aggregate are GitHub Actions responsibilities only.
 This direct human policy overrides older launch documents, session YAML fields,
 and task recipes that still mention either local command. Local validation is
 limited to focused commands proportionate to the changed area and must reuse
-the existing dependency tree. If dependencies are absent or unusable, stop as
-a local capability/baseline incident rather than installing them locally.
+the existing dependency tree. Never use `require.resolve`, package-manifest
+resolution, or import probes to declare that tree unusable. For runtime work,
+only the canonical start commands and their actual output decide usability.
 
 There is no task `0001` bootstrap exception. Missing CI, a red exact-SHA run,
 or a red local baseline is a session-level startup failure. Stop before branch

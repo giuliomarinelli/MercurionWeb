@@ -635,7 +635,7 @@ for (const [pattern, message] of [
   [/must not make an application inventory stale|cannot invalidate the application baseline/i, 'missing metadata isolation rule'],
   [/\.cache\\chrome-devtools-mcp\\chrome-profile/, 'missing dedicated persistent Chrome profile path'],
   [/SESSION_CAPABILITY_PAUSE/, 'missing pre-implementation browser capability pause'],
-  [/502 Bad Gateway[\s\S]*edge-live\/upstream-unavailable/, 'runtime must classify nginx 502 as live edge with unavailable upstream'],
+  [/502[\s\S]{0,40}Bad\s+Gateway[\s\S]*edge-live\/upstream-unavailable/, 'runtime must classify nginx 502 as live edge with unavailable upstream'],
   [/ECONNREFUSED[\s\S]*nginx unavailability/, 'runtime must require a transport failure before classifying nginx unavailable'],
   [/up to five minutes[\s\S]*two consecutive successful complete probe rounds/i, 'runtime must wait for stable application readiness'],
   [/local npm[\s\S]*executable being unrecognized[\s\S]*BASELINE_INVARIANT_FAILURE/, 'runtime must classify missing workspace executables as a baseline failure'],
@@ -644,6 +644,28 @@ for (const [pattern, message] of [
   [/Never record cookie values, tokens, passwords/, 'missing browser-secret reporting prohibition'],
 ]) {
   requireMatch(paths.runtime, runtime, pattern, message);
+}
+
+const runtimeStartupSection = runtime.slice(runtime.indexOf('## Startup and readiness'));
+const toxStartIndex = runtimeStartupSection.indexOf('1. start the Tox21 process');
+const firstHttpProbeIndex = runtimeStartupSection.indexOf(
+  '6. only after all three starts, probe `http://localhost:8888`',
+);
+if (toxStartIndex < 0 || firstHttpProbeIndex < 0 || toxStartIndex >= firstHttpProbeIndex) {
+  fail(paths.runtime, 'runtime must start Tox21, Nest and Angular before the first HTTP probe');
+}
+
+for (const [target, content] of [
+  [paths.runtime, runtime],
+  [paths.agents.worker, worker.content],
+  [paths.preparedLaunch, preparedLaunch],
+]) {
+  requireMatch(
+    target,
+    content,
+    /never[\s\S]{0,30}(?:use|run) `require\.resolve`/i,
+    'must forbid require.resolve dependency-readiness probes',
+  );
 }
 
 requireMatch(

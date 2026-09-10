@@ -1,2 +1,7 @@
 node_modules/
+node_modules.corrupt-*/
+node_modules.failed-*/
 packages/rest-contracts/dist/
+
+.playwright-mcp/*
+!.playwright-mcp/.gitkeep
