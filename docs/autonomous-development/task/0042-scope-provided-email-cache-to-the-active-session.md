@@ -135,7 +135,9 @@ in-memory cache behavior is deterministically covered by Angular tests. No
 credentials or production data were accessed.
 
 ### Commits
-Task-specific commit: recorded below after final validation.
+`394509c4` — `feat: scope provided email cache to active session`
+(contains the required `Co-authored-by: Copilot
+<223556219+Copilot@users.noreply.github.com>` trailer).
 
 ### Merge / CI
 Feature branch publication is performed only after the task-specific commit.
