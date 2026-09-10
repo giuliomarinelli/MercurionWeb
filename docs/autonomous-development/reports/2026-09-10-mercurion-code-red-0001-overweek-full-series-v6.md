@@ -7,8 +7,8 @@ soft_deadline: "2026-09-20T10:00:00+02:00"
 finished_at: "2026-09-10T23:49:33.3309004+02:00"
 stop_reason: "session-fatal-blocker"
 initial_develop_sha: "dad83ddeb35d5da0f493ea6b4e0d52b4a30e0177"
-final_develop_sha: "8e27cf5600eaae026e42b52ad92b27e2adb1129e"
-final_develop_ci: "https://github.com/giuliomarinelli/MercurionWeb/actions/runs/34534534051 (metadata; Required gate success)"
+final_develop_sha: "fc1c0079614935f54191938113bfc12111a7d5d1"
+final_develop_ci: "https://github.com/giuliomarinelli/MercurionWeb/actions/runs/34534656459 (metadata; Required gate success)"
 ---
 
 # Autonomous Development Session Report
@@ -25,8 +25,8 @@ final_develop_ci: "https://github.com/giuliomarinelli/MercurionWeb/actions/runs/
 - Still pending: 138
 - Stop reason: session-fatal baseline invariant failure
 - Final `develop`: clean and synchronized at
-  `8e27cf5600eaae026e42b52ad92b27e2adb1129e`; exact report CI
-  [run 34534534051](https://github.com/giuliomarinelli/MercurionWeb/actions/runs/34534534051)
+  `fc1c0079614935f54191938113bfc12111a7d5d1`; exact report CI
+  [run 34534656459](https://github.com/giuliomarinelli/MercurionWeb/actions/runs/34534656459)
   used the allowlisted `metadata` path and its `Required gate` succeeded
 
 The authoritative planner returned version 1 for all 220 recipes:
@@ -113,9 +113,9 @@ This is a session-level baseline/upstream incident, not a task outcome.
 - Soft deadline reached: not reached; session stopped early at the baseline
   invariant failure.
 - Active task completed after deadline: n/a
-- Report commit SHA: `8e27cf5600eaae026e42b52ad92b27e2adb1129e`
+- Report commit SHA: `fc1c0079614935f54191938113bfc12111a7d5d1`
 - Report commit exact-SHA CI:
-  [run 34534534051](https://github.com/giuliomarinelli/MercurionWeb/actions/runs/34534534051)
+  [run 34534656459](https://github.com/giuliomarinelli/MercurionWeb/actions/runs/34534656459)
   succeeded with `Required gate`
 
 ## CI and execution efficiency
