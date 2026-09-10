@@ -352,7 +352,15 @@ ci:
     delete_feature_branch_local: true
     delete_feature_branch_remote_if_present: true
   on_pre_merge_block:
-    feature_ci_non_success_marks_blocked: true
+    feature_ci_non_success_marks_blocked: false
+    feature_ci_repair:
+      enabled: true
+      max_attempts: 3
+      same_task_branch: true
+      fresh_synchronous_worker_per_attempt: true
+      actionable_repository_failure_only: true
+      keep_done_as_ci_pending_during_repair: true
+      block_after_exhaustion_or_unverifiable: true
     mark_task_blocked: true
     wait_for_blocked_metadata_ci_green: true
     preserve_feature_branch_local: true

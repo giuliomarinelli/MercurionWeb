@@ -16,6 +16,19 @@ If and only if the parent payload contains `capability_probe: true` and a nonce,
 
 All instructions below apply only to a normal implementation invocation. A capability probe never creates or changes a task outcome.
 
+## Feature-CI repair mode
+
+If the parent payload contains `ci_repair: true`, the task has already passed
+local implementation/browser validation and remains provisional
+`DONE`/`CI_PENDING`. Read the supplied exact failed feature SHA, run/job
+diagnostic and current task branch. Diagnose the repository-controlled failure,
+apply only the narrow correction on that same feature branch, run the focused
+check that reproduces it plus relevant control-plane validation, keep `DONE`
+checked, commit with `--no-gpg-sign`, push the new SHA, and return
+`CI_REPAIR_READY`. Do not repeat browser validation unless the correction
+changes browser/runtime behavior. Do not mark `BLOCKED` merely because the
+preceding exact-SHA CI failed; the coordinator owns the bounded repair loop.
+
 ## Browser-profile acceptance probe mode
 
 This mode exists only for the one-time human-supervised acceptance test of the
@@ -91,6 +104,8 @@ The worker never returns or writes `REVERTED` or `SKIPPED_DEPENDENCY`: those out
 Return exactly one worker result to the coordinator:
 
 - `READY_FOR_INTEGRATION`: feature branch, Source, task path, base SHA, final feature SHA, commits, preflight result, task-specific validation, full pre-merge CI-parity result, browser result, and concise implementation summary.
+- `CI_REPAIR_READY`: the same task identity plus failed run/SHA diagnosis,
+  correction commit, focused validation, and newly pushed feature SHA.
 - `BLOCKED`: the same identity fields plus blocker category, diagnostic, preserved feature SHA/branch, partial-work summary, and the precise human decision or capability required.
 - `BASELINE_INVARIANT_FAILURE`: feature branch, Source, task path, base SHA,
   failing preflight command/result, and proof that the task and branch contain no

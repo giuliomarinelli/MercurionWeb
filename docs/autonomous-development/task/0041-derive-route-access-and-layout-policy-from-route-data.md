@@ -1,7 +1,7 @@
 # 0041 - Derive route access and layout policy from route data
 
-- [ ] DONE
-- [x] BLOCKED
+- [x] DONE
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -167,9 +167,12 @@ run `npm ci` or `npm run ci:check`. Exact feature-SHA run
 Windows `Validate autonomous control plane` step before task quality gates:
 `launch must forbid HTTP before starting Tox21, Nest and Angular`. Ubuntu
 quality passed, but the stable `Required gate` failed. A subsequent final-SHA
-run `34539594988` also failed the control-plane `Required gate`; the
-diagnostic is outside the Angular task scope and was not repaired on this
-branch.
+run `34539594988` reproduced the control-plane failure on both platforms. The
+cause was a CRLF/LF-sensitive literal comparison in the repository validator,
+introduced by the runtime-startup hardening commit; it was not a task
+implementation blocker. The validator now normalizes source text before
+comparison, and actionable feature-CI failures now enter a bounded same-branch
+`CI_REPAIR_PENDING` loop instead of immediately terminalizing the task.
 
 ### Commits
 - `a89543c6635c656b7ee276293ef11ed1d7923ac6` — `feat(angular): derive
@@ -178,14 +181,14 @@ branch.
   commit.
 
 ### Merge / CI
-No merge or post-merge action was performed by the worker. The feature branch
-is preserved and frozen pending human-authorized repair or disposition of the
-control-plane validation failure.
+No merge or post-merge action has yet been performed. The feature branch is
+active and unfrozen pending a new exact feature-SHA CI run after the
+control-plane correction.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-Human decision required: repair or explicitly disposition the unrelated
-prepared-launch/control-plane baseline failure, then authorize a fresh attempt.
-The task implementation itself passed all focused local and browser validation.
+_None._ The task implementation passed all focused local and browser
+validation; the repository-controlled CI diagnostic is being repaired on this
+same feature branch.

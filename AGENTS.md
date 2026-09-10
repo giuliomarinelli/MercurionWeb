@@ -58,7 +58,7 @@ Autonomous-development planning and execution are intentionally separate:
 ## Task execution
 
 - Execute exactly one numbered task file per coding-agent invocation.
-- In GitHub Copilot CLI, the `Development Session Coordinator` is the runner and MUST invoke exactly one fresh, stateless `Development Task Worker` per task through one synchronous `task` tool call using the repository-agent identifier `development-task-worker`. The coordinator never uses background worker mode, delegates two implementation tasks concurrently, or asks one worker to execute more than one recipe.
+- In GitHub Copilot CLI, the `Development Session Coordinator` is the runner and MUST invoke one fresh, stateless primary `Development Task Worker` per task through a synchronous `task` tool call using the repository-agent identifier `development-task-worker`. After an actionable exact feature-SHA CI failure it may invoke fresh synchronous repair workers for that same task within the configured repair budget. The coordinator never explicitly uses background worker mode, delegates two workers concurrently, or asks one worker to execute more than one recipe.
 - Executable task files start at `0001` and use globally progressive four-digit numeric prefixes.
 - Read the complete task before changing code.
 - Inspect the relevant existing implementation before editing.
@@ -175,7 +175,7 @@ For each task:
    feature-SHA Actions supplies the complete clean-install/aggregate evidence.
 7. Mark the task `DONE` in the feature branch only when implementation and all local gates pass. The runner MUST treat this state as `CI_PENDING` until both feature and post-merge CI succeed.
 8. Create the remote feature ref only after a task-specific commit exists, push the final feature SHA, and wait for its exact GitHub Actions `Required gate`.
-9. If exact feature-SHA CI fails or is unverifiable, change the provisional outcome to `BLOCKED`, record diagnostics on the preserved feature branch, freeze it, and propagate only the metadata status to `develop`.
+9. If exact feature-SHA CI fails with an actionable repository-controlled diagnostic, keep the task `DONE`/`CI_PENDING`, invoke a fresh synchronous CI-repair worker on the same unfrozen feature branch, commit/push the narrow correction, and require a new exact feature-SHA CI run. Repeat within the configured repair budget. Only a non-actionable/unverifiable result or exhausted repeated repair budget may transition to `BLOCKED`.
 10. Only after exact feature-SHA CI succeeds, switch to `develop`, verify it has not moved unexpectedly, and merge the feature branch using an explicit `--no-ff --no-gpg-sign` merge commit.
 11. Push `develop` and wait for the GitHub Actions workflow associated with that exact merge commit.
 
@@ -195,8 +195,8 @@ If post-merge CI fails:
 - preserve the local and remote `feature/<Source>` branch for diagnosis or later human-approved retry;
 - once its final feature SHA is pushed, freeze that divergent branch: do not merge `develop` into it, commit/amend it, reset/rebase it, advance it, or delete it during the session.
 
-If a task becomes blocked before merge, including because exact feature-SHA CI
-fails or cannot be verified, do not merge partial implementation. Preserve and
+If a task becomes blocked before merge after its configured feature-CI repair
+budget is exhausted, or because CI cannot be verified, do not merge partial implementation. Preserve and
 freeze its feature branch, propagate only the task's `BLOCKED`
 status/diagnostics to `develop`, and wait for CI on that exact metadata commit.
 

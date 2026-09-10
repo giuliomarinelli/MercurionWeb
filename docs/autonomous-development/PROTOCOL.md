@@ -45,7 +45,7 @@ The coordinator owns deterministic orchestration: task discovery/order, YAML par
 The repository provides two workspace custom agents under `.github/agents/`:
 
 - `Development Session Coordinator` remains alive for the complete configured session and is the only owner of task selection, shared-branch Git writes, deadlines, CI observation and final reporting.
-- `Development Task Worker` is addressed programmatically as `development-task-worker` (the profile filename without `.agent.md`) and is invoked through exactly one synchronous CLI `task` tool call for exactly one task. Each invocation is fresh and stateless and therefore provides the required task context boundary.
+- `Development Task Worker` is addressed programmatically as `development-task-worker` (the profile filename without `.agent.md`). One fresh synchronous invocation performs the primary task; an actionable feature-CI failure may produce bounded fresh synchronous repair invocations for that same task. Every invocation handles exactly one recipe and is stateless.
 
 The coordinator creates the feature branch locally before invoking the worker but does not push a ref that still points to the unchanged, already-green `develop` SHA. The worker may preflight, implement, validate, commit and push only that feature branch, and creates its first remote ref only after a task-specific commit exists. It never selects a later task, changes `develop`, merges, reverts, deletes a branch or finalizes the session.
 
@@ -334,8 +334,14 @@ After local completion:
 2. identify and wait for the GitHub Actions run associated with the exact
    pushed feature SHA; require the complete workflow and `Required gate` to
    succeed;
-3. if feature-SHA CI is non-success or unverifiable, apply the pre-merge
-   `BLOCKED` lifecycle and do not merge;
+3. if feature-SHA CI fails with an actionable repository-controlled diagnostic,
+   keep the task provisional `DONE`/`CI_PENDING`, leave the feature branch
+   unfrozen, and invoke a fresh synchronous CI-repair worker for the same task;
+   supply the failed exact SHA/run/job evidence, require a narrow correction
+   commit and focused validation, push the new feature SHA, and return to step
+   2. Use at most the configured `feature_ci_repair.max_attempts`. Apply the
+   pre-merge `BLOCKED` lifecycle only after that budget is exhausted, the same
+   failure survives correction, or CI is uncorrelated/unverifiable;
 4. switch to `develop`;
 5. verify `develop` has not changed unexpectedly since the branch was created;
    if it has, reconcile safely without rebase/history rewriting and rerun all
@@ -392,8 +398,10 @@ Once revert plus `REVERTED` metadata are green, the task is terminal for this se
 ## Blocking before merge
 
 A task is also `BLOCKED` when safe completion requires missing
-authority/information, task validation cannot be restored, or the exact
-feature-SHA CI is non-success/unverifiable.
+authority/information, task validation cannot be restored, exact feature-SHA
+CI is uncorrelated/unverifiable, or an actionable feature-CI failure remains
+after the configured repair budget. A first actionable feature-CI failure is
+`CI_REPAIR_PENDING`, not `BLOCKED`.
 
 If blocked before integration:
 

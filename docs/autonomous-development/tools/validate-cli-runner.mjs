@@ -73,7 +73,7 @@ function read(relativePath) {
     fail(relativePath, 'missing required file');
     return '';
   }
-  return fs.readFileSync(absolutePath, 'utf8');
+  return fs.readFileSync(absolutePath, 'utf8').replace(/\r\n?/g, '\n');
 }
 
 function requireMatch(target, content, pattern, message) {
@@ -276,8 +276,20 @@ requireMatch(
 requireMatch(
   paths.agents.coordinator,
   coordinator.content,
-  /`task` tool exactly once[\s\S]*`agent_type: development-task-worker`[\s\S]*`mode: sync`/,
-  'coordinator must require one synchronous Development Task Worker task call',
+  /call the `task` tool once for the primary implementation[\s\S]*`agent_type: development-task-worker`[\s\S]*`mode: sync`/,
+  'coordinator must require one synchronous primary Development Task Worker call',
+);
+requireMatch(
+  paths.agents.coordinator,
+  coordinator.content,
+  /actionable repository-controlled diagnostic[\s\S]*`ci_repair: true`[\s\S]*`feature_ci_repair\.max_attempts`[\s\S]*only then apply `BLOCKED`/,
+  'coordinator must repair actionable feature CI failures before BLOCKED',
+);
+requireMatch(
+  paths.agents.worker,
+  worker.content,
+  /Feature-CI repair mode[\s\S]*`ci_repair: true`[\s\S]*`CI_REPAIR_READY`[\s\S]*Do not mark `BLOCKED` merely because/,
+  'worker must support bounded same-task feature CI repair',
 );
 requireMatch(
   paths.agents.coordinator,

@@ -166,6 +166,11 @@ Execute exactly one recipe per fresh synchronous development-task-worker. Do
 not bundle tasks. Create each feature branch locally, publish it only after a
 task-specific commit exists, require exact feature-SHA CI before a no-ff
 no-GPG-sign merge, then require exact merge-SHA CI before continuing.
+When exact feature-SHA CI reports an actionable repository-controlled failure,
+keep the task in CI_PENDING and invoke a fresh synchronous CI-repair worker for
+the same recipe and branch. Supply the exact failed SHA/run/job evidence,
+commit and push the narrow correction, and retry exact-SHA CI up to three
+times. Do not mark BLOCKED on the first actionable CI failure.
 
 Do not mutate pull requests 25, 27, 28, 29, or 31. Do not resume, advance,
 rebase, merge, reset, or delete feature/SYS-020, feature/UI-018,
