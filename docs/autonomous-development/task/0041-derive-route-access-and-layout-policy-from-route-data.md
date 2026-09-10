@@ -1,7 +1,7 @@
 # 0041 - Derive route access and layout policy from route data
 
-- [x] DONE
-- [ ] BLOCKED
+- [ ] DONE
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -162,8 +162,13 @@ stopped after evidence capture.
 
 ### Full pre-merge CI-parity validation
 The unchanged base evidence was green as recorded above. Local sessions did not
-run `npm ci` or `npm run ci:check`; complete clean-install and aggregate
-validation is reserved for GitHub Actions on the pushed feature SHA.
+run `npm ci` or `npm run ci:check`. Exact feature-SHA run
+`34539174691` for `3f8270f5700928fdc137e8779f1f49bcb7d1b0a8` failed its
+Windows `Validate autonomous control plane` step before task quality gates:
+`docs/autonomous-development/LAUNCH-2026-09-10-overweek-v6.md: launch must
+forbid HTTP before starting Tox21, Nest and Angular`. Ubuntu quality passed,
+but the stable `Required gate` failed. The diagnostic is outside the Angular
+task scope and was not repaired on this branch.
 
 ### Commits
 - `a89543c6635c656b7ee276293ef11ed1d7923ac6` — `feat(angular): derive
@@ -172,12 +177,14 @@ validation is reserved for GitHub Actions on the pushed feature SHA.
   commit.
 
 ### Merge / CI
-No merge or post-merge action was performed by the worker. The final feature
-SHA must receive the exact feature-branch GitHub Actions `Required gate` before
-coordinator integration.
+No merge or post-merge action was performed by the worker. The feature branch
+is preserved and frozen pending human-authorized repair or disposition of the
+control-plane validation failure.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-_None._
+Human decision required: repair or explicitly disposition the unrelated
+prepared-launch/control-plane baseline failure, then authorize a fresh attempt.
+The task implementation itself passed all focused local and browser validation.
