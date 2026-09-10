@@ -4,6 +4,8 @@ import {
   classifyCrossTabAuthStorageEvent,
   SessionSyncService
 } from './session-sync.service';
+import { RealtimeSocketService } from './socket.IO/realtime-socket.service';
+import { socketEventRegistry } from '@mercurion/socket-contracts';
 
 describe('SessionSyncService', () => {
   let service: SessionSyncService;
@@ -55,5 +57,22 @@ describe('SessionSyncService', () => {
       newValue: 'AB',
       storageArea: sessionStorage
     }))).toBeNull()
+  })
+  it('releases all owned realtime subscriptions on destruction', () => {
+    const socket = (TestBed.inject(RealtimeSocketService) as unknown as {
+      socket: { listeners: (event: string) => unknown[] }
+    }).socket;
+
+    expect(socket.listeners('connect')).toHaveSize(2);
+    expect(socket.listeners('disconnect')).toHaveSize(2);
+    expect(socket.listeners(socketEventRegistry.applicationError.name)).toHaveSize(1);
+    expect(socket.listeners(socketEventRegistry.sessionExpired.name)).toHaveSize(1);
+
+    service.ngOnDestroy()
+
+    expect(socket.listeners('connect')).toHaveSize(1);
+    expect(socket.listeners('disconnect')).toHaveSize(1);
+    expect(socket.listeners(socketEventRegistry.applicationError.name)).toHaveSize(0);
+    expect(socket.listeners(socketEventRegistry.sessionExpired.name)).toHaveSize(0);
   })
 });

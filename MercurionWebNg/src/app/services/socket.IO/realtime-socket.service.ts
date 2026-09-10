@@ -1,7 +1,7 @@
 /* ──────────────────────────────────────────────────────────────
  * RealtimeSocketService – public stabile, upgrade/downgrade safe
  * ────────────────────────────────────────────────────────────── */
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, OnDestroy } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
 import { Observable } from 'rxjs';
 import { signal } from '@angular/core';
@@ -31,7 +31,7 @@ import {
 export type SocketMode = 'public' | 'private';
 
 @Injectable({ providedIn: 'root' })
-export class RealtimeSocketService {
+export class RealtimeSocketService implements OnDestroy {
 
   private socket: Socket<ServerToClientEvents, ClientToServerEvents>;
   private mode: SocketMode = 'public';
@@ -53,6 +53,48 @@ export class RealtimeSocketService {
   // piccolo delay per stabilizzazione post-connect (join server room, ecc.)
   private stableDelayMs = 100;
 
+  /**
+   * Ownership: these four handlers belong to the application/socket instance.
+   * Feature and session observers are registered by the Observable factories
+   * below and own only their exact handler until unsubscribe.
+   */
+  private readonly onConnectCore = () => {
+    this.retryAttempt = 0;
+    this._state.set(reduceRealtimeConnection(this._state(), { type: 'transport-connected' }));
+    this.lastAuthTokenSent = this.mode === 'private'
+      ? (this.auth.getWs_accessToken() ?? null)
+      : null;
+  };
+
+  private readonly onDisconnectCore = (reason: string) => {
+    if (reason === 'io client disconnect' || this.stopped) return;
+    this.scheduleRetry();
+  };
+
+  private readonly onConnectErrorCore = async (err: unknown) => {
+    const isAuthErr =
+      hasApplicationErrorCode(err, ApplicationErrorCode.ACCESS_TOKEN_INVALID_OR_EXPIRED) ||
+      hasApplicationErrorCode(err, ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED)
+    if (isAuthErr && this.mode === 'private') {
+      await this.ensureFreshToken(true);
+      if (this.generation !== this.currentGeneration()) return;
+      const tok = this.auth.getWs_accessToken();
+      if (tok && !this.jwt.isTokenExpired(tok)) this.socket.auth = { token: tok, contractMajor: SOCKET_CONTRACT_MAJOR };
+    }
+    if (!this.stopped) this.scheduleRetry();
+  };
+
+  private readonly onStorage = (e: StorageEvent): void => {
+    if (e.key !== 'ws_accessToken') return;
+    if (this.mode !== 'private' || !this.socket.connected) return;
+    const latest = this.auth.getWs_accessToken();
+    if (latest && !this.jwt.isTokenExpired(latest)) {
+      this.socket.auth = { token: latest, contractMajor: SOCKET_CONTRACT_MAJOR };
+      this.lastAuthTokenSent = latest;
+      this.socket.emit(socketEventRegistry.authRefresh.name, latest);
+    }
+  };
+
   constructor(
     private readonly auth: AuthService,
     private readonly jwt: JwtHelperService,
@@ -67,43 +109,12 @@ export class RealtimeSocketService {
     });
 
     // ——— Core listeners ———
-    this.socket.on('connect', () => {
-      this.retryAttempt = 0;
-      this._state.set(reduceRealtimeConnection(this._state(), { type: 'transport-connected' }));
-      this.lastAuthTokenSent = this.mode === 'private'
-        ? (this.auth.getWs_accessToken() ?? null)
-        : null;
-    });
-
-    this.socket.on('disconnect', (reason) => {
-      if (reason === 'io client disconnect' || this.stopped) return;
-      this.scheduleRetry();
-    });
-
-    this.socket.on('connect_error', async (err) => {
-      const isAuthErr =
-        hasApplicationErrorCode(err, ApplicationErrorCode.ACCESS_TOKEN_INVALID_OR_EXPIRED) ||
-        hasApplicationErrorCode(err, ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED)
-      if (isAuthErr && this.mode === 'private') {
-        await this.ensureFreshToken(true);
-        if (this.generation !== this.currentGeneration()) return;
-        const tok = this.auth.getWs_accessToken();
-        if (tok && !this.jwt.isTokenExpired(tok)) this.socket.auth = { token: tok, contractMajor: SOCKET_CONTRACT_MAJOR };
-      }
-      if (!this.stopped) this.scheduleRetry();
-    });
+    this.socket.on('connect', this.onConnectCore);
+    this.socket.on('disconnect', this.onDisconnectCore);
+    this.socket.on('connect_error', this.onConnectErrorCore);
 
     // cross-tab: se cambia il token ed è valido, aggiorna in-place (nessun reconnect)
-    window.addEventListener('storage', (e) => {
-      if (e.key !== 'ws_accessToken') return;
-      if (this.mode !== 'private' || !this.socket.connected) return;
-      const latest = this.auth.getWs_accessToken();
-      if (latest && !this.jwt.isTokenExpired(latest)) {
-        this.socket.auth = { token: latest, contractMajor: SOCKET_CONTRACT_MAJOR };
-        this.lastAuthTokenSent = latest;
-        this.socket.emit(socketEventRegistry.authRefresh.name, latest);
-      }
-    });
+    window.addEventListener('storage', this.onStorage);
   }
 
   /* ───────── API alto livello ───────── */
@@ -236,7 +247,21 @@ export class RealtimeSocketService {
     this.cancelRetry();
     ++this.generation;
     this._state.set({ kind: 'stopped' });
-    this.socket.off();
+    this.socket.disconnect();
+  }
+
+  /**
+   * Application/socket ownership ends here. Do not use socket.off() without a
+   * handler: that would remove feature/session observers owned elsewhere.
+   */
+  ngOnDestroy(): void {
+    this.stopped = true;
+    this.cancelRetry();
+    ++this.generation;
+    window.removeEventListener('storage', this.onStorage);
+    this.socket.off('connect', this.onConnectCore);
+    this.socket.off('disconnect', this.onDisconnectCore);
+    this.socket.off('connect_error', this.onConnectErrorCore);
     this.socket.disconnect();
   }
 

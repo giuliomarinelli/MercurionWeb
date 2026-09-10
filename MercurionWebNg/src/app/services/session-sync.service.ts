@@ -7,7 +7,9 @@
  *  - No ACK in PRIVATE: degrada a anonimo/public
  *  - Niente autologout da `storage` se il cookie è presente
  * ────────────────────────────────────────────────────────────── */
-import { effect, inject, Injectable, NgZone, OnDestroy, signal } from '@angular/core'
+import { DestroyRef, effect, inject, Injectable, NgZone, OnDestroy, signal } from '@angular/core'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
+import { Subscription } from 'rxjs'
 import { Router } from '@angular/router'
 import { AuthStateStore } from './auth-state.store'
 import { AuthSessionPersistenceService } from './auth-session-persistence.service'
@@ -65,6 +67,8 @@ export class SessionSyncService implements OnDestroy {
   private readonly toast = inject(ToastService)
   private readonly router = inject(Router)
   private readonly zone = inject(NgZone)
+  private readonly destroyRef = inject(DestroyRef)
+  private readonly realtimeSubscriptions = new Subscription()
 
 
 
@@ -106,22 +110,24 @@ export class SessionSyncService implements OnDestroy {
     })
 
     // eventi WS
-    this.socket.onConnect().subscribe(() =>
+    // These are application-lifetime subscriptions owned by this service.
+    // Angular teardown removes only these subscriptions, never socket peers.
+    this.realtimeSubscriptions.add(this.socket.onConnect().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() =>
       this.zone.run(() => {
         this.authState.setConnectionState(SessionConnectionState.Connected)
         void this.syncSession()
       })
-    )
+    ))
 
-    this.socket.onDisconnect().subscribe(r => {
+    this.realtimeSubscriptions.add(this.socket.onDisconnect().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(r => {
       if (r !== 'io client disconnect') {
         this.authState.requireReconnect()
         this._status.set('disconnected')
       }
-    })
+    }))
 
     // errore applicativo → tentiamo resync (niente logout automatico)
-    this.socket.onApplicationError().subscribe(err =>
+    this.realtimeSubscriptions.add(this.socket.onApplicationError().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(err =>
       this.zone.run(() => {
         if (hasApplicationErrorCode(
           err,
@@ -130,12 +136,12 @@ export class SessionSyncService implements OnDestroy {
           void this.handleUnauthorized()
         }
       })
-    )
+    ))
 
     // scadenza sessione lato server
-    this.socket.onSessionExpired().subscribe(payload =>
+    this.realtimeSubscriptions.add(this.socket.onSessionExpired().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(payload =>
       this.zone.run(() => this.handleSessionExpired(payload.cause))
-    )
+    ))
 
     // bootstrap: parte PUBLIC, poi decide se uppare a PRIVATE
     this.socket.connect()
@@ -173,6 +179,7 @@ export class SessionSyncService implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.realtimeSubscriptions.unsubscribe()
     clearTimeout(this.storageDebounce)
     window.removeEventListener('storage', this.onStorage)
     clearTimeout(this.toastMuteTimer)
