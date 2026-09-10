@@ -165,10 +165,11 @@ The unchanged base evidence was green as recorded above. Local sessions did not
 run `npm ci` or `npm run ci:check`. Exact feature-SHA run
 `34539174691` for `3f8270f5700928fdc137e8779f1f49bcb7d1b0a8` failed its
 Windows `Validate autonomous control plane` step before task quality gates:
-`docs/autonomous-development/LAUNCH-2026-09-10-overweek-v6.md: launch must
-forbid HTTP before starting Tox21, Nest and Angular`. Ubuntu quality passed,
-but the stable `Required gate` failed. The diagnostic is outside the Angular
-task scope and was not repaired on this branch.
+`launch must forbid HTTP before starting Tox21, Nest and Angular`. Ubuntu
+quality passed, but the stable `Required gate` failed. A subsequent final-SHA
+run `34539594988` also failed the control-plane `Required gate`; the
+diagnostic is outside the Angular task scope and was not repaired on this
+branch.
 
 ### Commits
 - `a89543c6635c656b7ee276293ef11ed1d7923ac6` — `feat(angular): derive
