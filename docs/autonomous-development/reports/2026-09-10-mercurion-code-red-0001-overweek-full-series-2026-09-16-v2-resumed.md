@@ -73,8 +73,8 @@ None. The FE-019 pause was caused by unavailable local nginx runtime capability 
 
 - Soft deadline reached: not reached.
 - Active task completed after deadline: none.
-- Report commit SHA: pending.
-- Report commit exact-SHA CI: pending.
+- Report commit SHA: `13eecd1f88e0e24cb2a8654c954f454394054835`.
+- Report commit exact-SHA CI: run 34428918909 succeeded through the metadata path with Required gate green.
 
 ## CI and execution efficiency
 
