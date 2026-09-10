@@ -634,6 +634,8 @@ for (const [pattern, message] of [
   [/must not make an application inventory stale|cannot invalidate the application baseline/i, 'missing metadata isolation rule'],
   [/\.cache\\chrome-devtools-mcp\\chrome-profile/, 'missing dedicated persistent Chrome profile path'],
   [/SESSION_CAPABILITY_PAUSE/, 'missing pre-implementation browser capability pause'],
+  [/502 Bad Gateway[\s\S]*edge-live\/upstream-unavailable/, 'runtime must classify nginx 502 as live edge with unavailable upstream'],
+  [/ECONNREFUSED[\s\S]*nginx unavailability/, 'runtime must require a transport failure before classifying nginx unavailable'],
   [/BROWSER_PROFILE_RECOVERY_REQUIRED/, 'missing browser state-lease recovery rule'],
   [/Never record cookie values, tokens, passwords/, 'missing browser-secret reporting prohibition'],
 ]) {

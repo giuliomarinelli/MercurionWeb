@@ -133,10 +133,15 @@ duplicate application processes.
 For a task that actually declares browser/runtime validation, and only after
 its unchanged task-start baseline passes, the worker should:
 
-1. verify that the externally managed Docker nginx listener is reachable; an
-   nginx-generated `502 Bad Gateway` caused by the deliberately stopped
-   task-scoped Angular/Nest upstreams proves proxy liveness and MUST NOT be
-   classified as nginx unavailability;
+1. probe `http://localhost:8888` at the transport and HTTP layers before
+   classifying the edge: any HTTP response proves that nginx is listening; the
+   current development proxy normally returns nginx `502 Bad Gateway` when a
+   deliberately stopped task-scoped Angular or Nest upstream cannot be reached,
+   and that response MUST be classified as edge-live/upstream-unavailable, not
+   nginx-unavailable. A future explicit `503 Service Unavailable` mapping would
+   have the same liveness meaning. Only a transport-level failure on port
+   `8888`, such as `ECONNREFUSED` because the container is stopped or unable to
+   listen, establishes nginx unavailability and justifies inspecting Docker;
 2. start the Tox21 process when not already managed by the current session;
 3. start NestJS in watch mode;
 4. start Angular in watch mode;

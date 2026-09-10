@@ -118,7 +118,11 @@ Perform every configured startup and capability probe. Refuse launch at or
 after 2026-09-17T10:00:00+02:00. Require a clean, synchronized develop and a
 successful fresh full GitHub Actions Required gate for its exact SHA. Confirm
 the dedicated persistent non-production browser profile is available for
-browser isolation. For every task requiring the reserved area, read the shared
+browser isolation. Treat any HTTP response from http://localhost:8888 as proof
+that nginx itself is reachable: its default 502 means a stopped/unreachable
+task-scoped upstream, while ECONNREFUSED on port 8888 means the edge is down.
+Start the required Angular/Nest upstreams before demanding HTTP 200. For every
+task requiring the reserved area, read the shared
 credentials from the git-ignored MercurionWebNode/env/.env.development file,
 perform a fresh ordinary login through http://localhost:8888/login, and prove
 that a protected server endpoint accepts the resulting real session before

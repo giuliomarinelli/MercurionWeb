@@ -250,6 +250,7 @@ For frontend or browser-observable work:
 
 - follow the canonical local runtime in `docs/autonomous-development/RUNTIME.md`;
 - use the nginx development edge at `http://localhost:8888`; never validate the application by browsing the Angular development-server port directly;
+- distinguish nginx listener liveness from proxied-service readiness: any HTTP response from `localhost:8888`, including the default nginx `502 Bad Gateway` while a task-scoped upstream is stopped, proves the edge is reachable; only a transport-level failure such as `ECONNREFUSED` on port `8888` indicates that nginx itself is unavailable;
 - use Chrome DevTools MCP when the active task declares browser validation or when runtime browser behaviour is necessary to establish an acceptance criterion;
 - start the canonical runtime only after the unchanged task-start `npm ci` plus
   `npm run ci:check` preflight has succeeded, and only when the active task
