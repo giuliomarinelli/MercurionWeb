@@ -115,7 +115,14 @@ merge/revert and status lifecycle, then finalize only when the browser profile
 itself is corrupted or inaccessible. An anonymous profile after a task-owned
 logout is valid because the next worker performs a fresh ordinary login.
 
-Never run two implementation workers concurrently, use background mode, or invoke a second worker before the synchronous result returns. A fresh worker invocation is the task-context boundary; do not ask one worker to execute multiple recipes.
+Never run two implementation workers concurrently, explicitly request
+background mode, or invoke a second worker before the assigned worker returns.
+The coordinator must request `mode: sync`. If the CLI host nevertheless
+auto-detaches that long-running synchronous call and returns an agent handle,
+treat that handle as the still-active synchronous lease: wait/read only that
+same agent until its terminal result, never dispatch another worker, and record
+the host auto-detach in the report. A fresh worker invocation is the
+task-context boundary; do not ask one worker to execute multiple recipes.
 
 Never start Angular, Nest, Tox21, or another workspace-consuming runtime on
 behalf of a task before invoking its worker. Runtime is task-scoped rather than

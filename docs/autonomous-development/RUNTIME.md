@@ -134,6 +134,14 @@ duplicate application processes.
 For a task that actually declares browser/runtime validation, and only after
 its unchanged task-start baseline passes, the worker should:
 
+Before step 1, the worker is in `RUNTIME_NOT_STARTED`. In that state every
+network request is forbidden, including a supposedly diagnostic nginx/edge
+liveness probe. Process inventory must inspect local processes only. The
+worker moves to `RUNTIME_STARTED` only after steps 1-3 have each returned a
+live long-running execution-session handle. Only that state permits the first
+HTTP request. This ordering is mandatory even when nginx is known to be
+externally managed or was reachable in a previous task.
+
 1. start the Tox21 process in its declared working directory;
 2. start NestJS in watch mode with the exact canonical command above;
 3. start Angular in watch mode with the exact canonical command above;
@@ -145,7 +153,8 @@ its unchanged task-start baseline passes, the worker should:
    run `require.resolve`, import probes, package-manifest probes, or another
    invented dependency-tree gate before these starts. The canonical start
    commands and their real stderr are the runtime authority;
-6. only after all three starts, probe `http://localhost:8888`. HTTP `502 Bad
+6. only after all three starts have returned live execution-session handles,
+   probe `http://localhost:8888`. HTTP `502 Bad
    Gateway` or 503 means edge-live/upstream-unavailable and MUST NOT end or
    pause the task. Only a transport error such as `ECONNREFUSED` establishes
    nginx unavailability;
@@ -168,6 +177,12 @@ The worker must capture the first actionable stderr output when a managed
 process exits. It must not collapse an executable-not-found error, compiler
 error, or early process exit into the generic statement "nginx unavailable".
 Only an actual transport failure on port 8888 has that meaning.
+
+If a worker accidentally requests an nginx URL while still in
+`RUNTIME_NOT_STARTED`, it must discard that response, immediately execute the
+three canonical starts in order, and continue from the startup barrier. It
+must not wait on, classify, report, or ask a human to interpret the expected
+pre-start 502/503 response.
 
 ## Dedicated local test account
 

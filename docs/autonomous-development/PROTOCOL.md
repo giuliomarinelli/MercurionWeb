@@ -49,7 +49,14 @@ The repository provides two workspace custom agents under `.github/agents/`:
 
 The coordinator creates the feature branch locally before invoking the worker but does not push a ref that still points to the unchanged, already-green `develop` SHA. The worker may preflight, implement, validate, commit and push only that feature branch, and creates its first remote ref only after a task-specific commit exists. It never selects a later task, changes `develop`, merges, reverts, deletes a branch or finalizes the session.
 
-Tasks are strictly serialized. The coordinator MUST NOT run implementation workers concurrently, use background worker mode, or invoke another worker before the synchronous result returns. It MUST independently verify the worker result and Git state before any integration write.
+Tasks are strictly serialized. The coordinator MUST NOT run implementation
+workers concurrently, request background worker mode, or invoke another worker
+before the assigned worker's terminal result returns. Every dispatch requests
+`mode: sync`. A CLI-host auto-detach of a long-running synchronous dispatch
+does not create scheduling capacity: the returned agent handle remains the one
+active worker lease, and the coordinator waits/reads that same agent without
+dispatching another. It MUST independently verify the worker result and Git
+state before any integration write.
 
 The active configuration is a repository contract read by the coordinator; CLI Autopilot does not replace deterministic orchestration. Wall-clock enforcement therefore remains an explicit coordinator duty. The coordinator MUST use an absolute timestamp plus the configured IANA timezone and MUST NOT rely on a long-running shell `sleep` to detect the deadline.
 

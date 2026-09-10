@@ -258,6 +258,11 @@ For frontend or browser-observable work:
 
 - follow the canonical local runtime in `docs/autonomous-development/RUNTIME.md`;
 - use the nginx development edge at `http://localhost:8888`; never validate the application by browsing the Angular development-server port directly;
+- before the task worker has started Tox21, Nest and Angular and recorded live
+  long-running execution-session handles for all three, it MUST NOT make any
+  HTTP request, health check, browser navigation, or diagnostic edge-liveness
+  probe; process inventory is local-only and a pre-start 502 is discarded as a
+  protocol-ordering error, never surfaced for human interpretation;
 - distinguish nginx listener liveness from proxied-service readiness: any HTTP response from `localhost:8888`, including the default nginx `502 Bad Gateway` while a task-scoped upstream is stopped, proves the edge is reachable; only a transport-level failure such as `ECONNREFUSED` on port `8888` indicates that nginx itself is unavailable;
 - use Chrome DevTools MCP when the active task declares browser validation or when runtime browser behaviour is necessary to establish an acceptance criterion;
 - start the canonical runtime only after exact base-SHA Actions evidence and
