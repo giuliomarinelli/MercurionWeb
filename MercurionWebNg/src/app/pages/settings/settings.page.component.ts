@@ -703,7 +703,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnInit(): void {
-    this.provSub = this.accountService.getProvidedEmail(true).pipe(
+    this.provSub = this.accountService.getProvidedEmail().pipe(
       map((res) => queueMicrotask(() => {
         this.is_sso.set(res.provider !== 'Mercurion')
         this.authProvider.set(res.provider)

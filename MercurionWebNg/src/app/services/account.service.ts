@@ -1,7 +1,9 @@
 import { HttpClient } from '@angular/common/http';
-import { inject, Injectable, signal } from '@angular/core';
+import { effect, inject, Injectable, signal } from '@angular/core';
 import { map, Observable, of, switchMap, tap, throwError } from 'rxjs';
 import { TypeGuardsService } from './type-guards.service';
+import { AuthStateStore } from './auth-state.store';
+import { PROVIDED_EMAIL_CACHE_CLOCK, type ProvidedEmailCache } from './provided-email-cache.tokens';
 import type {
   AuthProvider,
   BackupCodesDTO,
@@ -31,24 +33,62 @@ import type {
 })
 export class AccountService {
 
+  static readonly PROVIDED_EMAIL_CACHE_TTL_MS = 5 * 60 * 1000
+
   private readonly http = inject(HttpClient)
   private readonly typeGuards = inject(TypeGuardsService)
+  private readonly authState = inject(AuthStateStore)
+  private readonly now = inject(PROVIDED_EMAIL_CACHE_CLOCK)
 
-  private cachedProvidedEmail = signal<ProvidedEmailDTO | null>(null)
+  private cachedProvidedEmail = signal<ProvidedEmailCache | null>(null)
+  private cacheOwner: string | null = null
+  private cacheGeneration = 0
 
-  private getCachedProvidedEmail(): ProvidedEmailDTO | null {
-    const cached = this.cachedProvidedEmail()
-    if (!cached) {
-      return null
-    }
-    return cached
+  constructor() {
+    effect(() => {
+      this.authState.clientSession()
+      this.syncCacheOwner()
+    })
   }
 
-  private setCachedProvidedEmail(dto: ProvidedEmailDTO): void {
-    if (!dto) {
+  private getCachedProvidedEmail(): ProvidedEmailDTO | null {
+    this.syncCacheOwner()
+    const cached = this.cachedProvidedEmail()
+    if (!cached || cached.owner !== this.cacheOwner || cached.expiresAt <= this.now()) {
+      if (cached?.expiresAt !== undefined && cached.expiresAt <= this.now()) {
+        this.cachedProvidedEmail.set(null)
+      }
+      return null
+    }
+    return cached.value
+  }
+
+  private setCachedProvidedEmail(dto: ProvidedEmailDTO, owner: string | null, generation: number): void {
+    if (!dto || owner === null || generation !== this.cacheGeneration) {
       return
     }
-    this.cachedProvidedEmail.set(dto)
+    this.syncCacheOwner()
+    if (owner !== this.cacheOwner) return
+    this.cachedProvidedEmail.set({
+      value: dto,
+      owner,
+      expiresAt: this.now() + AccountService.PROVIDED_EMAIL_CACHE_TTL_MS
+    })
+  }
+
+  private invalidateProvidedEmailCache(): void {
+    this.cachedProvidedEmail.set(null)
+    this.cacheGeneration++
+  }
+
+  private syncCacheOwner(): string | null {
+    const session = this.authState.clientSession()
+    const owner = session ? `${session.userId}:${session.sessionId}` : null
+    if (owner !== this.cacheOwner) {
+      this.cacheOwner = owner
+      this.invalidateProvidedEmailCache()
+    }
+    return owner
   }
 
   public getProvidedEmail(refetch = false): Observable<ProvidedEmailDTO> {
@@ -56,10 +96,12 @@ export class AccountService {
     if (cached && !refetch) {
       return of(cached)
     } else {
+      const owner = this.cacheOwner
+      const generation = this.cacheGeneration
       return this.http.get<ProvidedEmailDTO>('/api/account/email', {
         withCredentials: true
       }).pipe(
-        tap(dto => this.setCachedProvidedEmail(dto))
+        tap(dto => this.setCachedProvidedEmail(dto, owner, generation))
       )
     }
   }
@@ -244,7 +286,9 @@ export class AccountService {
     }
     return this.http.patch<ConfirmDTO>('/api/account/email/2', body, {
       withCredentials: true
-    })
+    }).pipe(
+      tap(() => this.invalidateProvidedEmailCache())
+    )
   }
 
   public changePhoneNumber_firstStep(prefix: string, phone: string): Observable<ConfirmChangeDTO> {

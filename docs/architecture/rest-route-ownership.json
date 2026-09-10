@@ -185,6 +185,10 @@
       ],
       "references": [
         {
+          "file": "MercurionWebNg/src/app/services/account.service.spec.ts",
+          "kind": "angular-source"
+        },
+        {
           "file": "MercurionWebNg/src/app/services/account.service.ts",
           "kind": "angular-source"
         },
@@ -751,6 +755,10 @@
         "MercurionWebNode/src/app_modules/"
       ],
       "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.spec.ts",
+          "kind": "angular-source"
+        },
         {
           "file": "MercurionWebNg/src/app/services/account.service.ts",
           "kind": "angular-source"

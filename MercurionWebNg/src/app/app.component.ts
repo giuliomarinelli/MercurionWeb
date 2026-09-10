@@ -315,7 +315,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
   async ngOnInit() {
     if (this.authState.authenticated()) {
-      this.emailSub = this.accountService.getProvidedEmail(true).subscribe()
+      this.emailSub = this.accountService.getProvidedEmail().subscribe()
     }
   }
 
