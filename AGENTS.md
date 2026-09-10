@@ -148,9 +148,12 @@ gates; it does not create the root workspace or first canonical CI interface.
 Every session-owned Angular, Nest, Tox21, test watcher, or other process that
 can load files from the workspace MUST be stopped before task handoff. The runner
 must not start watch-mode/runtime processes speculatively at session startup or
-before a worker completes its unchanged task-start preflight. Runtime processes
-may start only after implementation reaches a declared browser/runtime
-validation phase, and must stop again before the final clean-install gate.
+before a worker completes its unchanged task-start preflight. For a task that
+declares browser/runtime evidence, the worker starts the canonical runtime after
+that task-start preflight and before implementation to prove capability, stops
+it after the capability evidence, and restarts it after implementation for the
+declared browser validation. It must stop every task-owned runtime again before
+handoff; full clean-install validation remains owned by GitHub Actions.
 
 A missing or red root baseline gate is a session failure that requires a
 separate human-authorized repair; no numbered task or task branch may bootstrap

@@ -17,9 +17,9 @@ The coordinator must refuse a new launch at or after
 `2026-09-20T10:00:00+02:00` (Europe/Rome, CEST), dieci giorni dopo la
 preparazione del launch.
 
-This launch carries direct human authorization to resume pending task `0041`
-(`FE-019`). Its previous `SESSION_CAPABILITY_PAUSE` was transient and did not
-create a terminal task outcome. Both hard dependencies (`0027` and `0033`) are now `DONE`; the authoritative planner reports `0041` as `READY`.
+Task `0041` (`FE-019`) is already integrated as `DONE`. A restarted session
+must not attempt or re-enable it; task selection resumes exclusively from the
+current authoritative planner snapshot.
 
 ## Host preflight (PowerShell 7, repository root)
 
@@ -149,18 +149,18 @@ hard dependencies, cycles, stale terminal skips, or planner errors.
 The configured `workload.tasks` list is empty, so the complete Series is in
 scope: there is no autonomous allowlist. Select the earliest filename-ordered
 READY task from the authoritative planner output; the expected first READY task
-is 0041. Continue serially through eligible tasks until the soft deadline,
+is 0043. Continue serially through eligible tasks until the soft deadline,
 workload exhaustion, or a documented session-fatal condition.
 
-Direct human authorization in this launch explicitly resumes pending task 0041
-(FE-019) after its earlier transient SESSION_CAPABILITY_PAUSE. Do not treat the
-old pause or historical execution notes as a terminal outcome. Its dependencies
-0027 and 0033 are DONE. Proceed only after a fresh ordinary login with
-the shared real test account has established a protected server-accepted
-session; otherwise pause again
-without mutating FE-019 or propagating dependency skips, then continue with the
-next independent READY task outside the session-local pause set. Finalize for
-capability exhaustion only when no such task remains.
+Task 0041 is terminal `DONE`; never select it again. Select task 0043 first,
+then continue with the next independent READY task from each fresh planner
+snapshot. When a selected task requires authenticated browser evidence,
+proceed only after a fresh ordinary login with the shared real test account has
+established a protected server-accepted session. Otherwise apply
+`SESSION_CAPABILITY_PAUSE` without mutating the task or propagating dependency
+skips, then continue with the next independent READY task outside the
+session-local pause set. Finalize for capability exhaustion only when no such
+task remains.
 
 Execute exactly one recipe per fresh synchronous development-task-worker. Do
 not bundle tasks. Create each feature branch locally, publish it only after a

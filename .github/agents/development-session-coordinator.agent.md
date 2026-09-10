@@ -151,12 +151,15 @@ never prefix the interpreter path while retaining the MercurionWeb root cwd.
 
 ## Blocking and CI failure
 
-If a task blocks before merge, including because exact feature-SHA CI fails or
-cannot be verified, preserve and push its feature branch, freeze it at that last
-pushed SHA, return to clean `develop`, propagate only the task's `BLOCKED`
-status and diagnostic execution notes, push that metadata commit, and wait for
-its exact CI result. The permanent CI workflow must already exist; its absence
-is a session-fatal baseline failure, not a task outcome.
+If a task blocks before merge because it cannot reach `READY_FOR_INTEGRATION`,
+or because exact feature-SHA CI remains non-successful after the complete
+configured repair lifecycle, preserve and push its feature branch, freeze it at
+that last pushed SHA, return to clean `develop`, propagate only the task's
+`BLOCKED` status and diagnostic execution notes, push that metadata commit, and
+wait for its exact CI result. A first actionable repository-controlled
+feature-CI failure is always `CI_REPAIR_PENDING`, never `BLOCKED`. The permanent
+CI workflow must already exist; its absence is a session-fatal baseline failure,
+not a task outcome.
 
 If merge CI does not succeed or cannot be verified, freeze the feature branch locally and remotely at its final pushed SHA, revert the merge with mainline parent 1 and `--no-gpg-sign`, verify the revert tree equals the pre-merge `develop` tree, push and wait for the exact revert CI, then record only `REVERTED` in a separate metadata-only commit made with `--no-gpg-sign` and wait for that exact CI too. Record whether the cause was a confirmed regression, infrastructure failure, cancellation/timeout, or unverified result. Never merge `develop` into, commit/amend, reset/rebase, advance, or delete the frozen branch.
 
