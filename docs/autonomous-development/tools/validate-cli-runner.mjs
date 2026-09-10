@@ -479,8 +479,8 @@ for (const [target, content] of [
   requireMatch(
     target,
     content,
-    /stop_before_clean_install:\s*true/,
-    'runtime must stop before a clean install',
+    /stop_before_(?:clean_install|task_handoff):\s*true/,
+    'runtime must stop before clean-install or task handoff',
   );
   requireMatch(
     target,
@@ -629,13 +629,16 @@ for (const command of ['/model', '/permissions show', '/mcp list', '/keep-alive 
 
 for (const [pattern, message] of [
   [/Working directory:[\s\S]*\.\.\/MercurionTox21/, 'missing explicit Tox21 working directory'],
-  [/PYTHONUTF8\s*=\s*"1"/, 'missing Windows UTF-8 Tox21 environment'],
-  [/\.\\\.venv\\Scripts\\python\.exe -m main/, 'missing cwd-relative Windows Tox21 command'],
+  [/(?:set\s+"PYTHONUTF8=1"|PYTHONUTF8\s*=\s*"1")/, 'missing Windows UTF-8 Tox21 environment'],
+  [/(?:\.venv|\.\\\.venv)\\Scripts\\python\.exe -m main/, 'missing cwd-relative Windows Tox21 command'],
   [/must not make an application inventory stale|cannot invalidate the application baseline/i, 'missing metadata isolation rule'],
   [/\.cache\\chrome-devtools-mcp\\chrome-profile/, 'missing dedicated persistent Chrome profile path'],
   [/SESSION_CAPABILITY_PAUSE/, 'missing pre-implementation browser capability pause'],
   [/502 Bad Gateway[\s\S]*edge-live\/upstream-unavailable/, 'runtime must classify nginx 502 as live edge with unavailable upstream'],
   [/ECONNREFUSED[\s\S]*nginx unavailability/, 'runtime must require a transport failure before classifying nginx unavailable'],
+  [/up to five minutes[\s\S]*two consecutive successful complete probe rounds/i, 'runtime must wait for stable application readiness'],
+  [/local npm[\s\S]*executable being unrecognized[\s\S]*BASELINE_INVARIANT_FAILURE/, 'runtime must classify missing workspace executables as a baseline failure'],
+  [/must not collapse an executable-not-found error[\s\S]*"nginx unavailable"/, 'runtime must preserve actionable process diagnostics'],
   [/BROWSER_PROFILE_RECOVERY_REQUIRED/, 'missing browser state-lease recovery rule'],
   [/Never record cookie values, tokens, passwords/, 'missing browser-secret reporting prohibition'],
 ]) {
@@ -1106,8 +1109,26 @@ for (const target of [
   requireMatch(
     target,
     content,
-    /stop(?:ped)?[\s\S]{0,300}(?:`npm ci`|clean install)|before[\s\S]{0,300}(?:`npm ci`|clean install)[\s\S]{0,300}stop/i,
-    'must require workspace-consuming processes to stop before clean install',
+    /(?:never|must not|forbidden)[\s\S]{0,160}`npm ci`[\s\S]{0,80}`npm run ci:check`|`npm ci`[\s\S]{0,80}`npm run ci:check`[\s\S]{0,160}(?:never|must not|forbidden)/i,
+    'must forbid local npm ci and npm run ci:check',
+  );
+}
+
+for (const [target, content] of [
+  [paths.exampleSession, exampleSession],
+  [paths.preparedSession, preparedSession],
+]) {
+  requireMatch(
+    target,
+    content,
+    /local_full_commands_forbidden:\s*true/,
+    'active session must forbid local full commands',
+  );
+  requireMatch(
+    target,
+    content,
+    /execution_owner:\s*github-actions/,
+    'canonical clean install and aggregate must belong to GitHub Actions',
   );
 }
 

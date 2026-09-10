@@ -49,11 +49,11 @@ Working directory:
 MercurionWeb Git root
 ```
 
-PowerShell command:
+Windows `cmd.exe` command:
 
-```powershell
-$env:APP_ENV = "development"
-$env:LOCAL_DUMMY_AUTH = "false"
+```bat
+set "APP_ENV=development"
+set "LOCAL_DUMMY_AUTH=false"
 npm run start:dev --workspace mercurion_web_node
 ```
 
@@ -103,11 +103,11 @@ MercurionWeb-root-relative interpreter invocation. Do not rely on shell-specific
 virtual-environment activation; invoke the virtual environment's Python
 interpreter directly and force UTF-8 console I/O on Windows.
 
-Windows / PowerShell on the Windows development host:
+Windows `cmd.exe` on the Windows development host:
 
-```powershell
-$env:PYTHONUTF8 = "1"
-& .\.venv\Scripts\python.exe -m main
+```bat
+set "PYTHONUTF8=1"
+.venv\Scripts\python.exe -m main
 ```
 
 POSIX fallback when the same repositories are run on Linux/macOS:
@@ -126,8 +126,9 @@ different working directory or silently substitute another entry point.
 
 Runtime is task-scoped, never session-persistent across task boundaries. The
 coordinator and worker must not start Angular, Nest, Tox21, test watchers, or
-any other workspace-consuming process before the unchanged task-start `npm ci`
-plus `npm run ci:check` preflight completes. A coding-agent task must not create
+any other workspace-consuming process before exact base-SHA Actions evidence is
+confirmed and focused task-start checks complete. Local autonomous sessions
+never run `npm ci` or `npm run ci:check`. A coding-agent task must not create
 duplicate application processes.
 
 For a task that actually declares browser/runtime validation, and only after
@@ -145,10 +146,29 @@ its unchanged task-start baseline passes, the worker should:
 2. start the Tox21 process when not already managed by the current session;
 3. start NestJS in watch mode;
 4. start Angular in watch mode;
-5. wait for the managed processes to remain alive;
-6. verify Nest through the nginx edge using `http://localhost:8888/health` when that endpoint is available for the current baseline;
-7. verify the Angular application through `http://localhost:8888/`;
-8. only then allow browser validation to begin.
+5. keep each command attached to its own long-running execution session and
+   poll its output; do not treat the initial tool yield/timeout as process
+   completion and do not replace these commands with a repository PowerShell
+   supervisor;
+6. wait for up to five minutes for the first builds to finish while proving
+   that all three managed processes remain alive. `nest` or another local npm
+   executable being unrecognized is an install/baseline invariant failure,
+   not nginx unavailability and not a runtime capability pause: stop the other
+   task-owned processes and return `BASELINE_INVARIANT_FAILURE` with the first
+   actionable stderr diagnostic;
+7. during that wait, poll Nest through the nginx edge using
+   `http://localhost:8888/health` when that endpoint is available for the
+   current baseline. HTTP 502 means the edge is live and the upstream is not
+   ready yet; keep waiting while the processes are alive;
+8. poll the Angular application through `http://localhost:8888/` (or the safe
+   route required by the task) until the application shell is returned;
+9. require two consecutive successful complete probe rounds before allowing
+   browser validation to begin.
+
+The worker must capture the first actionable stderr output when a managed
+process exits. It must not collapse an executable-not-found error, compiler
+error, or early process exit into the generic statement "nginx unavailable".
+Only an actual transport failure on port 8888 has that meaning.
 
 ## Dedicated local test account
 
@@ -176,10 +196,9 @@ deprecated dummy route, and must not copy them into Git-tracked files or
 session reports.
 
 After capturing the declared runtime evidence, the worker stops every process
-it started. It MUST do so before the final pre-merge `npm ci` plus
-`npm run ci:check`; on Windows, a live Angular/esbuild watcher can otherwise
-lock native executables under `node_modules` and make the clean install fail
-with `EPERM` or `ENOTEMPTY`.
+it started. It MUST do so before returning control to the coordinator. The
+complete clean install and aggregate validation run only in GitHub Actions;
+local autonomous sessions must not invoke them.
 
 A task may require a more specific route or application state, but it must still enter through `http://localhost:8888`.
 

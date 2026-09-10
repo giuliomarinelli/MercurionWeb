@@ -206,16 +206,15 @@ requests targeting `develop`. It exposes one stable `Required gate`, never
 deploys or publishes, and remains present across ordinary task merges and
 reverts.
 
-Local preflight and GitHub Actions both use root `npm ci` followed by
-`npm run ci:check`. A task that changes package topology may adapt the workflow,
+Only GitHub Actions uses root `npm ci` followed by `npm run ci:check`.
+Autonomous local sessions never invoke either command. A task that changes package topology may adapt the workflow,
 but MUST preserve continuous `develop` coverage, both platform jobs,
 feature-SHA validation, and the stable aggregate gate. It must prove the
 adapted workflow on its exact feature SHA before merge.
 
 ## Canonical CI parity
 
-The baseline provides the canonical root CI interface. Every task-start and
-pre-merge preflight MUST execute the same repository-controlled gate set as
+The baseline provides the canonical root CI interface, executed exclusively by
 GitHub Actions:
 
 ```text
@@ -239,7 +238,9 @@ drift to the existing aggregate. The complete evolving gate set includes:
 - GraphQL/generated-artifact drift checks;
 - any later static/contract/security-quality gate explicitly registered into the CI aggregate.
 
-A future task that adds a required CI gate MUST also add that gate to the canonical local aggregate. GitHub Actions must not contain hidden source-quality checks that the runner cannot reproduce locally.
+A future task that adds a required CI gate MUST add it to the canonical
+aggregate. Its granular scripts may be run locally as focused task validation,
+but the complete aggregate and clean install remain Actions-only.
 
 Environment/setup failures originating from GitHub infrastructure are still
 possible. Platform-specific repository failures may exist only on the clean
@@ -253,7 +254,7 @@ not invoke Chrome tools and no two workers run concurrently. Fresh worker
 context never implies a fresh Incognito, Guest, isolated, or personal browser
 profile.
 
-After the unchanged task-start baseline and before editing a recipe that
+After confirming exact base-SHA Actions evidence and before editing a recipe that
 requires browser/runtime evidence, the worker starts the required runtime and
 proves the nginx edge, required services, and any declared authenticated
 non-production state. It then stops task-owned application processes before
@@ -286,15 +287,17 @@ Immediately after `feature/<Source>` is created and before actual task implement
 
 1. prove every session/task-owned Angular, Nest, Tox21, test watcher, and other
    workspace-consuming process is stopped;
-2. run the complete CI-parity preflight;
-3. if green, record the result and begin the task;
+2. confirm the exact base SHA already has the required green Actions run and
+   execute only focused local checks relevant to the recipe;
+3. if usable, record the result and begin the task;
 4. if red before task changes exist, stop the session as a baseline invariant
    failure rather than assigning the debt to this task;
 5. do not implement, create a task outcome, or use the feature branch to repair
    unrelated baseline debt.
 
-Use the canonical root `npm ci` plus `npm run ci:check` interface from the
-permanent baseline onward.
+Never run local `npm ci` or `npm run ci:check`, even when an older recipe or
+launch document requests them. Missing local dependencies are a capability or
+baseline incident; they are not permission to install locally.
 
 ## Task implementation and local completion
 
@@ -305,11 +308,12 @@ Each task receives a fresh Copilot/Sol session. On its feature branch the agent:
 3. implements only the specified scope;
 4. performs task-specific tests and, only when declared, starts a task-scoped
    runtime after the initial preflight to collect browser validation;
-5. stops every task-owned runtime/watcher before a clean install;
+5. stops every task-owned runtime/watcher before returning;
 6. commits coherent task changes;
-7. runs the complete canonical `npm ci` plus `npm run ci:check` gate set again immediately before integration;
+7. runs focused task validation; complete validation is performed by Actions
+   on the exact pushed feature SHA;
 8. updates Execution notes;
-9. checks `DONE` only when implementation plus every local gate passes.
+9. checks `DONE` only when implementation plus focused local validation passes.
 
 At this point `DONE` is operationally **CI_PENDING** until both the exact
 feature-SHA and exact merge-SHA GitHub Actions runs succeed. The runner MUST NOT

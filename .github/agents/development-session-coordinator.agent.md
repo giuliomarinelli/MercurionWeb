@@ -25,7 +25,7 @@ Before starting a task:
 7. verify the CLI `task` capability with exactly one non-mutating startup handshake before any task branch is created: call `task` with `agent_type: development-task-worker`, `mode: sync`, and a payload containing `capability_probe: true` plus a fresh unpredictable nonce; require the exact response `TASK_CAPABILITY_OK <nonce>` and treat an empty, malformed, denied, or mismatched result as a startup failure; the probe is session-level and does not count as an implementation-worker invocation;
 8. verify `task_complete` is present in the current tool inventory without invoking it and `.github/mcp.json` is loaded; Chrome DevTools belongs exclusively to the serial task worker and the coordinator must never open or attach to the persistent browser profile;
 9. do not start Angular, Nest, Tox21, Chrome, or any watcher during session startup; browser/runtime readiness is checked by the selected worker after its unchanged task-start baseline and before implementation when the recipe requires runtime evidence;
-10. record the exact local/remote `develop` SHA, require a fresh permanent GitHub Actions `full` run for that exact SHA with the `Required gate` and both Windows/Linux quality jobs green, and prove the complete root `npm ci` plus `npm run ci:check` baseline from `docs/autonomous-development/CI-BASELINE.md` green before any recipe implementation; a metadata/duplicate-only result is insufficient and there is no task-level bootstrap exception;
+10. record the exact local/remote `develop` SHA and require a fresh permanent GitHub Actions `full` run for that exact SHA with the `Required gate` and both Windows/Linux quality jobs green before any recipe implementation; never rerun `npm ci` or `npm run ci:check` locally because those complete gates belong exclusively to Actions; a metadata/duplicate-only result is insufficient and there is no task-level bootstrap exception;
 11. refuse to start if the active configuration still contains an unresolved required decision.
 
 If an install, network, filesystem, temporary-directory cleanup, GitHub, subagent (`task`), MCP, signing, or `task_complete` prerequisite is denied or requires approval despite the launch permissions, stop immediately and report the exact denial. Do not replace the denied operation with a weaker probe.
@@ -80,8 +80,10 @@ For each selected `READY` task, serially:
 3. prove that every session-owned Angular, Nest, Tox21, test watcher, and other
    workspace-consuming process is stopped, then call the `task` tool exactly once with `agent_type: development-task-worker` and `mode: sync`,
    supplying the exact task path, Source, feature branch, base SHA,
-   session-config path, and a reminder that it must complete the unchanged
-   clean-install preflight before starting any task-owned runtime;
+   session-config path, and a reminder that it must confirm exact base-SHA
+   Actions evidence and use focused local validation before starting any
+   task-owned runtime; neither coordinator nor worker may run local `npm ci` or
+   `npm run ci:check` under any circumstance;
 4. inspect the worker's structured result and independently verify branch, task
    status, commits, clean tree, declared validation evidence, and that the first
    remote feature ref was created only after a task-specific commit existed;
@@ -118,7 +120,10 @@ Never run two implementation workers concurrently, use background mode, or invok
 Never start Angular, Nest, Tox21, or another workspace-consuming runtime on
 behalf of a task before invoking its worker. Runtime is task-scoped rather than
 session-persistent: the worker starts it only after the initial preflight when
-required for declared validation, and stops it before its final `npm ci`.
+required for declared validation, and stops it before returning.
+The worker starts the canonical commands directly in separate long-running
+execution sessions and waits for readiness as specified by `RUNTIME.md`; the
+coordinator must not require or suggest a repository PowerShell supervisor.
 The MCP browser profile is different: it is a dedicated non-production profile
 persisted outside the repository and reused sequentially across fresh workers.
 The coordinator never controls it, and workers must neither launch isolated

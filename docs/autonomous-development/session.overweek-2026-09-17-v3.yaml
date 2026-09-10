@@ -219,22 +219,24 @@ runtime:
     task_scoped: true
     start_only_after_task_start_preflight: true
     start_only_when_browser_validation_required: true
-    stop_before_clean_install: true
+    stop_before_task_handoff: true
     carry_processes_between_tasks: false
 
 quality:
   baseline_document: docs/autonomous-development/CI-BASELINE.md
-  session_start_preflight: true
+  session_start_preflight: remote-ci-and-focused-local-only
   require_clean_exact_origin_develop: true
   require_green_before_first_task_scope: true
   require_exact_sha_ci_for_every_develop_base: true
   require_fresh_full_remote_ci_at_session_start: true
   stop_before_task_branch_if_initial_baseline_is_not_green: true
   numbered_tasks_may_repair_baseline: false
-  before_every_task: true
-  before_merge: true
+  before_every_task: focused-local-only
+  before_merge: exact-feature-sha-actions
+  local_full_commands_forbidden: true
   canonical:
     directory: .
+    execution_owner: github-actions
     install: npm ci
     check: npm run ci:check
 

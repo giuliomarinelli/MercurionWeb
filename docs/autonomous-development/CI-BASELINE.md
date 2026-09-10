@@ -34,28 +34,27 @@ npm 10.9.2
 The root and member package manifests declare this toolchain. GitHub Actions
 uses the same Node.js release.
 
-## Canonical baseline gates
+## Canonical Actions baseline gates
 
-The CI workflow and local preflight use one canonical root invocation:
+The CI workflow uses one canonical root invocation:
 
 ```text
 npm ci
 npm run ci:check
 ```
 
-Before `npm ci`, every process started by the autonomous session that can read
-or execute workspace files must be stopped. In particular, Angular/esbuild and
-Nest watch mode must never overlap a clean install. Runtime processes are
-started only after the initial task preflight and only for declared
-browser/runtime validation; they are stopped again before the final
-pre-integration clean install.
+Local autonomous sessions never execute either command. They use exact-SHA
+Actions evidence plus focused validation that reuses the existing dependency
+tree. Missing local dependencies stop the local attempt; they are not installed
+by the coordinator or worker. GitHub Actions starts from an isolated checkout
+and owns its clean-install process lifecycle.
 
 The root aggregate runs non-mutating Angular and Nest lint, both explicit
 typechecks, every Angular unit test, every Nest unit and E2E test, and both
 builds. It begins by validating the autonomous runner contract and all 220
-recipes, including every active dated session configuration. The workflow uses
-the same root-owned scripts as local preflight so the two gate definitions
-cannot drift.
+recipes, including every active dated session configuration. Focused local
+checks reuse granular root-owned scripts, while the complete aggregate remains
+Actions-only.
 
 The baseline lint policy requires zero errors and keeps existing migration
 debt visible as warnings. It does not silently auto-fix source. Tasks `0199`
@@ -153,8 +152,9 @@ Before any `feature/<Source>` branch is created, the coordinator must prove:
 3. the exact `develop` SHA has a fresh successful `full` CI run, both Windows
    and Ubuntu quality jobs, and a successful `Required gate`; metadata or
    duplicate mode alone is insufficient;
-4. root `npm ci` and `npm run ci:check` also pass locally;
-5. no session-owned runtime/watcher is active during `npm ci`;
+4. no local `npm ci` or `npm run ci:check` is invoked;
+5. the existing dependency tree is usable for required focused checks, or the
+   local attempt stops without installing dependencies;
 6. no required capability or decision is missing.
 
 Failure of this invariant is a session-level startup failure. It must not mark

@@ -103,15 +103,22 @@ Before creating a task branch, the coordinator MUST also make exactly one sessio
 
 The coordinator MUST also verify the effective repository-local `commit.gpgSign=false`. Every autonomous commit-producing command uses `--no-gpg-sign`, including ordinary commits, no-fast-forward merges, and reverts. A denied install, network, filesystem, cleanup, GitHub, `task`, MCP, signing, or `task_complete` prerequisite is reported exactly and stops the session.
 
-## Mandatory CI-parity preflight before every task
+## Remote CI baseline and local validation policy
 
 Before any task branch exists, the coordinator MUST establish a clean, fully
 green repository baseline according to
 `docs/autonomous-development/CI-BASELINE.md`. Local `develop` must equal
 `origin/develop`; the exact SHA must have a fresh successful GitHub Actions
-`full` run with both platform jobs and the stable `Required gate`; and the
-complete local non-mutating gate must pass. A `metadata` or `duplicate` result
-alone is insufficient to start a new session.
+`full` run with both platform jobs and the stable `Required gate`. A `metadata`
+or `duplicate` result alone is insufficient to start a new session.
+
+Autonomous sessions MUST NEVER run `npm ci` or `npm run ci:check` locally. The
+clean install and complete aggregate are GitHub Actions responsibilities only.
+This direct human policy overrides older launch documents, session YAML fields,
+and task recipes that still mention either local command. Local validation is
+limited to focused commands proportionate to the changed area and must reuse
+the existing dependency tree. If dependencies are absent or unusable, stop as
+a local capability/baseline incident rather than installing them locally.
 
 There is no task `0001` bootstrap exception. Missing CI, a red exact-SHA run,
 or a red local baseline is a session-level startup failure. Stop before branch
@@ -133,13 +140,12 @@ The permanent GitHub Actions workflow predates every numbered task. It runs on
 feature branches and `develop` on Windows and Linux and must survive ordinary
 task merges and reverts.
 
-The task-start preflight MUST use the same root commands used by GitHub Actions:
-`npm ci` followed by `npm run ci:check`. Task `0008` extends this existing
-aggregate with GraphQL/generated-artifact drift gates; it does not create the
-root workspace or first canonical CI interface.
+GitHub Actions MUST use root `npm ci` followed by `npm run ci:check`. Task
+`0008` extends this existing aggregate with GraphQL/generated-artifact drift
+gates; it does not create the root workspace or first canonical CI interface.
 
 Every session-owned Angular, Nest, Tox21, test watcher, or other process that
-can load files from the workspace MUST be stopped before `npm ci`. The runner
+can load files from the workspace MUST be stopped before task handoff. The runner
 must not start watch-mode/runtime processes speculatively at session startup or
 before a worker completes its unchanged task-start preflight. Runtime processes
 may start only after implementation reaches a declared browser/runtime
@@ -161,10 +167,11 @@ For each task:
 
 1. Start from an up-to-date, clean `develop`.
 2. Create `feature/<Source>` locally from that exact `develop` commit; do not push while its HEAD still equals the already-green base SHA.
-3. Run the mandatory CI-parity preflight before task implementation.
+3. Confirm exact base-SHA Actions evidence and run focused local checks only.
 4. Implement and validate the task on the feature branch.
 5. Commit the task changes on the feature branch. Prefer small, comprehensible commits; do not squash or rewrite history merely for cosmetic reasons.
-6. Run the complete CI-parity gate set again immediately before integration.
+6. Run focused task validation immediately before integration; exact
+   feature-SHA Actions supplies the complete clean-install/aggregate evidence.
 7. Mark the task `DONE` in the feature branch only when implementation and all local gates pass. The runner MUST treat this state as `CI_PENDING` until both feature and post-merge CI succeed.
 8. Create the remote feature ref only after a task-specific commit exists, push the final feature SHA, and wait for its exact GitHub Actions `Required gate`.
 9. If exact feature-SHA CI fails or is unverifiable, change the provisional outcome to `BLOCKED`, record diagnostics on the preserved feature branch, freeze it, and propagate only the metadata status to `develop`.
@@ -252,11 +259,20 @@ For frontend or browser-observable work:
 - use the nginx development edge at `http://localhost:8888`; never validate the application by browsing the Angular development-server port directly;
 - distinguish nginx listener liveness from proxied-service readiness: any HTTP response from `localhost:8888`, including the default nginx `502 Bad Gateway` while a task-scoped upstream is stopped, proves the edge is reachable; only a transport-level failure such as `ECONNREFUSED` on port `8888` indicates that nginx itself is unavailable;
 - use Chrome DevTools MCP when the active task declares browser validation or when runtime browser behaviour is necessary to establish an acceptance criterion;
-- start the canonical runtime only after the unchanged task-start `npm ci` plus
-  `npm run ci:check` preflight has succeeded, and only when the active task
+- start the canonical runtime only after exact base-SHA Actions evidence and
+  focused task-start checks have succeeded, and only when the active task
   actually requires runtime/browser evidence;
-- stop every task-owned runtime process before any later `npm ci`, including
-  the final pre-merge clean-install gate;
+- start Nest, Angular, and Tox21 with the direct canonical commands in separate
+  long-running execution sessions; keep them alive and allow up to five minutes
+  for their first builds, polling process output and requiring two consecutive
+  successful readiness rounds. Do not use a repository PowerShell runtime
+  supervisor;
+- classify a missing `nest` or other npm workspace executable as a failed
+  install/baseline invariant, never as nginx unavailability or
+  `SESSION_CAPABILITY_PAUSE`; an nginx 502 proves the edge is live and only
+  means its upstream is not ready yet;
+- stop every task-owned runtime process before task handoff and before the
+  coordinator proceeds;
 - use the browser to inspect the rendered UI and, when relevant, console errors, network requests, runtime state, accessibility/DOM state, responsive behaviour, and screenshots;
 - do not treat a successful TypeScript compilation or Angular build as sufficient evidence for a browser-facing acceptance criterion;
 - prefer the dedicated MCP-controlled Chrome instance; do not attach to a human developer's personal Chrome profile;
@@ -275,7 +291,8 @@ Before a task may be merged:
 
 1. Run every task-specific validation command.
 2. Perform declared browser validation when applicable.
-3. Run the complete canonical CI-parity gate set, not merely tests for the changed area.
+3. Use the exact feature-SHA GitHub Actions gate as the repository-wide
+   validation; local checks remain focused.
 4. Verify every acceptance criterion in the task.
 5. Verify the feature branch contains no unrelated changes except documented preflight remediation.
 6. Push the exact final feature SHA and require the permanent Windows/Linux

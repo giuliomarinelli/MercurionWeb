@@ -53,12 +53,6 @@ if ((git config --local --get commit.gpgSign).Trim() -ne "false") {
   throw "Impostare commit.gpgSign=false nella configurazione locale della repo."
 }
 
-npm ci
-if ($LASTEXITCODE -ne 0) { throw "npm ci fallito." }
-
-npm run ci:check
-if ($LASTEXITCODE -ne 0) { throw "ci:check fallito." }
-
 npm run autonomous:plan
 if ($LASTEXITCODE -ne 0) { throw "planner delle dipendenze fallito." }
 
@@ -72,6 +66,9 @@ if ($Dirty) { throw "Il preflight ha modificato il working tree:`n$Dirty" }
 In GitHub verifica che lo stesso `$LocalDevelop` SHA abbia una run `full`
 recente e riuscita con Windows, Linux e `Required gate`. Una run `metadata` o
 `duplicate` non basta per iniziare la sessione.
+
+Non eseguire localmente `npm ci` o `npm run ci:check`: installazione pulita e
+gate completo sono responsabilità della pipeline Actions sugli SHA esatti.
 
 ## Start Copilot CLI
 
@@ -113,6 +110,10 @@ Read the complete active configuration, AGENTS.md,
 docs/autonomous-development/PROTOCOL.md,
 docs/autonomous-development/RUNTIME.md, and
 docs/autonomous-development/CI-BASELINE.md before any repository write.
+
+Never run `npm ci` or `npm run ci:check` locally. Use the required exact-SHA
+GitHub Actions runs for clean-install and complete-gate evidence, and run only
+focused local validation that reuses the existing dependency tree.
 
 Perform every configured startup and capability probe. Refuse launch at or
 after 2026-09-17T10:00:00+02:00. Require a clean, synchronized develop and a
