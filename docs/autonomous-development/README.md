@@ -114,7 +114,11 @@ The four terminal outcomes are mutually exclusive:
 | `REVERTED` | Locally successful and merged, then rolled back after post-merge CI non-success/unverifiable result; branch is frozen. |
 | `SKIPPED_DEPENDENCY` | Never attempted because a hard dependency is terminal non-`DONE`; no branch exists. |
 
-All unchecked means pending. `CI_PENDING` and `WAITING_DEPENDENCY` exist only as transient coordinator states.
+All unchecked means pending. `CI_PENDING`, `WAITING_DEPENDENCY`, and
+`SESSION_CAPABILITY_PAUSE` exist only as transient coordinator states. A
+capability pause defers only the affected task for the remainder of the active
+session; the coordinator continues with the next independent `READY` task and
+does not propagate dependency skips.
 
 Execution ownership is not a fifth outcome. In a session configuration,
 `workload.tasks: []` selects the complete Series; a non-empty list is an exact

@@ -130,10 +130,13 @@ any other workspace-consuming process before the unchanged task-start `npm ci`
 plus `npm run ci:check` preflight completes. A coding-agent task must not create
 duplicate application processes.
 
-Only after implementation reaches a task that actually declares
-browser/runtime validation, the worker should:
+For a task that actually declares browser/runtime validation, and only after
+its unchanged task-start baseline passes, the worker should:
 
-1. verify that the Docker nginx edge is already reachable or fail/block runtime validation;
+1. verify that the externally managed Docker nginx listener is reachable; an
+   nginx-generated `502 Bad Gateway` caused by the deliberately stopped
+   task-scoped Angular/Nest upstreams proves proxy liveness and MUST NOT be
+   classified as nginx unavailability;
 2. start the Tox21 process when not already managed by the current session;
 3. start NestJS in watch mode;
 4. start Angular in watch mode;
@@ -208,8 +211,11 @@ If this pre-implementation probe cannot establish required runtime or complete
 the real test-account login, the worker returns `SESSION_CAPABILITY_PAUSE`.
 It makes no edit, commit, task-status change, or remote branch publication. The
 coordinator removes only the empty unpublished local attempt branch when safe,
-finalizes the session, and propagates no dependency skips. A human may restore
-the environment or authenticate the dedicated profile and start a new session.
+adds the task to the session-local capability-pause exclusion set, and continues
+with the next independent `READY` task. It does not propagate dependency skips
+or retry that task in the same session. The session finalizes only when no
+unpaused configured `READY` task remains, the deadline is reached, or another
+documented terminal condition applies.
 
 Profile persistence may be tested independently with two
 fresh sequential worker invocations: the first writes an unpredictable probe

@@ -21,10 +21,10 @@ const paths = {
   completedSession: 'docs/autonomous-development/session.48h-2026-09-03.yaml',
   exampleSession: 'docs/autonomous-development/session.example.yaml',
   closedSession: 'docs/autonomous-development/session.until-2026-09-10.yaml',
-  preparedSession: 'docs/autonomous-development/session.overweek-2026-09-16-v2.yaml',
+  preparedSession: 'docs/autonomous-development/session.overweek-2026-09-17-v3.yaml',
   completedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-03-v2.md',
   closedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-06.md',
-  preparedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-09-overweek-v2.md',
+  preparedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-10-overweek-v3.md',
   runtime: 'docs/autonomous-development/RUNTIME.md',
   workflow: '.github/workflows/ci.yml',
   classifier: '.github/scripts/classify-ci.mjs',
@@ -310,6 +310,18 @@ for (const [target, content] of [
   );
 }
 requireMatch(
+  paths.agents.coordinator,
+  coordinator.content,
+  /SESSION_CAPABILITY_PAUSE[\s\S]*session-local capability-pause exclusion set[\s\S]*continue with the next[\s\S]*`READY` task/,
+  'coordinator must defer a capability-paused task and continue with another READY task',
+);
+requireMatch(
+  paths.agents.coordinator,
+  coordinator.content,
+  /do not retry the paused task in[\s\S]*this session/,
+  'coordinator must prevent same-session capability-pause reselection loops',
+);
+requireMatch(
   paths.agents.worker,
   worker.content,
   /do not read repository files, invoke tools, run commands, inspect or modify Git/,
@@ -576,14 +588,14 @@ for (const command of ['/model', '/permissions show', '/mcp list', '/keep-alive 
 }
 
 for (const [pattern, message] of [
-  [/docs\/autonomous-development\/session\.overweek-2026-09-16-v2\.yaml/, 'prepared launch must reference its dated session configuration'],
-  [/2026-09-16T10:00:00\+02:00/, 'prepared launch must retain the exact soft deadline'],
+  [/docs\/autonomous-development\/session\.overweek-2026-09-17-v3\.yaml/, 'prepared launch must reference its dated session configuration'],
+  [/2026-09-17T10:00:00\+02:00/, 'prepared launch must retain the exact soft deadline'],
   [/test-account login policy are integrated into `develop`/i, 'prepared launch must require the shared real test-account policy'],
   [/no\s+profile-persistence or pre-authenticated-state probe is a launch prerequisite/i, 'prepared launch must not depend on persisted profile authentication'],
   [/workload\.tasks` list is empty[\s\S]{0,120}complete Series is in\s*scope/i, 'prepared launch must select the complete Series'],
   [/there is no autonomous allowlist/i, 'prepared launch must explicitly disable workload restriction'],
-  [/expected first READY task[\s\S]{0,20}(?:is\s*)?0031/i, 'prepared launch must state the expected first ready task'],
-  [/direct human authorization[\s\S]{0,120}(?:0031|FE-009)/i, 'prepared launch must explicitly re-enable FE-009'],
+  [/expected first READY task[\s\S]{0,20}(?:is\s*)?0041/i, 'prepared launch must state the expected first ready task'],
+  [/direct human authorization[\s\S]{0,120}(?:0041|FE-019)/i, 'prepared launch must explicitly re-enable FE-019'],
   [/env\/\.env\.development[\s\S]{0,260}ordinary login[\s\S]{0,260}server/i, 'prepared launch must require a fresh server-accepted real-account login'],
   [/Do[\s\S]{0,10}not bundle tasks/, 'prepared launch must prohibit multi-task bundles'],
   [/npm run autonomous:plan/, 'prepared launch must execute the deterministic planner'],
@@ -595,13 +607,14 @@ for (const staleSessionReference of [
   'docs/autonomous-development/session.until-2026-09-12.yaml',
   'docs/autonomous-development/session.overnight-2026-09-08.yaml',
   'docs/autonomous-development/session.overweek-2026-09-16.yaml',
+  'docs/autonomous-development/session.overweek-2026-09-16-v2.yaml',
 ]) {
   if (preparedLaunch.includes(staleSessionReference)) {
     fail(paths.preparedLaunch, `contains stale session reference ${staleSessionReference}`);
   }
 }
 const preparedSessionReference =
-  'docs/autonomous-development/session.overweek-2026-09-16-v2.yaml';
+  'docs/autonomous-development/session.overweek-2026-09-17-v3.yaml';
 if (preparedLaunch.split(preparedSessionReference).length - 1 !== 2) {
   fail(paths.preparedLaunch, 'must reference the active session exactly twice');
 }
@@ -690,9 +703,9 @@ if (closedDeadlineMatches?.length !== 1) {
   fail(paths.closedSession, `deadline must remain exactly ${closedDeadline}`);
 }
 
-const preparedDeadline = '2026-09-16T10:00:00+02:00';
+const preparedDeadline = '2026-09-17T10:00:00+02:00';
 const preparedDeadlineMatches = preparedSession.match(
-  /^\s*end:\s*"2026-09-16T10:00:00\+02:00"/gm,
+  /^\s*end:\s*"2026-09-17T10:00:00\+02:00"/gm,
 );
 if (preparedDeadlineMatches?.length !== 1) {
   fail(paths.preparedSession, `deadline must remain exactly ${preparedDeadline}`);
@@ -746,17 +759,17 @@ for (const [pattern, message] of [
 
 for (const [pattern, message] of [
   [/browser_and_allowlist_hardening_pull_request:\s*31/, 'prepared session must record PR #31 provenance'],
-  [/name:\s*mercurion-code-red-0001-overweek-full-series-2026-09-09-v2/, 'prepared session must use a fresh session identity'],
+  [/name:\s*mercurion-code-red-0001-overweek-full-series-2026-09-10-v3/, 'prepared session must use a fresh session identity'],
   [/expected_task_count:\s*220/, 'prepared workload must contain 220 tasks'],
-  [/expected_current_done:\s*42/, 'prepared workload must record 42 DONE tasks'],
+  [/expected_current_done:\s*51/, 'prepared workload must record 51 DONE tasks'],
   [/expected_current_blocked:\s*4/, 'prepared workload must record four retained blockers'],
   [/expected_current_skipped_dependency:\s*26/, 'prepared workload must record 26 terminal skips'],
-  [/expected_current_pending:\s*148/, 'prepared workload must record 148 pending tasks'],
-  [/expected_first_ready_task:\s*"0031"/, 'prepared workload must start from task 0031'],
-  [/expected_planner_ready:\s*17/, 'prepared workload must record 17 ready tasks'],
-  [/expected_planner_waiting_dependency:\s*131/, 'prepared workload must record 131 waiting tasks'],
+  [/expected_current_pending:\s*139/, 'prepared workload must record 139 pending tasks'],
+  [/expected_first_ready_task:\s*"0041"/, 'prepared workload must start from task 0041'],
+  [/expected_planner_ready:\s*18/, 'prepared workload must record 18 ready tasks'],
+  [/expected_planner_waiting_dependency:\s*121/, 'prepared workload must record 121 waiting tasks'],
   [/tasks:\s*\[\]/, 'prepared workload must select the complete Series'],
-  [/expected_autonomous_pending:\s*148/, 'prepared workload must record all 148 pending tasks in scope'],
+  [/expected_autonomous_pending:\s*139/, 'prepared workload must record all 139 pending tasks in scope'],
   [/expected_human_led_pending:\s*0/, 'prepared workload must not exclude pending tasks'],
   [/autonomous_execution_scope:\s*complete-series/, 'prepared workload must declare complete-Series execution'],
   [/dependency_planner:[\s\S]*output:\s*versioned-json/, 'prepared session must use deterministic planner output'],
@@ -769,13 +782,16 @@ for (const [pattern, message] of [
   [/owner:\s*development-task-worker/, 'prepared persistent browser must belong to the task worker'],
   [/mode:\s*dedicated-persistent/, 'prepared session must use the dedicated persistent browser'],
   [/failure_result:\s*SESSION_CAPABILITY_PAUSE/, 'prepared session must pause before task mutation when browser capability is missing'],
+  [/continue_session_after_pause:\s*true/, 'prepared session must continue after a task capability pause'],
+  [/exclude_paused_task_for_remainder_of_session:\s*true/, 'prepared session must exclude a paused task for the rest of the session'],
+  [/retry_paused_task_in_same_session:\s*false/, 'prepared session must prohibit same-session retries of capability-paused tasks'],
   [/authenticated_entrypoint:\s*http:\/\/localhost:8888\/login/, 'prepared session must declare the ordinary login entrypoint'],
   [/authentication_mode:\s*fresh-shared-real-test-account-login/, 'prepared session must require fresh real-account login per worker'],
   [/credential_file:\s*MercurionWebNode\/env\/\.env\.development/, 'prepared session must declare the git-ignored credential file'],
   [/LOCAL_TEST_ACCOUNT_EMAIL[\s\S]*LOCAL_TEST_ACCOUNT_PASSWORD/, 'prepared session must require both shared credential variables'],
   [/LOCAL_DUMMY_AUTH:\s*"false"/, 'prepared session must disable deprecated local dummy auth'],
   [/required_once_before_enabling_unattended_reuse:\s*false/, 'prepared session must not gate launch on profile persistence'],
-  [/direct_human_reenable_authorization:\s*true/, 'prepared session must carry direct human FE-009 re-enable authorization'],
+  [/fe_019:[\s\S]*task:\s*"0041"[\s\S]*source:\s*FE-019[\s\S]*direct_human_reenable_authorization:\s*true/, 'prepared session must carry direct human FE-019 re-enable authorization'],
   [/preserve_existing_frozen_branches:\s*true/, 'prepared session must preserve frozen blocked branches'],
 ]) {
   requireMatch(paths.preparedSession, preparedSession, pattern, message);
@@ -829,6 +845,9 @@ for (const [pattern, message] of [
   [/reuse_across_serial_workers:\s*true/, 'browser profile must be reused across serial workers'],
   [/failure_result:\s*SESSION_CAPABILITY_PAUSE/, 'missing browser capability pause result'],
   [/propagate_dependency_skips:\s*false/, 'browser capability pause must not propagate dependency skips'],
+  [/continue_session_after_pause:\s*true/, 'browser capability pause must not stop the session'],
+  [/exclude_paused_task_for_remainder_of_session:\s*true/, 'paused browser task must be excluded for the rest of the session'],
+  [/retry_paused_task_in_same_session:\s*false/, 'paused browser task must not be retried in the same session'],
   [/recovery_failure_signal:\s*BROWSER_PROFILE_RECOVERY_REQUIRED/, 'missing browser profile recovery signal'],
   [/restore_after_explicit_logout_or_storage_test:\s*false/, 'ordinary worker logout must not require auth restoration'],
   [/stop_before_next_task_on_recovery_failure:\s*false/, 'anonymous profile state must not stop later task selection'],

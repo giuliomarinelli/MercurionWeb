@@ -56,8 +56,8 @@ Use the planner output as follows:
    create no feature branch and invoke no worker for those recipes;
 3. push that one commit, wait for its exact adaptive `Required gate`, rebuild
    the snapshot, and select the earliest filename-ordered configured `READY`
-   task;
-4. if no configured task is `READY`, finalize rather than selecting or
+   task that is not in the session-local capability-pause exclusion set;
+4. if no configured task is `READY` outside that exclusion set, finalize rather than selecting or
    mutating a task outside the allowlist, emitting one skip commit per recipe,
    or idling until the deadline.
 
@@ -66,9 +66,9 @@ outside this autonomous session. Leave it `PENDING`: do not create its branch,
 invoke a worker, mark it `BLOCKED`, or propagate dependency skips from its
 exclusion. Workload membership is scheduling metadata, not a recipe outcome.
 
-`WAITING_DEPENDENCY` is an in-memory scheduling classification, never a
-persistent recipe checkbox. Existing terminal outcomes remain immutable in the
-active session.
+`WAITING_DEPENDENCY` and the capability-pause exclusion set are in-memory
+scheduling state, never persistent recipe checkboxes. Initialize the exclusion
+set empty. Existing terminal outcomes remain immutable in the active session.
 
 For each selected `READY` task, serially:
 
@@ -87,8 +87,12 @@ For each selected `READY` task, serially:
    remote feature ref was created only after a task-specific commit existed;
 5. if the worker reports `SESSION_CAPABILITY_PAUSE`, verify that it made no task
    change or commit, stopped every runtime it started, left the recipe pending,
-   remove only the unpublished empty local attempt branch when safe, finalize
-   the session as an environmental pause, and do not propagate dependency skips;
+   remove only the unpublished empty local attempt branch when safe, record the
+   non-sensitive diagnostic in the session ledger, add that task to the
+   session-local capability-pause exclusion set, return to clean synchronized
+   `develop`, rebuild the planner snapshot, and continue with the next
+   independent `READY` task outside the set; do not retry the paused task in
+   this session or propagate dependency skips;
 6. if the worker reports `BASELINE_INVARIANT_FAILURE`, verify that no task
    change was made, remove only the unpushed empty local attempt branch when
    safe, stop the entire session without changing the recipe outcome, and
@@ -159,7 +163,9 @@ health to the next task.
 
 The configured `end` is a soft deadline. Once it is reached, finish the complete lifecycle of the one already-active task, including merge/revert, exact-SHA CI, status propagation, and branch cleanup/preservation. Do not materialize additional dependency skips during deadline finalization. Then start no new task.
 
-At workload exhaustion, deadline completion, or a session-fatal blocker:
+At workload exhaustion, capability exhaustion (no configured `READY` task
+outside the session-local capability-pause exclusion set), deadline completion,
+or a session-fatal blocker:
 
 1. stop only runtime processes that this session started;
 2. verify and record the final local/remote `develop` SHA, clean-tree state, and exact CI health;

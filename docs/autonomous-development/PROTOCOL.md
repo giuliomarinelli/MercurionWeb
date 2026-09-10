@@ -21,7 +21,7 @@ A **Development Session** is a bounded period in which a session coordinator exe
 - **Capability**: an external tool available to the coding agent, such as Chrome DevTools MCP.
 - **Runtime**: the local processes/infrastructure required for runtime/browser validation.
 - **Persistent browser profile**: the dedicated, non-production Chrome DevTools MCP user-data directory reused by serial workers and separate from task-scoped application processes.
-- **SESSION_CAPABILITY_PAUSE**: a transient session stop before task changes when mandatory runtime or browser authentication is unavailable; it is not a recipe outcome and creates no dependency skips.
+- **SESSION_CAPABILITY_PAUSE**: a transient task-scheduling deferral before task changes when mandatory runtime or browser authentication is unavailable; it is not a recipe outcome, creates no dependency skips, and does not by itself stop the session.
 - **BROWSER_PROFILE_RECOVERY_REQUIRED**: a post-validation session stop requested when a task deliberately changed browser authentication/storage and could not restore the canonical non-production profile; the active task finishes its safe lifecycle, but no next task starts.
 - **Report**: the final session summary.
 - **CI mode**: the exact-SHA validation path selected by the permanent workflow: `duplicate`, `metadata`, or `full`.
@@ -264,8 +264,13 @@ If the capability probe fails before task changes, the worker returns
 `SESSION_CAPABILITY_PAUSE`. It leaves every recipe checkbox untouched, creates
 no commit or remote feature ref, and records exact probe and cleanup evidence.
 The coordinator removes only the empty unpublished attempt branch when safe,
-finalizes the report, and stops. It MUST NOT mark the task `BLOCKED`, propagate
-`SKIPPED_DEPENDENCY`, or treat an expired login as a task defect.
+records the task in a session-local capability-pause exclusion set, rebuilds the
+planner snapshot, and continues with the next independent `READY` task outside
+that set. It MUST NOT retry the paused task in the same session, mark it
+`BLOCKED`, propagate `SKIPPED_DEPENDENCY`, or treat an expired login as a task
+defect. If no configured `READY` task remains outside the set, the coordinator
+finalizes with capability exhaustion rather than treating the pause as a
+session-fatal incident.
 
 The persistent profile is leased to one worker at a time, but authentication is
 not leased across workers. Every worker requiring protected state performs a
@@ -538,13 +543,15 @@ nginx development proxy remains untouched.
 Before implementation of a task requiring browser/runtime evidence, the worker
 proves the canonical runtime and any required authenticated state. Failure at
 that point returns transient `SESSION_CAPABILITY_PAUSE`, leaves the task
-pending, and produces no dependency skips. A runtime or browser failure that is
+pending, produces no dependency skips, and defers only that task for the rest
+of the active session while the coordinator considers other independent
+`READY` tasks. A runtime or browser failure that is
 caused by task changes after implementation still follows the task's ordinary
 `BLOCKED` rules.
 
 ## Workload resolution
 
-The runner may resolve an explicit task list, a selected series range, or the global pending queue. It builds the dependency snapshot first, then selects the lexicographically earliest `READY` recipe by four-digit prefix. A pending/active prerequisite produces transient `WAITING_DEPENDENCY`; a terminal non-`DONE` prerequisite enters the next batched `SKIPPED_DEPENDENCY` closure. Advisory references do not constrain readiness and never create dependency cycles. If pending recipes remain but none is `READY` and no new terminal closure exists, the coordinator reports the unresolved/cyclic graph and finalizes rather than idling or fabricating progress.
+The runner may resolve an explicit task list, a selected series range, or the global pending queue. It builds the dependency snapshot first, then selects the lexicographically earliest `READY` recipe by four-digit prefix that is not in the session-local capability-pause exclusion set. A pending/active prerequisite produces transient `WAITING_DEPENDENCY`; a terminal non-`DONE` prerequisite enters the next batched `SKIPPED_DEPENDENCY` closure. Advisory references do not constrain readiness and never create dependency cycles. If pending recipes remain but none is `READY` outside the exclusion set and no new terminal closure exists, the coordinator reports either capability exhaustion (when otherwise-READY tasks are excluded) or the unresolved/cyclic graph and finalizes rather than idling, immediately retrying a paused task, or fabricating progress.
 
 ## Deadline semantics
 
@@ -556,7 +563,10 @@ When configured, `hard_stop` is an absolute session guardrail, but it MUST NOT i
 
 ## Workload exhaustion
 
-If no pending runnable task remains, the session ends immediately; it does not idle until the configured end time.
+If no pending runnable task remains outside the session-local capability-pause
+exclusion set, the session ends immediately; it does not idle until the
+configured end time. Tasks deferred by `SESSION_CAPABILITY_PAUSE` remain
+pending and are listed separately in the report.
 
 ## Session finalization and report
 

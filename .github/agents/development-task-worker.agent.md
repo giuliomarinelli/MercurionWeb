@@ -73,7 +73,9 @@ return `SESSION_CAPABILITY_PAUSE` instead of `BLOCKED`. This result is valid
 only before edits, commits, task-status changes, or remote feature publication.
 Include the unavailable runtime/authentication capability, commands and URLs
 checked, and proof that all processes were stopped and the task remained
-untouched. An environmental pause is not a terminal task outcome.
+untouched. An environmental pause is not a terminal task outcome and does not
+decide the fate of the session; the coordinator may defer this task and select
+another independent `READY` task.
 
 If an install, network, filesystem, cleanup, GitHub, MCP, or signing prerequisite is denied despite the parent session's launch permissions, stop and return the exact denial. Do not substitute a dry run or weaker validation.
 

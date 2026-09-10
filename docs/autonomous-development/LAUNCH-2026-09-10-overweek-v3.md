@@ -1,4 +1,4 @@
-# Mercurion Code Red — overweek autonomous full-Series launch v2
+# Mercurion Code Red — overweek autonomous full-Series launch v3
 
 Use this file only after this launch manifest, its session configuration, and
 the dedicated real test-account login policy are integrated into `develop`; the
@@ -10,16 +10,15 @@ every worker establishes its own fresh real-account login.
 The immutable session configuration is:
 
 ```text
-docs/autonomous-development/session.overweek-2026-09-16-v2.yaml
+docs/autonomous-development/session.overweek-2026-09-17-v3.yaml
 ```
 
 The coordinator must refuse a new launch at or after
-`2026-09-16T10:00:00+02:00` (Europe/Rome).
+`2026-09-17T10:00:00+02:00` (Europe/Rome).
 
-This launch carries direct human authorization to resume pending task `0031`
-(`FE-009`). Its previous `SESSION_CAPABILITY_PAUSE` was transient and did not
-create a terminal task outcome. All three hard dependencies (`0026`, `0028`,
-`0030`) are now `DONE`; the authoritative planner reports `0031` as `READY`.
+This launch carries direct human authorization to resume pending task `0041`
+(`FE-019`). Its previous `SESSION_CAPABILITY_PAUSE` was transient and did not
+create a terminal task outcome. Both hard dependencies (`0027` and `0033`) are now `DONE`; the authoritative planner reports `0041` as `READY`.
 
 ## Host preflight (PowerShell 7, repository root)
 
@@ -108,7 +107,7 @@ nel profilo Chrome.
 
 ```text
 Run the bounded autonomous Mercurion development session defined by
-docs/autonomous-development/session.overweek-2026-09-16-v2.yaml.
+docs/autonomous-development/session.overweek-2026-09-17-v3.yaml.
 
 Read the complete active configuration, AGENTS.md,
 docs/autonomous-development/PROTOCOL.md,
@@ -116,7 +115,7 @@ docs/autonomous-development/RUNTIME.md, and
 docs/autonomous-development/CI-BASELINE.md before any repository write.
 
 Perform every configured startup and capability probe. Refuse launch at or
-after 2026-09-16T10:00:00+02:00. Require a clean, synchronized develop and a
+after 2026-09-17T10:00:00+02:00. Require a clean, synchronized develop and a
 successful fresh full GitHub Actions Required gate for its exact SHA. Confirm
 the dedicated persistent non-production browser profile is available for
 browser isolation. For every task requiring the reserved area, read the shared
@@ -136,16 +135,16 @@ hard dependencies, cycles, stale terminal skips, or planner errors.
 The configured `workload.tasks` list is empty, so the complete Series is in
 scope: there is no autonomous allowlist. Select the earliest filename-ordered
 READY task from the authoritative planner output; the expected first READY task
-is 0031. Continue serially through eligible tasks until the soft deadline,
+is 0041. Continue serially through eligible tasks until the soft deadline,
 workload exhaustion, or a documented session-fatal condition.
 
-Direct human authorization in this launch explicitly resumes pending task 0031
-(FE-009) after its earlier transient SESSION_CAPABILITY_PAUSE. Do not treat the
+Direct human authorization in this launch explicitly resumes pending task 0041
+(FE-019) after its earlier transient SESSION_CAPABILITY_PAUSE. Do not treat the
 old pause or historical execution notes as a terminal outcome. Its dependencies
-0026, 0028, and 0030 are DONE. Proceed only after a fresh ordinary login with
+0027 and 0033 are DONE. Proceed only after a fresh ordinary login with
 the shared real test account has established a protected server-accepted
 session; otherwise pause again
-without mutating FE-009 or propagating dependency skips, then continue with the
+without mutating FE-019 or propagating dependency skips, then continue with the
 next independent READY task outside the session-local pause set. Finalize for
 capability exhaustion only when no such task remains.
 
@@ -164,4 +163,3 @@ the complete-Series workload, remaining pending count, CI classification/platfor
 telemetry, and every capability pause. After task_complete, produce no
 additional prose or tool calls.
 ```
-

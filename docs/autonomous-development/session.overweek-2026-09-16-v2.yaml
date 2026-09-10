@@ -122,6 +122,9 @@ capabilities:
       failure_result: SESSION_CAPABILITY_PAUSE
       mutate_task_outcome: false
       propagate_dependency_skips: false
+      continue_session_after_pause: true
+      exclude_paused_task_for_remainder_of_session: true
+      retry_paused_task_in_same_session: false
     state_lease:
       preserve_non_production_authentication: true
       restore_after_explicit_logout_or_storage_test: false
@@ -298,6 +301,7 @@ policy:
   finish_current_task_after_deadline: true
   start_new_tasks_after_deadline: false
   stop_when_workload_exhausted: true
+  stop_when_no_unpaused_ready_tasks: true
   continue_after_terminal_non_done_task: true
   terminal_outcomes_immutable_within_active_session: true
   terminal_task_reenable_authority: new-direct-human-instruction-in-new-or-restarted-session
@@ -412,6 +416,5 @@ on_finish:
   emit_final_summary_and_report_path_before_task_complete: true
   task_complete_is_final_autopilot_action: true
   call_task_complete: true
-
 
 

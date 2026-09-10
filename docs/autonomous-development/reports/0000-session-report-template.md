@@ -5,7 +5,7 @@ series: "<series number/path>"
 started_at: "<RFC 3339 timestamp>"
 soft_deadline: "<RFC 3339 timestamp>"
 finished_at: "<RFC 3339 timestamp>"
-stop_reason: "<deadline|workload-exhausted|session-fatal-blocker>"
+stop_reason: "<deadline|workload-exhausted|capability-exhausted|session-fatal-blocker>"
 initial_develop_sha: "<sha>"
 final_develop_sha: "<sha>"
 final_develop_ci: "<run URL/result or unavailable with reason>"
@@ -40,7 +40,7 @@ This file is a template only. A session report copies this structure to a dated 
 
 | Task | Source | Result | Feature branch / frozen SHA | Base SHA | Task commits | Feature SHA / CI | Merge SHA / CI | Revert SHA / CI | Status SHA / CI |
 |---|---|---|---|---|---|---|---|---|---|
-| `<0001>` | `<SYS-001>` | `<DONE/BLOCKED/REVERTED/SKIPPED_DEPENDENCY>` | `<branch / sha or none>` | `<sha or n/a>` | `<sha(s) or n/a>` | `<sha / Windows+Linux Required gate>` | `<sha / run or n/a>` | `<sha / run or n/a>` | `<sha / run>` |
+| `<0001>` | `<SYS-001>` | `<DONE/BLOCKED/REVERTED/SKIPPED_DEPENDENCY/PENDING (SESSION_CAPABILITY_PAUSE)>` | `<branch / sha or none>` | `<sha or n/a>` | `<sha(s) or n/a>` | `<sha / Windows+Linux Required gate>` | `<sha / run or n/a>` | `<sha / run or n/a>` | `<sha / run>` |
 
 ## Blocked and reverted tasks
 
