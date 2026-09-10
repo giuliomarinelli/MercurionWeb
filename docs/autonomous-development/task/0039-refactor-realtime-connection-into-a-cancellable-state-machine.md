@@ -142,8 +142,8 @@ the realtime owner's bounded transport recovery instead of running its own
 - Deterministic state-machine tests cover public connect, public-to-private,
   bounded exponential retry/exhaustion, retry deadlines, and logout
   cancellation. No real sleeps are used by those tests.
-- The final clean-install and complete CI-parity run is recorded on the final
-  feature SHA below.
+- Final `npm ci`: passed. Final `npm run ci:check`: passed with no
+  task-owned runtimes or watchers active.
 
 ### Browser validation performed
 
@@ -186,4 +186,6 @@ command, rather than silently stopping or retrying forever. The six-attempt,
 
 ### Commits
 
-Updated after the feature commit and final CI-parity run.
+Implementation commit: `d28edc3a` (`refactor realtime connection into
+cancellable state machine`). The metadata update is the final feature commit
+after the clean-install and complete CI-parity run.
