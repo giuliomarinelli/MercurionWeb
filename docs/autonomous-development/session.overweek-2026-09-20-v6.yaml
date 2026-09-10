@@ -251,16 +251,16 @@ workload:
   tasks: []
   pending_only: true
   expected_task_count: 220
-  expected_current_done: 51
+  expected_current_done: 53
   expected_current_blocked: 4
   expected_current_skipped_dependency: 26
-  expected_current_pending: 139
-  expected_first_ready_task: "0041"
-  expected_planner_ready: 18
-  expected_planner_waiting_dependency: 121
+  expected_current_pending: 137
+  expected_first_ready_task: "0043"
+  expected_planner_ready: 17
+  expected_planner_waiting_dependency: 120
   expected_planner_terminal_closure: 26
   expected_new_skipped_dependency: 0
-  expected_autonomous_pending: 139
+  expected_autonomous_pending: 137
   expected_human_led_pending: 0
   dependency_planner:
     command: npm run autonomous:plan
@@ -394,14 +394,12 @@ decisions:
   ng_028: remain-blocked
   task_batching: disabled
   autonomous_execution_scope: complete-series
-  fe_019:
+  fe_019_completed:
     task: "0041"
     source: FE-019
-    prior_session_state: SESSION_CAPABILITY_PAUSE
-    direct_human_reenable_authorization: true
-    authorize_pending_execution_in_this_session: true
-    require_fresh_shared_test_account_login: true
-    protected_session_must_be_accepted_by_server: true
+    outcome: DONE
+    merged_develop_sha: b25210a7e0fba04d98c58bb45ec62fc2526ee3ff
+    select_again: false
 
 telemetry:
   record_ci_classification_counts: true
