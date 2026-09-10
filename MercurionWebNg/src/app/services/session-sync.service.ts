@@ -68,8 +68,6 @@ export class SessionSyncService implements OnDestroy {
 
 
 
-  private unauthorizedRetries = 0
-  private readonly MAX_UNAUTH_RETRIES = 2
 
   private _handshakeTick = signal<number>(0)
   public readonly handshakeTick = this._handshakeTick.asReadonly()
@@ -81,19 +79,12 @@ export class SessionSyncService implements OnDestroy {
   public readonly status = this._status.asReadonly()
 
   private handshakePending = false
-  private restartRequested = false
 
   private lastAnonHS = 0
   private readonly anonCooldown = 5_000
 
-  private readonly MAX_TRIES = 15
-  private readonly INTERVAL_MS = 1_000
-
   /** True dopo il primo ACK positivo in questa pagina. */
   private verifiedOnce = false
-
-  /** Per invalidare cicli di polling concorrenti. */
-  private pollRunId = 0
 
   private readonly publicExact = environment.PUBLIC_EXACT_PATHS
   private readonly publicPrefix = environment.PUBLIC_PREFIXES
@@ -233,10 +224,7 @@ export class SessionSyncService implements OnDestroy {
     // se siamo già privati e marcati loggedIn, evita rumore
     if (!force && this._status() === 'loggedIn' && this.socket.getMode() === 'private') return
 
-    if (this.handshakePending) {
-      if (force) this.restartRequested = true
-      return
-    }
+    if (this.handshakePending) return
 
     const now = Date.now()
     const initials = this.authState.getPersistedInitials() ?? ''
@@ -281,83 +269,33 @@ export class SessionSyncService implements OnDestroy {
       }
 
       // 🔹 Caso PRIVATE: facciamo l’handshake forte via so.pub.session_init
-      const startMode = this.socket.getMode()
-      await this.pollHandshake(startMode, targetIsPrivate)
+      await this.completePrivateHandshake()
     } catch {
       this._status.set(targetIsPrivate ? 'disconnected' : 'error')
     } finally {
       this.handshakePending = false
-      if (this.restartRequested) {
-        this.restartRequested = false
-        queueMicrotask(() => {
-          void this.syncSession(true)
-        })
-      }
     }
   }
 
-  private async pollHandshake(startMode: 'public' | 'private', targetIsPrivate: boolean): Promise<void> {
-    const myRun = ++this.pollRunId
-
-    for (let i = 1; i <= this.MAX_TRIES; i++) {
-      if (myRun !== this.pollRunId) return
-
-      if (!this.socket.isConnected) {
-        this._status.set(targetIsPrivate ? 'disconnected' : 'anonymous')
-        if (!targetIsPrivate) this.lastAnonHS = Date.now()
-        return
-      }
-
-      const ack = await this.socket.emitSessionInit(1200)
-
-      if (ack?.detail === 'websocket session init successful') {
-        this.unauthorizedRetries = 0
-
-        // ACK riuscito: setta iniziali se le abbiamo, e valida cookie
-        const initials = this.authState.getPersistedInitials() ?? 'U'
-        this.authState.resumeFromServer(initials)
-
-        // The server handshake is authoritative; the cookie only selects the
-        // transport mode and is never an authentication predicate.
-        if (this.hasClientLoginCookieTrue()) {
-          this.verifiedOnce = true
-
-          if (startMode === 'public') {
-            await this.socket.ensurePrivate()
-            if (this.socket.getMode() === 'private') {
-              this._status.set('loggedIn')
-            } else {
-              this._status.set(targetIsPrivate ? 'disconnected' : 'anonymous')
-              if (!targetIsPrivate) this.lastAnonHS = Date.now()
-            }
-          } else {
-            // già private: mantieni la connessione
-            this._status.set('loggedIn')
-          }
-        } else {
-          // niente cookie ⇒ consideraci anonimi anche con ACK
-          this._status.set('anonymous')
-          this.lastAnonHS = Date.now()
-          await this.socket.ensurePublic()
-        }
-        return
-      }
-
-      // nessun ACK → continua
-      this._status.set(targetIsPrivate ? 'disconnected' : 'anonymous')
-      if (!targetIsPrivate) this.lastAnonHS = Date.now()
-
-      if (i < this.MAX_TRIES) await this.sleep(this.INTERVAL_MS)
+  private async completePrivateHandshake(): Promise<void> {
+    const ack = await this.socket.emitSessionInit(1200)
+    if (ack?.detail !== 'websocket session init successful') {
+      this._status.set('disconnected')
+      return
     }
 
-    // === 15 tentativi falliti ===
-    // Se eravamo in PRIVATE e nel frattempo il cookie è sparito → degrada a anonimo
-    if (targetIsPrivate && !this.verifiedOnce && !this.hasClientLoginCookieTrue()) {
-      this.authState.logout()
+    const initials = this.authState.getPersistedInitials() ?? 'U'
+    this.authState.resumeFromServer(initials)
+
+    if (!this.hasClientLoginCookieTrue()) {
       this._status.set('anonymous')
       this.lastAnonHS = Date.now()
-      await this.socket.reconnectPublicNow()
+      await this.socket.ensurePublic()
+      return
     }
+
+    this.verifiedOnce = true
+    this._status.set('loggedIn')
   }
 
   /* ---------------- Eventi server ---------------- */
@@ -373,18 +311,10 @@ export class SessionSyncService implements OnDestroy {
       return
     }
 
-    // Troppi tentativi → trattiamo come sessione scaduta
-    if (this.unauthorizedRetries >= this.MAX_UNAUTH_RETRIES) {
-      this.unauthorizedRetries = 0
-      this.handleSessionExpired()
-      return
-    }
-
-    this.unauthorizedRetries++
-
-    // 1) Forza refresh del ws_accessToken
+    // The realtime owner bounds transport retries.  This coordinator requests
+    // one current-session refresh and lets the owner expose degradation.
     await this.socket.ensurePrivate(undefined, { forceRefresh: true })
-    // 2) Rilancia un sync completo (che rilancerà il pollHandshake)
+    // 2) Re-run the single handshake against the current session.
     await this.syncSession(true)
   }
 
@@ -502,11 +432,5 @@ export class SessionSyncService implements OnDestroy {
     this.toastMuteTimer = setTimeout(() => {
       if (this.toastMutedUntil === expiresAt) this.toastMutedUntil = 0
     }, delay)
-  }
-
-
-
-  private sleep(ms: number) {
-    return new Promise<void>(r => setTimeout(r, ms))
   }
 }
