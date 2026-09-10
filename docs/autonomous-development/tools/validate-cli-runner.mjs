@@ -21,10 +21,10 @@ const paths = {
   completedSession: 'docs/autonomous-development/session.48h-2026-09-03.yaml',
   exampleSession: 'docs/autonomous-development/session.example.yaml',
   closedSession: 'docs/autonomous-development/session.until-2026-09-10.yaml',
-  preparedSession: 'docs/autonomous-development/session.overweek-2026-09-17-v3.yaml',
+  preparedSession: 'docs/autonomous-development/session.overweek-2026-09-20-v6.yaml',
   completedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-03-v2.md',
   closedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-06.md',
-  preparedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-10-overweek-v3.md',
+  preparedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-10-overweek-v6.md',
   runtime: 'docs/autonomous-development/RUNTIME.md',
   workflow: '.github/workflows/ci.yml',
   classifier: '.github/scripts/classify-ci.mjs',
@@ -588,8 +588,8 @@ for (const command of ['/model', '/permissions show', '/mcp list', '/keep-alive 
 }
 
 for (const [pattern, message] of [
-  [/docs\/autonomous-development\/session\.overweek-2026-09-17-v3\.yaml/, 'prepared launch must reference its dated session configuration'],
-  [/2026-09-17T10:00:00\+02:00/, 'prepared launch must retain the exact soft deadline'],
+  [/docs\/autonomous-development\/session\.overweek-2026-09-20-v6\.yaml/, 'prepared launch must reference its dated session configuration'],
+  [/2026-09-20T10:00:00\+02:00/, 'prepared launch must retain the exact soft deadline'],
   [/test-account login policy are integrated into `develop`/i, 'prepared launch must require the shared real test-account policy'],
   [/no\s+profile-persistence or pre-authenticated-state probe is a launch prerequisite/i, 'prepared launch must not depend on persisted profile authentication'],
   [/workload\.tasks` list is empty[\s\S]{0,120}complete Series is in\s*scope/i, 'prepared launch must select the complete Series'],
@@ -608,13 +608,14 @@ for (const staleSessionReference of [
   'docs/autonomous-development/session.overnight-2026-09-08.yaml',
   'docs/autonomous-development/session.overweek-2026-09-16.yaml',
   'docs/autonomous-development/session.overweek-2026-09-16-v2.yaml',
+  'docs/autonomous-development/session.overweek-2026-09-17-v3.yaml',
 ]) {
   if (preparedLaunch.includes(staleSessionReference)) {
     fail(paths.preparedLaunch, `contains stale session reference ${staleSessionReference}`);
   }
 }
 const preparedSessionReference =
-  'docs/autonomous-development/session.overweek-2026-09-17-v3.yaml';
+  'docs/autonomous-development/session.overweek-2026-09-20-v6.yaml';
 if (preparedLaunch.split(preparedSessionReference).length - 1 !== 2) {
   fail(paths.preparedLaunch, 'must reference the active session exactly twice');
 }
@@ -708,9 +709,9 @@ if (closedDeadlineMatches?.length !== 1) {
   fail(paths.closedSession, `deadline must remain exactly ${closedDeadline}`);
 }
 
-const preparedDeadline = '2026-09-17T10:00:00+02:00';
+const preparedDeadline = '2026-09-20T10:00:00+02:00';
 const preparedDeadlineMatches = preparedSession.match(
-  /^\s*end:\s*"2026-09-17T10:00:00\+02:00"/gm,
+  /^\s*end:\s*"2026-09-20T10:00:00\+02:00"/gm,
 );
 if (preparedDeadlineMatches?.length !== 1) {
   fail(paths.preparedSession, `deadline must remain exactly ${preparedDeadline}`);
@@ -764,7 +765,7 @@ for (const [pattern, message] of [
 
 for (const [pattern, message] of [
   [/browser_and_allowlist_hardening_pull_request:\s*31/, 'prepared session must record PR #31 provenance'],
-  [/name:\s*mercurion-code-red-0001-overweek-full-series-2026-09-10-v3/, 'prepared session must use a fresh session identity'],
+  [/name:\s*mercurion-code-red-0001-overweek-full-series-2026-09-20-v6/, 'prepared session must use a fresh session identity'],
   [/expected_task_count:\s*220/, 'prepared workload must contain 220 tasks'],
   [/expected_current_done:\s*51/, 'prepared workload must record 51 DONE tasks'],
   [/expected_current_blocked:\s*4/, 'prepared workload must record four retained blockers'],
