@@ -7,8 +7,8 @@ soft_deadline: "2026-09-20T10:00:00+02:00"
 finished_at: "2026-09-10T23:49:33.3309004+02:00"
 stop_reason: "session-fatal-blocker"
 initial_develop_sha: "dad83ddeb35d5da0f493ea6b4e0d52b4a30e0177"
-final_develop_sha: "pending report commit"
-final_develop_ci: "pending exact-SHA report workflow"
+final_develop_sha: "8e27cf5600eaae026e42b52ad92b27e2adb1129e"
+final_develop_ci: "https://github.com/giuliomarinelli/MercurionWeb/actions/runs/34534534051 (metadata; Required gate success)"
 ---
 
 # Autonomous Development Session Report
@@ -24,7 +24,10 @@ final_develop_ci: "pending exact-SHA report workflow"
 - Skipped because of dependency: 0 new; 26 existing
 - Still pending: 138
 - Stop reason: session-fatal baseline invariant failure
-- Final `develop`: clean and synchronized at `dad83ddeb35d5da0f493ea6b4e0d52b4a30e0177` before this metadata report
+- Final `develop`: clean and synchronized at
+  `8e27cf5600eaae026e42b52ad92b27e2adb1129e`; exact report CI
+  [run 34534534051](https://github.com/giuliomarinelli/MercurionWeb/actions/runs/34534534051)
+  used the allowlisted `metadata` path and its `Required gate` succeeded
 
 The authoritative planner returned version 1 for all 220 recipes:
 `DONE=52`, `BLOCKED=4`, `REVERTED=0`, `SKIPPED_DEPENDENCY=26`,
@@ -110,15 +113,18 @@ This is a session-level baseline/upstream incident, not a task outcome.
 - Soft deadline reached: not reached; session stopped early at the baseline
   invariant failure.
 - Active task completed after deadline: n/a
-- Report commit SHA: pending
-- Report commit exact-SHA CI: pending
+- Report commit SHA: `8e27cf5600eaae026e42b52ad92b27e2adb1129e`
+- Report commit exact-SHA CI:
+  [run 34534534051](https://github.com/giuliomarinelli/MercurionWeb/actions/runs/34534534051)
+  succeeded with `Required gate`
 
 ## CI and execution efficiency
 
-- CI classifications: `duplicate=0`, `metadata=0` at report authoring,
+- CI classifications: `duplicate=0`, `metadata=1` for the report commit,
   `full=1` for the exact session-start baseline
-- Platform jobs: Windows started 1 and avoided 0; Linux started 1 and
-  avoided 0 for the baseline. No task feature or merge jobs were started.
+- Platform jobs: the baseline started one Windows and one Linux quality job;
+  the report's metadata path avoided both quality jobs and ran one Ubuntu
+  metadata validator. No task feature or merge jobs were started.
 - CI wait time: approximately 5 minutes for the session-start full run;
   task and report lifecycle metrics were otherwise unavailable at authoring.
 - Task timing: one worker implementation invocation; exact wall-clock
