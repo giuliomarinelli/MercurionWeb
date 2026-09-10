@@ -78,7 +78,7 @@ For each selected `READY` task, serially:
    unchanged branch whose head still equals the already-green `develop` base;
    never overwrite or reuse an existing local or remote branch automatically;
 3. prove that every session-owned Angular, Nest, Tox21, test watcher, and other
-   workspace-consuming process is stopped, then call the `task` tool exactly once with `agent_type: development-task-worker` and `mode: sync`,
+   workspace-consuming process is stopped, then call the `task` tool once for the primary implementation with `agent_type: development-task-worker` and `mode: sync`,
    supplying the exact task path, Source, feature branch, base SHA,
    session-config path, and a reminder that it must confirm exact base-SHA
    Actions evidence and use focused local validation before starting any
@@ -101,8 +101,13 @@ For each selected `READY` task, serially:
    report the baseline/upstream incident;
 7. if the worker reports `READY_FOR_INTEGRATION`, wait for the permanent
    GitHub Actions `Required gate` associated with the exact final feature SHA;
-   if it fails or is unverifiable, apply the pre-merge `BLOCKED` lifecycle and
-   do not merge;
+   if it fails with an actionable repository-controlled diagnostic, keep the
+   task provisional `DONE`/`CI_PENDING` and the feature branch unfrozen, then
+   invoke a fresh synchronous `development-task-worker` with `ci_repair: true`,
+   the failed exact SHA/run/job diagnostics, and the same task identity. Verify
+   its narrow correction, push, and wait for the new exact feature SHA. Repeat
+   up to `feature_ci_repair.max_attempts`; only then apply `BLOCKED`. An
+   uncorrelated/unverifiable result may fail closed without speculative edits;
 8. only after exact feature-SHA CI succeeds, perform the no-fast-forward merge
    with `--no-gpg-sign`, push `develop`, and wait for the GitHub Actions
    result associated with the exact merge SHA;
@@ -115,7 +120,14 @@ merge/revert and status lifecycle, then finalize only when the browser profile
 itself is corrupted or inaccessible. An anonymous profile after a task-owned
 logout is valid because the next worker performs a fresh ordinary login.
 
-Never run two implementation workers concurrently, use background mode, or invoke a second worker before the synchronous result returns. A fresh worker invocation is the task-context boundary; do not ask one worker to execute multiple recipes.
+Never run two implementation workers concurrently, explicitly request
+background mode, or invoke a second worker before the assigned worker returns.
+The coordinator must request `mode: sync`. If the CLI host nevertheless
+auto-detaches that long-running synchronous call and returns an agent handle,
+treat that handle as the still-active synchronous lease: wait/read only that
+same agent until its terminal result, never dispatch another worker, and record
+the host auto-detach in the report. A fresh worker invocation is the
+task-context boundary; do not ask one worker to execute multiple recipes.
 
 Never start Angular, Nest, Tox21, or another workspace-consuming runtime on
 behalf of a task before invoking its worker. Runtime is task-scoped rather than

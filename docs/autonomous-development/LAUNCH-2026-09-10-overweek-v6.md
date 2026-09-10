@@ -120,11 +120,14 @@ Perform every configured startup and capability probe. Refuse launch at or
 after 2026-09-20T10:00:00+02:00. Require a clean, synchronized develop and a
 successful fresh full GitHub Actions Required gate for its exact SHA. Confirm
 the dedicated persistent non-production browser profile is available for
-browser isolation. Treat any HTTP response from http://localhost:8888 as proof
-that nginx itself is reachable: its default 502 means a stopped/unreachable
-task-scoped upstream, while ECONNREFUSED on port 8888 means the edge is down.
-Start Tox21, Nest and Angular in that order and record all three long-running
-execution sessions before the first HTTP request. Never use `require.resolve`,
+browser isolation without opening an application URL. Before runtime startup,
+do not issue any HTTP request or edge-liveness probe, including requests made
+with Invoke-WebRequest, curl, fetch, or Chrome. Start Tox21, Nest and Angular
+in that order and record live handles for all three long-running execution
+sessions before the first HTTP request. Only after that barrier, treat any HTTP
+response from http://localhost:8888 as proof that nginx itself is reachable:
+its default 502 means a started but not-yet-ready task-scoped upstream, while
+ECONNREFUSED on port 8888 means the edge is down. Never use `require.resolve`,
 dynamic imports or package-manifest resolution as a dependency-readiness gate.
 A 502/503 after startup is retryable for the full five-minute build window
 while the processes remain alive; it is not a capability pause. Require two
@@ -163,6 +166,11 @@ Execute exactly one recipe per fresh synchronous development-task-worker. Do
 not bundle tasks. Create each feature branch locally, publish it only after a
 task-specific commit exists, require exact feature-SHA CI before a no-ff
 no-GPG-sign merge, then require exact merge-SHA CI before continuing.
+When exact feature-SHA CI reports an actionable repository-controlled failure,
+keep the task in CI_PENDING and invoke a fresh synchronous CI-repair worker for
+the same recipe and branch. Supply the exact failed SHA/run/job evidence,
+commit and push the narrow correction, and retry exact-SHA CI up to three
+times. Do not mark BLOCKED on the first actionable CI failure.
 
 Do not mutate pull requests 25, 27, 28, 29, or 31. Do not resume, advance,
 rebase, merge, reset, or delete feature/SYS-020, feature/UI-018,

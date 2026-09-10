@@ -8,6 +8,7 @@ import {
 } from '@angular/router'
 import { AuthStateStore } from '../services/auth-state.store'
 import { AuthRedirectService } from '../services/auth-redirect.service'
+import { routePolicyOf } from '../route-policy'
 
 @Injectable({ providedIn: 'root' })
 export class AuthGuard implements CanActivate {
@@ -16,6 +17,10 @@ export class AuthGuard implements CanActivate {
   private readonly redirects = inject(AuthRedirectService)
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean | UrlTree {
+    if (routePolicyOf(route).access !== 'authenticated') {
+      return true
+    }
+
     if (this.authState.authenticated()) {
       return true
     }

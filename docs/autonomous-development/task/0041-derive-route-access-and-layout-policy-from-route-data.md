@@ -1,6 +1,6 @@
 # 0041 - Derive route access and layout policy from route data
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -96,40 +96,99 @@ Keep the metadata small and semantic. Do not build the full route manifest here;
 ## Execution notes
 
 ### Feature branch
-No task branch or worker was created because hard prerequisites
-`0027-unify-authenticated-session-selector.md` (`FE-005`) and
-`0033-centralize-safe-post-auth-redirect-state.md` (`FE-011`) are both
-`SKIPPED_DEPENDENCY`.
+`feature/FE-019`, based on `2bd843a28e237e214764c379c9b9131b25a33a64`.
+The branch was clean and exactly at the supplied base before implementation.
 
 ### Preflight
-Not applicable; the task was skipped before implementation.
-
-### Preflight remediation
-_None._
+- Exact base SHA GitHub Actions run `34536865860` was successful, including
+  Windows and Ubuntu quality jobs and the stable `Required gate`.
+- No task-owned Angular, Nest, Tox21, or test-watcher process was active before
+  the runtime probe.
+- The canonical runtime was started in the required order in separate sessions:
+  `../MercurionTox21/.venv/Scripts/python.exe -m main` with `PYTHONUTF8=1`,
+  `npm run start:dev --workspace mercurion_web_node` with
+  `APP_ENV=development LOCAL_DUMMY_AUTH=false`, then
+  `MercurionWebNg: npm run start:dev`.
+- Both `http://localhost:8888/` and `http://localhost:8888/health` returned
+  HTTP 200 in two consecutive complete readiness rounds after the initial
+  HTTP 502 upstream-wait period. Tox21 connected through NATS, Nest reported
+  zero compile errors and listened on port 8099, and Angular completed its
+  development build on port 3498.
+- The dedicated persistent Chrome profile opened `/welcome`, then performed a
+  fresh ordinary login through `/login` using the local development test
+  account. The protected dashboard rendered with the server-backed user state.
+  No dummy-auth route, production origin, isolated profile, or credential value
+  was used or recorded. All probe processes were stopped before editing.
 
 ### Summary
-Skipped at the normal filename-order selection point. Both direct
-prerequisites are terminal `SKIPPED_DEPENDENCY`; each transitively depends on
-blocked `0026-create-canonical-angular-auth-state-store.md` (`FE-004`).
+Added a typed `RoutePolicy` contract and `defineRoute` helper. Every current
+route, including redirects, wildcard, parameterized molecule, recovery,
+activation, OAuth, status, and maintenance routes now declares access and shell
+metadata. `AppComponent`, `AuthGuard`, and `SessionSyncService` resolve the
+matched route metadata; URL prefix/exact-set classification was removed.
+Environment route policy arrays and their configuration tests were removed.
 
 ### Task-specific validation performed
-No implementation or validation was performed.
-
-### Full pre-merge CI-parity validation
-Not applicable; no feature branch was created.
+- `npm run typecheck --workspace mercurion_web_ng` — passed.
+- Direct focused Angular Karma command using `ng test --watch=false` with
+  `route-policy.spec.ts`, `local-dummy-auth.service.spec.ts`, and
+  `environment.config.spec.ts` — 11 tests passed.
+- Focused `app.component.spec.ts` and `auth.guard.spec.ts` — 2 tests passed.
+- `npm run lint --workspace mercurion_web_ng` — passed (pre-existing warnings
+  only).
+- `npm run build --workspace mercurion_web_ng` — passed; only existing bundle
+  budget/CommonJS warnings were reported.
+- `git diff --check` — passed; source search found no remaining
+  `PUBLIC_EXACT_PATHS`, `PUBLIC_PREFIXES`, or `LOGGED_OUT_ONLY_PATHS`
+  consumers.
 
 ### Browser validation performed
-Not applicable; the task was skipped before implementation.
+After restarting the canonical runtime in Tox21/Nest/Angular order and again
+obtaining two consecutive HTTP 200 readiness rounds through nginx:
+- Anonymous `/welcome` rendered the landing shell without the protected header,
+  sidebar, or workspace shell.
+- Anonymous `/settings` followed the existing safe redirect flow to
+  `/login?redirect_to=%2Fsettings`.
+- A fresh ordinary login through `/login` rendered the protected dashboard and
+  server-backed user identity.
+- Authenticated `/molecules/detail/chembl-123` stayed on the parameterized
+  route and rendered the standard authenticated shell.
+- `/403-forbidden` rendered only the minimal status page; an unknown URL
+  redirected to `/404-not-found`, which also rendered the minimal status page.
+- `/privacy` rendered the declared standard public shell.
+All task-owned runtime processes, including the temporary local credential
+bridge used only to transfer the ignored local account into the browser, were
+stopped after evidence capture.
+
+### Full pre-merge CI-parity validation
+The unchanged base evidence was green as recorded above. Local sessions did not
+run `npm ci` or `npm run ci:check`. Exact feature-SHA run
+`34539174691` for `3f8270f5700928fdc137e8779f1f49bcb7d1b0a8` failed its
+Windows `Validate autonomous control plane` step before task quality gates:
+`launch must forbid HTTP before starting Tox21, Nest and Angular`. Ubuntu
+quality passed, but the stable `Required gate` failed. A subsequent final-SHA
+run `34539594988` reproduced the control-plane failure on both platforms. The
+cause was a CRLF/LF-sensitive literal comparison in the repository validator,
+introduced by the runtime-startup hardening commit; it was not a task
+implementation blocker. The validator now normalizes source text before
+comparison, and actionable feature-CI failures now enter a bounded same-branch
+`CI_REPAIR_PENDING` loop instead of immediately terminalizing the task.
 
 ### Commits
-Only this task metadata was updated on `develop`.
+- `a89543c6635c656b7ee276293ef11ed1d7923ac6` — `feat(angular): derive
+  access and shell policy from routes`
+- This task-status and execution-notes update is the follow-up feature-branch
+  commit.
 
 ### Merge / CI
-No feature merge; skip metadata CI is required before continuing.
+No merge or post-merge action has yet been performed. The feature branch is
+active and unfrozen pending a new exact feature-SHA CI run after the
+control-plane correction.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-No implementation blocker. Re-enable only after the hard dependency chain is
-deliberately resolved in a new authorized session.
+_None._ The task implementation passed all focused local and browser
+validation; the repository-controlled CI diagnostic is being repaired on this
+same feature branch.

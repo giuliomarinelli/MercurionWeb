@@ -73,7 +73,7 @@ function read(relativePath) {
     fail(relativePath, 'missing required file');
     return '';
   }
-  return fs.readFileSync(absolutePath, 'utf8');
+  return fs.readFileSync(absolutePath, 'utf8').replace(/\r\n?/g, '\n');
 }
 
 function requireMatch(target, content, pattern, message) {
@@ -276,14 +276,32 @@ requireMatch(
 requireMatch(
   paths.agents.coordinator,
   coordinator.content,
-  /`task` tool exactly once[\s\S]*`agent_type: development-task-worker`[\s\S]*`mode: sync`/,
-  'coordinator must require one synchronous Development Task Worker task call',
+  /call the `task` tool once for the primary implementation[\s\S]*`agent_type: development-task-worker`[\s\S]*`mode: sync`/,
+  'coordinator must require one synchronous primary Development Task Worker call',
+);
+requireMatch(
+  paths.agents.coordinator,
+  coordinator.content,
+  /actionable repository-controlled diagnostic[\s\S]*`ci_repair: true`[\s\S]*`feature_ci_repair\.max_attempts`[\s\S]*only then apply `BLOCKED`/,
+  'coordinator must repair actionable feature CI failures before BLOCKED',
+);
+requireMatch(
+  paths.agents.worker,
+  worker.content,
+  /Feature-CI repair mode[\s\S]*`ci_repair: true`[\s\S]*`CI_REPAIR_READY`[\s\S]*Do not mark `BLOCKED` merely because/,
+  'worker must support bounded same-task feature CI repair',
 );
 requireMatch(
   paths.agents.coordinator,
   coordinator.content,
   /Never run two implementation workers concurrently/,
   'coordinator must prohibit concurrent workers',
+);
+requireMatch(
+  paths.agents.coordinator,
+  coordinator.content,
+  /auto-detaches[\s\S]*still-active synchronous lease[\s\S]*never dispatch another worker/,
+  'coordinator must serialize a host-auto-detached synchronous worker',
 );
 requireMatch(
   paths.agents.coordinator,
@@ -647,12 +665,53 @@ for (const [pattern, message] of [
 }
 
 const runtimeStartupSection = runtime.slice(runtime.indexOf('## Startup and readiness'));
+const runtimeNotStartedIndex = runtimeStartupSection.indexOf(
+  'Before step 1, the worker is in `RUNTIME_NOT_STARTED`',
+);
 const toxStartIndex = runtimeStartupSection.indexOf('1. start the Tox21 process');
 const firstHttpProbeIndex = runtimeStartupSection.indexOf(
-  '6. only after all three starts, probe `http://localhost:8888`',
+  '6. only after all three starts have returned live execution-session handles',
 );
-if (toxStartIndex < 0 || firstHttpProbeIndex < 0 || toxStartIndex >= firstHttpProbeIndex) {
+if (
+  runtimeNotStartedIndex < 0 ||
+  toxStartIndex < 0 ||
+  firstHttpProbeIndex < 0 ||
+  runtimeNotStartedIndex >= toxStartIndex ||
+  toxStartIndex >= firstHttpProbeIndex
+) {
   fail(paths.runtime, 'runtime must start Tox21, Nest and Angular before the first HTTP probe');
+}
+requireMatch(
+  paths.runtime,
+  runtimeStartupSection,
+  /RUNTIME_NOT_STARTED[\s\S]*every[\s\S]*network request is forbidden[\s\S]*RUNTIME_STARTED[\s\S]*Only that state permits the first[\s\S]*HTTP request/,
+  'runtime must enforce the no-network startup barrier',
+);
+requireMatch(
+  paths.agents.worker,
+  worker.content,
+  /strict state machine[\s\S]*do not issue any HTTP request of any kind[\s\S]*first three runtime commands MUST be, in order: start Tox21, start Nest, and start Angular[\s\S]*only then begin nginx readiness requests/,
+  'worker must forbid every HTTP probe before all runtime starts',
+);
+
+const preparedLaunchPrompt = preparedLaunch.slice(preparedLaunch.indexOf('## Launch prompt'));
+const launchNoHttpIndex = preparedLaunchPrompt.indexOf(
+  'Before runtime startup,\ndo not issue any HTTP request or edge-liveness probe',
+);
+const launchStartIndex = preparedLaunchPrompt.indexOf(
+  'Start Tox21, Nest and Angular\nin that order',
+);
+const launchFirstEdgeClassificationIndex = preparedLaunchPrompt.indexOf(
+  'Only after that barrier, treat any HTTP\nresponse from http://localhost:8888',
+);
+if (
+  launchNoHttpIndex < 0 ||
+  launchStartIndex < 0 ||
+  launchFirstEdgeClassificationIndex < 0 ||
+  launchNoHttpIndex >= launchStartIndex ||
+  launchStartIndex >= launchFirstEdgeClassificationIndex
+) {
+  fail(paths.preparedLaunch, 'launch must forbid HTTP before starting Tox21, Nest and Angular');
 }
 
 for (const [target, content] of [

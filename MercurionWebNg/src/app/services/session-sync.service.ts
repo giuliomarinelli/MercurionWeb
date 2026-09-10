@@ -15,8 +15,8 @@ import { AuthStateStore } from './auth-state.store'
 import { AuthSessionPersistenceService } from './auth-session-persistence.service'
 import { AuthRedirectService } from './auth-redirect.service'
 import { ToastService } from './toast.service'
-import { environment } from '../../environments/environment'
 import { RealtimeSocketService } from './socket.IO/realtime-socket.service'
+import { activeRoutePolicy } from '../route-policy'
 import {
   ApplicationErrorCode,
   hasApplicationErrorCode
@@ -89,9 +89,6 @@ export class SessionSyncService implements OnDestroy {
 
   /** True dopo il primo ACK positivo in questa pagina. */
   private verifiedOnce = false
-
-  private readonly publicExact = environment.PUBLIC_EXACT_PATHS
-  private readonly publicPrefix = environment.PUBLIC_PREFIXES
 
   private toastMuteTimer!: ReturnType<typeof setTimeout>
   private toastMutedUntil = 0
@@ -411,15 +408,8 @@ export class SessionSyncService implements OnDestroy {
   }
 
   private isPublicRoute(url: string): boolean {
-    const clean = url.split(/[?#]/)[0]
-
-    // ✅ login family SEMPRE public (incl. /login/mfa/...)
-    if (clean === '/login' || clean.startsWith('/login/')) return true
-
-    return (
-      this.publicExact.includes(clean) ||
-      this.publicPrefix.some(p => clean.startsWith(p))
-    )
+    void url
+    return activeRoutePolicy(this.router.routerState.snapshot.root).access !== 'authenticated'
   }
 
   private triggerToast(message: string, level: ToastVariant) {

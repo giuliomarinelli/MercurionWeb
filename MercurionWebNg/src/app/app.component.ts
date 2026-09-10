@@ -29,13 +29,13 @@ import { DesignService } from './services/design.service'
 import { SidenavComponent } from './components/common/sidenav/sidenav.component'
 import { SessionSyncService } from './services/session-sync.service'
 import { ActionOverlayContextService } from './services/context/action-context/action-overlay-context.service'
-import { environment } from '../environments/environment'
 import { ActionOverlayComponent } from './components/action-components/action-overlay/action-overlay.component'
 import { AppContextService } from './services/context/app-context.service'
 import { AccountService } from './services/account.service'
 import { DOCUMENT, isPlatformBrowser } from '@angular/common'
 import { ToastComponent } from './components/common/toast/toast.component'
 import { AuthRedirectService } from './services/auth-redirect.service'
+import { activeRoutePolicy, DEFAULT_ROUTE_POLICY, RoutePolicy } from './route-policy'
 
 @Component({
   selector: 'm-root',
@@ -57,7 +57,7 @@ import { AuthRedirectService } from './services/auth-redirect.service'
         <span>Safari mobile può non rispettare gli standard web: se riscontri problemi, prova un browser differente. Allineeremo il supporto a Safari appena possibile.</span>
       </div>
     }
-    @if (is_not_404_route() && is_not_403_route() && is_not_welcome_route()) {
+    @if (routePolicy().shell === 'standard') {
       <div class="flex flex-col h-screen">
         <m-header class="sticky top-0 z-30"
           [triggerOpenOffCanvas]="_triggerOpenOffCanvas()"
@@ -124,7 +124,7 @@ import { AuthRedirectService } from './services/auth-redirect.service'
       }
     } @else {
       <div class="min-h-screen">
-        @if (!is_not_welcome_route()) {
+        @if (routePolicy().shell === 'welcome') {
           <m-header class="sticky top-0 z-30" />
         }
         <router-outlet />
@@ -155,23 +155,12 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly isBrowser = isPlatformBrowser(this.platformId)
 
   isDarkTheme: Signal<boolean> = computed(() => this.themeManagerService.theme() === 'dark')
-  is_not_404_route = signal<boolean>(true)
-  is_not_403_route = signal<boolean>(true)
-  is_not_welcome_route = signal<boolean>(true)
+  readonly routePolicy = signal<RoutePolicy>(DEFAULT_ROUTE_POLICY)
 
   private routeSub?: Subscription
   private emailSub?: Subscription
   private currentPath = signal<string>('')
   private firstNavigationDone = signal<boolean>(false)
-
-  private publicExact = new Set(environment.PUBLIC_EXACT_PATHS)
-  private publicPrefixes = environment.PUBLIC_PREFIXES
-  private loggedOutOnlyExact = (() => {
-    const set = new Set(environment.LOGGED_OUT_ONLY_PATHS ?? environment.PUBLIC_EXACT_PATHS)
-    set.delete('/404-not-found')
-    set.delete('/403-forbidden')
-    return set
-  })()
 
   _triggerOpenOffCanvas = signal<boolean>(false)
 
@@ -220,8 +209,6 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       return raw
     }
 
-    const isLoginFamily = (path: string): boolean => path === '/login' || path.startsWith('/login/')
-
     this.currentPath.set(normalize(this.router.url))
     this.pathService.setPath(this.currentPath())
 
@@ -239,9 +226,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
           this.appContext.smoothToTop(this.scrollHostRef, 400)
         }
 
-        this.is_not_404_route.set(url !== '/404-not-found')
-        this.is_not_403_route.set(url !== '/403-forbidden')
-        this.is_not_welcome_route.set(url !== '/welcome')
+        this.routePolicy.set(activeRoutePolicy(this.router.routerState.snapshot.root))
         this.currentPath.set(url)
         this.pathService.setPath(url)
         if (!this.firstNavigationDone()) this.firstNavigationDone.set(true)
@@ -267,11 +252,9 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         else return
       }
 
-      const isLoginFamilyPath = isLoginFamily(url)
-      const isPublic =
-        isLoginFamilyPath || this.publicExact.has(url) || this.publicPrefixes.some(p => url.startsWith(p))
-
-      const isLoggedOutOnly = this.loggedOutOnlyExact.has(url)
+      const policy = this.routePolicy()
+      const isPublic = policy.access !== 'authenticated'
+      const isLoggedOutOnly = policy.access === 'logged-out-only'
 
       const safeNavigate = (target: string) => {
         if (!target) return
@@ -339,7 +322,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.isBrowser) return
 
     const docEl = this.doc?.documentElement as HTMLElement | null
-    const shouldUseScrollHost = this.is_not_welcome_route() && !!this.scrollHostRef
+    const shouldUseScrollHost = this.routePolicy().shell === 'standard' && !!this.scrollHostRef
 
     if (shouldUseScrollHost) {
       this.appContext.setGlobalScrollRootRef(this.scrollHostRef!)

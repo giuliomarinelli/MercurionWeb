@@ -5,6 +5,8 @@ import { environment as developmentEnvironment } from '../../environments/enviro
 import { environment as productionEnvironment } from '../../environments/environment'
 import { environment as stagingEnvironment } from '../../environments/environment.staging'
 import { canUseLocalDummyAuth } from './local-dummy-auth.service'
+import { routes } from '../app.routes'
+import { routePolicyOf } from '../route-policy'
 
 describe('local dummy authentication boundary', () => {
   it('is available only for the development build at the canonical nginx origin', () => {
@@ -27,9 +29,9 @@ describe('local dummy authentication boundary', () => {
     )).toBeFalse()
   })
 
-  it('exposes the activation route only in the development public routes', () => {
-    expect(developmentEnvironment.PUBLIC_EXACT_PATHS).toContain('/__local/dummy-auth')
-    expect(stagingEnvironment.PUBLIC_EXACT_PATHS).not.toContain('/__local/dummy-auth')
-    expect(productionEnvironment.PUBLIC_EXACT_PATHS).not.toContain('/__local/dummy-auth')
+  it('keeps the local dummy route public while the service enforces its environment boundary', () => {
+    const route = routes.find(candidate => candidate.path === '__local/dummy-auth')
+    expect(route).toBeDefined()
+    expect(routePolicyOf(route!)).toEqual({ access: 'public', shell: 'standard' })
   })
 })
