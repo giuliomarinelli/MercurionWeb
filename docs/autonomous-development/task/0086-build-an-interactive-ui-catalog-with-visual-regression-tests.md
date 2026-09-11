@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -110,6 +110,10 @@ Mark `BLOCKED` if a primitive's expected public state cannot be determined from 
 Favor primitive-level stories with deterministic fixture data. A small number of composition stories is useful, but avoid reproducing entire feature pages and backend state inside Storybook.
 
 ## Execution notes
+
+> Current status (2026-09-11): PENDING. The planner identified the prior
+> dependency skip as stale after direct owner re-enablement of its prerequisite
+> chain; historical skip evidence below is retained only for traceability.
 
 ### Feature branch
 _Not started._

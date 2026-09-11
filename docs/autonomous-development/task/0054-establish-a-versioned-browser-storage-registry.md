@@ -1,7 +1,7 @@
 # 0054 - Establish a versioned browser storage registry
 
 - [ ] DONE
-- [x] BLOCKED
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -95,8 +95,14 @@ The registry is metadata/infrastructure; domain services still expose semantic o
 
 ## Execution notes
 
+> Current status (2026-09-11): PENDING by direct owner instruction because this
+> activity was not completed. Historical attempt/skip evidence remains below
+> for traceability and is not a terminal outcome. The prior partial work is
+> preserved on `archive/FE-032-attempt-2026-09-11`.
+
 ### Feature branch
-`feature/FE-032`, frozen at `037321418c25ec92892b2248f2b0fa674ea726f0`.
+Historical attempt archived as `archive/FE-032-attempt-2026-09-11` at
+`037321418c25ec92892b2248f2b0fa674ea726f0`.
 
 ### Preflight
 Passed. The required Tox21, Nest, and Angular runtime startup order, two
@@ -128,11 +134,11 @@ Theme persistence, safe malformed-value fallback, and logout cleanup were
 verified through `http://localhost:8888`; no console crash was observed.
 
 ### Commits
-Implementation and repair commits are preserved on the frozen feature branch;
+Implementation and repair commits are preserved on the archived attempt;
 this commit records the blocked outcome on `develop`.
 
 ### Merge / CI
-No feature merge. The feature branch remains preserved and frozen.
+No feature merge. The historical attempt remains preserved in the archive.
 
 ### Rollback
 _Not applicable._

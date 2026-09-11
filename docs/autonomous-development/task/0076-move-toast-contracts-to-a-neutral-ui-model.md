@@ -1,7 +1,7 @@
 # 0076 - Move toast contracts to a neutral UI model
 
 - [ ] DONE
-- [x] BLOCKED
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -90,9 +90,15 @@ A path such as `src/app/ui/toast/toast.model.ts` or the repository's canonical n
 
 ## Execution notes
 
+> Current status (2026-09-11): PENDING by direct owner instruction because this
+> activity was not completed. Historical attempt/skip evidence remains below
+> for traceability and is not a terminal outcome. The prior partial work is
+> preserved on `archive/UI-018-attempt-2026-09-11`.
+
 ### Feature branch
-`feature/UI-018`, based on `353ec33621b22763546633fa822cb9a858b9d305`,
-is preserved and frozen at `36ccc5d09cb2258b151c6cd6fee82807417f6155`.
+Historical attempt `archive/UI-018-attempt-2026-09-11`, based on
+`353ec33621b22763546633fa822cb9a858b9d305`, is preserved at
+`36ccc5d09cb2258b151c6cd6fee82807417f6155`.
 
 ### Preflight
 Passed unchanged: root `npm ci` followed by `npm run ci:check`.
@@ -101,19 +107,19 @@ Passed unchanged: root `npm ci` followed by `npm run ci:check`.
 _None._
 
 ### Summary
-The preserved feature branch moves toast contracts to a neutral typed model,
+The preserved historical attempt moves toast contracts to a neutral typed model,
 removes the service-to-renderer dependency, consolidates mutable toast signals
 into immutable discriminated state, adds deterministic timer cleanup, and adds
 focused lifecycle/import-boundary coverage. It cannot be integrated because
 the mandatory browser validation prerequisite could not be made ready.
 
 ### Task-specific validation performed
-On the preserved feature branch: focused service/component Karma tests (13
+On the preserved historical attempt: focused service/component Karma tests (13
 passing), `npm run ci:angular:toast-imports`, Angular typecheck, and focused
 ESLint completed successfully.
 
 ### Full pre-merge CI-parity validation
-On the preserved feature branch after its task-owned runtimes stopped: root
+On the preserved historical attempt after its task-owned runtimes stopped: root
 `npm ci` followed by `npm run ci:check` passed.
 
 ### Browser validation performed
@@ -130,7 +136,7 @@ Preserved feature commits: `34a10cc87eb5fc7e96b162663765ee48dfc63d0b`
 (`docs(UI-018): record blocked task evidence`).
 
 ### Merge / CI
-No merge attempted. The feature branch is frozen at its final pushed SHA.
+No merge attempted. The historical attempt is archived at its final pushed SHA.
 
 ### Rollback
 _Not applicable._

@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -100,6 +100,10 @@ Mark `BLOCKED` if two duplicate utilities actually encode different product beha
 Do not preserve a duplicate selector merely because the cascade currently makes it work. Collapse intentional declarations into one readable rule or one explicitly documented layered override.
 
 ## Execution notes
+
+> Current status (2026-09-11): PENDING. The planner identified the prior
+> dependency skip as stale after direct owner re-enablement of its prerequisite
+> chain; historical skip evidence below is retained only for traceability.
 
 ### Feature branch
 _Not started._

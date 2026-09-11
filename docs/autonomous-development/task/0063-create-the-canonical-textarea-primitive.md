@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -84,6 +84,10 @@ Mark `BLOCKED` if a textarea is actually a domain-specific editor requiring beha
 If a reusable field-shell was introduced in `0062`, use it rather than reimplementing label/error wiring.
 
 ## Execution notes
+
+> Current status (2026-09-11): PENDING by direct owner instruction because this
+> activity was not completed. Historical attempt/skip evidence remains below
+> for traceability and is not a terminal outcome.
 
 ### Feature branch
 No task branch or worker was created because hard prerequisite

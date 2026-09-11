@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -99,6 +99,10 @@ Mark `BLOCKED` if an accessibility correction requires an unresolved product int
 Keep the helper framework-agnostic enough that later catalog/visual tests can reuse fixtures/state builders, but do not delay this task waiting for task `0086`.
 
 ## Execution notes
+
+> Current status (2026-09-11): PENDING. The planner identified the prior
+> dependency skip as stale after direct owner re-enablement of its prerequisite
+> chain; historical skip evidence below is retained only for traceability.
 
 ### Feature branch
 _Not started._

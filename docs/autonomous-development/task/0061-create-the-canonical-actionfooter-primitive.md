@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -89,6 +89,10 @@ Mark `BLOCKED` if existing flows intentionally require incompatible primary/seco
 Prefer content projection or a narrow typed action contract. Do not make `ActionFooter` aware of form models or specific action scopes.
 
 ## Execution notes
+
+> Current status (2026-09-11): PENDING by direct owner instruction because this
+> activity was not completed. Historical attempt/skip evidence remains below
+> for traceability and is not a terminal outcome.
 
 ### Feature branch
 No task branch or worker was created because hard prerequisite

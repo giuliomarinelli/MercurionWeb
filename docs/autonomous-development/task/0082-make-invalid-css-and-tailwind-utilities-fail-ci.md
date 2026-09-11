@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -93,6 +93,10 @@ Mark `BLOCKED` if available tooling cannot reliably inspect Angular inline/exter
 Prefer correctness over fashionable lint rules. If a third-party linter cannot prove candidate existence, supplement it with a small deterministic generated-CSS/candidate check rather than assuming coverage.
 
 ## Execution notes
+
+> Current status (2026-09-11): PENDING. The planner identified the prior
+> dependency skip as stale after direct owner re-enablement of its prerequisite
+> chain; historical skip evidence below is retained only for traceability.
 
 ### Feature branch
 _Not started._

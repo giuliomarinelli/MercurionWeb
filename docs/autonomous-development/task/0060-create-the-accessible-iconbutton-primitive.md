@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -92,6 +92,10 @@ Mark `BLOCKED` if an existing icon-only control intentionally has non-button sem
 Avoid dynamic Tailwind class construction that the build cannot statically discover. Prefer a finite compile-time mapping from typed variants/sizes to complete class strings or CSS tokens.
 
 ## Execution notes
+
+> Current status (2026-09-11): PENDING by direct owner instruction because this
+> activity was not completed. Historical attempt/skip evidence remains below
+> for traceability and is not a terminal outcome.
 
 ### Feature branch
 No task branch or worker was created because hard prerequisite

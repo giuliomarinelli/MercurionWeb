@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -87,6 +87,10 @@ Mark `BLOCKED` if two existing controls have materially different semantics (for
 A caller may debounce a signal/RxJS output; the canonical field should emit user intent promptly and predictably.
 
 ## Execution notes
+
+> Current status (2026-09-11): PENDING by direct owner instruction because this
+> activity was not completed. Historical attempt/skip evidence remains below
+> for traceability and is not a terminal outcome.
 
 ### Feature branch
 No task branch or worker was created because hard prerequisites

@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -90,6 +90,10 @@ Mark `BLOCKED` if route and overlay collection cards intentionally expose incomp
 Favor one small presentational card plus explicit slots/typed action descriptors over a component with many feature booleans.
 
 ## Execution notes
+
+> Current status (2026-09-11): PENDING by direct owner instruction because this
+> activity was not completed. Historical attempt/skip evidence remains below
+> for traceability and is not a terminal outcome.
 
 ### Feature branch
 No task branch or worker was created because hard prerequisites `0066`

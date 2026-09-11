@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -88,6 +88,10 @@ Mark `BLOCKED` if an existing input represents a materially different control (c
 Prefer a composable field-shell + input contract if that prevents duplicating accessibility wiring across future textarea/select primitives, but do not create a heavyweight form framework.
 
 ## Execution notes
+
+> Current status (2026-09-11): PENDING by direct owner instruction because this
+> activity was not completed. Historical attempt/skip evidence remains below
+> for traceability and is not a terminal outcome.
 
 ### Feature branch
 No task branch or worker was created because hard prerequisite

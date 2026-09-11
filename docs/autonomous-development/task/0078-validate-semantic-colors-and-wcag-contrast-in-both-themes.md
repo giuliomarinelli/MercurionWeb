@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -97,6 +97,10 @@ Mark `BLOCKED` if meeting WCAG AA requires an unresolved brand/design decision, 
 Keep the contrast implementation dependency-light. A small deterministic utility/test is preferable to introducing a large runtime package solely for build-time contrast mathematics.
 
 ## Execution notes
+
+> Current status (2026-09-11): PENDING by direct owner instruction because this
+> activity was not completed. Historical attempt/skip evidence remains below
+> for traceability and is not a terminal outcome.
 
 ### Feature branch
 
