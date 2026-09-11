@@ -162,8 +162,9 @@ autonomous workers. Exact feature-SHA clean-install and aggregate CI evidence
 is owned by GitHub Actions after the feature commit is pushed.
 
 ### Commits
-The implementation/status commit is recorded in branch history after this
-note update; the final SHA is returned to the coordinator.
+- `966777ea` (`feat(UI-004): add canonical text field primitive`) contains the
+  implementation, focused tests, migrated consumers, terminal `DONE` state and
+  execution notes.
 
 ### Merge / CI
 No merge or protected-branch operation was performed. The coordinator must
