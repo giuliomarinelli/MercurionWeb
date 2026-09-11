@@ -81,16 +81,30 @@ collision exclusion sets are in-memory scheduling state, never persistent
 recipe checkboxes. Initialize both exclusion sets empty. Existing terminal
 outcomes remain immutable in the active session.
 
+At startup, validate any `authorized_recovery` block in the active immutable
+session configuration. Each entry must identify a recipe reset to pending, its
+exact Source, existing `feature/<Source>` branch and preserved SHA, and must be
+backed by the direct human authorization recorded in that configuration. This
+is the only exception to collision handling: it is single-session recovery of
+explicitly named prior work, never inference from the mere existence of a
+branch. Reject mismatched identity, missing ancestry, unexpected divergence or
+an already-terminal recipe as a configuration incident.
+
 For each selected `READY` task, serially:
 
 1. fetch remote state, return to clean `develop`, fast-forward to the exact
    `origin/develop` tip, and record that base SHA;
-2. create exactly `feature/<Source>` locally from that SHA, but do not push an
+2. for an explicitly configured `authorized_recovery` task, verify the local
+   and remote feature refs both equal its preserved SHA, check out that clean
+   existing branch, and supply `recovery_resume: true`, the preserved SHA and
+   current green `develop` SHA to the worker. For every other task, create
+   exactly `feature/<Source>` locally from that SHA, but do not push an
    unchanged branch whose head still equals the already-green `develop` base;
-   never overwrite or reuse an existing local or remote branch automatically.
-   If either ref already exists, record `SESSION_BRANCH_COLLISION_PAUSE`, add
-   only that task to the branch-collision exclusion set, return to clean
-   synchronized `develop`, and continue with the next independent `READY` task;
+   never overwrite or reuse an unapproved existing branch automatically. If
+   either ref already exists for a non-recovery task, record
+   `SESSION_BRANCH_COLLISION_PAUSE`, add only that task to the branch-collision
+   exclusion set, return to clean synchronized `develop`, and continue with the
+   next independent `READY` task;
 3. prove that every session-owned Angular, Nest, Tox21, test watcher, and other
    workspace-consuming process is stopped, then call the `task` tool once for the primary implementation with `agent_type: development-task-worker` and `mode: sync`,
    supplying the exact task path, Source, feature branch, base SHA,

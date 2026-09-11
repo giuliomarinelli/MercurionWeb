@@ -1,7 +1,7 @@
 # 0087 - Decompose sensitive-data change into independent use cases
 
 - [ ] DONE
-- [x] BLOCKED
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 

@@ -103,6 +103,14 @@ Autonomous eligibility is orthogonal to these outcomes. A non-empty
 
 All four persistent outcomes are terminal within the active session. The coordinator MUST NOT reopen or resume a terminal task because a later probe or Autopilot continuation changes its opinion. Only a new direct human instruction in a new or restarted session may authorize re-enablement; an Autopilot continuation is not human authorization.
 
+A restarted session may resume prior work only through an immutable
+`authorized_recovery` entry containing the exact pending task, Source, existing
+feature branch and preserved SHA. The worker receives `recovery_resume: true`,
+merges current green `develop` into that branch with `--no-ff --no-gpg-sign`,
+preserves coherent prior commits and completes the original recipe. Never infer
+recovery authority from a branch collision. Reset only dependency skips that
+the authoritative planner identifies as stale after the root is re-enabled.
+
 No error, denial, branch collision, unavailable dependency, CI observation
 failure, or baseline incident is an early completion condition before
 the configured soft deadline. Task-local problems are isolated to that task;

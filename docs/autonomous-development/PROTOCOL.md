@@ -191,6 +191,16 @@ is missing. A red unchanged baseline is a session-level incident, not
 
 All four persistent states are terminal within the active session. The coordinator MUST NOT reopen, resume, retry, or change a `DONE`, `BLOCKED`, `REVERTED`, or `SKIPPED_DEPENDENCY` task because a later probe, tool result, or Autopilot continuation changes its opinion. Only a new direct human instruction in a new or restarted session may authorize re-enablement; an Autopilot continuation is not human authorization. Re-enabling a dependency does not silently clear transitive `SKIPPED_DEPENDENCY` states; those tasks must be reviewed/reset deliberately.
 
+An authorized recovery is declared before launch in the immutable session YAML
+with exact task ID, Source, feature branch and preserved SHA. Its recipe is
+deliberately reset from `BLOCKED` to pending, and only descendant
+`SKIPPED_DEPENDENCY` states that the planner reports as stale are reset to
+pending. The coordinator verifies the recorded local and remote branch identity
+and dispatches one fresh worker with `recovery_resume: true`. The worker merges
+the current green `develop` into the existing feature branch without rebase or
+history rewriting, preserves coherent prior work, and finishes the original
+recipe. Unlisted terminal tasks and branches remain terminal/frozen.
+
 ### Dependency semantics
 
 The `Dependencies` section contains both executable prerequisites and, in older recipes, advisory coordination links. The coordinator resolves them as follows:
@@ -220,8 +230,11 @@ Before task scope starts, the runner:
 A pre-existing local or remote `feature/<Source>` is not overwritten
 automatically. Record `SESSION_BRANCH_COLLISION_PAUSE`, preserve the ref
 unchanged, exclude only that task for the current scheduling pass, and continue
-with the next independent `READY` task. Periodically recheck the collision while
-the session remains active; it never becomes a session-wide fatal condition.
+with the next independent `READY` task. The sole exception is an exact
+`authorized_recovery` entry whose pending recipe, Source, local/remote ref and
+preserved SHA all match; that existing branch is resumed by the worker under
+the recovery procedure above. Periodically recheck ordinary collisions while
+the session remains active; they never become a session-wide fatal condition.
 
 No task develops directly on `develop`. Autonomous tasks never touch `master`.
 
