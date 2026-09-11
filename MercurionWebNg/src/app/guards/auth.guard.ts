@@ -9,6 +9,7 @@ import {
 import { AuthStateStore } from '../services/auth-state.store'
 import { AuthRedirectService } from '../services/auth-redirect.service'
 import { routePolicyOf } from '../route-policy'
+import { routeManifest } from '../route-manifest'
 
 @Injectable({ providedIn: 'root' })
 export class AuthGuard implements CanActivate {
@@ -27,14 +28,14 @@ export class AuthGuard implements CanActivate {
 
     // evita loop: se stai già su /login o /login/mfa, non riscrivere redirect_to
     const current = (state.url || '').toLowerCase()
-    if (current.startsWith('/login')) {
-      return this.router.parseUrl('/login')
+    if (current.startsWith(routeManifest.login.build({}))) {
+      return this.router.parseUrl(routeManifest.login.build({}))
     }
 
 
 
     const target = this.redirects.capture(state.url)
-    return this.router.createUrlTree(['/login'], {
+    return this.router.createUrlTree([routeManifest.login.build({})], {
       queryParams: target ? { redirect_to: target } : undefined
     })
   }
