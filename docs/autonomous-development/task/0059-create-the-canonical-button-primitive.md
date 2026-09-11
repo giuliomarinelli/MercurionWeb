@@ -1,7 +1,7 @@
 # 0059 - Create the canonical Button primitive
 
 - [ ] DONE
-- [x] BLOCKED
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -97,6 +97,11 @@ Prefer a small semantic API over a utility-class passthrough. The point is to re
 
 ## Execution notes
 
+> Current status (2026-09-11): PENDING by direct owner instruction because this
+> activity was not completed. Historical attempt/skip evidence remains below
+> for traceability and is not a terminal outcome. The prior partial work is
+> preserved on `archive/UI-001-attempt-2026-09-11`.
+
 ### Feature branch
 No task branch or worker was created because hard prerequisite
 `0052-standardize-modern-angular-component-apis.md` (`FE-030`) is `BLOCKED`.
@@ -130,12 +135,13 @@ No feature merge; skip metadata CI is required before continuing.
 _Not applicable._
 
 ### Blocker / human decision required
-The task was attempted on frozen branch `feature/UI-001` at
+The task was attempted on the branch now archived as
+`archive/UI-001-attempt-2026-09-11` at
 `909df90c0b1d8f8b2a20734d12f9fa5348f8c79f`. The inventory found 146 native
 button openings and 93 distinct class signatures, including product-specific
 action-card/layout semantics and icon-only controls owned by task 0060. The
 typed primitive and focused tests passed, but the recipe stop condition
 requires a design-system decision before safe all-consumer migration. The
 post-change collections route also returned HTTP 504, so the full browser
-acceptance matrix could not be completed. The feature branch remains
-preserved and frozen.
+acceptance matrix could not be completed. The historical attempt remains
+preserved in the archive.

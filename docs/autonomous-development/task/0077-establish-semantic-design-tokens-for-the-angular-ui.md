@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -100,6 +100,10 @@ Mark `BLOCKED` rather than guessing if preserving the current appearance require
 Prefer a small semantic layer over a huge token matrix. The goal is a stable public styling contract for components, not a one-to-one rename of every Tailwind utility.
 
 ## Execution notes
+
+> Current status (2026-09-11): PENDING by direct owner instruction because this
+> activity was not completed. Historical attempt/skip evidence remains below
+> for traceability and is not a terminal outcome.
 
 ### Feature branch
 

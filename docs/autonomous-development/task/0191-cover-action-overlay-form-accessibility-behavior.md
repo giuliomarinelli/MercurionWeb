@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Add behavior and accessibility tests for the canonical Angular action/overlay/form primitives so open/close, confirm/cancel, loading/error state, focus ownership, keyboard interaction and ARIA semantics are protected as contracts rather than inferred from visual markup.
@@ -89,6 +89,10 @@ Mark `BLOCKED` if a primitive's intended keyboard/focus behavior is ambiguous af
 Prefer role/name queries and user-visible interaction to raw `querySelector` against implementation classes. A CSS refactor should not break a behavioral accessibility test when semantics are unchanged.
 
 ## Execution notes
+
+> Current status (2026-09-11): PENDING. The planner identified the prior
+> dependency skip as stale after direct owner re-enablement of its prerequisite
+> chain; historical skip evidence below is retained only for traceability.
 
 ### Feature branch
 _Not started._

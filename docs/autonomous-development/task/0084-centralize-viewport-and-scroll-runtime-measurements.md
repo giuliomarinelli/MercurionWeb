@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -103,6 +103,10 @@ Mark `BLOCKED` if a current JS breakpoint encodes an undocumented product behavi
 Prefer Angular signals for current browser state and derived computed values, with RxJS only when event-stream operators materially simplify throttling/cancellation. Avoid a god-service containing unrelated UI state.
 
 ## Execution notes
+
+> Current status (2026-09-11): PENDING by direct owner instruction because this
+> activity was not completed. Historical attempt/skip evidence remains below
+> for traceability and is not a terminal outcome.
 
 ### Feature branch
 _Not started._

@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -92,6 +92,10 @@ Mark `BLOCKED` if current consumers expose materially incompatible or ambiguous 
 Prefer a small headless state contract plus presentational controls if both numbered pagination and load-more are required. Do not make one component infer its mode from which optional fields happen to be populated.
 
 ## Execution notes
+
+> Current status (2026-09-11): PENDING by direct owner instruction because this
+> activity was not completed. Historical attempt/skip evidence remains below
+> for traceability and is not a terminal outcome.
 
 ### Feature branch
 No task branch or worker was created because hard prerequisites

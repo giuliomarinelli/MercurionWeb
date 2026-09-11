@@ -149,16 +149,16 @@ hard dependencies, cycles, stale terminal skips, or planner errors.
 The configured `workload.tasks` list is empty, so the complete Series is in
 scope: there is no autonomous allowlist. Select the earliest filename-ordered
 READY task from the authoritative planner output; the expected first READY task
-is 0087. Continue serially through eligible tasks until the soft deadline or
+is 0054. Continue serially through eligible tasks until the soft deadline or
 genuine workload exhaustion. No error, denial, branch collision, CI-observation
 failure, baseline incident, or unavailable capability may finalize the session
 early while configured pending work remains. Isolate one-task failures, skip a
 colliding branch for the current scheduling pass, and use
 `SESSION_RECOVERY_PENDING` for unsafe shared-state failures.
 
-Task 0041 is terminal `DONE`; never select it again. Select task 0043 first,
-then continue with the next independent READY task from each fresh planner
-snapshot. When a selected task requires authenticated browser evidence,
+Tasks through 0053 that are marked `DONE` are terminal; never select them again.
+Select task 0054 first, then continue with the next independent READY task from
+each fresh planner snapshot. When a selected task requires authenticated browser evidence,
 proceed only after a fresh ordinary login with the shared real test account has
 established a protected server-accepted session. Otherwise apply
 `SESSION_CAPABILITY_PAUSE` without mutating the task or propagating dependency
@@ -177,8 +177,9 @@ commit and push the narrow correction, and retry exact-SHA CI up to three
 times. Do not mark BLOCKED on the first actionable CI failure.
 
 Do not mutate pull requests 25, 27, 28, 29, or 31. Do not resume, advance,
-rebase, merge, reset, or delete feature/SYS-020, feature/UI-018,
-feature/NG-023, or feature/NG-028. Apply task selection and dependency-status
+rebase, merge, reset, or delete feature/SYS-020, feature/NG-023, or
+feature/NG-028. The prior UI-018 attempt is retained read-only on
+archive/UI-018-attempt-2026-09-11. Apply task selection and dependency-status
 propagation to the complete Series strictly from the planner snapshot.
 
 Respect the soft deadline and finalization protocol. The report must include

@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -94,6 +94,10 @@ Mark `BLOCKED` if an existing tab-looking control actually mixes URL navigation 
 Use native focusable elements and DOM order; avoid maintaining a parallel manually indexed focus graph when roving tabindex can represent the tab pattern cleanly.
 
 ## Execution notes
+
+> Current status (2026-09-11): PENDING by direct owner instruction because this
+> activity was not completed. Historical attempt/skip evidence remains below
+> for traceability and is not a terminal outcome.
 
 ### Feature branch
 _Not started._

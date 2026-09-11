@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -98,6 +98,10 @@ Mark `BLOCKED` if multiple existing overlays intentionally have unresolved incom
 A headless focus/overlay controller plus a rendered shell is acceptable. Avoid inventing a second state machine that conflicts with the action-session state model.
 
 ## Execution notes
+
+> Current status (2026-09-11): PENDING by direct owner instruction because this
+> activity was not completed. Historical attempt/skip evidence remains below
+> for traceability and is not a terminal outcome.
 
 ### Feature branch
 No task branch or worker was created because hard prerequisite

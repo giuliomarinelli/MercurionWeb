@@ -254,15 +254,15 @@ workload:
   pending_only: true
   expected_task_count: 220
   expected_current_done: 57
-  expected_current_blocked: 6
-  expected_current_skipped_dependency: 44
-  expected_current_pending: 113
-  expected_first_ready_task: "0087"
-  expected_planner_ready: 14
-  expected_planner_waiting_dependency: 99
-  expected_planner_terminal_closure: 44
+  expected_current_blocked: 3
+  expected_current_skipped_dependency: 13
+  expected_current_pending: 147
+  expected_first_ready_task: "0054"
+  expected_planner_ready: 17
+  expected_planner_waiting_dependency: 130
+  expected_planner_terminal_closure: 13
   expected_new_skipped_dependency: 0
-  expected_autonomous_pending: 113
+  expected_autonomous_pending: 147
   expected_human_led_pending: 0
   dependency_planner:
     command: npm run autonomous:plan
@@ -279,7 +279,6 @@ blocked_branch_policy:
   do_not_resume_without_new_direct_human_authorization: true
   branches:
     - feature/SYS-020
-    - feature/UI-018
     - feature/NG-023
     - feature/NG-028
 

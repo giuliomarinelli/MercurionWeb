@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -92,6 +92,10 @@ Mark `BLOCKED` if current consumers intentionally require incompatible interacti
 Prefer headless state/interaction logic plus thin rendered adapters if that materially improves reuse and testability. Do not introduce a third-party UI framework solely to complete this task unless explicitly approved.
 
 ## Execution notes
+
+> Current status (2026-09-11): PENDING by direct owner instruction because this
+> activity was not completed. Historical attempt/skip evidence remains below
+> for traceability and is not a terminal outcome.
 
 ### Feature branch
 No task branch or worker was created because hard prerequisite

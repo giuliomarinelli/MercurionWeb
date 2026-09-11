@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -93,6 +93,10 @@ Mark `BLOCKED` if an existing caller requires a visually distinct state whose se
 Prefer small readonly maps validated with `satisfies Record<Variant, string>` or equivalent exhaustive patterns. Keep styling logic co-located with the primitive that owns it.
 
 ## Execution notes
+
+> Current status (2026-09-11): PENDING by direct owner instruction because this
+> activity was not completed. Historical attempt/skip evidence remains below
+> for traceability and is not a terminal outcome.
 
 ### Feature branch
 _Not started._

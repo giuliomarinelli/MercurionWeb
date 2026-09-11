@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Make every repository-maintained `patch-package` patch reproducible, behavior-tested, traceable to an upstream issue and governed by an explicit owner/removal condition so stale or silently ineffective patches fail CI.
@@ -93,6 +93,10 @@ Mark `BLOCKED` if the purpose or safety impact of a current patch cannot be reco
 A patch registry should describe evidence, not duplicate the patch diff. Keep tests focused on the externally required behavior so an upstream fixed release can satisfy them and make patch removal obvious.
 
 ## Execution notes
+
+> Current status (2026-09-11): PENDING. The planner identified the prior
+> dependency skip as stale after direct owner re-enablement of its prerequisite
+> chain; historical skip evidence below is retained only for traceability.
 
 ### Feature branch
 _Not started._

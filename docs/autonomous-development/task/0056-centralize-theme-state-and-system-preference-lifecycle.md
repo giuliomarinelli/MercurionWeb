@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -97,6 +97,10 @@ Mark `BLOCKED` if current product semantics for system mode versus saved explici
 The current service is already the natural starting owner; refactor it rather than creating a second theme store unless separation materially improves testability. The key requirement is one authority and deterministic resource ownership.
 
 ## Execution notes
+
+> Current status (2026-09-11): PENDING by direct owner instruction because this
+> activity was not completed. Historical attempt/skip evidence remains below
+> for traceability and is not a terminal outcome.
 
 ### Feature branch
 No task branch or worker was created because hard prerequisite

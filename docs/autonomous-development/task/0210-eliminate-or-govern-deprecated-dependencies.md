@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Remove or safely replace every audited deprecated/legacy direct dependency and make any unavoidable residual dependency an explicit time-bounded exception so clean install/build output contains no unaccepted deprecation warning.
@@ -94,6 +94,10 @@ Mark `BLOCKED` if replacing an audited dependency requires an unresolved public 
 Evaluate the current graph, not only the original audit list. A removed direct package may still be pulled transitively; classify that accurately and constrain only what the repository actually controls.
 
 ## Execution notes
+
+> Current status (2026-09-11): PENDING. The planner identified the prior
+> dependency skip as stale after direct owner re-enablement of its prerequisite
+> chain; historical skip evidence below is retained only for traceability.
 
 ### Feature branch
 _Not started._
