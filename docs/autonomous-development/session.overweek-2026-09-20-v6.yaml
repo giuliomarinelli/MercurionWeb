@@ -168,7 +168,9 @@ startup:
     worker_tool_calls_allowed: false
     repository_access_allowed: false
   denial_policy:
-    stop_and_report_exact_denial: true
+    stop_and_report_exact_denial: false
+    enter_session_recovery_pending: true
+    retry_with_bounded_backoff_until_soft_deadline: true
     prerequisites:
       - install
       - network
@@ -251,16 +253,16 @@ workload:
   tasks: []
   pending_only: true
   expected_task_count: 220
-  expected_current_done: 53
-  expected_current_blocked: 4
-  expected_current_skipped_dependency: 26
-  expected_current_pending: 137
-  expected_first_ready_task: "0043"
-  expected_planner_ready: 17
-  expected_planner_waiting_dependency: 120
-  expected_planner_terminal_closure: 26
+  expected_current_done: 57
+  expected_current_blocked: 6
+  expected_current_skipped_dependency: 44
+  expected_current_pending: 113
+  expected_first_ready_task: "0087"
+  expected_planner_ready: 14
+  expected_planner_waiting_dependency: 99
+  expected_planner_terminal_closure: 44
   expected_new_skipped_dependency: 0
-  expected_autonomous_pending: 137
+  expected_autonomous_pending: 113
   expected_human_led_pending: 0
   dependency_planner:
     command: npm run autonomous:plan
@@ -292,6 +294,8 @@ task_outcomes:
     - CI_PENDING
     - WAITING_DEPENDENCY
     - SESSION_CAPABILITY_PAUSE
+    - SESSION_BRANCH_COLLISION_PAUSE
+    - SESSION_RECOVERY_PENDING
     - BROWSER_PROFILE_RECOVERY_REQUIRED
 
 policy:
@@ -303,7 +307,11 @@ policy:
   finish_current_task_after_deadline: true
   start_new_tasks_after_deadline: false
   stop_when_workload_exhausted: true
-  stop_when_no_unpaused_ready_tasks: true
+  stop_when_no_unpaused_ready_tasks: false
+  keep_alive_when_pending_tasks_are_temporarily_unrunnable: true
+  retry_recovery_until_soft_deadline: true
+  branch_collision_excludes_only_colliding_task: true
+  error_before_deadline_completes_session: false
   continue_after_terminal_non_done_task: true
   terminal_outcomes_immutable_within_active_session: true
   terminal_task_reenable_authority: new-direct-human-instruction-in-new-or-restarted-session
@@ -371,7 +379,8 @@ ci:
     revert_merge_commit: true
     wait_for_revert_ci_green: true
     verify_revert_tree_matches_pre_merge_base: true
-    stop_session_if_revert_not_green: true
+    stop_session_if_revert_not_green: false
+    enter_session_recovery_pending_if_revert_not_green: true
     classify_non_green_revert_as: baseline-or-upstream-incident
     mark_task_reverted: true
     wait_for_reverted_metadata_ci_green: true
@@ -420,7 +429,8 @@ on_finish:
   report_template: docs/autonomous-development/reports/0000-session-report-template.md
   commit_and_push_report_to_develop: true
   wait_for_exact_report_commit_ci: true
-  session_fatal_blocker_completes_coordinator_objective: true
+  session_fatal_blocker_completes_coordinator_objective: false
+  task_complete_before_deadline_on_error: false
   emit_final_summary_and_report_path_before_task_complete: true
   task_complete_is_final_autopilot_action: true
   call_task_complete: true

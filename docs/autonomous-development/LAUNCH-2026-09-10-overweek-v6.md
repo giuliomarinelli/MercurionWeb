@@ -149,8 +149,12 @@ hard dependencies, cycles, stale terminal skips, or planner errors.
 The configured `workload.tasks` list is empty, so the complete Series is in
 scope: there is no autonomous allowlist. Select the earliest filename-ordered
 READY task from the authoritative planner output; the expected first READY task
-is 0043. Continue serially through eligible tasks until the soft deadline,
-workload exhaustion, or a documented session-fatal condition.
+is 0087. Continue serially through eligible tasks until the soft deadline or
+genuine workload exhaustion. No error, denial, branch collision, CI-observation
+failure, baseline incident, or unavailable capability may finalize the session
+early while configured pending work remains. Isolate one-task failures, skip a
+colliding branch for the current scheduling pass, and use
+`SESSION_RECOVERY_PENDING` for unsafe shared-state failures.
 
 Task 0041 is terminal `DONE`; never select it again. Select task 0043 first,
 then continue with the next independent READY task from each fresh planner
