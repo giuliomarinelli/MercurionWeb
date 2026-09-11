@@ -64,11 +64,11 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
                         <ul>
                           @for (page of section.pages; track page) {
                             <li class="flex items-center gap-2 ml-7">
-                              <span class="selectable"
+                              <button type="button" class="selectable text-left"
                                 [class.selected]="isSelected('page', page.id)"
                                 (click)="select('page', chapter.id, section.id, page.id)">
                                   {{ page.title }}
-                              </span>
+                              </button>
 
                               <button (click)="renamePage(page, section)">✏️</button>
                               <button (click)="deletePage(page.id, section)">🗑️</button>

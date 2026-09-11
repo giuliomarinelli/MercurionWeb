@@ -20,7 +20,13 @@ import { SelectionControlComponent } from '../../common/selection-control/select
 
       <div class="min-w-0">
         @if (_isSelectAll()) {
-          <span class="block w-full select-none font-semibold ml-[2px]" (click)="toggleSelectAll()" role="button" tabindex="0" aria-label="Seleziona tutte le collezioni" (keydown.enter)="toggleSelectAll()" (keydown.space)="toggleSelectAll(); $event.preventDefault()">SELEZIONA TUTTI</span>
+          <button
+            type="button"
+            class="block w-full select-none font-semibold ml-[2px] text-left"
+            (click)="toggleSelectAll()"
+            aria-label="Seleziona tutte le collezioni">
+            SELEZIONA TUTTI
+          </button>
         } @else {
           <m-collection-card
             class="block w-full"
