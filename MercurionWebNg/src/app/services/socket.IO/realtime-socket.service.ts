@@ -27,6 +27,7 @@ import {
   retryDelay,
   type RealtimeConnectionState,
 } from './realtime-connection-state-machine';
+import { BrowserStorageRegistry } from '../browser-storage-registry';
 
 export type SocketMode = 'public' | 'private';
 
@@ -43,6 +44,7 @@ export class RealtimeSocketService implements OnDestroy {
   private stopped = false;
 
   private readonly appConfig = inject(APP_CONFIG);
+  private readonly storageRegistry = inject(BrowserStorageRegistry);
 
   // serializza transizioni (evita race ensurePrivate/ensurePublic sovrapposte)
   private modeOp: Promise<void> = Promise.resolve();
@@ -85,7 +87,8 @@ export class RealtimeSocketService implements OnDestroy {
   };
 
   private readonly onStorage = (e: StorageEvent): void => {
-    if (e.key !== 'ws_accessToken') return;
+    const change = this.storageRegistry.event(e);
+    if (e.key !== 'ws_accessToken' && change?.descriptor.id !== 'wsAccessToken') return;
     if (this.mode !== 'private' || !this.socket.connected) return;
     const latest = this.auth.getWs_accessToken();
     if (latest && !this.jwt.isTokenExpired(latest)) {

@@ -20,6 +20,7 @@ import { environment } from '../../../../environments/environment';
 import { ShellLayoutService } from '../../../services/context/shell-layout.service';
 import { APP_CONFIG } from '../../../config/app-config';
 import { routeManifest } from '../../../route-manifest';
+import { BrowserStorageRegistry, storageDescriptor } from '../../../services/browser-storage-registry';
 
 @Component({
   selector: 'm-header',
@@ -527,6 +528,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   private readonly toast = inject(ToastService)
   private readonly shellLayout = inject(ShellLayoutService)
   private readonly appConfig = inject(APP_CONFIG)
+  private readonly storageRegistry = inject(BrowserStorageRegistry)
 
   private updatePathFlags(currentPath: string) {
     const clean = (currentPath || '').split(/[?#]/)[0]
@@ -765,7 +767,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
         })
       },
       error: () => {
-        sessionStorage?.removeItem('RouteError')
+        this.storageRegistry.remove(storageDescriptor('routeError'))
         this.sessionSync.completeVoluntaryLogout()
         this.offCanvasMenuOpen.set(false)
         this.toast.trigger('Logout locale completato; revoca server non confermata.', 'warn', 5000)
