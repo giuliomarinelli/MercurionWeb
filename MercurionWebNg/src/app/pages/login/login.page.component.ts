@@ -13,7 +13,7 @@ import { AuthSessionPersistenceService } from '../../services/auth-session-persi
 import { SessionSyncService } from '../../services/session-sync.service'
 
 import { TurnstileComponent } from '../../components/common/turnstile/turnstile.component'
-import { FloatingInputComponent } from '../../components/common/floating-input/floating-input.component'
+import { TextFieldComponent } from '../../components/common/text-field/text-field.component'
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component'
 
 import { Confirm_Login_FirstStepDTO } from '../../Models/confirm.models'
@@ -34,7 +34,7 @@ import { AuthErrorService } from '../../services/auth-error.service'
     ReactiveFormsModule,
     PublicPipe,
     TurnstileComponent,
-    FloatingInputComponent,
+    TextFieldComponent,
     RouterLink,
     ClassicSpinnerComponent
   ],
@@ -49,7 +49,7 @@ import { AuthErrorService } from '../../services/auth-error.service'
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="w-full max-w-sm space-y-6" aria-labelledby="login-title" [attr.aria-busy]="loadingLogin()">
         @if (step() === 1) {
           <div class="mt-2">
-            <m-floating-input
+            <m-text-field
               label="Indirizzo e-mail"
               type="email"
               autocomplete="email"
@@ -61,9 +61,6 @@ import { AuthErrorService } from '../../services/auth-error.service'
               }"
               [serverError]="serverErrorStep() === 1 ? uncorrectEmailMsg : null"
               (enter)="goToPasswordStep()"
-              darkLabelClass = 'dark:text-dark-accent-secondary-hc'
-              darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
-              darkFocusBorderClass = 'dark:focus:border-dark-accent-primary'
             />
           </div>
           <button
@@ -78,7 +75,7 @@ import { AuthErrorService } from '../../services/auth-error.service'
           </button>
         } @else if (step() === 2) {
           <div class="relative mb-3 mt-2">
-            <m-floating-input
+            <m-text-field
               label="Indirizzo e-mail"
               type="email"
               autocomplete="email"
@@ -91,13 +88,10 @@ import { AuthErrorService } from '../../services/auth-error.service'
               [disabled]="goingToPasswordStep()"
               [serverError]="serverErrorStep() === 1 ? uncorrectEmailMsg : null"
               (enter)="goToPasswordStep()"
-              darkLabelClass = 'dark:text-dark-accent-secondary-hc'
-              darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
-              darkFocusBorderClass = 'dark:focus:border-dark-accent-primary'
             />
           </div>
           <div class="relative">
-            <m-floating-input
+            <m-text-field
               label="Password"
               type="password"
               autocomplete="current-password"
@@ -109,9 +103,6 @@ import { AuthErrorService } from '../../services/auth-error.service'
                   : serverErrorStep() === 2429 ? 'Troppi tentativi, riprova tra qualche minuto.'
                   : null
               "
-              darkLabelClass = 'dark:text-dark-accent-secondary-hc'
-              darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
-              darkFocusBorderClass = 'dark:focus:border-dark-accent-primary'
             />
             <button
               type="submit"

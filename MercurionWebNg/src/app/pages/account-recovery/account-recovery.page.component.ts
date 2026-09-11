@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, computed, DestroyRef, inject, OnDestroy, OnInit, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FloatingInputComponent } from '../../components/common/floating-input/floating-input.component';
+import { TextFieldComponent } from '../../components/common/text-field/text-field.component'
 import { TurnstileComponent } from '../../components/common/turnstile/turnstile.component';
 import { FormControl, FormGroup, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize, Subscription } from 'rxjs';
@@ -18,7 +18,7 @@ import { HttpErrorResponse } from '@angular/common/http';
   selector: 'm-account-recovery.page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    FloatingInputComponent,
+    TextFieldComponent,
     TurnstileComponent,
     ReactiveFormsModule,
     ClassicSpinnerComponent,
@@ -77,7 +77,7 @@ import { HttpErrorResponse } from '@angular/common/http';
           @if (step() === 1) {
             <!-- STEP 1: CODE -->
             <div class="mt-2">
-              <m-floating-input
+              <m-text-field
                 label="Codice di recupero"
                 type="text"
                 autocomplete="text"
@@ -89,9 +89,7 @@ import { HttpErrorResponse } from '@angular/common/http';
                 [disabled]="loading()"
                 [serverError]="computeServerErrorMsg(this.serverErrorStep())"
                 (enter)="goToSecondStep()"
-                darkLabelClass = 'dark:text-dark-accent-secondary-hc'
-                darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
-                darkFocusBorderClass = 'dark:focus:border-dark-accent-primary'/>
+              />
             </div>
               <button
                 type="submit"
@@ -126,7 +124,7 @@ import { HttpErrorResponse } from '@angular/common/http';
             <!-- STEP 2: NUOVE CREDENZIALI -->
             <form [formGroup]="recoveryGroup" (ngSubmit)="goToThirdStep()">
               <div class="relative mb-6 mt-2">
-                <m-floating-input
+                <m-text-field
                   label="Nuova e-mail"
                   type="email"
                   autocomplete="email"
@@ -137,12 +135,10 @@ import { HttpErrorResponse } from '@angular/common/http';
                     pattern: 'Formato e-mail non corretto'
                   }"
                   [disabled]="loading()"
-                  darkLabelClass = 'dark:text-dark-accent-secondary-hc'
-                  darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
-                  darkFocusBorderClass = 'dark:focus:border-dark-accent-primary' />
+              />
               </div>
               <div class="relative mb-6 mt-2">
-                <m-floating-input
+                <m-text-field
                 label="Nuova password"
                 type="password"
                 autocomplete="current-password"
@@ -151,12 +147,10 @@ import { HttpErrorResponse } from '@angular/common/http';
                     required: 'Password obbligatoria.',
                     pattern: 'La password deve essere di almeno 8 caratteri: almeno uno minuscolo, uno maiuscolo, un numero e un carattere speciale.'
                   }"
-                  darkLabelClass = 'dark:text-dark-accent-secondary-hc'
-                  darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
-                  darkFocusBorderClass = 'dark:focus:border-dark-accent-primary' />
+              />
               </div>
               <div class="relative mb-6 mt-2">
-                <m-floating-input
+                <m-text-field
                   label="Reinserisci la nuova password"
                   type="password"
                   autocomplete="current-password"
@@ -166,9 +160,7 @@ import { HttpErrorResponse } from '@angular/common/http';
                       matchPassword: 'Le due password non corrispondono.'
                     }"
                   [serverError]="computeServerErrorMsg(this.serverErrorStep())"
-                  darkLabelClass = 'dark:text-dark-accent-secondary-hc'
-                  darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
-                  darkFocusBorderClass = 'dark:focus:border-dark-accent-primary' />
+              />
               </div>
               <div class="relative mb-3 mt-2">
                 <button

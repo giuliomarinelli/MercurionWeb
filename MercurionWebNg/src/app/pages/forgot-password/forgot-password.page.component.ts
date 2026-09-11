@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FloatingInputComponent } from '../../components/common/floating-input/floating-input.component';
+import { TextFieldComponent } from '../../components/common/text-field/text-field.component'
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AccountService } from '../../services/account.service';
 import { Subscription } from 'rxjs';
@@ -11,7 +11,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 @Component({
   selector: 'm-forgot-password',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FloatingInputComponent, ReactiveFormsModule, TurnstileComponent, ClassicSpinnerComponent],
+  imports: [  TextFieldComponent, ReactiveFormsModule, TurnstileComponent, ClassicSpinnerComponent],
   template: `
 
     <main class="block" role="main" aria-live="polite" aria-busy="{{ step_12_loading() }}">
@@ -31,7 +31,7 @@ import { HttpErrorResponse } from '@angular/common/http';
           </div>
           <!-- STEP 1: EMAIL -->
           <div class="mt-2 max-w-[400px] mx-auto" aria-labelledby="forgot-password-title">
-            <m-floating-input
+            <m-text-field
               label="Indirizzo e-mail"
               type="email"
               autocomplete="email"
@@ -43,9 +43,6 @@ import { HttpErrorResponse } from '@angular/common/http';
                 serverError() ? this.errMsg() : null
               "
               (enter)="send()"
-              darkLabelClass = 'dark:text-dark-accent-secondary-hc'
-              darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
-              darkFocusBorderClass = 'dark:focus:border-dark-accent-primary'
             />
 
             <button

@@ -8,7 +8,7 @@ import { Router } from '@angular/router';
 import { AccountService } from '../../../services/account.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ProfileRegistryDTO } from '../../../Models/account/account.models';
-import { FloatingInputComponent } from '../../common/floating-input/floating-input.component';
+import { TextFieldComponent } from '../../common/text-field/text-field.component';
 import { PmSelectComponent } from '../../common/pm-select/pm-select.component';
 import { PmOption } from '../../../Models/pm-option.model';
 import { ProfileRegistryEditContextService } from '../../../services/context/action-context/profile-registry-edit-context.service';
@@ -30,7 +30,7 @@ type RegistryFormValue = {
   imports: [
     ClassicSpinnerComponent,
     ReactiveFormsModule,
-    FloatingInputComponent,
+    TextFieldComponent,
     PmSelectComponent,
     IconButtonComponent,
     ActionFooterComponent,
@@ -80,7 +80,7 @@ type RegistryFormValue = {
             </div>
           } @else {
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-12 w-full pt-9">
-              <m-floating-input
+              <m-text-field
                 label="Nome *"
                 type="text"
                 autocomplete="given-name"
@@ -89,12 +89,9 @@ type RegistryFormValue = {
                   required: 'Il nome è obbligatorio.',
                   pattern: 'Il formato del nome non è valido.'
                 }"
-                [bgClass]="'bg-light-surface-secondary'"
-                [darkBgClass]="'dark:bg-dark-surface-secondary'"
-                darkLabelClass="dark:text-dark-accent-secondary-hc"
               />
 
-              <m-floating-input
+              <m-text-field
                 label="Cognome *"
                 type="text"
                 autocomplete="family-name"
@@ -103,9 +100,6 @@ type RegistryFormValue = {
                   required: 'Il cognome è obbligatorio.',
                   pattern: 'Il formato del cognome non è valido.'
                 }"
-                [bgClass]="'bg-light-surface-secondary'"
-                [darkBgClass]="'dark:bg-dark-surface-secondary'"
-                darkLabelClass="dark:text-dark-accent-secondary-hc"
               />
 
               <m-select
@@ -116,15 +110,12 @@ type RegistryFormValue = {
                 darkTextClass="dark:text-dark-accent-secondary-hc"
               />
 
-              <m-floating-input
+              <m-text-field
                 label="Il tuo lavoro"
                 type="text"
                 autocomplete="organization-title"
                 formControlName="job"
                 [errors]="{}"
-                [bgClass]="'bg-light-surface-secondary'"
-                [darkBgClass]="'dark:bg-dark-surface-secondary'"
-                darkLabelClass="dark:text-dark-accent-secondary-hc"
               />
             </div>
           }
