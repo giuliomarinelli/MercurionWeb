@@ -64,7 +64,7 @@ import { TextareaComponent } from '../../common/textarea/textarea.component';
             (loadMore)="onScrollEnd()"
             (select)="onSelect($event)"
             (createNew)="onCreateNew($event)"
-            [attr.aria-label]="'Seleziona o crea collezione di destinazione'"
+            [ariaLabel]="'Seleziona o crea collezione di destinazione'"
           />
 
           <!-- FORM CUSTOM MOLECULE -->
