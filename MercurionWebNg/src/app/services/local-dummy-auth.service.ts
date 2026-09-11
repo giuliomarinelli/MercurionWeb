@@ -9,6 +9,7 @@ import { firstValueFrom } from 'rxjs'
 import { APP_CONFIG, type AppConfig } from '../config/app-config'
 import type { AuthCompletion } from './auth-state.store'
 import { FingerprintService } from './fingerprint.service'
+import { BrowserStorageRegistry, storageDescriptor } from './browser-storage-registry'
 
 export function canUseLocalDummyAuth(config: AppConfig, origin: string): boolean {
   return config.capabilities.localDummyAuth &&
@@ -23,6 +24,7 @@ export class LocalDummyAuthService {
   private readonly config = inject(APP_CONFIG)
   private readonly http = inject(HttpClient)
   private readonly fingerprintService = inject(FingerprintService)
+  private readonly storage = inject(BrowserStorageRegistry)
 
   isAvailable(): boolean {
     return typeof location !== 'undefined' && canUseLocalDummyAuth(this.config, location.origin)
@@ -31,7 +33,7 @@ export class LocalDummyAuthService {
   isActive(): boolean {
     if (!this.isAvailable()) return false
     try {
-      return localStorage.getItem(LOCAL_DUMMY_AUTH.storageKey) === LOCAL_DUMMY_AUTH.marker
+      return this.storage.get(storageDescriptor<string>('localDummyAuth')) === LOCAL_DUMMY_AUTH.marker
     } catch {
       return false
     }
@@ -57,7 +59,7 @@ export class LocalDummyAuthService {
       }
     ))
 
-    localStorage.setItem(LOCAL_DUMMY_AUTH.storageKey, LOCAL_DUMMY_AUTH.marker)
+    this.storage.set(storageDescriptor('localDummyAuth'), LOCAL_DUMMY_AUTH.marker)
 
     return {
       initials: response.initials,

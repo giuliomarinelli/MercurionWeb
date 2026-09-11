@@ -1,10 +1,11 @@
 import { Injectable, signal, computed, effect } from '@angular/core';
 import { Theme, ThemeChoice, ThemeOwner } from '../../Models/theme.models';
+import { BrowserStorageRegistry, storageDescriptor } from '../browser-storage-registry';
 
 @Injectable({ providedIn: 'root' })
 export class ThemeManagerService {
 
-  private readonly themeStorageKey = 'tw_theme'
+  private readonly themeStorage = storageDescriptor<Record<string, unknown>>('theme')
 
   private readonly _theme = signal<Theme>(this.getOsDefaultTheme)
   private readonly _themeOwner = signal<ThemeOwner>('OS')
@@ -29,7 +30,7 @@ export class ThemeManagerService {
 
 
 
-  constructor() {
+  constructor(private readonly storage: BrowserStorageRegistry = new BrowserStorageRegistry()) {
 
     this.initTheme()
 
@@ -65,7 +66,8 @@ export class ThemeManagerService {
   }
 
   private handleCrossTabThemeSwitch = (e: StorageEvent): void => {
-    if (e.key !== this.themeStorageKey) {
+    const change = this.storage.event(e)
+    if (!change || change.descriptor.id !== 'theme') {
       return
     }
 
@@ -118,11 +120,11 @@ export class ThemeManagerService {
       themeOwner: 'User',
       isEnabled: true
     }
-    localStorage.setItem(this.themeStorageKey, JSON.stringify(payload))
+    this.storage.set(this.themeStorage, payload)
   }
 
   private restoreThemeConfig(): void {
-    const themeConfig = this.deserializeThemeConfig(localStorage.getItem(this.themeStorageKey))
+    const themeConfig = this.deserializeThemeConfig(this.storage.get(this.themeStorage) ? JSON.stringify(this.storage.get(this.themeStorage)) : null)
     if (!themeConfig) {
       return
     }
@@ -150,11 +152,11 @@ export class ThemeManagerService {
   }
 
   private clearThemeConfig(): void {
-    localStorage.removeItem(this.themeStorageKey)
+    this.storage.remove(this.themeStorage)
   }
 
   private hasSavedThemeConfig(): boolean {
-    return !!this.deserializeThemeConfig(localStorage.getItem(this.themeStorageKey))
+    return !!this.deserializeThemeConfig(this.storage.get(this.themeStorage) ? JSON.stringify(this.storage.get(this.themeStorage)) : null)
   }
 
   private deserializeThemeConfig(raw: string | null): { theme: Theme | null, themeOwner: ThemeOwner, isEnabled: boolean } | Theme | null {
