@@ -4,27 +4,19 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { UiMoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
 import { CollectionCardComponent } from '../collection-card/collection-card.component';
+import { SelectionControlComponent } from '../../common/selection-control/selection-control.component';
 
 @Component({
   selector: 'm-collection-select-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, CollectionCardComponent],
+  imports: [ReactiveFormsModule, CollectionCardComponent, SelectionControlComponent],
   template: `
     <div class="grid grid-cols-[28px_1fr] gap-3 items-center w-full">
-      <label class="relative inline-flex h-5 w-5 items-center justify-center cursor-pointer select-none z-30">
-        <input #cb type="checkbox" class="peer sr-only"
-               [formControl]="control"
-               [indeterminate]="indeterminate()"
-               [attr.aria-checked]="indeterminate() ? 'mixed' : control.value"
-               [attr.aria-label]="_isSelectAll() ? 'Seleziona tutte le collezioni' : 'Seleziona collezione'"
-        />
-        <span class="block h-5 w-5 rounded-md border border-slate-300 bg-white dark:bg-slate-800
-                     transition-colors peer-checked:bg-emerald-600"></span>
-        <svg viewBox="0 0 14 14" fill="none"
-             class="pointer-events-none hidden peer-checked:block absolute left-[3px] top-1/2 -translate-y-1/2 size-3.5">
-          <path d="M3 8L6 11L11 3.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="stroke-white"/>
-        </svg>
-      </label>
+      <m-selection-control
+        [label]="_isSelectAll() ? 'Seleziona tutte le collezioni' : 'Seleziona collezione'"
+        [indeterminate]="indeterminate()"
+        [formControl]="control"
+      />
 
       <div class="min-w-0">
         @if (_isSelectAll()) {

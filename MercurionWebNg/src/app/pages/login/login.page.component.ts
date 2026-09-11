@@ -15,6 +15,7 @@ import { SessionSyncService } from '../../services/session-sync.service'
 import { TurnstileComponent } from '../../components/common/turnstile/turnstile.component'
 import { TextFieldComponent } from '../../components/common/text-field/text-field.component'
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component'
+import { SelectionControlComponent } from '../../components/common/selection-control/selection-control.component'
 
 import { Confirm_Login_FirstStepDTO } from '../../Models/confirm.models'
 import type { SessionDeviceInfo } from '@mercurion/rest-contracts'
@@ -36,7 +37,8 @@ import { AuthErrorService } from '../../services/auth-error.service'
     TurnstileComponent,
     TextFieldComponent,
     RouterLink,
-    ClassicSpinnerComponent
+    ClassicSpinnerComponent,
+    SelectionControlComponent
   ],
   template: `
 @if (!isLoggedIn() && !pageLoading()) {
@@ -139,21 +141,13 @@ import { AuthErrorService } from '../../services/auth-error.service'
           <a routerLink="/forgot-password" class="text-light-accent-primary-hc dark:text-dark-accent-primary hover:underline">Password dimenticata?</a>
           <a routerLink="/register" class="text-light-accent-primary-hc dark:text-dark-accent-primary hover:underline">Registrati</a>
         </div>
-        <div class="text-sm text-center text-gray-600 dark:text-gray-300 flex items-center justify-center gap-3">
-          <label class="group relative inline-flex w-11 shrink-0 rounded-full bg-gray-200 p-0.5 inset-ring inset-ring-gray-900/5 outline-offset-2 outline-dark-accent-primary transition-colors duration-200 ease-in-out has-[:checked]:bg-dark-accent-primary has-[:focus-visible]:outline-2 dark:bg-neutral-800 dark:inset-ring-white/10 dark:outline-dark-accent-primary/60 dark:has-[:checked]:bg-acceoutline-dark-accent-primary/60">
-            <input
-              type="checkbox"
-              formControlName="remember"
-              name="setting"
-              aria-label="Ricordami per 30 giorni"
-              role="switch"
-              [attr.aria-checked]="loginForm.value['remember']"
-              class="absolute inset-0 appearance-none cursor-pointer focus:outline-hidden"
-            />
-            <span class="size-5 rounded-full bg-white shadow-xs ring-1 ring-gray-900/5 transition-transform duration-200 ease-in-out group-has-[:checked]:translate-x-5"></span>
-          </label>
-          <p class="text-sm">Ricordami per 30 giorni</p>
-        </div>
+        <m-selection-control
+          class="text-sm text-gray-600 dark:text-gray-300"
+          label="Ricordami per 30 giorni"
+          name="setting"
+          mode="switch"
+          formControlName="remember"
+        />
         <div class="relative py-2">
           <div class="absolute inset-0 flex items-center"><div class="w-full border-t"></div></div>
           <div class="relative flex justify-center text-sm">
