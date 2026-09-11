@@ -105,7 +105,7 @@ import { ButtonComponent } from '../../common/button/button.component';
             (loadMore)="onScrollEnd()"
             (select)="onSelect($event)"
             (createNew)="onCreateNew($event)"
-            [attr.aria-label]="importFromChembl() ? 'Seleziona collezione per importazione ChEMBL' : 'Seleziona collezione per aggiungere molecole'"
+            [ariaLabel]="importFromChembl() ? 'Seleziona collezione per importazione ChEMBL' : 'Seleziona collezione per aggiungere molecole'"
           />
         </div>
       </div>
