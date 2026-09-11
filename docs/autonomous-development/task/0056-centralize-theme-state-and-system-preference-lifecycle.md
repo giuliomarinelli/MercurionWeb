@@ -1,6 +1,6 @@
 # 0056 - Centralize theme state and system-preference lifecycle
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -98,44 +98,62 @@ The current service is already the natural starting owner; refactor it rather th
 
 ## Execution notes
 
-> Current status (2026-09-11): PENDING by direct owner instruction because this
-> activity was not completed. Historical attempt/skip evidence remains below
-> for traceability and is not a terminal outcome.
+Completed on 2026-09-11 by direct owner instruction.
 
 ### Feature branch
-No task branch or worker was created because hard prerequisite
-`0054-establish-a-versioned-browser-storage-registry.md` (`FE-032`) is
-`BLOCKED`.
+`feature/FE-034`, based on
+`269d6324e9ffb28e898dbf267de9916ef48ede9d`.
 
 ### Preflight
-Not applicable; the task was skipped before implementation.
+Exact base-SHA GitHub Actions run `34587133033` (`CI`) succeeded for the
+supplied base SHA, with Windows, Ubuntu, and `Required gate` jobs green.
+Tox21, Nest, and Angular were started in the required order with live attached
+sessions; the nginx edge served the application shell after readiness. A fresh
+ordinary login through `http://localhost:8888/login` used Chrome DevTools MCP
+`fill_form` and reached the protected dashboard. All task-owned runtime
+processes were stopped before implementation.
 
 ### Preflight remediation
-_None._
+Runtime preflight required no remediation.
 
 ### Summary
-Skipped at the normal filename-order selection point. Direct terminal
-prerequisite `0054` (`FE-032`) is `BLOCKED`.
+Refactored `ThemeManagerService` into the sole theme state and lifecycle owner.
+It now persists typed light/dark/system choices through the versioned registry,
+migrates `tw_theme`, applies deterministic root `dark` and `data-theme` state,
+follows OS changes only in system mode, converges cross-tab updates without
+write-back loops, and tracks both browser listeners through
+`BrowserResourceOwner` teardown.
 
 ### Task-specific validation performed
-No implementation or validation was performed.
+`npm run test:ci --workspace mercurion_web_ng`: 373 Angular specs passed.
+`npm run typecheck --workspace mercurion_web_ng`: passed.
+`npm run lint --workspace mercurion_web_ng`: 0 errors; existing warnings only.
+`git diff --check`: passed. Focused tests cover first load, saved choices,
+system changes, explicit-mode isolation, cross-tab convergence,
+legacy/corrupt storage, and listener cleanup.
 
 ### Full pre-merge CI-parity validation
-Not applicable; no feature branch was created.
+Complete clean-install and aggregate validation remain assigned to GitHub
+Actions for the pushed feature SHA; local `npm ci` and `npm run ci:check` were
+not run.
 
 ### Browser validation performed
-Not applicable; the task was skipped before implementation.
+Through `http://localhost:8888`, light, dark, and system commands updated the
+rendered UI and root state. System mode changed from dark to light after
+`prefers-color-scheme: light` emulation. Explicit dark mode ignored that OS
+change and remained dark after reload. All task-owned runtime processes were
+stopped after validation.
 
 ### Commits
-This task metadata was updated in the aggregate dependency-skip commit on
-`develop`.
+`a093bd400ff036f40aa2b5dcb8cc3662ffdc42d4` —
+`Centralize theme preference lifecycle`.
 
 ### Merge / CI
-No feature merge; skip metadata CI is required before continuing.
+Feature branch publication and exact feature-SHA CI observation are owned by
+the coordinator after this worker result.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-No implementation blocker. Re-enable only after the hard dependency chain is
-deliberately resolved in a new authorized session.
+_None._
