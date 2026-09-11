@@ -5,8 +5,16 @@ import { DomainInvalidationService } from '../../../services/domain-invalidation
 import { Component, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ClassicSpinnerComponent } from '../../common/classic-spinner/classic-spinner.component';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
-import { combineLatest, EMPTY, Observable, of, Subscription, switchMap, tap, finalize, filter, pipe, catchError, throwError, take, mergeMap } from 'rxjs';
+import { combineLatest, EMPTY, Observable, of, Subscription, switchMap, tap, finalize, filter, catchError } from 'rxjs';
 import { SensitiveDataChangeFacade } from './sensitive-data-change-facade.service';
+import {
+  SensitiveBackupCodesUseCase,
+  SensitiveEmailUseCase,
+  SensitiveMfaUseCase,
+  SensitivePasswordUseCase,
+  SensitivePhoneUseCase,
+  cancelSensitiveDataUseCases,
+} from './sensitive-data-change.use-cases';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ToastService } from '../../../services/toast.service';
 import { FormControl, FormGroup, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -19,7 +27,6 @@ import { FloatingInputComponent } from "../../common/floating-input/floating-inp
 import { Router, RouterLink } from '@angular/router';
 import { PmSelectComponent } from '../../common/pm-select/pm-select.component';
 import { PmOption } from '../../../Models/pm-option.model';
-import { CopyService } from '../../../services/copy.service';
 import { CopyUiService } from '../../../services/copy-ui.service';
 
 
@@ -35,6 +42,28 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     FloatingInputComponent,
     RouterLink,
     PmSelectComponent
+  ],
+  providers: [
+    {
+      provide: SensitiveEmailUseCase,
+      useFactory: () => new SensitiveEmailUseCase(inject(SensitiveDataChangeFacade)),
+    },
+    {
+      provide: SensitivePhoneUseCase,
+      useFactory: () => new SensitivePhoneUseCase(inject(SensitiveDataChangeFacade)),
+    },
+    {
+      provide: SensitivePasswordUseCase,
+      useFactory: () => new SensitivePasswordUseCase(inject(SensitiveDataChangeFacade)),
+    },
+    {
+      provide: SensitiveMfaUseCase,
+      useFactory: () => new SensitiveMfaUseCase(inject(SensitiveDataChangeFacade)),
+    },
+    {
+      provide: SensitiveBackupCodesUseCase,
+      useFactory: () => new SensitiveBackupCodesUseCase(inject(SensitiveDataChangeFacade)),
+    },
   ],
   template: `
 
@@ -953,6 +982,11 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
   private readonly countryService = inject(CountryService)
   private readonly router = inject(Router)
   private readonly copyUiService = inject(CopyUiService)
+  private readonly emailUseCase = inject(SensitiveEmailUseCase)
+  private readonly phoneUseCase = inject(SensitivePhoneUseCase)
+  private readonly passwordUseCase = inject(SensitivePasswordUseCase)
+  private readonly mfaUseCase = inject(SensitiveMfaUseCase)
+  private readonly backupCodesUseCase = inject(SensitiveBackupCodesUseCase)
 
   emailCtrl!: FormControl<string>
   phoneForm!: FormGroup
@@ -1094,9 +1128,11 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
       tap((res) => {
         switch (this.innerScope()) {
           case 'ConfigMfa':
-            const [mfaStrategies, remainingBackupCodes] = res as [MfaStrategy[], number | null]
-            this.enabledMfaStrategies.set((mfaStrategies) ?? [])
-            this.remainingBackupCodes.set(remainingBackupCodes ?? -1)
+            {
+              const [mfaStrategies, remainingBackupCodes] = res as [MfaStrategy[], number | null]
+              this.enabledMfaStrategies.set((mfaStrategies) ?? [])
+              this.remainingBackupCodes.set(remainingBackupCodes ?? -1)
+            }
             break
           case 'EnableMfa':
           case 'ChangeEmail':
@@ -1119,7 +1155,7 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
       }),
       switchMap(() => {
         if (this.innerScope() === 'RemovePhone' && this.deletePhoneStep() === 'OTP_VERIFICATION') {
-          return this.accountService.deletePhoneFirstStep().pipe(
+          return this.phoneUseCase.requestRemoval().pipe(
             catchError((e: HttpErrorResponse) => {
               this.serverError.set(e.status)
               this.deletePhoneStep.set('OK_OR_ERROR')
@@ -1154,6 +1190,13 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    cancelSensitiveDataUseCases({
+      email: this.emailUseCase,
+      phone: this.phoneUseCase,
+      password: this.passwordUseCase,
+      mfa: this.mfaUseCase,
+      backupCodes: this.backupCodesUseCase,
+    })
     this.fetchSub?.unsubscribe()
     this.enMfaSub?.unsubscribe()
     this.disMfaSub?.unsubscribe()
@@ -1213,9 +1256,11 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
     })
 
     const IT = arr.find((el) => el.iso2 === 'IT')
-    const i = arr.indexOf(IT!)
-    arr.splice(i, 1)
-    arr.unshift(IT!)
+    if (IT) {
+      const i = arr.indexOf(IT)
+      arr.splice(i, 1)
+      arr.unshift(IT)
+    }
 
     return arr.map(item => ({
       label: `${item.iso2} ${item.phonecode}`,
@@ -1228,7 +1273,7 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
 
   handleEnableMfa(s: MfaStrategy): void {
     this.loading.set(true)
-    this.enMfaSub = this.accountService.enableMfaFirstStep(s).pipe(
+    this.enMfaSub = this.mfaUseCase.enableFirstStep(s).pipe(
       tap(() => {
         this.serverError.set(0)
         this.otpCtrl.setValue('')
@@ -1262,7 +1307,7 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
 
   handleDisableMfa(s: MfaStrategy): void {
     this.loading.set(true)
-    this.disMfaSub = this.accountService.disableMfaFirstStep(s).pipe(
+    this.disMfaSub = this.mfaUseCase.disableFirstStep(s).pipe(
       tap(() => {
         this.serverError.set(0)
         this.otpCtrl.setValue('')
@@ -1366,10 +1411,10 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
       return
     }
     this.loading.set(true)
-    this.enMfaTotpSub = this.accountService.enableMfaSecondStep(s, this.otpCtrl.value, this.secureToken()).pipe(
+    this.enMfaTotpSub = this.mfaUseCase.enableSecondStep(s, this.otpCtrl.value, this.secureToken()).pipe(
       switchMap(() => {
         if (this.enabledMfaStrategies().length === 0) {
-          return this.accountService.getBackupCodes()
+          return this.backupCodesUseCase.regenerate()
         }
         return of(null)
       }),
@@ -1398,7 +1443,7 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
       return
     }
     this.loading.set(true)
-    this.disMfaTotpSub = this.accountService.disableMfaSecondStep(s, this.otpCtrl.value, this.secureToken()).pipe(
+    this.disMfaTotpSub = this.mfaUseCase.disableSecondStep(s, this.otpCtrl.value, this.secureToken()).pipe(
       tap(() => {
         this.serverError.set(0)
         this.otpCtrl.setValue('')
@@ -1421,21 +1466,10 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
     this.otpCtrl.updateValueAndValidity()
     this.emailCtrl.markAsTouched()
     if (this.emailCtrl.valid) {
-      this.sendNewEmailSub = this.accountService.changeEmailFirstStep(this.emailCtrl.value).pipe(
+      this.sendNewEmailSub = this.emailUseCase.requestChange(this.emailCtrl.value).pipe(
         tap(() => {
           this.serverError.set(0)
           this.otpCtrl.setValue('')
-        }),
-        catchError((e: HttpErrorResponse) => {
-          return this.accountService.maskEmail(this.emailCtrl.value).pipe(
-            take(1),
-            mergeMap((maskedEmail) =>
-              throwError(() => ({
-                ...e,
-                obscuredEmail: maskedEmail
-              }))
-            )
-          )
         }),
         finalize(() => this.loading.set(false))
       ).subscribe({
@@ -1458,7 +1492,7 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
     this.otpCtrl.markAllAsTouched()
     this.otpCtrl.updateValueAndValidity()
     if (this.otpCtrl.valid && this.secureToken()) {
-      this.verifyNewEmailSub = this.accountService.changeEmailSecondStep(this.otpCtrl.value, this.secureToken()).pipe(
+      this.verifyNewEmailSub = this.emailUseCase.confirmChange(this.otpCtrl.value, this.secureToken()).pipe(
         tap(() => {
           this.serverError.set(0)
           this.otpCtrl.setValue('')
@@ -1481,7 +1515,7 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
     if (this.phoneForm.valid) {
       this.loading.set(true)
       const prefix = this.phonePrefixes().find((pr) => pr.id === this.phoneForm.controls['prefix'].value)!
-      this.sendNewPhoneSub = this.accountService.changePhoneFirstStep(
+      this.sendNewPhoneSub = this.phoneUseCase.requestChange(
         prefix.phonecode, this.phoneForm.controls['phone'].value
       ).pipe(
         finalize(() => this.loading.set(false))
@@ -1505,7 +1539,7 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
     this.otpCtrl.updateValueAndValidity()
     this.loading.set(true)
     if (this.otpCtrl.valid) {
-      this.delPhoneSub = this.accountService.deletePhoneSecondStep(this.otpCtrl.value, this.secureToken()).pipe(
+      this.delPhoneSub = this.phoneUseCase.confirmRemoval(this.otpCtrl.value, this.secureToken()).pipe(
         finalize(() => queueMicrotask(() => {
           this.deletePhoneStep.set('OK_OR_ERROR')
           this.loading.set(false)
@@ -1522,7 +1556,7 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
     this.otpCtrl.markAsTouched()
     this.loading.set(true)
     if (this.otpCtrl.valid) {
-      this.verifyNewPhoneSub = this.accountService.changePhoneSecondStep(this.otpCtrl.value, this.secureToken()).pipe(
+      this.verifyNewPhoneSub = this.phoneUseCase.confirmChange(this.otpCtrl.value, this.secureToken()).pipe(
         finalize(() => queueMicrotask(() => {
           this.loading.set(false)
           this.changeOrAddPhoneStep.set('OK_OR_ERROR')
@@ -1543,7 +1577,7 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
         oldPassword: this.passwordForm.controls['oldPassword'].value,
         newPassword: this.passwordForm.controls['password'].value
       }
-      this.chPwdSub = this.accountService.changePassword(dto).pipe(
+      this.chPwdSub = this.passwordUseCase.change(dto).pipe(
         finalize(() => queueMicrotask(() => {
           this.loading.set(false)
           this.changePasswordStep.set('OK_OR_ERROR')
@@ -1575,7 +1609,8 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
         successContext: 'success',
         errorContext: 'error',
         durationMs: 2200,
-        forceToast: false })
+        forceToast: false
+      })
 
   }
 
