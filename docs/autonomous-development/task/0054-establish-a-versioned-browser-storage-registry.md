@@ -157,14 +157,13 @@ registry tests without bootstrap exceptions. No token or password was recorded.
 ### Commits
 `f5bb0139` — feature implementation and registry integration.
 `73c72f3d` — registry tests, execution evidence and header correction.
-Repair commit pending push: guards external auth convergence after the first
-exact-SHA CI failure.
+`8467dd84` — narrow CI repair guarding external auth convergence and retaining
+the legacy login marker until the owning auth flow writes the namespaced key.
 
 ### Merge / CI
-Feature SHA `73c72f3dfe9f74bb9cf7806ddebccc6c107c277b` is pushed; its exact
-Actions run `34585390894` failed on the repository-controlled auth-state
-assertion. The narrow repair is locally validated and will be pushed as the
-next feature SHA for the configured repair loop.
+The failed run `34585390894` is preserved as the first repair diagnostic.
+Final feature SHA `8467dd846a5a75e67d54a4db2bb1cb0be154a3ed` is pushed for the
+configured exact-SHA repair validation.
 
 ### Rollback
 _Not applicable._
