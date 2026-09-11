@@ -28,6 +28,7 @@ import { Router, RouterLink } from '@angular/router';
 import { PmSelectComponent } from '../../common/pm-select/pm-select.component';
 import { PmOption } from '../../../Models/pm-option.model';
 import { CopyUiService } from '../../../services/copy-ui.service';
+import { IconButtonComponent } from '../../common/icon-button/icon-button.component';
 
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -41,7 +42,8 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     MfaStrategyCardComponent,
     FloatingInputComponent,
     RouterLink,
-    PmSelectComponent
+    PmSelectComponent,
+    IconButtonComponent
   ],
   providers: [
     {
@@ -106,16 +108,13 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
             }
         }
       </h2>
-      <button
-        class="action-card-close-btn"
-        (click)="close()"
-        aria-label="Chiudi pannello modifica dati sensibili"
+      <m-icon-button
+        size="sm"
+        icon="close"
+        ariaLabel="Chiudi pannello modifica dati sensibili"
+        (pressed)="close()"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="shrink-0 fill-current w-5 h-auto">
-          <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-          <path d="M182.9 137.4L160.3 114.7L115 160L137.6 182.6L275 320L137.6 457.4L115 480L160.3 525.3L182.9 502.6L320.3 365.3L457.6 502.6L480.3 525.3L525.5 480L502.9 457.4L365.5 320L502.9 182.6L525.5 160L480.3 114.7L457.6 137.4L320.3 274.7L182.9 137.4z"/>
-        </svg>
-      </button>
+      </m-icon-button>
     </div>
     <!-- Body -->
     <div class="action-card-body">
@@ -248,11 +247,11 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                   <div class="relative -top-6">
                     <h4 class="flex items-center gap-4 my-3 pt-6 font-semibold justify-center">
                       <span class="text-center">Codici di backup</span>
-                      <button
+                      <m-icon-button
                        type="button"
                        class="relative p-1.5 rounded-md hover:bg-slate-200 dark:hover:bg-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary transition-colors duration-150"
-                       title="Copia."
-                       (click)="copy('BackupCodes')"
+                       ariaLabel="Copia i codici di backup"
+                       (pressed)="copy('BackupCodes')"
                      >
                        <svg
                          class="shrink-0 size-5 text-slate-600 dark:text-slate-300"
@@ -265,7 +264,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                            <path
                              d="M8 6a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2V6z" />
                        </svg>
-                     </button>
+                     </m-icon-button>
                     </h4>
                     <p class="text-sm text-center mb-6 text-[#374151] dark:text-dark-on-surface-secondary">Copia questi codici in un password manager o stampali e custodiscili in un posto sicuro. Ti permetteranno di accedere nel caso in cui perdessi l'accesso al tuo dispositivo.</p>
                     <div class="flex flex-col sm:flex-row sm:flex-wrap justify-center items-center gap-3 sm:gap-4 text-center sm:text-left">
@@ -290,11 +289,11 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
             <img class="w-52 mt-5 mx-auto rounded-lg border border-slate-300 dark:border-dark-border/70" [src]="qrCode()" alt="QR Code">
             <div class="mt-4 flex justify-center items-center gap-4">
               <p class="font-bold tracking-[0.08em] text-light-on-surface-main dark:text-dark-on-surface-main">{{appSecret()}}</p>
-              <button
+              <m-icon-button
                 type="button"
                 class="relative p-1.5 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary transition-colors duration-150"
-                title="Copia."
-                (click)="copy('AppSecret')"
+                ariaLabel="Copia il segreto dell'app"
+                (pressed)="copy('AppSecret')"
               >
                 <svg
                   class="shrink-0 size-7 text-slate-600 dark:text-slate-300"
@@ -307,7 +306,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                     <path
                       d="M8 6a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2V6z" />
                 </svg>
-              </button>
+              </m-icon-button>
             </div>
           } @else if (disableMfaStep() === 'OTP_VERIFICATION') {
             <div class="px-5 sm:px-6 py-4 border border-amber-200 dark:border-dark-border bg-yellow-50 dark:bg-slate-700 flex gap-4 sm:gap-6 items-center rounded-lg">

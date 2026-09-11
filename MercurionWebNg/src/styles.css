@@ -537,10 +537,6 @@ html {
     padding-bottom: 0.5rem;
   }
 
-  .action-card-close-btn {
-    @apply inline-flex items-center justify-center size-8 rounded-full text-slate-500 dark:text-dark-on-surface-secondary hover:text-light-accent-primary-hc hover:bg-slate-100 dark:hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-dark-surface-main transition-colors duration-200;
-  }
-
   /* Responsive typography inside action overlays */
   .action-card h1,
   .action-card h2 {

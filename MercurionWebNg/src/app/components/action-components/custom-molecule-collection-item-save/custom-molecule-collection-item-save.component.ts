@@ -12,11 +12,12 @@ import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/
 import { FormsModule } from '@angular/forms';
 import { MoleculeProperties } from '../../../Models/graphql/molecule-properties.model';
 import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.models';
+import { IconButtonComponent } from '../../common/icon-button/icon-button.component';
 
 @Component({
   selector: 'm-custom-molecule-collection-item-save',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgClass, ComboSelectComponent, FormsModule],
+  imports: [NgClass, ComboSelectComponent, FormsModule, IconButtonComponent],
   template: `
 
     <div class="flex justify-center items-start md:items-center min-h-screen px-2 sm:px-4 pt-1 md:pt-6 m-overlay-screen">
@@ -34,18 +35,12 @@ import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.model
           >
             Salva molecola
           </h2>
-          <button
-            type="button"
-            class="action-card-close-btn"
-            (click)="close()"
-            aria-label="Chiudi pannello salva molecola"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-5 h-auto">
-              <path
-                d="M182.9 137.4L160.3 114.7L115 160L137.6 182.6L275 320L137.6 457.4L115 480L160.3 525.3L182.9 502.6L320.3 365.3L457.6 502.6L480.3 525.3L525.5 480L502.9 457.4L365.5 320L502.9 182.6L525.5 160L480.3 114.7L457.6 137.4L320.3 274.7L182.9 137.4z"
-              />
-            </svg>
-          </button>
+          <m-icon-button
+            size="sm"
+            icon="close"
+            ariaLabel="Chiudi pannello salva molecola"
+            (pressed)="close()"
+          />
         </div>
 
         <!-- Body -->

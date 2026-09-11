@@ -13,6 +13,7 @@ import { PmSelectComponent } from '../../common/pm-select/pm-select.component';
 import { PmOption } from '../../../Models/pm-option.model';
 import { ProfileRegistryEditContextService } from '../../../services/context/action-context/profile-registry-edit-context.service';
 import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
+import { IconButtonComponent } from '../../common/icon-button/icon-button.component';
 
 type RegistryFormValue = {
   firstName: string
@@ -28,7 +29,8 @@ type RegistryFormValue = {
     ClassicSpinnerComponent,
     ReactiveFormsModule,
     FloatingInputComponent,
-    PmSelectComponent
+    PmSelectComponent,
+    IconButtonComponent
   ],
   template: `
 
@@ -46,16 +48,12 @@ type RegistryFormValue = {
       >
         Modifica l'anagrafica del profilo
       </h2>
-      <button
-        type="button"
-        class="action-card-close-btn"
-        (click)="close()"
-        aria-label="Chiudi pannello anagrafica profilo"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-5 h-auto">
-          <path d="M182.9 137.4L160.3 114.7L115 160L137.6 182.6L275 320L137.6 457.4L115 480L160.3 525.3L182.9 502.6L320.3 365.3L457.6 502.6L480.3 525.3L525.5 480L502.9 457.4L365.5 320L502.9 182.6L525.5 160L480.3 114.7L457.6 137.4L320.3 274.7L182.9 137.4z"/>
-        </svg>
-      </button>
+      <m-icon-button
+        size="sm"
+        icon="close"
+        ariaLabel="Chiudi pannello anagrafica profilo"
+        (pressed)="close()"
+      />
     </div>
 
     <div class="action-card-body bg-light-surface-secondary dark:bg-dark-surface-secondary">
@@ -400,4 +398,3 @@ export class EssentialProfileRegistryEditComponent implements OnInit, OnDestroy 
   }
 
 }
-
