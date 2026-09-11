@@ -88,12 +88,16 @@ Prima di incollare il prompt esegui:
 /model
 /permissions show
 /mcp list
+/skills list
 /keep-alive on
 ```
 
 Conferma coordinator attivo, Auto attivo, permessi repository/rete disponibili,
 Chrome DevTools MCP elencato e keep-alive abilitato. Il browser deve usare solo
 il profilo dedicato non-production, mai Incognito, Guest o il profilo personale.
+Conferma anche la discovery delle cinque skill di progetto `chrome-devtools`,
+`mercurion-browser-runtime`, `mercurion-ci-lifecycle`,
+`mercurion-outcome-classification` e `mercurion-task-execution`.
 Per i task che richiedono l'area riservata, ogni worker deve leggere le
 credenziali condivise dal file git-ignored
 `MercurionWebNode/env/.env.development`, eseguire un login ordinario da
@@ -111,6 +115,14 @@ Read the complete active configuration, AGENTS.md,
 docs/autonomous-development/PROTOCOL.md,
 docs/autonomous-development/RUNTIME.md, and
 docs/autonomous-development/CI-BASELINE.md before any repository write.
+
+Invoke the repository project skills required by the agent profiles. The
+coordinator must invoke `mercurion-ci-lifecycle` and
+`mercurion-outcome-classification` before the first startup mutation. Every
+normal worker must invoke `mercurion-task-execution` and
+`mercurion-outcome-classification`, adding `mercurion-browser-runtime` and
+`chrome-devtools` whenever browser/runtime evidence is required. The nonce
+capability probe remains tool-free.
 
 Never run `npm ci` or `npm run ci:check` locally. Use the required exact-SHA
 GitHub Actions runs for clean-install and complete-gate evidence, and run only
@@ -154,15 +166,15 @@ hard dependencies, cycles, stale terminal skips, or planner errors.
 The configured `workload.tasks` list is empty, so the complete Series is in
 scope: there is no autonomous allowlist. Select the earliest filename-ordered
 READY task from the authoritative planner output; the expected first READY task
-is 0054. Continue serially through eligible tasks until the soft deadline or
+is 0059. Continue serially through eligible tasks until the soft deadline or
 genuine workload exhaustion. No error, denial, branch collision, CI-observation
 failure, baseline incident, or unavailable capability may finalize the session
 early while configured pending work remains. Isolate one-task failures, skip a
 colliding branch for the current scheduling pass, and use
 `SESSION_RECOVERY_PENDING` for unsafe shared-state failures.
 
-Tasks through 0053 that are marked `DONE` are terminal; never select them again.
-Select task 0054 first, then continue with the next independent READY task from
+Tasks through 0058 that are marked `DONE` are terminal; never select them again.
+Select task 0059 first, then continue with the next independent READY task from
 each fresh planner snapshot. When a selected task requires authenticated browser evidence,
 proceed only after a fresh ordinary login with the shared real test account has
 established a protected server-accepted session. Otherwise apply
@@ -181,9 +193,17 @@ the same recipe and branch. Supply the exact failed SHA/run/job evidence,
 commit and push the narrow correction, and retry exact-SHA CI up to three
 times. Do not mark BLOCKED on the first actionable CI failure.
 
+The session configuration contains direct human authorization to resume tasks
+0087/NG-001, 0091/NG-005 and 0109/NG-023 from their exact preserved feature
+branches. For each, verify the configured local and remote SHA, dispatch the
+worker with `recovery_resume: true`, merge current green develop into the
+feature branch without rebase/history rewriting, preserve coherent prior work
+and finish the original recipe. The reset dependency skips 0088, 0106, 0110,
+0111 and 0112 are pending again; let normal planner dependencies make them
+READY after their recovered prerequisites become DONE.
+
 Do not mutate pull requests 25, 27, 28, 29, or 31. Do not resume, advance,
-rebase, merge, reset, or delete feature/SYS-020, feature/NG-023, or
-feature/NG-028. The prior UI-018 attempt is retained read-only on
+rebase, merge, reset, or delete feature/SYS-020 or feature/NG-028. The prior UI-018 attempt is retained read-only on
 archive/UI-018-attempt-2026-09-11. Apply task selection and dependency-status
 propagation to the complete Series strictly from the planner snapshot.
 

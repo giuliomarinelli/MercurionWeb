@@ -14,7 +14,15 @@ const paths = {
     coordinator: '.github/agents/development-session-coordinator.agent.md',
     worker: '.github/agents/development-task-worker.agent.md',
   },
+  skills: {
+    chrome: '.github/skills/chrome-devtools/SKILL.md',
+    runtime: '.github/skills/mercurion-browser-runtime/SKILL.md',
+    ci: '.github/skills/mercurion-ci-lifecycle/SKILL.md',
+    outcome: '.github/skills/mercurion-outcome-classification/SKILL.md',
+    task: '.github/skills/mercurion-task-execution/SKILL.md',
+  },
   mcp: '.github/mcp.json',
+  mcpLauncher: '.github/scripts/start-chrome-devtools-mcp.ps1',
   vscodeMcp: '.vscode/mcp.json',
   vscodeSettings: '.vscode/settings.json',
   historicalSession: 'docs/autonomous-development/session.overnight-2026-09-01.yaml',
@@ -36,15 +44,16 @@ const paths = {
 
 const expectedAgentTools = {
   coordinator:
-    'tools: ["execute", "read", "edit", "search", "web", "todo", "task", "task_complete"]',
+    'tools: ["execute", "read", "edit", "search", "web", "todo", "skill", "task", "task_complete"]',
   worker:
-    'tools: ["execute", "read", "edit", "search", "web", "todo", "chrome-devtools/*"]',
+    'tools: ["execute", "read", "edit", "search", "web", "todo", "skill", "chrome-devtools/*"]',
 };
 
 const controlPlaneFiles = [
   'AGENTS.md',
   paths.agents.coordinator,
   paths.agents.worker,
+  ...Object.values(paths.skills),
   'docs/autonomous-development/README.md',
   'docs/autonomous-development/CI-BASELINE.md',
   'docs/autonomous-development/PROTOCOL.md',
@@ -237,6 +246,37 @@ for (const [role, profile] of Object.entries({ coordinator, worker })) {
   }
 }
 
+const expectedSkills = {
+  chrome: 'chrome-devtools',
+  runtime: 'mercurion-browser-runtime',
+  ci: 'mercurion-ci-lifecycle',
+  outcome: 'mercurion-outcome-classification',
+  task: 'mercurion-task-execution',
+};
+for (const [key, expectedName] of Object.entries(expectedSkills)) {
+  const target = paths.skills[key];
+  const profile = frontmatter(target);
+  validateYamlStructure(`${target} frontmatter`, profile.yaml);
+  requireMatch(target, profile.yaml, new RegExp(`^name:\\s*${expectedName}\\s*$`, 'm'), 'skill frontmatter has the wrong name');
+  requireMatch(target, profile.yaml, /^description:\s*\S.+$/m, 'skill frontmatter requires description');
+  requireMatch(target, profile.yaml, /^user-invocable:\s*false\s*$/m, 'workflow skill must not be directly user-invocable');
+}
+requireMatch(paths.skills.chrome, read(paths.skills.chrome), /chrome-devtools-mcp-v1\.8\.0/, 'Chrome skill must retain pinned upstream provenance');
+requireMatch(paths.skills.chrome, read(paths.skills.chrome), /`evaluate_script`[\s\S]*must never read, inject, transfer, or expose credentials/, 'Chrome skill must forbid script-based credential handling');
+requireMatch(paths.skills.runtime, read(paths.skills.runtime), /Tox21[\s\S]*Nest[\s\S]*Angular/, 'runtime skill must retain canonical startup order');
+requireMatch(paths.skills.runtime, read(paths.skills.runtime), /two complete consecutive readiness rounds/i, 'runtime skill must require stable readiness');
+requireMatch(paths.skills.ci, read(paths.skills.ci), /final feature SHA[\s\S]*exact merge SHA/i, 'CI skill must retain exact-SHA lifecycle');
+requireMatch(paths.skills.outcome, read(paths.skills.outcome), /SESSION_RECOVERY_PENDING[\s\S]*BLOCKED[\s\S]*REVERTED/, 'outcome skill must distinguish transient and terminal states');
+requireMatch(paths.skills.task, read(paths.skills.task), /Never select another recipe/i, 'task skill must remain single-recipe scoped');
+requireMatch(paths.skills.task, read(paths.skills.task), /recovery_resume: true[\s\S]*without rebase or history rewriting/i, 'task skill must support authorized branch recovery');
+
+requireMatch(paths.agents.coordinator, coordinator.content, /invoke the project skills `mercurion-ci-lifecycle` and `mercurion-outcome-classification`/, 'coordinator must invoke its project skills');
+requireMatch(paths.agents.worker, worker.content, /invoke the project skills `mercurion-task-execution` and `mercurion-outcome-classification`/, 'worker must invoke its core project skills');
+requireMatch(paths.agents.worker, worker.content, /also invoke `mercurion-browser-runtime` and `chrome-devtools`/, 'worker must invoke browser skills conditionally');
+requireMatch(paths.agents.worker, worker.content, /Capability probe mode[\s\S]*do not read repository files, invoke tools/i, 'capability probe must remain skill-free');
+requireMatch(paths.agents.coordinator, coordinator.content, /authorized_recovery[\s\S]*preserved SHA[\s\S]*recovery_resume: true/, 'coordinator must resume only explicitly authorized preserved branches');
+requireMatch(paths.agents.worker, worker.content, /Authorized recovery-resume mode[\s\S]*`--no-ff --no-gpg-sign`; never rebase, reset, squash/, 'worker must reconcile preserved work without history rewriting');
+
 requireMatch(
   paths.agents.coordinator,
   coordinator.yaml,
@@ -342,7 +382,7 @@ requireMatch(
 requireMatch(
   paths.agents.coordinator,
   coordinator.content,
-  /SESSION_BRANCH_COLLISION_PAUSE[\s\S]*branch-collision exclusion set[\s\S]*continue with the next independent `READY` task/,
+  /SESSION_BRANCH_COLLISION_PAUSE[\s\S]*branch-collision[\s\S]*exclusion set[\s\S]*continue with the[\s\S]*next independent `READY` task/,
   'coordinator must isolate a branch collision and continue independent work',
 );
 requireMatch(
@@ -559,7 +599,7 @@ requireMatch(
 if (/--allow-all-paths/.test(launch)) {
   fail('docs/autonomous-development/LAUNCH.md', 'must not disable all path verification');
 }
-for (const command of ['/model', '/permissions show', '/mcp list', '/keep-alive on']) {
+for (const command of ['/model', '/permissions show', '/mcp list', '/skills list', '/keep-alive on']) {
   requireMatch(
     'docs/autonomous-development/LAUNCH.md',
     launch,
@@ -624,7 +664,8 @@ for (const [pattern, message] of [
   [/no\s+profile-persistence or pre-authenticated-state probe is a launch prerequisite/i, 'prepared launch must not depend on persisted profile authentication'],
   [/workload\.tasks` list is empty[\s\S]{0,120}complete Series is in\s*scope/i, 'prepared launch must select the complete Series'],
   [/there is no autonomous allowlist/i, 'prepared launch must explicitly disable workload restriction'],
-  [/expected first READY task[\s\S]{0,20}(?:is\s*)?0054/i, 'prepared launch must state the current expected first ready task'],
+  [/expected first READY task[\s\S]{0,20}(?:is\s*)?0059/i, 'prepared launch must state the current expected first ready task'],
+  [/0087\/NG-001[\s\S]*0091\/NG-005[\s\S]*0109\/NG-023[\s\S]*recovery_resume: true/i, 'prepared launch must authorize the exact recovery tasks'],
   [/Task `0041` \(`FE-019`\) is already integrated as `DONE`[\s\S]*must not attempt or re-enable it/i, 'prepared launch must retain completed FE-019'],
   [/env\/\.env\.development[\s\S]{0,260}ordinary login[\s\S]{0,260}server/i, 'prepared launch must require a fresh server-accepted real-account login'],
   [/Do[\s\S]{0,10}not bundle tasks/, 'prepared launch must prohibit multi-task bundles'],
@@ -649,7 +690,7 @@ const preparedSessionReference =
 if (preparedLaunch.split(preparedSessionReference).length - 1 !== 2) {
   fail(paths.preparedLaunch, 'must reference the active session exactly twice');
 }
-for (const command of ['/model', '/permissions show', '/mcp list', '/keep-alive on']) {
+for (const command of ['/model', '/permissions show', '/mcp list', '/skills list', '/keep-alive on']) {
   requireMatch(
     paths.preparedLaunch,
     preparedLaunch,
@@ -860,15 +901,17 @@ for (const [pattern, message] of [
   [/browser_and_allowlist_hardening_pull_request:\s*31/, 'prepared session must record PR #31 provenance'],
   [/name:\s*mercurion-code-red-0001-overweek-full-series-2026-09-20-v6/, 'prepared session must use a fresh session identity'],
   [/expected_task_count:\s*220/, 'prepared workload must contain 220 tasks'],
-  [/expected_current_done:\s*57/, 'prepared workload must record 57 DONE tasks'],
-  [/expected_current_blocked:\s*3/, 'prepared workload must record three retained blockers'],
-  [/expected_current_skipped_dependency:\s*13/, 'prepared workload must record 13 terminal skips'],
-  [/expected_current_pending:\s*147/, 'prepared workload must record 147 pending tasks'],
-  [/expected_first_ready_task:\s*"0054"/, 'prepared workload must start from task 0054'],
-  [/expected_planner_ready:\s*17/, 'prepared workload must record 17 ready tasks'],
-  [/expected_planner_waiting_dependency:\s*130/, 'prepared workload must record 130 waiting tasks'],
+  [/expected_current_done:\s*62/, 'prepared workload must record 62 DONE tasks'],
+  [/expected_current_blocked:\s*2/, 'prepared workload must record two retained blockers'],
+  [/expected_current_skipped_dependency:\s*11/, 'prepared workload must record 11 terminal skips'],
+  [/expected_current_pending:\s*145/, 'prepared workload must record 145 pending tasks'],
+  [/expected_first_ready_task:\s*"0059"/, 'prepared workload must start from task 0059'],
+  [/expected_planner_ready:\s*14/, 'prepared workload must record 14 ready tasks'],
+  [/expected_planner_waiting_dependency:\s*131/, 'prepared workload must record 131 waiting tasks'],
   [/tasks:\s*\[\]/, 'prepared workload must select the complete Series'],
-  [/expected_autonomous_pending:\s*147/, 'prepared workload must record all 147 pending tasks in scope'],
+  [/expected_autonomous_pending:\s*145/, 'prepared workload must record all 145 pending tasks in scope'],
+  [/authorized_recovery:[\s\S]*tasks:\s*\["0087", "0091", "0109"\][\s\S]*source_0087:\s*NG-001[\s\S]*source_0091:\s*NG-005[\s\S]*source_0109:\s*NG-023/, 'prepared workload must bind exact recovery task identities'],
+  [/reset_stale_skipped_dependency:[\s\S]*"0088"[\s\S]*"0106"[\s\S]*"0110"[\s\S]*"0111"[\s\S]*"0112"/, 'prepared workload must record reset stale skips'],
   [/expected_human_led_pending:\s*0/, 'prepared workload must not exclude pending tasks'],
   [/autonomous_execution_scope:\s*complete-series/, 'prepared workload must declare complete-Series execution'],
   [/dependency_planner:[\s\S]*output:\s*versioned-json/, 'prepared session must use deterministic planner output'],
@@ -1127,23 +1170,36 @@ if (mcp) {
   }
   const chrome = mcp.mcpServers?.['chrome-devtools'];
   const expectedArgs = [
-    '/c',
-    'npx',
-    '-y',
-    'chrome-devtools-mcp@1.8.0',
-    '--headless',
+    '-NoLogo',
+    '-NoProfile',
+    '-NonInteractive',
+    '-ExecutionPolicy',
+    'Bypass',
+    '-File',
+    '.github/scripts/start-chrome-devtools-mcp.ps1',
   ];
   if (
     !chrome ||
     chrome.type !== 'local' ||
-    chrome.command !== 'cmd' ||
+    chrome.command !== 'pwsh' ||
     JSON.stringify(chrome.args) !== JSON.stringify(expectedArgs)
   ) {
-    fail(paths.mcp, 'chrome-devtools must use the pinned Windows cmd /c npx command and arguments');
+    fail(paths.mcp, 'chrome-devtools must use the deterministic Windows lifecycle launcher');
   }
   if (chrome?.args?.includes('--isolated')) {
     fail(paths.mcp, 'autonomous Chrome must reuse its dedicated persistent profile');
   }
+}
+
+const mcpLauncher = read(paths.mcpLauncher);
+for (const [pattern, message] of [
+  [/chrome-devtools-mcp@1\.8\.0/, 'Chrome DevTools MCP launcher must pin version 1.8.0'],
+  [/--headless/, 'Chrome DevTools MCP launcher must remain headless'],
+  [/--user-data-dir=\$profilePath/, 'Chrome DevTools MCP launcher must select the dedicated persistent profile explicitly'],
+  [/Stop-DedicatedChrome[\s\S]*try[\s\S]*finally[\s\S]*Stop-DedicatedChrome/, 'Chrome DevTools MCP launcher must clean dedicated Chrome before and after each lease'],
+  [/IndexOf\(\$profilePath,[\s\S]*OrdinalIgnoreCase/, 'Chrome cleanup must be scoped to the exact dedicated profile'],
+]) {
+  requireMatch(paths.mcpLauncher, mcpLauncher, pattern, message);
 }
 
 for (const target of [paths.vscodeMcp, paths.vscodeSettings]) {

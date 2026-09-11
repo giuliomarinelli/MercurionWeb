@@ -95,6 +95,9 @@ Mark `BLOCKED` if a molecule variant's authoritative mapping/identity semantics 
   two consecutive complete `health=200 root=200` rounds. The persistent
   profile exposed the authenticated protected dashboard state (`Benvenuto
   Test`, molecule and collection counts), so no credentials were recorded.
+- Recovery resumed from preserved implementation SHA
+  `e58a7e048a5c44a7ff4b1db21bfd8a360228da1a`; current `develop` SHA was
+  `8e1871f52347895360416cc28a4b5c03e483239f`.
 
 ### Preflight remediation
 _None._
@@ -105,12 +108,9 @@ variant normalization, loading/error signals, similar-molecule loading, title
 composition, and typed save/delete/bind/touch commands. The page now consumes
 facade detail/loading/error/similar state and delegates user commands.
 
-The attempt is blocked because post-implementation browser validation could not
-complete: navigation from the representative system route to the representative
-ChEMBL UUID route timed out and the subsequent Chrome snapshot request timed
-out. The runtime itself was healthy and all three task-owned processes were
-stopped afterward. The failure prevents claiming the required representative
-system/ChEMBL/custom route and rapid-navigation evidence.
+Recovery revalidated the implementation after merging current `develop`, and
+completed the previously missing representative route and rapid-navigation
+browser evidence.
 
 ### Task-specific validation performed
 - `npm run typecheck --workspace mercurion_web_ng` — PASS.
@@ -121,34 +121,35 @@ system/ChEMBL/custom route and rapid-navigation evidence.
 - `npx eslint ...molecule-detail.facade.ts ...molecule-detail.page.component.ts`
   — unavailable because the root invocation does not locate the workspace
   ESLint configuration; no dependency installation was attempted.
-- Post-change runtime startup — Tox21/Nest/Angular all remained alive;
-  Nest compiled with 0 errors and Angular completed its dev build.
-- Post-change readiness — two consecutive `health=200 root=200` rounds.
-- Post-change browser — representative route navigation/snapshot timed out as
-  described above.
+- Post-merge runtime startup — Tox21/Nest/Angular all remained alive; Nest
+  compiled with 0 errors and Angular completed its dev build.
+- Post-merge readiness — two consecutive complete `health=200 root=200` rounds.
+- Post-merge browser — system, ChEMBL and custom detail routes rendered; rapid
+  navigation showed latest-wins detail state with no stale replacement,
+  title/breadcrumb updates, and no relevant console errors.
+- No local `npm ci` or `npm run ci:check` was run.
 
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Not applicable; the task was blocked before merge.
 
 ### Browser validation performed
-Preflight protected dashboard evidence was captured through
-`http://localhost:8888`. Required post-change detail-route evidence was not
-completed because Chrome DevTools MCP navigation/snapshot timed out. No
-production origin, dummy-auth route, clipboard, or DOM injection was used.
+Preflight protected dashboard evidence and post-implementation system, ChEMBL
+and custom detail-route evidence were captured through `http://localhost:8888`.
+Rapid route changes were exercised through the canonical edge; loading/content
+transitions, title/breadcrumb behavior, latest-wins rendering and console
+health were verified. No production origin, dummy-auth route, clipboard, or
+DOM injection was used.
 
 ### Commits
-Pending task diagnostic commit on `feature/NG-005`.
+Recovery merge and task completion commit are recorded below.
 
 ### Merge / CI
-No merge. The preserved feature branch must remain frozen pending a new
-human-authorized attempt after the browser/runtime timeout is diagnosed.
+Feature branch was recovered from the preserved implementation, merged with
+current `develop` using `--no-ff --no-gpg-sign`, and pushed after task
+validation.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-Diagnose and authorize a retry of the post-implementation Chrome DevTools MCP
-detail-route validation. The exact observed blocker was navigation timeout for
-`http://localhost:8888/molecules/detail/01a0903f-2cea-7000-b7cb-a3138940194a`
-followed by a snapshot timeout while the canonical runtime processes were
-healthy.
+_None._
