@@ -1,6 +1,6 @@
 import { Component, signal } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
-import { provideRouter, Router } from '@angular/router'
+import { NavigationCancel, NavigationEnd, NavigationError, NavigationStart, provideRouter, Router } from '@angular/router'
 import { AppShellFacade } from './app-shell.facade'
 import { AuthRedirectService } from './auth-redirect.service'
 import { AuthStateStore } from './auth-state.store'
@@ -34,6 +34,10 @@ describe('AppShellFacade', () => {
     TestBed.configureTestingModule({
       providers: [
         provideRouter([{
+          path: '',
+          component: TestRouteComponent,
+          data: { routePolicy: { access: 'authenticated', shell: 'standard' } }
+        }, {
           path: 'welcome',
           component: TestRouteComponent,
           data: { routePolicy: { access: 'logged-out-only', shell: 'welcome' } }
@@ -61,5 +65,31 @@ describe('AppShellFacade', () => {
     await router.navigateByUrl('/welcome')
 
     expect(facade.routePolicy()).toEqual({ access: 'logged-out-only', shell: 'welcome' })
+  })
+
+  it('allows a repeated target after the prior transaction reaches a terminal event', () => {
+    const facade = TestBed.inject(AppShellFacade) as any
+
+    facade.programmaticNavigation = { token: 1, target: '/welcome' }
+    facade.onProgrammaticNavigationEvent(new NavigationStart(1, '/welcome'))
+    facade.onProgrammaticNavigationEvent(new NavigationEnd(1, '/welcome', '/welcome'))
+    expect(facade.programmaticNavigation).toBeUndefined()
+
+    facade.programmaticNavigation = { token: 2, target: '/welcome' }
+    expect(facade.programmaticNavigation.token).toBe(2)
+  })
+
+  it('releases a transaction on cancellation, error, and superseding intent', () => {
+    const facade = TestBed.inject(AppShellFacade) as any
+
+    facade.programmaticNavigation = { token: 2, target: '/welcome' }
+    facade.onProgrammaticNavigationEvent(new NavigationStart(2, '/welcome'))
+    facade.onProgrammaticNavigationEvent(new NavigationCancel(3, '/dashboard', 'superseded'))
+    expect(facade.programmaticNavigation).toBeUndefined()
+
+    facade.programmaticNavigation = { token: 3, target: '/welcome' }
+    facade.onProgrammaticNavigationEvent(new NavigationStart(3, '/welcome'))
+    facade.onProgrammaticNavigationEvent(new NavigationError(3, '/welcome', new Error('test')))
+    expect(facade.programmaticNavigation).toBeUndefined()
   })
 })
