@@ -1,7 +1,7 @@
 # 0087 - Decompose sensitive-data change into independent use cases
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -85,38 +85,68 @@ Mark `BLOCKED` if a workflow's required security semantics are ambiguous or cann
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/NG-001`
 
 ### Preflight
-_Not started._
+- Verified clean `feature/NG-001` at base `e8029fe85ee0bc3caf57fc5d73042aec10a7b425`.
+- Exact base Actions run `34592437741` was successful for both
+  `Quality (ubuntu-latest)`, `Quality (windows-latest)`, and `Required gate`.
+- Started the canonical Tox21, Nest, and Angular processes in the required
+  order for the capability probe and again for post-change browser validation.
+  Both readiness rounds returned HTTP 200 for `/health` and `/`.
+- Fresh ordinary login through `/login` with the local test account was
+  accepted and the protected dashboard/settings state was observable.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-Not attempted because the required FE auth/action-session prerequisite work
-through task 0058 is terminally non-`DONE`.
+Added a typed sensitive-data use-case model, a narrow account-command facade,
+an explicit use-case selection shell, and composition boundaries for email,
+phone, password, MFA enable/configuration, and backup-code workflows. The
+existing workflow was moved behind the child boundary and its account commands
+were routed through the facade without changing security endpoints or
+confirmation requirements.
+
+The task remains `BLOCKED`: the moved workflow implementation is still
+monolithic internally, so the acceptance requirement for independently
+testable workflow implementations and focused success/error/cancel tests for
+every use case was not restored within this attempt. The partial change is
+preserved for a follow-up implementation rather than being reported as
+complete.
 
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+- `npm run typecheck --workspace mercurion_web_ng` — passed.
+- `npm run test:ci --workspace mercurion_web_ng` — 376 tests passed.
+- Browser: fresh login, protected dashboard, Settings > Security, password
+  validation error, cancel/reopen fresh state, and MFA configuration dialog
+  were exercised through `http://localhost:8888`; no relevant console error
+  was observed in the exercised flow.
 
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Not run locally; `npm ci` and `npm run ci:check` are GitHub Actions-only.
 
 ### Browser validation performed
-Not applicable; the task was not attempted.
+Canonical runtime processes were started and stopped cleanly for both
+pre-implementation capability validation and post-implementation validation.
+The protected server accepted the ordinary test-account login. Sensitive
+email, phone, password, MFA configuration, and backup-code entry points were
+reachable; only safe validation/cancel paths were used.
 
 ### Commits
-Pending metadata commit on `develop`.
+Pending feature commit on `feature/NG-001`.
 
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+No merge. The preserved feature SHA requires exact-SHA CI if the partial
+implementation is resumed.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-The required FE auth/action-session work includes FE-004 (task 0026),
-`BLOCKED` because mandatory authenticated browser validation was unavailable,
-and its terminal dependent tasks. FE-004 requires a test-safe canonical local
-auth/backend runtime and approved deterministic test state in a new session.
+Continue the decomposition inside
+`sensitive-data-change-workflow.component.ts`: extract each workflow's form,
+transport, pending/error state, success mapping, and focused success/error/
+cancel tests into independently testable use-case implementations. The
+current partial shell/facade boundary is safe and validated but does not yet
+meet that architectural acceptance criterion.
