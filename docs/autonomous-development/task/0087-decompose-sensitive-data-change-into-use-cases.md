@@ -1,7 +1,7 @@
 # 0087 - Decompose sensitive-data change into independent use cases
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -85,38 +85,58 @@ Mark `BLOCKED` if a workflow's required security semantics are ambiguous or cann
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/NG-001`
 
 ### Preflight
-_Not started._
+- Verified clean `feature/NG-001` at base
+  `e8029fe85ee0bc3caf57fc5d73042aec10a7b425`.
+- Exact base Actions run `34592437741` succeeded for both platform quality
+  jobs and `Required gate`.
+- The canonical Tox21, Nest, and Angular processes started in the required
+  order; two readiness rounds returned HTTP 200 for `/health` and `/`.
+- Fresh ordinary login through `/login` was accepted and protected
+  dashboard/settings state was observable.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-Not attempted because the required FE auth/action-session prerequisite work
-through task 0058 is terminally non-`DONE`.
+Added a typed sensitive-data use-case model, a narrow account-command facade,
+an explicit use-case selection shell, and composition boundaries for email,
+phone, password, MFA enable/configuration, and backup-code workflows.
+
+The task remains `BLOCKED`: the moved workflow implementation is still
+monolithic internally, so independently testable workflow implementations and
+focused success/error/cancel tests for every use case were not restored within
+this attempt. The partial implementation is preserved on the feature branch.
 
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+- `npm run typecheck --workspace mercurion_web_ng` — passed.
+- `npm run test:ci --workspace mercurion_web_ng` — 376 tests passed.
+- Browser validation covered fresh login, protected dashboard, Settings >
+  Security, password validation error, cancel/reopen fresh state, and MFA
+  configuration through `http://localhost:8888`.
 
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Not run locally; `npm ci` and `npm run ci:check` are GitHub Actions-only.
 
 ### Browser validation performed
-Not applicable; the task was not attempted.
+Canonical runtime processes were started and stopped cleanly for capability
+and post-change validation. Protected login was accepted; safe sensitive-data
+entry points were reachable without exposing credentials or weakening
+security flows.
 
 ### Commits
-Pending metadata commit on `develop`.
+Partial implementation and status are preserved on `feature/NG-001`.
 
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+No feature merge. The preserved feature branch remains frozen for follow-up.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-The required FE auth/action-session work includes FE-004 (task 0026),
-`BLOCKED` because mandatory authenticated browser validation was unavailable,
-and its terminal dependent tasks. FE-004 requires a test-safe canonical local
-auth/backend runtime and approved deterministic test state in a new session.
+Continue the decomposition inside
+`sensitive-data-change-workflow.component.ts`: extract each workflow's form,
+transport, pending/error state, success mapping, and focused success/error/
+cancel tests into independently testable use-case implementations.
