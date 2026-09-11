@@ -170,8 +170,11 @@ autonomous workers. Exact feature-SHA clean-install and aggregate CI evidence
 is owned by GitHub Actions after the feature commit is pushed.
 
 ### Commits
-Recorded after implementation and validation with `git commit --no-gpg-sign`;
-the final SHA is reported by the worker after push.
+- `b88b1499` (`feat(UI-006): add accessible select core and adapters`) contains
+  the implementation, focused tests, consumer migrations, and terminal `DONE`
+  state.
+- A follow-up execution-notes commit records this final validation and commit
+  identity.
 
 ### Merge / CI
 No merge or protected-branch operation was performed. The coordinator must
