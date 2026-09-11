@@ -38,7 +38,7 @@ in `CI-BASELINE.md` is green on the exact `develop` SHA.
    copilot --agent development-session-coordinator --allow-all-tools --allow-all-urls --add-dir ../MercurionTox21 --reasoning-effort high --autopilot
    ```
 
-9. In the fresh parent session, use `/model` to verify **GPT-5.6 Sol** and **High** reasoning, `/permissions show` to verify the launch grants, `/mcp list` to verify `chrome-devtools` is connected, and `/keep-alive on` to prevent machine sleep. The agent profiles inherit the parent model/reasoning and use explicit tool lists rather than inheriting every unrelated user-scoped tool.
+9. In the fresh parent session, use `/model` to verify **GPT-5.6 Sol** and **High** reasoning, `/permissions show` to verify the launch grants, `/mcp list` to verify `chrome-devtools` is connected, `/skills list` to verify the five repository project skills are discovered, and `/keep-alive on` to prevent machine sleep. The agent profiles inherit the parent model/reasoning and use explicit tool lists rather than inheriting every unrelated user-scoped tool.
 10. Paste the starting prompt below once. Before any task branch is created, the coordinator must perform the real npm probe and one synchronous nonce-correlated `development-task-worker` handshake. Do not start a second coordinator against the same checkout.
 
 ## Starting prompt
@@ -47,6 +47,8 @@ in `CI-BASELINE.md` is green on the exact `develop` SHA.
 Run the complete autonomous Development Session defined by `docs/autonomous-development/session.overnight-2026-09-01.yaml` as the `Development Session Coordinator`.
 
 First read the active YAML, `AGENTS.md`, `docs/autonomous-development/PROTOCOL.md`, and `docs/autonomous-development/RUNTIME.md` in full. Validate every startup precondition before making repository writes. Refuse to launch if the complete current Copilot CLI runner control plane is not represented in `origin/develop`, `node docs/autonomous-development/tools/validate-cli-runner.mjs` does not pass, the deadline has passed, the worktree/base/authentication/capabilities are unsafe, or a required decision remains unresolved. PR #25 is already-merged historical provenance and must not be mutated.
+
+Use the repository project skills required by the agent profiles. The coordinator must invoke `mercurion-ci-lifecycle` and `mercurion-outcome-classification` before the first startup mutation. Every normal worker must invoke `mercurion-task-execution` and `mercurion-outcome-classification`, adding `mercurion-browser-runtime` and `chrome-devtools` whenever browser/runtime evidence is required. The nonce capability probe remains tool-free.
 
 Before any task branch or recipe work, run the required real isolated npm capability probe in one uniquely named operating-system temporary directory: actual `npm init -y`, actual `npm install --ignore-scripts --no-save is-number@7.0.0`, and a Node.js assertion that `require("is-number")(42)` returns true. Delete exactly that temporary directory, return to the repository, and prove `git status --short` is clean and identical before and after. Do not substitute a dry run. Verify effective repository-local `commit.gpgSign=false`, and pass `--no-gpg-sign` to every autonomous commit-producing command.
 

@@ -32,6 +32,15 @@ Detailed session semantics and local runtime topology are defined in:
 @docs/autonomous-development/PROTOCOL.md
 @docs/autonomous-development/RUNTIME.md
 
+Repository project skills live in `.github/skills/` and are part of the
+autonomous control plane. Normal coordinator invocations MUST load
+`mercurion-ci-lifecycle` and `mercurion-outcome-classification`. Normal workers
+MUST load `mercurion-task-execution` and `mercurion-outcome-classification`,
+plus `mercurion-browser-runtime` and `chrome-devtools` whenever browser/runtime
+evidence is required. The nonce capability probe invokes no tools, including
+the `skill` tool. Skills refine procedures; they never override this file, the
+protocol, runtime policy, active session configuration, or task recipe.
+
 ## Operating contract
 
 - GitHub Copilot CLI is the only approved host for autonomous Development Sessions. The former VS Code Autopilot/advanced-mode route is unsupported for this workflow; `.vscode` configuration remains available only for ordinary interactive VS Code use.

@@ -1,7 +1,7 @@
 ---
 name: Development Task Worker
 description: Implement and validate exactly one autonomous task on its prepared feature branch.
-tools: ["execute", "read", "edit", "search", "web", "todo", "chrome-devtools/*"]
+tools: ["execute", "read", "edit", "search", "web", "todo", "skill", "chrome-devtools/*"]
 user-invocable: false
 disable-model-invocation: false
 ---
@@ -15,6 +15,8 @@ You are a stateless implementation worker for exactly one task recipe. The paren
 If and only if the parent payload contains `capability_probe: true` and a nonce, do not read repository files, invoke tools, run commands, inspect or modify Git, start processes, or perform task work. Return exactly `TASK_CAPABILITY_OK <nonce>` with the supplied nonce and no other text. The coordinator uses this one session-level handshake before any task branch exists to prove that the CLI can dispatch this repository custom agent synchronously and receive a non-empty correlated result.
 
 All instructions below apply only to a normal implementation invocation. A capability probe never creates or changes a task outcome.
+
+For every normal implementation or feature-CI repair invocation, invoke the project skills `mercurion-task-execution` and `mercurion-outcome-classification` before acting. When browser/runtime evidence is required, also invoke `mercurion-browser-runtime` and `chrome-devtools` before starting the runtime or using Chrome. Skills refine execution technique but never override this agent profile, the active recipe, or repository policy.
 
 ## Feature-CI repair mode
 
@@ -35,6 +37,9 @@ This mode exists only for the one-time human-supervised acceptance test of the
 dedicated persistent Chrome profile. If the parent payload contains
 `browser_profile_probe: write` or `browser_profile_probe: read`, an
 unpredictable nonce, and the exact canonical origin `http://localhost:8888`:
+
+- invoke the project skills `mercurion-browser-runtime`, `chrome-devtools`, and
+  `mercurion-outcome-classification` before using the runtime or browser;
 
 - do not edit repository files, inspect or modify Git, select a recipe, change a
   task outcome, commit, push, or access another origin;
