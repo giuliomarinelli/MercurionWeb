@@ -1,7 +1,7 @@
 # 0059 - Create the canonical Button primitive
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -130,5 +130,12 @@ No feature merge; skip metadata CI is required before continuing.
 _Not applicable._
 
 ### Blocker / human decision required
-No implementation blocker. Re-enable only after FE-030 is deliberately
-resolved in a new authorized session.
+The task was attempted on frozen branch `feature/UI-001` at
+`909df90c0b1d8f8b2a20734d12f9fa5348f8c79f`. The inventory found 146 native
+button openings and 93 distinct class signatures, including product-specific
+action-card/layout semantics and icon-only controls owned by task 0060. The
+typed primitive and focused tests passed, but the recipe stop condition
+requires a design-system decision before safe all-consumer migration. The
+post-change collections route also returned HTTP 504, so the full browser
+acceptance matrix could not be completed. The feature branch remains
+preserved and frozen.
