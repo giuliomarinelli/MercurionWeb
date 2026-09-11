@@ -2,7 +2,7 @@ import { DestroyRef, Injectable, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Observable, EMPTY, defer, of, throwError } from 'rxjs';
-import { catchError, distinctUntilChanged, filter, map, mergeMap, shareReplay, switchMap, tap } from 'rxjs/operators';
+import { catchError, distinctUntilChanged, filter, map, mergeMap, shareReplay, startWith, switchMap, tap } from 'rxjs/operators';
 import { MoleculeService } from '../../services/graphql/molecule.service';
 import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service';
 import { MoleculeCollectionService } from '../../services/graphql/molecule-collection.service';
@@ -87,7 +87,7 @@ export function mapMoleculeDetail(
   });
 }
 
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class MoleculeDetailFacade {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -128,6 +128,12 @@ export class MoleculeDetailFacade {
     }),
     filter((id): id is string => !!id),
     switchMap((id): Observable<MoleculeDetailItem | null> => this.resolveDetail(id)),
+    tap(item => {
+      if (!item) return;
+      this.currentType = item.type;
+      this.loadSimilar(item);
+      this.markTouched();
+    }),
     switchMap((item): Observable<MoleculeDetailItem | null> => item ? this.withInference(item) : of(null)),
     tap(item => {
       this.loading.set(false);
@@ -144,13 +150,6 @@ export class MoleculeDetailFacade {
   ) as Observable<MoleculeDetailItem | null>;
 
   constructor() {
-    this.molecule$.subscribe(item => {
-      if (!item) return;
-      this.currentType = item.type;
-      this.loadSimilar(item);
-      this.markTouched();
-    });
-
     this.route.queryParamMap.pipe(
       map(params => params.get('c_id') ?? ''),
       distinctUntilChanged(),
@@ -218,7 +217,8 @@ export class MoleculeDetailFacade {
     if (!this.userContext.isLoggedIn()) return of(item);
     return this.ai.t1Inference({ smiles: vm.smiles }).pipe(
       map(t1Inference => ({ ...item, t1Inference }) as MoleculeDetailItem),
-      catchError(() => of(item))
+      catchError(() => of(item)),
+      startWith(item)
     );
   }
 

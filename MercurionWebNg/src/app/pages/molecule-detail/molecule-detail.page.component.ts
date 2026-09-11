@@ -1,7 +1,7 @@
 import { CustomDetailSaveModel } from '../../Models/custom-detail-save.model'
 import { toSignal } from '@angular/core/rxjs-interop'
 import { SimilarsComponent } from '../../components/molecule-detail/similars/similars.component'
-import { Component, effect, inject, Signal, signal, ChangeDetectionStrategy } from '@angular/core'
+import { Component, computed, effect, inject, Signal, signal, ChangeDetectionStrategy } from '@angular/core'
 import { RouterLink } from '@angular/router'
 import type { Observable } from 'rxjs'
 import { AsyncPipe } from '@angular/common'
@@ -30,6 +30,7 @@ import { MoleculeDetailFacade } from './molecule-detail.facade'
 @Component({
   selector: 'm-molecule-detail',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [MoleculeDetailFacade],
   imports: [
     AsyncPipe,
     MoleculeHeaderComponent,
@@ -208,7 +209,7 @@ import { MoleculeDetailFacade } from './molecule-detail.facade'
 
 
           <section class="rounded-md border border-slate-300 dark:border-slate-600 relative bottom-4">
-            <m-similars [molecules]="similarMols() ?? []" [onlyKnown]="onlyKnownSig()" />
+            <m-similars [molecules]="similarMols()" [onlyKnown]="onlyKnownSig()" />
           </section>
           }
 
@@ -254,7 +255,10 @@ export class MoleculeDetailPageComponent {
   molecule$: Observable<MoleculeDetailItem | null> = this.facade.molecule$
   viewerReady = signal<boolean>(false)
   fetchError = this.facade.error
-  similarMols = this.facade.similar
+  similarMols = computed(() => {
+    const similar = this.facade.similar()
+    return this.onlyKnownSig() ? similar.filter(mol => mol.known) : similar
+  })
   fetchMolLoading = this.facade.loading
   collectionId = this.facade.collectionId
   protected molId = this.facade.currentId
@@ -273,10 +277,6 @@ export class MoleculeDetailPageComponent {
   )
 
   constructor() {
-    effect(() => {
-      const similar = this.facade.similar()
-      this.similarMols.set(this.onlyKnownSig() ? similar.filter(mol => mol.known) : similar)
-    })
     effect(() => {
       const collectionId = this.facade.collectionId()
       const collectionName = this.facade.collectionName()
