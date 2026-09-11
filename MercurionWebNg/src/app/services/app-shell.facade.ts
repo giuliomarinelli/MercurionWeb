@@ -1,6 +1,6 @@
 import { ElementRef, Injectable, OnDestroy, effect, inject, signal } from '@angular/core'
-import { NavigationEnd, Router } from '@angular/router'
-import { filter, Subscription } from 'rxjs'
+import { Event as RouterEvent, NavigationCancel, NavigationEnd, NavigationError, NavigationStart, Router } from '@angular/router'
+import { Subscription } from 'rxjs'
 import { AuthStateStore } from './auth-state.store'
 import { AuthRedirectService } from './auth-redirect.service'
 import { PathService } from './path.service'
@@ -28,7 +28,12 @@ export class AppShellFacade implements OnDestroy {
   private readonly firstNavigationDone = signal(false)
   private readonly routeSub: Subscription
   private scrollHostRef?: ElementRef<HTMLElement>
-  private lastProgrammaticNav?: string
+  private programmaticNavigation?: {
+    readonly token: number
+    readonly target: string
+    routerNavigationId?: number
+  }
+  private nextProgrammaticNavigationToken = 0
   private firstStableReached = false
 
   constructor() {
@@ -42,9 +47,10 @@ export class AppShellFacade implements OnDestroy {
 
     this.currentPath.set(this.normalize(this.router.url))
     this.pathService.setPath(this.currentPath())
-    this.routeSub = this.router.events
-      .pipe(filter(event => event instanceof NavigationEnd))
-      .subscribe((event: NavigationEnd) => this.onNavigation(event))
+    this.routeSub = this.router.events.subscribe(event => {
+      this.onProgrammaticNavigationEvent(event)
+      if (event instanceof NavigationEnd) this.onNavigation(event)
+    })
 
     effect(() => {
       if (!this.firstNavigationDone()) return
@@ -62,11 +68,25 @@ export class AppShellFacade implements OnDestroy {
       const isPublic = policy.access !== 'authenticated'
       const isLoggedOutOnly = policy.access === 'logged-out-only'
       const safeNavigate = (target: string) => {
-        if (!target || this.lastProgrammaticNav === target) return
-        this.lastProgrammaticNav = target
+        if (!target) return
+        const active = this.programmaticNavigation
+        if (active?.target === target) return
+
+        const transaction = {
+          token: ++this.nextProgrammaticNavigationToken,
+          target
+        }
+        this.programmaticNavigation = transaction
         queueMicrotask(() => {
+          if (this.programmaticNavigation !== transaction) return
           if (this.normalize(this.router.url).toLowerCase() === url) {
-            void this.router.navigateByUrl(target)
+            void this.router.navigateByUrl(target).finally(() => {
+              if (this.programmaticNavigation === transaction) {
+                this.programmaticNavigation = undefined
+              }
+            })
+          } else {
+            this.programmaticNavigation = undefined
           }
         })
       }
@@ -103,6 +123,33 @@ export class AppShellFacade implements OnDestroy {
     this.currentPath.set(url)
     this.pathService.setPath(url)
     this.firstNavigationDone.set(true)
+  }
+
+  private onProgrammaticNavigationEvent(event: RouterEvent): void {
+    const transaction = this.programmaticNavigation
+    if (!transaction) return
+
+    if (event instanceof NavigationStart) {
+      if (this.normalize(event.url) === this.normalize(transaction.target)) {
+        transaction.routerNavigationId = event.id
+      } else {
+        this.programmaticNavigation = undefined
+      }
+      return
+    }
+
+    if (event instanceof NavigationCancel || event instanceof NavigationError) {
+      this.programmaticNavigation = undefined
+      return
+    }
+
+    if (!(event instanceof NavigationEnd)) {
+      return
+    }
+
+    if (transaction.routerNavigationId === undefined || transaction.routerNavigationId === event.id) {
+      this.programmaticNavigation = undefined
+    }
   }
 
   private normalize(raw: string): string {

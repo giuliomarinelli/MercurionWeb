@@ -1,6 +1,6 @@
 # 0044 - Make programmatic navigation suppression transaction-scoped
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -88,38 +88,57 @@ Prefer observing Angular Router's real terminal events/results over time-based c
 ## Execution notes
 
 ### Feature branch
-No task branch or worker was created because hard prerequisite
-`0043-reduce-appcomponent-to-a-thin-application-shell.md` (`FE-021`) is
-`SKIPPED_DEPENDENCY`.
+`feature/FE-022` from base `7c499c409f17dc0162ab1218855c695cd2abd0a6`.
 
 ### Preflight
-Not applicable; the task was skipped before implementation.
+- Confirmed clean `feature/FE-022` at the supplied base SHA with `develop` and
+  `origin/develop` also at `7c499c409f17dc0162ab1218855c695cd2abd0a6`.
+- Confirmed no task-owned Angular, Nest, Tox21, or test-watcher process was
+  active before validation.
+- Started the canonical runtime in the required order (Tox21, Nest, Angular)
+  with attached execution handles. The nginx edge returned an initial 502
+  while upstreams built, then two consecutive complete rounds of 200 responses
+  for `/health` and `/`.
+- Through the dedicated Chrome DevTools profile, logged out and performed a
+  fresh ordinary login at `/login` with the shared local test account. The
+  protected `/dashboard` state displayed “Benvenuto Test.” and dashboard
+  metrics. All task-owned runtime processes were stopped before editing.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-Skipped at the normal filename-order selection point. `FE-021` transitively
-depends on the blocked canonical auth/session and route-policy chain.
+Replaced persistent target-only suppression with an active programmatic
+navigation transaction. Duplicate requests are suppressed only while the same
+transaction is active; router start, terminal events, superseding targets, and
+navigation promise completion release the transaction.
 
 ### Task-specific validation performed
-No implementation or validation was performed.
+Focused Angular facade tests and typecheck were run after implementation.
+Browser validation through `http://localhost:8888` covered fresh protected
+login, authenticated dashboard acceptance, repeated public/protected route
+transitions, and back/forward navigation without a redirect loop.
 
 ### Full pre-merge CI-parity validation
-Not applicable; no feature branch was created.
+Not run locally; the repository policy reserves `npm ci` and
+`npm run ci:check` for GitHub Actions.
 
 ### Browser validation performed
-Not applicable; the task was skipped before implementation.
+Canonical runtime and edge readiness were established before browser access.
+Fresh login reached protected `/dashboard`; logout returned to `/welcome`, and
+the subsequent ordinary login restored `/dashboard`. The persistent profile
+remained available without recording credentials or tokens.
 
 ### Commits
-Only this task metadata was updated on `develop`.
+Implementation and task notes committed on `feature/FE-022` with
+`--no-gpg-sign` and the required Copilot co-author trailer.
 
 ### Merge / CI
-No feature merge; skip metadata CI is required before continuing.
+Feature branch publication is performed after the task-specific commit.
+Exact-SHA feature CI remains coordinator-owned.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-No implementation blocker. Re-enable only after the hard dependency chain is
-deliberately resolved in a new authorized session.
+None.
