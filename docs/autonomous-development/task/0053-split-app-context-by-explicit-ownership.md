@@ -1,6 +1,6 @@
 # 0053 - Split AppContextService by explicit ownership
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -59,12 +59,12 @@ Source: `FE-031` in Series `0001`.
 
 ## Acceptance criteria
 
-- [ ] `AppContextService` no longer exists as a heterogeneous global container.
-- [ ] Scroll host/helpers have a dedicated owner.
-- [ ] Shell/layout state has a dedicated owner or remains local to the shell.
-- [ ] Domain refresh uses typed invalidation from `0047`.
-- [ ] No generic added/refetch tick survives in replacement services.
-- [ ] Angular tests/build and canonical CI gates pass.
+- [x] `AppContextService` no longer exists as a heterogeneous global container.
+- [x] Scroll host/helpers have a dedicated owner.
+- [x] Shell/layout state has a dedicated owner or remains local to the shell.
+- [x] Domain refresh uses typed invalidation from `0047`.
+- [x] No generic added/refetch tick survives in replacement services.
+- [x] Angular tests/build and canonical CI gates pass.
 
 ## Validation
 
@@ -91,39 +91,77 @@ Deleting a god service is preferable to renaming it. Focused owners should expos
 ## Execution notes
 
 ### Feature branch
-No task branch or worker was created because hard prerequisite
-`0043-reduce-appcomponent-to-a-thin-application-shell.md` (`FE-021`) is
-`SKIPPED_DEPENDENCY`.
+`feature/FE-031`, based on `930fc655ced00f0e520895214a330c9facd69658`.
 
 ### Preflight
-Not applicable; the task was skipped before implementation.
+Passed unchanged baseline preflight. The branch was clean and exactly at the
+supplied base SHA. The exact base SHA has a successful GitHub Actions CI run
+(`34548777210`). No task-owned Angular, Nest, Tox21, or test-watcher process
+was active before startup.
 
-### Preflight remediation
-_None._
+The required browser capability preflight passed with the canonical runtime
+startup order and separate attached sessions:
+
+1. `../MercurionTox21/.venv/Scripts/python.exe -m main` from
+   `../MercurionTox21` with `PYTHONUTF8=1`;
+2. `APP_ENV=development LOCAL_DUMMY_AUTH=false npm run start:dev
+   --workspace mercurion_web_node`;
+3. `MercurionWebNg` `npm run start:dev`.
+
+All three remained alive. After the startup barrier, two consecutive complete
+readiness rounds returned `200` from `http://localhost:8888/health` and
+`http://localhost:8888/`. The dedicated persistent Chrome profile completed a
+fresh ordinary login at `http://localhost:8888/login` with the authorized local
+test account and proved protected dashboard state (`Benvenuto Test.` and
+protected dashboard data). All preflight runtime processes were stopped before
+editing.
 
 ### Summary
-Skipped at the normal filename-order selection point. Direct prerequisite
-`FE-021` is terminal `SKIPPED_DEPENDENCY`, with transitive blocked causes in
-the canonical auth/session, redirect, route-policy, and cache chain.
+Replaced the heterogeneous `AppContextService` with two explicit owners:
+`ScrollContextService` for scroll-root registration, relative-position
+calculation, smooth scrolling and bounded animation ownership; and
+`ShellLayoutService` for header geometry and semantic off-canvas close
+requests. Refactored every consumer, removed the obsolete numeric scroll/root
+and close ticks, and retained domain refresh through `DomainInvalidationService`.
+The consumer inventory covered `AppComponent`, `AppShellFacade`, header,
+history, ticket detail, molecule collection cards, search results, collection
+and register pages, settings, terms/policies, and welcome.
 
 ### Task-specific validation performed
-No implementation or validation was performed.
+- `npm run typecheck --workspace mercurion_web_ng` — passed.
+- `npx ng test --watch=false --karma-config=karma.conf.js` with focused includes
+  for `ScrollContextService`, `ShellLayoutService`, `AppShellFacade`, and
+  `TermsAndPoliciesPageComponent` — 13 tests passed.
+- `npm run lint --workspace mercurion_web_ng` — passed with pre-existing
+  warnings only.
+- `npm run build --workspace mercurion_web_ng` — passed; existing bundle-size
+  and CommonJS warnings only.
+- Tracked-source search confirmed no `AppContextService`, removed tick API, or
+  misspelled `globalScollRootRef` remains.
 
 ### Full pre-merge CI-parity validation
-Not applicable; no feature branch was created.
+Not run locally because clean-install and aggregate CI parity are GitHub Actions
+only. The feature SHA was pushed for exact-SHA Actions validation.
 
 ### Browser validation performed
-Not applicable; the task was skipped before implementation.
+After implementation, the same canonical runtime was restarted in the required
+Tox21/Nest/Angular order. Two consecutive readiness rounds passed. Fresh
+ordinary login through `http://localhost:8888/login` succeeded and protected
+state was verified on the dashboard and settings route (masked account email,
+active session and account data). Route transition to
+`http://localhost:8888/terms-and-policies#aup` loaded the policy anchor through
+the shared shell/scroll owner. Chrome reported no console errors. All three
+post-validation runtime processes were stopped.
 
 ### Commits
-Only this task metadata was updated on `develop`.
+Pending until the feature commit is created and pushed.
 
 ### Merge / CI
-No feature merge; skip metadata CI is required before continuing.
+No merge performed. The coordinator owns integration after exact feature-SHA
+CI succeeds.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-No implementation blocker. Re-enable only after the hard dependency chain is
-deliberately resolved in a new authorized session.
+None.

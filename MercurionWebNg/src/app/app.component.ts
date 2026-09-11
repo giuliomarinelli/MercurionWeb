@@ -27,7 +27,8 @@ import { SidenavComponent } from './components/common/sidenav/sidenav.component'
 import { AppShellFacade } from './services/app-shell.facade'
 import { ActionOverlayContextService } from './services/context/action-context/action-overlay-context.service'
 import { ActionOverlayComponent } from './components/action-components/action-overlay/action-overlay.component'
-import { AppContextService } from './services/context/app-context.service'
+import { ScrollContextService } from './services/context/scroll-context.service'
+import { ShellLayoutService } from './services/context/shell-layout.service'
 import { DOCUMENT, isPlatformBrowser } from '@angular/common'
 import { ToastComponent } from './components/common/toast/toast.component'
 
@@ -139,7 +140,8 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   protected readonly sidenavContext = inject(SidenavContextService)
   protected readonly design = inject(DesignService)
   protected readonly saveOverlayContext = inject(ActionOverlayContextService)
-  private readonly appContext = inject(AppContextService)
+  private readonly scrollContext = inject(ScrollContextService)
+  private readonly shellLayout = inject(ShellLayoutService)
   private readonly doc = inject(DOCUMENT)
   private readonly platformId = inject(PLATFORM_ID)
   private readonly isBrowser = isPlatformBrowser(this.platformId)
@@ -168,7 +170,6 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     })
     effect(() => {
       this.routePolicy()
-      this.appContext.addedGlobalScrollRootRefTick()
       queueMicrotask(() => this.ensureScrollRootRef())
     })
   }
@@ -181,7 +182,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     queueMicrotask(() => {
       this.ensureScrollRootRef()
       const h = this.headerRef()?.nativeElement?.offsetHeight ?? 64
-      this.appContext.setHeaderHeight(h)
+      this.shellLayout.setHeaderHeight(h)
     })
   }
 
@@ -198,12 +199,12 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     const shouldUseScrollHost = this.routePolicy().shell === 'standard' && !!this.scrollHostRef
 
     if (shouldUseScrollHost) {
-      this.appContext.setGlobalScrollRootRef(this.scrollHostRef!)
+      this.scrollContext.registerScrollRootRef(this.scrollHostRef!)
       return
     }
 
     if (docEl) {
-      this.appContext.setGlobalScrollRootRef(new ElementRef<HTMLElement>(docEl))
+      this.scrollContext.registerScrollRootRef(new ElementRef<HTMLElement>(docEl))
     }
   }
 }

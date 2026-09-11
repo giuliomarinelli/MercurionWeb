@@ -10,7 +10,8 @@ import {
 } from '@angular/core'
 import { RouterLink, ActivatedRoute } from '@angular/router'
 import { Subscription, startWith } from 'rxjs'
-import { AppContextService } from '../../services/context/app-context.service'
+import { ScrollContextService } from '../../services/context/scroll-context.service'
+import { ShellLayoutService } from '../../services/context/shell-layout.service'
 import { injectBrowserResourceOwner } from '../../utils/browser-resource-owner.util'
 
 @Component({
@@ -418,7 +419,8 @@ export class TermsAndPoliciesPageComponent implements AfterViewInit, OnDestroy {
   lastUpdated = '02/02/2026'
 
   private readonly route = inject(ActivatedRoute)
-  private readonly appContext = inject(AppContextService)
+  private readonly scrollContext = inject(ScrollContextService)
+  private readonly shellLayout = inject(ShellLayoutService)
   private readonly resources = injectBrowserResourceOwner()
 
   readonly termsHeaderRef = viewChild<ElementRef<HTMLElement>>('termsHeader');
@@ -431,7 +433,7 @@ export class TermsAndPoliciesPageComponent implements AfterViewInit, OnDestroy {
 
   constructor() {
     effect(() => {
-      const rootRef = this.appContext.globalScollRootRef()
+      const rootRef = this.scrollContext.scrollRootRef()
       if (!rootRef) return
 
       this.scrollRootRef = rootRef
@@ -446,7 +448,6 @@ export class TermsAndPoliciesPageComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.viewReady = true
-    this.appContext.notifyRequestGlobalScrollRootRefTick()
 
     this.fragmentSub = this.route.fragment
       .pipe(startWith(this.route.snapshot.fragment))
@@ -475,7 +476,7 @@ export class TermsAndPoliciesPageComponent implements AfterViewInit, OnDestroy {
     // aspetta che l'altezza dell'header sia disponibile per evitare offset errati (bounded: mai polling infinito)
     this.resources.waitForCondition(
       () => {
-        const hh = this.appContext.headerHeight()
+        const hh = this.shellLayout.headerHeight()
         return hh > 0 ? hh : null
       },
       (hh) => {
@@ -498,8 +499,8 @@ export class TermsAndPoliciesPageComponent implements AfterViewInit, OnDestroy {
 
             if (!targetEl) return
 
-            const y = Math.max(0, this.appContext.getScrollYRelativeToRoot(targetEl, rootEl) - headerOffset)
-            this.appContext.smoothTo(this.scrollRootRef, y, 240)
+            const y = Math.max(0, this.scrollContext.getScrollYRelativeToRoot(targetEl, rootEl) - headerOffset)
+            this.scrollContext.smoothTo(this.scrollRootRef, y, 240)
           }, 20)
         })
       }

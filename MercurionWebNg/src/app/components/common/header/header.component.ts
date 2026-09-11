@@ -17,7 +17,7 @@ import { PathService } from '../../../services/path.service';
 import { ToastService } from '../../../services/toast.service';
 import { ProvidedEmailDTO } from '../../../Models/account/account.models';
 import { environment } from '../../../../environments/environment';
-import { AppContextService } from '../../../services/context/app-context.service';
+import { ShellLayoutService } from '../../../services/context/shell-layout.service';
 import { APP_CONFIG } from '../../../config/app-config';
 
 @Component({
@@ -523,7 +523,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   protected readonly userContext = inject(UserContextService)
   protected readonly pathService = inject(PathService)
   private readonly toast = inject(ToastService)
-  private readonly appContext = inject(AppContextService)
+  private readonly shellLayout = inject(ShellLayoutService)
   private readonly appConfig = inject(APP_CONFIG)
 
   private updatePathFlags(currentPath: string) {
@@ -583,7 +583,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   constructor() {
     effect(() => this._triggerOpenOffCanvas.set(this.triggerOpenOffCanvas()))
     effect(() => {
-      const t = this.appContext.addedTriggerCloseOffCanvasMenu()
+      const t = this.shellLayout.closeOffCanvasRequest()
       if (t === 0) {
         return
       }

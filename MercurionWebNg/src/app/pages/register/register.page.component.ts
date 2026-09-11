@@ -14,7 +14,7 @@ import { UserGenderControl, UserRegisterDTO, UserRegistrationFormControls, UserR
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { Helpers } from '../../helpers';
 import { ToastService } from '../../services/toast.service';
-import { AppContextService } from '../../services/context/app-context.service';
+import { ScrollContextService } from '../../services/context/scroll-context.service';
 import { PmOption } from '../../Models/pm-option.model';
 import { RouterLink } from '@angular/router';
 import { TurnstileComponent } from '../../components/common/turnstile/turnstile.component';
@@ -247,7 +247,7 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService)
   protected readonly userContext = inject(UserContextService)
   private readonly toast = inject(ToastService)
-  private readonly appContext = inject(AppContextService)
+  private readonly scrollContext = inject(ScrollContextService)
   private readonly destroyRef = inject(DestroyRef)
   // ====================================================
 
@@ -344,7 +344,7 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
           queueMicrotask(() => {
             this.loading.set(false)
             this.step.set(2)
-            this.appContext.smoothToTop(undefined, 240)
+            this.scrollContext.smoothToTop(undefined, 240)
           })
         },
         error: () => {

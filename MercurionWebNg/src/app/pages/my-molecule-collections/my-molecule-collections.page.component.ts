@@ -15,7 +15,7 @@ import { PageModel } from '../../Models/graphql/page.models';
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
 import { CreateCollectionContextService } from '../../services/context/action-context/create-collection-context.service';
 import { ToastService } from '../../services/toast.service';
-import { AppContextService } from '../../services/context/app-context.service';
+import { ScrollContextService } from '../../services/context/scroll-context.service';
 import { DomainInvalidationService } from '../../services/domain-invalidation.service';
 
 
@@ -115,7 +115,7 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
   private readonly createCtx = inject(CreateCollectionContextService)
   private readonly toast = inject(ToastService)
   private readonly historyContext = inject(HistoryContextService)
-  private readonly appContext = inject(AppContextService)
+  private readonly scrollContext = inject(ScrollContextService)
   private readonly invalidations = inject(DomainInvalidationService)
   // ====================================================
 
@@ -237,7 +237,7 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
     this.dupColSub = this.moleculeCollectionService.duplicateCollection(collectionId).subscribe({
       next: () => {
         queueMicrotask(() => {
-          this.appContext.smoothToTop()
+          this.scrollContext.smoothToTop()
           this.resetPagination()
         })
       },

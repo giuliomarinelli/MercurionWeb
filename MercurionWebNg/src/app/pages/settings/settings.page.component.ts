@@ -9,7 +9,8 @@ import { ClassicSpinnerComponent } from '../../components/common/classic-spinner
 import { SessionCardComponent } from '../../components/common/session-card/session-card.component'
 import { MfaStrategyCardComponent } from '../../components/common/mfa-strategy-card/mfa-strategy-card.component'
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service'
-import { AppContextService } from '../../services/context/app-context.service'
+import { ScrollContextService } from '../../services/context/scroll-context.service'
+import { ShellLayoutService } from '../../services/context/shell-layout.service'
 import { ActivatedRoute, Router } from '@angular/router'
 import { GenderPipe } from '../../pipes/gender.pipe'
 import { ProfileRegistryEditContextService } from '../../services/context/action-context/profile-registry-edit-context.service'
@@ -615,7 +616,8 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly authService = inject(AuthService)
   private readonly actionContext = inject(ActionOverlayContextService)
   private readonly invalidations = inject(DomainInvalidationService)
-  private readonly appContext = inject(AppContextService)
+  private readonly scrollContext = inject(ScrollContextService)
+  private readonly shellLayout = inject(ShellLayoutService)
   private readonly registryContext = inject(ProfileRegistryEditContextService)
   private readonly sessionSync = inject(SessionSyncService)
   private readonly sidenavContext = inject(SidenavContextService)
@@ -684,7 +686,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
       })
     })
     effect(() => {
-      const rootRef = this.appContext.globalScollRootRef()
+      const rootRef = this.scrollContext.scrollRootRef()
       if (!rootRef) {
         return
       }
@@ -716,7 +718,6 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.appContext.notifyRequestGlobalScrollRootRefTick()
     this.attachSpinnerTracking()
   }
 
@@ -907,10 +908,10 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
       const btn = itemEl.querySelector('button') as HTMLElement | null
       const targetEl = btn ?? itemEl
 
-      const headerOffset = this.appContext.headerHeight() - 48
-      const y = this.appContext.getScrollYRelativeToRoot(targetEl, scrollRoot) - headerOffset
+      const headerOffset = this.shellLayout.headerHeight() - 48
+      const y = this.scrollContext.getScrollYRelativeToRoot(targetEl, scrollRoot) - headerOffset
 
-      this.appContext.smoothTo(this.scrollRootRef, y, 240)
+      this.scrollContext.smoothTo(this.scrollRootRef, y, 240)
     }, 310)
   }
 
@@ -1045,12 +1046,12 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
     const rootStyle = getComputedStyle(rootEl)
     const padTop = parseFloat(rootStyle.paddingTop || '0')
 
-    const headerOffset = this.appContext.headerHeight()
+    const headerOffset = this.shellLayout.headerHeight()
     const y =
-      this.appContext.getScrollYRelativeToRoot(targetEl, rootEl)
+      this.scrollContext.getScrollYRelativeToRoot(targetEl, rootEl)
       - headerOffset
       - padTop
-    this.appContext.smoothTo(this.scrollRootRef, y, 240)
+    this.scrollContext.smoothTo(this.scrollRootRef, y, 240)
   }
 
   private indexFromFragment(frag: string | null | undefined): number {
@@ -1094,7 +1095,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     }
 
-    this.appContext.smoothToTop(this.scrollRootRef)
+    this.scrollContext.smoothToTop(this.scrollRootRef)
   }
 
   private updateBottomSpacer(): void {

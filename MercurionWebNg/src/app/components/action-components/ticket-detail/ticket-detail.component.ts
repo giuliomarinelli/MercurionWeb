@@ -34,7 +34,7 @@ import { TicketDetailInnerScope } from '../../../Models/action/action-overlay.mo
 import { DatePipe, NgClass } from '@angular/common';
 import { TicketComposerComponent } from '../../support/ticket-composer/ticket-composer.component';
 import { Subscription } from 'rxjs';
-import { AppContextService } from '../../../services/context/app-context.service';
+import { ScrollContextService } from '../../../services/context/scroll-context.service';
 import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
 
 @Component({
@@ -290,7 +290,7 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
   private readonly helpService = inject(HelpService)
   protected readonly typeGuards = inject(TypeGuardsService)
   protected readonly cdr = inject(ChangeDetectorRef)
-  private readonly appCtx = inject(AppContextService)
+  private readonly scrollContext = inject(ScrollContextService)
   private readonly ticketDetailContext = inject(TicketDetailContextService)
   private readonly invalidation = inject(DomainInvalidationService)
   private firstMessageSet = signal<boolean>(false)
@@ -391,7 +391,7 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
     const rootEl = root?.nativeElement;
     if (!rootEl) return;
     const target = rootEl.scrollHeight;
-    this.appCtx.smoothTo(root, target, duration);
+    this.scrollContext.smoothTo(root, target, duration);
   }
 
   close(): void {

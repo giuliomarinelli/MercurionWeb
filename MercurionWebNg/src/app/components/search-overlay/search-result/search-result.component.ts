@@ -15,7 +15,7 @@ import { ThemeManagerService } from '../../../services/context/theme-manager.ser
 import { MoleculeSearchResult } from
   '../../../Models/graphql/molecule-search/molecule-search-result.interface';
 import { ChipItem } from '../../action-components/add-molecules-to-collection/add-molecules-to-collection.component';
-import { AppContextService } from '../../../services/context/app-context.service';
+import { ShellLayoutService } from '../../../services/context/shell-layout.service';
 import { DesignService } from '../../../services/design.service';
 
 @Component({
@@ -111,7 +111,7 @@ export class SearchResultComponent implements OnDestroy {
   private readonly zone = inject(NgZone)
   private host = inject(ElementRef<HTMLElement>)
   private readonly design = inject(DesignService)
-  private readonly appContext = inject(AppContextService)
+  private readonly shellLayout = inject(ShellLayoutService)
 
   /* segnali originali */
   _molecule = signal<MoleculeSearchResult | undefined>(undefined);
@@ -200,7 +200,7 @@ export class SearchResultComponent implements OnDestroy {
   handleClick(): void {
     queueMicrotask(() => {
       if (this.isMobile()) {
-        this.appContext.notifyAddedTriggerCloseOffCanvasMenu()
+        this.shellLayout.requestCloseOffCanvas()
       }
       this.searchContext.close()
     })
