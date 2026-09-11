@@ -144,8 +144,13 @@ export class BrowserStorageRegistry {
       if (raw === null) continue
       value = descriptor.codec.decodeLegacy?.(raw) ?? null
       if (value !== null) {
-        this.set(descriptor, value)
-        try { storage.removeItem(legacyKey) } catch { /* fail closed */ }
+        // The legacy login marker is also a cross-tab signal. Keep it as the
+        // source of truth until the owning auth flow writes the namespaced
+        // marker, so removing the legacy key cannot be masked by migration.
+        if (descriptor.id !== 'login') {
+          this.set(descriptor, value)
+          try { storage.removeItem(legacyKey) } catch { /* fail closed */ }
+        }
       } else {
         try { storage.removeItem(legacyKey) } catch { /* fail closed */ }
       }

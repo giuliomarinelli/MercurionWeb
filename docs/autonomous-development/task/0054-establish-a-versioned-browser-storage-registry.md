@@ -154,3 +154,27 @@ _Not applicable._
 
 ### Blocker / human decision required
 None.
+
+### CI repair attempt 1
+Exact feature-SHA Actions run `34552194747` failed in Angular Test on Ubuntu
+and Windows in
+`AuthStateStore supports MFA/pre-auth, invalidation, logout, and external state
+convergence`. After logout, repeated external-state synchronization attempted
+`begin-authentication` while the canonical session protocol was already
+`authenticating`, producing `Illegal session transition:
+authenticating -> begin-authentication`.
+
+The repair keeps `syncExternalState()` idempotent by applying
+`BeginAuthentication` only when the protocol is not already authenticating.
+It also preserves the legacy `login` marker as the cross-tab source until the
+owning auth flow writes the namespaced marker; otherwise legacy-key removal
+could be masked by the migrated namespaced copy during external convergence.
+
+Validation:
+- `npx ng test --watch=false --karma-config=karma.conf.js --include
+  src/app/services/auth-state.store.spec.ts --include
+  src/app/services/auth-session-persistence.service.spec.ts --include
+  src/app/services/session-sync.service.spec.ts` — 28/28 passed.
+- `npm --prefix MercurionWebNg run typecheck` — passed.
+- `npm run ci:angular:storage-registry` — passed.
+- No task-owned runtime or watcher was started.
