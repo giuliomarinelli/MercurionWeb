@@ -1,6 +1,6 @@
 # 0062 - Create the canonical TextField primitive
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -89,44 +89,89 @@ Prefer a composable field-shell + input contract if that prevents duplicating ac
 
 ## Execution notes
 
-> Current status (2026-09-11): PENDING by direct owner instruction because this
-> activity was not completed. Historical attempt/skip evidence remains below
-> for traceability and is not a terminal outcome.
-
 ### Feature branch
-No task branch or worker was created because hard prerequisite
-`0059-create-the-canonical-button-primitive.md` (`UI-001`) is
-`SKIPPED_DEPENDENCY`.
+`feature/UI-004`, starting from supplied base
+`de6a2daef4de389589a43d99790827623033aea2`.
 
 ### Preflight
-Not applicable; the task was skipped before implementation.
+- Confirmed a clean `feature/UI-004` worktree and exact local HEAD/base SHA.
+- Confirmed exact base GitHub Actions CI run `34641541355` for
+  `de6a2daef4de389589a43d99790827623033aea2`: Ubuntu quality, Windows
+  quality, classify validation and `Required gate` all succeeded.
+- Confirmed no task-owned Angular, Nest, Tox21 or workspace watcher was active
+  before runtime startup.
+- Focused unchanged-baseline check:
+  `npm run test:ci --workspace mercurion_web_ng -- --include=src/app/components/common/floating-input/floating-input.component.spec.ts`
+  completed successfully; npm emitted its existing `include` configuration
+  warning.
 
-### Preflight remediation
-_None._
+### Implementation
+- Added standalone `TextFieldComponent` (`m-text-field`) with a stable
+  generated/consumer-supplied ID, label association, hint/error
+  `aria-describedby`, invalid/required/disabled state, caller-owned CVA
+  reactive-form propagation, preserved input semantics, and projected
+  `mTextFieldPrefix`/`mTextFieldSuffix` slots.
+- Replaced `FloatingInputComponent` with a compatibility re-export of the
+  canonical primitive and migrated auth, recovery, profile-registry and
+  sensitive-data action consumers to `m-text-field`.
+- Removed consumer visual-class passthrough inputs and obsolete floating-input
+  CSS. Existing validation/business rules remain in caller forms.
+- Added focused accessibility, invalid-state, disabled-state, form
+  propagation and prefix/suffix tests.
 
-### Summary
-Skipped at the normal filename-order selection point. `UI-001` is terminal
-`SKIPPED_DEPENDENCY`, with direct blocked root cause
-`0052-standardize-modern-angular-component-apis.md` (`FE-030`).
-
-### Task-specific validation performed
-No implementation or validation was performed.
-
-### Full pre-merge CI-parity validation
-Not applicable; no feature branch was created.
+### Task-specific validation
+- `npx ng test --watch=false --karma-config=karma.conf.js --include=src/app/components/common/text-field/text-field.component.spec.ts`
+  passed: 4 specs.
+- `npm run typecheck --workspace mercurion_web_ng` passed.
+- Focused ESLint over the TextField and migrated consumers passed with no
+  errors; only three pre-existing warnings remained in migrated files.
+- `npm run build --workspace mercurion_web_ng` passed. Existing bundle-budget
+  and CommonJS warnings remained; no build error occurred.
+- The repository-wide Angular lint command was observed to contain one
+  unchanged-baseline error outside the focused TextField diagnostics; it was
+  not modified or charged to this task.
+- `git diff --check` passed.
 
 ### Browser validation performed
-Not applicable; the task was skipped before implementation.
+Using the dedicated Chrome DevTools MCP profile and only
+`http://localhost:8888`:
+- Pre-implementation capability preflight started Tox21, Nest and Angular in
+  the required order, retained all three live execution handles, observed two
+  consecutive complete `/health` + `/` readiness rounds, then performed a
+  fresh ordinary login with the shared local test account through
+  `fill_form`; protected dashboard state was observed.
+- Post-implementation validation repeated the required startup order and two
+  complete readiness rounds. A fresh ordinary login reached the protected
+  dashboard.
+- Login fields exposed associated labels, required semantics and keyboard
+  navigation; clicking the label focused the email control and Tab moved to
+  password.
+- Register page exposed the migrated name, surname, email, job, password and
+  confirmation fields with consistent labels/required semantics.
+- Settings personal-details action opened the migrated profile text fields;
+  the modal exposed caller-owned validation fields and keyboard traversal.
+- The focused component tests supplied direct evidence for invalid/error
+  association, disabled state, reactive value propagation and prefix/suffix
+  content projection.
+- All task-owned runtime sessions were stopped after evidence capture and
+  process inventory showed no remaining Tox21/Nest/Angular task process.
+
+### Full pre-merge CI-parity validation
+Not run locally because `npm ci` and `npm run ci:check` are forbidden in
+autonomous workers. Exact feature-SHA clean-install and aggregate CI evidence
+is owned by GitHub Actions after the feature commit is pushed.
 
 ### Commits
-Only this task metadata was updated on `develop`.
+- `966777ea` (`feat(UI-004): add canonical text field primitive`) contains the
+  implementation, focused tests, migrated consumers, terminal `DONE` state and
+  execution notes.
 
 ### Merge / CI
-No feature merge; skip metadata CI is required before continuing.
+No merge or protected-branch operation was performed. The coordinator must
+observe the exact pushed feature-SHA `Required gate` before integration.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-No implementation blocker. Re-enable only after FE-030 and UI-001 are
-deliberately resolved in a new authorized session.
+None. `DONE` is provisional pending exact feature-SHA CI.

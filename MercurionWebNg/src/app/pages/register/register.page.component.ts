@@ -7,7 +7,7 @@ import { AuthService } from '../../services/auth.service';
 import { UserContextService } from '../../services/context/user-context.service';
 import { environment } from '../../../environments/environment';
 import { Subscription } from 'rxjs';
-import { FloatingInputComponent } from '../../components/common/floating-input/floating-input.component';
+import { TextFieldComponent } from '../../components/common/text-field/text-field.component'
 import { PmSelectComponent } from '../../components/common/pm-select/pm-select.component';
 import { emailAvailabilityValidator, matchPassword } from '../../custom-validators';
 import { UserGenderControl, UserRegisterDTO, UserRegistrationFormControls, UserRegistrationFormValue } from '../../Models/auth/user.models';
@@ -26,7 +26,7 @@ import { TurnstileComponent } from '../../components/common/turnstile/turnstile.
   imports: [
     PublicPipe,
     ReactiveFormsModule,
-    FloatingInputComponent,
+    TextFieldComponent,
     PmSelectComponent,
     ClassicSpinnerComponent,
     RouterLink,
@@ -56,7 +56,7 @@ import { TurnstileComponent } from '../../components/common/turnstile/turnstile.
           @case (1) {
             <form [formGroup]="form" (ngSubmit)="onSubmit()" aria-labelledby="register-heading" [attr.aria-busy]="loading()">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-8">
-              <m-floating-input
+              <m-text-field
                   label="Nome *"
                   type="text"
                   autocomplete="current-name"
@@ -65,11 +65,8 @@ import { TurnstileComponent } from '../../components/common/turnstile/turnstile.
                     required: 'Il nome è obbligatorio.',
                     pattern: 'Il formato del nome non è valido.'
                   }"
-                  darkLabelClass = 'dark:text-dark-accent-secondary-hc'
-                  darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
-                  darkFocusBorderClass = 'dark:focus:border-dark-accent-primary'
               />
-              <m-floating-input
+              <m-text-field
                   label="Cognome *"
                   type="text"
                   autocomplete="current-surname"
@@ -78,13 +75,10 @@ import { TurnstileComponent } from '../../components/common/turnstile/turnstile.
                     required: 'Il cognome è obbligatorio.',
                     pattern: 'Il formato del cognome non è valido.'
                   }"
-                  darkLabelClass = 'dark:text-dark-accent-secondary-hc'
-                  darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
-                  darkFocusBorderClass = 'dark:focus:border-dark-accent-primary'
               />
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-6">
-              <m-floating-input
+              <m-text-field
                   label="E-mail *"
                   type="email"
                   autocomplete="current-email"
@@ -95,20 +89,13 @@ import { TurnstileComponent } from '../../components/common/turnstile/turnstile.
                     email: this.emailMalformed,
                     emailTaken: 'E-mail già registrata.'
                   }"
-                  [asyncVerify]="true"
-                  darkLabelClass = 'dark:text-dark-accent-secondary-hc'
-                  darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
-                  darkFocusBorderClass = 'dark:focus:border-dark-accent-primary'
               />
-              <m-floating-input
+              <m-text-field
                   label="Il tuo lavoro"
                   type="text"
                   autocomplete="current-job"
                   formControlName="job"
                   [errors]="{}"
-                  darkLabelClass = 'dark:text-dark-accent-secondary-hc'
-                  darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
-                  darkFocusBorderClass = 'dark:focus:border-dark-accent-primary'
               />
             </div>
             <m-select label="Genere *"
@@ -127,7 +114,7 @@ import { TurnstileComponent } from '../../components/common/turnstile/turnstile.
               }
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-8">
-              <m-floating-input
+              <m-text-field
                   label="Password"
                   type="password"
                   autocomplete="current-password"
@@ -136,11 +123,8 @@ import { TurnstileComponent } from '../../components/common/turnstile/turnstile.
                     required: 'La password è obbligatoria.',
                     pattern: 'La password deve essere di almeno 8 caratteri: almeno uno minuscolo, uno maiuscolo, un numero e un carattere speciale.'
                   }"
-                  darkLabelClass = 'dark:text-dark-accent-secondary-hc'
-                  darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
-                  darkFocusBorderClass = 'dark:focus:border-dark-accent-primary'
               />
-              <m-floating-input
+              <m-text-field
                   label="Inserisci di nuovo la password"
                   type="password"
                   autocomplete="current-password"
@@ -149,9 +133,6 @@ import { TurnstileComponent } from '../../components/common/turnstile/turnstile.
                     required: 'Il campo di conferma password è obbligatorio.',
                     matchPassword: 'Le due password non corrispondono.'
                   }"
-                  darkLabelClass = 'dark:text-dark-accent-secondary-hc'
-                  darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
-                  darkFocusBorderClass = 'dark:focus:border-dark-accent-primary'
               />
             </div>
             <div class="flex gap-3 relative top-2 sm:top-4 justify-center sm:justify-start">

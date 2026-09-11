@@ -356,54 +356,6 @@ html {
     @apply bg-light-error hover:bg-light-error/80 dark:bg-[#FF8F91] dark:hover:bg-[#FF8F91CC] dark:text-neutral-950 dark:border-[2px] dark:border-red-600 dark:shadow-btn-dark;
   }
 
-  /* Contenitore del campo floating: qui arriva bgClass/darkBgClass */
-  .m-floating-field {
-    @apply relative rounded-md;
-  }
-
-  /* Tutto quello che deve avere il *solito* colore del campo */
-  .m-floating-field-bg,
-  .m-floating-label,
-  .m-floating-label::before {
-    background-color: inherit;
-  }
-
-  /* Strato di background dietro all’input */
-  .m-floating-field-bg {
-    @apply absolute inset-0 rounded-md pointer-events-none;
-    z-index: 0;
-  }
-
-  /* Input sopra allo sfondo */
-  .m-floating-input-element {
-    @apply relative z-10 block w-full rounded-md py-4 px-4 text-sm bg-transparent transition duration-300;
-  }
-
-  /* Label che galleggia */
-  .m-floating-label {
-    @apply absolute px-1 top-[13px] left-4 origin-[0] transition-all duration-300;
-    z-index: 20;
-  }
-
-  /* Patch dietro la label che copre bordo + sfondo */
-  .m-floating-label::before {
-    content: '';
-    position: absolute;
-    inset: -0.15rem -0.25rem;
-    border-radius: 9999px;
-    z-index: -1;
-  }
-
-  /* Stati della label */
-  .m-floating-label--active {
-    @apply scale-110 -translate-y-6 text-sm;
-  }
-
-  .m-floating-label--inactive {
-    @apply text-lg translate-y-0 cursor-text text-slate-500 dark:text-slate-400;
-  }
-
-
   /* =================================================== */
   /*                  ACTION OVERLAY                     */
   /* =================================================== */
@@ -543,7 +495,7 @@ html {
 
   .action-card p,
   .action-card li,
-  .action-card label:not(.m-floating-label),
+  .action-card label,
   .action-card .text-base,
   .action-card .text-sm,
   .action-card span {
@@ -571,7 +523,7 @@ html {
     }
     .action-card p,
     .action-card li,
-    .action-card label:not(.m-floating-label),
+    .action-card label,
     .action-card .text-base,
     .action-card .text-sm,
     .action-card span {
@@ -594,7 +546,7 @@ html {
     }
     .action-card p,
     .action-card li,
-    .action-card label:not(.m-floating-label),
+    .action-card label,
     .action-card .text-base,
     .action-card .text-sm,
     .action-card span {

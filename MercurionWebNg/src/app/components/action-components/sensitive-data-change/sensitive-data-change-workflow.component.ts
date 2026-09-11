@@ -23,7 +23,7 @@ import { AuthService } from '../../../services/auth.service';
 import { PhonePrefixWithEmojiUrlDTO } from '../../../Models/country.models';
 import { CountryService } from '../../../services/country.service';
 import { MfaStrategyCardComponent } from '../../common/mfa-strategy-card/mfa-strategy-card.component';
-import { FloatingInputComponent } from "../../common/floating-input/floating-input.component";
+import { TextFieldComponent } from "../../common/text-field/text-field.component";
 import { Router, RouterLink } from '@angular/router';
 import { PmSelectComponent } from '../../common/pm-select/pm-select.component';
 import { PmOption } from '../../../Models/pm-option.model';
@@ -42,7 +42,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     ClassicSpinnerComponent,
     ReactiveFormsModule,
     MfaStrategyCardComponent,
-    FloatingInputComponent,
+    TextFieldComponent,
     RouterLink,
     PmSelectComponent,
     IconButtonComponent,
@@ -173,7 +173,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
             <div class="flex flex-col gap-y-6" aria-live="polite">
               <div class="relative min-h-[25vh] rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
                 <div class="absolute inset-0 flex justify-center items-center px-6">
-                  <m-floating-input
+                  <m-text-field
                     class="w-full max-w-md"
                     label="Codice monouso"
                     type="text"
@@ -184,13 +184,8 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                          pattern: 'Il codice deve contenere 6 cifre.'
                        }"
                     [serverError]="serverErrorMsg"
-                    [bgClass]="'bg-light-surface-secondary'"
-                    [darkBgClass]="'dark:bg-dark-surface-secondary'"
                     (enter)="routeAction()"
-                    darkLabelClass="dark:text-dark-accent-secondary-hc"
-                    darkTextErrorClass="dark:text-dark-error-hc"
-                    darkFocusBorderClass="dark:focus:border-dark-accent-primary-btn-hc"
-                    darkFocusRingClass="dark:focus:ring-dark-accent-primary-btn-hc"  />
+                  />
                 </div>
               </div>
               <div
@@ -340,7 +335,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
               <div class="relative min-h-[25vh] rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
                 <div class="absolute inset-0 flex justify-center items-center px-6">
                   <div class="flex flex-col items-center gap-y-4">
-                    <m-floating-input
+                    <m-text-field
                       class="w-full max-w-md"
                       label="Codice monouso"
                       type="text"
@@ -351,13 +346,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                              pattern: 'Il codice deve contenere 6 cifre.'
                             }"
                       [serverError]="serverErrorMsg"
-                      [bgClass]="'bg-light-surface-secondary'"
-                      [darkBgClass]="'dark:bg-dark-surface-secondary'"
                       (enter)="routeAction()"
-                      darkLabelClass="dark:text-dark-accent-secondary-hc"
-                      darkTextErrorClass="dark:text-dark-error-hc"
-                      darkFocusBorderClass="dark:focus:border-dark-accent-primary-btn-hc"
-                      darkFocusRingClass="dark:focus:ring-dark-accent-primary-btn-hc"
                     />
 
                   @if (['SMS_OTP', 'APP_TOTP'].includes(currentMfaStrategy())) {
@@ -468,7 +457,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                   </div>
                   <div class="relative min-h-[25vh] rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
                     <div class="absolute inset-0 flex justify-center items-center px-6">
-                      <m-floating-input
+                      <m-text-field
                         class="w-full max-w-md"
                         label="Nuova e-mail"
                         type="email"
@@ -480,14 +469,9 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                             pattern: 'Formato e-mail non corretto.',
                             emailTaken: 'E-mail già registrata.'
                           }"
-                        [asyncVerify]="true"
                         [serverError]="serverErrorMsg"
-                        [bgClass]="'bg-light-surface-secondary'"
-                        [darkBgClass]="'dark:bg-dark-surface-secondary'"
                         (enter)="routeAction()"
-                        darkLabelClass="dark:text-dark-accent-secondary-hc"
-                        darkTextErrorClass="dark:text-dark-error-hc"
-                        darkFocusBorderClass="dark:focus:border-dark-accent-primary-btn-hc" darkFocusRingClass="dark:focus:ring-dark-accent-primary-btn-hc" />
+                  />
                     </div>
                   </div>
                 </div>
@@ -511,7 +495,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                   </div>
                   <div class="relative min-h-[25vh] rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
                     <div class="absolute inset-0 flex justify-center items-center px-6">
-                        <m-floating-input
+                        <m-text-field
                           class="w-full max-w-md"
                           label="Codice monouso"
                           type="text"
@@ -522,12 +506,8 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                                pattern: 'Il codice deve contenere 6 cifre.'
                              }"
                           [serverError]="serverErrorMsg"
-                          [bgClass]="'bg-light-surface-secondary'"
-                          [darkBgClass]="'dark:bg-dark-surface-secondary'"
                           (enter)="routeAction()"
-                          darkLabelClass="dark:text-dark-accent-secondary-hc"
-                          darkTextErrorClass="dark:text-dark-error-hc"
-                          darkFocusBorderClass="dark:focus:border-dark-accent-primary-btn-hc" darkFocusRingClass="dark:focus:ring-dark-accent-primary-btn-hc" />
+                  />
                     </div>
                   </div>
                 </div>
@@ -596,7 +576,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                           [containerClass]="'flex-none w-full'"
                           [maxHeight]="200"
                           darkTextClass="dark:text-dark-accent-secondary-hc" />
-                      <m-floating-input
+                      <m-text-field
                         class="w-full max-w-md relative top-7"
                         label="Nuovo numero"
                         type="tel"
@@ -605,14 +585,9 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                         [errors]="{
                             required: 'Il nuovo numero di telefono è obbligatorio.',
                             pattern: 'Il formato del numero di telefono non è corretto.' }"
-                        [asyncVerify]="true"
                         [serverError]="serverErrorMsg"
-                        [bgClass]="'bg-light-surface-secondary'"
-                        [darkBgClass]="'dark:bg-dark-surface-secondary'"
                         (enter)="routeAction()"
-                        darkLabelClass="dark:text-dark-accent-secondary-hc"
-                        darkTextErrorClass="dark:text-dark-error-hc"
-                        darkFocusBorderClass="dark:focus:border-dark-accent-primary-btn-hc" darkFocusRingClass="dark:focus:ring-dark-accent-primary-btn-hc" />
+                  />
                     </div>
                   </div>
                 </div>
@@ -643,7 +618,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                 </div>
                 <div class="relative min-h-[25vh] rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
                   <div class="absolute inset-0 flex justify-center items-center px-6">
-                      <m-floating-input
+                      <m-text-field
                         class="w-full max-w-md"
                         label="Codice monouso"
                         type="text"
@@ -654,12 +629,8 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                              pattern: 'Il codice deve contenere 6 cifre.'
                            }"
                         [serverError]="serverErrorMsg"
-                        [bgClass]="'bg-light-surface-secondary'"
-                        [darkBgClass]="'dark:bg-dark-surface-secondary'"
                         (enter)="routeAction()"
-                        darkLabelClass="dark:text-dark-accent-secondary-hc"
-                        darkTextErrorClass="dark:text-dark-error-hc"
-                        darkFocusBorderClass="dark:focus:border-dark-accent-primary-btn-hc" darkFocusRingClass="dark:focus:ring-dark-accent-primary-btn-hc" />
+                  />
                   </div>
                 </div>
               </div>
@@ -724,7 +695,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                 </div>
                 <div class="relative min-h-[25vh] rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
                   <div class="absolute inset-0 flex justify-center items-center px-6">
-                    <m-floating-input
+                    <m-text-field
                       class="w-full max-w-md"
                       label="Codice monouso"
                       type="text"
@@ -735,12 +706,8 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                            pattern: 'Il codice deve contenere 6 cifre.'
                          }"
                       [serverError]="serverErrorMsg"
-                      [bgClass]="'bg-light-surface-secondary'"
-                      [darkBgClass]="'dark:bg-dark-surface-secondary'"
                       (enter)="routeAction()"
-                      darkLabelClass="dark:text-dark-accent-secondary-hc"
-                      darkTextErrorClass="dark:text-dark-error-hc"
-                      darkFocusBorderClass="dark:focus:border-dark-accent-primary-btn-hc" darkFocusRingClass="dark:focus:ring-dark-accent-primary-btn-hc" />
+                  />
                   </div>
                 </div>
               </div>
@@ -797,7 +764,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                 <div class="relative min-h-[30vh] rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
                   <div class="flex justify-center items-center px-6 py-6" [formGroup]="passwordForm">
                     <div class="flex flex-col gap-y-4 w-full max-w-lg mt-4">
-                      <m-floating-input
+                      <m-text-field
                         class="block w-full max-w-lg"
                         label="Password corrente"
                         type="password"
@@ -806,13 +773,9 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                         [errors]="{
                             required: 'La password corrente è un campo obbligatorio.'
                           }"
-                        [bgClass]="'bg-light-surface-secondary'"
-                        [darkBgClass]="'dark:bg-dark-surface-secondary'"
                         (enter)="routeAction()"
-                        darkLabelClass="dark:text-dark-accent-secondary-hc"
-                        darkTextErrorClass="dark:text-dark-error-hc"
-                        darkFocusBorderClass="dark:focus:border-dark-accent-primary-btn-hc" darkFocusRingClass="dark:focus:ring-dark-accent-primary-btn-hc" />
-                      <m-floating-input
+                  />
+                      <m-text-field
                         class="block w-full max-w-lg"
                         label="Nuova password"
                         type="password"
@@ -822,13 +785,9 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                             required: 'Nuova password è un campo obbligatorio.',
                             pattern: 'La password deve essere di almeno 8 caratteri: almeno uno minuscolo, uno maiuscolo, un numero e un carattere speciale.'
                           }"
-                        [bgClass]="'bg-light-surface-secondary'"
-                        [darkBgClass]="'dark:bg-dark-surface-secondary'"
                         (enter)="routeAction()"
-                        darkLabelClass="dark:text-dark-accent-secondary-hc"
-                        darkTextErrorClass="dark:text-dark-error-hc"
-                        darkFocusBorderClass="dark:focus:border-dark-accent-primary-btn-hc" darkFocusRingClass="dark:focus:ring-dark-accent-primary-btn-hc" />
-                      <m-floating-input
+                      />
+                      <m-text-field
                         class="block w-full max-w-lg"
                         label="Reinserisci la nuova password"
                         type="password"
@@ -838,12 +797,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                             required: 'Il campo di conferma password è obbligatorio.',
                             matchPassword: 'Le due password non corrispondono.'
                           }"
-                        [bgClass]="'bg-light-surface-secondary'"
-                        [darkBgClass]="'dark:bg-dark-surface-secondary'"
-                        darkLabelClass="dark:text-dark-accent-secondary-hc"
-                        darkTextErrorClass="dark:text-dark-error-hc"
-                        darkFocusBorderClass="dark:focus:border-dark-accent-primary-btn-hc"
-                        darkFocusRingClass="dark:focus:ring-dark-accent-primary-btn-hc" />
+                      />
                     </div>
                   </div>
                 </div>
