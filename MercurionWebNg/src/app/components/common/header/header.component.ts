@@ -21,6 +21,11 @@ import { ShellLayoutService } from '../../../services/context/shell-layout.servi
 import { APP_CONFIG } from '../../../config/app-config';
 import { routeManifest } from '../../../route-manifest';
 import { BrowserStorageRegistry, storageDescriptor } from '../../../services/browser-storage-registry';
+import { HeaderFacade } from './header.facade';
+import { HeaderNavigationComponent } from './header-navigation.component';
+import { HeaderAccountMenuComponent } from './header-account-menu.component';
+import { HeaderResponsiveMenuComponent } from './header-responsive-menu.component';
+import { HeaderSessionIndicatorComponent } from './header-session-indicator.component';
 
 @Component({
   selector: 'm-header',
@@ -32,8 +37,13 @@ import { BrowserStorageRegistry, storageDescriptor } from '../../../services/bro
     RouterLink,
     PublicPipe,
     SidenavComponent,
-    NgTemplateOutlet
+    NgTemplateOutlet,
+    HeaderNavigationComponent,
+    HeaderAccountMenuComponent,
+    HeaderResponsiveMenuComponent,
+    HeaderSessionIndicatorComponent
   ],
+  providers: [HeaderFacade],
   template: `
 
  <header class="px-2 2xs:px-6 py-4 bg-light-surface-secondary border-b-[0.5px] border-slate-300/65 dark:border-slate-300/40 header-shadow"
@@ -77,7 +87,9 @@ import { BrowserStorageRegistry, storageDescriptor } from '../../../services/bro
       </div>
       }
       @if (designService.minBk("lg")() && userContext.isLoggedIn()) {
-      <m-nav [header]="true"></m-nav>
+      <m-header-navigation [items]="headerViewModel().navigation">
+        <m-nav [header]="true"></m-nav>
+      </m-header-navigation>
       }
     </div>
     @if (designService.maxBk("sm")()) {
@@ -166,15 +178,17 @@ import { BrowserStorageRegistry, storageDescriptor } from '../../../services/bro
       userContext.isLoggedIn() &&
       isAllowedPath()
       ) {
-      <button (click)="toggleAvatarMenu()" [innerHTML]="userContext.initials()"
-        [attr.title]="avatarMenuOpen() ? 'Chiudi il menu utente' : 'Apri il menu utente'"
-        class="avatar-toggle-button inline-flex items-center justify-center size-10 rounded-full cursor-pointer bg-light-accent-secondary-500/80 text-slate-100 dark:bg-dark-accent-primary-btn bg-light-accent-secondary/85 hover:bg-emerald-900/60 hover:text-slate-100 dark:hover:bg-blue-400/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-light-accent-primary-hq text-sm font-semibold transition-colors duration-300">
-      </button>
+      <m-header-session-indicator
+        [session]="headerViewModel().session"
+        [expanded]="avatarMenuOpen()"
+        (toggled)="toggleAvatarMenu()">
+      </m-header-session-indicator>
       }
 
     </div>
   </div>
 </header>
+<m-header-account-menu [session]="headerViewModel().session" />
 <!-- Menu cambio tema -->
 @if (themeMenuMounted()) {
 <div
@@ -367,6 +381,7 @@ import { BrowserStorageRegistry, storageDescriptor } from '../../../services/bro
 </div>
 }
 <!-- Offcanvas backdrop -->
+<m-header-responsive-menu [open]="offCanvasMenuOpen()" />
 @if (offCanvasMenuOpen()) {
   <div class="fixed inset-0 z-[9998] bg-black/30 transition-opacity duration-300 m-overscroll-touch" (click)="closeOffCanvasMenu()"></div>
 }
@@ -516,6 +531,8 @@ import { BrowserStorageRegistry, storageDescriptor } from '../../../services/bro
 export class HeaderComponent implements OnInit, OnDestroy {
 
   protected readonly routes = routeManifest
+  protected readonly headerFacade = inject(HeaderFacade)
+  protected readonly headerViewModel = this.headerFacade.viewModel
   protected readonly themeManager = inject(ThemeManagerService)
   protected readonly designService = inject(DesignService)
   protected readonly searchContextService = inject(SearchContextService)
