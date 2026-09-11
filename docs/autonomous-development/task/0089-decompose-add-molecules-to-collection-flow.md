@@ -132,11 +132,11 @@ dashboard and collection APIs/UI. The add-molecules flow search, selection,
 submit, loading, empty, and result states were exercised safely.
 
 ### Commits
-Implementation commit pending final feature SHA.
+`b336d5e3` — `refactor: decompose add molecules collection flow`
 
 ### Merge / CI
-Feature branch will be pushed only after the task-specific implementation
-commit exists; coordinator owns merge and post-merge CI.
+Feature branch publication follows the task-specific implementation commit;
+coordinator owns merge and post-merge CI.
 
 ### Rollback
 _Not applicable._
