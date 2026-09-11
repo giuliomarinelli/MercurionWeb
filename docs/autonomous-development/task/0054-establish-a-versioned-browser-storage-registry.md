@@ -1,7 +1,7 @@
 # 0054 - Establish a versioned browser storage registry
 
-- [x] DONE
-- [ ] BLOCKED
+- [ ] DONE
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -180,3 +180,23 @@ Validation:
 - No task-owned runtime or watcher was started.
 
 Repair commit: `50636033` (`fix: repair auth external state convergence`).
+
+### CI repair attempt 2 / final blocker
+The latest pushed feature SHA `ff103bea87cb59b54b131e7f1ed70a24cc49f516`
+passed the Ubuntu exact feature CI, but GitHub Actions run `34552682547`
+failed on Windows in the `Angular Test` job. The only reported symptoms were
+infrastructure-level Chrome Headless `152` disconnection, reconnect failure
+before the `2000ms` timeout (`ping timeout`), and the resulting npm lifecycle
+failure. No repository-controlled assertion, test failure, or actionable
+diagnostic was reported.
+
+After one repair attempt, this failure is uncorrelated and unverifiable.
+Following the stop condition, no speculative code changes were made. The
+recipe is classified `BLOCKED`; the feature branch is frozen at the final
+status commit below pending a human decision or a reproducible
+repository-controlled diagnostic.
+
+### Final status
+This metadata-only blocker update is the final commit on `feature/FE-032`;
+the branch is frozen after push. No local `npm ci` or `npm run ci:check` was
+run.
