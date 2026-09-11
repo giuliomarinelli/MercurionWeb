@@ -19,6 +19,9 @@ A **Development Session** is a bounded period in which a session coordinator exe
 - **Soft deadline**: after this time no new task may start; the task already in progress may finish its complete branch/CI lifecycle.
 - **Hard deadline**: optional absolute session guardrail; do not start or interrupt an unsafe merge/revert sequence merely to beat the clock.
 - **Capability**: an external tool available to the coding agent, such as Chrome DevTools MCP.
+- **Project skill**: a repository-owned procedural module in `.github/skills/`
+  loaded explicitly through the Copilot CLI `skill` tool by a normal
+  coordinator or worker invocation.
 - **Runtime**: the local processes/infrastructure required for runtime/browser validation.
 - **Persistent browser profile**: the dedicated, non-production Chrome DevTools MCP user-data directory reused by serial workers and separate from task-scoped application processes.
 - **SESSION_CAPABILITY_PAUSE**: a transient task-scheduling deferral before task changes when mandatory runtime or browser authentication is unavailable; it is not a recipe outcome, creates no dependency skips, and does not by itself stop the session.
@@ -37,6 +40,14 @@ Session timing, workload selection, host/context behavior, budgets, runtime conf
 Series identity, Trello binding, task-range binding, repository/baseline context and optional baseline metadata are defined by each series document's YAML frontmatter.
 
 GitHub Copilot CLI agent profiles are committed in `.github/agents/`, and MCP servers used by autonomous sessions are committed in `.github/mcp.json`. VS Code workspace configuration remains separate and applies only to ordinary interactive VS Code use.
+
+The committed agent profiles expose the `skill` tool and explicitly load the
+repository project skills required by their role. The coordinator loads
+`mercurion-ci-lifecycle` and `mercurion-outcome-classification`; a normal worker
+loads `mercurion-task-execution` and `mercurion-outcome-classification`, adding
+`mercurion-browser-runtime` and `chrome-devtools` for browser/runtime work.
+Skills are procedural aids, not independent policy authorities. The startup
+nonce probe is intentionally tool-free and therefore never loads a skill.
 
 The canonical local runtime topology is defined by `docs/autonomous-development/RUNTIME.md`.
 
@@ -180,6 +191,16 @@ is missing. A red unchanged baseline is a session-level incident, not
 
 All four persistent states are terminal within the active session. The coordinator MUST NOT reopen, resume, retry, or change a `DONE`, `BLOCKED`, `REVERTED`, or `SKIPPED_DEPENDENCY` task because a later probe, tool result, or Autopilot continuation changes its opinion. Only a new direct human instruction in a new or restarted session may authorize re-enablement; an Autopilot continuation is not human authorization. Re-enabling a dependency does not silently clear transitive `SKIPPED_DEPENDENCY` states; those tasks must be reviewed/reset deliberately.
 
+An authorized recovery is declared before launch in the immutable session YAML
+with exact task ID, Source, feature branch and preserved SHA. Its recipe is
+deliberately reset from `BLOCKED` to pending, and only descendant
+`SKIPPED_DEPENDENCY` states that the planner reports as stale are reset to
+pending. The coordinator verifies the recorded local and remote branch identity
+and dispatches one fresh worker with `recovery_resume: true`. The worker merges
+the current green `develop` into the existing feature branch without rebase or
+history rewriting, preserves coherent prior work, and finishes the original
+recipe. Unlisted terminal tasks and branches remain terminal/frozen.
+
 ### Dependency semantics
 
 The `Dependencies` section contains both executable prerequisites and, in older recipes, advisory coordination links. The coordinator resolves them as follows:
@@ -209,8 +230,11 @@ Before task scope starts, the runner:
 A pre-existing local or remote `feature/<Source>` is not overwritten
 automatically. Record `SESSION_BRANCH_COLLISION_PAUSE`, preserve the ref
 unchanged, exclude only that task for the current scheduling pass, and continue
-with the next independent `READY` task. Periodically recheck the collision while
-the session remains active; it never becomes a session-wide fatal condition.
+with the next independent `READY` task. The sole exception is an exact
+`authorized_recovery` entry whose pending recipe, Source, local/remote ref and
+preserved SHA all match; that existing branch is resumed by the worker under
+the recovery procedure above. Periodically recheck ordinary collisions while
+the session remains active; they never become a session-wide fatal condition.
 
 No task develops directly on `develop`. Autonomous tasks never touch `master`.
 
@@ -558,6 +582,13 @@ storage may survive worker and CLI-session boundaries, but authentication is
 never assumed: every worker that needs protected state performs a fresh
 ordinary login with the shared real test account. Angular, Nest and Tox21
 processes do not survive task boundaries.
+
+The committed MCP configuration invokes the deterministic Windows lifecycle
+launcher in `.github/scripts/start-chrome-devtools-mcp.ps1`. The launcher
+reclaims only an orphaned Chrome process tree using the exact dedicated
+profile path before granting the next serial worker lease, and performs the
+same scoped cleanup when MCP exits. It never deletes the profile. A worker
+must not replace or bypass this launcher with a direct MCP process.
 
 When required, the runner manages:
 

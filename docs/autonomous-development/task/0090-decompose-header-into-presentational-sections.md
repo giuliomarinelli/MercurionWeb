@@ -1,6 +1,6 @@
 # 0090 - Decompose the application header into presentational sections
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -81,38 +81,64 @@ Mark `BLOCKED` if a currently rendered header state has no authoritative source 
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/NG-004`
 
 ### Preflight
-_Not started._
+Confirmed clean `feature/NG-004` at base
+`ffd84e1ffae8375a0e21dc2fd870209bbf37d3eb`, with exact-SHA GitHub Actions
+run `34596438727` (`CI`, success). No task-owned workspace processes were
+running before validation.
 
 ### Preflight remediation
-_None._
+None. The canonical runtime capability preflight succeeded: Tox21, Nest and
+Angular were started in the required order, nginx returned two consecutive
+complete readiness rounds, and the real local test account completed an
+ordinary login through `/login` with protected dashboard state observed.
 
 ### Summary
-Not attempted because the required canonical route/navigation, auth/session,
-theme, and UI control foundations are terminally non-`DONE`.
+Added a typed `HeaderViewModel`, a scoped `HeaderFacade` that owns route,
+session, theme and account-state assembly, and four standalone presentational
+header sections for navigation, account-menu semantics, responsive-menu
+semantics and the session indicator. The root header now composes the
+navigation and session sections while retaining existing shell event wiring
+and deterministic timer ownership. Facade subscriptions use
+`takeUntilDestroyed`; children do not inject routing or persistence services.
 
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+* `npx tsc --noEmit -p MercurionWebNg/tsconfig.app.json` — passed.
+* Focused header lint — passed with only pre-existing `any` warnings in the
+  header spec before the change.
+* `npm run test:ci --workspace mercurion_web_ng` — 382 specs passed.
+* `npm run build --workspace mercurion_web_ng` — passed; existing bundle and
+  CommonJS warnings only.
+* `npm run ci:angular:nested-subscriptions` — passed.
+* `npm run ci:angular:onpush-components` — passed.
 
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Not run locally by policy. GitHub Actions is required for clean-install and
+aggregate CI parity on the pushed feature SHA.
 
 ### Browser validation performed
-Not applicable; the task was not attempted.
+Through `http://localhost:8888`: logged-out login header observed, fresh
+ordinary test-account login accepted by the server and protected dashboard
+observed, desktop account menu opened and closed with accessible labels,
+mobile responsive menu opened with focus remaining on the trigger, mobile
+account menu opened with close control, and no browser console errors were
+reported. Runtime processes were stopped after evidence capture.
 
 ### Commits
-Pending metadata commit on `develop`.
+* `b5073b9ca85ae460dc99be0ddbeeab9641c2cbee` — implementation, facade,
+  presentational sections, tests/notes.
+* Follow-up execution-note commit records exact feature CI evidence.
 
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+Exact feature CI run `34597327189` for
+`b5073b9ca85ae460dc99be0ddbeeab9641c2cbee` completed successfully. Both
+Windows and Ubuntu quality jobs and `Required gate` passed. The execution-note
+update is documentation-only and will receive its own exact-SHA CI check.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-Required foundations include FE-004 (BLOCKED because mandatory authenticated
-browser validation was unavailable), FE-030 (BLOCKED because worker
-filesystem-write capability was unavailable), and their terminal dependent
-route/auth/session/UI tasks.
+None.

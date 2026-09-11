@@ -32,6 +32,15 @@ Detailed session semantics and local runtime topology are defined in:
 @docs/autonomous-development/PROTOCOL.md
 @docs/autonomous-development/RUNTIME.md
 
+Repository project skills live in `.github/skills/` and are part of the
+autonomous control plane. Normal coordinator invocations MUST load
+`mercurion-ci-lifecycle` and `mercurion-outcome-classification`. Normal workers
+MUST load `mercurion-task-execution` and `mercurion-outcome-classification`,
+plus `mercurion-browser-runtime` and `chrome-devtools` whenever browser/runtime
+evidence is required. The nonce capability probe invokes no tools, including
+the `skill` tool. Skills refine procedures; they never override this file, the
+protocol, runtime policy, active session configuration, or task recipe.
+
 ## Operating contract
 
 - GitHub Copilot CLI is the only approved host for autonomous Development Sessions. The former VS Code Autopilot/advanced-mode route is unsupported for this workflow; `.vscode` configuration remains available only for ordinary interactive VS Code use.
@@ -93,6 +102,14 @@ Autonomous eligibility is orthogonal to these outcomes. A non-empty
 `SKIPPED_DEPENDENCY` merely because it was excluded from autonomous execution.
 
 All four persistent outcomes are terminal within the active session. The coordinator MUST NOT reopen or resume a terminal task because a later probe or Autopilot continuation changes its opinion. Only a new direct human instruction in a new or restarted session may authorize re-enablement; an Autopilot continuation is not human authorization.
+
+A restarted session may resume prior work only through an immutable
+`authorized_recovery` entry containing the exact pending task, Source, existing
+feature branch and preserved SHA. The worker receives `recovery_resume: true`,
+merges current green `develop` into that branch with `--no-ff --no-gpg-sign`,
+preserves coherent prior commits and completes the original recipe. Never infer
+recovery authority from a branch collision. Reset only dependency skips that
+the authoritative planner identifies as stale after the root is re-enabled.
 
 No error, denial, branch collision, unavailable dependency, CI observation
 failure, or baseline incident is an early completion condition before
