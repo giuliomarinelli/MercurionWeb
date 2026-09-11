@@ -7,8 +7,8 @@ soft_deadline: "2026-09-20T10:00:00+02:00"
 finished_at: "2026-09-11T04:46:39+02:00"
 stop_reason: "session-fatal-blocker"
 initial_develop_sha: "8434d0e34c0bdd967e94e14d88523dc0b95c2a05"
-final_develop_sha: "fb5057d99bf9361a41b4f9dcaba703705444a1b6"
-final_develop_ci: "https://github.com/giuliomarinelli/MercurionWeb/actions/runs/34555848460 success"
+final_develop_sha: "042c95cf3e97f6793db9d1307024a4dae76872d6"
+final_develop_ci: "https://github.com/giuliomarinelli/MercurionWeb/actions/runs/34555956223 success"
 ---
 
 # Autonomous Development Session Report
@@ -24,7 +24,7 @@ final_develop_ci: "https://github.com/giuliomarinelli/MercurionWeb/actions/runs/
 - Skipped because of dependency: 44 total, including 18 newly materialized
 - Still pending: 113
 - Stop reason: session-fatal-blocker
-- Final `develop`: clean, local and origin at `fb5057d99bf9361a41b4f9dcaba703705444a1b6`, exact metadata CI green
+- Final `develop`: clean, local and origin at `042c95cf3e97f6793db9d1307024a4dae76872d6`, exact metadata CI green
 
 ## Initial green-baseline evidence
 
@@ -84,8 +84,8 @@ run and did not alter `develop`.
 
 - Soft deadline reached: not reached
 - Active task completed after deadline: n/a
-- Report commit SHA: pending
-- Report commit exact-SHA CI: pending
+- Report commit SHA: `042c95cf3e97f6793db9d1307024a4dae76872d6`
+- Report commit exact-SHA CI: run `34555956223` success
 
 ## CI and execution efficiency
 
