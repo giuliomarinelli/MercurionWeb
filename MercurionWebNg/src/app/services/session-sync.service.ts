@@ -27,6 +27,7 @@ import {
   type SessionInvalidationCauseType
 } from '@mercurion/rest-contracts'
 import { ToastVariant } from '../Models/toast.models'
+import { BrowserStorageRegistry } from './browser-storage-registry'
 
 /**
  * Storage is the single cross-tab transport for auth state.  The websocket
@@ -37,12 +38,15 @@ export type CrossTabAuthStorageEvent =
   | { kind: 'session-changed'; key: 'login'; authenticated: boolean }
   | { kind: 'ws-credential-changed'; key: 'ws_accessToken' }
 
-export function classifyCrossTabAuthStorageEvent(event: StorageEvent): CrossTabAuthStorageEvent | null {
-  if (event.storageArea !== localStorage) return null
-  if (event.key === 'login') {
+export function classifyCrossTabAuthStorageEvent(event: StorageEvent, registry?: BrowserStorageRegistry): CrossTabAuthStorageEvent | null {
+  const descriptor = registry?.event(event)
+  if (descriptor && descriptor.descriptor.owner !== 'auth-session') return null
+  const localStorageArea = globalThis['localStorage'] as Storage | undefined
+  if (event.storageArea === null || (!descriptor && event.storageArea !== localStorageArea)) return null
+  if (event.key === 'login' || descriptor?.descriptor.id === 'login') {
     return { kind: 'session-changed', key: 'login', authenticated: event.newValue !== null }
   }
-  if (event.key === 'ws_accessToken') {
+  if (event.key === 'ws_accessToken' || descriptor?.descriptor.id === 'wsAccessToken') {
     return { kind: 'ws-credential-changed', key: 'ws_accessToken' }
   }
   return null
@@ -67,6 +71,7 @@ export class SessionSyncService implements OnDestroy {
   private readonly toast = inject(ToastService)
   private readonly router = inject(Router)
   private readonly zone = inject(NgZone)
+  private readonly storageRegistry = inject(BrowserStorageRegistry)
   private readonly destroyRef = inject(DestroyRef)
   private readonly realtimeSubscriptions = new Subscription()
 
@@ -150,7 +155,7 @@ export class SessionSyncService implements OnDestroy {
   private storageDebounce?: ReturnType<typeof setTimeout>
 
   private readonly onStorage = (event: StorageEvent): void => {
-    const change = classifyCrossTabAuthStorageEvent(event)
+    const change = classifyCrossTabAuthStorageEvent(event, this.storageRegistry)
     if (!change) return
 
     clearTimeout(this.storageDebounce)

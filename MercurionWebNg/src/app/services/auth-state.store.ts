@@ -1,6 +1,7 @@
 import { computed, inject, Injectable, signal } from '@angular/core'
 import { AuthSessionPersistenceService } from './auth-session-persistence.service'
 import { AuthErrorService } from './auth-error.service'
+import { BrowserStorageRegistry, storageDescriptor } from './browser-storage-registry'
 import {
   INITIAL_SESSION_PROTOCOL,
   LOCAL_DUMMY_AUTH,
@@ -50,6 +51,7 @@ export interface AuthCompletion {
 
 @Injectable({ providedIn: 'root' })
 export class AuthStateStore {
+  private readonly storageRegistry = inject(BrowserStorageRegistry)
   private readonly persistence = inject(AuthSessionPersistenceService)
   private readonly authErrors = inject(AuthErrorService)
   private readonly stateSignal = signal<AuthState>({ kind: 'bootstrap' })
@@ -392,11 +394,7 @@ export class AuthStateStore {
   }
 
   private clearLocalDummyMarker(): void {
-    try {
-      localStorage.removeItem(LOCAL_DUMMY_AUTH.storageKey)
-    } catch {
-      // Storage failure is already a fail-closed inactive state.
-    }
+    this.storageRegistry.remove(storageDescriptor('localDummyAuth'))
     if (typeof document !== 'undefined') {
       document.cookie = '__logged_in=; Max-Age=0; path=/'
       document.cookie = '__logged_in_=; Max-Age=0; path=/'

@@ -1,6 +1,6 @@
 # 0054 - Establish a versioned browser storage registry
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -95,54 +95,62 @@ The registry is metadata/infrastructure; domain services still expose semantic o
 
 ## Execution notes
 
-> Current status (2026-09-11): PENDING by direct owner instruction because this
-> activity was not completed. Historical attempt/skip evidence remains below
-> for traceability and is not a terminal outcome. The prior partial work is
-> preserved on `archive/FE-032-attempt-2026-09-11`.
-
 ### Feature branch
-Historical attempt archived as `archive/FE-032-attempt-2026-09-11` at
-`037321418c25ec92892b2248f2b0fa674ea726f0`.
+`feature/FE-032`, based on `24642a5fb8ccbf87674fe6de77d8c399293742c1`.
 
 ### Preflight
-Passed. The required Tox21, Nest, and Angular runtime startup order, two
-readiness rounds, fresh login, protected-session proof, browser validation, and
-task-owned process shutdown were completed.
+Base branch was clean at the supplied SHA; exact-SHA GitHub Actions run
+`34550492191` completed successfully. Production Angular storage inventory was
+performed before editing and covered auth/session, pre-auth, redirects, theme,
+route errors, local dummy-auth compatibility, and all storage-event consumers.
+No task-owned workspace process was active at the initial inventory.
 
 ### Preflight remediation
-_None._
+The canonical runtime was started in the required order with separate attached
+sessions: Tox21 (`python -m main` from `../MercurionTox21`), Nest
+(`npm run start:dev --workspace mercurion_web_node`), and Angular
+(`npm run start:dev` from `MercurionWebNg`). The nginx edge initially returned
+502 while upstreams compiled, then two consecutive complete rounds returned
+`GET / = 200` and `GET /health = 200`. All three processes were stopped before
+handoff.
 
 ### Summary
-The implementation and focused validation completed successfully, but the
-exact feature-SHA CI could not be verified after the bounded repair cycle.
+Added a typed `BrowserStorageRegistry` with namespaced v1 descriptors, codecs,
+legacy-key migration, safe quarantine/removal for malformed values, owner
+metadata, and typed storage-event decoding. Auth/session persistence and theme,
+socket, local-dummy, header, and cross-tab consumers now use registry-backed
+adapters. Added the static architecture check
+`ci:angular:storage-registry`.
 
 ### Task-specific validation performed
-Registry migration/static checks, focused Angular tests, typecheck, and browser
-storage validation passed. The local full Angular suite had two unrelated
-existing password-recovery fixture failures.
+- `npm --prefix MercurionWebNg run typecheck` — passed.
+- `npm run ci:angular:storage-registry` — passed.
+- `npx ng test --watch=false --karma-config=karma.conf.js --include
+  src/app/services/auth-session-persistence.service.spec.ts --include
+  src/app/services/session-sync.service.spec.ts` — 10/10 passed.
+- Full existing-tree Angular suite reached 356/359; the remaining two failures
+  are unrelated password-recovery fixture failures (`Password recovery error`,
+  HTTP 500) and were not changed.
 
 ### Full pre-merge CI-parity validation
-Initial feature run `34552194747` failed in Angular Test on Ubuntu and Windows
-with an auth-state transition assertion. Repair commit `506360331` corrected
-that repository-controlled failure. Repair SHA
-`ff103bea87cb59b54b131e7f1ed70a24cc49f516` passed Ubuntu, but run
-`34552682547` failed on Windows in Angular Test with only a Chrome Headless
-152 disconnect/reconnect timeout and no repository-controlled diagnostic.
+Not run locally by policy; clean-install and aggregate CI remain GitHub Actions
+responsibilities.
 
 ### Browser validation performed
-Theme persistence, safe malformed-value fallback, and logout cleanup were
-verified through `http://localhost:8888`; no console crash was observed.
+Through only `http://localhost:8888`, logout returned the persistent profile to
+the public welcome state. A namespaced dark theme value survived reload
+(`data-theme="dark"`), and a deliberately malformed registered theme value was
+removed and safely fell back without bootstrap failure. The same runtime
+preflight included protected dashboard/server health evidence before logout.
 
 ### Commits
-Implementation and repair commits are preserved on the archived attempt;
-this commit records the blocked outcome on `develop`.
+Feature implementation commit recorded below.
 
 ### Merge / CI
-No feature merge. The historical attempt remains preserved in the archive.
+Feature SHA is pending push and exact-SHA CI.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-The Windows exact-SHA result is uncorrelated and unverifiable after one repair
-attempt; human review is required before retrying this task.
+None.

@@ -7,6 +7,7 @@ import { Login_FirstStepWrapper } from '../Models/auth/login.models';
 import { Router } from '@angular/router';
 import { AuthStateStore } from './auth-state.store';
 import { AuthSessionPersistenceService } from './auth-session-persistence.service';
+import { BrowserStorageRegistry } from './browser-storage-registry';
 import type {
   BackupCodeDTO,
   Confirm_Login_FirstStepDTO,
@@ -38,6 +39,7 @@ export class AuthService {
   private readonly http = inject(HttpClient)
   private readonly authState = inject(AuthStateStore)
   private readonly persistence = inject(AuthSessionPersistenceService)
+  private readonly storageRegistry = inject(BrowserStorageRegistry)
   private readonly router = inject(Router)
   // ====================================================
 
@@ -298,7 +300,8 @@ export class AuthService {
 
     let stop = false;
     const onStorage = (e: StorageEvent) => {
-      if (e.key === this.WS_AT_KEY || e.key === this.WS_REFRESH_LOCK) {
+      const change = this.storageRegistry.event(e)
+      if (change?.descriptor.id === 'wsAccessToken' || change?.descriptor.id === 'wsRefreshLock') {
         stop = true;
       }
     };
