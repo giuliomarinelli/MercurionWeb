@@ -265,16 +265,16 @@ workload:
   tasks: []
   pending_only: true
   expected_task_count: 220
-  expected_current_done: 62
+  expected_current_done: 65
   expected_current_blocked: 2
   expected_current_skipped_dependency: 11
-  expected_current_pending: 145
-  expected_first_ready_task: "0059"
-  expected_planner_ready: 14
-  expected_planner_waiting_dependency: 131
+  expected_current_pending: 142
+  expected_first_ready_task: "0060"
+  expected_planner_ready: 17
+  expected_planner_waiting_dependency: 125
   expected_planner_terminal_closure: 11
   expected_new_skipped_dependency: 0
-  expected_autonomous_pending: 145
+  expected_autonomous_pending: 142
   expected_human_led_pending: 0
   dependency_planner:
     command: npm run autonomous:plan
@@ -297,11 +297,7 @@ authorized_recovery:
   authority: direct-human-instruction-2026-09-11
   resume_existing_feature_branches: true
   reconcile_with_current_develop: merge-no-ff-no-gpg-sign
-  tasks: ["0059", "0087", "0091", "0109"]
-  source_0059: UI-001
-  preserved_sha_0059: a1122f4d9c6564983d931c38c09facf682650bef
-  prior_attempt_branch_0059: archive/UI-001-attempt-2026-09-11
-  prior_attempt_sha_0059: 909df90c0b1d8f8b2a20734d12f9fa5348f8c79f
+  tasks: ["0087", "0091", "0109"]
   source_0087: NG-001
   preserved_sha_0087: bb210295929e45ba739207361f40f1c1bbbb719b
   source_0091: NG-005
