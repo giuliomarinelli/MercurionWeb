@@ -109,47 +109,63 @@ composition, and typed save/delete/bind/touch commands. The page now consumes
 facade detail/loading/error/similar state and delegates user commands.
 
 Recovery revalidated the implementation after merging current `develop`, and
-completed the previously missing representative route and rapid-navigation
-browser evidence.
+completed the facade/page refactor and focused tests, but the required
+post-change browser acceptance remains blocked. The canonical runtime was
+healthy and fresh login succeeded; the representative ChEMBL detail route
+returned the document shell, then Angular's lazy component compilation stalled
+with pending `@ng/component` requests. Chrome snapshots and route readiness
+timed out, so system/ChEMBL/custom rendering and rapid-navigation evidence
+cannot be claimed.
 
 ### Task-specific validation performed
 - `npm run typecheck --workspace mercurion_web_ng` — PASS.
-- `npm exec --workspace mercurion_web_ng ng test -- --watch=false
+- `npx ng test --watch=false
+  --include=src/app/pages/molecule-detail/molecule-detail.facade.spec.ts
   --include=src/app/pages/molecule-detail/molecule-detail.page.component.spec.ts
-  --browsers=ChromeHeadless` — Angular compiled and tests began successfully,
-  then ChromeHeadless disconnected at 75/382; the test watcher was stopped.
-- `npx eslint ...molecule-detail.facade.ts ...molecule-detail.page.component.ts`
-  — unavailable because the root invocation does not locate the workspace
-  ESLint configuration; no dependency installation was attempted.
+  --browsers=ChromeHeadless` from `MercurionWebNg` — PASS, 4/4.
 - Post-merge runtime startup — Tox21/Nest/Angular all remained alive; Nest
   compiled with 0 errors and Angular completed its dev build.
 - Post-merge readiness — two consecutive complete `health=200 root=200` rounds.
-- Post-merge browser — system, ChEMBL and custom detail routes rendered; rapid
-  navigation showed latest-wins detail state with no stale replacement,
-  title/breadcrumb updates, and no relevant console errors.
+- Fresh ordinary login through `http://localhost:8888/login` — PASS;
+  protected dashboard state showed `Benvenuto Test` and molecule/collection
+  counts.
+- Post-merge browser — ChEMBL document navigation returned HTTP 200, but the
+  page remained at the root accessibility node. `take_snapshot` and
+  `wait_for` timed out. Network inspection showed the molecule-detail page
+  lazy component and related `@ng/component` requests pending; no application
+  GraphQL detail request or rendered detail state was observed.
+- All three task-owned runtime processes were stopped and a final process
+  inventory found no Tox21, Nest, Angular or test-watcher process.
 - No local `npm ci` or `npm run ci:check` was run.
 
 ### Full pre-merge CI-parity validation
 Not applicable; the task was blocked before merge.
 
 ### Browser validation performed
-Preflight protected dashboard evidence and post-implementation system, ChEMBL
-and custom detail-route evidence were captured through `http://localhost:8888`.
-Rapid route changes were exercised through the canonical edge; loading/content
-transitions, title/breadcrumb behavior, latest-wins rendering and console
-health were verified. No production origin, dummy-auth route, clipboard, or
-DOM injection was used.
+Preflight protected dashboard evidence was captured through
+`http://localhost:8888` after a fresh ordinary login. Required post-change
+detail-route evidence was not completed because the representative ChEMBL
+route's lazy Angular component compilation stalled; subsequent snapshot and
+wait calls timed out. System/custom route, rapid-navigation, action, title/
+breadcrumb, cancellation/no-duplicate-fetch and rendered-console evidence
+therefore remain unproven. No production origin, dummy-auth route, clipboard,
+or DOM injection was used.
 
 ### Commits
-Recovery merge and task completion commit are recorded below.
+Recovery merge `a906cb2c6` is recorded below; the diagnostic implementation
+commit is this feature branch's final preserved attempt.
 
 ### Merge / CI
 Feature branch was recovered from the preserved implementation, merged with
-current `develop` using `--no-ff --no-gpg-sign`, and pushed after task
-validation.
+current `develop` using `--no-ff --no-gpg-sign`, and pushed with the diagnostic
+implementation commit. No merge into `develop` was performed.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-_None._
+Diagnose the Angular development-server lazy component compilation stall
+observed through the canonical edge (`@ng/component` requests remained
+pending, while `/health` and `/` returned 200), then authorize a new
+post-change browser validation attempt. The task remains `BLOCKED`; no DONE
+checkbox was selected.

@@ -1,15 +1,10 @@
-import { LoggerService } from '../../services/logger.service';
 import { CustomDetailSaveModel } from '../../Models/custom-detail-save.model'
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop'
-import { EmbeddingService } from '../../services/embedding.service'
+import { toSignal } from '@angular/core/rxjs-interop'
 import { SimilarsComponent } from '../../components/molecule-detail/similars/similars.component'
-import { Component, DestroyRef, effect, inject, OnDestroy, OnInit, Signal, signal, ChangeDetectionStrategy } from '@angular/core'
-import { ActivatedRoute, Router, RouterLink } from '@angular/router'
-import { MoleculeService } from '../../services/graphql/molecule.service'
-import { switchMap, Observable, catchError, of, Subscription, tap, distinctUntilChanged, throwError, EMPTY, fromEvent, defer } from 'rxjs'
-import { filter, map, mergeMap } from 'rxjs/operators'
+import { Component, effect, inject, Signal, signal, ChangeDetectionStrategy } from '@angular/core'
+import { RouterLink } from '@angular/router'
+import type { Observable } from 'rxjs'
 import { AsyncPipe } from '@angular/common'
-import { ThemeManagerService } from '../../services/context/theme-manager.service'
 import { MoleculeHeaderComponent } from '../../components/molecule-detail/molecule-header/molecule-header.component'
 import { MoleculeViewerComponent } from '../../components/chem/molecule-viewer/molecule-viewer.component'
 import { MoleculePropertiesComponent } from '../../components/molecule-detail/molecule-properties/molecule-properties.component'
@@ -18,32 +13,16 @@ import { MoleculeSynonymsComponent } from '../../components/molecule-detail/mole
 import { MoleculeCtaChemblComponent } from '../../components/molecule-detail/molecule-cta-chembl/molecule-cta-chembl.component'
 import { T1PredictionCardComponent } from '../../components/molecule-detail/t1-prediction-card/t1-prediction-card.component'
 import { UserContextService } from '../../services/context/user-context.service'
-import { MercurionAiService as MercurionAIService } from '../../services/mercurion-ai.service'
-import { MoleculeSearchResult } from '../../Models/graphql/molecule-search/molecule-search-result.interface'
 import { FormControl, ReactiveFormsModule } from '@angular/forms'
 import { TypeGuardsService } from '../../services/type-guards.service'
-import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service'
-import { MoleculeCollectionItemEntityShort, MoleculeDetailItem } from '../../Models/graphql/molecule-collection/molecule-collection.types'
+import { MoleculeDetailItem } from '../../Models/graphql/molecule-collection/molecule-collection.types'
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component'
 import { CustomDetailsComponent } from '../../components/molecule-detail/my-molecule-custom-details/custom-details.component'
-import { MoleculeDetailSystem } from '../../Models/graphql/molecule.detail.models'
-import { ToastService } from '../../services/toast.service'
 import { MyMoleculeJoinComponent } from '../../components/molecule-detail/my-molecule-join/my-molecule-join.component'
 import { MyMoleculesHeadingComponent } from '../../components/molecule-detail/my-molecules-heading/my-molecules-heading.component'
 import { LinkModel } from '../../Models/link.model'
-import { MoleculeCollectionService } from '../../services/graphql/molecule-collection.service'
-import { HistoryContextService } from '../../services/context/history-context.service'
-import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service'
-import { HttpErrorResponse } from '@angular/common/http'
-import { AppTitleService } from '../../services/app-title.service'
-import { DomainInvalidationService } from '../../services/domain-invalidation.service'
 import { DesignService } from '../../services/design.service'
 import { MoleculeDetailFacade } from './molecule-detail.facade'
-import { AuthSessionPersistenceService } from '../../services/auth-session-persistence.service'
-import {
-  ApplicationErrorCode,
-  hasApplicationErrorCode
-} from '../../utils/application-error.util'
 
 
 
@@ -265,58 +244,26 @@ import {
         </section>
         }
   ` })
-export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
-  private readonly persistence = inject(AuthSessionPersistenceService)
+export class MoleculeDetailPageComponent {
   private readonly facade = inject(MoleculeDetailFacade)
 
-  // ======================= DEPS =======================
-  private readonly route = inject(ActivatedRoute)
-  private readonly router = inject(Router)
-  private readonly moleculeService = inject(MoleculeService)
-  protected readonly themeManager = inject(ThemeManagerService)
   protected readonly userContext = inject(UserContextService)
-  private readonly mercurionAIService = inject(MercurionAIService)
-  private readonly embeddingService = inject(EmbeddingService)
-  private readonly destroyRef = inject(DestroyRef)
   protected readonly typeGuards = inject(TypeGuardsService)
   protected readonly design = inject(DesignService)
-  private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService)
-  private readonly moleculeCollectionService = inject(MoleculeCollectionService)
-  private readonly toast = inject(ToastService)
-  private readonly historyContext = inject(HistoryContextService)
-  private readonly actionOverlayContext = inject(ActionOverlayContextService)
-  private readonly appTitle = inject(AppTitleService)
-  private readonly invalidations = inject(DomainInvalidationService)
-  private readonly logger = inject(LoggerService)
-  // ====================================================
-
-  private readonly uuidV7Re = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
   molecule$: Observable<MoleculeDetailItem | null> = this.facade.molecule$
   viewerReady = signal<boolean>(false)
-  similarViewerReady = signal<boolean>(false)
   fetchError = this.facade.error
   similarMols = this.facade.similar
-  similarMolsCache = signal<MoleculeSearchResult[]>([])
   fetchMolLoading = this.facade.loading
-  collectionId = signal<string>('')
-  private molCached?: MoleculeDetailItem
-  private molType!: 'system' | 'chembl' | 'custom'
-  protected molId!: string | number
+  collectionId = this.facade.collectionId
+  protected molId = this.facade.currentId
   protected breadcrumb: LinkModel[] = [
     {
       label: 'Collezioni Molecolari',
       path: '/molecules/collections'
     }
   ]
-
-  private onlySub?: Subscription
-  private upLaSub?: Subscription
-  private upNoSub?: Subscription
-  private upNaSub?: Subscription
-  private bcSub?: Subscription
-  private touchSub?: Subscription
-  private delSub?: Subscription
 
   onlyKnown = new FormControl<boolean>(true, { nonNullable: true })
 
@@ -331,260 +278,22 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
       this.similarMols.set(this.onlyKnownSig() ? similar.filter(mol => mol.known) : similar)
     })
     effect(() => {
-      this.userContext.initials()
+      const collectionId = this.facade.collectionId()
+      const collectionName = this.facade.collectionName()
+      this.breadcrumb = collectionId && collectionName
+        ? [
+            { label: 'Collezioni Molecolari', path: '/molecules/collections' },
+            {
+              label: collectionName,
+              path: `/molecules/collections/detail/${collectionId}`
+            }
+          ]
+        : [{ label: 'Collezioni Molecolari', path: '/molecules/collections' }]
     })
-    effect(() => {
-      const event = this.invalidations.last()
-      if (event?.domain !== 'molecule' || event.action !== 'collections-bound' ||
-          event.moleculeId !== this.molId.toString()) {
-        return
-      }
-      queueMicrotask(() => undefined)
-    })
-  }
-
-  private handleCrossTabFetchData(e: StorageEvent): void {
-    if (e.newValue) {
-      this.fetchData()
-      this.fetchSimilar()
-    }
-  }
-
-  private fetchData(): void {
-    // --- breadcrumb
-    this.bcSub?.unsubscribe()
-    this.bcSub = this.route.queryParamMap.pipe(
-      map((qp): string => qp.get('c_id') ?? ''),
-      filter(collectionId => collectionId.length > 0),
-      switchMap((cId) => {
-        if (!cId || !this.userContext.isLoggedIn()) return of(null)
-        this.collectionId.set(cId)
-        return this.moleculeCollectionService.getCollectionById(cId)
-      }),
-      distinctUntilChanged((a, b) => a?.id === b?.id)
-    ).subscribe((col) => {
-      if (col) {
-        const list = [
-          ...this.breadcrumb,
-          {
-            label: col.name,
-            path: `/molecules/collections/detail/${col.id}`
-          }
-        ]
-        this.breadcrumb = [...new Map(list.map(x => [x.path, x])).values()]
-      }
-    })
-
-
-    this.molecule$ = this.route.paramMap.pipe(
-      switchMap((params): Observable<string> => {
-        this.viewerReady.set(false)
-        this.fetchMolLoading.set(true)
-        const molId = params.get('molId')
-        if (!molId) {
-          this.fetchError.set(true)
-          return throwError(() => new Error('UndefinedMolregno'))
-        }
-        this.molId = molId
-        return of(molId)
-      }),
-      switchMap((molId: string) => {
-        const isUUID = this.uuidV7Re.test(molId)
-        if (isUUID && !this.userContext.isLoggedIn()) {
-          return this.moleculeCollectionItemService
-            .existsChEMBLMoleculeByUUIDThenGetMolregno(molId)
-            .pipe(
-              tap(molregno => {
-                if (molregno) {
-                  const url = `/molecules/detail/${molregno}`
-                  this.persistence.setRedirectState(url)
-                  this.router.navigateByUrl(url)
-                }
-              }),
-              mergeMap(molregno => (molregno ? EMPTY : of(molId)))
-            )
-        }
-        return of(molId)
-      }),
-      switchMap(molId => {
-        const isUUID = this.uuidV7Re.test(molId)
-        if (!isUUID && this.userContext.isLoggedIn()) {
-          return this.moleculeCollectionItemService
-            .hasUserChEMBLMoleculeByMolregnoThenGetUUID(Number(molId))
-            .pipe(
-              map(molUUID => ({ molId, molUUID })) // molUUID: string | null
-            )
-        }
-        return of({ molId, molUUID: null as string | null })
-      }),
-      switchMap(({ molId, molUUID }) => {
-        const isMolUUID_UUID = this.uuidV7Re.test(molUUID ?? '')
-        if (molUUID && isMolUUID_UUID && this.userContext.isLoggedIn()) {
-          this.router.navigateByUrl(`/molecules/detail/${molUUID}`)
-          return EMPTY
-        }
-        const isUUID = this.uuidV7Re.test(molId)
-        if (!isUUID) {
-          if (this.molCached && this.molCached.id === Number(molId)) {
-            return of(this.molCached as MoleculeDetailItem)
-          }
-          return this.moleculeService.getMoleculeByMolregno(molId).pipe(
-            map(mol => {
-              if (!mol) {
-                return null as MoleculeDetailItem | null
-              }
-              const sys: MoleculeDetailSystem = { ...mol, type: 'system' }
-              this.molCached = sys
-              return sys as MoleculeDetailItem
-            }),
-            catchError((e: HttpErrorResponse) => {
-              if (hasApplicationErrorCode(
-                e,
-                ApplicationErrorCode.MOLECULE_NOT_FOUND
-              )) {
-                this.router.navigateByUrl('/404-not-found')
-                return EMPTY
-              }
-              this.fetchError.set(true)
-              return of(null as MoleculeDetailItem | null)
-            })
-          )
-        }
-        return defer(() =>
-          this.moleculeCollectionItemService.getItemById(molId)
-        ).pipe(
-          catchError(() => {
-            this.fetchError.set(true)
-            return of(null)
-          })
-        )
-      }),
-      switchMap((item: MoleculeDetailItem | null): Observable<MoleculeDetailItem | null> => {
-        if (!item) {
-          this.fetchError.set(true)
-          return of(null)
-        }
-
-        this.molType = item.type
-
-        let smiles = ''
-        if (this.typeGuards.isSystemMolecule(item)) {
-          smiles = item.canonicalSmiles ?? ''
-          this.appTitle.setSection('Molecole', item.preferredNameIt ?? item.preferredName ?? undefined)
-        } else if (this.typeGuards.isChemblMolecule(item)) {
-          smiles = item.chemblDetails.canonicalSmiles ?? ''
-          this.appTitle.setSection('Molecole', item.chemblDetails.preferredNameIt ?? item.chemblDetails.preferredName ?? undefined)
-        } else if (this.typeGuards.isCustomMolecule(item)) {
-          if (item.propertiesJson) {
-            item.properties = JSON.parse(item.propertiesJson)
-          }
-          smiles = item.canonicalSmiles
-          this.appTitle.setSection('Molecole', item.name ?? 'Lead sconosciuto')
-        }
-
-        return this.userContext.isLoggedIn() ? this.mercurionAIService.t1Inference({ smiles }).pipe(
-          map(t1 => ({ ...item, t1Inference: t1 })),
-          tap(() => this.fetchMolLoading.set(false)),
-          catchError(() => of(item))
-        ) :
-          of(item)
-      }),
-      catchError((err: unknown) => {
-        const netErr = (err as Record<string, string>)['networkError']
-        if (netErr && 'status' in (netErr as unknown as object)) this.fetchError.set(true)
-        return of(null)
-      })
-    )
-  }
-
-
-  private fetchSimilar(): void {
-    this.onlySub?.unsubscribe()
-    this.onlySub = this.route.paramMap.pipe(
-      map(params => params.get('molId')), // string | null
-      distinctUntilChanged(),
-      tap(() => this.similarViewerReady.set(false)),
-      switchMap((id): Observable<string | null> => {
-        if (!id) return of(null)
-        // UUID -> prendo lo short e, se chembl, estraggo il molregno
-        if (this.uuidV7Re.test(id)) {
-          const svc$ = this.moleculeCollectionItemService.getItemShortById?.(id)
-
-          const src: Observable<MoleculeCollectionItemEntityShort | null> =
-            svc$ ?? of(null)
-
-          return src.pipe(
-            map((mol: MoleculeCollectionItemEntityShort | null) =>
-              mol && this.typeGuards.isChemblMolecule(mol)
-                ? `${mol.chemblMolregno}` // string
-                : null
-            )
-          )
-        }
-
-
-        if (/^\d+$/.test(id)) {
-          return of(id)
-        }
-
-        return of(null)
-      }),
-
-      switchMap((molregno) =>
-        molregno ? this.embeddingService.getSimilarMolregnos(molregno, 65) : of([])
-      ),
-
-      switchMap((results) =>
-        this.moleculeService.getMoleculePreviewsByMolregnos(
-          results.map((item) => typeof item === 'number' ? String(item) : String(item.molregno))
-        )
-      ),
-
-      tap(() => this.similarViewerReady.set(true)),
-      catchError((e) => {
-        this.logger.error('Failed to load similar molecules', e)
-        this.similarViewerReady.set(false)
-        return of([] as MoleculeSearchResult[])
-      })
-    ).pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((previews) => {
-        this.similarMolsCache.set(previews)
-        this.similarMols.set(
-          previews.filter(mol => mol.known && this.onlyKnown.value === true)
-        )
-      })
   }
 
   doUpdateInlineDetails(e: CustomDetailSaveModel): void {
     this.facade.save(e)
-  }
-
-  private updateLabel(label: string): void {
-    if (this.typeGuards.isString(this.molId) && this.typeGuards.isUserMoleculeType(this.molType)) {
-      this.upLaSub = this.moleculeCollectionItemService.updateItemLabel(this.molId, label, this.molType)
-        .subscribe({
-          next: () => this.toast.trigger('Etichetta aggiornata correttamente', 'success', 1500),
-          error: () => this.toast.trigger('Si è verificato un errore', 'error', 1500)
-        })
-    }
-  }
-
-  private updateNotes(notes: string): void {
-    if (this.typeGuards.isString(this.molId) && this.typeGuards.isUserMoleculeType(this.molType)) {
-      this.upNoSub = this.moleculeCollectionItemService.updateItemNotes(this.molId, notes, this.molType)
-        .subscribe({
-          next: () => this.toast.trigger('Note aggiornate correttamente', 'success', 1500),
-          error: () => this.toast.trigger('Si è verificato un errore', 'error', 1500)
-        })
-    }
-  }
-
-  private updateName(name: string): void {
-    if (this.typeGuards.isString(this.molId) && this.typeGuards.isCustomMoleculeType(this.molType)) {
-      this.upNaSub = this.moleculeCollectionItemService.updateItemName(this.molId, name, this.molType).pipe(
-        switchMap(() => this.historyContext.pollNewItem())
-      ).subscribe(() => {/* pass */ })
-    }
   }
 
   doDelete(id: string): void {
@@ -593,55 +302,6 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
 
   doAddToManyCollections(): void {
     this.facade.bindCollections()
-  }
-
-  ngOnInit(): void {
-    this.facade.markTouched()
-    fromEvent<StorageEvent>(window, 'storage')
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(this.handleCrossTabFetchData.bind(this))
-    this.touchSub = this.route.paramMap.pipe(
-      map(pm => pm.get('molId') ?? ''),
-      filter(id => id.length > 0),
-      distinctUntilChanged(),
-      switchMap(id =>
-        this.route.queryParamMap.pipe(
-          map(params => ({
-            molId: id,
-            colId: params.get('c_id') ?? ''
-          }))
-        )
-      ),
-      switchMap((args) => {
-        const flagIds: { c_id?: string } = {}
-        const isUUID_colId = this.uuidV7Re.test(args.colId)
-        const isUUID_molId = this.uuidV7Re.test(args.molId)
-        if (isUUID_colId && isUUID_molId) {
-          flagIds.c_id = args.colId
-        }
-        return this.userContext.isLoggedIn()
-          ?
-          this.moleculeCollectionItemService.markItemAsTouched(args.molId, JSON.stringify(flagIds))
-          :
-          of(false)
-      }),
-      switchMap((ok) => {
-        if (ok) {
-          return this.historyContext.pollNewItem()
-        }
-        return of(null)
-      })
-    ).subscribe(() => {/* pass */ })
-  }
-
-  ngOnDestroy(): void {
-    this.onlySub?.unsubscribe()
-    this.upLaSub?.unsubscribe()
-    this.upNoSub?.unsubscribe()
-    this.upNaSub?.unsubscribe()
-    this.bcSub?.unsubscribe()
-    this.touchSub?.unsubscribe()
-    this.delSub?.unsubscribe()
   }
 
 }

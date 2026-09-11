@@ -2,11 +2,12 @@ import { DestroyRef, Injectable, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Observable, EMPTY, defer, of, throwError } from 'rxjs';
-import { catchError, distinctUntilChanged, filter, map, mergeMap, switchMap, tap } from 'rxjs/operators';
+import { catchError, distinctUntilChanged, filter, map, mergeMap, shareReplay, switchMap, tap } from 'rxjs/operators';
 import { MoleculeService } from '../../services/graphql/molecule.service';
 import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service';
 import { MoleculeCollectionService } from '../../services/graphql/molecule-collection.service';
-import { MoleculeDetailItem, MoleculeCollectionItemEntityShort } from '../../Models/graphql/molecule-collection/molecule-collection.types';
+import { MoleculeDetailItem } from '../../Models/graphql/molecule-collection/molecule-collection.types';
+import type { CustomMoleculeItemEntity } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 import { MoleculeDetailSystem } from '../../Models/graphql/molecule.detail.models';
 import { MoleculeSearchResult } from '../../Models/graphql/molecule-search/molecule-search-result.interface';
 import { TypeGuardsService } from '../../services/type-guards.service';
@@ -38,6 +39,54 @@ export type MoleculeDetailViewModel = Readonly<{
   notes: string | null;
 }>;
 
+type MoleculeDetailTypeGuards = Pick<
+  TypeGuardsService,
+  'isSystemMolecule' | 'isChemblMolecule'
+>;
+
+export function mapMoleculeDetail(
+  item: MoleculeDetailItem,
+  typeGuards: MoleculeDetailTypeGuards
+): MoleculeDetailViewModel {
+  if (typeGuards.isSystemMolecule(item)) {
+    return Object.freeze({
+      item, kind: 'system', id: String(item.id),
+      name: item.preferredNameIt ?? item.preferredName ?? '',
+      smiles: item.canonicalSmiles ?? '', chemblId: item.cmbId,
+      properties: item.properties, administrationRoutes: item.administrationRoutes,
+      synonyms: item.synonyms, joins: [], label: null, notes: null
+    });
+  }
+  if (typeGuards.isChemblMolecule(item)) {
+    return Object.freeze({
+      item, kind: 'chembl', id: item.id,
+      name: item.chemblDetails.preferredNameIt ?? item.chemblDetails.preferredName ?? '',
+      smiles: item.chemblDetails.canonicalSmiles ?? '', chemblId: item.chemblDetails.cmbId,
+      properties: item.chemblDetails.properties, administrationRoutes: item.chemblDetails.administrationRoutes,
+      synonyms: item.chemblDetails.synonyms, joins: item.joins, label: item.label ?? null, notes: item.notes ?? null
+    });
+  }
+  const custom = item as CustomMoleculeItemEntity;
+  const properties = custom.properties ?? (() => {
+    if (!custom.propertiesJson) return undefined;
+    try {
+      return JSON.parse(custom.propertiesJson);
+    } catch {
+      return undefined;
+    }
+  })();
+  const normalizedItem = properties && !custom.properties
+    ? { ...custom, properties }
+    : item;
+  return Object.freeze({
+    item: normalizedItem,
+    kind: 'custom', id: custom.id, name: custom.name ?? '<Lead sconosciuto>',
+    smiles: custom.canonicalSmiles, chemblId: null, properties,
+    administrationRoutes: [], synonyms: [], joins: item.joins,
+    label: custom.label ?? null, notes: custom.notes ?? null
+  });
+}
+
 @Injectable({ providedIn: 'root' })
 export class MoleculeDetailFacade {
   private readonly route = inject(ActivatedRoute);
@@ -58,26 +107,28 @@ export class MoleculeDetailFacade {
   private readonly destroyRef = inject(DestroyRef);
   private readonly uuidV7 = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   private cached?: MoleculeDetailItem;
-  private currentId = '';
+  readonly currentId = signal('');
   private currentType: 'system' | 'chembl' | 'custom' | undefined;
+  private touchedId = '';
 
   readonly loading = signal(true);
   readonly error = signal(false);
   readonly similar = signal<MoleculeSearchResult[]>([]);
   readonly similarLoading = signal(false);
   readonly collectionId = signal('');
+  readonly collectionName = signal<string | null>(null);
 
   readonly molecule$: Observable<MoleculeDetailItem | null> = this.route.paramMap.pipe(
     map(params => params.get('molId')),
     distinctUntilChanged(),
     tap(id => {
-      this.currentId = id ?? '';
+      this.currentId.set(id ?? '');
       this.loading.set(true);
       this.error.set(false);
     }),
     filter((id): id is string => !!id),
-    switchMap(id => this.resolveDetail(id)),
-    switchMap(item => item ? this.withInference(item) : of(null)),
+    switchMap((id): Observable<MoleculeDetailItem | null> => this.resolveDetail(id)),
+    switchMap((item): Observable<MoleculeDetailItem | null> => item ? this.withInference(item) : of(null)),
     tap(item => {
       this.loading.set(false);
       if (!item) this.error.set(true);
@@ -87,53 +138,35 @@ export class MoleculeDetailFacade {
       this.loading.set(false);
       return of(null);
     }),
-    takeUntilDestroyed()
-  );
+    map(item => item as MoleculeDetailItem | null),
+    takeUntilDestroyed(),
+    shareReplay({ bufferSize: 1, refCount: true })
+  ) as Observable<MoleculeDetailItem | null>;
 
   constructor() {
     this.molecule$.subscribe(item => {
       if (!item) return;
       this.currentType = item.type;
       this.loadSimilar(item);
+      this.markTouched();
     });
 
     this.route.queryParamMap.pipe(
       map(params => params.get('c_id') ?? ''),
       distinctUntilChanged(),
-      tap(id => this.collectionId.set(id)),
+      tap(id => {
+        this.collectionId.set(id);
+        if (!id) this.collectionName.set(null);
+      }),
       filter(id => !!id && this.userContext.isLoggedIn()),
       switchMap(id => this.collectionService.getCollectionById(id)),
       takeUntilDestroyed()
-    ).subscribe();
+    ).subscribe(collection => this.collectionName.set(collection?.name ?? null));
 
   }
 
   toViewModel(item: MoleculeDetailItem): MoleculeDetailViewModel {
-    if (this.typeGuards.isSystemMolecule(item)) {
-      return Object.freeze({
-        item, kind: 'system', id: String(item.id),
-        name: item.preferredNameIt ?? item.preferredName ?? '',
-        smiles: item.canonicalSmiles ?? '', chemblId: item.cmbId,
-        properties: item.properties, administrationRoutes: item.administrationRoutes,
-        synonyms: item.synonyms, joins: [], label: null, notes: null
-      });
-    }
-    if (this.typeGuards.isChemblMolecule(item)) {
-      return Object.freeze({
-        item, kind: 'chembl', id: item.id,
-        name: item.chemblDetails.preferredNameIt ?? item.chemblDetails.preferredName ?? '',
-        smiles: item.chemblDetails.canonicalSmiles ?? '', chemblId: item.chemblDetails.cmbId,
-        properties: item.chemblDetails.properties, administrationRoutes: item.chemblDetails.administrationRoutes,
-        synonyms: item.chemblDetails.synonyms, joins: item.joins, label: item.label ?? null, notes: item.notes ?? null
-      });
-    }
-    const custom = item as any;
-    return Object.freeze({
-      item, kind: 'custom', id: custom.id, name: custom.name ?? '<Lead sconosciuto>',
-      smiles: custom.canonicalSmiles, chemblId: null, properties: custom.properties,
-      administrationRoutes: [], synonyms: [], joins: item.joins,
-      label: custom.label ?? null, notes: custom.notes ?? null
-    });
+    return mapMoleculeDetail(item, this.typeGuards);
   }
 
   private resolveDetail(id: string): Observable<MoleculeDetailItem | null> {
@@ -152,7 +185,9 @@ export class MoleculeDetailFacade {
     }
     if (!uuid && this.userContext.isLoggedIn()) {
       return this.itemService.hasUserChEMBLMoleculeByMolregnoThenGetUUID(Number(id)).pipe(
-        switchMap(molUUID => molUUID ? this.router.navigateByUrl(`/molecules/detail/${molUUID}`).then(() => null) : this.fetchByMolregno(id))
+        switchMap(molUUID => molUUID
+          ? defer(() => this.router.navigateByUrl(`/molecules/detail/${molUUID}`)).pipe(map(() => null))
+          : this.fetchByMolregno(id))
       );
     }
     return uuid ? defer(() => this.itemService.getItemById(id)) : this.fetchByMolregno(id);
@@ -190,8 +225,11 @@ export class MoleculeDetailFacade {
   private loadSimilar(item: MoleculeDetailItem): void {
     this.similarLoading.set(true);
     const vm = this.toViewModel(item);
-    const molregno = vm.kind === 'system' ? this.currentId :
-      vm.kind === 'chembl' ? String((item as any).chemblMolregno) : null;
+    const molregno = vm.kind === 'system'
+      ? this.currentId()
+      : vm.kind === 'chembl' && this.typeGuards.isChemblMolecule(item)
+        ? String(item.chemblMolregno)
+        : null;
     if (!molregno) {
       this.similar.set([]);
       this.similarLoading.set(false);
@@ -213,12 +251,15 @@ export class MoleculeDetailFacade {
   }
 
   save(detail: CustomDetailSaveModel): void {
-    if (!this.currentId || !this.currentType || this.currentType === 'system') return;
+    const currentId = this.currentId();
+    const currentType = this.currentType;
+    if (!currentId || !currentType || currentType === 'system') return;
+    if (detail.type === 'name' && currentType !== 'custom') return;
     const request: Observable<unknown> = detail.type === 'label'
-      ? this.itemService.updateItemLabel(this.currentId, detail.value, this.currentType as any)
+      ? this.itemService.updateItemLabel(currentId, detail.value, currentType)
       : detail.type === 'notes'
-        ? this.itemService.updateItemNotes(this.currentId, detail.value, this.currentType as any)
-        : this.itemService.updateItemName(this.currentId, detail.value, this.currentType as any).pipe(
+        ? this.itemService.updateItemNotes(currentId, detail.value, currentType)
+        : this.itemService.updateItemName(currentId, detail.value, 'custom').pipe(
           switchMap(() => this.history.pollNewItem())
         );
     request.subscribe({
@@ -240,12 +281,20 @@ export class MoleculeDetailFacade {
   }
 
   bindCollections(): void {
-    queueMicrotask(() => this.overlay.open('BindCollectionsToMolecule', { moleculeId: this.currentId }));
+    const currentId = this.currentId();
+    if (!currentId) return;
+    queueMicrotask(() => this.overlay.open('BindCollectionsToMolecule', { moleculeId: currentId }));
   }
 
   markTouched(): void {
-    if (!this.currentId || !this.userContext.isLoggedIn()) return;
-    this.itemService.markItemAsTouched(this.currentId, '{}').pipe(
+    const currentId = this.currentId();
+    if (!currentId || currentId === this.touchedId || !this.userContext.isLoggedIn()) return;
+    this.touchedId = currentId;
+    const collectionId = this.route.snapshot.queryParamMap.get('c_id') ?? '';
+    const flags = this.uuidV7.test(currentId) && this.uuidV7.test(collectionId)
+      ? JSON.stringify({ c_id: collectionId })
+      : '{}';
+    this.itemService.markItemAsTouched(currentId, flags).pipe(
       filter(Boolean),
       switchMap(() => this.history.pollNewItem()),
       takeUntilDestroyed(this.destroyRef)
