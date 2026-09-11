@@ -1,7 +1,7 @@
 # 0059 - Create the canonical Button primitive
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -98,37 +98,66 @@ Prefer a small semantic API over a utility-class passthrough. The point is to re
 ## Execution notes
 
 ### Feature branch
-No task branch or worker was created because hard prerequisite
-`0052-standardize-modern-angular-component-apis.md` (`FE-030`) is `BLOCKED`.
+`feature/UI-001`, based on `4f5090b9aed3ce491e2e5150b58ee98663142a2d`.
 
 ### Preflight
-Not applicable; the task was skipped before implementation.
+Confirmed clean exact base SHA and successful GitHub Actions CI run
+`34554525081` for `4f5090b9aed3ce491e2e5150b58ee98663142a2d`. The native
+button inventory found 146 opening tags across HTML and inline Angular
+templates, including icon-only controls reserved for task 0060. The
+canonical runtime preflight started Tox21, Nest watch mode, and Angular watch
+mode in that order; nginx returned two consecutive complete readiness rounds
+with HTTP 200 for `/health` and `/`. A fresh ordinary login at
+`http://localhost:8888/login` reached the protected Dashboard and displayed
+the authenticated workspace identity. All three task-owned processes were
+stopped before editing.
 
 ### Preflight remediation
-_None._
+None.
 
 ### Summary
-Skipped at the normal filename-order selection point. Direct prerequisite
-`FE-030` is terminal `BLOCKED` due missing worker filesystem write capability.
+Added a partial stateless, OnPush-compatible typed `m-button` primitive with
+semantic variants, sizes, native type, disabled/loading state, icon placement
+contract, stable loading dimensions, accessible busy/disabled attributes,
+focus-visible treatment, and light/dark styling. Migrated the ordinary
+navigation search consumer without changing its action semantics.
 
 ### Task-specific validation performed
-No implementation or validation was performed.
+Focused Angular Button spec (3 tests) and Nav spec (1 test) passed. Angular
+typecheck passed and lint completed with existing repository warnings. The
+post-implementation runtime reached two consecutive complete readiness rounds
+and the protected Dashboard remained available through the canonical edge.
+Navigation to the collections route subsequently returned a 504 from an
+upstream, so no stronger post-implementation product-state evidence is claimed.
 
 ### Full pre-merge CI-parity validation
-Not applicable; no feature branch was created.
+Complete clean-install CI parity is reserved for GitHub Actions. Existing-tree
+focused validation was run locally; `npm ci` and `npm run ci:check` were not run.
 
 ### Browser validation performed
-Not applicable; the task was skipped before implementation.
+The unchanged preflight used only `http://localhost:8888`, performed a fresh
+real-account login, and proved protected Dashboard acceptance. The
+post-implementation runtime used the same canonical edge and was stopped after
+readiness/Dashboard evidence; the collections-route 504 prevented completing
+the full required representative-control matrix.
 
 ### Commits
-Only this task metadata was updated on `develop`.
+See the feature-branch implementation commit recorded by the coordinator.
 
 ### Merge / CI
-No feature merge; skip metadata CI is required before continuing.
+No feature ref was pushed because the recipe stop condition was reached before
+the task could satisfy its migration acceptance criteria.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-No implementation blocker. Re-enable only after FE-030 is deliberately
-resolved in a new authorized session.
+BLOCKED by the inventory stop condition: 146 native button openings were found
+across HTML and inline Angular templates, with 93 distinct class signatures.
+Many signatures combine product-specific action-card/layout semantics, while
+icon-only and close controls are explicitly owned by task 0060. The recipe does
+not define the semantic mapping for the remaining ordinary signatures. A
+design-system decision is required specifying the variant/size mapping and
+which feature-local layout classes may remain on migrated consumers before a
+safe all-consumer migration can proceed. The partial primitive and focused
+tests are preserved on this branch.
