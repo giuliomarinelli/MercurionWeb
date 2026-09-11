@@ -29,10 +29,10 @@ const paths = {
   completedSession: 'docs/autonomous-development/session.48h-2026-09-03.yaml',
   exampleSession: 'docs/autonomous-development/session.example.yaml',
   closedSession: 'docs/autonomous-development/session.until-2026-09-10.yaml',
-  preparedSession: 'docs/autonomous-development/session.overweek-2026-09-20-v6.yaml',
+  preparedSession: 'docs/autonomous-development/session.overweek-2026-09-20-v7.yaml',
   completedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-03-v2.md',
   closedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-06.md',
-  preparedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-10-overweek-v6.md',
+  preparedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-11-overweek-v7.md',
   runtime: 'docs/autonomous-development/RUNTIME.md',
   workflow: '.github/workflows/ci.yml',
   classifier: '.github/scripts/classify-ci.mjs',
@@ -658,13 +658,13 @@ for (const command of ['/model', '/permissions show', '/mcp list', '/keep-alive 
 }
 
 for (const [pattern, message] of [
-  [/docs\/autonomous-development\/session\.overweek-2026-09-20-v6\.yaml/, 'prepared launch must reference its dated session configuration'],
+  [/docs\/autonomous-development\/session\.overweek-2026-09-20-v7\.yaml/, 'prepared launch must reference its dated session configuration'],
   [/2026-09-20T10:00:00\+02:00/, 'prepared launch must retain the exact soft deadline'],
   [/test-account login policy are integrated into `develop`/i, 'prepared launch must require the shared real test-account policy'],
   [/no\s+profile-persistence or pre-authenticated-state probe is a launch prerequisite/i, 'prepared launch must not depend on persisted profile authentication'],
   [/workload\.tasks` list is empty[\s\S]{0,120}complete Series is in\s*scope/i, 'prepared launch must select the complete Series'],
   [/there is no autonomous allowlist/i, 'prepared launch must explicitly disable workload restriction'],
-  [/expected first READY task[\s\S]{0,20}(?:is\s*)?0059/i, 'prepared launch must state the current expected first ready task'],
+  [/expected first READY task[\s\S]{0,20}(?:is\s*)?0060/i, 'prepared launch must state the current expected first ready task'],
   [/0087\/NG-001[\s\S]*0091\/NG-005[\s\S]*0109\/NG-023[\s\S]*recovery_resume: true/i, 'prepared launch must authorize the exact recovery tasks'],
   [/Task `0041` \(`FE-019`\) is already integrated as `DONE`[\s\S]*must not attempt or re-enable it/i, 'prepared launch must retain completed FE-019'],
   [/env\/\.env\.development[\s\S]{0,260}ordinary login[\s\S]{0,260}server/i, 'prepared launch must require a fresh server-accepted real-account login'],
@@ -680,13 +680,14 @@ for (const staleSessionReference of [
   'docs/autonomous-development/session.overweek-2026-09-16.yaml',
   'docs/autonomous-development/session.overweek-2026-09-16-v2.yaml',
   'docs/autonomous-development/session.overweek-2026-09-17-v3.yaml',
+  'docs/autonomous-development/session.overweek-2026-09-20-v6.yaml',
 ]) {
   if (preparedLaunch.includes(staleSessionReference)) {
     fail(paths.preparedLaunch, `contains stale session reference ${staleSessionReference}`);
   }
 }
 const preparedSessionReference =
-  'docs/autonomous-development/session.overweek-2026-09-20-v6.yaml';
+  'docs/autonomous-development/session.overweek-2026-09-20-v7.yaml';
 if (preparedLaunch.split(preparedSessionReference).length - 1 !== 2) {
   fail(paths.preparedLaunch, 'must reference the active session exactly twice');
 }
@@ -899,7 +900,7 @@ for (const [pattern, message] of [
 
 for (const [pattern, message] of [
   [/browser_and_allowlist_hardening_pull_request:\s*31/, 'prepared session must record PR #31 provenance'],
-  [/name:\s*mercurion-code-red-0001-overweek-full-series-2026-09-20-v6/, 'prepared session must use a fresh session identity'],
+  [/name:\s*mercurion-code-red-0001-overweek-full-series-2026-09-20-v7/, 'prepared session must use a fresh session identity'],
   [/expected_task_count:\s*220/, 'prepared workload must contain 220 tasks'],
   [/expected_current_done:\s*65/, 'prepared workload must record 65 DONE tasks'],
   [/expected_current_blocked:\s*2/, 'prepared workload must record two retained blockers'],
