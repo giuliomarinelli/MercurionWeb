@@ -6,7 +6,7 @@ import { WelcomeFeatureGridComponent } from '../../components/welcome/welcome-fe
 import { WelcomeScreenshotBandComponent } from '../../components/welcome/welcome-screenshot-band/welcome-screenshot-band.component'
 import { WelcomeSecondaryFeaturesComponent } from '../../components/welcome/welcome-secondary-features/welcome-secondary-features.component'
 import { Subscription } from 'rxjs'
-import { AppContextService } from '../../services/context/app-context.service'
+import { ScrollContextService } from '../../services/context/scroll-context.service'
 import { ActivatedRoute } from '@angular/router'
 import { UserContextService } from '../../services/context/user-context.service'
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component'
@@ -116,7 +116,7 @@ import { DesignService } from '../../services/design.service'
 export class WelcomePageComponent {
 
   private readonly route = inject(ActivatedRoute)
-  private readonly appContext = inject(AppContextService)
+  private readonly scrollContext = inject(ScrollContextService)
   protected readonly userContext = inject(UserContextService)
   protected readonly design = inject(DesignService)
 
@@ -136,10 +136,10 @@ export class WelcomePageComponent {
 
       const rootEl = document.documentElement
 
-      const y = this.appContext.getScrollYRelativeToRoot(target, rootEl) - 85
+      const y = this.scrollContext.getScrollYRelativeToRoot(target, rootEl) - 85
       const hostRef = new ElementRef<HTMLElement>(rootEl)
 
-      this.appContext.smoothTo(hostRef, y, 240)
+      this.scrollContext.smoothTo(hostRef, y, 240)
     })
   }
 

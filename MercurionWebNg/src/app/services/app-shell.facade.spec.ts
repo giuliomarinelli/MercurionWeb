@@ -5,7 +5,7 @@ import { AppShellFacade } from './app-shell.facade'
 import { AuthRedirectService } from './auth-redirect.service'
 import { AuthStateStore } from './auth-state.store'
 import { SessionSyncService } from './session-sync.service'
-import { AppContextService } from './context/app-context.service'
+import { ScrollContextService } from './context/scroll-context.service'
 
 @Component({ standalone: true, template: '' })
 class TestRouteComponent {}
@@ -21,7 +21,7 @@ describe('AppShellFacade', () => {
     syncSession: jasmine.createSpy('syncSession').and.resolveTo()
   }
   const redirects = { capture: jasmine.createSpy('capture') }
-  const appContext = {
+  const scrollContext = {
     smoothToTop: jasmine.createSpy('smoothToTop')
   }
 
@@ -29,7 +29,7 @@ describe('AppShellFacade', () => {
     authState.bootstrap.calls.reset()
     sessionSync.syncSession.calls.reset()
     redirects.capture.calls.reset()
-    appContext.smoothToTop.calls.reset()
+    scrollContext.smoothToTop.calls.reset()
 
     TestBed.configureTestingModule({
       providers: [
@@ -45,7 +45,7 @@ describe('AppShellFacade', () => {
         { provide: AuthStateStore, useValue: authState },
         { provide: SessionSyncService, useValue: sessionSync },
         { provide: AuthRedirectService, useValue: redirects },
-        { provide: AppContextService, useValue: appContext }
+        { provide: ScrollContextService, useValue: scrollContext }
       ]
     })
   })

@@ -5,7 +5,7 @@ import { AuthStateStore } from './auth-state.store'
 import { AuthRedirectService } from './auth-redirect.service'
 import { PathService } from './path.service'
 import { SessionSyncService } from './session-sync.service'
-import { AppContextService } from './context/app-context.service'
+import { ScrollContextService } from './context/scroll-context.service'
 import { activeRoutePolicy, DEFAULT_ROUTE_POLICY, RoutePolicy } from '../route-policy'
 
 /**
@@ -21,7 +21,7 @@ export class AppShellFacade implements OnDestroy {
   private readonly sessionSync = inject(SessionSyncService)
   private readonly redirects = inject(AuthRedirectService)
   private readonly pathService = inject(PathService)
-  private readonly appContext = inject(AppContextService)
+  private readonly scrollContext = inject(ScrollContextService)
 
   readonly routePolicy = signal<RoutePolicy>(DEFAULT_ROUTE_POLICY)
   private readonly currentPath = signal('')
@@ -116,7 +116,7 @@ export class AppShellFacade implements OnDestroy {
     const previousPath = this.currentPath()
     const url = this.normalize(event.urlAfterRedirects)
     if (previousPath !== url && url !== '/settings' && url !== '/terms-and-policies') {
-      this.appContext.smoothToTop(this.scrollHostRef, 400)
+      this.scrollContext.smoothToTop(this.scrollHostRef, 400)
     }
 
     this.routePolicy.set(activeRoutePolicy(this.router.routerState.snapshot.root))
