@@ -1,6 +1,6 @@
 # 0059 - Create the canonical Button primitive
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -96,6 +96,27 @@ Mark `BLOCKED` if the existing button inventory contains materially different pr
 Prefer a small semantic API over a utility-class passthrough. The point is to remove class-string ownership from features, not wrap it in another input.
 
 ## Execution notes
+
+### Owner-directed completion boundary (2026-09-11)
+
+The repository owner explicitly accepted the recovered canonical primitive and
+its representative navigation integration as the completion boundary for this
+task and directed that it be marked `DONE` and merged. Broad mechanical
+replacement of every remaining legacy button is deferred to later design-system
+work; this completion does not claim that the repository-wide migration is
+already exhaustive.
+
+- Added the typed, stateless `m-button` primitive with variant, size, native
+  type, disabled, loading and icon-placement contracts.
+- Preserved accessible busy/disabled semantics, focus treatment and stable
+  loading dimensions.
+- Migrated a representative navigation consumer and added focused component
+  tests, including default non-submit behaviour and the supported variants and
+  sizes.
+- Focused Angular typechecking and Button/navigation Karma tests passed.
+- Exact feature SHA `5b605284b9e1b8ec3b0b70a4ed5633330c2db831` passed the full
+  Windows/Ubuntu GitHub Actions gate in run `34627924834` before this metadata
+  update.
 
 ### Current execution (2026-09-11, Source UI-001)
 
