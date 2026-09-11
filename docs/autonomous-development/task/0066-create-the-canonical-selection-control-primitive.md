@@ -86,7 +86,7 @@ Share visual tokens/controllers where useful, but do not erase the semantic dist
 
 ## Execution notes
 
-> Current status (2026-09-12): DONE (provisional pending exact feature-SHA CI).
+> Current status (2026-09-12): DONE; exact feature-SHA CI succeeded.
 > Executed on `feature/UI-008` from base
 > `4fc1d60b8069d158fb316e8f32cd0942953f7ce2`.
 
@@ -126,8 +126,9 @@ without changing form values or business logic.
 
 ### Full pre-merge CI-parity validation
 Local clean-install/aggregate validation is reserved for GitHub Actions. The
-unchanged supplied base had successful full CI evidence; exact feature-SHA CI
-is pending publication of this task commit.
+unchanged supplied base had successful full CI evidence. Exact feature-SHA
+workflow run `34655328778` for `85592b89c9a00ee801fd663c12d0b2b0776ade19`
+succeeded on Ubuntu and Windows, including `Required gate`.
 
 ### Browser validation performed
 - Restarted canonical Tox21, Nest and Angular and obtained two consecutive
@@ -141,11 +142,12 @@ is pending publication of this task commit.
 - Final process inventory confirmed no task-owned runtime remained.
 
 ### Commits
-`17e8c054171a2fca0ad749944683c9a86d4c8663`
+`17e8c054171a2fca0ad749944683c9a86d4c8663`,
+`85592b89c9a00ee801fd663c12d0b2b0776ade19`
 
 ### Merge / CI
-No merge was performed; `develop` was not modified. Exact feature-SHA CI is
-required after push.
+No merge was performed; `develop` was not modified. Exact feature-SHA CI
+passed after push.
 
 ### Rollback
 _Not applicable._
