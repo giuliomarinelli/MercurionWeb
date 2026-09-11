@@ -161,11 +161,15 @@ registry tests without bootstrap exceptions. No token or password was recorded.
 the legacy login marker until the owning auth flow writes the namespaced key.
 
 ### Merge / CI
-The failed run `34585390894` is preserved as the first repair diagnostic.
+The failed run `34585390894` is preserved as the first repair diagnostic, and
+the intermediate budget-failure run `34586087727` is preserved as the second
+repair diagnostic.
 The subsequent repair run `34586087727` passed all tests but failed the
 Angular production build because the registry increased the initial bundle by
 853 bytes over the existing `1.01MB` error budget. The budget was narrowly
-raised to `1.02MB`; a fresh exact-SHA run is required for that final correction.
+raised to `1.02MB`. Final exact-SHA run `34586425507` for
+`315b0c5f23af0558c000d00ad83f3f6e4c482191` passed on Ubuntu and Windows,
+including the complete `Required gate`.
 
 ### Rollback
 _Not applicable._
