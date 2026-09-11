@@ -38,6 +38,7 @@ import { HttpErrorResponse } from '@angular/common/http'
 import { AppTitleService } from '../../services/app-title.service'
 import { DomainInvalidationService } from '../../services/domain-invalidation.service'
 import { DesignService } from '../../services/design.service'
+import { MoleculeDetailFacade } from './molecule-detail.facade'
 import { AuthSessionPersistenceService } from '../../services/auth-session-persistence.service'
 import {
   ApplicationErrorCode,
@@ -266,6 +267,7 @@ import {
   ` })
 export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
   private readonly persistence = inject(AuthSessionPersistenceService)
+  private readonly facade = inject(MoleculeDetailFacade)
 
   // ======================= DEPS =======================
   private readonly route = inject(ActivatedRoute)
@@ -290,13 +292,13 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
 
   private readonly uuidV7Re = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
-  molecule$: Observable<MoleculeDetailItem | null> = of(null)
+  molecule$: Observable<MoleculeDetailItem | null> = this.facade.molecule$
   viewerReady = signal<boolean>(false)
   similarViewerReady = signal<boolean>(false)
-  fetchError = signal<boolean>(false)
-  similarMols = signal<MoleculeSearchResult[] | undefined>(undefined)
+  fetchError = this.facade.error
+  similarMols = this.facade.similar
   similarMolsCache = signal<MoleculeSearchResult[]>([])
-  fetchMolLoading = signal<boolean>(true)
+  fetchMolLoading = this.facade.loading
   collectionId = signal<string>('')
   private molCached?: MoleculeDetailItem
   private molType!: 'system' | 'chembl' | 'custom'
@@ -324,14 +326,12 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
   )
 
   constructor() {
-    this.fetchData()
     effect(() => {
-      this.similarMols.set(this.onlyKnownSig() ? this.similarMolsCache().filter(mol => mol.known) : this.similarMolsCache())
+      const similar = this.facade.similar()
+      this.similarMols.set(this.onlyKnownSig() ? similar.filter(mol => mol.known) : similar)
     })
     effect(() => {
-      if (!this.userContext.initials()) {
-        queueMicrotask(() => this.fetchData())
-      }
+      this.userContext.initials()
     })
     effect(() => {
       const event = this.invalidations.last()
@@ -339,7 +339,7 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
           event.moleculeId !== this.molId.toString()) {
         return
       }
-      queueMicrotask(() => this.fetchData())
+      queueMicrotask(() => undefined)
     })
   }
 
@@ -556,16 +556,7 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
   }
 
   doUpdateInlineDetails(e: CustomDetailSaveModel): void {
-    switch (e.type) {
-      case 'label':
-        this.updateLabel(e.value)
-        break
-      case 'notes':
-        this.updateNotes(e.value)
-        break
-      case 'name':
-        this.updateName(e.value)
-    }
+    this.facade.save(e)
   }
 
   private updateLabel(label: string): void {
@@ -597,26 +588,15 @@ export class MoleculeDetailPageComponent implements OnInit, OnDestroy {
   }
 
   doDelete(id: string): void {
-    this.delSub = this.moleculeCollectionItemService.deleteItem(id).subscribe({
-      next: ok => {
-        if (ok) {
-          this.historyContext.triggerRemoveItemFromHistoryView(id)
-          this.toast.trigger('Molecola eliminata con successo.', 'success', 2500)
-          this.router.navigateByUrl('/molecules/collections')
-        }
-      },
-      error: () => this.toast.trigger('Si è verificato un errore.', 'error', 2500)
-    })
+    this.facade.delete(id)
   }
 
   doAddToManyCollections(): void {
-    queueMicrotask(() => {
-      this.actionOverlayContext.open('BindCollectionsToMolecule', { moleculeId: this.molId.toString() })
-    })
+    this.facade.bindCollections()
   }
 
   ngOnInit(): void {
-    this.fetchSimilar()
+    this.facade.markTouched()
     fromEvent<StorageEvent>(window, 'storage')
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(this.handleCrossTabFetchData.bind(this))
