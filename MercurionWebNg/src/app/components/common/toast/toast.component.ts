@@ -22,6 +22,7 @@ import { ToastService } from '../../../services/toast.service'
           #toastElement
           class="toast"
           [class.toast--success]="toast.variant === 'success'"
+          [class.toast--warn]="toast.variant === 'warn'"
           [class.toast--error]="toast.variant === 'error'"
           [attr.data-toast-id]="toast.id"
           animate.enter="toast-enter"
@@ -30,6 +31,8 @@ import { ToastService } from '../../../services/toast.service'
           <div class="toast__icon" aria-hidden="true">
             @if (toast.variant === 'success') {
               ✓
+            } @else if (toast.variant === 'warn') {
+              !
             } @else {
               !
             }
@@ -103,6 +106,12 @@ import { ToastService } from '../../../services/toast.service'
         border-color: rgb(239 68 68 / 0.35);
       }
 
+      .toast--warn {
+        color: rgb(113 63 18);
+        background: rgb(254 243 199 / 0.96);
+        border-color: rgb(245 158 11 / 0.4);
+      }
+
       .toast__icon {
         display: grid;
         place-items: center;
@@ -121,6 +130,10 @@ import { ToastService } from '../../../services/toast.service'
 
       .toast--error .toast__icon {
         background: rgb(239 68 68 / 0.18);
+      }
+
+      .toast--warn .toast__icon {
+        background: rgb(245 158 11 / 0.2);
       }
 
       .toast__message {

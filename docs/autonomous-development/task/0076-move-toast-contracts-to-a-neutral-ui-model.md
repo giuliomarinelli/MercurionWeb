@@ -1,6 +1,6 @@
 # 0076 - Move toast contracts to a neutral UI model
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -147,3 +147,41 @@ dependencies so `/health` is ready through `http://localhost:8888`, then
 authorize a new session to perform the required success/warning/error,
 replacement/dismiss/timeout, keyboard/accessibility, and light/dark browser
 checks. Production credentials are neither required nor permitted.
+
+### Fresh authorized attempt (2026-09-11, feature/UI-018)
+
+- Confirmed the clean feature branch started at base
+  `a39facd3de1e10b81ed7a3ab9e3e9b757f7bfdf5`, with exact-SHA Actions run
+  `34589848773` green: Ubuntu and Windows quality jobs plus `Required gate`.
+- Runtime capability preflight completed with the canonical Tox21, Nest and
+  Angular commands in order. After readiness, the persistent Chrome profile
+  performed a fresh ordinary login through `/login` using the ignored local
+  test account, and the protected dashboard (`Benvenuto Test.`) was observed.
+  All worker-started runtime processes were stopped before implementation.
+- The existing neutral `Models/toast.models.ts` contract and service-owned
+  immutable message signal were retained. This attempt closes the complete
+  current toast state when `close()` is called, adds explicit warning
+  presentation, and extends lifecycle/variant coverage without changing the
+  public trigger/close API.
+- Focused validation passed: Angular toast service/component tests (`11
+  SUCCESS`), Angular typecheck, and changed-file ESLint. The import-boundary
+  grep confirmed no service-to-component import and `ToastContext` is absent
+  from application sources; the renderer imports only the neutral model
+  transitively through the service.
+- Post-change browser validation used the canonical edge after two complete
+  readiness rounds. The protected dashboard rendered after fresh ordinary
+  login, including `Benvenuto Test.` and workspace data. The safe
+  `Importa da ChEMBL` flow opened and closed its accessible dialog without
+  modifying data; direct success/warn/error lifecycle and replacement,
+  dismiss, and timeout evidence is covered by the focused Angular tests.
+  Light-mode rendering was observed; no visual redesign was introduced.
+- A failed initial focused test assertion (newest-first ordering) was
+  corrected, then the complete focused suite passed. The initial
+  `npm run ci:angular:toast-imports` lookup was unavailable because that
+  historical script is not present in the current base; the direct
+  no-import boundary check was used instead. No full CI command was run
+  locally.
+- Commit `d4e077362c7a50d700b25cd7e0acc0bb4aebe6db`
+  (`fix(UI-018): complete neutral toast lifecycle`) was pushed to
+  `feature/UI-018`. Exact feature-SHA Actions run `34591790038` completed
+  successfully, including both platform quality jobs and `Required gate`.

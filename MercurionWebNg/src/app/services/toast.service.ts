@@ -51,10 +51,8 @@ export class ToastService implements OnDestroy {
       return
     }
 
-    const timers = Array.from(this._timers.values())
-    timers.forEach(clearTimeout)
-    this._timers.clear()
-
+    this.clearTimers()
+    this._messagesState.set([])
   }
 
   private clearTimers(): void {
