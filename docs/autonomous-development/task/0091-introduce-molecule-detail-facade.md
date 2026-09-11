@@ -1,7 +1,7 @@
 # 0091 - Introduce a cancellable molecule-detail facade
 
 - [x] DONE
-- [] BLOCKED
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 

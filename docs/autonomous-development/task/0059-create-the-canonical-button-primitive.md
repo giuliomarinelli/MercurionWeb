@@ -1,7 +1,7 @@
 # 0059 - Create the canonical Button primitive
 
 - [ ] DONE
-- [x] BLOCKED
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
