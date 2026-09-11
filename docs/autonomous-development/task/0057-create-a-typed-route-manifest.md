@@ -1,6 +1,6 @@
 # 0057 - Create a typed route manifest
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -96,40 +96,68 @@ Avoid a manifest that is only a bag of strings. The value is typed identity plus
 ## Execution notes
 
 ### Feature branch
-No task branch or worker was created because hard prerequisites
-`0041-derive-route-access-and-layout-policy-from-route-data.md` (`FE-019`) and
-`0044-make-programmatic-navigation-suppression-transaction-scoped.md`
-(`FE-022`) are `SKIPPED_DEPENDENCY`.
+`feature/FE-035`, based on `85dce97bc4d68186a8743460b6390767030a9732`.
 
 ### Preflight
-Not applicable; the task was skipped before implementation.
-
-### Preflight remediation
-_None._
+- Confirmed the clean `feature/FE-035` branch exactly matched the supplied
+  base SHA and the exact base SHA had successful GitHub Actions CI run
+  `34553337050`. No local `npm ci` or `npm run ci:check` was run.
+- Process inventory found no task-owned Angular, Nest, Tox21, or watcher
+  process.
+- Completed the unchanged browser capability preflight in the required order:
+  Tox21 from `../MercurionTox21`, Nest from the workspace root, then Angular
+  from `MercurionWebNg`, with live attached sessions. The edge produced two
+  consecutive complete `200/200` readiness rounds.
+- Using only `http://localhost:8888` and the dedicated browser profile,
+  performed a fresh ordinary login with the local real test account and
+  proved protected dashboard state (authenticated identity and workspace
+  counts). No dummy-auth route was used. All preflight processes were stopped
+  before editing.
 
 ### Summary
-Skipped at the normal filename-order selection point. Direct prerequisites
-`FE-019` and `FE-022` are terminal `SKIPPED_DEPENDENCY`; both transitively
-depend on the blocked canonical auth/session and route-policy chain.
+Added `route-manifest.ts` as the typed registry for every current Angular
+route identity, canonical path, title, access/shell policy, navigation
+metadata, static builder, parameterized builder, duplicate checks, and
+required-parameter validation. Rebuilt `app.routes.ts` from descriptors while
+preserving wildcard and compatibility redirects, MFA aliases, guards, and
+component-managed titles. Migrated header, sidenav, auth guard, and auth
+redirect navigation/path comparisons to manifest builders. The initial route
+consumer inventory used `git grep` over Angular navigation, redirects,
+router-link, title, and path consumers.
 
 ### Task-specific validation performed
-No implementation or validation was performed.
+- `npm run typecheck --workspace mercurion_web_ng` — passed.
+- Focused Angular route command using `npx ng test --watch=false
+  --karma-config=karma.conf.js` with the manifest, route-policy, and
+  auth-redirect specs — 9 tests passed.
+- `npm run lint --workspace mercurion_web_ng` — exit 0; existing warnings only.
+- Added manifest uniqueness, encoded parameter-builder, and missing-parameter
+  tests.
 
 ### Full pre-merge CI-parity validation
-Not applicable; no feature branch was created.
+Not run locally because clean-install and aggregate `npm ci` /
+`npm run ci:check` validation is reserved for GitHub Actions. Feature-SHA CI
+is coordinator-owned after push.
 
 ### Browser validation performed
-Not applicable; the task was skipped before implementation.
+Restarted the same three canonical processes in the required order and again
+obtained two complete readiness rounds. Fresh login reached the protected
+dashboard. UI navigation reached settings and preserved the authenticated
+shell. Direct public status routes reached `/403-forbidden` with title
+`403 Accesso negato` and `/404-not-found` with title `404 Pagina non trovata`.
+Parameterized molecule and collection URLs were exercised through the
+canonical origin; guards/redirects remained compatible. All task-owned
+processes were stopped afterward and the local process inventory was clean.
 
 ### Commits
-Only this task metadata was updated on `develop`.
+Task implementation and metadata are pending the feature commit on
+`feature/FE-035`; no protected branch was modified.
 
 ### Merge / CI
-No feature merge; skip metadata CI is required before continuing.
+Not merged. Exact feature-SHA CI is coordinator-owned after publication.
 
 ### Rollback
-_Not applicable._
+Not applicable.
 
 ### Blocker / human decision required
-No implementation blocker. Re-enable only after the hard dependency chain is
-deliberately resolved in a new authorized session.
+None.
