@@ -23,6 +23,7 @@ import { MyMoleculesHeadingComponent } from '../../components/molecule-detail/my
 import { LinkModel } from '../../Models/link.model'
 import { DesignService } from '../../services/design.service'
 import { MoleculeDetailFacade } from './molecule-detail.facade'
+import { SelectionControlComponent } from '../../components/common/selection-control/selection-control.component'
 
 
 
@@ -46,7 +47,8 @@ import { MoleculeDetailFacade } from './molecule-detail.facade'
     CustomDetailsComponent,
     MyMoleculeJoinComponent,
     RouterLink,
-    MyMoleculesHeadingComponent
+    MyMoleculesHeadingComponent,
+    SelectionControlComponent
   ],
   template: `
 
@@ -178,33 +180,12 @@ import { MoleculeDetailFacade } from './molecule-detail.facade'
           </h2>
 
           <div class="flex gap-3 relative top-2 sm:top-4 justify-center sm:justify-start">
-            <div class="flex-col sm:flex-row flex h-6 shrink-0 justify-center gap-y-1 sm:items-center">
-              <!-- wrapper visivo -->
-              <label class="relative inline-flex items-center gap-2 cursor-pointer select-none">
-                <input id="onlyKnown" type="checkbox" name="onlyKnown" aria-describedby="experimental-compounds-description"
-                  class="peer sr-only" [formControl]="onlyKnown" role="switch" aria-label="Mostra solo composti noti" [attr.aria-checked]="onlyKnown.value" />
-
-                <span class="inline-block size-4 rounded-sm border
-                                   border-gray-300 bg-white
-                                   peer-checked:bg-indigo-600 peer-checked:border-indigo-600
-                                   dark:border-white/10 dark:bg-white/5
-                                   dark:peer-checked:bg-indigo-500 dark:peer-checked:border-indigo-500"
-                  aria-hidden="true"></span>
-
-                <svg viewBox="0 0 14 14" fill="none" class="pointer-events-none hidden peer-checked:block
-                                   absolute left-[2px] top-1/2 -translate-y-1/2 size-3.5 z-10" aria-hidden="true">
-                  <path d="M3 8L6 11L11 3.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                    class="stroke-white" />
-                </svg>
-
-                <span class="text-sm font-medium text-gray-900 dark:text-white">Mostra solo composti noti</span>
-              </label>
-              <p id="experimental-compounds-description"
-                class="text-xs sm:text-[0.625rem] md:text-sm text-slate-700 dark:text-slate-200 ml-2 mb-1 sm:mb-0 text-center sm:text-start">
-                <span class="sm:hidden">Deselezionando questa opzione <br /> potrai vedere anche i lead sperimentali</span>
-                <span class="hidden sm:inline">Deselezionando questa opzione potrai vedere anche i lead sperimentali</span>
-              </p>
-            </div>
+            <m-selection-control
+              label="Mostra solo composti noti"
+              description="Deselezionando questa opzione potrai vedere anche i lead sperimentali"
+              mode="switch"
+              [formControl]="onlyKnown"
+            />
           </div>
 
 

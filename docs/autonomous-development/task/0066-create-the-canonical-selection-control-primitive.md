@@ -1,6 +1,6 @@
 # 0066 - Create the canonical selection-control primitive
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -86,44 +86,69 @@ Share visual tokens/controllers where useful, but do not erase the semantic dist
 
 ## Execution notes
 
-> Current status (2026-09-11): PENDING by direct owner instruction because this
-> activity was not completed. Historical attempt/skip evidence remains below
-> for traceability and is not a terminal outcome.
+> Current status (2026-09-12): DONE (provisional pending exact feature-SHA CI).
+> Executed on `feature/UI-008` from base
+> `4fc1d60b8069d158fb316e8f32cd0942953f7ce2`.
 
 ### Feature branch
-No task branch or worker was created because hard prerequisite
-`0062-create-the-canonical-textfield-primitive.md` (`UI-004`) is
-`SKIPPED_DEPENDENCY`.
+`feature/UI-008`
 
 ### Preflight
-Not applicable; the task was skipped before implementation.
+- Confirmed clean `develop` and `origin/develop` at the supplied base SHA.
+- Exact base CI run `34653934977` succeeded, including both platform jobs and
+  `Required gate`.
+- Runtime capability preflight started Tox21, Nest and Angular in order,
+  reached two consecutive successful nginx readiness rounds, opened the
+  authenticated application origin, and stopped all three processes before
+  implementation.
 
 ### Preflight remediation
-_None._
+The historical dependency skip was re-enabled by direct owner instruction.
+No baseline or dependency code was changed.
 
 ### Summary
-Skipped at the normal filename-order selection point. `UI-004` is terminal
-`SKIPPED_DEPENDENCY`, with transitive blocked root cause
-`0052-standardize-modern-angular-component-apis.md` (`FE-030`).
+Added `m-selection-control`, a typed standalone checkbox/switch primitive with
+native checkbox semantics, switch-only `role="switch"`, deterministic
+label/description associations, checked/indeterminate/disabled states,
+focus-visible styling, and ControlValueAccessor support. Migrated collection
+selection cards, the molecule-detail switch, and the login remember-me switch
+without changing form values or business logic.
 
 ### Task-specific validation performed
-No implementation or validation was performed.
+- Focused Angular selection-control spec: 4/4 passed.
+- `npm run typecheck --workspace mercurion_web_ng` passed.
+- Focused ESLint for the primitive, spec, and migrated consumers passed.
+- `npm run build --workspace mercurion_web_ng` passed; existing bundle-size and
+  CommonJS warnings were non-fatal.
+- The first test attempt used invalid npm `--include` forwarding; the
+  corrected Angular CLI include command passed. Neither `npm ci` nor
+  `npm run ci:check` was run locally.
 
 ### Full pre-merge CI-parity validation
-Not applicable; no feature branch was created.
+Local clean-install/aggregate validation is reserved for GitHub Actions. The
+unchanged supplied base had successful full CI evidence; exact feature-SHA CI
+is pending publication of this task commit.
 
 ### Browser validation performed
-Not applicable; the task was skipped before implementation.
+- Restarted canonical Tox21, Nest and Angular and obtained two consecutive
+  complete readiness rounds through `http://localhost:8888`.
+- Chrome DevTools accessibility snapshot on the authenticated molecule-detail
+  route exposed the canonical switch with its checked state and description.
+- Keyboard-only Tab/Space toggled the switch from checked to unchecked while
+  retaining its accessible name and description.
+- Emulated both dark and light schemes; the accessible contract remained
+  stable and a light-mode control screenshot was captured.
+- Final process inventory confirmed no task-owned runtime remained.
 
 ### Commits
-Only this task metadata was updated on `develop`.
+Pending task-specific commit on `feature/UI-008`.
 
 ### Merge / CI
-No feature merge; skip metadata CI is required before continuing.
+No merge was performed; `develop` was not modified. Exact feature-SHA CI is
+required after push.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-No implementation blocker. Re-enable only after the dependency chain through
-FE-030 is deliberately resolved in a new authorized session.
+No implementation blocker. Await exact feature-SHA GitHub Actions evidence.
