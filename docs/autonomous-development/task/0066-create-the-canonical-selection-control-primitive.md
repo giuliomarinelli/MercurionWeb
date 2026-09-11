@@ -141,7 +141,7 @@ is pending publication of this task commit.
 - Final process inventory confirmed no task-owned runtime remained.
 
 ### Commits
-Pending task-specific commit on `feature/UI-008`.
+`17e8c054171a2fca0ad749944683c9a86d4c8663`
 
 ### Merge / CI
 No merge was performed; `develop` was not modified. Exact feature-SHA CI is
