@@ -66,7 +66,7 @@ import { DesignService } from '../../../services/design.service';
         </div>
       </a>
     } @else {
-      <div
+      <button
         type="button"
         (click)="doEmitChipItem()"
         class="group w-full flex items-center gap-3 cursor-pointer rounded-lg px-3 py-3
@@ -99,7 +99,7 @@ import { DesignService } from '../../../services/design.service';
             }
           </div>
         </div>
-      </div>
+      </button>
 
     }
   `

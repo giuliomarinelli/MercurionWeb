@@ -28,7 +28,13 @@ import { SelectionControlComponent } from '../../common/selection-control/select
       <!-- colonna 2: card occupa tutto -->
       <div class="min-w-0">
         @if (_isSelectAll()) {
-          <span class="block w-full select-none font-semibold ml-[2px]" (click)="toggleSelectAll()" role="button" tabindex="0" (keydown.enter)="toggleSelectAll()" (keydown.space)="toggleSelectAll(); $event.preventDefault()" aria-label="Seleziona tutte le molecole">SELEZIONA TUTTI</span>
+          <button
+            type="button"
+            class="block w-full select-none font-semibold ml-[2px] text-left"
+            (click)="toggleSelectAll()"
+            aria-label="Seleziona tutte le molecole">
+            SELEZIONA TUTTI
+          </button>
         } @else {
           <m-molecule-collection-item-card
             class="block w-full"

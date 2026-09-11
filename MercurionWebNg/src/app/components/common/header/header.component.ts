@@ -125,8 +125,8 @@ import { IconButtonComponent } from '../icon-button/icon-button.component';
       (!userContext.isLoggedIn() && isLoginPath())
       ) {
       <div class="hidden lg:block">
-        <div (click)="openSearchOverlay()"
-          class="flex items-center px-4 py-2.5 bg-slate-100 border border-slate-500/40 dark:border-none hover:bg-slate-200/30 dark:hover:bg-neutral-700 dark:bg-neutral-800 rounded-full cursor-pointer transition w-[240px] mr-2">
+        <button type="button" (click)="openSearchOverlay()"
+          class="flex items-center px-4 py-2.5 bg-slate-100 border border-slate-500/40 dark:border-none hover:bg-slate-200/30 dark:hover:bg-neutral-700 dark:bg-neutral-800 rounded-full cursor-pointer transition w-[240px] mr-2 text-left">
           <svg class="w-4 h-4 mr-2 fill-current text-slate-700 dark:text-slate-200" xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 512 512">
             <path
@@ -137,7 +137,7 @@ import { IconButtonComponent } from '../icon-button/icon-button.component';
           } @else {
           <span class="text-xs py-[3px] text-slate-700 dark:text-slate-200">Cerca molecola ChEMBL...</span>
           }
-        </div>
+        </button>
       </div>
       }
       <div class="hidden sm:block" [ngClass]="{
@@ -386,7 +386,9 @@ import { IconButtonComponent } from '../icon-button/icon-button.component';
 <!-- Offcanvas backdrop -->
 <m-header-responsive-menu [open]="offCanvasMenuOpen()" />
 @if (offCanvasMenuOpen()) {
-  <div class="fixed inset-0 z-[9998] bg-black/30 transition-opacity duration-300 m-overscroll-touch" (click)="closeOffCanvasMenu()"></div>
+  <button type="button" aria-label="Chiudi menu laterale"
+    class="fixed inset-0 z-[9998] bg-black/30 transition-opacity duration-300 m-overscroll-touch border-0 p-0"
+    (click)="closeOffCanvasMenu()"></button>
 }
 
 <!-- Offcanvas Navigation Sidebar -->
@@ -432,11 +434,13 @@ import { IconButtonComponent } from '../icon-button/icon-button.component';
   }
   <!-- Modal avatar mobile (solo <= sm) -->
   @if (avatarMobileMenuMounted() && userContext.isLoggedIn()) {
-  <div class="fixed inset-0 z-[10000] bg-black/50 flex items-end sm:hidden transition-opacity duration-300 m-overscroll-touch"
+  <button type="button" aria-label="Chiudi menu utente"
+       class="fixed inset-0 z-[10000] bg-black/50 flex items-end sm:hidden transition-opacity duration-300 m-overscroll-touch border-0 p-0"
        [ngClass]="{
           'opacity-100 pointer-events-auto': avatarMobileMenuVisible(),
           'opacity-0 pointer-events-none': !avatarMobileMenuVisible() }" (click)="closeAvatarMobileMenu()">
-    <div
+  </button>
+  <div
       class="w-full h-[100dvh] max-h-[100dvh] bg-slate-100 dark:bg-neutral-900 rounded-t-2xl shadow-2xl p-6 pb-10 relative overflow-y-auto transition-transform duration-300 m-overscroll-touch m-scroll-thin"
       [ngClass]="{
             'translate-y-0': avatarMobileMenuVisible(),
@@ -520,7 +524,6 @@ import { IconButtonComponent } from '../icon-button/icon-button.component';
         </button>
       </div>
     </div>
-  </div>
   }
 </div>
 }

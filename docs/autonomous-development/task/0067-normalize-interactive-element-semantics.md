@@ -1,6 +1,6 @@
 # 0067 - Normalize interactive element semantics
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -87,44 +87,84 @@ Prioritize native HTML semantics over ARIA emulation. ARIA supplements semantics
 
 ## Execution notes
 
-> Current status (2026-09-11): PENDING by direct owner instruction because this
-> activity was not completed. Historical attempt/skip evidence remains below
-> for traceability and is not a terminal outcome.
+> Current status (2026-09-12): Implemented on `feature/UI-009` from
+> `origin/develop` at `6142789435e153393f8e47bc238e205256b99037`. The historical
+> dependency-skip text below was superseded by the direct owner instruction and
+> the now-available canonical UI primitives/route manifest.
 
 ### Feature branch
-No task branch or worker was created because hard prerequisites `0059`
-(`UI-001`), `0060` (`UI-002`), and `0057` (`FE-035`) are terminal
-`SKIPPED_DEPENDENCY`.
+`feature/UI-009`
 
 ### Preflight
-Not applicable; the task was skipped before implementation.
-
-### Preflight remediation
-_None._
+- Verified clean `develop` matched `origin/develop` at
+  `6142789435e153393f8e47bc238e205256b99037`; recent exact merge CI for
+  `Merge feature/UI-008: canonical selection control primitive` was successful.
+- Verified effective repository-local `commit.gpgSign=false`.
+- Confirmed no task-owned Angular, Nest, Tox21, Karma, or workspace watcher
+  process was active before runtime startup.
+- Runtime capability preflight started Tox21, Nest, and Angular in the required
+  order. All three remained alive; Nest reported zero compile errors and
+  connected to Tox21. Two complete edge readiness rounds returned HTTP 200 for
+  `/health` and `/`.
+- Performed a fresh ordinary login through `/login` using the local test
+  account and proved the protected dashboard state.
+- Stopped all three preflight runtime processes before editing.
 
 ### Summary
-Skipped at the normal filename-order selection point. UI primitive and route
-manifest prerequisites are `SKIPPED_DEPENDENCY`, with transitive blocked root
-causes in FE-030 and the canonical auth/session route-policy chain.
+- Migrated action interactions from generic containers/spans to native
+  buttons, including header search, off-canvas/mobile dismiss controls,
+  sidenav feature disclosure, file upload dropzone, notebook page selection,
+  search result selection, and select-all controls.
+- Removed the redundant clickable ticket-card wrapper while retaining the
+  native overlay button that emits the existing detail action.
+- Removed ad-hoc Enter/Space handlers where native button semantics now provide
+  keyboard activation; preserved navigation links and existing destinations.
+- Added `scripts/check-angular-interactive-semantics.mjs` and registered it in
+  `ci:static`. The check rejects ordinary generic click/keyboard controls and
+  command anchors without navigation semantics while documenting dialog/option
+  composite-widget and event-boundary exceptions.
+- Added representative select-all button/focus activation tests.
 
 ### Task-specific validation performed
-No implementation or validation was performed.
+- `npm run ci:angular:interactive-semantics` — passed.
+- `npm run lint --workspace mercurion_web_ng` — passed with existing warnings,
+  no errors.
+- `npm run typecheck --workspace mercurion_web_ng` — passed.
+- Focused Angular specs for both migrated select-all components — 4 specs
+  passed under ChromeHeadless.
+- `git diff --check` — passed.
 
 ### Full pre-merge CI-parity validation
-Not applicable; no feature branch was created.
+Not run locally by policy; `npm ci` and `npm run ci:check` are reserved for
+GitHub Actions. Exact feature-SHA CI remains coordinator-owned.
 
 ### Browser validation performed
-Not applicable; the task was skipped before implementation.
+- Restarted the canonical Tox21, Nest, and Angular processes after
+  implementation and obtained two consecutive HTTP 200 readiness rounds via
+  `http://localhost:8888/health` and `http://localhost:8888/`.
+- Fresh login through `http://localhost:8888/login` succeeded and rendered the
+  protected dashboard.
+- Dashboard accessibility snapshot exposed the converted search control and
+  `Funzionalità` disclosure as native buttons. Tab focused the search button and
+  Enter opened the molecular search dialog, proving keyboard activation.
+- Navigated through the sidebar link to
+  `/molecules/all-my-molecules`; the rendered cards exposed real molecule
+  links plus native action buttons with meaningful labels and URLs.
+- Stopped every post-validation runtime process and verified no
+  Tox21/Nest/Angular/Karma workspace process remained.
 
 ### Commits
-Only this task metadata was updated on `develop`.
+- `c0a5e2f2ddf4b06f1f94ce84111d31d97ddfe973` — implementation, regression
+  guard, focused tests, and task execution notes.
+- `051f35c0` — execution-note correction and initial feature publication.
+- Final feature tip before this metadata-only update:
+  `051f35c0a8e0c3dbd772e7d0709060a9ba18f114`.
 
 ### Merge / CI
-No feature merge; skip metadata CI is required before continuing.
+Feature branch publication and exact feature-SHA CI are coordinator-owned.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-No implementation blocker. Re-enable only after the direct prerequisite chains
-are deliberately resolved in a new authorized session.
+None.

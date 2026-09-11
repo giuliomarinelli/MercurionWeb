@@ -54,7 +54,11 @@ import { routeManifest } from '../../../route-manifest';
       }
       @if (userContext.isLoggedIn()) {
         <!-- Macro Area Menu -->
-        <div class="flex items-center xl:px-0 cursor-pointer xl:cursor-default select-none" (click)="toggleFeatures()">
+        <button
+          type="button"
+          class="flex items-center xl:px-0 cursor-pointer xl:cursor-default select-none w-full text-left border-0 bg-transparent p-0"
+          [attr.aria-expanded]="featuresOpen()"
+          (click)="toggleFeatures()">
           <h6 class="detail mb-0">Funzionalità</h6>
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -64,7 +68,7 @@ import { routeManifest } from '../../../route-manifest';
           >
             <path d="M320.1 438.6L331.4 427.3L491.4 267.3L502.7 256L480.1 233.4L468.8 244.7L320.1 393.4L171.4 244.7L160.1 233.4L137.5 256L148.8 267.3L308.8 427.3L320.1 438.6z"/>
           </svg>
-        </div>
+        </button>
         <div
           class="transition-[max-height,opacity] duration-300 ease-in-out overflow-hidden"
           [class.max-h-0]="!featuresOpen() && designService.maxBk('xl')()"
