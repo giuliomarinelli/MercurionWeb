@@ -141,7 +141,9 @@ and register pages, settings, terms/policies, and welcome.
 
 ### Full pre-merge CI-parity validation
 Not run locally because clean-install and aggregate CI parity are GitHub Actions
-only. The feature SHA was pushed for exact-SHA Actions validation.
+only. Exact feature SHA `ca3a8146f1aa418baa56538c8de47f8cb760ebda` passed
+GitHub Actions run `34549949295`: Classify validation, Ubuntu quality, Windows
+quality, and `Required gate` all succeeded.
 
 ### Browser validation performed
 After implementation, the same canonical runtime was restarted in the required
@@ -155,7 +157,7 @@ post-validation runtime processes were stopped.
 
 ### Commits
 Implementation commit: `6003cb68` (`FE-031 split app context ownership`).
-Execution-note/status update will be included in the final feature SHA.
+Execution metadata commit: `ca3a8146` (`docs: record FE-031 execution commit`).
 
 ### Merge / CI
 No merge performed. The coordinator owns integration after exact feature-SHA
