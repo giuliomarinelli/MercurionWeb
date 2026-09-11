@@ -15,6 +15,7 @@ const paths = {
     worker: '.github/agents/development-task-worker.agent.md',
   },
   mcp: '.github/mcp.json',
+  mcpLauncher: '.github/scripts/start-chrome-devtools-mcp.ps1',
   vscodeMcp: '.vscode/mcp.json',
   vscodeSettings: '.vscode/settings.json',
   historicalSession: 'docs/autonomous-development/session.overnight-2026-09-01.yaml',
@@ -1127,23 +1128,36 @@ if (mcp) {
   }
   const chrome = mcp.mcpServers?.['chrome-devtools'];
   const expectedArgs = [
-    '/c',
-    'npx',
-    '-y',
-    'chrome-devtools-mcp@1.8.0',
-    '--headless',
+    '-NoLogo',
+    '-NoProfile',
+    '-NonInteractive',
+    '-ExecutionPolicy',
+    'Bypass',
+    '-File',
+    '.github/scripts/start-chrome-devtools-mcp.ps1',
   ];
   if (
     !chrome ||
     chrome.type !== 'local' ||
-    chrome.command !== 'cmd' ||
+    chrome.command !== 'pwsh' ||
     JSON.stringify(chrome.args) !== JSON.stringify(expectedArgs)
   ) {
-    fail(paths.mcp, 'chrome-devtools must use the pinned Windows cmd /c npx command and arguments');
+    fail(paths.mcp, 'chrome-devtools must use the deterministic Windows lifecycle launcher');
   }
   if (chrome?.args?.includes('--isolated')) {
     fail(paths.mcp, 'autonomous Chrome must reuse its dedicated persistent profile');
   }
+}
+
+const mcpLauncher = read(paths.mcpLauncher);
+for (const [pattern, message] of [
+  [/chrome-devtools-mcp@1\.8\.0/, 'Chrome DevTools MCP launcher must pin version 1.8.0'],
+  [/--headless/, 'Chrome DevTools MCP launcher must remain headless'],
+  [/--user-data-dir=\$profilePath/, 'Chrome DevTools MCP launcher must select the dedicated persistent profile explicitly'],
+  [/Stop-DedicatedChrome[\s\S]*try[\s\S]*finally[\s\S]*Stop-DedicatedChrome/, 'Chrome DevTools MCP launcher must clean dedicated Chrome before and after each lease'],
+  [/IndexOf\(\$profilePath,[\s\S]*OrdinalIgnoreCase/, 'Chrome cleanup must be scoped to the exact dedicated profile'],
+]) {
+  requireMatch(paths.mcpLauncher, mcpLauncher, pattern, message);
 }
 
 for (const target of [paths.vscodeMcp, paths.vscodeSettings]) {

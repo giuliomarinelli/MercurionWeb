@@ -559,6 +559,13 @@ never assumed: every worker that needs protected state performs a fresh
 ordinary login with the shared real test account. Angular, Nest and Tox21
 processes do not survive task boundaries.
 
+The committed MCP configuration invokes the deterministic Windows lifecycle
+launcher in `.github/scripts/start-chrome-devtools-mcp.ps1`. The launcher
+reclaims only an orphaned Chrome process tree using the exact dedicated
+profile path before granting the next serial worker lease, and performs the
+same scoped cleanup when MCP exits. It never deletes the profile. A worker
+must not replace or bypass this launcher with a direct MCP process.
+
 When required, the runner manages:
 
 ```text

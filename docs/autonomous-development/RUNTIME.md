@@ -236,6 +236,15 @@ directory, persisted outside the repository, so non-production cookies and
 browser storage survive runtime restarts, fresh serial workers, and later CLI
 sessions. `.github/mcp.json` must not pass `--isolated`.
 
+The repository MCP entrypoint is
+`.github/scripts/start-chrome-devtools-mcp.ps1`. It passes the dedicated
+profile explicitly and owns a strict serial lease: before starting MCP and
+again when MCP exits, it stops only Chrome processes whose process tree is
+rooted in that exact profile. This recovers automatically from a prior MCP
+server that was force-terminated while leaving its Chrome subprocess alive;
+the profile directory and its persistent state are never deleted. Do not
+bypass the launcher with a direct `npx chrome-devtools-mcp` invocation.
+
 The task worker is the sole owner of the MCP browser. The coordinator does not
 invoke Chrome tools, and workers are never concurrent. Do not attach the MCP to
 the developer's personal Chrome profile, use Incognito or Guest mode, browse
