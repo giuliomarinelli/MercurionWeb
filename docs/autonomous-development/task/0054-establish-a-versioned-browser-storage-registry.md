@@ -1,7 +1,7 @@
 # 0054 - Establish a versioned browser storage registry
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -96,40 +96,47 @@ The registry is metadata/infrastructure; domain services still expose semantic o
 ## Execution notes
 
 ### Feature branch
-No task branch or worker was created because hard prerequisites `0028` (`FE-006`),
-`0033` (`FE-011`), and `0034` (`FE-012`) are terminal
-`SKIPPED_DEPENDENCY`.
+`feature/FE-032`, frozen at `037321418c25ec92892b2248f2b0fa674ea726f0`.
 
 ### Preflight
-Not applicable; the task was skipped before implementation.
+Passed. The required Tox21, Nest, and Angular runtime startup order, two
+readiness rounds, fresh login, protected-session proof, browser validation, and
+task-owned process shutdown were completed.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-Skipped at the normal filename-order selection point. The direct persistence,
-redirect, and pre-auth prerequisites are terminal `SKIPPED_DEPENDENCY`; their
-transitive root cause includes blocked `0026` (`FE-004`) and `0010`
-(`SYS-010`).
+The implementation and focused validation completed successfully, but the
+exact feature-SHA CI could not be verified after the bounded repair cycle.
 
 ### Task-specific validation performed
-No implementation or validation was performed.
+Registry migration/static checks, focused Angular tests, typecheck, and browser
+storage validation passed. The local full Angular suite had two unrelated
+existing password-recovery fixture failures.
 
 ### Full pre-merge CI-parity validation
-Not applicable; no feature branch was created.
+Initial feature run `34552194747` failed in Angular Test on Ubuntu and Windows
+with an auth-state transition assertion. Repair commit `506360331` corrected
+that repository-controlled failure. Repair SHA
+`ff103bea87cb59b54b131e7f1ed70a24cc49f516` passed Ubuntu, but run
+`34552682547` failed on Windows in Angular Test with only a Chrome Headless
+152 disconnect/reconnect timeout and no repository-controlled diagnostic.
 
 ### Browser validation performed
-Not applicable; the task was skipped before implementation.
+Theme persistence, safe malformed-value fallback, and logout cleanup were
+verified through `http://localhost:8888`; no console crash was observed.
 
 ### Commits
-Only this task metadata was updated on `develop`.
+Implementation and repair commits are preserved on the frozen feature branch;
+this commit records the blocked outcome on `develop`.
 
 ### Merge / CI
-No feature merge; skip metadata CI is required before continuing.
+No feature merge. The feature branch remains preserved and frozen.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-No implementation blocker. Re-enable only after the hard dependency chain is
-deliberately resolved in a new authorized session.
+The Windows exact-SHA result is uncorrelated and unverifiable after one repair
+attempt; human review is required before retrying this task.
