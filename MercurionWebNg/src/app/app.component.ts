@@ -5,7 +5,6 @@ import {
   CUSTOM_ELEMENTS_SCHEMA,
   ElementRef,
   OnDestroy,
-  OnInit,
   computed,
   effect,
   signal,
@@ -14,28 +13,23 @@ import {
   PLATFORM_ID,
   viewChild
 } from '@angular/core'
-import { NavigationEnd, Router, RouterOutlet } from '@angular/router'
+import { RouterOutlet } from '@angular/router'
 import { HeaderComponent } from './components/common/header/header.component'
 import { ThemeManagerService } from './services/context/theme-manager.service'
 import { SearchOverlayComponent } from './components/search-overlay/search-overlay/search-overlay.component'
 import { SearchContextService } from './services/context/search-context.service'
 import { FooterComponent } from './components/common/footer/footer.component'
-import { filter, Subscription } from 'rxjs'
 import { ToastService } from './services/toast.service'
 import { AuthStateStore } from './services/auth-state.store'
-import { PathService } from './services/path.service'
 import { SidenavContextService } from './services/context/sidenav-context.service'
 import { DesignService } from './services/design.service'
 import { SidenavComponent } from './components/common/sidenav/sidenav.component'
-import { SessionSyncService } from './services/session-sync.service'
+import { AppShellFacade } from './services/app-shell.facade'
 import { ActionOverlayContextService } from './services/context/action-context/action-overlay-context.service'
 import { ActionOverlayComponent } from './components/action-components/action-overlay/action-overlay.component'
 import { AppContextService } from './services/context/app-context.service'
-import { AccountService } from './services/account.service'
 import { DOCUMENT, isPlatformBrowser } from '@angular/common'
 import { ToastComponent } from './components/common/toast/toast.component'
-import { AuthRedirectService } from './services/auth-redirect.service'
-import { activeRoutePolicy, DEFAULT_ROUTE_POLICY, RoutePolicy } from './route-policy'
 
 @Component({
   selector: 'm-root',
@@ -133,34 +127,25 @@ import { activeRoutePolicy, DEFAULT_ROUTE_POLICY, RoutePolicy } from './route-po
     <m-toast />
   `
 })
-export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
+export class AppComponent implements AfterViewInit, OnDestroy {
 
   protected readonly isSafari: boolean
 
   private readonly themeManagerService = inject(ThemeManagerService)
   protected readonly searchContextService = inject(SearchContextService)
-  private readonly router = inject(Router)
+  private readonly shell = inject(AppShellFacade)
   protected readonly toastService = inject(ToastService)
   protected readonly authState = inject(AuthStateStore)
-  private readonly pathService = inject(PathService)
   protected readonly sidenavContext = inject(SidenavContextService)
   protected readonly design = inject(DesignService)
-  private readonly sessionSync = inject(SessionSyncService)
-  private readonly redirects = inject(AuthRedirectService)
   protected readonly saveOverlayContext = inject(ActionOverlayContextService)
   private readonly appContext = inject(AppContextService)
-  private readonly accountService = inject(AccountService)
   private readonly doc = inject(DOCUMENT)
   private readonly platformId = inject(PLATFORM_ID)
   private readonly isBrowser = isPlatformBrowser(this.platformId)
 
   isDarkTheme: Signal<boolean> = computed(() => this.themeManagerService.theme() === 'dark')
-  readonly routePolicy = signal<RoutePolicy>(DEFAULT_ROUTE_POLICY)
-
-  private routeSub?: Subscription
-  private emailSub?: Subscription
-  private currentPath = signal<string>('')
-  private firstNavigationDone = signal<boolean>(false)
+  readonly routePolicy = this.shell.routePolicy
 
   _triggerOpenOffCanvas = signal<boolean>(false)
 
@@ -176,130 +161,20 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       this.doc.documentElement.classList.add('m-scroll-thin')
     }
     effect(() => {
-      const t = this.sessionSync.handshakeTick()
-      if (t === 0) return
-      void this.sessionSync.syncSession(true)
-    })
-    effect(() => {
       this.scrollHostRef = this.scrollHost()
+      this.shell.registerScrollHost(this.scrollHostRef)
       // wait a tick so the view is stable before registering the new root
       queueMicrotask(() => this.ensureScrollRootRef())
     })
-
-    this.authState.bootstrap()
-
-    void this.sessionSync.syncSession()
-
-    // Compatibilità transitoria per redirect_to salvati quando la SPA viveva sotto /m.
-    const stripLegacyBasePath = (raw: string): string => {
-      if (raw === '/m') return '/'
-      if (raw.startsWith('/m/')) return raw.slice(2)
-      if (raw.startsWith('/m?') || raw.startsWith('/m#')) return `/${raw.slice(2)}`
-      return raw
-    }
-
-    const normalize = (raw: string): string => {
-      if (!raw) return ''
-      const qIdx = raw.indexOf('?')
-      if (qIdx >= 0) raw = raw.slice(0, qIdx)
-      const hIdx = raw.indexOf('#')
-      if (hIdx >= 0) raw = raw.slice(0, hIdx)
-      raw = stripLegacyBasePath(raw)
-      if (raw.length > 1 && raw.endsWith('/')) raw = raw.slice(0, -1)
-      return raw
-    }
-
-    this.currentPath.set(normalize(this.router.url))
-    this.pathService.setPath(this.currentPath())
-
-    this.routeSub = this.router.events
-      .pipe(filter(e => e instanceof NavigationEnd))
-      .subscribe((e: NavigationEnd) => {
-        const prevPath = this.currentPath()
-        const url = normalize(e.urlAfterRedirects)
-
-        const pathChanged = prevPath !== url
-        const shouldAutoSmooth =
-          pathChanged && url !== '/settings' && url !== '/terms-and-policies'
-
-        if (shouldAutoSmooth) {
-          this.appContext.smoothToTop(this.scrollHostRef, 400)
-        }
-
-        this.routePolicy.set(activeRoutePolicy(this.router.routerState.snapshot.root))
-        this.currentPath.set(url)
-        this.pathService.setPath(url)
-        if (!this.firstNavigationDone()) this.firstNavigationDone.set(true)
-        queueMicrotask(() => this.ensureScrollRootRef())
-
-      })
-
-    let lastProgrammaticNav: string | undefined
-    let firstStableReached = false
-
     effect(() => {
-
-      if (!this.firstNavigationDone()) {
-        return
-      }
-
-      const logged = this.authState.authenticated()
-      const status = this.sessionSync.status()
-      const url = this.currentPath().toLowerCase()
-
-      if (!firstStableReached) {
-        if (status === 'loggedIn' || status === 'anonymous') firstStableReached = true
-        else return
-      }
-
-      const policy = this.routePolicy()
-      const isPublic = policy.access !== 'authenticated'
-      const isLoggedOutOnly = policy.access === 'logged-out-only'
-
-      const safeNavigate = (target: string) => {
-        if (!target) return
-        if (lastProgrammaticNav === target) return
-        lastProgrammaticNav = target
-        queueMicrotask(() => {
-          const here = normalize(this.router.url).toLowerCase()
-          if (here === url) this.router.navigateByUrl(target)
-        })
-      }
-
-      if (url === '/') {
-        safeNavigate('/welcome')
-        return
-      }
-
-      if (!logged) {
-        if (!isPublic) {
-          this.redirects.capture(this.router.url)
-          safeNavigate('/welcome')
-        }
-        return
-      }
-
-
-      if (isLoggedOutOnly) {
-        safeNavigate('/dashboard')
-      }
-    })
-
-    effect(() => {
-      const t = this.appContext.addedGlobalScrollRootRefTick()
-      if (t === 0) return
+      this.routePolicy()
+      this.appContext.addedGlobalScrollRootRefTick()
       queueMicrotask(() => this.ensureScrollRootRef())
     })
   }
 
   triggerOpenOffCanvas(): void {
     this._triggerOpenOffCanvas.set(true)
-  }
-
-  async ngOnInit() {
-    if (this.authState.authenticated()) {
-      this.emailSub = this.accountService.getProvidedEmail().subscribe()
-    }
   }
 
   ngAfterViewInit() {
@@ -311,8 +186,6 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.routeSub?.unsubscribe()
-    this.emailSub?.unsubscribe()
     if (this.isBrowser) {
       this.doc.documentElement.classList.remove('m-scroll-thin')
     }
