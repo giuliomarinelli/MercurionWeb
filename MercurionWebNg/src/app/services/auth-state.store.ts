@@ -240,7 +240,9 @@ export class AuthStateStore {
   syncExternalState(): void {
     if (this.getPersistedInitials() || this.getWsAccessToken() || this.hasClientLoginCookie()) {
       this.transition({ kind: 'authenticating', flow: 'restore' })
-      this.applyProtocol(SessionTransition.BeginAuthentication)
+      if (this.sessionProtocol().state !== 'authenticating') {
+        this.applyProtocol(SessionTransition.BeginAuthentication)
+      }
       return
     }
     this.clearPersistence()

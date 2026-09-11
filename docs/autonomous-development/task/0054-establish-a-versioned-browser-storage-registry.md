@@ -131,11 +131,18 @@ architecture check `ci:angular:storage-registry`.
   src/app/services/session-sync.service.spec.ts` — 10/10 passed.
 - `npx ng test --watch=false --karma-config=karma.conf.js --include
   src/app/services/browser-storage-registry.spec.ts` — 6/6 passed.
+- After the exact-SHA CI diagnostic, the focused auth-state and registry suite
+  passed 24/24 with the narrow external-state convergence repair.
 - `git diff --check` and production storage-access inventory — passed.
 
 ### Full pre-merge CI-parity validation
-Not run locally by policy; clean-install and aggregate CI remain GitHub Actions
-responsibilities.
+Exact feature SHA `73c72f3dfe9f74bb9cf7806ddebccc6c107c277b` was run as Actions
+run `34585390894`. Both Ubuntu and Windows Angular Test jobs failed on the
+repository-controlled `Illegal session transition: authenticating ->
+begin-authentication` assertion. The narrow repair guards the already
+authenticating protocol state and preserves the legacy login marker during
+migration. A fresh exact-SHA Actions run is required for the repair SHA;
+clean-install and aggregate CI remain GitHub Actions responsibilities.
 
 ### Browser validation performed
 Through only `http://localhost:8888`, the fresh ordinary shared-account login
@@ -149,9 +156,15 @@ registry tests without bootstrap exceptions. No token or password was recorded.
 
 ### Commits
 `f5bb0139` — feature implementation and registry integration.
+`73c72f3d` — registry tests, execution evidence and header correction.
+Repair commit pending push: guards external auth convergence after the first
+exact-SHA CI failure.
 
 ### Merge / CI
-Feature SHA is pending push and exact-SHA CI.
+Feature SHA `73c72f3dfe9f74bb9cf7806ddebccc6c107c277b` is pushed; its exact
+Actions run `34585390894` failed on the repository-controlled auth-state
+assertion. The narrow repair is locally validated and will be pushed as the
+next feature SHA for the configured repair loop.
 
 ### Rollback
 _Not applicable._
