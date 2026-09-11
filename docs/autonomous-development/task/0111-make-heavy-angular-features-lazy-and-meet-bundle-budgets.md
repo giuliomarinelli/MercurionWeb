@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -95,8 +95,9 @@ _Not started._
 ### Preflight remediation
 _None._
 ### Summary
-Not attempted because required UI-027 is `SKIPPED_DEPENDENCY`. The references
-to tasks 0095, 0104, 0105, and 0106 are advisory.
+Not attempted because hard prerequisite task `0106` (`NG-020`) is now
+`SKIPPED_DEPENDENCY` through blocked task `0087` (`NG-001`). Other references
+remain advisory where not hard prerequisites.
 ### Task-specific validation performed
 Not applicable; no feature branch or implementation worker was created.
 ### Full pre-merge CI-parity validation
@@ -110,6 +111,5 @@ No feature branch or merge. Exact-SHA CI is required for the metadata commit.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Direct terminal prerequisite: UI-027, `SKIPPED_DEPENDENCY`. Transitive chain:
-NG-025 -> UI-027 -> UI-013 -> FE-030 (BLOCKED). FE-030 requires
-filesystem-write capability for a fresh, human-authorized worker session.
+Direct terminal prerequisite: task `0106` (`NG-020`), `SKIPPED_DEPENDENCY`.
+Transitive chain: `0111` -> `0106` -> `0087` (`NG-001` BLOCKED).
