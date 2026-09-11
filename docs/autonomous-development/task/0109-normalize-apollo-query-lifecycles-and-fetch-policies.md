@@ -1,7 +1,7 @@
 # 0109 - Normalize Apollo query lifecycles and fetch policies
 
 - [ ] DONE
-- [x] BLOCKED
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 

@@ -265,16 +265,16 @@ workload:
   tasks: []
   pending_only: true
   expected_task_count: 220
-  expected_current_done: 57
-  expected_current_blocked: 3
-  expected_current_skipped_dependency: 13
-  expected_current_pending: 147
-  expected_first_ready_task: "0054"
-  expected_planner_ready: 17
-  expected_planner_waiting_dependency: 130
-  expected_planner_terminal_closure: 13
+  expected_current_done: 62
+  expected_current_blocked: 2
+  expected_current_skipped_dependency: 11
+  expected_current_pending: 145
+  expected_first_ready_task: "0059"
+  expected_planner_ready: 14
+  expected_planner_waiting_dependency: 131
+  expected_planner_terminal_closure: 11
   expected_new_skipped_dependency: 0
-  expected_autonomous_pending: 147
+  expected_autonomous_pending: 145
   expected_human_led_pending: 0
   dependency_planner:
     command: npm run autonomous:plan
@@ -291,8 +291,25 @@ blocked_branch_policy:
   do_not_resume_without_new_direct_human_authorization: true
   branches:
     - feature/SYS-020
-    - feature/NG-023
     - feature/NG-028
+
+authorized_recovery:
+  authority: direct-human-instruction-2026-09-11
+  resume_existing_feature_branches: true
+  reconcile_with_current_develop: merge-no-ff-no-gpg-sign
+  tasks: ["0087", "0091", "0109"]
+  source_0087: NG-001
+  preserved_sha_0087: bb210295929e45ba739207361f40f1c1bbbb719b
+  source_0091: NG-005
+  preserved_sha_0091: e58a7e048a5c44a7ff4b1db21bfd8a360228da1a
+  source_0109: NG-023
+  preserved_sha_0109: a321fc44678f9f6298ddd460a35b2ddc9034d7f1
+  reset_stale_skipped_dependency:
+    - "0088"
+    - "0106"
+    - "0110"
+    - "0111"
+    - "0112"
 
 task_outcomes:
   persistent:
@@ -410,7 +427,9 @@ ci:
 decisions:
   sys_020_notebook: remain-blocked
   ui_018: remain-blocked
-  ng_023: remain-blocked
+  ng_001: resume-and-complete-existing-work
+  ng_005: resume-and-complete-existing-work
+  ng_023: resume-and-complete-existing-work
   ng_028: remain-blocked
   task_batching: disabled
   autonomous_execution_scope: complete-series

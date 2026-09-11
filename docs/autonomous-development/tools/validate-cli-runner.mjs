@@ -268,11 +268,14 @@ requireMatch(paths.skills.runtime, read(paths.skills.runtime), /two complete con
 requireMatch(paths.skills.ci, read(paths.skills.ci), /final feature SHA[\s\S]*exact merge SHA/i, 'CI skill must retain exact-SHA lifecycle');
 requireMatch(paths.skills.outcome, read(paths.skills.outcome), /SESSION_RECOVERY_PENDING[\s\S]*BLOCKED[\s\S]*REVERTED/, 'outcome skill must distinguish transient and terminal states');
 requireMatch(paths.skills.task, read(paths.skills.task), /Never select another recipe/i, 'task skill must remain single-recipe scoped');
+requireMatch(paths.skills.task, read(paths.skills.task), /recovery_resume: true[\s\S]*without rebase or history rewriting/i, 'task skill must support authorized branch recovery');
 
 requireMatch(paths.agents.coordinator, coordinator.content, /invoke the project skills `mercurion-ci-lifecycle` and `mercurion-outcome-classification`/, 'coordinator must invoke its project skills');
 requireMatch(paths.agents.worker, worker.content, /invoke the project skills `mercurion-task-execution` and `mercurion-outcome-classification`/, 'worker must invoke its core project skills');
 requireMatch(paths.agents.worker, worker.content, /also invoke `mercurion-browser-runtime` and `chrome-devtools`/, 'worker must invoke browser skills conditionally');
 requireMatch(paths.agents.worker, worker.content, /Capability probe mode[\s\S]*do not read repository files, invoke tools/i, 'capability probe must remain skill-free');
+requireMatch(paths.agents.coordinator, coordinator.content, /authorized_recovery[\s\S]*preserved SHA[\s\S]*recovery_resume: true/, 'coordinator must resume only explicitly authorized preserved branches');
+requireMatch(paths.agents.worker, worker.content, /Authorized recovery-resume mode[\s\S]*`--no-ff --no-gpg-sign`; never rebase, reset, squash/, 'worker must reconcile preserved work without history rewriting');
 
 requireMatch(
   paths.agents.coordinator,
@@ -379,7 +382,7 @@ requireMatch(
 requireMatch(
   paths.agents.coordinator,
   coordinator.content,
-  /SESSION_BRANCH_COLLISION_PAUSE[\s\S]*branch-collision exclusion set[\s\S]*continue with the next independent `READY` task/,
+  /SESSION_BRANCH_COLLISION_PAUSE[\s\S]*branch-collision[\s\S]*exclusion set[\s\S]*continue with the[\s\S]*next independent `READY` task/,
   'coordinator must isolate a branch collision and continue independent work',
 );
 requireMatch(
@@ -661,7 +664,8 @@ for (const [pattern, message] of [
   [/no\s+profile-persistence or pre-authenticated-state probe is a launch prerequisite/i, 'prepared launch must not depend on persisted profile authentication'],
   [/workload\.tasks` list is empty[\s\S]{0,120}complete Series is in\s*scope/i, 'prepared launch must select the complete Series'],
   [/there is no autonomous allowlist/i, 'prepared launch must explicitly disable workload restriction'],
-  [/expected first READY task[\s\S]{0,20}(?:is\s*)?0054/i, 'prepared launch must state the current expected first ready task'],
+  [/expected first READY task[\s\S]{0,20}(?:is\s*)?0059/i, 'prepared launch must state the current expected first ready task'],
+  [/0087\/NG-001[\s\S]*0091\/NG-005[\s\S]*0109\/NG-023[\s\S]*recovery_resume: true/i, 'prepared launch must authorize the exact recovery tasks'],
   [/Task `0041` \(`FE-019`\) is already integrated as `DONE`[\s\S]*must not attempt or re-enable it/i, 'prepared launch must retain completed FE-019'],
   [/env\/\.env\.development[\s\S]{0,260}ordinary login[\s\S]{0,260}server/i, 'prepared launch must require a fresh server-accepted real-account login'],
   [/Do[\s\S]{0,10}not bundle tasks/, 'prepared launch must prohibit multi-task bundles'],
@@ -897,15 +901,17 @@ for (const [pattern, message] of [
   [/browser_and_allowlist_hardening_pull_request:\s*31/, 'prepared session must record PR #31 provenance'],
   [/name:\s*mercurion-code-red-0001-overweek-full-series-2026-09-20-v6/, 'prepared session must use a fresh session identity'],
   [/expected_task_count:\s*220/, 'prepared workload must contain 220 tasks'],
-  [/expected_current_done:\s*57/, 'prepared workload must record 57 DONE tasks'],
-  [/expected_current_blocked:\s*3/, 'prepared workload must record three retained blockers'],
-  [/expected_current_skipped_dependency:\s*13/, 'prepared workload must record 13 terminal skips'],
-  [/expected_current_pending:\s*147/, 'prepared workload must record 147 pending tasks'],
-  [/expected_first_ready_task:\s*"0054"/, 'prepared workload must start from task 0054'],
-  [/expected_planner_ready:\s*17/, 'prepared workload must record 17 ready tasks'],
-  [/expected_planner_waiting_dependency:\s*130/, 'prepared workload must record 130 waiting tasks'],
+  [/expected_current_done:\s*62/, 'prepared workload must record 62 DONE tasks'],
+  [/expected_current_blocked:\s*2/, 'prepared workload must record two retained blockers'],
+  [/expected_current_skipped_dependency:\s*11/, 'prepared workload must record 11 terminal skips'],
+  [/expected_current_pending:\s*145/, 'prepared workload must record 145 pending tasks'],
+  [/expected_first_ready_task:\s*"0059"/, 'prepared workload must start from task 0059'],
+  [/expected_planner_ready:\s*14/, 'prepared workload must record 14 ready tasks'],
+  [/expected_planner_waiting_dependency:\s*131/, 'prepared workload must record 131 waiting tasks'],
   [/tasks:\s*\[\]/, 'prepared workload must select the complete Series'],
-  [/expected_autonomous_pending:\s*147/, 'prepared workload must record all 147 pending tasks in scope'],
+  [/expected_autonomous_pending:\s*145/, 'prepared workload must record all 145 pending tasks in scope'],
+  [/authorized_recovery:[\s\S]*tasks:\s*\["0087", "0091", "0109"\][\s\S]*source_0087:\s*NG-001[\s\S]*source_0091:\s*NG-005[\s\S]*source_0109:\s*NG-023/, 'prepared workload must bind exact recovery task identities'],
+  [/reset_stale_skipped_dependency:[\s\S]*"0088"[\s\S]*"0106"[\s\S]*"0110"[\s\S]*"0111"[\s\S]*"0112"/, 'prepared workload must record reset stale skips'],
   [/expected_human_led_pending:\s*0/, 'prepared workload must not exclude pending tasks'],
   [/autonomous_execution_scope:\s*complete-series/, 'prepared workload must declare complete-Series execution'],
   [/dependency_planner:[\s\S]*output:\s*versioned-json/, 'prepared session must use deterministic planner output'],

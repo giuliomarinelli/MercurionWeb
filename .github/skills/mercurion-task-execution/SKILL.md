@@ -31,6 +31,15 @@ Use the supplied run, job and SHA evidence. Apply only the confirmed narrow
 correction on the same feature branch and rerun the focused reproducer. Do not
 repeat browser validation unless browser-observable behavior changed.
 
+## Authorized recovery invocation
+
+When `recovery_resume: true` is supplied, verify the configured task, Source,
+feature branch and preserved SHA. Merge the supplied green current `develop`
+SHA into the existing branch without rebase or history rewriting. Preserve
+coherent prior work, resolve only task-owned conflicts, continue from the
+recorded acceptance gaps, and complete the same recipe. A prior `BLOCKED`
+checkbox is historical input, not the result of the resumed invocation.
+
 Before returning, use `mercurion-outcome-classification` and emit exactly one
 result allowed by the worker contract. Written code alone never means complete.
 
