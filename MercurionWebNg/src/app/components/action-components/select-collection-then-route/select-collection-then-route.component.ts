@@ -1,19 +1,21 @@
 import { Component, ChangeDetectionStrategy, inject, OnDestroy, OnInit, signal } from '@angular/core';
-import { ClassicSpinnerComponent } from '../../common/classic-spinner/classic-spinner.component';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 import { ComboSelectComponent } from '../../common/combo-select/combo-select.component';
 import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
 import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
 import { Subscription } from 'rxjs';
 import { IconButtonComponent } from '../../common/icon-button/icon-button.component';
+import { ActionFooterComponent } from '../../common/action-footer/action-footer.component';
+import { ButtonComponent } from '../../common/button/button.component';
 
 @Component({
   selector: 'm-select-collection-then-route',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    ClassicSpinnerComponent,
     ComboSelectComponent,
-    IconButtonComponent
+    IconButtonComponent,
+    ActionFooterComponent,
+    ButtonComponent
   ],
   template: `
 
@@ -110,54 +112,26 @@ import { IconButtonComponent } from '../../common/icon-button/icon-button.compon
     </div>
 
     <!-- FOOTER -->
-    <div class="action-card-footer">
-      <button
-        type="button"
-        class="px-4 py-2 rounded-lg bg-light-surface-secondary text-light-on-surface-main
-               dark:bg-slate-200 dark:text-light-on-surface-main
-               hover:bg-white dark:hover:bg-slate-300/80
-               border border-light-border dark:border-dark-border/80
-               shadow-sm
-               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq
-               focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary
-               dark:focus-visible:ring-offset-dark-surface-secondary
-               transition-colors duration-200"
+    <m-action-footer>
+      <m-button
+        action-footer-secondary
+        variant="neutral"
         (click)="close()"
         aria-label="Annulla selezione collezione"
       >
         Annulla
-      </button>
+      </m-button>
 
-      <button
-        type="button"
-        class="relative inline-flex items-center justify-center px-4 py-2 rounded-lg
-               bg-light-accent-primary text-white font-semibold shadow-md
-               hover:bg-light-accent-primary-hc
-               dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary
-               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq
-               focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary
-               dark:focus-visible:ring-offset-dark-surface-secondary
-               disabled:bg-light-accent-primary/50 disabled:cursor-not-allowed
-               transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary-hc/50"
+      <m-button
+        action-footer-primary
         [disabled]="!selectedCollectionId() || loadingCombo() || loading()"
+        [loading]="loadingCombo() || loading()"
         (click)="routeAction()"
-        [attr.aria-busy]="loadingCombo() || loading()"
-        [attr.aria-disabled]="!selectedCollectionId() || loadingCombo() || loading()"
         aria-label="Continua con la collezione selezionata"
       >
-        <span [class.invisible]="loadingCombo() || loading()">
-          Continua
-        </span>
-
-        <span
-          aria-hidden="true"
-          class="absolute inset-0 flex items-center justify-center"
-          [class.hidden]="!loadingCombo() && !loading()"
-        >
-          <m-classic-spinner [size]="24"></m-classic-spinner>
-        </span>
-      </button>
-    </div>
+        Continua
+      </m-button>
+    </m-action-footer>
   </div>
 </div>
 

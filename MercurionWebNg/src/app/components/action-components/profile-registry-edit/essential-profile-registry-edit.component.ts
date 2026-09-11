@@ -14,6 +14,8 @@ import { PmOption } from '../../../Models/pm-option.model';
 import { ProfileRegistryEditContextService } from '../../../services/context/action-context/profile-registry-edit-context.service';
 import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
 import { IconButtonComponent } from '../../common/icon-button/icon-button.component';
+import { ActionFooterComponent } from '../../common/action-footer/action-footer.component';
+import { ButtonComponent } from '../../common/button/button.component';
 
 type RegistryFormValue = {
   firstName: string
@@ -30,7 +32,9 @@ type RegistryFormValue = {
     ReactiveFormsModule,
     FloatingInputComponent,
     PmSelectComponent,
-    IconButtonComponent
+    IconButtonComponent,
+    ActionFooterComponent,
+    ButtonComponent
   ],
   template: `
 
@@ -149,58 +153,50 @@ type RegistryFormValue = {
       </div>
     </div>
 
-    <div class="action-card-footer">
+    <m-action-footer>
       @if (step() === 1) {
-        <button
-          type="button"
-          class="px-4 py-2 rounded-lg bg-light-surface-secondary text-light-on-surface-main dark:bg-slate-200 dark:text-light-on-surface-main hover:bg-white dark:hover:bg-slate-300/80 border border-light-border dark:border-dark-border/80 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary transition-colors duration-200"
+        <m-button
+          action-footer-secondary
+          variant="neutral"
           (click)="close()"
           aria-label="Annulla modifica anagrafica"
         >
           Annulla
-        </button>
+        </m-button>
 
-        <button
-          type="button"
+      }
+
+      @if (step() === 1) {
+        <m-button
+          action-footer-secondary
+          variant="neutral"
+          size="sm"
           title="Resetta"
-          class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-light-surface-secondary text-light-on-surface-main dark:bg-slate-200 dark:text-light-on-surface-main hover:bg-white dark:hover:bg-slate-300/80 border border-light-border dark:border-dark-border/80 shadow-sm disabled:bg-light-surface-secondary disabled:text-slate-300 dark:disabled:bg-slate-200/60 dark:disabled:text-dark-on-surface-secondary/60 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary transition-colors duration-200"
           [disabled]="isGroupValueTheSameAsInitialValueSig()"
           (click)="reset()"
-          [attr.aria-disabled]="isGroupValueTheSameAsInitialValueSig()"
           aria-label="Reimposta i campi"
         >
+          <span class="sr-only">Reimposta</span>
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current size-5">
             <path d="M544 64L544 183.8L507 144.7C458.5 93.2 390.8 64 320 64C180.3 64 64.1 180.4 64 320C63.9 459.3 180.3 575.9 320 576C420.1 576.1 513.4 515.5 554 424.1L524.8 411.1C489.4 491 407.6 544.1 320.1 544C198 543.9 96 441.6 96.1 320C96.2 198.1 198.1 96 320.1 96C382.1 96 441.3 121.5 483.9 166.6L523 208L400.1 208L400.1 240L576.1 240L576.1 64L544.1 64z"/>
           </svg>
-        </button>
+        </m-button>
       }
 
-      <button
-        type="button"
-        class="relative inline-flex items-center justify-center px-4 py-2 rounded-lg bg-light-accent-primary text-white font-semibold shadow-md hover:bg-light-accent-primary-hc dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary disabled:bg-light-accent-primary/50 disabled:cursor-not-allowed transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary-hc/50"
+      <m-button
+        action-footer-primary
         [disabled]="isGroupValueTheSameAsInitialValueSig() || step_12_loading()"
-        [attr.aria-busy]="step_12_loading()"
+        [loading]="step_12_loading()"
         (click)="routeAction()"
-        [attr.aria-disabled]="isGroupValueTheSameAsInitialValueSig() || step_12_loading()"
         [attr.aria-label]="step() === 1 ? 'Salva anagrafica' : 'Chiudi conferma'"
       >
-        <span [class.invisible]="step_12_loading()">
-          @if (step() === 1) {
-            <span>Salva</span>
-          } @else if (step() === 2) {
-            <span>Ok</span>
-          }
-        </span>
-
-        <span
-          aria-hidden="true"
-          class="absolute inset-0 flex items-center justify-center"
-          [class.hidden]="!step_12_loading()"
-        >
-          <m-classic-spinner [size]="24"></m-classic-spinner>
-        </span>
-      </button>
-    </div>
+        @if (step() === 1) {
+          Salva
+        } @else if (step() === 2) {
+          Ok
+        }
+      </m-button>
+    </m-action-footer>
   </div>
 </div>
 

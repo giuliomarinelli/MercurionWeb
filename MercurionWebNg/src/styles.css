@@ -501,11 +501,6 @@ html {
     overscroll-behavior: contain;
   }
 
-  .action-card-footer {
-    @apply px-4 sm:px-6 py-4 border-t border-light-border dark:border-dark-border bg-light-surface-secondary/60 dark:bg-dark-surface-secondary/60 flex gap-3 rounded-b-2xl flex-wrap justify-center md:justify-end;
-    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
-  }
-
   @media (max-width: 767px) {
     .action-card {
       height: calc(var(--app-vh, 1vh) * 100 - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 8px);
@@ -513,12 +508,6 @@ html {
       width: 100%;
     }
 
-    .action-card-footer {
-      gap: 0.5rem;
-      padding-left: 0.75rem;
-      padding-right: 0.75rem;
-      padding-top: 0.75rem;
-    }
   }
 
   .keyboard-open .action-card {

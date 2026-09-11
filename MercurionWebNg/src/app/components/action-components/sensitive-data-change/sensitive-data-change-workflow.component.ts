@@ -29,6 +29,8 @@ import { PmSelectComponent } from '../../common/pm-select/pm-select.component';
 import { PmOption } from '../../../Models/pm-option.model';
 import { CopyUiService } from '../../../services/copy-ui.service';
 import { IconButtonComponent } from '../../common/icon-button/icon-button.component';
+import { ActionFooterComponent } from '../../common/action-footer/action-footer.component';
+import { ButtonComponent } from '../../common/button/button.component';
 
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -43,7 +45,9 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     FloatingInputComponent,
     RouterLink,
     PmSelectComponent,
-    IconButtonComponent
+    IconButtonComponent,
+    ActionFooterComponent,
+    ButtonComponent
   ],
   providers: [
     {
@@ -883,8 +887,10 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
       </div>
     }
     </div>
-    <div class="action-card-footer">
-        <button
+    <m-action-footer>
+        <m-button
+          action-footer-secondary
+          variant="neutral"
           [class.hidden]="
             enableMfaStep() === 'CHOOSE_STRATEGY'
             || disableMfaStep() === 'CHOOSE_STRATEGY'
@@ -895,18 +901,16 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
             || deletePhoneStep() === 'OK_OR_ERROR'
             || changePasswordStep() === 'OK_OR_ERROR'
           "
-          type="button"
-          class="px-4 py-2 rounded-lg bg-light-surface-secondary text-light-on-surface-main dark:bg-slate-200 dark:text-light-on-surface-main hover:bg-white dark:hover:bg-slate-300/80 border border-light-border dark:border-dark-border/80 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary transition-colors duration-200"
           (click)="close()"
         >
           Annulla
-        </button>
+        </m-button>
 
-      <button
+      <m-button
+        action-footer-primary
+        variant="primary"
         [class.invisible]="enableMfaStep() === 'CHOOSE_STRATEGY' || disableMfaStep() === 'CHOOSE_STRATEGY'"
         (click)="routeAction()"
-        type="button"
-        class="relative inline-flex items-center justify-center px-4 py-2 rounded-lg bg-light-accent-primary text-white font-semibold shadow-md hover:bg-light-accent-primary-hc dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary disabled:bg-light-accent-primary/50 disabled:cursor-not-allowed transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary-hc/50"
         [disabled]="
           loading()
           || (enableMfaStep() === 'OTP_VERIFICATION' && otpCtrl.invalid)
@@ -918,18 +922,17 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
           || (innerScope() === 'RemovePhone' && deletePhoneStep() === 'OTP_VERIFICATION' && otpCtrl.invalid)
           || (innerScope() === 'ChangePassword' && changePasswordStep() === 'CHANGE_PASSWORD_FORM' && passwordForm.invalid)
         "
-        [attr.aria-busy]="loading()"
+        [loading]="loading()"
       >
 
-        <span [class.invisible]="loading()">
-          @if (
+        @if (
           enableMfaStep() === 'OTP_VERIFICATION'
           || disableMfaStep() === 'OTP_VERIFICATION'
           || changeEmailStep() === 'OTP_VERIFICATION'
           || changeOrAddPhoneStep() === 'OTP_VERIFICATION'
           || deletePhoneStep() === 'OTP_VERIFICATION'
           ) {
-            <span>Verifica codice</span>
+            Verifica codice
           } @else if (
           enableMfaStep() === 'APP:SCAN_QR_CODE_OR_COPY_SECRET'
           || changeEmailStep() === 'NEW_CONTACT_FORM'
@@ -937,9 +940,9 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
           || changePasswordStep() === 'CHANGE_PASSWORD_FORM'
           ) {
             @if (changePasswordStep() === 'CHANGE_PASSWORD_FORM') {
-              <span>Cambia password</span>
+              Cambia password
             } @else {
-              <span>Avanti</span>
+              Avanti
             }
           } @else if (
           enableMfaStep() === 'OK_OR_ERROR'
@@ -949,20 +952,10 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
           || deletePhoneStep() === 'OK_OR_ERROR'
           || changePasswordStep() === 'OK_OR_ERROR'
           ) {
-            <span>Ok</span>
+            Ok
           }
-        </span>
-
-        <!-- Overlay spinner without affecting layout -->
-        <span
-          aria-hidden="true"
-          class="absolute inset-0 flex items-center justify-center"
-          [class.hidden]="!loading()"
-        >
-          <m-classic-spinner [size]="24" />
-        </span>
-      </button>
-    </div>
+      </m-button>
+    </m-action-footer>
   </div>
 </div>
 `
