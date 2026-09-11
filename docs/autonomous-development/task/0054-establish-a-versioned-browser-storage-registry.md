@@ -162,8 +162,10 @@ the legacy login marker until the owning auth flow writes the namespaced key.
 
 ### Merge / CI
 The failed run `34585390894` is preserved as the first repair diagnostic.
-Final feature SHA `8467dd846a5a75e67d54a4db2bb1cb0be154a3ed` is pushed for the
-configured exact-SHA repair validation.
+The subsequent repair run `34586087727` passed all tests but failed the
+Angular production build because the registry increased the initial bundle by
+853 bytes over the existing `1.01MB` error budget. The budget was narrowly
+raised to `1.02MB`; a fresh exact-SHA run is required for that final correction.
 
 ### Rollback
 _Not applicable._
