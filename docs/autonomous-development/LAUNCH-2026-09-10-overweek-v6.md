@@ -136,7 +136,12 @@ reserved area, read the shared
 credentials from the git-ignored MercurionWebNode/env/.env.development file,
 perform a fresh ordinary login through http://localhost:8888/login, and prove
 that a protected server endpoint accepts the resulting real session before
-implementation. Never use the deprecated dummy-auth route or rely on a session
+implementation. Snapshot the login page, identify the email/password field UIDs,
+and use Chrome DevTools MCP `fill_form`, with `fill` only as fallback. Never use
+`navigator.clipboard`, `clipboard.readText`, `evaluate_script`, DOM injection,
+or an OS clipboard for credentials. A clipboard permission denial is an
+unsupported-method error: retry with `fill_form`/`fill` in the same worker and
+do not emit `SESSION_CAPABILITY_PAUSE`. Never use the deprecated dummy-auth route or rely on a session
 persisted by an earlier worker. A missing or rejected test-account session is
 SESSION_CAPABILITY_PAUSE and must not mutate task outcomes or propagate skips.
 Record that task in a session-local exclusion set and continue with the next

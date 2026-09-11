@@ -581,6 +581,13 @@ of the active session while the coordinator considers other independent
 caused by task changes after implementation still follows the task's ordinary
 `BLOCKED` rules.
 
+For credential entry, the worker snapshots the login page and uses Chrome
+DevTools MCP `fill_form` with the field UIDs, or `fill` as fallback. Clipboard
+APIs, `evaluate_script`, DOM injection, and OS clipboard transfer are forbidden.
+Failure of an unsupported clipboard attempt is recovered immediately with
+`fill_form`/`fill` in the same worker and MUST NOT be classified as
+`SESSION_CAPABILITY_PAUSE`.
+
 ## Workload resolution
 
 The runner may resolve an explicit task list, a selected series range, or the

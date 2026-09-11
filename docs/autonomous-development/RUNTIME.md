@@ -209,6 +209,17 @@ Agents must use them when authentication is required, must not substitute the
 deprecated dummy route, and must not copy them into Git-tracked files or
 session reports.
 
+Credential entry MUST use Chrome DevTools MCP input tools. After
+`take_snapshot` identifies the email and password field UIDs, prefer one
+`fill_form` call; use individual `fill` calls only as a fallback. Never use
+`navigator.clipboard`, `clipboard.readText`, `evaluate_script`, DOM injection,
+or an operating-system clipboard to transfer credentials. A clipboard
+permission denial is an unsupported-method error, not an authentication or
+browser capability failure: retry immediately in the same worker with
+`fill_form`/`fill` and do not emit `SESSION_CAPABILITY_PAUSE`. Credential values
+must not be echoed in prose, shell output, reports, screenshots, or committed
+files.
+
 After capturing the declared runtime evidence, the worker stops every process
 it started. It MUST do so before returning control to the coordinator. The
 complete clean install and aggregate validation run only in GitHub Actions;
