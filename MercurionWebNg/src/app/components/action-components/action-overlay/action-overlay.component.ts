@@ -9,6 +9,7 @@ import { EssentialProfileRegistryEditComponent } from '../profile-registry-edit/
 import { TicketDetailComponent } from '../ticket-detail/ticket-detail.component';
 import { NewTicketComponent } from '../new-ticket/new-ticket.component';
 import { SelectCollectionThenRouteComponent } from '../select-collection-then-route/select-collection-then-route.component';
+import { DialogShellComponent, DialogDismissalPolicy } from '../../common/dialog-shell/dialog-shell.component';
 
 @Component({
   selector: 'm-action-overlay',
@@ -22,23 +23,19 @@ import { SelectCollectionThenRouteComponent } from '../select-collection-then-ro
     EssentialProfileRegistryEditComponent,
     TicketDetailComponent,
     NewTicketComponent,
-    SelectCollectionThenRouteComponent
+    SelectCollectionThenRouteComponent,
+    DialogShellComponent
   ],
   template: `
 
     @if (ctx.isMounted() && ctx.scope()) {
-      <div
-        class="fixed inset-0 z-[999] backdrop-blur-sm transition-all duration-300 bg-slate-300/75 dark:bg-slate-900/90 action-overlay-backdrop m-overscroll-touch"
-        [class.opacity-0]="!ctx.isVisible()"
-        [class.opacity-100]="ctx.isVisible()"
-        role="dialog"
-        aria-modal="true"
-        [attr.aria-label]="dialogLabel()"
-        [attr.aria-hidden]="!ctx.isVisible()"
-        [attr.aria-busy]="!ctx.isVisible()"
-        [attr.aria-live]="ctx.isVisible() ? 'assertive' : 'off'"
-        [attr.tabindex]="ctx.isVisible() ? 0 : -1"
-      >
+      <m-dialog-shell
+        [mounted]="ctx.isMounted()"
+        [open]="ctx.isVisible()"
+        [label]="dialogLabel()"
+        backdropClass="bg-slate-300/75 dark:bg-slate-900/90 action-overlay-backdrop"
+        [dismissalPolicy]="dismissalPolicy"
+        (dismissed)="ctx.close()">
         @switch (ctx.scope()) {
           @case ('MoleculeCollectionItemSave') {
             <m-custom-molecule-collection-item-save />
@@ -70,7 +67,7 @@ import { SelectCollectionThenRouteComponent } from '../select-collection-then-ro
 
         }
 
-      </div>
+      </m-dialog-shell>
     }
 
   `
@@ -103,5 +100,6 @@ export class ActionOverlayComponent {
         return 'Pannello azioni'
     }
   })
+  protected readonly dismissalPolicy: DialogDismissalPolicy = { escape: true, backdrop: true }
 
 }

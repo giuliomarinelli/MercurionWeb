@@ -1,6 +1,6 @@
 # 0068 - Create the canonical Dialog and Overlay shell
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -140,3 +140,66 @@ _Not applicable._
 ### Blocker / human decision required
 No implementation blocker. Re-enable only after the dependency chain through
 FE-030 is deliberately resolved in a new authorized session.
+
+### Execution notes — UI-010 implementation (2026-09-12)
+
+#### Feature branch and base
+
+- Branch: `feature/UI-010`
+- Base: `c1f7b3f31d671b5aca67741b84e1d30055d85bf1`
+- `origin/develop` matched the base exactly before branch creation.
+- Exact base CI evidence: GitHub Actions run `34658537669`, CI, success, for
+  `c1f7b3f31d671b5aca67741b84e1d30055d85bf1` (merge of UI-009).
+- No `npm ci` or `npm run ci:check` was run locally.
+
+#### Implementation
+
+- Added `DialogShellComponent` and `DialogScrollLockService` as the shared
+  projected-content shell. It owns the dialog role/modal state, explicit typed
+  Escape/backdrop policy, CDK focus trap, initial focus, opener restoration,
+  nested reference-counted body scroll lock, and destroy cleanup.
+- Migrated the common portal modal, action overlay, and molecule search overlay
+  to the canonical shell. Existing action-session state and feature content
+  remain owned by their existing contexts/components.
+- Added lifecycle/accessibility tests covering modal semantics, scroll lock,
+  Escape policy, focus restoration, and disabled dismissal policy.
+
+#### Validation
+
+- `npm run typecheck --workspace mercurion_web_ng` — passed.
+- Focused Angular tests:
+  `npx ng test --watch=false --browsers=ChromeHeadless
+  --include=...dialog-shell.component.spec.ts
+  --include=...modal.component.spec.ts
+  --include=...action-overlay.component.spec.ts
+  --include=...search-overlay.component.spec.ts` — 8 tests passed.
+- Angular watch build completed successfully during the canonical runtime
+  startup.
+- Angular lint completed with only pre-existing repository warnings; the
+  changed shell/modal/action/search files had no lint errors after the
+  template correction.
+
+#### Browser/runtime evidence
+
+- Started Tox21, Nest, and Angular in the required order using the canonical
+  commands and kept each execution session alive. Two consecutive complete
+  readiness rounds returned HTTP 200 from `/health` and `/dashboard`.
+- Through Chrome DevTools MCP at `http://localhost:8888/dashboard`, the
+  authenticated dashboard loaded in the dedicated persistent profile.
+- Standard search modal: accessibility snapshot exposed exactly one
+  `dialog` named “Ricerca molecolare” with `modal`; body overflow was
+  `hidden`, and Escape closed it with focus restored to “Cerca molecola...”.
+- Action overlay: accessibility snapshot exposed exactly one `dialog` named
+  “Seleziona collezione” with `modal`; initial focus was inside the overlay,
+  Tab/Shift+Tab remained contained, Escape closed it, and body overflow
+  returned to empty.
+- Repeated action-overlay open/Escape cycles and repeated mobile-width
+  (390×844) open/Escape cycles succeeded. Desktop viewport was restored to
+  1280×900. No browser console or runtime blocker was observed.
+- All task-owned Tox21, Nest, and Angular sessions were stopped after evidence
+  capture.
+
+#### Commit
+
+- Task commit: recorded on `feature/UI-010` with `--no-gpg-sign` and the
+  required Copilot co-author trailer.

@@ -4,7 +4,6 @@ import {
   Component,
   ChangeDetectionStrategy,
   ElementRef,
-  HostListener,
   inject,
   signal,
   effect,
@@ -28,6 +27,7 @@ import { MoleculeCollectionItemService } from '../../../services/graphql/molecul
 import { Helpers } from '../../../helpers'
 import { Subscription } from 'rxjs'
 import { map } from 'rxjs/operators'
+import { DialogShellComponent } from '../../common/dialog-shell/dialog-shell.component'
 
 
 @Component({
@@ -40,18 +40,17 @@ import { map } from 'rxjs/operators'
     IconButtonComponent,
     SearchResultSkeletonLoaderComponent,
     SkeletonMoleculeCardComponent,
-    MoleculeCollectionItemCardComponent
+    MoleculeCollectionItemCardComponent,
+    DialogShellComponent
   ],
   template: `
-    <div
-      class="fixed inset-0 z-[999] bg-black/70 backdrop-blur-sm text-light-on-surface-main dark:text-slate-50 transition-all duration-300"
-      [class.opacity-0]="!searchContextService.isVisible()"
-      [class.opacity-100]="searchContextService.isVisible()"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Ricerca molecolare"
-      [attr.aria-hidden]="!searchContextService.isVisible()"
-    >
+    <m-dialog-shell
+      [mounted]="searchContextService.isMounted()"
+      [open]="searchContextService.isVisible()"
+      label="Ricerca molecolare"
+      backdropClass="bg-black/70 text-light-on-surface-main dark:text-slate-50"
+      panelClass="!max-w-none !bg-transparent !shadow-none !rounded-none !overflow-visible"
+      (dismissed)="close()">
       <div class="flex justify-center md:justify-center items-stretch md:items-center px-2 sm:px-4 pt-1 md:pt-16 m-overlay-screen h-full">
         <div
           class="w-full max-w-3xl space-y-6 flex flex-col h-full md:h-[75vh]
@@ -141,7 +140,7 @@ import { map } from 'rxjs/operators'
           </div>
         </div>
       </div>
-    </div>
+    </m-dialog-shell>
   `,
   styles: [`
     /* Scrollbar sottile per l'area dei risultati */
@@ -225,13 +224,6 @@ export class SearchOverlayComponent implements AfterViewInit, OnDestroy {
 
   close(): void {
     this.searchContextService.close()
-  }
-
-  @HostListener('document:keydown.escape')
-  onEscape() {
-    if (this.searchContextService.isOpenedSearchOverlay()) {
-      this.close()
-    }
   }
 
   ngOnDestroy(): void {
