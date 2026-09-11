@@ -1,7 +1,7 @@
 # 0091 - Introduce a cancellable molecule-detail facade
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -82,38 +82,54 @@ Mark `BLOCKED` if a molecule variant's authoritative mapping/identity semantics 
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/NG-005` from base `9e0705161ee23b6b22335491121da36483efab90`.
 
 ### Preflight
-_Not started._
+- Exact base Actions run `34598046869` succeeded on Ubuntu, Windows, and
+  `Required gate`.
+- Tox21, Nest, and Angular started in order with two complete readiness rounds
+  returning HTTP 200 for `/health` and `/`; all were stopped afterward.
+- Authenticated protected dashboard state was confirmed through the dedicated
+  non-production profile.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-Not attempted because the required prior FE/UI state and component
-normalization work is terminally non-`DONE`.
+Introduced `MoleculeDetailFacade` with route-driven latest-wins loading,
+variant normalization, explicit loading/error state, title composition, and
+typed detail commands.
+
+The task is `BLOCKED`: post-implementation navigation to a representative
+ChEMBL detail route and the following browser snapshot timed out while the
+runtime remained healthy, so required system/ChEMBL/custom route and
+rapid-navigation evidence cannot be claimed.
 
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+- Angular typecheck passed.
+- Focused Angular tests compiled and began, then ChromeHeadless disconnected
+  at 75/382; the watcher was stopped.
+- Nest compilation and Angular development build passed.
+- No local `npm ci` or `npm run ci:check` was run.
 
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Not applicable; the task was blocked before merge.
 
 ### Browser validation performed
-Not applicable; the task was not attempted.
+Preflight protected dashboard evidence passed. Required post-change detail
+route validation timed out at
+`http://localhost:8888/molecules/detail/01a0903f-2cea-7000-b7cb-a3138940194a`.
 
 ### Commits
-Pending metadata commit on `develop`.
+Partial implementation and diagnostic are preserved on `feature/NG-005`.
 
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+No merge. The feature branch remains preserved and frozen for review.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-The required normalization work includes FE-004 (BLOCKED because mandatory
-authenticated browser validation was unavailable) and FE-030 (BLOCKED because
-worker filesystem-write capability was unavailable), together with their
-terminal dependent tasks.
+Diagnose and authorize a retry of the post-implementation browser validation;
+the observed blocker was the detail-route navigation and subsequent snapshot
+timeout despite healthy canonical runtime processes.
