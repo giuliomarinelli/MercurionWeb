@@ -1,7 +1,7 @@
 # 0059 - Create the canonical Button primitive
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -97,9 +97,90 @@ Prefer a small semantic API over a utility-class passthrough. The point is to re
 
 ## Execution notes
 
-> Current status (2026-09-11): PENDING by direct owner instruction because this
-> activity was not completed. Historical attempt/skip evidence remains below
-> for traceability and is not a terminal outcome. The prior partial work is
+### Current execution (2026-09-11, Source UI-001)
+
+#### Feature branch
+`feature/UI-001`, verified at supplied base SHA
+`31ffc7dbaa3b75a0eb272f8fe27496b1dd33d7c1`. The working tree was clean and
+the remote `feature/UI-001` ref did not exist before this attempt.
+
+#### Preflight
+Exact base-SHA GitHub Actions evidence was confirmed before task work:
+
+- CI run `34609560722`, push event, exact SHA, `success`.
+- CI run `34611679709`, manual full run, exact SHA, `success`.
+
+The focused unchanged-tree Angular check
+`npm --prefix MercurionWebNg run typecheck` passed. The native application
+button inventory found 146 opening tags and 93 distinct static class
+signatures. No task-owned Angular, Nest, Tox21, or test-watcher process was
+active before runtime startup.
+
+#### Browser/runtime capability preflight
+The canonical runtime was started in the required order and in separate live
+sessions:
+
+1. `../MercurionTox21`: `PYTHONUTF8=1 .venv\Scripts\python.exe -m main`
+2. `MercurionWebNode`: `APP_ENV=development LOCAL_DUMMY_AUTH=false npm run start:dev`
+3. `MercurionWebNg`: `npm run start:dev`
+
+After all three live handles existed, `http://localhost:8888/health` and
+`http://localhost:8888/` were polled. An initial upstream `502` was followed
+by two consecutive complete readiness rounds with HTTP 200 for both URLs.
+Chrome DevTools MCP used the dedicated persistent profile at the canonical
+origin. A fresh ordinary login through
+`http://localhost:8888/login` using the authorized local test account reached
+the protected Dashboard and exposed the authenticated workspace identity.
+All three task-owned runtime sessions were stopped and local process
+inspection confirmed their absence before any task mutation.
+
+#### Stop-condition decision
+No implementation was started. The inventory contains materially different
+ordinary-button, action-card/layout, navigation, form, theme, status, and
+control semantics, while icon-only and close controls are explicitly owned by
+task `0060`. The recipe does not provide a semantic mapping policy for the
+remaining signatures or define which feature-local layout classes may remain
+on migrated consumers. Encoding one-off variants or mechanically forwarding
+arbitrary class strings would violate the recipe's canonical-primitive
+constraint. The task stop condition therefore applies and requires a
+design-system decision before safe all-consumer migration.
+
+#### Task-specific validation
+No implementation validation was applicable after the recipe stop condition.
+The required runtime/browser capability preflight and protected-state login
+completed successfully. No product behavior or source implementation was
+changed.
+
+#### Full pre-merge CI-parity validation
+Not run locally. `npm ci` and `npm run ci:check` are forbidden in autonomous
+worker sessions; complete clean-install and aggregate validation remain owned
+by GitHub Actions.
+
+#### Browser validation
+The mandatory capability preflight used only `http://localhost:8888`, proved
+the protected Dashboard after a fresh real-account login, and stopped all
+task-owned processes. The full post-implementation acceptance matrix was not
+run because the task stop condition was reached before implementation.
+
+#### Commits
+This diagnostic task-metadata commit preserves the blocked attempt on
+`feature/UI-001`.
+
+#### Merge / CI
+No feature implementation ref was published before the diagnostic commit.
+The branch is preserved for the coordinator's blocked-task handling.
+
+#### Blocker / human decision required
+A design-system owner must decide the semantic variant/size mapping for the
+materially different ordinary button signatures and the allowed boundary
+between canonical button styling and feature-local layout semantics. The
+decision must also confirm the migration boundary for controls that look like
+buttons but have icon-only or close semantics owned by task `0060`.
+
+> Historical status from the earlier skipped attempt: PENDING by direct owner
+> instruction because that activity was not completed. The historical
+> attempt/skip evidence remains below for traceability and is not this
+> execution's terminal outcome. The prior partial work is
 > preserved on `archive/UI-001-attempt-2026-09-11`.
 
 ### Feature branch
