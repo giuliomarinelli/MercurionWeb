@@ -1,17 +1,13 @@
 import {
-  AfterViewInit,
   Component,
   ChangeDetectionStrategy,
-  ElementRef,
   effect,
   OnDestroy,
   inject,
   signal,
   input,
-  output,
-  viewChild
+  output
 } from '@angular/core'
-import { FormsModule } from '@angular/forms'
 import { toObservable } from '@angular/core/rxjs-interop'
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators'
 import { EMPTY, Subscription, catchError, finalize, switchMap, tap } from 'rxjs'
@@ -22,47 +18,23 @@ import { MoleculeCollectionItemService } from '../../../services/graphql/molecul
 import { AddMoleculesToCollectionContextService } from '../../../services/context/action-context/add-molecules-to-collection-context.service'
 import { UserContextService } from '../../../services/context/user-context.service'
 import { MoleculeSearchService } from '../../../services/graphql/molecule-search.service'
+import { SearchFieldComponent } from '../../common/search-field/search-field.component'
 
 @Component({
   selector: 'm-molecule-search-input',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule],
+  imports: [SearchFieldComponent],
   template: `
-    <div class="flex gap-2 items-center relative">
-      <input
-        #searchInput
-        type="text"
-        [placeholder]="userContext.isLoggedOut() ? 'Cerca molecola ChEMBL...' : 'Cerca molecola...'"
-        class="flex-1 px-4 py-2 rounded-xl bg-white/95 dark:bg-white/5
-         text-black dark:text-white placeholder:text-slate-700 dark:placeholder:text-slate-300
-         shadow-sm ring-1 ring-slate-200/70 dark:ring-white/10
-         focus:outline-none focus:ring-2 focus:ring-light-accent-primary-hq/80 dark:focus:ring-indigo-500/70 focus:ring-offset-0
-         transition w-full"
-        [ngModel]="query()"
-        (ngModelChange)="query.set($event)"
-        (input)="query.set($any($event.target).value)"
-        (focus)="scrollIntoView()"
-        [class.pr-10]="query().trim()"
-        [class.pl-4]="query().trim()"
-        [class.px-4]="!query().trim()"
-        [attr.aria-label]="ariaLabel() || (userContext.isLoggedOut() ? 'Cerca molecola ChEMBL' : 'Cerca molecola')"
-        aria-live="polite"
-      />
-      @if (query().trim()) {
-        <button type="button"
-                (click)="clear()"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-700 dark:text-slate-200 hover:text-light-accent-primary-hc dark:hover:text-indigo-300 transition"
-                tabindex="-1"
-                aria-label="Cancella ricerca">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 20 20">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 6l8 8m0-8l-8 8"/>
-          </svg>
-        </button>
-      }
-    </div>
+    <m-search-field
+      [value]="query()"
+      [label]="ariaLabel() || (userContext.isLoggedOut() ? 'Cerca molecola ChEMBL' : 'Cerca molecola')"
+      [placeholder]="userContext.isLoggedOut() ? 'Cerca molecola ChEMBL...' : 'Cerca molecola...'"
+      [pending]="loading()"
+      (valueChange)="query.set($event)"
+      (cleared)="clear()" />
   `
 })
-export class SearchInputComponent implements AfterViewInit, OnDestroy {
+export class SearchInputComponent implements OnDestroy {
 
   private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService)
   private readonly addContext = inject(AddMoleculesToCollectionContextService)
@@ -70,16 +42,12 @@ export class SearchInputComponent implements AfterViewInit, OnDestroy {
   private readonly moleculeSearchService = inject(MoleculeSearchService)
 
   protected query = signal('')
+  readonly loading = signal(false)
 
   private _search_excludeAlreadyAdded = signal(false)
   private _viewMode = signal<'my' | 'chembl'>('chembl')
 
   private sub?: Subscription
-
-  private readonly searchInputRef = viewChild.required<ElementRef<HTMLInputElement>
-// TODO: Skipped for migration because:
-//  Accessor inputs cannot be migrated as they are too complex.
->('searchInput');
 
   readonly search_excludeAlreadyAdded = input(false)
   readonly viewMode = input<'my' | 'chembl'>('chembl')
@@ -122,6 +90,7 @@ export class SearchInputComponent implements AfterViewInit, OnDestroy {
           }
 
           if (trimmed.length < 2) {
+            this.loading.set(false)
             this.onLoading.emit(false)
             this.onResult.emit([])
             // TODO: The 'emit' function requires a mandatory void argument
@@ -130,6 +99,7 @@ export class SearchInputComponent implements AfterViewInit, OnDestroy {
           }
 
           const collectionId = this.addContext.collectionId()
+          this.loading.set(true)
           this.onLoading.emit(true)
 
           const request$ = collectionId
@@ -142,7 +112,10 @@ export class SearchInputComponent implements AfterViewInit, OnDestroy {
               this.onError.emit(err)
               return EMPTY
             }),
-            finalize(() => this.onLoading.emit(false))
+            finalize(() => {
+              this.loading.set(false)
+              this.onLoading.emit(false)
+            })
           )
         })
       )
@@ -151,28 +124,12 @@ export class SearchInputComponent implements AfterViewInit, OnDestroy {
 
   clear(): void {
     this.query.set('')
+    this.loading.set(false)
     // TODO: The 'emit' function requires a mandatory void argument
     this.onEmpty.emit()
-    queueMicrotask(() => this.searchInputRef().nativeElement.focus())
-  }
-
-  ngAfterViewInit(): void {
-    queueMicrotask(() => {
-      if (!this.query().trim()) {
-        // TODO: The 'emit' function requires a mandatory void argument
-        this.onEmpty.emit()
-      }
-      this.searchInputRef().nativeElement.focus()
-    })
   }
 
   ngOnDestroy(): void {
     this.sub?.unsubscribe()
-  }
-
-  scrollIntoView(): void {
-    queueMicrotask(() => {
-      this.searchInputRef()?.nativeElement.scrollIntoView({ block: 'center', behavior: 'smooth' })
-    })
   }
 }

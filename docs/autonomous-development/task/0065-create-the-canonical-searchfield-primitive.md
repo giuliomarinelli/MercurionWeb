@@ -1,6 +1,6 @@
 # 0065 - Create the canonical SearchField primitive
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -87,6 +87,58 @@ Mark `BLOCKED` if two existing controls have materially different semantics (for
 A caller may debounce a signal/RxJS output; the canonical field should emit user intent promptly and predictably.
 
 ## Execution notes
+
+### Current implementation attempt (2026-09-12)
+
+#### Feature branch
+
+`feature/UI-007`, based on `98e2be910cc6df516fe10f8433255d2cfb2b3dba`
+(the exact synchronized `origin/develop` tip).
+
+#### Preflight
+
+- Confirmed clean `develop` and exact base SHA; the latest exact-SHA
+  GitHub Actions CI run for the base completed successfully.
+- Confirmed local `commit.gpgSign=false`, no existing `feature/UI-007` ref,
+  and no task-owned Angular/Nest/Tox21 watcher before starting.
+- Runtime capability preflight used the canonical Tox21, Nest and Angular
+  commands in the required order. Two complete readiness rounds returned
+  HTTP 200 from `/health` and `/`. A fresh ordinary login through
+  `/login` succeeded and `/dashboard` showed the protected account state.
+
+#### Implementation
+
+- Added the stateless `m-search-field` primitive with typed value,
+  immediate `valueChange`, Enter `submitted`, deterministic empty
+  `cleared`, disabled and pending states, visually hidden accessible label,
+  hint association, and canonical `m-icon-button` clear action.
+- Removed timer/network behavior from the legacy `m-search-input` wrapper;
+  callers remain responsible for debounce and request policy.
+- Migrated the overlay search input to compose `m-search-field` while
+  retaining its feature/facade RxJS debounce and latest-wins request policy.
+
+#### Task-specific validation
+
+- `npx ng test --watch=false --karma-config=karma.conf.js --include
+  src/app/components/common/search-field/search-field.component.spec.ts
+  --include src/app/components/common/pm-search-input/pm-search-input.component.spec.ts
+  --include src/app/components/search-overlay/search-input/search-input.component.spec.ts`
+  — 7 tests passed.
+- `npm run typecheck --workspace mercurion_web_ng` — passed.
+- `npm run lint --workspace mercurion_web_ng -- --no-warn-ignored` — passed
+  with existing repository warnings only.
+- Browser evidence through `http://localhost:8888` on the authenticated
+  mobile/dark profile: global search exposed an accessible searchbox,
+  accepted keyboard text and Enter, showed ChEMBL results, and the clear
+  action returned the field to an empty value and empty-state message.
+- Post-change canonical runtime readiness again achieved two consecutive
+  HTTP 200 rounds. All task-started application processes were stopped after
+  browser evidence; the remaining Chrome DevTools watchdog is MCP-owned.
+
+#### Commits
+
+Pending task-specific commit with `--no-gpg-sign` and the required Copilot
+co-author trailer.
 
 > Current status (2026-09-11): PENDING by direct owner instruction because this
 > activity was not completed. Historical attempt/skip evidence remains below
