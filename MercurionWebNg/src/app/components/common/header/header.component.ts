@@ -19,6 +19,7 @@ import { ProvidedEmailDTO } from '../../../Models/account/account.models';
 import { environment } from '../../../../environments/environment';
 import { ShellLayoutService } from '../../../services/context/shell-layout.service';
 import { APP_CONFIG } from '../../../config/app-config';
+import { routeManifest } from '../../../route-manifest';
 import { BrowserStorageRegistry, storageDescriptor } from '../../../services/browser-storage-registry';
 
 @Component({
@@ -58,7 +59,7 @@ import { BrowserStorageRegistry, storageDescriptor } from '../../../services/bro
       @if (designService.minBk("md")()) {
       <div class="flex items-center gap-3 lg:gap-4">
         <div class="flex items-center gap-3">
-          <a routerLink="/" aria-label="Vai alla home" class="block">
+          <a [routerLink]="routes.home.build({})" aria-label="Vai alla home" class="block">
             <img [ngSrc]="logoSrc() | public" alt="Mercurion" width="927" height="234" title="Mercurion" priority="true"
               class="w-[145px] h-auto contrast-115" />
           </a>
@@ -81,7 +82,7 @@ import { BrowserStorageRegistry, storageDescriptor } from '../../../services/bro
     </div>
     @if (designService.maxBk("sm")()) {
     <div class="flex items-center gap-3">
-      <a routerLink="/" aria-label="Vai alla home" class="block">
+      <a [routerLink]="routes.home.build({})" aria-label="Vai alla home" class="block">
         <img [ngSrc]="logoSrc() | public" alt="Mercurion" width="927" height="234" priority="true"
           class="w-[128px] min-[350px]:w-[145px] h-auto contrast-115" />
       </a>
@@ -95,11 +96,11 @@ import { BrowserStorageRegistry, storageDescriptor } from '../../../services/bro
       @if (!userContext.isLoggedIn() && !isLoginPath()) {
       <div
         class="hidden lg:flex items-center gap-3 text-sm xl:text-[0.925rem] font-medium text-light-on-surface-main dark:text-slate-100 tracking-wider mr-3 relative top-[1px]">
-        <a routerLink="/login"
+        <a [routerLink]="routes.login.build({})"
           class="hover:text-light-accent-primary-hc hover:dark:text-dark-accent-primary transition-colors duration-300">Accedi</a>
         @if (!isRegisterPath()) {
         <span class="cursor-default text-slate-700 dark:text-slate-300">●</span>
-        <a routerLink="/register"
+        <a [routerLink]="routes.register.build({})"
           class="hover:text-light-accent-primary-hc hover:dark:text-dark-accent-primary transition-colors duration-300">Registrati</a>
         }
       </div>
@@ -304,7 +305,7 @@ import { BrowserStorageRegistry, storageDescriptor } from '../../../services/bro
         <ng-container [ngTemplateOutlet]="providerIcon" [ngTemplateOutletContext]="{ provider: providedEmail()?.provider }" />
       <span class="text-sm text-green-900 dark:text-dark-accent-primary font-medium truncate">{{ providedEmail()?.email }}</span>
     </button>
-    <a routerLink="/dashboard" (click)="closeAvatarMenu()"
+    <a [routerLink]="routes.dashboard.build({})" (click)="closeAvatarMenu()"
       class="group flex items-center w-full pl-4 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
       [ngClass]="{ 'bg-slate-200 dark:bg-slate-500': isAvatarMenuItemActive('/dashboard') }">
 
@@ -316,7 +317,7 @@ import { BrowserStorageRegistry, storageDescriptor } from '../../../services/bro
       </svg>
       <span>Dashboard</span>
     </a>
-    <a (click)="closeAvatarMenu()" routerLink="/settings"
+    <a (click)="closeAvatarMenu()" [routerLink]="routes.settings.build({})"
       class="group flex items-center w-full pl-4 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
       [ngClass]="{ 'bg-slate-200 dark:bg-slate-500': isAvatarMenuItemActive('/settings') }">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
@@ -328,7 +329,7 @@ import { BrowserStorageRegistry, storageDescriptor } from '../../../services/bro
       <span>Impostazioni</span>
     </a>
     <a (click)="closeAvatarMenu()"
-      routerLink="/help"
+      [routerLink]="routes.help.build({})"
       class="group flex items-center w-full pl-4 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
       [ngClass]="{ 'bg-slate-200 dark:bg-slate-500': isAvatarMenuItemActive('/help') }">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
@@ -339,7 +340,7 @@ import { BrowserStorageRegistry, storageDescriptor } from '../../../services/bro
       </svg>
       <span>Supporto</span>
     </a>
-    <a routerLink="/feedback"
+    <a [routerLink]="routes.feedback.build({})"
       (click)="closeAvatarMenu()"
       class="group flex items-center w-full mb-2 pl-4 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
       [ngClass]="{ 'bg-slate-200 dark:bg-slate-500': isAvatarMenuItemActive('/feedback') }">
@@ -380,7 +381,7 @@ import { BrowserStorageRegistry, storageDescriptor } from '../../../services/bro
   <!-- Header of the offcanvas -->
   <div class="flex justify-between items-center px-4 border-b py-[18px] border-slate-300 dark:border-dark-border">
     <div class="flex items-center gap-4">
-      <a routerLink="/">
+      <a [routerLink]="routes.home.build({})">
         <img [ngSrc]="pictogramLogo() | public" alt="Pittogramma Logo di Mercurion" width="186" height="234" class="w-auto h-[30px] contrast-115" />
       </a>
       <span class="text-lg">Mercurion</span>
@@ -438,7 +439,7 @@ import { BrowserStorageRegistry, storageDescriptor } from '../../../services/bro
           </span>
         </button>
         <!-- Profilo -->
-        <a routerLink="/dashboard" (click)="closeAvatarMobileMenu(); closeOffCanvasMenu()"
+        <a [routerLink]="routes.dashboard.build({})" (click)="closeAvatarMobileMenu(); closeOffCanvasMenu()"
           class="group flex items-center w-full pl-3 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
           [ngClass]="{ 'bg-slate-200 dark:bg-slate-500': isAvatarMenuItemActive('/dashboard') }">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
@@ -451,7 +452,7 @@ import { BrowserStorageRegistry, storageDescriptor } from '../../../services/bro
           <span>Dashboard</span>
         </a>
         <!-- Impostazioni -->
-        <a (click)="closeAvatarMobileMenu(); closeOffCanvasMenu()" routerLink="/settings"
+        <a (click)="closeAvatarMobileMenu(); closeOffCanvasMenu()" [routerLink]="routes.settings.build({})"
           class="group flex items-center w-full pl-3 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
           [ngClass]="{ 'bg-slate-200 dark:bg-slate-500': isAvatarMenuItemActive('/settings') }">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
@@ -464,7 +465,7 @@ import { BrowserStorageRegistry, storageDescriptor } from '../../../services/bro
         </a>
         <!-- Assistenza -->
         <a (click)="closeAvatarMobileMenu(); closeOffCanvasMenu()"
-          routerLink="/help"
+          [routerLink]="routes.help.build({})"
           class="group flex items-center w-full pl-3 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
           [ngClass]="{ 'bg-slate-200 dark:bg-slate-500': isAvatarMenuItemActive('/help') }">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
@@ -476,7 +477,7 @@ import { BrowserStorageRegistry, storageDescriptor } from '../../../services/bro
           <span>Supporto</span>
         </a>
         <!-- Feedback -->
-        <a routerLink="/feedback"
+        <a [routerLink]="routes.feedback.build({})"
           (click)="closeAvatarMobileMenu(); closeOffCanvasMenu()"
           class="group flex items-center w-full mb-2 pl-3 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
           [ngClass]="{ 'bg-slate-200 dark:bg-slate-500': isAvatarMenuItemActive('/feedback') }">
@@ -514,6 +515,7 @@ import { BrowserStorageRegistry, storageDescriptor } from '../../../services/bro
 })
 export class HeaderComponent implements OnInit, OnDestroy {
 
+  protected readonly routes = routeManifest
   protected readonly themeManager = inject(ThemeManagerService)
   protected readonly designService = inject(DesignService)
   protected readonly searchContextService = inject(SearchContextService)
@@ -530,12 +532,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   private updatePathFlags(currentPath: string) {
     const clean = (currentPath || '').split(/[?#]/)[0]
-    const notAllowedPaths: string[] = ['/login', '/']
+    const notAllowedPaths: string[] = [routeManifest.login.build({}), routeManifest.home.build({})]
 
     this.isAllowedPath.set(!notAllowedPaths.includes(clean))
-    this.isLoginPath.set(clean.startsWith('/login'))
-    this.isRegisterPath.set(clean === '/register')
-    this.isWelcomePath.set(clean.startsWith('/welcome'))
+    this.isLoginPath.set(clean.startsWith(`/${routeManifest.login.path}`))
+    this.isRegisterPath.set(clean === routeManifest.register.build({}))
+    this.isWelcomePath.set(clean.startsWith(`/${routeManifest.welcome.path}`))
   }
 
   readonly triggerOpenOffCanvas = input(false)

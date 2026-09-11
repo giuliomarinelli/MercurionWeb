@@ -96,31 +96,32 @@ The registry is metadata/infrastructure; domain services still expose semantic o
 ## Execution notes
 
 ### Feature branch
-`feature/FE-032`, based on `24642a5fb8ccbf87674fe6de77d8c399293742c1`.
+`feature/FE-032`, based on the supplied base
+`9a3068658403d4ea4bd93ad7e9b5db7f0e68a120`.
 
 ### Preflight
-Base branch was clean at the supplied SHA; exact-SHA GitHub Actions run
-`34550492191` completed successfully. Production Angular storage inventory was
-performed before editing and covered auth/session, pre-auth, redirects, theme,
-route errors, local dummy-auth compatibility, and all storage-event consumers.
-No task-owned workspace process was active at the initial inventory.
+The clean feature branch matched the supplied base SHA before editing.
+Exact-SHA Actions run `34583743903` was green, including Ubuntu and Windows
+quality jobs and `Required gate`. The production Angular inventory found the
+auth/session, pre-auth, redirect, theme, route-error, local dummy-auth and
+storage-event consumers. No task-owned workspace process was active.
 
 ### Preflight remediation
-The canonical runtime was started in the required order with separate attached
-sessions: Tox21 (`python -m main` from `../MercurionTox21`), Nest
-(`npm run start:dev --workspace mercurion_web_node`), and Angular
-(`npm run start:dev` from `MercurionWebNg`). The nginx edge initially returned
-502 while upstreams compiled, then two consecutive complete rounds returned
-`GET / = 200` and `GET /health = 200`. All three processes were stopped before
-handoff.
+For both capability and post-implementation browser probes, Tox21, Nest and
+Angular were started in that order in separate attached sessions using the
+canonical commands. The edge returned 502 while the upstreams compiled, then
+the post-implementation probe produced two consecutive complete readiness
+rounds with `GET / = 200` and `GET /health = 200`. Nest reported zero compile
+errors, connected to Redis/NATS/Tox21, and listened on port 8099. Every
+task-owned process was stopped after each probe.
 
 ### Summary
-Added a typed `BrowserStorageRegistry` with namespaced v1 descriptors, codecs,
-legacy-key migration, safe quarantine/removal for malformed values, owner
-metadata, and typed storage-event decoding. Auth/session persistence and theme,
-socket, local-dummy, header, and cross-tab consumers now use registry-backed
-adapters. Added the static architecture check
-`ci:angular:storage-registry`.
+Added a typed `BrowserStorageRegistry` with stable `mercurion.v1` descriptors,
+medium/owner/version metadata, codecs, legacy-key migration, safe removal of
+malformed values, and typed storage-event decoding. Auth/session persistence,
+theme, socket, local-dummy, header and cross-tab consumers now use registry
+adapters. Added registry migration/invalid-data/event tests and the static
+architecture check `ci:angular:storage-registry`.
 
 ### Task-specific validation performed
 - `npm --prefix MercurionWebNg run typecheck` — passed.
@@ -128,23 +129,26 @@ adapters. Added the static architecture check
 - `npx ng test --watch=false --karma-config=karma.conf.js --include
   src/app/services/auth-session-persistence.service.spec.ts --include
   src/app/services/session-sync.service.spec.ts` — 10/10 passed.
-- Full existing-tree Angular suite reached 356/359; the remaining two failures
-  are unrelated password-recovery fixture failures (`Password recovery error`,
-  HTTP 500) and were not changed.
+- `npx ng test --watch=false --karma-config=karma.conf.js --include
+  src/app/services/browser-storage-registry.spec.ts` — 6/6 passed.
+- `git diff --check` and production storage-access inventory — passed.
 
 ### Full pre-merge CI-parity validation
 Not run locally by policy; clean-install and aggregate CI remain GitHub Actions
 responsibilities.
 
 ### Browser validation performed
-Through only `http://localhost:8888`, logout returned the persistent profile to
-the public welcome state. A namespaced dark theme value survived reload
-(`data-theme="dark"`), and a deliberately malformed registered theme value was
-removed and safely fell back without bootstrap failure. The same runtime
-preflight included protected dashboard/server health evidence before logout.
+Through only `http://localhost:8888`, the fresh ordinary shared-account login
+was accepted and the protected `/dashboard` shell displayed the authenticated
+user. The theme menu accepted the dark theme and the dashboard remained dark
+after a reload. Logout returned the persistent profile to the public login
+state, while the registry tests verified targeted auth cleanup and preservation
+of the registered theme value. The browser console had no application errors;
+malformed structured values and unknown version keys were covered by the
+registry tests without bootstrap exceptions. No token or password was recorded.
 
 ### Commits
-Feature implementation commit recorded below.
+`f5bb0139` — feature implementation and registry integration.
 
 ### Merge / CI
 Feature SHA is pending push and exact-SHA CI.
